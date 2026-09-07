@@ -71,7 +71,7 @@ sequenceDiagram
         Skill->>Ext: COMFYUI_URL=http://comfyui:8188 POST /prompt
         Note over Ext: agentbox.toml:452 url, not baked into the image
     else both gates off (documented default)
-        Note over Skill: ADR-2020 byte-identical-when-off — no process on :8188<br/>Skill--xAgent: connection refused
+        Note over Skill: ADR-2020 byte-identical-when-off — no process on port 8188<br/>Skill--xAgent: connection refused
     end
 
     par management-api GPU-metered route
@@ -123,7 +123,7 @@ sequenceDiagram
     else skills.spatial_and_3d.blender = false
         Note over Proxy: [program:blender-mcp] omitted (flake.nix:2206 lib.optionalString)<br/>ADR-2020: package + supervisor block both absent, no runtime trace
     end
-    Note over BlenderApp: DIVERGENCE — flake.nix:1156-1160 also nixGL-wraps pkgs.blender<br/>in the MAIN image (ADR-2006) but that wrapped package serves nothing here,<br/>because Blender is only ever run from this sidecar, never in-container
+    Note over BlenderApp: DIVERGENCE — flake.nix:1157-1161 also includes GPU-wrapped pkgs.blender in the main image.<br/>The illustrated MCP socket uses the sidecar. Headless in-container Blender is a separate<br/>supported invocation described at flake.nix:1867, so sidecar use is not exclusive.
 ```
 
 ## AB-27.3 QGIS MCP dispatch — headless offscreen server in the same sidecar
@@ -192,8 +192,8 @@ sequenceDiagram
     alt skills.data_science.jupyter = true (agentbox.toml:528)
         Entry->>Entry: mint JUPYTER_TOKEN into a 0600 devuser file, export before supervisord starts<br/>(entrypoint-unified.sh:666-688)
         Sup->>Lab: jupyter-lab --ip=0.0.0.0 --port=8888 --no-browser (flake.nix:1952)
-        Note right of Lab: DOC-DRIFT (fixed by ADR-2040): the old --IdentityProvider.token= flag is REMOVED —<br/>an explicit empty token short-circuited jupyter_server's own env default. Dropping it lets<br/>IdentityProvider fall through to JUPYTER_TOKEN, inherited from Entry, never interpolated<br/>into the generated supervisor text (flake.nix:1940-1950)
-        Op->>Lab: GET http://<host>:8888/lab (token required)
+        Note right of Lab: DOC-DRIFT (fixed by ADR-2040): the old --IdentityProvider.token= flag is REMOVED —<br/>an explicit empty token short-circuited jupyter_server's own env default. Dropping it lets<br/>IdentityProvider fall through to JUPYTER_TOKEN, inherited from Entry, never interpolated<br/>into the generated supervisor text (flake.nix:1955)
+        Op->>Lab: GET /lab on host port 8888 (token required)
         Lab-->>Op: notebook UI, kernel execution
     else skills.data_science.jupyter = false
         Note over Sup: [program:jupyter-lab] omitted (flake.nix:2207 lib.optionalString)<br/>apply_class rebuild (system-manifest.js:54), no runtime trace
@@ -214,7 +214,7 @@ sequenceDiagram
         Entry->>Entry: mint/adopt CODE_SERVER_PASSWORD, write --config file 0600 devuser-owned<br/>(entrypoint-unified.sh:619-646)
         Sup->>CS: code-server --bind-addr 0.0.0.0:8080 --auth password<br/>--config .../config.yaml (flake.nix:2286)
         Note right of CS: DOC-DRIFT (fixed by ADR-2040): binds 0.0.0.0:8080 (still not 127.0.0.1 — the<br/>docker-compose loopback publish only constrains host->container, not bridge->container<br/>on visionclaw_network) but --auth none is GONE, replaced by a minted password
-        Op->>CS: GET http://<host>:8080
+        Op->>CS: GET host port 8080
         CS-->>Op: VS Code web UI over /home/devuser/workspace, password prompt
     else toolchains.code_server = false
         Note over Sup: [program:code-server] omitted (flake.nix:2276 lib.optionalString)<br/>apply_class rebuild (system-manifest.js:51), no runtime trace
@@ -230,8 +230,8 @@ sequenceDiagram
     participant CLI as agentbox.sh voice<br/>agentbox/agentbox.sh:1954
     participant Certs as _voice_ensure_certs<br/>agentbox/agentbox.sh:1893
     participant Compose as docker compose (agentbox-voice project)<br/>agentbox/agentbox.sh:2002
-    participant Caddy as voice-console Caddy :8444/:8443<br/>agentbox/voice/console
-    participant Bridge as tab0-bridge :8971<br/>agentbox/agentbox.toml
+    participant Caddy as voice-console Caddy port 8444/port 8443<br/>agentbox/voice/console
+    participant Bridge as tab0-bridge port 8971<br/>agentbox/agentbox.toml
     participant Unmute as Kyutai Unmute backend<br/>voice-stack/unmute (external, not vendored)
 
     Op->>CLI: ./agentbox.sh voice up
@@ -241,7 +241,7 @@ sequenceDiagram
     alt BRIDGE_TOKEN unset/empty
         CLI--xOp: refuse to start voice stack (agentbox.sh:1986)
     else BRIDGE_TOKEN set
-        Compose->>Caddy: start console (cockpit :8444, debug :8443)
+        Compose->>Caddy: start console (cockpit port 8444, debug port 8443)
         Compose->>Unmute: start frontend/backend (if VOICE_UNMUTE_DIR clone present)
         Op->>Caddy: /embed voice strip, /feed+/bridge -> Bridge, /aoe/*, /approvals/*
         Caddy->>Bridge: forward Authorization header
@@ -291,7 +291,7 @@ sequenceDiagram
     participant Flake as flake.nix gauss3dPackages<br/>agentbox/flake.nix:434
     participant Nix3dgs as lib/3dgs-stack.nix makeLichtfeld<br/>agentbox/lib/3dgs-stack.nix:79
     participant Bridge as lichtfeld_mcp_bridge.py<br/>agentbox/skills/lichtfeld-studio/SKILL.md:39
-    participant LFS as LichtFeld-Studio binary :45677<br/>workspace/gaussians (external, ungated)
+    participant LFS as LichtFeld-Studio binary port 45677<br/>workspace/gaussians (external, ungated)
 
     alt gaussian_splatting = true (requires gpu.backend = local-cuda, E006)
         Flake->>Nix3dgs: makeGaussianSplattingPackages (colmap, metis, lichtfeld) (flake.nix:505)<br/>wrapGpuAll gauss3dPackages (flake.nix:1166)
@@ -313,10 +313,10 @@ sequenceDiagram
 flowchart TB
     SUP["supervisord (PID 1, root)<br/>agentbox/flake.nix"]
     SUP -->|priority 210| IM["imagemagick-mcp<br/>flake.nix:2194"]
-    SUP -->|priority 220| CB["comfyui-builtin :8188 loopback<br/>flake.nix:2302"]
-    SUP -->|priority 230| QM["qgis-mcp :9877 -> proxy<br/>flake.nix:1843"]
-    SUP -->|priority 231| BM["blender-mcp :9876 -> proxy<br/>flake.nix:1868"]
-    SUP -->|priority 232| JL["jupyter-lab :8888<br/>flake.nix:1939"]
+    SUP -->|priority 220| CB["comfyui-builtin port 8188 loopback<br/>flake.nix:2302"]
+    SUP -->|priority 230| QM["qgis-mcp port 9877 -> proxy<br/>flake.nix:1843"]
+    SUP -->|priority 231| BM["blender-mcp port 9876 -> proxy<br/>flake.nix:1868"]
+    SUP -->|priority 232| JL["jupyter-lab port 8888<br/>flake.nix:1939"]
     SUP -->|priority 50| CS["code-server 0.0.0.0:8080<br/>flake.nix:2278"]
     SUP -->|priority 250, gated| PC["podcast-cron (supercronic)<br/>flake.nix:2435 — RESOLVED ADR-2057 gap 1: now wrapped in<br/>lib.optionalString podcastIngestEnabled (flake.nix:169,2402ff),<br/>gate skills.podcast_ingest.enabled default true — off removes the<br/>program but the binary/supercronic stay in the closure (shared<br/>with podcast-{knowledge,bulk}-ingest and forum-backup-cron)"]
 
@@ -325,18 +325,18 @@ flowchart TB
 
     subgraph sidecar["gui-tools-service (own supervisord, compose sidecar)"]
         GSUP["supervisord"]
-        GSUP -->|priority 30| GB["blender + BlenderMCP :9876<br/>gui-tools-sidecar/supervisord.conf:35"]
-        GSUP -->|priority 40| GQ["qgis + QgisMCPServer :9877<br/>gui-tools-sidecar/supervisord.conf:47"]
+        GSUP -->|priority 30| GB["blender + BlenderMCP port 9876<br/>gui-tools-sidecar/supervisord.conf:35"]
+        GSUP -->|priority 40| GQ["qgis + QgisMCPServer port 9877<br/>gui-tools-sidecar/supervisord.conf:47"]
     end
     GTS --- GSUP
 
     subgraph voicesc["voice-console sidecar (own compose project agentbox-voice)"]
-        CADDY["Caddy :8444 / :8443<br/>voice/console"]
+        CADDY["Caddy port 8444 / port 8443<br/>voice/console"]
         UNMUTE["Unmute frontend/backend<br/>voice-stack/unmute (external)"]
     end
 
     subgraph openmedsc["openmed sidecar (own compose project)"]
-        OM["openmed :9093 loopback<br/>docker-compose.openmed.yml"]
+        OM["openmed port 9093 loopback<br/>docker-compose.openmed.yml"]
     end
 ```
 
@@ -462,7 +462,7 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Nix as main image Nix package set<br/>agentbox/flake.nix:1141-1148
+    participant Nix as main image Nix package set<br/>agentbox/flake.nix:1142-1148
     participant Wrap as wrapGpuBin (flake.nix:235) -> gpuWrap.wrapGpuBins<br/>agentbox/lib/gpu-wrap.nix:76
     participant BlenderProxy as blender-mcp proxy (main image)
     participant QgisProxy as qgis-mcp proxy (main image)
@@ -475,10 +475,10 @@ sequenceDiagram
     Nix->>Wrap: wrapGpuBin pkgs.blender ["blender"] (flake.nix:1160)
     Note over Wrap: DIVERGENCE — these two nixGL-wrapped derivations exist in the<br/>main image's package set but are NEVER what serves blender-mcp/qgis-mcp:<br/>both MCP servers proxy to the separate gui-tools-service sidecar instead<br/>(flake.nix:1836-1839 comment: 'nix-built QGIS in agentbox-main cannot reach<br/>the nvidia driver libs ... the same constraint as Blender')
 
-    BlenderProxy->>Sidecar: TCP 9876 (gui-tools-service, own Xvfb :2 + FHS rootfs)
+    BlenderProxy->>Sidecar: TCP 9876 (gui-tools-service, own Xvfb display 2 + FHS rootfs)
     Sidecar->>BLaunch: [program:blender] gui-tools-sidecar/supervisord.conf:35
     alt vglrun found on PATH (launch-blender.sh:18)
-        BLaunch->>Sidecar: vglrun -d egl blender ... — VirtualGL intercepts GLX,<br/>renders on the real GPU via DRM render node, composites back to Xvfb :2
+        BLaunch->>Sidecar: vglrun -d egl blender ... — VirtualGL intercepts GLX,<br/>renders on the real GPU via DRM render node, composites back to Xvfb display 2
     else vglrun missing
         BLaunch->>Sidecar: plain blender ... (software GL, degraded)
     end

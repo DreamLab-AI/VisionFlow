@@ -152,7 +152,7 @@ sequenceDiagram
     participant MB as agentbox-manifest bin<br/>agentbox/services/agentbox-manifest/src/main.rs:206
     participant Sup as supervisord<br/>dream-engine program
     participant API as management-api<br/>routes/system.js:33
-    participant SM as system-manifest.js<br/>CATALOGUE + buildSystemView<br/>:39,:305
+    participant SM as system-manifest.js<br/>CATALOGUE + buildSystemView<br/>management-api/lib/system-manifest.js:305
 
     Note over Entry: boot — Phase reconciles every restart
     Entry->>MB: agentbox-manifest toml-string --manifest /etc/agentbox.toml --path consultants.antigravity.model
@@ -481,7 +481,7 @@ sequenceDiagram
     R->>OB: revokeGrant(grant_id)
     R-->>Prov: 200 event #40;kind 38305#41;, revoked=true
 
-    Note over R: GET /v1/llm/grants #40;:512, pruneExpired + getActiveGrants#40;pubkey#41;#41; and<br/>GET /v1/llm/stats #40;:534, orderbook.stats#40;#41; + KINDS#41; are read-only summaries, not shown above
+    Note over R: GET /v1/llm/grants #40;routes/llm-marketplace.js:514, pruneExpired + getActiveGrants#40;pubkey#41;#41; and<br/>GET /v1/llm/stats #40;routes/llm-marketplace.js:536, orderbook.stats#40;#41; + KINDS#41; are read-only summaries, not shown above
 ```
 
 ## AB-15.10 headroom compression-capacity model and its 3 MCP tools
@@ -590,26 +590,26 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Caller as Coordinator #40;Claude session#41;
-    participant Base as BaseConsultant._handleConsult<br/>mcp/consultants/shared/consultant-base.js:241
-    participant Onto as ontoBrain#40;#41;.ask<br/>mcp/servers/lib/ontology-retrieval.js
-    participant Spawn as spawnCli<br/>mcp/consultants/shared/spawn-cli.js:29
+    participant Base as BaseConsultant._handleConsult<br/>consultant-base.js:258
+    participant Onto as ontoBrain#40;#41;.ask<br/>ontology-retrieval.js
+    participant Spawn as spawnCli<br/>spawn-cli.js:29
     participant CLI as agy #124; codex #124; z #40;vendor CLI#41;
-    participant Div as model-diversity.js<br/>verificationRecord/selectVerifier<br/>:196,:151
-    participant Log as MemoryLogger.log<br/>mcp/consultants/shared/memory-logger.js:66
-    participant API as management-api /v1/agent-events/emit
+    participant Div as model-diversity.js<br/>verificationRecord/selectVerifier<br/>model-diversity.js:208,162
+    participant Log as MemoryLogger.log<br/>memory-logger.js:66
+    participant API as management-api<br/>/v1/agent-events/emit
 
     Caller->>Base: CallToolRequest consult {question, context_excerpt, producer_family, ontology_context}
-    Base->>Base: validate question non-empty #40;:242#41;
+    Base->>Base: validate question non-empty #40;consultant-base.js:259#41;
     opt ontologyAugmentEnabled#40;args#41; -- args.ontology_context===true or CONSULT_ONTOLOGY_AUGMENT=1
         Base->>Onto: ask#40;{query, model_tier:'sonnet', mode:'expand', max_tokens:1500}#41;
         alt ontology call throws
-            Onto-->>Base: fail-open -- proceed ungrounded #40;:264 catch#41;
+            Onto-->>Base: fail-open -- proceed ungrounded #40;consultant-base.js:281 catch#41;
         else turtle returned
             Onto-->>Base: {turtle, seed_iris, tokens_used, degraded}
             Base->>Base: prepend Turtle to context_excerpt, coordinator's excerpt preserved whole
         end
     end
-    Base->>Spawn: this.callConsult#40;{question, context_excerpt, format}#41; under _withTimeout#40;timeout_ms#41;
+    Base->>Spawn: this.callConsult#40;{question, context_excerpt, format}#41; under<br/>_withTimeout#40;timeout_ms#41;
     Spawn->>CLI: spawn#40;cmd, args, env: scrubbed + PASSTHROUGH_ENV TLS/proxy vars#41;<br/>spawn-cli.js:47-50
     alt exit code non-zero or SIGKILL on timeout
         CLI-->>Spawn: {code!=0, killed, stderr}
@@ -618,7 +618,7 @@ sequenceDiagram
         CLI-->>Spawn: {stdout, code:0}
         Spawn-->>Base: {response, model, tokens, cost_usd, citations}
     end
-    Base->>Base: mint consultation_urn via uris.mint#40;kind:'activity', payload:{consultant,question}#41; #40;ADR-013 URN grammar#41;
+    Base->>Base: mint consultation_urn via uris.mint#40;kind:'activity', payload:{consultant,question}#41;<br/>#40;ADR-013 URN grammar#41;
     opt args.producer_family set -- REC-8 anti-fox closure verification
         Base->>Div: verificationRecord#40;{producerFamily, verifier:this.name, task:'closure-verification'}#41;
         Div-->>Base: {producer_family, verifier_family, anti_fox_ok}
@@ -630,7 +630,7 @@ sequenceDiagram
     opt AGENTBOX_INTELLIGENCE_DIR set and response_len is number
         Log->>Log: _writeIntelligenceSignal -- ADR-043 QualitySignal JSON #40;memory-logger.js:87-113#41;
     end
-    Base->>API: POST /v1/agent-events/emit #40;Bearer MANAGEMENT_API_KEY#41; -- fire-and-forget, best-effort #40;consultant-base.js:39-43#41;
+    Base->>API: POST /v1/agent-events/emit #40;Bearer MANAGEMENT_API_KEY#41; -- fire-and-forget, best-effort<br/>#40;consultant-base.js:39-43#41;
     Base-->>Caller: envelope {ok, response, model, tokens, cost_usd, citations, consultation_urn, verification}
 ```
 

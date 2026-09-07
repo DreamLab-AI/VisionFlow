@@ -12,7 +12,7 @@ sources:
   - ../knowledgeGraph/pipeline/release_gate.py
   - ../knowledgeGraph/pipeline/jsonld_to_page_api.py
   - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
-verified_commit: 2791111fc
+verified_commit: worktree-2026-09-07
 ---
 
 ## KG-05.1 build.yml — six gates, cheapest first, no deploy step
@@ -79,3 +79,5 @@ flowchart TB
 ```
 
 Audit qualification — 2026-09-07: the strengthened strict build, input census, visibility filtering, identity-set gate and generation manifest are present in this checkout's pre-existing dirty working tree. The 85 pipeline tests pass against those bytes. HEAD `2791111fc4ae301fdc5843ed2ad88b2e67d643fb` alone does not identify that implementation, and the evidence does not establish deployment or propagation into visionGraph. See the [federation audit](../../estate-review/2026-09-07-federation-audit.md).
+
+Execution update — 2026-09-07: both publishers now share a tested public projection and staged build boundary. The extracted publisher passes 96 tests and emits projected title-form Markdown in addition to its existing slug aliases. The actual visionGraph workflow's raw-copy mirror has been removed. The historical mirror incident above remains a historical lesson, not the current emitter implementation. No deployment is inferred from these local checks.

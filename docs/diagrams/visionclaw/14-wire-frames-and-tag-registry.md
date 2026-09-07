@@ -92,9 +92,9 @@ classDiagram
     Masks --> RemapFunctions
 
     note for Masks "INVARIANT ADR-2024 NODE_ID_MASK = 0x03FF_FFFF - flag bits 26-31 are stripped before analytics and SSSP map lookups"
-    note for RemapFunctions "Ids above the mask are remapped and logged NODE ID OVERFLOW at :204 inside enforce_wire_id_bounds (:192) - remap_wire_id (:224) returns (masked_id, overflowed)"
+    note for RemapFunctions "Ids above the mask are remapped and logged NODE ID OVERFLOW at utils/binary_protocol.rs:204 inside enforce_wire_id_bounds (utils/binary_protocol.rs:192) - remap_wire_id (utils/binary_protocol.rs:224) returns (masked_id, overflowed)"
     note for RemapFunctions "Encoder strips flag bits before SSSP and analytics lookups - the maps are keyed by compact id, skipping this is a real bug class"
-    note for WireNodeId "Ontology sub-type bits are only meaningful when the node belongs to GraphType::Ontology (comment :21)"
+    note for WireNodeId "Ontology sub-type bits are only meaningful when the node belongs to GraphType::Ontology (comment utils/binary_protocol.rs:21)"
 ```
 
 ## VC-14.3 Tag byte 0 registry — two disjoint socket spaces
@@ -120,7 +120,7 @@ flowchart TD
 
     N1["INVARIANT ADR-2019 tag allocation is per socket - the numeric overlap between 0x05 graph V5 and 0x05 settings is safe only because the sockets are demultiplexed independently"]
     N2["RESOLVED ADR-2060: BASELINE cited the SETTINGS 0x05 as the graph V5 envelope. Corrected, and the registry now warns that a 0x05 citation must always name its socket"]
-    N3["DIVERGENCE MessageType enum :1705 reuses 0x03 for ControlFrame while PROTOCOL_V3 also uses 0x03 as the position-frame lead byte - disambiguated only by direction and call site"]
+    N3["DIVERGENCE MessageType enum (utils/binary_protocol.rs:1705) reuses 0x03 for ControlFrame while PROTOCOL_V3 also uses 0x03 as the position-frame lead byte - disambiguated only by direction and call site"]
     N4["RESOLVED ADR-2057: the V5 envelope now has an owning ADR fixing its layout [0x05] u64 seq then V3 body, and the broadcast_seq contract"]
     N5["OPEN: the settings binary protocol is still not fully enumerated in the registry - unchanged by the 2026-09-05 remediation"]
     N6["RESOLVED ADR-2060: the legacy 48B/28B ADR figures are marked retired in the governing docs - the wire is 52B, now compile-time locked"]
@@ -208,13 +208,13 @@ classDiagram
 sequenceDiagram
     autonumber
     participant FCA as ForceComputeActor<br/>see VC-13.3
-    participant ENC as encode_node_data_extended_with_sssp<br/>src/utils/binary_protocol.rs
+    participant ENC as encode_node_data_extended_with_sssp<br/>src/utils/binary_protocol.rs:419
     participant WS as WebSocket /wss
     participant RS as XR Rust decoder<br/>xr-client/rust/src/binary_protocol.rs:400
     participant TS as Web TS decoder<br/>client/src/types/binaryProtocol.ts:410
 
     FCA->>ENC: node tuples plus agent and knowledge id lists
-    ENC->>ENC: per node remap_wire_id :166 then stamp type flag bits
+    ENC->>ENC: per node stamp type flag bits (utils/binary_protocol.rs:455-464) then enforce_wire_id_bounds (utils/binary_protocol.rs:470), to_wire_id_v2 (utils/binary_protocol.rs:488)
     ENC->>ENC: strip flag bits before SSSP and analytics map lookups
     ENC->>ENC: write 52-byte record - id@0 pos@4 vel@16 sssp_dist@28 sssp_parent@32 cluster@36 anomaly@40 community@44 centrality@48
     Note over ENC: sssp_distance defaults to f32::INFINITY and sssp_parent to -1 when absent

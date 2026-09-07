@@ -97,7 +97,7 @@ sequenceDiagram
     SEEDER->>SEEDER: WRAPPER_SLUGS.router = {file: 'router.sh', detectAs: null}<br/>scripts/aoe-seed-sessions.mjs:113
     SEEDER->>CFG: customAgents.router = path.join(WRAPPER_DIR, 'router.sh')<br/>scripts/aoe-seed-sessions.mjs:272-273 (no detectAs alias — router is its own program)
     AOE->>WRAP: exec router.sh (session program for slug=router, agentbox.toml:1387-1391)
-    WRAP->>WRAP: _die if console missing, node absent, or ruflo not resolvable<br/>router.sh:46,50,52
+    WRAP->>WRAP: _die if console missing, node absent, or ruflo not resolvable<br/>router.sh:47,51,52
     WRAP->>WRAP: locate artefacts: $AGENTBOX_MODEL_ROUTER_DIR else<br/>/opt/agentbox/model-router else $WORKSPACE/.agentbox/model-router<br/>router.sh:58-64
     alt no seed-router.krr.json found anywhere
         WRAP-->>AOE: _die "run ./agentbox.sh model-router fetch"<br/>router.sh:65-68

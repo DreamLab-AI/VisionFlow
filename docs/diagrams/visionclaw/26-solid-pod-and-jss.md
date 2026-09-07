@@ -10,6 +10,7 @@ sources:
   - ../project/client/src/services/api/authInterceptor.ts
   - ../project/Cargo.toml
   - ../project/src/main.rs
+  - ../project/src/services/ontology_generation.rs
   - ../project/src/services/ontology_pull.rs
   - ../project/src/handlers/solid_proxy_handler.rs
   - ../project/src/utils/nip98.rs
@@ -527,8 +528,8 @@ sequenceDiagram
                 else all verified
                     PO->>ST: create /public/, /public/ontology/ containers if absent
                     PO->>ST: PUT /public/ontology/.acl (public-read WAC)<br/>ONLY IF ABSENT - operator edits survive<br/>ontology_pull.rs:354-361
-                    PO->>ST: PUT each content file<br/>ontology_pull.rs:362-366
-                    PO->>ST: PUT index.jsonld LAST<br/>ontology_pull.rs:367-373 - advertises new build only after all content PUTs succeed
+                    PO->>ST: publish_ontology: stage all five resources and sidecars<br/>ontology_generation.rs:127
+                    ST->>ST: fsync staged generation and atomically replace active pointer<br/>ontology_generation.rs:127
                     PO-->>SB: "PullOutcome::Updated(build_sha, classes, triples)"
                 end
             end
@@ -536,25 +537,24 @@ sequenceDiagram
         end
     end
     Note over PO,ST: INVARIANT fail-open (module doc ontology_pull.rs:12-17): any network or<br/>verification failure is logged and the pod keeps whatever it already held -<br/>see VC-26.10/26.13 for the client read side and EXTERNAL ES-09.13 for the<br/>GitHub-hosted publish job this inverts (a hosted runner cannot reach the<br/>in-process pod, ADR-2098).
-    Note over PO,ST: DIVERGENCE (2026-09-07 audit): verified bytes are PUT sequentially, not<br/>published atomically. A storage failure at :362-373 leaves earlier writes visible<br/>with the old manifest, no rollback restores the prior generation.<br/>Manifest-last enables retry, not a consistent snapshot for concurrent readers.<br/>The ACL exists probe at :355 treats read errors as absence and may overwrite<br/>an operator ACL on a later successful PUT. ADR-2106 needs qualified guarantees.
-    Note over SB: Ten unit tests in source cover the sequence against MemoryBackend + a map-backed<br/>fetcher: first pull, no-op on same build, operator ACL preserved, digest<br/>mismatch / missing sum / unreachable release write nothing, disabled<br/>short-circuit, sums/manifest parsing, env (ontology_pull.rs, mod tests)
+    Note over PO,ST: Source closeout: immutable generations replace sequential canonical writes.<br/>Pre-activation failures retain the prior generation after restart.<br/>Pinned resource URLs reuse canonical ACLs. Old unpinned clients may straddle activation.<br/>Post-rename root fsync failure leaves a complete generation but uncertain durable activation.
+
 ```
 
 ## VC-26.14 Ontology publication failure boundaries — verified bytes versus atomic visibility
 
 ```mermaid
 flowchart TD
-    Fetch["Fetch manifest, sums and four resources<br/>ontology_pull.rs:304-342"] --> Verify{"All hashes verified?"}
-    Verify -->|no| Unchanged["Return error before mutations<br/>Previous content remains"]
-    Verify -->|yes| Probe{"ACL exists probe<br/>ontology_pull.rs:355"}
-    Probe -->|true| Preserve["Keep operator ACL"]
-    Probe -->|false or read error| ACL["Write public-read ACL<br/>Read error is treated as absent"]
-    Preserve --> Writes["PUT content resources sequentially<br/>ontology_pull.rs:362-366"]
-    ACL --> Writes
-    Writes -->|all succeed| Manifest["PUT index.jsonld last<br/>ontology_pull.rs:367-373"]
-    Writes -->|one fails| Mixed["Earlier PUTs remain visible<br/>Old manifest remains; no rollback"]
-    Manifest -->|fails| Mixed
-    Manifest -->|succeeds| Complete["Return Updated<br/>New build marker visible"]
-    Mixed --> Retry["Next scheduled pull retries<br/>Concurrent readers may see mixed generations"]
-    Risk["Closeout: stage a generation and switch atomically,<br/>or make readers verify a generation manifest;<br/>inject storage and ACL-probe failures before acceptance"] -.-> Writes
+    Fetch["Fetch and verify all release hashes<br/>ontology_pull.rs:291"] --> Probe{"ACL existence succeeds?"}
+    Probe -->|error| Abort["Abort without changing ACL"]
+    Probe -->|yes| ACL["Preserve existing ACL; initialise only when absent"]
+    ACL --> Stage["Stage immutable files plus manifest generation<br/>ontology_generation.rs:127"]
+    Stage --> Sync["Sync content, sidecars and generation directories"]
+    Sync --> Activate["Sync pending pointer; atomic rename; sync root"]
+    Stage -->|failure before activation| Old["Prior active generation survives restart"]
+    Sync -->|failure before activation| Old
+    Activate --> Canonical["Canonical URLs resolve current generation"]
+    Canonical --> Pin["Browser pins index generation for JSON-LD and Turtle<br/>schemaParser.ts:73"]
+    Pin --> Read["Read @generation paths with canonical ACL<br/>ontology_generation.rs:44"]
+    Limit["Unpinned clients can straddle activation;<br/>old generations retained; no reader-safe GC yet"] -.-> Canonical
 ```

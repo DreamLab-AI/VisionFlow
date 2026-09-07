@@ -634,7 +634,7 @@ sequenceDiagram
     C->>RS: POST /api/layout/reset
     RS->>GPU: send(ResetPositions)
     RS-->>C: 200/error
-    Note over C,RS: GET /api/layout/modes (:7, static available list), /status (:207), /zones (:237)<br/>and POST /zones (:226) are local reads/writes with no GPU round-trip, not expanded here
+    Note over C,RS: GET /api/layout/modes (layout_handler.rs:310, static available list), /status (layout_handler.rs:313), /zones (layout_handler.rs:315)<br/>and POST /zones (layout_handler.rs:314) are local reads/writes with no GPU round-trip, not expanded here
 ```
 
 ## VC-04.13 `physics` scope — port/adapter hop, PhysicsService to ActixPhysicsAdapter to PhysicsOrchestratorActor
@@ -670,7 +670,7 @@ sequenceDiagram
         SS-->>C: 500 Failed to start simulation
     end
     Note over PA,POA: compute_forces() / update_positions() / step() / simulate_until_convergence()<br/>each wrap ONE actor message (ComputeForcesMessage, UpdatePositionsMessage, PhysicsStepMessage,<br/>SimulateUntilConvergenceMessage) behind a tokio::time::timeout(self.timeout) —<br/>timeout maps to GpuPhysicsAdapterError::ComputationError("Actor communication timeout")
-    Note over C,POA: POST /api/physics/stop, /optimize, /step, /forces/apply, /nodes/pin,<br/>/nodes/unpin, /parameters, /reset all route through the SAME PhysicsService port<br/>to ONE ActixPhysicsAdapter to the SAME PhysicsOrchestratorActor — GET /status (:190)<br/>bypasses the port entirely and reads app_state.get_gpu_compute_addr().is_some() directly
+    Note over C,POA: POST /api/physics/stop, /optimize, /step, /forces/apply, /nodes/pin,<br/>/nodes/unpin, /parameters, /reset all route through the SAME PhysicsService port<br/>to ONE ActixPhysicsAdapter to the SAME PhysicsOrchestratorActor — GET /status (physics_handler.rs:190)<br/>bypasses the port entirely and reads app_state.get_gpu_compute_addr().is_some() directly
 ```
 
 ## VC-04.14 `kpi` scope — compute-on-read, agent-event volume tap, SQLite lineage
@@ -1214,8 +1214,8 @@ sequenceDiagram
 ## VC-04.28 `quic_transport_handler` — DOC-DRIFT: the QUIC transport was removed under ADR-2066
 ```mermaid
 flowchart TB
-    Q["quic_transport_handler.rs (102 lines) — now holds ONLY PostcardNodeUpdate and<br/>PostcardBatchUpdate plus their BinaryNodeData round-trip impls (:22-75)"]
-    IMP["imported directly by fastwebsockets_handler.rs:34<br/>`use super::quic_transport_handler::{PostcardBatchUpdate, PostcardNodeUpdate}`"]
+    Q["quic_transport_handler.rs (102 lines) — now holds ONLY PostcardNodeUpdate and<br/>PostcardBatchUpdate plus their BinaryNodeData round-trip impls (quic_transport_handler.rs:22-75)"]
+    IMP["imported directly by (fastwebsockets_handler.rs:34)<br/>`use super::quic_transport_handler::{PostcardBatchUpdate, PostcardNodeUpdate}`"]
     MODRS["src/handlers/mod.rs:111-117 — module doc comment records the removal;<br/>NO pub use re-export of anything from this module exists"]
     NONE["NO configure fn, no route, scope, or .service() call anywhere in src/main.rs<br/>registers this module — it never had one even before the removal"]
     Q --> IMP

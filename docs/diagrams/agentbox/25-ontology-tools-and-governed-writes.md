@@ -80,7 +80,7 @@ sequenceDiagram
     autonumber
     participant AG as Agent
     participant BR as ontology-bridge<br/>agentbox/mcp/servers/ontology-bridge.js:272
-    participant RET as retrieval brain<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:279
+    participant RET as retrieval brain<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:280
     participant BUD as ontology-budget<br/>agentbox/mcp/servers/lib/ontology-budget.js:66
     participant BE as backend<br/>Loom or VisionClaw — see AB-24
 

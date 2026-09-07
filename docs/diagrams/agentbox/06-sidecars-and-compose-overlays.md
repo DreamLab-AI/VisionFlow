@@ -8,10 +8,6 @@ adrs: [ADR-2013, ADR-2003, ADR-2040]
 sources:
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/xr-runtime/Dockerfile
-  - ../project/agentbox/xr-runtime/supervisord.conf
-  - ../project/agentbox/xr-runtime/launch-monado.sh
-  - ../project/agentbox/xr-runtime/launch-godot.sh
-  - ../project/agentbox/xr-runtime/healthcheck.sh
   - ../project/agentbox/docker-compose.yml
   - ../project/agentbox/docker-compose.override.yml
   - ../project/agentbox/docker-compose.browsercontainer.yml
@@ -43,9 +39,9 @@ verified_commit: 2c521c5bb
 ## AB-06.1 Compose overlay topology on visionclaw_network
 ```mermaid
 flowchart TB
-    subgraph BASE["docker-compose.yml — AUTO-GENERATED from agentbox.toml via flake.nix, do not edit by hand (:1-2)"]
-        PG["ruvector-postgres<br/>image pinned by digest :11<br/>db ruvector, healthcheck pg_isready :20-25"]
-        AB["agentbox<br/>image AGENTBOX_IMAGE_REF :31<br/>depends_on ruvector-postgres service_healthy :35-37<br/>healthcheck curl localhost:9090/ready :39-44"]
+    subgraph BASE["docker-compose.yml — AUTO-GENERATED from agentbox.toml via flake.nix, do not edit by hand (docker-compose.yml:1-2)"]
+        PG["ruvector-postgres<br/>image pinned by digest docker-compose.yml:11<br/>db ruvector, healthcheck pg_isready docker-compose.yml:20-25"]
+        AB["agentbox<br/>image AGENTBOX_IMAGE_REF docker-compose.yml:31<br/>depends_on ruvector-postgres service_healthy docker-compose.yml:35-37<br/>healthcheck curl localhost:9090/ready docker-compose.yml:39-44"]
     end
     PG -->|"service_healthy gate"| AB
     AB ---|"9096:9096 LAN — the ONE identity-gated door"| LAN(("LAN"))
@@ -85,9 +81,9 @@ flowchart TB
 ## AB-06.2 ADR-2013 — the loopback-publish invariant and its CI gate
 ```mermaid
 flowchart TD
-    CI[".github/workflows/invariants.yml"] --> W["scripts/ci/check-ports-loopback.sh<br/>stable entry point, resolves the gate<br/>relative to itself and FAILS LOUDLY if missing (:9-13)"]
+    CI[".github/workflows/invariants.yml"] --> W["scripts/ci/check-ports-loopback.sh<br/>stable entry point, resolves the gate<br/>relative to itself and FAILS LOUDLY if missing (check-ports-loopback.sh:29-30)"]
     W --> G["scripts/ci/check-ports-loopback.mjs<br/>real YAML reader"]
-    G --> WALK["walk the WHOLE tree of every docker-compose*.yml<br/>at the repo root glob, not only services/*/ports (:594)"]
+    G --> WALK["walk the WHOLE tree of every docker-compose*.yml<br/>at the repo root glob, not only services/*/ports (check-ports-loopback.mjs:1067-1072)"]
     WALK --> NORM["normalise every spelling to one tuple —<br/>long-form host_ip/published/target and<br/>short 0.0.0.0:8080:80 judge identically (:31-32)"]
     NORM --> J{"host_ip is 127.0.0.1?<br/>LOOPBACK const :89"}
     J -->|yes| PASS["pass"]
@@ -123,7 +119,7 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant A as agent in agentbox
-    participant S as browsercontainer/server.js<br/>request router :202-280
+    participant S as browsercontainer/server.js<br/>request router server.js:195
     participant CH as headless Chrome
     participant V as gui-tools-exchange volume
 
@@ -132,19 +128,19 @@ sequenceDiagram
         S-->>A: CORS headers
     end
     alt GET /health (server.js:208)
-        A->>S: GET :8931/health
+        A->>S: GET port 8931 /health
         S-->>A: status ok, transport sse, sessions N, chrome true, cdp 127.0.0.1:9222
     end
     alt POST /render-mermaid (server.js:238)
         A->>V: write mermaid source
-        A->>S: POST :8931/render-mermaid
+        A->>S: POST port 8931 /render-mermaid
         S->>CH: render
         CH-->>S: SVG or PNG
         S->>V: write result
         S-->>A: rendered artefact
     end
     alt GET /sse (server.js:257)
-        A->>S: GET :8931/sse — MCP SSE stream opens
+        A->>S: GET port 8931 /sse — MCP SSE stream opens
         S-->>A: event stream (registered as the browser-gpu MCP server)
         A->>S: POST /messages (server.js:280) — JSON-RPC tool calls
         S->>CH: drive via CDP
@@ -152,7 +148,7 @@ sequenceDiagram
         S-->>A: tool result
     end
     Note over S,CH: raw CDP is also reachable — published 9222 on the host mapping to container 9223 (docker-compose.browsercontainer.yml:53, SANCTIONED at check-ports-loopback.mjs:99)
-    Note over S: VNC :5903 for eyes-on debugging (docker-compose.browsercontainer.yml:48)
+    Note over S: VNC port 5903 for eyes-on debugging (docker-compose.browsercontainer.yml:48)
     Note over A,S: GPU reservation and NVIDIA device request in the deploy block (docker-compose.browsercontainer.yml:33-45)
     Note over A,V: extra_hosts host.docker.internal maps to host-gateway (docker-compose.browsercontainer.yml:57-58)
 ```
@@ -255,7 +251,7 @@ flowchart TD
     CD -.-> SIB["sibling CI invariants in scripts/ci/ — check-db-password.sh,<br/>check-secret-not-in-env.sh, check-nnp.sh, check-seccomp.sh,<br/>check-no-npx-latest.sh, check-manifest-catalogue.js, check-single-metrics.js"]
 ```
 
-## AB-06.9 xr-runtime — Monado plus Godot behind the compose publish (closes audit gap 5)
+## AB-06.9 xr-runtime — operator CLI lifecycle (closes audit gap 5; sidecar internals in AB-27.13)
 
 ```mermaid
 sequenceDiagram
@@ -263,37 +259,17 @@ sequenceDiagram
     participant OP as operator
     participant SH as cmd_xr_runtime<br/>agentbox.sh:1418
     participant DC as docker compose<br/>XR_RUNTIME_COMPOSE_ARGS
-    participant SUP as supervisord<br/>xr-runtime/supervisord.conf
-    participant MON as launch-monado.sh<br/>xr-runtime/launch-monado.sh
-    participant GOD as launch-godot.sh<br/>xr-runtime/launch-godot.sh
-    participant HC as healthcheck.sh<br/>xr-runtime/healthcheck.sh
+    participant XR as xr-runtime container<br/>Monado + Godot — see AB-27.13
 
     OP->>SH: ./agentbox.sh xr-runtime up
     SH->>DC: docker compose ... up -d --build (agentbox.sh:1426)
-    DC->>SUP: exec supervisord -n -c /etc/supervisord.conf (Dockerfile:117)
-    SUP->>SUP: init-perms — chown devuser:devuser .cargo + rust/target, one-shot (supervisord.conf:19-20)
-    SUP->>SUP: xvfb — Xvfb :3 1920x1080x24 (supervisord.conf:32-33)
-    SUP->>SUP: x11vnc — mirror :3 to VNC :5904, -nopw (supervisord.conf:43-44)
-    SUP->>MON: exec launch-monado.sh, priority 25 (supervisord.conf:55-56)
-    MON->>MON: DRIVER = XR_INPUT_DRIVER default simulated — stereo HMD,<br/>always registers a head device (launch-monado.sh:20,26-28)
-    Note over MON: qwerty (keyboard/mouse 6DoF) is EXPERIMENTAL here — this Monado<br/>build produces no head device and segfaults the compositor (launch-monado.sh:17-19,21-24)
-    MON->>MON: wait for /tmp/.X11-unix/X3, up to 30s (launch-monado.sh:45-48)
-    Note over MON: stdin fed a pollable pipe that never EOFs — supervisord's stdin is<br/>closed/non-pollable and Monado's IPC epoll_ctl(stdin) fails fatally otherwise (launch-monado.sh:50-55)
-    MON-->>SUP: monado-service running, IPC socket at $XDG_RUNTIME_DIR/monado_comp_ipc
-    SUP->>GOD: exec launch-godot.sh, priority 30, startsecs 10 startretries 10 (supervisord.conf:68-69)
-    alt gdext cdylib not cached
-        GOD->>GOD: build-gdext.sh — first boot ~5-10 min cold (launch-godot.sh:26-29)
-    end
-    GOD->>GOD: wait for monado_comp_ipc socket, up to 60s — WARN only, not fatal (launch-godot.sh:36-43)
-    GOD->>GOD: godot --headless --import, one-shot resource import (launch-godot.sh:46-47)
-    GOD->>GOD: exec godot --path PROJECT_DIR --verbose SCENE, tonemapper log-spam filtered (launch-godot.sh:62-65)
-    loop poll until 720s deadline (agentbox.sh:1428-1436)
-        SH->>HC: docker inspect .State.Health.Status
-        HC->>HC: Xvfb pgrep, x11vnc :5904 listen, monado-service pgrep + IPC socket<br/>(FAIL if Xvfb/x11vnc/monado absent; godot and nvidia-smi are WARN-only) (healthcheck.sh:7-37)
+    DC->>XR: exec supervisord -n -c /etc/supervisord.conf (Dockerfile:117)
+    loop poll .State.Health.Status until 720s deadline (agentbox.sh:1428-1436)
+        SH->>XR: docker inspect --format .State.Health.Status
         alt healthy
-            HC-->>SH: break
+            XR-->>SH: break
         else missing container
-            HC-->>SH: exit 1 immediately (agentbox.sh:1434)
+            XR-->>SH: exit 1 immediately (agentbox.sh:1434)
         end
     end
     alt not healthy within 12 min
@@ -302,5 +278,4 @@ sequenceDiagram
         SH-->>OP: VNC vnc://localhost:5904, Monado simulated stereo HMD, scene XRBoot→GraphScene (agentbox.sh:1442-1445)
     end
     Note over SH,DC: sibling subcommands down/logs/health/status/rebuild all reuse<br/>XR_RUNTIME_COMPOSE_ARGS (agentbox.sh:1447-1477)
-    Note over MON,GOD: no physical headset — qwerty or simulated input is synthesised;<br/>focus the Monado window over VNC :5904, WASD to translate, click-drag to look (launch-monado.sh:2-7)
 ```

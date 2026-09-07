@@ -208,15 +208,16 @@ sequenceDiagram
         Note over V: RESOLVED ADR-2043 — the ADR-2003 illegal pair, rejected unconditionally.<br/>public_reads_enabled_in mirrors rbac_gate::public_reads_enabled (only 1/true enable)<br/>visibility_filter_enabled_in mirrors position_updates::parse_visibility_flag (default ON,<br/>only 0/false/off/no disable). Duplicated against the snapshot, not called live, because<br/>the gate reads the process env while the assertion reads the boot snapshot.
     end
     V->>V: 6. classify observed PROFILE_FLAGS vs declared VISIONCLAW_SECURITY_PROFILE
+    V->>V: missing declaration adds MissingDeclaredProfile, no supported match adds UnnamedEffectiveProfile
     V-->>A: EffectiveProfile { build, declared, classified, observed_flags, findings }
     alt findings empty
         A-->>M: log::info "security profile OK" then return
-    else production artefact (build.is_production_artefact())
+    else non-debug artefact including release dev-auth
         A-->>M: eprintln FATAL per finding then "refusing to bind a listener" then std::process::exit(2)
         Note over A: ADR-2038 — a mis-promoted image never accepts a single request
-    else development build
+    else debug build
         A-->>M: log::warn per finding then continue
-        Note over A: may_bind_listener() src/config/security_profile.rs:383 — dev always may
+        Note over A: may_bind_listener() src/config/security_profile.rs:383 — debug builds may continue
     end
 ```
 
@@ -336,7 +337,7 @@ flowchart TB
     DO --> COMMON
     ST --> COMMON
     ML --> COMMON
-    DRIFT["declared but a flag mismatches → ProfileFinding::ProfileDrift<br/>declared unparseable → UnknownDeclaredProfile<br/>undeclared and matching none → classified None, reported Unnamed (ADR-2027 unsupported)<br/>RESOLVED ADR-2043 — RBAC_PUBLIC_READS=1 with PUBKEY_VISIBILITY_FILTER=0 is now<br/>rejected on its own terms, unconditionally, declared profile or not. Previously it<br/>raised ProfileDrift only when a profile WAS declared, so the careless deployment<br/>was the one that got through. PROPOSED — the wider Unnamed-is-not-fatal gap stays<br/>open: ADR-2038 says undeclared production defaults to multi-user-locked, code binds."]
+    DRIFT["declared but a flag mismatches: ProfileDrift<br/>unknown declaration: UnknownDeclaredProfile<br/>missing declaration: MissingDeclaredProfile<br/>no supported match: UnnamedEffectiveProfile<br/>2026-09-07: all findings prevent non-debug artefacts binding<br/>including release builds carrying dev-auth; debug builds report and continue"]
     COMMON --> DRIFT
     NOTE["RESOLVED ADR-2043 — the comment above PROFILE_FLAGS said four composable flags<br/>over a [&str; 6] array. Traced with the estate lead to a stale count in ADR-2027,<br/>corrected at the root there and in the code comment. The array was always six."]
     COMMON --- NOTE
@@ -468,10 +469,10 @@ flowchart TB
         G1["MANAGEMENT_API_HOST<br/>src/main.rs:687 · src/app_state.rs:1253<br/>src/actors/agent_monitor_actor.rs:253"] --> G2["MANAGEMENT_API_PORT<br/>src/main.rs:688 · src/app_state.rs:1255<br/>src/actors/agent_monitor_actor.rs:255"] --> G3["MANAGEMENT_API_KEY<br/>src/main.rs:692 · src/app_state.rs:87<br/>decide_management_api_credential() src/actors/agent_monitor_actor.rs:235-244<br/>called at :264-267, fail-closed panic at :287-290 (ADR-2094)"]
     end
     subgraph DISC["swarm discovery"]
-        D1["DAA_HOST :163 · DAA_PORT :164<br/>src/services/multi_mcp_agent_discovery.rs"] --> D2["RUV_SWARM_HOST :146 · RUV_SWARM_PORT :147<br/>src/services/multi_mcp_agent_discovery.rs"] --> D3["ORCHESTRATOR_WS_URL<br/>src/handlers/mcp_relay_handler.rs:78"]
+        D1["DAA_HOST multi_mcp_agent_discovery.rs:163 · DAA_PORT multi_mcp_agent_discovery.rs:164"] --> D2["RUV_SWARM_HOST multi_mcp_agent_discovery.rs:146 · RUV_SWARM_PORT multi_mcp_agent_discovery.rs:147"] --> D3["ORCHESTRATOR_WS_URL<br/>src/handlers/mcp_relay_handler.rs:78"]
     end
     subgraph AGENTS["agent behaviour and agentbox bridge"]
-        A1["MAX_CONCURRENT_TASKS<br/>src/actors/task_orchestrator_actor.rs:68"] --> A2["MOCK_AGENTS<br/>src/actors/agent_monitor_actor.rs:574"] --> A3["AGENTBOX_MANAGEMENT_URL :147<br/>AGENTBOX_VOICE_INTENT_URL :143<br/>VISIONCLAW_VOICE_ACTOR_LABEL :162<br/>all in src/services/voice_intent_client.rs"]
+        A1["MAX_CONCURRENT_TASKS<br/>src/actors/task_orchestrator_actor.rs:68"] --> A2["MOCK_AGENTS<br/>src/actors/agent_monitor_actor.rs:574"] --> A3["AGENTBOX_MANAGEMENT_URL voice_intent_client.rs:147<br/>AGENTBOX_VOICE_INTENT_URL voice_intent_client.rs:143<br/>VISIONCLAW_VOICE_ACTOR_LABEL voice_intent_client.rs:162"]
     end
     MCP --> MGMT --> DISC --> AGENTS
     N["agent integration and the MCP relay see VC-27 — the agentbox side is the agentbox area"]
@@ -483,7 +484,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph EXT["external inference and RAG"]
-        X1["RAGFLOW_API_KEY :107 · RAGFLOW_API_BASE_URL :118<br/>RAGFLOW_AGENT_ID :129<br/>all in src/services/ragflow_service.rs"] --> X2["COMFYUI_URL src/handlers/image_gen_handler.rs:31<br/>COMFYUI_SALAD_URL :36"] --> X3["PRIMARY_PROVIDER<br/>src/actors/voice_interface_actor.rs:161<br/>src/handlers/bots_handler.rs:301 :408 :541 :724"]
+        X1["RAGFLOW_API_KEY ragflow_service.rs:107 · RAGFLOW_API_BASE_URL ragflow_service.rs:118<br/>RAGFLOW_AGENT_ID ragflow_service.rs:129"] --> X2["COMFYUI_URL src/handlers/image_gen_handler.rs:31<br/>COMFYUI_SALAD_URL :36"] --> X3["PRIMARY_PROVIDER<br/>src/actors/voice_interface_actor.rs:161<br/>src/handlers/bots_handler.rs:301 :408 :541 :724"]
     end
     subgraph PAY["HTTP 402 payment — feature solid-pod-embed"]
         P1["PAY_ENABLED<br/>src/handlers/pay_handler.rs:95 and :966<br/>routes inert until true"] --> P2["PAY_COST_SATS :98 :967 · PAY_INFERENCE_COST_SATS :106<br/>PAY_IMAGE_GEN_COST_SATS :110 · PAY_ANALYTICS_COST_SATS :114<br/>all in src/handlers/pay_handler.rs"] --> P3["PAY_LEDGER_DIR<br/>src/handlers/pay_handler.rs:102 and :968"]

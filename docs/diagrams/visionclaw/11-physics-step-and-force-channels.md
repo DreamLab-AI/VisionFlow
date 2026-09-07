@@ -54,7 +54,7 @@ sequenceDiagram
     Note over FC: spring_k > 0.0 sets ENABLE_SPRINGS :491-493
     Note over FC: center_gravity_k > 0.0 sets ENABLE_CENTERING :494-496
     Note over FC: use_sssp_distances OR sssp_spring_adjust_enabled sets ENABLE_SSSP_SPRING_ADJUST :497-499
-    Note over FC: num_constraints > 0 sets ENABLE_CONSTRAINTS :502-504 - KEYSTONE, never from user settings
+    Note over FC: num_constraints > 0 sets ENABLE_CONSTRAINTS (force_channels.rs:502-504) - KEYSTONE, never from user settings
     Note over EX,FC: INVARIANT ADR-2029 - ENABLE_CONSTRAINTS is residency-derived at step time, never a settings toggle
 ```
 
@@ -63,12 +63,12 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant EX as UnifiedGPUCompute::execute<br/>execution.rs
+    participant EX as UnifiedGPUCompute::execute<br/>execution.rs:131
     participant K1 as force_pass_kernel<br/>src/utils/visionflow_unified.ptx
     participant K2 as integrate_pass_kernel<br/>visionflow_unified.ptx
     participant EV as cust Event<br/>execution.rs completion poll
 
-    opt num_constraints > 0 :221
+    opt num_constraints > 0 (execution.rs:221)
         EX->>EX: bind constraint_force_ptr and constraint_force_epsilon :221
     end
     EX->>K1: launch with pos/vel/force buffers, mass, num_nodes
@@ -113,7 +113,7 @@ flowchart TD
     D --> E --> F --> G
 
     N1["RESOLVED ADR-2060: the GPU-wire-abi divergence bullet claiming no single shared helper was STALE and is now marked resolved. derive_dispatch_feature_flags force_channels.rs:486 is the single helper, called from execution.rs:954."]
-    N2["RESOLVED ADR-2060: Invariant 2 formerly cited a kernel-launch line in execution.rs for the ENABLE_CONSTRAINTS rule - repointed to derive_dispatch_feature_flags in force_channels.rs (:486, :502-504), which is where the rule actually lives."]
+    N2["RESOLVED ADR-2060: Invariant 2 formerly cited a kernel-launch line in execution.rs for the ENABLE_CONSTRAINTS rule - repointed to derive_dispatch_feature_flags at force_channels.rs:486, the ENABLE_CONSTRAINTS bit itself at force_channels.rs:502-504, which is where the rule actually lives."]
     N3["ADR-2029 test module adr_2029_dispatch_authority force_channels.rs:509 states it observes 'the word that is actually uploaded - not the converter's word, which is overwritten before every execute'"]
     N4["Converter words are therefore DEAD for dispatch - a divergence between A and B cannot reach the GPU"]
     D -.- N1
@@ -187,16 +187,16 @@ sequenceDiagram
     API->>CA: UpdateConstraints from POST /constraints/define or /apply :193
     CA->>CA: GetConstraints :215, ClearConstraints :256, GetConstraintStatistics :264
     CA->>FCA: UploadConstraintsToGPU :224
-    API->>OCA: ApplyOntologyConstraints :451
+    API->>OCA: ApplyOntologyConstraints (ontology_constraint_actor.rs:451)
     alt GPU context absent
         Note over OCA: info "GPU not available, constraints cached for next physics step" :291 and cpu_fallback_count += 1 :286,:293
     else GPU ready
-        OCA->>FCA: UpdateOntologyConstraintBuffer :3805
+        OCA->>FCA: UpdateOntologyConstraintBuffer (force_compute_actor.rs:3805)
     end
     OCA->>OCA: ApplyMaterializedAxioms :522, AdjustConstraintWeights :723
     FCA->>EX: execute with num_constraints = resident count
     alt num_constraints > 0
-        EX->>EX: ENABLE_CONSTRAINTS set :502-504 and constraint_force_ptr bound :221
+        EX->>EX: ENABLE_CONSTRAINTS set (force_channels.rs:502-504) and constraint_force_ptr bound :221
     else num_constraints == 0
         Note over EX: bit CLEARS - required, or force_pass_kernel keeps walking a buffer that no longer describes anything (force_channels.rs:560-562)
     end
@@ -234,10 +234,10 @@ sequenceDiagram
     participant SMA as StressMajorizationActor<br/>stress_majorization_actor.rs:315
     participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3724
 
-    PS->>SFA: ConfigureDAG :751
-    PS->>SFA: ConfigureTypeClustering :778
-    PS->>SFA: ConfigureCollision :802
-    PS->>SFA: RecalculateHierarchy :844
+    PS->>SFA: ConfigureDAG (semantic_forces_actor.rs:751)
+    PS->>SFA: ConfigureTypeClustering (semantic_forces_actor.rs:778)
+    PS->>SFA: ConfigureCollision (semantic_forces_actor.rs:802)
+    PS->>SFA: RecalculateHierarchy (semantic_forces_actor.rs:844)
     SFA->>SFA: ReloadRelationshipBuffer :869
     Note over SFA: DAG radial bias is SELF-GATED on dag_bias_k > 0 with dag_level_distance - it has no feature-flag bit (force_channels.rs:34-36)
     alt GPU absent
@@ -248,7 +248,7 @@ sequenceDiagram
         Note over SMA: returns Err "GPU not available for stress majorization" :95 - hard failure, no CPU degradation
     else GPU ready
         SMA->>SMA: CheckStressMajorization :369, UpdateStressMajorizationParams :347
-        SMA->>FCA: TriggerStressMajorization :3724
+        SMA->>FCA: TriggerStressMajorization (force_compute_actor.rs:3724)
         FCA->>FCA: GetStressMajorizationStats :3736, ResetStressMajorizationSafety :3752
     end
     Note over SMA,FCA: DIVERGENCE bit5 ENABLE_STRESS_MAJORIZATION is declared but never set by derive_dispatch_feature_flags - stress majorization is not a GPU force channel

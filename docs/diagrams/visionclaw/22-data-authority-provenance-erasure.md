@@ -424,7 +424,7 @@ sequenceDiagram
     participant DIRECT as add_owl_class/add_axiom<br/>application/ontology/directives.rs (governed write door)
 
     OP->>SYNC: FORCE_FULL_SYNC=1
-    alt force_full_sync true (github_sync_service.rs:378,578)
+    alt force_full_sync true (github_sync_service.rs:378,597)
         SYNC->>KGREPO: clear_graph() wipes GRAPH_KNOWLEDGE (github_sync_service.rs:379-381)
         SYNC->>REBUILD: rebuild_assert_graph(stats) (github_sync_service.rs:598)
         REBUILD->>AG: CLEAR GRAPH assert then INSERT DATA (save_ontology_graph, atomic) (github_sync_service.rs:1034-1043)

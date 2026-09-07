@@ -119,7 +119,7 @@ sequenceDiagram
     end
     LH->>DB: register(CanaryRegistration)
     Note over LH,DB: each entry is a 4-tuple (id, description, kind, priority) — kind "standing" for the wire probes
-    API->>LH: POST /api/canary/register (:213) → register (:308)
+    API->>LH: POST /api/canary/register (:213) → register (liveness_harness_handler.rs:133)
     API->>LH: POST /api/canary/observe/{canary_id} (:214) → observe
     API->>LH: GET /api/canary/status (:215)
     LH->>DB: append fire-log row
@@ -156,10 +156,10 @@ sequenceDiagram
     participant D as map_event_to_observation<br/>src/services/canary_nostr_tap.rs:155
     participant LH as LivenessHarness.observe
 
-    alt CANARY_TAP_RELAY_URL is set (:246)
+    alt CANARY_TAP_RELAY_URL is set (canary_nostr_tap.rs:246)
         M->>T: from_env(harness)
         T-->>M: Some(tap)
-        M->>T: tokio::spawn(tap.run()) (:273)
+        M->>T: tokio::spawn(tap.run()) (main.rs:1228)
     else unset
         M->>M: log "canary Nostr tap not started"
     end

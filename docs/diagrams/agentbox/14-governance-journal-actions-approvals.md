@@ -16,6 +16,7 @@ sources:
   - ../project/agentbox/management-api/lib/execution-coverage.js
   - ../project/agentbox/management-api/lib/agent-action-pipeline.js
   - ../project/agentbox/management-api/routes/approvals.js
+  - ../project/agentbox/management-api/lib/governance-correlation.js
   - ../project/agentbox/management-api/lib/governance-decision-waiter.js
   - ../project/agentbox/management-api/lib/receipt-minter.js
   - ../project/agentbox/management-api/lib/audit-chain.js
@@ -270,34 +271,26 @@ sequenceDiagram
     Note over FA: legacy-ADR-043 D4.7 hard rule — the route never writes an unsigned approval, approvals.js:16-22
 ```
 
-## AB-14.6 governance-decision-waiter.js — awaiting an external decision, fail-closed timeout
+## AB-14.6 Decision waiter — exact request and bounded timeout
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant GATE as authority gate<br/>lib/authority.js awaitDecision dep, see AB-11.10
-    participant GDW as GovernanceDecisionWaiter singleton<br/>governance-decision-waiter.js:155
-    participant RC as relay consumer<br/>mcp/nostr-bridge/relay-consumer.js governance branch
-
-    GATE->>GDW: awaitDecision(signedRequest, {timeoutMs}) governance-decision-waiter.js:98
-    GDW->>GDW: _keysForRequest(signedRequest) :54, keys e:id, case:case_id, d:tag
-    alt keys.length is 0
-        GDW-->>GATE: resolve(null) immediately :104, un-addressable wait never hangs
-    else keys present
-        GDW->>GDW: register entry in this._pending per key :115-118
-        GDW->>GDW: setTimeout DEFAULT_TIMEOUT_MS=120000 :31, not unref'd :110
-        Note over GDW: fail-closed — a response that never arrives resolves null, the gate treats null as DENY :24
-        par relay delivers a matching kind-31403
-            RC->>GDW: notify(responseEvent) :130
-            GDW->>GDW: _keysForResponse(responseEvent) :67, match by e tag, case_id or d tag
-            GDW->>GDW: clearTimeout(entry.timer), _remove(entry) :139-140
-            GDW-->>GATE: resolve(responseEvent) :141
-        and timeout fires first
-            GDW->>GDW: _remove(entry) :112
-            GDW-->>GATE: resolve(null) :113
-        end
+    participant Gate as authority.js
+    participant Waiter as governance-decision-waiter.js
+    participant Relay as Existing relay consumer
+    Gate->>Waiter: awaitDecision signed request, timeout
+    Waiter->>Waiter: register by request event ID only
+    par exact response arrives
+        Relay->>Waiter: notify 31403
+        Waiter->>Waiter: governance-correlation.js checks unambiguous e reference
+        Waiter->>Waiter: optional case and panel must agree with request
+        Waiter-->>Gate: resolve matching waiter and cancel timer
+        Gate->>Gate: verify signature and outcome before release
+    and timeout fires
+        Waiter->>Waiter: remove pending entry
+        Waiter-->>Gate: null, gate denies
     end
-    Note over GATE,GDW: INVARIANT there is NO second relay subscription — the ALREADY-CONNECTED relay-consumer calls notify(), this module is only the wait registry :10-16
+    Note over Gate,Waiter: Case-only or panel-only responses never release a wait. No extra relay subscription.
 ```
 
 ## AB-14.7 ExecutionJournal.append — what is written, where, and the ordering guarantee

@@ -507,7 +507,7 @@ sequenceDiagram
     alt query is None
         QT-->>C: error_json Query parameter required :82
     else
-        QT->>SVC: query_traversal(graph,start_id,query,max_nodes unwrap_or 50) :202
+        QT->>SVC: query_traversal(graph,start_id,query,max_nodes unwrap_or 50) (semantic_pathfinding_service.rs:202)
         SVC-->>QT: results
         QT-->>C: 200 results
     end
@@ -515,7 +515,7 @@ sequenceDiagram
     C->>CFG: POST /pathfinding/chunk-traversal {startId,maxNodes}
     CFG->>CT: chunk_traversal(request)
     CT->>GSA: GetGraphData
-    CT->>SVC: chunk_traversal(graph,start_id,max_nodes unwrap_or 50) :299
+    CT->>SVC: chunk_traversal(graph,start_id,max_nodes unwrap_or 50) (semantic_pathfinding_service.rs:299)
     SVC-->>CT: results
     CT-->>C: 200 results
 ```
@@ -655,7 +655,7 @@ flowchart TD
         LOUV["Louvain community detection TRUSTED<br/>gpu_clustering_kernels.cu:581 D1 fix marker, output-verified by ADR-2061"]
         PR["PageRank TRUSTED<br/>pagerank.cu:263 D8 fix marker, global two-kernel dangling-mass path, output-verified by ADR-2061"]
         DBS["DBSCAN TRUSTED<br/>gpu_clustering_kernels.cu:1079 border handling in propagate/finalise, output-verified by ADR-2061"]
-        LOF["LOF local outlier factor BROKEN<br/>gpu_clustering_kernels.cu:404-417 lrd floors on the query k-distance not the neighbour<br/>so it computes a k-distance ratio and not Breunig LOF - ADR-2061"]
+        LOF["LOF local outlier factor<br/>lof_lrd_from_neighbors uses neighbour k-distance<br/>lof_gather_neighbors includes kth-distance ties; bounded32 neighbourhood - ADR-2061"]
         ONT["Ontology constraints<br/>fixed and live, keystone wiring"]
     end
 
@@ -665,20 +665,20 @@ flowchart TD
     end
 
     subgraph ORACLE["Test-time reference oracle, crates/visionclaw-analytics-oracle/src/lib.rs"]
-        ENC["encode_record_52 :86 / decode_record_52 :106"]
-        FIX["GraphFixture :141 - two_clique :192, triangle :206, star :215, linear_chain :225, canonical_live_scale :246"]
-        CPUMOD["CPU reference modularity :303"]
-        CPUPR["CPU reference pagerank :342"]
-        CPUDB["CPU reference dbscan :392"]
-        CPULOF["CPU reference lof :443"]
+        ENC["encode_record_52 lib.rs:86 / decode_record_52 lib.rs:106"]
+        FIX["GraphFixture lib.rs:141 - two_clique lib.rs:192, triangle lib.rs:206, star lib.rs:215, linear_chain lib.rs:225, canonical_live_scale lib.rs:246"]
+        CPUMOD["CPU reference modularity lib.rs:303"]
+        CPUPR["CPU reference pagerank lib.rs:342"]
+        CPUDB["CPU reference dbscan lib.rs:392"]
+        CPULOF["CPU reference lof lib.rs:443"]
     end
 
     LOUV -.->|"conformance test PASSES"| CPUMOD
     PR -.->|"conformance test PASSES"| CPUPR
     DBS -.->|"conformance test PASSES"| CPUDB
-    LOF -.->|"conformance test FAILS 1e-3 bar"| CPULOF
+    LOF -.->|"GPU oracle PASS: max delta4.759e-7 below1e-3"| CPULOF
 
-    NOTE["PARTIAL ADR-2061 (2026-09-05): kernels are now output-validated against the CPU oracle<br/>PageRank max delta 3.4e-11 and DBSCAN exact and Louvain 16 of 16 communities all TRUSTED<br/>LOF BROKEN at max delta 0.702 against a 1e-3 bar - query k-distance used in place of neighbour<br/>Test crates/visionclaw-gpu/tests/analytics_oracle_conformance.rs and see docs/GPU-wire-abi.md trust table"]
+    NOTE["ADR-2061 (2026-09-07): all4 actual GPU oracle tests PASS, zero skips<br/>PageRank max delta 3.4e-11 and DBSCAN exact and Louvain 16 of 16 communities all TRUSTED<br/>LOF corrected from measured0.702 to4.759e-7; original1e-3 bar retained<br/>Test crates/visionclaw-gpu/tests/analytics_oracle_conformance.rs and see docs/GPU-wire-abi.md trust table"]
     LIVE -.-> NOTE
     ORACLE -.->|"fixture crate only, not wired into any runtime request path"| LIVE
 ```

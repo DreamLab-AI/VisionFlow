@@ -240,7 +240,7 @@ sequenceDiagram
         SIG-->>DS: true
         DS->>SINK: elevate(ElevatedDecision)
         SINK->>DEA: try_send ElevateDecision (actor mailbox, non-blocking)<br/>decision_elevation_actor.rs:984-986
-        DEA->>DEA: draft_decision_page, open case CASE_PREFIX vc-decelev-<br/>decision_elevation_actor.rs:57,43,300
+        DEA->>DEA: draft_decision_page (services/decision_elevation.rs:180), open case CASE_PREFIX vc-decelev-<br/>decision_elevation_actor.rs:59,583
         DEA->>ACSP: publish build_action_request kind 31402 PANEL_ID vc-decision-elevation
         ACSP-->>DEA: CaseDecision kind 31403
         alt action approve
@@ -279,7 +279,7 @@ sequenceDiagram
     CFG->>INBOX: power_user auth passed
     INBOX->>STORE: store::all() ALL_LIMIT=500<br/>enrichment_proposals_handler.rs:608,612
     STORE-->>INBOX: Vec EnrichmentProposal from durable repo (same store as decide route)
-    INBOX-->>BR: 200 cases[] total (broker-bridge.js:291 response shape)
+    INBOX-->>BR: 200 cases[] total (broker-bridge.js:270-272 response shape)
     BR->>CFG: GET /api/broker/cases/:id
     CFG->>CASE: power_user auth passed
     CASE->>STORE: store::get(id)

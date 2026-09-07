@@ -86,7 +86,7 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant CFG as config()<br/>src/handlers/ragflow_handler.rs:620
-    participant H as EnhancedRagFlowHandler<br/>:192
+    participant H as EnhancedRagFlowHandler<br/>src/handlers/ragflow_handler.rs:192
     participant N as NostrService
     participant RS as RAGFlowService
 
@@ -173,39 +173,39 @@ sequenceDiagram
     participant SOLID as Solid proxy<br/>SOLID_INTERNAL_URL :41
 
     IG->>ENV: comfyui_base() = COMFYUI_URL or http://comfyui:8188 - :30-32
-    C->>IG: POST /image-gen/submit - :778
-    alt no Nostr session - :278
-        IG-->>C: 401 Authentication required - :281
+    C->>IG: POST /image-gen/submit - configure_routes :823
+    alt no Nostr session - get_user_npub :290 returns None
+        IG-->>C: 401 Authentication required - :327-330
     else authed
-        IG->>IG: build_flux2_workflow(body,seed,prefix) - :296
-        IG->>CF: POST {comfyui_base}/prompt - :312<br/>{prompt:workflow,client_id:job_id} - client timeout 300s :299
-        alt connection error - :318
+        IG->>IG: build_flux2_workflow(body,seed,prefix) - :342
+        IG->>CF: POST {comfyui_base}/prompt - :357-361<br/>{prompt:workflow,client_id:job_id} - client timeout 300s :344-347
+        alt connection error - :364
             CF-->>IG: reqwest Err
-            IG-->>C: 503 ComfyUI unreachable - :320
-        else non-2xx - :327
+            IG-->>C: 503 ComfyUI unreachable - :366-369
+        else non-2xx - :373
             CF-->>IG: status + body
-            IG-->>C: 400 ComfyUI rejected workflow - :330
-        else no prompt_id in response - :346
-            IG-->>C: 500 No prompt_id in ComfyUI response - :349
-        else accepted - :356
-            loop attempt 0..60 - sleep 5s - :363-364
-                IG->>CF: GET {comfyui_base}/history/{prompt_id} - :366
-                CF-->>IG: {[prompt_id]:{outputs}} or poll error (logged, retried) - :368-372
+            IG-->>C: 400 ComfyUI rejected workflow - :376-379
+        else no prompt_id in response - :394
+            IG-->>C: 500 No prompt_id in ComfyUI response - :395-398
+        else accepted - :402
+            loop attempt 0..60 - sleep 5s - :409-410
+                IG->>CF: GET {comfyui_base}/history/{prompt_id} - :412
+                CF-->>IG: {[prompt_id]:{outputs}} or poll error (logged, retried) - :414-417
             end
-            alt output_filename still None after 60 attempts (~5min) - :399
-                IG-->>C: 504 GatewayTimeout - :402
+            alt output_filename still None after 60 attempts (~5min) - :445-446
+                IG-->>C: 504 GatewayTimeout - :448-451
             else found
-                IG->>CF: GET {comfyui_base}/view?filename=..&subfolder=..&type=output - :413,419
-                alt GET or bytes() fails - :422,429
-                    IG-->>C: 500 Failed to fetch/GET image - :423,430
+                IG->>CF: GET {comfyui_base}/view?filename=..&subfolder=..&type=output - :459-465
+                alt GET or bytes() fails - :468,475
+                    IG-->>C: 500 Failed to fetch/GET image - :469-472,476-479
                 else bytes ok
-                    IG->>SOLID: PUT {solid_base}/api/solid/pods/{npub}/{folder}/{job}.png - :448<br/>header Authorization forwarded from client - :451-457
-                    alt PUT succeeds (2xx or 201) - :463
+                    IG->>SOLID: PUT {solid_base}/api/solid/pods/{npub}/{folder}/{job}.png - :488-495<br/>header Authorization forwarded from client - :496-503
+                    alt PUT succeeds (2xx or 201) - :509
                         SOLID-->>IG: stored
-                        IG-->>C: 200 {job_id,pod_image_url,comfyui_filename,seed} - :477
-                    else PUT fails or errors - :467,471
+                        IG-->>C: 200 {job_id,pod_image_url,comfyui_filename,seed} - :523-532
+                    else PUT fails or errors - :513,517
                         SOLID-->>IG: non-2xx or reqwest Err
-                        IG-->>C: 200 pod_image_url:null - store skipped, warn logged - :468,472
+                        IG-->>C: 200 pod_image_url:null - store skipped, warn logged - :514-515,518-519
                     end
                 end
             end
@@ -222,51 +222,51 @@ sequenceDiagram
     participant SAL as ComfyUI Salad wrapper<br/>COMFYUI_SALAD_URL :36
     participant POD as embedded solid-pod-rs
 
-    ENV-->>AS: agent_key() = VISIONCLAW_AGENT_KEY or changeme-agent-key - :45-47
-    A->>AS: POST /image-gen/agent-submit - :779<br/>header X-Agent-Key
-    alt X-Agent-Key != agent_key() - :505
-        AS-->>A: 401 Invalid or missing X-Agent-Key - :506
+    ENV-->>AS: agent_key_authorised() reads VISIONCLAW_AGENT_KEY, constant-time compare<br/>fails closed if unset/empty - NO changeme-agent-key default (ADR-2093) - :63-85
+    A->>AS: POST /image-gen/agent-submit - configure_routes :824<br/>header X-Agent-Key
+    alt X-Agent-Key missing or wrong - :546-550
+        AS-->>A: 401 Invalid or missing X-Agent-Key - :551-553
     else authed
-        AS->>SAL: POST {comfyui_salad}/prompt - :549<br/>{prompt:workflow} - client timeout 360s :536
-        alt unreachable - :555
+        AS->>SAL: POST {comfyui_salad}/prompt - :593-597<br/>{prompt:workflow} - client timeout 360s :580-583
+        alt unreachable - :599
             SAL-->>AS: reqwest Err
-            AS-->>A: 503 ComfyUI Salad API unreachable - :557
-        else non-2xx - :563
-            AS-->>A: 400 ComfyUI rejected workflow - :565
-        else no images array - :592
-            AS-->>A: 500 No images in Salad response - :595
-        else base64 decode fails - :619
-            AS-->>A: 500 Failed to decode base64 image - :621
+            AS-->>A: 503 ComfyUI Salad API unreachable - :601-604
+        else non-2xx - :608
+            AS-->>A: 400 ComfyUI rejected workflow - :610-612
+        else no images array - :639
+            AS-->>A: 500 No images in Salad response - :639-644
+        else base64 decode fails - :663
+            AS-->>A: 500 Failed to decode base64 image - :664-668
         else ok
-            SAL-->>AS: {id,images:[base64],filenames,stats} - :570
-            opt feature solid-pod-embed - :646
-                AS->>POD: storage.exists/create_container/put - :665-680
-                POD-->>AS: Ok(url) or None on failure (warn, non-fatal) - :686-688
+            SAL-->>AS: {id,images:[base64],filenames,stats} - :615
+            opt feature solid-pod-embed - :691
+                AS->>POD: storage.exists/create_container/put - :710-725
+                POD-->>AS: Ok(url) or None on failure (warn, non-fatal) - :727-735
             end
-            AS-->>A: 200 {job_id,pod_image_url,comfyui_filename,seed} - :629
+            AS-->>A: 200 {job_id,pod_image_url,comfyui_filename,seed} - :674-683
         end
     end
 
-    Note over AS: DIVERGENCE: try_store_in_pod is a no-op returning None when<br/>the solid-pod-embed feature is disabled - :693-702
+    Note over AS: DIVERGENCE: try_store_in_pod is a no-op returning None when<br/>the solid-pod-embed feature is disabled - :738-747
 
-    participant GJ as get_job_status<br/>:705
-    A->>GJ: GET /image-gen/status/{job_id} - :780
-    GJ->>SAL: GET {comfyui_base}/history/{job_id} - :708,710
-    alt request errors - :732
+    participant GJ as get_job_status<br/>:750
+    A->>GJ: GET /image-gen/status/{job_id} - configure_routes :825
+    GJ->>SAL: GET {comfyui_base}/history/{job_id} - :753,755
+    alt request errors - :777
         GJ-->>A: 503 ComfyUI unreachable
-    else body has job_id key - :714
-        GJ-->>A: 200 status completed + outputs - :715
-    else not found yet - :721
-        GJ-->>A: 200 status pending or unknown by HTTP status - :723-727
+    else body has job_id key - :759
+        GJ-->>A: 200 status completed + outputs - :760-764
+    else not found yet - :765
+        GJ-->>A: 200 status pending or unknown by HTTP status - :766-774
     end
 
-    participant HL as health<br/>:740
-    A->>HL: GET /image-gen/health - :777
-    HL->>SAL: GET {comfyui_base}/system_stats - :747 (timeout 5s :742)
-    alt 2xx - :751
-        HL-->>A: 200 status ok, vram_free/total - :753-758
-    else non-2xx or unreachable - :760,764
-        HL-->>A: 200 status degraded (never a 5xx) - :760-768
+    participant HL as health<br/>:785
+    A->>HL: GET /image-gen/health - configure_routes :822
+    HL->>SAL: GET {comfyui_base}/system_stats - :791-792 (timeout 5s :786-789)
+    alt 2xx - :796
+        HL-->>A: 200 status ok, vram_free/total - :796-803
+    else non-2xx or unreachable - :805,809
+        HL-->>A: 200 status degraded (never a 5xx) - :805-813
     end
 ```
 ## VC-28.6 github_pr_service — outbound GitHub REST API (git data + PR)
@@ -278,7 +278,7 @@ sequenceDiagram
     participant ENV as env
     participant API as api.github.com<br/>:245
 
-    GH->>ENV: GitHubPRService::new() - :127<br/>token via github_token_from_env() - config.rs:30<br/>PRIVATE_REPO_GITHUB_PAT or legacy LOGSEQ_PRIVATE_REPO_GITHUB - config.rs:23,25
+    GH->>ENV: GitHubPRService::new() - :127<br/>token via github_token_from_env()<br/>PRIVATE_REPO_GITHUB_PAT or legacy LOGSEQ_PRIVATE_REPO_GITHUB
     GH->>ENV: GITHUB_OWNER/GITHUB_REPO_OWNER - :129-133
     GH->>ENV: GITHUB_REPO/GITHUB_REPO_NAME - :135-139
     GH->>ENV: GITHUB_BRANCH/GITHUB_BASE_BRANCH default main - :141-145
@@ -329,6 +329,7 @@ sequenceDiagram
     end
     end
     Note over GH,API: every request carries Authorization Bearer token + Accept<br/>application/vnd.github+json + User-Agent VisionClaw-OntologyAgent/1.0 - headers() :250-267
+    Note over GH,ENV: token via github_token_from_env() src/services/github/config.rs:30 -<br/>PRIVATE_REPO_GITHUB_PAT or legacy LOGSEQ_PRIVATE_REPO_GITHUB, config.rs:23,25
 ```
 ## VC-28.7 speech_service — outbound boundary only (see VC-35 for full pipeline)
 ```mermaid
@@ -339,8 +340,6 @@ sequenceDiagram
     participant KOK as Kokoro TTS<br/>settings.kokoro.api_url
     participant WHI as Whisper STT<br/>settings.whisper.api_url
     participant MCP as MCP swarm TCP<br/>MCP_HOST:MCP_TCP_PORT
-
-    Note over SS: TTSProvider::OpenAI/Kokoro - visionclaw-domain/src/types/speech.rs:66-70<br/>STTProvider::Whisper/TurboWhisper/OpenAI - visionclaw-domain/src/types/speech.rs:72-77
 
     rect rgb(225,230,250)
     alt TTSProvider::OpenAI - :280
@@ -357,10 +356,10 @@ sequenceDiagram
         SS->>WHI: uses {whisper.api_url or http://whisper-webui-backend:8000} - :482-485 (ready-check only, no request here)
     else STTProvider::Whisper ProcessAudioChunk - :546
         SS->>WHI: POST multipart to whisper api_url transcription endpoint - :617
-        loop poll GET {api_url}/task/{identifier} - max 30 attempts x 200ms - :639-643
+        loop poll GET {api_url}/task/{identifier} - max 30 attempts x 200ms - :642-648,655-658
             WHI-->>SS: status queued/in_progress/completed/failed - :666
         end
-        alt status failed or 30 attempts exceeded - :700,644-648
+        alt status failed or 30 attempts exceeded - :705,648-650
             SS-->>SS: error logged, transcription dropped
         else completed
             SS-->>SS: broadcast transcription text - :672
@@ -381,6 +380,7 @@ sequenceDiagram
     end
 
     Note over SS: see VC-35 for the full speech pipeline - WS ingress, tag manager,<br/>voice command parsing, TTS response routing are out of scope here
+    Note over SS: TTSProvider::OpenAI/Kokoro - visionclaw-domain/src/types/speech.rs:66-70<br/>STTProvider::Whisper/TurboWhisper/OpenAI - visionclaw-domain/src/types/speech.rs:72-77
 ```
 ## VC-28.8 quic_transport_handler — the postcard wire types that survived ADR-2066
 ```mermaid

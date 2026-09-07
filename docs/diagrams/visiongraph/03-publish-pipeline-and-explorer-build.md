@@ -7,9 +7,11 @@ governing:
 adrs: []
 sources:
   - ../visionGraph/.github/workflows/publish.yml
+  - ../visionGraph/pipeline/public_projection.py
+  - ../visionGraph/pipeline/patch_notes_export.py
   - ../visionGraph/pipeline/build.py
   - ../visionGraph/pipeline/jsonld_parser.py
-verified_commit: 9e308164c
+verified_commit: worktree-2026-09-07
 ---
 
 ## VG-03.1 publish.yml — checkout to deploy, one job, no separate release gate
@@ -25,10 +27,10 @@ flowchart TD
     CONF["Semantic conflict gate — pipeline.conflicts --severity high<br/>HARD-FAILS on high — publish.yml:119-126"]
     IRI["IRI-integrity gate — pipeline.iri_integrity<br/>baseline-aware, publish.yml:128-137"]
     SPA["React SPA build — publishing-tools/WasmVOWL/modern<br/>publish.yml:149-195 — see VG-03.3"]
-    FIN["Finalize — CNAME, markdown mirror, contract gate<br/>publish.yml:200-255 — see VG-03.4"]
-    SMOKE["Explorer smoke — Playwright/CDP against built www/<br/>publish.yml:257-265"]
-    NOTES["Preserve existing /notes directory<br/>clone gh-pages, copy notes/ if present<br/>publish.yml:267-277"]
-    DEPLOY["Deploy — peaceiris/actions-gh-pages@v3<br/>external_repository: DreamLab-AI/knowledgeGraph<br/>publish.yml:279-286"]
+    FIN["Finalize — CNAME and generated public markdown — see VG-03.4"]
+    SMOKE["Explorer smoke — Playwright/CDP against built www/<br/>publish.yml:217-225"]
+    NOTES["Preserve existing /notes directory<br/>clone gh-pages, copy notes/ if present<br/>pipeline/patch_notes_export.py:9"]
+    DEPLOY["Deploy — peaceiris/actions-gh-pages@v3<br/>external_repository: DreamLab-AI/knowledgeGraph<br/>publish.yml:240-247"]
     CO --> HON --> PYT --> RM --> BUILD --> VAL --> CONF --> IRI --> SPA --> FIN --> SMOKE --> NOTES --> DEPLOY
     note1["INVARIANT: concurrency group deploy-ontology is SEPARATE from the<br/>notes SPA — must never queue-starve or cancel it — 'different<br/>knowledge bases, don#39;t cross the streams' publish.yml:15-20"]
 ```
@@ -71,16 +73,19 @@ sequenceDiagram
     Note over JOB: copies SPA assets but NOT api/ or data/ — the pipeline already<br/>wrote authoritative data/api to www/ #40;publish.yml:180-181#41;
 ```
 
-## VG-03.4 Markdown mirror contract gate — title-form, namespace-recursive, alias-doubled
+## VG-03.4 Public markdown and preserved notes have separate boundaries
 
 ```mermaid
 flowchart TB
-    WALK["find knowledge/pages -name *.md<br/>-not -path .* -not -path _misc/*<br/>publish.yml:238"]
-    CHECK["grep -qE vc:public:#91;#91;:space:#93;#93;*true<br/>tolerant of pretty AND compact JSON-LD<br/>publish.yml:224"]
-    NAME["mirror name: rel path with / → ___<br/>PLUS a %2F-encoded alias when they differ<br/>publish.yml:230-235"]
-    RECURSE["recursion added because Obsidian namespace pages<br/>now live at pages/&lt;Ns&gt;/&lt;Title&gt;.md — the OLD flat<br/>glob stopped seeing 13 pages: ETSI_Domain_*, A/B<br/>Testing, TCP/IP, ISO/IEC 9075 — publish.yml:211-215"]
-    GATE["contract: copied count == parser#39;s is_public count<br/>#40;PAGES copied, not files — the %2F aliases can#39;t mask drift#41;<br/>publish.yml:242-251"]
-    WALK --> CHECK --> NAME --> GATE
-    RECURSE -.-> WALK
-    note1["INVARIANT: the SAME lesson as knowledgeGraph#39;s markdown-mirror<br/>incident #40;see KG-05.4#41; — a space-bearing literal match once<br/>silently dropped 653 compact pages #40;publish.yml:219-223#41;"]
+    SOURCE["Recursive Page parser and typed input census"] --> PROJECT["Public graph and prose projection"]
+    PROJECT --> MIRROR["emit_public_markdown from projected fields; no raw-source copy"]
+    MIRROR --> NAME["Flat namespace aliases: slash becomes ___ and %2F"]
+    NAME --> STAGED["Generated alongside other public artefacts in staging"]
+    ARCHIVE["Existing gh-pages notes directory"] --> PRESERVE["Preserve historical SPA"]
+    PRESERVE --> PATCH["patch_notes_export adds scoped mobile table stylesheet"]
+    STAGED --> DEPLOY["Publication workflow"]
+    PATCH --> DEPLOY
+    PATCH --> LIMIT["Compatibility override is not a notes SPA rebuild"]
 ```
+
+Execution qualification, 2026-09-07: the raw-copy mirror loop has been removed from `publish.yml`; `public_projection.py` emits both title-form aliases from sanitised public data. `patch_notes_export.py` fails on a missing/malformed preserved index and inserts its stylesheet once. Browser candidate verification and any publication are recorded separately in the [execution receipt](../../estate-review/closeout/2026-09-07-execution-federation.md).

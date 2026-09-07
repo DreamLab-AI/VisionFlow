@@ -79,7 +79,7 @@ flowchart TD
 sequenceDiagram
     autonumber
     participant EP as config/entrypoint-unified.sh
-    participant P as project-mcp-servers.mjs
+    participant P as project-mcp-servers.mjs<br/>agentbox/scripts/project-mcp-servers.mjs:2
     participant REG as MCP_REGISTRY<br/>default SKILLS_TREE/mcp.json
     participant LED as ownership ledger<br/>MCP_PROJECTION_STATE
     participant T as MCP_JSON target<br/>default WORKSPACE/.mcp.json
@@ -121,10 +121,10 @@ sequenceDiagram
     P->>LED: writeLedger with mode 0600, history capped at HISTORY_LIMIT 200 (:287-293 and :100)
     P-->>EP: exit 0 — projection applied or a clean no-op (:72)
     Note over P,T: INVARIANT — a target entry ABSENT from the ledger is treated as bespoke and is never<br/>touched, so adopting this revision cannot delete a hand-written server (:61-64)
-    Note over LED: the ledger is deliberately NOT stored inside .mcp.json — that file is read by the Claude Code harness and must carry no agentbox-private keys (:59-61)
+    Note over LED: the ledger is deliberately NOT stored inside .mcp.json — that file is read by the Claude Code harness and must carry no agentbox-private keys (project-mcp-servers.mjs:59-61)
     Note over EP,P: boot is NOT blocked — a non-zero exit surfaces as a loud [mcp] FAIL line in the boot log without aborting the entrypoint (:76-79)
     Note over P: DOC-DRIFT — BASELINE "Configuration projection qualification 2026-09-04" says<br/>ADR-2008 is partial because the reconciliation loop cannot remove deleted registry<br/>definitions and unreadable input leaves stale state with exit zero. The ADR-2008<br/>closeout dated 2026-09-05 fixes both as D1 and D3 (project-mcp-servers.mjs:30-49)
-    Note over P: RESOLVED ADR-2039: BASELINE-container.md:219 marks this qualification<br/>resolved with the D1/D3 evidence — ownership-ledger removal (:33-39)<br/>and non-zero exit on malformed input (:46-49, exit codes :71-74)
+    Note over P: RESOLVED ADR-2039: BASELINE-container.md:219 marks this qualification<br/>resolved with the D1/D3 evidence — ownership-ledger removal<br/>project-mcp-servers.mjs:33-39, non-zero exit on malformed input :46-49, exit codes :71-74
 ```
 
 ## AB-09.4 The four ADR-2008 closeout defects and their fixes
@@ -137,7 +137,7 @@ flowchart LR
         O4["D4 missing x-agentbox-requires REMOVED the entry —<br/>requiresMet returned bare true for a non-array,<br/>req.ok undefined, falsy, gated-ON server reconciled OUT"]
     end
     subgraph NEW["closeout 2026-09-05"]
-        N1["ownership ledger — projection records which names it owns,<br/>any owned name no longer projector-managed is removed<br/>and recorded in the deletion history (:36-39)"]
+        N1["ownership ledger — projection records which names it owns,<br/>any owned name no longer projector-managed is removed<br/>and recorded in the deletion history (project-mcp-servers.mjs:36-39)"]
         N2["validateRegistry() — a total explicit schema check whose<br/>failures are ENUMERATED before anything is written (:43-44 and :161)"]
         N3["malformed input exits NON-ZERO and the previous target<br/>is retained byte-for-byte (:46-49)"]
         N4["requiresMet is TOTAL, always returns {ok, explicit, why}<br/>an absent array is the empty requirement set (:51-55 and :248)"]
@@ -158,22 +158,22 @@ flowchart TB
         A --> AT["aci.view_file :495 — bounded window, hard cap 150 lines<br/>aci.edit_file :508 — atomic tmp/fsync/rename, compact unified diff<br/>aci.search_repo :522 — rg preferred, grep fallback, reports total_found<br/>aci.run_tests, aci.submit — TOOL_LIST :493"]
     end
     subgraph ONT["ontology and knowledge graph"]
-        B["ontology-bridge mcp/servers/ontology-bridge.js"]
-        B --> BT["ontology_ask, ontology_search, ontology_validate, ontology_health,<br/>ontology_class_get, ontology_class_list, ontology_graph_query,<br/>ontology_axiom_add, kg_neighbors, kg_node_search, kg_pathfind"]
-        C["ontology-propose mcp/servers/ontology-propose.js"] --> CT["ontology_propose — governed write path, see AB-25"]
+        B["ontology-bridge mcp/servers/ontology-bridge.js:143<br/>server name and version :522"]
+        B --> BT["11 tools in one TOOLS array — ontology_health :145, ontology_search :150,<br/>ontology_class_get :164, ontology_class_list :176, ontology_axiom_add :188,<br/>ontology_validate :210, ontology_graph_query :221, kg_node_search :233,<br/>kg_neighbors :246, kg_pathfind :259, ontology_ask :272"]
+        C["ontology-propose mcp/servers/ontology-propose.js:169"] --> CT["ontology_propose — the single tool, governed write path, see AB-25"]
     end
     subgraph GOV["governance and decisions"]
-        D["governance-bridge"] --> DT["governance_list_decisions, governance_publish_panel,<br/>governance_request_action, governance_retire_panel, governance_update_panel"]
-        E["decision-tools"] --> ET["record_decision, find_similar_decisions, trace_decision_chain,<br/>analyze_decision_impact, check_decision_rules"]
-        F["precedent-bridge"] --> FT["precedent_list, precedent_match, precedent_promote, precedent_retire"]
+        D["governance-bridge mcp/servers/governance-bridge.js:96"] --> DT["governance_publish_panel :98, governance_request_action :139,<br/>governance_update_panel :164, governance_retire_panel :181,<br/>governance_list_decisions :194"]
+        E["decision-tools mcp/servers/decision-tools.js:195"] --> ET["record_decision :195, trace_decision_chain :219,<br/>analyze_decision_impact :236, find_similar_decisions :253,<br/>check_decision_rules :270"]
+        F["precedent-bridge mcp/servers/precedent-bridge.js:126"] --> FT["precedent_match :128, precedent_list :142,<br/>precedent_promote :153, precedent_retire :170"]
     end
     subgraph HARN["harness and substrate"]
-        G["harness-bridge"] --> GT["harness_audit, harness_inspect, harness_list, harness_validate"]
-        H["substrate-tools"] --> HT["refine, refine_history, refine_list, refine_rollback, refine_validate,<br/>spawn_child, spawn_complete, spawn_ready,<br/>ws_drop, ws_get, ws_list, ws_note, ws_revalidate"]
+        G["harness-bridge mcp/servers/harness-bridge.js:195"] --> GT["harness_list :197, harness_inspect :212,<br/>harness_validate :227, harness_audit :246"]
+        H["substrate-tools mcp/servers/substrate-tools.js:31"] --> HT["13 tools — refine :34, refine_validate :51, refine_rollback :56,<br/>refine_history :61, refine_list :70, ws_note :77, ws_get :86,<br/>ws_list :91, ws_drop :96, ws_revalidate :101, spawn_child :108,<br/>spawn_ready :125, spawn_complete :130"]
     end
     subgraph KB["corpus and memory"]
-        I["ruvnet-brain mcp/ruvnet-brain/server.js"] --> IT["search_ruvnet, ruvnet_brain_status"]
-        J["ruvector-mcp.cjs — 26 tools"] --> JT["memory_store, memory_search, memory_retrieve, memory_list, memory_usage,<br/>memory_health, memory_orient, memory_hybrid_search, memory_sweep_episodic,<br/>memory_repair_embeddings, swarm_init, swarm_status, agent_spawn,<br/>task_orchestrate, coordination_sync, load_balance, parallel_execute,<br/>neural_patterns, sona_health, sparc_mode, performance_report,<br/>bottleneck_analyze, workflow_create, workflow_execute,<br/>github_pr_manage, github_repo_analyze"]
+        I["ruvnet-brain mcp/ruvnet-brain/server.js:198 v0.2.0"] --> IT["search_ruvnet :205, ruvnet_brain_status :221"]
+        J["ruvector-mcp.cjs — 26 tools = 20 base ruvector-mcp.cjs:239<br/>+ 6 pushed only when their gate is on :410-479<br/>ADVERTISED_TOOLS set built from the final list :514"] --> JT["memory_store, memory_search, memory_retrieve, memory_list, memory_usage,<br/>memory_health, memory_orient, memory_hybrid_search, memory_sweep_episodic,<br/>memory_repair_embeddings, swarm_init, swarm_status, agent_spawn,<br/>task_orchestrate, coordination_sync, load_balance, parallel_execute,<br/>neural_patterns, sona_health, sparc_mode, performance_report,<br/>bottleneck_analyze, workflow_create, workflow_execute,<br/>github_pr_manage, github_repo_analyze"]
     end
     J -.-> RVB["memory boundary — the retrieval geometry, embedding pipeline and<br/>recall gate belong to AB-20. ruvector-mcp.cjs fails CLOSED with no<br/>sql.js fallback, so the ruvector-postgres sidecar is mandatory"]
     A -.-> AB["consultant tier consultant-codex, consultant-antigravity, consultant-zai,<br/>consultant-perplexity, consultant-deepseek all live under<br/>mcp/consultants/ and are projector-managed"]

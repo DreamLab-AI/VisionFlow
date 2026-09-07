@@ -165,24 +165,24 @@ classDiagram
         +show(id) Bead
     }
     class LocalSqliteBeadsAdapter {
-        createEpic :78
-        createChild :113
-        claim :145
-        close :168
-        addDependency :195
-        getReady :236
-        show :259
+        createEpic management-api/adapters/beads/local-sqlite.js:78
+        createChild management-api/adapters/beads/local-sqlite.js:113
+        claim management-api/adapters/beads/local-sqlite.js:145
+        close management-api/adapters/beads/local-sqlite.js:168
+        addDependency management-api/adapters/beads/local-sqlite.js:195
+        getReady management-api/adapters/beads/local-sqlite.js:236
+        show management-api/adapters/beads/local-sqlite.js:259
     }
     class ExternalBeadsAdapter {
-        addDependency :48
-        getReady :52
+        addDependency management-api/adapters/beads/external.js:48
+        getReady management-api/adapters/beads/external.js:52
     }
     class OffBeadsAdapter {
-        addDependency :23 throws AdapterDisabled
-        getReady :24 throws AdapterDisabled
+        addDependency management-api/adapters/beads/off.js:23 throws AdapterDisabled
+        getReady management-api/adapters/beads/off.js:24 throws AdapterDisabled
     }
     class BeadsAdapterPlaceholder {
-        getReady :18 throws AdapterDisabled
+        getReady management-api/adapters/beads/placeholder.js:18 throws AdapterDisabled
     }
     BeadsAdapter <|.. LocalSqliteBeadsAdapter
     BeadsAdapter <|.. ExternalBeadsAdapter
@@ -312,7 +312,7 @@ sequenceDiagram
             CTX-->>AG: {beadId, owner, typedOutput, status}
         end
     end
-    Note over ST: the substrate-tools server also exposes refine :34, refine_validate :51, refine_rollback<br/>:56, refine_history :61, refine_list :70 and the working-set family ws_note :77, ws_get<br/>:86, ws_list :91, ws_drop :96, ws_revalidate :101 — see AB-22 and AB-25
+    Note over ST: the substrate-tools server also exposes refine mcp/servers/substrate-tools.js:34, refine_validate mcp/servers/substrate-tools.js:51, refine_rollback<br/>mcp/servers/substrate-tools.js:56, refine_history mcp/servers/substrate-tools.js:61, refine_list mcp/servers/substrate-tools.js:70 and the working-set family ws_note mcp/servers/substrate-tools.js:77, ws_get<br/>mcp/servers/substrate-tools.js:86, ws_list mcp/servers/substrate-tools.js:91, ws_drop mcp/servers/substrate-tools.js:96, ws_revalidate mcp/servers/substrate-tools.js:101 — see AB-22 and AB-25
     Note over ST: PROPOSED ADR-2074: build the ADR-051 distillation tools as a discrete manifest-gated MCP server that holds the<br/>harness signing key, rather than as tools on the fail-open ontology-bridge - none of D2 or D3 exists today, so there is<br/>no distill tool, no job URN kind and no job_urn field. See AB-24
 ```
 
@@ -355,18 +355,18 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph man["agentbox.toml [compression] — line 1636"]
-        E["enabled = true :1637<br/>headroom-napi crate built, compression active"]
-        B["backend = sqlite :1638<br/>sqlite or memory, redis DEFERRED"]
-        T["ttl_minutes = 30 :1639"]
-        M["max_entries = 1000 :1640<br/>LRU eviction"]
-        R["target_ratio = 0.15 :1641<br/>aggressive default, keep about 15 percent"]
+        E["enabled = true agentbox.toml:1637<br/>headroom-napi crate built, compression active"]
+        B["backend = sqlite agentbox.toml:1638<br/>sqlite or memory, redis DEFERRED"]
+        T["ttl_minutes = 30 agentbox.toml:1639"]
+        M["max_entries = 1000 agentbox.toml:1640<br/>LRU eviction"]
+        R["target_ratio = 0.15 agentbox.toml:1641<br/>aggressive default, keep about 15 percent"]
     end
     subgraph slots["[compression.slots] — line 1643"]
-        S1["memory = true :1644<br/>compress memory search results"]
-        S2["pods = true :1645<br/>compress pod writes"]
-        S3["events = false :1646<br/>NEVER compress audit trail"]
-        S4["beads = true :1647<br/>compress bead payloads"]
-        S5["orchestrator = false :1648<br/>skip orchestrator coordination"]
+        S1["memory = true agentbox.toml:1644<br/>compress memory search results"]
+        S2["pods = true agentbox.toml:1645<br/>compress pod writes"]
+        S3["events = false agentbox.toml:1646<br/>NEVER compress audit trail"]
+        S4["beads = true agentbox.toml:1647<br/>compress bead payloads"]
+        S5["orchestrator = false agentbox.toml:1648<br/>skip orchestrator coordination"]
     end
     subgraph adapters["The five adapter slots (legacy ADR-005) — dispatch in AB-04"]
         A1["memory → RuVector, see AB-20"]

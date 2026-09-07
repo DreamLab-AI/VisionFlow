@@ -44,7 +44,7 @@ verified_commit: 36bb64e1e
 ```mermaid
 sequenceDiagram
     autonumber
-    participant NG as nginx :3001
+    participant NG as nginx (port 3001)
     participant AC as actix HttpServer<br/>src/main.rs:978-1033
     participant LG as Logger<br/>wrap #1 src/main.rs:979
     participant CO as cors<br/>wrap #2 src/main.rs:980
@@ -201,21 +201,21 @@ sequenceDiagram
     H->>NS: verify_nip98_auth(auth_header, url, method, body)
     NS->>NS: reconstruct url from X-Forwarded-Proto/-Host behind TLS proxy (:57-59 doc)
     NS->>V: validate_nip98_token(token, expected_url, expected_method, body)
-    V->>V: base64/UTF-8/JSON decode (nip98.rs:243-253)
+    V->>V: base64/UTF-8/JSON decode (nip98.rs:398-406)
     alt decode fails
         V-->>NS: InvalidBase64 / InvalidUtf8 / InvalidJson
     end
-    V->>V: kind == 27235 HTTP_AUTH_KIND (:22, check :257)
+    V->>V: kind == 27235 HTTP_AUTH_KIND (const :20, check :409-411)
     alt kind mismatch
         V-->>NS: InvalidKind(got)
     end
-    V->>V: age = now - created_at, symmetric window TOKEN_MAX_AGE_SECONDS=60 (:168, checks :281-289)
+    V->>V: age = now - created_at, symmetric window TOKEN_MAX_AGE_SECONDS=60 (:169, checks :423-430)
     alt age > 60
         V-->>NS: TokenExpired(age)
     else age < -60
         V-->>NS: TokenFromFuture(-age)
     end
-    V->>V: extract "u" and "method" tags (:293-303), urls_match (:524) host-checked
+    V->>V: extract "u" and "method" tags (:438-447), urls_match (nip98.rs:609) host-checked
     alt "u" tag missing
         V-->>NS: MissingTag("u")
     else "method" tag missing
@@ -231,16 +231,18 @@ sequenceDiagram
             V-->>NS: PayloadHashMismatch
         end
     end
-    V->>V: Schnorr signature .verify() (:426-427)
+    V->>V: Schnorr signature .verify() (nip98.rs:511-512)
     alt signature invalid
         V-->>NS: InvalidSignature
     end
-    critical claim_event_id(event.id, Instant::now()) — nip98.rs:234, under one Mutex lock
-        V->>RC: check-prune-cap-insert atomically (:435)
-        alt id already live within REPLAY_CACHE_TTL (2x60s=120s, :177)
+    critical claim_signed_id(event.id, pubkey, now) under one Mutex lock
+        V->>RC: admit_signed_in checks per-pubkey quota then claim_in atomically
+        alt id already live within REPLAY_CACHE_TTL (2x60s=120s, :178)
             RC-->>V: TokenReplayed
+        else signer already spent 1000 events in the120s window
+            RC-->>V: PubkeyAdmissionExceeded, no live entry evicted
         else cache.len() >= REPLAY_CACHE_MAX_ENTRIES=100_000 after prune
-            RC-->>V: ReplayCacheFull (maps to 503 upstream)
+            RC-->>V: ReplayCacheFull (generic auth failure upstream)
         else
             RC-->>V: Ok — id recorded with monotonic Instant
         end
@@ -275,7 +277,7 @@ sequenceDiagram
     C->>WSy: Authorization Bearer <token> or ?token=<token>
     WSy->>NS: get_session(token) — enforces AUTH_TOKEN_EXPIRY since ADR-2044 (see VC-03.2)
     C->>API: legacy X-Nostr-Pubkey + X-Nostr-Token headers (auth.rs:266-283)
-    API->>NS: validate_session(pubkey, token) — DOES check now - last_seen <= token_expiry (:478-483)
+    API->>NS: validate_session(pubkey, token) — DOES check now - last_seen <= token_expiry (nostr_service.rs:478-483)
     end
     Note over SET: /api/settings ALSO accepts legacy "Bearer <token>" + X-Nostr-Pubkey (auth_extractor.rs:181-201)<br/>WITHOUT calling validate_session — the settings extractor trusts the header pubkey outright
     Note over API,SET: /api re-verifies NIP-98 on each call rather than trusting the session token<br/>(IDENTITY-authority-chain.md line 67-68) — session tokens are the WS credential
@@ -322,7 +324,7 @@ sequenceDiagram
         end
         RG->>VA: verify_access(req, nostr_service, level)
         alt Ok(pubkey)
-            RG->>RG: insert AuthenticatedUser{pubkey} into request extensions (:268)
+            RG->>RG: insert AuthenticatedUser{pubkey} into request extensions (:273-274)
             RG->>R: call handler
         else Err(deny_response)
             alt mode == Enforce (RBAC_GATE_MODE default)
@@ -373,7 +375,7 @@ sequenceDiagram
     C->>RS: assign_checked(target, new_role, caller: CallerAuthority)
     critical single tx.transaction() scope — role_store.rs:421-489
         RS->>TX: tx = c.transaction()
-        TX->>TX: resolve_caller_role_in_tx(caller, default_role) — re-reads CALLER's own row (:429)
+        TX->>TX: resolve_caller_role_in_tx(caller, default_role) — re-reads CALLER's own row (role_store.rs:428)
         Note over TX: ADR-2010 — re-resolving the caller INSIDE the same tx closes the race where<br/>a concurrent demotion of the caller is not seen before the lattice check
         TX->>TX: effective_mutation_authority(admission_role, current)
         alt caller authority changed since admission
@@ -418,9 +420,9 @@ sequenceDiagram
             WS->>VF: compute_private_opaque_ids(visibility, act.pubkey.as_deref())
             Note over VF: fail-closed — act.pubkey==None (unauthenticated session) drops ALL private nodes
             VF-->>WS: drop_set
-            WS->>VF: apply_drop_set(&mut nodes, &drop_set) (:413)
+            WS->>VF: apply_drop_set(&mut nodes, &drop_set) (position_updates.rs:413)
             VF-->>WS: dropped_count
-            WS->>WS: debug! "{dropped} dropped by PUBKEY_VISIBILITY_FILTER" (:751)
+            WS->>WS: debug! "{dropped} dropped by PUBKEY_VISIBILITY_FILTER" (position_updates.rs:751)
         end
     else disabled
         WS->>WS: no filtering — full node set (incl. private) sent to every client
@@ -438,7 +440,7 @@ sequenceDiagram
     participant PD as PublicDemoGuardService::call<br/>src/middleware/public_demo.rs:98
     participant ENV as PUBLIC_DEMO env<br/>const PUBLIC_DEMO_ENV, public_demo.rs:24
 
-    Note over PD: read ONCE at PublicDemoGuard::from_env() (app start, :44-53) — not re-read per request
+    Note over PD: read ONCE at PublicDemoGuard::from_env() (app start, :49-53) — not re-read per request
     PD->>ENV: public_demo_read_only() at construction
     Note over ENV: truthy tokens (trim+lowercase): "read-only","readonly","1","true","on" (:26-31)
     alt enabled AND method NOT IN GET/HEAD/OPTIONS
@@ -495,8 +497,8 @@ sequenceDiagram
 
     RL->>RL: extract_identifier — use_user_id? AuthenticatedUser.pubkey : realip_remote_addr (:195-217)
     RL->>ST: state.write().await
-    ST->>ST: cleanup(config) — periodic prune (:134)
-    ST->>ST: check_and_record(identifier, config) (:105)
+    ST->>ST: cleanup(config) — periodic prune (rate_limit.rs:134)
+    ST->>ST: check_and_record(identifier, config) (rate_limit.rs:105)
     ST->>ST: window_start = now - config.window — pop_front expired entries
     alt history.len() < max_requests
         ST->>ST: push_back(now)
@@ -587,7 +589,7 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     U["user's own Nostr keypair<br/>signs NIP-98 directly (VC-03.4)"]
-    SS["Service-signed — nostr_bridge.rs<br/>struct field keys: Keys :29<br/>Keys::new(secret_key) :65<br/>event.sign_with_keys(&self.keys) :169"]
+    SS["Service-signed — nostr_bridge.rs<br/>struct field keys: Keys (nostr_bridge.rs:29)<br/>Keys::new(secret_key) (nostr_bridge.rs:65)<br/>event.sign_with_keys(&self.keys) (nostr_bridge.rs:169)"]
     DA["Delegated-agent-signed (NIP-26)<br/>agent signs ON BEHALF OF a user with a<br/>verifiable delegation tag"]
     HOOK["would-hook point: validate_nip98_token<br/>src/utils/nip98.rs:375 — tag extraction loop (:438-447, u/method/payload only)<br/>a #quot;delegation#quot; tag is never read; no NIP-26 verifier exists in this crate"]
     U -->|"authority IS the user's own key"| REAL["real, implemented (auth.rs, nip98.rs)"]
@@ -598,3 +600,8 @@ flowchart TB
     N2["ADR-2013 scope note — the enterprise/delegation deferral governs VisionClaw's own request<br/>realm only; it does not imply a single request-credential realm across other repositories'<br/>verifiers (Request-credential review, IDENTITY-authority-chain.md 2026-09-04)."]
     DA --- N2
 ```
+
+2026-09-07 closeout: `settings/auth_extractor.rs` reuses the server-side
+middleware identity extension. The NIP-98 token is consumed once within the
+request; a new request presenting the same token still fails. The regression
+test checks both outcomes and preserves the authenticated user's privilege bit.

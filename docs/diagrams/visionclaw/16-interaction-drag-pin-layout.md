@@ -66,7 +66,7 @@ sequenceDiagram
     participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3367
 
     loop while the pointer is held
-        C->>MR: nodeDragUpdate with nodeId, position, timestamp :1103
+        C->>MR: nodeDragUpdate with nodeId, position, timestamp (position_updates.rs:1103)
         MR->>HU: dispatch :86
         HU->>HU: consult drag_last_update.get(&node_id) :1131
         alt throttle window not elapsed
@@ -132,7 +132,7 @@ sequenceDiagram
     end
     ABA->>BC: encode_pending :158
     BC->>ENC: encode_agent_actions(&self.pending) :162
-    Note over ENC: ONE multi-action 0x23 frame - up to MAX_COALESCE_PER_FLUSH 256 actions :86, see VC-14.5 for the 15-byte header layout
+    Note over ENC: ONE multi-action 0x23 frame - up to MAX_COALESCE_PER_FLUSH 256 actions (agent_beam_actor.rs:86), see VC-14.5 for the 15-byte header layout
     ABA->>CC: try_send BroadcastAgentActionFrame(frame) :285
     alt coordinator mailbox full
         Note over ABA: backlog is NOT cleared - retried after FLUSH_RETRY_INTERVAL 20ms :91
@@ -197,12 +197,12 @@ sequenceDiagram
     end
     C->>CH: POST /constraints/remove :16
     CH->>CH: remove_constraints :191
-    CH->>CA: ClearConstraints :256
+    CH->>CA: ClearConstraints (constraint_actor.rs:256)
     C->>CH: GET /constraints/list :17
     CH->>CA: GetConstraints :215 and GetConstraintStatistics :264
     C->>CH: POST /constraints/validate :18
     CH->>CH: validate_constraint_definition :282 over LegacyConstraintData - pure validation, no actor call
-    CA->>FCA: UploadConstraintsToGPU :224 then :3700
+    CA->>FCA: UploadConstraintsToGPU :224 then (force_compute_actor.rs:3700)
     FCA->>EX: next physics step with num_constraints
     alt num_constraints > 0
         Note over EX: ENABLE_CONSTRAINTS set by derive_dispatch_feature_flags force_channels.rs:502-504
@@ -223,14 +223,14 @@ flowchart LR
         D4["nodeUnpin<br/>message_routing.rs:89 to position_updates.rs:1462"]
     end
     subgraph REST["REST surfaces"]
-        L1["GET /modes :310"]
-        L2["POST /mode :311"]
-        L3["POST /radial :312"]
-        K1["POST /constraints/define :14"]
-        K2["POST /constraints/apply :15"]
-        K3["POST /constraints/remove :16"]
-        K4["GET /constraints/list :17"]
-        K5["POST /constraints/validate :18"]
+        L1["GET /modes (layout_handler.rs:310)"]
+        L2["POST /mode (layout_handler.rs:311)"]
+        L3["POST /radial (layout_handler.rs:312)"]
+        K1["POST /constraints/define (constraints_handler.rs:14)"]
+        K2["POST /constraints/apply (constraints_handler.rs:15)"]
+        K3["POST /constraints/remove (constraints_handler.rs:16)"]
+        K4["GET /constraints/list (constraints_handler.rs:17)"]
+        K5["POST /constraints/validate (constraints_handler.rs:18)"]
     end
     subgraph SRVPUSH["Server-initiated"]
         B1["0x23 AGENT_ACTION beam<br/>agent_beam_actor.rs:285"]
@@ -239,10 +239,10 @@ flowchart LR
     CA["ConstraintActor<br/>constraint_actor.rs:193"]
     CC["ClientCoordinatorActor fan-out"]
 
-    D1 -->|"PinNodePositions :1065"| GPU
-    D3 -->|"PinNodePositions :1219"| GPU
-    D4 -->|"PinNodePositions :1500"| GPU
-    D2 -->|"drag_last_update.remove :1343"| GPU
+    D1 -->|"PinNodePositions (position_updates.rs:1065)"| GPU
+    D3 -->|"PinNodePositions (position_updates.rs:1219)"| GPU
+    D4 -->|"PinNodePositions (position_updates.rs:1500)"| GPU
+    D2 -->|"drag_last_update.remove (position_updates.rs:1343)"| GPU
     L2 -->|"SetLayoutMode :73"| GPU
     L3 -->|"SetRadialLayout"| GPU
     K1 --> CA

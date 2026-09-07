@@ -39,7 +39,7 @@ flowchart TD
     A3 -.-> M2["ontology condensation internals belong to AB-25"]
     A4 -.-> M3["dream-engine internals belong to AB-23"]
     B1 -.-> N1["log caps stdout and stderr maxbytes 5MB — flake.nix:2445-2446"]
-    B2 -.-> N2["crontab and script live in the MOUNTED website repo, so schedule and behaviour<br/>are editable WITHOUT an image rebuild — only the supervisor stanza is baked (flake.nix:2450-2451)"]
+    B2 -.-> N2["crontab and script live in the MOUNTED website repo, so schedule and behaviour<br/>are editable WITHOUT an image rebuild — only the supervisor stanza is baked (flake.nix:2452-2453)"]
     SUP -.-> ADHOC["NOT supervised — no ruflo daemon runs under supervisord and the runtime pins<br/>RUFLO_DAEMON_AI_WORKERS=0, so anything the reaper finds was started ad hoc<br/>inside a session (ruflo-daemon-gc.rs:8-10)"]
 ```
 
@@ -178,34 +178,34 @@ sequenceDiagram
     GC->>SW: procs.sweep() process-table fallback
     SW->>SW: sysinfo snapshot, filter by is_ruflo_daemon_argv (procs.rs:13 and :59)
     SW-->>GC: DaemonProc pid, cmdline, run_time_secs, workspace
-    GC->>GC: or_insert entries not already in the registry, source ps (:116-119)
-    loop for each discovered pid (:126)
+    GC->>GC: or_insert entries not already in the registry, source ps (ruflo-daemon-gc.rs:116-119)
+    loop for each discovered pid (ruflo-daemon-gc.rs:126)
         GC->>PR: confirm_daemon(pid)
         alt Some(false) — PID now belongs to something else
-            PR-->>GC: skip this entry entirely (:129)
+            PR-->>GC: skip this entry entirely (ruflo-daemon-gc.rs:129)
         else Some(true)
             PR-->>GC: confirmed = true
         else None — unconfirmable
             PR-->>GC: confirmed = false
         end
-        GC->>GC: workspace_gone = workspace named, non-empty and not a directory (:134-135)
-        GC->>GC: stale = workspace_gone OR run_time_secs > ttl (:136)
-        GC->>GC: row with pid, workspace, source, age_s, confirmed, workspace_gone, stale (:146-154)
+        GC->>GC: workspace_gone = workspace named, non-empty and not a directory (ruflo-daemon-gc.rs:134-135)
+        GC->>GC: stale = workspace_gone OR run_time_secs > ttl (ruflo-daemon-gc.rs:136)
+        GC->>GC: row with pid, workspace, source, age_s, confirmed, workspace_gone, stale (ruflo-daemon-gc.rs:146-154)
     end
-    alt --kill passed (:158)
-        loop stale but unconfirmed (:159)
-            GC-->>OP: refuse pid — cmdline unconfirmable (pid reuse guard) (:160)
+    alt --kill passed (ruflo-daemon-gc.rs:158)
+        loop stale but unconfirmed (ruflo-daemon-gc.rs:159)
+            GC-->>OP: refuse pid — cmdline unconfirmable (pid reuse guard) (ruflo-daemon-gc.rs:160)
         end
-        loop stale and confirmed (:162)
-            GC->>PR: RE-PROBE immediately before signalling — the guard, not a formality (:163-164)
+        loop stale and confirmed (ruflo-daemon-gc.rs:162)
+            GC->>PR: RE-PROBE immediately before signalling — the guard, not a formality (ruflo-daemon-gc.rs:163-164)
             alt no longer confirmed
-                GC-->>OP: refuse pid (:165)
+                GC-->>OP: refuse pid (ruflo-daemon-gc.rs:165)
             else still confirmed
-                GC->>K: kill_process(Pid::from_raw(pid), Signal::Term) (:171)
+                GC->>K: kill_process(Pid::from_raw(pid), Signal::Term) (ruflo-daemon-gc.rs:171)
                 alt Ok
-                    K-->>GC: killed.push(pid) (:172)
+                    K-->>GC: killed.push(pid) (ruflo-daemon-gc.rs:172)
                 else Err
-                    K-->>GC: kill failed, reported not swallowed (:173)
+                    K-->>GC: kill failed, reported not swallowed (ruflo-daemon-gc.rs:173)
                 end
             end
         end
@@ -244,23 +244,23 @@ sequenceDiagram
     end
     S->>ST: load_identity()
     alt record disappeared between probe and signal
-        ST-->>S: RefusedUnverifiable — the identity record disappeared (:569-574)
+        ST-->>S: RefusedUnverifiable — the identity record disappeared (mod.rs:569-574)
     end
-    S->>V: verify(source, recorded) — re-check IMMEDIATELY before signalling (:568 and :575)
+    S->>V: verify(source, recorded) — re-check IMMEDIATELY before signalling (mod.rs:568 and :575)
     alt Match
-        V-->>S: proceed (:576)
+        V-->>S: proceed (mod.rs:576)
     else NoSuchProcess
-        V-->>S: clear_daemon_record then NotRunning (:577-580)
+        V-->>S: clear_daemon_record then NotRunning (mod.rs:577-580)
     else Mismatch
-        V-->>S: RefusedMismatch (:581-583)
+        V-->>S: RefusedMismatch (mod.rs:581-583)
     else Inaccessible
-        V-->>S: RefusedInaccessible (:584-586)
+        V-->>S: RefusedInaccessible (mod.rs:584-586)
     end
-    S->>SIG: signal(pid) (:589)
+    S->>SIG: signal(pid) (mod.rs:589)
     alt signal errored
-        SIG-->>S: StopOutcome SignalFailed (:590)
+        SIG-->>S: StopOutcome SignalFailed (mod.rs:590)
     end
-    loop poll until grace elapses (:595-615)
+    loop poll until grace elapses (mod.rs:595-615)
         S->>V: verify(source, recorded)
         alt NoSuchProcess or Mismatch
             V-->>S: clear_daemon_record then Exited with waited_ms (:599-605)
@@ -275,7 +275,7 @@ sequenceDiagram
     Note over S: StopOutcome variants NotRunning, Exited, Signalled, RefusedUnverifiable, RefusedMismatch, RefusedInaccessible, SignalFailed — hermes/mod.rs:437-455
     Note over S,SIG: kill(2) returning Ok proves only that the signal was DELIVERED, not that the process<br/>exited — the two are reported as different outcomes (hermes/mod.rs:434-435)
     Note over C,V: DOC-DRIFT — BASELINE-container "Process lifecycle qualification 2026-09-04" says<br/>ADR-2032 is partial because Hermes Stop uses PID EXISTENCE ONLY. The code verifies<br/>the full recorded identity twice (hermes/mod.rs:575 and :596) and observes exit. The<br/>doc understates the implementation.
-    Note over C,V: RESOLVED ADR-2039: BASELINE-container.md:231 marks this qualification<br/>resolved with evidence — identity verified at :575 and :596, delivery<br/>reported separately from confirmed exit at :434-435.
+    Note over C,V: RESOLVED ADR-2039: BASELINE-container.md:231 marks this qualification<br/>resolved with evidence — identity verified at mod.rs:575 and mod.rs:596, delivery<br/>reported separately from confirmed exit at mod.rs:434-435.
 ```
 
 ## AB-07.7 Cron runners — schedule outside the image
@@ -305,7 +305,7 @@ sequenceDiagram
             J-->>SC: backup written to the NAS
         end
     end
-    Note over SC,CT: both crontabs live OUTSIDE the image on mounted paths, so schedule and behaviour<br/>change without a rebuild — only the supervisor stanza is baked (flake.nix:2450-2451)
+    Note over SC,CT: both crontabs live OUTSIDE the image on mounted paths, so schedule and behaviour<br/>change without a rebuild — only the supervisor stanza is baked (flake.nix:2452-2453)
     Note over L: stdout_logfile_maxbytes and stderr_logfile_maxbytes are 5MB on both (flake.nix:2445-2446 and :2465-2466)
     Note over SUP,SC: environment HOME=/home/devuser and user=devuser on both — no cron job runs as root (flake.nix:2437 and :2457)
 ```
@@ -367,7 +367,7 @@ flowchart TD
     T --> T3["comfyui-builtin flake.nix:2302<br/>gate skills.media.comfyui_builtin"]
     T --> T4["qgis-mcp flake.nix:1843, blender-mcp flake.nix:1868,<br/>imagemagick-mcp flake.nix:2194"]
     T2 -.-> CSR["RESOLVED ADR-2040 (2026-09-05) — the old finding was that code-server ran<br/>--bind-addr 0.0.0.0:8080 --auth none ([program:code-server]), unauthenticated<br/>to any sibling container on visionclaw_network (BASELINE's flake.nix:1927<br/>citation for this was itself already stale). It now runs --auth password<br/>with the credential minted at boot into<br/>/home/devuser/.local/share/code-server/config.yaml (0600). See AB-06.7."]
-    T1 -.-> JR["RESOLVED ADR-2040 (2026-09-05) — the old finding was that jupyter also bound<br/>0.0.0.0 with an empty --IdentityProvider.token=, relying on the loopback-only<br/>host publish for its boundary. The flag is gone; JUPYTER_TOKEN is now minted<br/>at boot into a 0600 devuser file and exported into PID 1's environment before<br/>supervisord starts ([program:jupyter-lab]:1939). See AB-06.7."]
+    T1 -.-> JR["RESOLVED ADR-2040 (2026-09-05) — the old finding was that jupyter also bound<br/>0.0.0.0 with an empty --IdentityProvider.token=, relying on the loopback-only<br/>host publish for its boundary. The flag is gone; JUPYTER_TOKEN is now minted<br/>at boot into a 0600 devuser file and exported into PID 1's environment before<br/>supervisord starts ([program:jupyter-lab]:1941). See AB-06.7."]
     N -.-> ND["nostr-gateway flake.nix:1896 is the INBOUND half of the session mirror —<br/>AGENTBOX_PRIVKEY_HEX is injected by the entrypoint launcher and inherited,<br/>never written into the generated supervisor text. Off switch AGENTBOX_NOSTR_GATEWAY=0<br/>(flake.nix:1890-1895). See AB-08 for the outbound mirror hook"]
     G -.-> INV["INVARIANT — adding a gate means gating BOTH the Nix package set AND the<br/>supervisor block, plus a system-manifest catalogue entry with an honest<br/>apply class. See AB-05.9"]
 ```

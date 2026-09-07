@@ -34,15 +34,15 @@ verified_commit: 36bb64e1e
 flowchart TB
     S["web::scope('/settings') + RateLimit::per_minute(60)<br/>src/main.rs:1071-1074"]
     S --> CFG["settings::api::configure_routes<br/>src/settings/api/settings_routes.rs:1736"]
-    CFG --> P["GET|PUT physics :1713-1714<br/>POST physics/reset-layout :1715"]
-    CFG --> C["GET|PUT constraints :1716-1717"]
-    CFG --> R["GET|PUT rendering :1718-1719"]
-    CFG --> NF["GET|PUT node-filter :1720-1721"]
-    CFG --> QG["GET|PUT quality-gates :1722-1723"]
-    CFG --> V["GET|PUT visual :1724-1725"]
-    CFG --> AL["GET all :1726"]
-    CFG --> PR["POST|GET profiles :1727-1728<br/>GET|DELETE profiles/{id} :1729-1730"]
-    CFG --> U["nested scope /user<br/>GET|PUT /filter :1734-1736"]
+    CFG --> P["GET|PUT physics settings_routes.rs:1739-1740<br/>POST physics/reset-layout :1741"]
+    CFG --> C["GET|PUT constraints settings_routes.rs:1742-1743"]
+    CFG --> R["GET|PUT rendering settings_routes.rs:1744-1745"]
+    CFG --> NF["GET|PUT node-filter settings_routes.rs:1746-1747"]
+    CFG --> QG["GET|PUT quality-gates settings_routes.rs:1748-1749"]
+    CFG --> V["GET|PUT visual settings_routes.rs:1750-1751"]
+    CFG --> AL["GET all settings_routes.rs:1752"]
+    CFG --> PR["POST|GET profiles settings_routes.rs:1753-1754<br/>GET|DELETE profiles/{id} :1755-1756"]
+    CFG --> U["nested scope /user<br/>GET|PUT /filter settings_routes.rs:1760-1762"]
     ACT["state.settings_addr : Addr of OptimizedSettingsActor<br/>src/app_state.rs:353, started src/app_state.rs:1152"]
     REPO["settings_repo : web::Data of Arc of SqliteSettingsRepository<br/>injected src/main.rs:1013"]
     P --> ACT
@@ -67,9 +67,9 @@ sequenceDiagram
     CL->>RG: PUT /api/settings/physics
     Note over RG: WriteSettings capability required — see VC-03.6
     RG->>H: forward
-    H->>AU: extract AuthenticatedUser (auth.pubkey logged at :475-478)
+    H->>AU: extract AuthenticatedUser (auth.pubkey logged at :507-510)
     H->>SA: send(GetSettings)
-    Note over H,SA: single GetSettings call — a full snapshot is fetched ONCE to avoid a TOCTOU race<br/>comment src/settings/api/settings_routes.rs:482
+    Note over H,SA: single GetSettings call — a full snapshot is fetched ONCE to avoid a TOCTOU race<br/>comment src/settings/api/settings_routes.rs:512
     alt Ok(Ok(settings))
         SA-->>H: AppFullSettings
     else Ok(Err(e))
@@ -77,9 +77,9 @@ sequenceDiagram
     else Err(mailbox)
         SA-->>H: 500 "Actor communication error"
     end
-    H->>H: current = full_settings.visualisation.graphs.knowledge.physics (:493)
+    H->>H: current = full_settings.visualisation.graphs.knowledge.physics (:530)
     Note over H: ADR-2041 — the field is `knowledge`, `logseq` is a deserialisation alias only. See VC-09.15
-    H->>H: normalize_physics_keys(patch) — snake_case and legacy aliases to canonical camelCase (:504-506)
+    H->>H: normalize_physics_keys(patch) — snake_case and legacy aliases to canonical camelCase (:537-539)
     H->>H: merge patch onto the snapshot then serde_json::from_value::<PhysicsSettings>
     alt merge fails
         H-->>CL: 400 "Invalid settings value"
@@ -102,16 +102,16 @@ sequenceDiagram
     participant GS as GraphServiceSupervisor<br/>state.graph_service_addr
     participant DB as SqliteSettingsRepository<br/>src/adapters/sqlite_settings_repository.rs:415
 
-    H->>H: full_settings.visualisation.graphs.knowledge.physics = new_physics (:533)
+    H->>H: full_settings.visualisation.graphs.knowledge.physics = new_physics (:565)
     H->>SA: send(UpdateSettings { settings: full_settings })
     alt Ok(Ok(()))
-        H->>H: SimulationParams::from(&new_physics) (:546)
+        H->>H: SimulationParams::from(&new_physics) (:577-578)
         rect rgb(236,236,244)
         Note over H,GM: GPU propagation with a startup fallback
         alt state.get_gpu_compute_addr() is Some
             H->>GPU: send(UpdateSimulationParams { params })
         else direct address not yet cached
-            Note over H,GM: fallback window is roughly the first 6s of startup while the async init task completes (:562-564)
+            Note over H,GM: fallback window is roughly the first 6s of startup while the async init task completes (:593-595)
             alt state.gpu_manager_addr is Some
                 H->>GM: send(UpdateSimulationParams) — routed
             else
@@ -120,43 +120,45 @@ sequenceDiagram
         end
         opt GPUComputeActor address available
             H->>GPU: do_send(UpdateClusteringParams { algorithm, resolution, iterations })
-            Note over H,GPU: community-detector params cannot ride in the 172-byte repr-C SimParams<br/>so they are dispatched separately — this is what makes the Physics tab controls live (:579-584)
+            Note over H,GPU: community-detector params cannot ride in the 172-byte repr-C SimParams<br/>so they are dispatched separately — this is what makes the Physics tab controls live (:610-621)
         end
         end
         H->>GS: send(UpdateSimulationParams)
-        H->>GS: send(ForceResumePhysics { reason: "Physics settings updated via API" }) (:601-605)
-        Note over GS: without ForceResumePhysics a converged system stays paused and the change is invisible (:598-599)
-        H->>DB: set_setting("physics", SettingValue::Json(...), Some("Physics simulation settings")) (:616-622)
+        H->>GS: send(ForceResumePhysics { reason: "Physics settings updated via API" }) (:633-638)
+        Note over GS: without ForceResumePhysics a converged system stays paused and the change is invisible (settings_routes.rs:630-631)
+        H->>DB: set_setting("physics", SettingValue::Json(...), Some("Physics simulation settings")) (:648-654)
         alt persist fails
             DB-->>H: warn only — the response still succeeds
         end
-        H-->>H: 200 with the new PhysicsSettings JSON (:634)
+        H->>H: broadcast_settings_change(&state, "physics", &auth.pubkey) (:670, ADR-2047)
+        H-->>H: 200 with the new PhysicsSettings JSON (:672)
     else Ok(Err(e))
         SA-->>H: 500 "Failed to update physics settings"
     else Err(mailbox)
         SA-->>H: 500 "Actor communication error"
     end
-    Note over H,DB: DIVERGENCE — the physics PUT sends NO BroadcastMessage to other sessions.<br/>Rendering (:826-839) and node-filter (:954-972) DO broadcast via client_manager_addr.<br/>A second open session keeps stale physics until it re-reads. See VC-06.4
+    Note over H,DB: RESOLVED ADR-2047 (was DIVERGENCE) — physics now DOES broadcast to other<br/>sessions via broadcast_settings_change (:670, added "was the one that never announced<br/>itself"). Rendering (:866) also calls broadcast_settings_change — node-filter uses a<br/>separate raw client_manager_addr.do_send(BroadcastMessage) instead (:1000-1001), same effect. See VC-06.4
 ```
 
 ## VC-06.4 Broadcast asymmetry — which settings reach other sessions
 ```mermaid
 sequenceDiagram
     autonumber
-    participant H1 as update_rendering_settings<br/>src/settings/api/settings_routes.rs:831-833
-    participant H2 as update_node_filter_settings<br/>src/settings/api/settings_routes.rs:931-934
-    participant H3 as update_physics_settings<br/>src/settings/api/settings_routes.rs:497-501
+    participant H1 as update_rendering_settings<br/>src/settings/api/settings_routes.rs:833
+    participant H2 as update_node_filter_settings<br/>src/settings/api/settings_routes.rs:934
+    participant H3 as update_physics_settings<br/>src/settings/api/settings_routes.rs:501
+    participant BC as broadcast_settings_change<br/>src/settings/api/settings_routes.rs:443-459
     participant CC as ClientCoordinatorActor<br/>state.client_manager_addr
     participant B as other browser sessions
 
-    H1->>CC: do_send(BroadcastMessage { message }) (:837-838)
-    Note over H1,CC: payload built at :829-835, logged "Rendering settings change broadcast sent to connected clients"
+    H1->>BC: broadcast_settings_change(state, "rendering", pubkey) (:866)
+    H3->>BC: broadcast_settings_change(state, "physics", pubkey) (:670)
+    BC->>CC: do_send(BroadcastMessage { message }) (:452-454) — category-only payload, no settings echoed
     CC->>B: WS frame — other sessions converge
-    H2->>CC: do_send(BroadcastMessage { message }) (:972)
-    Note over H2,CC: payload built at :957, comment "Propagate node filter changes to all connected clients via broadcast" (:954)
+    H2->>CC: do_send(BroadcastMessage { message }) (:1000-1001) — OWN inline call, bypasses broadcast_settings_change
+    Note over H2,CC: payload built at :983-997, fuller than BC's — echoes the actual settings fields,<br/>not just category. Comment "Propagate node filter changes..." at :980-982
     CC->>B: WS frame
-    H3--xCC: no BroadcastMessage is sent
-    Note over H3,B: RESOLVED ADR-2047 — physics now emits through the single<br/>broadcast_settings_change emitter, closing the asymmetry. RESOLVED ADR-2080 (vc-clients) —<br/>the client now CONSUMES settingsUpdated: nodeFilter applies its payload directly, other<br/>categories re-read via getSectionPaths/getSettingsByPaths, write-echo and stale timestamps<br/>are dropped. Before both, the server emitted settingsUpdated while the client validator knew<br/>only settings_update, so every broadcast fell through to Unknown message type.<br/>Still silent by choice: constraints, quality-gates, visual, profiles.
+    Note over H1,B: RESOLVED ADR-2047 — physics and rendering now BOTH emit through the single<br/>broadcast_settings_change emitter (:443-459), physics was the one that "never announced<br/>itself" until this change. node-filter keeps its own richer, separate broadcast. RESOLVED<br/>ADR-2080 (vc-clients) — the client now CONSUMES settingsUpdated: nodeFilter applies its<br/>payload directly, other categories re-read via getSectionPaths/getSettingsByPaths,<br/>write-echo and stale timestamps are dropped. Before both, the server emitted<br/>settingsUpdated while the client validator knew only settings_update, so every broadcast<br/>fell through to Unknown message type. Still silent by choice: constraints, quality-gates,<br/>visual, profiles.
 ```
 
 ## VC-06.5 OptimizedSettingsActor message surface
@@ -221,20 +223,20 @@ sequenceDiagram
     Note over PS: started with ProtectedSettings::default() — src/app_state.rs:1197
     H->>PS: GetApiKeys (handler src/actors/protected_settings_actor.rs:33)
     PS->>ST: read
-    H->>PS: UpdateUserApiKeys (:81)
+    H->>PS: UpdateUserApiKeys (protected_settings_actor.rs:81)
     PS->>ST: write
-    H->>PS: GetUser (:142)
+    H->>PS: GetUser (protected_settings_actor.rs:142)
     par token lifecycle
-        H->>PS: StoreClientToken (:65)
+        H->>PS: StoreClientToken (protected_settings_actor.rs:65)
     and
-        H->>PS: ValidateClientToken (:49)
+        H->>PS: ValidateClientToken (protected_settings_actor.rs:49)
     and
-        H->>PS: CleanupExpiredTokens (:97)
+        H->>PS: CleanupExpiredTokens (protected_settings_actor.rs:97)
     end
     par settings persistence
-        H->>PS: MergeSettings (:112)
+        H->>PS: MergeSettings (protected_settings_actor.rs:112)
     and
-        H->>PS: SaveSettings (:127)
+        H->>PS: SaveSettings (protected_settings_actor.rs:127)
     end
     Note over H,ST: INVARIANT — protected settings hold API keys and client tokens, a separate actor<br/>from OptimizedSettingsActor so the secret surface is not served by the /api/settings routes
     Note over H,ST: session-token realm and the get_session expiry gap see VC-03.5 and VC-05
@@ -251,7 +253,7 @@ sequenceDiagram
 
     Note over P: ADR-090 A6 slice 3 — src/ports/settings_repository.rs is a 14-line SHIM.<br/>The canonical trait lives in visionclaw_domain::ports::settings_repository. See VC-07.
     A->>P: get_setting(key)
-    P->>AD: impl SettingsRepository for SqliteSettingsRepository (:378)
+    P->>AD: impl SettingsRepository for SqliteSettingsRepository (sqlite_settings_repository.rs:378)
     AD->>DB: SELECT (:382)
     AD->>AD: decode_setting_value (:156) — JSON text to SettingValue
     alt row absent
@@ -260,7 +262,7 @@ sequenceDiagram
         AD-->>A: map_json_err (:151) to SettingsRepositoryError
     end
     A->>P: set_setting(key, value, description)
-    P->>AD: set_setting (:415)
+    P->>AD: set_setting (sqlite_settings_repository.rs:415)
     AD->>AD: encode_setting_value (:161), current_owner_pubkey() (:128)
     AD->>DB: UPSERT
     par other trait methods
@@ -283,15 +285,15 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     IN["incoming settings JSON"]
-    IN --> N1["normalize_physics_keys<br/>src/settings/api/settings_routes.rs:506-508<br/>snake_case and legacy names to canonical camelCase"]
+    IN --> N1["normalize_physics_keys<br/>src/settings/api/settings_routes.rs:70<br/>snake_case and legacy names to canonical camelCase, call site :539"]
     N1 --> V1["validate_physics_settings<br/>src/settings/api/settings_routes.rs:117 (call site :557)"]
     V1 --> OUT["PhysicsSettings"]
     subgraph FIX["src/handlers/settings_validation_fix.rs"]
-        F1["validate_physics_settings_complete(&Value) :5"]
-        F2["validate_constraint(&Value) :67"]
-        F3["convert_to_snake_case_recursive(&mut Value) :107"]
-        F4["get_complete_field_mappings() -> HashMap :151"]
-        F5["apply_field_mappings(&mut Value, &mappings) :270"]
+        F1["validate_physics_settings_complete(&Value) settings_validation_fix.rs:5"]
+        F2["validate_constraint(&Value) settings_validation_fix.rs:67"]
+        F3["convert_to_snake_case_recursive(&mut Value) settings_validation_fix.rs:107"]
+        F4["get_complete_field_mappings() -> HashMap settings_validation_fix.rs:151"]
+        F5["apply_field_mappings(&mut Value, &mappings) settings_validation_fix.rs:270"]
     end
     subgraph DOM["canonical validators re-exported by src/config/mod.rs:28-31"]
         D1["validate_bloom_glow_settings"]
@@ -328,7 +330,7 @@ sequenceDiagram
 flowchart TB
     ADR["ADR-2046 — remove the dead SettingsActor<br/>and the orphaned src/config copies"]
     SA["DELETED src/settings/settings_actor.rs<br/>SettingsActor, 14 message types, 14 Handler impls<br/>never started at runtime"]
-    EXP["DELETED re-export block in src/settings/mod.rs<br/>the ADR-2046 comment at :13-16 records the removal<br/>in place of the GetPhysicsSettings / LoadProfile /<br/>SaveProfile / SettingsActor re-exports"]
+    EXP["DELETED re-export block in src/settings/mod.rs<br/>the ADR-2046 comment at src/settings/mod.rs:13-16 records the removal<br/>in place of the GetPhysicsSettings / LoadProfile /<br/>SaveProfile / SettingsActor re-exports"]
     TST["DELETED src/handlers/tests/settings_tests.rs<br/>the only start() caller — it was already commented out<br/>of the module tree and referenced two absent modules"]
     MOD["src/settings/mod.rs:17-18<br/>the surviving re-exports are auth_extractor and models only"]
     LIVE["LIVE actor is OptimizedSettingsActor<br/>src/app_state.rs:353 field, started at :1152<br/>see VC-06.1 for the live round trip"]

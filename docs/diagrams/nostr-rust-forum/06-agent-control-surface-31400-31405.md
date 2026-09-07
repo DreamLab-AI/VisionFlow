@@ -23,7 +23,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/relay.rs
   - ../nostr-rust-forum/README.md
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
-verified_commit: d48a7a546
+verified_commit: worktree-2026-09-07
 ---
 
 ## NF-06.1 The six kinds and their publishers
@@ -85,20 +85,20 @@ sequenceDiagram
     participant HU as Human admin
 
     AG->>R: kind 31400 PanelDefinition
-    R->>REG: is_registered_agent gate nip_handlers.rs:703
+    R->>REG: is_registered_agent gate nip_handlers.rs:724
     R-->>FC: subscription on 31400-31405 nostr-bbs-forum-client/src/app.rs:767
     AG->>R: kind 31402 ActionRequest
-    R->>R: project_action_request into broker_cases nip_handlers.rs:904
+    R->>R: project_action_request into broker_cases nip_handlers.rs:925
     FC->>FC: ingest_event into the panel registry nostr-bbs-forum-client/src/app.rs:773
     FC-->>HU: render the decision card
     HU->>FC: approve / reject
     FC->>R: kind 31403 ActionResponse nostr-bbs-forum-client/src/pages/governance.rs:473
-    R->>R: admin-only gate nip_handlers.rs:719 via governance_response_blocked nip_handlers.rs:130
-    R->>R: project_action_response nip_handlers.rs:917
+    R->>R: admin-only gate nip_handlers.rs:740 via governance_response_blocked nip_handlers.rs:130
+    R->>R: project_action_response nip_handlers.rs:938
     R-->>AG: subscription on 31403
 
-    Note over R: INVARIANT P1-6: a Decision is a PRIVILEGED act, not a generic member action - kind 31403 from a non-admin is blocked outright nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:694-696
-    Note over R: 31403 is EXEMPT from the agent-registry gate - it is the human half of the protocol nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:704
+    Note over R: INVARIANT P1-6: a Decision is a PRIVILEGED act, not a generic member action - kind 31403 from a non-admin is blocked outright nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:715-717
+    Note over R: 31403 is EXEMPT from the agent-registry gate - it is the human half of the protocol nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:725
     Note over FC: The published response carries an e-tag naming the request it answers nostr-bbs-forum-client/src/pages/governance.rs:476
 ```
 
@@ -107,21 +107,21 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     EV["governance-kind event at the relay"]
-    G1{"is_governance_kind AND kind != 31403<br/>AND not a kanban approval request<br/>AND not a registered agent<br/>nip_handlers.rs:703"}
-    G2{"governance_response_blocked - 31403 from a non-admin<br/>nip_handlers.rs:719"}
-    G3{"a 31403 carrying a supersedes e-tag<br/>supersession_authorised<br/>nip_handlers.rs:736"}
+    G1{"is_governance_kind AND kind != 31403<br/>AND not a kanban approval request<br/>AND not a registered agent<br/>nip_handlers.rs:724"}
+    G2{"governance_response_blocked - 31403 from a non-admin<br/>nip_handlers.rs:740"}
+    G3{"a 31403 carrying a supersedes e-tag<br/>supersession_authorised<br/>nip_handlers.rs:757"}
     OK["saved and projected"]
 
     EV --> G1
-    G1 -->|"unregistered"| B1["blocked: pubkey not in agent registry nip_handlers.rs:712"]
+    G1 -->|"unregistered"| B1["blocked: pubkey not in agent registry nip_handlers.rs:733"]
     G1 -->|"pass"| G2
-    G2 -->|"non-admin"| B2["blocked: admin-only governance action response nip_handlers.rs:724"]
+    G2 -->|"non-admin"| B2["blocked: admin-only governance action response nip_handlers.rs:745"]
     G2 -->|"pass"| G3
-    G3 -->|"unauthorised"| B3["blocked: unauthorised supersession nip_handlers.rs:742"]
+    G3 -->|"unauthorised"| B3["blocked: unauthorised supersession nip_handlers.rs:763"]
     G3 -->|"pass"| OK
 
-    N1["Kanban exception: a 31402 tagged k=30302 is a MEMBER-initiated ask - may this card enter the<br/>approval-gated column - so it is admitted from any whitelisted author. Decisions stay admin-only;<br/>every other 31402 remains registry-gated nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:698-702"]
-    N2["F6 supersession authority: only the ORIGINAL decision's signer, or a human of a strictly higher<br/>governance role, may supersede a published decision - rejected BEFORE the event is saved or<br/>projected nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:729-735"]
+    N1["Kanban exception: a 31402 tagged k=30302 is a MEMBER-initiated ask - may this card enter the<br/>approval-gated column - so it is admitted from any whitelisted author. Decisions stay admin-only;<br/>every other 31402 remains registry-gated nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:719-723"]
+    N2["F6 supersession authority: only the ORIGINAL decision's signer, or a human of a strictly higher<br/>governance role, may supersede a published decision - rejected BEFORE the event is saved or<br/>projected nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:750-756"]
     N3["The whitelist gate ran earlier in the pipeline, so registry membership is an ADDITIONAL<br/>requirement on top of forum membership - see NF-03.4 step 6b"]
 ```
 
@@ -163,10 +163,10 @@ stateDiagram-v2
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Open: 31402 ActionRequest projected<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:908
-    Open --> Reopened: 31402 carrying an appeal e-tag<br/>project_appeal nip_handlers.rs:906
-    Open --> Decided: 31403 routed through the DecisionOrchestrator<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:166-168
-    Decided --> Superseded: 31403 carrying a supersedes e-tag<br/>project_supersession nip_handlers.rs:919
+    [*] --> Open: 31402 ActionRequest projected<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:929
+    Open --> Reopened: 31402 carrying an appeal e-tag<br/>project_appeal nip_handlers.rs:927
+    Open --> Decided: 31403 routed through the DecisionOrchestrator<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:166-169
+    Decided --> Superseded: 31403 carrying a supersedes e-tag<br/>project_supersession nip_handlers.rs:940
     Decided --> [*]
 
     note right of Decided
@@ -175,7 +175,7 @@ stateDiagram-v2
         payload nostr-bbs-core/src/governance.rs:576
         A delegate / promote / precedent outcome now reaches its matching CaseState
         instead of the former fixed under_review fallback
-        nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:162-168
+        nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:163-169
     end note
     note right of Open
         INVARIANT self-review forbidden: a broker may not decide their own case -
@@ -184,9 +184,8 @@ stateDiagram-v2
         supersession path nostr-bbs-core/src/governance.rs:862
     end note
     note right of Superseded
-        A response can arrive BEFORE its request projected, so the relay hydrates a
-        sensible default case rather than dropping the decision
-        nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:165-166
+        A response arriving before its request is unresolved and cannot invent a case.
+        Redelivery may reconcile after the request has projected.
     end note
 ```
 
@@ -199,8 +198,8 @@ flowchart LR
     PROJ -. "cross-repo contract still proposed" .-> RECV["consumer-received"]
     RECV -. "requires mutation-owner receipt" .-> APPLIED["applied / rejected"]
 
-    OKNOW["Today the relay OK certifies STORAGE ONLY<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:856"]
-    WARN["If the receipt is not applied the relay logs<br/>accepted but not applied rather than letting its OK stand<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:926"]
+    OKNOW["Today the relay OK certifies STORAGE ONLY<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:877"]
+    WARN["If the receipt is not applied the relay logs<br/>accepted but not applied rather than letting its OK stand<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:947"]
     TABLE["governance_receipts table<br/>migration 0005_governance_receipts.sql:12<br/>bootstrapped inline nostr-bbs-relay-worker/src/lib.rs:744"]
 
     ACCEPTED -.-> OKNOW
@@ -208,7 +207,7 @@ flowchart LR
     PROJ --> TABLE
 
     N1["DIVERGENCE ADR-2010 is PROPOSED, implementation partial, activation INACTIVE - see the ledger row in<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:1. The complete receipt contract requires<br/>agreement with the authority consumer and the mutation owner plus failure/restart evidence."]
-    N2["INVARIANT already live: the relay does NOT let a bare OK imply the decision was applied - the gap<br/>between accepted and applied is logged, not hidden nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:921-924"]
+    N2["INVARIANT already live: the relay does NOT let a bare OK imply the decision was applied - the gap<br/>between accepted and applied is logged, not hidden nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:942-945"]
     N3["EXTERNAL: consumer-received and applied are the OTHER repos' halves - VisionClaw's elevation queue<br/>see VC-24, agentbox's approvals pipeline see AB-14, estate view ES-05"]
 ```
 
@@ -295,17 +294,19 @@ flowchart TB
     N3["EXTERNAL: exactly ONE live consumer today - ontology-concept elevation in VisionClaw, a case queue<br/>capped at five concurrent README.md:255. Treat universal human-in-the-loop surface as the design<br/>target, not a claim of many production consumers. See VC-24."]
 ```
 
-## NF-06.11 Implemented receipt transaction and unresolved correlation
+## NF-06.11 Guarded relay projection and remaining external receipt gap
 
 ```mermaid
 flowchart TB
-    EVENT["Stored signed response; relay already sent OK"] --> CORR["correlate: requires non-empty d tag<br/>request_event_id remains optional, receipts.rs:164-180"]
-    CORR --> PLAN["Load case and plan typed outcome<br/>missing case still has a default snapshot,<br/>nip_handlers.rs:205-221"]
-    PLAN --> ACCEPT["Persist relay-accepted receipt by full event ID"]
-    ACCEPT --> BATCH["D1 batch: decision INSERT, case UPDATE,<br/>receipt to projection-committed; receipts.rs:489-552"]
-    BATCH --> OK["Checks statement success; no prior-state<br/>predicate or affected-row assertion on case UPDATE"]
-    BATCH -. "SQL or foreign-key failure" .-> FAIL["ProjectionFailed; retryable receipt where recorded"]
-    OK --> LIMIT["Certifies relay projection only.<br/>No consumer-received or external mutation receipt."]
+    EVENT["Stored signed response; relay OK still means storage"] --> CORR["Require matching event, case, request, signer and outcome at apply"]
+    CORR --> REPLAY["Completed receipt checked before planning against terminal case"]
+    REPLAY --> PLAN["Existing case only; reject unknown persisted state"]
+    PLAN --> ACCEPT["Record relay-accepted receipt by full event ID"]
+    ACCEPT --> SQL["INSERT decision only if request, prior state, latest decision and receipt match"]
+    SQL --> CASE["Case UPDATE only if decision changed one row"]
+    CASE --> RECEIPT["Receipt UPDATE only if case changed one row"]
+    RECEIPT --> CHECK["All three affected-row counts must equal one"]
+    CHECK --> LIMIT["Relay projection only: operation binding and consumer/applied receipts remain incomplete"]
 ```
 
-The decision table declares a case foreign key (`lib.rs:727`), so an enforced foreign key can reject an absent case: the default snapshot alone does not prove an orphan can commit. Remaining acceptance cases are required request/case correlation, zero-row updates, concurrent terminal decisions, failure before receipt creation, replay after projection failure and authority changes. See the [dated audit](../../estate-review/2026-09-07-federation-audit.md); no live D1 exploit is asserted.
+Execution update, 2026-09-07: request redelivery uses INSERT OR IGNORE and cannot reset an already-decided case. D1 statements execute serially in one transaction, and each dependent write requires its predecessor to change one row. Three exact-SQL projection tests cover wrong/missing request/case/receipt, prior decision/state races, duplicate commits and rollback on receipt failure; native relay tests cover correlation mismatch and unknown-state rejection. The earlier default-case and unconditional-update findings remain in the [audit](../../estate-review/2026-09-07-federation-audit.md). Live D1, operation-bound authority and external application are not certified by these tests.

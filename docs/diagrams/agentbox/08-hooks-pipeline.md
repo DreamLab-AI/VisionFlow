@@ -50,7 +50,7 @@ flowchart TB
     end
     subgraph FLT["fleet-session-start.sh — SessionStart"]
     direction TB
-    F1["fleet registration entrypoint-unified.sh:1202<br/>off switch AGENTBOX_NOSTR_GATEWAY=0 in fleet-session-start.sh"]
+    F1["block entrypoint-unified.sh:1193, baked hook path :1197<br/>off switch AGENTBOX_NOSTR_GATEWAY=0 :1196"]
     F2["entrypoint-unified.sh:1205 marker test, :1206 push timeout 8000"]
     F1 --> F2
     end
@@ -173,7 +173,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant U as User turn
-    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:375
+    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:374
     participant RBG as ruvnet-brain-ground.cjs<br/>agentbox/config/hooks/ruvnet-brain-ground.cjs:37
     participant TS as turn-sink.cjs<br/>agentbox/config/tab0-bridge/turn-sink.cjs:1
     participant DI as dream-inbox-surface.cjs<br/>agentbox/config/hooks/dream-inbox-surface.cjs:24
@@ -203,7 +203,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant CC as Claude Code core
-    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:375
+    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:374
     participant FS as fleet-session-start.sh<br/>agentbox/config/hooks/fleet-session-start.sh:13
     participant FTN as fleet-tab-name.sh<br/>agentbox/config/hooks/fleet-tab-name.sh:13
     participant TSD as trust-seed.cjs<br/>agentbox/config/hooks/trust-seed.cjs:70
@@ -237,7 +237,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant CC as Claude Code core
-    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:375
+    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:374
     participant OM as ontology-monitor.cjs<br/>agentbox/config/hooks/ontology-monitor.cjs:232
     participant TS as turn-sink.cjs Stop<br/>agentbox/config/tab0-bridge/turn-sink.cjs:1
     participant TR as trajectory-recorder.cjs<br/>agentbox/config/hooks/trajectory-recorder.cjs:555
@@ -314,40 +314,68 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant H as Hook event
-    participant M as main<br/>config/hooks/nostr-live-mirror.cjs:375
-    participant P as policy<br/>config/hooks/lib/egress-policy.cjs:139
-    participant R as recipientAllowed<br/>config/hooks/lib/egress-policy.cjs:59
-    participant B as bodyForEvent<br/>config/hooks/nostr-live-mirror.cjs:272
-    participant W as NIP-59 publisher
-    H->>M: event name and pending stdin
-    M->>P: global and live-mirror switches, sender identity
-    alt disabled or sender unavailable
-        P-->>M: skipped with reason
-    else global admission passes
-        M->>R: actual explicit recipient or derived child recipient
-        alt missing, empty, malformed enumeration or unlisted key
-            R-->>M: denied before stdin or body access
-            M-->>H: skipped with reason
-        else recipient enumerated
-            M->>M: read stdin
-            M->>B: compose event-specific text
-            B-->>M: body
-            M->>P: redactForEgress config/hooks/lib/egress-policy.cjs:118
-            alt redaction fails
-                P-->>M: null, skipped
-            else redaction succeeds
-                M->>M: bound composition and preserve activity URN
-                alt dry-run
-                    M-->>H: redacted local preview only
-                else live
-                    M->>W: gift-wrap and publish
-                    W-->>M: accepted or failed with reason
-                end
-            end
-        end
+    participant CC as Claude Code core
+    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:374
+    participant EG as lib/egress-policy.cjs<br/>agentbox/config/hooks/lib/egress-policy.cjs:136
+    participant NT as nostr-tools nip59<br/>management-api or mcp node_modules<br/>nostr-live-mirror.cjs:97-108
+    participant WS as ws WebSocket lib<br/>same candidate search :110-121
+    participant R as cloud relay<br/>wss dreamlab-nostr-relay workers.dev<br/>nostr-live-mirror.cjs:49
+
+    CC->>NM: node nostr-live-mirror.cjs #60;event#62;, stdin JSON<br/>event from argv#91;2#93; :376, CLI entry guarded by require.main :503
+    Note over NM: ADR-2026 egress boundary: transport is EXCLUSIVELY this cloud relay,<br/>hardcoded default with ONE env override for testing :18-24
+    NM->>NM: deriveChildKey HMAC-SHA256#40;operator_sk, tag agentbox-mirror-v1#41; :208-219
+    NM->>NM: recipientPubkey from 4 env names, 64-hex or empty :74-82
+    NM->>EG: egressDecision#40;live-mirror, identityPresent#41; BEFORE any content is read :385-387
+    alt AGENTBOX_EGRESS=0
+        EG-->>NM: skipped / egress-globally-disabled<br/>egress-policy.cjs:142-144
+    else AGENTBOX_LIVE_MIRROR=0
+        EG-->>NM: skipped / live-mirror-disabled :145-148
+    else AGENTBOX_EGRESS_REDACTION=0
+        EG-->>NM: skipped / redaction-disabled-so-egress-refused<br/>INVARIANT: a disabled redactor is a disabled path :149-153
+    else no sender identity
+        EG-->>NM: skipped / no-sender-identity :154-156
+    else permitted
+        EG-->>NM: allowed, outcome attempted :161
     end
-    Note over M,R: G4 source requires a non-empty valid recipient set, including dry-run.<br/>25 isolated tests pass. Deployment needs an explicit reviewed recipient set.<br/>No messages were sent by the closeout tests.
+    opt not allowed
+        NM-->>CC: log the outcome and reason, return 0<br/>nostr-live-mirror.cjs:388-393
+    end
+    NM->>NM: readStdin then JSON.parse, fail-open to #123;#125; :395-399
+    NM->>NM: bodyForEvent maps the 4 events to one line, null otherwise :271-295
+    opt body null or empty
+        NM-->>CC: log egress skipped empty-body, return 0 :402
+    end
+    NM->>EG: redactForEgress BEFORE composition and wrap :409
+    Note over EG: RULES applied in order — assignment, JSON/YAML, URI credentials,<br/>bearer headers, long hex/base64 runs :77-114
+    alt redaction returns null
+        NM-->>CC: fail-closed SKIP, nothing sent :410-413
+    else redacted
+        NM->>NM: mintActivityUrn REC-9 urn:agentbox:activity :163-174
+        NM->>NM: composeBody caps at MAX_BODY_CHARS=4000, urn NEVER truncated :56 and :181-196
+    end
+    opt AGENTBOX_MIRROR_DRY_RUN=1
+        NM-->>CC: print the REDACTED body to stderr, no network egress, return 0 :425-431
+    end
+    NM->>NT: loadNostrTools and loadWs, require failure gives null :433-434
+    alt tools, nip59.wrapEvent or WS unavailable
+        NM-->>CC: log and return 0 :435-438
+    else
+        NM->>NM: sk = childSk else senderSecretKey, recipient = child pubkey else explicit :445-446
+        NM->>EG: second egressDecision with the RESOLVED recipient :450
+        Note over EG: recipientAllowed: 64-hex grammar AND the optional enumerated<br/>AGENTBOX_MIRROR_RECIPIENTS allowlist :46-68
+        opt refused
+            NM-->>CC: log and return 0<br/>nostr-live-mirror.cjs:451-454
+        end
+        NM->>NT: wrapEvent over a kind-14 rumor tagged p recipient + client agentbox-live-mirror :455-465
+        NT-->>NM: gift wrap kind 1059, else return 0 :58 and :466
+        NM->>NM: log egress attempted BEFORE the transport, so a denial still leaves evidence :472-475
+        NM->>WS: publishWrap#40;WS, mirrorRelay, wrap, DEADLINE_MS=6000#41; :53 and :312-356
+        WS->>R: EVENT frame over wss
+        R-->>WS: OK frame, error, close or deadline
+        NM->>NM: accepted only on OK with frame#91;2#93; true :336-339 and :478-482
+        Note over NM,R: INVARIANT: publishWrap resolves on every path and never rejects :316-321<br/>and a guard timer force-exits at DEADLINE_MS+1500 :505-506
+    end
+    Note over NM: INVARIANT: main is exported-free of the CLI path — require in a test<br/>never spawns publish or the exit guard :489-503
 ```
 
 ## AB-08.10 trust-seed.cjs — folder-trust and worktree discovery

@@ -304,7 +304,7 @@ sequenceDiagram
         end
         H->>H: review and merge, or not
     end
-    Note over CFG: extraDisciplines also fence: nix-build-out-of-annexe (the full flake.nix image build<br/>needs the host build shell, so record image/Nix findings as HANDOFF (rebuild) notes and<br/>never invent a nix-build evaluator that would silently no-op, :75) —<br/>sibling-path-deps (services/nostr-pod-bridge path-deps the sibling repos, :76 — RENAMED<br/>2026-09-07 from sibling-path-deps-fenced: since the annexe now mirrors real workspace<br/>depth #40;see AB-23.11#41; the siblings DO ship and sovereign-mesh-bridge is a REAL required<br/>gate, not a permanent skip) — secrets-never-in-report (never quote .env or any<br/>KEY/PRIVKEY value into a report, ledger or gist, :77) — cite-existing-adrs (NEW :78 —<br/>cite only ADR ids that exist under docs/adr/ — nights have cited ADR-056/ADR-0057/ADR-2024<br/>that do not exist)
+    Note over CFG: extraDisciplines also fence: nix-build-out-of-annexe (the full flake.nix image build<br/>needs the host build shell, so record image/Nix findings as HANDOFF (rebuild) notes and<br/>never invent a nix-build evaluator that would silently no-op, dream.config.json:75) —<br/>sibling-path-deps (services/nostr-pod-bridge path-deps the sibling repos, dream.config.json:76 — RENAMED<br/>2026-09-07 from sibling-path-deps-fenced: since the annexe now mirrors real workspace<br/>depth #40;see AB-23.11#41; the siblings DO ship and sovereign-mesh-bridge is a REAL required<br/>gate, not a permanent skip) — secrets-never-in-report (never quote .env or any<br/>KEY/PRIVKEY value into a report, ledger or gist, dream.config.json:77) — cite-existing-adrs (NEW dream.config.json:78 —<br/>cite only ADR ids that exist under docs/adr/ — nights have cited ADR-056/ADR-0057/ADR-2024<br/>that do not exist)
     Note over H: DIVERGENCE: the human-merge boundary is a PROCESS, not a code control — ADR-2024<br/>implementation_status stays partial for that reason
 ```
 
@@ -504,14 +504,14 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph skill["/dream control skill — agentbox/skills/dream-machine/commands/dream.md"]
-        S1["/dream status (or no argument) — :7"]
-        S2["/dream questions · /dream answer id text · /dream dismiss id — :17"]
-        S3["/dream harvest [--days N] — :29"]
-        S4["/dream off · /dream on — :39"]
-        S5["/dream run [repo] — :44"]
-        S6["/dream standby repo · /dream revive repo — :57"]
-        S7["/dream digest [date] — :62"]
-        S8["/dream nominate repo — :70"]
+        S1["/dream status (or no argument) — skills/dream-machine/commands/dream.md:7"]
+        S2["/dream questions · /dream answer id text · /dream dismiss id — skills/dream-machine/commands/dream.md:17"]
+        S3["/dream harvest [--days N] — skills/dream-machine/commands/dream.md:29"]
+        S4["/dream off · /dream on — skills/dream-machine/commands/dream.md:39"]
+        S5["/dream run [repo] — skills/dream-machine/commands/dream.md:44"]
+        S6["/dream standby repo · /dream revive repo — skills/dream-machine/commands/dream.md:57"]
+        S7["/dream digest [date] — skills/dream-machine/commands/dream.md:62"]
+        S8["/dream nominate repo — skills/dream-machine/commands/dream.md:70"]
     end
     subgraph scripts["Scripts — agentbox/scripts/"]
         N1["dream-machine-nightly.mjs"]
@@ -523,7 +523,7 @@ flowchart TB
     end
     subgraph api["management-api"]
         R1["GET /dream/status (fastify)<br/>agentbox/management-api/routes/dream.js:24"]
-        L1["dream-ledger.js parseLedger :52 · verdictStats :80 · latestNights :91<br/>discoverNominatedRepos :117 · pendingMerges :202<br/>readRepoDreamStatus :215 · aggregateDreamStatus :264"]
+        L1["dream-ledger.js parseLedger management-api/lib/dream-ledger.js:52 · verdictStats management-api/lib/dream-ledger.js:80 · latestNights management-api/lib/dream-ledger.js:91<br/>discoverNominatedRepos management-api/lib/dream-ledger.js:117 · pendingMerges management-api/lib/dream-ledger.js:202<br/>readRepoDreamStatus management-api/lib/dream-ledger.js:215 · aggregateDreamStatus management-api/lib/dream-ledger.js:264"]
     end
     subgraph out["Outputs"]
         O1["docs/dream-cycle/LEDGER.md<br/>ledgerPath, agentbox/dream.config.json:81"]

@@ -65,7 +65,7 @@ flowchart TD
     BIND --> OPEN["open::that#40;url#41; — auto-launch the OS default browser<br/>setup/server/src/main.rs:246"]
     subgraph notes["Invariants and drift"]
         direction TB
-        N1["INVARIANT: the Rust binary tier NEVER hard-codes a port — audit reports of<br/>fixed ports #40;2104-2106, 2126-2127#41; describe a DIFFERENT case list elsewhere in<br/>this topic tree #40;see AB-05#41;, not this service. This binary always binds :0 and<br/>prints the resolved ephemeral address #40;setup/server/src/main.rs:234-241#41;"]
+        N1["INVARIANT: the Rust binary tier NEVER hard-codes a port — audit reports of<br/>fixed ports #40;2104-2106, 2126-2127#41; describe a DIFFERENT case list elsewhere in<br/>this topic tree #40;see AB-05#41;, not this service. This binary always binds ephemeral port 0 and<br/>prints the resolved ephemeral address #40;setup/server/src/main.rs:234-241#41;"]
         N2["DIVERGENCE: three fallback tiers exist so setup works with zero installed<br/>dependencies beyond python3 #40;quickstart.md:61#41; — but only tier 1 #40;the compiled<br/>binary#41; can write agentbox.toml server-side #40;save_config, setup/server/src/main.rs:60-77#41;;<br/>tier 3 saves via a browser file download instead of writing back in place"]
         N1 ~~~ N2
     end
@@ -81,7 +81,7 @@ sequenceDiagram
     participant CFG as get_config / save_config<br/>setup/server/src/main.rs:39,60
     participant DISK as agentbox.toml on disk
     participant PROXY as proxy_to_mgmt_api<br/>setup/server/src/main.rs:85
-    participant MGMT as management API :9090
+    participant MGMT as management API port 9090
 
     OP->>AX: GET /api/config
     AX->>CFG: get_config(state)
@@ -122,13 +122,13 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant SUP as supervisord [program:https-bridge]<br/>flake.nix:2180-2189
-    participant BOOT as entrypoint root phase<br/>flake.nix:3359-3384
+    participant BOOT as entrypoint root phase<br/>flake.nix:3360-3387
     participant OSSL as openssl req -x509
     participant NODE as https-proxy.js<br/>process.env-driven config
     participant BROWSER as Browser client
     participant TARGET as http://HOST_IP:TARGET_PORT
 
-    BOOT->>BOOT: mkdir -p /var/lib/https-bridge/certs (tmpfs, uid 1000)<br/>flake.nix:3359,3375
+    BOOT->>BOOT: mkdir -p /var/lib/https-bridge/certs (tmpfs, uid 1000)<br/>flake.nix:3362,3379
     alt server.key already present
         BOOT-->>NODE: skip generation — cert persists for the tmpfs lifetime
     else missing
@@ -137,7 +137,7 @@ sequenceDiagram
     end
     SUP->>NODE: node https-proxy.js<br/>CERT_DIR=/var/lib/https-bridge/certs, MANAGEMENT_API_PORT env — flake.nix:2184
     NODE->>NODE: ensureCertificates#40;#41; — fs.existsSync check, hand-rolled node:crypto<br/>X.509 builder ONLY IF openssl's boot-time generation is somehow absent<br/>https-proxy.js:48-49,67 — buildSelfSignedX509 at :79
-    Note over BOOT,NODE: DESIGN: the trusted path is openssl #40;flake.nix#41; — the hand-rolled builder in<br/>https-proxy.js is a fail-open FALLBACK only, per the boot-script's own comment<br/>#40;flake.nix:3372-3374#41; — not the primary certificate source
+    Note over BOOT,NODE: DESIGN: the trusted path is openssl #40;flake.nix#41; — the hand-rolled builder in<br/>https-proxy.js is a fail-open FALLBACK only, per the boot-script's own comment<br/>#40;flake.nix:3385-3386#41; — not the primary certificate source
     NODE->>NODE: https.createServer#40;{key, cert}#41;.listen#40;HTTPS_PORT, HTTPS_HOST#41;<br/>https-proxy.js:190,262 — HTTPS_HOST defaults 0.0.0.0, published loopback-only<br/>via compose #40;R-003 comment, https-proxy.js:31-33#41;
     BROWSER->>NODE: HTTPS request to localhost:HTTPS_PORT
     NODE->>NODE: detectGatewayIP#40;#41; if HOST_IP unset — `ip route | grep default`<br/>https-proxy.js:21-28, falls back to 192.168.0.51 on any failure

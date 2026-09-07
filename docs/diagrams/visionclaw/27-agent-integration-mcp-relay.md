@@ -5,7 +5,7 @@ area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/docs/IDENTIFIER-taxonomy.md
-adrs: [ADR-2025]
+adrs: [ADR-2025, ADR-2058, ADR-2090, ADR-2091, ADR-2094]
 sources:
   - ../project/src/services/bots_client.rs
   - ../project/src/actors/graph_service_supervisor.rs
@@ -43,31 +43,31 @@ sequenceDiagram
     participant MCP as McpTcpClient<br/>utils/mcp_tcp_client.rs:24, test_connection() :772,<br/>initialize_session() :785, query_agent_list() :291
     participant GSS as GraphServiceSupervisor<br/>actors/graph_service_supervisor.rs:421
 
-    Caller->>BC: connect(_bots_url) - bots_client.rs:138
-    BC->>MCP: test_connection() - :144
+    Caller->>BC: connect(_bots_url) - bots_client.rs:144
+    BC->>MCP: test_connection() - :150
     alt server unreachable
         MCP-->>BC: Ok(false) or Err
-        BC-->>Caller: Err("MCP server is not reachable") - :159-164
+        BC-->>Caller: Err("MCP server is not reachable") - :164-168
     else reachable
-        BC->>MCP: initialize_session() - :148
-        BC->>BC: start_polling() - :167
-        loop every 2s (tokio interval, :178)
-            BC->>MCP: query_agent_list() - :183
+        BC->>MCP: initialize_session() - :155
+        BC->>BC: start_polling() - :176
+        loop every 2s (tokio interval, :187,189)
+            BC->>MCP: query_agent_list() - :192
             alt agents non-empty
-                BC->>BC: Agent::from(mcp_agent) map - :188-189
-                BC->>BC: agents.write().await = converted - :192-194
+                BC->>BC: Agent::from(mcp_agent) map - :197-198
+                BC->>BC: agents.write().await = converted - :200-203
                 opt graph_service_addr set
-                    BC->>GSS: do_send(UpdateBotsGraph{agents}) - :202-205
+                    BC->>GSS: do_send(UpdateBotsGraph{agents}) - :205-214
                 end
             else empty list
-                BC->>BC: clear stored agents if non-empty - :207-211
+                BC->>BC: clear stored agents if non-empty - :216-220
             else query_agent_list Err
-                BC->>BC: debug log, keep stale snapshot - :214-216
+                BC->>BC: debug log, keep stale snapshot - :223-225
             end
         end
     end
-    Note over BC,MCP: RESOLVED ADR-2088 (estate) - get_status() misreported on THREE axes, not one: host<br/>"agentic-workstation", port 9090 and an unconditional connected=true (:228,233-234). It now reports<br/>self.mcp_client.host/.port (the values resolved at :115-121) and a real AtomicBool connection state<br/>set from the actual test_connection() outcome. Two tokio tests cover it.
-    Note over Caller,MCP: DIVERGENCE: agent_events/ingest.rs:12-15 marks this :9500 snapshot path<br/>as untouched/legacy - agent_action events use a separate /wss/agent-events ingest (see VC-27.13)
+    Note over BC,MCP: RESOLVED ADR-2088 (estate) - get_status() misreported on THREE axes, not one: host<br/>"agentic-workstation", port 9090 and an unconditional connected=true. It now reports<br/>self.mcp_client.host/.port (:242-243, values resolved in BotsClient::new() :118-121) and a real<br/>AtomicBool connection state (:237,241) set from the actual test_connection() outcome (:236-244).<br/>Two tokio tests cover it.
+    Note over Caller,MCP: agent_events/ingest.rs:14-19 marks this port-9500 snapshot path<br/>as untouched by design (not legacy/deprecated) - agent_action events use a separate /wss/agent-events ingest (see VC-27.13, RESOLVED ADR-2084)
     Note over MCP: DOC-DRIFT (audit-rust.md correction): a SECOND file also named mcp_tcp_client.rs<br/>exists at src/client/mcp_tcp_client.rs, defining McpTelemetryClient. grep confirms it is dead -<br/>src/client/mod.rs:3 re-exports it but nothing else in src/ constructs or calls it. The live MCP-TCP<br/>hop is exclusively utils/mcp_tcp_client.rs::McpTcpClient shown above (used by bots_client.rs,<br/>ontology_class_index.rs, multi_mcp_agent_discovery.rs)
 ```
 
@@ -89,7 +89,7 @@ sequenceDiagram
         Caller->>MRM: ensure_relay_running() - :160
         MRM->>MRM: health_manager.check_service_now("mcp-relay") - :161
         MRM->>CB: execute(check_relay_status_internal) - :64-73
-        CB->>Docker: exec multi-agent-container pgrep -f mcp-server - :92-94
+        CB->>Docker: exec multi-agent-container pgrep -f mcp-server - mcp_relay_manager.rs:92-94
         alt pgrep succeeds (already running)
             Docker-->>MRM: status.success()=true
             MRM-->>Caller: Ok(()) - :175-177
@@ -120,7 +120,7 @@ sequenceDiagram
     autonumber
     participant Client as WS client
     participant H as mcp_relay_handler()<br/>src/handlers/mcp_relay_handler.rs:442
-    participant A as MCPRelayActor<br/>mcp_relay_handler.rs:39, Actor impl :199
+    participant A as MCPRelayActor<br/>mcp_relay_handler.rs:39, Actor impl :200
     participant O as Orchestrator WS<br/>ORCHESTRATOR_WS_URL default ws://multi-agent-container:3002/ws (:77-78)
 
     Client->>H: GET /ws/mcp-relay (upgrade) - main.rs:1043
@@ -130,20 +130,20 @@ sequenceDiagram
         Note over H: SECURITY: logged but not yet enforced on all clients (:447-450)
     else token present
         H->>A: ws::start(MCPRelayActor::new()) - :479
-        A->>A: started() - register health endpoint, run_interval 30s ping+check (:220-232)
-        A->>A: run_interval 60s circuit-breaker stats log (:234-250)
-        A->>O: connect_to_orchestrator() - circuit_breaker.execute(connect_async, timeout) (:93-112)
+        A->>A: started() - register health endpoint, run_interval 30s ping+check (:209-233)
+        A->>A: run_interval 60s circuit-breaker stats log (:235-251)
+        A->>O: connect_to_orchestrator() - circuit_breaker.execute(connect_async, timeout) (:94-113)
         alt connect ok
-            O-->>A: ws_stream split into tx/rx - :120-124
-            A->>A: do_send(SetOrchestratorTx(tx)) - :124
+            O-->>A: ws_stream split into tx/rx - :121-125
+            A->>A: do_send(SetOrchestratorTx(tx)) - :125
             loop forward orchestrator->client (rx.next())
-                O-->>A: Text/Binary/Ping/Close - :132-172
+                O-->>A: Text/Binary/Ping/Close - :133-173
                 A->>Client: ctx.text(msg) or ctx.binary(msg) - :279,289
             end
         else connect fails or times out
-            A->>A: retry_delay = min(5s * 2^(attempts-1), 60s) - :185-188
-            A->>A: sleep(retry_delay) then do_send("retry") - :191-192
-            A->>A: connect_to_orchestrator() again - :276
+            A->>A: retry_delay = min(5s * 2^(attempts-1), 60s) - :186-189
+            A->>A: sleep(retry_delay) then do_send("retry") - :192-193
+            A->>A: connect_to_orchestrator() again - :276-277
         end
     end
     Client->>A: ws::Message::Text (JSON)
@@ -158,7 +158,7 @@ sequenceDiagram
     end
     Client->>A: ws::Message::Close
     A->>A: ctx.stop() - :427
-    A->>A: stopped() logs - :255-257
+    A->>A: stopped() logs - :256-258
 ```
 
 ## VC-27.4 MultiMcpAgentDiscovery — per-server agent + tool discovery
@@ -168,31 +168,31 @@ sequenceDiagram
     autonumber
     participant Caller as start_discovery()<br/>src/services/multi_mcp_agent_discovery.rs:207
     participant D as MultiMcpAgentDiscovery<br/>multi_mcp_agent_discovery.rs:62
-    participant CF as claude-flow server<br/>host=CLAUDE_FLOW_HOST port=MCP_TCP_PORT default 9500 (:91-95)
-    participant RS as ruv-swarm server<br/>host=RUV_SWARM_HOST port=RUV_SWARM_PORT default 9501 (:108-112)
-    participant DAA as daa server<br/>host=DAA_HOST port=DAA_PORT default 9502 (:125-129)
+    participant CF as claude-flow server<br/>host=CLAUDE_FLOW_HOST port=MCP_TCP_PORT default 9500 (:129-133)
+    participant RS as ruv-swarm server<br/>host=RUV_SWARM_HOST port=RUV_SWARM_PORT default 9501 (:146-150)
+    participant DAA as daa server<br/>host=DAA_HOST port=DAA_PORT default 9502 (:163-167)
 
-    Caller->>D: initialize_default_servers() - :83-141
-    D->>D: insert claude-flow/ruv-swarm/daa McpServerConfig - :86-135
-    Caller->>D: start_discovery() - :169
-    loop while discovery_running (tokio::spawn, :187-261)
-        par concurrent per enabled server (:192-252)
-            D->>CF: discover_server_agents -> discover_claude_flow_agents - :300-386
-            CF-->>D: query_server_info / query_agent_list / query_swarm_status - :330,351,374
-            D->>RS: discover_ruv_swarm_agents - :388-473
-            RS-->>D: same three-call pattern, server_type=RuvSwarm - :417-462
-            D->>DAA: discover_daa_agents - :475-570
-            DAA-->>D: same pattern, server_type=Daa - :497-560
+    Caller->>D: initialize_default_servers() - :121-179
+    D->>D: insert claude-flow/ruv-swarm/daa McpServerConfig - :124-173
+    Caller->>D: start_discovery() - :207
+    loop while discovery_running (tokio::spawn, :225-304)
+        par concurrent per enabled server (:235-295)
+            D->>CF: discover_server_agents -> discover_claude_flow_agents - :335-336,346-407
+            CF-->>D: query_server_info / query_agent_list / query_swarm_status - :376,397,420
+            D->>RS: discover_ruv_swarm_agents - :337,434-526
+            RS-->>D: same three-call pattern, server_type=RuvSwarm - :464,490,513
+            D->>DAA: discover_daa_agents - :338,527-609
+            DAA-->>D: same pattern, server_type=Daa - :557,582,602
         end
         alt discover_server_agents Ok
-            D->>D: insert server_info/agents/topology, successful_discoveries+=1 - :204-233
+            D->>D: insert server_info/agents/topology, successful_discoveries+=1 - :246-271
         else Err (connect/timeout)
-            D->>D: failed_discoveries+=1, is_connected=false - :235-248
+            D->>D: failed_discoveries+=1, is_connected=false - :278-291
         end
-        D->>D: tokio::time::sleep(1000ms) - :257
+        D->>D: tokio::time::sleep(sleep_ms) - :303
     end
-    Note over D,CF: RESOLVED ADR-2083 (estate) - WIRED, not removed: the per-server values are deliberate, so the<br/>loop now sleeps the minimum interval across ENABLED servers, with a named MIN_DISCOVERY_INTERVAL_MS floor so a<br/>misconfigured 0 cannot spin it, and a named fallback when no server is enabled. The flat 1000ms sleep is gone.
-    Note over CF,DAA: supported_tools fallback differs per server when query_server_info fails:<br/>claude-flow=[agent_list,swarm_status,server_info] (:341-345), ruv-swarm=[swarm_init,agent_spawn,daa_init,neural_train,benchmark_run] (:337-343 in ruv block), daa=[daa_agent_create,daa_workflow_create,daa_knowledge_share,daa_learning_status]
+    Note over D,CF: RESOLVED ADR-2083 (estate) - WIRED, not removed: the per-server values are deliberate, so the<br/>loop now sleeps the minimum interval across ENABLED servers (select_discovery_interval_ms :232), with a named<br/>MIN_DISCOVERY_INTERVAL_MS floor so a misconfigured 0 cannot spin it, and a named fallback when no server is<br/>enabled. The flat 1000ms sleep is gone (:299-303).
+    Note over CF,DAA: supported_tools fallback differs per server when query_server_info fails:<br/>claude-flow=[agent_list,swarm_status,server_info] (multi_mcp_agent_discovery.rs:387-391),<br/>ruv-swarm and daa each have their own equivalent fallback list in their own discover_*_agents function
 ```
 
 ## VC-27.5 MultiMcpVisualizationWs — `/multi-mcp/ws` session and opcodes
@@ -201,51 +201,49 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Client as WS client
-    participant H as multi_mcp_visualization_ws()<br/>src/handlers/multi_mcp_websocket_handler.rs:824
-    participant Ws as MultiMcpVisualizationWs<br/>multi_mcp_websocket_handler.rs:144, Actor :425
+    participant H as multi_mcp_visualization_ws()<br/>src/handlers/multi_mcp_websocket_handler.rs:823
+    participant Ws as MultiMcpVisualizationWs<br/>multi_mcp_websocket_handler.rs:473 (Actor::started)
 
-    Client->>H: GET /multi-mcp/ws (upgrade) - configure_multi_mcp_routes :858-864
-    H->>H: require Bearer/token or 401 - :787-814
-    H->>Ws: ws::start(MultiMcpVisualizationWs::new) - :816
-    Ws->>Ws: started() - start_heartbeat, register 3 health endpoints, start_position_updates - :428-452
-    Ws->>Ws: run_interval 30s perform_health_checks() - :454-456
-    Ws->>Ws: run_interval 60s recovery-if-idle-300s + circuit stats log - :458-480
-    Ws->>Ws: send_discovery_data(ctx) - :482
-    loop position updates (PerformanceMode: HighFreq=16ms/Normal=100ms/Low=1000ms, OnDemand=none) - :142-151
+    Client->>H: GET /multi-mcp/ws (upgrade) - configure_multi_mcp_routes :911-921
+    H->>H: require Bearer/token or 401 - :831-906
+    H->>Ws: ws::start(MultiMcpVisualizationWs::new) - :908
+    Ws->>Ws: started() - start_heartbeat, register MONITORED_SERVICES health endpoints,<br/>start_health_monitor (ADR-2094), start_position_updates - :473-500
+    Ws->>Ws: run_interval 60s recovery-if-idle-300s + circuit stats log - :502-524
+    Ws->>Ws: send_discovery_data(ctx) - :526
+    loop position updates (PerformanceMode: HighFreq=16ms/Normal=100ms/Low=1000ms, OnDemand=none) - :127-135,176-178
         Ws->>Ws: do_send(RequestAgentUpdate)
     end
-    loop heartbeat every 5s - :155-166
+    loop heartbeat every 5s (start_heartbeat) - :187-200
         alt no pong for >30s
-            Ws-->>Client: ctx.close(None) - :161
+            Ws-->>Client: ctx.close(None) - :194
         else
-            Ws-->>Client: ctx.ping(b"ping") - :165
+            Ws-->>Client: ctx.ping(b"ping") - :198
         end
     end
     Client->>Ws: Text "ping" (plain)
-    Ws-->>Client: "pong" - :502-505
-    Client->>Ws: Text JSON {action, data} - ClientRequest :632-636
+    Ws-->>Client: "pong" - :546-549
+    Client->>Ws: Text JSON {action, data} - ClientRequest :677-680
     alt action == configure
-        Ws->>Ws: handle_client_config(ClientConfig{subscription_filters,performance_mode}) - :511-519
+        Ws->>Ws: handle_client_config(ClientConfig{subscription_filters,performance_mode}) - :367-389
     else action == request_discovery
-        Ws->>Ws: handle_discovery_request(ctx) - :520-522
+        Ws->>Ws: handle_discovery_request(ctx) - :391-404
     else action == request_agents
-        Ws->>Ws: do_send(RequestAgentUpdate), degrade under open circuit breaker - :523-559
+        Ws->>Ws: do_send(RequestAgentUpdate), degrade under open circuit breaker - :567-603
     else action == request_performance
         alt has_healthy_services() true
-            Ws->>Ws: do_send(RequestPerformanceUpdate) - :575
+            Ws->>Ws: do_send(RequestPerformanceUpdate) - :619
         else degraded
-            Ws-->>Client: cached "performance_data" status=degraded - :563-573
+            Ws-->>Client: cached "performance_data" status=degraded - :606-617
         end
     else action == request_topology
-        Ws->>Ws: do_send(RequestTopologyUpdate{swarm_id}) - :578-587
+        Ws->>Ws: do_send(RequestTopologyUpdate{swarm_id}) - :622-632
     else unknown action
-        Ws-->>Client: send_error_response("Unknown action: ...") - :589-595
+        Ws-->>Client: send_error_response("Unknown action: ...") - :633-639
     end
     Client->>Ws: ws::Message::Close
-    Ws->>Ws: log final circuit-breaker stats, ctx.close(reason) - :602-620
-    Note over Ws: RESOLVED ADR-2094 (2026-09-05): has_healthy_services (:253) is a pure atomic read of a cached verdict<br/>one monitor task started at connection init publishes it and stops when the client drops (:209) - no per-call spawn
-    Note over H,Ws: DOC-DRIFT: GET /multi-mcp/status (get_mcp_server_status, :819-846) returns a<br/>hardcoded two-server JSON literal, not live MultiMcpAgentDiscovery state (:822-838)
-    Note over H,Ws: DOC-DRIFT: POST /multi-mcp/refresh (refresh_mcp_discovery, :848-856) ignores<br/>app_state and never calls MultiMcpAgentDiscovery::start_discovery - it only echoes success
+    Ws->>Ws: log final circuit-breaker stats, ctx.close(reason) - :646-663
+    Note over Ws: RESOLVED ADR-2094 (2026-09-05): has_healthy_services (:253) is a pure atomic read of a cached verdict<br/>one monitor task started at connection init publishes it and stops when the client drops (start_health_monitor :209) - no per-call spawn
+    Note over H,Ws: RESOLVED ADR-2091 (supersedes an earlier DOC-DRIFT finding that they merely returned<br/>fiction): GET /multi-mcp/status and POST /multi-mcp/refresh are DELETED, not just hardcoded -<br/>configure_multi_mcp_routes only registers /ws now (:911-921). /status served a hardcoded<br/>two-server JSON literal (claude-flow is_connected:true agent_count:4, never queried) and<br/>/refresh echoed "initiated" while never calling MultiMcpAgentDiscovery::start_discovery - both<br/>took an unused _app_state. Real discovery state lives in multi_mcp_agent_discovery.rs (see VC-27.4).
 ```
 
 ## VC-27.6 MultiMcpVisualizationActor — message set and periodic ticks
@@ -307,39 +305,39 @@ classDiagram
 sequenceDiagram
     autonumber
     participant Sup as AppState / supervisor
-    participant AM as AgentMonitorActor<br/>src/actors/agent_monitor_actor.rs:169, new() :203
-    participant MAC as ManagementApiClient<br/>host=MANAGEMENT_API_HOST port=MANAGEMENT_API_PORT default 9090 (:209-214)
+    participant AM as AgentMonitorActor<br/>src/actors/agent_monitor_actor.rs:169-203 (struct), new() :247-314
+    participant MAC as ManagementApiClient<br/>host=MANAGEMENT_API_HOST port=MANAGEMENT_API_PORT default 9090 (:253-258)
     participant GSS as GraphServiceSupervisor
 
-    Sup->>AM: started() - is_connected=true, do_send(InitializeActor) - :355-361
-    AM->>AM: handle(InitializeActor) - run_later(100ms) poll_agent_statuses + schedule_next_poll - :372-383
-    loop self-rescheduling poll (schedule_next_poll, :336-342)
-        AM->>MAC: tokio::join!(list_tasks(), get_system_status()) - :254-255
+    Sup->>AM: started() - is_connected=true, do_send(InitializeActor) - :434-441
+    AM->>AM: handle(InitializeActor) - run_later(100ms) poll_agent_statuses + schedule_next_poll - :448-463
+    loop self-rescheduling poll (schedule_next_poll, :415-421)
+        AM->>MAC: tokio::join!(list_tasks(), get_system_status()) - :333-334
         alt tasks_result Ok
-            AM->>AM: task_to_agent_status per active task - :297-301
-            AM->>AM: do_send(ProcessAgentStatuses{agents,telemetry}) - :303
+            AM->>AM: task_to_agent_status per active task - :376-380
+            AM->>AM: do_send(ProcessAgentStatuses{agents,telemetry}) - :382
         else tasks_result Err
-            AM->>AM: do_send(RecordPollFailure) - :307
+            AM->>AM: do_send(RecordPollFailure) - :386
         end
-        AM->>AM: next_poll_delay() - base 15s (:233), doubles per consecutive_poll_failures (max shift 5), capped 90s - :325-332
+        AM->>AM: next_poll_delay() - base 15s (:304), doubles per consecutive_poll_failures (max shift 5), capped 90s - :404-411
     end
-    AM->>AM: handle(ProcessAgentStatuses) - :492
+    AM->>AM: handle(ProcessAgentStatuses) - :568
     opt agents empty and MOCK_AGENTS=true/1
-        AM->>AM: build_mock_swarm_agents() 5 mock agents - :387-487
+        AM->>AM: build_mock_swarm_agents() 5 mock agents - :466-567
     end
-    AM->>AM: golden-angle spiral position per agent, poll_offset round-robin (ADR-031 item 1) - :519-554
-    AM->>AM: decide_bots_graph_emit(count, last_nonempty, consecutive_empty) - :561
-    alt roster non-empty
-        AM->>GSS: do_send(UpdateBotsGraph{agents}) - :574-576
-    else roster empty and consecutive_empty < EMPTY_CONFIRM_THRESHOLD=2
-        AM->>AM: suppress emit - debounce a transient blip - :577-583
-    else roster empty and confirmed (2nd consecutive empty)
-        AM->>GSS: do_send(UpdateBotsGraph{agents: []}) - clears once - :569-576
+    AM->>AM: golden-angle spiral position per agent, poll_offset round-robin (ADR-031 item 1) - :596-634
+    AM->>AM: decide_bots_graph_emit(count, last_nonempty, consecutive_empty) - call :640-644, fn body :126-167
+    alt roster non-empty (fn :131-137)
+        AM->>GSS: do_send(UpdateBotsGraph{agents}) - :648-655
+    else roster empty and consecutive_empty < EMPTY_CONFIRM_THRESHOLD=2 (fn :140-148,159-165)
+        AM->>AM: suppress emit - debounce a transient blip - :656-662
+    else roster empty and confirmed (2nd consecutive empty) (fn :150-158)
+        AM->>GSS: do_send(UpdateBotsGraph{agents: []}) - clears once - :648-655
     end
-    Sup->>AM: TaskStatusChanged{agent_type,running_task_count} (from TaskOrchestratorActor, ADR-031 item 3)
-    AM->>AM: poll_agent_statuses(ctx) immediate re-poll - :647
-    Note over AM,MAC: INVARIANT: idle cadence is 15s (not 3s) to share agentbox's per-key rate-limit<br/>bucket with task creation - backoff cap 90s exceeds agentbox's 60s continueExceeding window (:233,315-324)
-    Note over AM,GSS: DIVERGENCE (roster-clobber fix): an empty Management API poll is "no information"<br/>not "all agents died" - only a confirmed 2nd consecutive empty poll clears the graph (:557-567)
+    Sup->>AM: TaskStatusChanged{agent_type,running_task_count} (from TaskOrchestratorActor, ADR-031 item 3) - handler :717-728
+    AM->>AM: poll_agent_statuses(ctx) immediate re-poll - :726
+    Note over AM,MAC: INVARIANT: idle cadence is 15s (not 3s) to share agentbox's per-key rate-limit<br/>bucket with task creation - backoff cap 90s exceeds agentbox's 60s continueExceeding window (:304,394-411)
+    Note over AM,GSS: DIVERGENCE (roster-clobber fix): an empty Management API poll is "no information"<br/>not "all agents died" - only a confirmed 2nd consecutive empty poll clears the graph (:197-201,126-167)
 ```
 
 ## VC-27.8 TaskOrchestratorActor — CreateTask/Interrupt/Drain message handlers
@@ -408,15 +406,15 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Boot as AppState::new<br/>src/app_state.rs:1267-1276
+    participant Boot as AppState::new<br/>src/app_state.rs:1252-1262
     participant MAC as ManagementApiClient<br/>src/services/management_api_client.rs:27, new() :180-199
     participant API as agentbox management-api<br/>base_url = http://MANAGEMENT_API_HOST:MANAGEMENT_API_PORT (default agentic-workstation:9090)
 
-    Boot->>Boot: validate_security_env_vars() - :78-167
+    Boot->>Boot: validate_security_env_vars() - :82-172
     alt MANAGEMENT_API_KEY unset, insecure-default-listed, or <16 chars
-        Boot->>Boot: log SECURITY CONFIGURATION ERROR, panic on Err - :135-157
+        Boot->>Boot: log SECURITY CONFIGURATION ERROR, panic on Err - :140-162
     else key valid
-        Boot->>MAC: ManagementApiClient::new(host, port, mgmt_api_key) - :1271, client.rs:180
+        Boot->>MAC: ManagementApiClient::new(host, port, mgmt_api_key) - :1262, client.rs:180
         MAC->>MAC: reqwest Client::builder().timeout(30s).connect_timeout(10s) - :183-187
     end
 
@@ -438,7 +436,7 @@ sequenceDiagram
     MAC->>API: POST /v1/briefs/{id}/debrief (create_debrief) - :539-580
     MAC->>API: GET /health (health_check, no auth header) - :586-597
     Note over MAC,API: every call above shares the same alt: 200/2xx Ok(json) else Err(ApiError(body,status)),<br/>and Err(NetworkError) on transport failure (repeated at each call site, e.g. :328-342,388-399)
-    Note over Boot,MAC: RESOLVED ADR-2094 (2026-09-05): AgentMonitorActor::new calls the same validate_security_env_vars AppState uses (app_state.rs:82)<br/>a missing or weak MANAGEMENT_API_KEY is a boot error and the client is an Option, never an empty-string key (agent_monitor_actor.rs:235-267)
+    Note over Boot,MAC: RESOLVED ADR-2094 (2026-09-05): AgentMonitorActor::new calls the same validate_security_env_vars AppState uses (app_state.rs:82)<br/>a missing or weak MANAGEMENT_API_KEY is a boot error and the client is an Option, never an empty-string key (agent_monitor_actor.rs:235-244,264-292)
 ```
 
 ## VC-27.10 agent_visualization_protocol — outbound wire message envelope
@@ -502,41 +500,41 @@ sequenceDiagram
     autonumber
     participant Client as WS client
     participant H as agent_visualization_ws()<br/>src/handlers/bots_visualization_handler.rs:214
-    participant Ws as AgentVisualizationWs<br/>bots_visualization_handler.rs:17, Actor :78
-    participant Proto as AgentVisualizationProtocol<br/>services/agent_visualization_protocol.rs:630
-    participant Proc as AgentVisualizationProcessor<br/>services/agent_visualization_processor.rs:182, new() :195
+    participant Ws as AgentVisualizationWs<br/>bots_visualization_handler.rs:17, Actor :93
+    participant Proto as AgentVisualizationProtocol<br/>services/agent_visualization_protocol.rs:434, new() :457
+    participant Proc as AgentVisualizationProcessor<br/>services/agent_visualization_processor.rs:162, new() :168
 
-    Client->>H: GET /api/visualization/agents/ws - configure_routes :498-513
-    H->>Ws: ws::start(AgentVisualizationWs::new) - :202
-    Ws->>Ws: started() - do_send(InitConnection), start_heartbeat, start_position_updates - :81-89
-    Ws->>Ws: handle(InitConnection) -> send_init_state(ctx) - :114-119
-    Ws->>Proto: create_init_message("swarm-001","hierarchical", agents=Vec::new()) - :46-47
+    Client->>H: GET /api/visualization/agents/ws - configure_routes :515-531
+    H->>Ws: ws::start(AgentVisualizationWs::new) - :219
+    Ws->>Ws: started() - do_send(InitConnection), start_heartbeat, start_position_updates - :96-104
+    Ws->>Ws: handle(InitConnection) -> send_init_state(ctx) - :132-134
+    Ws->>Proto: create_init_message("swarm-001","hierarchical", agents=Vec::new()) - :58-59
     Proto->>Proc: create_visualization_packet(agents, swarm_id, topology) - agent_visualization_protocol.rs:543 calling agent_visualization_processor.rs:308
-    Proc->>Proc: process_agents() - color/shape/animation, spherical fallback position, glow_intensity - :211-293
-    Proc->>Proc: create_connections(), create_clusters() - :455-479
+    Proc->>Proc: process_agents() - color/shape/animation via get_visual_properties, spherical fallback position, glow_intensity - :175-257
+    Proc->>Proc: create_connections(), create_clusters() - :365-389,391-420
     Proc-->>Proto: AgentVisualizationData{swarm,agents,connections,physics_config,...}
-    Proto-->>Ws: init_json (AgentInit list mapped from VisualizedAgent) - agent_visualization_protocol.rs:549-573
-    Ws-->>Client: ctx.text(init_json) - :50
-    loop position updates every 16ms (:57-63)
-        Ws->>Proto: create_position_update() - :1106
+    Proto-->>Ws: init_json (AgentInit list mapped from VisualizedAgent) - agent_visualization_protocol.rs:549-585
+    Ws-->>Client: ctx.text(init_json) - :62
+    loop position updates every 16ms (bots_visualization_handler.rs:69-78)
+        Ws->>Proto: create_position_update() - :74
         opt buffered updates present
             Ws-->>Client: ctx.text(update_json)
         end
     end
-    loop heartbeat every 5s (:65-74)
+    loop heartbeat every 5s (bots_visualization_handler.rs:80-90)
         alt no pong for >10s
-            Ws-->>Client: ctx.stop() - :68-71
+            Ws-->>Client: ctx.stop() - :82-85
         else
-            Ws-->>Client: ctx.ping(b"ping") - :73
+            Ws-->>Client: ctx.ping(b"ping") - :88
         end
     end
-    Client->>Ws: Text {action} - :159-176
+    Client->>Ws: Text {action} - :164-193
     alt action == refresh
-        Ws->>Ws: send_init_state(ctx) again - :163
+        Ws->>Ws: send_init_state(ctx) again - :177-179
     else action == pause_updates or resume_updates
-        Ws->>Ws: debug log only, no actual pause/resume effect - :165-170
+        Ws->>Ws: sets self.paused (ADR-2066 addendum), then debug log - :180-183,184-187
     else unknown action
-        Ws->>Ws: warn "Unknown client action" - :172
+        Ws->>Ws: warn "Unknown client action" - :188-190
     end
     Note over Ws,Proto: PROPOSED ADR-2066 addendum: send_init_state still reports an empty roster, now explicit rather than<br/>disguised - the fake get_real_agent_data() helper is deleted. A real source exists (bots_client.get_agents_snapshot,<br/>bots_client.rs:231) but Agent lacks the profile, task counts, success_rate and timestamp AgentStatus requires, so the<br/>mapping needs a decided contract rather than invented defaults.
     Note over Ws: RESOLVED ADR-2066 addendum: the actor now carries a paused flag - pause_updates and resume_updates<br/>set it and the 16ms run_interval returns early while it is set, so the opcodes do what they advertise.
@@ -582,46 +580,46 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant AB as agentbox management-api<br/>Note: see ES-02
-    participant H as agent_events_ws()<br/>src/agent_events/ingest.rs:296-297
-    participant Ws as AgentEventsIngestWs<br/>ingest.rs:149, Actor :187
+    participant H as agent_events_ws()<br/>src/agent_events/ingest.rs:297-318
+    participant Ws as AgentEventsIngestWs<br/>ingest.rs:155, Actor :193
     participant Sch as AgentActionNotification<br/>agent_events/schema.rs
     participant Prov as provenance::record<br/>agent_events/provenance.rs:96
-    participant Hub as agent_events::hub<br/>agent_events/hub.rs, capacity=256 (:22)
+    participant Hub as agent_events::hub<br/>agent_events/hub.rs:22 (HUB_CAPACITY=256)
 
     rect rgb(240,230,255)
     Note over AB,H: TRUST BOUNDARY - server-to-server ingest (agentbox pushes notifications/agent_action)
-    AB->>H: GET /wss/agent-events (upgrade), subprotocol vc-agent-events.v1 - :48,305-311
-    H->>H: authenticate() - Bearer or ?token= via NostrService::get_session - :251-288
+    AB->>H: GET /wss/agent-events (upgrade), subprotocol vc-agent-events.v1 - ingest.rs:54,297-318
+    H->>H: authenticate() - Bearer or ?token= via NostrService::get_session - :257-294
     alt token valid
-        H->>H: session_pubkey = Some(user.pubkey) - :269
+        H->>H: session_pubkey = Some(user.pubkey) - :275
     else token invalid and ALLOW_INSECURE_DEFAULTS unset
-        H-->>AB: 401 Invalid or expired authentication token - :278-279
+        H-->>AB: 401 Invalid or expired authentication token - :283-285
     else token invalid and ALLOW_INSECURE_DEFAULTS set (debug/dev-auth builds only)
-        H-->>H: warn, accept unauthenticated (session_pubkey=None) - :270-276
+        H-->>H: warn, accept unauthenticated (session_pubkey=None) - :276-282
     else no token and ALLOW_INSECURE_DEFAULTS set
-        H-->>H: warn, accept unauthenticated - :281-283
+        H-->>H: warn, accept unauthenticated - :287-290
     else no token, insecure defaults disallowed
-        H-->>AB: 401 Authentication required - :285-286
+        H-->>AB: 401 Authentication required - :291-293
     end
     end
-    H->>Ws: WsResponseBuilder::new(AgentEventsIngestWs, harness).start() - :305-311
-    AB->>Ws: Text frame (JSON-RPC notifications/agent_action) - :201
-    Ws->>Sch: process_frame(text) - serde_json::from_str + is_canonical() - :94-96
-    alt parse fails
-        Ws-->>AB: {"error":"malformed_json"} - :223-226
-    else parses but not canonical (wrong method or version<3)
-        Ws-->>AB: {"error":"non_canonical_envelope"} - :219-222
-    else canonical
-        Ws->>Prov: provenance::record(&event) - classify() + record_crossings() - :107
-        Prov->>Prov: classify by pubkey: 64-hex Attributed, malformed hex Malformed, absent Anonymous - :66-72
-        Prov->>Prov: cross_from_agentbox(source_urn), cross_from_agentbox(target_urn) - ADR-2025 closed kind-map (uri.rs)
-        Ws->>Hub: hub::publish(event) - broadcast::Sender, drops oldest under backpressure - :132,22-25
+    H->>Ws: WsResponseBuilder::new(AgentEventsIngestWs, harness).start() - :311-317
+    AB->>Ws: Text frame (JSON-RPC notifications/agent_action) - :207
+    Ws->>Sch: process_frame(text) - serde_json::from_str + is_canonical() - :100-102
+    alt parse fails (Err(_))
+        Ws-->>AB: {"error":"malformed_json"} - :229-232
+    else parses but not canonical (Ok(_), wrong method or version<3)
+        Ws-->>AB: {"error":"non_canonical_envelope"} - :225-228
+    else canonical - process_frame itself calls provenance+hub before returning IngestOutcome::Published
+        Ws->>Prov: provenance::record(&event) - classify() + record_crossings() - ingest.rs:113, provenance.rs:96-103
+        Prov->>Prov: classify by pubkey: 64-hex Attributed, malformed hex Malformed, absent Anonymous - provenance.rs:66-72
+        Prov->>Prov: record_crossings: cross_from_agentbox(source_urn), cross_from_agentbox(target_urn) - ADR-2025 closed kind-map (uri.rs), provenance.rs:90-93
+        Ws->>Hub: hub::publish(event) - broadcast::Sender, drops oldest under backpressure - ingest.rs:138, hub.rs:32-34
         opt event.has_ctc() true (typed CTC field populated)
-            Ws->>Ws: fire_ctc_canary() - one-shot CANARY-VC-REC3-CTC via LivenessHarness - :167-184
+            Ws->>Ws: fire_ctc_canary() - one-shot CANARY-VC-REC3-CTC via LivenessHarness - ingest.rs:173-190,221-223
         end
-        Ws-->>AB: no ack frame - debug log only, always published regardless of provenance status - :210-217
+        Ws-->>AB: no ack frame - debug log only, always published regardless of provenance status - :216-220
     end
-    Ws->>Ws: Ping/Pong/Close handled - pong echo, ctx.close+stop - :233-239
-    Note over Ws,Hub: DOC-DRIFT: ingest.rs:12-15 says the legacy :9500 bots_client snapshot path (VC-27.1)<br/>is untouched by design - agent_action events use this socket exclusively, a disjoint payload
+    Ws->>Ws: Ping/Pong/Close handled - pong echo, ctx.close+stop - :239-246
+    Note over Ws,Hub: RESOLVED ADR-2084: ingest.rs module doc (ingest.rs:14-19) once carried stale framing about<br/>this socket relationship to the legacy port-9500 bots_client snapshot path (VC-27.1) - the doc now correctly<br/>states that path is untouched by design (state snapshots, polled every 2s) while this socket carries the<br/>disjoint agent_action payload - no replacement for the port-9500 path exists yet
     Note over Prov: SECURITY: ProvenanceStatus::Attributed means a well-formed pubkey was asserted,<br/>NOT that a signature was verified - the wire carries no sig field (provenance.rs:29-38)
 ```

@@ -5,7 +5,7 @@ area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/docs/IDENTITY-authority-chain.md
-adrs: [ADR-2006, ADR-2010, ADR-2011, ADR-2013, ADR-2016]
+adrs: [ADR-2006, ADR-2010, ADR-2011, ADR-2013, ADR-2016, ADR-2020, ADR-2058, ADR-2067, ADR-2075, ADR-2090, ADR-2091, ADR-2093, ADR-2094]
 sources:
   - ../project/src/handlers/admin_rbac_handler.rs
   - ../project/src/services/role_store.rs
@@ -55,6 +55,7 @@ sources:
   - ../project/src/services/management_api_client.rs
   - ../project/src/services/nostr_bead_publisher.rs
   - ../project/src/handlers/ontology_handler.rs
+  - ../project/docs/BASELINE-architecture.md
 verified_commit: 36bb64e1e
 ---
 
@@ -67,7 +68,7 @@ sequenceDiagram
     participant VA as verify_access/verify_admin<br/>src/utils/auth.rs
     participant RS as RoleStore<br/>src/services/role_store.rs:408 assign_checked, :500 remove_checked
 
-    Note over H: routes — GET /whoami :288, GET /users :289,<br/>PUT /users/{pubkey}/role :290, DELETE /users/{pubkey}/role :291
+    Note over H: routes — GET /whoami :285, GET /users :286,<br/>PUT /users/{pubkey}/role :287, DELETE /users/{pubkey}/role :288
     C->>H: GET /whoami
     H->>VA: verify_access(Authenticated) :81
     alt Err
@@ -93,7 +94,7 @@ sequenceDiagram
         alt unknown role string
             H-->>C: 400 "unknown role '{r}'"
         else parsed
-            critical RS::assign_checked single tx — role_store.rs:421-489 (full sequence VC-03.8)
+            critical RS::assign_checked single tx — role_store.rs:423-478 (full sequence VC-03.8)
                 H->>RS: assign_checked(target, new_role, CallerAuthority) :157
                 RS-->>H: Ok(role) or RoleStoreError
             end
@@ -117,9 +118,9 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as caller
-    participant TO as TimeoutMiddleware<br/>src/main.rs:982-985 override "/api/admin/sync"->600s
+    participant TO as TimeoutMiddleware<br/>src/main.rs:982-985, with_override("/api/admin/sync", 600s) :984
     participant RG as RbacGate<br/>Admin required (any /api/admin/* method, see VC-03.6)
-    participant H as admin_sync_handler::trigger_sync<br/>src/handlers/admin_sync_handler.rs:115
+    participant H as admin_sync_handler::trigger_sync<br/>src/handlers/admin_sync_handler.rs:66 (route :115)
 
     C->>TO: POST /api/admin/sync
     Note over TO: TimeoutConfig::with_override — this path alone gets 600s<br/>instead of the default 30s (see VC-03.13)
@@ -141,13 +142,13 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant H as nostr_handler::config<br/>src/handlers/nostr_handler.rs:53
+    participant H as nostr_handler::config<br/>src/handlers/nostr_handler.rs:51 scope /auth/nostr :53
     participant NS as NostrService<br/>src/services/nostr_service.rs
     participant FA as FeatureAccess<br/>src/config/feature_access.rs
 
-    Note over H: this scope is on the public allowlist (api/auth prefix, RbacGate rbac_gate.rs:56-61)<br/>— no RbacGate check runs before these handlers, each handler does its own session check
+    Note over H: this scope is on the public allowlist (api/auth prefix, RbacGate<br/>src/middleware/rbac_gate.rs:55-61 PUBLIC_SEGMENT_PREFIXES) — no RbacGate check runs<br/>before these handlers, each handler does its own session check
     C->>H: POST empty-path login :54 -> login :125
-    H->>NS: verify_auth_event(AuthEvent) :131
+    H->>NS: verify_auth_event(AuthEvent) :130
     alt Err(InvalidSignature)
         NS-->>C: 401 "Invalid signature"
     else Err(other)
@@ -158,18 +159,18 @@ sequenceDiagram
         H-->>C: 200 AuthResponse{user,token:session_token,expires_at,features}
     end
     C->>H: DELETE empty-path logout :55 -> logout :161
-    H->>NS: validate_session(pubkey,token) :164
+    H->>NS: validate_session(pubkey,token) :166
     alt invalid
         NS-->>C: 401 "Invalid session"
     else valid
-        H->>NS: logout(pubkey) :175
+        H->>NS: logout(pubkey) :174
         NS-->>C: 200 "Logged out successfully"
     end
     C->>H: POST /verify :56 -> verify :182
-    H->>NS: validate_session(pubkey,token) :185
+    H->>NS: validate_session(pubkey,token) :188
     H-->>C: 200 VerifyResponse{valid, user?, features}
     C->>H: POST /refresh :57 -> refresh :216
-    H->>NS: validate_session then refresh_session(pubkey) :227
+    H->>NS: validate_session :222 then refresh_session(pubkey) :230
     alt invalid session
         NS-->>C: 401 "Invalid session"
     else Ok(new_token)
@@ -189,7 +190,7 @@ sequenceDiagram
     C->>H: POST /api-keys :58 -> update_api_keys :259 / GET /api-keys :59 -> get_api_keys :287
     Note over H: DIVERGENCE — route "/api-keys" (:58-59) has NO {pubkey} path segment,<br/>but update_api_keys/get_api_keys both take web::Path~String~ as the pubkey<br/>parameter (:262,:290) — actix Path extraction against a pattern with zero<br/>dynamic segments fails, these two routes cannot succeed as registered
     opt get_api_keys reached
-        H->>NS: validate_session(pubkey, Bearer token) :309
+        H->>NS: validate_session(pubkey, Bearer token) :308
         alt invalid/missing token
             NS-->>C: 401
         end
@@ -204,18 +205,18 @@ sequenceDiagram
     participant WS as PresenceSession<br/>src/handlers/presence_handler.rs:135 ws_presence :501 (route src/main.rs:1047)
     participant NC as SeenNonces LRU<br/>presence_handler.rs:51 cap 4096
     participant IV as IdentityVerifier<br/>visionclaw_xr_presence::ports
-    participant REG as PresenceRoomRegistry<br/>DashMap~String,Addr~PresenceActor~~
+    participant REG as PresenceRoomRegistry<br/>presence_handler.rs:41 Arc~DashMap~String,Addr~PresenceActor~~~
     participant PA as PresenceActor<br/>src/actors/presence_actor.rs:247
 
-    WS->>WS: Actor::started — send_challenge :162 {type:challenge,nonce,ts}<br/>run_interval HEARTBEAT_INTERVAL=15s :430-433
+    WS->>WS: Actor::started :436 — send_challenge :163 {type:challenge,nonce,ts}<br/>run_interval HEARTBEAT_INTERVAL=15s (:35) :438-441
     C->>WS: text {type:auth, did, signature, room_id, metadata, ts?}
-    WS->>WS: handle_auth :188 — must be in SessionPhase::Challenged
+    WS->>WS: handle_auth :191 — must be in SessionPhase::Challenged
     alt wrong phase
         WS-->>C: close 4400 "auth in wrong phase"
     end
     opt client ts present
         WS->>WS: skew = |now_us - client_ts|
-        alt skew > MAX_HANDSHAKE_SKEW_US=30_000_000us
+        alt skew > MAX_HANDSHAKE_SKEW_US=30_000_000us (presence_handler.rs:61, checked :224)
             WS-->>C: close 4401 "stale handshake timestamp"
         end
     end
@@ -224,7 +225,7 @@ sequenceDiagram
         IV-->>WS: error / mismatch
         WS-->>C: close 4401 "auth: {e}" / "did/signature mismatch"
     else Ok(verified)
-        WS->>NC: seen.put(nonce,()) :253
+        WS->>NC: seen.put(nonce,()) :266
         alt nonce already present
             NC-->>WS: Some (replay)
             WS-->>C: close 4401 "replayed challenge"
@@ -234,7 +235,7 @@ sequenceDiagram
             WS-->>C: close 4400 "room_id: {e}"
         end
         WS->>REG: entry(room).or_insert_with(PresenceActor::new(room).start())
-        Note over REG: dead-Addr guard :279-282 — if entry.connected()==false<br/>(room previously emptied), replace with a fresh actor before join
+        Note over REG: dead-Addr guard :286-291 — if entry.connected()==false<br/>(room previously emptied), replace with a fresh actor before join
         WS->>PA: JoinRoom{did,metadata,frame_recipient,event_recipient}
         alt Ok(Err(JoinRejection::DuplicateMember)) or other rejection
             PA-->>WS: JoinRejection
@@ -250,12 +251,12 @@ sequenceDiagram
         alt no pong/ping for > 30s (2x interval)
             WS->>WS: ctx.stop()
         end
-        WS->>WS: enforce_handshake_deadline — Challenged for >10s HANDSHAKE_TIMEOUT
+        WS->>WS: enforce_handshake_deadline :395 — Challenged for >10s HANDSHAKE_TIMEOUT (:34)
         alt still Challenged after 10s
             WS-->>C: close 4401 "handshake timeout"
         end
     end
-    Note over WS: Actor::stopping :429 — if Joined, room_addr.do_send(LeaveRoom{avatar_id})
+    Note over WS: Actor::stopping :444 — if Joined, room_addr.do_send(LeaveRoom{avatar_id})
 ```
 
 ## VC-05.5 `presence_handler`/`PresenceActor` — binary pose frame ingest and broadcast
@@ -265,14 +266,14 @@ sequenceDiagram
     participant C as XR client (Joined)
     participant WS as PresenceSession::handle_pose_frame<br/>presence_handler.rs:355
     participant PA as PresenceActor::handle_ingest<br/>src/actors/presence_actor.rs:751
-    participant HR as configured_hand_reach_m<br/>presence_actor.rs:44 env PRESENCE_HAND_REACH_M
+    participant HR as configured_hand_reach_m<br/>presence_actor.rs:45 env PRESENCE_HAND_REACH_M :46
 
-    Note over WS: opcode 0x43 OPCODE_AVATAR_POSE (wire::PREAMBLE_OPCODE, presence_handler.rs:5,197)<br/>envelope: [opcode u8][len u16][room_hash 16B][avatar_id_len u8][avatar_id][payload]
+    Note over WS: opcode 0x43 OPCODE_AVATAR_POSE — presence_handler.rs:5 doc,<br/>const PREAMBLE_OPCODE = wire::OPCODE_AVATAR_POSE at presence_actor.rs:54<br/>envelope [opcode u8][len u16][room_hash 16B][avatar_id_len u8][avatar_id][payload] :800-802
     C->>WS: binary frame (0x43 sibling envelope)
     alt phase not Joined
         WS-->>C: close 4400 "binary before auth"
     end
-    WS->>WS: check_rate_limit — sliding 1s window, RATE_LIMIT_FRAMES_PER_SEC=120 :173-186
+    WS->>WS: check_rate_limit :175-188 — sliding 1s window, RATE_LIMIT_FRAMES_PER_SEC=120 (:32)
     alt over limit
         WS-->>C: close 4429 "rate limit exceeded"
     else within limit
@@ -303,7 +304,7 @@ sequenceDiagram
             end
         end
     end
-    Note over PA: RoomEventEnvelope (JSON channel, not 0x43) — AvatarJoined{local_id},<br/>AvatarLeft, AgentPresenceExpired{local_id} (ADR-2020 co-presence retirement,<br/>SweepStaleAgentPresence handler :819) — distinct from IngestAgentPresence 0x44 deltas
+    Note over PA: RoomEventEnvelope :216 (JSON channel, not 0x43) — AvatarJoined :217,<br/>AvatarLeft :600, AgentPresenceExpired :234 (ADR-2020 co-presence retirement,<br/>SweepStaleAgentPresence handler :822-828) — distinct from IngestAgentPresence :814 0x44 deltas
 ```
 
 ## VC-05.6 `decision_handler` — record (authed, append-only) / trace (anon, bounded)
@@ -313,9 +314,9 @@ sequenceDiagram
     participant C as caller
     participant SC as scope /decisions<br/>src/handlers/decision_handler.rs:321-331
     participant RA as RequireAuth::authenticated<br/>wraps nested scope /record only :326
-    participant H as decision_handler<br/>record_decision :145, trace_decision :231
+    participant H as decision_handler<br/>src/handlers/decision_handler.rs:145 record_decision, :231 trace_decision
     participant DS as DecisionService::record_decision<br/>src/services/decision_service.rs:546
-    participant SP as proposal_spine::governed_commit<br/>src/services/proposal_spine.rs (Stage3 commit_quads :517)
+    participant SP as proposal_spine::governed_commit<br/>src/services/proposal_spine.rs:574 (Stage3 commit_quads :519)
 
     C->>SC: POST /decisions/record {summary,rationale,caused,precedent_for,...}
     SC->>RA: nested scope wrap (PRD-022 W-B / ADR-048)
@@ -325,7 +326,7 @@ sequenceDiagram
         Note over H: INVARIANT ADR-048 Attribution — deciding principal is auth.pubkey,<br/>NEVER a body field, a caller cannot self-assert another agent's decision
         H->>DS: record_decision(&auth.pubkey, DecisionInput, idempotency_key, signature)
         DS->>SP: governed_commit — conflict gate, Whelk consistency, provenance append, single tx
-        critical commit_quads — ONE oxigraph store.transaction, proposal_spine.rs:517-533
+        critical commit_quads — ONE oxigraph store.transaction, proposal_spine.rs:525-535
             SP->>SP: for q in provenance_quads: tx.insert(q) — INSERT-ONLY, no DELETE/DROP/CLEAR
             SP->>SP: for q in asserted_quads: tx.insert(q)
         end
@@ -344,7 +345,7 @@ sequenceDiagram
         end
     end
     C->>H: GET /decisions/{urn}/trace?direction&max_depth (anon, no RequireAuth)
-    H->>H: max_depth = min(query.max_depth, MAX_DEPTH_CAP=64) :120,238
+    H->>H: max_depth = min(query.max_depth, MAX_DEPTH_CAP=64) decision_handler.rs:120 cap, :238 clamp
     loop up to max_depth SPARQL frontier expansions
         H->>H: direct_links_query(frontier, direction) — DIRECT dl:caused/dl:precedentFor only
         H->>H: store.query(sparql) — never a transitive property path
@@ -361,7 +362,7 @@ sequenceDiagram
     participant AB as agentbox broker-bridge<br/>X-Agent-Key service caller
     participant OP as power-user operator<br/>via broker_inbox_handler scope
     participant GB as git-bridge write-back<br/>agentbox management-api
-    participant D as decide / decide_as_operator<br/>src/handlers/enrichment_proposals_handler.rs:321,351
+    participant D as decide / decide_as_operator<br/>src/handlers/enrichment_proposals_handler.rs:321<br/>decide_as_operator :351
     participant WB as ingest_writeback_handler::writeback<br/>src/handlers/ingest_writeback_handler.rs:75
     participant AD as apply_decision (shared core)<br/>enrichment_proposals_handler.rs:370
     participant OK as DecisionOrchestrator<br/>src/domain/broker/broker_decision.rs (ADR-130 Decision 2 kernel)
@@ -369,7 +370,7 @@ sequenceDiagram
     participant FR as AcspClient::publish<br/>src/services/acsp/mod.rs kind 31403
 
     AB->>D: POST /api/enrichment-proposals/{id}/decide (X-Agent-Key)
-    D->>D: require_agent_key — header must equal VISIONCLAW_AGENT_KEY (env, :132)
+    D->>D: require_agent_key :165 — header must equal VISIONCLAW_AGENT_KEY (env read :171, ADR-2093)
     alt key invalid/missing
         D-->>AB: 401 {success:false, error:"Invalid or missing X-Agent-Key header"}
     end
@@ -389,8 +390,8 @@ sequenceDiagram
     opt repo.get(case_id) is None
         AD->>AD: is_new_case=true, create pending StoredProposal stub
     end
-    AD->>AD: repo.record_decision(StoredDecision) — atomic INSERT decision + UPDATE proposal.status
-    Note over AD: ADR-2006 — REST decisions carry decision_event_id:None (:398) — no signed<br/>kind-31403 correlation is stored against the persisted row
+    AD->>AD: repo.record_decision(StoredDecision) :431 — atomic INSERT decision + UPDATE proposal.status
+    Note over AD: ADR-2006 — REST decisions carry decision_event_id:None (:428, in the<br/>StoredDecision built at :413-430) — no signed kind-31403 correlation is stored
     alt persist Err
         AD-->>D: 500 "failed to persist decision: {e}"
     end
@@ -440,7 +441,7 @@ sequenceDiagram
     participant H as broker_inbox_handler<br/>inbox :133, case_by_id :144
     participant ST as enrichment_proposals_handler::store<br/>same durable store as WS-9, no second store
 
-    Note over SC: doc comment :157-161 — "Mounted as a dedicated web::scope(broker) so the<br/>privileged RequireAuth::power_user() middleware wraps exactly these read routes<br/>and nothing else, mirroring the isolated privileged scope at ontology_handler.rs:913-918"
+    Note over SC: doc comment :157-161 — "Mounted as a dedicated web::scope(broker) so the<br/>privileged RequireAuth::power_user() middleware wraps exactly these read routes<br/>and nothing else, mirroring the isolated privileged scope at ontology_handler.rs lines 913-918"
     Note over SC: DOC-DRIFT — that cross-reference is itself stale: WS-0 removed ontology_handler.rs<br/>own web::scope entirely (ontology_handler.rs:1024-1034), re-using its handlers from the single<br/>canonical scope in api_handler::ontology::config instead, see VC-20. No isolated privileged<br/>scope exists there any more — /broker is the odd one out now, not a mirror of it.
     C->>SC: GET /api/broker/inbox (X-Agent-Key or power-user session)
     SC->>SC: RequireAuth::power_user()
@@ -451,7 +452,7 @@ sequenceDiagram
         H->>ST: store::all()
         ST-->>H: Vec~EnrichmentProposal~
         H->>H: project each into BrokerCase{id,category:"knowledge_enrichment",status,metadata}
-        H-->>C: 200 {cases:[BrokerCase], total} (bridge shape, broker-bridge.js:233)
+        H-->>C: 200 {cases:[BrokerCase], total} (bridge shape, broker-bridge.js:290)
     end
     C->>SC: GET /api/broker/cases/{id} :167
     SC->>H: case_by_id(id) :144
@@ -461,7 +462,7 @@ sequenceDiagram
     else None
         ST-->>C: 404 {error:"not-found", message:"no broker case with id {id}"}
     end
-    C->>SC: POST /api/broker/cases/{id}/decide :173
+    C->>SC: POST /api/broker/cases/{id}/decide :171-173
     SC->>H: delegates to enrichment_proposals_handler::decide_as_operator (see VC-05.7)
     Note over H: REC-2 / D3 (PRD-023 WP-4) — power-user-gated by the surrounding scope,<br/>funnels through the SAME decision core as the agentbox X-Agent-Key route
 ```
@@ -472,13 +473,13 @@ sequenceDiagram
     autonumber
     participant C as Client (voice/UI)
     participant H as briefing_handler<br/>src/handlers/briefing_handler.rs:118 scope /briefs
-    participant BS as BriefingService<br/>src/services/briefing_service.rs:15
+    participant BS as BriefingService<br/>src/services/briefing_service.rs:11 submit_brief :24, request_debrief :80
     participant MA as ManagementApiClient<br/>src/services/management_api_client.rs
     participant NB as NostrBeadPublisher<br/>src/services/nostr_bead_publisher.rs (optional)
 
     rect rgb(225,225,245)
     Note over H,MA: process boundary — Management API runs in the agentbox agent container
-    C->>H: POST "" {briefing:BriefingRequest, user_context} :22 -> submit_brief :22
+    C->>H: POST "" {briefing:BriefingRequest, user_context} :119 -> submit_brief :22
     H->>BS: submit_brief(request, user_context) :34
     BS->>MA: create_brief(content, roles, user_context, version?, brief_type?, slug?) :37
     alt Err
@@ -495,7 +496,7 @@ sequenceDiagram
         end
     end
     end
-    C->>H: POST /{brief_id}/debrief {user_context,role_tasks} :119 -> request_debrief :54
+    C->>H: POST /{brief_id}/debrief {user_context,role_tasks} :120 -> request_debrief :54
     H->>H: bead_id = first role_task.bead_id or brief_id :69-74
     H->>BS: request_debrief(brief_id, role_tasks, user_context) :77
     BS->>MA: create_debrief(brief_id, role_tasks, user_context) :93
@@ -588,15 +589,21 @@ sequenceDiagram
     participant C as Client
     participant H as mcp_relay_handler<br/>src/handlers/mcp_relay_handler.rs:442 (route src/main.rs:1043)
     participant A as MCPRelayActor<br/>src/handlers/mcp_relay_handler.rs:39
-    participant O as orchestrator WS<br/>ORCHESTRATOR_WS_URL env :77 default ws://multi-agent-container:3002/ws
+    participant O as orchestrator WS<br/>ORCHESTRATOR_WS_URL env mcp_relay_handler.rs:78 in connect_to_orchestrator :77
 
-    C->>H: GET /ws/mcp-relay (Authorization Bearer or ?token=)
-    H->>H: token = Bearer header or query "token" (:453-462)
-    alt token empty
-        H-->>C: 401 {error:"Authentication required"} — logged as SECURITY reject :469-474
-    else token present (ANY non-empty value)
-        Note over H: DOC-DRIFT — code comment :447-449 says "currently allows but logs<br/>unauthenticated connections", but the code REJECTS an empty token with 401 (:469-475)<br/>AND never validates a present token's value against NostrService/session store —<br/>any non-empty string is accepted as authenticated
-        H->>A: ws::start(MCPRelayActor::new(), req, stream)
+    C->>H: GET /ws/mcp-relay (Authorization: Bearer)
+    H->>H: header_token = Authorization Bearer :479-484 — ADR-2058/ADR-2090 comment :473-478
+    Note over H: ADR-2058 — the ?token= query carrier is compiled out of release: it survives<br/>only under cfg(debug_assertions, feature dev-auth) :486-499, and a release build that<br/>sees token= logs a SECURITY warning and ignores it :500-510
+    alt no token at all
+        H-->>C: 401 {error:"Authentication required"} :511-513 (unauthorised closure :463-471)
+    else app_state.nostr_service is None
+        H-->>C: 401 fail-closed — no session store to validate against :517-520
+    else token does not name a live session
+        H->>H: nostr_service.get_session(token).await.is_none() :522
+        H-->>C: 401 "token does not name a live, unexpired session" :523
+    else Ok — live, unexpired session
+        Note over H: ADR-2090 (:449-456) — this upgrade previously accepted ANY non-empty string<br/>(presence-only). It now resolves the token through NostrService::get_session, which<br/>per ADR-2044 also enforces the AUTH_TOKEN_EXPIRY window. The old DOC-DRIFT is CLOSED.
+        H->>A: ws::start(MCPRelayActor::new(), req, stream) :527
         A->>A: connect_to_orchestrator — CircuitBreaker::execute, connect_async(url), timeout=connect_timeout
         alt Ok(ws_stream)
             A->>O: split into tx/rx, do_send(SetOrchestratorTx(tx))
@@ -621,7 +628,7 @@ sequenceDiagram
             and orchestrator -> client
                 O->>A: TungsteniteMessage::Text/Binary via rx.next()
                 A->>A: do_send(OrchestratorText/OrchestratorBinary)
-                A->>C: ctx.text(text) / ctx.binary(bin) (Handler<OrchestratorText/Binary> :261,:285)
+                A->>C: ctx.text(text) / ctx.binary(bin) (Handler~OrchestratorText~ :262, Handler~OrchestratorBinary~ :286)
             end
         else Err/timeout
             A->>A: circuit_breaker records failure, retry on next connect_to_orchestrator
@@ -631,46 +638,53 @@ sequenceDiagram
     A->>A: ctx.stop()
 ```
 
-## VC-05.13 `multi_mcp_websocket_handler` — `/multi-mcp` scope, discovery WS and two dead-stub REST routes
+## VC-05.13 `multi_mcp_websocket_handler` — `/multi-mcp/ws` only, `/status` + `/refresh` deleted (ADR-2091)
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as Client
-    participant H as multi_mcp_websocket_handler<br/>src/handlers/multi_mcp_websocket_handler.rs:903 scope /multi-mcp
-    participant WS as MultiMcpVisualizationWs<br/>src/actors/multi_mcp_visualization_actor.rs (started :428)
-    participant DS as MultiMcpAgentDiscovery<br/>src/services/multi_mcp_agent_discovery.rs:62
+    participant H as configure_multi_mcp_routes<br/>src/handlers/multi_mcp_websocket_handler.rs:911 scope /multi-mcp :913
+    participant U as multi_mcp_visualization_ws<br/>multi_mcp_websocket_handler.rs:823 upgrade guard
+    participant WS as MultiMcpVisualizationWs<br/>multi_mcp_websocket_handler.rs:70 new :144, Actor::started :473
+    participant DS as MultiMcpAgentDiscovery<br/>src/services/multi_mcp_agent_discovery.rs:100
 
-    C->>H: GET /ws :861 -> multi_mcp_visualization_ws :779
-    H->>H: token = Bearer header or ?token= (:786-798), same presence-only check as VC-05.12
-    alt token empty
-        H-->>C: 401 {error:"Authentication required"}
-    else token present
-        H->>WS: ws::start(MultiMcpVisualizationWs::new(app_state, None), req, stream)
-        WS->>WS: started :428 — register health endpoints (claude-flow, ruv-swarm, flow-nexus)
-        WS->>WS: start_heartbeat, start_position_updates
-        WS->>WS: run_interval 30s perform_health_checks
-        WS->>WS: run_interval 60s — if no success for 300s, send_discovery_data recovery attempt
-        C->>WS: text "ping" (plain, pre-JSON) -> "pong"
-        C->>WS: text {action:"configure", data:ClientConfig}
-        WS->>WS: handle_client_config(config)
-        C->>WS: text {action:"request_discovery"}
-        WS->>WS: handle_discovery_request — rate-limited to 1/sec (:349-357)
-        WS->>DS: (via send_discovery_data) query configured McpServerConfig endpoints
-        Note over DS: DAA_HOST/DAA_PORT :125-126, RUV_SWARM_HOST/PORT :108-109,<br/>CLAUDE_FLOW_HOST/MCP_TCP_PORT :91-92 — env-configured server list
+    Note over H: RESOLVED — the /status and /refresh dead stubs this diagram used to document<br/>were DELETED in ac3e12dd1 under ADR-2091 (removal comment :914-919). The scope now<br/>registers exactly one route, /ws :920 — get_mcp_server_status and refresh_mcp_discovery<br/>no longer exist anywhere in src/
+    C->>U: GET /multi-mcp/ws (Authorization: Bearer)
+    U->>U: header_token = Authorization Bearer :860-865 (ADR-2058/ADR-2090 comment :854-859)
+    Note over U: ADR-2058 — the ?token= carrier survives only under<br/>cfg(debug_assertions, feature dev-auth) :867-879 — a release build that sees<br/>token= logs a SECURITY warning and drops it :881-890
+    alt no token
+        U-->>C: 401 {error:"Authentication required"} :892-894 (unauthorised closure :845-853)
+    else no NostrService configured
+        U-->>C: 401 fail-closed :897-901
+    else get_session finds no live session
+        U->>U: nostr_service.get_session(token).await.is_none() :903
+        U-->>C: 401 "token does not name a live, unexpired session" :904
+    else Ok
+        Note over U: ADR-2090 (:831-838) — this upgrade previously accepted ANY non-empty<br/>string. It now resolves the token through NostrService::get_session, which per<br/>ADR-2044 enforces AUTH_TOKEN_EXPIRY. Same fix as /ws/mcp-relay, see VC-05.12
+        U->>WS: ws::start(MultiMcpVisualizationWs::new(app_state, None)) :908
+        WS->>WS: started :473 — start_heartbeat :476 (5s ping :187-188)
+        WS->>WS: register MONITORED_SERVICES :478-492 — claude-flow, ruv-swarm, flow-nexus (:25)
+        WS->>WS: start_health_monitor :497 — ADR-2094 one health task per connection (:494-496, fn :209)
+        WS->>WS: start_position_updates :500, then run_interval 60s recovery probe :502-524
+        WS->>WS: send_discovery_data :526 on connect
+        C->>WS: text "ping" (plain, pre-JSON) -> "pong" :546-550
+        C->>WS: text {action:"configure", data:ClientConfig} :555 -> handle_client_config :367
+        C->>WS: text {action:"request_discovery"} :564 -> handle_discovery_request :391
+        WS->>WS: rate-limited to 1 per second :394-400
+        WS->>WS: send_discovery_data :270 — has_healthy_services gate :277
         alt no healthy services
-            WS-->>C: {type:error, message:"No healthy MCP services available"}
+            WS-->>C: {type:error, message:"No healthy MCP services available"} :285
         else healthy
-            WS->>WS: retry_with_backoff over CircuitBreaker::execute
-            WS-->>C: Handler<DiscoverySuccess> -> discovery payload
+            WS->>WS: retry_with_backoff :299 over CircuitBreaker::execute :303
+            WS-->>C: Handler~DiscoverySuccess~ :324, then do_send(RequestDiscoveryData) :325
         end
-        C->>WS: text {action:"request_agents"} — wrapped in catch_unwind (panic containment)
+        C->>WS: text {action:"request_agents"} :567 — wrapped in catch_unwind :568
     end
-    C->>H: GET /status :862 -> get_mcp_server_status :819
-    Note over H: DIVERGENCE / dead-code — get_mcp_server_status returns a HARDCODED<br/>static JSON literal (claude-flow is_connected:true, ruv-swarm is_connected:false,<br/>:823-841) — it never queries DS, WS, or app_state (_app_state param unused),<br/>the response never reflects real discovery state
-    H-->>C: 200 {servers:[...static...], total_agents:4, timestamp}
-    C->>H: POST /refresh :863 -> refresh_mcp_discovery :848
-    Note over H: DIVERGENCE / dead-code — refresh_mcp_discovery is a NO-OP stub:<br/>it logs "Manual MCP discovery refresh requested" and returns success without<br/>calling DS or notifying any live WS session (_app_state param unused, :848-856)
-    H-->>C: 200 {success:true, message:"Discovery refresh initiated"}
+    rect rgb(255,235,235)
+    Note over WS,DS: DIVERGENCE — the discovery path never reaches MultiMcpAgentDiscovery.<br/>The work inside the circuit breaker is SIMULATED: a fastrand 20 per-cent synthetic<br/>ConnectionRefused :304-310 and a 100 ms sleep :312, then Ok :313. The follow-up<br/>Handler~RequestDiscoveryData~ :730-735 is a debug! log with no body.
+    Note over DS: DIVERGENCE — MultiMcpAgentDiscovery :100 (impl :109) is never constructed<br/>anywhere in src/. Only its McpServerConfig :62 type is imported, by the visualization<br/>actor's use statement (src/actors/multi_mcp_visualization_actor.rs:21).
+    Note over DS: its env-configured server list is therefore dead configuration on the live<br/>path — CLAUDE_FLOW_HOST/MCP_TCP_PORT :129-130, RUV_SWARM_HOST/PORT :146-147,<br/>DAA_HOST/PORT :163-164
+    end
 ```
 
 ## VC-05.14 `ontology_agent_handler` — MCP tool surface + `/propose` governance door
@@ -705,7 +719,7 @@ sequenceDiagram
         QS-->>H: extend all_errors/all_hints
     end
     H-->>AG: 200 {errors, hints}
-    AG->>PS: POST /propose "" :447 -> propose :217
+    AG->>PS: POST /propose "" ontology_agent_handler.rs:447 -> propose :217
     PS->>PS: RateLimit::per_minute(20) then RequireAuth::authenticated()
     alt not authenticated
         PS-->>AG: 401/403 deny
@@ -737,63 +751,87 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant SC as scope /solid<br/>src/handlers/solid_proxy_handler.rs:1752 configure_routes (feature solid-pod-embed)
-    participant H as solid_proxy_handler
-    participant RG as RbacGate<br/>/api scope wrap (WriteGraph on mutating /api/*, see VC-03.6)
-    participant SD as SolidPodState::extract_user_identity<br/>:184 own NIP-98 verification
+    participant SC as scope /solid<br/>src/handlers/solid_proxy_handler.rs:1752 configure_routes (feature solid-pod-embed), scope :1760
+    participant H as solid_proxy_handler<br/>solid_proxy_handler.rs:311 handle_solid_proxy, :1313 init_pod_nip98
+    participant RG as RbacGate<br/>/api scope wrap src/main.rs:1065 (scope :1054, solid mounted :1133)
+    participant SD as SolidPodState::extract_user_identity<br/>solid_proxy_handler.rs:188 own NIP-98 verification
 
-    Note over SC: env SOLID_DATA_ROOT :122, SOLID_PROXY_SECRET_KEY :125, SOLID_ALLOW_ANONYMOUS :129<br/>without solid-pod-embed feature, configure_routes :1861 registers the SAME route<br/>tree but every handler is a 503 stub
-    C->>SC: GET /health :1832 -> solid_health_check :1640
-    SC-->>C: 200 (or 503 when compiled without solid-pod-embed, :1658)
-    C->>SC: GET /.notifications :1835 -> handle_solid_notifications_ws :1614 (solid-0.1 WS protocol)
-    C->>SC: POST /pods :1838 -> create_pod :1174
-    C->>SC: GET /pods/check :1839 -> check_pod_exists :1242
-    C->>SC: POST /pods/init :1840 -> init_pod :1293
+    Note over SC: env SOLID_DATA_ROOT :130, SOLID_PROXY_SECRET_KEY :133, SOLID_ALLOW_ANONYMOUS :137
+    Note over SC: ADR-2067 — WITHOUT solid-pod-embed the twin configure_routes :1800 registers<br/>NOTHING (doc :1789-1798): /solid/*, /.well-known/did.json and /did/* all 404. The<br/>503-stub route tree this diagram used to show is gone, and so are the individual<br/>stub twins (handle_solid_proxy :381-385, solid_health_check :1609-1610,<br/>init_pod_nip98 :1369-1370, SolidPodState::new :180-184)
+    C->>SC: GET /health :1762 -> solid_health_check :1593
+    SC-->>C: 200 {status:healthy, backend:solid-pod-rs, data_root}
+    C->>SC: GET /.notifications :1764-1767 -> handle_solid_notifications_ws :1567 (solid-0.1 WS protocol)
+    C->>SC: POST /pods :1769 -> create_pod :1168
+    C->>SC: GET /pods/check :1770 -> check_pod_exists :1226
+    C->>SC: POST /pods/init :1771 -> init_pod :1267
     rect rgb(255,235,235)
-    Note over C,SD: DIVERGENCE — /api/solid/pods/init-nip98 sits inside the /api scope,<br/>so it is DOUBLE-authenticated (see VC-03.15)
-    C->>RG: POST /api/solid/pods/init-nip98 :1841 (Authorization: Nostr event)
+    Note over C,SD: DIVERGENCE — /api/solid/pods/init-nip98 sits inside the /api scope<br/>(main.rs:1133 under scope :1054), so it is DOUBLE-authenticated (see VC-03.15)
+    C->>RG: POST /api/solid/pods/init-nip98 solid_proxy_handler.rs:1772 (Authorization: Nostr event)
     RG->>RG: RbacGate verify_access(WriteGraph) — mutating method under /api
     alt RbacGate denies
         RG-->>C: 401/403
     else Ok
-        RG->>H: init_pod_nip98(req, state) :1349
-        H->>SD: extract_user_identity(req) — SECOND, fully independent NIP-98 re-verification
+        RG->>H: init_pod_nip98(req, state) solid_proxy_handler.rs:1313
+        H->>SD: extract_user_identity(req) :1314 — SECOND, fully independent NIP-98 re-verification
         alt SD returns None (bad/missing token)
-            SD-->>C: 401 {error:"NIP-98 authentication required"}
+            SD-->>C: 401 {error:"NIP-98 authentication required"} :1316-1321
         else Some(identity)
-            H->>H: PublicKey::from_hex(identity.pubkey).to_bech32() -> npub
-            H->>H: ensure_pod_exists(state, npub, pubkey, pod_base_url) :1384
-            H-->>C: 200 {pod_url, webid:structure.profile, created, structure, npub}
+            H->>H: PublicKey::from_hex(identity.pubkey).to_bech32() -> npub :1325-1337
+            H->>H: ensure_pod_exists(state, npub, pubkey, pod_base_url) :1130 (call :1348)
+            H-->>C: 200 {pod_url, webid:structure.profile, created, structure, npub} :1351-1357
         end
     end
     end
-    C->>SC: any method /{tail:.*} :1843-1847,1850 -> handle_solid_proxy :307/:379 (LDP CRUD)
-    C->>SC: GET /.well-known/did.json :1854 -> handle_did_wellknown :1672
-    C->>SC: GET /did/{tail:.*} :1855 -> handle_did_proxy :1716 -> solid_pod_rs::interop::did_nostr::did_nostr_document
+    C->>SC: any method /{tail:.*} :1774-1778 plus PATCH :1779-1782 -> handle_solid_proxy :311 (LDP CRUD)
+    Note over H: handle_solid_proxy auth flow doc :306-309 — NIP-98 header -> WAC, else<br/>SOLID_ALLOW_ANONYMOUS -> public ACL check, else 401
+    C->>SC: GET /.well-known/did.json :1785 -> handle_did_wellknown :1618
+    C->>SC: GET /did/{tail:.*} :1786 -> handle_did_proxy :1656 -> solid_pod_rs::interop::did_nostr::did_nostr_document
     Note over H: full pod/LDP internals (storage backend, ACL, containers) — see VC-26
 ```
 
-## VC-05.16 `speech_socket_handler` — `/ws/speech` boundary only
+## VC-05.16 `speech_socket_handler` — `/ws/speech`, ADR-2075 post-upgrade NIP-98
 ```mermaid
 sequenceDiagram
     autonumber
-    participant C as Client
-    participant H as speech_socket_handler<br/>src/handlers/speech_socket_handler.rs:971-972 (route src/main.rs:1042)
-    participant SS as SpeechSocket actor<br/>src/handlers/speech_socket_handler.rs:106 new()
+    participant C as Client (browser voice / XR)
+    participant H as speech_socket_handler<br/>src/handlers/speech_socket_handler.rs:972 (route src/main.rs:1042)
+    participant SS as SpeechSocket actor<br/>speech_socket_handler.rs:89 struct, new() :110, Actor::started :472
+    participant NS as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs
 
-    C->>H: GET /ws/speech (Authorization Bearer or ?token=) :818
-    H->>H: token = Bearer header or query "token" (same pattern as VC-05.12/.13)
-    alt token empty
-        H-->>C: 401 {error:"Authentication required"} (SECURITY reject log :996-999)
-    else token present (presence-only, same as mcp-relay/multi-mcp)
-        H->>SS: SpeechSocket::new(socket_id="speech_{uuid}", app_state, None)
-        H->>SS: ws::start(socket, req, stream)
-        alt Err
-            SS-->>C: ws start failure logged, propagated as actix_web::Error
-        else Ok(response)
-            SS-->>C: 101 Switching Protocols
+    Note over H: RESOLVED — this upgrade no longer authenticates. ADR-2075 (doc :978-985)<br/>moved the check AFTER the upgrade because browsers cannot set WebSocket headers,<br/>so the old presence-only Bearer/?token= gate rejected the browser voice client<br/>outright. There is no 401 on this path any more
+    C->>H: GET /ws/speech (no credential required at upgrade)
+    H->>H: connection_url = scheme://host + path_and_query :986-997 — the NIP-98 `u` tag
+    H->>H: dev_bypass_ok = dev_bypass_permitted(req) under cfg(debug_assertions, dev-auth) :999-1002
+    H->>SS: SpeechSocket::new(socket_id "speech_{uuid}", app_state, None, connection_url, dev_bypass_ok) :1004-1012
+    H->>SS: ws::start(socket, req, stream) :1013
+    alt Err
+        SS-->>C: start failure logged, propagated as actix_web::Error :1018-1021
+    else Ok
+        SS-->>C: 101 Switching Protocols :1014-1017
+    end
+    SS->>SS: Actor::started :472 — start_heartbeat, then run_later(AUTH_DEADLINE) :479
+    Note over SS: ADR-2075 — AUTH_DEADLINE = 30s (:22, doc :19-21). A socket still carrying<br/>pubkey:None at the deadline is told "authentication deadline exceeded" and stopped<br/>(:480-493), so an unauthenticated peer cannot hold a broadcast subscription open
+    C->>SS: text {"type":"authenticate","event":"<base64 NIP-98>"} -> handle_authenticate :163
+    alt VISIONCLAW_DEV_MODE full bypass (dev builds only, :173-182)
+        SS-->>C: {type:authenticate_success, pubkey} :180
+    else dev-session-token without DEV_AUTH_LOOPBACK
+        SS-->>C: {type:authenticate_error, "dev-session-token not permitted"} :190-198
+    else no `event` field
+        SS-->>C: {type:authenticate_error, "authenticate requires an `event` field"} :211-218
+    else event present
+        SS->>NS: verify_nip98_auth("Nostr {event_b64}", connection_url, "GET", None) :229-231
+        alt Ok(user)
+            NS-->>SS: pubkey
+            SS->>SS: self.pubkey = Some(pubkey) :244
+            SS-->>C: {type:authenticate_success, pubkey} :245
+        else Err or no NostrService configured
+            NS-->>SS: None :234-239
+            SS-->>C: {type:authenticate_error, ...} :247-254
         end
     end
+    C->>SS: any other typed frame before authenticate
+    SS->>SS: reject_unauthenticated :141 (gate call :624) — pubkey.is_some() short-circuits :142
+    SS-->>C: {type:error, "authentication required: send {type:authenticate,...} first"} :150-157
     Note over SS: voice internals (governed-voice command dispatch, clarification turns,<br/>ElevationActor VoiceTranscript hookup) — see VC-35
 ```
 
@@ -805,28 +843,28 @@ sequenceDiagram
     participant EA as ElevationActor/DecisionElevationActor<br/>src/actors/elevation_actor.rs:98, decision_elevation_actor.rs:128 (VC-02)
     participant FR as forum kind-31403<br/>src/services/acsp/client.rs:22 CaseDecision{event_id,created_at}
     participant DB as SqliteEnrichmentRepository::record_decision<br/>StoredDecision table — SHARED sink
-    participant D as decide/decide_as_operator -> apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:321,351,370
+    participant D as decide/decide_as_operator -> apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:321 decide, :351 decide_as_operator, :370 apply_decision
     participant BI as broker_inbox_handler::inbox<br/>src/handlers/broker_inbox_handler.rs:133
 
     Note over V,FR: no HTTP handler in this file (decision_handler, enrichment_proposals_handler,<br/>broker_inbox_handler) ever sends a message to ElevationActor or DecisionElevationActor —<br/>grep across src/handlers finds zero references to either actor type
     V->>EA: RunCycle / VoiceTranscript (actor-internal, see VC-02)
     EA->>FR: publish ActionRequest kind-31402, poll PollPrs for the signed kind-31403 reply
-    Note over FR: ADR-2013 — AcspClient signs with its OWN Keys (acsp/client.rs:67,77,<br/>Keys::new(secret_key), mirrors nostr_bridge.rs:65 sign_with_keys pattern) —<br/>the panel event carries the PANEL's authority, never the responding admin's original key
+    Note over FR: ADR-2013 — AcspClient signs with its OWN Keys (field acsp/client.rs:67,<br/>let keys = Keys::new(secret_key) :77, publish :99 — mirrors nostr_bridge.rs:65<br/>sign_with_keys) — the panel event carries the PANEL's authority, never the admin's key
     FR-->>EA: CaseDecision{case_id,action,responder_pubkey,event_id,created_at}
     EA->>EA: decision_record(&CaseDecision) :1227 — correlation on event_id when present
-    EA->>DB: repo.record_decision(StoredDecision{decision_event_id:Some(event_id), decision_created_at_s:Some(...)}) :987,1053,1060
-    Note over EA,DB: this producer DOES retain signed-event correlation (elevation_actor.rs:1240-1281)
-    D->>DB: repo.record_decision(StoredDecision{decision_event_id:None,...}) :383-400 — REST path, no forum event to correlate
+    EA->>DB: repo.record_decision(StoredDecision{decision_event_id:Some(event_id), decision_created_at_s:Some(...)}) :987, :1053, :1060
+    Note over EA,DB: this producer DOES retain signed-event correlation — decision_event_id is<br/>set from the signed event id (elevation_actor.rs:1282), rationale :1243-1252
+    D->>DB: repo.record_decision(StoredDecision{decision_event_id:None,...}) :413-430 built, :431 written — REST path, no forum event to correlate
     Note over D,DB: DIVERGENCE — the agentbox/operator/git-bridge REST path (VC-05.7) writes<br/>decision_event_id:None every time, since it never carries a signed 31403 event
     BI->>DB: store::all() / store::get(id) — reads the SAME table both producers wrote to
     BI-->>BI: projects EITHER kind of row into the SAME BrokerCase shape, indistinguishable to the bridge
-    Note over V,BI: DIVERGENCE (ADR-2006 closeout, BASELINE-architecture.md l.273 2026-09-04) —<br/>"the retained domain kernel's presence does not prove integration into the elevation<br/>actor or inbox DTO. Current source review does not certify a complete human-approval journey."<br/>Verified precisely: the two producers only converge at the SQLite table, no handler route<br/>calls into either actor, and case authority/failure/restart receipts are not modelled here
+    Note over V,BI: DIVERGENCE (ADR-2006 closeout, docs/BASELINE-architecture.md:295) —<br/>"the retained domain kernel's presence does not prove integration into the elevation<br/>actor or inbox DTO. Current source review does not certify a complete human-approval journey."<br/>Verified precisely: the two producers only converge at the SQLite table, no handler route<br/>calls into either actor, and case authority/failure/restart receipts are not modelled here
 ```
 
-## VC-05.18 `src/domain/broker/` verification — BrokerActor never merged (BASELINE l.224)
+## VC-05.18 `src/domain/broker/` verification — BrokerActor never merged (BASELINE l.244)
 ```mermaid
 flowchart TB
-    KERNEL["src/domain/broker/ — storage-agnostic kernel (936 LOC, ADR-130 Decision 2)<br/>mod.rs :1-40, broker_case.rs 490L, broker_decision.rs 437L, precedent_registry.rs 101L"]
+    KERNEL["src/domain/broker/ — storage-agnostic kernel (ADR-130 Decision 2)<br/>broker/mod.rs:1-43, broker_case.rs 490L, broker_decision.rs 437L, precedent_registry.rs 101L"]
     BC["BrokerCase aggregate<br/>CaseCategory, SubjectKind, ShareState (Private to Team to Mesh)"]
     BD["DecisionOrchestrator + DecisionOutcome<br/>six canonical outcomes, ShareTransitionPlan"]
     PR["PrecedentRegistry"]
@@ -837,9 +875,9 @@ flowchart TB
     ABSENT["src/actors/broker_actor.rs — VERIFIED ABSENT<br/>grep -r finds no file, no Neo4j adapter under src/adapters/ (listed: sqlite_*, oxigraph_*, actix_*)"]
     KERNEL -.->|"used by derive_kernel_decision (VC-05.7)"| CALLER["enrichment_proposals_handler::apply_decision"]
     KERNEL -.->|"used by decision_record (VC-05.17)"| CALLER2["elevation_actor.rs"]
-    N1["DIVERGENCE (BASELINE-architecture.md l.224) — BrokerActor never merged,<br/>main uses a stateless ACSP producer + this cherry-picked storage-agnostic<br/>936-LOC domain broker kernel, confirmed against source: mod.rs doc comment<br/>:10-16 states the crashbug BrokerActor + Neo4j transport were deliberately left behind"]
+    N1["DIVERGENCE (docs/BASELINE-architecture.md:244) — BrokerActor never merged, main uses<br/>a stateless ACSP producer + this cherry-picked storage-agnostic domain broker kernel.<br/>Confirmed against source: broker/mod.rs:11-18 states the crashbug BrokerActor + its Neo4j<br/>transport were deliberately left behind"]
     ABSENT --- N1
     ACSP --- N1
-    N2["ADR-2006 Verification section (accepted) matches this source state exactly —<br/>src/services/acsp/mod.rs documents the producer, src/domain/broker/ contains<br/>the four listed files, broker_actor.rs and neo4j adapters are absent"]
+    N2["DOC-DRIFT — BASELINE-architecture.md:245 sizes the kernel at ~936 LOC, but the four files<br/>measure 1,071 lines today (490 + 437 + 101 + 43). ADR-2006 Verification (accepted) otherwise<br/>matches: src/services/acsp/mod.rs documents the producer, src/domain/broker/ holds the four<br/>listed files, broker_actor.rs and the neo4j adapters are absent"]
     KERNEL --- N2
 ```

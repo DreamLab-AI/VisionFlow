@@ -121,15 +121,15 @@ sequenceDiagram
     else STALE — suppressed by DEAD/retired/legacy/lint-ok context
         TXT-->>MJS: suppressed STALE (agentbox/skills/lint-skills.mjs:42,326)
     else ABSPATH — literal ~/.claude/skills/ path, dir not in skip-list
-        TXT-->>MJS: fail ABSPATH (agentbox/skills/lint-skills.mjs:43,45,329-332)
+        TXT-->>MJS: fail ABSPATH (agentbox/skills/lint-skills.mjs:334-336)
     else RETIRED-PATH — literal /workspace/ prefix, no lint-ok
-        TXT-->>MJS: fail RETIRED-PATH (agentbox/skills/lint-skills.mjs:46,333-336)
+        TXT-->>MJS: fail RETIRED-PATH (agentbox/skills/lint-skills.mjs:338-340)
     end
     MJS->>SKC: checkSkill(skill) for each skills/<name>/SKILL.md
     alt FRONTMATTER — missing/empty name or description, or block never opens/closes
         SKC-->>MJS: fail FRONTMATTER (agentbox/skills/lint-skills.mjs:346-364)
     else BUDGET — over MAX_ENTRY_LINES=250, no references/ or references/ has no readable file
-        SKC-->>MJS: fail BUDGET (agentbox/skills/lint-skills.mjs:32,366-387)
+        SKC-->>MJS: fail BUDGET (agentbox/skills/lint-skills.mjs:372-387)
     else RESOURCE — cited references|scripts|assets path does not resolve
         SKC-->>MJS: fail RESOURCE (agentbox/skills/lint-skills.mjs:389-399)
     end
@@ -436,32 +436,32 @@ flowchart TB
     MANI["system-manifest.js catalogue<br/>agentbox/management-api/lib/system-manifest.js:42"]
 
     subgraph rebuild["apply_class rebuild — Nix package set + supervisor block, image rebuild required"]
-        CI2["code_interpreter :553<br/>system-manifest.js:142"]
-        CODEACT["codeact :569"]
-        ACI["aci_shell :597<br/>system-manifest.js:238"]
-        TSCB["tree_search_coder :639<br/>system-manifest.js:241"]
-        RES["research.web_researcher :546<br/>system-manifest.js:145"]
+        CI2["code_interpreter agentbox.toml:553<br/>system-manifest.js:142"]
+        CODEACT["codeact agentbox.toml:569"]
+        ACI["aci_shell agentbox.toml:597<br/>system-manifest.js:238"]
+        TSCB["tree_search_coder agentbox.toml:639<br/>system-manifest.js:241"]
+        RES["research.web_researcher agentbox.toml:546<br/>system-manifest.js:145"]
     end
     subgraph boot["apply_class boot — env/manifest re-read at container boot, no rebuild"]
-        RVB["ruvnet_brain :605<br/>system-manifest.js:206"]
-        ONT["ontology :648<br/>system-manifest.js:209"]
+        RVB["ruvnet_brain agentbox.toml:605<br/>system-manifest.js:206"]
+        ONT["ontology agentbox.toml:648<br/>system-manifest.js:209"]
     end
     subgraph gated["RESOLVED ADR-2057 gap 1/2 — now gate-checked at boot, no system-manifest.js catalogue entry"]
-        HARN["harness :741 enabled=true"]
-        PREC["precedent :749 enabled=true"]
+        HARN["harness agentbox.toml:741 enabled=true"]
+        PREC["precedent agentbox.toml:749 enabled=true"]
     end
     subgraph vault["[vault] — sibling top-level section, not [skills.*]"]
-        VLT["vault :706 — ADR-2028 path authority"]
+        VLT["vault agentbox.toml:706 — ADR-2028 path authority"]
     end
 
     TOML --> MANI
     MANI --> rebuild
     MANI --> boot
-    TOML -.->|"RESOLVED ADR-2057 gap 1/2: entrypoint-unified.sh now READS skills.precedent.enabled (:1662-1665) and skills.harness.enabled (:1701-1704) via agentbox-manifest toml-bool before registering either server — file-presence is no longer sufficient on its own. Neither gate has yet gained a system-manifest.js apply_class entry (open, cosmetic)."| gated
+    TOML -.->|"RESOLVED ADR-2057 gap 1/2: entrypoint-unified.sh now READS skills.precedent.enabled (config/entrypoint-unified.sh:1667-1675) and skills.harness.enabled (config/entrypoint-unified.sh:1706-1714) via agentbox-manifest toml-bool before registering either server — file-presence is no longer sufficient on its own. Neither gate has yet gained a system-manifest.js apply_class entry (open, cosmetic)."| gated
     TOML --> vault
 
-    HARN -->|"gate checked (:1701-1709) THEN file exists at /opt/agentbox/mcp/servers/harness-bridge.js"| REG2["harness-bridge registered in .mcp.json only when [skills.harness].enabled=true"]
-    PREC -->|"gate checked (:1662-1668) THEN file exists at /opt/agentbox/mcp/servers/precedent-bridge.js"| REG3["precedent-bridge registered in .mcp.json only when [skills.precedent].enabled=true"]
+    HARN -->|"gate checked (config/entrypoint-unified.sh:1706-1714) THEN file exists at /opt/agentbox/mcp/servers/harness-bridge.js"| REG2["harness-bridge registered in .mcp.json only when [skills.harness].enabled=true"]
+    PREC -->|"gate checked (config/entrypoint-unified.sh:1667-1675) THEN file exists at /opt/agentbox/mcp/servers/precedent-bridge.js"| REG3["precedent-bridge registered in .mcp.json only when [skills.precedent].enabled=true"]
 
     TSCB -->|"enabled=false refuses every tree-search-cap reservation"| CAPGATE["cost_cap ledger — manifest gate check, algorithm.md Enforced cost cap"]
 ```

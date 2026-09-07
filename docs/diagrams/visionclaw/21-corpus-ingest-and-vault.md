@@ -75,7 +75,7 @@ sequenceDiagram
     opt force_full_sync
         With->>KG: clear_graph()
     end
-    loop chunks(BATCH_SIZE=50) - github_sync_service.rs:51,371
+    loop chunks(BATCH_SIZE=50) - github_sync_service.rs:51,390
         With->>Batch: process_batch_incremental(batch, vault_ctx)
         loop PARALLEL_FETCHES=8 concurrent downloads
             Batch->>API: fetch_file_content(download_url)

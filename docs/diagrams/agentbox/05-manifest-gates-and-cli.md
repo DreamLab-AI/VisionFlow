@@ -156,7 +156,7 @@ sequenceDiagram
     autonumber
     participant OP as operator
     participant AB as cmd_ruvector<br/>agentbox.sh:999
-    participant SC as scripts/ruvector-sidecar-update.sh<br/>dispatch :1172-1189
+    participant SC as ruvector-sidecar-update.sh<br/>scripts/ruvector-sidecar-update.sh:1172-1189 dispatch
     participant H as scripts/ruvector-recall-harness.mjs
 
     OP->>AB: ./agentbox.sh ruvector <subcmd> [args]
@@ -174,13 +174,13 @@ sequenceDiagram
         SC->>SC: cmd_recall (:1146) — require_prod_running then node present
         SC->>SC: resolve governed MCP env via mcp_env_pairs from .mcp.json (:1156)
         SC->>H: env ENVP node ruvector-recall-harness.mjs "$@" (:1167)
-        H-->>OP: harness sets its own exit code — PASS 0, FAIL non-zero (:1161)
+        H-->>OP: harness sets its own exit code — PASS 0, FAIL non-zero (ruvector-sidecar-update.sh:1161)
     else anything else
         SC-->>OP: die unknown subcommand (:1188)
     end
     Note over SC,H: recall is READ-ONLY, no gate of its own — fixture scripts/recall-fixtures/recall-fixture.v1.json is frozen and checked in (:1159)
-    Note over H: classes self-recall@10, true-recall@10 vs forced exact scan, exact-token — median-of-3 no-regression band (:1160-1161)
-    Note over H: artefact lands in backups/ruvector-sidecar/recall-runs/<utc>.json (:1162) — retrieval-geometry gate boundary, see AB-20
+    Note over H: classes self-recall@10, true-recall@10 vs forced exact scan, exact-token — median-of-3 no-regression band (ruvector-sidecar-update.sh:1160-1161)
+    Note over H: artefact lands in backups/ruvector-sidecar/recall-runs/<utc>.json (ruvector-sidecar-update.sh:1162) — retrieval-geometry gate boundary, see AB-20
     Note over AB,SC: DOC-DRIFT — the usage text at agentbox.sh:48 lists the ruvector subcommands but OMITS recall, which ruvector-sidecar-update.sh:1184 implements and :1188 advertises
     Note over AB,SC: RESOLVED ADR-2038: recall is in the ruvector subcommand list at<br/>agentbox.sh:48 and has a usage example at agentbox.sh:94
 ```
@@ -225,7 +225,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant EP as config/entrypoint-unified.sh
-    participant VA as config/validate-artifacts.sh
+    participant VA as validate-artifacts.sh<br/>config/validate-artifacts.sh:11
     participant PF as config/artifact-probes.json<br/>16 probes
     participant SH as probe_command shell
 

@@ -34,14 +34,14 @@ verified_commit: 2c521c5bb
 ```mermaid
 flowchart TB
     Browser["Browser / mobile / voice cockpit"]
-    Caddy8444["Caddy :8444 operator console<br/>published 0.0.0.0<br/>agentbox/docker-compose.voice.yml:39-40"]
-    Caddy8443["Caddy :8443 stock Unmute debug<br/>published 0.0.0.0<br/>agentbox/docker-compose.voice.yml:39"]
-    UnmuteFE["Unmute frontend :3000"]
-    UnmuteBE["Unmute backend :80<br/>STT/TTS, /v1/realtime"]
-    Bridge["tab0-bridge :8971<br/>agentbox/config/tab0-bridge/server.mjs:45<br/>never host-published"]
-    Proxy["nip98-proxy :9096<br/>published 0.0.0.0<br/>agentbox/config/nip98-proxy/proxy.mjs:96-97"]
-    AoE["AoE daemon :9095<br/>loopback only, never published"]
-    Mgmt["management-api :9090<br/>127.0.0.1 only"]
+    Caddy8444["Caddy port 8444 operator console<br/>published 0.0.0.0<br/>agentbox/docker-compose.voice.yml:39-40"]
+    Caddy8443["Caddy port 8443 stock Unmute debug<br/>published 0.0.0.0<br/>agentbox/docker-compose.voice.yml:39"]
+    UnmuteFE["Unmute frontend port 3000"]
+    UnmuteBE["Unmute backend port 80<br/>STT/TTS, /v1/realtime"]
+    Bridge["tab0-bridge port 8971<br/>agentbox/config/tab0-bridge/server.mjs:45<br/>never host-published"]
+    Proxy["nip98-proxy port 9096<br/>published 0.0.0.0<br/>agentbox/config/nip98-proxy/proxy.mjs:96-97"]
+    AoE["AoE daemon port 9095<br/>loopback only, never published"]
+    Mgmt["management-api port 9090<br/>127.0.0.1 only"]
     Tmux["tmux window agentbox:0<br/>coordinator session"]
 
     Browser -->|"https 8444, TLS"| Caddy8444
@@ -60,7 +60,7 @@ flowchart TB
     Bridge -->|"tmux send-keys -t agentbox:0, fail-open fallback"| Tmux
     Bridge -->|"POST /api/sessions/:id/send, Bearer aoe daemon token"| AoE
 
-Divergence["RESOLVED ADR-2047: 8443 and 8444 are SANCTIONED exposures, not a breach.<br/>agentbox/scripts/ci/check-ports-loopback.mjs:92-103 lists ten sanctioned publishes with a<br/>per-entry citation at :55-73, voice 8443/8444 among them as the second LAN ingress,<br/>modelled not hidden. 9096 remains the sole IDENTITY-gated ingress to the AoE plane."]
+Divergence["RESOLVED ADR-2047: 8443 and 8444 are SANCTIONED exposures, not a breach.<br/>agentbox/scripts/ci/check-ports-loopback.mjs:93-104 lists ten sanctioned publishes with a<br/>per-entry governing-record citation at :80-87, voice 8443/8444 among them as the second LAN ingress,<br/>modelled not hidden. 9096 remains the sole IDENTITY-gated ingress to the AoE plane."]
     style Divergence fill:#ddf5dd,stroke:#2e7d32,color:#000
     Caddy8444 -.-> Divergence
 
@@ -76,7 +76,7 @@ sequenceDiagram
     participant Sup as Supervisor<br/>agentbox/flake.nix:2404
     participant Dep as deploy.sh<br/>agentbox/config/tab0-bridge/deploy.sh:1
     participant Node as server.mjs<br/>agentbox/config/tab0-bridge/server.mjs:45
-    participant AoEd as AoE daemon :9095
+    participant AoEd as AoE daemon port 9095
 
     Sup->>Dep: bash deploy.sh reconcile (flake.nix:2405)
     Dep->>Dep: copy server.mjs, turn-sink.cjs, start.sh, package.json via md5 compare (deploy.sh:27-35)
@@ -171,7 +171,7 @@ sequenceDiagram
     participant B as tab0-bridge<br/>server.mjs:746, POST /tab0/send
     participant S as sendToTab0()<br/>server.mjs:266
     participant A as aoeSend()<br/>server.mjs:242
-    participant AoEd as AoE daemon :9095
+    participant AoEd as AoE daemon port 9095
     participant T as tmux CLI
 
     Cl->>B: POST /tab0/send, body text, source (server.mjs:746-748)
@@ -212,7 +212,7 @@ sequenceDiagram
     autonumber
     participant Ti as 30s interval<br/>server.mjs:820
     participant R as resolveCoordinatorSession()<br/>server.mjs:216
-    participant AoEd as AoE daemon :9095
+    participant AoEd as AoE daemon port 9095
 
     Ti->>R: invoke when aoeSessionId is null (server.mjs:820)
     R->>AoEd: GET /api/sessions?state=live (server.mjs:218)
@@ -240,15 +240,15 @@ Note over R: INVARIANT — tab0-bridge targets exactly ONE pinned coordinator se
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Mic as Browser mic, :8444 cockpit
-    participant Cad as Caddy :8444<br/>voice/console/Caddyfile
-    participant UFE as Unmute frontend :3000
-    participant UBE as Unmute backend :80
+    participant Mic as Browser mic, port 8444 cockpit
+    participant Cad as Caddy port 8444<br/>voice/console/Caddyfile
+    participant UFE as Unmute frontend port 3000
+    participant UBE as Unmute backend port 80
     participant B as tab0-bridge<br/>server.mjs:726, POST /v1/chat/completions
     participant Cc as claude -p child<br/>server.mjs:300
 
     rect rgb(255,240,240)
-    Note over Mic,UBE: trust boundary — LAN door 1, :8444 published 0.0.0.0
+    Note over Mic,UBE: trust boundary — LAN door 1, port 8444 published 0.0.0.0
     Mic->>Cad: HTTPS, mic audio via /embed and /api/* (Caddyfile handle /embed*, handle_path /api/*)
     Cad->>UFE: reverse_proxy frontend:3000 (Caddyfile handle /embed*)
     Cad->>UBE: reverse_proxy backend:80, /v1/realtime (Caddyfile handle_path /api/*)
@@ -271,7 +271,7 @@ sequenceDiagram
         B-->>UBE: SSE data DONE (server.mjs:549)
     end
     UBE-->>UFE: synthesised speech, TTS
-Note over B: DIVERGENCE — :8444 and :8443 are published 0.0.0.0 by<br/>docker-compose.voice.yml:39-40, while only :9096 is the ADR-045 D2 sanctioned NIP-98-gated LAN<br/>door covered by the loopback CI gate. The Unmute voice loop itself reaches tab0-bridge only<br/>over the internal visionclaw_network hostname agentbox:8971, which is never host-published<br/>(docker-compose.yml:53-59)
+Note over B: DIVERGENCE — port 8444 and port 8443 are published 0.0.0.0 by<br/>docker-compose.voice.yml:39-40, while only port 9096 is the ADR-045 D2 sanctioned NIP-98-gated LAN<br/>door covered by the loopback CI gate. The Unmute voice loop itself reaches tab0-bridge only<br/>over the internal visionclaw_network hostname agentbox:8971, which is never host-published<br/>(docker-compose.yml:53-59)
 ```
 
 ## AB-12.8 mgmt-api voice-intent — mandate-gated ACSP dispatch
@@ -283,7 +283,7 @@ sequenceDiagram
     participant VI as lib/voice-intent.js<br/>parseIntent:112
     participant Ma as lib/mandate.js<br/>see AB-11.10
     participant ACS as agent-control-surface.js<br/>buildActionRequest:176
-    participant D as dispatchActionRequest<br/>server.js:822
+    participant D as dispatchActionRequest<br/>server.js:832
 
 Note over Ca,M: SCOPE — this route is not reached from the tab0-bridge cockpit or the Unmute<br/>voice loop, grep confirmed no reference to voice-intent.js under config/tab0-bridge. It is an<br/>independent management-api REST surface, included because the brief named it as an entry point.
     Ca->>M: POST /v1/voice-intent, transcript, actor_did, mandate (routes/voice-intent.js:82-109)
@@ -341,9 +341,9 @@ Note over Ca,M: SCOPE — this route is not reached from the tab0-bridge cockpit
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Op as Operator, :8444 cockpit
-    participant Cad as Caddy :8444
-    participant Pr as nip98-proxy :9096<br/>see AB-10.x
+    participant Op as Operator, port 8444 cockpit
+    participant Cad as Caddy port 8444
+    participant Pr as nip98-proxy port 9096<br/>see AB-10.x
     participant M as management-api<br/>routes/approvals.js:51
     participant Az as lib/authz.js<br/>isApprover
     participant Cs as authority consumer<br/>signAndPublishDecision
@@ -393,9 +393,9 @@ Note over M,Cs: see AB-14.x for the governance approvals pipeline<br/>internals,
 sequenceDiagram
     autonumber
     participant Op as Operator console
-    participant Cad as Caddy :8444
-    participant Pr as nip98-proxy :9096
-    participant AoEd as AoE daemon :9095
+    participant Cad as Caddy port 8444
+    participant Pr as nip98-proxy port 9096
+    participant AoEd as AoE daemon port 9095
     participant B as tab0-bridge<br/>server.mjs:768
 
     rect rgb(235,245,255)
@@ -403,7 +403,7 @@ sequenceDiagram
     Op->>Cad: GET /aoe/*, NIP-98 or nip07 session cookie (Caddyfile handle_path /aoe/*)
     Cad->>Pr: reverse_proxy agentbox:9096, Authorization forwarded
     Pr->>Pr: verifyNip98 or session cookie, X-Agentbox-Pubkey injected, see AB-10.3, AB-10.7
-    Pr->>AoEd: forward, Authorization Bearer daemon token replaces browser credential, see AB-10.9 (proxy.mjs:850)
+    Pr->>AoEd: forward, Authorization Bearer daemon token replaces browser credential, see AB-10.9 (proxy.mjs:988-996)
     AoEd-->>Pr: session list json
     Pr-->>Cad: response
     Cad-->>Op: session list rendered
@@ -432,7 +432,7 @@ sequenceDiagram
     participant Ag as JunkieJarvisAgent<br/>lib/junkiejarvis-agent.js:608
     participant Llm as callLlm()<br/>lib/junkiejarvis-agent.js:420
 
-Note over R,Ag: SCOPE — junkiejarvis-agent.js has no reference to tab0-bridge, tmux, AoE or<br/>:8971, grep confirmed. An independent forum bot riding management-api's shared NostrBridge,<br/>included because the brief named it as an entry point.
+Note over R,Ag: SCOPE — junkiejarvis-agent.js has no reference to tab0-bridge, tmux, AoE or<br/>port 8971, grep confirmed. An independent forum bot riding management-api's shared NostrBridge,<br/>included because the brief named it as an entry point.
     Ag->>R: bridge.subscribe, kinds 1059, filter p equals pubkey, gift-wrapped DMs (lib/junkiejarvis-agent.js:661-667)
     Ag->>R: bridge.subscribe, kinds 42, filter p equals pubkey, channel mentions (lib/junkiejarvis-agent.js:676-680)
     Ag->>Ag: _scheduleProfilePublish, setTimeout 2000 ms, then publish kind-0 profile (lib/junkiejarvis-agent.js:688-704)
@@ -501,13 +501,18 @@ classDiagram
     class PanelRetired {
         +kind 31405
     }
-    AgentControlSurface --> PanelDefinition : builds kind 31400, agent-control-surface.js line 108
-    AgentControlSurface --> PanelState : builds kind 31401, agent-control-surface.js line 152
-    AgentControlSurface --> ActionRequest : builds kind 31402, agent-control-surface.js line 176
-    AgentControlSurface --> PanelUpdate : builds kind 31404, agent-control-surface.js line 206
-    AgentControlSurface --> PanelRetired : builds kind 31405, agent-control-surface.js line 220
-    ActionRequest <.. VoiceIntentRoute : mints an unsigned ActionRequest, routes/voice-intent.js line 225
-note for AgentControlSurface "SCOPE - this module mints NIP-33 events consumed by the EXTERNAL<br/>nostr-bbs-forum-client GovernancePage, agent-control-surface.js lines 4-19. It is not an<br/>agentbox-native operator dashboard. See AB-11.x for the authority-gate consumer side, kinds<br/>31402 and 31403"
+    AgentControlSurface --> PanelDefinition : builds kind 31400
+    AgentControlSurface --> PanelState : builds kind 31401
+    AgentControlSurface --> ActionRequest : builds kind 31402
+    AgentControlSurface --> PanelUpdate : builds kind 31404
+    AgentControlSurface --> PanelRetired : builds kind 31405
+    ActionRequest <.. VoiceIntentRoute : mints an unsigned ActionRequest
+note for PanelDefinition "agent-control-surface.js:108 buildPanelDefinition"
+note for PanelState "agent-control-surface.js:152 buildPanelState"
+note for ActionRequest "agent-control-surface.js:176 buildActionRequest<br/>minted unsigned by the voice-intent route at routes/voice-intent.js:225"
+note for PanelUpdate "agent-control-surface.js:206 buildPanelUpdate"
+note for PanelRetired "agent-control-surface.js:220 buildPanelRetired"
+note for AgentControlSurface "SCOPE - this module mints NIP-33 events consumed by the EXTERNAL<br/>nostr-bbs-forum-client GovernancePage, agent-control-surface.js:4-19. It is not an<br/>agentbox-native operator dashboard. See AB-11.x for the authority-gate consumer side, kinds<br/>31402 and 31403.<br/>Enum vocabularies are frozen module constants - PANEL_SCHEMAS agent-control-surface.js:43,<br/>LAYOUT_HINTS :46, ACTION_PRIORITIES :48. publishPanelEvent is a thin delegate over an<br/>ALREADY-CONNECTED NostrBridge, no in-request relay I/O :238"
 ```
 
 ## AB-12.13 turn-sink capture

@@ -86,21 +86,21 @@ sequenceDiagram
     participant SS as sssp_handlers<br/>analytics/sssp_handlers.rs:109
     participant ON as ontology check_feature_enabled<br/>api_handler/ontology/mod.rs:332
 
-    C->>FH: GET /analytics/feature-flags :264
+    C->>FH: GET /analytics/feature-flags (route reg analytics/mod.rs:264)
     FH->>ST: FEATURE_FLAGS.lock().await :10
     ST-->>FH: FeatureFlags struct - TWO bools after ADR-2059 (was nine)
     FH-->>C: flags plus a description map covering only the surviving two
-    C->>FH: POST /analytics/feature-flags :204
-    Note over FH: requires AuthenticatedUser extractor :30 on top of the scope wrap
-    FH->>ST: FEATURE_FLAGS.lock().await :35 then *flags = request.into_inner() :36
+    C->>FH: POST /analytics/feature-flags (route reg analytics/mod.rs:204)
+    Note over FH: requires AuthenticatedUser extractor :23 on top of the scope wrap
+    FH->>ST: FEATURE_FLAGS.lock().await :28 then *flags = request.into_inner() :29
     Note over FH: WHOLESALE REPLACE - no field merge, a partial POST silently resets omitted flags to the body's values
     FH-->>C: success plus the new flags
 
     rect rgb(250,228,228)
         Note over ST,ON: What the flags actually do - the reason seven were removed
-        ON->>ST: if !flags.ontology_validation :334
+        ON->>ST: if !flags.ontology_validation :335
         Note over ON: ontology_validation is the ONLY flag read as a real GATE - it short-circuits ontology validation with an ErrorResponse
-        SS->>ST: flags.sssp_integration written :45 and :93, read for display :109
+        SS->>ST: flags.sssp_integration written :46 and :94, read for display :109
         Note over SS: sssp_integration is written by /sssp/toggle and echoed by /sssp/status - it gates nothing
     end
     Note over ST: RESOLVED ADR-2059 - the seven flags that gated nothing are REMOVED from the struct, the Default and the description map. Only ontology_validation (a real gate) and sssp_integration (display-only, documented as such) remain
@@ -160,9 +160,9 @@ sequenceDiagram
     participant TEL as analytics_telemetry<br/>src/actors/gpu/analytics_telemetry.rs
     participant GPU as GPU compute addr
 
-    C->>PF: GET /analytics/stats :240
+    C->>PF: GET /analytics/stats (route reg analytics/mod.rs:240)
     PF->>PF: get_performance_stats :55
-    C->>PF: GET /analytics/gpu-metrics :241
+    C->>PF: GET /analytics/gpu-metrics (route reg analytics/mod.rs:241)
     PF->>PF: get_gpu_metrics :149
     PF->>TEL: analytics_telemetry::snapshot() and total_cpu_fallbacks()
     Note over TEL: per-kernel GPU-vs-fallback counters are PROCESS-GLOBAL, recorded by the GPU analytics actors via analytics_telemetry::record_execution
@@ -177,9 +177,9 @@ sequenceDiagram
     else no GPU
         PF-->>C: degraded response, still carrying analytics_execution
     end
-    C->>PF: GET /analytics/gpu-status :242
+    C->>PF: GET /analytics/gpu-status (route reg analytics/mod.rs:242)
     PF->>PF: get_gpu_status :197
-    C->>PF: GET /analytics/gpu-features :243
+    C->>PF: GET /analytics/gpu-features (route reg analytics/mod.rs:243)
     PF->>PF: get_gpu_features :281
     Note over TEL: INVARIANT a non-zero total_cpu_fallbacks means the zero-fallback intent has been violated this process lifetime - it is the observable signal for the trust gap in VC-15.13
 ```
@@ -194,25 +194,25 @@ sequenceDiagram
     participant GPU as GPU compute addr
     participant SMA as StressMajorizationActor<br/>src/actors/gpu/stress_majorization_actor.rs:315
 
-    C->>SH: POST /stress-majorization/trigger :188
+    C->>SH: POST /stress-majorization/trigger (route reg analytics/mod.rs:188)
     SH->>GPU: send(TriggerStressMajorization) :17
     GPU->>SMA: TriggerStressMajorization :315
     alt no GPU context
         Note over SMA: Err "GPU not available for stress majorization" :95 - hard failure, no CPU path (see VC-11.7)
     end
-    C->>SH: GET /stress-majorization/stats :255
+    C->>SH: GET /stress-majorization/stats (route reg analytics/mod.rs:255)
     SH->>GPU: send(GetStressMajorizationStats) :43
-    C->>SH: POST /stress-majorization/reset-safety :192
+    C->>SH: POST /stress-majorization/reset-safety (route reg analytics/mod.rs:192)
     SH->>GPU: send(ResetStressMajorizationSafety) :70
     GPU->>SMA: ResetStressMajorizationSafety :334
-    C->>SH: POST /stress-majorization/params :196
+    C->>SH: POST /stress-majorization/params (route reg analytics/mod.rs:196)
     SH->>SH: build UpdateStressMajorizationParams :98
     SH->>GPU: send(msg) :102
     GPU->>SMA: UpdateStressMajorizationParams :347
-    C->>SH: POST /stress-majorization/configure :200
+    C->>SH: POST /stress-majorization/configure (route reg analytics/mod.rs:200)
     SH->>GPU: send(config.into_inner()) :131
     GPU->>SMA: ConfigureStressMajorization :410
-    C->>SH: GET /stress-majorization/config :259
+    C->>SH: GET /stress-majorization/config (route reg analytics/mod.rs:259)
     SH->>GPU: send(GetStressMajorizationConfig) :158
     GPU->>SMA: GetStressMajorizationConfig :475
     Note over SH,SMA: All six handlers guard on get_gpu_compute_addr() being Some and return an error response otherwise
@@ -230,20 +230,20 @@ sequenceDiagram
     participant ST as CLUSTERING_TASKS and ANOMALY_STATE<br/>analytics/state.rs
     participant GPU as GPU compute addr
 
-    C->>IH: GET /analytics/insights :251
+    C->>IH: GET /analytics/insights (route reg analytics/mod.rs:251)
     IH->>GS: send(GetGraphData) :15
     IH->>ST: CLUSTERING_TASKS.lock() :20 and ANOMALY_STATE.lock() :21
     IH-->>C: derived AI insights
-    C->>IH: GET /analytics/insights/realtime :252
+    C->>IH: GET /analytics/insights/realtime (route reg analytics/mod.rs:252)
     IH->>GS: send(GetGraphData) :140
     IH->>ST: CLUSTERING_TASKS.lock() :151 and ANOMALY_STATE.lock() :152
     opt gpu addr present :201
         IH->>GPU: send(GetPhysicsStats) :203
     end
-    C->>IH: GET /analytics/dashboard-status :262
+    C->>IH: GET /analytics/dashboard-status (route reg analytics/mod.rs:262)
     IH->>IH: gpu_available = get_gpu_compute_addr().is_some() :232
     IH->>ST: CLUSTERING_TASKS.lock() :233 and ANOMALY_STATE.lock() :234
-    C->>IH: GET /analytics/health-check :292
+    C->>IH: GET /analytics/health-check (route reg analytics/mod.rs:263)
     IH-->>C: health summary
     Note over ST: ANOMALY_STATE is the AGENT-HEALTH heuristic fed by MCP telemetry via /anomaly/toggle - it is NOT node_analytics.anomaly, which comes from the GPU LOF kernel (analytics/mod.rs:182-184)
     Note over IH,ST: All four insights endpoints are pure reads over graph data plus process-global state - none dispatch a GPU kernel
@@ -263,8 +263,8 @@ sequenceDiagram
     alt not authenticated
         Note over RT: rejected before the upgrade - the stream is auth-gated even though it is read-only
     else authenticated
-        RT->>WSH: gpu_analytics_websocket :503
-        WSH->>A: ws::start(GpuAnalyticsWebSocket::new(app_state)) :539
+        RT->>WSH: gpu_analytics_websocket (websocket_integration.rs:503)
+        WSH->>A: ws::start(GpuAnalyticsWebSocket::new(app_state)) :562
         A->>A: Actor::started :385
         A->>C: message_type "connected" with clientId and a capabilities map :391-400
         Note over A: capabilities advertise gpuMetrics, clusteringProgress, anomalyAlerts, insightsUpdates, realTimeUpdates

@@ -179,7 +179,7 @@ sequenceDiagram
     end
     TUI->>TOML: an operator saves the TUI
     Note over TUI,TOML: INVARIANT ADR-2031: a TUI save NEVER resets an operator's model
-    Note over TOML: consultants are codex :861, antigravity :867, zai :873, perplexity :880, deepseek :885
+    Note over TOML: consultant sections: agentbox.toml:955 codex, agentbox.toml:961 antigravity,<br/>agentbox.toml:967 zai, agentbox.toml:974 perplexity, agentbox.toml:979 deepseek
     Note over TOML: INVARIANT ADR-2031: cost figures are DATED API-EQUIVALENT ESTIMATES or null, NEVER a<br/>stale constant
     Note over BIN: INVARIANT: consultant models come FROM THE MANIFEST — agentbox-manifest toml-string is<br/>the single projection path
 ```

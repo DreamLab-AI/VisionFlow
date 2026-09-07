@@ -11,6 +11,9 @@ sources:
   - ../project/agentbox/management-api/lib/agent-identity.js
   - ../project/agentbox/management-api/lib/uris.js
   - ../project/agentbox/management-api/lib/mandate.js
+  - ../project/agentbox/management-api/lib/governance-correlation.js
+  - ../project/agentbox/management-api/lib/governance-application-receipts.js
+  - ../project/agentbox/management-api/routes/broker-bridge.js
   - ../project/agentbox/management-api/lib/authority.js
   - ../project/agentbox/management-api/lib/authority-consumer.js
   - ../project/agentbox/management-api/lib/capability-scope.js
@@ -128,7 +131,7 @@ sequenceDiagram
     AI->>AI: xOnly = deriveXonly(privHex)
     alt xOnly falsy or not HEX64
         AI-->>CALLER: return null
-        Note over AI,CALLER: G-6 source closeout: entrypoint aborts failed or invalid mint before consumers start. See AB-11.3
+        Note over AI,CALLER: DIVERGENCE INGRESS-identity: caller then keeps did:nostr:local — a degraded boot yields a non-sovereign identity. see AB-11.3
     else derived
         critical persist so the DID survives a restart
             AI->>FS: mkdirSync(dirname, recursive) then writeFileSync(privHex, mode 0o600) then chmodSync 0o600 (agent-identity.js:158-160)
@@ -167,12 +170,11 @@ sequenceDiagram
             LM-->>CLI: {did, pubkey, multikey, persisted true, keyPath}
             CLI-->>EP: stdout export AGENTBOX_AGENT_DID / AGENTBOX_AGENT_PUBKEY / AGENTBOX_AGENT_DID_MULTIKEY<br/>agent-identity.js:225-229
             CLI-->>EP: stderr agent-identity: minted or loaded the did (persisted=true, keyfile=path)<br/>agent-identity.js:230-233
-            EP->>EP: require exact canonical DID, matching pubkey and multikey exports
-            EP->>SHELL: export parsed public values, never eval
+            EP->>SHELL: eval the export lines
             CLI-->>EP: exit 0 agent-identity.js:234
         end
     end
-    Note over EP,SHELL: G-6 STAGED: missing mint runtime, nonzero exit, malformed DID or inconsistent<br/>exports abort boot. Canonical operator DID is validated too.<br/>entrypoint-unified.sh:902 identity guard. Six isolated positive/negative tests pass.<br/>Local runtime was not rebuilt and key custody remains separate.
+    Note over EP,SHELL: RESOLVED ADR-2044 (2026-09-05, was DIVERGENCE) — the CLI's own fail-open<br/>path is GONE: a failed mint OR a mint that could not persist its key now exits<br/>non-zero with NO export lines, agent-identity.js:31-46. config/entrypoint-unified.sh's<br/>`${AGENTBOX_AGENT_DID:-did:nostr:local}` shell fallback is UNCHANGED and still<br/>runs unconditionally on that non-zero exit (`\|\| true`, out of scope for this module,<br/>agent-identity.js:41-46) — the boot-level placeholder-DID gap named in<br/>INGRESS-identity.md remains, only the library's OWN silent tolerance of it is closed.<br/>see AB-11.13
 ```
 
 ## AB-11.4 URN kind table — scope, content addressing and resolvable surface
@@ -402,98 +404,52 @@ stateDiagram-v2
     end note
 ```
 
-## AB-11.10 Authority gate — ACSP request and human-signed decision
+## AB-11.10 Authority gate — signed request binds the operation
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant SK as caller (skill or action)
-    participant G as buildAuthorityGate.guard<br/>agentbox/management-api/lib/authority.js:136
-    participant CL as classifyAction<br/>agentbox/management-api/lib/authority.js:101
-    participant TB as loadClassificationTable<br/>agentbox/management-api/lib/authority.js:73
-    participant ACS as agent-control-surface<br/>agentbox/management-api/lib/agent-control-surface.js
-    participant FORUM as forum operator (owns the decision loop)
-    participant VE as verifyEvent (nostr-tools)
-
-    SK->>G: guard(actionClass, ctx)
-    G->>CL: classifyAction(actionClass, {table, frontmatter})
-    alt SKILL.md frontmatter carries a valid authority_class
-        CL-->>G: frontmatter.authority_class
-    else table has the actionClass
-        CL->>TB: table.classes[actionClass]
-        TB-->>CL: recoverable | zero-tolerance
-        CL-->>G: that class
-    else neither
-        CL-->>G: 'escalation-required' (authority.js:49 ESCALATION_REQUIRED)
-        Note over CL,G: INVARIANT — unknown actions default to escalation-required, never to recoverable. AUTHORITY_CLASSES = recoverable, zero-tolerance (authority.js:47).
-    end
-    alt class is recoverable
-        G-->>SK: allow
-    else zero-tolerance or escalation-required
-        alt deps.awaitDecision not wired
-            G-->>SK: DENY (fail-closed)
-            Note over SK,G: INVARIANT authority.js:136 — without an injected<br/>consumer a zero-tolerance action has no way to receive an<br/>approval, so the gate must deny, never invent one
-        else consumer wired
-            G->>ACS: publishActionRequest(unsigned) -> acs.publishPanelEvent(bridge, signer, unsigned)
-            Note over G,ACS: ACTION_REQUEST_KIND = 31402 — we PRODUCE the request. We NEVER build a 31403 response, that is the forum's to sign (authority.js:51-52).
-            ACS-->>G: signedRequest (id used to match the response)
-            G->>FORUM: kind 31402 ActionRequest over the relay
-            loop awaitDecision(signedRequest, {timeoutMs}) — defaultTimeoutMs 120000 (authority.js:139)
-                FORUM-->>G: signed kind 31403 ActionResponse, or null on timeout
+    participant Caller
+    participant Gate as authority.js buildAuthorityGate
+    participant Forum as Verified allowlisted consumer
+    participant Owner as broker-bridge.js mutation owner
+    participant Journal as governance-application-receipts.js
+    Caller->>Gate: action class and concrete operation
+    alt recoverable action
+        Gate-->>Caller: allow under existing recoverable policy
+    else escalation required
+        Gate->>Gate: canonicalise operation and SHA256 digest
+        Gate->>Forum: sign 31402 fields containing operation and digest
+        Gate->>Gate: reject producer if signed content changed
+        Forum-->>Gate: verified 31403 with exact request e reference
+        Gate->>Gate: require optional case and panel agreement
+        alt approval bound to this request
+            Gate-->>Owner: released plus request ID, response ID, operation digest
+            Owner->>Journal: durable immutable consumer-received claim
+            alt fresh claim
+                Owner->>Owner: send exact approved payload to upstream
+                Owner->>Journal: applied only on writeback_committed acknowledgement
+            else prior claim or unavailable storage
+                Owner-->>Caller: refuse replay or require reconciliation
             end
-            alt no response before timeout
-                G-->>SK: DENY
-            else response received
-                G->>VE: verifyEvent(responseEvent)
-                alt nostr-tools not loadable
-                    VE-->>G: false — fail-closed, treated as unverified (authority.js:136 verifier default)
-                    G-->>SK: DENY
-                else signature invalid
-                    VE-->>G: false
-                    G-->>SK: DENY
-                else verified
-                    G->>G: readOutcome(responseEvent, requestEvent) — must reference our request by e-tag or matching content case_id
-                    alt outcome approve
-                        G-->>SK: allow
-                    else reject or defer or unreadable
-                        G-->>SK: DENY
-                    end
-                end
-            end
+        else mismatch, refusal or timeout
+            Gate-->>Caller: deny
         end
     end
+    Note over Owner,Journal: Timeout or crash is unknown, never proof of application. Local receipt is unsigned and does not prove deployment.
 ```
 
-## AB-11.11 Authority consumer — response matching and decided cache
+## AB-11.11 Authority consumer — exact request matching and decided cache
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant RELAY as relay subscription (see AB-13)
-    participant AC as buildAuthorityConsumer<br/>agentbox/management-api/lib/authority-consumer.js:141
-    participant KR as _keysForRequest / _keysForResponse<br/>agentbox/management-api/lib/authority-consumer.js:62,73
-    participant PC as _parseContent / _tagVal<br/>agentbox/management-api/lib/authority-consumer.js:49,55
-    participant CACHE as decided cache (bounded)
-    participant GATE as authority gate awaitDecision<br/>agentbox/management-api/lib/authority.js:136
-    participant BR as buildActionResponse<br/>agentbox/management-api/lib/authority-consumer.js:101
-
-    RELAY->>AC: EVENT kind 31403 ActionResponse
-    Note over RELAY,AC: ACTION_RESPONSE_KIND = 31403 — this module CONSUMES only (authority-consumer.js:45)
-    AC->>PC: _parseContent(raw) then _tagVal(event, 'e') and case_id
-    PC-->>AC: outcome fields plus the referenced request key
-    AC->>KR: _keysForResponse(responseEvent)
-    KR-->>AC: candidate match keys
-    alt key matches a pending request from _keysForRequest(signedRequest)
-        AC->>CACHE: record decided (cap DECIDED_CACHE_MAX = 512, authority-consumer.js:47)
-        AC-->>GATE: resolve awaitDecision with the signed 31403
-    else no pending request matches
-        AC->>AC: drop — an unsolicited or already-decided response
-    end
-    alt no response within DEFAULT_TIMEOUT_MS = 120000 (authority-consumer.js:46)
-        AC-->>GATE: null — the gate denies. see AB-11.10
-    end
-    Note over BR: buildActionResponse (authority-consumer.js:101) exists for TEST wiring and for surfaces that legitimately sign a decision. The authority GATE never calls it — see the producer/consumer split in AB-11.10.
-Note over AC,CACHE: DIVERGENCE GOVERNANCE-capabilities item 1 — this ACSP loop is one of<br/>several per-path guards. There is no single policy decision point (legacy ADR-059 unbuilt) and<br/>no canonical replayable record (legacy ADR-057 unbuilt). see AB-14
+flowchart TD
+    Event["31403 from relay"] --> Verify["authority-consumer.js<br/>signature verification and responder allowlist"]
+    Verify --> Reference["governance-correlation.js<br/>one unambiguous e reference to signed request"]
+    Reference --> Match{"Known request and optional case/panel agree?"}
+    Match -->|yes| Resolve["Resolve only matching waiters<br/>cache verified response under request ID"]
+    Match -->|no| Drop["No approval and no fallback by case or panel"]
+    Resolve --> Cache["Bounded process-local decided cache<br/>early verified responses can satisfy later awaiter"]
+    Cache --> Owner["Mutation owner separately persists received/outcome records"]
+    Note["Separate policy guards remain<br/>process cache is not the durable mutation ledger"] -.-> Cache
 ```
 
 ## AB-11.12 Capability scope — effect and trust classification

@@ -404,8 +404,8 @@ flowchart TD
         LM6["POST /v1/llm/deny<br/>llm-marketplace.js:325"] --> LMH6["deny request"]
         LM7["POST /v1/llm/receipt<br/>llm-marketplace.js:362"] --> LMH7["settle receipt"]
         LM8["POST /v1/llm/revoke<br/>llm-marketplace.js:422"] --> LMH8["revoke grant"]
-        LM9["GET /v1/llm/grants<br/>llm-marketplace.js:512"] --> LMH9["list grants"]
-        LM10["GET /v1/llm/stats<br/>llm-marketplace.js:534"] --> LMH10["marketplace stats"]
+        LM9["GET /v1/llm/grants<br/>llm-marketplace.js:514"] --> LMH9["list grants"]
+        LM10["GET /v1/llm/stats<br/>llm-marketplace.js:536"] --> LMH10["marketplace stats"]
     end
     subgraph dream["routes/dream.js — operator-gated, ADR-055"]
         DR1["GET /dream/status<br/>dream.js:24"] --> DRH1["read-only per-repo dream ledgers"]
@@ -568,8 +568,8 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Cli as external caller
-    participant Proxy as nip98-proxy :9096<br/>config/nip98-proxy/
-    participant App as fastify app :9090<br/>server.js:81
+    participant Proxy as nip98-proxy port 9096<br/>config/nip98-proxy/
+    participant App as fastify app port 9090<br/>server.js:81
     participant PreVal as preValidation hook<br/>server.js:227
     participant Auth as authMiddleware<br/>middleware/auth.js:167
     participant Guard as authz.requireOperator<br/>lib/authz.js:184
@@ -628,7 +628,7 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    Hyp["Hypothesis under test: registerRawBody is never called<br/>so direct body binding is inert on :9090"] --> G1["grep -n registerRawBody rawBody addContentTypeParser<br/>across management-api, config, flake.nix"]
+    Hyp["Hypothesis under test: registerRawBody is never called<br/>so direct body binding is inert on port 9090"] --> G1["grep -n registerRawBody rawBody addContentTypeParser<br/>across management-api, config, flake.nix"]
     G1 --> F1["middleware/auth.js:220 defines registerRawBody(app)"]
     G1 --> F2["middleware/auth.js:221 addContentTypeParser application-json parseAs buffer"]
     G1 --> F3["server.js:101 calls registerRawBody(app) — before route registration, line 101"]

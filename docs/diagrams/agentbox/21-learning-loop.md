@@ -51,7 +51,7 @@ sequenceDiagram
             alt is_error absent (undetermined) or the call was user-interrupted
                 U-->>HK: null
                 HK->>HK: NOTHING is written for this step
-                Note over U: INVARIANT I04 OUTCOME HONESTY — the outcome is a real graded signal or nothing is<br/>written. Never default an undetermined or interrupted call to success (:31-32)
+                Note over U: INVARIANT I04 OUTCOME HONESTY — the outcome is a real graded signal or nothing is<br/>written. Never default an undetermined or interrupted call to success (config/hooks/lib/trajectory-util.cjs:31-32)
             else graded
                 U-->>HK: {success, quality, signal} — quality 1.0 clean success, 0.85 success with stderr noise,<br/>0.0 failure
             end
@@ -88,19 +88,19 @@ sequenceDiagram
     participant U as trajectory-util.cjs
     participant EV as agent-events
 
-    HK->>PG: INSERT INTO trajectories (id, task, agent, status, started_at, metadata) VALUES<br/>($1,$2,$3,'recording',CURRENT_TIMESTAMP,$4::jsonb) ON CONFLICT (id) DO NOTHING<br/>(:441-444)
-    Note over HK,PG: task is "claude-code-session:<first 12 of session>", agent is AGENTBOX_AGENT or<br/>'claude-code'. metadata carries session, owner_did, trajectory_urn, handoff_id<br/>(:433-439)
+    HK->>PG: INSERT INTO trajectories (id, task, agent, status, started_at, metadata) VALUES<br/>($1,$2,$3,'recording',CURRENT_TIMESTAMP,$4::jsonb) ON CONFLICT (id) DO NOTHING<br/>(config/hooks/trajectory-recorder.cjs:441-444)
+    Note over HK,PG: task is "claude-code-session:<first 12 of session>", agent is AGENTBOX_AGENT or<br/>'claude-code'. metadata carries session, owner_did, trajectory_urn, handoff_id<br/>(config/hooks/trajectory-recorder.cjs:433-439)
     HK->>PROBE: hasDurationColumn(client)
     alt cached verdict exists
-        PROBE-->>HK: cached boolean (:277)
+        PROBE-->>HK: cached boolean (config/hooks/trajectory-recorder.cjs:277)
     else first call
-        PROBE->>PG: SELECT 1 FROM information_schema.columns WHERE table_name='trajectory_steps' AND<br/>column_name='duration_ms' LIMIT 1 (:279-282)
+        PROBE->>PG: SELECT 1 FROM information_schema.columns WHERE table_name='trajectory_steps' AND<br/>column_name='duration_ms' LIMIT 1 (config/hooks/trajectory-recorder.cjs:279-282)
         PG-->>PROBE: rowCount
-        PROBE->>PROBE: cache the verdict, catch to false (:283-284)
+        PROBE->>PROBE: cache the verdict, catch to false (config/hooks/trajectory-recorder.cjs:283-284)
     end
     loop each graded step
-        HK->>HK: stepId = "<trajectoryId>:step-<sha12(toolUseId)>" (:452)
-        Note over HK: DETERMINISTIC, content-addressed step ids make repeated Stop firings IDEMPOTENT (:19-20)
+        HK->>HK: stepId = "<trajectoryId>:step-<sha12(toolUseId)>" (config/hooks/trajectory-recorder.cjs:452)
+        Note over HK: DETERMINISTIC, content-addressed step ids make repeated Stop firings IDEMPOTENT (config/hooks/trajectory-recorder.cjs:19-20)
         HK->>PG: parameterised INSERT INTO trajectory_steps — duration_ms written ONLY when the column<br/>exists
         Note over HK,PG: result JSON carries outcome success|failure, signal, the REDACTED command, an optional<br/>MAST failure_mode on failures, and the CTC fields token_count / duration_ms
         opt CTC emit
@@ -181,24 +181,24 @@ sequenceDiagram
             Note over SW,PG: the cursor binds on max(created_at) (I21) because trajectory_steps.id is text and<br/>NON-MONOTONIC — extract(epoch FROM max(created_at)) and an ISO hwm_ts are both recorded<br/>(:286-287)
             PG-->>AE: grouped rows
             loop each action pattern
-                AE->>AE: weight_i = 0.5 ^ (age_days_i / RUVECTOR_RECENCY_HALF_LIFE_DAYS) (:16)
+                AE->>AE: weight_i = 0.5 ^ (age_days_i / RUVECTOR_RECENCY_HALF_LIFE_DAYS) (mcp/servers/lib/aggregate-effectiveness.js:16)
                 Note over AE: recency_half_life_days default 14 (agentbox/agentbox.toml:416). Successes are steps with<br/>quality >= 0.5
-                AE->>AE: wilsonLower(wSucc, wTotal, Z) with Z = 1.96 (:47, :71, :331)
-                Note over AE: the Wilson score-interval LOWER bound of the recency-weighted success proportion — NOT<br/>the raw rate. A single degenerate label cannot move the aggregate
+                AE->>AE: wilsonLower(effSucc, effTotal, Z) with Z = 1.96 (mcp/servers/lib/aggregate-effectiveness.js:47, mcp/servers/lib/aggregate-effectiveness.js:71, mcp/servers/lib/aggregate-effectiveness.js:332)
+                Note over AE: the stored bound uses trajectory independence deflation of the recency-weighted sample.<br/>aggregate-effectiveness.js:309-317 scales effective successes and count equally.<br/>The uncorrected bound remains a separate diagnostic at aggregate-effectiveness.js:331
                 alt raw n < aggregate_min_samples 20 (agentbox/agentbox.toml:415)
                     AE->>AE: SKIP
                     Note over AE: INVARIANT I06 / ADR-2016 — the sample floor gates on the RAW OBSERVATION COUNT, not the<br/>recency-weighted effective size
                 else survives the floor
-                    AE->>MT: memStore through the GOVERNED path (:24, :473)
-                    Note over AE,AGG: key effectiveness-sha256-12-<hash(pattern)> (:86), namespace memory-learning-aggregates<br/>(:45), typed metadata {importance: wilson, tags: ['action:<pattern>'], memory_type:<br/>'semantic'} (:28-29, runtime :474-476)
-                    Note over AE: the tags and importance are LOAD-BEARING — feed_retrieval keys on metadata.tags and<br/>feed_routing surfaces importance — so the typed-metadata gate is FORCED ON for this<br/>process (:400-406)
+                    AE->>MT: memStore through the GOVERNED path (mcp/servers/lib/aggregate-effectiveness.js:24, mcp/servers/lib/aggregate-effectiveness.js:473)
+                    Note over AE,AGG: key effectiveness-sha256-12-<hash(pattern)> (mcp/servers/lib/aggregate-effectiveness.js:86), namespace memory-learning-aggregates<br/>(mcp/servers/lib/aggregate-effectiveness.js:45), typed metadata {importance: wilson, tags: ['action:<pattern>'], memory_type:<br/>'semantic'} (mcp/servers/lib/aggregate-effectiveness.js:28-29, runtime mcp/servers/lib/aggregate-effectiveness.js:474-476)
+                    Note over AE: the tags and importance are LOAD-BEARING — feed_retrieval keys on metadata.tags and<br/>feed_routing surfaces importance — so the typed-metadata gate is FORCED ON for this<br/>process (mcp/servers/lib/aggregate-effectiveness.js:400-406)
                     MT->>AGG: upsert
                 end
             end
             SW->>MT: writeCursor {cursor_after: hwmTs, stepsProcessed, aggregatesWritten, urn} (:307-309)
         end
     end
-    Note over AE: embeddings are 384-dim and a dimension mismatch is a hard reject — "dimension mismatch:<br/>got N, expected 384" (:118-119). See AB-20
+    Note over AE: embeddings are 384-dim and a dimension mismatch is a hard reject — "dimension mismatch:<br/>got N, expected 384" (mcp/servers/lib/aggregate-effectiveness.js:118-119). See AB-20
 ```
 
 ## AB-21.5 Distil — patterns table
@@ -218,26 +218,26 @@ sequenceDiagram
     alt off
         G-->>DS: fast exit
     else on
-        DS->>DS: read cursor '__pattern_distill_cursor__' (:105) tagged distill:cursor
+        DS->>DS: read cursor '__pattern_distill_cursor__' (scripts/ruvector-pattern-distill.mjs:105) tagged distill:cursor
         Note over DS: a DISTINCT key from the sweep and SONA cursors, so the three loops never trample each<br/>other
         DS->>PG: judged steps since the cursor
         loop each action pattern
-            DS->>DS: build the embed text — deduped, front-loaded arg/flag/pipe descriptors, capped and<br/>per-token length-bounded so a NULL or huge blob never reaches the embedder (:277, :295)
-            DS->>XI: POST /v1/embeddings (:202)
+            DS->>DS: build the embed text — deduped, front-loaded arg/flag/pipe descriptors, capped and<br/>per-token length-bounded so a NULL or huge blob never reaches the embedder (scripts/ruvector-pattern-distill.mjs:277, scripts/ruvector-pattern-distill.mjs:295)
+            DS->>XI: POST /v1/embeddings (scripts/ruvector-pattern-distill.mjs:202)
             alt embedding fails
                 XI--xDS: error
-                DS->>DS: SKIP THE ROW (:22)
-                Note over DS: INVARIANT: EMBED BEFORE INSERT — never write a NULL-embedding, HNSW-invisible pattern.<br/>I03-faithful even though this table is not memory_entries (:18-22)
+                DS->>DS: SKIP THE ROW (scripts/ruvector-pattern-distill.mjs:22)
+                Note over DS: INVARIANT: EMBED BEFORE INSERT — never write a NULL-embedding, HNSW-invisible pattern.<br/>I03-faithful even though this table is not memory_entries (scripts/ruvector-pattern-distill.mjs:18-22)
             else embedding ok
                 XI-->>DS: 384-dim vector
-                DS->>PAT: INSERT ... ON CONFLICT (id) DO UPDATE (:28)
-                Note over DS,PAT: id = distilled-sha256-12-<hash(action)> (:260) — content-addressed, so a second tick<br/>over an unchanged action is a no-op update, not a duplicate
-                Note over PAT: metadata.provenance = 'judge:trajectory' (I18, :9). A PROVENANCE FIREWALL keeps W-E<br/>legacy-mining candidates carrying proxy:legacy-mining out of this feeder's output — they<br/>share the table and are separated by the metadata stamp (:32-33)
+                DS->>PAT: INSERT ... ON CONFLICT (id) DO UPDATE (scripts/ruvector-pattern-distill.mjs:28)
+                Note over DS,PAT: id = distilled-sha256-12-<hash(action)> (scripts/ruvector-pattern-distill.mjs:260) — content-addressed, so a second tick<br/>over an unchanged action is a no-op update, not a duplicate
+                Note over PAT: metadata.provenance = 'judge:trajectory' (I18, scripts/ruvector-pattern-distill.mjs:9). A PROVENANCE FIREWALL keeps W-E<br/>legacy-mining candidates carrying proxy:legacy-mining out of this feeder's output — they<br/>share the table and are separated by the metadata stamp (scripts/ruvector-pattern-distill.mjs:32-33)
             end
         end
         DS->>DS: advance the cursor
     end
-    Note over PAT: the promoted-set consumer filters on metadata->>'provenance' = 'judge:trajectory' (:11).<br/>A memory_entries shortcut would FAIL acceptance, which is why this script owns a new<br/>embed-then-insert path (:18-19)
+    Note over PAT: the promoted-set consumer filters on metadata->>'provenance' = 'judge:trajectory' (scripts/ruvector-pattern-distill.mjs:11).<br/>A memory_entries shortcut would FAIL acceptance, which is why this script owns a new<br/>embed-then-insert path (scripts/ruvector-pattern-distill.mjs:18-19)
 ```
 
 ## AB-21.6 Consume — the feed_retrieval re-rank
@@ -259,19 +259,19 @@ sequenceDiagram
         ADM-->>HY: {admitted: false, reason: 'master-learning-off'} (:91-95)
         Note over ADM: the master gate is the OUTER BOUNDARY — a consumer gate left on behind an off master<br/>must not act
     else producer currently capturing
-        ADM-->>HY: {admitted: true, reason: 'active-capture'} (:96)
+        ADM-->>HY: {admitted: true, reason: 'active-capture'} (ruvector-gates.js:95)
     else producer off and no receipt
         ADM-->>HY: {admitted: false, reason: 'producer-off-and-retained-corpus-not-accepted'} (:98-103)
     else receipt present but corpus empty
-        ADM-->>HY: {admitted: false, reason: 'retained-corpus-empty'} (:113)
-        Note over ADM: emptiness is diagnosed FIRST — an empty corpus is also undateable, and "there is nothing<br/>here" is the more useful answer than "I cannot date it" (:111-112)
+        ADM-->>HY: {admitted: false, reason: 'retained-corpus-empty'} (ruvector-gates.js:115)
+        Note over ADM: emptiness is diagnosed FIRST — an empty corpus is also undateable, and "there is nothing<br/>here" is the more useful answer than "I cannot date it" (ruvector-gates.js:112-113)
     else receipt present but corpus undateable
-        ADM-->>HY: {admitted: false, reason: 'retained-corpus-freshness-unknown'} (:115-118)
+        ADM-->>HY: {admitted: false, reason: 'retained-corpus-freshness-unknown'} (ruvector-gates.js:120)
         Note over ADM: an accepted corpus we CANNOT DATE is not a fresh corpus. Refuse rather than assume — an<br/>unmeasurable corpus is the same risk as a stale one
     else receipt present and corpus older than RUVECTOR_RETAINED_CORPUS_MAX_AGE_DAYS default 30
-        ADM-->>HY: {admitted: false, reason: 'retained-corpus-stale'} (:119-121)
+        ADM-->>HY: {admitted: false, reason: 'retained-corpus-stale'} (ruvector-gates.js:123)
     else receipt present and fresh
-        ADM-->>HY: {admitted: true, reason: 'retained-corpus-accepted', receipt, corpus_age_days} (:122)
+        ADM-->>HY: {admitted: true, reason: 'retained-corpus-accepted', receipt, corpus_age_days} (ruvector-gates.js:125)
     end
     alt admitted
         HY->>AGG: ONE bounded read, LIMIT 500 (:57-101)
@@ -383,26 +383,26 @@ stateDiagram-v2
 
 ```mermaid
 flowchart LR
-    subgraph toml["agentbox.toml [memory_learning] — block at :412"]
+    subgraph toml["agentbox.toml [memory_learning] — block at agentbox.toml:412"]
         direction TB
-        M["enabled = true :413<br/>master gate"]
-        P["record_trajectories = true :414<br/>PRODUCER"]
-        F1["aggregate_min_samples = 20 :415"]
-        F2["recency_half_life_days = 14 :416"]
-        C1["feed_retrieval = true :417<br/>CONSUMER, enabled 2026-08-31"]
-        C2["feed_routing = false :418<br/>CONSUMER, advisory only"]
-        S1["aggregate_sweep = true :428"]
-        S2["aggregate_sweep_interval_mins = 30 :429"]
-        S3["pattern_distillation = true :430"]
+        M["enabled = true agentbox.toml:413<br/>master gate"]
+        P["record_trajectories = true agentbox.toml:414<br/>PRODUCER"]
+        F1["aggregate_min_samples = 20 agentbox.toml:415"]
+        F2["recency_half_life_days = 14 agentbox.toml:416"]
+        C1["feed_retrieval = true agentbox.toml:417<br/>CONSUMER, enabled 2026-08-31"]
+        C2["feed_routing = false agentbox.toml:418<br/>CONSUMER, advisory only"]
+        S1["aggregate_sweep = true agentbox.toml:428"]
+        S2["aggregate_sweep_interval_mins = 30 agentbox.toml:429"]
+        S3["pattern_distillation = true agentbox.toml:430"]
     end
     subgraph env["ruvector-gates.js env resolution"]
         direction TB
-        E1["RUVECTOR_MEMORY_LEARNING_ENABLED :36"]
-        E2["RUVECTOR_RECORD_TRAJECTORIES :37"]
-        E3["RUVECTOR_FEED_RETRIEVAL :38"]
-        E4["RUVECTOR_FEED_ROUTING :39"]
+        E1["RUVECTOR_MEMORY_LEARNING_ENABLED mcp/servers/lib/ruvector-gates.js:36"]
+        E2["RUVECTOR_RECORD_TRAJECTORIES mcp/servers/lib/ruvector-gates.js:37"]
+        E3["RUVECTOR_FEED_RETRIEVAL mcp/servers/lib/ruvector-gates.js:38"]
+        E4["RUVECTOR_FEED_ROUTING mcp/servers/lib/ruvector-gates.js:39"]
         E5["RUVECTOR_RETAINED_CORPUS_ACCEPTED"]
-        E6["RUVECTOR_RETAINED_CORPUS_MAX_AGE_DAYS<br/>default 30 :72-75"]
+        E6["RUVECTOR_RETAINED_CORPUS_MAX_AGE_DAYS<br/>default 30 mcp/servers/lib/ruvector-gates.js:72-75"]
     end
     subgraph proc["Self-gating processes"]
         direction TB
@@ -436,7 +436,7 @@ sequenceDiagram
     participant TOML as agentbox/agentbox.toml [memory_learning]
     participant CONS as the consumer
 
-    Note over OP,CONS: INVARIANT I14 / ADR-2018 — no consumer that ALTERS WHAT A QUERY RETURNS may flip its<br/>gate without a passing run. That covers SONA apply, attention re-rank, param tuning, the<br/>feed_retrieval re-rank, an embedding-model cutover and a graph-augmented orient (harness<br/>:4-9)
+    Note over OP,CONS: INVARIANT I14 / ADR-2018 — no consumer that ALTERS WHAT A QUERY RETURNS may flip its<br/>gate without a passing run. That covers SONA apply, attention re-rank, param tuning, the<br/>feed_retrieval re-rank, an embedding-model cutover and a graph-augmented orient (scripts/ruvector-recall-harness.mjs:4-9)
     OP->>H: ./agentbox.sh ruvector recall
     H-->>OP: median of 3 — see AB-20.9 for the harness internals
     alt median(self) >= 175/200 AND median(true) >= 102/120 AND exact-token delta >= 0
@@ -448,7 +448,7 @@ sequenceDiagram
         H-->>OP: the gate stays shut
     end
     Note over TOML: attention_rerank stays OFF BY MEASUREMENT, not caution — attention_score = cos/sqrt(384)<br/>on an L2-normalised corpus gives a max diff of 4e-7, so the blend is a mathematical<br/>IDENTITY with zero benefit (agentbox.toml:431)
-    Note over TOML: RESERVED default-off keys, each harness-gated before it may flip — sona_learn_enabled<br/>:432, sona_apply_enabled :433, param_tuning_enabled :434 (HNSW ef_search/probes<br/>auto-tuner), embedding_dual_write :400, embedding_active_column :401, graph_backbone<br/>:402. DIVERGENCE D6
+    Note over TOML: RESERVED default-off keys, each harness-gated before it may flip — sona_learn_enabled<br/>agentbox.toml:432, sona_apply_enabled agentbox.toml:433, param_tuning_enabled agentbox.toml:434 (HNSW ef_search/probes<br/>auto-tuner), embedding_dual_write agentbox.toml:400, embedding_active_column agentbox.toml:401, graph_backbone<br/>agentbox.toml:402. DIVERGENCE D6
     Note over TOML: RESOLVED ADR-2052: governing docs now cite agentbox.toml by [section].key, not by<br/>line number, because every line citation had drifted. The live keys are<br/>[memory_learning] feed_retrieval, feed_routing, aggregate_min_samples,<br/>recency_half_life_days, aggregate_sweep, aggregate_sweep_interval_mins,<br/>pattern_distillation.
     Note over TOML: DIVERGENCE D2: agentbox.toml:417 justifies the feed_retrieval flip with 78 aggregates<br/>>=20 samples (2026-08-31) while<br/>agentbox/docs/reference/claude-context/ruvector-memory-state.md records 12 from the<br/>2026-07-21 sweep. The toml is the running config and the more recent number
     Note over TOML: DIVERGENCE D4: agentbox/README.md still lists feed_retrieval / feed_routing as open<br/>gates (false) — the README lags the toml

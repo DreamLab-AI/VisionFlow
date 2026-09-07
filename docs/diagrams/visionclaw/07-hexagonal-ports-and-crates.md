@@ -111,7 +111,7 @@ sequenceDiagram
     Note over C,CR: ADR-2005 hexagonal crate split is PARTIAL. src/ modules that are pure re-export shims —
     C->>SH: use crate::ports::settings_repository::{SettingsRepository, SettingValue, ...}
     SH->>CR: pub use visionclaw_domain::ports::settings_repository::* (src/ports/settings_repository.rs:8)
-    Note over SH: 14 lines total, ADR-090 Phase A6 slice 3, also re-exports AppFullSettings (:14)
+    Note over SH: 14 lines total, ADR-090 Phase A6 slice 3, also re-exports AppFullSettings (settings_repository.rs:14)
     C->>SH: use crate::validation::*
     SH->>CR: pub use visionclaw_ontology::validation::* (src/validation/mod.rs:2)
     Note over SH: 2 lines total, ADR-090 Phase A4
@@ -313,15 +313,15 @@ sequenceDiagram
     CL->>H: GET /api/config
     H->>QH: LoadAllSettingsHandler::new(state.settings_repository.clone()) (src/handlers/api_handler/mod.rs:42)
     Note over H,QH: state.settings_repository is Arc<dyn SettingsRepository> — src/app_state.rs:314
-    H->>EX: execute_in_thread(move || handler.handle(LoadAllSettings)) (:45)
+    H->>EX: execute_in_thread(move || handler.handle(LoadAllSettings)) (api_handler/mod.rs:44)
     Note over EX: hexser QueryHandler trait — the direct dispatch path, no CQRS bus
     EX->>QH: handle(LoadAllSettings)
     QH->>PT: port call
     PT->>AD: SQLite read
     alt Ok(Ok(Some(settings)))
-        AD-->>H: 200 with version, features{ragflow, perplexity, openai, kokoro, whisper},<br/>websocket{minUpdateRate, maxUpdateRate, motionThreshold, motionDamping},<br/>rendering{ambientLightIntensity, enableAmbientOcclusion, backgroundColor},<br/>xr{enabled, roomScale, spaceType} (:47-70)
+        AD-->>H: 200 with version, features{ragflow, perplexity, openai, kokoro, whisper},<br/>websocket{minUpdateRate, maxUpdateRate, motionThreshold, motionDamping},<br/>rendering{ambientLightIntensity, enableAmbientOcclusion, backgroundColor},<br/>xr{enabled, roomScale, spaceType} (api_handler/mod.rs:47-71)
     else Ok(Ok(None))
-        AD-->>H: warn "No settings found, using defaults" then AppFullSettings::default() (:71-77)
+        AD-->>H: warn "No settings found, using defaults" then AppFullSettings::default() (api_handler/mod.rs:73-78)
     end
     Note over H,AD: comment src/application/mod.rs:71 — application services were removed,<br/>handlers use actors directly via CQRS or direct messaging. There is no dispatcher bus.
 ```
@@ -413,12 +413,12 @@ classDiagram
 ```mermaid
 flowchart TB
     G["cfg(feature = 'gpu') — src/adapters/mod.rs"]
-    G --> G1["gpu_semantic_analyzer (:19-20)<br/>GpuSemanticAnalyzerAdapter (:45-46)"]
-    G --> G2["actix_physics_adapter (:37-38)<br/>ActixPhysicsAdapter (:75-76)"]
+    G --> G1["gpu_semantic_analyzer (adapters/mod.rs:19-20)<br/>GpuSemanticAnalyzerAdapter (adapters/mod.rs:45-46)"]
+    G --> G2["actix_physics_adapter (adapters/mod.rs:37-38)<br/>ActixPhysicsAdapter (adapters/mod.rs:77-78)"]
     NG["always compiled"]
-    NG --> N1["actor_graph_repository::ActorGraphRepository (:17, :43)<br/>actix_semantic_adapter::ActixSemanticAdapter (:39, :77)<br/>physics_orchestrator_adapter (:41)"]
-    NG --> N2["oxigraph_graph_repository::OxigraphGraphRepository (:49, :57)<br/>sqlite_settings_repository::SqliteSettingsRepository (:50, :71)"]
-    NG --> N3["sqlite_enrichment_repository (:52) — WS-9 store<br/>sqlite_canary_repository (:54) — RES-a<br/>sqlite_kpi_repository (:56) — REC-4 ADR-130 D5"]
+    NG --> N1["actor_graph_repository::ActorGraphRepository (adapters/mod.rs:17, :43)<br/>actix_semantic_adapter::ActixSemanticAdapter (adapters/mod.rs:39, :79)<br/>physics_orchestrator_adapter (adapters/mod.rs:41)"]
+    NG --> N2["oxigraph_graph_repository::OxigraphGraphRepository (adapters/mod.rs:49, :62)<br/>sqlite_settings_repository::SqliteSettingsRepository (adapters/mod.rs:50, :73)"]
+    NG --> N3["sqlite_enrichment_repository (adapters/mod.rs:52) — WS-9 store<br/>sqlite_canary_repository (adapters/mod.rs:57) — RES-a<br/>sqlite_kpi_repository (adapters/mod.rs:59) — REC-4 ADR-130 D5"]
     G1 --> NG
     D["DOC-DRIFT — the adapters module doc src/adapters/mod.rs:8-15 lists seven<br/>modules as still in webxr, resolved in Phase A3. They are still there<br/>at this commit, so Phase A3 has not landed. ADR-2005 partial."]
     NG --- D
@@ -434,7 +434,7 @@ flowchart TB
     LIB --> M2["telemetry — AgentTelemetryEnvelope<br/>inbound agentbox -> VisionClaw, ADR-10 D1<br/>telemetry.rs:57"]
     LIB --> M3["enterprise — EnterpriseEventEnvelope<br/>inbound forum -> VisionClaw, ADR-10 D5<br/>enterprise.rs:38"]
     LIB --> M4["github_adapter — ParsedMarkdown<br/>GitHub transport <-> ontology domain boundary, ADR-10 D11 + DDD-08<br/>github_adapter.rs:63"]
-    LIB --> VER["version — SCHEMA_VERSION = 1, SCHEMA_VERSION_STRING = 'v1'<br/>version.rs:19,23 — single source of the version literal"]
+    LIB --> VER["version — SCHEMA_VERSION = 1, SCHEMA_VERSION_STRING = 'v1'<br/>version.rs:22,26 — single source of the version literal"]
     LIB --> TS["typescript-export feature -> cargo test emits .d.ts to bindings/<br/>published as npm @visionclaw/contracts, sdk/visionflow-contracts/package.json"]
 
     N1["DIVERGENCE — verified zero current consumers on either side this crate names.<br/>Rust: visionclaw-server does NOT list visionclaw-contracts under [dependencies]<br/>(only [workspace] members, Cargo.toml:2-4) — grep of AgentActionEnvelope /<br/>AgentTelemetryEnvelope / EnterpriseEventEnvelope / ParsedMarkdown across src/<br/>finds no import from this crate anywhere"]

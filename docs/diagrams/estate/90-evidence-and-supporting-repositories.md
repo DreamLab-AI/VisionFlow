@@ -15,7 +15,8 @@ sources:
   - ../dream-machine/packages/cli/src/darwinBounds.ts
   - ../project/agentbox/services/dream-engine/src/engine.rs
   - ../WasmVOWL/modern/src/hooks/useWasmSimulation.ts
-  - ../WasmVOWL/rust-wasm/src/ontology/parser.rs
+  - ../WasmVOWL/modern/package-lock.json
+  - docs/estate-review/evidence/execution-2026-09-07/wasmvowl-schema-probe.log
   - ../prose-sanitiser/Cargo.toml
   - ../diagram-ir/Cargo.toml
   - ../loom/Cargo.toml
@@ -59,16 +60,16 @@ sequenceDiagram
 ## ES-90.3 WasmVOWL demo is a separate consumer from the published engine
 ```mermaid
 sequenceDiagram
-    participant H as useWasmSimulation<br/>useWasmSimulation.ts:84
+    participant H as useWasmSimulation<br/>useWasmSimulation.ts:39
     participant J as JSON graph
-    participant P as parse_classes<br/>ontology/parser.rs:51
-    participant V as published vowl-wasm consumers
+    participant P as Installed vowl-wasm 0.1.1 archive
+    participant V as Other published engine consumers
     H->>J: serialise nodes and edges
-    H->>P: loadOntology with graph JSON<br/>useWasmSimulation.ts:98
-    P->>J: require class or classes array
-    J-->>P: array missing
+    H->>P: loadOntology with graph JSON<br/>useWasmSimulation.ts:111
+    P->>J: require class and property arrays
+    J-->>P: required arrays missing
     P-->>H: parse error
-    Note over H,P: DIVERGENCE: unchanged standalone consumer mismatch.<br/>Native parser tests do not establish this hook/WASM integration
+    Note over H,P: DIVERGENCE: remote extraction adds position accessors,<br/>but does not repair this input schema.<br/>Actual installed WASM probe fails nodes/edges and accepts class/property.<br/>wasmvowl-schema-probe.log:1-3
     Note over V: EXTERNAL: visionGraph and knowledgeGraph consumers are separate.<br/>Their package identity and rendering must be traced independently, see ES-11
 ```
 
@@ -87,9 +88,9 @@ flowchart TB
 ## ES-90.5 Evidence types do not imply one another
 ```mermaid
 flowchart TB
-    F["Source paths and ADR metadata"] --> G["Structural/index gate<br/>diagram-index-gen.cjs:145"]
-    F --> C["Citation diagnostics, warning only<br/>diagram-index-gen.cjs:214"]
-    F --> R["Optional Mermaid rendering<br/>gated at diagram-index-gen.cjs:470,<br/>renderAll :341, renderOne :316"]
+    F["Source paths and ADR metadata"] --> G["Structural/index gate<br/>diagram-index-gen.cjs:150"]
+    F --> C["Citation diagnostics; strict mode refuses warnings<br/>diagram-index-gen.cjs:280"]
+    F --> R["Optional Mermaid rendering<br/>diagram-index-gen.cjs:442"]
     F --> S["Semantic source review with file hashes<br/>scripts/estate-doc-audit.py"]
     G --> DOC["Documentation evidence"]
     C --> DOC
@@ -99,5 +100,5 @@ flowchart TB
     RUN["Loaded binary, effective config,<br/>identity and cross-service receipt"] --> ACCEPT["Only the observed system journey"]
     DOC -.->|"does not establish"| ACCEPT
     LOCAL -.->|"does not establish"| ACCEPT
-    NOTE["INVARIANT: declared revisions are not verification.<br/>Repository-qualified ADR keys prevent number collisions<br/>diagram-index-gen.cjs:404,426"] --> DOC
+    NOTE["INVARIANT: default citations may read declared revisions;<br/>worktree-citations explicitly checks current source.<br/>Neither mode proves behaviour or deployment.<br/>diagram-index-gen.cjs:263"] --> DOC
 ```

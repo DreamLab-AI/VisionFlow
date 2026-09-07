@@ -264,7 +264,7 @@ sequenceDiagram
     Note over GPU: GPU actor group — GPUManagerActor only. RESOLVED ADR-2053: the standalone<br/>ShortestPathActor and ConnectedComponentsActor spawns were removed. They were never sent<br/>a SharedGPUContext (ResourceSupervisor distributes it only to the subsystem supervisors),<br/>so every /api/analytics pathfinding route addressed a GPU-blind pair.
     AS->>GPU: GPUManagerActor::new().start()
     AS->>GPU: gpu_manager.do_send(SetNodeSSSP { node_sssp }) — ADR-031 D2b, wire slot 28<br/>forwarded GPUManagerActor to GraphAnalyticsSupervisor to the SUPERVISED ShortestPathActor
-    Note over GPU: DOC-DRIFT — this block carries NO #[cfg(feature = "gpu")] gate. app_state.rs itself<br/>carries no solid-pod-embed cfg gates either — the only cfg(feature) sites for that flag are in<br/>src/main.rs (:840, :847 — ADR-2106 ontology_pull::spawn_boot_pull, :853, :1022, :1028). It works<br/>because gpu is in the DEFAULT feature set (Cargo.toml:250 default = gpu, ontology,<br/>persistence-oxigraph, solid-pod-embed) while the adapter layer IS gated (src/adapters/mod.rs:19,<br/>:37) — so the actor start and its adapters are gated inconsistently. GPU internals see VC-10.
+    Note over GPU: DOC-DRIFT — this block carries NO #[cfg(feature = "gpu")] gate. app_state.rs itself<br/>carries no solid-pod-embed cfg gates either — the only cfg(feature) sites for that flag are in<br/>main.rs:840, main.rs:847 (ADR-2106 ontology_pull::spawn_boot_pull), main.rs:853, main.rs:1022,<br/>main.rs:1028. It works<br/>because gpu is in the DEFAULT feature set (Cargo.toml:250 default = gpu, ontology,<br/>persistence-oxigraph, solid-pod-embed) while the adapter layer IS gated (src/adapters/mod.rs:19,<br/>:37) — so the actor start and its adapters are gated inconsistently. GPU internals see VC-10.
     end
     AS->>SE: settings_actor.start() → settings_addr
     par peer actors
@@ -342,11 +342,11 @@ sequenceDiagram
     R->>D: readiness_probe
     Note over R: configure_routes (src/handlers/consolidated_health_handler.rs:474-489) ALSO registers<br/>/healthz and /readyz a second time inside /api, plus the /health scope
     K->>R: GET /api/health
-    R->>U: unified_health_check (:477)
+    R->>U: unified_health_check (consolidated_health_handler.rs:477)
     K->>R: GET /api/health/physics
-    R->>P: check_physics_simulation (:478)
-    K->>R: POST /api/health/mcp/start → start_mcp_relay (:481)
-    K->>R: GET /api/health/mcp/logs → get_mcp_logs (:482)
+    R->>P: check_physics_simulation (consolidated_health_handler.rs:478)
+    K->>R: POST /api/health/mcp/start → start_mcp_relay (consolidated_health_handler.rs:481)
+    K->>R: GET /api/health/mcp/logs → get_mcp_logs (consolidated_health_handler.rs:482)
     Note over R: /api/health also collides with api_handler::config's own /health route<br/>(src/handlers/api_handler/mod.rs:121) — first registration wins, see VC-01.10
     Note over K,P: INVARIANT (BASELINE Invariants) — backend 4000, nginx 3001, Vite 5173,<br/>all inside visionclaw_container
 ```
@@ -476,7 +476,7 @@ flowchart LR
     S["/api scope — src/main.rs:1120-1178"]
     S --> PG["scope /pages + pages_handler::config<br/>src/main.rs:1120, src/handlers/pages_handler.rs:148 — GET ''"]
     S --> BO["scope /bots + api_handler::bots::config<br/>src/main.rs:1121"]
-    S --> BV["bots_visualization_handler::configure_routes<br/>scope /visualization — src/handlers/bots_visualization_handler.rs:500<br/>GET /agents/ws, GET snapshot, POST initialize<br/>plus POST /bots/mock-agents at :513"]
+    S --> BV["bots_visualization_handler::configure_routes<br/>scope /visualization — src/handlers/bots_visualization_handler.rs:500<br/>GET /agents/ws, GET snapshot, POST initialize<br/>plus POST /bots/mock-agents at :530"]
     S --> GE["configure_graph_export_routes<br/>scope /graph-export — src/handlers/graph_export_handler.rs:319<br/>POST '', /share, /publish — GET /shared/{id}, /stats — DELETE /shared/{id}"]
     S --> OA["configure_ontology_agent_routes<br/>scope /ontology-agent — src/handlers/ontology_agent_handler.rs:434<br/>POST /discover, /read, /query, /traverse, /validate — GET /status<br/>nested scope /propose POST '' — see VC-05"]
     S --> DE["configure_decision_routes<br/>scope /decisions — src/handlers/decision_handler.rs:323<br/>GET /{urn}/trace — nested scope /record POST '' — PRD-022 W-B / ADR-048"]

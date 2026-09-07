@@ -75,7 +75,7 @@ flowchart TB
     EL --> VI
     VI -.->|"same process, later in main()"| DE
 
-    N1["INVARIANT (BASELINE Invariants) — the live ClientCoordinatorActor clients register<br/>with must be the CC instance above, not GraphServiceSupervisor's own child.<br/>REBIND at :821 makes GSS forward broadcasts through CC's non-empty registry."]
+    N1["INVARIANT (BASELINE Invariants) — the live ClientCoordinatorActor clients register<br/>with must be the CC instance above, not GraphServiceSupervisor's own child.<br/>REBIND at app_state.rs:821 makes GSS forward broadcasts through CC's non-empty registry."]
     REBIND --- N1
 ```
 
@@ -114,34 +114,34 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     subgraph SUP["GraphServiceSupervisor handlers — grep impl Handler< src/actors/graph_service_supervisor.rs"]
-        H1["SupervisorMessage :1411"]
-        H2["ActorHeartbeat :1419"]
-        H3["GetSupervisorStatus :1434"]
-        H4["RestartActor :1442"]
-        H5["RestartAllActors :1451"]
+        H1["SupervisorMessage graph_service_supervisor.rs:1411"]
+        H2["ActorHeartbeat graph_service_supervisor.rs:1419"]
+        H3["GetSupervisorStatus graph_service_supervisor.rs:1434"]
+        H4["RestartActor graph_service_supervisor.rs:1442"]
+        H5["RestartAllActors graph_service_supervisor.rs:1451"]
         H6["RESOLVED ADR-2045 (2026-09-05)<br/>SetParentSupervisor handler removed<br/>with src/actors/supervisor.rs, see VC-02.7"]
-        H7["msgs::GetGraphData :1465"]
-        H8["NotifyGraphUpdated :1500"]
-        H9["SetClientCoordinatorAddr :1524"]
-        H10["msgs::ReloadGraphFromDatabase :1534"]
-        H11["msgs::ComputeShortestPaths :1638"]
-        H12["msgs::UpdateGraphData :1664"]
-        H13["msgs::AddNodesFromMetadata :1694"]
-        H14["msgs::StartSimulation :1720"]
-        H15["msgs::SimulationStep :1737"]
-        H16["msgs::GetBotsGraphData :1764"]
-        H17["msgs::UpdateSimulationParams :1797"]
-        H18["msgs::ForceResumePhysics :1825"]
-        H19["msgs::InitializeGPUConnection :1854"]
-        H20["msgs::SetAppGpuComputeAddr :1952"]
-        H21["msgs::UpdateBotsGraph :1966"]
-        H22["msgs::UpdateNodePositions :1983"]
-        H23["msgs::NodeInteractionMessage :2010"]
-        H24["msgs::GetGraphStateActor :2078"]
-        H25["msgs::GetPhysicsOrchestratorActor :2087"]
-        H26["msgs::GetNodeTypeArrays :2102"]
-        H27["msgs::GetNodeIdMapping :2124"]
-        H28["msgs::AddEdge :2146"]
+        H7["msgs::GetGraphData graph_service_supervisor.rs:1465"]
+        H8["NotifyGraphUpdated graph_service_supervisor.rs:1500"]
+        H9["SetClientCoordinatorAddr graph_service_supervisor.rs:1524"]
+        H10["msgs::ReloadGraphFromDatabase graph_service_supervisor.rs:1534"]
+        H11["msgs::ComputeShortestPaths graph_service_supervisor.rs:1638"]
+        H12["msgs::UpdateGraphData graph_service_supervisor.rs:1664"]
+        H13["msgs::AddNodesFromMetadata graph_service_supervisor.rs:1694"]
+        H14["msgs::StartSimulation graph_service_supervisor.rs:1720"]
+        H15["msgs::SimulationStep graph_service_supervisor.rs:1737"]
+        H16["msgs::GetBotsGraphData graph_service_supervisor.rs:1764"]
+        H17["msgs::UpdateSimulationParams graph_service_supervisor.rs:1797"]
+        H18["msgs::ForceResumePhysics graph_service_supervisor.rs:1825"]
+        H19["msgs::InitializeGPUConnection graph_service_supervisor.rs:1854"]
+        H20["msgs::SetAppGpuComputeAddr graph_service_supervisor.rs:1952"]
+        H21["msgs::UpdateBotsGraph graph_service_supervisor.rs:1966"]
+        H22["msgs::UpdateNodePositions graph_service_supervisor.rs:1983"]
+        H23["msgs::NodeInteractionMessage graph_service_supervisor.rs:2010"]
+        H24["msgs::GetGraphStateActor graph_service_supervisor.rs:2078"]
+        H25["msgs::GetPhysicsOrchestratorActor graph_service_supervisor.rs:2087"]
+        H26["msgs::GetNodeTypeArrays graph_service_supervisor.rs:2102"]
+        H27["msgs::GetNodeIdMapping graph_service_supervisor.rs:2124"]
+        H28["msgs::AddEdge graph_service_supervisor.rs:2146"]
     end
     GS["self.graph_state (GraphStateActor)"]
     PH["self.physics (PhysicsOrchestratorActor)"]
@@ -508,7 +508,7 @@ sequenceDiagram
 
     GSS->>SP: SemanticProcessorActor::new(SemanticProcessorConfig::default()).start() (:716-720)
     APP->>SET: OptimizedSettingsActor::with_actors(sqlite_settings_repository, Some(graph_service_addr), None) (:1152-1156)
-    SET->>SET: settings_actor.start() (:1161)
+    SET->>SET: settings_actor.start() (src/app_state.rs:1161)
     alt REDIS_URL set (src/actors/optimized_settings_actor.rs:146)
         SET->>REDIS: connect for distributed settings cache
     else REDIS_URL unset

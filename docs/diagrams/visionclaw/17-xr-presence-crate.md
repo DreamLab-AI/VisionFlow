@@ -42,7 +42,7 @@ sequenceDiagram
         alt signature invalid
             Note over PS: close with CLOSE_CODE_AUTH_FAIL 4401 :37
         else verified
-            PS->>PA: JoinRoom :655
+            PS->>PA: JoinRoom (presence_actor.rs:655)
             PA->>PA: local_id_for(avatar_id) :360 assigns the compact u32 wire id
             PS->>PS: phase = SessionPhase::Joined :335
         end
@@ -76,14 +76,14 @@ sequenceDiagram
     else within budget
         PS->>W: decode(bytes)
         Note over W: [0x43][u16 frame_len LE][u8_16 room_id_hash][u8 avatar_id_len][avatar_id utf8][u64 timestamp_us LE][u8 transform_mask] then 28-byte transforms
-        Note over W: transform_mask bits head 0b001 :18, left 0b010 :19, right 0b100 :20 - a PRESENCE bitmask not a count, so asymmetric hand presence round-trips
-        PS->>PA: IngestPose :742
-        PA->>V: run_validators :315
-        V->>V: monotonic_timestamp :96
-        V->>V: world_bounds against Aabb :77
-        V->>V: velocity_gate against max_velocity_mps :10
-        V->>V: hand_reach against configured_hand_reach_m :45 and DEFAULT_HAND_REACH_M
-        V->>V: joint_anatomy on the two HandPoses :118
+        Note over W: transform_mask bits head 0b001 (wire.rs:18), left 0b010 (wire.rs:19), right 0b100 (wire.rs:20) - a PRESENCE bitmask not a count, so asymmetric hand presence round-trips
+        PS->>PA: IngestPose (presence_actor.rs:742)
+        PA->>V: run_validators (presence_actor.rs:315)
+        V->>V: monotonic_timestamp (validate.rs:96)
+        V->>V: world_bounds against Aabb (validate.rs:77)
+        V->>V: velocity_gate against max_velocity_mps (validate.rs:10)
+        V->>V: hand_reach against configured_hand_reach_m (validate.rs:147) and DEFAULT_HAND_REACH_M
+        V->>V: joint_anatomy on the two HandPoses (validate.rs:118)
         alt any validator returns ValidationError
             PA->>PA: record_violation(avatar_id) :299
             Note over PA: frame rejected - a violating pose never reaches peers

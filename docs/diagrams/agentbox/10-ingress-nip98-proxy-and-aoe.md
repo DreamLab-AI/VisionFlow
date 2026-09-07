@@ -54,7 +54,7 @@ flowchart TB
 N1["RESOLVED ADR-2047: not a breach - a decided, enumerated exposure. The LAN surface is TEN<br/>sanctioned publishes across five compose files, matched on the normalised host_ip/published/<br/>target/protocol tuple: 9096 sovereign ingress, voice 8443 and 8444, browsercontainer 5903<br/>8931 9222-to-9223, gui-tools 5905 9876 9877, xr-runtime 5904 - each cited at<br/>agentbox/scripts/ci/check-ports-loopback.mjs:93-104. 9096 is the sole IDENTITY ingress to the<br/>AoE plane; the others carry their own auth. The old framing understated the count as well."]
 N2["RESOLVED ADR-2047: the stale --auth none bullet is gone. flake.nix:2687-2688 reads<br/>aoe serve, --auth token is NEVER published, matching the live supervisor command at<br/>flake.nix:2353, and INGRESS-identity now records the bullet as Resolved rather than<br/>open. The doc body's drifted verifyIdentity anchor (a stale 410-450 range) is<br/>corrected to proxy.mjs:626."]
 N6["INVARIANT ADR-2013: sovereign_mesh.relay.expose does NOT open a LAN door. When true it adds<br/>ONE publish and that publish is loopback-pinned - 127.0.0.1:port:port at<br/>agentbox/flake.nix:2697-2698 - so the relay never reaches the SANCTIONED LAN list at<br/>check-ports-loopback.mjs:93-104. Default is expose=false, agentbox.toml:136."]
-N3["INVARIANT ADR-2009: aoe serve binds 127.0.0.1 plus --behind-proxy - nip98-proxy is the sole<br/>IDENTITY ingress to :9095, nothing else may open that port<br/>agentbox/config/nip98-proxy/README.md:40-50"]
+N3["INVARIANT ADR-2009: aoe serve binds 127.0.0.1 plus --behind-proxy - nip98-proxy is the sole<br/>IDENTITY ingress to port 9095, nothing else may open that port<br/>agentbox/config/nip98-proxy/README.md:40-50"]
 N4["RESOLVED ADR-2047: the compose-exposure qualification is superseded in the governing doc.<br/>The line-walker bypass is fixed - check-ports-loopback.sh is a wrapper that execs<br/>check-ports-loopback.mjs, a strict YAML reader for the compose subset, and anything outside that<br/>subset is REJECTED with file and line, never skipped. ADR-2013 stays partial for the DEPLOYMENT<br/>half only: overlay order, interpolation, external files and active-listener evidence.<br/>Receipt: agentbox/docs/estate-closeout/2026-09-05/adr-2013-ports-gate.json."]
 N5["INVARIANT ADR-2013: the wrapper FAILS LOUDLY when the .mjs gate is missing - a copy of the<br/>wrapper without its gate exits 3 with an explicit message rather than looking like a pass<br/>agentbox/scripts/ci/check-ports-loopback.sh:38-42"]
 ```
@@ -446,10 +446,10 @@ sequenceDiagram
     participant DC as Direct caller (container-internal)
     participant MAPI as management-api server<br/>agentbox/management-api/server.js:1423, HOST 0.0.0.0 PORT 9090
     participant AUTH as authMiddleware<br/>agentbox/management-api/middleware/auth.js:164
-    participant BR2 as Browser via :9096
+    participant BR2 as Browser via port 9096
     participant PX2 as proxy /mgmt/ route<br/>agentbox/config/nip98-proxy/proxy.mjs:407
 
-    Note over DC,MAPI: :9090 is published to the host only as 127.0.0.1:9090:9090 agentbox/flake.nix:2692 - DC must already be container-internal or on the loopback publish
+    Note over DC,MAPI: port 9090 is published to the host only as 127.0.0.1:9090:9090 agentbox/flake.nix:2692 - DC must already be container-internal or on the loopback publish
     DC->>MAPI: request with its OWN Authorization Bearer API_KEY or Nostr header, no X-Agentbox-Pubkey
     MAPI->>AUTH: authMiddleware verifies bearer or nip98 directly agentbox/management-api/server.js:216-224
     AUTH-->>MAPI: allow or 401
@@ -470,7 +470,7 @@ sequenceDiagram
     participant GW as aoeRequest<br/>agentbox/config/nostr-gateway/gateway.cjs:431
     participant TOKFN as readAoeToken<br/>agentbox/config/nostr-gateway/gateway.cjs:127
     participant FS2 as serve.url<br/>AGENTBOX_AOE_TOKEN_FILE override, default ~/.config/agent-of-empires/serve.url
-    participant AOE2 as aoe serve :9095<br/>agentbox/flake.nix:2353
+    participant AOE2 as aoe serve on port 9095<br/>agentbox/flake.nix:2353
 
     OP->>GW: /spawn dir agent text - aoeCreateSession(repoPath, tool, title) agentbox/config/nostr-gateway/gateway.cjs:319-323,:452-453
     GW->>GW: POST /api/sessions?wait=ready via aoeRequest gateway.cjs:452-453
@@ -581,7 +581,7 @@ sequenceDiagram
     end
     GATE->>APL: any action-plane dispatch past the gate
     APL->>APL: DID priority request.auth.pubkey, then x-agentbox-pubkey, then AGENTBOX_AGENT_DID, then null action-plane.js:221-231
-    Note over AEA,APL: DIVERGENCE ADR-2042 Consequences, stated in-source - path 2 is sound only while<br/>nothing but the proxy reaches :9090, and that is NOT true today, server.js binds 0.0.0.0<br/>in-container so any holder of MANAGEMENT_API_KEY clears the gate and can then forge the<br/>stamp agent-event-auth.js:31-39
+    Note over AEA,APL: DIVERGENCE ADR-2042 Consequences, stated in-source - path 2 is sound only while<br/>nothing but the proxy reaches port 9090, and that is NOT true today, server.js binds 0.0.0.0<br/>in-container so any holder of MANAGEMENT_API_KEY clears the gate and can then forge the<br/>stamp agent-event-auth.js:31-39
     Note over AEA: policy gate AGENTBOX_AGENT_EVENT_AUTH, default nip98 since ADR-2044, off is<br/>explicitly selectable and returns did null agent-event-auth.js:112-115
 ```
 
