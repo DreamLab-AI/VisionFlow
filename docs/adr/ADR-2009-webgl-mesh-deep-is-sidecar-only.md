@@ -7,7 +7,7 @@ implementation_status: complete
 activation_status: live
 supersedes: []
 superseded_by: []
-verified_commit: 626636b6a9a7923add04e5c866734ff8564e2b53
+verified_commit: 2a369bf655220d009acc3d03d2d65e6869ebd918
 owner: jjohare
 review_trigger: a browser-sidecar-equipped dream runner becoming available, or the 02:30 UTC CI beginning to collect mesh artefacts (shader source, canvas-fallback markup, noscript content) into the evidence pack
 repo: visionflow
@@ -85,7 +85,7 @@ At the `verified_commit` above:
   no evaluator entrypoint reads the mesh module, which is the fact that makes the deep
   unmeasurable in the annexe and is the premise of this record.
 - The four remaining evaluators pass against the built site at this commit:
-  `BUILD-OK` (`pages: 1  bytes: 60241098`), `LINK-INTEGRITY-OK`
+  `BUILD-OK` (`pages: 1  bytes: 60241361`), `LINK-INTEGRITY-OK`
   (`internal-refs-checked: 13  missing: 0`), `META-SCAN-OK` (`required-missing: 0`),
   `SD-SCAN-OK` (`json-ld-blocks: 1  parse-errors: 0`), plus `ASSET-SCAN-OK`.
 - `node scripts/adr-index-gen.cjs docs/adr` validates this record's frontmatter and

@@ -3,7 +3,7 @@ title: VisionFlow Baseline — What This Repo Is and Runs Today
 doc_id: VF-BASELINE
 version: 0.3.0
 status: draft-for-ratification
-verified_commit: 626636b
+verified_commit: 2daa995
 sources:
   - website/build.sh
   - website/static/index.html
