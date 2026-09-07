@@ -55,6 +55,13 @@
     "links": "bash scripts/dream-link-check.sh 2>&1 | tail -6",
     "meta-tags": "bash scripts/dream-meta-tags-scan.sh",
     "structured-data": "bash scripts/dream-structured-data-scan.sh",
+    "asset-refs": {
+      "cmd": "bash scripts/dream-asset-refs-scan.sh",
+      "required": false,
+      "deeps": [
+        "content-integrity"
+      ]
+    },
     "estate-health": "node scripts/estate-health.mjs check"
   },
   "competitors": [],
