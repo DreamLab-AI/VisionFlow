@@ -25,7 +25,9 @@ for title, statuses in [('Remaining work and concrete problems', {'blocked', 'in
             continue
         report = base + 'closeout/2026-09-07-execution-' + row['lane'] + '.md'
         lines.append(f"| {row['id']} | {row['status']} | {row['result']} [Evidence]({report}). |")
-lines += ['', '## Frozen and historical scope', '',
+lines += ['', '## Added XR visual scope', '',
+    'The user extended this execution to the Godot XR visual experience. [ADR-2107](adr/ADR-2107-compatible-xr-visual-experience.md) records the implemented scene, material, HUD, menu and comfort upgrades; the [visual report](' + base + 'closeout/2026-09-07-xr-visual-upgrade.md) links actual Godot captures and tests. This extension does not inflate the original 61-item count. Headset and Android acceptance remain under L-5/X-6 and the frozen target boundary.', '',
+    '## Frozen and historical scope', '',
     'The ADR-073–085 window, ADR-122/123, RVF file-store proposal and XR APK programme retain their recorded frozen/optional boundaries. The standalone WasmVOWL demo remains held: [current merged-source failures](' + base + 'closeout/2026-09-07-execution-canon.md#wasmvowl-remote-integration). Public publisher explorer success does not certify that variant. RuView is explicitly excluded by user instruction.', '',
     '## Earlier resolved records (historical evidence)', '']
 snapshot = (here / 'master-before.md').read_text()

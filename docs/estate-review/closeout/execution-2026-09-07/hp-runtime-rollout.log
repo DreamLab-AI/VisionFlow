@@ -1,0 +1,42 @@
+time="2026-09-07T14:27:40+01:00" level=warning msg="volume \"ruvector_postgres_data_v2\" carries the compose label \"ruvector-pg-data\" but does not match the compose file (using \"ruvector_postgres_data_hp\"); it is left untouched — remove it manually if it is no longer needed"
+ Container agentbox Recreate 
+ Container agentbox Recreated 
+ Container agentbox Starting 
+ Container agentbox Started 
+ATTEMPT=1 HEALTH=starting READY_HTTP=000
+ATTEMPT=2 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=3 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=4 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=5 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=6 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=7 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=8 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=9 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=10 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=11 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=12 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=13 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=14 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=15 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=16 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=17 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=18 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=19 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=20 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=21 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=22 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=23 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=24 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=25 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=26 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=27 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=28 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=29 HEALTH=unhealthy READY_HTTP=000
+ATTEMPT=30 HEALTH=starting READY_HTTP=000
+ROLLBACK_STARTED
+time="2026-09-07T14:33:43+01:00" level=warning msg="volume \"ruvector_postgres_data_v2\" carries the compose label \"ruvector-pg-data\" but does not match the compose file (using \"ruvector_postgres_data_hp\"); it is left untouched — remove it manually if it is no longer needed"
+ Container agentbox Recreate 
+ Container agentbox Recreated 
+ Container agentbox Starting 
+ Container agentbox Started 
+ROLLBACK_CONTAINER_RECREATED

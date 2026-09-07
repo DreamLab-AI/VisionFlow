@@ -1,0 +1,72 @@
+{
+  "at": "2026-09-07T13:27:25.067Z",
+  "browser": "sidecar Chrome via CDP 9223",
+  "scope": "Read-only public/candidate journeys; no identity credentials, submissions or device acceptance",
+  "records": [
+    {
+      "name": "dream",
+      "url": "http://172.20.0.5:8110/dashboard.html",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 3894
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "requestedWidth": 375,
+            "viewport": 375,
+            "clientWidth": 375,
+            "width": 375,
+            "bodyWidth": 375
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "cacheDisabled": true,
+      "page": {
+        "url": "http://172.20.0.5:8110/dashboard.html",
+        "title": "Dream ledger — Dream Machine dashboard",
+        "text": 3894,
+        "headings": [
+          "Dream ledger",
+          "Summary statistics",
+          "Recent nights",
+          "Dream Machine",
+          "Docs",
+          "Project"
+        ],
+        "brokenImages": []
+      },
+      "mobile": {
+        "requestedWidth": 375,
+        "viewport": 375,
+        "clientWidth": 375,
+        "width": 375,
+        "bodyWidth": 375
+      },
+      "screenshot": {
+        "path": "dream-mobile.png",
+        "sha256": "f345723155ee5fc29ad82999e42aa20462de629f2154ad50d7b5c629f71591ea"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "http://172.20.0.5:8110/dashboard.html",
+          "status": 200
+        }
+      ]
+    }
+  ]
+}

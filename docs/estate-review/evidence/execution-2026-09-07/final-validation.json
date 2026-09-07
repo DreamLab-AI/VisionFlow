@@ -1,0 +1,48 @@
+{
+  "at": "2026-09-07T14:13:28.893385+00:00",
+  "master": {
+    "closed": 38,
+    "blocked": 21,
+    "excluded": 2,
+    "in_progress": 0
+  },
+  "diagrams": {
+    "topics": 130,
+    "diagrams": 1404,
+    "current_citation_warnings": 0,
+    "declared_citation_warnings": 0,
+    "render_input_matches": 1404,
+    "source_entries": 1698,
+    "RuView_source_entries_excluded": 1
+  },
+  "adr_graph": {
+    "operative_nodes": 225,
+    "typed_edges": 323,
+    "unresolved": 0,
+    "RuView_records_excluded": 45
+  },
+  "browser": {
+    "surfaces": 7,
+    "passed": 35,
+    "failed": 0,
+    "receipt": "browser-estate-final-v2/receipt.json"
+  },
+  "xr": {
+    "published": "fb72df39a",
+    "tests_passed": 83,
+    "assertions": 314,
+    "hosted_blocking_jobs": "passed",
+    "spatial_4_6_render_errors": 0,
+    "limits": [
+      "two integrated4.3shutdown texture diagnostics",
+      "advisory signed APK export fails",
+      "headset acceptance absent"
+    ]
+  },
+  "HP": {
+    "build": "passed",
+    "rollout": "failed",
+    "rollback": "originalimage healthy;9090/ready HTTP200"
+  },
+  "scope": "No RuView implementation; source closure is not deployment or runtime acceptance."
+}

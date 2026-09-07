@@ -57,7 +57,7 @@ sources:
   - ../project/scripts/ontology/pack-pod-resources.py
   - ../project/scripts/launch.sh
   - ../project/scripts/start.sh
-verified_commit: {visionclaw: 36bb64e1e, agentbox: 2c521c5bb}
+verified_commit: {visionclaw: dd82a07b0c54defc469a85e9d57fb15d29dc5e07, agentbox: 771d96ed5ac6f5daa1e78a60d109c130b9ef9b99}
 ---
 ## ES-09.1 The host-vs-container build trap — wrong path vs sanctioned path
 ```mermaid

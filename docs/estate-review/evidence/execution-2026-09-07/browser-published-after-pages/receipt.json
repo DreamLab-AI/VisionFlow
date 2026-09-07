@@ -1,0 +1,348 @@
+{
+  "at": "2026-09-07T13:21:53.110Z",
+  "browser": "sidecar Chrome via CDP 9223",
+  "scope": "Read-only public/candidate journeys; no identity credentials, submissions or device acceptance",
+  "records": [
+    {
+      "name": "canon",
+      "url": "https://www.visionflow.info/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 38817
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "all-sections-reveal",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "plain-reading-toggle",
+          "ok": true,
+          "detail": {
+            "plain": true,
+            "pressed": "true"
+          }
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "requestedWidth": 375,
+            "viewport": 375,
+            "clientWidth": 375,
+            "width": 375,
+            "bodyWidth": 375
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://www.visionflow.info/",
+        "title": "VisionFlow: Coordination Engineering for Federated Human-AI Intelligence",
+        "text": 38817,
+        "headings": [
+          "Federated Human–AIIntelligence",
+          "Seven questions, answered once",
+          "Hard problems share a common shape",
+          "From LLM to Coordination Harness",
+          "Six independent systems mesh through one cryptographic identity spine",
+          "The mesh improves itself — nightly, and human-merged",
+          "Guarantees that hold at runtime",
+          "Walk through the knowledge graph"
+        ],
+        "brokenImages": []
+      },
+      "reveals": [
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 772
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 572
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1017
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1125
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 421
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1689
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 2489
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1971
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 995
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 2455
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 786
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1053
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 388
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 698
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1390
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 3214
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 560
+        }
+      ],
+      "toggle": {
+        "plain": true,
+        "pressed": "true"
+      },
+      "mobile": {
+        "requestedWidth": 375,
+        "viewport": 375,
+        "clientWidth": 375,
+        "width": 375,
+        "bodyWidth": 375
+      },
+      "screenshot": {
+        "path": "canon-mobile.png",
+        "sha256": "ec60a9bba8105ddbd3e0b397b37b2a955f8da0c25a3b67d48bb74d240292cd21"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://www.visionflow.info/",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "explorer",
+      "url": "https://narrativegoldmine.com/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 4677
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "home-mobile-no-overflow",
+          "ok": false,
+          "detail": {
+            "requestedWidth": 375,
+            "viewport": 502,
+            "clientWidth": 375,
+            "width": 502
+          }
+        },
+        {
+          "name": "search-journey",
+          "ok": true,
+          "detail": {
+            "url": "https://narrativegoldmine.com/search?q=Agent",
+            "text": "Skip to content\nNarrative Goldmine\nHome\nGraph\nSearch\nData\nAbout\nResearch notes\nSearch\nSearch\n\n100 results for “Agent” in 628ms\n\nAgent\nArtificial Intelligence\n\nAn autonomous computational or physical entity that perceives its environment, reasons about its perceptions using internal beliefs and goals, and act...\n\nRead\nFocus in graph\nAgent Primitives\nArtificial Intelligence\n\n...es, that enable the construction of autonomous AI agents.\n\nRead\nFocus in graph\nRational Agent\nArtificial Intelligence\n\nA rational agent is an agent that selects actions expected to maximise its performance measure given its knowledge, ...\n\nRead\nFocus in graph\nAgent Capability Scaling\nArtificial Intelligence\n\n... how the complexity and duration of tasks that AI agents can autonomously complete increase over time with model improvements.\n\nRead\nFocus in graph\nSubagent\nArtificial Intelligence\n\nA subagent is a subordinate autonomous agent spawned by a parent or orchestrating agent to carry out a delegat...\n\nRead\nFocus in graph\nAgents\nArtificial Intelligence\n\nAgents are autonomous or semi-autonomous computational systems that perceive an environment through senso...\n\nRead\nFocus in graph\nCortex Agent\nArtificial Intelligence\n\nCortex Agent is a class of enterprise agentic AI system that orchestrates multi-step reasoning and action across...\n\nRead\nFocus in graph\nMulti-Layer Agentic Governance Framework\nArtificial Intelligence\n\nAgentic Mycelia is a multi-layered framework of specialised AI agents—scene agents, transfer agents, onbo...\n\nRead\nFocus in graph\nAgentic Shift\nArtificial Intelligence\n\n...rom static AI models to autonomous, goal-directed agents capable of complex task execution.\n\nRead\nFocus in graph\nAgent Ecosystem\nArtificial Intelligence\n\nA coordinated network of specialized AI agents that interact and share context to solve complex, multi-faceted problems.\n\nRead\nFocus in graph\nMulti-Agent Monitoring\nInfrastructure\n\n...lth, performance, and interactions of multiple AI agents within a system.\n\nRead\nFocus in graph\nDecentralised Agent Coordination Initiative\nArtificial Intelligence\n\n... collaborative initiative advancing decentralised agent frameworks that integrate Nostr relays for communication, Bitcoin Lightning for micropayments, dist...\n\nRead\nFocus in graph\nAgentic Harness\nArtificial Intelligence\n\n...ramework or layer that orchestrates autonomous AI agents, managing their memory, decision loops, and interaction with external tools or environments.\n\nRead\nFocus in graph\nAgent Handoff\nArtificial Intelligence\n\nThe orchestration primitive by which one agent transfers control of a conversation or task to another agent, passing along the accumulated context...\n\nRead\nFocus in graph\nAgent Memory\nArtificial Intelligence\n\nAgent memory is the structured ensemble of mechanisms by which an autonomous AI agent stores, indexes, co...\n\nRead\nFocus in graph\nruv-FANN Multi-Agent Swarm Framework\nInfrastructure\n\nRuV Agents refers to the ruv-swarm agent framework developed within the ruv-FANN project, providing a multi-a...\n\nRead\nFocus in graph\nMulti-Agent Coordination\nArtificial Intelligence\n\nMulti-agent coordination is the set of mechanisms and protocols by which a population of autonomous agents orga...\n\nRead\nFocus in graph\nAgentic Internet\nArtificial Intelligence\n\nAgentic Internet is the emerging substrate of protocols, identity primitives, payment rails and discovery...\n\nRead\nFocus in graph\nLLM Agents\nAi\n\nLLM Agents are autonomous software systems that use large language models as their core reasoning engine to p...\n\nRead\nFocus in graph\nAgent Runtime\nAi\n\nAn Agent Runtime is the infrastructure execution layer that manages the complete lifecycle, resource allocat...\n\nRead\nFocus in graph\nAgent Orchestrator\nAi\n\nAn Agent Orchestrator is the directive control component of a multi-agent architecture that decomposes high-...\n\nRead\nFocus in graph\nAgent-to-Agent Protocol\nArtificial Intelligence\n\nAgent-to-Agent Protocol is a class of communication specifications that define how autonomous AI agents d...\n\nRead\nFocus in graph\nMulti-Agent Collaboration\nAi\n\nMulti-agent collaboration is the coordinated execution of a task by multiple AI agents that divide work, share ...\n\nRead\nFocus in graph\nAgent Loop\nAi\n\nThe agent loop is the repeating control cycle — observe, plan, act, evaluate — through which an autonomous ag...\n\nRead\nFocus in graph\nInter-Agent Communication\nAi\n\nInter-Agent Communication (IAC) is the set of protocols, message formats, and transport mechanisms through whic...\n\nRead\nFocus in graph\nAgent Development SDKs\nAi\n\n... vendor SDKs and libraries for building custom AI agents with built-in tools, MCP support, session management, and deployment infrastructure — includes Cla...\n\nRead\nFocus in graph\nAgentic AI Practitioner Training Programme\nArtificial Intelligence\n\n...d training programme introducing practitioners to agentic AI systems, covering context engineering, memory management, agent orchestration tools (such as R...\n\nRead\nFocus in graph\nResearch Agents\n"
+          }
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": false,
+          "detail": {
+            "requestedWidth": 375,
+            "viewport": 392,
+            "clientWidth": 375,
+            "width": 392,
+            "bodyWidth": 392
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://narrativegoldmine.com/",
+        "title": "Narrative Goldmine — the DreamLab knowledge mesh",
+        "text": 4677,
+        "headings": [
+          "A 6.8-million-word corpus of the Fourth Industrial Revolution, compiled into a reasoned formal ontology.",
+          "Three layers, read bottom-up",
+          "Six domains, one map",
+          "Honest by construction",
+          "One node in a sovereign mesh",
+          "The mesh",
+          "Read"
+        ],
+        "brokenImages": []
+      },
+      "homeMobile": {
+        "requestedWidth": 375,
+        "viewport": 502,
+        "clientWidth": 375,
+        "width": 502
+      },
+      "searchStarted": true,
+      "searchSubmit": {
+        "x": 642.625,
+        "y": 449.578125
+      },
+      "search": {
+        "url": "https://narrativegoldmine.com/search?q=Agent",
+        "text": "Skip to content\nNarrative Goldmine\nHome\nGraph\nSearch\nData\nAbout\nResearch notes\nSearch\nSearch\n\n100 results for “Agent” in 628ms\n\nAgent\nArtificial Intelligence\n\nAn autonomous computational or physical entity that perceives its environment, reasons about its perceptions using internal beliefs and goals, and act...\n\nRead\nFocus in graph\nAgent Primitives\nArtificial Intelligence\n\n...es, that enable the construction of autonomous AI agents.\n\nRead\nFocus in graph\nRational Agent\nArtificial Intelligence\n\nA rational agent is an agent that selects actions expected to maximise its performance measure given its knowledge, ...\n\nRead\nFocus in graph\nAgent Capability Scaling\nArtificial Intelligence\n\n... how the complexity and duration of tasks that AI agents can autonomously complete increase over time with model improvements.\n\nRead\nFocus in graph\nSubagent\nArtificial Intelligence\n\nA subagent is a subordinate autonomous agent spawned by a parent or orchestrating agent to carry out a delegat...\n\nRead\nFocus in graph\nAgents\nArtificial Intelligence\n\nAgents are autonomous or semi-autonomous computational systems that perceive an environment through senso...\n\nRead\nFocus in graph\nCortex Agent\nArtificial Intelligence\n\nCortex Agent is a class of enterprise agentic AI system that orchestrates multi-step reasoning and action across...\n\nRead\nFocus in graph\nMulti-Layer Agentic Governance Framework\nArtificial Intelligence\n\nAgentic Mycelia is a multi-layered framework of specialised AI agents—scene agents, transfer agents, onbo...\n\nRead\nFocus in graph\nAgentic Shift\nArtificial Intelligence\n\n...rom static AI models to autonomous, goal-directed agents capable of complex task execution.\n\nRead\nFocus in graph\nAgent Ecosystem\nArtificial Intelligence\n\nA coordinated network of specialized AI agents that interact and share context to solve complex, multi-faceted problems.\n\nRead\nFocus in graph\nMulti-Agent Monitoring\nInfrastructure\n\n...lth, performance, and interactions of multiple AI agents within a system.\n\nRead\nFocus in graph\nDecentralised Agent Coordination Initiative\nArtificial Intelligence\n\n... collaborative initiative advancing decentralised agent frameworks that integrate Nostr relays for communication, Bitcoin Lightning for micropayments, dist...\n\nRead\nFocus in graph\nAgentic Harness\nArtificial Intelligence\n\n...ramework or layer that orchestrates autonomous AI agents, managing their memory, decision loops, and interaction with external tools or environments.\n\nRead\nFocus in graph\nAgent Handoff\nArtificial Intelligence\n\nThe orchestration primitive by which one agent transfers control of a conversation or task to another agent, passing along the accumulated context...\n\nRead\nFocus in graph\nAgent Memory\nArtificial Intelligence\n\nAgent memory is the structured ensemble of mechanisms by which an autonomous AI agent stores, indexes, co...\n\nRead\nFocus in graph\nruv-FANN Multi-Agent Swarm Framework\nInfrastructure\n\nRuV Agents refers to the ruv-swarm agent framework developed within the ruv-FANN project, providing a multi-a...\n\nRead\nFocus in graph\nMulti-Agent Coordination\nArtificial Intelligence\n\nMulti-agent coordination is the set of mechanisms and protocols by which a population of autonomous agents orga...\n\nRead\nFocus in graph\nAgentic Internet\nArtificial Intelligence\n\nAgentic Internet is the emerging substrate of protocols, identity primitives, payment rails and discovery...\n\nRead\nFocus in graph\nLLM Agents\nAi\n\nLLM Agents are autonomous software systems that use large language models as their core reasoning engine to p...\n\nRead\nFocus in graph\nAgent Runtime\nAi\n\nAn Agent Runtime is the infrastructure execution layer that manages the complete lifecycle, resource allocat...\n\nRead\nFocus in graph\nAgent Orchestrator\nAi\n\nAn Agent Orchestrator is the directive control component of a multi-agent architecture that decomposes high-...\n\nRead\nFocus in graph\nAgent-to-Agent Protocol\nArtificial Intelligence\n\nAgent-to-Agent Protocol is a class of communication specifications that define how autonomous AI agents d...\n\nRead\nFocus in graph\nMulti-Agent Collaboration\nAi\n\nMulti-agent collaboration is the coordinated execution of a task by multiple AI agents that divide work, share ...\n\nRead\nFocus in graph\nAgent Loop\nAi\n\nThe agent loop is the repeating control cycle — observe, plan, act, evaluate — through which an autonomous ag...\n\nRead\nFocus in graph\nInter-Agent Communication\nAi\n\nInter-Agent Communication (IAC) is the set of protocols, message formats, and transport mechanisms through whic...\n\nRead\nFocus in graph\nAgent Development SDKs\nAi\n\n... vendor SDKs and libraries for building custom AI agents with built-in tools, MCP support, session management, and deployment infrastructure — includes Cla...\n\nRead\nFocus in graph\nAgentic AI Practitioner Training Programme\nArtificial Intelligence\n\n...d training programme introducing practitioners to agentic AI systems, covering context engineering, memory management, agent orchestration tools (such as R...\n\nRead\nFocus in graph\nResearch Agents\n"
+      },
+      "mobile": {
+        "requestedWidth": 375,
+        "viewport": 392,
+        "clientWidth": 375,
+        "width": 392,
+        "bodyWidth": 392
+      },
+      "overflow": [
+        {
+          "tag": "BUTTON",
+          "class": "ng-btn ng-btn--primary ng-btn--sm",
+          "right": 391.75,
+          "width": 66.75
+        },
+        {
+          "tag": "PROTONPASS-ROOT-C654",
+          "class": "",
+          "right": 392,
+          "width": 392
+        }
+      ],
+      "screenshot": {
+        "path": "explorer-mobile.png",
+        "sha256": "ef6ae4e01669fb14abaf6dbd393555b0fa4d38205fa0bbe80dd5bc7e07768321"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://narrativegoldmine.com/",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "notes",
+      "url": "https://narrativegoldmine.com/notes/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 2579
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "requestedWidth": 375,
+            "viewport": 375,
+            "clientWidth": 375,
+            "width": 375,
+            "bodyWidth": 375
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://narrativegoldmine.com/notes/#/all-pages",
+        "title": "All pages",
+        "text": 2579,
+        "headings": [
+          "All pages"
+        ],
+        "brokenImages": []
+      },
+      "mobile": {
+        "requestedWidth": 375,
+        "viewport": 375,
+        "clientWidth": 375,
+        "width": 375,
+        "bodyWidth": 375
+      },
+      "screenshot": {
+        "path": "notes-mobile.png",
+        "sha256": "3558eab766430a85c027d0add0c0cdeb7995af0f1d3e1e2c1f276160107b81c5"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://narrativegoldmine.com/notes/",
+          "status": 200
+        }
+      ]
+    }
+  ]
+}

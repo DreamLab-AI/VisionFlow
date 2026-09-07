@@ -6,6 +6,7 @@ governing:
   - docs/BASELINE-visionflow.md
 adrs: [ADR-2004]
 sources:
+  - scripts/capture-diagram-source-snapshot.cjs
   - .github/workflows/diagram-render.yml
   - .github/workflows/diagram-index.yml
   - .github/workflows/deploy.yml
@@ -23,7 +24,7 @@ sources:
   - docs/adr/ADR-2004-diagram-baseline-vendored-render-gate.md
   - docs/BASELINE-visionflow.md
   - docs/site-verification.md
-verified_commit: bec06dc3a
+verified_commit: ffc894722544c7514b002848e721062c6b47627c
 ---
 
 ## VF-06.1 Two diagram pipelines, one repository — what each owns
@@ -409,3 +410,5 @@ flowchart TB
     N1 ~~~ N2
     N2 ~~~ N3
 ```
+
+The companion `scripts/capture-diagram-source-snapshot.cjs` runs the strict current-worktree check between two source-hash captures and refuses to publish a snapshot if the input bytes changed. Its directory entries are markers rather than recursive attestations, and it excludes RuView source reads. Semantic audit and render execution remain separate evidence.

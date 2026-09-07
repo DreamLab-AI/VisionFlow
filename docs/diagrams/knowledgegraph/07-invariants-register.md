@@ -10,7 +10,7 @@ sources:
   - ../knowledgeGraph/pipeline/census.py
   - ../knowledgeGraph/pipeline/emit_graph_tiers.py
   - ../knowledgeGraph/pipeline/visibility.py
-verified_commit: 2791111fc
+verified_commit: 75a5c1f1acda50bfe9d66a92a5343cf12f8b84ef
 ---
 
 ## KG-07.1 The 11 baseline invariants

@@ -23,7 +23,7 @@ sources:
   - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
   - ../knowledgeGraph/README.md
   - ../knowledgeGraph/.github/workflows/build.yml
-verified_commit: {knowledgegraph: d09a476124caa14aa0165c642d0950f6026c46fb}
+verified_commit: {knowledgegraph: 75a5c1f1acda50bfe9d66a92a5343cf12f8b84ef}
 ---
 
 ## KG-02.1 Canonical build — safety boundary before every exporter
@@ -130,7 +130,7 @@ sequenceDiagram
     else reference resolves to nothing (dangling, e.g. 4,383+ SKOS stubs)
         POL-->>EXP: leave alone — dangling is not private
     end
-    Note over POL: INVARIANT: whole-page filtering is the floor, not the ceiling —<br/>subClassOf parents, 12 relation kinds and wikilinks all pass through<br/>this one decision procedure (BASELINE-narrativegoldmine.md:104-107)
+    Note over POL: INVARIANT: the canonical builder projects public pages before export.<br/>Known private references are redacted. Exporter checks remain defensive.<br/>Unknown dangling concepts are not secrets (BASELINE-narrativegoldmine.md:79-81)
 ```
 
 ## KG-02.6 Generation manifest — every artefact SHA-256'd against the source revision

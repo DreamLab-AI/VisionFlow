@@ -45,7 +45,7 @@ sources:
   - ../nostr-rust-forum/docs/consumer-surface-map.md
   - ../nostr-rust-forum/.github/workflows/ci.yml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs
-verified_commit: {nostr-rust-forum: 380a595f150dd96bfe27ff278fff9ded1be7fbd0}
+verified_commit: {nostr-rust-forum: 3c2a77928d0d9b2fba3ba4f56a774e4f931f383e}
 ---
 
 ## NF-10.1 The compliance surface — BASELINE-architecture invariants

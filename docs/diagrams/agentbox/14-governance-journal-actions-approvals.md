@@ -42,7 +42,7 @@ sources:
   - ../project/agentbox/management-api/lib/authority.js
   - ../project/agentbox/management-api/lib/uris.js
   - ../project/agentbox/skills/lint-skills.sh
-verified_commit: 2c521c5bb
+verified_commit: 771d96ed5ac6f5daa1e78a60d109c130b9ef9b99
 ---
 
 ## AB-14.1 Governance plane — surfaces that reach the decision point vs surfaces that miss it

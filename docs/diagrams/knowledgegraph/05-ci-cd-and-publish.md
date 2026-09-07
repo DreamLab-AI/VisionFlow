@@ -12,7 +12,7 @@ sources:
   - ../knowledgeGraph/pipeline/release_gate.py
   - ../knowledgeGraph/pipeline/jsonld_to_page_api.py
   - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
-verified_commit: {knowledgegraph: d09a476124caa14aa0165c642d0950f6026c46fb}
+verified_commit: {knowledgegraph: 75a5c1f1acda50bfe9d66a92a5343cf12f8b84ef}
 ---
 
 ## KG-05.1 build.yml — six gates, cheapest first, no deploy step

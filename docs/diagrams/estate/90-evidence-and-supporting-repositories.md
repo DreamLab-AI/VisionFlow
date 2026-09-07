@@ -22,7 +22,7 @@ sources:
   - ../loom/Cargo.toml
   - ../RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs
   - docs/estate-review/2026-09-07-estate-audit.md
-verified_commit: {visionflow: b09b5e6dc, dream-engine: 17a205866, WasmVOWL: 36105cc3a, RuView: b48ab7dad}
+verified_commit: {visionflow: ffc894722544c7514b002848e721062c6b47627c, dream-engine: 83a7b9b, WasmVOWL: 51a1484, RuView: b48ab7dad}
 ---
 
 ## ES-90.1 Three scopes — health roster, source review and workspace neighbours

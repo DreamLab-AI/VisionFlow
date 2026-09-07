@@ -5,7 +5,7 @@ area: visionclaw
 governing:
   - ../project/docs/XR-client.md
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2032, ADR-2033, ADR-2034, ADR-2035, ADR-2036, ADR-2039, ADR-2076, ADR-2079]
+adrs: [ADR-2032, ADR-2033, ADR-2034, ADR-2035, ADR-2036, ADR-2039, ADR-2076, ADR-2079, ADR-2107]
 sources:
   - ../project/docs/XR-client.md
   - ../project/docs/BASELINE-architecture.md
@@ -44,7 +44,16 @@ sources:
   - ../project/xr-client/tests/run_gut.gd
   - ../project/xr-client/scenes/GraphScene.tscn
   - ../project/xr-client/materials/node_halo.gdshader
-verified_commit: dd82a07b0
+  - ../project/xr-client/scripts/spatial_environment.gd
+  - ../project/xr-client/scripts/xr_theme.gd
+  - ../project/xr-client/scripts/radial_menu.gd
+  - ../project/xr-client/scripts/dwell_reticle.gd
+  - ../project/xr-client/scripts/agent_avatar.gd
+  - ../project/xr-client/materials/spatial_floor.gdshader
+  - ../project/xr-client/materials/edge_flow.gdshader
+  - ../project/xr-client/tests/spatial_visual_fixture.gd
+  - ../project/xr-client/tests/visual/hud_gallery.gd
+verified_commit: 6dd349544ea9cbda0f5dfd1a4d4f4be7fda52ca6
 ---
 
 ## VC-36.1 Boot — OpenXR init, capability probe, deferred scene swap (ADR-2036)
@@ -366,43 +375,26 @@ sequenceDiagram
     Note over UB: ADR-2034 server-which/client-where: the server owns WHICH node<br/>an agent works on plus status. The capsule room-position and the<br/>work-beam geometry are client concerns. Beam count = live<br/>working/blocked agents (tens), so this runs every frame.
 ```
 
-## VC-36.8 HUD — programmatic tabbed panel, press-mode firing (ADR-2033)
+## VC-36.8 HUD — shared instrument theme, seven tabs and press-mode controls
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant W as Wand ray (VIVE controller)
-    participant HB as hud.gd _build_ui<br/>xr-client/scripts/hud.gd:171
-    participant PF as _press_fire<br/>xr-client/scripts/hud.gd:262
-    participant TB as _build_tab_bar<br/>xr-client/scripts/hud.gd:267
-    participant PG as page builders<br/>xr-client/scripts/hud.gd:324-704
-    participant OG as _check_overflow<br/>xr-client/scripts/hud.gd:751
-    participant SH as _refresh_overlay_shield<br/>xr-client/scripts/hud.gd:760
-    participant GS as graph_scene.gd
-
-    Note over HB: TAB_ORDER = [graph, layout, query, pins, swarm, session, help]<br/>hud.gd:155 - TAB_LABELS hud.gd:156
-    HB->>TB: build tab bar (separation 8, hud.gd:271)
-    loop each of the 11 Button/CheckButton construction sites
-        PG->>PF: _press_fire(Button.new())
-        PF->>PF: b.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS
-        Note right of PF: ADR-2033 INVARIANT: fire on PRESS, not release.<br/>Pulling the VIVE trigger jolts the ray 20-30px, so a<br/>release-mode click lands outside the control and is<br/>silently cancelled. hud.gd:252-264
-    end
-    Note over PG: Sites: hud.gd:273 tab, 425 Query Execute, 436 Clear,<br/>503 pin row, 546 Join Room, 552 Mute, 560 Reconnect,<br/>650 action, 663 type-toggle, 699 scroll up, 704 scroll down
-    Note over PF: CORRECTED ADR-2079: the closeout's claim that constructors omit<br/>press-mode is stale. _press_fire (hud.gd:262-264) is the single place<br/>ACTION_MODE_BUTTON_PRESS is set and all eleven Button/CheckButton sites<br/>route through it - grep confirms zero raw Button.new() outside the helper.<br/>ADR-2033 stays implementation_status: partial though: press-to-dispatch,<br/>disabled controls, drag-off, jitter and duplicate actions have never been<br/>exercised on a headset. Source-inventory half closed, behavioural half open.
-    PG->>PG: Layout page separation = 3 (not 8)
-    Note over PG: INVARIANT 532px page host. Four groups land at 564px with the<br/>default separation 8 - 32px past the host. Separation 3 buys ~35px.<br/>hud.gd:358-365
-    PG->>OG: call_deferred("_check_overflow", id)
-    opt page min-height > host
-        OG-->>OG: dev-only warn ONCE per tab per session
-    end
-    W->>PG: ray click on control
-    PG->>GS: emit control_pressed(action)
-    Note over PG,GS: The HUD owns NO decision logic - it emits intents and<br/>GraphScene owns every effect. Example type toggle emits<br/>"type_toggle:<class>:<0|1>" - graph_scene forwards to<br/>render store set_type_visible. hud.gd:336-341
-    opt document_panel or intervention_panel visible
-        PG->>SH: _refresh_overlay_shield()
-        SH->>SH: _root.visible = false
-        Note right of SH: Hides the tab root so a stray ray cannot click a<br/>control BEHIND the overlay. hud.gd:755-765
-    end
+    participant W as Controller ray
+    participant HUD as HUD build<br/>xr-client/scripts/hud.gd:205
+    participant Theme as Shared XRTheme<br/>xr-client/scripts/xr_theme.gd:25
+    participant Press as Press-mode helper<br/>xr-client/scripts/hud.gd:284
+    participant Env as SpatialEnvironment<br/>xr-client/scripts/spatial_environment.gd:132
+    HUD->>Theme: create opaque surfaces, typography and focus outlines
+    HUD->>HUD: build seven tabs<br/>xr-client/scripts/hud.gd:289
+    HUD->>Press: create buttons and CheckButtons with press firing
+    Note over Press: ADR-2033 press behaviour retained. Fresh headset jitter acceptance remains open.
+    HUD->>HUD: Help includes reduced-motion and low-cost controls<br/>xr-client/scripts/hud.gd:594
+    Env->>HUD: deferred bind after world-space reparent and synchronise preferences
+    W->>HUD: press comfort toggle
+    HUD->>Env: control_pressed visual_motion or visual_quality
+    Env->>Env: apply scene-local reversible rendering budget<br/>xr-client/scripts/spatial_environment.gd:99
+    Env->>HUD: set_visual_comfort without re-emitting<br/>xr-client/scripts/hud.gd:1270
+    Note over HUD: Overflow and overlay shield remain explicit<br/>xr-client/scripts/hud.gd:810<br/>xr-client/scripts/hud.gd:798
 ```
 
 ## VC-36.9 Agent co-presence and the 0x23 work-beam data plane
@@ -864,4 +856,27 @@ sequenceDiagram
     Note over RS,NF: INVARIANT a fading/labelled node still enters drawn +<br/>render_ids/render_positions in emit_node (render_store.rs:1535-1550)<br/>even though it left the opaque buffer, so edges still attach to it and<br/>the interaction ray still hits it.
     Note over NF: node_halo.gdshader multiplies rim ALPHA by COLOR.a<br/>(node_halo.gdshader:55, :86) so the halo dims with the sphere too.
     Note right of RS: Tests - fade-in to 0.3 and stay hittable<br/>labelled_node_moves_to_faded_buffer_and_eases_to_label_alpha<br/>render_store.rs:2419. Fade-out back to opaque<br/>unlabelled_node_fades_back_then_returns_to_opaque_buffer<br/>render_store.rs:2442. Replace-set and clear resets fades<br/>set_labelled_replaces_the_set_and_clear_resets_fades render_store.rs:2464
+```
+
+## VC-36.20 Spatial visual experience and its validation boundary (ADR-2107)
+
+```mermaid
+flowchart TB
+    Scene["Production GraphScene<br/>procedural sky, shadow-free cool key and warm fill<br/>xr-client/scenes/GraphScene.tscn"]
+    Env["SpatialEnvironment ready<br/>duplicate scene materials; create grid and one pooled focus marker<br/>xr-client/scripts/spatial_environment.gd:23"]
+    Grid["Stationary metre grid<br/>transparent, no depth write; never an opaque floor<br/>xr-client/materials/spatial_floor.gdshader:4"]
+    Focus["Current target or grab at actual world depth<br/>350 ms expiry; scale-compensated node radius preserved<br/>xr-client/scripts/spatial_environment.gd:72"]
+    Comfort["Reduced motion ON by default<br/>Low cost removes grid, halo and MSAA<br/>xr-client/scripts/spatial_environment.gd:99"]
+    Agents["Agent motion respects same preference<br/>status colour and badge retained<br/>xr-client/scripts/agent_avatar.gd:171"]
+    Fixture["Offline production-material fixture<br/>48 opaque + 1 faded node, 60 edges, 4 relation styles<br/>xr-client/tests/spatial_visual_fixture.gd:7"]
+    Gallery["Seven HUD tabs and radial gallery<br/>xr-client/tests/visual/hud_gallery.gd"]
+    Limits["Observed desktop GL renders and GUT assertions<br/>No fresh headset, live authenticated graph or Quest frame-budget certification"]
+    Scene --> Env
+    Env --> Grid
+    Env --> Focus
+    Env --> Comfort
+    Comfort --> Agents
+    Scene --> Fixture
+    Fixture --> Limits
+    Gallery --> Limits
 ```

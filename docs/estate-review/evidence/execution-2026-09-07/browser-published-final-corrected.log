@@ -1,0 +1,25 @@
+canon []
+explorer [
+  {
+    name: 'home-mobile-no-overflow',
+    ok: false,
+    detail: {
+      requestedWidth: 375,
+      viewport: 502,
+      clientWidth: 375,
+      width: 502
+    }
+  },
+  {
+    name: 'mobile-no-overflow',
+    ok: false,
+    detail: {
+      requestedWidth: 375,
+      viewport: 392,
+      clientWidth: 375,
+      width: 392,
+      bodyWidth: 392
+    }
+  }
+]
+notes []

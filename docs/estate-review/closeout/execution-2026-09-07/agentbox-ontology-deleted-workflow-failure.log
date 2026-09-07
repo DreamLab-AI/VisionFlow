@@ -1,0 +1,235 @@
+Validate Ontology Source	UNKNOWN STEP	﻿2026-09-04T10:23:33.1850622Z Current runner version: '2.337.0'
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1885555Z ##[group]Runner Image Provisioner
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1886995Z Hosted Compute Agent
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1887966Z Version: 20260819.586
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1889172Z Commit: 3cc4a88dfa507ef76119ad1bb3eccc6378bb2b76
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1890519Z Build Date: 2026-08-18T23:20:18Z
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1891843Z Worker ID: {5dd44ee1-cb1f-4369-b8eb-7e465e6789b1}
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1893084Z Azure Region: eastus
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1894063Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1896591Z ##[group]Operating System
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1897743Z Ubuntu
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1898675Z 24.04.4
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1899502Z LTS
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1900319Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1901357Z ##[group]Runner Image
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1902439Z Image: ubuntu-24.04
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1903391Z Version: 20260823.283.1
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1905863Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260823.283/images/ubuntu/Ubuntu2404-Readme.md
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1908557Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260823.283
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1910247Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1915896Z ##[group]GITHUB_TOKEN Permissions
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1918882Z Actions: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1919949Z ArtifactMetadata: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1921004Z Attestations: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1922183Z Checks: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1923085Z CodeQuality: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1923959Z Contents: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1925265Z CopilotRequests: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1926276Z Deployments: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1927332Z Discussions: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1928249Z Drives: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1929179Z Issues: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1930178Z Metadata: read
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1931263Z Models: read
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1932221Z Packages: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1933172Z Pages: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1934255Z PullRequests: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1935495Z RepositoryProjects: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1936571Z SecurityEvents: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1937636Z Statuses: write
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1938535Z VulnerabilityAlerts: read
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1939533Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1942509Z Secret source: Actions
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.1944339Z Prepare workflow directory
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.2631955Z Prepare all required actions
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.2683285Z Getting action download info
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.4239208Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.5455738Z Download action repository 'actions/cache@v4' (SHA:0057852bfaa89a56745cba8c7296529d2fc39830)
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.7537110Z Complete job name: Validate Ontology Source
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8230070Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8238747Z ##[group]Run actions/checkout@v4
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8239500Z with:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8239920Z   fetch-depth: 2
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8240388Z   repository: DreamLab-AI/agentbox
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8244256Z   token: ***
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8244882Z   ssh-strict: true
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8245320Z   ssh-user: git
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8245760Z   persist-credentials: true
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8246232Z   clean: true
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8246673Z   sparse-checkout-cone-mode: true
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8247187Z   fetch-tags: false
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8247633Z   show-progress: true
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8248077Z   lfs: false
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8248529Z   submodules: false
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8248985Z   set-safe-directory: true
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8249484Z   allow-unsafe-pr-checkout: false
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8250261Z env:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8250699Z   ONTOLOGY_SOURCE_REPO: jjohare/logseq
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8251261Z   SOLID_POD_PUBLIC_URL: 
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8252038Z   SOLID_POD_PUBLIC_PATH: /public/ontology
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8252612Z   CACHE_DIR: .ontology-cache
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8253108Z   ARTIFACT_RETENTION_DAYS: 30
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.8253595Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9282778Z Syncing repository: DreamLab-AI/agentbox
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9285801Z ##[group]Getting Git version info
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9286967Z Working directory is '/home/runner/work/agentbox/agentbox'
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9288590Z [command]/usr/bin/git version
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9362945Z git version 2.55.0
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9385128Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9401102Z Temporarily overriding HOME='/home/runner/work/_temp/ec5b4572-e745-4b98-b17d-33dca13212f9' before making global git config changes
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9403435Z Adding repository directory to the temporary git global config as a safe directory
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9408715Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/agentbox/agentbox
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9465328Z Deleting the contents of '/home/runner/work/agentbox/agentbox'
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9469514Z ##[group]Initializing the repository
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9473470Z [command]/usr/bin/git init /home/runner/work/agentbox/agentbox
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9600273Z hint: Using 'master' as the name for the initial branch. This default branch name
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9602632Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9604828Z hint: to use in all of your new repositories, which will suppress this warning,
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9606571Z hint: call:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9607557Z hint:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9608658Z hint: 	git config --global init.defaultBranch <name>
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9609951Z hint:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9611094Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9612828Z hint: 'development'. The just-created branch can be renamed via this command:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9614316Z hint:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9615597Z hint: 	git branch -m <name>
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9617766Z hint:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9619117Z hint: Disable this message with "git config set advice.defaultBranchName false"
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9621250Z Initialized empty Git repository in /home/runner/work/agentbox/agentbox/.git/
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9625224Z [command]/usr/bin/git remote add origin https://github.com/DreamLab-AI/agentbox
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9679186Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9680593Z ##[group]Disabling automatic garbage collection
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9684933Z [command]/usr/bin/git config --local gc.auto 0
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9723780Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9725300Z ##[group]Setting up auth
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9736220Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:33.9777006Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:34.0179379Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:34.0220209Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:34.0447848Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:34.0483344Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:34.0709582Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:34.0749920Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:34.0751369Z ##[group]Fetching the repository
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:34.0761533Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=2 origin +3d76fb4798977fdf8515413034db9569e9a7027a:refs/remotes/origin/main
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:35.3076815Z From https://github.com/DreamLab-AI/agentbox
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:35.3079916Z  * [new ref]         3d76fb4798977fdf8515413034db9569e9a7027a -> origin/main
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:35.3087033Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:35.3089607Z ##[group]Determining the checkout info
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:35.3092832Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:35.3095073Z [command]/usr/bin/git sparse-checkout disable
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:35.3147366Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:35.3179817Z ##[group]Checking out the ref
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:35.3183286Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:35.6860462Z Switched to a new branch 'main'
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:35.8872805Z branch 'main' set up to track 'origin/main'.
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:35.8882704Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0456220Z [command]/usr/bin/git log -1 --format=%H
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0489168Z 3d76fb4798977fdf8515413034db9569e9a7027a
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0760400Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0762474Z ##[group]Run actions/checkout@v4
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0762782Z with:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0763096Z   repository: jjohare/logseq
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0763387Z   path: logseq-source
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0766406Z   token: ***
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0766673Z   ssh-strict: true
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0830328Z   ssh-user: git
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0830693Z   persist-credentials: true
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0831024Z   clean: true
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0831287Z   sparse-checkout-cone-mode: true
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0831649Z   fetch-depth: 1
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0831927Z   fetch-tags: false
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0832228Z   show-progress: true
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0832572Z   lfs: false
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0832839Z   submodules: false
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0833137Z   set-safe-directory: true
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0833447Z   allow-unsafe-pr-checkout: false
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0833738Z env:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0833982Z   ONTOLOGY_SOURCE_REPO: jjohare/logseq
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0834293Z   SOLID_POD_PUBLIC_URL: 
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0834748Z   SOLID_POD_PUBLIC_PATH: /public/ontology
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0835087Z   CACHE_DIR: .ontology-cache
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0835380Z   ARTIFACT_RETENTION_DAYS: 30
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.0835648Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.1710315Z Syncing repository: jjohare/logseq
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.1711627Z ##[group]Getting Git version info
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.1712536Z Working directory is '/home/runner/work/agentbox/agentbox/logseq-source'
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.1742342Z [command]/usr/bin/git version
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.1787071Z git version 2.55.0
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.1809111Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.1823545Z Temporarily overriding HOME='/home/runner/work/_temp/436af76d-aa75-4f61-bc12-d67f1f89be2a' before making global git config changes
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.1826240Z Adding repository directory to the temporary git global config as a safe directory
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.1831245Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/agentbox/agentbox/logseq-source
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.3443100Z ##[group]Initializing the repository
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.3455797Z [command]/usr/bin/git init /home/runner/work/agentbox/agentbox/logseq-source
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4370806Z hint: Using 'master' as the name for the initial branch. This default branch name
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4387516Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4388629Z hint: to use in all of your new repositories, which will suppress this warning,
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4389415Z hint: call:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4389845Z hint:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4390368Z hint: 	git config --global init.defaultBranch <name>
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4391004Z hint:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4391822Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4392737Z hint: 'development'. The just-created branch can be renamed via this command:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4393444Z hint:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4393869Z hint: 	git branch -m <name>
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4394327Z hint:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4395283Z hint: Disable this message with "git config set advice.defaultBranchName false"
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4396431Z Initialized empty Git repository in /home/runner/work/agentbox/agentbox/logseq-source/.git/
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4398700Z [command]/usr/bin/git remote add origin https://github.com/jjohare/logseq
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4497381Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4498030Z ##[group]Disabling automatic garbage collection
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4503008Z [command]/usr/bin/git config --local gc.auto 0
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4855517Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4856546Z ##[group]Setting up auth
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4866828Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.4934330Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.5167799Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.5204199Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.5429844Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.5468286Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.5718593Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.5953467Z ##[endgroup]
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.5954985Z ##[group]Determining the default branch
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.5958739Z Retrieving the default branch name
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.8556765Z Not Found - https://docs.github.com/rest/repos/repos#get-a-repository
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:36.8557882Z Waiting 15 seconds before trying again
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:51.8631919Z Retrieving the default branch name
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:52.0326201Z Not Found - https://docs.github.com/rest/repos/repos#get-a-repository
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:23:52.0326984Z Waiting 13 seconds before trying again
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.0404776Z Retrieving the default branch name
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.2193224Z ##[error]Not Found - https://docs.github.com/rest/repos/repos#get-a-repository
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.2408231Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.2409523Z Post job cleanup.
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.3298738Z [command]/usr/bin/git version
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.3343650Z git version 2.55.0
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.3385395Z Temporarily overriding HOME='/home/runner/work/_temp/680e87c1-123f-4d54-a65e-ecd6cd84fb4f' before making global git config changes
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.3387196Z Adding repository directory to the temporary git global config as a safe directory
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.3391769Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/agentbox/agentbox/logseq-source
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.3432989Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.3472101Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.3721601Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.3755935Z http.https://github.com/.extraheader
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.3773299Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.3815469Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.4098049Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.4139423Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.4581029Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.4582317Z Post job cleanup.
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.5449687Z [command]/usr/bin/git version
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.5494243Z git version 2.55.0
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.5537975Z Temporarily overriding HOME='/home/runner/work/_temp/3e6b613b-bba6-4bfc-aacd-807018f5aa27' before making global git config changes
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.5539556Z Adding repository directory to the temporary git global config as a safe directory
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.5544012Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/agentbox/agentbox
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.5587547Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.5629428Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.5889252Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.5919978Z http.https://github.com/.extraheader
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.5933160Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.5975707Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.6298407Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.6359740Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.6855944Z Evaluate and set job outputs
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.6862897Z Cleaning up orphan processes
+Validate Ontology Source	UNKNOWN STEP	2026-09-04T10:24:05.7292593Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

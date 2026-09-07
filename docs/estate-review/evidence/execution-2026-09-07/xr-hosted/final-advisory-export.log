@@ -1,0 +1,685 @@
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	﻿2026-09-07T13:21:05.6165099Z ##[group]Run curl -fsSL -o /tmp/godot.zip \
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6165506Z ^[[36;1mcurl -fsSL -o /tmp/godot.zip \^[[0m
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6166110Z ^[[36;1m  "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"^[[0m
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6166746Z ^[[36;1munzip -q /tmp/godot.zip -d /tmp/godot^[[0m
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6167066Z ^[[36;1mmkdir -p export^[[0m
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6167411Z ^[[36;1m/tmp/godot/Godot_v${GODOT_VERSION}_linux.x86_64 --headless \^[[0m
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6167913Z ^[[36;1m  --path . --export-release "Quest 3 arm64" export/visionclaw-xr.apk^[[0m
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6207315Z shell: /usr/bin/bash -e {0}
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6207579Z env:
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6207787Z   CARGO_TERM_COLOR: always
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6208031Z   RUST_BACKTRACE: 1
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6208255Z   GODOT_VERSION: 4.3-stable
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6208489Z   GUT_VERSION: 9.3.1
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6208854Z   CARGO_HOME: /home/runner/.cargo
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6209121Z   CARGO_INCREMENTAL: 0
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6209510Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6210015Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:05.6210407Z ##[endgroup]
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:07.7601354Z Godot Engine v4.3.stable.official.77dcf97d8 - https://godotengine.org
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:07.7619038Z TextServer: Added interface "Dummy"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:07.7711779Z TextServer: Added interface "ICU / HarfBuzz / Graphite (Built-in)"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:07.7785758Z JoypadLinux: udev enabled and loaded successfully.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:07.7786711Z Requested V-Sync mode: Disabled
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:07.7787378Z Using "default" pen tablet driver...
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:07.7799536Z 
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:07.7799977Z TextServer: Primary interface set to: "ICU / HarfBuzz / Graphite (Built-in)".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:07.8628636Z CORE API HASH: 966092234
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:07.8634252Z EDITOR API HASH: 444927587
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:07.8678172Z EditorTheme: Generating new theme for the config '66886095'.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:07.8679365Z EditorTheme: Generating new icons.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:07.9330333Z EditorTheme: Generating new fonts.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:07.9473961Z EditorTheme: Generating new styles.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:08.7976846Z Generating 2,048 bit RSA key pair and self-signed certificate (SHA256withRSA) with a validity of 10,000 days
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:08.7977726Z 	for: CN=Godot, OU=Godot Engine, O=Stichting Godot, C=NL
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:08.7977968Z 
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:08.7978381Z Updated editor debug keystore to /home/runner/.local/share/godot/keystores/debug.keystore
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3508144Z Regenerating editor help cache
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3516791Z Class 'AbstractPolygon2DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3517579Z Class 'AbstractPolygon2DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3525143Z Class 'ActionMapEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3525744Z Class 'AnchorPresetPicker' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3566930Z Class 'AnimationBezierTrackEdit' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3567581Z Class 'AnimationLibraryEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3582596Z Class 'AnimationNodeBlendSpace1DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3585919Z Class 'AnimationNodeBlendSpace2DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3586859Z Class 'AnimationNodeBlendTreeEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3590591Z Class 'AnimationNodeStateMachineEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3601802Z Class 'AnimationPlayerEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3602477Z Class 'AnimationPlayerEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3603112Z Class 'AnimationTimelineEdit' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3603766Z Class 'AnimationTrackEditDefaultPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3604439Z Class 'AnimationTrackEditPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3605044Z Class 'AnimationTrackEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3606126Z Class 'AnimationTrackKeyEditEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3610944Z Class 'AnimationTreeEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3611575Z Class 'AnimationTreeEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3612254Z Class 'AnimationTreeNodeEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3646451Z Class 'AssetLibraryEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3647090Z Class 'AtlasMergingDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3648566Z Class 'AtlasTileProxyObject' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3649398Z Class 'AudioBusesEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3684317Z Class 'AudioStreamEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3684980Z Class 'AudioStreamImportSettingsDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3689812Z Class 'AudioStreamInteractiveEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3690707Z Class 'AudioStreamInteractiveTransitionEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3698446Z Class 'AudioStreamPlayerInternal' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3700294Z Class 'AudioStreamPreviewGenerator' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3701537Z Class 'AudioStreamRandomizerEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3705382Z Class 'BackgroundProgress' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3801629Z Class 'BitMapEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3804806Z Class 'BoneMapEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3844454Z Class 'CPUParticles2DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3865511Z Class 'CPUParticles3DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3866205Z Class 'CPUParticles3DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.3991329Z Class 'CSGShape3DGizmoPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4026295Z Class 'Camera3DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4051132Z Class 'CanvasItemEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4051750Z Class 'CanvasItemEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4052359Z Class 'CanvasItemEditorViewport' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4054875Z Class 'CanvasItemMaterialConversionPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4066473Z Class 'Cast2DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4067068Z Class 'Cast2DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4149276Z Class 'CollisionPolygon2DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4150032Z Class 'CollisionPolygon2DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4151434Z Class 'CollisionShape2DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4152117Z Class 'CollisionShape2DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4219576Z Class 'ConnectDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4220138Z Class 'ConnectDialogBinds' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4220525Z Class 'ConnectionsDock' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4232841Z Class 'ControlEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4233454Z Class 'ControlEditorPopupButton' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4234102Z Class 'ControlEditorPresetPicker' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4234529Z Class 'ControlEditorToolbar' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4236754Z Class 'CreateDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4243502Z Class 'CurveEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4244059Z Class 'CurvePreviewGenerator' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4265621Z Class 'DebugAdapterParser' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4266250Z Class 'DebugAdapterServer' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4266787Z Class 'DebuggerEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4280193Z Class 'DefaultThemeEditorPreview' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4281130Z Class 'DependencyEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4281723Z Class 'DependencyEditorOwners' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4282332Z Class 'DependencyErrorDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4282937Z Class 'DependencyRemoveDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4316277Z Class 'DirectoryCreateDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4325628Z Class 'DockContextPopup' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4326245Z Class 'DockSplitContainer' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4326859Z Class 'DynamicFontImportSettingsData' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4327541Z Class 'DynamicFontImportSettingsDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4331636Z Class 'EditorAbout' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4332222Z Class 'EditorAssetLibrary' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4332783Z Class 'EditorAudioBuses' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4333447Z Class 'EditorAudioStreamPreviewPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4334186Z Class 'EditorAudioStreamTooltipPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4334859Z Class 'EditorAutoloadSettings' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4335494Z Class 'EditorBitmapPreviewPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4336103Z Class 'EditorBottomPanel' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4336699Z Class 'EditorBuildProfileManager' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4348244Z Class 'EditorDebuggerInspector' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4349064Z Class 'EditorDebuggerNode' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4349649Z Class 'EditorDebuggerRemoteObject' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4350274Z Class 'EditorDebuggerTree' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4350825Z Class 'EditorDirDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4351357Z Class 'EditorDockManager' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4352174Z Class 'EditorExport' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.4352688Z Class 'EditorExportGDScript' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6546802Z Class 'EditorFeatureProfileManager' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6603784Z Class 'EditorFileServer' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6609263Z Class 'EditorFileSystemImportFormatSupportQueryBlend' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6610024Z Class 'EditorFontPreviewPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6610660Z Class 'EditorGradientPreviewPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6611190Z Class 'EditorHelpBit' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6611654Z Class 'EditorHelpSearch' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6612170Z Class 'EditorImagePreviewPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6612723Z Class 'EditorImportBlendRunner' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6616326Z Class 'EditorInspectorDefaultPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6617230Z Class 'EditorInspectorParticleProcessMaterialPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6618101Z Class 'EditorInspectorPlugin3DTexture' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6619061Z Class 'EditorInspectorPluginAnimationTrackKeyEdit' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6619703Z Class 'EditorInspectorPluginAudioStream' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6620205Z Class 'EditorInspectorPluginAudioStreamInteractive' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6620697Z Class 'EditorInspectorPluginBitMap' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6621108Z Class 'EditorInspectorPluginBoneMap' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6621587Z Class 'EditorInspectorPluginControl' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6622228Z Class 'EditorInspectorPluginCurve' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6622672Z Class 'EditorInspectorPluginFontPreview' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6623911Z Class 'EditorInspectorPluginFontVariation' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6624669Z Class 'EditorInspectorPluginGradient' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6625454Z Class 'EditorInspectorPluginGradientTexture2D' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6626253Z Class 'EditorInspectorPluginInputEvent' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6627024Z Class 'EditorInspectorPluginLayeredTexture' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6627775Z Class 'EditorInspectorPluginMaterial' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6628455Z Class 'EditorInspectorPluginMesh' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6629317Z Class 'EditorInspectorPluginPackedScene' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6630043Z Class 'EditorInspectorPluginSkeleton' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6630743Z Class 'EditorInspectorPluginStyleBox' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6631524Z Class 'EditorInspectorPluginSubViewportPreview' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6632348Z Class 'EditorInspectorPluginSystemFont' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6633063Z Class 'EditorInspectorPluginTexture' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6633790Z Class 'EditorInspectorPluginTextureRegion' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6634546Z Class 'EditorInspectorPluginTileData' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6635256Z Class 'EditorInspectorRootMotionPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6636026Z Class 'EditorInspectorVisualShaderModePlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6636779Z Class 'EditorJSONSyntaxHighlighter' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6637406Z Class 'EditorLayoutsDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6637976Z Class 'EditorLocaleDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6638486Z Class 'EditorLog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6639251Z Class 'EditorMaterialPreviewPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6639902Z Class 'EditorMeshPreviewPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6640611Z Class 'EditorNativeShaderSourceVisualizer' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6641008Z Class 'EditorNode' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6641329Z Class 'EditorOBJImporter' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6641759Z Class 'EditorObjectSelector' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6642400Z Class 'EditorPackedScenePreviewPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6643082Z Class 'EditorPerformanceProfiler' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6643664Z Class 'EditorPluginCSG' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6644209Z Class 'EditorPluginSettings' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6644745Z Class 'EditorProfiler' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6645300Z Class 'EditorPropertyInteger' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6645921Z Class 'EditorPropertyNameProcessor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6646533Z Class 'EditorPropertyPath' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6647108Z Class 'EditorPropertyVector2i' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6647699Z Class 'EditorPropertyVectorN' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6648262Z Class 'EditorQuickOpen' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6648921Z Class 'EditorRunBar' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6649422Z Class 'EditorRunNative' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6650042Z Class 'EditorSceneExporterGLTFSettings' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6650777Z Class 'EditorSceneFormatImporterCollada' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6651493Z Class 'EditorSceneFormatImporterESCN' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6652027Z Class 'EditorSceneTabs' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6652381Z Class 'EditorScriptPreviewPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6661947Z Class 'EditorSettingsDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6687621Z Class 'EditorTexturePreviewPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6688303Z Class 'EditorTextureTooltipPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6689023Z Class 'EditorTheme' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6689533Z Class 'EditorTitleBar' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6690038Z Class 'EditorToaster' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6690581Z Class 'EditorValidationPanel' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6691160Z Class 'EditorVisualProfiler' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6691715Z Class 'EditorZoomWidget' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6699887Z Class 'EventListenerLineEdit' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6700496Z Class 'ExportTemplateManager' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6701067Z Class 'FBXImporterManager' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6757979Z Class 'FileSystemList' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6758489Z Class 'FindInFiles' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6759157Z Class 'FindInFilesDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6759697Z Class 'FindInFilesPanel' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6760119Z Class 'FindReplaceBar' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6763745Z Class 'FogMaterialConversionPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6777603Z Class 'FontEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6786501Z Class 'GDScriptEditorTranslationParserPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6787249Z Class 'GDScriptLanguageServer' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6787838Z Class 'GDScriptNativeClass' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6788441Z Class 'GDScriptSyntaxHighlighter' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6792025Z Class 'GLTFDocumentExtensionPhysics' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6792735Z Class 'GLTFDocumentExtensionTextureKTX' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6793476Z Class 'GLTFDocumentExtensionTextureWebP' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6802639Z Class 'GPUParticles2DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6817136Z Class 'GPUParticles3DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6817748Z Class 'GPUParticles3DEditorBase' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6818380Z Class 'GPUParticles3DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6908340Z Class 'GPUParticlesCollisionSDF3DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6951307Z Class 'Gizmo3DHelper' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6951878Z Class 'GodotNavigationServer2D' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6952468Z Class 'GodotPhysicsServer2D' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6953190Z Class 'GodotPhysicsServer3D' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6953749Z Class 'GradientEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6955625Z Class 'GradientTexture2DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6966635Z Class 'GraphEditFilter' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6967167Z Class 'GraphEditMinimap' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6980019Z Class 'GridMapEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6980554Z Class 'GridMapEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6992117Z Class 'GroupSettingsEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.6992663Z Class 'GroupsEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7075008Z Class 'HistoryDock' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7075549Z Class 'IPUnix' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7086904Z Class 'ImportDefaultsEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7087548Z Class 'ImportDefaultsEditorSettings' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7088051Z Class 'ImportDock' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7088382Z Class 'ImportDockParameters' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7097527Z Class 'InputEventConfigurationDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7098484Z Class 'InputEventEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7144544Z Class 'InspectorDock' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7237355Z Class 'LightOccluder2DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7237992Z Class 'LightOccluder2DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7251947Z Class 'LightmapGIEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7255301Z Class 'Line2DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7255836Z Class 'Line2DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7281785Z Class 'LocalizationEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7288377Z Class 'MaterialEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7304952Z Class 'MeshEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7319079Z Class 'MeshInstance3DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7319697Z Class 'MeshInstance3DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7320327Z Class 'MeshLibraryEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7320897Z Class 'MeshLibraryEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7331106Z Class 'MovieWriterMJPEG' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7331648Z Class 'MovieWriterPNGWAV' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7332648Z Class 'MultiMeshEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7333197Z Class 'MultiMeshEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7348466Z Class 'MultiplayerEditorDebugger' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7349232Z Class 'MultiplayerEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7365974Z Class 'NavigationLink2DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7369869Z Class 'NavigationLink2DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7370561Z Class 'NavigationMeshEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7371073Z Class 'NavigationMeshEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7373281Z Class 'NavigationObstacle2DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7373965Z Class 'NavigationObstacle2DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7376284Z Class 'NavigationObstacle3DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7376956Z Class 'NavigationObstacle3DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7380606Z Class 'NavigationPolygonEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7409119Z Class 'NavigationPolygonEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7409717Z Class 'Node3DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7410240Z Class 'Node3DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7410797Z Class 'Node3DEditorViewport' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7411422Z Class 'Node3DEditorViewportContainer' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7412006Z Class 'NodeDock' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7412555Z Class 'NoiseEditorInspectorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7413177Z Class 'NoiseEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7444738Z Class 'ORMMaterial3DConversionPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7459154Z Class 'OccluderInstance3DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7478319Z Class 'OpenXRActionMapEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7515509Z Class 'OpenXREditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7522233Z Class 'OpenXRSelectInteractionProfileDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7522942Z Class 'OpenXRSelectRuntime' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7531197Z Class 'OrphanResourcesDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7532467Z Class 'PackedSceneEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7533217Z Class 'PackedSceneEditorTranslationParserPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7541998Z Class 'PanoramaSkyMaterialConversionPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7544807Z Class 'ParallaxBackgroundEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7553871Z Class 'ParticleProcessMaterialConversionPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7554697Z Class 'Path2DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7555220Z Class 'Path2DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7555770Z Class 'Path3DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7556310Z Class 'Path3DGizmoPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7574085Z Class 'PhysicalBone3DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7586317Z Class 'PhysicalSkyMaterialConversionPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7713910Z Class 'PluginConfigDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7733592Z Class 'Polygon2DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7734207Z Class 'Polygon2DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7734767Z Class 'Polygon3DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7735335Z Class 'Polygon3DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7754059Z Class 'PostImportPluginSkeletonRenamer' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7754860Z Class 'PostImportPluginSkeletonRestFixer' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7755664Z Class 'PostImportPluginSkeletonTrackOrganizer' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7765033Z Class 'ProceduralSkyMaterialConversionPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7785351Z Class 'ProgressDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7785946Z Class 'ProjectExportDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7786589Z Class 'ProjectExportTextureFormatError' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7787369Z Class 'ProjectSettingsEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7787934Z Class 'PropertySelector' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7839062Z Class 'RenameDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7882817Z Class 'ReparentDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7883893Z Class 'ReplicationEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7884511Z Class 'ResourceFormatImporterSaver' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7891967Z Class 'ResourcePreloaderEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7892639Z Class 'ResourcePreloaderEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7940762Z Class 'RunInstancesDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7941370Z Class 'SceneCacheInterface' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7941943Z Class 'SceneCreateDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7942530Z Class 'SceneExporterGLTFPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7943151Z Class 'SceneImportSettingsData' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7943778Z Class 'SceneImportSettingsDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7944359Z Class 'SceneRPCInterface' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7944931Z Class 'SceneReplicationInterface' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7945532Z Class 'SceneTileProxyObject' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7949846Z Class 'SceneTreeDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7950501Z Class 'SceneTreeDock' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7951009Z Class 'SceneTreeEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.7959648Z Class 'ScreenSelect' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8083285Z Class 'ScriptEditorDebugger' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8083878Z Class 'ScriptEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8127167Z Class 'SectionedInspector' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8149350Z Class 'SectionedInspectorFilter' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8149961Z Class 'ShaderCreateDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8150520Z Class 'ShaderEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8150856Z Class 'ShaderFileEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8151593Z Class 'ShaderFileEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8151964Z Class 'ShaderGlobalsEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8152347Z Class 'ShaderGlobalsEditorInterface' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8159751Z Class 'SizeFlagPresetPicker' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8160904Z Class 'Skeleton2DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8161466Z Class 'Skeleton2DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8163522Z Class 'Skeleton3DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8164097Z Class 'Skeleton3DGizmoPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8173118Z Class 'SkeletonIK3DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8237698Z Class 'SnapDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8267411Z Class 'SplitContainerDragger' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8285314Z Class 'Sprite2DEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8285868Z Class 'Sprite2DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8332434Z Class 'SpriteFramesEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8333027Z Class 'SpriteFramesEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8362666Z Class 'StandardMaterial3DConversionPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8393357Z Class 'StyleBoxEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8422051Z Class 'SubViewportPreviewEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8422852Z Class 'SurfaceUpgradeDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8423437Z Class 'SurfaceUpgradeTool' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8474990Z Class 'Texture3DEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8499318Z Class 'TextureEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8501613Z Class 'TextureLayeredEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8526599Z Class 'TextureRegionEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8527226Z Class 'TextureRegionEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8528921Z Class 'ThemeContext' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8529514Z Class 'ThemeEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8530030Z Class 'ThemeEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8530593Z Class 'ThemeEditorPreview' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8531159Z Class 'ThemeItemEditorDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8531641Z Class 'ThemeItemImportTree' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8531983Z Class 'ThemeTypeDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8532303Z Class 'ThemeTypeEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8532611Z Class 'TileAtlasView' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8536421Z Class 'TileMapEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8539174Z Class 'TileMapLayerEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8539833Z Class 'TileMapLayerEditorTerrainsPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8540580Z Class 'TileMapLayerEditorTilesPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8541055Z Class 'TileProxiesManagerDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8546346Z Class 'TileSetAtlasSourceEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8546993Z Class 'TileSetAtlasSourceProxyObject' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8547568Z Class 'TileSetEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8547910Z Class 'TileSetEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8548569Z Class 'TileSetScenesCollectionProxyObject' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8549459Z Class 'TileSetScenesCollectionSourceEditor' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8550066Z Class 'TileSourceInspectorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8550650Z Class 'TilesEditorUtils' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8579671Z Class 'UVEditDialog' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8646481Z Class 'VersionControlEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8653861Z Class 'ViewPanner' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8672292Z Class 'ViewportNavigationControl' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8672835Z Class 'ViewportRotationControl' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8699498Z Class 'VisualShaderConversionPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8947576Z Class 'VoxelGIEditorPlugin' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.8979326Z Class 'WindowWrapper' is not exposed, skipping.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:09.9150726Z Loaded system CA certificates
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:11.4332724Z EditorSettings: Save OK!
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.4261443Z ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.4262332Z    at: open_dynamic_library (drivers/unix/os_unix.cpp:806)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.4263074Z Failed to get modified time for: res://rust/target/debug/libvisionclaw_xr_gdext.so
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.4264325Z ERROR: GDExtension dynamic library not found: /home/runner/work/VisionClaw/VisionClaw/xr-client/rust/target/debug/libvisionclaw_xr_gdext.so
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.4265430Z    at: open_library (core/extension/gdextension.cpp:801)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.4265949Z reimport: begin: (Re)Importing Assets steps: 1
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.4266411Z 	reimport: step 0: icon.svg
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.4266876Z EditorFileSystem: Importing file: res://icon.svg
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.4267967Z ERROR: Failed loading resource: res://visionclaw_xr_gdext.gdextension. Make sure resources have been imported by opening the project in the editor at least once.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.4269414Z    at: _load (core/io/resource_loader.cpp:283)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.4312211Z EditorFileSystem: "res://icon.svg" import took 4 ms.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.4412542Z SCRIPT ERROR: Parse Error: Identifier "AgentAvatarNode" not declared in the current scope.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.4413570Z           at: GDScript::reload (res://scripts/agent_avatar.gd:59)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.4414355Z ERROR: Failed to load script "res://scripts/agent_avatar.gd" with error "Parse error".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.4415541Z    at: load (modules/gdscript/gdscript.cpp:2936)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5052033Z SCRIPT ERROR: Parse Error: Identifier "BinaryProtocolClient" not declared in the current scope.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5053084Z           at: GDScript::reload (res://scripts/graph_scene.gd:423)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5053910Z SCRIPT ERROR: Parse Error: Identifier "PresenceClientNode" not declared in the current scope.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5054667Z           at: GDScript::reload (res://scripts/graph_scene.gd:424)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5055350Z SCRIPT ERROR: Parse Error: Identifier "XrInteraction" not declared in the current scope.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5056063Z           at: GDScript::reload (res://scripts/graph_scene.gd:425)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5056743Z SCRIPT ERROR: Parse Error: Identifier "LodPolicy" not declared in the current scope.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5057448Z           at: GDScript::reload (res://scripts/graph_scene.gd:426)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5058225Z SCRIPT ERROR: Parse Error: Identifier "SpatialVoiceRouter" not declared in the current scope.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5059204Z           at: GDScript::reload (res://scripts/graph_scene.gd:427)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5059896Z SCRIPT ERROR: Parse Error: Identifier "ProxemicsSolver" not declared in the current scope.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5060612Z           at: GDScript::reload (res://scripts/graph_scene.gd:428)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5061349Z SCRIPT ERROR: Parse Error: Identifier "SelectionArbiterNode" not declared in the current scope.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5062118Z           at: GDScript::reload (res://scripts/graph_scene.gd:429)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5062810Z SCRIPT ERROR: Parse Error: Identifier "GazeTracker" not declared in the current scope.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5063504Z           at: GDScript::reload (res://scripts/graph_scene.gd:430)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5064160Z SCRIPT ERROR: Parse Error: Identifier "NostrAuth" not declared in the current scope.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5064833Z           at: GDScript::reload (res://scripts/graph_scene.gd:437)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5082759Z ERROR: Failed to load script "res://scripts/graph_scene.gd" with error "Parse error".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5083507Z    at: load (modules/gdscript/gdscript.cpp:2936)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5563052Z SCRIPT ERROR: Parse Error: Could not resolve super class path "res://addons/gut/test.gd".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5564082Z           at: GDScript::reload (res://tests/unit/test_agent_avatar.gd:1)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5564934Z ERROR: Failed to load script "res://tests/unit/test_agent_avatar.gd" with error "Parse error".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5565683Z    at: load (modules/gdscript/gdscript.cpp:2936)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5572376Z SCRIPT ERROR: Parse Error: Could not resolve super class path "res://addons/gut/test.gd".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5573538Z           at: GDScript::reload (res://tests/unit/test_agent_beam.gd:1)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5574695Z ERROR: Failed to load script "res://tests/unit/test_agent_beam.gd" with error "Parse error".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5575515Z    at: load (modules/gdscript/gdscript.cpp:2936)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5586673Z SCRIPT ERROR: Parse Error: Could not resolve super class path "res://addons/gut/test.gd".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5587525Z           at: GDScript::reload (res://tests/unit/test_did_badge.gd:1)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5588165Z ERROR: Failed to load script "res://tests/unit/test_did_badge.gd" with error "Parse error".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5588620Z    at: load (modules/gdscript/gdscript.cpp:2936)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5602202Z SCRIPT ERROR: Parse Error: Could not resolve super class path "res://addons/gut/test.gd".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5603040Z           at: GDScript::reload (res://tests/unit/test_graph_agents.gd:1)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5603810Z ERROR: Failed to load script "res://tests/unit/test_graph_agents.gd" with error "Parse error".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5604276Z    at: load (modules/gdscript/gdscript.cpp:2936)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5616980Z SCRIPT ERROR: Parse Error: Could not resolve super class path "res://addons/gut/test.gd".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5617863Z           at: GDScript::reload (res://tests/unit/test_hud_intervention.gd:1)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5619158Z ERROR: Failed to load script "res://tests/unit/test_hud_intervention.gd" with error "Parse error".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5619757Z    at: load (modules/gdscript/gdscript.cpp:2936)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5640543Z SCRIPT ERROR: Parse Error: Could not resolve super class path "res://addons/gut/test.gd".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5641332Z           at: GDScript::reload (res://tests/unit/test_hud_tabs.gd:1)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5641874Z ERROR: Failed to load script "res://tests/unit/test_hud_tabs.gd" with error "Parse error".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5642379Z    at: load (modules/gdscript/gdscript.cpp:2936)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5664010Z SCRIPT ERROR: Parse Error: Could not resolve super class path "res://addons/gut/test.gd".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5664856Z           at: GDScript::reload (res://tests/unit/test_query_builder.gd:1)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5665645Z ERROR: Failed to load script "res://tests/unit/test_query_builder.gd" with error "Parse error".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5666252Z    at: load (modules/gdscript/gdscript.cpp:2936)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5701822Z SCRIPT ERROR: Parse Error: Could not resolve super class path "res://addons/gut/test.gd".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5702639Z           at: GDScript::reload (res://tests/unit/test_scene_load.gd:1)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5703450Z ERROR: Failed to load script "res://tests/unit/test_scene_load.gd" with error "Parse error".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5704187Z    at: load (modules/gdscript/gdscript.cpp:2936)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5718505Z SCRIPT ERROR: Parse Error: Could not resolve super class path "res://addons/gut/test.gd".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5719548Z           at: GDScript::reload (res://tests/unit/test_swarm_tab.gd:1)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5720157Z ERROR: Failed to load script "res://tests/unit/test_swarm_tab.gd" with error "Parse error".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5720733Z    at: load (modules/gdscript/gdscript.cpp:2936)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5728627Z SCRIPT ERROR: Parse Error: Could not resolve super class path "res://addons/gut/test.gd".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5730124Z           at: GDScript::reload (res://tests/unit/test_xr_config.gd:1)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5730916Z ERROR: Failed to load script "res://tests/unit/test_xr_config.gd" with error "Parse error".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5731625Z    at: load (modules/gdscript/gdscript.cpp:2936)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5742421Z SCRIPT ERROR: Parse Error: Could not resolve super class path "res://addons/gut/test.gd".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5743317Z           at: GDScript::reload (res://tests/unit/test_xr_visual_accessibility.gd:1)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5744251Z ERROR: Failed to load script "res://tests/unit/test_xr_visual_accessibility.gd" with error "Parse error".
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5745038Z    at: load (modules/gdscript/gdscript.cpp:2936)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.5813635Z reimport: end
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6249336Z export: begin: Exporting for Android steps: 105
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6249896Z Exporting for Android...
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6250284Z - debug build: false
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6250708Z - export path: export/visionclaw-xr.apk
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6251125Z - export format: 0
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6251340Z - sign build: true
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6251558Z - gradle build enabled: true
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6251810Z - apk expansion enabled: false
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6252054Z - enabled abis: arm64-v8a
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6252280Z - export filter: 0
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6252480Z - include filter: 
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6252678Z - exclude filter: 
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6252881Z Loading regular icon from 
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6253164Z - falling back to project icon: res://icon.svg
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6253736Z Loading adaptive foreground icon from 
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6254168Z - falling back to using the regular icon
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6254613Z 0 param: --xr_mode_openxr
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6255197Z 1 param: --use_immersive
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6255695Z Starting gradle build...
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6256096Z Checking build version...
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6256399Z - build version: 4.3.stable
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6257017Z Java sdk path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6257424Z Android sdk path: /usr/local/lib/android/sdk
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.6257817Z Creating strings resources for supported locales for project VisionClaw XR
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.7824812Z Processing launcher icon for dimension 192 into res/mipmap-xxxhdpi-v4/icon.png
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.7879137Z Processing launcher adaptive icon p_foreground for dimension 432 into res/mipmap-xxxhdpi-v4/icon_foreground.png
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8128257Z Processing launcher icon for dimension 144 into res/mipmap-xxhdpi-v4/icon.png
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8168981Z Processing launcher adaptive icon p_foreground for dimension 324 into res/mipmap-xxhdpi-v4/icon_foreground.png
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8314749Z Processing launcher icon for dimension 96 into res/mipmap-xhdpi-v4/icon.png
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8333544Z Processing launcher adaptive icon p_foreground for dimension 216 into res/mipmap-xhdpi-v4/icon_foreground.png
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8407732Z Processing launcher icon for dimension 72 into res/mipmap-hdpi-v4/icon.png
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8421076Z Processing launcher adaptive icon p_foreground for dimension 162 into res/mipmap-hdpi-v4/icon_foreground.png
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8476094Z Processing launcher icon for dimension 48 into res/mipmap-mdpi-v4/icon.png
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8489186Z Processing launcher adaptive icon p_foreground for dimension 108 into res/mipmap-mdpi-v4/icon_foreground.png
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8514793Z Processing launcher icon for dimension 192 into res/mipmap/icon.png
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8563236Z Processing launcher adaptive icon p_foreground for dimension 432 into res/mipmap/icon_foreground.png
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8805011Z Building temporary manifest...
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8808696Z Storing manifest into res://android/build/src/release/AndroidManifest.xml: 
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8809502Z <?xml version="1.0" encoding="utf-8"?>
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8809881Z <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8810687Z     xmlns:tools="http://schemas.android.com/tools">
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8811124Z     <supports-screens 
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8811365Z         tools:node="replace"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8811612Z         android:smallScreens="true"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8811874Z         android:normalScreens="true"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8812128Z         android:largeScreens="true"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8812391Z         android:xlargeScreens="true" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8812774Z     <uses-feature android:glEsVersion="0x00030000" android:required="true" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8813292Z     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8813797Z     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8814290Z     <uses-permission android:name="android.permission.INTERNET" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8814776Z     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8815253Z     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8815714Z     <uses-permission android:name="android.permission.VIBRATE" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8816135Z     <uses-permission android:name="android.permission.WAKE_LOCK" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8816580Z     <uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8817035Z     <uses-permission android:name="com.oculus.permission.USE_SCENE" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8817485Z     <uses-permission android:name="com.oculus.permission.USE_ANCHOR_API" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8818139Z     <uses-feature tools:node="replace" android:name="android.hardware.vulkan.level" android:required="false" android:version="1" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8819345Z     <uses-feature tools:node="replace" android:name="android.hardware.vulkan.version" android:required="true" android:version="0x400003" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8820443Z     <application android:label="@string/godot_project_name_string"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8820966Z         android:allowBackup="false"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8821420Z         android:icon="@mipmap/icon"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8821678Z         android:appCategory="game"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8821927Z         android:isGame="true"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8822185Z         android:hasFragileUserData="false"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8822499Z         android:requestLegacyExternalStorage="false"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8823142Z         tools:replace="android:allowBackup,android:appCategory,android:isGame,android:hasFragileUserData,android:requestLegacyExternalStorage"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8823773Z         tools:ignore="GoogleAppIndexingWarning">
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8823975Z 
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8824916Z         <activity android:name="com.godot.game.GodotApp" tools:replace="android:screenOrientation,android:excludeFromRecents,android:resizeableActivity" tools:node="mergeOnlyAttributes" android:excludeFromRecents="false" android:screenOrientation="landscape" android:resizeableActivity="true">
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8826030Z             <intent-filter>
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8826343Z                 <action android:name="android.intent.action.MAIN" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8826764Z                 <category android:name="android.intent.category.DEFAULT" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8827203Z                 <category android:name="android.intent.category.LAUNCHER" />
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8827558Z             </intent-filter>
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8827785Z         </activity>
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8827985Z     </application>
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8828185Z </manifest>
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8828292Z 
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8828406Z Clearing APK assets directory...
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8828679Z Removing previously installed libraries...
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8829095Z No previously installed libraries found
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.8829374Z Exporting project files...
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9351346Z Saving project files from res://materials/agent_beam.gdshader into res://android/build/assets/materials/agent_beam.gdshader
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9370355Z Saving project files from res://.godot/exported/133200997/export-33b83cd9914c0364a5d60a381b588ba1-agent_beam.res into res://android/build/assets/.godot/exported/133200997/export-33b83cd9914c0364a5d60a381b588ba1-agent_beam.res
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9391154Z Saving project files from res://.godot/exported/133200997/export-e44dbbce97a0273687ea550056930ec8-agent_capsule.res into res://android/build/assets/.godot/exported/133200997/export-e44dbbce97a0273687ea550056930ec8-agent_capsule.res
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9410478Z Saving project files from res://.godot/exported/133200997/export-beffc7031cb26d0e68fbc6acb604bda0-crystal_orb.res into res://android/build/assets/.godot/exported/133200997/export-beffc7031cb26d0e68fbc6acb604bda0-crystal_orb.res
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9412525Z Saving project files from res://materials/edge_flow.gdshader into res://android/build/assets/materials/edge_flow.gdshader
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9432275Z Saving project files from res://.godot/exported/133200997/export-56b6a61810fb74f30f0875efdc990c73-edge_flow.res into res://android/build/assets/.godot/exported/133200997/export-56b6a61810fb74f30f0875efdc990c73-edge_flow.res
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9434348Z Saving project files from res://materials/focus_ring.gdshader into res://android/build/assets/materials/focus_ring.gdshader
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9443608Z Saving project files from res://.godot/exported/133200997/export-396a9f4fdd50ae63b1c45ce437b7e370-gaze_cone.res into res://android/build/assets/.godot/exported/133200997/export-396a9f4fdd50ae63b1c45ce437b7e370-gaze_cone.res
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9461940Z Saving project files from res://.godot/exported/133200997/export-3e2e057ba19b7e2d339ba127188bff01-gem.res into res://android/build/assets/.godot/exported/133200997/export-3e2e057ba19b7e2d339ba127188bff01-gem.res
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9479972Z Saving project files from res://.godot/exported/133200997/export-132e1a2fd72423f69172f070f4e3c641-gem_faded.res into res://android/build/assets/.godot/exported/133200997/export-132e1a2fd72423f69172f070f4e3c641-gem_faded.res
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9481989Z Saving project files from res://materials/node_halo.gdshader into res://android/build/assets/materials/node_halo.gdshader
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9496569Z Saving project files from res://.godot/exported/133200997/export-e1b94c711a5d4987a1891a2b826408e4-node_halo.res into res://android/build/assets/.godot/exported/133200997/export-e1b94c711a5d4987a1891a2b826408e4-node_halo.res
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9498596Z Saving project files from res://materials/spatial_floor.gdshader into res://android/build/assets/materials/spatial_floor.gdshader
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9500227Z Saving project files from res://perf/fixtures/perf_graph_1k.json into res://android/build/assets/perf/fixtures/perf_graph_1k.json
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9511739Z Saving project files from res://perf/benchmark.gdc into res://android/build/assets/perf/benchmark.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9563592Z Saving project files from res://.godot/exported/133200997/export-17fceda17e769d81a0093207baf51d6d-benchmark_scene.scn into res://android/build/assets/.godot/exported/133200997/export-17fceda17e769d81a0093207baf51d6d-benchmark_scene.scn
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9565673Z Saving project files from res://perf/run_benchmark.gdc into res://android/build/assets/perf/run_benchmark.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9609440Z Saving project files from res://.godot/exported/133200997/export-47505bcfed517547c813e474cf85170d-AgentAvatar.scn into res://android/build/assets/.godot/exported/133200997/export-47505bcfed517547c813e474cf85170d-AgentAvatar.scn
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:12.9660477Z Saving project files from res://.godot/exported/133200997/export-0819fd252ad5feb18aa97bde03c17bfb-Avatar.scn into res://android/build/assets/.godot/exported/133200997/export-0819fd252ad5feb18aa97bde03c17bfb-Avatar.scn
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0281129Z Saving project files from res://.godot/exported/133200997/export-2627999b8483771e7607e978342b61ee-GraphScene.scn into res://android/build/assets/.godot/exported/133200997/export-2627999b8483771e7607e978342b61ee-GraphScene.scn
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0329429Z Saving project files from res://.godot/exported/133200997/export-2ea9781d6f9f7562c1d276c7fdd0b0ab-HUD.scn into res://android/build/assets/.godot/exported/133200997/export-2ea9781d6f9f7562c1d276c7fdd0b0ab-HUD.scn
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0384242Z Saving project files from res://.godot/exported/133200997/export-f0fdd384e373199d2fa9e5a2582b5f94-RadialMenu.scn into res://android/build/assets/.godot/exported/133200997/export-f0fdd384e373199d2fa9e5a2582b5f94-RadialMenu.scn
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0416847Z Saving project files from res://.godot/exported/133200997/export-53649cf13210ba3f699afdf595252ac0-XRBoot.scn into res://android/build/assets/.godot/exported/133200997/export-53649cf13210ba3f699afdf595252ac0-XRBoot.scn
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0449788Z Saving project files from res://.godot/exported/133200997/export-02d79533aa54d8c2e7728ccbffdd8b92-xr_min.scn into res://android/build/assets/.godot/exported/133200997/export-02d79533aa54d8c2e7728ccbffdd8b92-xr_min.scn
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0459676Z Saving project files from res://scripts/agent_avatar.gdc into res://android/build/assets/scripts/agent_avatar.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0467857Z Saving project files from res://scripts/avatar.gdc into res://android/build/assets/scripts/avatar.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0471340Z Saving project files from res://scripts/dwell_reticle.gdc into res://android/build/assets/scripts/dwell_reticle.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0604045Z Saving project files from res://scripts/graph_scene.gdc into res://android/build/assets/scripts/graph_scene.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0660063Z Saving project files from res://scripts/hud.gdc into res://android/build/assets/scripts/hud.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0667183Z Saving project files from res://scripts/plane_manager.gdc into res://android/build/assets/scripts/plane_manager.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0674525Z Saving project files from res://scripts/query_builder.gdc into res://android/build/assets/scripts/query_builder.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0677665Z Saving project files from res://scripts/radial_backdrop.gdc into res://android/build/assets/scripts/radial_backdrop.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0686978Z Saving project files from res://scripts/radial_menu.gdc into res://android/build/assets/scripts/radial_menu.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0695720Z Saving project files from res://scripts/spatial_environment.gdc into res://android/build/assets/scripts/spatial_environment.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0700289Z Saving project files from res://scripts/xr_boot.gdc into res://android/build/assets/scripts/xr_boot.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0702889Z Saving project files from res://scripts/xr_min.gdc into res://android/build/assets/scripts/xr_min.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0707758Z Saving project files from res://scripts/xr_theme.gdc into res://android/build/assets/scripts/xr_theme.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0715184Z Saving project files from res://tests/unit/test_agent_avatar.gdc into res://android/build/assets/tests/unit/test_agent_avatar.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0719674Z Saving project files from res://tests/unit/test_agent_beam.gdc into res://android/build/assets/tests/unit/test_agent_beam.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0724468Z Saving project files from res://tests/unit/test_did_badge.gdc into res://android/build/assets/tests/unit/test_did_badge.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0730064Z Saving project files from res://tests/unit/test_graph_agents.gdc into res://android/build/assets/tests/unit/test_graph_agents.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0735518Z Saving project files from res://tests/unit/test_hud_intervention.gdc into res://android/build/assets/tests/unit/test_hud_intervention.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0743308Z Saving project files from res://tests/unit/test_hud_tabs.gdc into res://android/build/assets/tests/unit/test_hud_tabs.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0751988Z Saving project files from res://tests/unit/test_query_builder.gdc into res://android/build/assets/tests/unit/test_query_builder.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0765961Z Saving project files from res://tests/unit/test_scene_load.gdc into res://android/build/assets/tests/unit/test_scene_load.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0770951Z Saving project files from res://tests/unit/test_swarm_tab.gdc into res://android/build/assets/tests/unit/test_swarm_tab.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0774467Z Saving project files from res://tests/unit/test_xr_config.gdc into res://android/build/assets/tests/unit/test_xr_config.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0778634Z Saving project files from res://tests/unit/test_xr_visual_accessibility.gdc into res://android/build/assets/tests/unit/test_xr_visual_accessibility.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0782301Z Saving project files from res://tests/visual/hud_gallery.gdc into res://android/build/assets/tests/visual/hud_gallery.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0785785Z Saving project files from res://tests/run_gut.gdc into res://android/build/assets/tests/run_gut.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0792686Z Saving project files from res://tests/spatial_visual_fixture.gdc into res://android/build/assets/tests/spatial_visual_fixture.gdc
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0846710Z Saving project files from res://.godot/exported/133200997/export-acb2cef5347b5d2301eed9c990148292-spatial_visual_fixture.scn into res://android/build/assets/.godot/exported/133200997/export-acb2cef5347b5d2301eed9c990148292-spatial_visual_fixture.scn
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0848713Z Saving project files from res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex into res://android/build/assets/.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0850475Z Saving project files from res://icon.svg.import into res://android/build/assets/icon.svg.import
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0968396Z Saving project files from res://.godot/exported/133200997/export-a9d757fdde490682a87dc1ad8c7d3357-openxr_action_map.res into res://android/build/assets/.godot/exported/133200997/export-a9d757fdde490682a87dc1ad8c7d3357-openxr_action_map.res
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.0999510Z Copying .so file from res://rust/target/aarch64-linux-android/release/libvisionclaw_xr_gdext.so to res://android/build/libs/release/arm64-v8a/libvisionclaw_xr_gdext.so
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1015120Z Saving project files from res://visionclaw_xr_gdext.gdextension into res://android/build/assets/visionclaw_xr_gdext.gdextension
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1016825Z Saving project files from res://materials/agent_beam.tres.remap into res://android/build/assets/materials/agent_beam.tres.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1018222Z Saving project files from res://materials/agent_capsule.tres.remap into res://android/build/assets/materials/agent_capsule.tres.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1019768Z Saving project files from res://materials/crystal_orb.tres.remap into res://android/build/assets/materials/crystal_orb.tres.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1021104Z Saving project files from res://materials/edge_flow.tres.remap into res://android/build/assets/materials/edge_flow.tres.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1022401Z Saving project files from res://materials/gaze_cone.tres.remap into res://android/build/assets/materials/gaze_cone.tres.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1023724Z Saving project files from res://materials/gem.tres.remap into res://android/build/assets/materials/gem.tres.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1024986Z Saving project files from res://materials/gem_faded.tres.remap into res://android/build/assets/materials/gem_faded.tres.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1026325Z Saving project files from res://materials/node_halo.tres.remap into res://android/build/assets/materials/node_halo.tres.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1027566Z Saving project files from res://perf/benchmark.gd.remap into res://android/build/assets/perf/benchmark.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1028937Z Saving project files from res://perf/benchmark_scene.tscn.remap into res://android/build/assets/perf/benchmark_scene.tscn.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1030231Z Saving project files from res://perf/run_benchmark.gd.remap into res://android/build/assets/perf/run_benchmark.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1031536Z Saving project files from res://scenes/AgentAvatar.tscn.remap into res://android/build/assets/scenes/AgentAvatar.tscn.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1032785Z Saving project files from res://scenes/Avatar.tscn.remap into res://android/build/assets/scenes/Avatar.tscn.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1034032Z Saving project files from res://scenes/GraphScene.tscn.remap into res://android/build/assets/scenes/GraphScene.tscn.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1035433Z Saving project files from res://scenes/HUD.tscn.remap into res://android/build/assets/scenes/HUD.tscn.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1036638Z Saving project files from res://scenes/RadialMenu.tscn.remap into res://android/build/assets/scenes/RadialMenu.tscn.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1037892Z Saving project files from res://scenes/XRBoot.tscn.remap into res://android/build/assets/scenes/XRBoot.tscn.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1039180Z Saving project files from res://scenes/xr_min.tscn.remap into res://android/build/assets/scenes/xr_min.tscn.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1040407Z Saving project files from res://scripts/agent_avatar.gd.remap into res://android/build/assets/scripts/agent_avatar.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1041625Z Saving project files from res://scripts/avatar.gd.remap into res://android/build/assets/scripts/avatar.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1042863Z Saving project files from res://scripts/dwell_reticle.gd.remap into res://android/build/assets/scripts/dwell_reticle.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1044154Z Saving project files from res://scripts/graph_scene.gd.remap into res://android/build/assets/scripts/graph_scene.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1045328Z Saving project files from res://scripts/hud.gd.remap into res://android/build/assets/scripts/hud.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1046528Z Saving project files from res://scripts/plane_manager.gd.remap into res://android/build/assets/scripts/plane_manager.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1047912Z Saving project files from res://scripts/query_builder.gd.remap into res://android/build/assets/scripts/query_builder.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1049413Z Saving project files from res://scripts/radial_backdrop.gd.remap into res://android/build/assets/scripts/radial_backdrop.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1050734Z Saving project files from res://scripts/radial_menu.gd.remap into res://android/build/assets/scripts/radial_menu.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1052262Z Saving project files from res://scripts/spatial_environment.gd.remap into res://android/build/assets/scripts/spatial_environment.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1053591Z Saving project files from res://scripts/xr_boot.gd.remap into res://android/build/assets/scripts/xr_boot.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1054734Z Saving project files from res://scripts/xr_min.gd.remap into res://android/build/assets/scripts/xr_min.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1055896Z Saving project files from res://scripts/xr_theme.gd.remap into res://android/build/assets/scripts/xr_theme.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1057231Z Saving project files from res://tests/unit/test_agent_avatar.gd.remap into res://android/build/assets/tests/unit/test_agent_avatar.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1058669Z Saving project files from res://tests/unit/test_agent_beam.gd.remap into res://android/build/assets/tests/unit/test_agent_beam.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1060224Z Saving project files from res://tests/unit/test_did_badge.gd.remap into res://android/build/assets/tests/unit/test_did_badge.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1061652Z Saving project files from res://tests/unit/test_graph_agents.gd.remap into res://android/build/assets/tests/unit/test_graph_agents.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1063165Z Saving project files from res://tests/unit/test_hud_intervention.gd.remap into res://android/build/assets/tests/unit/test_hud_intervention.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1064630Z Saving project files from res://tests/unit/test_hud_tabs.gd.remap into res://android/build/assets/tests/unit/test_hud_tabs.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1066050Z Saving project files from res://tests/unit/test_query_builder.gd.remap into res://android/build/assets/tests/unit/test_query_builder.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1067498Z Saving project files from res://tests/unit/test_scene_load.gd.remap into res://android/build/assets/tests/unit/test_scene_load.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1069090Z Saving project files from res://tests/unit/test_swarm_tab.gd.remap into res://android/build/assets/tests/unit/test_swarm_tab.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1070874Z Saving project files from res://tests/unit/test_xr_config.gd.remap into res://android/build/assets/tests/unit/test_xr_config.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1087468Z Saving project files from res://tests/unit/test_xr_visual_accessibility.gd.remap into res://android/build/assets/tests/unit/test_xr_visual_accessibility.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1089177Z Saving project files from res://tests/visual/hud_gallery.gd.remap into res://android/build/assets/tests/visual/hud_gallery.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1089957Z Saving project files from res://tests/run_gut.gd.remap into res://android/build/assets/tests/run_gut.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1090735Z Saving project files from res://tests/spatial_visual_fixture.gd.remap into res://android/build/assets/tests/spatial_visual_fixture.gd.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1091620Z Saving project files from res://tests/spatial_visual_fixture.tscn.remap into res://android/build/assets/tests/spatial_visual_fixture.tscn.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1092481Z Saving project files from res://openxr_action_map.tres.remap into res://android/build/assets/openxr_action_map.tres.remap
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1093306Z Saving project files from res://.godot/global_script_class_cache.cfg into res://android/build/assets/.godot/global_script_class_cache.cfg
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1093991Z Saving project files from res://icon.svg into res://android/build/assets/icon.svg
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1094579Z Saving project files from res://.godot/uid_cache.bin into res://android/build/assets/.godot/uid_cache.bin
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1095126Z ERROR: Code Signing: Could not find keystore, unable to export.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1095527Z    at: add_message (editor/export/editor_export_platform.h:182)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1095901Z ERROR: Project export for preset "Quest 3 arm64" failed.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1096240Z    at: _fs_changed (editor/editor_node.cpp:1028)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1096772Z Saving project files from res://.godot/extension_list.cfg into res://android/build/assets/.godot/extension_list.cfg
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1097677Z Saving project files from res://project.binary into res://android/build/assets/project.binary
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1098131Z Storing command line flags...
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1098546Z Updating JAVA_HOME environment to /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1099287Z Updating ANDROID_HOME environment to /usr/local/lib/android/sdk
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1099662Z Build Android project using gradle command: 
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1101770Z /home/runner/work/VisionClaw/VisionClaw/xr-client/android/build/gradlew validateJavaVersion clean assembleRelease -p /home/runner/work/VisionClaw/VisionClaw/xr-client/android/build -Pexport_package_name=uk.xrsystems.visionclaw.xr -Pexport_version_code=1 -Pexport_version_name=0.1.0 -Pexport_version_min_sdk=29 -Pexport_version_target_sdk=34 -Pexport_enabled_abis=arm64-v8a -Pplugins_local_binaries= -Pplugins_remote_binaries= -Pplugins_maven_repos= -Pperform_zipalign=true -Pperform_signing=true -Pcompress_native_libraries=false -Pgodot_editor_version=4.3.stable
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.1103999Z export: end
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.9211185Z EditorSettings: Save OK!
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.9426129Z XR: Clearing primary interface
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.9428544Z XR: Removed interface "Native mobile"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:13.9429135Z XR: Removed interface "OpenXR"
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:14.0609904Z Orphan StringName: Start (static: 0, total: 1)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:14.0611363Z Orphan StringName: Node (static: 8, total: 9)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:14.0612357Z Orphan StringName: End (static: 0, total: 1)
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:14.0612887Z StringName: 3 unclaimed string names at exit.
+Quest 3 arm64 APK export (advisory until first green run)	Export Quest 3 arm64 APK	2026-09-07T13:21:14.1019262Z ##[error]Process completed with exit code 1.

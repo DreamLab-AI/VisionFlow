@@ -31,7 +31,7 @@ sources:
   - docs/BASELINE-visionflow.md
   - docs/protocol/mesh-smoke-test.md
   - package.json
-verified_commit: bec06dc3a
+verified_commit: ffc894722544c7514b002848e721062c6b47627c
 ---
 
 ## VF-05.1 Gate route table — trigger, script, verdict, blocking

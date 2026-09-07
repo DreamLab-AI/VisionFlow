@@ -1,0 +1,105 @@
+{
+  "at": "2026-09-07T13:12:27.293Z",
+  "browser": "sidecar Chrome via CDP 9223",
+  "scope": "Read-only public/candidate journeys; no identity credentials, submissions or device acceptance",
+  "records": [
+    {
+      "name": "explorer",
+      "url": "http://172.20.0.5:8109/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 4677
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "home-mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "requestedWidth": 375,
+            "viewport": 375,
+            "clientWidth": 375,
+            "width": 375
+          }
+        },
+        {
+          "name": "search-journey",
+          "ok": true,
+          "detail": {
+            "url": "http://172.20.0.5:8109/search?q=Agent",
+            "text": "Skip to content\nNarrative Goldmine\nHome\nGraph\nSearch\nData\nAbout\nResearch notes\nSearch\nSearch\n\n0 results for “Agent” in 0ms\n\nNo results for “Agent”\n\nTry different keywords, a broader term, or an exact IRI fragment.\n\nNarrative Goldmine\n\nThe readable tier of the DreamLab knowledge mesh.\n\nThis corpus also renders live inside VisionClaw\n, an ontology-grounded 3D reasoning engine. This site is the Lexicon; VisionClaw is the Laboratory.\n\nTHE MESH\nVisionFlow\nGPU knowledge-graph engine & physics.\nVisionClaw\nThe immersive 3D reasoning laboratory.\nagentbox\nSovereign agent runtime & skills mesh.\nsolid-pod-rs\nRust Solid pod — personal data sovereignty.\nnostr-rust-forum\nNostr-native forum & relay in Rust.\ndreamlab-ai-website\nThe DreamLab AI studio front door.\nknowledgeGraph\nPublished corpus mirror & site source.\nREAD\nSearch the corpus\nExplore the graph\nThe site is an API\nResearch notes\n\nCorpus curated by Dr John O’Hare · DreamLab AI. Attributed prov:wasAttributedTo did:nostr:jjohare, reasoned under EL++.\n\nSource is the private jjohare/logseq graph. Published artifacts are open and documented on Data."
+          }
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "requestedWidth": 375,
+            "viewport": 375,
+            "clientWidth": 375,
+            "width": 375,
+            "bodyWidth": 375
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "http://172.20.0.5:8109/",
+        "title": "Narrative Goldmine — the DreamLab knowledge mesh",
+        "text": 4677,
+        "headings": [
+          "A 6.8-million-word corpus of the Fourth Industrial Revolution, compiled into a reasoned formal ontology.",
+          "Three layers, read bottom-up",
+          "Six domains, one map",
+          "Honest by construction",
+          "One node in a sovereign mesh",
+          "The mesh",
+          "Read"
+        ],
+        "brokenImages": []
+      },
+      "homeMobile": {
+        "requestedWidth": 375,
+        "viewport": 375,
+        "clientWidth": 375,
+        "width": 375
+      },
+      "searchStarted": true,
+      "searchSubmit": {
+        "x": 642.625,
+        "y": 449.578125
+      },
+      "search": {
+        "url": "http://172.20.0.5:8109/search?q=Agent",
+        "text": "Skip to content\nNarrative Goldmine\nHome\nGraph\nSearch\nData\nAbout\nResearch notes\nSearch\nSearch\n\n0 results for “Agent” in 0ms\n\nNo results for “Agent”\n\nTry different keywords, a broader term, or an exact IRI fragment.\n\nNarrative Goldmine\n\nThe readable tier of the DreamLab knowledge mesh.\n\nThis corpus also renders live inside VisionClaw\n, an ontology-grounded 3D reasoning engine. This site is the Lexicon; VisionClaw is the Laboratory.\n\nTHE MESH\nVisionFlow\nGPU knowledge-graph engine & physics.\nVisionClaw\nThe immersive 3D reasoning laboratory.\nagentbox\nSovereign agent runtime & skills mesh.\nsolid-pod-rs\nRust Solid pod — personal data sovereignty.\nnostr-rust-forum\nNostr-native forum & relay in Rust.\ndreamlab-ai-website\nThe DreamLab AI studio front door.\nknowledgeGraph\nPublished corpus mirror & site source.\nREAD\nSearch the corpus\nExplore the graph\nThe site is an API\nResearch notes\n\nCorpus curated by Dr John O’Hare · DreamLab AI. Attributed prov:wasAttributedTo did:nostr:jjohare, reasoned under EL++.\n\nSource is the private jjohare/logseq graph. Published artifacts are open and documented on Data."
+      },
+      "mobile": {
+        "requestedWidth": 375,
+        "viewport": 375,
+        "clientWidth": 375,
+        "width": 375,
+        "bodyWidth": 375
+      },
+      "screenshot": {
+        "path": "explorer-mobile.png",
+        "sha256": "bad09fd46624af33ad27b2d039dc0e72dd9c443d0ec6f86993b804c46fde6c1a"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "http://172.20.0.5:8109/",
+          "status": 200
+        }
+      ]
+    }
+  ]
+}

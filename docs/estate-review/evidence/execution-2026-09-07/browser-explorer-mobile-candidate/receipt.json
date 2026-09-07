@@ -1,0 +1,107 @@
+{
+  "at": "2026-09-07T13:09:12.358Z",
+  "browser": "sidecar Chrome via CDP 9223",
+  "scope": "Read-only public/candidate journeys; no identity credentials, submissions or device acceptance",
+  "records": [
+    {
+      "name": "explorer",
+      "url": "http://agentbox:8109/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": false,
+          "detail": 135
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "home-mobile-no-overflow",
+          "ok": false,
+          "detail": {
+            "requestedWidth": 375,
+            "viewport": 981,
+            "clientWidth": 980,
+            "width": 981
+          }
+        },
+        {
+          "name": "search-journey",
+          "ok": false,
+          "detail": {
+            "url": "http://agentbox:8109/",
+            "text": "Blocked request. This host (\"agentbox\") is not allowed.\nTo allow this host, add \"agentbox\" to `preview.allowedHosts` in vite.config.js."
+          }
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": false,
+          "detail": {
+            "requestedWidth": 375,
+            "viewport": 981,
+            "clientWidth": 980,
+            "width": 981,
+            "bodyWidth": 964
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "http://agentbox:8109/",
+        "title": "",
+        "text": 135,
+        "headings": [],
+        "brokenImages": []
+      },
+      "homeMobile": {
+        "requestedWidth": 375,
+        "viewport": 981,
+        "clientWidth": 980,
+        "width": 981
+      },
+      "searchStarted": false,
+      "search": {
+        "url": "http://agentbox:8109/",
+        "text": "Blocked request. This host (\"agentbox\") is not allowed.\nTo allow this host, add \"agentbox\" to `preview.allowedHosts` in vite.config.js."
+      },
+      "mobile": {
+        "requestedWidth": 375,
+        "viewport": 981,
+        "clientWidth": 980,
+        "width": 981,
+        "bodyWidth": 964
+      },
+      "overflow": [
+        {
+          "tag": "PRE",
+          "class": "",
+          "right": 972,
+          "width": 964
+        },
+        {
+          "tag": "PROTONPASS-ROOT-E72F",
+          "class": "",
+          "right": 981,
+          "width": 981
+        }
+      ],
+      "screenshot": {
+        "path": "explorer-mobile.png",
+        "sha256": "e84e854f2a86897197042db8de14862a59178b4a64e22993794a381b169e88c0"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "http://agentbox:8109/",
+          "status": 403
+        }
+      ]
+    }
+  ]
+}

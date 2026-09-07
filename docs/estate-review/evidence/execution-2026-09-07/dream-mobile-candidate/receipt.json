@@ -1,0 +1,74 @@
+{
+  "at": "2026-09-07T13:27:16.711Z",
+  "browser": "sidecar Chrome via CDP 9223",
+  "scope": "Read-only public/candidate journeys; no identity credentials, submissions or device acceptance",
+  "records": [
+    {
+      "name": "dream",
+      "url": "http://172.20.0.5:8110/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 10269
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "requestedWidth": 375,
+            "viewport": 375,
+            "clientWidth": 375,
+            "width": 375,
+            "bodyWidth": 375
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "cacheDisabled": true,
+      "page": {
+        "url": "http://172.20.0.5:8110/",
+        "title": "Dream Machine — evidence-gated nightly repository evolution",
+        "text": 10269,
+        "headings": [
+          "One honest cycle,\n          every single night.",
+          "An engine, extracted from two routines that already run.",
+          "Thirteen stages, one verdict.",
+          "Every night ends in exactly one. Never a fourth, never silence.",
+          "Optional backends, selected by config.",
+          "Six commands.",
+          "Go deeper.",
+          "Dream Machine"
+        ],
+        "brokenImages": []
+      },
+      "mobile": {
+        "requestedWidth": 375,
+        "viewport": 375,
+        "clientWidth": 375,
+        "width": 375,
+        "bodyWidth": 375
+      },
+      "screenshot": {
+        "path": "dream-mobile.png",
+        "sha256": "7f1de12e1b8b5cb835dd0de1720a5bf9a841bf0608796ffcfc3c8142d635fab2"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "http://172.20.0.5:8110/",
+          "status": 200
+        }
+      ]
+    }
+  ]
+}

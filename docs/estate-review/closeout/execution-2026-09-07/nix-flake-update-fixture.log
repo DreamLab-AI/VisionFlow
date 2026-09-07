@@ -1,0 +1,4 @@
+warning: creating lock file "/tmp/agentbox-flake-update-fixture.LR4L4K/flake.lock": 
+• Added input 'dep':
+    'path:./dep'
+FLAKE_UPDATE_WRITES_LOCK_WITHOUT_COMMIT_PASS

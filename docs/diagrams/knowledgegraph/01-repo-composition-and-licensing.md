@@ -15,7 +15,7 @@ sources:
   - ../knowledgeGraph/docs/ci-cd/build-and-gates.md
   - ../knowledgeGraph/docs/architecture/explorer.md
   - ../knowledgeGraph/.github/workflows/build.yml
-verified_commit: 2791111fc
+verified_commit: 75a5c1f1acda50bfe9d66a92a5343cf12f8b84ef
 ---
 
 ## KG-01.1 Repository composition — a corpus, a pipeline and a viewer in one tree

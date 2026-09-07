@@ -1,0 +1,460 @@
+fmt	UNKNOWN STEP	﻿2026-09-07T11:54:01.9555055Z Current runner version: '2.337.0'
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9574603Z ##[group]Runner Image Provisioner
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9575308Z Hosted Compute Agent
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9575895Z Version: 20260828.587
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9576426Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9577061Z Build Date: 2026-08-28T16:44:25Z
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9577657Z Worker ID: {3ec5691e-8458-4ca1-b6ba-1eb6bde44bdf}
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9578245Z Azure Region: mexicocentral
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9578754Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9580237Z ##[group]Operating System
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9580764Z Ubuntu
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9581292Z 24.04.4
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9581743Z LTS
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9582148Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9582671Z ##[group]Runner Image
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9583199Z Image: ubuntu-24.04
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9583689Z Version: 20260831.293.1
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9584757Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260831.293/images/ubuntu/Ubuntu2404-Readme.md
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9586060Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260831.293
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9586833Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9587849Z ##[group]GITHUB_TOKEN Permissions
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9589549Z Contents: read
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9590390Z Metadata: read
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9590870Z Packages: read
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9591324Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9593070Z Secret source: Actions
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9593898Z Prepare workflow directory
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9898926Z Prepare all required actions
+fmt	UNKNOWN STEP	2026-09-07T11:54:01.9938271Z Getting action download info
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.2744825Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.4265059Z Download action repository 'dtolnay/rust-toolchain@stable' (SHA:6bed0761d98439e5a578e2877258200ad565ba87)
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.7611830Z Complete job name: fmt
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8172289Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8179138Z ##[group]Run actions/checkout@v4
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8180030Z with:
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8180408Z   repository: DreamLab-AI/nostr-rust-forum
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8183460Z   token: ***
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8183818Z   ssh-strict: true
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8184177Z   ssh-user: git
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8184532Z   persist-credentials: true
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8184916Z   clean: true
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8185270Z   sparse-checkout-cone-mode: true
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8185679Z   fetch-depth: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8186017Z   fetch-tags: false
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8186376Z   show-progress: true
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8186734Z   lfs: false
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8187099Z   submodules: false
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8187458Z   set-safe-directory: true
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8187863Z   allow-unsafe-pr-checkout: false
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8188398Z env:
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8188726Z   CARGO_TERM_COLOR: always
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8189102Z   CARGO_INCREMENTAL: 0
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8189620Z   CARGO_NET_RETRY: 10
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8189968Z   RUST_BACKTRACE: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8190306Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8961284Z Syncing repository: DreamLab-AI/nostr-rust-forum
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8963274Z ##[group]Getting Git version info
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8964228Z Working directory is '/home/runner/work/nostr-rust-forum/nostr-rust-forum'
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.8965619Z [command]/usr/bin/git version
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9016801Z git version 2.55.0
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9033161Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9045787Z Temporarily overriding HOME='/home/runner/work/_temp/e696a67a-7609-414b-a53a-7f87808cc644' before making global git config changes
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9047955Z Adding repository directory to the temporary git global config as a safe directory
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9052189Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/nostr-rust-forum/nostr-rust-forum
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9103918Z Deleting the contents of '/home/runner/work/nostr-rust-forum/nostr-rust-forum'
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9105631Z ##[group]Initializing the repository
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9111346Z [command]/usr/bin/git init /home/runner/work/nostr-rust-forum/nostr-rust-forum
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9250349Z hint: Using 'master' as the name for the initial branch. This default branch name
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9251652Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9252840Z hint: to use in all of your new repositories, which will suppress this warning,
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9253794Z hint: call:
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9254365Z hint:
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9255076Z hint: 	git config --global init.defaultBranch <name>
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9255802Z hint:
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9256507Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9257704Z hint: 'development'. The just-created branch can be renamed via this command:
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9258463Z hint:
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9258818Z hint: 	git branch -m <name>
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9259214Z hint:
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9259964Z hint: Disable this message with "git config set advice.defaultBranchName false"
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9260866Z Initialized empty Git repository in /home/runner/work/nostr-rust-forum/nostr-rust-forum/.git/
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9263221Z [command]/usr/bin/git remote add origin https://github.com/DreamLab-AI/nostr-rust-forum
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9306788Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9313291Z ##[group]Disabling automatic garbage collection
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9331337Z [command]/usr/bin/git config --local gc.auto 0
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9358181Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9359560Z ##[group]Setting up auth
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9364168Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9393223Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9712807Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9744752Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9932618Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+fmt	UNKNOWN STEP	2026-09-07T11:54:02.9961594Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+fmt	UNKNOWN STEP	2026-09-07T11:54:03.0161600Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+fmt	UNKNOWN STEP	2026-09-07T11:54:03.0197788Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:03.0208627Z ##[group]Fetching the repository
+fmt	UNKNOWN STEP	2026-09-07T11:54:03.0210028Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +380a595f150dd96bfe27ff278fff9ded1be7fbd0:refs/remotes/origin/main
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.4088871Z From https://github.com/DreamLab-AI/nostr-rust-forum
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.4090461Z  * [new ref]         380a595f150dd96bfe27ff278fff9ded1be7fbd0 -> origin/main
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.4093597Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.4094850Z ##[group]Determining the checkout info
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.4096328Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.4100872Z [command]/usr/bin/git sparse-checkout disable
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.4146270Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.4747478Z ##[group]Checking out the ref
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.4787529Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.5290319Z Switched to a new branch 'main'
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.5294250Z branch 'main' set up to track 'origin/main'.
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.5301701Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.5337577Z [command]/usr/bin/git log -1 --format=%H
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.5360316Z 380a595f150dd96bfe27ff278fff9ded1be7fbd0
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.5847540Z ##[group]Run dtolnay/rust-toolchain@stable
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.5848573Z with:
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.5849445Z   components: rustfmt
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.5850256Z   toolchain: stable
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.5851024Z env:
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.5851752Z   CARGO_TERM_COLOR: always
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.5852594Z   CARGO_INCREMENTAL: 0
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.5853399Z   CARGO_NET_RETRY: 10
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.5854201Z   RUST_BACKTRACE: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.5854968Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.5923973Z ##[start-action display=Parse toolchain version;id=__dtolnay_rust-toolchain.parse]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6043401Z ##[group]Run if [[ -z $toolchain ]]; then
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6044455Z ^[[36;1mif [[ -z $toolchain ]]; then^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6045971Z ^[[36;1m  # GitHub does not enforce `required: true` inputs itself. https://github.com/actions/runner/issues/1070^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6047622Z ^[[36;1m  echo "'toolchain' is a required input" >&2^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6048604Z ^[[36;1m  exit 1^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6049842Z ^[[36;1melif [[ $toolchain =~ ^stable' '[0-9]+' '(year|month|week|day)s?' 'ago$ ]]; then^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6051116Z ^[[36;1m  if [[ Linux == macOS ]]; then^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6052656Z ^[[36;1m    echo "toolchain=1.$((($(date -v-$(sed 's/stable \([0-9]*\) \(.\).*/\1\2/' <<< $toolchain) +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6054176Z ^[[36;1m  else^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6055388Z ^[[36;1m    echo "toolchain=1.$((($(date --date "${toolchain#stable }" +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6056808Z ^[[36;1m  fi^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6057746Z ^[[36;1melif [[ $toolchain =~ ^stable' 'minus' '[0-9]+' 'releases?$ ]]; then^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6059422Z ^[[36;1m  echo "toolchain=1.$((($(date +%s)/60/60/24-16569)/7/6-${toolchain//[^0-9]/}))" >> $GITHUB_OUTPUT^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6060823Z ^[[36;1melif [[ $toolchain =~ ^1\.[0-9]+$ ]]; then^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6062382Z ^[[36;1m  echo "toolchain=1.$((i=${toolchain#1.}, c=($(date +%s)/60/60/24-16569)/7/6, i+9*i*(10*i<=c)+90*i*(100*i<=c)))" >> $GITHUB_OUTPUT^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6063890Z ^[[36;1melse^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6064700Z ^[[36;1m  echo "toolchain=$toolchain" >> $GITHUB_OUTPUT^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6065672Z ^[[36;1mfi^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6102967Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6104010Z env:
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6104680Z   CARGO_TERM_COLOR: always
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6105485Z   CARGO_INCREMENTAL: 0
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6106219Z   CARGO_NET_RETRY: 10
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6106940Z   RUST_BACKTRACE: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6107645Z   toolchain: stable
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6108338Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6214869Z ##[end-action id=__dtolnay_rust-toolchain.parse;outcome=success;conclusion=success;duration_ms=28]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6229019Z ##[start-action display=Construct rustup command line;id=__dtolnay_rust-toolchain.flags]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6268378Z ##[group]Run echo "targets=$(for t in ${targets//,/ }; do echo -n ' --target' $t; done)" >> $GITHUB_OUTPUT
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6270320Z ^[[36;1mecho "targets=$(for t in ${targets//,/ }; do echo -n ' --target' $t; done)" >> $GITHUB_OUTPUT^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6272198Z ^[[36;1mecho "components=$(for c in ${components//,/ }; do echo -n ' --component' $c; done)" >> $GITHUB_OUTPUT^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6273695Z ^[[36;1mecho "downgrade=" >> $GITHUB_OUTPUT^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6303980Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6305030Z env:
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6305705Z   CARGO_TERM_COLOR: always
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6306502Z   CARGO_INCREMENTAL: 0
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6307248Z   CARGO_NET_RETRY: 10
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6307975Z   RUST_BACKTRACE: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6308683Z   targets: 
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6309585Z   components: rustfmt
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6310314Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6383114Z ##[end-action id=__dtolnay_rust-toolchain.flags;outcome=success;conclusion=success;duration_ms=15]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6388464Z ##[start-action display=Set $CARGO_HOME;id=__dtolnay_rust-toolchain.__run]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6419965Z ##[group]Run echo CARGO_HOME=${CARGO_HOME:-"$HOME/.cargo"} >> $GITHUB_ENV
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6421381Z ^[[36;1mecho CARGO_HOME=${CARGO_HOME:-"$HOME/.cargo"} >> $GITHUB_ENV^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6451429Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6452475Z env:
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6453200Z   CARGO_TERM_COLOR: always
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6453992Z   CARGO_INCREMENTAL: 0
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6454768Z   CARGO_NET_RETRY: 10
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6455500Z   RUST_BACKTRACE: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6456211Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6521065Z ##[end-action id=__dtolnay_rust-toolchain.__run;outcome=success;conclusion=success;duration_ms=13]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6526257Z ##[start-action display=Install rustup if needed;id=__dtolnay_rust-toolchain.__run_2]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6565788Z ##[group]Run if ! command -v rustup &>/dev/null; then
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6566888Z ^[[36;1mif ! command -v rustup &>/dev/null; then^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6569004Z ^[[36;1m  curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused --location --silent --show-error --fail https://sh.rustup.rs | sh -s -- --default-toolchain none -y^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6571351Z ^[[36;1m  echo "$CARGO_HOME/bin" >> $GITHUB_PATH^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6572337Z ^[[36;1mfi^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6601693Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6602743Z env:
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6603407Z   CARGO_TERM_COLOR: always
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6604217Z   CARGO_INCREMENTAL: 0
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6604955Z   CARGO_NET_RETRY: 10
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6605683Z   RUST_BACKTRACE: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6606411Z   CARGO_HOME: /home/runner/.cargo
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6607232Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6670690Z ##[end-action id=__dtolnay_rust-toolchain.__run_2;outcome=success;conclusion=success;duration_ms=14]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6675923Z ##[start-action display=Install rustup if needed on windows;id=__dtolnay_rust-toolchain.__run_3]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6687614Z ##[end-action id=__dtolnay_rust-toolchain.__run_3;outcome=skipped;conclusion=skipped;duration_ms=0]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6699836Z ##[start-action display=rustup toolchain install stable;id=__dtolnay_rust-toolchain.__run_4]
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6732076Z ##[group]Run rustup toolchain install stable --component rustfmt --profile minimal --no-self-update
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6733985Z ^[[36;1mrustup toolchain install stable --component rustfmt --profile minimal --no-self-update^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6764421Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6765419Z env:
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6766057Z   CARGO_TERM_COLOR: always
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6766817Z   CARGO_INCREMENTAL: 0
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6767533Z   CARGO_NET_RETRY: 10
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6768254Z   RUST_BACKTRACE: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6768966Z   CARGO_HOME: /home/runner/.cargo
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6769892Z   RUSTUP_PERMIT_COPY_RENAME: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:04.6770675Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:06.4746420Z info: syncing channel updates for stable-x86_64-unknown-linux-gnu
+fmt	UNKNOWN STEP	2026-09-07T11:54:06.7906330Z info: latest update on 2026-09-03 for version 1.98.1 (48a229cea 2026-09-01)
+fmt	UNKNOWN STEP	2026-09-07T11:54:06.8068869Z info: removing previous version of component clippy
+fmt	UNKNOWN STEP	2026-09-07T11:54:06.8084441Z info: removing previous version of component rustfmt
+fmt	UNKNOWN STEP	2026-09-07T11:54:06.9041161Z info: removing previous version of component cargo
+fmt	UNKNOWN STEP	2026-09-07T11:54:06.9081266Z info: removing previous version of component rust-std
+fmt	UNKNOWN STEP	2026-09-07T11:54:06.9118916Z info: removing previous version of component rustc
+fmt	UNKNOWN STEP	2026-09-07T11:54:06.9162976Z info: downloading 5 components
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2133111Z 
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2195144Z   stable-x86_64-unknown-linux-gnu updated - rustc 1.98.1 (48a229cea 2026-09-01) (from rustc 1.98.0 (88d9e12ae 2026-08-18))
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2196070Z 
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2285340Z ##[end-action id=__dtolnay_rust-toolchain.__run_4;outcome=success;conclusion=success;duration_ms=9558]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2293169Z ##[start-action display=rustup default stable;id=__dtolnay_rust-toolchain.__run_5]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2311774Z ##[group]Run rustup default stable
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2312043Z ^[[36;1mrustup default stable^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2345046Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2345325Z env:
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2345499Z   CARGO_TERM_COLOR: always
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2345706Z   CARGO_INCREMENTAL: 0
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2345886Z   CARGO_NET_RETRY: 10
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2346057Z   RUST_BACKTRACE: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2346249Z   CARGO_HOME: /home/runner/.cargo
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2346451Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2438870Z info: using existing install for stable-x86_64-unknown-linux-gnu
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2444647Z info: default toolchain set to stable-x86_64-unknown-linux-gnu
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2444916Z 
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2501495Z   stable-x86_64-unknown-linux-gnu unchanged - rustc 1.98.1 (48a229cea 2026-09-01)
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2501930Z 
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2503204Z info: note that the toolchain 'stable-x86_64-unknown-linux-gnu' is currently in use (overridden by '/home/runner/work/nostr-rust-forum/nostr-rust-forum/rust-toolchain.toml')
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2516119Z ##[end-action id=__dtolnay_rust-toolchain.__run_5;outcome=success;conclusion=success;duration_ms=22]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2518242Z ##[start-action display=Create cachekey;id=__dtolnay_rust-toolchain.rustc-version]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2535535Z ##[group]Run DATE=$(rustc +stable --version --verbose | sed -ne 's/^commit-date: \(20[0-9][0-9]\)-\([01][0-9]\)-\([0-3][0-9]\)$/\1\2\3/p')
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2536172Z ^[[36;1mDATE=$(rustc +stable --version --verbose | sed -ne 's/^commit-date: \(20[0-9][0-9]\)-\([01][0-9]\)-\([0-3][0-9]\)$/\1\2\3/p')^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2536670Z ^[[36;1mHASH=$(rustc +stable --version --verbose | sed -ne 's/^commit-hash: //p')^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2537157Z ^[[36;1mecho "cachekey=$(echo $DATE$HASH | head -c12)" >> $GITHUB_OUTPUT^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2568119Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2568393Z env:
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2568565Z   CARGO_TERM_COLOR: always
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2568760Z   CARGO_INCREMENTAL: 0
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2568936Z   CARGO_NET_RETRY: 10
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2569111Z   RUST_BACKTRACE: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2569758Z   CARGO_HOME: /home/runner/.cargo
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2570001Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2852687Z ##[end-action id=__dtolnay_rust-toolchain.rustc-version;outcome=success;conclusion=success;duration_ms=33]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2854925Z ##[start-action display=Disable incremental compilation;id=__dtolnay_rust-toolchain.__run_6]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2870990Z ##[group]Run if [ -z "${CARGO_INCREMENTAL+set}" ]; then
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2871311Z ^[[36;1mif [ -z "${CARGO_INCREMENTAL+set}" ]; then^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2871584Z ^[[36;1m  echo CARGO_INCREMENTAL=0 >> $GITHUB_ENV^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2871811Z ^[[36;1mfi^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2902937Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2903225Z env:
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2903398Z   CARGO_TERM_COLOR: always
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2903597Z   CARGO_INCREMENTAL: 0
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2903784Z   CARGO_NET_RETRY: 10
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2903967Z   RUST_BACKTRACE: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2904148Z   CARGO_HOME: /home/runner/.cargo
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2904350Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2957273Z ##[end-action id=__dtolnay_rust-toolchain.__run_6;outcome=success;conclusion=success;duration_ms=10]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2959237Z ##[start-action display=Enable colors in Cargo output;id=__dtolnay_rust-toolchain.__run_7]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2975629Z ##[group]Run if [ -z "${CARGO_TERM_COLOR+set}" ]; then
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2975954Z ^[[36;1mif [ -z "${CARGO_TERM_COLOR+set}" ]; then^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2976363Z ^[[36;1m  echo CARGO_TERM_COLOR=always >> $GITHUB_ENV^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.2976615Z ^[[36;1mfi^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3007013Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3007448Z env:
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3007644Z   CARGO_TERM_COLOR: always
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3007855Z   CARGO_INCREMENTAL: 0
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3008053Z   CARGO_NET_RETRY: 10
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3008236Z   RUST_BACKTRACE: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3008430Z   CARGO_HOME: /home/runner/.cargo
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3008657Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3078032Z ##[end-action id=__dtolnay_rust-toolchain.__run_7;outcome=success;conclusion=success;duration_ms=11]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3080091Z ##[start-action display=Enable Cargo sparse registry;id=__dtolnay_rust-toolchain.__run_8]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3096435Z ##[group]Run # implemented in 1.66, stabilized in 1.68, made default in 1.70
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3096857Z ^[[36;1m# implemented in 1.66, stabilized in 1.68, made default in 1.70^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3097421Z ^[[36;1mif [ -z "${CARGO_REGISTRIES_CRATES_IO_PROTOCOL+set}" -o -f "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol ]; then^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3097985Z ^[[36;1m  if rustc +stable --version --verbose | grep -q '^release: 1\.6[89]\.'; then^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3098427Z ^[[36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3098846Z ^[[36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse >> $GITHUB_ENV^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3099230Z ^[[36;1m  elif rustc +stable --version --verbose | grep -q '^release: 1\.6[67]\.'; then^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3099901Z ^[[36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3100330Z ^[[36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3100610Z ^[[36;1m  fi^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3100772Z ^[[36;1mfi^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3130835Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3131121Z env:
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3131294Z   CARGO_TERM_COLOR: always
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3131508Z   CARGO_INCREMENTAL: 0
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3131699Z   CARGO_NET_RETRY: 10
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3131878Z   RUST_BACKTRACE: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3132055Z   CARGO_HOME: /home/runner/.cargo
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3132255Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3392588Z ##[end-action id=__dtolnay_rust-toolchain.__run_8;outcome=success;conclusion=success;duration_ms=31]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3394815Z ##[start-action display=Work around spurious network errors in curl 8.0;id=__dtolnay_rust-toolchain.__run_9]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3411354Z ##[group]Run # https://rust-lang.zulipchat.com/#narrow/stream/246057-t-cargo/topic/timeout.20investigation
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3411947Z ^[[36;1m# https://rust-lang.zulipchat.com/#narrow/stream/246057-t-cargo/topic/timeout.20investigation^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3412417Z ^[[36;1mif rustc +stable --version --verbose | grep -q '^release: 1\.7[01]\.'; then^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3412786Z ^[[36;1m  echo CARGO_HTTP_MULTIPLEXING=false >> $GITHUB_ENV^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3413034Z ^[[36;1mfi^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3444813Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3445099Z env:
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3445284Z   CARGO_TERM_COLOR: always
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3445477Z   CARGO_INCREMENTAL: 0
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3445656Z   CARGO_NET_RETRY: 10
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3445834Z   RUST_BACKTRACE: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3446010Z   CARGO_HOME: /home/runner/.cargo
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3446213Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3602865Z ##[end-action id=__dtolnay_rust-toolchain.__run_9;outcome=success;conclusion=success;duration_ms=20]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3606026Z ##[start-action display=rustc +stable --version --verbose;id=__dtolnay_rust-toolchain.__run_10]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3621869Z ##[group]Run rustc +stable --version --verbose
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3622169Z ^[[36;1mrustc +stable --version --verbose^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3653026Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3653464Z env:
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3653651Z   CARGO_TERM_COLOR: always
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3653868Z   CARGO_INCREMENTAL: 0
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3654195Z   CARGO_NET_RETRY: 10
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3654393Z   RUST_BACKTRACE: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3654587Z   CARGO_HOME: /home/runner/.cargo
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3654811Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3795134Z rustc 1.98.1 (48a229cea 2026-09-01)
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3795761Z binary: rustc
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3796096Z commit-hash: 48a229ceaefd4985c50990b14116b6d856af0985
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3796541Z commit-date: 2026-09-01
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3796904Z host: x86_64-unknown-linux-gnu
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3797253Z release: 1.98.1
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3797569Z LLVM version: 22.1.8
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3808933Z ##[end-action id=__dtolnay_rust-toolchain.__run_10;outcome=success;conclusion=success;duration_ms=20]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3857852Z ##[group]Run cargo fmt --all -- --check
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3858127Z ^[[36;1mcargo fmt --all -- --check^[[0m
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3889923Z shell: /usr/bin/bash -e {0}
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3890132Z env:
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3890313Z   CARGO_TERM_COLOR: always
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3890509Z   CARGO_INCREMENTAL: 0
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3890687Z   CARGO_NET_RETRY: 10
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3890862Z   RUST_BACKTRACE: 1
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3891042Z   CARGO_HOME: /home/runner/.cargo
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.3891244Z ##[endgroup]
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.4353746Z info: syncing channel updates for stable-x86_64-unknown-linux-gnu
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.5473857Z info: latest update on 2026-09-03 for version 1.98.1 (48a229cea 2026-09-01)
+fmt	UNKNOWN STEP	2026-09-07T11:54:14.5574997Z info: downloading component rust-std
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7479190Z Diff in /home/runner/work/nostr-rust-forum/nostr-rust-forum/crates/nostr-bbs-core/benches/bench_threads.rs:44:
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7480074Z          Self(seed)
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7480429Z      }
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7480696Z      fn next(&mut self) -> u64 {
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7481156Z -        self.0 = self.0.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7481646Z +        self.0 = self
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7481944Z +            .0
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7482219Z +            .wrapping_mul(6_364_136_223_846_793_005)
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7482583Z +            .wrapping_add(1);
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7482907Z          self.0 >> 11
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7483165Z      }
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7483459Z      /// Uniform-enough index in `0..n`.
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7484115Z Diff in /home/runner/work/nostr-rust-forum/nostr-rust-forum/crates/nostr-bbs-core/benches/bench_threads.rs:87:
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7484746Z      // Thread roots.
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7489470Z      let mut root_ids: Vec<String> = Vec::with_capacity(ROOTS);
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7489928Z      for i in 0..ROOTS {
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7490404Z -        let p = post(seq, 1_700_000_000 + i as u64, channel_message_tags(CHANNEL, None));
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7490893Z +        let p = post(
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7491159Z +            seq,
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7491435Z +            1_700_000_000 + i as u64,
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7491785Z +            channel_message_tags(CHANNEL, None),
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7492133Z +        );
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7492394Z          root_ids.push(p.id.clone());
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7492733Z          posts.push(p);
+fmt	UNKNOWN STEP	2026-09-07T11:54:16.7493016Z          seq += 1;
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.4362820Z ##[error]Process completed with exit code 1.
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.4466761Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.4468183Z Post job cleanup.
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.5151105Z [command]/usr/bin/git version
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.5184434Z git version 2.55.0
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.5221510Z Temporarily overriding HOME='/home/runner/work/_temp/92235f3a-f914-41ee-beb7-3749745a9725' before making global git config changes
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.5226604Z Adding repository directory to the temporary git global config as a safe directory
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.5244304Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/nostr-rust-forum/nostr-rust-forum
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.5325726Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.5356780Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.5572236Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.7031069Z http.https://github.com/.extraheader
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.7042326Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.7855717Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.8054528Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.8083816Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.8390480Z Cleaning up orphan processes
+fmt	UNKNOWN STEP	2026-09-07T11:54:17.8621569Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+CI required	UNKNOWN STEP	﻿2026-09-07T11:55:43.7089248Z Current runner version: '2.337.0'
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7113532Z ##[group]Runner Image Provisioner
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7114366Z Hosted Compute Agent
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7114977Z Version: 20260828.587
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7115600Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7116301Z Build Date: 2026-08-28T16:44:25Z
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7116995Z Worker ID: {45f80333-41f9-4bab-9754-fbee0a9dbdf3}
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7117672Z Azure Region: westcentralus
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7118225Z ##[endgroup]
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7119544Z ##[group]Operating System
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7120168Z Ubuntu
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7120701Z 24.04.4
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7121184Z LTS
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7121663Z ##[endgroup]
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7122215Z ##[group]Runner Image
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7123036Z Image: ubuntu-24.04
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7123707Z Version: 20260831.293.1
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7125066Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260831.293/images/ubuntu/Ubuntu2404-Readme.md
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7126510Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260831.293
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7127393Z ##[endgroup]
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7128936Z ##[group]GITHUB_TOKEN Permissions
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7131139Z Contents: read
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7131710Z Metadata: read
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7132303Z Packages: read
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7133029Z ##[endgroup]
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7135149Z Secret source: Actions
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7136092Z Prepare workflow directory
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7561247Z Prepare all required actions
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.7621843Z Complete job name: CI required
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8468943Z ##[group]Run echo "fmt:           failure"
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8470003Z ^[[36;1mecho "fmt:           failure"^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8471075Z ^[[36;1mecho "clippy:        success"^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8471955Z ^[[36;1mecho "test:          success"^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8473269Z ^[[36;1mecho "test-security: success"^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8474271Z ^[[36;1mecho "wasm:          success"^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8475189Z ^[[36;1mecho "doc:           success"^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8476197Z ^[[36;1mecho "coverage:      success"^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8477078Z ^[[36;1mecho "deny:          success"^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8477965Z ^[[36;1m^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8479043Z ^[[36;1m# Every listed quality and security job is a hard merge gate.^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8480188Z ^[[36;1mfor result in \^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8481062Z ^[[36;1m  "failure" \^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8481875Z ^[[36;1m  "success" \^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8482863Z ^[[36;1m  "success" \^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8483854Z ^[[36;1m  "success" \^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8484684Z ^[[36;1m  "success" \^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8485473Z ^[[36;1m  "success" \^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8486238Z ^[[36;1m  "success" \^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8487100Z ^[[36;1m  "success"; do^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8487990Z ^[[36;1m  if [[ "$result" != "success" ]]; then^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8489098Z ^[[36;1m    echo "A required CI job did not succeed."^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8490170Z ^[[36;1m    exit 1^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8490922Z ^[[36;1m  fi^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8491713Z ^[[36;1mdone^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8492495Z ^[[36;1mecho "All required CI gates passed."^[[0m
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8988085Z shell: /usr/bin/bash -e {0}
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8989393Z env:
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8990091Z   CARGO_TERM_COLOR: always
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8990959Z   CARGO_INCREMENTAL: 0
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8991753Z   CARGO_NET_RETRY: 10
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8992585Z   RUST_BACKTRACE: 1
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.8993582Z ##[endgroup]
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.9219848Z fmt:           failure
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.9220848Z clippy:        success
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.9221610Z test:          success
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.9222487Z test-security: success
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.9223546Z wasm:          success
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.9224390Z doc:           success
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.9225134Z coverage:      success
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.9225833Z deny:          success
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.9226699Z A required CI job did not succeed.
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.9257878Z ##[error]Process completed with exit code 1.
+CI required	UNKNOWN STEP	2026-09-07T11:55:43.9423111Z Cleaning up orphan processes

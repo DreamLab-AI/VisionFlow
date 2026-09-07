@@ -1,0 +1,1918 @@
+﻿2026-09-07T13:16:54.7719527Z Current runner version: '2.337.0'
+2026-09-07T13:16:54.7743884Z ##[group]Runner Image Provisioner
+2026-09-07T13:16:54.7744834Z Hosted Compute Agent
+2026-09-07T13:16:54.7745885Z Version: 20260828.587
+2026-09-07T13:16:54.7747011Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-07T13:16:54.7747811Z Build Date: 2026-08-28T16:44:25Z
+2026-09-07T13:16:54.7748574Z Worker ID: {1112f62c-ec3b-4595-9d30-21be6f4434ce}
+2026-09-07T13:16:54.7749332Z Azure Region: westcentralus
+2026-09-07T13:16:54.7749967Z ##[endgroup]
+2026-09-07T13:16:54.7751664Z ##[group]Operating System
+2026-09-07T13:16:54.7752321Z Ubuntu
+2026-09-07T13:16:54.7752987Z 24.04.4
+2026-09-07T13:16:54.7753561Z LTS
+2026-09-07T13:16:54.7754110Z ##[endgroup]
+2026-09-07T13:16:54.7754822Z ##[group]Runner Image
+2026-09-07T13:16:54.7755474Z Image: ubuntu-24.04
+2026-09-07T13:16:54.7756568Z Version: 20260831.293.1
+2026-09-07T13:16:54.7757925Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260831.293/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-07T13:16:54.7759705Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260831.293
+2026-09-07T13:16:54.7760674Z ##[endgroup]
+2026-09-07T13:16:54.7761789Z ##[group]GITHUB_TOKEN Permissions
+2026-09-07T13:16:54.7763662Z Contents: read
+2026-09-07T13:16:54.7764452Z Metadata: read
+2026-09-07T13:16:54.7765079Z ##[endgroup]
+2026-09-07T13:16:54.7767416Z Secret source: Actions
+2026-09-07T13:16:54.7768635Z Prepare workflow directory
+2026-09-07T13:16:54.8244411Z Prepare all required actions
+2026-09-07T13:16:54.8292666Z Getting action download info
+2026-09-07T13:16:55.1458413Z Download action repository 'actions/checkout@11d5960a326750d5838078e36cf38b85af677262' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-09-07T13:16:55.2412691Z Download action repository 'dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87' (SHA:6bed0761d98439e5a578e2877258200ad565ba87)
+2026-09-07T13:16:55.4774088Z Download action repository 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-09-07T13:16:55.7179753Z Complete job name: GUT GDScript suite under Godot 4.3 GL (blocking)
+2026-09-07T13:16:55.7931965Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-07T13:16:55.7941129Z ##[group]Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+2026-09-07T13:16:55.7942037Z with:
+2026-09-07T13:16:55.7942489Z   repository: DreamLab-AI/VisionClaw
+2026-09-07T13:16:55.7946402Z   token: ***
+2026-09-07T13:16:55.7946847Z   ssh-strict: true
+2026-09-07T13:16:55.7947276Z   ssh-user: git
+2026-09-07T13:16:55.7947707Z   persist-credentials: true
+2026-09-07T13:16:55.7948190Z   clean: true
+2026-09-07T13:16:55.7948628Z   sparse-checkout-cone-mode: true
+2026-09-07T13:16:55.7949165Z   fetch-depth: 1
+2026-09-07T13:16:55.7949586Z   fetch-tags: false
+2026-09-07T13:16:55.7950021Z   show-progress: true
+2026-09-07T13:16:55.7950492Z   lfs: false
+2026-09-07T13:16:55.7950903Z   submodules: false
+2026-09-07T13:16:55.7951350Z   set-safe-directory: true
+2026-09-07T13:16:55.7951843Z   allow-unsafe-pr-checkout: false
+2026-09-07T13:16:55.7952604Z env:
+2026-09-07T13:16:55.7953023Z   CARGO_TERM_COLOR: always
+2026-09-07T13:16:55.7953498Z   RUST_BACKTRACE: 1
+2026-09-07T13:16:55.7953931Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:16:55.7954399Z   GUT_VERSION: 9.3.1
+2026-09-07T13:16:55.7954827Z ##[endgroup]
+2026-09-07T13:16:55.9007203Z Syncing repository: DreamLab-AI/VisionClaw
+2026-09-07T13:16:55.9009985Z ##[group]Getting Git version info
+2026-09-07T13:16:55.9011202Z Working directory is '/home/runner/work/VisionClaw/VisionClaw'
+2026-09-07T13:16:55.9012275Z [command]/usr/bin/git version
+2026-09-07T13:16:55.9087245Z git version 2.55.0
+2026-09-07T13:16:55.9119108Z ##[endgroup]
+2026-09-07T13:16:55.9138174Z Temporarily overriding HOME='/home/runner/work/_temp/939cfa14-f901-4b27-8334-441029fc6847' before making global git config changes
+2026-09-07T13:16:55.9141322Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-07T13:16:55.9143609Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/VisionClaw/VisionClaw
+2026-09-07T13:16:55.9190832Z Deleting the contents of '/home/runner/work/VisionClaw/VisionClaw'
+2026-09-07T13:16:55.9195577Z ##[group]Initializing the repository
+2026-09-07T13:16:55.9200641Z [command]/usr/bin/git init /home/runner/work/VisionClaw/VisionClaw
+2026-09-07T13:16:55.9323577Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-07T13:16:55.9330879Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-07T13:16:55.9332816Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-07T13:16:55.9334231Z hint: call:
+2026-09-07T13:16:55.9335081Z hint:
+2026-09-07T13:16:55.9336302Z hint: 	git config --global init.defaultBranch <name>
+2026-09-07T13:16:55.9337512Z hint:
+2026-09-07T13:16:55.9338682Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-07T13:16:55.9340415Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-07T13:16:55.9341933Z hint:
+2026-09-07T13:16:55.9343151Z hint: 	git branch -m <name>
+2026-09-07T13:16:55.9344070Z hint:
+2026-09-07T13:16:55.9345207Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-07T13:16:55.9347383Z Initialized empty Git repository in /home/runner/work/VisionClaw/VisionClaw/.git/
+2026-09-07T13:16:55.9350436Z [command]/usr/bin/git remote add origin https://github.com/DreamLab-AI/VisionClaw
+2026-09-07T13:16:55.9397224Z ##[endgroup]
+2026-09-07T13:16:55.9398561Z ##[group]Disabling automatic garbage collection
+2026-09-07T13:16:55.9401638Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-07T13:16:55.9438417Z ##[endgroup]
+2026-09-07T13:16:55.9439780Z ##[group]Setting up auth
+2026-09-07T13:16:55.9449517Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-07T13:16:55.9480218Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-07T13:16:55.9852225Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-07T13:16:55.9892357Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-07T13:16:56.0130467Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-07T13:16:56.0169869Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-07T13:16:56.0452296Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-07T13:16:56.0457654Z ##[endgroup]
+2026-09-07T13:16:56.0459299Z ##[group]Fetching the repository
+2026-09-07T13:16:56.0469189Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +fb72df39a3f438b00adcf6993dc835d90f1bc313:refs/remotes/origin/main
+2026-09-07T13:16:58.6024845Z From https://github.com/DreamLab-AI/VisionClaw
+2026-09-07T13:16:58.6026943Z  * [new ref]         fb72df39a3f438b00adcf6993dc835d90f1bc313 -> origin/main
+2026-09-07T13:16:58.6031037Z ##[endgroup]
+2026-09-07T13:16:58.6032094Z ##[group]Determining the checkout info
+2026-09-07T13:16:58.6033289Z ##[endgroup]
+2026-09-07T13:16:58.6039553Z [command]/usr/bin/git sparse-checkout disable
+2026-09-07T13:16:58.6093211Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-07T13:16:58.6124533Z ##[group]Checking out the ref
+2026-09-07T13:16:58.6129371Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-09-07T13:16:59.0505446Z Switched to a new branch 'main'
+2026-09-07T13:16:59.0510008Z branch 'main' set up to track 'origin/main'.
+2026-09-07T13:16:59.0535327Z ##[endgroup]
+2026-09-07T13:16:59.0584414Z [command]/usr/bin/git log -1 --format=%H
+2026-09-07T13:16:59.0612328Z fb72df39a3f438b00adcf6993dc835d90f1bc313
+2026-09-07T13:16:59.1042178Z ##[group]Run dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
+2026-09-07T13:16:59.1042667Z with:
+2026-09-07T13:16:59.1042914Z   toolchain: stable
+2026-09-07T13:16:59.1043158Z env:
+2026-09-07T13:16:59.1043387Z   CARGO_TERM_COLOR: always
+2026-09-07T13:16:59.1043664Z   RUST_BACKTRACE: 1
+2026-09-07T13:16:59.1043920Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:16:59.1044193Z   GUT_VERSION: 9.3.1
+2026-09-07T13:16:59.1044456Z ##[endgroup]
+2026-09-07T13:16:59.1110675Z ##[start-action display=Parse toolchain version;id=__dtolnay_rust-toolchain.parse]
+2026-09-07T13:16:59.1169929Z ##[group]Run if [[ -z $toolchain ]]; then
+2026-09-07T13:16:59.1170416Z [36;1mif [[ -z $toolchain ]]; then[0m
+2026-09-07T13:16:59.1171032Z [36;1m  # GitHub does not enforce `required: true` inputs itself. https://github.com/actions/runner/issues/1070[0m
+2026-09-07T13:16:59.1171654Z [36;1m  echo "'toolchain' is a required input" >&2[0m
+2026-09-07T13:16:59.1171998Z [36;1m  exit 1[0m
+2026-09-07T13:16:59.1172425Z [36;1melif [[ $toolchain =~ ^stable' '[0-9]+' '(year|month|week|day)s?' 'ago$ ]]; then[0m
+2026-09-07T13:16:59.1172890Z [36;1m  if [[ Linux == macOS ]]; then[0m
+2026-09-07T13:16:59.1173467Z [36;1m    echo "toolchain=1.$((($(date -v-$(sed 's/stable \([0-9]*\) \(.\).*/\1\2/' <<< $toolchain) +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT[0m
+2026-09-07T13:16:59.1174026Z [36;1m  else[0m
+2026-09-07T13:16:59.1174472Z [36;1m    echo "toolchain=1.$((($(date --date "${toolchain#stable }" +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT[0m
+2026-09-07T13:16:59.1174971Z [36;1m  fi[0m
+2026-09-07T13:16:59.1175327Z [36;1melif [[ $toolchain =~ ^stable' 'minus' '[0-9]+' 'releases?$ ]]; then[0m
+2026-09-07T13:16:59.1176090Z [36;1m  echo "toolchain=1.$((($(date +%s)/60/60/24-16569)/7/6-${toolchain//[^0-9]/}))" >> $GITHUB_OUTPUT[0m
+2026-09-07T13:16:59.1176612Z [36;1melif [[ $toolchain =~ ^1\.[0-9]+$ ]]; then[0m
+2026-09-07T13:16:59.1177199Z [36;1m  echo "toolchain=1.$((i=${toolchain#1.}, c=($(date +%s)/60/60/24-16569)/7/6, i+9*i*(10*i<=c)+90*i*(100*i<=c)))" >> $GITHUB_OUTPUT[0m
+2026-09-07T13:16:59.1177744Z [36;1melse[0m
+2026-09-07T13:16:59.1178034Z [36;1m  echo "toolchain=$toolchain" >> $GITHUB_OUTPUT[0m
+2026-09-07T13:16:59.1178371Z [36;1mfi[0m
+2026-09-07T13:16:59.1218963Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-07T13:16:59.1219391Z env:
+2026-09-07T13:16:59.1219636Z   CARGO_TERM_COLOR: always
+2026-09-07T13:16:59.1219915Z   RUST_BACKTRACE: 1
+2026-09-07T13:16:59.1220168Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:16:59.1220435Z   GUT_VERSION: 9.3.1
+2026-09-07T13:16:59.1220700Z   toolchain: stable
+2026-09-07T13:16:59.1220955Z ##[endgroup]
+2026-09-07T13:16:59.1332412Z ##[end-action id=__dtolnay_rust-toolchain.parse;outcome=success;conclusion=success;duration_ms=22]
+2026-09-07T13:16:59.1345063Z ##[start-action display=Construct rustup command line;id=__dtolnay_rust-toolchain.flags]
+2026-09-07T13:16:59.1375462Z ##[group]Run echo "targets=$(for t in ${targets//,/ }; do echo -n ' --target' $t; done)" >> $GITHUB_OUTPUT
+2026-09-07T13:16:59.1376557Z [36;1mecho "targets=$(for t in ${targets//,/ }; do echo -n ' --target' $t; done)" >> $GITHUB_OUTPUT[0m
+2026-09-07T13:16:59.1377269Z [36;1mecho "components=$(for c in ${components//,/ }; do echo -n ' --component' $c; done)" >> $GITHUB_OUTPUT[0m
+2026-09-07T13:16:59.1377822Z [36;1mecho "downgrade=" >> $GITHUB_OUTPUT[0m
+2026-09-07T13:16:59.1412199Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-07T13:16:59.1412595Z env:
+2026-09-07T13:16:59.1412831Z   CARGO_TERM_COLOR: always
+2026-09-07T13:16:59.1413105Z   RUST_BACKTRACE: 1
+2026-09-07T13:16:59.1413526Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:16:59.1413797Z   GUT_VERSION: 9.3.1
+2026-09-07T13:16:59.1414045Z   targets: 
+2026-09-07T13:16:59.1414283Z   components: 
+2026-09-07T13:16:59.1414516Z ##[endgroup]
+2026-09-07T13:16:59.1485569Z ##[end-action id=__dtolnay_rust-toolchain.flags;outcome=success;conclusion=success;duration_ms=13]
+2026-09-07T13:16:59.1488689Z ##[start-action display=Set $CARGO_HOME;id=__dtolnay_rust-toolchain.__run]
+2026-09-07T13:16:59.1509063Z ##[group]Run echo CARGO_HOME=${CARGO_HOME:-"$HOME/.cargo"} >> $GITHUB_ENV
+2026-09-07T13:16:59.1509586Z [36;1mecho CARGO_HOME=${CARGO_HOME:-"$HOME/.cargo"} >> $GITHUB_ENV[0m
+2026-09-07T13:16:59.1543091Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-07T13:16:59.1543482Z env:
+2026-09-07T13:16:59.1543725Z   CARGO_TERM_COLOR: always
+2026-09-07T13:16:59.1543992Z   RUST_BACKTRACE: 1
+2026-09-07T13:16:59.1544241Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:16:59.1544524Z   GUT_VERSION: 9.3.1
+2026-09-07T13:16:59.1544786Z ##[endgroup]
+2026-09-07T13:16:59.1609302Z ##[end-action id=__dtolnay_rust-toolchain.__run;outcome=success;conclusion=success;duration_ms=11]
+2026-09-07T13:16:59.1611809Z ##[start-action display=Install rustup if needed;id=__dtolnay_rust-toolchain.__run_2]
+2026-09-07T13:16:59.1638429Z ##[group]Run if ! command -v rustup &>/dev/null; then
+2026-09-07T13:16:59.1638870Z [36;1mif ! command -v rustup &>/dev/null; then[0m
+2026-09-07T13:16:59.1639676Z [36;1m  curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused --location --silent --show-error --fail https://sh.rustup.rs | sh -s -- --default-toolchain none -y[0m
+2026-09-07T13:16:59.1640462Z [36;1m  echo "$CARGO_HOME/bin" >> $GITHUB_PATH[0m
+2026-09-07T13:16:59.1640800Z [36;1mfi[0m
+2026-09-07T13:16:59.1675238Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-07T13:16:59.1675647Z env:
+2026-09-07T13:16:59.1675887Z   CARGO_TERM_COLOR: always
+2026-09-07T13:16:59.1676313Z   RUST_BACKTRACE: 1
+2026-09-07T13:16:59.1676583Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:16:59.1676858Z   GUT_VERSION: 9.3.1
+2026-09-07T13:16:59.1677124Z   CARGO_HOME: /home/runner/.cargo
+2026-09-07T13:16:59.1677411Z ##[endgroup]
+2026-09-07T13:16:59.1738371Z ##[end-action id=__dtolnay_rust-toolchain.__run_2;outcome=success;conclusion=success;duration_ms=12]
+2026-09-07T13:16:59.1740862Z ##[start-action display=Install rustup if needed on windows;id=__dtolnay_rust-toolchain.__run_3]
+2026-09-07T13:16:59.1748853Z ##[end-action id=__dtolnay_rust-toolchain.__run_3;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-09-07T13:16:59.1753315Z ##[start-action display=rustup toolchain install stable;id=__dtolnay_rust-toolchain.__run_4]
+2026-09-07T13:16:59.1775665Z ##[group]Run rustup toolchain install stable --profile minimal --no-self-update
+2026-09-07T13:16:59.1776604Z [36;1mrustup toolchain install stable --profile minimal --no-self-update[0m
+2026-09-07T13:16:59.1811537Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-07T13:16:59.1811949Z env:
+2026-09-07T13:16:59.1812187Z   CARGO_TERM_COLOR: always
+2026-09-07T13:16:59.1812473Z   RUST_BACKTRACE: 1
+2026-09-07T13:16:59.1812728Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:16:59.1812991Z   GUT_VERSION: 9.3.1
+2026-09-07T13:16:59.1813250Z   CARGO_HOME: /home/runner/.cargo
+2026-09-07T13:16:59.1813555Z   RUSTUP_PERMIT_COPY_RENAME: 1
+2026-09-07T13:16:59.1813831Z ##[endgroup]
+2026-09-07T13:16:59.3472509Z info: syncing channel updates for stable-x86_64-unknown-linux-gnu
+2026-09-07T13:16:59.6559859Z info: latest update on 2026-09-03 for version 1.98.1 (48a229cea 2026-09-01)
+2026-09-07T13:16:59.6696535Z info: removing previous version of component clippy
+2026-09-07T13:16:59.6711560Z info: removing previous version of component rustfmt
+2026-09-07T13:16:59.6722255Z info: removing previous version of component cargo
+2026-09-07T13:16:59.6763845Z info: removing previous version of component rust-std
+2026-09-07T13:16:59.6809506Z info: removing previous version of component rustc
+2026-09-07T13:16:59.6857730Z info: downloading 5 components
+2026-09-07T13:17:08.5763652Z 
+2026-09-07T13:17:08.5835857Z   stable-x86_64-unknown-linux-gnu updated - rustc 1.98.1 (48a229cea 2026-09-01) (from rustc 1.98.0 (88d9e12ae 2026-08-18))
+2026-09-07T13:17:08.5837130Z 
+2026-09-07T13:17:08.5889516Z ##[end-action id=__dtolnay_rust-toolchain.__run_4;outcome=success;conclusion=success;duration_ms=9413]
+2026-09-07T13:17:08.5897062Z ##[start-action display=rustup default stable;id=__dtolnay_rust-toolchain.__run_5]
+2026-09-07T13:17:08.5918292Z ##[group]Run rustup default stable
+2026-09-07T13:17:08.5918599Z [36;1mrustup default stable[0m
+2026-09-07T13:17:08.5955793Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-07T13:17:08.5956530Z env:
+2026-09-07T13:17:08.5956736Z   CARGO_TERM_COLOR: always
+2026-09-07T13:17:08.5956971Z   RUST_BACKTRACE: 1
+2026-09-07T13:17:08.5957179Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:17:08.5957404Z   GUT_VERSION: 9.3.1
+2026-09-07T13:17:08.5957640Z   CARGO_HOME: /home/runner/.cargo
+2026-09-07T13:17:08.5957899Z ##[endgroup]
+2026-09-07T13:17:08.6065480Z info: using existing install for stable-x86_64-unknown-linux-gnu
+2026-09-07T13:17:08.8771600Z info: default toolchain set to stable-x86_64-unknown-linux-gnu
+2026-09-07T13:17:08.8772177Z 
+2026-09-07T13:17:08.8854772Z   stable-x86_64-unknown-linux-gnu unchanged - rustc 1.98.1 (48a229cea 2026-09-01)
+2026-09-07T13:17:08.8855700Z 
+2026-09-07T13:17:08.8876821Z ##[end-action id=__dtolnay_rust-toolchain.__run_5;outcome=success;conclusion=success;duration_ms=297]
+2026-09-07T13:17:08.8879481Z ##[start-action display=Create cachekey;id=__dtolnay_rust-toolchain.rustc-version]
+2026-09-07T13:17:08.8899151Z ##[group]Run DATE=$(rustc +stable --version --verbose | sed -ne 's/^commit-date: \(20[0-9][0-9]\)-\([01][0-9]\)-\([0-3][0-9]\)$/\1\2\3/p')
+2026-09-07T13:17:08.8900015Z [36;1mDATE=$(rustc +stable --version --verbose | sed -ne 's/^commit-date: \(20[0-9][0-9]\)-\([01][0-9]\)-\([0-3][0-9]\)$/\1\2\3/p')[0m
+2026-09-07T13:17:08.8900678Z [36;1mHASH=$(rustc +stable --version --verbose | sed -ne 's/^commit-hash: //p')[0m
+2026-09-07T13:17:08.8901211Z [36;1mecho "cachekey=$(echo $DATE$HASH | head -c12)" >> $GITHUB_OUTPUT[0m
+2026-09-07T13:17:08.8937811Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-07T13:17:08.8938164Z env:
+2026-09-07T13:17:08.8938357Z   CARGO_TERM_COLOR: always
+2026-09-07T13:17:08.8938597Z   RUST_BACKTRACE: 1
+2026-09-07T13:17:08.8938826Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:17:08.8939052Z   GUT_VERSION: 9.3.1
+2026-09-07T13:17:08.8939265Z   CARGO_HOME: /home/runner/.cargo
+2026-09-07T13:17:08.8939502Z ##[endgroup]
+2026-09-07T13:17:08.9298022Z ##[end-action id=__dtolnay_rust-toolchain.rustc-version;outcome=success;conclusion=success;duration_ms=41]
+2026-09-07T13:17:08.9300836Z ##[start-action display=Disable incremental compilation;id=__dtolnay_rust-toolchain.__run_6]
+2026-09-07T13:17:08.9317985Z ##[group]Run if [ -z "${CARGO_INCREMENTAL+set}" ]; then
+2026-09-07T13:17:08.9318379Z [36;1mif [ -z "${CARGO_INCREMENTAL+set}" ]; then[0m
+2026-09-07T13:17:08.9318718Z [36;1m  echo CARGO_INCREMENTAL=0 >> $GITHUB_ENV[0m
+2026-09-07T13:17:08.9319001Z [36;1mfi[0m
+2026-09-07T13:17:08.9355272Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-07T13:17:08.9355624Z env:
+2026-09-07T13:17:08.9355818Z   CARGO_TERM_COLOR: always
+2026-09-07T13:17:08.9356313Z   RUST_BACKTRACE: 1
+2026-09-07T13:17:08.9356527Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:17:08.9356767Z   GUT_VERSION: 9.3.1
+2026-09-07T13:17:08.9356985Z   CARGO_HOME: /home/runner/.cargo
+2026-09-07T13:17:08.9357239Z ##[endgroup]
+2026-09-07T13:17:08.9416362Z ##[end-action id=__dtolnay_rust-toolchain.__run_6;outcome=success;conclusion=success;duration_ms=11]
+2026-09-07T13:17:08.9418536Z ##[start-action display=Enable colors in Cargo output;id=__dtolnay_rust-toolchain.__run_7]
+2026-09-07T13:17:08.9433903Z ##[group]Run if [ -z "${CARGO_TERM_COLOR+set}" ]; then
+2026-09-07T13:17:08.9434267Z [36;1mif [ -z "${CARGO_TERM_COLOR+set}" ]; then[0m
+2026-09-07T13:17:08.9434612Z [36;1m  echo CARGO_TERM_COLOR=always >> $GITHUB_ENV[0m
+2026-09-07T13:17:08.9435070Z [36;1mfi[0m
+2026-09-07T13:17:08.9467697Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-07T13:17:08.9468043Z env:
+2026-09-07T13:17:08.9468239Z   CARGO_TERM_COLOR: always
+2026-09-07T13:17:08.9468469Z   RUST_BACKTRACE: 1
+2026-09-07T13:17:08.9468676Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:17:08.9468909Z   GUT_VERSION: 9.3.1
+2026-09-07T13:17:08.9469286Z   CARGO_HOME: /home/runner/.cargo
+2026-09-07T13:17:08.9469539Z   CARGO_INCREMENTAL: 0
+2026-09-07T13:17:08.9469743Z ##[endgroup]
+2026-09-07T13:17:08.9528073Z ##[end-action id=__dtolnay_rust-toolchain.__run_7;outcome=success;conclusion=success;duration_ms=10]
+2026-09-07T13:17:08.9530284Z ##[start-action display=Enable Cargo sparse registry;id=__dtolnay_rust-toolchain.__run_8]
+2026-09-07T13:17:08.9546942Z ##[group]Run # implemented in 1.66, stabilized in 1.68, made default in 1.70
+2026-09-07T13:17:08.9547449Z [36;1m# implemented in 1.66, stabilized in 1.68, made default in 1.70[0m
+2026-09-07T13:17:08.9548174Z [36;1mif [ -z "${CARGO_REGISTRIES_CRATES_IO_PROTOCOL+set}" -o -f "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol ]; then[0m
+2026-09-07T13:17:08.9548913Z [36;1m  if rustc +stable --version --verbose | grep -q '^release: 1\.6[89]\.'; then[0m
+2026-09-07T13:17:08.9549505Z [36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true[0m
+2026-09-07T13:17:08.9550049Z [36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse >> $GITHUB_ENV[0m
+2026-09-07T13:17:08.9550553Z [36;1m  elif rustc +stable --version --verbose | grep -q '^release: 1\.6[67]\.'; then[0m
+2026-09-07T13:17:08.9551124Z [36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true[0m
+2026-09-07T13:17:08.9551647Z [36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV[0m
+2026-09-07T13:17:08.9551992Z [36;1m  fi[0m
+2026-09-07T13:17:08.9552183Z [36;1mfi[0m
+2026-09-07T13:17:08.9584835Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-07T13:17:08.9585186Z env:
+2026-09-07T13:17:08.9585390Z   CARGO_TERM_COLOR: always
+2026-09-07T13:17:08.9585627Z   RUST_BACKTRACE: 1
+2026-09-07T13:17:08.9585833Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:17:08.9586403Z   GUT_VERSION: 9.3.1
+2026-09-07T13:17:08.9586629Z   CARGO_HOME: /home/runner/.cargo
+2026-09-07T13:17:08.9586885Z   CARGO_INCREMENTAL: 0
+2026-09-07T13:17:08.9587108Z ##[endgroup]
+2026-09-07T13:17:08.9895015Z ##[end-action id=__dtolnay_rust-toolchain.__run_8;outcome=success;conclusion=success;duration_ms=36]
+2026-09-07T13:17:08.9898302Z ##[start-action display=Work around spurious network errors in curl 8.0;id=__dtolnay_rust-toolchain.__run_9]
+2026-09-07T13:17:08.9915175Z ##[group]Run # https://rust-lang.zulipchat.com/#narrow/stream/246057-t-cargo/topic/timeout.20investigation
+2026-09-07T13:17:08.9916204Z [36;1m# https://rust-lang.zulipchat.com/#narrow/stream/246057-t-cargo/topic/timeout.20investigation[0m
+2026-09-07T13:17:08.9916920Z [36;1mif rustc +stable --version --verbose | grep -q '^release: 1\.7[01]\.'; then[0m
+2026-09-07T13:17:08.9917532Z [36;1m  echo CARGO_HTTP_MULTIPLEXING=false >> $GITHUB_ENV[0m
+2026-09-07T13:17:08.9917868Z [36;1mfi[0m
+2026-09-07T13:17:08.9954604Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-07T13:17:08.9954946Z env:
+2026-09-07T13:17:08.9955138Z   CARGO_TERM_COLOR: always
+2026-09-07T13:17:08.9955383Z   RUST_BACKTRACE: 1
+2026-09-07T13:17:08.9955592Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:17:08.9955824Z   GUT_VERSION: 9.3.1
+2026-09-07T13:17:08.9956275Z   CARGO_HOME: /home/runner/.cargo
+2026-09-07T13:17:08.9956525Z   CARGO_INCREMENTAL: 0
+2026-09-07T13:17:08.9956733Z ##[endgroup]
+2026-09-07T13:17:09.0138742Z ##[end-action id=__dtolnay_rust-toolchain.__run_9;outcome=success;conclusion=success;duration_ms=23]
+2026-09-07T13:17:09.0142566Z ##[start-action display=rustc +stable --version --verbose;id=__dtolnay_rust-toolchain.__run_10]
+2026-09-07T13:17:09.0158634Z ##[group]Run rustc +stable --version --verbose
+2026-09-07T13:17:09.0159134Z [36;1mrustc +stable --version --verbose[0m
+2026-09-07T13:17:09.0193765Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-09-07T13:17:09.0194102Z env:
+2026-09-07T13:17:09.0194291Z   CARGO_TERM_COLOR: always
+2026-09-07T13:17:09.0194516Z   RUST_BACKTRACE: 1
+2026-09-07T13:17:09.0194719Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:17:09.0194942Z   GUT_VERSION: 9.3.1
+2026-09-07T13:17:09.0195312Z   CARGO_HOME: /home/runner/.cargo
+2026-09-07T13:17:09.0195567Z   CARGO_INCREMENTAL: 0
+2026-09-07T13:17:09.0195775Z ##[endgroup]
+2026-09-07T13:17:09.0358848Z rustc 1.98.1 (48a229cea 2026-09-01)
+2026-09-07T13:17:09.0359519Z binary: rustc
+2026-09-07T13:17:09.0360058Z commit-hash: 48a229ceaefd4985c50990b14116b6d856af0985
+2026-09-07T13:17:09.0360666Z commit-date: 2026-09-01
+2026-09-07T13:17:09.0361110Z host: x86_64-unknown-linux-gnu
+2026-09-07T13:17:09.0361557Z release: 1.98.1
+2026-09-07T13:17:09.0361963Z LLVM version: 22.1.8
+2026-09-07T13:17:09.0377931Z ##[end-action id=__dtolnay_rust-toolchain.__run_10;outcome=success;conclusion=success;duration_ms=23]
+2026-09-07T13:17:09.0424630Z ##[group]Run cargo build -p visionclaw-xr-gdext
+2026-09-07T13:17:09.0425040Z [36;1mcargo build -p visionclaw-xr-gdext[0m
+2026-09-07T13:17:09.0460617Z shell: /usr/bin/bash -e {0}
+2026-09-07T13:17:09.0460868Z env:
+2026-09-07T13:17:09.0461063Z   CARGO_TERM_COLOR: always
+2026-09-07T13:17:09.0461289Z   RUST_BACKTRACE: 1
+2026-09-07T13:17:09.0461495Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:17:09.0461713Z   GUT_VERSION: 9.3.1
+2026-09-07T13:17:09.0461926Z   CARGO_HOME: /home/runner/.cargo
+2026-09-07T13:17:09.0462172Z   CARGO_INCREMENTAL: 0
+2026-09-07T13:17:09.0462382Z ##[endgroup]
+2026-09-07T13:17:09.0866265Z [1m[92m    Updating[0m crates.io index
+2026-09-07T13:17:10.1938425Z [1m[92m     Locking[0m 237 packages to latest compatible versions
+2026-09-07T13:17:10.2011618Z [1m[92m      Adding[0m criterion v0.5.1 [1m[33m(available: v0.8.2)[0m
+2026-09-07T13:17:10.2026496Z [1m[92m      Adding[0m generic-array v0.14.7 [1m[33m(available: v0.14.9)[0m
+2026-09-07T13:17:10.2103526Z [1m[92m      Adding[0m godot v0.2.4 [1m[33m(available: v0.5.5)[0m
+2026-09-07T13:17:10.2139715Z [1m[92m      Adding[0m mockall v0.13.1 [1m[33m(available: v0.15.0)[0m
+2026-09-07T13:17:10.2145266Z [1m[92m      Adding[0m nalgebra v0.34.2 [1m[33m(available: v0.35.0)[0m
+2026-09-07T13:17:10.2241838Z [1m[92m      Adding[0m secp256k1 v0.29.1 [1m[33m(available: v0.33.1)[0m
+2026-09-07T13:17:10.2263582Z [1m[92m      Adding[0m sha2 v0.10.9 [1m[33m(available: v0.11.0)[0m
+2026-09-07T13:17:10.2332838Z [1m[92m      Adding[0m tokio-tungstenite v0.21.0 [1m[33m(available: v0.30.0)[0m
+2026-09-07T13:17:10.2464494Z [1m[92m Downloading[0m crates ...
+2026-09-07T13:17:10.4925684Z [1m[92m  Downloaded[0m cpufeatures v0.2.17
+2026-09-07T13:17:10.5032792Z [1m[92m  Downloaded[0m approx v0.5.1
+2026-09-07T13:17:10.5094230Z [1m[92m  Downloaded[0m bytemuck v1.25.2
+2026-09-07T13:17:10.5140671Z [1m[92m  Downloaded[0m block-buffer v0.10.4
+2026-09-07T13:17:10.5237277Z [1m[92m  Downloaded[0m crypto-common v0.1.7
+2026-09-07T13:17:10.5251298Z [1m[92m  Downloaded[0m cfg-if v1.0.4
+2026-09-07T13:17:10.5391894Z [1m[92m  Downloaded[0m android_log-sys v0.2.0
+2026-09-07T13:17:10.5407732Z [1m[92m  Downloaded[0m async-trait v0.1.92
+2026-09-07T13:17:10.5457454Z [1m[92m  Downloaded[0m form_urlencoded v1.2.2
+2026-09-07T13:17:10.5469213Z [1m[92m  Downloaded[0m futures-sink v0.3.34
+2026-09-07T13:17:10.5479447Z [1m[92m  Downloaded[0m futures-task v0.3.34
+2026-09-07T13:17:10.5494453Z [1m[92m  Downloaded[0m sha1 v0.10.7
+2026-09-07T13:17:10.5545188Z [1m[92m  Downloaded[0m futures-macro v0.3.34
+2026-09-07T13:17:10.5560342Z [1m[92m  Downloaded[0m generic-array v0.14.7
+2026-09-07T13:17:10.5598855Z [1m[92m  Downloaded[0m errno v0.3.14
+2026-09-07T13:17:10.5650376Z [1m[92m  Downloaded[0m sha2 v0.10.9
+2026-09-07T13:17:10.5723009Z [1m[92m  Downloaded[0m futures-core v0.3.34
+2026-09-07T13:17:10.5745073Z [1m[92m  Downloaded[0m autocfg v1.5.1
+2026-09-07T13:17:10.5764474Z [1m[92m  Downloaded[0m byteorder v1.5.0
+2026-09-07T13:17:10.5781213Z [1m[92m  Downloaded[0m digest v0.10.7
+2026-09-07T13:17:10.5800289Z [1m[92m  Downloaded[0m displaydoc v0.2.7
+2026-09-07T13:17:10.5821389Z [1m[92m  Downloaded[0m hex v0.4.3
+2026-09-07T13:17:10.5883249Z [1m[92m  Downloaded[0m itoa v1.0.18
+2026-09-07T13:17:10.5901146Z [1m[92m  Downloaded[0m heck v0.5.0
+2026-09-07T13:17:10.5914736Z [1m[92m  Downloaded[0m nanoserde-derive v0.1.22
+2026-09-07T13:17:10.5925898Z [1m[92m  Downloaded[0m godot-bindings v0.2.4
+2026-09-07T13:17:10.5938384Z [1m[92m  Downloaded[0m rand_chacha v0.3.1
+2026-09-07T13:17:10.5950600Z [1m[92m  Downloaded[0m potential_utf v0.1.6
+2026-09-07T13:17:10.5964646Z [1m[92m  Downloaded[0m nalgebra-macros v0.3.0
+2026-09-07T13:17:10.5975233Z [1m[92m  Downloaded[0m rawpointer v0.2.1
+2026-09-07T13:17:10.5994643Z [1m[92m  Downloaded[0m zerofrom-derive v0.1.7
+2026-09-07T13:17:10.6006280Z [1m[92m  Downloaded[0m thread_local v1.1.10
+2026-09-07T13:17:10.6049489Z [1m[92m  Downloaded[0m utf8_iter v1.0.4
+2026-09-07T13:17:10.6060185Z [1m[92m  Downloaded[0m tracing-android v0.2.0
+2026-09-07T13:17:10.6097475Z [1m[92m  Downloaded[0m version_check v0.9.5
+2026-09-07T13:17:10.6149358Z [1m[92m  Downloaded[0m zerofrom v0.1.8
+2026-09-07T13:17:10.6161136Z [1m[92m  Downloaded[0m tokio-macros v2.7.2
+2026-09-07T13:17:10.6175985Z [1m[92m  Downloaded[0m utf-8 v0.7.6
+2026-09-07T13:17:10.6231708Z [1m[92m  Downloaded[0m percent-encoding v2.3.2
+2026-09-07T13:17:10.6266861Z [1m[92m  Downloaded[0m idna_adapter v1.2.2
+2026-09-07T13:17:10.6267546Z [1m[92m  Downloaded[0m yoke-derive v0.8.2
+2026-09-07T13:17:10.6278478Z [1m[92m  Downloaded[0m data-encoding v2.11.1
+2026-09-07T13:17:10.6317093Z [1m[92m  Downloaded[0m lock_api v0.4.14
+2026-09-07T13:17:10.6327024Z [1m[92m  Downloaded[0m godot v0.2.4
+2026-09-07T13:17:10.6327609Z [1m[92m  Downloaded[0m nanoserde v0.1.37
+2026-09-07T13:17:10.6342075Z [1m[92m  Downloaded[0m num-integer v0.1.47
+2026-09-07T13:17:10.6359900Z [1m[92m  Downloaded[0m num-rational v0.4.2
+2026-09-07T13:17:10.6372209Z [1m[92m  Downloaded[0m ppv-lite86 v0.2.21
+2026-09-07T13:17:10.6384827Z [1m[92m  Downloaded[0m stable_deref_trait v1.2.1
+2026-09-07T13:17:10.6394547Z [1m[92m  Downloaded[0m thiserror v1.0.69
+2026-09-07T13:17:10.6478916Z [1m[92m  Downloaded[0m thiserror-impl v2.0.20
+2026-09-07T13:17:10.6495297Z [1m[92m  Downloaded[0m zmij v1.0.23
+2026-09-07T13:17:10.6515345Z [1m[92m  Downloaded[0m getrandom v0.2.17
+2026-09-07T13:17:10.6546742Z [1m[92m  Downloaded[0m lazy_static v1.5.0
+2026-09-07T13:17:10.6566379Z [1m[92m  Downloaded[0m paste v1.0.15
+2026-09-07T13:17:10.6617845Z [1m[92m  Downloaded[0m quote v1.0.47
+2026-09-07T13:17:10.6651966Z [1m[92m  Downloaded[0m rand_core v0.6.4
+2026-09-07T13:17:10.6666522Z [1m[92m  Downloaded[0m godot-cell v0.2.4
+2026-09-07T13:17:10.6680432Z [1m[92m  Downloaded[0m pin-project-lite v0.2.17
+2026-09-07T13:17:10.6759980Z [1m[92m  Downloaded[0m parking_lot_core v0.9.12
+2026-09-07T13:17:10.6807454Z [1m[92m  Downloaded[0m httparse v1.10.1
+2026-09-07T13:17:10.6833724Z [1m[92m  Downloaded[0m once_cell v1.21.4
+2026-09-07T13:17:10.6861899Z [1m[92m  Downloaded[0m parking_lot v0.12.5
+2026-09-07T13:17:10.6892359Z [1m[92m  Downloaded[0m litemap v0.8.3
+2026-09-07T13:17:10.6929263Z [1m[92m  Downloaded[0m num-complex v0.4.6
+2026-09-07T13:17:10.6958080Z [1m[92m  Downloaded[0m nu-ansi-term v0.50.3
+2026-09-07T13:17:10.6992476Z [1m[92m  Downloaded[0m find-msvc-tools v0.1.12
+2026-09-07T13:17:10.7010624Z [1m[92m  Downloaded[0m bytes v1.12.1
+2026-09-07T13:17:10.7052472Z [1m[92m  Downloaded[0m godot-ffi v0.2.4
+2026-09-07T13:17:10.7085110Z [1m[92m  Downloaded[0m shlex v2.0.1
+2026-09-07T13:17:10.7142943Z [1m[92m  Downloaded[0m signal-hook-registry v1.4.8
+2026-09-07T13:17:10.7165841Z [1m[92m  Downloaded[0m tracing-log v0.2.0
+2026-09-07T13:17:10.7189444Z [1m[92m  Downloaded[0m tinystr v0.8.4
+2026-09-07T13:17:10.7219944Z [1m[92m  Downloaded[0m synstructure v0.13.2
+2026-09-07T13:17:10.7234547Z [1m[92m  Downloaded[0m scopeguard v1.2.0
+2026-09-07T13:17:10.7261675Z [1m[92m  Downloaded[0m slab v0.4.12
+2026-09-07T13:17:10.7293889Z [1m[92m  Downloaded[0m smallvec v1.16.0
+2026-09-07T13:17:10.7306652Z [1m[92m  Downloaded[0m thiserror-impl v1.0.69
+2026-09-07T13:17:10.7319839Z [1m[92m  Downloaded[0m tracing-attributes v0.1.31
+2026-09-07T13:17:10.7345665Z [1m[92m  Downloaded[0m yoke v0.8.3
+2026-09-07T13:17:10.7365520Z [1m[92m  Downloaded[0m icu_provider v2.3.1
+2026-09-07T13:17:10.7405111Z [1m[92m  Downloaded[0m matrixmultiply v0.3.11
+2026-09-07T13:17:10.7448901Z [1m[92m  Downloaded[0m proc-macro2 v1.0.107
+2026-09-07T13:17:10.7481936Z [1m[92m  Downloaded[0m sharded-slab v0.1.7
+2026-09-07T13:17:10.7514593Z [1m[92m  Downloaded[0m thiserror v2.0.20
+2026-09-07T13:17:10.7582693Z [1m[92m  Downloaded[0m log v0.4.34
+2026-09-07T13:17:10.7607053Z [1m[92m  Downloaded[0m godot-macros v0.2.4
+2026-09-07T13:17:10.7641688Z [1m[92m  Downloaded[0m num-traits v0.2.19
+2026-09-07T13:17:10.7667297Z [1m[92m  Downloaded[0m safe_arch v0.7.4
+2026-09-07T13:17:10.7711009Z [1m[92m  Downloaded[0m writeable v0.6.4
+2026-09-07T13:17:10.7731498Z [1m[92m  Downloaded[0m tokio-tungstenite v0.21.0
+2026-09-07T13:17:10.7751389Z [1m[92m  Downloaded[0m zerovec-derive v0.11.6
+2026-09-07T13:17:10.7768206Z [1m[92m  Downloaded[0m serde_json v1.0.151
+2026-09-07T13:17:10.7841618Z [1m[92m  Downloaded[0m venial v0.6.1
+2026-09-07T13:17:10.7861554Z [1m[92m  Downloaded[0m cc v1.4.5
+2026-09-07T13:17:10.7892040Z [1m[92m  Downloaded[0m icu_collections v2.3.0
+2026-09-07T13:17:10.7953316Z [1m[92m  Downloaded[0m icu_normalizer_data v2.3.0
+2026-09-07T13:17:10.7973476Z [1m[92m  Downloaded[0m rand v0.8.8
+2026-09-07T13:17:10.8005868Z [1m[92m  Downloaded[0m icu_locale_core v2.3.0
+2026-09-07T13:17:10.8074999Z [1m[92m  Downloaded[0m serde v1.0.229
+2026-09-07T13:17:10.8109419Z [1m[92m  Downloaded[0m simba v0.9.1
+2026-09-07T13:17:10.8138429Z [1m[92m  Downloaded[0m socket2 v0.6.5
+2026-09-07T13:17:10.8155736Z [1m[92m  Downloaded[0m icu_properties v2.3.0
+2026-09-07T13:17:10.8186320Z [1m[92m  Downloaded[0m memchr v2.8.3
+2026-09-07T13:17:10.8240585Z [1m[92m  Downloaded[0m num-bigint v0.4.8
+2026-09-07T13:17:10.8287229Z [1m[92m  Downloaded[0m mio v1.2.3
+2026-09-07T13:17:10.8346865Z [1m[92m  Downloaded[0m glam v0.14.0
+2026-09-07T13:17:10.8422890Z [1m[92m  Downloaded[0m glam v0.16.0
+2026-09-07T13:17:10.8505079Z [1m[92m  Downloaded[0m http v1.5.0
+2026-09-07T13:17:10.8541392Z [1m[92m  Downloaded[0m aho-corasick v1.1.5
+2026-09-07T13:17:10.8592389Z [1m[92m  Downloaded[0m godot-codegen v0.2.4
+2026-09-07T13:17:10.8637633Z [1m[92m  Downloaded[0m idna v1.1.0
+2026-09-07T13:17:10.8671636Z [1m[92m  Downloaded[0m glam v0.15.2
+2026-09-07T13:17:10.8753570Z [1m[92m  Downloaded[0m glam v0.17.3
+2026-09-07T13:17:10.8838168Z [1m[92m  Downloaded[0m glam v0.18.0
+2026-09-07T13:17:10.8932255Z [1m[92m  Downloaded[0m glam v0.19.0
+2026-09-07T13:17:10.9028812Z [1m[92m  Downloaded[0m tungstenite v0.21.0
+2026-09-07T13:17:10.9061157Z [1m[92m  Downloaded[0m serde_derive v1.0.229
+2026-09-07T13:17:10.9091234Z [1m[92m  Downloaded[0m serde_core v1.0.229
+2026-09-07T13:17:10.9117933Z [1m[92m  Downloaded[0m tracing-core v0.1.36
+2026-09-07T13:17:10.9144381Z [1m[92m  Downloaded[0m unicode-ident v1.0.24
+2026-09-07T13:17:10.9171906Z [1m[92m  Downloaded[0m glam v0.20.5
+2026-09-07T13:17:10.9266075Z [1m[92m  Downloaded[0m regex v1.13.1
+2026-09-07T13:17:10.9318271Z [1m[92m  Downloaded[0m icu_properties_data v2.3.0
+2026-09-07T13:17:10.9424411Z [1m[92m  Downloaded[0m futures-util v0.3.34
+2026-09-07T13:17:10.9555937Z [1m[92m  Downloaded[0m url v2.5.8
+2026-09-07T13:17:10.9581362Z [1m[92m  Downloaded[0m glam v0.22.0
+2026-09-07T13:17:10.9718277Z [1m[92m  Downloaded[0m glam v0.21.3
+2026-09-07T13:17:10.9852814Z [1m[92m  Downloaded[0m glam v0.23.0
+2026-09-07T13:17:10.9989538Z [1m[92m  Downloaded[0m godot-core v0.2.4
+2026-09-07T13:17:11.0092077Z [1m[92m  Downloaded[0m glam v0.24.2
+2026-09-07T13:17:11.0247062Z [1m[92m  Downloaded[0m zerotrie v0.2.5
+2026-09-07T13:17:11.0285523Z [1m[92m  Downloaded[0m typenum v1.20.1
+2026-09-07T13:17:11.0319755Z [1m[92m  Downloaded[0m wide v0.7.33
+2026-09-07T13:17:11.0367115Z [1m[92m  Downloaded[0m zerocopy-derive v0.8.56
+2026-09-07T13:17:11.0458874Z [1m[92m  Downloaded[0m zerovec v0.11.8
+2026-09-07T13:17:11.0517614Z [1m[92m  Downloaded[0m secp256k1 v0.29.1
+2026-09-07T13:17:11.0562659Z [1m[92m  Downloaded[0m glam v0.25.0
+2026-09-07T13:17:11.0737790Z [1m[92m  Downloaded[0m glam v0.27.0
+2026-09-07T13:17:11.0913116Z [1m[92m  Downloaded[0m nalgebra v0.34.2
+2026-09-07T13:17:11.1156287Z [1m[92m  Downloaded[0m tracing-subscriber v0.3.23
+2026-09-07T13:17:11.1238042Z [1m[92m  Downloaded[0m glam v0.28.0
+2026-09-07T13:17:11.1433158Z [1m[92m  Downloaded[0m glam v0.29.3
+2026-09-07T13:17:11.1647680Z [1m[92m  Downloaded[0m icu_normalizer v2.3.0
+2026-09-07T13:17:11.1739839Z [1m[92m  Downloaded[0m regex-automata v0.4.18
+2026-09-07T13:17:11.1877086Z [1m[92m  Downloaded[0m glam v0.30.10
+2026-09-07T13:17:11.2161482Z [1m[92m  Downloaded[0m glam v0.31.1
+2026-09-07T13:17:11.2436380Z [1m[92m  Downloaded[0m glam v0.32.1
+2026-09-07T13:17:11.2712300Z [1m[92m  Downloaded[0m libc v0.2.189
+2026-09-07T13:17:11.3140045Z [1m[92m  Downloaded[0m syn v2.0.119
+2026-09-07T13:17:11.3243331Z [1m[92m  Downloaded[0m zerocopy v0.8.56
+2026-09-07T13:17:11.3457430Z [1m[92m  Downloaded[0m regex-syntax v0.8.11
+2026-09-07T13:17:11.3523602Z [1m[92m  Downloaded[0m syn v3.0.5
+2026-09-07T13:17:11.3625968Z [1m[92m  Downloaded[0m tracing v0.1.44
+2026-09-07T13:17:11.3778259Z [1m[92m  Downloaded[0m gdextension-api v0.2.2
+2026-09-07T13:17:11.4608758Z [1m[92m  Downloaded[0m tokio v1.53.1
+2026-09-07T13:17:11.5052304Z [1m[92m  Downloaded[0m secp256k1-sys v0.10.1
+2026-09-07T13:17:11.5994240Z [1m[92m   Compiling[0m proc-macro2 v1.0.107
+2026-09-07T13:17:11.5995178Z [1m[92m   Compiling[0m quote v1.0.47
+2026-09-07T13:17:11.5996546Z [1m[92m   Compiling[0m unicode-ident v1.0.24
+2026-09-07T13:17:11.5997344Z [1m[92m   Compiling[0m stable_deref_trait v1.2.1
+2026-09-07T13:17:11.6367426Z [1m[92m   Compiling[0m godot-bindings v0.2.4
+2026-09-07T13:17:11.6596220Z [1m[92m   Compiling[0m libc v0.2.189
+2026-09-07T13:17:11.7508074Z [1m[92m   Compiling[0m gdextension-api v0.2.2
+2026-09-07T13:17:11.7546927Z [1m[92m   Compiling[0m autocfg v1.5.1
+2026-09-07T13:17:12.1087226Z [1m[92m   Compiling[0m cfg-if v1.0.4
+2026-09-07T13:17:12.1377887Z [1m[92m   Compiling[0m typenum v1.20.1
+2026-09-07T13:17:12.6521239Z [1m[92m   Compiling[0m syn v2.0.119
+2026-09-07T13:17:12.8342954Z [1m[92m   Compiling[0m syn v3.0.5
+2026-09-07T13:17:12.9417612Z [1m[92m   Compiling[0m version_check v0.9.5
+2026-09-07T13:17:13.0037456Z [1m[92m   Compiling[0m regex-syntax v0.8.11
+2026-09-07T13:17:13.1817445Z [1m[92m   Compiling[0m generic-array v0.14.7
+2026-09-07T13:17:13.2707499Z [1m[92m   Compiling[0m godot-codegen v0.2.4
+2026-09-07T13:17:13.3657566Z [1m[92m   Compiling[0m num-traits v0.2.19
+2026-09-07T13:17:13.4657610Z [1m[92m   Compiling[0m litemap v0.8.3
+2026-09-07T13:17:13.6127336Z [1m[92m   Compiling[0m nanoserde-derive v0.1.22
+2026-09-07T13:17:14.5137568Z [1m[92m   Compiling[0m regex-automata v0.4.18
+2026-09-07T13:17:15.0837738Z [1m[92m   Compiling[0m writeable v0.6.4
+2026-09-07T13:17:15.2657215Z [1m[92m   Compiling[0m nanoserde v0.1.37
+2026-09-07T13:17:15.9177307Z [1m[92m   Compiling[0m regex v1.13.1
+2026-09-07T13:17:16.2868075Z [1m[92m   Compiling[0m synstructure v0.13.2
+2026-09-07T13:17:16.7187931Z [1m[92m   Compiling[0m paste v1.0.15
+2026-09-07T13:17:16.8107956Z [1m[92m   Compiling[0m heck v0.5.0
+2026-09-07T13:17:16.8487530Z [1m[92m   Compiling[0m zerocopy v0.8.56
+2026-09-07T13:17:16.9597884Z [1m[92m   Compiling[0m icu_normalizer_data v2.3.0
+2026-09-07T13:17:17.0547618Z [1m[92m   Compiling[0m icu_properties_data v2.3.0
+2026-09-07T13:17:17.0797905Z [1m[92m   Compiling[0m utf8_iter v1.0.4
+2026-09-07T13:17:17.1477117Z [1m[92m   Compiling[0m smallvec v1.16.0
+2026-09-07T13:17:17.5897492Z [1m[92m   Compiling[0m zerovec-derive v0.11.6
+2026-09-07T13:17:17.8383815Z [1m[92m   Compiling[0m displaydoc v0.2.7
+2026-09-07T13:17:17.8907352Z [1m[92m   Compiling[0m zerofrom-derive v0.1.7
+2026-09-07T13:17:18.3887461Z [1m[92m   Compiling[0m yoke-derive v0.8.2
+2026-09-07T13:17:19.0297433Z [1m[92m   Compiling[0m zerofrom v0.1.8
+2026-09-07T13:17:19.3397904Z [1m[92m   Compiling[0m yoke v0.8.3
+2026-09-07T13:17:19.4577442Z [1m[92m   Compiling[0m zerovec v0.11.8
+2026-09-07T13:17:19.4687515Z [1m[92m   Compiling[0m zerotrie v0.2.5
+2026-09-07T13:17:19.7996229Z [1m[92m   Compiling[0m getrandom v0.2.17
+2026-09-07T13:17:19.9477338Z [1m[92m   Compiling[0m once_cell v1.21.4
+2026-09-07T13:17:19.9923113Z [1m[92m   Compiling[0m tinystr v0.8.4
+2026-09-07T13:17:20.0058020Z [1m[92m   Compiling[0m potential_utf v0.1.6
+2026-09-07T13:17:20.0937946Z [1m[92m   Compiling[0m icu_collections v2.3.0
+2026-09-07T13:17:20.0997323Z [1m[92m   Compiling[0m pin-project-lite v0.2.17
+2026-09-07T13:17:20.1328296Z [1m[92m   Compiling[0m icu_locale_core v2.3.0
+2026-09-07T13:17:20.1397165Z [1m[92m   Compiling[0m tracing-core v0.1.36
+2026-09-07T13:17:20.5877434Z [1m[92m   Compiling[0m rand_core v0.6.4
+2026-09-07T13:17:20.7077406Z [1m[92m   Compiling[0m block-buffer v0.10.4
+2026-09-07T13:17:20.7637597Z [1m[92m   Compiling[0m crypto-common v0.1.7
+2026-09-07T13:17:20.7847927Z [1m[92m   Compiling[0m shlex v2.0.1
+2026-09-07T13:17:20.8187989Z [1m[92m   Compiling[0m bytes v1.12.1
+2026-09-07T13:17:20.8987606Z [1m[92m   Compiling[0m log v0.4.34
+2026-09-07T13:17:21.0548050Z [1m[92m   Compiling[0m icu_provider v2.3.1
+2026-09-07T13:17:21.3487467Z [1m[92m   Compiling[0m icu_properties v2.3.0
+2026-09-07T13:17:21.4327875Z [1m[92m   Compiling[0m icu_normalizer v2.3.0
+2026-09-07T13:17:21.4657943Z [1m[92m   Compiling[0m bytemuck v1.25.2
+2026-09-07T13:17:21.6137580Z [1m[92m   Compiling[0m find-msvc-tools v0.1.12
+2026-09-07T13:17:21.7767248Z [1m[92m   Compiling[0m serde_core v1.0.229
+2026-09-07T13:17:21.9907349Z [1m[92m   Compiling[0m cc v1.4.5
+2026-09-07T13:17:22.0291512Z [1m[92m   Compiling[0m safe_arch v0.7.4
+2026-09-07T13:17:22.3457884Z [1m[92m   Compiling[0m digest v0.10.7
+2026-09-07T13:17:22.4787348Z [1m[92m   Compiling[0m godot-ffi v0.2.4
+2026-09-07T13:17:22.6455252Z [1m[92m   Compiling[0m idna_adapter v1.2.2
+2026-09-07T13:17:22.7027424Z [1m[92m   Compiling[0m matrixmultiply v0.3.11
+2026-09-07T13:17:22.8088053Z [1m[92m   Compiling[0m itoa v1.0.18
+2026-09-07T13:17:22.8467455Z [1m[92m   Compiling[0m percent-encoding v2.3.2
+2026-09-07T13:17:22.9327402Z [1m[92m   Compiling[0m httparse v1.10.1
+2026-09-07T13:17:22.9927496Z [1m[92m   Compiling[0m ppv-lite86 v0.2.21
+2026-09-07T13:17:23.0400052Z [1m[92m   Compiling[0m cpufeatures v0.2.17
+2026-09-07T13:17:23.0820268Z [1m[92m   Compiling[0m thiserror v1.0.69
+2026-09-07T13:17:23.2137540Z [1m[92m   Compiling[0m form_urlencoded v1.2.2
+2026-09-07T13:17:23.3397704Z [1m[92m   Compiling[0m rand_chacha v0.3.1
+2026-09-07T13:17:23.3597200Z [1m[92m   Compiling[0m idna v1.1.0
+2026-09-07T13:17:23.6729557Z [1m[92m   Compiling[0m secp256k1-sys v0.10.1
+2026-09-07T13:17:23.8177727Z [1m[92m   Compiling[0m rand v0.8.8
+2026-09-07T13:17:23.8478180Z [1m[92m   Compiling[0m wide v0.7.33
+2026-09-07T13:17:24.4697679Z [1m[92m   Compiling[0m godot-core v0.2.4
+2026-09-07T13:17:24.6147092Z [1m[92m   Compiling[0m num-complex v0.4.6
+2026-09-07T13:17:24.6747664Z [1m[92m   Compiling[0m num-integer v0.1.47
+2026-09-07T13:17:24.9807236Z [1m[92m   Compiling[0m approx v0.5.1
+2026-09-07T13:17:25.0338071Z [1m[92m   Compiling[0m tracing-attributes v0.1.31
+2026-09-07T13:17:25.0577545Z [1m[92m   Compiling[0m thiserror-impl v1.0.69
+2026-09-07T13:17:25.3677399Z [1m[92m   Compiling[0m godot-macros v0.2.4
+2026-09-07T13:17:25.4598341Z [1m[92m   Compiling[0m thiserror v2.0.20
+2026-09-07T13:17:25.6649188Z [1m[92m   Compiling[0m serde v1.0.229
+2026-09-07T13:17:25.8227658Z [1m[92m   Compiling[0m zmij v1.0.23
+2026-09-07T13:17:25.9727669Z [1m[92m   Compiling[0m rawpointer v0.2.1
+2026-09-07T13:17:26.0097754Z [1m[92m   Compiling[0m lazy_static v1.5.0
+2026-09-07T13:17:26.0532279Z [1m[92m   Compiling[0m sharded-slab v0.1.7
+2026-09-07T13:17:26.1553465Z [1m[92m   Compiling[0m tracing v0.1.44
+2026-09-07T13:17:26.4117846Z [1m[92m   Compiling[0m simba v0.9.1
+2026-09-07T13:17:26.5397834Z [1m[92m   Compiling[0m num-rational v0.4.2
+2026-09-07T13:17:30.1697857Z [1m[92m   Compiling[0m url v2.5.8
+2026-09-07T13:17:30.5707475Z [1m[92m   Compiling[0m sha1 v0.10.7
+2026-09-07T13:17:30.7210866Z [1m[92m   Compiling[0m http v1.5.0
+2026-09-07T13:17:30.9696937Z [1m[92m   Compiling[0m tracing-log v0.2.0
+2026-09-07T13:17:31.0627618Z [1m[92m   Compiling[0m nalgebra-macros v0.3.0
+2026-09-07T13:17:31.1267817Z [1m[92m   Compiling[0m futures-macro v0.3.34
+2026-09-07T13:17:31.4167790Z [1m[92m   Compiling[0m tokio-macros v2.7.2
+2026-09-07T13:17:31.4428014Z [1m[92m   Compiling[0m thiserror-impl v2.0.20
+2026-09-07T13:17:31.7157569Z [1m[92m   Compiling[0m serde_derive v1.0.229
+2026-09-07T13:17:31.7517391Z [1m[92m   Compiling[0m mio v1.2.3
+2026-09-07T13:17:31.9457576Z [1m[92m   Compiling[0m socket2 v0.6.5
+2026-09-07T13:17:32.2497525Z [1m[92m   Compiling[0m venial v0.6.1
+2026-09-07T13:17:32.4808067Z [1m[92m   Compiling[0m thread_local v1.1.10
+2026-09-07T13:17:32.5678149Z [1m[92m   Compiling[0m data-encoding v2.11.1
+2026-09-07T13:17:32.6517799Z [1m[92m   Compiling[0m byteorder v1.5.0
+2026-09-07T13:17:32.8347312Z [1m[92m   Compiling[0m nu-ansi-term v0.50.3
+2026-09-07T13:17:33.0847438Z [1m[92m   Compiling[0m futures-core v0.3.34
+2026-09-07T13:17:33.1097537Z [1m[92m   Compiling[0m futures-sink v0.3.34
+2026-09-07T13:17:33.1446822Z [1m[92m   Compiling[0m futures-task v0.3.34
+2026-09-07T13:17:33.1749036Z [1m[92m   Compiling[0m godot-cell v0.2.4
+2026-09-07T13:17:33.2564741Z [1m[92m   Compiling[0m utf-8 v0.7.6
+2026-09-07T13:17:33.3567468Z [1m[92m   Compiling[0m serde_json v1.0.151
+2026-09-07T13:17:33.4037795Z [1m[92m   Compiling[0m slab v0.4.12
+2026-09-07T13:17:33.4507887Z [1m[92m   Compiling[0m glam v0.28.0
+2026-09-07T13:17:33.4627975Z [1m[92m   Compiling[0m tungstenite v0.21.0
+2026-09-07T13:17:33.5057924Z [1m[92m   Compiling[0m futures-util v0.3.34
+2026-09-07T13:17:35.2317770Z [1m[92m   Compiling[0m tracing-subscriber v0.3.23
+2026-09-07T13:17:35.8187454Z [1m[92m   Compiling[0m tokio v1.53.1
+2026-09-07T13:17:36.3907414Z [1m[92m   Compiling[0m nalgebra v0.34.2
+2026-09-07T13:17:37.3637898Z [1m[92m   Compiling[0m memchr v2.8.3
+2026-09-07T13:17:38.0677541Z [1m[92m   Compiling[0m android_log-sys v0.2.0
+2026-09-07T13:17:38.1137822Z [1m[92m   Compiling[0m tracing-android v0.2.0
+2026-09-07T13:17:39.5248060Z [1m[92m   Compiling[0m tokio-tungstenite v0.21.0
+2026-09-07T13:17:39.7477408Z [1m[92m   Compiling[0m secp256k1 v0.29.1
+2026-09-07T13:17:40.1317671Z [1m[92m   Compiling[0m sha2 v0.10.9
+2026-09-07T13:17:40.4947413Z [1m[92m   Compiling[0m async-trait v0.1.92
+2026-09-07T13:17:41.3053111Z [1m[92m   Compiling[0m hex v0.4.3
+2026-09-07T13:17:41.9762307Z [1m[92m   Compiling[0m visionclaw-xr-presence v0.2.1 (/home/runner/work/VisionClaw/VisionClaw/crates/visionclaw-xr-presence)
+2026-09-07T13:17:55.6060615Z [1m[92m   Compiling[0m godot v0.2.4
+2026-09-07T13:18:04.2543754Z [1m[92m   Compiling[0m visionclaw-xr-gdext v0.2.1 (/home/runner/work/VisionClaw/VisionClaw/xr-client/rust)
+2026-09-07T13:18:07.8310088Z [1m[92m    Finished[0m `dev` profile [unoptimized + debuginfo] target(s) in 58.77s
+2026-09-07T13:18:07.8891033Z ##[group]Run sudo apt-get update && sudo apt-get install -y xvfb xauth libgl1-mesa-dri libglx-mesa0 libx11-6 libxcursor1 libxinerama1 libxrandr2 libxi6
+2026-09-07T13:18:07.8892087Z [36;1msudo apt-get update && sudo apt-get install -y xvfb xauth libgl1-mesa-dri libglx-mesa0 libx11-6 libxcursor1 libxinerama1 libxrandr2 libxi6[0m
+2026-09-07T13:18:07.8929681Z shell: /usr/bin/bash -e {0}
+2026-09-07T13:18:07.8929928Z env:
+2026-09-07T13:18:07.8930118Z   CARGO_TERM_COLOR: always
+2026-09-07T13:18:07.8930349Z   RUST_BACKTRACE: 1
+2026-09-07T13:18:07.8930555Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:18:07.8930774Z   GUT_VERSION: 9.3.1
+2026-09-07T13:18:07.8930988Z   CARGO_HOME: /home/runner/.cargo
+2026-09-07T13:18:07.8931238Z   CARGO_INCREMENTAL: 0
+2026-09-07T13:18:07.8931450Z ##[endgroup]
+2026-09-07T13:18:07.9743891Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-09-07T13:18:08.0008709Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-09-07T13:18:08.0136046Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-09-07T13:18:08.0146910Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-09-07T13:18:08.0247167Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-09-07T13:18:08.0283095Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-09-07T13:18:08.0628256Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [441 kB]
+2026-09-07T13:18:08.0798925Z Get:8 https://dl.google.com/linux/chrome-stable/deb stable InRelease [2548 B]
+2026-09-07T13:18:08.0858204Z Get:9 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [394 kB]
+2026-09-07T13:18:08.1843903Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1260 kB]
+2026-09-07T13:18:08.1919802Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [292 kB]
+2026-09-07T13:18:08.1940931Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Components [180 kB]
+2026-09-07T13:18:08.1959382Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1690 kB]
+2026-09-07T13:18:08.2046950Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [339 kB]
+2026-09-07T13:18:08.2061371Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Components [388 kB]
+2026-09-07T13:18:08.2089722Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1536 kB]
+2026-09-07T13:18:08.2169831Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [352 kB]
+2026-09-07T13:18:08.2198502Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Components [940 B]
+2026-09-07T13:18:08.2417630Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-backports/main amd64 Components [5764 B]
+2026-09-07T13:18:08.2887949Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-backports/universe amd64 Components [12.6 kB]
+2026-09-07T13:18:08.2977588Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1002 kB]
+2026-09-07T13:18:08.3037204Z Get:22 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [212 kB]
+2026-09-07T13:18:08.3056227Z Get:23 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Components [46.5 kB]
+2026-09-07T13:18:08.3071771Z Get:24 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1206 kB]
+2026-09-07T13:18:08.3147305Z Get:25 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [241 kB]
+2026-09-07T13:18:08.3168152Z Get:26 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Components [76.2 kB]
+2026-09-07T13:18:08.3184626Z Get:27 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1437 kB]
+2026-09-07T13:18:08.3280072Z Get:28 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [334 kB]
+2026-09-07T13:18:08.3921228Z Get:29 https://dl.google.com/linux/chrome-stable/deb stable/main amd64 Packages [1401 B]
+2026-09-07T13:18:12.4834031Z Fetched 11.8 MB in 1s (9098 kB/s)
+2026-09-07T13:18:13.2417608Z Reading package lists...
+2026-09-07T13:18:13.2721676Z Reading package lists...
+2026-09-07T13:18:13.4230730Z Building dependency tree...
+2026-09-07T13:18:13.4237638Z Reading state information...
+2026-09-07T13:18:13.5820173Z xvfb is already the newest version (2:21.1.12-1ubuntu1.6).
+2026-09-07T13:18:13.5820831Z xauth is already the newest version (1:1.1.2-1build1).
+2026-09-07T13:18:13.5821375Z xauth set to manually installed.
+2026-09-07T13:18:13.5821938Z libgl1-mesa-dri is already the newest version (25.2.8-0ubuntu0.24.04.2).
+2026-09-07T13:18:13.5822594Z libgl1-mesa-dri set to manually installed.
+2026-09-07T13:18:13.5823190Z libglx-mesa0 is already the newest version (25.2.8-0ubuntu0.24.04.2).
+2026-09-07T13:18:13.5823835Z libglx-mesa0 set to manually installed.
+2026-09-07T13:18:13.5824437Z libx11-6 is already the newest version (2:1.8.7-1build1).
+2026-09-07T13:18:13.5824832Z libx11-6 set to manually installed.
+2026-09-07T13:18:13.5825191Z libxcursor1 is already the newest version (1:1.2.1-1build1).
+2026-09-07T13:18:13.5825687Z libxcursor1 set to manually installed.
+2026-09-07T13:18:13.5826511Z libxinerama1 is already the newest version (2:1.1.4-3build1).
+2026-09-07T13:18:13.5827167Z libxinerama1 set to manually installed.
+2026-09-07T13:18:13.5827722Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+2026-09-07T13:18:13.5828354Z libxrandr2 set to manually installed.
+2026-09-07T13:18:13.5828900Z libxi6 is already the newest version (2:1.8.1-1build1).
+2026-09-07T13:18:13.5829476Z libxi6 set to manually installed.
+2026-09-07T13:18:13.5830083Z 0 upgraded, 0 newly installed, 0 to remove and 38 not upgraded.
+2026-09-07T13:18:13.5870462Z ##[group]Run curl -fsSL -o /tmp/godot.zip \
+2026-09-07T13:18:13.5870854Z [36;1mcurl -fsSL -o /tmp/godot.zip \[0m
+2026-09-07T13:18:13.5871428Z [36;1m  "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"[0m
+2026-09-07T13:18:13.5872015Z [36;1munzip -q /tmp/godot.zip -d /tmp/godot[0m
+2026-09-07T13:18:13.5872436Z [36;1msudo mv /tmp/godot/Godot_v${GODOT_VERSION}_linux.x86_64 /usr/local/bin/godot[0m
+2026-09-07T13:18:13.5872841Z [36;1mgodot --version[0m
+2026-09-07T13:18:13.5907691Z shell: /usr/bin/bash -e {0}
+2026-09-07T13:18:13.5907927Z env:
+2026-09-07T13:18:13.5908116Z   CARGO_TERM_COLOR: always
+2026-09-07T13:18:13.5908345Z   RUST_BACKTRACE: 1
+2026-09-07T13:18:13.5908549Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:18:13.5908766Z   GUT_VERSION: 9.3.1
+2026-09-07T13:18:13.5908981Z   CARGO_HOME: /home/runner/.cargo
+2026-09-07T13:18:13.5909222Z   CARGO_INCREMENTAL: 0
+2026-09-07T13:18:13.5909434Z ##[endgroup]
+2026-09-07T13:18:15.0596182Z 4.3.stable.official.77dcf97d8
+2026-09-07T13:18:15.0659060Z ##[group]Run # NB: GUT tags are v-prefixed except 9.3.1, which is tagged bare.
+2026-09-07T13:18:15.0659611Z [36;1m# NB: GUT tags are v-prefixed except 9.3.1, which is tagged bare.[0m
+2026-09-07T13:18:15.0660145Z [36;1mgit clone --depth 1 --branch "${GUT_VERSION}" https://github.com/bitwes/Gut /tmp/gut[0m
+2026-09-07T13:18:15.0660656Z [36;1mrm -rf addons/gut && cp -r /tmp/gut/addons/gut addons/gut[0m
+2026-09-07T13:18:15.0695853Z shell: /usr/bin/bash -e {0}
+2026-09-07T13:18:15.0696418Z env:
+2026-09-07T13:18:15.0696615Z   CARGO_TERM_COLOR: always
+2026-09-07T13:18:15.0696855Z   RUST_BACKTRACE: 1
+2026-09-07T13:18:15.0697069Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:18:15.0697295Z   GUT_VERSION: 9.3.1
+2026-09-07T13:18:15.0697514Z   CARGO_HOME: /home/runner/.cargo
+2026-09-07T13:18:15.0697764Z   CARGO_INCREMENTAL: 0
+2026-09-07T13:18:15.0697970Z ##[endgroup]
+2026-09-07T13:18:15.0761551Z Cloning into '/tmp/gut'...
+2026-09-07T13:18:16.2312441Z Note: switching to '52e6d7a1fae2ce92ba78de3126df2b868d56bfbd'.
+2026-09-07T13:18:16.2312921Z 
+2026-09-07T13:18:16.2313130Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-09-07T13:18:16.2313606Z changes and commit them, and you can discard any commits you make in this
+2026-09-07T13:18:16.2314058Z state without impacting any branches by switching back to a branch.
+2026-09-07T13:18:16.2314345Z 
+2026-09-07T13:18:16.2314525Z If you want to create a new branch to retain commits you create, you may
+2026-09-07T13:18:16.2315222Z do so (now or later) by using -c with the switch command. Example:
+2026-09-07T13:18:16.2315477Z 
+2026-09-07T13:18:16.2315576Z   git switch -c <new-branch-name>
+2026-09-07T13:18:16.2315746Z 
+2026-09-07T13:18:16.2315845Z Or undo this operation with:
+2026-09-07T13:18:16.2316252Z 
+2026-09-07T13:18:16.2316338Z   git switch -
+2026-09-07T13:18:16.2316452Z 
+2026-09-07T13:18:16.2316655Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-09-07T13:18:16.2316951Z 
+2026-09-07T13:18:16.2971805Z ##[group]Run mkdir -p tests/report
+2026-09-07T13:18:16.2972158Z [36;1mmkdir -p tests/report[0m
+2026-09-07T13:18:16.2972537Z [36;1m# Register GUT global classes before running scripts in a fresh checkout.[0m
+2026-09-07T13:18:16.2973004Z [36;1mgodot --headless --editor --path . --import --quit[0m
+2026-09-07T13:18:16.2973442Z [36;1m# Actual GL font metrics are required for the world-space HUD fit gate.[0m
+2026-09-07T13:18:16.2973941Z [36;1mLIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1440x1000x24" \[0m
+2026-09-07T13:18:16.2974511Z [36;1m  godot --path . --rendering-method gl_compatibility --audio-driver Dummy --xr-mode off \[0m
+2026-09-07T13:18:16.2975074Z [36;1m  -s addons/gut/gut_cmdln.gd -gconfig=res://.gutconfig.json[0m
+2026-09-07T13:18:16.3010098Z shell: /usr/bin/bash -e {0}
+2026-09-07T13:18:16.3010336Z env:
+2026-09-07T13:18:16.3010527Z   CARGO_TERM_COLOR: always
+2026-09-07T13:18:16.3010755Z   RUST_BACKTRACE: 1
+2026-09-07T13:18:16.3011003Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:18:16.3011226Z   GUT_VERSION: 9.3.1
+2026-09-07T13:18:16.3011440Z   CARGO_HOME: /home/runner/.cargo
+2026-09-07T13:18:16.3011685Z   CARGO_INCREMENTAL: 0
+2026-09-07T13:18:16.3011888Z ##[endgroup]
+2026-09-07T13:18:16.3233719Z Godot Engine v4.3.stable.official.77dcf97d8 - https://godotengine.org
+2026-09-07T13:18:16.3250957Z TextServer: Added interface "Dummy"
+2026-09-07T13:18:16.3335985Z TextServer: Added interface "ICU / HarfBuzz / Graphite (Built-in)"
+2026-09-07T13:18:16.3409290Z JoypadLinux: udev enabled and loaded successfully.
+2026-09-07T13:18:16.3410570Z Requested V-Sync mode: Disabled
+2026-09-07T13:18:16.3411080Z Using "default" pen tablet driver...
+2026-09-07T13:18:16.3419999Z 
+2026-09-07T13:18:16.3422393Z TextServer: Primary interface set to: "ICU / HarfBuzz / Graphite (Built-in)".
+2026-09-07T13:18:16.4219573Z CORE API HASH: 966092234
+2026-09-07T13:18:16.4225827Z EDITOR API HASH: 444927587
+2026-09-07T13:18:16.4251822Z EditorTheme: Generating new theme for the config '66886095'.
+2026-09-07T13:18:16.4254751Z EditorTheme: Generating new icons.
+2026-09-07T13:18:16.5070341Z EditorTheme: Generating new fonts.
+2026-09-07T13:18:16.5282656Z EditorTheme: Generating new styles.
+2026-09-07T13:18:17.4171106Z Generating 2,048 bit RSA key pair and self-signed certificate (SHA256withRSA) with a validity of 10,000 days
+2026-09-07T13:18:17.4171883Z 	for: CN=Godot, OU=Godot Engine, O=Stichting Godot, C=NL
+2026-09-07T13:18:17.4172365Z 
+2026-09-07T13:18:17.4172959Z Updated editor debug keystore to /home/runner/.local/share/godot/keystores/debug.keystore
+2026-09-07T13:18:17.9541860Z Regenerating editor help cache
+2026-09-07T13:18:17.9551017Z Class 'AbstractPolygon2DEditor' is not exposed, skipping.
+2026-09-07T13:18:17.9551791Z Class 'AbstractPolygon2DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:17.9559212Z Class 'ActionMapEditor' is not exposed, skipping.
+2026-09-07T13:18:17.9559873Z Class 'AnchorPresetPicker' is not exposed, skipping.
+2026-09-07T13:18:17.9617709Z Class 'AnimationBezierTrackEdit' is not exposed, skipping.
+2026-09-07T13:18:17.9618433Z Class 'AnimationLibraryEditor' is not exposed, skipping.
+2026-09-07T13:18:17.9639266Z Class 'AnimationNodeBlendSpace1DEditor' is not exposed, skipping.
+2026-09-07T13:18:17.9642901Z Class 'AnimationNodeBlendSpace2DEditor' is not exposed, skipping.
+2026-09-07T13:18:17.9643767Z Class 'AnimationNodeBlendTreeEditor' is not exposed, skipping.
+2026-09-07T13:18:17.9647175Z Class 'AnimationNodeStateMachineEditor' is not exposed, skipping.
+2026-09-07T13:18:17.9664021Z Class 'AnimationPlayerEditor' is not exposed, skipping.
+2026-09-07T13:18:17.9664720Z Class 'AnimationPlayerEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:17.9665390Z Class 'AnimationTimelineEdit' is not exposed, skipping.
+2026-09-07T13:18:17.9666290Z Class 'AnimationTrackEditDefaultPlugin' is not exposed, skipping.
+2026-09-07T13:18:17.9666999Z Class 'AnimationTrackEditPlugin' is not exposed, skipping.
+2026-09-07T13:18:17.9667613Z Class 'AnimationTrackEditor' is not exposed, skipping.
+2026-09-07T13:18:17.9668588Z Class 'AnimationTrackKeyEditEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:17.9678720Z Class 'AnimationTreeEditor' is not exposed, skipping.
+2026-09-07T13:18:17.9679439Z Class 'AnimationTreeEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:17.9680205Z Class 'AnimationTreeNodeEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:17.9732565Z Class 'AssetLibraryEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:17.9733245Z Class 'AtlasMergingDialog' is not exposed, skipping.
+2026-09-07T13:18:17.9735841Z Class 'AtlasTileProxyObject' is not exposed, skipping.
+2026-09-07T13:18:17.9736744Z Class 'AudioBusesEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:17.9788203Z Class 'AudioStreamEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:17.9788962Z Class 'AudioStreamImportSettingsDialog' is not exposed, skipping.
+2026-09-07T13:18:17.9793638Z Class 'AudioStreamInteractiveEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:17.9794625Z Class 'AudioStreamInteractiveTransitionEditor' is not exposed, skipping.
+2026-09-07T13:18:17.9802353Z Class 'AudioStreamPlayerInternal' is not exposed, skipping.
+2026-09-07T13:18:17.9804026Z Class 'AudioStreamPreviewGenerator' is not exposed, skipping.
+2026-09-07T13:18:17.9805408Z Class 'AudioStreamRandomizerEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:17.9809615Z Class 'BackgroundProgress' is not exposed, skipping.
+2026-09-07T13:18:17.9943737Z Class 'BitMapEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:17.9947257Z Class 'BoneMapEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.0003672Z Class 'CPUParticles2DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.0034697Z Class 'CPUParticles3DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.0035410Z Class 'CPUParticles3DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.0254311Z Class 'CSGShape3DGizmoPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.0311259Z Class 'Camera3DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.0347381Z Class 'CanvasItemEditor' is not exposed, skipping.
+2026-09-07T13:18:18.0348034Z Class 'CanvasItemEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.0348692Z Class 'CanvasItemEditorViewport' is not exposed, skipping.
+2026-09-07T13:18:18.0352277Z Class 'CanvasItemMaterialConversionPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.0369812Z Class 'Cast2DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.0370465Z Class 'Cast2DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.0483210Z Class 'CollisionPolygon2DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.0484034Z Class 'CollisionPolygon2DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.0486367Z Class 'CollisionShape2DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.0487401Z Class 'CollisionShape2DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.0569447Z Class 'ConnectDialog' is not exposed, skipping.
+2026-09-07T13:18:18.0570109Z Class 'ConnectDialogBinds' is not exposed, skipping.
+2026-09-07T13:18:18.0570744Z Class 'ConnectionsDock' is not exposed, skipping.
+2026-09-07T13:18:18.0589869Z Class 'ControlEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.0590537Z Class 'ControlEditorPopupButton' is not exposed, skipping.
+2026-09-07T13:18:18.0591226Z Class 'ControlEditorPresetPicker' is not exposed, skipping.
+2026-09-07T13:18:18.0591878Z Class 'ControlEditorToolbar' is not exposed, skipping.
+2026-09-07T13:18:18.0596894Z Class 'CreateDialog' is not exposed, skipping.
+2026-09-07T13:18:18.0605452Z Class 'CurveEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.0606288Z Class 'CurvePreviewGenerator' is not exposed, skipping.
+2026-09-07T13:18:18.0641203Z Class 'DebugAdapterParser' is not exposed, skipping.
+2026-09-07T13:18:18.0641844Z Class 'DebugAdapterServer' is not exposed, skipping.
+2026-09-07T13:18:18.0642456Z Class 'DebuggerEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.0661901Z Class 'DefaultThemeEditorPreview' is not exposed, skipping.
+2026-09-07T13:18:18.0662794Z Class 'DependencyEditor' is not exposed, skipping.
+2026-09-07T13:18:18.0663458Z Class 'DependencyEditorOwners' is not exposed, skipping.
+2026-09-07T13:18:18.0664132Z Class 'DependencyErrorDialog' is not exposed, skipping.
+2026-09-07T13:18:18.0664814Z Class 'DependencyRemoveDialog' is not exposed, skipping.
+2026-09-07T13:18:18.0720776Z Class 'DirectoryCreateDialog' is not exposed, skipping.
+2026-09-07T13:18:18.0728762Z Class 'DockContextPopup' is not exposed, skipping.
+2026-09-07T13:18:18.0729426Z Class 'DockSplitContainer' is not exposed, skipping.
+2026-09-07T13:18:18.0730105Z Class 'DynamicFontImportSettingsData' is not exposed, skipping.
+2026-09-07T13:18:18.0730870Z Class 'DynamicFontImportSettingsDialog' is not exposed, skipping.
+2026-09-07T13:18:18.0735688Z Class 'EditorAbout' is not exposed, skipping.
+2026-09-07T13:18:18.0736554Z Class 'EditorAssetLibrary' is not exposed, skipping.
+2026-09-07T13:18:18.0737224Z Class 'EditorAudioBuses' is not exposed, skipping.
+2026-09-07T13:18:18.0738017Z Class 'EditorAudioStreamPreviewPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.0738913Z Class 'EditorAudioStreamTooltipPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.0739711Z Class 'EditorAutoloadSettings' is not exposed, skipping.
+2026-09-07T13:18:18.0740460Z Class 'EditorBitmapPreviewPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.0741178Z Class 'EditorBottomPanel' is not exposed, skipping.
+2026-09-07T13:18:18.0741882Z Class 'EditorBuildProfileManager' is not exposed, skipping.
+2026-09-07T13:18:18.0751763Z Class 'EditorDebuggerInspector' is not exposed, skipping.
+2026-09-07T13:18:18.0752493Z Class 'EditorDebuggerNode' is not exposed, skipping.
+2026-09-07T13:18:18.0753213Z Class 'EditorDebuggerRemoteObject' is not exposed, skipping.
+2026-09-07T13:18:18.0753955Z Class 'EditorDebuggerTree' is not exposed, skipping.
+2026-09-07T13:18:18.0754637Z Class 'EditorDirDialog' is not exposed, skipping.
+2026-09-07T13:18:18.0755258Z Class 'EditorDockManager' is not exposed, skipping.
+2026-09-07T13:18:18.0755882Z Class 'EditorExport' is not exposed, skipping.
+2026-09-07T13:18:18.0756729Z Class 'EditorExportGDScript' is not exposed, skipping.
+2026-09-07T13:18:18.3070868Z Class 'EditorFeatureProfileManager' is not exposed, skipping.
+2026-09-07T13:18:18.3125030Z Class 'EditorFileServer' is not exposed, skipping.
+2026-09-07T13:18:18.3132756Z Class 'EditorFileSystemImportFormatSupportQueryBlend' is not exposed, skipping.
+2026-09-07T13:18:18.3133695Z Class 'EditorFontPreviewPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3134332Z Class 'EditorGradientPreviewPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3134760Z Class 'EditorHelpBit' is not exposed, skipping.
+2026-09-07T13:18:18.3135136Z Class 'EditorHelpSearch' is not exposed, skipping.
+2026-09-07T13:18:18.3135552Z Class 'EditorImagePreviewPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3136245Z Class 'EditorImportBlendRunner' is not exposed, skipping.
+2026-09-07T13:18:18.3139987Z Class 'EditorInspectorDefaultPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3140982Z Class 'EditorInspectorParticleProcessMaterialPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3141974Z Class 'EditorInspectorPlugin3DTexture' is not exposed, skipping.
+2026-09-07T13:18:18.3142867Z Class 'EditorInspectorPluginAnimationTrackKeyEdit' is not exposed, skipping.
+2026-09-07T13:18:18.3143471Z Class 'EditorInspectorPluginAudioStream' is not exposed, skipping.
+2026-09-07T13:18:18.3144062Z Class 'EditorInspectorPluginAudioStreamInteractive' is not exposed, skipping.
+2026-09-07T13:18:18.3145134Z Class 'EditorInspectorPluginBitMap' is not exposed, skipping.
+2026-09-07T13:18:18.3146094Z Class 'EditorInspectorPluginBoneMap' is not exposed, skipping.
+2026-09-07T13:18:18.3146730Z Class 'EditorInspectorPluginControl' is not exposed, skipping.
+2026-09-07T13:18:18.3147209Z Class 'EditorInspectorPluginCurve' is not exposed, skipping.
+2026-09-07T13:18:18.3147914Z Class 'EditorInspectorPluginFontPreview' is not exposed, skipping.
+2026-09-07T13:18:18.3148945Z Class 'EditorInspectorPluginFontVariation' is not exposed, skipping.
+2026-09-07T13:18:18.3149507Z Class 'EditorInspectorPluginGradient' is not exposed, skipping.
+2026-09-07T13:18:18.3150067Z Class 'EditorInspectorPluginGradientTexture2D' is not exposed, skipping.
+2026-09-07T13:18:18.3150914Z Class 'EditorInspectorPluginInputEvent' is not exposed, skipping.
+2026-09-07T13:18:18.3151676Z Class 'EditorInspectorPluginLayeredTexture' is not exposed, skipping.
+2026-09-07T13:18:18.3152172Z Class 'EditorInspectorPluginMaterial' is not exposed, skipping.
+2026-09-07T13:18:18.3152627Z Class 'EditorInspectorPluginMesh' is not exposed, skipping.
+2026-09-07T13:18:18.3153069Z Class 'EditorInspectorPluginPackedScene' is not exposed, skipping.
+2026-09-07T13:18:18.3153834Z Class 'EditorInspectorPluginSkeleton' is not exposed, skipping.
+2026-09-07T13:18:18.3154584Z Class 'EditorInspectorPluginStyleBox' is not exposed, skipping.
+2026-09-07T13:18:18.3155069Z Class 'EditorInspectorPluginSubViewportPreview' is not exposed, skipping.
+2026-09-07T13:18:18.3155574Z Class 'EditorInspectorPluginSystemFont' is not exposed, skipping.
+2026-09-07T13:18:18.3156162Z Class 'EditorInspectorPluginTexture' is not exposed, skipping.
+2026-09-07T13:18:18.3156634Z Class 'EditorInspectorPluginTextureRegion' is not exposed, skipping.
+2026-09-07T13:18:18.3157091Z Class 'EditorInspectorPluginTileData' is not exposed, skipping.
+2026-09-07T13:18:18.3157527Z Class 'EditorInspectorRootMotionPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3158021Z Class 'EditorInspectorVisualShaderModePlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3158496Z Class 'EditorJSONSyntaxHighlighter' is not exposed, skipping.
+2026-09-07T13:18:18.3158885Z Class 'EditorLayoutsDialog' is not exposed, skipping.
+2026-09-07T13:18:18.3159236Z Class 'EditorLocaleDialog' is not exposed, skipping.
+2026-09-07T13:18:18.3159570Z Class 'EditorLog' is not exposed, skipping.
+2026-09-07T13:18:18.3159925Z Class 'EditorMaterialPreviewPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3160334Z Class 'EditorMeshPreviewPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3160770Z Class 'EditorNativeShaderSourceVisualizer' is not exposed, skipping.
+2026-09-07T13:18:18.3161174Z Class 'EditorNode' is not exposed, skipping.
+2026-09-07T13:18:18.3161492Z Class 'EditorOBJImporter' is not exposed, skipping.
+2026-09-07T13:18:18.3161843Z Class 'EditorObjectSelector' is not exposed, skipping.
+2026-09-07T13:18:18.3162242Z Class 'EditorPackedScenePreviewPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3162667Z Class 'EditorPerformanceProfiler' is not exposed, skipping.
+2026-09-07T13:18:18.3163036Z Class 'EditorPluginCSG' is not exposed, skipping.
+2026-09-07T13:18:18.3163381Z Class 'EditorPluginSettings' is not exposed, skipping.
+2026-09-07T13:18:18.3163722Z Class 'EditorProfiler' is not exposed, skipping.
+2026-09-07T13:18:18.3164069Z Class 'EditorPropertyInteger' is not exposed, skipping.
+2026-09-07T13:18:18.3164454Z Class 'EditorPropertyNameProcessor' is not exposed, skipping.
+2026-09-07T13:18:18.3164838Z Class 'EditorPropertyPath' is not exposed, skipping.
+2026-09-07T13:18:18.3165271Z Class 'EditorPropertyVector2i' is not exposed, skipping.
+2026-09-07T13:18:18.3166098Z Class 'EditorPropertyVectorN' is not exposed, skipping.
+2026-09-07T13:18:18.3166741Z Class 'EditorQuickOpen' is not exposed, skipping.
+2026-09-07T13:18:18.3167236Z Class 'EditorRunBar' is not exposed, skipping.
+2026-09-07T13:18:18.3167794Z Class 'EditorRunNative' is not exposed, skipping.
+2026-09-07T13:18:18.3168434Z Class 'EditorSceneExporterGLTFSettings' is not exposed, skipping.
+2026-09-07T13:18:18.3169473Z Class 'EditorSceneFormatImporterCollada' is not exposed, skipping.
+2026-09-07T13:18:18.3170253Z Class 'EditorSceneFormatImporterESCN' is not exposed, skipping.
+2026-09-07T13:18:18.3170920Z Class 'EditorSceneTabs' is not exposed, skipping.
+2026-09-07T13:18:18.3171731Z Class 'EditorScriptPreviewPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3185466Z Class 'EditorSettingsDialog' is not exposed, skipping.
+2026-09-07T13:18:18.3226568Z Class 'EditorTexturePreviewPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3227749Z Class 'EditorTextureTooltipPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3228484Z Class 'EditorTheme' is not exposed, skipping.
+2026-09-07T13:18:18.3229182Z Class 'EditorTitleBar' is not exposed, skipping.
+2026-09-07T13:18:18.3229703Z Class 'EditorToaster' is not exposed, skipping.
+2026-09-07T13:18:18.3230138Z Class 'EditorValidationPanel' is not exposed, skipping.
+2026-09-07T13:18:18.3230506Z Class 'EditorVisualProfiler' is not exposed, skipping.
+2026-09-07T13:18:18.3230860Z Class 'EditorZoomWidget' is not exposed, skipping.
+2026-09-07T13:18:18.3238379Z Class 'EventListenerLineEdit' is not exposed, skipping.
+2026-09-07T13:18:18.3239052Z Class 'ExportTemplateManager' is not exposed, skipping.
+2026-09-07T13:18:18.3239720Z Class 'FBXImporterManager' is not exposed, skipping.
+2026-09-07T13:18:18.3309147Z Class 'FileSystemList' is not exposed, skipping.
+2026-09-07T13:18:18.3310011Z Class 'FindInFiles' is not exposed, skipping.
+2026-09-07T13:18:18.3310597Z Class 'FindInFilesDialog' is not exposed, skipping.
+2026-09-07T13:18:18.3311014Z Class 'FindInFilesPanel' is not exposed, skipping.
+2026-09-07T13:18:18.3311413Z Class 'FindReplaceBar' is not exposed, skipping.
+2026-09-07T13:18:18.3315648Z Class 'FogMaterialConversionPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3337799Z Class 'FontEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3350028Z Class 'GDScriptEditorTranslationParserPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3350878Z Class 'GDScriptLanguageServer' is not exposed, skipping.
+2026-09-07T13:18:18.3351301Z Class 'GDScriptNativeClass' is not exposed, skipping.
+2026-09-07T13:18:18.3351734Z Class 'GDScriptSyntaxHighlighter' is not exposed, skipping.
+2026-09-07T13:18:18.3355085Z Class 'GLTFDocumentExtensionPhysics' is not exposed, skipping.
+2026-09-07T13:18:18.3356019Z Class 'GLTFDocumentExtensionTextureKTX' is not exposed, skipping.
+2026-09-07T13:18:18.3356581Z Class 'GLTFDocumentExtensionTextureWebP' is not exposed, skipping.
+2026-09-07T13:18:18.3365338Z Class 'GPUParticles2DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3390463Z Class 'GPUParticles3DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.3391292Z Class 'GPUParticles3DEditorBase' is not exposed, skipping.
+2026-09-07T13:18:18.3391802Z Class 'GPUParticles3DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3550905Z Class 'GPUParticlesCollisionSDF3DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3622671Z Class 'Gizmo3DHelper' is not exposed, skipping.
+2026-09-07T13:18:18.3623517Z Class 'GodotNavigationServer2D' is not exposed, skipping.
+2026-09-07T13:18:18.3624403Z Class 'GodotPhysicsServer2D' is not exposed, skipping.
+2026-09-07T13:18:18.3625084Z Class 'GodotPhysicsServer3D' is not exposed, skipping.
+2026-09-07T13:18:18.3625644Z Class 'GradientEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3629821Z Class 'GradientTexture2DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3639962Z Class 'GraphEditFilter' is not exposed, skipping.
+2026-09-07T13:18:18.3640596Z Class 'GraphEditMinimap' is not exposed, skipping.
+2026-09-07T13:18:18.3653284Z Class 'GridMapEditor' is not exposed, skipping.
+2026-09-07T13:18:18.3653931Z Class 'GridMapEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3673377Z Class 'GroupSettingsEditor' is not exposed, skipping.
+2026-09-07T13:18:18.3674017Z Class 'GroupsEditor' is not exposed, skipping.
+2026-09-07T13:18:18.3806395Z Class 'HistoryDock' is not exposed, skipping.
+2026-09-07T13:18:18.3807360Z Class 'IPUnix' is not exposed, skipping.
+2026-09-07T13:18:18.3821873Z Class 'ImportDefaultsEditor' is not exposed, skipping.
+2026-09-07T13:18:18.3822635Z Class 'ImportDefaultsEditorSettings' is not exposed, skipping.
+2026-09-07T13:18:18.3823147Z Class 'ImportDock' is not exposed, skipping.
+2026-09-07T13:18:18.3823551Z Class 'ImportDockParameters' is not exposed, skipping.
+2026-09-07T13:18:18.3835326Z Class 'InputEventConfigurationDialog' is not exposed, skipping.
+2026-09-07T13:18:18.3836403Z Class 'InputEventEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.3918154Z Class 'InspectorDock' is not exposed, skipping.
+2026-09-07T13:18:18.4064182Z Class 'LightOccluder2DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4065087Z Class 'LightOccluder2DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4085628Z Class 'LightmapGIEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4089260Z Class 'Line2DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4090024Z Class 'Line2DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4130681Z Class 'LocalizationEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4138691Z Class 'MaterialEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4154080Z Class 'MeshEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4178164Z Class 'MeshInstance3DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4179035Z Class 'MeshInstance3DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4179884Z Class 'MeshLibraryEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4180420Z Class 'MeshLibraryEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4196145Z Class 'MovieWriterMJPEG' is not exposed, skipping.
+2026-09-07T13:18:18.4197049Z Class 'MovieWriterPNGWAV' is not exposed, skipping.
+2026-09-07T13:18:18.4198031Z Class 'MultiMeshEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4198765Z Class 'MultiMeshEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4223875Z Class 'MultiplayerEditorDebugger' is not exposed, skipping.
+2026-09-07T13:18:18.4224781Z Class 'MultiplayerEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4241867Z Class 'NavigationLink2DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4242744Z Class 'NavigationLink2DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4245596Z Class 'NavigationMeshEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4246516Z Class 'NavigationMeshEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4249337Z Class 'NavigationObstacle2DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4250162Z Class 'NavigationObstacle2DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4252181Z Class 'NavigationObstacle3DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4253002Z Class 'NavigationObstacle3DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4256175Z Class 'NavigationPolygonEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4257103Z Class 'NavigationPolygonEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4288636Z Class 'Node3DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4289380Z Class 'Node3DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4290025Z Class 'Node3DEditorViewport' is not exposed, skipping.
+2026-09-07T13:18:18.4290518Z Class 'Node3DEditorViewportContainer' is not exposed, skipping.
+2026-09-07T13:18:18.4290976Z Class 'NodeDock' is not exposed, skipping.
+2026-09-07T13:18:18.4291685Z Class 'NoiseEditorInspectorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4292477Z Class 'NoiseEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4349858Z Class 'ORMMaterial3DConversionPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4371354Z Class 'OccluderInstance3DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4402843Z Class 'OpenXRActionMapEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4468160Z Class 'OpenXREditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4475375Z Class 'OpenXRSelectInteractionProfileDialog' is not exposed, skipping.
+2026-09-07T13:18:18.4476622Z Class 'OpenXRSelectRuntime' is not exposed, skipping.
+2026-09-07T13:18:18.4484980Z Class 'OrphanResourcesDialog' is not exposed, skipping.
+2026-09-07T13:18:18.4486513Z Class 'PackedSceneEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4487471Z Class 'PackedSceneEditorTranslationParserPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4498647Z Class 'PanoramaSkyMaterialConversionPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4501658Z Class 'ParallaxBackgroundEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4511465Z Class 'ParticleProcessMaterialConversionPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4512432Z Class 'Path2DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4513135Z Class 'Path2DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4513875Z Class 'Path3DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4514444Z Class 'Path3DGizmoPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4540228Z Class 'PhysicalBone3DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4560581Z Class 'PhysicalSkyMaterialConversionPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4756782Z Class 'PluginConfigDialog' is not exposed, skipping.
+2026-09-07T13:18:18.4788525Z Class 'Polygon2DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4789318Z Class 'Polygon2DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4789944Z Class 'Polygon3DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4790416Z Class 'Polygon3DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4808399Z Class 'PostImportPluginSkeletonRenamer' is not exposed, skipping.
+2026-09-07T13:18:18.4809363Z Class 'PostImportPluginSkeletonRestFixer' is not exposed, skipping.
+2026-09-07T13:18:18.4810053Z Class 'PostImportPluginSkeletonTrackOrganizer' is not exposed, skipping.
+2026-09-07T13:18:18.4824611Z Class 'ProceduralSkyMaterialConversionPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.4860621Z Class 'ProgressDialog' is not exposed, skipping.
+2026-09-07T13:18:18.4861375Z Class 'ProjectExportDialog' is not exposed, skipping.
+2026-09-07T13:18:18.4861998Z Class 'ProjectExportTextureFormatError' is not exposed, skipping.
+2026-09-07T13:18:18.4862567Z Class 'ProjectSettingsEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4863037Z Class 'PropertySelector' is not exposed, skipping.
+2026-09-07T13:18:18.4935256Z Class 'RenameDialog' is not exposed, skipping.
+2026-09-07T13:18:18.4974439Z Class 'ReparentDialog' is not exposed, skipping.
+2026-09-07T13:18:18.4975192Z Class 'ReplicationEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4976271Z Class 'ResourceFormatImporterSaver' is not exposed, skipping.
+2026-09-07T13:18:18.4982643Z Class 'ResourcePreloaderEditor' is not exposed, skipping.
+2026-09-07T13:18:18.4983626Z Class 'ResourcePreloaderEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5056084Z Class 'RunInstancesDialog' is not exposed, skipping.
+2026-09-07T13:18:18.5057116Z Class 'SceneCacheInterface' is not exposed, skipping.
+2026-09-07T13:18:18.5057758Z Class 'SceneCreateDialog' is not exposed, skipping.
+2026-09-07T13:18:18.5058579Z Class 'SceneExporterGLTFPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5059426Z Class 'SceneImportSettingsData' is not exposed, skipping.
+2026-09-07T13:18:18.5060298Z Class 'SceneImportSettingsDialog' is not exposed, skipping.
+2026-09-07T13:18:18.5060898Z Class 'SceneRPCInterface' is not exposed, skipping.
+2026-09-07T13:18:18.5061359Z Class 'SceneReplicationInterface' is not exposed, skipping.
+2026-09-07T13:18:18.5061842Z Class 'SceneTileProxyObject' is not exposed, skipping.
+2026-09-07T13:18:18.5064005Z Class 'SceneTreeDialog' is not exposed, skipping.
+2026-09-07T13:18:18.5064639Z Class 'SceneTreeDock' is not exposed, skipping.
+2026-09-07T13:18:18.5065251Z Class 'SceneTreeEditor' is not exposed, skipping.
+2026-09-07T13:18:18.5065782Z Class 'ScreenSelect' is not exposed, skipping.
+2026-09-07T13:18:18.5216909Z Class 'ScriptEditorDebugger' is not exposed, skipping.
+2026-09-07T13:18:18.5217803Z Class 'ScriptEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5293209Z Class 'SectionedInspector' is not exposed, skipping.
+2026-09-07T13:18:18.5293986Z Class 'SectionedInspectorFilter' is not exposed, skipping.
+2026-09-07T13:18:18.5332384Z Class 'ShaderCreateDialog' is not exposed, skipping.
+2026-09-07T13:18:18.5333183Z Class 'ShaderEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5333879Z Class 'ShaderFileEditor' is not exposed, skipping.
+2026-09-07T13:18:18.5334543Z Class 'ShaderFileEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5335021Z Class 'ShaderGlobalsEditor' is not exposed, skipping.
+2026-09-07T13:18:18.5335534Z Class 'ShaderGlobalsEditorInterface' is not exposed, skipping.
+2026-09-07T13:18:18.5346278Z Class 'SizeFlagPresetPicker' is not exposed, skipping.
+2026-09-07T13:18:18.5347666Z Class 'Skeleton2DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.5348338Z Class 'Skeleton2DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5350214Z Class 'Skeleton3DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5350934Z Class 'Skeleton3DGizmoPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5366219Z Class 'SkeletonIK3DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5471146Z Class 'SnapDialog' is not exposed, skipping.
+2026-09-07T13:18:18.5520027Z Class 'SplitContainerDragger' is not exposed, skipping.
+2026-09-07T13:18:18.5549020Z Class 'Sprite2DEditor' is not exposed, skipping.
+2026-09-07T13:18:18.5549779Z Class 'Sprite2DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5630982Z Class 'SpriteFramesEditor' is not exposed, skipping.
+2026-09-07T13:18:18.5631869Z Class 'SpriteFramesEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5683447Z Class 'StandardMaterial3DConversionPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5733317Z Class 'StyleBoxEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5778699Z Class 'SubViewportPreviewEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5779791Z Class 'SurfaceUpgradeDialog' is not exposed, skipping.
+2026-09-07T13:18:18.5780569Z Class 'SurfaceUpgradeTool' is not exposed, skipping.
+2026-09-07T13:18:18.5838739Z Class 'Texture3DEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5880326Z Class 'TextureEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5884688Z Class 'TextureLayeredEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5927161Z Class 'TextureRegionEditor' is not exposed, skipping.
+2026-09-07T13:18:18.5928002Z Class 'TextureRegionEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5929294Z Class 'ThemeContext' is not exposed, skipping.
+2026-09-07T13:18:18.5929977Z Class 'ThemeEditor' is not exposed, skipping.
+2026-09-07T13:18:18.5930670Z Class 'ThemeEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5931427Z Class 'ThemeEditorPreview' is not exposed, skipping.
+2026-09-07T13:18:18.5932067Z Class 'ThemeItemEditorDialog' is not exposed, skipping.
+2026-09-07T13:18:18.5932553Z Class 'ThemeItemImportTree' is not exposed, skipping.
+2026-09-07T13:18:18.5933005Z Class 'ThemeTypeDialog' is not exposed, skipping.
+2026-09-07T13:18:18.5933427Z Class 'ThemeTypeEditor' is not exposed, skipping.
+2026-09-07T13:18:18.5933843Z Class 'TileAtlasView' is not exposed, skipping.
+2026-09-07T13:18:18.5936276Z Class 'TileMapEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5939215Z Class 'TileMapLayerEditor' is not exposed, skipping.
+2026-09-07T13:18:18.5940013Z Class 'TileMapLayerEditorTerrainsPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5940793Z Class 'TileMapLayerEditorTilesPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5941308Z Class 'TileProxiesManagerDialog' is not exposed, skipping.
+2026-09-07T13:18:18.5946824Z Class 'TileSetAtlasSourceEditor' is not exposed, skipping.
+2026-09-07T13:18:18.5947579Z Class 'TileSetAtlasSourceProxyObject' is not exposed, skipping.
+2026-09-07T13:18:18.5947989Z Class 'TileSetEditor' is not exposed, skipping.
+2026-09-07T13:18:18.5948328Z Class 'TileSetEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5948956Z Class 'TileSetScenesCollectionProxyObject' is not exposed, skipping.
+2026-09-07T13:18:18.5949666Z Class 'TileSetScenesCollectionSourceEditor' is not exposed, skipping.
+2026-09-07T13:18:18.5952280Z Class 'TileSourceInspectorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.5952944Z Class 'TilesEditorUtils' is not exposed, skipping.
+2026-09-07T13:18:18.5984922Z Class 'UVEditDialog' is not exposed, skipping.
+2026-09-07T13:18:18.6092497Z Class 'VersionControlEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.6102998Z Class 'ViewPanner' is not exposed, skipping.
+2026-09-07T13:18:18.6133660Z Class 'ViewportNavigationControl' is not exposed, skipping.
+2026-09-07T13:18:18.6134420Z Class 'ViewportRotationControl' is not exposed, skipping.
+2026-09-07T13:18:18.6173007Z Class 'VisualShaderConversionPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.6593768Z Class 'VoxelGIEditorPlugin' is not exposed, skipping.
+2026-09-07T13:18:18.6642587Z Class 'WindowWrapper' is not exposed, skipping.
+2026-09-07T13:18:18.6820320Z Loaded system CA certificates
+2026-09-07T13:18:20.1805820Z EditorSettings: Save OK!
+2026-09-07T13:18:21.1967777Z Initialize godot-rust (API v4.3.stable.official, runtime v4.3.stable.official)
+2026-09-07T13:18:21.2337354Z EditorFileSystem: Importing file: res://addons/gut/source_code_pro.fnt
+2026-09-07T13:18:21.2338503Z Importing BMFont font from: res://addons/gut/source_code_pro.fnt
+2026-09-07T13:18:21.2353431Z Saving to: res://.godot/imported/source_code_pro.fnt-042fb383b3c7b4c19e67c852f7fbefca.fontdata
+2026-09-07T13:18:21.2358647Z Done saving to: res://.godot/imported/source_code_pro.fnt-042fb383b3c7b4c19e67c852f7fbefca.fontdata
+2026-09-07T13:18:21.2366475Z EditorFileSystem: "res://addons/gut/source_code_pro.fnt" import took 3 ms.
+2026-09-07T13:18:21.2374089Z EditorFileSystem: Importing file: res://addons/gut/fonts/LobsterTwo-Regular.ttf
+2026-09-07T13:18:21.2375472Z EditorFileSystem: Importing file: res://addons/gut/fonts/LobsterTwo-BoldItalic.ttf
+2026-09-07T13:18:21.2377177Z EditorFileSystem: Importing file: res://addons/gut/fonts/LobsterTwo-Italic.ttf
+2026-09-07T13:18:21.2378459Z Importing dynamic font from: res://addons/gut/fonts/LobsterTwo-BoldItalic.ttf
+2026-09-07T13:18:21.2379676Z Importing dynamic font from: res://addons/gut/fonts/LobsterTwo-Regular.ttf
+2026-09-07T13:18:21.2380863Z Importing dynamic font from: res://addons/gut/fonts/LobsterTwo-Italic.ttf
+2026-09-07T13:18:21.2382311Z Saving to: res://.godot/imported/LobsterTwo-Regular.ttf-f3fcfa01cd671c8da433dd875d0fe04b.fontdata
+2026-09-07T13:18:21.2384052Z Saving to: res://.godot/imported/LobsterTwo-BoldItalic.ttf-227406a33e84448e6aa974176016de19.fontdata
+2026-09-07T13:18:21.2385736Z Saving to: res://.godot/imported/LobsterTwo-Italic.ttf-f93abf6c25390c85ad5fb6c4ee75159e.fontdata
+2026-09-07T13:18:21.2412849Z Done saving to: res://.godot/imported/LobsterTwo-Regular.ttf-f3fcfa01cd671c8da433dd875d0fe04b.fontdata
+2026-09-07T13:18:21.2414783Z Done saving to: res://.godot/imported/LobsterTwo-BoldItalic.ttf-227406a33e84448e6aa974176016de19.fontdata
+2026-09-07T13:18:21.2426562Z EditorFileSystem: "res://addons/gut/fonts/LobsterTwo-Regular.ttf" import took 6 ms.
+2026-09-07T13:18:21.2427827Z EditorFileSystem: Importing file: res://addons/gut/fonts/LobsterTwo-Bold.ttf
+2026-09-07T13:18:21.2429083Z EditorFileSystem: "res://addons/gut/fonts/LobsterTwo-BoldItalic.ttf" import took 6 ms.
+2026-09-07T13:18:21.2430350Z EditorFileSystem: Importing file: res://addons/gut/fonts/CourierPrime-Regular.ttf
+2026-09-07T13:18:21.2431584Z Importing dynamic font from: res://addons/gut/fonts/LobsterTwo-Bold.ttf
+2026-09-07T13:18:21.2432694Z Importing dynamic font from: res://addons/gut/fonts/CourierPrime-Regular.ttf
+2026-09-07T13:18:21.2434420Z Done saving to: res://.godot/imported/LobsterTwo-Italic.ttf-f93abf6c25390c85ad5fb6c4ee75159e.fontdata
+2026-09-07T13:18:21.2435821Z Saving to: res://.godot/imported/LobsterTwo-Bold.ttf-7c7f734103b58a32491a4788186f3dcb.fontdata
+2026-09-07T13:18:21.2437939Z Saving to: res://.godot/imported/CourierPrime-Regular.ttf-3babe7e4a7a588dfc9a84c14b4f1fe23.fontdata
+2026-09-07T13:18:21.2444291Z EditorFileSystem: "res://addons/gut/fonts/LobsterTwo-Italic.ttf" import took 8 ms.
+2026-09-07T13:18:21.2445383Z EditorFileSystem: Importing file: res://addons/gut/fonts/CourierPrime-Italic.ttf
+2026-09-07T13:18:21.2457393Z Importing dynamic font from: res://addons/gut/fonts/CourierPrime-Italic.ttf
+2026-09-07T13:18:21.2477436Z Saving to: res://.godot/imported/CourierPrime-Italic.ttf-baa9156a73770735a0f72fb20b907112.fontdata
+2026-09-07T13:18:21.2479330Z Done saving to: res://.godot/imported/CourierPrime-Regular.ttf-3babe7e4a7a588dfc9a84c14b4f1fe23.fontdata
+2026-09-07T13:18:21.2480923Z EditorFileSystem: "res://addons/gut/fonts/CourierPrime-Regular.ttf" import took 3 ms.
+2026-09-07T13:18:21.2482610Z EditorFileSystem: Importing file: res://addons/gut/fonts/CourierPrime-BoldItalic.ttf
+2026-09-07T13:18:21.2483884Z Importing dynamic font from: res://addons/gut/fonts/CourierPrime-BoldItalic.ttf
+2026-09-07T13:18:21.2485364Z Saving to: res://.godot/imported/CourierPrime-BoldItalic.ttf-65ebcc61dd5e1dfa8f96313da4ad7019.fontdata
+2026-09-07T13:18:21.2487362Z Done saving to: res://.godot/imported/CourierPrime-Italic.ttf-baa9156a73770735a0f72fb20b907112.fontdata
+2026-09-07T13:18:21.2488880Z Done saving to: res://.godot/imported/LobsterTwo-Bold.ttf-7c7f734103b58a32491a4788186f3dcb.fontdata
+2026-09-07T13:18:21.2490199Z EditorFileSystem: "res://addons/gut/fonts/CourierPrime-Italic.ttf" import took 3 ms.
+2026-09-07T13:18:21.2491397Z EditorFileSystem: Importing file: res://addons/gut/fonts/CourierPrime-Bold.ttf
+2026-09-07T13:18:21.2492504Z Importing dynamic font from: res://addons/gut/fonts/CourierPrime-Bold.ttf
+2026-09-07T13:18:21.2493818Z Done saving to: res://.godot/imported/CourierPrime-BoldItalic.ttf-65ebcc61dd5e1dfa8f96313da4ad7019.fontdata
+2026-09-07T13:18:21.2495430Z Saving to: res://.godot/imported/CourierPrime-Bold.ttf-1f003c66d63ebed70964e7756f4fa235.fontdata
+2026-09-07T13:18:21.2497191Z EditorFileSystem: "res://addons/gut/fonts/LobsterTwo-Bold.ttf" import took 6 ms.
+2026-09-07T13:18:21.2498475Z EditorFileSystem: Importing file: res://addons/gut/fonts/AnonymousPro-Regular.ttf
+2026-09-07T13:18:21.2499683Z Importing dynamic font from: res://addons/gut/fonts/AnonymousPro-Regular.ttf
+2026-09-07T13:18:21.2501042Z Saving to: res://.godot/imported/AnonymousPro-Regular.ttf-856c843fd6f89964d2ca8d8ff1724f13.fontdata
+2026-09-07T13:18:21.2502486Z EditorFileSystem: "res://addons/gut/fonts/CourierPrime-BoldItalic.ttf" import took 4 ms.
+2026-09-07T13:18:21.2503791Z EditorFileSystem: Importing file: res://addons/gut/fonts/AnonymousPro-Italic.ttf
+2026-09-07T13:18:21.2504990Z Importing dynamic font from: res://addons/gut/fonts/AnonymousPro-Italic.ttf
+2026-09-07T13:18:21.2506536Z Saving to: res://.godot/imported/AnonymousPro-Italic.ttf-9989590b02137b799e13d570de2a42c1.fontdata
+2026-09-07T13:18:21.2508484Z Done saving to: res://.godot/imported/CourierPrime-Bold.ttf-1f003c66d63ebed70964e7756f4fa235.fontdata
+2026-09-07T13:18:21.2511864Z Done saving to: res://.godot/imported/AnonymousPro-Regular.ttf-856c843fd6f89964d2ca8d8ff1724f13.fontdata
+2026-09-07T13:18:21.2524508Z EditorFileSystem: "res://addons/gut/fonts/CourierPrime-Bold.ttf" import took 4 ms.
+2026-09-07T13:18:21.2525860Z EditorFileSystem: Importing file: res://addons/gut/fonts/AnonymousPro-BoldItalic.ttf
+2026-09-07T13:18:21.2527779Z Done saving to: res://.godot/imported/AnonymousPro-Italic.ttf-9989590b02137b799e13d570de2a42c1.fontdata
+2026-09-07T13:18:21.2529147Z Importing dynamic font from: res://addons/gut/fonts/AnonymousPro-BoldItalic.ttf
+2026-09-07T13:18:21.2530636Z Saving to: res://.godot/imported/AnonymousPro-BoldItalic.ttf-4274bf704d3d6b9cd32c4f0754d8c83d.fontdata
+2026-09-07T13:18:21.2532031Z EditorFileSystem: "res://addons/gut/fonts/AnonymousPro-Regular.ttf" import took 4 ms.
+2026-09-07T13:18:21.2533231Z EditorFileSystem: Importing file: res://addons/gut/fonts/AnonymousPro-Bold.ttf
+2026-09-07T13:18:21.2534374Z Importing dynamic font from: res://addons/gut/fonts/AnonymousPro-Bold.ttf
+2026-09-07T13:18:21.2535880Z EditorFileSystem: "res://addons/gut/fonts/AnonymousPro-Italic.ttf" import took 3 ms.
+2026-09-07T13:18:21.2537650Z Saving to: res://.godot/imported/AnonymousPro-Bold.ttf-9d8fef4d357af5b52cd60afbe608aa49.fontdata
+2026-09-07T13:18:21.2539558Z Done saving to: res://.godot/imported/AnonymousPro-BoldItalic.ttf-4274bf704d3d6b9cd32c4f0754d8c83d.fontdata
+2026-09-07T13:18:21.2545254Z EditorFileSystem: "res://addons/gut/fonts/AnonymousPro-BoldItalic.ttf" import took 3 ms.
+2026-09-07T13:18:21.2550358Z Done saving to: res://.godot/imported/AnonymousPro-Bold.ttf-9d8fef4d357af5b52cd60afbe608aa49.fontdata
+2026-09-07T13:18:21.2558745Z EditorFileSystem: "res://addons/gut/fonts/AnonymousPro-Bold.ttf" import took 3 ms.
+2026-09-07T13:18:21.2593633Z EditorFileSystem: Importing file: res://addons/gut/gui/arrow.png
+2026-09-07T13:18:21.2594931Z EditorFileSystem: Importing file: res://addons/gut/gui/play.png
+2026-09-07T13:18:21.2596291Z EditorFileSystem: Importing file: res://addons/gut/images/Folder.svg
+2026-09-07T13:18:21.2606148Z EditorFileSystem: "res://addons/gut/gui/play.png" import took 1 ms.
+2026-09-07T13:18:21.2607061Z EditorFileSystem: Importing file: res://addons/gut/images/green.png
+2026-09-07T13:18:21.2607909Z EditorFileSystem: "res://addons/gut/gui/arrow.png" import took 1 ms.
+2026-09-07T13:18:21.2608737Z EditorFileSystem: Importing file: res://addons/gut/images/red.png
+2026-09-07T13:18:21.2609594Z EditorFileSystem: "res://addons/gut/images/Folder.svg" import took 2 ms.
+2026-09-07T13:18:21.2610474Z EditorFileSystem: Importing file: res://addons/gut/images/Script.svg
+2026-09-07T13:18:21.2617945Z EditorFileSystem: "res://addons/gut/images/green.png" import took 1 ms.
+2026-09-07T13:18:21.2626980Z EditorFileSystem: Importing file: res://addons/gut/images/yellow.png
+2026-09-07T13:18:21.2628091Z EditorFileSystem: "res://addons/gut/images/Script.svg" import took 1 ms.
+2026-09-07T13:18:21.2629038Z EditorFileSystem: Importing file: res://addons/gut/icon.png
+2026-09-07T13:18:21.2629947Z EditorFileSystem: "res://addons/gut/images/red.png" import took 1 ms.
+2026-09-07T13:18:21.2630817Z EditorFileSystem: Importing file: res://icon.svg
+2026-09-07T13:18:21.2631573Z EditorFileSystem: "res://addons/gut/images/yellow.png" import took 2 ms.
+2026-09-07T13:18:21.2633854Z EditorFileSystem: "res://addons/gut/icon.png" import took 1 ms.
+2026-09-07T13:18:21.2674565Z EditorFileSystem: "res://icon.svg" import took 5 ms.
+2026-09-07T13:18:21.9413896Z ERROR: GDScript bug: Native class "AgentAvatarNode" not found.
+2026-09-07T13:18:21.9414529Z    at: _gdtype_from_datatype (modules/gdscript/gdscript_compiler.cpp:123)
+2026-09-07T13:18:21.9966340Z ERROR: GDScript bug: Native class "BinaryProtocolClient" not found.
+2026-09-07T13:18:21.9967208Z    at: _gdtype_from_datatype (modules/gdscript/gdscript_compiler.cpp:123)
+2026-09-07T13:18:21.9967974Z ERROR: GDScript bug: Native class "PresenceClientNode" not found.
+2026-09-07T13:18:21.9968711Z    at: _gdtype_from_datatype (modules/gdscript/gdscript_compiler.cpp:123)
+2026-09-07T13:18:21.9969431Z ERROR: GDScript bug: Native class "XrInteraction" not found.
+2026-09-07T13:18:21.9970044Z    at: _gdtype_from_datatype (modules/gdscript/gdscript_compiler.cpp:123)
+2026-09-07T13:18:21.9970598Z ERROR: GDScript bug: Native class "LodPolicy" not found.
+2026-09-07T13:18:21.9971136Z    at: _gdtype_from_datatype (modules/gdscript/gdscript_compiler.cpp:123)
+2026-09-07T13:18:21.9971721Z ERROR: GDScript bug: Native class "SpatialVoiceRouter" not found.
+2026-09-07T13:18:21.9972301Z    at: _gdtype_from_datatype (modules/gdscript/gdscript_compiler.cpp:123)
+2026-09-07T13:18:21.9972883Z ERROR: GDScript bug: Native class "ProxemicsSolver" not found.
+2026-09-07T13:18:21.9973445Z    at: _gdtype_from_datatype (modules/gdscript/gdscript_compiler.cpp:123)
+2026-09-07T13:18:21.9974041Z ERROR: GDScript bug: Native class "SelectionArbiterNode" not found.
+2026-09-07T13:18:21.9974638Z    at: _gdtype_from_datatype (modules/gdscript/gdscript_compiler.cpp:123)
+2026-09-07T13:18:21.9975188Z ERROR: GDScript bug: Native class "GazeTracker" not found.
+2026-09-07T13:18:21.9976205Z    at: _gdtype_from_datatype (modules/gdscript/gdscript_compiler.cpp:123)
+2026-09-07T13:18:21.9976757Z ERROR: GDScript bug: Native class "NostrAuth" not found.
+2026-09-07T13:18:21.9977295Z    at: _gdtype_from_datatype (modules/gdscript/gdscript_compiler.cpp:123)
+2026-09-07T13:18:22.7780794Z ERROR: Parameter "m" is null.
+2026-09-07T13:18:22.7781591Z    at: mesh_get_surface_count (servers/rendering/dummy/storage/mesh_storage.h:120)
+2026-09-07T13:18:23.2894840Z EditorSettings: Save OK!
+2026-09-07T13:18:23.3182765Z XR: Clearing primary interface
+2026-09-07T13:18:23.3186876Z XR: Removed interface "Native mobile"
+2026-09-07T13:18:23.3187457Z XR: Removed interface "OpenXR"
+2026-09-07T13:18:23.4734352Z Orphan StringName: Start (static: 0, total: 1)
+2026-09-07T13:18:23.4735669Z Orphan StringName: Node (static: 10, total: 11)
+2026-09-07T13:18:23.4736552Z Orphan StringName: End (static: 0, total: 1)
+2026-09-07T13:18:23.4737122Z StringName: 3 unclaimed string names at exit.
+2026-09-07T13:18:23.5925559Z Initialize godot-rust (API v4.3.stable.official, runtime v4.3.stable.official)
+2026-09-07T13:18:23.5936476Z Godot Engine v4.3.stable.official.77dcf97d8 - https://godotengine.org
+2026-09-07T13:18:23.5950203Z TextServer: Added interface "Dummy"
+2026-09-07T13:18:23.6035777Z TextServer: Added interface "ICU / HarfBuzz / Graphite (Built-in)"
+2026-09-07T13:18:23.6135757Z JoypadLinux: udev enabled and loaded successfully.
+2026-09-07T13:18:23.6454020Z Xshape 1.1 detected.
+2026-09-07T13:18:23.6454708Z Xinerama 1.1 detected.
+2026-09-07T13:18:23.6455301Z Xrandr 1.6 detected.
+2026-09-07T13:18:23.6457071Z Xrender 0.11 detected.
+2026-09-07T13:18:23.6458635Z Xinput 2.2 detected.
+2026-09-07T13:18:23.6477981Z XInput: Refreshing devices.
+2026-09-07T13:18:23.6479074Z XInput: No touch devices found.
+2026-09-07T13:18:23.6568085Z Detecting GPUs, set DRI_PRIME in the environment to override GPU detection logic.
+2026-09-07T13:18:24.0320679Z Only one GPU found, using default.
+2026-09-07T13:18:24.0696967Z WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+2026-09-07T13:18:24.0698137Z      at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:360)
+2026-09-07T13:18:24.0706153Z XcursorGetTheme could not get cursor theme
+2026-09-07T13:18:24.1565291Z Failed loading custom cursor: crossed_circle
+2026-09-07T13:18:24.1887718Z ScreenSaver: DBus 1.14.10 detected.
+2026-09-07T13:18:24.2023633Z PortalDesktop: DBus 1.14.10 detected.
+2026-09-07T13:18:24.2026718Z Requested V-Sync mode: Disabled
+2026-09-07T13:18:24.2027513Z Using "default" pen tablet driver...
+2026-09-07T13:18:24.2060669Z Shader 'CanvasSdfShaderGLES3' SHA256: abf356c5c158e897c1737becd3e6532eb221c967f6121798daab7bfe96f2ce42
+2026-09-07T13:18:24.2073654Z Shader 'SkeletonShaderGLES3' SHA256: bded3797dd8a68ba46fe8c25415b18519b6de5a7e697d35e117fb064bd1f562f
+2026-09-07T13:18:24.2080916Z Shader 'ParticlesShaderGLES3' SHA256: 4170519a9867e70fcf3691bdf3f7fc45cd4f0337500ac1d833d409375820b2b5
+2026-09-07T13:18:24.2086311Z Shader 'ParticlesCopyShaderGLES3' SHA256: 94707ac6d01b005f9bbc2ba47477077c47813b45052fa825b7587a68d53f8be5
+2026-09-07T13:18:24.2090587Z Shader 'CopyShaderGLES3' SHA256: 6a2bf8b1292db1c73cc25aca16795116e02470781f7ea8a3a78269a1ec6aedbe
+2026-09-07T13:18:24.2512461Z Shader 'CubemapFilterShaderGLES3' SHA256: 161d38d9e38191b2c15510c5d21366ca531ee749a4019ffc5c7beb5215ef9b6e
+2026-09-07T13:18:24.2515150Z Shader 'GlowShaderGLES3' SHA256: 8f5fe5d3855cfde58ee491780c7ef8f87450649ccee7c499d11dac3127823727
+2026-09-07T13:18:24.2520010Z Shader 'PostShaderGLES3' SHA256: fcb0c9cf51d32b7542e81afb40b23a91a53b1cfe7ec420d179cf6a80774f8a94
+2026-09-07T13:18:24.2605495Z Shader 'CanvasShaderGLES3' SHA256: 3a2c9455d90bf4060b5af7e85bb43d630e4cf86545ad3d45dbe4cb3cb761ba1b
+2026-09-07T13:18:24.2608529Z Shader 'CanvasOcclusionShaderGLES3' SHA256: 6ae9571e2fd4347046b3e02c28910aa22c11964bfb6632690d8a04a5a3830b2d
+2026-09-07T13:18:24.2631132Z Shader 'SceneShaderGLES3' SHA256: 11f593a8a6bcac53dcf79029a744cf47bacd4be7e90cb0988c111c0c82b1b7b8
+2026-09-07T13:18:24.3798316Z Shader 'SkyShaderGLES3' SHA256: 8ec17f42117787b7bb376fda9e09e3d88cd1cce3788aeea1045c182c95742279
+2026-09-07T13:18:24.3799666Z OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.2 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits)
+2026-09-07T13:18:24.3800879Z 
+2026-09-07T13:18:24.4635166Z TextServer: Primary interface set to: "ICU / HarfBuzz / Graphite (Built-in)".
+2026-09-07T13:18:24.5777357Z CORE API HASH: 966092234
+2026-09-07T13:18:24.5784229Z EDITOR API HASH: 444927587
+2026-09-07T13:18:24.8960204Z Loaded system CA certificates
+2026-09-07T13:18:24.9450653Z ---  GUT  ---
+2026-09-07T13:18:24.9451796Z [1m[INFO]:  [0musing [/home/runner/.local/share/godot/app_userdata/VisionClaw XR] for temporary output.
+2026-09-07T13:18:24.9452659Z Godot version:  4.3.0
+2026-09-07T13:18:24.9453025Z GUT version:  9.3.1
+2026-09-07T13:18:25.2518759Z [4m
+2026-09-07T13:18:25.2519039Z 
+2026-09-07T13:18:25.2519296Z res://tests/unit/test_agent_avatar.gd
+2026-09-07T13:18:25.2523235Z [0m* test_set_identity_renders_short_did_verified
+2026-09-07T13:18:25.7523686Z [32m    [Passed]:  [0mbadge shows the agent name
+2026-09-07T13:18:25.7524242Z [32m    [Passed]:  [0mbadge shows the …last8 short DID
+2026-09-07T13:18:25.7524690Z [32m    [Passed]:  [0mverified badge carries the check mark
+2026-09-07T13:18:25.7525759Z [32m    [Passed]:  [0m[COLOR(0.75, 1, 0.82, 1)] expected to equal [COLOR(0.75, 1, 0.82, 1)]:  verified badge colour
+2026-09-07T13:18:25.7816707Z * test_set_identity_unverified_is_visually_distinct
+2026-09-07T13:18:25.7954814Z [32m    [Passed]:  [0munverified badge carries the query mark
+2026-09-07T13:18:25.7956468Z [32m    [Passed]:  [0m[COLOR(1, 0.72, 0.28, 1)] expected to equal [COLOR(1, 0.72, 0.28, 1)]:  unverified badge is amber, not the verified colour
+2026-09-07T13:18:25.7957918Z [32m    [Passed]:  [0m[COLOR(1, 0.72, 0.28, 1)] expected to not equal [COLOR(0.75, 1, 0.82, 1)]:  unverified must never read as verified
+2026-09-07T13:18:25.8076042Z * test_empty_did_reads_unverified_never_fabricated
+2026-09-07T13:18:25.8224274Z [32m    [Passed]:  [0man absent DID reads unverified, not a fake id
+2026-09-07T13:18:25.8341114Z * test_short_did_helper_variants
+2026-09-07T13:18:25.8483280Z [32m    [Passed]:  [0m["unverified"] expected to equal ["unverified"]:  empty → unverified
+2026-09-07T13:18:25.8484804Z [32m    [Passed]:  [0m["…89abcdef"] expected to equal ["…89abcdef"]:  …last8 of the pubkey
+2026-09-07T13:18:25.8485544Z [32m    [Passed]:  [0m["…short"] expected to equal ["…short"]:  sub-8 pubkey kept whole
+2026-09-07T13:18:25.8636013Z * test_feature_mask_high_shows_everything
+2026-09-07T13:18:25.8782845Z [32m    [Passed]:  [0mbadge visible at High
+2026-09-07T13:18:25.8783600Z [32m    [Passed]:  [0mcone visible at High
+2026-09-07T13:18:25.8784137Z [32m    [Passed]:  [0mcore mesh visible at High
+2026-09-07T13:18:25.8784509Z [32m    [Passed]:  [0mbillboard off at High
+2026-09-07T13:18:25.8784848Z [32m    [Passed]:  [0mavatar visible at High
+2026-09-07T13:18:25.9017458Z * test_feature_mask_medium_drops_badge_first
+2026-09-07T13:18:25.9168201Z [32m    [Passed]:  [0mbadge drops first at Medium
+2026-09-07T13:18:25.9168835Z [32m    [Passed]:  [0mcone survives Medium
+2026-09-07T13:18:25.9169180Z [32m    [Passed]:  [0mcore survives Medium
+2026-09-07T13:18:25.9292927Z * test_feature_mask_low_billboards_core
+2026-09-07T13:18:25.9453093Z [32m    [Passed]:  [0mcone drops at Low
+2026-09-07T13:18:25.9453744Z [32m    [Passed]:  [0mcore mesh off at Low
+2026-09-07T13:18:25.9454390Z [32m    [Passed]:  [0mcore billboards at Low
+2026-09-07T13:18:25.9588826Z * test_feature_mask_culled_hides_avatar
+2026-09-07T13:18:25.9749828Z [32m    [Passed]:  [0mavatar hidden when the feature mask is empty
+2026-09-07T13:18:25.9892229Z * test_apply_signal_drives_activity_state
+2026-09-07T13:18:26.0190516Z [32m    [Passed]:  [0m[1] expected to equal [1]:  TaskStarted advances the avatar to Working
+2026-09-07T13:18:26.0458949Z * test_gaze_cone_basis_aligns_y_with_gaze
+2026-09-07T13:18:26.0632714Z [32m    [Passed]:  [0m[VECTOR3(0.70710682868957519531, 0.00000000000000000000, -0.70710682868957519531)] expected to equal [VECTOR3(0.707107, 0, -0.707107)] +/- [(0.001, 0.001, 0.001)]:  basis +Y follows the gaze direction
+2026-09-07T13:18:26.0635105Z [32m    [Passed]:  [0m[1.00000000000000000000] expected to equal [1.0] +/- [0.001]:  x axis unit length
+2026-09-07T13:18:26.0636759Z [32m    [Passed]:  [0m[1.00000000000000000000] expected to equal [1.0] +/- [0.001]:  z axis unit length
+2026-09-07T13:18:26.0638276Z [32m    [Passed]:  [0m[0.00000000000000000000] expected to equal [0.0] +/- [0.001]:  x ⟂ y
+2026-09-07T13:18:26.0639420Z [32m    [Passed]:  [0m[0.00000000000000000000] expected to equal [0.0] +/- [0.001]:  y ⟂ z
+2026-09-07T13:18:26.0829161Z [1m10/10 passed.
+2026-09-07T13:18:26.0829563Z [0m[4m
+2026-09-07T13:18:26.0829750Z 
+2026-09-07T13:18:26.0829933Z res://tests/unit/test_agent_beam.gd
+2026-09-07T13:18:26.0832577Z [0m* test_agent_multi_is_wired_as_the_beam_layer
+2026-09-07T13:18:26.2621560Z GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+2026-09-07T13:18:26.2645851Z [2m2026-09-07T13:18:26.263686Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+2026-09-07T13:18:26.2649317Z [2m2026-09-07T13:18:26.263865Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+2026-09-07T13:18:28.0320634Z WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+2026-09-07T13:18:28.0321315Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:28.0321739Z WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+2026-09-07T13:18:28.0322120Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:28.0348368Z [32m    [Passed]:  [0mExpected [AgentMulti:<MultiMeshInstance3D#78014056233>] to be anything but NULL:  AgentMulti node exists
+2026-09-07T13:18:28.0350251Z [32m    [Passed]:  [0mExpected [<MultiMesh#-9223371959193041117>] to be anything but NULL:  AgentMulti has a MultiMesh (the beam buffer target)
+2026-09-07T13:18:28.0351461Z [32m    [Passed]:  [0mbeam MultiMesh carries INSTANCE_CUSTOM (status in .a)
+2026-09-07T13:18:28.0352775Z [32m    [Passed]:  [0mExpected [<CylinderMesh#-9223371959209818334>] to be anything but NULL:  beam MultiMesh has a cylinder mesh to instance
+2026-09-07T13:18:28.0354603Z [32m    [Passed]:  [0mExpected [<ShaderMaterial#-9223371960031901928>] to be anything but NULL:  beam layer has the agent_beam material override
+2026-09-07T13:18:28.0701218Z * test_beam_multimesh_starts_empty_and_survives_a_frame
+2026-09-07T13:18:28.1421788Z GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+2026-09-07T13:18:28.1434092Z [2m2026-09-07T13:18:28.143179Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+2026-09-07T13:18:28.1439096Z [2m2026-09-07T13:18:28.143663Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+2026-09-07T13:18:28.2889710Z WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+2026-09-07T13:18:28.2890610Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:28.2891381Z WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+2026-09-07T13:18:28.2892124Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:28.4084417Z [32m    [Passed]:  [0m[0] expected to equal [0]:  no active agents ⇒ no beams drawn
+2026-09-07T13:18:28.4409268Z [1m2/2 passed.
+2026-09-07T13:18:28.4409571Z [0m[4m
+2026-09-07T13:18:28.4409688Z 
+2026-09-07T13:18:28.4410115Z res://tests/unit/test_did_badge.gd
+2026-09-07T13:18:28.4417002Z [0m* test_set_identity_populates_nameplate_and_did_badge
+2026-09-07T13:18:28.4587315Z [32m    [Passed]:  [0m["Alice"] expected to equal ["Alice"]:  nameplate carries the display name
+2026-09-07T13:18:28.4588376Z [32m    [Passed]:  [0mDID badge shows the …last8 pubkey
+2026-09-07T13:18:28.4589125Z [32m    [Passed]:  [0mverified badge carries a check mark
+2026-09-07T13:18:28.4590692Z [32m    [Passed]:  [0m[COLOR(0.75, 1, 0.82, 1)] expected to equal [COLOR(0.75, 1, 0.82, 1)]:  verified badge colour
+2026-09-07T13:18:28.4748428Z * test_unverified_identity_is_distinct
+2026-09-07T13:18:28.4916649Z [32m    [Passed]:  [0munverified badge carries a query mark
+2026-09-07T13:18:28.4918181Z [32m    [Passed]:  [0m[COLOR(1, 0.72, 0.28, 1)] expected to equal [COLOR(1, 0.72, 0.28, 1)]:  unverified badge is amber
+2026-09-07T13:18:28.5066348Z * test_set_verified_flips_badge_state
+2026-09-07T13:18:28.5238696Z [32m    [Passed]:  [0m[COLOR(1, 0.72, 0.28, 1)] expected to equal [COLOR(1, 0.72, 0.28, 1)]:  starts unverified
+2026-09-07T13:18:28.5239943Z [32m    [Passed]:  [0m[COLOR(0.75, 1, 0.82, 1)] expected to equal [COLOR(0.75, 1, 0.82, 1)]:  flips to verified once the Schnorr check passes
+2026-09-07T13:18:28.5240556Z [32m    [Passed]:  [0mmark updates on verification
+2026-09-07T13:18:28.5529488Z * test_did_badge_drops_at_medium_lod
+2026-09-07T13:18:28.5843191Z [32m    [Passed]:  [0mDID badge visible at High
+2026-09-07T13:18:28.5980147Z Project FPS: 16 (62.50 mspf)
+2026-09-07T13:18:28.5982123Z [32m    [Passed]:  [0mDID badge drops with the nameplate at Medium
+2026-09-07T13:18:28.6122511Z * test_short_did_static_helper
+2026-09-07T13:18:28.6295259Z [32m    [Passed]:  [0m["unverified"] expected to equal ["unverified"]:  
+2026-09-07T13:18:28.6296486Z [32m    [Passed]:  [0m["…eeff0011"] expected to equal ["…eeff0011"]:  
+2026-09-07T13:18:28.6554917Z [1m5/5 passed.
+2026-09-07T13:18:28.6555497Z [0m[4m
+2026-09-07T13:18:28.6555836Z 
+2026-09-07T13:18:28.6556633Z res://tests/unit/test_graph_agents.gd
+2026-09-07T13:18:28.6558780Z [0m* test_spawn_agent_adds_child_to_agent_spawner
+2026-09-07T13:18:28.7267229Z GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+2026-09-07T13:18:28.7280339Z [2m2026-09-07T13:18:28.727786Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+2026-09-07T13:18:28.7284365Z [2m2026-09-07T13:18:28.728217Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+2026-09-07T13:18:28.8742630Z WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+2026-09-07T13:18:28.8743105Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:28.8750806Z WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+2026-09-07T13:18:28.8751890Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:30.4089443Z [32m    [Passed]:  [0m[1] expected to equal [1]:  spawning an agent adds a child to AgentSpawner
+2026-09-07T13:18:30.4090036Z [32m    [Passed]:  [0magent tracked by id
+2026-09-07T13:18:30.4358748Z Project FPS: 7 (142.85 mspf)
+2026-09-07T13:18:30.4485587Z * test_spawn_agent_is_idempotent
+2026-09-07T13:18:30.5193605Z GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+2026-09-07T13:18:30.5206964Z [2m2026-09-07T13:18:30.520394Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+2026-09-07T13:18:30.5213608Z [2m2026-09-07T13:18:30.521090Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+2026-09-07T13:18:30.6659641Z WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+2026-09-07T13:18:30.6660424Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:30.6661079Z WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+2026-09-07T13:18:30.6661716Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:30.7526056Z Project FPS: 3 (333.33 mspf)
+2026-09-07T13:18:30.8153526Z [32m    [Passed]:  [0m[1] expected to equal [1]:  re-spawning the same id is a no-op
+2026-09-07T13:18:30.8479344Z * test_despawn_agent_removes_child
+2026-09-07T13:18:30.9171535Z GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+2026-09-07T13:18:30.9185458Z [2m2026-09-07T13:18:30.918251Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+2026-09-07T13:18:30.9188090Z [2m2026-09-07T13:18:30.918416Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+2026-09-07T13:18:31.0632716Z WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+2026-09-07T13:18:31.0633418Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:31.0634074Z WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+2026-09-07T13:18:31.0634726Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:31.2656335Z [32m    [Passed]:  [0m[0] expected to equal [0]:  despawn removes the child
+2026-09-07T13:18:31.2657155Z [32m    [Passed]:  [0magent untracked after despawn
+2026-09-07T13:18:31.2979867Z * test_agent_case_publishes_count_and_state
+2026-09-07T13:18:31.3672623Z GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+2026-09-07T13:18:31.3685677Z [2m2026-09-07T13:18:31.368300Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+2026-09-07T13:18:31.3691700Z [2m2026-09-07T13:18:31.368968Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+2026-09-07T13:18:31.5114424Z WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+2026-09-07T13:18:31.5115010Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:31.5115500Z WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+2026-09-07T13:18:31.5116175Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:31.5988335Z [32m    [Passed]:  [0mcase tracked against the agent
+2026-09-07T13:18:31.6609970Z Project FPS: 12 (83.33 mspf)
+2026-09-07T13:18:31.6619142Z [32m    [Passed]:  [0m[2] expected to equal [2]:  an open case drives the agent to awaiting-approval
+2026-09-07T13:18:31.6620540Z [32m    [Passed]:  [0mclearing the case untracks it
+2026-09-07T13:18:31.6973003Z * test_selecting_an_agent_with_a_case_opens_the_panel
+2026-09-07T13:18:31.7682741Z GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+2026-09-07T13:18:31.7695505Z [2m2026-09-07T13:18:31.769280Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+2026-09-07T13:18:31.7699200Z [2m2026-09-07T13:18:31.769726Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+2026-09-07T13:18:31.9147885Z WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+2026-09-07T13:18:31.9148575Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:31.9149637Z WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+2026-09-07T13:18:31.9150272Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:32.0656196Z [32m    [Passed]:  [0mselecting an agent with an open case opens the intervention panel
+2026-09-07T13:18:32.0673379Z Socket error: 111
+2026-09-07T13:18:32.0673677Z Connection to remote host failed!
+2026-09-07T13:18:32.1003353Z [1m5/5 passed.
+2026-09-07T13:18:32.1003802Z [0m[4m
+2026-09-07T13:18:32.1003986Z 
+2026-09-07T13:18:32.1004576Z res://tests/unit/test_hud_intervention.gd
+2026-09-07T13:18:32.1006474Z [0m* test_intervention_panel_hidden_by_default
+2026-09-07T13:18:32.1848210Z [32m    [Passed]:  [0mno case → no intervention panel
+2026-09-07T13:18:32.2160631Z * test_show_case_reveals_panel_with_case_id
+2026-09-07T13:18:32.3018719Z [32m    [Passed]:  [0ma queued case reveals the panel
+2026-09-07T13:18:32.3019460Z [32m    [Passed]:  [0mpanel names the case
+2026-09-07T13:18:32.3020148Z [32m    [Passed]:  [0mpanel shows the case summary
+2026-09-07T13:18:32.3319125Z * test_clear_case_hides_panel
+2026-09-07T13:18:32.4152964Z [32m    [Passed]:  [0mclearing a case hides the panel
+2026-09-07T13:18:32.4443018Z * test_acsp_indicator_tracks_open_case_count
+2026-09-07T13:18:32.5271863Z [32m    [Passed]:  [0mambient ACSP indicator shows the open-case count
+2026-09-07T13:18:32.5272694Z [32m    [Passed]:  [0mcount clears back to zero
+2026-09-07T13:18:32.5557512Z * test_approve_emits_decision_intent
+2026-09-07T13:18:32.6403092Z WARNING: HUD: intervention not configured; decision not dispatched
+2026-09-07T13:18:32.6403757Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:32.6409008Z [32m    [Passed]:  [0mExpected object HUD:<Node3D#203541186382>(hud.gd) to emit signal [decision_submitted] with parameters ["case-7", "approve"], got ["case-7", "approve"]
+2026-09-07T13:18:32.6581300Z Project FPS: 21 (47.61 mspf)
+2026-09-07T13:18:32.6703949Z * test_deny_emits_reject_intent
+2026-09-07T13:18:32.7545498Z WARNING: HUD: intervention not configured; decision not dispatched
+2026-09-07T13:18:32.7546269Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:32.7550997Z [32m    [Passed]:  [0mExpected object HUD:<Node3D#211292260566>(hud.gd) to emit signal [decision_submitted] with parameters ["case-8", "reject"], got ["case-8", "reject"]
+2026-09-07T13:18:32.7845696Z * test_decision_without_case_is_a_noop
+2026-09-07T13:18:32.8673919Z WARNING: HUD: no case selected for decision
+2026-09-07T13:18:32.8674548Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:32.8678383Z [32m    [Passed]:  [0mExpected object HUD:<Node3D#219043334336>(hud.gd) to NOT emit signal [decision_submitted]:  no case → no decision
+2026-09-07T13:18:32.8976665Z * test_dwell_reticle_reflects_charge
+2026-09-07T13:18:32.9809384Z [32m    [Passed]:  [0mreticle hidden at zero charge
+2026-09-07T13:18:32.9810209Z [32m    [Passed]:  [0mreticle shows while charging
+2026-09-07T13:18:32.9811305Z [32m    [Passed]:  [0m[0.50000000000000000000] expected to equal [0.5] +/- [0.001]:  reticle mirrors the dwell charge ratio
+2026-09-07T13:18:32.9812311Z [32m    [Passed]:  [0mreticle hides when the charge clears
+2026-09-07T13:18:33.0110973Z [1m8/8 passed.
+2026-09-07T13:18:33.0111401Z [0m[4m
+2026-09-07T13:18:33.0111593Z 
+2026-09-07T13:18:33.0111784Z res://tests/unit/test_hud_tabs.gd
+2026-09-07T13:18:33.0113900Z [0m* test_all_pages_built_and_default_graph_visible
+2026-09-07T13:18:33.1176642Z [32m    [Passed]:  [0mExpected [GraphPage:<VBoxContainer#236894292220>] to be anything but NULL:  GraphPage exists
+2026-09-07T13:18:33.1177605Z [32m    [Passed]:  [0mExpected [QueryPage:<VBoxContainer#238639122398>] to be anything but NULL:  QueryPage exists
+2026-09-07T13:18:33.1178435Z [32m    [Passed]:  [0mExpected [PinsPage:<VBoxContainer#239243102506>] to be anything but NULL:  PinsPage exists
+2026-09-07T13:18:33.1179361Z [32m    [Passed]:  [0mExpected [SwarmPage:<VBoxContainer#239729641537>] to be anything but NULL:  SwarmPage exists
+2026-09-07T13:18:33.1180558Z [32m    [Passed]:  [0mExpected [SessionPage:<VBoxContainer#240165849366>] to be anything but NULL:  SessionPage exists
+2026-09-07T13:18:33.1181425Z [32m    [Passed]:  [0mExpected [HelpPage:<VBoxContainer#240518170775>] to be anything but NULL:  HelpPage exists
+2026-09-07T13:18:33.1182071Z [32m    [Passed]:  [0mGraph is the default visible tab
+2026-09-07T13:18:33.1182473Z [32m    [Passed]:  [0mother tabs start hidden
+2026-09-07T13:18:33.1499562Z * test_show_tab_switches_exactly_one_page
+2026-09-07T13:18:33.2557243Z [32m    [Passed]:  [0msession shown
+2026-09-07T13:18:33.2557877Z [32m    [Passed]:  [0mgraph hidden
+2026-09-07T13:18:33.2558931Z [32m    [Passed]:  [0m[1] expected to equal [1]:  exactly one page visible after a tab switch
+2026-09-07T13:18:33.2869441Z * test_every_button_and_tab_has_a_hint
+2026-09-07T13:18:33.3916783Z [32m    [Passed]:  [0m[0] expected to equal [0]:  every interactive control carries a 'hint' meta; missing: []
+2026-09-07T13:18:33.4219397Z * test_hint_resolution_defaults_when_nothing_hovered
+2026-09-07T13:18:33.5287637Z [32m    [Passed]:  [0m["Point at a control for help"] expected to equal ["Point at a control for help"]:  falls back to the default hint
+2026-09-07T13:18:33.5604304Z * test_no_page_overflows_its_host
+2026-09-07T13:18:33.6651639Z Project FPS: 28 (35.71 mspf)
+2026-09-07T13:18:33.6654616Z [32m    [Passed]:  [0m[546.0] expected to be > than [1.0]:  tab host has a real height
+2026-09-07T13:18:33.6655764Z [32m    [Passed]:  [0m[436.0] expected to be <= than [547.0]:  GraphPage min-height 436 must fit host 546 (no below-the-fold)
+2026-09-07T13:18:33.6657311Z [32m    [Passed]:  [0m[505.0] expected to be <= than [547.0]:  QueryPage min-height 505 must fit host 546 (no below-the-fold)
+2026-09-07T13:18:33.6658445Z [32m    [Passed]:  [0m[518.0] expected to be <= than [547.0]:  PinsPage min-height 518 must fit host 546 (no below-the-fold)
+2026-09-07T13:18:33.6659255Z [32m    [Passed]:  [0m[454.0] expected to be <= than [547.0]:  SwarmPage min-height 454 must fit host 546 (no below-the-fold)
+2026-09-07T13:18:33.6660428Z [32m    [Passed]:  [0m[436.0] expected to be <= than [547.0]:  SessionPage min-height 436 must fit host 546 (no below-the-fold)
+2026-09-07T13:18:33.6661504Z [32m    [Passed]:  [0m[531.0] expected to be <= than [547.0]:  HelpPage min-height 531 must fit host 546 (no below-the-fold)
+2026-09-07T13:18:33.6969583Z * test_public_api_and_signals_preserved
+2026-09-07T13:18:33.8057313Z [32m    [Passed]:  [0mpublic method preserved: set_controls_status
+2026-09-07T13:18:33.8058247Z [32m    [Passed]:  [0mpublic method preserved: set_control_states
+2026-09-07T13:18:33.8058938Z [32m    [Passed]:  [0mpublic method preserved: set_fold_state
+2026-09-07T13:18:33.8059688Z [32m    [Passed]:  [0mpublic method preserved: set_query_preview
+2026-09-07T13:18:33.8060409Z [32m    [Passed]:  [0mpublic method preserved: hide_query_preview
+2026-09-07T13:18:33.8061131Z [32m    [Passed]:  [0mpublic method preserved: show_document
+2026-09-07T13:18:33.8061795Z [32m    [Passed]:  [0mpublic method preserved: hide_document
+2026-09-07T13:18:33.8062462Z [32m    [Passed]:  [0mpublic method preserved: show_case
+2026-09-07T13:18:33.8063034Z [32m    [Passed]:  [0mpublic method preserved: clear_case
+2026-09-07T13:18:33.8063731Z [32m    [Passed]:  [0mpublic method preserved: set_case_count
+2026-09-07T13:18:33.8064417Z [32m    [Passed]:  [0mpublic method preserved: set_dwell_charge
+2026-09-07T13:18:33.8065149Z [32m    [Passed]:  [0mpublic method preserved: set_avatar_count
+2026-09-07T13:18:33.8065787Z [32m    [Passed]:  [0mpublic method preserved: set_mtp_ms
+2026-09-07T13:18:33.8066716Z [32m    [Passed]:  [0mpublic method preserved: configure_intervention
+2026-09-07T13:18:33.8067554Z [32m    [Passed]:  [0mpublic method preserved: approve_selected_case
+2026-09-07T13:18:33.8068021Z [32m    [Passed]:  [0mpublic method preserved: deny_selected_case
+2026-09-07T13:18:33.8068788Z [32m    [Passed]:  [0mpublic method preserved: _on_connection_status
+2026-09-07T13:18:33.8069210Z [32m    [Passed]:  [0msignal preserved: join_requested
+2026-09-07T13:18:33.8069597Z [32m    [Passed]:  [0msignal preserved: mute_toggled
+2026-09-07T13:18:33.8069982Z [32m    [Passed]:  [0msignal preserved: decision_submitted
+2026-09-07T13:18:33.8070362Z [32m    [Passed]:  [0msignal preserved: case_decided
+2026-09-07T13:18:33.8070733Z [32m    [Passed]:  [0msignal preserved: control_pressed
+2026-09-07T13:18:33.8071329Z [32m    [Passed]:  [0msignal preserved: query_execute_pressed
+2026-09-07T13:18:33.8071752Z [32m    [Passed]:  [0msignal preserved: query_clear_pressed
+2026-09-07T13:18:33.8396465Z * test_control_button_emits_named_action
+2026-09-07T13:18:33.9467114Z [32m    [Passed]:  [0mExpected [@Button@2351:<Button#283518175247>] to be anything but NULL:  Reset Layout button exists on the Graph page
+2026-09-07T13:18:33.9471749Z [32m    [Passed]:  [0mExpected object HUD:<Node3D#281102255921>(hud.gd) to emit signal [control_pressed] with parameters ["reset_layout"], got ["reset_layout"]
+2026-09-07T13:18:33.9791469Z * test_type_toggles_present_and_emit_on_press
+2026-09-07T13:18:34.0859737Z [32m    [Passed]:  [0mExpected [@Button@2465:<Button#291705456644>] to be anything but NULL:  Knowledge type toggle present, visible by default
+2026-09-07T13:18:34.0861277Z [32m    [Passed]:  [0mExpected [@Button@2466:<Button#291755788311>] to be anything but NULL:  Ontology toggle present
+2026-09-07T13:18:34.0862730Z [32m    [Passed]:  [0mExpected [@Button@2467:<Button#291806119976>] to be anything but NULL:  Agents toggle present
+2026-09-07T13:18:34.0881967Z [32m    [Passed]:  [0mExpected object HUD:<Node3D#288870107009>(hud.gd) to emit signal [control_pressed] with parameters ["type_toggle:knowledge:0"], got ["type_toggle:knowledge:0"]
+2026-09-07T13:18:34.0883827Z [32m    [Passed]:  [0m["Knowledge ✕"] expected to equal ["Knowledge ✕"]:  label flips to hidden marker
+2026-09-07T13:18:34.0894746Z [32m    [Passed]:  [0mExpected object HUD:<Node3D#288870107009>(hud.gd) to emit signal [control_pressed] with parameters ["type_toggle:knowledge:1"], got ["type_toggle:knowledge:1"]
+2026-09-07T13:18:34.1233859Z [1m8/8 passed.
+2026-09-07T13:18:34.1234227Z [0m[4m
+2026-09-07T13:18:34.1234344Z 
+2026-09-07T13:18:34.1234480Z res://tests/unit/test_query_builder.gd
+2026-09-07T13:18:34.1237144Z [0m* test_mark_assigns_sequential_var_names
+2026-09-07T13:18:34.1239078Z [32m    [Passed]:  [0m["?v1"] expected to equal ["?v1"]:  first mark is ?v1
+2026-09-07T13:18:34.1240076Z [32m    [Passed]:  [0m["?v2"] expected to equal ["?v2"]:  second mark is ?v2
+2026-09-07T13:18:34.1240939Z [32m    [Passed] [0m
+2026-09-07T13:18:34.1241683Z [32m    [Passed]:  [0m[2] expected to equal [2]:  
+2026-09-07T13:18:34.1242258Z * test_mark_is_idempotent_per_node
+2026-09-07T13:18:34.1243537Z [32m    [Passed]:  [0m["?v1"] expected to equal ["?v1"]:  
+2026-09-07T13:18:34.1244774Z [32m    [Passed]:  [0m["?v1"] expected to equal ["?v1"]:  re-marking returns the same name, no new var
+2026-09-07T13:18:34.1246153Z [32m    [Passed]:  [0m[1] expected to equal [1]:  
+2026-09-07T13:18:34.1246928Z * test_palette_cycles_and_indices_are_distinct_early
+2026-09-07T13:18:34.1247791Z [32m    [Passed]:  [0m[0] expected to equal [0]:  
+2026-09-07T13:18:34.1248513Z [32m    [Passed]:  [0m[1] expected to equal [1]:  
+2026-09-07T13:18:34.1249808Z [32m    [Passed]:  [0m[0] expected to equal [0]:  palette wraps at QUERY_PALETTE_LEN
+2026-09-07T13:18:34.1250698Z * test_unmark_removes_variable
+2026-09-07T13:18:34.1251469Z [32m    [Passed]:  [0munmark reports it removed a variable
+2026-09-07T13:18:34.1252232Z [32m    [Passed] [0m
+2026-09-07T13:18:34.1252902Z [32m    [Passed]:  [0m[""] expected to equal [""]:  
+2026-09-07T13:18:34.1253796Z [32m    [Passed]:  [0munmarking an unmarked node returns false
+2026-09-07T13:18:34.1254544Z * test_names_do_not_reuse_after_unmark
+2026-09-07T13:18:34.1255587Z [32m    [Passed]:  [0m["?v3"] expected to equal ["?v3"]:  next name keeps counting; ?v1 is not reused
+2026-09-07T13:18:34.1256995Z * test_clear_resets_all_state
+2026-09-07T13:18:34.1257508Z [32m    [Passed] [0m
+2026-09-07T13:18:34.1258056Z [32m    [Passed]:  [0m[0] expected to equal [0]:  
+2026-09-07T13:18:34.1259149Z [32m    [Passed]:  [0m["?v1"] expected to equal ["?v1"]:  after clear, numbering restarts at ?v1
+2026-09-07T13:18:34.1260082Z * test_menu_items_unmarked_node_offers_mark
+2026-09-07T13:18:34.1261274Z [32m    [Passed]:  [0m[1] expected to equal [1]:  no query yet: only the Mark action
+2026-09-07T13:18:34.1262428Z [32m    [Passed]:  [0m["qb_mark:42"] expected to equal ["qb_mark:42"]:  
+2026-09-07T13:18:34.1263248Z [32m    [Passed] [0m
+2026-09-07T13:18:34.1263816Z * test_menu_items_marked_node_offers_unmark_and_clear
+2026-09-07T13:18:34.1264622Z [32m    [Passed]:  [0mmarked node offers unmark
+2026-09-07T13:18:34.1265418Z [32m    [Passed]:  [0mactive query offers clear
+2026-09-07T13:18:34.1266319Z * test_execute_and_toggle_offered_when_active
+2026-09-07T13:18:34.1267304Z [32m    [Passed]:  [0m[true] expected to equal [true]:  Phase D: execute wired
+2026-09-07T13:18:34.1268230Z [32m    [Passed]:  [0mExecute offered
+2026-09-07T13:18:34.1268962Z [32m    [Passed]:  [0medge-type toggle offered
+2026-09-07T13:18:34.1269682Z [32m    [Passed]:  [0mClear offered
+2026-09-07T13:18:34.1270318Z * test_menu_items_pass_through_extra_items_in_order
+2026-09-07T13:18:34.1271248Z [32m    [Passed]:  [0m["qb_mark:1"] expected to equal ["qb_mark:1"]:  
+2026-09-07T13:18:34.1272711Z [32m    [Passed]:  [0m["expand:references:outgoing"] expected to equal ["expand:references:outgoing"]:  extra items follow verbatim
+2026-09-07T13:18:34.1273927Z * test_derive_triples_only_marked_marked_edges
+2026-09-07T13:18:34.1274988Z [32m    [Passed]:  [0m[1] expected to equal [1]:  only the marked-marked edge becomes a triple
+2026-09-07T13:18:34.1276586Z [32m    [Passed]:  [0m["?v1"] expected to equal ["?v1"]:  
+2026-09-07T13:18:34.1277404Z [32m    [Passed]:  [0m["?v2"] expected to equal ["?v2"]:  
+2026-09-07T13:18:34.1278306Z [32m    [Passed]:  [0m["any"] expected to equal ["any"]:  v1 edges are wildcard
+2026-09-07T13:18:34.1279036Z * test_derive_triples_is_directed_and_deduped
+2026-09-07T13:18:34.1279981Z [32m    [Passed]:  [0m[2] expected to equal [2]:  parallel edges dedupe; reverse direction kept
+2026-09-07T13:18:34.1280926Z [32m    [Passed] [0m
+2026-09-07T13:18:34.1281363Z [32m    [Passed] [0m
+2026-09-07T13:18:34.1281766Z * test_build_pattern_payload_shape
+2026-09-07T13:18:34.1282597Z [32m    [Passed]:  [0m[true] expected to equal [true]:  
+2026-09-07T13:18:34.1283460Z [32m    [Passed]:  [0m[24] expected to equal [24]:  
+2026-09-07T13:18:34.1284285Z [32m    [Passed]:  [0m[1] expected to equal [1]:  
+2026-09-07T13:18:34.1284974Z * test_concrete_edge_type_used_when_toggle_on
+2026-09-07T13:18:34.1285886Z [32m    [Passed]:  [0m["references"] expected to equal ["references"]:  
+2026-09-07T13:18:34.1287069Z [32m    [Passed]:  [0m["any"] expected to equal ["any"]:  
+2026-09-07T13:18:34.1287675Z * test_untyped_edge_falls_back_to_any
+2026-09-07T13:18:34.1288356Z [32m    [Passed]:  [0m["any"] expected to equal ["any"]:  
+2026-09-07T13:18:34.1288939Z * test_pattern_summary_pluralises
+2026-09-07T13:18:34.1289741Z [32m    [Passed]:  [0m["1 var · 0 edges"] expected to equal ["1 var · 0 edges"]:  
+2026-09-07T13:18:34.1290747Z [32m    [Passed]:  [0m["2 vars · 1 edge"] expected to equal ["2 vars · 1 edge"]:  
+2026-09-07T13:18:34.1291454Z [1m16/16 passed.
+2026-09-07T13:18:34.1291836Z [0m[4m
+2026-09-07T13:18:34.1292000Z 
+2026-09-07T13:18:34.1292156Z res://tests/unit/test_scene_load.gd
+2026-09-07T13:18:34.1292853Z [0m* test_xr_boot_scene_loads
+2026-09-07T13:18:34.1313868Z [32m    [Passed]:  [0mExpected [<PackedScene#-9223371737515685715>(XRBoot.tscn)] to be anything but NULL:  XRBoot.tscn must be loadable
+2026-09-07T13:18:34.1316222Z [32m    [Passed]:  [0mExpected [XRBoot:<Node3D#299422976002>(xr_boot.gd)] to be anything but NULL:  XRBoot.tscn must instantiate
+2026-09-07T13:18:34.1317898Z [32m    [Passed]:  [0m[STRING_NAME(XRBoot)] expected to equal ["XRBoot"]:  root node name
+2026-09-07T13:18:34.1319278Z [32m    [Passed]:  [0mExpected [XROrigin3D:<XROrigin3D#299439753219>] to be anything but NULL:  XROrigin3D child
+2026-09-07T13:18:34.1320785Z [32m    [Passed]:  [0mExpected [XRCamera3D:<XRCamera3D#299456530236>] to be anything but NULL:  XRCamera3D child
+2026-09-07T13:18:34.1322636Z [32m    [Passed]:  [0mExpected [LeftController:<XRController3D#299490085059>] to be anything but NULL:  LeftController child
+2026-09-07T13:18:34.1324412Z [32m    [Passed]:  [0mExpected [RightController:<XRController3D#299506862063>] to be anything but NULL:  RightController child
+2026-09-07T13:18:34.1325559Z [33m    [Orphans]:  [0m9 new orphans in test.
+2026-09-07T13:18:34.1326352Z * test_graph_scene_loads
+2026-09-07T13:18:34.1366693Z [32m    [Passed]:  [0mExpected [<PackedScene#-9223371735233984485>(GraphScene.tscn)] to be anything but NULL:  GraphScene.tscn must be loadable
+2026-09-07T13:18:34.1404807Z [32m    [Passed]:  [0mExpected [GraphScene:<Node3D#301704677118>(graph_scene.gd)] to be anything but NULL:  GraphScene.tscn must instantiate
+2026-09-07T13:18:34.1406609Z [32m    [Passed]:  [0m[STRING_NAME(GraphScene)] expected to equal ["GraphScene"]:  root node name
+2026-09-07T13:18:34.1408073Z [32m    [Passed]:  [0mExpected [XROrigin3D:<XROrigin3D#301771786224>] to be anything but NULL:  XROrigin3D child
+2026-09-07T13:18:34.1409141Z [33m    [Orphans]:  [0m50 new orphans in test.
+2026-09-07T13:18:34.1409667Z * test_hud_scene_loads
+2026-09-07T13:18:34.1415274Z [32m    [Passed]:  [0mExpected [<PackedScene#-9223371733271049964>(HUD.tscn)] to be anything but NULL:  HUD.tscn must be loadable
+2026-09-07T13:18:34.1442457Z [32m    [Passed]:  [0mExpected [HUD:<Node3D#303667611634>(hud.gd)] to be anything but NULL:  HUD.tscn must instantiate
+2026-09-07T13:18:34.1443796Z [32m    [Passed]:  [0m[STRING_NAME(HUD)] expected to equal ["HUD"]:  root node name
+2026-09-07T13:18:34.1445176Z [32m    [Passed]:  [0mExpected [HudViewport:<SubViewport#303684388910>] to be anything but NULL:  HudViewport child
+2026-09-07T13:18:34.1446530Z [33m    [Orphans]:  [0m32 new orphans in test.
+2026-09-07T13:18:34.1447030Z * test_avatar_scene_loads
+2026-09-07T13:18:34.1448141Z [32m    [Passed]:  [0mExpected [<PackedScene#-9223371736827819999>(Avatar.tscn)] to be anything but NULL:  Avatar.tscn must be loadable
+2026-09-07T13:18:34.1460056Z [32m    [Passed]:  [0mExpected [Avatar:<Node3D#305110452062>(avatar.gd)] to be anything but NULL:  Avatar.tscn must instantiate
+2026-09-07T13:18:34.1461492Z [32m    [Passed]:  [0m[STRING_NAME(Avatar)] expected to equal ["Avatar"]:  root node name
+2026-09-07T13:18:34.1462824Z [32m    [Passed]:  [0mExpected [Head:<MeshInstance3D#305127229324>] to be anything but NULL:  Head child
+2026-09-07T13:18:34.1464314Z [32m    [Passed]:  [0mExpected [LeftHand:<MeshInstance3D#305144006509>] to be anything but NULL:  LeftHand child
+2026-09-07T13:18:34.1465845Z [32m    [Passed]:  [0mExpected [RightHand:<MeshInstance3D#305160783730>] to be anything but NULL:  RightHand child
+2026-09-07T13:18:34.1467555Z [32m    [Passed]:  [0mExpected [DidBadge:<Label3D#305194338520>] to be anything but NULL:  DidBadge child
+2026-09-07T13:18:34.1468544Z [33m    [Orphans]:  [0m8 new orphans in test.
+2026-09-07T13:18:34.1469065Z * test_agent_avatar_scene_loads
+2026-09-07T13:18:34.1471446Z [32m    [Passed]:  [0mExpected [<PackedScene#-9223371731140343957>(AgentAvatar.tscn)] to be anything but NULL:  AgentAvatar.tscn must be loadable
+2026-09-07T13:18:34.1475423Z [32m    [Passed]:  [0mExpected [AgentAvatar:<Node3D#305798318248>(agent_avatar.gd)] to be anything but NULL:  AgentAvatar.tscn must instantiate
+2026-09-07T13:18:34.1477301Z [32m    [Passed]:  [0m[STRING_NAME(AgentAvatar)] expected to equal ["AgentAvatar"]:  root node name
+2026-09-07T13:18:34.1478672Z [32m    [Passed]:  [0mExpected [Core:<MeshInstance3D#305815095146>] to be anything but NULL:  Core child
+2026-09-07T13:18:34.1480524Z [32m    [Passed]:  [0mExpected [CoreBillboard:<MeshInstance3D#305831872673>] to be anything but NULL:  CoreBillboard child
+2026-09-07T13:18:34.1482093Z [32m    [Passed]:  [0mExpected [GazeCone:<MeshInstance3D#305848649748>] to be anything but NULL:  GazeCone child
+2026-09-07T13:18:34.1483509Z [32m    [Passed]:  [0mExpected [Badge:<Label3D#305865426715>] to be anything but NULL:  Badge child
+2026-09-07T13:18:34.1484713Z [33m    [Orphans]:  [0m5 new orphans in test.
+2026-09-07T13:18:34.1485504Z * test_all_scenes_have_attached_scripts
+2026-09-07T13:18:34.1487181Z [32m    [Passed]:  [0mExpected [<PackedScene#-9223371730720913675>(XRBoot.tscn)] to be anything but NULL:  scene res://scenes/XRBoot.tscn must load
+2026-09-07T13:18:34.1489121Z [32m    [Passed]:  [0mExpected [<GDScript#-9223371737784121505>] to be anything but NULL:  scene res://scenes/XRBoot.tscn must attach a script
+2026-09-07T13:18:34.1500682Z [32m    [Passed]:  [0mExpected [<PackedScene#-9223371729798166771>(GraphScene.tscn)] to be anything but NULL:  scene res://scenes/GraphScene.tscn must load
+2026-09-07T13:18:34.1537041Z [32m    [Passed]:  [0mExpected [<GDScript#-9223371963219573004>] to be anything but NULL:  scene res://scenes/GraphScene.tscn must attach a script
+2026-09-07T13:18:34.1538926Z [32m    [Passed]:  [0mExpected [<PackedScene#-9223371729999493344>(HUD.tscn)] to be anything but NULL:  scene res://scenes/HUD.tscn must load
+2026-09-07T13:18:34.1571926Z [32m    [Passed]:  [0mExpected [<GDScript#-9223371961390856436>] to be anything but NULL:  scene res://scenes/HUD.tscn must attach a script
+2026-09-07T13:18:34.1573855Z [32m    [Passed]:  [0mExpected [<PackedScene#-9223371736827819999>(Avatar.tscn)] to be anything but NULL:  scene res://scenes/Avatar.tscn must load
+2026-09-07T13:18:34.1575785Z [32m    [Passed]:  [0mExpected [<GDScript#-9223371962481375495>] to be anything but NULL:  scene res://scenes/Avatar.tscn must attach a script
+2026-09-07T13:18:34.1577288Z [33m    [Orphans]:  [0m99 new orphans in test.
+2026-09-07T13:18:34.1577846Z * test_scene_uids_are_unique
+2026-09-07T13:18:34.1580760Z [32m    [Passed]:  [0mExpected [<PackedScene#-9223371726325282340>(XRBoot.tscn)] to be anything but NULL:  scene res://scenes/XRBoot.tscn must load
+2026-09-07T13:18:34.1582215Z [32m    [Passed]:  [0mduplicate resource_path res://scenes/XRBoot.tscn
+2026-09-07T13:18:34.1594496Z [32m    [Passed]:  [0mExpected [<PackedScene#-9223371725570307603>(GraphScene.tscn)] to be anything but NULL:  scene res://scenes/GraphScene.tscn must load
+2026-09-07T13:18:34.1596341Z [32m    [Passed]:  [0mduplicate resource_path res://scenes/GraphScene.tscn
+2026-09-07T13:18:34.1597856Z [32m    [Passed]:  [0mExpected [<PackedScene#-9223371725771634198>(HUD.tscn)] to be anything but NULL:  scene res://scenes/HUD.tscn must load
+2026-09-07T13:18:34.1599219Z [32m    [Passed]:  [0mduplicate resource_path res://scenes/HUD.tscn
+2026-09-07T13:18:34.1600529Z [32m    [Passed]:  [0mExpected [<PackedScene#-9223371736827819999>(Avatar.tscn)] to be anything but NULL:  scene res://scenes/Avatar.tscn must load
+2026-09-07T13:18:34.1601775Z [32m    [Passed]:  [0mduplicate resource_path res://scenes/Avatar.tscn
+2026-09-07T13:18:34.1602391Z * test_avatar_set_display_name
+2026-09-07T13:18:34.2047345Z [32m    [Passed]:  [0mExpected [Nameplate:<Label3D#311636789732>] to be anything but NULL:  Nameplate node must exist
+2026-09-07T13:18:34.2048634Z [32m    [Passed]:  [0m["TestUser"] expected to equal ["TestUser"]:  display name must update nameplate text
+2026-09-07T13:18:34.2348260Z * test_avatar_apply_pose_updates_head_transform
+2026-09-07T13:18:34.5961141Z Project FPS: 44 (22.72 mspf)
+2026-09-07T13:18:35.5984104Z Project FPS: 76 (13.15 mspf)
+2026-09-07T13:18:35.8371278Z [32m    [Passed]:  [0m[VECTOR3(0.99999982118606567383, 1.99999964237213134766, 2.99999928474426269531)] expected to equal [VECTOR3(1, 2, 3)] +/- [(0.05, 0.05, 0.05)]:  head position must converge to target
+2026-09-07T13:18:35.8662038Z * test_avatar_apply_pose_shows_hands_when_tracked
+2026-09-07T13:18:35.8989496Z [32m    [Passed]:  [0mleft hand visible when has_left=true
+2026-09-07T13:18:35.8990256Z [32m    [Passed]:  [0mright hand visible when has_right=true
+2026-09-07T13:18:35.9153214Z [32m    [Passed]:  [0mleft hand hidden when has_left=false
+2026-09-07T13:18:35.9154012Z [32m    [Passed]:  [0mright hand hidden when has_right=false
+2026-09-07T13:18:35.9316571Z * test_avatar_lod_level_high
+2026-09-07T13:18:35.9608509Z [32m    [Passed]:  [0mavatar visible at LOD High
+2026-09-07T13:18:35.9609610Z [32m    [Passed]:  [0mnameplate visible at LOD High
+2026-09-07T13:18:35.9610107Z [32m    [Passed]:  [0mleft hand visible at LOD High
+2026-09-07T13:18:35.9894974Z * test_avatar_lod_level_medium_hides_nameplate
+2026-09-07T13:18:36.0202747Z [32m    [Passed]:  [0mavatar visible at LOD Medium
+2026-09-07T13:18:36.0203516Z [32m    [Passed]:  [0mnameplate hidden at LOD Medium
+2026-09-07T13:18:36.0204225Z [32m    [Passed]:  [0mhands still visible at LOD Medium
+2026-09-07T13:18:36.0355769Z * test_avatar_lod_level_low_hides_hands
+2026-09-07T13:18:36.0634754Z [32m    [Passed]:  [0mavatar visible at LOD Low
+2026-09-07T13:18:36.0635473Z [32m    [Passed]:  [0mnameplate hidden at LOD Low
+2026-09-07T13:18:36.0636341Z [32m    [Passed]:  [0mleft hand hidden at LOD Low
+2026-09-07T13:18:36.0636998Z [32m    [Passed]:  [0mright hand hidden at LOD Low
+2026-09-07T13:18:36.0902513Z * test_avatar_lod_level_culled_hides_avatar
+2026-09-07T13:18:36.1188441Z [32m    [Passed]:  [0mavatar hidden at LOD Culled
+2026-09-07T13:18:36.1329432Z * test_hud_set_avatar_count
+2026-09-07T13:18:36.2173050Z [32m    [Passed]:  [0m[5] expected to equal [5]:  avatar count stored
+2026-09-07T13:18:36.2394411Z [32m    [Passed]:  [0mdebug stats must show avatar count
+2026-09-07T13:18:36.2699839Z * test_hud_set_mtp_ms
+2026-09-07T13:18:36.3550306Z [32m    [Passed]:  [0m[12.50000000000000000000] expected to equal [12.5] +/- [0.01]:  mtp_ms stored
+2026-09-07T13:18:36.3761861Z [32m    [Passed]:  [0mdebug stats must show MTP value
+2026-09-07T13:18:36.4074732Z * test_hud_connection_status
+2026-09-07T13:18:36.5160507Z [32m    [Passed]:  [0mconnected status shows OK
+2026-09-07T13:18:36.5389351Z [32m    [Passed]:  [0mdisconnected status shows OFF
+2026-09-07T13:18:36.5677781Z * test_graph_scene_avatar_join_adds_child
+2026-09-07T13:18:36.6379116Z GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+2026-09-07T13:18:36.6391854Z [2m2026-09-07T13:18:36.638949Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+2026-09-07T13:18:36.6398527Z [2m2026-09-07T13:18:36.639422Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+2026-09-07T13:18:36.7834367Z WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+2026-09-07T13:18:36.7835044Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:36.7835460Z WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+2026-09-07T13:18:36.7835849Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:36.7872734Z [2m2026-09-07T13:18:36.786996Z[0m [32m INFO[0m [2mvisionclaw_xr_gdext::webrtc_audio[0m[2m:[0m voice track attached [3mdid[0m[2m=[0mdid:nostr:abc123
+2026-09-07T13:18:36.8433696Z Project FPS: 53 (18.86 mspf)
+2026-09-07T13:18:36.8442563Z [32m    [Passed]:  [0m[1] expected to equal [1]:  avatar join adds child to spawner
+2026-09-07T13:18:36.8443064Z [32m    [Passed]:  [0mavatar tracked in dictionary
+2026-09-07T13:18:36.8749719Z * test_graph_scene_avatar_leave_removes_child
+2026-09-07T13:18:36.9424292Z GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+2026-09-07T13:18:36.9437849Z [2m2026-09-07T13:18:36.943380Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+2026-09-07T13:18:36.9440673Z [2m2026-09-07T13:18:36.943832Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+2026-09-07T13:18:37.0845564Z WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+2026-09-07T13:18:37.0846877Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:37.0847556Z WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+2026-09-07T13:18:37.0848181Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:37.0882355Z [2m2026-09-07T13:18:37.087986Z[0m [32m INFO[0m [2mvisionclaw_xr_gdext::webrtc_audio[0m[2m:[0m voice track attached [3mdid[0m[2m=[0mdid:nostr:abc123
+2026-09-07T13:18:37.2563972Z [32m    [Passed]:  [0m[0] expected to equal [0]:  avatar leave removes child from spawner
+2026-09-07T13:18:37.2564652Z [32m    [Passed]:  [0mavatar removed from dictionary
+2026-09-07T13:18:37.2867608Z * test_graph_scene_avatar_leave_nonexistent_is_safe
+2026-09-07T13:18:37.3537929Z GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+2026-09-07T13:18:37.3551692Z [2m2026-09-07T13:18:37.354882Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+2026-09-07T13:18:37.3554355Z [2m2026-09-07T13:18:37.355081Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+2026-09-07T13:18:37.4969372Z WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+2026-09-07T13:18:37.4970069Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:37.4970793Z WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+2026-09-07T13:18:37.4971427Z      at: push_warning (core/variant/variant_utility.cpp:1112)
+2026-09-07T13:18:37.5569796Z [32m    [Passed]:  [0mno crash on removing nonexistent avatar
+2026-09-07T13:18:37.5878420Z [1m20/20 passed.
+2026-09-07T13:18:37.5879248Z [0m[4m
+2026-09-07T13:18:37.5879570Z 
+2026-09-07T13:18:37.5879852Z res://tests/unit/test_swarm_tab.gd
+2026-09-07T13:18:37.5881837Z [0m* test_swarm_page_exists_and_starts_empty
+2026-09-07T13:18:37.6711026Z Project FPS: 13 (76.92 mspf)
+2026-09-07T13:18:37.6907959Z [32m    [Passed]:  [0mExpected [SwarmPage:<VBoxContainer#384248579845>] to be anything but NULL:  SwarmPage built
+2026-09-07T13:18:37.6908607Z [32m    [Passed]:  [0mroster push API present
+2026-09-07T13:18:37.7115776Z [32m    [Passed]:  [0m[0] expected to equal [0]:  no agent rows when the roster is empty
+2026-09-07T13:18:37.7390820Z * test_roster_rows_render_and_teleport_on_tap
+2026-09-07T13:18:37.8690647Z [32m    [Passed]:  [0m[2] expected to equal [2]:  one teleport button per agent
+2026-09-07T13:18:37.8691936Z [32m    [Passed]:  [0mExpected [@Button@3452:<Button#394264577800>] to be anything but NULL:  named agent row present
+2026-09-07T13:18:37.8692985Z [32m    [Passed]:  [0mrow shows name → target label
+2026-09-07T13:18:37.8696943Z [32m    [Passed]:  [0mExpected object HUD:<Node3D#386832271919>(hud.gd) to emit signal [control_pressed] with parameters ["teleport:7"], got ["teleport:7"]
+2026-09-07T13:18:37.8698715Z [32m    [Passed]:  [0mExpected [@Button@3457:<Button#394449127979>] to be anything but NULL:  nameless agent falls back to 'agent <id>'
+2026-09-07T13:18:37.9013260Z [1m2/2 passed.
+2026-09-07T13:18:37.9013569Z [0m[4m
+2026-09-07T13:18:37.9013682Z 
+2026-09-07T13:18:37.9013816Z res://tests/unit/test_xr_config.gd
+2026-09-07T13:18:37.9017036Z [0m* test_boot_sets_use_xr_synchronously
+2026-09-07T13:18:37.9018279Z [32m    [Passed]:  [0mExpected [<FileAccess#-9223371641784891544>] to be anything but NULL:  must open res://scripts/xr_boot.gd
+2026-09-07T13:18:37.9020022Z [32m    [Passed]:  [0mxr_boot must set use_xr = true
+2026-09-07T13:18:37.9020871Z [32m    [Passed]:  [0muse_xr is set after an explicit OpenXR initialize()
+2026-09-07T13:18:37.9021620Z * test_eye_gaze_is_probed_not_blindly_enabled_in_boot
+2026-09-07T13:18:37.9022892Z [32m    [Passed]:  [0mExpected [<FileAccess#-9223371641701004976>] to be anything but NULL:  must open res://scripts/xr_boot.gd
+2026-09-07T13:18:37.9024397Z [32m    [Passed]:  [0meye-gaze support is queried behind a has_method guard
+2026-09-07T13:18:37.9025119Z * test_graph_scene_probes_eye_gaze_and_feeds_resolver
+2026-09-07T13:18:37.9026558Z [32m    [Passed]:  [0mExpected [<FileAccess#-9223371641633896415>] to be anything but NULL:  must open res://scripts/graph_scene.gd
+2026-09-07T13:18:37.9031126Z [32m    [Passed]:  [0mGraphScene has an eye-gaze probe
+2026-09-07T13:18:37.9032315Z [32m    [Passed]:  [0mGraphScene queries support behind a has_method guard
+2026-09-07T13:18:37.9033199Z [32m    [Passed]:  [0mthe probe feeds the Rust gaze resolver
+2026-09-07T13:18:37.9033964Z [1m3/3 passed.
+2026-09-07T13:18:37.9034526Z [0m[4m
+2026-09-07T13:18:37.9034735Z 
+2026-09-07T13:18:37.9034965Z res://tests/unit/test_xr_visual_accessibility.gd
+2026-09-07T13:18:37.9037052Z [0m* test_header_status_does_not_intersect_approval_badge
+2026-09-07T13:18:38.0080097Z [32m    [Passed]:  [0mFPS remains visible beside the approval badge
+2026-09-07T13:18:38.0270445Z * test_active_tab_uses_shape_and_surface_as_well_as_text_colour
+2026-09-07T13:18:38.1330019Z [32m    [Passed]:  [0m[2] expected to equal [2]:  selected tab has an explicit outline
+2026-09-07T13:18:38.1331690Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1333662Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1335639Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1337758Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1339708Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1340759Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1349519Z [32m    [Passed]:  [0m[2] expected to equal [2]:  selected tab has an explicit outline
+2026-09-07T13:18:38.1351152Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1353042Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1354976Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1357094Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1359019Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1360616Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1368909Z [32m    [Passed]:  [0m[2] expected to equal [2]:  selected tab has an explicit outline
+2026-09-07T13:18:38.1370545Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1372679Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1374627Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1376748Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1378689Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1380071Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1387768Z [32m    [Passed]:  [0m[2] expected to equal [2]:  selected tab has an explicit outline
+2026-09-07T13:18:38.1389494Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1391449Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1393371Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1395272Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1397402Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1398822Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1406429Z [32m    [Passed]:  [0m[2] expected to equal [2]:  selected tab has an explicit outline
+2026-09-07T13:18:38.1408273Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1410256Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1412189Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1414120Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1416229Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1417660Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1426107Z [32m    [Passed]:  [0m[2] expected to equal [2]:  selected tab has an explicit outline
+2026-09-07T13:18:38.1428006Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1430173Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1432102Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1434011Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1436095Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1437571Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1446302Z [32m    [Passed]:  [0m[2] expected to equal [2]:  selected tab has an explicit outline
+2026-09-07T13:18:38.1448160Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1450130Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1452066Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1453986Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1456084Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1457349Z [32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+2026-09-07T13:18:38.1708108Z * test_document_overlay_remains_above_the_instrument_surface
+2026-09-07T13:18:38.2792468Z [32m    [Passed]:  [0m[2] expected to equal [2]:  
+2026-09-07T13:18:38.2793233Z [32m    [Passed]:  [0m[10] expected to be > than [0]:  
+2026-09-07T13:18:38.2793946Z [32m    [Passed]:  [0m[10] expected to be > than [0]:  
+2026-09-07T13:18:38.2999875Z * test_comfort_controls_emit_intent_and_external_sync_is_silent
+2026-09-07T13:18:38.4100617Z [32m    [Passed]:  [0mExpected object HUD:<Node3D#421124900786>(hud.gd) to NOT emit signal [control_pressed]:  
+2026-09-07T13:18:38.4104478Z [32m    [Passed]:  [0mExpected object HUD:<Node3D#421124900786>(hud.gd) to emit signal [control_pressed] with parameters ["visual_motion:0"], got ["visual_motion:0"]
+2026-09-07T13:18:38.4108126Z [32m    [Passed]:  [0mExpected object HUD:<Node3D#421124900786>(hud.gd) to emit signal [control_pressed] with parameters ["visual_quality:1"], got ["visual_quality:1"]
+2026-09-07T13:18:38.4317137Z [1m4/4 passed.
+2026-09-07T13:18:38.5161826Z [0m
+2026-09-07T13:18:38.5162006Z 
+2026-09-07T13:18:38.5162011Z 
+2026-09-07T13:18:38.5162015Z 
+2026-09-07T13:18:38.5162214Z [33m==============================================
+2026-09-07T13:18:38.5162560Z [0m[33m= Run Summary
+2026-09-07T13:18:38.5162854Z [0m[33m==============================================
+2026-09-07T13:18:38.5163771Z [0m
+2026-09-07T13:18:38.5164255Z ---- Totals ----
+2026-09-07T13:18:38.5164673Z Scripts           11
+2026-09-07T13:18:38.5165091Z Tests             83
+2026-09-07T13:18:38.5165554Z   Passing         83
+2026-09-07T13:18:38.5166109Z Asserts           314
+2026-09-07T13:18:38.5166715Z Time              13.265s
+2026-09-07T13:18:38.5167006Z 
+2026-09-07T13:18:38.5167014Z 
+2026-09-07T13:18:38.5167322Z [32m---- All tests passed! ----
+2026-09-07T13:18:38.5167754Z [0m
+2026-09-07T13:18:38.5184445Z Results saved to res://tests/report/junit.xml
+2026-09-07T13:18:38.5322666Z [1m[INFO]:  [0mExiting with code 0
+2026-09-07T13:18:38.5584063Z XR: Clearing primary interface
+2026-09-07T13:18:38.5592219Z XR: Removed interface "Native mobile"
+2026-09-07T13:18:38.5592716Z XR: Removed interface "OpenXR"
+2026-09-07T13:18:38.6781223Z ERROR: Texture with GL ID of 102: leaked 349524 bytes.
+2026-09-07T13:18:38.6781860Z    at: ~Utilities (drivers/gles3/storage/utilities.cpp:79)
+2026-09-07T13:18:38.6789816Z ERROR: Texture with GL ID of 103: leaked 349524 bytes.
+2026-09-07T13:18:38.6790414Z    at: ~Utilities (drivers/gles3/storage/utilities.cpp:79)
+2026-09-07T13:18:39.7632021Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-07T13:18:39.7633961Z ##[group]Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+2026-09-07T13:18:39.7634342Z with:
+2026-09-07T13:18:39.7634525Z   name: gut-junit
+2026-09-07T13:18:39.7634746Z   path: xr-client/tests/report/junit.xml
+2026-09-07T13:18:39.7635020Z   if-no-files-found: warn
+2026-09-07T13:18:39.7635249Z   compression-level: 6
+2026-09-07T13:18:39.7635460Z   overwrite: false
+2026-09-07T13:18:39.7635669Z   include-hidden-files: false
+2026-09-07T13:18:39.7635891Z env:
+2026-09-07T13:18:39.7636424Z   CARGO_TERM_COLOR: always
+2026-09-07T13:18:39.7636672Z   RUST_BACKTRACE: 1
+2026-09-07T13:18:39.7636871Z   GODOT_VERSION: 4.3-stable
+2026-09-07T13:18:39.7637115Z   GUT_VERSION: 9.3.1
+2026-09-07T13:18:39.7637337Z   CARGO_HOME: /home/runner/.cargo
+2026-09-07T13:18:39.7637578Z   CARGO_INCREMENTAL: 0
+2026-09-07T13:18:39.7637778Z ##[endgroup]
+2026-09-07T13:18:39.9228698Z (node:4918) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-07T13:18:39.9229420Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-07T13:18:39.9274082Z With the provided path, there will be 1 file uploaded
+2026-09-07T13:18:39.9280472Z Artifact name is valid!
+2026-09-07T13:18:39.9281127Z Root directory input is valid!
+2026-09-07T13:18:40.2432031Z Beginning upload of artifact content to blob storage
+2026-09-07T13:18:40.2624122Z (node:4918) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-07T13:18:40.4720296Z Uploaded bytes 2580
+2026-09-07T13:18:40.5300578Z Finished uploading artifact content to blob storage!
+2026-09-07T13:18:40.5301489Z SHA256 digest of uploaded artifact zip is 2bf536d3d2ccf0c7f292a7ba9c01aefac9bbf4df44f4d22e60e328ac4e478330
+2026-09-07T13:18:40.5303610Z Finalizing artifact upload
+2026-09-07T13:18:40.8180059Z Artifact gut-junit.zip successfully finalized. Artifact ID 10020352360
+2026-09-07T13:18:40.8181696Z Artifact gut-junit has been successfully uploaded! Final size is 2580 bytes. Artifact ID is 10020352360
+2026-09-07T13:18:40.8188446Z Artifact download URL: https://github.com/DreamLab-AI/VisionClaw/actions/runs/34126476293/artifacts/10020352360
+2026-09-07T13:18:40.8379783Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-07T13:18:40.8381255Z Post job cleanup.
+2026-09-07T13:18:40.9203978Z [command]/usr/bin/git version
+2026-09-07T13:18:40.9245868Z git version 2.55.0
+2026-09-07T13:18:40.9284090Z Temporarily overriding HOME='/home/runner/work/_temp/26843a12-cf0e-49b5-bc53-f9f771daa544' before making global git config changes
+2026-09-07T13:18:40.9285697Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-07T13:18:40.9291381Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/VisionClaw/VisionClaw
+2026-09-07T13:18:40.9330386Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-07T13:18:40.9367389Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-07T13:18:40.9638853Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-07T13:18:40.9669237Z http.https://github.com/.extraheader
+2026-09-07T13:18:40.9680828Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-09-07T13:18:40.9715202Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-07T13:18:41.0022499Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-07T13:18:41.0087871Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-07T13:18:41.0520255Z Cleaning up orphan processes
+2026-09-07T13:18:41.0932390Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@11d5960a326750d5838078e36cf38b85af677262, actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

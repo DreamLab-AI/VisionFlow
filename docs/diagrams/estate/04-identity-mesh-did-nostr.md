@@ -31,7 +31,7 @@ sources:
   - ../project/src/handlers/socket_flow_handler/http_handler.rs
   - ../project/client/src/services/nostrAuthService.ts
   - ../project/client/src/types/nip07.d.ts
-verified_commit: {visionclaw: dd82a07b0, agentbox: 2c521c5bb}
+verified_commit: {visionclaw: dd82a07b0c54defc469a85e9d57fb15d29dc5e07, agentbox: 771d96ed5ac6f5daa1e78a60d109c130b9ef9b99}
 ---
 ## ES-04.1 verification mesh — who signs, who verifies whom
 ```mermaid

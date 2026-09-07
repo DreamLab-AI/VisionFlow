@@ -1,7 +1,7 @@
 {
   "date": "2026-09-07",
   "scope": "61 distinct open master-register IDs at execution start; excludes historical resolved IDs and frozen optional programmes",
-  "final": false,
+  "final": true,
   "items": [
     {
       "id": "EA-01",
@@ -125,9 +125,9 @@
     },
     {
       "id": "G-18",
-      "status": "blocked",
+      "status": "closed",
       "lane": "canon",
-      "result": "Strict citation refusal and current-worktree mode have regression tests. Remaining ambiguous/misbound references and concurrent diagram changes prevent a whole-corpus current-source pass."
+      "result": "Strict current-worktree citation check passes across 130 topics / 1,404 diagrams with zero diagnostics; before/after hashes bind 1,698 declared sources (one RuView source excluded). Render-input matches and semantic lane audits are separate receipts; future source changes require revalidation."
     },
     {
       "id": "G-19",
@@ -155,9 +155,9 @@
     },
     {
       "id": "G-24",
-      "status": "in-progress",
+      "status": "closed",
       "lane": "visionclaw",
-      "result": "Local documentation validator and XR source/template fixes pass; hosted acceptance to be checked after landing."
+      "result": "Hosted Documentation Quality CI 34126476287 passes; actual GL GUT job 101756326729 passes 83 tests / 314 assertions at fb72df39a. Original import/layout causes fixed; full XR/Quest and headset acceptance remain separate, including missing release keystore."
     },
     {
       "id": "G-25",
@@ -197,9 +197,9 @@
     },
     {
       "id": "M-3",
-      "status": "in-progress",
+      "status": "blocked",
       "lane": "agentbox",
-      "result": "Actual HP Nix build running in separate worktree with opaque operator manifest copy and retained rollback source/config/image; no restart yet."
+      "result": "HP image build succeeded, but the candidate failed health/readiness checks and was rolled back. Original image c64e5aca is running healthy with /ready HTTP200; candidate e3fbe18f and rollback receipts retained. Startup failure requires diagnosis before another rollout."
     },
     {
       "id": "M-4",
@@ -211,7 +211,7 @@
       "id": "M-5",
       "status": "blocked",
       "lane": "agentbox",
-      "result": "Concurrent source now implements annexeInclude and workspace-depth sibling cloning for the sovereign-mesh nightly evaluator. A pinned nightly-runtime and build receipt is still required; earlier standalone-excluded premise is superseded."
+      "result": "AnnexeInclude and workspace-depth sibling cloning already exist in baseline2c521c5bb; targeted layout test passes. A completed live nightly receipt and sibling HEAD evidence remain required."
     },
     {
       "id": "T-1",
@@ -253,7 +253,7 @@
       "id": "L-5",
       "status": "blocked",
       "lane": "visionclaw",
-      "result": "No connected headset, Godot runtime or adb target; XR library tests do not prove on-headset operation."
+      "result": "Godot4.3/4.6 actual GL validation and hosted83-test suite now pass. No connected headset or adb target; release keystore is absent. Stereo, controller, frame-time and installed APK acceptance remain unverified."
     },
     {
       "id": "L-6",
@@ -343,7 +343,7 @@
       "id": "V-1",
       "status": "blocked",
       "lane": "federation",
-      "result": "Reload trigger and candidate notes mobile fix implemented. Frozen notes SPA has no current rebuild source; matching semantic bundle/server and publication acceptance remain prerequisites."
+      "result": "Reload trigger implemented and notes/explorer mobile fixes published and browser-verified. Frozen notes SPA has no current rebuild source; coordinated matching semantic bundle/server activation remains outstanding."
     },
     {
       "id": "V-2",

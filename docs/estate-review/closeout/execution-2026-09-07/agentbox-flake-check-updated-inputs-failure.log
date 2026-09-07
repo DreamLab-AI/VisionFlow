@@ -1,0 +1,136 @@
+update	Run flake check on updated inputs	﻿2026-09-07T13:16:43.4626074Z ##[group]Run nix flake check --no-build --print-build-logs
+update	Run flake check on updated inputs	2026-09-07T13:16:43.4626566Z ^[[36;1mnix flake check --no-build --print-build-logs^[[0m
+update	Run flake check on updated inputs	2026-09-07T13:16:43.4664518Z shell: /usr/bin/bash -e {0}
+update	Run flake check on updated inputs	2026-09-07T13:16:43.4664782Z env:
+update	Run flake check on updated inputs	2026-09-07T13:16:43.4665002Z   TMPDIR: /home/runner/work/_temp
+update	Run flake check on updated inputs	2026-09-07T13:16:43.4665266Z ##[endgroup]
+update	Run flake check on updated inputs	2026-09-07T13:16:43.5562062Z warning: Git tree '/home/runner/work/agentbox/agentbox' is dirty
+update	Run flake check on updated inputs	2026-09-07T13:16:43.6584625Z evaluating flake...
+update	Run flake check on updated inputs	2026-09-07T13:16:43.6957235Z checking flake output 'packages'...
+update	Run flake check on updated inputs	2026-09-07T13:16:43.6990405Z copying path '/nix/store/igrbwnqkyn9z88d3kvwhgfrwh6firl0w-source' from 'https://cache.nixos.org'...
+update	Run flake check on updated inputs	2026-09-07T13:16:50.8347500Z evaluation warning: stdenv.isLinux is deprecated, use stdenv.hostPlatform.isLinux instead
+update	Run flake check on updated inputs	2026-09-07T13:16:50.8348314Z checking derivation packages.x86_64-linux.default...
+update	Run flake check on updated inputs	2026-09-07T13:16:50.8765855Z unpacking 'github:NixOS/nixpkgs/1cabc318c11299f07ca53e3cb719854682fe6eb3?narHash=sha256-7G%2B2aXClSMaTY1ogpX14CAxjRsvyVzpE0GRwL71WO7g%3D' into the Git cache...
+update	Run flake check on updated inputs	2026-09-07T13:17:06.3544881Z evaluation warning: stdenv.isx86_64 is deprecated, use stdenv.hostPlatform.isx86_64 instead
+update	Run flake check on updated inputs	2026-09-07T13:17:06.3555593Z evaluation warning: cudaPackages.cuda_cccl is deprecated, use cccl instead
+update	Run flake check on updated inputs	2026-09-07T13:17:07.1978463Z unpacking 'github:hercules-ci/flake-parts/57928607ea566b5db3ad13af0e57e921e6b12381?narHash=sha256-AnYjnFWgS49RlqX7LrC4uA%2BsCCDBj0Ry/WOJ5XWAsa0%3D' into the Git cache...
+update	Run flake check on updated inputs	2026-09-07T13:17:07.4887352Z unpacking 'github:nix-community/nixpkgs.lib/72716169fe93074c333e8d0173151350670b824c?narHash=sha256-cBEymOf4/o3FD5AZnzC3J9hLbiZ%2BQDT/KDuyHXVJOpM%3D' into the Git cache...
+update	Run flake check on updated inputs	2026-09-07T13:17:07.7880715Z unpacking 'github:ipetkov/crane/3d3de3313e263e04894f284ac18177bd26169bad?narHash=sha256-9bCDuUzpwJXcHMQYMS1yNuzYMmKO/CCwCexpjWOl62I%3D' into the Git cache...
+update	Run flake check on updated inputs	2026-09-07T13:17:08.2191086Z copying path '/nix/store/gw7fxaw8z5szcqlzyzcnrshzi60zj664-source' from 'https://cache.nixos.org'...
+update	Run flake check on updated inputs	2026-09-07T13:17:22.6550441Z derivation evaluated to /nix/store/g3sfw3hshfzfihmzqd3wnzldgip7iagc-image-agentbox.json.drv
+update	Run flake check on updated inputs	2026-09-07T13:17:22.6551727Z checking derivation packages.x86_64-linux.desktop...
+update	Run flake check on updated inputs	2026-09-07T13:17:22.6593796Z derivation evaluated to /nix/store/90as3fcxljg2vy6ld44533vrfb6nkyjh-image-agentbox.json.drv
+update	Run flake check on updated inputs	2026-09-07T13:17:22.6594796Z checking derivation packages.x86_64-linux.runtime...
+update	Run flake check on updated inputs	2026-09-07T13:17:22.6644939Z derivation evaluated to /nix/store/g3sfw3hshfzfihmzqd3wnzldgip7iagc-image-agentbox.json.drv
+update	Run flake check on updated inputs	2026-09-07T13:17:22.6645999Z checking derivation packages.x86_64-linux.full...
+update	Run flake check on updated inputs	2026-09-07T13:17:22.6701390Z derivation evaluated to /nix/store/fc6d2qkgg3x20yggha6fwpv0cx053baj-image-agentbox.json.drv
+update	Run flake check on updated inputs	2026-09-07T13:17:22.6702423Z checking derivation packages.x86_64-linux.cuda-runtime...
+update	Run flake check on updated inputs	2026-09-07T13:17:22.6747015Z derivation evaluated to /nix/store/6l4r7h5gnb6nlwqq2yp40y0vw816jcwc-image-agentbox.json.drv
+update	Run flake check on updated inputs	2026-09-07T13:17:22.6748100Z checking derivation packages.x86_64-linux.gaussian-splatting...
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8404045Z derivation evaluated to /nix/store/1b3fimqmr5x2znx5lr48a533xjjk4fds-image-agentbox.json.drv
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8404834Z checking derivation packages.x86_64-linux.compose...
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8405894Z derivation evaluated to /nix/store/1mfv399p0lj43rbb3z21digym0rlyadr-agentbox-compose.drv
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8406825Z checking flake output 'devShells'...
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8407443Z checking derivation devShells.x86_64-linux.default...
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8479646Z error:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8480550Z        … while checking flake output 'devShells'
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8482309Z          at «github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b?narHash=sha256-l0KFg5HjrsfsO/JpG%2Br7fRrqm12kzFHyUHqHCVpMMbI%3D»/lib.nix:43:9:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8483252Z            42|       // {
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8483575Z            43|         ${key} = (attrs.${key} or { }) // {
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8483965Z              |         ^
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8484265Z            44|           ${system} = ret.${key};
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8484877Z 
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8485207Z        … while checking the derivation 'devShells.x86_64-linux.default'
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8485766Z          at /home/runner/work/agentbox/agentbox/flake.nix:3809:9:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8486183Z          3808|
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8486488Z          3809|         devShells.default = pkgs.mkShell {
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8486875Z              |         ^
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8487195Z          3810|           buildInputs = allPackages ++ [
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8487469Z 
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8487688Z        … while calling the 'derivationStrict' builtin
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8488209Z          at «nix-internal»/derivation-internal.nix:37:12:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8488717Z            36|
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8489008Z            37|   strict = derivationStrict drvAttrs;
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8489384Z              |            ^
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8489932Z            38|
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8490273Z 
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8490491Z        … while evaluating derivation 'nix-shell'
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8491988Z          whose name attribute is located at «github:NixOS/nixpkgs/c043004d1c6985732bcc1cbc5a9c9aecbbb4e0f0?narHash=sha256-7QYjT2vHLuX9Z1pdxHXDKCbh1CR3D/2rywB9Tx0MPRg%3D»/pkgs/stdenv/generic/make-derivation.nix:651:11
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8493138Z 
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8493466Z        … while evaluating attribute 'buildInputs' of derivation 'nix-shell'
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8494808Z          at «github:NixOS/nixpkgs/c043004d1c6985732bcc1cbc5a9c9aecbbb4e0f0?narHash=sha256-7QYjT2vHLuX9Z1pdxHXDKCbh1CR3D/2rywB9Tx0MPRg%3D»/pkgs/stdenv/generic/make-derivation.nix:722:11:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8495660Z           721|           depsHostHost = hostHostOutputs;
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8496000Z           722|           buildInputs = hostTargetOutputs;
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8496298Z              |           ^
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8496574Z           723|           depsTargetTarget = targetTargetOutputs;
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8496826Z 
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8496969Z        … while calling the 'map' builtin
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8497915Z          at «github:NixOS/nixpkgs/c043004d1c6985732bcc1cbc5a9c9aecbbb4e0f0?narHash=sha256-7QYjT2vHLuX9Z1pdxHXDKCbh1CR3D/2rywB9Tx0MPRg%3D»/pkgs/stdenv/generic/make-derivation.nix:582:13:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8498734Z           581|           else
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8499222Z           582|             map (drv: getDev drv.__spliced.hostTarget or drv) (checkDependencyList "buildInputs" buildInputs');
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8500050Z              |             ^
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8500504Z           583|         targetTargetOutputs =
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8500855Z 
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8501077Z        … from call site
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8502692Z          at «github:NixOS/nixpkgs/c043004d1c6985732bcc1cbc5a9c9aecbbb4e0f0?narHash=sha256-7QYjT2vHLuX9Z1pdxHXDKCbh1CR3D/2rywB9Tx0MPRg%3D»/pkgs/stdenv/generic/make-derivation.nix:582:64:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8504151Z           581|           else
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8505013Z           582|             map (drv: getDev drv.__spliced.hostTarget or drv) (checkDependencyList "buildInputs" buildInputs');
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8506000Z              |                                                                ^
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8506575Z           583|         targetTargetOutputs =
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8506908Z 
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8507195Z        … while calling 'checkDependencyList''
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8508929Z          at «github:NixOS/nixpkgs/c043004d1c6985732bcc1cbc5a9c9aecbbb4e0f0?narHash=sha256-7QYjT2vHLuX9Z1pdxHXDKCbh1CR3D/2rywB9Tx0MPRg%3D»/pkgs/stdenv/generic/make-derivation.nix:490:26:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8510614Z           489|       checkDependencyList' =
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8511132Z           490|         positions: name: deps:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8511632Z              |                          ^
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8512564Z           491|         if all isSingularDependency deps then
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8512973Z 
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8513275Z        … while evaluating a branch condition
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8515024Z          at «github:NixOS/nixpkgs/c043004d1c6985732bcc1cbc5a9c9aecbbb4e0f0?narHash=sha256-7QYjT2vHLuX9Z1pdxHXDKCbh1CR3D/2rywB9Tx0MPRg%3D»/pkgs/stdenv/generic/make-derivation.nix:491:9:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8516743Z           490|         positions: name: deps:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8517304Z           491|         if all isSingularDependency deps then
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8517837Z              |         ^
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8518215Z           492|           deps
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8518478Z 
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8518727Z        … while calling the 'all' builtin
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8520650Z          at «github:NixOS/nixpkgs/c043004d1c6985732bcc1cbc5a9c9aecbbb4e0f0?narHash=sha256-7QYjT2vHLuX9Z1pdxHXDKCbh1CR3D/2rywB9Tx0MPRg%3D»/pkgs/stdenv/generic/make-derivation.nix:491:12:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8522170Z           490|         positions: name: deps:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8522756Z           491|         if all isSingularDependency deps then
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8523511Z              |            ^
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8523901Z           492|           deps
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8524175Z 
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8524476Z        … while calling 'isSingularDependency'
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8526206Z          at «github:NixOS/nixpkgs/c043004d1c6985732bcc1cbc5a9c9aecbbb4e0f0?narHash=sha256-7QYjT2vHLuX9Z1pdxHXDKCbh1CR3D/2rywB9Tx0MPRg%3D»/pkgs/stdenv/generic/make-derivation.nix:136:26:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8527659Z           135|
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8528401Z           136|   isSingularDependency = dep: dep == null || isDerivation dep || isString dep || isPath dep;
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8529259Z              |                          ^
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8529893Z           137|
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8530098Z 
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8530425Z        … in the left operand of the OR (||) operator
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8532018Z          at «github:NixOS/nixpkgs/c043004d1c6985732bcc1cbc5a9c9aecbbb4e0f0?narHash=sha256-7QYjT2vHLuX9Z1pdxHXDKCbh1CR3D/2rywB9Tx0MPRg%3D»/pkgs/stdenv/generic/make-derivation.nix:136:79:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8532825Z           135|
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8533221Z           136|   isSingularDependency = dep: dep == null || isDerivation dep || isString dep || isPath dep;
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8533739Z              |                                                                               ^
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8534100Z           137|
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8534216Z 
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8534413Z        … in the left operand of the OR (||) operator
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8535358Z          at «github:NixOS/nixpkgs/c043004d1c6985732bcc1cbc5a9c9aecbbb4e0f0?narHash=sha256-7QYjT2vHLuX9Z1pdxHXDKCbh1CR3D/2rywB9Tx0MPRg%3D»/pkgs/stdenv/generic/make-derivation.nix:136:63:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8536137Z           135|
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8536511Z           136|   isSingularDependency = dep: dep == null || isDerivation dep || isString dep || isPath dep;
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8537160Z              |                                                               ^
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8537704Z           137|
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8537909Z 
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8538207Z        … in the left operand of the OR (||) operator
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8540157Z          at «github:NixOS/nixpkgs/c043004d1c6985732bcc1cbc5a9c9aecbbb4e0f0?narHash=sha256-7QYjT2vHLuX9Z1pdxHXDKCbh1CR3D/2rywB9Tx0MPRg%3D»/pkgs/stdenv/generic/make-derivation.nix:136:43:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8541628Z           135|
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8542302Z           136|   isSingularDependency = dep: dep == null || isDerivation dep || isString dep || isPath dep;
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8543148Z              |                                           ^
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8543621Z           137|
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8543817Z 
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8544008Z        error: attribute 'nix2container' missing
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8544639Z        at /home/runner/work/agentbox/agentbox/flake.nix:3812:13:
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8545229Z          3811|             pkgs.nix
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8545679Z          3812|             n2c.nix2container
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8546163Z              |             ^
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8546585Z          3813|             # Nix developer tools
+update	Run flake check on updated inputs	2026-09-07T13:17:22.8716378Z ##[error]Process completed with exit code 1.

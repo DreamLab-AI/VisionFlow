@@ -1,0 +1,66 @@
+parsed 130 topic files, 1404 mermaid diagrams
+cite-check: 31 warning(s)
+  ! agentbox/14-governance-journal-actions-approvals.md:AB-14.6 — ../project/agentbox/management-api/lib/governance-decision-waiter.js:87 is blank
+  ! agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:82 past EOF (file has 72 lines)
+  ! agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:87 past EOF (file has 72 lines)
+  ! agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:83 past EOF (file has 72 lines)
+  ! agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:86 past EOF (file has 72 lines)
+  ! agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:74 past EOF (file has 72 lines)
+  ! agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:75 past EOF (file has 72 lines)
+  ! agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:76 past EOF (file has 72 lines)
+  ! agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:77 past EOF (file has 72 lines)
+  ! agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:78 past EOF (file has 72 lines)
+  ! agentbox/23-dream-engine.md:AB-23.10 — ../project/agentbox/dream.config.json:81 past EOF (file has 72 lines)
+  ! agentbox/23-dream-engine.md:AB-23.11 — ../project/agentbox/dream.config.json:76 past EOF (file has 72 lines)
+  ! agentbox/30-supporting-services-secret-backup-setup-https-bridge.md:AB-30.4 — ../project/agentbox/flake.nix:3360 is blank
+  ! estate/04-identity-mesh-did-nostr.md:ES-04.6 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:60 is blank
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — ../project/docker-compose.unified.yml:178 is blank
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — ../project/docker-compose.unified.yml:252 is blank
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.8 — ../project/docker-compose.unified.yml:276 is blank
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.10 — ../project/agentbox/flake.nix:3158 is blank
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.16 — ../project/agentbox/.github/workflows/contract-tests.yml:65 past EOF (file has 63 lines)
+  ! estate/09-build-deploy-and-ci-estate.md:ES-09.16 — ../project/agentbox/.github/workflows/contract-tests.yml:70 past EOF (file has 63 lines)
+  ! estate/90-evidence-and-supporting-repositories.md:ES-90.3 — ../WasmVOWL/modern/src/hooks/useWasmSimulation.ts:39 is blank
+  ! estate/90-evidence-and-supporting-repositories.md:ES-90.3 — ../WasmVOWL/modern/src/hooks/useWasmSimulation.ts:111 is punctuation only ('}')
+  ! knowledgegraph/01-repo-composition-and-licensing.md:KG-01.1 — ../knowledgeGraph/.github/workflows/build.yml:65 is blank
+  ! knowledgegraph/01-repo-composition-and-licensing.md:KG-01.3 — ../knowledgeGraph/.github/workflows/build.yml:65 is blank
+  ! knowledgegraph/03-ontology-architecture.md:KG-03.3 — ../knowledgeGraph/pipeline/jsonld_to_turtle.py:404 is blank
+  ! knowledgegraph/03-ontology-architecture.md:KG-03.5 — ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md:220 past EOF (file has 209 lines)
+  ! knowledgegraph/03-ontology-architecture.md:KG-03.5 — ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md:222 past EOF (file has 209 lines)
+  ! knowledgegraph/07-invariants-register.md:KG-07.1 — ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md:212 past EOF (file has 209 lines)
+  ! knowledgegraph/07-invariants-register.md:KG-07.1 — ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md:245 past EOF (file has 209 lines)
+  ! visionflow/01-repo-composition-and-canon.md:VF-01.2 — docs/roadmap.md:7 is blank
+  ! visionflow/05-governance-gates.md:VF-05.6 — docs/architecture/compatibility-matrix.md:31 is blank
+
+31 error(s):
+  - citation: agentbox/14-governance-journal-actions-approvals.md:AB-14.6 — ../project/agentbox/management-api/lib/governance-decision-waiter.js:87 is blank
+  - citation: agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:82 past EOF (file has 72 lines)
+  - citation: agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:87 past EOF (file has 72 lines)
+  - citation: agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:83 past EOF (file has 72 lines)
+  - citation: agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:86 past EOF (file has 72 lines)
+  - citation: agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:74 past EOF (file has 72 lines)
+  - citation: agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:75 past EOF (file has 72 lines)
+  - citation: agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:76 past EOF (file has 72 lines)
+  - citation: agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:77 past EOF (file has 72 lines)
+  - citation: agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/dream.config.json:78 past EOF (file has 72 lines)
+  - citation: agentbox/23-dream-engine.md:AB-23.10 — ../project/agentbox/dream.config.json:81 past EOF (file has 72 lines)
+  - citation: agentbox/23-dream-engine.md:AB-23.11 — ../project/agentbox/dream.config.json:76 past EOF (file has 72 lines)
+  - citation: agentbox/30-supporting-services-secret-backup-setup-https-bridge.md:AB-30.4 — ../project/agentbox/flake.nix:3360 is blank
+  - citation: estate/04-identity-mesh-did-nostr.md:ES-04.6 — ../project/agentbox/config/hooks/nostr-live-mirror.cjs:60 is blank
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — ../project/docker-compose.unified.yml:178 is blank
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — ../project/docker-compose.unified.yml:252 is blank
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.8 — ../project/docker-compose.unified.yml:276 is blank
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.10 — ../project/agentbox/flake.nix:3158 is blank
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.16 — ../project/agentbox/.github/workflows/contract-tests.yml:65 past EOF (file has 63 lines)
+  - citation: estate/09-build-deploy-and-ci-estate.md:ES-09.16 — ../project/agentbox/.github/workflows/contract-tests.yml:70 past EOF (file has 63 lines)
+  - citation: estate/90-evidence-and-supporting-repositories.md:ES-90.3 — ../WasmVOWL/modern/src/hooks/useWasmSimulation.ts:39 is blank
+  - citation: estate/90-evidence-and-supporting-repositories.md:ES-90.3 — ../WasmVOWL/modern/src/hooks/useWasmSimulation.ts:111 is punctuation only ('}')
+  - citation: knowledgegraph/01-repo-composition-and-licensing.md:KG-01.1 — ../knowledgeGraph/.github/workflows/build.yml:65 is blank
+  - citation: knowledgegraph/01-repo-composition-and-licensing.md:KG-01.3 — ../knowledgeGraph/.github/workflows/build.yml:65 is blank
+  - citation: knowledgegraph/03-ontology-architecture.md:KG-03.3 — ../knowledgeGraph/pipeline/jsonld_to_turtle.py:404 is blank
+  - citation: knowledgegraph/03-ontology-architecture.md:KG-03.5 — ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md:220 past EOF (file has 209 lines)
+  - citation: knowledgegraph/03-ontology-architecture.md:KG-03.5 — ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md:222 past EOF (file has 209 lines)
+  - citation: knowledgegraph/07-invariants-register.md:KG-07.1 — ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md:212 past EOF (file has 209 lines)
+  - citation: knowledgegraph/07-invariants-register.md:KG-07.1 — ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md:245 past EOF (file has 209 lines)
+  - citation: visionflow/01-repo-composition-and-canon.md:VF-01.2 — docs/roadmap.md:7 is blank
+  - citation: visionflow/05-governance-gates.md:VF-05.6 — docs/architecture/compatibility-matrix.md:31 is blank

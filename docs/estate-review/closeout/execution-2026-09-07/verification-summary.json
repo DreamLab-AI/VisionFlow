@@ -14,7 +14,7 @@
   "source_commits": {
     "agentbox": "a0ee1fe5740baa38e14c4ff3fe512dd557bcbb6e",
     "loom": "65dc62c1a111443fb1a84617335f7f34d57f2452",
-    "agentbox_pushed": "be0fc078a3dc0eab32af57f1eaf170fa58157bf9",
+    "agentbox_pushed": "771d96ed5ac6f5daa1e78a60d109c130b9ef9b99",
     "loom_pushed": "397b86c0124e2f4ece40b9db46352179730c2c46"
   },
   "npm_locked_closures": {
@@ -49,6 +49,29 @@
       "run": 34121825633,
       "conclusion": "success",
       "commit": "397b86c0124e2f4ece40b9db46352179730c2c46"
+    },
+    "nix_flake_update": {
+      "run": 34126738773,
+      "conclusion": "failure",
+      "source_and_evaluation": "pass",
+      "blocked_step": "Create pull request",
+      "reason": "GitHub Actions is not permitted to create or approve pull requests",
+      "candidate_branch": "deps/nix-flake-update",
+      "candidate_commit": "7e17343af06fbd5e422dc72bcc42bee71f6c5915",
+      "main_lock_changed": false
     }
+  },
+  "historical_workflows": {
+    "ontology_federation": {
+      "failed_run": 33862998777,
+      "deleted_at": "7b28112727dd1d4e83a97c989bd544aab3c8a2d5",
+      "active": false,
+      "failure": "cross-repository checkout returned404 using repository GITHUB_TOKEN"
+    }
+  },
+  "hp_image_build": {
+    "result": "pass",
+    "artifact": "/nix/store/2m758brvq5b7c0b8q4dixxhnln6hsyxs-image-agentbox.json",
+    "runtime_activation": "image loading; existing container unchanged"
   }
 }

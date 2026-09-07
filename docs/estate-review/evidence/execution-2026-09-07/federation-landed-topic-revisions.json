@@ -1,0 +1,59 @@
+[
+  {
+    "topic": "estate/05-governance-loop-across-estate.md",
+    "heads": {
+      "agentbox": "be0fc078a3dc0eab32af57f1eaf170fa58157bf9",
+      "visionclaw": "dd82a07b0c54defc469a85e9d57fb15d29dc5e07"
+    },
+    "dirty_sources": []
+  },
+  {
+    "topic": "estate/11-publishing-axis.md",
+    "heads": {
+      "visionclaw": "dd82a07b0c54defc469a85e9d57fb15d29dc5e07",
+      "visionflow": "bdd370e74a32844b141d61a98b014022bbbc5427",
+      "visiongraph": "149d8eba638886f17dc5f8919be8c26502517ed0",
+      "knowledgegraph": "75a5c1f1acda50bfe9d66a92a5343cf12f8b84ef",
+      "vowl-wasm": "65e2d1e784bf5eb04b3cbc122d36d6926d889c22",
+      "dreamlab-ai-website": "9a3dd88306b5414c3522ff9909294b811733b938"
+    },
+    "dirty_sources": []
+  },
+  {
+    "topic": "knowledgegraph/02-corpus-to-ontology-pipeline.md",
+    "heads": {
+      "knowledgegraph": "75a5c1f1acda50bfe9d66a92a5343cf12f8b84ef"
+    },
+    "dirty_sources": []
+  },
+  {
+    "topic": "knowledgegraph/04-explorer-and-site-build.md",
+    "heads": {
+      "knowledgegraph": "75a5c1f1acda50bfe9d66a92a5343cf12f8b84ef",
+      "visiongraph": "149d8eba638886f17dc5f8919be8c26502517ed0"
+    },
+    "dirty_sources": []
+  },
+  {
+    "topic": "knowledgegraph/05-ci-cd-and-publish.md",
+    "heads": {
+      "knowledgegraph": "75a5c1f1acda50bfe9d66a92a5343cf12f8b84ef"
+    },
+    "dirty_sources": []
+  },
+  {
+    "topic": "nostr-rust-forum/10-invariants-and-anomaly-register.md",
+    "heads": {
+      "nostr-rust-forum": "3c2a77928d0d9b2fba3ba4f56a774e4f931f383e"
+    },
+    "dirty_sources": []
+  },
+  {
+    "topic": "visiongraph/04-downstream-contracts.md",
+    "heads": {
+      "visiongraph": "149d8eba638886f17dc5f8919be8c26502517ed0",
+      "visionclaw": "dd82a07b0c54defc469a85e9d57fb15d29dc5e07"
+    },
+    "dirty_sources": []
+  }
+]

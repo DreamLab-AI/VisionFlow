@@ -1,0 +1,23 @@
+update	Run flake update	﻿2026-09-07T13:14:19.3372221Z ##[group]Run set -euo pipefail
+update	Run flake update	2026-09-07T13:14:19.3372719Z ^[[36;1mset -euo pipefail^[[0m
+update	Run flake update	2026-09-07T13:14:19.3373017Z ^[[36;1mbefore=$(sha256sum flake.lock | cut -d' ' -f1)^[[0m
+update	Run flake update	2026-09-07T13:14:19.3373484Z ^[[36;1m# Updating the lock does not commit unless --commit-lock-file is supplied.^[[0m
+update	Run flake update	2026-09-07T13:14:19.3373896Z ^[[36;1mnix flake update^[[0m
+update	Run flake update	2026-09-07T13:14:19.3374172Z ^[[36;1mafter=$(sha256sum flake.lock | cut -d' ' -f1)^[[0m
+update	Run flake update	2026-09-07T13:14:19.3374499Z ^[[36;1mif [ "$before" = "$after" ]; then^[[0m
+update	Run flake update	2026-09-07T13:14:19.3374812Z ^[[36;1m  echo "no-changes=true" >> "$GITHUB_OUTPUT"^[[0m
+update	Run flake update	2026-09-07T13:14:19.3375150Z ^[[36;1m  echo "flake.lock unchanged; nothing to PR"^[[0m
+update	Run flake update	2026-09-07T13:14:19.3375443Z ^[[36;1melse^[[0m
+update	Run flake update	2026-09-07T13:14:19.3375677Z ^[[36;1m  echo "no-changes=false" >> "$GITHUB_OUTPUT"^[[0m
+update	Run flake update	2026-09-07T13:14:19.3375987Z ^[[36;1m  echo "flake.lock updated"^[[0m
+update	Run flake update	2026-09-07T13:14:19.3376269Z ^[[36;1m  git diff flake.lock | head -80 || true^[[0m
+update	Run flake update	2026-09-07T13:14:19.3376545Z ^[[36;1mfi^[[0m
+update	Run flake update	2026-09-07T13:14:19.3418372Z shell: /usr/bin/bash -e {0}
+update	Run flake update	2026-09-07T13:14:19.3418644Z env:
+update	Run flake update	2026-09-07T13:14:19.3418870Z   TMPDIR: /home/runner/work/_temp
+update	Run flake update	2026-09-07T13:14:19.3419143Z ##[endgroup]
+update	Run flake update	2026-09-07T13:14:19.7497888Z error:
+update	Run flake update	2026-09-07T13:14:19.7500204Z        … while updating the lock file of flake 'git+file:///home/runner/work/agentbox/agentbox?ref=refs/heads/main&rev=8a6bf696f325c32d9d03e94a114fcf695f9ab89d&shallow=1'
+update	Run flake update	2026-09-07T13:14:19.7502847Z 
+update	Run flake update	2026-09-07T13:14:19.7503862Z        error: lock file contains unlocked input '{"path":"./skills","type":"path"}'
+update	Run flake update	2026-09-07T13:14:19.7552873Z ##[error]Process completed with exit code 1.

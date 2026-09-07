@@ -48,7 +48,7 @@ sources:
   - docs/engineering/ADR-004-harness-engineering-framework.md
   - docs/engineering/ADR-005-mandate-at-grant-governance.md
   - dream.config.json
-verified_commit: bec06dc3a
+verified_commit: ffc894722544c7514b002848e721062c6b47627c
 ---
 
 ## VF-01.1 Repo composition — two surfaces, and everything the repo deliberately is not

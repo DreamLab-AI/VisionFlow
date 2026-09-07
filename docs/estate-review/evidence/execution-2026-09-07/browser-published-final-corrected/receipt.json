@@ -1,0 +1,348 @@
+{
+  "at": "2026-09-07T13:20:16.988Z",
+  "browser": "sidecar Chrome via CDP 9223",
+  "scope": "Read-only public/candidate journeys; no identity credentials, submissions or device acceptance",
+  "records": [
+    {
+      "name": "canon",
+      "url": "https://www.visionflow.info/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 53641
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "all-sections-reveal",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "plain-reading-toggle",
+          "ok": true,
+          "detail": {
+            "plain": true,
+            "pressed": "true"
+          }
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "requestedWidth": 375,
+            "viewport": 375,
+            "clientWidth": 375,
+            "width": 375,
+            "bodyWidth": 375
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://www.visionflow.info/",
+        "title": "VisionFlow: Coordination Engineering for Federated Human-AI Intelligence",
+        "text": 53641,
+        "headings": [
+          "Federated Human–AIIntelligence",
+          "Seven questions, answered once",
+          "What this is, on one screen",
+          "Hard problems share a common shape",
+          "More AI means more coordination, not less",
+          "From LLM to Coordination Harness",
+          "AI stopped answering and started acting",
+          "Six independent systems mesh through one cryptographic identity spine"
+        ],
+        "brokenImages": []
+      },
+      "reveals": [
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 772
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 572
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1017
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1125
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 421
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1689
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1839
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1971
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 995
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 2455
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 786
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1053
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 388
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 698
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 1390
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 3214
+        },
+        {
+          "id": "DIV",
+          "visible": true,
+          "height": 560
+        }
+      ],
+      "toggle": {
+        "plain": true,
+        "pressed": "true"
+      },
+      "mobile": {
+        "requestedWidth": 375,
+        "viewport": 375,
+        "clientWidth": 375,
+        "width": 375,
+        "bodyWidth": 375
+      },
+      "screenshot": {
+        "path": "canon-mobile.png",
+        "sha256": "ccbad0f9104470729f09b057f8cf5203d9ad5d251e1263eac4b9b1ffe3599379"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://www.visionflow.info/",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "explorer",
+      "url": "https://narrativegoldmine.com/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 4677
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "home-mobile-no-overflow",
+          "ok": false,
+          "detail": {
+            "requestedWidth": 375,
+            "viewport": 502,
+            "clientWidth": 375,
+            "width": 502
+          }
+        },
+        {
+          "name": "search-journey",
+          "ok": true,
+          "detail": {
+            "url": "https://narrativegoldmine.com/search?q=Agent",
+            "text": "Skip to content\nNarrative Goldmine\nHome\nGraph\nSearch\nData\nAbout\nResearch notes\nSearch\nSearch\n\n0 results for “Agent” in 0ms\n\nNo results for “Agent”\n\nTry different keywords, a broader term, or an exact IRI fragment.\n\nNarrative Goldmine\n\nThe readable tier of the DreamLab knowledge mesh.\n\nThis corpus also renders live inside VisionClaw\n, an ontology-grounded 3D reasoning engine. This site is the Lexicon; VisionClaw is the Laboratory.\n\nTHE MESH\nVisionFlow\nGPU knowledge-graph engine & physics.\nVisionClaw\nThe immersive 3D reasoning laboratory.\nagentbox\nSovereign agent runtime & skills mesh.\nsolid-pod-rs\nRust Solid pod — personal data sovereignty.\nnostr-rust-forum\nNostr-native forum & relay in Rust.\ndreamlab-ai-website\nThe DreamLab AI studio front door.\nknowledgeGraph\nPublished corpus mirror & site source.\nREAD\nSearch the corpus\nExplore the graph\nThe site is an API\nResearch notes\n\nCorpus curated by Dr John O’Hare · DreamLab AI. Attributed prov:wasAttributedTo did:nostr:jjohare, reasoned under EL++.\n\nSource is the private jjohare/logseq graph. Published artifacts are open and documented on Data."
+          }
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": false,
+          "detail": {
+            "requestedWidth": 375,
+            "viewport": 392,
+            "clientWidth": 375,
+            "width": 392,
+            "bodyWidth": 392
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://narrativegoldmine.com/",
+        "title": "Narrative Goldmine — the DreamLab knowledge mesh",
+        "text": 4677,
+        "headings": [
+          "A 6.8-million-word corpus of the Fourth Industrial Revolution, compiled into a reasoned formal ontology.",
+          "Three layers, read bottom-up",
+          "Six domains, one map",
+          "Honest by construction",
+          "One node in a sovereign mesh",
+          "The mesh",
+          "Read"
+        ],
+        "brokenImages": []
+      },
+      "homeMobile": {
+        "requestedWidth": 375,
+        "viewport": 502,
+        "clientWidth": 375,
+        "width": 502
+      },
+      "searchStarted": true,
+      "searchSubmit": {
+        "x": 642.625,
+        "y": 449.578125
+      },
+      "search": {
+        "url": "https://narrativegoldmine.com/search?q=Agent",
+        "text": "Skip to content\nNarrative Goldmine\nHome\nGraph\nSearch\nData\nAbout\nResearch notes\nSearch\nSearch\n\n0 results for “Agent” in 0ms\n\nNo results for “Agent”\n\nTry different keywords, a broader term, or an exact IRI fragment.\n\nNarrative Goldmine\n\nThe readable tier of the DreamLab knowledge mesh.\n\nThis corpus also renders live inside VisionClaw\n, an ontology-grounded 3D reasoning engine. This site is the Lexicon; VisionClaw is the Laboratory.\n\nTHE MESH\nVisionFlow\nGPU knowledge-graph engine & physics.\nVisionClaw\nThe immersive 3D reasoning laboratory.\nagentbox\nSovereign agent runtime & skills mesh.\nsolid-pod-rs\nRust Solid pod — personal data sovereignty.\nnostr-rust-forum\nNostr-native forum & relay in Rust.\ndreamlab-ai-website\nThe DreamLab AI studio front door.\nknowledgeGraph\nPublished corpus mirror & site source.\nREAD\nSearch the corpus\nExplore the graph\nThe site is an API\nResearch notes\n\nCorpus curated by Dr John O’Hare · DreamLab AI. Attributed prov:wasAttributedTo did:nostr:jjohare, reasoned under EL++.\n\nSource is the private jjohare/logseq graph. Published artifacts are open and documented on Data."
+      },
+      "mobile": {
+        "requestedWidth": 375,
+        "viewport": 392,
+        "clientWidth": 375,
+        "width": 392,
+        "bodyWidth": 392
+      },
+      "overflow": [
+        {
+          "tag": "BUTTON",
+          "class": "ng-btn ng-btn--primary ng-btn--sm",
+          "right": 391.75,
+          "width": 66.75
+        },
+        {
+          "tag": "PROTONPASS-ROOT-41AB",
+          "class": "",
+          "right": 392,
+          "width": 392
+        }
+      ],
+      "screenshot": {
+        "path": "explorer-mobile.png",
+        "sha256": "0ee1d7949efc519b17fa7f5d260587690494948264b3409ab57eabfd4b885630"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://narrativegoldmine.com/",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "notes",
+      "url": "https://narrativegoldmine.com/notes/",
+      "checks": [
+        {
+          "name": "content",
+          "ok": true,
+          "detail": 2579
+        },
+        {
+          "name": "images",
+          "ok": true,
+          "detail": []
+        },
+        {
+          "name": "mobile-no-overflow",
+          "ok": true,
+          "detail": {
+            "requestedWidth": 375,
+            "viewport": 375,
+            "clientWidth": 375,
+            "width": 375,
+            "bodyWidth": 375
+          }
+        },
+        {
+          "name": "no-uncaught-exceptions",
+          "ok": true,
+          "detail": []
+        }
+      ],
+      "page": {
+        "url": "https://narrativegoldmine.com/notes/#/all-pages",
+        "title": "All pages",
+        "text": 2579,
+        "headings": [
+          "All pages"
+        ],
+        "brokenImages": []
+      },
+      "mobile": {
+        "requestedWidth": 375,
+        "viewport": 375,
+        "clientWidth": 375,
+        "width": 375,
+        "bodyWidth": 375
+      },
+      "screenshot": {
+        "path": "notes-mobile.png",
+        "sha256": "20deaa5be7056cf7b7cb662668902222b3938ac47e225f58ee0c976eaf952078"
+      },
+      "exceptions": [],
+      "httpStatuses": [
+        {
+          "url": "https://narrativegoldmine.com/notes/",
+          "status": 200
+        }
+      ]
+    }
+  ]
+}

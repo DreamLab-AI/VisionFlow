@@ -1,0 +1,511 @@
+update	UNKNOWN STEP	﻿2026-09-07T11:59:30.9603556Z Current runner version: '2.337.0'
+update	UNKNOWN STEP	2026-09-07T11:59:30.9628819Z ##[group]Runner Image Provisioner
+update	UNKNOWN STEP	2026-09-07T11:59:30.9629713Z Hosted Compute Agent
+update	UNKNOWN STEP	2026-09-07T11:59:30.9630419Z Version: 20260828.587
+update	UNKNOWN STEP	2026-09-07T11:59:30.9631148Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+update	UNKNOWN STEP	2026-09-07T11:59:30.9631902Z Build Date: 2026-08-28T16:44:25Z
+update	UNKNOWN STEP	2026-09-07T11:59:30.9632823Z Worker ID: {34d714ec-b2b5-4a8a-be41-3fa062a24214}
+update	UNKNOWN STEP	2026-09-07T11:59:30.9633575Z Azure Region: westcentralus
+update	UNKNOWN STEP	2026-09-07T11:59:30.9634191Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:30.9635875Z ##[group]Operating System
+update	UNKNOWN STEP	2026-09-07T11:59:30.9636522Z Ubuntu
+update	UNKNOWN STEP	2026-09-07T11:59:30.9637149Z 24.04.4
+update	UNKNOWN STEP	2026-09-07T11:59:30.9637697Z LTS
+update	UNKNOWN STEP	2026-09-07T11:59:30.9638301Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:30.9638988Z ##[group]Runner Image
+update	UNKNOWN STEP	2026-09-07T11:59:30.9639619Z Image: ubuntu-24.04
+update	UNKNOWN STEP	2026-09-07T11:59:30.9640241Z Version: 20260831.293.1
+update	UNKNOWN STEP	2026-09-07T11:59:30.9641545Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260831.293/images/ubuntu/Ubuntu2404-Readme.md
+update	UNKNOWN STEP	2026-09-07T11:59:30.9643376Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260831.293
+update	UNKNOWN STEP	2026-09-07T11:59:30.9644387Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:30.9645737Z ##[group]GITHUB_TOKEN Permissions
+update	UNKNOWN STEP	2026-09-07T11:59:30.9647658Z Contents: write
+update	UNKNOWN STEP	2026-09-07T11:59:30.9648395Z Metadata: read
+update	UNKNOWN STEP	2026-09-07T11:59:30.9649012Z PullRequests: write
+update	UNKNOWN STEP	2026-09-07T11:59:30.9649625Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:30.9652175Z Secret source: Actions
+update	UNKNOWN STEP	2026-09-07T11:59:30.9653566Z Prepare workflow directory
+update	UNKNOWN STEP	2026-09-07T11:59:31.0035286Z Prepare all required actions
+update	UNKNOWN STEP	2026-09-07T11:59:31.0082149Z Getting action download info
+update	UNKNOWN STEP	2026-09-07T11:59:31.3306160Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+update	UNKNOWN STEP	2026-09-07T11:59:31.4154180Z Download action repository 'cachix/install-nix-action@v27' (SHA:ba0dd844c9180cbf77aa72a116d6fbc515d0e87b)
+update	UNKNOWN STEP	2026-09-07T11:59:31.6450792Z Download action repository 'peter-evans/create-pull-request@v6' (SHA:c5a7806660adbe173f04e3e038b0ccdcd758773c)
+update	UNKNOWN STEP	2026-09-07T11:59:32.3806816Z Complete job name: update
+update	UNKNOWN STEP	2026-09-07T11:59:32.4578602Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+update	UNKNOWN STEP	2026-09-07T11:59:32.4587760Z ##[group]Run actions/checkout@v4
+update	UNKNOWN STEP	2026-09-07T11:59:32.4588521Z with:
+update	UNKNOWN STEP	2026-09-07T11:59:32.4589020Z   repository: DreamLab-AI/agentbox
+update	UNKNOWN STEP	2026-09-07T11:59:32.4593707Z   token: ***
+update	UNKNOWN STEP	2026-09-07T11:59:32.4594199Z   ssh-strict: true
+update	UNKNOWN STEP	2026-09-07T11:59:32.4594681Z   ssh-user: git
+update	UNKNOWN STEP	2026-09-07T11:59:32.4595185Z   persist-credentials: true
+update	UNKNOWN STEP	2026-09-07T11:59:32.4595730Z   clean: true
+update	UNKNOWN STEP	2026-09-07T11:59:32.4596217Z   sparse-checkout-cone-mode: true
+update	UNKNOWN STEP	2026-09-07T11:59:32.4596781Z   fetch-depth: 1
+update	UNKNOWN STEP	2026-09-07T11:59:32.4597254Z   fetch-tags: false
+update	UNKNOWN STEP	2026-09-07T11:59:32.4597740Z   show-progress: true
+update	UNKNOWN STEP	2026-09-07T11:59:32.4598271Z   lfs: false
+update	UNKNOWN STEP	2026-09-07T11:59:32.4598826Z   submodules: false
+update	UNKNOWN STEP	2026-09-07T11:59:32.4599317Z   set-safe-directory: true
+update	UNKNOWN STEP	2026-09-07T11:59:32.4599860Z   allow-unsafe-pr-checkout: false
+update	UNKNOWN STEP	2026-09-07T11:59:32.4600641Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:32.5610169Z Syncing repository: DreamLab-AI/agentbox
+update	UNKNOWN STEP	2026-09-07T11:59:32.5613169Z ##[group]Getting Git version info
+update	UNKNOWN STEP	2026-09-07T11:59:32.5613993Z Working directory is '/home/runner/work/agentbox/agentbox'
+update	UNKNOWN STEP	2026-09-07T11:59:32.5615206Z [command]/usr/bin/git version
+update	UNKNOWN STEP	2026-09-07T11:59:32.5671401Z git version 2.55.0
+update	UNKNOWN STEP	2026-09-07T11:59:32.5693328Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:32.5722014Z Temporarily overriding HOME='/home/runner/work/_temp/7520bdf9-c6b5-41cc-b83c-c963030fd75d' before making global git config changes
+update	UNKNOWN STEP	2026-09-07T11:59:32.5735028Z Adding repository directory to the temporary git global config as a safe directory
+update	UNKNOWN STEP	2026-09-07T11:59:32.5737154Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/agentbox/agentbox
+update	UNKNOWN STEP	2026-09-07T11:59:32.5774633Z Deleting the contents of '/home/runner/work/agentbox/agentbox'
+update	UNKNOWN STEP	2026-09-07T11:59:32.5791771Z ##[group]Initializing the repository
+update	UNKNOWN STEP	2026-09-07T11:59:32.5793801Z [command]/usr/bin/git init /home/runner/work/agentbox/agentbox
+update	UNKNOWN STEP	2026-09-07T11:59:32.5861595Z hint: Using 'master' as the name for the initial branch. This default branch name
+update	UNKNOWN STEP	2026-09-07T11:59:32.5863809Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+update	UNKNOWN STEP	2026-09-07T11:59:32.5865541Z hint: to use in all of your new repositories, which will suppress this warning,
+update	UNKNOWN STEP	2026-09-07T11:59:32.5866430Z hint: call:
+update	UNKNOWN STEP	2026-09-07T11:59:32.5866891Z hint:
+update	UNKNOWN STEP	2026-09-07T11:59:32.5867490Z hint: 	git config --global init.defaultBranch <name>
+update	UNKNOWN STEP	2026-09-07T11:59:32.5868183Z hint:
+update	UNKNOWN STEP	2026-09-07T11:59:32.5868822Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+update	UNKNOWN STEP	2026-09-07T11:59:32.5869836Z hint: 'development'. The just-created branch can be renamed via this command:
+update	UNKNOWN STEP	2026-09-07T11:59:32.5870639Z hint:
+update	UNKNOWN STEP	2026-09-07T11:59:32.5871135Z hint: 	git branch -m <name>
+update	UNKNOWN STEP	2026-09-07T11:59:32.5871679Z hint:
+update	UNKNOWN STEP	2026-09-07T11:59:32.5872577Z hint: Disable this message with "git config set advice.defaultBranchName false"
+update	UNKNOWN STEP	2026-09-07T11:59:32.5874412Z Initialized empty Git repository in /home/runner/work/agentbox/agentbox/.git/
+update	UNKNOWN STEP	2026-09-07T11:59:32.5877187Z [command]/usr/bin/git remote add origin https://github.com/DreamLab-AI/agentbox
+update	UNKNOWN STEP	2026-09-07T11:59:32.5926271Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:32.5927141Z ##[group]Disabling automatic garbage collection
+update	UNKNOWN STEP	2026-09-07T11:59:32.5930073Z [command]/usr/bin/git config --local gc.auto 0
+update	UNKNOWN STEP	2026-09-07T11:59:32.5963471Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:32.5964744Z ##[group]Setting up auth
+update	UNKNOWN STEP	2026-09-07T11:59:32.5970154Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+update	UNKNOWN STEP	2026-09-07T11:59:32.6004621Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+update	UNKNOWN STEP	2026-09-07T11:59:32.6368541Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+update	UNKNOWN STEP	2026-09-07T11:59:32.6410634Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+update	UNKNOWN STEP	2026-09-07T11:59:32.6666086Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+update	UNKNOWN STEP	2026-09-07T11:59:32.6704696Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+update	UNKNOWN STEP	2026-09-07T11:59:32.6944273Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+update	UNKNOWN STEP	2026-09-07T11:59:32.6988258Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:32.6990482Z ##[group]Fetching the repository
+update	UNKNOWN STEP	2026-09-07T11:59:32.6998574Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +b5bfc03db14712734838c9b973443ce1e67a816a:refs/remotes/origin/main
+update	UNKNOWN STEP	2026-09-07T11:59:35.1136468Z From https://github.com/DreamLab-AI/agentbox
+update	UNKNOWN STEP	2026-09-07T11:59:35.1138167Z  * [new ref]         b5bfc03db14712734838c9b973443ce1e67a816a -> origin/main
+update	UNKNOWN STEP	2026-09-07T11:59:35.1150040Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:35.1151874Z ##[group]Determining the checkout info
+update	UNKNOWN STEP	2026-09-07T11:59:35.1153843Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:35.1154883Z [command]/usr/bin/git sparse-checkout disable
+update	UNKNOWN STEP	2026-09-07T11:59:35.1204085Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+update	UNKNOWN STEP	2026-09-07T11:59:35.1238897Z ##[group]Checking out the ref
+update	UNKNOWN STEP	2026-09-07T11:59:35.1243055Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+update	UNKNOWN STEP	2026-09-07T11:59:35.4059285Z Switched to a new branch 'main'
+update	UNKNOWN STEP	2026-09-07T11:59:35.4062136Z branch 'main' set up to track 'origin/main'.
+update	UNKNOWN STEP	2026-09-07T11:59:35.4075751Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:35.4123449Z [command]/usr/bin/git log -1 --format=%H
+update	UNKNOWN STEP	2026-09-07T11:59:35.4153544Z b5bfc03db14712734838c9b973443ce1e67a816a
+update	UNKNOWN STEP	2026-09-07T11:59:35.4513408Z ##[group]Run cachix/install-nix-action@v27
+update	UNKNOWN STEP	2026-09-07T11:59:35.4514529Z with:
+update	UNKNOWN STEP	2026-09-07T11:59:35.4515860Z   extra_nix_config: experimental-features = nix-command flakes
+update	UNKNOWN STEP	accept-flake-config = true
+update	UNKNOWN STEP	
+update	UNKNOWN STEP	2026-09-07T11:59:35.4517464Z   enable_kvm: true
+update	UNKNOWN STEP	2026-09-07T11:59:35.4518303Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:35.4586667Z ##[start-action display=Run ${GITHUB_ACTION_PATH}/install-nix.sh;id=__cachix_install-nix-action.__run]
+update	UNKNOWN STEP	2026-09-07T11:59:35.4647460Z ##[group]Run ${GITHUB_ACTION_PATH}/install-nix.sh
+update	UNKNOWN STEP	2026-09-07T11:59:35.4648778Z ^[[36;1m${GITHUB_ACTION_PATH}/install-nix.sh^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:35.4696400Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+update	UNKNOWN STEP	2026-09-07T11:59:35.4697615Z env:
+update	UNKNOWN STEP	2026-09-07T11:59:35.4698999Z   INPUT_EXTRA_NIX_CONFIG: experimental-features = nix-command flakes
+update	UNKNOWN STEP	accept-flake-config = true
+update	UNKNOWN STEP	
+update	UNKNOWN STEP	2026-09-07T11:59:35.4700692Z   INPUT_GITHUB_ACCESS_TOKEN: 
+update	UNKNOWN STEP	2026-09-07T11:59:35.4701654Z   INPUT_INSTALL_OPTIONS: 
+update	UNKNOWN STEP	2026-09-07T11:59:35.4702728Z   INPUT_INSTALL_URL: 
+update	UNKNOWN STEP	2026-09-07T11:59:35.4703653Z   INPUT_NIX_PATH: 
+update	UNKNOWN STEP	2026-09-07T11:59:35.4778194Z   INPUT_ENABLE_KVM: true
+update	UNKNOWN STEP	2026-09-07T11:59:35.4787842Z   GITHUB_TOKEN: ***
+update	UNKNOWN STEP	2026-09-07T11:59:35.4788678Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:35.4920239Z ##[group]Enabling KVM support
+update	UNKNOWN STEP	2026-09-07T11:59:35.4997929Z KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"
+update	UNKNOWN STEP	2026-09-07T11:59:35.5344327Z Enabled KVM
+update	UNKNOWN STEP	2026-09-07T11:59:35.5346907Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:35.5348610Z ##[group]Installing Nix
+update	UNKNOWN STEP	2026-09-07T11:59:35.5650592Z installer options: --no-channel-add --darwin-use-unencrypted-nix-store-volume --nix-extra-conf-file /tmp/tmp.7cYIxlyWqs/nix.conf --daemon --daemon-user-count 8
+update	UNKNOWN STEP	2026-09-07T11:59:35.5933398Z * Host releases.nixos.org:443 was resolved.
+update	UNKNOWN STEP	2026-09-07T11:59:35.5939994Z * IPv6: 2a04:4e42:26::347
+update	UNKNOWN STEP	2026-09-07T11:59:35.5940977Z * IPv4: 146.75.105.91
+update	UNKNOWN STEP	2026-09-07T11:59:35.5941824Z *   Trying 146.75.105.91:443...
+update	UNKNOWN STEP	2026-09-07T11:59:35.6111357Z * Connected to releases.nixos.org (146.75.105.91) port 443
+update	UNKNOWN STEP	2026-09-07T11:59:35.6126359Z * ALPN: curl offers h2,http/1.1
+update	UNKNOWN STEP	2026-09-07T11:59:35.6127713Z } [5 bytes data]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6129007Z * TLSv1.3 (OUT), TLS handshake, Client hello (1):
+update	UNKNOWN STEP	2026-09-07T11:59:35.6130525Z } [512 bytes data]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6296463Z *  CAfile: /etc/ssl/certs/ca-certificates.crt
+update	UNKNOWN STEP	2026-09-07T11:59:35.6297583Z *  CApath: /etc/ssl/certs
+update	UNKNOWN STEP	2026-09-07T11:59:35.6309023Z { [5 bytes data]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6309951Z * TLSv1.3 (IN), TLS handshake, Server hello (2):
+update	UNKNOWN STEP	2026-09-07T11:59:35.6311212Z { [122 bytes data]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6312546Z * TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
+update	UNKNOWN STEP	2026-09-07T11:59:35.6313753Z { [19 bytes data]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6314661Z * TLSv1.3 (IN), TLS handshake, Certificate (11):
+update	UNKNOWN STEP	2026-09-07T11:59:35.6315747Z { [4080 bytes data]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6321129Z * TLSv1.3 (IN), TLS handshake, CERT verify (15):
+update	UNKNOWN STEP	2026-09-07T11:59:35.6322630Z { [264 bytes data]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6326707Z * TLSv1.3 (IN), TLS handshake, Finished (20):
+update	UNKNOWN STEP	2026-09-07T11:59:35.6328045Z { [36 bytes data]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6329097Z * TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+update	UNKNOWN STEP	2026-09-07T11:59:35.6330271Z } [1 bytes data]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6331231Z * TLSv1.3 (OUT), TLS handshake, Finished (20):
+update	UNKNOWN STEP	2026-09-07T11:59:35.6332511Z } [36 bytes data]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6333717Z * SSL connection using TLSv1.3 / TLS_AES_128_GCM_SHA256 / X25519 / RSASSA-PSS
+update	UNKNOWN STEP	2026-09-07T11:59:35.6335118Z * ALPN: server accepted h2
+update	UNKNOWN STEP	2026-09-07T11:59:35.6336028Z * Server certificate:
+update	UNKNOWN STEP	2026-09-07T11:59:35.6336920Z *  subject: CN=releases.nixos.org
+update	UNKNOWN STEP	2026-09-07T11:59:35.6337922Z *  start date: Jul 11 23:12:56 2026 GMT
+update	UNKNOWN STEP	2026-09-07T11:59:35.6338931Z *  expire date: Oct  9 23:12:55 2026 GMT
+update	UNKNOWN STEP	2026-09-07T11:59:35.6340364Z *  subjectAltName: host "releases.nixos.org" matched cert's "releases.nixos.org"
+update	UNKNOWN STEP	2026-09-07T11:59:35.6341842Z *  issuer: C=US; O=Let's Encrypt; CN=YR2
+update	UNKNOWN STEP	2026-09-07T11:59:35.6343060Z *  SSL certificate verify ok.
+update	UNKNOWN STEP	2026-09-07T11:59:35.6345053Z *   Certificate level 0: Public key type RSA (2048/112 Bits/secBits), signed using sha256WithRSAEncryption
+update	UNKNOWN STEP	2026-09-07T11:59:35.6347485Z *   Certificate level 1: Public key type RSA (2048/112 Bits/secBits), signed using sha256WithRSAEncryption
+update	UNKNOWN STEP	2026-09-07T11:59:35.6349766Z *   Certificate level 2: Public key type RSA (4096/152 Bits/secBits), signed using sha256WithRSAEncryption
+update	UNKNOWN STEP	2026-09-07T11:59:35.6352021Z *   Certificate level 3: Public key type RSA (4096/152 Bits/secBits), signed using sha256WithRSAEncryption
+update	UNKNOWN STEP	2026-09-07T11:59:35.6353919Z { [5 bytes data]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6354871Z * TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+update	UNKNOWN STEP	2026-09-07T11:59:35.6355982Z { [201 bytes data]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6356769Z * using HTTP/2
+update	UNKNOWN STEP	2026-09-07T11:59:35.6357994Z * [HTTP/2] [1] OPENED stream for https://releases.nixos.org/nix/nix-2.22.1/install
+update	UNKNOWN STEP	2026-09-07T11:59:35.6359416Z * [HTTP/2] [1] [:method: GET]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6360336Z * [HTTP/2] [1] [:scheme: https]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6361345Z * [HTTP/2] [1] [:authority: releases.nixos.org]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6362670Z * [HTTP/2] [1] [:path: /nix/nix-2.22.1/install]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6363763Z * [HTTP/2] [1] [user-agent: curl/8.5.0]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6364764Z * [HTTP/2] [1] [accept: */*]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6365644Z } [5 bytes data]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6366457Z > GET /nix/nix-2.22.1/install HTTP/2
+update	UNKNOWN STEP	2026-09-07T11:59:35.6367437Z > Host: releases.nixos.org
+update	UNKNOWN STEP	2026-09-07T11:59:35.6368334Z > User-Agent: curl/8.5.0
+update	UNKNOWN STEP	2026-09-07T11:59:35.6369192Z > Accept: */*
+update	UNKNOWN STEP	2026-09-07T11:59:35.6369931Z > 
+update	UNKNOWN STEP	2026-09-07T11:59:35.6493155Z { [5 bytes data]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6504456Z < HTTP/2 200 
+update	UNKNOWN STEP	2026-09-07T11:59:35.6505499Z < last-modified: Fri, 10 May 2024 09:28:12 GMT
+update	UNKNOWN STEP	2026-09-07T11:59:35.6506620Z < etag: "d07247c3fa419cb02a37dcf14819c05a"
+update	UNKNOWN STEP	2026-09-07T11:59:35.6507735Z < x-amz-server-side-encryption: AES256
+update	UNKNOWN STEP	2026-09-07T11:59:35.6508820Z < content-type: text/plain
+update	UNKNOWN STEP	2026-09-07T11:59:35.6509825Z < server: AmazonS3
+update	UNKNOWN STEP	2026-09-07T11:59:35.6510640Z < via: 1.1 varnish, 1.1 varnish
+update	UNKNOWN STEP	2026-09-07T11:59:35.6511594Z < access-control-allow-origin: *
+update	UNKNOWN STEP	2026-09-07T11:59:35.6512760Z < accept-ranges: bytes
+update	UNKNOWN STEP	2026-09-07T11:59:35.6513666Z < date: Mon, 07 Sep 2026 11:59:35 GMT
+update	UNKNOWN STEP	2026-09-07T11:59:35.6514601Z < age: 69083
+update	UNKNOWN STEP	2026-09-07T11:59:35.6515601Z < x-served-by: cache-dub4340-DUB, cache-dfw-kdfw8210118-DFW
+update	UNKNOWN STEP	2026-09-07T11:59:35.6516771Z < x-cache: HIT, HIT
+update	UNKNOWN STEP	2026-09-07T11:59:35.6517572Z < x-cache-hits: 57, 1
+update	UNKNOWN STEP	2026-09-07T11:59:35.6518400Z < content-length: 4052
+update	UNKNOWN STEP	2026-09-07T11:59:35.6519219Z < 
+update	UNKNOWN STEP	2026-09-07T11:59:35.6519916Z { [4052 bytes data]
+update	UNKNOWN STEP	2026-09-07T11:59:35.6520864Z * Connection #0 to host releases.nixos.org left intact
+update	UNKNOWN STEP	2026-09-07T11:59:35.6586440Z downloading Nix 2.22.1 binary tarball for x86_64-linux from 'https://releases.nixos.org/nix/nix-2.22.1/nix-2.22.1-x86_64-linux.tar.xz' to '/tmp/nix-binary-tarball-unpack.pfy6QThhYe'...
+update	UNKNOWN STEP	2026-09-07T11:59:35.6636740Z   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+update	UNKNOWN STEP	2026-09-07T11:59:35.6638781Z                                  Dload  Upload   Total   Spent    Left  Speed
+update	UNKNOWN STEP	2026-09-07T11:59:35.6639842Z 
+update	UNKNOWN STEP	2026-09-07T11:59:35.7003439Z   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+update	UNKNOWN STEP	2026-09-07T11:59:35.9767505Z   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+update	UNKNOWN STEP	2026-09-07T11:59:35.9768413Z 100 21.9M  100 21.9M    0     0  69.9M      0 --:--:-- --:--:-- --:--:-- 69.7M
+update	UNKNOWN STEP	2026-09-07T11:59:37.5081263Z Note: a multi-user installation is possible. See https://nixos.org/manual/nix/stable/installation/installing-binary.html#multi-user-installation
+update	UNKNOWN STEP	2026-09-07T11:59:37.5090588Z Warning: the flag --darwin-use-unencrypted-nix-store-volume
+update	UNKNOWN STEP	2026-09-07T11:59:37.5091181Z          is no longer needed and will be removed in the future.
+update	UNKNOWN STEP	2026-09-07T11:59:37.5091433Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5102150Z ^[[1;31mSwitching to the Multi-user Installer^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:37.5207750Z ^[[32mWelcome to the Multi-User Nix Installation
+update	UNKNOWN STEP	2026-09-07T11:59:37.5219167Z ^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:37.5219665Z This installation tool will set up your computer with the Nix package
+update	UNKNOWN STEP	2026-09-07T11:59:37.5220306Z manager. This will happen in a few stages:
+update	UNKNOWN STEP	2026-09-07T11:59:37.5221181Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5221449Z 1. Make sure your computer doesn't already have Nix. If it does, I
+update	UNKNOWN STEP	2026-09-07T11:59:37.5222112Z    will show you instructions on how to clean up your old install.
+update	UNKNOWN STEP	2026-09-07T11:59:37.5222675Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5222987Z 2. Show you what I am going to install and where. Then I will ask
+update	UNKNOWN STEP	2026-09-07T11:59:37.5223553Z    if you are ready to continue.
+update	UNKNOWN STEP	2026-09-07T11:59:37.5223823Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5224318Z 3. Create the system users ^[[34m(uids [30001..30008])^[[0m and groups ^[[34m(gid 30000)^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:37.5225071Z    that the Nix daemon uses to run builds. To create system users
+update	UNKNOWN STEP	2026-09-07T11:59:37.5225710Z    in a different range, exit and run this tool again with
+update	UNKNOWN STEP	2026-09-07T11:59:37.5226198Z    NIX_FIRST_BUILD_UID set.
+update	UNKNOWN STEP	2026-09-07T11:59:37.5226355Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5226500Z 4. Perform the basic installation of the Nix files daemon.
+update	UNKNOWN STEP	2026-09-07T11:59:37.5226736Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5226929Z 5. Configure your shell to import special Nix Profile files, so you
+update	UNKNOWN STEP	2026-09-07T11:59:37.5227295Z    can use Nix.
+update	UNKNOWN STEP	2026-09-07T11:59:37.5227413Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5227511Z 6. Start the Nix daemon.
+update	UNKNOWN STEP	2026-09-07T11:59:37.5227668Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5227962Z ^[[32m^[[4;32mWould you like to see a more detailed list of what I will do?
+update	UNKNOWN STEP	2026-09-07T11:59:37.5228418Z ^[[0mNo TTY, assuming you would say yes :)
+update	UNKNOWN STEP	2026-09-07T11:59:37.5232610Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5232733Z I will:
+update	UNKNOWN STEP	2026-09-07T11:59:37.5232901Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5233138Z  - make sure your computer doesn't already have Nix files
+update	UNKNOWN STEP	2026-09-07T11:59:37.5233718Z    (if it does, I will tell you how to clean them up.)
+update	UNKNOWN STEP	2026-09-07T11:59:37.5234315Z  - create local users (see the list above for the users I'll make)
+update	UNKNOWN STEP	2026-09-07T11:59:37.5234898Z  - create a local group (nixbld)
+update	UNKNOWN STEP	2026-09-07T11:59:37.5235284Z  - install Nix in to /nix
+update	UNKNOWN STEP	2026-09-07T11:59:37.5235664Z  - create a configuration file in /etc/nix
+update	UNKNOWN STEP	2026-09-07T11:59:37.5236223Z  - set up the "default profile" by creating some Nix-related files in
+update	UNKNOWN STEP	2026-09-07T11:59:37.5236769Z    /root
+update	UNKNOWN STEP	2026-09-07T11:59:37.5247783Z  - back up /etc/bash.bashrc to /etc/bash.bashrc.backup-before-nix
+update	UNKNOWN STEP	2026-09-07T11:59:37.5248463Z  - update /etc/bash.bashrc to include some Nix configuration
+update	UNKNOWN STEP	2026-09-07T11:59:37.5260265Z  - load and start a service (at /etc/systemd/system/nix-daemon.service
+update	UNKNOWN STEP	2026-09-07T11:59:37.5260800Z    and /etc/systemd/system/nix-daemon.socket) for nix-daemon
+update	UNKNOWN STEP	2026-09-07T11:59:37.5261213Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5262660Z ^[[32m^[[4;32mReady to continue?
+update	UNKNOWN STEP	2026-09-07T11:59:37.5263148Z ^[[0mNo TTY, assuming you would say yes :)
+update	UNKNOWN STEP	2026-09-07T11:59:37.5282048Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5282845Z ^[[34m---- let's talk about sudo -----------------------------------------------------
+update	UNKNOWN STEP	2026-09-07T11:59:37.5294386Z ^[[0mThis script is going to call sudo a lot. Normally, it would show you
+update	UNKNOWN STEP	2026-09-07T11:59:37.5295157Z exactly what commands it is running and why. However, the script is
+update	UNKNOWN STEP	2026-09-07T11:59:37.5295743Z run in a headless fashion, like this:
+update	UNKNOWN STEP	2026-09-07T11:59:37.5296035Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5296219Z   $ curl -L https://nixos.org/nix/install | sh
+update	UNKNOWN STEP	2026-09-07T11:59:37.5296517Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5296785Z or maybe in a CI pipeline. Because of that, I'm going to skip the
+update	UNKNOWN STEP	2026-09-07T11:59:37.5297362Z verbose output in the interest of brevity.
+update	UNKNOWN STEP	2026-09-07T11:59:37.5297694Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5297857Z If you would like to
+update	UNKNOWN STEP	2026-09-07T11:59:37.5298306Z see the output, try like this:
+update	UNKNOWN STEP	2026-09-07T11:59:37.5298652Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5298966Z   $ curl -L -o install-nix https://nixos.org/nix/install
+update	UNKNOWN STEP	2026-09-07T11:59:37.5299494Z   $ sh ./install-nix
+update	UNKNOWN STEP	2026-09-07T11:59:37.5299698Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5299711Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5300000Z ^[[32m~~> Checking for artifacts of previous installs
+update	UNKNOWN STEP	2026-09-07T11:59:37.5308246Z ^[[0mBefore I try to install, I'll check for signs Nix already is or has
+update	UNKNOWN STEP	2026-09-07T11:59:37.5308837Z been installed on this system.
+update	UNKNOWN STEP	2026-09-07T11:59:37.5344537Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5345242Z ^[[34m---- Nix config report ---------------------------------------------------------
+update	UNKNOWN STEP	2026-09-07T11:59:37.5346424Z ^[[0m^[[1m        Temp Dir^[[0m:	/tmp/tmp.ZKID2efO20
+update	UNKNOWN STEP	2026-09-07T11:59:37.5346956Z ^[[1m        Nix Root^[[0m:	/nix
+update	UNKNOWN STEP	2026-09-07T11:59:37.5347368Z ^[[1m     Build Users^[[0m:	8
+update	UNKNOWN STEP	2026-09-07T11:59:37.5347797Z ^[[1m  Build Group ID^[[0m:	30000
+update	UNKNOWN STEP	2026-09-07T11:59:37.5348259Z ^[[1mBuild Group Name^[[0m:	nixbld
+update	UNKNOWN STEP	2026-09-07T11:59:37.5348526Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5348689Z ^[[4;34mbuild users:
+update	UNKNOWN STEP	2026-09-07T11:59:37.5349071Z ^[[0m^[[1m    Username^[[0m:	UID
+update	UNKNOWN STEP	2026-09-07T11:59:37.5376338Z ^[[1m     nixbld1^[[0m:	30001
+update	UNKNOWN STEP	2026-09-07T11:59:37.5387199Z ^[[1m     nixbld2^[[0m:	30002
+update	UNKNOWN STEP	2026-09-07T11:59:37.5398088Z ^[[1m     nixbld3^[[0m:	30003
+update	UNKNOWN STEP	2026-09-07T11:59:37.5408663Z ^[[1m     nixbld4^[[0m:	30004
+update	UNKNOWN STEP	2026-09-07T11:59:37.5419286Z ^[[1m     nixbld5^[[0m:	30005
+update	UNKNOWN STEP	2026-09-07T11:59:37.5430169Z ^[[1m     nixbld6^[[0m:	30006
+update	UNKNOWN STEP	2026-09-07T11:59:37.5441078Z ^[[1m     nixbld7^[[0m:	30007
+update	UNKNOWN STEP	2026-09-07T11:59:37.5451700Z ^[[1m     nixbld8^[[0m:	30008
+update	UNKNOWN STEP	2026-09-07T11:59:37.5451934Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5452142Z ^[[32m^[[4;32mReady to continue?
+update	UNKNOWN STEP	2026-09-07T11:59:37.5452988Z ^[[0mNo TTY, assuming you would say yes :)
+update	UNKNOWN STEP	2026-09-07T11:59:37.5453294Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5453530Z ^[[32m~~> Setting up the build group nixbld
+update	UNKNOWN STEP	2026-09-07T11:59:37.5698391Z ^[[0m^[[1m            Created^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.5722862Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.5723338Z ^[[32m~~> Setting up the build user nixbld1
+update	UNKNOWN STEP	2026-09-07T11:59:37.5872780Z useradd warning: nixbld1's uid 30001 is greater than SYS_UID_MAX 999
+update	UNKNOWN STEP	2026-09-07T11:59:37.5968215Z ^[[0m^[[1m           Created^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.5973894Z ^[[1m            Hidden^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.5993930Z ^[[1m    Home Directory^[[0m:	/var/empty
+update	UNKNOWN STEP	2026-09-07T11:59:37.6014841Z ^[[1m              Note^[[0m:	Nix build user 1
+update	UNKNOWN STEP	2026-09-07T11:59:37.6033642Z ^[[1m   Logins Disabled^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.6059950Z ^[[1m  Member of nixbld^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.6079505Z ^[[1m    PrimaryGroupID^[[0m:	30000
+update	UNKNOWN STEP	2026-09-07T11:59:37.6092231Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.6092900Z ^[[32m~~> Setting up the build user nixbld2
+update	UNKNOWN STEP	2026-09-07T11:59:37.6224969Z useradd warning: nixbld2's uid 30002 is greater than SYS_UID_MAX 999
+update	UNKNOWN STEP	2026-09-07T11:59:37.6307101Z ^[[0m^[[1m           Created^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.6313104Z ^[[1m            Hidden^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.6333199Z ^[[1m    Home Directory^[[0m:	/var/empty
+update	UNKNOWN STEP	2026-09-07T11:59:37.6354091Z ^[[1m              Note^[[0m:	Nix build user 2
+update	UNKNOWN STEP	2026-09-07T11:59:37.6373549Z ^[[1m   Logins Disabled^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.6394793Z ^[[1m  Member of nixbld^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.6414311Z ^[[1m    PrimaryGroupID^[[0m:	30000
+update	UNKNOWN STEP	2026-09-07T11:59:37.6425699Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.6555736Z useradd warning: nixbld3's uid 30003 is greater than SYS_UID_MAX 999
+update	UNKNOWN STEP	2026-09-07T11:59:37.6556297Z ^[[32m~~> Setting up the build user nixbld3
+update	UNKNOWN STEP	2026-09-07T11:59:37.6639704Z ^[[0m^[[1m           Created^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.6645673Z ^[[1m            Hidden^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.6665841Z ^[[1m    Home Directory^[[0m:	/var/empty
+update	UNKNOWN STEP	2026-09-07T11:59:37.6686792Z ^[[1m              Note^[[0m:	Nix build user 3
+update	UNKNOWN STEP	2026-09-07T11:59:37.6706623Z ^[[1m   Logins Disabled^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.6727865Z ^[[1m  Member of nixbld^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.6747901Z ^[[1m    PrimaryGroupID^[[0m:	30000
+update	UNKNOWN STEP	2026-09-07T11:59:37.6759523Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.6759824Z ^[[32m~~> Setting up the build user nixbld4
+update	UNKNOWN STEP	2026-09-07T11:59:37.6890648Z useradd warning: nixbld4's uid 30004 is greater than SYS_UID_MAX 999
+update	UNKNOWN STEP	2026-09-07T11:59:37.6983978Z ^[[0m^[[1m           Created^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.6989469Z ^[[1m            Hidden^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.7009622Z ^[[1m    Home Directory^[[0m:	/var/empty
+update	UNKNOWN STEP	2026-09-07T11:59:37.7030780Z ^[[1m              Note^[[0m:	Nix build user 4
+update	UNKNOWN STEP	2026-09-07T11:59:37.7050129Z ^[[1m   Logins Disabled^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.7071709Z ^[[1m  Member of nixbld^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.7093096Z ^[[1m    PrimaryGroupID^[[0m:	30000
+update	UNKNOWN STEP	2026-09-07T11:59:37.7105891Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.7106298Z ^[[32m~~> Setting up the build user nixbld5
+update	UNKNOWN STEP	2026-09-07T11:59:37.7247209Z useradd warning: nixbld5's uid 30005 is greater than SYS_UID_MAX 999
+update	UNKNOWN STEP	2026-09-07T11:59:37.7329408Z ^[[0m^[[1m           Created^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.7335567Z ^[[1m            Hidden^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.7355090Z ^[[1m    Home Directory^[[0m:	/var/empty
+update	UNKNOWN STEP	2026-09-07T11:59:37.7376248Z ^[[1m              Note^[[0m:	Nix build user 5
+update	UNKNOWN STEP	2026-09-07T11:59:37.7399863Z ^[[1m   Logins Disabled^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.7421770Z ^[[1m  Member of nixbld^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.7441578Z ^[[1m    PrimaryGroupID^[[0m:	30000
+update	UNKNOWN STEP	2026-09-07T11:59:37.7453303Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.7453677Z ^[[32m~~> Setting up the build user nixbld6
+update	UNKNOWN STEP	2026-09-07T11:59:37.7584396Z useradd warning: nixbld6's uid 30006 is greater than SYS_UID_MAX 999
+update	UNKNOWN STEP	2026-09-07T11:59:37.7668325Z ^[[0m^[[1m           Created^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.7674368Z ^[[1m            Hidden^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.7695299Z ^[[1m    Home Directory^[[0m:	/var/empty
+update	UNKNOWN STEP	2026-09-07T11:59:37.7716817Z ^[[1m              Note^[[0m:	Nix build user 6
+update	UNKNOWN STEP	2026-09-07T11:59:37.7736222Z ^[[1m   Logins Disabled^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.7757510Z ^[[1m  Member of nixbld^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.7778028Z ^[[1m    PrimaryGroupID^[[0m:	30000
+update	UNKNOWN STEP	2026-09-07T11:59:37.7789727Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.7790062Z ^[[32m~~> Setting up the build user nixbld7
+update	UNKNOWN STEP	2026-09-07T11:59:37.7926704Z useradd warning: nixbld7's uid 30007 is greater than SYS_UID_MAX 999
+update	UNKNOWN STEP	2026-09-07T11:59:37.8200331Z ^[[0m^[[1m           Created^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.8206026Z ^[[1m            Hidden^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.8226219Z ^[[1m    Home Directory^[[0m:	/var/empty
+update	UNKNOWN STEP	2026-09-07T11:59:37.8247271Z ^[[1m              Note^[[0m:	Nix build user 7
+update	UNKNOWN STEP	2026-09-07T11:59:37.8266559Z ^[[1m   Logins Disabled^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.8287896Z ^[[1m  Member of nixbld^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.8308137Z ^[[1m    PrimaryGroupID^[[0m:	30000
+update	UNKNOWN STEP	2026-09-07T11:59:37.8319372Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.8319814Z ^[[32m~~> Setting up the build user nixbld8
+update	UNKNOWN STEP	2026-09-07T11:59:37.8450606Z useradd warning: nixbld8's uid 30008 is greater than SYS_UID_MAX 999
+update	UNKNOWN STEP	2026-09-07T11:59:37.8550716Z ^[[0m^[[1m           Created^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.8556689Z ^[[1m            Hidden^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.8576955Z ^[[1m    Home Directory^[[0m:	/var/empty
+update	UNKNOWN STEP	2026-09-07T11:59:37.8598154Z ^[[1m              Note^[[0m:	Nix build user 8
+update	UNKNOWN STEP	2026-09-07T11:59:37.8618043Z ^[[1m   Logins Disabled^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.8639561Z ^[[1m  Member of nixbld^[[0m:	Yes
+update	UNKNOWN STEP	2026-09-07T11:59:37.8659638Z ^[[1m    PrimaryGroupID^[[0m:	30000
+update	UNKNOWN STEP	2026-09-07T11:59:37.8659953Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.8660221Z ^[[32m~~> Setting up the basic directory structure
+update	UNKNOWN STEP	2026-09-07T11:59:37.8742781Z ^[[0minstall: creating directory '/nix'
+update	UNKNOWN STEP	2026-09-07T11:59:37.8743275Z install: creating directory '/nix/var'
+update	UNKNOWN STEP	2026-09-07T11:59:37.8743668Z install: creating directory '/nix/var/log'
+update	UNKNOWN STEP	2026-09-07T11:59:37.8744006Z install: creating directory '/nix/var/log/nix'
+update	UNKNOWN STEP	2026-09-07T11:59:37.8744335Z install: creating directory '/nix/var/log/nix/drvs'
+update	UNKNOWN STEP	2026-09-07T11:59:37.8744762Z install: creating directory '/nix/var/nix'
+update	UNKNOWN STEP	2026-09-07T11:59:37.8745226Z install: creating directory '/nix/var/nix/db'
+update	UNKNOWN STEP	2026-09-07T11:59:37.8745644Z install: creating directory '/nix/var/nix/gcroots'
+update	UNKNOWN STEP	2026-09-07T11:59:37.8746016Z install: creating directory '/nix/var/nix/profiles'
+update	UNKNOWN STEP	2026-09-07T11:59:37.8746374Z install: creating directory '/nix/var/nix/temproots'
+update	UNKNOWN STEP	2026-09-07T11:59:37.8746709Z install: creating directory '/nix/var/nix/userpool'
+update	UNKNOWN STEP	2026-09-07T11:59:37.8747052Z install: creating directory '/nix/var/nix/daemon-socket'
+update	UNKNOWN STEP	2026-09-07T11:59:37.8747437Z install: creating directory '/nix/var/nix/gcroots/per-user'
+update	UNKNOWN STEP	2026-09-07T11:59:37.8747843Z install: creating directory '/nix/var/nix/profiles/per-user'
+update	UNKNOWN STEP	2026-09-07T11:59:37.8821408Z install: creating directory '/nix/store'
+update	UNKNOWN STEP	2026-09-07T11:59:37.8899406Z install: creating directory '/etc/nix'
+update	UNKNOWN STEP	2026-09-07T11:59:37.8909502Z 
+update	UNKNOWN STEP	2026-09-07T11:59:37.8909944Z ^[[32m~~> Installing Nix
+update	UNKNOWN STEP	2026-09-07T11:59:38.0703605Z ^[[0m      Alright! We have our first nix at /nix/store/6sfq258683sg0idsm9c5877pfm3q4y27-nix-2.22.1
+update	UNKNOWN STEP	2026-09-07T11:59:38.1258766Z       Just finished getting the nix database ready.
+update	UNKNOWN STEP	2026-09-07T11:59:38.1261472Z 
+update	UNKNOWN STEP	2026-09-07T11:59:38.1263241Z ^[[32m~~> Setting up shell profiles: /etc/bashrc /etc/profile.d/nix.sh /etc/zshrc /etc/bash.bashrc /etc/zsh/zshrc
+update	UNKNOWN STEP	2026-09-07T11:59:38.1427189Z ^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:38.1427502Z # Nix
+update	UNKNOWN STEP	2026-09-07T11:59:38.1428031Z if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+update	UNKNOWN STEP	2026-09-07T11:59:38.1428587Z   . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+update	UNKNOWN STEP	2026-09-07T11:59:38.1428928Z fi
+update	UNKNOWN STEP	2026-09-07T11:59:38.1429208Z # End Nix
+update	UNKNOWN STEP	2026-09-07T11:59:38.1429367Z 
+update	UNKNOWN STEP	2026-09-07T11:59:38.1596179Z 
+update	UNKNOWN STEP	2026-09-07T11:59:38.1596354Z # Nix
+update	UNKNOWN STEP	2026-09-07T11:59:38.1596870Z if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+update	UNKNOWN STEP	2026-09-07T11:59:38.1597639Z   . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+update	UNKNOWN STEP	2026-09-07T11:59:38.1598153Z fi
+update	UNKNOWN STEP	2026-09-07T11:59:38.1598445Z # End Nix
+update	UNKNOWN STEP	2026-09-07T11:59:38.1598624Z 
+update	UNKNOWN STEP	2026-09-07T11:59:38.1765271Z 
+update	UNKNOWN STEP	2026-09-07T11:59:38.1765489Z # Nix
+update	UNKNOWN STEP	2026-09-07T11:59:38.1766013Z if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+update	UNKNOWN STEP	2026-09-07T11:59:38.1766671Z   . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+update	UNKNOWN STEP	2026-09-07T11:59:38.1767015Z fi
+update	UNKNOWN STEP	2026-09-07T11:59:38.1767198Z # End Nix
+update	UNKNOWN STEP	2026-09-07T11:59:38.1767362Z 
+update	UNKNOWN STEP	2026-09-07T11:59:38.1927398Z 
+update	UNKNOWN STEP	2026-09-07T11:59:38.1927569Z # Nix
+update	UNKNOWN STEP	2026-09-07T11:59:38.1927969Z if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+update	UNKNOWN STEP	2026-09-07T11:59:38.1928514Z   . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+update	UNKNOWN STEP	2026-09-07T11:59:38.1929031Z fi
+update	UNKNOWN STEP	2026-09-07T11:59:38.1929292Z # End Nix
+update	UNKNOWN STEP	2026-09-07T11:59:38.1929458Z 
+update	UNKNOWN STEP	2026-09-07T11:59:38.1954981Z 
+update	UNKNOWN STEP	2026-09-07T11:59:38.1955840Z ^[[32m~~> Setting up shell profiles for Fish with conf.d/nix.fish inside /etc/fish /usr/local/etc/fish /opt/homebrew/etc/fish /opt/local/etc/fish
+update	UNKNOWN STEP	2026-09-07T11:59:38.2022846Z ^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:38.2023148Z ^[[32m~~> Setting up the default profile
+update	UNKNOWN STEP	2026-09-07T11:59:38.2330872Z installing 'nix-2.22.1'
+update	UNKNOWN STEP	2026-09-07T11:59:38.2458477Z building '/nix/store/x8hfibkpb6as4rji91ln5xp5lnj02gn8-user-environment.drv'...
+update	UNKNOWN STEP	2026-09-07T11:59:38.2865136Z installing 'nss-cacert-3.95'
+update	UNKNOWN STEP	2026-09-07T11:59:38.2992031Z building '/nix/store/587h5kr3yj9bbsmjfqhagc94pp9kj2b7-user-environment.drv'...
+update	UNKNOWN STEP	2026-09-07T11:59:38.3186106Z ^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:38.3186603Z ^[[32m~~> Setting up the nix-daemon systemd service
+update	UNKNOWN STEP	2026-09-07T11:59:38.3469599Z Created symlink /etc/systemd/system/nix-daemon.service → /nix/var/nix/profiles/default/lib/systemd/system/nix-daemon.service.
+update	UNKNOWN STEP	2026-09-07T11:59:38.6438122Z Created symlink /etc/systemd/system/nix-daemon.socket → /nix/var/nix/profiles/default/lib/systemd/system/nix-daemon.socket.
+update	UNKNOWN STEP	2026-09-07T11:59:38.6439502Z Created symlink /etc/systemd/system/sockets.target.wants/nix-daemon.socket → /nix/var/nix/profiles/default/lib/systemd/system/nix-daemon.socket.
+update	UNKNOWN STEP	2026-09-07T11:59:39.2524114Z ^[[0m^[[32mAlright! We're done!
+update	UNKNOWN STEP	2026-09-07T11:59:39.2546658Z ^[[0mTry it! Open a new terminal, and type:
+update	UNKNOWN STEP	2026-09-07T11:59:39.2547095Z 
+update	UNKNOWN STEP	2026-09-07T11:59:39.2547731Z   $ nix-shell -p nix-info --run "nix-info -m"
+update	UNKNOWN STEP	2026-09-07T11:59:39.2548063Z 
+update	UNKNOWN STEP	2026-09-07T11:59:39.2548390Z Thank you for using this installer. If you have any feedback or need
+update	UNKNOWN STEP	2026-09-07T11:59:39.2549029Z help, don't hesitate:
+update	UNKNOWN STEP	2026-09-07T11:59:39.2549311Z 
+update	UNKNOWN STEP	2026-09-07T11:59:39.2549526Z You can open an issue at
+update	UNKNOWN STEP	2026-09-07T11:59:39.2550202Z https://github.com/NixOS/nix/issues/new?labels=installer&template=installer.md
+update	UNKNOWN STEP	2026-09-07T11:59:39.2550720Z 
+update	UNKNOWN STEP	2026-09-07T11:59:39.2550968Z Or get in touch with the community: https://nixos.org/community
+update	UNKNOWN STEP	2026-09-07T11:59:39.2568524Z 
+update	UNKNOWN STEP	2026-09-07T11:59:39.2569567Z ^[[34m---- Reminders -----------------------------------------------------------------
+update	UNKNOWN STEP	2026-09-07T11:59:39.2570311Z ^[[0m^[[34m[ 1 ]^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:39.2570830Z Nix won't work in active shell sessions until you restart them.
+update	UNKNOWN STEP	2026-09-07T11:59:39.2571283Z 
+update	UNKNOWN STEP	2026-09-07T11:59:39.3283090Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:39.3320660Z ##[end-action id=__cachix_install-nix-action.__run;outcome=success;conclusion=success;duration_ms=3873]
+update	UNKNOWN STEP	2026-09-07T11:59:39.3355426Z ##[group]Run set -euo pipefail
+update	UNKNOWN STEP	2026-09-07T11:59:39.3355733Z ^[[36;1mset -euo pipefail^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:39.3356209Z ^[[36;1mbefore=$(sha256sum flake.lock | cut -d' ' -f1)^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:39.3356573Z ^[[36;1mnix flake update --commit-lock-file=false^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:39.3356913Z ^[[36;1mafter=$(sha256sum flake.lock | cut -d' ' -f1)^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:39.3357233Z ^[[36;1mif [ "$before" = "$after" ]; then^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:39.3357561Z ^[[36;1m  echo "no-changes=true" >> "$GITHUB_OUTPUT"^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:39.3357896Z ^[[36;1m  echo "flake.lock unchanged; nothing to PR"^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:39.3358183Z ^[[36;1melse^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:39.3358428Z ^[[36;1m  echo "no-changes=false" >> "$GITHUB_OUTPUT"^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:39.3358732Z ^[[36;1m  echo "flake.lock updated"^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:39.3359019Z ^[[36;1m  git diff flake.lock | head -80 || true^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:39.3359301Z ^[[36;1mfi^[[0m
+update	UNKNOWN STEP	2026-09-07T11:59:39.3402924Z shell: /usr/bin/bash -e {0}
+update	UNKNOWN STEP	2026-09-07T11:59:39.3403233Z env:
+update	UNKNOWN STEP	2026-09-07T11:59:39.3403452Z   TMPDIR: /home/runner/work/_temp
+update	UNKNOWN STEP	2026-09-07T11:59:39.3403713Z ##[endgroup]
+update	UNKNOWN STEP	2026-09-07T11:59:39.3722712Z error: unrecognised flag '--commit-lock-file=false'
+update	UNKNOWN STEP	2026-09-07T11:59:39.3723259Z Try 'nix --help' for more information.
+update	UNKNOWN STEP	2026-09-07T11:59:39.3747003Z ##[error]Process completed with exit code 1.
+update	UNKNOWN STEP	2026-09-07T11:59:39.3904944Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+update	UNKNOWN STEP	2026-09-07T11:59:39.3906421Z Post job cleanup.
+update	UNKNOWN STEP	2026-09-07T11:59:39.4764670Z [command]/usr/bin/git version
+update	UNKNOWN STEP	2026-09-07T11:59:39.4808124Z git version 2.55.0
+update	UNKNOWN STEP	2026-09-07T11:59:39.4846198Z Temporarily overriding HOME='/home/runner/work/_temp/5d8cc82f-7009-472b-8278-6e6a2171862c' before making global git config changes
+update	UNKNOWN STEP	2026-09-07T11:59:39.4847569Z Adding repository directory to the temporary git global config as a safe directory
+update	UNKNOWN STEP	2026-09-07T11:59:39.4851887Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/agentbox/agentbox
+update	UNKNOWN STEP	2026-09-07T11:59:39.4893675Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+update	UNKNOWN STEP	2026-09-07T11:59:39.4930467Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+update	UNKNOWN STEP	2026-09-07T11:59:39.5194814Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+update	UNKNOWN STEP	2026-09-07T11:59:39.5222988Z http.https://github.com/.extraheader
+update	UNKNOWN STEP	2026-09-07T11:59:39.5235640Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+update	UNKNOWN STEP	2026-09-07T11:59:39.5278923Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+update	UNKNOWN STEP	2026-09-07T11:59:39.5555577Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+update	UNKNOWN STEP	2026-09-07T11:59:39.5593281Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+update	UNKNOWN STEP	2026-09-07T11:59:39.6017723Z Cleaning up orphan processes
+update	UNKNOWN STEP	2026-09-07T11:59:39.6328596Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

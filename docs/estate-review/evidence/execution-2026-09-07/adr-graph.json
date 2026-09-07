@@ -426,7 +426,7 @@
     {
       "key": "knowledgeGraph:docs/adr/ADR-2001-corpus-consolidation.md",
       "id": "knowledgeGraph:ADR-2001",
-      "source_sha256": "018555c08d3e387ecfffa1864414303c9d928eed8ce9b65d0542ae032ee2704d",
+      "source_sha256": "83e9fe0d288f30eec53a5a6ad041789cf7deac217a6a1dd9a28ea8dc8427b4a3",
       "status": {
         "decision": "accepted",
         "implementation": "complete",
@@ -436,7 +436,7 @@
     {
       "key": "knowledgeGraph:docs/adr/ADR-2002-corpus-is-the-ontology.md",
       "id": "knowledgeGraph:ADR-2002",
-      "source_sha256": "a4df93596fa4a9ecbaa1e4ef0c31a43defa4957bbb1054ca2c8920b18b8cfef4",
+      "source_sha256": "f9f3b2b52fd83a83b5784c2ef1d9ed8db45274bd9f4ba5533248562e0f997f2c",
       "status": {
         "decision": "accepted",
         "implementation": "complete",
@@ -446,7 +446,7 @@
     {
       "key": "knowledgeGraph:docs/adr/ADR-2003-expected-classes-tripwire.md",
       "id": "knowledgeGraph:ADR-2003",
-      "source_sha256": "554977e7e4ab1b854eaf6d7d36ac5851c1aa8bd571b83f85c3ceb31cfb669fc8",
+      "source_sha256": "ba3fb92aa9525efe61b209e50e1927269493fa6e8985de31682d9e0bcd775a7c",
       "status": {
         "decision": "accepted",
         "implementation": "complete",
@@ -456,7 +456,7 @@
     {
       "key": "knowledgeGraph:docs/adr/ADR-2004-corpus-page-identity-immutable.md",
       "id": "knowledgeGraph:ADR-2004",
-      "source_sha256": "7f702a5c539717bac662c2a45ac0229706c3c9e81c066ac07d966e12b1a1f846",
+      "source_sha256": "2d1463d928ce66d10dac7c86210108494b56142577fefd519d0d840826802ef8",
       "status": {
         "decision": "accepted",
         "implementation": "complete",
@@ -1606,7 +1606,7 @@
     {
       "key": "project/agentbox:docs/adr/ADR-2002-aoe-token-auth-boundary.md",
       "id": "project/agentbox:ADR-2002",
-      "source_sha256": "23e641a015e3b0f7f951dc5b092a815e7f5653116910a476896dd7a9b547dc5e",
+      "source_sha256": "35b682767f497b5f61020ddde14b91eeb32a53bd61549061258a4441a1ae26f7",
       "status": {
         "decision": "accepted",
         "implementation": "complete",
@@ -1676,7 +1676,7 @@
     {
       "key": "project/agentbox:docs/adr/ADR-2009-nip98-proxy-identity-boundary.md",
       "id": "project/agentbox:ADR-2009",
-      "source_sha256": "affe493a558a20a26e2eb9d2e71f964ba9a7dd4bb36a436e81b7f385cc3875b9",
+      "source_sha256": "a419091f8381753627c1fc2f6c032c8e29229209e385e04e5f7a7aebbe10965c",
       "status": {
         "decision": "accepted",
         "implementation": "complete",
@@ -1706,7 +1706,7 @@
     {
       "key": "project/agentbox:docs/adr/ADR-2012-relay-allowlist-only-ingress.md",
       "id": "project/agentbox:ADR-2012",
-      "source_sha256": "9ad01bfc35d8c7a8e9120adf02219de32dc5b42a5522d0de4f6f5c4f801f1587",
+      "source_sha256": "49a111f884772066f14530bb171b66a370fb173e44e5ea244060ce73e43dd122",
       "status": {
         "decision": "accepted",
         "implementation": "partial",
@@ -1716,7 +1716,7 @@
     {
       "key": "project/agentbox:docs/adr/ADR-2013-loopback-publish-except-9096.md",
       "id": "project/agentbox:ADR-2013",
-      "source_sha256": "1e0dae163d2ec7d3d5465f1ce0ff6bdbc4697e7cf99259444f4330ee5160da41",
+      "source_sha256": "b65019a6a9a7df597f5d3529118df2da53357ae442b0f3fc020c1ffc07016f58",
       "status": {
         "decision": "accepted",
         "implementation": "partial",
@@ -1856,7 +1856,7 @@
     {
       "key": "project/agentbox:docs/adr/ADR-2027-secret-custody-rotation-break-glass.md",
       "id": "project/agentbox:ADR-2027",
-      "source_sha256": "bbbfbe7a1e66b393fd0081c38cf1e57895d611f97d406d726da754e70f1e597b",
+      "source_sha256": "be596bb60bcbdd15d2f84b18e72f821b739b7b94eaee2ddc8beadfce4d29279f",
       "status": {
         "decision": "proposed",
         "implementation": "none",
@@ -1916,7 +1916,7 @@
     {
       "key": "project/agentbox:docs/adr/ADR-2033-deepsec-security-gate.md",
       "id": "project/agentbox:ADR-2033",
-      "source_sha256": "025aac9ee689e299098733e66b0d5603a98ba6fd1b5246b429064644c280ead5",
+      "source_sha256": "4de4dbd34a15f33da713601080e46f84ac36a2157cb8984820e16377ab59725e",
       "status": {
         "decision": "accepted",
         "implementation": "partial",
@@ -2421,6 +2421,16 @@
         "decision": "proposed",
         "implementation": "partial",
         "activation": "inactive"
+      }
+    },
+    {
+      "key": "project:docs/adr/ADR-2107-compatible-xr-visual-experience.md",
+      "id": "project:ADR-2107",
+      "source_sha256": "ac35f1e99230c2cd9ee47eaf8c3859c147ac9993059bc27dad4b0ff0ec440194",
+      "status": {
+        "decision": "accepted",
+        "implementation": "partial",
+        "activation": "staged"
       }
     }
   ],
@@ -4398,6 +4408,12 @@
       "relation": "lineage-mention",
       "reference": "solid-pod-rs:ADR-059",
       "to": "solid-pod-rs:crates/solid-pod-rs/docs/archive/adr/ADR-059-provenance-primitives-block-trails-git-marks.md"
+    },
+    {
+      "from": "project:docs/adr/ADR-2107-compatible-xr-visual-experience.md",
+      "relation": "lineage-mention",
+      "reference": "project:ADR-2004",
+      "to": "project:docs/adr/ADR-2004-oxigraph-sqlite-persistence.md"
     }
   ],
   "unresolved": [],

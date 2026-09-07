@@ -18,7 +18,7 @@ sources:
   - ../project/agentbox/services/secret-backup/src/main.rs
   - ../project/agentbox/docs/archive/adr/ADR-024-setup-dashboard.md
   - ../project/agentbox/docs/BASELINE-container.md
-verified_commit: 2c521c5bb
+verified_commit: 771d96ed5ac6f5daa1e78a60d109c130b9ef9b99
 ---
 
 ## AB-30.1 Three name-dropped services, three different lifecycles

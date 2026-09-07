@@ -1,0 +1,73 @@
+Initialize godot-rust (API v4.3.stable.official, runtime v4.6.1.stable.official)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+TextServer: Added interface "Dummy"
+TextServer: Added interface "ICU / HarfBuzz / Graphite (Built-in)"
+Unrecognized output string "misc2" in mapping:
+030000000d0f0000ab01000011010000,Horipad Steam,a:b0,b:b1,back:b10,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,guide:b12,leftshoulder:b6,leftstick:b13,lefttrigger:a5,leftx:a0,lefty:a1,misc2:b2,paddle1:b19,paddle2:b18,paddle3:b15,paddle4:b5,rightshoulder:b7,rightstick:b14,righttrigger:a4,rightx:a2,righty:a3,start:b11,x:b3,y:b4,platform:Linux,
+Unrecognized output string "misc2" in mapping:
+050000000d0f00009601000091000000,Horipad Steam,a:b0,b:b1,back:b10,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,guide:b12,leftshoulder:b6,leftstick:b13,lefttrigger:a5,leftx:a0,lefty:a1,misc2:b2,paddle1:b19,paddle2:b18,paddle3:b15,paddle4:b5,rightshoulder:b7,rightstick:b14,righttrigger:a4,rightx:a2,righty:a3,start:b11,x:b3,y:b4,platform:Linux,
+Unrecognized output string "misc2" in mapping:
+030000007e0500006920000011010000,Nintendo Switch 2 Pro Controller,a:b0,b:b1,back:b14,dpdown:b8,dpleft:b10,dpright:b9,dpup:b11,guide:b16,leftshoulder:b12,leftstick:b15,lefttrigger:b13,leftx:a0,lefty:a1~,misc1:b17,misc2:b20,paddle1:b18,paddle2:b19,rightshoulder:b4,rightstick:b7,righttrigger:b5,rightx:a2,righty:a3~,start:b6,x:b2,y:b3,platform:Linux,
+SDL: Init OK!
+Xshape 1.1 detected.
+Xinerama 1.1 detected.
+Xrandr 1.6 detected.
+Xrender 0.11 detected.
+Xinput 2.2 detected.
+XInput: Refreshing devices.
+XInput: No touch devices found.
+Detecting GPUs, set DRI_PRIME in the environment to override GPU detection logic.
+Only one GPU found, using default.
+XcursorGetTheme could not get cursor theme
+Failed loading custom cursor: crossed_circle
+DBus 1.16.2 detected.
+Requested V-Sync mode: Disabled
+Using "default" pen tablet driver...
+Shader 'CanvasSdfShaderGLES3' SHA256: a18d9b1a8fb095fe716fba24017dd71cd50472e65ad06e7d2ac3bc1783ca6e79
+Shader 'SkeletonShaderGLES3' SHA256: 2c94f8d9392a6726e3614d91dec056e8f5c787f021bd5594ca8b5047a6892d46
+Shader 'ParticlesShaderGLES3' SHA256: 724a60409954472412a644d41c8c988bd620a6aa88d8ae218096fe3ea88f069a
+Shader 'ParticlesCopyShaderGLES3' SHA256: 0d4a781cd1a8086a4591e151257d130d73bb6235f6984fae7a158680c433d7ae
+Shader 'CopyShaderGLES3' SHA256: 708e9aca4a3f8b6ea19420b19f28ce7222f1789a747caa42481f68125ace8cdf
+Shader 'CubemapFilterShaderGLES3' SHA256: 8392db1312440922fe5ff4b4201ed7b024a76fe111247c6a5feb5a51125db42b
+Shader 'GlowShaderGLES3' SHA256: 83198976524fead158f2376c795e326e3ed9944cc8453c0050bd047d4c53c32a
+Shader 'PostShaderGLES3' SHA256: fed276a02929406df3a29bcea9dd0f23298975e80254cf365ca71f4573895e16
+Shader 'FeedShaderGLES3' SHA256: 3a35db10d706854d86f3bb9e4fe114d644130c311733916840d6ce5515b1e560
+Shader 'CanvasShaderGLES3' SHA256: c8068369f26c25f3c5dd95f33902ff1f7731bdd4ca890240173ca8a3b2b5083f
+Shader 'CanvasOcclusionShaderGLES3' SHA256: 3ee1b910f44ce36eb20791d3c606039fe5cfb72b421d8989574e1c69561fec28
+Shader 'SceneShaderGLES3' SHA256: 717782b9b53346dd3945e558388901e5db59e376e8b218413d9cdc90e4e36805
+Shader 'SkyShaderGLES3' SHA256: 6d915a99e5d8895b8b9c0d9519b1d427eb53e5a1074adf26ac3d2470968f7c54
+OpenGL API 3.3.0 NVIDIA 610.57.04 - Compatibility - Using Device: NVIDIA - NVIDIA RTX A6000
+
+TextServer: Primary interface set to: "ICU / HarfBuzz / Graphite (Built-in)".
+CORE API HASH: 75400357
+EDITOR API HASH: 3012763406
+SceneTreeFTI: traversal method DEFAULT
+Loaded system CA certificates
+Loading resource: res://tests/spatial_visual_fixture.tscn
+Loading resource: res://scenes/GraphScene.tscn
+Loading resource: res://scripts/graph_scene.gd
+Loading resource: res://scenes/Avatar.tscn
+Loading resource: res://scripts/avatar.gd
+Loading resource: res://materials/gem.tres
+Loading resource: res://materials/node_halo.tres
+Loading resource: res://materials/node_halo.gdshader
+Loading resource: res://materials/crystal_orb.tres
+Loading resource: res://materials/agent_capsule.tres
+Loading resource: res://scenes/HUD.tscn
+Loading resource: res://scripts/hud.gd
+Loading resource: res://scripts/dwell_reticle.gd
+Loading resource: res://materials/edge_flow.tres
+Loading resource: res://materials/edge_flow.gdshader
+Loading resource: res://materials/agent_beam.tres
+Loading resource: res://materials/agent_beam.gdshader
+Loading resource: res://materials/gem_faded.tres
+Loading resource: res://scripts/spatial_environment.gd
+Loading resource: res://materials/spatial_floor.gdshader
+Loading resource: res://materials/focus_ring.gdshader
+Loading resource: res://tests/spatial_visual_fixture.gd
+SPATIAL_COMFORT:low-cost disables halo/MSAA;balanced restores;reduced motion stops pulses
+SPATIAL_FIXTURE:48 opaque,1 faded,60 edges,4 relation styles; production MultiMesh channels preserved
+SPATIAL_CAPTURE:/tmp/visionclaw-spatial-final-6dd.png result=0
+XR: Clearing primary interface
+XR: Removed interface "Native mobile"
+XR: Removed interface "OpenXR"

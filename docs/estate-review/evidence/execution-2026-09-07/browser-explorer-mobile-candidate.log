@@ -1,0 +1,33 @@
+explorer [
+  { name: 'content', ok: false, detail: 135 },
+  {
+    name: 'home-mobile-no-overflow',
+    ok: false,
+    detail: {
+      requestedWidth: 375,
+      viewport: 981,
+      clientWidth: 980,
+      width: 981
+    }
+  },
+  {
+    name: 'search-journey',
+    ok: false,
+    detail: {
+      url: 'http://agentbox:8109/',
+      text: 'Blocked request. This host ("agentbox") is not allowed.\n' +
+        'To allow this host, add "agentbox" to `preview.allowedHosts` in vite.config.js.'
+    }
+  },
+  {
+    name: 'mobile-no-overflow',
+    ok: false,
+    detail: {
+      requestedWidth: 375,
+      viewport: 981,
+      clientWidth: 980,
+      width: 981,
+      bodyWidth: 964
+    }
+  }
+]

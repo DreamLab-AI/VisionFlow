@@ -18,7 +18,7 @@ sources:
   - ../knowledgeGraph/docs/ecosystem.md
   - ../visionGraph/publishing-tools/WasmVOWL/modern/package.json
   - ../visionGraph/.github/workflows/publish.yml
-verified_commit: {knowledgegraph: d09a476124caa14aa0165c642d0950f6026c46fb, visiongraph: 482ba593bcffddca7d564d0b6c4b1fea225154fb}
+verified_commit: {knowledgegraph: 75a5c1f1acda50bfe9d66a92a5343cf12f8b84ef, visiongraph: 149d8eba638886f17dc5f8919be8c26502517ed0}
 ---
 
 ## KG-04.1 Explorer topology — MIT viewer over AGPL-built, ODbL-licensed data

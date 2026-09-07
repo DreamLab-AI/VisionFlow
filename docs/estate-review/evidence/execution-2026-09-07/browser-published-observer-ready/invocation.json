@@ -1,0 +1,9 @@
+{
+  "at": "2026-09-07T13:24:10.731736+00:00",
+  "command": "node scripts/estate-browser-journeys.mjs docs/estate-review/evidence/execution-2026-09-07/browser-published-observer-ready canon,explorer,notes",
+  "script_sha256": "e138b479eae460dc99581646db80d2da99790927fff5f140c41fcb6512b7b7f2",
+  "css_injection": false,
+  "url_override": false,
+  "cache_disabled": "only each owned CDP session",
+  "readiness": "up to2 seconds per reveal and10 seconds for positive Agent search results"
+}

@@ -35,7 +35,7 @@ sources:
   - ../project/agentbox/scripts/dream-inbox.mjs
   - ../project/agentbox/scripts/dream-machine-nightly.mjs
   - ../project/agentbox/scripts/dream-night-digest.mjs
-verified_commit: 2c521c5bb
+verified_commit: 771d96ed5ac6f5daa1e78a60d109c130b9ef9b99
 ---
 
 ## AB-23.1 One repo-night — run phases

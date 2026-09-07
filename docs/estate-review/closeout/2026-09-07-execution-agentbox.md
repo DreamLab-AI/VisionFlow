@@ -49,7 +49,7 @@ content read, local Agentbox container rebuilt, or paid/model task dispatched.
 | DOC-4 | Observed activation complete | Running AoE 1.13.2 uses token auth on loopback 9095; unauthenticated `/api/sessions` returns 401. ADR-2002 activation set live with scoped receipt and relation to ADR-2009. No token read or sent. |
 | EA-05 | Source implemented; live activation blocked | Strict handshake/cache/response checks pass locally. Live `/loom/generation` has no loaded identity/model fields, while health reports graph generation 2026-08-22 and semantic generation 2026-08-17. Rebuild a matching bundle/server before activating the client; current deployment would deliberately be refused. HTTP service assertions are not cryptographic remote attestation. |
 | M-2 / T-1 | Closed for retained-disabled supported profile | Relay expose=false/mobile=false are retained. No rail publication selected while G-5 custody remains unresolved. A future rail profile needs its own reviewed admission/deployment evidence. |
-| M-3 | HP build in progress; not yet closed | SSH/Nix/Docker available. Deployed HP source 647aabb10 has a dirty operator manifest. Separate worktree at published b5bfc03db uses an opaque copy of that manifest; old source/config/image retained. `hp-runtime-build.log` and locked-retry log record two actual fixed-output failures (Mermaid and AQE floating transitive resolution). The next build uses original lockfiles recovered from the working local packages via npm ci, reviewing changed output hashes against installed package manifests (only already-locked optional musl packages added, no existing package version or manifest changed). All nine materialise and pass an explicit forced `--rebuild` replay. Source b0c963c66 is pushed. QGIS, Triton and Torch have built; remaining tool derivations are progressing. Provenance in npm-lock-provenance.json. No container replacement yet. |
+| M-3 | HP image built; loading/activation in progress | SSH/Nix/Docker available. Deployed HP source 647aabb10 has a dirty operator manifest. Separate worktree at published b5bfc03db uses an opaque copy of that manifest; old source/config/image retained. `hp-runtime-build.log` and locked-retry log record two actual fixed-output failures (Mermaid and AQE floating transitive resolution). The next build uses original lockfiles recovered from the working local packages via npm ci, reviewing changed output hashes against installed package manifests (only already-locked optional musl packages added, no existing package version or manifest changed). All nine materialise and pass an explicit forced `--rebuild` replay. Source b0c963c66 is pushed. Complete runtime image built at /nix/store/2m758brvq5b7c0b8q4dixxhnln6hsyxs-image-agentbox.json; Docker loading is in progress. Provenance in npm-lock-provenance.json. No container replacement yet. |
 | M-4 | Stale wiring premise corrected; end-to-end fan-out not observed | Current flake already projects AGENTBOX_RELAY_FANOUT from relayCfg.external_fanout. RelayConsumer uses it plus NOSTR_RELAYS to construct peer URLs. No fabricated federation-table requirement or automatic exposure change; live multi-peer delivery still needs receipts. |
 | M-5 | Stale source premise corrected; live nightly acceptance separate | Existing commit 2c521c5bb added engine::clone_repo_and_siblings and annexe_subpath, preserving real workspace depth for annexeInclude siblings. The targeted symlink/depth/fallback regression passes. dispatch::clone_to_hp archives each repository HEAD, excluding dirty changes. This corrects the original standalone-clone escape path; no completed nightly sovereign-mesh evaluator receipt was observed. The HP baseline b5bfc03db includes this engine fix; runtime nightly execution remains separate from packaging. |
 | T-4 | Retained-disabled decision complete | All eight held surface families reaffirmed in Agentbox backlog: relay/mobile, multi-user, public git/gateway, payments, OIDC, pod MCP and pip. Selected tracked booleans captured in selected-profile.json; no held surface enabled. |
@@ -120,3 +120,40 @@ shows root-relative exclusions, and describes the manifest as names and metadata
 without file hashes. The cuda-runtime diagram describes its explicit local-CUDA
 dispatch rather than incorrectly making that output conditional on the manifest.
 No root Git staging was performed; the coordinator owns the final snapshot.
+
+## Other hosted workflow dispositions
+
+Ontology Federation run 33862998777 failed to check out the private `jjohare/logseq`
+source using the repository GITHUB_TOKEN. Its workflow, ontology-publish.yml, was
+deleted by 7b2811272 and is absent from current main; this is an inactive historical
+failure, not an active publication gate. It was not recreated or supplied credentials.
+
+The active flake updater had two concrete faults: an unsupported boolean flag and
+an installer defaulting to Nix 2.22.1, which rejects the current relative-path lock
+entries. Commits 8a6bf696f and c11059cba remove the flag and select Nix 2.35.2 in all
+three Nix workflows, preserving action SHA pins and the project lock. An isolated
+HP fixture confirms the corrected command writes a lock without a Git commit.
+Hosted retry 34126738773 passes update and evaluation after the development-shell
+CLI repair, then fails because repository policy denies Actions-created pull
+requests. Review branch `deps/nix-flake-update` exists at 7e17343; no PR, merge or
+deployment occurred. The Actions permission setting was not changed. Historical failure logs
+and nix-flake-update-fixture.log retain the exact evidence.
+
+The development-shell executable selection repair is 8fcc7b79b, with six governed
+ADR anchors qualified in 771d96ed5. Main is pushed through that commit. The
+updater’s unresolved failure is now the concrete repository PR-permission policy,
+not Nix command parsing or evaluation. HP image construction has completed at
+`/nix/store/2m758brvq5b7c0b8q4dixxhnln6hsyxs-image-agentbox.json`; Docker loading
+is in progress, so M-3 runtime acceptance is not yet asserted.
+
+A further metadata-only pass pins AB-14/23/30 to Agentbox 771d96ed5 and
+ES-04/09 to that Agentbox commit plus VisionClaw dd82a07b0. All 60 panels pass
+declared-revision citation checks with zero warnings. Diagram blocks were
+unchanged, so existing render receipts remain applicable. See
+agentbox-estate-final-declared-pins.log.
+
+## HP rollout result and rollback
+
+The built candidate `agentbox:closeout-built-20260907-e3fbe18f` was loaded and tested with the existing deployment configuration and mounts. It failed the bounded health/readiness checks; the rollout script recreated the original image from the retained rollback tag. M-3 remains blocked by startup failure. No successful runtime upgrade is claimed.
+
+The independent follow-up [health receipt](execution-2026-09-07/hp-rollback-health.log) confirms original image `sha256:c64e5acaf902cbda96cced5665f9bda7dd18f1a067545c3ea0dc41105a79bc55` is running, Docker health is healthy and `http://127.0.0.1:9090/ready` returns HTTP200. The [rollout log](execution-2026-09-07/hp-runtime-rollout.log) preserves the failed checks and rollback. The candidate and build receipts remain available for startup diagnosis; there is no attribution of the failure to an unverified cause.

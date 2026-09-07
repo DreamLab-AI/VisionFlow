@@ -1,0 +1,603 @@
+Initialize godot-rust (API v4.3.stable.official, runtime v4.3.stable.official)
+Godot Engine v4.3.stable.official.77dcf97d8 - https://godotengine.org
+TextServer: Added interface "Dummy"
+TextServer: Added interface "ICU / HarfBuzz / Graphite (Built-in)"
+JoypadLinux: udev enabled and loaded successfully.
+Xshape 1.1 detected.
+Xinerama 1.1 detected.
+Xrandr 1.6 detected.
+Xrender 0.11 detected.
+Xinput 2.2 detected.
+XInput: Refreshing devices.
+XInput: No touch devices found.
+Detecting GPUs, set DRI_PRIME in the environment to override GPU detection logic.
+Only one GPU found, using default.
+XcursorGetTheme could not get cursor theme
+Failed loading custom cursor: crossed_circle
+ScreenSaver: DBus 1.16.2 detected.
+PortalDesktop: DBus 1.16.2 detected.
+Requested V-Sync mode: Disabled
+Using "default" pen tablet driver...
+Shader 'CanvasSdfShaderGLES3' SHA256: a18d9b1a8fb095fe716fba24017dd71cd50472e65ad06e7d2ac3bc1783ca6e79
+Shader 'SkeletonShaderGLES3' SHA256: 732446958283e667782ff7e82c1b9716c39358ed1b3a882590649617db1237c8
+Shader 'ParticlesShaderGLES3' SHA256: dcc4061e40656a002c27465d8e09ea76ce2c75a91b946f81c57386a48823a8bd
+Shader 'ParticlesCopyShaderGLES3' SHA256: 32d6680f440b53867e2785712d595bcc4123006d8e4690d77c45c099556da571
+Shader 'CopyShaderGLES3' SHA256: 32bc069ab7440883be6ff9afc3a3beb6f4d8bdc3e126f53c3f11d6a3a8f0b812
+Shader 'CubemapFilterShaderGLES3' SHA256: f78c17ae2acf073423ad0b4df78118a89b2bc39ed8d004c8dd34310aa89922b7
+Shader 'GlowShaderGLES3' SHA256: 83198976524fead158f2376c795e326e3ed9944cc8453c0050bd047d4c53c32a
+Shader 'PostShaderGLES3' SHA256: 2ceb4061a4fb23e8d88f14fcdf469987970bd0a3017ce9691fad00b093431a62
+Shader 'CanvasShaderGLES3' SHA256: c6999e1cb9737d0b30d59ae201c995d2122a94f4d290f0d76b8cd7cd3846526d
+Shader 'CanvasOcclusionShaderGLES3' SHA256: 3ee1b910f44ce36eb20791d3c606039fe5cfb72b421d8989574e1c69561fec28
+Shader 'SceneShaderGLES3' SHA256: dc08f431dbc6c498add15dd0237ae7c0140dfd2ca695e958b3c37113fe1b3205
+Shader 'SkyShaderGLES3' SHA256: f17402b075d61054a1f0d6a70317072c1106929a8080cfa9f62e42d0edcada6a
+OpenGL API 3.3.0 NVIDIA 610.57.04 - Compatibility - Using Device: NVIDIA - NVIDIA RTX A6000
+
+TextServer: Primary interface set to: "ICU / HarfBuzz / Graphite (Built-in)".
+CORE API HASH: 966092234
+EDITOR API HASH: 444927587
+Loaded system CA certificates
+---  GUT  ---
+[1m[INFO]:  [0musing [/home/devuser/.local/share/godot/app_userdata/VisionClaw XR] for temporary output.
+Godot version:  4.3.0
+GUT version:  9.3.1
+[4m
+
+res://tests/unit/test_agent_avatar.gd
+[0m* test_set_identity_renders_short_did_verified
+[32m    [Passed]:  [0mbadge shows the agent name
+[32m    [Passed]:  [0mbadge shows the …last8 short DID
+[32m    [Passed]:  [0mverified badge carries the check mark
+[32m    [Passed]:  [0m[COLOR(0.75, 1, 0.82, 1)] expected to equal [COLOR(0.75, 1, 0.82, 1)]:  verified badge colour
+* test_set_identity_unverified_is_visually_distinct
+[32m    [Passed]:  [0munverified badge carries the query mark
+[32m    [Passed]:  [0m[COLOR(1, 0.72, 0.28, 1)] expected to equal [COLOR(1, 0.72, 0.28, 1)]:  unverified badge is amber, not the verified colour
+[32m    [Passed]:  [0m[COLOR(1, 0.72, 0.28, 1)] expected to not equal [COLOR(0.75, 1, 0.82, 1)]:  unverified must never read as verified
+* test_empty_did_reads_unverified_never_fabricated
+[32m    [Passed]:  [0man absent DID reads unverified, not a fake id
+* test_short_did_helper_variants
+[32m    [Passed]:  [0m["unverified"] expected to equal ["unverified"]:  empty → unverified
+[32m    [Passed]:  [0m["…89abcdef"] expected to equal ["…89abcdef"]:  …last8 of the pubkey
+[32m    [Passed]:  [0m["…short"] expected to equal ["…short"]:  sub-8 pubkey kept whole
+* test_feature_mask_high_shows_everything
+[32m    [Passed]:  [0mbadge visible at High
+[32m    [Passed]:  [0mcone visible at High
+[32m    [Passed]:  [0mcore mesh visible at High
+[32m    [Passed]:  [0mbillboard off at High
+[32m    [Passed]:  [0mavatar visible at High
+* test_feature_mask_medium_drops_badge_first
+[32m    [Passed]:  [0mbadge drops first at Medium
+[32m    [Passed]:  [0mcone survives Medium
+[32m    [Passed]:  [0mcore survives Medium
+* test_feature_mask_low_billboards_core
+[32m    [Passed]:  [0mcone drops at Low
+[32m    [Passed]:  [0mcore mesh off at Low
+[32m    [Passed]:  [0mcore billboards at Low
+* test_feature_mask_culled_hides_avatar
+[32m    [Passed]:  [0mavatar hidden when the feature mask is empty
+* test_apply_signal_drives_activity_state
+[32m    [Passed]:  [0m[1] expected to equal [1]:  TaskStarted advances the avatar to Working
+* test_gaze_cone_basis_aligns_y_with_gaze
+[32m    [Passed]:  [0m[VECTOR3(0.70710682868957519531, 0.00000000000000000000, -0.70710682868957519531)] expected to equal [VECTOR3(0.707107, 0, -0.707107)] +/- [(0.001, 0.001, 0.001)]:  basis +Y follows the gaze direction
+[32m    [Passed]:  [0m[1.00000000000000000000] expected to equal [1.0] +/- [0.001]:  x axis unit length
+[32m    [Passed]:  [0m[1.00000000000000000000] expected to equal [1.0] +/- [0.001]:  z axis unit length
+[32m    [Passed]:  [0m[0.00000000000000000000] expected to equal [0.0] +/- [0.001]:  x ⟂ y
+[32m    [Passed]:  [0m[0.00000000000000000000] expected to equal [0.0] +/- [0.001]:  y ⟂ z
+[1m10/10 passed.
+[0m[4m
+
+res://tests/unit/test_agent_beam.gd
+[0m* test_agent_multi_is_wired_as_the_beam_layer
+GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+[2m2026-09-07T13:15:17.408444Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+[2m2026-09-07T13:15:17.408692Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+[32m    [Passed]:  [0mExpected [AgentMulti:<MultiMeshInstance3D#78114719527>] to be anything but NULL:  AgentMulti node exists
+[32m    [Passed]:  [0mExpected [<MultiMesh#-9223371959092377823>] to be anything but NULL:  AgentMulti has a MultiMesh (the beam buffer target)
+[32m    [Passed]:  [0mbeam MultiMesh carries INSTANCE_CUSTOM (status in .a)
+[32m    [Passed]:  [0mExpected [<CylinderMesh#-9223371959109155040>] to be anything but NULL:  beam MultiMesh has a cylinder mesh to instance
+[32m    [Passed]:  [0mExpected [<ShaderMaterial#-9223371959931238634>] to be anything but NULL:  beam layer has the agent_beam material override
+* test_beam_multimesh_starts_empty_and_survives_a_frame
+GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+[2m2026-09-07T13:15:17.591537Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+[2m2026-09-07T13:15:17.592409Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+[32m    [Passed]:  [0m[0] expected to equal [0]:  no active agents ⇒ no beams drawn
+[1m2/2 passed.
+[0m[4m
+
+res://tests/unit/test_did_badge.gd
+[0m* test_set_identity_populates_nameplate_and_did_badge
+[32m    [Passed]:  [0m["Alice"] expected to equal ["Alice"]:  nameplate carries the display name
+[32m    [Passed]:  [0mDID badge shows the …last8 pubkey
+[32m    [Passed]:  [0mverified badge carries a check mark
+[32m    [Passed]:  [0m[COLOR(0.75, 1, 0.82, 1)] expected to equal [COLOR(0.75, 1, 0.82, 1)]:  verified badge colour
+* test_unverified_identity_is_distinct
+[32m    [Passed]:  [0munverified badge carries a query mark
+[32m    [Passed]:  [0m[COLOR(1, 0.72, 0.28, 1)] expected to equal [COLOR(1, 0.72, 0.28, 1)]:  unverified badge is amber
+* test_set_verified_flips_badge_state
+[32m    [Passed]:  [0m[COLOR(1, 0.72, 0.28, 1)] expected to equal [COLOR(1, 0.72, 0.28, 1)]:  starts unverified
+[32m    [Passed]:  [0m[COLOR(0.75, 1, 0.82, 1)] expected to equal [COLOR(0.75, 1, 0.82, 1)]:  flips to verified once the Schnorr check passes
+[32m    [Passed]:  [0mmark updates on verification
+* test_did_badge_drops_at_medium_lod
+[32m    [Passed]:  [0mDID badge visible at High
+[32m    [Passed]:  [0mDID badge drops with the nameplate at Medium
+* test_short_did_static_helper
+[32m    [Passed]:  [0m["unverified"] expected to equal ["unverified"]:  
+[32m    [Passed]:  [0m["…eeff0011"] expected to equal ["…eeff0011"]:  
+[1m5/5 passed.
+[0m[4m
+
+res://tests/unit/test_graph_agents.gd
+[0m* test_spawn_agent_adds_child_to_agent_spawner
+GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+[2m2026-09-07T13:15:18.016409Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+[2m2026-09-07T13:15:18.017199Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+[32m    [Passed]:  [0m[1] expected to equal [1]:  spawning an agent adds a child to AgentSpawner
+[32m    [Passed]:  [0magent tracked by id
+* test_spawn_agent_is_idempotent
+GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+[2m2026-09-07T13:15:18.242435Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+[2m2026-09-07T13:15:18.243407Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+[32m    [Passed]:  [0m[1] expected to equal [1]:  re-spawning the same id is a no-op
+* test_despawn_agent_removes_child
+GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+[2m2026-09-07T13:15:18.489263Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+[2m2026-09-07T13:15:18.490271Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+[32m    [Passed]:  [0m[0] expected to equal [0]:  despawn removes the child
+[32m    [Passed]:  [0magent untracked after despawn
+* test_agent_case_publishes_count_and_state
+GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+[2m2026-09-07T13:15:18.715237Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+[2m2026-09-07T13:15:18.716096Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+[32m    [Passed]:  [0mcase tracked against the agent
+[32m    [Passed]:  [0m[2] expected to equal [2]:  an open case drives the agent to awaiting-approval
+[32m    [Passed]:  [0mclearing the case untracks it
+* test_selecting_an_agent_with_a_case_opens_the_panel
+GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+[2m2026-09-07T13:15:18.933199Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+[2m2026-09-07T13:15:18.934062Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+Project FPS: 20 (50.00 mspf)
+[32m    [Passed]:  [0mselecting an agent with an open case opens the intervention panel
+Socket error: 111
+Connection to remote host failed!
+[1m5/5 passed.
+[0m[4m
+
+res://tests/unit/test_hud_intervention.gd
+[0m* test_intervention_panel_hidden_by_default
+[32m    [Passed]:  [0mno case → no intervention panel
+* test_show_case_reveals_panel_with_case_id
+[32m    [Passed]:  [0ma queued case reveals the panel
+[32m    [Passed]:  [0mpanel names the case
+[32m    [Passed]:  [0mpanel shows the case summary
+* test_clear_case_hides_panel
+[32m    [Passed]:  [0mclearing a case hides the panel
+* test_acsp_indicator_tracks_open_case_count
+[32m    [Passed]:  [0mambient ACSP indicator shows the open-case count
+[32m    [Passed]:  [0mcount clears back to zero
+* test_approve_emits_decision_intent
+WARNING: HUD: intervention not configured; decision not dispatched
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+[32m    [Passed]:  [0mExpected object HUD:<Node3D#203507631948>(hud.gd) to emit signal [decision_submitted] with parameters ["case-7", "approve"], got ["case-7", "approve"]
+* test_deny_emits_reject_intent
+WARNING: HUD: intervention not configured; decision not dispatched
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+[32m    [Passed]:  [0mExpected object HUD:<Node3D#211258706132>(hud.gd) to emit signal [decision_submitted] with parameters ["case-8", "reject"], got ["case-8", "reject"]
+* test_decision_without_case_is_a_noop
+WARNING: HUD: no case selected for decision
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+[32m    [Passed]:  [0mExpected object HUD:<Node3D#219009779902>(hud.gd) to NOT emit signal [decision_submitted]:  no case → no decision
+* test_dwell_reticle_reflects_charge
+[32m    [Passed]:  [0mreticle hidden at zero charge
+[32m    [Passed]:  [0mreticle shows while charging
+[32m    [Passed]:  [0m[0.50000000000000000000] expected to equal [0.5] +/- [0.001]:  reticle mirrors the dwell charge ratio
+[32m    [Passed]:  [0mreticle hides when the charge clears
+Project FPS: 27 (37.03 mspf)
+[1m8/8 passed.
+[0m[4m
+
+res://tests/unit/test_hud_tabs.gd
+[0m* test_all_pages_built_and_default_graph_visible
+[32m    [Passed]:  [0mExpected [GraphPage:<VBoxContainer#236860737789>] to be anything but NULL:  GraphPage exists
+[32m    [Passed]:  [0mExpected [QueryPage:<VBoxContainer#238605567964>] to be anything but NULL:  QueryPage exists
+[32m    [Passed]:  [0mExpected [PinsPage:<VBoxContainer#239209548075>] to be anything but NULL:  PinsPage exists
+[32m    [Passed]:  [0mExpected [SwarmPage:<VBoxContainer#239696087103>] to be anything but NULL:  SwarmPage exists
+[32m    [Passed]:  [0mExpected [SessionPage:<VBoxContainer#240132294935>] to be anything but NULL:  SessionPage exists
+[32m    [Passed]:  [0mExpected [HelpPage:<VBoxContainer#240484616341>] to be anything but NULL:  HelpPage exists
+[32m    [Passed]:  [0mGraph is the default visible tab
+[32m    [Passed]:  [0mother tabs start hidden
+* test_show_tab_switches_exactly_one_page
+[32m    [Passed]:  [0msession shown
+[32m    [Passed]:  [0mgraph hidden
+[32m    [Passed]:  [0m[1] expected to equal [1]:  exactly one page visible after a tab switch
+* test_every_button_and_tab_has_a_hint
+[32m    [Passed]:  [0m[0] expected to equal [0]:  every interactive control carries a 'hint' meta; missing: []
+* test_hint_resolution_defaults_when_nothing_hovered
+[32m    [Passed]:  [0m["Point at a control for help"] expected to equal ["Point at a control for help"]:  falls back to the default hint
+* test_no_page_overflows_its_host
+[32m    [Passed]:  [0m[546.0] expected to be > than [1.0]:  tab host has a real height
+[32m    [Passed]:  [0m[436.0] expected to be <= than [547.0]:  GraphPage min-height 436 must fit host 546 (no below-the-fold)
+[32m    [Passed]:  [0m[505.0] expected to be <= than [547.0]:  QueryPage min-height 505 must fit host 546 (no below-the-fold)
+[32m    [Passed]:  [0m[518.0] expected to be <= than [547.0]:  PinsPage min-height 518 must fit host 546 (no below-the-fold)
+[32m    [Passed]:  [0m[454.0] expected to be <= than [547.0]:  SwarmPage min-height 454 must fit host 546 (no below-the-fold)
+[32m    [Passed]:  [0m[436.0] expected to be <= than [547.0]:  SessionPage min-height 436 must fit host 546 (no below-the-fold)
+[32m    [Passed]:  [0m[531.0] expected to be <= than [547.0]:  HelpPage min-height 531 must fit host 546 (no below-the-fold)
+* test_public_api_and_signals_preserved
+[32m    [Passed]:  [0mpublic method preserved: set_controls_status
+[32m    [Passed]:  [0mpublic method preserved: set_control_states
+[32m    [Passed]:  [0mpublic method preserved: set_fold_state
+[32m    [Passed]:  [0mpublic method preserved: set_query_preview
+[32m    [Passed]:  [0mpublic method preserved: hide_query_preview
+[32m    [Passed]:  [0mpublic method preserved: show_document
+[32m    [Passed]:  [0mpublic method preserved: hide_document
+[32m    [Passed]:  [0mpublic method preserved: show_case
+[32m    [Passed]:  [0mpublic method preserved: clear_case
+[32m    [Passed]:  [0mpublic method preserved: set_case_count
+[32m    [Passed]:  [0mpublic method preserved: set_dwell_charge
+[32m    [Passed]:  [0mpublic method preserved: set_avatar_count
+[32m    [Passed]:  [0mpublic method preserved: set_mtp_ms
+[32m    [Passed]:  [0mpublic method preserved: configure_intervention
+[32m    [Passed]:  [0mpublic method preserved: approve_selected_case
+[32m    [Passed]:  [0mpublic method preserved: deny_selected_case
+[32m    [Passed]:  [0mpublic method preserved: _on_connection_status
+[32m    [Passed]:  [0msignal preserved: join_requested
+[32m    [Passed]:  [0msignal preserved: mute_toggled
+[32m    [Passed]:  [0msignal preserved: decision_submitted
+[32m    [Passed]:  [0msignal preserved: case_decided
+[32m    [Passed]:  [0msignal preserved: control_pressed
+[32m    [Passed]:  [0msignal preserved: query_execute_pressed
+[32m    [Passed]:  [0msignal preserved: query_clear_pressed
+* test_control_button_emits_named_action
+[32m    [Passed]:  [0mExpected [@Button@2351:<Button#283484620813>] to be anything but NULL:  Reset Layout button exists on the Graph page
+[32m    [Passed]:  [0mExpected object HUD:<Node3D#281068701487>(hud.gd) to emit signal [control_pressed] with parameters ["reset_layout"], got ["reset_layout"]
+* test_type_toggles_present_and_emit_on_press
+Project FPS: 30 (33.33 mspf)
+[32m    [Passed]:  [0mExpected [@Button@2465:<Button#291671902210>] to be anything but NULL:  Knowledge type toggle present, visible by default
+[32m    [Passed]:  [0mExpected [@Button@2466:<Button#291722233877>] to be anything but NULL:  Ontology toggle present
+[32m    [Passed]:  [0mExpected [@Button@2467:<Button#291772565542>] to be anything but NULL:  Agents toggle present
+[32m    [Passed]:  [0mExpected object HUD:<Node3D#288836552575>(hud.gd) to emit signal [control_pressed] with parameters ["type_toggle:knowledge:0"], got ["type_toggle:knowledge:0"]
+[32m    [Passed]:  [0m["Knowledge ✕"] expected to equal ["Knowledge ✕"]:  label flips to hidden marker
+[32m    [Passed]:  [0mExpected object HUD:<Node3D#288836552575>(hud.gd) to emit signal [control_pressed] with parameters ["type_toggle:knowledge:1"], got ["type_toggle:knowledge:1"]
+[1m8/8 passed.
+[0m[4m
+
+res://tests/unit/test_query_builder.gd
+[0m* test_mark_assigns_sequential_var_names
+[32m    [Passed]:  [0m["?v1"] expected to equal ["?v1"]:  first mark is ?v1
+[32m    [Passed]:  [0m["?v2"] expected to equal ["?v2"]:  second mark is ?v2
+[32m    [Passed] [0m
+[32m    [Passed]:  [0m[2] expected to equal [2]:  
+* test_mark_is_idempotent_per_node
+[32m    [Passed]:  [0m["?v1"] expected to equal ["?v1"]:  
+[32m    [Passed]:  [0m["?v1"] expected to equal ["?v1"]:  re-marking returns the same name, no new var
+[32m    [Passed]:  [0m[1] expected to equal [1]:  
+* test_palette_cycles_and_indices_are_distinct_early
+[32m    [Passed]:  [0m[0] expected to equal [0]:  
+[32m    [Passed]:  [0m[1] expected to equal [1]:  
+[32m    [Passed]:  [0m[0] expected to equal [0]:  palette wraps at QUERY_PALETTE_LEN
+* test_unmark_removes_variable
+[32m    [Passed]:  [0munmark reports it removed a variable
+[32m    [Passed] [0m
+[32m    [Passed]:  [0m[""] expected to equal [""]:  
+[32m    [Passed]:  [0munmarking an unmarked node returns false
+* test_names_do_not_reuse_after_unmark
+[32m    [Passed]:  [0m["?v3"] expected to equal ["?v3"]:  next name keeps counting; ?v1 is not reused
+* test_clear_resets_all_state
+[32m    [Passed] [0m
+[32m    [Passed]:  [0m[0] expected to equal [0]:  
+[32m    [Passed]:  [0m["?v1"] expected to equal ["?v1"]:  after clear, numbering restarts at ?v1
+* test_menu_items_unmarked_node_offers_mark
+[32m    [Passed]:  [0m[1] expected to equal [1]:  no query yet: only the Mark action
+[32m    [Passed]:  [0m["qb_mark:42"] expected to equal ["qb_mark:42"]:  
+[32m    [Passed] [0m
+* test_menu_items_marked_node_offers_unmark_and_clear
+[32m    [Passed]:  [0mmarked node offers unmark
+[32m    [Passed]:  [0mactive query offers clear
+* test_execute_and_toggle_offered_when_active
+[32m    [Passed]:  [0m[true] expected to equal [true]:  Phase D: execute wired
+[32m    [Passed]:  [0mExecute offered
+[32m    [Passed]:  [0medge-type toggle offered
+[32m    [Passed]:  [0mClear offered
+* test_menu_items_pass_through_extra_items_in_order
+[32m    [Passed]:  [0m["qb_mark:1"] expected to equal ["qb_mark:1"]:  
+[32m    [Passed]:  [0m["expand:references:outgoing"] expected to equal ["expand:references:outgoing"]:  extra items follow verbatim
+* test_derive_triples_only_marked_marked_edges
+[32m    [Passed]:  [0m[1] expected to equal [1]:  only the marked-marked edge becomes a triple
+[32m    [Passed]:  [0m["?v1"] expected to equal ["?v1"]:  
+[32m    [Passed]:  [0m["?v2"] expected to equal ["?v2"]:  
+[32m    [Passed]:  [0m["any"] expected to equal ["any"]:  v1 edges are wildcard
+* test_derive_triples_is_directed_and_deduped
+[32m    [Passed]:  [0m[2] expected to equal [2]:  parallel edges dedupe; reverse direction kept
+[32m    [Passed] [0m
+[32m    [Passed] [0m
+* test_build_pattern_payload_shape
+[32m    [Passed]:  [0m[true] expected to equal [true]:  
+[32m    [Passed]:  [0m[24] expected to equal [24]:  
+[32m    [Passed]:  [0m[1] expected to equal [1]:  
+* test_concrete_edge_type_used_when_toggle_on
+[32m    [Passed]:  [0m["references"] expected to equal ["references"]:  
+[32m    [Passed]:  [0m["any"] expected to equal ["any"]:  
+* test_untyped_edge_falls_back_to_any
+[32m    [Passed]:  [0m["any"] expected to equal ["any"]:  
+* test_pattern_summary_pluralises
+[32m    [Passed]:  [0m["1 var · 0 edges"] expected to equal ["1 var · 0 edges"]:  
+[32m    [Passed]:  [0m["2 vars · 1 edge"] expected to equal ["2 vars · 1 edge"]:  
+[1m16/16 passed.
+[0m[4m
+
+res://tests/unit/test_scene_load.gd
+[0m* test_xr_boot_scene_loads
+[32m    [Passed]:  [0mExpected [<PackedScene#-9223371737549240149>(XRBoot.tscn)] to be anything but NULL:  XRBoot.tscn must be loadable
+[32m    [Passed]:  [0mExpected [XRBoot:<Node3D#299389421568>(xr_boot.gd)] to be anything but NULL:  XRBoot.tscn must instantiate
+[32m    [Passed]:  [0m[STRING_NAME(XRBoot)] expected to equal ["XRBoot"]:  root node name
+[32m    [Passed]:  [0mExpected [XROrigin3D:<XROrigin3D#299406198785>] to be anything but NULL:  XROrigin3D child
+[32m    [Passed]:  [0mExpected [XRCamera3D:<XRCamera3D#299422975802>] to be anything but NULL:  XRCamera3D child
+[32m    [Passed]:  [0mExpected [LeftController:<XRController3D#299456530625>] to be anything but NULL:  LeftController child
+[32m    [Passed]:  [0mExpected [RightController:<XRController3D#299473307629>] to be anything but NULL:  RightController child
+[33m    [Orphans]:  [0m9 new orphans in test.
+* test_graph_scene_loads
+[32m    [Passed]:  [0mExpected [<PackedScene#-9223371735267538919>(GraphScene.tscn)] to be anything but NULL:  GraphScene.tscn must be loadable
+[32m    [Passed]:  [0mExpected [GraphScene:<Node3D#301671122684>(graph_scene.gd)] to be anything but NULL:  GraphScene.tscn must instantiate
+[32m    [Passed]:  [0m[STRING_NAME(GraphScene)] expected to equal ["GraphScene"]:  root node name
+[32m    [Passed]:  [0mExpected [XROrigin3D:<XROrigin3D#301738231790>] to be anything but NULL:  XROrigin3D child
+[33m    [Orphans]:  [0m50 new orphans in test.
+* test_hud_scene_loads
+[32m    [Passed]:  [0mExpected [<PackedScene#-9223371733304604395>(HUD.tscn)] to be anything but NULL:  HUD.tscn must be loadable
+[32m    [Passed]:  [0mExpected [HUD:<Node3D#303634057200>(hud.gd)] to be anything but NULL:  HUD.tscn must instantiate
+[32m    [Passed]:  [0m[STRING_NAME(HUD)] expected to equal ["HUD"]:  root node name
+[32m    [Passed]:  [0mExpected [HudViewport:<SubViewport#303650834476>] to be anything but NULL:  HudViewport child
+[33m    [Orphans]:  [0m32 new orphans in test.
+* test_avatar_scene_loads
+[32m    [Passed]:  [0mExpected [<PackedScene#-9223371736861374433>(Avatar.tscn)] to be anything but NULL:  Avatar.tscn must be loadable
+[32m    [Passed]:  [0mExpected [Avatar:<Node3D#305076897628>(avatar.gd)] to be anything but NULL:  Avatar.tscn must instantiate
+[32m    [Passed]:  [0m[STRING_NAME(Avatar)] expected to equal ["Avatar"]:  root node name
+[32m    [Passed]:  [0mExpected [Head:<MeshInstance3D#305093674890>] to be anything but NULL:  Head child
+[32m    [Passed]:  [0mExpected [LeftHand:<MeshInstance3D#305110452075>] to be anything but NULL:  LeftHand child
+[32m    [Passed]:  [0mExpected [RightHand:<MeshInstance3D#305127229296>] to be anything but NULL:  RightHand child
+[32m    [Passed]:  [0mExpected [DidBadge:<Label3D#305160784088>] to be anything but NULL:  DidBadge child
+[33m    [Orphans]:  [0m8 new orphans in test.
+* test_agent_avatar_scene_loads
+[32m    [Passed]:  [0mExpected [<PackedScene#-9223371731173898391>(AgentAvatar.tscn)] to be anything but NULL:  AgentAvatar.tscn must be loadable
+[32m    [Passed]:  [0mExpected [AgentAvatar:<Node3D#305764763814>(agent_avatar.gd)] to be anything but NULL:  AgentAvatar.tscn must instantiate
+[32m    [Passed]:  [0m[STRING_NAME(AgentAvatar)] expected to equal ["AgentAvatar"]:  root node name
+[32m    [Passed]:  [0mExpected [Core:<MeshInstance3D#305781540712>] to be anything but NULL:  Core child
+[32m    [Passed]:  [0mExpected [CoreBillboard:<MeshInstance3D#305798318239>] to be anything but NULL:  CoreBillboard child
+[32m    [Passed]:  [0mExpected [GazeCone:<MeshInstance3D#305815095314>] to be anything but NULL:  GazeCone child
+[32m    [Passed]:  [0mExpected [Badge:<Label3D#305831872281>] to be anything but NULL:  Badge child
+[33m    [Orphans]:  [0m5 new orphans in test.
+* test_all_scenes_have_attached_scripts
+[32m    [Passed]:  [0mExpected [<PackedScene#-9223371730754468115>(XRBoot.tscn)] to be anything but NULL:  scene res://scenes/XRBoot.tscn must load
+[32m    [Passed]:  [0mExpected [<GDScript#-9223371737817675939>] to be anything but NULL:  scene res://scenes/XRBoot.tscn must attach a script
+[32m    [Passed]:  [0mExpected [<PackedScene#-9223371729831721205>(GraphScene.tscn)] to be anything but NULL:  scene res://scenes/GraphScene.tscn must load
+[32m    [Passed]:  [0mExpected [<GDScript#-9223371963118910065>] to be anything but NULL:  scene res://scenes/GraphScene.tscn must attach a script
+[32m    [Passed]:  [0mExpected [<PackedScene#-9223371730033047778>(HUD.tscn)] to be anything but NULL:  scene res://scenes/HUD.tscn must load
+[32m    [Passed]:  [0mExpected [<GDScript#-9223371961290193142>] to be anything but NULL:  scene res://scenes/HUD.tscn must attach a script
+[32m    [Passed]:  [0mExpected [<PackedScene#-9223371736861374433>(Avatar.tscn)] to be anything but NULL:  scene res://scenes/Avatar.tscn must load
+[32m    [Passed]:  [0mExpected [<GDScript#-9223371962380712201>] to be anything but NULL:  scene res://scenes/Avatar.tscn must attach a script
+[33m    [Orphans]:  [0m99 new orphans in test.
+* test_scene_uids_are_unique
+[32m    [Passed]:  [0mExpected [<PackedScene#-9223371726358836769>(XRBoot.tscn)] to be anything but NULL:  scene res://scenes/XRBoot.tscn must load
+[32m    [Passed]:  [0mduplicate resource_path res://scenes/XRBoot.tscn
+[32m    [Passed]:  [0mExpected [<PackedScene#-9223371725603862032>(GraphScene.tscn)] to be anything but NULL:  scene res://scenes/GraphScene.tscn must load
+[32m    [Passed]:  [0mduplicate resource_path res://scenes/GraphScene.tscn
+[32m    [Passed]:  [0mExpected [<PackedScene#-9223371725805188627>(HUD.tscn)] to be anything but NULL:  scene res://scenes/HUD.tscn must load
+[32m    [Passed]:  [0mduplicate resource_path res://scenes/HUD.tscn
+[32m    [Passed]:  [0mExpected [<PackedScene#-9223371736861374433>(Avatar.tscn)] to be anything but NULL:  scene res://scenes/Avatar.tscn must load
+[32m    [Passed]:  [0mduplicate resource_path res://scenes/Avatar.tscn
+* test_avatar_set_display_name
+[32m    [Passed]:  [0mExpected [Nameplate:<Label3D#311603235303>] to be anything but NULL:  Nameplate node must exist
+[32m    [Passed]:  [0m["TestUser"] expected to equal ["TestUser"]:  display name must update nameplate text
+* test_avatar_apply_pose_updates_head_transform
+Project FPS: 53 (18.86 mspf)
+Project FPS: 58 (17.24 mspf)
+[32m    [Passed]:  [0m[VECTOR3(0.99999988079071044922, 1.99999976158142089844, 2.99999952316284179688)] expected to equal [VECTOR3(1, 2, 3)] +/- [(0.05, 0.05, 0.05)]:  head position must converge to target
+* test_avatar_apply_pose_shows_hands_when_tracked
+[32m    [Passed]:  [0mleft hand visible when has_left=true
+[32m    [Passed]:  [0mright hand visible when has_right=true
+[32m    [Passed]:  [0mleft hand hidden when has_left=false
+[32m    [Passed]:  [0mright hand hidden when has_right=false
+* test_avatar_lod_level_high
+[32m    [Passed]:  [0mavatar visible at LOD High
+[32m    [Passed]:  [0mnameplate visible at LOD High
+[32m    [Passed]:  [0mleft hand visible at LOD High
+* test_avatar_lod_level_medium_hides_nameplate
+[32m    [Passed]:  [0mavatar visible at LOD Medium
+[32m    [Passed]:  [0mnameplate hidden at LOD Medium
+[32m    [Passed]:  [0mhands still visible at LOD Medium
+* test_avatar_lod_level_low_hides_hands
+[32m    [Passed]:  [0mavatar visible at LOD Low
+[32m    [Passed]:  [0mnameplate hidden at LOD Low
+[32m    [Passed]:  [0mleft hand hidden at LOD Low
+[32m    [Passed]:  [0mright hand hidden at LOD Low
+* test_avatar_lod_level_culled_hides_avatar
+[32m    [Passed]:  [0mavatar hidden at LOD Culled
+* test_hud_set_avatar_count
+[32m    [Passed]:  [0m[5] expected to equal [5]:  avatar count stored
+[32m    [Passed]:  [0mdebug stats must show avatar count
+* test_hud_set_mtp_ms
+[32m    [Passed]:  [0m[12.50000000000000000000] expected to equal [12.5] +/- [0.01]:  mtp_ms stored
+[32m    [Passed]:  [0mdebug stats must show MTP value
+* test_hud_connection_status
+[32m    [Passed]:  [0mconnected status shows OK
+[32m    [Passed]:  [0mdisconnected status shows OFF
+Project FPS: 47 (21.27 mspf)
+* test_graph_scene_avatar_join_adds_child
+GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+[2m2026-09-07T13:15:24.108663Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+[2m2026-09-07T13:15:24.109108Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+[2m2026-09-07T13:15:24.187451Z[0m [32m INFO[0m [2mvisionclaw_xr_gdext::webrtc_audio[0m[2m:[0m voice track attached [3mdid[0m[2m=[0mdid:nostr:abc123
+[32m    [Passed]:  [0m[1] expected to equal [1]:  avatar join adds child to spawner
+[32m    [Passed]:  [0mavatar tracked in dictionary
+* test_graph_scene_avatar_leave_removes_child
+GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+[2m2026-09-07T13:15:24.316802Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+[2m2026-09-07T13:15:24.317640Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+[2m2026-09-07T13:15:24.394596Z[0m [32m INFO[0m [2mvisionclaw_xr_gdext::webrtc_audio[0m[2m:[0m voice track attached [3mdid[0m[2m=[0mdid:nostr:abc123
+[32m    [Passed]:  [0m[0] expected to equal [0]:  avatar leave removes child from spawner
+[32m    [Passed]:  [0mavatar removed from dictionary
+* test_graph_scene_avatar_leave_nonexistent_is_safe
+GraphScene: eye-gaze unsupported (Quest 3 floor device) -- head-gaze primary
+[2m2026-09-07T13:15:24.574634Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m graph stream connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/wss
+[2m2026-09-07T13:15:24.575484Z[0m [31mERROR[0m [2mvisionclaw_xr_gdext::transport[0m[2m:[0m presence connect failed [3merr[0m[2m=[0mIO error: Connection refused (os error 111) [3murl[0m[2m=[0mws://localhost:4000/ws/presence
+WARNING: GraphScene: graph reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+WARNING: GraphScene: presence reconnect attempt 1 in 2.0s
+     at: push_warning (core/variant/variant_utility.cpp:1112)
+[32m    [Passed]:  [0mno crash on removing nonexistent avatar
+[1m20/20 passed.
+[0m[4m
+
+res://tests/unit/test_swarm_tab.gd
+[0m* test_swarm_page_exists_and_starts_empty
+[32m    [Passed]:  [0mExpected [SwarmPage:<VBoxContainer#384215025411>] to be anything but NULL:  SwarmPage built
+[32m    [Passed]:  [0mroster push API present
+[32m    [Passed]:  [0m[0] expected to equal [0]:  no agent rows when the roster is empty
+* test_roster_rows_render_and_teleport_on_tap
+[32m    [Passed]:  [0m[2] expected to equal [2]:  one teleport button per agent
+[32m    [Passed]:  [0mExpected [@Button@3452:<Button#394231023366>] to be anything but NULL:  named agent row present
+[32m    [Passed]:  [0mrow shows name → target label
+[32m    [Passed]:  [0mExpected object HUD:<Node3D#386798717490>(hud.gd) to emit signal [control_pressed] with parameters ["teleport:7"], got ["teleport:7"]
+[32m    [Passed]:  [0mExpected [@Button@3457:<Button#394432350767>] to be anything but NULL:  nameless agent falls back to 'agent <id>'
+Project FPS: 24 (41.66 mspf)
+[1m2/2 passed.
+[0m[4m
+
+res://tests/unit/test_xr_config.gd
+[0m* test_boot_sets_use_xr_synchronously
+[32m    [Passed]:  [0mExpected [<FileAccess#-9223371641801668762>] to be anything but NULL:  must open res://scripts/xr_boot.gd
+[32m    [Passed]:  [0mxr_boot must set use_xr = true
+[32m    [Passed]:  [0muse_xr is set after an explicit OpenXR initialize()
+* test_eye_gaze_is_probed_not_blindly_enabled_in_boot
+[32m    [Passed]:  [0mExpected [<FileAccess#-9223371641717782191>] to be anything but NULL:  must open res://scripts/xr_boot.gd
+[32m    [Passed]:  [0meye-gaze support is queried behind a has_method guard
+* test_graph_scene_probes_eye_gaze_and_feeds_resolver
+[32m    [Passed]:  [0mExpected [<FileAccess#-9223371641650673633>] to be anything but NULL:  must open res://scripts/graph_scene.gd
+[32m    [Passed]:  [0mGraphScene has an eye-gaze probe
+[32m    [Passed]:  [0mGraphScene queries support behind a has_method guard
+[32m    [Passed]:  [0mthe probe feeds the Rust gaze resolver
+[1m3/3 passed.
+[0m[4m
+
+res://tests/unit/test_xr_visual_accessibility.gd
+[0m* test_header_status_does_not_intersect_approval_badge
+[32m    [Passed]:  [0mFPS remains visible beside the approval badge
+* test_active_tab_uses_shape_and_surface_as_well_as_text_colour
+[32m    [Passed]:  [0m[2] expected to equal [2]:  selected tab has an explicit outline
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[2] expected to equal [2]:  selected tab has an explicit outline
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[2] expected to equal [2]:  selected tab has an explicit outline
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[2] expected to equal [2]:  selected tab has an explicit outline
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[2] expected to equal [2]:  selected tab has an explicit outline
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[2] expected to equal [2]:  selected tab has an explicit outline
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[2] expected to equal [2]:  selected tab has an explicit outline
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+[32m    [Passed]:  [0m[COLOR(0.1412, 0.2863, 0.3647, 1)] expected to not equal [COLOR(0.0431, 0.0784, 0.1412, 1)]:  selection remains visible without relying on text tint
+* test_document_overlay_remains_above_the_instrument_surface
+[32m    [Passed]:  [0m[2] expected to equal [2]:  
+[32m    [Passed]:  [0m[10] expected to be > than [0]:  
+[32m    [Passed]:  [0m[10] expected to be > than [0]:  
+* test_comfort_controls_emit_intent_and_external_sync_is_silent
+[32m    [Passed]:  [0mExpected object HUD:<Node3D#421108123568>(hud.gd) to NOT emit signal [control_pressed]:  
+[32m    [Passed]:  [0mExpected object HUD:<Node3D#421108123568>(hud.gd) to emit signal [control_pressed] with parameters ["visual_motion:0"], got ["visual_motion:0"]
+[32m    [Passed]:  [0mExpected object HUD:<Node3D#421108123568>(hud.gd) to emit signal [control_pressed] with parameters ["visual_quality:1"], got ["visual_quality:1"]
+[1m4/4 passed.
+[0m
+
+
+
+[33m==============================================
+[0m[33m= Run Summary
+[0m[33m==============================================
+[0m
+---- Totals ----
+Scripts           11
+Tests             83
+  Passing         83
+Asserts           314
+Time              8.858s
+
+
+[32m---- All tests passed! ----
+[0m
+Results saved to res://tests/report/junit.xml
+[1m[INFO]:  [0mExiting with code 0
+XR: Clearing primary interface
+XR: Removed interface "Native mobile"
+XR: Removed interface "OpenXR"
+ERROR: Texture with GL ID of 101: leaked 349524 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:79)
+ERROR: Texture with GL ID of 102: leaked 349524 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:79)

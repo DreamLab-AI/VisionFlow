@@ -15,7 +15,7 @@ sources:
   - ../knowledgeGraph/docs/architecture/pipeline.md
   - ../knowledgeGraph/docs/ecosystem.md
   - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
-verified_commit: 2791111fc
+verified_commit: 75a5c1f1acda50bfe9d66a92a5343cf12f8b84ef
 ---
 
 ## KG-03.1 Page anatomy — two-to-three fenced json-ld blocks per Logseq page

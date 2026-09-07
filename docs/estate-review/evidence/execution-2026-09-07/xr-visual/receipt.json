@@ -1,0 +1,63 @@
+{
+  "source_commit": "6dd349544",
+  "published_commit": "fb72df39a3f438b00adcf6993dc835d90f1bc313",
+  "tests": {
+    "engine": "Godot4.3 GUT9.3.1 actual GL",
+    "passed": 83,
+    "assertions": 314,
+    "risky": 0,
+    "remaining_diagnostics": "Two texture-release diagnostics at integrated4.3shutdown. Unset viewport errors resolved."
+  },
+  "spatial_render": {
+    "engine": "Godot4.6.1 GLCompatibility",
+    "errors": 0,
+    "live_headset": false
+  },
+  "source_files": {
+    ".github/workflows/xr-godot-ci.yml": "f8ce592855f6a3914e74fa0b76327ab2a6731b0bff05a5d27bc012ff6f19e85c",
+    "docs/adr/ADR-2107-compatible-xr-visual-experience.md": "ac35f1e99230c2cd9ee47eaf8c3859c147ac9993059bc27dad4b0ff0ec440194",
+    "xr-client/README.md": "ab04669ddc84f4a761f886878238aa7fed4efe09ac76a40f98d5d08ddf61ae83",
+    "xr-client/materials/edge_flow.gdshader": "950d6f6f09f7f4c4e14a11f3675fecb68e63b08dbff285ad45574175870505d9",
+    "xr-client/materials/edge_flow.tres": "107f49cad6922c8e3377208ffbe74e113666b67635dbbe7b7004d3a6281ba4e7",
+    "xr-client/materials/focus_ring.gdshader": "964a85bf7baab3a0852556c6a0eac3864e798e4c04ecfa625dda61331c796ae9",
+    "xr-client/materials/gem.tres": "6b9796c89d6c7a9523585dc7ef3e47938509b32b60ebf0b4fd0aed50f2afa26c",
+    "xr-client/materials/gem_faded.tres": "1bc3c8d8999afca86797d8f143fa544795124ea7f1a8446091dfb42c71eff177",
+    "xr-client/materials/node_halo.gdshader": "951d5c5e8c17b18e5c2eed072344bc157a63b2c3cbf40dec2d5af3dc1e30d135",
+    "xr-client/materials/node_halo.tres": "c4b3d82084714edc522f7cc8a872448c0cd39fc85721d7ff5492829222b87037",
+    "xr-client/materials/spatial_floor.gdshader": "e198d941c138f5a8b70c1ac7175b90042b651aec3e37f7adcc5f41c683b3c353",
+    "xr-client/scenes/GraphScene.tscn": "dbe8e47ad29eb3c5f343cdae159eaaa49633c0757d89f239048befb875d8a274",
+    "xr-client/scenes/HUD.tscn": "2b255f0864ced545297d25a0dc1c10acfe21a57016675a7332b389f2d5337483",
+    "xr-client/scenes/RadialMenu.tscn": "fa85363ad34a58637843eac29a0767534e79411648ad5e65a547ab39cf41f3dd",
+    "xr-client/scripts/agent_avatar.gd": "5786928f690fd8ce0943f3321166604d46cf500cf75a05632584a83b6849871a",
+    "xr-client/scripts/dwell_reticle.gd": "64921059e4b7b56c25fcdc2de98057c057d1350067d6fc93447414246415297a",
+    "xr-client/scripts/hud.gd": "ac4d5007f82ca7cfca611fcc55b48e422606ab4e59cbb1610f27bf75e554fa5c",
+    "xr-client/scripts/radial_backdrop.gd": "b11d5ed705f37da77fa58842ce5ff0f5497e20ff9a26e5a001db9ecdcfbd90cd",
+    "xr-client/scripts/radial_menu.gd": "9bbce9215873029a489fdcf98eddb1e010eae199ee02461de8e03b86300c8d9a",
+    "xr-client/scripts/spatial_environment.gd": "0d006f91a3adfa6982ec640c3da2368a668bc8f4203126fa00320c750f6e4304",
+    "xr-client/scripts/xr_theme.gd": "319915b20e760ef9b37ca8ca59807ee08b037cf406161895fe8e7cc88a8a5ae8",
+    "xr-client/tests/spatial_visual_fixture.gd": "c1ab426ff778c192220921c9d44a8684e45f22ca56f4bf575e825e9e36688eac",
+    "xr-client/tests/spatial_visual_fixture.tscn": "4c40f508a5abb9074cc33f09fd539aca564430e360ceae284d27a42f3afbe69b",
+    "xr-client/tests/unit/test_graph_agents.gd": "5f259a751d2ecbdad32541584699ae7b50262de00416cd6aa374920403151277",
+    "xr-client/tests/unit/test_query_builder.gd": "9235d1ab67a9b44857a3c609da4c92febc70dda615786f03e3f65b8614988e5e",
+    "xr-client/tests/unit/test_scene_load.gd": "64d5474c8628df4f7a4dbdf8031c4d8f8a9683027954b9815bc7e75023d793e1",
+    "xr-client/tests/unit/test_swarm_tab.gd": "d8f6633210ff05017adf8bcf83c7577f0fa990909618d4316f781c8ec869c0e5",
+    "xr-client/tests/unit/test_xr_visual_accessibility.gd": "3e1bbb16e4b5c171da45350a94a271c7885308dd087e726fa61448364ad0ec51",
+    "xr-client/tests/visual/hud_gallery.gd": "b18e0dd52bcb1485d0e6204a40dba9ada4333497cd339e7d0e0f6e185c45da1c"
+  },
+  "artifacts": {
+    "xr-hud-graph.png": "5d8d07d1b0352d770c21a726abf193ffaad7e66506d2b060381e58c1e5ee2b53",
+    "xr-hud-pins.png": "75d501b735797f8f9a2ae28e5796cabb18c623f8225c18e59767545cd343492d",
+    "xr-radial.png": "e9c2748f88b3be177a8e234371184ac519586a5d62bb01f0e4cf64fa1b1ac2df",
+    "spatial-scene.png": "94c695eed7a1bc017a605ec8fc79879da0c45aab2a60c3f7110b50f562f8e41a",
+    "xr-hud-swarm.png": "cd92c55cd1cdf0f46dcb5f6520e4f82b31fc4bbaccdcdba87b46cfa0c0f11183",
+    "xr-hud-layout.png": "296a1d49dcab715af3b759d2b1efc509d54360b15cea36454e101d66c40e7b9d",
+    "integrated-gut43.log": "411a887bdd38baf940af3d567a30cd24e1ee3098143ddc6912234c3eabae636a",
+    "hud-gallery46.log": "a615fa77f0da3d179e8e2d4857f12db4d0795bc51270d9083ec41a9c4c302282",
+    "xr-hud-help.png": "d7ba8ec4df49e26bd608bcee39a5e982f2669b70acdca304617173eb29556c88",
+    "diagram-render.log": "ed3ed63433b6c5e6658d8944597ff9d00df27629390211416e5b9730fdd5e69c",
+    "spatial-render46.log": "92d1c19cafad4243594b088f2c772be80fb819b16d8e59edf801c404cc9e16eb",
+    "hud-viewport-lifecycle.log": "19ced5ad394cc3edc37ccdd61cfc424e6109c4638b8fe5ae9ed65df9640095fd",
+    "xr-hud-session.png": "966ff70cbc7c4742a077b4ebf19f4766fa6c8bc0f581f30e31e5c11eda9ea745",
+    "xr-hud-query.png": "47a4a78fb41b6ee7e27d4501f59ec07ce491ef5423721111354b8744e8274b35"
+  }
+}
