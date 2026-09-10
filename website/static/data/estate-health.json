@@ -1,9 +1,9 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-09-09T07:28:17.871Z",
+  "generated_at": "2026-09-10T07:24:34.580Z",
   "generator": {
-    "revision": "90166fbc10122af23008c79ec70fdd248b81d3f2",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34323972989",
+    "revision": "977c79ff679e09b145b8baf1e27eef79dfd7f9c0",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34449778074",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
@@ -13,7 +13,7 @@
     "amber": 0,
     "none": 1,
     "unreadable": 1,
-    "open_prs": 0,
+    "open_prs": 1,
     "surfaces_ok": 6,
     "surfaces_total": 6
   },
@@ -29,11 +29,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "90166fbc10122af23008c79ec70fdd248b81d3f2",
-        "short": "90166fb",
-        "date": "2026-09-08T07:19:45Z",
-        "message": "chore(estate-health): nightly snapshot 2026-09-08 — 9/14 green",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/90166fbc10122af23008c79ec70fdd248b81d3f2"
+        "sha": "977c79ff679e09b145b8baf1e27eef79dfd7f9c0",
+        "short": "977c79f",
+        "date": "2026-09-09T07:28:18Z",
+        "message": "chore(estate-health): nightly snapshot 2026-09-09 — 10/14 green",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/977c79ff679e09b145b8baf1e27eef79dfd7f9c0"
       },
       "ci": {
         "state": "green",
@@ -49,8 +49,8 @@
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34198784269",
-            "updated_at": "2026-09-08T07:20:25Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34324007989",
+            "updated_at": "2026-09-09T07:29:01Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
@@ -77,12 +77,12 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34198750810",
-            "updated_at": "2026-09-08T07:19:52Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34323972989",
+            "updated_at": "2026-09-09T07:28:25Z"
           }
         ]
       },
-      "open_prs": 0,
+      "open_prs": 1,
       "open_issues": 1,
       "release": null,
       "pages": {
@@ -105,28 +105,28 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "6c47b983349db9ef0d71445084dc9c98f58ae009",
-        "short": "6c47b98",
-        "date": "2026-09-08T10:30:45Z",
-        "message": "fix(xr+protocol): keep MSAA off on XR viewports; pass stamped wire ids through the encoder",
-        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/6c47b983349db9ef0d71445084dc9c98f58ae009"
+        "sha": "8b05abf5cf9ce18db8cf94b632065fee201f7d13",
+        "short": "8b05abf",
+        "date": "2026-09-09T20:06:21Z",
+        "message": "chore(agentbox): bump submodule to Retort model-router heuristics",
+        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/8b05abf5cf9ce18db8cf94b632065fee201f7d13"
       },
       "ci": {
         "state": "red",
         "runs": [
           {
             "workflow": "CI",
-            "conclusion": "failure",
+            "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34215881701",
-            "updated_at": "2026-09-08T10:34:08Z"
+            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34399036993",
+            "updated_at": "2026-09-09T20:09:34Z"
           },
           {
             "workflow": "Documentation Quality CI",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34215881714",
-            "updated_at": "2026-09-08T10:34:07Z"
+            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34391276533",
+            "updated_at": "2026-09-09T18:51:30Z"
           },
           {
             "workflow": "Ontology Federation CI/CD",
@@ -139,8 +139,8 @@
             "workflow": "XR Godot CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34215881674",
-            "updated_at": "2026-09-08T10:35:46Z"
+            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34391276497",
+            "updated_at": "2026-09-09T18:52:53Z"
           }
         ]
       },
@@ -165,21 +165,21 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "a628a0dbf8a79e585026be96fcd4a85db86d349a",
-        "short": "a628a0d",
-        "date": "2026-09-09T06:15:43Z",
-        "message": "docs(repo-education): budget media from measured production renders",
-        "url": "https://github.com/DreamLab-AI/agentbox/commit/a628a0dbf8a79e585026be96fcd4a85db86d349a"
+        "sha": "57a92a402372ef125d43920d6ddbe3d100e498c9",
+        "short": "57a92a4",
+        "date": "2026-09-09T20:05:49Z",
+        "message": "feat(model-router): ingest Retort price-performance heuristics into the console",
+        "url": "https://github.com/DreamLab-AI/agentbox/commit/57a92a402372ef125d43920d6ddbe3d100e498c9"
       },
       "ci": {
         "state": "red",
         "runs": [
           {
             "workflow": "CI",
-            "conclusion": "success",
+            "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34318287898",
-            "updated_at": "2026-09-09T06:16:46Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34398984474",
+            "updated_at": "2026-09-09T20:08:34Z"
           },
           {
             "workflow": "Contract tests",
@@ -190,10 +190,10 @@
           },
           {
             "workflow": "Manifest validate",
-            "conclusion": "success",
+            "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34220347383",
-            "updated_at": "2026-09-08T11:24:17Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34398984526",
+            "updated_at": "2026-09-09T20:08:19Z"
           },
           {
             "workflow": "nix-flake-update",
@@ -206,15 +206,15 @@
             "workflow": "Secret Scan",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34318287980",
-            "updated_at": "2026-09-09T06:16:37Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34398984491",
+            "updated_at": "2026-09-09T20:06:43Z"
           },
           {
             "workflow": "Security Invariants",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34318287894",
-            "updated_at": "2026-09-09T06:16:22Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34398984494",
+            "updated_at": "2026-09-09T20:06:35Z"
           },
           {
             "workflow": "ShellCheck",
@@ -716,7 +716,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 262,
+      "latency_ms": 216,
       "note": null
     },
     {
@@ -725,7 +725,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 170,
+      "latency_ms": 213,
       "note": null
     },
     {
@@ -734,7 +734,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 183,
+      "latency_ms": 218,
       "note": null
     },
     {
@@ -743,7 +743,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 211,
+      "latency_ms": 224,
       "note": "classes=8432 pages=8428 nodes=8432"
     },
     {
@@ -752,7 +752,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 331,
+      "latency_ms": 189,
       "note": null
     },
     {
@@ -761,7 +761,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 269,
+      "latency_ms": 200,
       "note": null
     }
   ],
