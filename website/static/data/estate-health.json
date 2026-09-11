@@ -1,9 +1,9 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-09-10T07:24:34.580Z",
+  "generated_at": "2026-09-11T07:22:18.182Z",
   "generator": {
-    "revision": "977c79ff679e09b145b8baf1e27eef79dfd7f9c0",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34449778074",
+    "revision": "78e22d3f84842129dbadae34340a926cf0f6a484",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34574033261",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
@@ -29,11 +29,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "977c79ff679e09b145b8baf1e27eef79dfd7f9c0",
-        "short": "977c79f",
-        "date": "2026-09-09T07:28:18Z",
-        "message": "chore(estate-health): nightly snapshot 2026-09-09 — 10/14 green",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/977c79ff679e09b145b8baf1e27eef79dfd7f9c0"
+        "sha": "78e22d3f84842129dbadae34340a926cf0f6a484",
+        "short": "78e22d3",
+        "date": "2026-09-10T07:24:35Z",
+        "message": "chore(estate-health): nightly snapshot 2026-09-10 — 10/14 green",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/78e22d3f84842129dbadae34340a926cf0f6a484"
       },
       "ci": {
         "state": "green",
@@ -49,8 +49,8 @@
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34324007989",
-            "updated_at": "2026-09-09T07:29:01Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34449808991",
+            "updated_at": "2026-09-10T07:25:13Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
@@ -77,8 +77,8 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34323972989",
-            "updated_at": "2026-09-09T07:28:25Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34449778074",
+            "updated_at": "2026-09-10T07:24:41Z"
           }
         ]
       },
@@ -425,11 +425,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "397b86c0124e2f4ece40b9db46352179730c2c46",
-        "short": "397b86c",
-        "date": "2026-09-07T12:25:52Z",
-        "message": "fix(ci): format Loom workspace without adopting upstream style",
-        "url": "https://github.com/DreamLab-AI/loom/commit/397b86c0124e2f4ece40b9db46352179730c2c46"
+        "sha": "4adcccfa9ae1ef68166ad2d8d7c32eb60b45092a",
+        "short": "4adcccf",
+        "date": "2026-09-10T08:40:43Z",
+        "message": "feat(facade): per-request scaffold opt-out — the façade as a plain proxy (ADR-139)",
+        "url": "https://github.com/DreamLab-AI/loom/commit/4adcccfa9ae1ef68166ad2d8d7c32eb60b45092a"
       },
       "ci": {
         "state": "green",
@@ -438,8 +438,8 @@
             "workflow": "Rust contracts",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/loom/actions/runs/34121825633",
-            "updated_at": "2026-09-07T12:32:29Z"
+            "url": "https://github.com/DreamLab-AI/loom/actions/runs/34456526677",
+            "updated_at": "2026-09-10T08:49:16Z"
           }
         ]
       },
@@ -716,7 +716,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 216,
+      "latency_ms": 268,
       "note": null
     },
     {
@@ -725,7 +725,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 213,
+      "latency_ms": 289,
       "note": null
     },
     {
@@ -734,7 +734,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 218,
+      "latency_ms": 293,
       "note": null
     },
     {
@@ -743,7 +743,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 224,
+      "latency_ms": 283,
       "note": "classes=8432 pages=8428 nodes=8432"
     },
     {
@@ -752,7 +752,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 189,
+      "latency_ms": 267,
       "note": null
     },
     {
@@ -761,7 +761,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 200,
+      "latency_ms": 322,
       "note": null
     }
   ],
