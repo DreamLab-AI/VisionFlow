@@ -26,6 +26,8 @@ sources:
 verified_commit: 380a595f150dd96bfe27ff278fff9ded1be7fbd0
 ---
 
+**Addendum (2026-09-14):** anchors NF-06.1 through NF-06.11 below are attested at `verified_commit` (`380a595f150dd96bfe27ff278fff9ded1be7fbd0`) on main. NF-06.12, appended at the end of this file, is attested separately at `feat/augmentation-conditions` @ `aa438f3` in nostr-rust-forum — that branch is **not merged and not deployed**; do not read NF-06.12's citations as describing main.
+
 ## NF-06.1 The six kinds and their publishers
 
 ```mermaid
@@ -308,5 +310,29 @@ flowchart TB
     RECEIPT --> CHECK["All three affected-row counts must equal one"]
     CHECK --> LIMIT["Relay projection receipt is not external application proof<br/>Agentbox and VisionClaw now retain separate bound consumer records"]
 ```
+
+## NF-06.12 Augmentation-conditions extension (branch feat/augmentation-conditions, aa438f3)
+
+Not merged, not deployed. All citations in this section are to `nostr-rust-forum` at `feat/augmentation-conditions` @ `aa438f3` unless another repo/branch is named. See [ADR-2011](../../adr/ADR-2011-task-properties-set-the-boundary-not-agent-self-tiering.md) and [PRD-augmentation-conditions](../../PRD-augmentation-conditions.md) FR3/FR4/FR7.
+
+```mermaid
+flowchart TB
+    PANEL["PanelDefinition (31400) declares tp-verifiability / tp-reversibility / tp-stakes<br/>tightening-only on 31402 crates/nostr-bbs-core/src/governance.rs:391-397"]
+    REQUEST["ActionRequest (31402) may tighten, never loosen, the panel triple<br/>governance.rs:397-420 TaskProperties::from_tags / merge"]
+    PANEL --> MERGE
+    REQUEST --> MERGE
+    MERGE["TaskProperties::merge_opt(panel, request)<br/>governance.rs:516-522"] --> TIER
+    TIER["effective_tier(panel, request, declared, advertised_default)<br/>governance.rs:516-534 — pure, total function"] --> STORE["Stored on broker_cases.effective_tier<br/>migrations/0006_augmentation_conditions.sql; nip_handlers.rs:290-294,340,4024"]
+    STORE --> GATE{"effective_tier >= high?"}
+    GATE -- yes --> HUMAN["Resolves only via a human 31403<br/>governance_api.rs 969-1006 no-decision-surface guard"]
+    GATE -- no --> AGENT["Agent-resolvable, subject to calibration/probe rules (FR6.3/6.4)"]
+    HUMAN --> RECEIPT1["consumer-received"]
+    RECEIPT1 --> RECEIPT2["applied | not-applied | applied-manually<br/>governance_api.rs:943-1006 stage machine"]
+    RECEIPT2 -.side receipt.-> AGE["escalated-on-age — relay cron past max_pending_hours<br/>cron.rs:568-619"]
+    RECEIPT2 --> DONE["Ladder terminal; monotonic — never regresses (DDD invariant 5)"]
+    RECEIPT2 -. admin only, prior Approve required .-> MANUAL["applied-manually written by agentbox governance_manual_continue<br/>agentbox management-api/lib/governance-manual-continue.js:53-256 @ 19463a588"]
+```
+
+Each node's citation is checked by `scripts/check-augmentation-citations.cjs` against the branch head named above, not against this repository's HEAD — the referenced files do not exist on `nostr-rust-forum` main.
 
 Execution update, 2026-09-07: request redelivery uses INSERT OR IGNORE and cannot reset an already-decided case. D1 statements execute serially in one transaction, and each dependent write requires its predecessor to change one row. Three exact-SQL projection tests cover wrong/missing request/case/receipt, prior decision/state races, duplicate commits and rollback on receipt failure; native relay tests cover correlation mismatch and unknown-state rejection. The earlier default-case and unconditional-update findings remain in the [audit](../../estate-review/2026-09-07-federation-audit.md). Agentbox now signs operation/digest and records received/outcome receipts; VisionClaw journals exact requests and claims PR application. Live D1 and external application are not certified by local tests.

@@ -65,7 +65,7 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: DreamLab-AI/agentbox
-          ref: eb7794b17892d9032b4f9ce0ed22ea0d9dac3497
+          ref: b859b37d2ffb74c08cfbb9aa9ad7e1cc61d6b188
           path: _agentbox
 
       # ── build ───────────────────────────────────────────────────────────

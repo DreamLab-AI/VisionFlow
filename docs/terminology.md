@@ -46,6 +46,10 @@ Two ecosystem-specific facts that explain why our copy drifted, and that the cop
 - **reasoning** — "the machine check: an EL-profile reasoner computes and gates the published closure at build; Whelk classifies the shared runtime graph and rejects contradictions before they enter it"
 - **Ontology Loom** — "the grounding layer: it retrieves the relevant slice of the graph into an LLM's context at query time, so answers restate checked facts rather than guesses"
 - **taxonomy** — "the is-a backbone of the ontology — here a lattice, not a tree"
+- **augmentation condition** — "one of the six grading questions from arXiv 2609.12482 (durable net value, meaningful human control, accountability and recovery, deepening learning, career pathways, job purpose) that the canon uses to grade every surface where a human decides on an agent's behalf" ([ADR-2010](adr/ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md))
+- **task-property triple** — "verifiability, reversibility and stakes, declared by an operator on a governance panel; a request may tighten them, never loosen them, and the effective escalation tier derives from them rather than from the requesting agent's own risk declaration" ([ADR-2011](adr/ADR-2011-task-properties-set-the-boundary-not-agent-self-tiering.md))
+- **vacuous verification** — "a signed decision made without the proposal, its provenance or a human-authored rationale in view — cryptographically complete, semantically empty"
+- **calibration sample** — "a low-risk, reversible request selected by a keyed HMAC of its id under a relay secret, so the requesting agent cannot predict or evade selection, to be shown to reviewers rather than suppressed, so that reviewers keep exposure to routine agent output and their verification skill stays current"
 
 ## Rules
 

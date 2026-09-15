@@ -26,7 +26,7 @@ precisely because it drifted from the code; see
 
 The [estate status/evidence contract](../architecture/adr-status-contract.md) defines the independent decision, implementation and activation axes and distinguishes lineage from supersession (2026-09-07).
 
-_9 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
+_11 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
 
 | ID | Title | Date | Decision | Impl | Activation | Supersedes | Superseded by | Owner | Repo |
 |----|-------|------|----------|------|------------|------------|---------------|-------|------|
@@ -39,3 +39,5 @@ _9 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
 | [ADR-2007](ADR-2007-estate-closeout-evidence-roadmap.md) | Bind estate closeout to decision lineage and system evidence | 2026-09-04 | proposed | partial | staged | — | — | estate architecture maintainers | visionflow |
 | [ADR-2008](ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md) | Estate health is collected nightly by CI and read, not collected, by the dream cycle | 2026-09-06 | accepted | complete | live | — | — | jjohare | visionflow |
 | [ADR-2009](ADR-2009-webgl-mesh-deep-is-sidecar-only.md) | The webgl-mesh deep is sidecar-only and leaves the nightly rotation until a browser runner exists | 2026-09-07 | accepted | complete | live | — | — | jjohare | visionflow |
+| [ADR-2010](ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md) | The six augmentation conditions are the canon's audit lens for human judgement | 2026-09-14 | accepted | complete | staged | — | — | jjohare | visionflow |
+| [ADR-2011](ADR-2011-task-properties-set-the-boundary-not-agent-self-tiering.md) | Operator-declared task properties set the human–agent boundary, not the requesting agent's self-tier | 2026-09-14 | accepted | complete | staged | — | — | jjohare | visionflow |

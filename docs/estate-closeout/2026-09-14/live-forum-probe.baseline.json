@@ -1,0 +1,52 @@
+{
+  "probed_at": "2026-09-14T14:55:25.240Z",
+  "relay": "wss://dreamlab-nostr-relay.solitary-paper-764d.workers.dev",
+  "auth_api": "https://dreamlab-auth-api.solitary-paper-764d.workers.dev",
+  "probes": [
+    {
+      "name": "nip11-escalation-default",
+      "ok": false,
+      "status": 200,
+      "escalation": {},
+      "summary": "HTTP 200; escalation keys: {}"
+    },
+    {
+      "name": "relay-governance-kinds",
+      "ok": true,
+      "why": "EOSE",
+      "count": 5,
+      "by_kind": {
+        "31402": 2,
+        "31403": 1,
+        "31405": 2
+      },
+      "new_schema_tags_seen": {},
+      "undecided_probe_tag_visible": false,
+      "summary": "EOSE; 5 events {\"31402\":2,\"31403\":1,\"31405\":2}; new tags {}"
+    },
+    {
+      "name": "auth-reviewers-endpoint",
+      "ok": false,
+      "status": 401,
+      "verdict": "ambiguous-401-pre-auth",
+      "body_excerpt": "{\"error\":\"Authorization required\"}",
+      "summary": "HTTP 401 → ambiguous-401-pre-auth (needs NIP-98 admin credential to resolve)"
+    },
+    {
+      "name": "auth-application-receipt-endpoint",
+      "ok": false,
+      "status": 401,
+      "verdict": "ambiguous-401-pre-auth",
+      "body_excerpt": "{\"error\":\"Authorization required\"}",
+      "summary": "HTTP 401 → ambiguous-401-pre-auth (needs NIP-98 admin credential to resolve)"
+    },
+    {
+      "name": "auth-existing-receipts-endpoint",
+      "ok": false,
+      "status": 401,
+      "verdict": "ambiguous-401-pre-auth",
+      "body_excerpt": "{\"error\":\"Authorization required\"}",
+      "summary": "HTTP 401 → ambiguous-401-pre-auth (needs NIP-98 admin credential to resolve)"
+    }
+  ]
+}

@@ -57,6 +57,19 @@ sequenceDiagram
 | Pod write | NIP-98 request verifies, WAC grants access, provenance resource is persisted |
 | Traceability | The final resource links agent DID, human DID, broker case, event IDs, and pod URI |
 
+## Augmentation-Conditions Extension (branch `feat/augmentation-conditions`, not merged, not deployed)
+
+Additional steps for the substrate branches implementing [ADR-2011](../adr/ADR-2011-task-properties-set-the-boundary-not-agent-self-tiering.md) — see [PRD-augmentation-conditions](../PRD-augmentation-conditions.md). None of these run against main; each cites the branch head where the behaviour exists.
+
+| Step | Expected observation |
+|---|---|
+| Agent publish carries `tp-*` tags | A kind 31402 tagged `tp-verifiability`/`tp-reversibility`/`tp-stakes` (or an untagged one, folding to the panel default) projects an `effective_tier` on `broker_cases` via `effective_tier()` (nostr-rust-forum `crates/nostr-bbs-core/src/governance.rs:516-534`, `feat/augmentation-conditions` @ `aa438f3`) that is `Irreversible`/`Critical`-floored, never below the agent's own declared tier |
+| Effective tier gates resolution | A case whose `effective_tier` is `high`/`critical` reaches `Decided` only through a human kind 31403; a same-branch `nip_handlers.rs` path (`crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:290-294`, `aa438f3`) refuses any other resolution |
+| Application receipt POST advances the ladder | `POST /api/governance/receipts/{response_event_id}/application` with `{stage: applied}` moves `governance_receipts.stage` from `consumer-received` to `applied` and never regresses it (nostr-rust-forum `crates/nostr-bbs-auth-worker/src/governance_api.rs:1104-1111`, `aa438f3`); agentbox's `governance-receipt-publisher.js:154-344` (agentbox `feat/augmentation-conditions` @ `19463a588`) posts this after `ApplicationReceiptStore.begin`/`finish` and journals any post failure (`authority-journal.js:69-184`) rather than dropping it silently |
+| Reviewers endpoint returns telemetry | `GET /api/governance/reviewers` (admin NIP-98) returns per-reviewer decision counts, time-to-decision, and override rate (nostr-rust-forum `governance_api.rs:1374-1387`, `aa438f3`) |
+| Manual continuation writes `applied-manually` | `governance_manual_continue` (agentbox `management-api/lib/governance-manual-continue.js:53-256`, `19463a588`) writes an `applied-manually` receipt bound to a case already `Decided: Approve`, and the relay accepts that stage only from an admin pubkey (nostr-rust-forum `governance_api.rs:969-1006`, `aa438f3`) |
+| Rationale gate blocks vacuous high/critical decisions | A `high`/`critical` decision submitted with no rationale, or fewer than 20 characters, is rejected server-side by `check_rationale()` (VisionClaw `src/handlers/enrichment_proposals_handler.rs:406-419`, `feat/augmentation-conditions` @ `f2b9f803e`); the client disables the decide button until the minimum is met (`client/src/features/control-center/governance/AcspCaseQueue.tsx:62-148`, same branch) |
+
 ## Current Blockers To Confirm
 
 | Blocker | Status (2026-05-22) | Why it matters |

@@ -1,9 +1,9 @@
 ---
 title: VisionFlow Baseline — What This Repo Is and Runs Today
 doc_id: VF-BASELINE
-version: 0.3.0
+version: 0.4.0
 status: draft-for-ratification
-verified_commit: 2daa995
+verified_commit: 03db671
 sources:
   - website/build.sh
   - website/static/index.html
@@ -18,6 +18,8 @@ sources:
   - scripts/estate-health.mjs
   - scripts/generate-release-manifest.sh
   - docs/architecture/compatibility-matrix.md
+  - scripts/check-augmentation-citations.cjs
+  - scripts/live-forum-probe.mjs
   - docs/README.md
   - package.json
   - dream.config.json
@@ -160,6 +162,31 @@ Decision of record:
 (accepted / complete / live). Its `verified_commit` is `pending` until the change lands;
 the facts in this subsection are verified at that landing commit, not at the `c205575`
 recorded in this document's frontmatter.
+
+### Human judgement is graded by the six augmentation conditions (2026-09-14)
+
+- **The canon carries a rubric for the Judgment Broker loop, not only a protocol
+  record.** `docs/architecture/compatibility-matrix.md` §"Augmentation conditions" grades
+  nostr-rust-forum, agentbox and VisionClaw against C1–C6 of arXiv 2609.12482, one
+  `file:line` per non-`absent` cell, checked by `scripts/check-augmentation-citations.cjs`
+  (exit 1 on a missing path, an elided path, or a `measured` cell citing a document).
+- **CP-05 and CP-07 name the conditions they discharge** (`docs/estate-review/closeout/README.md`
+  rows CP-05, CP-07) and cannot exit while C2/C3 (CP-05) or C4-for-humans (CP-07) is `absent`.
+- **The workflow record has named owners per field**, and three fields (unapproved agent
+  actions, effort including verification, effects on human capability) are recorded as
+  owner-less defects until the substrate branches under
+  `docs/PRD-augmentation-conditions.md` land.
+- **Live-edge evidence is probed, not inferred.** `scripts/live-forum-probe.mjs` records the
+  live relay's NIP-11, the governance kinds it serves, and the auth worker's answer for the new
+  endpoints; an unauthenticated 401 is recorded as *ambiguous*, never as "deployed"
+  (`docs/estate-closeout/2026-09-14/live-forum-probe.baseline.json`).
+
+Decisions of record:
+[ADR-2010](adr/ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md)
+(accepted / partial / staged) and
+[ADR-2011](adr/ADR-2011-task-properties-set-the-boundary-not-agent-self-tiering.md)
+(accepted / none / inactive — implementation lives in the substrates). Their
+`verified_commit` for ADR-2010 and ADR-2011 is `03db671` (the re-grade at merged mains).
 
 ## Known divergences & open items
 

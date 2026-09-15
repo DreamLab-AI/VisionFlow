@@ -5,6 +5,15 @@
 **Date:** 2026-05-22
 **Version:** 1.0
 
+> **2026-09-14 amendment.** Audited against arXiv 2609.12482 (six augmentation
+> conditions). The loop this PRD closes is cryptographically complete and
+> semantically hollow: the decision surface withholds the proposal and fabricates
+> the human rationale, and the escalation boundary is the agent's own tier. The
+> remedies are specified in [PRD-augmentation-conditions](PRD-augmentation-conditions.md)
+> under [ADR-2010](adr/ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md)
+> and [ADR-2011](adr/ADR-2011-task-properties-set-the-boundary-not-agent-self-tiering.md);
+> this PRD's goals G1–G5 are unchanged.
+
 > **2026-07-10 truth-pass amendment.** The "65% / 45%" status framing below
 > understates current completion; rows are corrected inline only where a prior
 > claim is now false. Aligning with the
@@ -53,6 +62,11 @@ The Judgment Broker is not a service. It is an emergent capability produced by t
 | NIP-98-gated REST API (agent registry, broker case queries) | `crates/nostr-bbs-auth-worker/src/governance_api.rs` | Shipped |
 | Relay gating (agents: 31400/31402, humans: 31403) | `crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs` | Shipped |
 | Response signing (human click -> kind 31403 -> relay -> D1 broker_decisions) | Auth worker + forum client | Shipped |
+| `TaskProperties` + pure `effective_tier()` (ADR-2011) | `crates/nostr-bbs-core/src/governance.rs:391-397,516-534` | **Shipped on branch (unmerged)** — `feat/augmentation-conditions` @ `aa438f3` |
+| Application receipts endpoint (`POST /api/governance/receipts/{id}/application`) | `crates/nostr-bbs-auth-worker/src/governance_api.rs:1104-1111` | **Shipped on branch (unmerged)** — `feat/augmentation-conditions` @ `aa438f3` |
+| Reviewer telemetry endpoint (`GET /api/governance/reviewers`) | `crates/nostr-bbs-auth-worker/src/governance_api.rs:1374-1387` | **Shipped on branch (unmerged)** — `feat/augmentation-conditions` @ `aa438f3` |
+| Ageing cron (`escalated-on-age` side receipt) | `crates/nostr-bbs-relay-worker/src/cron.rs:568-619` | **Shipped on branch (unmerged)** — `feat/augmentation-conditions` @ `aa438f3` |
+| Forum-client rendering of `effective_tier`/probe-tag hiding | `crates/nostr-bbs-forum-client` | Not started on this branch (`WIP-STATUS-augmentation-conditions.md`, "Not done" §4) |
 
 ### Agentbox (45% at authoring → decision loop + MCP tools now shipped, see 2026-07-10 amendment)
 
@@ -64,6 +78,11 @@ The Judgment Broker is not a service. It is an emergent capability produced by t
 | Agent unsigned event outbox -> signed publish | Nostr bridge pipeline | Shipped |
 | `handleGovernanceDecision()` on orchestrator adapter | `management-api/adapters/orchestrator/local-process-manager.js:133` | **Shipped** (merged 2026-05-22, `e1a8d716`; mints PROV-O URNs, dispatches to agent stdin or pod) |
 | MCP tools (`governance_publish_panel` / `request_action` / `update_panel` / `retire_panel` / `list_decisions`) | `mcp/mcp.json` | **Shipped** (five governance tools) |
+| Task-property derivation from `authority_class` | `management-api/lib/task-properties.js:100-113` | **Shipped on branch (unmerged)** — `feat/augmentation-conditions` @ `19463a588` |
+| Application receipt publisher (mirrors `ApplicationReceiptStore` to the forum) | `management-api/lib/governance-receipt-publisher.js:154-344` | **Shipped on branch (unmerged)** — `feat/augmentation-conditions` @ `19463a588` |
+| Authority-deny journal (`authority.deny` records) | `management-api/lib/authority-journal.js:69-184` | **Shipped on branch (unmerged)** — `feat/augmentation-conditions` @ `19463a588` |
+| MCP tool `governance_manual_continue` | `mcp/servers/governance-bridge.js:218-237`; impl `management-api/lib/governance-manual-continue.js:53-256` | **Shipped on branch (unmerged)** — `feat/augmentation-conditions` @ `19463a588` |
+| `dream-ledger.js` `Reviewer`/`Review-minutes` columns | `management-api/lib/dream-ledger.js:54-212` | **Shipped on branch (unmerged)** — `feat/augmentation-conditions` @ `19463a588` |
 
 ### VisionClaw (40%)
 
@@ -73,6 +92,11 @@ The Judgment Broker is not a service. It is an emergent capability produced by t
 | NIP-98 + enterprise role middleware | `enterprise_auth.rs` | Shipped |
 | IS-Envelope spec ownership (ADR-075) | Docs + fixtures | Shipped |
 | Enterprise drawer UI | `docs/design/2026-04-17-enterprise-drawer.md` (design doc only) | Deferred (ADR-090) |
+| Intent persistence + `intent_match` | `src/services/intent_match.rs:96-162` | **Shipped on branch (unmerged)** — `feat/augmentation-conditions` @ `f2b9f803e` |
+| HITL Precision computed from decided cases (`kpi_compute.rs::hitl_precision`) | `src/services/kpi_compute.rs:213-227` | **Shipped on branch (unmerged)** — `feat/augmentation-conditions` @ `f2b9f803e` |
+| `ElevationActor` `OPEN_CASE_TTL` + boot reconciliation | `src/actors/elevation_actor.rs:68-72,1103-1164` | **Shipped on branch (unmerged)** — `feat/augmentation-conditions` @ `f2b9f803e` |
+| Server-side rationale gate (`check_rationale`) | `src/handlers/enrichment_proposals_handler.rs:406-419` | **Shipped on branch (unmerged)** — `feat/augmentation-conditions` @ `f2b9f803e` |
+| `AcspCaseQueue` proposal rendering + mandatory rationale on high/critical | `client/src/features/control-center/governance/AcspCaseQueue.tsx:62-185` | **Shipped on branch (unmerged)** — `feat/augmentation-conditions` @ `f2b9f803e` |
 
 ### dreamlab-ai-website (functional)
 

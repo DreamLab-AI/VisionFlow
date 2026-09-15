@@ -21,6 +21,7 @@ SUITES=(
   "release-manifest.test.sh"
   "website-assets.test.sh"
   "diagram-index.test.cjs"
+  "augmentation-citations.test.cjs"
 )
 
 FAILED=()

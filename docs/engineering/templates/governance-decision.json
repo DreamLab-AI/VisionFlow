@@ -62,15 +62,15 @@
       "source": "agentbox:management-api/adapters/orchestrator/local-process-manager.js",
       "source_status": "present",
       "applies_to": ["agentbox", "nostr-rust-forum"],
-      "description": "Decision-outcome handling: Approve, Reject, Modify, Defer, Promote, Precedent. handleGovernanceDecision parses the outcome, mints PROV-O activity/receipt URNs, and dispatches to the agent or persists to the pod."
+      "description": "Decision-outcome handling: Approve, Reject, Amend, Delegate, Promote, Precedent (closed enum in nostr-bbs-core governance.rs). handleGovernanceDecision parses the outcome, mints PROV-O activity/receipt URNs, and dispatches to the agent or persists to the pod."
     },
     {
       "id": "precedent-library",
       "type": "instruction",
       "source": "ruvector:governance-precedents namespace",
-      "source_status": "present",
+      "source_status": "planned",
       "applies_to": ["agentbox"],
-      "description": "Standing precedents stored in RuVector with semantic embeddings. Matching precedents auto-apply decisions without human routing. The governance-precedents namespace is write-protected (IR2 mandate-at-grant)."
+      "description": "RETIRED 2026-09-14 (agentbox 70d017a3b retired the precedent system; the governance-precedents namespace survives only as a write-protected name in mcp/servers/lib/memory-tools.js). Re-declare as present only with a rebuilt precedent store that satisfies augmentation condition C4 (ADR-2010): it must record which human decisions it generalised and expire when the reviewer population changes."
     },
     {
       "id": "mesh-smoke-test-protocol",
@@ -113,10 +113,10 @@
       "id": "precedent-match",
       "type": "inferential",
       "source": "agentbox:management-api/lib/precedent-service.js",
-      "source_status": "present",
+      "source_status": "planned",
       "applies_to": ["agentbox"],
       "frequency": "per_change",
-      "description": "Precedent matching sensor: semantic similarity search against the governance-precedents namespace. Reports match confidence and auto-application eligibility."
+      "description": "RETIRED 2026-09-14: precedent-service.js was deleted by agentbox 70d017a3b (superseded by colloquy). Kept as a planned sensor so the pairing edge stays visible; any successor must report declared-vs-effective tier divergence per ADR-2011 alongside match confidence."
     },
     {
       "id": "e2e-smoke-test",

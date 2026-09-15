@@ -3,7 +3,7 @@
   "truth_as_of": "2026-09-06",
   "source_pin": {
     "repository": "DreamLab-AI/agentbox",
-    "revision": "eb7794b17892d9032b4f9ce0ed22ea0d9dac3497",
+    "revision": "b859b37d2ffb74c08cfbb9aa9ad7e1cc61d6b188",
     "recorded": "2026-09-06",
     "_doc": "The skills and mcp-ontology-tools axes read their truth from a SIBLING repository. Unpinned, the gate compared canon prose against whatever agentbox HEAD the runner happened to fetch, so the same canon commit could pass on Monday and fail on Tuesday with no canon change — the counter measured the sibling's motion, not the canon's drift. The counter now requires the agentbox checkout to be at this revision and fails otherwise (override: --allow-pin-drift, which downgrades the mismatch to a warning). Moving the pin is a reviewed edit to this file, which is exactly the point: a change in truth becomes a diff. CI pins the same revision via the checkout `ref:` in .github/workflows/drift-counter.yml — keep the two in step."
   },

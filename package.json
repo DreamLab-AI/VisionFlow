@@ -7,6 +7,8 @@
     "build": "cd website && ./build.sh",
     "check:sidecar": "node scripts/check-cdp-sidecar.mjs",
     "check:assets": "node scripts/website-assets.mjs verify",
+    "check:augmentation": "node scripts/check-augmentation-citations.cjs",
+    "probe:forum": "node scripts/live-forum-probe.mjs",
     "health:collect": "node scripts/estate-health.mjs collect",
     "health:check": "node scripts/estate-health.mjs check",
     "test:site": "playwright test",
