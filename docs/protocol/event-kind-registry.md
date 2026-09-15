@@ -77,6 +77,23 @@ allow-list (`nostr-rust-forum/.../wrangler.toml` `MESH_FEDERATED_KINDS`)?
 | 38200-38299 | Agent job/payment (estimate/settlement) |
 | 38300-38399 | LLM resource marketplace (ADR-021) |
 
+### 2.4 Governance tags and receipt stages on kinds 31400–31405 (ADR-2011, PRD-augmentation-conditions)
+
+Kinds are unchanged; new data rides NIP-33 tags and `outcome_detail`. Schema owner: `nostr-bbs-core` (1.0.0-beta.11).
+
+| Tag / field | Carried on | Values | Owner |
+|---|---|---|---|
+| `tp-verifiability` | 31400 (panel default), 31402 (tighten only) | `inspectable` \| `partial` \| `opaque` | nostr-bbs-core |
+| `tp-reversibility` | 31400, 31402 | `reversible` \| `compensable` \| `irreversible` | nostr-bbs-core |
+| `tp-stakes` | 31400, 31402 | `bounded` \| `significant` \| `critical` | nostr-bbs-core |
+| `calibration-sample-rate` | 31400 | decimal 0–1, default 0.1 | nostr-bbs-core |
+| `max-pending-hours` | 31400 | integer, default 72 | nostr-bbs-core |
+| `probe-agent` | 31400 | hex pubkey | nostr-bbs-core |
+| `probe` | 31402 | sha256 hex; hidden by the relay until the 31403 exists | nostr-bbs-core |
+| `Delegate { to }` | 31403 `outcome_detail` | hex pubkey; admits that pubkey's 31403 for that case only | nostr-bbs-core |
+
+Receipt ladder (relay `governance_receipts`): `signed → relay-accepted → projection-committed → consumer-received → applied | not-applied | applied-manually`; side receipts `escalated-on-age`, `expired`. Application stages are posted by the mutation owner to `POST /api/governance/receipts/{response_event_id}/application` (auth worker, NIP-98). `system:whelk-gate` is a reserved non-DID actor for reasoner outcomes and is never counted as a human reviewer.
+
 ## 3. Known federation gap (unresolved — owner decision required)
 
 agentbox's per-node relay `allowed_kinds` (`agentbox.toml`) accepts and emits

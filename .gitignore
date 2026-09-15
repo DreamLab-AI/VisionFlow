@@ -61,3 +61,11 @@ doctorow.txt
 
 # diagrams-as-code: mmdc output is regenerable
 docs/diagrams/rendered/
+
+# EDD artefacts are deliverables (build-with-quality); only these two subtrees are tracked
+!.claude/
+.claude/*
+!.claude/expectations/
+!.claude/evidence/
+.claude/expectations/.agentic-qe/
+.claude/expectations/.claude-flow/

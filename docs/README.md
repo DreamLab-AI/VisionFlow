@@ -28,6 +28,8 @@ Back to the [top-level README](../README.md) for the ecosystem overview, quickst
 | [Judgment Broker PRD](PRD-judgment-broker.md) | Distributed decision loop between agents and humans across the Nostr relay mesh |
 | [Judgment Broker ADR-003](archive/adr/ADR-003-judgment-broker-distributed-architecture.md) _(archived)_ | Architecture decision: broker is distributed by design across 4 substrates |
 | [Judgment Broker DDD](DDD-judgment-broker-context.md) | Bounded context for the distributed decision loop |
+| [Augmentation Conditions PRD](PRD-augmentation-conditions.md) | Adopts the six augmentation conditions (arXiv 2609.12482) across the estate: non-vacuous decision surface, task-property boundary, closed receipt loop, intent persistence, reviewer instrumentation, manual continuation |
+| [Augmentation Conditions DDD](DDD-augmentation-conditions-context.md) | Bounded context for grading and instrumenting human–agent decision surfaces |
 
 ## Website
 
