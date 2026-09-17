@@ -1,9 +1,9 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-09-16T07:47:26.335Z",
+  "generated_at": "2026-09-17T07:51:18.251Z",
   "generator": {
-    "revision": "ec7f353da39e5883ff63ef24ab2fab5e2f69d341",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/35070306301",
+    "revision": "89d2386692bc5e33bc2fedb6a18eca22eb8e827a",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/35196597250",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
@@ -29,11 +29,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "ec7f353da39e5883ff63ef24ab2fab5e2f69d341",
-        "short": "ec7f353",
-        "date": "2026-09-15T22:20:04Z",
-        "message": "docs(canon): adopt the six augmentation conditions (arXiv 2609.12482) across the estate",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/ec7f353da39e5883ff63ef24ab2fab5e2f69d341"
+        "sha": "89d2386692bc5e33bc2fedb6a18eca22eb8e827a",
+        "short": "89d2386",
+        "date": "2026-09-16T07:47:27Z",
+        "message": "chore(estate-health): nightly snapshot 2026-09-16 — 7/14 green",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/89d2386692bc5e33bc2fedb6a18eca22eb8e827a"
       },
       "ci": {
         "state": "red",
@@ -49,8 +49,8 @@
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/35030434575",
-            "updated_at": "2026-09-15T22:20:47Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/35070336111",
+            "updated_at": "2026-09-16T07:48:07Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
@@ -77,8 +77,8 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34944091896",
-            "updated_at": "2026-09-15T07:55:08Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/35070306301",
+            "updated_at": "2026-09-16T07:47:32Z"
           }
         ]
       },
@@ -105,11 +105,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "8f9affe49a8737553bca852f96033b3ba1e11150",
-        "short": "8f9affe",
-        "date": "2026-09-15T20:27:50Z",
-        "message": "docs(edd): record the post-audit iteration for EXP-AC-002/005 (b2baa2d1)",
-        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/8f9affe49a8737553bca852f96033b3ba1e11150"
+        "sha": "0f7e3f491b93942ece8214961b8cc0971cfdb415",
+        "short": "0f7e3f4",
+        "date": "2026-09-16T15:55:06Z",
+        "message": "chore(agentbox): advance governed registries",
+        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/0f7e3f491b93942ece8214961b8cc0971cfdb415"
       },
       "ci": {
         "state": "red",
@@ -118,8 +118,8 @@
             "workflow": "CI",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/35030131783",
-            "updated_at": "2026-09-15T22:19:37Z"
+            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/35118526994",
+            "updated_at": "2026-09-16T15:58:27Z"
           },
           {
             "workflow": "Documentation Quality CI",
@@ -165,11 +165,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "dda7b1f906ce2981ec3559055558108d839c80bb",
-        "short": "dda7b1f",
-        "date": "2026-09-15T22:27:31Z",
-        "message": "docs(forum-suggestions): record Jarvis close-out DM to RedDread (f418ef2f)",
-        "url": "https://github.com/DreamLab-AI/agentbox/commit/dda7b1f906ce2981ec3559055558108d839c80bb"
+        "sha": "4ce80862a03755dd651588718efa703fbdc88f0b",
+        "short": "4ce8086",
+        "date": "2026-09-16T15:45:45Z",
+        "message": "docs(adr): re-verify 2091 and 2092 at the registry-governance commit",
+        "url": "https://github.com/DreamLab-AI/agentbox/commit/4ce80862a03755dd651588718efa703fbdc88f0b"
       },
       "ci": {
         "state": "red",
@@ -178,8 +178,8 @@
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35031066500",
-            "updated_at": "2026-09-15T22:28:42Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35118510428",
+            "updated_at": "2026-09-16T15:56:05Z"
           },
           {
             "workflow": "Contract tests",
@@ -190,10 +190,10 @@
           },
           {
             "workflow": "Manifest validate",
-            "conclusion": "failure",
+            "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35030122890",
-            "updated_at": "2026-09-15T22:18:21Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35105891902",
+            "updated_at": "2026-09-16T14:05:14Z"
           },
           {
             "workflow": "nix-flake-update",
@@ -206,29 +206,22 @@
             "workflow": "Secret Scan",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35031066582",
-            "updated_at": "2026-09-15T22:28:21Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35118510553",
+            "updated_at": "2026-09-16T15:55:44Z"
           },
           {
             "workflow": "Security Invariants",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35030122763",
-            "updated_at": "2026-09-15T22:17:02Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35118510510",
+            "updated_at": "2026-09-16T15:55:35Z"
           },
           {
             "workflow": "ShellCheck",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34837938372",
-            "updated_at": "2026-09-14T11:23:36Z"
-          },
-          {
-            "workflow": "TUI helper tests",
-            "conclusion": "success",
-            "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/34685196511",
-            "updated_at": "2026-09-12T09:13:13Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35118510455",
+            "updated_at": "2026-09-16T15:55:25Z"
           }
         ]
       },
@@ -709,7 +702,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 290,
+      "latency_ms": 346,
       "note": null
     },
     {
@@ -718,7 +711,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 260,
+      "latency_ms": 372,
       "note": null
     },
     {
@@ -727,7 +720,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 261,
+      "latency_ms": 353,
       "note": null
     },
     {
@@ -736,7 +729,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 271,
+      "latency_ms": 416,
       "note": "classes=8432 pages=8428 nodes=8432"
     },
     {
@@ -745,7 +738,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 422,
+      "latency_ms": 665,
       "note": null
     },
     {
@@ -754,7 +747,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 297,
+      "latency_ms": 481,
       "note": null
     }
   ],
