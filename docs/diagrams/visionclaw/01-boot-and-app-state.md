@@ -67,7 +67,7 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/Cargo.toml
   - ../project/src/adapters/mod.rs
-verified_commit: dd82a07b0
+verified_commit: f223bbd40
 ---
 
 ## VC-01.1 main() phase 1 — hygiene, logging, settings, stores
@@ -77,14 +77,14 @@ sequenceDiagram
     participant M as main<br/>src/main.rs:172
     participant EH as enforce_release_env_hygiene<br/>src/main.rs:118 real / :169 stub
     participant VE as validate_required_env_vars<br/>src/main.rs:61
-    participant TL as telemetry logger<br/>src/main.rs:266
-    participant DB as dev-mode banner<br/>src/main.rs:274-290
-    participant CF as AppFullSettings::new<br/>src/main.rs:292
+    participant TL as telemetry logger<br/>src/main.rs:272
+    participant DB as dev-mode banner<br/>src/main.rs:280-296
+    participant CF as AppFullSettings::new<br/>src/main.rs:298
     participant ST as stores<br/>Oxigraph + SQLite
 
     rect rgb(240,232,232)
     Note over M,EH: refusal band — nothing has bound a socket yet
-    M->>EH: enforce_release_env_hygiene() (src/main.rs:195)
+    M->>EH: enforce_release_env_hygiene() (src/main.rs:201)
     alt release build and a dev env var or --allow-skip-auth is present
         EH-->>M: eprintln FATAL then exit(1) argv / exit(2) env
         Note over EH: ADR-2026 + ADR-2037 — detail see VC-09.3
@@ -96,18 +96,18 @@ sequenceDiagram
     else
         VE-->>M: Ok (warns on MANAGEMENT_API_KEY / JWT_SECRET / CORS_ALLOWED_ORIGINS)
     end
-    M->>TL: init logger, dir from TELEMETRY_LOG_DIR (src/main.rs:266)
+    M->>TL: init logger, dir from TELEMETRY_LOG_DIR (src/main.rs:272)
     opt cfg any(debug_assertions, feature="dev-auth") and dev_full_bypass_active()
         M->>DB: warn banner x5 — VISIONCLAW_DEV_MODE=1 LAN-LOCAL AUTH BYPASS ACTIVE
         Note over DB: src/utils/auth.rs:100 dev_full_bypass_active, prints DEV_MODE_PUBKEY<br/>ADR-2039 — every request is granted dev-admin, no NIP-98/token/peer check
     end
     M->>CF: AppFullSettings::new()
-    CF->>CF: SETTINGS_FILE_PATH, default "/app/settings.yaml" (src/main.rs:296)
-    Note over CF: YAML in snake_case, JSON out camelCase — serde alias asserted src/main.rs:300-320
+    CF->>CF: SETTINGS_FILE_PATH, default "/app/settings.yaml" (src/main.rs:302)
+    Note over CF: YAML in snake_case, JSON out camelCase — serde alias asserted src/main.rs:306-322
     alt load fails
         CF-->>M: Err — boot aborts
     end
-    M->>ST: DATA_DIR (src/main.rs:356) — Oxigraph store plus per-domain SQLite files
+    M->>ST: DATA_DIR (src/main.rs:362) — Oxigraph store plus per-domain SQLite files
     Note over ST: INVARIANT (BASELINE Invariants) — persistence is Oxigraph (data/oxigraph)<br/>plus per-domain SQLite under DATA_DIR. One Oxigraph store is shared by the<br/>ontology and graph repositories. No networked graph DB. ADR-2004.
     Note over ST: DIVERGENCE (BASELINE 2026-09-04 persistence closeout) — shared Oxigraph ownership<br/>establishes no cross-store transaction, no actor reload consistency, no restore correctness
 ```
@@ -131,12 +131,12 @@ sequenceDiagram
     M->>SY: GithubSyncService — corpus ingest, see VC-21
     RS->>RS: bootstrap_owner_from_env — RBAC_OWNER_PUBKEY_ENV (src/services/role_store.rs:643)
     alt no Owner assigned and RBAC_ALLOW_OWNERLESS unset
-        RS-->>M: boot FAILS — "RBAC: no Owner assigned and RBAC_ALLOW_OWNERLESS not set" (src/main.rs:755)
+        RS-->>M: boot FAILS — "RBAC: no Owner assigned and RBAC_ALLOW_OWNERLESS not set" (src/main.rs:761)
         Note over RS: fail-closed, ADR-2026 — const RBAC_ALLOW_OWNERLESS_ENV src/services/role_store.rs:33
     else RBAC_ALLOW_OWNERLESS=1
-        RS-->>M: warn and continue with no Owner (src/main.rs:742)
+        RS-->>M: warn and continue with no Owner (src/main.rs:748)
     end
-    M->>RS: set_global_role_store(RoleStore) (src/main.rs:766)
+    M->>RS: set_global_role_store(RoleStore) (src/main.rs:801)
     par pre-server service construction
         M->>SV: SchemaService, NaturalLanguageQueryService, PathfindingService
     and
@@ -147,47 +147,47 @@ sequenceDiagram
         M->>SV: presence_handler_state (PRD-008 XR), KpiComputeService, LivenessHarness
     end
     opt feature solid-pod-embed
-        M->>SV: init_solid_state (src/main.rs:841)
-        M->>SV: ontology_pull::spawn_boot_pull(Arc::clone(&solid_state.storage)) (src/main.rs:877)
+        M->>SV: init_solid_state (src/main.rs:876)
+        M->>SV: ontology_pull::spawn_boot_pull(Arc::clone(&solid_state.storage)) (src/main.rs:883)
         Note over SV: ADR-2106 — pulls the published `ontology-latest` release INTO the embedded pod at<br/>boot and re-checks on ONTOLOGY_PULL_INTERVAL_SECS (default 3600s). Fail-open: any error is<br/>logged and the pod keeps what it held. Detail see VC-01.15.
-        M->>SV: pay config/ledger/exchange (src/main.rs:854)
+        M->>SV: pay config/ledger/exchange (src/main.rs:889)
         Note over SV: async init hoisted out of the worker factory so worker threads never block
     end
-    M->>PR: assert_effective_profile_or_exit(EnvSnapshot::from_process(), BuildIdentity::current(), today) (src/main.rs:883)
+    M->>PR: assert_effective_profile_or_exit(EnvSnapshot::from_process(), BuildIdentity::current(), today) (src/main.rs:918)
     Note over PR: ADR-2038 boot-time profile assertion — runs BEFORE bind. Detail see VC-09.4
-    PR-->>M: EffectiveProfile logged as summary + observed_flags (src/main.rs:889-893)
+    PR-->>M: EffectiveProfile logged as summary + observed_flags (src/main.rs:924-928)
 ```
 
 ## VC-01.3 HttpServer worker factory and middleware stack order
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main<br/>src/main.rs:903
-    participant W as worker closure<br/>src/main.rs:903-1183
-    participant A as App::new<br/>src/main.rs:978
+    participant M as main<br/>src/main.rs:172
+    participant W as worker closure<br/>src/main.rs:938-1218
+    participant A as App::new<br/>src/main.rs:1013
     participant REQ as inbound request
 
-    Note over M,W: HttpServer::new(move || ...) runs the closure once per worker — .workers(4) (src/main.rs:1214)
+    Note over M,W: HttpServer::new(move || ...) runs the closure once per worker — .workers(4) (src/main.rs:1220)
     M->>W: spawn 4 workers
-    W->>W: build Cors — CORS_ALLOWED_ORIGINS (src/main.rs:905), ALLOW_INSECURE_DEFAULTS (src/main.rs:909) compile-time gated
+    W->>W: build Cors — CORS_ALLOWED_ORIGINS (src/main.rs:947), ALLOW_INSECURE_DEFAULTS (src/main.rs:951) compile-time gated
     Note over W: ADR-06 D1 — a release binary cannot widen CORS via env, it must set CORS_ALLOWED_ORIGINS
     W->>A: App::new()
-    A->>A: .wrap(Logger::default()) (src/main.rs:1008)
-    A->>A: .wrap(cors) (src/main.rs:980)
-    A->>A: .wrap(Compress::default()) (src/main.rs:981)
-    A->>A: .wrap(TimeoutMiddleware::with_config(30s, override /api/admin/sync 600s)) (src/main.rs:1011)
+    A->>A: .wrap(Logger::default()) (src/main.rs:1014)
+    A->>A: .wrap(cors) (src/main.rs:1015)
+    A->>A: .wrap(Compress::default()) (src/main.rs:1016)
+    A->>A: .wrap(TimeoutMiddleware::with_config(30s, override /api/admin/sync 600s)) (src/main.rs:1017)
     Note over A: actix applies .wrap in REVERSE registration order — the LAST wrap is OUTERMOST.<br/>So an inbound request meets TimeoutMiddleware first and Logger last.
     rect rgb(232,240,232)
-    Note over A: /api scope only — src/main.rs:1054-1180
-    A->>A: .wrap(PublicDemoGuard::from_env()) (src/main.rs:1087)
-    A->>A: .wrap(RbacGate::from_env()) (src/main.rs:1065)
+    Note over A: /api scope only — src/main.rs:1089
+    A->>A: .wrap(PublicDemoGuard::from_env()) (src/main.rs:1093)
+    A->>A: .wrap(RbacGate::from_env()) (src/main.rs:1100)
     end
     rect rgb(232,236,244)
-    Note over A: /api/settings scope only — src/main.rs:1071-1074
-    A->>A: .wrap(RateLimit::per_minute(60)) (src/main.rs:1072)
+    Note over A: /api/settings scope only — src/main.rs:1106-1109
+    A->>A: .wrap(RateLimit::per_minute(60)) (src/main.rs:1107)
     end
     Note over A: /api/graph carries its own scope limiter RateLimit::per_minute(600) plus<br/>tighter 120/min per-resource wraps — src/handlers/api_handler/graph/mod.rs:1493 and :1515-1529
-    M->>M: .bind(&bind_address) (src/main.rs:1184) then .run() (src/main.rs:1215)
+    M->>M: .bind(&bind_address) (src/main.rs:1219) then .run() (src/main.rs:1221)
     REQ->>A: request order = Timeout → Compress → Cors → Logger → [PublicDemoGuard → RbacGate] → extractor → handler
     Note over REQ,A: request-time behaviour of each middleware see VC-03
 ```
@@ -195,7 +195,7 @@ sequenceDiagram
 ## VC-01.4 app_data registry — what each worker gets injected
 ```mermaid
 flowchart TB
-    subgraph CORE["core state — src/main.rs:1017"]
+    subgraph CORE["core state — src/main.rs:1023"]
         C1["settings_data"]
         C2["GitHub client"]
         C3["ContentAPI"]
@@ -203,16 +203,16 @@ flowchart TB
         C5["LivenessHarness<br/>web::Data::from(app_state_data.liveness_harness)<br/>backs /api/canary/*"]
         C6["KpiComputeService<br/>backs /api/kpi/{summary,lineage}"]
         C7["pre_read_ws_settings_data"]
-        C8["metrics_handler::ProcessStartTime<br/>src/main.rs:997"]
+        C8["metrics_handler::ProcessStartTime<br/>src/main.rs:1032"]
     end
-    subgraph ADDRS["actor addresses — src/main.rs:999-1003"]
+    subgraph ADDRS["actor addresses — src/main.rs:1034-1038"]
         A1["graph_service_addr"]
         A2["settings_addr"]
         A3["metadata_addr"]
         A4["client_manager_addr"]
         A5["workspace_addr"]
     end
-    subgraph SERVICES["domain services — src/main.rs:1033"]
+    subgraph SERVICES["domain services — src/main.rs:1039"]
         S1["schema_service"]
         S2["nl_query_service"]
         S3["pathfinding_service"]
@@ -229,7 +229,7 @@ flowchart TB
         S14["physics_service"]
         S15["presence_handler_state (PRD-008)"]
     end
-    subgraph FEAT["feature solid-pod-embed — src/main.rs:1021-1033"]
+    subgraph FEAT["feature solid-pod-embed — src/main.rs:1058-1067"]
         F1["solid_state"]
         F2["pay_config_data"]
         F3["pay_ledger_data"]
@@ -264,7 +264,7 @@ sequenceDiagram
     Note over GPU: GPU actor group — GPUManagerActor only. RESOLVED ADR-2053: the standalone<br/>ShortestPathActor and ConnectedComponentsActor spawns were removed. They were never sent<br/>a SharedGPUContext (ResourceSupervisor distributes it only to the subsystem supervisors),<br/>so every /api/analytics pathfinding route addressed a GPU-blind pair.
     AS->>GPU: GPUManagerActor::new().start()
     AS->>GPU: gpu_manager.do_send(SetNodeSSSP { node_sssp }) — ADR-031 D2b, wire slot 28<br/>forwarded GPUManagerActor to GraphAnalyticsSupervisor to the SUPERVISED ShortestPathActor
-    Note over GPU: DOC-DRIFT — this block carries NO #[cfg(feature = "gpu")] gate. app_state.rs itself<br/>carries no solid-pod-embed cfg gates either — the only cfg(feature) sites for that flag are in<br/>main.rs:869, main.rs:847 (ADR-2106 ontology_pull::spawn_boot_pull), main.rs:853, main.rs:1022,<br/>main.rs:1028. It works<br/>because gpu is in the DEFAULT feature set (Cargo.toml:250 default = gpu, ontology,<br/>persistence-oxigraph, solid-pod-embed) while the adapter layer IS gated (src/adapters/mod.rs:19,<br/>:37) — so the actor start and its adapters are gated inconsistently. GPU internals see VC-10.
+    Note over GPU: DOC-DRIFT — this block carries NO #[cfg(feature = "gpu")] gate. app_state.rs itself<br/>carries no solid-pod-embed cfg gates either — the only cfg(feature) sites for that flag are in<br/>main.rs:875, main.rs:882 (ADR-2106 ontology_pull::spawn_boot_pull), main.rs:888, main.rs:1057,<br/>main.rs:1063. It works<br/>because gpu is in the DEFAULT feature set (Cargo.toml:250 default = gpu, ontology,<br/>persistence-oxigraph, solid-pod-embed) while the adapter layer IS gated (src/adapters/mod.rs:19,<br/>:37) — so the actor start and its adapters are gated inconsistently. GPU internals see VC-10.
     end
     AS->>SE: settings_actor.start() → settings_addr
     par peer actors
@@ -305,13 +305,13 @@ sequenceDiagram
         Note over B,M: ADR-2037 — the dev bypass codepaths are #[cfg]-stripped, they do not exist in the binary
     else cfg(any(debug_assertions, feature="dev-auth")) — development artefact
         B->>M: enforce_release_env_hygiene = no-op stub (src/main.rs:169)
-        B->>M: dev banner block compiled in (src/main.rs:274-290)
+        B->>M: dev banner block compiled in (src/main.rs:280-296)
     end
     alt feature solid-pod-embed
-        M->>M: init_solid_state (src/main.rs:841)
-        M->>M: ontology_pull::spawn_boot_pull (src/main.rs:877 — ADR-2106, see VC-01.15) and pay state (src/main.rs:854)
-        M->>M: .app_data(solid_state) (src/main.rs:1021-1023)
-        M->>M: .app_data(pay_*) and .configure(pay_handler::configure_pay_routes) (src/main.rs:1025-1033)
+        M->>M: init_solid_state (src/main.rs:876)
+        M->>M: ontology_pull::spawn_boot_pull (src/main.rs:883 — ADR-2106, see VC-01.15) and pay state (src/main.rs:889)
+        M->>M: .app_data(solid_state) (src/main.rs:1027-1029)
+        M->>M: .app_data(pay_*) and .configure(pay_handler::configure_pay_routes) (src/main.rs:1031-1039)
         Note over M: routes are mounted UNCONDITIONALLY here and stay inert until PAY_ENABLED=true<br/>src/handlers/pay_handler.rs:95 and :892 — .info reports disabled, gated routes 403
         M->>M: pub use solid_proxy_handler::init_solid_state (src/handlers/mod.rs:123)
         M->>M: pub mod pay_handler + configure_pay_routes (src/handlers/mod.rs:130-133)
@@ -336,9 +336,9 @@ sequenceDiagram
     participant P as check_physics_simulation
 
     Note over K,R: root probes are registered OUTSIDE the /api scope, so no RbacGate and no PublicDemoGuard
-    K->>R: GET /healthz (src/main.rs:1037)
+    K->>R: GET /healthz (src/main.rs:1072)
     R->>L: liveness_probe
-    K->>R: GET /readyz (src/main.rs:1038)
+    K->>R: GET /readyz (src/main.rs:1073)
     R->>D: readiness_probe
     Note over R: configure_routes (src/handlers/consolidated_health_handler.rs:474-489) ALSO registers<br/>/healthz and /readyz a second time inside /api, plus the /health scope
     K->>R: GET /api/health
@@ -355,23 +355,23 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main<br/>src/main.rs:1188
-    participant SH as server_handle<br/>src/main.rs:1188
+    participant M as main<br/>src/main.rs:172
+    participant SH as server_handle<br/>src/main.rs:1223
     participant WD as run_kg_watchdog<br/>src/services/liveness_harness.rs
     participant TAP as run_agent_event_tap<br/>src/services/kpi_compute.rs
     participant CT as CanaryNostrTap<br/>src/services/canary_nostr_tap.rs
-    participant SIG as signal handlers<br/>src/main.rs:1234-1248
+    participant SIG as signal handlers<br/>src/main.rs:1269-1272
 
     M->>SH: let server_handle = server.handle()
     par detached background tasks
         M->>WD: tokio::spawn(run_kg_watchdog(harness, self_url, interval))
-        Note over WD: VISIONCLAW_SELF_URL default http://127.0.0.1:{port} (src/main.rs:1224)<br/>VISIONCLAW_KG_WATCHDOG_SECS default 30 (src/main.rs:1226)
+        Note over WD: VISIONCLAW_SELF_URL default http://127.0.0.1:{port} (src/main.rs:1230)<br/>VISIONCLAW_KG_WATCHDOG_SECS default 30 (src/main.rs:1232)
         loop every VISIONCLAW_KG_WATCHDOG_SECS (default 30s)
             WD->>M: GET /api/health on itself — this server IS the KG backend
             WD->>WD: drive kg_backend_up gauge, fire CANARY-VC-RESA-KG on every transition
         end
     and
-        M->>TAP: tokio::spawn(run_agent_event_tap(kpi_repo)) (src/main.rs:1217)
+        M->>TAP: tokio::spawn(run_agent_event_tap(kpi_repo)) (src/main.rs:1252)
         Note over TAP: REC-4 ADR-130 D5 — subscribes to the process-global /wss/agent-events hub,<br/>one volume row per envelope. Augmentation-Ratio numerator. Fail-open on lagged/closed.
     and
         alt CANARY_TAP_RELAY_URL is set
@@ -390,18 +390,18 @@ sequenceDiagram
 ## VC-01.9 Route table 1 — root scope, WebSocket upgrades and OpenAPI
 ```mermaid
 flowchart LR
-    ROOT["App::new root — src/main.rs:1035-1052"]
-    ROOT --> H1["GET /healthz<br/>consolidated_health_handler::liveness_probe<br/>src/main.rs:1037"]
-    ROOT --> H2["GET /readyz<br/>consolidated_health_handler::readiness_probe<br/>src/main.rs:1038"]
-    ROOT --> W1["GET /wss<br/>socket_flow_handler<br/>src/main.rs:1039"]
-    ROOT --> W2["GET /wss/agent-events<br/>agent_events::agent_events_ws<br/>src/main.rs:1041 — ADR-059 s1 authenticated inbound agent_action ingest"]
-    ROOT --> W3["GET /ws/speech<br/>speech_socket_handler<br/>src/main.rs:1042"]
-    ROOT --> W4["GET /ws/mcp-relay<br/>mcp_relay_handler<br/>src/main.rs:1043"]
-    ROOT --> W5["GET /ws/client-messages<br/>client_messages_handler::websocket_client_messages<br/>src/main.rs:1045"]
-    ROOT --> W6["GET /ws/presence<br/>ws_presence<br/>src/main.rs:1047 — PRD-008 s5.3 Quest 3 multi-user sync"]
-    ROOT --> O1["GET /swagger-ui/{_:.*}<br/>SwaggerUi<br/>src/main.rs:1078"]
-    ROOT --> O2["GET /api-docs/openapi.json<br/>openapi::ApiDoc::openapi<br/>src/main.rs:1051"]
-    ROOT --> PAY["/pay/* — feature solid-pod-embed only<br/>pay_handler::configure_pay_routes<br/>src/main.rs:1033"]
+    ROOT["App::new root — src/main.rs:1070-1082"]
+    ROOT --> H1["GET /healthz<br/>consolidated_health_handler::liveness_probe<br/>src/main.rs:1072"]
+    ROOT --> H2["GET /readyz<br/>consolidated_health_handler::readiness_probe<br/>src/main.rs:1073"]
+    ROOT --> W1["GET /wss<br/>socket_flow_handler<br/>src/main.rs:1074"]
+    ROOT --> W2["GET /wss/agent-events<br/>agent_events::agent_events_ws<br/>src/main.rs:1076 — ADR-059 s1 authenticated inbound agent_action ingest"]
+    ROOT --> W3["GET /ws/speech<br/>speech_socket_handler<br/>src/main.rs:1077"]
+    ROOT --> W4["GET /ws/mcp-relay<br/>mcp_relay_handler<br/>src/main.rs:1078"]
+    ROOT --> W5["GET /ws/client-messages<br/>client_messages_handler::websocket_client_messages<br/>src/main.rs:1080"]
+    ROOT --> W6["GET /ws/presence<br/>ws_presence<br/>src/main.rs:1082 — PRD-008 s5.3 Quest 3 multi-user sync"]
+    ROOT --> O1["GET /swagger-ui/{_:.*}<br/>SwaggerUi<br/>src/main.rs:1085"]
+    ROOT --> O2["GET /api-docs/openapi.json<br/>openapi::ApiDoc::openapi<br/>src/main.rs:1086"]
+    ROOT --> PAY["/pay/* — feature solid-pod-embed only<br/>pay_handler::configure_pay_routes<br/>src/main.rs:1068"]
     N1["these routes sit OUTSIDE the /api scope, so PublicDemoGuard and RbacGate do NOT apply<br/>WS auth including the ?token= query path see VC-03.2"]
     ROOT --- N1
     N2["DOC-DRIFT — src/handlers/quic_transport_handler.rs no longer defines QuicTransportServer.<br/>ADR-2066 removed it as dead code (constructed nowhere, routed nowhere, only re-exported at<br/>src/handlers/mod.rs). Only PostcardNodeUpdate/PostcardBatchUpdate remain (quic_transport_handler.rs:1-9),<br/>imported directly by fastwebsockets_handler.rs — not re-exported through handlers/mod.rs at all<br/>(handlers/mod.rs:111-117). It still has no configure fn and is registered nowhere in main.rs."]
@@ -411,21 +411,21 @@ flowchart LR
 ## VC-01.10 Route table 2 — /api scope registration ORDER
 ```mermaid
 flowchart TB
-    S["web::scope('/api') — src/main.rs:1054"]
-    S --> G1["wrap PublicDemoGuard::from_env — src/main.rs:1087"]
-    G1 --> G2["wrap RbacGate::from_env — src/main.rs:1065"]
-    G2 --> R1["1. POST /api/client-logs → client_log_handler::handle_client_logs<br/>src/main.rs:1067 — registered early to avoid scope conflicts, RBAC-allowlisted"]
-    R1 --> R2["2. admin_rbac_handler::configure_routes<br/>src/main.rs:1069"]
-    R2 --> R3["3. scope /settings + RateLimit::per_minute(60)<br/>settings::api::configure_routes — src/main.rs:1071-1074"]
-    R3 --> R4["4. configure_ontology_derived_routes<br/>src/main.rs:1110"]
-    R4 --> R5["5. configure_ontology_class_count_routes<br/>src/main.rs:1090"]
-    R5 --> R6["6. api_handler::config — src/main.rs:1091"]
-    R6 --> R7["7. workspace_handler::config — src/main.rs:1092"]
-    R7 --> R8["8. admin_sync_handler::configure_routes — src/main.rs:1093"]
-    R8 --> R9["9. validation_handler::config — src/main.rs:1094"]
+    S["web::scope('/api') — src/main.rs:1089"]
+    S --> G1["wrap PublicDemoGuard::from_env — src/main.rs:1093"]
+    G1 --> G2["wrap RbacGate::from_env — src/main.rs:1100"]
+    G2 --> R1["1. POST /api/client-logs → client_log_handler::handle_client_logs<br/>src/main.rs:1102 — registered early to avoid scope conflicts, RBAC-allowlisted"]
+    R1 --> R2["2. admin_rbac_handler::configure_routes<br/>src/main.rs:1104"]
+    R2 --> R3["3. scope /settings + RateLimit::per_minute(60)<br/>settings::api::configure_routes — src/main.rs:1106-1109"]
+    R3 --> R4["4. configure_ontology_derived_routes<br/>src/main.rs:1116"]
+    R4 --> R5["5. configure_ontology_class_count_routes<br/>src/main.rs:1125"]
+    R5 --> R6["6. api_handler::config — src/main.rs:1126"]
+    R6 --> R7["7. workspace_handler::config — src/main.rs:1127"]
+    R7 --> R8["8. admin_sync_handler::configure_routes — src/main.rs:1128"]
+    R8 --> R9["9. validation_handler::config — src/main.rs:1129"]
     R9 --> R10["10. hexagonal group — see VC-01.12"]
     R10 --> R11["11. content group — see VC-01.13"]
-    ORD["INVARIANT registration order — actix matches scopes in registration order by path segment<br/>and does NOT fall through a matched scope prefix. The broad /ontology scope inside<br/>api_handler::ontology::config would shadow /ontology/derived and /ontology/class-count to 404,<br/>so both MUST register before api_handler::config. Comments src/main.rs:1075-1089.<br/>Guarded by tests/resd_class_count_route.rs"]
+    ORD["INVARIANT registration order — actix matches scopes in registration order by path segment<br/>and does NOT fall through a matched scope prefix. The broad /ontology scope inside<br/>api_handler::ontology::config would shadow /ontology/derived and /ontology/class-count to 404,<br/>so both MUST register before api_handler::config. Comments src/main.rs:1110-1124.<br/>Guarded by tests/resd_class_count_route.rs"]
     R4 --- ORD
     R5 --- ORD
     ORD2["same hazard inside /graph — actix claims the prefix for the FIRST web::scope('/graph'),<br/>so mixed-auth must live in ONE scope with per-resource .wrap()<br/>src/handlers/api_handler/graph/mod.rs:1488-1491"]
@@ -456,13 +456,13 @@ flowchart LR
 ## VC-01.12 Route table 4 — hexagonal, health and MCP groups
 ```mermaid
 flowchart LR
-    S["/api scope — src/main.rs:1100-1118"]
+    S["/api scope — src/main.rs:1106-1124"]
     S --> P["configure_physics_routes<br/>scope /physics — src/handlers/physics_handler.rs:411<br/>POST start, stop, optimize, step, forces/apply, nodes/pin, nodes/unpin<br/>POST parameters, reset, settle-mode — GET status, settle-mode"]
     S --> SC["configure_schema_routes<br/>scope /schema — src/handlers/schema_handler.rs:268<br/>GET '', /llm-context, /node-types, /edge-types<br/>GET /node-types/{type}, /edge-types/{type}"]
     S --> NL["configure_nl_query_routes<br/>scope /nl-query — src/handlers/natural_language_query_handler.rs:235<br/>POST /translate, /explain, /validate — GET /examples"]
     S --> PF["configure_pathfinding_routes<br/>scope /pathfinding — src/handlers/semantic_pathfinding_handler.rs:117<br/>POST /semantic-path, /query-traversal, /chunk-traversal"]
     S --> SM["configure_semantic_routes<br/>scope /semantic — src/handlers/semantic_handler.rs:242<br/>POST /communities, /centrality, /shortest-path, generate-constraints, /cache/invalidate<br/>GET /statistics"]
-    S --> IN["REMOVED ADR-2066 — configure_inference_routes<br/>the /api/inference scope was deleted, comment block at src/main.rs:1105<br/>every handler extracted an InferenceService that was never<br/>registered as app data, so each route 500'd at the extractor<br/>live reasoning path is GitHubSyncService::run_post_sync_reasoning"]
+    S --> IN["REMOVED ADR-2066 — configure_inference_routes<br/>the /api/inference scope was deleted, comment block at src/main.rs:1111<br/>every handler extracted an InferenceService that was never<br/>registered as app data, so each route 500'd at the extractor<br/>live reasoning path is GitHubSyncService::run_post_sync_reasoning"]
     S --> HE["consolidated_health_handler::configure_routes<br/>scope /health — src/handlers/consolidated_health_handler.rs:474<br/>GET '', /physics — scope /mcp POST /start, GET /logs<br/>plus a second /healthz and /readyz at :488-489"]
     S --> ME["metrics_handler::configure_routes<br/>GET /api/metrics — src/handlers/metrics_handler.rs:92"]
     S --> MM["configure_multi_mcp_routes<br/>scope /multi-mcp — src/handlers/multi_mcp_websocket_handler.rs:911<br/>GET /ws, GET /status, POST /refresh"]
@@ -473,9 +473,9 @@ flowchart LR
 ## VC-01.13 Route table 5 — content, governance and observability groups
 ```mermaid
 flowchart LR
-    S["/api scope — src/main.rs:1120-1178"]
-    S --> PG["scope /pages + pages_handler::config<br/>src/main.rs:1120, src/handlers/pages_handler.rs:148 — GET ''"]
-    S --> BO["scope /bots + api_handler::bots::config<br/>src/main.rs:1121"]
+    S["/api scope — src/main.rs:1089-1207"]
+    S --> PG["scope /pages + pages_handler::config<br/>src/main.rs:1155, src/handlers/pages_handler.rs:148 — GET ''"]
+    S --> BO["scope /bots + api_handler::bots::config<br/>src/main.rs:1156"]
     S --> BV["bots_visualization_handler::configure_routes<br/>scope /visualization — src/handlers/bots_visualization_handler.rs:500<br/>GET /agents/ws, GET snapshot, POST initialize<br/>plus POST /bots/mock-agents at :530"]
     S --> GE["configure_graph_export_routes<br/>scope /graph-export — src/handlers/graph_export_handler.rs:319<br/>POST '', /share, /publish — GET /shared/{id}, /stats — DELETE /shared/{id}"]
     S --> OA["configure_ontology_agent_routes<br/>scope /ontology-agent — src/handlers/ontology_agent_handler.rs:434<br/>POST /discover, /read, /query, /traverse, /validate — GET /status<br/>nested scope /propose POST '' — see VC-05"]
@@ -484,8 +484,8 @@ flowchart LR
     S --> IG["configure_image_gen_routes<br/>scope /image-gen — src/handlers/image_gen_handler.rs:779<br/>GET /health, /status/{job_id} — POST /submit, /agent-submit"]
     S --> BR["configure_briefing_routes<br/>scope /briefs — src/handlers/briefing_handler.rs:118<br/>POST '' submit_brief, POST /{brief_id}/debrief"]
     S --> MF["configure_memory_flash_routes<br/>POST /api/memory-flash and the batch route<br/>src/handlers/memory_flash_handler.rs:134-137"]
-    S --> EP["configure_enrichment_proposals_routes<br/>POST /api/enrichment-proposals/{id}/decide<br/>src/handlers/enrichment_proposals_handler.rs:540"]
-    S --> BI["configure_broker_inbox_routes<br/>scope /broker — src/handlers/broker_inbox_handler.rs:164<br/>GET /inbox, GET /cases/{id}, POST decide_as_operator — WS-12"]
+    S --> EP["configure_enrichment_proposals_routes<br/>POST /api/enrichment-proposals/{id}/decide<br/>src/handlers/enrichment_proposals_handler.rs:434"]
+    S --> BI["configure_broker_inbox_routes<br/>scope /broker — src/handlers/broker_inbox_handler.rs:177<br/>GET /inbox, GET /cases/{id}, POST decide_as_operator — WS-12"]
     S --> IW["configure_ingest_writeback_routes<br/>POST /api/ingest/writeback — src/handlers/ingest_writeback_handler.rs:103 — GOV-4"]
     S --> LV["configure_liveness_routes<br/>scope /canary — src/handlers/liveness_harness_handler.rs:212<br/>POST /register, POST /observe/{canary_id}, GET /status — RES-a"]
     S --> KP["configure_kpi_routes<br/>scope /kpi — src/handlers/kpi_handler.rs:49<br/>GET /summary, GET /lineage/{snapshot_id} — REC-4 ADR-043"]
@@ -515,7 +515,7 @@ flowchart TB
     A1 --- N1
     N2["the Graph2VR reads scan every edge, so their 120/min per-resource ceiling stacks UNDER<br/>the 600/min scope limiter and is the stricter gate. Comment :1507-1512"]
     T1 --- N2
-    SET["web::scope('/settings') + RateLimit::per_minute(60) — src/main.rs:1071-1074<br/>settings::api::configure_routes src/settings/api/settings_routes.rs:1736<br/>GET|PUT physics, constraints, rendering, node-filter, quality-gates, visual<br/>POST physics/reset-layout — GET all — POST|GET profiles — GET|DELETE profiles/{id}<br/>nested scope /user GET|PUT /filter (:1734-1736)"]
+    SET["web::scope('/settings') + RateLimit::per_minute(60) — src/main.rs:1106-1109<br/>settings::api::configure_routes src/settings/api/settings_routes.rs:1736<br/>GET|PUT physics, constraints, rendering, node-filter, quality-gates, visual<br/>POST physics/reset-layout — GET all — POST|GET profiles — GET|DELETE profiles/{id}<br/>nested scope /user GET|PUT /filter (:1734-1736)"]
     SET2["settings round-trip and the OptimizedSettings/ProtectedSettings actors see VC-06"]
     SET --- SET2
 ```
@@ -524,13 +524,13 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main<br/>src/main.rs:877
+    participant M as main<br/>src/main.rs:883
     participant SB as spawn_boot_pull<br/>src/services/ontology_pull.rs:387
     participant PO as pull_once<br/>src/services/ontology_pull.rs:293
     participant GH as GitHub release<br/>ontology-latest
     participant ST as Storage (embedded pod)
 
-    Note over M,SB: feature solid-pod-embed only — spawned right after init_solid_state,<br/>BEFORE pay state construction (src/main.rs:869)
+    Note over M,SB: feature solid-pod-embed only — spawned right after init_solid_state,<br/>BEFORE pay state construction (src/main.rs:875)
     M->>SB: ontology_pull::spawn_boot_pull(Arc::clone(&solid_state.storage))
     SB->>SB: OntologyPullConfig::from_env (src/services/ontology_pull.rs:76)<br/>ONTOLOGY_PULL_URL, _ENABLED (default true), _TIMEOUT_SECS (default 120), _INTERVAL_SECS (default 3600)
     alt ONTOLOGY_PULL_ENABLED=false|0

@@ -16,6 +16,7 @@ sources:
   - ../project/client/src/store/websocket/types.ts
   - ../project/client/src/store/websocket/binaryFrameDispatcher.ts
   - ../project/client/src/store/websocket/binaryProtocol.ts
+  - ../project/client/src/store/agentTargetStore.ts
   - ../project/client/src/store/websocket/filterSync.ts
   - ../project/client/src/store/websocket/textMessageHandler.ts
   - ../project/client/src/store/websocket/solidWebSocket.ts
@@ -37,7 +38,7 @@ sources:
   - ../project/client/src/utils/validation.ts
   - ../project/src/handlers/socket_flow_handler/http_handler.rs
   - ../project/src/settings/api/settings_routes.rs
-verified_commit: dd82a07b0
+verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
 ---
 ## VC-32.1 Connect + NIP-98 WS authenticate handshake
 ```mermaid
@@ -119,9 +120,9 @@ sequenceDiagram
     autonumber
     participant WS as WebSocket
     participant MH as createMessageHandler<br/>binaryFrameDispatcher.ts:97
-    participant VB as validateBinaryData<br/>store/websocket/binaryProtocol.ts:186
+    participant VB as validateBinaryData<br/>store/websocket/binaryProtocol.ts:187
     participant SF as BinaryFrameDispatcher<br/>binaryFrameDispatcher.ts:43
-    participant PB as processBinaryData<br/>store/websocket/binaryProtocol.ts:459
+    participant PB as processBinaryData<br/>store/websocket/binaryProtocol.ts:462
 
     WS->>MH: onmessage(event) binaryFrameDispatcher.ts:120
     alt event.data equals pong
@@ -135,23 +136,23 @@ sequenceDiagram
     else text frame
         MH->>MH: JSON.parse then handleTextMessage(message) binaryFrameDispatcher.ts:169-176
     end
-    VB->>VB: read firstByte = view.getUint8(0) store/websocket/binaryProtocol.ts:196
-    alt firstByte is 3(V3), 5(V5) or 0x23(AGENT_ACTION) store/websocket/binaryProtocol.ts:200
+    VB->>VB: read firstByte = view.getUint8(0) store/websocket/binaryProtocol.ts:197
+    alt firstByte is 3(V3), 5(V5) or 0x23(AGENT_ACTION) store/websocket/binaryProtocol.ts:201
         VB-->>SF: dispatcher.handle(buffer) binaryFrameDispatcher.ts:138,155
     else unknown lead byte
-        VB-->>MH: reject, log warn, drop frame store/websocket/binaryProtocol.ts:201-203
+        VB-->>MH: reject, log warn, drop frame store/websocket/binaryProtocol.ts:201, :202
     end
     alt inFlight already processing binaryFrameDispatcher.ts:52
         SF->>SF: pendingLatest = buffer, dropCount++ (newest-wins) binaryFrameDispatcher.ts:53-60
     else idle
         SF->>PB: processBinaryData(buffer,get,set) binaryFrameDispatcher.ts:64
     end
-    PB->>PB: firstByte switch: PROTOCOL_V3/V5 only -> handleLegacyBinaryData store/websocket/binaryProtocol.ts:472-476
-    Note over PB: RESOLVED ADR-2078: PROTOCOL_V2 removed from the accept list. The server<br/>rejects V2 outright (src/utils/binary_protocol.rs:590) so a 0x02 lead byte can<br/>only be a stale sender or a mis-routed payload - it is no longer routed here
-    PB->>PB: firstByte MessageType.AGENT_ACTION(0x23) -> handleAgentActionTagged store/websocket/binaryProtocol.ts:479-482
-    PB->>PB: else parseHeader(data) then switch(header.type) store/websocket/binaryProtocol.ts:485-508
+    PB->>PB: firstByte switch: PROTOCOL_V3/V5 only -> handleLegacyBinaryData store/websocket/binaryProtocol.ts:475, :476
+    Note over PB: RESOLVED ADR-2078: PROTOCOL_V2 removed from the accept list. The server<br/>rejects V2 outright (src/utils/binary_protocol.rs:600) so a 0x02 lead byte can<br/>only be a stale sender or a mis-routed payload - it is no longer routed here
+    PB->>PB: firstByte MessageType.AGENT_ACTION(0x23) -> handleAgentActionTagged store/websocket/binaryProtocol.ts:482, :483
+    PB->>PB: else parseHeader(data) then switch(header.type) store/websocket/binaryProtocol.ts:488, :494
     PB-->>SF: promise settles -> finally drains pendingLatest via queueMicrotask binaryFrameDispatcher.ts:68-76
-    Note over PB: ADR-2019 tag byte is registry-governed: byte 0 selects the codec, unknown tags rejected not reinterpreted (docs/PROTOCOL-registry.md tag registry, src/utils/binary_protocol.rs:588)
+    Note over PB: ADR-2019 tag byte is registry-governed: byte 0 selects the codec, unknown tags rejected not reinterpreted (docs/PROTOCOL-registry.md tag registry, src/utils/binary_protocol.rs:598, :610)
 ```
 ## VC-32.4 Outbound framed-message header (client-originated only)
 ```mermaid
@@ -264,7 +265,8 @@ classDiagram
     }
     WireNodeId --> OntologySubtype : bits26to28 when ontology
     note for WireNodeId "INVARIANT, no DIVERGENCE. Client client/src/types/binaryProtocol.ts:108-118, Godot<br/>decoder xr-client/rust/src/binary_protocol.rs:37-43, and<br/>docs/IDENTIFIER-taxonomy.md:124-129 all agree exactly on mask and flag hex values.<br/>getActualNodeId(nodeId) is nodeId AND NODE_ID_MASK<br/>(types/binaryProtocol.ts:144-146)."
-    note for WireNodeId "docs/IDENTIFIER-taxonomy.md:131-136: ids are sequential u32 from a NEXT_NODE_ID<br/>atomic counter; encoders debug_assert id less-or-equal NODE_ID_MASK before OR-ing<br/>the flag, but in release the assert compiles out and an over-range id is silently<br/>truncated to its low 26 bits (src/utils/binary_protocol.rs:192-213)."
+    note for WireNodeId "docs/IDENTIFIER-taxonomy.md:131-136: ids are sequential u32 from a NEXT_NODE_ID<br/>atomic counter; encoders debug_assert id less-or-equal NODE_ID_MASK before OR-ing<br/>the flag, but in release the assert compiles out and an over-range id is silently<br/>truncated to its low 26 bits (src/utils/binary_protocol.rs:192)."
+    note for WireNodeId "INVARIANT (2026-09-08, 6c47b9833): an id that ALREADY carries a recognised<br/>class pattern is forwarded unchanged by the encoder's last branch, because<br/>position_updates.rs and actor_messages.rs stamp the flag themselves and pass<br/>empty class sets. Running the 26-bit bound check on a stamped id panicked<br/>every broadcast in debug builds - each XR client saw a 2 s connection-reset<br/>loop - and would have stripped the class flag in release<br/>(src/utils/binary_protocol.rs:465, :474). Only a high bit that is NOT a class<br/>pattern is still an overflow (src/utils/binary_protocol.rs:480)."
 ```
 ## VC-32.7 getNodeType(): flag precedence decision order
 ```mermaid
@@ -280,7 +282,7 @@ flowchart TD
     E -- no --> F{"nodeId AND ONTOLOGY_TYPE_MASK == PROPERTY_FLAG?<br/>types/binaryProtocol.ts:137"}
     F -- yes --> OP["NodeType.OntologyProperty"]
     F -- no --> UN["NodeType.Unknown  types/binaryProtocol.ts:140"]
-    AG --> G["updateNodeTypeMapFromParsed caches actualId to type<br/>evicting oldest past MAX_NODE_TYPE_ENTRIES=65536<br/>websocket/binaryProtocol.ts:155-179"]
+    AG --> G["updateNodeTypeMapFromParsed caches actualId to type<br/>evicting oldest past MAX_NODE_TYPE_ENTRIES=65536<br/>websocket/binaryProtocol.ts:155, :172"]
     KN --> G
     OC --> G
     OI --> G
@@ -290,32 +292,32 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant PB as processBinaryData<br/>store/websocket/binaryProtocol.ts:459
+    participant PB as processBinaryData<br/>store/websocket/binaryProtocol.ts:462
     participant FR as parseBinaryFrameData<br/>types/binaryProtocol.ts:440
     participant AN as nodeAnalyticsStore<br/>features/analytics/store/nodeAnalyticsStore
     participant GDM as graphDataManager<br/>features/graph/managers/graphDataManager
     participant SRV as Server /wss
 
-    PB->>PB: handleLegacyBinaryData(data,get,set) store/websocket/binaryProtocol.ts:360
-    PB->>FR: parseBinaryFrameData(data) store/websocket/binaryProtocol.ts:369
+    PB->>PB: handleLegacyBinaryData(data,get,set) store/websocket/binaryProtocol.ts:361
+    PB->>FR: parseBinaryFrameData(data) store/websocket/binaryProtocol.ts:370
     FR-->>PB: ParsedBinaryFrame type=full|delta, nodes, broadcastSequence
-    opt frame.type equals full store/websocket/binaryProtocol.ts:380
+    opt frame.type equals full store/websocket/binaryProtocol.ts:381
         alt protoByte is PROTOCOL_V3 or PROTOCOL_V5 store/websocket/binaryProtocol.ts:382
-            PB->>AN: nodeAnalyticsStore.ingest(parsedNodes) store/websocket/binaryProtocol.ts:383
+            PB->>AN: nodeAnalyticsStore.ingest(parsedNodes) store/websocket/binaryProtocol.ts:384
         else V4 delta frame
-            Note over PB: V4 delta omits cluster_id/anomaly/community offsets 36/40/44 - must NOT overwrite live analytics store/websocket/binaryProtocol.ts:377-379
+            Note over PB: V4 delta omits cluster_id/anomaly/community offsets 36/40/44 - must NOT overwrite live analytics store/websocket/binaryProtocol.ts:378, :380
         end
     end
-    PB->>PB: updateNodeTypeMapFromParsed(parsedNodes,set) store/websocket/binaryProtocol.ts:387
-    opt hasBotsData: any node isAgentNode() store/websocket/binaryProtocol.ts:389
-        PB->>PB: emit(bots-position-update, data) store/websocket/binaryProtocol.ts:391-392
+    PB->>PB: updateNodeTypeMapFromParsed(parsedNodes,set) store/websocket/binaryProtocol.ts:388
+    opt hasBotsData: any node isAgentNode() store/websocket/binaryProtocol.ts:390
+        PB->>PB: emit(bots-position-update, data) store/websocket/binaryProtocol.ts:392, :393
     end
-    PB->>GDM: graphDataManager.updateNodePositions(data) store/websocket/binaryProtocol.ts:406
-    PB->>PB: positionUpdateSequence++ store/websocket/binaryProtocol.ts:414
-    opt positionUpdateSequence minus lastAckSentSequence greater-or-equal ACK_BATCH_SIZE(10) store/websocket/binaryProtocol.ts:37,416
-        PB->>SRV: sendPositionAck -> BroadcastAck message (createBroadcastAck) store/websocket/binaryProtocol.ts:130-150,417
+    PB->>GDM: graphDataManager.updateNodePositions(data) store/websocket/binaryProtocol.ts:407
+    PB->>PB: positionUpdateSequence++ store/websocket/binaryProtocol.ts:415
+    opt positionUpdateSequence minus lastAckSentSequence greater-or-equal ACK_BATCH_SIZE(10) store/websocket/binaryProtocol.ts:38, :417
+        PB->>SRV: sendPositionAck -> BroadcastAck message (createBroadcastAck) store/websocket/binaryProtocol.ts:131, :142, :418
     end
-    Note over PB: framed-header path handlePositionUpdate (MessageType.POSITION_UPDATE/AGENT_POSITIONS, store/websocket/binaryProtocol.ts:306-358,500-502) mirrors this same analytics-cache/ack flow but is reached only via the 6-byte outbound envelope of VC-32.4, not the bare V3/V5 tag the live server actually sends.
+    Note over PB: framed-header path handlePositionUpdate (MessageType.POSITION_UPDATE/AGENT_POSITIONS, store/websocket/binaryProtocol.ts:307, :354, :503) mirrors this same analytics-cache/ack flow but is reached only via the 6-byte outbound envelope of VC-32.4, not the bare V3/V5 tag the live server actually sends.
 ```
 ## VC-32.9 Position subscription: idempotent one-shot subscribe, filter sync, shrink-guard
 ```mermaid
@@ -398,27 +400,30 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant PB as processBinaryData<br/>store/websocket/binaryProtocol.ts:459
+    participant PB as processBinaryData<br/>store/websocket/binaryProtocol.ts:462
     participant DEC as decodeAgentActions<br/>binaryProtocol/agentMessages.ts:183
     participant BEAM as pushTransientBeams<br/>store/transientBeamStore
+    participant AT as useAgentTargetStore.pushActions<br/>client/src/store/agentTargetStore.ts:25
 
-    PB->>PB: firstByte equals MessageType.AGENT_ACTION 0x23 store/websocket/binaryProtocol.ts:479
-    PB->>PB: handleAgentActionTagged(data) store/websocket/binaryProtocol.ts:480 calling fn def :437
-    Note over PB: shipping wire is a bare tag, not a 6-byte V4 header - [0x23][u16 count]([u16 len][event])... store/websocket/binaryProtocol.ts:422-436
+    PB->>PB: firstByte equals MessageType.AGENT_ACTION 0x23 store/websocket/binaryProtocol.ts:482
+    PB->>PB: handleAgentActionTagged(data) store/websocket/binaryProtocol.ts:483 calling fn def :438
+    Note over PB: shipping wire is a bare tag, not a 6-byte V4 header - [0x23][u16 count]([u16 len][event])... store/websocket/binaryProtocol.ts:430
     alt data.byteLength greater-or-equal 18 store/websocket/binaryProtocol.ts:438
         PB->>DEC: decodeAgentActions(data.slice(1)) store/websocket/binaryProtocol.ts:439
     else too small
-        PB->>PB: actions = empty array store/websocket/binaryProtocol.ts:438-440
+        PB->>PB: actions = empty array store/websocket/binaryProtocol.ts:439, :441
     end
     DEC->>DEC: eventCount = view.getUint16(0) agentMessages.ts:192
     loop for each event, offset advances by 2 plus eventLen agentMessages.ts:195-215
         DEC->>DEC: eventLen = view.getUint16(offset) agentMessages.ts:201
         DEC->>DEC: decodeAgentAction(eventPayload) sourceAgentId,targetNodeId,actionType,timestamp,durationMs agentMessages.ts:153-181,210
     end
-    DEC-->>PB: AgentActionEvent[] passed to dispatchAgentActions store/websocket/binaryProtocol.ts:444
-    opt actions.length greater than 0 store/websocket/binaryProtocol.ts:445
-        PB->>PB: emit(agent-action, actions) live transcript and attention heat store/websocket/binaryProtocol.ts:447
-        PB->>BEAM: pushTransientBeams(actions) TransientBeamsLayer sink store/websocket/binaryProtocol.ts:450
+    DEC-->>PB: AgentActionEvent[] passed to dispatchAgentActions store/websocket/binaryProtocol.ts:442
+    opt actions.length greater than 0 store/websocket/binaryProtocol.ts:446
+        PB->>PB: emit(agent-action, actions) live transcript and attention heat store/websocket/binaryProtocol.ts:448
+        PB->>BEAM: pushTransientBeams(actions) TransientBeamsLayer sink store/websocket/binaryProtocol.ts:451
+        PB->>AT: useAgentTargetStore.getState().pushActions(actions)<br/>store/websocket/binaryProtocol.ts:453
+        Note over PB,AT: 2026-09-11 (dcf5a1069): a THIRD sink on the same decoded batch,<br/>feeding the desktop momentum nudge in BotsVisualization. Each sink is<br/>pushed in parallel so none can starve the others.<br/>client/src/store/agentTargetStore.ts:16, :22
     end
     Note over PB: AGENT_ACTION_HEADER_SIZE=15 bytes: sourceAgentId u32@0, targetNodeId u32@4, actionType u8@8, timestamp u32@9, durationMs u16@13, optional payload from @15 frameTypes.ts:214,agentMessages.ts:161-165
 ```
@@ -439,7 +444,7 @@ classDiagram
     }
     BroadcastAckPayload --> AckPolicy : governed by
     note for BroadcastAckPayload "encodeBroadcastAckPayload/decodeBroadcastAck backpressure.ts:18-69. sequenceId and<br/>timestamp each split into low/high uint32 for littleEndian 8-byte write without<br/>BigInt64 (backpressure.ts:26-29,36-39)."
-    note for AckPolicy "sendPositionAck fires when positionUpdateSequence minus lastAckSentSequence is<br/>greater-or-equal ACK_BATCH_SIZE=10<br/>(store/websocket/binaryProtocol.ts:37,130-150,353-357,414-419). Legacy frames use<br/>frame.broadcastSequence when present, else the client-local counter<br/>(store/websocket/binaryProtocol.ts:415)."
+    note for AckPolicy "sendPositionAck fires when positionUpdateSequence minus lastAckSentSequence is<br/>greater-or-equal ACK_BATCH_SIZE=10<br/>(store/websocket/binaryProtocol.ts:38, :131, :355, :417). Legacy frames use<br/>frame.broadcastSequence when present, else the client-local counter<br/>(store/websocket/binaryProtocol.ts:416)."
 ```
 ## VC-32.13 SSSP data and voice-chunk binary sub-protocols
 ```mermaid
@@ -497,7 +502,7 @@ classDiagram
     }
     class ServerToClient {
       connection_established  sets isServerReady  textMessageHandler.ts:84-89
-      error  category:validation|server|protocol|auth|rate_limit, code, retryable, retryAfter  types.ts:14-23,store/websocket/binaryProtocol.ts:210-261
+      error  category:validation|server|protocol|auth|rate_limit, code, retryable, retryAfter  types.ts:14-23,store/websocket/binaryProtocol.ts:211
       filter_update_success  data.visible_nodes,data.total_nodes  textMessageHandler.ts:100-108
       initialGraphLoad  nodes,edges  textMessageHandler.ts:110,131-223
       memory_flash  data forwarded to memoryFlash event  textMessageHandler.ts:121-123

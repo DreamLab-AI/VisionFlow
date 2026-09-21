@@ -46,6 +46,7 @@ sources:
   - ../project/src/application/settings/directives.rs
   - ../project/src/application/settings/queries.rs
   - ../project/src/handlers/utils.rs
+  - ../project/src/handlers/ontology_handler.rs
   - ../project/src/handlers/api_handler/mod.rs
   - ../project/crates/visionclaw-contracts/src/lib.rs
   - ../project/crates/visionclaw-contracts/src/agent_action.rs
@@ -55,7 +56,7 @@ sources:
   - ../project/crates/visionclaw-contracts/src/version.rs
   - ../project/src/agent_events/schema.rs
   - ../project/sdk/visionflow-contracts/package.json
-verified_commit: 36bb64e1e
+verified_commit: f223bbd40
 ---
 
 ## VC-07.1 The hexagon — ports, adapters and where each canonical type lives
@@ -324,6 +325,8 @@ sequenceDiagram
         AD-->>H: warn "No settings found, using defaults" then AppFullSettings::default() (api_handler/mod.rs:73-78)
     end
     Note over H,AD: comment src/application/mod.rs:71 — application services were removed,<br/>handlers use actors directly via CQRS or direct messaging. There is no dispatcher bus.
+    Note over EX: INVARIANT — every sync hexser handler enters a nested block_on, so calling one<br/>straight from an actix worker panics with the nested-runtime error Cannot start a runtime from within a runtime.<br/>execute_in_thread (spawn_blocking) is what makes the sync handler safe, and its Ok(Ok)/Ok(Err)/Err<br/>triple is the shape every call site must match — src/handlers/utils.rs
+    Note over EX: DEBT — get_owl_property and add_owl_property were the LAST two bare sync calls<br/>and were only dispatched off the worker on 2026-09-16 in ad8b83ad4, and the earlier hierarchy<br/>endpoint had the same defect fixed on 2026-08-10. Nothing in the type system prevents the<br/>next bare call — ontology_handler.rs:424, ontology_handler.rs:489, regression module<br/>ontology_handler.rs:1054 pins the bare call as the panic it is
 ```
 
 ## VC-07.8 Storage-agnostic domain kernel — src/domain/broker

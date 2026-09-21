@@ -60,6 +60,8 @@ sources:
   - ../project/client/src/features/control-center/ControlCenter.tsx
   - ../project/client/src/features/control-center/hooks/useSettingField.ts
   - ../project/client/src/features/bots/components/BotsVisualization.tsx
+  - ../project/client/src/store/agentTargetStore.ts
+  - ../project/client/src/features/graph/contexts/NodePositionContext.tsx
   - ../project/client/src/components/WorkerErrorModal.tsx
   - ../project/client/src/features/visualisation/components/EmbeddingCloudLayer.tsx
   - ../project/client/src/features/visualisation/hooks/useTransientBeams.ts
@@ -72,7 +74,7 @@ sources:
   - ../project/client/src/features/control-center/primitives/NostrAuthControl.tsx
   - ../project/client/src/features/control-center/status/StatusFlyout.tsx
   - ../project/client/src/services/nostrAuthService.ts
-verified_commit: dd82a07b0
+verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
 ---
 ## VC-30.1 Provider nesting and top-level render states
 ```mermaid
@@ -388,7 +390,7 @@ sequenceDiagram
     Bus->>Bus: emit(event,data) iterates handlers Set, try/catch per handler,<br/>logs and continues on throw - WebSocketEventBus.ts:80-93
 
     alt connection error (any socket)
-        Voice->>Bus: emit("connection:error",{name,error})<br/>VoiceWebSocketService.ts:113
+        Voice->>Bus: emit("connection:error",{name,error})<br/>VoiceWebSocketService.ts:116
         Graph->>Bus: emit("connection:error",{name:"graph",error:errorMessage})<br/>websocket/index.ts:254
     end
     alt connection close (any socket)
@@ -714,6 +716,8 @@ flowchart LR
     websocketStore["useWebSocketStore<br/>client/src/store/websocketStore.ts:9"]
     timelineStore["useTimelineStore<br/>client/src/store/timelineStore.ts:88"]
     beamStore["useTransientBeamStore<br/>client/src/store/transientBeamStore.ts:64"]
+    agentTargetStore["useAgentTargetStore<br/>client/src/store/agentTargetStore.ts:22"]
+    nodePosCtx["NodePositionContext module singleton<br/>client/src/features/graph/contexts/NodePositionContext.tsx:8"]
     workerErrStore["useWorkerErrorStore<br/>client/src/store/workerErrorStore.ts:23"]
 
     GraphManager["GraphManager<br/>client/src/features/graph/components/GraphManager.tsx:44-61"]
@@ -727,14 +731,14 @@ flowchart LR
     RevealSetting["useRevealSetting hook<br/>client/src/features/control-center/hooks/useRevealSetting.ts"]
     NostrAuthControl["NostrAuthControl<br/>client/src/features/control-center/primitives/NostrAuthControl.tsx"]
     StatusFlyout["StatusFlyout<br/>client/src/features/control-center/status/StatusFlyout.tsx"]
-    BotsVisualization["BotsVisualization<br/>client/src/features/bots/components/BotsVisualization.tsx:36-38"]
-    BotsNode["BotsNode<br/>client/src/features/bots/components/BotsNode.tsx"]
+    BotsVisualization["BotsVisualization<br/>client/src/features/bots/components/BotsVisualization.tsx:38"]
+    BotsNode["BotsNode<br/>client/src/features/bots/components/BotsNode.tsx:150"]
     WorkerErrorModal["WorkerErrorModal<br/>client/src/components/WorkerErrorModal.tsx:7"]
     AppInitializer["AppInitializer<br/>client/src/app/AppInitializer.tsx:117,127"]
     EmbeddingCloudLayer["EmbeddingCloudLayer<br/>client/src/features/visualisation/components/EmbeddingCloudLayer.tsx:110,254"]
     useTransientBeams["useTransientBeams hook<br/>client/src/features/visualisation/hooks/useTransientBeams.ts:25-26"]
     TransientBeamsLayer["TransientBeamsLayer<br/>client/src/features/visualisation/components/TransientBeamsLayer.tsx"]
-    binaryProtocol["binaryProtocol.ts handleAgentActionTagged<br/>client/src/store/websocket/binaryProtocol.ts:437, routed at :480"]
+    binaryProtocol["binaryProtocol.ts handleAgentActionTagged<br/>client/src/store/websocket/binaryProtocol.ts:438, routed at :483"]
 
     settingsStore --> GraphManager
     settingsStore --> GraphCanvas
@@ -755,6 +759,14 @@ flowchart LR
     beamStore --> useTransientBeams
     useTransientBeams --> TransientBeamsLayer
     binaryProtocol -->|pushTransientBeams| beamStore
+    binaryProtocol -->|pushActions| agentTargetStore
+    agentTargetStore --> BotsVisualization
+    nodePosCtx --> BotsVisualization
+    BotsVisualization -->|"nudgeTargetsRef, agent id to target world position"| BotsNode
+    NudgeNote["2026-09-11: BotsVisualization resolves each agent's target node to a<br/>world position every frame and BotsNode lerps its target 0.35 of the way<br/>toward it, so agents cluster over the area they are working on.<br/>BotsVisualization.tsx:145, :143, BotsNode.tsx:265, :268"]
+    BotsNode --- NudgeNote
+    NudgeDebt["DEBT: the reader takes the live SAB view and the id map from a<br/>module-level mutable singleton rather than a React context, so nothing<br/>invalidates a stale reader after a remount.<br/>client/src/features/graph/contexts/NodePositionContext.tsx:13"]
+    nodePosCtx --- NudgeDebt
 
     workerErrStore --> WorkerErrorModal
     workerErrStore --> AppInitializer

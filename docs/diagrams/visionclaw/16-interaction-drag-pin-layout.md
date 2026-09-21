@@ -19,7 +19,7 @@ sources:
   - ../project/src/models/force_channels.rs
   - ../project/src/utils/binary_protocol.rs
   - ../project/src/utils/unified_gpu_compute/execution.rs
-verified_commit: 36bb64e1e
+verified_commit: f223bbd40
 ---
 
 ## VC-16.1 Node drag start — pin acquisition

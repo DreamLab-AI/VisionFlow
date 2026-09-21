@@ -39,7 +39,7 @@ sources:
   - ../project/src/uri/mod.rs
   - ../project/src/config/security_profile.rs
   - ../project/crates/visionclaw-domain/src/utils/visibility_filter.rs
-verified_commit: dd82a07b0
+verified_commit: f223bbd40
 ---
 
 ## VC-03.1 REST request end-to-end — nginx to handler, real middleware order
@@ -47,22 +47,22 @@ verified_commit: dd82a07b0
 sequenceDiagram
     autonumber
     participant NG as nginx (port 3001)
-    participant AC as actix HttpServer<br/>src/main.rs:978-1033
-    participant LG as Logger<br/>wrap #1 src/main.rs:1008
-    participant CO as cors<br/>wrap #2 src/main.rs:980
-    participant CP as Compress<br/>wrap #3 src/main.rs:981
-    participant TO as TimeoutMiddleware<br/>wrap #4 src/main.rs:1011
-    participant SC as scope /api<br/>src/main.rs:1054
-    participant PD as PublicDemoGuard::from_env<br/>src/main.rs:1087
-    participant RG as RbacGate::from_env<br/>src/main.rs:1065
-    participant RL as RateLimit::per_minute 60<br/>src/main.rs:1072 (scope /api/settings only)
+    participant AC as actix HttpServer<br/>src/main.rs:938-1218
+    participant LG as Logger<br/>wrap #1 src/main.rs:1014
+    participant CO as cors<br/>wrap #2 src/main.rs:1015
+    participant CP as Compress<br/>wrap #3 src/main.rs:1016
+    participant TO as TimeoutMiddleware<br/>wrap #4 src/main.rs:1017
+    participant SC as scope /api<br/>src/main.rs:1089
+    participant PD as PublicDemoGuard::from_env<br/>src/main.rs:1093
+    participant RG as RbacGate::from_env<br/>src/main.rs:1100
+    participant RL as RateLimit::per_minute 60<br/>src/main.rs:1107 (scope /api/settings only)
     participant H as route handler
 
     Note over LG,RG: actix applies .wrap() in REVERSE registration order at request time<br/>last .wrap() call = outermost layer that sees the request first
-    Note over LG,TO: registration order in main.rs is Logger,cors,Compress,TimeoutMiddleware (969-972)<br/>so the REAL request-time order is TimeoutMiddleware,Compress,cors,Logger,then routing
+    Note over LG,TO: registration order in main.rs is Logger,cors,Compress,TimeoutMiddleware (src/main.rs:1014-1017)<br/>so the REAL request-time order is TimeoutMiddleware,Compress,cors,Logger,then routing
     NG->>AC: HTTP request
     AC->>TO: enter (outermost of the four)
-    TO->>TO: get_timeout(path) — default 30s, override 600s for "/api/admin/sync" (src/main.rs:1012)
+    TO->>TO: get_timeout(path) — default 30s, override 600s for "/api/admin/sync" (src/main.rs:1018)
     TO->>CP: enter
     CP->>CO: enter
     CO->>LG: enter
@@ -93,7 +93,7 @@ sequenceDiagram
     participant WS as socket_flow_handler<br/>src/handlers/socket_flow_handler/http_handler.rs
     participant NS as NostrService::get_session<br/>src/services/nostr_service.rs:587
 
-    Note over WS: routes registered src/main.rs:1037-1047 — /wss, /wss/agent-events,<br/>/ws/speech, /ws/mcp-relay, /ws/client-messages, /ws/presence
+    Note over WS: routes registered src/main.rs:1074-1082 — /wss, /wss/agent-events,<br/>/ws/speech, /ws/mcp-relay, /ws/client-messages, /ws/presence
     C->>WS: GET /wss (Upgrade: websocket)
     WS->>WS: require Upgrade header (http_handler.rs:318)
     alt Origin header present
@@ -464,7 +464,7 @@ sequenceDiagram
 
     Note over B: gate 0 (compile-time) — this whole codepath is #[cfg(any(debug_assertions,#quot —dev-auth#quot —))]<br/>compiled OUT of a release binary entirely — release stub always returns false/None
     alt release build (no debug_assertions, no dev-auth feature)
-        B->>B: enforce_release_env_hygiene runs at boot (src/main.rs:195)
+        B->>B: enforce_release_env_hygiene runs at boot (src/main.rs:201)
         alt VISIONCLAW_DEV_MODE present (any value, presence not truthiness)
             B-->>R: FATAL eprintln, std::process::exit(2) (SUSPECT_ENVS, :130-134,:156)
         end
@@ -513,7 +513,7 @@ sequenceDiagram
     else allowed
         RL->>R: service.call(req)
     end
-    Note over RL: applied at src/main.rs:1072 as RateLimit::per_minute(60) on the /api/settings<br/>scope only (rate_limit.rs:169) — 60 requests / 60s window, keyed by realip (use_user_id off by default)
+    Note over RL: applied at src/main.rs:1107 as RateLimit::per_minute(60) on the /api/settings<br/>scope only (rate_limit.rs:169) — 60 requests / 60s window, keyed by realip (use_user_id off by default)
 ```
 
 ## VC-03.13 `TimeoutMiddleware` — default 30s, per-path override
@@ -525,7 +525,7 @@ sequenceDiagram
     participant SVC as inner service chain
 
     TO->>TO: timeout_duration = config.get_timeout(path) (:37-41)
-    Note over TO: TimeoutConfig::new(Duration::from_secs(30)).with_override("/api/admin/sync", 600s)<br/>constructed at src/main.rs:1011 — endpoint_overrides is an exact-path HashMap match
+    Note over TO: TimeoutConfig::new(Duration::from_secs(30)).with_override("/api/admin/sync", 600s)<br/>constructed at src/main.rs:1017 — endpoint_overrides is an exact-path HashMap match
     TO->>SVC: tokio::time::timeout(timeout_duration, service.call(req))
     alt completes within timeout_duration
         SVC-->>TO: Ok(result)

@@ -27,14 +27,14 @@ sources:
   - ../project/src/actors/gpu/connected_components_actor.rs
   - ../project/src/actors/physics_orchestrator_actor.rs
   - ../project/src/app_state.rs
-verified_commit: 36bb64e1e
+verified_commit: f223bbd40
 ---
 
 ## VC-10.1 GPU supervision tree
 
 ```mermaid
 flowchart TD
-    APP["AppState::new<br/>src/app_state.rs:970 starts GPUManagerActor when GPU enabled"]
+    APP["AppState::new<br/>src/app_state.rs:963 starts GPUManagerActor when GPU enabled"]
     GM["GPUManagerActor<br/>gpu_manager_actor.rs:57 struct, :140 impl Actor"]
     RS["ResourceSupervisor<br/>resource_supervisor.rs:40 struct, :347 impl Actor"]
     PS["PhysicsSupervisor<br/>physics_supervisor.rs"]
@@ -86,7 +86,7 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant APP as AppState::new<br/>src/app_state.rs:970
+    participant APP as AppState::new<br/>src/app_state.rs:963
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:253
     participant RS as ResourceSupervisor<br/>resource_supervisor.rs:300
     participant GRA as GPUResourceActor<br/>gpu_resource_actor.rs:456

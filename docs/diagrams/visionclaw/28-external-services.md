@@ -14,6 +14,7 @@ sources:
   - ../project/src/services/github_pr_service.rs
   - ../project/src/services/github/config.rs
   - ../project/src/services/speech_service.rs
+  - ../project/crates/visionclaw-domain/src/config/app_settings.rs
   - ../project/src/handlers/quic_transport_handler.rs
   - ../project/src/app_state.rs
   - ../project/src/config/feature_access.rs
@@ -21,7 +22,7 @@ sources:
   - ../project/src/handlers/mod.rs
   - ../project/docs/reference/configuration.md
   - ../project/docs/how-to/agent-orchestration.md
-verified_commit: dd82a07b0
+verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
 ---
 ## VC-28.1 ragflow_service — outbound RAGFlow agent API
 ```mermaid
@@ -336,51 +337,47 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant SS as SpeechService<br/>src/services/speech_service.rs:32
-    participant OAI as OpenAI TTS/STT<br/>api.openai.com
-    participant KOK as Kokoro TTS<br/>settings.kokoro.api_url
+    participant PT as PocketTts<br/>settings.pocket_tts.api_url
     participant WHI as Whisper STT<br/>settings.whisper.api_url
-    participant MCP as MCP swarm TCP<br/>MCP_HOST:MCP_TCP_PORT
+    participant MCP as MCP swarm TCP<br/>MCP_HOST and MCP_TCP_PORT
 
     rect rgb(225,230,250)
-    alt TTSProvider::OpenAI - :280
-        SS->>OAI: POST https://api.openai.com/v1/audio/speech - :289,301<br/>header Authorization Bearer settings.openai.api_key - :288
-        alt api_key or config missing - :348,351
-            SS-->>SS: error logged, TTS skipped, no request sent
-        else non-2xx or unreachable - :309,321
-            OAI-->>SS: status/error
-            SS-->>SS: error logged, loop continues - :317,326
+    alt TextToSpeech, TTSProvider PocketTts - speech_service.rs:295
+        SS->>SS: abort and await the in-flight tts_task before starting a new one<br/>src/services/speech_service.rs:288
+        SS->>PT: POST api_url or http://pocket-tts:8000 plus /v1/audio/speech<br/>body model pocket-tts, response_format pcm, stream true<br/>src/services/speech_service.rs:309, :313, :320, :322
+    else StopSpeech - speech_service.rs:264
+        SS->>SS: tts_task.abort then await - barge-in cancels mid-utterance<br/>src/services/speech_service.rs:265, public entry at :967
+    else STTProvider Whisper, StartTranscription - speech_service.rs:410
+        SS->>WHI: uses whisper.api_url or http://whisper-webui-backend:8000<br/>ready-check only, no request here<br/>src/services/speech_service.rs:414, :426
+    else STTProvider Whisper, ProcessAudioChunk - speech_service.rs:481
+        SS->>WHI: POST multipart to the transcription endpoint<br/>src/services/speech_service.rs:497, :522, :561
+        loop poll GET api_url plus /task/identifier, max 30 attempts
+            WHI-->>SS: status queued, in_progress, completed or failed<br/>src/services/speech_service.rs:577, :584, :608
         end
-    else TTSProvider::Kokoro - :355
-        SS->>KOK: POST {kokoro.api_url or http://kokoro-tts-container:8880}/v1/audio/speech - :363-373,389
-    else STTProvider::Whisper StartTranscription - :473
-        SS->>WHI: uses {whisper.api_url or http://whisper-webui-backend:8000} - :482-485 (ready-check only, no request here)
-    else STTProvider::Whisper ProcessAudioChunk - :546
-        SS->>WHI: POST multipart to whisper api_url transcription endpoint - :617
-        loop poll GET {api_url}/task/{identifier} - max 30 attempts x 200ms - :642-648,655-658
-            WHI-->>SS: status queued/in_progress/completed/failed - :666
-        end
-        alt status failed or 30 attempts exceeded - :705,648-650
-            SS-->>SS: error logged, transcription dropped
+        alt status failed or 30 attempts exceeded
+            SS-->>SS: error logged, transcription dropped<br/>src/services/speech_service.rs:589, :646
         else completed
-            SS-->>SS: broadcast transcription text - :672
+            SS-->>SS: broadcast transcription text<br/>src/services/speech_service.rs:609, :623
         end
     end
     end
 
     rect rgb(225,230,250)
-    Note over SS,MCP: voice command intents relay to the multi-agent swarm over MCP TCP - :1140
-    SS->>MCP: call_swarm_init/call_agent_spawn/call_agent_list/call_task_orchestrate<br/>host=MCP_HOST default multi-agent-container, port=MCP_TCP_PORT default 9500 - :1144-1146
-    alt call fails (Err) - :1186,1210,1248,1286
+    Note over SS,MCP: voice command intents relay to the multi-agent swarm over MCP TCP<br/>src/services/speech_service.rs:1092
+    SS->>MCP: call_swarm_init, call_agent_spawn, call_agent_list, call_task_orchestrate<br/>host MCP_HOST default multi-agent-container, port MCP_TCP_PORT default 9500<br/>src/services/speech_service.rs:1097, :1098, :1109, :1116, :1148
+    alt call fails
         MCP-->>SS: error
-        SS-->>SS: "Failed to ... Error: {e}" spoken back to user
+        SS-->>SS: "Failed to ... Error" spoken back to the user<br/>src/services/speech_service.rs:1163, :1201, :1239
     else ok
-        MCP-->>SS: swarmId/agents/taskId JSON
+        MCP-->>SS: swarmId, agents or taskId JSON
         SS-->>SS: formatted confirmation text
     end
     end
 
     Note over SS: see VC-35 for the full speech pipeline - WS ingress, tag manager,<br/>voice command parsing, TTS response routing are out of scope here
-    Note over SS: TTSProvider::OpenAI/Kokoro - visionclaw-domain/src/types/speech.rs:66-70<br/>STTProvider::Whisper/TurboWhisper/OpenAI - visionclaw-domain/src/types/speech.rs:72-77
+    Note over SS: DRIFT CLOSED 2026-09-13 (ab5724422): TTSProvider is now a ONE-variant<br/>enum, PocketTts. The OpenAI branch and its api.openai.com call are deleted<br/>and Kokoro is gone, so this boundary no longer reaches any paid TTS API.<br/>visionclaw-domain/src/types/speech.rs:66, default at speech_service.rs:74
+    Note over SS: STTProvider still declares three variants and only Whisper is wired.<br/>TurboWhisper warns not-yet-implemented on BOTH transcription commands.<br/>visionclaw-domain/src/types/speech.rs:71, speech_service.rs:460, :790
+    Note over SS: DEBT: ProcessAudioChunkForUser is a logged no-op, so per-user STT<br/>attribution has an entry point and no implementation.<br/>src/services/speech_service.rs:808, :810
 ```
 ## VC-28.8 quic_transport_handler — the postcard wire types that survived ADR-2066
 ```mermaid
@@ -420,8 +417,7 @@ flowchart LR
     CFS["ComfyUI Salad<br/>env COMFYUI_SALAD_URL default http://comfyui:3000"]
     SOL["Solid proxy<br/>env SOLID_INTERNAL_URL default http://127.0.0.1 port 4001, path /api/solid"]
     GHA["api.github.com<br/>env PRIVATE_REPO_GITHUB_PAT / GITHUB_OWNER / GITHUB_REPO"]
-    OAI["OpenAI TTS/STT<br/>settings.openai.api_key - no env default, hardcoded URL"]
-    KOK["Kokoro TTS<br/>settings.kokoro.api_url default http://kokoro-tts-container:8880"]
+    PT["PocketTts<br/>settings.pocket_tts.api_url default http://pocket-tts:8000<br/>visionclaw-domain/src/config/app_settings.rs:99"]
     WHI["Whisper STT<br/>settings.whisper.api_url default http://whisper-webui-backend:8000"]
     MCPS["MCP swarm TCP<br/>env MCP_HOST default multi-agent-container, MCP_TCP_PORT default 9500"]
 
@@ -431,16 +427,17 @@ flowchart LR
     AG -->|"POST /prompt - fatal for that job"| CFS
     IG -->|"PUT pods/.. - degraded: pod_image_url null, image still returned"| SOL
     GH -->|"git data + pulls API - fatal: PR/state ops fail"| GHA
-    SS -->|"TTS - degraded: audio chunk skipped, chat continues"| OAI
-    SS -->|"TTS - degraded: audio chunk skipped"| KOK
+    SS -->|"TTS - degraded: audio chunk skipped, chat continues"| PT
     SS -->|"STT - degraded: transcription dropped"| WHI
     SS -->|"voice-command relay - degraded: spoken error reply"| MCPS
 
     N1["RESOLVED ADR-2066 (2026-09-05) — the QuicTransportServer node and its<br/>unreachable XR QUIC 0-RTT client edge were removed from this map with the<br/>code itself. See VC-28.8 for the postcard wire types that survived."]
     SS --- N1
+    N2["2026-09-13 (ab5724422): the OpenAI TTS and Kokoro TTS edges are gone with<br/>the enum variants that drove them. Every remaining speech edge is LAN-local,<br/>so this boundary no longer carries speech to a third-party API.<br/>visionclaw-domain/src/types/speech.rs:66, speech_service.rs:295"]
+    PT --- N2
 
     classDef fatal fill:#5a1e1e,stroke:#c0392b,color:#fff
     classDef degraded fill:#4a3a10,stroke:#d4a017,color:#fff
     class RF,GHA,CFU,CFS fatal
-    class PX,SOL,OAI,KOK,WHI,MCPS degraded
+    class PX,SOL,PT,WHI,MCPS degraded
 ```

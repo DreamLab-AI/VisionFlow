@@ -31,7 +31,7 @@ sources:
   - ../project/src/agent_events/provenance.rs
   - ../project/src/services/acsp/client.rs
   - ../project/src/main.rs
-verified_commit: dd82a07b0
+verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
 ---
 
 ## VC-27.1 BotsClient — legacy `:9500` MCP-TCP poller (superseded path)

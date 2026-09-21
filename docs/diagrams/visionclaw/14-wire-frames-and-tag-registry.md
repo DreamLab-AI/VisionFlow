@@ -21,7 +21,7 @@ sources:
   - ../project/client/src/types/binaryProtocol.ts
   - ../project/src/actors/presence_actor.rs
   - ../project/client/src/store/websocket/binaryProtocol.ts
-verified_commit: 36bb64e1e
+verified_commit: f223bbd40
 ---
 
 ## VC-14.1 V3 position record — 52 bytes, little-endian
@@ -102,12 +102,12 @@ classDiagram
 ```mermaid
 flowchart TD
     subgraph GRAPH["/wss graph socket - tag space A"]
-        T03["0x03 Graph position frame V3<br/>52 B per node<br/>utils/binary_protocol.rs:12 PROTOCOL_V3, dispatch :568"]
-        T05["0x05 V5 broadcast envelope wrapping V3<br/>PROTOCOL_V5 branch utils/binary_protocol.rs:592"]
-        T23["0x23 AGENT_ACTION beam event<br/>MessageType::AgentAction :1721"]
-        T34["0x34 BroadcastAck client to server<br/>MessageType::BroadcastAck :1717"]
-        T02["0x02 VoiceData :1711"]
-        T03c["0x03 ControlFrame in MessageType :1713"]
+        T03["0x03 Graph position frame V3<br/>52 B per node<br/>utils/binary_protocol.rs:12 PROTOCOL_V3, dispatch :578"]
+        T05["0x05 V5 broadcast envelope wrapping V3<br/>PROTOCOL_V5 branch utils/binary_protocol.rs:602"]
+        T23["0x23 AGENT_ACTION beam event<br/>MessageType::AgentAction :1785"]
+        T34["0x34 BroadcastAck client to server<br/>MessageType::BroadcastAck :1781"]
+        T02["0x02 VoiceData :1775"]
+        T03c["0x03 ControlFrame in MessageType :1777"]
     end
     subgraph PRESENCE["/ws/presence socket - tag space A sibling"]
         T43["0x43 OPCODE_AVATAR_POSE<br/>crates/visionclaw-xr-presence/src/wire.rs:9"]
@@ -120,7 +120,7 @@ flowchart TD
 
     N1["INVARIANT ADR-2019 tag allocation is per socket - the numeric overlap between 0x05 graph V5 and 0x05 settings is safe only because the sockets are demultiplexed independently"]
     N2["RESOLVED ADR-2060: BASELINE cited the SETTINGS 0x05 as the graph V5 envelope. Corrected, and the registry now warns that a 0x05 citation must always name its socket"]
-    N3["DIVERGENCE MessageType enum (utils/binary_protocol.rs:1705) reuses 0x03 for ControlFrame while PROTOCOL_V3 also uses 0x03 as the position-frame lead byte - disambiguated only by direction and call site"]
+    N3["DIVERGENCE MessageType enum (utils/binary_protocol.rs:1769) reuses 0x03 for ControlFrame while PROTOCOL_V3 also uses 0x03 as the position-frame lead byte - disambiguated only by direction and call site"]
     N4["RESOLVED ADR-2057: the V5 envelope now has an owning ADR fixing its layout [0x05] u64 seq then V3 body, and the broadcast_seq contract"]
     N5["OPEN: the settings binary protocol is still not fully enumerated in the registry - unchanged by the 2026-09-05 remediation"]
     N6["RESOLVED ADR-2060: the legacy 48B/28B ADR figures are marked retired in the governing docs - the wire is 52B, now compile-time locked"]
@@ -139,26 +139,26 @@ sequenceDiagram
     autonumber
     participant SRV as Server encoder<br/>src/utils/binary_protocol.rs
     participant SOCK as WebSocket /wss
-    participant DEC as decode dispatch<br/>utils/binary_protocol.rs:588 match protocol_version
-    participant V3 as decode_node_data_v3<br/>utils/binary_protocol.rs:610
+    participant DEC as decode dispatch<br/>utils/binary_protocol.rs:598 match protocol_version
+    participant V3 as decode_node_data_v3<br/>utils/binary_protocol.rs:620
 
     SRV->>SOCK: frame bytes
-    SOCK->>DEC: data[0] read as protocol_version :585, payload = data[1..] :586
+    SOCK->>DEC: data[0] read as protocol_version :595, payload = data[1..] :596
     alt version == 1
-        Note over DEC: Err "Protocol V1 is no longer supported. Please upgrade client." :589
+        Note over DEC: Err "Protocol V1 is no longer supported. Please upgrade client." :599
     else version == 2
-        Note over DEC: Err "V2 protocol no longer supported. Please upgrade client to V3+." :590
+        Note over DEC: Err "V2 protocol no longer supported. Please upgrade client to V3+." :600
     else version == PROTOCOL_V3 (0x03)
-        DEC->>V3: decode_node_data_v3(payload) :591
-    else version == PROTOCOL_V5 (0x05) :592
+        DEC->>V3: decode_node_data_v3(payload) :601
+    else version == PROTOCOL_V5 (0x05) :602
         Note over DEC: V5 layout is [0x05] then u64 broadcast_seq LE then the V3 body
         alt payload.len() < WIRE_V5_SEQ_SIZE
-            Note over DEC: Err "V5 frame too small for broadcast sequence" :594
+            Note over DEC: Err "V5 frame too small for broadcast sequence" :604
         else
-            DEC->>V3: decode_node_data_v3(&payload[WIRE_V5_SEQ_SIZE..]) :598
+            DEC->>V3: decode_node_data_v3(&payload[WIRE_V5_SEQ_SIZE..]) :608
         end
     else any other byte
-        Note over DEC: Err "Unknown protocol version" :600 - INVARIANT unknown tags are REJECTED, never reinterpreted
+        Note over DEC: Err "Unknown protocol version" :610 - INVARIANT unknown tags are REJECTED, never reinterpreted
     end
     V3->>V3: reject when data.len() % WIRE_V3_ITEM_SIZE != 0
     V3->>V3: expected_nodes = data.len() / WIRE_V3_ITEM_SIZE then chunks_exact(52)
@@ -214,7 +214,9 @@ sequenceDiagram
     participant TS as Web TS decoder<br/>client/src/types/binaryProtocol.ts:410
 
     FCA->>ENC: node tuples plus agent and knowledge id lists
-    ENC->>ENC: per node stamp type flag bits (utils/binary_protocol.rs:455-464) then enforce_wire_id_bounds (utils/binary_protocol.rs:470), to_wire_id_v2 (utils/binary_protocol.rs:488)
+    ENC->>ENC: per node stamp type flag bits (utils/binary_protocol.rs:455-464) then enforce_wire_id_bounds (utils/binary_protocol.rs:480), to_wire_id_v2 (utils/binary_protocol.rs:498)
+    ENC->>ENC: PRE-STAMPED ids forwarded unchanged (utils/binary_protocol.rs:465) when get_node_type is not Unknown
+    Note over ENC: INVARIANT (2026-09-08, 6c47b9833) — position_updates.rs and actor_messages.rs stamp<br/>the class flag themselves and pass EMPTY class sets by contract, so their ids reach the<br/>untyped fall-through with bits 26-31 already set. A compact raw id (ADR-2024) never carries<br/>those bits, so a recognised class pattern means stamped and the encoder forwards it.<br/>Running the 26-bit bound check on a stamped id panicked every broadcast in the dev-runtime<br/>build — each /wss client saw Connection reset without closing handshake on a 2 s loop —<br/>and a release build would have silently stripped the class flag instead.<br/>Regression reads the id back off the wire, utils/binary_protocol.rs:1233
     ENC->>ENC: strip flag bits before SSSP and analytics map lookups
     ENC->>ENC: write 52-byte record - id@0 pos@4 vel@16 sssp_dist@28 sssp_parent@32 cluster@36 anomaly@40 community@44 centrality@48
     Note over ENC: sssp_distance defaults to f32::INFINITY and sssp_parent to -1 when absent
@@ -232,17 +234,17 @@ sequenceDiagram
         TS->>TS: parseBinaryNodeData dispatch on lead byte :185-215
         alt lead byte == PROTOCOL_V5 (0x05) :198-201
             TS->>TS: parseV5Nodes :410 - reject if byteLength < 9 :412, read u64 seq LE :417-419, decode body from offset 9 :422
-            TS->>TS: surface lastBroadcastSequence :459 - store uses it as the ack sequence store/websocket/binaryProtocol.ts:416
+            TS->>TS: surface lastBroadcastSequence :459 - store uses it as the ack sequence store/websocket/binaryProtocol.ts:417
         else lead byte == 0x02 (V2)
-            TS->>TS: DECLINED with a diagnostic - the server rejects V2 at utils/binary_protocol.rs:590
+            TS->>TS: DECLINED with a diagnostic - the server rejects V2 at utils/binary_protocol.rs:600
         else unrecognised version
             TS->>TS: DECLINED - no size autodetection
         end
-        Note over TS: CORRECTED ADR-2078. ADR-2057 Finding 1 was WRONG: the live TS path always<br/>had V5, including the short-payload guard that mirrors the server at :594.<br/>client/src/services/binaryProtocol/ is NOT the live position path - it has no<br/>52-byte decoding at all, so a V5 branch there would have been a SECOND decoder.<br/>The real defect was Finding 2 and it was worse than reported - see the next note
-        Note over TS: RESOLVED ADR-2078. V2 was DECODED, not merely advertised (36-byte records at<br/>client/src/types/binaryProtocol.ts:186-189, routed in at<br/>client/src/store/websocket/binaryProtocol.ts:472-474),<br/>and the default arm re-read any unknown frame from offset 0 as 36-byte records<br/>whenever its length divided by 36 - fabricating nodes from arbitrary payloads.<br/>Both now decline. BINARY_NODE_SIZE_V2 and the size-swap heuristic are deleted
+        Note over TS: CORRECTED ADR-2078. ADR-2057 Finding 1 was WRONG: the live TS path always<br/>had V5, including the short-payload guard that mirrors the server at utils/binary_protocol.rs:604.<br/>client/src/services/binaryProtocol/ is NOT the live position path - it has no<br/>52-byte decoding at all, so a V5 branch there would have been a SECOND decoder.<br/>The real defect was Finding 2 and it was worse than reported - see the next note
+        Note over TS: RESOLVED ADR-2078. V2 was DECODED, not merely advertised (36-byte records at<br/>client/src/types/binaryProtocol.ts:186-189, routed in at<br/>client/src/store/websocket/binaryProtocol.ts:475-477),<br/>and the default arm re-read any unknown frame from offset 0 as 36-byte records<br/>whenever its length divided by 36 - fabricating nodes from arbitrary payloads.<br/>Both now decline. BINARY_NODE_SIZE_V2 and the size-swap heuristic are deleted
         Note over TS: RESOLVED ADR-2078. The TS decoder now has the fixture cross-check the two Rust<br/>decoders always had - client/src/types/__tests__/wireFixtures.test.ts, 12 tests<br/>pinning the same constants as wire_fixtures.rs plus a synthetic V5 round-trip
     end
-    Note over ENC,TS: Shared fixtures crates/visionclaw-protocol/src/wire_fixtures.rs pin the format for both decoders - utils/binary_protocol.rs:941-943 asserts fx::NODE_RECORD_BYTES == WIRE_V3_ITEM_SIZE and fx::NODE_ID_MASK == NODE_ID_MASK, and :948 guards the shared 0x23 fixture against encoder drift
+    Note over ENC,TS: Shared fixtures crates/visionclaw-protocol/src/wire_fixtures.rs pin the format for both decoders - utils/binary_protocol.rs:951-953 asserts fx::NODE_RECORD_BYTES == WIRE_V3_ITEM_SIZE and fx::NODE_ID_MASK == NODE_ID_MASK, and :958 guards the shared 0x23 fixture against encoder drift
 ```
 
 ## VC-14.7 The coexisting binary codecs

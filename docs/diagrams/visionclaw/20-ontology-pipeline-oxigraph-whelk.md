@@ -33,12 +33,13 @@ sources:
   - ../project/src/reasoning/mod.rs
   - ../project/src/services/github_sync_service.rs
   - ../project/src/main.rs
+  - ../project/src/handlers/utils.rs
   - ../project/crates/visionclaw-adapters/src/sparql_migrations.rs
   - ../project/src/actors/gpu/gpu_manager_actor.rs
   - ../project/src/actors/gpu/ontology_constraint_actor.rs
   - ../project/src/actors/gpu/physics_supervisor.rs
   - ../project/src/settings/models.rs
-verified_commit: 36bb64e1e
+verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
 ---
 
 ## VC-20.1 load_ontology bin - actual sample-data loader
@@ -243,30 +244,30 @@ sequenceDiagram
     autonumber
     participant Client
     participant Route as POST /api/ontology/query<br/>src/handlers/api_handler/ontology/mod.rs:1668
-    participant Handler as ontology_handler::query_ontology<br/>src/handlers/ontology_handler.rs:886
-    participant Validator as validate_read_only_sparql<br/>src/handlers/ontology_handler.rs:752
-    participant Clamp as clamp_sparql_limit<br/>src/handlers/ontology_handler.rs:833
+    participant Handler as query_ontology<br/>src/handlers/ontology_handler.rs:903
+    participant Validator as validate_read_only_sparql<br/>src/handlers/ontology_handler.rs:769
+    participant Clamp as clamp_sparql_limit<br/>src/handlers/ontology_handler.rs:850
     participant CQRS as QueryOntologyHandler
-    participant Cap as cap_result_rows<br/>src/handlers/ontology_handler.rs:863
+    participant Cap as cap_result_rows<br/>src/handlers/ontology_handler.rs:880
 
     Client->>Route: POST /ontology/query query
     Note over Route: gated RequireAuth::power_user().mutations_only() (api_handler/ontology/mod.rs:1657)
-    Route->>Handler: query_ontology(auth, state, request) (line 886)
-    Handler->>Validator: validate_read_only_sparql(query) (line 894, defn 752)
+    Route->>Handler: query_ontology(auth, state, request) (ontology_handler.rs:903)
+    Handler->>Validator: validate_read_only_sparql(query) (ontology_handler.rs:911, defn :769)
     alt forbidden keyword INSERT DELETE DROP CLEAR LOAD CREATE ADD MOVE COPY WITH SERVICE
-        Validator-->>Handler: Err operation not permitted (lines 778-788)
+        Validator-->>Handler: Err operation not permitted (ontology_handler.rs:795, :801)
         Handler-->>Client: 400 bad_request
     else no read form present
-        Validator-->>Handler: Err only SELECT ASK CONSTRUCT DESCRIBE permitted (lines 797-802)
+        Validator-->>Handler: Err only SELECT ASK CONSTRUCT DESCRIBE permitted (ontology_handler.rs:814, :816)
         Handler-->>Client: 400 bad_request
     else valid read query
         Validator-->>Handler: Ok
-        Handler->>Clamp: clamp_sparql_limit(query) (line 905, defn 833)
-        Clamp-->>Handler: LIMIT injected or clamped to MAX_SPARQL_ROWS 10000 (line 821-822)
-        Handler->>CQRS: QueryOntologyHandler::handle(QueryOntology query) (line 911)
+        Handler->>Clamp: clamp_sparql_limit(query) (ontology_handler.rs:922, defn :850)
+        Clamp-->>Handler: LIMIT injected or clamped to MAX_SPARQL_ROWS 10000 (ontology_handler.rs:838, :868)
+        Handler->>CQRS: QueryOntologyHandler.handle(QueryOntology query) off the worker (ontology_handler.rs:928, see VC-20.13)
         CQRS-->>Handler: Vec of HashMap string string
-        Handler->>Cap: cap_result_rows(results) (line 917, defn 863)
-        Cap-->>Handler: rows capped at 10000, byte fence MAX_SPARQL_RESULT_BYTES 8388608, truncated flag (lines 866-882)
+        Handler->>Cap: cap_result_rows(results) (ontology_handler.rs:934, defn :880)
+        Cap-->>Handler: rows capped at 10000, byte fence MAX_SPARQL_RESULT_BYTES 8388608, truncated flag (ontology_handler.rs:840, :884, :893)
         Handler-->>Client: 200 results rowCount truncated
     end
     Note over Handler: ADR-2004 - handler-level fence mirrors adapter fence sparql_select_json (crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:882)
@@ -444,4 +445,31 @@ erDiagram
     OxigraphOntologyRepository ||--o{ GRAPH_ONTOLOGY_SUMMARY : "append_derived_quads line 728 fenced see VC-22"
     OxigraphOntologyRepository ||--o{ GRAPH_ONTOLOGY_OBSERVED : "append_derived_quads line 728 fenced see VC-22"
     SparqlMigrations ||--o{ GRAPH_MIGRATIONS : "sparql_migrations.rs:44"
+```
+
+## VC-20.13 Every ontology actix handler dispatches its sync CQRS handler off the worker
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant CL as Client
+    participant AW as actix async worker thread
+    participant H as get_owl_property<br/>src/handlers/ontology_handler.rs:409
+    participant EX as execute_in_thread<br/>src/handlers/utils.rs:1
+    participant BT as tokio blocking thread pool<br/>src/handlers/utils.rs:6
+    participant QH as GetOwlPropertyHandler.handle<br/>src/handlers/ontology_handler.rs:416
+
+    CL->>AW: GET /api/ontology/properties/{iri}
+    AW->>H: handler future polled on the async worker
+    H->>EX: execute_in_thread(move || handler.handle(GetOwlProperty))
+    EX->>BT: tokio::task::spawn_blocking(f)
+    BT->>QH: the sync CQRS handler runs here
+    Note over BT,QH: INVARIANT: the CQRS query handlers are sync-over-async - they<br/>enter a nested block_on. Called inline on an actix worker they panic<br/>with "Cannot start a runtime from within a runtime" and drop the<br/>connection. ontology_handler.rs:419-421, add_owl_property at :488
+    QH-->>BT: Result<Option<OwlProperty>, _>
+    BT-->>EX: JoinHandle resolves
+    EX-->>H: Ok(Ok(Some)) / Ok(Ok(None)) / Ok(Err) / Err
+    Note over H: The four-arm match is uniform across every sibling in this file -<br/>join error is distinguished from handler error. ontology_handler.rs:426-441
+    H-->>CL: 200 property, 404 not found, or 500
+    Note over H,QH: get_owl_property and add_owl_property were the LAST two bare<br/>calls in this file, closed 2026-09-16 (ad8b83ad4). The same defect was<br/>fixed for one endpoint on 2026-08-10 and for add_axiom at<br/>ontology_handler.rs:594.
+    Note over QH: Regression cover: owl_property_handlers_round_trip_off_the_async_worker<br/>ontology_handler.rs:1079, and the bare call pinned as the panic it is at<br/>ontology_handler.rs:1111. DEBT: the wrapping is load-bearing only while<br/>the CQRS handlers stay sync - the test module says to delete it if they<br/>become async-direct. ontology_handler.rs:1054
 ```

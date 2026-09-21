@@ -5,7 +5,7 @@ area: visionclaw
 governing:
   - ../project/docs/XR-client.md
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2032, ADR-2033, ADR-2034, ADR-2035, ADR-2036, ADR-2039, ADR-2076, ADR-2079, ADR-2107]
+adrs: [ADR-2032, ADR-2033, ADR-2034, ADR-2035, ADR-2036, ADR-2039, ADR-2076, ADR-2079, ADR-2107, ADR-2108, ADR-2109]
 sources:
   - ../project/docs/XR-client.md
   - ../project/docs/BASELINE-architecture.md
@@ -53,7 +53,16 @@ sources:
   - ../project/xr-client/materials/edge_flow.gdshader
   - ../project/xr-client/tests/spatial_visual_fixture.gd
   - ../project/xr-client/tests/visual/hud_gallery.gd
-verified_commit: 6dd349544ea9cbda0f5dfd1a4d4f4be7fda52ca6
+  - ../project/xr-client/scripts/agent_choreography.gd
+  - ../project/xr-client/scripts/agent_demo_director.gd
+  - ../project/xr-client/scripts/agent_role.gd
+  - ../project/xr-client/scripts/agent_effects.gd
+  - ../project/xr-client/tests/unit/test_agent_choreography.gd
+  - ../project/xr-client/tests/unit/test_agent_demo_director.gd
+  - ../project/xr-client/tests/unit/test_write_denied_notice.gd
+  - ../project/docs/adr/ADR-2108-dev-profile-arms-visionclaw-dev-mode-by-default.md
+  - ../project/docs/adr/ADR-2109-xr-agent-embodiment-single-pose-owner-and-demo-via-ingest.md
+verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
 ---
 
 ## VC-36.1 Boot — OpenXR init, capability probe, deferred scene swap (ADR-2036)
@@ -161,14 +170,14 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GS as graph_scene.gd _connect_from_env<br/>xr-client/scripts/graph_scene.gd:1146
-    participant CT as connect_to_server<br/>xr-client/scripts/graph_scene.gd:1176
+    participant GS as _connect_from_env<br/>xr-client/scripts/graph_scene.gd:1193
+    participant CT as connect_to_server<br/>xr-client/scripts/graph_scene.gd:1223
     participant BP as BinaryProtocolClient (gdext)<br/>xr-client/rust/src/binary_protocol.rs:864
     participant TR as spawn_graph_stream<br/>xr-client/rust/src/transport.rs:69
     participant SG as NostrSigner<br/>xr-client/rust/src/signer.rs:112
     participant SV as VisionClaw server /wss
 
-    Note over GS: XR_BACKEND_WS default ws://localhost:4000<br/>GRAPH_STREAM_PATH="/wss" graph_scene.gd:68<br/>PRESENCE_PATH="/ws/presence" graph_scene.gd:69
+    Note over GS: XR_BACKEND_WS default ws://localhost:4000<br/>GRAPH_STREAM_PATH="/wss" graph_scene.gd:72<br/>PRESENCE_PATH="/ws/presence" graph_scene.gd:73
     GS->>GS: _env_or("XR_BACKEND_WS", DEFAULT_BACKEND_WS).rstrip("/")
     GS->>CT: connect_to_server(base+"/wss", base+"/ws/presence", XR_ROOM_URN, XR_DISPLAY_NAME, XR_NOSTR_SECRET)
     Note over GS,CT: RESOLVED ADR-2076: no token argument. with_token, the token<br/>parameters of spawn_graph_stream / graph_pump / connect_to_url,<br/>and XR_GRAPH_TOKEN are deleted. Query-token auth is gone from<br/>this client - NIP-98 is the only graph-socket credential. Also RESOLVED<br/>ADR-2058 (2026-09-05, see VC-32.1): the server's own ?token= query fallback is<br/>now compiled out of release entirely and survives only dev-auth-gated with a<br/>SECURITY: warning - BASELINE-architecture.md's "Known divergences" bullet<br/>(:237) recording it as still-open was not updated when ADR-2058 landed.
@@ -213,13 +222,13 @@ stateDiagram-v2
     Authenticated --> Backoff: socket closed
     Backoff --> Connecting: timer expires
     note right of Backoff
-        _backoff_delay(attempts) graph_scene.gd:2333-2337
+        _backoff_delay(attempts) graph_scene.gd:2634-2638
         min(RECONNECT_BASE_DELAY_SEC * 2^(attempts-1), RECONNECT_MAX_DELAY_SEC)
-        base 2.0s graph_scene.gd:20, cap 60.0s graph_scene.gd:21
-        graph socket timer graph_scene.gd:2340
-        presence socket timer graph_scene.gd:2347
+        base 2.0s graph_scene.gd:21, cap 60.0s graph_scene.gd:22
+        graph socket timer graph_scene.gd:2643
+        presence socket timer graph_scene.gd:2651
         INVARIANT the two sockets back off INDEPENDENTLY
-        graph_scene.gd:157-158, 2340, 2347
+        graph_scene.gd:165, 167, 2643, 2651
     end note
 ```
 
@@ -336,9 +345,9 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant GD as graph_scene.gd _process
-    participant UE as _update_edge_multimesh<br/>xr-client/scripts/graph_scene.gd:1833
-    participant UB as _update_beam_multimesh<br/>xr-client/scripts/graph_scene.gd:1855
-    participant RS as RenderStore::build_edge_buffer<br/>xr-client/rust/src/render_store.rs:1555
+    participant UE as _update_edge_multimesh<br/>xr-client/scripts/graph_scene.gd:1886
+    participant UB as _update_beam_multimesh<br/>xr-client/scripts/graph_scene.gd:1908
+    participant RS as build_edge_buffer<br/>xr-client/rust/src/render_store.rs:1602
     participant SC as edge_style_code<br/>xr-client/rust/src/render_store.rs:122
     participant MM as MultiMesh GraphRoot/EdgesMulti<br/>use_custom_data = true
 
@@ -357,7 +366,7 @@ sequenceDiagram
     end
     RS-->>UE: PackedFloat32Array (16 floats/instance)
     UE->>UE: count = buf.size() / 16
-    Note over UE,MM: ADR-2034 INVARIANT: divide by 16, never 12.<br/>A /12 divisor mis-sizes instance_count, set_buffer rejects<br/>EVERY frame and all edges vanish (regression 63d9bb9b8).<br/>graph_scene.gd:1839-1843
+    Note over UE,MM: ADR-2034 INVARIANT: divide by 16, never 12.<br/>A /12 divisor mis-sizes instance_count, set_buffer rejects<br/>EVERY frame and all edges vanish (regression 63d9bb9b8).<br/>graph_scene.gd:1893-1897
     opt mm.instance_count != count
         UE->>MM: instance_count = count
     end
@@ -369,32 +378,39 @@ sequenceDiagram
         UB-->>GD: return (BREAK - older gdext build)
     end
     UB->>RS: build_beam_buffer(EDGE_WORLD_RADIUS / (BEAM_MESH_RADIUS * _graph_scale))
+    RS->>RS: source = published embodiment anchor, else the streamed agent node
+    Note over RS: ADR-2109 INVARIANT: the beam starts at the BODY the user sees.<br/>build_beam_buffer prefers agent_anchors over the streamed node<br/>position, so a synthetic agent with no node still beams.<br/>Anchors are visual-only, positions and physics untouched.<br/>render_store.rs:1693, set_agent_anchors render_store.rs:884
     RS-->>UB: agent-to-target beams, same stride 16, status code in custom .a
     UB->>UB: count = buf.size() / 16
     UB->>MM: GraphRoot/AgentMulti instance_count + buffer
     Note over UB: ADR-2034 server-which/client-where: the server owns WHICH node<br/>an agent works on plus status. The capsule room-position and the<br/>work-beam geometry are client concerns. Beam count = live<br/>working/blocked agents (tens), so this runs every frame.
 ```
 
-## VC-36.8 HUD — shared instrument theme, seven tabs and press-mode controls
+## VC-36.8 HUD, shared instrument theme, eight tabs and press-mode controls
 
 ```mermaid
 sequenceDiagram
     participant W as Controller ray
-    participant HUD as HUD build<br/>xr-client/scripts/hud.gd:205
-    participant Theme as Shared XRTheme<br/>xr-client/scripts/xr_theme.gd:25
-    participant Press as Press-mode helper<br/>xr-client/scripts/hud.gd:284
-    participant Env as SpatialEnvironment<br/>xr-client/scripts/spatial_environment.gd:132
+    participant HUD as _build_ui<br/>xr-client/scripts/hud.gd:242
+    participant Theme as XRTheme.create<br/>xr-client/scripts/xr_theme.gd:24
+    participant Press as _press_fire<br/>xr-client/scripts/hud.gd:321
+    participant Env as SpatialEnvironment._bind_hud<br/>xr-client/scripts/spatial_environment.gd:138
     HUD->>Theme: create opaque surfaces, typography and focus outlines
-    HUD->>HUD: build seven tabs<br/>xr-client/scripts/hud.gd:289
+    HUD->>HUD: _build_tab_bar over TAB_ORDER<br/>xr-client/scripts/hud.gd:326
+    Note over HUD: TAB_ORDER = graph, layout, query, pins, swarm, key, session, help<br/>hud.gd:161. The colour Key tab was added 2026-09-08 (a37433f5d),<br/>so this HUD now has EIGHT pages, not seven.
+    HUD->>HUD: _build_key_page mirrors the live palette<br/>xr-client/scripts/hud.gd:600
+    Note over HUD: DEBT: the Key swatch constants are duplicated from their<br/>sources by design, the same posture as SWARM_STATUS_COLORS,<br/>so a palette change must be made twice. hud.gd:169, hud.gd:633
     HUD->>Press: create buttons and CheckButtons with press firing
     Note over Press: ADR-2033 press behaviour retained. Fresh headset jitter acceptance remains open.
-    HUD->>HUD: Help includes reduced-motion and low-cost controls<br/>xr-client/scripts/hud.gd:594
+    HUD->>HUD: Help includes reduced-motion and low-cost controls<br/>xr-client/scripts/hud.gd:730
     Env->>HUD: deferred bind after world-space reparent and synchronise preferences
     W->>HUD: press comfort toggle
-    HUD->>Env: control_pressed visual_motion or visual_quality
+    HUD->>Env: control_pressed visual_motion or visual_quality<br/>xr-client/scripts/hud.gd:84
     Env->>Env: apply scene-local reversible rendering budget<br/>xr-client/scripts/spatial_environment.gd:99
-    Env->>HUD: set_visual_comfort without re-emitting<br/>xr-client/scripts/hud.gd:1270
-    Note over HUD: Overflow and overlay shield remain explicit<br/>xr-client/scripts/hud.gd:810<br/>xr-client/scripts/hud.gd:798
+    Env->>HUD: set_visual_comfort without re-emitting<br/>xr-client/scripts/hud.gd:1429
+    HUD->>HUD: flash_notice writes the bottom strip on EVERY tab<br/>xr-client/scripts/hud.gd:970, rendered at hud.gd:1245
+    Note over HUD: ADR-2108: a rejected server write used to reach only push_warning,<br/>invisible in the headset. The strip is now the in-HMD channel for it.
+    Note over HUD: Overflow guard and overlay shield remain explicit<br/>xr-client/scripts/hud.gd:946<br/>xr-client/scripts/hud.gd:934
 ```
 
 ## VC-36.9 Agent co-presence and the 0x23 work-beam data plane
@@ -407,7 +423,7 @@ sequenceDiagram
     participant DA as decode agent-action batch<br/>xr-client/rust/src/binary_protocol.rs:781
     participant AS as avatar_state AgentAvatarNode<br/>xr-client/rust/src/avatar_state.rs:444
     participant RS as RenderStore beam buffer<br/>xr-client/rust/src/render_store.rs:481
-    participant HD as hud.gd swarm tab<br/>xr-client/scripts/hud.gd:163
+    participant HD as _build_swarm_page<br/>xr-client/scripts/hud.gd:528
 
     Note over SV,BP: MSG_AGENT_ACTION = 0x23 binary_protocol.rs:728.<br/>Fanned to every /wss client on the SAME binary path as<br/>position frames - separated from 0x03/0x05 by the leading byte.
     SV-->>BP: [0x23][u16 count]([u16 ev_len][ev_len bytes])*
@@ -417,22 +433,23 @@ sequenceDiagram
     else
         loop count events
             DA->>DA: source u32 | target u32 | action u8 | ts u32 | task line
-            Note right of DA: build_agent_action_frame mirrors the server<br/>encode_agent_actions binary_protocol.rs:1638-1641
+            Note right of DA: build_agent_action_frame mirrors the server<br/>encode_agent_actions binary_protocol.rs:1680
         end
         DA-->>BP: Vec<AgentAction>
     end
     BP->>AS: update per-agent activity + gaze attention
-    BP->>BP: record last_agent_action instant binary_protocol.rs:881
-    Note over BP: last_agent_action_age_ms returns -1 if none has arrived<br/>binary_protocol.rs:1120 - P1 liveness probe
+    BP->>BP: record last_agent_action instant binary_protocol.rs:1597
+    Note over BP: last_agent_action_age_ms returns -1 if none has arrived<br/>binary_protocol.rs:1122 - P1 liveness probe
     AS->>RS: agent status -> beam target + status code
-    RS-->>RS: beam re-routes to the fold representative when the<br/>real target is folded away (render_store.rs:1875 test)
+    RS-->>RS: beam re-routes to the fold representative when the<br/>real target is folded away (render_store.rs:1954 test)
     BP->>HD: swarm roster update
-    HD->>HD: SWARM_STATUS_COLORS {0 idle slate, 1 working green,<br/>2 blocked amber-red, 3 done cyan-white} hud.gd:163-168
+    HD->>HD: SWARM_STATUS_COLORS {0 idle slate, 1 working green,<br/>2 blocked amber-red, 3 done cyan-white} hud.gd:169
     Note over HD: Mirrors render_store::agent_status_color - ADR-140 Pillar 3
-    Note over AS,RS: DOC-DRIFT: docs/XR-client.md:236 still records 'action timestamps are stored without<br/>freshness checks, and old actions can overwrite JSON done/idle with working'. The code<br/>refutes it since ADR-2034: record_agent_action rejects an action no newer than the record's<br/>evidence_ts (render_store.rs:738-740) and set_agent_state_at does the same (:794-796), both<br/>via ts_is_newer (:469). Stale hits increment agent_actions_stale / agent_states_stale, and<br/>expire_stale_agents (:816-822) ages records out. The governing doc is the stale side here
+    Note over AS,RS: INVARIANT: evidence only moves forward. record_agent_action rejects an<br/>action no newer than the record's evidence_ts (render_store.rs:745) and<br/>set_agent_state_at does the same (render_store.rs:801), both via ts_is_newer<br/>(render_store.rs:469). Stale hits increment agent_actions_stale /<br/>agent_states_stale and expire_stale_agents (render_store.rs:823) ages records out.<br/>RESOLVED: the XR-client.md paragraph that claimed actions were stored without<br/>freshness checks has been superseded in the governing doc
     RS->>RS: agent_hover_offset(target, agent_id, HOVER_RADIUS)
-    Note over RS: Hover motion IS implemented. Golden-angle walk 2.3999632 rad keyed by<br/>agent id fans multiple agents around one node instead of stacking them,<br/>lifted by HOVER_LIFT. HOVER_RADIUS = 1.5 render_store.rs:401, :408-418
-    Note over RS: Per-node target priority render_store.rs:1385-1399 - a grabbed node is<br/>pinned, an ACTIVE AGENT hovers at its target (local hover point, not a<br/>server position), a member folding IN chases its representative, everything<br/>else eases to self.targets. DIVERGENCE agent endpoints use LOCAL positions<br/>directly while beam targets are fold-remapped and drawn-gated - the closeout<br/>asks for explicit state precedence, expiry and visible stale/error handling.<br/>docs/XR-client.md 'Estate closeout qualification 2026-09-04'
+    Note over RS: Hover motion IS implemented. Golden-angle walk 2.3999632 rad keyed by<br/>agent id fans multiple agents around one node instead of stacking them,<br/>lifted by HOVER_LIFT. HOVER_RADIUS = 1.5 render_store.rs:401, :411-421
+    Note over RS: Per-node target priority render_store.rs:1435-1450 - a grabbed node is<br/>pinned, an ACTIVE AGENT hovers at its target (local hover point, not a<br/>server position), a member folding IN chases its representative, everything<br/>else eases to self.targets. DIVERGENCE agent endpoints use LOCAL positions<br/>directly while beam targets are fold-remapped and drawn-gated - the closeout<br/>asks for explicit state precedence, expiry and visible stale/error handling.<br/>docs/XR-client.md 'Estate closeout qualification 2026-09-04'
+    Note over RS,HD: ADR-2109 changed WHERE a beam starts, not what feeds the registry.<br/>The registry is now also the source of embodiment - see VC-36.21.<br/>graph_scene.gd:2279
 ```
 
 ## VC-36.10 Presence socket — challenge/auth/joined handshake and 0x43 pose traffic
@@ -480,8 +497,8 @@ sequenceDiagram
     autonumber
     participant HD as hud.gd control_pressed
     participant GS as graph_scene.gd handler
-    participant HB as _http_base<br/>xr-client/scripts/graph_scene.gd:1164
-    participant AH as _auth_headers<br/>xr-client/scripts/graph_scene.gd:1084
+    participant HB as _http_base<br/>xr-client/scripts/graph_scene.gd:1211
+    participant AH as _auth_headers<br/>xr-client/scripts/graph_scene.gd:1114
     participant NA as NostrAuth (gdext)<br/>xr-client/rust/src/signer.rs:194
     participant SV as VisionClaw REST
 
@@ -502,19 +519,23 @@ sequenceDiagram
         NA->>NA: nip98_http_authorization signer.rs:124
         NA-->>AH: "Nostr <b64 kind-27235>"
         AH-->>GS: Authorization: Nostr <b64>
-        Note over AH,NA: INVARIANT the signed URL must be the EXACT request URL<br/>including query, or the server tag check fails.<br/>graph_scene.gd:1079-1080, docs/XR-client.md INVARIANT 6
+        Note over AH,NA: INVARIANT the signed URL must be the EXACT request URL<br/>including query, or the server tag check fails.<br/>graph_scene.gd:1108-1109, docs/XR-client.md INVARIANT 6
     else no real secret
         AH-->>GS: Authorization: PHYSICS_BEARER
         AH-->>GS: X-Nostr-Pubkey: <pubkey_hex>
-        Note over AH: DIVERGENCE the legacy dev bearer path still exists and is<br/>still constructed by the client and it 401s in release builds.<br/>_nostr_secret_present gates it graph_scene.gd:85-90.<br/>docs/XR-client.md 'Known divergences' bullet 5
+        Note over AH: DIVERGENCE the legacy dev bearer path still exists and is<br/>still constructed by the client. The server refuses it for any<br/>non-loopback peer, so the HP headset never passes it.<br/>_nostr_secret_present gates it graph_scene.gd:94, :450, :1116.<br/>docs/XR-client.md 'Known divergences' bullet 5
     end
     AH-->>GS: Content-Type: application/json
-    GS->>SV: POST /api/settings/physics/reset-layout graph_scene.gd:1098
-    GS->>SV: PUT /api/settings/physics?graph=knowledge graph_scene.gd:1121
-    GS->>SV: GET /api/graph/fold?level=<n> graph_scene.gd:852
-    GS->>SV: GET /api/graph/node/<id>/relations graph_scene.gd:2838
-    GS->>SV: POST /api/canary/observe/<CANARY_M4_RAY> graph_scene.gd:2270
-    Note over GS,SV: hud.gd's intervention decide POST uses the same signing path<br/>via hud.configure_intervention(_http_base(), _nostr_auth) graph_scene.gd:705
+    GS->>SV: POST /api/settings/physics/reset-layout graph_scene.gd:1131
+    GS->>SV: PUT /api/settings/physics?graph=knowledge graph_scene.gd:1173
+    GS->>SV: GET /api/graph/fold?level=<n> graph_scene.gd:878
+    GS->>SV: GET /api/graph/node/<id>/relations graph_scene.gd:3139
+    GS->>SV: POST /api/canary/observe/<CANARY_M4_RAY> graph_scene.gd:2571
+    Note over GS,SV: hud.gd's intervention decide POST uses the same signing path<br/>via hud.configure_intervention(_http_base(), _nostr_auth) graph_scene.gd:720
+    SV-->>GS: 401 or 403
+    GS->>GS: _describe_write_failure names status, credential path and remedy<br/>xr-client/scripts/graph_scene.gd:1153
+    GS->>HD: hud.flash_notice(_last_write_error) graph_scene.gd:1100
+    Note over GS,HD: ADR-2108: the HP is never a loopback peer, so before this landed<br/>every server-routed HUD write 401d into an invisible push_warning.<br/>GUT cover: test_write_denied_notice.gd:16, :30, :38
 ```
 
 ## VC-36.12 Constrained layouts and the DAG-rank label accept (ADR-2035)
@@ -524,24 +545,24 @@ sequenceDiagram
     autonumber
     participant HD as hud.gd Layout tab
     participant GS as graph_scene.gd
-    participant PM as _post_layout_mode<br/>xr-client/scripts/graph_scene.gd:986
-    participant PR as _post_radial<br/>xr-client/scripts/graph_scene.gd:1006
+    participant PM as _post_layout_mode<br/>xr-client/scripts/graph_scene.gd:1012
+    participant PR as _post_radial<br/>xr-client/scripts/graph_scene.gd:1032
     participant LH as layout_handler.rs<br/>src/handlers/layout_handler.rs:10
     participant FC as force_compute_actor.rs<br/>src/actors/gpu/force_compute_actor.rs:581
     participant DR as compute_dag_ranks<br/>src/actors/gpu/force_compute_actor.rs:591
 
-    Note over GS: LAYOUT_MODES = [forceDirected, hierarchical, radial, spectral,<br/>temporal, clustered] graph_scene.gd:218 - server enumerates the<br/>same list at layout_handler.rs:10
+    Note over GS: LAYOUT_MODES = [forceDirected, hierarchical, radial, spectral,<br/>temporal, clustered] graph_scene.gd:222 - server enumerates the<br/>same list at layout_handler.rs:10
     HD->>GS: control_pressed("layout_cycle")
-    GS->>GS: next_idx = (_layout_mode_idx + 1) % LAYOUT_MODES.size() graph_scene.gd:978
+    GS->>GS: next_idx = (_layout_mode_idx + 1) % LAYOUT_MODES.size() graph_scene.gd:1004
     GS->>PM: _post_layout_mode(LAYOUT_MODES[next_idx])
     PM->>LH: POST /api/layout/mode + NIP-98 header
     HD->>GS: control_pressed("radial:<dagRank|typeTier|ego>")
     GS->>PR: _post_radial(mode)
     PR->>LH: POST /api/layout/radial (server layout_handler.rs:140-171)
     HD->>GS: Hierarchy toggle
-    GS->>LH: PUT dagBiasK = 0.6 on / 0.0 off graph_scene.gd:914-921
+    GS->>LH: PUT dagBiasK = 0.6 on / 0.0 off graph_scene.gd:946
     HD->>GS: Shells +/- nudge
-    GS->>LH: PUT dagLevelDistance
+    GS->>LH: PUT dagLevelDistance graph_scene.gd:958
     LH->>FC: SetRadialLayout{DagRank}
     loop each edge
         FC->>FC: is_directed_hierarchy_relation(rel)
@@ -679,31 +700,31 @@ flowchart LR
     XI --> SA["SelectionArbiterNode<br/>xr-client/rust/src/selection.rs:407"]
 ```
 
-## VC-36.15 VISIONCLAW_DEV_MODE LAN bypass from the headset's perspective (ADR-2039)
+## VC-36.15 VISIONCLAW_DEV_MODE LAN bypass from the headset's perspective (ADR-2039, ADR-2108)
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant HP as HP-Desktop headset client<br/>godot --path xr-client
-    participant CO as docker-compose.unified.yml<br/>docker-compose.unified.yml:85
-    participant MN as main.rs boot guard<br/>project/src/main.rs:132
+    participant CO as dev service environment<br/>docker-compose.unified.yml:90
+    participant MN as enforce_release_env_hygiene<br/>project/src/main.rs:132
     participant DM as dev_mode_enabled<br/>src/utils/auth.rs:100
     participant AU as auth resolve<br/>src/utils/auth.rs:154
     participant SV as VisionClaw handlers
 
     rect rgb(240, 232, 210)
-        Note over CO: VISIONCLAW_DEV_MODE: "${VISIONCLAW_DEV_MODE:-0}"<br/>docker-compose.unified.yml:85 - DEV SERVICE ONLY.<br/>Not in the *common-environment anchor, not in the production<br/>service, so the :-0 default never reaches a release deploy.<br/>docker-compose.unified.yml:79-84
+        Note over CO: VISIONCLAW_DEV_MODE: "${VISIONCLAW_DEV_MODE:-1}"<br/>docker-compose.unified.yml:90 - DEV SERVICE ONLY.<br/>ADR-2108 flipped the default from :-0 to :-1 on 2026-09-08, so<br/>launch.sh up dev boots an ARMED backend and the operator opts OUT<br/>with VISIONCLAW_DEV_MODE=0. Still not in the *common-environment<br/>anchor and not in the production service, so the default never<br/>reaches a release deploy. docker-compose.unified.yml:83-86
     end
     CO->>MN: process env
     alt release build and the var is merely PRESENT
         MN-->>MN: REFUSE TO BOOT (ADR-06 D11)
-        Note right of MN: project/src/main.rs:109 - a release binary physically cannot<br/>honour SETTINGS_AUTH_BYPASS / VISIONCLAW_DEV_MODE.<br/>Caveat: both services load env_file .env, so the var must<br/>never sit in a .env shared with prod.<br/>docker-compose.unified.yml:85-86
+        Note right of MN: project/src/main.rs:109 - a release binary physically cannot<br/>honour SETTINGS_AUTH_BYPASS / VISIONCLAW_DEV_MODE.<br/>Caveat: both services load env_file .env, so the var must<br/>never sit in a .env shared with prod - sharper now that the<br/>compose default supplies it unasked.<br/>docker-compose.unified.yml:87-89
     else dev / dev-auth build
         MN->>DM: dev_mode_enabled()
         alt value in {1, true, TRUE with surrounding space}
             DM-->>MN: true
-            MN-->>MN: warn banner "VISIONCLAW_DEV_MODE=1 - LAN-LOCAL AUTH BYPASS ACTIVE"<br/>project/src/main.rs:282
-            Note over MN: Every request granted as DEV_MODE_PUBKEY<br/>= "dev-mode-local-admin" src/utils/auth.rs:79, project/src/main.rs:283
+            MN-->>MN: warn banner "VISIONCLAW_DEV_MODE=1 - LAN-LOCAL AUTH BYPASS ACTIVE"<br/>project/src/main.rs:288
+            Note over MN: Every request granted as DEV_MODE_PUBKEY<br/>= "dev-mode-local-admin" src/utils/auth.rs:79, project/src/main.rs:291
         else 0, yes, unset
             DM-->>MN: false
         end
@@ -714,11 +735,12 @@ sequenceDiagram
         AU-->>SV: Ok(DEV_MODE_PUBKEY)
         Note over AU: LAN-local FULL bypass, peer-agnostic: no NIP-98,<br/>no token, no peer check. src/utils/auth.rs:154-169
         SV-->>HP: drag / pin / physics writes all accepted
-        Note over HP,SV: This is what makes a 100%-local headset over the 25G rail<br/>friction-free: XR_NOSTR_SECRET can be empty and the<br/>ephemeral signer still works. graph_scene.gd:425-430
+        Note over HP,SV: This is what makes a 100%-local headset over the 25G rail<br/>friction-free: XR_NOSTR_SECRET can be empty and the<br/>ephemeral signer still works. graph_scene.gd:446-451
     else dev mode off
         AU->>AU: require NIP-98 / bearer / peer check
         alt no credential
             AU-->>HP: 401 - drag/pin refused, read stream still served
+            Note over HP: ADR-2108 INVARIANT: the refusal is now VISIBLE in the headset.<br/>_describe_write_failure names the status, the credential path and<br/>the remedy, and hud.flash_notice puts it on the bottom strip of<br/>every tab. graph_scene.gd:1153, hud.gd:970
         end
     end
 ```
@@ -758,6 +780,7 @@ sequenceDiagram
         end
     end
     Note over OP: GUT scene tests xr-client/tests/unit/: test_scene_load, test_hud_tabs,<br/>test_hud_intervention, test_swarm_tab, test_query_builder,<br/>test_graph_agents, test_agent_avatar, test_agent_beam,<br/>test_did_badge, test_xr_config - runner xr-client/tests/run_gut.gd
+    Note over OP: ADR-2109 added five: test_agent_choreography.gd:30 (materialise then travel),<br/>:54 (head turns never move a working agent), :68 (explicit done parks at<br/>0.3 alpha and stays selectable), test_agent_demo_director.gd:75 (byte-exact<br/>0x23 layout), :105 (real targets, keep-alive, Stop retires exactly the demo<br/>ids). ADR-2108 added test_write_denied_notice.gd:16
 ```
 
 ## VC-36.17 Quest 3 APK export target — declared, unbuilt
@@ -776,6 +799,8 @@ flowchart TB
     CP --> PD
     RM --> EP
     EP --> D1
+    RM --> D3
+    D3["TENSION: project.godot:2 still calls the Quest 3 APK the ship target,<br/>while the scripts were reworded on 2026-09-09 to name Quest 3 the<br/>PLANNED standalone target and the Vive on SteamVR the deploy path.<br/>xr-client/scripts/graph_scene.gd:25, xr-client/scripts/xr_boot.gd:45"]
     D1["DIVERGENCE: the APK is UNBUILT and the cross-build is FROZEN -<br/>no Android NDK is provisioned in this environment.<br/>Quest 3 is the sole ship target (project.godot:2) yet no Quest<br/>performance number exists; 90fps at 13,164 nodes / 145,692 edges<br/>was measured only on VIVE Pro + dual RTX 6000 desktop OpenXR.<br/>docs/XR-client.md 'Known divergences' bullet 2<br/>docs/BASELINE-architecture.md:209-210"]
     PD --> D2
     D2["DIVERGENCE: RECORD_AUDIO / MODIFY_AUDIO_SETTINGS exist for a<br/>LiveKit media transport that is NOT wired on any built target.<br/>SpatialVoiceRouter (webrtc_audio.rs:140) owns only the routing<br/>maths and the per-avatar position map - voice is design-complete,<br/>transport-absent. docs/XR-client.md 'Known divergences' bullet 3<br/>see VC-35 for the browser voice path"]
@@ -786,13 +811,13 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant HD as hud.gd Query tab<br/>xr-client/scripts/hud.gd:425
+    participant HD as _build_query_page<br/>xr-client/scripts/hud.gd:469
     participant QB as query_builder.gd<br/>xr-client/scripts/query_builder.gd
     participant GS as graph_scene.gd
     participant SV as server /api/graph/query/pattern
     participant PM as plane_manager.gd<br/>xr-client/scripts/plane_manager.gd
 
-    HD->>HD: Execute button built via _press_fire hud.gd:425
+    HD->>HD: Execute button built via _press_fire hud.gd:321
     HD->>GS: control_pressed("query_execute")
     GS->>QB: read EXECUTE_ENABLED
     alt EXECUTE_ENABLED false
@@ -808,7 +833,7 @@ sequenceDiagram
             Note right of GS: DIVERGENCE: server correctness and the user-visible<br/>denied/error states are UNVERIFIED. Query Execute is<br/>implemented but runtime acceptance remains open.<br/>docs/XR-client.md 'Known divergences' bullet 4
         end
     end
-    HD->>HD: Clear button hud.gd:436
+    HD->>HD: Clear button built by _action_btn hud.gd:823
     Note over HD,PM: DIVERGENCE: no headset/scene/shader test covers this path.<br/>The 218 passing Rust library tests exclude Godot-facing runtime<br/>classes by cfg(test) and source and helper results do not certify<br/>Godot execution. docs/XR-client.md closeout 2026-09-04
 ```
 
@@ -817,11 +842,11 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GS as graph_scene.gd _update_proximity_labels<br/>xr-client/scripts/graph_scene.gd:572
-    participant SL as _set_labelled_nodes<br/>xr-client/scripts/graph_scene.gd:673
-    participant BP as BinaryProtocolClient::set_labelled<br/>xr-client/rust/src/binary_protocol.rs:1222
-    participant RS as RenderStore<br/>xr-client/rust/src/render_store.rs:955
-    participant UM as _update_multimesh<br/>xr-client/scripts/graph_scene.gd:1802
+    participant GS as _update_proximity_labels<br/>xr-client/scripts/graph_scene.gd:586
+    participant SL as _set_labelled_nodes<br/>xr-client/scripts/graph_scene.gd:687
+    participant BP as set_labelled<br/>xr-client/rust/src/binary_protocol.rs:1261
+    participant RS as RenderStore.set_labelled<br/>xr-client/rust/src/render_store.rs:1002
+    participant UM as _update_multimesh<br/>xr-client/scripts/graph_scene.gd:1855
     participant NM as NodesMulti (opaque, gem.tres)
     participant NF as NodesFadedMulti (transparent, gem_faded.tres)<br/>xr-client/scenes/GraphScene.tscn:98
 
@@ -829,33 +854,33 @@ sequenceDiagram
         GS->>GS: shown = ids whose proximity/grab label text != ""
         loop each pool slot
             GS->>GS: a = distance-fade alpha for this label
-            alt a > LABEL_VISIBLE_MIN_A (0.05) graph_scene.gd:657
+            alt a > LABEL_VISIBLE_MIN_A (0.05) graph_scene.gd:151, :672
                 GS->>SL: labelled.append(node_id)
             end
         end
         GS->>SL: _set_labelled_nodes(labelled)
-        SL->>BP: set_labelled(ids) binary_protocol.rs:1222
-        BP->>RS: store.set_labelled(&v) render_store.rs:955
+        SL->>BP: set_labelled(ids) binary_protocol.rs:1261
+        BP->>RS: store.set_labelled(&v) render_store.rs:1002
         RS->>RS: labelled.clear() then extend(ids)<br/>label_alpha.entry(id).or_insert(1.0)
     end
-    Note over RS: Rather than make gem.tres transparent (all ~2.5k instances in the<br/>transparent queue, no depth write, broken overlap ordering), a labelled<br/>node is routed to a SECOND MultiMesh (NodesFadedMulti) instead.<br/>render_store.rs:100-107, commit f508937dd
+    Note over RS: Rather than make gem.tres transparent (all ~2.5k instances in the<br/>transparent queue, no depth write, broken overlap ordering), a labelled<br/>node is routed to a SECOND MultiMesh (NodesFadedMulti) instead.<br/>render_store.rs:103, :107, commit f508937dd
     loop every build_node_buffer (~45 Hz)
-        UM->>RS: build_node_buffer(ids, ...) render_store.rs:1440
-        RS->>RS: step_label_fades() render_store.rs:976<br/>labelled id: alpha -= LABEL_FADE_STEP (0.1), floor LABEL_FADE_ALPHA (0.3)<br/>dropped id: alpha += LABEL_FADE_STEP, ceil 1.0, pruned once >= 1.0
-        loop each drawn id (emit_node render_store.rs:1494)
+        UM->>RS: build_node_buffer(ids, ...) render_store.rs:1487
+        RS->>RS: step_label_fades() render_store.rs:1023<br/>labelled id: alpha -= LABEL_FADE_STEP (0.1), floor LABEL_FADE_ALPHA (0.3)<br/>dropped id: alpha += LABEL_FADE_STEP, ceil 1.0, pruned once >= 1.0
+        loop each drawn id (emit_node render_store.rs:1541)
             alt label_alpha has an entry for id
                 RS->>RS: col[3] = alpha, append to faded_buf (NOT buf)
             else
                 RS->>RS: append to buf (opaque, alpha 1.0)
             end
         end
-        RS-->>UM: buf (opaque) via build_node_buffer<br/>faded_buf via faded_node_buffer() render_store.rs:971
-        UM->>NM: buffer = buf, instance_count = buf.size()/20<br/>graph_scene.gd:1810-1815
-        UM->>NF: buffer = faded_buf, instance_count = faded_buf.size()/20<br/>graph_scene.gd:1818-1828
+        RS-->>UM: buf (opaque) via build_node_buffer<br/>faded_buf via faded_node_buffer() render_store.rs:1018
+        UM->>NM: buffer = buf, instance_count = buf.size()/20<br/>graph_scene.gd:1863-1868
+        UM->>NF: buffer = faded_buf, instance_count = faded_buf.size()/20<br/>graph_scene.gd:1875-1881
     end
-    Note over RS,NF: INVARIANT a fading/labelled node still enters drawn +<br/>render_ids/render_positions in emit_node (render_store.rs:1535-1550)<br/>even though it left the opaque buffer, so edges still attach to it and<br/>the interaction ray still hits it.
+    Note over RS,NF: INVARIANT a fading/labelled node still enters drawn +<br/>render_ids/render_positions in emit_node (render_store.rs:1595-1597)<br/>even though it left the opaque buffer, so edges still attach to it and<br/>the interaction ray still hits it.
     Note over NF: node_halo.gdshader multiplies rim ALPHA by COLOR.a<br/>(node_halo.gdshader:55, :86) so the halo dims with the sphere too.
-    Note right of RS: Tests - fade-in to 0.3 and stay hittable<br/>labelled_node_moves_to_faded_buffer_and_eases_to_label_alpha<br/>render_store.rs:2419. Fade-out back to opaque<br/>unlabelled_node_fades_back_then_returns_to_opaque_buffer<br/>render_store.rs:2442. Replace-set and clear resets fades<br/>set_labelled_replaces_the_set_and_clear_resets_fades render_store.rs:2464
+    Note right of RS: Tests - fade-in to 0.3 and stay hittable<br/>labelled_node_moves_to_faded_buffer_and_eases_to_label_alpha<br/>render_store.rs:2525. Fade-out back to opaque<br/>unlabelled_node_fades_back_then_returns_to_opaque_buffer<br/>render_store.rs:2548. Replace-set and clear resets fades<br/>set_labelled_replaces_the_set_and_clear_resets_fades render_store.rs:2570
 ```
 
 ## VC-36.20 Spatial visual experience and its validation boundary (ADR-2107)
@@ -867,7 +892,8 @@ flowchart TB
     Grid["Stationary metre grid<br/>transparent, no depth write; never an opaque floor<br/>xr-client/materials/spatial_floor.gdshader:4"]
     Focus["Current target or grab at actual world depth<br/>350 ms expiry; scale-compensated node radius preserved<br/>xr-client/scripts/spatial_environment.gd:72"]
     Comfort["Reduced motion ON by default<br/>Low cost removes grid, halo and MSAA<br/>xr-client/scripts/spatial_environment.gd:99"]
-    Agents["Agent motion respects same preference<br/>status colour and badge retained<br/>xr-client/scripts/agent_avatar.gd:171"]
+    MSAA["INVARIANT: MSAA stays off whenever the viewport is an XR viewport.<br/>Under Compat the OpenXR multiview swapchain cannot be multisampled,<br/>so forcing it leaves both eye framebuffers incomplete and the headset<br/>goes black. viewport.use_xr is the gate.<br/>xr-client/scripts/spatial_environment.gd:111"]
+    Agents["Agent motion respects the same preference<br/>status colour and badge retained; alpha is the choreography's<br/>xr-client/scripts/agent_avatar.gd:169"]
     Fixture["Offline production-material fixture<br/>48 opaque + 1 faded node, 60 edges, 4 relation styles<br/>xr-client/tests/spatial_visual_fixture.gd:7"]
     Gallery["Seven HUD tabs and radial gallery<br/>xr-client/tests/visual/hud_gallery.gd"]
     Limits["Observed desktop GL renders and GUT assertions<br/>No fresh headset, live authenticated graph or Quest frame-budget certification"]
@@ -875,8 +901,153 @@ flowchart TB
     Env --> Grid
     Env --> Focus
     Env --> Comfort
-    Comfort --> Agents
+    Comfort --> MSAA
+    MSAA --> Agents
     Scene --> Fixture
     Fixture --> Limits
     Gallery --> Limits
+```
+
+## VC-36.21 Registry to embodiment, the ~4 Hz reconcile (ADR-2109)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant PR as _process label cadence<br/>xr-client/scripts/graph_scene.gd:1353
+    participant RC as _reconcile_embodiment<br/>xr-client/scripts/graph_scene.gd:2279
+    participant BP as BinaryProtocolClient registry<br/>xr-client/rust/src/binary_protocol.rs:864
+    participant SP as _spawn_work_agent<br/>xr-client/scripts/graph_scene.gd:2311
+    participant CH as AgentChoreography.add_agent<br/>xr-client/scripts/agent_choreography.gd:65
+    participant RL as AgentRole.infer<br/>xr-client/scripts/agent_role.gd:62
+    participant DS as _despawn_work_agent<br/>xr-client/scripts/graph_scene.gd:2347
+
+    PR->>RC: every LABEL_UPDATE_SEC (~4 Hz), alongside the proximity labels
+    RC->>BP: agent_ids()
+    loop each id in the Rust registry
+        alt not yet embodied
+            RC->>SP: _spawn_work_agent(id, "agent_<id>")
+            SP->>SP: instantiate AgentAvatar under AgentsRoot/AgentSpawner<br/>xr-client/scripts/graph_scene.gd:407
+            Note over SP: ADR-2109 INVARIANT: embodiments hang off the UNIT-SCALE AgentsRoot,<br/>never under GraphRoot. Under GraphRoot they inherited the fit scale and<br/>a 0.15 m orb rendered as about 5 mm. graph_scene.gd:406, :408
+            SP->>RL: infer(display_name, "")
+            RL-->>SP: architect, analyst, coder, reviewer, tester, optimizer or generic<br/>xr-client/scripts/agent_role.gd:18
+            SP->>SP: place at _rim_slot(cursor), alpha 0<br/>xr-client/scripts/graph_scene.gd:2334
+            SP->>CH: add_agent(sid, rim, 0.0, rim)
+        end
+        RC->>BP: agent_status, agent_target_node, agent_task
+        RC->>CH: update_registry(sid, status, has_target, target_id, target_world)<br/>xr-client/scripts/agent_choreography.gd:108
+        Note over RC,CH: to_global converts the streamed server position to world metres<br/>graph_scene.gd:2268. Server owns WHICH node, status and task, the<br/>client owns WHERE in the room (ADR-140 motion-authority split).
+        opt role still generic
+            RC->>RL: infer(display_name, task) - a live agent may reveal its role in the task line
+        end
+    end
+    loop each embodied id no longer in the registry
+        RC->>DS: _despawn_work_agent(id) - remove record, clear its work ring, free the node
+    end
+    Note over RC: DEBT: the reconcile walks the whole registry every tick and rebuilds<br/>nothing incrementally. That is cheap at swarm scale (tens) and would not<br/>be at graph scale. graph_scene.gd:2279
+```
+
+## VC-36.22 The single pose owner, one embodiment's phase machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> Materialise
+    Materialise --> Travel: settled and live with a target
+    Materialise --> Rest: settled but idle or no target
+    Travel --> Arrive: move finished
+    Arrive --> Work: ARRIVE_SEC elapsed
+    Work --> Travel: registry target changed, hand-off
+    Work --> Complete: status becomes done
+    Work --> Park: target lost or status idle
+    Arrive --> Complete: status becomes done
+    Complete --> Park: COMPLETE_SEC elapsed
+    Park --> Travel: live again with a target
+    Park --> Rest: move finished
+    Rest --> Travel: live again with a target
+    note right of Work
+        agent_choreography.gd is the SOLE writer of a work-layer
+        embodiment's position and alpha. tick agent_choreography.gd:120
+        pose agent_choreography.gd:126, applied graph_scene.gd:2443
+        INVARIANT the proxemics arc places CONVERSATION-layer avatars only
+        graph_scene.gd:2159, graph_scene.gd:2416
+        INVARIANT nudge targets, idle radial drift and random graph points
+        are deleted and must not return, ADR-2109 Consequences
+    end note
+    note left of Park
+        TRAVEL_SPEED 0.32 m per second agent_choreography.gd:36
+        SLOT_DISTANCE 0.32 m off the node agent_choreography.gd:42
+        HEAD_EXCLUSION 1.0 m agent_choreography.gd:45
+        ALPHA_PARKED 0.3, parked agents stay selectable
+        agent_choreography.gd:46
+        Reduced motion replaces travel with fade, relocate, fade
+        agent_choreography.gd:49
+        Explicit done is the completion beat, the 30 s evidence TTL
+        is the only other exit from working
+        render_store.rs:823
+    end note
+```
+
+## VC-36.23 Demo mode is a producer of synthetic 0x23 frames through the real door (ADR-2109)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant HD as Swarm tab Start Agent Demo<br/>xr-client/scripts/hud.gd:534
+    participant GS as _toggle_demo<br/>xr-client/scripts/graph_scene.gd:3669
+    participant DD as AgentDemoDirector.start<br/>xr-client/scripts/agent_demo_director.gd:104
+    participant EN as encode_action_frame<br/>xr-client/scripts/agent_demo_director.gd:325
+    participant BP as BinaryProtocolClient.ingest<br/>xr-client/rust/src/binary_protocol.rs:1105
+    participant ST as RenderStore agent registry<br/>xr-client/rust/src/render_store.rs:731
+
+    HD->>GS: control_pressed("toggle_demo") graph_scene.gd:794
+    GS->>DD: start(_binary_client, _server_to_world)
+    DD->>DD: _build_adjacency from get_edges, _pick_candidates, _separated_starts<br/>xr-client/scripts/agent_demo_director.gd:224
+    alt no candidate nodes
+        DD-->>GS: false, HUD flashes "Demo needs a loaded graph" graph_scene.gd:3675
+    else running
+        loop per role, staggered STAGGER_SEC
+            DD->>EN: {source: 0x80000000 | 0xD001..0xD006, target: a REAL node id,<br/>action, ts, duration_ms, payload {"intent": caption}}
+            Note over EN: [0x23][u16 count]([u16 len][u32 src][u32 tgt][u8 action]<br/>[u32 ts][u16 dur][payload])* - byte-for-byte the server's own<br/>encode_agent_actions layout. agent_demo_director.gd:325
+            EN-->>DD: PackedByteArray
+            DD->>BP: ingest(frame)
+            BP->>ST: record_agent_action - the SAME door a live swarm uses
+            DD->>DD: keep alive every KEEPALIVE_SEC 5.0 so evidence never ages out<br/>xr-client/scripts/agent_demo_director.gd:30
+        end
+        DD->>BP: server_clock_ms() stamps every ts from the ADR-2034 clock anchor<br/>xr-client/rust/src/binary_protocol.rs:1217
+        Note over DD,BP: INVARIANT demo evidence orders and expires alongside live evidence<br/>because it rides the same clock. agent_demo_director.gd:211
+        DD->>BP: apply_agent_state(wire, "done", caption) on completion<br/>xr-client/rust/src/binary_protocol.rs:1230
+    end
+    HD->>GS: press again
+    GS->>DD: stop()
+    DD->>BP: retire_agents(demo_wire_ids()) binary_protocol.rs:1206
+    BP->>ST: remove record and anchor outright render_store.rs:908
+    Note over DD,ST: ADR-2109 INVARIANT: no fake position frames, no scene-side demo<br/>branch, and the synthetic agents carry NO demo marker in names,<br/>frames, roster rows or payloads. Provenance is the reserved id<br/>range 0xD001-0xD0FF alone. agent_demo_director.gd:25, agent_demo_director.gd:87
+    Note over DD,ST: A demo regression is therefore a production regression: the demo<br/>exercises exactly the live path. Cover: byte-exact layout<br/>test_agent_demo_director.gd:75, Stop retires exactly the demo ids<br/>test_agent_demo_director.gd:105
+```
+
+## VC-36.24 What an embodied agent is made of, and the effects that follow it
+
+```mermaid
+flowchart TB
+    subgraph body["Body - one AgentAvatar under AgentsRoot"]
+        CORE["Faceted core, CORE_RADIUS 0.14 m<br/>xr-client/scripts/agent_avatar.gd:52"]
+        FRAME["Procedural role frame, six shapes plus generic hoop<br/>frame_mesh caches per role<br/>xr-client/scripts/agent_role.gd:80"]
+        PTR["Pointer cone, POINTER_LENGTH 0.09 m, aimed at the target<br/>xr-client/scripts/agent_avatar.gd:53, set_aim agent_avatar.gd:267"]
+        BADGE["World-size badge, two-letter role code plus name<br/>set_work_identity xr-client/scripts/agent_avatar.gd:240"]
+        CAP["Task caption, shown only while announcing or selected<br/>set_caption_visible xr-client/scripts/agent_avatar.gd:227"]
+    end
+    subgraph fx["Work cues - AgentEffects under AgentEffectsRoot"]
+        RING["Pulsing ring on the node being worked<br/>set_ring xr-client/scripts/agent_effects.gd:104"]
+        BEADS["Hand-off packet beads along the REAL edge<br/>send_packets xr-client/scripts/agent_effects.gd:86"]
+        FLASH["600 ms arrival flash on the body<br/>flash xr-client/scripts/agent_avatar.gd:219"]
+        BURST["Completion burst<br/>burst xr-client/scripts/agent_effects.gd:118"]
+        BEAM["Work beam on GraphRoot/AgentMulti, origin at the anchor<br/>xr-client/rust/src/render_store.rs:1693"]
+    end
+    EV["_choreo.take_events drains depart, arrive, handoff, complete, park<br/>xr-client/scripts/agent_choreography.gd:145"]
+    RM["Reduced motion default ON: beads, flash and hover suppressed<br/>xr-client/scripts/graph_scene.gd:2394"]
+    TOG["Agents layer toggle hides AgentsRoot and AgentEffectsRoot only<br/>choreography, registry, handles and physics keep running<br/>xr-client/scripts/graph_scene.gd:821"]
+    CORE --> FRAME --> PTR --> BADGE --> CAP
+    CAP --> EV
+    EV --> RING --> BEADS --> FLASH --> BURST --> BEAM
+    BEAM --> RM --> TOG
+    TOG --> INV["INVARIANT: anchors are visual only. set_agent_anchors never<br/>touches node positions or physics, and an agent with no anchor<br/>falls back to its streamed node position.<br/>xr-client/rust/src/render_store.rs:884"]
 ```

@@ -20,6 +20,8 @@ sources:
   - ../project/crates/visionclaw-adapters/src/provenance_emitter.rs
   - ../project/src/services/provenance_writer.rs
   - ../project/src/services/provenance_trace.rs
+  - ../project/src/services/intent_match.rs
+  - ../project/migrations/sqlite/0006_kpi_agent_event_intent.sql
   - ../project/src/handlers/ingest_writeback_handler.rs
   - ../project/src/handlers/enrichment_proposals_handler.rs
   - ../project/src/handlers/trace_handler.rs
@@ -37,7 +39,7 @@ sources:
   - ../project/docker-compose.unified.yml
   - ../project/src/app_state.rs
   - ../project/src/services/ontology_mutation_service.rs
-verified_commit: dd82a07b0
+verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2, agentbox: b7b1ab81a6ed0680bb10026e17935152a23e0c5e}
 ---
 
 ## VC-22.1 Write-master per data class
@@ -184,7 +186,7 @@ erDiagram
 
     ENRICHMENT_PROPOSALS ||--o{ ENRICHMENT_DECISIONS : "case_id (sqlite_enrichment_repository.rs:87)"
     LIVENESS_CANARIES ||--o{ CANARY_FIRES : "canary_id (sqlite_canary_repository.rs:64)"
-    KPI_SNAPSHOTS ||--o{ KPI_LINEAGE : "snapshot_id (sqlite_kpi_repository.rs:101)"
+    KPI_SNAPSHOTS ||--o{ KPI_LINEAGE : "snapshot_id (sqlite_kpi_repository.rs:104)"
     SETTINGS ||--|| USER_ROLES : "same settings.sqlite3 connection (role_store.rs:5, app_state.rs:462-469)"
 ```
 
@@ -251,21 +253,21 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant TH as unified_trace<br/>src/handlers/trace_handler.rs:35
-    participant SVC as ProvenanceTraceService<br/>src/services/provenance_trace.rs:291
-    participant KPI as SqliteKpiRepository<br/>src/adapters/sqlite_kpi_repository.rs:352 trajectories_since
-    participant ENR as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs:718 provenance_decisions_since
-    participant JOIN as build_trace<br/>src/services/provenance_trace.rs:174
+    participant SVC as ProvenanceTraceService<br/>src/services/provenance_trace.rs:307
+    participant KPI as trajectories_since<br/>src/adapters/sqlite_kpi_repository.rs:368
+    participant ENR as provenance_decisions_since<br/>src/adapters/sqlite_enrichment_repository.rs:910
+    participant JOIN as build_trace<br/>src/services/provenance_trace.rs:185
     participant LH as LivenessHarness<br/>src/handlers/trace_handler.rs:64
 
     C->>TH: GET /api/trace agent window_ms (trace_handler.rs:76)
     TH->>SVC: ProvenanceTraceService::new(enrichment_repo, kpi_repo) (trace_handler.rs:39-42)
     TH->>SVC: query(window, agent_did) (trace_handler.rs:44)
-    SVC->>KPI: trajectories_since(cutoff) (provenance_trace.rs:316)
-    SVC->>ENR: provenance_decisions_since(cutoff) (provenance_trace.rs:321)
+    SVC->>KPI: trajectories_since(cutoff) (provenance_trace.rs:338)
+    SVC->>ENR: provenance_decisions_since(cutoff) (provenance_trace.rs:343)
     opt agent filter present
-        SVC->>SVC: retain rows where agent_did matches (provenance_trace.rs:327-328)
+        SVC->>SVC: retain rows where agent_did matches (provenance_trace.rs:348, :349)
     end
-    SVC->>JOIN: build_trace(trajectories, decisions, pod_marks empty, pod_source_available false) (provenance_trace.rs:332-337)
+    SVC->>JOIN: build_trace(trajectories, decisions, pod_marks empty, pod_source_available false) (provenance_trace.rs:353)
     JOIN-->>SVC: ProvenanceTrace sources_present sources_absent joins
     alt joins_multiple_source_kinds true
         TH->>LH: observe(CANARY_REC11_TRACE, evidence) (trace_handler.rs:63-65)
@@ -274,7 +276,10 @@ sequenceDiagram
     end
     TH-->>C: 200 JSON ProvenanceTrace
     Note over SVC,ENR: this trace reads only the two SQLite-backed sources - it does NOT query the Oxigraph GRAPH_PROVENANCE<br/>append-only graph ADR-2016 covers (ADR-2016 consumer closeout 2026-09-05)
-    Note over JOIN: pod_git_mark source is hardcoded pod_source_available false, always reported sources_absent here (provenance_trace.rs:336)
+    JOIN->>JOIN: intent_match(declared intent, action type, target urn)<br/>src/services/intent_match.rs:218
+    Note over JOIN: ADR-2110 FR5.2: an agent-event record now carries the DECLARED<br/>intent verbatim and a three-valued verdict. null means NO CLAIM WAS MADE,<br/>which is not the same as a failed claim. Decision and git-mark records<br/>carry neither. provenance_trace.rs:202, :218, :230
+    Note over KPI: INVARIANT: the declaration is persisted verbatim on kpi_agent_events<br/>rather than re-derived at read time, so a later reading cannot soften it.<br/>migrations/sqlite/0006_kpi_agent_event_intent.sql:1, row field at<br/>src/adapters/sqlite_kpi_repository.rs:245
+    Note over JOIN: pod_git_mark source is hardcoded pod_source_available false, always reported sources_absent here (provenance_trace.rs:242)
 ```
 
 ## VC-22.6 Erasure — `deleteAgentMemory` Pod path (RuVector tombstone gap)
@@ -367,7 +372,7 @@ sequenceDiagram
         APD->>SUM: append_derived_summary INSERT DATA :summary (enrichment_proposals_handler.rs:446, oxigraph_ontology_repository.rs:782-786)
         SUM->>PROV: prov:wasGeneratedBy marker on each subject (oxigraph_ontology_repository.rs:818-824)
     end
-    Note over APD,SUM: no cross-store 2PC - the durable decision commits in SQLite first (writeback_triggered=true) - the Oxigraph<br/>write is best-effort, writeback_committed flips only on Ok (enrichment_proposals_handler.rs:443-465)
+    Note over APD,SUM: no cross-store 2PC - the durable decision commits in SQLite first (writeback_triggered=true) - the Oxigraph<br/>write is best-effort, writeback_committed flips only on Ok (enrichment_proposals_handler.rs:587, :600)
 ```
 
 ## VC-22.9 RBAC open-by-default posture on a read
@@ -378,15 +383,15 @@ sequenceDiagram
     participant C as Anonymous or unassigned client
     participant GATE as RbacGateMiddleware<br/>src/middleware/rbac_gate.rs:230
     participant REQ as required_level<br/>src/middleware/rbac_gate.rs:138
-    participant BOOT as main.rs RBAC bootstrap<br/>src/main.rs:717-740
+    participant BOOT as main.rs RBAC bootstrap<br/>src/main.rs:754
     participant RS as RoleStore.effective_role<br/>src/services/role_store.rs:359
 
-    Note over BOOT: RBAC_PUBLIC_READS is fail-closed in code - .unwrap_or(false) (rbac_gate.rs:126-133) - and set on only by compose (docker-compose.unified.yml:93)
-    BOOT->>BOOT: RBAC_ALLOW_OWNERLESS env check (main.rs:764, const at role_store.rs:33)
-    alt no Owner assigned AND RBAC_ALLOW_OWNERLESS=1 (main.rs:769)
+    Note over BOOT: RBAC_PUBLIC_READS is fail-closed in code - .unwrap_or(false) (rbac_gate.rs:126-133) - and set on only by compose (docker-compose.unified.yml:99)
+    BOOT->>BOOT: RBAC_ALLOW_OWNERLESS env check (main.rs:770, const at role_store.rs:33)
+    alt no Owner assigned AND RBAC_ALLOW_OWNERLESS=1 (main.rs:770, :777)
         BOOT->>BOOT: warn, run owner-less, only POWER_USER_PUBKEYS to Admin fallback applies
     else no Owner assigned and flag unset
-        BOOT--xBOOT: FATAL refuse to start, fail-closed (main.rs:747-756)
+        BOOT--xBOOT: FATAL refuse to start, fail-closed (main.rs:784, :790)
     end
     C->>GATE: GET /api/graph/data (safe method)
     GATE->>REQ: required_level(GET, path, public_reads=true)
@@ -407,7 +412,7 @@ sequenceDiagram
         end
     end
     rect rgb(255, 230, 230)
-    Note over BOOT,RS: CORRECTED ADR-2070 (raised by estate ADR-2087) - the CODE fails closed:<br/>public_reads_enabled() ends .unwrap_or(false) (rbac_gate.rs:126-133) and main.rs:730-735 refuses to<br/>start owner-less unless RBAC_ALLOW_OWNERLESS is set. The shipped compose inverts both<br/>(docker-compose.unified.yml:93,94, ${VAR:-1}), so an unassigned pubkey resolves to Editor<br/>(role_store.rs:359). The open posture is ADR-2027's deliberate demo default and stays.
+    Note over BOOT,RS: CORRECTED ADR-2070 (raised by estate ADR-2087) - the CODE fails closed:<br/>public_reads_enabled() ends .unwrap_or(false) (rbac_gate.rs:126-133) and main.rs:730-735 refuses to<br/>start owner-less unless RBAC_ALLOW_OWNERLESS is set. The shipped compose inverts both<br/>(docker-compose.unified.yml:99, :100, with the :-1 default), so an unassigned pubkey resolves to Editor<br/>(role_store.rs:359). The open posture is ADR-2027's deliberate demo default and stays.
     end
 ```
 

@@ -41,7 +41,7 @@ sources:
   - ../project/src/services/nostr_bead_publisher.rs
   - ../project/src/services/ontology_enrichment_service.rs
   - ../project/src/services/schema_service.rs
-verified_commit: dd82a07b0
+verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
 ---
 
 ## VC-25.1 Insight loop trace assembly (REC-10, compute-on-read)
@@ -119,40 +119,45 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant K as KpiComputeService::compute_and_persist<br/>src/services/kpi_compute.rs:216
-    participant KR as SqliteKpiRepository<br/>src/adapters/sqlite_kpi_repository.rs:259
+    participant K as compute_and_persist<br/>src/services/kpi_compute.rs:387
+    participant KR as SqliteKpiRepository<br/>src/adapters/sqlite_kpi_repository.rs:274
     participant ER as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs
     participant LH as LivenessHarness<br/>src/services/liveness_harness.rs
 
-    Note over K: KPI_WINDOW_MS = 30 days rolling window (ADR-043 legacy ref, not in docs/adr/)<br/>src/services/kpi_compute.rs:42
+    Note over K: KPI_WINDOW_MS = 30 days rolling window (ADR-043 legacy ref, not in docs/adr/)<br/>src/services/kpi_compute.rs:45
     C->>K: compute_and_persist()
-    K->>KR: count_agent_events_since(window_start) - kpi_agent_events<br/>src/adapters/sqlite_kpi_repository.rs:387
+    K->>KR: count_agent_events_since(window_start) - kpi_agent_events<br/>src/adapters/sqlite_kpi_repository.rs:404
     KR-->>K: agent_volume
-    K->>ER: decisions_since(window_start) - enrichment_decisions
+    K->>ER: decisions_since(window_start) - enrichment_decisions<br/>src/adapters/sqlite_enrichment_repository.rs:716
     ER-->>K: decisions (outcome, activity_urn)
-    K->>K: augmentation_ratio(agent_volume, escalation_volume)<br/>src/services/kpi_compute.rs:74
+    K->>ER: decided_cases_since(window_start)<br/>src/adapters/sqlite_enrichment_repository.rs:749
+    ER-->>K: decided-case rows (case, outcome, decided_by)
+    K->>K: augmentation_ratio(agent_volume, escalation_volume)<br/>src/services/kpi_compute.rs:82, called at :423
     alt escalation_volume == 0
         K->>K: (value=0.0, confidence=0.0) - undefined ratio, never Inf/NaN
     else escalation_volume > 0
         K->>K: value = agent_volume/escalation_volume, confidence = sample_confidence(sum)
     end
     critical persist augmentation_ratio snapshot + lineage in one transaction
-        K->>KR: insert_snapshot_with_lineage(ar_snapshot, ar_lineage)<br/>src/adapters/sqlite_kpi_repository.rs:410
-        KR->>KR: tx = c.transaction() then INSERT kpi_snapshots then INSERT kpi_lineage per row then tx.commit()<br/>src/adapters/sqlite_kpi_repository.rs:419-457
+        K->>KR: insert_snapshot_with_lineage(ar_snapshot, ar_lineage)<br/>src/adapters/sqlite_kpi_repository.rs:427
+        KR->>KR: tx = c.transaction() then INSERT kpi_snapshots then INSERT kpi_lineage per row then tx.commit()<br/>src/adapters/sqlite_kpi_repository.rs:436, :440, :461
         KR-->>K: ar_id
     end
-    K->>K: trust_variance(outcomes) - Gini-Simpson 1-sum(p^2) normalised<br/>src/services/kpi_compute.rs:90
+    K->>K: trust_variance(outcomes) - Gini-Simpson 1-sum(p^2) normalised<br/>src/services/kpi_compute.rs:98, called at :458
+    Note over K: ADR-2110 INVARIANT: an outcome decided by the reserved non-DID actor<br/>system:whelk-gate is excluded from the Trust Variance human-outcome<br/>series and from BOTH terms of HITL Precision, so a reasoner verdict<br/>cannot read as a human override.<br/>src/services/kpi_compute.rs:140, :143
     critical persist trust_variance snapshot + lineage in one transaction
         K->>KR: insert_snapshot_with_lineage(tv_snapshot, tv_lineage)
         KR-->>K: tv_id
     end
-    K->>LH: observe(CANARY_REC4_KPI, evidence)<br/>src/services/kpi_compute.rs:317
-    K-->>C: KpiSummary{ar_tile, tv_tile, mesh_tile(awaiting), hitl_tile(awaiting)}
-    Note over K: mesh_tile and hitl_tile always status=awaiting_data_source, value=None - never fabricated<br/>src/services/kpi_compute.rs:352-361
+    K->>K: decided_cases_with_intent then hitl_precision<br/>src/services/kpi_compute.rs:270, :213, called at :419, :420
+    K->>LH: observe(CANARY_REC4_KPI, evidence)<br/>src/services/kpi_compute.rs:510
+    K-->>C: KpiSummary with ar_tile, tv_tile, mesh_tile, hitl_tile<br/>src/services/kpi_compute.rs:622
+    Note over K: ADR-2110 FR5.3: hitl_tile is no longer a stub. It is computed as<br/>warranted over decided across human-decided cases, and at a zero<br/>denominator it reports status no_decided_cases with value None and<br/>the denominator still stated - never a number.<br/>src/services/kpi_compute.rs:554, :556, :559
+    Note over K: mesh_tile alone still reports status awaiting_data_source with no value -<br/>never fabricated. src/services/kpi_compute.rs:330, :545
 
     Note over KR: separate passive tap task (not this request path):
-    loop rx.recv().await on /wss/agent-events hub - src/services/kpi_compute.rs:391
-        KR->>KR: record_agent_trajectory - INSERT kpi_agent_events(event_id,source_agent_id,action_type,...,agent_did,handoff_id)<br/>src/adapters/sqlite_kpi_repository.rs:319-347
+    loop rx.recv().await on /wss/agent-events hub - src/services/kpi_compute.rs:630, :650
+        KR->>KR: record_agent_trajectory - INSERT kpi_agent_events with event_id,<br/>source_agent_id, action_type, agent_did, handoff_id and the<br/>ADR-2110 intent column<br/>src/adapters/sqlite_kpi_repository.rs:334, :245
     end
 ```
 
@@ -165,7 +170,7 @@ sequenceDiagram
     participant Cfg as configure_routes<br/>src/handlers/kpi_handler.rs:47
     participant S as summary handler<br/>src/handlers/kpi_handler.rs:25
     participant Lin as lineage handler<br/>src/handlers/kpi_handler.rs:33
-    participant K as KpiComputeService<br/>src/services/kpi_compute.rs:188
+    participant K as KpiComputeService<br/>src/services/kpi_compute.rs:359
 
     Note over Cfg: scope /kpi mounted under /api - src/handlers/kpi_handler.rs:47-52
     C->>S: GET /kpi/summary
@@ -176,8 +181,8 @@ sequenceDiagram
         S-->>C: 500 {error: e}
     end
     C->>Lin: GET /kpi/lineage/{snapshot_id}
-    Lin->>K: lineage_for(snapshot_id)<br/>src/services/kpi_compute.rs:372
-    K->>K: kpi_repo.lineage_for(snapshot_id) - SELECT kpi_lineage WHERE snapshot_id<br/>src/adapters/sqlite_kpi_repository.rs:488
+    Lin->>K: lineage_for(snapshot_id)<br/>src/services/kpi_compute.rs:630
+    K->>K: kpi_repo.lineage_for(snapshot_id) - SELECT kpi_lineage WHERE snapshot_id<br/>src/adapters/sqlite_kpi_repository.rs:505
     alt Ok(rows)
         Lin-->>C: 200 {snapshot_id, lineage: Vec~KpiLineageRow~}
     else Err(e)
@@ -301,7 +306,7 @@ sequenceDiagram
             H-->>C: 200 {error: "Translation failed", message}
         else block found
             S->>S: validate_sparql(sparql) - delegates to the shared read-only validator<br/>src/services/natural_language_query_service.rs:106
-            S->>S: validate_read_only_sparql - SELECT/ASK/CONSTRUCT/DESCRIBE only<br/>src/handlers/ontology_handler.rs:752
+            S->>S: validate_read_only_sparql - SELECT/ASK/CONSTRUCT/DESCRIBE only<br/>src/handlers/ontology_handler.rs:769
             alt mutating form (INSERT/DELETE/DROP/CLEAR/LOAD)
                 S-->>H: Err - rejected, not a read-only query
                 H-->>C: 200 {error: "Translation failed", message}

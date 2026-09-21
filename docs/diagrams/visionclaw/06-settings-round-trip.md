@@ -26,13 +26,13 @@ sources:
   - ../project/client/src/types/generated/settings.ts
   - ../project/src/handlers/nostr_handler.rs
   - ../project/src/middleware/rbac_gate.rs
-verified_commit: 36bb64e1e
+verified_commit: f223bbd40
 ---
 
 ## VC-06.1 Settings route surface and the actor behind it
 ```mermaid
 flowchart TB
-    S["web::scope('/settings') + RateLimit::per_minute(60)<br/>src/main.rs:1071-1074"]
+    S["web::scope('/settings') + RateLimit::per_minute(60)<br/>src/main.rs:1106-1109"]
     S --> CFG["settings::api::configure_routes<br/>src/settings/api/settings_routes.rs:1736"]
     CFG --> P["GET|PUT physics settings_routes.rs:1739-1740<br/>POST physics/reset-layout :1741"]
     CFG --> C["GET|PUT constraints settings_routes.rs:1742-1743"]
@@ -44,12 +44,12 @@ flowchart TB
     CFG --> PR["POST|GET profiles settings_routes.rs:1753-1754<br/>GET|DELETE profiles/{id} :1755-1756"]
     CFG --> U["nested scope /user<br/>GET|PUT /filter settings_routes.rs:1760-1762"]
     ACT["state.settings_addr : Addr of OptimizedSettingsActor<br/>src/app_state.rs:353, started src/app_state.rs:1152"]
-    REPO["settings_repo : web::Data of Arc of SqliteSettingsRepository<br/>injected src/main.rs:1013"]
+    REPO["settings_repo : web::Data of Arc of SqliteSettingsRepository<br/>injected src/main.rs:1048"]
     P --> ACT
     P --> REPO
-    N1["INVARIANT — /api/settings writes require the WriteSettings capability at the RbacGate<br/>src/main.rs:1059-1065. Request-time gate behaviour see VC-03.6"]
+    N1["INVARIANT — /api/settings writes require the WriteSettings capability at the RbacGate<br/>src/main.rs:1094-1100. Request-time gate behaviour see VC-03.6"]
     S --- N1
-    N2["DIVERGENCE — the settings hot-reload watcher is DISABLED, src/app_state.rs:1179-1181<br/>reason recorded in code: it was causing database deadlocks"]
+    N2["DIVERGENCE — the settings hot-reload watcher is DISABLED, src/app_state.rs:1163-1166<br/>reason recorded in code: it was causing database deadlocks"]
     ACT --- N2
 ```
 
@@ -322,7 +322,7 @@ sequenceDiagram
     Note over B,F: output_path is the literal "client/src/types/generated/settings.ts" (:18)<br/>the parent directory is created if absent (:19-21)
     B->>F: fs::metadata(output_path) then log the byte size (:34)
     Note over D,F: ADR-2041 — the generated types emit `knowledge`, never `logseq`.<br/>path_accessible_impls resolves both segments server-side (src/config/path_accessible_impls.rs:160 and :185)<br/>Full alias lifecycle see VC-09.15
-    Note over B: server-side YAML is snake_case, the JSON and TS surface is camelCase —<br/>the serde alias behaviour is asserted at boot, src/main.rs:300-320
+    Note over B: server-side YAML is snake_case, the JSON and TS surface is camelCase —<br/>the serde alias behaviour is asserted at boot, src/main.rs:306-322
 ```
 
 ## VC-06.10 RESOLVED ADR-2046 — the dead SettingsActor surface and what replaced it

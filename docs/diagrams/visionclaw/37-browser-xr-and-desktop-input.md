@@ -23,7 +23,9 @@ sources:
   - ../project/xr-client/project.godot
   - ../project/client/src/app/App.tsx
   - ../project/client/src/services/remoteLogger.ts
-verified_commit: 36bb64e1e
+  - ../project/client/src/features/graph/contexts/NodePositionContext.tsx
+  - ../project/client/src/features/bots/components/BotsVisualization.tsx
+verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
 ---
 
 ## VC-37.1 Browser XR capability probe — what platformManager actually does
@@ -304,6 +306,8 @@ flowchart LR
         GMx["GraphManager.tsx useFrame<br/>client/src/features/graph/components/GraphManager.tsx"]
         SAB["SharedArrayBuffer node positions"]
         ILx["InstancedLabels.tsx<br/>client/src/features/graph/components/InstancedLabels.tsx"]
+        NPC["NodePositionContext module singleton<br/>sharedNodePositions and sharedNodeIdToIndexMap<br/>client/src/features/graph/contexts/NodePositionContext.tsx:8"]
+        BVx["BotsVisualization reads the same live buffer<br/>client/src/features/bots/components/BotsVisualization.tsx:28"]
     end
     SP --> HKx["useSpacePilot useThree camera, scene, gl<br/>useSpacePilot.ts:49"] --> CAM
     HT --> HPCx["HeadTrackedParallaxController useThree camera, size<br/>HeadTrackedParallaxController.tsx:14"] --> CAM
@@ -313,10 +317,14 @@ flowchart LR
     GMx --> SAB
     SAB --> ILx
     GMx --> ILx
+    GMx --> NPC
+    NPC --> BVx
     ILx --> NOTE1
     NOTE1["RESOLVED ADR-2081: the isXRMode prop chain from the platform store<br/>through GraphManager into InstancedLabels is deleted, along with the<br/>constant-false vrMode parameter of buildLabelLines. Label layout no<br/>longer takes an XR input, because there was never an XR session to<br/>signal. Metadata lines previously gated on !vrMode now render<br/>whenever showMetadata is set - behaviour-preserving."]
     inputs --> NOTE2
     NOTE2["INVARIANT both spatial inputs mutate the SAME R3F camera and<br/>write nothing into the SharedArrayBuffer. Position data flows<br/>one way - websocket to SAB to renderer (VC-32, VC-31) - so an<br/>input device can never desynchronise graph state."]
+    NPC --> NOTE3
+    NOTE3["DEBT: NodePositionContext is named a context but is a module-level<br/>mutable singleton, not a React context. GraphManager publishes the live<br/>buffer on every frame (GraphManager.tsx:431) and the id map on every<br/>node-set change (GraphManager.tsx:75), and the agent overlay reads it<br/>directly. Nothing invalidates a stale reader after a remount.<br/>NodePositionContext.tsx:13"]
 ```
 
 ## VC-37.8 Browser path versus the shipped Godot path

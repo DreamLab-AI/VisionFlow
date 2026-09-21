@@ -101,7 +101,7 @@ sources:
   - ../project/client/src/features/design-system/components/SearchInput.tsx
   - ../project/client/src/features/ontology/components/OntologyContribution.tsx
   - ../project/src/services/broker_events.rs
-verified_commit: 36bb64e1e
+verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
 ---
 ## VC-34.1 settings — field edit to server PUT
 ```mermaid
@@ -285,9 +285,9 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Q as AcspCaseQueue.tsx<br/>client/src/features/control-center/governance/AcspCaseQueue.tsx:13
+    participant Q as AcspCaseQueue<br/>client/src/features/control-center/governance/AcspCaseQueue.tsx:168
     participant H as useBrokerCaseQueue<br/>client/src/features/control-center/governance/useBrokerCaseQueue.ts:32
-    participant Pure as brokerCaseQueue.ts pure helpers<br/>parseBrokerEvent:41, toCaseView:81, applyBrokerEvent:116
+    participant Pure as brokerCaseQueue.ts pure helpers<br/>governance/brokerCaseQueue.ts:80, :148, :277
     participant UAC as unifiedApiClient
     participant WSS as webSocketService<br/>client/src/store/websocketStore.ts
     participant SRV as broker_events.rs handlers (WS-9/WS-12)
@@ -311,12 +311,20 @@ sequenceDiagram
         H->>Pure: applyBrokerEvent(openIds, event) - ambient count updates instantly
         H->>H: refresh() - full case list re-fetched for metadata
     end
-    Q->>H: decide(caseId, outcome, reasoning)
+    H->>Pure: sortOldestFirst(views) and caseAgeLabel(createdAt, now)<br/>governance/brokerCaseQueue.ts:233, :251
+    Note over Q: ADR-2110 FR6.5: the queue sorts OLDEST FIRST and badges each case's<br/>age, so a stalled judgment is visible rather than silently buried.<br/>AcspCaseQueue.tsx:27, :65
+    Q->>Q: human types their own rationale into the case card<br/>AcspCaseQueue.tsx:62, :126
+    Q->>Pure: canPublishDecision(view.tier, rationale)<br/>governance/brokerCaseQueue.ts:219, called at AcspCaseQueue.tsx:64
+    Note over Q,Pure: ADR-2110 FR2.2 INVARIANT: the decision carries the human's text BYTE<br/>FOR BYTE and the UI authors nothing. The former<br/>operator-verb-via-control-centre template is deleted - a rationale the<br/>human did not write is a fabricated judgement (DDD invariant 1).<br/>AcspCaseQueue.tsx:18, :20
+    Note over Pure: INVARIANT: the gate counts UNICODE SCALARS, not UTF-16 code units,<br/>because the server's check_rationale counts str chars. Counting code<br/>units would enable publish on ten astral characters and then collect<br/>a 422, which reads as the system losing the typed rationale.<br/>governance/brokerCaseQueue.ts:199, :189
+    Note over Q: ADR-2110 FR6: the agent's SELF-ASSESSMENT (declared tier, confidence)<br/>renders BELOW the controls so it cannot anchor the reviewer before<br/>they have read the proposal. AcspCaseQueue.tsx:24
+    Q->>H: decide(caseId, outcome, rationale)
     H->>UAC: POST /broker/cases/{caseId}/decide
     UAC->>SRV: HTTP POST WS-9 operator route
     SRV-->>H: success
     H->>H: optimistically close caseId locally then refresh()
     Note right of H: INVARIANT ADR-2006 - ACSP decisions require human approval through this exact route, never auto-decided
+    Note right of H: The client gate is a courtesy, not the rule: the same rationale check<br/>runs server-side on the shared decide core and answers 422. See VC-24.3.<br/>governance/brokerCaseQueue.ts:186
 ```
 ## VC-34.8 control-center — status telemetry, KPI polling and echo/macro bus
 ```mermaid
@@ -443,7 +451,7 @@ sequenceDiagram
     participant USS as useSemanticService<br/>client/src/features/analytics/hooks/useSemanticService.ts:85
     participant AS as useAnalyticsStore<br/>client/src/features/analytics/store/analyticsStore.ts:268
     participant UAC as unifiedApiClient
-    participant WSBin as binaryProtocol receive path (handleGraphUpdate)<br/>client/src/store/websocket/binaryProtocol.ts:265
+    participant WSBin as handleGraphUpdate<br/>client/src/store/websocket/binaryProtocol.ts:266
     participant NAS as nodeAnalyticsStore<br/>client/src/features/analytics/store/nodeAnalyticsStore.ts:35
     participant Gem as GemNodes / ClusterHulls<br/>client/src/features/graph/components/
 

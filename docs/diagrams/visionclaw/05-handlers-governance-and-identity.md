@@ -56,7 +56,7 @@ sources:
   - ../project/src/services/nostr_bead_publisher.rs
   - ../project/src/handlers/ontology_handler.rs
   - ../project/docs/BASELINE-architecture.md
-verified_commit: dd82a07b0
+verified_commit: {visionclaw: f223bbd40, agentbox: b7b1ab81a}
 ---
 
 ## VC-05.1 `admin_rbac_handler` — whoami / list / assign / revoke (ADR-2010)
@@ -118,7 +118,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as caller
-    participant TO as TimeoutMiddleware<br/>src/main.rs:1011, with_override("/api/admin/sync", 600s) :984
+    participant TO as TimeoutMiddleware<br/>src/main.rs:1017, with_override("/api/admin/sync", 600s) :990
     participant RG as RbacGate<br/>Admin required (any /api/admin/* method, see VC-03.6)
     participant H as admin_sync_handler::trigger_sync<br/>src/handlers/admin_sync_handler.rs:66 (route :115)
 
@@ -202,7 +202,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as XR client<br/>Godot
-    participant WS as PresenceSession<br/>src/handlers/presence_handler.rs:135 ws_presence :501 (route src/main.rs:1047)
+    participant WS as PresenceSession<br/>src/handlers/presence_handler.rs:135 ws_presence :501 (route src/main.rs:1053)
     participant NC as SeenNonces LRU<br/>presence_handler.rs:51 cap 4096
     participant IV as IdentityVerifier<br/>visionclaw_xr_presence::ports
     participant REG as PresenceRoomRegistry<br/>presence_handler.rs:41 Arc~DashMap~String,Addr~PresenceActor~~~
@@ -362,9 +362,9 @@ sequenceDiagram
     participant AB as agentbox broker-bridge<br/>X-Agent-Key service caller
     participant OP as power-user operator<br/>via broker_inbox_handler scope
     participant GB as git-bridge write-back<br/>agentbox management-api
-    participant D as decide / decide_as_operator<br/>src/handlers/enrichment_proposals_handler.rs:321<br/>decide_as_operator :351
+    participant D as decide / decide_as_operator<br/>src/handlers/enrichment_proposals_handler.rs:434<br/>decide_as_operator :464
     participant WB as ingest_writeback_handler::writeback<br/>src/handlers/ingest_writeback_handler.rs:75
-    participant AD as apply_decision (shared core)<br/>enrichment_proposals_handler.rs:370
+    participant AD as apply_decision (shared core)<br/>enrichment_proposals_handler.rs:483
     participant OK as DecisionOrchestrator<br/>src/domain/broker/broker_decision.rs (ADR-130 Decision 2 kernel)
     participant OX as OntologyRepository::append_derived_summary
     participant FR as AcspClient::publish<br/>src/services/acsp/mod.rs kind 31403
@@ -380,18 +380,26 @@ sequenceDiagram
     WB->>AD: apply_decision(case_id, BrokerDecisionRequest, state, client_coordinator)
     D->>AD: apply_decision(case_id, body, state, client_coordinator) (both agent + operator routes)
     rect rgb(225,245,225)
-    Note over AD: single decision core — validate, mint provenance, persist, write-back, broadcast, project
-    AD->>AD: record_decision(case_id, req) :376 — trim outcome, classify(outcome)
+    Note over AD: single decision core — validate, gate, mint provenance, persist, write-back, broadcast, project
+    AD->>AD: record_decision(case_id, req) :489 — trim outcome, classify(outcome)
     alt empty case_id or empty outcome
         AD-->>D: Err "empty case id"/"empty decision outcome" -> 400
     end
+    AD->>AD: existing = repo.get(case_id) read ONCE :516 — supplies both the new-case round trip and the tier
+    AD->>AD: declared_tier_of(proposal_json) :393 then check_rationale(tier, outcome, reasoning) :406
+    alt tier is high or critical, outcome is a human verdict, rationale under 20 trimmed chars
+        AD-->>D: 422 RationaleRejection{code:"rationale_required", tier, min_chars, received_chars} :527
+    end
+    Note over AD: ADR-2110 FR2.2 (EXP-AC-002) — the case queue's client-side gate is a courtesy,<br/>so the SAME rule runs here on the one shared core both routes funnel through, BEFORE<br/>anything is minted or persisted. check_rationale is a predicate, never a transformer:<br/>it refuses and names what is missing, it never authors the rationale, because a<br/>server-written rationale is the fabricated judgement DDD invariant 1 forbids :402-406
+    Note over AD: INVARIANT — MIN_RATIONALE_CHARS :344 and the client's MIN_RATIONALE_CHARS in<br/>brokerCaseQueue.ts are one rule enforced in two places, not two rules :341-343
+    Note over AD: OPEN (ADR-2110 scope note :332-338) — the tier consulted is the tier RECORDED on<br/>the case, which today is the proposing agent's own declared risk_tier. PRD FR3's<br/>effective_tier, which would bound that declaration from below, is a nostr-rust-forum<br/>clause and has not landed. A case with no row yet carries no tier and the gate does not fire.
     AD->>AD: attribution — 64-hex broker_pubkey -> did_nostr+kg URN, else unattributed
     AD->>AD: activity_urn = uri::execution(content-addressed over case_id,outcome,pubkey) — idempotent
     opt repo.get(case_id) is None
         AD->>AD: is_new_case=true, create pending StoredProposal stub
     end
-    AD->>AD: repo.record_decision(StoredDecision) :431 — atomic INSERT decision + UPDATE proposal.status
-    Note over AD: ADR-2006 — REST decisions carry decision_event_id:None (:428, in the<br/>StoredDecision built at :413-430) — no signed kind-31403 correlation is stored
+    AD->>AD: repo.record_decision(StoredDecision) :572 — atomic INSERT decision + UPDATE proposal.status
+    Note over AD: ADR-2006 — REST decisions carry decision_event_id:None (:569, in the<br/>StoredDecision built at :554-498) — no signed kind-31403 correlation is stored
     alt persist Err
         AD-->>D: 500 "failed to persist decision: {e}"
     end
@@ -437,32 +445,32 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as agentbox broker-bridge<br/>management-api/routes/broker-bridge.js
-    participant SC as scope /broker<br/>src/handlers/broker_inbox_handler.rs:164 wrap RequireAuth::power_user() :165
-    participant H as broker_inbox_handler<br/>inbox :133, case_by_id :144
+    participant SC as scope /broker<br/>src/handlers/broker_inbox_handler.rs:177 wrap RequireAuth::power_user() :178
+    participant H as broker_inbox_handler<br/>inbox :146, case_by_id :157
     participant ST as enrichment_proposals_handler::store<br/>same durable store as WS-9, no second store
 
-    Note over SC: doc comment :157-161 — "Mounted as a dedicated web::scope(broker) so the<br/>privileged RequireAuth::power_user() middleware wraps exactly these read routes<br/>and nothing else, mirroring the isolated privileged scope at ontology_handler.rs lines 913-918"
-    Note over SC: DOC-DRIFT — that cross-reference is itself stale: WS-0 removed ontology_handler.rs<br/>own web::scope entirely (ontology_handler.rs:1024-1034), re-using its handlers from the single<br/>canonical scope in api_handler::ontology::config instead, see VC-20. No isolated privileged<br/>scope exists there any more — /broker is the odd one out now, not a mirror of it.
+    Note over SC: doc comment :170-174 — "Mounted as a dedicated web::scope(broker) so the<br/>privileged RequireAuth::power_user() middleware wraps exactly these read routes<br/>and nothing else, mirroring the isolated privileged scope at ontology_handler.rs lines 913-918"
+    Note over SC: DOC-DRIFT — that cross-reference is itself stale: WS-0 removed ontology_handler.rs<br/>own web::scope entirely (ontology_handler.rs:1041-1051), re-using its handlers from the single<br/>canonical scope in api_handler::ontology::config instead, see VC-20. No isolated privileged<br/>scope exists there any more — /broker is the odd one out now, not a mirror of it.
     C->>SC: GET /api/broker/inbox (X-Agent-Key or power-user session)
     SC->>SC: RequireAuth::power_user()
     alt not power user
         SC-->>C: 401/403 deny
     else Ok
-        SC->>H: inbox() :166
+        SC->>H: inbox() :179
         H->>ST: store::all()
         ST-->>H: Vec~EnrichmentProposal~
         H->>H: project each into BrokerCase{id,category:"knowledge_enrichment",status,metadata}
-        H-->>C: 200 {cases:[BrokerCase], total} (bridge shape, broker-bridge.js:322)
+        H-->>C: 200 {cases:[BrokerCase], total} — the bridge re-shapes it as total plus filtered_total (broker-bridge.js:357-358)
     end
-    C->>SC: GET /api/broker/cases/{id} :167
-    SC->>H: case_by_id(id) :144
+    C->>SC: GET /api/broker/cases/{id} (bridge route broker-bridge.js:366)
+    SC->>H: case_by_id(id) :157
     H->>ST: store::get(id)
     alt Some(p)
         ST-->>C: 200 BrokerCase::from(&p)
     else None
         ST-->>C: 404 {error:"not-found", message:"no broker case with id {id}"}
     end
-    C->>SC: POST /api/broker/cases/{id}/decide :171-173
+    C->>SC: POST /api/broker/cases/{id}/decide (bridge route broker-bridge.js:407, proxied at :537)
     SC->>H: delegates to enrichment_proposals_handler::decide_as_operator (see VC-05.7)
     Note over H: REC-2 / D3 (PRD-023 WP-4) — power-user-gated by the surrounding scope,<br/>funnels through the SAME decision core as the agentbox X-Agent-Key route
 ```
@@ -587,7 +595,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant H as mcp_relay_handler<br/>src/handlers/mcp_relay_handler.rs:442 (route src/main.rs:1043)
+    participant H as mcp_relay_handler<br/>src/handlers/mcp_relay_handler.rs:442 (route src/main.rs:1078)
     participant A as MCPRelayActor<br/>src/handlers/mcp_relay_handler.rs:39
     participant O as orchestrator WS<br/>ORCHESTRATOR_WS_URL env mcp_relay_handler.rs:78 in connect_to_orchestrator :77
 
@@ -753,7 +761,7 @@ sequenceDiagram
     participant C as Client
     participant SC as scope /solid<br/>src/handlers/solid_proxy_handler.rs:1752 configure_routes (feature solid-pod-embed), scope :1760
     participant H as solid_proxy_handler<br/>solid_proxy_handler.rs:311 handle_solid_proxy, :1313 init_pod_nip98
-    participant RG as RbacGate<br/>/api scope wrap src/main.rs:1065 (scope :1054, solid mounted :1133)
+    participant RG as RbacGate<br/>/api scope wrap src/main.rs:1071 (scope :1060, solid mounted :1139)
     participant SD as SolidPodState::extract_user_identity<br/>solid_proxy_handler.rs:188 own NIP-98 verification
 
     Note over SC: env SOLID_DATA_ROOT :130, SOLID_PROXY_SECRET_KEY :133, SOLID_ALLOW_ANONYMOUS :137
@@ -765,7 +773,7 @@ sequenceDiagram
     C->>SC: GET /pods/check :1770 -> check_pod_exists :1226
     C->>SC: POST /pods/init :1771 -> init_pod :1267
     rect rgb(255,235,235)
-    Note over C,SD: DIVERGENCE — /api/solid/pods/init-nip98 sits inside the /api scope<br/>(main.rs:1162 under scope :1054), so it is DOUBLE-authenticated (see VC-03.15)
+    Note over C,SD: DIVERGENCE — /api/solid/pods/init-nip98 sits inside the /api scope<br/>(main.rs:1168 under scope :1060), so it is DOUBLE-authenticated (see VC-03.15)
     C->>RG: POST /api/solid/pods/init-nip98 solid_proxy_handler.rs:1772 (Authorization: Nostr event)
     RG->>RG: RbacGate verify_access(WriteGraph) — mutating method under /api
     alt RbacGate denies
@@ -794,23 +802,23 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client (browser voice / XR)
-    participant H as speech_socket_handler<br/>src/handlers/speech_socket_handler.rs:972 (route src/main.rs:1042)
-    participant SS as SpeechSocket actor<br/>speech_socket_handler.rs:89 struct, new() :110, Actor::started :472
+    participant H as speech_socket_handler<br/>src/handlers/speech_socket_handler.rs:984 (route src/main.rs:1077)
+    participant SS as SpeechSocket actor<br/>speech_socket_handler.rs:89 struct, new() :110, Actor::started :474
     participant NS as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs
 
-    Note over H: RESOLVED — this upgrade no longer authenticates. ADR-2075 (doc :978-985)<br/>moved the check AFTER the upgrade because browsers cannot set WebSocket headers,<br/>so the old presence-only Bearer/?token= gate rejected the browser voice client<br/>outright. There is no 401 on this path any more
+    Note over H: RESOLVED — this upgrade no longer authenticates. ADR-2075 (doc :990-997)<br/>moved the check AFTER the upgrade because browsers cannot set WebSocket headers,<br/>so the old presence-only Bearer/?token= gate rejected the browser voice client<br/>outright. There is no 401 on this path any more
     C->>H: GET /ws/speech (no credential required at upgrade)
-    H->>H: connection_url = scheme://host + path_and_query :986-997 — the NIP-98 `u` tag
-    H->>H: dev_bypass_ok = dev_bypass_permitted(req) under cfg(debug_assertions, dev-auth) :999-1002
-    H->>SS: SpeechSocket::new(socket_id "speech_{uuid}", app_state, None, connection_url, dev_bypass_ok) :1004-1012
-    H->>SS: ws::start(socket, req, stream) :1013
+    H->>H: connection_url = scheme://host + path_and_query :998-1009 — the NIP-98 `u` tag
+    H->>H: dev_bypass_ok = dev_bypass_permitted(req) under cfg(debug_assertions, dev-auth) :1011-1014
+    H->>SS: SpeechSocket::new(socket_id "speech_{uuid}", app_state, None, connection_url, dev_bypass_ok) :1016-1010
+    H->>SS: ws::start(socket, req, stream) :1025
     alt Err
-        SS-->>C: start failure logged, propagated as actix_web::Error :1018-1021
+        SS-->>C: start failure logged, propagated as actix_web::Error :1030-1029
     else Ok
-        SS-->>C: 101 Switching Protocols :1014-1017
+        SS-->>C: 101 Switching Protocols :1026-1029
     end
-    SS->>SS: Actor::started :472 — start_heartbeat, then run_later(AUTH_DEADLINE) :479
-    Note over SS: ADR-2075 — AUTH_DEADLINE = 30s (:22, doc :19-21). A socket still carrying<br/>pubkey:None at the deadline is told "authentication deadline exceeded" and stopped<br/>(:480-493), so an unauthenticated peer cannot hold a broadcast subscription open
+    SS->>SS: Actor::started :474 — start_heartbeat, then run_later(AUTH_DEADLINE) :481
+    Note over SS: ADR-2075 — AUTH_DEADLINE = 30s (:22, doc :19-21). A socket still carrying<br/>pubkey:None at the deadline is told "authentication deadline exceeded" and stopped<br/>(:482-495), so an unauthenticated peer cannot hold a broadcast subscription open
     C->>SS: text {"type":"authenticate","event":"<base64 NIP-98>"} -> handle_authenticate :163
     alt VISIONCLAW_DEV_MODE full bypass (dev builds only, :173-182)
         SS-->>C: {type:authenticate_success, pubkey} :180
@@ -830,7 +838,7 @@ sequenceDiagram
         end
     end
     C->>SS: any other typed frame before authenticate
-    SS->>SS: reject_unauthenticated :141 (gate call :624) — pubkey.is_some() short-circuits :142
+    SS->>SS: reject_unauthenticated :141 (gate call :626) — pubkey.is_some() short-circuits :142
     SS-->>C: {type:error, "authentication required: send {type:authenticate,...} first"} :150-157
     Note over SS: voice internals (governed-voice command dispatch, clarification turns,<br/>ElevationActor VoiceTranscript hookup) — see VC-35
 ```
@@ -839,22 +847,22 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant V as voice/RunCycle trigger<br/>src/actors/elevation_actor.rs:832 Handler~RunCycle~ (VC-02 internals)
-    participant EA as ElevationActor/DecisionElevationActor<br/>src/actors/elevation_actor.rs:98, decision_elevation_actor.rs:128 (VC-02)
+    participant V as voice/RunCycle trigger<br/>src/actors/elevation_actor.rs:975 Handler~RunCycle~ (VC-02 internals)
+    participant EA as ElevationActor/DecisionElevationActor<br/>src/actors/elevation_actor.rs:116, decision_elevation_actor.rs:128 (VC-02)
     participant FR as forum kind-31403<br/>src/services/acsp/client.rs:25 CaseDecision{event_id,created_at}
     participant DB as SqliteEnrichmentRepository::record_decision<br/>StoredDecision table — SHARED sink
-    participant D as decide/decide_as_operator -> apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:321 decide, :351 decide_as_operator, :370 apply_decision
-    participant BI as broker_inbox_handler::inbox<br/>src/handlers/broker_inbox_handler.rs:133
+    participant D as decide/decide_as_operator -> apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:434 decide, :464 decide_as_operator, :483 apply_decision
+    participant BI as broker_inbox_handler::inbox<br/>src/handlers/broker_inbox_handler.rs:146
 
     Note over V,FR: no HTTP handler in this file (decision_handler, enrichment_proposals_handler,<br/>broker_inbox_handler) ever sends a message to ElevationActor or DecisionElevationActor —<br/>grep across src/handlers finds zero references to either actor type
     V->>EA: RunCycle / VoiceTranscript (actor-internal, see VC-02)
     EA->>FR: publish ActionRequest kind-31402, poll PollPrs for the signed kind-31403 reply
     Note over FR: ADR-2013 — AcspClient signs with its OWN Keys (field acsp/client.rs:70,<br/>let keys = Keys::new(secret_key) :77, publish :99 — mirrors nostr_bridge.rs:65<br/>sign_with_keys) — the panel event carries the PANEL's authority, never the admin's key
     FR-->>EA: CaseDecision{case_id,action,responder_pubkey,event_id,created_at}
-    EA->>EA: decision_record(&CaseDecision) :1227 — correlation on event_id when present
-    EA->>DB: repo.record_decision(StoredDecision{decision_event_id:Some(event_id), decision_created_at_s:Some(...)}) :987, :1053, :1060
-    Note over EA,DB: this producer DOES retain signed-event correlation — decision_event_id is<br/>set from the signed event id (elevation_actor.rs:1282), rationale :1243-1252
-    D->>DB: repo.record_decision(StoredDecision{decision_event_id:None,...}) :413-430 built, :431 written — REST path, no forum event to correlate
+    EA->>EA: decision_record(&CaseDecision) :1464 — correlation on event_id when present
+    EA->>DB: repo.record_decision(StoredDecision{decision_event_id:Some(event_id), decision_created_at_s:Some(...)}) :1212, :1286, :1293
+    Note over EA,DB: this producer DOES retain signed-event correlation — decision_event_id is<br/>set from the signed event id (elevation_actor.rs:1519), rationale :1480-1489
+    D->>DB: repo.record_decision(StoredDecision{decision_event_id:None,...}) :554-498 built, :572 written — REST path, no forum event to correlate
     Note over D,DB: DIVERGENCE — the agentbox/operator/git-bridge REST path (VC-05.7) writes<br/>decision_event_id:None every time, since it never carries a signed 31403 event
     BI->>DB: store::all() / store::get(id) — reads the SAME table both producers wrote to
     BI-->>BI: projects EITHER kind of row into the SAME BrokerCase shape, indistinguishable to the bridge

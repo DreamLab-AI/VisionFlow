@@ -46,7 +46,7 @@ sources:
   - ../project/src/main.rs
   - ../project/src/handlers/api_handler/analytics/params_handlers.rs
   - ../project/src/handlers/api_handler/analytics/types.rs
-verified_commit: dd82a07b0
+verified_commit: f223bbd40
 ---
 
 ## VC-15.1 POST /analytics/clustering/run — spectral/kmeans/louvain/default dispatch with CPU fallback
@@ -479,7 +479,7 @@ sequenceDiagram
     participant GSA as GraphStateActor<br/>graph_state_actor.rs
     participant SVC as SemanticPathfindingService<br/>semantic_pathfinding_service.rs:86
 
-    Note over CFG: mounted at web-scope pathfinding by main.rs:1132, distinct from the analytics-scope path family in VC-15.6 to VC-15.9
+    Note over CFG: mounted at web-scope pathfinding by main.rs:1138, distinct from the analytics-scope path family in VC-15.6 to VC-15.9
 
     C->>CFG: POST /pathfinding/semantic-path {startId,endId,query}
     CFG->>FSP: find_semantic_path(request)

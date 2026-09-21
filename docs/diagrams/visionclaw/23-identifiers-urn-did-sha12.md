@@ -19,10 +19,12 @@ sources:
   - ../project/src/actors/elevation_actor.rs
   - ../project/src/actors/client_filter.rs
   - ../project/src/adapters/oxigraph_graph_repository.rs
+  - ../project/agentbox/schema/federation-kinds.json
+  - ../project/docs/explanation/visionflow-coordination-platform.md
   - ../project/agentbox/management-api/lib/bc20-provenance-bridge.js
   - ../project/agentbox/management-api/middleware/linked-data/surfaces/s04-did.js
   - ../project/agentbox/mcp/servers/lib/memory-tools.js
-verified_commit: 36bb64e1e
+verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2, agentbox: b7b1ab81a6ed0680bb10026e17935152a23e0c5e}
 ---
 
 ## VC-23.1 Typed URN kind taxonomy — src/uri/mod.rs
@@ -269,6 +271,8 @@ sequenceDiagram
     end
     Note over JS,RS: RESOLVED ADR-2072 -- cross_from_agentbox now has a bead arm (src/uri/mod.rs:846-856) that crosses<br/>structurally via bead_with_address (:284), PRESERVING the existing sha256-12 address rather than re-hashing,<br/>matching bc20-provenance-bridge.js:191-206. agentbox ADR-2061 holds the cross-repo parity test. The kind map<br/>itself is DERIVED from agentbox/schema/federation-kinds.json, never transcribed (src/uri/mod.rs:828-832).
     Note over CallerVC,RS: INVARIANT callers record the raw string plus an unmapped marker, never a synthetic ID, on None -- ADR-2025, src/uri/mod.rs:828-831
+    Note over JS,RS: 2026-09-14: the agentbox Colloquy learning protocol, Nostr kinds 38100-38105,<br/>is registered in the host protocol table as agentbox-and-forum only and<br/>DELIBERATELY not federated to VisionClaw.<br/>docs/explanation/visionflow-coordination-platform.md:167
+    Note over RS: INVARIANT the refusal is RECORDED, not absent: the knowledge kind carries<br/>refusal_class not-federated with a reason and a null fixture, so the closed map<br/>derives the None arm from data rather than from an omission.<br/>agentbox/schema/federation-kinds.json:279, :282, :286
 ```
 
 ## VC-23.7 Wire node-id u32 bit layout and overflow policy (ADR-2024)
@@ -321,7 +325,7 @@ flowchart TD
 
     DivA["DOC-CORRECTED 2026-09-05: vc:{domain}/{slug} is only an RDF predicate CURIE, never an independently minted subject<br/>IDENTIFIER-taxonomy.md now reconciles its section-1 kind table with this - no row mints a vc: CURIE and the durable<br/>concept subject is urn:visionclaw:concept:domain:slug"]
     DivB["DIVERGENCE: owner-scoped visionclaw:owner:{npub}/kg/... (legacy ADR-050) is not emitted anywhere in src/ or crates/"]
-    DriftX["RESOLVED ADR-2095 (2026-09-05): the class scheme is now a typed constructor paired with a parser<br/>CLASS_PREFIX and class_iri and parse_class_iri live in crates/visionclaw-domain/src/uri.rs:15-56 -- the domain crate, because<br/>visionclaw-adapters mints class IRIs and is upstream of the server crate -- and re-export from ngm at src/uri/mod.rs:351<br/>All five raw format! mints are routed through it: elevation_actor.rs:329 and :514, oxigraph_ontology_repository.rs:174 and :1598 and :1619<br/>Emitted strings are byte-identical -- the pre-existing literal assertion at elevation_actor.rs:1409 still passes"]
+    DriftX["RESOLVED ADR-2095 (2026-09-05): the class scheme is now a typed constructor paired with a parser<br/>CLASS_PREFIX and class_iri and parse_class_iri live in crates/visionclaw-domain/src/uri.rs:15-56 -- the domain crate, because<br/>visionclaw-adapters mints class IRIs and is upstream of the server crate -- and re-export from ngm at src/uri/mod.rs:351<br/>All five raw format! mints are routed through it: elevation_actor.rs:347 and :532, oxigraph_ontology_repository.rs:174 and :1598 and :1619<br/>Emitted strings are byte-identical -- the pre-existing literal assertion at elevation_actor.rs:1761 still passes"]
 ```
 
 ## VC-23.10 Per-kind URN grammar, mint/parse sites and live emission
@@ -339,7 +343,7 @@ flowchart TD
     end
     subgraph UNSCOPED["Unscoped content-addressed kinds"]
         direction TB
-        K5["Execution<br/>urn:visionclaw:execution:sha256-12-HEX<br/>owner travels in owner_did, not the URN<br/>mint :293-295 / parse :579-586<br/>live emission enrichment_proposals_handler.rs:219"]
+        K5["Execution<br/>urn:visionclaw:execution:sha256-12-HEX<br/>owner travels in owner_did, not the URN<br/>mint src/uri/mod.rs:293 / parse src/uri/mod.rs:579, :583<br/>live emission enrichment_proposals_handler.rs:219"]
         K7["Room<br/>urn:visionclaw:room:sha256-12-HEX<br/>unscoped XR presence room<br/>mint src/uri/mod.rs:308-310 / parse :598-605"]
     end
     subgraph SHARED["Shared and team-scoped kinds"]

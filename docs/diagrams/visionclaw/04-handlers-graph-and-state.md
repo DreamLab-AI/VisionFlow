@@ -4,7 +4,7 @@ title: Handler internals — graph, state, and domain route families
 area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2005, ADR-2007, ADR-2011]
+adrs: [ADR-2005, ADR-2007, ADR-2011, ADR-2111]
 sources:
   - ../project/src/handlers/api_handler/graph/mod.rs
   - ../project/src/handlers/api_handler/files/mod.rs
@@ -28,6 +28,8 @@ sources:
   - ../project/src/services/file_service.rs
   - ../project/src/services/ragflow_service.rs
   - ../project/src/services/provenance_trace.rs
+  - ../project/src/services/intent_match.rs
+  - ../project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md
   - ../project/src/handlers/metrics_handler.rs
   - ../project/src/handlers/consolidated_health_handler.rs
   - ../project/src/handlers/liveness_harness_handler.rs
@@ -53,7 +55,7 @@ sources:
   - ../project/src/utils/binary_protocol.rs
   - ../project/src/utils/validation/sanitization.rs
   - ../project/src/handlers/fastwebsockets_handler.rs
-verified_commit: 36bb64e1e
+verified_commit: f223bbd40
 ---
 
 ## VC-04.1 api_handler graph — read path (data, paginated, positions, fold, relations, expand, pattern)
@@ -679,11 +681,11 @@ sequenceDiagram
     autonumber
     participant C as Client (KPI dashboard)
     participant SU as summary<br/>src/handlers/kpi_handler.rs:25
-    participant KC as KpiComputeService::compute_and_persist<br/>src/services/kpi_compute.rs:216
-    participant KR as SqliteKpiRepository<br/>src/adapters/sqlite_kpi_repository.rs:259
+    participant KC as KpiComputeService::compute_and_persist<br/>src/services/kpi_compute.rs:387
+    participant KR as SqliteKpiRepository<br/>src/adapters/sqlite_kpi_repository.rs:274
     participant EN as enrichment_repo<br/>decisions_since
     participant LH as LivenessHarness<br/>observe(CANARY-VC-REC4-KPI)
-    participant TAP as run_agent_event_tap<br/>kpi_compute.rs:388
+    participant TAP as run_agent_event_tap<br/>kpi_compute.rs:646
     participant HUB as agent_events::hub<br/>subscribe()
 
     C->>SU: GET /api/kpi/summary
@@ -698,7 +700,12 @@ sequenceDiagram
     KC->>KR: insert_snapshot_with_lineage(tv_snapshot, tv_lineage) -> tv_id
     end
     KC->>LH: harness.observe(CANARY_REC4_KPI, evidence) — best-effort, warn on failure
-    KC->>KC: assemble four tiles — Augmentation Ratio, Trust Variance computed —<br/>Mesh Velocity, HITL Precision as KpiTile::awaiting (status:awaiting_data_source, never a value)
+    KC->>KC: decided_cases_with_intent(decided_rows, trajectories) (kpi_compute.rs:270)
+    KC->>KC: hitl_precision(cases) — warranted divided by decided (kpi_compute.rs:213)
+    KC->>KR: insert_snapshot_with_lineage(hitl_snapshot, hitl_lineage) — only when decided is above zero
+    KC->>KC: assemble four tiles (kpi_compute.rs:622) — Augmentation Ratio, Trust Variance and<br/>HITL Precision computed, Mesh Velocity still KpiTile::awaiting (kpi_compute.rs:545)
+    Note over KC: INVARIANT (DDD invariant 8, ADR-2110) — a case resolved by the reserved system<br/>identity system:whelk-gate is excluded from BOTH terms of HITL Precision, so a window of<br/>gate rejections reports no value rather than a precision no human earned<br/>is_system_actor kpi_compute.rs:143, SYSTEM_WHELK_GATE kpi_compute.rs:140
+    Note over KC: INVARIANT (ADR-2110 auditor counter-example, b2baa2d16) — a case id must occupy<br/>WHOLE delimited URN segments before a trajectory is correlated to a case, because the URNs<br/>come off an agent-controlled envelope, so a substring match would let one agent attach a<br/>mismatched intent to another agent's case — urn_names_case kpi_compute.rs:244 shares<br/>urn_names_segment with the trace verdict, intent_match.rs:161
     alt Ok(summary)
         SU-->>C: 200 KpiSummary (four tiles)
     else Err(e)
@@ -708,7 +715,7 @@ sequenceDiagram
     SU->>KC: lineage_for(snapshot_id)
     KC->>KR: lineage_for(snapshot_id) — DERIVED_FROM trail (WP-8 AC3)
     SU-->>C: 200 {snapshot_id, lineage}
-    par background volume tap — src/main.rs:1217 tokio::spawn(run_agent_event_tap(kpi_repo))
+    par background volume tap — src/main.rs:1252 tokio::spawn(run_agent_event_tap(kpi_repo))
         TAP->>HUB: subscribe() — same seam the render actor uses
         loop rx.recv().await — never returns, fail-open on lagged/closed channel
             HUB-->>TAP: AgentEventEnvelope
@@ -725,7 +732,7 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant GM as get_metrics<br/>src/handlers/metrics_handler.rs:33
-    participant PT as ProcessStartTime<br/>web::Data — Instant captured at boot (src/main.rs:997)
+    participant PT as ProcessStartTime<br/>web::Data — Instant captured at boot (src/main.rs:1032)
     participant EB as EventBus<br/>app_state.event_bus
     participant MW as MetricsMiddleware<br/>downcast via dyn Any
 
@@ -859,6 +866,7 @@ sequenceDiagram
             Note over LH: INVARIANT (REC-11 acceptance) — fires ONLY on observed live traffic that<br/>genuinely joins >= 2 live source kinds under one did:nostr, never synthetic
         end
         UT-->>C: 200 ProvenanceTrace{sourcesPresent,sourcesAbsent,totalRecords,joins,maxJoinSpan}
+        Note over PTS: FR5.2 (EXP-AC-005) — each agent-event record now carries the agent's<br/>DECLARED intent verbatim and an intent_match verdict (provenance_trace.rs:202-210).<br/>Decision and git-mark records carry neither. A null verdict means NO CLAIM WAS MADE,<br/>which is not the same as a claim that failed — intent_match.rs:218
     else Err(e)
         UT-->>C: 500 {error}
     end
@@ -990,7 +998,7 @@ sequenceDiagram
     Note over DC,SEM: /centrality, /shortest-path, /generate-constraints (compute_centrality :110,<br/>compute_shortest_path :160, generate_constraints :187) share the SAME<br/>read-graph-then-initialize-then-compute shape — /cache/invalidate (:229) and<br/>GET /statistics (:214) skip the graph read entirely
 
 C--xRI: POST /api/inference/run — route no longer registered
-    Note over RI: REMOVED ADR-2066 — the whole Phase 7 inference stack was deleted as dead code.<br/>src/handlers/inference_handler.rs, src/application/inference_service.rs and<br/>src/events/inference_triggers.rs are gone, and the registration (comment block at<br/>src/main.rs:1105-1109) was removed with them. Removal rationale recorded at src/handlers/mod.rs:44-49
+    Note over RI: REMOVED ADR-2066 — the whole Phase 7 inference stack was deleted as dead code.<br/>src/handlers/inference_handler.rs, src/application/inference_service.rs and<br/>src/events/inference_triggers.rs are gone, and the registration (comment block at<br/>src/main.rs:1140-1144) was removed with them. Removal rationale recorded at src/handlers/mod.rs:44-49
     Note over RI: root cause — all seven handlers extracted web::Data of Arc RwLock InferenceService<br/>but InferenceService was never registered as app data anywhere, so every<br/>/api/inference/* route 500'd at the extractor. The live reasoning path is<br/>GitHubSyncService::run_post_sync_reasoning — see VC-20.3
 ```
 
@@ -1084,7 +1092,7 @@ sequenceDiagram
     end
     CL->>CL: append entries to /app/logs/client.log
     CL-->>C: 200 {status:success}
-    Note over CL: registered EARLY in the /api scope (src/main.rs:1067) specifically to avoid<br/>scope-registration-order conflicts (VC-01.10) — RBAC-allowlisted (VC-03.6 has_segment_prefix)
+    Note over CL: registered EARLY in the /api scope (src/main.rs:1102) specifically to avoid<br/>scope-registration-order conflicts (VC-01.10) — RBAC-allowlisted (VC-03.6 has_segment_prefix)
 
     C->>WS: GET /ws/client-messages (Upgrade: websocket)
     WS->>WS: token = Authorization Bearer OR ?token= query param
@@ -1177,7 +1185,7 @@ sequenceDiagram
     participant DEP as pay_deposit_handler<br/>pay_handler.rs:480
     participant ST as FsPaymentStore<br/>web::Data~Arc~FsPaymentStore~~ — get_balance/debit
 
-    Note over CFG: routes mounted UNCONDITIONALLY at src/main.rs:1033 (VC-01.6) — inert until<br/>PAY_ENABLED=true, gated handler-by-handler rather than by a scope-level middleware
+    Note over CFG: routes mounted UNCONDITIONALLY at src/main.rs:1068 (VC-01.6) — inert until<br/>PAY_ENABLED=true, gated handler-by-handler rather than by a scope-level middleware
     C->>INFO: GET /pay/.info (always reachable, no gate)
     INFO-->>C: 200 {enabled, methods:[lightning], costTiers} — reports the REAL enabled flag
     C->>BAL: GET /pay/.balance
@@ -1205,6 +1213,7 @@ sequenceDiagram
             RES-->>C: error response (payment_required_body-shaped)
         end
         Note over RES: resource proxying is a STUB — this confirms and charges but never<br/>forwards to the underlying resource handler (pay_handler.rs:503-505)
+    Note over CFG,ST: PROPOSED, NOT LIVE — ADR-2111 (decision_status proposed, implementation_status<br/>none, 2026-09-21) would DELETE FsPaymentStore and the whole /pay/* route set and replace<br/>them with a thin proxy to the agentbox wallet surface, carrying the caller's NIP-98 identity<br/>through, so this repo stops owning a sats ledger. Everything drawn above is the LIVE state<br/>today — docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:38
     end
     C->>DEP: POST /pay/.deposit
     DEP-->>C: 501 Not Implemented — #quot;Contact the server operator for manual funding#quot (:487-492)

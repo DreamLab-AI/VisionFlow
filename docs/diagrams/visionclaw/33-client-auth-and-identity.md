@@ -35,7 +35,7 @@ sources:
   - ../project/src/services/nostr_service.rs
   - ../project/src/utils/auth.rs
   - ../project/src/utils/nip98.rs
-verified_commit: dd82a07b0
+verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
 ---
 ## VC-33.1 NIP-07 extension login (client-asserted, no server verify round-trip)
 ```mermaid
@@ -310,7 +310,8 @@ sequenceDiagram
     Note over Row,Ctl: DIVERGENCE. this is the ENTIRE client-side gating surface — a binary<br/>power-user flag, not the server's UserRole lattice (Owner greater than Admin greater<br/>than Editor greater than Viewer, docs/BASELINE-architecture.md:218). The client never<br/>fetches its own resolved role. All real enforcement happens server-side per-request in<br/>RbacGate and a rejected write surfaces only as a 401/403 after the fact, not as<br/>pre-emptive UI disablement of non-power-user fields tied to WriteGraph/Admin
     Note over Row: DOC-DRIFT. docs/BASELINE-architecture.md:222 cites the structural default at<br/>rbac_gate.rs:122-128 - public_reads_enabled is at :126-133 with its doc at :121-125.<br/>DOC-DRIFT. docs/BASELINE-architecture.md:218-228 documents server RBAC<br/>posture only. It makes no claim the client UI reflects role — none of the governing docs<br/>claim client-side role gating exists, matching what was found here
 
-    Note over Row,Ctl: server posture (not client-enforced). structural default<br/>RBAC_PUBLIC_READS=false src/middleware/rbac_gate.rs:126-132 unwrap_or(false), but<br/>docker-compose.unified.yml:93 sets RBAC_PUBLIC_READS=1 in the dev/unified compose<br/>service. An unassigned authenticated pubkey resolves to Editor via<br/>UserRole::default_authenticated() src/models/rbac.rs:68-70,<br/>src/services/role_store.rs:188,196-198 — see docs/BASELINE-architecture.md:220-226
+    Note over Row,Ctl: server posture (not client-enforced). structural default<br/>RBAC_PUBLIC_READS=false src/middleware/rbac_gate.rs:126-132 unwrap_or(false), but<br/>docker-compose.unified.yml:99 sets RBAC_PUBLIC_READS=1 in the dev/unified compose<br/>service. An unassigned authenticated pubkey resolves to Editor via<br/>UserRole::default_authenticated() src/models/rbac.rs:68-70,<br/>src/services/role_store.rs:188,196-198 — see docs/BASELINE-architecture.md:220-226
+    Note over Row,Ctl: DOC-DRIFT: docs/BASELINE-architecture.md:222 still cites<br/>docker-compose.unified.yml:93 for RBAC_PUBLIC_READS=1 and :94 for<br/>RBAC_ALLOW_OWNERLESS=1. The ADR-2108 dev-mode block moved them to :99<br/>and :100 on 2026-09-08 - :93 is now a comment line. The posture is<br/>unchanged, the citations are not. docker-compose.unified.yml:99, :100
     Note over Row,Ctl: DIVERGENCE. compose ships public reads open and<br/>unassigned-pubkey-is-Editor by default, while the Rust struct-level default is<br/>fail-closed (no public reads) — two different postures depending whether you read the<br/>binary default or the shipped compose env
 ```
 

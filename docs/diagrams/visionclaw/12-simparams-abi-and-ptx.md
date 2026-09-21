@@ -22,7 +22,7 @@ sources:
   - ../project/src/utils/gpu_diagnostics.rs
   - ../project/src/gpu/mod.rs
   - ../project/src/physics/mod.rs
-verified_commit: dd82a07b0
+verified_commit: f223bbd40
 ---
 ## VC-12.1 SimParams full 212-byte repr(C) layout
 ```mermaid
@@ -294,48 +294,48 @@ sequenceDiagram
     participant FS as OUT_DIR / fallback PTX files
 
     Cargo->>BR: cargo build --feature gpu (CARGO_FEATURE_GPU set, build.rs:20-27)
-    BR->>BR: resolve CUDA_ARCH: env override, else nvidia-smi compute_cap, else sm_75 (build.rs:57-80)
+    BR->>BR: resolve CUDA_ARCH: env override, else nvidia-smi compute_cap, else sm_75 (build.rs:58-81)
     rect rgb(240,240,255)
-    loop for each of 9 cuda_files (build.rs:30-40, loop at :118)
-        BR->>Nvcc: nvcc -ptx -arch sm_ARCH -o OUT/NAME.ptx NAME.cu --use_fast_math -O3 (build.rs:123-146)
+    loop for each of 9 cuda_files (build.rs:30-41, loop at :119)
+        BR->>Nvcc: nvcc -ptx -arch sm_ARCH -o OUT/NAME.ptx NAME.cu --use_fast_math -O3 (build.rs:124-147)
         alt nvcc launches and exits 0 (NvccOutcome::Succeeded, ptx_policy.rs:69,78)
-            Nvcc-->>BR: ptx_output written, provenance=Compiled (build.rs:157)
+            Nvcc-->>BR: ptx_output written, provenance=Compiled (build.rs:158)
         else nvcc not on PATH (NvccOutcome::LaunchFailed, ptx_policy.rs:62,77) or nvcc exits nonzero (NvccOutcome::CompilerFailed, ptx_policy.rs:66,79)
-            BR->>Policy: NvccOutcome::classify(spawn_error, success, code) (ptx_policy.rs:75-81, build.rs:147-150)
+            BR->>Policy: NvccOutcome::classify(spawn_error, success, code) (ptx_policy.rs:75-81, build.rs:148-151)
             Policy-->>BR: outcome.needs_fallback() true for both failure modes (ptx_policy.rs:85-87)
-            BR->>FS: search fallback_paths: src/ptx/NAME.ptx, /app/src/utils/ptx/NAME.ptx, /app/crates/visionclaw-gpu/src/ptx/NAME.ptx (build.rs:168-174)
+            BR->>FS: search fallback_paths: src/ptx/NAME.ptx, /app/src/utils/ptx/NAME.ptx, /app/crates/visionclaw-gpu/src/ptx/NAME.ptx (build.rs:169-175)
             opt a fallback file exists
                 FS-->>BR: fallback path found
-                BR->>FS: fs::copy(fallback, ptx_output) (build.rs:181)
-                BR->>BR: provenance = FallbackAfterLaunchFailure or FallbackAfterCompilerFailure (ptx_policy.rs:120-125, build.rs:182)
+                BR->>FS: fs::copy(fallback, ptx_output) (build.rs:182)
+                BR->>BR: provenance = FallbackAfterLaunchFailure or FallbackAfterCompilerFailure (ptx_policy.rs:120-125, build.rs:183)
             end
             break no fallback file exists at any candidate path
-                BR->>BR: panic! PTX unavailable for NAME, no fallback found (build.rs:185-193)
+                BR->>BR: panic! PTX unavailable for NAME, no fallback found (build.rs:186-194)
             end
         end
-        BR->>FS: read_to_string(ptx_output) (build.rs:199-200)
-        BR->>Policy: rewrite_ptx_version(original, TARGET_PTX_ISA=9.0) (build.rs:207, ptx_policy.rs:233-254)
+        BR->>FS: read_to_string(ptx_output) (build.rs:200-201)
+        BR->>Policy: rewrite_ptx_version(original, TARGET_PTX_ISA=9.0) (build.rs:208, ptx_policy.rs:233-254)
         alt found version <= 9.0 (VersionRewrite::Unchanged, ptx_policy.rs:242-243)
-            Policy-->>BR: Unchanged version - content untouched, no downgrade warning emitted (build.rs:208-211)
+            Policy-->>BR: Unchanged version - content untouched, no downgrade warning emitted (build.rs:209-212)
         else found version > 9.0, e.g. CUDA 13.x emits 9.2 (VersionRewrite::Rewritten, ptx_policy.rs:245-253)
             Policy-->>BR: Rewritten from,to,text - splice by parsed token span, not fixed width (ptx_policy.rs:245-253)
-            BR->>FS: fs::write(ptx_output, downgraded text) (build.rs:214)
-            BR->>BR: cargo:warning declared ISA rewritten to 9.0 (build.rs:215-219)
+            BR->>FS: fs::write(ptx_output, downgraded text) (build.rs:215)
+            BR->>BR: cargo:warning declared ISA rewritten to 9.0 (build.rs:216-220)
         else no .version token or unparseable token (VersionRewrite::Defective, ptx_policy.rs:234-241)
-            BR->>BR: panic! PTX unusable after provenance phase (build.rs:222-227)
+            BR->>BR: panic! PTX unusable after provenance phase (build.rs:223-228)
         end
-        BR->>Policy: validate_ptx(final_text, required_symbols) (build.rs:238, ptx_policy.rs:262-288)
-        Note over BR,Policy: required_symbols = force_pass_kernel, integrate_pass_kernel<br/>visionclaw_unified module only (build.rs:233-237)<br/>REQUIRED_UNIFIED_SYMBOLS at ptx_policy.rs:349
+        BR->>Policy: validate_ptx(final_text, required_symbols) (build.rs:239, ptx_policy.rs:262-288)
+        Note over BR,Policy: required_symbols = force_pass_kernel, integrate_pass_kernel<br/>visionclaw_unified module only (build.rs:234-238)<br/>REQUIRED_UNIFIED_SYMBOLS at ptx_policy.rs:349
         alt validate_ptx returns Err (empty, missing .version/.target/.entry, or missing required symbol)
-            BR->>BR: panic! PTX validation failed for NAME (build.rs:239-245)
+            BR->>BR: panic! PTX validation failed for NAME (build.rs:240-246)
         else Ok
-            BR->>BR: push PtxArtefact module,source,provenance,isa,original_tag,rewritten_tag (build.rs:247-254)
-            BR->>Cargo: cargo:rustc-env=NAME_PTX_PATH=OUT/NAME.ptx (build.rs:256-257)
+            BR->>BR: push PtxArtefact module,source,provenance,isa,original_tag,rewritten_tag (build.rs:248-255)
+            BR->>Cargo: cargo:rustc-env=NAME_PTX_PATH=OUT/NAME.ptx (build.rs:257-258)
         end
     end
     end
-    BR->>FS: write ptx-build-manifest.txt, one manifest_line per module (build.rs:262-267)
-    BR->>Cargo: cargo:rustc-env=VISIONCLAW_PTX_MANIFEST=OUT/ptx-build-manifest.txt (build.rs:268-271)
+    BR->>FS: write ptx-build-manifest.txt, one manifest_line per module (build.rs:263-268)
+    BR->>Cargo: cargo:rustc-env=VISIONCLAW_PTX_MANIFEST=OUT/ptx-build-manifest.txt (build.rs:269-272)
     Note right of BR: INVARIANT - PTX downgraded to .version 9.0 before load<br/>fallback-PTX path exists for nvcc-less builds<br/>GPU-wire-abi.md Invariant 5, ADR-2030
     Note right of Policy: DIVERGENCE - the rewrite is a declared-ISA text splice only<br/>it does not prove every instruction is supported by that ISA<br/>only a real driver load settles that (ADR-2030 Consequences)
     Note over BR,FS: README's "82 CUDA kernels" (root README.md) is the __global__ function count across<br/>these 9 .cu files (visionclaw_unified.cu 25, gpu_clustering_kernels.cu 24, semantic_forces.cu 15,<br/>pagerank.cu 7, gpu_connected_components.cu 3, gpu_landmark_apsp.cu 2, sssp_compact.cu 2,<br/>gpu_aabb_reduction.cu 1, dynamic_grid.cu 0 — verified by count, matches)

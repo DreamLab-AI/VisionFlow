@@ -2,7 +2,7 @@
 id: VC-31
 title: R3F/Three.js graph render pipeline and WASM scene effects
 area: visionclaw
-verified_commit: 36bb64e1e
+verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
 governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: []
@@ -12,6 +12,8 @@ sources:
   - ../project/client/src/features/graph/components/GraphCanvasWrapper.tsx
   - ../project/client/src/features/graph/components/GraphManager.tsx
   - ../project/client/src/features/graph/components/GemNodes.tsx
+  - ../project/client/src/features/bots/agentWorkTargets.ts
+  - ../project/client/src/features/graph/contexts/NodePositionContext.tsx
   - ../project/client/src/features/graph/components/GlassEdges.tsx
   - ../project/client/src/features/graph/components/InstancedLabels.tsx
   - ../project/client/src/features/graph/components/KnowledgeRings.tsx
@@ -67,8 +69,8 @@ flowchart LR
     CANVAS --> ENV["Environment plus Lightformer, auto policy skips on software renderer"]
     CANVAS --> WSE["WasmSceneEffects<br/>visualisation/components/WasmSceneEffects.tsx:628"]
     CANVAS --> ECL["EmbeddingCloudLayer<br/>visualisation/components/EmbeddingCloudLayer.tsx:92"]
-    CANVAS -->|"canvasReady and nodeCount above 0"| GM["GraphManager<br/>components/GraphManager.tsx:40"]
-    GM --> GN["GemNodes x3 populations<br/>components/GemNodes.tsx:150"]
+    CANVAS -->|"canvasReady and nodeCount above 0"| GM["GraphManager<br/>components/GraphManager.tsx:41"]
+    GM --> GN["GemNodes x3 populations<br/>components/GemNodes.tsx:157"]
     GM --> GE["GlassEdges x2 (main + highlight)<br/>components/GlassEdges.tsx:180"]
     GM --> IE["InferredEdges<br/>components/InferredEdges.tsx:36"]
     GM --> KR["KnowledgeRings<br/>components/KnowledgeRings.tsx:32"]
@@ -122,6 +124,8 @@ sequenceDiagram
             GM-->>R3F: return (wait for non-zero positions)
         end
         GM->>GM: nodePositionsRef.current = positions
+        GM->>GM: setSharedNodePositions(positions) publishes the live SAB view<br/>GraphManager.tsx:431, id map at :75
+        Note over GM: 2026-09-11: the SAB view and the node-id-to-index map are published<br/>to a module-level singleton so the agent overlay reads the same live<br/>buffer without a React context. See VC-37.7 for the debt that carries.<br/>client/src/features/graph/contexts/NodePositionContext.tsx:8
         opt transitionRef.current.active (layout mode change)
             GM->>GM: eased progress = easeInOutQuad(rawProgress)
             loop for each node i
@@ -302,7 +306,7 @@ sequenceDiagram
 ```mermaid
 classDiagram
     class GemNodes {
-        GemNodes.tsx:150 GemNodesInner
+        GemNodes.tsx:157 GemNodesInner
         dominant knowledge_graph ontology or agent decides geometry plus material at mesh creation
         capacity = nextPowerOf2 max nodes.length 4096
     }
@@ -333,8 +337,19 @@ classDiagram
     }
     class AgentCapsuleMaterial {
         AgentCapsuleMaterial.ts:36 createAgentCapsuleMaterial
-        createTslAgentCapsuleMaterial WebGPU TSL variant, GemNodes.tsx:261
+        transparent true since 2026-09-11 so a done agent can fade, AgentCapsuleMaterial.ts:44
+        createTslAgentCapsuleMaterial WebGPU TSL variant, AgentCapsuleMaterial.ts:78
+        sprite-like halo rim added on top of the fresnel rim, AgentCapsuleMaterial.ts:126
+        done flag from activity at or below 0.1 fades base alpha to 0.3, AgentCapsuleMaterial.ts:165
     }
+    class AgentWorkTargets {
+        agentWorkTargets.ts:77 getAgentWork returns targetNodeId plus working or done
+        agentWorkTargets.ts:88 AGENT_DONE_ACTIVITY 0.05 is the activity channel value
+        agentWorkTargets.ts:46 markAgentDone is explicit completion, XR registry parity
+        agentWorkTargets.ts:53 subscribes to the transient beam store and drains it at once
+    }
+    GemNodes ..> AgentWorkTargets : reads per instance for the momentum nudge
+    AgentCapsuleMaterial ..> AgentWorkTargets : activity channel drives the done fade
     class InstancedMesh {
         THREE.InstancedMesh count instances
         setColorAt per-instance grey init 0.5 0.5 0.5
@@ -534,7 +549,7 @@ sequenceDiagram
     participant MESH as TransientBeamMesh.updateBeam useFrame<br/>TransientBeamsLayer.tsx:166
     participant ENC as semanticEncoding agentActionColorHex/Shape<br/>semanticEncoding.ts:126,131
 
-    Note over WS: 0x23 wire frame is a bare type tag, not a V4 header colon separated fields<br/>count:u16 then repeated len:u16 plus event bytes (store/websocket/binaryProtocol.ts:422-436, decoded at :437-441). See VC-30<br/>for the surrounding websocket store and worker plumbing.
+    Note over WS: 0x23 wire frame is a bare type tag, not a V4 header colon separated fields<br/>count:u16 then repeated len:u16 plus event bytes (store/websocket/binaryProtocol.ts:430, decoded at :438, :440). See VC-30<br/>for the surrounding websocket store and worker plumbing.
     WS->>STORE: pushTransientBeams(actions) exported non-React entry point<br/>(transientBeamStore.ts:115)
     STORE->>STORE: pushBeams -- clampDuration(durationMs) floor MIN_BEAM_DURATION_MS=400,<br/>default DEFAULT_BEAM_DURATION_MS=1500
     STORE->>STORE: beams.concat(incoming), FIFO trim to MAX_TRANSIENT_BEAMS=256 (oldest<br/>evicted first)
@@ -624,4 +639,35 @@ sequenceDiagram
             CTRL->>CTRL: report() -- console.table of frame p50/p90/p99, rAF callback costs, instanced upload counts, scene census
         end
     end
+```
+
+## VC-31.11 Agent momentum-nudge, a purely visual offset over the streamed position
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant WS as 0x23 agent-action dispatch<br/>see VC-32.11
+    participant TB as useTransientBeamStore
+    participant AWT as agentWorkTargets.ingest<br/>client/src/features/bots/agentWorkTargets.ts:53
+    participant GN as GemNodesInner transform loop<br/>client/src/features/graph/components/GemNodes.tsx:157
+    participant BUF as agentOffsetsRef Float32Array<br/>client/src/features/graph/components/GemNodes.tsx:199
+    participant MESH as InstancedMesh agent population
+
+    WS->>TB: pushTransientBeams(actions)
+    TB->>AWT: zustand subscription fires
+    Note over AWT: The subscription only fires on SUBSEQUENT changes, so beams already<br/>in the store are drained immediately at subscribe time. Without that<br/>drain the first lookup for every agent returned null.<br/>client/src/features/bots/agentWorkTargets.ts:54, :57
+    loop every frame, per visible agent instance
+        GN->>AWT: getAgentWork(nodeId)<br/>client/src/features/bots/agentWorkTargets.ts:77
+        alt state working and the target is in the index map
+            GN->>BUF: offset moves toward the target by AGENT_NUDGE_SPEED 0.03 of the remaining gap<br/>client/src/features/graph/components/GemNodes.tsx:113, :983
+        else state done
+            GN->>BUF: offset drifts outward from the sampled graph centre at AGENT_DRIFT_SPEED 0.005<br/>client/src/features/graph/components/GemNodes.tsx:114, :995
+        end
+        GN->>MESH: position plus offset written to the transform buffer<br/>client/src/features/graph/components/GemNodes.tsx:1000
+    end
+    GN->>MESH: activity channel = AGENT_DONE_ACTIVITY 0.05 when done<br/>client/src/features/graph/components/GemNodes.tsx:1079, agentWorkTargets.ts:88
+    Note over MESH: The capsule material reads that channel: activity at or below 0.1 is<br/>the done flag and fades base alpha to 0.3, which is why the material<br/>became transparent.<br/>client/src/rendering/materials/AgentCapsuleMaterial.ts:44, :165
+    Note over GN,MESH: INVARIANT the nudge is VISUAL ONLY. It is an offset applied when writing<br/>the transform, never a write back into the shared position buffer, so<br/>physics and the wire remain the single source of position. A dragged<br/>instance skips the nudge entirely.<br/>client/src/features/graph/components/GemNodes.tsx:975
+    Note over BUF: DEBT: the offset array is grow-only and indexed by VISIBLE instance<br/>index, not node id, so a change in the visible set re-uses another<br/>agent's accumulated offset for one or more frames.<br/>client/src/features/graph/components/GemNodes.tsx:942, :946
+    Note over GN: This is the desktop counterpart of the XR choreography, which owns a<br/>real pose rather than an offset. see VC-36.22
 ```

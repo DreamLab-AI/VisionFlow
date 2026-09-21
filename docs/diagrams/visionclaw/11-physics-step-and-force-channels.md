@@ -24,7 +24,7 @@ sources:
   - ../project/Cargo.toml
   - ../project/src/handlers/constraints_handler.rs
   - ../project/src/utils/visionflow_unified.ptx
-verified_commit: dd82a07b0
+verified_commit: f223bbd40
 ---
 
 ## VC-11.1 Physics tick — phase 1, params and flag word

@@ -34,7 +34,7 @@ sources:
   - ../project/client/src/features/graph/workers/graph.worker.ts
   - ../project/client/src/services/BinaryWebSocketProtocol.ts
   - ../project/src/handlers/socket_flow_handler/actor_messages.rs
-verified_commit: dd82a07b0
+verified_commit: f223bbd40
 ---
 
 ## VC-13.3 GPU broadcast frame end to end
@@ -183,25 +183,25 @@ sequenceDiagram
     autonumber
     participant WS as WebSocket.onmessage<br/>client/src/store/websocket/binaryFrameDispatcher.ts:97
     participant BFD as BinaryFrameDispatcher<br/>client/src/store/websocket/binaryFrameDispatcher.ts:43
-    participant BP as processBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:459
+    participant BP as processBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:462
     participant GDM as graphDataManager<br/>client/src/features/graph/managers/graphDataManager.ts:433
     participant WSC as handleBinaryFrame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:19
     participant GWP as graphWorkerProxy<br/>client/src/features/graph/managers/graphWorkerProxy.ts:205
     participant WRK as graph.worker.ts<br/>client/src/features/graph/workers/graph.worker.ts:214
 
     rect rgb(222,236,250)
-    WS->>WS: validateBinaryData — lead byte in {3,5,AGENT_ACTION}<br/>client/src/store/websocket/binaryProtocol.ts:186-207
+    WS->>WS: validateBinaryData — lead byte in {3,5,AGENT_ACTION}<br/>client/src/store/websocket/binaryProtocol.ts:187-208
     WS->>BFD: dispatcher.handle(buffer)<br/>client/src/store/websocket/binaryFrameDispatcher.ts:51
     alt frame already in flight
         BFD->>BFD: pendingLatest = buffer (newest-wins, drop older)<br/>client/src/store/websocket/binaryFrameDispatcher.ts:52-60
     else no frame in flight
         BFD->>BP: processBinaryData(buffer, get, set)<br/>client/src/store/websocket/binaryFrameDispatcher.ts:64
-        BP->>BP: read lead byte, V2/V3/V5 routes to legacy path<br/>client/src/store/websocket/binaryProtocol.ts:470-476
-        BP->>BP: parseBinaryFrameData(data)<br/>client/src/store/websocket/binaryProtocol.ts:369
+        BP->>BP: read lead byte, V2/V3/V5 routes to legacy path<br/>client/src/store/websocket/binaryProtocol.ts:473-479
+        BP->>BP: parseBinaryFrameData(data)<br/>client/src/store/websocket/binaryProtocol.ts:370
         opt full V3/V5 frame
-            BP->>BP: nodeAnalyticsStore.ingest(parsedNodes)<br/>client/src/store/websocket/binaryProtocol.ts:381-386
+            BP->>BP: nodeAnalyticsStore.ingest(parsedNodes)<br/>client/src/store/websocket/binaryProtocol.ts:382-387
         end
-        BP->>GDM: graphDataManager.updateNodePositions(data)<br/>client/src/store/websocket/binaryProtocol.ts:406
+        BP->>GDM: graphDataManager.updateNodePositions(data)<br/>client/src/store/websocket/binaryProtocol.ts:407
         GDM->>WSC: handleBinaryFrame(positionData, lastUpdateTime, onUpdateTime)<br/>client/src/features/graph/managers/graphDataManager.ts:436
         alt within 16ms of last update (~60fps throttle)
             WSC-->>GDM: drop frame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:27
@@ -407,7 +407,7 @@ sequenceDiagram
         PU-->>PU: Some((nodes, detailed_debug, visibility))<br/>src/handlers/socket_flow_handler/position_updates.rs:218
     end
     PU->>BIN: encode_node_data_extended_with_sssp(nodes, type_id_slices, analytics)<br/>src/handlers/socket_flow_handler/position_updates.rs:763-772
-    BIN-->>PU: V3 binary frame (WIRE_V3_ITEM_SIZE=52 bytes per node)<br/>src/utils/binary_protocol.rs:1052,1149 (ADR-2018)
+    BIN-->>PU: V3 binary frame (WIRE_V3_ITEM_SIZE=52 bytes per node)<br/>src/utils/binary_protocol.rs:1062,1159 (ADR-2018)
     Note right of BIN: DOC-DRIFT docs/PROTOCOL-registry.md cites the<br/>WIRE_V3_ITEM_SIZE==52 assertions at binary_protocol.rs<br/>lines 712 and 809 — the working tree has them at<br/>lines 1052 and 1149
     end
 ```

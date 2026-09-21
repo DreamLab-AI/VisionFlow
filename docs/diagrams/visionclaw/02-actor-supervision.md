@@ -33,7 +33,7 @@ sources:
   - ../project/crates/visionclaw-actors/src/supervisor.rs
   - ../project/tests/orchestration_improvements_test.rs
   - ../project/src/actors/mod.rs
-verified_commit: 36bb64e1e
+verified_commit: f223bbd40
 ---
 
 ## VC-02.1 Supervision-tree topology — AppState::new boot order
@@ -55,7 +55,7 @@ flowchart TB
     TO["TaskOrchestratorActor<br/>src/app_state.rs:1263<br/>Addr~TaskOrchestratorActor~"]
     EL["ElevationActor<br/>src/app_state.rs:1271<br/>anon start — no Addr retained"]
     VI["VoiceInterfaceActor<br/>src/app_state.rs:1294<br/>anon start — no Addr retained"]
-    DE["DecisionElevationActor<br/>src/main.rs:544<br/>started OUTSIDE AppState::new"]
+    DE["DecisionElevationActor<br/>src/main.rs:556<br/>started OUTSIDE AppState::new"]
 
     APP --> CC
     CC --> AB
@@ -248,7 +248,7 @@ sequenceDiagram
 
     S->>S: escalate_failure with strategy Escalate — top of the tree (:795-806)
     S->>Sys: ctx.stop() (:807)
-    Sys->>S: Actor stopping then stopped, logs GraphServiceSupervisor stopped (:1340-1342)
+    Sys->>S: Actor stopping then stopped, logs GraphServiceSupervisor stopped (src/actors/graph_service_supervisor.rs:1340-1342)
     Note over S,CH: children hold no back-reference — each stops when its last Addr clone drops
     Note over S: this ctx.stop() is the only explicit stop in graph_service_supervisor.rs —<br/>there is no drain timer and no registration gate on the live path
     T->>SA: InitiateGracefulShutdown { timeout_secs } (crates/visionclaw-actors/src/supervisor.rs:117-122, sent at :653)
@@ -560,23 +560,23 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant APP as AppState::new<br/>src/app_state.rs:1271-1288
-    participant EL as ElevationActor<br/>src/actors/elevation_actor.rs:173
+    participant EL as ElevationActor<br/>src/actors/elevation_actor.rs:191
     participant EV as elevation_voice<br/>src/actors/elevation_voice.rs
-    participant MAIN as main<br/>src/main.rs:544
+    participant MAIN as main<br/>src/main.rs:556
     participant DE as DecisionElevationActor<br/>src/actors/decision_elevation_actor.rs:175
 
-    alt ELEVATION_ACTOR_ENABLED gate passes (src/actors/elevation_actor.rs:173)
+    alt ELEVATION_ACTOR_ENABLED gate passes (src/actors/elevation_actor.rs:191)
         APP->>EL: ElevationActor::new(graph_adapter, sqlite_enrichment_repository, speech_service, Some(ontology_repository)).start() (:1271)
-        Note over EL,EV: voice-guided path when local speech stack (Whisper/Kokoro) is up — elevation_voice.rs
+        Note over EL,EV: voice-guided path when local speech stack (Whisper STT, PocketTts TTS) is up (app_state.rs:1267) — elevation_voice.rs
     else gate closed
         APP->>APP: log "ElevationActor disabled" (src/app_state.rs:1287)
     end
-    Note over MAIN,DE: DecisionElevationActor is started in main() src/main.rs:544, NOT in AppState::new —<br/>a second, separately-gated ACSP actor family alongside ElevationActor
+    Note over MAIN,DE: DecisionElevationActor is started in main() src/main.rs:556, NOT in AppState::new —<br/>a second, separately-gated ACSP actor family alongside ElevationActor
     alt DECISION_ELEVATION_ENABLED gate passes (src/actors/decision_elevation_actor.rs:175)
-        MAIN->>DE: DecisionElevationActor::new() then actix::Actor::start(actor) (src/main.rs:544-546)
-        MAIN->>MAIN: wrap in ActorElevationSink, feed DecisionService.with_elevation_sink (src/main.rs:548-550)
+        MAIN->>DE: DecisionElevationActor::new() then actix::Actor::start(actor) (src/main.rs:556-558)
+        MAIN->>MAIN: wrap in ActorElevationSink, feed DecisionService.with_elevation_sink (src/main.rs:560-562)
     else gate closed
-        MAIN->>MAIN: log "DecisionElevationActor disabled" (src/main.rs:553)
+        MAIN->>MAIN: log "DecisionElevationActor disabled" (src/main.rs:565)
     end
 ```
 

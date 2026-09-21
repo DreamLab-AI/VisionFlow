@@ -9,6 +9,7 @@ adrs: [ADR-2067, ADR-2068, ADR-2070, ADR-2098, ADR-2106]
 sources:
   - ../project/client/src/services/api/authInterceptor.ts
   - ../project/Cargo.toml
+  - ../project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md
   - ../project/src/main.rs
   - ../project/src/services/ontology_generation.rs
   - ../project/src/services/ontology_pull.rs
@@ -33,7 +34,7 @@ sources:
   - ../project/client/src/features/solid/components/PodSettings.tsx
   - ../project/client/src/features/solid/components/ResourceEditor.tsx
   - ../project/src/handlers/image_gen_handler.rs
-verified_commit: dd82a07b0
+verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
 ---
 
 ## VC-26.1 Deployment topology — embedded pod vs feature-off stub
@@ -48,7 +49,7 @@ flowchart TB
     FEAT -->|"cfg(not(feature = solid-pod-embed))"| OFF["OFF: stub build"]
 
     subgraph onpath["main.rs — feature ON"]
-        INIT["init_solid_state().await<br/>main.rs:841"]
+        INIT["init_solid_state().await<br/>main.rs:876"]
         APPDATA["app.app_data(solid_state.clone())<br/>main.rs:1045"]
         CFG["configure_solid_routes<br/>main.rs:1126"]
         FS["FsBackend::new(SOLID_DATA_ROOT)<br/>solid_proxy_handler.rs:120,133"]
@@ -58,7 +59,7 @@ flowchart TB
     end
 
     subgraph offpath["main.rs — feature OFF"]
-        NOINIT["solid_state app_data block compiled out<br/>main.rs:869 and :1051"]
+        NOINIT["solid_state app_data block compiled out<br/>main.rs:875 and :1057"]
         STUBCFG["configure_routes (feature-off twin)<br/>solid_proxy_handler.rs:1799-1803"]
         STUBROUTES["RESOLVED ADR-2067 — registers nothing at all<br/>/solid/*, /.well-known/did.json and /did/* all 404<br/>in a feature-off build (was: a full table of 503 stubs)"]
         NOINIT --> STUBCFG --> STUBROUTES
@@ -74,8 +75,11 @@ flowchart TB
     Note2["RESOLVED ADR-2068: the vendored JavaScriptSolidServer/ tree (63 MB) has been deleted. It was a third-party upstream project superseded by the embedded Rust solid-pod-rs, with no import, path or compose reference anywhere; its only mention was a doc-comment URL at src/utils/nip98.rs:5, left intact. Removed rather than archived - docs/archive/ is for our own superseded documents, and the upstream is recoverable from its own public repo."]
     Legacy -.-> Note2
 
-    Note3["RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL's default in ontology-publish.yml and env.example<br/>was http://jss:3030 / http://visionclaw-jss:3030 - both DNS-dead JSS-sidecar names, a leftover<br/>from before ADR-032 M3 embedded solid-pod-rs. Both now default to http://localhost:4000/solid,<br/>the SYSTEM_NETWORK_PORT (default 4000, main.rs:830) this diagram's own INIT/APPDATA/CFG path<br/>actually serves. The /.notifications POST the workflow still sends is a documented no-op there -<br/>the embedded pod's /.notifications is a GET WebSocket upgrade (see VC-26.9), not a POST trigger."]
+    Note3["RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL's default in ontology-publish.yml and env.example<br/>was http://jss:3030 / http://visionclaw-jss:3030 - both DNS-dead JSS-sidecar names, a leftover<br/>from before ADR-032 M3 embedded solid-pod-rs. Both now default to http://localhost:4000/solid,<br/>the SYSTEM_NETWORK_PORT (default 4000, main.rs:836) this diagram's own INIT/APPDATA/CFG path<br/>actually serves. The /.notifications POST the workflow still sends is a documented no-op there -<br/>the embedded pod's /.notifications is a GET WebSocket upgrade (see VC-26.9), not a POST trigger."]
     ON -.-> Note3
+
+    Note4["PROPOSED, not live (ADR-2111, decision_status proposed, implementation_status none,<br/>2026-09-21): this repo would keep depending on the PUBLISHED solid-pod-rs crate<br/>(Cargo.toml:218, 0.4.0-alpha.15) and delete the extraction/solid-pod-rs mirror,<br/>moving to the post-port crate version in lockstep with the forum. Nothing in the<br/>live path above changes until that record is accepted and implemented.<br/>docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:4"]
+    FEAT -.-> Note4
 ```
 
 ## VC-26.2 solid_proxy_handler — route dispatch, auth, WAC
@@ -501,7 +505,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main.rs (solid-pod-embed)<br/>main.rs:877
+    participant M as main.rs (solid-pod-embed)<br/>main.rs:883
     participant SB as spawn_boot_pull<br/>ontology_pull.rs:387
     participant PO as pull_once<br/>ontology_pull.rs:293
     participant GH as GitHub release<br/>ontology-latest (DEFAULT_RELEASE_URL, ontology_pull.rs:42)

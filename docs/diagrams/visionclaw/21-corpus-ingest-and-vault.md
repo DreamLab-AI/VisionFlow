@@ -37,7 +37,7 @@ sources:
   - ../project/data/settings.yaml
   - ../project/scripts/pre-commit-validate.sh
   - ../project/src/handlers/validation_handler.rs
-verified_commit: 36bb64e1e
+verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
 ---
 
 ## VC-21.1 GitHubSyncService::sync_graphs — full ingest path
