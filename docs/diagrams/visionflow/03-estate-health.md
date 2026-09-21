@@ -21,7 +21,7 @@ sources:
   - docs/adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md
   - docs/adr/ADR-2006-canon-owns-crossrepo-view-not-implementation.md
   - docs/architecture/repository-map.md
-verified_commit: bec06dc3a
+verified_commit: df22182f365f7bc7b4664e4374d150ff893e6b05
 ---
 
 ## VF-03.1 The roster — the only place the estate is enumerated
@@ -52,7 +52,7 @@ flowchart TB
     R --> SURF["surfaces — 6 probes — roster.json:20<br/>www.visionflow.info, narrativegoldmine.com,<br/>its /ns/v2.jsonld and /data/graph/stats.json,<br/>www.dreamlab-ai.com, and the VisionClaw<br/>ontology-latest/index.jsonld release asset"]
     R --> REG["registries — 7 entries — roster.json:55<br/>crates.io: vowl-wasm, prose-sanitiser, diagram-ir,<br/>solid-pod-rs, solid-pod-rs-server, nostr-bbs-core<br/>npm: @dreamlab-ai/vowl-wasm — roster.json:62"]
 
-    NOTE["DIVERGENCE: docs/architecture/repository-map.md:8 lists nine<br/>repositories with local paths; the roster lists fourteen with<br/>provenance. The two enumerations of 'the estate' are<br/>maintained separately and do not reference each other."]
+    NOTE["The two enumerations of the estate are now reconciled in one<br/>direction: repository-map.md:8 lists nine repositories with local<br/>paths, and repository-map.md:22 names the roster as THE authoritative<br/>list for nightly collection, scoping the other five as supporting<br/>components — repository-map.md:26. The roster still does not<br/>reference the map back."]
     R -.-> NOTE
 ```
 
@@ -273,18 +273,18 @@ sequenceDiagram
     participant F as "data/estate-health.json in the artefact"
 
     V->>P: "open www.visionflow.info and scroll to the estate section"
-    Note over P: "section id estate — index.html:1041<br/>the lead copy states the file is a committed snapshot,<br/>not a live query — index.html:1045"
-    P->>M: "DOMContentLoaded calls initEstateHealth — main.js:854"
-    M->>F: "fetch('data/estate-health.json', cache no-cache) — main.js:833"
+    Note over P: "section id estate — index.html:1042<br/>the lead copy states the file is a committed snapshot,<br/>not a live query — index.html:1046"
+    P->>M: "DOMContentLoaded calls initEstateHealth — main.js:855"
+    M->>F: "fetch('data/estate-health.json', cache no-cache) — main.js:834"
     alt fetch ok
         F-->>M: the snapshot
-        M->>P: "estateMarkup writes into #estate-body — main.js:836"
-        Note over M,P: "RULE 1: the section's .container.reveal wrapper is already<br/>observed by initScrollReveal — replacing it would leave the<br/>section permanently at opacity 0, so everything writes into<br/>the plain child #estate-body — main.js:583"
-        Note over M,P: "RULE 2: every string comes from the GitHub API by way of the<br/>collector, so nothing reaches innerHTML without esc()<br/>hrefs additionally pass a http/https allowlist — main.js:611"
+        M->>P: "estateMarkup writes into #estate-body — main.js:837"
+        Note over M,P: "RULE 1: the section's .container.reveal wrapper is already<br/>observed by initScrollReveal — replacing it would leave the<br/>section permanently at opacity 0, so everything writes into<br/>the plain child #estate-body — main.js:584"
+        Note over M,P: "RULE 2: every string comes from the GitHub API by way of the<br/>collector, so nothing reaches innerHTML without esc()<br/>hrefs additionally pass a http/https allowlist — main.js:616"
     else fetch failed
-        M->>P: "a note pointing at the committed file — failing loudly<br/>beats a blank section — main.js:839"
+        M->>P: "a note pointing at the committed file — failing loudly<br/>beats a blank section — main.js:840"
     end
-    Note over P,F: "Relative times are computed in the browser, so a stale deploy<br/>reads as stale rather than quietly claiming freshness — main.js:623"
+    Note over P,F: "Relative times are computed in the browser, so a stale deploy<br/>reads as stale rather than quietly claiming freshness — main.js:624"
     Note over P,F: "The file is a REQUIRED entry in website/assets.manifest.json,<br/>so a missing snapshot fails the asset gate — assets.manifest.json:12"
 ```
 
@@ -307,3 +307,32 @@ flowchart LR
     INV["INVARIANT 6 in the governing doc: collected by CI, read by the<br/>dream cycle; a dream night never collects one, acquires a token,<br/>or edits the snapshot by hand — BASELINE-visionflow.md:234"]
     SNAP -.-> INV
 ```
+
+## VF-03.11 The snapshot as it stands — 7 of 14 green, and which checks turned
+```mermaid
+flowchart TB
+    classDef red fill:#f7dede,stroke:#a33333,color:#111
+    classDef green fill:#e6f0dc,stroke:#4a7a2a,color:#111
+    classDef amb fill:#f9f0d5,stroke:#8a7020,color:#111
+
+    HEAD["schema visionflow.estate-health/1, generated 2026-09-21T08:04Z<br/>collected by the nightly run at revision 1357a56<br/>estate-health.json:2 and estate-health.json:3"]
+
+    HEAD --> SUM["summary — 14 repos: 7 green, 5 red, 0 amber,<br/>1 none, 1 unreadable, 5 open PRs,<br/>6 of 6 surfaces reachable<br/>estate-health.json:10 through estate-health.json:18"]
+
+    SUM --> R1["RED — VisionFlow itself. The Diagrams-as-code index gate<br/>concluded failure on run 35030434546<br/>estate-health.json:56 and estate-health.json:57"]:::red
+    SUM --> R2["RED — VisionClaw, agentbox, nostr-rust-forum:<br/>carried red through the whole window<br/>estate-health.json:98 and estate-health.json:158"]:::red
+    SUM --> R3["RED — loom. Its single workflow, Rust contracts, concluded<br/>failure and the row turned from none to red when the repo<br/>first grew a workflow<br/>estate-health.json:428 and estate-health.json:432"]:::red
+    SUM --> N1["NONE — WasmVOWL has no qualifying runs at all;<br/>none is not green — estate-health.json:485"]:::amb
+    SUM --> U1["UNREADABLE — jjohare/visionGraph, the one known hole<br/>see VF-03.5 — estate-health.json:512"]:::amb
+    SUM --> G1["GREEN — solid-pod-rs, dreamlab-ai-website, knowledgeGraph,<br/>vowl-wasm, prose-sanitiser, diagram-ir, dream-engine"]:::green
+
+    VERD["The offline check therefore returns ESTATE-HEALTH-RED:<br/>any red repo is enough, and the verdict beats staleness<br/>estate-health.mjs:858 — see VF-03.6"]:::red
+    SUM --> VERD
+
+    INV["INVARIANT: the collector reports GitHub's own conclusion for the<br/>latest run per workflow and asserts nothing about whether that<br/>conclusion is correct<br/>ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:104"]
+    VERD -.-> INV
+```
+
+**Drift (canon's own gate):** the canon repository is red in its own snapshot because the Diagrams-as-code index gate failed from 2026-09-15 and was still failing at collection time (`website/static/data/estate-health.json:56`, `website/static/data/estate-health.json:60`); the failing gate is the one that polices this diagram tree, drawn at VF-06.12.
+
+**Debt:** the green count fell from ten to seven over the fortnight and no mechanism records why; the snapshot carries only the current state, so the decline is only visible by reading fourteen committed snapshots in sequence (`website/static/data/estate-health.json:11`).

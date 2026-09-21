@@ -31,7 +31,7 @@ sources:
   - docs/estate-review/evidence/adr-inventory.json
   - docs/BASELINE-visionflow.md
   - docs/architecture/compatibility-matrix.md
-verified_commit: bec06dc3a
+verified_commit: df22182f365f7bc7b4664e4374d150ff893e6b05
 ---
 
 ## VF-07.1 Artefact map — what produces each output and where it lands
@@ -69,7 +69,7 @@ flowchart LR
 
     RM -->|"generate-release-manifest.sh<br/>generate-release-manifest.sh:240"| O10["stdout — docs/releases/*.json by redirection<br/>releases/README.md:8"]:::auto
 
-    B1 --> NOP["NO pipeline. Two long-form root documents, 249 lines each,<br/>differing in content. Nothing builds, validates or publishes them;<br/>they are referenced once, as content the two real surfaces publish<br/>BASELINE-visionflow.md:51"]:::content
+    B1 --> NOP["NO pipeline. Two long-form root documents, 249 lines each,<br/>differing in content. Nothing builds, validates or publishes them;<br/>they are referenced once, as content the two real surfaces publish<br/>BASELINE-visionflow.md:53"]:::content
     B2 --> NOP
 
     ORPH["texput.log at the repo root — evidence of a real XeTeX run on<br/>2026-07-08 that ABORTED because main.tex is not at the root.<br/>Same date as dist/arxiv-2026-07-08.tar.gz<br/>texput.log:1"]:::content
@@ -444,7 +444,7 @@ flowchart TB
     classDef content fill:#f0f0f0,stroke:#888,color:#222
     classDef surface fill:#e0f2e4,stroke:#2f7a45,color:#222
 
-    BASE["BASELINE-visionflow.md: the repo has exactly TWO concrete surfaces —<br/>a static marketing website and the governance canon under docs/.<br/>Everything else is content that those two surfaces publish<br/>BASELINE-visionflow.md:50"]
+    BASE["BASELINE-visionflow.md: the repo has exactly TWO concrete surfaces —<br/>a static marketing website and the governance canon under docs/.<br/>Everything else is content that those two surfaces publish<br/>BASELINE-visionflow.md:52"]
 
     BASE --> C1["the-bubble-is-the-architecture.md<br/>249 lines, long-form essay with numbered citations"]:::content
     BASE --> C2["the-bubble-is-the-architecture-v3.md<br/>249 lines, a revised edition with different content —<br/>its method note records how the revision was checked<br/>the-bubble-is-the-architecture-v3.md:117"]:::content
@@ -463,3 +463,7 @@ flowchart TB
 
     XREF["Cross-references rather than duplication: the report's mermaid figures<br/>and their render gate are VF-06; the release manifest is VF-07.2 to VF-07.6;<br/>the compatibility posture those documents cite is VF-08"]
 ```
+
+**Drift (matrix relabelled, release prose not):** the compatibility matrix's harness-coverage and gap-close tables were relabelled historical and explicitly not rerun (`docs/architecture/compatibility-matrix.md:80`, `docs/architecture/compatibility-matrix.md:111`), while the release surface still reads as a live obligation (`docs/releases/README.md:3`) and the only committed candidate is the 2026-05-22 cut (`docs/releases/candidate-2026-05-22.json:2`).
+
+**Debt (unverifiable citation):** `texput.log` is gitignored at `.gitignore:50`, so it exists in no commit and the five citations into it are read from the working tree whatever revision this topic declares; that is inherent to cataloguing a stray build artefact, and it is why the aborted-run evidence cannot be re-checked from history alone.

@@ -7,6 +7,10 @@ governing:
 adrs: [ADR-2004]
 sources:
   - scripts/capture-diagram-source-snapshot.cjs
+  - scripts/check-diagram-render-sources.py
+  - tests/gates/diagram-index.test.cjs
+  - tests/gates/run-all.sh
+  - website/static/data/estate-health.json
   - .github/workflows/diagram-render.yml
   - .github/workflows/diagram-index.yml
   - .github/workflows/deploy.yml
@@ -24,7 +28,7 @@ sources:
   - docs/adr/ADR-2004-diagram-baseline-vendored-render-gate.md
   - docs/BASELINE-visionflow.md
   - docs/site-verification.md
-verified_commit: ffc894722544c7514b002848e721062c6b47627c
+verified_commit: df22182f365f7bc7b4664e4374d150ff893e6b05
 ---
 
 ## VF-06.1 Two diagram pipelines, one repository — what each owns
@@ -69,7 +73,7 @@ flowchart TB
     end
 
     NOTE1["INVARIANT: the COMMITTED baseline is the authority, not a CI render.<br/>A green build never depends on a browser matching byte for byte<br/>ADR-2004-diagram-baseline-vendored-render-gate.md:30"]
-    NOTE2["INVARIANT: this very file was validated by pipeline B —<br/>diagram-index-gen.cjs docs/diagrams --check --cite-check --only visionflow/<br/>diagrams/README.md:68"]
+    NOTE2["INVARIANT: this very file was validated by pipeline B —<br/>diagram-index-gen.cjs docs/diagrams --check --cite-check --only visionflow/<br/>diagrams/README.md:78"]
     NOTE3["DIVERGENCE: the two pipelines share no code. Pipeline A vendors mermaid 11.16.0<br/>and drives Chrome; pipeline B shells out to the Nix-installed mmdc"]
 ```
 
@@ -352,25 +356,49 @@ sequenceDiagram
     Note over G,O: Exact-source comparison and execution logs are distinct evidence.<br/>A cached SVG by itself is not proof of a fresh successful render.
 ```
 
-## VF-06.12 Index identity and hosted checks
+## VF-06.12 diagram-index.yml — three steps, and what a hosted runner cannot see
 ```mermaid
 sequenceDiagram
-    participant CI as diagram-index.yml
-    participant T as diagram-index.test.cjs
+    autonumber
+    participant CI as "diagram-index.yml job index"
     participant G as writeIndexes<br/>diagram-index-gen.cjs:483
-    participant RM as README.md
-    participant CV as COVERAGE.md
-    CI->>T: exercise namespace collisions and strict citation refusal
-    CI->>G: structural check with sibling paths skipped
-    CI->>CV: retain pre-generation content
-    CI->>G: regenerate coverage from topic metadata
-    G->>RM: emit topic tables and regeneration command
-    G->>CV: qualify ADR identities by repository<br/>diagram-index-gen.cjs:520
-    G->>CV: label revisions as author declarations
-    CI->>CI: compare regenerated coverage with committed content
-    Note over G,RM: check and only suppress index writes<br/>diagram-index-gen.cjs:599
-    Note over CI,CV: Hosted structural success does not check sibling source behaviour.<br/>Run strict citations in a source-accessible checkout and preserve claim evidence.
+    participant T as "tests/gates/diagram-index.test.cjs"
+    participant RM as "docs/diagrams/README.md"
+    participant CV as "docs/diagrams/COVERAGE.md"
+
+    Note over CI: "push to main and pull_request, path-filtered to docs/diagrams/**,<br/>the generator, the gate test and the workflow itself<br/>diagram-index.yml:6"
+
+    rect rgb(232, 238, 250)
+    Note over CI,G: "STEP 1 — structural check, sibling paths tolerated"
+    CI->>G: "diagram-index-gen.cjs docs/diagrams --check --no-source-paths<br/>diagram-index.yml:36"
+    Note over G: "frontmatter shape, unique ids, heading and block structure,<br/>prose limits. sources: path existence is WAIVED"
+    end
+
+    rect rgb(228, 240, 232)
+    Note over CI,T: "STEP 2 — prove the gate can still fail"
+    CI->>T: "node tests/gates/diagram-index.test.cjs<br/>diagram-index.yml:39"
+    T->>T: "three fixture topics carrying the SAME ADR number in three areas<br/>diagram-index.test.cjs:10"
+    T-->>CI: "coverage must key them visionflow:ADR-2002, agentbox:ADR-2002,<br/>estate-unresolved:ADR-2002 and must NOT collapse them<br/>diagram-index.test.cjs:19"
+    T->>T: "a past-EOF citation: advisory under --cite-check,<br/>exit 1 under --strict-citations<br/>diagram-index.test.cjs:29"
+    T-->>CI: "--strict-citations with --no-source-paths is refused with exit 2,<br/>never silently downgraded — diagram-index.test.cjs:30"
+    T->>T: "declared-revision mode reads git show at the stamped sha,<br/>so a drifted working tree passes and --worktree-citations fails<br/>diagram-index.test.cjs:44 and diagram-index.test.cjs:45"
+    end
+
+    rect rgb(250, 244, 228)
+    Note over CI,CV: "STEP 3 — the index must already be in sync"
+    CI->>CV: "copy COVERAGE.md aside, then regenerate<br/>diagram-index.yml:44"
+    G->>RM: "emit topic tables and the regeneration command"
+    G->>CV: "qualify ADR identities by repository<br/>diagram-index-gen.cjs:520"
+    CI->>CI: "diff the copy against the regenerated file, and a mismatch<br/>raises a workflow error saying COVERAGE.md is stale, exit 1<br/>diagram-index.yml:45"
+    end
+
+    Note over CI,CV: "INVARIANT: the corpus cites sibling checkouts a hosted runner does not<br/>have, so --no-source-paths is the only runnable form there. sources:<br/>path existence AND --cite-check are therefore LOCAL-ONLY gates<br/>diagram-index.yml:30"
+    Note over CI,RM: "DEBT: this gate was RED from 2026-09-15 to 2026-09-21. A canon commit<br/>added a diagram without regenerating the index block, so step 3 failed<br/>every run until df22182 regenerated it — estate-health.json:56"
 ```
+
+**Debt (local-only citation gate):** because CI runs `--no-source-paths` (`.github/workflows/diagram-index.yml:36`), a `sources:` entry naming a file that no longer exists in a sibling checkout stays green indefinitely; six such dead entries survived in this tree while the workflow reported success (`.github/workflows/diagram-index.yml:30`).
+
+**Drift (index block vs tree):** the generated block records the topic and diagram totals as a committed artefact (`docs/diagrams/README.md:126`), so any commit that adds a diagram without rerunning the generator turns the gate red rather than the diagram — which is the failure recorded at `website/static/data/estate-health.json:57`.
 
 ## VF-06.13 Unwired diagram scripts — what they point at and why they are orphaned
 ```mermaid
@@ -412,3 +440,40 @@ flowchart TB
 ```
 
 The companion `scripts/capture-diagram-source-snapshot.cjs` runs the strict current-worktree check between two source-hash captures and refuses to publish a snapshot if the input bytes changed. Its directory entries are markers rather than recursive attestations, and it excludes RuView source reads. Semantic audit and render execution remain separate evidence.
+
+## VF-06.14 check-diagram-render-sources.py — render-input byte parity, and what it refuses to claim
+```mermaid
+flowchart TB
+    classDef parse fill:#e4ecf8,stroke:#33559a,color:#222
+    classDef ok fill:#e0f2e4,stroke:#2f7a45,color:#222
+    classDef fail fill:#ffe0e0,stroke:#aa3333,color:#222
+
+    CLI["python3 scripts/check-diagram-render-sources.py ROOT [--report FILE]<br/>check-diagram-render-sources.py:9"]:::parse
+    CLI --> WALK["sorted glob of every AREA/NN-*.md under the root;<br/>a file not starting with a frontmatter fence is skipped<br/>check-diagram-render-sources.py:14"]:::parse
+    WALK --> SCAN["track the last '## ID.n ' heading, then capture each<br/>fenced block's body verbatim<br/>check-diagram-render-sources.py:23"]:::parse
+    SCAN -->|"a mermaid block with no heading above it"| HALT["SystemExit Missing diagram heading — the walk stops,<br/>it does not warn and continue<br/>check-diagram-render-sources.py:32"]:::fail
+
+    SCAN --> CMP["for each mermaid block compare THREE things<br/>check-diagram-render-sources.py:40"]:::parse
+    CMP --> T1["render_input_matches — the committed rendered/.../ID.mmd<br/>must equal the current block bytes exactly"]:::parse
+    CMP --> T2["the sibling SVG must exist and its viewBox must parse<br/>check-diagram-render-sources.py:38"]:::parse
+    CMP --> T3["width must be present and at most 4500 px"]:::parse
+
+    T1 --> VERD{"ok = all three"}
+    T2 --> VERD
+    T3 --> VERD
+    VERD -->|no| E1["exit 1, and the printed summary names<br/>topics_needing_render<br/>check-diagram-render-sources.py:49"]:::fail
+    VERD -->|"yes, and at least one record"| E0["exit 0<br/>check-diagram-render-sources.py:50"]:::ok
+    VERD -->|"zero records"| E2["exit 1 — an empty run is a failure,<br/>not a vacuous pass"]:::fail
+
+    REP["--report writes source_sha256, svg_sha256, width and the<br/>per-diagram verdict, alongside a method string that states<br/>the limit in the artefact itself<br/>check-diagram-render-sources.py:45"]:::ok
+    E0 --> REP
+
+    SIB["sibling instrument: capture-diagram-source-snapshot.cjs hashes every<br/>topic and every declared source BEFORE and AFTER a passing strict<br/>worktree check, and refuses to publish if the bytes moved between<br/>capture-diagram-source-snapshot.cjs:48"]:::ok
+    REP --- SIB
+
+    LIM["INVARIANT: neither instrument makes a semantic claim. Byte parity<br/>between a topic block and its render input says the SVG came from<br/>this text, never that the text is true<br/>check-diagram-render-sources.py:45"]
+    REP -.-> LIM
+
+    DIV["DIVERGENCE: this checker is wired to no workflow and no npm script.<br/>It reads docs/diagrams/rendered/, which is gitignored and regenerable,<br/>so on a fresh checkout every diagram reports render_input_matches false"]:::fail
+    E1 -.-> DIV
+```

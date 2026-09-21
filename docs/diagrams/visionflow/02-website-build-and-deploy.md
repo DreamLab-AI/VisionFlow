@@ -36,7 +36,8 @@ sources:
   - docs/PRD-website.md
   - docs/adr/ADR-2002-static-copy-only-website.md
   - docs/adr/ADR-2003-pages-artifact-deploy.md
-verified_commit: bec06dc3a
+  - docs/architecture/compatibility-matrix.md
+verified_commit: df22182f365f7bc7b4664e4374d150ff893e6b05
 ---
 
 ## VF-02.1 The copy-only build — every step of website/build.sh
@@ -71,9 +72,9 @@ flowchart LR
     classDef ext fill:#f6efd8,stroke:#8a7020,color:#111
 
     subgraph STATIC["website/static/ — hand-written source"]
-        IDX["index.html — one page, ~97 KB<br/>one module entry at index.html:1157<br/>one local stylesheet at index.html:23"]:::src
+        IDX["index.html — one page, ~97 KB<br/>one module entry at index.html:1158<br/>one local stylesheet at index.html:23"]:::src
         CSS["css/styles.css — the sole stylesheet"]:::src
-        MAIN["js/main.js — sole ES module entrypoint<br/>DOMContentLoaded wiring at main.js:845"]:::src
+        MAIN["js/main.js — sole ES module entrypoint<br/>DOMContentLoaded wiring at main.js:846"]:::src
         MESH["js/mesh-webgl.js — hand-written WebGL2 ES module<br/>initMesh returns null without WebGL2<br/>mesh-webgl.js:15"]:::src
         DATA["data/estate-health.json — committed nightly snapshot<br/>estate-health.json:2 schema visionflow.estate-health/1<br/>see VF-03"]:::src
         MEDIA["img/showcase/*.webp and video/*.mp4"]:::src
@@ -209,7 +210,7 @@ flowchart TB
     UPR --> UP["upload-pages-artifact@v3, path website/dist<br/>reached only when every blocking gate passed<br/>deploy.yml:180"]:::ok
     UP --> J2["job deploy, needs build<br/>environment github-pages, deploy-pages@v4<br/>deploy.yml:193"]:::ok
 
-    INV["INVARIANT: no gh-pages branch push anywhere;<br/>the CNAME is emitted by build.sh into the artefact<br/>ADR-2003-pages-artifact-deploy.md:29<br/>BASELINE-visionflow.md:225"]
+    INV["INVARIANT: no gh-pages branch push anywhere;<br/>the CNAME is emitted by build.sh into the artefact<br/>ADR-2003-pages-artifact-deploy.md:29<br/>BASELINE-visionflow.md:252"]
     J2 -.-> INV
 ```
 
@@ -269,19 +270,19 @@ flowchart LR
     classDef step fill:#e4ecf8,stroke:#3a5a8a,color:#111
     classDef needs fill:#f9f0d5,stroke:#8a7020,color:#111
 
-    V["npm run verify — package.json:17"]
+    V["npm run verify — package.json:19"]
     V --> S1["npm run build<br/>cd website and run build.sh — package.json:7"]:::step
     S1 --> S2["npm run check:assets<br/>website-assets.mjs verify — package.json:9"]:::step
-    S2 --> S3["npm run test:gates<br/>bash tests/gates/run-all.sh — package.json:15"]:::step
+    S2 --> S3["npm run test:gates<br/>bash tests/gates/run-all.sh — package.json:17"]:::step
     S3 --> S4["npm run check:sidecar<br/>node scripts/check-cdp-sidecar.mjs — package.json:8"]:::needs
-    S4 --> S5["npm run test:site<br/>playwright test — package.json:12"]:::needs
+    S4 --> S5["npm run test:site<br/>playwright test — package.json:14"]:::needs
 
-    S3 --> SUITES["four suites, each driving a deliberate defect through its<br/>gate and asserting the gate goes red — harness-audit,<br/>drift-counter, release-manifest, website-assets<br/>run-all.sh:18, sentinel GATE-TESTS-OK at run-all.sh:34"]:::step
+    S3 --> SUITES["six suites, each driving a deliberate defect through its<br/>gate and asserting the gate goes red — harness-audit,<br/>drift-counter, release-manifest, website-assets and, since<br/>2026-09-14, diagram-index and augmentation-citations<br/>run-all.sh:18, sentinel GATE-TESTS-OK at run-all.sh:38"]:::step
 
     SIDE["EXTERNAL, not in this repo: the browsercontainer Chrome sidecar<br/>in-network port 9223, from the host port 9222<br/>check-cdp-sidecar.mjs:15, probes /json/version at :31<br/>see ES-01 for the sidecar's place in the estate"]:::needs
     S4 --- SIDE
 
-    OTHER["npm run test:a11y and test:perf are grep-selected subsets<br/>of the same spec — package.json:13<br/>npm run health:collect and health:check — package.json:10, see VF-03"]:::step
+    OTHER["npm run test:a11y and test:perf are grep-selected subsets<br/>of the same spec — package.json:15<br/>npm run health:collect and health:check — package.json:12, see VF-03"]:::step
     V -.-> OTHER
 ```
 
@@ -306,14 +307,14 @@ sequenceDiagram
     P-->>T: "structure assertions: ten named sections, the mesh canvas,<br/>four particle canvases, zero console errors — site.spec.js:31"
     P-->>T: "@a11y — axe-core analyze, violations must be empty<br/>site.spec.js:85"
     P-->>T: "@perf — total transferSize at most 800 KB<br/>site.spec.js:108"
-    Note over T,CH: "INVARIANT: no local Chromium is installed in CI — both<br/>projects, chromium and mobile-chrome, drive the sidecar<br/>BASELINE-visionflow.md:222"
+    Note over T,CH: "INVARIANT: no local Chromium is installed in CI — both<br/>projects, chromium and mobile-chrome, drive the sidecar<br/>BASELINE-visionflow.md:250"
 ```
 
 ## VF-02.11 The deeper browser receipt — three scenarios over raw CDP
 ```mermaid
 flowchart TB
     classDef sc fill:#e4ecf8,stroke:#3a5a8a,color:#111
-    BC["scripts/website-browser-check.mjs<br/>publication-candidate verification over raw CDP<br/>website-browser-check.mjs:6<br/>npm run test:browser — package.json:16"]
+    BC["scripts/website-browser-check.mjs<br/>publication-candidate verification over raw CDP<br/>website-browser-check.mjs:6<br/>npm run test:browser — package.json:18"]
 
     BC --> S1["baseline — WebGL2 available, motion normal;<br/>expect initMesh to return a controller and a rAF loop to run<br/>website-browser-check.mjs:16"]:::sc
     BC --> S2["reduced-motion — prefers-reduced-motion reduce;<br/>expect one settled frame and no sustained rAF<br/>website-browser-check.mjs:18"]:::sc
@@ -340,7 +341,7 @@ stateDiagram-v2
     [*] --> Parse
     state "browser parses index.html — one stylesheet, one module" as Parse
     Parse --> DOMReady
-    state "DOMContentLoaded handler — main.js:845" as DOMReady
+    state "DOMContentLoaded handler — main.js:846" as DOMReady
     DOMReady --> Nav
     DOMReady --> Sections
     DOMReady --> Estate
@@ -360,7 +361,7 @@ stateDiagram-v2
     Estate --> [*]
     note right of Estate
       The background video is skipped entirely under
-      reduced motion — main.js:856
+      reduced motion — main.js:857
     end note
     note right of WebGL2No
       DOC-DRIFT: PRD-website.md:194 still requires a static
@@ -370,3 +371,11 @@ stateDiagram-v2
       settled WebGL2 frame.
     end note
 ```
+
+**Invariant (supply chain):** every third-party action in the publication workflow is pinned to a commit sha rather than a moving tag, so a compromised `@v4` cannot enter the artefact (`.github/workflows/deploy.yml:52`, `.github/workflows/deploy.yml:55`).
+
+**Drift (page copy vs the graded table):** the deployed page dates the augmentation grade to 14 September 2026 and links that anchor (`website/static/index.html:546`), while the section it links is now headed *graded 2026-09-15* (`docs/architecture/compatibility-matrix.md:23`).
+
+**Debt (reveal threshold):** `initScrollReveal` was moved from a 10 percent intersection threshold to zero because a tall section may never occupy a tenth of its own area in the viewport (`website/static/js/main.js:40`); nothing in the site tests asserts that a long section still reveals.
+
+**Debt (unverifiable citation):** `website/build-receipt.json` is gitignored at `website/.gitignore:8`, so it exists in no commit and the four citations into it are read from the working tree whatever revision this topic declares; the numbers they carry are true of one local build, not of a revision.

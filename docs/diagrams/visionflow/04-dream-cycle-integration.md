@@ -28,7 +28,7 @@ sources:
   - docs/adr/ADR-2009-webgl-mesh-deep-is-sidecar-only.md
   - ./README.md
   - package.json
-verified_commit: bec06dc3a
+verified_commit: df22182f365f7bc7b4664e4374d150ff893e6b05
 ---
 
 ## VF-04.1 dream.config.json — the whole contract this repo offers the engine
@@ -86,7 +86,7 @@ stateDiagram-v2
       DOC-DRIFT: ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:44
       still calls estate-health "a fifth rotation slot".
       ADR-2009 removed webgl-mesh, so it is one of four —
-      as BASELINE-visionflow.md:149 correctly records.
+      as BASELINE-visionflow.md:151 correctly records.
     end note
 ```
 
@@ -198,9 +198,9 @@ flowchart TB
     D --> G5["INVARIANT adr-citations-must-exist: cite only ids present in<br/>docs/adr/; propose new ADRs by title and leave the id to the<br/>operator. Reports have cited ADR-0057, ADR-056 and ADR-2024 —<br/>none exist, and two are not even this repo's 4-digit scheme.<br/>dream.config.json:73"]:::inv
 
     G5 --> WHY["a citation to a record that does not exist is a fabricated<br/>authority, and it is WORSE than no citation because the reader<br/>cannot tell the difference"]:::warn
-    G2 --> LOCAL["the browser path exists, just not here:<br/>npm run test:a11y and npm run test:perf — package.json:13<br/>see VF-02.10"]:::warn
+    G2 --> LOCAL["the browser path exists, just not here:<br/>npm run test:a11y and npm run test:perf — package.json:15<br/>see VF-02.10"]:::warn
     G1 --> SRC["ground truth for the discipline: build.sh:7 —<br/>no compile step, no bundler, no WASM"]:::warn
-    G4 --> SRC2["ground truth: BASELINE-visionflow.md:234 Invariant 6"]:::warn
+    G4 --> SRC2["ground truth: BASELINE-visionflow.md:261 Invariant 6"]:::warn
 ```
 
 ## VF-04.7 The ledger row — shape and what each column is allowed to say

@@ -5,7 +5,7 @@ area: visionflow
 governing:
   - docs/BASELINE-visionflow.md
   - docs/architecture/compatibility-matrix.md
-adrs: [ADR-2005, ADR-2006]
+adrs: [ADR-2005, ADR-2006, ADR-2010, ADR-2011]
 sources:
   - ./README.md
   - scripts/drift-counter/drift-counter.mjs
@@ -27,11 +27,16 @@ sources:
   - tests/gates/harness-audit.test.sh
   - tests/gates/release-manifest.test.sh
   - tests/gates/website-assets.test.sh
+  - tests/gates/diagram-index.test.cjs
+  - tests/gates/augmentation-citations.test.cjs
+  - scripts/check-augmentation-citations.cjs
+  - .github/workflows/diagram-index.yml
+  - docs/adr/ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md
   - docs/architecture/compatibility-matrix.md
   - docs/BASELINE-visionflow.md
   - docs/protocol/mesh-smoke-test.md
   - package.json
-verified_commit: ffc894722544c7514b002848e721062c6b47627c
+verified_commit: df22182f365f7bc7b4664e4374d150ff893e6b05
 ---
 
 ## VF-05.1 Gate route table — trigger, script, verdict, blocking
@@ -78,9 +83,9 @@ flowchart TB
     MANUAL["operator, by hand — no workflow"] --> SMESH["mesh-smoke-preflight.sh<br/>read-only substrate probe<br/>mesh-smoke-preflight.sh:337"]:::report
     MANUAL --> SREL["generate-release-manifest.sh<br/>exit 3 without a canonical revision set<br/>generate-release-manifest.sh:233"]:::block
 
-    NOTE1["INVARIANT: every count claimed in canon prose has one queryable source;<br/>a second distinct figure for one axis is a failure, not a footnote<br/>BASELINE-visionflow.md:232"]
-    NOTE2["DIVERGENCE: mesh-smoke-preflight.sh is wired to NO workflow.<br/>Its output is pasted by hand into mesh-smoke-test.md:71"]
-    NOTE3["HISTORICAL SNAPSHOT: compatibility-matrix.md:73 records the July<br/>harness PASS at target 80%. Current CI passes --target 50.<br/>These are different run configurations, not a fresh 80% CI result"]
+    NOTE1["INVARIANT: every count claimed in canon prose has one queryable source;<br/>a second distinct figure for one axis is a failure, not a footnote<br/>BASELINE-visionflow.md:258"]
+    NOTE2["DIVERGENCE: mesh-smoke-preflight.sh is wired to NO workflow.<br/>Its output is pasted by hand into mesh-smoke-test.md:84"]
+    NOTE3["HISTORICAL SNAPSHOT: compatibility-matrix.md:96 records the July<br/>harness PASS at target 80%, under a heading now explicitly<br/>marked historical and not rerun — compatibility-matrix.md:80.<br/>Current CI passes --target 50: different run configurations,<br/>not a fresh 80% CI result"]
 ```
 
 ## VF-05.2 drift-counter — axis truth query and the sibling source pin
@@ -158,7 +163,7 @@ flowchart TB
     HOLE["The archived-ADR-002 hole: two sites pointed at a path moved<br/>into docs/archive/, reported file-missing on every run, and that<br/>looked like coverage. Repointed 2026-09-05<br/>allowlist.json:50"]:::fail
     HOLE -.-> FMISS
 
-    DIV["DIVERGENCE: ./README.md:150 renders '7 Ontology MCP Tools' beside<br/>./README.md:157 '12 MCP Ontology Tools'. The sites regex matches only<br/>the second word order, so the adjacency escapes the gate<br/>BASELINE-visionflow.md:182"]
+    DIV["DIVERGENCE: ./README.md:150 renders '7 Ontology MCP Tools' beside<br/>./README.md:157 '12 MCP Ontology Tools'. The sites regex matches only<br/>the second word order, so the adjacency escapes the gate<br/>BASELINE-visionflow.md:209"]
 ```
 
 ## VF-05.4 drift-counter verdict — per-axis states and the fail-open rule
@@ -273,7 +278,7 @@ flowchart TB
     ARGS --> RESOLVE{"--canonical supplied?"}
 
     RESOLVE -->|no| PROBE["probe well-known locations, first of which is<br/>project/docs/specs/fixtures<br/>check-fixture-drift.sh:82"]:::bad
-    PROBE --> STALE["DOC-DRIFT: that path was REMOVED. The corpus moved to<br/>VisionClaw tests/fixtures/ on 2026-06-29, which<br/>the historical Tests/Ops row at compatibility-matrix.md:31 records,<br/>while the script header<br/>at check-fixture-drift.sh:5 still contradicts.<br/>Unqualified runs therefore exit 2, never 0"]:::bad
+    PROBE --> STALE["DOC-DRIFT: that path was REMOVED. The corpus moved to<br/>VisionClaw tests/fixtures/ on 2026-06-29, which<br/>the historical Tests/Ops row at compatibility-matrix.md:54 records,<br/>while the script header<br/>at check-fixture-drift.sh:5 still contradicts.<br/>Unqualified runs therefore exit 2, never 0"]:::bad
     STALE --> EXIT2["ERROR: Canonical fixture directory not found, exit 2<br/>check-fixture-drift.sh:93"]:::bad
 
     RESOLVE -->|yes| DEFREPOS{"any REPO_PATH given?"}
@@ -327,7 +332,7 @@ flowchart LR
 
     C --> C1["tests/gates/release-manifest.test.sh only —<br/>the generator itself is not run in CI<br/>harness-fitness-gates.yml:166"]:::block
 
-    NOTE1["TARGET SCOPE: the script default is 80 (harness-audit.sh:57).<br/>Historical Harness Coverage totals at compatibility-matrix.md:73<br/>record July's PASS at target 80%, while this workflow passes --target 50"]
+    NOTE1["TARGET SCOPE: the script default is 80 (harness-audit.sh:57).<br/>Historical Harness Coverage totals at compatibility-matrix.md:96<br/>record July's PASS at target 80%, while this workflow passes --target 50"]
     NOTE2["INVARIANT: the missing template directory is a skip, not a failure —<br/>job B exits 0 when docs/engineering/templates does not exist"]
 ```
 
@@ -428,13 +433,15 @@ flowchart TB
 
     WHY["A gate nobody tests is a gate nobody knows is broken:<br/>the harness audit scored duplicate pairings 200% PASS,<br/>the drift counter policed two archived files forever, and<br/>a release candidate could assert fixture parity nothing compared<br/>run-all.sh:5"]
 
-    WHY --> RUN["bash tests/gates/run-all.sh — four suites, one verdict<br/>run-all.sh:19"]
-    RUN --> PRINT["GATE-TESTS-OK or GATE-TESTS-FAIL<br/>run-all.sh:34"]
+    WHY --> RUN["bash tests/gates/run-all.sh — six suites, one verdict<br/>run-all.sh:18"]
+    RUN --> PRINT["GATE-TESTS-OK or GATE-TESTS-FAIL<br/>run-all.sh:38"]
 
     RUN --> S1["drift-counter.test.sh"]:::suite
     RUN --> S2["harness-audit.test.sh"]:::suite
     RUN --> S3["release-manifest.test.sh"]:::suite
     RUN --> S4["website-assets.test.sh"]:::suite
+    RUN --> S5["diagram-index.test.cjs — the two .cjs suites are run<br/>with node rather than bash, chosen per suite by extension<br/>run-all.sh:31"]:::suite
+    RUN --> S6["augmentation-citations.test.cjs — see VF-05.13<br/>run-all.sh:24"]:::suite
 
     S1 --> D1["seeded mismatch at a policed site goes red<br/>drift-counter.test.sh:83"]
     D1 --> D2["a policed file that has MOVED fails, never passes<br/>drift-counter.test.sh:102"]
@@ -488,8 +495,62 @@ flowchart TB
     P5 --> TAB
     TAB --> TOT["TOTALS: passed / failed / warnings<br/>mesh-smoke-preflight.sh:334"]
 
-    TOT --> HAND["Output is pasted BY HAND into the<br/>Preflight Results section of the protocol doc<br/>mesh-smoke-test.md:71"]
+    TOT --> HAND["Output is pasted BY HAND into the<br/>Preflight Results section of the protocol doc<br/>mesh-smoke-test.md:84"]
 
     N1["DIVERGENCE: this script has no workflow, no exit-code contract used by CI,<br/>and no assertion of its own — FAIL counts are printed, then the script ends.<br/>It is an operator instrument, not a gate"]
     N2["EXTERNAL: every probe reads a sibling checkout at a fixed workspace path —<br/>VisionClaw VC-NN, nostr-rust-forum NF-NN, dreamlab-ai-website DW-NN,<br/>agentbox AB-NN, solid-pod-rs SP-NN. An unmounted sibling is MISSING, not fatal"]
 ```
+
+## VF-05.13 check-augmentation-citations.cjs — the gate over the graded matrix
+```mermaid
+flowchart TB
+    classDef parse fill:#e4ecf8,stroke:#33559a,color:#222
+    classDef fail fill:#ffe0e0,stroke:#aa3333,color:#222
+    classDef ok fill:#e0f2e4,stroke:#2f7a45,color:#222
+    classDef local fill:#fff4d6,stroke:#aa8833,color:#222
+
+    CLI["node scripts/check-augmentation-citations.cjs [--root DIR]<br/>default root is the directory ABOVE this repo, where the<br/>sibling checkouts live<br/>check-augmentation-citations.cjs:14"]:::local
+
+    CLI --> SEC["locate the 'Augmentation conditions' section<br/>in docs/architecture/compatibility-matrix.md<br/>check-augmentation-citations.cjs:25"]:::parse
+    SEC -->|absent| F0["FAIL 'no Augmentation conditions section', exit 1<br/>check-augmentation-citations.cjs:26"]:::fail
+    SEC --> HDR["find the row beginning 'Condition'<br/>check-augmentation-citations.cjs:30"]:::parse
+    HDR -->|absent| F1["FAIL 'table header missing', exit 1<br/>check-augmentation-citations.cjs:31"]:::fail
+
+    HDR --> COLS["every column header must be a KNOWN substrate —<br/>nostr-rust-forum, agentbox, VisionClaw — each mapped to<br/>the checkout directory its citations resolve against<br/>check-augmentation-citations.cjs:15"]:::parse
+    COLS -->|"header not in the map"| F2["FAIL unknown substrate column<br/>check-augmentation-citations.cjs:37"]:::fail
+    COLS -->|"same header twice"| F3["FAIL duplicate substrate column — this is what stops a<br/>column being aliased onto another substrate's evidence<br/>check-augmentation-citations.cjs:38"]:::fail
+
+    COLS --> ROWS["contiguous rows after the separator;<br/>labels must be exactly C1 to C6, each once<br/>check-augmentation-citations.cjs:16"]:::parse
+    ROWS -->|"a label outside the set"| F4["FAIL row label is not one of C1 to C6 —<br/>an invented C7 cannot smuggle in fabricated citations<br/>check-augmentation-citations.cjs:46"]:::fail
+    ROWS -->|"not exactly six"| F5["FAIL expected 6 condition rows —<br/>deleting a row is as loud as adding one<br/>check-augmentation-citations.cjs:48"]:::fail
+
+    ROWS --> CELL["per cell: read the status token<br/>absent, partial or measured<br/>check-augmentation-citations.cjs:59"]:::parse
+    CELL -->|"no token"| F6["FAIL no status token<br/>check-augmentation-citations.cjs:59"]:::fail
+    CELL -->|"not absent, no citation"| F7["FAIL a raised status without a citation<br/>check-augmentation-citations.cjs:61"]:::fail
+    CELL --> CITE["each backtick-quoted path:line, ranges and<br/>comma lists included<br/>check-augmentation-citations.cjs:19"]:::parse
+
+    CITE --> E1["elided path containing an ellipsis — FAIL<br/>check-augmentation-citations.cjs:64"]:::fail
+    CITE --> E2["measured must cite code, config, schema, migration<br/>or a receipt by extension — never a document<br/>check-augmentation-citations.cjs:18<br/>check-augmentation-citations.cjs:66"]:::fail
+    CITE --> E3["the path must stat in that substrate's checkout — FAIL missing<br/>check-augmentation-citations.cjs:69"]:::fail
+    CITE --> E4["and be a REGULAR FILE, so a directory citation cannot pass<br/>check-augmentation-citations.cjs:70"]:::fail
+    CITE --> E5["the highest line in the range must exist in the file<br/>check-augmentation-citations.cjs:73"]:::fail
+    CITE --> PASS["counted; exit 0 only when failures is zero<br/>check-augmentation-citations.cjs:78"]:::ok
+
+    SUITE["tests/gates/augmentation-citations.test.cjs — ten deliberate<br/>defects driven through the gate, each asserted to exit 1:<br/>missing path :35, elided path :39, measured citing a document :44,<br/>five rows :48, line past EOF :52, duplicate header :56,<br/>unknown header :59, directory citation :63, a C7 row :67,<br/>measured citing an extensionless document :72"]:::ok
+    PASS --- SUITE
+    SUITE --> FIX["the suite materialises a FIXTURE estate of 5000-line stand-ins<br/>so the real table can be checked with no siblings present<br/>augmentation-citations.test.cjs:29"]:::ok
+    SUITE --> SKIP["the run against the REAL sibling checkouts is SKIPPED<br/>when they are absent — augmentation-citations.test.cjs:77"]:::local
+
+    WIRE["wired through tests/gates/run-all.sh:24 and the<br/>npm script check:augmentation at package.json:10;<br/>no workflow of its own"]:::local
+    CLI --- WIRE
+
+    INV["INVARIANT: a status may be RAISED only by a citation to code or a<br/>runtime receipt, never by a document — the extension allowlist is<br/>what makes that rule mechanical rather than editorial<br/>ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md:28"]
+    E2 -.-> INV
+
+    DIV["DIVERGENCE: the gate resolves every citation against SIBLING<br/>checkouts, so it can only ever run locally. run-all.sh is wired<br/>to no workflow, and the suite silently skips the real-checkout<br/>assertion on a hosted runner — the matrix's cells are checked<br/>by whoever remembers to run it<br/>augmentation-citations.test.cjs:77"]:::fail
+    SKIP -.-> DIV
+```
+
+**Debt:** the augmentation-citations gate has no workflow of its own and reaches CI through no path, because `tests/gates/run-all.sh:24` is itself reachable only from `package.json:17`, so the eighteen cited cells of the graded matrix are verified only by a local run.
+
+**Invariant:** the substrate column set is closed — a header outside `SUBSTRATE_DIRS` fails rather than defaulting, so a new substrate cannot be graded until the checker learns where its code lives (`scripts/check-augmentation-citations.cjs:15`, `scripts/check-augmentation-citations.cjs:37`).

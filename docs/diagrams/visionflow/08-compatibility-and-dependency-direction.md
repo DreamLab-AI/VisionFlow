@@ -39,7 +39,7 @@ sources:
   - MAINTAINERS.md
   - LICENSES/README.md
   - ./README.md
-verified_commit: bec06dc3a
+verified_commit: {visionflow: df22182f365f7bc7b4664e4374d150ff893e6b05, visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2, agentbox: b7b1ab81a, nostr-rust-forum: 2f90c1916}
 ---
 
 Source reconciliation: 2026-09-07. These panels follow the current sections of the compatibility matrix and status reconciliation, plus the source audits named in frontmatter. Historical metrics and register cuts remain historical. This review did not certify a live federation, image, hardware session or replica-wide authentication contract.
@@ -70,13 +70,13 @@ Evidence: `repository-map.md`, the Agentbox audit and imported-scope review. Pub
 
 ```mermaid
 flowchart LR
-    KEY["BIP-340 x-only public key"] --> DID["Agentbox canonical did:nostr:64-hex"]
-    KEY --> MULTI["Multikey verification material offered alongside"]
-    REQ["Signed NIP-98 request"] --> VC["VisionClaw process-local single-use cache"]
+    KEY["BIP-340 x-only public key"] --> DID["Agentbox canonical did:nostr:64-hex<br/>agent-identity.js:22"]
+    KEY --> MULTI["Multikey verification material offered ALONGSIDE,<br/>never as a replacement DID string<br/>agent-identity.js:18"]
+    REQ["Signed NIP-98 request"] --> VC["VisionClaw process-local single-use cache —<br/>the event id is recorded atomically after validation<br/>nip98.rs:164"]
     REQ --> POD["Native Solid replay-store seam"]
     REQ --> EDGE["Forum and Worker-specific verifier contracts"]
     REQ --> AB["Agentbox proxy identity boundary"]
-    VC --> LIMIT["Restart, replicas, URL semantics and caller wiring require separate proof"]
+    VC --> LIMIT["Restart, replicas, URL semantics and caller wiring require separate proof.<br/>EXTERNAL: the cache is declared single-process by invariant in VisionClaw itself<br/>nip98.rs:210 — see VC-03"]
     POD --> LIMIT
     EDGE --> LIMIT
     AB --> LIMIT
@@ -103,9 +103,9 @@ Use the current inventory and source records. A release roster, runtime health r
 
 ```mermaid
 flowchart LR
-    CORE["Forum mesh core and transport types"] --> PLAN["Relay configuration and fan-out planner"]
+    CORE["Forum mesh core and transport types"] --> PLAN["Relay configuration and fan-out planner<br/>mesh.rs:184 plan_fanout, gated by MESH_FEDERATED_KINDS<br/>mesh.rs:59"]
     PLAN -.-> JOIN["Deferred outbound connector and accept-path joins"]
-    KERNEL["VisionClaw broker kernel"] --> ACSP["ACSP and inbox/decide REST surfaces"]
+    KERNEL["VisionClaw broker kernel — broker_case, broker_decision,<br/>precedent_registry<br/>broker/mod.rs:31"] --> ACSP["ACSP and inbox/decide REST surfaces"]
     TASK["Agentbox task spawn"] --> JOURNAL["Journalled local fast path"]
     ACSP --> STAGES["Signed / accepted / projected / received / applied"]
     STAGES -.-> E2E["Complete correlated applied-decision proof remains open"]
@@ -119,13 +119,15 @@ Source: forum `mesh.rs`, VisionClaw `src/domain/broker/mod.rs`, Agentbox `action
 ```mermaid
 flowchart TB
     OLD["Historical candidate manifest and twelve-tool prose"] --> DATE["Retain date and revision"]
-    CURRENT["Current ontology-bridge.js TOOLS"] --> ELEVEN["Eleven advertised entries"]
+    CURRENT["Current ontology-bridge.js TOOLS array<br/>ontology-bridge.js:143"] --> ELEVEN["EXTERNAL: eleven advertised entries at the agentbox<br/>revision stamped in this topic — see AB-25"]
     DISPATCH["ontology_propose dispatcher branch"] --> SEPARATE["Dispatchable branch is not an advertised registry entry"]
     PIN["Drift-counter pinned sibling revision"] --> PINNED["Gate result applies to that revision"]
     CURRENT --> QUALIFY["Working tree, pinned source and loaded MCP may differ"]
     PINNED --> QUALIFY
     DATE --> QUALIFY
 ```
+
+**Invariant (stamp covers every repo cited):** this topic cites four repositories, so `verified_commit` is a `{repo: sha}` map; a repository present in `sources:` but missing from the map resolves against the working tree without complaint, which is exactly the source-identity failure the matrix warns about (`docs/architecture/compatibility-matrix.md:8`).
 
 The current TOOLS array and ListTools handler were read directly. Historical twelve-tool statements and candidate package versions are preserved in the matrix's dated snapshot, not claimed as current. A moving checkout must not silently update the gate's approved pin.
 
