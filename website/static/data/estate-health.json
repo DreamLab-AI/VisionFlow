@@ -1,9 +1,9 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-09-20T07:49:30.293Z",
+  "generated_at": "2026-09-21T08:04:01.932Z",
   "generator": {
-    "revision": "eba51d01a7983fef2a41ee282c117f792f53617e",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/35497892301",
+    "revision": "1357a5605aca00adaf4dbb9fd65d8f84fe98a5b7",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/35575935326",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
@@ -29,11 +29,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "eba51d01a7983fef2a41ee282c117f792f53617e",
-        "short": "eba51d0",
-        "date": "2026-09-19T07:25:38Z",
-        "message": "chore(estate-health): nightly snapshot 2026-09-19 — 7/14 green",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/eba51d01a7983fef2a41ee282c117f792f53617e"
+        "sha": "1357a5605aca00adaf4dbb9fd65d8f84fe98a5b7",
+        "short": "1357a56",
+        "date": "2026-09-20T07:49:31Z",
+        "message": "chore(estate-health): nightly snapshot 2026-09-20 — 7/14 green",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/1357a5605aca00adaf4dbb9fd65d8f84fe98a5b7"
       },
       "ci": {
         "state": "red",
@@ -49,8 +49,8 @@
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/35429292756",
-            "updated_at": "2026-09-19T07:26:10Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/35497905958",
+            "updated_at": "2026-09-20T07:50:05Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
@@ -77,8 +77,8 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/35429279787",
-            "updated_at": "2026-09-19T07:25:43Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/35497892301",
+            "updated_at": "2026-09-20T07:49:36Z"
           }
         ]
       },
@@ -165,11 +165,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "b680a7aeef604276af73e00e1eb5156f379530ae",
-        "short": "b680a7a",
-        "date": "2026-09-18T12:40:57Z",
-        "message": "docs(adr): point ADR-2093 verified_commit at the compaction plugin landing",
-        "url": "https://github.com/DreamLab-AI/agentbox/commit/b680a7aeef604276af73e00e1eb5156f379530ae"
+        "sha": "1108408213906dcf3dff6a363ae76f36c3819757",
+        "short": "1108408",
+        "date": "2026-09-21T07:41:28Z",
+        "message": "docs(adr): ADR-2094, PRD-023, DDD-021; re-verify the 11 records the SSO work touched",
+        "url": "https://github.com/DreamLab-AI/agentbox/commit/1108408213906dcf3dff6a363ae76f36c3819757"
       },
       "ci": {
         "state": "red",
@@ -178,8 +178,8 @@
             "workflow": "CI",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35345965719",
-            "updated_at": "2026-09-18T12:43:23Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35574241737",
+            "updated_at": "2026-09-21T07:44:57Z"
           },
           {
             "workflow": "Contract tests",
@@ -192,8 +192,8 @@
             "workflow": "Manifest validate",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35345965720",
-            "updated_at": "2026-09-18T12:43:12Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35574241892",
+            "updated_at": "2026-09-21T07:44:45Z"
           },
           {
             "workflow": "nix-flake-update",
@@ -206,22 +206,29 @@
             "workflow": "Secret Scan",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35345965981",
-            "updated_at": "2026-09-18T12:41:39Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35574241841",
+            "updated_at": "2026-09-21T07:43:23Z"
           },
           {
             "workflow": "Security Invariants",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35345965655",
-            "updated_at": "2026-09-18T12:41:30Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35574241856",
+            "updated_at": "2026-09-21T07:43:09Z"
           },
           {
             "workflow": "ShellCheck",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35345965713",
-            "updated_at": "2026-09-18T12:41:21Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35574241682",
+            "updated_at": "2026-09-21T07:42:58Z"
+          },
+          {
+            "workflow": "TUI helper tests",
+            "conclusion": "failure",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/35574241915",
+            "updated_at": "2026-09-21T07:44:09Z"
           }
         ]
       },
@@ -364,8 +371,8 @@
             "workflow": "Documentation Auto-Update",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/34791236745",
-            "updated_at": "2026-09-13T23:59:27Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/35546223664",
+            "updated_at": "2026-09-20T23:59:54Z"
           },
           {
             "workflow": "kit-pin-guard",
@@ -702,7 +709,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 202,
+      "latency_ms": 311,
       "note": null
     },
     {
@@ -711,7 +718,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 211,
+      "latency_ms": 306,
       "note": null
     },
     {
@@ -720,7 +727,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 217,
+      "latency_ms": 306,
       "note": null
     },
     {
@@ -729,7 +736,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 243,
+      "latency_ms": 314,
       "note": "classes=8432 pages=8428 nodes=8432"
     },
     {
@@ -738,7 +745,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 397,
+      "latency_ms": 468,
       "note": null
     },
     {
@@ -747,7 +754,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 265,
+      "latency_ms": 284,
       "note": null
     }
   ],
