@@ -29,7 +29,14 @@ try {
   assert.equal(run('--strict-citations').status, 1, 'strict gate must reject a past-EOF citation');
   assert.equal(run('--strict-citations', '--no-source-paths').status, 2, 'cannot waive source access in strict mode');
   fs.writeFileSync(fixture, source.replace('Source', 'fixture.js:1'));
-  assert.equal(run('--strict-citations').status, 0, 'a resolving citation passes');
+  // A citation whose declared revision cannot be resolved is READ FROM THE
+  // WORKING TREE. It used to pass silently, which is how a corpus could report
+  // zero warnings while a slice of it had never been checked against any commit.
+  // Strict mode must now refuse it, and say why.
+  const unresolved = run('--strict-citations');
+  assert.equal(unresolved.status, 1, 'an unresolvable declared revision must not pass strict mode');
+  assert.ok(/unverified/.test(unresolved.stdout + unresolved.stderr), 'the refusal must name the citation as unverified');
+  assert.ok(/citations: \d+ verified at the declared revision/.test(unresolved.stdout), 'a run must state what it verified');
   const git = (...args) => {
     const result = spawnSync('git', ['-C', base, ...args], { encoding: 'utf8' });
     assert.equal(result.status, 0, result.stderr);
