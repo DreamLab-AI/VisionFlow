@@ -5,7 +5,7 @@ area: agentbox
 governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
   - ../project/agentbox/docs/SECURITY-profiles.md
-adrs: [ADR-2022, ADR-2027, ADR-2041]
+adrs: [ADR-2022, ADR-2027, ADR-2041, ADR-2085, ADR-2087]
 sources:
   - ../project/agentbox/management-api/lib/action-plane.js
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
@@ -21,8 +21,6 @@ sources:
   - ../project/agentbox/management-api/lib/receipt-minter.js
   - ../project/agentbox/management-api/lib/audit-chain.js
   - ../project/agentbox/management-api/lib/failure-taxonomy.js
-  - ../project/agentbox/management-api/lib/precedent-service.js
-  - ../project/agentbox/mcp/servers/precedent-bridge.js
   - ../project/agentbox/management-api/lib/elevation-publisher.js
   - ../project/agentbox/management-api/lib/project-tracker.js
   - ../project/agentbox/management-api/lib/project-primer.js
@@ -42,18 +40,25 @@ sources:
   - ../project/agentbox/management-api/lib/authority.js
   - ../project/agentbox/management-api/lib/uris.js
   - ../project/agentbox/skills/lint-skills.sh
-verified_commit: 771d96ed5ac6f5daa1e78a60d109c130b9ef9b99
+  - ../project/agentbox/management-api/lib/task-properties.js
+  - ../project/agentbox/management-api/lib/governance-application-receipts.js
+  - ../project/agentbox/management-api/lib/authority-journal.js
+  - ../project/agentbox/management-api/lib/governance-receipt-publisher.js
+  - ../project/agentbox/management-api/lib/governance-manual-continue.js
+  - ../project/agentbox/mcp/servers/governance-bridge.js
+  - ../project/agentbox/docs/adr/ADR-2087-task-properties-receipts-and-manual-continuation.md
+verified_commit: 1639f86ab
 ---
 
 ## AB-14.1 Governance plane — surfaces that reach the decision point vs surfaces that miss it
 
 ```mermaid
 flowchart TB
-    subgraph SURF["Agent-initiated side-effect surfaces GOVERNANCE-capabilities.md:42-63"]
+    subgraph SURF["Agent-initiated side-effect surfaces GOVERNANCE-capabilities.md:47-70"]
         DTC["Direct tool call<br/>MCP fleet mcp/mcp.json"]
-        CMS["Code-mode sub-call<br/>codeact / code-interpreter agentbox.toml:557,572"]
-        ACISHELL["ACI shell<br/>test allowlist agentbox.toml:603<br/>raw Bash still reachable outside it"]
-        CONSULT["Consultant / subagent action<br/>tree-search-coder agentbox.toml:639"]
+        CMS["Code-mode sub-call<br/>codeact / code-interpreter agentbox.toml:589,605"]
+        ACISHELL["ACI shell<br/>test allowlist agentbox.toml:735<br/>raw Bash still reachable outside it"]
+        CONSULT["Consultant / subagent action<br/>tree-search-coder agentbox.toml:771"]
         DREAM["Background job dream-engine<br/>01:00-05:00 UTC unattended"]
         BEADS["Background job beads work-DAG<br/>spawn_child mcp/mcp.json:197"]
         ALTHARNESS["Alternate harness path<br/>non-Claude harness"]
@@ -64,7 +69,7 @@ flowchart TB
     JOURNAL[["ExecutionJournal.append<br/>execution-journal.js:133"]]
     ACTPLANE(["action-plane.js getActionPlane<br/>lazy singleton, ADR-2041, see AB-14.14"])
     COSTGATE["costGate middleware<br/>middleware/cost-gate.js, see AB-15.x"]
-    ACSPGATE["ACSP authority gate<br/>authority.js:137 buildAuthorityGate.guard, see AB-11.10"]
+    ACSPGATE["ACSP authority gate<br/>authority.js:226 buildAuthorityGate.guard, see AB-11.10"]
     AXIOMGUARD["direct_axiom_load=false guard<br/>ADR-2022, see AB-25"]
     EXEC(["side effect executes"])
 
@@ -83,9 +88,10 @@ flowchart TB
     ACSPGATE --> EXEC
     AXIOMGUARD --> EXEC
 
-    DRIFT["DOC-DRIFT GOVERNANCE-capabilities.md:74-75 claims a repo-wide search of src/, services/, mcp/ for SessionEvent / execution-journal code returns nothing<br/>execution-journal.js:85 class ExecutionJournal and agent-action-pipeline.js:58 class AgentActionPipeline fully implement legacy-ADR-057/059 D1-D5<br/>under management-api/lib/, a path outside the doc's stated search scope"]
-    DIVERGE1["DIVERGENCE (NARROWED by ADR-2041) TOP OPEN RISK GOVERNANCE-capabilities.md:204-207 named 'no single policy decision point' with zero production instantiations<br/>action-plane.js now builds a real ExecutionJournal + AgentActionPipeline singleton and POST /v1/tasks calls dispatchTaskSpawn — one surface is now wired, journalled and capability-tokened<br/>every OTHER surface above (direct tool call, code-mode, ACI shell, consultant, dream, beads, alt harness) still reaches EXEC with no interceptor — the gap is narrower, not closed, see AB-14.14"]
-    DIVERGE7["DIVERGENCE GOVERNANCE-capabilities.md:235-236 skill lint is advisory, not a runtime capability gate<br/>lint-skills.sh gates estate hygiene only; an enabled skill with clean frontmatter is trusted at runtime with no further check"]
+    DRIFT["DOC-DRIFT GOVERNANCE-capabilities.md:81 claims a repo-wide search of src/, services/, mcp/ for SessionEvent / execution-journal code returns nothing<br/>execution-journal.js:85 class ExecutionJournal and agent-action-pipeline.js:58 class AgentActionPipeline fully implement legacy-ADR-057/059 D1-D5<br/>under management-api/lib/, a path outside the doc's stated search scope"]
+    DIVERGE1["DIVERGENCE (NARROWED by ADR-2041) TOP OPEN RISK GOVERNANCE-capabilities.md:261-266 named 'no single policy decision point' with zero production instantiations<br/>action-plane.js now builds a real ExecutionJournal + AgentActionPipeline singleton and POST /v1/tasks calls dispatchTaskSpawn — one surface is now wired, journalled and capability-tokened<br/>every OTHER surface above (direct tool call, code-mode, ACI shell, consultant, dream, beads, alt harness) still reaches EXEC with no interceptor — the gap is narrower, not closed, see AB-14.14"]
+    DRIFT2["DOC-DRIFT the capability-surface list cites agentbox.toml line numbers that have moved —<br/>GOVERNANCE-capabilities.md:52 says aci_shell is at agentbox.toml:582 (it is agentbox.toml:729),<br/>:55-56 says code_interpreter :539 and codeact :554 (they are agentbox.toml:589 and :605),<br/>:59 says the test allowlist is :585 (it is agentbox.toml:735), :63 says tree_search_coder :624 (it is agentbox.toml:771)"]
+    DIVERGE7["DIVERGENCE GOVERNANCE-capabilities.md:292-293 skill lint is advisory, not a runtime capability gate<br/>lint-skills.sh gates estate hygiene only; an enabled skill with clean frontmatter is trusted at runtime with no further check"]
 ```
 
 ## AB-14.2 Action lifecycle — intent through policy, approval, execution, receipt, journal
@@ -351,7 +357,7 @@ flowchart LR
     COV -.->|"journal.status = live if live.journal passed, else declared"| SYS
     COV -.->|"action_pipeline.status = live if live.pipeline passed, else declared execution-coverage.js:68"| SYS
 
-    DRIFTNOTE["DOC-DRIFT (PARTIALLY RESOLVED, ADR-2041) execution-coverage.js gained buildLiveExecutionCoverage(), which pulls a REAL singleton from action-plane.js getCoverageSnapshot() when POST /v1/tasks has built one<br/>but routes/system.js:22,43 still calls the OLD buildExecutionCoverage(live) with live={} — server.js:954 never passes an execution.snapshot option — so GET /v1/system still reports status: declared always, even though a live instance now genuinely exists"]
+    DRIFTNOTE["DOC-DRIFT (PARTIALLY RESOLVED, ADR-2041) execution-coverage.js gained buildLiveExecutionCoverage(), which pulls a REAL singleton from action-plane.js getCoverageSnapshot() when POST /v1/tasks has built one<br/>but routes/system.js:22,43 still calls the OLD buildExecutionCoverage(live) with live={} — routes/system.js:37-38 reads options.execution.snapshot and server.js never supplies one — so GET /v1/system still reports status: declared always, even though a live instance now genuinely exists"]
     COV --- DRIFTNOTE
 ```
 
@@ -362,7 +368,7 @@ sequenceDiagram
     autonumber
     participant SPEND as spend attempt<br/>paid, denied, failed or pending-approval
     participant RM as receipt-minter<br/>management-api/lib/receipt-minter.js:45
-    participant URIS as uris.mint<br/>management-api/lib/uris.js:157
+    participant URIS as uris.mint<br/>management-api/lib/uris.js:162
     participant BC20 as bc20-provenance-bridge<br/>management-api/lib/receipt-minter.js:105 crossActivityOutbound
     participant WRITER as events writer<br/>daily-rotated JSONL, ADR-039
     participant AC as audit-chain<br/>management-api/lib/audit-chain.js:89
@@ -439,49 +445,50 @@ classDiagram
     note for FailureTaxonomy "classify() priority failure-taxonomy.js:126-159 — context.mode passthrough failure-taxonomy.js:146 then REASON_TO_MODE symbolic reason failure-taxonomy.js:148-150 then two high-precision STDERR_HEURISTICS regexes failure-taxonomy.js:119-124 then UNMAPPED failure-taxonomy.js:159. Attribution — Cemri et al. Why Do Multi-Agent LLM Systems Fail arXiv identifier 2503.13657 2025, PRD-019/ADR-037 D1"
 ```
 
-## AB-14.11 Precedent match, promote and retire — PrecedentService and the MCP bridge
+## AB-14.11 ADR-2087 — the task-property triple, the deny journal, the receipt ladder and manual continuation
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant AGENT as agent<br/>MCP client
-    participant PB as precedent-bridge<br/>mcp/servers/precedent-bridge.js:186 handleTool
-    participant PS as PrecedentService<br/>lib/precedent-service.js:109
-    participant FS as file store<br/>createFileStore, $AGENTBOX_POD_ROOT/precedents/*.json :40
+    participant AG as agent
+    participant GB as governance-bridge<br/>agentbox/mcp/servers/governance-bridge.js:136
+    participant TP as task-properties<br/>agentbox/management-api/lib/task-properties.js:112
+    participant GATE as buildAuthorityGate.guard<br/>agentbox/management-api/lib/authority.js:226
+    participant AJ as authority-journal append<br/>agentbox/management-api/lib/authority-journal.js:92
+    participant RC as ApplicationReceiptStore<br/>agentbox/management-api/lib/governance-application-receipts.js:52
+    participant RP as receipt publisher<br/>agentbox/management-api/lib/governance-receipt-publisher.js:154
+    participant OP as human operator
 
-    AGENT->>PB: precedent_match {title, description, category} :128,188
-    PB->>PS: matchPrecedent({title, description, category}) :184
-    PS->>FS: search(query, namespace, 5) :191
-    FS-->>PS: results ranked by word-overlap similarity, precedent-bridge.js:93-100
-    loop each result, skip retired :193-202
-        alt result.similarity >= similarityThreshold 0.85 DEFAULT_SIMILARITY_THRESHOLD :26
-            PS-->>PB: {matched:true, precedent, similarity} :205-219
+    AG->>GB: governance_request_action
+    GB->>TP: derive verifiability, reversibility, stakes from authority_class
+    TP-->>GB: zero-tolerance maps to irreversible, recoverable to compensable (task-properties.js:112)
+    Note over TP: INVARIANT — every surface below the operator's manifest is TIGHTENING ONLY,<br/>so a skill's frontmatter may raise recoverable to zero-tolerance and never the reverse<br/>(management-api/lib/task-properties.js:40-55). The triple is stamped on every 31402 as tp- tags
+    GB->>GATE: guard({operation, actionClass})
+    alt denied at any stage
+        GATE->>AJ: append({stage, reason, agent_did, action_class, operation_sha256})
+        Note over AJ: an unlabelled denial is not a record — append THROWS without a stage<br/>and without a reason (authority-journal.js:96-101)
+        Note over AJ: INVARIANT — fail-CLOSED on the decision, fail-OPEN and loud on the record of it<br/>(management-api/lib/authority-journal.js:31)
+        AJ-->>AG: deny carries {code, hint} naming governance_manual_continue
+    else admitted
+        GATE->>RC: begin(gate, operation) — stage consumer-received (governance-application-receipts.js:64)
+        RC->>RP: mirror the stage to the forum receipts endpoint under NIP-98
+        alt transport failure
+            RP->>AJ: authority.receipt-post-failed then queue in a DEDICATED outbox
+            Note over RP,AJ: not the pod outbox, whose flusher publishes Nostr events and would fail an<br/>HTTP receipt silently (management-api/lib/governance-receipt-publisher.js:32-38)
         end
+        RC->>RC: finish(claim, stage, acknowledgement)
+        Note over RC: INVARIANT — applied requires a committed mutation acknowledgement,<br/>and the terminal stages are a closed set applied, not-applied, unknown,<br/>applied-manually (governance-application-receipts.js:83-84)
     end
-    PS-->>PB: {matched:false, precedent:null, similarity:bestSimilarity} :223-224, no match above threshold
-    PB-->>AGENT: JSON result
-
-    AGENT->>PB: precedent_promote {case_id, outcome, reason, category, decided_by, event_id} :153,209
-    PB->>PS: storePrecedent({caseId, outcome, reason, category, decidedBy, eventId}) :147
-    PS->>PS: build record with promotedAt, retired:false, _searchText = category+outcome+reason :154-169
-    PS->>FS: store(precedent-<caseId>, JSON, namespace) :171
-    PS-->>PB: {stored:true, key} :172
-    PB-->>AGENT: JSON result
-
-    AGENT->>PB: precedent_retire {case_id, reason} :170,233
-    PB->>PS: retirePrecedent({caseId, reason}) management-api/lib/precedent-service.js:311
-    PS->>FS: retrieve(key, namespace) :317
-    alt not found
-        PS-->>PB: throw PrecedentError Precedent not found :319
-        PB-->>AGENT: {error:'not_found', message} :244-245
-    else found
-        PS->>PS: record.retired = true, retiredAt, retireReason :329-331
-        PS->>FS: store(key, JSON, namespace) :333
-        PS-->>PB: {retired:true, key} :334
-        PB-->>AGENT: JSON result
+    OP->>GB: governance_manual_continue {case_id, executed_by, evidence} (mcp/servers/governance-bridge.js:218)
+    GB->>GB: validate executed_by as did:nostr (mcp/servers/governance-bridge.js:378)
+    alt executed_by names an agent identity
+        GB-->>OP: refused — a manual continuation must be attributed to a HUMAN operator<br/>(management-api/lib/governance-manual-continue.js:120)
+    else a human did:nostr
+        GB->>RC: stage applied-manually, bound to the approved operation digest
+        Note over GB,RC: the PROV-O activity carries prov:wasAssociatedWith = the human did:nostr<br/>(management-api/lib/governance-manual-continue.js:178)
     end
-    Note over PS,FS: applyPrecedent (lib/precedent-service.js:239) builds a synthetic kind-31403 ActionResponse plus a PROV-O activity URN via uris.mint — not exposed as an MCP tool, called by the orchestrator directly :279-300
-    Note over PS: production wires RuVector semantic search bge-small 384-dim — this file-based store uses deterministic word-overlap, suitable for local/test :10-13
+    Note over GB,RP: this diagram REPLACES the precedent match, promote and retire sequence.<br/>precedent-service.js and precedent-bridge.js were deleted at commit 70d017a3b<br/>and colloquy took the ground — see AB-22.7 and AB-09.5
+    Note over TP,GATE: DEBT — the classification table names payment_settlement zero-tolerance<br/>(agentbox.toml:980) but no production path passes that actionClass. The only<br/>call sites are tests, and management-api/lib/authority.js:226 never sees it. see AB-15
 ```
 
 ## AB-14.12 project-tracker.js publish path and /v1/projects

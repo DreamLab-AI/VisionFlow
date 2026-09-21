@@ -5,7 +5,7 @@ area: agentbox
 governing:
   - ../project/agentbox/docs/PROTOCOL-registry.md
   - ../project/agentbox/docs/INGRESS-identity.md
-adrs: [ADR-2011, ADR-2022, ADR-2025, ADR-2061]
+adrs: [ADR-2011, ADR-2022, ADR-2025, ADR-2061, ADR-2085]
 sources:
   - ../project/agentbox/management-api/utils/agent-event-publisher.js
   - ../project/agentbox/management-api/routes/agent-events.js
@@ -19,7 +19,7 @@ sources:
   - ../project/agentbox/management-api/lib/uris.js
   - ../project/agentbox/management-api/routes/kg-elevation.js
   - ../project/agentbox/management-api/lib/agent-control-surface.js
-verified_commit: 2c521c5bb
+verified_commit: 1639f86ab
 ---
 
 ## AB-17.1 The agent-event wire envelope — single canonical builder
@@ -176,13 +176,14 @@ sequenceDiagram
 classDiagram
     class FEDERATION_KINDS_json {
         <<versioned artefact 1.0.0, ADR-2061>>
-        19 kind rows, 4 crossing
+        20 kind rows, 4 crossing
         agent to did:nostr identity
         activity to execution content-address
         thing to kg content-address
         bead to bead structural-passthrough
         memory to concept crosses false deliberate
-        14 kinds crosses false not-federated
+        15 kinds crosses false not-federated
+        knowledge added ADR-2085 federation-kinds.json:279
     }
     class AGENTBOX_TO_VISIONCLAW {
         <<frozen, DERIVED bc20-provenance-bridge.js:117-124>>
@@ -222,7 +223,7 @@ classDiagram
     UrnMapping --> JsonlUrnMappingStore : crossOutbound persists
     UrnMapping --> InMemoryUrnMappingStore : roundTrips proof helper
     note for AGENTBOX_TO_VISIONCLAW "There is deliberately NO agent kind in the map. An agent's identity IS its did:nostr,<br/>so urn:agentbox:agent:pubkey:name crosses as the BARE DID did:nostr:pubkey rather than a relabelled URN.<br/>bc20-provenance-bridge.js:14"
-    note for FEDERATION_KINDS_json "INVARIANT: ADR-2061 — neither side transcribes the kind list. This bridge reads the artefact<br/>at require time (bc20-provenance-bridge.js:112-115); VisionClaw embeds the same bytes with<br/>include_str! in src/uri/mod.rs::cross_from_agentbox. A paired fixture<br/>(tests/contract/federation-kind-parity.contract.spec.js and federation_kind_artefact_matches_translator)<br/>makes a one-sided kind addition a test failure, not a runtime surprise. bc20-provenance-bridge.js:88-98"
+    note for FEDERATION_KINDS_json "INVARIANT: ADR-2061 — neither side transcribes the kind list. This bridge reads the artefact<br/>at require time (bc20-provenance-bridge.js:112-115); VisionClaw embeds the same bytes with<br/>include_str! in src/uri/mod.rs::cross_from_agentbox. A paired fixture<br/>(tests/contract/federation-kind-parity.contract.spec.js and federation_kind_artefact_matches_translator)<br/>makes a one-sided kind addition a test failure, not a runtime surprise. bc20-provenance-bridge.js:88-98<br/>INVARIANT ADR-2085: the colloquy knowledge kind is minted scoped and content-addressed<br/>(uris.js:114) and refused at the crossing (federation-kinds.json:279), so urn:agentbox:knowledge<br/>and the cq id ku_hex share the same twelve digest characters while the URN never crosses."
     note for VISIONCLAW_TO_AGENTBOX "B04 — the kind map is CLOSED. An unmapped kind is DROPPED and LOGGED, never silently mis-mapped.<br/>defaultLog writes '[bc20] drop: reason (urn)' to stderr (bc20-provenance-bridge.js:141,143)."
     note for UrnMapping "B01 — provenance is continuous, bidirectional and injective per owner_did.<br/>Where the VisionClaw kind is content-addressed (execution, kg) the local is a FRESH sha256-12 and the original<br/>urn:agentbox identity is recovered only from the durable UrnMapping store — lose the store, lose the crossing.<br/>Where it is identity-bearing (agent to did:nostr) the pubkey round-trips structurally with no store."
     note for JsonlUrnMappingStore "path = BC20_URN_MAPPING_PATH or /var/lib/agentbox/code-harness/bc20-urn-mappings.jsonl.<br/>DIVERGENCE PROTOCOL-registry 'Durable translation' row — the registry requires persistence, replay, round-trip and recovery receipts.<br/>roundTrips() proves the algebra against a FRESH IN-MEMORY store (bc20-provenance-bridge.js:307), which is not a durability or recovery proof."
@@ -235,7 +236,7 @@ sequenceDiagram
     autonumber
     participant CALLER as elevation or extractor
     participant TV as toVisionclaw<br/>agentbox/management-api/lib/bc20-provenance-bridge.js:158
-    participant U as uris.parse<br/>agentbox/management-api/lib/uris.js:261
+    participant U as uris.parse<br/>agentbox/management-api/lib/uris.js:266
     participant S12 as sha12<br/>agentbox/management-api/lib/bc20-provenance-bridge.js:132
     participant SL as slugify<br/>agentbox/management-api/lib/bc20-provenance-bridge.js:137
     participant DROP as onDrop or defaultLog

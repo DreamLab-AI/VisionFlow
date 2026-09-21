@@ -18,7 +18,7 @@ sources:
   - ../project/agentbox/services/secret-backup/src/main.rs
   - ../project/agentbox/docs/archive/adr/ADR-024-setup-dashboard.md
   - ../project/agentbox/docs/BASELINE-container.md
-verified_commit: 771d96ed5ac6f5daa1e78a60d109c130b9ef9b99
+verified_commit: 1639f86abded1441ce148d6c47924dfaf34f96af
 ---
 
 ## AB-30.1 Three name-dropped services, three different lifecycles
@@ -59,14 +59,14 @@ flowchart TD
     BINCHECK -->|no| FRONTENDCHECK{"setup/frontend/dist/index.html exists?<br/>start-agentbox.sh:440"}
     FRONTENDCHECK -->|"yes, python3 present — tier 2"| COPYFILES["cp agentbox.toml + schema alongside the frontend HTML<br/>start-agentbox.sh:442-445"]
     COPYFILES --> PYSERVE["exec python3 -m http.server SETUP_PORT --directory DIST_DIR --bind 127.0.0.1<br/>ephemeral port via a throwaway socket bind, start-agentbox.sh:458,470"]
-    FRONTENDCHECK -->|"no python3 — tier 3"| MANUAL["operator opens setup/frontend/dist/index.html directly<br/>drag-and-drop or file-picker load, save via browser download<br/>quickstart.md:70"]
+    FRONTENDCHECK -->|"no python3 — tier 3"| MANUAL["operator opens setup/frontend/dist/index.html directly<br/>drag-and-drop or file-picker load, save via browser download<br/>quickstart.md:71"]
     EXECBIN --> AXUM["axum::Router — /api/config, /api/shutdown,<br/>/api/proxy/#123;*path#125;, fallback serve_frontend<br/>setup/server/src/main.rs:222-228"]
     AXUM --> BIND["TcpListener::bind 127.0.0.1:0 — EPHEMERAL port, not fixed<br/>setup/server/src/main.rs:229-232"]
     BIND --> OPEN["open::that#40;url#41; — auto-launch the OS default browser<br/>setup/server/src/main.rs:246"]
     subgraph notes["Invariants and drift"]
         direction TB
         N1["INVARIANT: the Rust binary tier NEVER hard-codes a port — audit reports of<br/>fixed ports #40;2104-2106, 2126-2127#41; describe a DIFFERENT case list elsewhere in<br/>this topic tree #40;see AB-05#41;, not this service. This binary always binds ephemeral port 0 and<br/>prints the resolved ephemeral address #40;setup/server/src/main.rs:234-241#41;"]
-        N2["DIVERGENCE: three fallback tiers exist so setup works with zero installed<br/>dependencies beyond python3 #40;quickstart.md:61#41; — but only tier 1 #40;the compiled<br/>binary#41; can write agentbox.toml server-side #40;save_config, setup/server/src/main.rs:60-77#41;;<br/>tier 3 saves via a browser file download instead of writing back in place"]
+        N2["DIVERGENCE: three fallback tiers exist so setup works with zero installed<br/>dependencies beyond python3 #40;quickstart.md:62#41; — but only tier 1 #40;the compiled<br/>binary#41; can write agentbox.toml server-side #40;save_config, setup/server/src/main.rs:60-77#41;;<br/>tier 3 saves via a browser file download instead of writing back in place"]
         N1 ~~~ N2
     end
 ```
@@ -121,23 +121,23 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord [program:https-bridge]<br/>flake.nix:2180-2189
-    participant BOOT as entrypoint root phase<br/>flake.nix:3360-3387
+    participant SUP as supervisord [program:https-bridge]<br/>flake.nix:2238-2247
+    participant BOOT as entrypoint root phase<br/>flake.nix:3440-3455
     participant OSSL as openssl req -x509
     participant NODE as https-proxy.js<br/>process.env-driven config
     participant BROWSER as Browser client
     participant TARGET as http://HOST_IP:TARGET_PORT
 
-    BOOT->>BOOT: mkdir -p /var/lib/https-bridge/certs (tmpfs, uid 1000)<br/>flake.nix:3362,3379
+    BOOT->>BOOT: mkdir -p /var/lib/https-bridge/certs (tmpfs, uid 1000)<br/>flake.nix:3446, flake.nix:2946
     alt server.key already present
         BOOT-->>NODE: skip generation — cert persists for the tmpfs lifetime
     else missing
-        BOOT->>OSSL: openssl req -x509 -newkey rsa:2048 -days 365 -nodes -subj "/CN=localhost"<br/>flake.nix:3378-3380
-        OSSL-->>BOOT: server.key #40;0600#41;, server.crt #40;0644#41; — flake.nix:3381-3383
+        BOOT->>OSSL: openssl req -x509 -newkey rsa:2048 -days 365 -nodes -subj "/CN=localhost"<br/>flake.nix:3448-3451
+        OSSL-->>BOOT: server.key #40;0600#41;, server.crt #40;0644#41; — flake.nix:3453-3454
     end
-    SUP->>NODE: node https-proxy.js<br/>CERT_DIR=/var/lib/https-bridge/certs, MANAGEMENT_API_PORT env — flake.nix:2184
+    SUP->>NODE: node https-proxy.js<br/>CERT_DIR=/var/lib/https-bridge/certs, MANAGEMENT_API_PORT env — flake.nix:2242
     NODE->>NODE: ensureCertificates#40;#41; — fs.existsSync check, hand-rolled node:crypto<br/>X.509 builder ONLY IF openssl's boot-time generation is somehow absent<br/>https-proxy.js:48-49,67 — buildSelfSignedX509 at :79
-    Note over BOOT,NODE: DESIGN: the trusted path is openssl #40;flake.nix#41; — the hand-rolled builder in<br/>https-proxy.js is a fail-open FALLBACK only, per the boot-script's own comment<br/>#40;flake.nix:3385-3386#41; — not the primary certificate source
+    Note over BOOT,NODE: DESIGN: the trusted path is openssl #40;flake.nix#41; — the hand-rolled builder in<br/>https-proxy.js is a fail-open FALLBACK only, per the boot-script's own comment<br/>#40;flake.nix:3443-3445#41; — not the primary certificate source
     NODE->>NODE: https.createServer#40;{key, cert}#41;.listen#40;HTTPS_PORT, HTTPS_HOST#41;<br/>https-proxy.js:190,262 — HTTPS_HOST defaults 0.0.0.0, published loopback-only<br/>via compose #40;R-003 comment, https-proxy.js:31-33#41;
     BROWSER->>NODE: HTTPS request to localhost:HTTPS_PORT
     NODE->>NODE: detectGatewayIP#40;#41; if HOST_IP unset — `ip route | grep default`<br/>https-proxy.js:21-28, falls back to 192.168.0.51 on any failure
@@ -152,11 +152,11 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    FLAKE["flake.nix baseline services list<br/>flake.nix:1682 copies ./https-bridge into the image"]
-    SUP["[program:https-bridge]<br/>flake.nix:2180"]
-    LOG["/var/log/https-bridge.log + .error.log<br/>flake.nix:2188-2189"]
-    ENV["environment= HOME, MANAGEMENT_API_PORT,<br/>CERT_DIR, SSL_KEY, SSL_CERT<br/>flake.nix:2184"]
-    TMPFS["/var/lib/https-bridge tmpfs<br/>mode=755 size=8M uid=1000 gid=1000<br/>docker-compose.yml:123, flake.nix:2877-2880"]
+    FLAKE["flake.nix baseline services list<br/>flake.nix:1738 copies ./https-bridge into the image"]
+    SUP["[program:https-bridge]<br/>flake.nix:2238"]
+    LOG["/var/log/https-bridge.log + .error.log<br/>flake.nix:2246-2247"]
+    ENV["environment= HOME, MANAGEMENT_API_PORT,<br/>CERT_DIR, SSL_KEY, SSL_CERT<br/>flake.nix:2242"]
+    TMPFS["/var/lib/https-bridge tmpfs<br/>mode=755 size=8M uid=1000 gid=1000<br/>docker-compose.yml:142, flake.nix:2946"]
     FLAKE --> SUP --> LOG
     SUP --> ENV
     SUP --> TMPFS

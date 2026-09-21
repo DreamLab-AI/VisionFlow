@@ -4,7 +4,7 @@ title: Compose overlays, sidecar topology and the loopback-publish invariant
 area: agentbox
 governing:
   - ../project/agentbox/docs/BASELINE-container.md
-adrs: [ADR-2013, ADR-2003, ADR-2040]
+adrs: [ADR-2013, ADR-2003, ADR-2040, ADR-2094]
 sources:
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/xr-runtime/Dockerfile
@@ -33,7 +33,10 @@ sources:
   - ../project/agentbox/scripts/ci/check-no-npx-latest.sh
   - ../project/agentbox/scripts/ci/check-secret-not-in-env.sh
   - ../project/agentbox/scripts/ci/check-single-metrics.js
-verified_commit: 2c521c5bb
+  - ../project/agentbox/docker-compose.system-one.yml
+  - ../project/agentbox/docker-compose.speech.yml
+  - ../project/agentbox/management-api/lib/system-manifest.js
+verified_commit: 1639f86ab
 ---
 
 ## AB-06.1 Compose overlay topology on visionclaw_network
@@ -53,9 +56,9 @@ flowchart TB
     AB ---|"127.0.0.1:5901 vnc"| LO
     AB ---|"127.0.0.1:8080 code-server"| LO
     subgraph OVR["docker-compose.override.yml — operator layer, auto-loaded when present"]
-        OV1["agentbox service overrides :9<br/>env_file :13, environment :21-71<br/>volumes :72-149, deploy/GPU :150-164<br/>group_add 965 docker socket gid :177-178"]
+        OV1["agentbox service overrides :9<br/>env_file :13, environment :21-90<br/>volumes :91-168, deploy/GPU :169-188<br/>group_add 965 docker socket gid :201-202"]
     end
-    OVR -.->|"-f base -f override (agentbox.sh:562-568)"| BASE
+    OVR -.->|"-f base -f override (agentbox.sh:564-570)"| BASE
     subgraph SIDE["sidecar overlays — own lifecycle, joined via visionclaw_network"]
         BC["browsercontainer<br/>5903 VNC, 8931 MCP SSE, 9222 to 9223 CDP"]
         GT["gui-tools-service<br/>5905 VNC, 9876 BlenderMCP, 9877 QGIS MCP"]
@@ -74,7 +77,7 @@ flowchart TB
     AND --- NET
     CF --- NET
     HP["docker-compose.hp.yml — host overlay<br/>agentbox env_file/volumes/GPU reservations :6-37"] -.-> BASE
-    Note1["DOC-DRIFT: docker-compose.yml:52 still says --auth none. The generator<br/>(flake.nix:2687-2688, and the aoe-serve command itself at :2353) already says<br/>--auth token - the committed artefact is stale and regenerates."]
+    Note1["DOC-DRIFT: docker-compose.yml:52 still says --auth none. The generator<br/>(flake.nix:2753-2754, and the aoe-serve command itself at :2411) already says<br/>--auth token - the committed artefact is stale and regenerates."]
     BASE -.-> Note1
 ```
 
@@ -158,17 +161,17 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant OP as operator
-    participant SH as cmd_gui_tools<br/>agentbox.sh:1779
-    participant DC as docker compose<br/>GUI_TOOLS_COMPOSE_ARGS agentbox.sh:572-573
+    participant SH as cmd_gui_tools<br/>agentbox.sh:1924
+    participant DC as docker compose<br/>GUI_TOOLS_COMPOSE_ARGS agentbox.sh:574-575
     participant GT as gui-tools-service
     participant HC as /opt/gui-tools/healthcheck.sh
 
     OP->>SH: ./agentbox.sh gui-tools up
-    SH->>DC: docker compose --project-name agentbox -f docker-compose.gui-tools.yml up -d --build (agentbox.sh:1785)
+    SH->>DC: docker compose --project-name agentbox -f docker-compose.gui-tools.yml up -d --build (agentbox.sh:1930)
     DC->>GT: start with DISPLAY set to display 2, NVIDIA_DRIVER_CAPABILITIES compute,utility,graphics (docker-compose.gui-tools.yml:18-22)
     Note over GT: __GLX_VENDOR_LIBRARY_NAME=nvidia (docker-compose.gui-tools.yml:25) — the presentation path the Nix wrappers cannot provide, see AB-01.6
     GT->>GT: BlenderMCP binds 0.0.0.0:9876, QGIS MCP binds 0.0.0.0:9877 (docker-compose.gui-tools.yml:26-29)
-    loop poll until deadline now plus 120 s, sleep 3 (agentbox.sh:1787-1791)
+    loop poll until deadline now plus 120 s, sleep 3 (agentbox.sh:1932-1936)
         SH->>HC: docker exec gui-tools-service bash /opt/gui-tools/healthcheck.sh
         alt healthy
             HC-->>SH: exit 0 — break
@@ -177,32 +180,32 @@ sequenceDiagram
         end
     end
     alt deadline passed with ready 0
-        SH-->>OP: Health check timed out then exit 1 (agentbox.sh:1792-1795)
+        SH-->>OP: Health check timed out then exit 1 (agentbox.sh:1937-1940)
     else
-        SH-->>OP: BlenderMCP gui-tools-service:9876, QGIS gui-tools-service:9877, VNC vnc://localhost:5905 (agentbox.sh:1797-1799)
+        SH-->>OP: BlenderMCP gui-tools-service:9876, QGIS gui-tools-service:9877, VNC vnc://localhost:5905 (agentbox.sh:1942-1944)
     end
-    Note over SH,DC: sibling subcommands down :1801, logs :1805, status :1806 all reuse GUI_TOOLS_COMPOSE_ARGS
+    Note over SH,DC: sibling subcommands down :1946, logs :1950, status :1951 all reuse GUI_TOOLS_COMPOSE_ARGS
     Note over GT: everything runs under vglrun — interactive GL/Vulkan goes here, NOT through the wrapped Nix bins (BASELINE GPU wrappers limitation)
 ```
 
 ## AB-06.6 Per-sidecar compose argument sets and lifecycle entry points
 ```mermaid
 flowchart LR
-    SD["SCRIPT_DIR"] --> A1["COMPOSE_FILE docker-compose.yml — agentbox.sh:563"]
-    SD --> A2["OVERRIDE_FILE docker-compose.override.yml — agentbox.sh:562"]
-    A1 --> CA{"override file present?<br/>agentbox.sh:565"}
+    SD["SCRIPT_DIR"] --> A1["COMPOSE_FILE docker-compose.yml — agentbox.sh:565"]
+    SD --> A2["OVERRIDE_FILE docker-compose.override.yml — agentbox.sh:564"]
+    A1 --> CA{"override file present?<br/>agentbox.sh:567"}
     A2 --> CA
-    CA -->|yes| CA1["COMPOSE_ARGS = --project-name agentbox -f base -f override — :566"]
-    CA -->|no| CA2["COMPOSE_ARGS = --project-name agentbox -f base — :568"]
-    SD --> S1["SIDECAR_FILE browsercontainer — :564<br/>SIDECAR_COMPOSE_ARGS :570<br/>cmd_browsercontainer agentbox.sh:1305"]
-    SD --> S2["XR_RUNTIME_FILE :571<br/>XR_RUNTIME_COMPOSE_ARGS :572<br/>cmd_xr_runtime agentbox.sh:1418"]
-    SD --> S3["GUI_TOOLS_FILE :573<br/>GUI_TOOLS_COMPOSE_ARGS :574<br/>cmd_gui_tools agentbox.sh:1779"]
-    SD --> S4["OPENMED_FILE :575<br/>OPENMED_COMPOSE_ARGS :576<br/>cmd_openmed agentbox.sh:1844"]
-    SD --> S5["VOICE_FILE :582 plus voice/unmute-override.yml<br/>VOICE_COMPOSE_ARGS --project-name agentbox-voice :1923<br/>cmd_voice agentbox.sh:1954"]
-    SD --> S6["ANDROID_FILE :596<br/>ANDROID_COMPOSE_ARGS adds --profile android :597<br/>cmd_android agentbox.sh:1200"]
-    S5 --> VH["VOICE_HOST_ROOT default /mnt/mldata/githubs/AR-AI-Knowledge-Graph — :591<br/>compose bind SOURCES resolve on the HOST docker daemon,<br/>so they must be host paths"]
+    CA -->|yes| CA1["COMPOSE_ARGS = --project-name agentbox -f base -f override — :568"]
+    CA -->|no| CA2["COMPOSE_ARGS = --project-name agentbox -f base — :570"]
+    SD --> S1["SIDECAR_FILE browsercontainer — :566<br/>SIDECAR_COMPOSE_ARGS :572<br/>cmd_browsercontainer agentbox.sh:1450"]
+    SD --> S2["XR_RUNTIME_FILE :573<br/>XR_RUNTIME_COMPOSE_ARGS :574<br/>cmd_xr_runtime agentbox.sh:1563"]
+    SD --> S3["GUI_TOOLS_FILE :575<br/>GUI_TOOLS_COMPOSE_ARGS :576<br/>cmd_gui_tools agentbox.sh:1924"]
+    SD --> S4["OPENMED_FILE :577<br/>OPENMED_COMPOSE_ARGS :578<br/>cmd_openmed agentbox.sh:1989"]
+    SD --> S5["VOICE_FILE :588 plus voice/unmute-override.yml<br/>VOICE_COMPOSE_ARGS --project-name agentbox-voice :2068<br/>cmd_voice agentbox.sh:2276"]
+    SD --> S6["ANDROID_FILE :610<br/>ANDROID_COMPOSE_ARGS adds --profile android :611<br/>cmd_android agentbox.sh:1237"]
+    S5 --> VH["VOICE_HOST_ROOT default /mnt/mldata/githubs/AR-AI-Knowledge-Graph — :598<br/>compose bind SOURCES resolve on the HOST docker daemon,<br/>so they must be host paths"]
     S6 --> AG["EXPERIMENTAL and GATED OFF — additionally requires<br/>AGENTBOX_ENABLE_ANDROID=1"]
-    CA1 --> MGMT["MGMT_PORT 9090 — agentbox.sh:602"]
+    CA1 --> MGMT["MGMT_PORT 9090 — agentbox.sh:616"]
     S5 -.-> VNOTE["voice-console uses its OWN project name agentbox-voice,<br/>so it is a separate compose project from every other sidecar"]
 ```
 
@@ -211,7 +214,7 @@ flowchart LR
 flowchart TB
     subgraph LANP["LAN-reachable — every one on the ADR-2013 SANCTIONED list"]
         P1["agentbox 9096:9096 — NIP-98 sovereign ingress<br/>docker-compose.yml:54"]
-        P2["voice-console 0.0.0.0:8443 and 0.0.0.0:8444 Caddy origin<br/>docker-compose.voice.yml:39-40"]
+        P2["voice-console 0.0.0.0:8443 and 0.0.0.0:8444 Caddy origin<br/>docker-compose.voice.yml:38-39"]
         P3["browsercontainer 0.0.0.0:5903 VNC, 0.0.0.0:8931 MCP SSE,<br/>0.0.0.0:9222 to 9223 CDP — docker-compose.browsercontainer.yml:48-53"]
         P4["gui-tools-service 0.0.0.0:5905 VNC, 0.0.0.0:9876 Blender,<br/>0.0.0.0:9877 QGIS — docker-compose.gui-tools.yml:45-49"]
         P5["xr-runtime 0.0.0.0:5904 VNC — docker-compose.xr-runtime.yml:64"]
@@ -227,7 +230,7 @@ flowchart TB
     end
     Q3 -.-> AND["android comment: this is an authenticated Google session,<br/>never expose it on 0.0.0.0, prefer docker exec (docker-compose.android.yml:38-39)"]
     Q2 -.-> OM["openmed refuses to serve until the operator sets<br/>OPENMED_LICENSE_ACKNOWLEDGED, _ONNX_RUNTIME_PRESENT and<br/>_GOVERNANCE_ACKNOWLEDGED — all default false (docker-compose.openmed.yml:17-21)"]
-    Q1 -.-> CS["DIVERGENCE — the HOST publish for code-server is loopback, but the CONTAINER bind is not:<br/>[program:code-server] runs code-server --bind-addr 0.0.0.0:8080 --auth none, so it is reachable unauthenticated<br/>from any sibling container on visionclaw_network. BASELINE flags this and cites flake.nix:2278 command with --bind-addr on all interfaces, flake.nix:2286, which is stale"]
+    Q1 -.-> CS["DIVERGENCE — the HOST publish for code-server is loopback, but the CONTAINER bind is not:<br/>[program:code-server] runs code-server --bind-addr 0.0.0.0:8080 --auth none, so it is reachable unauthenticated<br/>from any sibling container on visionclaw_network. BASELINE flags this and cites flake.nix:2336 command with --bind-addr on all interfaces, flake.nix:2344, which is stale"]
     Q1 -.-> CSR["RESOLVED ADR-2040 (implementation_status: partial): code-server<br/>([program:code-server]) now runs --auth password, credential minted at boot<br/>into /home/devuser/.local/share/code-server/config.yaml (0600).<br/>jupyter-lab's empty --IdentityProvider.token= ([program:jupyter-lab])<br/>was DELETED in favour of a minted JUPYTER_TOKEN. Listener-side<br/>CI gate is still open work."]
     R1 -.-> PGN["ADR-015 — mandatory memory sidecar, health-gated;<br/>ruvector-mcp.cjs fails closed with no sql.js fallback"]
 ```
@@ -235,14 +238,14 @@ flowchart TB
 ## AB-06.8 Container hardening posture declared in the base compose
 ```mermaid
 flowchart TD
-    AB["agentbox service<br/>docker-compose.yml:30"] --> CD["cap_drop :102"]
-    AB --> CA2["cap_add :104"]
-    AB --> TM["tmpfs :114"]
-    AB --> SO["security_opt :141"]
-    AB --> VOL["volumes :144"]
-    AB --> NET["networks :162"]
+    AB["agentbox service<br/>docker-compose.yml:30"] --> CD["cap_drop :121"]
+    AB --> CA2["cap_add :123"]
+    AB --> TM["tmpfs :133"]
+    AB --> SO["security_opt :160"]
+    AB --> VOL["volumes :163"]
+    AB --> NET["networks :186"]
     SO --> SCC["seccomp and no-new-privileges declarations<br/>gated by scripts/ci/check-seccomp.sh and check-nnp.sh"]
-    VOL --> NV["named volumes declared :164-169 —<br/>ruvector-pg-data, ruvector-data, solid-data"]
+    VOL --> NV["named volumes declared :188-193 —<br/>ruvector-pg-data, ruvector-data, solid-data"]
     AB --> HC["healthcheck curl -f http://localhost:9090/ready<br/>interval 30s, timeout 10s, retries 5, start_period 60s — :39-44"]
     HC --> RDY["so compose readiness rides the SAME /ready contract<br/>the management API publishes — see AB-02"]
     AB --> DEP["depends_on ruvector-postgres condition service_healthy :35-37"]
@@ -257,25 +260,50 @@ flowchart TD
 sequenceDiagram
     autonumber
     participant OP as operator
-    participant SH as cmd_xr_runtime<br/>agentbox.sh:1418
+    participant SH as cmd_xr_runtime<br/>agentbox.sh:1563
     participant DC as docker compose<br/>XR_RUNTIME_COMPOSE_ARGS
     participant XR as xr-runtime container<br/>Monado + Godot — see AB-27.13
 
     OP->>SH: ./agentbox.sh xr-runtime up
-    SH->>DC: docker compose ... up -d --build (agentbox.sh:1426)
+    SH->>DC: docker compose ... up -d --build (agentbox.sh:1571)
     DC->>XR: exec supervisord -n -c /etc/supervisord.conf (Dockerfile:117)
-    loop poll .State.Health.Status until 720s deadline (agentbox.sh:1428-1436)
+    loop poll .State.Health.Status until 720s deadline (agentbox.sh:1573-1581)
         SH->>XR: docker inspect --format .State.Health.Status
         alt healthy
             XR-->>SH: break
         else missing container
-            XR-->>SH: exit 1 immediately (agentbox.sh:1434)
+            XR-->>SH: exit 1 immediately (agentbox.sh:1579)
         end
     end
     alt not healthy within 12 min
-        SH-->>OP: exit 1, check logs (agentbox.sh:1437-1441)
+        SH-->>OP: exit 1, check logs (agentbox.sh:1582-1586)
     else healthy
-        SH-->>OP: VNC vnc://localhost:5904, Monado simulated stereo HMD, scene XRBoot→GraphScene (agentbox.sh:1442-1445)
+        SH-->>OP: VNC vnc://localhost:5904, Monado simulated stereo HMD, scene XRBoot→GraphScene (agentbox.sh:1587-1590)
     end
-    Note over SH,DC: sibling subcommands down/logs/health/status/rebuild all reuse<br/>XR_RUNTIME_COMPOSE_ARGS (agentbox.sh:1447-1477)
+    Note over SH,DC: sibling subcommands down/logs/health/status/rebuild all reuse<br/>XR_RUNTIME_COMPOSE_ARGS (agentbox.sh:1592-1477)
 ```
+
+## AB-06.10 System One and speech overlays: two sidecars added since 2026-09-06
+```mermaid
+flowchart TB
+    CLI["agentbox.sh systemone<br/>cmd_systemone agentbox.sh:2122<br/>SYSTEMONE_FILE agentbox.sh:579"] --> SUB["subcommands up :2128, down :2159, logs :2164,<br/>status :2167, health :2170, models :2196,<br/>eval :2200, rebuild :2238"]
+    SUB --> COMPOSE["docker-compose.system-one.yml"]
+
+    COMPOSE --> FACADE["service systemone<br/>container systemone, image agentbox/system-one:latest<br/>docker-compose.system-one.yml:14-26"]
+    FACADE --> PUB["published on host loopback only, port 8097<br/>docker-compose.system-one.yml:110"]
+    FACADE --> NET["joined to visionclaw_network, so in-estate callers<br/>reach it by service name, not by a published port<br/>docker-compose.system-one.yml:228-230"]
+    FACADE --> VOL["named volume systemone-models carries the weights<br/>docker-compose.system-one.yml:233"]
+
+    COMPOSE --> ENGINE["service openjev, profile openjev<br/>docker-compose.system-one.yml:146-148"]
+    ENGINE --> NM["network_mode service:systemone - no ports and no networks<br/>of its own, it shares the facade's namespace<br/>docker-compose.system-one.yml:162"]
+
+    SPEECH["docker-compose.speech.yml"] --> ASR["nemotron-asr, host loopback port 8897<br/>docker-compose.speech.yml:10-11"]
+    SPEECH --> TTS["pocket-tts, host loopback port 8898<br/>docker-compose.speech.yml:43-44"]
+
+    PUB --> INV["INVARIANT - both new overlays publish on 127.0.0.1 only,<br/>so the ADR-2013 sanctioned-LAN list is unchanged,<br/>docker-compose.system-one.yml:110"]
+```
+
+**What it shows.** The two compose overlays that joined the estate since this topic was last stamped: the ADR-2094 System One façade with its optional engine profile, and the shared speech pair the voice console depends on.
+**Why it is this way.** ADR-2094 keeps typed decisions on the LAN, so the façade is published to host loopback and reached in-estate by service name; the engine shares the façade's network namespace rather than opening a second surface (`../project/agentbox/docker-compose.system-one.yml:162`).
+
+**Invariant:** enabling `features.sovereign_system_one` without this overlay running leaves both consumers failing open to their built-in paths rather than erroring (`../project/agentbox/management-api/lib/system-manifest.js:216`).

@@ -8,6 +8,7 @@ adrs: [ADR-2079, ADR-2080]
 sources:
   - ../project/agentbox/config/model-router/artefacts.json
   - ../project/agentbox/config/model-router/console.mjs
+  - ../project/agentbox/config/model-router/retort-benchmarks.json
   - ../project/agentbox/config/model-router/README.md
   - ../project/agentbox/config/harness-wrappers/router.sh
   - ../project/agentbox/scripts/model-router-fetch.sh
@@ -19,7 +20,7 @@ sources:
   - ../project/agentbox/management-api/lib/system-manifest.js
   - ../project/agentbox/services/agentbox-manifest/src/tui_read.rs
   - ../project/agentbox/services/agentbox-manifest/src/tui_sections.rs
-verified_commit: 2c521c5bb
+verified_commit: 1639f86abded1441ce148d6c47924dfaf34f96af
 ---
 
 ## AB-29.1 Composition — what is baked, and why the npm tarball lacks it
@@ -41,7 +42,7 @@ flowchart TB
         FETCH["scripts/model-router-fetch.sh<br/>reads m.files, sha256sum-verifies, curl -fL, refuses hash mismatch"]
     end
     subgraph outputs["Two possible artefact locations"]
-        BAKED["/opt/agentbox/model-router<br/>flake.nix:1734-1736 — rebuild class, byte-identical-when-off"]
+        BAKED["/opt/agentbox/model-router<br/>flake.nix:1790-1792 — rebuild class, byte-identical-when-off"]
         FALLBACK["$WORKSPACE/.agentbox/model-router<br/>pre-rebuild fallback"]
     end
     T1 --> ART
@@ -63,10 +64,10 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant TOML as agentbox.toml<br/>[model_routing.neural]<br/>agentbox.toml:1038-1045
-    participant EP as entrypoint-unified.sh<br/>config/entrypoint-unified.sh:1587
+    participant TOML as agentbox.toml<br/>[model_routing.neural]<br/>agentbox.toml:1295-1305
+    participant EP as entrypoint-unified.sh<br/>config/entrypoint-unified.sh:1680
     participant DISK as /opt/agentbox/model-router<br/>or $WORKSPACE/.agentbox/model-router
-    participant ENV as runtime-env file<br/>config/entrypoint-unified.sh:2317-2318
+    participant ENV as runtime-env file<br/>config/entrypoint-unified.sh:2727
 
     EP->>TOML: _ab_toml_bool model_routing.neural enabled
     alt enabled = false
@@ -75,10 +76,10 @@ sequenceDiagram
         EP->>TOML: read assets_dir, provider, quality_bar, cost_ceiling_usd_per_mtok, privacy_tier, trajectory
         EP->>DISK: test -f $_MRN_DIR/seed-router.krr.json
         alt baked dir missing the artefact
-            EP->>DISK: fall back to $WORKSPACE/.agentbox/model-router<br/>config/entrypoint-unified.sh:1591-1593
+            EP->>DISK: fall back to $WORKSPACE/.agentbox/model-router<br/>config/entrypoint-unified.sh:1684-1686
         end
-        EP->>ENV: export AGENTBOX_MODEL_ROUTER_ENABLED=1, _DIR, _PROVIDER,<br/>_QUALITY_BAR, _COST_CEILING_USD_PER_MTOK, _PRIVACY_TIER,<br/>_TRAJECTORY, _STATE_DIR<br/>config/entrypoint-unified.sh:1599-1606
-        EP->>EP: echo readiness line naming artefact dir + provider + bar<br/>config/entrypoint-unified.sh:1608
+        EP->>ENV: export AGENTBOX_MODEL_ROUTER_ENABLED=1, _DIR, _PROVIDER,<br/>_QUALITY_BAR, _COST_CEILING_USD_PER_MTOK, _PRIVACY_TIER,<br/>_TRAJECTORY, _STATE_DIR<br/>config/entrypoint-unified.sh:1692-1699
+        EP->>EP: echo readiness line naming artefact dir + provider + bar<br/>config/entrypoint-unified.sh:1701
     end
     Note over EP,ENV: DELIBERATELY NOT exported: CLAUDE_FLOW_ROUTER_* — the console sets those<br/>in its own process only (ADR-2080 D3), so this boot path can never re-route<br/>other ruflo work to an external provider
 ```
@@ -95,8 +96,8 @@ sequenceDiagram
     participant CONS as console.mjs<br/>config/model-router/console.mjs
 
     SEEDER->>SEEDER: WRAPPER_SLUGS.router = {file: 'router.sh', detectAs: null}<br/>scripts/aoe-seed-sessions.mjs:113
-    SEEDER->>CFG: customAgents.router = path.join(WRAPPER_DIR, 'router.sh')<br/>scripts/aoe-seed-sessions.mjs:272-273 (no detectAs alias — router is its own program)
-    AOE->>WRAP: exec router.sh (session program for slug=router, agentbox.toml:1387-1391)
+    SEEDER->>CFG: customAgents.router = path.join(WRAPPER_DIR, 'router.sh')<br/>scripts/aoe-seed-sessions.mjs:349-350 (no detectAs alias — router is its own program)
+    AOE->>WRAP: exec router.sh (session program for slug=router, agentbox.toml:1658-1662)
     WRAP->>WRAP: _die if console missing, node absent, or ruflo not resolvable<br/>router.sh:47,51,52
     WRAP->>WRAP: locate artefacts: $AGENTBOX_MODEL_ROUTER_DIR else<br/>/opt/agentbox/model-router else $WORKSPACE/.agentbox/model-router<br/>router.sh:58-64
     alt no seed-router.krr.json found anywhere
@@ -111,7 +112,7 @@ sequenceDiagram
     CONS->>CONS: EGRESS_OFF (AGENTBOX_EGRESS=0) forces DRY=true<br/>console.mjs:99-102
     CONS->>CONS: resolveAssetsDir() verifies all 8 REQUIRED files exist<br/>console.mjs:128-141
     CONS->>CONS: loadEmbedder() — MiniLM q8 pipeline, offline (allowRemoteModels=false)<br/>console.mjs:174-183
-    CONS-->>AOE: banner() — artefacts dir, corpus provenance, provider, quality bar<br/>console.mjs:195
+    CONS-->>AOE: banner — artefacts dir, corpus provenance, provider, quality bar<br/>console.mjs:199
     Note over WRAP,CONS: HARD-FAIL WRAPPER SEMANTICS: every precondition failure is a loud _die with a<br/>fix instruction, never a silent no-op or a fallback to a different billing key
 ```
 
@@ -122,21 +123,21 @@ sequenceDiagram
     autonumber
     participant OP as Operator (types a task)
     participant EMB as embed()<br/>console.mjs:174-183
-    participant RTR as ruflo ModelRouter<br/>console.mjs:229 route()
+    participant RTR as route<br/>console.mjs:239
     participant KRR as @metaharness/router (KRR/k-NN)<br/>inside the ruflo closure
-    participant AVAIL as loadAvailability()<br/>console.mjs:255
+    participant AVAIL as loadAvailability<br/>console.mjs:284
     participant OR as OpenRouter API
-    participant EXEC as execute()<br/>console.mjs:292
-    participant LEDGER as console-ledger.jsonl<br/>console.mjs:304 ledger()
+    participant EXEC as execute<br/>console.mjs:320
+    participant LEDGER as ledger<br/>console.mjs:332
 
     OP->>EMB: task text
     EMB-->>RTR: MiniLM q8 embedding, mean-pooled, normalised (384-dim)
     RTR->>KRR: router.route(task, embedding)
     KRR-->>RTR: {model: tier, modelId, routedBy: "metaharness-krr",<br/>confidence, complexity, alternatives[]}
-    RTR->>AVAIL: isAvailable(d.modelId) — 24h-cached GET /api/v1/models<br/>console.mjs:255-268
+    RTR->>AVAIL: isAvailable(d.modelId) — 24h-cached GET /api/v1/models<br/>console.mjs:284-297
     alt picked slug retired/unlisted on OpenRouter
         AVAIL-->>RTR: not in live list
-        RTR->>RTR: fallbackChain(d)[0] — same-tier ranked alt, then router<br/>alternatives by score, then tier ladder<br/>console.mjs:280-289
+        RTR->>RTR: fallbackChain(d)[0] — same-tier ranked alt, then router<br/>alternatives by score, then tier ladder<br/>console.mjs:308-316
         RTR->>RTR: d.unavailablePick set to old id, d.routedBy suffixed with availability
     end
     RTR-->>OP: printDecision(d) — model, tier, provider, confidence, cost/MTok
@@ -146,10 +147,10 @@ sequenceDiagram
     else execute
         RTR->>EXEC: execute(decision, prompt)
         EXEC->>OR: callAnthropicMessages({provider:"openrouter", model, prompt})
-        alt HTTP 404/402/400 or "no longer available" (UNAVAILABLE_RE)<br/>console.mjs:290
+        alt HTTP 404/402/400 or "no longer available" (UNAVAILABLE_RE)<br/>console.mjs:318
             OR-->>EXEC: error
             EXEC->>LEDGER: recordOutcome(d, "escalated")
-            loop up to 3 fallback candidates<br/>console.mjs:280 fallbackChain
+            loop up to 3 fallback candidates<br/>console.mjs:374
                 EXEC->>OR: retry with next candidate modelId
             end
         else ok
@@ -167,15 +168,15 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     subgraph console["console.mjs"]
-        DEC["decision row<br/>console.mjs:229 route()"]
-        RES["result row<br/>console.mjs:292 execute()"]
+        DEC["decision row<br/>console.mjs:239 route"]
+        RES["result row<br/>console.mjs:320 execute"]
         OUT["outcome row<br/>recordOutcome()"]
     end
     subgraph sinks["State dir: $WORKSPACE/.agentbox/model-router-state/"]
-        LEDGER["console-ledger.jsonl<br/>console.mjs:304 ledger() — {v,ts,type,...} one line per event"]
-        TRAJ["DRACO-shaped trajectory row<br/>written by ruflo itself via CLAUDE_FLOW_ROUTER_TRAJECTORY=1<br/>console.mjs:157 setDefault"]
+        LEDGER["console-ledger.jsonl<br/>console.mjs:332 ledger — {v,ts,type,...} one line per event"]
+        TRAJ["DRACO-shaped trajectory row<br/>written by ruflo itself via CLAUDE_FLOW_ROUTER_TRAJECTORY=1<br/>console.mjs:159 setDefault"]
         BANDIT["bandit priors (.swarm/model-router-state.json)<br/>updated by recordModelOutcome / recordModelOutcomeByModelId"]
-        AVAILCACHE["openrouter-models.json<br/>24h live-tariff cache, console.mjs:255"]
+        AVAILCACHE["openrouter-models.json<br/>24h live-tariff cache, console.mjs:284"]
     end
     subgraph gate["ADR-150 promotion-gate analyser (ruflo, unaltered)"]
         ANALYSE["router-parallel-analyze.mjs<br/>quality >2%, cost <1%, p95 latency <5%"]
@@ -221,7 +222,7 @@ stateDiagram-v2
     note right of Refused
         Manifest schema also constrains this at the config layer:
         privacy_tier accepts only "public" (ADR-2080 Decision §4,
-        agentbox.toml:1043 comment "the ONLY accepted value")
+        agentbox.toml:1303 comment "the ONLY accepted value")
     end note
     note right of NormalRun
         ADR-2079 §4: privacy tier is the FIRST routing axis, before cost.
@@ -249,13 +250,13 @@ flowchart TD
     C6 -->|no| D6["die: privacy tier not public —<br/>use the Loom sessions instead<br/>console.mjs:94-96"]
     C6 -->|yes| C7{"all 8 REQUIRED artefact<br/>files resolve?<br/>console.mjs:128-141"}
     C7 -->|no| D7["die: router artefacts missing, lists every dir tried<br/>console.mjs:138-141"]
-    C7 -->|yes| C8{"@huggingface/transformers<br/>entry point found?<br/>console.mjs:174-176"}
-    C8 -->|no| D8["die: @huggingface/transformers not found under &lt;closure&gt;<br/>console.mjs:176"]
+    C7 -->|yes| C8{"@huggingface/transformers<br/>entry point found?<br/>console.mjs:175-177"}
+    C8 -->|no| D8["die: @huggingface/transformers not found under the closure<br/>console.mjs:177"]
     C8 -->|yes| C9{"neuralRouterStatus().available?"}
-    C9 -->|no| D9["die: neural router unavailable: &lt;reason&gt;<br/>console.mjs:193"]
+    C9 -->|no| D9["die: neural router unavailable with the reason<br/>console.mjs:197"]
     C9 -->|yes| RUN(["banner() + REPL or --once"])
-    RUN --> C10{"execute() gets a 404/402/400 or<br/>'no longer available'? UNAVAILABLE_RE<br/>console.mjs:290"}
-    C10 -->|yes| FB["recordOutcome escalated, then walk<br/>fallbackChain up to 3 candidates<br/>console.mjs:337-345"]
+    RUN --> C10{"execute() gets a 404/402/400 or<br/>'no longer available'? UNAVAILABLE_RE<br/>console.mjs:318"}
+    C10 -->|yes| FB["recordOutcome escalated, then walk<br/>fallbackChain up to 3 candidates<br/>console.mjs:369-380"]
     C10 -->|no ok| DONE(["printResult + ledger + bandit outcome"])
     FB --> DONE
     subgraph legend["Never happens"]
@@ -268,20 +269,20 @@ flowchart TD
 ```mermaid
 flowchart TB
     subgraph cli["./agentbox.sh model-router <sub>"]
-        CMD["cmd_model_router()<br/>agentbox.sh:1930"]
-        FETCH2["fetch → exec model-router-fetch.sh<br/>agentbox.sh:1935"]
-        CHECK2["check → exec model-router-fetch.sh --check<br/>agentbox.sh:1936"]
-        STATUS2["status → exec node console.mjs --status<br/>agentbox.sh:1937"]
-        ROUTE2["route 'task' → exec node console.mjs --once<br/>agentbox.sh:1938-1939"]
-        CONSOLE2["console → exec harness-wrappers/router.sh<br/>agentbox.sh:1940"]
-        DISPATCH["top-level case dispatch<br/>agentbox.sh:2123"]
+        CMD["cmd_model_router<br/>agentbox.sh:2075"]
+        FETCH2["fetch runs model-router-fetch.sh<br/>agentbox.sh:2080"]
+        CHECK2["check runs model-router-fetch.sh --check<br/>agentbox.sh:2081"]
+        STATUS2["status runs node console.mjs --status<br/>agentbox.sh:2082"]
+        ROUTE2["route 'task' runs node console.mjs --once<br/>agentbox.sh:2083-2084"]
+        CONSOLE2["console runs harness-wrappers/router.sh<br/>agentbox.sh:2085"]
+        DISPATCH["top-level case dispatch<br/>agentbox.sh:2464"]
     end
     subgraph catalogue["Manifest gate catalogue"]
         GATE["id: model-routing-neural<br/>gate: model_routing.neural.enabled<br/>apply_class: rebuild<br/>management-api/lib/system-manifest.js:109-111"]
     end
     subgraph tui["agentbox-manifest TUI"]
         READ["F('model_routing.neural.enabled', D::B(false), false)<br/>services/agentbox-manifest/src/tui_read.rs:127"]
-        RENDER["[model_routing.neural] section renderer<br/>services/agentbox-manifest/src/tui_sections.rs:190-193"]
+        RENDER["[model_routing.neural] section renderer<br/>services/agentbox-manifest/src/tui_sections.rs:190"]
     end
     DISPATCH --> CMD
     CMD --> FETCH2
@@ -297,3 +298,32 @@ flowchart TB
         N1
     end
 ```
+
+## AB-29.9 Retort heuristics - external measurements bend the tier, never the price
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant KRR as router.route<br/>agentbox/config/model-router/console.mjs:242
+    participant R as route<br/>agentbox/config/model-router/console.mjs:239
+    participant RET as retort-benchmarks.json<br/>agentbox/config/model-router/retort-benchmarks.json:2
+    participant D as printDecision<br/>agentbox/config/model-router/console.mjs:341
+
+    Note over RET: LOADED ONLY IF PRESENT - fs.existsSync then parse, otherwise null,<br/>so the console runs identically without the file (console.mjs:194-195)
+    KRR-->>R: tier, modelId, routedBy, confidence, complexity
+    alt retort loaded AND complexity below RETORT_CX_ROUTINE 0.3 AND tier is not the cheapest
+        R->>R: force the cheapest tier, routedBy gains +retort-h1 (console.mjs:252-255)
+        Note over R: h1 - on the easy task EVERY model reached requirement_coverage 1.00,<br/>so cost and speed are the only differentiators<br/>(retort-benchmarks.json:12)
+    else retort loaded AND complexity above RETORT_CX_HARD 0.6 AND tier is the cheapest
+        R->>R: step up one tier, routedBy gains +retort-h2 (console.mjs:256-259)
+    else
+        R->>R: the KRR pick stands unchanged
+    end
+    R->>D: the decision, with the retort hint attached in JSON mode (console.mjs:342)
+    Note over RET: EXTERNAL: these are adrianco/retort's measurements, not ours -<br/>the console trusts the RANKING and the cost ratios, never the absolute<br/>numbers, because Retort scores on its own rubric<br/>(retort-benchmarks.json:3, retort-benchmarks.json:9)
+    Note over RET: every cost is AGENT-LEVEL, the whole agentic loop per run, which is why<br/>per-token list price is a poor proxy for per-task cost<br/>(retort-benchmarks.json:8)
+```
+
+**Invariant:** the Retort file changes only which tier is chosen; the quality bar, the cost ceiling and the privacy tier stay manifest values projected through `AGENTBOX_MODEL_ROUTER_*` (`../project/agentbox/agentbox.toml:1298`, `../project/agentbox/agentbox.toml:1302`, `../project/agentbox/agentbox.toml:1303`).
+
+**Open:** the manifest now carries Retort's measured guidance as a comment on `quality_bar` (`../project/agentbox/agentbox.toml:1299-1301`) while the shipped default stays 0.50 (`../project/agentbox/agentbox.toml:1298`); nothing records whether the 0.25 to 0.35 band that comment recommends for routine work has been run against this estate's own corpus.

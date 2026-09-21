@@ -21,7 +21,7 @@ sources:
   - ../project/scripts/backup-secrets.sh
   - ../project/agentbox/services/secret-backup/src/main.rs
   - ../project/agentbox/services/secret-backup/README.md
-verified_commit: be0fc078a3dc0eab32af57f1eaf170fa58157bf9
+verified_commit: {agentbox: 1639f86ab, visionclaw: f223bbd40}
 ---
 
 ## AB-16.1 Container hardening posture — what actually confines the box
@@ -29,7 +29,7 @@ verified_commit: be0fc078a3dc0eab32af57f1eaf170fa58157bf9
 ```mermaid
 flowchart TB
     subgraph HOST["docker host"]
-        CMP["docker-compose.yml:88-143"]
+        CMP["docker-compose.yml:107-162"]
     end
     subgraph CTR["agentbox container"]
         SUP["supervisord PID 1 as ROOT<br/>required at boot for tmpfs subdirs, cert gen, chown to uid 1000"]
@@ -132,7 +132,7 @@ sequenceDiagram
     D->>SUP: PID 1 as root — tmpfs subdir creation, cert generation, chown runtime dirs to uid 1000
     SUP->>EP: run bootstrap
     rect rgb(255,248,235)
-    Note over EP,SET: trust pre-acceptance — entrypoint-unified.sh:1276-1295
+    Note over EP,SET: trust pre-acceptance — entrypoint-unified.sh:1298-1317
     EP->>TS: node /opt/agentbox/config/hooks/trust-seed.cjs (runs first, every boot)
     EP->>SET: read settings.json hooks.SessionStart
     alt a hook command already contains trust-seed.cjs
@@ -205,8 +205,8 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant ATK as any LAN client
-    participant PX as nip98-proxy verifyIdentity<br/>agentbox/config/nip98-proxy/proxy.mjs:626
-    participant CT as constantTimeEqual<br/>agentbox/config/nip98-proxy/proxy.mjs:540
+    participant PX as nip98-proxy verifyIdentity<br/>agentbox/config/nip98-proxy/proxy.mjs:629
+    participant CT as constantTimeEqual<br/>agentbox/config/nip98-proxy/proxy.mjs:543
     participant UP as upstream (AoE or mgmt-api)
     participant ADR as ADR-2027 requirement<br/>agentbox/docs/adr/ADR-2027-secret-custody-rotation-break-glass.md
 
@@ -214,23 +214,23 @@ sequenceDiagram
     alt BREAK_GLASS unset (proxy.mjs:99 NIP98_PROXY_ALLOW_BEARER)
         PX-->>ATK: branch skipped entirely — break-glass disabled
     else configured
-        PX->>CT: constantTimeEqual(token, BREAK_GLASS) (proxy.mjs:636)
+        PX->>CT: constantTimeEqual(token, BREAK_GLASS) (proxy.mjs:639)
         alt no match
             PX-->>ATK: fall through to the NIP-98 branch. see AB-10.3
         else match
             CT-->>PX: true
-            PX->>PX: breakGlassNotExpired() (proxy.mjs:637) — ADR-2027: matching the token alone is not sufficient
+            PX->>PX: breakGlassNotExpired() (proxy.mjs:640) — ADR-2027: matching the token alone is not sufficient
             alt expired
-                PX->>PX: breakGlassUse.refused++, log warn break-glass REFUSED (proxy.mjs:638-645)
+                PX->>PX: breakGlassUse.refused++, log warn break-glass REFUSED (proxy.mjs:641-648)
                 PX-->>ATK: ok false, break_glass_expired
             else not expired
-                PX->>PX: breakGlassScopeAllows(req.method, req.url) (proxy.mjs:647)
+                PX->>PX: breakGlassScopeAllows(req.method, req.url) (proxy.mjs:650)
                 alt out of scope
-                    PX->>PX: breakGlassUse.refused++, log warn break-glass REFUSED (proxy.mjs:648-655)
+                    PX->>PX: breakGlassUse.refused++, log warn break-glass REFUSED (proxy.mjs:651-658)
                     PX-->>ATK: ok false, break_glass_out_of_scope
                 else in scope
-                    PX->>PX: breakGlassUse.accepted++, log warn break-glass USED with fingerprint, NOT the token (proxy.mjs:658-668)
-                    PX->>PX: ok true, pubkey BREAK_GLASS_PUBKEY, mode "break-glass" (proxy.mjs:670)
+                    PX->>PX: breakGlassUse.accepted++, log warn break-glass USED with fingerprint, NOT the token (proxy.mjs:661-671)
+                    PX->>PX: ok true, pubkey BREAK_GLASS_PUBKEY, mode "break-glass" (proxy.mjs:673)
                     PX->>UP: forward with X-Agentbox-Pubkey = the sentinel
                     Note over PX,UP: the sentinel identity is NOT a real pubkey, so every downstream attribution for this request is a placeholder
                 end
@@ -244,6 +244,7 @@ sequenceDiagram
     ADR-->>PX: fingerprinted acceptance/refusal logs exist — durable per-use receipt is unproven
     ADR-->>PX: full lifecycle needs configured bounds, custodians and tested revocation
     end
+    Note over ADR: OPEN — ADR-2027 sets verified_paths to the empty list, the record's own escape<br/>hatch for an assertion that is not mechanically checkable, and leaves verified_commit<br/>pinned at an older sha as a provenance pointer rather than bumping it<br/>(docs/adr/ADR-2027-secret-custody-rotation-break-glass.md:193-198).<br/>So the custody claims this diagram leans on are attested by reading, not by a gate
     Note over ATK,PX: DIVERGENCE INGRESS-identity "Break-glass bearer over the LAN" — accepted on port 9096 AND via ?access_token= / ?bearer= on WS upgrades.<br/>A single shared secret bypasses NIP-98 entirely. Documented opt-in, but a full identity bypass while enabled. see AB-10.9
     Note over ADR: ADR-2027 record status: decision proposed, implementation none, activation inactive.<br/>Policy status remains proposed for the complete lifecycle.<br/>Optional bounds and fingerprint logs ARE implemented — lifecycle completion and deployed configuration are not certified.
 ```

@@ -4,9 +4,18 @@ title: Ontology Loom facade and the model-swap seam
 area: agentbox
 governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
-adrs: [ADR-2023, ADR-2053, ADR-2055, ADR-2075]
+adrs: [ADR-2023, ADR-2053, ADR-2055, ADR-2075, ADR-2084]
 sources:
   - ../project/agentbox/mcp/servers/lib/ontology-retrieval.js
+  - ../project/agentbox/docs/adr/ADR-2084-one-published-loom-client-for-every-facade-caller.md
+  - ../project/agentbox/services/dream-engine/src/llm.rs
+  - ../project/agentbox/services/podcast-ingest/src/ingest/loom.rs
+  - ../project/agentbox/services/podcast-ingest/src/promote/loom.rs
+  - ../project/agentbox/services/explainer-tools/src/bin/loom_draft.rs
+  - ../project/agentbox/services/explainer-tools/src/draft.rs
+  - ../project/agentbox/services/agentbox-mcp/src/web_summary/llm.rs
+  - ../loom/docs/design/ADR-139-per-request-scaffold-opt-out.md
+  - ../project/agentbox/scripts/aoe-seed-sessions.mjs
   - ../project/agentbox/mcp/servers/lib/ontology-budget.js
   - ../project/agentbox/agentbox.toml
   - ../project/docker-compose.unified.yml
@@ -14,7 +23,7 @@ sources:
   - ../project/agentbox/scripts/opf-router.py
   - ../project/agentbox/mcp/servers/lib/ontology-telemetry.js
   - ../project/agentbox/flake.nix
-verified_commit: a0ee1fe5740baa38e14c4ff3fe512dd557bcbb6e
+verified_commit: {agentbox: 1639f86abded1441ce148d6c47924dfaf34f96af, visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2, loom: 39b5fc02aeca0abd9f12c32437a69b6e385d8375}
 ---
 
 ## AB-24.1 Two deployments of one facade contract — topology
@@ -23,10 +32,10 @@ verified_commit: a0ee1fe5740baa38e14c4ff3fe512dd557bcbb6e
 flowchart TB
     subgraph consumers["Consumers hold a DOOR, never a raw model port (ADR-2023)"]
         RET["ontology-retrieval brain<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:734"]
-        COND["ontology condense<br/>agentbox/agentbox.toml:675"]
-        DREAM["dream-engine loom_url<br/>agentbox/agentbox.toml:1734"]
-        SEED["AoE session seed slug=loom<br/>agentbox/agentbox.toml:1374"]
-        SEEDRAW["AoE session seed slug=loom-raw<br/>agentbox/agentbox.toml:1381"]
+        COND["ontology condense<br/>agentbox/agentbox.toml:805"]
+        DREAM["dream-engine loom_url<br/>agentbox/agentbox.toml:2004"]
+        SEED["AoE session seed slug=loom<br/>agentbox/agentbox.toml:1645"]
+        SEEDRAW["AoE session seed slug=loom-raw #40;LEGACY ALIAS#41;<br/>agentbox/agentbox.toml:1652"]
         EMAIL["email gateway REASONER_BASE_URL<br/>see AB-27"]
     end
     subgraph depA["Deployment A — LAN facade on machinelearn .132"]
@@ -44,7 +53,7 @@ flowchart TB
     COND -->|"POST /v1/chat/completions"| F84
     DREAM -->|"llm_provider=loom only"| F84
     SEED -->|"model loom-lan/qwen3.8-27B"| F84
-    SEEDRAW -->|"raw port 8085 — explicit coding/benchmark path"| M85
+    SEEDRAW -->|"openCodeConfig points it at LOOM_BASE_URL with loom_options scaffold false<br/>aoe-seed-sessions.mjs:254, aoe-seed-sessions.mjs:227"| F84
     EMAIL -->|"http://loom:8080/v1"| SIDE
     F84 -->|"ml DNATs over the 25G rail 10.10.10.0/30"| M85
     SIDE -->|"DISTILL_BACKEND_URL blank = retrieval-only, /v1 returns 503"| M85
@@ -52,7 +61,7 @@ flowchart TB
     SIDE -->|"entrypoint copies .rvdb off :ro — opening redb mutates it"| TMPFS
     subgraph notes["Invariants and drift"]
         direction TB
-        N1["RESOLVED ADR-2070 #40;2026-09-05#41;: not a breach. ADR-045 one-front-door is an INGRESS rule<br/>#40;port 9096, NIP-98, control surfaces reaching INTO the box#41; and says nothing about EGRESS to a LAN<br/>model host. The raw port 8085 door is deliberate and named #40;flake.nix LOOM_RAW_BASE_URL, the loom-raw<br/>session seed#41; — agent-choice and benchmark-only for raw coding, never a fallback and never<br/>auto-routed when the facade errors. Knowledge-work consumers hold port 8084. A third door needs an ADR"]
+        N1["WITHDRAWN in code: the loom-raw SEED no longer holds a raw model door. openCodeConfig<br/>gives loom-lan, loom-agent and loom-raw the SAME LOOM_BASE_URL #40;aoe-seed-sessions.mjs:213,<br/>aoe-seed-sessions.mjs:248, aoe-seed-sessions.mjs:254#41; and declines the scaffold per request<br/>instead #40;aoe-seed-sessions.mjs:227#41;, the ADR-139 answer to what the raw port was for.<br/>LOOM_RAW_BASE_URL survives only as a compose default #40;flake.nix:3173#41; that nothing seeds"]
         N2["RESOLVED ADR-2055: opf-router is the PRIVACY-FILTER redaction sidecar on OPF_PORT<br/>9092 (agentbox.toml [privacy_filter].port, scripts/opf-router.py:41, flake.nix<br/>[program:opf-router]). BASELINE-container previously described it as an<br/>OpenAI-compatible facade on port 8084 — corrected. No agentbox program serves<br/>port 8084 — that is the Loom facade on machinelearn"]
         N3["The loom-facade implementation lives OUTSIDE this repo at /home/devuser/workspace/loom.<br/>This repo holds the deployment contract only (loom/README.md:8-15)"]
         N1 ~~~ N2 ~~~ N3
@@ -295,9 +304,9 @@ sequenceDiagram
     CONS->>FAC: unchanged calls
     FAC-->>CONS: unchanged contract
     Note over OP,CONS: INVARIANT ADR-2023: swapping the deployed model must NOT touch any consumer — the model<br/>is an operational detail behind port 8084
-    Note over CFG: history — Gemma then Muse then Qwen3.8-27B — agentbox.toml:1735 loom_model =<br/>qwen3.8-27B, :1739 loom_max_tokens = 32768
-    Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites agentbox.toml by [section].key rather than<br/>raw line (ADR-2052 changelog 0.1.1) and correctly states ".loom_max_tokens = 32768, raised<br/>from 16384" — the working tree has loom_url at agentbox.toml:1734 and loom_max_tokens at<br/>:1739 — the cap was raised after glm-5.3 burned ~16k reasoning tokens and hit the old 16384<br/>cap with empty content twice (agentbox.toml comment at :1736-1738)
-    Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites session seeds as `slug = "loom"` /<br/>`slug = "loom-raw"` under [[interaction_plane.session_seeds]] (no raw line number) — the<br/>working tree has slug=loom at agentbox.toml:1374 and slug=loom-raw at :1381
+    Note over CFG: history — Gemma then Muse then Qwen3.8-27B — agentbox.toml:2007 loom_model =<br/>qwen3.8-27B, agentbox.toml:2011 loom_max_tokens = 32768
+    Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites agentbox.toml by [section].key rather than<br/>raw line (ADR-2052 changelog 0.1.1) and correctly states ".loom_max_tokens = 32768, raised<br/>from 16384" — the manifest has loom_url at agentbox.toml:2004 and loom_max_tokens at<br/>agentbox.toml:2011 — the cap was raised after glm-5.3 burned ~16k reasoning tokens and hit the old 16384<br/>cap with empty content twice (agentbox.toml comment at :2008-2010)
+    Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites session seeds as `slug = "loom"` /<br/>`slug = "loom-raw"` under [[interaction_plane.session_seeds]] (no raw line number) — the<br/>manifest has slug=loom at agentbox.toml:1645 and slug=loom-raw at agentbox.toml:1652
     Note over NEW: DIVERGENCE: HP's old 192.168.2.48 is DEAD — a stale model-backend route black-holes<br/>every synthesis while /health still answers
 ```
 
@@ -354,15 +363,15 @@ flowchart LR
     subgraph doors["Doors"]
         D84["LAN facade port 8084/v1"]
         D80["sidecar loom:8080/v1"]
-        D85["raw model port 8085 — named egress"]
+        D85["raw model port 8085, compose default only<br/>agentbox/flake.nix:3173, seeded by nothing"]
     end
     RET["ontology-retrieval brain<br/>LOOM_FACADE_URL<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:491"] --> D84
-    COND["ontology condense endpoint<br/>agentbox/agentbox.toml:675<br/>model qwen3.8-27B style openai max_concurrency 2"] --> D84
-    DREAM["dream_machine loom_url<br/>agentbox/agentbox.toml:1734"] --> D84
-    SEEDL["session seed slug=loom<br/>agentbox/agentbox.toml:1374<br/>model loom-lan/qwen3.8-27B — scaffolded, knowledge work"] --> D84
-    SEEDR["session seed slug=loom-raw<br/>agentbox/agentbox.toml:1381<br/>model loom-raw/qwen3.8-27B — no scaffold, coding"] --> D85
+    COND["ontology condense endpoint<br/>agentbox/agentbox.toml:807<br/>model qwen3.8-27B style openai max_concurrency 2 #40;agentbox.toml:810#41;"] --> D84
+    DREAM["dream_machine loom_url<br/>agentbox/agentbox.toml:2004"] --> D84
+    SEEDL["session seed slug=loom<br/>agentbox/agentbox.toml:1645<br/>model loom-lan/qwen3.8-27B agentbox.toml:1647, scaffolded for knowledge work"] --> D84
+    SEEDR["session seed slug=loom-raw<br/>agentbox/agentbox.toml:1652<br/>model loom-agent/current agentbox.toml:1654, model-agnostic passthrough"] --> D84
     EMAIL["email gateway<br/>REASONER_BASE_URL http://loom:8080/v1<br/>loom/README.md:19-21"] --> D80
-    CUST["security.deepsec custom ai_base_url<br/>agentbox/agentbox.toml:1693 #40;deepsec#39;s own AI-reviewer<br/>backend, NOT the #91;consultants#93; tier#41;"] --> D80
+    CUST["security.deepsec custom ai_base_url<br/>agentbox/agentbox.toml:1963 #40;deepsec#39;s own AI-reviewer<br/>backend, NOT the #91;consultants#93; tier#41;"] --> D80
     D84 --> M["qwen3.8-27B"]
     D80 --> M
     D85 --> M
@@ -377,6 +386,67 @@ flowchart LR
     end
 ```
 
-## Audit qualification — 2026-09-07
+## AB-24.10 ADR-2084 - five callers, one published client
+
+```mermaid
+flowchart TB
+    subgraph before["Before: five hand-rolled chat-completions clients"]
+        B1["each knew a DIFFERENT subset of the same three traps<br/>ADR-2084-one-published-loom-client-for-every-facade-caller.md:21-28"]
+        B2["only dream-engine knew a facade can answer 200 with ontology prose<br/>and never call the model"]
+        B3["only loom-draft knew about truncation retries and the ADR-139 assertion"]
+        B4["only agentbox-mcp floored max_tokens, so the others could ask a<br/>reasoning model for 400 and read empty content as success"]
+        B1 --> B2 --> B3 --> B4
+    end
+    subgraph after["After: the loom-client crate, published from the loom repository"]
+        C1["dream-engine call_loom<br/>agentbox/services/dream-engine/src/llm.rs:196"]
+        C2["podcast-ingest extraction<br/>agentbox/services/podcast-ingest/src/ingest/loom.rs:34"]
+        C3["podcast-ingest promotion<br/>agentbox/services/podcast-ingest/src/promote/loom.rs:69"]
+        C4["explainer-loom-draft<br/>agentbox/services/explainer-tools/src/bin/loom_draft.rs:22"]
+        C5["web-summary MCP server<br/>agentbox/services/agentbox-mcp/src/web_summary/llm.rs:65"]
+    end
+    B4 --> C1
+    C1 --> C2 --> C3 --> C4 --> C5
+    subgraph knows["What the one place now knows"]
+        direction TB
+        K1["INVARIANT ADR-2084: hand-rolled chat-completions construction against a<br/>facade is PROHIBITED - a sixth caller takes the crate<br/>ADR-2084-one-published-loom-client-for-every-facade-caller.md:37"]
+        K2["verbatim and scaffold are INDEPENDENT switches. Three callers sent only<br/>the first and agentbox-mcp sent neither, so a page summary could be<br/>answered from the ontology without the page being read<br/>ADR-2084-one-published-loom-client-for-every-facade-caller.md:30-33"]
+        K3["a reasoning model truncated below 1536 tokens returns EMPTY content,<br/>not a short answer - web_summary/llm.rs:20 floors every ask and<br/>web_summary/llm.rs:63 clamps the caller's number up to it"]
+        K1 ~~~ K2 ~~~ K3
+    end
+    C5 -.-> knows
+```
+
+**Invariant:** the web-summary path clamps every request to at least 1536 tokens and is pinned by `max_tokens_is_always_clamped_to_at_least_1536` (`../project/agentbox/services/agentbox-mcp/src/web_summary/llm.rs:151`); a scaffold-only serve is reported as a failure, not an answer (`../project/agentbox/services/agentbox-mcp/src/web_summary/llm.rs:198`).
+
+## AB-24.11 ADR-139 - the per-request scaffold opt-out
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant ONT as ontology subject<br/>agentbox/services/dream-engine/src/llm.rs:211
+    participant CODE as non-ontology subject<br/>agentbox/services/explainer-tools/src/bin/loom_draft.rs:196
+    participant CL as loom-client
+    participant FAC as the facade, the stable model door
+    participant M as the model behind the door
+
+    Note over ONT,CODE: the SUBJECT decides, and the decision belongs to the REQUEST -<br/>no header, no environment switch (ADR-139-per-request-scaffold-opt-out.md:32)
+    ONT->>CL: LoomOptions::declining_verbatim()
+    CL->>FAC: POST chat completions, scaffold ON, verbatim declined
+    FAC->>M: scaffold-injected prompt
+    M-->>FAC: completion
+    FAC-->>CL: served_mode names the regime, corpus_backed true
+    CODE->>CL: LoomOptions::passthrough()
+    CL->>FAC: POST chat completions with loom_options scaffold false
+    Note over CL,FAC: no retrieval, no injection, no verbatim serve, no thinking control,<br/>the Loom-private field stripped, the body otherwise forwarded unchanged<br/>(ADR-139-per-request-scaffold-opt-out.md:23-25)
+    FAC->>M: the body as the caller wrote it
+    M-->>FAC: completion
+    FAC-->>CODE: served_mode passthrough, grounding status passthrough,<br/>corpus_backed false, injected_tokens 0<br/>(ADR-139-per-request-scaffold-opt-out.md:26-30)
+    Note over FAC: absence of the key, or any value other than the boolean false, leaves the<br/>scaffold ON (ADR-139-per-request-scaffold-opt-out.md:31)
+    Note over M: INVARIANT ADR-139: the direct model port stays an implementation detail<br/>behind the door and is NOT a documented consumer path<br/>(ADR-139-per-request-scaffold-opt-out.md:33-34)
+```
+
+**Debt:** grounding applied to a subject the ontology does not cover is a WRONG answer, not a weak one: on 2026-09-09 a packet about a test script scored the blockchain class Node at 42 and was served from the corpus in 40 ms with zero completion tokens (`../loom/docs/design/ADR-139-per-request-scaffold-opt-out.md:13-16`), which is why `../project/agentbox/services/explainer-tools/src/draft.rs:4` declines the scaffold on every request.
+
+## Audit qualification - 2026-09-07
 
 The execution pass implements consumer verification in `ontology-retrieval.js::loomGenerationVerifier`: GET generation before every cache lookup, compare the configured pin and loaded digest/model/corpus, and validate identity headers on search/SPARQL responses. The local Loom route implementation preserves response bodies and adds those headers. This source is staged: the live façade was probed and still reports lexical generation 2026-08-22 versus semantic 2026-08-17, without loaded identity/embedding fields. A coordinated bundle/server rollout is required before activating the stricter client. See [execution evidence](../../estate-review/closeout/2026-09-07-execution-agentbox.md). The graph loader still uses the shared default graph, so ADR-2073 remains open. Generation reporting is not an automatic corpus reload.

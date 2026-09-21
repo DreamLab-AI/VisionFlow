@@ -22,7 +22,7 @@ sources:
   - ../project/agentbox/scripts/post-deploy-cleanup.sh
   - ../project/agentbox/docker-compose.yml
   - ../project/agentbox/config/model-router/artefacts.json
-verified_commit: be0fc078a3dc0eab32af57f1eaf170fa58157bf9
+verified_commit: 1639f86ab
 ---
 
 ## AB-01.1 agentbox.toml gates to flake.nix conditionals to package set and supervisord text
@@ -31,26 +31,26 @@ verified_commit: be0fc078a3dc0eab32af57f1eaf170fa58157bf9
 flowchart TB
     TOML["agentbox.toml<br/>flake.nix:102 builtins.fromTOML"] --> CFG["agentboxConfig"]
     CFG --> DESK["desktopCfg = agentboxConfig.desktop or {}<br/>flake.nix:124"]
-    CFG --> MEDIA["mediaCfg = skillsCfg.media or {}<br/>flake.nix:174"]
-    CFG --> VAULT["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:661"]
+    CFG --> MEDIA["mediaCfg = skillsCfg.media or {}<br/>flake.nix:194"]
+    CFG --> VAULT["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:678"]
 
-    DESK -->|"desktopCfg.enabled or false"| DESKOPT["lib.optionals<br/>flake.nix:1576 desktopPackages"]
-    MEDIA -->|"mediaCfg.comfyui_builtin or false"| COMFYOPT["lib.optionals<br/>flake.nix:1146 comfyuiPackages"]
-    MEDIA -->|"mediaCfg.ffmpeg or false"| FFOPT["lib.optionals<br/>flake.nix:1155 wrapGpuBin ffmpeg"]
-    VAULT -->|"vaultCfg.tui == rune"| RUNEOPT["runeActive<br/>flake.nix:663"]
+    DESK -->|"desktopCfg.enabled or false"| DESKOPT["lib.optionals<br/>flake.nix:1602 desktopPackages"]
+    MEDIA -->|"mediaCfg.comfyui_builtin or false"| COMFYOPT["lib.optionals<br/>flake.nix:1163 comfyuiPackages"]
+    MEDIA -->|"mediaCfg.ffmpeg or false"| FFOPT["lib.optionals<br/>flake.nix:1172 wrapGpuBin ffmpeg"]
+    VAULT -->|"vaultCfg.tui == rune"| RUNEOPT["runeActive<br/>flake.nix:680"]
 
     DESKOPT --> ALLPKG["allPackages closure"]
     COMFYOPT --> ALLPKG
     FFOPT --> ALLPKG
-    RUNEOPT -->|"lib.optionals runeActive"| RUNEPKG["runePackages<br/>flake.nix:665"]
+    RUNEOPT -->|"lib.optionals runeActive"| RUNEPKG["runePackages<br/>flake.nix:682"]
     RUNEPKG --> ALLPKG
 
-    DESK -->|"lib.optionalString (desktopCfg.enabled or false)"| DESKSUP["desktopBlocks text<br/>flake.nix:2023<br/>spliced flake.nix:2219"]
-    MEDIA -->|"lib.optionalString (mediaCfg.comfyui_builtin or false)"| COMFYSUP["program:comfyui-builtin block<br/>flake.nix:2313-2322"]
+    DESK -->|"lib.optionalString (desktopCfg.enabled or false)"| DESKSUP["desktopBlocks text<br/>flake.nix:2070<br/>spliced flake.nix:2266"]
+    MEDIA -->|"lib.optionalString (mediaCfg.comfyui_builtin or false)"| COMFYSUP["program:comfyui-builtin block<br/>flake.nix:2360-2369"]
 
-    DESKSUP --> SUPTEXT["supervisorText — AUTO-GENERATED supervisord.conf<br/>flake.nix:2115 supervisorText = header"]
+    DESKSUP --> SUPTEXT["supervisorText — AUTO-GENERATED supervisord.conf<br/>flake.nix:2162 supervisorText = header"]
     COMFYSUP --> SUPTEXT
-    ALLPKG --> MKIMAGE["mkImage layers<br/>flake.nix:3693"]
+    ALLPKG --> MKIMAGE["mkImage layers<br/>flake.nix:3752"]
 
     ALLPKG -.->|"see AB-01.7"| WRAPTGT["wrapped GPU targets"]
 
@@ -87,14 +87,16 @@ stateDiagram-v2
 
     note right of live
         APPLY_CLASSES const system-manifest.js line 27
-        entries browsercontainer 158, gui-tools-service 161, voice-console 164, memory-hygiene 178-180
+        entries browser-sidecar 160, gui-tools-sidecar 163, voice-console 166, memory-hygiene 181
     end note
     note right of boot
-        entries management-api 42, tmux-autostart 45, setup 48, vault root/pages/format 217, memory_learning 176
-        stateOf treats mode string off OR none as off, system-manifest.js line 265
+        entries management-api 41, terminal 44, setup-wizard 47, vault root/pages/format 249, memory-learning 178
+        newer boot entries jev-compaction 212, sovereign-system-one 215, skill-router 223
+        stateOf counts off and none as off, plus a per-entry off_values set, system-manifest.js line 316
     end note
     note right of rebuild
-        entries code-server 51, jupyter-lab 54, xvnc 57, comfyui-builtin 60, vault-tui 220
+        entries code-server 50, jupyter 53, desktop 56, comfyui 59, vault-tui 252
+        newer rebuild entries mcp-hub 270, hook-shim 273, teammate-gc 276
         DOES NOT reconcile on restart, needs full Nix re-evaluation via agentbox.sh rebuild
     end note
 
@@ -109,54 +111,54 @@ stateDiagram-v2
 sequenceDiagram
     autonumber
     participant OP as Operator
-    participant REB as cmd_rebuild<br/>agentbox.sh:1042
-    participant DOWN as cmd_down<br/>agentbox.sh:849
-    participant BUILD as cmd_build<br/>agentbox.sh:882
-    participant NIX as nix build<br/>agentbox.sh:898
-    participant UP as cmd_up<br/>agentbox.sh:706
+    participant REB as cmd_rebuild<br/>agentbox.sh:1065
+    participant DOWN as cmd_down<br/>agentbox.sh:868
+    participant BUILD as cmd_build<br/>agentbox.sh:905
+    participant NIX as nix build<br/>agentbox.sh:921
+    participant UP as cmd_up<br/>agentbox.sh:727
     participant DOCKER as docker compose
     participant CLEAN as post-deploy-cleanup.sh
 
     OP->>REB: ./agentbox.sh rebuild [--no-cleanup]
-    REB->>DOWN: cmd_down (agentbox.sh:1055)
-    DOWN->>DOCKER: docker compose down (agentbox.sh:874)
+    REB->>DOWN: cmd_down (agentbox.sh:1078)
+    DOWN->>DOCKER: docker compose down (agentbox.sh:893)
     DOCKER-->>DOWN: stack stopped
-    REB->>BUILD: cmd_build --variant runtime (agentbox.sh:1058)
-    BUILD->>BUILD: validate variant in runtime|desktop|full<br/>agentbox.sh:892-893
+    REB->>BUILD: cmd_build --variant runtime (agentbox.sh:1081)
+    BUILD->>BUILD: validate variant in runtime|desktop|full<br/>agentbox.sh:915-916
     alt unknown variant
         BUILD-->>OP: exit 1 Unknown variant
     end
-    BUILD->>NIX: nix build .#runtime (agentbox.sh:898)
-    NIX-->>BUILD: result symlink resolved (agentbox.sh:900-901)
-    REB->>UP: cmd_up --build (agentbox.sh:1061)
-    UP->>UP: mutually exclusive check --build vs --registry<br/>agentbox.sh:721-724
-    UP->>NIX: nix build .#runtime (agentbox.sh:729)
-    UP->>DOCKER: nix run .#runtime.copyToDockerDaemon<br/>agentbox.sh:733
-    UP->>UP: unset AGENTBOX_IMAGE_REF (agentbox.sh:735)
-    UP->>UP: resolve image hash + manifest checksum<br/>agentbox.sh:758-768
+    BUILD->>NIX: nix build .#runtime (agentbox.sh:921)
+    NIX-->>BUILD: result symlink resolved (agentbox.sh:923-924)
+    REB->>UP: cmd_up --build (agentbox.sh:1084)
+    UP->>UP: mutually exclusive check --build vs --registry<br/>agentbox.sh:742-745
+    UP->>NIX: nix build .#runtime (agentbox.sh:750)
+    UP->>DOCKER: nix run .#runtime.copyToDockerDaemon<br/>agentbox.sh:754
+    UP->>UP: unset AGENTBOX_IMAGE_REF (agentbox.sh:756)
+    UP->>UP: resolve image hash + manifest checksum<br/>agentbox.sh:779-789
     opt visionclaw_network absent
-        UP->>DOCKER: docker network create visionclaw_network<br/>agentbox.sh:774
+        UP->>DOCKER: docker network create visionclaw_network<br/>agentbox.sh:723
     end
     opt orphaned ruvector-postgres container
-        UP->>DOCKER: docker rm -f ruvector-postgres<br/>agentbox.sh:789
+        UP->>DOCKER: docker rm -f ruvector-postgres<br/>agentbox.sh:807
     end
-    UP->>DOCKER: docker compose up -d (agentbox.sh:800)
+    UP->>DOCKER: docker compose up -d (agentbox.sh:819)
     loop poll every 2s up to 120s
-        UP->>DOCKER: curl READY_URL (agentbox.sh:828)
+        UP->>DOCKER: curl READY_URL (agentbox.sh:847)
     end
     alt readiness times out
-        UP-->>OP: exit 1 Readiness check timed out<br/>agentbox.sh:836-838
+        UP-->>OP: exit 1 Readiness check timed out<br/>agentbox.sh:855-857
     end
-    UP-->>REB: Stack is up and ready (agentbox.sh:842)
+    UP-->>REB: Stack is up and ready (agentbox.sh:861)
     alt skip_cleanup == 0
-        REB->>CLEAN: bash scripts/post-deploy-cleanup.sh<br/>agentbox.sh:1065
+        REB->>CLEAN: bash scripts/post-deploy-cleanup.sh<br/>agentbox.sh:1088
         CLEAN->>CLEAN: 1/5 prune old agentbox images, keep CURRENT_ID
         CLEAN->>CLEAN: 2/5 docker system prune -f
         CLEAN->>CLEAN: 3/5 nix store gc
         CLEAN->>CLEAN: 4/5 clean tmp build files
         CLEAN->>CLEAN: 5/5 reap stale cargo target dirs, AGENTBOX_REAP_CARGO
     else --no-cleanup
-        Note over REB,CLEAN: cleanup skipped, skip_cleanup=1, agentbox.sh:1052,1063
+        Note over REB,CLEAN: cleanup skipped, skip_cleanup=1, agentbox.sh:1075,1086
     end
 ```
 
@@ -191,12 +193,12 @@ sequenceDiagram
     end
     JS->>SEM: run E0xx/W0xx rule families<br/>adapters, providers, nostr relay, privacy filter, linked-data
     SEM-->>JS: errors[] and warnings[] arrays populated
-    JS->>JS: emit every warning to stderr<br/>agentbox-config-validate.js:1494-1496
+    JS->>JS: emit every warning to stderr<br/>agentbox-config-validate.js:1618-1620
     alt errors.length == 0
-        JS-->>OP: stdout "agentbox manifest valid" + advisory count, exit 0<br/>agentbox-config-validate.js:1499-1502
+        JS-->>OP: stdout "agentbox manifest valid" + advisory count, exit 0<br/>agentbox-config-validate.js:1623-1626
     else errors present
         JS->>JS: emit every error to stderr
-        JS-->>OP: exit 1<br/>agentbox-config-validate.js:1507
+        JS-->>OP: exit 1<br/>agentbox-config-validate.js:1631
     end
 
     Note over JS,SEM: DIVERGENCE - static-schema stage is advisory for W0xx dead-policy warnings,<br/>only E016 schema-additionalProperties violations and other E-code semantic rules hard-fail<br/>see agentbox-config-validate.js line 4 comment and lines 1499-1507 exit logic
@@ -207,14 +209,14 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant FLAKE as flake.nix eval<br/>flake.nix:257
+    participant FLAKE as flake.nix eval<br/>flake.nix:277
     participant MK as makeNpmCli<br/>lib/npm-cli.nix:120
     participant FETCH as pkgs.fetchurl stage 1<br/>lib/npm-cli.nix:184
     participant FOD as packageWithDeps FOD stage 2<br/>lib/npm-cli.nix:204
     participant WRAP as wrapper derivation stage 3
-    participant ALWAYS as npmCliAlwaysPackages<br/>flake.nix:501
+    participant ALWAYS as npmCliAlwaysPackages<br/>flake.nix:518
 
-    FLAKE->>MK: mkNpmCli pkgName=ruvector version=0.3.0<br/>flake.nix:262-268
+    FLAKE->>MK: mkNpmCli pkgName=ruvector version=0.3.0<br/>flake.nix:282-288
     MK->>FETCH: registryUrl ruvector 0.3.0<br/>lib/npm-cli.nix:102-115
     FETCH->>FETCH: sha256 = SRI hash of the .tgz<br/>lib/npm-cli.nix:186-187
     alt sha256 is lib.fakeHash placeholder
@@ -225,9 +227,9 @@ sequenceDiagram
     FOD-->>MK: $out/lib/ruvector with populated node_modules
     MK->>WRAP: thin mkDerivation, no network, writes $out/bin/ruvector wrapper<br/>lib/npm-cli.nix Stage 3 rationale lines 39-41
     WRAP-->>FLAKE: ruvectorPkg derivation
-    FLAKE->>ALWAYS: npmCliAlwaysPackages = [ ruvectorPkg wranglerPkg ]<br/>flake.nix:501
-    Note over FLAKE,ALWAYS: comment at flake.nix:261 says pin is ruvector-0.2.25,<br/>but the version field at flake.nix:264 is 0.3.0
-    Note over FLAKE,ALWAYS: RESOLVED ADR-2039: BASELINE-container.md:45 now<br/>states 0.3.0. The nix-prefetch-url comment at flake.nix:261<br/>still names ruvector-0.2.25.tgz - stale code comment, left<br/>as-is deliberately, not a doc claim
+    FLAKE->>ALWAYS: npmCliAlwaysPackages = [ ruvectorPkg wranglerPkg ]<br/>flake.nix:518
+    Note over FLAKE,ALWAYS: comment at flake.nix:281 says pin is ruvector-0.2.25,<br/>but the version field at flake.nix:284 is 0.3.0
+    Note over FLAKE,ALWAYS: RESOLVED ADR-2039: BASELINE-container.md:46 now<br/>states 0.3.0. The nix-prefetch-url comment at flake.nix:281<br/>still names ruvector-0.2.25.tgz - stale code comment, left<br/>as-is deliberately, not a doc claim
 ```
 
 ## AB-01.6 gpu-wrap.nix wrapGpuBins - LD_LIBRARY_PATH suffix and vendor ICDs
@@ -235,18 +237,18 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant FLAKE as flake.nix eval<br/>flake.nix:234-235
+    participant FLAKE as flake.nix eval<br/>flake.nix:254-255
     participant WRAP as gpuWrap.wrapGpuBins<br/>lib/gpu-wrap.nix:76
     participant JOIN as pkgs.symlinkJoin<br/>lib/gpu-wrap.nix:77
     participant MAKEW as makeWrapper wrapProgram<br/>lib/gpu-wrap.nix:87
     participant BIN as wrapped binary at runtime
 
-    FLAKE->>FLAKE: gpuActive = agentbox.toml gpu.backend == local-cuda<br/>flake.nix:234
+    FLAKE->>FLAKE: gpuActive = agentbox.toml gpu.backend == local-cuda<br/>flake.nix:254
     alt gpu.backend == none
-        FLAKE->>FLAKE: wrapGpuBin pkg bins = pkg, unwrapped passthrough<br/>flake.nix:235-241
+        FLAKE->>FLAKE: wrapGpuBin pkg bins = pkg, unwrapped passthrough<br/>flake.nix:255-261
         Note over FLAKE: alt gpu.backend=none - wrapping is inert without injected driver libs, gpu-wrap.nix comment lines 21-22
     else gpu.backend == local-cuda
-        FLAKE->>WRAP: wrapGpuBins pkg=pkgs.blender bins=[blender]<br/>flake.nix:1169
+        FLAKE->>WRAP: wrapGpuBins pkg=pkgs.blender bins=[blender]<br/>flake.nix:1186
         WRAP->>JOIN: paths=[pkg], nativeBuildInputs=[makeWrapper]<br/>lib/gpu-wrap.nix:77-80
         JOIN->>MAKEW: for each bin, wrapProgram target gpuEnvArgs<br/>lib/gpu-wrap.nix:81-89
         MAKEW->>MAKEW: --suffix LD_LIBRARY_PATH : /usr/lib:/usr/lib/x86_64-linux-gnu:/run/opengl-driver/lib<br/>lib/gpu-wrap.nix:46-51,56
@@ -268,17 +270,17 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    GPUACT["gpuActive = gpu.backend == local-cuda<br/>flake.nix:234"]
+    GPUACT["gpuActive = gpu.backend == local-cuda<br/>flake.nix:254"]
 
-    subgraph MEDIA["mediaPackages - flake.nix:1150-1157"]
-        FF["wrapGpuBin ffmpeg bins ffmpeg ffprobe ffplay<br/>flake.nix:1155<br/>gate: mediaCfg.ffmpeg or false"]
+    subgraph MEDIA["mediaPackages - flake.nix:1167-1174"]
+        FF["wrapGpuBin ffmpeg bins ffmpeg ffprobe ffplay<br/>flake.nix:1172<br/>gate: mediaCfg.ffmpeg or false"]
     end
 
-    subgraph SPATIAL["spatialPackages - flake.nix:1159-1175"]
-        QGIS["wrapGpuBin pkgs.qgis bin qgis<br/>flake.nix:1162<br/>gate: spatialCfg.qgis or false"]
-        BLENDER["wrapGpuBin pkgs.blender bin blender<br/>flake.nix:1169<br/>gate: spatialCfg.blender or false"]
-        GAUSS["gauss3dPackages via lib/3dgs-stack.nix<br/>flake.nix:514-515<br/>gate: spatialCfg.gaussian_splatting or false"]
-        WRAPALL["map wrapGpuAll gauss3dPackages<br/>flake.nix:1175"]
+    subgraph SPATIAL["spatialPackages - flake.nix:1176-1192"]
+        QGIS["wrapGpuBin pkgs.qgis bin qgis<br/>flake.nix:1179<br/>gate: spatialCfg.qgis or false"]
+        BLENDER["wrapGpuBin pkgs.blender bin blender<br/>flake.nix:1186<br/>gate: spatialCfg.blender or false"]
+        GAUSS["gauss3dPackages via lib/3dgs-stack.nix<br/>flake.nix:531-532<br/>gate: spatialCfg.gaussian_splatting or false"]
+        WRAPALL["map wrapGpuAll gauss3dPackages<br/>flake.nix:1192"]
         GAUSS --> WRAPALL
     end
 
@@ -292,7 +294,7 @@ flowchart TB
     BLENDER --> SPATIALPKG
     WRAPALL --> SPATIALPKG
 
-    MEDIAPKG --> ALLPKG["allPackages flake.nix:1604 / mkImage layers flake.nix:3693"]
+    MEDIAPKG --> ALLPKG["allPackages flake.nix:1630 / mkImage layers flake.nix:3752"]
     SPATIALPKG --> ALLPKG
 
     NOTE1["INVARIANT - wrapGpuBin names exact bins, wrapGpuAll wraps every<br/>executable under out/bin for upstream-versioned bin sets like colmap/lichtfeld,<br/>flake.nix comment lines 1083-1087"]
@@ -378,21 +380,21 @@ flowchart LR
     SKILLS --> EVAL
     CODEX --> EVAL
 
-    EVAL --> PACKAGES["packages - flake.nix:3732<br/>lib.optionalAttrs pkgs.stdenv.isLinux"]
-    EVAL --> DEVSHELL["devShells.default<br/>flake.nix:3809"]
+    EVAL --> PACKAGES["packages - flake.nix:3791<br/>lib.optionalAttrs pkgs.stdenv.isLinux"]
+    EVAL --> DEVSHELL["devShells.default<br/>flake.nix:3869"]
 
-    PACKAGES --> RUNTIME["runtime = mkImage tag runtime-system<br/>flake.nix:3733"]
-    PACKAGES --> FULL["full = mkImage extraPackages allPackages<br/>flake.nix:3734-3738"]
-    PACKAGES --> DESKTOP["desktop = mkImage extraPackages desktopPackages<br/>flake.nix:3739-3743"]
-    PACKAGES --> CUDART["cuda-runtime adds explicitly dispatched local-cuda packages<br/>flake.nix:3761-3771"]
-    PACKAGES --> GSPLAT["gaussian-splatting = 3DGS stack over cuda-runtime<br/>flake.nix:3784-3795"]
-    PACKAGES --> COMPOSE["compose = docker-compose.yml text, cross-platform<br/>flake.nix:3803-3805"]
+    PACKAGES --> RUNTIME["runtime = mkImage tag runtime-system<br/>flake.nix:3793"]
+    PACKAGES --> FULL["full = mkImage extraPackages allPackages<br/>flake.nix:3794-3797"]
+    PACKAGES --> DESKTOP["desktop = mkImage extraPackages desktopPackages<br/>flake.nix:3799-3802"]
+    PACKAGES --> CUDART["cuda-runtime adds explicitly dispatched local-cuda packages<br/>flake.nix:3821-3829"]
+    PACKAGES --> GSPLAT["gaussian-splatting = 3DGS stack over cuda-runtime<br/>flake.nix:3844-3854"]
+    PACKAGES --> COMPOSE["compose = docker-compose.yml text, cross-platform<br/>flake.nix:3863-3865"]
 
-    RUNTIME --> MKIMG["mkImage - n2c.buildImage 4 layers<br/>flake.nix:3693-3711"]
+    RUNTIME --> MKIMG["mkImage - n2c.buildImage 4 layers<br/>flake.nix:3752-3756"]
     FULL --> MKIMG
     DESKTOP --> MKIMG
 
-    MKIMG --> ENTRYPOINT["config = Entrypoint entrypoint/bin/entrypoint<br/>flake.nix:3713"]
+    MKIMG --> ENTRYPOINT["config = Entrypoint entrypoint/bin/entrypoint<br/>flake.nix:3772"]
 
     NOTE1["INVARIANT - container-image outputs are Linux-only,<br/>darwin exposes only compose and devShells, flake.nix comment lines 3489-3492"]
     PACKAGES --- NOTE1
@@ -402,12 +404,12 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    TOMLVAULT["[vault] in agentbox.toml<br/>agentbox.toml:706<br/>tui = rune"] --> VAULTCFG["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:661"]
+    TOMLVAULT["[vault] in agentbox.toml<br/>agentbox.toml:838<br/>tui = rune"] --> VAULTCFG["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:678"]
 
-    VAULTCFG --> TUIVAL["vaultTui = vaultCfg.tui or none<br/>flake.nix:662"]
-    TUIVAL --> RUNEACTIVE["runeActive = vaultTui == rune<br/>flake.nix:663"]
-    RUNEACTIVE -->|"true"| RUNEPKGIMPORT["runePkg = import lib/rune.nix<br/>flake.nix:664, lazy import"]
-    RUNEACTIVE -->|"lib.optionals runeActive"| RUNEPACKAGES["runePackages<br/>flake.nix:665"]
+    VAULTCFG --> TUIVAL["vaultTui = vaultCfg.tui or none<br/>flake.nix:679"]
+    TUIVAL --> RUNEACTIVE["runeActive = vaultTui == rune<br/>flake.nix:680"]
+    RUNEACTIVE -->|"true"| RUNEPKGIMPORT["runePkg = import lib/rune.nix<br/>flake.nix:681, lazy import"]
+    RUNEACTIVE -->|"lib.optionals runeActive"| RUNEPACKAGES["runePackages<br/>flake.nix:682"]
     RUNEPKGIMPORT --> RUNEPACKAGES
     RUNEPACKAGES --> ALLPKG["allPackages closure - Nix image composition"]
 
@@ -422,9 +424,9 @@ flowchart TB
     TOMLVAULT -.->|"vault.format read at boot"| VAULTENTRY
     TOMLVAULT -.->|"vault.tui read at rebuild"| VAULTTUIENTRY
 
-    STATEOF["stateOf function<br/>system-manifest.js:279-298"]
+    STATEOF["stateOf function<br/>system-manifest.js:296-298"]
     VAULTTUIENTRY --> STATEOF
-    STATEOF --> MODESTRING["mode string off OR none both count as off<br/>system-manifest.js:292-296"]
+    STATEOF --> MODESTRING["off and none count as off, plus a per-entry off_values set<br/>skill-router declares table as its off value<br/>system-manifest.js:315-317, entry at system-manifest.js:224"]
 
     NOTE1["INVARIANT - two catalogue entries, not one, because root/pages/format<br/>are boot-class and tui is rebuild-class, one entry would mislead the operator,<br/>system-manifest.js comment lines 225-231"]
     VAULTTUIENTRY --- NOTE1
@@ -436,16 +438,16 @@ flowchart TB
 ## AB-01.11 ADR-2080 model_routing.neural gate - pinned artefacts baked into the image (rebuild-class)
 ```mermaid
 flowchart TB
-    TOML2["[model_routing.neural] in agentbox.toml<br/>agentbox.toml:1038-1044<br/>enabled/provider/quality_bar/cost_ceiling_usd_per_mtok/privacy_tier/trajectory/assets_dir"] --> CFG2["agentboxConfig<br/>flake.nix:102"]
+    TOML2["[model_routing.neural] in agentbox.toml<br/>agentbox.toml:1295-1304<br/>enabled/provider/quality_bar/cost_ceiling_usd_per_mtok/privacy_tier/trajectory/assets_dir"] --> CFG2["agentboxConfig<br/>flake.nix:102"]
     CFG2 --> MRNCFG["modelRoutingNeuralCfg = (agentboxConfig.model_routing or {}).neural or {}<br/>flake.nix:110"]
     ARTJSON["config/model-router/artefacts.json<br/>hash-pinned files[] list"] --> MRNFETCH["modelRouterArtefacts = builtins.fromJSON ...<br/>flake.nix:111"]
     MRNFETCH --> MRNASSETS["modelRouterAssets = pkgs.runCommand ...<br/>per-file pkgs.fetchurl url+sha256, copied to $out/dest<br/>flake.nix:112-119"]
 
-    MRNCFG -->|"modelRoutingNeuralCfg.enabled or false"| GATE{"lib.optionalString<br/>flake.nix:1742"}
+    MRNCFG -->|"modelRoutingNeuralCfg.enabled or false"| GATE{"lib.optionalString<br/>flake.nix:1787"}
     MRNASSETS --> GATE
-    GATE -->|true| BAKE["mkdir $out/opt/agentbox/model-router<br/>cp -r modelRouterAssets/. into it<br/>flake.nix:1745-1747"]
+    GATE -->|true| BAKE["mkdir $out/opt/agentbox/model-router<br/>cp -r modelRouterAssets/. into it<br/>flake.nix:1790-1792"]
     GATE -->|false| SKIP["byte-identical-when-off: nothing copied<br/>flake.nix comment line 1733"]
-    BAKE --> ALLPKG2["mkImage layers<br/>flake.nix:3693"]
+    BAKE --> ALLPKG2["mkImage layers<br/>flake.nix:3752"]
 
     subgraph MANIFEST2["system-manifest.js CATALOGUE"]
         MRNENTRY["id model-routing-neural<br/>gate model_routing.neural.enabled, apply_class rebuild<br/>system-manifest.js:109-111"]
@@ -453,7 +455,7 @@ flowchart TB
     TOML2 -.->|"enabled read at rebuild"| MRNENTRY
 
     subgraph SCHEMA2["schema/agentbox.toml.schema.json"]
-        NEURALSCHEMA["model_routing.properties.neural<br/>additionalProperties false<br/>agentbox.toml.schema.json:1246-1298"]
+        NEURALSCHEMA["model_routing.properties.neural<br/>additionalProperties false<br/>agentbox.toml.schema.json:1370-1372"]
     end
     TOML2 -.-> NEURALSCHEMA
 

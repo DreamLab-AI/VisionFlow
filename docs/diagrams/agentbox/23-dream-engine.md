@@ -4,9 +4,10 @@ title: Dream machine — nightly cycle, gates and acceptance path
 area: agentbox
 governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
-adrs: [ADR-2024, ADR-2053, ADR-2081]
+adrs: [ADR-2024, ADR-2053, ADR-2081, ADR-2084, ADR-2087]
 sources:
   - ../project/agentbox/services/dream-engine/src/engine.rs
+  - ../project/agentbox/services/dream-engine/src/config.rs
   - ../project/agentbox/services/dream-engine/src/gate.rs
   - ../project/agentbox/services/dream-engine/src/verdict.rs
   - ../project/agentbox/services/dream-engine/src/runner.rs
@@ -35,7 +36,7 @@ sources:
   - ../project/agentbox/scripts/dream-inbox.mjs
   - ../project/agentbox/scripts/dream-machine-nightly.mjs
   - ../project/agentbox/scripts/dream-night-digest.mjs
-verified_commit: 771d96ed5ac6f5daa1e78a60d109c130b9ef9b99
+verified_commit: 1639f86abded1441ce148d6c47924dfaf34f96af
 ---
 
 ## AB-23.1 One repo-night — run phases
@@ -86,26 +87,26 @@ stateDiagram-v2
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2235
+    participant SUP as supervisord<br/>agentbox/flake.nix:2382
     participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:59
     participant ROS as roster<br/>agentbox/services/dream-engine/src/roster.rs
     participant RS as runstate::begin<br/>agentbox/services/dream-engine/src/runstate.rs:132
     participant MAN as manifest::freeze<br/>agentbox/services/dream-engine/src/manifest.rs:196
-    participant HP as HP annexe<br/>john@10.10.10.1
-    participant LLM as llm provider<br/>agentbox/services/dream-engine/src/llm.rs
+    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2002
+    participant LLM as call<br/>agentbox/services/dream-engine/src/llm.rs:49
     participant GATE as gate::decide<br/>agentbox/services/dream-engine/src/gate.rs:187
     participant LED as ledger<br/>agentbox/services/dream-engine/src/ledger.rs
 
     SUP->>ENG: dream-engine --loop --agentbox-toml /etc/agentbox.toml
-    Note over SUP,ENG: autostart=true autorestart=true priority=230 user=devuser (flake.nix:2235-2245)
-    alt [dream_machine] enabled = false (agentbox/agentbox.toml:1731)
+    Note over SUP,ENG: autostart=true autorestart=true priority=230 user=devuser (flake.nix:2382-2391)
+    alt [dream_machine] enabled = false (agentbox/agentbox.toml:2001)
         ENG-->>SUP: byte-identical-when-off — no supervisor block is generated at all
     else enabled
         loop nightly window
-            ENG->>ENG: UTC hour within window_start 1 .. window_end 5 (agentbox.toml:1755-1756)
+            ENG->>ENG: UTC hour within window_start 1 .. window_end 5 (agentbox.toml:2027-2028)
             ENG->>ROS: least-recently-dreamed ordering, durable file
-            Note over ROS: replaces alphabetical-sort-plus-truncate so max_repos_per_night 5 rotates the whole<br/>roster and survives a restart (agentbox.toml:1763)
-            alt dry streak — last prune_dry_streak 5 ledger rows ALL INCONCLUSIVE (agentbox.toml:1680)
+            Note over ROS: replaces alphabetical-sort-plus-truncate so max_repos_per_night 5 rotates the whole<br/>roster and survives a restart (agentbox.toml:2035)
+            alt dry streak — last prune_dry_streak 5 ledger rows ALL INCONCLUSIVE (agentbox.toml:2039)
                 ENG->>ENG: skip repo in nightly mode
                 Note over ENG: REJECT counts as learning and RESETS the streak — revive via --target or a harness fix
             end
@@ -170,7 +171,7 @@ sequenceDiagram
         Note over RDY: an echo, a true, a bare colon — green every night, informative never<br/>(readiness.rs:39-41)
     else darwin entrypoint without a sandbox flag
         RDY-->>ENG: Unusable::DarwinSandboxMissing
-        Note over RDY: INVARIANT ADR-2024 — every @metaharness/darwin entrypoint MUST run --sandbox mock or<br/>--sandbox agent, never the no-op real default which is documented surface-INDEPENDENT<br/>and emits the same output regardless of the code under test (agentbox.toml:1663-1668)
+        Note over RDY: INVARIANT ADR-2024 — every @metaharness/darwin entrypoint MUST run --sandbox mock or<br/>--sandbox agent, never the no-op real default which is documented surface-INDEPENDENT<br/>and emits the same output regardless of the code under test (agentbox.toml:2020-2025)
     else usable
         RDY-->>ENG: admitted
     end
@@ -523,7 +524,7 @@ flowchart TB
     end
     subgraph api["management-api"]
         R1["GET /dream/status (fastify)<br/>agentbox/management-api/routes/dream.js:24"]
-        L1["dream-ledger.js parseLedger management-api/lib/dream-ledger.js:52 · verdictStats management-api/lib/dream-ledger.js:80 · latestNights management-api/lib/dream-ledger.js:91<br/>discoverNominatedRepos management-api/lib/dream-ledger.js:117 · pendingMerges management-api/lib/dream-ledger.js:202<br/>readRepoDreamStatus management-api/lib/dream-ledger.js:215 · aggregateDreamStatus management-api/lib/dream-ledger.js:264"]
+        L1["dream-ledger.js parseLedger management-api/lib/dream-ledger.js:102 · verdictStats management-api/lib/dream-ledger.js:135 · latestNights management-api/lib/dream-ledger.js:146<br/>discoverNominatedRepos management-api/lib/dream-ledger.js:248 · pendingMerges management-api/lib/dream-ledger.js:333<br/>readRepoDreamStatus management-api/lib/dream-ledger.js:346 · aggregateDreamStatus management-api/lib/dream-ledger.js:397"]
     end
     subgraph out["Outputs"]
         O1["docs/dream-cycle/LEDGER.md<br/>ledgerPath, agentbox/dream.config.json:81"]
@@ -560,28 +561,28 @@ flowchart TB
         B3["manifest load fails — sovereign-mesh-bridge<br/>REQUIRED gate red every night"]
         B1 --> B2 --> B3
     end
-    subgraph after["clone_repo_and_siblings + annexe_subpath<br/>engine.rs:1420, engine.rs:1451"]
-        A1["annexe_subpath#40;repo_path, workspace_root#41;<br/>canonicalizes both, strip_prefix, joins components<br/>engine.rs:1451-1470"]
+    subgraph after["clone_repo_and_siblings + annexe_subpath<br/>engine.rs:1440, engine.rs:1471"]
+        A1["annexe_subpath#40;repo_path, workspace_root#41;<br/>canonicalizes both, strip_prefix, joins components<br/>engine.rs:1471-1490"]
         A2["target ships at remote_dir/project/agentbox<br/>#40;its REAL path under the workspace, not the leaf name#41;"]
-        A3["each annexe_include sibling ships at remote_dir/&lt;its own subpath&gt;<br/>e.g. remote_dir/nostr-rust-forum — engine.rs:1432-1440"]
+        A3["each annexe_include sibling ships at remote_dir/&lt;its own subpath&gt;<br/>e.g. remote_dir/nostr-rust-forum — engine.rs:1452-1461"]
         A4["cargo ../../../../nostr-rust-forum now climbs to<br/>remote_dir/ exactly as it climbs to the workspace root locally"]
         A1 --> A2
         A1 --> A3
         A2 --> A4
         A3 --> A4
     end
-    subgraph dispatch["dispatch::clone_to_hp — dispatch.rs:142"]
-        D1["archive_name = format#40;dream-{}.tar.gz, repo_name.replace#40;'/','-'#41;#41;<br/>dispatch.rs:150"]
+    subgraph dispatch["dispatch::clone_to_hp — dispatch.rs:157"]
+        D1["archive_name = format#40;dream-{}.tar.gz, repo_name.replace#40;'/','-'#41;#41;<br/>dispatch.rs:165"]
         D2["a nested subpath like project/agentbox is FLATTENED to a single<br/>archive filename dream-project-agentbox.tar.gz — the archive is<br/>always a flat file in remote_dir even though its CONTENTS unpack<br/>to the mirrored depth"]
         D1 --> D2
     end
     A2 -.->|"repo_subpath passed as repo_name"| D1
     subgraph fallback["Fallback — repo outside the workspace, or either path uncanonicalisable"]
-        F1["annexe_subpath returns the leaf#40;#41; — final path component only<br/>#40;engine.rs:1459-1461, matches pre-2026-09-07 behaviour#41;"]
+        F1["annexe_subpath returns the leaf#40;#41; — final path component only<br/>#40;engine.rs:1479-1481, matches pre-2026-09-07 behaviour#41;"]
     end
     subgraph notes["ADR-2081"]
         direction TB
-        N1["INVARIANT ADR-2081: symlinked nominations resolve to their REAL depth —<br/>workspace/agentbox -> workspace/project/agentbox reports project/agentbox,<br/>proven by annexe_subpath_mirrors_real_depth_under_the_workspace#40;#41;<br/>engine.rs:1554"]
+        N1["INVARIANT ADR-2081: symlinked nominations resolve to their REAL depth —<br/>workspace/agentbox -> workspace/project/agentbox reports project/agentbox,<br/>proven by annexe_subpath_mirrors_real_depth_under_the_workspace#40;#41;<br/>engine.rs:1574"]
         N2["RESOLVED: sibling-path-deps is a REAL required gate again (dream.config.json:76) —<br/>the FALLBACK rule from PR #4 that skipped sovereign-mesh-bridge is withdrawn"]
         N1 ~~~ N2
     end
@@ -674,6 +675,70 @@ flowchart TB
     end
 ```
 
-## Audit qualification — 2026-09-07
+## AB-23.15 ADR-2084 - the Loom call goes through the published loom-client
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:59
+    participant CALL as call<br/>agentbox/services/dream-engine/src/llm.rs:49
+    participant LOOM as call_loom<br/>agentbox/services/dream-engine/src/llm.rs:196
+    participant ZAI as call_zai<br/>agentbox/services/dream-engine/src/llm.rs:111
+    participant CRATE as loom-client crate<br/>published, see AB-28.11
+    participant F as Loom facade<br/>agentbox/agentbox.toml:2004
+
+    ENG->>CALL: call(cfg, prompt)
+    alt llm_provider = zai - the DEFAULT (agentbox.toml:2017)
+        CALL->>ZAI: POST the Anthropic Messages body with x-api-key
+        ZAI-->>CALL: text parts joined, or EmptyResponse (llm.rs:173-177)
+        Note over CALL,ZAI: exactly ONE retry, 20s apart, and only on a transient fault -<br/>transport, empty body, or an HTTP 5xx including Cloudflare 52x.<br/>is_transient refuses to retry a 4xx (llm.rs:69)
+    else llm_provider = loom
+        CALL->>LOOM: call_loom(cfg, prompt)
+        LOOM->>CRATE: LoomClient::builder(url), timeout 600s, retry_backoff 20s (llm.rs:197-200)
+        LOOM->>CRATE: ChatRequest temperature 1.0, top_p 0.95, top_k 20, max_tokens from cfg (llm.rs:204-208)
+        LOOM->>CRATE: LoomOptions::declining_verbatim() (llm.rs:211)
+        Note over LOOM,CRATE: INVARIANT ADR-2084: a dream prompt is generative and its subject IS in<br/>the ontology, so the scaffold stays and a retrieval-only serve is REFUSED.<br/>The crate raises Error::ScaffoldOnly, surfaced here as LlmError::Loom (llm.rs:22)
+        CRATE->>F: POST the chat completion
+        F-->>CRATE: answer, or ontology prose with no model call
+        CRATE-->>LOOM: Answer with content, reasoning, served_mode and attempts (llm.rs:215-223)
+        LOOM-->>CALL: answer.content (llm.rs:225)
+        Note over CALL: the client already retried to its own ceiling, so the wrapper adds<br/>NO retry of its own - LlmError::Loom is non-transient here (llm.rs:78)
+    end
+    Note over CRATE: the hand-rolled client that lived in llm.rs knew ONE of the three facade<br/>traps. Two nights of verdicts in 2026-09 were derived from ontology prose that<br/>never reached a model, and truncation on a reasoning model returns EMPTY content<br/>rather than a short answer - the crate owns a token floor and a doubling retry<br/>the wrapper could not do, because it cannot see finish_reason (llm.rs:182-195)
+```
+
+**Debt:** `agentbox/agentbox.toml:2017` keeps `llm_provider = "zai"` as the default, so nightly repository content leaves the LAN on every unattended night; the LAN-only Loom path at `../project/agentbox/services/dream-engine/src/llm.rs:196` is opt-in.
+
+## AB-23.16 Placeholder resolution and the refusal to dispatch to nowhere
+
+```mermaid
+flowchart TB
+    TOML["agentbox.toml ships PLACEHOLDERS, not addresses<br/>hp_host CONNECTED_NODE_SSH agentbox.toml:2002<br/>hp_annexe_dir composite agentbox.toml:2003<br/>loom_url LOOM_BASE_URL agentbox.toml:2004"]
+    TOML --> RP["RuntimeConfig.resolve_placeholders<br/>agentbox/services/dream-engine/src/config.rs:330"]
+    RP -->|"whole-value form"| W["resolve_env_placeholder<br/>config.rs:315 - a value that IS a placeholder"]
+    RP -->|"composite form"| I["resolve_env_placeholders_infix<br/>config.rs:349 - a value that CONTAINS one"]
+    W -->|"unset or empty"| D1["the struct default applies<br/>default_loom_url config.rs:371"]
+    I -->|"any referenced var unset or empty"| D2["POISON the WHOLE value to None<br/>config.rs:361-364 - half a path is worse<br/>than the caller's default"]
+    D2 --> D3["default_hp_annexe_dir config.rs:300"]
+    I -->|"all set"| OK["the expanded path"]
+    OK --> DISP["dispatch ssh, ssh_capture, scp_to"]
+    D3 --> DISP
+    DISP --> GUARD{"hp_host trimmed is empty<br/>agentbox/services/dream-engine/src/dispatch.rs:31"}
+    GUARD -->|"yes"| NAH["DispatchError::NoAnnexeHost<br/>dispatch.rs:23 - the compose contract says<br/>an empty host means NO annexe"]
+    GUARD -->|"no"| SSH["ssh under BatchMode, wrapped bash -lc<br/>dispatch.rs:30"]
+    subgraph notes["What this closed"]
+        direction TB
+        N1["INVARIANT: no placeholder survives into the running config -<br/>pinned by an_unresolvable_manifest_placeholder_falls_back_to_the_default<br/>config.rs:566 and the_manifest_placeholder_no_longer_reaches_the_loom_client<br/>config.rs:552"]
+        N2["INVARIANT: an unresolved composite annexe dir can no longer reach a live<br/>ssh command - pinned by<br/>the_annexe_dir_literal_no_longer_reaches_a_live_ssh_command config.rs:530"]
+        N3["scp_to carries the same guard, so an empty host fails at the FIRST<br/>dispatch rather than part way through a night - dispatch.rs:110"]
+        N1 ~~~ N2 ~~~ N3
+    end
+```
+
+**Invariant:** every dispatch entry point refuses an empty annexe host with a typed error rather than shelling out (`../project/agentbox/services/dream-engine/src/dispatch.rs:31`, `../project/agentbox/services/dream-engine/src/dispatch.rs:110`).
+
+**Drift (diagram corpus vs repo):** `2899b3b7e` generalised estate addressing out of this public repository, so `../project/agentbox/dream.config.json:75` now says "the connected node annexe" where the corpus previously named a host and a rail address.
+
+## Audit qualification - 2026-09-07
 
 ADR-2081 source corrections above remain **staged** for the supervised nightly loop. Its loaded Nix-store binary requires an image rebuild and process-identity receipt before these source fixes can be called live. This audit did not rebuild or activate it.

@@ -4,7 +4,7 @@ title: MCP registry, boot projector and the server catalogue
 area: agentbox
 governing:
   - ../project/agentbox/docs/BASELINE-container.md
-adrs: [ADR-2008, ADR-2003, ADR-2039]
+adrs: [ADR-2008, ADR-2003, ADR-2039, ADR-2034, ADR-2082, ADR-2085, ADR-2086, ADR-2104]
 sources:
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/skills/mcp.json
@@ -15,13 +15,23 @@ sources:
   - ../project/agentbox/mcp/ruvnet-brain/server.js
   - ../project/agentbox/mcp/servers/ontology-bridge.js
   - ../project/agentbox/mcp/servers/harness-bridge.js
-  - ../project/agentbox/mcp/servers/precedent-bridge.js
   - ../project/agentbox/mcp/servers/governance-bridge.js
   - ../project/agentbox/mcp/servers/decision-tools.js
   - ../project/agentbox/mcp/servers/substrate-tools.js
   - ../project/agentbox/mcp/servers/ontology-propose.js
   - ../project/agentbox/mcp/servers/ruvector-mcp.cjs
-verified_commit: 2c521c5bb
+  - ../project/agentbox/mcp/servers/lib/orchestration-proxy.js
+  - ../project/agentbox/crates/colloquy/colloquy-mcp/src/server.rs
+  - ../project/agentbox/crates/colloquy/colloquy-mcp/src/main.rs
+  - ../project/agentbox/crates/colloquy/colloquy-core/src/cluster.rs
+  - ../project/agentbox/services/agentbox-mcp/src/main.rs
+  - ../project/agentbox/services/agentbox-mcp/src/hub/mod.rs
+  - ../project/agentbox/agentbox.toml
+  - ../project/agentbox/flake.nix
+  - ../project/agentbox/docs/adr/ADR-2085-colloquy-knowledge-units-on-the-forum.md
+  - ../project/agentbox/docs/adr/ADR-2086-confirmation-weight-follows-authorising-principals.md
+  - ../project/agentbox/docs/adr/ADR-2104-direct-control-over-mcp.md
+verified_commit: 1639f86ab
 ---
 
 ## AB-09.1 Registry ownership classes — what the projector may touch
@@ -35,7 +45,7 @@ flowchart TD
     BS --> NEVER["hand-written entrypoint blocks with health probes,<br/>secret handling and warmup — NEVER touched here, so the<br/>live set stays byte-identical (project-mcp-servers.mjs:22-24)"]
     RF --> DOC["GPU-sidecar skill wrappers whose mcp-server lives under a skill dir,<br/>or npx/uvx network-installer servers that cannot run on the<br/>read-only rootfs — documented, not auto-projected (:25-27)"]
     REG -.-> D1["DOC-DRIFT — BASELINE-container says skills/mcp.json is a 30-server registry.<br/>The file holds 28 (9 projector + 3 bespoke + 16 reference).<br/>The 9/3/16 split the doc gives is correct"]
-    REG -.-> D1R["RESOLVED ADR-2039: BASELINE-container.md:10 now says<br/>skills/mcp.json holds 28 servers, not 30"]
+    REG -.-> D1R["RESOLVED ADR-2039: BASELINE-container.md:11 now says<br/>skills/mcp.json holds 28 servers, not 30"]
     REG -.-> D2["separate file agentbox/mcp/mcp.json is a DIFFERENT 17-entry map<br/>and is not the projection source"]
 ```
 
@@ -124,7 +134,7 @@ sequenceDiagram
     Note over LED: the ledger is deliberately NOT stored inside .mcp.json — that file is read by the Claude Code harness and must carry no agentbox-private keys (project-mcp-servers.mjs:59-61)
     Note over EP,P: boot is NOT blocked — a non-zero exit surfaces as a loud [mcp] FAIL line in the boot log without aborting the entrypoint (:76-79)
     Note over P: DOC-DRIFT — BASELINE "Configuration projection qualification 2026-09-04" says<br/>ADR-2008 is partial because the reconciliation loop cannot remove deleted registry<br/>definitions and unreadable input leaves stale state with exit zero. The ADR-2008<br/>closeout dated 2026-09-05 fixes both as D1 and D3 (project-mcp-servers.mjs:30-49)
-    Note over P: RESOLVED ADR-2039: BASELINE-container.md:219 marks this qualification<br/>resolved with the D1/D3 evidence — ownership-ledger removal<br/>project-mcp-servers.mjs:33-39, non-zero exit on malformed input :46-49, exit codes :71-74
+    Note over P: RESOLVED ADR-2039: BASELINE-container.md:226 marks this qualification<br/>resolved with the D1/D3 evidence — ownership-ledger removal<br/>project-mcp-servers.mjs:33-39, non-zero exit on malformed input :46-49, exit codes :71-74
 ```
 
 ## AB-09.4 The four ADR-2008 closeout defects and their fixes
@@ -163,9 +173,11 @@ flowchart TB
         C["ontology-propose mcp/servers/ontology-propose.js:169"] --> CT["ontology_propose — the single tool, governed write path, see AB-25"]
     end
     subgraph GOV["governance and decisions"]
-        D["governance-bridge mcp/servers/governance-bridge.js:96"] --> DT["governance_publish_panel :98, governance_request_action :139,<br/>governance_update_panel :164, governance_retire_panel :181,<br/>governance_list_decisions :194"]
+        D["governance-bridge mcp/servers/governance-bridge.js:136"] --> DT["governance_publish_panel :138, governance_request_action :179,<br/>governance_manual_continue :218 — ADR-2087, see AB-14,<br/>governance_update_panel :237, governance_retire_panel :254,<br/>governance_list_decisions :267"]
         E["decision-tools mcp/servers/decision-tools.js:195"] --> ET["record_decision :195, trace_decision_chain :219,<br/>analyze_decision_impact :236, find_similar_decisions :253,<br/>check_decision_rules :270"]
-        F["precedent-bridge mcp/servers/precedent-bridge.js:126"] --> FT["precedent_match :128, precedent_list :142,<br/>precedent_promote :153, precedent_retire :170"]
+        F["colloquy-mcp — the Rust replacement for precedent-bridge<br/>crates/colloquy/colloquy-mcp/src/server.rs:141"] --> FT["six verbs over stdio — query crates/colloquy/colloquy-mcp/src/server.rs:29,<br/>propose :43, confirm :59, flag :71, reflect :83, status :107<br/>tier chosen by COLLOQUY_TIER (crates/colloquy/colloquy-mcp/src/main.rs:130)"]
+        FT --> FR["DEBT — precedent-bridge.js and precedent-service.js were DELETED, not migrated:<br/>the governance-precedents namespace was empty and nothing called the tools<br/>(commit 70d017a3b, ADR-2085 docs/adr/ADR-2085-colloquy-knowledge-units-on-the-forum.md:1)"]
+        FT --> FI["INVARIANT ADR-2086 — confidence counts AUTHORISING PRINCIPALS, never accounts,<br/>so an operator's fifty agents are one voice<br/>(crates/colloquy/colloquy-core/src/cluster.rs:49)"]
     end
     subgraph HARN["harness and substrate"]
         G["harness-bridge mcp/servers/harness-bridge.js:195"] --> GT["harness_list :197, harness_inspect :212,<br/>harness_validate :227, harness_audit :246"]
@@ -173,8 +185,9 @@ flowchart TB
     end
     subgraph KB["corpus and memory"]
         I["ruvnet-brain mcp/ruvnet-brain/server.js:198 v0.2.0"] --> IT["search_ruvnet :205, ruvnet_brain_status :221"]
-        J["ruvector-mcp.cjs — 26 tools = 20 base ruvector-mcp.cjs:239<br/>+ 6 pushed only when their gate is on :410-479<br/>ADVERTISED_TOOLS set built from the final list :514"] --> JT["memory_store, memory_search, memory_retrieve, memory_list, memory_usage,<br/>memory_health, memory_orient, memory_hybrid_search, memory_sweep_episodic,<br/>memory_repair_embeddings, swarm_init, swarm_status, agent_spawn,<br/>task_orchestrate, coordination_sync, load_balance, parallel_execute,<br/>neural_patterns, sona_health, sparc_mode, performance_report,<br/>bottleneck_analyze, workflow_create, workflow_execute,<br/>github_pr_manage, github_repo_analyze"]
+        J["ruvector-mcp.cjs — 26 tools = 20 base ruvector-mcp.cjs:240<br/>+ 6 pushed only when their gate is on :416-485<br/>ADVERTISED_TOOLS set built from the final list :520"] --> JT["memory_store, memory_search, memory_retrieve, memory_list, memory_usage,<br/>memory_health, memory_orient, memory_hybrid_search, memory_sweep_episodic,<br/>memory_repair_embeddings, swarm_init, swarm_status, agent_spawn,<br/>task_orchestrate, coordination_sync, load_balance, parallel_execute,<br/>neural_patterns, sona_health, sparc_mode, performance_report,<br/>bottleneck_analyze, workflow_create, workflow_execute,<br/>github_pr_manage, github_repo_analyze"]
     end
+    J -.-> RVO["ADR-2082 — with the gate on, the stub orchestration half of this list is<br/>replaced at tools/list by a filtered ruflo child; memory_* is denied on the<br/>proxy side (mcp/servers/lib/orchestration-proxy.js:43). see AB-20.13"]
     J -.-> RVB["memory boundary — the retrieval geometry, embedding pipeline and<br/>recall gate belong to AB-20. ruvector-mcp.cjs fails CLOSED with no<br/>sql.js fallback, so the ruvector-postgres sidecar is mandatory"]
     A -.-> AB["consultant tier consultant-codex, consultant-antigravity, consultant-zai,<br/>consultant-perplexity, consultant-deepseek all live under<br/>mcp/consultants/ and are projector-managed"]
 ```
@@ -229,4 +242,53 @@ sequenceDiagram
     Note over S: aci-shell records agentbox_aci_calls_total and agentbox_aci_duration_ms — the server is instrumented like the adapter spine
     Note over H,J: a server whose gate or requires failed at boot is ABSENT from .mcp.json, so the harness never offers its tools rather than offering a dead entry
     Note over M,H: bespoke servers claude-flow, browser-gpu and perplexity reach the harness through hand-written entrypoint blocks, not through this projection
+```
+
+## AB-09.8 The shared MCP hub — a bounded wait that parks FATAL (ADR-2104)
+```mermaid
+stateDiagram-v2
+    [*] --> Starting
+    Starting --> Waiting : supervisord runs agentbox-mcp hub, flake.nix:2540
+    Waiting --> Serving : /run/agentbox/mcp-hub.json exists
+    Waiting --> Waiting : re-check every 500 ms, log every 15 s
+    Waiting --> FailedLoud : 120 s elapsed, hub/mod.rs:259
+    Serving --> BindRefused : bind is not loopback, hub/mod.rs:301
+    FailedLoud --> Fatal : startsecs 130 exceeds the wait, startretries 2
+    BindRefused --> Fatal
+    Serving --> [*]
+    note right of Waiting
+        the projection is written late in boot by
+        agentbox-manifest mcp-hub-project, so SOME
+        wait is required. services/agentbox-mcp/src/main.rs:59
+    end note
+    note right of FailedLoud
+        the error names the projection, the gate and the
+        seconds waited. hub/mod.rs:265-274
+        INVARIANT: a hub with no config serves nothing, so it
+        refuses to idle. hub/mod.rs:275-281
+    end note
+    note right of Serving
+        BASELINE-container.md:205 carries the amended rule -
+        a bounded wait, a loud exit naming the projection, and
+        a startsecs above that wait so the exit is a failed
+        START. ADR-2063 as amended by ADR-2104.
+    end note
+    note right of Fatal
+        DEBT: nine servers are hub-routed and all nine refuse
+        connections while this program is down, so
+        supervisorctl status agentbox-mcp-hub is the first
+        check. agentbox.toml:1175-1178
+    end note
+```
+
+## AB-09.9 Why the hub is a catalogue entry and not a control surface
+```mermaid
+flowchart TB
+    CR["a capability is owned by a Rust crate<br/>with a library API and a thin CLI<br/>ADR-2104 docs/adr/ADR-2104-direct-control-over-mcp.md:36-38"] --> AD["an MCP server over that crate is a DISPOSABLE adapter,<br/>added only for a harness that cannot call the crate"]
+    AD --> PORT["when an MCP surface is found failing it is PORTED to<br/>direct control rather than repaired, one server at a time<br/>docs/adr/ADR-2104-direct-control-over-mcp.md:48-50"]
+    PORT --> DEL["nothing needs it, it is DELETED instead of ported —<br/>which is what happened to precedent-bridge. see AB-09.5"]
+    CR --> EX1["colloquy is the worked example — six crates,<br/>the MCP binary is the thinnest of them<br/>crates/colloquy/colloquy-mcp/src/server.rs:141"]
+    CR --> EX2["the same shape in services/agentbox-mcp — three stdio<br/>servers and the hub behind one clap binary<br/>services/agentbox-mcp/src/main.rs:77"]
+    PORT --> HARD["FAIL HARD, NOT SOFT — a supervised program that cannot do<br/>its job exits naming what it lacks, and supervisord parks it<br/>FATAL rather than restarting it forever. see AB-09.8"]
+    HARD --> OPEN["OPEN — ADR-2104 is decision_status proposed and<br/>implementation_status partial, so the porting order in its<br/>inventory table is a plan, not a state<br/>docs/adr/ADR-2104-direct-control-over-mcp.md:5-6"]
 ```

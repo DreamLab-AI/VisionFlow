@@ -5,12 +5,14 @@ area: agentbox
 governing:
   - ../project/agentbox/docs/INGRESS-identity.md
   - ../project/agentbox/docs/PROTOCOL-registry.md
-adrs: [ADR-2011, ADR-2025, ADR-2027, ADR-2064]
+adrs: [ADR-2011, ADR-2025, ADR-2027, ADR-2064, ADR-2087]
 sources:
   - ../project/agentbox/config/nip98-proxy/proxy.mjs
   - ../project/agentbox/management-api/lib/agent-identity.js
   - ../project/agentbox/management-api/lib/uris.js
   - ../project/agentbox/management-api/lib/mandate.js
+  - ../project/agentbox/management-api/lib/task-properties.js
+  - ../project/agentbox/management-api/lib/authority-journal.js
   - ../project/agentbox/management-api/lib/governance-correlation.js
   - ../project/agentbox/management-api/lib/governance-application-receipts.js
   - ../project/agentbox/management-api/routes/broker-bridge.js
@@ -32,7 +34,7 @@ sources:
   - ../project/agentbox/mcp/servers/nostr-bridge.js
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/lib/bc20-provenance-bridge.js
-verified_commit: 2c521c5bb
+verified_commit: 1639f86ab
 ---
 
 ## AB-11.1 Identity, URN and mandate type model
@@ -72,7 +74,7 @@ classDiagram
         +string urn
     }
     class AuthorityGate {
-        <<authority.js:136>>
+        <<authority.js:226>>
         +object table
         +classifyAction(actionClass, opts)
         +guard(actionClass, ctx)
@@ -188,7 +190,7 @@ flowchart TB
     K --> DSET["dataset<br/>ownerScope=true scopeRequired=true contentAddressed=false<br/>surface: memory"]
     K --> OPT["memory / thing / agent<br/>ownerScope=true scopeRequired=FALSE contentAddressed=false<br/>surfaces: memory / things / agents"]
     K --> UNS["mcp / skill / adr / prd / ddd / meta<br/>ownerScope=false scopeRequired=false contentAddressed=false<br/>surfaces: things / skills / docs / meta"]
-    POD --> R["resolveCanonical -> base + /v1/uri/{urn}?surface={resolvableSurface}<br/>uris.js:239"]
+    POD --> R["resolveCanonical -> base + /v1/uri/{urn}?surface={resolvableSurface}<br/>uris.js:244"]
     ACT --> R
     BEAD --> R
     DSET --> R
@@ -206,10 +208,10 @@ BEAD -.-> N3["DIVERGENCE ADR-2025 PROTOCOL-registry URN-crossing row: JS support
 sequenceDiagram
     autonumber
     participant C as caller (any surface)
-    participant M as mint<br/>agentbox/management-api/lib/uris.js:157
-    participant CA as _contentAddress<br/>agentbox/management-api/lib/uris.js:281
-    participant SS as _stableStringify<br/>agentbox/management-api/lib/uris.js:292
-    participant NP as _normalisePubkey<br/>agentbox/management-api/lib/uris.js:203
+    participant M as mint<br/>agentbox/management-api/lib/uris.js:162
+    participant CA as _contentAddress<br/>agentbox/management-api/lib/uris.js:286
+    participant SS as _stableStringify<br/>agentbox/management-api/lib/uris.js:297
+    participant NP as _normalisePubkey<br/>agentbox/management-api/lib/uris.js:208
 
     C->>M: mint({kind, pubkey|npub, payload, localId})
     alt kind not in KINDS
@@ -226,7 +228,7 @@ sequenceDiagram
             CA-->>M: local = sha256-12-<first 12 hex>
         end
     else localId supplied
-        M->>M: local = _slug(localId) — [^A-Za-z0-9._-] to underscore, sliced to 96 chars (uris.js:300)
+        M->>M: local = _slug(localId) — [^A-Za-z0-9._-] to underscore, sliced to 96 chars (uris.js:305)
     else neither
         M-->>C: throw MalformedUri "kind requires localId"
     end
@@ -251,7 +253,7 @@ sequenceDiagram
     else not owner-scoped
         M-->>C: urn:agentbox:<kind>:<local>
     end
-    Note over M,SS: DOC-DRIFT PROTOCOL-registry content-address row — the registry requires "same input bytes, twelve lowercase digest hex characters, explicit serialisation".<br/>_contentAddress hashes a JS stableStringify string as utf8, and its own comment at uris.js:281<br/>says "deterministic enough beats exactly RFC 8785 because we are producing a name, not a<br/>signature input". VisionClaw content_address hashes bytes. Byte-parity is asserted nowhere.
+    Note over M,SS: DOC-DRIFT PROTOCOL-registry content-address row — the registry requires "same input bytes, twelve lowercase digest hex characters, explicit serialisation".<br/>_contentAddress hashes a JS stableStringify string as utf8, and its own comment at uris.js:286<br/>says "deterministic enough beats exactly RFC 8785 because we are producing a name, not a<br/>signature input". VisionClaw content_address hashes bytes. Byte-parity is asserted nowhere.
 ```
 
 ## AB-11.6 parse, isCanonical and resolveCanonical
@@ -260,9 +262,9 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as caller
-    participant P as parse<br/>agentbox/management-api/lib/uris.js:261
-    participant IC as isCanonical<br/>agentbox/management-api/lib/uris.js:277
-    participant RC as resolveCanonical<br/>agentbox/management-api/lib/uris.js:239
+    participant P as parse<br/>agentbox/management-api/lib/uris.js:266
+    participant IC as isCanonical<br/>agentbox/management-api/lib/uris.js:282
+    participant RC as resolveCanonical<br/>agentbox/management-api/lib/uris.js:244
 
     C->>P: parse(uri)
     alt DID_NOSTR_RE matches
@@ -288,7 +290,7 @@ sequenceDiagram
         end
     else uri is a urn with a known kind
         RC-->>C: <managementApiBase>/v1/uri/<encodeURIComponent(uri)>?surface=<spec.resolvableSurface>
-        Note over RC: every agentbox URI routes through management-api so auth, content negotiation and CORS live in one place (uris.js:239 comment)
+        Note over RC: every agentbox URI routes through management-api so auth, content negotiation and CORS live in one place (uris.js:244 comment)
     else unknown kind or non-matching
         RC-->>C: null
     end
@@ -303,7 +305,7 @@ sequenceDiagram
     participant RT as mandateRoutes<br/>agentbox/management-api/routes/mandate.js:285
     participant CS as createSignedMandate<br/>agentbox/management-api/routes/mandate.js:191
     participant CM as createMandate<br/>agentbox/management-api/lib/mandate.js:99
-    participant U as uris.mint<br/>agentbox/management-api/lib/uris.js:157
+    participant U as uris.mint<br/>agentbox/management-api/lib/uris.js:162
     participant SM as signMandate<br/>agentbox/management-api/lib/mandate.js:163
     participant SG as _loadSigner<br/>agentbox/management-api/routes/mandate.js:97
     participant REG as registry.json<br/>agentbox/management-api/routes/mandate.js:52
@@ -409,7 +411,7 @@ stateDiagram-v2
 ```mermaid
 sequenceDiagram
     participant Caller
-    participant Gate as authority.js:136 buildAuthorityGate
+    participant Gate as authority.js:226 buildAuthorityGate
     participant Forum as Verified allowlisted consumer
     participant Owner as broker-bridge.js mutation owner
     participant Journal as governance-application-receipts.js:11 ApplicationReceiptStore
@@ -435,6 +437,8 @@ sequenceDiagram
             Gate-->>Caller: deny
         end
     end
+    Note over Gate: ADR-2087 — the gate derives a task-property triple from the action class and<br/>stamps it on its own 31402 as tp- tags and inside fields (authority.js:378, :438).<br/>INVARIANT: a caller may pass taskProperties to TIGHTEN it, nothing can loosen it (authority.js:52)
+    Note over Gate,Caller: ADR-2087 — every deny path appends a hash-chained authority.deny record<br/>{agent_did, stage, reason, action_class, operation_sha256} through the injected<br/>journal (authority.js:303). Without a journal the gate denies identically and leaves<br/>no durable record, and a journal failure never converts a deny into an exception. see AB-14.11
     Note over Owner,Journal: Timeout or crash is unknown, never proof of application. Local receipt is unsigned and does not prove deployment.
 ```
 
@@ -442,7 +446,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    Event["31403 from relay"] --> Verify["authority-consumer.js:268 handleInboundDecision<br/>signature verification and responder allowlist"]
+    Event["31403 from relay"] --> Verify["authority-consumer.js:259 handleInboundDecision<br/>signature verification and responder allowlist"]
     Verify --> Reference["governance-correlation.js:21 responseMatchesRequest<br/>one unambiguous e reference to signed request"]
     Reference --> Match{"Known request and optional case/panel agree?"}
     Match -->|yes| Resolve["Resolve only matching waiters<br/>cache verified response under request ID"]
@@ -619,7 +623,7 @@ sequenceDiagram
     autonumber
     participant C as client
     participant UR as uri-resolver<br/>agentbox/management-api/routes/uri-resolver.js
-    participant K as uris.parse + KINDS<br/>agentbox/management-api/lib/uris.js:261,87
+    participant K as uris.parse + KINDS<br/>agentbox/management-api/lib/uris.js:266,87
     participant POD as pod base (solid-pod-rs)
     participant AE as /v1/agent-events
     participant WK as well-known x402<br/>agentbox/management-api/routes/well-known.js:64
@@ -671,12 +675,12 @@ sequenceDiagram
     AI->>KF: writeFileSync mode 0o600 then chmodSync 0o600 (agent-identity.js:158-160)
     KF-->>AI: readable only by this uid
     BOOT->>BR: load bridge identity from AGENTBOX_BRIDGE_SK_FILE, legacy environment fallback remains
-    BOOT->>PX: RESOLVED ADR-2027 (2026-09-05, partial) — break-glass bearer now checks<br/>breakGlassNotExpired() and breakGlassScopeAllows() before granting, and every<br/>use/refusal is audited by token fingerprint (proxy.mjs:632-671, both bounds<br/>default-OFF and opt-in) — see AB-10.3
+    BOOT->>PX: RESOLVED ADR-2027 (2026-09-05, partial) — break-glass bearer now checks<br/>breakGlassNotExpired() and breakGlassScopeAllows() before granting, and every<br/>use/refusal is audited by token fingerprint (proxy.mjs:635-674, both bounds<br/>default-OFF and opt-in) — see AB-10.3
     end
     rect rgb(255,240,240)
     Note over ADR,PX: STILL PROPOSED AND NOT ACTIVE — the ADR-2027 requirements below have no code behind them
     ADR-->>PX: restart-invalidation and multi-instance policy for NIP98_PROXY_SESSION_SECRET — today it still defaults to per-boot crypto.randomBytes (proxy.mjs:212)
-    ADR-->>BR: per-consumer key split — the governance publisher still shares the operator/server identity (legacy ADR-040 D3, relay allowlist entry agentbox.toml:148)
+    ADR-->>BR: per-consumer key split — the governance publisher still shares the operator/server identity (legacy ADR-040 D3, relay allowlist entry agentbox.toml:161)
     ADR-->>AI: rotation cadence, revocation procedure, named custodian, maximum response window — every row is UNCONFIRMED
     end
 Note over ADR: DIVERGENCE SECURITY-profiles provisional custody register 2026-09-04 — seven<br/>credential roles are identified as ROLES TO ASSIGN, not accepted custodians. "No cadence is<br/>invented here." No dated failure/recovery receipt exists for any row.

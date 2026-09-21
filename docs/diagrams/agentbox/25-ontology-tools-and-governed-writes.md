@@ -31,7 +31,7 @@ sources:
   - ../project/agentbox/services/agentbox-ops/src/bin/voyager-gate.rs
   - ../project/agentbox/services/agentbox-ops/src/voyager/mod.rs
   - ../project/agentbox/management-api/lib/uris.js
-verified_commit: 2c521c5bb
+verified_commit: 1639f86abded1441ce148d6c47924dfaf34f96af
 ---
 
 ## AB-25.1 ontology-bridge tool surface and dispatch
@@ -129,7 +129,7 @@ sequenceDiagram
         Note over GATE: INVARIANT: the shared ontology is reachable SOLELY through governed-proposal —<br/>ontology_propose then Whelk then PR then human review
     else operation = direct-axiom-load AND mode is not governed-proposal (:285)
         GATE-->>WR: throw code ontology_direct_axiom_load_disabled
-        Note over GATE: direct_axiom_load = false (agentbox.toml:656) now ACTUALLY blocks a direct axiom load in<br/>forced-local, remote-disabled and bootstrap. In governed-proposal the request is<br/>CONVERTED into a proposal rather than executed
+        Note over GATE: direct_axiom_load = false (agentbox.toml:788) now ACTUALLY blocks a direct axiom load in<br/>forced-local, remote-disabled and bootstrap. In governed-proposal the request is<br/>CONVERTED into a proposal rather than executed
     else mode = forced-local
         GATE->>ENV: require AGENTBOX_ONTOLOGY_LOCAL
         GATE->>ENV: require ONTOLOGY_LOCAL_AUTHORING=1
@@ -147,7 +147,7 @@ sequenceDiagram
         alt any missing
             GATE-->>WR: throw code ontology_bootstrap_not_authorised
         end
-        Note over GATE: ZERO-TOLERANCE class — ontology_axiom_load = "zero-tolerance" in<br/>[skills.authority.classes] (agentbox.toml:794)
+        Note over GATE: ZERO-TOLERANCE class — ontology_axiom_load = "zero-tolerance" in<br/>[skills.authority.classes] (agentbox.toml:976)
     end
     GATE->>GATE: mint correlation id ont-auth-<ts>-<12 hex> at stage validation
     GATE-->>WR: authorised {mode, target, operation, correlation_id}
@@ -228,7 +228,7 @@ classDiagram
     OntologyAuthorityError --> AUTHORING_MODES
     OntologyAuthorityError --> AUTHORING_TARGETS
     note for OntologyAuthorityError "A denial is an ERROR, not a return value — a caller that forgets to check cannot<br/>silently proceed. missing_authority names the EXACT authorities that were absent: never<br/>a silent no-op and never a silent write (ontology-authoring-authority.js:106-131)"
-    note for MANIFEST_KEYS "RESOLVED ADR-2054 follow-on: skills.ontology.local_authoring is now DECLARED explicitly<br/>as false in agentbox.toml (was undeclared-by-absence when ADR-2054 landed) — the deny is<br/>reviewable in a diff rather than implicit in an omission (agentbox.toml:663)"
+    note for MANIFEST_KEYS "RESOLVED ADR-2054 follow-on: skills.ontology.local_authoring is now DECLARED explicitly<br/>as false in agentbox.toml (was undeclared-by-absence when ADR-2054 landed) — the deny is<br/>reviewable in a diff rather than implicit in an omission (agentbox.toml:795)"
 ```
 
 ## AB-25.5 The governed promotion route
@@ -263,7 +263,7 @@ sequenceDiagram
             H-->>AG: no change
         end
     end
-    Note over AG,CORP: INVARIANT ADR-2022: personal-KG concepts reach the shared ontology ONLY through<br/>ontology_propose then Whelk then PR then human review/merge (agentbox.toml:651-654)
+    Note over AG,CORP: INVARIANT ADR-2022: personal-KG concepts reach the shared ontology ONLY through<br/>ontology_propose then Whelk then PR then human review/merge (agentbox.toml:783-787)
     Note over GUARD: DIVERGENCE: ADR-2022 implementation_status is PARTIAL. FORCE_LOCAL dispatch precedes the<br/>remote axiom descriptor and reaches a Markdown-writing helper, so the remote default<br/>prevents an ungoverned REMOTE load but does not by itself enforce every LOCAL authoring<br/>path — that is what the AB-25.3 gate now covers
     Note over CORP: PROPOSED VisionClaw ADR-2105: the proposal, approval, merge and served-corpus stages accept, persist and echo<br/>the authoring correlation id, and a request without one is recorded as unlinked rather than given a synthetic mint<br/>ADR-2022 remaining is the ORIGIN of this gap, not its resolution
     Note over BR: RESOLVED ADR-2054: the standalone CLI now routes through createAuthoredCorpusWriter<br/>with mode forced-local, so EVERY authoring caller crosses assertAuthoringAuthority.<br/>A denial returns a typed OntologyAuthorityError result and exits non-zero — being a<br/>CLI is not an authority. The static-guard test pins the receiver as the gated writer.
@@ -285,7 +285,7 @@ sequenceDiagram
     BR->>HW: route through the gated writer — never a direct helper call
     HW->>GATE: operation = direct-axiom-load
     GATE->>MAN: read skills.ontology.direct_axiom_load
-    alt direct_axiom_load = false (agentbox.toml:656 — the DEFAULT)
+    alt direct_axiom_load = false (agentbox.toml:788 — the DEFAULT)
         GATE-->>HW: throw ontology_direct_axiom_load_disabled
         HW-->>AG: typed denial with missing_authority, redirected to ontology_propose
         BR--xLOAD: the ungoverned POST /api/ontology/load is NEVER issued
@@ -293,8 +293,8 @@ sequenceDiagram
         GATE-->>HW: authorised — explicit, signed, auditable, deliberately slow
         HW->>LOAD: bulk load
     end
-    Note over MAN: ontology_axiom_load = "zero-tolerance" in [skills.authority.classes]<br/>(agentbox.toml:794), commented "ungoverned KG write backdoor"
-    Note over BR: INVARIANT: default off = ontology_axiom_add refuses and redirects (agentbox.toml:655).<br/>Set true only for admin/bootstrap, where a signed authorisation is required
+    Note over MAN: ontology_axiom_load = "zero-tolerance" in [skills.authority.classes]<br/>(agentbox.toml:976), commented "ungoverned KG write backdoor"
+    Note over BR: INVARIANT: default off = ontology_axiom_add refuses and redirects (agentbox.toml:787).<br/>Set true only for admin/bootstrap, where a signed authorisation is required
     Note over GATE: the bootstrap authorisation reference is RECORDED, not verified, here — signature<br/>verification remains the management-api authority consumer's job (ADR-2022 remaining)
     Note over BR: routine enrichment is gated behind a PR round-trip and there is NO fast path for<br/>high-volume trusted writes, by design (ADR-2022 consequences)
 ```
@@ -310,24 +310,24 @@ sequenceDiagram
     participant OUT as condense output
     participant REF as ontology-condense-refresh.sh<br/>agentbox/scripts/ontology-condense-refresh.sh
     participant IDX as ontology-index-build.js
-    participant LLM as Loom facade<br/>agentbox/agentbox.toml:675 — see AB-24
+    participant LLM as Loom facade<br/>agentbox/agentbox.toml:807 — see AB-24
     participant RV as RuVector ns ontology-classes<br/>see AB-20
 
-    Note over SCH: supervised as [program:ontology-condense-scheduler] (agentbox/flake.nix:1926) — launched<br/>unconditionally, exits fast when its gate is off
-    loop tick — schedule_interval_mins 60, jittered plus or minus 20 percent (agentbox.toml:688)
+    Note over SCH: supervised as [program:ontology-condense-scheduler] (agentbox/flake.nix:1982) — launched<br/>unconditionally, exits fast when its gate is off
+    loop tick — schedule_interval_mins 60, jittered plus or minus 20 percent (agentbox.toml:820)
         SCH->>GATE: require BOTH ONTOLOGY_CONDENSE_ENABLED and ONTOLOGY_CONDENSE_SCHEDULE
         alt either off
             SCH-->>SCH: no-op — byte-identical-when-off until an operator opts in and the container reboots
         else both on
             SCH->>CORP: newest page mtime
             SCH->>OUT: last condense output mtime
-            alt corpus newer OR output missing OR older than schedule_max_age_hours 24 (agentbox.toml:689)
+            alt corpus newer OR output missing OR older than schedule_max_age_hours 24 (agentbox.toml:821)
                 SCH->>REF: exec the refresh
                 Note over REF: flock-serialised — SKIPS if a refresh already holds the lock. Stages overwrite/resume<br/>deterministically, so the scheduler is idempotent
                 REF->>IDX: parse the corpus into classes
-                loop each KG class, max_concurrency 2 (agentbox.toml:678)
+                loop each KG class, max_concurrency 2 (agentbox.toml:810)
                     REF->>LLM: POST /v1/chat/completions — one retrieval sentence + a synonym list
-                    Note over LLM: model qwen3.8-27B style openai (agentbox.toml:676-677). The model runs BEHIND the Loom<br/>facade so it is swappable with zero change here
+                    Note over LLM: model qwen3.8-27B style openai (agentbox.toml:808-809). The model runs BEHIND the Loom<br/>facade so it is swappable with zero change here
                 end
                 REF->>OUT: PUSH Class-Summary cache
                 REF->>RV: condensed store ns ontology-classes
@@ -424,7 +424,7 @@ stateDiagram-v2
 sequenceDiagram
     autonumber
     participant EP as entrypoint<br/>agentbox/config/entrypoint-unified.sh
-    participant MAN as agentbox.toml [vault]<br/>agentbox/agentbox.toml:706
+    participant MAN as agentbox.toml [vault]<br/>agentbox/agentbox.toml:838
     participant SK as ontology write path
     participant FM as vault-frontmatter<br/>agentbox/mcp/servers/lib/vault-frontmatter.js
     participant CI as check-no-logseq-paths.sh<br/>agentbox/scripts/ci/check-no-logseq-paths.sh

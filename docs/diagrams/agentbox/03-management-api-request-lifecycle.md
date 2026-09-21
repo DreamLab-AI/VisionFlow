@@ -7,6 +7,7 @@ governing:
   - ../project/agentbox/docs/INGRESS-identity.md
 adrs: [ADR-2005, ADR-2013, ADR-2003]
 sources:
+  - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/management-api/server.js
   - ../project/agentbox/management-api/lib/authz.js
   - ../project/agentbox/management-api/middleware/auth.js
@@ -48,7 +49,7 @@ sources:
   - ../project/agentbox/management-api/routes/sessions-boundary.js
   - ../project/agentbox/management-api/routes/tasks.js
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
-verified_commit: be0fc078a3dc0eab32af57f1eaf170fa58157bf9
+verified_commit: 1639f86ab
 ---
 
 ## AB-03.1 server.js boot part 1 — Fastify construction, hooks, static route registers
@@ -57,42 +58,42 @@ verified_commit: be0fc078a3dc0eab32af57f1eaf170fa58157bf9
 sequenceDiagram
     autonumber
     participant Boot as server.js top-level
-    participant App as fastify()<br/>server.js:81
+    participant App as fastify()<br/>server.js:82
     participant RawBody as registerRawBody<br/>middleware/auth.js:220
-    participant CORS as fastify-cors<br/>server.js:183
-    participant WS as fastify-websocket<br/>server.js:189
-    participant RL as fastify-rate-limit<br/>server.js:192
-    participant Swag as fastify-swagger(-ui)<br/>server.js:271-330
-    participant Routes as route modules<br/>server.js:333-421
+    participant CORS as fastify-cors<br/>server.js:184
+    participant WS as fastify-websocket<br/>server.js:190
+    participant RL as fastify-rate-limit<br/>server.js:193
+    participant Swag as fastify-swagger(-ui)<br/>server.js:272-331
+    participant Routes as route modules<br/>server.js:334-422
 
-    Boot->>App: fastify({logger, trustProxy true, maxParamLength 512})<br/>server.js:81-92
+    Boot->>App: fastify({logger, trustProxy true, maxParamLength 512})<br/>server.js:82-93
     Note over App: INVARIANT maxParamLength 512 so urn-agentbox-bead content-addressed ids over 100 chars do not 404 in find-my-way
-    Boot->>RawBody: registerRawBody(app)<br/>server.js:101
+    Boot->>RawBody: registerRawBody(app)<br/>server.js:102
     RawBody->>App: addContentTypeParser application-json parseAs buffer<br/>middleware/auth.js:221-237
-    Note over RawBody: sets req.rawBody Buffer, still delivers parsed JSON, must run before route parsers (server.js:94-101)
-    Boot->>App: app.register(cors, allowedOrigins credentials true)<br/>server.js:183-186
-    Boot->>App: app.register(websocket)<br/>server.js:189
-    Boot->>App: app.register(rateLimit max 100 per 1 minute allowList 127.0.0.1)<br/>server.js:192-199
-    Boot->>App: addHook onRequest sets request.startTime<br/>server.js:202-204
-    Boot->>App: addHook onResponse metrics.recordHttpRequest<br/>server.js:206-214
+    Note over RawBody: sets req.rawBody Buffer, still delivers parsed JSON, must run before route parsers (server.js:95-102)
+    Boot->>App: app.register(cors, allowedOrigins credentials true)<br/>server.js:184-187
+    Boot->>App: app.register(websocket)<br/>server.js:190
+    Boot->>App: app.register(rateLimit max 100 per 1 minute allowList 127.0.0.1)<br/>server.js:193-200
+    Boot->>App: addHook onRequest sets request.startTime<br/>server.js:203-205
+    Boot->>App: addHook onResponse metrics.recordHttpRequest<br/>server.js:207-215
     Note over App: see AB-03.9 for the http_request_duration_seconds histogram this hook feeds
-    Boot->>App: addHook preValidation runs authMiddleware unless url on public allowlist<br/>server.js:227-268
-    Note over App: public allowlist livez health ready metrics v1-meta lo-star docs-star well-known-did well-known-x402 (server.js:229-265)
-    Boot->>App: app.register(fastify-swagger openapi 3.0.0)<br/>server.js:271-320
-    Boot->>App: app.register(fastify-swagger-ui routePrefix /docs)<br/>server.js:322-330
-    Boot->>Routes: app.register(routes/tasks) prefix empty<br/>server.js:333-338
-    Boot->>Routes: app.register(routes/status)<br/>server.js:340-346
-    Boot->>Routes: app.register(routes/comfyui)<br/>server.js:348-353
-    Boot->>Routes: app.register(routes/agent-events)<br/>server.js:355-359
-    Boot->>App: addHook onReady starts agent-events WS forwarder to host<br/>server.js:367-387
-    Boot->>Routes: app.register(routes/memory) prefix empty<br/>server.js:391
-    Boot->>Routes: app.register(routes/broker-bridge)<br/>server.js:396
-    Boot->>Routes: app.register(routes/git-bridge)<br/>server.js:402
-    Boot->>Routes: app.register(routes/pod-git)<br/>server.js:409
-    Boot->>Routes: app.register(routes/payments) with metrics<br/>server.js:413
-    Boot->>Routes: app.register(routes/llm-marketplace)<br/>server.js:417
-    Boot->>Routes: app.register(routes/dream)<br/>server.js:421
-    Boot->>App: app.get /livez /ready /health /health/pods /v1/meta /metrics /<br/>server.js:425-681
+    Boot->>App: addHook preValidation runs authMiddleware unless url on public allowlist<br/>server.js:228-269
+    Note over App: public allowlist livez health ready metrics v1-meta lo-star docs-star well-known-did well-known-x402 (server.js:230-266)
+    Boot->>App: app.register(fastify-swagger openapi 3.0.0)<br/>server.js:272-321
+    Boot->>App: app.register(fastify-swagger-ui routePrefix /docs)<br/>server.js:323-331
+    Boot->>Routes: app.register(routes/tasks) prefix empty<br/>server.js:334-339
+    Boot->>Routes: app.register(routes/status)<br/>server.js:341-347
+    Boot->>Routes: app.register(routes/comfyui)<br/>server.js:349-354
+    Boot->>Routes: app.register(routes/agent-events)<br/>server.js:356-360
+    Boot->>App: addHook onReady starts agent-events WS forwarder to host<br/>server.js:368-388
+    Boot->>Routes: app.register(routes/memory) prefix empty<br/>server.js:392
+    Boot->>Routes: app.register(routes/broker-bridge)<br/>server.js:397
+    Boot->>Routes: app.register(routes/git-bridge)<br/>server.js:403
+    Boot->>Routes: app.register(routes/pod-git)<br/>server.js:410
+    Boot->>Routes: app.register(routes/payments) with metrics<br/>server.js:414
+    Boot->>Routes: app.register(routes/llm-marketplace)<br/>server.js:418
+    Boot->>Routes: app.register(routes/dream)<br/>server.js:422
+    Boot->>App: app.get /livez /ready /health /health/pods /v1/meta /metrics /<br/>server.js:426-682
     Note over App: ADR-2003 server.js is baked by flake.nix from agentbox.toml at image build — not a<br/>runtime install (see AB-02.1 for the surrounding boot phases)
 ```
 
@@ -101,54 +102,54 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Start as start()<br/>server.js:871
+    participant Start as start()<br/>server.js:872
     participant Manifest as loadManifest<br/>adapters/manifest-loader.js
     participant App as fastify app
     participant Adapters as resolveAdapters<br/>adapters/index.js
 
-    Start->>Manifest: loadManifest()<br/>server.js:876
+    Start->>Manifest: loadManifest()<br/>server.js:877
     alt manifest file missing
-        Manifest-->>Start: ManifestNotFound<br/>server.js:879-881
+        Manifest-->>Start: ManifestNotFound<br/>server.js:880-882
         Start->>Start: manifest = {} all-off defaults
     end
-    Start->>Adapters: resolveAdapters(manifest)<br/>server.js:902
-    Start->>App: app.decorate adapters resolvedAdapters<br/>server.js:903
+    Start->>Adapters: resolveAdapters(manifest)<br/>server.js:903
+    Start->>App: app.decorate adapters resolvedAdapters<br/>server.js:904
     Note over Start,Adapters: see AB-04.1 for slot to implementation resolution detail
-    Start->>App: register middleware/linked-data createEncoder if linked_data.enabled<br/>server.js:909-931
-    Start->>App: register routes/uri-resolver always mounted<br/>server.js:940
-    Start->>App: register routes/system logger manifest adapters<br/>server.js:954
-    Start->>App: register routes/voice-intent with dispatchActionRequest<br/>server.js:972
-    Start->>App: register routes/kg-elevation self-gates on sovereign_mesh.kg_elevation<br/>server.js:986
-    Start->>App: new ProjectTracker + register routes/projects<br/>server.js:1003-1016
+    Start->>App: register middleware/linked-data createEncoder if linked_data.enabled<br/>server.js:910-932
+    Start->>App: register routes/uri-resolver always mounted<br/>server.js:941
+    Start->>App: register routes/system logger manifest adapters<br/>server.js:955
+    Start->>App: register routes/voice-intent with dispatchActionRequest<br/>server.js:973
+    Start->>App: register routes/kg-elevation self-gates on sovereign_mesh.kg_elevation<br/>server.js:987
+    Start->>App: new ProjectTracker + register routes/projects<br/>server.js:1004-1017
     opt project_tracking.enabled true
-        Start->>Start: tracker.scan() then tracker.startScheduler()<br/>server.js:1020-1024
+        Start->>Start: tracker.scan() then tracker.startScheduler()<br/>server.js:1021-1025
     end
     alt sovereign_mesh.multi_user.enabled true
-        Start->>App: register routes/admin-users<br/>server.js:1049
+        Start->>App: register routes/admin-users<br/>server.js:1050
     else disabled default
-        Start->>Start: /admin/users/star not mounted<br/>server.js:1059
+        Start->>Start: /admin/users/star not mounted<br/>server.js:1060
     end
-    Start->>App: resolveViewerImpl + register routes/linked-objects<br/>server.js:1069-1072
-    Start->>App: register routes/well-known x402 discovery<br/>server.js:1092
-    Start->>App: buildAuthorityConsumer + buildAuthorityGate, decorate authorityConsumer authorityGate<br/>server.js:1111-1121
-    Note over Start: fallback to governance-decision-waiter.awaitDecision when the relay signer is unavailable (server.js:1115-1117)
-    Start->>App: register routes/beads<br/>server.js:1135
-    Start->>App: register routes/mandate<br/>server.js:1146
-    Start->>App: register routes/sessions-boundary<br/>server.js:1156
-    Start->>App: register routes/approvals<br/>server.js:1166
-    Start->>Start: log SecurityProfileApplied resolved posture<br/>server.js:1241-1247
-    Start->>Adapters: connectAdapters per-slot deadline<br/>server.js:1257
+    Start->>App: resolveViewerImpl + register routes/linked-objects<br/>server.js:1070-1073
+    Start->>App: register routes/well-known x402 discovery<br/>server.js:1093
+    Start->>App: buildAuthorityConsumer + buildAuthorityGate, decorate authorityConsumer authorityGate<br/>server.js:1112-1133
+    Note over Start: fallback to governance-decision-waiter.awaitDecision when the relay signer is unavailable (server.js:1126-1128)
+    Start->>App: register routes/beads<br/>server.js:1147
+    Start->>App: register routes/mandate<br/>server.js:1158
+    Start->>App: register routes/sessions-boundary<br/>server.js:1168
+    Start->>App: register routes/approvals<br/>server.js:1178
+    Start->>Start: log SecurityProfileApplied resolved posture<br/>server.js:1253-1259
+    Start->>Adapters: connectAdapters per-slot deadline<br/>server.js:1269
     Note over Start,Adapters: see AB-04.6 connectAdapters per-slot deadline detail, not re-drawn here
     opt AGENTBOX_RELAY_ENABLED and AGENTBOX_RELAY_POD_BRIDGE true
-        Start->>Start: new RelayConsumer(npubs...).start()<br/>server.js:1324-1342
+        Start->>Start: new RelayConsumer(npubs...).start()<br/>server.js:1336-1354
     end
     opt junkiejarvis enabled via env or manifest
-        Start->>Start: startJunkieJarvis bridge logger<br/>server.js:1381-1389
+        Start->>Start: startJunkieJarvis bridge logger<br/>server.js:1393-1401
     end
-    Start->>Start: headroom.init(logger) decorate headroom<br/>server.js:1406-1414
-    Start->>Start: initTracing, setBuildInfo, startMetricsServer<br/>server.js:1418-1420
-    Start->>App: app.listen port PORT host HOST<br/>server.js:1423
-    Note over Start: MANAGEMENT_API_PORT default 9090 (server.js:42) HOST default 0.0.0.0 (server.js:47)<br/>compose publishes 127.0.0.1 9090 9090 only
+    Start->>Start: headroom.init(logger) decorate headroom<br/>server.js:1418-1426
+    Start->>Start: initTracing, setBuildInfo, startMetricsServer<br/>server.js:1430-1432
+    Start->>App: app.listen port PORT host HOST<br/>server.js:1435
+    Note over Start: MANAGEMENT_API_PORT default 9090 (server.js:43) HOST default 0.0.0.0 (server.js:48)<br/>compose publishes 127.0.0.1 9090 9090 only
 ```
 
 ## AB-03.3 generic request lifecycle — Fastify hook phases, auth and validation failure
@@ -157,22 +158,22 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant OnReq as onRequest hook<br/>server.js:202
-    participant PreVal as preValidation hook<br/>server.js:227
+    participant OnReq as onRequest hook<br/>server.js:203
+    participant PreVal as preValidation hook<br/>server.js:228
     participant Auth as authMiddleware<br/>middleware/auth.js:167
     participant Schema as Fastify schema validation
     participant PreH as route preHandler<br/>e.g. costGate/paymentGate/authz
     participant H as route handler
-    participant OnResp as onResponse hook<br/>server.js:206
+    participant OnResp as onResponse hook<br/>server.js:207
 
     C->>OnReq: HTTP request
-    OnReq->>OnReq: request.startTime = Date.now()<br/>server.js:203
+    OnReq->>OnReq: request.startTime = Date.now()<br/>server.js:204
     Note over OnReq: body not yet parsed here (registerRawBody parser runs after onRequest, before preValidation)
     OnReq->>PreVal: proceed
     alt url on public allowlist
-        PreVal->>H: skip authMiddleware entirely<br/>server.js:229-265
+        PreVal->>H: skip authMiddleware entirely<br/>server.js:230-266
     else url requires auth
-        PreVal->>Auth: authMiddleware(request, reply)<br/>server.js:267
+        PreVal->>Auth: authMiddleware(request, reply)<br/>server.js:268
         Auth->>Auth: verifyNip98Header + verifyBearerHeader<br/>middleware/auth.js:169-170
         alt neither auth mode accepted for configured authMode
             Auth-->>C: 401 Unauthorized typed message<br/>middleware/auth.js:180-196
@@ -195,7 +196,7 @@ sequenceDiagram
     PreH->>H: route handler executes
     H-->>C: reply.send(...)
     H->>OnResp: response phase
-    OnResp->>OnResp: metrics.recordHttpRequest(method, routerPath, statusCode, duration)<br/>server.js:207-213
+    OnResp->>OnResp: metrics.recordHttpRequest(method, routerPath, statusCode, duration)<br/>server.js:208-214
     Note over OnResp: duration = (Date.now() minus request.startTime) divided by 1000, feeds<br/>http_request_duration_seconds (observability/metrics.js:58)
 ```
 
@@ -272,14 +273,14 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    subgraph probes["public probes — auth-skip allowlist server.js:229-265"]
-        A1["GET /livez<br/>server.js:425"] --> H1["event-loop-alive only<br/>server.js:439"]
-        A2["GET /ready<br/>server.js:444"] --> H2["bootstrap+adapters+paths check<br/>server.js:475-527"]
-        A3["GET /health<br/>server.js:543"] --> H3["adapterHealth snapshot<br/>server.js:564-575"]
-        A4["GET /health/pods<br/>server.js:580"] --> H4["probePodHealth<br/>server.js:115-179"]
-        A5["GET /v1/meta<br/>server.js:601"] --> H5["image_hash + adapter contract versions<br/>server.js:627-644"]
-        A6["GET /metrics<br/>server.js:647"] --> H6["metrics.register.metrics<br/>server.js:660"]
-        A7["GET /"] --> H7["endpoint index<br/>server.js:664-681"]
+    subgraph probes["public probes — auth-skip allowlist server.js:230-266"]
+        A1["GET /livez<br/>server.js:426"] --> H1["event-loop-alive only<br/>server.js:440"]
+        A2["GET /ready<br/>server.js:445"] --> H2["bootstrap+adapters+paths check<br/>server.js:476-528"]
+        A3["GET /health<br/>server.js:544"] --> H3["adapterHealth snapshot<br/>server.js:565-576"]
+        A4["GET /health/pods<br/>server.js:581"] --> H4["probePodHealth<br/>server.js:116-180"]
+        A5["GET /v1/meta<br/>server.js:602"] --> H5["image_hash + adapter contract versions<br/>server.js:628-645"]
+        A6["GET /metrics<br/>server.js:648"] --> H6["metrics.register.metrics<br/>server.js:661"]
+        A7["GET /"] --> H7["endpoint index<br/>server.js:665-682"]
     end
     subgraph sysroutes["routes/system.js — authed, always mounted"]
         B1["GET /v1/system<br/>routes/system.js:33"] --> HB1["buildSystemView + buildExecutionCoverage<br/>routes/system.js:37-44"]
@@ -287,13 +288,13 @@ flowchart TD
     end
     subgraph wellknown["public discovery"]
         C1["GET /.well-known/x402.json<br/>routes/well-known.js:64"] --> HC1["cached manifest or 404<br/>routes/well-known.js:34-51,90"]
-        C2["GET /.well-known/did.json<br/>auth-skip only server.js:257"] -.->|"not a fastify route here"| HC2["served by solid-pod-rs<br/>lib/uris.js:244"]
+        C2["GET /.well-known/did.json<br/>auth-skip only server.js:258"] -.->|"not a fastify route here"| HC2["served by solid-pod-rs<br/>lib/uris.js:249"]
     end
     subgraph uri["routes/uri-resolver.js — authed, always mounted"]
         D1["GET /v1/uri/:urn<br/>routes/uri-resolver.js:49"] --> HD1["400 malformed / 200+307 resolvable / 404 unknown —<br/>see AB-11.15 for the full alt-chain; 410 Gone is documented<br/>but WITHDRAWN, never emitted (ADR-2049) routes/uri-resolver.js:12-25"]
         D2["GET /v1/uri<br/>routes/uri-resolver.js:161"] --> HD2["resolver capability listing"]
     end
-    Note1["DOC-DRIFT candidate: BASELINE-container.md verified_commit 73540faa0<br/>is stale — every route line above re-derived against working tree (b00c28a0d)"]
+    Note1["DOC-DRIFT: the governing doc carries an EMPTY verified_commit<br/>(BASELINE-container.md:6), so nothing states the revision its route<br/>citations were read at. Every route line above was re-derived<br/>from the symbol at 1639f86ab"]
 ```
 
 ## AB-03.7 route table (b) — tasks, beads, projects
@@ -320,8 +321,8 @@ flowchart TD
         P1["GET /v1/projects<br/>projects.js:106"] --> PH1["tracker.list"]
         P2["GET /v1/projects/:id<br/>projects.js:146"] --> PH2["tracker.get"]
         P3["GET /v1/projects/:id/activity<br/>projects.js:185"] --> PH3["git commit activity"]
-        P4["POST /v1/projects/scan<br/>projects.js:233"] --> PH4["tracker.scan — server.js:1020"]
-        P5["POST /v1/projects/:id/primer<br/>projects.js:274"] --> PH5["PrimerGenerator — server.js:1003"]
+        P4["POST /v1/projects/scan<br/>projects.js:233"] --> PH4["tracker.scan — server.js:1021"]
+        P5["POST /v1/projects/:id/primer<br/>projects.js:274"] --> PH5["PrimerGenerator — server.js:1004"]
         P6["POST /v1/projects/:id/publish<br/>projects.js:327"] --> PH6["kind-30841 nostr digest publish"]
     end
 ```
@@ -340,13 +341,13 @@ flowchart TD
         K1["POST /v1/kg-elevation/scan<br/>kg-elevation.js:67<br/>guard verifyAgentEventRequest kg-elevation.js:104"] --> KH1["scan personal KG via memory adapter<br/>emit LINK beams + ontology-propose descriptor"]
     end
     subgraph lo["routes/linked-objects.js — viewer.mountPath, auth-skip for /lo/*"]
-        L1["GET /lo/*<br/>linked-objects.js:133"] --> LH1["static viewer bundle — no auth (server.js:243-245)"]
+        L1["GET /lo/*<br/>linked-objects.js:133"] --> LH1["static viewer bundle — no auth (server.js:244-246)"]
         L2["GET viewer/manifest.json<br/>linked-objects.js:154"] --> LH2["pane manifest"]
         L3["GET viewer/panes/:file<br/>linked-objects.js:168"] --> LH3["pane asset"]
         L4["GET viewer/proxy<br/>linked-objects.js:206"] --> LH4["proxy fetch of a resource for the viewer"]
         L5["GET viewer.mountPath and viewer.mountPath/*<br/>linked-objects.js:258,261,271,275"] --> LH5["viewer shell — enabled/disabled variants"]
     end
-    Note1["INVARIANT: /v1/* data endpoints stay authed even when the /lo static bundle is public (server.js:239-245)"]
+    Note1["INVARIANT: /v1/* data endpoints stay authed even when the /lo static bundle is public (server.js:240-246)"]
 ```
 
 ## AB-03.9 route table (d) — sessions-boundary, agent-events, admin-users, approvals, mandate
@@ -367,7 +368,7 @@ flowchart TD
         E8["GET /v1/agent-events/status<br/>agent-events.js:636"] --> EH8["forwarder status"]
     end
     subgraph au["routes/admin-users.js — mounted only if sovereign_mesh.multi_user.enabled"]
-        AU1["POST /admin/users/provision<br/>admin-users.js:137"] --> AUH1["501 stub — see PRD-007 (server.js:1043)"]
+        AU1["POST /admin/users/provision<br/>admin-users.js:137"] --> AUH1["501 stub — see PRD-007 (server.js:1044)"]
         AU2["POST /admin/users/:pubkey/git-init<br/>admin-users.js:195"] --> AUH2["501 stub"]
         AU3["POST /admin/users/:pubkey/suspend<br/>admin-users.js:229"] --> AUH3["501 stub"]
         AU4["POST /admin/users/:pubkey/archive<br/>admin-users.js:245"] --> AUH4["501 stub"]
@@ -425,14 +426,15 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph vi["routes/voice-intent.js — WS7, mandate-gated"]
-        VI1["POST /v1/voice-intent<br/>voice-intent.js:82"] --> VIH1["transcript to agent intent<br/>dispatch signed 31402 or 503 when signer unavailable (server.js:966-968)"]
+        VI1["POST /v1/voice-intent<br/>voice-intent.js:82"] --> VIH1["transcript to agent intent<br/>dispatch signed 31402 or 503 when signer unavailable (server.js:967-969)"]
     end
     subgraph bb["routes/broker-bridge.js — G6"]
-        BB1["GET /api/broker/bridge/inbox<br/>broker-bridge.js:254"] --> BBH1["enrichment review inbox"]
-        BB2["GET /api/broker/bridge/cases/:id<br/>broker-bridge.js:332"] --> BBH2["case detail"]
-        BB3["POST /api/broker/bridge/cases/:id/decide<br/>broker-bridge.js:373<br/>guard signed-31403 broker-bridge.js:439"] --> BBH3["operation-bound signed approval<br/>durable received claim before mutation<br/>applied receipt requires committed upstream acknowledgement"]
-        BB4["GET /api/broker/bridge/events<br/>broker-bridge.js:739"] --> BBH4["event feed"]
-        BB5["GET /api/broker/bridge/cases/:id/history<br/>broker-bridge.js:812"] --> BBH5["case history"]
+        BB1["GET /api/broker/bridge/inbox<br/>broker-bridge.js:288"] --> BBH1["enrichment review inbox"]
+        BB2["GET /api/broker/bridge/cases/:id<br/>broker-bridge.js:366"] --> BBH2["case detail"]
+        BB3["POST /api/broker/bridge/cases/:id/decide<br/>broker-bridge.js:407<br/>guard signed-31403 broker-bridge.js:473"] --> BBH3["operation-bound signed approval<br/>durable received claim before mutation<br/>applied receipt requires committed upstream acknowledgement"]
+        BBH3 --> BBH3B["receipt ladder mirrored to the forum<br/>mirrorReceipt broker-bridge.js:261<br/>consumer-received before the mutation broker-bridge.js:517<br/>then applied or not-applied broker-bridge.js:576<br/>INVARIANT: an unknown outcome posts NOTHING, broker-bridge.js:552"]
+        BB4["GET /api/broker/bridge/events<br/>broker-bridge.js:803"] --> BBH4["event feed"]
+        BB5["GET /api/broker/bridge/cases/:id/history<br/>broker-bridge.js:876"] --> BBH5["case history"]
     end
     subgraph gb["routes/git-bridge.js — G5, BC20"]
         GB1["POST /v1/git/clone<br/>git-bridge.js:275"] --> GBH1["clone remote"]
@@ -569,8 +571,8 @@ sequenceDiagram
     autonumber
     participant Cli as external caller
     participant Proxy as nip98-proxy port 9096<br/>config/nip98-proxy/
-    participant App as fastify app port 9090<br/>server.js:81
-    participant PreVal as preValidation hook<br/>server.js:227
+    participant App as fastify app port 9090<br/>server.js:82
+    participant PreVal as preValidation hook<br/>server.js:228
     participant Auth as authMiddleware<br/>middleware/auth.js:167
     participant Guard as authz.requireOperator<br/>lib/authz.js:184
     participant H as routes/mandate.js POST /v1/mandate<br/>mandate.js:310
@@ -584,10 +586,10 @@ sequenceDiagram
     rect rgb(240,255,235)
     Note over App,H: loopback-only surface — 127.0.0.1 9090 9090 (docker-compose.yml:55)
     Proxy->>App: POST /mgmt/v1/mandate, Authorization Nostr base64-event, body JSON
-    App->>App: onRequest sets request.startTime<br/>server.js:203
+    App->>App: onRequest sets request.startTime<br/>server.js:204
     App->>App: addContentTypeParser buffers body into request.rawBody<br/>middleware/auth.js:221-236
-    App->>PreVal: preValidation phase<br/>server.js:227
-    PreVal->>Auth: authMiddleware(request, reply) — url not on public allowlist<br/>server.js:267
+    App->>PreVal: preValidation phase<br/>server.js:228
+    PreVal->>Auth: authMiddleware(request, reply) — url not on public allowlist<br/>server.js:268
     Auth->>Auth: verifyNip98Header — verifyNip98(header, method, url, request.rawBody)<br/>middleware/auth.js:67-97,82
     alt signature invalid or bridge absent
         Auth-->>Cli: 401 Unauthorized<br/>middleware/auth.js:192-196
@@ -605,20 +607,20 @@ sequenceDiagram
         end
     end
     end
-    App->>App: onResponse records http_request_duration_seconds<br/>server.js:206-213, observability/metrics.js:58
+    App->>App: onResponse records http_request_duration_seconds<br/>server.js:207-214, observability/metrics.js:58
 ```
 
 ## AB-03.16 middleware/*.js inventory — which routes and hooks actually consume each file
 
 ```mermaid
 flowchart LR
-    A["middleware/auth.js<br/>createAuthMiddleware + registerRawBody"] --> A1["global preValidation hook<br/>server.js:217,227,267"]
+    A["middleware/auth.js<br/>createAuthMiddleware + registerRawBody"] --> A1["global preValidation hook<br/>server.js:218,228,268"]
     B["middleware/cost-gate.js<br/>costGate"] --> B1["preHandler on POST /v1/tasks<br/>routes/tasks.js:7,43"]
     C["middleware/payment-gate.js<br/>paymentGate"] --> C1["preHandler on POST /v1/comfyui/workflow<br/>routes/comfyui.js:10,74"]
     D["middleware/privacy-filter.js<br/>ADR-008 layer 2"] --> D1["imported by routes/memory.js<br/>memory.js:28"]
     D --> D2["also wraps every adapter dispatch<br/>see AB-04.4/AB-04.5, not re-drawn here"]
-    E["middleware/linked-data/*<br/>createEncoder, viewer, surfaces"] --> E1["booted in start() when linked_data.enabled<br/>server.js:909-931"]
-    E --> E2["routes/linked-objects.js viewer mount<br/>server.js:1069-1072"]
+    E["middleware/linked-data/*<br/>createEncoder, viewer, surfaces"] --> E1["booted in start() when linked_data.enabled<br/>server.js:910-932"]
+    E --> E2["routes/linked-objects.js viewer mount<br/>server.js:1070-1073"]
     F["middleware/spend-policy.js<br/>spendPolicy factory"] -.->|"no require() from any routes/*.js or server.js"| F1["consumed only by scripts/agentbox-config-validate.js"]
     G["middleware/consumer-payer.js<br/>C2 native consumer payer"] -.->|"no require() from any routes/*.js or server.js"| G1["consumed only by scripts/agentbox-config-validate.js"]
     Note1["DOC-DRIFT candidate: spend-policy.js and consumer-payer.js are fully implemented<br/>but unwired at the HTTP route layer today (grep -rl across management-api routes/*.js server.js finds none)"]
@@ -631,11 +633,11 @@ flowchart TD
     Hyp["Hypothesis under test: registerRawBody is never called<br/>so direct body binding is inert on port 9090"] --> G1["grep -n registerRawBody rawBody addContentTypeParser<br/>across management-api, config, flake.nix"]
     G1 --> F1["middleware/auth.js:220 defines registerRawBody(app)"]
     G1 --> F2["middleware/auth.js:221 addContentTypeParser application-json parseAs buffer"]
-    G1 --> F3["server.js:101 calls registerRawBody(app) — before route registration, line 101"]
+    G1 --> F3["server.js:102 calls registerRawBody(app) — before route registration, line 101"]
     F1 --> R["REFUTED: registerRawBody IS invoked at boot"]
     F2 --> R
     F3 --> R
     R --> Path["Working path: content-type parser sets request.rawBody Buffer<br/>preValidation-phase authMiddleware reads it for NIP-98 payload binding — see AB-03.15"]
-    Path --> Note1["NOTE: two earlier sibling agents' unevidenced claim does not hold in this working tree (b00c28a0d)<br/>request.rawBody is populated for every application/json body before verifyNip98Header runs (middleware/auth.js:76-82, server.js:221-227)"]
+    Path --> Note1["NOTE: two earlier sibling agents' unevidenced claim does not hold in this working tree (b00c28a0d)<br/>request.rawBody is populated for every application/json body before verifyNip98Header runs (middleware/auth.js:76-82, server.js:222-228)"]
 ```
 
