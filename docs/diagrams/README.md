@@ -123,7 +123,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_130 topic files, 1404 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_130 topic files, 1405 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -235,7 +235,7 @@ _130 topic files, 1404 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | NF-03 | [relay-worker — NIP-42 AUTH, the EVENT admission pipeline, trust ladder and federation](nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md) | 13 | flowchart, sequenceDiagram, stateDiagram-v2, classDiagram | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md), [IDENTITY-keys-and-trust.md](../../../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md) | ADR-2004, ADR-2005, ADR-2006, ADR-2010 |
 | NF-04 | [pod-worker — Solid LDP surface, WAC evaluation, delegation, quota and payments](nostr-rust-forum/04-pod-worker-ldp-wac-and-delegation.md) | 10 | flowchart, sequenceDiagram, classDiagram | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md), [IDENTITY-keys-and-trust.md](../../../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md) | ADR-2009, ADR-2007 |
 | NF-05 | [The two Leptos clients — boot, identity, transport, onboarding, messaging and the retro BBS](nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md) | 12 | sequenceDiagram, flowchart, classDiagram, stateDiagram-v2 | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md), [IDENTITY-keys-and-trust.md](../../../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md) | ADR-2008 |
-| NF-06 | [Agent Control Surface Protocol — kinds 31400-31405, the broker aggregate and its consumers](nostr-rust-forum/06-agent-control-surface-31400-31405.md) | 11 | classDiagram, flowchart, sequenceDiagram, stateDiagram-v2, erDiagram | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md) | ADR-2010 |
+| NF-06 | [Agent Control Surface Protocol — kinds 31400-31405, the broker aggregate and its consumers](nostr-rust-forum/06-agent-control-surface-31400-31405.md) | 12 | classDiagram, flowchart, sequenceDiagram, stateDiagram-v2, erDiagram | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md) | ADR-2010 |
 | NF-07 | [search-worker, preview-worker and the shared rate-limit / ASCII utilities](nostr-rust-forum/07-search-preview-and-shared-worker-utilities.md) | 8 | flowchart, sequenceDiagram, classDiagram | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md) |  |
 | NF-08 | [Config projection, zones, the KV/D1/R2 store map and admin authority](nostr-rust-forum/08-config-zones-stores-and-admin-authority.md) | 8 | flowchart, sequenceDiagram | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md), [IDENTITY-keys-and-trust.md](../../../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md) | ADR-2004, ADR-2006, ADR-2007 |
 | NF-09 | [CI gates, wrangler deploy, fixtures, benchmarks, e2e and the setup-skill scaffold](nostr-rust-forum/09-ci-deploy-canary-and-validation.md) | 9 | flowchart, sequenceDiagram, classDiagram | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md) | ADR-2002, ADR-2003, ADR-2007 |
