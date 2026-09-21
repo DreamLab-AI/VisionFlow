@@ -22,7 +22,7 @@ sources:
   - ../loom/Cargo.toml
   - ../RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs
   - docs/estate-review/2026-09-07-estate-audit.md
-verified_commit: {visionflow: ffc894722544c7514b002848e721062c6b47627c, dream-engine: 83a7b9b, WasmVOWL: 51a1484, RuView: b48ab7dad}
+verified_commit: {visionflow: df22182f3, agentbox: b7b1ab81a, WasmVOWL: 51a148430, RuView: b48ab7dad, loom: 07a0e6774, dream-machine: a82dab2bf, prose-sanitiser: be8305ee8, diagram-ir: eed5ebde4}
 ---
 
 ## ES-90.1 Three scopes — health roster, source review and workspace neighbours
@@ -101,4 +101,33 @@ flowchart TB
     DOC -.->|"does not establish"| ACCEPT
     LOCAL -.->|"does not establish"| ACCEPT
     NOTE["INVARIANT: default citations may read declared revisions;<br/>worktree-citations explicitly checks current source.<br/>Neither mode proves behaviour or deployment.<br/>diagram-index-gen.cjs:263"] --> DOC
+```
+
+## ES-90.6 Which repositories the citation checker can actually pin, and which it cannot
+```mermaid
+flowchart TB
+    CITE["a path:line citation in any topic"] --> RESOLVE["repoOf maps the path prefix to a repo key<br/>scripts/diagram-index-gen.cjs:240,257"]
+
+    subgraph KNOWN["Prefixes the table knows — the sha in verified_commit is honoured"]
+        K1["the nine area repositories plus RuView, WasmVOWL<br/>and a dream-engine entry<br/>scripts/diagram-index-gen.cjs:240-253"]
+    end
+    subgraph UNKNOWN["Prefixes the table does NOT know"]
+        U1["../loom, ../dream-machine, ../prose-sanitiser and<br/>../diagram-ir — every one of them cited by THIS topic"]
+    end
+    RESOLVE --> KNOWN
+    RESOLVE --> UNKNOWN
+
+    KNOWN --> PIN["git show sha:path in the owning checkout<br/>scripts/diagram-index-gen.cjs:284"]
+    UNKNOWN --> NULLR["repoOf returns null for any other ../ prefix<br/>scripts/diagram-index-gen.cjs:259"]
+    NULLR --> NOSHA["so the resolved sha is null<br/>scripts/diagram-index-gen.cjs:278"]
+    NOSHA --> WT["and the checker reads the WORKING TREE instead<br/>scripts/diagram-index-gen.cjs:288"]
+
+    DEBT["DEBT — a verified_commit entry for one of those four repositories<br/>is recorded honestly and then IGNORED. The citation is still<br/>checked, but against whatever is checked out today rather than<br/>against the declared revision, and nothing warns.<br/>scripts/diagram-index-gen.cjs:259,278,288"]
+    WT --> DEBT
+
+    INV["INVARIANT that survives it — the same fallback is what makes a<br/>missing sibling checkout a silent pass rather than a crash, so the<br/>prefix table is the ONLY place that decides whether a repository<br/>can be pinned at all. Adding a repository to a topic's sources is<br/>not the same act as making it pinnable.<br/>scripts/diagram-index-gen.cjs:240,288"]
+    DEBT --> INV
+
+    SCOPE["EXTERNAL — this diagram asserts only what THIS repository's own<br/>generator does. It says nothing about the four repositories<br/>themselves, whose revisions are recorded in the frontmatter above<br/>so a reader can check them by hand. see ES-12"]
+    UNKNOWN --> SCOPE
 ```

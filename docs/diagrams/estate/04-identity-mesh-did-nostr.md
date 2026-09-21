@@ -7,7 +7,7 @@ governing:
   - ../project/agentbox/docs/INGRESS-identity.md
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/docs/SECURITY-profiles.md
-adrs: [agentbox:ADR-2002, agentbox:ADR-2009, agentbox:ADR-2010, agentbox:ADR-2011, agentbox:ADR-2013, agentbox:ADR-2026]
+adrs: [agentbox:ADR-2098, agentbox:ADR-2101, agentbox:ADR-2033, agentbox:ADR-2002, agentbox:ADR-2009, agentbox:ADR-2010, agentbox:ADR-2011, agentbox:ADR-2013, agentbox:ADR-2026]
 sources:
   - ../project/agentbox/config/nip98-proxy/proxy.mjs
   - ../project/agentbox/config/nip98-proxy/selftest.mjs
@@ -31,7 +31,8 @@ sources:
   - ../project/src/handlers/socket_flow_handler/http_handler.rs
   - ../project/client/src/services/nostrAuthService.ts
   - ../project/client/src/types/nip07.d.ts
-verified_commit: {visionclaw: dd82a07b0c54defc469a85e9d57fb15d29dc5e07, agentbox: 771d96ed5ac6f5daa1e78a60d109c130b9ef9b99}
+  - ../project/agentbox/docs/INGRESS-identity.md
+verified_commit: {visionclaw: f223bbd40, agentbox: b7b1ab81a}
 ---
 ## ES-04.1 verification mesh — who signs, who verifies whom
 ```mermaid
@@ -55,7 +56,7 @@ flowchart LR
         AEA["agent-event-auth verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:46"]
     end
     subgraph aoe["AoE daemon  port 9095<br/>loopback only"]
-        AOE["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2353"]
+        AOE["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2411"]
     end
     subgraph solid["EXTERNAL: solid-pod-rs<br/>default-deny pod"]
         POD["Solid pod HTTP endpoint"]
@@ -238,8 +239,8 @@ flowchart TB
 
     K5 -->|"NIP-59 gift wrap, kind 1059"| REL
 
-    D1["DIVERGENCE ADR-040 D3 — agentbox.toml:148 marks the governance<br/>publisher key-split PENDING, so governance-published events<br/>and server identity STILL SHARE a key."]
-    D2["DIVERGENCE — NIP98_PROXY_SESSION_SECRET defaults to<br/>crypto.randomBytes (proxy.mjs:107), so NIP-07 sessions do<br/>NOT survive a proxy restart. Intentional, but every restart<br/>forces re-authentication."]
+    D1["DIVERGENCE ADR-040 D3 — agentbox.toml:161 marks the governance<br/>publisher key-split PENDING, so governance-published events<br/>and server identity STILL SHARE a key."]
+    D2["DIVERGENCE — NIP98_PROXY_SESSION_SECRET defaults to<br/>crypto.randomBytes (proxy.mjs:212), so NIP-07 sessions do<br/>NOT survive a proxy restart. Intentional, but every restart<br/>forces re-authentication."]
     D3["DIVERGENCE — a same-uid (devuser) process can still READ the<br/>AoE token file. The token raises the bar but does NOT isolate<br/>same-user peers. Per-process isolation is future work."]
     D4["DIVERGENCE — deleting the AoE state file alone does NOT<br/>rotate the token, because the proxy holds a last-good cache.<br/>Daemon and proxy must rotate COHERENTLY. see ES-10.10"]
     D5["DIVERGENCE — every custodian, deployed location, rotation<br/>cadence and incident-response window in the agentbox custody<br/>register is UNCONFIRMED (proposed governing surface)."]
@@ -296,3 +297,30 @@ base64url subprotocol and negotiate only a public protocol. Missing/declined sig
 fail before connection. These changes do not prove remaining MCP clients or the
 actual proxy/reconnect deployment have migrated. See VC-03.17 and the
 [execution report](../../estate-review/closeout/2026-09-07-execution-visionclaw.md).
+
+## ES-04.7 PROPOSED key separation — one identity key, two derived families, a second Multikey
+```mermaid
+flowchart TB
+    KID["k_id — the sovereign identity key, minted by the identity binary<br/>agentbox/docs/INGRESS-identity.md:407<br/>PROPOSED rule: it never spends and never seals a block"]
+
+    SPEND["k_spend(chain) = derive_subkey(k_id, sidestr/spend/ chain_id)<br/>used on the wallet path, spends UTXOs on exactly that chain<br/>agentbox/docs/INGRESS-identity.md:408"]
+    SIGN["k_sign(chain) = derive_subkey(k_id, sidestr/sign/ chain_id)<br/>federated instance operators only, seals blocks on that chain<br/>agentbox/docs/INGRESS-identity.md:409"]
+
+    KID -->|"HMAC-SHA256 domain-separated child derivation,<br/>a tool the estate already owns<br/>agentbox/docs/INGRESS-identity.md:402"| SPEND
+    KID -->|"same derivation, different domain string"| SIGN
+
+    BIND["PROPOSED kind 38110 sidestr-account-binding, addressable,<br/>d tag is chain id plus did hex, content is the derived spend<br/>pubkey, signed by k_id<br/>agentbox/docs/INGRESS-identity.md:420-421"]
+    SPEND --> BIND
+
+    MK["PROPOSED — a SECOND Multikey entry in the DID document for the<br/>per-chain spend key. This AMENDS legacy ADR-033, whose<br/>single-Multikey form is what build_did_document emits today.<br/>agentbox/docs/INGRESS-identity.md:423-424"]
+    BIND --> MK
+
+    LIVE["LIVE today — one Multikey, publicKeyMultibase is the<br/>MULTIKEY_PREFIX followed by the x-only hex, and the private key<br/>never leaves the function<br/>agentbox/docs/INGRESS-identity.md:159,162"]
+    MK -.->|"amends"| LIVE
+
+    SCOPE["PROPOSED scope note — Invariant 6 is narrowed to IDENTITY<br/>ingress; chain ingress is authenticated by consensus rather than<br/>by the relay allowlist.<br/>agentbox/docs/INGRESS-identity.md:262"]
+    KID --> SCOPE
+
+    INV["INVARIANT — the whole of this diagram sits in a clearly marked<br/>PROPOSED section and the live compliance surface above it is<br/>unchanged apart from that one scope note.<br/>agentbox/docs/INGRESS-identity.md:9,396. see ES-03.11"]
+    SCOPE --> INV
+```

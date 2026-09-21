@@ -6,7 +6,7 @@ governing:
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/docs/DATA-authority-erasure.md
   - ../project/agentbox/docs/INGRESS-identity.md
-adrs: [visionclaw:ADR-2015, visionclaw:ADR-2016, visionclaw:ADR-2017, visionclaw:ADR-2064, visionclaw:ADR-2068, visionclaw:ADR-2106, agentbox:ADR-2064]
+adrs: [solid-pod-rs:ADR-2008, nostr-rust-forum:ADR-2012, agentbox:ADR-2096, agentbox:ADR-2099, agentbox:ADR-2102, visionclaw:ADR-2111, visionclaw:ADR-2015, visionclaw:ADR-2016, visionclaw:ADR-2017, visionclaw:ADR-2064, visionclaw:ADR-2068, visionclaw:ADR-2106, agentbox:ADR-2064]
 sources:
   - ../project/Cargo.toml
   - ../project/src/handlers/solid_proxy_handler.rs
@@ -34,7 +34,11 @@ sources:
   - ../project/client/src/services/solidPod/typeIndex.ts
   - ../project/bin/jss.js
   - ../project/scripts/backup-sqlite.sh
-verified_commit: {visionclaw: dd82a07b0, agentbox: 2c521c5bb}
+  - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
+  - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
+  - ../project/agentbox/docs/adr/ADR-2099-the-chain-is-the-ledger-of-record.md
+  - ../project/agentbox/docs/proposals/sovereign-settlement.md
+verified_commit: {visionclaw: f223bbd40, agentbox: b7b1ab81a, solid-pod-rs: 727549163, nostr-rust-forum: 2f90c1916}
 ---
 ## ES-08.1 Four coexisting Solid-pod deployments — topology contrast
 
@@ -49,9 +53,9 @@ flowchart TB
     end
 
     subgraph AB["agentbox container — supervised service"]
-        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2163-2172"]
-        SRV["solid-pod-rs-server  port 8484<br/>agentbox/agentbox.toml:459-467"]
-        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2180"]
+        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2221"]
+        SRV["solid-pod-rs-server  port 8484<br/>agentbox/agentbox.toml:495-496"]
+        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2238"]
         SUP -->|"exec solidPodRsLauncher"| SRV
         HTTPS -->|"TLS terminate to  port 8484"| SRV
     end
@@ -450,7 +454,7 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as "server boot (solid-pod-embed)"<br/>src/main.rs:877
+    participant M as "server boot (solid-pod-embed)"<br/>src/main.rs:875
     participant SP as spawn_boot_pull<br/>src/services/ontology_pull.rs:387
     participant CFG as OntologyPullConfig::from_env<br/>src/services/ontology_pull.rs:77
     participant P1 as pull_once<br/>src/services/ontology_pull.rs:293
@@ -481,3 +485,34 @@ sequenceDiagram
 ```
 
 The 2026-09-07 audit distinguishes ES-08.9's missing cross-store erasure dispatch from HNSW index degradation. This source path demonstrates neither bulk vector deletion nor degraded recall. ES-08.11 now documents the implemented generation boundary and pinned browser reads. Old unpinned consumers can still straddle activation; post-rename fsync failure does not imply the old pointer survived. The durable reconciliation journal has no production destructive adapters: subject/authority mappings and live erasure acceptance remain outstanding. See the [federation audit](../../estate-review/2026-09-07-federation-audit.md).
+
+## ES-08.12 PROPOSED — the pod ledger becomes a chain view, and the hand-rolled crypto goes
+```mermaid
+flowchart TB
+    CRYPTO["TODAY — the crate owns the estate's whole Bitcoin transaction<br/>construction and HAND-ROLLS it: BIP-341 scripts, the TapSighash<br/>and key-path Schnorr on raw k256, with big-endian mod-n scalar<br/>arithmetic written out by hand<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:22-26"]
+
+    PORT["PROPOSED D1 — bitcoin_tx.rs and mrc20.rs port to rust-bitcoin<br/>plus secp256k1; the hand-rolled scalar helpers are DELETED<br/>rather than kept beside the library ones. Highest priority in<br/>the programme because it is the only item that removes<br/>hand-rolled crypto.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:37-42"]
+    CRYPTO --> PORT
+
+    GATE["PROPOSED D2 — the acceptance gate is three cross-implementation<br/>golden tests that must pass BYTE-IDENTICAL before and after the<br/>port. The fixtures are not regenerated to fit the new code.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:43-49"]
+    PORT --> GATE
+
+    VIEW["PROPOSED D4 — WebLedger becomes a derived, height-stamped view.<br/>get_balance reads through the sidestr-node HTTP surface and folds<br/>the UTXOs for that did:nostr, with a bounded cache; a staleness<br/>bound is an ERROR, never a slightly old number.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:55-59"]
+    API["PROPOSED D5 — credit and debit LEAVE the public API. The one<br/>deliberately breaking change in the estate, because leaving the<br/>pair in place leaves a path by which a balance can exist that<br/>the chain does not know about.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:60-66"]
+    VIEW --> API
+
+    TXO["PROPOSED D6 — the TXO stand-in deposit is DELETED, not left<br/>default-off: it credits sats for any parseable TXO URI guarded<br/>only by a replay key. A chain-settled estate must not keep a<br/>reachable free-money oracle.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:67-71"]
+    API --> TXO
+
+    FORUM["PROPOSED, the forum half — the pod-worker D1 ledger is demoted<br/>to a derived view in lockstep, and solid-pod-rs moves with the<br/>host. ADR-2012-d1-ledger-becomes-a-chain-view.md:37-40"]
+    VIEW --> FORUM
+
+    PRE["INVARIANT the record sets on itself — non-atomic payment state<br/>is fixed FIRST. The crate's own README reproduces a critical<br/>finding saying not to carry value through the payment routes<br/>until it is fixed, and that is a precondition rather than a<br/>follow-up.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:72-75"]
+    TXO --> PRE
+
+    NOTLIVE["INVARIANT — decision_status proposed, implementation_status none<br/>on both records. Nothing on this diagram is built.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-6<br/>and ADR-2012-d1-ledger-becomes-a-chain-view.md:5-6. see ES-03.11"]
+    PORT --> NOTLIVE
+
+    THREE["DIVERGENCE — this is one of THREE unsynced did:nostr-keyed sats<br/>ledgers, and the pod's is the one the chain-view work starts<br/>from. agentbox/docs/proposals/sovereign-settlement.md:61. see ES-03.12"]
+    CRYPTO --> THREE
+```

@@ -5,7 +5,7 @@ area: estate
 governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
   - ../project/docs/BASELINE-architecture.md
-adrs: [visionclaw:ADR-2006, agentbox:ADR-2041, agentbox:ADR-2071]
+adrs: [visionclaw:ADR-2006, agentbox:ADR-2041, agentbox:ADR-2071, visionflow:ADR-2010, visionflow:ADR-2011, agentbox:ADR-2087, visionclaw:ADR-2110, nostr-rust-forum:ADR-2011, agentbox:ADR-2085, agentbox:ADR-2086]
 sources:
   - ../project/src/services/acsp/mod.rs
   - ../project/src/services/acsp/events.rs
@@ -28,12 +28,21 @@ sources:
   - ../project/agentbox/management-api/routes/broker-bridge.js
   - ../project/agentbox/management-api/routes/kg-elevation.js
   - ../project/agentbox/mcp/nostr-bridge/relay-consumer.js
-verified_commit: {agentbox: be0fc078a3dc0eab32af57f1eaf170fa58157bf9, visionclaw: dd82a07b0c54defc469a85e9d57fb15d29dc5e07}
+  - ../project/src/handlers/enrichment_proposals_handler.rs
+  - ../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md
+  - ../project/agentbox/docs/adr/ADR-2087-task-properties-receipts-and-manual-continuation.md
+  - ../project/agentbox/docs/GOVERNANCE-capabilities.md
+  - docs/adr/ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md
+  - docs/adr/ADR-2011-task-properties-set-the-boundary-not-agent-self-tiering.md
+  - ../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md
+  - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
+verified_commit: {agentbox: b7b1ab81a, visionclaw: f223bbd40, visionflow: df22182f3, nostr-rust-forum: 2f90c1916}
 ---
 ## ES-05.1 Approval crosses independently durable systems
 ```mermaid
 flowchart LR
-    Request["Concrete operation"] --> Gate["Agentbox authority.js:137 buildAuthorityGate"]
+    Request["Concrete operation"] --> Gate["Agentbox authority.js:226 buildAuthorityGate"]
     Gate --> Signed["Signed 31402 request commits to operation and digest"]
     Signed --> Forum["Forum relay stores event and guarded D1 projection"]
     Forum --> Human["Human signed 31403 references exact request"]
@@ -76,10 +85,10 @@ classDiagram
 ```mermaid
 sequenceDiagram
     participant Caller
-    participant Gate as authority.js:136 buildAuthorityGate
+    participant Gate as authority.js:226 buildAuthorityGate
     participant Forum as Verified allowlisted consumer
     participant Owner as broker-bridge.js mutation owner
-    participant Journal as governance-application-receipts.js:11 ApplicationReceiptStore
+    participant Journal as governance-application-receipts.js:26 ApplicationReceiptStore
     Caller->>Gate: action class and concrete operation
     alt recoverable action
         Gate-->>Caller: allow under existing recoverable policy
@@ -130,8 +139,8 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Reviewer
-    participant Bridge as broker-bridge.js:254 inbox route
-    participant VC as broker_inbox_handler.rs:126
+    participant Bridge as broker-bridge.js:288 inbox route
+    participant VC as broker_inbox_handler.rs:146
     Reviewer->>Bridge: authenticated inbox request with status filter
     Bridge->>VC: fetch current broker inbox
     alt upstream available
@@ -146,9 +155,9 @@ sequenceDiagram
 ## ES-05.6 Mutation-owner acknowledgement and replay refusal
 ```mermaid
 sequenceDiagram
-    participant Bridge as broker-bridge.js:373 decide route
-    participant Gate as authority.js:137
-    participant Ledger as governance-application-receipts.js:11
+    participant Bridge as broker-bridge.js:407 decide route
+    participant Gate as authority.js:226
+    participant Ledger as governance-application-receipts.js:26
     participant VC as VisionClaw mutation owner
     Bridge->>Gate: concrete case, outcome, actor and reasoning operation
     Gate-->>Bridge: verified approval and operation digest, or refusal
@@ -292,3 +301,69 @@ flowchart LR
 ```
 
 Grounded in Agentbox `management-api/lib/action-plane.js` and `routes/tasks.js`; broader governance routes retain their individual contracts. A working task-spawn journal does not establish complete mediation of shell commands or nightly egress. See [audit](../../estate-review/2026-09-07-agentbox-audit.md).
+
+## ES-05.12 The augmentation conditions — one canon decision landing in four repositories
+```mermaid
+flowchart TB
+    CANON["THE SOURCE — VisionFlow canon adopts the six augmentation<br/>conditions as the audit lens for every surface where a human<br/>decides on an agent's behalf<br/>docs/adr/ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md:26"]
+    RULE["INVARIANT — no surface may fabricate a human's rationale, an<br/>agent's intent or a confidence value. Absence renders as absence.<br/>docs/adr/ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md:31"]
+    BOUND["THE SECOND CANON RULE — the escalation posture derives from an<br/>operator-declared task-property triple, which a request may<br/>tighten but never loosen<br/>docs/adr/ADR-2011-task-properties-set-the-boundary-not-agent-self-tiering.md:26"]
+    CANON --> RULE
+    CANON --> BOUND
+
+    AB["LANDING 1, agentbox — derives and stamps the triple on every<br/>31402 it publishes, journals every gate denial as authority.deny,<br/>mirrors the receipt ladder to the human, and gives an outage a<br/>signed manual-continuation path<br/>ADR-2087-task-properties-receipts-and-manual-continuation.md:38,50,59,69"]
+    VC["LANDING 2, VisionClaw — instruments the judgment surfaces and<br/>moves the rationale gate onto the shared decide core<br/>ADR-2110-augmentation-conditions-visionclaw-substrate.md:3,120-121"]
+    FRM["LANDING 3, the forum — operator task properties set the<br/>escalation boundary, implementation_status partial<br/>ADR-2011-operator-task-properties-set-the-escalation-boundary.md:3,6"]
+    REL["LANDING 4, the relay — the FR2.2 rationale is enforced at the<br/>relay before save_event, not only in the UI<br/>nip_handlers.rs:1028-1033"]
+
+    BOUND --> AB
+    RULE --> VC
+    BOUND --> FRM
+    FRM --> REL
+
+    OPEN["OPEN — the server rationale gate reads the case's DECLARED tier,<br/>so an agent that under-declares escapes it. Closing it needs the<br/>effective tier on the case row, which is the forum's half.<br/>ADR-2110-augmentation-conditions-visionclaw-substrate.md:132-135"]
+    VC --> OPEN
+
+    TIGHT["INVARIANT — the triple merges on a tightening lattice: an<br/>agent-supplied task_properties may raise the boundary for its own<br/>action and never lower it, and an undeclared class publishes all<br/>three tags at the tightest reversibility.<br/>ADR-2087-task-properties-receipts-and-manual-continuation.md:38,86-88"]
+    AB --> TIGHT
+```
+
+## ES-05.13 The rationale gate — a predicate that refuses, on both the host core and the relay
+```mermaid
+sequenceDiagram
+    autonumber
+    participant UI as operator route or service bridge
+    participant AD as apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:483
+    participant DT as declared_tier_of<br/>src/handlers/enrichment_proposals_handler.rs:393
+    participant CK as check_rationale<br/>src/handlers/enrichment_proposals_handler.rs:406
+    participant RL as relay 31403 handler<br/>nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1024
+    participant FG as governance check_rationale<br/>nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs:761
+
+    UI->>AD: decide a case with an outcome and optional reasoning
+    AD->>AD: read the case ONCE, its tier drives the gate<br/>enrichment_proposals_handler.rs:508
+    AD->>DT: read the declared tier from the proposal body
+    DT-->>AD: Some(tier), or None when the body names none, :391-392
+    AD->>CK: tier, outcome, reasoning
+    alt tier is high or critical AND the outcome is a human one
+        CK->>CK: count trimmed Unicode scalars, :414
+        alt fewer than the minimum
+            CK-->>AD: Err(RationaleRejection), :419
+            AD-->>UI: 422 refused before anything is minted or persisted,<br/>enrichment_proposals_handler.rs:510-512
+        else long enough
+            CK-->>AD: Ok(())
+        end
+    else any other tier or a non-human outcome
+        CK-->>AD: Ok(()) immediately, :411-413
+    end
+
+    Note over CK: INVARIANT — the gate is a PREDICATE, not a transformer. It<br/>returns permission and nothing else, so it is structurally<br/>incapable of supplying the text it is demanding.<br/>src/handlers/enrichment_proposals_handler.rs:402-405
+
+    UI->>RL: publish a signed 31403 straight to the relay instead
+    RL->>RL: look up the case's EFFECTIVE tier, nip_handlers.rs:1025
+    RL->>FG: effective tier, action, reasoning
+    FG-->>RL: Err when the rationale is absent or too short
+    RL-->>UI: OK false carrying the refusal reason, nip_handlers.rs:1033
+
+    Note over RL,FG: INVARIANT — enforced BEFORE save_event, because a 31403 is a<br/>signed event any client or script can publish straight to the<br/>relay. A rule that lives only in the forum UI is a suggestion.<br/>nip_handlers.rs:1018-1023
+    Note over AD,RL: DIVERGENCE — the two gates read DIFFERENT tiers. The host reads<br/>the agent's DECLARED tier, the relay reads the EFFECTIVE tier<br/>computed by nostr-bbs-core effective_tier, governance.rs:516.<br/>The host call site is one line and tightens when the effective<br/>tier lands on the case row. see ES-05.12
+```

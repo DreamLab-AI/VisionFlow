@@ -5,7 +5,7 @@ area: estate
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/agentbox/docs/BASELINE-container.md
-adrs: [visionclaw:ADR-2008, visionclaw:ADR-2037, agentbox:ADR-2013, agentbox:ADR-2028]
+adrs: [visionclaw:ADR-2008, visionclaw:ADR-2037, agentbox:ADR-2013, agentbox:ADR-2028, agentbox:ADR-2039, agentbox:ADR-2056, agentbox:ADR-2082, agentbox:ADR-2083, agentbox:ADR-2085, agentbox:ADR-2091, agentbox:ADR-2092, agentbox:ADR-2093, agentbox:ADR-2094, visionclaw:ADR-2086]
 sources:
   - ../project/Dockerfile.unified
   - ../project/Dockerfile.production
@@ -57,7 +57,7 @@ sources:
   - ../project/scripts/ontology/pack-pod-resources.py
   - ../project/scripts/launch.sh
   - ../project/scripts/start.sh
-verified_commit: {visionclaw: dd82a07b0c54defc469a85e9d57fb15d29dc5e07, agentbox: 771d96ed5ac6f5daa1e78a60d109c130b9ef9b99}
+verified_commit: {visionclaw: f223bbd40, agentbox: b7b1ab81a}
 ---
 ## ES-09.1 The host-vs-container build trap — wrong path vs sanctioned path
 ```mermaid
@@ -85,7 +85,7 @@ flowchart TB
     EDIT ---|"bind mount, always in sync"| HOSTSRC
     LAUNCHTRY -->|"socket-forwarded request"| BUILDREQ:::wrong
     SSHTRY -.->|"refused: no LAN IP path from CC to host shell"| REFUSED(("blocked")):::wrong
-    BUILDREQ -->|"resolves HOST_PROJECT_ROOT-relative<br/>bind-mount paths against ITS OWN (host-side)<br/>cwd/view, not the CC container path"| MISBIND["docker-compose.unified.yml:121<br/>bind source path mismatch"]:::wrong
+    BUILDREQ -->|"resolves HOST_PROJECT_ROOT-relative<br/>bind-mount paths against ITS OWN (host-side)<br/>cwd/view, not the CC container path"| MISBIND["docker-compose.unified.yml:120-136<br/>bind source path mismatch"]:::wrong
     MISBIND --> STALE["Running dev container serves the<br/>image-build-time COPY'd source,<br/>NOT the just-edited host file"]:::wrong
     STALE -.->|"the trap: container starts, health check passes,<br/>edits never take effect"| TRAPEND(("silent stale-code failure")):::wrong
 
@@ -116,7 +116,7 @@ sequenceDiagram
     participant CC as ClaudeCodeContainer<br/>bind:/home/devuser/workspace/project
     participant T6 as HostShellTmux6
     participant DD as HostDockerd
-    participant DC as visionclaw_container<br/>docker-compose.unified.yml:47
+    participant DC as visionclaw_container<br/>docker-compose.unified.yml:48
     participant W as rust-backend-wrapper.sh
 
     Dev->>CC: edit src/main.rs
@@ -125,16 +125,16 @@ sequenceDiagram
     Note over T6,DD: container/host process boundary — build MUST cross here, never from CC
     Dev->>T6: tmux send-keys -t 6 ./scripts/launch.sh up dev Enter
     T6->>DD: docker compose --profile dev up -d
-    DD->>DD: resolve HOST_PROJECT_ROOT bind mounts<br/>docker-compose.unified.yml:121-154
+    DD->>DD: resolve HOST_PROJECT_ROOT bind mounts<br/>docker-compose.unified.yml:120-158
     DD->>DC: recreate container with correct host-side binds
     end
     DC->>W: supervisord starts program:rust-backend<br/>supervisord.dev.conf:20
-    W->>W: needs_rebuild scripts/rust-backend-wrapper.sh:57
+    W->>W: needs_rebuild scripts/rust-backend-wrapper.sh:62
     alt source or Cargo manifest changed
-        W->>W: cargo build --release --features gpu,ontology,dev-auth
-        W->>W: write_build_stamp scripts/rust-backend-wrapper.sh:71
+        W->>W: cargo build --profile dev-runtime --features "$BUILD_FEATURES"<br/>scripts/rust-backend-wrapper.sh:73, default gpu,ontology,dev-auth :42
+        W->>W: write_build_stamp scripts/rust-backend-wrapper.sh:75
     else stamp up to date
-        W->>W: skip cargo scripts/rust-backend-wrapper.sh:66
+        W->>W: skip cargo scripts/rust-backend-wrapper.sh:69
     end
     W->>DC: exec visionclaw-server
     Dev->>CC: sudo docker exec visionclaw_container curl localhost:4000/api/health
@@ -161,7 +161,7 @@ flowchart LR
     RUSTBUILD --> PROD
     NODEBUILD --> PROD
 
-    DIVERGE["DIVERGENCE: dev COPYs raw src and compiles<br/>at container start (dev-entrypoint.sh runs<br/>cargo build --release --features gpu,dev-auth:108);<br/>prod COPYs the pre-compiled rust-builder binary,<br/>no compile at container start"]
+    DIVERGE["DIVERGENCE: dev COPYs raw src and compiles at container<br/>start. The entrypoint no longer runs cargo itself: it backgrounds<br/>scripts/rust-backend-wrapper.sh (dev-entrypoint.sh:104), which<br/>owns the rebuild decision and the feature set. Prod COPYs the<br/>pre-compiled rust-builder binary and compiles nothing at start."]
     DEV -.-> DIVERGE
     PROD -.-> DIVERGE
 ```
@@ -210,7 +210,7 @@ sequenceDiagram
     Note over C2: re-declares ARG CUDA_ARCH=86 (:110) redundantly,<br/>ENV already inherited from toolchain — both agree
     C2->>C2: nvcc -ptx -arch sm_CUDA_ARCH (:121)
 
-    Note over U,P: DIVERGENCE (ADR-2008 vs ADR-2037): dev image builds<br/>cargo build --release --features gpu,dev-auth<br/>(scripts/rust-backend-wrapper.sh:66) — a release binary that<br/>still carries enforce_release_env_hygiene as a no-op stub<br/>(src/main.rs:169, cfg debug_assertions OR feature dev-auth)
+    Note over U,P: DIVERGENCE (ADR-2008 vs ADR-2037): the dev build is now a<br/>NAMED PROFILE rather than release — cargo build --profile<br/>dev-runtime with BUILD_FEATURES defaulting to gpu,ontology,dev-auth<br/>(scripts/rust-backend-wrapper.sh:42,73). The binary still carries<br/>enforce_release_env_hygiene as a no-op stub (src/main.rs:169), so<br/>the ADR-2037 boundary is the CI gate and the profile name, not the<br/>compiler flag
     Note over U,P: ADR-2037 (proposed, implementation_status none): no CI or<br/>image-build assertion yet verifies a shipped release binary<br/>omits dev-auth — a mis-targeted pipeline could promote the<br/>stubbed-hygiene binary to production undetected
 ```
 
@@ -285,15 +285,15 @@ stateDiagram-v2
 ```mermaid
 flowchart TB
     subgraph PROFILES["docker-compose.unified.yml services block"]
-        DEVSVC["visionclaw<br/>docker-compose.unified.yml:54 target development<br/>profiles: development, dev docker-compose.unified.yml:178-180<br/>ports 3001,4000 docker-compose.unified.yml:160-161<br/>source-bind volumes docker-compose.unified.yml:117-157, docker.sock ro docker-compose.unified.yml:154"]
-        PRODSVC["visionclaw-production<br/>docker-compose.unified.yml:187 Dockerfile.production<br/>profiles: production, prod docker-compose.unified.yml:252-254<br/>ports 3001 only docker-compose.unified.yml:228<br/>NO source mounts, NO docker.sock docker-compose.unified.yml:222-225"]
-        CLOUDFLARED["cloudflared<br/>docker-compose.unified.yml:257 image cloudflare/cloudflared pinned digest<br/>profiles: production, prod docker-compose.unified.yml:276<br/>depends_on visionclaw OR visionclaw-production (optional)"]
-        LOOM["loom<br/>docker-compose.unified.yml:303 image loom:rust (built outside this repo)<br/>profiles: loom docker-compose.unified.yml:363<br/>port 8090->8080 docker-compose.unified.yml:348<br/>hostname loom, alias ontology-loom docker-compose.unified.yml:349-353"]
+        DEVSVC["visionclaw<br/>docker-compose.unified.yml:54 target development<br/>profiles development and dev, docker-compose.unified.yml:181-184<br/>ports 3001 and 4000, docker-compose.unified.yml:163-164<br/>source-bind volumes docker-compose.unified.yml:120-158,<br/>docker.sock read-only docker-compose.unified.yml:157"]
+        PRODSVC["visionclaw-production<br/>docker-compose.unified.yml:186, Dockerfile.production :191<br/>profiles production and prod, docker-compose.unified.yml:255-258<br/>port 3001 only, docker-compose.unified.yml:231<br/>NO source mounts and NO docker.sock, docker-compose.unified.yml:243-246"]
+        CLOUDFLARED["cloudflared<br/>docker-compose.unified.yml:260, image cloudflare/cloudflared at a pinned<br/>digest :263, profiles production and prod docker-compose.unified.yml:279-281<br/>depends_on visionclaw OR visionclaw-production (optional)"]
+        LOOM["loom<br/>docker-compose.unified.yml:304, image loom:rust built outside this repo :306<br/>loom compose profile docker-compose.unified.yml:366-367<br/>host port 8090 to container port 8080 docker-compose.unified.yml:351<br/>hostname loom :307, alias ontology-loom docker-compose.unified.yml:356"]
     end
     subgraph EXTFILE["docker-compose.cloudflared.yml (standalone)"]
         CFSTANDALONE["cloudflared<br/>joins external visionclaw_network<br/>alias visionclaw-server:3001"]
     end
-    NET["visionclaw_network (external, pre-created)<br/>docker-compose.unified.yml:366-369"]
+    NET["visionclaw_network (external, pre-created)<br/>docker-compose.unified.yml:369-372"]
 
     DEVSVC --> NET
     PRODSVC --> NET
@@ -347,9 +347,9 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph FLAKE["agentbox/flake.nix — image composition"]
-        NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate agentbox/flake.nix:505"]
-        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2115-2147<br/>program blocks e.g. management-api, bootstrap-seal"]
-        SUPWRITE["writeText supervisord.conf<br/>agentbox/flake.nix:3158-3163"]
+        NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate agentbox/flake.nix:291"]
+        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2162,2193,2209<br/>program blocks e.g. management-api, bootstrap-seal"]
+        SUPWRITE["writeText supervisord.conf<br/>agentbox/flake.nix:3209-3214"]
     end
     subgraph TOML["agentbox/agentbox.toml — RUNNING config, not a template"]
         GATEKEY["gate key e.g. interaction_plane.enabled"]
@@ -609,7 +609,7 @@ flowchart LR
     COMPOSEUP["docker compose --profile dev|production up<br/>docker-compose.unified.yml"]
     CONTAINER["visionclaw_container or visionclaw_prod_container<br/>supervisord manages nginx + rust-backend (+vite-dev in dev)"]
     NGINXROUTE["nginx.dev.conf or nginx.production.conf<br/>route table (ES-09.9)"]
-    HEALTH["/api/health, /readyz<br/>docker-compose.unified.yml:168,232"]
+    HEALTH["/api/health, /readyz<br/>docker-compose.unified.yml:174,248"]
 
     SRC --> CIGATE
     CIGATE --> DOCKERBUILD
@@ -635,17 +635,17 @@ sequenceDiagram
     participant CB as "cargo build (dev container)"<br/>rust-backend-wrapper.sh:57
     participant URI as visionclaw-server src/uri<br/>src/uri/mod.rs:662
     participant FK as federation-kinds artefact<br/>agentbox/schema/federation-kinds.json:2-4
-    participant CMP as dev compose mounts<br/>docker-compose.unified.yml:136
+    participant CMP as dev compose mounts<br/>docker-compose.unified.yml:135
     participant BR as "BC20 bridge (agentbox, JS)"
 
     Note over URI,FK: ADR-2061 — federation-kinds.json is the SINGLE versioned<br/>authority for which urn:agentbox kinds cross the boundary.<br/>cross_from_agentbox derives its closed map from it — the JS bridge<br/>reads the same bytes at load. Neither side transcribes the list.
     URI->>FK: "const FEDERATION_KINDS_JSON = include_str!(\"../../agentbox/schema/federation-kinds.json\")"<br/>src/uri/mod.rs:662
     Note over URI: include_str! is COMPILE time, so the file must exist under /app<br/>or the lib cannot build at all — not a runtime read.
-    CMP->>CB: "bind ${HOST_PROJECT_ROOT}/agentbox/schema -> /app/agentbox/schema:ro"<br/>docker-compose.unified.yml:136
+    CMP->>CB: "bind ${HOST_PROJECT_ROOT}/agentbox/schema -> /app/agentbox/schema:ro"<br/>docker-compose.unified.yml:135
     CB->>URI: compiles, artefact bytes baked into the binary
     FK-->>BR: EXTERNAL — the same file is read at load by the agentbox<br/>management-api bridge. see AB-17 and ES-03.1
-    Note over CMP: INVARIANT — mount schema/ ONLY, never the whole submodule.<br/>agentbox carries 262 files ADR-2008 counts as build inputs, so a<br/>full mount would turn every agentbox bump into a spurious ~12 min<br/>visionclaw rebuild — schema/ is JSON alone and matches no input glob<br/>(docker-compose.unified.yml:127-135)
-    Note over CB: RESOLVED 2026-09 — before this mount the dev image (which carries<br/>no source of its own) failed every build with<br/>"couldn't read src/uri/../../agentbox/schema/federation-kinds.json"<br/>docker-compose.unified.yml:131
+    Note over CMP: INVARIANT — mount schema/ ONLY, never the whole submodule.<br/>agentbox carries 262 files ADR-2008 counts as build inputs, so a<br/>full mount would turn every agentbox bump into a spurious ~12 min<br/>visionclaw rebuild — schema/ is JSON alone and matches no input glob<br/>(docker-compose.unified.yml:131-134)
+    Note over CB: RESOLVED 2026-09 — before this mount the dev image (which carries<br/>no source of its own) failed every build with<br/>the missing federation-kinds.json include<br/>docker-compose.unified.yml:139
 ```
 
 ## ES-09.21 scripts/launch.sh — env-file resolution and the two divergent code paths
@@ -678,4 +678,73 @@ flowchart TB
     MK --> FIX
     CD --> DIV
     PRODREQ --> INV
+```
+
+## ES-09.22 The agentbox invariants gate grew six checks, and each one names the record it enforces
+```mermaid
+flowchart TB
+    TRIG["push or PR touching compose, ADRs, entrypoint, management-api,<br/>lib, scripts, flake.nix, skills, mcp, schema or the manifest<br/>agentbox/.github/workflows/invariants.yml:6-24"]
+    JOB["the single invariants job<br/>agentbox/.github/workflows/invariants.yml:30"]
+    TRIG --> JOB
+
+    subgraph SKILLS["Skill-estate gates — required before a rebuild"]
+        S1["lint-skills.sh, the structure gate<br/>agentbox/.github/workflows/invariants.yml:70-71"]
+        S2["skill-count-check, the SINGLE count authority<br/>agentbox/.github/workflows/invariants.yml:72-73"]
+        S3["gen-routing-table --check, routing-table freshness<br/>generated from frontmatter<br/>agentbox/.github/workflows/invariants.yml:75"]
+    end
+    JOB --> SKILLS
+
+    subgraph CONTRACT["Contract gates"]
+        C1["research-gates tests, the deep-research quote, citation<br/>and independence contract<br/>agentbox/.github/workflows/invariants.yml:80-81"]
+        C2["check-manifest-catalogue, ADR-039 gate-path parity<br/>agentbox/.github/workflows/invariants.yml:83-84"]
+        C3["federation-fixture-check, the cross-repo identifier<br/>contract from the agentbox side<br/>agentbox/.github/workflows/invariants.yml:93"]
+    end
+    JOB --> CONTRACT
+
+    DEBT["DEBT the workflow records against itself — skill-count-check was<br/>RED and UNWIRED, and the federation fixture check was governed by<br/>a record but never run by anything, found in a script audit. The<br/>fixture's whole point is that both repositories assert the SAME<br/>table rather than two tables that happen to agree, which an<br/>ungated check cannot deliver.<br/>agentbox/.github/workflows/invariants.yml:72,93"]
+    S2 --> DEBT
+    C3 --> DEBT
+
+    CAT["INVARIANT ADR-039 — a new manifest gate must arrive with a<br/>CATALOGUE entry carrying an honest apply class, and the parity<br/>check above is what enforces it. Five module entries landed in<br/>this window: the orchestration proxy, Jev compaction, Sovereign<br/>System One, the live skill router and colloquy<br/>agentbox/management-api/lib/system-manifest.js:206,212,215,218,231"]
+    C2 --> CAT
+
+    CLASS["Each carries apply_class boot, meaning the entrypoint projects<br/>it and a flip takes effect on the next container restart with no<br/>image rebuild. The three classes are defined at<br/>system-manifest.js:28-30."]
+    CAT --> CLASS
+```
+
+## ES-09.23 The host ADR ledger gates its own staleness, and fifteen records are failing it
+```mermaid
+sequenceDiagram
+    autonumber
+    participant CI as docs-ci workflow<br/>project/.github/workflows/docs-ci.yml:32
+    participant GEN as adr-index-gen check<br/>project/scripts/adr-index-gen.js:190
+    participant REC as one ADR record's frontmatter
+    participant GIT as git
+
+    CI->>GEN: node scripts/adr-index-gen.js docs/adr --check
+    GEN->>REC: does it declare verified_paths
+    alt no verified_paths
+        REC-->>GEN: nothing to check
+        Note over GEN: The staleness gate is OPT-IN per record. A record with no<br/>verified_paths gets only a soft nudge toward a full 40-char<br/>SHA, project/scripts/adr-index-gen.js:175-184.
+    else verified_paths declared
+        REC-->>GEN: verified_commit plus the governed paths
+        GEN->>GIT: does the commit exist, and is it an ancestor of HEAD
+        alt either answer is no
+            GIT-->>GEN: no
+            GEN-->>CI: fail, project/scripts/adr-index-gen.js:200-202
+        else both yes
+            GEN->>GIT: diff those paths from the commit to HEAD
+            alt anything changed
+                GIT-->>GEN: a non-empty path list
+                GEN-->>CI: STALE, re-verify and bump verified_commit,<br/>project/scripts/adr-index-gen.js:207
+            else nothing changed
+                GIT-->>GEN: empty
+                GEN-->>CI: the claim still holds
+            end
+        end
+    end
+
+    Note over GEN,CI: DEBT — at visionclaw f223bbd40 FIFTEEN host records fail this<br/>gate, each naming the governed path that moved under it. The<br/>gate works, and what it is reporting is a re-verification backlog,<br/>project/scripts/adr-index-gen.js:207.
+    Note over CI: INVARIANT — the gate is wired into the docs workflow rather than<br/>left to a habit: invalid frontmatter, asymmetric supersession<br/>edges and stale verification claims all fail the build,<br/>project/.github/workflows/docs-ci.yml:32. see VF-01
+    Note over REC: Presence of verified_paths is what ARMS the gate, which is why<br/>a record can be honestly unverified without failing CI,<br/>project/scripts/adr-index-gen.js:137-138.
 ```

@@ -5,9 +5,10 @@ area: estate
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/agentbox/docs/BASELINE-container.md
-adrs: [agentbox:ADR-2023, agentbox:ADR-2013, visionclaw:ADR-2027, visionclaw:ADR-2025, agentbox:ADR-2009, agentbox:ADR-2012, agentbox:ADR-2062]
+adrs: [agentbox:ADR-2023, agentbox:ADR-2013, visionclaw:ADR-2027, visionclaw:ADR-2025, agentbox:ADR-2009, agentbox:ADR-2012, agentbox:ADR-2062, agentbox:ADR-2034, agentbox:ADR-2104, agentbox:ADR-2096, agentbox:ADR-2098]
 sources:
   - ../project/.gitmodules
+  - ../project/.gitignore
   - ../project/Cargo.toml
   - ../project/docker-compose.unified.yml
   - ../project/docker-compose.cloudflared.yml
@@ -38,8 +39,17 @@ sources:
   - ../project/docs/adr/ADR-2027-three-deployment-profiles.md
   - ../project/docs/adr/ADR-2025-cross-from-agentbox-closed-map.md
   - ../project/agentbox/lib/solid-pod-rs.nix
+  - ../project/agentbox/flake.nix
+  - ../project/agentbox/services/agentbox-mcp/src/main.rs
+  - ../project/agentbox/services/agentbox-mcp/src/hub/mod.rs
+  - ../project/agentbox/docs/BASELINE-container.md
+  - ../project/agentbox/docs/INGRESS-identity.md
+  - ../project/agentbox/docs/GOVERNANCE-capabilities.md
+  - ../project/agentbox/docs/PROTOCOL-registry.md
+  - ../project/agentbox/docs/developer/economy-loop.md
+  - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
   - scripts/estate-health/roster.json
-verified_commit: {visionclaw: 36bb64e1e, agentbox: 2c521c5bb}
+verified_commit: {visionclaw: f223bbd40, agentbox: b7b1ab81a, visionflow: df22182f3}
 ---
 ## ES-01.1 Substrate map — the VisionClaw checkout's neighbourhood, not the whole estate
 ```mermaid
@@ -49,7 +59,7 @@ flowchart TB
         AB["agentbox<br/>git submodule at agentbox/<br/>.gitmodules: url=github.com/DreamLab-AI/agentbox.git"]
     end
     VC -->|"embeds as submodule<br/>path=agentbox, .gitmodules:1-3<br/>no branch key — the pin is a bare gitlink"| AB
-    AB -.->|"gitlink at VisionClaw HEAD: 1b43b70ff<br/>git ls-tree HEAD agentbox<br/>working tree runs ahead on main"| ABPIN["submodule pin"]
+    AB -.->|"gitlink at VisionClaw f223bbd40: c446783235<br/>git ls-tree HEAD agentbox<br/>working tree runs ahead on main"| ABPIN["submodule pin"]
 
     subgraph CRATE["Embedded as a Cargo dependency, not a checkout"]
         SPR["solid-pod-rs 0.4.0-alpha.15<br/>crates.io pin, Cargo.toml:219<br/>feature solid-pod-embed (ADR-032 M3)"]
@@ -79,42 +89,42 @@ flowchart TB
     NOTE2 -.-> VF
 ```
 
-## ES-01.2 Network / compute fabric — machinelearn, HP-Desktop rail, dead trap
+## ES-01.2 Network / compute fabric — gateway host, connected-node rail, retired-address trap
 ```mermaid
 flowchart LR
-    subgraph ML["machinelearn (LAN .132)"]
-        MLHOST["machinelearn host<br/>agentbox/skills/email-search/SKILL.md:79"]
+    subgraph ML["The gateway host (on the LAN)"]
+        MLHOST["gateway host<br/>agentbox/skills/email-search/SKILL.md:79"]
     end
-    subgraph HP["HP-Desktop (downstream, no LAN IP)"]
-        HPHOST["HP-Desktop<br/>john@10.10.10.1<br/>agentbox/docs/developer/hp-peer-node.md:3"]
-        LOOMFACADE["Loom façade port 8084<br/>~/githubs/loom docker container<br/>agentbox/docs/adr/ADR-2023-loom-facade.md"]
-        LOOMMODEL["loom-model container port 8085<br/>Qwen3.8-27B (cutover 2026-08-14)<br/>agentbox/skills/email-search/SKILL.md:94"]
+    subgraph HP["The connected node (downstream, no LAN IP)"]
+        HPHOST["connected node, user and address written as<br/>placeholders in the public repo<br/>agentbox/docs/developer/hp-peer-node.md:3"]
+        LOOMFACADE["Loom façade port 8084<br/>colocated with the model on the connected node<br/>agentbox/skills/email-search/SKILL.md:80"]
+        LOOMMODEL["loom-model container port 8085<br/>Qwen3.8-27B, cutover 2026-08-14<br/>agentbox/skills/email-search/SKILL.md:95"]
     end
-    MLHOST -->|"25G rail 10.10.10.0/30<br/>hp-nat.service DNAT port 8084<br/>agentbox/docs/developer/hp-peer-node.md:3"| HPHOST
+    MLHOST -->|"point-to-point 25 G rail, hp-peer-node.md:4<br/>the gateway's NAT service DNATs the façade<br/>agentbox/skills/email-search/SKILL.md:99"| HPHOST
     HPHOST --> LOOMFACADE
-    LOOMFACADE -->|"port 8085 HTTP delegates to model"| LOOMMODEL
-    MLHOST -->|"embeddings port 9997<br/>bge-small-en-v1.5<br/>agentbox/skills/email-search/SKILL.md:109"| XINF["xinference port 9997"]
+    LOOMFACADE -->|"port 8085 HTTP delegates to the model<br/>agentbox/skills/email-search/SKILL.md:81"| LOOMMODEL
+    MLHOST -->|"embeddings port 9997 on the gateway host<br/>bge models on xinference<br/>agentbox/skills/email-search/SKILL.md:113"| XINF["xinference port 9997"]
 
-    DEAD[".48 DEAD trap<br/>old 192.168.2.48 model host<br/>agentbox/docs/adr/ADR-2023-loom-facade.md:23<br/>agentbox/skills/email-search/SKILL.md:97,210"]
-    DEAD -.->|"never target — black-holes reasoning,<br/>GET /health still 200s"| LOOMFACADE
+    DEAD["RETIRED-ADDRESS TRAP — the old model host is dead<br/>agentbox/docs/adr/ADR-2023-loom-facade.md:24<br/>agentbox/skills/email-search/SKILL.md:99,217"]
+    DEAD -.->|"never target — black-holes every synthesis<br/>while GET /health still answers"| LOOMFACADE
 
-    MESHNODE["agentbox-hp<br/>2nd full agentbox, own did:nostr<br/>docker compose -f docker-compose.yml<br/>-f docker-compose.hp.yml up -d"]
+    MESHNODE["a second full agentbox on the connected node,<br/>with its own did:nostr identity and not an annexe<br/>agentbox/docs/developer/hp-peer-node.md:4<br/>brought up by the compose overlay, hp-peer-node.md:17"]
     HPHOST --- MESHNODE
-    MLHOST -->|"port 9096 NIP-98 door, signed by ml key -> 200<br/>unsigned -> 401 (hp-peer-node.md probe table)"| MESHNODE
-    MESHNODE -->|"port 7777 embedded relay, allowlisted signer -> OK true<br/>non-allowlisted -> rejected pubkey"| MLHOST
+    MLHOST -->|"port 9096 NIP-98 door, signed by the ml node key 200,<br/>unsigned 401, hp-peer-node.md:46-47"| MESHNODE
+    MESHNODE -->|"port 7777 embedded relay, allowlisted signer OK true,<br/>non-allowlisted logged rejected pubkey, hp-peer-node.md:49-50"| MLHOST
 
-    NOTEENV["Note (environment fact, not repo-sourced,<br/>cited per workspace CLAUDE.md Compute and LLM endpoints):<br/>machinelearn LAN is .132 on Mellanox p1 (ens1f1np1) to Sodola TE5;<br/>eno1 is 1G DHCP fallback .160 metric 700;<br/>HP rail is ens1f0np0 to enp65s0f0np0, MTU 9000, never-default;<br/>MSS clamp for the 9000 to 1500 step-down;<br/>Sodola VLANs 20/40/50/100; 192.168.2.0/24 trusted server segment"]
-    NOTEENV -.-> MLHOST
+    GEN["EXTERNAL and DOC-DRIFT resolved — commit 2899b3b7e generalised<br/>every literal estate address out of this public repository, so the<br/>hostnames, the rail subnet and the retired IP that earlier revisions<br/>of this diagram cited are no longer stated in any cited source.<br/>The placeholders are the fact now: hp-peer-node.md:3 writes the peer<br/>as user-at-peer-ip, and ADR-2023-loom-facade.md:24 writes the dead<br/>host as a retired address. Literal values live only in the<br/>operator environment, which is not a source of this corpus."]
+    GEN -.-> HPHOST
 ```
 
 ## ES-01.3 Service and port map — every published surface in the estate
 ```mermaid
 flowchart TB
     subgraph vcstack["VisionClaw stack — docker-compose.unified.yml"]
-        VCD["visionclaw_container<br/>profiles development, dev<br/>docker-compose.unified.yml:46,165-167"]
-        VCP["visionclaw_prod_container<br/>profiles production, prod<br/>docker-compose.unified.yml:170,239-241"]
-        LOOMB["loom-sidecar<br/>profile loom, docker-compose.unified.yml:288,350-351"]
-        CFT["cloudflared-tunnel<br/>profiles production, prod<br/>docker-compose.unified.yml:244,263-265"]
+        VCD["visionclaw_container<br/>profiles development, dev<br/>docker-compose.unified.yml:49,181-184"]
+        VCP["visionclaw_prod_container<br/>profiles production, prod<br/>docker-compose.unified.yml:187,255-258"]
+        LOOMB["loom-sidecar<br/>profile loom, docker-compose.unified.yml:305,366-367"]
+        CFT["cloudflared-tunnel<br/>profiles production, prod<br/>docker-compose.unified.yml:261,279-281"]
     end
     subgraph abstack["agentbox stack — agentbox/docker-compose.yml"]
         ABC["agentbox container<br/>agentbox/docker-compose.yml:30"]
@@ -129,12 +139,12 @@ flowchart TB
         OM["openmed"]
     end
 
-    VCD -->|"3001 nginx<br/>docker-compose.unified.yml:147"| EXT1["host"]
-    VCD -->|"4000 Rust backend<br/>docker-compose.unified.yml:148"| EXT1
-    VCP -->|"3001 only<br/>docker-compose.unified.yml:215"| EXT1
-    LOOMB -->|"host 8090 to container 8080<br/>docker-compose.unified.yml:335"| EXT1
-    ABC -->|"9096 LAN — the ONLY 0.0.0.0 publish<br/>agentbox/docker-compose.yml:54"| EXT1
-    ABC -->|"127.0.0.1 9090 9700 9091 8484 8888 5901 8080<br/>agentbox/docker-compose.yml:55-61"| LOOPBACK["loopback only"]
+    VCD -->|"port 3001 nginx<br/>docker-compose.unified.yml:163"| EXT1["host"]
+    VCD -->|"port 4000 Rust backend<br/>docker-compose.unified.yml:164"| EXT1
+    VCP -->|"port 3001 only<br/>docker-compose.unified.yml:231"| EXT1
+    LOOMB -->|"host port 8090 to container port 8080<br/>docker-compose.unified.yml:351"| EXT1
+    ABC -->|"port 9096 LAN — the ONLY 0.0.0.0 publish<br/>agentbox/docker-compose.yml:54"| EXT1
+    ABC -->|"loopback ports 9090 9700 9091 8484 8888 5901 8080<br/>agentbox/docker-compose.yml:55-61"| LOOPBACK["loopback only"]
     RPG -->|"5432 internal"| ABC
     BC -->|"0.0.0.0 5903 VNC / 8931 MCP SSE<br/>host 9222 to container 9223 CDP"| EXT1
     GT -->|"0.0.0.0 5905 / 9876 / 9877"| EXT1
@@ -156,20 +166,20 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph net["visionclaw_network — external bridge, declared in BOTH stacks"]
-        N1["docker-compose.unified.yml:363-366<br/>external true, name ${EXTERNAL_NETWORK:-visionclaw_network}"]
+        N1["docker-compose.unified.yml:369-372<br/>external true, name ${EXTERNAL_NETWORK:-visionclaw_network}"]
         N2["agentbox/docker-compose.override.yml:181-183<br/>alias visionclaw, external true"]
     end
-    subgraph vcvol["VisionClaw volumes — docker-compose.unified.yml:371-393"]
-        V1["loom-data — mirrored corpus generation"]
-        V2["visionclaw-data / visionclaw-logs"]
-        V3["npm-cache / cargo-cache / cargo-git-cache / cargo-target-cache"]
+    subgraph vcvol["VisionClaw volumes — docker-compose.unified.yml:374-396"]
+        V1["loom-data — mirrored corpus generation<br/>docker-compose.unified.yml:376"]
+        V2["visionclaw-data / visionclaw-logs<br/>docker-compose.unified.yml:380,383"]
+        V3["npm-cache / cargo-cache / cargo-git-cache / cargo-target-cache<br/>docker-compose.unified.yml:387,390,393,396"]
     end
-    subgraph abvol["agentbox volumes — agentbox/docker-compose.yml:167-194"]
-        W1["ruvector-pg-data / ruvector-data"]
-        W2["solid-data / sovereign-identities / agentbox-secrets"]
-        W3["code-harness-data / agentbox-events / consultations-data"]
-        W4["hf-cache / codeserver-config / telemetry-data"]
-        W5["nostr-relay-data / tailscale-state"]
+    subgraph abvol["agentbox volumes"]
+        W1["ruvector-pg-data / ruvector-data<br/>agentbox/docker-compose.yml:191,193"]
+        W2["solid-data / sovereign-identities / agentbox-secrets<br/>agentbox/docker-compose.yml:195,197,199"]
+        W3["code-harness-data / agentbox-events / consultations-data<br/>agentbox/docker-compose.yml:201,203,213"]
+        W4["hf-cache / codeserver-config / telemetry-data<br/>agentbox/docker-compose.yml:205,207,215"]
+        W5["nostr-relay-data / tailscale-state, opencode-store, aoe-profiles<br/>agentbox/docker-compose.yml:217,219,209,211"]
     end
     subgraph shared["Cross-container shared volumes"]
         S1["gui-tools-exchange — declared by the override AND by<br/>browsercontainer and gui-tools overlays. This is how the<br/>browser sidecar reads files this container writes."]
@@ -214,12 +224,14 @@ flowchart LR
 
     N1["Every overlay declares the same external network under the<br/>local alias visionclaw, so all sidecars share one bridge."]
     N2["group_add 965 is the docker socket gid — the container drives<br/>docker WITHOUT sudo, which no-new-privileges blocks."]
-    D1["RESOLVED ADR-2013 — the voice overlay publishes port 8443/:8444 on<br/>0.0.0.0 while the main compose publishes only port 9096. Across all<br/>overlays there are TEN sanctioned publishes, each cited on the<br/>SANCTIONED list and CI-enforced — decided exposures, not a<br/>breach. see ES-10.8"]
+    D1["RESOLVED ADR-2013 — the voice overlay publishes port 8443 and<br/>port 8444 on 0.0.0.0 while the main compose publishes only port<br/>9096. Both voice doors sit on the CI-enforced SANCTIONED list<br/>(check-ports-loopback.mjs:95-96), beside the port 9096 ingress<br/>(:94) and the browser CDP door (:99) — decided exposures, not a<br/>breach. see ES-10.8"]
+    D3["TENSION — the manifest declares the voice plane OFF while the<br/>voice stack runs. agentbox.toml:1681 sets [voice] enabled = false<br/>and calls it sidecar state with its own lifecycle, yet the two<br/>doors that stack publishes are permanently sanctioned in CI<br/>(check-ports-loopback.mjs:95-96). The gate therefore records the<br/>lifecycle owner, not whether voice is running: nothing in either<br/>file can be read as the answer to is voice up."]
     D2["TRAP — a build launched from INSIDE this container resolves bind<br/>paths against the HOST filesystem and silently bakes stale code.<br/>Build only from the host shell. see ES-09"]
 
     OV --> N1
     OV --> N2
     VF --> D1
+    VF --> D3
     BASE --> D2
 ```
 
@@ -233,10 +245,10 @@ flowchart TB
         R4["loom/ — README.md + app/<br/>deployment notes only, NO implementation.<br/>The Rust loom-facade lives in the separate loom repo."]
         R5["vircadia-world/ — server/ only"]
     end
-    subgraph stub["Gitignored symlinks — .gitignore:227-229, NOT submodules"]
-        S1["Kokoros -> /mnt/nvme/githubs/Kokoros (dangling here)"]
-        S2["Whisper-WebUI -> /mnt/mldata/githubs/Whisper-WebUI (dangling here)"]
-        S3["xinference -> /mnt/nvme/githubs/xinference (dangling here)<br/>live consumers: docker-compose.unified.yml:312,<br/>agentbox/docker-compose.yml:89"]
+    subgraph stub["Gitignored symlinks — .gitignore:238-240, NOT submodules"]
+        S1["Kokoros symlink, dangling here, .gitignore:238"]
+        S2["Whisper-WebUI symlink, dangling here, .gitignore:239"]
+        S3["xinference symlink, dangling in this container<br/>live consumers: docker-compose.unified.yml:318,<br/>agentbox/docker-compose.yml:108"]
     end
     subgraph ext["EXTERNAL — not on disk in any form"]
         E1["EXTERNAL: nostr-rust-forum"]
@@ -246,10 +258,69 @@ flowchart TB
     end
 
     WARN["INVARIANT for this diagram tree — a claim about an EXTERNAL<br/>repo may only assert what THIS repo's code or docs state.<br/>Nothing about their internals is asserted here."]
-    D1["DOC-DRIFT — these three are NOT submodules and are absent from<br/>.gitmodules. They are untracked symlinks to host paths<br/>(.gitignore:227-229), dangling in this container. git ls-files<br/>returns nothing for any of them. xinference nonetheless has live<br/>compose consumers, so its absence is a broken link, not an<br/>unused stub. see VC-35.12 for the Kokoros/Whisper half."]
+    D1["DOC-DRIFT — these three are NOT submodules and are absent from<br/>.gitmodules. They are untracked symlinks to host paths<br/>(.gitignore:238-240), dangling in this container. git ls-files<br/>returns nothing for any of them. xinference nonetheless has live<br/>compose consumers, so its absence is a broken link, not an<br/>unused stub. see VC-35.12 for the Kokoros/Whisper half."]
     D2["DIVERGENCE — loom/README.md records that a second Python<br/>implementation (app/{loom_facade,ontology_proxy,<br/>ontology_scaffold,loom_graph}.py, 1,727 lines) was DELETED<br/>2026-09-03 as a dead twin of the Rust facade. see ES-06.6"]
 
     stub --> D1
     R4 --> D2
     ext --> WARN
+```
+
+## ES-01.7 The MCP hub is a boot-order dependency, and the wait is bounded
+```mermaid
+sequenceDiagram
+    autonumber
+    participant SUP as supervisord program block<br/>agentbox/flake.nix:2532
+    participant MAIN as Hub subcommand<br/>agentbox/services/agentbox-mcp/src/main.rs:46
+    participant WAIT as wait_for_config<br/>agentbox/services/agentbox-mcp/src/hub/mod.rs:252
+    participant SERVE as serve<br/>agentbox/services/agentbox-mcp/src/hub/mod.rs:275
+    participant MAN as agentbox.toml resources.mcp_hub<br/>agentbox/agentbox.toml:1171
+
+    SUP->>MAIN: agentbox-mcp hub --config /run/agentbox/mcp-hub.json --bind, flake.nix:2533
+    MAIN->>SERVE: hand the wait budget over, main.rs:97-100
+    Note over MAIN: The budget is a CLI argument with a default of<br/>600 seconds, main.rs:55-56. It is a BOUNDED wait,<br/>not an indefinite one.
+    SERVE->>WAIT: poll for the projection, hub/mod.rs:280
+    loop every 500 ms until the file exists
+        WAIT->>WAIT: log progress every 15 s, hub/mod.rs:266-268
+    end
+    alt the projection never arrives
+        WAIT-->>SERVE: bail naming the path and asking whether the<br/>bootstrap program is projecting it, hub/mod.rs:260-265
+    else the projection is there
+        SERVE->>MAN: load the config and read the server list
+        MAN-->>SERVE: nine hub-routed servers, agentbox.toml:1175-1178
+        SERVE->>SERVE: refuse any non-loopback bind, hub/mod.rs:283-284
+        SERVE->>SERVE: bind the listener and register each child,<br/>hub/mod.rs:287,291
+    end
+    Note over SUP,MAN: INVARIANT — the hub is loopback only and refuses to<br/>start on any other bind, hub/mod.rs:284. The manifest<br/>pins 127.0.0.1 and the flake reads that value through,<br/>agentbox.toml:1173 and flake.nix:155.
+    Note over SUP,WAIT: DEBT — at this revision the supervisor pairs<br/>autorestart with startsecs=2, flake.nix:2540, so the<br/>600-second bail is a restart rather than a park. A<br/>missing projection therefore reads RUNNING while no<br/>port is bound. ADR-2104 is the record that closes this.
+    Note over MAN: Nine servers ride the hub, so this one program is the<br/>first check when several MCP servers refuse connections<br/>at once, agentbox.toml:1175-1178. see AB-09
+```
+
+## ES-01.8 The four governing documents and the proposed settlement sections they now carry
+```mermaid
+flowchart TB
+    subgraph LIVE["Live compliance surface — unchanged by the settlement pack"]
+        BC["BASELINE-container 0.4.0<br/>agentbox/docs/BASELINE-container.md:4"]
+        IG["INGRESS-identity 0.2.0<br/>agentbox/docs/INGRESS-identity.md:4"]
+        GC["GOVERNANCE-capabilities 0.6.0<br/>agentbox/docs/GOVERNANCE-capabilities.md:4"]
+        PR["PROTOCOL-registry, proposed governing surface<br/>agentbox/docs/PROTOCOL-registry.md:3"]
+    end
+
+    PRD["PROPOSED — PRD-024 sovereign settlement<br/>agentbox/docs/developer/economy-loop.md:249<br/>the chain is the sole value instrument"]
+
+    PRD -->|"sidechain manifest block, sidestr programs,<br/>rust-bitcoin accepted, three proposed invariants<br/>BASELINE-container.md:8"| BC
+    PRD -->|"three domain-separated keys, kind 38110,<br/>a second Multikey in the DID document<br/>INGRESS-identity.md:9"| IG
+    PRD -->|"every settlement passes payment_settlement,<br/>durable budget, fail-closed, anchor-not-seal<br/>GOVERNANCE-capabilities.md:8"| GC
+    PRD -.->|"the kind table gains the chain-plane kinds"| PR
+
+    RET["RETIRED — Lightning-first is superseded. x402 and l402<br/>classify but stay payable false permanently, and Lightning<br/>may return only as a bridge on-ramp<br/>agentbox/docs/developer/economy-loop.md:143"]
+    PRD --> RET
+
+    INV["INVARIANT — every one of these amendments is recorded in a<br/>clearly marked PROPOSED section and the Invariants compliance<br/>surface above it is unchanged. BASELINE-container.md:8,<br/>INGRESS-identity.md:9 and GOVERNANCE-capabilities.md:8 each<br/>say so in their own changelog entry. Nothing here is live."]
+    BC --> INV
+    IG --> INV
+    GC --> INV
+
+    LEDG["DIVERGENCE — the estate runs THREE independent did:nostr-keyed<br/>sats ledgers and none of them is synced with the others. The<br/>settlement pack is the first record to enumerate them in one<br/>place. see ES-03.9 and ES-08"]
+    PRD --> LEDG
 ```
