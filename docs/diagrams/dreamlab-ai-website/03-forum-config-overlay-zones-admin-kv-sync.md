@@ -22,7 +22,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/deploy/search-worker.wrangler.toml
   - ../dreamlab-ai-website/forum-config/deploy/preview-worker.wrangler.toml
   - ../dreamlab-ai-website/forum-config/deploy/migrations/001_init.sql
-verified_commit: 9a3dd8830
+verified_commit: 08e9e8578
 ---
 
 ## DW-03.1 The four-zone model, authored once

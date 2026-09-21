@@ -17,7 +17,13 @@ sources:
   - ../dreamlab-ai-website/playwright.config.ts
   - ../dreamlab-ai-website/tests/forum-smoke.spec.ts
   - ../dreamlab-ai-website/docs/BASELINE-architecture.md
-verified_commit: 9a3dd8830
+  - ../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md
+  - ../dreamlab-ai-website/scripts/dream-kit-pin-guard.sh
+  - ../dreamlab-ai-website/scripts/lib/pin-parity.mjs
+  - ../dreamlab-ai-website/scripts/__tests__/pin-parity.test.mjs
+  - ../dreamlab-ai-website/scripts/__tests__/dream-kit-pin-guard.test.mjs
+  - ../dreamlab-ai-website/scripts/__tests__/helpers/fixture-repo.mjs
+verified_commit: 08e9e8578
 ---
 
 ## DW-05.1 `ci.yml` — the ten-job PR/push gate and its aggregator
@@ -123,3 +129,24 @@ flowchart TB
 - INVARIANT: `update-timestamps` never commits directly to `main` — it always goes through a PR (`docs-update.yml:59-72`), so the elevated `contents: write` permission this job holds is scoped by GitHub's own PR-review gate, not exercised as a direct push.
 - The rolling-issue step deliberately searches for an existing open issue with the same title before creating a new one, to avoid duplicate issue spam on repeated stale-doc runs (`docs-update.yml:126-128` comment names prior duplicate issues #35/#37/#39/#40 as the reason).
 - This workflow is unrelated to `node scripts/adr-index-gen.js` (project `CLAUDE.md`'s ADR regeneration step) — it is a pure `last_updated` freshness checker/PR bot, not an ADR index generator.
+
+## DW-05.8 Pin-parity fixtures derive the pin from the live record
+```mermaid
+sequenceDiagram
+    autonumber
+    participant REC as kit-compatibility-record<br/>docs/architecture/kit-compatibility-record.md:30
+    participant PP as pin-parity tests<br/>scripts/__tests__/pin-parity.test.mjs:21
+    participant FX as makeFixtureRepo<br/>scripts/__tests__/helpers/fixture-repo.mjs:43
+    participant CK as checkKitPins<br/>scripts/lib/pin-parity.mjs:125
+    PP->>REC: read the record at REPO_ROOT, scripts/__tests__/pin-parity.test.mjs:21
+    REC-->>PP: CANONICAL_KIT_VERSION and the four RESOLVED checksum lines
+    PP->>PP: LIVE_VERSION, LIVE_CORE_CHECKSUM, LIVE_MESH_CHECKSUM, scripts/__tests__/pin-parity.test.mjs:22-24
+    PP->>FX: copy the live tree, corrupt one derived fact, scripts/__tests__/pin-parity.test.mjs:117-122
+    FX-->>PP: fixture root, scripts/__tests__/helpers/fixture-repo.mjs:62
+    PP->>CK: check the fixture, scripts/lib/pin-parity.mjs:125
+    CK-->>PP: not ok, an error naming the corrupted fact
+    Note over PP,FX: INVARIANT: no fixture hard-codes a kit version or<br/>checksum, so a kit bump cannot make a drift test<br/>stop failing, scripts/__tests__/pin-parity.test.mjs:22
+```
+- The wrapper suite derives the same two facts independently (`scripts/__tests__/dream-kit-pin-guard.test.mjs:23-24`) and drives them through `scripts/dream-kit-pin-guard.sh`, so the thin wrapper and the gate it delegates to are both exercised against the live record rather than against a snapshot of it.
+- **Debt:** `scripts/dream-kit-pin-guard.sh:9-18` records the cost already paid for the previous shape — a verbatim shell transcription of the evaluator reported `PIN-DRIFT-RECORD-VER` against a correctly pinned repository once the manifest moved to exact `=` pins, and never opened `forum-config/Cargo.lock` at all.
+- **Invariant:** the guard prints `PIN-PARITY-OK` or `PIN-DRIFT` and always exits 0 (`scripts/dream-kit-pin-guard.sh:20-22`); enforcement lives in `kit-pin-guard.yml`, so changing the exit code here silently disarms the gate.

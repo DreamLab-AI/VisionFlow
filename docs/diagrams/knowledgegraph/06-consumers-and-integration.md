@@ -11,7 +11,7 @@ sources:
   - ../knowledgeGraph/pipeline/ontocast_import.py
   - ../knowledgeGraph/README.md
   - docs/architecture/licensing.md
-verified_commit: 2791111fc
+verified_commit: {knowledgegraph: 2791111fc, visionflow: df22182f3}
 ---
 
 ## KG-06.1 Sibling repository map — what actually depends on what
@@ -49,8 +49,9 @@ sequenceDiagram
     OXI->>WHELK: classify
     WHELK-->>OXI: inferred axioms + PROV-O
     Note over KG,WHELK: transcribed from VisionClaw's own system-overview.md —<br/>message sequence lines 193-196, store description line 122,<br/>stack table line 244 #40;ecosystem.md:102-108#41;
-    Note over KG: DOC-DRIFT #40;flagged upstream#41;: VisionFlow's docs/architecture/licensing.md:11<br/>still records VisionClaw as MPL 2.0 — VisionClaw's root LICENSE is<br/>AGPL-3.0 since linking solid-pod-rs crates #40;ecosystem.md:121-127#41;
+    Note over KG: DOC-DRIFT, now INVERTED: docs/architecture/licensing.md:11 has been<br/>corrected and records VisionClaw as AGPL 3.0 only, but ecosystem.md:121-127<br/>still asserts that line "still says" MPL 2.0 — the stale side is now this repo
 ```
+- **Drift (ecosystem.md vs licensing.md):** `../knowledgeGraph/docs/ecosystem.md:125-127` says VisionClaw is "**not** MPL 2.0 today, despite what VisionFlow's `docs/architecture/licensing.md` line 11 still says"; that line now reads "AGPL 3.0 only" with the MPL relicense marked as proposed (`docs/architecture/licensing.md:11`), so the two agree and only the commentary is stale.
 
 ## KG-06.3 agentbox — Loom grounding and the ontology-bridge MCP server
 

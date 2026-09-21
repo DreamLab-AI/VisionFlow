@@ -3,7 +3,7 @@ id: SP-09
 title: CI gates, the release pipeline, versioning and the consumer pin matrix
 area: solid-pod-rs
 governing: [../solid-pod-rs/README.md, ../solid-pod-rs/crates/solid-pod-rs/docs/explanation/ecosystem-integration.md, ../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md]
-adrs: [ADR-2001]
+adrs: [ADR-2001, ADR-2008]
 sources:
   - ../solid-pod-rs/.github/workflows/ci.yml
   - ../solid-pod-rs/.github/workflows/release.yml
@@ -27,7 +27,8 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/benches/dpop_replay_bench.rs
   - ../solid-pod-rs/crates/solid-pod-rs/docs/benchmarks.md
   - ../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs
-verified_commit: 1d9da5270
+  - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
+verified_commit: 727549163
 ---
 
 ## SP-09.1 CI triggers and the concurrency guard
@@ -221,6 +222,8 @@ flowchart TD
     N2["The one source-compatibility note across alpha.8 to alpha.9 is ReplayError,<br/>which gained CapacityExhausted and is now non_exhaustive. nip98-replay is not in<br/>core, so no in-estate consumer is affected. See SP-05.5."]
     REL -.-> N2
 ```
+- **Open (ADR-2008, proposed):** the record makes closing the host/forum skew an exit criterion rather than a follow-up, with the host at `0.4.0-alpha.15` and the forum at an exact `=0.5.0-alpha.7` adopting one post-port version in lockstep (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:76-79) — nothing states which version that is, or who publishes it first.
+- **Debt:** removing `credit` and `debit` from the public API is named in the record as the one deliberately breaking change in the estate and a semver-major event for this crate (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:60-66, :86), so the pin matrix above is the surface that absorbs it.
 
 ## SP-09.8 Release history and what each bump changed
 

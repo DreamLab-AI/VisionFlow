@@ -12,7 +12,7 @@ sources:
   - ../vowl-wasm/examples/barnes_hut_benchmark.rs
   - ../vowl-wasm/.github/workflows/ci.yml
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts
-verified_commit: {vowl-wasm: 65e2d1e78, visionGraph: 9e308164c}
+verified_commit: {vowl-wasm: 65e2d1e78, visiongraph: 9e308164c}
 ---
 
 ## VW-04.1 `WebVowl` — the frozen 0.1.0 JS surface

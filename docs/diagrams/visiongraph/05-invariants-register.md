@@ -11,7 +11,7 @@ sources:
   - ../visionGraph/docs/adr/ADR-VG-002-generation-and-consumer-identity.md
   - ../visionGraph/CLAUDE.md
   - ../visionGraph/README.md
-verified_commit: 9e308164c
+verified_commit: 149d8eba638886f17dc5f8919be8c26502517ed0
 ---
 
 ## VG-05.1 Live invariants — what actually holds today
@@ -61,4 +61,24 @@ flowchart LR
     NOTESTABLISHED --> REOPEN
     STALE --> REOPEN
     note1["DIVERGENCE: this is a PROPOSED closeout contract #40;2026-09-04#41; that<br/>'separates current behaviour from proposed acceptance requirements' —<br/>it does not replace the existing authoring format or claim production<br/>activation #40;PUBLICATION-contract.md:3#41;"]
+```
+
+## VG-05.4 What the 2026-09-07 execution update closed, and what it did not
+
+```mermaid
+flowchart TB
+    SHARED["both publishers now share one boundary:<br/>public_projection.py — typed input preflight,<br/>known-private-reference filtering before inference<br/>and before every export stage<br/>PUBLICATION-contract.md:32"]
+    PROJ["projected Markdown replaces the workflow<br/>raw-copy bypass #40;see VG-03, VG-06#41;"]
+    ROLL["staged output promotion uses rename backups<br/>and rollback; a failed rollback RETAINS the<br/>recovery directory and reports build failure"]
+    NOTATOMIC["NOT atomic activation for simultaneous<br/>live readers — stated in the same paragraph"]
+    CSS["mobile: the search input may shrink and the<br/>provenance row may wrap; 375px client area had<br/>502px scroll width before the fix<br/>PUBLICATION-contract.md:38"]
+    NOTSPA["the frozen notes export gets a SCOPED stylesheet<br/>only — not an SPA source rebuild<br/>PUBLICATION-contract.md:34"]
+
+    SHARED --> PROJ --> ROLL --> NOTATOMIC
+    CSS --> NOTSPA
+
+    note1["DIVERGENCE: the execution update repairs source boundaries; it does NOT<br/>move either ADR out of proposed/partial/inactive — both remain pending<br/>their source-to-consumer acceptance conditions #40;PUBLICATION-contract.md:27#41;"]
+    NOTATOMIC -.-> note1
+    note2["INVARIANT: the real-corpus test now asserts the exclusion POLICY rather<br/>than requiring fourteen _misc files, and fixtures still prove an explicitly<br/>public held page never enters the publication walk #40;PUBLICATION-contract.md:32#41;"]
+    PROJ -.-> note2
 ```

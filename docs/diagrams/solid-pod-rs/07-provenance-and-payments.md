@@ -3,7 +3,7 @@ id: SP-07
 title: Provenance — git-marks, block-trails, Bitcoin anchoring — and the web ledger
 area: solid-pod-rs
 governing: [../solid-pod-rs/README.md, ../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md]
-adrs: [ADR-2004, ADR-2007]
+adrs: [ADR-2004, ADR-2007, ADR-2008]
 sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/provenance.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/mrc20.rs
@@ -20,7 +20,8 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/main.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/conditions.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/api.rs
-verified_commit: 1d9da5270
+  - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
+verified_commit: 727549163
 ---
 
 ## SP-07.1 The two provenance tiers
@@ -512,3 +513,41 @@ flowchart TD
     N3["pod_issuer_pubkey (solid-pod-rs-server/src/handlers/pay.rs:543) identifies the<br/>pod's own issuing key on the verified branch."]
     MRC -.-> N3
 ```
+
+## SP-07.18 The ledger today, and the proposed chain view (ADR-2008, proposed)
+
+```mermaid
+flowchart TB
+    subgraph LIVE["LIVE at 727549163 — a stored number this crate mutates"]
+        GB["get_balance reads the stored map<br/>solid-pod-rs/src/payments.rs:136"]
+        CR["credit mutates it upward<br/>solid-pod-rs/src/payments.rs:144"]
+        DB["debit fails closed on an insufficient balance<br/>solid-pod-rs/src/payments.rs:158"]
+        WL["write_ledger on PaymentStore is the authority<br/>solid-pod-rs/src/payments.rs:440"]
+        ST["Phase 0 stand-in credits vout plus one, times 1000 sats<br/>solid-pod-rs-server/src/handlers/pay.rs:498"]
+        ST --> CR
+        CR --> WL
+        DB --> WL
+        GB --> WL
+    end
+    subgraph PROP["PROPOSED, nothing built — decision_status proposed,<br/>implementation_status none, adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-6"]
+        P1["get_balance reads through sidestr-node and folds<br/>the UTXOs for that did:nostr, bounded cache<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:55"]
+        P2["credit and debit leave the public API — the only<br/>credit is a peg-in claim on the chain<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:60"]
+        P3["write_ledger stops being an authority, writes<br/>become cache population<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:62"]
+        P4["the TXO stand-in is DELETED, not left default-off<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:67"]
+        P5["bitcoin_tx.rs and mrc20.rs port to rust-bitcoin<br/>plus secp256k1, add_mod_n and neg_mod_n deleted<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:37"]
+        P6["acceptance gate: the three golden tests pass<br/>byte-identical over an unmodified fixture<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:43"]
+        P1 --> P2 --> P3
+        P4 --> P5 --> P6
+    end
+    LIVE --> PROP
+
+    N["INVARIANT (live): a staleness bound does not exist today because the balance is<br/>local — the proposal makes a stale figure an error rather than a slightly old<br/>number, which is a new failure mode callers do not handle yet.<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:57"]
+    PROP -.-> N
+    N2["EXTERNAL: ADR-2008 is this crate's projection of decisions taken elsewhere —<br/>agentbox ADR-2096 D3 and ADR-2099 D2/D3, and PRD-024 D0/D3/D4 — extending<br/>ADR-2007's single-explorer seam with the estate's own chain. MRC20 retires as a<br/>token rail but is retained as an anchoring primitive because block-trail anchors<br/>and the host's AnchorConfirmer depend on it.<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:15"]
+    PROP -.-> N2
+    N3["EXTERNAL: both consumers adopt one post-port version in LOCKSTEP — the host at<br/>0.4.0-alpha.15 and the forum at an exact 0.5.0-alpha.7 — and closing that skew is<br/>an exit criterion, not a follow-up. See SP-09.7.<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:76"]
+    PROP -.-> N3
+```
+- **Tension (ADR-2008 vs code):** the record describes the TXO stand-in as "guarded only by a replay key" (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:67-69), but the branch is gated on `deposit_txo_standin_enabled` (`solid-pod-rs-server/src/handlers/pay.rs:461`) which defaults to false (`solid-pod-rs-server/src/lib.rs:390`); the free-money oracle is reachable only when an operator switches it on, as SP-07.17 draws it.
+- **Open:** the record makes fixing non-atomic payment state a precondition of the port (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:72), but the lock it would have to replace is process-wide with no cross-resource CAS primitive behind it (`solid-pod-rs-server/src/lib.rs:200`) — nothing states what replaces it.
+- **Invariant:** nothing in the PROPOSED half is drawn as live; the record carries `decision_status: proposed` and `implementation_status: none` (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-6), and its own Verification section says "Proposed; nothing built" (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:97).

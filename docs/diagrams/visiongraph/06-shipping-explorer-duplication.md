@@ -16,7 +16,7 @@ sources:
   - ../knowledgeGraph/explorer/CLAUDE.md
   - ../knowledgeGraph/explorer/modern/package.json
   - ../knowledgeGraph/explorer/modern/src/site/mesh.ts
-verified_commit: 9e308164c
+verified_commit: {visiongraph: 149d8eba638886f17dc5f8919be8c26502517ed0, knowledgegraph: 75a5c1f1acda50bfe9d66a92a5343cf12f8b84ef}
 ---
 
 ## VG-06.1 Two copies of one codebase — 149 of 159 files byte-identical
@@ -81,7 +81,7 @@ flowchart TB
 ```mermaid
 flowchart LR
     DOCKER["publishing-tools/WasmVOWL/Dockerfile — 15 lines<br/>FROM tomcat:9-jre8-alpine<br/>wget .../webvowl_1.1.7.war into ROOT.war"]
-    DEPLOY["actual deploy path: publish.yml npm run build<br/>→ peaceiris/actions-gh-pages@v3 → gh-pages branch<br/>EXTERNAL: VG-03.1 — no Docker build, no container runtime"]
+    DEPLOY["actual deploy path: publish.yml npm run build<br/>→ peaceiris/actions-gh-pages, SHA-pinned → gh-pages branch<br/>EXTERNAL: VG-03.1 — no Docker build, no container runtime"]
     DOCKER -.->|"not referenced by publish.yml, docker-compose.yml,<br/>or any script in this tree"| DEPLOY
     note1["Inherited unchanged from upstream WebVOWL — a legacy artefact from the<br/>pre-React, Java-Tomcat-served WebVOWL 1.1.7 lineage #40;see also KG-04.5's<br/>'WebVOWL lineage, and what was rewritten'#41;. Harmless, but describes a<br/>deployment mechanism this repo does not use"]
 ```

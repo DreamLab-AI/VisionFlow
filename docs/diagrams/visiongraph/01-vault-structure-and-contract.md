@@ -12,7 +12,7 @@ sources:
   - ../visionGraph/docs/adr/README.md
   - ../visionGraph/pipeline/jsonld_parser.py
   - ../visionGraph/licensing/NOTICE
-verified_commit: 9e308164c
+verified_commit: 149d8eba638886f17dc5f8919be8c26502517ed0
 ---
 
 ## VG-01.1 Repo composition — two vaults, one pipeline, one publishing tool

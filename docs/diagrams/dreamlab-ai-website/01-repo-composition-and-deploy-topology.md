@@ -18,7 +18,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
   - ../dreamlab-ai-website/forum-config/src/workers.rs
   - ../dreamlab-ai-website/src/App.tsx
-verified_commit: 9a3dd8830
+verified_commit: 08e9e8578
 ---
 
 ## DW-01.1 Repo composition — thin operator overlay, not a protocol owner
@@ -28,7 +28,7 @@ flowchart TB
     REPO --> FCFG["forum-config/ overlay<br/>branding, zones, CF resource ids, kit pin<br/>CLAUDE.md:5-11"]
     REPO --> DOCS["docs/ — BASELINE, IDENTITY-zones,<br/>adr, api, security, deployment"]
     FCFG -. "EXTERNAL, cloned at KIT_REF" .-> KIT["nostr-rust-forum kit<br/>forum client, BBS client, 5 Workers<br/>see NF-*"]
-    REPO -. "config crates, crates.io" .-> CRATES["nostr-bbs-core/config/mesh/rate-limit<br/>=1.0.0-beta.10<br/>forum-config/Cargo.toml:49-52"]
+    REPO -. "config crates, crates.io" .-> CRATES["nostr-bbs-core/config/mesh/rate-limit<br/>=1.0.0-beta.11<br/>forum-config/Cargo.toml:49-52"]
 ```
 - "What this repo is" (BASELINE-architecture.md:35-41): a thin operator overlay — the forum source, Nostr crates, and five Workers all live upstream; this repo carries only the React site, `forum-config/`, and docs.
 - INVARIANT: `forum-config/Cargo.toml` license is `AGPL-3.0-only` (Cargo.toml:9) because it statically links the AGPL kit crates — the package comment (Cargo.toml:6-8) explicitly corrects an earlier "Proprietary" framing as "legally incoherent".
@@ -74,16 +74,18 @@ flowchart TB
 ## DW-01.5 The dual-pin rule — four locations that must move together
 ```mermaid
 flowchart TB
-    A["1. KIT_REF<br/>.github/workflows/deploy.yml:98"] --- SHA["931898a3d82da5dbf573b6b6dccdc76513046875"]
+    A["1. KIT_REF<br/>.github/workflows/deploy.yml:98"] --- SHA["64b15d5b574608c68a527c78b75a548b91f4c6e8"]
     B["2. KIT_REF<br/>.github/workflows/workers-deploy.yml:44"] --- SHA
     C["3. KIT_REF<br/>.github/workflows/rust-ci.yml:21"] --- SHA
-    D["4. rev pin, resolved version<br/>forum-config/Cargo.toml + Cargo.lock"] --- VER["1.0.0-beta.10"]
+    D["4. rev pin, resolved version<br/>forum-config/Cargo.toml + Cargo.lock"] --- VER["1.0.0-beta.11"]
     SHA -.->|"CANONICAL_KIT_SHA"| REC["kit-compatibility-record.md:30"]
     VER -.->|"CANONICAL_KIT_VERSION"| REC2["kit-compatibility-record.md:31"]
 ```
 - `workers-deploy.yml` fires on `forum-config/Cargo.lock` and `KIT_REF` changes precisely so a kit re-pin never ships a new client against old workers — the client/worker skew that "wiped the forum on 2026-06-15" (BASELINE-architecture.md:103-106).
-- DOC-DRIFT: `BASELINE-architecture.md:99-101` cites `KIT_REF = a7544687b4d1c09807862d749b27f8c8da307a12` and crate version `"1.0.0-beta.9"` (line 96) as current; the live pins (verified in `deploy.yml:98`, `workers-deploy.yml:44`, `rust-ci.yml:21`, `forum-config/Cargo.toml:49-52`, and `kit-compatibility-record.md:30-31`) are `931898a3d82da5dbf573b6b6dccdc76513046875` / `1.0.0-beta.10` — the kit was re-pinned after this governing doc's `verified_commit: d852f61` without a doc update. All four pin sites and the compatibility record agree with each other; only the governing doc has drifted.
-- DOC-DRIFT (Wave 2, the repo's most-read file): `README.md:289` states "Live pin `2d693ed2…` (beta.6, re-pinned 2026-07-21)" — a THIRD, even-older value distinct from both the governing doc's stale beta.9 citation above and the live beta.10 pin. The README is two releases stale, not one, and unlike `BASELINE-architecture.md` it is not covered by any `verified_commit` mechanism at all.
+- DOC-DRIFT: `BASELINE-architecture.md:99-101` cites `KIT_REF = a7544687b4d1c09807862d749b27f8c8da307a12` and crate version `"1.0.0-beta.9"` (line 96) as current; the live pins (verified in `deploy.yml:98`, `workers-deploy.yml:44`, `rust-ci.yml:21`, `forum-config/Cargo.toml:49-52`, and `kit-compatibility-record.md:30-31`) are `64b15d5b574608c68a527c78b75a548b91f4c6e8` / `1.0.0-beta.11` — the kit has been re-pinned twice since this governing doc's `verified_commit: d852f61` without a doc update. All four pin sites and the compatibility record agree with each other; only the governing doc has drifted.
+- DOC-DRIFT (Wave 2, the repo's most-read file): `README.md:289` states "Live pin `2d693ed2…` (beta.6, re-pinned 2026-07-21)" — a THIRD, even-older value distinct from both the governing doc's stale beta.9 citation above and the live beta.11 pin. The README is three releases stale, not one, and unlike `BASELINE-architecture.md` it is not covered by any `verified_commit` mechanism at all.
+- DOC-DRIFT: the pin sites carry their own stale prose. `rust-ci.yml:19` still annotates the pin "tracks nostr-rust-forum v1.0.0-beta.9" while `rust-ci.yml:21` pins `64b15d5`, and `deploy.yml:95-97` still describes the beta.10 change set beside the beta.11 `KIT_REF` at `deploy.yml:98`; only `kit-compatibility-record.md:26` was rewritten with the value.
+- INVARIANT: the machine-readable pin lives in exactly one place the gate reads — `CANONICAL_KIT_SHA` / `CANONICAL_KIT_VERSION` in `kit-compatibility-record.md:30-31` — and every other site is compared against it, which is why the surrounding comments can rot without the gate noticing (see DW-05.8).
 
 ## DW-01.6 Deploy job sequence — clone kit, build three frontends, merge, inject, deploy
 ```mermaid

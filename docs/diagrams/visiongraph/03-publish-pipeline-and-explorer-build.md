@@ -30,7 +30,7 @@ flowchart TD
     FIN["Finalize — CNAME and generated public markdown — see VG-03.4"]
     SMOKE["Explorer smoke — Playwright/CDP against built www/<br/>publish.yml:217-225"]
     NOTES["Preserve existing /notes directory<br/>clone gh-pages, copy notes/ if present<br/>pipeline/patch_notes_export.py:9"]
-    DEPLOY["Deploy — peaceiris/actions-gh-pages@v3<br/>external_repository: DreamLab-AI/knowledgeGraph<br/>publish.yml:240-247"]
+    DEPLOY["Deploy — peaceiris/actions-gh-pages, SHA-pinned<br/>external_repository: DreamLab-AI/knowledgeGraph<br/>publish.yml:241-247"]
     CO --> HON --> PYT --> RM --> BUILD --> VAL --> CONF --> IRI --> SPA --> FIN --> SMOKE --> NOTES --> DEPLOY
     note1["INVARIANT: concurrency group deploy-ontology is SEPARATE from the<br/>notes SPA — must never queue-starve or cancel it — 'different<br/>knowledge bases, don#39;t cross the streams' publish.yml:15-20"]
 ```
@@ -50,6 +50,8 @@ flowchart LR
     MIRROR --> FIX
     note1["DIVERGENCE #40;acknowledged, not closed#41;: 'the real fix is to stop<br/>tracking www/; this makes the build correct in the meantime'<br/>#40;publish.yml:91-92, comment verbatim#41;"]
 ```
+- **Invariant:** the workflow no longer copies authored Markdown into the published mirror at all — `pipeline.build` emits the title-form mirror from its public projection and the workflow only asserts the directory exists (`publish.yml:209-212`), because "body/raw JSON can cite private pages even when the containing page is public" (`publish.yml:210-211`).
+- **Debt:** the frozen `/notes` export is preserved by copy and then patched in place with a scoped stylesheet (`publish.yml:233-235`), so that surface is maintained by post-processing rather than rebuilt from source.
 
 ## VG-03.3 React SPA build — vowl-wasm consumed as a pinned, published package
 
