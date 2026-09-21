@@ -28,6 +28,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/boot_profile.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/d1_helpers.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/cors.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/tests/identity_subkey_vectors.rs
   - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/envelope.rs
@@ -39,7 +40,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-mesh/tests/federation.rs
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml
-verified_commit: d48a7a546
+verified_commit: 2f90c1916
 ---
 
 ## NF-12.1 Module map — what the workers and clients all link
@@ -140,24 +141,26 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant SD as Sender
-    participant RU as rumor kind 14<br/>nostr-bbs-core/src/gift_wrap.rs:172
-    participant SE as seal kind 13<br/>nostr-bbs-core/src/gift_wrap.rs:196
-    participant WR as wrap kind 1059<br/>nostr-bbs-core/src/gift_wrap.rs:243
+    participant RU as rumor kind 14<br/>nostr-bbs-core/src/gift_wrap.rs:185
+    participant SE as seal kind 13<br/>nostr-bbs-core/src/gift_wrap.rs:209
+    participant WR as wrap kind 1059<br/>nostr-bbs-core/src/gift_wrap.rs:256
     participant RC as Recipient
 
-    SD->>RU: create_rumor - UNSIGNED, carries the recipient p tag gift_wrap.rs:177
+    SD->>RU: create_rumor - UNSIGNED, carries the recipient p tag gift_wrap.rs:190
     RU->>SE: seal_rumor - signed by the sender's REAL key, NIP-44 encrypted
-    SE->>WR: wrap_seal - a fresh THROWAWAY keypair gift_wrap.rs:246
-    WR->>WR: NIP-44 encrypt the seal JSON, throwaway sk to recipient pk gift_wrap.rs:259
-    WR->>WR: outer p tag names the recipient gift_wrap.rs:265
+    SE->>WR: wrap_seal - a fresh THROWAWAY keypair gift_wrap.rs:259
+    WR->>WR: NIP-44 encrypt the seal JSON, throwaway sk to recipient pk gift_wrap.rs:277
+    WR->>WR: outer p tag names the recipient gift_wrap.rs:285
     WR-->>RC: kind 1059
-    RC->>RC: unwrap_gift gift_wrap.rs:324
-    RC->>RC: verify the SEAL's Schnorr signature before trusting seal.pubkey gift_wrap.rs:357
-    RC->>RC: rumor.pubkey MUST equal the verified seal.pubkey gift_wrap.rs:379
+    RC->>RC: unwrap_gift gift_wrap.rs:341
+    RC->>RC: verify the SEAL's Schnorr signature before trusting seal.pubkey gift_wrap.rs:374
+    RC->>RC: rumor.pubkey MUST equal the verified seal.pubkey gift_wrap.rs:396
 
     Note over WR: The ephemeral author is why relay admission cannot key on the author - it keys on the outer p tag instead, see NF-03.5, and delivery keys on the AUTHENTICATED session, see NF-11.5
-    Note over RC: INVARIANT author binding: the rumor's claimed author must match the signature-verified seal author gift_wrap.rs:379 - without this check a seal could carry any rumor
+    Note over RC: INVARIANT author binding: the rumor's claimed author must match the signature-verified seal author gift_wrap.rs:396 - without this check a seal could carry any rumor
     Note over SE: Kind constants: seal 13 gift_wrap.rs:30, wrap 1059 gift_wrap.rs:33. NIP-44 wire format is version || nonce 32 || ciphertext || mac 32 nostr-bbs-core/src/nip44.rs:11
+    Note over WR: INVARIANT the wrap timestamp is backdated PAST ONLY,<br/>never the future gift_wrap.rs:154. The wrap created_at is<br/>the only timestamp a relay can see, and relays refuse events<br/>dated ahead, so the old symmetric jitter silently dropped<br/>about half of all outbound DMs at admission gift_wrap.rs:130
+    Note over WR: The throwaway secret is held in Zeroizing so it scrubs<br/>on drop and on every early return gift_wrap.rs:266. The previous<br/>copy-then-zeroize left the original binding live, so that<br/>defence-in-depth scrub was a no-op
 ```
 
 ## NF-12.5 NIP-98 — the ten checks every REST call passes
@@ -295,5 +298,32 @@ flowchart LR
     N1["feature_gate is why the two workers cannot disagree on what DEVICE_KEYS_ENABLED means - each reads its<br/>OWN binding but shares the PARSE rule, so ADR-2004's lockstep requirement holds by construction rather<br/>than by review - see NF-02.7 and NF-08.8"]
     N2["cors is why the pod worker's DPoP, Updates-Via, WAC and payment header envelope cannot drift per<br/>worker - see NF-04.1"]
     N3["boot_profile is consumed by the BBS client's zone-bound one-shot PWA - see NF-05.11"]
+    CAL["is_calibration_sample keyed HMAC-SHA256 nostr-bbs-core/src/governance.rs:596<br/>ENV_CALIBRATION_SELECTION_KEY nostr-bbs-core/src/governance.rs:561"]
+
     N4["nip19 is the only place bech32 npub, nsec, nprofile and naddr are encoded; the recovery sheet's QR<br/>codes carry its output - see NF-05.8"]
+    N5["INVARIANT: calibration selection is KEYED, not a plain hash of the request id. The id is the 31402 d<br/>tag the agent chooses freely, so an unkeyed digest would let it grind ids until one is never sampled<br/>nostr-bbs-core/src/governance.rs:596 nostr-bbs-core/src/governance.rs:612"]
+    N6["The HMAC head is read as a big-endian u64 scaled into 0..1 and compared against the rate, so the<br/>decision is deterministic per request id nostr-bbs-core/src/governance.rs:616<br/>nostr-bbs-core/src/governance.rs:617. NaN or a non-positive rate samples nothing :599 - see NF-06"]
+```
+
+## NF-12.10 The second gift wrap — why the sender keeps a copy
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant SD as gift_wrap_pair_with_signer<br/>nostr-bbs-core/src/gift_wrap.rs:539
+    participant RU as create_rumor<br/>nostr-bbs-core/src/gift_wrap.rs:185
+    participant SR as seal_rumor_with_signer<br/>nostr-bbs-core/src/gift_wrap.rs:462
+    participant WS as wrap_seal<br/>nostr-bbs-core/src/gift_wrap.rs:256
+    participant RL as relay
+
+    SD->>RU: ONE rumor, shared by both seals gift_wrap.rs:549
+    SD->>SR: seal encrypted to the recipient gift_wrap.rs:552
+    SR->>WS: wrap it under a fresh throwaway key gift_wrap.rs:553
+    SD->>SR: seal encrypted to the SENDER's own pubkey gift_wrap.rs:559
+    SR->>WS: wrap that one under a different throwaway key gift_wrap.rs:560
+    SD-->>RL: publish BOTH kind 1059 events gift_wrap.rs:563
+
+    Note over SD: With one wrap everything you send is write-only - encrypted to the recipient, authored by a throwaway key, p-tagged to the recipient alone, so neither an authors nor a p filter ever finds it gift_wrap.rs:513-515
+    Note over SD: INVARIANT one rumor, two seals - calling the single-wrap path twice would mint two rumors with two created_at values and the sender's copy would drift from the recipient's gift_wrap.rs:536-538
+    Note over RL: The two wraps are independent events with distinct ids and distinct throwaway authors, by design, so an observer cannot link them to each other or to the sender gift_wrap.rs:530-532
 ```

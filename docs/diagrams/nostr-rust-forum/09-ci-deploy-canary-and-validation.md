@@ -31,7 +31,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/validate.rs
   - ../nostr-rust-forum/README.md
-verified_commit: d48a7a546
+verified_commit: 2f90c1916
 ---
 
 ## NF-09.1 The CI gate graph
@@ -137,7 +137,7 @@ sequenceDiagram
     OP->>CF: wrangler secret put for the two secrets SETUP.md:130
     OP->>CF: wrangler deploy, one crate at a time SETUP.md:139
     OP->>CF: DNS - CNAME or Workers Routes per subdomain SETUP.md:151
-    OP->>OP: FORUM_BASE=/community trunk build --release --public-url /community/ SETUP.md:185
+    OP->>OP: FORUM_BASE=/community trunk build --release --public-url /community/ SETUP.md:237
 
     Note over OP: worker-build is pinned to 0.8.4 because 0.8.5 breaks the abort-handler codegen SETUP.md:29
     Note over OP: The client build is where FORUM_BASE is baked in - it is a COMPILE-TIME constant, so a base change is a rebuild, not a config flip. See NF-05.1.
@@ -202,7 +202,7 @@ flowchart TB
     MESH --> TRAITS --> ONLYIMPL
     MESH --> DEP --> DEAD
 
-    N1["ANOMALY O9 re-verified and REFINED: the register calls nostr-bbs-mesh a trait scaffold with no impl<br/>AND no relay import. The no-impl half holds - only MockSocket implements the socket trait. The<br/>no-import half does NOT: the relay declares the dependency at nostr-bbs-relay-worker/Cargo.toml:26 and<br/>carries a documented-but-dead PeerConnector seam. README.md:384 repeats the stale claim - see NF-03.13."]
+    N1["ANOMALY O9 re-verified and REFINED: the register calls nostr-bbs-mesh a trait scaffold with no impl<br/>AND no relay import. The no-impl half holds - only MockSocket implements the socket trait. The<br/>no-import half does NOT: the relay declares the dependency at nostr-bbs-relay-worker/Cargo.toml:26 and<br/>carries a documented-but-dead PeerConnector seam. README.md:431 repeats the stale claim - see NF-03.13."]
     N2["The canary is the gate on ADR-2002: nostr-bbs-core keeps on-wasm32 Schnorr until a Shape A verdict<br/>lands AND a module is deliberately deleted - see NF-01.5"]
     N3["Both crates are DELIBERATELY inert. Neither is dead code to delete; each is a decision held open<br/>in compilable form."]
 ```

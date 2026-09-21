@@ -5,7 +5,7 @@ area: nostr-rust-forum
 governing:
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
-adrs: [ADR-2009, ADR-2007]
+adrs: [ADR-2009, ADR-2007, ADR-2012]
 sources:
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/acl.rs
@@ -29,7 +29,9 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/tests/wac_proptests.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/cors.rs
   - ../nostr-rust-forum/docs/consumer-surface-map.md
-verified_commit: d48a7a546
+  - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
+  - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
+verified_commit: 2f90c1916
 ---
 
 ## NF-04.1 Route surface
@@ -290,4 +292,30 @@ flowchart TB
     N2["DIVERGENCE: the related WAC Turtle serializer bare-path IRI quirk (legacy ADR-088) has ZERO live<br/>impact because this worker writes JSON-LD ACLs and never round-trips Turtle - see NF-04.4"]
     N3["The kit groups the three upstream features under ONE forum-facing alias so an operator flips a single<br/>switch rather than three docs/consumer-surface-map.md:52"]
     N4["Property tests cover the WAC document handling this whole topic rests on<br/>nostr-bbs-pod-worker/tests/wac_proptests.rs:1"]
+```
+
+## NF-04.11 The D1 ledger today, and the chain view ADR-2012 proposes
+
+```mermaid
+flowchart TB
+    subgraph live["LIVE at this revision - D1 is the ledger"]
+        STORE["D1PaymentStore<br/>nostr-bbs-pod-worker/src/payments.rs:148"]
+        CRED["credit_atomic - single-statement INSERT or update<br/>nostr-bbs-pod-worker/src/payments.rs:161"]
+        DEB["debit_atomic - UPDATE guarded by balance greater or equal cost<br/>nostr-bbs-pod-worker/src/payments.rs:183"]
+        BAL["read_balance returns the STORED number<br/>nostr-bbs-pod-worker/src/payments.rs:217"]
+        TRAIT["PaymentStore trait impl - read_ledger payments.rs:279,<br/>write_ledger payments.rs:301, for trait compliance only"]
+    end
+    STORE --> CRED --> DEB --> BAL --> TRAIT
+
+    PROP["PROPOSED, NOT BUILT - ADR-2012 decision_status proposed,<br/>implementation_status none<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:5-6"]
+    P1["D1 is demoted to a height-stamped derived view folded from<br/>sidestr UTXOs, and a staleness bound becomes an error<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:37-41"]
+    P2["credit_atomic and debit_atomic stop being settlement - the only<br/>credit is a peg-in claim, the only debit a chain spend<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:42-46"]
+    P3["solid-pod-rs moves in lockstep with the host, closing the pin<br/>skew as a P1 exit criterion<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:50-54"]
+
+    TRAIT -.->|"proposed successor"| PROP
+    PROP --> P1 & P2 & P3
+
+    N1["INVARIANT held today: settlement is a single SQL statement, never a read-modify-write -<br/>the module itself says to prefer the atomic pair over write_ledger<br/>nostr-bbs-pod-worker/src/payments.rs:303"]
+    N2["DIVERGENCE: atomicity is not authority. Nothing reconciles this balance with the two other<br/>did:nostr-keyed ledgers in the estate, which is the defect ADR-2012 exists to end<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:26-30"]
+    N3["EXTERNAL: ADR-2012 D5 freezes derive_subkey and its JS-parity vector as a Published Language<br/>for the settlement domain nostr-bbs-core/src/keys.rs:251, ADR-2012-d1-ledger-becomes-a-chain-view.md:55-62"]
 ```

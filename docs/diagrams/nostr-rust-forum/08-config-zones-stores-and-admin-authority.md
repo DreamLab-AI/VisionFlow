@@ -5,7 +5,7 @@ area: nostr-rust-forum
 governing:
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
-adrs: [ADR-2004, ADR-2006, ADR-2007]
+adrs: [ADR-2004, ADR-2006, ADR-2007, ADR-2011, ADR-2012]
 sources:
   - ../nostr-rust-forum/forum.example.toml
   - ../nostr-rust-forum/SETUP.md
@@ -28,7 +28,8 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/migrations/0003_username_reservations.sql
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/username.rs
-verified_commit: d48a7a546
+  - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
+verified_commit: 2f90c1916
 ---
 
 ## NF-08.1 forum.toml — the single source of access truth and its projection
@@ -108,7 +109,7 @@ sequenceDiagram
 flowchart TB
     subgraph d1["D1 databases"]
         AUTHDB["nostr-bbs-auth<br/>auth-worker DB nostr-bbs-auth-worker/wrangler.toml:9"]
-        RELDB["nostr-bbs-relay<br/>relay-worker DB nostr-bbs-relay-worker/wrangler.toml:58"]
+        RELDB["nostr-bbs-relay<br/>relay-worker DB nostr-bbs-relay-worker/wrangler.toml:74"]
     end
     subgraph kv["KV namespaces"]
         SESS["SESSIONS nostr-bbs-auth-worker/wrangler.toml:23"]
@@ -122,7 +123,7 @@ flowchart TB
         VECS["nostr-bbs-vectors nostr-bbs-search-worker/wrangler.toml:15"]
     end
     subgraph do["Durable Object"]
-        RELAYDO["RELAY class NostrRelayDO<br/>nostr-bbs-relay-worker/wrangler.toml:74 sqlite class :78"]
+        RELAYDO["RELAY class NostrRelayDO<br/>nostr-bbs-relay-worker/wrangler.toml:90 sqlite class :95"]
     end
 
     AUTHW["auth-worker"] --> AUTHDB
@@ -132,7 +133,7 @@ flowchart TB
     AUTHW -->|"POD_META backwards-compat reads nostr-bbs-auth-worker/wrangler.toml:30"| PODMETA
     AUTHW -->|"PODS nostr-bbs-auth-worker/wrangler.toml:42"| PODS
     RELAYW["relay-worker"] --> RELDB
-    RELAYW -->|"REPLAY_DB points at nostr-bbs-auth nostr-bbs-relay-worker/wrangler.toml:69"| AUTHDB
+    RELAYW -->|"REPLAY_DB points at nostr-bbs-auth nostr-bbs-relay-worker/wrangler.toml:85"| AUTHDB
     RELAYW --> RELAYDO
     PODW["pod-worker"] --> PODS
     PODW --> PODMETA
@@ -142,9 +143,10 @@ flowchart TB
     SEARCHW -->|"REPLAY_DB nostr-bbs-search-worker/wrangler.toml:25"| AUTHDB
     PREVW["preview-worker"] --> RL
 
-    N1["INVARIANT: NIP-98 replay lives in ONE database - every worker binds REPLAY_DB (or DB) to<br/>nostr-bbs-auth so cross-worker replay is detected nostr-bbs-relay-worker/wrangler.toml:63-70"]
+    N1["INVARIANT: NIP-98 replay lives in ONE database - every worker binds REPLAY_DB (or DB) to<br/>nostr-bbs-auth so cross-worker replay is detected nostr-bbs-relay-worker/wrangler.toml:79-86"]
     N2["ANOMALY O11 still live: KV and SESSIONS are the SAME physical namespace id<br/>nostr-bbs-auth-worker/wrangler.toml:24 and :39 - key-collision risk across the two logical uses"]
     N3["The auth-worker RELAY_DB database_id is a ZERO placeholder that every deployment must override<br/>nostr-bbs-auth-worker/wrangler.toml:20 - shipped unusable on purpose"]
+    N4["PROPOSED, NOT BUILT: ADR-2012 demotes the pod-worker payment D1 from ledger to a height-stamped<br/>derived view over the sidestr chain, with a staleness bound that is an error<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:5-6 ADR-2012-d1-ledger-becomes-a-chain-view.md:37-41.<br/>Nothing in this store map changes until it is built - see NF-04.11"]
 ```
 
 ## NF-08.5 Table map — who creates each table and who reads it
@@ -156,19 +158,20 @@ flowchart TB
         A2["mod_reports schema.rs:82<br/>wot_entries schema.rs:103<br/>members schema.rs:116<br/>invitations schema.rs:123"]
         A3["invitation_redemptions schema.rs:136<br/>welcome_messages schema.rs:164<br/>instance_settings schema.rs:182<br/>username_reservations schema.rs:208"]
     end
-    subgraph relayd1["nostr-bbs-relay D1 - bootstrapped by nostr-bbs-relay-worker/src/lib.rs:593"]
-        R1["channel_zones lib.rs:622<br/>admin_log lib.rs:627<br/>settings lib.rs:638<br/>reports lib.rs:644<br/>hidden_events lib.rs:659"]
-        R2["profiles lib.rs:681<br/>agent_registry lib.rs:695<br/>broker_cases lib.rs:705<br/>broker_decisions lib.rs:727"]
-        R3["governance_receipts lib.rs:744<br/>broker_roles lib.rs:762<br/>pubkey_aliases lib.rs:775<br/>device_keys - created by the AUTH worker nostr-bbs-auth-worker/src/devices.rs:123"]
+    subgraph relayd1["nostr-bbs-relay D1 - bootstrapped by nostr-bbs-relay-worker/src/lib.rs:630"]
+        R1["channel_zones lib.rs:681<br/>admin_log lib.rs:686<br/>settings lib.rs:697<br/>reports lib.rs:703<br/>hidden_events lib.rs:718"]
+        R2["profiles lib.rs:740<br/>agent_registry lib.rs:754<br/>broker_cases lib.rs:764<br/>broker_decisions lib.rs:786"]
+        R3["governance_receipts lib.rs:803<br/>broker_roles lib.rs:821<br/>pubkey_aliases lib.rs:834<br/>case_side_receipts lib.rs:847<br/>case_delegations lib.rs:859<br/>device_keys - created by the AUTH worker nostr-bbs-auth-worker/src/devices.rs:123"]
     end
 
-    N1["INVARIANT: both bootstraps are idempotent and run on EVERY cold start, so a newly added table exists<br/>before any handler touches it - CREATE TABLE IF NOT EXISTS throughout schema.rs:27 and lib.rs:622"]
+    N1["INVARIANT: both bootstraps are idempotent and run on EVERY cold start, so a newly added table exists<br/>before any handler touches it - CREATE TABLE IF NOT EXISTS throughout schema.rs:27 and lib.rs:681"]
     N2["device_keys is the one cross-worker table: the AUTH worker creates and writes it into the RELAY's D1<br/>so the relay DO can read it at NIP-42 AUTH with no cross-worker call - see NF-02.7"]
     N3["Two tables are missing from BOTH bootstraps - see NF-08.6"]
+    N4["INVARIANT: migration 0006 is MIRRORED into ensure_schema, the live schema path, so the<br/>application-receipt and delegation tables exist on a cold start without the migration runner<br/>lib.rs:847 lib.rs:859"]
 ```
 
 Both workers bootstrap idempotently on every cold start — the auth worker at
-`nostr-bbs-auth-worker/src/schema.rs:19`, the relay at `nostr-bbs-relay-worker/src/lib.rs:593`.
+`nostr-bbs-auth-worker/src/schema.rs:19`, the relay at `nostr-bbs-relay-worker/src/lib.rs:630`.
 
 ## NF-08.6 The two tables no code in this repo creates
 
@@ -178,7 +181,7 @@ flowchart TB
     EVENTS["events table<br/>SETUP.md:69 - created by wrangler d1 execute"]
     WL["whitelist table<br/>SETUP.md:82 - created by wrangler d1 execute"]
     READERS["Read on the hot path<br/>whitelist SELECT nostr-bbs-relay-worker/src/whitelist.rs:87<br/>whitelist INSERT nostr-bbs-relay-worker/src/whitelist.rs:315<br/>whitelist admin count nostr-bbs-relay-worker/src/whitelist.rs:427"]
-    NOCREATE["No CREATE TABLE for events or whitelist exists in<br/>relay migrations 0001-0005 or in ensure_schema<br/>nostr-bbs-relay-worker/src/lib.rs:593"]
+    NOCREATE["No CREATE TABLE for events or whitelist exists in<br/>relay migrations 0001-0005 or in ensure_schema<br/>nostr-bbs-relay-worker/src/lib.rs:630"]
 
     SETUP --> EVENTS
     SETUP --> WL
@@ -186,7 +189,7 @@ flowchart TB
     NOCREATE -.-> READERS
 
     N1["DIVERGENCE: the relay's two most load-bearing tables (events, whitelist) are deployment-time<br/>artefacts of a SETUP.md copy-paste, not repo migrations. Every other table is idempotently created<br/>in code. A deployment that skips SETUP.md:65-87 boots and then fails every admission query."]
-    N2["Governance tables are created TWICE - by migration 0002_governance.sql:5,17,39,52 and inline by<br/>the relay bootstrap relay lib.rs:695,705,727,762. Both use IF NOT EXISTS, so this is duplication, not drift.<br/>SETUP.md:97 states the same."]
+    N2["Governance tables are created TWICE - by migration 0002_governance.sql:5,17,39,52 and inline by<br/>the relay bootstrap relay lib.rs:754,764,786,821. Both use IF NOT EXISTS, so this is duplication, not drift.<br/>SETUP.md:97 states the same."]
 ```
 
 ## NF-08.7 Admin authority — three sources, one union, and where they disagree
@@ -206,7 +209,7 @@ flowchart TB
 
     N1["INVARIANT: the pubkey is lower-cased before every lookup - a mixed-case NIP-98 pubkey would<br/>otherwise miss every store and be silently denied nostr-bbs-auth-worker/src/admin.rs:62"]
     N2["INVARIANT fail-closed: any D1 error or missing row returns false, never ambient authority<br/>nostr-bbs-auth-worker/src/admin.rs:103"]
-    N3["DIVERGENCE: the relay reads members from its OWN D1 (nostr-bbs-relay) at<br/>nostr-bbs-relay-worker/src/auth.rs:192, but no migration and no bootstrap creates a members table there<br/>(relay lib.rs:593 creates 13 tables, none of them members). That branch is structurally dead;<br/>effective relay authority is ADMIN_PUBKEYS union whitelist.is_admin only."]
+    N3["DIVERGENCE: the relay reads members from its OWN D1 (nostr-bbs-relay) at<br/>nostr-bbs-relay-worker/src/auth.rs:192, but no migration and no bootstrap creates a members table there<br/>(relay lib.rs:630 creates 16 tables, none of them members). That branch is structurally dead;<br/>effective relay authority is ADMIN_PUBKEYS union whitelist.is_admin only."]
     N4["DOC-DRIFT: ADMIN_PUBKEYS is DECLARED in exactly one wrangler template - the search worker,<br/>nostr-bbs-search-worker/wrangler.toml:33 - yet is read by the auth worker (admin.rs:71) and the relay<br/>(auth.rs:183). The relay template asserts the opposite: there is no ADMIN_PUBKEYS reader in src/<br/>nostr-bbs-relay-worker/wrangler.toml:10-13. SETUP.md:119-124 never lists it either."]
     N5["Consequence of N4: a by-the-book deployment has NO static admin bootstrap on relay or auth,<br/>and the search worker ships a REAL non-placeholder pubkey as its default admin<br/>nostr-bbs-search-worker/wrangler.toml:33 - the only non-generic value in any template."]
 ```
@@ -221,8 +224,9 @@ flowchart LR
     GATEFN["auth gate reads its OWN binding<br/>nostr-bbs-auth-worker/src/devices.rs:100"]
     SHARED["shared parse rule only<br/>nostr-bbs-core feature_gate"]
     AM["AUTH_MODE=nip42 default<br/>nostr-bbs-relay-worker/wrangler.toml:31"]
-    MESH["MESH_MODE=standalone<br/>nostr-bbs-relay-worker/wrangler.toml:52"]
+    MESH["MESH_MODE=standalone<br/>nostr-bbs-relay-worker/wrangler.toml:68"]
     ESC["ESCALATION_DEFAULT_TIER=medium<br/>nostr-bbs-relay-worker/wrangler.toml:48"]
+    CAL["CALIBRATION_SELECTION_KEY - a SECRET, deliberately NOT a plaintext var<br/>nostr-bbs-relay-worker/wrangler.toml:51-54"]
 
     DKA --> GATEFN --> SHARED
     DKR --> SHARED
@@ -232,4 +236,6 @@ flowchart LR
     N2["INVARIANT: enables on the EXACT string true; unset, empty or anything else is off<br/>nostr-bbs-auth-worker/src/devices.rs:112, asserted nostr-bbs-auth-worker/src/devices.rs:974"]
     N3["AUTH_MODE: anything other than allowlist resolves to the secure nip42 default<br/>nostr-bbs-relay-worker/wrangler.toml:29-31 - see NF-03"]
     N4["ESCALATION_DEFAULT_TIER is a declared SCAFFOLD - the authoritative risk-tier schema is owned by<br/>agentbox, EXTERNAL: see AB-14 and AB-15; an unrecognised tier folds to medium<br/>nostr-bbs-relay-worker/wrangler.toml:41-48"]
+    N5["INVARIANT: calibration sampling is HMAC over a key the agent cannot read. The request id is the<br/>31402 d tag, which the agent chooses, so the key secrecy is the only thing stopping it grinding tags<br/>until it finds one sampling never selects nostr-bbs-relay-worker/wrangler.toml:56-61 - see NF-12"]
+    N6["Unset, the relay STILL samples and logs a warning on every projection - silently disabling<br/>oversight is treated as the worse failure nostr-bbs-relay-worker/wrangler.toml:63-65"]
 ```

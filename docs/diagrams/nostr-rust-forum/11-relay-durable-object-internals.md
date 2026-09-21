@@ -5,7 +5,7 @@ area: nostr-rust-forum
 governing:
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
-adrs: [ADR-2005, ADR-2006, ADR-2010]
+adrs: [ADR-2005, ADR-2006, ADR-2010, ADR-2011]
 sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/mod.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/session.rs
@@ -27,11 +27,12 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/moderation.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0005_governance_receipts.sql
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
   - ../nostr-rust-forum/README.md
-verified_commit: 380a595f150dd96bfe27ff278fff9ded1be7fbd0
+verified_commit: 2f90c1916
 ---
 
 ## NF-11.1 The Durable Object and its in-memory state
@@ -97,10 +98,10 @@ flowchart TB
     SESS["find_session_id else recover_session<br/>relay_do/mod.rs:199"]
     JSON["parse as a JSON array of length >= 2<br/>relay_do/mod.rs:211 relay_do/mod.rs:219"]
     EV["EVENT to handle_event<br/>relay_do/mod.rs:236 - see NF-03.4"]
-    RQ["REQ to handle_req<br/>relay_do/mod.rs:246, handler relay_do/nip_handlers.rs:1002"]
+    RQ["REQ to handle_req<br/>relay_do/mod.rs:246, handler relay_do/nip_handlers.rs:1293"]
     CL["CLOSE relay_do/mod.rs:264"]
     AU["AUTH relay_do/mod.rs:269 - see NF-03.2"]
-    CO["COUNT relay_do/mod.rs:279, handler relay_do/nip_handlers.rs:1502"]
+    CO["COUNT relay_do/mod.rs:279, handler relay_do/nip_handlers.rs:1827"]
     UN["unknown frame relay_do/mod.rs:299"]
     WC["websocket_close relay_do/mod.rs:306"]
 
@@ -108,7 +109,7 @@ flowchart TB
     JSON --> EV & RQ & CL & AU & CO & UN
 
     N1["A malformed frame is answered with a NOTICE rather than a socket close - the relay never drops a<br/>connection for one bad message relay_do/mod.rs:211-219"]
-    N2["Subscriptions are capped at MAX_SUBSCRIPTIONS = 20 per session, enforced on REQ<br/>relay_do/nip_handlers.rs:44 relay_do/nip_handlers.rs:1028"]
+    N2["Subscriptions are capped at MAX_SUBSCRIPTIONS = 20 per session, enforced on REQ<br/>relay_do/nip_handlers.rs:44 relay_do/nip_handlers.rs:1319"]
 ```
 
 ## NF-11.4 Storage — NIP-16 treatment decides what a save deletes
@@ -159,7 +160,8 @@ sequenceDiagram
 
     Note over B: INVARIANT NIP-59: a sealed DM is delivered ONLY to the session whose AUTHENTICATED pubkey matches the p tag - subscribing to kind 1059 is not enough relay_do/broadcast.rs:49-51
     Note over B: This is the read-side twin of the write-side recipient gate in NF-03.5. Admission bounds who may PUBLISH a wrap, this bounds who may RECEIVE one.
-    Note over B: A separate filter-level gate rewrites kind-1059 REQ filters to a mandatory #p in BOTH auth modes relay_do/nip_handlers.rs:1335 - so DM privacy never depends on AUTH_MODE relay_do/nip42.rs:183-186
+    Note over B: INVARIANT what broadcast matches against is the GATED filter, because handle_req now stores the authorised filter rather than the client's raw one relay_do/nip_handlers.rs:1372-1374 relay_do/nip_handlers.rs:1380 - see NF-03.14
+    Note over B: A separate filter-level gate rewrites kind-1059 REQ filters to a mandatory #p in BOTH auth modes relay_do/nip_handlers.rs:1637 - so DM privacy never depends on AUTH_MODE relay_do/nip42.rs:236-239
 ```
 
 ## NF-11.6 Subscription matching — the REQ filter predicate
@@ -181,7 +183,7 @@ flowchart TB
     M --> C1 --> C2 --> C3 --> C4 --> C5 --> OK
     M -.-> HELP
 
-    N1["Semantics are AND across fields, OR within a field - an absent field is UNCONSTRAINED, which is why<br/>a filter naming no kinds requests everything and is still not blocked by the protected-read gate<br/>(asserted relay_do/nip42.rs:307). See NF-03.3."]
+    N1["Semantics are AND across fields, OR within a field - an absent field is UNCONSTRAINED, which is why<br/>a filter naming no kinds requests everything and is still not blocked by the protected-read gate<br/>(asserted relay_do/nip42.rs:360). See NF-03.3."]
     N2["The SAME predicate serves both directions: query_events replays history relay_do/storage.rs:249 and<br/>broadcast_event tests each live event against every session subscription - see NF-11.5"]
     N3["d_tag_value is what storage stamps at INSERT so parameterised replacement is an indexed DELETE -<br/>see NF-11.4 N1"]
 ```
@@ -242,54 +244,79 @@ flowchart TB
     N1["Three outcomes only: Full serves the event as-is, FreeBusy serves to_free_busy, Omit drops it<br/>relay_do/calendar_projection.rs:53 relay_do/calendar_projection.rs:66-68"]
     N2["INVARIANT deny-by-default: the terminal arm is Omit relay_do/calendar_projection.rs:138 - a viewer with<br/>no recognised cohort must remain UNAWARE the event exists relay_do/calendar_projection.rs:58"]
     N3["Free/busy keeps start, end, venue and a busy flag ONLY. An event NOT at a recognised venue is omitted<br/>rather than shown as free/busy, so friends see venue blocking and never off-site activity<br/>relay_do/calendar_projection.rs:25-29 - this is what makes 'you learn the room is booked, not whose party<br/>it is' true rather than aspirational"]
-    N4["DOC-DRIFT CLOSED: README.md:365 asserts the tiered calendar and its 25 unit tests. The tests are here -<br/>the module carries its own suite from relay_do/calendar_projection.rs:190 - and the write side is gated<br/>by the SAME function, see NF-03.12 N3"]
+    N4["DOC-DRIFT CLOSED: README.md:412 asserts the tiered calendar and its 25 unit tests. The tests are here -<br/>the module carries its own suite from relay_do/calendar_projection.rs:190 - and the write side is gated<br/>by the SAME function, see NF-03.12 N3"]
 ```
 
-## NF-11.9 Governance receipts — ADR-2010 is implemented, not merely proposed
+## NF-11.9 Governance receipts — the ten-stage ladder, owned by core
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Signed: valid signature, correlates to a case<br/>relay_do/receipts.rs:80
-    Signed --> RelayAccepted: durably stored - what an OK actually certifies<br/>relay_do/receipts.rs:83
-    RelayAccepted --> ProjectionCommitted: decision row, case state and receipt commit TOGETHER<br/>relay_do/receipts.rs:85
-    RelayAccepted --> ProjectionFailed: attempted and did not commit<br/>relay_do/receipts.rs:88
-    ProjectionCommitted --> [*]
+    [*] --> Signed: valid signature, correlates to a case<br/>nostr-bbs-core/src/governance.rs:915
+    Signed --> RelayAccepted: durably stored - what an OK actually certifies<br/>nostr-bbs-core/src/governance.rs:918
+    RelayAccepted --> ProjectionCommitted: decision row, case state and receipt commit TOGETHER<br/>nostr-bbs-core/src/governance.rs:920
+    RelayAccepted --> ProjectionFailed: attempted and did not commit<br/>nostr-bbs-core/src/governance.rs:923
+    ProjectionCommitted --> ConsumerReceived: the mutation owner has READ it, not acted<br/>nostr-bbs-core/src/governance.rs:925
+    ConsumerReceived --> Applied: the act was performed and took effect<br/>nostr-bbs-core/src/governance.rs:927
+    ConsumerReceived --> NotApplied: the owner did not perform it, and says so<br/>nostr-bbs-core/src/governance.rs:930
+    ConsumerReceived --> AppliedManually: an operator did it by hand during an outage<br/>nostr-bbs-core/src/governance.rs:932
+    Applied --> [*]
+    NotApplied --> [*]
+    AppliedManually --> [*]
     ProjectionFailed --> [*]
 
     note right of Signed
-        INVARIANT monotonic: a stage may only ADVANCE, never regress, which is
-        what stops a late duplicate from downgrading a committed receipt back
-        to accepted relay_do/receipts.rs:71-73
+        The ladder MOVED out of the relay into nostr-bbs-core when FR4.1 added
+        the application stages, because the auth worker's receipts endpoint and
+        this projection path must agree on it and share no other code
+        relay_do/receipts.rs:69-77
+        Re-exported here so every existing path keeps working
+        relay_do/receipts.rs:77
     end note
     note right of ProjectionFailed
-        is_applied is the distinction a downstream operator needs: a DENIED
+        is_applied is the distinction a downstream operator needs - a DENIED
         action and an APPROVED action whose write FAILED must never look the
-        same relay_do/receipts.rs:112-115
-        Terminal until a reconciliation retry supersedes it relay_do/receipts.rs:86
+        same nostr-bbs-core/src/governance.rs:928-930
+        Terminal until a reconciliation retry supersedes it
+        nostr-bbs-core/src/governance.rs:921
     end note
-    note right of ProjectionCommitted
-        correlate maps an event to its case relay_do/receipts.rs:164
-        apply_with_receipt drives the transition relay_do/receipts.rs:334
-        ReceiptStore is the seam relay_do/receipts.rs:302, D1ReceiptStore the
-        implementation relay_do/receipts.rs:420, table from migration
-        0005_governance_receipts.sql:12
+    note right of Applied
+        INVARIANT the three application outcomes are a SET, not an order.
+        The derived Ord ranks declaration order, which is meaningful for the
+        rungs up to consumer-received and NOT for these three - they are
+        mutually exclusive claims about the world, and a consumer that reduces
+        them with max displays a success as a failure
+        nostr-bbs-core/src/governance.rs:891-901
+        Compare rungs by ladder_rank, treat outcomes as a set
+        nostr-bbs-core/src/governance.rs:974
     end note
 ```
 
-## NF-11.10 What ADR-2010 still leaves open
+**Two side receipts** record something that happened to a case without advancing it
+toward application, and so never overwrite a ladder stage
+(`nostr-bbs-core/src/governance.rs:987`).
+
+## NF-11.10 Side receipts, the read API, and what ADR-2010 still leaves open
 
 ```mermaid
-flowchart LR
-    IMPL["IMPLEMENTED in-relay<br/>signed, relay-accepted, projection-committed, projection-failed<br/>relay_do/receipts.rs:76"]
-    OPEN["SEPARATE consumer implementations<br/>Agentbox durable received/outcome ledger<br/>VisionClaw dispatch journal and conditional PR claim"]
-    LEDGER["ADR-2010 ledger row: proposed / partial / inactive<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:1"]
+flowchart TB
+    SIDE["Side receipts - never on the ladder<br/>escalated-on-age nostr-bbs-core/src/governance.rs:935<br/>expired nostr-bbs-core/src/governance.rs:937<br/>ladder_rank returns None for both nostr-bbs-core/src/governance.rs:981"]
+    API["GET /api/governance/receipts - NIP-98 ADMIN<br/>relay_do/receipts.rs:623, routed at nostr-bbs-relay-worker/src/lib.rs:275"]
+    JSON["receipt_json derives the flags rather than making every client<br/>re-implement stage semantics relay_do/receipts.rs:578"]
+    FLAGS["applied relay_do/receipts.rs:598<br/>awaitsProjection relay_do/receipts.rs:599<br/>isApplicationStage relay_do/receipts.rs:603<br/>appliedAt appliedBy acknowledgement relay_do/receipts.rs:604"]
+    LEDGER["ADR-2010 ledger row: proposed / partial / inactive<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:5"]
+    OPEN["Still SEPARATE consumer implementations<br/>agentbox durable received/outcome ledger<br/>VisionClaw dispatch journal and conditional PR claim"]
 
-    IMPL --> OPEN
-    LEDGER -.-> IMPL
+    SIDE --> JSON
+    API --> JSON --> FLAGS
+    LEDGER -.-> API
+    FLAGS --> OPEN
 
-    N1["DOC-DRIFT: BASELINE-architecture's closing section calls the receipt contract 'proposed and inactive'<br/>and says 'current relay OK establishes acceptance only'. The relay-side stage machine is REAL and wired -<br/>relay_do/receipts.rs:76 defines the stages, relay_do/receipts.rs:334 applies them, and NF-03.10 shows<br/>handle_event logging 'accepted but not applied' from the returned receipt. Consumer stages now exist in Agentbox and VisionClaw, with explicit uncertain-outcome<br/>reconciliation. A relay receipt still cannot prove external application."]
-    N2["This refines NF-06.7 and NF-10.8: the remaining acceptance needs deployed correlation and witnessed external outcomes.<br/>EXTERNAL: consumer-received and applied belong to VC-24 and AB-14, estate loop ES-05"]
-    N3["INVARIANT: the projection commit is ATOMIC - decision row, case state and receipt in one batch<br/>relay_do/receipts.rs:84-85. A receipt that says committed cannot outlive a decision that did not land."]
+    N1["The relay now serves the APPLICATION stages on the read API, so the human who approved something<br/>can learn whether it actually happened - the loop ADR-2010 left open relay_do/receipts.rs:600-603"]
+    N6["INVARIANT: migration 0006 is mirrored into ensure_schema, the live schema path, so case_side_receipts<br/>and case_delegations exist on a cold start without the migration runner<br/>nostr-bbs-relay-worker/src/lib.rs:847 nostr-bbs-relay-worker/src/lib.rs:859 - see NF-08.5"]
+    N2["INVARIANT: the projection commit is ATOMIC - decision row, case state and receipt in one batch<br/>relay_do/receipts.rs:285. A receipt that says committed cannot outlive a decision that did not land."]
+    N3["DIVERGENCE: the read stays scoped to the relay's existing ADMIN authority because ADR-2010's<br/>history-consumer extension leaves cross-case read authority to ratify relay_do/receipts.rs:619-622"]
+    N4["DOC-DRIFT: the ADR ledger row still reads proposed / partial / inactive<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:5-7 while the ten-stage ladder, the<br/>application stages and the read API are all wired. A relay receipt still cannot prove external<br/>application - EXTERNAL: see VC-24 and AB-14, estate loop ES-05"]
+    N5["This refines NF-06.7 and NF-10.8: the remaining acceptance needs deployed correlation and<br/>witnessed external outcomes"]
 ```
 
 ## NF-11.11 The trust demotion sweep — keyset paging, explicit outcomes
@@ -344,20 +371,24 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    CRON["scheduled entry<br/>nostr-bbs-relay-worker/src/lib.rs:853"]
+    CRON["scheduled entry<br/>nostr-bbs-relay-worker/src/lib.rs:952"]
     BF["backfill_profiles - ONE-SHOT, manual only<br/>nostr-bbs-relay-worker/src/cron.rs:72"]
     CAP["BACKFILL_MAX_ROWS ceiling per run<br/>nostr-bbs-relay-worker/src/cron.rs:45, stop at cron.rs:128"]
     RES["BackfillResult<br/>nostr-bbs-relay-worker/src/cron.rs:157"]
     RET["retention / NIP-40 expiry sweep<br/>nostr-bbs-relay-worker/src/cron.rs:284"]
+    AGE["ageing sweep - escalate_stale_cases<br/>nostr-bbs-relay-worker/src/cron.rs:595"]
     SW["trust demotion sweep - moved OUT to trust_sweep<br/>nostr-bbs-relay-worker/src/cron.rs:269"]
 
-    CRON --> RET & SW
+    CRON --> RET & SW & AGE
     BF --> CAP --> RES
 
     N1["The profiles backfill is triggered manually via POST /api/admin/profiles/backfill and NOT from the cron,<br/>because it is a one-shot operation and the live ingest hook keeps rows fresh thereafter<br/>nostr-bbs-relay-worker/src/cron.rs:24-26"]
     N2["It is idempotent behind a freshness guard, so a re-run never overwrites a newer row<br/>nostr-bbs-relay-worker/src/cron.rs:11"]
     N3["The sweep was MOVED out of cron.rs because the inline form was unsound - it mutates trust_level, the<br/>very column its own candidate predicate filters on nostr-bbs-relay-worker/src/cron.rs:269-271. See NF-11.12."]
     N4["The advertised retention windows are built from the SAME RETENTION_POLICY the sweep uses, so NIP-11 and<br/>the cron can never diverge nostr-bbs-relay-worker/src/nip11.rs:173-175"]
+    N5["INVARIANT: the ageing sweep is ordered and filtered by each case's OWN deadline, not by created_at -<br/>panels declare different deadlines, so oldest first is not most overdue first, and ordering by<br/>created_at made the page ceiling cut the LEAST overdue nostr-bbs-relay-worker/src/cron.rs:606-610,<br/>the SQL at nostr-bbs-relay-worker/src/cron.rs:619"]
+    N6["A case exactly AT its deadline has not yet exceeded it nostr-bbs-relay-worker/src/cron.rs:570,<br/>the predicate at nostr-bbs-relay-worker/src/cron.rs:571, asserted nostr-bbs-relay-worker/src/cron.rs:998"]
+    N7["An ageing escalation is a SIDE receipt - it records what happened to a case without advancing it<br/>toward application nostr-bbs-core/src/governance.rs:935 - see NF-11.10"]
 ```
 
 ## NF-11.14 NIP-11 — the relay information document cannot lie about its own gate
@@ -377,7 +408,7 @@ flowchart TB
 
     N1["INVARIANT: the advertised auth_required must reflect the mode the handlers ACTUALLY enforce - it is<br/>sourced from the same parser, so the NIP-11 claim can never drift from behaviour<br/>nostr-bbs-relay-worker/src/nip11.rs:155-157. This is the strongest possible refutation of the stale<br/>README status row in NF-03.3."]
     N2["The escalation block is explicitly a SCAFFOLD whose authoritative schema is owned by agentbox -<br/>said in the served document itself nostr-bbs-relay-worker/src/nip11.rs:55.<br/>EXTERNAL: see AB-15, and NF-06.5"]
-    N3["NIP-45 COUNT and NIP-50 SEARCH are advertised - handlers at relay_do/nip_handlers.rs:1502 and<br/>nostr-bbs-relay-worker/src/profiles.rs:249"]
+    N3["NIP-45 COUNT and NIP-50 SEARCH are advertised - handlers at relay_do/nip_handlers.rs:1827 and<br/>nostr-bbs-relay-worker/src/profiles.rs:249"]
 ```
 
 ## NF-11.15 Admin and moderation surfaces on the worker

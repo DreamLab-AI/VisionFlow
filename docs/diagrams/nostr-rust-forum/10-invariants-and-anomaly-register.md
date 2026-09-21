@@ -44,8 +44,10 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/tests/upstream_vectors/mod.rs
   - ../nostr-rust-forum/docs/consumer-surface-map.md
   - ../nostr-rust-forum/.github/workflows/ci.yml
+  - ../nostr-rust-forum/docs/security/known-findings.md
+  - ../nostr-rust-forum/docs/security/advisory-exceptions.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs
-verified_commit: {nostr-rust-forum: 3c2a77928d0d9b2fba3ba4f56a774e4f931f383e}
+verified_commit: {nostr-rust-forum: 2f90c1916}
 ---
 
 ## NF-10.1 The compliance surface — BASELINE-architecture invariants
@@ -53,10 +55,10 @@ verified_commit: {nostr-rust-forum: 3c2a77928d0d9b2fba3ba4f56a774e4f931f383e}
 ```mermaid
 flowchart LR
     I1["1 nostr-bbs-core owns on-wasm32 Schnorr until the canary records Shape A<br/>nostr-bbs-upstream-canary/src/lib.rs:17 - see NF-01.5"]
-    I2["2 FORUM_BASE is applied in exactly TWO places<br/>Router base nostr-bbs-forum-client/src/app.rs:817 | base_href nostr-bbs-forum-client/src/app.rs:50 - see NF-05.1"]
+    I2["2 FORUM_BASE is applied in exactly TWO places<br/>Router base nostr-bbs-forum-client/src/app.rs:832 | base_href nostr-bbs-forum-client/src/app.rs:54 - see NF-05.1"]
     I3["3 channel counts are derived, never accumulated<br/>count_for nostr-bbs-forum-client/src/stores/channels.rs:159 | dedup on insert channels.rs:444 - see NF-05.6"]
     I4["4 .acl and .meta sidecar access coerces to Control<br/>nostr-bbs-pod-worker/src/acl.rs:85 | shared policy nostr-bbs-pod-worker/src/acl.rs:34 - see NF-04.3"]
-    I5["5 gift-wraps are recipient-whitelist-gated, never author-gated<br/>gift_wrap_recipient nip_handlers.rs:114 | admission nip_handlers.rs:549 - see NF-03.5"]
+    I5["5 gift-wraps are recipient-whitelist-gated, never author-gated<br/>gift_wrap_recipient nip_handlers.rs:114 | admission nip_handlers.rs:806 - see NF-03.5"]
     I6["6 solid-pod-rs stays an EXACT pin<br/>nostr-rust-forum/Cargo.toml:155 - see NF-01.4"]
 
     I1 --> I2 --> I3
@@ -89,14 +91,14 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph closed["Confirmed CLOSED at this commit"]
-        O1["O1 TL1 promotion and demotion unwired - CLOSED.<br/>Reads tally then check_promotion nip_handlers.rs:889; demotion is cron-driven. See NF-03.8."]
+        O1["O1 TL1 promotion and demotion unwired - CLOSED.<br/>Reads tally then check_promotion nip_handlers.rs:1180; demotion is cron-driven. See NF-03.8."]
         O3["O3 KV ACL fast-path masks R2 delegation - CLOSED.<br/>R2 authoritative, KV miss-fallback only nostr-bbs-pod-worker/src/acl.rs:311, rationale acl.rs:253. See NF-04.4."]
     end
     subgraph live["Confirmed STILL LIVE"]
-        O2["O2 NIP-29 group metadata 39000-39002 accepted from admin CLIENTS rather than relay-key-signed.<br/>Acknowledged TODO nip_handlers.rs:700, admin gate nip_handlers.rs:707. Spec drift. See NF-03.4 step 11."]
-        O5["O5 deleting a kind-40 destroys the is_channel_creator lookup, locking a TL2 author out of their own<br/>channel metadata - lookup nip_handlers.rs:660, deletion path nip_handlers.rs:896. See NF-03.7."]
+        O2["O2 NIP-29 group metadata 39000-39002 accepted from admin CLIENTS rather than relay-key-signed.<br/>Acknowledged TODO nip_handlers.rs:957, admin gate nip_handlers.rs:964. Spec drift. See NF-03.4 step 11."]
+        O5["O5 deleting a kind-40 destroys the is_channel_creator lookup, locking a TL2 author out of their own<br/>channel metadata - lookup nip_handlers.rs:917, deletion path nip_handlers.rs:1187. See NF-03.7."]
         O11a["O11 KV and SESSIONS are the SAME physical namespace id -<br/>nostr-bbs-auth-worker/wrangler.toml:24 and nostr-bbs-auth-worker/wrangler.toml:39. See NF-08.4."]
-        O11b["O11 /api/native-pod/provision has no in-repo caller and placeholder vars -<br/>route nostr-bbs-auth-worker/src/lib.rs:578, NATIVE_POD_URL nostr-bbs-auth-worker/wrangler.toml:52. See NF-02.2."]
+        O11b["O11 /api/native-pod/provision has no in-repo caller and placeholder vars -<br/>route nostr-bbs-auth-worker/src/lib.rs:599, NATIVE_POD_URL nostr-bbs-auth-worker/wrangler.toml:52. See NF-02.2."]
     end
 ```
 
@@ -105,11 +107,11 @@ flowchart TB
 ```mermaid
 flowchart TB
     O4["O4 members-vs-whitelist admin split - PARTLY fixed, then broken differently.<br/>Both workers now union static plus both tables (nostr-bbs-auth-worker/src/admin.rs:57, nostr-bbs-relay-worker/src/auth.rs:179),<br/>but the relay queries members in its OWN D1 (nostr-bbs-relay-worker/src/auth.rs:192) where no migration creates it.<br/>See NF-08.7."]
-    O6["O6 NIP-07 silent no-op DM subscription - CORRECTED. The subscription registers unconditionally<br/>(nostr-bbs-forum-client/src/dm/mod.rs:229). The real limit is per-event: a NIP-04-only extension fails gift-wrap<br/>unwrap at nostr-bbs-forum-client/src/dm/mod.rs:647 and it IS surfaced via state.error at dm/mod.rs:648. See NF-05.9."]
+    O6["O6 NIP-07 silent no-op DM subscription - CORRECTED. The subscription registers unconditionally<br/>(nostr-bbs-forum-client/src/dm/mod.rs:253). The real limit is per-event: a NIP-04-only extension fails gift-wrap<br/>unwrap at nostr-bbs-forum-client/src/dm/mod.rs:787 and it IS surfaced via state.error at dm/mod.rs:801. See NF-05.9."]
     O7["O7 NIP05_USERNAME_HOST hardcoded - NARROWER than filed. nostr-bbs-forum-client/src/pages/settings.rs:32 defines<br/>and settings.rs:334 uses it; signup.rs reads no such constant. A settings-only display fallback. See NF-05.7."]
     O9["O9 nostr-bbs-mesh has no impl AND no relay import - HALF holds. No production MeshSocket impl exists<br/>(only nostr-bbs-mesh/src/mock.rs:249), but the relay DOES declare the dependency nostr-bbs-relay-worker/Cargo.toml:26.<br/>See NF-09.8."]
     O10["O10 wasm_bridge has no JS consumers - CONFIRMED. The upstream-vector suite is soft-skipped, not<br/>failed, when fixtures are absent (nostr-bbs-core/tests/upstream_vectors/mod.rs:11) and no workflow runs<br/>sync-fixtures.sh. See NF-09.3."]
-    O11c["O11 broker_decisions is write-only - CORRECTED. A read endpoint exists:<br/>GET /api/governance/decisions with pagination and a case filter,<br/>nostr-bbs-auth-worker/src/governance_api.rs:503. See NF-06.9."]
+    O11c["O11 broker_decisions is write-only - CORRECTED. A read endpoint exists:<br/>GET /api/governance/decisions with pagination and a case filter,<br/>nostr-bbs-auth-worker/src/governance_api.rs:622. See NF-06.9."]
 ```
 
 ## NF-10.5 O8 duplications — each re-verified
@@ -118,8 +120,8 @@ flowchart TB
 flowchart LR
     D1["provision_pod TWICE<br/>nostr-bbs-forum-client/src/pages/signup.rs:174<br/>nostr-bbs-forum-client/src/pages/settings.rs:1752<br/>CONFIRMED - two independent implementations"]
     D2["qr_svg TWICE<br/>nostr-bbs-forum-client/src/components/recovery_sheet.rs:66<br/>nostr-bbs-forum-client/src/utils/devices.rs:236<br/>CONFIRMED"]
-    D3["relay URL resolved TWICE<br/>inline nostr-bbs-forum-client/src/relay.rs:964<br/>shared helper nostr-bbs-forum-client/src/utils/relay_url.rs:121<br/>CONFIRMED - and the FALLBACKS DIVERGE<br/>nostr-bbs-forum-client/src/relay.rs:22 versus nostr-bbs-forum-client/src/utils/relay_url.rs:13"]
-    D4["per-page kind-0 subscription duplicating the app-root ProfileCache<br/>root sub nostr-bbs-forum-client/src/app.rs:736<br/>page sub nostr-bbs-forum-client/src/pages/settings.rs:435<br/>CONFIRMED - the page sub self-cancels after 5 s settings.rs:450"]
+    D3["relay URL resolved TWICE<br/>inline nostr-bbs-forum-client/src/relay.rs:968<br/>shared helper nostr-bbs-forum-client/src/utils/relay_url.rs:131<br/>CONFIRMED - and the FALLBACKS DIVERGE<br/>nostr-bbs-forum-client/src/relay.rs:22 versus nostr-bbs-forum-client/src/utils/relay_url.rs:13"]
+    D4["per-page kind-0 subscription duplicating the app-root ProfileCache<br/>root sub nostr-bbs-forum-client/src/app.rs:751<br/>page sub nostr-bbs-forum-client/src/pages/settings.rs:435<br/>CONFIRMED - the page sub self-cancels after 5 s settings.rs:450"]
 
     N1["D3 is the only one with a behavioural consequence rather than mere duplication: two different default<br/>relay URLs mean a deployment that forgets window.__ENV__ reaches a DIFFERENT relay depending on which<br/>code path asked first. See NF-05.7 N2."]
 ```
@@ -128,13 +130,13 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    DD1["README.md:383 calls NIP-42 AUTH scaffolded with auth_required false. The code says otherwise:<br/>nip42 is the DEFAULT nip42.rs:62, the template ships AUTH_MODE nip42 nostr-bbs-relay-worker/wrangler.toml:31,<br/>and every EVENT passes the gate first nip_handlers.rs:535. The row understates a shipped feature.<br/>See NF-03.3."]
-    DD2["README.md:384 says nostr-bbs-mesh is NOT a dependency of the relay-worker.<br/>nostr-bbs-relay-worker/Cargo.toml:26 declares it. See NF-09.8."]
+    DD1["README.md:430 calls NIP-42 AUTH scaffolded with auth_required false. The code says otherwise:<br/>nip42 is the DEFAULT nip42.rs:115, the template ships AUTH_MODE nip42 nostr-bbs-relay-worker/wrangler.toml:31,<br/>and every EVENT passes the gate first nip_handlers.rs:792. The row understates a shipped feature.<br/>See NF-03.3."]
+    DD2["README.md:431 says nostr-bbs-mesh is NOT a dependency of the relay-worker.<br/>nostr-bbs-relay-worker/Cargo.toml:26 declares it. See NF-09.8."]
     DD3["nostr-bbs-relay-worker/wrangler.toml:10 asserts there is no ADMIN_PUBKEYS reader in src/.<br/>nostr-bbs-relay-worker/src/auth.rs:183 reads it, and so does nostr-bbs-auth-worker/src/admin.rs:71.<br/>Only nostr-bbs-search-worker/wrangler.toml:33 declares the var. See NF-08.7."]
     DD4["nostr-rust-forum/Cargo.toml:49 workspace.metadata.ci.wasm-check-packages names two crates and is read by NOTHING -<br/>the wasm job checks the whole workspace .github/workflows/ci.yml:174. Inert metadata. See NF-01.2."]
     DD5["nostr-bbs-upstream-canary/src/lib.rs:10 names a five-NIP build matrix but only three smokes exist<br/>nostr-bbs-upstream-canary/src/lib.rs:35 nostr-bbs-upstream-canary/src/lib.rs:56 nostr-bbs-upstream-canary/src/lib.rs:89 - nip04, nip59 and nip98 are unexercised. The same doc calls the crate<br/>nostr-upstream-canary nostr-bbs-upstream-canary/src/lib.rs:14 while the package is nostr-bbs-upstream-canary. See NF-01.5."]
-    DD6["The search-worker cron runs every five minutes and reindexes NOTHING - the handler body is a<br/>load_store warm touch nostr-bbs-search-worker/src/lib.rs:708. See NF-07.1."]
-    DD7["nostr-bbs-core/src/governance.rs:295 KIND_GOVERNANCE_AUDIT_LOG is numerically the SAME kind as<br/>KIND_PANEL_RETIRED nostr-bbs-core/src/governance.rs:32, and only three of the six documented ACS types have<br/>Rust structs. See NF-06.1 and NF-06.2."]
+    DD6["The search-worker cron runs every five minutes and reindexes NOTHING - the handler body is a<br/>load_store warm touch nostr-bbs-search-worker/src/lib.rs:851. See NF-07.1."]
+    DD7["nostr-bbs-core/src/governance.rs:1195 KIND_GOVERNANCE_AUDIT_LOG is numerically the SAME kind as<br/>KIND_PANEL_RETIRED nostr-bbs-core/src/governance.rs:32, and only three of the six documented ACS types have<br/>Rust structs. See NF-06.1 and NF-06.2."]
     DD8["docs/consumer-surface-map.md:20 lists the git panel as calling /.well-known/apps; the client fetches<br/>/apps/manifest.json and no .well-known path exists in that crate. See NF-05.10."]
 ```
 
@@ -146,7 +148,7 @@ flowchart TB
     S2["ADMIN_PUBKEYS is read by auth and relay but declared in neither template and named in no SETUP step<br/>SETUP.md:119. A by-the-book deployment has no static admin bootstrap. See NF-08.7."]
     S3["The preview worker's SSRF guard is denylist-only without PREVIEW_ALLOWED_HOSTS, which the template<br/>never sets nostr-bbs-preview-worker/wrangler.toml:13. The code says so itself - the Workers runtime exposes no<br/>resolve-then-pin primitive nostr-bbs-preview-worker/src/ssrf.rs:13 - and there is no wall-clock timeout.<br/>See NF-07.6."]
     S4["DEVICE_KEYS_ENABLED ships false in BOTH templates nostr-bbs-auth-worker/wrangler.toml:55<br/>nostr-bbs-relay-worker/wrangler.toml:21, so the whole ADR-099/100 device story is dormant by default and<br/>revocation has no effect at AUTH. See NF-02.7."]
-    S5["MESH_ALLOWED_REMOTE_DIDS ships empty nostr-bbs-relay-worker/wrangler.toml:55, so the federated-kind gate at<br/>nip_handlers.rs:584 is inert. Standalone is the only supported mode. See NF-03.13."]
+    S5["MESH_ALLOWED_REMOTE_DIDS ships empty nostr-bbs-relay-worker/wrangler.toml:71, so the federated-kind gate at<br/>nip_handlers.rs:841 is inert. Standalone is the only supported mode. See NF-03.13."]
     S6["Neither anti-drift-lint.sh nor identity-vector-parity.mjs is invoked by any workflow, so the<br/>ADR-2003 cross-stack parity proof is manual on the JS side. See NF-09.3."]
 ```
 
@@ -163,7 +165,7 @@ flowchart LR
     A2010 --> Q2010
 
     N1["DOC-DRIFT: the IDENTITY-keys-and-trust closeout still states OFFSET row-skipping and ignored write<br/>errors as CURRENT defects. Both are fixed - keyset paging nostr-bbs-relay-worker/src/trust_sweep.rs:432<br/>and confirmed-commit-only counters nostr-bbs-relay-worker/src/trust_sweep.rs:487. The governing doc needs<br/>the qualification retired; see NF-11.11 and NF-11.12."]
-    N2["DOC-DRIFT: the relay-side receipt machine is REAL, not proposed - stages at<br/>nostr-bbs-relay-worker/src/relay_do/receipts.rs:76, applied at receipts.rs:334, and handle_event logs<br/>accepted-but-not-applied from the returned receipt nip_handlers.rs:947. Only the CONSUMER half is absent.<br/>See NF-11.9 and NF-11.10."]
+    N2["DOC-DRIFT: the relay-side receipt machine is REAL, not proposed - stages at<br/>nostr-bbs-core/src/governance.rs:913, applied at relay_do/receipts.rs:285, and handle_event logs<br/>accepted-but-not-applied from the returned receipt nip_handlers.rs:1237. Only the CONSUMER half is absent.<br/>See NF-11.9 and NF-11.10."]
     N3["EXTERNAL: both remaining halves belong to other repos - VisionClaw's elevation consumer see VC-24,<br/>agentbox's approvals pipeline see AB-14, the estate loop see ES-05"]
 ```
 
@@ -215,3 +217,24 @@ sequenceDiagram
 ```
 
 Execution update, 2026-09-07: `trust_sweep.rs` compares every observed policy input using null-safe timestamp/admin predicates. The audit INSERT is conditional inside the transaction; both result counts must equal one. Five exact-SQL trust tests cover concurrent level/activity/admin edits, missing rows, nullable snapshots, rollback and idempotency. The earlier false-audit probe remains in the [audit](../../estate-review/2026-09-07-federation-audit.md); it is not a current-code claim.
+
+## NF-10.11 The security-gate ledger — findings owned rather than silenced
+
+```mermaid
+flowchart TB
+    GATE["deepsec-gate --diff scans the BLAST RADIUS of a change, not only its lines,<br/>so a branch routinely surfaces defects it did not introduce<br/>docs/security/known-findings.md:7-9"]
+    RULE["a finding reaches the table only WITH an owner and a disposition -<br/>we saw it and moved on is not a disposition<br/>docs/security/known-findings.md:4-5"]
+    NOTSUP["INVARIANT: the table is NOT a suppression list - nothing here is waived<br/>and no entry makes a gate green<br/>docs/security/known-findings.md:13-14"]
+    SEP["accepted risk in THIRD-PARTY dependencies is the separate, narrower list<br/>docs/security/advisory-exceptions.md:7, owned by the security maintainers<br/>with a dated review docs/security/advisory-exceptions.md:4-5"]
+
+    GATE --> RULE --> NOTSUP --> SEP
+
+    N1["Debt KF-1 HIGH_BUG: the NIP-40 expiry sweep and the serve path disagree on a malformed expiration<br/>tag, and the reap side wins docs/security/known-findings.md:22 - relay maintainers"]
+    N2["Debt KF-2 and KF-2a: the governance READ endpoints verify a NIP-98 signature with no membership<br/>check, so authenticated is effectively anonymous, and the admin-gated reviewer aggregate can be<br/>reconstructed from the un-gated decisions read docs/security/known-findings.md:23<br/>docs/security/known-findings.md:24 - an operator decision, taken once for both"]
+    N3["Debt KF-3: ensure_schema runs its DDL on EVERY request, before the CORS short-circuit and any<br/>authentication docs/security/known-findings.md:26 - see NF-08.5"]
+    N4["Debt KF-4 and KF-9: the write gate resolves a device key to its owner, but the moderation gates<br/>that follow key on the RAW signing pubkey, and a gift wrap has no author to resolve at all<br/>docs/security/known-findings.md:27 docs/security/known-findings.md:44 - see NF-03.4 and NF-03.5"]
+    N5["Debt KF-5: decision_id is a 64-bit truncation of the event id and is already a primary key, so<br/>changing it is a migration docs/security/known-findings.md:28"]
+    N6["Debt KF-6: the self-review and original-signer guards compare pubkeys case-SENSITIVELY while<br/>NIP-98 returns the pubkey verbatim docs/security/known-findings.md:29 - the same class the registry<br/>closed in NF-06.15, left open in the core aggregate"]
+    N7["Debt KF-8: KIND_PANEL_RETIRED and KIND_GOVERNANCE_AUDIT_LOG are both 31405, so a legitimate<br/>PanelRetired is validated under the append-only audit rules<br/>docs/security/known-findings.md:43 - see NF-06.2 N2"]
+    N8["KF-10 and probe blindness are recorded as a DOCUMENTED LIMITATION rather than an untriaged defect:<br/>the digest cannot leave the signed envelope without invalidating the signature both clients verify<br/>strictly docs/security/known-findings.md:33-42 docs/security/known-findings.md:45 - it is ADR-2011's<br/>own review_trigger, see NF-06.14"]
+```

@@ -5,7 +5,7 @@ area: nostr-rust-forum
 governing:
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
-adrs: [ADR-2003, ADR-2004]
+adrs: [ADR-2003, ADR-2004, ADR-2010, ADR-2011]
 sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs
@@ -27,7 +27,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/zone_approval.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/lib.rs
-verified_commit: d48a7a546
+verified_commit: 2f90c1916
 ---
 
 ## NF-02.1 Request entry — bootstrap, rate limit, body pre-read, dispatch
@@ -72,8 +72,8 @@ flowchart TB
         LOGO["POST /auth/login/options nostr-bbs-auth-worker/src/lib.rs:264"]
         LOGV["POST /auth/login/verify nostr-bbs-auth-worker/src/lib.rs:269"]
         LOOKUP["POST /auth/lookup nostr-bbs-auth-worker/src/lib.rs:274"]
-        UCHECK["GET /api/username/check nostr-bbs-auth-worker/src/lib.rs:584"]
-        URESOLVE["GET /api/username/resolve nostr-bbs-auth-worker/src/lib.rs:589"]
+        UCHECK["GET /api/username/check nostr-bbs-auth-worker/src/lib.rs:605"]
+        URESOLVE["GET /api/username/resolve nostr-bbs-auth-worker/src/lib.rs:610"]
         IPREV["GET /api/invites/{code} preview nostr-bbs-auth-worker/src/lib.rs:442"]
     end
     subgraph sprint["route_sprint_api - each handler does its own NIP-98 + gate"]
@@ -82,11 +82,11 @@ flowchart TB
         INV["invites: create nostr-bbs-auth-worker/src/lib.rs:433 | mine nostr-bbs-auth-worker/src/lib.rs:437 | revoke + redeem nostr-bbs-auth-worker/src/lib.rs:442"]
         WEL["welcome: config nostr-bbs-auth-worker/src/lib.rs:471 | configure nostr-bbs-auth-worker/src/lib.rs:475 | set-bot-key nostr-bbs-auth-worker/src/lib.rs:479 | test nostr-bbs-auth-worker/src/lib.rs:483"]
         ADM["admins: list nostr-bbs-auth-worker/src/lib.rs:489 | add nostr-bbs-auth-worker/src/lib.rs:493 | remove nostr-bbs-auth-worker/src/lib.rs:497 | delete-member nostr-bbs-auth-worker/src/lib.rs:503"]
-        GOV["governance: agents nostr-bbs-auth-worker/src/lib.rs:509 register nostr-bbs-auth-worker/src/lib.rs:513 provision nostr-bbs-auth-worker/src/lib.rs:518 revoke nostr-bbs-auth-worker/src/lib.rs:523 | cases nostr-bbs-auth-worker/src/lib.rs:528 :532 | decisions nostr-bbs-auth-worker/src/lib.rs:538 | roles grant nostr-bbs-auth-worker/src/lib.rs:542 revoke nostr-bbs-auth-worker/src/lib.rs:546 list nostr-bbs-auth-worker/src/lib.rs:550"]
-        DEV["devices: list nostr-bbs-auth-worker/src/lib.rs:558 | register nostr-bbs-auth-worker/src/lib.rs:562 | revoke nostr-bbs-auth-worker/src/lib.rs:566"]
-        NAME["username: claim nostr-bbs-auth-worker/src/lib.rs:593 | release nostr-bbs-auth-worker/src/lib.rs:597 | profile/real-name nostr-bbs-auth-worker/src/lib.rs:604 :608 | admin/registrations nostr-bbs-auth-worker/src/lib.rs:613 :618"]
-        NIP1984["GET /api/moderation/reports nostr-bbs-auth-worker/src/lib.rs:572"]
-        NPOD["POST /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:578"]
+        GOV["governance: agents nostr-bbs-auth-worker/src/lib.rs:509 register nostr-bbs-auth-worker/src/lib.rs:513 provision nostr-bbs-auth-worker/src/lib.rs:518 revoke nostr-bbs-auth-worker/src/lib.rs:523 | cases nostr-bbs-auth-worker/src/lib.rs:528 :532 | decisions nostr-bbs-auth-worker/src/lib.rs:538 | roles grant nostr-bbs-auth-worker/src/lib.rs:542 revoke nostr-bbs-auth-worker/src/lib.rs:546 list nostr-bbs-auth-worker/src/lib.rs:571 | receipt application nostr-bbs-auth-worker/src/lib.rs:551 | reviewers nostr-bbs-auth-worker/src/lib.rs:567"]
+        DEV["devices: list nostr-bbs-auth-worker/src/lib.rs:579 | register nostr-bbs-auth-worker/src/lib.rs:583 | revoke nostr-bbs-auth-worker/src/lib.rs:587"]
+        NAME["username: claim nostr-bbs-auth-worker/src/lib.rs:614 | release nostr-bbs-auth-worker/src/lib.rs:618 | profile/real-name nostr-bbs-auth-worker/src/lib.rs:625 :629 | admin/registrations nostr-bbs-auth-worker/src/lib.rs:634, dismiss nostr-bbs-auth-worker/src/lib.rs:639"]
+        NIP1984["GET /api/moderation/reports nostr-bbs-auth-worker/src/lib.rs:593"]
+        NPOD["POST /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:599"]
     end
     subgraph legacy["Legacy /api/ tier - central NIP-98 verify"]
         PROF["GET /api/profile nostr-bbs-auth-worker/src/lib.rs:333 to pod::handle_profile nostr-bbs-auth-worker/src/pod.rs:9"]
@@ -98,7 +98,7 @@ flowchart TB
     legacy -->|"no match"| NF["404 Not found nostr-bbs-auth-worker/src/lib.rs:348"]
 
     N1["Sprint handlers are dispatched BEFORE the legacy verify branch because they run their own<br/>require_admin / require_authed gates nostr-bbs-auth-worker/src/lib.rs:279-287"]
-    N2["ANOMALY O11 confirmed live: /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:578 requires NATIVE_POD_URL and the<br/>NATIVE_POD_ADMIN_KEY secret; both are placeholders in the template nostr-bbs-auth-worker/wrangler.toml:52"]
+    N2["ANOMALY O11 confirmed live: /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:599 requires NATIVE_POD_URL and the<br/>NATIVE_POD_ADMIN_KEY secret; both are placeholders in the template nostr-bbs-auth-worker/wrangler.toml:52"]
 ```
 
 ## NF-02.3 Passkey registration — the full verify chain
@@ -198,13 +198,13 @@ flowchart LR
     ISA["is_admin - static union RELAY_DB union DB<br/>nostr-bbs-auth-worker/src/admin.rs:57"]
 
     RA --> ISA
-    ADMINONLY["Admin-only: mod actions moderation.rs:209 | wot status wot.rs:128 | welcome config welcome.rs:148<br/>| admins add admins.rs:161 | governance register governance_api.rs:266 | provision governance_api.rs:340<br/>| roles grant governance_api.rs:554 | admin registrations username.rs:689"]
-    AUTHED["Authed-only: mod report moderation.rs:316 | invite create invites.rs:291 | redeem invites.rs:577<br/>| devices register devices.rs:361 | list devices.rs:452 | revoke devices.rs:488<br/>| username claim username.rs:568 | governance cases governance_api.rs:446 | decisions governance_api.rs:510"]
+    ADMINONLY["Admin-only: mod actions moderation.rs:209 | wot status wot.rs:128 | welcome config welcome.rs:148<br/>| admins add admins.rs:161 | governance register governance_api.rs:361 | provision governance_api.rs:438<br/>| roles grant governance_api.rs:673 | admin registrations username.rs:689<br/>| reviewer telemetry governance_api.rs:1408"]
+    AUTHED["Authed-only: mod report moderation.rs:316 | invite create invites.rs:291 | redeem invites.rs:577<br/>| devices register devices.rs:361 | list devices.rs:452 | revoke devices.rs:488<br/>| username claim username.rs:568 | governance cases governance_api.rs:564 | decisions governance_api.rs:629<br/>| receipt application governance_api.rs:1133 - authed, then authorised by ROLE inside the handler"]
 
     RA --> ADMINONLY
     RU --> AUTHED
 
-    N1["INVARIANT device ownership: the owner is ALWAYS the NIP-98 author, never a body field -<br/>no owner leaks through devices.rs:641, gate note nostr-bbs-auth-worker/src/lib.rs:555-557"]
+    N1["INVARIANT device ownership: the owner is ALWAYS the NIP-98 author, never a body field -<br/>no owner leaks through devices.rs:641, gate note nostr-bbs-auth-worker/src/lib.rs:576-578"]
     N2["wot status is admin-gated (wot.rs:128) even though it reads as a self-status endpoint -<br/>a member cannot query their own WoT standing through this API"]
     N3["EXTERNAL: the same admin identity is enforced independently at relay ingress - see NF-03 and NF-08.7"]
 ```
@@ -278,4 +278,33 @@ flowchart LR
     N1["EXTERNAL: the Multikey encoder of record is solid-pod-rs did_nostr_types - see the solid-pod-rs area (SP-*)<br/>and the estate identity mesh ES-04"]
     N2["EXTERNAL: VisionClaw resolves the same did:nostr identifiers on its own identity spine - see VC-23 and VC-33"]
     N3["DIVERGENCE BASELINE-architecture.md: the CF-Workers pod-federation fallback is degenerate - the<br/>federated resolve returns data D1 already holds, because the pod-resident NIP-05 endpoint is one of the<br/>three wasm32-unreachable Phase-1 surfaces - see NF-04"]
+```
+
+## NF-02.10 Application receipts — who may say what became of a decision
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Caller
+    participant H as handle_receipt_application<br/>nostr-bbs-auth-worker/src/governance_api.rs:1124
+    participant RD as relay D1
+    participant PL as plan_application_advance<br/>nostr-bbs-auth-worker/src/governance_api.rs:1058
+    participant RV as handle_list_reviewers<br/>nostr-bbs-auth-worker/src/governance_api.rs:1402
+
+    C->>H: POST /api/governance/receipts/{event id}/application governance_api.rs:1131
+    H->>H: require_authed - NIP-98 only, no admin gate here governance_api.rs:1133
+    H->>H: parse the requested stage, unknown stage refused governance_api.rs:1143
+    H->>RD: SELECT stage, case_id FROM governance_receipts governance_api.rs:1156
+    RD-->>H: 404 when the receipt does not exist governance_api.rs:1161
+    H->>RD: SELECT case state, created_by and the latest decision outcome governance_api.rs:1175
+    H->>H: build the caller - is_admin, is_registered_agent, is_case_owner governance_api.rs:1186
+    H->>PL: may this caller advance current to requested
+    PL-->>H: refusal with its own status, or proceed governance_api.rs:1200
+    H->>RD: UPDATE guarded by the CURRENT stage governance_api.rs:1211
+    RD-->>C: 409 when another consumer won the race governance_api.rs:1233
+    C->>RV: GET /api/governance/reviewers - ADMIN only governance_api.rs:1408
+
+    Note over H: INVARIANT the case owner is matched case-insensitively, so a mixed-case NIP-98 pubkey still resolves to the owner it belongs to governance_api.rs:1184 governance_api.rs:1190
+    Note over H: INVARIANT the stage write is a compare-and-swap - two consumers racing the same receipt cannot both win, the loser sees a 409 governance_api.rs:1203-1205
+    Note over RV: Reviewer telemetry measures the humans, not only the agents, and is admin-gated where the case and decision reads are member-visible governance_api.rs:1408
 ```

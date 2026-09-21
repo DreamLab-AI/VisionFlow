@@ -11,6 +11,7 @@ sources:
   - ../nostr-rust-forum/README.md
   - ../nostr-rust-forum/docs/consumer-surface-map.md
   - ../nostr-rust-forum/crates/nostr-bbs-core/Cargo.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-ascii/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-upstream-canary/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-upstream-canary/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs
@@ -24,7 +25,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-preview-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-search-worker/wrangler.toml
   - ../nostr-rust-forum/.github/workflows/ci.yml
-verified_commit: d48a7a546
+verified_commit: 2f90c1916
 ---
 
 ## NF-01.1 Fourteen crates in four layers
@@ -67,11 +68,11 @@ flowchart TB
     RATE --> RELAY
     ASCII --> PREV
     ASCII --> BBS
-    MESH -.->|"designed, not wired in README.md:189"| RELAY
+    MESH -.->|"designed, not wired in README.md:187"| RELAY
 
     N1["resolver 2, edition 2021, rust-version 1.85 nostr-rust-forum/Cargo.toml:2 nostr-rust-forum/Cargo.toml:44"]
-    N2["Every kit crate is pinned to the same in-tree version 1.0.0-beta.10 nostr-rust-forum/Cargo.toml:158-162,<br/>crates/nostr-bbs-core/Cargo.toml:3"]
-    N3["DOC-DRIFT ADR-2007 / BASELINE known-divergence: the Cargo.toml comment above the path deps still<br/>says published to crates.io as 1.0.0-beta.3 while the tree is on beta.10 nostr-rust-forum/Cargo.toml:157"]
+    N2["DIVERGENCE: the kit releases as one set, but only four crates moved to 1.0.0-beta.11<br/>nostr-rust-forum/Cargo.toml:158-161, crates/nostr-bbs-core/Cargo.toml:3 - nostr-bbs-ascii<br/>is still beta.10 nostr-rust-forum/Cargo.toml:162, crates/nostr-bbs-ascii/Cargo.toml:3"]
+    N3["DOC-DRIFT ADR-2007 / BASELINE known-divergence: the Cargo.toml comment above the path deps still<br/>says published to crates.io as 1.0.0-beta.3 while the tree is on beta.11 nostr-rust-forum/Cargo.toml:157"]
 ```
 
 ## NF-01.2 Build matrix — one target, one release profile
@@ -103,8 +104,8 @@ flowchart TB
         R["relay-worker<br/>nostr-bbs-relay-worker/src/lib.rs:158"]
     end
     subgraph cronentry["#[event(scheduled)] handlers"]
-        AC["auth-worker scheduled<br/>nostr-bbs-auth-worker/src/lib.rs:834"]
-        RC["relay-worker scheduled - every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:853<br/>trigger nostr-bbs-relay-worker/wrangler.toml:82"]
+        AC["auth-worker scheduled<br/>nostr-bbs-auth-worker/src/lib.rs:856"]
+        RC["relay-worker scheduled - every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:952<br/>trigger nostr-bbs-relay-worker/wrangler.toml:98"]
         SC["search-worker cron - every 5 min<br/>nostr-bbs-search-worker/wrangler.toml:36"]
     end
     WSUP["WebSocket upgrade to the Durable Object<br/>nostr-bbs-relay-worker/src/lib.rs:171"]
@@ -200,5 +201,5 @@ flowchart LR
 
     N1["The relay is the ONLY access boundary that matters - the client renders what the config describes,<br/>the relay enforces deny-by-default README.md:229-231. See NF-03 and NF-08.2"]
     N2["EXTERNAL: agentbox publishes control panels into this relay and reads back the signed decision -<br/>see AB-13 and AB-14; the estate view is ES-05"]
-    N3["EXTERNAL: VisionClaw is the single live consumer of the governance surface today<br/>(ontology-concept elevation, capped at five concurrent) README.md:255-258 - see VC-24"]
+    N3["EXTERNAL: VisionClaw is the single live consumer of the governance surface today<br/>(ontology-concept elevation, capped at five concurrent) README.md:298-301 - see VC-24"]
 ```

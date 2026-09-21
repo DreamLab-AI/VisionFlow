@@ -24,31 +24,31 @@ sources:
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/ascii_img.rs
-verified_commit: d48a7a546
+verified_commit: 2f90c1916
 ---
 
 ## NF-07.1 search-worker — routes and gates
 
 ```mermaid
 flowchart TB
-    F["fetch<br/>nostr-bbs-search-worker/src/lib.rs:617"]
-    OPT["Options preflight nostr-bbs-search-worker/src/lib.rs:621"]
-    RL["rate limit 100 req / 60 s per IP, bucket in SEARCH_CONFIG KV<br/>nostr-bbs-search-worker/src/lib.rs:629"]
-    RT["route nostr-bbs-search-worker/src/lib.rs:672"]
-    H["GET /health, /status, / nostr-bbs-search-worker/src/lib.rs:676"]
-    S["POST /search nostr-bbs-search-worker/src/lib.rs:681"]
-    E["POST /embed nostr-bbs-search-worker/src/lib.rs:686"]
-    I["POST /ingest - NIP-98 admin only nostr-bbs-search-worker/src/lib.rs:691"]
-    NF404["404 nostr-bbs-search-worker/src/lib.rs:695"]
-    CRON["scheduled nostr-bbs-search-worker/src/lib.rs:706"]
+    F["fetch<br/>nostr-bbs-search-worker/src/lib.rs:760"]
+    OPT["Options preflight nostr-bbs-search-worker/src/lib.rs:764"]
+    RL["rate limit 100 req / 60 s per IP, bucket in SEARCH_CONFIG KV<br/>nostr-bbs-search-worker/src/lib.rs:772"]
+    RT["route nostr-bbs-search-worker/src/lib.rs:815"]
+    H["GET /health, /status, / nostr-bbs-search-worker/src/lib.rs:819"]
+    S["POST /search nostr-bbs-search-worker/src/lib.rs:824"]
+    E["POST /embed nostr-bbs-search-worker/src/lib.rs:829"]
+    I["POST /ingest - NIP-98 admin only nostr-bbs-search-worker/src/lib.rs:834"]
+    NF404["404 nostr-bbs-search-worker/src/lib.rs:838"]
+    CRON["scheduled nostr-bbs-search-worker/src/lib.rs:849"]
 
     F --> OPT --> RL --> RT
     RT --> H & S & E & I
     RT --> NF404
-    CRON --> WARM["load_store only - keeps the R2 connection warm<br/>nostr-bbs-search-worker/src/lib.rs:708"]
+    CRON --> WARM["load_store only - keeps the R2 connection warm<br/>nostr-bbs-search-worker/src/lib.rs:851"]
 
     N1["DOC-DRIFT: the cron trigger nostr-bbs-search-worker/wrangler.toml:36 runs every five minutes but<br/>REINDEXES NOTHING - the handler's whole body is a load_store touch. There is no reindex or rebuild<br/>path anywhere in lib.rs or store.rs reachable from the schedule."]
-    N2["/ingest is the only mutating route and it is admin-gated<br/>nostr-bbs-search-worker/src/lib.rs:475 via require_nip98_admin nostr-bbs-search-worker/src/auth.rs:63"]
+    N2["/ingest is the only mutating route and it is admin-gated<br/>nostr-bbs-search-worker/src/lib.rs:592 via require_nip98_admin nostr-bbs-search-worker/src/auth.rs:63"]
 ```
 
 ## NF-07.2 The third admin authority — static-only, and the only real key in a template
@@ -76,48 +76,54 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant C as Client
-    participant S as handle_search<br/>nostr-bbs-search-worker/src/lib.rs:304
+    participant S as handle_search<br/>nostr-bbs-search-worker/src/lib.rs:414
     participant EM as embed_texts<br/>nostr-bbs-search-worker/src/embed.rs:69
     participant AI as Workers AI binding
     participant R2 as VECTORS bucket
 
     C->>S: POST /search { q, k }
-    S->>S: k clamped to 1..=100 nostr-bbs-search-worker/src/lib.rs:359
+    S->>S: trim the query, reject a whitespace-only one nostr-bbs-search-worker/src/lib.rs:181
+    S->>S: k clamped to 1..=100 nostr-bbs-search-worker/src/lib.rs:472
     S->>EM: embed the query
     EM->>AI: @cf/baai/bge-small-en-v1.5 nostr-bbs-search-worker/src/embed.rs:86 embed.rs:18
     alt binding absent or inference fails
         EM->>EM: deterministic 3-pass hash embedding nostr-bbs-search-worker/src/embed.rs:80 embed.rs:115 embed.rs:121
     end
     EM->>EM: L2-normalise either way nostr-bbs-search-worker/src/embed.rs:104 embed.rs:129
-    S->>R2: load the RVF store nostr-bbs-search-worker/src/lib.rs:185
-    S->>S: cosine k-NN nostr-bbs-search-worker/src/store.rs:54 store.rs:63
-    S->>S: sort descending by score nostr-bbs-search-worker/src/store.rs:70
+    S->>R2: load the RVF store nostr-bbs-search-worker/src/lib.rs:295
+    S->>S: cosine k-NN over overfetch_k candidates nostr-bbs-search-worker/src/store.rs:63 store.rs:72 nostr-bbs-search-worker/src/lib.rs:498
+    S->>S: sort descending by score nostr-bbs-search-worker/src/store.rs:79
+    S->>S: visible_top_k filters THEN truncates to k nostr-bbs-search-worker/src/lib.rs:499 nostr-bbs-search-worker/src/lib.rs:159
     S-->>C: hits
 
-    Note over S: INVARIANT fail-loudly on model drift: an index built with one embedding model and queried with another returns 409, not silently wrong neighbours nostr-bbs-search-worker/src/lib.rs:374
+    Note over S: INVARIANT fail-loudly on model drift: an index built with one embedding model and queried with another returns 409, not silently wrong neighbours nostr-bbs-search-worker/src/lib.rs:487
     Note over EM: DIM is 384 nostr-bbs-search-worker/src/embed.rs:15 and the store's ENTRY_SIZE is derived from it - u64 label plus 384 f32 = 1544 bytes nostr-bbs-search-worker/src/store.rs:17
     Note over S: The hash fallback is deliberately kept at parity with a legacy TypeScript implementation nostr-bbs-search-worker/src/embed.rs:113
+    Note over S: INVARIANT filter then truncate, never the other way round - the store truncates to its own k before this module filters, so asking for exactly k and filtering after could only shrink the set nostr-bbs-search-worker/src/lib.rs:149 nostr-bbs-search-worker/src/lib.rs:159
+    Note over S: Over-fetch is 4x the requested k, capped at 400 and never below k nostr-bbs-search-worker/src/lib.rs:138 nostr-bbs-search-worker/src/lib.rs:143
+    Note over S: A whitespace-only query used to survive the empty check and match the ENTIRE index at score 0 under the default minScore nostr-bbs-search-worker/src/lib.rs:181
 ```
 
 ## NF-07.4 RVF format and where the pieces live
 
 ```mermaid
 flowchart TB
-    RVF["RVF object in R2<br/>bucket VECTORS nostr-bbs-search-worker/wrangler.toml:15<br/>key RVF_STORE_KEY nostr-bbs-search-worker/wrangler.toml:32 read at nostr-bbs-search-worker/src/lib.rs:181"]
+    RVF["RVF object in R2<br/>bucket VECTORS nostr-bbs-search-worker/wrangler.toml:15<br/>key RVF_STORE_KEY nostr-bbs-search-worker/wrangler.toml:32 read at nostr-bbs-search-worker/src/lib.rs:291"]
     SEGV["Segment 0 Vec - packed label + vector<br/>nostr-bbs-search-worker/src/store.rs:7"]
-    SEGM["Segment 1 Meta - JSON format/dim/count/metric<br/>nostr-bbs-search-worker/src/store.rs:8 written store.rs:88"]
-    SER["to_rvf_bytes nostr-bbs-search-worker/src/store.rs:79"]
-    DES["from_rvf_bytes nostr-bbs-search-worker/src/store.rs:158"]
-    KV["id-to-label mapping, model and publicLabels live in SEARCH_CONFIG KV<br/>nostr-bbs-search-worker/src/lib.rs:229"]
+    SEGM["Segment 1 Meta - JSON format/dim/count/metric<br/>nostr-bbs-search-worker/src/store.rs:8 written store.rs:97"]
+    SER["to_rvf_bytes nostr-bbs-search-worker/src/store.rs:88"]
+    DES["from_rvf_bytes nostr-bbs-search-worker/src/store.rs:167"]
+    KV["id-to-label mapping, model and publicLabels live in SEARCH_CONFIG KV<br/>nostr-bbs-search-worker/src/lib.rs:339"]
 
     RVF --> SEGV & SEGM
     SER --> RVF
     RVF --> DES
     KV -.-> DES
 
-    N1["The deserialiser parses ONLY the Vec segment nostr-bbs-search-worker/src/store.rs:176 - the mapping<br/>the Meta segment documents is actually read back from KV, so the two stores must be written together"]
-    N2["Visibility is fail-closed: IngestEntry.public defaults to false when omitted<br/>nostr-bbs-search-worker/src/lib.rs:126, and only explicitly public labels are anonymously visible<br/>nostr-bbs-search-worker/src/lib.rs:116 nostr-bbs-search-worker/src/lib.rs:117"]
-    N3["README.md:381 describes this as 384-dim L2-normalised cosine k-NN over an RVF store, which the code<br/>confirms - see NF-07.3"]
+    N1["The deserialiser parses ONLY the Vec segment nostr-bbs-search-worker/src/store.rs:185 - the mapping<br/>the Meta segment documents is actually read back from KV, so the two stores must be written together"]
+    N2["INVARIANT: visibility is fail-closed and deliberately left that way - only a label in publicLabels<br/>is anonymously visible nostr-bbs-search-worker/src/lib.rs:126 nostr-bbs-search-worker/src/lib.rs:127,<br/>and the fix for an empty result set is the ingest caller declaring public true, never a relaxation here"]
+    N3["README.md:428 describes this as 384-dim L2-normalised cosine k-NN over an RVF store, which the code<br/>confirms - see NF-07.3"]
+    N4["An all-private ingest batch is now REFUSED with a 400 before anything is written, because such a<br/>batch indexes content no search can ever return nostr-bbs-search-worker/src/lib.rs:204<br/>nostr-bbs-search-worker/src/lib.rs:659. A caller retracting vectors opts in with allowPrivate<br/>nostr-bbs-search-worker/src/lib.rs:248"]
 ```
 
 ## NF-07.5 preview-worker — routes, caching and origin policy
@@ -217,7 +223,7 @@ classDiagram
     RateLimit --> SearchWorker
     RateLimit --> PreviewWorker
 
-    note for RateLimit "Each worker calls check_rate_limit with its OWN<br/>KV binding and its own budget - auth 20/60s on<br/>SESSIONS nostr-bbs-auth-worker/src/lib.rs:174, search<br/>100/60s on SEARCH_CONFIG nostr-bbs-search-worker/src/lib.rs:629,<br/>preview 30/60s on RATE_LIMIT nostr-bbs-preview-worker/src/lib.rs:519"
+    note for RateLimit "Each worker calls check_rate_limit with its OWN<br/>KV binding and its own budget - auth 20/60s on<br/>SESSIONS nostr-bbs-auth-worker/src/lib.rs:174, search<br/>100/60s on SEARCH_CONFIG nostr-bbs-search-worker/src/lib.rs:772,<br/>preview 30/60s on RATE_LIMIT nostr-bbs-preview-worker/src/lib.rs:519"
     note for Replay "INVARIANT one shared replay database - the search<br/>worker binds REPLAY_DB nostr-bbs-search-worker/src/auth.rs:31<br/>and delegates to the shared verifier<br/>nostr-bbs-search-worker/src/auth.rs:40 exactly as the auth<br/>worker does. See NF-02.5 and NF-08.4"
     note for Ascii "The image feature pulls PURE-Rust decoders only,<br/>default-features off, so the wasm32 build stays<br/>lean nostr-rust-forum/Cargo.toml:168. The BBS client never converts<br/>client-side - it fetches a pre-rendered fragment<br/>from the preview worker nostr-bbs-bbs-client/src/ascii_img.rs:203"
 ```
