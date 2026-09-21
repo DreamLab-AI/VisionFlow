@@ -1,0 +1,87 @@
+{
+  "_readme": [
+    "Citations that --strict-citations may pass WITHOUT having verified them at the",
+    "topic's declared revision. Each entry waives the revision requirement for one",
+    "citation and nothing else: the line checks (past EOF, blank, punctuation-only)",
+    "still run, and an allowlisted citation is counted and printed separately as",
+    "'allowlisted (unverifiable)' rather than folded into the verified total.",
+    "",
+    "An entry is matched on topic id, diagram id, cited path and line, so it covers",
+    "exactly the citation it names. An entry that stops matching anything is stale",
+    "and fails the strict gate, which is what stops this file rotting into a blanket",
+    "waiver. Adding one is a deliberate, reviewable act: the reason must say why the",
+    "citation can never be verified, not why verifying it is inconvenient.",
+    "",
+    "Schema: allow[] of { topic, diagram?, path, line?, reason }.",
+    "  topic    topic frontmatter id, e.g. VF-02",
+    "  diagram  diagram id, e.g. VF-02.5; omit to cover every diagram in the topic",
+    "  path     the cited path, as written in the diagram",
+    "  line     the cited line; omit to cover every line of that path",
+    "  reason   why this citation can never resolve at a declared revision"
+  ],
+  "allow": [
+    {
+      "topic": "VF-02",
+      "diagram": "VF-02.2",
+      "path": "website/build-receipt.json",
+      "line": 18,
+      "reason": "Gitignored build artefact (website/.gitignore:8); written by the site build, exists in no commit, so no declared revision can contain it."
+    },
+    {
+      "topic": "VF-02",
+      "diagram": "VF-02.5",
+      "path": "website/build-receipt.json",
+      "line": 2,
+      "reason": "Gitignored build artefact (website/.gitignore:8); written by the site build, exists in no commit, so no declared revision can contain it."
+    },
+    {
+      "topic": "VF-02",
+      "diagram": "VF-02.5",
+      "path": "website/build-receipt.json",
+      "line": 4,
+      "reason": "Gitignored build artefact (website/.gitignore:8); written by the site build, exists in no commit, so no declared revision can contain it."
+    },
+    {
+      "topic": "VF-02",
+      "diagram": "VF-02.5",
+      "path": "website/build-receipt.json",
+      "line": 18,
+      "reason": "Gitignored build artefact (website/.gitignore:8); written by the site build, exists in no commit, so no declared revision can contain it."
+    },
+    {
+      "topic": "VF-07",
+      "diagram": "VF-07.1",
+      "path": "texput.log",
+      "line": 1,
+      "reason": "Gitignored LaTeX run log (.gitignore:50); written by pdflatex, exists in no commit, so no declared revision can contain it."
+    },
+    {
+      "topic": "VF-07",
+      "diagram": "VF-07.8",
+      "path": "texput.log",
+      "line": 1,
+      "reason": "Gitignored LaTeX run log (.gitignore:50); written by pdflatex, exists in no commit, so no declared revision can contain it."
+    },
+    {
+      "topic": "VF-07",
+      "diagram": "VF-07.8",
+      "path": "texput.log",
+      "line": 5,
+      "reason": "Gitignored LaTeX run log (.gitignore:50); written by pdflatex, exists in no commit, so no declared revision can contain it."
+    },
+    {
+      "topic": "VF-07",
+      "diagram": "VF-07.8",
+      "path": "texput.log",
+      "line": 10,
+      "reason": "Gitignored LaTeX run log (.gitignore:50); written by pdflatex, exists in no commit, so no declared revision can contain it."
+    },
+    {
+      "topic": "VF-07",
+      "diagram": "VF-07.8",
+      "path": "texput.log",
+      "line": 21,
+      "reason": "Gitignored LaTeX run log (.gitignore:50); written by pdflatex, exists in no commit, so no declared revision can contain it."
+    }
+  ]
+}

@@ -19,7 +19,16 @@
  *               and when a bare basename matches more than one sources: entry
  *               (ambiguous — qualify the path). Advisory unless --strict-citations is set.
  *   --strict-citations  run citation checks and fail on any diagnostic; requires source access.
+ *               Citations listed in <dir>/citation-allowlist.json are exempted from the
+ *               revision requirement, counted and printed as "allowlisted (unverifiable)"
+ *               rather than as verified; an allowlist entry that matches nothing is stale
+ *               and fails the run.
  *   --worktree-citations  read current source bytes instead of declared revisions.
+ *   --check-verification  no source access needed: assert VERIFICATION.md was regenerated
+ *               against the revisions the topics currently declare, and that the citation
+ *               allowlist is well formed and names real topics. This is how a hosted
+ *               runner, which cannot resolve cross-repository revisions at all, gates the
+ *               freshness of the local --strict-citations run. See docs/diagrams/README.md.
  *   --render    additionally render every mermaid block through `mmdc` (the
  *               Mermaid CLI) into <dir>/rendered/<file>/<id>.svg; any parse
  *               error fails the run and is reported as file:block-id:line, and
@@ -69,7 +78,7 @@ const REQUIRED = ['id', 'title', 'area', 'governing', 'adrs', 'sources', 'verifi
 
 function usage(msg) {
   if (msg) console.error(msg);
-  console.error('Usage: node scripts/diagram-index-gen.cjs <dir> [--check] [--render] [--cite-check] [--no-source-paths] [--jobs N] [--only S]');
+  console.error('Usage: node scripts/diagram-index-gen.cjs <dir> [--check] [--render] [--cite-check] [--strict-citations] [--worktree-citations] [--check-verification] [--no-source-paths] [--jobs N] [--only S]');
   process.exit(2);
 }
 
@@ -87,9 +96,11 @@ for (let i = 1; i < argv.length; i++) {
   else if (a === '--jobs') flags.jobs = parseInt(argv[++i], 10) || 6;
   else if (a === '--only') flags.only = argv[++i];
   else if (a === '--no-source-paths') flags.noSourcePaths = true; // CI: sibling checkouts absent
+  else if (a === '--check-verification') flags.checkVerification = true;
   else usage(`unknown flag ${a}`);
 }
 if (flags.strictCitations && flags.noSourcePaths) usage('--strict-citations requires source paths; do not combine with --no-source-paths');
+if (flags.checkVerification && flags.only) usage('--check-verification judges the whole tree; do not combine with --only');
 if (!fs.existsSync(root) || !fs.statSync(root).isDirectory()) usage(`not a directory: ${root}`);
 const repoRoot = path.resolve(root, '..', '..');
 
@@ -310,12 +321,82 @@ function revisionLines(t, p) {
   revCache.set(key, res);
   return res;
 }
+// ── The citation allowlist ───────────────────────────────────────────────────
+// Some citations can never be verified at a declared revision because the file
+// they name exists in no commit — a gitignored build artefact is the honest
+// case. Refusing them forever keeps the strict gate red; ignoring them silently
+// is the failure mode this whole checker exists to prevent. So they are named,
+// one per citation, in <dir>/citation-allowlist.json with a reason, and then
+// counted and printed SEPARATELY from what was actually verified.
+//
+// A sidecar JSON rather than a frontmatter field: the frontmatter parser above
+// is a flat scalar/list reader with no nested maps, so a {path, line, reason}
+// record cannot be expressed in a topic's frontmatter without growing a YAML
+// implementation; and a debt register wants one reviewable surface.
+const ALLOWLIST_FILE = path.join(root, 'citation-allowlist.json');
+function loadAllowlist(errors) {
+  if (!fs.existsSync(ALLOWLIST_FILE)) return [];
+  let doc;
+  try { doc = JSON.parse(fs.readFileSync(ALLOWLIST_FILE, 'utf8')); }
+  catch (e) { errors.push(`citation-allowlist.json: not valid JSON (${e.message})`); return []; }
+  if (!doc || !Array.isArray(doc.allow)) { errors.push('citation-allowlist.json: missing an `allow` array'); return []; }
+  const out = [];
+  doc.allow.forEach((e, i) => {
+    const at = `citation-allowlist.json: allow[${i}]`;
+    if (!e || typeof e !== 'object') { errors.push(`${at} is not an object`); return; }
+    for (const k of ['topic', 'path', 'reason']) if (typeof e[k] !== 'string' || !e[k].trim()) { errors.push(`${at} is missing a non-empty '${k}'`); return; }
+    if ('diagram' in e && typeof e.diagram !== 'string') { errors.push(`${at} has a non-string 'diagram'`); return; }
+    if ('line' in e && !Number.isInteger(e.line)) { errors.push(`${at} has a non-integer 'line'`); return; }
+    if (e.diagram && !e.diagram.startsWith(e.topic + '.')) { errors.push(`${at} names diagram '${e.diagram}', which is not in topic '${e.topic}'`); return; }
+    out.push({ ...e, used: 0, index: i });
+  });
+  return out;
+}
+let ALLOWLIST = [];
+// `cited` is the path as written in the diagram, `src` the sources: entry it
+// resolved to (absent when it resolved to nothing). Either may be named.
+function allowMatch(topic, diagramId, cited, src, line) {
+  const n = Number(line);
+  for (const e of ALLOWLIST) {
+    if (e.topic !== topic.fm.id) continue;
+    if (e.diagram && e.diagram !== diagramId) continue;
+    if ('line' in e && e.line !== n) continue;
+    const p = e.path;
+    const namesIt = [cited, src].filter(Boolean).some((c) => c === p || c.endsWith('/' + p) || p.endsWith('/' + c));
+    if (!namesIt) continue;
+    e.used++;
+    return e;
+  }
+  return null;
+}
+
 // Reset per citeCheck run; surfaced on the summary line and in COVERAGE.md.
 let CITE_STATS = null;
-function newCiteStats() { return { checked: 0, unverified: 0, unresolvable: 0, byReason: {}, byTopic: {} }; }
+// Allowlisted citations: reported, never failed. Kept apart from `warnings` so
+// that --strict-citations, which turns every warning into an error, cannot turn
+// a waiver into one.
+let CITE_NOTES = [];
+function newCiteStats() { return { checked: 0, unverified: 0, unresolvable: 0, allowlisted: 0, byReason: {}, byTopic: {} }; }
 
-function writeVerificationReport(st) {
-  const rows = Object.entries(st.byTopic).filter(([, r]) => r.unverified || r.unresolvable).sort();
+// The set of revisions the tree currently declares, as sorted `repo@sha` tokens.
+// Derived from frontmatter alone, so it is computable without any source access —
+// which is what lets a hosted runner check that VERIFICATION.md is current.
+function declaredRevisions(topics) {
+  const vcs = new Set();
+  for (const t of topics) {
+    const v = t.fm.verified_commit;
+    if (v && typeof v === 'object') for (const [k, sha] of Object.entries(v)) vcs.add(`${k}@${sha}`);
+    else if (typeof v === 'string' && v.trim().startsWith('{')) {
+      // inline-map form kept as a string by the frontmatter parser: {repo: sha, repo: sha}
+      for (const pair of v.trim().slice(1, -1).split(',')) { const [k, sha] = pair.split(':').map((x) => x.trim()); if (k && sha) vcs.add(`${k}@${sha}`); }
+    } else vcs.add(String(v));
+  }
+  return [...vcs].sort();
+}
+const REVISIONS_ANCHOR = '<!-- declared-revisions: ';
+
+function writeVerificationReport(st, topics) {
+  const rows = Object.entries(st.byTopic).filter(([, r]) => r.unverified || r.unresolvable || r.allowlisted).sort();
   const out = [
     '<!-- GENERATED BY scripts/diagram-index-gen.cjs --cite-check — DO NOT EDIT BY HAND -->',
     '# Citation verification',
@@ -330,6 +411,18 @@ function writeVerificationReport(st) {
     `- **${st.checked}** verified at the declared revision`,
     `- **${st.unverified}** unverified (read from the working tree)`,
     `- **${st.unresolvable}** unresolvable (never checked at all)`,
+    `- **${st.allowlisted}** allowlisted (unverifiable), waived by [citation-allowlist.json](citation-allowlist.json)`,
+    '',
+    'An allowlisted citation names a file that exists in no commit, so no declared',
+    'revision can ever contain it. It is waived by name, one entry per citation, with',
+    'a reason; it is never counted as verified. The line checks still applied to it.',
+    '',
+    `${REVISIONS_ANCHOR}${declaredRevisions(topics).join(' ')} -->`,
+    '',
+    'The comment above records the revisions the tree declared when this file was',
+    'written. `--check-verification` recomputes it from the topics and refuses a',
+    'mismatch, which is how CI knows a re-stamped topic has had its citations',
+    're-resolved locally rather than merely renumbered.',
     '',
   ];
   for (const [reason, n] of Object.entries(st.byReason).sort((a, b) => b[1] - a[1])) {
@@ -337,8 +430,8 @@ function writeVerificationReport(st) {
     out.push('');
   }
   if (rows.length) {
-    out.push('| Topic | unverified | unresolvable |', '|---|---|---|');
-    for (const [rel, r] of rows) out.push(`| [${rel}](${rel}) | ${r.unverified} | ${r.unresolvable} |`);
+    out.push('| Topic | unverified | unresolvable | allowlisted |', '|---|---|---|---|');
+    for (const [rel, r] of rows) out.push(`| [${rel}](${rel}) | ${r.unverified} | ${r.unresolvable} | ${r.allowlisted} |`);
     out.push('');
   } else {
     out.push('Every citation in the tree resolved against its declared revision.', '');
@@ -347,12 +440,13 @@ function writeVerificationReport(st) {
   console.log('wrote VERIFICATION.md');
 }
 function bumpTopic(t, k) {
-  const r = (CITE_STATS.byTopic[t.rel] = CITE_STATS.byTopic[t.rel] || { checked: 0, unverified: 0, unresolvable: 0 });
+  const r = (CITE_STATS.byTopic[t.rel] = CITE_STATS.byTopic[t.rel] || { checked: 0, unverified: 0, unresolvable: 0, allowlisted: 0 });
   r[k]++;
 }
 function citeCheck(topics) {
   const warnings = [];
   CITE_STATS = newCiteStats();
+  CITE_NOTES = [];
   let linesOf = (p) => revisionLines(CURRENT_TOPIC, p); // bound per topic below
   // Bare `:NNN` (no path) is a continuation of the last path cited earlier on
   // the SAME line/label (`proxy.mjs:100<br/>verify :340`); with no path on the
@@ -364,23 +458,39 @@ function citeCheck(topics) {
     for (const d of t.diagrams) {
       const check = (cited, a, b) => {
         if (/^\d+(\.\d+)+$/.test(cited)) return; // host:port such as 127.0.0.1:8080, not a citation
+        // An allowlisted citation is waived, counted apart and printed as such.
+        // Returns true when the caller should stop: the diagnostic it was about
+        // to raise is the one the allowlist exists to waive.
+        const waive = (src) => {
+          const e = allowMatch(t, d.id, cited, src, a);
+          if (!e) return false;
+          CITE_STATS.allowlisted++;
+          bumpTopic(t, 'allowlisted');
+          CITE_NOTES.push(`${t.rel}:${d.id} — ${src || cited}:${a} allowlisted (unverifiable): ${e.reason}`);
+          return true;
+        };
         // Exact match wins over suffix match: a repo-root file (README.md) is a
         // suffix of every deeper twin, so `README.md:12` must resolve to it alone.
         const srcPaths = (t.fm.sources || []).map((s) => s.split(':')[0]);
         const exact = srcPaths.filter((sp) => sp === cited || sp === './' + cited);
         const hits = exact.length ? exact : srcPaths.filter((sp) => sp.endsWith('/' + cited));
-        if (hits.length === 0) { CITE_STATS.unresolvable++; bumpTopic(t, 'unresolvable'); warnings.push(`${t.rel}:${d.id} — ${cited}:${a} cites a file that is not in this topic's sources: (unresolvable, never checked)`); return; }
-        if (hits.length > 1) { CITE_STATS.unresolvable++; bumpTopic(t, 'unresolvable'); warnings.push(`${t.rel}:${d.id} — ${cited}:${a} is ambiguous: matches ${hits.length} sources: entries`); return; }
+        if (hits.length === 0) { if (waive(null)) return; CITE_STATS.unresolvable++; bumpTopic(t, 'unresolvable'); warnings.push(`${t.rel}:${d.id} — ${cited}:${a} cites a file that is not in this topic's sources: (unresolvable, never checked)`); return; }
+        if (hits.length > 1) { if (waive(null)) return; CITE_STATS.unresolvable++; bumpTopic(t, 'unresolvable'); warnings.push(`${t.rel}:${d.id} — ${cited}:${a} is ambiguous: matches ${hits.length} sources: entries`); return; }
         const src = hits[0];
         const { lines, resolution } = linesOf(src);
-        if (!lines) { CITE_STATS.unresolvable++; bumpTopic(t, 'unresolvable'); warnings.push(`${t.rel}:${d.id} — ${src} could not be read`); return; }
+        if (!lines) { if (waive(src)) return; CITE_STATS.unresolvable++; bumpTopic(t, 'unresolvable'); warnings.push(`${t.rel}:${d.id} — ${src} could not be read`); return; }
         // Judged against working-tree bytes rather than the declared revision:
         // the line checks below still run, but this citation is NOT verified.
+        // An allowlisted citation is waived HERE, not earlier: the line checks
+        // below still run against the working-tree bytes, because the waiver is
+        // of the revision requirement alone, never of whether the line is right.
         if (resolution !== 'revision' && resolution !== 'worktree-flag') {
-          CITE_STATS.unverified++;
-          CITE_STATS.byReason[resolution] = (CITE_STATS.byReason[resolution] || 0) + 1;
-          bumpTopic(t, 'unverified');
-          warnings.push(`${t.rel}:${d.id} — ${src}:${a} was read from the working tree, not the declared revision: ${UNVERIFIED_REASON[resolution] || resolution} (unverified)`);
+          if (!waive(src)) {
+            CITE_STATS.unverified++;
+            CITE_STATS.byReason[resolution] = (CITE_STATS.byReason[resolution] || 0) + 1;
+            bumpTopic(t, 'unverified');
+            warnings.push(`${t.rel}:${d.id} — ${src}:${a} was read from the working tree, not the declared revision: ${UNVERIFIED_REASON[resolution] || resolution} (unverified)`);
+          }
         } else if (resolution === 'revision') { CITE_STATS.checked++; bumpTopic(t, 'checked'); }
         // Both endpoints must exist; only the anchor line's CONTENT is judged —
         // a range legitimately ends on a closing brace.
@@ -439,6 +549,17 @@ function citeCheck(topics) {
           check(ctx, bm[2], bm[3]);
         }
       }
+    }
+  }
+  // An allowlist entry that matches nothing is stale: the citation it waived has
+  // been fixed, renumbered or deleted. Left alone it silently broadens over time
+  // into a blanket waiver, so it fails the run instead. (--only sees part of the
+  // tree, so a miss there means nothing.)
+  if (!flags.only) {
+    for (const e of ALLOWLIST) {
+      if (e.used) continue;
+      const at = `${e.topic}${e.diagram ? ' ' + e.diagram : ''} ${e.path}${'line' in e ? ':' + e.line : ''}`;
+      warnings.push(`citation-allowlist.json: allow[${e.index}] (${at}) matched no citation — it is stale; remove it`);
     }
   }
   return warnings;
@@ -599,17 +720,7 @@ function writeIndexes(topics) {
   out.push('# Diagram coverage index\n');
   // verified_commit is a sha (single-repo topic) or a {repo: sha} map (estate topic
   // whose sources span repos); render both forms as `repo@sha` / `sha`.
-  const vcs = new Set();
-  for (const t of topics) {
-    CURRENT_TOPIC = t;
-    const v = t.fm.verified_commit;
-    if (v && typeof v === 'object') for (const [k, sha] of Object.entries(v)) vcs.add(`${k}@${sha}`);
-    else if (typeof v === 'string' && v.trim().startsWith('{')) {
-      // inline-map form kept as a string by the frontmatter parser: {repo: sha, repo: sha}
-      for (const pair of v.trim().slice(1, -1).split(',')) { const [k, sha] = pair.split(':').map((x) => x.trim()); if (k && sha) vcs.add(`${k}@${sha}`); }
-    } else vcs.add(String(v));
-  }
-  out.push(`${topics.length} topic files · ${total} diagrams · declared source revisions: ${[...vcs].sort().join(', ')}\n`);
+  out.push(`${topics.length} topic files · ${total} diagrams · declared source revisions: ${declaredRevisions(topics).join(', ')}\n`);
   out.push('Revision labels are author declarations. This index checks structure and references, not semantic accuracy, clean working trees, deployment or system acceptance. See the [dated estate audit](../estate-review/2026-09-07-estate-audit.md) for evidence and limits.\n');
   out.push('## Diagrams\n');
   out.push('| Diagram | Kind | Topic file |');
@@ -634,6 +745,7 @@ function writeIndexes(topics) {
 // ---------------------------------------------------------------- main
 (async () => {
   const errors = [];
+  ALLOWLIST = loadAllowlist(errors);
   let files = walk(root, []);
   if (flags.only) files = files.filter((f) => path.relative(root, f).includes(flags.only));
   const topics = files.map((f) => parseTopic(f, errors)).filter(Boolean);
@@ -649,12 +761,20 @@ function writeIndexes(topics) {
   }
   const total = topics.reduce((n, t) => n + t.diagrams.length, 0);
   console.log(`parsed ${topics.length} topic files, ${total} mermaid diagrams`);
+  // An allowlist entry for a topic that no longer exists is as stale as one for a
+  // citation that no longer exists, and is caught here because it never reaches
+  // the citation loop at all.
+  if (!flags.only) {
+    for (const e of ALLOWLIST) {
+      if (!seenTopic.has(e.topic)) errors.push(`citation-allowlist.json: allow[${e.index}] names topic '${e.topic}', which is not in this tree`);
+    }
+  }
   if (flags.cite) {
     const w = citeCheck(topics).concat(symbolCheck(topics));
     const st = CITE_STATS;
     console.log(`cite-check: ${w.length} warning(s)`);
     // A green run must state what it checked, not merely that nothing objected.
-    console.log(`citations: ${st.checked} verified at the declared revision, ${st.unverified} unverified (working-tree fallback), ${st.unresolvable} unresolvable`);
+    console.log(`citations: ${st.checked} verified at the declared revision, ${st.unverified} unverified (working-tree fallback), ${st.unresolvable} unresolvable, ${st.allowlisted} allowlisted (unverifiable)`);
     for (const [reason, n] of Object.entries(st.byReason).sort((a, b) => b[1] - a[1])) {
       console.log(`  unverified: ${n} — ${UNVERIFIED_REASON[reason] || reason}`);
     }
@@ -662,9 +782,33 @@ function writeIndexes(topics) {
     // NOT part of COVERAGE.md: the hosted runner has no sibling checkouts, so
     // its counts would differ from a local run and the in-sync diff would fail
     // on a true statement. The gate stays honest by not diffing this file.
-    writeVerificationReport(st);
+    writeVerificationReport(st, topics);
+    for (const x of CITE_NOTES) console.log(`  ~ ${x}`);
     for (const x of w) console.warn(`  ! ${x}`);
     if (flags.strictCitations) errors.push(...w.map(x => `citation: ${x}`));
+  }
+  if (flags.checkVerification) {
+    // The runner cannot resolve cross-repository revisions, so it cannot repeat
+    // the citation check. What it CAN do is refuse a VERIFICATION.md written
+    // against revisions the tree no longer declares — which is exactly the case
+    // where a topic was re-stamped without its citations being re-resolved.
+    const vfile = path.join(root, 'VERIFICATION.md');
+    const text = fs.existsSync(vfile) ? fs.readFileSync(vfile, 'utf8') : null;
+    const m = text && text.match(/<!-- declared-revisions:([^>]*?)-->/);
+    if (!text) errors.push('VERIFICATION.md is absent — run: node scripts/diagram-index-gen.cjs docs/diagrams --check --strict-citations');
+    else if (!m) errors.push('VERIFICATION.md carries no declared-revisions anchor — regenerate it: node scripts/diagram-index-gen.cjs docs/diagrams --check --strict-citations');
+    else {
+      const recorded = m[1].trim().split(/\s+/).filter(Boolean);
+      const current = declaredRevisions(topics);
+      const added = current.filter((x) => !recorded.includes(x));
+      const gone = recorded.filter((x) => !current.includes(x));
+      if (added.length || gone.length) {
+        errors.push(`VERIFICATION.md is stale: declared revisions have moved since it was written${added.length ? `; now declared but not recorded: ${added.join(', ')}` : ''}${gone.length ? `; recorded but no longer declared: ${gone.join(', ')}` : ''}. Re-resolve the citations locally and commit the result: node scripts/diagram-index-gen.cjs docs/diagrams --check --strict-citations`);
+      } else {
+        console.log(`verification: fresh — VERIFICATION.md records all ${current.length} declared revision(s)`);
+      }
+    }
+    console.log(`allowlist: ${ALLOWLIST.length} well-formed entr${ALLOWLIST.length === 1 ? 'y' : 'ies'}`);
   }
   if (flags.render) {
     const { errors: rerr, count } = await renderAll(topics);

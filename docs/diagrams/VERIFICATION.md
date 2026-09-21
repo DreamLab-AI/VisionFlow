@@ -9,12 +9,22 @@ commit. That distinction is invisible in a warning count, which is why it is
 stated here: a green run reports what it checked, not merely that nothing objected.
 
 - **17086** verified at the declared revision
-- **9** unverified (read from the working tree)
+- **0** unverified (read from the working tree)
 - **0** unresolvable (never checked at all)
+- **9** allowlisted (unverifiable), waived by [citation-allowlist.json](citation-allowlist.json)
 
-Unverified, 9: the declared revision does not contain that file (bad sha, or the file did not exist yet).
+An allowlisted citation names a file that exists in no commit, so no declared
+revision can ever contain it. It is waived by name, one entry per citation, with
+a reason; it is never counted as verified. The line checks still applied to it.
 
-| Topic | unverified | unresolvable |
-|---|---|---|
-| [visionflow/02-website-build-and-deploy.md](visionflow/02-website-build-and-deploy.md) | 4 | 0 |
-| [visionflow/07-pitch-presentation-reports.md](visionflow/07-pitch-presentation-reports.md) | 5 | 0 |
+<!-- declared-revisions: 08e9e8578 149d8eba638886f17dc5f8919be8c26502517ed0 1639f86ab 1639f86abded1441ce148d6c47924dfaf34f96af 1d9da5270 2f90c1916 36bb64e1e 482ba593bcffddca7d564d0b6c4b1fea225154fb 65e2d1e78 727549163 75a5c1f1acda50bfe9d66a92a5343cf12f8b84ef 9a3dd8830 RuView@b48ab7dad WasmVOWL@51a148430 agentbox@1639f86ab agentbox@1639f86abded1441ce148d6c47924dfaf34f96af agentbox@b7b1ab81a agentbox@b7b1ab81a6ed0680bb10026e17935152a23e0c5e df22182f365f7bc7b4664e4374d150ff893e6b05 diagram-ir@eed5ebde4 dream-machine@a82dab2bf dreamlab-ai-website@08e9e8578 f223bbd40 knowledgegraph@2791111fc knowledgegraph@75a5c1f1a knowledgegraph@75a5c1f1acda50bfe9d66a92a5343cf12f8b84ef loom@07a0e6774 loom@39b5fc02aeca0abd9f12c32437a69b6e385d8375 nostr-rust-forum@2f90c1916 prose-sanitiser@be8305ee8 solid-pod-rs@727549163 unmute@c49982eb3aeaf76633dfe4155fa3b8dcb5b3d962 visionclaw@dd82a07b0c54defc469a85e9d57fb15d29dc5e07 visionclaw@f223bbd40 visionclaw@f223bbd40ab52f7848d38ff98211ece75456b7e2 visionflow@df22182f3 visionflow@df22182f365f7bc7b4664e4374d150ff893e6b05 visiongraph@149d8eba6 visiongraph@149d8eba638886f17dc5f8919be8c26502517ed0 visiongraph@9e308164c vowl-wasm@65e2d1e78 -->
+
+The comment above records the revisions the tree declared when this file was
+written. `--check-verification` recomputes it from the topics and refuses a
+mismatch, which is how CI knows a re-stamped topic has had its citations
+re-resolved locally rather than merely renumbered.
+
+| Topic | unverified | unresolvable | allowlisted |
+|---|---|---|---|
+| [visionflow/02-website-build-and-deploy.md](visionflow/02-website-build-and-deploy.md) | 0 | 0 | 4 |
+| [visionflow/07-pitch-presentation-reports.md](visionflow/07-pitch-presentation-reports.md) | 0 | 0 | 5 |
