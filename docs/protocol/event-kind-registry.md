@@ -64,6 +64,9 @@ allow-list (`nostr-rust-forum/.../wrangler.toml` `MESH_FEDERATED_KINDS`)?
 | 38303 | LLM marketplace: deny | agentbox | ADR-021 | **no (gap)** |
 | 38304 | LLM marketplace: usage receipt | agentbox | ADR-021 | **no (gap)** |
 | 38305 | LLM marketplace: reserved | agentbox | ADR-021 | no |
+| 38410-38415 | Colloquy knowledge units (KnowledgeUnit, Confirmation, Flag, Supersession, Graduation, ToolGapSignal) | agentbox, nostr-rust-forum | agentbox ADR-2085, moved here by agentbox ADR-2105 | no (deliberate) |
+| 38420 | sidestr account binding (PROPOSED) | agentbox | agentbox ADR-2098, ADR-2101, moved here by ADR-2105 | no |
+| 38421-38425 | Settlement domain events: PegOutDefaulted, ChildChainOpened, ChildChainClosing, ChainTombstoned, SettlementRecorded (PROPOSED) | agentbox | agentbox DDD-022, ADR-2098, moved here by ADR-2105 | no |
 | 39000 | Group metadata (relay-signed) | nostr-rust-forum | NIP-29 | no |
 | 39001 | Group admins list (relay-signed) | nostr-rust-forum | NIP-29 | no |
 | 39002 | Group members list (relay-signed) | nostr-rust-forum | NIP-29 | no |
@@ -76,6 +79,13 @@ allow-list (`nostr-rust-forum/.../wrangler.toml` `MESH_FEDERATED_KINDS`)?
 | 38100-38199 | Agent-response (outbound) |
 | 38200-38299 | Agent job/payment (estimate/settlement) |
 | 38300-38399 | LLM resource marketplace (ADR-021) |
+| 38400-38499 | agentbox learning and settlement: colloquy 38410-38415, sidestr binding and settlement events 38420-38425 (agentbox ADR-2105) |
+
+Band reservations count even when most of the band is unspent. agentbox ADR-2105
+moved colloquy out of 38100-38105 and the settlement pack out of 38110-38115
+because 38100-38199 is the agent-response reservation entire; it did not take
+38202-38299 either, because the payment row above reserves that hundred. Every
+allocation cites the row it occupies.
 
 ### 2.4 Governance tags and receipt stages on kinds 31400–31405 (ADR-2011, PRD-augmentation-conditions)
 

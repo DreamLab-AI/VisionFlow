@@ -56,7 +56,7 @@ and mainnet by explicit operator choice" (`website/static/index.html:597`). The 
 4. **The kind registry mirrors the sidestr kinds.** `docs/protocol/event-kind-registry.md`
    gains rows for 23500, 23501, 23510 to 23514, 33333, 33500, 33501 and 33502 marked
    **externally owned** and provisional (upstream spec v0.0.1, field names and kinds not final),
-   and for **38110 `sidestr-account-binding`** inside agentbox's 38000 to 38201 block as
+   and for **38420 `sidestr-account-binding`** inside agentbox's 38400 to 38499 band as
    estate-owned. 33502 carries two upstream schemas and the registry says so rather than
    choosing one. The registry owns the allocation table; semantics stay with the originating
    record, per its own source-of-record rule (`docs/protocol/event-kind-registry.md:8`).
@@ -105,7 +105,7 @@ evidence will be:
 
 - `grep -rn "NWC\|Lightning" website/static/index.html docs/PRD-website.md` returning only
   bridge-on-ramp or historical phrasing, with the drift counter green at that commit.
-- `docs/protocol/event-kind-registry.md` carrying the sidestr rows and 38110, with no collision
+- `docs/protocol/event-kind-registry.md` carrying the sidestr rows and 38420, with no collision
   flagged against agentbox's 38000 to 38201 block or the forum's 31400 to 31405.
 - `README.md:248` naming sidestr as the instrument behind the payment-account claim, with a
   maturity word matching the implementing records' filed axes rather than exceeding them.
