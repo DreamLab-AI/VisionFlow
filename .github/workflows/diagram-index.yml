@@ -27,16 +27,38 @@ jobs:
         with:
           node-version: '22'
 
-      # `sources:` reach sibling checkouts (../project, ../solid-pod-rs, …) that a
-      # hosted runner does not have, so path existence and --cite-check are LOCAL
-      # gates (see docs/diagrams/README.md § Tooling). Here we validate everything
-      # that is self-contained: frontmatter shape, unique ids, heading/block
-      # structure, prose limits, and that README/COVERAGE match the tree.
+      # WHY THIS RUNNER DOES NOT RUN --strict-citations (decided 2026-09-21).
+      #
+      # `sources:` reach sixteen repositories at forty-one declared revisions, so
+      # verifying a citation here would mean checking each of them out at the exact
+      # sha its topic names. That was measured rather than assumed, and two of them
+      # cannot be fetched at all: jjohare/visionGraph is private, and the RuView sha
+      # the corpus declares exists only in a local clone. `--strict-citations`
+      # refuses `--no-source-paths` and has no per-repository waiver, so those two
+      # absences alone would raise ~48 `source path does not exist` errors and the
+      # gate would be red from its first run. Making it green would mean giving the
+      # runner a second, weaker definition of "verified" than the local one — and a
+      # corpus whose whole claim is that a citation was read at a declared revision
+      # cannot afford two definitions of that.
+      #
+      # So verification stays LOCAL (`--check --strict-citations`, which writes
+      # docs/diagrams/VERIFICATION.md), and this runner gates its FRESHNESS: the
+      # third step below recomputes the declared revisions from the topics —
+      # frontmatter only, no source access — and refuses a VERIFICATION.md written
+      # against a different set. A topic re-stamped without its citations being
+      # re-resolved therefore cannot reach main. See docs/diagrams/README.md
+      # § Where the citation gate runs.
       - name: Structural check (sibling paths tolerated)
         run: node scripts/diagram-index-gen.cjs docs/diagrams --check --no-source-paths
 
-      - name: Citation refusal and ADR namespace regression
+      - name: Citation refusal, allowlist and ADR namespace regression
         run: node tests/gates/diagram-index.test.cjs
+
+      # Asserts the local --strict-citations run was actually done against the
+      # revisions the tree declares now, and that citation-allowlist.json is well
+      # formed and names real topics. Needs no sibling checkouts.
+      - name: Verification report is fresh, allowlist is well formed
+        run: node scripts/diagram-index-gen.cjs docs/diagrams --check --no-source-paths --check-verification
 
       - name: Index in sync
         run: |

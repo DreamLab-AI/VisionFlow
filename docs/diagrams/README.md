@@ -76,13 +76,49 @@ item), `DOC-DRIFT:` (doc says X, code does Y), `EXTERNAL:` (asserted by this rep
 node scripts/diagram-index-gen.cjs docs/diagrams --check              # frontmatter, ids, paths, prose limit
 node scripts/diagram-index-gen.cjs docs/diagrams --check --render     # + parse every block with mmdc → rendered/
 node scripts/diagram-index-gen.cjs docs/diagrams --check --cite-check # + resolve every path:line citation
+node scripts/diagram-index-gen.cjs docs/diagrams --check --strict-citations   # the gate: refuse anything unverified
 node scripts/diagram-index-gen.cjs docs/diagrams                      # regenerate the index below + COVERAGE.md
 ```
 
+### Where the citation gate runs
+
+`--strict-citations` is a **local** gate, run before pushing. It resolves every citation with
+`git show <sha>:<path>` against the revision its topic declares, refuses anything it could not verify, and
+writes [VERIFICATION.md](VERIFICATION.md) recording what it actually resolved.
+
+It is local because it cannot honestly be anything else. `sources:` reach sixteen repositories at forty-one
+declared revisions; checking a citation on a hosted runner would mean checking each of them out at the exact
+sha. Measured on 2026-09-21, two cannot be fetched at all: `jjohare/visionGraph` is private, and the RuView
+sha the corpus declares exists only in a local clone. Since `--strict-citations` refuses `--no-source-paths`
+and has no per-repository waiver, those two absences alone raise about 48 `source path does not exist` errors,
+so a runner-side strict gate would be red from its first run. The only way to green it is a second, weaker
+definition of "verified" that only CI uses — which is precisely the thing a corpus whose claim is *this line
+was read at this commit* cannot afford.
+
+So CI gates the **freshness** of the local run instead. `--check-verification` recomputes the declared
+revisions from the topics' frontmatter — no source access needed — and refuses a `VERIFICATION.md` written
+against a different set. A topic that is re-stamped without its citations being re-resolved cannot reach main.
+The workflow is `.github/workflows/diagram-index.yml`.
+
+### The citation allowlist
+
+A handful of citations can never resolve at any declared revision, because the file they name exists in no
+commit. Today that is nine, all gitignored build artefacts: `website/build-receipt.json` (VF-02) and
+`texput.log` (VF-07). Refusing them forever keeps the strict gate permanently red; ignoring them silently is
+the failure this checker exists to prevent. So each one is named in
+[citation-allowlist.json](citation-allowlist.json) with a reason, and strict mode passes it while counting and
+printing it separately as `allowlisted (unverifiable)` — never as verified.
+
+An entry waives the revision requirement for exactly the citation it names (topic, diagram, path, line); the
+line checks still run against it. An entry that stops matching anything is stale and **fails** the run, which
+is what stops the file rotting into a blanket waiver. Adding one is a reviewable act: the reason must say why
+the citation can never be verified, not why verifying it is inconvenient.
+
 `--cite-check` resolves each `path:line` inside a diagram against the file's own `sources:` list, asserts the
 file is long enough, warns when the anchor line is blank or a lone closing brace, and — for a participant
-labelled with a function name — warns when the cited line falls outside that function's body. It **warns,
-never fails**. Unresolved and ambiguous citations also warn. The generated ADR index qualifies numbers by repository; `estate-unresolved` means ownership still needs resolution.
+labelled with a function name — warns when the cited line falls outside that function's body. On its own it
+**warns, never fails**; under `--strict-citations` every one of those warnings is a refusal. Unresolved and
+ambiguous citations warn the same way. The generated ADR index qualifies numbers by repository; `estate-unresolved` means ownership still needs resolution.
 
 That last check exists because relocating a citation by diff, however carefully, preserves whatever the
 citation meant: if it was already pointing at the wrong line, a re-anchoring pass moves the error and stamps a
