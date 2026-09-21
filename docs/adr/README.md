@@ -26,7 +26,7 @@ precisely because it drifted from the code; see
 
 The [estate status/evidence contract](../architecture/adr-status-contract.md) defines the independent decision, implementation and activation axes and distinguishes lineage from supersession (2026-09-07).
 
-_11 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
+_12 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
 
 | ID | Title | Date | Decision | Impl | Activation | Supersedes | Superseded by | Owner | Repo |
 |----|-------|------|----------|------|------------|------------|---------------|-------|------|
@@ -41,3 +41,4 @@ _11 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
 | [ADR-2009](ADR-2009-webgl-mesh-deep-is-sidecar-only.md) | The webgl-mesh deep is sidecar-only and leaves the nightly rotation until a browser runner exists | 2026-09-07 | accepted | complete | live | — | — | jjohare | visionflow |
 | [ADR-2010](ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md) | The six augmentation conditions are the canon's audit lens for human judgement | 2026-09-14 | accepted | complete | staged | — | — | jjohare | visionflow |
 | [ADR-2011](ADR-2011-task-properties-set-the-boundary-not-agent-self-tiering.md) | Operator-declared task properties set the human–agent boundary, not the requesting agent's self-tier | 2026-09-14 | accepted | complete | staged | — | — | jjohare | visionflow |
+| [ADR-2012](ADR-2012-sidestr-settlement-is-ecosystem-canon.md) | The financial substrate is our own sidestr sidechains: record the decision in canon, mirror the kind registry, and retire Lightning-first and the SHA-256d-only anchoring note | 2026-09-21 | proposed | none | inactive | — | — | jjohare | visionflow |
