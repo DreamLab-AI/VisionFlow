@@ -95,7 +95,7 @@ ROSTER=(
   "WasmVOWL|WasmVOWL|first-party||WASM ontology visualiser"
   "visionGraph|visionGraph|first-party||graph surface"
   "dream-engine|dream-machine|imported|github.com/ruvnet/dream-machine|dream-cycle engine, forked from ruvnet upstream"
-  "logseq|project4|imported|github.com/logseq/logseq|authored vault tooling, forked from logseq upstream"
+  "logseq|project4|imported|github.com/logseq/logseq|archived Logseq-era publisher lineage, read-only (authoring moved to the visionGraph vault 2026-09-22)"
   "ruvector|ruvector|upstream|github.com/ruvnet/ruvector|vector memory substrate consumed by the estate"
   "RuView|RuView|upstream|github.com/ruvnet/RuView|sensing/consensus research substrate consumed by the estate"
 )

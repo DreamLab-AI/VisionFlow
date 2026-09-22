@@ -54,6 +54,8 @@ flowchart TB
 ```
 
 ## VC-06.2 PUT /api/settings/physics — the flagship round trip, phase 1 read and merge
+
+<!-- STALE 2026-09-22: ADR-2115 supersedes ADR-2041: `logseq` is no longer a deserialisation alias; it is rejected (crates/visionclaw-domain/src/config/graph_type.rs) -->
 ```mermaid
 sequenceDiagram
     autonumber
@@ -309,6 +311,8 @@ flowchart TB
 ```
 
 ## VC-06.9 Generated client types — src/bin/generate_types.rs
+
+<!-- STALE 2026-09-22: ADR-2115 supersedes ADR-2041: path_accessible_impls resolves only the `knowledge` segment; `logseq` is rejected -->
 ```mermaid
 sequenceDiagram
     autonumber

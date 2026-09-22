@@ -445,6 +445,8 @@ sequenceDiagram
 ```
 
 ## ES-09.13 VisionClaw ontology-publish.yml — vault pipeline to pod, pull model
+
+<!-- STALE 2026-09-22: `working-directory: logseq-source` no longer appears in VisionClaw .github/workflows/ontology-publish.yml; the build authority is `vault build` over the local visionGraph vault (Loom ADR-141, PRD-sovereign-corpus) -->
 ```mermaid
 sequenceDiagram
     autonumber

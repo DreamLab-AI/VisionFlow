@@ -1,9 +1,9 @@
 ---
 title: VisionFlow Baseline — What This Repo Is and Runs Today
 doc_id: VF-BASELINE
-version: 0.4.0
+version: 0.5.0
 status: draft-for-ratification
-verified_commit: 03db671
+verified_commit: fd6162b
 sources:
   - website/build.sh
   - website/static/index.html
@@ -21,6 +21,8 @@ sources:
   - scripts/check-augmentation-citations.cjs
   - scripts/live-forum-probe.mjs
   - docs/README.md
+  - docs/PRD-sovereign-corpus.md
+  - docs/engineering/sovereign-corpus-contracts.md
   - package.json
   - dream.config.json
 date: 2026-08-31
@@ -239,6 +241,23 @@ Decisions of record:
 - **Engineering ADR-005 (mandate-at-grant) is speculative.** It self-labels
   "implementation is not committed" (kind 31406 absent from `agentbox.toml`); noted
   so a reader does not treat it as active.
+- **The corpus had four doors that disagreed about it — now being closed.** Until
+  2026-09-22 the estate held one corpus and four readers of it with four different
+  answers: the raw vault on disk and agentbox's `ontology-bridge` MCP server both
+  reported 8,433 classes unreasoned, ungated and unstamped; Loom served 8,146 from a
+  bundle built 2026-08-22, reasoned, gated and stamped; VisionClaw parsed the json-ld
+  fences itself from a GitHub pull on boot and reported 4,167, gated on `public` only.
+  The vault spec named frontmatter keys that occurred zero times (the ontology lived in
+  two `json-ld` fences per page), 23,900 Logseq `key:: value` lines and 37 `{{embed}}`s
+  survived against the vault's own rule, and this repo's README, website and pitch deck
+  described "a Logseq corpus". [ADR-2013](adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md)
+  and [PRD-sovereign-corpus](PRD-sovereign-corpus.md) close this: one vault, one parser
+  and reasoner (`VisionClaw/crates/vault`), one build, one human gate. The canon prose is
+  corrected in the same change as that record; the implementing workstreams land in
+  sibling repos and are **not** complete at this commit, so the decision is accepted while
+  its implementation stays `partial` and its activation `staged`. The finding is closed
+  when acceptance 2 holds — Loom `/health`, VisionClaw `/api/ontology/classes` and
+  `vault build --stats` reporting the same class count at a named commit.
 
 ## Invariants (must not silently change)
 
@@ -263,6 +282,25 @@ Decisions of record:
    dream night reads it offline through `node scripts/estate-health.mjs check` and never
    collects one, acquires a token, or edits the snapshot by hand. The annexe staying
    credential-free is what this protects (ADR-2008).
+7. **One corpus, one build, one gate.** The canonical vault is
+   `/home/devuser/workspace/visionGraph` (`knowledge/` + `working/`) and no second copy
+   of the corpus exists in the estate. Ontology lives in **frontmatter only** — no
+   `json-ld` fences, no `key:: value` lines, no `{{embed}}` — governed by a versioned
+   `ontology/vocabulary.yaml`, with the JSON-LD context and the inferred closure as build
+   outputs rather than stored state. Exactly one implementation parses and reasons over
+   it: `VisionClaw/crates/vault` (`vault-core` shared with VisionClaw's ingest, Whelk-rs
+   for the closure). Loom and VisionClaw read one build, so their class counts and
+   `vault build --stats` must be equal; a divergence is a defect, not a rounding
+   difference. Content, Schema and Demotion changes require a human-signed forum `31403`
+   (Schema floored at tier High); exposure-level changes self-evolve under a paired-eval
+   gate with auto-revert and are ledgered, never signed; Whelk inconsistency, subclass
+   cycles and relation contradictions are blockers that cannot be approved around
+   (ADR-2013).
+8. **No MCP inside the estate for the corpus.** Agents reach the corpus through the
+   `vault` binary over Bash and through `loom-client`; humans use Obsidian desktop with
+   core plugins only. Loom's `/mcp` is the external-host door and nothing else.
+   Registering an MCP server for the corpus inside the estate requires a new ADR and an
+   amendment here — it is not a silent change (ADR-2013).
 
 ## Change process
 

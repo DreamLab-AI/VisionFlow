@@ -303,6 +303,8 @@ flowchart TB
 
 ## AB-01.8 agentbox.toml schema shape - top-level sections
 
+<!-- STALE 2026-09-22: vault.format enum is now `obsidian` only; `logseq-legacy` was withdrawn from agentbox/schema/agentbox.toml.schema.json (line numbers cited here have moved) -->
+
 ```mermaid
 classDiagram
     class AgentboxToml {

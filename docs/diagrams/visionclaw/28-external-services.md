@@ -271,6 +271,8 @@ sequenceDiagram
     end
 ```
 ## VC-28.6 github_pr_service — outbound GitHub REST API (git data + PR)
+
+<!-- STALE 2026-09-22: the legacy `LOGSEQ_PRIVATE_REPO_GITHUB` fallback is deleted; `github_token_from_env()` reads only `PRIVATE_REPO_GITHUB_PAT` (src/services/github/config.rs GITHUB_TOKEN_ENV), and GitHub sync is optional and off by default (ADR-2115) | the legacy `LOGSEQ_PRIVATE_REPO_GITHUB` fallback is deleted; `github_token_from_env()` reads only `PRIVATE_REPO_GITHUB_PAT` (src/services/github/config.rs GITHUB_TOKEN_ENV) -->
 ```mermaid
 sequenceDiagram
     autonumber

@@ -329,12 +329,19 @@ body {
   will-change: transform;
 }
 body.reading-plain .rl-inner { transform: rotateX(-180deg); }
-body.rl-init .rl-inner { transition: none !important; }
+body.rl-init .rl-inner, body.rl-init .rl-face { transition: none !important; }
 .rl-face {
   position: absolute; inset: 0;
   backface-visibility: hidden; -webkit-backface-visibility: hidden;
   display: flex; flex-direction: column; justify-content: center;
+  /* Belt and braces: some engines ignore backface-visibility on these faces
+     (the plain copy then shows mirrored over the technical copy), so the
+     inactive face is also hidden outright. The switch is delayed to the
+     instant the panel is edge-on: the easing above reaches 90deg at 42.2% of
+     its duration, so neither face is ever seen from behind. */
+  transition: visibility 0s linear calc(var(--d, 0s) + var(--dur, 1s) * 0.422);
 }
+.rl-face[aria-hidden="true"] { visibility: hidden; }
 .rl-face > :first-child { margin-top: 0; }
 .rl-face > :last-child { margin-bottom: 0; }
 .rl-face-plain { transform: rotateX(180deg); }
@@ -384,7 +391,7 @@ body.rl-init .rl-inner { transition: none !important; }
   #reading-switch button { padding: 8px 13px; font-size: 0.72rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .rl-inner { transition: none; }
+  .rl-inner, .rl-face { transition: none; }
   .rl-face::before, .rl-face::after { transition: none; }
   #reading-switch .rl-thumb { transition: none; }
 }
@@ -1402,7 +1409,7 @@ a.substrate-shot:hover {
   /* ── Reading-switch face swap (no 3D flip on mobile) ───────────────────── */
   .rl-panel { perspective: none; }
   .rl-inner { transform: none !important; height: auto !important; will-change: auto; transition: none; }
-  .rl-face { position: static; inset: auto; backface-visibility: visible; -webkit-backface-visibility: visible; }
+  .rl-face { position: static; inset: auto; backface-visibility: visible; -webkit-backface-visibility: visible; transition: none; }
   .rl-face-plain { transform: none; }
   .rl-face::before, .rl-face::after { display: none !important; }
   .rl-face[aria-hidden="true"] { display: none; }

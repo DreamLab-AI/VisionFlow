@@ -59,7 +59,7 @@ Two ecosystem-specific facts that explain why our copy drifted, and that the cop
    the runtime layer where individuals live. Never call the published corpus a knowledge
    graph — it has no instance data to back the claim.
 2. **"Living ontology" is retired.** The canonical line for the whole published artefact is
-   "a Logseq corpus that is also an OWL ontology".
+   "an Obsidian corpus that is also an OWL ontology, published as OKF v0.2".
 3. **The `/ontology` explorer may keep its name** — it genuinely visualises the class-and-
    property structure. Call it "the 3D ontology explorer"; do not call the *page* graph "the
    3D ontology".
@@ -98,8 +98,8 @@ When one sentence has to carry the whole stack:
 |---------|------|-------|
 | VisionFlow README | `README.md` (this repo) | canon |
 | visionflow.info | `website/static/index.html` | canon |
-| narrativegoldmine front page | `logseq:publishing-tools/WasmVOWL/modern/src/pages/HomePage.tsx` | knowledgeGraph |
-| narrativegoldmine repo README | `logseq:README.md`, `knowledgeGraph:README.md` | knowledgeGraph |
+| narrativegoldmine front page | `knowledgeGraph:explorer/modern/src/pages/HomePage.tsx` | knowledgeGraph |
+| narrativegoldmine repo README | `knowledgeGraph:README.md` | knowledgeGraph |
 | Loom README | `loom:README.md` | loom |
 | Sibling READMEs | VisionClaw, agentbox, solid-pod-rs, nostr-rust-forum, dreamlab-ai-website | each repo |
-| KG term pages | `Ontology.md`, `Knowledge Graph.md`, `Reasoning.md`, `Glossary Index.md` + this playbook mirrored as a page | knowledgeGraph |
+| KG term pages | `visionGraph:knowledge/pages/{Ontology,Knowledge Graph,Reasoning,Glossary Index}.md` + this playbook mirrored as a page | visionGraph |

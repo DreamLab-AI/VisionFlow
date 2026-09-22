@@ -311,6 +311,8 @@ sequenceDiagram
 ```
 
 ## VC-20.8 OntologyActor message set
+
+<!-- STALE 2026-09-22: `LogseqPage` no longer exists in crates/visionclaw-actors/src/messages/ontology_messages.rs; pages are parsed by the vault crate (crates/vault-core, frontmatter-only) -->
 ```mermaid
 classDiagram
     class OntologyActor

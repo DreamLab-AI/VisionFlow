@@ -102,6 +102,8 @@ sequenceDiagram
 ```
 
 ## VC-21.2 Frontmatter inclusion gate (ADR-2040 s V4, supersedes ADR-2014)
+
+<!-- STALE 2026-09-22: the ADR-2040 D3 legacy `public:: true` leading-block tolerance is deleted; `key:: value` lines are body text and never the publish gate (crates/visionclaw-domain/src/vault/mod.rs module doc + tests); only frontmatter `public: true` / `owl-class` gate -->
 ```mermaid
 sequenceDiagram
     autonumber
@@ -440,6 +442,8 @@ classDiagram
 ```
 
 ## VC-21.10 V1 vault layout (Obsidian vault root)
+
+<!-- STALE 2026-09-22: the `/logseq/` listing exclusion is gone from content_enhanced.rs; the remaining exclusions are `/bak/`, `/.recycle/`, `/.trash/`, `.obsidian` -->
 ```mermaid
 flowchart TD
     ROOT["VAULT_ROOT (env) - single path authority<br/>VAULT-corpus-format.md sV1"] --> OBS[".obsidian/ - app/appearance/core-plugins/community-plugins/hotkeys committed"]
@@ -463,6 +467,8 @@ flowchart TD
 ```
 
 ## VC-21.11 Settings and wire vocabulary — the bounded `logseq` alias (V7, ADR-2041)
+
+<!-- STALE 2026-09-22: the bounded `logseq` alias is removed. ADR-2115 (supersedes ADR-2041): `logseq` is an unknown graph type everywhere — serde alias, normalise_graph_type, lookup helpers, path matchers and the binary wire rewrite no longer accept it (crates/visionclaw-domain/src/config/graph_type.rs). Only the client's localStorage migration still maps a persisted `graphs.logseq` object to `graphs.knowledge` on load -->
 ```mermaid
 flowchart TD
     Persisted["persisted settings.yaml<br/>visualisation.graphs.logseq.* (legacy) or .knowledge.* (current)"]

@@ -230,7 +230,7 @@ This is not a “later” problem. It is a go-to-market blocker.
 The thesis wants the mesh to surface hidden work. VisionClaw’s current integration footprint is strong for:
 
 - GitHub,
-- markdown / Logseq,
+- markdown (an Obsidian vault since 2026-09; formerly Logseq),
 - ontology files,
 - Solid,
 - some AI services,

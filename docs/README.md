@@ -30,6 +30,8 @@ Back to the [top-level README](../README.md) for the ecosystem overview, quickst
 | [Judgment Broker DDD](DDD-judgment-broker-context.md) | Bounded context for the distributed decision loop |
 | [Augmentation Conditions PRD](PRD-augmentation-conditions.md) | Adopts the six augmentation conditions (arXiv 2609.12482) across the estate: non-vacuous decision surface, task-property boundary, closed receipt loop, intent persistence, reviewer instrumentation, manual continuation |
 | [Augmentation Conditions DDD](DDD-augmentation-conditions-context.md) | Bounded context for grading and instrumenting human–agent decision surfaces |
+| [Sovereign Corpus PRD](PRD-sovereign-corpus.md) | One vault, one build, one gate: the corpus authored in Obsidian, published as OKF v0.2, parsed and reasoned by a single implementation, human-signed where it matters |
+| [Sovereign Corpus contracts](engineering/sovereign-corpus-contracts.md) | Frozen interface seams between the sovereign-corpus workstreams: vocabulary, `vault` CLI, build bundle, `PatchProposal`, forum events, baselines |
 
 ## Website
 

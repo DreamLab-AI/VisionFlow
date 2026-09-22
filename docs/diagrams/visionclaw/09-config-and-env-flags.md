@@ -532,6 +532,8 @@ flowchart LR
 ```
 
 ## VC-09.15 ADR-2041 — the knowledge graph-settings key and its one-release logseq alias
+
+<!-- STALE 2026-09-22: the one-release `logseq` alias has expired. ADR-2115 (supersedes ADR-2041): the server rejects `logseq` everywhere (crates/visionclaw-domain/src/config/graph_type.rs); only the client's persisted-state migration graphs.logseq → graphs.knowledge remains, receive-side -->
 ```mermaid
 sequenceDiagram
     autonumber

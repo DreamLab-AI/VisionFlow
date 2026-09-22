@@ -420,6 +420,8 @@ stateDiagram-v2
 
 ## AB-25.10 Vault path authority for ontology writes
 
+<!-- STALE 2026-09-22: the `logseq-legacy` read-tolerance value was withdrawn from agentbox/schema/agentbox.toml.schema.json (vault.format is `obsidian` only) when the corpus migration completed -->
+
 ```mermaid
 sequenceDiagram
     autonumber

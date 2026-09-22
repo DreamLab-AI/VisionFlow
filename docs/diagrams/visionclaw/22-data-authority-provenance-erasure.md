@@ -418,6 +418,8 @@ sequenceDiagram
 
 ## VC-22.10 Full-sync corpus rebuild vs runtime writers (asserted-graph fence gap)
 
+<!-- STALE 2026-09-22: the corpus source is no longer a Logseq graph; re-derivation reads the visionGraph Obsidian vault (frontmatter-only OKF) via `vault build`, crates/vault — PRD-sovereign-corpus -->
+
 ```mermaid
 sequenceDiagram
     autonumber

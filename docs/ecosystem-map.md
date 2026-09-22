@@ -62,7 +62,8 @@ The common primitive is `did:nostr:<hex-pubkey>`. Docs consistently describe it 
 
 ### Knowledge Ingestion and Provenance
 
-1. VisionClaw ingests knowledge from Logseq/GitHub and pod-backed sources.
+1. VisionClaw ingests the corpus from the local Obsidian vault, mounted read-only as a named
+   volume, alongside pod-backed sources. GitHub sync is off for now.
 2. OWL reasoning and graph physics derive semantic structure.
 3. Agents propose enrichments or actions.
 4. Human decisions gate mutation.
