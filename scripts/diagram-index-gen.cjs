@@ -11,7 +11,11 @@
  *   <dir>       diagrams root (docs/diagrams). README.md / COVERAGE.md and the
  *               hero/ + archive/ subtrees are skipped.
  *   --check     validate frontmatter, heading ids and block structure only; do
- *               not write the indexes (still exits 1 on error).
+ *               not write the indexes (still exits 1 on error). A `sources:` or
+ *               `governing:` path missing from the working tree is accepted when
+ *               it exists at the topic's DECLARED revision (a sibling checkout
+ *               that is behind is not evidence the file is gone); the count is
+ *               printed per topic, and a path present at neither still fails.
  *   --cite-check resolve every `path:line` citation inside a diagram against the
  *               file's `sources:` list (a citation whose file is NOT listed is a
  *               warning — it was never checked), and assert the file is long
@@ -157,6 +161,31 @@ function parseFrontmatter(text, file, errors) {
   return { fm, body: text.slice(end + 4) };
 }
 
+// ---------------------------------------------------------------- source existence
+// Collected per topic and printed once, so a run always states how much of its
+// evidence came from a revision rather than from the checkout on disk.
+const SOURCE_AT_REVISION = [];
+const existsCache = new Map();
+// 'worktree' | 'revision' | null. `repoOf` and `shaFor` are the citation
+// checker's own resolvers, so a path is judged against exactly the repository
+// and sha its citations are judged against.
+function existsForTopic(fm, p) {
+  if (fs.existsSync(path.join(repoRoot, p))) return 'worktree';
+  const r = repoOf(p);
+  if (!r) return null;
+  const sha = shaFor({ fm }, r.key);
+  if (!sha) return null;
+  const key = `${r.abs}:${sha}:${r.rel}`;
+  if (existsCache.has(key)) return existsCache.get(key);
+  let out = null;
+  try {
+    require('child_process').execFileSync('git', ['-C', r.abs, 'cat-file', '-e', `${sha}:${r.rel}`], { stdio: 'ignore' });
+    out = 'revision';
+  } catch { out = null; }
+  existsCache.set(key, out);
+  return out;
+}
+
 // ---------------------------------------------------------------- parse topic files
 function parseTopic(file, errors) {
   const rel = path.relative(root, file);
@@ -183,13 +212,26 @@ function parseTopic(file, errors) {
     else ok = SHA.test(String(v || ''));
     if (!ok) errors.push(`${rel}: verified_commit '${v}' is not a git sha (7-40 hex) or a {repo: sha} map`);
   }
-  for (const s of fm.sources || []) {
-    const p = s.split(':')[0];
-    if (!flags.noSourcePaths && !fs.existsSync(path.join(repoRoot, p))) errors.push(`${rel}: source path does not exist: ${p}`);
-  }
-  for (const g of fm.governing || []) {
-    const p = g.split('#')[0];
-    if (!flags.noSourcePaths && !fs.existsSync(path.join(repoRoot, p))) errors.push(`${rel}: governing doc does not exist: ${p}`);
+  {
+    // A declared path that is absent from the working tree is not yet evidence
+    // that the file does not exist: a sibling checkout is often simply BEHIND
+    // the revision its topic declares, and a corpus whose whole claim is "this
+    // was read at this commit" must not call that a missing source. So the
+    // existence check follows the same rule the citation check does — ask the
+    // owning repository whether the blob exists at the topic's sha for it, and
+    // accept it when it does. A path that exists at NEITHER is still an error,
+    // and the revision-only fallback is counted and printed per topic so it can
+    // never pass silently. `--no-source-paths` is unchanged: it skips all of it.
+    let atRevision = 0;
+    const judge = (p, what) => {
+      if (flags.noSourcePaths) return;
+      const where = existsForTopic(fm, p);
+      if (!where) errors.push(`${rel}: ${what} does not exist: ${p}`);
+      else if (where === 'revision') atRevision++;
+    };
+    for (const s of fm.sources || []) judge(s.split(':')[0], 'source path');
+    for (const g of fm.governing || []) judge(g.split('#')[0], 'governing doc');
+    if (atRevision) SOURCE_AT_REVISION.push(`${rel}: ${atRevision} source(s) exist at the declared revision but not in the working tree`);
   }
 
   // headings + mermaid blocks
@@ -761,6 +803,7 @@ function writeIndexes(topics) {
   }
   const total = topics.reduce((n, t) => n + t.diagrams.length, 0);
   console.log(`parsed ${topics.length} topic files, ${total} mermaid diagrams`);
+  for (const x of SOURCE_AT_REVISION) console.log(`  ~ ${x}`);
   // An allowlist entry for a topic that no longer exists is as stale as one for a
   // citation that no longer exists, and is caught here because it never reaches
   // the citation loop at all.
