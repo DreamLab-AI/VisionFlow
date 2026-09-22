@@ -86,12 +86,20 @@ node scripts/diagram-index-gen.cjs docs/diagrams                      # regenera
 `git show <sha>:<path>` against the revision its topic declares, refuses anything it could not verify, and
 writes [VERIFICATION.md](VERIFICATION.md) recording what it actually resolved.
 
+The `sources:` and `governing:` existence check follows the same rule. A path missing from the working
+tree is checked with `git cat-file -e <sha>:<path>` in the repository that owns it, at the sha the topic
+declares, and counts as present when it is there — a sibling checkout that is behind, or that has moved
+on past a file an older topic legitimately cites, is not evidence the file does not exist. The run prints
+`N source(s) exist at the declared revision but not in the working tree` per topic, so the fallback is
+never silent, and a path that exists at **neither** is still an error.
+
 It is local because it cannot honestly be anything else. `sources:` reach sixteen repositories at forty-one
 declared revisions; checking a citation on a hosted runner would mean checking each of them out at the exact
 sha. Measured on 2026-09-21, two cannot be fetched at all: `jjohare/visionGraph` is private, and the RuView
-sha the corpus declares exists only in a local clone. Since `--strict-citations` refuses `--no-source-paths`
-and has no per-repository waiver, those two absences alone raise about 48 `source path does not exist` errors,
-so a runner-side strict gate would be red from its first run. The only way to green it is a second, weaker
+sha the corpus declares exists only in a local clone. A runner has no clone of either to read, so every
+citation into them is unverifiable there and `--strict-citations` refuses it; the revision fallback above
+does not help, because it too needs the repository on disk. A runner-side strict gate would be red from
+its first run. The only way to green it is a second, weaker
 definition of "verified" that only CI uses — which is precisely the thing a corpus whose claim is *this line
 was read at this commit* cannot afford.
 
