@@ -159,7 +159,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_132 topic files, 1479 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_136 topic files, 1500 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -246,7 +246,11 @@ _132 topic files, 1479 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | AB-28 | [Agentbox service crates and the manifest binary](agentbox/28-agentbox-services-and-manifest-binary.md) | 13 | flowchart, sequenceDiagram, classDiagram, stateDiagram-v2 | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2030, ADR-2031, ADR-2032, ADR-2084, ADR-2085, ADR-2086, ADR-2104 |
 | AB-29 | [Metaharness router console — AoE dispatch plane phase 0](agentbox/29-metaharness-router-console.md) | 9 | flowchart, sequenceDiagram, stateDiagram-v2 | [GOVERNANCE-capabilities.md](../../../project/agentbox/docs/GOVERNANCE-capabilities.md) | ADR-2079, ADR-2080 |
 | AB-30 | [Supporting services — secret-backup, setup server, https-bridge](agentbox/30-supporting-services-secret-backup-setup-https-bridge.md) | 5 | flowchart, sequenceDiagram | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | legacy-ADR-024, ADR-2027 |
-| AB-31 | [Sovereign settlement over sidestr sidechains (proposed)](agentbox/31-sovereign-settlement-proposed.md) | 9 | flowchart, stateDiagram-v2, sequenceDiagram | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md), [INGRESS-identity.md](../../../project/agentbox/docs/INGRESS-identity.md), [GOVERNANCE-capabilities.md](../../../project/agentbox/docs/GOVERNANCE-capabilities.md), [PROTOCOL-registry.md](../../../project/agentbox/docs/PROTOCOL-registry.md) | ADR-2096, ADR-2097, ADR-2098, ADR-2099, ADR-2100, ADR-2101, ADR-2102, ADR-2103 |
+| AB-31 | [Sovereign settlement over sidestr sidechains — the PRD-024 design and its eight decisions](agentbox/31-sovereign-settlement.md) | 9 | flowchart, stateDiagram-v2, sequenceDiagram | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md), [INGRESS-identity.md](../../../project/agentbox/docs/INGRESS-identity.md), [GOVERNANCE-capabilities.md](../../../project/agentbox/docs/GOVERNANCE-capabilities.md), [PROTOCOL-registry.md](../../../project/agentbox/docs/PROTOCOL-registry.md) | ADR-2096, ADR-2097, ADR-2098, ADR-2099, ADR-2100, ADR-2101, ADR-2102, ADR-2103 |
+| AB-32 | [The first seal — sidestr:dreamlab, its sealed document, key custody, block file and parent node](agentbox/32-sidechain-root-seal.md) | 5 | flowchart, sequenceDiagram | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md), [PROTOCOL-registry.md](../../../project/agentbox/docs/PROTOCOL-registry.md) | ADR-2096, ADR-2101, ADR-2103, ADR-2106 |
+| AB-33 | [The four sidestr crates — dependency graph, the AGPL boundary, the ports and their oracles](agentbox/33-sidestr-crates.md) | 6 | flowchart, sequenceDiagram, stateDiagram-v2 | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2030, ADR-2096, ADR-2101, ADR-2103, ADR-2106 |
+| AB-34 | [The interim producer and mirror — announce, the mirror trust rule, and relays as the registry](agentbox/34-sidestr-interim-producer-and-mirror.md) | 5 | flowchart, sequenceDiagram | [PROTOCOL-registry.md](../../../project/agentbox/docs/PROTOCOL-registry.md), [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2098, ADR-2101, ADR-2103, ADR-2105 |
+| AB-35 | [Level 2 — q against k, authorise then finalise, and the signer service outside the restore domain](agentbox/35-sidestr-level-2-consensus.md) | 5 | flowchart, sequenceDiagram | [INGRESS-identity.md](../../../project/agentbox/docs/INGRESS-identity.md), [PROTOCOL-registry.md](../../../project/agentbox/docs/PROTOCOL-registry.md) | ADR-2098, ADR-2101, ADR-2105 |
 
 ### solid-pod-rs
 
