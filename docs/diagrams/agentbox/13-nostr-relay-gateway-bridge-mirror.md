@@ -57,7 +57,7 @@ flowchart TB
     subgraph phone["Operator phone"]
         AME["Amethyst + Amber signer<br/>reads/writes the operator self-DM thread"]
     end
-    MIRROR["nostr-live-mirror.cjs hook<br/>config/hooks/nostr-live-mirror.cjs:375 main()<br/>SessionStart/UserPromptSubmit/Stop/SessionEnd"]
+    MIRROR["nostr-live-mirror.cjs hook<br/>config/hooks/nostr-live-mirror.cjs:374 main()<br/>SessionStart/UserPromptSubmit/Stop/SessionEnd"]
     DIGEST["nostr-pod-bridge session-summary<br/>services/nostr-pod-bridge/src/session_summary.rs:362 run()"]
     ZAI["Z.AI / GLM summariser<br/>session_summary.rs:59 DEFAULT_ZAI_BASE"]
     FORUM["forum-backup-cron<br/>flake.nix:2455 [program:forum-backup-cron]<br/>supercronic + dreamlab-ai-website/scripts/backup/crontab (OUT OF TREE)"]
@@ -441,7 +441,7 @@ Note over DISP: gate order enforced before dispatch is reached (AB-13.5) —<br/
 sequenceDiagram
     autonumber
     participant H as Hook event
-    participant M as main<br/>config/hooks/nostr-live-mirror.cjs:375
+    participant M as main<br/>config/hooks/nostr-live-mirror.cjs:374
     participant P as policy<br/>config/hooks/lib/egress-policy.cjs:139
     participant R as recipientAllowed<br/>config/hooks/lib/egress-policy.cjs:59
     participant B as bodyForEvent<br/>config/hooks/nostr-live-mirror.cjs:272
@@ -481,7 +481,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant MAIN as main<br/>config/hooks/nostr-live-mirror.cjs:375
+    participant MAIN as main<br/>config/hooks/nostr-live-mirror.cjs:374
     participant PUB as publishWrap<br/>nostr-live-mirror.cjs:312
     participant CLOUD as cloud worker relay<br/>dreamlab-nostr-relay workers.dev
     participant AME as Amethyst (operator phone)

@@ -64,6 +64,8 @@ Ports are never written as bare `:NNN` — write `port 8084`.
 `--cite-check` reads each cited file at the topic's declared `verified_commit` (`git show <sha>:<path>` in the
 owning repo; the `{repo: sha}` map form by key), so a stamp means "true at that sha" and a sibling checkout's
 uncommitted edits cannot flag a correct anchor; it falls back to the working tree only when the sha is unknown.
+In a `visionclaw/` topic, `../project/agentbox/…` anchors are read at the agentbox commit named by the submodule
+gitlink at that VisionClaw sha, so cross-repo anchors are pinned as well; estate topics pin each repo by key.
 
 Every mermaid block sits under an `## <file-id>.<n> <title>` heading; ids are unique tree-wide; at most
 three prose lines per diagram. Notes use the prefixes `INVARIANT:`, `DIVERGENCE:` (governing-doc open

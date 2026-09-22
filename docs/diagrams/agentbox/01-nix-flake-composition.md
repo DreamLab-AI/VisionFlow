@@ -32,7 +32,7 @@ flowchart TB
     TOML["agentbox.toml<br/>flake.nix:102 builtins.fromTOML"] --> CFG["agentboxConfig"]
     CFG --> DESK["desktopCfg = agentboxConfig.desktop or {}<br/>flake.nix:124"]
     CFG --> MEDIA["mediaCfg = skillsCfg.media or {}<br/>flake.nix:174"]
-    CFG --> VAULT["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:661"]
+    CFG --> VAULT["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:652"]
 
     DESK -->|"desktopCfg.enabled or false"| DESKOPT["lib.optionals<br/>flake.nix:1565 desktopPackages"]
     MEDIA -->|"mediaCfg.comfyui_builtin or false"| COMFYOPT["lib.optionals<br/>flake.nix:1137 comfyuiPackages"]
@@ -382,7 +382,7 @@ flowchart LR
     EVAL --> DEVSHELL["devShells.default<br/>flake.nix:3798"]
 
     PACKAGES --> RUNTIME["runtime = mkImage tag runtime-system<br/>flake.nix:3722"]
-    PACKAGES --> FULL["full = mkImage extraPackages allPackages<br/>flake.nix:3734"]
+    PACKAGES --> FULL["full = mkImage extraPackages allPackages<br/>flake.nix:3723-3727"]
     PACKAGES --> DESKTOP["desktop = mkImage extraPackages desktopPackages<br/>flake.nix:3728-3732"]
     PACKAGES --> CUDART["cuda-runtime, requires gpu.backend local-cuda<br/>flake.nix:3750-3756"]
     PACKAGES --> GSPLAT["gaussian-splatting = 3DGS stack over cuda-runtime<br/>flake.nix:3773-3779"]
@@ -392,7 +392,7 @@ flowchart LR
     FULL --> MKIMG
     DESKTOP --> MKIMG
 
-    MKIMG --> ENTRYPOINT["config = Entrypoint entrypoint/bin/entrypoint<br/>flake.nix:3713"]
+    MKIMG --> ENTRYPOINT["config = Entrypoint entrypoint/bin/entrypoint<br/>flake.nix:3702"]
 
     NOTE1["INVARIANT - container-image outputs are Linux-only,<br/>darwin exposes only compose and devShells, flake.nix comment lines 3489-3492"]
     PACKAGES --- NOTE1
@@ -402,7 +402,7 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    TOMLVAULT["[vault] in agentbox.toml<br/>agentbox.toml:706<br/>tui = rune"] --> VAULTCFG["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:661"]
+    TOMLVAULT["[vault] in agentbox.toml<br/>agentbox.toml:706<br/>tui = rune"] --> VAULTCFG["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:652"]
 
     VAULTCFG --> TUIVAL["vaultTui = vaultCfg.tui or none<br/>flake.nix:653"]
     TUIVAL --> RUNEACTIVE["runeActive = vaultTui == rune<br/>flake.nix:654"]

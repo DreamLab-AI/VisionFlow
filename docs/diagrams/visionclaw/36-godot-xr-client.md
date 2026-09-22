@@ -44,7 +44,7 @@ sources:
   - ../project/xr-client/tests/run_gut.gd
   - ../project/xr-client/scenes/GraphScene.tscn
   - ../project/xr-client/materials/node_halo.gdshader
-verified_commit: dd82a07b0
+verified_commit: 36bb64e1e
 ---
 
 ## VC-36.1 Boot — OpenXR init, capability probe, deferred scene swap (ADR-2036)

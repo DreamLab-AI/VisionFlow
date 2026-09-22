@@ -432,7 +432,7 @@ flowchart TD
         BB2["GET /api/broker/bridge/cases/:id<br/>broker-bridge.js:332"] --> BBH2["case detail"]
         BB3["POST /api/broker/bridge/cases/:id/decide<br/>broker-bridge.js:373<br/>guard signed-31403 broker-bridge.js:439"] --> BBH3["operation-bound signed approval<br/>durable received claim before mutation<br/>applied receipt requires committed upstream acknowledgement"]
         BB4["GET /api/broker/bridge/events<br/>broker-bridge.js:739"] --> BBH4["event feed"]
-        BB5["GET /api/broker/bridge/cases/:id/history<br/>broker-bridge.js:812"] --> BBH5["case history"]
+        BB5["GET /api/broker/bridge/cases/:id/history<br/>broker-bridge.js:776"] --> BBH5["case history"]
     end
     subgraph gb["routes/git-bridge.js — G5, BC20"]
         GB1["POST /v1/git/clone<br/>git-bridge.js:275"] --> GBH1["clone remote"]

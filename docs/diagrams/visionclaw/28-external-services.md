@@ -21,7 +21,7 @@ sources:
   - ../project/src/handlers/mod.rs
   - ../project/docs/reference/configuration.md
   - ../project/docs/how-to/agent-orchestration.md
-verified_commit: dd82a07b0
+verified_commit: 36bb64e1e
 ---
 ## VC-28.1 ragflow_service — outbound RAGFlow agent API
 ```mermaid

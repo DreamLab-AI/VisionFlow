@@ -159,6 +159,19 @@ function parseTopic(file, errors) {
   const areaDir = rel.split(path.sep)[0];
   if (fm.area && areaDir !== fm.area) errors.push(`${rel}: area '${fm.area}' does not match directory '${areaDir}'`);
   if (fm.id && !/^[A-Z]{2,3}-\d{2,3}$/.test(fm.id)) errors.push(`${rel}: id '${fm.id}' must match /^[A-Z]{2,3}-\\d{2,3}$/`);
+  {
+    // verified_commit must be a git sha (7-40 hex) or a {repo: sha} map of them. A
+    // label such as `worktree-2026-09-07` is not a revision and cannot be checked.
+    const v = fm.verified_commit;
+    const SHA = /^[0-9a-f]{7,40}$/;
+    let ok = false;
+    if (typeof v === 'string' && v.trim().startsWith('{')) {
+      const pairs = v.trim().slice(1, -1).split(',').map((x) => x.split(':').map((y) => y.trim()));
+      ok = pairs.length > 0 && pairs.every(([k, sha]) => k && SHA.test(sha || ''));
+    } else if (v && typeof v === 'object') ok = Object.values(v).every((sha) => SHA.test(String(sha)));
+    else ok = SHA.test(String(v || ''));
+    if (!ok) errors.push(`${rel}: verified_commit '${v}' is not a git sha (7-40 hex) or a {repo: sha} map`);
+  }
   for (const s of fm.sources || []) {
     const p = s.split(':')[0];
     if (!flags.noSourcePaths && !fs.existsSync(path.join(repoRoot, p))) errors.push(`${rel}: source path does not exist: ${p}`);
@@ -256,7 +269,26 @@ function shaFor(t, repoKey) {
     return null;
   }
   if (typeof v === 'object') { for (const [k, sha] of Object.entries(v)) if (k.toLowerCase() === repoKey) return sha; return null; }
-  return AREA_REPO[t.fm.area] === repoKey && /^[0-9a-f]{7,40}$/.test(String(v)) ? String(v) : null;
+  const own = AREA_REPO[t.fm.area] === repoKey && /^[0-9a-f]{7,40}$/.test(String(v)) ? String(v) : null;
+  if (own) return own;
+  // A visionclaw topic citing ../project/agentbox/… is pinned by the SUBMODULE
+  // GITLINK at its VisionClaw sha: `git ls-tree <sha> agentbox` names the agentbox
+  // commit that checkout carried, so cross-repo anchors are checked at it too.
+  if (repoKey === 'agentbox' && t.fm.area === 'visionclaw' && /^[0-9a-f]{7,40}$/.test(String(v))) return gitlinkSha(path.join(repoRoot, '../project'), String(v), 'agentbox');
+  return null;
+}
+const gitlinkCache = new Map();
+function gitlinkSha(repoAbs, sha, submodulePath) {
+  const key = `${repoAbs}@${sha}:${submodulePath}`;
+  if (gitlinkCache.has(key)) return gitlinkCache.get(key);
+  let out = null;
+  try {
+    const line = require('child_process').execFileSync('git', ['-C', repoAbs, 'ls-tree', sha, submodulePath], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    const m = /\b160000 commit ([0-9a-f]{40})/.exec(line);
+    out = m ? m[1] : null;
+  } catch { out = null; }
+  gitlinkCache.set(key, out);
+  return out;
 }
 const revCache = new Map();
 let CURRENT_TOPIC = null;

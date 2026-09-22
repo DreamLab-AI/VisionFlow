@@ -11,6 +11,7 @@ sources:
   - ../project/src/actors/graph_service_supervisor.rs
   - ../project/src/utils/mcp_tcp_client.rs
   - ../project/src/client/mod.rs
+  - ../project/src/client/mcp_tcp_client.rs
   - ../project/src/services/mcp_relay_manager.rs
   - ../project/src/handlers/mcp_relay_handler.rs
   - ../project/src/services/multi_mcp_agent_discovery.rs
@@ -30,7 +31,7 @@ sources:
   - ../project/src/agent_events/provenance.rs
   - ../project/src/services/acsp/client.rs
   - ../project/src/main.rs
-verified_commit: dd82a07b0
+verified_commit: 36bb64e1e
 ---
 
 ## VC-27.1 BotsClient — legacy `:9500` MCP-TCP poller (superseded path)
@@ -68,7 +69,7 @@ sequenceDiagram
     end
     Note over BC,MCP: RESOLVED ADR-2088 (estate) - get_status() misreported on THREE axes, not one: host<br/>"agentic-workstation", port 9090 and an unconditional connected=true. It now reports<br/>self.mcp_client.host/.port (:242-243, values resolved in BotsClient::new() :118-121) and a real<br/>AtomicBool connection state (:237,241) set from the actual test_connection() outcome (:236-244).<br/>Two tokio tests cover it.
     Note over Caller,MCP: agent_events/ingest.rs:14-19 marks this port-9500 snapshot path<br/>as untouched by design (not legacy/deprecated) - agent_action events use a separate /wss/agent-events ingest (see VC-27.13, RESOLVED ADR-2084)
-    Note over MCP: DOC-DRIFT (audit-rust.md correction): a SECOND file also named mcp_tcp_client.rs<br/>exists at src/client/mcp_tcp_client.rs, defining McpTelemetryClient. grep confirms it is dead -<br/>src/client/mod.rs:3 re-exports it but nothing else in src/ constructs or calls it. The live MCP-TCP<br/>hop is exclusively utils/mcp_tcp_client.rs::McpTcpClient shown above (used by bots_client.rs,<br/>ontology_class_index.rs, multi_mcp_agent_discovery.rs)
+    Note over MCP: DOC-DRIFT (audit-rust.md correction, gap #2): a SECOND file also named mcp_tcp_client.rs<br/>exists at src/client/mcp_tcp_client.rs, defining McpTelemetryClient (struct src/client/mcp_tcp_client.rs:10,<br/>impl :17). grep confirms it is dead - src/client/mod.rs:1,3 declares and re-exports it but nothing else in<br/>src/ constructs or calls it. The live MCP-TCP hop is exclusively utils/mcp_tcp_client.rs::McpTcpClient<br/>shown above (used by bots_client.rs, ontology_class_index.rs, multi_mcp_agent_discovery.rs)
 ```
 
 ## VC-27.2 McpRelayManager — multi-agent-container lifecycle via docker exec
@@ -571,7 +572,7 @@ sequenceDiagram
         HB->>CC: do_send(BroadcastMessage{message: json}) - :124
     end
     HB-->>Caller: 200 {ok:true, count} - :130
-    Note over H,CC: routes mounted at /api/memory-flash and /api/memory-flash/batch via<br/>configure_routes (:133-139), configured inside the /api scope (main.rs:1171)
+    Note over H,CC: routes mounted at /api/memory-flash and /api/memory-flash/batch via<br/>configure_routes (:133-139), configured inside the /api scope (main.rs:1142)
 ```
 
 ## VC-27.13 `/wss/agent-events` ingest — schema validation, hub fan-out, provenance
