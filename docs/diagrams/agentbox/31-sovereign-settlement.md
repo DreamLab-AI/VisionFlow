@@ -1,6 +1,6 @@
 ---
 id: AB-31
-title: Sovereign settlement over sidestr sidechains (proposed)
+title: Sovereign settlement over sidestr sidechains — the PRD-024 design and its eight decisions
 area: agentbox
 governing:
   - ../project/agentbox/docs/BASELINE-container.md
@@ -36,21 +36,12 @@ verified_commit: 1639f86abded1441ce148d6c47924dfaf34f96af
 
 ## For developers
 
-Nothing in this topic is running. PRD-024 is scope, not authority, and every one of the eight
-decisions it drives is minted `proposed` with `implementation_status: none`
-(ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:5-7). The four governing documents
-carry the material in explicitly marked PROPOSED sections that join the compliance surface only on
-ratification (GOVERNANCE-capabilities.md:489-491). Read every node and Note below as a design that
-cites the record proposing it, never as a surface you can call.
+This topic is the PRD-024 design, read at `1639f86ab` when nothing of it was running: every one of the eight decisions was minted `proposed` with `implementation_status: none` (ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:5-7), carried by the four governing documents in explicitly marked PROPOSED sections that join the compliance surface only on ratification (GOVERNANCE-capabilities.md:489-491). Read every node and Note below as a design that cites the record proposing it.
+Part of it has since been built. AB-32 is the sealed root chain, AB-33 the four published crates, AB-34 what is actually running, AB-35 the reviewed level-2 shape — each stamped at `ec60a8f14`. Where this topic and those disagree, they are the current claim and this one is the design it came from.
 
 ## For the business
 
-The estate can already charge for work and already refuses work it has not been paid for, but the
-balance it debits is a JSON document rather than value anywhere
-(sovereign-settlement.md:51-55). The proposal is to run the estate's own settlement chains so that
-a balance becomes something a third party can verify, with every payment above a threshold stopping
-for a human signature first. It is a costed plan in five ordered phases, only the last of which
-touches real money, and it has not been approved.
+The estate can already charge for work and already refuses work it has not been paid for, but the balance it debits is a JSON document rather than value anywhere (sovereign-settlement.md:51-55). The proposal is to run the estate's own settlement chains so that a balance becomes something a third party can verify, with every payment above a threshold stopping for a human signature first. It is a costed plan in five ordered phases, only the last of which touches real money, and it has not been approved; the first two phases have since partly begun (AB-32, AB-34).
 
 ## AB-31.1 PROPOSED - the target architecture as PRD-024 draws it
 
@@ -340,3 +331,5 @@ stateDiagram-v2
 **Invariant (proposed):** the mainnet phase cannot begin until the regulatory gate exists as code rather than as an assertion, which is the correction of a prior record that called the same containment "architecturally enforced" while it was not built (`../project/agentbox/docs/proposals/sovereign-settlement.md:324-325`, `../project/agentbox/docs/proposals/sovereign-settlement.md:60`).
 
 **Open:** PRD-024 lists its own outstanding questions and ranked risks (`../project/agentbox/docs/proposals/sovereign-settlement.md:420`, `../project/agentbox/docs/proposals/sovereign-settlement.md:456`); none is answered by anything in this repository today.
+
+**Drift (this topic vs the repository since 1639f86ab):** the account binding moved from kind `38110` to `38420` (AB-34.4), `crates/sidestr/` now exists with four published crates (AB-33.1), and the root chain named here as proposed has been sealed (AB-32.1) — AB-31.1's and AB-31.2's status notes are true only at this topic's declared revision.

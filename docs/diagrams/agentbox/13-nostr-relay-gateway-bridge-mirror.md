@@ -675,3 +675,5 @@ Note over BOOT: boot phase [2/8] — keypair, pod scaffolding, DID docs (contrac
 Note over ARGV,PUBC: this one binary replaced scripts/sovereign-bootstrap.py and<br/>config/hooks/nostr-session-summary.py (main.rs:1-10) — only bootstrap resolves its own roots<br/>and never touches BridgeConfig, since it is what CREATES the bridge secrets (main.rs:30-32)
 ```
 
+
+**Drift (kind map vs the sidestr chain plane):** the three event-kind maps above (AB-13.4, AB-13.15, AB-13.16) predate the settlement kinds and record none of them — the external sidestr set (23500, 23501, 23510-23514, 33333, 33500-33502) and the estate's own 38420-38425, into which ADR-2105 moved the account binding from 38110. The tip announcement, the mirror trust rule and the relays-as-registry arrangement are catalogued in AB-34.2 and AB-34.4 instead, and none of it passes through the relay, gateway or pod bridge drawn here.

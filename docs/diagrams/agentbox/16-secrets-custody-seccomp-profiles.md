@@ -433,3 +433,5 @@ flowchart TB
         N1 ~~~ N2 ~~~ N3 ~~~ N4
     end
 ```
+
+**Drift (secrets inventory vs the sealed chain):** two files now live in the `agentbox-secrets` volume that this topic does not inventory — the sidestr signer key at mode 0400, which ADR-2101 D3 requires be neither in `identity.env` nor derived from the identity key, and the parent node's testnet4 RPC cookie. Both are read by path rather than passed as arguments, and the genesis gate greps the chain-document directory to prove no key sits in git (see AB-32.4, AB-32.3, AB-34.1).
