@@ -133,6 +133,14 @@ Identity of a page = vault-relative path without `.md` (`knowledge/pages/Knowled
                             class_count, page_count, vocabulary_version, stale_after, artifacts:[{name,sha256,bytes}] }
 ```
 
+`content_digest` identifies the **source corpus**: SHA-256 over the sorted `(page path, page bytes)` pairs the build read
+(`vault::build::generation::content_digest`). It is NOT a digest of the artefacts and cannot be recomputed from them. A
+consumer that needs to prove what it serves hashes the listed artefacts itself — Loom's served `identity.content_digest`
+is that artefact-set digest (`name:sha256` pairs, sorted, joined by newlines, SHA-256). Artefact `name`s are relative paths
+inside the bundle and may include a subdirectory (`graph/full.bin`); `..`, absolute paths and symlinks are refused.
+(Clarified 2026-09-23: the two sides had read the undefined field differently, and the reload script refused every real
+vault-build bundle.)
+
 ## C4. `PatchProposal` JSON (WS-C emits, WS-F consumes)
 
 ```json
