@@ -22,13 +22,14 @@ SUITES=(
   "website-assets.test.sh"
   "diagram-index.test.cjs"
   "augmentation-citations.test.cjs"
+  "estate-health-ci.test.mjs"
 )
 
 FAILED=()
 for suite in "${SUITES[@]}"; do
   printf '\n\n########## %s ##########\n' "$suite"
   runner=bash
-  [[ "$suite" == *.cjs ]] && runner=node
+  [[ "$suite" == *.cjs || "$suite" == *.mjs ]] && runner=node
   if ! "$runner" "$HERE/$suite"; then FAILED+=("$suite"); fi
 done
 

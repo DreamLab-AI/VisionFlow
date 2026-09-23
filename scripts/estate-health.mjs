@@ -83,6 +83,13 @@
  *   5. An unreachable surface counts towards ESTATE-HEALTH-RED: a dead published
  *      surface deserves to become a dream hypothesis.
  *   6. RED beats STALE. A stale snapshot showing a failure still shows a failure.
+ *   7. CI state describes HEAD. When no qualifying latest run is on the default
+ *      branch's tip commit — the runs are all on older commits, as when a
+ *      repository retires its only workflow — the state is "none", not the
+ *      verdict of a run on some earlier commit. Measured 2026-09-23: knowledgeGraph
+ *      scored red from a retired workflow's last run on 721d807 while HEAD had
+ *      moved on with no runs at all. The older runs stay in `runs` and the note
+ *      names them, so nothing is hidden. See ciStateAtHead.
  *
  * Contract additions beyond the published schema, all additive (a consumer that
  * ignores them reads the documented schema unchanged):
@@ -98,7 +105,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -149,6 +156,10 @@ const CI_EVENTS = new Set(['push', 'schedule', 'workflow_dispatch']);
  */
 const SELF_RUN_ID = process.env.GITHUB_RUN_ID || null;
 
+// Imported (by the gate tests) rather than run: the pure CI-state functions are
+// exported and the CLI below stays inert.
+const IS_MAIN = Boolean(process.argv[1]) && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
+
 // ── argument parsing ─────────────────────────────────────────────────────
 const argv = process.argv.slice(2);
 const CMD = argv[0];
@@ -159,7 +170,7 @@ function opt(name, fallback) {
   return i >= 0 && argv[i + 1] ? argv[i + 1] : fallback;
 }
 
-if (!['collect', 'check'].includes(CMD)) {
+if (IS_MAIN && !['collect', 'check'].includes(CMD)) {
   process.stderr.write(
     'usage: estate-health.mjs collect [--out PATH] [--roster PATH]\n'
     + '       estate-health.mjs check  [--file PATH] [--max-age-hours 36]\n');
@@ -314,7 +325,7 @@ async function resolveRepoAccess(fullName, primary, fallback) {
  * @param {string|null} [selfRunId] run ID to exclude; defaults to SELF_RUN_ID
  * @returns {Map<string, any>} workflow_id (as string) -> run
  */
-function latestRunPerWorkflow(runs, selfRunId = SELF_RUN_ID) {
+export function latestRunPerWorkflow(runs, selfRunId = SELF_RUN_ID) {
   const latest = new Map();
   for (const run of runs) {
     if (!CI_EVENTS.has(run.event)) continue;
@@ -347,7 +358,7 @@ function isNewerRun(a, b) {
  * Red dominates: one failing workflow makes the repository red however many
  * others are green, because the failing one is the defect.
  */
-function ciStateFrom(runRecords) {
+export function ciStateFrom(runRecords) {
   if (runRecords.length === 0) return 'none';
   let amber = false;
   for (const r of runRecords) {
@@ -357,6 +368,24 @@ function ciStateFrom(runRecords) {
     amber = true; // cancelled, action_required, stale, or unrecognised
   }
   return amber ? 'amber' : 'green';
+}
+
+/**
+ * Judgement call 7: the state is HEAD's. `runHeadShas` are the head commits of
+ * the latest qualifying run per workflow. If there are runs and none of them is
+ * on `headSha`, every verdict is about an older commit, so the state is "none"
+ * and `stale` is true for the caller to note. Without a known HEAD, or with no
+ * runs, the folded state stands unchanged.
+ *
+ * @param {string} state   ciStateFrom's fold of the latest runs
+ * @param {string[]} runHeadShas
+ * @param {string|null} headSha
+ * @returns {{state: string, stale: boolean}}
+ */
+export function ciStateAtHead(state, runHeadShas, headSha) {
+  if (!headSha || runHeadShas.length === 0) return { state, stale: false };
+  if (runHeadShas.includes(headSha)) return { state, stale: false };
+  return { state: 'none', stale: true };
 }
 
 /** The snapshot's per-run record: what the page shows and check greps. */
@@ -453,6 +482,16 @@ async function collectRepo(entry, primary, fallback) {
 
   if (prs.note) notes.push(prs.note);
 
+  // Judgement call 7: a verdict on an older commit is not HEAD's state.
+  const heads = ci.heads ?? [];
+  delete ci.heads;
+  const atHead = ciStateAtHead(ci.state, heads, head?.sha ?? null);
+  if (atHead.stale) {
+    const older = [...new Set(heads.map((h) => h.slice(0, 7)))].join(', ');
+    notes.push(`no qualifying run on HEAD ${head.short}; the latest runs are on older commits (${older}) and were ${ci.state}, reported none`);
+    ci.state = atHead.state;
+  }
+
   // `open_issues_count` counts issues AND pull requests; the difference is the
   // issue count. Clamped because the two calls are not a single transaction.
   const openIssues = typeof repo.open_issues_count === 'number' && prs.count !== null
@@ -517,7 +556,8 @@ async function collectCi(fullName, branch, token, notes) {
   if (all.length > 0 && runs.length === 0) {
     notes.push('runs exist on the default branch but none from push/schedule/workflow_dispatch');
   }
-  return { state: ciStateFrom(runs), runs };
+  const heads = [...latest.values()].map((r) => String(r.head_sha ?? '')).filter(Boolean);
+  return { state: ciStateFrom(runs), runs, heads };
 }
 
 /** Latest published release; 404 simply means there is none. */
@@ -871,4 +911,4 @@ function check() {
 }
 
 // ── entrypoint ───────────────────────────────────────────────────────────
-process.exitCode = CMD === 'collect' ? await collect() : check();
+if (IS_MAIN) process.exitCode = CMD === 'collect' ? await collect() : check();

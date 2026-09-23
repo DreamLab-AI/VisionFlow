@@ -10,6 +10,7 @@
     { "name": "dreamlab-ai-website", "full_name": "DreamLab-AI/dreamlab-ai-website", "provenance": "first-party", "role": "commercial surface" },
     { "name": "loom",                "full_name": "DreamLab-AI/loom",                "provenance": "first-party", "role": "Ontology Loom — model-swappable grounding facade" },
     { "name": "knowledgeGraph",      "full_name": "DreamLab-AI/knowledgeGraph",      "provenance": "first-party", "role": "published corpus mirror and narrativegoldmine.com Pages host" },
+    { "name": "sidestr-rs",          "full_name": "DreamLab-AI/sidestr-rs",          "provenance": "first-party", "role": "sidestr sidechain crates, AGPL-3.0-only port of Melvin Carvalho's sidestr/spec; the economic engine for did:nostr agents" },
     { "name": "WasmVOWL",            "full_name": "DreamLab-AI/WasmVOWL",            "provenance": "first-party", "role": "WASM ontology visualiser (demo shell; default branch master)" },
     { "name": "visionGraph",         "full_name": "jjohare/visionGraph",             "provenance": "first-party", "role": "the vault: source of the published ontology (private — needs ESTATE_READ_TOKEN, else readable:false)" },
     { "name": "vowl-wasm",           "full_name": "DreamLab-AI/vowl-wasm",           "provenance": "first-party", "role": "published VOWL engine crate + npm bundle" },
@@ -59,6 +60,11 @@
     { "registry": "crates.io", "name": "solid-pod-rs" },
     { "registry": "crates.io", "name": "solid-pod-rs-server" },
     { "registry": "crates.io", "name": "nostr-bbs-core" },
+    { "registry": "crates.io", "name": "sidestr-header" },
+    { "registry": "crates.io", "name": "sidestr-core" },
+    { "registry": "crates.io", "name": "sidestr-nostr" },
+    { "registry": "crates.io", "name": "sidestr-wallet" },
+    { "registry": "crates.io", "name": "sidestr-round" },
     { "registry": "npm",       "name": "@dreamlab-ai/vowl-wasm" }
   ]
 }
