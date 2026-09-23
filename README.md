@@ -18,7 +18,7 @@
 
 ---
 
-> **Six honest systems can still assemble one collective lie — VisionFlow is the canon that stops that.** It holds the ADRs, PRDs, compatibility matrix and honest status ledger for a seven-repo human–AI mesh built on one wager: AI collapses the cost of routing information, so the human is promoted from router to judgment broker. This repo ships words, not runtime — and it is graded on their accuracy.
+> **Six honest systems can still assemble one collective lie — VisionFlow is the canon that stops that.** It holds the ADRs, PRDs, compatibility matrix and honest status ledger for a nine-repo human–AI mesh built on one wager: AI collapses the cost of routing information, so the human is promoted from router to judgment broker. This repo ships words, not runtime — and it is graded on their accuracy.
 
 ---
 
@@ -44,7 +44,7 @@ In 2026 the wider industry converged on the same design from the other direction
 
 ## The ecosystem
 
-No single repository *is* VisionFlow. The siblings call the whole the **Dynamic Agentic Mesh** — eight repositories, six running substrates, this canon, and the published corpus. It emerges when six independent systems mesh through one cryptographic identity spine — every actor, human or agent or server, is a single secp256k1 keypair expressed as `did:nostr:<hex-pubkey>`.
+No single repository *is* VisionFlow. The siblings call the whole the **Dynamic Agentic Mesh** — nine repositories: six running substrates, this canon, the published corpus, and the settlement crates. It emerges when six independent systems mesh through one cryptographic identity spine — every actor, human or agent or server, is a single secp256k1 keypair expressed as `did:nostr:<hex-pubkey>`.
 
 | Substrate | Role | Where to run it |
 |:----------|:-----|:----------------|
@@ -110,6 +110,14 @@ Each sibling in its own words:
 <br/>
 
 > **8,100+ ordinary Obsidian markdown pages whose frontmatter compiles losslessly into a formal OWL 2 ontology — pure TBox, every page a class, zero individuals by design.** Corpus, pipeline, viewer and method ship as one open release (ODbL-1.0 data, AGPL-3.0 pipeline) published as OKF v0.2 via Quartz at narrativegoldmine.com; siblings reason over it (VisionClaw) and serve it as measured LLM grounding (Loom, ~0.94 grounded recall), and third-party extractors such as OntoCast stage RDF into it as governed, reviewable candidates. Rigorous curation is amortised once and reused per query — this repo is the once.
+
+</details>
+
+<details>
+<summary><b>sidestr-rs</b> — <em>the economic engine for did:nostr agents</em></summary>
+<br/>
+
+> **sidestr-rs — Rust port of Melvin Carvalho's sidestr sidechains, AGPL-3.0-only: the economic engine for did:nostr agents. A did:nostr key is a sidechain wallet.** Five crates on crates.io (`sidestr-header`, `-core`, `-nostr`, `-wallet`, `-round`), each an attributed port of the [sidestr/spec](https://github.com/sidestr/spec) reference and tested against it as oracle. The estate's live chain, `sidestr:dreamlab`, runs beside Bitcoin testnet4 with a public [mirror](https://dreamlab-ai.github.io/sidestr-dreamlab/chain.json); on 2026-09-23 two agents with `did:nostr` keys pegged in 50,000 test sats, made three trades delivered as Nostr kind-23500 events, and pegged out, paid on testnet4. agentbox keeps the chain instance (`config/sidechain`), not the crates (agentbox ADR-2112). Testnet only; no real funds.
 
 </details>
 

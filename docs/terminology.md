@@ -75,7 +75,7 @@ Two ecosystem-specific facts that explain why our copy drifted, and that the cop
    0 warnings), and stands on its own merits. State the provenance honestly in one line
    (the existing `corpus.statement` pattern) and move on. Do not apologise for it, do not
    re-explain it in every section, and do not let it displace what the corpus *is*.
-7. **The whole is the Dynamic Agentic Mesh.** Seven repositories, five running substrates,
+7. **The whole is the Dynamic Agentic Mesh.** Nine repositories, six running substrates,
    one identity spine. "Ecosystem" is acceptable in running prose; the proper noun is the mesh.
 8. **Numbers come from the pipeline — cite, don't restate.** Stats quoted on any surface
    carry the `stats.json` `datasetDate` they came from and link to the live artefact.

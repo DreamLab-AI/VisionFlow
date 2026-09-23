@@ -15,6 +15,7 @@ VisionFlow is a federated ecosystem. No single repository contains the whole run
 | dreamlab-ai-website | `../dreamlab-ai-website` | DreamLab branded deployment and operator overlay for forum kit | `README.md`, `forum-config/` docs |
 | vowl-wasm | `../vowl-wasm` | Ontology visualisation WASM engine (clean-room Rust reimplementation of the VOWL notation, MIT, outside the AGPL boundary): OWL parsing, Barnes-Hut and SIMD force layout, render data; consumed by the corpus explorer; NGG1 and markdown-ontology paths feature-gated | `README.md` |
 | knowledgeGraph | `../knowledgeGraph` | Published public knowledge graph corpus and build pipeline (ODbL-1.0 data, AGPL-3.0 pipeline); the OWL 2 TBox VisionClaw renders and the Loom grounds on; explorer frontend consumes vowl-wasm | `README.md` |
+| sidestr-rs | `../sidestr-rs` | sidestr-rs — Rust port of Melvin Carvalho's sidestr sidechains, AGPL-3.0-only: the economic engine for did:nostr agents. A did:nostr key is a sidechain wallet. Five crates on crates.io; a library estate component, not a running substrate — the live `sidestr:dreamlab` chain instance stays in agentbox `config/sidechain` (agentbox ADR-2112) | `README.md` |
 | visionGraph | `../visionGraph` | Authoring vault and publishing pipeline for narrativegoldmine.com; its `publish.yml` builds the corpus explorer against the published vowl-wasm bundle (a publishing consumer; other explorer copies remain distinct) | `README.md`, `.github/workflows/publish.yml` |
 
 ## Supporting and historical scope
