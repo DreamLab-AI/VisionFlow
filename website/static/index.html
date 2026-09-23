@@ -594,7 +594,7 @@
       <p class="section-lead">Once every actor is a <code>did:nostr</code> identity and every write is anchored, <strong>value and trust</strong> travel the same rails as the mesh&rsquo;s messages: no EVM, no bridge, no custodian.</p>
       <div class="identity-callout">
         <code>agent &rarr; pod &rarr; 402 settle &rarr; anchor &rarr; did:nostr</code>
-        <p>The same <code>did:nostr</code> key that is a WAC principal, a relay identity and a provenance author is also a payment account, so an agent can earn, spend and sign across the mesh as one actor. The unit of account is the <strong>satoshi</strong>: a Web Ledger in sats, HTTP 402 gating, an order book and a constant-product exchange, all routed through one ledger path with replay protection, with <strong>Lightning</strong> over L402 and NWC as the rail today, served by a resident Bitcoin node in the estate that runs mainnet and testnet4 side by side with Core-Lightning (ADR-061). Stablecoin rails are not ruled out: x402 challenges sit in the same 402 grammar and are payable by delegation, a later choice rather than a closed door. The same taproot core mints <strong>MRC20 tokens</strong> on Bitcoin, inherited from JSS; DREAM, the operator&rsquo;s internal token at ten per sat, is configured across the runtime and the edge and has been minted experimentally on testnet. Private digital objects and contracts stay in the owner&rsquo;s pod and inherit <strong>Bitcoin&rsquo;s security model</strong> through taproot-anchored commitments, on testnet4 by default and mainnet by explicit operator choice.</p>
+        <p>The same <code>did:nostr</code> key that is a WAC principal, a relay identity and a provenance author is also a payment account, so an agent can earn, spend and sign across the mesh as one actor. The unit of account is the <strong>satoshi</strong>: a Web Ledger in sats, HTTP 402 gating, an order book and a constant-product exchange, all routed through one ledger path with replay protection, with <strong>Lightning</strong> over L402 and NWC as the rail today, served by a resident Bitcoin node in the estate that runs mainnet and testnet4 side by side with Core-Lightning (ADR-061). Stablecoin rails are not ruled out: x402 challenges sit in the same 402 grammar and are payable by delegation, a later choice rather than a closed door. The same taproot core mints <strong>MRC20 tokens</strong> on Bitcoin, inherited from JSS; DREAM, the operator&rsquo;s internal token at ten per sat, is configured across the runtime and the edge and has been minted experimentally on testnet. The same key is also a <strong>sidechain wallet</strong>: <a href="https://github.com/DreamLab-AI/sidestr-rs" target="_blank" rel="noopener">sidestr-rs</a>, a Rust port of Melvin Carvalho&rsquo;s sidestr sidechains, and on 2026-09-23 two agents pegged 50,000 test sats into the estate&rsquo;s <code>sidestr:dreamlab</code> chain beside Bitcoin testnet4, traded three times over Nostr and pegged back out, paid on testnet4; testnet only, no real funds. Private digital objects and contracts stay in the owner&rsquo;s pod and inherit <strong>Bitcoin&rsquo;s security model</strong> through taproot-anchored commitments, on testnet4 by default and mainnet by explicit operator choice.</p>
       </div>
 
       <h3 class="sub-head">The web-contract trust ladder</h3>
@@ -1012,8 +1012,8 @@
               <td><span class="st-pill st-progress">L0 and L1</span></td>
             </tr>
             <tr>
-              <td class="st-area"><strong>Value rail</strong>Sats Web Ledger, HTTP 402 gating, MRC20 mint, Lightning over L402 and NWC</td>
-              <td class="st-what"><p>Ledger, gating, exchange and mint are routed and test-proven, on testnet4 by default. The estate now runs its own Bitcoin node, mainnet and testnet4, for anchoring and Lightning. L402 challenges are recognised and payable by delegation; the native NWC rail is the next phase.</p></td>
+              <td class="st-area"><strong>Value rail</strong>Sats Web Ledger, HTTP 402 gating, MRC20 mint, Lightning over L402 and NWC, sidestr sidechains</td>
+              <td class="st-what"><p>Ledger, gating, exchange and mint are routed and test-proven, on testnet4 by default. The estate now runs its own Bitcoin node, mainnet and testnet4, for anchoring and Lightning. L402 challenges are recognised and payable by delegation; the native NWC rail is the next phase. On the estate&rsquo;s testnet sidechain <code>sidestr:dreamlab</code>, two <code>did:nostr</code> agents ran a full peg-in, trade and peg-out loop on 2026-09-23, with sidestr-rs on the agents&rsquo; side and the upstream engine producing blocks; level 1, one signer, test sats only.</p></td>
               <td><span class="st-pill st-progress">sats live, NWC next</span></td>
             </tr>
             <tr>
@@ -1057,7 +1057,7 @@
   <section id="repos" class="section">
     <div class="container reveal" data-num="16">
       <span class="section-tag">Repository Map</span>
-      <h2>The six substrates, this ecosystem-guide repository, and the published corpus</h2>
+      <h2>The six substrates, this ecosystem-guide repository, the published corpus and the settlement crates</h2>
 
       <div class="repo-grid">
         <a href="https://github.com/DreamLab-AI/VisionFlow" target="_blank" rel="noopener" class="repo-card">
@@ -1099,6 +1099,11 @@
           <h3>Loom</h3>
           <p>Ontology grounding and serving node</p>
           <span class="repo-tech">Model-swap fa&ccedil;ade &middot; OpenAI-compatible &middot; ~3&times; grounded recall</span>
+        </a>
+        <a href="https://github.com/DreamLab-AI/sidestr-rs" target="_blank" rel="noopener" class="repo-card">
+          <h3>sidestr-rs</h3>
+          <p>Economic engine: a did:nostr key is a sidechain wallet</p>
+          <span class="repo-tech">5 crates &middot; AGPL-3.0-only &middot; port of sidestr &middot; testnet only</span>
         </a>
       </div>
     </div>
