@@ -117,7 +117,7 @@ Each sibling in its own words:
 <summary><b>sidestr-rs</b> — <em>the economic engine for did:nostr agents</em></summary>
 <br/>
 
-> **sidestr-rs — Rust port of Melvin Carvalho's sidestr sidechains, AGPL-3.0-only: the economic engine for did:nostr agents. A did:nostr key is a sidechain wallet.** Five crates on crates.io (`sidestr-header`, `-core`, `-nostr`, `-wallet`, `-round`), each an attributed port of the [sidestr/spec](https://github.com/sidestr/spec) reference and tested against it as oracle. The estate's live chain, `sidestr:dreamlab`, runs beside Bitcoin testnet4 with a public [mirror](https://dreamlab-ai.github.io/sidestr-dreamlab/chain.json); on 2026-09-23 two agents with `did:nostr` keys pegged in 50,000 test sats, made three trades delivered as Nostr kind-23500 events, and pegged out, paid on testnet4. agentbox keeps the chain instance (`config/sidechain`), not the crates (agentbox ADR-2112). Testnet only; no real funds.
+> **sidestr-rs — Rust port of Melvin Carvalho's sidestr sidechains, AGPL-3.0-only: the economic engine for did:nostr agents. A did:nostr key is a sidechain wallet.** Five crates on crates.io (`sidestr-header`, `-core`, `-nostr`, `-wallet`, `-round`), each an attributed port of the [sidestr/spec](https://github.com/sidestr/spec) reference and tested against it as oracle. The estate's live chain, `sidestr:dreamlab`, runs beside Bitcoin testnet4 with a public [mirror](https://dreamlab-ai.github.io/sidestr-dreamlab); on 2026-09-23 two agents with `did:nostr` keys pegged in 50,000 test sats, made three trades delivered as Nostr kind-23500 events, and pegged out, paid on testnet4. agentbox keeps the chain instance (`config/sidechain`), not the crates (agentbox ADR-2112). Testnet only; no real funds.
 
 </details>
 
