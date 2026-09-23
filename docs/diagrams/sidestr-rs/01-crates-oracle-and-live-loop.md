@@ -36,12 +36,12 @@ sources:
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
   - ../project/agentbox/config/sidechain/run-producer.sh
   - ../project/agentbox/config/sidechain/README.md
-verified_commit: {sidestr-rs: 592b2ff64efb93a2592cf1ddf1bebb14d0b9e9f9, agentbox: ad45e7bf8371628c9e77c94e2eb9a344ee5f275f}
+verified_commit: {sidestr-rs: 1b5c508fc19e4242d39df50c1a2275cdbcbd0739, agentbox: ad45e7bf8371628c9e77c94e2eb9a344ee5f275f}
 ---
 
 ## For developers
 
-sidestr-rs — Rust port of Melvin Carvalho's sidestr sidechains, AGPL-3.0-only: the economic engine for did:nostr agents. A did:nostr key is a sidechain wallet. Five of its crates were built in agentbox under `crates/sidestr/` (AB-33) and split out with their history on 2026-09-23; ADR-2112 moves source, CI, changelogs, audits and releases to this repository and leaves agentbox the chain *instance* in `config/sidechain/` (`ADR-2112-sidestr-crates-live-in-sidestr-rs.md:34-38`). The sixth, `sidestr-agent`, was written here. This topic reads the workspace at sidestr-rs `592b2ff` (the standalone release: core, header, nostr and wallet 0.3.0, round 0.2.0, agent 0.1.0) and the chain instance at agentbox `ad45e7bf8`.
+sidestr-rs — Rust port of Melvin Carvalho's sidestr sidechains, AGPL-3.0-only: the economic engine for did:nostr agents. A did:nostr key is a sidechain wallet. Five of its crates were built in agentbox under `crates/sidestr/` (AB-33) and split out with their history on 2026-09-23; ADR-2112 moves source, CI, changelogs, audits and releases to this repository and leaves agentbox the chain *instance* in `config/sidechain/` (`ADR-2112-sidestr-crates-live-in-sidestr-rs.md:34-38`). The sixth, `sidestr-agent`, was written here. This topic reads the workspace at sidestr-rs `1b5c508` (the standalone release — core, header, nostr and wallet 0.3.0, round 0.2.0, agent 0.1.0 — with the four fixes of its pre-release verification pass) and the chain instance at agentbox `ad45e7bf8`.
 
 Each crate names the reference function it ports, carries upstream's licence, and is held to the reference engine by tests rather than by assertion; the reference revision the oracle runs against is pinned in CI at sidestr/spec `722ad42`, SPEC 0.0.3. The table of what each crate owns is its crate-level rustdoc; the diagrams below cite those tables rather than restating them.
 
@@ -80,7 +80,7 @@ flowchart TB
 
 **Invariant:** the header edge points one way only — `sidestr-header` depends on `sidestr-core` behind feature `core`, and `sidestr-core` never depends back (`../sidestr-rs/sidestr-header/Cargo.toml:37-39`, `../sidestr-rs/sidestr-header/src/lib.rs:32`), which is what lets the header crate stay `no_std` for a consumer that wants only the proof of work.
 
-**Drift (the workspace vs crates.io):** at `592b2ff` the workspace names this repository and carries 0.3.0 (`../sidestr-rs/Cargo.toml:29`, `../sidestr-rs/sidestr-core/Cargo.toml:3`), but on the day of stamping crates.io still served the 0.2.x line whose metadata links `DreamLab-AI/agentbox`, and `sidestr-agent` was not yet published — the release commit precedes the publish.
+**Invariant:** the published crates and the tree agree — the workspace names this repository (`../sidestr-rs/Cargo.toml:29`) at the versions above (`../sidestr-rs/sidestr-core/Cargo.toml:3`), and on crates.io (checked 2026-09-23) all six are live at exactly those versions, each linking `DreamLab-AI/sidestr-rs`, with every earlier version (the 0.1.x and 0.2.x line published from agentbox) yanked.
 
 ## SR-01.2 What each crate owns
 
@@ -140,12 +140,15 @@ sequenceDiagram
     M->>R: 7 kind-33333 announcements fetched read-only from public relays,<br/>the dreamlab one included - sidestr-nostr/tests/live.rs:1-8
     R->>J: 8 level 2: three signers mixed Rust and JS, rotation, one down<br/>tolerated, two halts - sidestr-round/tests/interop_round.rs:1-9
     R->>J: 9 peg-out round mixed, every finalised parent tx verified<br/>under BIP 342 - sidestr-round/tests/interop_pegout.rs:1-8
+    R->>J: 10 pre-release pass, GPT-6 Astra: 103 stock and 104 BLAKE2b block<br/>snapshots equal on claims, burns and UTXO set (../sidestr-rs/README.md:80-86)
     Note over R,J: the JS rungs skip and pass without SIDESTR_SIDING, SCHEMA<br/>and BLAKETESTNODE (sidestr-core/tests/interop.rs:2-3), so CI's<br/>oracle job checks out all three at pinned commits (ci.yml:14-18)
 ```
 
 **Invariant:** the oracle is pinned, not ambient — CI's `oracle` job checks out sidestr/spec at `722ad42`, the schema kernel and blaketestnode at fixed commits, and runs every oracle and interop suite against them (`../sidestr-rs/.github/workflows/ci.yml:14-18`, `../sidestr-rs/.github/workflows/ci.yml:68-69`, `../sidestr-rs/.github/workflows/ci.yml:113-118`).
 
 **Invariant:** every port names the upstream revision it was taken from and the one it was brought to — siding `2de40bda…` and SPEC 0.0.3 at `722ad42…` for the core (`../sidestr-rs/sidestr-core/src/lib.rs:17-21`), the schema kernel at `b8cbf633…` for the header (`../sidestr-rs/sidestr-header/src/lib.rs:126-135`) — so a divergence can be read side by side.
+
+**Invariant:** audit findings become tests — the 0.0.3 verification pass (GPT-6 Astra via the codex CLI) found parity on every block across 103 stock and 104 BLAKE2b snapshots and raised four findings, all fixed in `1b5c508` and pinned as `audit_regressions_0_0_3.rs` in core, wallet and agent (`../sidestr-rs/README.md:80-86`).
 
 ## SR-01.4 Where the ports deliberately depart from siding
 
@@ -193,7 +196,7 @@ sequenceDiagram
     Note over P,MI: EXTERNAL evidence, block 248 burns to a P2TR parent script
     P->>T: the peg holders pay the burn on the parent (sidestr-core/src/lib.rs:58-59)
     Note over T: EXTERNAL evidence, testnet4 block 153672, tx 0ceb01d3..2c8f98<br/>pays 20,000 test sats to the burned-to address
-    Note over A,MI: the loop found the two issues SPEC 0.0.3 fixes (../sidestr-rs/README.md:117). The producer<br/>now runs upstream 722ad42, and a send from the reference JS wallet<br/>was mined at block 278, a 546-byte block on the mirror, 16h32 UTC
+    Note over A,MI: the loop found the two issues SPEC 0.0.3 fixes (../sidestr-rs/README.md:122). The producer<br/>now runs upstream 722ad42, and a send from the reference JS wallet<br/>was mined at block 278, a 546-byte block on the mirror, 16h32 UTC
 ```
 
 **Invariant:** the chain is test-only by construction — the sealed document's own comment says level 1, one signer, and coins carrying no value, with mainnet parents behind the P21 gate (`../project/agentbox/config/sidechain/dreamlab/chain.json:5`).
