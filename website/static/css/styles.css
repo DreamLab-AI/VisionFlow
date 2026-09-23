@@ -99,6 +99,28 @@ body {
   transition: color 0.2s;
 }
 .nav-links a:hover { color: var(--text); }
+/* The desktop bar holds eleven sections plus the CTA. It must never clip: from 769px up it
+   scrolls sideways when it cannot fit, and it is set tighter than the old 24px gap so it fits from ~1180px (the bar is capped at 1200px wide, so wider screens gain no room). */
+@media (min-width: 769px) {
+  .nav-links {
+    min-width: 0;
+    margin-left: 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
+}
+@media (min-width: 769px) {
+  .nav-links { gap: 16px; }
+  .nav-links a { font-size: 0.8125rem; }
+}
+@media (min-width: 769px) and (max-width: 1180px) {
+  .nav-links {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+            mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+    padding-right: 28px;
+  }
+}
 .nav-cta {
   color: var(--bright-gold) !important;
   font-weight: 600 !important;
