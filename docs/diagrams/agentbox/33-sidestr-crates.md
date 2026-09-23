@@ -31,7 +31,7 @@ verified_commit: ec60a8f14f4544520b4b1f6e8f5de2def4cfedcf
 
 Four crates under `crates/sidestr/` (`crates/sidestr/Cargo.toml:3-19`), all published at 0.1.0 and all `AGPL-3.0-only` because they are ports of Melvin Carvalho's `siding` rather than clean-room work from prose — ADR-2106 reversed ADR-2096 D2's permissive plan on the day the first seal showed a prose-only port would forgo the reference's tests and fixtures (`ADR-2106-sidestr-crates-are-agpl-derivatives-of-siding-published-and-consumed.md:22-32`). Every departure from the reference is listed in the crate's own rustdoc, and each is held down by an oracle test rather than by assertion.
 
-**Drift (this topic vs agentbox since ad45e7bf8):** the crates this topic cites under `crates/sidestr/` no longer live in agentbox — on 2026-09-23 ADR-2112 moved them with their history and their CI to `DreamLab-AI/sidestr-rs`, leaving a pointer README; they are now five (`sidestr-round` joined) at 0.2.x. Citations here stay true at `ec60a8f14` and are not re-stamped; the current crate graph, oracle ladder and level status are SR-01.
+**Drift (this topic vs agentbox since ad45e7bf8):** the crates this topic cites under `crates/sidestr/` no longer live in agentbox — on 2026-09-23 ADR-2112 moved them with their history and their CI to `DreamLab-AI/sidestr-rs`, leaving a pointer README; they are now six (`sidestr-round` and `sidestr-agent` joined; 0.3.0 at sidestr-rs `592b2ff`). Citations here stay true at `ec60a8f14` and are not re-stamped; the current crate graph, oracle ladder and level status are SR-01.
 
 ## For the business
 

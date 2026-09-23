@@ -342,7 +342,7 @@ _137 topic files, 1506 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 
 | ID | Topic | Diagrams | Kinds | Governing | ADRs |
 |----|-------|----------|-------|-----------|------|
-| SR-01 | [sidestr-rs — five AGPL crates, what each owns, the oracle ladder, and the first live agent loop on sidestr:dreamlab](sidestr-rs/01-crates-oracle-and-live-loop.md) | 6 | flowchart, sequenceDiagram, stateDiagram-v2 | [ADR-2112-sidestr-crates-live-in-sidestr-rs.md](../../../project/agentbox/docs/adr/ADR-2112-sidestr-crates-live-in-sidestr-rs.md), [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2096, ADR-2101, ADR-2106, ADR-2112 |
+| SR-01 | [sidestr-rs — six AGPL crates, what each owns, the oracle ladder, and the first live agent loop on sidestr:dreamlab](sidestr-rs/01-crates-oracle-and-live-loop.md) | 6 | flowchart, sequenceDiagram, stateDiagram-v2 | [ADR-2112-sidestr-crates-live-in-sidestr-rs.md](../../../project/agentbox/docs/adr/ADR-2112-sidestr-crates-live-in-sidestr-rs.md), [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2096, ADR-2101, ADR-2106, ADR-2112 |
 
 ### estate
 
