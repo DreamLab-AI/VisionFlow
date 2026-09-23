@@ -21,6 +21,8 @@ verified_commit: ec60a8f14f4544520b4b1f6e8f5de2def4cfedcf
 
 Nothing here is built. A consultant review on 2026-09-22 (GPT-6 Astra through the Codex consultant tier, see AB-15.12 for that path) took ADR-2101's k-of-n federation apart and returned a different shape, which the record then adopted (`ADR-2101-federation-topology-and-key-separation.md:133-136`). The change that matters most: a threshold signature is not a consensus protocol, so `q` and `k` are two numbers, and the block a federation signs is not the block it finalises.
 
+**Drift (this topic vs sidestr-rs):** "nothing here is built" held at `ec60a8f14`; since then `sidestr-round` 0.1.x has shipped upstream's availability-tolerant round (not the reviewed BFT shape) and, with the other crates, moved to `DreamLab-AI/sidestr-rs` under ADR-2112. Not re-stamped here; see SR-01.6.
+
 ## For the business
 
 The plan to have several machines jointly authorise payments was reviewed by an independent model and found to be under-specified in ways that could lose money rather than merely stall. The corrected design costs more to build, and the review separates what can wait until the chain carries real value from what cannot. Only the wire formats exist in code today.

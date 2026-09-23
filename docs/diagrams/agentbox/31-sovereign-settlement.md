@@ -39,6 +39,8 @@ verified_commit: 1639f86abded1441ce148d6c47924dfaf34f96af
 This topic is the PRD-024 design, read at `1639f86ab` when nothing of it was running: every one of the eight decisions was minted `proposed` with `implementation_status: none` (ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:5-7), carried by the four governing documents in explicitly marked PROPOSED sections that join the compliance surface only on ratification (GOVERNANCE-capabilities.md:489-491). Read every node and Note below as a design that cites the record proposing it.
 Part of it has since been built. AB-32 is the sealed root chain, AB-33 the four published crates, AB-34 what is actually running, AB-35 the reviewed level-2 shape — each stamped at `ec60a8f14`. Where this topic and those disagree, they are the current claim and this one is the design it came from.
 
+**Drift (this topic vs ADR-2112):** "AB-33 the four published crates" is superseded — on 2026-09-23 ADR-2112 moved the crates (now five) to `DreamLab-AI/sidestr-rs`; agentbox hosts the chain instance only. See SR-01.
+
 ## For the business
 
 The estate can already charge for work and already refuses work it has not been paid for, but the balance it debits is a JSON document rather than value anywhere (sovereign-settlement.md:51-55). The proposal is to run the estate's own settlement chains so that a balance becomes something a third party can verify, with every payment above a threshold stopping for a human signature first. It is a costed plan in five ordered phases, only the last of which touches real money, and it has not been approved; the first two phases have since partly begun (AB-32, AB-34).

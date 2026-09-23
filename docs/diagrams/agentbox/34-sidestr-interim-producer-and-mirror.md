@@ -26,6 +26,8 @@ verified_commit: ec60a8f14f4544520b4b1f6e8f5de2def4cfedcf
 
 The chain is live but nothing about it is supervised: `run-producer.sh` runs the upstream JS engine from durable checkouts in a tmux window until the specified `[program:sidestr-producer]` exists (`run-producer.sh:2-5`), and `mirror-sync.sh` pushes the block file into a GitHub Pages checkout because Pages already serves open CORS and Range requests, which is all a mirror is (`mirror-sync.sh:2-5`). There is no registry to register with: the relays are it, and any client asking for kind 33333 tagged `t=sidestr` lists every chain that has announced (`sidechain/README.md:59-62`).
 
+**Drift (this topic vs agentbox since ad45e7bf8):** the `sidestr-nostr` sources cited here were in agentbox's `crates/sidestr/` at `ec60a8f14`; ADR-2112 (2026-09-23) moved the crates to `DreamLab-AI/sidestr-rs`, and agentbox keeps only the chain instance in `config/sidechain/`. The producer and mirror described here are unaffected; the crates are SR-01.
+
 ## For the business
 
 The settlement chain is reachable by anyone today, through public infrastructure the estate does not own or pay for, and it announces itself rather than being listed anywhere. The arrangement is explicitly temporary: it runs in a terminal window rather than as a managed service, so a container restart stops it, and the record says what must replace it.

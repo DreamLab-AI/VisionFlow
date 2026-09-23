@@ -22,6 +22,8 @@ verified_commit: ec60a8f14f4544520b4b1f6e8f5de2def4cfedcf
 
 On 2026-09-22 the estate stopped proposing a settlement chain and sealed one: `sidestr:dreamlab`, genesis `4db37517…d453dbc0`, one signer, prefix `drm`, no pegs, an 80-byte stock header beside Bitcoin testnet4 (`sidechain/README.md:10`). The committed chain document is the chain's identity, not its configuration — changing a sealed field is a new chain, never an edit (`sidechain/README.md:5-6`). AB-31 is the design this partly implements, AB-33 the crates that can now verify it, AB-34 what is actually running.
 
+**Drift (this topic vs ADR-2112):** the crates this topic points to in AB-33 moved to `DreamLab-AI/sidestr-rs` on 2026-09-23 (ADR-2112); the sealed chain document and its tests stay in agentbox `config/sidechain/`. See SR-01.
+
 ## For the business
 
 The estate owns a settlement chain rather than a plan for one, and it deliberately carries no value: the parent is Bitcoin's test network, nothing was pegged to it at minting, and real money stays behind a legal gate that must exist as working code first. What the seal buys is that a later claim about a payment can be checked by someone outside the estate.

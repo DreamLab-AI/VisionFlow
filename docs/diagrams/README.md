@@ -1,6 +1,6 @@
 # Diagrams as code
 
-Machine-readable diagrams for the VisionFlow estate. The primary topic directories cover nine repositories; estate topics also cover shared services and supporting repositories. Revision labels declare the source baseline and are not automatic semantic verification. The [2026-09-07 audit](../estate-review/2026-09-07-estate-audit.md) records source findings, working-tree hashes and evidence limits. Sequence diagrams first; no narrative —
+Machine-readable diagrams for the VisionFlow estate. The primary topic directories cover ten repositories; estate topics also cover shared services and supporting repositories. Revision labels declare the source baseline and are not automatic semantic verification. The [2026-09-07 audit](../estate-review/2026-09-07-estate-audit.md) records source findings, working-tree hashes and evidence limits. Sequence diagrams first; no narrative —
 every fact lives inside a diagram as a participant `path:line`, a message, or a `Note`. This tree lives in the
 estate canon (VisionFlow) so that cross-repo edges are first-class; it was moved here from VisionClaw
 `docs/diagrams` on 2026-09-07 (history there up to 4d1a698e7).
@@ -21,6 +21,7 @@ fragment) and resolve by suffix against the file's own `sources:`.
 | `vowl-wasm/NN-*.md` | `VW-NN` | vowl-wasm — VOWL notation engine, WASM (`../vowl-wasm`) |
 | `knowledgegraph/NN-*.md` | `KG-NN` | knowledgeGraph — published corpus and build pipeline (`../knowledgeGraph`) |
 | `visiongraph/NN-*.md` | `VG-NN` | visionGraph — authoring vault and publishing pipeline (`../visionGraph`) |
+| `sidestr-rs/NN-*.md` | `SR-NN` | sidestr-rs — the AGPL sidestr crates (header, core, nostr, wallet, round), oracle ladder, live-chain loop (`../sidestr-rs`) |
 | `estate/NN-*.md` | `ES-NN` | cross-repo and infrastructure interfaces; `verified_commit` is a `{repo: sha}` map |
 | `COVERAGE.md` | | generated inverted indexes: diagram → file, ADR → files, governing doc → files, source path → files |
 | `hero/` | | marketing hero images and their Mermaid → Nano Banana pipeline; not part of the coverage tree |
@@ -167,7 +168,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_136 topic files, 1500 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_137 topic files, 1506 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -336,6 +337,12 @@ _136 topic files, 1500 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VG-04 | [Downstream contracts — VisionClaw's pull model, and knowledgeGraph as deploy target](visiongraph/04-downstream-contracts.md) | 3 | sequenceDiagram, flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) | ADR-VG-002 |
 | VG-05 | [Invariants register — vault contract facts vs the proposed, inactive closeout ADRs](visiongraph/05-invariants-register.md) | 4 | flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) | ADR-VG-001, ADR-VG-002 |
 | VG-06 | [publishing-tools/WasmVOWL — the tree that actually ships, and how it has drifted from its sibling](visiongraph/06-shipping-explorer-duplication.md) | 5 | flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) |  |
+
+### sidestr-rs
+
+| ID | Topic | Diagrams | Kinds | Governing | ADRs |
+|----|-------|----------|-------|-----------|------|
+| SR-01 | [sidestr-rs — five AGPL crates, what each owns, the oracle ladder, and the first live agent loop on sidestr:dreamlab](sidestr-rs/01-crates-oracle-and-live-loop.md) | 6 | flowchart, sequenceDiagram, stateDiagram-v2 | [ADR-2112-sidestr-crates-live-in-sidestr-rs.md](../../../project/agentbox/docs/adr/ADR-2112-sidestr-crates-live-in-sidestr-rs.md), [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2096, ADR-2101, ADR-2106, ADR-2112 |
 
 ### estate
 
