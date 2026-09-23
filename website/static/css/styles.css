@@ -1830,3 +1830,88 @@ a.substrate-shot:hover {
   .estate-tile .metric-value { font-size: 1.5rem; }
   .estate-list li { font-size: 14px; color: var(--m-support); }
 }
+
+/* ── Sidechain ideas carousel (#sidechains) ──
+   Native scroll-snap does the work, so the strip still swipes without JS;
+   main.js adds the arrows, dots and arrow keys. */
+.sc-carousel { position: relative; margin-top: 32px; }
+.sc-track {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  padding: 4px 2px 8px;
+  outline: none;
+}
+.sc-track::-webkit-scrollbar { display: none; }
+.sc-track:focus-visible { box-shadow: 0 0 0 2px var(--gold); border-radius: var(--radius); }
+.sc-slide {
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 250px;
+}
+.sc-slide:hover { transform: none; }
+.sc-slide h3 { margin: 0; }
+.sc-slide p { margin: 0; }
+.sc-basis { font-family: var(--mono); font-size: 0.8rem; color: var(--text-dim); margin-top: auto !important; }
+.sc-badge {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+.sc-live { color: var(--emerald); }
+.sc-near { color: var(--cyan); }
+.sc-decided { color: var(--gold); }
+.sc-idea { color: var(--purple); }
+.sc-deferred { color: var(--text-dim); }
+.sc-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 18px;
+}
+.sc-controls[hidden] { display: none; }
+.sc-prev, .sc-next {
+  background: var(--bg-glass);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.sc-prev:hover, .sc-next:hover, .sc-prev:focus-visible, .sc-next:focus-visible { border-color: var(--gold); outline: none; }
+.sc-prev:disabled, .sc-next:disabled { opacity: 0.35; cursor: default; }
+.sc-dots { display: flex; gap: 8px; }
+.sc-dots button {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border-radius: 50%;
+  border: 0;
+  background: var(--border);
+  cursor: pointer;
+}
+.sc-dots button[aria-current="true"] { background: var(--gold); }
+.sc-dots button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.sc-note { margin-top: 18px; font-size: 0.85rem; color: var(--text-muted); }
+@media (min-width: 900px) {
+  .sc-slide { padding: 36px 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-track { scroll-behavior: auto; }
+}

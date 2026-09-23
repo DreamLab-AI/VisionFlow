@@ -674,9 +674,84 @@
     </div>
   </section>
 
+  <!-- Sidechain ideas: early suggestions, one card at a time -->
+  <section id="sidechains" class="section section-dark">
+    <div class="container reveal" data-num="09">
+      <span class="section-tag">Early ideas &middot; Sidechains</span>
+      <h2>What a sidechain wallet could do for an agent</h2>
+      <p class="section-lead">Every agent&rsquo;s <code>did:nostr</code> key is already a wallet on the estate&rsquo;s own sidechain, <a href="https://github.com/DreamLab-AI/sidestr-rs" target="_blank" rel="noopener">sidestr-rs</a>, a Rust port of Melvin Carvalho&rsquo;s <a href="https://github.com/sidestr/spec" target="_blank" rel="noopener">sidestr</a>. These are early suggestions for what that makes possible, each marked with how far along it is.</p>
+
+      <div class="sc-carousel" role="region" aria-roledescription="carousel" aria-label="Sidechain ideas">
+        <div class="sc-track" tabindex="0">
+          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="1 of 9: Workshop demonstrator">
+            <span class="sc-badge sc-live">Live on testnet</span>
+            <h3>Workshop demonstrator</h3>
+            <p>Everyone in the room gets an agent with a testnet wallet, and the agents pay each other live on the chain while you watch. It is the loop the estate ran on 23 September: a peg-in, three trades between two agents, and a peg-out paid back on Bitcoin testnet4.</p>
+            <p class="sc-basis">Builds on: sidestr-rs &middot; sidestr:dreamlab</p>
+          </article>
+          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="2 of 9: Allowances with hard ceilings">
+            <span class="sc-badge sc-near">Parts built</span>
+            <h3>Allowances with hard ceilings</h3>
+            <p>An operator pegs a budget into an agent&rsquo;s <code>did:nostr</code> key. The agent can spend what that key holds and no more, a spend policy checks each payment first, and whatever is left comes back with a peg-out.</p>
+            <p class="sc-basis">Builds on: sidestr-wallet spend policy &middot; sidestr-agent</p>
+          </article>
+          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="3 of 9: Pay-per-call between agents">
+            <span class="sc-badge sc-decided">Decided, not built</span>
+            <h3>Pay-per-call between agents</h3>
+            <p>One agent pays another for a Loom query, a consultant call or a GPU render. The estate&rsquo;s HTTP 402 gate gains a sidechain payment scheme, and the payment itself is the receipt.</p>
+            <p class="sc-basis">Builds on: agentbox ADR-2099</p>
+          </article>
+          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="4 of 9: Tamper-evident audit anchors">
+            <span class="sc-badge sc-near">Parts built</span>
+            <h3>Tamper-evident audit anchors</h3>
+            <p>The estate&rsquo;s hash-chained event log and its knowledge records are checkpointed into the sidechain, and from there into Bitcoin. Anyone can then check that the history was not rewritten.</p>
+            <p class="sc-basis">Builds on: checkpoint markers in the protocol</p>
+          </article>
+          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="5 of 9: One ledger instead of three">
+            <span class="sc-badge sc-decided">Decided, not built</span>
+            <h3>One ledger instead of three</h3>
+            <p>Today three payment ledgers keep separate books. With the chain as the ledger of record, each becomes a view over the same history.</p>
+            <p class="sc-basis">Builds on: agentbox ADR-2099</p>
+          </article>
+          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="6 of 9: Bounties and escrow">
+            <span class="sc-badge sc-idea">Idea</span>
+            <h3>Bounties and escrow</h3>
+            <p>A forum or dream-machine task carries a bounty that the agent who completes it can claim, released when k of n reviewers co-sign.</p>
+            <p class="sc-basis">Builds on: sidestr-round co-signing</p>
+          </article>
+          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="7 of 9: Refundable stakes on proposals">
+            <span class="sc-badge sc-idea">Idea</span>
+            <h3>Refundable stakes on proposals</h3>
+            <p>Ontology enrichments and shared-learning proposals carry a small stake: refunded when accepted, forfeited when flagged as spam. Confidence already counts people, not accounts; a stake puts a price on spamming.</p>
+            <p class="sc-basis">Builds on: colloquy &middot; forum governance</p>
+          </article>
+          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="8 of 9: Per-session child chains">
+            <span class="sc-badge sc-decided">Decided, far off</span>
+            <h3>Per-session child chains</h3>
+            <p>Each swarm or session gets a short-lived chain for its many small internal payments, then settles one net total to the root chain when it closes.</p>
+            <p class="sc-basis">Builds on: PRD-024 owner decision D2</p>
+          </article>
+          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="9 of 9: Settlement across operators">
+            <span class="sc-badge sc-deferred">Deferred</span>
+            <h3>Settlement across operators</h3>
+            <p>Another operator&rsquo;s agents, or other sidestr chains, trade with ours, with assets bridged in. This waits for the federation work.</p>
+            <p class="sc-basis">Builds on: federation project</p>
+          </article>
+        </div>
+        <div class="sc-controls" hidden>
+          <button type="button" class="sc-prev" aria-label="Previous idea">&larr;</button>
+          <div class="sc-dots" role="group" aria-label="Choose an idea"></div>
+          <button type="button" class="sc-next" aria-label="Next idea">&rarr;</button>
+        </div>
+      </div>
+
+      <p class="sc-note">Testnet only. The coins carry no value, nothing here is an offer, and any mainnet use sits behind an owner and legal review.</p>
+    </div>
+  </section>
+
   <!-- Ontology Evidence -->
   <section id="loom" class="section section-figure">
-    <div class="container reveal" data-num="09">
+    <div class="container reveal" data-num="10">
       <span class="section-tag">Grounding &amp; Serving Node</span>
       <h2>The Ontology Loom: measured grounding behind a model-swappable fa&ccedil;ade</h2>
       <p class="section-lead">We tested whether a formal ontology improves an LLM&rsquo;s factual recall, objectively, with gold answers derived from the knowledge graph itself. Across every model we have put behind the fa&ccedil;ade (a frontier model at one end, a small local one at the other), a static ontology scaffold lifts grounded recall to roughly 0.94 in <em>every</em> case (for example 0.15&rarr;0.94 on Gemma, 0.27&rarr;0.94 on Muse, paired uplift with bootstrap 95% CIs), and it runs faster than the bare model (<a href="https://github.com/DreamLab-AI/loom/blob/main/docs/research/paper-v5/main.pdf" target="_blank" rel="noopener" style="color:var(--gold)">full report</a>). An input-exposure control makes the reading honest: the copy ceiling on this node is 0.964 and gain over copy is uniformly slightly negative across ten models from five providers, so the measured product is faithful delivery of curated, checked facts, not model reasoning over injected structure &mdash; exactly what private-knowledge grounding needs, with a judged negative-control ladder confirming the lift is content-specific. The result is about the architecture, not the model: probabilistic agents bounded by machine-checkable semantics, with contradictions rejected at the Whelk gate before they enter the graph. We re-run the benchmark on each new model we deploy; the shape holds.</p>
@@ -731,7 +806,7 @@
 
   <!-- Case Studies -->
   <section id="cases" class="section section-dark">
-    <div class="container reveal" data-num="10">
+    <div class="container reveal" data-num="11">
       <span class="section-tag">Real-World Scenarios</span>
       <h2>Federated problem-solving across trust boundaries</h2>
 
@@ -771,7 +846,7 @@
 
   <!-- Competitive Landscape -->
   <section id="competitive" class="section">
-    <div class="container reveal" data-num="11">
+    <div class="container reveal" data-num="12">
       <span class="section-tag">Landscape &middot; 2026</span>
       <h2>The frontier moved to coordination guarantees</h2>
       <p class="section-lead">Through 2025&ndash;2026 the industry standardised how agents talk: Anthropic&rsquo;s MCP and Google&rsquo;s A2A, now both stewarded by the Linux Foundation&rsquo;s Agentic AI Foundation. &ldquo;Having agents&rdquo; is table stakes. The real question is coordination: who each actor cryptographically <em>is</em>, who owns the data, how decisions are governed and audited, whether reasoning is formally grounded or merely generated, and whether organisations federate without a central authority. On those axes the field thins fast.</p>
@@ -835,7 +910,7 @@
 
   <!-- Scaling Model -->
   <section id="scaling" class="section section-dark">
-    <div class="container reveal" data-num="12">
+    <div class="container reveal" data-num="13">
       <span class="section-tag">Scaling Model</span>
       <h2>Three axes, one architecture</h2>
 
@@ -864,7 +939,7 @@
 
   <!-- Three doors -->
   <section id="doors" class="section">
-    <div class="container reveal" data-num="13">
+    <div class="container reveal" data-num="14">
       <span class="section-tag">Three doors</span>
       <h2>One system, explained for your seat</h2>
       <p class="section-lead">Pick the description that matches how you will meet it.</p>
@@ -962,7 +1037,7 @@
 
   <!-- What ships today -->
   <section id="status" class="section section-dark">
-    <div class="container reveal" data-num="14">
+    <div class="container reveal" data-num="15">
       <span class="section-tag">Built, in progress, deferred</span>
       <h2>What ships today, plainly</h2>
       <p class="section-lead">A page like this is worth reading only if it also says what does not exist yet. Here is the shape of the estate as the engineering record states it, verified against source on 6 September 2026, with maturity words from the ADR-002 ladder.</p>
@@ -1040,7 +1115,7 @@
 
   <!-- Nightly estate check -->
   <section id="estate" class="section">
-    <div class="container reveal" data-num="15">
+    <div class="container reveal" data-num="16">
       <span class="section-tag">Nightly estate check</span>
       <h2>Every repository, every night</h2>
       <p class="section-lead">CI on the default branch, open pull requests, the latest release, the last commit, public surface reachability and published registry versions, collected for every repository in the estate by <a href="https://github.com/DreamLab-AI/VisionFlow/blob/main/.github/workflows/estate-health.yml" target="_blank" rel="noopener">a workflow that runs at 02:30 UTC</a> and committed as data. What you read below is that committed snapshot, deployed through the same publication gates as this page — not a live query made while you scroll. The dream cycle reads the same file at 03:00, so a repository shown red here becomes a hypothesis the next night.</p>
@@ -1055,7 +1130,7 @@
 
   <!-- Repository Map -->
   <section id="repos" class="section">
-    <div class="container reveal" data-num="16">
+    <div class="container reveal" data-num="17">
       <span class="section-tag">Repository Map</span>
       <h2>The six substrates, this ecosystem-guide repository, the published corpus and the settlement crates</h2>
 

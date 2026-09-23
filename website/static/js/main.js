@@ -7,7 +7,8 @@ const MOBILE = () => matchMedia('(max-width: 768px)').matches;
 const SECTIONS = [
   ['hero', 'The offer'], ['questions', 'Straight answers'], ['problem', 'Problem'],
   ['substrates', 'Six substrates'], ['guarantees', 'Guarantees'], ['immersive', 'Immersive'],
-  ['broker', 'Judgment Broker'], ['economic', 'Economics'], ['loom', 'Ontology Loom'],
+  ['broker', 'Judgment Broker'], ['economic', 'Economics'], ['sidechains', 'Sidechain ideas'],
+  ['loom', 'Ontology Loom'],
   ['cases', 'Case studies'], ['competitive', 'Landscape'], ['scaling', 'Scaling'],
   ['doors', 'Your seat'], ['status', 'What ships'], ['estate', 'Nightly check'],
   ['repos', 'Repositories']
@@ -194,6 +195,8 @@ const PLAIN = {
 
 // Plain-English versions of the detail panes (cards, callouts with diagrams).
 // Matched to each section's panes in document order; a missing entry is left as-is.
+PLAIN.sidechains = { title: 'Agents that can pay each other', lead: 'Each agent&rsquo;s identity key can also hold a small amount of test money on the estate&rsquo;s own sidechain. These are early ideas for what that allows, such as budgets an agent cannot overspend and agents paying each other per task, each marked with how far along it is.' };
+
 const PANES = [
   { id: 'questions', sel: '.q-card p', plains: [
     'Six open-source services that turn what your organisation knows into something checked, searchable and visible. One cryptographic identity runs through all of them, so the person who signs a request is the same one who owns the data and approves the outcome.',
@@ -842,12 +845,72 @@ async function initEstateHealth() {
   }
 }
 
+// Sidechain ideas (#sidechains): one card at a time over a native scroll-snap strip.
+// Without JS the strip still swipes; this adds arrows, dots and arrow keys.
+function initSidechainCarousel() {
+  const root = document.querySelector('#sidechains .sc-carousel');
+  if (!root) return;
+  const track = root.querySelector('.sc-track');
+  const slides = Array.prototype.slice.call(track.querySelectorAll('.sc-slide'));
+  const controls = root.querySelector('.sc-controls');
+  const prev = root.querySelector('.sc-prev');
+  const next = root.querySelector('.sc-next');
+  const dotsWrap = root.querySelector('.sc-dots');
+  if (!slides.length || !controls) return;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let current = 0;
+
+  const dots = slides.map((slide, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-label', `Idea ${i + 1}: ${slide.querySelector('h3').textContent}`);
+    b.addEventListener('click', () => go(i));
+    dotsWrap.appendChild(b);
+    return b;
+  });
+
+  function mark(i) {
+    current = i;
+    dots.forEach((d, j) => d.setAttribute('aria-current', j === i ? 'true' : 'false'));
+    slides.forEach((s, j) => s.setAttribute('aria-hidden', j === i ? 'false' : 'true'));
+    prev.disabled = i === 0;
+    next.disabled = i === slides.length - 1;
+  }
+  function go(i) {
+    const k = Math.max(0, Math.min(slides.length - 1, i));
+    track.scrollTo({ left: slides[k].offsetLeft - track.offsetLeft, behavior: reduced ? 'auto' : 'smooth' });
+    mark(k);
+  }
+
+  prev.addEventListener('click', () => go(current - 1));
+  next.addEventListener('click', () => go(current + 1));
+  track.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); go(current + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); go(current - 1); }
+  });
+  // follow swipes and trackpad scrolls: the slide nearest the strip's left edge is current
+  let raf = 0;
+  track.addEventListener('scroll', () => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      const x = track.scrollLeft;
+      let best = 0;
+      slides.forEach((s, j) => { if (Math.abs(s.offsetLeft - track.offsetLeft - x) < Math.abs(slides[best].offsetLeft - track.offsetLeft - x)) best = j; });
+      if (best !== current) mark(best);
+    });
+  }, { passive: true });
+
+  controls.hidden = false;
+  mark(0);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initNavScroll();
   initSmoothScroll();     // binds #-anchors before initIndex builds its own rows
   initScrollReveal();
   initFigures();
   initDoors();            // before the reading switch, so the tab panels exist to be measured
+  initSidechainCarousel();
   initReadingSwitch();
   initIndex();
   initProgress();
