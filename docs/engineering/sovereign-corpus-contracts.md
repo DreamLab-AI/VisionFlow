@@ -112,7 +112,12 @@ Identity of a page = vault-relative path without `.md` (`knowledge/pages/Knowled
 <out>/data/ontology-inferred.ttl     Whelk EL++ closure
 <out>/data/scaffold-index.json       v1 shape (Loom loom-scaffold/index.rs RawIndex) — byte-parity golden vs current build
 <out>/data/prose-index.json
-<out>/data/ontology-corpus.rvdb (+ .generation.json sidecar: embedding_model=bge-small-en-v1.5, dimensions=384)
+<out>/data/ontology-corpus.records.jsonl  --with-rvdb only: portable records (key, text, metadata.generation,
+                                          384-dim bge-small-en-v1.5 embedding inline). NOT a database. Loom's
+                                          `promote_vault_build` turns it into the serving `ontology-corpus.rvdb`
+                                          (ruvector-core) + `.generation.json` sidecar and lists both in the marker
+                                          with a `derived` note. (Corrected 2026-09-23: vault had written the JSONL
+                                          under the `.rvdb` name, which Loom's reader cannot open.)
 <out>/api/search-index.json, <out>/api/pages/<slug>.json, <out>/api/census.json, <out>/api/validation-report.json
 <out>/ns/v2.jsonld                   JSON-LD context (served path is /ns/v2.jsonld; loom-graph-oxigraph cites narrativegoldmine.com/ns/v1#)
 <out>/api/schema/context.jsonld      the same document, byte-identical — the old site's pinned URL (publish.yml requires it); also context/v1.jsonld
