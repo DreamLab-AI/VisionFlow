@@ -1,9 +1,9 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-09-27T08:24:08.956Z",
+  "generated_at": "2026-09-28T08:49:31.111Z",
   "generator": {
-    "revision": "46231e475dac4bc56095604fd714aec643a6cf6e",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/36306060084",
+    "revision": "b7dc187a0c36c553e1ce7f8822abf242b2010332",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/36399639936",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
@@ -13,7 +13,7 @@
     "amber": 0,
     "none": 2,
     "unreadable": 1,
-    "open_prs": 6,
+    "open_prs": 7,
     "surfaces_ok": 6,
     "surfaces_total": 6
   },
@@ -29,11 +29,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "46231e475dac4bc56095604fd714aec643a6cf6e",
-        "short": "46231e4",
-        "date": "2026-09-26T07:52:56Z",
-        "message": "chore(estate-health): nightly snapshot 2026-09-26 — 11/15 green",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/46231e475dac4bc56095604fd714aec643a6cf6e"
+        "sha": "b7dc187a0c36c553e1ce7f8822abf242b2010332",
+        "short": "b7dc187",
+        "date": "2026-09-27T08:24:09Z",
+        "message": "chore(estate-health): nightly snapshot 2026-09-27 — 12/15 green",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/b7dc187a0c36c553e1ce7f8822abf242b2010332"
       },
       "ci": {
         "state": "green",
@@ -49,8 +49,8 @@
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/36228126570",
-            "updated_at": "2026-09-26T07:53:38Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/36306079877",
+            "updated_at": "2026-09-27T08:24:44Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
@@ -70,8 +70,8 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/36228109420",
-            "updated_at": "2026-09-26T07:53:03Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/36306060084",
+            "updated_at": "2026-09-27T08:24:16Z"
           }
         ]
       },
@@ -277,11 +277,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "49e70de557b31d4c6d98fc1f3d0d15ce2623a4dc",
-        "short": "49e70de",
-        "date": "2026-09-26T14:51:57Z",
-        "message": "feat(zone-e2ee): grant earlier key epochs to new members",
-        "url": "https://github.com/DreamLab-AI/nostr-rust-forum/commit/49e70de557b31d4c6d98fc1f3d0d15ce2623a4dc"
+        "sha": "36d385038c5558f9f2328c8316266d381b7c01d0",
+        "short": "36d3850",
+        "date": "2026-09-28T07:30:51Z",
+        "message": "fix(forum-client): refetch the member roster before granting or rotating zone keys",
+        "url": "https://github.com/DreamLab-AI/nostr-rust-forum/commit/36d385038c5558f9f2328c8316266d381b7c01d0"
       },
       "ci": {
         "state": "green",
@@ -290,15 +290,15 @@
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/36249968388",
-            "updated_at": "2026-09-26T14:53:59Z"
+            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/36392056804",
+            "updated_at": "2026-09-28T07:33:13Z"
           },
           {
             "workflow": "Security Audit",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/36134266938",
-            "updated_at": "2026-09-25T12:22:08Z"
+            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/36342670965",
+            "updated_at": "2026-09-27T19:01:54Z"
           }
         ]
       },
@@ -323,11 +323,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "82cddee6874a50a46feffcaef9767b5d340590ef",
-        "short": "82cddee",
-        "date": "2026-09-26T21:45:16Z",
-        "message": "test(config-mirrors): flip the encryption gate from its current state",
-        "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/commit/82cddee6874a50a46feffcaef9767b5d340590ef"
+        "sha": "2096a6854834dafddef4ef18e69f5be2968766d9",
+        "short": "2096a68",
+        "date": "2026-09-28T07:31:58Z",
+        "message": "chore(kit): pin forum 36d3850 — fresh member roster before zone-key grant/rotate",
+        "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/commit/2096a6854834dafddef4ef18e69f5be2968766d9"
       },
       "ci": {
         "state": "green",
@@ -336,43 +336,43 @@
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/36274010472",
-            "updated_at": "2026-09-26T21:46:24Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/36392158485",
+            "updated_at": "2026-09-28T07:33:20Z"
           },
           {
             "workflow": "Deploy Cloudflare Workers",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/36274134013",
-            "updated_at": "2026-09-26T21:51:46Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/36392158817",
+            "updated_at": "2026-09-28T07:36:03Z"
           },
           {
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/36274132164",
-            "updated_at": "2026-09-26T21:59:07Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/36392158860",
+            "updated_at": "2026-09-28T07:42:19Z"
           },
           {
             "workflow": "Documentation Auto-Update",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/35546223664",
-            "updated_at": "2026-09-20T23:59:54Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/36362195105",
+            "updated_at": "2026-09-28T00:26:11Z"
           },
           {
             "workflow": "kit-pin-guard",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/36274010431",
-            "updated_at": "2026-09-26T21:45:41Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/36392158525",
+            "updated_at": "2026-09-28T07:32:24Z"
           },
           {
             "workflow": "Test and Lint (Reusable)",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/36274010382",
-            "updated_at": "2026-09-26T21:46:46Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/36392158446",
+            "updated_at": "2026-09-28T07:33:17Z"
           }
         ]
       },
@@ -707,7 +707,7 @@
           }
         ]
       },
-      "open_prs": 4,
+      "open_prs": 5,
       "open_issues": 0,
       "release": null,
       "pages": {
@@ -725,7 +725,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 622,
+      "latency_ms": 160,
       "note": null
     },
     {
@@ -734,7 +734,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 223,
+      "latency_ms": 142,
       "note": null
     },
     {
@@ -743,7 +743,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 230,
+      "latency_ms": 145,
       "note": null
     },
     {
@@ -752,7 +752,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 194,
+      "latency_ms": 151,
       "note": "classes=8432 pages=8428 nodes=8432"
     },
     {
@@ -761,7 +761,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 405,
+      "latency_ms": 358,
       "note": null
     },
     {
@@ -770,7 +770,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 379,
+      "latency_ms": 316,
       "note": null
     }
   ],
