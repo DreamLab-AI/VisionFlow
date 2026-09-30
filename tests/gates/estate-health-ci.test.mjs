@@ -5,7 +5,7 @@
 // still read red, so the fix cannot hide a real failure.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { ciStateAtHead, ciStateFrom, latestRunPerWorkflow } from '../../scripts/estate-health.mjs';
+import { ciStateAtHead, ciStateFrom, isDocsOnlyChange, latestRunPerWorkflow, runsOnBranch } from '../../scripts/estate-health.mjs';
 
 const OLD = '721d8074c0000000000000000000000000000000';
 const HEAD = '4ed9ac1590000000000000000000000000000000';
@@ -34,6 +34,19 @@ assert.deepEqual(stateOf([run(5, HEAD, 'success', '2026-09-23T16:00:00Z'), other
 // 4. no runs at all, or HEAD unknown: unchanged
 assert.deepEqual(ciStateAtHead('none', [], HEAD), { state: 'none', stale: false });
 assert.deepEqual(ciStateAtHead('red', [OLD], null), { state: 'red', stale: false });
+
+// 6. judgement call 8: runs are matched to the branch on head_branch
+const onMain = { ...run(6, HEAD, 'success', '2026-09-29T02:38:45Z'), head_branch: 'main' };
+const onPr = { ...run(7, OLD, 'failure', '2026-09-29T03:00:00Z'), head_branch: 'feature' };
+assert.deepEqual(runsOnBranch([onMain, onPr], 'main'), [onMain]);
+
+// 7. judgement call 9: only documentation carries a verdict to HEAD
+assert.equal(isDocsOnlyChange(['docs/adr/ADR-2018.md', 'README.md']), true);
+assert.equal(isDocsOnlyChange(['docs/diagrams/flow.mmd']), true, 'anything under docs/ is documentation');
+assert.equal(isDocsOnlyChange(['README.md', 'src/main.rs']), false, 'one code file breaks the carry');
+assert.equal(isDocsOnlyChange([]), false, 'an empty diff proves nothing');
+assert.equal(isDocsOnlyChange(['README.md'], true), false, 'a truncated file list may hide code');
+assert.equal(isDocsOnlyChange(['crates/x/docs.rs']), false, 'a path merely containing "docs" is not documentation');
 
 // 5. importing the collector must not run its CLI; running it bare still prints usage and exits 2
 const bare = spawnSync(process.execPath, ['scripts/estate-health.mjs'], { encoding: 'utf8' });

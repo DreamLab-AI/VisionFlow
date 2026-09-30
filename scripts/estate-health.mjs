@@ -90,12 +90,35 @@
  *      scored red from a retired workflow's last run on 721d807 while HEAD had
  *      moved on with no runs at all. The older runs stay in `runs` and the note
  *      names them, so nothing is hidden. See ciStateAtHead.
+ *   8. Runs are listed UNFILTERED and matched to the default branch on
+ *      `head_branch` here, never with the API's `?branch=` filter. Measured
+ *      2026-09-30: for nostr-rust-forum `/actions/runs?branch=main` stopped at
+ *      15 Sep while the unfiltered list held green `main` runs from 29 Sep, so
+ *      the snapshot judged the repository on a fortnight-old failure. See
+ *      runsOnBranch.
+ *   9. A verdict CARRIES to a documentation-only HEAD. Call 7 made a docs commit
+ *      on top of a green (or red) code commit read "none", so every repository
+ *      whose workflows are path-filtered went dark the moment someone edited a
+ *      README. When every file changed between each latest run's commit and HEAD
+ *      is documentation (`*.md`, `*.mdx`, anything under `docs/`), the folded
+ *      state stands and a note says it was carried and from which commits. Any
+ *      other file in the diff — or a diff GitHub truncates — keeps call 7's
+ *      "none". See isDocsOnlyChange.
+ *  10. A repository the roster declares `ci_by_design` (a reason string) reads
+ *      "exempt" instead of "none" when it has no verdict on HEAD: knowledgeGraph
+ *      is a publish target whose only workflow is GitHub's Pages build on
+ *      gh-pages, and a frozen repository runs nothing. "None" there is the
+ *      design, not a gap, and the page should say which. A red or amber verdict
+ *      on HEAD is never exempted.
  *
  * Contract additions beyond the published schema, all additive (a consumer that
  * ignores them reads the documented schema unchanged):
  *
  *   repos[].notes         string[], why a field on this repository degraded
  *   registries[].note     string|null, likewise for a registry lookup
+ *   repos[].ci.state "exempt"  judgement call 10; summary.exempt counts it
+ *   repos[].ci.carried_from  string[], present only when judgement call 9
+ *                             carried an older commit's verdict to HEAD
  *   repos[].pages.build_type  "workflow"|"legacy"|null, which explains why a
  *                             LIVE Pages site can report status:null
  *
@@ -338,6 +361,34 @@ export function latestRunPerWorkflow(runs, selfRunId = SELF_RUN_ID) {
   return latest;
 }
 
+/**
+ * Judgement call 8: keep the runs GitHub attributes to `branch`, matched on
+ * `head_branch` client-side because the API's own branch filter can lag.
+ *
+ * @param {any[]} runs
+ * @param {string} branch
+ * @returns {any[]}
+ */
+export function runsOnBranch(runs, branch) {
+  return runs.filter((r) => r.head_branch === branch);
+}
+
+const DOCS_ONLY = [/\.mdx?$/i, /^docs\//];
+
+/**
+ * Judgement call 9: true when every changed path is documentation. An empty
+ * list is false (nothing proves the diff is docs), and so is a list GitHub
+ * truncated (`truncated`), because an unseen file could be code.
+ *
+ * @param {string[]} files  changed paths, repository-relative
+ * @param {boolean} [truncated]
+ * @returns {boolean}
+ */
+export function isDocsOnlyChange(files, truncated = false) {
+  if (truncated || files.length === 0) return false;
+  return files.every((f) => DOCS_ONLY.some((re) => re.test(f)));
+}
+
 /** Newest by creation time, tie-broken by run_number (monotonic per workflow). */
 function isNewerRun(a, b) {
   const ta = Date.parse(a.created_at ?? a.run_started_at ?? 0) || 0;
@@ -487,9 +538,21 @@ async function collectRepo(entry, primary, fallback) {
   delete ci.heads;
   const atHead = ciStateAtHead(ci.state, heads, head?.sha ?? null);
   if (atHead.stale) {
+    // (judgement call 10 is applied below, after the carry is decided)
     const older = [...new Set(heads.map((h) => h.slice(0, 7)))].join(', ');
-    notes.push(`no qualifying run on HEAD ${head.short}; the latest runs are on older commits (${older}) and were ${ci.state}, reported none`);
-    ci.state = atHead.state;
+    if (await docsOnlySince(entry.full_name, heads, head.sha, token)) {
+      // Judgement call 9: a documentation-only HEAD inherits the code verdict.
+      ci.carried_from = [...new Set(heads)];
+      notes.push(`no qualifying run on HEAD ${head.short}; HEAD differs from ${older} only in documentation, so their ${ci.state} is carried`);
+    } else {
+      notes.push(`no qualifying run on HEAD ${head.short}; the latest runs are on older commits (${older}) and were ${ci.state}, reported none`);
+      ci.state = atHead.state;
+    }
+  }
+  // Judgement call 10: "none" on a repository that declares it has no CI by design.
+  if (ci.state === 'none' && typeof entry.ci_by_design === 'string') {
+    ci.state = 'exempt';
+    notes.push(`no CI by design: ${entry.ci_by_design}`);
   }
 
   // `open_issues_count` counts issues AND pull requests; the difference is the
@@ -536,13 +599,13 @@ async function collectHead(fullName, branch, token, notes) {
 
 /** CI state on the default branch, from a single runs page. */
 async function collectCi(fullName, branch, token, notes) {
-  const res = await githubJson(
-    `/repos/${fullName}/actions/runs?branch=${encodeURIComponent(branch)}&per_page=100`, token);
+  // Judgement call 8: unfiltered, then matched on head_branch.
+  const res = await githubJson(`/repos/${fullName}/actions/runs?per_page=100`, token);
   if (!res.data || !Array.isArray(res.data.workflow_runs)) {
     notes.push(`CI runs unavailable (${res.error ?? `HTTP ${res.status}`})`);
     return { state: 'unknown', runs: [] };
   }
-  const all = res.data.workflow_runs;
+  const all = runsOnBranch(res.data.workflow_runs, branch);
   const latest = latestRunPerWorkflow(all);
   const runs = [...latest.values()]
     .map(runRecord)
@@ -558,6 +621,25 @@ async function collectCi(fullName, branch, token, notes) {
   }
   const heads = [...latest.values()].map((r) => String(r.head_sha ?? '')).filter(Boolean);
   return { state: ciStateFrom(runs), runs, heads };
+}
+
+/**
+ * Judgement call 9: is HEAD documentation-only relative to every one of `bases`?
+ * One compare call per distinct base; more than three bases is not attempted.
+ *
+ * @returns {Promise<boolean>}
+ */
+async function docsOnlySince(fullName, bases, headSha, token) {
+  const distinct = [...new Set(bases)];
+  if (distinct.length === 0 || distinct.length > 3) return false;
+  for (const base of distinct) {
+    const res = await githubJson(`/repos/${fullName}/compare/${base}...${headSha}`, token);
+    const d = res.data;
+    if (!d || !Array.isArray(d.files) || d.status !== 'ahead') return false;
+    // The compare API lists at most 300 files; at the cap the list may be partial.
+    if (!isDocsOnlyChange(d.files.map((f) => f.filename), d.files.length >= 300)) return false;
+  }
+  return true;
 }
 
 /** Latest published release; 404 simply means there is none. */
@@ -785,6 +867,7 @@ function summarise(repos, surfaces) {
     red: state('red'),
     amber: state('amber'),
     none: state('none'),
+    exempt: state('exempt'),
     unreadable: repos.filter((r) => !r.readable).length,
     open_prs: repos.reduce((n, r) => n + (r.open_prs ?? 0), 0),
     surfaces_ok: surfaces.filter((s) => s.ok).length,
@@ -833,7 +916,7 @@ async function collect() {
   process.stdout.write(
     `wrote ${OUT_PATH}\n`
     + `repos: ${s.repos} (green ${s.green}, red ${s.red}, amber ${s.amber}, `
-    + `none ${s.none}, unreadable ${s.unreadable})\n`
+    + `none ${s.none}, exempt ${s.exempt}, unreadable ${s.unreadable})\n`
     + `open PRs: ${s.open_prs}  surfaces: ${s.surfaces_ok}/${s.surfaces_total} ok  `
     + `registries: ${registries.filter((r) => r.version).length}/${registries.length} resolved\n`
     + 'ESTATE-HEALTH-COLLECTED\n');
