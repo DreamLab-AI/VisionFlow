@@ -26,3 +26,7 @@ Schema note (2026-09-14, unmerged): FR6.6 of PRD-augmentation-conditions adds `R
 | 2026-09-11 | estate-health | VETOED: agentbox Ontology red run-id frozen at 33862998777 since 09-07; red is s | NONE | NONE | yes | INCONCLUSIVE |  | 64c604a2f245 |  |
 | 2026-09-12 | content-integrity | VETOED: 10 of 37 orphan imgs deleted (15,070,033 B); predicted BUILD 45,170,931  | NONE | NONE | yes | BLOCKED-ENV |  | 01cd85c0c597 |  |
 | 2026-09-13 | build-pipeline | VETOED: BUILD 60240964, no robots.txt in dist → PR #3 unmerged; tree frozen sinc | NONE | NONE | yes | INCONCLUSIVE |  | de66b9f61747 |  |
+| 2026-09-27 | estate-health | VETOED: Given tonight's committed snapshot parses and yields ESTATE-HEALTH-RED w | NONE | NONE | yes | INCONCLUSIVE |  | 03a64e64271d |  |  |  |
+| 2026-09-28 | content-integrity | VETOED: link gate skipped #-anchors; link-check now reports anchors-checked/dang | NONE | NONE | yes | BLOCKED-ENV |  | 8d521cf45006 |  |  |  |
+| 2026-09-29 | build-pipeline | VETOED: Given the link gate's href/src family skips every ref containing `#` (`s | NONE | NONE | yes | INCONCLUSIVE |  | 32de577099c7 |  |  |  |
+| 2026-09-30 | seo-and-meta | Given the shipped page at `d4e4429` declares an Organization but never declares  | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/4 | yes | ACCEPT |  | 65a9d02cf480 |  |  |  |
