@@ -7,10 +7,18 @@ name: ADR frontmatter gate
 # and then verifies the committed README.md index is in sync with the records.
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/adr/**'
+      - 'scripts/adr-index-gen.cjs'
+      - 'scripts/adr-ratchet.sh'
+      - '.github/workflows/adr-index.yml'
   pull_request:
     paths:
       - 'docs/adr/**'
       - 'scripts/adr-index-gen.cjs'
+      - 'scripts/adr-ratchet.sh'
       - '.github/workflows/adr-index.yml'
   workflow_dispatch: {}
 
@@ -21,7 +29,10 @@ jobs:
   adr-index:
     runs-on: ubuntu-latest
     steps:
+      # Full history: the ratchet diffs the push's or PR's base against HEAD.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
 
       - name: Install Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
@@ -31,6 +42,11 @@ jobs:
       # (1) Validate frontmatter — exits 1 on any invalid/malformed record.
       - name: Validate ADR frontmatter
         run: node scripts/adr-index-gen.cjs docs/adr --check
+
+      - name: adr-ratchet (planning cycle 2026-09-21 — a new ADR must close a proposed one)
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: bash scripts/adr-ratchet.sh docs/adr "${BASE:-0}" "${{ github.sha }}"
 
       # (2) Regenerate the index and fail if the committed README.md drifted.
       - name: Verify README.md index is in sync
