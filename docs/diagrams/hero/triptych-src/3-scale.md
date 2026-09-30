@@ -32,7 +32,7 @@ Four-layer state machine: **Contract** (pure validate+transition reducer) /
 - **92** CUDA kernels · **55×** GPU speedup vs CPU
 - **88** agent skills · **7** MCP ontology tools
 - **61µs** HNSW semantic search (1.17M entries)
-- **250+** concurrent XR users · **80%** bandwidth cut (binary protocol)
+- **80%** bandwidth cut (binary protocol)
 
 ## EXACT LABELS TO RENDER
 - Panel title: **THE SCALE**
@@ -43,7 +43,7 @@ Four-layer state machine: **Contract** (pure validate+transition reducer) /
   **L2 DLC oracle (future)**; **L3 RGB / CSV (future)**
 - 4-layer label: **Contract · State · Ledger · Trail**
 - Stat blocks: **5,975 classes**; **123k triples**; **92 CUDA kernels**; **55× GPU**;
-  **88 skills**; **61µs search**; **250+ XR users**
+  **88 skills**; **61µs search**
 - Footer: **verifiable provenance for human-governed knowledge — not a crypto project**
 
 ## Aesthetic notes
