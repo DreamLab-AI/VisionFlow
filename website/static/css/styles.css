@@ -807,6 +807,7 @@ body.rl-init .rl-inner, body.rl-init .rl-face { transition: none !important; }
   color: var(--text-muted);
 }
 .val-item strong { color: var(--text); display: block; margin-bottom: 2px; }
+.val-item a { color: var(--cyan); }
 
 /* ── Competitive Table ── */
 .competitive-table-wrap { overflow-x: auto; margin-bottom: 16px; }
