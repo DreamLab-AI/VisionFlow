@@ -595,7 +595,8 @@ const CI_PILLS = {
   green: ['st-green', 'green'],
   red: ['st-red', 'red'],
   amber: ['st-amber', 'amber'],
-  none: ['st-none', 'no workflows'],
+  none: ['st-none', 'no run on head'],
+  exempt: ['st-none', 'no CI by design'],
   unknown: ['st-none', 'unreadable']
 };
 
