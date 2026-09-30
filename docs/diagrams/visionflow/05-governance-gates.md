@@ -36,7 +36,7 @@ sources:
   - docs/BASELINE-visionflow.md
   - docs/protocol/mesh-smoke-test.md
   - package.json
-verified_commit: df22182f365f7bc7b4664e4374d150ff893e6b05
+verified_commit: d4e44298646768a4b19af359119e16a6884fa80d
 ---
 
 ## VF-05.1 Gate route table — trigger, script, verdict, blocking
@@ -82,6 +82,17 @@ flowchart TB
 
     MANUAL["operator, by hand — no workflow"] --> SMESH["mesh-smoke-preflight.sh<br/>read-only substrate probe<br/>mesh-smoke-preflight.sh:337"]:::report
     MANUAL --> SREL["generate-release-manifest.sh<br/>exit 3 without a canonical revision set<br/>generate-release-manifest.sh:233"]:::block
+
+    PR --> WDIAG["diagram-index.yml<br/>paths docs/diagrams/**, diagram-index-gen.cjs,<br/>diagram-index.test.cjs, diagram-index.yml<br/>diagram-index.yml:6"]
+    PUSHMAIN --> WDIAG
+    WDIAG --> SDIAG1["structural check --no-source-paths<br/>diagram-index.yml:52"]:::tool
+    WDIAG --> SDIAG2["tests/gates/diagram-index.test.cjs<br/>citations, allowlist, ADR regression<br/>diagram-index.yml:55"]:::tool
+    WDIAG --> SDIAG3["--check-verification — VERIFICATION.md<br/>freshness against declared revisions<br/>diagram-index.yml:61"]:::tool
+    WDIAG --> SDIAG4["COVERAGE.md regenerate-and-diff<br/>diagram-index.yml:63"]:::tool
+    SDIAG1 --> VDIAG1["exit 1 on structure, id or prose errors"]:::block
+    SDIAG2 --> VDIAG2["exit 1 on an unallowlisted unverifiable citation,<br/>a stale allowlist entry, or an ADR regression"]:::block
+    SDIAG3 --> VDIAG3["exit 1 when a re-stamp was not re-resolved<br/>diagram-index.yml:61"]:::block
+    SDIAG4 --> VDIAG4["exit 1 on a stale generated index<br/>diagram-index.yml:67"]:::block
 
     NOTE1["INVARIANT: every count claimed in canon prose has one queryable source;<br/>a second distinct figure for one axis is a failure, not a footnote<br/>BASELINE-visionflow.md:258"]
     NOTE2["DIVERGENCE: mesh-smoke-preflight.sh is wired to NO workflow.<br/>Its output is pasted by hand into mesh-smoke-test.md:84"]
@@ -404,26 +415,12 @@ flowchart TB
     WHY -.-> T
 
     NOTE["DIVERGENCE: the guard polices only ROOT-LEVEL *.txt by regex.<br/>A copyrighted .txt committed one directory down passes, and<br/>texput.log at the repo root is a .log, outside the pattern entirely"]
-```
 
-## VF-05.10 Licensing and ownership governance surface
-```mermaid
-flowchart TB
-    classDef gap fill:#fff4d6,stroke:#aa8833,color:#222
-
-    LIC["LICENSES/README.md"] --> L1["States the repo documents an ecosystem<br/>mixing MPL-2.0 and AGPL-3.0 components<br/>LICENSES/README.md:3"]
-    LIC --> L2["Until a root licence file is added, repo-local docs and<br/>website assets need explicit maintainer confirmation<br/>before reuse outside the ecosystem<br/>LICENSES/README.md:5"]:::gap
-    LIC --> L3["Delegates sibling licences to<br/>docs/architecture/licensing.md<br/>LICENSES/README.md:7"]
-
-    MNT["MAINTAINERS.md"] --> M1["Two named maintainers with split focus:<br/>coordination architecture and public site;<br/>upstream Solid/JSS and DID:Nostr alignment<br/>MAINTAINERS.md:7"]
-    MNT --> M2["Triage rule — security and protocol issues go to the<br/>OWNING substrate first; cross-repository architecture<br/>issues belong in VisionFlow docs<br/>MAINTAINERS.md:10"]
-
-    L3 --> XREF["licensing split, per repo — see VF-08"]
-    M2 --> XREF2["ownership rule and dependency direction — see VF-08"]
-
-    GATE["copyright-guard.yml is the ONLY automated enforcement<br/>on this surface; the licence and maintainer rules are<br/>prose obligations with no CI gate"]:::gap
-
-    DIVN["DIVERGENCE: LICENSES/ contains a README and no licence files,<br/>and the repository still has no root LICENSE — the condition<br/>LICENSES/README.md:5 makes conditional is still unmet.<br/>The README.md badge nevertheless advertises AGPL-3.0"]:::gap
+    LICN["LICENSES/README.md: repo documents an MPL-2.0 / AGPL-3.0 mix;<br/>until a root licence file is added, repo-local docs and website<br/>assets need explicit maintainer confirmation before reuse outside<br/>the ecosystem — a prose obligation, this gate the only automated one<br/>LICENSES/README.md:3,5"]:::ok
+    MNTN["MAINTAINERS.md triage rule: security/protocol issues go to the<br/>OWNING substrate first; cross-repository architecture issues<br/>belong in VisionFlow docs<br/>MAINTAINERS.md:10"]
+    DIVL["DIVERGENCE: README.md:7's badge advertises AGPL-3.0 while no root<br/>LICENSE file exists — the condition LICENSES/README.md:5 makes<br/>reuse-confirmation conditional on is still unmet"]:::block
+    T -.-> LICN
+    LICN -.-> DIVL
 ```
 
 ## VF-05.11 tests/gates — proving each gate can still fail
@@ -442,6 +439,9 @@ flowchart TB
     RUN --> S4["website-assets.test.sh"]:::suite
     RUN --> S5["diagram-index.test.cjs — the two .cjs suites are run<br/>with node rather than bash, chosen per suite by extension<br/>run-all.sh:31"]:::suite
     RUN --> S6["augmentation-citations.test.cjs — see VF-05.13<br/>run-all.sh:24"]:::suite
+
+    S5 --> DI1["allowlist waives topic+diagram+path+line EXACTLY —<br/>wrong line, wrong diagram or wrong topic still fails,<br/>and an entry matching no citation fails as stale<br/>diagram-index.test.cjs:96,107,141"]
+    DI1 --> DI2["VERIFICATION.md freshness — a topic re-stamped without<br/>its citations re-resolved invalidates it<br/>diagram-index.test.cjs:166"]
 
     S1 --> D1["seeded mismatch at a policed site goes red<br/>drift-counter.test.sh:83"]
     D1 --> D2["a policed file that has MOVED fails, never passes<br/>drift-counter.test.sh:102"]

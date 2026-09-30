@@ -15,7 +15,7 @@ sources:
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/schema/agentbox.toml.schema.json
-verified_commit: ec60a8f14f4544520b4b1f6e8f5de2def4cfedcf
+verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
 ---
 
 ## For developers
@@ -165,9 +165,9 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph done["Delivered 2026-09-22"]
-        D1["the chain minted and replayed cold by the engine<br/>sovereign-settlement.md:331"]
-        D2["block 0's header hashed independently to the document<br/>sovereign-settlement.md:331"]
-        D3["the testnet4 peg wallet funded with 0.001 tBTC<br/>sovereign-settlement.md:331"]
+        D1["the chain minted and replayed cold by the engine<br/>sovereign-settlement.md:336"]
+        D2["block 0's header hashed independently to the document<br/>sovereign-settlement.md:336"]
+        D3["the testnet4 peg wallet funded with 0.001 tBTC<br/>sovereign-settlement.md:336"]
         D4["the interim producer live, announcing to five relays<br/>see AB-34.1"]
     end
     subgraph missing["Not yet, named by the same row"]
@@ -186,12 +186,11 @@ flowchart TB
     done --> STATUS["implementation_status partial: the seal exists and is<br/>verifiable, D1, D3's pin and boot check, D4's CI receipt<br/>check and the faucet compile-out are not built<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:220-223"]
     missing --> STATUS
     gate --> STATUS
-    STATUS --> DRIFT["DOC-DRIFT: BASELINE-container.md:192 still says no<br/>crates/sidestr workspace exists today. Four crates<br/>are published - see AB-33.1"]
 ```
 
 
-**Drift (BASELINE-container vs the repository):** the governing document's proposed section still asserts that no `crates/sidestr/` workspace exists (`../project/agentbox/docs/BASELINE-container.md:192`), which stopped being true on the same day — four crates are published at 0.1.0 (see AB-33.1).
+**Resolved (was DOC-DRIFT):** the governing document's proposed section now states plainly that the Rust crates live outside this repository, published from `sidestr-rs` (ADR-2112) and consumed from crates.io — it no longer claims `crates/sidestr/` is empty (`../project/agentbox/docs/BASELINE-container.md:196`).
 
-**Debt:** `[sidechain]` is a specified manifest gate with a catalogue entry, an apply class and a supervised program set (`../project/agentbox/docs/BASELINE-container.md:277`, `../project/agentbox/docs/BASELINE-container.md:320`), and none of it is expressible until the schema gains the block (`../project/agentbox/schema/agentbox.toml.schema.json:7`). See AB-05.13 for where it would appear in the gate catalogue.
+**Debt:** `[sidechain]` is a specified manifest gate with a catalogue entry, an apply class and a supervised program set (`../project/agentbox/docs/BASELINE-container.md:284`, `../project/agentbox/docs/BASELINE-container.md:335`), and none of it is expressible until the schema gains the block (`../project/agentbox/schema/agentbox.toml.schema.json:7`). See AB-05.13 for where it would appear in the gate catalogue.
 
-**Open:** PRD-024's question 9 is answered — the first seal is `tbtc4` with stock headers (`../project/agentbox/docs/proposals/sovereign-settlement.md:480-485`) — but questions 8, 13, 14 and 15 remain, and each changes what gets built (`../project/agentbox/docs/proposals/sovereign-settlement.md:487`).
+**Open:** PRD-024's question 9 is answered — the first seal is `tbtc4` with stock headers, sealed 2026-09-22 (`../project/agentbox/docs/proposals/sovereign-settlement.md:485-490`) — but questions 8, 13, 14 and 15 remain, and each changes what gets built (`../project/agentbox/docs/proposals/sovereign-settlement.md:494`).

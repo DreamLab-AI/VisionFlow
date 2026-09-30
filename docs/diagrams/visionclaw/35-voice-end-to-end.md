@@ -37,7 +37,7 @@ sources:
   - ../project/xr-client/rust/src/webrtc_audio.rs
   - ../project/client/src/services/WebSocketEventBus.ts
   - ../project/src/actors/elevation_actor.rs
-verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2, agentbox: b7b1ab81a6ed0680bb10026e17935152a23e0c5e, unmute: c49982eb3aeaf76633dfe4155fa3b8dcb5b3d962}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, unmute: c49982eb3aeaf76633dfe4155fa3b8dcb5b3d962}
 ---
 
 ## VC-35.1 Push-to-talk state machine and the agent DID binding
@@ -258,55 +258,6 @@ sequenceDiagram
     end
 ```
 
-## VC-35.5 Outbound voice frames the client sends
-
-```mermaid
-classDiagram
-    class VoiceMessage {
-        <<union type>>
-        +type tts | stt | audio_chunk | transcription | error | connected
-        +data unknown
-        +defined at VoiceWebSocketService.ts line 15
-    }
-    class TtsRequest {
-        +type "tts"
-        +sent by sendTTSRequest
-        +VoiceWebSocketService.ts line 196
-    }
-    class SetPttRequest {
-        +type "set_ptt"
-        +pttActive bool
-        +selectedAgentDid did:nostr or null
-        +client VoiceWebSocketService.ts line 215
-        +server SetPttRequest speech_socket_handler.rs line 69
-    }
-    class VoiceCommandRequest {
-        +type "voice_command"
-        +text String
-        +sessionId Option
-        +respondViaVoice Option
-        +actorDid Option did:nostr COM-15 D6
-        +confidence Option f32 PRD-023 WP-10
-        +client VoiceWebSocketService.ts line 235
-        +server speech_socket_handler.rs line 47
-    }
-    class SttRequest {
-        +type "stt"
-        +audio payload
-        +sent at VoiceWebSocketService.ts lines 284 and 316
-    }
-    class TranscriptionRequest {
-        +action String
-        +language Option
-        +model Option
-        +server speech_socket_handler.rs line 40
-    }
-    VoiceMessage <|-- TtsRequest
-    VoiceMessage <|-- SttRequest
-    SetPttRequest ..> VoiceCommandRequest : binds the target DID for the next command
-    VoiceCommandRequest ..> TranscriptionRequest : follows STT
-```
-
 ## VC-35.6 STT — Whisper and Turbo Whisper backends
 
 ```mermaid
@@ -346,6 +297,7 @@ sequenceDiagram
     AR-->>SS: transcription broadcast
     SS-->>SS: emit VoiceMessage {type 'transcription'} to the client
     Note over SS: DIVERGENCE Whisper-WebUI is a BROKEN SYMLINK in this tree<br/>(Whisper-WebUI to /mnt/mldata/githubs/Whisper-WebUI, target absent),<br/>so the STT container source is not checked out here. Only the<br/>client-side URL contract above is verifiable from this repo.
+    Note over SS,SP: A separate control frame drives streaming STT — client<br/>{"type":"stt","action":"start"|..., "language", "model"} deserializes<br/>to STTActionRequest speech_socket_handler.rs:43-46, matched at :663-666 —<br/>action "start" builds TranscriptionOptions{language,model,stream:true}<br/>and calls speech_service.start_transcription. Client sends it via<br/>startAudioStreaming(options) VoiceWebSocketService.ts:309 - distinct<br/>from the binary ProcessAudioChunk path above.
 ```
 
 ## VC-35.7 Governed voice path — clarification gate then signed kind-31402 to /v1/voice-intent
@@ -398,52 +350,9 @@ sequenceDiagram
         end
     else no actor_did (unbound)
         SS->>SS: is_swarm_command? handle_swarm_voice_command<br/>speech_socket_handler.rs:450, :461, :861, :862<br/>else the ungoverned global settings assistant path at :883
+        Note right of SS: VoiceCommand::parse(text,session_id) src/actors/voice_commands.rs:13,116<br/>maps free text to SwarmIntent (SpawnAgent|QueryStatus|ExecuteTask|<br/>UpdateGraph|ListAgents|StopAgent|Help, enum at voice_commands.rs:43).<br/>VoicePreamble::generate(intent) prefixes the LLM reply with a<br/>per-intent voice hint (e.g. SpawnAgent to "Confirm agent creation.")<br/>before this ungoverned path speaks, voice_commands.rs:90-104
     end
     Note over VC,AB: EXTERNAL: endpoint resolution (AGENTBOX_VOICE_INTENT_URL else<br/>AGENTBOX_MANAGEMENT_URL+VOICE_INTENT_PATH), the ACSP_PANEL_NOSTR_PRIVKEY<br/>gate, and 31402 signing identical to the broker path all live in<br/>VoiceIntentClient (voice_intent_client.rs) - unchanged by this refactor,<br/>only encapsulated behind client.dispatch() instead of being inlined here.
-```
-
-## VC-35.8 Ungoverned swarm-intent parse and the voice preamble
-
-```mermaid
-classDiagram
-    class VoiceCommand {
-        +parsed_intent SwarmIntent
-        +session_id String
-        +parse(text, session_id) Result
-        +src/actors/voice_commands.rs line 13 and 116
-    }
-    class SwarmIntent {
-        <<enumeration>>
-        SpawnAgent agent_type String capabilities Vec
-        QueryStatus target Option
-        ExecuteTask description String priority TaskPriority
-        UpdateGraph action GraphAction
-        ListAgents
-        StopAgent agent_id String
-        Help
-        +src/actors/voice_commands.rs line 43
-    }
-    class VoicePreamble {
-        +generate(intent) String
-        +SpawnAgent to " Confirm agent creation."
-        +QueryStatus to " Summarize status briefly."
-        +ExecuteTask to " Acknowledge task."
-        +UpdateGraph to " Confirm graph change."
-        +ListAgents to " List agents concisely."
-        +StopAgent to " Confirm stopping."
-        +Help to " Give brief help."
-        +src/actors/voice_commands.rs lines 90 to 104
-    }
-    class SwarmVoiceResponse {
-        +src/actors/voice_commands.rs line 28
-    }
-    class ConversationContext {
-        +src/actors/voice_commands.rs line 82
-    }
-    VoiceCommand --> SwarmIntent
-    SwarmIntent --> VoicePreamble
-    VoiceCommand --> ConversationContext
-    SwarmVoiceResponse --> VoicePreamble
 ```
 
 ## VC-35.9 TTS over PocketTts, streamed PCM and the barge-in cancel path
@@ -522,9 +431,9 @@ sequenceDiagram
         alt elevation intent recognised
             PE-->>EA: Some(label)
             EA->>KO: speak a short confirmation into the immersive session
-            Note over EA,KO: src/actors/elevation_actor.rs:204
+            Note over EA,KO: fn speak - fire-and-forget, never blocks case<br/>handling. src/actors/elevation_actor.rs:224
         end
-        Note over EA: logs "voice guidance active (local Whisper STT to demand<br/>ledger. Kokoro TTS confirmations)"<br/>src/actors/elevation_actor.rs:759
+        Note over EA: logs "voice guidance active (local Whisper STT to demand<br/>ledger. PocketTts TTS confirmations)"<br/>src/actors/elevation_actor.rs:917
     end
 ```
 
@@ -535,7 +444,7 @@ sequenceDiagram
     autonumber
     participant UI as caller
     participant LK as LiveKitVoiceService<br/>client/src/services/LiveKitVoiceService.ts:66
-    participant DI as dynamic import shim<br/>client/src/services/LiveKitVoiceService.ts:107
+    participant DI as dynamic import shim<br/>client/src/services/LiveKitVoiceService.ts:106
     participant RM as LiveKit Room
     participant AC as AudioContext
     participant XR as SpatialVoiceRouter (Godot)<br/>xr-client/rust/src/webrtc_audio.rs:140
@@ -543,13 +452,13 @@ sequenceDiagram
     UI->>LK: connect(config {token JWT, room name, url})
     Note over LK: LiveKitConfig token is a JWT minted server-side with the<br/>LiveKit API key and secret. LiveKitVoiceService.ts:23-25
     LK->>DI: Function('m','return import(m)')(livekitModule)
-    Note over DI: The SDK is loaded through a runtime-constructed dynamic<br/>import so the bundler cannot statically hoist it -<br/>LiveKit is lazy and optional. LiveKitVoiceService.ts:107
+    Note over DI: The SDK is loaded through a runtime-constructed dynamic<br/>import so the bundler cannot statically hoist it -<br/>LiveKit is lazy and optional. LiveKitVoiceService.ts:106
     alt SDK import fails
         DI-->>LK: throw - voice chat unavailable, BREAK
     else loaded
         DI-->>LK: {Room, RoomEvent, Track}
         LK->>RM: new Room(opts)
-        Note over LK: LiveKitVoiceService.ts:109
+        Note over LK: LiveKitVoiceService.ts:108
         LK->>RM: connect(url, token)
         RM-->>LK: connected, isConnected = true
         loop each remote participant
@@ -558,7 +467,7 @@ sequenceDiagram
             Note over LK: remoteParticipants Map LiveKitVoiceService.ts:71,<br/>listenerPosition {x,y,z} :70
         end
     end
-    Note over XR: DIVERGENCE the Godot XR client has the routing MATHS only.<br/>SpatialVoiceRouterCore (webrtc_audio.rs:39) owns the per-avatar<br/>position map and ListenerTransform (:26) / VoiceTrackState (:33),<br/>but the livekit-android AAR media transport that would consume it<br/>is not wired on any built target. Voice is design-complete,<br/>transport-absent there. docs/XR-client.md 'Known divergences'<br/>bullet 3 - see VC-36.17
+    Note over XR: DIVERGENCE the Godot XR client has the routing MATHS only.<br/>SpatialVoiceRouterCore (webrtc_audio.rs:39) owns the per-avatar<br/>position map and ListenerTransform (:26) / VoiceTrackState (:33),<br/>but the livekit-android AAR media transport that would consume it<br/>is not wired on any built target. Voice is design-complete,<br/>transport-absent there. docs/XR-client.md 'Known divergences'<br/>bullet 3 - see VC-36
 ```
 
 ## VC-35.12 The external voice estate (Track A) after the 2026-09-13 re-ownership
@@ -591,7 +500,7 @@ flowchart TB
     SEP["SEPARATE SUBSYSTEM: this is the agentbox tmux voice plane (Track A),<br/>not the VisionClaw graph voice loop of VC-35.1 to VC-35.11. Its LLM is<br/>the tab0-bridge reached as KYUTAI_LLM_URL, its STT is the Kyutai<br/>service, and its TTS is now the SAME pocket-tts VisionClaw uses.<br/>agentbox/voice/compose.web.yml:45, :44. see AB-06 for the console boundary"]
     owned --> CONV
     CONV["DRIFT CLOSED 2026-09-13 (ab5724422): the two tracks used to run<br/>different synthesisers - Kokoro for the VisionClaw visualiser and<br/>Kyutai TTS for the web stack. One pocket-tts service now serves both,<br/>and voice-stack/unmute-override.yml was deleted with the split.<br/>voice-stack/README.md:3, :8"]
-    DIV["Kokoros, Whisper-WebUI and xinference are UNTRACKED symlinks at the repo root,<br/>gitignored at .gitignore:227-229 and absent from .gitmodules - NOT submodules.<br/>All three dangle in this container. git ls-files returns nothing for any of them.<br/>Kokoros and Whisper-WebUI are now doubly stale: the Kokoro TTS branch was<br/>deleted from the server on 2026-09-13. xinference is DIFFERENT - it has live<br/>compose consumers (docker-compose.unified.yml:315, agentbox/docker-compose.yml:89),<br/>so Xinference is a runtime endpoint dependency. Those URL consumers do not prove<br/>the dangling checkout link is used. see ES-01.6"]
+    DIV["Kokoros, Whisper-WebUI and xinference are UNTRACKED symlinks at the repo root,<br/>gitignored at .gitignore:227-229 and absent from .gitmodules - NOT submodules.<br/>All three dangle in this container. git ls-files returns nothing for any of them.<br/>Kokoros and Whisper-WebUI are now doubly stale: the Kokoro TTS branch was<br/>deleted from the server on 2026-09-13. xinference is DIFFERENT - it has live<br/>compose consumers (docker-compose.unified.yml:329, agentbox/docker-compose.yml:108),<br/>so Xinference is a runtime endpoint dependency. Those URL consumers do not prove<br/>the dangling checkout link is used. see ES-01.6"]
     legacy --> DIV
     HIST["Historical engine benchmarks and their retired harness live under<br/>docs/gap-close-evidence/voice-latency-2026-09-10/ and are NOT<br/>deployment files. voice-stack/README.md:14, :15"]
     CONV --> HIST
@@ -620,4 +529,37 @@ sequenceDiagram
     Note over CMD: INVARIANT the abort is awaited, so the aborted task cannot still be<br/>writing chunks when the next TextToSpeech starts. The same abort runs<br/>on Close and at the head of TextToSpeech.<br/>src/services/speech_service.rs:270, :288
     Note over VW,CMD: Cancellation is THREE-SIDED: the browser stops what is already<br/>scheduled, the socket tells the server to stop producing, and the<br/>service aborts the generating task. Stopping only the browser would<br/>leave the model generating into a dropped stream.
     Note over VW: A new sendTextForTTS also stops local playback and clears the<br/>remainder before sending, so a fresh utterance never plays over<br/>the tail of the old one.<br/>client/src/services/VoiceWebSocketService.ts:255, :256
+```
+
+## VC-35.14 Session lifecycle — connect, heartbeat timeout, auth deadline, reconnect
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant VW as VoiceWebSocketService.connect<br/>client/src/services/VoiceWebSocketService.ts:70
+    participant REG as WebSocketRegistry
+    participant SS as SpeechSocket actor<br/>src/handlers/speech_socket_handler.rs:474
+
+    VW->>SS: new WebSocket(url)
+    SS->>SS: started - spawn heartbeat and auth-deadline timers<br/>speech_socket_handler.rs:474, :477
+    Note over SS: HEARTBEAT_INTERVAL=5s, CLIENT_TIMEOUT=10s, AUTH_DEADLINE=30s<br/>speech_socket_handler.rs:17, :18, :22
+    alt no authenticate frame within AUTH_DEADLINE
+        SS-->>VW: error "authentication deadline exceeded"
+        SS->>SS: ctx.stop()<br/>speech_socket_handler.rs:481-494
+    else client stops answering pings
+        SS->>SS: Instant::now - heartbeat > CLIENT_TIMEOUT<br/>speech_socket_handler.rs:260-266
+        SS->>SS: log "heartbeat failed, disconnecting" then ctx.stop()
+    else server sends ws::Message::Close
+        SS->>SS: log "Client disconnected", ctx.close, ctx.stop<br/>speech_socket_handler.rs:973-976
+    end
+    SS-->>VW: onclose {code, reason}
+    VW->>REG: webSocketRegistry.unregister('voice')<br/>VoiceWebSocketService.ts:101
+    VW->>VW: emit('disconnected', event)<br/>VoiceWebSocketService.ts:108
+    alt event.code !== 1000 (abnormal closure)
+        VW->>VW: attemptReconnect(url)<br/>VoiceWebSocketService.ts:110, :461-468
+        Note over VW: reconnectAttempts capped at maxReconnectAttempts=5,<br/>fixed reconnectDelay=2000ms between tries - no backoff growth.<br/>VoiceWebSocketService.ts:44-46
+        VW->>VW: setTimeout -> connect(url) again
+    else caller-initiated disconnect()
+        Note over VW: disconnect() closes with code 1000 and sets<br/>reconnectAttempts = maxReconnectAttempts first, so the onclose<br/>handler's abnormal-closure check never fires a reconnect.<br/>VoiceWebSocketService.ts:505-513
+    end
 ```

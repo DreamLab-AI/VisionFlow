@@ -17,15 +17,14 @@ sources:
   - ../project/agentbox/tests/contract/ruvector-gates.contract.spec.js
   - ../project/agentbox/docs/adr/ADR-2014-memory-mcp-only-fail-closed.md
   - ../project/src/handlers/memory_flash_handler.rs
-  - ../project/src/main.rs
   - ../project/src/actors/agent_monitor_actor.rs
-verified_commit: {visionclaw: f223bbd40, agentbox: b7b1ab81a}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f}
 ---
 ## ES-07.1 Every RuVector client and the one shared embedder
 ```mermaid
 flowchart TB
     subgraph clients["Clients — all writes MUST go through the MCP surface"]
-        MCP["agentbox/mcp/servers/ruvector-mcp.cjs<br/>memory_store / memory_retrieve / memory_list / memory_search<br/>lines 241,255,267,278"]
+        MCP["agentbox/mcp/servers/ruvector-mcp.cjs<br/>memory_store / memory_retrieve / memory_list / memory_search<br/>lines 253,267,279,290"]
         HOOKS["agentbox hooks + skills<br/>route via the same MCP server"]
         SWEEP["ruvector-aggregate-sweep.mjs"]
         DISTILL["ruvector-pattern-distill.mjs"]
@@ -55,11 +54,17 @@ flowchart TB
 
     INV1["INVARIANT — agent access is the governed memory MCP ONLY.<br/>This container exposes agentbox-memory; server aliases differ.<br/>The claude-flow CLI and raw SQL INSERT bypass the embedding<br/>pipeline, so rows written that way are INVISIBLE to HNSW search."]
     INV2["INVARIANT — ruvector-mcp.cjs FAILS CLOSED with no sql.js<br/>fallback: cannot reach ruvector-postgres is FATAL<br/>(ruvector-mcp.cjs:158)"]
-    DIV1["DIVERGENCE — VisionClaw has NO RuVector write client. Despite<br/>agent-facing narration, the only Rust touchpoint is the<br/>memory-flash WS broadcast (see ES-07.6). There is no<br/>RuVectorAdapter type in src/ or crates/ (verified by grep)."]
+    DIV1["DIVERGENCE — VisionClaw has NO RuVector write client. Despite<br/>agent-facing narration, the only Rust touchpoint is the<br/>memory-flash WS broadcast (src/handlers/memory_flash_handler.rs:41,<br/>observational only, never embeds). There is no RuVectorAdapter<br/>type in src/ or crates/ (verified by grep)."]
+    SCOPE["INVARIANT — pubkey scoping: NIP-98 callers are scoped to their<br/>own pubkey namespace (user:&lt;pubkey&gt;:proj:&lt;repo-slug&gt;:&lt;ns&gt;); a<br/>session cannot read another session's per-project namespace<br/>— agentbox.toml:358-370"]
+    NS5["code-harness-lessons namespace — expel_lesson_extraction distils<br/>0-N rules per completed trajectory as ex:DistilledLesson<br/>(memory_type=semantic, durable) — agentbox.toml:612-614"]
+    DIV3["DIVERGENCE — the harness's file-based auto-memory<br/>(~/.claude/projects/.../memory/, MEMORY.md) is INVISIBLE to this<br/>path and to every other agent in the mesh."]
 
     MCP --> INV1
     PG --> INV2
     VCMF --> DIV1
+    MCP --> SCOPE
+    HOOKS --> NS5
+    MCP --> DIV3
 ```
 
 ## ES-07.2 memory_store — embed-then-write, fail-closed when the embedder is down
@@ -67,7 +72,7 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant A as agent
-    participant M as ruvector-mcp.cjs<br/>memory_store:241
+    participant M as ruvector-mcp.cjs<br/>memory_store:253
     participant X as xinference port 9997<br/>bge-small-en-v1.5
     participant P as ruvector-postgres port 5432
     participant H as HNSW index
@@ -101,7 +106,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant A as agent
-    participant M as ruvector-mcp.cjs<br/>memory_search:278
+    participant M as ruvector-mcp.cjs<br/>memory_search:290
     participant X as xinference port 9997
     participant P as ruvector-postgres
     participant H as HNSW index
@@ -129,81 +134,6 @@ sequenceDiagram
     Note over A,H: namespace "*" performs a global cross-namespace search.<br/>AVOID memory_hybrid_search on large namespaces — it<br/>materialises the whole namespace (~72s on ruvnet-kb).
 ```
 
-## ES-07.4 Cross-agent pattern propagation — store in one session, search in another
-```mermaid
-sequenceDiagram
-    autonumber
-    participant S1 as session A agent
-    participant M1 as ruvector-mcp (session A)
-    participant P as ruvector-postgres<br/>shared sidecar
-    participant M2 as ruvector-mcp (session B)
-    participant S2 as session B agent
-
-    rect rgb(230,240,230)
-    Note over S1,P: WRITE — after a successful task
-    S1->>M1: memory_store{namespace "patterns", key, value}
-    M1->>P: embed + upsert (see ES-07.2)
-    P-->>M1: stored
-    end
-    rect rgb(230,235,245)
-    Note over S2,P: READ — a DIFFERENT session, later
-    S2->>M2: memory_search{query "task keywords", namespace "patterns"}
-    M2->>P: HNSW top-k
-    P-->>M2: session A's row ranked by semantic similarity
-    M2-->>S2: the pattern propagates with no direct agent-to-agent link
-    end
-    Note over S1,S2: INVARIANT — the shared Postgres sidecar IS the<br/>coordination channel. This is why CLI/raw-SQL writes are<br/>prohibited: an unembedded row never reaches session B.
-    Note over P: DIVERGENCE — file-based auto-memory<br/>(~/.claude/projects/.../memory/, MEMORY.md) is INVISIBLE<br/>to this path and to every other agent in the mesh.
-```
-
-## ES-07.5 Namespace map and the protected reference corpus
-```mermaid
-flowchart LR
-    subgraph ctx["Context namespaces — search before priority-aware work"]
-        N1["personal-context<br/>identity, team, goals, comms style<br/>index key personal-context-portfolio-index"]
-        N2["project-state<br/>current focus, priority order, decisions<br/>index key project-state-current-focus"]
-        N3["patterns<br/>what worked — written after success"]
-    end
-    subgraph learn["Learning-loop namespaces"]
-        N4["memory-learning-aggregates<br/>mapped onto the memory slot, no new slot<br/>agentbox.toml:444"]
-        N5["code-harness-lessons<br/>trajectory sink — agentbox.toml:612"]
-    end
-    subgraph prot["Protected"]
-        N6["ruvnet-kb — reference corpus, INGEST-ONLY writes<br/>appended to RUVECTOR_PROTECTED_NAMESPACES<br/>so agents cannot mutate it (agentbox.toml:761,764)"]
-    end
-    SCOPE["Pubkey scoping — NIP-98 callers are scoped to their own<br/>pubkey namespace (AGENTBOX_X_ONLY_PUBKEY_HEX /<br/>AGENTBOX_PUBKEY). A session cannot read another session's<br/>per-project namespace. agentbox.toml:358,370"]
-    LOW["DIVERGENCE — ruvnet-kb and knowledge-* namespaces have<br/>LOW scoped recall (R@10 ~9-11%) until candidate-bounded<br/>hybrid search lands."]
-
-    ctx --> SCOPE
-    learn --> SCOPE
-    prot --> SCOPE
-    N6 --> LOW
-```
-
-## ES-07.6 VisionClaw memory-flash — RuVector access events on the WebSocket
-```mermaid
-sequenceDiagram
-    autonumber
-    participant AG as agent or tool
-    participant H as handle_memory_flash<br/>src/handlers/memory_flash_handler.rs:41
-    participant R as route table<br/>configure_routes:133
-    participant WS as all WebSocket clients
-
-    Note over R: POST /api/memory-flash and the batch sibling are wired<br/>at src/main.rs:1177 via configure_memory_flash_routes
-    AG->>H: POST /api/memory-flash {key, namespace, action}
-    H->>H: namespace = body.namespace.unwrap_or_default()<br/>memory_flash_handler.rs:45
-    H->>WS: broadcast MemoryFlashEvent{key, namespace, action}
-    WS-->>H: fan-out complete
-    H-->>AG: 200
-    opt batch
-        AG->>H: handle_memory_flash_batch — memory_flash_handler.rs:103
-        loop each event in the batch
-            H->>WS: broadcast with per-event namespace unwrap_or_default<br/>memory_flash_handler.rs:118
-        end
-    end
-    Note over AG,WS: INVARIANT — this path is PURELY OBSERVATIONAL. It<br/>renders memory activity in the graph. It never reads or<br/>writes RuVector itself, so it cannot be a coordination<br/>channel and carries no embedding.
-```
-
 ## ES-07.7 Recall gate — the band that must hold before and after any retrieval change
 ```mermaid
 flowchart TB
@@ -222,39 +152,6 @@ flowchart TB
     GATE --> D3
 ```
 
-## ES-07.8 Index law — the rebuild that must never be concurrent
-```mermaid
-stateDiagram-v2
-    [*] --> Steady
-    Steady --> BulkChurn
-    BulkChurn --> Degraded
-    Degraded --> RebuildNonConcurrent
-    RebuildNonConcurrent --> Steady
-    Degraded --> ForbiddenPath
-    ForbiddenPath --> Corrupt
-    Corrupt --> [*]
-
-    note right of BulkChurn
-        Any bulk ingest or delete.
-    end note
-    note right of Degraded
-        Recall can degrade without a query error.
-        Latest recorded incident was a parallel-build defect —
-        bulk-delete causality is not established by this audit.
-    end note
-    note right of RebuildNonConcurrent
-        Operational remedy recorded for deployed ruvector 0.3.0:
-        serial AND non-concurrent rebuild, ~8 min.
-        max_parallel_maintenance_workers=0.
-        Then re-run the ES-07.7 recall gate.
-    end note
-    note right of ForbiddenPath
-        FORBIDDEN — CREATE INDEX CONCURRENTLY
-        on the ruvector HNSW access method.
-        Verified double-insertion.
-    end note
-```
-
 ## ES-07.9 Learning loop — the gates that are off, and why
 ```mermaid
 flowchart TB
@@ -262,16 +159,16 @@ flowchart TB
         F1["streams judged trajectories into<br/>ruvector_sona_learn under fixed 384-dim<br/>scope agentbox_memory"]
     end
     subgraph gates["agentbox.toml gates"]
-        G1["sona_learn = OFF<br/>sona_apply = OFF<br/>agentbox.toml:468-469"]
-        G2["attention_rerank = OFF<br/>agentbox.toml:467"]
-        G3["pattern_distillation = true<br/>ENABLED 2026-07-21, 13 patterns live<br/>provenance judge:trajectory<br/>agentbox.toml:466"]
-        G4["allow_namespace_repair = false<br/>agentbox.toml:478"]
-        G5["allow_pattern_graduation = false RESERVED<br/>agentbox.toml:484"]
+        G1["sona_learn_enabled = OFF<br/>sona_apply_enabled = OFF<br/>agentbox.toml:470-471"]
+        G2["attention_rerank = OFF<br/>agentbox.toml:469"]
+        G3["pattern_distillation = true<br/>ENABLED 2026-07-21, 13 patterns live<br/>provenance judge:trajectory<br/>agentbox.toml:468"]
+        G4["allow_namespace_repair = false<br/>agentbox.toml:480"]
+        G5["allow_pattern_graduation = false RESERVED<br/>agentbox.toml:486"]
     end
     D1["DIVERGENCE D1 — SONA is INERT. The prebuilt<br/>@ruvector/sona@0.1.5 NAPI binary hardcodes<br/>embedding_dim = 256, so 384-dim learns return<br/>status:learned but accumulate NOTHING (verified live).<br/>Both gates stay off until a 384-dim-capable binary."]
     D1B["attention_rerank is OFF BY MEASUREMENT, not caution —<br/>on an L2-normalised corpus the attention blend is a<br/>mathematical identity (max diff 4e-7)."]
-    D2["DIVERGENCE D2 — aggregate-count drift. agentbox.toml:453<br/>cites 78 aggregates >=20 samples (2026-08-31); the<br/>reference doc records 12 from the 2026-07-21 sweep.<br/>The toml is the running config and the newer number."]
-    D4["DOC-DRIFT D4 — agentbox/README.md:315 still lists BOTH<br/>feed_retrieval and feed_routing as open gates awaiting the<br/>Wilson floor. Half of that is now stale: the running manifest<br/>has feed_retrieval = true since 2026-08-31 (agentbox.toml:453)<br/>and only feed_routing is still false (agentbox.toml:454)."]
+    D2["DIVERGENCE D2 — aggregate-count drift. agentbox.toml:455<br/>cites 78 aggregates >=20 samples (2026-08-31); the<br/>reference doc records 12 from the 2026-07-21 sweep.<br/>The toml is the running config and the newer number."]
+    D4["DOC-DRIFT D4 — agentbox/README.md:326 still lists BOTH<br/>feed_retrieval and feed_routing as open gates awaiting the<br/>Wilson floor. Half of that is now stale: the running manifest<br/>has feed_retrieval = true since 2026-08-31 (agentbox.toml:455)<br/>and only feed_routing is still false (agentbox.toml:456)."]
     D5["DIVERGENCE D5 — pod-sync deletion has NO reverse<br/>tombstone. deleteAgentMemory() in the Pod does not revoke<br/>the RuVector-held agent memory: the embedding row persists<br/>and stays semantically searchable. Largest erasure hole.<br/>No point-in-time RuVector backup exists, so there is no<br/>cross-store consistent restore, RPO or RTO."]
 
     F1 --> G1
@@ -294,22 +191,22 @@ sequenceDiagram
     participant AG as an agent session
     participant RV as ruvector-mcp.cjs<br/>agentbox/mcp/servers/ruvector-mcp.cjs:30
     participant PROXY as createOrchestrationProxy<br/>agentbox/mcp/servers/ruvector-mcp.cjs:30
-    participant MAN as agentbox.toml orchestration gate<br/>agentbox/agentbox.toml:428
+    participant MAN as agentbox.toml orchestration gate<br/>agentbox/agentbox.toml:430
 
     AG->>RV: memory_store / memory_search / memory_list / memory_retrieve
-    RV-->>AG: served locally against ruvector-postgres,<br/>ruvector-mcp.cjs:242,256,268,279
+    RV-->>AG: served locally against ruvector-postgres,<br/>ruvector-mcp.cjs:566,614,617,620
 
     AG->>RV: swarm / agent / task / coordination tools
     RV->>MAN: is orchestration_proxy on
-    MAN-->>RV: true, and the forwarded categories are<br/>swarm, agent, task, coordination, agentbox.toml:429
-    RV->>PROXY: forward to ONE filtered ruflo child per session
+    MAN-->>RV: true, but the forwarded categories are ONLY<br/>swarm, agent — task and coordination were dropped<br/>2026-09-25 (unused, ~185 tok/tool), agentbox.toml:431
+    RV->>PROXY: forward a swarm/agent call to ONE filtered<br/>ruflo child per session — task/coordination stay stubs
     alt the child is reachable
         PROXY-->>AG: the real ruflo result
     else the child is unavailable
-        PROXY-->>AG: an honest stub, ok false and error unimplemented,<br/>ruvector-mcp.cjs:305,315
+        PROXY-->>AG: an honest stub, ok false and error unimplemented,<br/>ruvector-mcp.cjs:648,659
     end
 
-    Note over RV,PROXY: INVARIANT — memory_* is NEVER forwarded to the proxy child.<br/>This server backs the memory tools itself and says so in the<br/>stub descriptions it ships, ruvector-mcp.cjs:294,300-302.<br/>The ADR-2014 access invariant is therefore unchanged.
+    Note over RV,PROXY: INVARIANT — memory_* is NEVER forwarded to the proxy child.<br/>This server backs the memory tools itself and says so in the<br/>stub descriptions it ships, ruvector-mcp.cjs:306-311.<br/>The ADR-2014 access invariant is therefore unchanged.
     Note over RV: INVARIANT — the server replaces claude-flow mcp start so that<br/>every memory call goes through the embedding pipeline rather<br/>than round the side of it, ruvector-mcp.cjs:6. see AB-09
-    Note over MAN: DEBT — the gate is a manifest boolean with no runtime probe,<br/>so an operator reading agentbox.toml:428 learns the intent and<br/>not whether a ruflo child is actually answering. The honest<br/>stub is the only signal, and it looks the same as a tool that<br/>was never implemented.
+    Note over MAN: DEBT — the gate is a manifest boolean with no runtime probe,<br/>so an operator reading agentbox.toml:430 learns the intent and<br/>not whether a ruflo child is actually answering. The honest<br/>stub is the only signal, and it looks the same as a tool that<br/>was never implemented.
 ```

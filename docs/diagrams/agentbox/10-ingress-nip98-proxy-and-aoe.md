@@ -15,6 +15,7 @@ sources:
   - ../project/agentbox/mcp/servers/nostr-bridge.js
   - ../project/agentbox/config/nostr-gateway/gateway.cjs
   - ../project/agentbox/scripts/aoe-seed-sessions.mjs
+  - ../project/agentbox/config/entrypoint-unified.sh
   - ../project/agentbox/management-api/server.js
   - ../project/agentbox/management-api/middleware/auth.js
   - ../project/agentbox/scripts/ci/check-ports-loopback.sh
@@ -29,7 +30,7 @@ sources:
   - ../project/agentbox/voice/console/Caddyfile
   - ../project/agentbox/management-api/lib/agent-event-auth.js
   - ../project/agentbox/management-api/lib/action-plane.js
-verified_commit: 1639f86ab
+verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
 ---
 
 ## AB-10.1 Door inventory and port topology
@@ -38,22 +39,22 @@ verified_commit: 1639f86ab
 flowchart TB
     LAN["LAN client"]
     P9096["nip98-proxy<br/>agentbox/config/nip98-proxy/proxy.mjs:1173<br/>listen 0.0.0.0:9096"]
-    AOE9095["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2411<br/>127.0.0.1:9095"]
+    AOE9095["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2461<br/>127.0.0.1:9095"]
     MGMT9090["management-api<br/>agentbox/management-api/server.js:1435,:47<br/>HOST 0.0.0.0 PORT 9090 in-container"]
-    RELAY7777["nostr-rs-relay<br/>agentbox/flake.nix:1529,:1493<br/>binds relayCfg.bind, default 127.0.0.1:7777"]
+    RELAY7777["nostr-rs-relay<br/>agentbox/flake.nix:1582,:1546<br/>binds relayCfg.bind, default 127.0.0.1:7777"]
     VOICE8444["voice cockpit Caddy origin<br/>docker-compose.voice.yml:39<br/>0.0.0.0:8444"]
 
     LAN -->|"9096:9096 SANCTIONED agentbox/scripts/ci/check-ports-loopback.mjs:94,:74-91 ADR-2013"| P9096
     P9096 -->|"default route, Authorization UNCONDITIONALLY replaced with daemon token agentbox/config/nip98-proxy/proxy.mjs:1004-1012"| AOE9095
     P9096 -->|"prefix /mgmt/ NIP98_PROXY_MGMT_UPSTREAM agentbox/config/nip98-proxy/proxy.mjs:410-416"| MGMT9090
-    LAN -.->|"127.0.0.1:9090:9090 host publish agentbox/flake.nix:2758 not LAN-reachable"| MGMT9090
+    LAN -.->|"127.0.0.1:9090:9090 host publish agentbox/flake.nix:2829 not LAN-reachable"| MGMT9090
     LAN -->|"8443/8444 SANCTIONED docker-compose.voice.yml:39 agentbox/scripts/ci/check-ports-loopback.mjs:95-96"| VOICE8444
     VOICE8444 -->|"slash lo and slash docs ONLY - direct to management-api voice/console/Caddyfile:82-87"| MGMT9090
     VOICE8444 -->|"slash aoe, slash approvals, slash mgmt, slash dream, slash feed, slash bridge, slash nip07 - Authorization forwarded to the NIP-98 door voice/console/Caddyfile:54-75,:90-111"| P9096
 
 N1["RESOLVED ADR-2047: not a breach - a decided, enumerated exposure. The LAN surface is TEN<br/>sanctioned publishes across five compose files, matched on the normalised host_ip/published/<br/>target/protocol tuple: 9096 sovereign ingress, voice 8443 and 8444, browsercontainer 5903<br/>8931 9222-to-9223, gui-tools 5905 9876 9877, xr-runtime 5904 - each cited at<br/>agentbox/scripts/ci/check-ports-loopback.mjs:93-104. 9096 is the sole IDENTITY ingress to the<br/>AoE plane; the others carry their own auth. The old framing understated the count as well."]
-N2["RESOLVED ADR-2047: the stale --auth none bullet is gone. flake.nix:2753-2754 reads<br/>aoe serve, --auth token is NEVER published, matching the live supervisor command at<br/>flake.nix:2411, and INGRESS-identity now records the bullet as Resolved rather than<br/>open. The doc body's drifted verifyIdentity anchor (a stale 410-450 range) is<br/>corrected to proxy.mjs:629."]
-N6["INVARIANT ADR-2013: sovereign_mesh.relay.expose does NOT open a LAN door. When true it adds<br/>ONE publish and that publish is loopback-pinned - 127.0.0.1:port:port at<br/>agentbox/flake.nix:2763-2764 - so the relay never reaches the SANCTIONED LAN list at<br/>check-ports-loopback.mjs:93-104. Default is expose=false, agentbox.toml:149."]
+N2["RESOLVED ADR-2047: the stale --auth none bullet is gone. flake.nix:2825 reads<br/>aoe serve, --auth token is NEVER published, matching the live supervisor command at<br/>flake.nix:2461, and INGRESS-identity now records the bullet as Resolved rather than<br/>open. The doc body's drifted verifyIdentity anchor (a stale 410-450 range) is<br/>corrected to proxy.mjs:629."]
+N6["INVARIANT ADR-2013: sovereign_mesh.relay.expose does NOT open a LAN door. When true it adds<br/>ONE publish and that publish is loopback-pinned - 127.0.0.1:port:port at<br/>agentbox/flake.nix:2834-2835 - so the relay never reaches the SANCTIONED LAN list at<br/>check-ports-loopback.mjs:93-104. Default is expose=false, agentbox.toml:149."]
 N3["INVARIANT ADR-2009: aoe serve binds 127.0.0.1 plus --behind-proxy - nip98-proxy is the sole<br/>IDENTITY ingress to port 9095, nothing else may open that port<br/>agentbox/config/nip98-proxy/README.md:40-50"]
 N4["RESOLVED ADR-2047: the compose-exposure qualification is superseded in the governing doc.<br/>The line-walker bypass is fixed - check-ports-loopback.sh is a wrapper that execs<br/>check-ports-loopback.mjs, a strict YAML reader for the compose subset, and anything outside that<br/>subset is REJECTED with file and line, never skipped. ADR-2013 stays partial for the DEPLOYMENT<br/>half only: overlay order, interpolation, external files and active-listener evidence.<br/>Receipt: agentbox/docs/estate-closeout/2026-09-05/adr-2013-ports-gate.json."]
 N5["INVARIANT ADR-2013: the wrapper FAILS LOUDLY when the .mjs gate is missing - a copy of the<br/>wrapper without its gate exits 3 with an explicit message rather than looking like a pass<br/>agentbox/scripts/ci/check-ports-loopback.sh:38-42"]
@@ -396,6 +397,13 @@ sequenceDiagram
     PX->>UP: forward, x-agentbox-pubkey and x-agentbox-auth-mode nip07-session injected proxy.mjs:979-980
 ```
 
+GET `/nip07/session` is a separate, unauthenticated-upstream probe: it reads the
+cookie and calls `verifySessionToken` itself, nothing else, proxy.mjs:861-863.
+INVARIANT: unrelated upstream availability or authorisation must not make a
+signed-in browser start prompting its signer again — the probe never touches the
+route or upstream, proxy.mjs:862-863. Response is `cache-control: no-store`,
+proxy.mjs:867, so a cached 200 can never stand in for a live check.
+
 ## AB-10.9 WebSocket upgrade auth path
 
 ```mermaid
@@ -488,6 +496,7 @@ sequenceDiagram
         AOE2-->>GW: 200/201, session id and status
     end
     Note over GW: on any AoE failure the caller falls back to a plain tmux new-window, per the ADR-042/044 D5 comment gateway.cjs:105-109
+    Note over TOKFN: readAoeToken is DUPLICATED VERBATIM (modulo fs accessor) across four runtime<br/>consumers of port 9095, namely proxy.mjs, gateway.cjs, tab0-bridge/server.mjs and<br/>aoe-seed-sessions.mjs, KEEP IN SYNC comment at aoe-seed-sessions.mjs:494-497.<br/>aoe-seed-sessions.mjs is the 4th consumer: entrypoint-unified.sh Stage B fires it<br/>fire-and-forget (config/entrypoint-unified.sh:1506), it fails closed the same way<br/>(aoe-seed-sessions.mjs:504-517,:528-530) and also seeds the ADR-2080 router slug's<br/>session via WRAPPER_SLUGS.router.file (aoe-seed-sessions.mjs:110-114) - full table at AB-02.20,<br/>the run-as-script guard fix that makes it execute in the baked image at AB-02.19
 ```
 
 ## AB-10.12 selftest.mjs assertion families
@@ -535,28 +544,6 @@ flowchart TB
 The A-to-N chain is execution order: `main()` runs the families in sequence, so a
 failure in an early family short-circuits the ones after it.
 
-## AB-10.13 aoe-seed-sessions.mjs — the 4th :9095 token consumer, and the ADR-2080 router seed
-```mermaid
-sequenceDiagram
-    autonumber
-    participant E as entrypoint-unified.sh<br/>Stage B interaction-plane seed block
-    participant SEED as aoe-seed-sessions.mjs<br/>readAoeToken/fetchWithTimeout aoe-seed-sessions.mjs:504,:524
-    participant FS as serve.url<br/>AGENTBOX_AOE_TOKEN_FILE, aoe-seed-sessions.mjs:501-502
-    participant AOE as aoe serve --auth token<br/>agentbox/flake.nix:2411, 127.0.0.1:9095
-
-    E->>SEED: nohup node aoe-seed-sessions.mjs (fire-and-forget)
-    SEED->>FS: readAoeToken() — statSync/readFileSync/statSync, single retry on torn read (aoe-seed-sessions.mjs:504-517)
-    alt token file absent or unreadable, no last-good cache
-        SEED-->>SEED: fetchWithTimeout rejects "AoE token unavailable (N-05 fail-closed)" (aoe-seed-sessions.mjs:528-530)
-        Note over SEED: same fail-closed contract as AB-10.11's readAoeToken — this script is<br/>DUPLICATED VERBATIM (modulo fs accessor) alongside proxy.mjs, gateway.cjs and<br/>tab0-bridge/server.mjs, KEEP IN SYNC comment at aoe-seed-sessions.mjs:494-497
-    else token cached or freshly read
-        SEED->>AOE: GET/POST /api/sessions with Authorization Bearer tok (aoe-seed-sessions.mjs:532-533)
-        AOE-->>SEED: session records, incl. the router seed from agentbox.toml:1658-1662
-    end
-    Note over SEED,AOE: the `router` slug's customAgents program resolves via WRAPPER_SLUGS.router.file<br/>= config/harness-wrappers/router.sh (aoe-seed-sessions.mjs:110-114, ADR-2080) — see AB-02.20 for<br/>the full WRAPPER_SLUGS table and AB-02.19 for the realpath run-as-script guard fix (2026-09-06)<br/>that makes this reconciler actually execute in the baked image
-```
-
-
 ## AB-10.14 ADR-2042 — who actually trusts X-Agentbox-Pubkey
 
 ```mermaid
@@ -590,28 +577,3 @@ sequenceDiagram
 The governing doc states Invariant 2 as "X-Agentbox-Pubkey always proxy-injected,
 never trusted inbound" — true at the ingress, and the two ADR-2042 consumers above
 are the deliberate, documented exception on the far side of the gate.
-
-## AB-10.15 GET /nip07/session — probing the cookie without re-prompting the signer
-
-```mermaid
-stateDiagram-v2
-    [*] --> NoCookie
-    NoCookie --> Minted: POST /nip07/session with a live NIP-98 signature
-    Minted --> Probed: GET /nip07/session
-    Probed --> Minted: 200 with ok true and the pubkey
-    Probed --> NoCookie: 401 with ok false
-    note right of Probed
-        the probe reads the cookie ITSELF and verifies the
-        session token, nothing else. proxy.mjs:864-865
-        INVARIANT: unrelated upstream availability or
-        authorisation must not make a signed-in browser
-        start prompting its signer again. proxy.mjs:862-863
-        cache-control no-store, so a cached 200 can never
-        stand in for a live check. proxy.mjs:866-868
-    end note
-    note right of Minted
-        only a live NIP-98 signature mints a session -
-        an existing cookie must not renew itself.
-        see AB-10.8
-    end note
-```

@@ -34,14 +34,14 @@ sources:
   - ../project/client/src/features/solid/components/PodSettings.tsx
   - ../project/client/src/features/solid/components/ResourceEditor.tsx
   - ../project/src/handlers/image_gen_handler.rs
-verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
 ---
 
 ## VC-26.1 Deployment topology — embedded pod vs feature-off stub
 ```mermaid
 flowchart TB
     subgraph cargo["Cargo.toml"]
-        DEFAULT["default = [gpu, ontology, persistence-oxigraph, solid-pod-embed]<br/>Cargo.toml:251"]
+        DEFAULT["default = [gpu, ontology, persistence-oxigraph, solid-pod-embed]<br/>Cargo.toml:254"]
         FEAT["solid-pod-embed feature<br/>Cargo.toml:283-285<br/>deps: solid-pod-rs, -nostr, -idp, -server"]
     end
     DEFAULT --> FEAT
@@ -49,18 +49,18 @@ flowchart TB
     FEAT -->|"cfg(not(feature = solid-pod-embed))"| OFF["OFF: stub build"]
 
     subgraph onpath["main.rs — feature ON"]
-        INIT["init_solid_state().await<br/>main.rs:876"]
-        APPDATA["app.app_data(solid_state.clone())<br/>main.rs:1045"]
-        CFG["configure_solid_routes<br/>main.rs:1126"]
-        FS["FsBackend::new(SOLID_DATA_ROOT)<br/>solid_proxy_handler.rs:120,133"]
-        ROUTES["Full /solid scope: health, .notifications,<br/>pods*, LDP CRUD, DID<br/>solid_proxy_handler.rs:1752-1787"]
+        INIT["init_solid_state().await<br/>main.rs:881"]
+        APPDATA["app.app_data(solid_state.clone())<br/>main.rs:1063"]
+        CFG["configure_solid_routes<br/>main.rs:1173"]
+        FS["FsBackend::new(SOLID_DATA_ROOT)<br/>solid_proxy_handler.rs:141,151"]
+        ROUTES["Full /solid scope: health, .notifications,<br/>pods*, LDP CRUD, DID<br/>solid_proxy_handler.rs:1753-1787"]
         INIT --> FS
         INIT --> APPDATA --> CFG --> ROUTES
     end
 
     subgraph offpath["main.rs — feature OFF"]
-        NOINIT["solid_state app_data block compiled out<br/>main.rs:875 and :1057"]
-        STUBCFG["configure_routes (feature-off twin)<br/>solid_proxy_handler.rs:1799-1803"]
+        NOINIT["solid_state app_data block compiled out<br/>main.rs:880 and :1062"]
+        STUBCFG["configure_routes (feature-off twin)<br/>solid_proxy_handler.rs:1800-1804"]
         STUBROUTES["RESOLVED ADR-2067 — registers nothing at all<br/>/solid/*, /.well-known/did.json and /did/* all 404<br/>in a feature-off build (was: a full table of 503 stubs)"]
         NOINIT --> STUBCFG --> STUBROUTES
     end
@@ -75,10 +75,10 @@ flowchart TB
     Note2["RESOLVED ADR-2068: the vendored JavaScriptSolidServer/ tree (63 MB) has been deleted. It was a third-party upstream project superseded by the embedded Rust solid-pod-rs, with no import, path or compose reference anywhere; its only mention was a doc-comment URL at src/utils/nip98.rs:5, left intact. Removed rather than archived - docs/archive/ is for our own superseded documents, and the upstream is recoverable from its own public repo."]
     Legacy -.-> Note2
 
-    Note3["RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL's default in ontology-publish.yml and env.example<br/>was http://jss:3030 / http://visionclaw-jss:3030 - both DNS-dead JSS-sidecar names, a leftover<br/>from before ADR-032 M3 embedded solid-pod-rs. Both now default to http://localhost:4000/solid,<br/>the SYSTEM_NETWORK_PORT (default 4000, main.rs:836) this diagram's own INIT/APPDATA/CFG path<br/>actually serves. The /.notifications POST the workflow still sends is a documented no-op there -<br/>the embedded pod's /.notifications is a GET WebSocket upgrade (see VC-26.9), not a POST trigger."]
+    Note3["RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL's default in ontology-publish.yml and env.example<br/>was http://jss:3030 / http://visionclaw-jss:3030 - both DNS-dead JSS-sidecar names, a leftover<br/>from before ADR-032 M3 embedded solid-pod-rs. Both now default to http://localhost:4000/solid,<br/>the SYSTEM_NETWORK_PORT (default 4000, main.rs:841) this diagram's own INIT/APPDATA/CFG path<br/>actually serves. The /.notifications POST the workflow still sends is a documented no-op there -<br/>the embedded pod's /.notifications is a GET WebSocket upgrade (see VC-26.9), not a POST trigger."]
     ON -.-> Note3
 
-    Note4["PROPOSED, not live (ADR-2111, decision_status proposed, implementation_status none,<br/>2026-09-21): this repo would keep depending on the PUBLISHED solid-pod-rs crate<br/>(Cargo.toml:218, 0.4.0-alpha.15) and delete the extraction/solid-pod-rs mirror,<br/>moving to the post-port crate version in lockstep with the forum. Nothing in the<br/>live path above changes until that record is accepted and implemented.<br/>docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:4"]
+    Note4["PROPOSED, not live (ADR-2111, decision_status proposed, implementation_status none,<br/>2026-09-21): this repo would keep depending on the PUBLISHED solid-pod-rs crate<br/>(Cargo.toml:222, 0.4.0-alpha.15) and delete the extraction/solid-pod-rs mirror,<br/>moving to the post-port crate version in lockstep with the forum. Nothing in the<br/>live path above changes until that record is accepted and implemented.<br/>docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:4"]
     FEAT -.-> Note4
 ```
 
@@ -139,7 +139,7 @@ sequenceDiagram
     S->>L: fetchWithAuth(POST /solid/pods/init, {})<br/>SolidPodService.ts:173
     L->>NA: isAuthenticated()<br/>ldpClient.ts:98
     alt authenticated
-        L->>NA: computeAuthHeaders(absoluteUrl, method, body) - RESOLVED ADR-2074,<br/>same shared helper as authInterceptor.ts:52, see VC-33.3<br/>ldpClient.ts:105
+        L->>NA: computeAuthHeaders(absoluteUrl, method, body) - RESOLVED ADR-2074,<br/>same shared helper as authInterceptor.ts:51, see VC-33.3<br/>ldpClient.ts:105
         NA-->>L: dev Bearer + X-Nostr-Pubkey, or NIP-98 Authorization: Nostr token
     else stale session (user exists, cannot sign)
         L->>L: logger.warn - request sent WITHOUT auth headers<br/>ldpClient.ts:110-114
@@ -446,29 +446,6 @@ sequenceDiagram
     Note over SP,CL: RESOLVED ADR-2106 (2026-09-06): the embedded pod serves /public/ontology/<br/>as an LDP CONTAINER (a bare GET is a listing, not the ontology) - the JSS-era<br/>single Accept-negotiated URL contract does not exist here. fetchJsonLd and<br/>fetchTurtle (schemaParser.ts:131) now request the two NAMED resources<br/>directly via getOntologyJsonLdUrl / getOntologyTurtleUrl - see VC-26.13.
 ```
 
-## VC-26.11 SolidGraphViewService — thin facade
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Caller as graph-view UI code
-    participant GV as SolidGraphViewService<br/>SolidGraphViewService.ts
-    participant S as solidPodService singleton<br/>SolidPodService.ts:115
-
-    Caller->>GV: saveGraphView(name, viewData)<br/>SolidGraphViewService.ts:17
-    GV->>S: solidPodService.saveGraphView(name, viewData)
-    S-->>GV: boolean
-    GV-->>Caller: boolean
-
-    Caller->>GV: loadGraphView(name) / listGraphViews()<br/>SolidGraphViewService.ts:31,37
-    GV->>S: delegate to singleton method
-    S-->>GV: view data | string[]
-    GV-->>Caller: forwarded result
-
-    Caller->>GV: deleteGraphView(name) / subscribeToGraphViewChanges(cb)<br/>SolidGraphViewService.ts:41,45
-    GV->>S: delegate to singleton method
-    Note over GV,S: INVARIANT: SolidGraphViewService holds no state of its own -<br/>every export is a 1:1 forward to the SolidPodService singleton (SolidGraphViewService.ts:12,17-49)
-```
-
 ## VC-26.12 Client component/hook tree
 ```mermaid
 flowchart TB
@@ -483,6 +460,7 @@ flowchart TB
     HRes["useSolidResource<br/>hooks/useSolidResource.ts:30"]
 
     Svc["SolidPodService singleton<br/>services/SolidPodService.ts:115"]
+    GVFacade["SolidGraphViewService<br/>services/SolidGraphViewService.ts:12,17-49"]
 
     Panel --> Tab
     Tab --> Settings
@@ -499,13 +477,17 @@ flowchart TB
     HRes --> Svc
 
     Svc -->|"fetchWithAuth -> /solid/*"| Proxy["solid_proxy_handler.rs<br/>see VC-26.2"]
+
+    GVFacade -->|"saveGraphView/loadGraphView/listGraphViews/<br/>deleteGraphView/subscribeToGraphViewChanges"| Svc
+    NoteGV["INVARIANT: SolidGraphViewService holds no state of its own -<br/>every export is a 1:1 forward to the SolidPodService singleton<br/>(SolidGraphViewService.ts:12,17-49)"]
+    GVFacade -.-> NoteGV
 ```
 
 ## VC-26.13 Ontology boot pull — GitHub release into the embedded pod (ADR-2106)
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main.rs (solid-pod-embed)<br/>main.rs:883
+    participant M as main.rs (solid-pod-embed)<br/>main.rs:888
     participant SB as spawn_boot_pull<br/>ontology_pull.rs:387
     participant PO as pull_once<br/>ontology_pull.rs:293
     participant GH as GitHub release<br/>ontology-latest (DEFAULT_RELEASE_URL, ontology_pull.rs:42)

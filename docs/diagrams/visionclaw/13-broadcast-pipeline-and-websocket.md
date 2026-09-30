@@ -22,7 +22,6 @@ sources:
   - ../project/src/handlers/socket_flow_handler/position_updates.rs
   - ../project/src/handlers/socket_flow_handler/filter_auth.rs
   - ../project/src/utils/nip98.rs
-  - ../project/src/utils/websocket_heartbeat.rs
   - ../project/src/utils/socket_flow_constants.rs
   - ../project/src/utils/binary_protocol.rs
   - ../project/src/gpu/mod.rs
@@ -34,7 +33,7 @@ sources:
   - ../project/client/src/features/graph/workers/graph.worker.ts
   - ../project/client/src/services/BinaryWebSocketProtocol.ts
   - ../project/src/handlers/socket_flow_handler/actor_messages.rs
-verified_commit: f223bbd40
+verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
 ---
 
 ## VC-13.3 GPU broadcast frame end to end
@@ -187,7 +186,7 @@ sequenceDiagram
     participant GDM as graphDataManager<br/>client/src/features/graph/managers/graphDataManager.ts:433
     participant WSC as handleBinaryFrame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:19
     participant GWP as graphWorkerProxy<br/>client/src/features/graph/managers/graphWorkerProxy.ts:205
-    participant WRK as graph.worker.ts<br/>client/src/features/graph/workers/graph.worker.ts:214
+    participant WRK as graph.worker.ts<br/>client/src/features/graph/workers/graph.worker.ts:213
 
     rect rgb(222,236,250)
     WS->>WS: validateBinaryData — lead byte in {3,5,AGENT_ACTION}<br/>client/src/store/websocket/binaryProtocol.ts:187-208
@@ -213,11 +212,11 @@ sequenceDiagram
                 GWP->>GWP: transfer(frame.buffer) — zero-copy neuter<br/>client/src/features/graph/managers/graphWorkerProxy.ts:248
                 alt SAB mode (SharedArrayBuffer available, cross-origin isolated)<br/>client/src/features/graph/managers/graphWorkerProxy.ts:170-186
                     GWP->>WRK: workerApi.processBinaryFrame(transferable)<br/>client/src/features/graph/managers/graphWorkerProxy.ts:253
-                    WRK->>WRK: decode V3/V5 node records into currentPositions<br/>client/src/features/graph/workers/graph.worker.ts:215
-                    WRK->>WRK: syncToSharedBuffer — write positionView<br/>(the SharedArrayBuffer)<br/>client/src/features/graph/workers/graph.worker.ts:226-227
-                    Note right of WRK: SAB write complete — renderer reads<br/>positionView directly, no return value needed<br/>client/src/features/graph/workers/graph.worker.ts:205-218
+                    WRK->>WRK: decode V3/V5 node records into currentPositions<br/>client/src/features/graph/workers/graph.worker.ts:214
+                    WRK->>WRK: syncToSharedBuffer — write positionView<br/>(the SharedArrayBuffer)<br/>client/src/features/graph/workers/graph.worker.ts:225-226
+                    Note right of WRK: SAB write complete — renderer reads<br/>positionView directly, no return value needed<br/>client/src/features/graph/workers/graph.worker.ts:204-217
                 else Comlink transfer mode (SAB unavailable)
-                    WRK-->>GWP: transferred ArrayBuffer of stride-3 positions<br/>client/src/features/graph/workers/graph.worker.ts:219-223
+                    WRK-->>GWP: transferred ArrayBuffer of stride-3 positions<br/>client/src/features/graph/workers/graph.worker.ts:218-222
                     GWP->>GWP: lastTransferredView = new Float32Array(returned)<br/>client/src/features/graph/managers/graphWorkerProxy.ts:262-264
                 end
             end
@@ -341,42 +340,6 @@ sequenceDiagram
     end
 ```
 
-## VC-13.5 Heartbeat and ping/pong
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Client
-    participant WSS as SocketFlowServer<br/>src/handlers/socket_flow_handler/types.rs:616
-    participant SH as StreamHandler dispatch<br/>src/handlers/socket_flow_handler/mod.rs:23
-    participant MR as message_routing<br/>src/handlers/socket_flow_handler/message_routing.rs:16
-    participant OA as other actors<br/>src/handlers/socket_flow_handler/actor_messages.rs:230-233
-
-    rect rgb(225,228,245)
-    Note over WSS: Actor::started sets up a server-driven ping timer<br/>src/handlers/socket_flow_handler/types.rs:613, run_interval guard :656-663
-    loop ctx.run_interval every 5s<br/>src/handlers/socket_flow_handler/types.rs:657
-        WSS->>C: ctx.ping(empty payload)<br/>src/handlers/socket_flow_handler/types.rs:659
-        WSS->>WSS: last_activity = Instant::now()<br/>src/handlers/socket_flow_handler/types.rs:660
-    end
-    C->>SH: WS Pong frame
-    SH->>SH: last_activity = Instant::now()<br/>src/handlers/socket_flow_handler/mod.rs:31-33
-    Note right of SH: no idle-timeout disconnect is wired to last_activity<br/>on this path — CLIENT_TIMEOUT=60s in<br/>socket_flow_constants.rs:9 is unused here
-    opt client sends a standard WS Ping frame
-        C->>SH: WS Ping frame
-        SH->>C: ctx.pong(payload)<br/>src/handlers/socket_flow_handler/mod.rs:26-30
-    end
-    opt client sends plain-text "ping"
-        C->>MR: text "ping"
-        MR-->>C: text "pong"<br/>src/handlers/socket_flow_handler/message_routing.rs:18-22
-    end
-    opt client sends JSON {type: ping}
-        C->>MR: text {"type":"ping",...}
-        MR->>WSS: handle_ping(PingMessage)<br/>src/handlers/socket_flow_handler/message_routing.rs:109-115
-        WSS-->>C: PongMessage JSON<br/>src/handlers/socket_flow_handler/types.rs:225-230
-    end
-    Note over WSS,OA: RESOLVED ADR-2054 PushDirective queues a HeartbeatDirective<br/>into pending_directives (ADR-031 item 4), but this actor's<br/>ping/pong path never calls WebSocketHeartbeat::send_pong<br/>or get_pending_directives — queued directives<br/>(ReloadConfig, ForceFullSync, UpdateAvailable) are never<br/>flushed to the client on this code path<br/>src/handlers/socket_flow_handler/actor_messages.rs:230-233,<br/>src/utils/websocket_heartbeat.rs:88-114 — removed, zero senders
-    end
-```
-
 ## VC-13.6 Polling path — GetGraphData to binary encode
 ```mermaid
 sequenceDiagram
@@ -437,4 +400,17 @@ stateDiagram-v2
     Streaming --> Closed: WS Close frame or heartbeat<br/>Pong not received (server ping every 5s, types.rs:657-661)<br/>src/handlers/socket_flow_handler/mod.rs:40-44
     Backpressured --> Closed: SendError Closed, client<br/>evicted as a slow client<br/>src/actors/client_coordinator_actor.rs:394-403
     Closed --> [*]
+
+    note right of Streaming
+        DIVERGENCE no idle-timeout disconnect is wired to last_activity
+        on this path — CLIENT_TIMEOUT=60s in socket_flow_constants.rs:9
+        is unused here (only speech_socket_handler.rs has its own
+        CLIENT_TIMEOUT const)
+        src/handlers/socket_flow_handler/mod.rs:28-33
+        RESOLVED ADR-2054 PushDirective mechanism removed, zero senders
+        tree-wide — send_pong/get_pending_directives were never called
+        on the live ping/pong path, so a queued directive could never
+        reach a client
+        src/handlers/socket_flow_handler/actor_messages.rs:230-233
+    end note
 ```

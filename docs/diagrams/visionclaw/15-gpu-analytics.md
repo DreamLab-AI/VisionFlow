@@ -30,11 +30,6 @@ sources:
   - ../project/src/handlers/semantic_pathfinding_handler.rs
   - ../project/src/handlers/mod.rs
   - ../project/src/services/semantic_pathfinding_service.rs
-  - ../project/src/adapters/gpu_semantic_analyzer.rs
-  - ../project/src/adapters/actix_semantic_adapter.rs
-  - ../project/src/application/semantic_service.rs
-  - ../project/src/actors/semantic_processor_actor.rs
-  - ../project/crates/visionclaw-domain/src/ports/gpu_semantic_analyzer.rs
   - ../project/src/gpu/visual_analytics.rs
   - ../project/src/gpu/mod.rs
   - ../project/crates/visionclaw-analytics-oracle/src/lib.rs
@@ -46,7 +41,7 @@ sources:
   - ../project/src/main.rs
   - ../project/src/handlers/api_handler/analytics/params_handlers.rs
   - ../project/src/handlers/api_handler/analytics/types.rs
-verified_commit: f223bbd40
+verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
 ---
 
 ## VC-15.1 POST /analytics/clustering/run — spectral/kmeans/louvain/default dispatch with CPU fallback
@@ -479,7 +474,7 @@ sequenceDiagram
     participant GSA as GraphStateActor<br/>graph_state_actor.rs
     participant SVC as SemanticPathfindingService<br/>semantic_pathfinding_service.rs:86
 
-    Note over CFG: mounted at web-scope pathfinding by main.rs:1138, distinct from the analytics-scope path family in VC-15.6 to VC-15.9
+    Note over CFG: mounted at web-scope pathfinding by main.rs:1143, distinct from the analytics-scope path family in VC-15.6 to VC-15.9
 
     C->>CFG: POST /pathfinding/semantic-path {startId,endId,query}
     CFG->>FSP: find_semantic_path(request)
@@ -518,64 +513,6 @@ sequenceDiagram
     CT->>SVC: chunk_traversal(graph,start_id,max_nodes unwrap_or 50) (semantic_pathfinding_service.rs:299)
     SVC-->>CT: results
     CT-->>C: 200 results
-```
-
-## VC-15.11 Semantic analyzer hexagonal slot — the dead port is gone, the live port remains
-
-```mermaid
-classDiagram
-    class SemanticAnalyzer {
-        <<trait, DEAD - zero impls>>
-        run_sssp(graph, source) Result~SSSPResult~
-        run_clustering(graph, algorithm) Result~ClusteringResult~
-        detect_communities(graph) Result~CommunityResult~
-        get_shortest_path(graph, source, target) Result~Vec~u32~~
-        invalidate_cache() Result~()~
-    }
-    note for SemanticAnalyzer "REMOVED: dead port deleted by vc-knowledge on my ADR-2054 routing"
-
-    class GpuSemanticAnalyzer {
-        <<trait, LIVE hexagonal port>>
-        initialize(graph) Result~()~
-        detect_communities(algorithm) Result~CommunityDetectionResult~
-        compute_shortest_paths(source_node_id) Result~PathfindingResult~
-        compute_sssp_distances(source_node_id) Result~Vec~f32~~
-        compute_landmark_apsp(num_landmarks) Result~Vec~Vec~f32~~~
-        analyze_node_importance(algorithm) Result~OptimizationResult~
-        get_statistics() Result~SemanticStatistics~
-    }
-    note for GpuSemanticAnalyzer "visionclaw-domain/src/ports/gpu_semantic_analyzer.rs:95"
-
-    class GpuSemanticAnalyzerAdapter {
-        gpu_compute: Option~UnifiedGPUCompute~
-        sssp_cache: HashMap~u32,Vec~f32~~
-        apsp_cache: Option~Vec~Vec~f32~~~
-        initialize_gpu(num_nodes, num_edges) Result~()~
-        compute_landmark_apsp_internal(num_landmarks)
-    }
-    note for GpuSemanticAnalyzerAdapter "adapters/gpu_semantic_analyzer.rs:22, real CUDA path via sssp_compact.ptx + gpu_landmark_apsp.ptx"
-
-    class ActixSemanticAdapter {
-        actor_addr: Option~Addr~SemanticProcessorActor~~
-        timeout: Duration
-    }
-    note for ActixSemanticAdapter "adapters/actix_semantic_adapter.rs:26, wraps SemanticProcessorActor over an Addr"
-
-    class GpuSemanticAnalyzerAdapter_NoGpu {
-        <<cfg not feature gpu, CPU stub>>
-        compute_shortest_paths(source_node_id) Result~PathfindingResult~
-    }
-    note for GpuSemanticAnalyzerAdapter_NoGpu "semantic_processor_actor.rs:49, returns an empty result, no-op initialize"
-
-    class MockSemanticAnalyzer {
-        <<test double>>
-    }
-    note for MockSemanticAnalyzer "application/semantic_service.rs:229"
-
-    GpuSemanticAnalyzer <|.. GpuSemanticAnalyzerAdapter
-    GpuSemanticAnalyzer <|.. ActixSemanticAdapter
-    GpuSemanticAnalyzer <|.. GpuSemanticAnalyzerAdapter_NoGpu
-    GpuSemanticAnalyzer <|.. MockSemanticAnalyzer
 ```
 
 ## VC-15.12 Visual analytics GPU types (src/gpu/visual_analytics.rs) with validate() failure modes

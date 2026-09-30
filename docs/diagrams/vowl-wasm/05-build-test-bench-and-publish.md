@@ -13,7 +13,6 @@ sources:
   - ../vowl-wasm/benches/parser_bench.rs
   - ../vowl-wasm/benches/interaction_bench.rs
   - ../vowl-wasm/benches/phase3_benchmarks.rs
-  - ../vowl-wasm/deny.toml
 verified_commit: 65e2d1e78
 ---
 
@@ -60,6 +59,7 @@ flowchart LR
 ```
 - `RUSTFLAGS: -D warnings` is set specifically in this job, separate from the `clippy` job — "an import or item that is unused in one feature configuration is invisible to an --all-features run" (ci.yml features job comment).
 - `Cargo.toml` ties tests to their features with `required-features`: `markdown_parser_test`/`owl2_validation_test` need `markdown-ontology`, `ngg1_explorer_test` needs `ngg1` (Cargo.toml `[[test]]` blocks) — a plain `cargo test` without those flags silently skips them.
+- `[lib] crate-type = ["cdylib", "rlib"]` (Cargo.toml:24) — the crate ships both as a WASM-loadable `cdylib` for `wasm-pack` and as an `rlib` for native Rust consumers (tests, benches, the `docs.rs` build with `all-features`).
 
 ## VW-05.3 Release — tag push to npm, via GitHub OIDC trusted publishing
 ```mermaid
@@ -109,35 +109,3 @@ flowchart LR
 ```
 - `strip = true` already removes the ~190 KB `name` section (Cargo.toml comment above `[package.metadata.wasm-pack.profile.release]`); running binaryen on top of that opt-level-z + LTO build is what produced the gzip/brotli regression above.
 - The decision also notes a portability cost: validating rustc's bulk-memory output needs binaryen's `-all` flag, which "ties the build to a binaryen version" — a second reason to leave it off (Cargo.toml comment).
-
-## VW-05.6 Dependency posture — `cargo-deny` gate
-```mermaid
-classDiagram
-    class RuntimeDeps {
-        wasm-bindgen 0.2
-        serde 1.0 + derive
-        serde-wasm-bindgen 0.6
-        js-sys / web-sys 0.3
-        thiserror 1.0
-        petgraph 0.6
-        nalgebra 0.32
-        regex 1.10 optional dep:regex
-        rayon 1 optional dep:rayon
-    }
-    class DevDeps {
-        wasm-bindgen-test 0.3
-        mockall 0.12
-        pretty_assertions 1.4
-        criterion 0.5
-    }
-    class DenyGate {
-        licenses
-        advisories
-        bans
-        sources
-        deny.toml + ci.yml job deny
-    }
-    RuntimeDeps --> DenyGate
-    DevDeps --> DenyGate
-```
-- `[lib] crate-type = ["cdylib", "rlib"]` (Cargo.toml) — the crate ships both as a WASM-loadable `cdylib` for `wasm-pack` and as an `rlib` for native Rust consumers (tests, benches, the `docs.rs` build with `all-features`).

@@ -36,7 +36,7 @@ sources:
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
-verified_commit: {visionclaw: f223bbd40, agentbox: b7b1ab81a, visionflow: df22182f3, solid-pod-rs: 727549163, nostr-rust-forum: 2f90c1916}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, visionflow: d4e44298646768a4b19af359119e16a6884fa80d, solid-pod-rs: febdc8be24bdc8b148b78b43a35ae85ee863a72a, nostr-rust-forum: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d}
 ---
 ## ES-03.1 Shared wire envelope: AgentActionNotification (agentbox emit -> VisionClaw ingest)
 ```mermaid
@@ -366,7 +366,7 @@ sequenceDiagram
     participant AA as assertPrivacyFilterApplied<br/>privacy-filter.js:595
     participant Ad as Adapter impl call
     rect rgb(240,240,255)
-    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:223.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
+    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:237.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
     Rt->>WD: instrumentedDispatch(...args)
     WD->>WD: executionId = uris.mint kind event,pubkey,payload
     WD->>PF: privacyWrapped(...args)
@@ -444,7 +444,7 @@ flowchart TB
 
     subgraph AB["agentbox — the eight records that implement it, all proposed"]
         A96["ADR-2096 sidechains are the sole value instrument,<br/>clean-room in Rust, rust-bitcoin accepted estate-wide<br/>ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:35,49"]
-        A98["ADR-2098 two new URN kinds chain and asset minted only<br/>through uris.js, plus kind 38110 sidestr-account-binding<br/>ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md:34,42"]
+        A98["ADR-2098 two new URN kinds chain and asset minted only<br/>through uris.js, plus kind 38420 sidestr-account-binding<br/>ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md:36,44"]
         A99["ADR-2099 the chain is the ledger of record, a balance<br/>is a UTXO fold and every existing ledger becomes a view<br/>ADR-2099-the-chain-is-the-ledger-of-record.md:33,37"]
     end
     PRD --> AB
@@ -459,7 +459,7 @@ flowchart TB
     AB --> SPR
     AB --> FRM
 
-    INV["INVARIANT — every record in this pack carries decision_status<br/>proposed and implementation_status none. Nothing drawn here is<br/>live. ADR-2096:5-6, the canon entry at ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-6,<br/>the host at ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:5-6,<br/>solid-pod-rs at ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-6<br/>and the forum at ADR-2012-d1-ledger-becomes-a-chain-view.md:5-6."]
+    INV["INVARIANT — every record in this pack still carries decision_status<br/>proposed. ADR-2096 alone has moved to implementation_status partial<br/>(crates/sidestr shipped and relocated to DreamLab-AI/sidestr-rs,<br/>ADR-2096:5-6). The other five stay at implementation_status none:<br/>the canon entry at ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-6,<br/>the host at ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:5-6,<br/>solid-pod-rs at ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-6<br/>and the forum at ADR-2012-d1-ledger-becomes-a-chain-view.md:5-6."]
     CANON --> INV
 
     RET["RETIRED — Lightning-first is superseded. x402 and l402 stay<br/>payable false permanently and Lightning may return only as a<br/>bridge on-ramp, never as the planned rail.<br/>agentbox/docs/developer/economy-loop.md:143"]

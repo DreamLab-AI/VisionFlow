@@ -37,7 +37,7 @@ sources:
   - docs/adr/ADR-2002-static-copy-only-website.md
   - docs/adr/ADR-2003-pages-artifact-deploy.md
   - docs/architecture/compatibility-matrix.md
-verified_commit: df22182f365f7bc7b4664e4374d150ff893e6b05
+verified_commit: d4e44298646768a4b19af359119e16a6884fa80d
 ---
 
 ## VF-02.1 The copy-only build — every step of website/build.sh
@@ -210,7 +210,7 @@ flowchart TB
     UPR --> UP["upload-pages-artifact@v3, path website/dist<br/>reached only when every blocking gate passed<br/>deploy.yml:180"]:::ok
     UP --> J2["job deploy, needs build<br/>environment github-pages, deploy-pages@v4<br/>deploy.yml:193"]:::ok
 
-    INV["INVARIANT: no gh-pages branch push anywhere;<br/>the CNAME is emitted by build.sh into the artefact<br/>ADR-2003-pages-artifact-deploy.md:29<br/>BASELINE-visionflow.md:252"]
+    INV["INVARIANT: no gh-pages branch push anywhere;<br/>the CNAME is emitted by build.sh into the artefact<br/>ADR-2003-pages-artifact-deploy.md:29<br/>BASELINE-visionflow.md:271"]
     J2 -.-> INV
 ```
 
@@ -307,7 +307,7 @@ sequenceDiagram
     P-->>T: "structure assertions: ten named sections, the mesh canvas,<br/>four particle canvases, zero console errors — site.spec.js:31"
     P-->>T: "@a11y — axe-core analyze, violations must be empty<br/>site.spec.js:85"
     P-->>T: "@perf — total transferSize at most 800 KB<br/>site.spec.js:108"
-    Note over T,CH: "INVARIANT: no local Chromium is installed in CI — both<br/>projects, chromium and mobile-chrome, drive the sidecar<br/>BASELINE-visionflow.md:250"
+    Note over T,CH: "INVARIANT: no local Chromium is installed in CI — both<br/>projects, chromium and mobile-chrome, drive the sidecar<br/>BASELINE-visionflow.md:270"
 ```
 
 ## VF-02.11 The deeper browser receipt — three scenarios over raw CDP

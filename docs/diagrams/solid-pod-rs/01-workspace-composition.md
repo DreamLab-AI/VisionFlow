@@ -25,7 +25,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/examples/webhook_receiver.rs
   - ../solid-pod-rs/crates/solid-pod-rs/examples/wac_admin.rs
   - ../solid-pod-rs/crates/solid-pod-rs/examples/oidc_client.rs
-verified_commit: 1d9da5270
+verified_commit: febdc8be24bdc8b148b78b43a35ae85ee863a72a
 ---
 
 ## SP-01.1 Eight workspace members and the library-first split
@@ -61,36 +61,9 @@ flowchart TD
 
     N1["INVARIANT: dependency direction is one-way — every sibling depends on the core,<br/>the core depends on no sibling. README 'Architecture' asserts the same shape."]
     CORE -.-> N1
-```
 
-## SP-01.2 Workspace-inherited package metadata
-
-```mermaid
-classDiagram
-    class WorkspacePackage {
-        +version = 0.5.0-alpha.9  ../solid-pod-rs/Cargo.toml:15
-        +edition = 2021  ../solid-pod-rs/Cargo.toml:16
-        +license = AGPL-3.0-only  ../solid-pod-rs/Cargo.toml:17
-        +repository  ../solid-pod-rs/Cargo.toml:18
-        +documentation = docs.rs  ../solid-pod-rs/Cargo.toml:20
-        +rust-version = 1.88  ../solid-pod-rs/Cargo.toml:22
-    }
-    class WorkspaceLints {
-        +unsafe_code = deny  ../solid-pod-rs/Cargo.toml:28
-        +rust_2018_idioms = warn  ../solid-pod-rs/Cargo.toml:29
-    }
-    class ReleaseProfile {
-        +lto = thin  ../solid-pod-rs/Cargo.toml:32
-        +codegen-units = 1  ../solid-pod-rs/Cargo.toml:33
-        +strip = symbols  ../solid-pod-rs/Cargo.toml:34
-    }
-    class CoreCrate {
-        +version.workspace = true  crates/solid-pod-rs/Cargo.toml:3
-        +lib name = solid_pod_rs  crates/solid-pod-rs/Cargo.toml:17
-    }
-    WorkspacePackage <|-- CoreCrate
-    WorkspacePackage ..> WorkspaceLints
-    WorkspacePackage ..> ReleaseProfile
+    N2["EXTERNAL: workspace.package.license = AGPL-3.0-only<br/>../solid-pod-rs/Cargo.toml:17 — every crate above inherits it, so a consumer<br/>that statically links CORE or a sibling (e.g. VisionClaw's embedded pod, VC-26)<br/>inherits the same obligation."]
+    CORE -.-> N2
 ```
 
 ## SP-01.3 Core library module surface
@@ -304,12 +277,12 @@ classDiagram
 ```mermaid
 flowchart LR
     ADV["[advisories] yanked = deny<br/>../solid-pod-rs/deny.toml:37"]
-    LIC["[licenses] allow-list<br/>../solid-pod-rs/deny.toml:63"]
-    BANS["[bans] wildcards = deny<br/>../solid-pod-rs/deny.toml:104"]
-    MULTI["multiple-versions = warn<br/>../solid-pod-rs/deny.toml:103"]
-    SRC["[sources] unknown-registry = deny<br/>../solid-pod-rs/deny.toml:128"]
-    GITS["unknown-git = deny, allow-git = []<br/>../solid-pod-rs/deny.toml:129"]
-    REG["allow-registry = crates.io only<br/>../solid-pod-rs/deny.toml:130"]
+    LIC["[licenses] allow-list<br/>../solid-pod-rs/deny.toml:67"]
+    BANS["[bans] wildcards = deny<br/>../solid-pod-rs/deny.toml:108"]
+    MULTI["multiple-versions = warn<br/>../solid-pod-rs/deny.toml:107"]
+    SRC["[sources] unknown-registry = deny<br/>../solid-pod-rs/deny.toml:132"]
+    GITS["unknown-git = deny, allow-git = []<br/>../solid-pod-rs/deny.toml:133"]
+    REG["allow-registry = crates.io only<br/>../solid-pod-rs/deny.toml:134"]
 
     ADV --> OUT["cargo-deny CI job — see SP-09.4"]
     LIC --> OUT

@@ -59,7 +59,7 @@ flowchart TD
     I6 --> SUR
     I7 --> SUR
 
-    N["Invariant 6 is the one currently BROKEN in the shipped direction: the verifier<br/>accepts EdDSA (solid-pod-rs/src/oidc/mod.rs:549) and discovery does not<br/>advertise it. Closing the gap must move both halves together. See SP-05.9."]
+    N["Invariant 6 is the one currently BROKEN in the shipped direction: the verifier<br/>accepts EdDSA (solid-pod-rs/src/oidc/mod.rs:549) and discovery does not<br/>advertise it. Closing the gap must move both halves together. See SP-05.8."]
     I6 -.-> N
     N2["Each invariant names a specific regression, not a general principle — reverting<br/>any one of them re-opens a named, previously-fixed bug."]
     SUR -.-> N2

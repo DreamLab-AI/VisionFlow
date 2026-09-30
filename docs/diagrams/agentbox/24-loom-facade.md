@@ -23,7 +23,16 @@ sources:
   - ../project/agentbox/scripts/opf-router.py
   - ../project/agentbox/mcp/servers/lib/ontology-telemetry.js
   - ../project/agentbox/flake.nix
-verified_commit: {agentbox: 1639f86abded1441ce148d6c47924dfaf34f96af, visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2, loom: 39b5fc02aeca0abd9f12c32437a69b6e385d8375}
+  - ../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md
+  - ../loom/docs/design/ADR-141-loom-consumes-the-vault-build.md
+  - ../loom/crates/loom-mcp/src/lib.rs
+  - ../loom/crates/loom-mcp/src/schema.rs
+  - ../loom/crates/loom-facade/src/mcp_host.rs
+  - ../loom/crates/loom-facade/src/routes/mod.rs
+  - ../loom/crates/loom-facade/src/routes/attest.rs
+  - ../loom/crates/loom-facade/src/routes/health.rs
+  - ../loom/crates/loom-domain/src/model.rs
+verified_commit: {agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, loom: e39bb4d2b583040cd91346c3bbaf75411c3913b4}
 ---
 
 ## AB-24.1 Two deployments of one facade contract — topology
@@ -32,19 +41,19 @@ verified_commit: {agentbox: 1639f86abded1441ce148d6c47924dfaf34f96af, visionclaw
 flowchart TB
     subgraph consumers["Consumers hold a DOOR, never a raw model port (ADR-2023)"]
         RET["ontology-retrieval brain<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:734"]
-        COND["ontology condense<br/>agentbox/agentbox.toml:805"]
-        DREAM["dream-engine loom_url<br/>agentbox/agentbox.toml:2004"]
-        SEED["AoE session seed slug=loom<br/>agentbox/agentbox.toml:1645"]
-        SEEDRAW["AoE session seed slug=loom-raw #40;LEGACY ALIAS#41;<br/>agentbox/agentbox.toml:1652"]
+        COND["ontology condense<br/>agentbox/agentbox.toml:835"]
+        DREAM["dream-engine loom_url<br/>agentbox/agentbox.toml:2069"]
+        SEED["AoE session seed slug=loom<br/>agentbox/agentbox.toml:1710"]
+        SEEDRAW["AoE session seed slug=loom-raw #40;LEGACY ALIAS#41;<br/>agentbox/agentbox.toml:1717"]
         EMAIL["email gateway REASONER_BASE_URL<br/>see AB-27"]
     end
     subgraph depA["Deployment A — LAN facade on machinelearn .132"]
         F84["Loom facade<br/>machinelearn .132, port 8084, path /v1"]
     end
     subgraph depB["Deployment B — sidecar on visionclaw_network (compose profile loom)"]
-        SIDE["loom-facade (Rust)<br/>docker-compose.unified.yml:298"]
-        TMPFS["tmpfs /run/loom mode=0750 uid=65532<br/>docker-compose.unified.yml:343"]
-        DATA["loom-data :ro generation<br/>docker-compose.unified.yml:338"]
+        SIDE["loom-facade (Rust)<br/>docker-compose.unified.yml:315"]
+        TMPFS["tmpfs /run/loom mode=0750 uid=65532<br/>docker-compose.unified.yml:360"]
+        DATA["loom-data :ro generation<br/>docker-compose.unified.yml:355"]
     end
     subgraph model["The model — an operational detail BEHIND the door"]
         M85["loom-model port 8085 qwen3.8-27B<br/>DISTILL_BACKEND_URL"]
@@ -61,7 +70,7 @@ flowchart TB
     SIDE -->|"entrypoint copies .rvdb off :ro — opening redb mutates it"| TMPFS
     subgraph notes["Invariants and drift"]
         direction TB
-        N1["WITHDRAWN in code: the loom-raw SEED no longer holds a raw model door. openCodeConfig<br/>gives loom-lan, loom-agent and loom-raw the SAME LOOM_BASE_URL #40;aoe-seed-sessions.mjs:213,<br/>aoe-seed-sessions.mjs:248, aoe-seed-sessions.mjs:254#41; and declines the scaffold per request<br/>instead #40;aoe-seed-sessions.mjs:227#41;, the ADR-139 answer to what the raw port was for.<br/>LOOM_RAW_BASE_URL survives only as a compose default #40;flake.nix:3173#41; that nothing seeds"]
+        N1["WITHDRAWN in code: the loom-raw SEED no longer holds a raw model door. openCodeConfig<br/>gives loom-lan, loom-agent and loom-raw the SAME LOOM_BASE_URL #40;aoe-seed-sessions.mjs:213,<br/>aoe-seed-sessions.mjs:248, aoe-seed-sessions.mjs:254#41; and declines the scaffold per request<br/>instead #40;aoe-seed-sessions.mjs:227#41;, the ADR-139 answer to what the raw port was for.<br/>LOOM_RAW_BASE_URL survives only as a compose default #40;flake.nix:3243#41; that nothing seeds"]
         N2["RESOLVED ADR-2055: opf-router is the PRIVACY-FILTER redaction sidecar on OPF_PORT<br/>9092 (agentbox.toml [privacy_filter].port, scripts/opf-router.py:41, flake.nix<br/>[program:opf-router]). BASELINE-container previously described it as an<br/>OpenAI-compatible facade on port 8084 — corrected. No agentbox program serves<br/>port 8084 — that is the Loom facade on machinelearn"]
         N3["The loom-facade implementation lives OUTSIDE this repo at /home/devuser/workspace/loom.<br/>This repo holds the deployment contract only (loom/README.md:8-15)"]
         N1 ~~~ N2 ~~~ N3
@@ -135,6 +144,7 @@ sequenceDiagram
         ASK-->>CALL: scoped result with verified cache generation
     end
     Note over ASK,LOOM: Source staged. The old live API and mixed graph/semantic generation are refused.<br/>Default-graph provenance limitation remains separate from identity verification.
+    Note over ASK: BACKEND_CONFIGURED_UNAVAILABLE is deliberately distinct from BACKEND_NOT_CONFIGURED —<br/>collapsing the two hides a dead facade behind a normal fallback (ontology-retrieval.js:102-113).<br/>classifyCause splits availability/timeout from auth_or_validation so a 401 is never reported as<br/>unavailability (ontology-retrieval.js:768-773)
 ```
 
 ## AB-24.4 Cache key completeness and cache-hit constraint revalidation
@@ -166,72 +176,6 @@ sequenceDiagram
     end
 ```
 
-## AB-24.5 Backend, stage and outcome vocabularies
-
-```mermaid
-classDiagram
-    class BACKENDS {
-        <<frozen enum>>
-        +LOOM "loom"
-        +VISIONCLAW "visionclaw"
-        +INJECTED "injected"
-        +NONE "none"
-    }
-    class DEGRADED_STAGES {
-        <<frozen enum>>
-        +SEED "seed"
-        +EXPANSION "expansion"
-        +SPARQL "sparql"
-        +BACKEND_UNAVAILABLE "backend-unavailable"
-    }
-    class DEGRADED_OUTCOMES {
-        <<frozen enum>>
-        +BACKEND_CONFIGURED_UNAVAILABLE "backend_configured_but_unavailable"
-        +BACKEND_NOT_CONFIGURED "backend_not_configured"
-        +SEED_REJECTED "seed_rejected"
-        +EXPANSION_UNAVAILABLE "expansion_unavailable"
-    }
-    class BackendSelection {
-        +String name
-        +String url
-        +Boolean configured
-        +String generation
-        +String reason
-    }
-    class AskResult {
-        +String turtle
-        +String breadcrumb
-        +List~String~ seed_iris
-        +Number tokens_used
-        +Boolean truncated
-        +String provenance
-        +Boolean cache_hit
-        +Boolean degraded
-        +List~String~ degraded_stages
-        +Boolean full_denied
-        +String domain
-        +String backend
-        +Boolean backend_configured
-        +String generation
-        +Number latency_ms
-    }
-    class MATURITY_RANK {
-        <<frozen map>>
-        +draft 0
-        +developing 1
-        +emerging 2
-        +growing 3
-        +established 4
-        +mature 5
-    }
-    BackendSelection --> BACKENDS : name drawn from
-    AskResult --> DEGRADED_STAGES : degraded_stages drawn from
-    AskResult --> BACKENDS : backend drawn from
-    AskResult ..> DEGRADED_OUTCOMES : error drawn from
-    note for DEGRADED_OUTCOMES "BACKEND_CONFIGURED_UNAVAILABLE is deliberately distinct from BACKEND_NOT_CONFIGURED —<br/>collapsing the two hides a dead facade behind a normal fallback<br/>(ontology-retrieval.js:108 DEGRADED_OUTCOMES)"
-    note for MATURITY_RANK "classifyCause splits availability/timeout from auth_or_validation so a 401 is never<br/>reported as unavailability (ontology-retrieval.js:768-702)"
-```
-
 ## AB-24.6 POST /v1/chat/completions — scaffold injection then delegate
 
 ```mermaid
@@ -239,7 +183,7 @@ sequenceDiagram
     autonumber
     participant C as Consumer<br/>holds the door, never the model
     participant FAC as loom-facade<br/>LOOM_FACADE_PORT 8080
-    participant IDX as staged generation :ro<br/>docker-compose.unified.yml:338
+    participant IDX as staged generation :ro<br/>docker-compose.unified.yml:355
     participant XI as Xinference bge-small-en-v1.5 384-dim<br/>XINFERENCE_URL
     participant M as model behind DISTILL_BACKEND_URL
 
@@ -256,7 +200,7 @@ sequenceDiagram
     rect rgb(250,240,235)
         Note over C,M: delegation tier — REQUIRES a model
         C->>FAC: POST /v1/chat/completions
-        alt DISTILL_BACKEND_URL blank (docker-compose.unified.yml:310)
+        alt DISTILL_BACKEND_URL blank (docker-compose.unified.yml:327)
             FAC-->>C: 503 — retrieval-only deployment
         else backend configured
             FAC->>IDX: scaffold-inject the LAST user message
@@ -273,7 +217,7 @@ sequenceDiagram
                 end
             end
             FAC->>M: delegate chat-completions
-            Note over FAC,M: PROTOCOL: reasoning backends truncate to EMPTY below LOOM_MIN_MAX_TOKENS 1536 — the<br/>400-to-empty trap (docker-compose.unified.yml:316-317)
+            Note over FAC,M: PROTOCOL: reasoning backends truncate to EMPTY below LOOM_MIN_MAX_TOKENS 1536 — the<br/>400-to-empty trap (docker-compose.unified.yml:333-334)
             M-->>FAC: completion
             FAC-->>C: completion
         end
@@ -304,9 +248,9 @@ sequenceDiagram
     CONS->>FAC: unchanged calls
     FAC-->>CONS: unchanged contract
     Note over OP,CONS: INVARIANT ADR-2023: swapping the deployed model must NOT touch any consumer — the model<br/>is an operational detail behind port 8084
-    Note over CFG: history — Gemma then Muse then Qwen3.8-27B — agentbox.toml:2007 loom_model =<br/>qwen3.8-27B, agentbox.toml:2011 loom_max_tokens = 32768
-    Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites agentbox.toml by [section].key rather than<br/>raw line (ADR-2052 changelog 0.1.1) and correctly states ".loom_max_tokens = 32768, raised<br/>from 16384" — the manifest has loom_url at agentbox.toml:2004 and loom_max_tokens at<br/>agentbox.toml:2011 — the cap was raised after glm-5.3 burned ~16k reasoning tokens and hit the old 16384<br/>cap with empty content twice (agentbox.toml comment at :2008-2010)
-    Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites session seeds as `slug = "loom"` /<br/>`slug = "loom-raw"` under [[interaction_plane.session_seeds]] (no raw line number) — the<br/>manifest has slug=loom at agentbox.toml:1645 and slug=loom-raw at agentbox.toml:1652
+    Note over CFG: history — Gemma then Muse then Qwen3.8-27B — agentbox.toml:2072 loom_model =<br/>qwen3.8-27B, agentbox.toml:2076 loom_max_tokens = 32768
+    Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites agentbox.toml by [section].key rather than<br/>raw line (ADR-2052 changelog 0.1.1) and correctly states ".loom_max_tokens = 32768, raised<br/>from 16384" — the manifest has loom_url at agentbox.toml:2069 and loom_max_tokens at<br/>agentbox.toml:2076 — the cap was raised after glm-5.3 burned ~16k reasoning tokens and hit the old 16384<br/>cap with empty content twice (agentbox.toml comment at :2073-2075)
+    Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites session seeds as `slug = "loom"` /<br/>`slug = "loom-raw"` under [[interaction_plane.session_seeds]] (no raw line number) — the<br/>manifest has slug=loom at agentbox.toml:1710 and slug=loom-raw at agentbox.toml:1717
     Note over NEW: DIVERGENCE: HP's old 192.168.2.48 is DEAD — a stale model-backend route black-holes<br/>every synthesis while /health still answers
 ```
 
@@ -337,7 +281,7 @@ stateDiagram-v2
         HNSW index is repacked on open, so it cannot be served from the
         read-only mount. tmpfs uid/gid MUST stay 65532 to match the image's
         non-root user or the copy fails EACCES.
-        loom/README.md:78-81, docker-compose.unified.yml:339-343
+        loom/README.md:78-81, docker-compose.unified.yml:356-360
     end note
     RvdbCopied --> Healthy : GET /health returns 200
     RvdbCopied --> EmptyFloor : source empty or mis-pointed
@@ -363,15 +307,15 @@ flowchart LR
     subgraph doors["Doors"]
         D84["LAN facade port 8084/v1"]
         D80["sidecar loom:8080/v1"]
-        D85["raw model port 8085, compose default only<br/>agentbox/flake.nix:3173, seeded by nothing"]
+        D85["raw model port 8085, compose default only<br/>agentbox/flake.nix:3243, seeded by nothing"]
     end
     RET["ontology-retrieval brain<br/>LOOM_FACADE_URL<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:491"] --> D84
-    COND["ontology condense endpoint<br/>agentbox/agentbox.toml:807<br/>model qwen3.8-27B style openai max_concurrency 2 #40;agentbox.toml:810#41;"] --> D84
-    DREAM["dream_machine loom_url<br/>agentbox/agentbox.toml:2004"] --> D84
-    SEEDL["session seed slug=loom<br/>agentbox/agentbox.toml:1645<br/>model loom-lan/qwen3.8-27B agentbox.toml:1647, scaffolded for knowledge work"] --> D84
-    SEEDR["session seed slug=loom-raw<br/>agentbox/agentbox.toml:1652<br/>model loom-agent/current agentbox.toml:1654, model-agnostic passthrough"] --> D84
+    COND["ontology condense endpoint<br/>agentbox/agentbox.toml:837<br/>model qwen3.8-27B style openai max_concurrency 2 #40;agentbox.toml:840#41;"] --> D84
+    DREAM["dream_machine loom_url<br/>agentbox/agentbox.toml:2069"] --> D84
+    SEEDL["session seed slug=loom<br/>agentbox/agentbox.toml:1710<br/>model loom-lan/qwen3.8-27B agentbox.toml:1712, scaffolded for knowledge work"] --> D84
+    SEEDR["session seed slug=loom-raw<br/>agentbox/agentbox.toml:1717<br/>model loom-agent/current agentbox.toml:1719, model-agnostic passthrough"] --> D84
     EMAIL["email gateway<br/>REASONER_BASE_URL http://loom:8080/v1<br/>loom/README.md:19-21"] --> D80
-    CUST["security.deepsec custom ai_base_url<br/>agentbox/agentbox.toml:1963 #40;deepsec#39;s own AI-reviewer<br/>backend, NOT the #91;consultants#93; tier#41;"] --> D80
+    CUST["security.deepsec custom ai_base_url<br/>agentbox/agentbox.toml:2028 #40;deepsec#39;s own AI-reviewer<br/>backend, NOT the #91;consultants#93; tier#41;"] --> D80
     D84 --> M["qwen3.8-27B"]
     D80 --> M
     D85 --> M
@@ -446,6 +390,76 @@ sequenceDiagram
 ```
 
 **Debt:** grounding applied to a subject the ontology does not cover is a WRONG answer, not a weak one: on 2026-09-09 a packet about a test script scored the blockchain class Node at 42 and was served from the corpus in 40 ms with zero completion tokens (`../loom/docs/design/ADR-139-per-request-scaffold-opt-out.md:13-16`), which is why `../project/agentbox/services/explainer-tools/src/draft.rs:4` declines the scaffold on every request.
+
+## AB-24.12 ADR-140 — a third door, same gate: the agentic MCP plane
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant AG as MCP agent client
+    participant MCP as POST /mcp<br/>loom-facade/src/routes/mod.rs:64,94
+    participant DISP as loom_mcp::dispatch<br/>loom-mcp/src/lib.rs:102
+    participant CT as call_tool<br/>loom-mcp/src/lib.rs:146
+    participant TH as ToolHost for AppState<br/>loom-facade/src/mcp_host.rs:93
+    participant CHAT as POST /v1/chat/completions<br/>loom-facade/src/routes/mod.rs:65
+
+    Note over AG,MCP: ADR-140 D1 - two protocol surfaces, ONE binary, ONE AppState, ONE gate<br/>(loom-facade/src/routes/mod.rs:63-64)
+    AG->>MCP: JSON-RPC tools/call (single or batch)
+    MCP->>DISP: dispatch(&state, message)
+    DISP->>CT: name plus arguments
+    alt loom.manifest
+        CT->>TH: manifest(salience)<br/>mcp_host.rs:94
+    else loom.browse
+        CT->>TH: browse(query, kind, n)<br/>mcp_host.rs:118 - addresses only, never content
+    else loom.resolve
+        CT->>TH: resolve(iris)<br/>mcp_host.rs:146 - the ONLY tool returning corpus content
+    else loom.sparql
+        CT->>TH: sparql(query)<br/>mcp_host.rs:191
+    else loom.neighbours / loom.paths
+        CT->>TH: neighbours/paths over the reasoned graph<br/>mcp_host.rs:199,222
+    end
+    TH-->>CT: ToolOutcome{payload, grounding}
+    CT-->>DISP: isError distinguishes no-match from could-not-look<br/>(loom-mcp/src/lib.rs:212-214)
+    DISP-->>MCP: JSON-RPC response
+    MCP-->>AG: structuredContent plus grounding envelope
+    Note over CHAT: the injection plane is UNCHANGED - single-turn and non-agentic<br/>consumers still get one static scaffold merge per request
+    Note over TH: INVARIANT loom-mcp/src/lib.rs:1-9: this crate holds NO retrieval logic -<br/>every call delegates to the SAME ports, fusion pipeline and gate chat_completions uses,<br/>so the agentic door cannot acquire a second retrieval policy
+```
+
+**What it shows:** `/mcp` (ADR-140 D1) puts a JSON-RPC tool surface beside `/v1/chat/completions` in the same `loom-facade` binary, dispatching six tools (`loom.manifest`, `loom.browse`, `loom.resolve`, `loom.sparql`, `loom.neighbours`, `loom.paths`) through the one `ToolHost` implementation the chat plane's scaffold assembly also uses. **Why it is this way:** ADR-139's incident — a static scaffold fragment served the blockchain class `Node` to a consumer discussing a test script — is, per [Evo] (arXiv:2609.15779, cited ADR-140 §1), the generic failure mode of pre-reasoning static injection; per-turn tool-driven retrieval is the ecosystem's answer, and Loom ships it as a second surface rather than replacing the first because non-agentic consumers (the email gateway, single-turn lookups) have nothing to drive a tool loop with.
+
+## AB-24.13 ADR-141 — the served generation becomes `visionGraph@sha`, and a governance ledger route lands
+
+```mermaid
+flowchart TB
+    subgraph build["Corpus origin"]
+        VAULT["vault build over visionGraph<br/>emits C3 marker: id, commit, content_digest,<br/>class_count, page_count, vocabulary_version, stale_after"]
+    end
+    subgraph loom["loom-facade::mirror"]
+        MIR["reads C3 marker as GenerationSource::VaultBuild<br/>loom-domain/src/model.rs:509-513<br/>still reads legacy mirror marker too - ONE /loom/generation shape either way"]
+    end
+    subgraph health["GET /health"]
+        STALE["generation.stale_after echoed, generation.stale judged<br/>against this node's clock via Generation::is_stale<br/>loom-domain/src/model.rs:460-462, model.rs:480-487, routes/health.rs:139-148"]
+    end
+    subgraph ledger["POST /loom/attest - contract C5"]
+        ATT["attest#40;State, Json#60;AttestRequest#62;#41;<br/>loom-facade/src/routes/attest.rs:113<br/>outcome: Promote #124; Demote #124; Reject #124; Expired<br/>attest.rs:44-55"]
+        VER["GET /loom/attest/verify - re-hashes the chain<br/>attest.rs:159"]
+    end
+    VAULT --> MIR
+    MIR --> STALE
+    MIR -->|"chain-hashed, one append per human decision"| ATT
+    ATT --> VER
+    subgraph notes["Invariants and drift"]
+        direction TB
+        N1["INVARIANT ADR-141 D2: a generation past stale_after is STILL SERVED, honestly<br/>labelled - staleness is carried, never enforced (loom-domain/src/model.rs:459-462)"]
+        N2["INVARIANT attest.rs:20-25: passed=true means this decision ADMITTED content -<br/>true only for Promote, false for Demote/Reject/Expired; a demotion is a change,<br/>not an admission"]
+        N3["RESOLVED ADR-141 D5: loom-mcp-stdio deleted - inside the estate agents use the<br/>vault CLI and loom-client; #47;mcp stays HTTP-only, for hosts outside the estate"]
+        N4["Status: Proposed, 2026-09-22. Not yet reflected in this topic's governing doc<br/>(GOVERNANCE-capabilities.md) or in ADR-2084 - see AB-24.10 for the crate this<br/>generation identity change does not yet touch"]
+        N1 ~~~ N2 ~~~ N3 ~~~ N4
+    end
+```
+
+**What it shows:** the corpus stops being GitHub-published; `loom-facade::mirror` now recognises a `vault build` marker (`GenerationSource::VaultBuild`) naming the generation `visionGraph@<sha>`, and `/health` reports a `stale_after` promise plus this node's own staleness judgement without ever refusing to serve. A `POST /loom/attest` route gives the corpus's human promotion/demotion decisions a chain-hashed, restart-surviving ledger. **Why it is this way:** ADR-141 fixes the gap ADR-140 §1.3 measured — a Loom bundle stale by a month against the vault it should mirror — and, per ADR-136 D5, moves `AttestationLedger` from a build/CI-time port to a serving-path writer so `passed` on an entry answers "is this in the corpus because someone said so", the one question the audit trail exists for.
 
 ## Audit qualification - 2026-09-07
 

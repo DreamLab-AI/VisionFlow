@@ -32,20 +32,19 @@ sources:
   - ../project/client/src/services/solidPod/agentMemory.ts
   - ../project/client/src/services/solidPod/wacManager.ts
   - ../project/client/src/services/solidPod/typeIndex.ts
-  - ../project/bin/jss.js
   - ../project/scripts/backup-sqlite.sh
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../project/agentbox/docs/adr/ADR-2099-the-chain-is-the-ledger-of-record.md
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
-verified_commit: {visionclaw: f223bbd40, agentbox: b7b1ab81a, solid-pod-rs: 727549163, nostr-rust-forum: 2f90c1916}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, solid-pod-rs: febdc8be24bdc8b148b78b43a35ae85ee863a72a, nostr-rust-forum: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d}
 ---
 ## ES-08.1 Four coexisting Solid-pod deployments — topology contrast
 
 ```mermaid
 flowchart TB
     subgraph VC["VisionClaw process — single binary"]
-        FLAG{{"cargo feature #quot;solid-pod-embed#quot;<br/>in default at Cargo.toml:250, declared :281 (default ON)"}}
+        FLAG{{"cargo feature #quot;solid-pod-embed#quot;<br/>in default at Cargo.toml:254, declared :285 (default ON)"}}
         EMB["solid_proxy_handler.rs<br/>handle_solid_proxy:307"]
         STUB["no routes registered at all<br/>configure_routes twin, solid_proxy_handler.rs:1800-1802"]
         FLAG -->|"feature ON"| EMB
@@ -53,9 +52,9 @@ flowchart TB
     end
 
     subgraph AB["agentbox container — supervised service"]
-        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2221"]
-        SRV["solid-pod-rs-server  port 8484<br/>agentbox/agentbox.toml:495-496"]
-        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2238"]
+        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2271"]
+        SRV["solid-pod-rs-server  port 8484<br/>agentbox/agentbox.toml:497-499"]
+        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2288"]
         SUP -->|"exec solidPodRsLauncher"| SRV
         HTTPS -->|"TLS terminate to  port 8484"| SRV
     end
@@ -388,7 +387,7 @@ classDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> STOPPED
-    STOPPED --> STARTING : autostart true, flake.nix 2064-2073
+    STOPPED --> STARTING : autostart true, flake.nix 2271-2281
     STARTING --> RUNNING : solidPodRsLauncher exec succeeds
     STARTING --> BACKOFF : exec fails within startsecs
     BACKOFF --> STARTING : autorestart true, retry
@@ -399,8 +398,8 @@ stateDiagram-v2
     STOPPING --> STOPPED
     FATAL --> [*]
 
-    note right of STARTING : priority 30, user devuser<br/>environment SOLID_POD_PUBLIC_URL, SOLID_ADMIN_KEY<br/>AGENTBOX_REQUIRED_FOR_READINESS true, flake.nix 2064-2073
-    note right of RUNNING : https-bridge TLS-terminates to this port when<br/>sovereignCfg.https_bridge true, flake.nix 2081-2090
+    note right of STARTING : priority 30, user devuser<br/>environment SOLID_POD_PUBLIC_URL, SOLID_ADMIN_KEY<br/>AGENTBOX_REQUIRED_FOR_READINESS true, flake.nix 2271-2281
+    note right of RUNNING : https-bridge TLS-terminates to this port when<br/>sovereignCfg.https_bridge true, flake.nix 2288-2298
     note right of FATAL : DIVERGENCE, no point-in-time backup for the pod<br/>store, scripts backup-sqlite.sh covers SQLite only<br/>docs/DATA-authority-erasure.md Known divergences,<br/>no cross-store consistent restore, no declared RPO or RTO
 ```
 
@@ -454,7 +453,7 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as "server boot (solid-pod-embed)"<br/>src/main.rs:875
+    participant M as "server boot (solid-pod-embed)"<br/>src/main.rs:888
     participant SP as spawn_boot_pull<br/>src/services/ontology_pull.rs:387
     participant CFG as OntologyPullConfig::from_env<br/>src/services/ontology_pull.rs:77
     participant P1 as pull_once<br/>src/services/ontology_pull.rs:293
@@ -481,7 +480,7 @@ sequenceDiagram
     P1-->>SP: Updated only after publication returns success
     Note over P1,ST: Pre-activation failures retain the old generation after restart.<br/>Post-rename root-sync failure means durability unknown,<br/>but visible resources still belong to a complete generation.
     Note over M,REL: Pull remains asynchronous and logs failures.<br/>Canonical manifest exposes visionflow:generation, browser pins<br/>JSON-LD/Turtle reads to immutable @generation paths.<br/>Pinned paths reuse canonical ACLs. Unpinned requests may straddle activation.
-    Note over REL: EXTERNAL — the release is produced by the VisionClaw<br/>ontology-publish workflow from the jjohare/visionGraph vault.<br/>Delivery was INVERTED from a CI push to this boot pull because<br/>deploy-jss could never reach an in-process pod from a hosted<br/>runner. see ES-09.13, and VG-04.1 / VG-04.2 for the vault side.
+    Note over REL: EXTERNAL — the release is produced by the VisionClaw<br/>ontology-publish workflow from the jjohare/visionGraph vault.<br/>Delivery was INVERTED from a CI push to this boot pull because<br/>deploy-jss could never reach an in-process pod from a hosted<br/>runner. see ES-09.13, and VG-04.1 / VG-04.3 for the vault side.
 ```
 
 The 2026-09-07 audit distinguishes ES-08.9's missing cross-store erasure dispatch from HNSW index degradation. This source path demonstrates neither bulk vector deletion nor degraded recall. ES-08.11 now documents the implemented generation boundary and pinned browser reads. Old unpinned consumers can still straddle activation; post-rename fsync failure does not imply the old pointer survived. The durable reconciliation journal has no production destructive adapters: subject/authority mappings and live erasure acceptance remain outstanding. See the [federation audit](../../estate-review/2026-09-07-federation-audit.md).

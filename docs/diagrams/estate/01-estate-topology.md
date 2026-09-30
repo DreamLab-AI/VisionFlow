@@ -49,7 +49,7 @@ sources:
   - ../project/agentbox/docs/developer/economy-loop.md
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
   - scripts/estate-health/roster.json
-verified_commit: {visionclaw: f223bbd40, agentbox: b7b1ab81a, visionflow: df22182f3}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, visionflow: d4e44298646768a4b19af359119e16a6884fa80d}
 ---
 ## ES-01.1 Substrate map — the VisionClaw checkout's neighbourhood, not the whole estate
 ```mermaid
@@ -84,7 +84,7 @@ flowchart TB
     VF -.-> AB
 
     NOTE1["SCOPE — this map draws the SIX repositories agentbox's own<br/>ecosystem doc enumerates, of which 5 sign on the did:nostr<br/>identity mesh (VisionFlow is pure canon and signs nothing):<br/>agentbox/docs/developer/ecosystem.md."]
-    NOTE2["DIVERGENCE — six is NOT the estate. The enumeration the tree<br/>treats as canonical is scripts/estate-health/roster.json, which<br/>carries FOURTEEN rows and is the only one walked row by row<br/>(roster.json:3). This map omits knowledgeGraph, visionGraph,<br/>vowl-wasm, loom, WasmVOWL, prose-sanitiser, diagram-ir and<br/>dream-engine. Those edges are drawn in ES-11; the full<br/>enumeration conflict is catalogued in VF-08.3. Kept at six here<br/>because this diagram answers what is ON DISK in the VisionClaw<br/>checkout, which is a different question from what the estate is."]
+    NOTE2["DIVERGENCE — six is NOT the estate. The enumeration the tree<br/>treats as canonical is scripts/estate-health/roster.json, which<br/>carries FOURTEEN rows and is the only one walked row by row<br/>(roster.json:3). This map omits knowledgeGraph, visionGraph,<br/>vowl-wasm, loom, WasmVOWL, prose-sanitiser, diagram-ir and<br/>dream-engine. Those edges are drawn in ES-11; the full<br/>enumeration conflict is catalogued in VF-08. Kept at six here<br/>because this diagram answers what is ON DISK in the VisionClaw<br/>checkout, which is a different question from what the estate is."]
     NOTE1 -.-> VF
     NOTE2 -.-> VF
 ```
@@ -103,7 +103,7 @@ flowchart LR
     MLHOST -->|"point-to-point 25 G rail, hp-peer-node.md:4<br/>the gateway's NAT service DNATs the façade<br/>agentbox/skills/email-search/SKILL.md:99"| HPHOST
     HPHOST --> LOOMFACADE
     LOOMFACADE -->|"port 8085 HTTP delegates to the model<br/>agentbox/skills/email-search/SKILL.md:81"| LOOMMODEL
-    MLHOST -->|"embeddings port 9997 on the gateway host<br/>bge models on xinference<br/>agentbox/skills/email-search/SKILL.md:113"| XINF["xinference port 9997"]
+    MLHOST -->|"embeddings port 9997 on the gateway host<br/>bge models on xinference<br/>agentbox/skills/email-search/SKILL.md:112"| XINF["xinference port 9997"]
 
     DEAD["RETIRED-ADDRESS TRAP — the old model host is dead<br/>agentbox/docs/adr/ADR-2023-loom-facade.md:24<br/>agentbox/skills/email-search/SKILL.md:99,217"]
     DEAD -.->|"never target — black-holes every synthesis<br/>while GET /health still answers"| LOOMFACADE
@@ -143,8 +143,8 @@ flowchart TB
     VCD -->|"port 4000 Rust backend<br/>docker-compose.unified.yml:164"| EXT1
     VCP -->|"port 3001 only<br/>docker-compose.unified.yml:231"| EXT1
     LOOMB -->|"host port 8090 to container port 8080<br/>docker-compose.unified.yml:351"| EXT1
-    ABC -->|"port 9096 LAN — the ONLY 0.0.0.0 publish<br/>agentbox/docker-compose.yml:54"| EXT1
-    ABC -->|"loopback ports 9090 9700 9091 8484 8888 5901 8080<br/>agentbox/docker-compose.yml:55-61"| LOOPBACK["loopback only"]
+    ABC -->|"port 9096 LAN — the ONLY 0.0.0.0 publish<br/>agentbox/docker-compose.yml:47"| EXT1
+    ABC -->|"loopback ports 9090 9700 9091 8484 8888 5901 8080<br/>agentbox/docker-compose.yml:48-54"| LOOPBACK["loopback only"]
     RPG -->|"5432 internal"| ABC
     BC -->|"0.0.0.0 5903 VNC / 8931 MCP SSE<br/>host 9222 to container 9223 CDP"| EXT1
     GT -->|"0.0.0.0 5905 / 9876 / 9877"| EXT1
@@ -175,15 +175,16 @@ flowchart TB
         V3["npm-cache / cargo-cache / cargo-git-cache / cargo-target-cache<br/>docker-compose.unified.yml:387,390,393,396"]
     end
     subgraph abvol["agentbox volumes"]
-        W1["ruvector-pg-data / ruvector-data<br/>agentbox/docker-compose.yml:191,193"]
-        W2["solid-data / sovereign-identities / agentbox-secrets<br/>agentbox/docker-compose.yml:195,197,199"]
-        W3["code-harness-data / agentbox-events / consultations-data<br/>agentbox/docker-compose.yml:201,203,213"]
-        W4["hf-cache / codeserver-config / telemetry-data<br/>agentbox/docker-compose.yml:205,207,215"]
-        W5["nostr-relay-data / tailscale-state, opencode-store, aoe-profiles<br/>agentbox/docker-compose.yml:217,219,209,211"]
+        W1["ruvector-pg-data / ruvector-data<br/>agentbox/docker-compose.yml:173,175"]
+        W2["solid-data / sovereign-identities / agentbox-secrets<br/>agentbox/docker-compose.yml:177,179,181"]
+        W3["code-harness-data / agentbox-events / consultations-data<br/>agentbox/docker-compose.yml:183,185,187"]
+        W4["hf-cache / codeserver-config / telemetry-data<br/>agentbox/docker-compose.yml:193,197,189"]
+        W5["nostr-relay-data / tailscale-state, opencode-store, aoe-profiles<br/>agentbox/docker-compose.yml:199,201,195,191"]
     end
     subgraph shared["Cross-container shared volumes"]
         S1["gui-tools-exchange — declared by the override AND by<br/>browsercontainer and gui-tools overlays. This is how the<br/>browser sidecar reads files this container writes."]
         S2["mad-workspace — EXTERNAL alias to<br/>multi-agent-docker_workspace, from the deprecated MAD stack"]
+        S3["agent-workspace — EXTERNAL alias to the SAME<br/>multi-agent-docker_workspace volume, ADR-2114<br/>docker-compose.unified.yml:389-390. Mounted read-only at<br/>/vault in visionclaw_container, :171, so CorpusSource::<br/>LocalDirectory ingest reads the vault without GitHub creds"]
     end
 
     N1 --- N2
@@ -191,10 +192,11 @@ flowchart TB
     net --> abvol
     net --> shared
 
-    D1["DIVERGENCE — mad-workspace is a legacy external volume created<br/>by the DEPRECATED multi-agent-docker stack and reused so<br/>agentbox sees the full project tree. Migration path is<br/>agentbox.sh migrate-workspace, after which the override should<br/>reference agentbox-workspace instead (Q43)."]
+    D1["DIVERGENCE — mad-workspace and agent-workspace are TWO local<br/>aliases for the SAME external volume, multi-agent-docker_workspace<br/>(deprecated MAD stack). agentbox mounts it read-write for the full<br/>project tree; VisionClaw's own compose now mounts the identical<br/>volume read-only at /vault (ADR-2114). Migration path off the<br/>legacy name is agentbox.sh migrate-workspace, after which the<br/>override should reference agentbox-workspace instead (Q43)."]
     INV["INVARIANT — the cargo-target-cache and cargo-*-cache volumes are<br/>why the DEV container can compile Rust on startup rather than<br/>in the image build. see ES-09"]
 
     S2 --> D1
+    S3 --> D1
     V3 --> INV
 ```
 
@@ -266,42 +268,42 @@ flowchart TB
     ext --> WARN
 ```
 
-## ES-01.7 The MCP hub is a boot-order dependency, and the wait is bounded
+## ES-01.7 The MCP hub is a boot-order dependency, and ADR-2104 closed the false-RUNNING gap
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord program block<br/>agentbox/flake.nix:2532
+    participant SUP as supervisord program block<br/>agentbox/flake.nix:2610
     participant MAIN as Hub subcommand<br/>agentbox/services/agentbox-mcp/src/main.rs:46
     participant WAIT as wait_for_config<br/>agentbox/services/agentbox-mcp/src/hub/mod.rs:252
-    participant SERVE as serve<br/>agentbox/services/agentbox-mcp/src/hub/mod.rs:275
-    participant MAN as agentbox.toml resources.mcp_hub<br/>agentbox/agentbox.toml:1171
+    participant SERVE as serve<br/>agentbox/services/agentbox-mcp/src/hub/mod.rs:292
+    participant MAN as agentbox.toml resources.mcp_hub<br/>agentbox/agentbox.toml:1236
 
-    SUP->>MAIN: agentbox-mcp hub --config /run/agentbox/mcp-hub.json --bind, flake.nix:2533
-    MAIN->>SERVE: hand the wait budget over, main.rs:97-100
-    Note over MAIN: The budget is a CLI argument with a default of<br/>600 seconds, main.rs:55-56. It is a BOUNDED wait,<br/>not an indefinite one.
-    SERVE->>WAIT: poll for the projection, hub/mod.rs:280
+    SUP->>MAIN: agentbox-mcp hub --config /run/agentbox/mcp-hub.json<br/>--bind --wait-config-secs 120, flake.nix:2611
+    MAIN->>SERVE: hand the wait budget over, main.rs:101
+    Note over MAIN: The budget is a CLI argument, default 120 seconds,<br/>main.rs:59-60, and the supervisor block passes 120<br/>explicitly, flake.nix:2611. A BOUNDED wait, not indefinite.
+    SERVE->>WAIT: poll for the projection, hub/mod.rs:297
     loop every 500 ms until the file exists
-        WAIT->>WAIT: log progress every 15 s, hub/mod.rs:266-268
+        WAIT->>WAIT: log progress every 15 s, hub/mod.rs:283-285
     end
     alt the projection never arrives
-        WAIT-->>SERVE: bail naming the path and asking whether the<br/>bootstrap program is projecting it, hub/mod.rs:260-265
+        WAIT-->>SERVE: bail naming the path and asking whether the<br/>bootstrap program is projecting it, hub/mod.rs:275-281
     else the projection is there
         SERVE->>MAN: load the config and read the server list
-        MAN-->>SERVE: nine hub-routed servers, agentbox.toml:1175-1178
-        SERVE->>SERVE: refuse any non-loopback bind, hub/mod.rs:283-284
-        SERVE->>SERVE: bind the listener and register each child,<br/>hub/mod.rs:287,291
+        MAN-->>SERVE: eight hub-routed servers, agentbox.toml:1240-1242
+        SERVE->>SERVE: refuse any non-loopback bind, hub/mod.rs:300-301
+        SERVE->>SERVE: bind the listener and register each child,<br/>hub/mod.rs:308,305
     end
-    Note over SUP,MAN: INVARIANT — the hub is loopback only and refuses to<br/>start on any other bind, hub/mod.rs:284. The manifest<br/>pins 127.0.0.1 and the flake reads that value through,<br/>agentbox.toml:1173 and flake.nix:155.
-    Note over SUP,WAIT: DEBT — at this revision the supervisor pairs<br/>autorestart with startsecs=2, flake.nix:2540, so the<br/>600-second bail is a restart rather than a park. A<br/>missing projection therefore reads RUNNING while no<br/>port is bound. ADR-2104 is the record that closes this.
-    Note over MAN: Nine servers ride the hub, so this one program is the<br/>first check when several MCP servers refuse connections<br/>at once, agentbox.toml:1175-1178. see AB-09
+    Note over SUP,MAN: INVARIANT — the hub is loopback only and refuses to<br/>start on any other bind, hub/mod.rs:300-301 (ADR-2034 §2).
+    Note over SUP,WAIT: RESOLVED ADR-2104 — startsecs=130, flake.nix:2617, is<br/>deliberately LONGER than the 120s wait budget, so a missing<br/>projection is now a FAILED START: autorestart=unexpected and<br/>startretries=2, flake.nix:2616,2618, park the program FATAL<br/>instead of the old autorestart=true + startsecs=2 reading<br/>RUNNING for days over an unbound port, flake.nix:2604-2609.
+    Note over MAN: Eight servers ride the hub (was nine at an earlier<br/>revision), so this one program is the first check when<br/>several MCP servers refuse connections at once,<br/>agentbox.toml:1240-1242. see AB-09
 ```
 
 ## ES-01.8 The four governing documents and the proposed settlement sections they now carry
 ```mermaid
 flowchart TB
     subgraph LIVE["Live compliance surface — unchanged by the settlement pack"]
-        BC["BASELINE-container 0.4.0<br/>agentbox/docs/BASELINE-container.md:4"]
-        IG["INGRESS-identity 0.2.0<br/>agentbox/docs/INGRESS-identity.md:4"]
+        BC["BASELINE-container 0.5.0<br/>agentbox/docs/BASELINE-container.md:4"]
+        IG["INGRESS-identity 0.2.1<br/>agentbox/docs/INGRESS-identity.md:4"]
         GC["GOVERNANCE-capabilities 0.6.0<br/>agentbox/docs/GOVERNANCE-capabilities.md:4"]
         PR["PROTOCOL-registry, proposed governing surface<br/>agentbox/docs/PROTOCOL-registry.md:3"]
     end

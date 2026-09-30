@@ -18,17 +18,7 @@ sources:
   - ../vowl-wasm/src/layout/mod.rs
   - ../vowl-wasm/src/ngg1.rs
   - ../vowl-wasm/src/interaction/mod.rs
-  - ../vowl-wasm/src/graph/builder.rs
-  - ../vowl-wasm/src/graph/pinning.rs
-  - ../vowl-wasm/src/graph/statistics.rs
   - ../vowl-wasm/src/layout/simulation.rs
-  - ../vowl-wasm/src/layout/quadtree.rs
-  - ../vowl-wasm/src/layout/force.rs
-  - ../vowl-wasm/src/layout/csr_sim.rs
-  - ../vowl-wasm/src/ontology/parser.rs
-  - ../vowl-wasm/src/ontology/owl2_validator.rs
-  - ../vowl-wasm/src/ontology/loader.rs
-  - ../vowl-wasm/src/ontology/markdown_parser.rs
   - ../vowl-wasm/README.md
 verified_commit: 65e2d1e78
 ---
@@ -48,36 +38,8 @@ flowchart TB
     LIB --> ERR["error, private<br/>src/error.rs:6"]
 ```
 - `error` is not re-exported as `pub mod`; only `Result`/`VowlError` are re-exported at the crate root (`src/lib.rs:162`).
-- `render::SvgRenderer` (src/render/mod.rs:20) exists but is not wired to any `#[wasm_bindgen]` binding — a native-only diagnostic path.
-
-## VW-01.2 Submodule breakdown — graph and layout
-```mermaid
-flowchart TB
-    GRAPH["graph/"] --> GBUILD["builder<br/>src/graph/builder.rs:7"]
-    GRAPH --> GNODE["node<br/>src/graph/node.rs"]
-    GRAPH --> GEDGE["edge<br/>src/graph/edge.rs"]
-    GRAPH --> GPIN["pinning<br/>src/graph/pinning.rs:16"]
-    GRAPH --> GSTAT["statistics<br/>src/graph/statistics.rs:13"]
-    LAYOUT["layout/"] --> LSIM["simulation::ForceSimulation<br/>src/layout/simulation.rs:20"]
-    LAYOUT --> LQUAD["quadtree::QuadTree<br/>src/layout/quadtree.rs:90"]
-    LAYOUT --> LFORCE["force fns<br/>src/layout/force.rs:13"]
-    LAYOUT --> LSIMD["simd<br/>src/layout/simd.rs"]
-    LAYOUT --> LCSR["csr_sim::CsrSimulation<br/>src/layout/csr_sim.rs:69"]
-```
-- All five `graph::` submodules and all five `layout::` submodules are always compiled — none carry a `#[cfg(feature = ...)]` gate, unlike `ontology::` and `bindings::` below (VW-01.3).
-
-## VW-01.3 Submodule breakdown — ontology and bindings
-```mermaid
-flowchart TB
-    ONT["ontology/"] --> OPARSE["parser::StandardParser<br/>src/ontology/parser.rs:10"]
-    ONT --> OMODEL["model<br/>src/ontology/model.rs"]
-    ONT --> OVAL["owl2_validator::OWL2Validator<br/>src/ontology/owl2_validator.rs:64"]
-    ONT -. "feature: markdown-ontology" .-> OLOAD["loader<br/>src/ontology/loader.rs:132"]
-    ONT -. "feature: markdown-ontology" .-> OMD["markdown_parser<br/>src/ontology/markdown_parser.rs:8"]
-    BIND["bindings/"] --> WV["WebVowl<br/>src/bindings/mod.rs:28"]
-    BIND -. "feature: ngg1" .-> NGGX["NggExplorer<br/>src/bindings/explorer.rs:17"]
-```
-- `ontology::loader`/`markdown_parser` and `bindings::explorer::NggExplorer` are the crate's only feature-gated modules (matching VW-01.4's feature table).
+- `render::SvgRenderer` (src/render/mod.rs:20) exists but is not wired to any `#[wasm_bindgen]` binding — a native-only diagnostic path, not referenced from `bindings/mod.rs`, so unreachable from the published JS API (see vowl-wasm/04-js-api-examples-and-consumers.md).
+- All five `graph::` submodules (`src/graph/mod.rs`) and all five `layout::` submodules (`src/layout/mod.rs`) are always compiled — neither file carries a `#[cfg(feature = ...)]` gate, unlike `ontology::` (`src/ontology/mod.rs:6-14`: `loader`/`markdown_parser` gated on `markdown-ontology`) and `bindings::` (`src/bindings/mod.rs:3`: `explorer` gated on `ngg1`), whose feature mapping is detailed in VW-01.4.
 
 ## VW-01.4 Feature flags and what they gate
 ```mermaid
@@ -92,7 +54,7 @@ flowchart LR
     PARF["parallel<br/>Cargo.toml:89 dep:rayon, native only"] --> PARMOD["ontology loading data-parallelism"]
     SIMDF["simd<br/>Cargo.toml:92, needs simd128 target-feature"] --> SIMDMOD["layout/simd.rs SIMD128 kernels"]
     NGG1F -. "not in bundle alone" .-> BUNDLE
-    INTF --> BUNDLE["published npm bundle<br/>README.md:150 --features ngg1,interaction"]
+    INTF --> BUNDLE["published npm bundle<br/>README.md:189 --features ngg1,interaction"]
 ```
 - INVARIANT: `default = []` (Cargo.toml:63) — nothing optional compiles unless asked for.
 - `markdown-ontology` pulls `regex`, measured as 68% of the 0.1.0 compiled code section (Cargo.toml:44-47); deliberately excluded from the published bundle.
@@ -176,20 +138,5 @@ classDiagram
     ForceSimulation --> DebugFlags
 ```
 - Native builds log via `web_sys::console` only under `#[cfg(target_arch = "wasm32")]` (src/debug.rs:71); non-wasm32 builds compile the same call sites to no-ops (src/debug.rs:171-183).
-
-## VW-01.9 `SvgRenderer` — native-only diagnostic path
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as caller, native, tests/benches
-    participant R as SvgRenderer<br/>src/render/mod.rs:20
-    participant G as VowlGraph
-    C->>R: SvgRenderer::new(width, height)<br/>src/render/mod.rs:28
-    C->>R: with_padding(padding)<br/>src/render/mod.rs:37
-    C->>R: render(&graph), Renderer trait<br/>src/render/mod.rs:116
-    R->>G: normalize_coords(x, y, graph)<br/>src/render/mod.rs:80
-    R-->>C: SVG string
-```
-- `SvgRenderer` has no `#[wasm_bindgen]` surface — it is reachable only from Rust callers (tests, benches, native embedding), not from the published JS API (see VW-04).
 
 Audit qualification — 2026-09-07: this repository contains no local active ADR ledger. Its `Cargo.toml` and code are the implementation evidence; WasmVOWL and embedded explorer copies have separate governance and source identities. `cargo test --locked --offline --lib` passes 136 default-feature tests. That run covers native logic, not optional `ngg1`, `markdown-ontology`, `interaction`, browser loading or a deployed consumer.

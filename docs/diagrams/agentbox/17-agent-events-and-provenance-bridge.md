@@ -14,12 +14,12 @@ sources:
   - ../project/agentbox/schema/federation-kinds.json
   - ../project/agentbox/management-api/lib/kg-proposal-extractor.js
   - ../project/agentbox/management-api/lib/memory-flash-notifier.js
-  - ../project/agentbox/management-api/lib/elevation-publisher.js
   - ../project/agentbox/management-api/lib/failure-taxonomy.js
   - ../project/agentbox/management-api/lib/uris.js
   - ../project/agentbox/management-api/routes/kg-elevation.js
-  - ../project/agentbox/management-api/lib/agent-control-surface.js
-verified_commit: 1639f86ab
+  - ../project/agentbox/management-api/lib/ontology-propose.js
+  - ../project/agentbox/management-api/lib/elevation-stage.js
+verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
 ---
 
 ## AB-17.1 The agent-event wire envelope — single canonical builder
@@ -137,37 +137,8 @@ sequenceDiagram
     PUB->>BUF: eventBuffer.push then shift() past 1000
     PUB->>WS: notify every subscriber via createMcpNotification. see AB-17.1
     RT-->>C: 2xx
-```
-
-## AB-17.3 The rest of the agent-events surface
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as client
-    participant R as agent-events routes<br/>agentbox/management-api/routes/agent-events.js
-    participant PUB as agentEventPublisher singleton
-    participant AEA as agent-event-auth
-
-    C->>R: GET /v1/agent-events/stream (websocket true, agent-events.js:55)
-    R->>PUB: subscribe(cb) then cb -> createMcpNotification(event) (agent-events.js:27)
-    PUB-->>C: JSON-RPC notifications/agent_action frames
-    Note over R,PUB: the WS handler returns the unsubscribe fn — a dropped socket must release its subscriber slot or the Set leaks
-    C->>R: GET /v1/agent-events (agent-events.js:126)
-    alt id not in the buffer
-        R-->>C: 404 (agent-events.js:251)
-        Note over R,C: DIVERGENCE — a lookup can 404 purely because the 1000-entry ring evicted the event.<br/>This surface is a live tail, not a queryable record. The durable record question is AB-14.
-    else present
-        R-->>C: buffered events
-    end
-    C->>R: POST /v1/agent-events/batch (agent-events.js:434)
-    R->>AEA: verifyAgentEventRequest then reconcileSourceUrn PER ITEM (agent-events.js:465-486)
-    Note over R,AEA: the batch path re-runs the SAME two checks per entry, so a mixed batch cannot smuggle one mis-attributed event through a single header check
-    C->>R: GET /v1/agent-events/types (agent-events.js:529)
-    R-->>C: the AgentActionType enumeration
-    C->>R: POST /v1/agent-events/hook (agent-events.js:563)
-    C->>R: GET /v1/agent-events/registry (agent-events.js:613)
-    C->>R: GET /v1/agent-events/status (agent-events.js:636)
+    Note over RT,BUF: ADR-2026 — GET /v1/agent-events?id=<ref> for a BARE NUMERIC id stays process-local (resolved only against the in-memory ring, never the durable archive, because ids restart at 1 per process)<br/>a non-numeric urn reference additionally falls back to the durable agent-event-archive before returning 404 (agent-events.js:216-251). Route table for the whole surface: AB-03.9.
+    Note over RT,AEA: POST /v1/agent-events/batch verifies auth ONCE for the whole batch (agent-events.js:465) but reruns reconcileSourceUrn PER ITEM inside the loop (agent-events.js:477), so a mixed batch cannot smuggle one mis-attributed event past a single header check.
 ```
 
 ## AB-17.4 BC20 kind map — the closed cross-namespace contract
@@ -319,28 +290,29 @@ sequenceDiagram
     Note over ST: last-writer-wins on a VisionClaw id, which for did:nostr correctly collapses name variants of ONE identity — "injective per owner_did"
 ```
 
-## AB-17.7 kg-proposal-extractor — lessons to governed KG proposals
+## AB-17.7 kg-proposal-extractor — lessons to a governed vault-propose command
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant SRC as memory entries / lessons
-    participant EX as extractProposals<br/>agentbox/management-api/lib/kg-proposal-extractor.js:330
-    participant NE as normaliseEntry / normaliseLesson<br/>agentbox/management-api/lib/kg-proposal-extractor.js:111,83
-    participant SC as scoreCandidate<br/>agentbox/management-api/lib/kg-proposal-extractor.js:186
-    participant BD as buildProposalDescriptor<br/>agentbox/management-api/lib/kg-proposal-extractor.js:224
-    participant OWL as _owlClass<br/>agentbox/management-api/lib/kg-proposal-extractor.js:309
+    participant EX as extractProposals<br/>agentbox/management-api/lib/kg-proposal-extractor.js:344
+    participant NE as normaliseEntry / normaliseLesson<br/>agentbox/management-api/lib/kg-proposal-extractor.js:109,81
+    participant SC as scoreCandidate<br/>agentbox/management-api/lib/kg-proposal-extractor.js:195
+    participant BD as buildProposalDescriptor<br/>agentbox/management-api/lib/kg-proposal-extractor.js:233
+    participant OWL as _owlClass<br/>agentbox/management-api/lib/kg-proposal-extractor.js:323
     participant U as uris.mint
     participant BC as bc20.toVisionclaw
+    participant VP as buildVaultProposeCommand<br/>agentbox/management-api/lib/ontology-propose.js:214
 
     SRC->>EX: extractProposals(entries, opts)
     loop each entry
         EX->>NE: normaliseEntry then normaliseLesson
-        NE->>NE: strip STOP words (kg-proposal-extractor.js:66)
+        NE->>NE: strip STOP words (kg-proposal-extractor.js:64)<br/>extract is_subclass_of and relationships from the raw value so they travel with the candidate (kg-proposal-extractor.js:151-159)
         NE-->>EX: normalised candidate
         EX->>SC: scoreCandidate(norm)
         SC-->>EX: score
-        alt score < DEFAULT_MIN_SCORE 0.6 (kg-proposal-extractor.js:62)
+        alt score < DEFAULT_MIN_SCORE 0.6 (kg-proposal-extractor.js:60)
             EX->>EX: reject — below the extraction floor
         else accepted
             EX->>BD: buildProposalDescriptor(norm, score, opts)
@@ -348,11 +320,14 @@ sequenceDiagram
             BD->>U: uris.mint({kind thing, pubkey ownerPubkey, ...})
             Note over BD,U: the thing URN MUST carry the owner pubkey — bc20 drops an unscoped thing. see AB-17.5
             BD->>BC: toVisionclaw -> urn:visionclaw:kg:<pubkey>:<sha256-12>
-            BD-->>EX: proposal descriptor with both identifiers
+            BD->>VP: buildVaultProposeCommand({action create, preferred_term, owl_class,<br/>is_subclass_of, relationships, ...}, env) (kg-proposal-extractor.js:268-277)
+            VP-->>BD: {bin, argv, iri, level, hypothesis, dryRun, proposal, agentContext} (ontology-propose.js:249-257)
+            BD-->>EX: descriptor with propose_command {argv, iri} — never propose_request
         end
     end
     EX-->>SRC: proposals
-    Note over EX,BC: INVARIANT ADR-2022 governed ontology writes — this path produces a PROPOSAL, not a write.<br/>direct_axiom_load = false keeps the remote direct-load descriptor disabled outside bootstrap. see AB-25
+    Note over EX,VP: DOC-DRIFT resolved — ADR-2116 retired the /api/ontology-agent/propose HTTP descriptor.<br/>buildVaultProposeCommand is pure and synchronous: it shells to nothing, only asserts the `vault propose` argv (contract C2), which the route runs. see AB-17.10
+    Note over EX,BC: INVARIANT ADR-2022 governed ontology writes — this path produces a PROPOSAL, not a write.<br/>direct_axiom_load = false keeps the remote direct-load descriptor disabled outside bootstrap.
     Note over EX: DIVERGENCE ADR-2022 — implementation is marked PARTIAL for the broad invariant. Forced-local dispatch can still edit authored Markdown BEFORE this guard,<br/>so local authoring and promotion need separately enforced authority and end-to-end receipts.
 ```
 
@@ -388,38 +363,6 @@ sequenceDiagram
     Note over MF,VC: DIVERGENCE — config is captured at MODULE LOAD, so changing VISIONCLAW_MEMORY_FLASH at runtime does nothing until the process restarts.<br/>Compare the proxy break-glass, captured the same way. see AB-16.9
 ```
 
-## AB-17.9 elevation-publisher — the outbound governance boundary
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant BOOT as management-api boot
-    participant EP as buildElevationPublisher<br/>agentbox/management-api/lib/elevation-publisher.js:79
-    participant NBE as nostrBridgeEnabled<br/>agentbox/management-api/lib/elevation-publisher.js:54
-    participant RR as resolveRelays<br/>agentbox/management-api/lib/elevation-publisher.js:47
-    participant ACS as agent-control-surface<br/>agentbox/management-api/lib/agent-control-surface.js
-    participant KGE as kg-elevation route<br/>agentbox/management-api/routes/kg-elevation.js
-    participant VC as VisionClaw governance consumer
-
-    BOOT->>EP: buildElevationPublisher(manifest, deps)
-    EP->>NBE: nostrBridgeEnabled(manifest)
-    alt bridge disabled in the manifest
-        NBE-->>EP: false
-        EP-->>BOOT: no publisher — elevation is inert, byte-identical-when-off. see AB-15
-    else enabled
-        EP->>RR: resolveRelays(env)
-        RR-->>EP: relay list
-        EP-->>BOOT: publisher wired over the SAME already-connected NostrBridge the rest of the sovereign mesh uses
-        Note over EP,ACS: elevation-publisher and the authority gate share this dependency shape deliberately — producer plus injected consumer, testable without a live relay. see AB-11.10
-    end
-    KGE->>KGE: ownerPubkey = auth.pubkey or AGENTBOX_X_ONLY_PUBKEY_HEX or AGENTBOX_PUBKEY (kg-elevation.js:152)
-    Note over KGE: DIVERGENCE — the owner pubkey falls back to the CONTAINER identity when the request carries no verified pubkey,<br/>so an elevation can be attributed to the operator without an operator signature. Same shape as AB-17.2's env fallback.
-    KGE->>EP: publish elevation
-    EP->>ACS: publishPanelEvent(bridge, signer, unsigned)
-    ACS->>VC: signed event over the relay
-    Note over EP,VC: this is the agentbox side of the estate seam only. The VisionClaw ingest, its fail-open posture and the governance decision loop are ES-02 and ES-03. see ES-05 for the decision wait.
-```
-
 ## AB-17.10 End-to-end — a lesson becoming a VisionClaw KG proposal
 
 ```mermaid
@@ -431,26 +374,37 @@ sequenceDiagram
     participant U as uris.mint
     participant BC as bc20.toVisionclaw
     participant ST as JsonlUrnMappingStore
+    participant GATE as gateElevation<br/>agentbox/management-api/lib/elevation-stage.js:226
     participant EP as elevation-publisher
     participant PUB as agentEventPublisher
     participant VC as VisionClaw
 
     AG->>MEM: write a lesson
     MEM->>EX: extractProposals
-    EX->>EX: normalise, score against the 0.6 floor. see AB-17.7
+    EX->>EX: normalise, score against the 0.6 floor,<br/>build propose_command {argv, iri}. see AB-17.7
     EX->>U: mint urn:agentbox:thing:<ownerPubkey>:proposal-<id>
     U-->>EX: scoped thing URN
     EX->>BC: toVisionclaw(thingUrn)
     BC->>BC: sha12 over the canonical payload
     BC-->>EX: urn:visionclaw:kg:<pubkey>:<sha256-12> plus UrnMapping
     BC->>ST: crossOutbound persists the mapping — the ONLY route back. see AB-17.6
-    EX->>EP: elevate
-    EP->>VC: signed elevation event
-    par observability
-        EX->>PUB: emitAgentAction {action_type CREATE, source_urn thingUrn, target_urn visionclaw kg urn}
-        PUB->>PUB: createMcpNotification — both URNs travel on the wire. see AB-17.1
+    Note over EX: DIVERGENCE — routes/kg-elevation.js resolves ownerPubkey as auth.pubkey or<br/>AGENTBOX_X_ONLY_PUBKEY_HEX or AGENTBOX_PUBKEY (kg-elevation.js:162), so an elevation<br/>can be attributed to the operator identity when the request carries no verified<br/>pubkey — same shape as AB-17.2's env fallback.
+    EX->>GATE: gateElevation(proposal, {env}) — kg-elevation.js:182,<br/>BEFORE anything is emitted or federated
+    GATE->>GATE: stage proposal as a page, validate standalone,<br/>run vault propose --diff --dry-run. see AB-03.18
+    alt blocked — stage failure or vault propose blockers
+        GATE-->>EX: {proposable false, blocked true, blockers, stage_issues}
+        Note over EX,EP: ADR-2116 — a blocked candidate keeps its observability beam<br/>(the scan found it, that is true)<br/>but gets NO signed 31402: elevationPublisher.publish is skipped for this candidate
+    else proposable
+        GATE-->>EX: {proposal PatchProposal, blocked false}
+        EX->>EP: elevate — publish(proposal) carries propose_command.argv/iri<br/>and patch_proposal. see AB-14.13
+        EP->>VC: signed elevation event
+        Note over EP: elevation-publisher and the agent-control-surface authority gate share a<br/>producer-plus-injected-consumer dependency shape deliberately, testable without a<br/>live relay (see AB-11.10)<br/>the full eligibility branches (gate-off / no-relays / no-signing-stack) and the<br/>propose_command/propose_iri/patch_proposal fields are in AB-14.13.
     end
-    VC-->>EP: governance decision (asynchronous). see ES-05 and AB-14
-    Note over AG,VC: INVARIANT ADR-2025 — the crossing is the ONLY sanctioned way an agentbox identifier becomes a VisionClaw one.<br/>bc20-provenance-bridge is the ONLY module importing the urn:visionclaw grammar (B05) — every other aggregate speaks typed urn:agentbox value objects.
-    Note over BC,ST: DIVERGENCE PROTOCOL-registry — all four contract rows are open.<br/>Content address: JS sha12 hashes a UTF-8 string, VisionClaw content_address hashes bytes, byte-parity asserted nowhere.<br/>URN crossing: no versioned supported-kind agreement. Precomputed KG address: the Rust constructor checks only the PREFIX, not the full grammar.<br/>Durable translation: helpers return a mapping, but persistence, replay, round-trip and recovery receipts do not exist.
+    par observability
+        EX->>PUB: emitAgentAction {action_type CREATE, source_urn thingUrn,<br/>target_urn visionclaw kg urn}
+        PUB->>PUB: createMcpNotification — both URNs travel on the wire,<br/>whether or not the candidate was blocked. see AB-17.1
+    end
+    VC-->>EP: governance decision (asynchronous, proposable candidates only).<br/>see ES-05 and AB-14
+    Note over AG,VC: INVARIANT ADR-2025 — the crossing is the ONLY sanctioned way an agentbox<br/>identifier becomes a VisionClaw one.<br/>bc20-provenance-bridge is the ONLY module importing the urn:visionclaw grammar (B05) —<br/>every other aggregate speaks typed urn:agentbox value objects.
+    Note over BC,ST: DIVERGENCE PROTOCOL-registry — all four contract rows are open.<br/>Content address: JS sha12 hashes a UTF-8 string, VisionClaw content_address hashes<br/>bytes, byte-parity asserted nowhere.<br/>URN crossing: no versioned supported-kind agreement. Precomputed KG address: the Rust<br/>constructor checks only the PREFIX, not the full grammar.<br/>Durable translation: helpers return a mapping, but persistence, replay, round-trip<br/>and recovery receipts do not exist.
 ```

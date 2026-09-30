@@ -11,7 +11,6 @@ sources:
   - ../dreamlab-ai-website/docs/security/AUTHENTICATION.md
   - ../dreamlab-ai-website/src/lib/nostr.ts
   - ../dreamlab-ai-website/src/components/AIChatFab.tsx
-  - ../dreamlab-ai-website/index.html
   - ../dreamlab-ai-website/forum-config/deploy/search-worker.wrangler.toml
 verified_commit: 9a3dd8830
 ---
@@ -28,16 +27,7 @@ flowchart TB
 ```
 - INVARIANT (`IDENTITY-zones.md:141-143`): identity in the shipped surface is the raw 64-hex secp256k1 pubkey; any move to emit or require a Multikey/DID document is a code change and a new ADR, not a docs edit.
 - DOC-DRIFT within this repo's OWN docs: `docs/security/AUTHENTICATION.md` (`## NIP-98 HTTP Authentication`, line 200) documents NIP-98 as the upstream kit auth-worker's HTTP-API scheme (passkey/session auth to REST endpoints) — a genuinely different protocol from the NIP-42 relay-challenge flow this repo's own `src/lib/nostr.ts` implements for DM transport. `IDENTITY-zones.md:34-35`'s claim that "the string NIP-98 appears nowhere in nostr.ts" is true and specific to that one file; it does not mean NIP-98 is absent from the deployed system.
-
-## DW-04.2 DID/Multikey convergence — documentation-only
-```mermaid
-flowchart LR
-    LEGACY["legacy ADR-027<br/>did:nostr document form,<br/>Multikey prefix fe70102"] -.->|"two commits, docs + JSON-LD only"| COMMITS["d62ab40, 8d942d7<br/>own messages: 'no identity/key/npub/URN/ACL migration'"]
-    COMMITS -.->|cites a binding spec that| MISSING["ADR-125-did-nostr-multikey-convergence.md<br/>DOES NOT EXIST in this repo — kit-owned"]
-    LIVE["live code: raw-pubkey Schnorr auth, untouched"] -.->|no code path produces| DIDDOC["a fe70102 Multikey DID document"]
-```
-- `fe70102` is not a commit hash — it is the Multikey encoding prefix itself: base16-multibase `f` + secp256k1-pub multicodec varint `e701` + compressed-point `02` (`IDENTITY-zones.md:46-49`).
-- ADR-027 is archived as "Deferred — kit-owned" (`IDENTITY-zones.md:56`); treat any claim that this repo emits `did:nostr` Multikey documents as false until a code path produces one (`IDENTITY-zones.md:128-130`).
+- DIVERGENCE: legacy ADR-027's `did:nostr`/Multikey document form is docs-only — `fe70102` is not a commit hash, it is the Multikey encoding prefix itself (base16-multibase `f` + secp256k1-pub multicodec varint `e701` + compressed-point `02`, `IDENTITY-zones.md:46-49`); the two commits that landed it (`d62ab40`, `8d942d7`) touched only docs and JSON-LD, and the binding spec they cite (`ADR-125-did-nostr-multikey-convergence.md`) does not exist in this repo — it is kit-owned. ADR-027 is archived as "Deferred — kit-owned" (`IDENTITY-zones.md:56`); treat any claim that this repo emits `did:nostr` Multikey documents as false until a code path produces one (`IDENTITY-zones.md:128-130`).
 
 ## DW-04.3 Talk-to-AI — client-side Nostr DM, not an HTTP chat endpoint
 ```mermaid
@@ -103,20 +93,6 @@ flowchart TB
 ```
 - Known gap: the search-worker honours only its own `ADMIN_PUBKEYS` `[vars]` value — D1-promoted admins are not visible to it (`SECURITY_OVERVIEW.md:272`, "see the forum-flow cartography Gap 2"); its own separate copy is `search-worker.wrangler.toml:38` (see DW-03.10).
 - `workers-deploy.yml` blocks the auth-worker deploy if the `ADMIN_PUBKEYS` secret is unset (cross-reference DW-03.7's `validate_required_secrets` gate).
-
-## DW-04.7 Zone visibility and encryption — the security-relevant subset
-```mermaid
-flowchart LR
-    Z1["zone1 welcome<br/>PUBLIC, unencrypted"]
-    Z2["zone2 minimoonoir<br/>LOCKED, unencrypted"]
-    Z3["zone3 family<br/>LOCKED, ENCRYPTED<br/>only zone with encrypted=true"]
-    Z4["zone4 dreamlab<br/>LOCKED, unencrypted"]
-    Z1 -->|no cohort check| ANYONE["any visitor"]
-    Z2 & Z4 -->|required_cohorts dual-accept| MEMBER["cohort-matched member"]
-    Z3 -->|required_cohorts dual-accept + E2E| ENCMEMBER["cohort-matched member,<br/>content unreadable by relay operator"]
-```
-- INVARIANT (`IDENTITY-zones.md:146-147`): only `zone3` (Family) is encrypted; changing `encrypted` on any zone changes the E2E guarantee and must be recorded — see DW-03.1 for the full zone model this diagram's security view is drawn from.
-- The estate closeout note (`IDENTITY-zones.md:169`) flags that zone encryption and cohort configuration "require deployed deny/revoke/recovery evidence before complete-system acceptance" — the config exists and is CI-checked for mirror parity (DW-03.5/03.6), but revocation behaviour has not been separately verified live.
 
 ## DW-04.8 Rate/size limits relevant to the identity surface
 ```mermaid

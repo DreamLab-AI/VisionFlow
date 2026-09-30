@@ -29,7 +29,8 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/username.rs
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
-verified_commit: 2f90c1916
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
+verified_commit: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d
 ---
 
 ## NF-08.1 forum.toml — the single source of access truth and its projection
@@ -42,7 +43,7 @@ flowchart TB
     ZC["ZONE_CONFIG JSON (zones serialised)"]
     RELAYENV["relay-worker env<br/>nostr-bbs-relay-worker/wrangler.toml:18"]
     CLIENTENV["client window.__ENV__.ZONE_CONFIG"]
-    GATE["relay gate - the real access boundary<br/>nostr-bbs-relay-worker/src/zone_config.rs:74"]
+    GATE["relay gate - the real access boundary<br/>nostr-bbs-relay-worker/src/zone_config.rs:84"]
     TILES["client renders tiles from the same JSON"]
 
     TOML --> ZC
@@ -51,8 +52,8 @@ flowchart TB
     ZC --> RELAYENV --> GATE
     ZC --> CLIENTENV --> TILES
 
-    N1["INVARIANT: one JSON, two enforcement points - the tiles a member sees and the gate the relay<br/>enforces cannot describe two different models. Relay side parses at nostr-bbs-relay-worker/src/zone_config.rs:88"]
-    N2["INVARIANT deny-by-default: an absent or malformed ZONE_CONFIG yields an EMPTY config,<br/>so every zone lookup misses and every gate denies nostr-bbs-relay-worker/src/zone_config.rs:88"]
+    N1["INVARIANT: one JSON, two enforcement points - the tiles a member sees and the gate the relay<br/>enforces cannot describe two different models. Relay side parses at nostr-bbs-relay-worker/src/zone_config.rs:108"]
+    N2["INVARIANT deny-by-default: an absent or malformed ZONE_CONFIG yields an EMPTY config,<br/>so every zone lookup misses and every gate denies nostr-bbs-relay-worker/src/zone_config.rs:108"]
     N3["forum.example.toml ships zeroed placeholder pubkeys that FAIL validation by design forum.example.toml:66-72"]
 ```
 
@@ -65,21 +66,29 @@ flowchart LR
         LOCK["Locked (default)<br/>nostr-bbs-relay-worker/src/zone_config.rs:31"]
         HID["Hidden<br/>nostr-bbs-relay-worker/src/zone_config.rs:33"]
     end
-    READ["cohorts_can_read<br/>nostr-bbs-relay-worker/src/zone_config.rs:120"]
-    WRITE["cohorts_can_write<br/>nostr-bbs-relay-worker/src/zone_config.rs:136"]
-    PUBR["is_public_read - Public AND required_cohorts empty<br/>nostr-bbs-relay-worker/src/zone_config.rs:102"]
-    DEFS["defs_visible_to_nonmember - anything not Hidden<br/>nostr-bbs-relay-worker/src/zone_config.rs:111"]
-    EFF["effective_write_cohorts = write_cohorts ?? required_cohorts<br/>nostr-bbs-relay-worker/src/zone_config.rs:56"]
+    READ["cohorts_can_read<br/>nostr-bbs-relay-worker/src/zone_config.rs:155"]
+    WRITE["cohorts_can_write<br/>nostr-bbs-relay-worker/src/zone_config.rs:171"]
+    PUBR["is_public_read - Public AND required_cohorts empty<br/>nostr-bbs-relay-worker/src/zone_config.rs:137"]
+    DEFS["defs_visible_to_nonmember - anything not Hidden<br/>nostr-bbs-relay-worker/src/zone_config.rs:146"]
+    EFF["effective_write_cohorts = write_cohorts ?? required_cohorts<br/>nostr-bbs-relay-worker/src/zone_config.rs:63"]
+    ZENC["Zone.encrypted flag<br/>nostr-bbs-relay-worker/src/zone_config.rs:58"]
+    MGATE["ENCRYPTION_ENABLED master gate<br/>field nostr-bbs-relay-worker/src/zone_config.rs:77 loaded :86"]
+    ISENC["is_encrypted = gate AND zone.encrypted AND NOT is_public_read<br/>nostr-bbs-relay-worker/src/zone_config.rs:127"]
 
     PUB --> PUBR --> READ
     LOCK --> DEFS
     PUB --> DEFS
     HID -->|"omitted entirely"| DEFS
     EFF --> WRITE
+    ZENC --> ISENC
+    MGATE --> ISENC
+    PUBR -->|"public zones never enforced, even if flagged"| ISENC
 
-    N1["INVARIANT: an EMPTY effective write set denies every non-admin - writes are never anonymous<br/>nostr-bbs-relay-worker/src/zone_config.rs:141"]
-    N2["Unknown zone id returns false on BOTH gates - no zone, no access<br/>read nostr-bbs-relay-worker/src/zone_config.rs:122, write nostr-bbs-relay-worker/src/zone_config.rs:138"]
-    N3["A public zone with write_cohorts friends is openly readable and inner-circle writable<br/>asserted at nostr-bbs-relay-worker/src/zone_config.rs:170-173"]
+    N1["INVARIANT: an EMPTY effective write set denies every non-admin - writes are never anonymous<br/>nostr-bbs-relay-worker/src/zone_config.rs:176"]
+    N2["Unknown zone id returns false on BOTH gates - no zone, no access<br/>read nostr-bbs-relay-worker/src/zone_config.rs:157, write nostr-bbs-relay-worker/src/zone_config.rs:173"]
+    N3["A public zone with write_cohorts friends is openly readable and inner-circle writable<br/>asserted at nostr-bbs-relay-worker/src/zone_config.rs:336-339"]
+    N4["DOC-DRIFT: ENCRYPTION_ENABLED is read from env at zone_config.rs:86 but declared in NO<br/>wrangler.toml [vars] block in any worker - unlike DEVICE_KEYS_ENABLED (see NF-08.8) it has no<br/>documented deployment default, so a deploy that forgets it silently leaves encryption OFF"]
+    N5["see NF-08.9 for the shape check that enforces an encrypted zone once is_encrypted is true"]
 ```
 
 ## NF-08.3 Auto-approval of a new joiner — config-driven cohort grant
@@ -158,20 +167,20 @@ flowchart TB
         A2["mod_reports schema.rs:82<br/>wot_entries schema.rs:103<br/>members schema.rs:116<br/>invitations schema.rs:123"]
         A3["invitation_redemptions schema.rs:136<br/>welcome_messages schema.rs:164<br/>instance_settings schema.rs:182<br/>username_reservations schema.rs:208"]
     end
-    subgraph relayd1["nostr-bbs-relay D1 - bootstrapped by nostr-bbs-relay-worker/src/lib.rs:630"]
-        R1["channel_zones lib.rs:681<br/>admin_log lib.rs:686<br/>settings lib.rs:697<br/>reports lib.rs:703<br/>hidden_events lib.rs:718"]
-        R2["profiles lib.rs:740<br/>agent_registry lib.rs:754<br/>broker_cases lib.rs:764<br/>broker_decisions lib.rs:786"]
-        R3["governance_receipts lib.rs:803<br/>broker_roles lib.rs:821<br/>pubkey_aliases lib.rs:834<br/>case_side_receipts lib.rs:847<br/>case_delegations lib.rs:859<br/>device_keys - created by the AUTH worker nostr-bbs-auth-worker/src/devices.rs:123"]
+    subgraph relayd1["nostr-bbs-relay D1 - bootstrapped by nostr-bbs-relay-worker/src/lib.rs:685"]
+        R1["channel_zones lib.rs:740<br/>admin_log lib.rs:745<br/>settings lib.rs:756<br/>reports lib.rs:762<br/>hidden_events lib.rs:777<br/>moderation_actions lib.rs:786"]
+        R2["profiles lib.rs:799<br/>agent_registry lib.rs:813<br/>broker_cases lib.rs:823<br/>broker_decisions lib.rs:845"]
+        R3["governance_receipts lib.rs:862<br/>broker_roles lib.rs:880<br/>pubkey_aliases lib.rs:893<br/>case_side_receipts lib.rs:906<br/>case_delegations lib.rs:918<br/>device_keys - created by the AUTH worker nostr-bbs-auth-worker/src/devices.rs:123"]
     end
 
-    N1["INVARIANT: both bootstraps are idempotent and run on EVERY cold start, so a newly added table exists<br/>before any handler touches it - CREATE TABLE IF NOT EXISTS throughout schema.rs:27 and lib.rs:681"]
+    N1["INVARIANT: both bootstraps are idempotent and run on EVERY cold start, so a newly added table exists<br/>before any handler touches it - CREATE TABLE IF NOT EXISTS throughout schema.rs:27 and lib.rs:740"]
     N2["device_keys is the one cross-worker table: the AUTH worker creates and writes it into the RELAY's D1<br/>so the relay DO can read it at NIP-42 AUTH with no cross-worker call - see NF-02.7"]
     N3["Two tables are missing from BOTH bootstraps - see NF-08.6"]
-    N4["INVARIANT: migration 0006 is MIRRORED into ensure_schema, the live schema path, so the<br/>application-receipt and delegation tables exist on a cold start without the migration runner<br/>lib.rs:847 lib.rs:859"]
+    N4["INVARIANT: migration 0006 is MIRRORED into ensure_schema, the live schema path, so the<br/>application-receipt and delegation tables exist on a cold start without the migration runner<br/>lib.rs:906 lib.rs:918"]
 ```
 
 Both workers bootstrap idempotently on every cold start — the auth worker at
-`nostr-bbs-auth-worker/src/schema.rs:19`, the relay at `nostr-bbs-relay-worker/src/lib.rs:630`.
+`nostr-bbs-auth-worker/src/schema.rs:19`, the relay at `nostr-bbs-relay-worker/src/lib.rs:685`.
 
 ## NF-08.6 The two tables no code in this repo creates
 
@@ -181,7 +190,7 @@ flowchart TB
     EVENTS["events table<br/>SETUP.md:69 - created by wrangler d1 execute"]
     WL["whitelist table<br/>SETUP.md:82 - created by wrangler d1 execute"]
     READERS["Read on the hot path<br/>whitelist SELECT nostr-bbs-relay-worker/src/whitelist.rs:87<br/>whitelist INSERT nostr-bbs-relay-worker/src/whitelist.rs:315<br/>whitelist admin count nostr-bbs-relay-worker/src/whitelist.rs:427"]
-    NOCREATE["No CREATE TABLE for events or whitelist exists in<br/>relay migrations 0001-0005 or in ensure_schema<br/>nostr-bbs-relay-worker/src/lib.rs:630"]
+    NOCREATE["No CREATE TABLE for events or whitelist exists in<br/>relay migrations 0001-0005 or in ensure_schema<br/>nostr-bbs-relay-worker/src/lib.rs:685"]
 
     SETUP --> EVENTS
     SETUP --> WL
@@ -189,7 +198,7 @@ flowchart TB
     NOCREATE -.-> READERS
 
     N1["DIVERGENCE: the relay's two most load-bearing tables (events, whitelist) are deployment-time<br/>artefacts of a SETUP.md copy-paste, not repo migrations. Every other table is idempotently created<br/>in code. A deployment that skips SETUP.md:65-87 boots and then fails every admission query."]
-    N2["Governance tables are created TWICE - by migration 0002_governance.sql:5,17,39,52 and inline by<br/>the relay bootstrap relay lib.rs:754,764,786,821. Both use IF NOT EXISTS, so this is duplication, not drift.<br/>SETUP.md:97 states the same."]
+    N2["Governance tables are created TWICE - by migration 0002_governance.sql:5,17,39,52 and inline by<br/>the relay bootstrap relay lib.rs:813,823,845,880. Both use IF NOT EXISTS, so this is duplication, not drift.<br/>SETUP.md:97 states the same."]
 ```
 
 ## NF-08.7 Admin authority — three sources, one union, and where they disagree
@@ -209,7 +218,7 @@ flowchart TB
 
     N1["INVARIANT: the pubkey is lower-cased before every lookup - a mixed-case NIP-98 pubkey would<br/>otherwise miss every store and be silently denied nostr-bbs-auth-worker/src/admin.rs:62"]
     N2["INVARIANT fail-closed: any D1 error or missing row returns false, never ambient authority<br/>nostr-bbs-auth-worker/src/admin.rs:103"]
-    N3["DIVERGENCE: the relay reads members from its OWN D1 (nostr-bbs-relay) at<br/>nostr-bbs-relay-worker/src/auth.rs:192, but no migration and no bootstrap creates a members table there<br/>(relay lib.rs:630 creates 16 tables, none of them members). That branch is structurally dead;<br/>effective relay authority is ADMIN_PUBKEYS union whitelist.is_admin only."]
+    N3["DIVERGENCE: the relay reads members from its OWN D1 (nostr-bbs-relay) at<br/>nostr-bbs-relay-worker/src/auth.rs:192, but no migration and no bootstrap creates a members table there<br/>(relay lib.rs:685 creates 15 tables, none of them members). That branch is structurally dead;<br/>effective relay authority is ADMIN_PUBKEYS union whitelist.is_admin only."]
     N4["DOC-DRIFT: ADMIN_PUBKEYS is DECLARED in exactly one wrangler template - the search worker,<br/>nostr-bbs-search-worker/wrangler.toml:33 - yet is read by the auth worker (admin.rs:71) and the relay<br/>(auth.rs:183). The relay template asserts the opposite: there is no ADMIN_PUBKEYS reader in src/<br/>nostr-bbs-relay-worker/wrangler.toml:10-13. SETUP.md:119-124 never lists it either."]
     N5["Consequence of N4: a by-the-book deployment has NO static admin bootstrap on relay or auth,<br/>and the search worker ships a REAL non-placeholder pubkey as its default admin<br/>nostr-bbs-search-worker/wrangler.toml:33 - the only non-generic value in any template."]
 ```
@@ -238,4 +247,28 @@ flowchart LR
     N4["ESCALATION_DEFAULT_TIER is a declared SCAFFOLD - the authoritative risk-tier schema is owned by<br/>agentbox, EXTERNAL: see AB-14 and AB-15; an unrecognised tier folds to medium<br/>nostr-bbs-relay-worker/wrangler.toml:41-48"]
     N5["INVARIANT: calibration sampling is HMAC over a key the agent cannot read. The request id is the<br/>31402 d tag, which the agent chooses, so the key secrecy is the only thing stopping it grinding tags<br/>until it finds one sampling never selects nostr-bbs-relay-worker/wrangler.toml:56-61 - see NF-12"]
     N6["Unset, the relay STILL samples and logs a warning on every projection - silently disabling<br/>oversight is treated as the worse failure nostr-bbs-relay-worker/wrangler.toml:63-65"]
+    N7["A second lockstep gate, ENCRYPTION_ENABLED, follows the same own-binding pattern across relay<br/>and clients but is undeclared in every wrangler.toml - see NF-08.2"]
+```
+
+## NF-08.9 Encrypted-zone write enforcement — shape check, not decryption
+
+```mermaid
+flowchart TB
+    WRITE["kind-42 write into a zone<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1123"]
+    LOOKUP["ZoneConfig.load(env).is_encrypted(zone)<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1123"]
+    TAGCHK["is_zone_ciphertext - zk tag: zone id, epoch >= 1, 64-hex zone pubkey<br/>nostr-bbs-relay-worker/src/zone_config.rs:205-211"]
+    SHAPECHK["content shaped as NIP-44 v2 - base64, version 0x02, length 132..87472<br/>nostr-bbs-relay-worker/src/zone_config.rs:212-217"]
+    REJECT["send_ok false - blocked: encrypted zone requires zone-key ciphertext<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1126-1132"]
+    ACCEPT["event stored"]
+
+    WRITE --> LOOKUP
+    LOOKUP -->|"encrypted"| TAGCHK
+    LOOKUP -->|"not encrypted"| ACCEPT
+    TAGCHK -->|"tag ok"| SHAPECHK
+    TAGCHK -->|"no zk tag or malformed"| REJECT
+    SHAPECHK -->|"passes"| ACCEPT
+    SHAPECHK -->|"fails"| REJECT
+
+    N1["INVARIANT: shape only, no decryption - the relay holds no zone key and cannot tell a real<br/>ciphertext from random bytes of the right length; what it guarantees is that no plaintext,<br/>from any client or any author including admins, lands in an encrypted zone zone_config.rs:198-201"]
+    N2["A sealed ADR-2017 envelope into an encrypted zone is exempt from this drift check but still<br/>subject to the admin-only sealed-write gate - nip_handlers.rs:1105-1114"]
 ```

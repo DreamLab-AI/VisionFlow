@@ -16,12 +16,11 @@ sources:
   - website/static/js/main.js
   - website/assets.manifest.json
   - dream.config.json
-  - package.json
   - docs/BASELINE-visionflow.md
   - docs/adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md
   - docs/adr/ADR-2006-canon-owns-crossrepo-view-not-implementation.md
   - docs/architecture/repository-map.md
-verified_commit: df22182f365f7bc7b4664e4374d150ff893e6b05
+verified_commit: d4e44298646768a4b19af359119e16a6884fa80d
 ---
 
 ## VF-03.1 The roster — the only place the estate is enumerated
@@ -83,6 +82,7 @@ sequenceDiagram
         JOB->>DEP: "gh workflow run deploy.yml --ref main — estate-health.yml:158"
         Note over JOB,DEP: "a push made with GITHUB_TOKEN fires no on:push trigger,<br/>so the deploy must be dispatched explicitly — estate-health.yml:30"
         DEP-->>SNAP: "published through the ordinary blocking gates, no privileged path"
+        Note over DEP: "A red snapshot still deploys: no publication gate in deploy.yml<br/>consults estate health, and the workflow deliberately does not<br/>fail on check's non-zero exit<br/>ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:61"
     else unchanged
         JOB-->>JOB: "nothing to commit, deploy not dispatched — estate-health.yml:137"
     end
@@ -198,52 +198,6 @@ stateDiagram-v2
     end note
 ```
 
-## VF-03.7 The snapshot schema — visionflow.estate-health/1
-```mermaid
-erDiagram
-    SNAPSHOT {
-        string schema "visionflow.estate-health/1 — estate-health.mjs:108"
-        string generated_at "ISO timestamp; freshness is part of the payload — estate-health.json:3"
-        object generator "revision, workflow_run url, collector path — estate-health.mjs:713"
-        object summary "repos, green, red, amber, none, unreadable, open_prs, surfaces_ok, surfaces_total — estate-health.mjs:740"
-    }
-    REPO_ROW {
-        string name "from the roster, in roster order"
-        string full_name "owner and repo"
-        string provenance "first-party or imported — roster.json:3"
-        string role "one line from the roster"
-        string visibility "public or private, null when unreadable"
-        bool readable "false means no token could see it"
-        string default_branch "the branch CI is measured on"
-        object head "sha, short, date, message first line, url — estate-health.mjs:489"
-        object ci "state plus one runRecord per workflow — estate-health.mjs:363"
-        int open_prs "null when the call degraded"
-        int open_issues "open_issues_count minus open_prs, clamped"
-        object release "tag, date, url; null when there is none"
-        object pages "url, status, build_type — estate-health.mjs:560"
-        list notes "why any field on this row degraded"
-    }
-    SURFACE_ROW {
-        string name "roster label"
-        string url "probed with HEAD, or GET when the body is parsed"
-        int status "HTTP status, null on a transport failure"
-        bool ok "STATUS ONLY, 2xx — estate-health.mjs:610"
-        string content_type "recorded; a mismatch is a note, not a demotion"
-        int latency_ms "measured per probe"
-        string note "joined notes, or null"
-    }
-    REGISTRY_ROW {
-        string registry "crates.io or npm — estate-health.mjs:639"
-        string name "package or crate name"
-        string version "crates.io max_version, never max_stable_version — estate-health.mjs:675"
-        string published_at "creation time of the version actually reported"
-        string url "human-facing registry page"
-    }
-    SNAPSHOT ||--o{ REPO_ROW : repos
-    SNAPSHOT ||--o{ SURFACE_ROW : surfaces
-    SNAPSHOT ||--o{ REGISTRY_ROW : registries
-```
-
 ## VF-03.8 Surface and registry probes — the judgement calls
 ```mermaid
 flowchart TB
@@ -261,6 +215,9 @@ flowchart TB
     R --> CR["crates.io: max_version is read and never falls back to<br/>max_stable_version, which is null for a crate that has only<br/>shipped pre-releases such as nostr-bbs-core<br/>estate-health.mjs:660"]:::ok
     R --> NP["npm: dist-tags.latest, timestamped from the time map<br/>estate-health.mjs:687"]:::ok
     R --> UA["crates.io REQUIRES a User-Agent, so one identifying this<br/>collector is sent to every host — estate-health.mjs:112"]:::ok
+
+    OKDEF["a surface's ok field is STATUS ONLY: res.status in the 2xx range,<br/>regardless of content-type or body — estate-health.mjs:610"]:::ok
+    S --> OKDEF
 ```
 
 ## VF-03.9 How the site consumes the snapshot — committed file, no live query
@@ -288,43 +245,24 @@ sequenceDiagram
     Note over P,F: "The file is a REQUIRED entry in website/assets.manifest.json,<br/>so a missing snapshot fails the asset gate — assets.manifest.json:12"
 ```
 
-## VF-03.10 What estate health deliberately does not do
-```mermaid
-flowchart LR
-    classDef no fill:#f7dede,stroke:#a33333,color:#111
-    classDef yes fill:#e6f0dc,stroke:#4a7a2a,color:#111
-
-    SNAP["the nightly snapshot"]
-    SNAP --> N1["does NOT gate publication: no step in deploy.yml consults it,<br/>and a red snapshot still deploys<br/>ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:61"]:::no
-    SNAP --> N2["does NOT gate a dream verdict: the evaluator is declared<br/>required false, so a red sibling is evidence for tonight's<br/>hypothesis, not a veto over it — dream.config.json:60"]:::no
-    SNAP --> N3["does NOT judge substrate maturity: it reports observed signals<br/>only — CI conclusion, release tag, HTTP status — which is how<br/>it stays inside the ADR-2006 boundary<br/>ADR-2006-canon-owns-crossrepo-view-not-implementation.md:32"]:::no
-    SNAP --> N4["does NOT prove a CI state is CORRECT: it reports GitHub's<br/>conclusion for the latest run per workflow and nothing more<br/>ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:104"]:::no
-
-    SNAP --> Y1["DOES replace the hand-maintained closeout table as the living<br/>view; dated tables stay evidence of a day's audit<br/>ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:54"]:::yes
-    SNAP --> Y2["DOES make staleness itself a finding: if the workflow stops<br/>running, check goes STALE after 36 hours and the dream night<br/>sees it — the monitor's own reader covers the monitor dying<br/>ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:69"]:::yes
-    SNAP --> Y3["DOES publish as an ordinary bot data commit under the same<br/>gates as a human commit — estate-health.yml:145, see VF-02"]:::yes
-
-    INV["INVARIANT 6 in the governing doc: collected by CI, read by the<br/>dream cycle; a dream night never collects one, acquires a token,<br/>or edits the snapshot by hand — BASELINE-visionflow.md:234"]
-    SNAP -.-> INV
-```
-
-## VF-03.11 The snapshot as it stands — 7 of 14 green, and which checks turned
+## VF-03.11 The snapshot as it stands — 8 of 14 green, and which checks turned
 ```mermaid
 flowchart TB
     classDef red fill:#f7dede,stroke:#a33333,color:#111
     classDef green fill:#e6f0dc,stroke:#4a7a2a,color:#111
     classDef amb fill:#f9f0d5,stroke:#8a7020,color:#111
 
-    HEAD["schema visionflow.estate-health/1, generated 2026-09-21T08:04Z<br/>collected by the nightly run at revision 1357a56<br/>estate-health.json:2 and estate-health.json:3"]
+    HEAD["schema visionflow.estate-health/1, generated 2026-09-23T07:51Z<br/>collected by the nightly run at revision c8e6b82<br/>estate-health.json:2 and estate-health.json:3"]
 
-    HEAD --> SUM["summary — 14 repos: 7 green, 5 red, 0 amber,<br/>1 none, 1 unreadable, 5 open PRs,<br/>6 of 6 surfaces reachable<br/>estate-health.json:10 through estate-health.json:18"]
+    HEAD --> SUM["summary — 14 repos: 8 green, 4 red, 0 amber,<br/>1 none, 1 unreadable, 8 open PRs,<br/>6 of 6 surfaces reachable<br/>estate-health.json:10 through estate-health.json:18"]
 
-    SUM --> R1["RED — VisionFlow itself. The Diagrams-as-code index gate<br/>concluded failure on run 35030434546<br/>estate-health.json:56 and estate-health.json:57"]:::red
-    SUM --> R2["RED — VisionClaw, agentbox, nostr-rust-forum:<br/>carried red through the whole window<br/>estate-health.json:98 and estate-health.json:158"]:::red
-    SUM --> R3["RED — loom. Its single workflow, Rust contracts, concluded<br/>failure and the row turned from none to red when the repo<br/>first grew a workflow<br/>estate-health.json:428 and estate-health.json:432"]:::red
-    SUM --> N1["NONE — WasmVOWL has no qualifying runs at all;<br/>none is not green — estate-health.json:485"]:::amb
-    SUM --> U1["UNREADABLE — jjohare/visionGraph, the one known hole<br/>see VF-03.5 — estate-health.json:512"]:::amb
-    SUM --> G1["GREEN — solid-pod-rs, dreamlab-ai-website, knowledgeGraph,<br/>vowl-wasm, prose-sanitiser, diagram-ir, dream-engine"]:::green
+    SUM --> R1["RED — VisionClaw. Ontology Federation CI/CD concluded<br/>failure while CI and Documentation Quality CI stayed green<br/>estate-health.json:98 and estate-health.json:132"]:::red
+    SUM --> R2["RED — nostr-rust-forum. Its CI workflow concluded failure;<br/>Security Audit stayed green<br/>estate-health.json:291 and estate-health.json:312"]:::red
+    SUM --> R3["RED — dreamlab-ai-website. Set CF Worker secrets (native pod<br/>mesh) concluded failure on a 2026-07-08 run, the only recorded<br/>run for that workflow — estate-health.json:337 and :386"]:::red
+    SUM --> R4["RED — knowledgeGraph. Its sole workflow, Build and verify,<br/>concluded failure — estate-health.json:446 and estate-health.json:467"]:::red
+    SUM --> N1["NONE — WasmVOWL has no qualifying runs at all;<br/>none is not green — estate-health.json:502"]:::amb
+    SUM --> U1["UNREADABLE — jjohare/visionGraph, the one known hole<br/>see VF-03.5 — estate-health.json:523"]:::amb
+    SUM --> G1["GREEN — VisionFlow itself, agentbox, solid-pod-rs, loom,<br/>vowl-wasm, prose-sanitiser, diagram-ir, dream-engine"]:::green
 
     VERD["The offline check therefore returns ESTATE-HEALTH-RED:<br/>any red repo is enough, and the verdict beats staleness<br/>estate-health.mjs:858 — see VF-03.6"]:::red
     SUM --> VERD
@@ -333,6 +271,4 @@ flowchart TB
     VERD -.-> INV
 ```
 
-**Drift (canon's own gate):** the canon repository is red in its own snapshot because the Diagrams-as-code index gate failed from 2026-09-15 and was still failing at collection time (`website/static/data/estate-health.json:56`, `website/static/data/estate-health.json:60`); the failing gate is the one that polices this diagram tree, drawn at VF-06.12.
-
-**Debt:** the green count fell from ten to seven over the fortnight and no mechanism records why; the snapshot carries only the current state, so the decline is only visible by reading fourteen committed snapshots in sequence (`website/static/data/estate-health.json:11`).
+**Debt:** VisionFlow, agentbox and loom turned green and dreamlab-ai-website and knowledgeGraph turned red since the 2026-09-21 snapshot, and no mechanism records why a row flips; the snapshot carries only the current state, so any trend is only visible by reading committed snapshots in sequence (`website/static/data/estate-health.json:11`).

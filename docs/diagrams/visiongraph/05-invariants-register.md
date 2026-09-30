@@ -11,7 +11,7 @@ sources:
   - ../visionGraph/docs/adr/ADR-VG-002-generation-and-consumer-identity.md
   - ../visionGraph/CLAUDE.md
   - ../visionGraph/README.md
-verified_commit: 149d8eba638886f17dc5f8919be8c26502517ed0
+verified_commit: ac6274f9f5e12375f92086ccb9adba50c965ecf9
 ---
 
 ## VG-05.1 Live invariants — what actually holds today
@@ -24,7 +24,7 @@ flowchart TB
     I4["4 · Journals #40;YYYY-MM-DD.md#41; are excluded<br/>from graph ingest"]
     I5["5 · knowledge/assets is a SYMLINK to<br/>../working/assets — never replace it<br/>#40;961 MB stored once, shared#41;"]
     I6["6 · VAULT_ROOT is the single path authority —<br/>no consumer hard-codes a corpus path"]
-    I7["7 · agents NEVER push this repo — a push<br/>deploys to narrativegoldmine.com #40;CLAUDE.md:22-25#41;"]
+    I7["7 · agents NEVER push this repo — a push<br/>deploys to narrativegoldmine.com #40;CLAUDE.md:23-26#41;"]
     note1["Sources: README.md 'vault contract' + 'How consumers bind to it';<br/>CLAUDE.md 'Vault contract' + 'Agents never push this repo'"]
 ```
 

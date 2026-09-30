@@ -11,10 +11,6 @@ sources:
   - ../project/crates/visionclaw-xr-presence/src/wire.rs
   - ../project/crates/visionclaw-xr-presence/src/agent_presence.rs
   - ../project/crates/visionclaw-xr-presence/src/validate.rs
-  - ../project/crates/visionclaw-xr-presence/src/room.rs
-  - ../project/crates/visionclaw-xr-presence/src/types.rs
-  - ../project/crates/visionclaw-xr-presence/src/delta.rs
-  - ../project/crates/visionclaw-xr-presence/src/error.rs
   - ../project/src/handlers/presence_handler.rs
   - ../project/src/actors/presence_actor.rs
 verified_commit: 36bb64e1e
@@ -55,6 +51,8 @@ sequenceDiagram
         PS->>C: heartbeat :403
     end
     Note over PS: INVARIANT authentication is DID-signature over a server-issued nonce - the challenge is per session, never reused
+    Note over PS: StreamHandler dispatch presence_handler.rs:461-462 routes Text to handle_auth, Binary to handle_pose_frame<br/>handle_pose_frame rejects any binary frame received before phase is Joined with CLOSE_CODE_VALIDATION "binary before auth" :361-364
+    Note over PS,PA: On stopping() the session sends LeaveRoom to the room actor only if phase was Joined :444-453
 ```
 
 ## VC-17.2 Headset pose to peers — 0x43 path
@@ -129,115 +127,6 @@ sequenceDiagram
     Note over PA,PEERS: Queries GetAgentPresence :831 and GetAttentionNode :839 read this state without broadcasting
 ```
 
-## VC-17.4 Session phase lifecycle
-
-```mermaid
-stateDiagram-v2
-    [*] --> Challenged
-    Challenged: Challenged - nonce and ts_us issued, set at presence_handler.rs line 156
-    Joined: Joined - room membership established, set at line 335
-    Closed: Closed - CloseReason sent
-
-    Challenged --> Joined: handle_auth verifies the DID signature over the nonce line 191
-    Challenged --> Closed: auth in wrong phase - code 4400 line 192
-    Challenged --> Closed: malformed json - CloseCode Unsupported line 204
-    Challenged --> Closed: signature invalid - code 4401 CLOSE_CODE_AUTH_FAIL line 37
-    Challenged --> Closed: HANDSHAKE_TIMEOUT 10s elapsed - enforce_handshake_deadline line 395
-    Joined --> Closed: rate limit exceeded - code 4429 CLOSE_CODE_RATE_LIMIT line 38
-    Joined --> Closed: client disconnect - LeaveRoom line 733
-    Closed --> [*]
-
-    note right of Challenged
-        Binary frames are only accepted in Joined
-        Text frames carry the handshake JSON
-        StreamHandler dispatch at lines 458 to 463
-        Text to handle_auth, Binary to handle_pose_frame
-    end note
-    note right of Joined
-        HEARTBEAT_INTERVAL 15s line 35
-        RATE_LIMIT_FRAMES_PER_SEC 120 line 32
-        RATE_LIMIT_WINDOW 1s line 33
-    end note
-```
-
-## VC-17.5 Crate structure and transport-agnostic ports
-
-```mermaid
-classDiagram
-    class lib_rs {
-        +single_source_of_truth_for_0x43()
-        +consumed_by_server_and_godot_client()
-        +no_transport_assumed()
-    }
-    class wire {
-        +OPCODE_AVATAR_POSE_0x43 L9
-        +encode()
-        +decode()
-    }
-    class agent_presence {
-        +OPCODE_AGENT_PRESENCE_0x44 L40
-        +encode_agent_presence()
-        +decode_agent_presence()
-        +quantise_dir()
-        +dequantise_dir()
-        +AgentActivity()
-        +AttentionTarget()
-        +PresenceChannel()
-        +AgentPresenceBatch()
-        +AgentPresenceDelta()
-    }
-    class validate {
-        +velocity_gate() L10
-        +world_bounds() L77
-        +monotonic_timestamp() L96
-        +joint_anatomy() L118
-        +hand_reach() L147
-        +DEFAULT_HAND_REACH_M()
-    }
-    class room {
-        +PresenceRoom()
-        +AvatarState()
-    }
-    class types {
-        +Aabb()
-        +AvatarId()
-        +AvatarMetadata()
-        +Did()
-        +HandPose()
-        +PoseFrame()
-        +RoomId()
-        +Transform()
-    }
-    class delta {
-        +PoseDelta()
-        +TransformMask()
-    }
-    class error {
-        +RoomError()
-        +ValidationError()
-        +WireError()
-    }
-    class ports {
-        +Broadcaster()
-        +IdentityVerifier()
-        +SignedChallenge()
-    }
-    lib_rs --> wire
-    lib_rs --> agent_presence
-    lib_rs --> validate
-    lib_rs --> room
-    lib_rs --> types
-    lib_rs --> delta
-    lib_rs --> error
-    lib_rs --> ports
-    room --> validate : invariants enforced by
-    ports --> lib_rs : injected by each consumer
-
-    note for ports "No transport assumed - Actix, tokio-tungstenite and godot signal all inject these traits"
-    note for lib_rs "Consumed by src/handlers/presence_handler.rs, src/actors/presence_actor.rs and xr-client/rust"
-    note for wire "ADR-2019 0x43 and 0x44 are allocated on the /ws/presence socket - see VC-14.9"
-```
-
 ## VC-17.6 PresenceActor message surface
 
 ```mermaid
@@ -282,4 +171,6 @@ classDiagram
     note for PresenceSession "Actix ws actor at presence_handler.rs:433, StreamHandler at :458"
     note for PresenceRoomState "configured_hand_reach_m() L45 reads the deployment hand-reach limit"
     note for PresenceActor "Test-only CollectActor handles BroadcastFrame L882 and RoomEventEnvelope L889"
+    note for PresenceSession "Crate is transport-agnostic (visionclaw-xr-presence/src/lib.rs:9-10): no transport assumed, Actix/tokio-tungstenite/godot signal each inject the ports::Broadcaster and ports::IdentityVerifier traits"
+    note for PresenceActor "Same crate is the single source of truth for the 0x43 wire format and is consumed by both this server (lib.rs:5-6) and the Godot client at xr-client/rust/ (lib.rs:6-7)"
 ```

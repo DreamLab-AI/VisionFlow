@@ -34,7 +34,7 @@ sources:
   - ../project/agentbox/mcp/servers/nostr-bridge.js
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/lib/bc20-provenance-bridge.js
-verified_commit: 1639f86ab
+verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
 ---
 
 ## AB-11.1 Identity, URN and mandate type model
@@ -414,7 +414,7 @@ sequenceDiagram
     participant Gate as authority.js:226 buildAuthorityGate
     participant Forum as Verified allowlisted consumer
     participant Owner as broker-bridge.js mutation owner
-    participant Journal as governance-application-receipts.js:11 ApplicationReceiptStore
+    participant Journal as governance-application-receipts.js:26 ApplicationReceiptStore
     Caller->>Gate: action class and concrete operation
     alt recoverable action
         Gate-->>Caller: allow under existing recoverable policy

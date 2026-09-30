@@ -5,7 +5,7 @@ area: agentbox
 governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
   - ../project/agentbox/docs/SECURITY-profiles.md
-adrs: [ADR-2022, ADR-2027, ADR-2041, ADR-2085, ADR-2087]
+adrs: [ADR-2022, ADR-2027, ADR-2041, ADR-2085, ADR-2087, ADR-2108]
 sources:
   - ../project/agentbox/management-api/lib/action-plane.js
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
@@ -20,7 +20,6 @@ sources:
   - ../project/agentbox/management-api/lib/governance-decision-waiter.js
   - ../project/agentbox/management-api/lib/receipt-minter.js
   - ../project/agentbox/management-api/lib/audit-chain.js
-  - ../project/agentbox/management-api/lib/failure-taxonomy.js
   - ../project/agentbox/management-api/lib/elevation-publisher.js
   - ../project/agentbox/management-api/lib/project-tracker.js
   - ../project/agentbox/management-api/lib/project-primer.js
@@ -47,7 +46,8 @@ sources:
   - ../project/agentbox/management-api/lib/governance-manual-continue.js
   - ../project/agentbox/mcp/servers/governance-bridge.js
   - ../project/agentbox/docs/adr/ADR-2087-task-properties-receipts-and-manual-continuation.md
-verified_commit: 1639f86ab
+  - ../project/agentbox/docs/adr/ADR-2108-ontology-bridge-retired-vault-baked-by-nix.md
+verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
 ---
 
 ## AB-14.1 Governance plane — surfaces that reach the decision point vs surfaces that miss it
@@ -56,9 +56,9 @@ verified_commit: 1639f86ab
 flowchart TB
     subgraph SURF["Agent-initiated side-effect surfaces GOVERNANCE-capabilities.md:47-70"]
         DTC["Direct tool call<br/>MCP fleet mcp/mcp.json"]
-        CMS["Code-mode sub-call<br/>codeact / code-interpreter agentbox.toml:589,605"]
-        ACISHELL["ACI shell<br/>test allowlist agentbox.toml:735<br/>raw Bash still reachable outside it"]
-        CONSULT["Consultant / subagent action<br/>tree-search-coder agentbox.toml:771"]
+        CMS["Code-mode sub-call<br/>codeact / code-interpreter agentbox.toml:591,607"]
+        ACISHELL["ACI shell<br/>test allowlist agentbox.toml:764<br/>raw Bash still reachable outside it"]
+        CONSULT["Consultant / subagent action<br/>tree-search-coder agentbox.toml:800"]
         DREAM["Background job dream-engine<br/>01:00-05:00 UTC unattended"]
         BEADS["Background job beads work-DAG<br/>spawn_child mcp/mcp.json:197"]
         ALTHARNESS["Alternate harness path<br/>non-Claude harness"]
@@ -70,7 +70,7 @@ flowchart TB
     ACTPLANE(["action-plane.js getActionPlane<br/>lazy singleton, ADR-2041, see AB-14.14"])
     COSTGATE["costGate middleware<br/>middleware/cost-gate.js, see AB-15.x"]
     ACSPGATE["ACSP authority gate<br/>authority.js:226 buildAuthorityGate.guard, see AB-11.10"]
-    AXIOMGUARD["direct_axiom_load=false guard<br/>ADR-2022, see AB-25"]
+    AXIOMGUARD["direct_axiom_load=false guard agentbox.toml:817<br/>ADR-2108 supersedes ADR-2022, see AB-25"]
     EXEC(["side effect executes"])
 
     DTC -.->|"designed target, never instantiated for this surface"| PIPE
@@ -90,7 +90,7 @@ flowchart TB
 
     DRIFT["DOC-DRIFT GOVERNANCE-capabilities.md:81 claims a repo-wide search of src/, services/, mcp/ for SessionEvent / execution-journal code returns nothing<br/>execution-journal.js:85 class ExecutionJournal and agent-action-pipeline.js:58 class AgentActionPipeline fully implement legacy-ADR-057/059 D1-D5<br/>under management-api/lib/, a path outside the doc's stated search scope"]
     DIVERGE1["DIVERGENCE (NARROWED by ADR-2041) TOP OPEN RISK GOVERNANCE-capabilities.md:261-266 named 'no single policy decision point' with zero production instantiations<br/>action-plane.js now builds a real ExecutionJournal + AgentActionPipeline singleton and POST /v1/tasks calls dispatchTaskSpawn — one surface is now wired, journalled and capability-tokened<br/>every OTHER surface above (direct tool call, code-mode, ACI shell, consultant, dream, beads, alt harness) still reaches EXEC with no interceptor — the gap is narrower, not closed, see AB-14.14"]
-    DRIFT2["DOC-DRIFT the capability-surface list cites agentbox.toml line numbers that have moved —<br/>GOVERNANCE-capabilities.md:52 says aci_shell is at agentbox.toml:582 (it is agentbox.toml:729),<br/>:55-56 says code_interpreter :539 and codeact :554 (they are agentbox.toml:589 and :605),<br/>:59 says the test allowlist is :585 (it is agentbox.toml:735), :63 says tree_search_coder :624 (it is agentbox.toml:771)"]
+    DRIFT2["DOC-DRIFT the capability-surface list cites agentbox.toml line numbers that have moved and keep moving —<br/>GOVERNANCE-capabilities.md:52 says aci_shell is at agentbox.toml line 582 (it is agentbox.toml:758),<br/>:55-56 says code_interpreter line 539 and codeact line 554 (they are agentbox.toml:591 and :607),<br/>:59 says the test allowlist is line 585 (it is agentbox.toml:764), :63 says tree_search_coder line 624 (it is agentbox.toml:800)"]
     DIVERGE7["DIVERGENCE GOVERNANCE-capabilities.md:292-293 skill lint is advisory, not a runtime capability gate<br/>lint-skills.sh gates estate hygiene only; an enabled skill with clean frontmatter is trusted at runtime with no further check"]
 ```
 
@@ -404,47 +404,6 @@ sequenceDiagram
 
 
 
-## AB-14.10 failure-taxonomy — the 14 MAST failure modes
-
-```mermaid
-classDiagram
-    class FailureTaxonomy {
-        <<module lib/failure-taxonomy.js>>
-        +UNMAPPED : string = "unmapped"
-        +classify(context) string
-        +tagFailure(context) List~string~
-        +isMode(id) bool
-        +isTag(tag) bool
-    }
-    class SpecCategory {
-        <<category 1, code 1>>
-        FM-1.1 Disobey Task Specification
-        FM-1.2 Disobey Role Specification
-        FM-1.3 Step Repetition
-        FM-1.4 Loss of Conversation History
-        FM-1.5 Unaware of Termination Conditions
-    }
-    class InterAgentCategory {
-        <<category 2, code 2>>
-        FM-2.1 Conversation Reset
-        FM-2.2 Fail to Ask for Clarification
-        FM-2.3 Task Derailment
-        FM-2.4 Information Withholding
-        FM-2.5 Ignored Other Agent's Input
-        FM-2.6 Reasoning-Action Mismatch
-    }
-    class VerificationCategory {
-        <<category 3, code 3>>
-        FM-3.1 Premature Termination
-        FM-3.2 No or Incomplete Verification
-        FM-3.3 Incorrect Verification
-    }
-    FailureTaxonomy --> SpecCategory : MODES lines 41-45
-    FailureTaxonomy --> InterAgentCategory : MODES lines 47-52
-    FailureTaxonomy --> VerificationCategory : MODES lines 54-56
-    note for FailureTaxonomy "classify() priority failure-taxonomy.js:126-159 — context.mode passthrough failure-taxonomy.js:146 then REASON_TO_MODE symbolic reason failure-taxonomy.js:148-150 then two high-precision STDERR_HEURISTICS regexes failure-taxonomy.js:119-124 then UNMAPPED failure-taxonomy.js:159. Attribution — Cemri et al. Why Do Multi-Agent LLM Systems Fail arXiv identifier 2503.13657 2025, PRD-019/ADR-037 D1"
-```
-
 ## AB-14.11 ADR-2087 — the task-property triple, the deny journal, the receipt ladder and manual continuation
 
 ```mermaid
@@ -532,6 +491,10 @@ sequenceDiagram
 
 ## AB-14.13 elevation-publisher.js — outbound elevation boundary to VisionClaw
 
+ADR-2108 deleted the agentbox-local ontology write path (`ontology-local.cjs`, `ontology-authoring-authority.js`); the
+governed door is now `vault propose`/`vault edit --expect`, argv built by `lib/ontology-propose.js` and carried in the
+31402 as `propose_command`/`propose_iri` instead of the retired HTTP `propose_request` descriptor.
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -558,15 +521,16 @@ sequenceDiagram
         EP->>BC20: durableStore().put({agentbox_urn, visionclaw_urn, owner_did}) :162-171
         Note over EP,BC20: additive — a storage failure never blocks the publish :159,172
     end
-    EP->>ACS: buildActionRequest({panelId: proposal_urn, category:'ontology-elevation', subjectKind:'concept', fields:{propose_request, ...}}) :179-198
-    EP->>ACS: publishPanelEvent(bridge, signer, unsigned) :200
+    EP->>ACS: buildActionRequest({panelId: proposal_urn, category:'ontology-elevation', subjectKind:'concept', fields:{propose_command, propose_iri, patch_proposal, ...}}) :179-206
+    Note over EP: propose_command is proposal.propose_command.argv, the governed vault propose invocation ADR-2108 :199 — propose_iri is its target :200, patch_proposal carries the machine-gated PatchProposal when the route dry-ran it :204 — none of this is an HTTP request descriptor any more
+    EP->>ACS: publishPanelEvent(bridge, signer, unsigned) :208
     ACS->>BRIDGE: publish signed kind-31402 ActionRequest
     alt publish throws
-        EP-->>KGE: {published:false, reason: err.message} :206-213, federation is additive
+        EP-->>KGE: {published:false, reason: err.message} :214-220, federation is additive
     else published
-        EP-->>KGE: {published:true, event_id, kind} :205
+        EP-->>KGE: {published:true, event_id, kind} :213
     end
-    Note over EP,ACS: the relay agent_registry gate plus broker_cases projection then surface the elevation in the governance inbox a human approves from — never the ungoverned /api/ontology/load path, see ADR-2022 and AB-25
+    Note over EP,ACS: the relay agent_registry gate plus broker_cases projection then surface the elevation in the governance inbox a human approves from — never an ungoverned local write, see ADR-2108 (supersedes ADR-2022) and AB-25
 ```
 
 ## AB-14.14 action-plane.js — the one wired production instantiation (ADR-2041)

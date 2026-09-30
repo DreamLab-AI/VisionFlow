@@ -9,12 +9,10 @@ adrs: [ADR-2098, ADR-2101, ADR-2105]
 sources:
   - ../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md
   - ../project/agentbox/docs/proposals/sovereign-settlement-research/REVIEW-kofn-consensus-gpt6-astra.md
-  - ../project/agentbox/crates/sidestr/sidestr-nostr/src/round.rs
-  - ../project/agentbox/crates/sidestr/sidestr-nostr/src/kinds.rs
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
   - ../project/agentbox/docs/INGRESS-identity.md
   - ../project/agentbox/docs/PROTOCOL-registry.md
-verified_commit: ec60a8f14f4544520b4b1f6e8f5de2def4cfedcf
+verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
 ---
 
 ## For developers
@@ -75,16 +73,14 @@ sequenceDiagram
 
 **Invariant:** because sealing changes the block's hash, one consensus decision cannot cover both the thing signed and the thing published — a design with a single decision per block is unsound however large its quorum (`../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md:156-158`).
 
-**Tension (ADR-2101 amendment vs the review):** the earlier amendment's rule that a signer never signs two proposals at one height is over-stated — honest replicas may vote for different candidates in different views, and what is actually forbidden is a second value in one `(epoch, view, phase, instance)` slot, breaking a lock, or signing a conflicting decided block (`../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md:144-147`); `sidestr-nostr`'s codecs still carry the over-stated rule in their own prose (`../project/agentbox/crates/sidestr/sidestr-nostr/src/round.rs:20-22`).
+**Tension (ADR-2101 amendment vs the review):** the earlier amendment's rule that a signer never signs two proposals at one height is over-stated — honest replicas may vote for different candidates in different views, and what is actually forbidden is a second value in one `(epoch, view, phase, instance)` slot, breaking a lock, or signing a conflicting decided block (`../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md:144-147`).
 
 ## AB-35.3 The wire problem — five ephemeral kinds carrying a safety protocol
 
 ```mermaid
 flowchart TB
-    subgraph have["What exists in code: codecs only"]
-        C1["23510 proposal, 23511 partial signature, 23514 sealed block<br/>crates/sidestr/sidestr-nostr/src/round.rs:4-8"]
-        C2["23512 peg-out PSBT keyed by the burn's outpoint,<br/>23513 the co-signature<br/>crates/sidestr/sidestr-nostr/src/round.rs:9-13"]
-        C3["the ROUND LOGIC is deliberately NOT here: who may propose<br/>when, one signature per height, the re-sign-after-timeout<br/>rule, the seal - crates/sidestr/sidestr-nostr/src/round.rs:15-18"]
+    subgraph have["What exists as codecs: kinds 23510-23514, external since 2026-09-23"]
+        C1["kinds 23510 to 23514, the level-2 signing round, ported and<br/>published as sidestr-nostr on crates.io - no longer in this repo<br/>PROTOCOL-registry.md:165, see AB-33.7"]
     end
     subgraph broken["Why those kinds cannot carry it"]
         B1["23510 to 23514 are EPHEMERAL under NIP-01: relays are not<br/>expected to retain them<br/>REVIEW-kofn-consensus-gpt6-astra.md:217"]
@@ -102,7 +98,7 @@ flowchart TB
     want --> BAND["the estate band for this is unallocated: 38420 to 38425 are<br/>spent on the binding and the five domain events<br/>see AB-34.4"]
 ```
 
-**Debt:** the five round kinds are ported and tested as wire formats while the protocol they were designed for has been rejected, so `sidestr-nostr` ships codecs for a shape the governing record no longer intends to run (`../project/agentbox/crates/sidestr/sidestr-nostr/src/round.rs:15-22`, `../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md:148`).
+**Debt:** the registry still allocates the ephemeral `23510`-`23514` band to "level-2 signing round" without recording that the review rejected the shape those kinds were built for (`../project/agentbox/docs/PROTOCOL-registry.md:165`), and the corrected wire profile below has no allocation of its own (`../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md:162-168`).
 
 **Open:** the stored kinds the review requires have no allocation in the registry, whose sidestr section still records only the external `2xxxx`/`3xxxx` set and `38420`-`38425` (`../project/agentbox/docs/PROTOCOL-registry.md:163-171`).
 

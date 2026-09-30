@@ -10,7 +10,6 @@ sources:
   - scripts/check-diagram-render-sources.py
   - tests/gates/diagram-index.test.cjs
   - tests/gates/run-all.sh
-  - website/static/data/estate-health.json
   - .github/workflows/diagram-render.yml
   - .github/workflows/diagram-index.yml
   - .github/workflows/deploy.yml
@@ -25,10 +24,11 @@ sources:
   - scripts/validate-mermaid-diagrams.sh
   - scripts/generate-diagram-art.sh
   - docs/diagrams/README.md
+  - docs/diagrams/citation-allowlist.json
   - docs/adr/ADR-2004-diagram-baseline-vendored-render-gate.md
   - docs/BASELINE-visionflow.md
   - docs/site-verification.md
-verified_commit: df22182f365f7bc7b4664e4374d150ff893e6b05
+verified_commit: d4e44298646768a4b19af359119e16a6884fa80d
 ---
 
 ## VF-06.1 Two diagram pipelines, one repository — what each owns
@@ -55,10 +55,15 @@ flowchart TB
     subgraph B["Pipeline B — this diagrams-as-code tree"]
         direction TB
         BS["docs/diagrams/AREA/NN-*.md<br/>frontmatter plus fenced mermaid blocks"]:::pipeB
-        BGEN["diagram-index-gen.cjs — walk, parse,<br/>validate, optionally render and index<br/>diagram-index-gen.cjs:451"]:::pipeB
-        BREND["docs/diagrams/rendered/ via mmdc,<br/>gitignored and regenerable<br/>outDir at diagram-index-gen.cjs:341"]:::pipeB
-        BIDX["docs/diagrams/README.md index block<br/>plus COVERAGE.md inverted indexes<br/>writeIndexes at diagram-index-gen.cjs:368, COVERAGE.md written :445"]:::pipeB
+        BGEN["diagram-index-gen.cjs main IIFE — walk, parse,<br/>validate, optionally render and index<br/>diagram-index-gen.cjs:788"]:::pipeB
+        BALLOW["citation-allowlist.json — loadAllowlist waives the revision<br/>requirement for one named citation, never the line checks<br/>diagram-index-gen.cjs:379"]:::pipeB
+        BVER["--strict-citations writes VERIFICATION.md — verified,<br/>unverified, unresolvable and allowlisted counts, plus a<br/>declared-revisions anchor<br/>writeVerificationReport diagram-index-gen.cjs:440"]:::pipeB
+        BCHKV["--check-verification (hosted CI) — refuses a VERIFICATION.md<br/>written against revisions the tree no longer declares<br/>diagram-index-gen.cjs:833"]:::pipeB
+        BREND["docs/diagrams/rendered/ via mmdc,<br/>gitignored and regenerable<br/>outDir at diagram-index-gen.cjs:691"]:::pipeB
+        BIDX["docs/diagrams/README.md index block<br/>plus COVERAGE.md inverted indexes<br/>writeIndexes at diagram-index-gen.cjs:715, COVERAGE.md written :784"]:::pipeB
         BS --> BGEN
+        BGEN -->|"--strict-citations"| BALLOW --> BVER
+        BVER -.->|"CI freshness gate"| BCHKV
         BGEN -->|"--render"| BREND
         BGEN -->|"no --check, no --only"| BIDX
     end
@@ -283,10 +288,10 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CLI as main IIFE<br/>diagram-index-gen.cjs:566
-    participant W as walk<br/>diagram-index-gen.cjs:97
-    participant P as parseTopic<br/>diagram-index-gen.cjs:150
-    participant F as parseFrontmatter<br/>diagram-index-gen.cjs:126
+    participant CLI as main IIFE<br/>diagram-index-gen.cjs:788
+    participant W as walk<br/>diagram-index-gen.cjs:112
+    participant P as parseTopic<br/>diagram-index-gen.cjs:190
+    participant F as parseFrontmatter<br/>diagram-index-gen.cjs:141
     CLI->>W: traverse topics excluding generated and archived trees
     loop each topic
         CLI->>P: parse topic, collect errors
@@ -299,47 +304,58 @@ sequenceDiagram
     Note over CLI,P: Source paths may be skipped by hosted structural checks.<br/>Structure does not attest behaviour, clean source or activation.
 ```
 
-## VF-06.9 Citation refusal and structural failures
+## VF-06.9 Citation refusal, the allowlist waiver, and structural failures
 ```mermaid
 flowchart TB
-    I["Topic input"] --> P["Structural parse and duplicate checks<br/>diagram-index-gen.cjs:150"]
+    I["Topic input"] --> P["Structural parse and duplicate checks<br/>diagram-index-gen.cjs:190"]
     P --> ERR["Accumulated errors"]
-    I --> C["Citation and symbol diagnostics<br/>diagram-index-gen.cjs:293<br/>diagram-index-gen.cjs:384"]
-    C --> STRICT{"strict-citations?"}
+    I --> C["Citation and symbol diagnostics<br/>citeCheck diagram-index-gen.cjs:488<br/>symbolCheck diagram-index-gen.cjs:616"]
+    C --> WAIVE{"allowMatch against<br/>citation-allowlist.json?<br/>diagram-index-gen.cjs:400"}
+    WAIVE -->|yes| NOTE["counted allowlisted, printed with its reason;<br/>never folded into verified or into warnings<br/>diagram-index-gen.cjs:509"]
+    WAIVE -->|no| STRICT{"strict-citations?"}
     STRICT -->|yes| ERR
-    STRICT -->|no| WARN["Advisory warnings remain visible"]
-    I --> R["Optional render and width checks<br/>diagram-index-gen.cjs:455"]
+    STRICT -->|no| WARN["Advisory warnings remain visible,<br/>per-citation reason tracked: unverified,<br/>unresolvable or allowlisted<br/>diagram-index-gen.cjs:421"]
+    C --> VER["--strict-citations always writes VERIFICATION.md,<br/>whatever the verdict<br/>diagram-index-gen.cjs:440"]
+    I --> R["Optional render and width checks<br/>diagram-index-gen.cjs:856"]
     R --> ERR
-    ERR --> FAIL["Exit 1 when errors exist<br/>diagram-index-gen.cjs:594"]
-    MODE["Strict citations reject no-source-paths<br/>diagram-index-gen.cjs:92"] --> STRICT
-    LIMIT["A strict pass establishes citation hygiene;<br/>semantic and deployment evidence remain separate."]
+    ERR --> FAIL["Exit 1 when errors exist<br/>diagram-index-gen.cjs:861"]
+    MODE["Strict citations reject no-source-paths<br/>diagram-index-gen.cjs:106"] --> STRICT
+    LIMIT["A strict pass establishes citation hygiene;<br/>semantic and deployment evidence remain separate.<br/>An allowlist entry that matches nothing is stale<br/>and fails the run rather than broadening silently<br/>diagram-index-gen.cjs:604"]
     WARN --> LIMIT
+    NOTE --> LIMIT
 ```
 
-## VF-06.10 Citation resolution and inference limits
+## VF-06.10 Citation resolution: dual paths, allowlist exemptions, inference limits
 ```mermaid
 flowchart TB
-    A["Mermaid source"] --> SCAN["Dotted path plus line/range scan<br/>diagram-index-gen.cjs:231"]
-    SCAN --> MATCH["Exact source entry wins; otherwise resolve unique suffix<br/>diagram-index-gen.cjs:309"]
-    MATCH --> MODE["Choose source bytes<br/>diagram-index-gen.cjs:276"]
-    MODE --> PIN["Default: declared revision via git show;<br/>unavailable revision falls back to working tree"]
-    MODE --> WT["worktree-citations: current working tree only"]
-    PIN --> READ["Check line bounds and anchors<br/>diagram-index-gen.cjs:314"]
-    WT --> READ
-    A --> BARE["Bare-line context from explicit citations and participant bindings<br/>diagram-index-gen.cjs:342"]
+    A["Mermaid source"] --> SCAN["Dotted path plus line/range scan<br/>CITE_RE diagram-index-gen.cjs:284"]
+    SCAN --> MATCH["Exact sources: entry wins; otherwise the unique<br/>suffix match; zero or >1 hits is unresolvable/ambiguous<br/>diagram-index-gen.cjs:516"]
+    MATCH --> EXIST["existsForTopic — worktree first, else<br/>git cat-file -e &lt;sha&gt;:&lt;path&gt; at the topic's<br/>declared revision for that repo<br/>diagram-index-gen.cjs:172"]
+    MATCH --> MODE["revisionLines chooses source bytes<br/>diagram-index-gen.cjs:342"]
+    MODE --> PIN["declared revision: git show &lt;sha&gt;:&lt;path&gt;<br/>— 'verified at revision'<br/>diagram-index-gen.cjs:356"]
+    MODE --> WT["no repo mapping, no sha for repo, or a failed<br/>git show — falls back to the working tree,<br/>each reason tracked separately<br/>— 'unverified (working-tree fallback)'<br/>diagram-index-gen.cjs:346"]
+    MODE --> WTFLAG["--worktree-citations: current working tree only,<br/>by explicit flag, not fallback"]
+    PIN --> READ["Check line bounds and anchors<br/>diagram-index-gen.cjs:539"]
+    WT --> WAIVE{"allowMatch in citation-allowlist.json?<br/>diagram-index-gen.cjs:400"}
+    WAIVE -->|yes| ALLOWED["counted allowlisted, never verified;<br/>line checks still run against it<br/>diagram-index-gen.cjs:529"]
+    WAIVE -->|no| UNVER["counted unverified, reason recorded<br/>diagram-index-gen.cjs:531"]
+    ALLOWED --> READ
+    UNVER --> READ
+    WTFLAG --> READ
+    A --> BARE["Bare-line context from explicit citations and participant bindings<br/>diagram-index-gen.cjs:563"]
     BARE --> READ
-    A --> SYMBOL["Function-labelled participant checked against a unique definition<br/>diagram-index-gen.cjs:384"]
+    A --> SYMBOL["Function-labelled participant checked against a unique definition<br/>symbolCheck diagram-index-gen.cjs:616"]
     READ --> DIAG["Diagnostic: ambiguous, missing, unreadable, out of bounds or empty anchor"]
     SYMBOL --> DIAG
-    DIAG --> EXIT["Strict mode adds diagnostics to errors<br/>diagram-index-gen.cjs:587"]
-    LIMIT["Context inference and brace counting are heuristics.<br/>A real source line can still support the wrong claim."] --> EXIT
+    DIAG --> EXIT["Strict mode adds diagnostics to errors<br/>diagram-index-gen.cjs:831"]
+    LIMIT["Context inference and brace counting are heuristics.<br/>A real source line can still support the wrong claim.<br/>An allowlist waiver is of the revision requirement<br/>alone, never of whether the cited line is right."] --> EXIT
 ```
 
 ## VF-06.11 Render invocation and width boundary
 ```mermaid
 sequenceDiagram
-    participant G as renderAll<br/>diagram-index-gen.cjs:455
-    participant R as renderOne<br/>diagram-index-gen.cjs:430
+    participant G as renderAll<br/>diagram-index-gen.cjs:687
+    participant R as renderOne<br/>diagram-index-gen.cjs:662
     participant M as mmdc
     participant O as rendered topic directory
     G->>G: queue blocks with bounded worker concurrency
@@ -356,12 +372,12 @@ sequenceDiagram
     Note over G,O: Exact-source comparison and execution logs are distinct evidence.<br/>A cached SVG by itself is not proof of a fresh successful render.
 ```
 
-## VF-06.12 diagram-index.yml — three steps, and what a hosted runner cannot see
+## VF-06.12 diagram-index.yml — four steps, and what a hosted runner cannot see
 ```mermaid
 sequenceDiagram
     autonumber
     participant CI as "diagram-index.yml job index"
-    participant G as writeIndexes<br/>diagram-index-gen.cjs:483
+    participant G as writeIndexes<br/>diagram-index-gen.cjs:715
     participant T as "tests/gates/diagram-index.test.cjs"
     participant RM as "docs/diagrams/README.md"
     participant CV as "docs/diagrams/COVERAGE.md"
@@ -370,35 +386,38 @@ sequenceDiagram
 
     rect rgb(232, 238, 250)
     Note over CI,G: "STEP 1 — structural check, sibling paths tolerated"
-    CI->>G: "diagram-index-gen.cjs docs/diagrams --check --no-source-paths<br/>diagram-index.yml:36"
+    CI->>G: "diagram-index-gen.cjs docs/diagrams --check --no-source-paths<br/>diagram-index.yml:52"
     Note over G: "frontmatter shape, unique ids, heading and block structure,<br/>prose limits. sources: path existence is WAIVED"
     end
 
     rect rgb(228, 240, 232)
     Note over CI,T: "STEP 2 — prove the gate can still fail"
-    CI->>T: "node tests/gates/diagram-index.test.cjs<br/>diagram-index.yml:39"
+    CI->>T: "node tests/gates/diagram-index.test.cjs<br/>diagram-index.yml:55"
     T->>T: "three fixture topics carrying the SAME ADR number in three areas<br/>diagram-index.test.cjs:10"
     T-->>CI: "coverage must key them visionflow:ADR-2002, agentbox:ADR-2002,<br/>estate-unresolved:ADR-2002 and must NOT collapse them<br/>diagram-index.test.cjs:19"
     T->>T: "a past-EOF citation: advisory under --cite-check,<br/>exit 1 under --strict-citations<br/>diagram-index.test.cjs:29"
     T-->>CI: "--strict-citations with --no-source-paths is refused with exit 2,<br/>never silently downgraded — diagram-index.test.cjs:30"
-    T->>T: "declared-revision mode reads git show at the stamped sha,<br/>so a drifted working tree passes and --worktree-citations fails<br/>diagram-index.test.cjs:44 and diagram-index.test.cjs:45"
+    T->>T: "declared-revision mode reads git show at the stamped sha,<br/>so a drifted working tree passes and --worktree-citations fails<br/>diagram-index.test.cjs:51 and diagram-index.test.cjs:52"
+    T->>T: "the citation allowlist: an unverifiable citation not named in it<br/>still fails strict mode — naming it waives only that one citation,<br/>counted apart as allowlisted<br/>diagram-index.test.cjs:54"
+    T-->>CI: "a waiver that matches nothing fails the run rather than<br/>broadening silently<br/>diagram-index.test.cjs:95"
+    end
+
+    rect rgb(245, 232, 250)
+    Note over CI,CV: "STEP 3 — the local strict-citations run must be fresh"
+    CI->>CV: "diagram-index-gen.cjs docs/diagrams --check --no-source-paths<br/>--check-verification<br/>diagram-index.yml:61"
+    Note over CV: "recomputes declaredRevisions from frontmatter alone (no source<br/>access) and refuses VERIFICATION.md if its declared-revisions<br/>anchor no longer matches — also checks citation-allowlist.json<br/>is well formed and names real topics<br/>diagram-index-gen.cjs:833"
     end
 
     rect rgb(250, 244, 228)
-    Note over CI,CV: "STEP 3 — the index must already be in sync"
-    CI->>CV: "copy COVERAGE.md aside, then regenerate<br/>diagram-index.yml:44"
+    Note over CI,CV: "STEP 4 — the index must already be in sync"
+    CI->>CV: "copy COVERAGE.md aside, then regenerate<br/>diagram-index.yml:65"
     G->>RM: "emit topic tables and the regeneration command"
-    G->>CV: "qualify ADR identities by repository<br/>diagram-index-gen.cjs:520"
-    CI->>CI: "diff the copy against the regenerated file, and a mismatch<br/>raises a workflow error saying COVERAGE.md is stale, exit 1<br/>diagram-index.yml:45"
+    G->>CV: "qualify ADR identities by repository<br/>diagram-index-gen.cjs:752"
+    CI->>CI: "diff the copy against the regenerated file, and a mismatch<br/>raises a workflow error saying COVERAGE.md is stale, exit 1<br/>diagram-index.yml:67"
     end
 
-    Note over CI,CV: "INVARIANT: the corpus cites sibling checkouts a hosted runner does not<br/>have, so --no-source-paths is the only runnable form there. sources:<br/>path existence AND --cite-check are therefore LOCAL-ONLY gates<br/>diagram-index.yml:30"
-    Note over CI,RM: "DEBT: this gate was RED from 2026-09-15 to 2026-09-21. A canon commit<br/>added a diagram without regenerating the index block, so step 3 failed<br/>every run until df22182 regenerated it — estate-health.json:56"
+    Note over CI,CV: "INVARIANT: sources: reach sixteen repositories at forty-one declared<br/>revisions, two of them unfetchable here (a private repo, a local-only<br/>clone), so --no-source-paths is the only runnable form on this runner.<br/>Verification stays LOCAL — this runner gates its FRESHNESS instead<br/>diagram-index.yml:30"
 ```
-
-**Debt (local-only citation gate):** because CI runs `--no-source-paths` (`.github/workflows/diagram-index.yml:36`), a `sources:` entry naming a file that no longer exists in a sibling checkout stays green indefinitely; six such dead entries survived in this tree while the workflow reported success (`.github/workflows/diagram-index.yml:30`).
-
-**Drift (index block vs tree):** the generated block records the topic and diagram totals as a committed artefact (`docs/diagrams/README.md:126`), so any commit that adds a diagram without rerunning the generator turns the gate red rather than the diagram — which is the failure recorded at `website/static/data/estate-health.json:57`.
 
 ## VF-06.13 Unwired diagram scripts — what they point at and why they are orphaned
 ```mermaid

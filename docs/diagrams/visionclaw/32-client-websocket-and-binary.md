@@ -26,7 +26,6 @@ sources:
   - ../project/client/src/services/binaryProtocol/agentMessages.ts
   - ../project/client/src/services/binaryProtocol/backpressure.ts
   - ../project/client/src/services/binaryProtocol/ssspVoice.ts
-  - ../project/client/src/services/livenessCanary.ts
   - ../project/client/src/services/nostrAuthService.ts
   - ../project/client/src/types/binaryProtocol.ts
   - ../project/client/src/features/graph/hooks/useGraphEventHandlers.ts
@@ -38,7 +37,7 @@ sources:
   - ../project/client/src/utils/validation.ts
   - ../project/src/handlers/socket_flow_handler/http_handler.rs
   - ../project/src/settings/api/settings_routes.rs
-verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
 ---
 ## VC-32.1 Connect + NIP-98 WS authenticate handshake
 ```mermaid
@@ -65,7 +64,7 @@ sequenceDiagram
     else no current user (nostrAuth.getCurrentUser() is null)
         Note over AH: no authenticate message sent connectionManager.ts:373-394
     end
-    Note over S: RESOLVED ADR-2058 (2026-09-05, PROTOCOL-registry.md:224-226): the Authorization<br/>header is the ONLY accepted carrier in a release build - the ?token= query fallback is<br/>compiled out of release entirely (http_handler.rs:136-166) and survives only behind the<br/>dev-auth gate with a SECURITY: warning. DOC-DRIFT: BASELINE-architecture.md:237 still lists<br/>this as an open "Known divergence" - it was not updated when ADR-2058 landed. Client code<br/>above only ever sends the header-equivalent authenticate event, never a query form.
+    Note over S: RESOLVED ADR-2058 (2026-09-05, PROTOCOL-registry.md:224-226): the Authorization<br/>header is the ONLY accepted carrier in a release build - the ?token= query fallback is<br/>compiled out of release entirely (http_handler.rs:136-166) and survives only behind the<br/>dev-auth gate with a SECURITY: warning. DOC-DRIFT: BASELINE-architecture.md:239 still lists<br/>this as an open "Known divergence" - it was not updated when ADR-2058 landed. Client code<br/>above only ever sends the header-equivalent authenticate event, never a query form.
     opt currentFilter present index.ts:180
         C->>C: sendMessage(filter_update, ...) index.ts:188
     end
@@ -201,6 +200,8 @@ classDiagram
     note for FramedMessageHeader "createMessage/parseHeader BinaryWebSocketProtocol.ts:73-114. Header size<br/>MESSAGE_HEADER_SIZE=6, GRAPH_UPDATE_HEADER_SIZE=7 (frameTypes.ts:184-185). Used<br/>only for client-to-server encode calls: encodePositionUpdates, encodeAgentState,<br/>encodeSSSPData, encodeControlBits, encodeVoiceChunk, createBroadcastAck,<br/>encodeAgentAction (BinaryWebSocketProtocol.ts:129-290)."
     note for MessageType "DIVERGENCE. BinaryWebSocketProtocol.ts:81 comment labels this six-byte layout the<br/>V4 header, but line 83 writes PROTOCOL_VERSION which equals PROTOCOL_V3=3<br/>(frameTypes.ts:15) into the version byte - PROTOCOL_V4=4 (frameTypes.ts:14) is<br/>never actually placed on the wire by this path. frameTypes.ts:7-13 itself<br/>documents that PROTOCOL_V4 here means only this framed-header version, NOT the<br/>position/agent wire format the server ships."
     note for FramedMessageHeader "DOC-DRIFT. docs/PROTOCOL-registry.md frame tag registry lists only<br/>0x03,0x05,0x23,0x43,0x44 as live server-to-client tags; this client-only outbound<br/>envelope and its MessageType space (0x01,0x02,0x10-0x54) do not appear in that<br/>registry at all."
+    note for MessageType "BROADCAST_ACK 0x34 payload (encodeBroadcastAckPayload/decodeBroadcastAck<br/>backpressure.ts:18-69): BROADCAST_ACK_PAYLOAD_SIZE=20 bytes - sequenceId split<br/>low/high uint32 offset0/4, nodesReceived uint32 offset8, timestamp split<br/>low/high uint32 offset12/16, all littleEndian to avoid BigInt64<br/>(backpressure.ts:26-29,36-39). Ack cadence (ACK_BATCH_SIZE=10) is in VC-32.8."
+    note for MessageType "SSSP_DATA 0x31 and VOICE_CHUNK 0x40 payloads (ssspVoice.ts:8-91).<br/>SSSPDataRecord: uint32 nodeId, float32 distance, uint32 parentId, uint16 flags<br/>= 14 bytes (SSSP_DATA_SIZE_V2, ssspVoice.ts:8-21). VoiceChunkHeader: uint16<br/>agentId, uint16 chunkId, uint8 format, uint16 dataLength = 7 bytes<br/>(VOICE_HEADER_SIZE) then raw audioData (ssspVoice.ts:49-65). Voice agentId is<br/>uint16 (max 65535) - a wire format separate from the uint32 flag-bit node/agent<br/>id of VC-32.6, no alignment issue (ssspVoice.ts:54-56,82-84)."
 ```
 ## VC-32.5 Server-to-client position wire records: V3, V4 delta, V5 envelope (V2 declined)
 ```mermaid
@@ -426,66 +427,6 @@ sequenceDiagram
         Note over PB,AT: 2026-09-11 (dcf5a1069): a THIRD sink on the same decoded batch,<br/>feeding the desktop momentum nudge in BotsVisualization. Each sink is<br/>pushed in parallel so none can starve the others.<br/>client/src/store/agentTargetStore.ts:16, :22
     end
     Note over PB: AGENT_ACTION_HEADER_SIZE=15 bytes: sourceAgentId u32@0, targetNodeId u32@4, actionType u8@8, timestamp u32@9, durationMs u16@13, optional payload from @15 frameTypes.ts:214,agentMessages.ts:161-165
-```
-## VC-32.12 Backpressure: broadcast acknowledgement flow control
-```mermaid
-classDiagram
-    class BroadcastAckPayload {
-      +uint32 sequenceId_low  offset0
-      +uint32 sequenceId_high  offset4  combine as sequenceId
-      +uint32 nodesReceived  offset8
-      +uint32 timestamp_low  offset12
-      +uint32 timestamp_high  offset16
-      20 bytes total, BROADCAST_ACK_PAYLOAD_SIZE
-    }
-    class AckPolicy {
-      ACK_BATCH_SIZE 10  ack sent every 10 processed position frames
-      MessageType.BROADCAST_ACK 0x34  message tag when framed via createMessage
-    }
-    BroadcastAckPayload --> AckPolicy : governed by
-    note for BroadcastAckPayload "encodeBroadcastAckPayload/decodeBroadcastAck backpressure.ts:18-69. sequenceId and<br/>timestamp each split into low/high uint32 for littleEndian 8-byte write without<br/>BigInt64 (backpressure.ts:26-29,36-39)."
-    note for AckPolicy "sendPositionAck fires when positionUpdateSequence minus lastAckSentSequence is<br/>greater-or-equal ACK_BATCH_SIZE=10<br/>(store/websocket/binaryProtocol.ts:38, :131, :355, :417). Legacy frames use<br/>frame.broadcastSequence when present, else the client-local counter<br/>(store/websocket/binaryProtocol.ts:416)."
-```
-## VC-32.13 SSSP data and voice-chunk binary sub-protocols
-```mermaid
-classDiagram
-    class SSSPDataRecord {
-      +uint32 nodeId  offset0
-      +float32 distance  offset4
-      +uint32 parentId  offset8
-      +uint16 flags  offset12
-      14 bytes per record, SSSP_DATA_SIZE_V2
-    }
-    class VoiceChunkHeader {
-      +uint16 agentId  offset0  max 65535 agents, separate id space from node ids
-      +uint16 chunkId  offset2
-      +uint8 format  offset4
-      +uint16 dataLength  offset5
-      7 bytes header, VOICE_HEADER_SIZE, followed by raw audioData
-    }
-    note for SSSPDataRecord "encodeSSSPPayload/decodeSSSPData ssspVoice.ts:8-47. Wrapped via<br/>createMessage(MessageType.SSSP_DATA 0x31) for outbound use,<br/>BinaryWebSocketProtocol.ts:164-170."
-    note for VoiceChunkHeader "encodeVoiceChunkPayload/decodeVoiceChunk ssspVoice.ts:49-91. Comment at<br/>ssspVoice.ts:54-56,82-84 is explicit: voice agentId is uint16, unrelated to the<br/>uint32 flag-bit node/agent id of VC-32.6 - no alignment issue between the two id<br/>spaces. Wrapped via MessageType.VOICE_CHUNK 0x40,<br/>BinaryWebSocketProtocol.ts:189-191."
-```
-## VC-32.14 livenessCanary: fire-and-forget observed-traffic probe
-```mermaid
-sequenceDiagram
-    autonumber
-    participant CALLER as D8 swarm dashboard mount
-    participant LC as observeCanary<br/>services/livenessCanary.ts:15
-    participant API as unifiedApiClient<br/>services/api/UnifiedApiClient
-    participant SRV as POST /api/canary/observe/{id}
-
-    CALLER->>LC: observeCanary(canaryId,evidence) livenessCanary.ts:15
-    LC->>API: unifiedApiClient.post(/canary/observe/id, evidence) livenessCanary.ts:17
-    API->>SRV: POST /api/canary/observe/{encodeURIComponent(canaryId)}
-    alt request succeeds
-        SRV-->>LC: 200 OK
-        LC->>LC: logger.debug observed canary livenessCanary.ts:18
-    else 404 unregistered canary or harness/network down
-        SRV-->>LC: error
-        LC->>LC: fail-open: logger.debug canary observe skipped, swallow error livenessCanary.ts:19-23
-    end
-    Note over LC: INVARIANT (ADR-130 Decision 3). fires from THIS observed live event, not a synthetic probe - never throws, never disrupts the mounting UI livenessCanary.ts:1-8,14
 ```
 ## VC-32.15 JSON control-frame catalogue
 ```mermaid

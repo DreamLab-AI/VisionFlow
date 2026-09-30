@@ -5,24 +5,15 @@ area: estate
 governing:
   - ../loom/docs/design/LOOM-POSITIONING.md
   - ../loom/docs/design/PRD-025-ontology-loom-and-connector-platform.md
-adrs: [loom:ADR-135, loom:ADR-136, loom:ADR-137, loom:ADR-138, loom:ADR-139, loom:PRD-025, loom:PRD-026, loom:PRD-027, loom:PRD-028, agentbox:ADR-051, agentbox:ADR-2023, agentbox:ADR-2084, agentbox:ADR-2095]
+adrs: [loom:ADR-138, loom:ADR-139, loom:PRD-025, loom:PRD-028, agentbox:ADR-2023, agentbox:ADR-2084, agentbox:ADR-2095]
 sources:
   - ../loom/docs/design/PRD-028-does-loom-earn-its-complexity.md
   - ../loom/docs/design/PRD-025-ontology-loom-and-connector-platform.md
-  - ../loom/docs/design/PRD-026-loom-consolidation.md
-  - ../loom/docs/design/PRD-027-rust-loom-reengineering.md
-  - ../loom/docs/design/ADR-135-ontology-loom-node.md
-  - ../loom/docs/design/ADR-136-loom-tooling-allocation.md
-  - ../loom/docs/design/ADR-137-loom-rust-replatform.md
   - ../loom/docs/design/ADR-138-confidence-surfacing-contract.md
   - ../loom/docs/design/ADR-139-per-request-scaffold-opt-out.md
   - ../loom/docs/design/LOOM-POSITIONING.md
-  - ../loom/docs/design/ONTOLOGY-LOOM-PIPELINE.md
-  - ../loom/docs/design/RUST-ARCHITECTURE.md
-  - ../loom/docs/design/agentbox-ADR-051-loom-client-and-deferred-distillation.md
   - ../project/agentbox/skills/email-search/SKILL.md
-  - scripts/diagram-index-gen.cjs
-verified_commit: {loom: 07a0e6774, agentbox: b7b1ab81a, visionflow: df22182f3}
+verified_commit: {loom: e39bb4d2b583040cd91346c3bbaf75411c3913b4, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, visionflow: d4e44298646768a4b19af359119e16a6884fa80d}
 ---
 
 ## For developers
@@ -44,24 +35,24 @@ conditions and the honest ways it can fail, so the answer cannot be chosen after
 ## ES-12.1 What has been measured, and what the later reading changed
 ```mermaid
 flowchart TB
-    BENCH["The one measured benchmark — 37 held-out questions, seed 42,<br/>objective graph-derived gold, paired axes with bootstrap 95%<br/>confidence intervals<br/>../loom/docs/design/PRD-025-ontology-loom-and-connector-platform.md:174-176"]
+    BENCH["The one measured benchmark — 37 held-out questions, seed 42,<br/>objective graph-derived gold, paired axes with bootstrap 95%<br/>confidence intervals<br/>../loom/docs/design/PRD-025-ontology-loom-and-connector-platform.md:180-182"]
 
-    subgraph AXES["Mean recall by axis, PRD-025-ontology-loom-and-connector-platform.md:178-183"]
-        A0["raw, no grounding — 0.27, :180"]
-        A1["static structured scaffold — 0.94, roughly 3.5 times raw<br/>and CI-significant, :181"]
-        A2["prose-enriched scaffold — 0.95, about nothing over<br/>structured, :182"]
-        A3["agentic tool traversal — 0.65, BELOW static injection, :183"]
+    subgraph AXES["Mean recall by axis, PRD-025-ontology-loom-and-connector-platform.md:184-189"]
+        A0["raw, no grounding — 0.27, :186"]
+        A1["static structured scaffold — 0.94, roughly 3.5 times raw<br/>and CI-significant, :187"]
+        A2["prose-enriched scaffold — 0.95, about nothing over<br/>structured, :188"]
+        A3["agentic tool traversal — 0.65, BELOW static injection, :189"]
     end
     BENCH --> AXES
 
-    F1["FINDING 1 — the static structured scaffold is the dominant win,<br/>so scaffold and index generation is the grounding product<br/>PRD-025-ontology-loom-and-connector-platform.md:187-189"]
-    F2["FINDING 2 — prose adds about nothing over structured, so the<br/>prose index is a cheap complement and stays optional<br/>PRD-025-ontology-loom-and-connector-platform.md:190-191"]
-    F3["FINDING 3 — feed, do not send traversing. Distillation is<br/>retrieval-fed map-reduce, never tool-driven exploration<br/>PRD-025-ontology-loom-and-connector-platform.md:192-199"]
+    F1["FINDING 1 — the static structured scaffold is the dominant win,<br/>so scaffold and index generation is the grounding product<br/>PRD-025-ontology-loom-and-connector-platform.md:193-195"]
+    F2["FINDING 2 — prose adds about nothing over structured, so the<br/>prose index is a cheap complement and stays optional<br/>PRD-025-ontology-loom-and-connector-platform.md:196-197"]
+    F3["FINDING 3 — feed, do not send traversing. Distillation is<br/>retrieval-fed map-reduce, never tool-driven exploration<br/>PRD-025-ontology-loom-and-connector-platform.md:198-205"]
     A1 --> F1
     A2 --> F2
     A3 --> F3
 
-    ADD["ADDENDUM 2026-08-18 — the 3.5 times figure is faithful DELIVERY<br/>of facts the scaffold already exposes, measured against a<br/>verbatim-copy ceiling, not reasoning over structure. Across ten<br/>models from five providers the gain OVER that ceiling is uniformly<br/>negative. The three findings stand; the interpretation of the<br/>number changes, and the benchmark model is now Qwen3.8-27B.<br/>PRD-025-ontology-loom-and-connector-platform.md:201-210"]
+    ADD["ADDENDUM 2026-08-18 — the 3.5 times figure is faithful DELIVERY<br/>of facts the scaffold already exposes, measured against a<br/>verbatim-copy ceiling, not reasoning over structure. Across ten<br/>models from five providers the gain OVER that ceiling is uniformly<br/>negative. The three findings stand; the interpretation of the<br/>number changes, and the benchmark model is now Qwen3.8-27B.<br/>PRD-025-ontology-loom-and-connector-platform.md:207-216"]
     F1 --> ADD
     F2 --> ADD
     F3 --> ADD
@@ -247,7 +238,4 @@ flowchart TB
 
     CAVEAT["DOC-DRIFT the record flags against itself — privateness alone does<br/>not prove absence from training, and poor closed-book performance<br/>does not prove absence either.<br/>PRD-028-does-loom-earn-its-complexity.md:45"]
     CLAIM --> CAVEAT
-
-    DEBTC["DEBT — this corpus cannot pin the loom repository. The generator's<br/>prefix table has no ../loom entry, so every citation on this page<br/>is checked against the working tree rather than against the<br/>declared revision in the frontmatter.<br/>scripts/diagram-index-gen.cjs:240,259. see ES-90.6"]
-    PRE --> DEBTC
 ```

@@ -33,7 +33,6 @@ sources:
   - ../project/src/domain/broker/broker_decision.rs
   - ../project/src/domain/broker/precedent_registry.rs
   - ../project/src/repositories/mod.rs
-  - ../project/src/errors/mod.rs
   - ../project/src/validation/mod.rs
   - ../project/src/config/mod.rs
   - ../project/Cargo.toml
@@ -56,7 +55,10 @@ sources:
   - ../project/crates/visionclaw-contracts/src/version.rs
   - ../project/src/agent_events/schema.rs
   - ../project/sdk/visionflow-contracts/package.json
-verified_commit: f223bbd40
+  - ../project/src/services/corpus_source/mod.rs
+  - ../project/src/services/corpus_source/local.rs
+  - ../project/src/services/corpus_source/github.rs
+verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
 ---
 
 ## VC-07.1 The hexagon — ports, adapters and where each canonical type lives
@@ -99,6 +101,10 @@ flowchart TB
     ADAPT --- N1
     N2["src/repositories/mod.rs is documentation only — all legacy Neo4j and SQL repositories<br/>were removed. Canonical adapters named there are OxigraphOntologyRepository,<br/>OxigraphGraphRepository, SqliteSettingsRepository (ADR-2004)."]
     ADAPT --- N2
+    N3["Workspace — crates/graph-cognition-extract is on disk but EMPTY and NOT a workspace<br/>member (orphan directory, Cargo.toml). solid-pod-rs is a crates.io VERSION pin, not a<br/>git rev — the former rev=main resolution error no longer applies."]
+    XCRATE --- N3
+    N4["DOC-DRIFT — the adapters module doc src/adapters/mod.rs:8-15 lists seven modules as<br/>still in webxr, resolved in Phase A3; they are still there at this commit, so Phase A3<br/>has not landed. The dev build feature set is gpu,ontology,dev-auth — see VC-08."]
+    ADAPT --- N4
 ```
 
 ## VC-07.2 ADR-2005 extraction state — what is actually a shim
@@ -125,59 +131,9 @@ sequenceDiagram
     C->>SH: use crate::ports::{inference_engine, ontology_repository, gpu_physics_adapter, gpu_semantic_analyzer}
     SH->>CR: pub use visionclaw_domain::ports::* (src/ports/mod.rs:26-45)
     Note over SH: module-path aliases kept so legacy call sites keep resolving
+    Note over C,CR: project/src/lib.rs:47-64 re-exports ClientCoordinatorActor, MetadataActor,<br/>OptimizedSettingsActor, AppState, UserSettings from the root crate itself, plus ADR-090<br/>compatibility aliases MetadataStore, ProtectedSettings, SimulationParams from<br/>visionclaw_domain::models — preserving the old visionclaw_server:: API for external callers
     Note over C,CR: DIVERGENCE (BASELINE l.222) — actor extraction incomplete, 25 src/actors/*.rs<br/>vs 11 in crates/visionclaw-actors. The live tree runs from src/. See VC-02.
     Note over C,CR: DIVERGENCE (BASELINE 2026-09-04 crate and supervision closeout, l.277) — ADR-2005<br/>remains partial. The workspace adds converter and integration-test members to the census.
-```
-
-## VC-07.3 Workspace membership and the excluded contexts
-```mermaid
-flowchart TB
-    W["[workspace] members — Cargo.toml"]
-    W --> ROOT["'.' — the visionclaw-server root crate, src/"]
-    W --> CORE["crates/visionclaw-domain — 51 src files, models/config/ports<br/>crates/visionclaw-ontology — 51 src files<br/>crates/visionclaw-actors — 11 src files<br/>crates/visionclaw-adapters — 7 src files"]
-    W --> EDGE["crates/visionclaw-contracts — 6 src files<br/>crates/visionclaw-protocol — 5 src files<br/>crates/visionclaw-gpu — 5 src files<br/>crates/visionclaw-xr-presence — 9 src files"]
-    W --> TAIL["crates/visionclaw-analytics-oracle — 1 src file<br/>crates/vault-migrate — 8 src files<br/>crates/visionclaw-integration-tests — 1 src file"]
-    EX["[workspace] exclude"]
-    EX --> E1["xr-client/rust — Godot gdext cdylib for the Quest APK<br/>own workspace context and target, PRD-008, see VC-30"]
-    EX --> E2["agentbox/crates/headroom-napi — see the agentbox area"]
-    ROOT --> EX
-    ORPH["DIVERGENCE — crates/graph-cognition-extract is on disk<br/>but EMPTY and NOT a workspace member — orphan directory"]
-    TAIL --- ORPH
-    DEP["solid-pod-rs is a crates.io VERSION pin, not a git rev<br/>the former rev main resolution error no longer applies"]
-    EDGE --- DEP
-    IND["visionclaw-contracts is independently buildable<br/>cargo build --manifest-path crates/visionclaw-contracts/Cargo.toml"]
-    EDGE --- IND
-```
-
-## VC-07.4 Root-crate module surface — src/lib.rs
-```mermaid
-flowchart TB
-    L["src/lib.rs — 64 lines, the public module surface"]
-    subgraph HEX["hexagonal layers"]
-        H1["ports · adapters · application · domain · repositories"]
-    end
-    subgraph RUNTIME["runtime"]
-        R1["actors · app_state · handlers · middleware · services · settings"]
-    end
-    subgraph DOMAINLOGIC["domain logic"]
-        D1["constraints · layout · physics · gpu · inference · ontology · reasoning<br/>ADR-2066 — application/inference_service.rs and handlers/inference_handler.rs<br/>removed as dead code, the inference PORT and Whelk adapter remain live"]
-    end
-    subgraph WIRE["wire and identity"]
-        W1["protocol · events · agent_events · types · models · uri · openapi · client"]
-        W2["web_contract — ADR-124 gitmark/blocktrails substrate<br/>4-layer reducer/state/ledger/trail, validate/anchor/verify ritual<br/>identity-rail-agnostic, carries did:nostr unchanged"]
-    end
-    subgraph CROSS["cross-cutting"]
-        C1["config · errors · validation · telemetry · utils (macro_use) · test_helpers"]
-    end
-    L --> HEX
-    L --> RUNTIME
-    L --> DOMAINLOGIC
-    L --> WIRE
-    L --> CROSS
-    RE["re-exports at project/src/lib.rs:47-64 — ClientCoordinatorActor, MetadataActor,<br/>OptimizedSettingsActor, AppState, UserSettings; plus ADR-090 compatibility aliases<br/>MetadataStore, ProtectedSettings, SimulationParams from visionclaw_domain::models"]
-    L --- RE
-    U["utils re-exports — from_json, to_json, safe_json_number, time, HandlerResponse"]
-    CROSS --- U
 ```
 
 ## VC-07.5 CQRS application layer — settings and knowledge-graph domains
@@ -376,59 +332,6 @@ sequenceDiagram
     Note over K,AD: ADR-2016 provenance append-only applies to the decision record — see VC-22
 ```
 
-## VC-07.10 Error taxonomy — src/errors/mod.rs
-```mermaid
-classDiagram
-    class VisionClawError {
-      <<src/errors/mod.rs:20 — root enum>>
-    }
-    class ActorError { <<:60>> }
-    class GPUError { <<:91>> }
-    class DataTransferDirection { <<:117>> }
-    class SettingsError { <<:123>> }
-    class NetworkError { <<:145>> }
-    class SpeechError { <<:177>> }
-    class GitHubError { <<:190>> }
-    class AudioError { <<:216>> }
-    class ResourceError { <<:227>> }
-    class PerformanceError { <<:240>> }
-    class ProtocolError { <<:257>> }
-    class DatabaseError { <<:268>> }
-    class ValidationError { <<:283>> }
-    class ParseError { <<:317>> }
-    VisionClawError <|-- ActorError
-    VisionClawError <|-- GPUError
-    VisionClawError <|-- SettingsError
-    VisionClawError <|-- NetworkError
-    VisionClawError <|-- SpeechError
-    VisionClawError <|-- GitHubError
-    VisionClawError <|-- AudioError
-    VisionClawError <|-- ResourceError
-    VisionClawError <|-- PerformanceError
-    VisionClawError <|-- ProtocolError
-    VisionClawError <|-- DatabaseError
-    VisionClawError <|-- ValidationError
-    VisionClawError <|-- ParseError
-    GPUError ..> DataTransferDirection
-```
-
-## VC-07.11 Feature-gated adapter slots
-```mermaid
-flowchart TB
-    G["cfg(feature = 'gpu') — src/adapters/mod.rs"]
-    G --> G1["gpu_semantic_analyzer (adapters/mod.rs:19-20)<br/>GpuSemanticAnalyzerAdapter (adapters/mod.rs:45-46)"]
-    G --> G2["actix_physics_adapter (adapters/mod.rs:37-38)<br/>ActixPhysicsAdapter (adapters/mod.rs:77-78)"]
-    NG["always compiled"]
-    NG --> N1["actor_graph_repository::ActorGraphRepository (adapters/mod.rs:17, :43)<br/>actix_semantic_adapter::ActixSemanticAdapter (adapters/mod.rs:39, :79)<br/>physics_orchestrator_adapter (adapters/mod.rs:41)"]
-    NG --> N2["oxigraph_graph_repository::OxigraphGraphRepository (adapters/mod.rs:49, :62)<br/>sqlite_settings_repository::SqliteSettingsRepository (adapters/mod.rs:50, :73)"]
-    NG --> N3["sqlite_enrichment_repository (adapters/mod.rs:52) — WS-9 store<br/>sqlite_canary_repository (adapters/mod.rs:57) — RES-a<br/>sqlite_kpi_repository (adapters/mod.rs:59) — REC-4 ADR-130 D5"]
-    G1 --> NG
-    D["DOC-DRIFT — the adapters module doc src/adapters/mod.rs:8-15 lists seven<br/>modules as still in webxr, resolved in Phase A3. They are still there<br/>at this commit, so Phase A3 has not landed. ADR-2005 partial."]
-    NG --- D
-    N9["GPU internals behind these adapter slots see VC-10<br/>the dev build feature set is gpu,ontology,dev-auth — see VC-08"]
-    G --- N9
-```
-
 ## VC-07.12 `visionclaw-contracts` — the cross-boundary DTO crate and its actual blast radius
 ```mermaid
 flowchart TB
@@ -450,4 +353,23 @@ flowchart TB
     N1 --- N4
     N2 --- N4
     N3 --- N4
+    IND["visionclaw-contracts is independently buildable —<br/>cargo build --manifest-path crates/visionclaw-contracts/Cargo.toml"]
+    LIB --- IND
+```
+
+## VC-07.13 CorpusSource — the ADR-2114 ingest port
+```mermaid
+flowchart TB
+    T["trait CorpusSource — src/services/corpus_source/mod.rs:96<br/>describe, base_paths, list_pages, list_pages_under, fetch_page,<br/>vocabulary (default Ok(None))"]
+    T --> L["LocalDirectorySource — src/services/corpus_source/local.rs:42,194<br/>walks VAULT_ROOT (src/services/corpus_source/local.rs:14), default source"]
+    T --> G["GitHubSource — src/services/corpus_source/github.rs:15,47<br/>wraps EnhancedContentAPI, pre-existing remote pull"]
+    B["source_from_env_with_github — src/services/corpus_source/mod.rs:157<br/>selects by corpus_source_kind() (src/services/corpus_source/mod.rs:193)<br/>over CORPUS_SOURCE, defaulting to local when VAULT_ROOT is set"]
+    B --> T
+    AS["AppState::new — src/app_state.rs:577-580<br/>corpus_source = source_from_env_with_github(enhanced_content_api)<br/>GitHubSyncService::new(corpus_source, ...)"]
+    B --> AS
+    N1["INVARIANT — change_marker differs by source: SHA1 blob hash for<br/>GitHub, mtime:size on disk for local (src/services/corpus_source/mod.rs:139)<br/>— equal markers across two listings mean unchanged"]
+    L --- N1
+    G --- N1
+    N2["GitHubSyncService::new took EnhancedContentAPI directly before<br/>ADR-2114; the port now sits between it and the sync pipeline so<br/>parse -> dual graph -> Whelk reasoning runs unchanged over either source"]
+    AS --- N2
 ```

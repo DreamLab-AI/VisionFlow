@@ -10,7 +10,6 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/evaluator.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/parser.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/document.rs
-  - ../solid-pod-rs/crates/solid-pod-rs/src/wac/conditions.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/payment.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/client.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/issuer.rs
@@ -18,7 +17,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/origin.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/serializer.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
-verified_commit: 1d9da5270
+verified_commit: febdc8be24bdc8b148b78b43a35ae85ee863a72a
 ---
 
 ## SP-04.1 The write gate, end to end
@@ -318,81 +317,6 @@ flowchart TD
     IN -.-> N
 ```
 
-## SP-04.11 Access modes and the ACL document model
-
-```mermaid
-classDiagram
-    class AccessMode {
-        <<enum>>
-        Read  solid-pod-rs/src/wac/mod.rs:155
-        Write  solid-pod-rs/src/wac/mod.rs:156
-        Append  solid-pod-rs/src/wac/mod.rs:157
-        Control  solid-pod-rs/src/wac/mod.rs:158
-    }
-    class MethodMap {
-        GET and HEAD to Read  solid-pod-rs/src/wac/mod.rs:182
-        PUT DELETE PATCH to Write  solid-pod-rs/src/wac/mod.rs:183
-        POST to Append  solid-pod-rs/src/wac/mod.rs:184
-        anything else to Read  solid-pod-rs/src/wac/mod.rs:185
-    }
-    class AclDocument {
-        +graph Option~Vec~AclAuthorization~~  solid-pod-rs/src/wac/document.rs:13
-        +inherited bool
-    }
-    class AclAuthorization {
-        +access_to  solid-pod-rs/src/wac/document.rs:35
-        +default
-        +agent / agentClass / agentGroup
-        +mode
-        +condition
-    }
-    class IdOrIds {
-        <<enum>>
-        solid-pod-rs/src/wac/document.rs:88
-    }
-    AccessMode <.. MethodMap
-    AclDocument *-- AclAuthorization
-    AclAuthorization ..> IdOrIds
-    note for MethodMap "method_to_mode (solid-pod-rs/src/wac/mod.rs:180) maps an UNKNOWN verb to\nRead, the least-privileged mode — fail closed, never to Write."
-```
-
-## SP-04.12 The condition registry
-
-```mermaid
-classDiagram
-    class Condition {
-        <<enum>>
-        Client(ClientConditionBody)  solid-pod-rs/src/wac/conditions.rs:50
-        Issuer(IssuerConditionBody)  solid-pod-rs/src/wac/conditions.rs:53
-        Payment(PaymentConditionBody)  solid-pod-rs/src/wac/conditions.rs:56
-        ProvenanceAnchor(body)  solid-pod-rs/src/wac/conditions.rs:61
-        Unknown with type_iri preserved  solid-pod-rs/src/wac/conditions.rs:66
-    }
-    class ConditionOutcome {
-        <<enum>>
-        solid-pod-rs/src/wac/conditions.rs:30
-    }
-    class ConditionRegistry {
-        +with_client  solid-pod-rs/src/wac/conditions.rs:265
-        +with_issuer  solid-pod-rs/src/wac/conditions.rs:271
-        +with_payment  solid-pod-rs/src/wac/conditions.rs:277
-        +with_provenance_anchor  solid-pod-rs/src/wac/conditions.rs:286
-        +default_with_client_and_issuer  solid-pod-rs/src/wac/conditions.rs:293
-        +supported_iris  solid-pod-rs/src/wac/conditions.rs:304
-    }
-    class RequestContext {
-        +web_id / client_id / issuer / payment_balance_sats  solid-pod-rs/src/wac/conditions.rs:215
-    }
-    class EmptyDispatcher {
-        solid-pod-rs/src/wac/conditions.rs:355
-    }
-    ConditionRegistry ..> Condition
-    ConditionRegistry ..> ConditionOutcome
-    ConditionRegistry ..> RequestContext
-    ConditionOutcome <.. EmptyDispatcher
-    note for Condition "validate_for_write (solid-pod-rs/src/wac/conditions.rs:382) and\nvalidate_acl_document (:411) reject an ACL carrying an Unknown condition at\nWRITE time, so an unrecognised gate can never be stored and then ignored."
-```
-
 ## SP-04.13 Payment, client, issuer and provenance-anchor conditions
 
 ```mermaid
@@ -442,4 +366,46 @@ flowchart LR
     CH -.-> N
     N2["A policy FAILURE is a different shape: Invalid gives 403 'governing ACL is<br/>invalid', Unavailable gives 503 'access control unavailable'.<br/>solid-pod-rs-server/src/lib.rs:1957"]
     IN -.-> N2
+```
+
+## SP-04.15 Agent and group matching, and accessTo-vs-default containment
+
+```mermaid
+flowchart TD
+    AM["agent_matches_with_groups(auth, agent_uri, groups)<br/>solid-pod-rs/src/wac/evaluator.rs:116"]
+    WEBID["exact WebID present in acl:agent?<br/>solid-pod-rs/src/wac/evaluator.rs:120"]
+    FOAF["agentClass foaf:Agent -> match, even agent_uri None<br/>solid-pod-rs/src/wac/evaluator.rs:128"]
+    AUTHC["agentClass acl:AuthenticatedAgent -> match only if agent_uri Some<br/>solid-pod-rs/src/wac/evaluator.rs:132"]
+    GRP["agentGroup: groups.is_member(group_iri, uri)<br/>solid-pod-rs/src/wac/evaluator.rs:139"]
+    NM["no clause matched -> false"]
+    TRAIT["GroupMembership trait — is_member(group_iri, agent_uri)<br/>solid-pod-rs/src/wac/evaluator.rs:23"]
+    NOOP["NoGroupMembership — always false, the server default<br/>solid-pod-rs/src/wac/evaluator.rs:28"]
+    STATIC["StaticGroupMembership — HashMap of group to WebIDs, used by tests<br/>and pods that resolve group documents eagerly<br/>solid-pod-rs/src/wac/evaluator.rs:38"]
+
+    AM --> WEBID
+    WEBID -- yes --> GRANT["agent matches"]
+    WEBID -- no --> FOAF
+    FOAF -- yes --> GRANT
+    FOAF -- no --> AUTHC
+    AUTHC -- yes --> GRANT
+    AUTHC -- no --> GRP
+    GRP --> TRAIT
+    TRAIT -.-> NOOP
+    TRAIT -.-> STATIC
+    GRP -- yes --> GRANT
+    GRP -- no --> NM
+
+    PM["path_matches(rule_path, resource_path, is_default)<br/>solid-pod-rs/src/wac/evaluator.rs:79"]
+    EXACT["resource == rule -> true<br/>solid-pod-rs/src/wac/evaluator.rs:82"]
+    ACCTO["accessTo (is_default false): exact match OR exactly ONE path segment<br/>below the rule — never a deeper descendant<br/>solid-pod-rs/src/wac/evaluator.rs:90"]
+    DFLT["default (is_default true): any descendant at any depth<br/>solid-pod-rs/src/wac/evaluator.rs:102"]
+
+    PM --> EXACT
+    EXACT -- no --> ACCTO
+    EXACT -- no --> DFLT
+
+    N1["INVARIANT: an unwired GroupMembership resolver (NoGroupMembership) makes<br/>every acl:agentGroup clause deny silently — a server that forgets to pass<br/>a real resolver into evaluate_access_ctx_with_registry loses group grants<br/>without any error."]
+    NOOP -.-> N1
+    N2["WAC 4.2: acl:accessTo on a container reaches its direct children only;<br/>acl:default is the sole recursive form. Conflating the two would leak an<br/>accessTo grant to every descendant. See SP-04.7 for how this feeds the<br/>inherited/honour_access_to gate."]
+    ACCTO -.-> N2
 ```

@@ -20,8 +20,6 @@ sources:
   - ../project/src/services/semantic_analyzer.rs
   - ../project/src/services/semantic_type_registry.rs
   - ../project/src/services/edge_classifier.rs
-  - ../project/src/services/ontology_content_analyzer.rs
-  - ../project/crates/visionclaw-ontology/src/services/ontology_content_analyzer.rs
   - ../project/src/actors/semantic_processor_actor.rs
   - ../project/src/actors/messages/physics_messages.rs
   - ../project/src/actors/messages/analytics_messages.rs
@@ -36,12 +34,11 @@ sources:
   - ../project/src/ports/knowledge_graph_repository.rs
   - ../project/src/services/github_sync_service.rs
   - ../project/src/services/liveness_harness.rs
-  - ../project/src/services/local_file_sync_service.rs
   - ../project/src/services/management_api_client.rs
   - ../project/src/services/nostr_bead_publisher.rs
   - ../project/src/services/ontology_enrichment_service.rs
   - ../project/src/services/schema_service.rs
-verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
 ---
 
 ## VC-25.1 Insight loop trace assembly (REC-10, compute-on-read)
@@ -51,15 +48,15 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant H as insight_loop_handler<br/>src/handlers/insight_loop_handler.rs:53
-    participant R as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs:647
+    participant R as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs:841
     participant L as insight_loop::summarise<br/>src/services/insight_loop.rs:209
     participant B as insight_loop::build_trace<br/>src/services/insight_loop.rs:103
     participant LH as LivenessHarness<br/>src/services/liveness_harness.rs
 
     Note over H,B: DIVERGENCE: no tokio::time::interval scheduler exists for this loop -<br/>every stage is computed fresh on each GET (compute-on-read), not a periodic job
     C->>H: GET /api/insight-loop/trace?limit=
-    H->>R: loop_traces(limit) - SELECT p JOIN d ON MAX(decided_at_ms)<br/>src/adapters/sqlite_enrichment_repository.rs:647-676
-    R-->>H: Vec~LoopTraceRow~<br/>src/adapters/sqlite_enrichment_repository.rs:221
+    H->>R: loop_traces(limit) - SELECT p JOIN d ON MAX(decided_at_ms)<br/>src/adapters/sqlite_enrichment_repository.rs:841-858
+    R-->>H: Vec~LoopTraceRow~<br/>src/adapters/sqlite_enrichment_repository.rs:276
     H->>L: summarise(rows)
     loop for each LoopTraceRow in rows
         L->>B: build_trace(row)
@@ -95,14 +92,14 @@ sequenceDiagram
     participant Cfg as configure_routes<br/>src/handlers/insight_loop_handler.rs:89
     participant T as traces<br/>src/handlers/insight_loop_handler.rs:53
     participant TC as trace_by_case<br/>src/handlers/insight_loop_handler.rs:68
-    participant R as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs:766
+    participant R as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs:876
 
     Note over Cfg: scope /insight-loop mounted under /api - src/handlers/insight_loop_handler.rs:89-94
     C->>T: GET /insight-loop/trace?limit=N
     Note right of T: limit.clamp(1, MAX_LIMIT=1000), default DEFAULT_LIMIT=100<br/>src/handlers/insight_loop_handler.rs:25-26,54
     T-->>C: 200 InsightLoopSummary
     C->>TC: GET /insight-loop/trace/{case_id}
-    TC->>R: loop_trace_for(case_id)<br/>src/adapters/sqlite_enrichment_repository.rs:766
+    TC->>R: loop_trace_for(case_id)<br/>src/adapters/sqlite_enrichment_repository.rs:876
     alt Ok(Some(row))
         R-->>TC: LoopTraceRow
         TC-->>C: 200 InsightLoopTrace
@@ -188,51 +185,6 @@ sequenceDiagram
     else Err(e)
         Lin-->>C: 500 {error: e}
     end
-```
-
-## VC-25.5 KPI SQLite schema (kpi.sqlite3)
-
-```mermaid
-erDiagram
-    kpi_agent_events {
-        INTEGER id PK
-        INTEGER event_id
-        INTEGER source_agent_id
-        INTEGER action_type
-        INTEGER observed_at_ms
-        TEXT agent_did
-        TEXT action_type_name
-        TEXT source_urn
-        TEXT target_urn
-        TEXT handoff_id
-        INTEGER token_count
-        TEXT verification
-    }
-    kpi_snapshots {
-        INTEGER id PK
-        TEXT kpi
-        REAL value
-        REAL confidence
-        REAL numerator
-        REAL denominator
-        INTEGER sample_count
-        INTEGER window_start_ms
-        INTEGER window_end_ms
-        INTEGER computed_at_ms
-        TEXT sha
-    }
-    kpi_lineage {
-        INTEGER id PK
-        INTEGER snapshot_id FK
-        TEXT source_kind
-        TEXT source_ref
-        REAL contribution
-    }
-    schema_migrations {
-        TEXT id PK
-        INTEGER applied_at
-    }
-    kpi_snapshots ||--o{ kpi_lineage : "DERIVED_FROM (snapshot_id)"
 ```
 
 ## VC-25.6 Briefing service and handler (submit + debrief)
@@ -394,12 +346,16 @@ sequenceDiagram
 
 ## VC-25.9 semantic_analyzer feature extraction + semantic_type_registry lookup/register
 
+ADR-2114 unified corpus reads (local vault + GitHub via one `CorpusSource`) so `relation_edges` now
+takes a `ParsedPage` and vault-core `Vocabulary` rather than JSON-LD; the registry lookup pattern is
+otherwise unchanged. `SemanticAnalyzer` is a separate, unrelated caller shown for the same actor.
+
 ```mermaid
 sequenceDiagram
     autonumber
     participant SPA as SemanticProcessorActor::process_metadata_blocking<br/>src/actors/semantic_processor_actor.rs:260
     participant SA as SemanticAnalyzer::analyze_metadata<br/>src/services/semantic_analyzer.rs:261
-    participant GS as github_sync_service<br/>src/services/github_sync_service.rs:2017
+    participant GS as GitHubSyncService::relation_edges<br/>src/services/github_sync_service.rs:1816
     participant REG as SemanticTypeRegistry<br/>src/services/semantic_type_registry.rs:90
 
     SPA->>SA: analyze_metadata(metadata)
@@ -413,7 +369,8 @@ sequenceDiagram
     end
     Note over SA: compute_similarity weights: topic 0.4 + domain 0.2 + file_type 0.1 + depth 0.1 + temporal 0.1 + importance 0.1<br/>src/services/semantic_analyzer.rs:545-580
 
-    GS->>REG: get_or_register_id(edge_type)<br/>src/services/semantic_type_registry.rs:625
+    Note over GS: one typed edge per vocab.relations key whose ParsedPage frontmatter has<br/>a wikilink target — an unmapped edge-type predicate is skipped, not defaulted<br/>src/services/github_sync_service.rs:1826-1836
+    GS->>REG: get_or_register_id(edge_type)<br/>src/services/semantic_type_registry.rs:625,src/services/github_sync_service.rs:1837
     REG->>REG: get_id(uri) - read_uri_map lookup<br/>src/services/semantic_type_registry.rs:619-621
     alt uri already registered
         REG-->>GS: existing id
@@ -422,7 +379,7 @@ sequenceDiagram
         REG->>REG: register_internal(uri, config) - assign next_id, push uri/config<br/>src/services/semantic_type_registry.rs:585
         REG-->>GS: new id
     end
-    GS->>REG: get_config(reg_id) - strength*2.0 normalised to spring weight<br/>src/services/semantic_type_registry.rs:635,src/services/github_sync_service.rs:2020-2022
+    GS->>REG: get_config(reg_id) - strength*2.0 normalised to spring weight<br/>src/services/semantic_type_registry.rs:635,src/services/github_sync_service.rs:1839-1840
     Note over REG: version() = next_id atomic counter, used for hot-reload detection<br/>src/services/semantic_type_registry.rs:679
 ```
 
@@ -449,35 +406,6 @@ flowchart TD
     ReturnNone --> Caller
 ```
 
-## VC-25.11 ontology_content_analyzer content analysis
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant LFS as LocalFileSyncService::process_file_content<br/>src/services/local_file_sync_service.rs:414
-    participant OCA as OntologyContentAnalyzer::analyze_content<br/>crates/visionclaw-ontology/src/services/ontology_content_analyzer.rs:80
-    participant Shim as src/services/ontology_content_analyzer.rs<br/>../project/src/services/ontology_content_analyzer.rs:2
-
-    Note over Shim: shim re-exports visionclaw_ontology::services::ontology_content_analyzer::* (ADR-090 Phase A4, not in docs/adr/)<br/>../project/src/services/ontology_content_analyzer.rs:1-2
-    alt ontology_cache hit for (file_name, content_sha)
-        LFS->>LFS: use cached analysis + metadata - stats.cache_hits+=1<br/>src/services/local_file_sync_service.rs:423-434
-    else cache miss
-        LFS->>OCA: analyze_content(content, file_name)
-        OCA->>OCA: has_public_flag = first 20 lines match "public:: true"<br/>crates/visionclaw-ontology/src/services/ontology_content_analyzer.rs:84-87
-        OCA->>OCA: has_ontology_block = contains "### OntologyBlock"<br/>crates/visionclaw-ontology/src/services/ontology_content_analyzer.rs:123-125
-        OCA->>OCA: extract_term_ids via TERM_ID_PATTERN regex<br/>crates/visionclaw-ontology/src/services/ontology_content_analyzer.rs:143-148
-        OCA->>OCA: detect_source_domain(term_ids) - majority DOMAIN_PREFIXES match (AI-,BC-,MV-,QC-,...)<br/>crates/visionclaw-ontology/src/services/ontology_content_analyzer.rs:151
-        OCA->>OCA: extract_topics via TOPIC_PATTERN "topic:: [[x]]"<br/>crates/visionclaw-ontology/src/services/ontology_content_analyzer.rs:177
-        alt has_ontology_block
-            OCA->>OCA: extract_ontology_section then count_classes/count_properties/count_relationships<br/>crates/visionclaw-ontology/src/services/ontology_content_analyzer.rs:100-104,206-218
-        else no ontology block
-            OCA->>OCA: class_count/property_count/relationship_count stay 0 (ContentAnalysis::default)
-        end
-        OCA-->>LFS: ContentAnalysis{has_public_flag, has_ontology_block, source_domain, topics, counts}
-        LFS->>LFS: stats.cache_misses+=1, build OntologyFileMetadata<br/>src/services/local_file_sync_service.rs:424,437-444
-    end
-```
-
 ## VC-25.12 MetadataActor message handling
 
 ```mermaid
@@ -486,7 +414,7 @@ sequenceDiagram
     participant Caller as AppState / handler
     participant MA as MetadataActor<br/>src/actors/metadata_actor.rs:23
 
-    Note over MA: replaces Arc<RwLock<MetadataStore>> - started at src/app_state.rs:807 (BASELINE-architecture.md "Actor system topology")
+    Note over MA: replaces Arc<RwLock<MetadataStore>> - started at src/app_state.rs:808 (BASELINE-architecture.md "Actor system topology")
     Caller->>MA: GetMetadata<br/>crates/visionclaw-actors/src/messages/graph_messages.rs:212
     MA-->>Caller: Ok(MetadataStore clone)<br/>src/actors/metadata_actor.rs:58-64
     Caller->>MA: UpdateMetadata{metadata}<br/>crates/visionclaw-actors/src/messages/graph_messages.rs:216
@@ -501,28 +429,28 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Boot as AppState::new (startup)
-    participant FS as FileService::load_graph_from_files<br/>src/services/file_service.rs:1170
+    participant FS as FileService::load_graph_from_files<br/>src/services/file_service.rs:1147
     participant Repo as KnowledgeGraphRepository (Oxigraph)<br/>src/ports/knowledge_graph_repository.rs
     participant GSS as GraphSerializationService::export_graph<br/>src/services/graph_serialization.rs:29
 
     Boot->>FS: load_graph_from_files(graph_repo)
-    FS->>Repo: load_graph() - idempotency guard (ADR-2004, not in docs/adr/ ledger)<br/>src/services/file_service.rs:1177
+    FS->>Repo: load_graph() - idempotency guard (ADR-2004, not in docs/adr/ ledger)<br/>src/services/file_service.rs:1153
     alt existing.nodes not empty
         Repo-->>FS: existing graph populated
-        FS-->>Boot: Ok(()) - skip local-file seed, GitHub sync is authoritative<br/>src/services/file_service.rs:1178-1185
+        FS-->>Boot: Ok(()) - skip local-file seed, GitHub sync is authoritative<br/>src/services/file_service.rs:1154-1160
     else store empty or query failed
-        FS->>FS: load_or_create_metadata()<br/>src/services/file_service.rs:1198
+        FS->>FS: load_or_create_metadata()<br/>src/services/file_service.rs:1173
         alt metadata.is_empty()
-            FS-->>Boot: Ok(()) - warn "no data to load", nothing seeded<br/>src/services/file_service.rs:1199-1202
+            FS-->>Boot: Ok(()) - warn "no data to load", nothing seeded<br/>src/services/file_service.rs:1174-1176
         else metadata present
-            FS->>FS: Phase 1 - build AppNode per file, classify ontology_node vs page via owl_class_iri<br/>src/services/file_service.rs:1215-1248
-            FS->>FS: Phase 2 - wikilink regex extracts AppEdge set, dedup via seen_edges<br/>src/services/file_service.rs:1256-1271
-            FS->>Repo: save_graph(&graph_data)<br/>src/services/file_service.rs:1291
+            FS->>FS: Phase 1 - build AppNode per file, classify ontology_node vs page via owl_class_iri<br/>src/services/file_service.rs:1181-1233
+            FS->>FS: Phase 2 - wikilink regex extracts AppEdge set, dedup via seen_edges<br/>src/services/file_service.rs:1238-1249
+            FS->>Repo: save_graph(&graph_data)<br/>src/services/file_service.rs:1271
             FS-->>Boot: Ok(())
         end
     end
 
-    Note over FS: RESOLVED ADR-2065: src/services/empty_graph_check.rs (check_empty_graph) had zero call sites<br/>and has been deleted - the only live empty-graph guard is the idempotency check at file_service.rs:1177
+    Note over FS: RESOLVED ADR-2065: src/services/empty_graph_check.rs (check_empty_graph) had zero call sites<br/>and has been deleted - the only live empty-graph guard is the idempotency check at file_service.rs:1153
 
     Note over GSS: distinct empty-graph handling path - export_graph has no explicit empty check,<br/>writes whatever GraphData it is given (src/services/graph_serialization.rs:29-79)
     Boot->>GSS: export_graph(graph, request)

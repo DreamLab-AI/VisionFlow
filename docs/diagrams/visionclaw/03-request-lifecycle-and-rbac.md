@@ -39,7 +39,7 @@ sources:
   - ../project/src/uri/mod.rs
   - ../project/src/config/security_profile.rs
   - ../project/crates/visionclaw-domain/src/utils/visibility_filter.rs
-verified_commit: f223bbd40
+verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
 ---
 
 ## VC-03.1 REST request end-to-end — nginx to handler, real middleware order
@@ -48,29 +48,32 @@ sequenceDiagram
     autonumber
     participant NG as nginx (port 3001)
     participant AC as actix HttpServer<br/>src/main.rs:938-1218
-    participant LG as Logger<br/>wrap #1 src/main.rs:1014
-    participant CO as cors<br/>wrap #2 src/main.rs:1015
-    participant CP as Compress<br/>wrap #3 src/main.rs:1016
-    participant TO as TimeoutMiddleware<br/>wrap #4 src/main.rs:1017
-    participant SC as scope /api<br/>src/main.rs:1089
-    participant PD as PublicDemoGuard::from_env<br/>src/main.rs:1093
-    participant RG as RbacGate::from_env<br/>src/main.rs:1100
-    participant RL as RateLimit::per_minute 60<br/>src/main.rs:1107 (scope /api/settings only)
+    participant LG as Logger<br/>wrap #1 src/main.rs:1019
+    participant CO as cors<br/>wrap #2 src/main.rs:1020
+    participant CP as Compress<br/>wrap #3 src/main.rs:1021
+    participant TO as TimeoutMiddleware<br/>wrap #4 src/main.rs:1022
+    participant SC as scope /api<br/>src/main.rs:1094
+    participant PD as PublicDemoGuard::from_env<br/>src/main.rs:1098
+    participant RG as RbacGate::from_env<br/>src/main.rs:1105
+    participant RL as RateLimit::per_minute 60<br/>src/main.rs:1112 (scope /api/settings only)
     participant H as route handler
 
     Note over LG,RG: actix applies .wrap() in REVERSE registration order at request time<br/>last .wrap() call = outermost layer that sees the request first
-    Note over LG,TO: registration order in main.rs is Logger,cors,Compress,TimeoutMiddleware (src/main.rs:1014-1017)<br/>so the REAL request-time order is TimeoutMiddleware,Compress,cors,Logger,then routing
+    Note over LG,TO: registration order in main.rs is Logger,cors,Compress,TimeoutMiddleware (src/main.rs:1019-1022)<br/>so the REAL request-time order is TimeoutMiddleware,Compress,cors,Logger,then routing
     NG->>AC: HTTP request
     AC->>TO: enter (outermost of the four)
-    TO->>TO: get_timeout(path) — default 30s, override 600s for "/api/admin/sync" (src/main.rs:1018)
+    TO->>TO: get_timeout(path) — default 30s, override 600s for "/api/admin/sync" (src/main.rs:1024)
+    Note over TO: TimeoutConfig::new(30s).with_override(...) constructed src/main.rs:1023-1024 —<br/>get_timeout (timeout.rs:37-41) looks up an exact-path HashMap (endpoint_overrides) —<br/>no prefix/glob matching, so only "/api/admin/sync" itself gets 600s
+    Note over LG,TO: ValidationMiddleware (src/middleware/validation.rs:124) is defined and unit-tested<br/>(content-length cap, JSON content-type check) but NOT in this .wrap() chain — grep across<br/>src/main.rs finds no .wrap(ValidateInput::...) call. Limits it would enforce if wired:<br/>MAX_REQUEST_SIZE 1MiB (validation.rs:22, default), MAX_ONTOLOGY_SIZE 10MiB (:19),<br/>MAX_STRING_LENGTH 100KiB (:25)
     TO->>CP: enter
     CP->>CO: enter
     CO->>LG: enter
     LG->>SC: enter /api scope
     rect rgb(225,225,245)
     SC->>PD: wrap #1 on scope (outermost of the two /api wraps)
+    Note over PD: PublicDemoGuard::from_env() reads PUBLIC_DEMO ONCE at app start<br/>(public_demo.rs:49-53) — not re-read per request, so toggling the env var at<br/>runtime has no effect until restart. Truthy tokens (trim+lowercase):<br/>"read-only","readonly","1","true","on" (:26-31). DEFAULT OFF — unset means inert<br/>passthrough (:11-12)
     alt PUBLIC_DEMO read-only AND method not GET/HEAD/OPTIONS
-        PD-->>NG: 403 read_only_demo (see VC-03.10)
+        PD-->>NG: 403 read_only_demo
     end
     PD->>RG: wrap #2 on scope
     alt required_level present (not public route)
@@ -93,7 +96,7 @@ sequenceDiagram
     participant WS as socket_flow_handler<br/>src/handlers/socket_flow_handler/http_handler.rs
     participant NS as NostrService::get_session<br/>src/services/nostr_service.rs:587
 
-    Note over WS: routes registered src/main.rs:1074-1082 — /wss, /wss/agent-events,<br/>/ws/speech, /ws/mcp-relay, /ws/client-messages, /ws/presence
+    Note over WS: routes registered src/main.rs:1079-1087 — /wss, /wss/agent-events,<br/>/ws/speech, /ws/mcp-relay, /ws/client-messages, /ws/presence
     C->>WS: GET /wss (Upgrade: websocket)
     WS->>WS: require Upgrade header (http_handler.rs:318)
     alt Origin header present
@@ -412,7 +415,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant WS as SocketFlowServer position tick<br/>src/handlers/socket_flow_handler/position_updates.rs
-    participant EF as pubkey_visibility_filter_enabled<br/>position_updates.rs:50 (OnceLock, cached first call)
+    participant EF as pubkey_visibility_filter_enabled<br/>position_updates.rs:56 (OnceLock, cached first call)
     participant VF as compute_private_opaque_ids / apply_drop_set<br/>visionclaw_domain::utils::visibility_filter
 
     Note over EF: parse_visibility_flag (:34-43) — default ON — only explicit<br/>"0"/"false"/"off"/"no" (case-insensitive, trimmed) disables.<br/>NOTE: env is read ONCE via OnceLock and cached for process lifetime (:50-58) —<br/>toggling PUBKEY_VISIBILITY_FILTER at runtime after first call has NO effect.
@@ -422,9 +425,9 @@ sequenceDiagram
             WS->>VF: compute_private_opaque_ids(visibility, act.pubkey.as_deref())
             Note over VF: fail-closed — act.pubkey==None (unauthenticated session) drops ALL private nodes
             VF-->>WS: drop_set
-            WS->>VF: apply_drop_set(&mut nodes, &drop_set) (position_updates.rs:413)
+            WS->>VF: apply_drop_set(&mut nodes, &drop_set) (position_updates.rs:745)
             VF-->>WS: dropped_count
-            WS->>WS: debug! "{dropped} dropped by PUBKEY_VISIBILITY_FILTER" (position_updates.rs:751)
+            WS->>WS: debug! "{dropped} dropped by PUBKEY_VISIBILITY_FILTER" (position_updates.rs:747-753)
         end
     else disabled
         WS->>WS: no filtering — full node set (incl. private) sent to every client
@@ -432,25 +435,6 @@ sequenceDiagram
     WS-->>WS: single full-state frame per tick, binary positions
     Note over WS: DIVERGENCE — default flipped ON 2026-08-31 — the drop-set encoder<br/>(visibility_filter.rs) existed before this rebuild but was inert (never called<br/>from the position-tick path). See docs/IDENTITY-authority-chain.md divergence bullet.
     Note over WS: src/actors/client_filter.rs::recompute_filtered_nodes is a DIFFERENT filter —<br/>quality/authority-threshold + linked_page inclusion, NOT pubkey ownership.<br/>It does not implement PUBKEY_VISIBILITY_FILTER — position_updates.rs is the real site.
-```
-
-## VC-03.10 `PublicDemoGuard` — read-only demo mode
-```mermaid
-sequenceDiagram
-    autonumber
-    participant R as request (wrapped /api scope)
-    participant PD as PublicDemoGuardService::call<br/>src/middleware/public_demo.rs:98
-    participant ENV as PUBLIC_DEMO env<br/>const PUBLIC_DEMO_ENV, public_demo.rs:24
-
-    Note over PD: read ONCE at PublicDemoGuard::from_env() (app start, :49-53) — not re-read per request
-    PD->>ENV: public_demo_read_only() at construction
-    Note over ENV: truthy tokens (trim+lowercase): "read-only","readonly","1","true","on" (:26-31)
-    alt enabled AND method NOT IN GET/HEAD/OPTIONS
-        PD-->>R: 403 {"error":"read_only_demo","message":"...mutating requests are disabled."} (:100-108)
-    else enabled AND safe method, or disabled entirely
-        PD->>R: pass through unchanged
-    end
-    Note over PD: DEFAULT OFF — with PUBLIC_DEMO unset the middleware is fully inert (:11-12)
 ```
 
 ## VC-03.11 Dev bypass triple gate (ADR-2012 / ADR-2039) — nested conditions
@@ -513,48 +497,7 @@ sequenceDiagram
     else allowed
         RL->>R: service.call(req)
     end
-    Note over RL: applied at src/main.rs:1107 as RateLimit::per_minute(60) on the /api/settings<br/>scope only (rate_limit.rs:169) — 60 requests / 60s window, keyed by realip (use_user_id off by default)
-```
-
-## VC-03.13 `TimeoutMiddleware` — default 30s, per-path override
-```mermaid
-sequenceDiagram
-    autonumber
-    participant R as request
-    participant TO as TimeoutMiddlewareService::call<br/>src/middleware/timeout.rs:110
-    participant SVC as inner service chain
-
-    TO->>TO: timeout_duration = config.get_timeout(path) (:37-41)
-    Note over TO: TimeoutConfig::new(Duration::from_secs(30)).with_override("/api/admin/sync", 600s)<br/>constructed at src/main.rs:1017 — endpoint_overrides is an exact-path HashMap match
-    TO->>SVC: tokio::time::timeout(timeout_duration, service.call(req))
-    alt completes within timeout_duration
-        SVC-->>TO: Ok(result)
-        TO-->>R: result (success or handler error passed through)
-    else exceeds timeout_duration
-        TO->>TO: error! "Request to {path} timed out after {ms}ms" (:120-124)
-        TO-->>R: 504 ErrorGatewayTimeout (:126-129)
-    end
-```
-
-## VC-03.14 `validation` middleware — content-length and injection helpers
-```mermaid
-sequenceDiagram
-    autonumber
-    participant R as request
-    participant VM as ValidationMiddleware::call<br/>src/middleware/validation.rs:124
-    participant VAL as validators module<br/>src/middleware/validation.rs:166
-
-    VM->>VM: read Content-Length header
-    alt length > config.max_content_length
-        VM-->>R: 413 PayloadTooLarge "Payload too large. Max size: {n} bytes" (:132-142)
-    end
-    opt config.validate_json AND Content-Type contains "application/json"
-        VM->>VM: debug! "Validated JSON content-type" (:149-152) — no further parsing done here
-    end
-    VM->>R: service.call(req)
-    Note over VAL: validators::{validate_iri, validate_url, validate_string_length,<br/>check_sql_injection, validate_enum, validate_range} (:183-283) — free functions<br/>callable from handlers, NOT invoked automatically by ValidationMiddleware
-    Note over VM: MAX_ONTOLOGY_SIZE=10MiB (:18), MAX_REQUEST_SIZE=1MiB (:21, ValidationConfig::default),<br/>MAX_STRING_LENGTH=100KiB (:24). ValidateInput::for_ontology() sets 10MiB + check_injection=false.
-    Note over VM: DOC-DRIFT / dead-code — grep across src/main.rs and every handler configure() finds<br/>no .wrap(ValidateInput::...) call anywhere — this middleware is defined and unit-tested<br/>(validation.rs:284-323) but is NOT wired into the actix App chain in this commit.
+    Note over RL: applied at src/main.rs:1112 as RateLimit::per_minute(60) on the /api/settings<br/>scope only (rate_limit.rs:169) — 60 requests / 60s window, keyed by realip (use_user_id off by default)
 ```
 
 ## VC-03.15 Identity authority chain end-to-end — Nostr key to role

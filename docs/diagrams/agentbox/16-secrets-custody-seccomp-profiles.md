@@ -21,7 +21,7 @@ sources:
   - ../project/scripts/backup-secrets.sh
   - ../project/agentbox/services/secret-backup/src/main.rs
   - ../project/agentbox/services/secret-backup/README.md
-verified_commit: {agentbox: 1639f86ab, visionclaw: f223bbd40}
+verified_commit: {agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
 ---
 
 ## AB-16.1 Container hardening posture — what actually confines the box
@@ -29,23 +29,25 @@ verified_commit: {agentbox: 1639f86ab, visionclaw: f223bbd40}
 ```mermaid
 flowchart TB
     subgraph HOST["docker host"]
-        CMP["docker-compose.yml:107-162"]
+        CMP["docker-compose.yml:88-166"]
     end
     subgraph CTR["agentbox container"]
         SUP["supervisord PID 1 as ROOT<br/>required at boot for tmpfs subdirs, cert gen, chown to uid 1000"]
         PROG["every long-running program<br/>user=devuser uid 1000"]
     end
-    CMP -->|"read_only: true (compose:101)"| CTR
-    CMP -->|"cap_drop: ALL (compose:102)"| CTR
-    CMP -->|"cap_add: CHOWN FOWNER DAC_OVERRIDE AUDIT_WRITE KILL NET_ADMIN SETUID SETGID (compose:104-112)"| CTR
-    CMP -->|"security_opt: no-new-privileges:true (compose:142)"| CTR
-    CMP -->|"security_opt: seccomp=./config/seccomp-agentbox.json (compose:143)"| CTR
-    CMP -->|"tmpfs: /tmp 2G, /run 256M, /var/log 128M, ~/.cache 4G, /usr/local/bin 8M exec+suid … (reconciled to flake.nix 2026-09-05)"| CTR
+    CMP -->|"read_only: true (compose:94)"| CTR
+    CMP -->|"cap_drop: ALL (compose:95-96)"| CTR
+    CMP -->|"cap_add: CHOWN FOWNER DAC_OVERRIDE AUDIT_WRITE KILL SETUID SETGID NET_ADMIN (compose:97-104)"| CTR
+    CMP -->|"security_opt: no-new-privileges:true (compose:128)"| CTR
+    CMP -->|"security_opt: seccomp=./config/seccomp-agentbox.json (compose:129)"| CTR
+    CMP -->|"tmpfs: /tmp 8G, /run 256M, /var/log 128M, ~/.cache 4G, ~/.npm 4G, /usr/local/bin 8M exec+suid … (compose:107-126)"| CTR
+    CMP -->|"deploy.resources: cpus 56 / memory 256G / pids 32768 limits, nvidia GPU count all reservation (compose:154-166)"| CTR
     SUP -->|"setgroups + setuid demotion"| PROG
-    CMP -.-> N1["INVARIANT compose:91-99 R-005 / SEC-001 — no runtime sudo.<br/>Root-at-boot via supervisord PID 1 is the ONLY elevation.<br/>No agent-facing process runs as root after bootstrap."]
+    CMP -.-> N1["INVARIANT compose:88-93 — no runtime sudo.<br/>Root-at-boot via supervisord PID 1 is the ONLY elevation.<br/>No agent-facing process runs as root after bootstrap."]
     CMP -.-> N2["SETUID and SETGID are cap_add'ed for privilege DROPPING, not gaining.<br/>supervisord needs CAP_SETGID/CAP_SETUID to demote children to devuser.<br/>no-new-privileges:true neuters setuid FILE BITS at execve, which is a different axis and does not replace these caps."]
     CTR -.-> N3["DIVERGENCE — ADR-2007 governs configuration separation only.<br/>Profile isolation replaced Linux pseudo-user isolation, so profiles are NOT an OS boundary.<br/>SECURITY-profiles states this explicitly. Every profile shares uid 1000."]
     PROG -.-> N4["CONSEQUENCE — a same-uid boundary. Every supervised program, MCP server, skill and agent runs as devuser,<br/>so each can read every other's 0600 key file, the AoE daemon token and the mirror key. see AB-16.7"]
+    CMP -.-> N5["The GPU/CPU resource envelope (compose:154-166) is a scheduling ceiling,<br/>not a security boundary — it widens the pids limit and grants a whole GPU;<br/>the confinement posture is entirely the caps/read_only/seccomp lines above. see AB-06"]
 ```
 
 ## AB-16.2 The seccomp profile is a supplemental denylist, not a sandbox
@@ -126,34 +128,29 @@ sequenceDiagram
     participant EP as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh
     participant TS as trust-seed.cjs<br/>agentbox/config/hooks/trust-seed.cjs
     participant CFG as ~/.claude.json
-    participant SET as workspace .claude/settings.json
     participant CC as unattended claude sessions
+    participant OP as operator, post-boot worktree
 
     D->>SUP: PID 1 as root — tmpfs subdir creation, cert generation, chown runtime dirs to uid 1000
     SUP->>EP: run bootstrap
     rect rgb(255,248,235)
-    Note over EP,SET: trust pre-acceptance — entrypoint-unified.sh:1298-1317
-    EP->>TS: node /opt/agentbox/config/hooks/trust-seed.cjs (runs first, every boot)
-    EP->>SET: read settings.json hooks.SessionStart
-    alt a hook command already contains trust-seed.cjs
-        SET-->>EP: log "[trust] trust-seed hook already registered"
-    else not registered
-        EP->>SET: push {type command, command "<cmd> || true", timeout 8000, continueOnError true}
-        SET-->>EP: log "[trust] registered trust-seed SessionStart hook in settings.json"
-    end
+    Note over EP,TS: trust pre-acceptance, ONCE at boot — entrypoint-unified.sh:1379-1392
+    EP->>TS: node /opt/agentbox/config/hooks/trust-seed.cjs, gated on AGENTBOX_TRUST_SEED != 0 (entrypoint-unified.sh:1390-1391)
+    Note over EP: DRIFT (resolved) — trust-seed is deliberately NOT a SessionStart hook any more.<br/>entrypoint-unified.sh:1385-1387: the old registration walked ~1,170 paths (avg 3.2s) per session start<br/>and raced Claude Code's own writes to ~/.claude.json — hooks-reconcile prunes any stale registration.
     end
     TS->>TS: parseArgs — depth default 5, --dry-run, extra paths
     TS->>CFG: read ~/.claude.json projects.<abs path>
     loop workspace root plus every git checkout or worktree under it, bounded by depth
         TS->>CFG: mark trusted, SKIP node_modules target .tmp .cache .venv venv .git dist build
     end
-    Note over TS,CFG: INVARIANT trust-seed.cjs:13 — never removes or overwrites other per-project state. Idempotent, safe to run at any time.
+    Note over TS,CFG: INVARIANT trust-seed.cjs:14 — never removes or overwrites other per-project state. Idempotent, safe to run at any time.
     alt any error
-        TS-->>EP: one line to stderr then exit 0 — FAIL-OPEN so hooks and boot never stall
+        TS-->>EP: one line to stderr then exit 0 — FAIL-OPEN so hooks and boot never stall (trust-seed.cjs:106)
     end
     SUP->>CC: start every long-running program with user=devuser
-    CC-->>CC: no "Do you trust the files in this folder?" dialog
-    Note over TS,CC: rationale trust-seed.cjs:7 — observed 2026-09-02, ten Opus worker panes sat dead for an hour behind the trust gate.<br/>DIVERGENCE — this pre-accepts a SECURITY prompt for unattended agents. It is a deliberate availability-over-confirmation trade, not a hardening measure.
+    CC-->>CC: no "Do you trust the files in this folder?" dialog, for every checkout that existed at boot
+    OP->>TS: node /opt/agentbox/config/hooks/trust-seed.cjs <path> — manual, for a worktree made AFTER boot (entrypoint-unified.sh:1388)
+    Note over TS,CC: rationale trust-seed.cjs:19 — observed 2026-09-02, ten Opus worker panes sat dead for an hour behind the trust gate.<br/>DIVERGENCE — this pre-accepts a SECURITY prompt for unattended agents. It is a deliberate availability-over-confirmation trade, not a hardening measure.
 ```
 
 ## AB-16.5 Derived keys — HMAC-SHA256 domain separation
@@ -162,29 +159,29 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant ENV as operator key<br/>AGENTBOX_PRIVKEY_HEX or AGENTBOX_BRIDGE_SK or OPERATOR_NOSTR_PRIVKEY
-    participant GW as gateway.cjs<br/>agentbox/config/nostr-gateway/gateway.cjs:171-178
-    participant MIR as deriveChildKey<br/>agentbox/config/hooks/nostr-live-mirror.cjs:204
+    participant GW as gateway.cjs<br/>agentbox/config/nostr-gateway/gateway.cjs:184-194
+    participant MIR as deriveChildKey<br/>agentbox/config/hooks/nostr-live-mirror.cjs:210
     participant PHONE as operator phone (Amethyst)
     participant RELAY as relays
 
     rect rgb(235,245,255)
-    Note over ENV,GW: gateway identity — gateway.cjs:175-178
+    Note over ENV,GW: gateway identity — gateway.cjs:184-194
     GW->>ENV: envFirst(AGENTBOX_PRIVKEY_HEX, AGENTBOX_BRIDGE_SK, OPERATOR_NOSTR_PRIVKEY)
     alt not 64-hex
-        GW-->>GW: log "no operator key (AGENTBOX_PRIVKEY_HEX) — exiting" then process.exit(0)
+        GW-->>GW: log "no operator key (AGENTBOX_PRIVKEY_HEX) — exiting" then process.exit(0) (gateway.cjs:185)
         Note over GW: FAIL-CLOSED by exit — the gateway refuses to run keyless rather than degrading
     end
-    GW->>GW: adminPub = getPublicKey(rawSk) — the ONLY pubkey allowed to command
+    GW->>GW: adminPub = getPublicKey(rawSk) — the ONLY pubkey allowed to command (gateway.cjs:187,193)
     alt AGENTBOX_GATEWAY_IDENTITY === 'gateway'
-        GW->>GW: sk = HMAC-SHA256(operator_sk, AGENTBOX_GATEWAY_KEY_TAG or 'agentbox-gateway-v1')
+        GW->>GW: sk = HMAC-SHA256(operator_sk, AGENTBOX_GATEWAY_KEY_TAG or 'agentbox-gateway-v1') (gateway.cjs:190)
     else default 'operator'
-        GW->>GW: sk = rawSk — the gateway signs AS the operator
+        GW->>GW: sk = rawSk — the gateway signs AS the operator (gateway.cjs:191)
         Note over GW: DIVERGENCE — the DEFAULT identity is 'operator', so out of the box the gateway holds and signs with the ROOT operator key.<br/>The derived-child mode exists but is opt-in via env.
     end
-    GW->>RELAY: auth and receive as getPublicKey(sk), reply to AGENTBOX_GATEWAY_REPLY_TO or adminPub
+    GW->>RELAY: auth and receive as getPublicKey(sk), reply to AGENTBOX_GATEWAY_REPLY_TO or adminPub (gateway.cjs:194)
     end
     rect rgb(240,255,240)
-    Note over MIR,PHONE: mirror child key — nostr-live-mirror.cjs:209
+    Note over MIR,PHONE: mirror child key — nostr-live-mirror.cjs:210
     MIR->>MIR: cached in _childCache, computed once per process
     alt AGENTBOX_MIRROR_CHILD === '0'
         MIR-->>MIR: null — child mode off, LEGACY operator-self-DM path is used instead

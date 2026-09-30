@@ -26,6 +26,8 @@ sources:
   - ../project/src/handlers/enrichment_proposals_handler.rs
   - ../project/src/handlers/trace_handler.rs
   - ../project/src/services/github_sync_service.rs
+  - ../project/src/services/corpus_source/mod.rs
+  - ../project/src/services/corpus_source/local.rs
   - ../project/src/services/role_store.rs
   - ../project/src/middleware/rbac_gate.rs
   - ../project/src/main.rs
@@ -39,21 +41,21 @@ sources:
   - ../project/docker-compose.unified.yml
   - ../project/src/app_state.rs
   - ../project/src/services/ontology_mutation_service.rs
-verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2, agentbox: b7b1ab81a6ed0680bb10026e17935152a23e0c5e}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f}
 ---
 
 ## VC-22.1 Write-master per data class
 
 ```mermaid
 flowchart LR
-    AuthContent["Authored content<br/>public: true / owl-class markdown"] --> GitHub["GitHub upstream<br/>src/services/github_sync_service.rs"]
-    GitHub -->|"rebuild_assert_graph:973 CLEAR+INSERT"| AssertGraph["GRAPH_ONTOLOGY :assert<br/>oxigraph_ontology_repository.rs:48"]
-    GitHub -->|"clear_graph:1226"| KnowledgeGraph["GRAPH_KNOWLEDGE<br/>oxigraph_ontology_repository.rs:50"]
+    AuthContent["Authored content<br/>public: true / owl-class markdown"] --> CorpusSrc["CorpusSource port (ADR-2114)<br/>local vault default (VAULT_ROOT set), GitHub opt-in<br/>corpus_source/mod.rs:193 corpus_source_kind<br/>github_sync_service.rs:1611 ingest"]
+    CorpusSrc -->|"github_sync_service.rs:999,1056 rebuild_assert_graph CLEAR+INSERT"| AssertGraph["GRAPH_ONTOLOGY :assert<br/>oxigraph_ontology_repository.rs:48"]
+    CorpusSrc -->|"oxigraph_graph_repository.rs:1226 clear_graph"| KnowledgeGraph["GRAPH_KNOWLEDGE<br/>oxigraph_ontology_repository.rs:50"]
 
     VisIntent["Visibility intent<br/>visibility + owner_pubkey"] --> SettingsDB["settings.sqlite3 settings table<br/>sqlite_settings_repository.rs:61-68"]
     SettingsDB -->|"projected by"| VisFilter["is_dropped_for<br/>visibility_filter.rs:67-77"]
 
-    AssertGraph -.->|"reasoner run: clear_inferred_graph:691"| InferredGraph["GRAPH_ONTOLOGY_INFERRED<br/>oxigraph_ontology_repository.rs:49 derived, never primary"]
+    AssertGraph -.->|"reasoner run: clear_inferred_graph:693"| InferredGraph["GRAPH_ONTOLOGY_INFERRED<br/>oxigraph_ontology_repository.rs:49 derived, never primary"]
 
     OpState["Operational state"] --> SqliteFour["4x SQLite WAL: settings/enrichment/kpi/liveness<br/>src/adapters/sqlite_*_repository.rs"]
 
@@ -63,15 +65,15 @@ flowchart LR
 
     AuditRBAC["Audit evidence RBAC/auth"] --> RoleTable["user_roles table in settings.sqlite3<br/>role_store.rs:46-52"]
 
-    Sessions["Session cache<br/>NostrService users map"] --> RedisGate{"redis feature AND REDIS_URL?<br/>Cargo.toml:253, nostr_service.rs:149"}
-    RedisGate -->|yes| Redis["Optional Redis session persistence<br/>SETEX with token-expiry TTL<br/>nostr_service.rs:255"]
-    RedisGate -->|no| Memory["In-memory sessions only<br/>nostr_service.rs:114"]
+    Sessions["Session cache<br/>NostrService users map"] --> RedisGate{"redis feature AND REDIS_URL?<br/>Cargo.toml:257, nostr_service.rs:149"}
+    RedisGate -->|yes| Redis["Optional Redis session persistence<br/>SETEX (set_ex) with token-expiry TTL<br/>nostr_service.rs:285"]
+    RedisGate -->|no| Memory["In-memory sessions only<br/>nostr_service.rs:162"]
     Redis -.->|"restore at initialisation"| Sessions
     RedisScope["Not enabled by default; deployment not verified<br/>ADR-2004 all-non-triple-state wording needs scope"] -.-> Redis
 
     Credentials["Credentials"] --> DotEnv[".env plaintext filesystem"]
 
-    DerivedWB["Derived write-back only<br/>append_derived_quads:728"] --> SummaryGraph["GRAPH_ONTOLOGY_SUMMARY<br/>oxigraph_ontology_repository.rs:63"]
+    DerivedWB["Derived write-back only<br/>append_derived_quads:730"] --> SummaryGraph["GRAPH_ONTOLOGY_SUMMARY<br/>oxigraph_ontology_repository.rs:63"]
     DerivedWB --> ObservedGraph["GRAPH_ONTOLOGY_OBSERVED<br/>oxigraph_ontology_repository.rs:64"]
 
     DivLegacy["DIVERGENCE: legacy ADRs assign primacy to Oxigraph 132 / Pod 050-052 / GitHub 051 / RuVector 030 / provenance 033-034-124-128<br/>code resolves as this matrix, legacy prose not reconciled<br/>docs/DATA-authority-erasure.md:97"]
@@ -184,7 +186,7 @@ erDiagram
         integer decided_at_ms
     }
 
-    ENRICHMENT_PROPOSALS ||--o{ ENRICHMENT_DECISIONS : "case_id (sqlite_enrichment_repository.rs:87)"
+    ENRICHMENT_PROPOSALS ||--o{ ENRICHMENT_DECISIONS : "case_id (sqlite_enrichment_repository.rs:96)"
     LIVENESS_CANARIES ||--o{ CANARY_FIRES : "canary_id (sqlite_canary_repository.rs:64)"
     KPI_SNAPSHOTS ||--o{ KPI_LINEAGE : "snapshot_id (sqlite_kpi_repository.rs:104)"
     SETTINGS ||--|| USER_ROLES : "same settings.sqlite3 connection (role_store.rs:5, app_state.rs:462-469)"
@@ -197,22 +199,22 @@ sequenceDiagram
     autonumber
     participant GB as GitBridge<br/>agentbox management-api/routes/git-bridge.js:733
     participant WBH as writeback handler<br/>src/handlers/ingest_writeback_handler.rs:75
-    participant APD as apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:370
-    participant REPO as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs:528
+    participant APD as apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:483
+    participant REPO as SqliteEnrichmentRepository::record_decision<br/>src/adapters/sqlite_enrichment_repository.rs:596
     participant ONTO as append_derived_quads<br/>oxigraph_ontology_repository.rs:730
 
     GB->>WBH: POST /api/ingest/writeback decision block (ingest_writeback_handler.rs:103)
     WBH->>WBH: attribution_pubkey approvedBy did:nostr or hex (ingest_writeback_handler.rs:62-70)
     WBH->>APD: apply_decision(case_id, BrokerDecisionRequest) (ingest_writeback_handler.rs:93-98)
-    APD->>REPO: record_decision INSERT decision + UPDATE proposal.status (sqlite_enrichment_repository.rs:528-607)
-    alt writeback_triggered AND attributed (enrichment_proposals_handler.rs:443)
-        APD->>ONTO: append_derived_summary(owner_did, activity_urn, triples) (enrichment_proposals_handler.rs:446)
+    APD->>REPO: record_decision INSERT decision + UPDATE proposal.status (sqlite_enrichment_repository.rs:596-668)
+    alt writeback_triggered AND attributed (enrichment_proposals_handler.rs:584)
+        APD->>ONTO: append_derived_summary(owner_did, activity_urn, triples) (enrichment_proposals_handler.rs:587)
         alt graph in DERIVED_FENCE assert or inferred
             ONTO--xAPD: rejected fenced graph not writable via derived path (oxigraph_ontology_repository.rs:744-747)
         else graph is summary or observed
             ONTO->>ONTO: INSERT DATA GRAPH GRAPH_ONTOLOGY_SUMMARY/OBSERVED (oxigraph_ontology_repository.rs:782-791)
             ONTO-->>APD: Ok(quad count)
-            APD->>REPO: mark_writeback_committed case_id activity_urn (enrichment_proposals_handler.rs:458-460)
+            APD->>REPO: mark_writeback_committed case_id activity_urn (enrichment_proposals_handler.rs:599-601)
         end
     else unattributed or no writeback trigger
         Note over APD: decision recorded, no KG write - unattributed approval writes no fact (ingest_writeback_handler.rs:21-23)
@@ -226,14 +228,14 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant MUT as OntologyMutationService<br/>src/services/ontology_mutation_service.rs:202
+    participant MUT as emit_proposal_provenance<br/>src/services/ontology_mutation_service.rs:181
     participant EMITTER as reify_activity<br/>crates/visionclaw-adapters/src/provenance_emitter.rs:307
     participant WRITER as build_assertion_version<br/>src/services/provenance_writer.rs:353
     participant T2 as caller transaction spine<br/>src/services/provenance_writer.rs:7-9
     participant STORE as GRAPH_PROVENANCE urn:ngm:graph:provenance<br/>oxigraph_ontology_repository.rs:57
 
     par Activity-record path (ADR-127 / ADR-2016)
-        MUT->>EMITTER: emit_activity_nonfatal(store, record) (provenance_emitter.rs:446, called at ontology_mutation_service.rs:202)
+        MUT->>EMITTER: emit_activity_nonfatal(store, record) (provenance_emitter.rs:446, called at ontology_mutation_service.rs:223)
         EMITTER->>EMITTER: build quads Activity/Agent/Entity triad (provenance_emitter.rs:137-251)
         EMITTER->>STORE: store.insert(Quad) x n, INSERT only (provenance_emitter.rs:32-33 header invariant)
     and Assertion-version path (ADR-049, reconciled PRD-022 WS-2)
@@ -255,7 +257,7 @@ sequenceDiagram
     participant TH as unified_trace<br/>src/handlers/trace_handler.rs:35
     participant SVC as ProvenanceTraceService<br/>src/services/provenance_trace.rs:307
     participant KPI as trajectories_since<br/>src/adapters/sqlite_kpi_repository.rs:368
-    participant ENR as provenance_decisions_since<br/>src/adapters/sqlite_enrichment_repository.rs:910
+    participant ENR as provenance_decisions_since<br/>src/adapters/sqlite_enrichment_repository.rs:912
     participant JOIN as build_trace<br/>src/services/provenance_trace.rs:185
     participant LH as LivenessHarness<br/>src/handlers/trace_handler.rs:64
 
@@ -276,7 +278,7 @@ sequenceDiagram
     end
     TH-->>C: 200 JSON ProvenanceTrace
     Note over SVC,ENR: this trace reads only the two SQLite-backed sources - it does NOT query the Oxigraph GRAPH_PROVENANCE<br/>append-only graph ADR-2016 covers (ADR-2016 consumer closeout 2026-09-05)
-    JOIN->>JOIN: intent_match(declared intent, action type, target urn)<br/>src/services/intent_match.rs:218
+    JOIN->>JOIN: intent_match(declared intent, action type, target urn)<br/>src/services/intent_match.rs:221
     Note over JOIN: ADR-2110 FR5.2: an agent-event record now carries the DECLARED<br/>intent verbatim and a three-valued verdict. null means NO CLAIM WAS MADE,<br/>which is not the same as a failed claim. Decision and git-mark records<br/>carry neither. provenance_trace.rs:202, :218, :230
     Note over KPI: INVARIANT: the declaration is persisted verbatim on kpi_agent_events<br/>rather than re-derived at read time, so a later reading cannot soften it.<br/>migrations/sqlite/0006_kpi_agent_event_intent.sql:1, row field at<br/>src/adapters/sqlite_kpi_repository.rs:245
     Note over JOIN: pod_git_mark source is hardcoded pod_source_available false, always reported sources_absent here (provenance_trace.rs:242)
@@ -353,26 +355,26 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SYNC as GithubSyncService<br/>src/services/github_sync_service.rs:992 rebuild_assert_graph
+    participant SYNC as GitHubSyncService<br/>src/services/github_sync_service.rs:195
     participant KG as GRAPH_KNOWLEDGE<br/>oxigraph_ontology_repository.rs:50
     participant AG as GRAPH_ONTOLOGY assert<br/>oxigraph_ontology_repository.rs:48
-    participant APD as apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:370
-    participant SQ as enrichment_decisions row<br/>sqlite_enrichment_repository.rs:528
+    participant APD as apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:483
+    participant SQ as enrichment_decisions row<br/>sqlite_enrichment_repository.rs:596
     participant SUM as GRAPH_ONTOLOGY_SUMMARY<br/>oxigraph_ontology_repository.rs:63
     participant PROV as GRAPH_PROVENANCE<br/>oxigraph_ontology_repository.rs:57
 
-    critical content sync fan-out (github_sync_service.rs:992-1043)
-        SYNC->>KG: load_graph, ingest KG nodes (github_sync_service.rs:994-996)
-        SYNC->>AG: save_ontology_graph atomic CLEAR GRAPH assert then INSERT DATA (github_sync_service.rs:1034-1043)
+    critical content sync fan-out
+        SYNC->>KG: batch_add_nodes ingest corpus pages (github_sync_service.rs:1611)
+        SYNC->>AG: save_ontology_graph atomic CLEAR GRAPH assert then INSERT DATA (github_sync_service.rs:1056)
     end
-    Note over SYNC,AG: authoritative store (GitHub) commits first via sync run - the Oxigraph projection is regenerated, never hand-edited (docs/DATA-authority-erasure.md:62)
+    Note over SYNC,AG: authoritative store (the CorpusSource, ADR-2114) commits first via sync run - the Oxigraph projection is regenerated, never hand-edited (docs/DATA-authority-erasure.md:62)
 
-    critical decision fan-out (enrichment_proposals_handler.rs:412-471)
-        APD->>SQ: record_decision INSERT+UPDATE one transaction (sqlite_enrichment_repository.rs:528-607)
-        APD->>SUM: append_derived_summary INSERT DATA :summary (enrichment_proposals_handler.rs:446, oxigraph_ontology_repository.rs:782-786)
+    critical decision fan-out (enrichment_proposals_handler.rs:553-611)
+        APD->>SQ: record_decision INSERT+UPDATE one transaction (sqlite_enrichment_repository.rs:596-668)
+        APD->>SUM: append_derived_summary INSERT DATA :summary (enrichment_proposals_handler.rs:587, oxigraph_ontology_repository.rs:782-786)
         SUM->>PROV: prov:wasGeneratedBy marker on each subject (oxigraph_ontology_repository.rs:818-824)
     end
-    Note over APD,SUM: no cross-store 2PC - the durable decision commits in SQLite first (writeback_triggered=true) - the Oxigraph<br/>write is best-effort, writeback_committed flips only on Ok (enrichment_proposals_handler.rs:587, :600)
+    Note over APD,SUM: no cross-store 2PC - the durable decision commits in SQLite first (writeback_triggered=true) - the Oxigraph<br/>write is best-effort, writeback_committed flips only on Ok (enrichment_proposals_handler.rs:587, :605)
 ```
 
 ## VC-22.9 RBAC open-by-default posture on a read
@@ -386,12 +388,12 @@ sequenceDiagram
     participant BOOT as main.rs RBAC bootstrap<br/>src/main.rs:754
     participant RS as RoleStore.effective_role<br/>src/services/role_store.rs:359
 
-    Note over BOOT: RBAC_PUBLIC_READS is fail-closed in code - .unwrap_or(false) (rbac_gate.rs:126-133) - and set on only by compose (docker-compose.unified.yml:99)
-    BOOT->>BOOT: RBAC_ALLOW_OWNERLESS env check (main.rs:770, const at role_store.rs:33)
-    alt no Owner assigned AND RBAC_ALLOW_OWNERLESS=1 (main.rs:770, :777)
+    Note over BOOT: RBAC_PUBLIC_READS is fail-closed in code - .unwrap_or(false) (rbac_gate.rs:126-133) - and set on only by compose (docker-compose.unified.yml:106)
+    BOOT->>BOOT: RBAC_ALLOW_OWNERLESS env check (main.rs:775, const at role_store.rs:33)
+    alt no Owner assigned AND RBAC_ALLOW_OWNERLESS=1 (main.rs:775, :780)
         BOOT->>BOOT: warn, run owner-less, only POWER_USER_PUBKEYS to Admin fallback applies
     else no Owner assigned and flag unset
-        BOOT--xBOOT: FATAL refuse to start, fail-closed (main.rs:784, :790)
+        BOOT--xBOOT: FATAL refuse to start, fail-closed (main.rs:787, :793)
     end
     C->>GATE: GET /api/graph/data (safe method)
     GATE->>REQ: required_level(GET, path, public_reads=true)
@@ -412,34 +414,38 @@ sequenceDiagram
         end
     end
     rect rgb(255, 230, 230)
-    Note over BOOT,RS: CORRECTED ADR-2070 (raised by estate ADR-2087) - the CODE fails closed:<br/>public_reads_enabled() ends .unwrap_or(false) (rbac_gate.rs:126-133) and main.rs:730-735 refuses to<br/>start owner-less unless RBAC_ALLOW_OWNERLESS is set. The shipped compose inverts both<br/>(docker-compose.unified.yml:99, :100, with the :-1 default), so an unassigned pubkey resolves to Editor<br/>(role_store.rs:359). The open posture is ADR-2027's deliberate demo default and stays.
+    Note over BOOT,RS: CORRECTED ADR-2070 (raised by estate ADR-2087) - the CODE fails closed:<br/>public_reads_enabled() ends .unwrap_or(false) (rbac_gate.rs:126-133) and main.rs:787-793 refuses to<br/>start owner-less unless RBAC_ALLOW_OWNERLESS is set. The shipped compose inverts both<br/>(docker-compose.unified.yml:106, :107, with the :-1 default), so an unassigned pubkey resolves to Editor<br/>(role_store.rs:359). The open posture is ADR-2027's deliberate demo default and stays.
     end
 ```
 
-## VC-22.10 Full-sync corpus rebuild vs runtime writers (asserted-graph fence gap)
-
-<!-- STALE 2026-09-22: the corpus source is no longer a Logseq graph; re-derivation reads the visionGraph Obsidian vault (frontmatter-only OKF) via `vault build`, crates/vault — PRD-sovereign-corpus -->
+## VC-22.10 Full-sync corpus rebuild, ontology-typed filter and decision re-materialisation (ADR-2114, ADR-050)
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant OP as Operator (force_full_sync)
-    participant SYNC as GithubSyncService.sync_graphs<br/>src/services/github_sync_service.rs:283
+    participant SYNC as GitHubSyncService.sync_graphs<br/>src/services/github_sync_service.rs:246
     participant KGREPO as kg_repo.clear_graph<br/>src/adapters/oxigraph_graph_repository.rs:1226
-    participant REBUILD as rebuild_assert_graph<br/>src/services/github_sync_service.rs:992
+    participant REBUILD as rebuild_assert_graph<br/>src/services/github_sync_service.rs:999
     participant AG as GRAPH_ONTOLOGY assert
+    participant DECREB as rematerialise_decisions<br/>src/services/github_sync_service.rs:1095
     participant DIRECT as add_owl_class/add_axiom<br/>application/ontology/directives.rs (governed write door)
 
     OP->>SYNC: FORCE_FULL_SYNC=1
-    alt force_full_sync true (github_sync_service.rs:378,597)
-        SYNC->>KGREPO: clear_graph() wipes GRAPH_KNOWLEDGE (github_sync_service.rs:379-381)
-        SYNC->>REBUILD: rebuild_assert_graph(stats) (github_sync_service.rs:598)
-        REBUILD->>AG: CLEAR GRAPH assert then INSERT DATA (save_ontology_graph, atomic) (github_sync_service.rs:1034-1043)
-        Note over REBUILD,AG: this CLEAR wipes the ENTIRE assert graph including runtime OWL classes/axioms added via the governed write door (github_sync_service.rs:977-980)
+    alt force_full_sync true (github_sync_service.rs:349,604)
+        SYNC->>KGREPO: clear_graph() wipes GRAPH_KNOWLEDGE (github_sync_service.rs:385-390)
+        SYNC->>REBUILD: rebuild_assert_graph(stats) (github_sync_service.rs:604-605)
+        REBUILD->>REBUILD: filter KG nodes to ontology-typed only, ONTOLOGY_TYPE_KEY metadata (github_sync_service.rs:1015)
+        REBUILD->>AG: CLEAR GRAPH assert then INSERT DATA class nodes + class-relation edges (save_ontology_graph, atomic) (github_sync_service.rs:1056)
+        Note over REBUILD,AG: this CLEAR wipes the ENTIRE assert graph including runtime OWL classes/axioms added via the governed write door (github_sync_service.rs:983-985)
+        REBUILD->>DECREB: rematerialise_decisions() ADR-050 read-half, called AFTER the class CLEAR+INSERT (github_sync_service.rs:1072)
+        DECREB->>DECREB: list_pages_under(DECISIONS_DIR), decision_page_quads_logged per page (github_sync_service.rs:1096,1124)
+        DECREB->>AG: insert_quads_to_store re-derived dl:DecisionRecord quads, non-fatal on failure (github_sync_service.rs:1135, :1074-1077)
     else incremental sync (SHA1 filter narrowed file list)
-        SYNC->>SYNC: existing data left intact, no clear (github_sync_service.rs:374-377)
+        SYNC->>SYNC: clear_graph guard not entered, existing data left intact (github_sync_service.rs:385)
     end
-    Note over DIRECT,AG: a class added via add_owl_class between full-syncs is NOT itself in GRAPH_PROVENANCE-protected history for the<br/>assert graph - only re-derivation from the corpus (logseq source) restores it after the next rebuild
+    Note over DIRECT,AG: a class added via add_owl_class/add_axiom between full-syncs is NOT itself in GRAPH_PROVENANCE-protected history for the<br/>assert graph - only re-derivation from the corpus (the visionGraph vault via CorpusSource, ADR-2114) restores it after the next rebuild
+    Note over DECREB,AG: attribution is deliberately NOT re-materialised here - the signed PROV-O attribution stays in GRAPH_PROVENANCE (ADR-049)<br/>the corpus decision page carries only the summary (github_sync_service.rs:1086-1094)
     Note over SYNC,AG: PROPOSED ADR-2102: one durable erasure record, five store acknowledgements, and a partial erasure that is recorded<br/>and retryable rather than a silent success - agentbox ADR-2060 is the RuVector-side half and is referenced, not superseded
 ```
 

@@ -22,7 +22,7 @@ sources:
   - ../loom/Cargo.toml
   - ../RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs
   - docs/estate-review/2026-09-07-estate-audit.md
-verified_commit: {visionflow: df22182f3, agentbox: b7b1ab81a, WasmVOWL: 51a148430, RuView: b48ab7dad, loom: 07a0e6774, dream-machine: a82dab2bf, prose-sanitiser: be8305ee8, diagram-ir: eed5ebde4}
+verified_commit: {visionflow: d4e44298646768a4b19af359119e16a6884fa80d, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, RuView: b48ab7dada5002414ec18d36a5d652e0f1bd4a67, loom: e39bb4d2b583040cd91346c3bbaf75411c3913b4, dream-machine: a82dab2bf3927cac5864306817f3c3094fe812d0, prose-sanitiser: be8305ee826e389a63dd72ae4b6994a533aff610, diagram-ir: eed5ebde490830fc143a744e299c2ec0ed8b0028}
 ---
 
 ## ES-90.1 Three scopes — health roster, source review and workspace neighbours
@@ -88,46 +88,21 @@ flowchart TB
 ## ES-90.5 Evidence types do not imply one another
 ```mermaid
 flowchart TB
-    F["Source paths and ADR metadata"] --> G["Structural/index gate<br/>diagram-index-gen.cjs:150"]
-    F --> C["Citation diagnostics; strict mode refuses warnings<br/>diagram-index-gen.cjs:280"]
-    F --> R["Optional Mermaid rendering<br/>diagram-index-gen.cjs:442"]
+    F["Source paths and ADR metadata"] --> G["Structural/index gate: writeIndexes<br/>diagram-index-gen.cjs:715"]
+    F --> C["Citation diagnostics; strict mode refuses warnings<br/>citeCheck, diagram-index-gen.cjs:488"]
+    F --> SYM["Symbol-anchor check: warns when a cited line<br/>falls outside the labelled function's body<br/>symbolCheck, diagram-index-gen.cjs:616"]
+    F --> R["Optional Mermaid rendering: renderAll<br/>diagram-index-gen.cjs:687"]
     F --> S["Semantic source review with file hashes<br/>scripts/estate-doc-audit.py"]
     G --> DOC["Documentation evidence"]
     C --> DOC
+    SYM --> DOC
     R --> DOC
     S --> DOC
+    ALLOW["citation-allowlist.json waives a citation<br/>that exists in no commit, with a reason;<br/>a stale entry fails the run<br/>loadAllowlist, diagram-index-gen.cjs:379"] --> DOC
+    VER["VERIFICATION.md: declared-revisions anchor,<br/>records what actually resolved at HEAD<br/>writeVerificationReport, diagram-index-gen.cjs:440"] --> DOC
     TEST["Named local test and raw result"] --> LOCAL["Only the exercised contract"]
     RUN["Loaded binary, effective config,<br/>identity and cross-service receipt"] --> ACCEPT["Only the observed system journey"]
     DOC -.->|"does not establish"| ACCEPT
     LOCAL -.->|"does not establish"| ACCEPT
-    NOTE["INVARIANT: default citations may read declared revisions;<br/>worktree-citations explicitly checks current source.<br/>Neither mode proves behaviour or deployment.<br/>diagram-index-gen.cjs:263"] --> DOC
-```
-
-## ES-90.6 Which repositories the citation checker can actually pin, and which it cannot
-```mermaid
-flowchart TB
-    CITE["a path:line citation in any topic"] --> RESOLVE["repoOf maps the path prefix to a repo key<br/>scripts/diagram-index-gen.cjs:240,257"]
-
-    subgraph KNOWN["Prefixes the table knows — the sha in verified_commit is honoured"]
-        K1["the nine area repositories plus RuView, WasmVOWL<br/>and a dream-engine entry<br/>scripts/diagram-index-gen.cjs:240-253"]
-    end
-    subgraph UNKNOWN["Prefixes the table does NOT know"]
-        U1["../loom, ../dream-machine, ../prose-sanitiser and<br/>../diagram-ir — every one of them cited by THIS topic"]
-    end
-    RESOLVE --> KNOWN
-    RESOLVE --> UNKNOWN
-
-    KNOWN --> PIN["git show sha:path in the owning checkout<br/>scripts/diagram-index-gen.cjs:284"]
-    UNKNOWN --> NULLR["repoOf returns null for any other ../ prefix<br/>scripts/diagram-index-gen.cjs:259"]
-    NULLR --> NOSHA["so the resolved sha is null<br/>scripts/diagram-index-gen.cjs:278"]
-    NOSHA --> WT["and the checker reads the WORKING TREE instead<br/>scripts/diagram-index-gen.cjs:288"]
-
-    DEBT["DEBT — a verified_commit entry for one of those four repositories<br/>is recorded honestly and then IGNORED. The citation is still<br/>checked, but against whatever is checked out today rather than<br/>against the declared revision, and nothing warns.<br/>scripts/diagram-index-gen.cjs:259,278,288"]
-    WT --> DEBT
-
-    INV["INVARIANT that survives it — the same fallback is what makes a<br/>missing sibling checkout a silent pass rather than a crash, so the<br/>prefix table is the ONLY place that decides whether a repository<br/>can be pinned at all. Adding a repository to a topic's sources is<br/>not the same act as making it pinnable.<br/>scripts/diagram-index-gen.cjs:240,288"]
-    DEBT --> INV
-
-    SCOPE["EXTERNAL — this diagram asserts only what THIS repository's own<br/>generator does. It says nothing about the four repositories<br/>themselves, whose revisions are recorded in the frontmatter above<br/>so a reader can check them by hand. see ES-12"]
-    UNKNOWN --> SCOPE
+    NOTE["INVARIANT: default citations may read declared revisions;<br/>worktree-citations explicitly checks current source.<br/>Neither mode proves behaviour or deployment.<br/>revisionLines, diagram-index-gen.cjs:342,345"] --> DOC
 ```

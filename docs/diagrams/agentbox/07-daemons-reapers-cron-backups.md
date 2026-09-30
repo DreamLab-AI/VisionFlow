@@ -4,7 +4,7 @@ title: Daemon classes, argv-boundary reaping, cron and backups
 area: agentbox
 governing:
   - ../project/agentbox/docs/BASELINE-container.md
-adrs: [ADR-2032, ADR-2003, ADR-2039, ADR-2040]
+adrs: [ADR-2032, ADR-2003, ADR-2039, ADR-2040, ADR-2118]
 sources:
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/services/agentbox-ops/src/procs.rs
@@ -18,7 +18,8 @@ sources:
   - ../project/agentbox/scripts/ruvector-aggregate-sweep.mjs
   - ../project/agentbox/scripts/ruvector-pattern-distill.mjs
   - ../project/agentbox/aisp/cli.js
-verified_commit: 1639f86ab
+  - ../project/agentbox/services/agentbox-manifest/src/cred_sync.rs
+verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
 ---
 
 ## AB-07.1 Supervised process classes by lifecycle shape
@@ -28,18 +29,18 @@ flowchart TD
     SUP --> C2["CLASS B — supercronic cron runners<br/>schedule lives in a crontab OUTSIDE the image"]
     SUP --> C3["CLASS C — long-lived services<br/>see AB-02.4 to AB-02.7 for the full tree"]
     SUP --> C4["CLASS D — one-shots<br/>bootstrap and bootstrap-seal, see AB-02.8"]
-    C1 --> A1["ruvector-aggregate-sweep flake.nix:1935<br/>node scripts/ruvector-aggregate-sweep.mjs --loop, priority 232"]
-    C1 --> A2["ruvector-pattern-distill flake.nix:1964<br/>node scripts/ruvector-pattern-distill.mjs --loop, priority 233"]
-    C1 --> A3["ontology-condense-scheduler flake.nix:1982<br/>node scripts/ontology-condense-scheduler.mjs --loop, priority 234"]
-    C1 --> A4["dream-engine flake.nix:2382<br/>dream-engine --loop --agentbox-toml /etc/agentbox.toml, priority 230"]
-    C2 --> B1["podcast-cron flake.nix:2493<br/>supercronic -split-logs skills/podcast-knowledge-ingest/crontab, priority 250"]
-    C2 --> B2["forum-backup-cron flake.nix:2513<br/>supercronic -split-logs workspace/dreamlab-ai-website/scripts/backup/crontab, priority 250"]
+    C1 --> A1["ruvector-aggregate-sweep flake.nix:1985<br/>node scripts/ruvector-aggregate-sweep.mjs --loop, priority 232"]
+    C1 --> A2["ruvector-pattern-distill flake.nix:2014<br/>node scripts/ruvector-pattern-distill.mjs --loop, priority 233"]
+    C1 --> A3["ontology-condense-scheduler flake.nix:2032<br/>node scripts/ontology-condense-scheduler.mjs --loop, priority 234"]
+    C1 --> A4["dream-engine flake.nix:2432<br/>dream-engine --loop --agentbox-toml /etc/agentbox.toml, priority 230"]
+    C2 --> B1["podcast-cron flake.nix:2543<br/>supercronic -split-logs skills/podcast-knowledge-ingest/crontab, priority 250"]
+    C2 --> B2["forum-backup-cron flake.nix:2563<br/>supercronic -split-logs workspace/dreamlab-ai-website/scripts/backup/crontab, priority 250"]
     A1 -.-> M1["memory sweep internals belong to AB-21"]
     A2 -.-> M1
     A3 -.-> M2["ontology condensation internals belong to AB-25"]
     A4 -.-> M3["dream-engine internals belong to AB-23"]
-    B1 -.-> N1["log caps stdout and stderr maxbytes 5MB — flake.nix:2503-2504"]
-    B2 -.-> N2["crontab and script live in the MOUNTED website repo, so schedule and behaviour<br/>are editable WITHOUT an image rebuild — only the supervisor stanza is baked (flake.nix:2510-2511)"]
+    B1 -.-> N1["log caps stdout and stderr maxbytes 5MB — flake.nix:2553-2554"]
+    B2 -.-> N2["crontab and script live in the MOUNTED website repo, so schedule and behaviour<br/>are editable WITHOUT an image rebuild — only the supervisor stanza is baked (flake.nix:2558-2559)"]
     SUP -.-> ADHOC["NOT supervised — no ruflo daemon runs under supervisord and the runtime pins<br/>RUFLO_DAEMON_AI_WORKERS=0, so anything the reaper finds was started ad hoc<br/>inside a session (ruflo-daemon-gc.rs:8-10)"]
 ```
 
@@ -63,16 +64,16 @@ stateDiagram-v2
         ontology-condense-scheduler self-gates on
         ONTOLOGY_CONDENSE_SCHEDULE and _ENABLED
         both baked into imageEnv and inherited
-        from PID 1 - flake.nix:3593, :3604
+        from PID 1 - flake.nix:3663, :3674
     end note
     note right of ExitFast
         exits fast when off, so no feature work is performed.
-        Autorestart still relaunches the process; it is not zero overhead.
-        flake.nix:1909-1911
+        Autorestart still relaunches the process; it is not zero overhead
+        (autorestart=true on the same stanza) - flake.nix:2037
     end note
     note left of Spawned
         startsecs=0 on every CLASS A loop
-        flake.nix:1952,1981,1999
+        flake.nix:1991,2020,2038
         so supervisord does not wait to call it up
     end note
     note right of Restarted
@@ -221,61 +222,61 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as caller
-    participant S as daemon_stop_with<br/>hermes/mod.rs:552
-    participant P as probe_with<br/>hermes/mod.rs:289 DaemonProbe
-    participant ST as Store load_identity<br/>hermes/jobs.rs:135
+    participant S as daemon_stop_with<br/>hermes/mod.rs:557
+    participant P as probe_with<br/>hermes/mod.rs:294 DaemonProbe
+    participant ST as Store load_identity<br/>hermes/jobs.rs:193
     participant V as process_identity.verify<br/>process_identity.rs
     participant SIG as signal fn
 
     C->>S: daemon_stop_with(store, source, signal, grace)
     S->>P: probe_with(store, source)
     alt NoPidFile
-        P-->>S: StopOutcome NotRunning pid None (:559)
+        P-->>S: StopOutcome NotRunning pid None (:564)
     else Gone
-        P-->>S: clear_daemon_record then NotRunning (:562-563)
+        P-->>S: clear_daemon_record then NotRunning (:567-568)
     else Unverifiable
-        P-->>S: RefusedUnverifiable (:565-566)
+        P-->>S: RefusedUnverifiable (:570-571)
     else Mismatch
-        P-->>S: RefusedMismatch (:568-569)
+        P-->>S: RefusedMismatch (:573-574)
     else Inaccessible
-        P-->>S: RefusedInaccessible (:571-572)
+        P-->>S: RefusedInaccessible (:576-577)
     else Running
-        P-->>S: pid (:574)
+        P-->>S: pid (:579)
     end
     S->>ST: load_identity()
     alt record disappeared between probe and signal
-        ST-->>S: RefusedUnverifiable — the identity record disappeared (mod.rs:578-583)
+        ST-->>S: RefusedUnverifiable — the identity record disappeared (mod.rs:583-587)
     end
-    S->>V: verify(source, recorded) — re-check IMMEDIATELY before signalling (mod.rs:577 and :584)
+    S->>V: verify(source, recorded) — re-check IMMEDIATELY before signalling (mod.rs:582 and :589)
     alt Match
-        V-->>S: proceed (mod.rs:585)
+        V-->>S: proceed (mod.rs:590)
     else NoSuchProcess
-        V-->>S: clear_daemon_record then NotRunning (mod.rs:586-589)
+        V-->>S: clear_daemon_record then NotRunning (mod.rs:591-593)
     else Mismatch
-        V-->>S: RefusedMismatch (mod.rs:590-592)
+        V-->>S: RefusedMismatch (mod.rs:595-596)
     else Inaccessible
-        V-->>S: RefusedInaccessible (mod.rs:593-595)
+        V-->>S: RefusedInaccessible (mod.rs:598-599)
     end
-    S->>SIG: signal(pid) (mod.rs:598)
+    S->>SIG: signal(pid) (mod.rs:603)
     alt signal errored
-        SIG-->>S: StopOutcome SignalFailed (mod.rs:599)
+        SIG-->>S: StopOutcome SignalFailed (mod.rs:603-604)
     end
-    loop poll until grace elapses (mod.rs:604-624)
+    loop poll until grace elapses (mod.rs:609-630)
         S->>V: verify(source, recorded)
         alt NoSuchProcess or Mismatch
-            V-->>S: clear_daemon_record then Exited with waited_ms (:608-614)
+            V-->>S: clear_daemon_record then Exited with waited_ms (:613-619)
         else Inaccessible or Match
             alt grace elapsed
-                V-->>S: Signalled with waited_ms — delivered but exit NOT observed (:616-620)
+                V-->>S: Signalled with waited_ms — delivered but exit NOT observed (:620-626)
             else
-                S->>S: sleep STOP_POLL (:622)
+                S->>S: sleep STOP_POLL (:627)
             end
         end
     end
-    Note over S: StopOutcome variants NotRunning, Exited, Signalled, RefusedUnverifiable, RefusedMismatch, RefusedInaccessible, SignalFailed — hermes/mod.rs:446-464
-    Note over S,SIG: kill(2) returning Ok proves only that the signal was DELIVERED, not that the process<br/>exited — the two are reported as different outcomes (hermes/mod.rs:443-444)
-    Note over C,V: DOC-DRIFT — BASELINE-container "Process lifecycle qualification 2026-09-04" says<br/>ADR-2032 is partial because Hermes Stop uses PID EXISTENCE ONLY. The code verifies<br/>the full recorded identity twice (hermes/mod.rs:584 and :605) and observes exit. The<br/>doc understates the implementation.
-    Note over C,V: RESOLVED ADR-2039: BASELINE-container.md:238 marks this qualification<br/>resolved with evidence — identity verified at mod.rs:584 and mod.rs:605, delivery<br/>reported separately from confirmed exit at mod.rs:443-444.
+    Note over S: StopOutcome variants NotRunning, Exited, Signalled, RefusedUnverifiable, RefusedMismatch, RefusedInaccessible, SignalFailed — hermes/mod.rs:452-468
+    Note over S,SIG: kill(2) returning Ok proves only that the signal was DELIVERED, not that the process<br/>exited — the two are reported as different outcomes (hermes/mod.rs:448)
+    Note over C,V: DOC-DRIFT — BASELINE-container "Process lifecycle qualification 2026-09-04" originally said<br/>ADR-2032 is partial because Hermes Stop uses PID EXISTENCE ONLY. The code verifies<br/>the full recorded identity twice (hermes/mod.rs:589 and :610) and observes exit. The<br/>2026-09-04 text understated the implementation.
+    Note over C,V: RESOLVED ADR-2039: BASELINE-container.md:245 marks this qualification<br/>resolved with evidence — identity verified at mod.rs:589 and mod.rs:610, delivery<br/>reported separately from confirmed exit at mod.rs:448.
 ```
 
 ## AB-07.7 Cron runners — schedule outside the image
@@ -283,31 +284,31 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant SUP as supervisord
-    participant SC as supercronic<br/>flake.nix:2494 and :2514
+    participant SC as supercronic<br/>flake.nix:2544 and :2564
     participant CT as crontab file
     participant J as job process
     participant L as /var/log split logs
 
-    SUP->>SC: start podcast-cron priority 250, autostart, autorestart (flake.nix:2497-2500)
-    SC->>CT: read skills/podcast-knowledge-ingest/crontab (flake.nix:2494)
+    SUP->>SC: start podcast-cron priority 250, autostart, autorestart (flake.nix:2547-2550)
+    SC->>CT: read skills/podcast-knowledge-ingest/crontab (flake.nix:2544)
     loop on each cron expression match
-        SC->>J: run with PATH podcastIngestPkg, pythonRuntimeEnv, coreutils, nodejs_22, /usr/local/bin, /bin, /usr/bin (flake.nix:2507)
+        SC->>J: run with PATH podcastIngestPkg, pythonRuntimeEnv, coreutils, nodejs_22, /usr/local/bin, /bin, /usr/bin (flake.nix:2546)
         J-->>SC: exit code
         SC->>L: -split-logs writes stdout and stderr separately
     end
-    SUP->>SC: start forum-backup-cron priority 250 (flake.nix:2513)
-    SC->>CT: read workspace/dreamlab-ai-website/scripts/backup/crontab (flake.nix:2514)
+    SUP->>SC: start forum-backup-cron priority 250 (flake.nix:2563)
+    SC->>CT: read workspace/dreamlab-ai-website/scripts/backup/crontab (flake.nix:2564)
     loop nightly
-        SC->>J: run with PATH coreutils, gnugrep, findutils, curl, jq, gzip (flake.nix:2516)
+        SC->>J: run with PATH coreutils, gnugrep, findutils, curl, jq, gzip (flake.nix:2566)
         alt CLOUDFLARE_API_TOKEN and ACCOUNT_ID absent
-            J-->>SC: fails LOUD with exit 2 (flake.nix:2510)
+            J-->>SC: fails LOUD with exit 2 (flake.nix:2560)
         else credentials present
             J-->>SC: backup written to the NAS
         end
     end
-    Note over SC,CT: both crontabs live OUTSIDE the image on mounted paths, so schedule and behaviour<br/>change without a rebuild — only the supervisor stanza is baked (flake.nix:2510-2511)
-    Note over L: stdout_logfile_maxbytes and stderr_logfile_maxbytes are 5MB on both (flake.nix:2503-2504 and :2523-2524)
-    Note over SUP,SC: environment HOME=/home/devuser and user=devuser on both — no cron job runs as root (flake.nix:2495 and :2515)
+    Note over SC,CT: both crontabs live OUTSIDE the image on mounted paths, so schedule and behaviour<br/>change without a rebuild — only the supervisor stanza is baked (flake.nix:2558-2559)
+    Note over L: stdout_logfile_maxbytes and stderr_logfile_maxbytes are 5MB on both (flake.nix:2553-2554 and :2573-2574)
+    Note over SUP,SC: environment HOME=/home/devuser and user=devuser on both — no cron job runs as root (flake.nix:2545 and :2565)
 ```
 
 ## AB-07.8 Backup and restore — volumes plus a crash-consistent PG dump
@@ -315,59 +316,101 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant OP as operator
-    participant B as cmd_backup<br/>agentbox.sh:272
+    participant B as cmd_backup<br/>agentbox.sh:273
     participant W as mktemp -d work dir
     participant V as docker volumes
     participant PG as ruvector-postgres
     participant T as output tarball
 
     OP->>B: ./agentbox.sh backup [--out PATH] [--include-secrets]
-    B->>B: timestamp = date -u +%Y%m%dT%H%M%SZ (agentbox.sh:283)
+    B->>B: timestamp = date -u +%Y%m%dT%H%M%SZ (agentbox.sh:284)
     alt --out not given
-        B->>B: out = SCRIPT_DIR/backups/agentbox-backup-TIMESTAMP.tgz (agentbox.sh:285-288)
+        B->>B: out = SCRIPT_DIR/backups/agentbox-backup-TIMESTAMP.tgz (agentbox.sh:286-288)
     end
-    B->>W: mktemp -d with trap rm -rf on EXIT (agentbox.sh:291-292)
-    B->>V: _volume_tar agentbox-ruvector-data, always included (agentbox.sh:298-299)
+    B->>W: mktemp -d with trap rm -rf on EXIT (agentbox.sh:292-293)
+    B->>V: _volume_tar agentbox-ruvector-data, always included (agentbox.sh:299-300)
     V-->>W: volumes/ruvector-data
-    B->>PG: docker exec ruvector-postgres pg_isready -U ruvector -d ruvector (agentbox.sh:307)
+    B->>PG: docker exec ruvector-postgres pg_isready -U ruvector -d ruvector (agentbox.sh:308)
     alt PG reachable
-        B->>PG: pg_dump -U ruvector -Fc ruvector into work/ruvector-pg.dump (agentbox.sh:309)
+        B->>PG: pg_dump -U ruvector -Fc ruvector into work/ruvector-pg.dump (agentbox.sh:310)
         alt dump succeeded
             PG-->>W: ruvector-pg.dump, rv_pg_dumped = 1
         else dump failed
-            B->>W: rm -f the partial dump (agentbox.sh:312)
+            B->>W: rm -f the partial dump (agentbox.sh:313)
         end
     else PG not running
-        B-->>OP: WARNING ruvector-postgres not running — memory DB NOT included in this backup (agentbox.sh:316)
+        B-->>OP: WARNING ruvector-postgres not running — memory DB NOT included in this backup (agentbox.sh:317)
     end
-    B->>T: write manifest with ruvector_data true and ruvector_pg_dump boolean (agentbox.sh:389-391)
+    B->>T: write manifest with ruvector_data true and ruvector_pg_dump boolean (agentbox.sh:391-392)
     B-->>OP: tarball at out
-    OP->>B: ./agentbox.sh restore (cmd_restore agentbox.sh:425)
-    B->>V: restore ruvector-data when work/volumes/ruvector-data is present (agentbox.sh:489-492)
-    Note over B,PG: a raw volume tar of a LIVE PG datadir is not crash-consistent, so the backup carries pg_dump -Fc instead (agentbox.sh:301-305)
-    Note over B: the memory DB, 2M+ rows, was previously absent from backups entirely — PRD-018 Phase 0 closes gap 12 (agentbox.sh:301)
+    OP->>B: ./agentbox.sh restore (cmd_restore agentbox.sh:426)
+    B->>V: restore ruvector-data when work/volumes/ruvector-data is present (agentbox.sh:490-492)
+    Note over B,PG: a raw volume tar of a LIVE PG datadir is not crash-consistent, so the backup carries pg_dump -Fc instead (agentbox.sh:302-305)
+    Note over B: the memory DB, 2M+ rows, was previously absent from backups entirely — PRD-018 Phase 0 closes gap 12 (agentbox.sh:302)
     Note over T: on-disk layout backups/ruvector-sidecar holds state.json, timestamped .copy.gz<br/>snapshots from the gated ops, and recall-runs/<utc>.json from the recall harness —<br/>see AB-05.6
 ```
 
 ## AB-07.9 Gated starts — networking, desktop and toolchain daemons
 ```mermaid
 flowchart TD
-    G["flake.nix lib.optionalString gates — see AB-01.1"] --> N["tailscaled flake.nix:2313<br/>tailscale-up flake.nix:2334"]
+    G["flake.nix lib.optionalString gates — see AB-01.1"] --> N["tailscaled flake.nix:2363<br/>tailscale-up flake.nix:2384"]
     G --> D["desktop stack gated on desktop.enabled"]
     G --> T["toolchain surfaces"]
-    D --> D1["xvnc flake.nix:2140"]
-    D --> D2["x11vnc flake.nix:2129"]
-    D --> D3["wayvnc flake.nix:2097"]
-    D --> D4["xorg-nvidia flake.nix:2108"]
-    D --> D5["hyprland flake.nix:2072"]
-    D --> D6["xwayland-session flake.nix:2086"]
-    D --> D7["i3wm flake.nix:2118 and :2150 — TWO blocks,<br/>mutually exclusive Nix branches, see AB-02.7"]
-    T --> T1["jupyter-lab flake.nix:1995<br/>gate skills.data_science.jupyter, binds 0.0.0.0:8888"]
-    T --> T2["code-server flake.nix:2336<br/>gate toolchains.code_server, priority 50"]
-    T --> T3["comfyui-builtin flake.nix:2360<br/>gate skills.media.comfyui_builtin"]
-    T --> T4["qgis-mcp flake.nix:1899, blender-mcp flake.nix:1924,<br/>imagemagick-mcp flake.nix:2252"]
-    T2 -.-> CSR["RESOLVED ADR-2040 (2026-09-05) — the old finding was that code-server ran<br/>--bind-addr 0.0.0.0:8080 --auth none ([program:code-server]), unauthenticated<br/>to any sibling container on visionclaw_network (BASELINE's flake.nix:1983<br/>citation for this was itself already stale). It now runs --auth password<br/>with the credential minted at boot into<br/>/home/devuser/.local/share/code-server/config.yaml (0600). See AB-06.7."]
-    T1 -.-> JR["RESOLVED ADR-2040 (2026-09-05) — the old finding was that jupyter also bound<br/>0.0.0.0 with an empty --IdentityProvider.token=, relying on the loopback-only<br/>host publish for its boundary. The flag is gone; JUPYTER_TOKEN is now minted<br/>at boot into a 0600 devuser file and exported into PID 1's environment before<br/>supervisord starts ([program:jupyter-lab]:1997). See AB-06.7."]
-    N -.-> ND["nostr-gateway flake.nix:1952 is the INBOUND half of the session mirror —<br/>AGENTBOX_PRIVKEY_HEX is injected by the entrypoint launcher and inherited,<br/>never written into the generated supervisor text. Off switch AGENTBOX_NOSTR_GATEWAY=0<br/>(flake.nix:1946-1951). See AB-08 for the outbound mirror hook"]
+    D --> D1["xvnc flake.nix:2190"]
+    D --> D2["x11vnc flake.nix:2179"]
+    D --> D3["wayvnc flake.nix:2147"]
+    D --> D4["xorg-nvidia flake.nix:2158"]
+    D --> D5["hyprland flake.nix:2122"]
+    D --> D6["xwayland-session flake.nix:2136"]
+    D --> D7["i3wm flake.nix:2168 and :2200 — TWO blocks,<br/>mutually exclusive Nix branches, see AB-02.7"]
+    T --> T1["jupyter-lab flake.nix:2045<br/>gate skills.data_science.jupyter, binds 0.0.0.0:8888"]
+    T --> T2["code-server flake.nix:2386<br/>gate toolchains.code_server, priority 50"]
+    T --> T3["comfyui-builtin flake.nix:2410<br/>gate skills.media.comfyui_builtin"]
+    T --> T4["qgis-mcp flake.nix:1949, blender-mcp flake.nix:1974,<br/>imagemagick-mcp flake.nix:2302"]
+    T2 -.-> CSR["RESOLVED ADR-2040 (2026-09-05) — the old finding was that code-server ran<br/>--bind-addr 0.0.0.0:8080 --auth none ([program:code-server]), unauthenticated<br/>to any sibling container on visionclaw_network. It now runs --auth password<br/>with the credential minted at boot into<br/>/home/devuser/.local/share/code-server/config.yaml (0600) — flake.nix:2394. See AB-06.7."]
+    T1 -.-> JR["RESOLVED ADR-2040 (2026-09-05) — the old finding was that jupyter also bound<br/>0.0.0.0 with an empty --IdentityProvider.token=, relying on the loopback-only<br/>host publish for its boundary. The flag is gone; JUPYTER_TOKEN is now minted<br/>at boot into a 0600 devuser file and exported into PID 1's environment before<br/>supervisord starts ([program:jupyter-lab] comment flake.nix:2046-2056). See AB-06.7."]
+    N -.-> ND["nostr-gateway flake.nix:2002 is the INBOUND half of the session mirror —<br/>AGENTBOX_PRIVKEY_HEX is injected by the entrypoint launcher and inherited,<br/>never written into the generated supervisor text. Off switch AGENTBOX_NOSTR_GATEWAY=0<br/>(flake.nix:1996-2001). See AB-08 for the outbound mirror hook"]
     G -.-> INV["INVARIANT — adding a gate means gating BOTH the Nix package set AND the<br/>supervisor block, plus a system-manifest catalogue entry with an honest<br/>apply class. See AB-05.9"]
+```
+
+## AB-07.10 Hermes run_job — per-job claude_args() model, effort and MCP overrides
+```mermaid
+flowchart TD
+    RJ["run_job(job)<br/>hermes/mod.rs:40"] --> CA["job.claude_args()<br/>hermes/jobs.rs:107"]
+    CA --> EM["effective_model()<br/>jobs.rs:88 — job.model or DEFAULT_MODEL sonnet (jobs.rs:29)"]
+    CA --> EE["effective_effort()<br/>jobs.rs:96 — job.effort or DEFAULT_EFFORT medium (jobs.rs:31)"]
+    CA --> ARGS["--print --model M --effort E<br/>jobs.rs:109-113"]
+    ARGS --> MC{"mcp_config set and non-blank?<br/>jobs.rs:115"}
+    MC -->|yes| STRICT["append --strict-mcp-config --mcp-config CFG<br/>jobs.rs:116-118 — ONLY these servers load"]
+    MC -->|no| FULL["no MCP flags — full user/project MCP config loads,<br/>which the TA sweeps need (email gateway, browser)"]
+    STRICT --> FENCE["-- then the prompt<br/>jobs.rs:120-121 — fences the prompt off from a variadic --mcp-config"]
+    FULL --> FENCE
+    FENCE --> RUN["run_job_with_cli(args, workdir, Path::new(claude))<br/>hermes/mod.rs:41-45 and :48"]
+    RUN --> SPAWN["Command::new(cli).args(args).current_dir(cwd)<br/>.env(CLAUDE_NO_TELEMETRY, 1)<br/>hermes/mod.rs:54-61"]
+    SPAWN -.-> NF["claude CLI not found in PATH — reported, not panicked<br/>hermes/mod.rs:63-69"]
+    RJ -.-> DEF["defaults live once, in Job — a job written by the old Python<br/>daemon with no model/effort field loads and runs identically<br/>jobs.rs:29-31"]
+```
+
+## AB-07.11 ADR-2118 — container-owned ~/.claude, the credential sync loop and the migration seeder
+```mermaid
+flowchart TD
+    MIG["operator: ./agentbox.sh migrate-claude-home [--source DIR] [--force]<br/>agentbox.sh:1744"] --> STOP["stop the agentbox container if running<br/>agentbox.sh:1798-1801"]
+    STOP --> VOL["docker volume create agentbox-claude-home<br/>agentbox.sh:1802"]
+    VOL --> DEB["debris tar to ~/.claude-migrate-debris-TIMESTAMP.tar.gz<br/>excluding /CLAUDE.md and /.credentials.json<br/>agentbox.sh:1804-1825"]
+    DEB --> RSYNC["rsync live state into the volume<br/>excludes CLAUDE.md (projected) and .credentials.json (seeded at boot)<br/>agentbox.sh:1827-1830"]
+
+    SUP["supervisord PID 1"] --> CS["[program:claude-cred-sync]<br/>flake.nix:2582 — agentbox-manifest cred-sync<br/>--interval-secs 2, autorestart=unexpected, exitcodes=0"]
+    CS --> RUN["cred_sync::run(container, host, interval, once)<br/>services/agentbox-manifest/src/cred_sync.rs:118"]
+    RUN --> GATE{"host bind parent dir exists?<br/>cred_sync.rs:119"}
+    GATE -->|no| EXIT0["print no host credential bind — exit Ok(()) with nothing synced<br/>cred_sync.rs:120-121, so supervisor autorestart=unexpected leaves it STOPPED"]
+    GATE -->|yes| LOOP["loop: sync_once(container, host) then sleep interval<br/>cred_sync.rs:131-134"]
+    LOOP --> SO["sync_once<br/>cred_sync.rs:91"]
+    SO --> TORN{"either file exists but fails to parse?<br/>cred_sync.rs:94"}
+    TORN -->|yes| WAIT["mid-write or damaged — skip this tick, Ok(0)<br/>cred_sync.rs:95"]
+    TORN -->|no| MERGE["merge(a, b, a_mtime >= b_mtime)<br/>cred_sync.rs:29 and :98 — per-token, later expiresAt wins recursively"]
+    MERGE --> WRITE["write back only the side whose value changed<br/>cred_sync.rs:104-109"]
+    WRITE --> LOOP
+
+    MIG -.-> NOTE1["target_volume=agentbox-claude-home, source_dir=HOME/.claude by default<br/>agentbox.sh:1746-1747 — the host's ~/.claude stays intact and read-only here,<br/>only its .credentials.json is shared back at /var/lib/agentbox/host-claude"]
+    CS -.-> Q43["OPEN Q43 — ~/.config/claude is still a host bind and workspace still rides<br/>the legacy external MAD volume; stack profiles receive neither the global<br/>tier nor credentials. Residual: the credential bind stays writable, so a<br/>compromised in-container tool can still edit the host's .claude<br/>BASELINE-container.md:197"]
 ```

@@ -1,84 +1,59 @@
 ---
 id: KG-05
-title: CI/CD — the six build.yml gates, and the deploy that happens in a different repo
+title: CI/CD and publish — build.yml archived, visionGraph's vault build is the sole producer
 area: knowledgegraph
 governing:
   - ../knowledgeGraph/docs/ci-cd/build-and-gates.md
 adrs: [ADR-2003]
 sources:
-  - ../knowledgeGraph/.github/workflows/build.yml
+  - ../knowledgeGraph/README.md
   - ../knowledgeGraph/docs/ci-cd/build-and-gates.md
-  - ../knowledgeGraph/docs/ecosystem.md
-  - ../knowledgeGraph/pipeline/release_gate.py
-  - ../knowledgeGraph/pipeline/jsonld_to_page_api.py
-  - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
-verified_commit: {knowledgegraph: 75a5c1f1acda50bfe9d66a92a5343cf12f8b84ef}
+  - ../knowledgeGraph/archive/github-workflows/build.yml
+  - ../visionGraph/.github/workflows/publish.yml
+verified_commit: {knowledgegraph: 3a266fc3a2edb91f84ecc794718b87dd44c79417, visiongraph: ac6274f9f5e12375f92086ccb9adba50c965ecf9}
 ---
 
-## KG-05.1 build.yml — six gates, cheapest first, no deploy step
-
-```mermaid
-flowchart TD
-    CO["Checkout — build.yml:94"]
-    G1["GATE 1 · Secret scan<br/>8-pattern anchored alternation over ontology/<br/>build.yml:109-130 — 0 hits at 8,138 pages"]
-    G2["GATE 2 · pytest pipeline/tests -q<br/>build.yml:147-148"]
-    BUILD["python -m pipeline.build ontology/pages dist-ci --strict<br/>build.yml:160-163"]
-    G3["GATE 3 · Corpus contract<br/>EXPECTED_CLASSES=8138 vs stats.json + ontology.json<br/>build.yml:83,185-213"]
-    G4["GATE 4 · Validate<br/>python -m pipeline.validate — 0 errors required<br/>build.yml:225-226"]
-    G5["GATE 5 · Release contracts<br/>release_gate.py — identity set, schema, visibility<br/>build.yml:239-244"]
-    G6["GATE 6 · Manifest verify<br/>pipeline.manifest re-hashes the tree<br/>build.yml:252-253"]
-    PACK["Archive dist-ci as dist-ci.tar.gz<br/>preserve colons and case-sensitive title paths — build.yml:266-271"]
-    ART["Upload archive as dist-ci artefact<br/>if: always#40;#41;, retention 14 days — build.yml:274-281"]
-    CO --> G1 --> G2 --> BUILD --> G3 --> G4 --> G5 --> G6 --> PACK --> ART
-    note1["INVARIANT: permissions: contents: read at workflow AND job level —<br/>this workflow cannot write to the repository even if a step tried<br/>(build.yml:65-66,89-90)"]
-```
-
-## KG-05.2 Gate 5 — release_gate.py catches what the count alone cannot
-
-```mermaid
-flowchart LR
-    COUNT["GATE 3: a COUNT — 8138 classes"]
-    SUB["equal-count identity substitution<br/>delete one class, add another — count UNCHANGED"]
-    COUNT -.->|"cannot see this"| SUB
-    IDENT["check_identity — release_gate.py:127<br/>vs pipeline/contracts/class-identity.txt sorted IRI SET"]
-    SCHEMA["check_schema — release_gate.py:151<br/>consumer-shaped class#91;#93;/property#91;#93; arrays present"]
-    VIS["check_publication_visibility — release_gate.py:183<br/>re-derives private IRIs from SOURCE, scans built dist-ci<br/>for their presence in any public artefact"]
-    SUB --> IDENT
-    IDENT & SCHEMA & VIS --> RUN["run_gate — release_gate.py:245"]
-    note1["INVARIANT: count and identity move TOGETHER — EXPECTED_CLASSES and<br/>class-identity.txt must agree and change in the same commit<br/>(BASELINE-narrativegoldmine.md:239-242)"]
-```
-
-## KG-05.3 Publication topology — deploy lives in visionGraph's workflow, not here
+## KG-05.3 Publication topology — this repo is a pure published export, visionGraph's publish.yml is the sole builder
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant VG as visionGraph publish.yml<br/>EXTERNAL: see VG-03.1
+    participant VAULT as vault (Rust)<br/>EXTERNAL: VisionClaw crates/vault
     participant PAGES as gh-pages branch<br/>DreamLab-AI/knowledgeGraph
     participant SITE as narrativegoldmine.com
-    participant THIS as this repo's build.yml
+    participant THIS as this repo, at rest
 
-    Note over VG: build.yml here has NO peaceiris/actions-gh-pages step,<br/>no secrets.* reference, no CNAME write (ecosystem.md:254-256)
-    VG->>PAGES: push publish_dir=www, external_repository=knowledgeGraph<br/>commit_message references jjohare/visionGraph @ sha
-    PAGES->>SITE: GitHub Pages: html_url narrativegoldmine.com,<br/>cname narrativegoldmine.com, status built
-    THIS->>THIS: reproducible half only — secret scan, pytest,<br/>7-stage build, class-count gate, validate — ecosystem.md:254-259
-    Note over THIS,SITE: this repo's root CNAME (narrativegoldmine.com) is read by<br/>GitHub Pages branch publishing — no workflow HERE writes it<br/>(build-and-gates.md §4, the 'one clarification' note)
+    Note over THIS: this repo is the PUBLISHED EXPORT only — corpus authoring,<br/>build and validation all happen upstream (README.md:5-9,11)
+    VG->>VAULT: vault validate --vault all, then<br/>vault build --vault all --out site-data --with-markdown-mirror<br/>(publish.yml:155-168,180-188)
+    VAULT-->>VG: api/ + data/ + context/ + okf/ (contract C3)<br/>vault is the ONLY producer — README.md:11-17
+    VG->>PAGES: peaceiris/actions-gh-pages, external_repository=knowledgeGraph<br/>deploy step (EXTERNAL: see VG-03.1 DEPLOY)
+    PAGES->>SITE: GitHub Pages serves gh-pages at narrativegoldmine.com<br/>(this repo's root CNAME is read by Pages, not written by any workflow here)
+    Note over THIS: this repo's own build.yml (Python pipeline, ontology/pages) is<br/>ARCHIVED and inert under archive/github-workflows/build.yml —<br/>retired because ontology/ itself moved to archive/ first
 ```
+- **DIVERGENCE:** the governing doc (`build-and-gates.md:1-3`) still describes `build.yml` as this repo's active "reproducible half" running six gates; the workflow it names has been moved to `archive/github-workflows/` and no longer runs — the doc has not been updated to match the retirement.
 
-## KG-05.4 Gates added because something broke — the markdown-mirror incident
+## KG-05.5 Sovereignty transition — from active builder to published export
 
 ```mermaid
 flowchart TB
-    BUG["shell grep filter: 'vc:public: true' WITH a space<br/>corpus carries compact JSON-LD too: 'vc:public:true' — no space"]
-    IMPACT["890 of 7,874 pages silently dropped from the title-form<br/>markdown mirror — front end 404'd, build reported SUCCESS<br/>(fewer files copied is not an error)"]
-    FIX1["regex made whitespace-tolerant"]
-    FIX2["CONTRACT GATE added: mirror file count vs<br/>independently re-parsed count via parse_corpus"]
-    BUG --> IMPACT --> FIX1
-    IMPACT --> FIX2
-    note1["INVARIANT #40;the general lesson#41;: a filter that under-publishes emits NO<br/>error signal — a contract gate must assert a count against an<br/>INDEPENDENTLY COMPUTED expectation over the same population<br/>the emitter writes (build-and-gates.md 'lesson generalises')"]
-    note2["Runnable form: md_count#61;ls dist/api/markdown/*.md | wc -l vs<br/>parse_corpus#40;#41; count of #40;is_public and body#41; — both read 7,823<br/>#40;7,874 public minus 51 empty-body pages, jsonld_to_page_api.py:33#41;"]
+    subgraph BEFORE["Before — this repo authored and built"]
+        OLDONT["ontology/pages/ — 8,138 Logseq .md<br/>ARCHIVED, kept for history only — README.md:16-17"]
+        OLDPIPE["pipeline/ — seven-stage rdflib build<br/>ARCHIVED — README.md:16"]
+        OLDCI["build.yml — six gates, no deploy<br/>ARCHIVED — archive/github-workflows/build.yml"]
+        OLDONT --> OLDPIPE --> OLDCI
+    end
+    subgraph AFTER["After — visionGraph authors and builds, this repo only serves"]
+        VGVAULT["visionGraph — Obsidian vault, typed frontmatter<br/>README.md:11-13"]
+        RUSTVAULT["vault — single Rust implementation<br/>validates, reasons, builds<br/>VisionClaw crates/vault — README.md:13-14"]
+        OKF["OKF v0.2 bundle rendered by Quartz<br/>README.md:14"]
+        VGVAULT --> RUSTVAULT --> OKF
+    end
+    OKF -->|"peaceiris/actions-gh-pages deploy<br/>publish.yml external_repository"| GHPAGES["this repo's gh-pages branch"]
+    GHPAGES --> SITE2["narrativegoldmine.com"]
+    note1["INVARIANT: one vault, one build, one human gate<br/>— README.md:14-15, VisionFlow ADR-2013, PRD-sovereign-corpus"]
+    note2["Agents never push to visionGraph main — publish.yml runs only<br/>on the owner's push or by hand (EXTERNAL: see VG-03.1)"]
 ```
+- This repo's published artefact is pure TBox (8,138 classes, zero individuals) served from `gh-pages`; nothing here computes it any more.
 
-Audit qualification — 2026-09-07: the strengthened strict build, input census, visibility filtering, identity-set gate and generation manifest are present in this checkout's pre-existing dirty working tree. The 85 pipeline tests pass against those bytes. HEAD `2791111fc4ae301fdc5843ed2ad88b2e67d643fb` alone does not identify that implementation, and the evidence does not establish deployment or propagation into visionGraph. See the [federation audit](../../estate-review/2026-09-07-federation-audit.md).
-
-Execution update — 2026-09-07: both publishers now share a tested public projection and staged build boundary. The extracted publisher passes 96 tests and emits projected title-form Markdown in addition to its existing slug aliases. The actual visionGraph workflow's raw-copy mirror has been removed. The historical mirror incident above remains a historical lesson, not the current emitter implementation. No deployment is inferred from these local checks.
+Audit qualification — 2026-09-07: earlier evidence in this topic predates the 2026-09-23 retirement of `build.yml` and no longer describes the live system; superseded by the sovereignty transition above. See the [federation audit](../../estate-review/2026-09-07-federation-audit.md) for the historical record.

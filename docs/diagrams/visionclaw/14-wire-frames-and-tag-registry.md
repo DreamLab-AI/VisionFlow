@@ -21,7 +21,7 @@ sources:
   - ../project/client/src/types/binaryProtocol.ts
   - ../project/src/actors/presence_actor.rs
   - ../project/client/src/store/websocket/binaryProtocol.ts
-verified_commit: f223bbd40
+verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
 ---
 
 ## VC-14.1 V3 position record — 52 bytes, little-endian

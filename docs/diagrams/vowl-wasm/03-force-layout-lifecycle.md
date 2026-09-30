@@ -9,14 +9,12 @@ sources:
   - ../vowl-wasm/src/layout/mod.rs
   - ../vowl-wasm/src/layout/simulation.rs
   - ../vowl-wasm/src/layout/quadtree.rs
-  - ../vowl-wasm/src/layout/force.rs
   - ../vowl-wasm/src/layout/simd.rs
   - ../vowl-wasm/src/layout/csr_sim.rs
   - ../vowl-wasm/src/ngg1.rs
   - ../vowl-wasm/src/bindings/mod.rs
   - ../vowl-wasm/src/bindings/explorer.rs
-  - ../vowl-wasm/examples/barnes_hut_benchmark.rs
-verified_commit: 65e2d1e78
+verified_commit: 65e2d1e784bf5eb04b3cbc122d36d6926d889c22
 ---
 
 ## VW-03.1 `ForceSimulation` one tick — `LayoutAlgorithm` impl
@@ -139,39 +137,46 @@ stateDiagram-v2
       from alpha every call (no reheat API).
       CsrSimulation.finished is a latched bool,
       cleared only by reheat().
+      CsrSimulation does not implement LayoutAlgorithm<br/>
+      (trait alpha() f64, src/layout/mod.rs:30) — it exposes<br/>
+      its own f32 alpha() over flat Vec~f32~ CSR buffers,<br/>
+      not a VowlGraph (src/layout/csr_sim.rs:303).
     end note
 ```
 - DOC-DRIFT: only `CsrSimulation`/`NggExplorer` expose a `reheat` (src/layout/csr_sim.rs:368, src/bindings/explorer.rs:106) — `WebVowl`/`ForceSimulation` have no equivalent JS-reachable re-anneal call; a settled `WebVowl` graph can only be restarted via a fresh `initSimulation()`.
+- `ForceSimulation` implements `LayoutAlgorithm` (src/layout/mod.rs:17); `CsrSimulation` deliberately does not — the two engines share a design (annealing, Hooke springs, Coulomb repulsion) but not a common Rust interface.
 
-## VW-03.8 `LayoutAlgorithm` trait vs the two concrete engines
+## VW-03.9 Seeding — `ForceSimulation::initialize` vs `CsrSimulation::load`
 ```mermaid
-classDiagram
-    class LayoutAlgorithm {
-        <<trait>>
-        +initialize(graph) Result
-        +tick(graph) Result
-        +run(graph, iterations) Result
-        +is_finished() bool
-        +alpha() f64
-        src/layout/mod.rs:17
-    }
-    class ForceSimulation {
-        -LayoutConfig config
-        -f64 alpha
-        -usize iteration
-        -DebugFlags debug_flags
-        src/layout/simulation.rs:20
-    }
-    class CsrSimulation {
-        -SimConfig config
-        -Vec~f32~ positions
-        -Vec~f32~ velocities
-        -bool finished
-        src/layout/csr_sim.rs:69
-        note "not a LayoutAlgorithm impl — own tick()/is_finished()/alpha() inherent methods, f32 not f64"
-    }
-    LayoutAlgorithm <|.. ForceSimulation
-    ForceSimulation --> "used by" WebVowl
-    CsrSimulation --> "used by" NggExplorer
+flowchart TB
+    subgraph FS["ForceSimulation::initialize<br/>src/layout/simulation.rs:261"]
+        FI1["initialize_positions(graph)<br/>src/layout/simulation.rs:81"] --> FI2{"preserve_seeded_positions AND<br/>node already placed?<br/>src/layout/simulation.rs:101"}
+        FI2 -->|no| FI3["seed on circle, radius=seed_radius<br/>angle += TAU/node_count<br/>src/layout/simulation.rs:103-105"]
+        FI2 -->|yes| FI4["keep caller's x,y"]
+        FI3 --> FI5["vx,vy reset to 0 regardless<br/>src/layout/simulation.rs:110-111"]
+        FI4 --> FI5
+        FI5 --> FI6["alpha = config.alpha; iteration = 0<br/>src/layout/simulation.rs:262-263"]
+    end
+    subgraph CS["CsrSimulation::load_csr → load<br/>src/layout/csr_sim.rs:182,190"]
+        CI1["Ngg1::parse(bytes)<br/>src/layout/csr_sim.rs:183"] --> CI2["positions = g.seed_positions()<br/>src/layout/csr_sim.rs:193"]
+        CI2 --> CI3["velocities = zeroed Vec, len n*2<br/>src/layout/csr_sim.rs:194"]
+        CI3 --> CI4["edge_a/edge_b/edge_type from g.edges()<br/>src/layout/csr_sim.rs:195-198"]
+        CI4 --> CI5["alpha = config.alpha;<br/>finished = (n == 0)<br/>src/layout/csr_sim.rs:199-200"]
+    end
 ```
-- `CsrSimulation` deliberately does not implement `LayoutAlgorithm`: it operates on flat `Vec<f32>` CSR buffers rather than a `VowlGraph`, and exposes `f32` alpha (src/layout/csr_sim.rs:303) where the trait's `alpha()` is `f64` (src/layout/mod.rs:30) — the two engines share a design (annealing, Hooke springs, Coulomb repulsion) but not a common Rust interface.
+- `ForceSimulation` seeds a fresh circular layout unless a caller opted into `preserve_seeded_positions`; `CsrSimulation` always takes its seed positions straight from the NGG1 tier's own `seed_positions()` — there is no circular-seed path on the CSR side.
+- Both zero velocity/alpha state on entry, so a re-`initialize`/re-`load` is a clean restart, not a resume (contrast `reheat`, VW-03.7).
+
+## VW-03.10 Engine and tuning-preset choice
+```mermaid
+flowchart TB
+    N["graph to lay out"] --> SRC{"source is an NGG1 tier<br/>(worker-loaded, ≤1,500 nodes, T1)?<br/>src/layout/csr_sim.rs:10-11"}
+    SRC -->|yes| CSR["CsrSimulation<br/>flat Vec&lt;f32&gt; CSR buffers,<br/>always O(n²) repulsion<br/>src/layout/csr_sim.rs:10"]
+    SRC -->|no, VowlGraph| FSIM["ForceSimulation<br/>LayoutAlgorithm impl<br/>src/layout/simulation.rs:20"]
+    FSIM --> SIZE{"graph size vs<br/>LayoutConfig preset?"}
+    SIZE -->|"small/medium,<br/>default()"| DFLT["link_distance 30, charge -30,<br/>use_barnes_hut true (n&gt;50 engages it)<br/>src/layout/mod.rs:99-111"]
+    SIZE -->|"large, dense<br/>ontology, large_graph()"| BIG["link_distance 250, charge -2000,<br/>center_strength 0.001, seed_radius 2000<br/>src/layout/mod.rs:138-144"]
+    CSR --> TUNE["SimConfig: charge 2000, link_distance 60,<br/>damping 0.6, center_gravity 0.02<br/>src/layout/csr_sim.rs:52-61"]
+```
+- `large_graph()`'s doc comment (src/layout/mod.rs:118-121) records it was tuned empirically on a 1,155-node ontology and deliberately over-spreads a small graph, which is why it is a named preset rather than the default; Barnes-Hut engagement above `n > 50` is detailed in VW-03.2.
+- `CsrSimulation` has no size-tiered preset — its `SimConfig::default()` is the only configuration, scoped to the T1 ≤1,500-node tier (src/layout/csr_sim.rs:10,51); Barnes-Hut for this path is an unimplemented "follow-up slot" (src/layout/csr_sim.rs:11, also VW-03.5).

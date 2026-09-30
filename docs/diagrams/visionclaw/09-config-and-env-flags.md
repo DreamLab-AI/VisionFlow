@@ -5,7 +5,7 @@ area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/docs/SECURITY-profiles.md
-adrs: [ADR-2012, ADR-2026, ADR-2037, ADR-2038, ADR-2039, ADR-2041, ADR-2043, ADR-2046, ADR-2094]
+adrs: [ADR-2012, ADR-2026, ADR-2037, ADR-2038, ADR-2039, ADR-2041, ADR-2043, ADR-2046, ADR-2094, ADR-2114, ADR-2115]
 sources:
   - ../project/src/main.rs
   - ../project/src/app_state.rs
@@ -21,8 +21,6 @@ sources:
   - ../project/src/middleware/public_demo.rs
   - ../project/src/handlers/socket_flow_handler/position_updates.rs
   - ../project/src/utils/auth.rs
-  - ../project/docs/adr/ADR-2041-graph-settings-key-knowledge.md
-  - ../project/client/src/types/generated/settings.ts
   - ../project/crates/visionclaw-domain/src/config/visualisation.rs
   - ../project/data/settings.yaml
   - ../project/src/actors/agent_monitor_actor.rs
@@ -33,7 +31,8 @@ sources:
   - ../project/src/actors/task_orchestrator_actor.rs
   - ../project/src/actors/voice_interface_actor.rs
   - ../project/src/agent_events/ingest.rs
-  - ../project/src/bin/generate_types.rs
+  - ../project/src/bin/sync_corpus.rs
+  - ../project/crates/visionclaw-domain/src/config/graph_type.rs
   - ../project/src/config/dev_config.rs
   - ../project/src/config/path_access.rs
   - ../project/src/handlers/bots_handler.rs
@@ -52,7 +51,9 @@ sources:
   - ../project/src/services/github_pr_service.rs
   - ../project/src/services/github_sync_service.rs
   - ../project/src/services/liveness_harness.rs
-  - ../project/src/services/local_file_sync_service.rs
+  - ../project/src/services/corpus_source/mod.rs
+  - ../project/src/services/corpus_source/local.rs
+  - ../project/client/src/store/settings/settingsHelpers.ts
   - ../project/src/services/multi_mcp_agent_discovery.rs
   - ../project/src/services/nostr_bead_publisher.rs
   - ../project/src/services/nostr_bridge.rs
@@ -67,7 +68,7 @@ sources:
   - ../project/src/utils/unified_gpu_compute/execution.rs
   - ../project/src/handlers/api_handler/analytics/anomaly_handlers.rs
   - ../project/src/handlers/api_handler/analytics/clustering_handlers.rs
-verified_commit: f223bbd40
+verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
 ---
 
 ## VC-09.1 Config load precedence — main() boot order
@@ -80,7 +81,7 @@ sequenceDiagram
     participant T as telemetry logger<br/>src/main.rs:272
     participant S as AppFullSettings::new<br/>src/main.rs:298
     participant P as assert_effective_profile_or_exit<br/>src/config/security_profile.rs:624
-    participant B as HttpServer::new/bind<br/>src/main.rs:938
+    participant B as HttpServer::new/bind<br/>src/main.rs:943
 
     Note over M,B: INVARIANT ordering — every refusal runs BEFORE the listener binds
     M->>V: validate_required_env_vars()
@@ -102,18 +103,18 @@ sequenceDiagram
     alt load fails
         S-->>M: Err — boot aborts
     end
-    M->>M: DATA_DIR (src/main.rs:362, src/app_state.rs:453)
-    M->>M: BIND_ADDRESS (src/main.rs:835), SYSTEM_NETWORK_PORT (src/main.rs:836)
-    M->>P: assert_effective_profile_or_exit(EnvSnapshot::from_process(), BuildIdentity::current(), today) (src/main.rs:918)
+    M->>M: DATA_DIR (src/main.rs:362, src/app_state.rs:451)
+    M->>M: BIND_ADDRESS (src/main.rs:840), SYSTEM_NETWORK_PORT (src/main.rs:841)
+    M->>P: assert_effective_profile_or_exit(EnvSnapshot::from_process(), BuildIdentity::current(), today) (src/main.rs:923)
     Note over P: ADR-2038 — see VC-09.4. Pure fn over a snapshot plus the UTC date.
-    P-->>M: EffectiveProfile — logged as summary + observed_flags (src/main.rs:924-928)
+    P-->>M: EffectiveProfile — logged as summary + observed_flags (src/main.rs:929-933)
     M->>B: HttpServer::new(...).bind(&bind_address).workers(4)
 ```
 
 ## VC-09.2 src/config module surface — shims into visionclaw-domain, orphans removed
 ```mermaid
 flowchart LR
-    subgraph DECL["declared in src/config/mod.rs:1-4 and :57"]
+    subgraph DECL["declared in src/config/mod.rs:1-5 and :57"]
         D1["dev_config<br/>src/config/dev_config.rs"]
         D2["feature_access<br/>src/config/feature_access.rs"]
         D3["path_access<br/>src/config/path_access.rs"]
@@ -121,7 +122,7 @@ flowchart LR
         D5["path_accessible_impls (private)<br/>src/config/path_accessible_impls.rs"]
         D6["inline pub mod physics<br/>src/config/mod.rs:57"]
     end
-    subgraph REEXPORT["re-export shims — src/config/mod.rs:21-56"]
+    subgraph REEXPORT["re-export shims — src/config/mod.rs:21-53"]
         R1["graph_type<br/>normalise_graph_type, knowledge_graph_value"]
         R2["validation<br/>validate_hex_color, validate_port, ..."]
         R3["visualisation<br/>GraphsSettings, NodeSettings, ..."]
@@ -143,7 +144,7 @@ flowchart LR
     REEXPORT --> DOM
     D6 -->|"shadows"| O2
     ORPHAN -.->|"were unreachable — no mod declaration"| DECL
-    N1["RESOLVED ADR-2046 — src/config/mod.rs declares only the five modules above plus the<br/>inline physics module, so the six files in ORPHAN were unreachable dead copies of types<br/>canonical in visionclaw-domain. ADR-2041 Context said the same. All six are now deleted.<br/>Note the inline pub mod physics at :57 SHADOWED physics.rs — that is why deleting the<br/>file changed nothing. Evidence src/config/mod.rs:1-4 and :57"]
+    N1["RESOLVED ADR-2046 — src/config/mod.rs declares only the five modules above plus the<br/>inline physics module, so the six files in ORPHAN were unreachable dead copies of types<br/>canonical in visionclaw-domain. ADR-2041 Context said the same. All six are now deleted.<br/>Note the inline pub mod physics at :57 SHADOWED physics.rs — that is why deleting the<br/>file changed nothing. Evidence src/config/mod.rs:1-5 and :57"]
     ORPHAN --- N1
 ```
 
@@ -186,16 +187,16 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main<br/>src/main.rs:913
+    participant M as main<br/>src/main.rs:918
     participant E as EnvSnapshot::from_process<br/>src/config/security_profile.rs:173-174
     participant BI as BuildIdentity::current<br/>src/config/security_profile.rs:241
     participant A as assert_effective_profile_or_exit<br/>src/config/security_profile.rs:624
     participant V as evaluate_effective_profile<br/>src/config/security_profile.rs:485
 
-    Note over M,V: ADR-2038 closes ADR-2012 / ADR-2026 / ADR-2027 / ADR-2037<br/>runs BEFORE HttpServer::bind at src/main.rs:1219
+    Note over M,V: ADR-2038 closes ADR-2012 / ADR-2026 / ADR-2027 / ADR-2037<br/>runs BEFORE HttpServer::bind at src/main.rs:1224
     M->>E: from_process() — vars + argv snapshot taken once
     M->>BI: current() — debug_assertions, dev_auth
-    M->>M: today = chrono::Utc::now().format("%Y-%m-%d") (src/main.rs:917)
+    M->>M: today = chrono::Utc::now().format("%Y-%m-%d") (src/main.rs:922)
     M->>A: assert_effective_profile_or_exit(env, build, today)
     A->>V: evaluate_effective_profile(env, build, today)
     Note over V: pure — reads no process env and no clock of its own
@@ -204,7 +205,7 @@ sequenceDiagram
     V->>V: 2. NODE_ENV=development + DOCKER_ENV → DevelopmentNodeEnvInContainer
     V->>V: 3. argv --allow-skip-auth → AllowSkipAuthArgv
     V->>V: 4. build carries dev-auth → DevAuthFeatureInArtefact (ADR-2037)
-    Note over M,BI: INVARIANT (2026-09-07) — the dev launcher builds profile dev-runtime, which inherits<br/>release but keeps debug-assertions and overflow-checks (Cargo.toml:297-300), and exports<br/>CARGO_PROFILE_DEV_RUNTIME_DEBUG_ASSERTIONS=true (scripts/rust-backend-wrapper.sh:45). That is<br/>what keeps BuildIdentity::current() reporting a DEBUG artefact for a dev-auth binary, so this<br/>assertion warns and continues instead of refusing to bind. See VC-08.9.
+    Note over M,BI: INVARIANT (2026-09-07) — the dev launcher builds profile dev-runtime, which inherits<br/>release but keeps debug-assertions and overflow-checks (Cargo.toml:301-304), and exports<br/>CARGO_PROFILE_DEV_RUNTIME_DEBUG_ASSERTIONS=true (scripts/rust-backend-wrapper.sh:45). That is<br/>what keeps BuildIdentity::current() reporting a DEBUG artefact for a dev-auth binary, so this<br/>assertion warns and continues instead of refusing to bind. See VC-08.9.
     V->>V: 5. report_mode_requested(env) (src/config/security_profile.rs:520)
     alt public_reads_enabled_in(env) AND NOT visibility_filter_enabled_in(env)
         V->>V: 5b. findings.push(FullDisclosureFlagPair) — ADR-2043
@@ -384,16 +385,16 @@ flowchart TB
         E1["SYSTEM_NETWORK_PORT<br/>required list src/main.rs:63 · read :807"]
     end
     subgraph RECO["recommended — warn only, src/main.rs:70"]
-        E2["MANAGEMENT_API_KEY<br/>src/app_state.rs:87 · src/main.rs:704"] --> E3["JWT_SECRET<br/>src/app_state.rs:121"] --> E4["CORS_ALLOWED_ORIGINS<br/>src/main.rs:911"]
+        E2["MANAGEMENT_API_KEY<br/>src/app_state.rs:87 · src/main.rs:709"] --> E3["JWT_SECRET<br/>src/app_state.rs:121"] --> E4["CORS_ALLOWED_ORIGINS<br/>src/main.rs:952"]
     end
     subgraph IDENT["process identity — gates the release refusal"]
         E5["APP_ENV<br/>unset = non-production<br/>src/main.rs:85 and :944"] --> E6["NODE_ENV<br/>src/main.rs:141"] --> E7["DOCKER_ENV<br/>src/main.rs:144"] --> E8["VISIONCLAW_GIT_SHA<br/>src/services/liveness_harness.rs:279"]
     end
     subgraph PATHS["paths, stores and logging"]
-        E9["DATA_DIR<br/>src/main.rs:362 · src/app_state.rs:453"] --> E10["SETTINGS_FILE_PATH<br/>default /app/settings.yaml<br/>src/main.rs:302"] --> E11["EVENT_STORE_PATH<br/>src/app_state.rs:897"] --> E12["LOG_DIR<br/>src/utils/advanced_logging.rs:570"] --> E13["TELEMETRY_LOG_DIR<br/>src/main.rs:272"] --> E14["DEBUG_ENABLED<br/>src/utils/advanced_logging.rs:643"]
+        E9["DATA_DIR<br/>src/main.rs:362 · src/app_state.rs:451"] --> E10["SETTINGS_FILE_PATH<br/>default /app/settings.yaml<br/>src/main.rs:302"] --> E11["EVENT_STORE_PATH<br/>src/app_state.rs:899"] --> E12["LOG_DIR<br/>src/utils/advanced_logging.rs:570"] --> E13["TELEMETRY_LOG_DIR<br/>src/main.rs:272"] --> E14["DEBUG_ENABLED<br/>src/utils/advanced_logging.rs:643"]
     end
     subgraph BIND["listener"]
-        E15["BIND_ADDRESS<br/>src/main.rs:835"] --> E16["ALLOWED_WS_ORIGINS<br/>src/handlers/fastwebsockets_handler.rs:185"]
+        E15["BIND_ADDRESS<br/>src/main.rs:840"] --> E16["ALLOWED_WS_ORIGINS<br/>src/handlers/fastwebsockets_handler.rs:185"]
     end
     REQ --> RECO --> IDENT --> PATHS --> BIND
     N["branch effects — APP_ENV=production makes a missing required var fatal<br/>src/main.rs:85-97. NODE_ENV=development plus DOCKER_ENV is a<br/>release-build boot refusal, src/main.rs:141-148"]
@@ -405,10 +406,10 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph RBAC["RBAC lattice — request-time behaviour see VC-03"]
-        S1["RBAC_PUBLIC_READS<br/>default OFF, fail-closed unwrap_or(false)<br/>src/middleware/rbac_gate.rs:126-133, doc :121-125"] --> S2["RBAC_ALLOW_OWNERLESS<br/>const src/services/role_store.rs:33<br/>read src/main.rs:770 — absence refuses boot"] --> S3["RBAC_OWNER_PUBKEY<br/>const src/services/role_store.rs:27, read :642"] --> S4["RBAC_DEFAULT_ROLE<br/>const src/services/role_store.rs:41, read :218<br/>default Editor, fail-closed to viewer"] --> S5["RBAC_GATE_MODE<br/>default enforce<br/>src/middleware/rbac_gate.rs:80-113"] --> S6["RBAC_REPORT_MODE_ACK<br/>must equal today exactly<br/>src/config/security_profile.rs:473"] --> S7["POWER_USER_PUBKEYS<br/>src/services/nostr_service.rs:125<br/>maps to Admin when unassigned"]
+        S1["RBAC_PUBLIC_READS<br/>default OFF, fail-closed unwrap_or(false)<br/>src/middleware/rbac_gate.rs:126-133, doc :121-125"] --> S2["RBAC_ALLOW_OWNERLESS<br/>const src/services/role_store.rs:33<br/>read src/main.rs:775 — absence refuses boot"] --> S3["RBAC_OWNER_PUBKEY<br/>const src/services/role_store.rs:27, read :642"] --> S4["RBAC_DEFAULT_ROLE<br/>const src/services/role_store.rs:41, read :218<br/>default Editor, fail-closed to viewer"] --> S5["RBAC_GATE_MODE<br/>default enforce<br/>src/middleware/rbac_gate.rs:80-113"] --> S6["RBAC_REPORT_MODE_ACK<br/>must equal today exactly<br/>src/config/security_profile.rs:473"] --> S7["POWER_USER_PUBKEYS<br/>src/services/nostr_service.rs:125<br/>maps to Admin when unassigned"]
     end
     subgraph BYPASS["dev bypass — presence refused in release"]
-        S8["VISIONCLAW_DEV_MODE<br/>src/utils/auth.rs:100 dev_full_bypass_active"] --> S9["DEV_AUTH_LOOPBACK<br/>src/utils/auth.rs:123"] --> S10["SETTINGS_AUTH_BYPASS<br/>presence only — src/main.rs:130-134"] --> S11["ALLOW_INSECURE_DEFAULTS<br/>src/main.rs:951 · src/agent_events/ingest.rs:61<br/>src/handlers/socket_flow_handler/http_handler.rs:21"]
+        S8["VISIONCLAW_DEV_MODE<br/>src/utils/auth.rs:100 dev_full_bypass_active"] --> S9["DEV_AUTH_LOOPBACK<br/>src/utils/auth.rs:123"] --> S10["SETTINGS_AUTH_BYPASS<br/>presence only — src/main.rs:130-134"] --> S11["ALLOW_INSECURE_DEFAULTS<br/>src/main.rs:956 · src/agent_events/ingest.rs:61<br/>src/handlers/socket_flow_handler/http_handler.rs:21"]
     end
     subgraph POSTURE["posture selectors"]
         S12["VISIONCLAW_SECURITY_PROFILE<br/>src/config/security_profile.rs:54"] --> S13["PUBLIC_DEMO<br/>const src/middleware/public_demo.rs:24, read :28"] --> S14["PUBKEY_VISIBILITY_FILTER<br/>default ON, read ONCE and cached<br/>position_updates.rs:26 :34-43 :50-58"]
@@ -428,10 +429,10 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph KEYS["signing keys"]
-        K1["VISIONCLAW_NOSTR_PRIVKEY<br/>src/services/nostr_bridge.rs:37<br/>src/services/nostr_bead_publisher.rs:40<br/>src/app_state.rs:1359<br/>src/actors/elevation_actor.rs:200<br/>src/actors/decision_elevation_actor.rs:184"] --> K2["ACSP_PANEL_NOSTR_PRIVKEY<br/>src/app_state.rs:1358<br/>src/actors/elevation_actor.rs:199<br/>src/actors/decision_elevation_actor.rs:183<br/>src/services/voice_intent_client.rs:152"] --> K3["VISIONCLAW_AGENT_KEY<br/>src/handlers/enrichment_proposals_handler.rs:171<br/>src/handlers/image_gen_handler.rs:46<br/>src/handlers/liveness_harness_handler.rs:36"]
+        K1["VISIONCLAW_NOSTR_PRIVKEY<br/>src/services/nostr_bridge.rs:37<br/>src/services/nostr_bead_publisher.rs:40<br/>src/app_state.rs:1363<br/>src/actors/elevation_actor.rs:200<br/>src/actors/decision_elevation_actor.rs:184"] --> K2["ACSP_PANEL_NOSTR_PRIVKEY<br/>src/app_state.rs:1362<br/>src/actors/elevation_actor.rs:199<br/>src/actors/decision_elevation_actor.rs:183<br/>src/services/voice_intent_client.rs:152"] --> K3["VISIONCLAW_AGENT_KEY<br/>src/handlers/enrichment_proposals_handler.rs:171<br/>src/handlers/image_gen_handler.rs:46<br/>src/handlers/liveness_harness_handler.rs:36"]
     end
     subgraph RELAYS["relays and taps"]
-        R1["FORUM_RELAY_URL<br/>src/services/nostr_bridge.rs:40 · src/app_state.rs:1357<br/>src/actors/elevation_actor.rs:198<br/>src/actors/decision_elevation_actor.rs:182"] --> R2["NOSTR_RELAY_URL<br/>src/services/nostr_bridge.rs:44<br/>src/services/nostr_bead_publisher.rs:44"] --> R3["CANARY_TAP_RELAY_URL<br/>unset = tap not started<br/>src/services/canary_nostr_tap.rs:246"] --> R4["CANARY_TAP_ALLOWED_PUBKEYS<br/>src/services/canary_nostr_tap.rs:256"]
+        R1["FORUM_RELAY_URL<br/>src/services/nostr_bridge.rs:40 · src/app_state.rs:1361<br/>src/actors/elevation_actor.rs:198<br/>src/actors/decision_elevation_actor.rs:182"] --> R2["NOSTR_RELAY_URL<br/>src/services/nostr_bridge.rs:44<br/>src/services/nostr_bead_publisher.rs:44"] --> R3["CANARY_TAP_RELAY_URL<br/>unset = tap not started<br/>src/services/canary_nostr_tap.rs:246"] --> R4["CANARY_TAP_ALLOWED_PUBKEYS<br/>src/services/canary_nostr_tap.rs:256"]
     end
     subgraph GATES["actor and envelope gates"]
         G1["ELEVATION_ACTOR_ENABLED<br/>src/actors/elevation_actor.rs:191"] --> G2["DECISION_ELEVATION_ENABLED<br/>src/actors/decision_elevation_actor.rs:175"] --> G3["ONTOLOGY_REQUIRE_SIGNED_ENVELOPE<br/>src/services/proposal_spine.rs:411"]
@@ -442,23 +443,26 @@ flowchart TB
 ```
 
 
-## VC-09.11 Env register — GitHub corpus sync
+## VC-09.11 Env register — corpus source selection and GitHub sync (ADR-2114, ADR-2115)
 ```mermaid
 flowchart TB
-    subgraph TOK["tokens"]
-        T1["PRIVATE_REPO_GITHUB_PAT<br/>const GITHUB_TOKEN_ENV src/services/github/config.rs:23<br/>read :31"] --> T2["legacy token alias<br/>GITHUB_TOKEN_ENV_LEGACY src/services/github/config.rs:33"]
+    subgraph SEL["source selection — CorpusSource port, read before any GitHub var"]
+        C1["CORPUS_SOURCE<br/>const src/services/corpus_source/mod.rs:186<br/>read :195-196"] --> C2["VAULT_ROOT<br/>const src/services/corpus_source/local.rs:13<br/>read :69 and :76 — local is the default source when set and non-empty"] --> C3["VAULT_BASE_PATHS<br/>const src/services/corpus_source/local.rs:16<br/>read :86, default knowledge/pages,working/pages"]
+    end
+    subgraph TOK["GitHub token — read only when CORPUS_SOURCE=github"]
+        T1["PRIVATE_REPO_GITHUB_PAT<br/>const GITHUB_TOKEN_ENV src/services/github/config.rs:23<br/>read src/services/github/config.rs:28"]
     end
     subgraph LOC["repository coordinates"]
-        L1["GITHUB_OWNER<br/>src/services/github/config.rs:88<br/>src/services/github_pr_service.rs:129<br/>src/services/local_file_sync_service.rs:385"] --> L2["GITHUB_REPO<br/>src/services/github/config.rs:91<br/>src/services/github_pr_service.rs:135<br/>src/services/local_file_sync_service.rs:388"] --> L3["GITHUB_BRANCH<br/>src/services/github/config.rs:113<br/>src/services/github_pr_service.rs:141<br/>src/services/local_file_sync_service.rs:389"] --> L4["GITHUB_BASE_PATH<br/>src/services/github/config.rs:99<br/>src/services/github_sync_service.rs:2273<br/>src/services/local_file_sync_service.rs:391"] --> L5["GITHUB_BASE_PATHS<br/>src/services/github/config.rs:98<br/>src/services/github_sync_service.rs:2272"] --> L6["GITHUB_REPO_OWNER :130 · GITHUB_REPO_NAME :136<br/>GITHUB_BASE_BRANCH :142<br/>all in src/services/github_pr_service.rs"]
+        L1["GITHUB_OWNER<br/>src/services/github/config.rs:72-73<br/>src/services/github_pr_service.rs:129"] --> L2["GITHUB_REPO<br/>src/services/github/config.rs:75-76<br/>src/services/github_pr_service.rs:135"] --> L3["GITHUB_BRANCH<br/>src/services/github/config.rs:97<br/>src/services/github_pr_service.rs:141"] --> L4["GITHUB_BASE_PATHS preferred, GITHUB_BASE_PATH legacy singular<br/>src/services/github/config.rs:82-84"] --> L5["GITHUB_REPO_OWNER :130 · GITHUB_REPO_NAME :136<br/>GITHUB_BASE_BRANCH :142<br/>all in src/services/github_pr_service.rs"]
     end
     subgraph BEHAV["sync behaviour"]
-        B1["FORCE_FULL_SYNC — bypasses the SHA1 incremental filter<br/>src/services/github_sync_service.rs:344"] --> B2["FANOUT_NODE_THRESHOLD<br/>src/services/github_sync_service.rs:429 and :690"] --> B3["GITHUB_RATE_LIMIT<br/>src/services/github/config.rs:115"] --> B4["GITHUB_API_VERSION<br/>src/services/github/config.rs:119"]
+        B1["FORCE_FULL_SYNC — bypasses the incremental filter<br/>src/services/github_sync_service.rs:351"] --> B2["FANOUT_NODE_THRESHOLD<br/>src/services/github_sync_service.rs:436 and :697"] --> B3["GITHUB_RATE_LIMIT<br/>src/services/github/config.rs:99"] --> B4["GITHUB_API_VERSION<br/>src/services/github/config.rs:103"]
     end
-    TOK --> LOC --> BEHAV
+    SEL --> TOK --> LOC --> BEHAV
     N4["DIVERGENCE — GITHUB_REPO_OWNER, GITHUB_REPO_NAME and GITHUB_BASE_BRANCH are read<br/>only by github_pr_service.rs and duplicate GITHUB_OWNER, GITHUB_REPO and GITHUB_BRANCH<br/>read elsewhere — two naming grammars for the same coordinates, unreconciled"]
     LOC --- N4
-    N5["corpus ingest pipeline see VC-21"]
-    BEHAV --- N5
+    N5["RESOLVED ADR-2115 — GitHubConfig::disabled() src/services/github/config.rs:53 lets<br/>src/bin/sync_corpus.rs:55-56 boot with CORPUS_SOURCE=local and no GitHub variable<br/>read at all; GITHUB_TOKEN_ENV_LEGACY and src/services/local_file_sync_service.rs<br/>are both deleted. CorpusSource port and the sync binary's source-selection<br/>match see VC-21."]
+    SEL --- N5
 ```
 
 
@@ -466,10 +470,10 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph MCP["MCP transport"]
-        M1["MCP_HOST<br/>src/app_state.rs:1171 · src/services/bots_client.rs:121<br/>src/services/speech_service.rs:1097<br/>src/services/ontology_class_index.rs:88<br/>analytics/anomaly_handlers.rs:101<br/>analytics/clustering_handlers.rs:346"] --> M2["MCP_TCP_PORT<br/>src/app_state.rs:1172 · src/services/bots_client.rs:123<br/>src/services/multi_mcp_agent_discovery.rs:92<br/>src/services/speech_service.rs:1098<br/>src/services/ontology_class_index.rs:89<br/>plus the two analytics handlers above"] --> M3["CLAUDE_FLOW_HOST<br/>src/services/bots_client.rs:120<br/>src/services/multi_mcp_agent_discovery.rs:91"]
+        M1["MCP_HOST<br/>src/app_state.rs:1175 · src/services/bots_client.rs:121<br/>src/services/speech_service.rs:1097<br/>src/services/ontology_class_index.rs:88<br/>analytics/anomaly_handlers.rs:101<br/>analytics/clustering_handlers.rs:346"] --> M2["MCP_TCP_PORT<br/>src/app_state.rs:1176 · src/services/bots_client.rs:123<br/>src/services/multi_mcp_agent_discovery.rs:92<br/>src/services/speech_service.rs:1098<br/>src/services/ontology_class_index.rs:89<br/>plus the two analytics handlers above"] --> M3["CLAUDE_FLOW_HOST<br/>src/services/bots_client.rs:120<br/>src/services/multi_mcp_agent_discovery.rs:91"]
     end
     subgraph MGMT["management API"]
-        G1["MANAGEMENT_API_HOST<br/>src/main.rs:699 · src/app_state.rs:1253<br/>src/actors/agent_monitor_actor.rs:253"] --> G2["MANAGEMENT_API_PORT<br/>src/main.rs:700 · src/app_state.rs:1255<br/>src/actors/agent_monitor_actor.rs:255"] --> G3["MANAGEMENT_API_KEY<br/>src/main.rs:704 · src/app_state.rs:87<br/>decide_management_api_credential() src/actors/agent_monitor_actor.rs:235-244<br/>called at :264-267, fail-closed panic at :287-290 (ADR-2094)"]
+        G1["MANAGEMENT_API_HOST<br/>src/main.rs:704 · src/app_state.rs:1257<br/>src/actors/agent_monitor_actor.rs:253"] --> G2["MANAGEMENT_API_PORT<br/>src/main.rs:705 · src/app_state.rs:1259<br/>src/actors/agent_monitor_actor.rs:255"] --> G3["MANAGEMENT_API_KEY<br/>src/main.rs:709 · src/app_state.rs:87<br/>decide_management_api_credential() src/actors/agent_monitor_actor.rs:235-244<br/>called at :264-267, fail-closed panic at :287-290 (ADR-2094)"]
     end
     subgraph DISC["swarm discovery"]
         D1["DAA_HOST multi_mcp_agent_discovery.rs:163 · DAA_PORT multi_mcp_agent_discovery.rs:164"] --> D2["RUV_SWARM_HOST multi_mcp_agent_discovery.rs:146 · RUV_SWARM_PORT multi_mcp_agent_discovery.rs:147"] --> D3["ORCHESTRATOR_WS_URL<br/>src/handlers/mcp_relay_handler.rs:78"]
@@ -496,7 +500,7 @@ flowchart TB
         O1["SOLID_DATA_ROOT :130 · SOLID_PROXY_SECRET_KEY :133<br/>SOLID_ALLOW_ANONYMOUS :137<br/>all in src/handlers/solid_proxy_handler.rs"] --> O2["SOLID_INTERNAL_URL<br/>src/handlers/image_gen_handler.rs:41"]
     end
     subgraph SELF["self-reference and liveness"]
-        F1["VISIONCLAW_SELF_URL<br/>default http 127.0.0.1 port<br/>src/main.rs:1230"] --> F2["VISIONCLAW_KG_WATCHDOG_SECS<br/>default 30 · src/main.rs:1232"] --> F3["VISIONCLAW_INTERNAL_URL<br/>src/actors/voice_interface_actor.rs:159<br/>src/handlers/bots_handler.rs:522"]
+        F1["VISIONCLAW_SELF_URL<br/>default http 127.0.0.1 port<br/>src/main.rs:1235"] --> F2["VISIONCLAW_KG_WATCHDOG_SECS<br/>default 30 · src/main.rs:1237"] --> F3["VISIONCLAW_INTERNAL_URL<br/>src/actors/voice_interface_actor.rs:159<br/>src/handlers/bots_handler.rs:522"]
     end
     EXT --> PAY --> SOLID --> SELF
     N5["PAY routes are mounted UNCONDITIONALLY under feature solid-pod-embed<br/>at src/main.rs:1058-1068 and stay inert until PAY_ENABLED=true —<br/>.info reports disabled, gated routes 403. See VC-04."]
@@ -531,28 +535,24 @@ flowchart LR
     GPU --- N6
 ```
 
-## VC-09.15 ADR-2041 — the knowledge graph-settings key and its one-release logseq alias
-
-<!-- STALE 2026-09-22: the one-release `logseq` alias has expired. ADR-2115 (supersedes ADR-2041): the server rejects `logseq` everywhere (crates/visionclaw-domain/src/config/graph_type.rs); only the client's persisted-state migration graphs.logseq → graphs.knowledge remains, receive-side -->
+## VC-09.15 ADR-2115 (supersedes ADR-2041) — the knowledge graph-settings key, logseq fully retired server-side
 ```mermaid
 sequenceDiagram
     autonumber
     participant Y as data/settings.yaml
-    participant D as GraphsSettings<br/>crates/visionclaw-domain/src/config/visualisation.rs
+    participant D as GraphsSettings<br/>crates/visionclaw-domain/src/config/visualisation.rs:512-517
+    participant GT as normalise_graph_type<br/>crates/visionclaw-domain/src/config/graph_type.rs:14-20
     participant P as path_accessible_impls<br/>src/config/path_accessible_impls.rs:159
-    participant G as generate_types<br/>src/bin/generate_types.rs
-    participant C as client generated types<br/>client/src/types/generated/settings.ts
+    participant M as migrateGraphSettingsKey<br/>client/src/store/settings/settingsHelpers.ts:371
 
-    Note over Y,C: ADR-2041 decision_status proposed, implementation_status complete, activation_status staged
-    Y->>D: deserialise graphs.knowledge
-    alt persisted key is the legacy "logseq"
-        Y->>D: serde alias logseq accepted on the way in
-        D-->>Y: serialisation always emits "knowledge"
+    Note over Y,M: ADR-2115 accepted, implementation_status complete, activation_status live — supersedes ADR-2041's one-release logseq alias
+    Y->>D: deserialise graphs.knowledge — no serde alias, "logseq" is an unrecognised field
+    alt persisted document still keys graphs on "logseq"
+        Y-->>D: deserialisation fails — explicit missing-field error on knowledge
     end
-    P->>P: match segment "knowledge" | "logseq" (src/config/path_accessible_impls.rs:160 and :185)
-    Note over P: both path segments resolve to the same field — read-only alias for ONE release
-    D->>G: settings schema
-    G->>C: emit "knowledge" only
-    Note over C: client GraphType becomes knowledge | visionclaw<br/>a store migration maps a persisted graphs.logseq object to graphs.knowledge on load
-    Note over P,C: DIVERGENCE — review_trigger is the release after ADR-2040's tolerance ends<br/>remove the alias and the client migration shim then. Settings round-trip detail see VC-06.
+    D->>GT: normalise_graph_type("logseq") passes the value through unchanged, never redirected to knowledge
+    P->>P: match segments[0] — "knowledge" and "visionclaw" only (:159 and :183)<br/>a "logseq" segment falls to the Unknown-graph-type Err arm
+    Note over P: RESOLVED ADR-2115 — the dual "knowledge" | "logseq" match arm is gone,<br/>along with GraphsSettings::knowledge's #[serde(alias = "logseq")]
+    M->>M: receive-side only — a persisted visualisation.graphs.logseq object still<br/>migrates onto graphs.knowledge on load (:375 and :380-381), dropping the legacy key
+    Note over M: client never SENDS logseq (graphDataManager.ts, graph.worker.ts) — this is<br/>a one-way localStorage upgrade path, not a live protocol alias. Settings round trip see VC-06.
 ```

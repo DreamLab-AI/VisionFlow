@@ -28,7 +28,7 @@ sources:
   - ../project/agentbox/tests/contract/beads.contract.spec.js
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/mcp/servers/lib/ontology-local.js
-verified_commit: 1639f86abded1441ce148d6c47924dfaf34f96af
+verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
 ---
 
 ## AB-26.1 headroom — lazy native load and slot gating
@@ -46,12 +46,12 @@ sequenceDiagram
     MW->>H: compress(content, slot, opts)
     alt slot == events
         H-->>MW: input UNCHANGED
-        Note over H: HARD-CODED regardless of manifest config — the AUDIT TRAIL MUST NEVER BE COMPRESSED<br/>(headroom.js:15-17). agentbox.toml:1916 events = false agrees, but the code does not<br/>trust it
+        Note over H: HARD-CODED regardless of manifest config — the AUDIT TRAIL MUST NEVER BE COMPRESSED<br/>(headroom.js:15-17). agentbox.toml:1981 events = false agrees, but the code does not<br/>trust it
     else slot not enabled in [compression.slots]
         H->>CFG: read the manifest
-        Note over CFG: agentbox.toml:1913-1918 — memory true, pods true, events false, beads true, orchestrator<br/>false
+        Note over CFG: agentbox.toml:1978-1983 — memory true, pods true, events false, beads true, orchestrator<br/>false
         H-->>MW: input UNCHANGED — fail-open
-    else compression.enabled false (agentbox.toml:1907)
+    else compression.enabled false (agentbox.toml:1972)
         H-->>MW: input UNCHANGED — fail-open
     else enabled and slot on
         H->>LN: load the addon on FIRST CALL, not at require() time
@@ -91,7 +91,7 @@ sequenceDiagram
     alt json_array
         JS->>SC: smart_crush(input, SmartCrushOptions)
         SC->>SC: analyse the schema, preserve ANCHORS and OUTLIERS, sample the rest
-        Note over SC: target_ratio default 0.3 in-crate (smart_crusher.rs:11), min_items default 2.<br/>agentbox.toml:1911 sets an aggressive target_ratio = 0.15 — keep about 15 percent
+        Note over SC: target_ratio default 0.3 in-crate (smart_crusher.rs:11), min_items default 2.<br/>agentbox.toml:1976 sets an aggressive target_ratio = 0.15 — keep about 15 percent
         SC->>CCR: emit a CCR sentinel per DROPPED row
     else log_output
         JS->>LC: compress_log(input, LogCompressOptions)
@@ -105,7 +105,7 @@ sequenceDiagram
     end
     CCR->>DB: ccr_store_entry(hash, original) — lib.rs:61
     Note over CCR,DB: BLAKE3 hash prefix, 24 hex chars, identifies the stored content (types.rs:5-12).<br/>Process-global singleton via OnceLock (ccr_store.rs:11-12), DashMap over a rusqlite<br/>Connection
-    Note over DB: backend sqlite (memory also supported, redis DEFERRED), ttl_minutes 30, max_entries 1000<br/>with LRU eviction (agentbox.toml:1908-1910)
+    Note over DB: backend sqlite (memory also supported, redis DEFERRED), ttl_minutes 30, max_entries 1000<br/>with LRU eviction (agentbox.toml:1973-1975)
     JS-->>JS: CompressResult {compressed, original_bytes, ...}
 ```
 
@@ -316,27 +316,34 @@ sequenceDiagram
     Note over ST: PROPOSED ADR-2074: build the ADR-051 distillation tools as a discrete manifest-gated MCP server that holds the<br/>harness signing key, rather than as tools on the fail-open ontology-bridge - none of D2 or D3 exists today, so there is<br/>no distill tool, no job URN kind and no job_urn field. See AB-24
 ```
 
-## AB-26.8 RuvNet Brain grounding
+## AB-26.8 RuvNet Brain grounding — three-tier trigger and sentence scope
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant U as User prompt
     participant CC as Claude Code UserPromptSubmit
-    participant HK as ruvnet-brain-ground.cjs<br/>agentbox/config/hooks/ruvnet-brain-ground.cjs:1
+    participant HK as analyse<br/>agentbox/config/hooks/ruvnet-brain-ground.cjs:90
     participant MCP as ruvnet-brain server<br/>agentbox/mcp/ruvnet-brain/server.js:198
     participant KB as ruvnet-kb namespace<br/>see AB-20
 
     U->>CC: prompt text
-    CC->>HK: hook JSON on stdin
-    HK->>HK: scan for RUVNET_REPOS references (:15-21)
-    Note over HK: ruflo, claude-flow, ruvector, rvf, safla, agentdb, agentic-flow, agentic-qe, rulake,<br/>agenticow, sparc, agent-harness-generator, qudag, rvm, ruv-fann, rupixel, synthlang,<br/>dspy.ts, fact, ruview, daa, metaharness, redblue, cve-bench, ruvnet
-    HK->>HK: scan for CLASSICAL_SUBS anti-patterns (:23-31)
-    Note over HK: pinecone / pgvector / chromadb / weaviate map to ruvector-agentdb — langchain /<br/>llamaindex map to ruflo-agentic-flow — hnswlib maps to @ruvector/rvf
-    alt no match
-        HK-->>CC: exit 0, NO injection
-    else match
-        HK-->>CC: exit 0 with additionalContext — a grounding directive to call search_ruvnet BEFORE<br/>asserting, and to redirect a classical substitute to its RuvNet equivalent
+    CC->>HK: main() reads hook.userInput or hook.prompt (:121)
+    HK->>HK: sentences(text) — split on sentence end or newline (:85-87)
+    HK->>HK: DISTINCTIVE_RE test on the WHOLE text (:96)
+    Note over HK: DISTINCTIVE names fire alone — only ever mean upstream: ruvnet, ruv-net,<br/>github.com/ruvnet, @ruvector/*, @ruflo/*, qudag, ruv-fann, ruv-swarm, synthlang,<br/>dspy.ts, rulake, agenticow, rupixel, ruview, safla, agent-harness-generator,<br/>cve-bench (:37-42)
+    alt no distinctive match
+        HK->>HK: per sentence, ESTATE_RE AND CUE_RE both true (:97)
+        Note over HK: ESTATE names — ruvector, claude-flow, ruflo, agentdb, agentic-flow, agentic-qe,<br/>reasoningbank, sona, rvf (:44-48) — need an UPSTREAM_CUE in the SAME sentence:<br/>upstream, internals, source code, npm, crate, release notes, "how does X work" (:50-57)
+    end
+    HK->>HK: for each CLASSICAL_SUBS pattern, sentence match AND SELECTION intent (:101-109)
+    Note over HK: pinecone/pgvector/chromadb/weaviate to ruvector-agentdb — langchain/llamaindex to<br/>ruflo-agentic-flow — hnswlib to @ruvector/rvf (:59-67) — SELECTION requires use/adopt/<br/>switch/migrate/replace/vs/recommend/choose in the SAME sentence (:70)
+    HK->>HK: join parts, truncate at MAX_CONTEXT_CHARS 1200 with an ellipsis (:111-112)
+    alt no parts
+        HK-->>CC: analyse returns '' — main() returns, NO injection (:121-122)
+    else parts non-empty
+        HK->>HK: emitContext(ctx) — lib/hook-output.cjs (:123-124)
+        HK-->>CC: hookSpecificOutput.additionalContext — a GROUNDING directive to call search_ruvnet<br/>before asserting, plus up to two REDIRECT lines for classical substitutes
         CC->>MCP: search_ruvnet (server.js:205)
         MCP->>KB: semantic search over the reference corpus
         KB-->>MCP: hits
@@ -345,7 +352,8 @@ sequenceDiagram
             CC->>MCP: ruvnet_brain_status (server.js:221)
         end
     end
-    Note over HK: FAIL-OPEN: any error exits 0 with no injection (:11). Protocol is hook JSON in on stdin,<br/>JSON out on stdout (:9-10)
+    Note over HK: FAIL-OPEN: unparseable stdin JSON returns before analyse runs (:120) — main() always<br/>exits 0 via .finally (:128)
+    Note over HK: INVARIANT: an ESTATE name or a CLASSICAL_SUBS term only counts alongside its cue in the<br/>SAME sentence — a long pasted log cannot pair words from unrelated lines (:85-87)
     Note over KB: DIVERGENCE: ruvnet-kb and the knowledge-* namespaces are LOW-RECALL — scoped R@10 about<br/>9-11 percent — until candidate-bounded hybrid lands. ruvnet-kb is also a PROTECTED<br/>reference corpus with ingest-only writes, and it is capped at about 40 percent of the<br/>recall harness self-recall stratification (see AB-20)
     Note over KB: DIVERGENCE: memory_hybrid_search materialises the whole namespace and measured about 72<br/>s on ruvnet-kb — avoid it on this namespace
 ```
@@ -354,19 +362,19 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    subgraph man["agentbox.toml [compression] — line 1636"]
-        E["enabled = true agentbox.toml:1907<br/>headroom-napi crate built, compression active"]
-        B["backend = sqlite agentbox.toml:1908<br/>sqlite or memory, redis DEFERRED"]
-        T["ttl_minutes = 30 agentbox.toml:1909"]
-        M["max_entries = 1000 agentbox.toml:1910<br/>LRU eviction"]
-        R["target_ratio = 0.15 agentbox.toml:1911<br/>aggressive default, keep about 15 percent"]
+    subgraph man["agentbox.toml [compression] — line 1971"]
+        E["enabled = true agentbox.toml:1972<br/>headroom-napi crate built, compression active"]
+        B["backend = sqlite agentbox.toml:1973<br/>sqlite or memory, redis DEFERRED"]
+        T["ttl_minutes = 30 agentbox.toml:1974"]
+        M["max_entries = 1000 agentbox.toml:1975<br/>LRU eviction"]
+        R["target_ratio = 0.15 agentbox.toml:1976<br/>aggressive default, keep about 15 percent"]
     end
-    subgraph slots["[compression.slots] — line 1643"]
-        S1["memory = true agentbox.toml:1914<br/>compress memory search results"]
-        S2["pods = true agentbox.toml:1915<br/>compress pod writes"]
-        S3["events = false agentbox.toml:1916<br/>NEVER compress audit trail"]
-        S4["beads = true agentbox.toml:1917<br/>compress bead payloads"]
-        S5["orchestrator = false agentbox.toml:1918<br/>skip orchestrator coordination"]
+    subgraph slots["[compression.slots] — line 1978"]
+        S1["memory = true agentbox.toml:1979<br/>compress memory search results"]
+        S2["pods = true agentbox.toml:1980<br/>compress pod writes"]
+        S3["events = false agentbox.toml:1981<br/>NEVER compress audit trail"]
+        S4["beads = true agentbox.toml:1982<br/>compress bead payloads"]
+        S5["orchestrator = false agentbox.toml:1983<br/>skip orchestrator coordination"]
     end
     subgraph adapters["The five adapter slots (legacy ADR-005) — dispatch in AB-04"]
         A1["memory → RuVector, see AB-20"]

@@ -50,6 +50,7 @@ sequenceDiagram
     ST-->>M: FsBackend or MemoryBackend
     M->>APP: HttpServer::new closure per worker<br/>solid-pod-rs-server/src/main.rs:345
     Note over M: INVARIANT: the operator subcommand short-circuits BEFORE any config,<br/>storage or socket work — a one-shot admin command never binds a port.
+    Note over APP,M: Graceful shutdown: shutdown_timeout(30) is set on the server before run()<br/>(main.rs:367). Both SIGINT (ctrl_c) and SIGTERM race in a tokio::select and<br/>either one calls handle.stop(graceful=true) (main.rs:372-379). On non-unix,<br/>terminate_signal is std::future::pending — only ctrl_c can trigger shutdown<br/>(main.rs:400).
 ```
 
 ## SP-02.2 AppState assembly order
@@ -98,33 +99,6 @@ classDiagram
     note for Cli "INVARIANT: every one of these defaults to OFF/None. Registration is closed,\nMCP is off, the admin endpoint 403s with no key, and the unverified TXO\ndeposit stand-in is off — a bare `solid-pod-rs-server` opens no back door."
 ```
 
-## SP-02.4 Layered configuration resolution
-
-```mermaid
-flowchart LR
-    D["with_defaults<br/>solid-pod-rs/src/config/loader.rs:79"]
-    F["with_file (JSON/YAML/TOML auto-detect)<br/>solid-pod-rs/src/config/loader.rs:94"]
-    E["with_env — JSS_* variables<br/>solid-pod-rs/src/config/loader.rs:101"]
-    C["with_cli_overlay<br/>solid-pod-rs/src/config/loader.rs:127"]
-    L["load -> ServerConfig<br/>solid-pod-rs/src/config/loader.rs:156"]
-    W["warnings collected, not fatal<br/>solid-pod-rs/src/config/loader.rs:208"]
-
-    D --> F --> E --> C --> L --> W
-
-    SRC["ConfigSource enum<br/>solid-pod-rs/src/config/sources.rs:63"]
-    LF["load_file<br/>solid-pod-rs/src/config/sources.rs:107"]
-    NS["normalise_file_shape<br/>solid-pod-rs/src/config/sources.rs:164"]
-    LE["load_env<br/>solid-pod-rs/src/config/sources.rs:215"]
-    PS["parse_size — 50MB / 1.5GB / bare bytes<br/>solid-pod-rs/src/config/sources.rs:467"]
-
-    SRC --> LF --> NS
-    SRC --> LE
-    LE --> PS
-
-    N["Later layers win: defaults, then file, then env, then CLI."]
-    C -.-> N
-```
-
 ## SP-02.5 ServerConfig shape and the one hard validation
 
 ```mermaid
@@ -154,6 +128,7 @@ classDiagram
     ServerConfig *-- AuthConfig
     ServerConfig *-- SecurityConfig
     note for ServerConfig "validate() rejects oidc_enabled = true with no oidc_issuer\n  solid-pod-rs/src/config/schema.rs:327 — a pod cannot claim OIDC with no issuer."
+    note for ServerConfig "Resolution order (solid-pod-rs/src/config/loader.rs:79,94,101,127): defaults\n  -> file -> env -> CLI overlay, later layers win. Bad values are collected\n  as warnings, not fatal (loader.rs:181). parse_size accepts unit strings\n  like 50MB/1.5GB or bare bytes (solid-pod-rs/src/config/sources.rs:467)."
 ```
 
 ## SP-02.6 Storage backend selection — only two survive
@@ -313,25 +288,6 @@ flowchart LR
     H -.-> N2
     N3["COPY is registered by raw method bytes — it is not a standard actix verb.<br/>solid-pod-rs-server/src/lib.rs:4796"]
     CO -.-> N3
-```
-
-## SP-02.12 Graceful shutdown
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant SIG as SIGINT / SIGTERM
-    participant SH as shutdown task<br/>solid-pod-rs-server/src/main.rs:370
-    participant SRV as actix HttpServer<br/>solid-pod-rs-server/src/main.rs:367
-    participant M as main
-
-    Note over SRV: shutdown_timeout(30) then run()
-    SIG->>SH: ctrl_c<br/>solid-pod-rs-server/src/main.rs:372
-    SIG->>SH: terminate_signal (unix SIGTERM)<br/>solid-pod-rs-server/src/main.rs:390
-    SH->>SRV: handle.stop(graceful = true)<br/>solid-pod-rs-server/src/main.rs:379
-    SRV-->>M: server future resolves
-    M->>M: await shutdown task, log "stopped cleanly"
-    Note over SH: On non-unix the terminate branch is std::future::pending —<br/>only ctrl_c can trigger shutdown.<br/>solid-pod-rs-server/src/main.rs:400
 ```
 
 ## SP-02.13 Operator subcommands — the no-HTTP path

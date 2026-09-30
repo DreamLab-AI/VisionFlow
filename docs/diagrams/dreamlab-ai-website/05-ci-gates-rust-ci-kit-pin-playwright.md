@@ -14,7 +14,6 @@ sources:
   - ../dreamlab-ai-website/.github/workflows/deploy.yml
   - ../dreamlab-ai-website/.github/workflows/workers-deploy.yml
   - ../dreamlab-ai-website/.github/workflows/docs-update.yml
-  - ../dreamlab-ai-website/playwright.config.ts
   - ../dreamlab-ai-website/tests/forum-smoke.spec.ts
   - ../dreamlab-ai-website/docs/BASELINE-architecture.md
   - ../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md
@@ -23,7 +22,7 @@ sources:
   - ../dreamlab-ai-website/scripts/__tests__/pin-parity.test.mjs
   - ../dreamlab-ai-website/scripts/__tests__/dream-kit-pin-guard.test.mjs
   - ../dreamlab-ai-website/scripts/__tests__/helpers/fixture-repo.mjs
-verified_commit: 08e9e8578
+verified_commit: 9b8ea495da80aaa5b45795af916bda4470467481
 ---
 
 ## DW-05.1 `ci.yml` — the ten-job PR/push gate and its aggregator
@@ -44,6 +43,9 @@ flowchart TB
 ```
 - `ci.yml:14-30` deliberately enumerates `.github/workflows/**` and `scripts/**` as trigger paths, not just the three `KIT_REF` pin sites: pin-check sweeps ALL workflow files for tag-pinned actions, so any workflow edit can break it — narrower path filters previously let `kit-pin-guard.yml` carry an unpinned `actions/checkout@v4` without re-running the gate that rejects it (2026-09-06 incident, `ci.yml:23-27` comment).
 - `rust-clippy` here is `-D warnings` (blocking, `ci.yml:` rust-clippy job) — unlike `rust-ci.yml`'s clippy job against the kit, which is explicitly advisory (DW-05.2).
+- Playwright/E2E specs (`playwright.config.ts`, `tests/forum-smoke.spec.ts`) are deliberately NOT wired into `ci.yml`, `test-and-lint.yml` or any gate job in this tree — `CLAUDE.md:63` documents `npx playwright test` as a manual command requiring a running deployment; `forum-smoke.spec.ts:404-410` is the only spec asserting workers return scoped CORS, cited by `BASELINE-architecture.md:86`.
+- `set-worker-secrets.yml` (`workflow_dispatch` only) is a one-shot operator push of four secrets (`NATIVE_POD_URL`, `NATIVE_POD_ADMIN_KEY`, `PRF_SERVER_SECRET`, `ADMIN_PUBKEYS`) to the `dreamlab-auth-api` CF Worker via the CF Workers Secrets API — the pipeline never generates these values, and the `PUT` is idempotent so the workflow is safe to re-run (`set-worker-secrets.yml:1-9`); all four are validated at deploy time by `workers-deploy.yml`'s "Validate required auth-worker secrets are set" step.
+- `docs-update.yml` is the one workflow with `contents: write` in this tree: a Sunday 22:00 UTC cron (`docs-update.yml:6-7`) that only ever proposes changes — `update-timestamps` opens a PR on `docs/auto-update-timestamps` rather than committing to `main` (`docs-update.yml:59-72`), and a second `check-outdated` job flags docs with `last_updated` >90 days old into a deduplicated rolling issue rather than spamming new ones (`docs-update.yml:126-128` names prior duplicate issues #35/#37/#39/#40 as the reason).
 
 ## DW-05.2 `rust-ci.yml` — manual-only gate against the upstream kit
 ```mermaid
@@ -93,42 +95,6 @@ sequenceDiagram
     end
 ```
 - This is a narrower, faster check than `ci.yml`'s `pin-check` job (which runs the fuller `scripts/pin-parity.mjs --github`, also covering Action SHA pinning across all workflows) — `kit-pin-guard.yml` delegates to a plain-ESM shell+node script with no deps, pinned to Node 20 specifically because it "delegates to scripts/pin-parity.mjs" (kit-pin-guard.yml:18-19 comment).
-
-## DW-05.5 Playwright / E2E surface
-```mermaid
-flowchart LR
-    CFG["playwright.config.ts<br/>testDir ./tests, timeout 120s, retries 0"] --> CHROMIUM["Nix-pinned chromium executablePath<br/>fallback if PLAYWRIGHT_CHROMIUM_PATH unset"]
-    CFG --> SPECS["tests/forum-smoke.spec.ts<br/>tests/login-deep.spec.ts"]
-    CFG --> PROBES["tests/agentbox-relay-test.mjs<br/>tests/nostr-integration.mjs<br/>Node integration probes, not Playwright specs"]
-    SPECS --> CORS["forum-smoke.spec.ts:404-410<br/>asserts workers return scoped CORS<br/>cited by BASELINE-architecture.md:86"]
-```
-- Playwright/E2E specs are NOT wired into `ci.yml`, `test-and-lint.yml`, or any gate job in this tree — `CLAUDE.md:63` documents `npx playwright test` as a manual command requiring a running deployment (`playwright.config.ts` comment), consistent with `package.json`'s `test:e2e` script existing outside the `predev`/`prebuild` and CI-invoked script set.
-
-## DW-05.6 `set-worker-secrets.yml` — the one-shot operator secret push
-```mermaid
-flowchart TB
-    TRIG["workflow_dispatch only<br/>set-worker-secrets.yml:12-13"] --> S1["NATIVE_POD_URL -> dreamlab-auth-api"]
-    TRIG --> S2["NATIVE_POD_ADMIN_KEY -> dreamlab-auth-api"]
-    TRIG --> S3["PRF_SERVER_SECRET -> dreamlab-auth-api"]
-    TRIG --> S4["ADMIN_PUBKEYS -> dreamlab-auth-api"]
-    S1 & S2 & S3 & S4 --> API["CF Workers Secrets API PUT<br/>jq-built JSON body, idempotent<br/>set-worker-secrets.yml:20-38"]
-    API -.->|validated at deploy time by| GATE["workers-deploy.yml 'Validate required auth-worker secrets are set'<br/>see DW-03.7"]
-```
-- `set-worker-secrets.yml:1-9` states the pipeline never generates these four values — they are read from GitHub repo secrets and pushed as-is; `PUT` on the CF secrets endpoint is idempotent, so the workflow is safe to re-run.
-
-## DW-05.7 `docs-update.yml` — the one workflow that writes to the repo on a timer
-```mermaid
-flowchart TB
-    CRON["schedule: cron 0 22 * * 0 Sundays 22:00 UTC<br/>+ workflow_dispatch, docs-update.yml:6-7"] --> J1["update-timestamps<br/>permissions: contents write, pull-requests write<br/>docs-update.yml:14,19-20"]
-    J1 --> SCAN1["walk docs/**/*.md excluding */working/*<br/>read each file's last git-commit date"]
-    SCAN1 --> PR["opens PR on branch docs/auto-update-timestamps<br/>peter-evans/create-pull-request, docs-update.yml:70"]
-    CRON --> J2["check-outdated<br/>permissions: contents read, issues write<br/>docs-update.yml:74"]
-    J2 --> SCAN2["flag docs with last_updated older than<br/>THRESHOLD_DAYS=90"]
-    SCAN2 --> ISSUE["find-or-create rolling issue<br/>'Documentation review needed: outdated files detected'<br/>labels documentation,maintenance,review-needed"]
-```
-- INVARIANT: `update-timestamps` never commits directly to `main` — it always goes through a PR (`docs-update.yml:59-72`), so the elevated `contents: write` permission this job holds is scoped by GitHub's own PR-review gate, not exercised as a direct push.
-- The rolling-issue step deliberately searches for an existing open issue with the same title before creating a new one, to avoid duplicate issue spam on repeated stale-doc runs (`docs-update.yml:126-128` comment names prior duplicate issues #35/#37/#39/#40 as the reason).
-- This workflow is unrelated to `node scripts/adr-index-gen.js` (project `CLAUDE.md`'s ADR regeneration step) — it is a pure `last_updated` freshness checker/PR bot, not an ADR index generator.
 
 ## DW-05.8 Pin-parity fixtures derive the pin from the live record
 ```mermaid

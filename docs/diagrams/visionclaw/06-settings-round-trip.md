@@ -4,7 +4,7 @@ title: Settings round trip — REST, actors, SQLite adapter and generated client
 area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2005, ADR-2011, ADR-2041, ADR-2046, ADR-2047, ADR-2080]
+adrs: [ADR-2005, ADR-2011, ADR-2041, ADR-2046, ADR-2047, ADR-2080, ADR-2115]
 sources:
   - ../project/src/settings/api/settings_routes.rs
   - ../project/src/settings/auth_extractor.rs
@@ -21,18 +21,17 @@ sources:
   - ../project/src/bin/generate_types.rs
   - ../project/src/app_state.rs
   - ../project/src/main.rs
-  - ../project/src/handlers/tests/mod.rs
-  - ../project/docs/adr/ADR-2041-graph-settings-key-knowledge.md
   - ../project/client/src/types/generated/settings.ts
   - ../project/src/handlers/nostr_handler.rs
   - ../project/src/middleware/rbac_gate.rs
-verified_commit: f223bbd40
+  - ../project/crates/visionclaw-domain/src/config/graph_type.rs
+verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
 ---
 
 ## VC-06.1 Settings route surface and the actor behind it
 ```mermaid
 flowchart TB
-    S["web::scope('/settings') + RateLimit::per_minute(60)<br/>src/main.rs:1106-1109"]
+    S["web::scope('/settings') + RateLimit::per_minute(60)<br/>src/main.rs:1111-1114"]
     S --> CFG["settings::api::configure_routes<br/>src/settings/api/settings_routes.rs:1736"]
     CFG --> P["GET|PUT physics settings_routes.rs:1739-1740<br/>POST physics/reset-layout :1741"]
     CFG --> C["GET|PUT constraints settings_routes.rs:1742-1743"]
@@ -43,19 +42,19 @@ flowchart TB
     CFG --> AL["GET all settings_routes.rs:1752"]
     CFG --> PR["POST|GET profiles settings_routes.rs:1753-1754<br/>GET|DELETE profiles/{id} :1755-1756"]
     CFG --> U["nested scope /user<br/>GET|PUT /filter settings_routes.rs:1760-1762"]
-    ACT["state.settings_addr : Addr of OptimizedSettingsActor<br/>src/app_state.rs:353, started src/app_state.rs:1152"]
-    REPO["settings_repo : web::Data of Arc of SqliteSettingsRepository<br/>injected src/main.rs:1048"]
+    ACT["state.settings_addr : Addr of OptimizedSettingsActor<br/>src/app_state.rs:353, started src/app_state.rs:1156"]
+    REPO["settings_repo : web::Data of Arc of SqliteSettingsRepository<br/>injected src/main.rs:1053"]
     P --> ACT
     P --> REPO
-    N1["INVARIANT — /api/settings writes require the WriteSettings capability at the RbacGate<br/>src/main.rs:1094-1100. Request-time gate behaviour see VC-03.6"]
+    N1["INVARIANT — /api/settings writes require the WriteSettings capability at the RbacGate<br/>src/main.rs:1099-1105. Request-time gate behaviour see VC-03.6"]
     S --- N1
-    N2["DIVERGENCE — the settings hot-reload watcher is DISABLED, src/app_state.rs:1163-1166<br/>reason recorded in code: it was causing database deadlocks"]
+    N2["DIVERGENCE — the settings hot-reload watcher is DISABLED, src/app_state.rs:1167-1170<br/>reason recorded in code: it was causing database deadlocks"]
     ACT --- N2
+    N3["OptimizedSettingsActor's wider message surface beyond the round trip shown here — ReloadSettings<br/>(optimized_settings_actor.rs:1186) is the dormant hot-reload handler N2's disabled watcher would<br/>have driven; GetSettingByPath/GetSettingsByPaths/SetSettingsByPaths (optimized_settings_actor.rs:816,<br/>:847, :906) give granular per-path read/write alongside the full-snapshot GetSettings/UpdateSettings<br/>used above; WarmCacheMessage (optimized_settings_actor.rs:765) and GetPerformanceMetrics/ClearCaches<br/>(optimized_settings_actor.rs:1158, :1173) handle cache warm-up and introspection"]
+    ACT --- N3
 ```
 
 ## VC-06.2 PUT /api/settings/physics — the flagship round trip, phase 1 read and merge
-
-<!-- STALE 2026-09-22: ADR-2115 supersedes ADR-2041: `logseq` is no longer a deserialisation alias; it is rejected (crates/visionclaw-domain/src/config/graph_type.rs) -->
 ```mermaid
 sequenceDiagram
     autonumber
@@ -80,7 +79,7 @@ sequenceDiagram
         SA-->>H: 500 "Actor communication error"
     end
     H->>H: current = full_settings.visualisation.graphs.knowledge.physics (:530)
-    Note over H: ADR-2041 — the field is `knowledge`, `logseq` is a deserialisation alias only. See VC-09.15
+    Note over H: RESOLVED ADR-2041 by ADR-2115 — `knowledge` is the only accepted graph-type<br/>segment — the one-release `logseq` alias has expired and is now rejected everywhere<br/>(crates/visionclaw-domain/src/config/graph_type.rs:1-5). See VC-09.15
     H->>H: normalize_physics_keys(patch) — snake_case and legacy aliases to canonical camelCase (:537-539)
     H->>H: merge patch onto the snapshot then serde_json::from_value::<PhysicsSettings>
     alt merge fails
@@ -163,66 +162,15 @@ sequenceDiagram
     Note over H1,B: RESOLVED ADR-2047 — physics and rendering now BOTH emit through the single<br/>broadcast_settings_change emitter (:443-459), physics was the one that "never announced<br/>itself" until this change. node-filter keeps its own richer, separate broadcast. RESOLVED<br/>ADR-2080 (vc-clients) — the client now CONSUMES settingsUpdated: nodeFilter applies its<br/>payload directly, other categories re-read via getSectionPaths/getSettingsByPaths,<br/>write-echo and stale timestamps are dropped. Before both, the server emitted<br/>settingsUpdated while the client validator knew only settings_update, so every broadcast<br/>fell through to Unknown message type. Still silent by choice: constraints, quality-gates,<br/>visual, profiles.
 ```
 
-## VC-06.5 OptimizedSettingsActor message surface
-```mermaid
-classDiagram
-    class OptimizedSettingsActor {
-      <<src/actors/optimized_settings_actor.rs>>
-      +started app_state.rs:1152
-      +with_actors(repo, gs_addr, None)
-    }
-    class WarmCacheMessage {
-      +Handler impl at line 765
-    }
-    class GetSettings {
-      +Handler impl at line 778
-    }
-    class UpdateSettings {
-      +AppFullSettings settings
-      +Handler impl at line 805
-    }
-    class GetSettingByPath {
-      +Handler impl at line 816
-    }
-    class GetSettingsByPaths {
-      +Handler impl at line 847
-    }
-    class SetSettingsByPaths {
-      +Handler impl at line 906
-    }
-    class UpdatePhysicsFromAutoBalance {
-      +Handler impl at line 1093
-    }
-    class GetPerformanceMetrics {
-      +Handler impl at line 1159
-    }
-    class ClearCaches {
-      +Handler impl at line 1174
-    }
-    class ReloadSettings {
-      +Handler impl at line 1187
-    }
-    OptimizedSettingsActor <|.. WarmCacheMessage
-    OptimizedSettingsActor <|.. GetSettings
-    OptimizedSettingsActor <|.. UpdateSettings
-    OptimizedSettingsActor <|.. GetSettingByPath
-    OptimizedSettingsActor <|.. GetSettingsByPaths
-    OptimizedSettingsActor <|.. SetSettingsByPaths
-    OptimizedSettingsActor <|.. UpdatePhysicsFromAutoBalance
-    OptimizedSettingsActor <|.. GetPerformanceMetrics
-    OptimizedSettingsActor <|.. ClearCaches
-    OptimizedSettingsActor <|.. ReloadSettings
-```
-
 ## VC-06.6 ProtectedSettingsActor — API keys, client tokens and user records
 ```mermaid
 sequenceDiagram
     autonumber
     participant H as nostr_handler api-keys routes<br/>src/handlers/nostr_handler.rs:58-59
-    participant PS as ProtectedSettingsActor<br/>src/app_state.rs:1197, Addr src/app_state.rs:354
+    participant PS as ProtectedSettingsActor<br/>src/app_state.rs:1201, Addr src/app_state.rs:354
     participant ST as ProtectedSettings store
 
-    Note over PS: started with ProtectedSettings::default() — src/app_state.rs:1197
+    Note over PS: started with ProtectedSettings::default() — src/app_state.rs:1201
     H->>PS: GetApiKeys (handler src/actors/protected_settings_actor.rs:33)
     PS->>ST: read
     H->>PS: UpdateUserApiKeys (protected_settings_actor.rs:81)
@@ -311,8 +259,6 @@ flowchart TB
 ```
 
 ## VC-06.9 Generated client types — src/bin/generate_types.rs
-
-<!-- STALE 2026-09-22: ADR-2115 supersedes ADR-2041: path_accessible_impls resolves only the `knowledge` segment; `logseq` is rejected -->
 ```mermaid
 sequenceDiagram
     autonumber
@@ -325,28 +271,6 @@ sequenceDiagram
     B->>F: fs::write(output_path, &camel_case_code) (src/bin/generate_types.rs:27)
     Note over B,F: output_path is the literal "client/src/types/generated/settings.ts" (:18)<br/>the parent directory is created if absent (:19-21)
     B->>F: fs::metadata(output_path) then log the byte size (:34)
-    Note over D,F: ADR-2041 — the generated types emit `knowledge`, never `logseq`.<br/>path_accessible_impls resolves both segments server-side (src/config/path_accessible_impls.rs:160 and :185)<br/>Full alias lifecycle see VC-09.15
+    Note over D,F: RESOLVED ADR-2041 by ADR-2115 — the generated types emit `knowledge` only,<br/>`logseq` is gone. path_accessible_impls now matches `knowledge` alone, no alias arm<br/>(src/config/path_accessible_impls.rs:159 and :183). Full alias lifecycle see VC-09.15
     Note over B: server-side YAML is snake_case, the JSON and TS surface is camelCase —<br/>the serde alias behaviour is asserted at boot, src/main.rs:306-322
-```
-
-## VC-06.10 RESOLVED ADR-2046 — the dead SettingsActor surface and what replaced it
-```mermaid
-flowchart TB
-    ADR["ADR-2046 — remove the dead SettingsActor<br/>and the orphaned src/config copies"]
-    SA["DELETED src/settings/settings_actor.rs<br/>SettingsActor, 14 message types, 14 Handler impls<br/>never started at runtime"]
-    EXP["DELETED re-export block in src/settings/mod.rs<br/>the ADR-2046 comment at src/settings/mod.rs:13-16 records the removal<br/>in place of the GetPhysicsSettings / LoadProfile /<br/>SaveProfile / SettingsActor re-exports"]
-    TST["DELETED src/handlers/tests/settings_tests.rs<br/>the only start() caller — it was already commented out<br/>of the module tree and referenced two absent modules"]
-    MOD["src/settings/mod.rs:17-18<br/>the surviving re-exports are auth_extractor and models only"]
-    LIVE["LIVE actor is OptimizedSettingsActor<br/>src/app_state.rs:353 field, started at :1152<br/>see VC-06.1 for the live round trip"]
-
-    ADR --> SA
-    ADR --> EXP
-    ADR --> TST
-    SA --> MOD
-    EXP --> MOD
-    TST --> MOD
-    MOD --> LIVE
-
-    N1["RESOLVED ADR-2046 (2026-09-05) — this section used to draw SettingsActor, its<br/>message catalogue and three DIVERGENCE notes about a surface that never ran.<br/>All of it is deleted, so the divergences are closed rather than restated."]
-    LIVE --- N1
 ```

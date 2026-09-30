@@ -24,7 +24,7 @@ sources:
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/ascii_img.rs
-verified_commit: 2f90c1916
+verified_commit: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d
 ---
 
 ## NF-07.1 search-worker — routes and gates
@@ -122,7 +122,7 @@ flowchart TB
 
     N1["The deserialiser parses ONLY the Vec segment nostr-bbs-search-worker/src/store.rs:185 - the mapping<br/>the Meta segment documents is actually read back from KV, so the two stores must be written together"]
     N2["INVARIANT: visibility is fail-closed and deliberately left that way - only a label in publicLabels<br/>is anonymously visible nostr-bbs-search-worker/src/lib.rs:126 nostr-bbs-search-worker/src/lib.rs:127,<br/>and the fix for an empty result set is the ingest caller declaring public true, never a relaxation here"]
-    N3["README.md:428 describes this as 384-dim L2-normalised cosine k-NN over an RVF store, which the code<br/>confirms - see NF-07.3"]
+    N3["README.md:439 describes this as 384-dim L2-normalised cosine k-NN over an RVF store, which the code<br/>confirms - see NF-07.3"]
     N4["An all-private ingest batch is now REFUSED with a 400 before anything is written, because such a<br/>batch indexes content no search can ever return nostr-bbs-search-worker/src/lib.rs:204<br/>nostr-bbs-search-worker/src/lib.rs:659. A caller retracting vectors opts in with allowPrivate<br/>nostr-bbs-search-worker/src/lib.rs:248"]
 ```
 
@@ -225,5 +225,5 @@ classDiagram
 
     note for RateLimit "Each worker calls check_rate_limit with its OWN<br/>KV binding and its own budget - auth 20/60s on<br/>SESSIONS nostr-bbs-auth-worker/src/lib.rs:174, search<br/>100/60s on SEARCH_CONFIG nostr-bbs-search-worker/src/lib.rs:772,<br/>preview 30/60s on RATE_LIMIT nostr-bbs-preview-worker/src/lib.rs:519"
     note for Replay "INVARIANT one shared replay database - the search<br/>worker binds REPLAY_DB nostr-bbs-search-worker/src/auth.rs:31<br/>and delegates to the shared verifier<br/>nostr-bbs-search-worker/src/auth.rs:40 exactly as the auth<br/>worker does. See NF-02.5 and NF-08.4"
-    note for Ascii "The image feature pulls PURE-Rust decoders only,<br/>default-features off, so the wasm32 build stays<br/>lean nostr-rust-forum/Cargo.toml:168. The BBS client never converts<br/>client-side - it fetches a pre-rendered fragment<br/>from the preview worker nostr-bbs-bbs-client/src/ascii_img.rs:203"
+    note for Ascii "The image feature pulls PURE-Rust decoders only,<br/>default-features off, so the wasm32 build stays<br/>lean nostr-rust-forum/Cargo.toml:173. The BBS client never converts<br/>client-side - it fetches a pre-rendered fragment<br/>from the preview worker nostr-bbs-bbs-client/src/ascii_img.rs:203"
 ```

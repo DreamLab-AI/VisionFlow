@@ -12,13 +12,12 @@ sources:
   - ../knowledgeGraph/explorer/modern/src/workers/protocol.ts
   - ../knowledgeGraph/explorer/modern/src/api/pageService.ts
   - ../knowledgeGraph/explorer/FORMAT-NGG1.md
-  - ../knowledgeGraph/explorer/license.txt
   - ../knowledgeGraph/docs/architecture/explorer.md
   - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
-  - ../knowledgeGraph/docs/ecosystem.md
   - ../visionGraph/publishing-tools/WasmVOWL/modern/package.json
   - ../visionGraph/.github/workflows/publish.yml
-verified_commit: {knowledgegraph: 75a5c1f1acda50bfe9d66a92a5343cf12f8b84ef, visiongraph: 149d8eba638886f17dc5f8919be8c26502517ed0}
+  - ../knowledgeGraph/archive/github-workflows/build.yml
+verified_commit: {knowledgegraph: 3a266fc3a2edb91f84ecc794718b87dd44c79417, visiongraph: ac6274f9f5e12375f92086ccb9adba50c965ecf9}
 ---
 
 ## KG-04.1 Explorer topology — MIT viewer over AGPL-built, ODbL-licensed data
@@ -94,20 +93,7 @@ sequenceDiagram
         PS->>RAW: fallback to gh-pages raw markdown — pageService.ts:134
     end
     Note over PS: isValidMarkdown rejects HTML content-type, sessionStorage.setItem<br/>bodies, or a DOCTYPE — detects a static host 404-ing to index.html
-    Note over PS: DIVERGENCE: jsonld_to_page_api.py writes a SLUG-form mirror<br/>#40;api/markdown/SLUG.md#41; that pageService.ts never requests — see KG-05.4
-```
-
-## KG-04.5 Licence — MIT viewer, deliberately not AGPL
-
-```mermaid
-flowchart TB
-    UPSTREAM["VisualDataWeb/WebVOWL<br/>Copyright 2014-2019 Link/Lohmann/Marbach/Negru/Wiens"]
-    WASMVOWL["DreamLab-AI/WasmVOWL — MIT fork<br/>ecosystem.md:134-149"]
-    HERE["explorer/ in THIS repo<br/>license.txt — identical MIT text"]
-    VW["vowl-wasm repo — the NGG1 reader crate<br/>published as @dreamlab-ai/vowl-wasm — EXTERNAL: see VW-*"]
-    UPSTREAM --> WASMVOWL --> HERE
-    WASMVOWL -.->|"same MIT-derivative lineage"| VW
-    note1["INVARIANT: explorer/ stays MIT deliberately — AGPL-ing it would be<br/>hollow while the identical WebVOWL-derived code is MIT one repo away<br/>(architecture/explorer.md:302-308)"]
+    Note over PS: DIVERGENCE: jsonld_to_page_api.py writes a SLUG-form mirror<br/>#40;api/markdown/SLUG.md#41; that pageService.ts never requests — see KG-05.3
 ```
 
 ## KG-04.6 This copy never ships — the deployed explorer is a DIFFERENT, diverged tree
@@ -120,10 +106,10 @@ flowchart TB
     subgraph SHIP["visionGraph/publishing-tools/WasmVOWL/modern — the SHIPPING tree<br/>EXTERNAL: see VG-06"]
         SPKG["WasmVOWL/modern/package.json:20<br/>@dreamlab-ai/vowl-wasm — npm registry<br/>'0.1.2'"]
     end
-    BUILDYML["this repo's build.yml<br/>builds pipeline/ only — NO wasm-pack, NO vite,<br/>NO deploy step (KG-05.1)"]
-    PUBYML["visionGraph publish.yml:151<br/>builds THIS SPA — EXTERNAL VG-03.3"]
-    SITE["narrativegoldmine.com<br/>external_repository DreamLab-AI/knowledgeGraph gh-pages<br/>EXTERNAL publish.yml:244"]
-    HERE -.->|"built by NOTHING in this repo"| BUILDYML
+    BUILDYML["this repo's build.yml — RETIRED, INERT<br/>archive/github-workflows/build.yml:1<br/>moved out of .github/workflows/ #40;its ontology/ target<br/>had already moved to archive/#41; — never builds explorer/"]
+    PUBYML["visionGraph publish.yml:371<br/>'Build the explorer SPA' step builds THIS SPA — EXTERNAL VG-03.3"]
+    SITE["narrativegoldmine.com<br/>external_repository DreamLab-AI/knowledgeGraph gh-pages<br/>EXTERNAL publish.yml:448"]
+    HERE -.->|"built by NOTHING in this repo — even the retired workflow is inert"| BUILDYML
     SHIP --> PUBYML --> SITE
-    note1["DOC-DRIFT: KG-04.1 through KG-04.5 document explorer/modern as THE explorer —<br/>accurate for what the source code says, but this copy is never built or<br/>deployed by anything in this repository. The tree that actually ships is<br/>visionGraph's publishing-tools/WasmVOWL/modern #40;180 files#41; — see VG-06 for<br/>its own topic. The two trees have DIVERGED on the one dependency both pin:<br/>HPKG v0.1.1 #40;tarball#41; vs SPKG '0.1.2' #40;npm#41;"]
+    note1["DOC-DRIFT: KG-04.1 through KG-04.4 document explorer/modern as THE explorer —<br/>accurate for what the source code says, but this copy is never built or<br/>deployed by anything in this repository, and the one workflow that once<br/>tried #40;build.yml#41; is now retired to archive/ — see VG-06 for the<br/>shipping tree's own topic. The two trees have DIVERGED on the one<br/>dependency both pin: HPKG v0.1.1 #40;tarball#41; vs SPKG '0.1.2' #40;npm#41;"]
 ```

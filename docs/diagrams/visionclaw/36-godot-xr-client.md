@@ -14,8 +14,6 @@ sources:
   - ../project/xr-client/scripts/graph_scene.gd
   - ../project/xr-client/scripts/hud.gd
   - ../project/xr-client/openxr_action_map.tres
-  - ../project/xr-client/export_presets.cfg
-  - ../project/xr-client/permissions-required.md
   - ../project/xr-client/rust/src/lib.rs
   - ../project/xr-client/rust/src/binary_protocol.rs
   - ../project/xr-client/rust/src/render_store.rs
@@ -62,7 +60,7 @@ sources:
   - ../project/xr-client/tests/unit/test_write_denied_notice.gd
   - ../project/docs/adr/ADR-2108-dev-profile-arms-visionclaw-dev-mode-by-default.md
   - ../project/docs/adr/ADR-2109-xr-agent-embodiment-single-pose-owner-and-demo-via-ingest.md
-verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
 ---
 
 ## VC-36.1 Boot — OpenXR init, capability probe, deferred scene swap (ADR-2036)
@@ -163,6 +161,8 @@ flowchart TB
     D1["OPEN by design: project.godot:12 declares Godot 4.3 / Forward Mobile.<br/>The only build that has ever rendered on a headset is 4.6.1-stable on<br/>Compatibility. config/features is EDITOR-MANAGED metadata and Godot is<br/>not installed here, so a hand edit cannot be verified - the editor<br/>rewrites the array on save. Re-pinning needs the 4.6.1 editor, it is not<br/>a text change. README:15-18 already says to read 4.3 as the pinned editor<br/>of the day. Assessed 2026-09-05, ADR-2079 scope review"]
     RM -. "unexercised" .-> D2
     D2["DIVERGENCE: the .mobile override targets the Quest 3 APK,<br/>which is UNBUILT - no Android NDK is provisioned.<br/>90fps was measured only on VIVE Pro + dual RTX 6000.<br/>docs/BASELINE-architecture.md:209-210"]
+    RM -. "TENSION" .-> D3
+    D3["TENSION: project.godot:2 header still calls the Quest 3 APK the ship<br/>target, while xr-client/scripts/graph_scene.gd:25-26 reworded Quest 3<br/>standalone as a PLANNED target and names the Vive/SteamVR rig as the<br/>currently deployed one. project.godot:2, graph_scene.gd:25-26"]
 ```
 
 ## VC-36.3 Transport — /wss graph socket connect, subscribe, NIP-98 authenticate
@@ -781,29 +781,6 @@ sequenceDiagram
     end
     Note over OP: GUT scene tests xr-client/tests/unit/: test_scene_load, test_hud_tabs,<br/>test_hud_intervention, test_swarm_tab, test_query_builder,<br/>test_graph_agents, test_agent_avatar, test_agent_beam,<br/>test_did_badge, test_xr_config - runner xr-client/tests/run_gut.gd
     Note over OP: ADR-2109 added five: test_agent_choreography.gd:30 (materialise then travel),<br/>:54 (head turns never move a working agent), :68 (explicit done parks at<br/>0.3 alpha and stays selectable), test_agent_demo_director.gd:75 (byte-exact<br/>0x23 layout), :105 (real targets, keep-alive, Stop retires exactly the demo<br/>ids). ADR-2108 added test_write_denied_notice.gd:16
-```
-
-## VC-36.17 Quest 3 APK export target — declared, unbuilt
-
-```mermaid
-flowchart TB
-    EP["xr-client/export_presets.cfg [preset.0]<br/>export_path=export/visionclaw-xr.apk cfg:12"]
-    AR["architectures/arm64-v8a=true<br/>armeabi-v7a / x86 / x86_64 = false<br/>cfg:30-33"]
-    PK["package/name='VisionClaw XR' cfg:37"]
-    XF["xr_features/xr_mode=1<br/>hand_tracking=2 - passthrough=2<br/>cfg:49-51"]
-    CP["permissions/custom_permissions:<br/>com.oculus.permission.HAND_TRACKING<br/>com.oculus.permission.USE_SCENE<br/>com.oculus.permission.USE_ANCHOR_API<br/>cfg:62"]
-    NP["access_network_state=true cfg:68<br/>access_wifi_state=true cfg:70"]
-    PD["xr-client/permissions-required.md<br/>INTERNET, RECORD_AUDIO, MODIFY_AUDIO_SETTINGS,<br/>ACCESS_NETWORK_STATE, ACCESS_WIFI_STATE,<br/>WAKE_LOCK, VIBRATE - no CAMERA permission"]
-    RM["renderer/rendering_method.mobile='mobile'<br/>project.godot:49"]
-    EP --> AR --> PK --> XF --> CP --> NP
-    CP --> PD
-    RM --> EP
-    EP --> D1
-    RM --> D3
-    D3["TENSION: project.godot:2 still calls the Quest 3 APK the ship target,<br/>while the scripts were reworded on 2026-09-09 to name Quest 3 the<br/>PLANNED standalone target and the Vive on SteamVR the deploy path.<br/>xr-client/scripts/graph_scene.gd:25, xr-client/scripts/xr_boot.gd:45"]
-    D1["DIVERGENCE: the APK is UNBUILT and the cross-build is FROZEN -<br/>no Android NDK is provisioned in this environment.<br/>Quest 3 is the sole ship target (project.godot:2) yet no Quest<br/>performance number exists; 90fps at 13,164 nodes / 145,692 edges<br/>was measured only on VIVE Pro + dual RTX 6000 desktop OpenXR.<br/>docs/XR-client.md 'Known divergences' bullet 2<br/>docs/BASELINE-architecture.md:209-210"]
-    PD --> D2
-    D2["DIVERGENCE: RECORD_AUDIO / MODIFY_AUDIO_SETTINGS exist for a<br/>LiveKit media transport that is NOT wired on any built target.<br/>SpatialVoiceRouter (webrtc_audio.rs:140) owns only the routing<br/>maths and the per-avatar position map - voice is design-complete,<br/>transport-absent. docs/XR-client.md 'Known divergences' bullet 3<br/>see VC-35 for the browser voice path"]
 ```
 
 ## VC-36.18 Query builder execute path — implemented, acceptance open

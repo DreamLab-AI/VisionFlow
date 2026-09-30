@@ -4,7 +4,7 @@ title: External services — outbound integrations
 area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2066]
+adrs: [ADR-2066, ADR-2115]
 sources:
   - ../project/crates/visionclaw-domain/src/types/speech.rs
   - ../project/src/services/ragflow_service.rs
@@ -15,14 +15,11 @@ sources:
   - ../project/src/services/github/config.rs
   - ../project/src/services/speech_service.rs
   - ../project/crates/visionclaw-domain/src/config/app_settings.rs
-  - ../project/src/handlers/quic_transport_handler.rs
   - ../project/src/app_state.rs
   - ../project/src/config/feature_access.rs
-  - ../project/src/handlers/fastwebsockets_handler.rs
-  - ../project/src/handlers/mod.rs
   - ../project/docs/reference/configuration.md
   - ../project/docs/how-to/agent-orchestration.md
-verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
 ---
 ## VC-28.1 ragflow_service — outbound RAGFlow agent API
 ```mermaid
@@ -161,7 +158,7 @@ sequenceDiagram
         end
     end
     end
-    Note over PS: DOC-CORRECTED 2026-09-05: endpoint config is read from AppFullSettings.perplexity - api_url, api_key, model at :99-120<br/>not from PERPLEXITY_* env vars - only PERPLEXITY_ENABLED_PUBKEYS gates feature access at feature_access.rs:20 and<br/>PERPLEXITY_API_KEY is read solely as a readiness expectation signal at app_state.rs:1516 - configuration.md:220 and<br/>how-to/agent-orchestration.md:449 corrected
+    Note over PS: DOC-CORRECTED 2026-09-05: endpoint config is read from AppFullSettings.perplexity - api_url, api_key, model at :99-120<br/>not from PERPLEXITY_* env vars - only PERPLEXITY_ENABLED_PUBKEYS gates feature access at feature_access.rs:20 and<br/>PERPLEXITY_API_KEY is read solely as a readiness expectation signal at app_state.rs:1520 - configuration.md:220 and<br/>how-to/agent-orchestration.md:449 corrected
 ```
 ## VC-28.4 image_gen_handler — ComfyUI submit path (user session)
 ```mermaid
@@ -271,8 +268,6 @@ sequenceDiagram
     end
 ```
 ## VC-28.6 github_pr_service — outbound GitHub REST API (git data + PR)
-
-<!-- STALE 2026-09-22: the legacy `LOGSEQ_PRIVATE_REPO_GITHUB` fallback is deleted; `github_token_from_env()` reads only `PRIVATE_REPO_GITHUB_PAT` (src/services/github/config.rs GITHUB_TOKEN_ENV), and GitHub sync is optional and off by default (ADR-2115) | the legacy `LOGSEQ_PRIVATE_REPO_GITHUB` fallback is deleted; `github_token_from_env()` reads only `PRIVATE_REPO_GITHUB_PAT` (src/services/github/config.rs GITHUB_TOKEN_ENV) -->
 ```mermaid
 sequenceDiagram
     autonumber
@@ -281,7 +276,7 @@ sequenceDiagram
     participant ENV as env
     participant API as api.github.com<br/>:245
 
-    GH->>ENV: GitHubPRService::new() - :127<br/>token via github_token_from_env()<br/>PRIVATE_REPO_GITHUB_PAT or legacy LOGSEQ_PRIVATE_REPO_GITHUB
+    GH->>ENV: GitHubPRService::new() - :127<br/>token via github_token_from_env(), PRIVATE_REPO_GITHUB_PAT only (see Note below)
     GH->>ENV: GITHUB_OWNER/GITHUB_REPO_OWNER - :129-133
     GH->>ENV: GITHUB_REPO/GITHUB_REPO_NAME - :135-139
     GH->>ENV: GITHUB_BRANCH/GITHUB_BASE_BRANCH default main - :141-145
@@ -332,7 +327,7 @@ sequenceDiagram
     end
     end
     Note over GH,API: every request carries Authorization Bearer token + Accept<br/>application/vnd.github+json + User-Agent VisionClaw-OntologyAgent/1.0 - headers() :250-267
-    Note over GH,ENV: token via github_token_from_env() src/services/github/config.rs:30 -<br/>PRIVATE_REPO_GITHUB_PAT or legacy LOGSEQ_PRIVATE_REPO_GITHUB, config.rs:23,25
+    Note over GH,ENV: token via github_token_from_env(), config.rs:27-28 -<br/>PRIVATE_REPO_GITHUB_PAT only, config.rs:23 - legacy LOGSEQ_PRIVATE_REPO_GITHUB fallback deleted (ADR-2115)
 ```
 ## VC-28.7 speech_service — outbound boundary only (see VC-35 for full pipeline)
 ```mermaid
@@ -381,26 +376,6 @@ sequenceDiagram
     Note over SS: STTProvider still declares three variants and only Whisper is wired.<br/>TurboWhisper warns not-yet-implemented on BOTH transcription commands.<br/>visionclaw-domain/src/types/speech.rs:71, speech_service.rs:460, :790
     Note over SS: DEBT: ProcessAudioChunkForUser is a logged no-op, so per-user STT<br/>attribution has an entry point and no implementation.<br/>src/services/speech_service.rs:808, :810
 ```
-## VC-28.8 quic_transport_handler — the postcard wire types that survived ADR-2066
-```mermaid
-sequenceDiagram
-    autonumber
-    participant GPU as position source<br/>src/handlers/fastwebsockets_handler.rs:391
-    participant PT as postcard wire types<br/>src/handlers/quic_transport_handler.rs:22
-    participant WS as fastwebsockets transport<br/>src/handlers/fastwebsockets_handler.rs:34
-    participant C as XR/Browser client
-
-    GPU->>PT: PostcardNodeUpdate::from(BinaryNodeData) per node (:38-53, called at fastwebsockets_handler.rs:393)
-    PT->>WS: PostcardBatchUpdate { frame_id, timestamp_ms, nodes } (:71-75, built at fastwebsockets_handler.rs:397)
-    WS->>WS: postcard::to_stdvec(batch) (fastwebsockets_handler.rs:373)
-    WS-)C: binary WebSocket frame over the broadcast channel (fastwebsockets_handler.rs:80, :303)
-    C->>WS: inbound frame, postcard::from_bytes::<PostcardBatchUpdate> (fastwebsockets_handler.rs:344, :458)
-    WS->>PT: BinaryNodeData::from(PostcardNodeUpdate) back at the boundary (:55-67)
-
-    Note over PT,WS: RESOLVED ADR-2066 (2026-09-05) — QuicTransportServer, QuicClientSession,<br/>QuicServerConfig, CongestionController, ControlMessage, the topology and delta types<br/>and the quinn, rustls and rcgen dependencies were constructed nowhere and routed<br/>nowhere. All are deleted. The file is now 101 lines of wire types only.
-    Note over PT: the module is retained solely because fastwebsockets_handler.rs:34 imports<br/>PostcardBatchUpdate and PostcardNodeUpdate directly. src/handlers/mod.rs:117 keeps<br/>pub mod quic_transport_handler and dropped the pub use re-export block.
-    Note over C: every client uses the WebSocket path — there is no QUIC listener and no<br/>0-RTT datagram path in the tree. See VC-13 for the live broadcast pipeline.
-```
 ## VC-28.9 consolidated external-dependency map
 ```mermaid
 flowchart LR
@@ -433,7 +408,7 @@ flowchart LR
     SS -->|"STT - degraded: transcription dropped"| WHI
     SS -->|"voice-command relay - degraded: spoken error reply"| MCPS
 
-    N1["RESOLVED ADR-2066 (2026-09-05) — the QuicTransportServer node and its<br/>unreachable XR QUIC 0-RTT client edge were removed from this map with the<br/>code itself. See VC-28.8 for the postcard wire types that survived."]
+    N1["RESOLVED ADR-2066 (2026-09-05) — the QuicTransportServer node and its<br/>unreachable XR QUIC 0-RTT client edge were removed from this map with the<br/>code itself. See VC-04.28 for the postcard wire types that survived."]
     SS --- N1
     N2["2026-09-13 (ab5724422): the OpenAI TTS and Kokoro TTS edges are gone with<br/>the enum variants that drove them. Every remaining speech edge is LAN-local,<br/>so this boundary no longer carries speech to a third-party API.<br/>visionclaw-domain/src/types/speech.rs:66, speech_service.rs:295"]
     PT --- N2

@@ -25,7 +25,7 @@ sources:
   - ../project/client/src/services/remoteLogger.ts
   - ../project/client/src/features/graph/contexts/NodePositionContext.tsx
   - ../project/client/src/features/bots/components/BotsVisualization.tsx
-verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
 ---
 
 ## VC-37.1 Browser XR capability probe — what platformManager actually does
@@ -350,4 +350,76 @@ flowchart TB
     B2 --> DIV
     G2 --> DIV
     DIV["RESOLVED ADR-2081: docs/BASELINE-architecture.md:213 describes the<br/>React client as 'consuming the binary WebSocket position stream and the<br/>/api REST surface' - which is now exactly what the code is. The XR-mode<br/>shell and the unimported @react-three/xr dependency are deleted, so no<br/>reader can mistake the browser client for an immersive one. The immersive<br/>client is the Godot app alone. Babylon.js was already removed<br/>(client/vite.config.ts:47)."]
+```
+
+## VC-37.9 SpaceDriver hot-plug — disconnect and reconnect lifecycle
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant NAV as navigator.hid
+    participant SD as SpaceDriver singleton<br/>client/src/services/SpaceDriverService.ts:318
+    participant DV as open HIDDevice
+    participant HK as useSpacePilot listeners<br/>client/src/features/visualisation/hooks/useSpacePilot.ts:114
+
+    Note over SD,NAV: Bound once during initialize() -<br/>SpaceDriverService.ts:59, :129, :132
+    NAV-->>SD: 'disconnect' event (unplug, power off)
+    SD->>SD: handleDisconnect(evt)<br/>SpaceDriverService.ts:210
+    alt evt.device === this.device
+        SD->>SD: disconnect()
+        SD->>DV: removeEventListener('inputreport') then close()<br/>SpaceDriverService.ts:187-189
+        SD-->>HK: dispatchEvent(new Event('disconnect'))<br/>SpaceDriverService.ts:195
+        HK->>HK: setIsConnected(false), controller.stop(), onDisconnect()<br/>useSpacePilot.ts:120-124
+    else evt.device is a different, already-idle device
+        SD-->>SD: ignored - not the active device
+    end
+    NAV-->>SD: 'connect' event (device replugged or newly paired)
+    Note right of SD: inline handler, not handleDisconnect -<br/>SpaceDriverService.ts:132-138
+    alt evt.device.vendorId in SUPPORTED_VENDOR_IDS
+        SD->>SD: openDevice(evt.device)
+        opt this.device already set
+            SD->>DV: disconnect() the previous device first<br/>SpaceDriverService.ts:151-153 - replaces, does not stack
+        end
+        SD->>DV: device.open(), addEventListener('inputreport')<br/>SpaceDriverService.ts:163, :170
+        SD-->>HK: dispatchEvent(new CustomEvent('connect', {device}))<br/>SpaceDriverService.ts:175-177
+        HK->>HK: setIsConnected(true), controller.start(), onConnect()<br/>useSpacePilot.ts:114-118
+    else unsupported vendor
+        SD-->>SD: connect event ignored - no open() call
+    end
+    Note over SD,HK: INVARIANT only one device is ever open at a time -<br/>openDevice() always disconnects the current device first,<br/>SpaceDriverService.ts:151-153. There is no queue or list of<br/>candidates once initialize() has completed - reconnection is<br/>event-driven, not polled.
+```
+
+## VC-37.10 Spatial-input settings — SpacePilot config round trip and head-parallax tuning
+
+```mermaid
+flowchart TB
+    subgraph store["settingsStore (client/src/store/settingsStore)"]
+        SS["settings.visualisation.spacePilot<br/>useSpacePilot.ts:58-59"]
+        HS["settings.visualisation.interaction.headTrackedParallax<br/>{enabled, sensitivity, cameraMode}<br/>HeadTrackedParallaxController.tsx:17-19"]
+    end
+    subgraph sp["useSpacePilot read path"]
+        DEF["defaultSpacePilotConfig<br/>translationSensitivity, rotationSensitivity,<br/>deadzone 0.1, smoothing 0.8, invertAxes, enabledAxes<br/>SpacePilotController.ts:88-110"]
+        MERGE["mergedConfig = default, then store, then userConfig<br/>useSpacePilot.ts:71-76"]
+        CTRL["SpacePilotController(camera, mergedConfig, orbitControls)<br/>useSpacePilot.ts:82-84"]
+    end
+    subgraph write["useSpacePilot write path"]
+        UPD["updateConfig(newConfig)<br/>useSpacePilot.ts:205-215"]
+        WB["updateSettingsFn draft.visualisation.spacePilot = mergedConfig<br/>useSpacePilot.ts:211-215 - persists back to the store"]
+    end
+    subgraph hp["Head-parallax read path (no write back)"]
+        HREAD["trackingEnabled, sensitivity, cameraMode read every render<br/>HeadTrackedParallaxController.tsx:17-19"]
+        HAPPLY["asymmetricFrustum: virtualScreenScale = 1 + sensitivity*0.5<br/>HeadTrackedParallaxController.tsx:39<br/>else: offsetX/Y = headPosition * sensitivity * ±0.5<br/>HeadTrackedParallaxController.tsx:57-58"]
+    end
+    DEF --> MERGE
+    SS --> MERGE
+    MERGE --> CTRL
+    CTRL -->|"translationSensitivity.x/y/z, invertAxes<br/>SpacePilotController.ts:303-305"| APPLY1["applied per-axis on every translate event"]
+    CTRL -->|"rotationSensitivity.x/y/z, invertAxes<br/>SpacePilotController.ts:329-331"| APPLY2["applied per-axis on every rotate event"]
+    CTRL -->|"deadzone, enabledAxes<br/>SpacePilotController.ts:385, :412"| APPLY3["deadzone clamp and per-axis gating on drive"]
+    UPD --> WB
+    WB --> SS
+    HS --> HREAD --> HAPPLY
+    note1["DRIFT: SpacePilot config round-trips (read, apply, and any UI<br/>call to updateConfig writes back to the store); head-parallax<br/>settings are read-only from this controller's side - sensitivity<br/>and cameraMode have no equivalent updateConfig-style writer here."]
+    WB --> note1
+    HREAD --> note1
 ```

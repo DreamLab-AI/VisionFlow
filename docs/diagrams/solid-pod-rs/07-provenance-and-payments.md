@@ -11,7 +11,6 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/payments.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/trading.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/anchor.rs
-  - ../solid-pod-rs/crates/solid-pod-rs-git/src/mark.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/handlers/prov.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/handlers/pay.rs
@@ -21,7 +20,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/conditions.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/api.rs
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
-verified_commit: 727549163
+verified_commit: febdc8be24bdc8b148b78b43a35ae85ee863a72a
 ---
 
 ## SP-07.1 The two provenance tiers
@@ -227,26 +226,6 @@ sequenceDiagram
     Note over M: MerkleProof (solid-pod-rs/src/provenance.rs:914) lets one commit prove its<br/>membership in the anchored root without revealing the rest of the epoch.<br/>merkle_root is deterministic and order-sensitive<br/>(solid-pod-rs/src/provenance.rs:1757).
 ```
 
-## SP-07.8 The git marker — shelling out to git
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant P as ProvenanceLog
-    participant SM as ShellGitMarker::mark_write<br/>solid-pod-rs-git/src/mark.rs:147
-    participant G as git subprocess<br/>solid-pod-rs-git/src/mark.rs:78
-    participant H as head_sha<br/>solid-pod-rs-git/src/mark.rs:126
-
-    P->>SM: (repo, path, agent_did, message)
-    SM->>G: stage and commit the single path
-    G-->>SM: exit status and output
-    SM->>H: read HEAD
-    H-->>SM: the new commit SHA
-    SM-->>P: GitMark<br/>solid-pod-rs/src/provenance.rs:62
-    Note over SM: The committer name is configurable<br/>(solid-pod-rs-git/src/mark.rs:61) — repo_slug<br/>(solid-pod-rs-git/src/mark.rs:118) names the repo in the mark.
-    Note over P: GitMarker is a trait (solid-pod-rs/src/provenance.rs:309), so a consumer can<br/>substitute a libgit2 or in-process implementation without touching the<br/>composition in ProvenanceLog.
-```
-
 ## SP-07.9 MRC20 state chain and Bitcoin anchoring
 
 ```mermaid
@@ -357,6 +336,7 @@ sequenceDiagram
 
     Note over TS: to_public (solid-pod-rs-server/src/trail_store.rs:58) strips the private key<br/>before a trail is served — merge_public (:76) folds a public update back in<br/>WITHOUT losing the secret. A test pins that the key never leaks<br/>(solid-pod-rs-server/src/trail_store.rs:167).
 ```
+- **Debt:** `load_trail` maps every storage read error to `Ok(None)` (`solid-pod-rs-server/src/trail_store.rs:93-99`), so a transient or permissions failure reads identically to "no trail exists yet" — a durability fault and a genuinely fresh ticker are indistinguishable to the anchorer.
 
 ## SP-07.13 The web ledger
 

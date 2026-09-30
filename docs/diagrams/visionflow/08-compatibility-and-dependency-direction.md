@@ -12,7 +12,8 @@ sources:
   - ../project/src/utils/nip98.rs
   - ../project/src/domain/broker/mod.rs
   - ../project/agentbox/management-api/lib/agent-identity.js
-  - ../project/agentbox/mcp/servers/ontology-bridge.js
+  - ../project/agentbox/agentbox.toml
+  - ../project/crates/vault/src/main.rs
   - docs/estate-review/2026-09-07-imported-adr-scope.md
   - docs/estate-review/2026-09-07-visionclaw-audit.md
   - docs/estate-review/2026-09-07-federation-audit.md
@@ -21,25 +22,12 @@ sources:
   - docs/architecture/compatibility-matrix.md
   - docs/architecture/repository-map.md
   - docs/architecture/pod-tier-matrix.md
-  - docs/architecture/licensing.md
   - docs/architecture/status-reconciliation.md
-  - docs/ecosystem-map.md
-  - docs/registers/gap-register-v1.1.md
-  - docs/registers/gap-register-v1.2.md
-  - docs/registers/gap-register-v1.3.md
-  - docs/registers/F9-federation-fork-record.md
   - docs/adr/ADR-2006-canon-owns-crossrepo-view-not-implementation.md
   - docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md
-  - docs/estate-review/evidence/adr-inventory.json
-  - scripts/generate-release-manifest.sh
-  - scripts/estate-health/roster.json
-  - scripts/drift-counter/allowlist.json
-  - docs/releases/candidate-2026-05-22.json
   - docs/BASELINE-visionflow.md
-  - MAINTAINERS.md
-  - LICENSES/README.md
   - ./README.md
-verified_commit: {visionflow: df22182f365f7bc7b4664e4374d150ff893e6b05, visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2, agentbox: b7b1ab81a, nostr-rust-forum: 2f90c1916}
+verified_commit: {visionflow: d4e44298646768a4b19af359119e16a6884fa80d, visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, nostr-rust-forum: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d}
 ---
 
 Source reconciliation: 2026-09-07. These panels follow the current sections of the compatibility matrix and status reconciliation, plus the source audits named in frontmatter. Historical metrics and register cuts remain historical. This review did not certify a live federation, image, hardware session or replica-wide authentication contract.
@@ -57,14 +45,19 @@ flowchart TB
     AB <-->|broker REST and ACSP integration| VC
     VC <-->|configured governance paths| NRF
     AB <-->|configured relay and inbox paths| NRF
-    LOOM["Loom: ontology facade"] -->|configured retrieval| AB
+    LOOM["Loom: ontology facade, HTTP only"] -->|configured retrieval| AB
     RV["RuVector: selected core or image"] --> LOOM
     RV -->|MCP and Postgres boundary| AB
+    VAULT["vault CLI, VisionClaw crates/vault<br/>agentbox.toml:884 cli=true<br/>main.rs:44 enum Command"] --> AB
     SCOPE["Arrows identify implemented source seams, not a verified complete mesh"]
     VF -.-> SCOPE
 ```
 
-Evidence: `repository-map.md`, the Agentbox audit and imported-scope review. Published corpus/explorer, upstream sensing and ancillary repositories remain in the extended estate inventory; this interaction view is not an exhaustive repository count.
+**INVARIANT: no MCP inside the estate for the corpus (BASELINE-visionflow.md:299).** Agentbox retired `ontology-bridge.js` (deleted; see AB-25); agents and the Loom reach the corpus only through the `vault` binary over Bash and the Loom's HTTP surface, never a registered MCP server.
+
+**INVARIANT: `verified_commit` is a `{repo: sha}` map, not one sha, for any topic whose `sources:` span more than one repo (`compatibility-matrix.md:8`).** A repository present in `sources:` but missing from that map resolves its citations against the working tree without complaint — a silent source-identity gap, not a verified stamp.
+
+Evidence: `repository-map.md`, the Agentbox audit and imported-scope review. This interaction view is not an exhaustive repository count.
 
 ## VF-08.2 Identity representation and replay boundaries
 
@@ -84,21 +77,6 @@ flowchart LR
 
 Evidence: VisionClaw `src/utils/nip98.rs`, Agentbox `agent-identity.js`, and the federation audit. A canonical identity representation does not unify every verifier. VisionClaw NIP-26 delegation remains deferred; that is narrower than saying no upstream delegation implementation exists anywhere.
 
-## VF-08.3 Estate inventories have different scopes
-
-```mermaid
-flowchart TB
-    MAP["Repository map: architectural roles"] --> REVIEW["Compare declared scope and evidence date"]
-    RELEASE["Release manifest: selected repository and revision identities"] --> REVIEW
-    HEALTH["Health roster: probeable service/repository targets"] --> REVIEW
-    ADR["ADR inventory: documents and lineage"] --> REVIEW
-    REVIEW --> DIFFER["Different membership can be deliberate"]
-    REVIEW --> DRIFT["Missing owned dependency or contradictory role needs correction"]
-    REVIEW --> RULE["Do not reuse a historical nine/fourteen count as today's estate total"]
-```
-
-Use the current inventory and source records. A release roster, runtime health roster and ADR corpus are different sets; neither matching counts nor unequal counts alone prove correctness or drift.
-
 ## VF-08.4 Mesh and governance are partly connected
 
 ```mermaid
@@ -113,37 +91,6 @@ flowchart LR
 ```
 
 Source: forum `mesh.rs`, VisionClaw `src/domain/broker/mod.rs`, Agentbox `action-plane.js`, and the federation audit. BrokerActor/Neo4j was deliberately left out; the current broker is not merely an unmerged branch. Relay acknowledgement does not prove external application.
-
-## VF-08.5 Versions and tool counts require selected-source identity
-
-```mermaid
-flowchart TB
-    OLD["Historical candidate manifest and twelve-tool prose"] --> DATE["Retain date and revision"]
-    CURRENT["Current ontology-bridge.js TOOLS array<br/>ontology-bridge.js:143"] --> ELEVEN["EXTERNAL: eleven advertised entries at the agentbox<br/>revision stamped in this topic — see AB-25"]
-    DISPATCH["ontology_propose dispatcher branch"] --> SEPARATE["Dispatchable branch is not an advertised registry entry"]
-    PIN["Drift-counter pinned sibling revision"] --> PINNED["Gate result applies to that revision"]
-    CURRENT --> QUALIFY["Working tree, pinned source and loaded MCP may differ"]
-    PINNED --> QUALIFY
-    DATE --> QUALIFY
-```
-
-**Invariant (stamp covers every repo cited):** this topic cites four repositories, so `verified_commit` is a `{repo: sha}` map; a repository present in `sources:` but missing from the map resolves against the working tree without complaint, which is exactly the source-identity failure the matrix warns about (`docs/architecture/compatibility-matrix.md:8`).
-
-The current TOOLS array and ListTools handler were read directly. Historical twelve-tool statements and candidate package versions are preserved in the matrix's dated snapshot, not claimed as current. A moving checkout must not silently update the gate's approved pin.
-
-## VF-08.6 Licence evidence follows the consumed component
-
-```mermaid
-flowchart LR
-    REPO["Repository licence statements"] --> COMPONENT["Selected crate, package or asset"]
-    COMPONENT --> SOURCE["Its manifest and licence files"]
-    COMPONENT --> LINK["Actual dependency or process boundary"]
-    SOURCE --> REVIEW["Record component-specific obligations and unresolved questions"]
-    LINK --> REVIEW
-    IMPORT["Imported upstream ADR or copied tree"] -.-> NO["Does not grant a new licence or prove adopted code identity"]
-```
-
-Keep `licensing.md` as the policy route, with repository manifests and licence files as the evidence. Agentbox service crates and its wider repository have different declared terms. The imported-scope review distinguishes Loom's sibling core, RuView's registry dependencies and Agentbox's image. This panel does not issue a new legal determination or infer estate-wide terms from one badge.
 
 ## VF-08.7 Pod compatibility is a consumer contract
 
@@ -179,28 +126,6 @@ sequenceDiagram
 ```
 
 `status-reconciliation.md` now separates September findings from the May notes. The matrix separates its current source comparison from the July compatibility and harness snapshots. Completion percentages and stale version strings in those snapshots are not live status.
-
-## VF-08.9 Published register cuts remain immutable
-
-```mermaid
-stateDiagram-v2
-    [*] --> v1_0
-    v1_0 --> v1_1 : historical P0 cut
-    v1_1 --> v1_2 : historical P1/P2 cut
-    v1_2 --> v1_3 : historical broker addendum
-    v1_3 --> NewEvidence : source and runtime observations
-    NewEvidence --> NextDisposition : forward-chained correction
-    note right of v1_3
-        Historical integrated/scaffolded tiers and pending-live
-        canaries retain their recorded evidence scope.
-    end note
-    note right of NextDisposition
-        Promotion needs a new receipt, not a rewrite of an old cut.
-        Federation fork criteria are evaluated at their own date.
-    end note
-```
-
-Evidence: the v1.1–v1.3 registers and F9 fork record. This audit neither overwrites those cuts nor declares their pending-live acceptance complete.
 
 ## VF-08.10 Canon claims require bounded evidence
 

@@ -27,7 +27,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/zone_approval.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/lib.rs
-verified_commit: 2f90c1916
+verified_commit: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d
 ---
 
 ## NF-02.1 Request entry — bootstrap, rate limit, body pre-read, dispatch
@@ -65,7 +65,7 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph pub["Public - no auth"]
-        DID["GET /.well-known/did/nostr/{pk}.json<br/>nostr-bbs-auth-worker/src/lib.rs:233 to did::handle_did_document nostr-bbs-auth-worker/src/did.rs:20"]
+        DID["GET /.well-known/did/nostr/{pk}.json<br/>nostr-bbs-auth-worker/src/lib.rs:233 to did::handle_did_document nostr-bbs-auth-worker/src/did.rs:20<br/>rendering delegates to nostr_bbs_core::did, canonical Multikey doc carries no alsoKnownAs did.rs:8,86,87"]
         HEALTH["GET /health nostr-bbs-auth-worker/src/lib.rs:240"]
         REGO["POST /auth/register/options nostr-bbs-auth-worker/src/lib.rs:253"]
         REGV["POST /auth/register/verify nostr-bbs-auth-worker/src/lib.rs:258"]
@@ -73,14 +73,14 @@ flowchart TB
         LOGV["POST /auth/login/verify nostr-bbs-auth-worker/src/lib.rs:269"]
         LOOKUP["POST /auth/lookup nostr-bbs-auth-worker/src/lib.rs:274"]
         UCHECK["GET /api/username/check nostr-bbs-auth-worker/src/lib.rs:605"]
-        URESOLVE["GET /api/username/resolve nostr-bbs-auth-worker/src/lib.rs:610"]
+        URESOLVE["GET /api/username/resolve nostr-bbs-auth-worker/src/lib.rs:610<br/>resolve D1 is the trust root, federated pod probe only on miss in Federated mode username.rs:844,829,812"]
         IPREV["GET /api/invites/{code} preview nostr-bbs-auth-worker/src/lib.rs:442"]
     end
     subgraph sprint["route_sprint_api - each handler does its own NIP-98 + gate"]
         MOD["mod: ban mute warn unban unmute nostr-bbs-auth-worker/src/lib.rs:375 | report nostr-bbs-auth-worker/src/lib.rs:383 | actions nostr-bbs-auth-worker/src/lib.rs:387 | reports nostr-bbs-auth-worker/src/lib.rs:391 | reports/{id}/action nostr-bbs-auth-worker/src/lib.rs:396"]
         WOT["wot: status nostr-bbs-auth-worker/src/lib.rs:413 | set-referente nostr-bbs-auth-worker/src/lib.rs:417 | refresh nostr-bbs-auth-worker/src/lib.rs:421 | override add/remove nostr-bbs-auth-worker/src/lib.rs:425"]
         INV["invites: create nostr-bbs-auth-worker/src/lib.rs:433 | mine nostr-bbs-auth-worker/src/lib.rs:437 | revoke + redeem nostr-bbs-auth-worker/src/lib.rs:442"]
-        WEL["welcome: config nostr-bbs-auth-worker/src/lib.rs:471 | configure nostr-bbs-auth-worker/src/lib.rs:475 | set-bot-key nostr-bbs-auth-worker/src/lib.rs:479 | test nostr-bbs-auth-worker/src/lib.rs:483"]
+        WEL["welcome: config nostr-bbs-auth-worker/src/lib.rs:471 | configure nostr-bbs-auth-worker/src/lib.rs:475 | set-bot-key nostr-bbs-auth-worker/src/lib.rs:479 | test nostr-bbs-auth-worker/src/lib.rs:483<br/>set-bot-key nsec is sealed with ChaCha20-Poly1305 under WELCOME_MASTER_KEY crypto.rs:77,97"]
         ADM["admins: list nostr-bbs-auth-worker/src/lib.rs:489 | add nostr-bbs-auth-worker/src/lib.rs:493 | remove nostr-bbs-auth-worker/src/lib.rs:497 | delete-member nostr-bbs-auth-worker/src/lib.rs:503"]
         GOV["governance: agents nostr-bbs-auth-worker/src/lib.rs:509 register nostr-bbs-auth-worker/src/lib.rs:513 provision nostr-bbs-auth-worker/src/lib.rs:518 revoke nostr-bbs-auth-worker/src/lib.rs:523 | cases nostr-bbs-auth-worker/src/lib.rs:528 :532 | decisions nostr-bbs-auth-worker/src/lib.rs:538 | roles grant nostr-bbs-auth-worker/src/lib.rs:542 revoke nostr-bbs-auth-worker/src/lib.rs:546 list nostr-bbs-auth-worker/src/lib.rs:571 | receipt application nostr-bbs-auth-worker/src/lib.rs:551 | reviewers nostr-bbs-auth-worker/src/lib.rs:567"]
         DEV["devices: list nostr-bbs-auth-worker/src/lib.rs:579 | register nostr-bbs-auth-worker/src/lib.rs:583 | revoke nostr-bbs-auth-worker/src/lib.rs:587"]
@@ -198,7 +198,7 @@ flowchart LR
     ISA["is_admin - static union RELAY_DB union DB<br/>nostr-bbs-auth-worker/src/admin.rs:57"]
 
     RA --> ISA
-    ADMINONLY["Admin-only: mod actions moderation.rs:209 | wot status wot.rs:128 | welcome config welcome.rs:148<br/>| admins add admins.rs:161 | governance register governance_api.rs:361 | provision governance_api.rs:438<br/>| roles grant governance_api.rs:673 | admin registrations username.rs:689<br/>| reviewer telemetry governance_api.rs:1408"]
+    ADMINONLY["Admin-only: mod actions moderation.rs:209 | wot status wot.rs:128 | welcome config welcome.rs:148<br/>| admins add admins.rs:161 | governance register governance_api.rs:361 | provision governance_api.rs:438<br/>| roles grant governance_api.rs:673 | admin registrations username.rs:689<br/>| reviewer telemetry governance_api.rs:1410"]
     AUTHED["Authed-only: mod report moderation.rs:316 | invite create invites.rs:291 | redeem invites.rs:577<br/>| devices register devices.rs:361 | list devices.rs:452 | revoke devices.rs:488<br/>| username claim username.rs:568 | governance cases governance_api.rs:564 | decisions governance_api.rs:629<br/>| receipt application governance_api.rs:1133 - authed, then authorised by ROLE inside the handler"]
 
     RA --> ADMINONLY
@@ -261,25 +261,6 @@ sequenceDiagram
     Note over UC: The granted cohort set is config-driven, not hardcoded - see NF-08.3
 ```
 
-## NF-02.9 Identity surfaces the auth worker publishes
-
-```mermaid
-flowchart LR
-    DIDDOC["GET /.well-known/did/nostr/{pk}.json<br/>nostr-bbs-auth-worker/src/did.rs:20"]
-    MULTI["Canonical did:nostr Multikey document<br/>asserted nostr-bbs-auth-worker/src/did.rs:73"]
-    NOAKA["No alsoKnownAs on the canonical doc<br/>asserted nostr-bbs-auth-worker/src/did.rs:87"]
-    NIP05["NIP-05 resolve - local registry then federated pod probe<br/>resolve nostr-bbs-auth-worker/src/username.rs:844<br/>federated URL builder username.rs:829<br/>pubkey extraction username.rs:812"]
-    PROFILE["GET /api/profile<br/>nostr-bbs-auth-worker/src/pod.rs:9"]
-    CRYPTO["Master-key envelope for stored secrets<br/>encrypt nostr-bbs-auth-worker/src/crypto.rs:77<br/>decrypt crypto.rs:97<br/>nsec helpers crypto.rs:117 crypto.rs:127"]
-
-    DIDDOC --> MULTI --> NOAKA
-    NIP05 --> PROFILE
-
-    N1["EXTERNAL: the Multikey encoder of record is solid-pod-rs did_nostr_types - see the solid-pod-rs area (SP-*)<br/>and the estate identity mesh ES-04"]
-    N2["EXTERNAL: VisionClaw resolves the same did:nostr identifiers on its own identity spine - see VC-23 and VC-33"]
-    N3["DIVERGENCE BASELINE-architecture.md: the CF-Workers pod-federation fallback is degenerate - the<br/>federated resolve returns data D1 already holds, because the pod-resident NIP-05 endpoint is one of the<br/>three wasm32-unreachable Phase-1 surfaces - see NF-04"]
-```
-
 ## NF-02.10 Application receipts — who may say what became of a decision
 
 ```mermaid
@@ -289,7 +270,7 @@ sequenceDiagram
     participant H as handle_receipt_application<br/>nostr-bbs-auth-worker/src/governance_api.rs:1124
     participant RD as relay D1
     participant PL as plan_application_advance<br/>nostr-bbs-auth-worker/src/governance_api.rs:1058
-    participant RV as handle_list_reviewers<br/>nostr-bbs-auth-worker/src/governance_api.rs:1402
+    participant RV as handle_list_reviewers<br/>nostr-bbs-auth-worker/src/governance_api.rs:1404
 
     C->>H: POST /api/governance/receipts/{event id}/application governance_api.rs:1131
     H->>H: require_authed - NIP-98 only, no admin gate here governance_api.rs:1133
@@ -299,12 +280,12 @@ sequenceDiagram
     H->>RD: SELECT case state, created_by and the latest decision outcome governance_api.rs:1175
     H->>H: build the caller - is_admin, is_registered_agent, is_case_owner governance_api.rs:1186
     H->>PL: may this caller advance current to requested
-    PL-->>H: refusal with its own status, or proceed governance_api.rs:1200
-    H->>RD: UPDATE guarded by the CURRENT stage governance_api.rs:1211
-    RD-->>C: 409 when another consumer won the race governance_api.rs:1233
-    C->>RV: GET /api/governance/reviewers - ADMIN only governance_api.rs:1408
+    PL-->>H: refusal with its own status, or proceed governance_api.rs:1202
+    H->>RD: UPDATE guarded by the CURRENT stage governance_api.rs:1213
+    RD-->>C: 409 when another consumer won the race governance_api.rs:1235
+    C->>RV: GET /api/governance/reviewers - ADMIN only governance_api.rs:1410
 
-    Note over H: INVARIANT the case owner is matched case-insensitively, so a mixed-case NIP-98 pubkey still resolves to the owner it belongs to governance_api.rs:1184 governance_api.rs:1190
-    Note over H: INVARIANT the stage write is a compare-and-swap - two consumers racing the same receipt cannot both win, the loser sees a 409 governance_api.rs:1203-1205
-    Note over RV: Reviewer telemetry measures the humans, not only the agents, and is admin-gated where the case and decision reads are member-visible governance_api.rs:1408
+    Note over H: INVARIANT the case owner is matched case-insensitively, so a mixed-case NIP-98 pubkey still resolves to the owner it belongs to governance_api.rs:1184 governance_api.rs:1192
+    Note over H: INVARIANT the stage write is a compare-and-swap - two consumers racing the same receipt cannot both win, the loser sees a 409 governance_api.rs:1205-1207
+    Note over RV: Reviewer telemetry measures the humans, not only the agents, and is admin-gated where the case and decision reads are member-visible governance_api.rs:1410
 ```

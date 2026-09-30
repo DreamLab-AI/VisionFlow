@@ -12,7 +12,8 @@ sources:
   - ../dreamlab-ai-website/CLAUDE.md
   - ../dreamlab-ai-website/index.html
   - ../dreamlab-ai-website/src/lib/og-meta.ts
-verified_commit: 9a3dd8830
+  - ../dreamlab-ai-website/src/pages/Contact.tsx
+verified_commit: 9b8ea495da80aaa5b45795af916bda4470467481
 ---
 
 ## DW-02.1 Route table — lazy-loaded, code-split
@@ -35,17 +36,7 @@ flowchart TB
 ```
 - All route components are `lazy()`-loaded (src/App.tsx:10-22); `RouteErrorBoundary` (src/App.tsx:44) contains a failed lazy chunk so it does not white-screen the whole SPA (Sprint v9 D3, src/App.tsx:42-43 comment).
 - `v7_relativeSplatPath` is audited as a no-op here (the sole splat route's links are all absolute); `v7_startTransition` only changes how a navigation to a not-yet-loaded chunk holds the outgoing page (src/App.tsx:32-38).
-
-## DW-02.2 Legacy redirects
-```mermaid
-flowchart LR
-    R1["/residential-training"] -->|Navigate replace| PRG["/programmes<br/>src/App.tsx:69"]
-    R2["/masterclass"] -->|Navigate replace| PRG2["/programmes<br/>src/App.tsx:70"]
-    R3["/system-design"] -->|Navigate replace| RES["/research<br/>src/App.tsx:71"]
-    R4["/research-paper"] -->|Navigate replace| RES2["/research<br/>src/App.tsx:72"]
-    R5["/work"] -->|Navigate replace| RES3["/research<br/>src/App.tsx:73"]
-```
-- `public/sitemap.xml` must be kept in sync with the route table by hand when routes change (CLAUDE.md route-table section).
+- Route-level lazy loading is supplemented by Rollup manual chunks (`vendor`, `nostr`, `ui`) grouping React/router, `nostr-tools` and Radix primitives into separate bundles (vite.config.ts:70-79).
 
 ## DW-02.3 Build & test commands
 ```mermaid
@@ -58,6 +49,7 @@ flowchart TB
     RUSTT["cd forum-config && cargo test"] --> RUSTOVERLAY["operator-overlay tests:<br/>config parsing, branding, deploy manifests"]
 ```
 - CLAUDE.md's Behavioral Rules require `npm run build` and `npm run lint` before committing.
+- TypeScript strict mode is **partial**: `noImplicitAny: false`, `strictNullChecks: true` (CLAUDE.md:190).
 
 ## DW-02.4 Dev-server hardening — `/data/team` path-traversal guard
 ```mermaid
@@ -84,15 +76,17 @@ flowchart LR
     DATE --> REPLACED["replaced with new Date().toISOString().slice(0,10)<br/>vite.config.ts:24"]
 ```
 - The CSP is why the React `__p` deep-link pickup lives in the external `public/spa-redirect.js` rather than an inline script injected at deploy time (see DW-01.7); an inline script would be blocked.
+- OG/social-card image URLs (src/lib/og-meta.ts:40-41) must point at files that already exist under `public/`; there is no OG-image generation pipeline, so meta and imagery are hand-kept in sync.
 
-## DW-02.6 Key patterns
+## DW-02.7 Contact form — RHF + Zod boundary, no database write
 ```mermaid
 flowchart TB
-    COMP["Components<br/>shadcn/ui: Radix + Tailwind + CVA"]
-    FORMS["Forms<br/>React Hook Form + Zod schemas at form boundaries"]
-    DATA["Data fetching<br/>TanStack React Query"]
-    CONTENT["Content<br/>team bios / workshops: markdown under public/data/, fetched at runtime<br/>testimonials: content/site-content.yaml via pre-build script"]
-    OG["OG/social meta<br/>src/lib/og-meta.ts:40 — image URLs must point at files<br/>that actually exist under public/, no generation pipeline"]
-    SPLIT["Code splitting<br/>Vite manual chunks (vendor, ui) + route-level lazy loading"]
+    SCHEMA["formSchema = z.object({...})<br/>src/pages/Contact.tsx:43-48<br/>name >=2 chars, email format,<br/>projectType required, message >=10 chars"]
+    HOOK["useForm(FormValues)<br/>resolver: zodResolver(formSchema)<br/>src/pages/Contact.tsx:364-365"]
+    SCHEMA --> HOOK
+    HOOK --> VIEW["ContactMobile / ContactDesktop<br/>share one form + onSubmit via ContactViewProps<br/>src/pages/Contact.tsx:53-58"]
+    VIEW --> GUARD["onSubmit: if RELAY_URL/ADMIN_PUBKEY unset<br/>toast.error(unavailable), return<br/>src/pages/Contact.tsx:380-385"]
+    GUARD --> SEND["generateEphemeralIdentity -> buildEnquiryRumor<br/>-> wrapDm -> publishGiftWrap<br/>src/pages/Contact.tsx:395-409, see DW-04.3/DW-04.4"]
+    SEND --> OK["result.ok? toast.success + form.reset<br/>: toast.error<br/>src/pages/Contact.tsx:411-417"]
 ```
-- TypeScript: strict mode is **partial** — `noImplicitAny: false`, `strictNullChecks: true`; target ES2020, module ESNext, JSX react-jsx (CLAUDE.md TypeScript Configuration section).
+- No REST endpoint and no database row: validated form data is packaged straight into the NIP-17 gift-wrap DM ingress that DW-04 diagrams; success is gated strictly on the relay's OK-true (src/pages/Contact.tsx:389-391 comment, ADR-041 D4).

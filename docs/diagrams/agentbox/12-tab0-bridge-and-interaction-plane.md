@@ -26,66 +26,26 @@ sources:
   - ../project/agentbox/flake.nix
   - ../project/agentbox/docker-compose.yml
   - ../project/agentbox/management-api/server.js
-  - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
   - ../project/agentbox/config/nostr-gateway/nostr-send.cjs
-verified_commit: 1639f86ab
+verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
 ---
-
-## AB-12.1 Interaction-plane topology
-```mermaid
-flowchart TB
-    Browser["Browser / mobile / voice cockpit"]
-    Caddy8444["Caddy port 8444 operator console<br/>published 0.0.0.0<br/>agentbox/docker-compose.voice.yml:38-39"]
-    Caddy8443["Caddy port 8443 stock Unmute debug<br/>published 0.0.0.0<br/>agentbox/docker-compose.voice.yml:38"]
-    UnmuteFE["Unmute frontend port 3000"]
-    UnmuteBE["Unmute backend port 80<br/>STT/TTS, /v1/realtime"]
-    Bridge["tab0-bridge port 8971<br/>agentbox/config/tab0-bridge/server.mjs:45<br/>never host-published"]
-    Proxy["nip98-proxy port 9096<br/>published 0.0.0.0<br/>agentbox/config/nip98-proxy/proxy.mjs:96-97"]
-    AoE["AoE daemon port 9095<br/>loopback only, never published"]
-    Mgmt["management-api port 9090<br/>127.0.0.1 only"]
-    Tmux["tmux window agentbox:0<br/>coordinator session"]
-
-    Browser -->|"https 8444, TLS"| Caddy8444
-    Browser -->|"https 8443, debug only"| Caddy8443
-    Caddy8443 -->|"handle_path /api/*"| UnmuteBE
-    Caddy8443 -->|"handle default"| UnmuteFE
-    Caddy8444 -->|"handle /embed*, /_next/*"| UnmuteFE
-    Caddy8444 -->|"handle_path /api/*"| UnmuteBE
-    UnmuteBE -->|"POST /v1/chat/completions, Bearer BRIDGE_TOKEN"| Bridge
-    Caddy8444 -->|"handle /feed, /bridge/*, Authorization forwarded, ADR-069"| Proxy
-    Caddy8444 -->|"handle_path /aoe/*, handle /approvals/*, /mgmt/*, /dream/*"| Proxy
-    Caddy8444 -->|"handle /lo*, /docs*, direct"| Mgmt
-    Proxy -->|"credential exchange, bearer_env BRIDGE_TOKEN, proxy.mjs:227-246"| Bridge
-    Proxy -->|"Authorization Bearer daemon token, replaces browser credential"| AoE
-    Proxy -->|"prefix /mgmt/, strip, NIP98_PROXY_MGMT_UPSTREAM"| Mgmt
-    Bridge -->|"tmux send-keys -t agentbox:0, fail-open fallback"| Tmux
-    Bridge -->|"POST /api/sessions/:id/send, Bearer aoe daemon token"| AoE
-
-Divergence["RESOLVED ADR-2047: 8443 and 8444 are SANCTIONED exposures, not a breach.<br/>agentbox/scripts/ci/check-ports-loopback.mjs:93-104 lists ten sanctioned publishes with a<br/>per-entry governing-record citation at :80-87, voice 8443/8444 among them as the second LAN ingress,<br/>modelled not hidden. 9096 remains the sole IDENTITY-gated ingress to the AoE plane."]
-    style Divergence fill:#ddf5dd,stroke:#2e7d32,color:#000
-    Caddy8444 -.-> Divergence
-
-Drift["RESOLVED ADR-2047: agentbox/voice/README.md now routes /feed and /bridge/* to<br/>agentbox:9096 in both its route table and its ASCII map, naming the ADR-069 server-side<br/>BRIDGE_TOKEN credential exchange. The one remaining 8971 reference is correct - it is the<br/>Unmute backend calling the bridge container-to-container, not a browser path through Caddy."]
-    style Drift fill:#ddf5dd,stroke:#2e7d32,color:#000
-    Proxy -.-> Drift
-```
 
 ## AB-12.2 Bridge boot — reconcile, listen, coordinator resolve
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Sup as Supervisor<br/>agentbox/flake.nix:2462
+    participant Sup as Supervisor<br/>agentbox/flake.nix:2512
     participant Dep as deploy.sh<br/>agentbox/config/tab0-bridge/deploy.sh:1
     participant Node as server.mjs<br/>agentbox/config/tab0-bridge/server.mjs:45
     participant AoEd as AoE daemon port 9095
 
-    Sup->>Dep: bash deploy.sh reconcile (flake.nix:2463)
+    Sup->>Dep: bash deploy.sh reconcile, one supervisor command line (flake.nix:2513)
     Dep->>Dep: copy server.mjs, turn-sink.cjs, start.sh, package.json via md5 compare (deploy.sh:27-35)
     opt node_modules/ws missing
         Dep->>Dep: npm install --omit=dev (deploy.sh:37-39)
     end
     Dep-->>Sup: exit 0, reconcile-only mode, no launch (deploy.sh:44-46)
-    Sup->>Node: exec node server.mjs, foreground, autorestart (flake.nix:2463)
+    Sup->>Node: exec node server.mjs, foreground, autorestart, same command line (flake.nix:2513)
     Node->>Node: read BRIDGE_PORT, default 8971 (server.mjs:45)
     Node->>Node: read BRIDGE_TMUX_SESSION, default agentbox (server.mjs:47)
     Node->>Node: read BRIDGE_TOKEN, default empty string (server.mjs:49)
@@ -97,18 +57,19 @@ sequenceDiagram
         Note over Node: INVARIANT — a non-loopback bind with no BRIDGE_TOKEN is refused at startup, server.mjs:60-66
     end
     Node->>Node: delete CHILD_ENV.ANTHROPIC_API_KEY, empty key poisons OAuth chain (server.mjs:123-126)
-    Node->>Node: http.createServer, WebSocketServer path /feed (server.mjs:718,803-805)
-    Node->>Node: server.listen(PORT, BIND) (server.mjs:816)
-    Node->>AoEd: GET /api/sessions?state=live, resolveCoordinatorSession (server.mjs:216-218)
+    Node->>Node: set CHILD_ENV.MAX_THINKING_TOKENS 0 and CLAUDE_CODE_DISABLE_CLAUDE_MDS 1 for lean headless turns, read BRIDGE_EFFORT default low (server.mjs:131-133)
+    Node->>Node: http.createServer, WebSocketServer path /feed (server.mjs:736,820-823)
+    Node->>Node: server.listen(PORT, BIND) (server.mjs:834)
+    Node->>AoEd: GET /api/sessions?state=live, resolveCoordinatorSession (server.mjs:223-225)
     alt AoE reachable and title matches tab0
         AoEd-->>Node: 200, session list
-        Node->>Node: pin aoeSessionId for process lifetime (server.mjs:227, ADR-044 D2)
+        Node->>Node: pin aoeSessionId for process lifetime (server.mjs:234, ADR-044 D2)
     else AoE unreachable or no match
         AoEd-->>Node: error or no match
-        Node->>Node: aoeSessionId stays null, fall back to tmux (server.mjs:231-234)
+        Node->>Node: aoeSessionId stays null, fall back to tmux (server.mjs:238-241)
     end
     loop every 30000 ms while aoeSessionId is null
-        Node->>AoEd: GET /api/sessions?state=live, re-resolve (server.mjs:826)
+        Node->>AoEd: GET /api/sessions?state=live, re-resolve (server.mjs:844)
     end
 ```
 
@@ -117,51 +78,34 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant B as tab0-bridge<br/>server.mjs:718
+    participant B as tab0-bridge<br/>server.mjs:736
 
-    C->>B: HTTP request, any path (server.mjs:718)
+    C->>B: HTTP request, any path (server.mjs:736-738)
     alt path is /health
-        B-->>C: 200, ok true, no auth check (server.mjs:722-725)
+        B-->>C: 200, ok true, no auth check (server.mjs:740-742)
     else path requires auth
-        B->>B: authorised(req) (server.mjs:704)
+        B->>B: authorised(req) (server.mjs:722)
         alt TOKEN is empty
-            B->>B: return true, open gate, loopback dev only (server.mjs:705)
+            B->>B: return true, open gate, loopback dev only (server.mjs:723)
         else Authorization header equals Bearer TOKEN
-            B->>B: return true (server.mjs:707)
+            B->>B: return true (server.mjs:725)
         else Authorization starts with Nostr, verifyNip98Credential succeeds
-            B->>B: return true, see AB-10.3 for NIP-98 verify internals (server.mjs:682-702,702)
+            B->>B: return true, see AB-10.3 for NIP-98 verify internals (server.mjs:726,700-718)
         else query token equals TOKEN
-            B->>B: return true (server.mjs:711)
+            B->>B: return true (server.mjs:729)
         else query auth verifies as a Nostr credential
-            B->>B: return true (server.mjs:712-713)
+            B->>B: return true (server.mjs:730-731)
         else none of the above
-            B->>B: return false (server.mjs:715)
+            B->>B: return false (server.mjs:733)
         end
         alt authorised false
-            B-->>C: 401, error unauthorised (server.mjs:728)
+            B-->>C: 401, error unauthorised (server.mjs:746)
         else authorised true
-            B->>B: dispatch to route table (server.mjs:729-790)
+            B->>B: dispatch to route table (server.mjs:747-807)
         end
     end
-Note over B: INVARIANT — every surface except /health requires the bearer when BRIDGE_TOKEN is<br/>set, including /v1/chat/completions, /v1/models, /feed, /tab0/send, /nostr/*, /turns, /tabs*,<br/>/aoe/sessions — ADR-044 finding 1, server.mjs:619-634
-```
-
-## AB-12.4 WebSocket upgrade auth
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Br as Browser
-    participant WSS as WebSocketServer<br/>server.mjs:803, path /feed
-
-    Br->>WSS: WS upgrade GET /feed, query token or query auth (server.mjs:805, 623-624, 630-632)
-    WSS->>WSS: verifyClient(info) calls authorised(info.req) (server.mjs:806)
-Note over WSS: verifyClient reuses the identical authorised() gate as HTTP requests, see<br/>AB-12.3 — browser WS clients cannot set an Authorization header, so query token / query auth is<br/>the only carrier (server.mjs:623-624,630-632)
-    alt authorised
-        WSS-->>Br: upgrade accepted, 101
-        WSS->>WSS: on connection, send snapshot of last 50 turns (server.mjs:812-813)
-    else not authorised
-        WSS-->>Br: upgrade rejected, 401 (verifyClient false)
-    end
+Note over B: INVARIANT — every surface except /health requires the bearer when BRIDGE_TOKEN is<br/>set, including /v1/chat/completions, /v1/models, /feed, /tab0/send, /nostr/*, /turns, /tabs*,<br/>/aoe/sessions — ADR-044 finding 1, server.mjs:637-651
+Note over B: the /feed WebSocket upgrade reuses this identical gate — verifyClient(info) calls<br/>authorised(info.req) (server.mjs:821-824) — but browser WS clients cannot set an Authorization<br/>header, so ?token= or ?auth= is the only carrier there (server.mjs:641,648) — on accept the<br/>connection handler sends a snapshot of the last 50 turns (server.mjs:830-831)
 ```
 
 ## AB-12.5 Inject into tmux window 0 — sendToTab0
@@ -169,70 +113,70 @@ Note over WSS: verifyClient reuses the identical authorised() gate as HTTP reque
 sequenceDiagram
     autonumber
     participant Cl as Client
-    participant B as tab0-bridge<br/>server.mjs:752, POST /tab0/send
-    participant S as sendToTab0()<br/>server.mjs:266
-    participant A as aoeSend()<br/>server.mjs:242
+    participant B as tab0-bridge<br/>server.mjs:770, POST /tab0/send
+    participant S as sendToTab0()<br/>server.mjs:273
+    participant A as aoeSend()<br/>server.mjs:249
     participant AoEd as AoE daemon port 9095
     participant T as tmux CLI
 
-    Cl->>B: POST /tab0/send, body text, source (server.mjs:752-754)
-    B->>S: sendToTab0(text, source) (server.mjs:753)
-    S->>S: clean = strip control chars, trim (server.mjs:267)
+    Cl->>B: POST /tab0/send, body text, source (server.mjs:770-772)
+    B->>S: sendToTab0(text, source) (server.mjs:771)
+    S->>S: clean = strip control chars, trim (server.mjs:274)
     alt clean is empty
-        S-->>B: throw Error, empty text (server.mjs:268)
+        S-->>B: throw Error, empty text (server.mjs:275)
     end
-    S->>A: aoeSend(clean) (server.mjs:271)
-    A->>A: aoeSessionId unset, resolveCoordinatorSession() (server.mjs:243-245)
-    A->>AoEd: POST /api/sessions/:id/send, Authorization Bearer aoe-token, body message clean (server.mjs:247)
+    S->>A: aoeSend(clean) (server.mjs:278)
+    A->>A: aoeSessionId unset, resolveCoordinatorSession() (server.mjs:250-252)
+    A->>AoEd: POST /api/sessions/:id/send, Authorization Bearer aoe-token, body message clean (server.mjs:254)
     alt AoE responds 200
         AoEd-->>A: 200
     else AoE responds 404, session drift
         AoEd-->>A: 404
-        A->>A: aoeSessionId = null, re-resolve once (server.mjs:249-251)
-        A->>AoEd: retry POST /api/sessions/:id/send (server.mjs:252)
+        A->>A: aoeSessionId = null, re-resolve once (server.mjs:255-257)
+        A->>AoEd: retry POST /api/sessions/:id/send (server.mjs:259)
     else AoE unreachable or non-200
-        AoEd-->>A: transport error or non-200 (server.mjs:254)
+        AoEd-->>A: transport error or non-200 (server.mjs:261)
         A-->>S: throw Error
     end
     alt aoeSend succeeded
-        S->>S: via = aoe (server.mjs:269)
+        S->>S: via = aoe (server.mjs:276)
     else aoeSend threw
-        S->>S: via = tmux, console.error, AoE unreachable falling back (server.mjs:273-277)
-        S->>T: tmux send-keys -t agentbox:0 -l clean (server.mjs:278)
-        S->>T: tmux send-keys -t agentbox:0 Enter (server.mjs:279)
-        Note over S: FAIL-OPEN — degrade to the byte-identical legacy tmux send-keys path, races AoE input accounting, ADR-044 D3 (server.mjs:273-277)
+        S->>S: via = tmux, console.error, AoE unreachable falling back (server.mjs:279-284)
+        S->>T: tmux send-keys -t agentbox:0 -l clean (server.mjs:285)
+        S->>T: tmux send-keys -t agentbox:0 Enter (server.mjs:286)
+        Note over S: FAIL-OPEN — degrade to the byte-identical legacy tmux send-keys path, races AoE input accounting, ADR-044 D3 (server.mjs:279-284)
     end
-    S->>S: pushTurn(voice-inject or nostr-inject, clean, via) (server.mjs:281)
+    S->>S: pushTurn(voice-inject or nostr-inject, clean, via) (server.mjs:288)
     S-->>B: return clean text
-    B-->>Cl: 200, ok true, sent clean (server.mjs:754)
+    B-->>Cl: 200, ok true, sent clean (server.mjs:772)
 ```
 
 ## AB-12.6 AoE coordinator session resolution and drift retry
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Ti as 30s interval<br/>server.mjs:826
-    participant R as resolveCoordinatorSession()<br/>server.mjs:216
+    participant Ti as 30s interval<br/>server.mjs:844
+    participant R as resolveCoordinatorSession()<br/>server.mjs:223
     participant AoEd as AoE daemon port 9095
 
-    Ti->>R: invoke when aoeSessionId is null (server.mjs:826)
-    R->>AoEd: GET /api/sessions?state=live (server.mjs:218)
+    Ti->>R: invoke when aoeSessionId is null (server.mjs:844)
+    R->>AoEd: GET /api/sessions?state=live (server.mjs:225)
     alt status not 200
         AoEd-->>R: non-200
-        R-->>Ti: return null (server.mjs:219)
+        R-->>Ti: return null (server.mjs:226)
     else status 200
-        AoEd-->>R: 200, sessions array or wrapped data (server.mjs:204-209)
-        R->>R: want = AOE_COORDINATOR_TITLE lowercased, default tab0 (server.mjs:117,220)
-        R->>R: match session whose title, slug or name equals or includes want (server.mjs:221-224)
+        AoEd-->>R: 200, sessions array or wrapped data (server.mjs:211-215)
+        R->>R: want = AOE_COORDINATOR_TITLE lowercased, default tab0 (server.mjs:117,227)
+        R->>R: match session whose title, slug or name equals or includes want (server.mjs:228-231)
         alt match found with id or session_id
-            R->>R: aoeSessionId = String(id), pin for process lifetime (server.mjs:227, ADR-044 D2)
+            R->>R: aoeSessionId = String(id), pin for process lifetime (server.mjs:234, ADR-044 D2)
             R-->>Ti: return aoeSessionId
         else no match
-            R-->>Ti: return null (server.mjs:231)
+            R-->>Ti: return null (server.mjs:238)
         end
     end
     alt any error thrown, fetch abort, connection refused
-        R-->>Ti: catch, return null, AoE not up yet (server.mjs:232-234)
+        R-->>Ti: catch, return null, AoE not up yet (server.mjs:239-240)
     end
 Note over R: INVARIANT — tab0-bridge targets exactly ONE pinned coordinator session<br/>(server.mjs:111-117). POST /tab0/send carries no per-request session id, so an<br/>arbitrary-session inject surface does not exist here — contrast the AoE daemon's own<br/>multi-session API reached via the proxy, see AB-10.x
 ```
@@ -245,35 +189,37 @@ sequenceDiagram
     participant Cad as Caddy port 8444<br/>voice/console/Caddyfile
     participant UFE as Unmute frontend port 3000
     participant UBE as Unmute backend port 80
-    participant B as tab0-bridge<br/>server.mjs:732, POST /v1/chat/completions
-    participant Cc as claude -p child<br/>server.mjs:300
+    participant B as tab0-bridge<br/>server.mjs:750, POST /v1/chat/completions
+    participant Cc as claude -p child<br/>server.mjs:298
 
     rect rgb(255,240,240)
     Note over Mic,UBE: trust boundary — LAN door 1, port 8444 published 0.0.0.0
-    Note over Mic,Cad: TENSION manifest vs deployment — [voice].enabled is false (agentbox.toml:1681)<br/>while this whole stack runs. The gate is declared apply-class sidecar, so the voice<br/>compose overlay has its own lifecycle and `agentbox up` never consults the flag<br/>(docker-compose.voice.yml:1). The manifest therefore describes a surface it does not govern
+    Note over Mic,Cad: TENSION manifest vs deployment — [voice].enabled is false (agentbox.toml:1746)<br/>while this whole stack runs. The gate is declared apply-class sidecar, so the voice<br/>compose overlay has its own lifecycle and `agentbox up` never consults the flag<br/>(docker-compose.voice.yml:1). The manifest therefore describes a surface it does not govern
     Mic->>Cad: HTTPS, mic audio via /embed and /api/* (Caddyfile handle /embed*, handle_path /api/*)
     Cad->>UFE: reverse_proxy frontend:3000 (Caddyfile handle /embed*)
     Cad->>UBE: reverse_proxy backend:80, /v1/realtime (Caddyfile handle_path /api/*)
     end
-    UBE->>B: POST /v1/chat/completions, Authorization Bearer BRIDGE_TOKEN aka KYUTAI_LLM_API_KEY, stream true (server.mjs:732-734, voice/README.md:86)
+    UBE->>B: POST /v1/chat/completions, Authorization Bearer BRIDGE_TOKEN aka KYUTAI_LLM_API_KEY, stream true (server.mjs:750-752, voice/README.md:86)
     B->>B: authorised(req), global gate, see AB-12.3
     alt userText equals the silence marker or is empty
-        B-->>UBE: SSE, empty content, finish_reason stop, no LLM call (server.mjs:494-506)
+        B-->>UBE: SSE, empty content, finish_reason stop, no LLM call (server.mjs:512-524)
     else userText has content
-        B->>B: pushTurn(voice-user, text) (server.mjs:512)
-        B->>B: metaSystemPrompt(), recent turns, tmux windows, AoE-or-tmux job instructions (server.mjs:358-426)
-        B->>B: metaAllowedTools(), Bash allowlist, tmux and AOE_CURL patterns (server.mjs:434-454)
-        B->>Cc: spawn claude -p --model haiku --append-system-prompt --allowedTools, stream-json (server.mjs:291-304)
+        B->>B: pushTurn(voice-user, text) (server.mjs:530)
+        B->>B: metaSystemPrompt(), recent turns, tmux windows, AoE-or-tmux job instructions (server.mjs:376-450)
+        B->>B: metaAllowedTools(), Bash allowlist, tmux and AOE_CURL patterns (server.mjs:452-499)
+        B->>Cc: spawn claude -p --model haiku --effort BRIDGE_EFFORT --strict-mcp-config<br/>--mcp-config empty --settings disableAllHooks --disable-slash-commands --tools Bash?, stream-json (server.mjs:305-318)
         loop stream_event, content_block_delta, text_delta
-            Cc-->>B: partial text chunk (server.mjs:318-321)
-            B-->>UBE: SSE data chunk, delta content (server.mjs:519,536)
+            Cc-->>B: partial text chunk (server.mjs:332-339)
+            B-->>UBE: SSE data chunk, delta content (server.mjs:537,554)
         end
-        Cc-->>B: result event, final text or exit code (server.mjs:323-337)
-        B->>B: pushTurn(voice-reply, full text) (server.mjs:545)
-        B-->>UBE: SSE data DONE (server.mjs:549)
+        Cc-->>B: result event, final text or exit code (server.mjs:341-354)
+        B->>B: pushTurn(voice-reply, full text) (server.mjs:563)
+        B-->>UBE: SSE data DONE (server.mjs:567)
     end
     UBE-->>UFE: synthesised speech, TTS
-Note over B: DIVERGENCE — port 8444 and port 8443 are published 0.0.0.0 by<br/>docker-compose.voice.yml:38-39, while only port 9096 is the ADR-045 D2 sanctioned NIP-98-gated LAN<br/>door covered by the loopback CI gate. The Unmute voice loop itself reaches tab0-bridge only<br/>over the internal visionclaw_network hostname agentbox:8971, which is never host-published<br/>(docker-compose.yml:53-59)
+Note over B: DIVERGENCE — port 8444 and port 8443 are published 0.0.0.0 by<br/>docker-compose.voice.yml:38-39, while only port 9096 is the ADR-045 D2 sanctioned NIP-98-gated LAN<br/>door covered by the loopback CI gate. The Unmute voice loop itself reaches tab0-bridge only<br/>over the internal visionclaw_network hostname agentbox:8971, which is never host-published<br/>(docker-compose.yml:33,150-152)
+Note over Cad,B: RESOLVED ADR-2047 — voice/README.md now routes /feed and /bridge/* to<br/>agentbox:9096 in both its route table and its ASCII map, naming the ADR-069 server-side<br/>BRIDGE_TOKEN credential exchange (voice/README.md:26,115-116). The remaining 8971 reference<br/>above is correct — it is this Unmute backend calling the bridge container-to-container, not a<br/>browser path through Caddy (voice/README.md:37)
+Note over Cc: lean headless surface (measured 2.1.280/haiku: 38.4k-token/9.3s prefix → 6.8k/2.7s<br/>with MCP, hooks, skills and CLAUDE.md stripped) — CHILD_ENV.MAX_THINKING_TOKENS=0 and<br/>CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 set once at boot, see AB-12.2 (server.mjs:131-133)
 ```
 
 ## AB-12.8 mgmt-api voice-intent — mandate-gated ACSP dispatch
@@ -337,6 +283,7 @@ Note over Ca,M: SCOPE — this route is not reached from the tab0-bridge cockpit
     D-->>M: signedRequest with id
     M->>M: emitAgentAction, beam-parity notification (routes/voice-intent.js:267-278)
     M-->>Ca: 200, dispatched true, speaker_did, actor_did, event_id, intent, dispatch (routes/voice-intent.js:286-309)
+Note over ACS: SCOPE — agent-control-surface.js mints unsigned NIP-33 events (kinds 31400-31405)<br/>consumed by the EXTERNAL nostr-rust-forum forum-client's GovernancePage, which<br/>dreamlab-ai-website shallow-clones at build time (agent-control-surface.js:4-19) — it is not an<br/>agentbox-native operator dashboard. PANEL_SCHEMAS, LAYOUT_HINTS and ACTION_PRIORITIES are frozen<br/>module constants (agent-control-surface.js:43,46,48) — publishPanelEvent is a thin delegate over<br/>an ALREADY-CONNECTED NostrBridge, no in-request relay I/O (agent-control-surface.js:238)
 ```
 
 ## AB-12.9 Inline NIP-98 approval decision
@@ -398,7 +345,7 @@ sequenceDiagram
     participant Cad as Caddy port 8444
     participant Pr as nip98-proxy port 9096
     participant AoEd as AoE daemon port 9095
-    participant B as tab0-bridge<br/>server.mjs:774
+    participant B as tab0-bridge<br/>server.mjs:792
 
     rect rgb(235,245,255)
     Note over Op,AoEd: Part 1 — cockpit session board via the sole NIP-98 ingress, see AB-10.x for proxy verification internals
@@ -412,111 +359,76 @@ sequenceDiagram
     end
     rect rgb(255,245,235)
     Note over B,AoEd: Part 2 — tab0-bridge's own passthrough, used by the voice console feed, independent of the proxy path
-    Op->>B: GET /aoe/sessions, Bearer BRIDGE_TOKEN or NIP-98, see AB-12.3 (server.mjs:774)
-    B->>AoEd: aoeRequest GET /api/sessions?state=live, Authorization Bearer aoe-token from serve.url (server.mjs:778, 92-110)
+    Op->>B: GET /aoe/sessions, Bearer BRIDGE_TOKEN or NIP-98, see AB-12.3 (server.mjs:792)
+    B->>AoEd: aoeRequest GET /api/sessions?state=live, Authorization Bearer aoe-token from serve.url (server.mjs:796, 92-109)
     alt AoE responds non-200
         AoEd-->>B: non-200
-        B-->>Op: 502, error aoe unavailable, status (server.mjs:779)
+        B-->>Op: 502, error aoe unavailable, status (server.mjs:797)
     end
     alt AoE unreachable, transport error
-        B-->>Op: 502, error aoe unreachable, detail (server.mjs:781-783)
+        B-->>Op: 502, error aoe unreachable, detail (server.mjs:799-800)
     end
     AoEd-->>B: 200, session list
-    B-->>Op: 200, sessions array, coordinator aoeSessionId (server.mjs:780)
+    B-->>Op: 200, sessions array, coordinator aoeSessionId (server.mjs:798)
     end
 ```
 
-## AB-12.11 junkiejarvis-agent.js listen and reply flow
+## AB-12.11 junkiejarvis-agent.js listen, zone-key grants and reply flow
 ```mermaid
 sequenceDiagram
     autonumber
     participant R as Nostr relay pool, via NostrBridge
-    participant Ag as JunkieJarvisAgent<br/>lib/junkiejarvis-agent.js:681
-    participant Llm as callLlm()<br/>lib/junkiejarvis-agent.js:420
+    participant Ag as JunkieJarvisAgent<br/>lib/junkiejarvis-agent.js:692
+    participant Llm as callLlm()<br/>lib/junkiejarvis-agent.js:429
 
 Note over R,Ag: SCOPE — junkiejarvis-agent.js has no reference to tab0-bridge, tmux, AoE or<br/>port 8971, grep confirmed. An independent forum bot riding management-api's shared NostrBridge,<br/>included because the brief named it as an entry point.
-    Ag->>R: bridge.subscribe, kinds 1059, filter p equals pubkey, gift-wrapped DMs (lib/junkiejarvis-agent.js:734-740)
-    Ag->>R: bridge.subscribe, kinds 42, filter p equals pubkey, channel mentions (lib/junkiejarvis-agent.js:749-753)
-    Ag->>Ag: _scheduleProfilePublish, setTimeout 2000 ms, then publish kind-0 profile (lib/junkiejarvis-agent.js:761-777)
-    R-->>Ag: inbound event, kind 1059 or kind 42 (lib/junkiejarvis-agent.js:812)
-    Ag->>Ag: _dedup(event.id), in-memory set capped at DEFAULT_DEDUP_CAP (lib/junkiejarvis-agent.js:721-730)
+    Ag->>R: bridge.subscribe, kinds 1059, filter p equals pubkey — carries both gift-wrapped DMs and zone-key grants (lib/junkiejarvis-agent.js:755-760)
+    Ag->>R: bridge.subscribe, kinds 42, filter p equals pubkey, channel mentions (lib/junkiejarvis-agent.js:766-771)
+    Ag->>Ag: _scheduleProfilePublish, setTimeout 2000 ms, then publish kind-0 profile (lib/junkiejarvis-agent.js:781)
+    R-->>Ag: inbound event, kind 1059 or kind 42 (lib/junkiejarvis-agent.js:823-828)
+    Ag->>Ag: _dedup(event.id), in-memory set capped at DEFAULT_DEDUP_CAP (lib/junkiejarvis-agent.js:737-746)
     alt already seen
-        Ag->>Ag: drop event (lib/junkiejarvis-agent.js:723)
+        Ag->>Ag: drop event (lib/junkiejarvis-agent.js:826)
     end
     alt kind is 1059, gift wrap
-        Ag->>Ag: nip59.unwrapEvent(wrap, signer.skBytes), recover rumor (lib/junkiejarvis-agent.js:829-834)
+        Ag->>Ag: nip59.unwrapEvent(wrap, signer.skBytes), recover rumor (lib/junkiejarvis-agent.js:844-845)
+        alt rumor.kind is KIND_ZONE_KEY_GRANT (21453)
+            Ag->>Ag: _handleGrant(wrap) — key material, no dedup/backlog floor, a grant sent while down is still valid (lib/junkiejarvis-agent.js:853,884-897)
+            Ag->>Ag: zoneKeys.unwrapAny(wrap, skBytes) re-opens the seal — authenticates the SENDER, unlike nip59.unwrapEvent (lib/junkiejarvis-agent.js:891)
+            Ag->>Ag: _acceptGrantWithRetry(opened, 0) — checks isAdmin(sender) before storing (lib/junkiejarvis-agent.js:904-925)
+            alt granted
+                Ag->>Ag: store zone key, log zone+epoch only, never the secret
+            else rejected
+                Ag->>Ag: refuse, log res.error
+            else retry, admin status unresolved (relay unreachable)
+                Ag->>Ag: setTimeout per GRANT_RETRY_DELAYS_MS at this attempt, re-attempt, give up after the last delay
+            end
+            Note over Ag: never falls through to _handleDm — a grant is never treated as a DM message
+        else rumor.kind is KIND_DM_RUMOR
+            Ag->>Ag: _shouldIgnore(rumor.pubkey), _dedup(rumor.id), backlog floor (lib/junkiejarvis-agent.js:855-860)
+            Ag->>Llm: callLlm(userText), brisk professional personality (lib/junkiejarvis-agent.js:864,429)
+            Llm-->>Ag: reply text, or apology on outage, fail-open
+            Ag->>R: _sendDm → sendGiftWrappedDm, nip59, to the asker (lib/junkiejarvis-agent.js:875,961-970)
+        end
     else kind is 42, channel message
-        Ag->>Ag: isChannelMention, p-tag or at-junkiejarvis text (lib/junkiejarvis-agent.js:124,876)
+        Ag->>Ag: _shouldIgnore(pubkey), backlog floor (lib/junkiejarvis-agent.js:978-979)
+        alt zoneKeys.hasZkTag(tags)
+            Ag->>Ag: zoneKeys.readOutcome(event, _lookupZoneKey) (lib/junkiejarvis-agent.js:981-982,928-930)
+            alt not decrypted, key missing or wrong
+                Ag->>Ag: log outcome, skip — ciphertext never reaches the LLM (lib/junkiejarvis-agent.js:983-990)
+            else decrypted
+                Ag->>Ag: sealed original present — attribute to inner author, id, tags, not the migrator (lib/junkiejarvis-agent.js:996-1000)
+            end
+        end
+        Ag->>Ag: isChannelMention, p-tag or at-junkiejarvis text (lib/junkiejarvis-agent.js:133,1003)
+        Ag->>Llm: callLlm(userText), brisk professional personality (lib/junkiejarvis-agent.js:1011,429)
+        Llm-->>Ag: reply text, or apology on outage, fail-open
+        Ag->>Ag: _replyZone(srcEvent, channelId) — zk tag first, else cached kind-40 section lookup (lib/junkiejarvis-agent.js:1045,939-955)
+        Ag->>R: _sendChannelReply — e-tag root preserved, p-tag asker, zoneKeys.writePlan encrypts when the target zone is set (lib/junkiejarvis-agent.js:1016,1019-1057)
     end
-    Ag->>Ag: _shouldIgnore(pubkey), self and configured ignore list (lib/junkiejarvis-agent.js:819-821)
-    alt ignored author
-        Ag->>Ag: drop, never answer self (lib/junkiejarvis-agent.js:707)
-    end
-    Ag->>Llm: callLlm(userText), brisk professional personality (lib/junkiejarvis-agent.js:420)
-    Llm-->>Ag: reply text, or apology on outage, fail-open
-    Ag->>Ag: truncateReply to maxReply, default 280 chars (lib/junkiejarvis-agent.js:245,627)
-    alt source was a gift-wrapped DM
-        Ag->>R: publish gift-wrapped reply, nip59, to the asker
-        Note over Ag,R: INVARIANT ADR-2088 — sendGiftWrappedDm is the ONE gift-wrap site in the repo<br/>(lib/junkiejarvis-agent.js:632). _sendDm now delegates to it so the nightly<br/>forum-suggestions tenant, which has a bridge and a signer but no agent instance,<br/>sends through the identical envelope instead of hand-rolling a second one<br/>(lib/junkiejarvis-agent.js:858-863)
-        Note over Ag: the wrap is already signed by an EPHEMERAL key, so it is published raw with a<br/>pass-through signer — re-signing with the sender identity would destroy the wrap<br/>and leak the sender (lib/junkiejarvis-agent.js:617-619)
-    else source was a channel message
-        Ag->>R: publish kind-42 reply, e-tag root preserved, p-tag asker (lib/junkiejarvis-agent.js:141-149)
-    end
-    Note over Ag: hasSchedulingIntent may buildCalendarEvent, kind-31923 NIP-52, on behalf of forum members (lib/junkiejarvis-agent.js:349,381)
-```
-
-## AB-12.12 agent-control-surface.js — ACSP panel producer
-```mermaid
-classDiagram
-    class AgentControlSurface {
-        +buildPanelDefinition(p) Event
-        +buildPanelState(p) Event
-        +buildActionRequest(p) Event
-        +buildPanelUpdate(p) Event
-        +buildPanelRetired(p) Event
-        +publishPanelEvent(bridge, signer, unsignedEvent) Promise~Event~
-    }
-    class PanelDefinition {
-        +kind 31400
-        +title string
-        +schema PANEL_SCHEMAS
-        +layout LAYOUT_HINTS
-        +fields List~Field~
-        +actions List~Action~
-        +capabilities List~string~
-    }
-    class PanelState {
-        +kind 31401
-        +state object
-    }
-    class ActionRequest {
-        +kind 31402
-        +fields object
-        +reasoning string
-        +priority ACTION_PRIORITIES
-        +category string
-        +subjectKind string
-        +subjectId string
-    }
-    class PanelUpdate {
-        +kind 31404
-        +diff object
-    }
-    class PanelRetired {
-        +kind 31405
-    }
-    AgentControlSurface --> PanelDefinition : builds kind 31400
-    AgentControlSurface --> PanelState : builds kind 31401
-    AgentControlSurface --> ActionRequest : builds kind 31402
-    AgentControlSurface --> PanelUpdate : builds kind 31404
-    AgentControlSurface --> PanelRetired : builds kind 31405
-    ActionRequest <.. VoiceIntentRoute : mints an unsigned ActionRequest
-note for PanelDefinition "agent-control-surface.js:108 buildPanelDefinition"
-note for PanelState "agent-control-surface.js:152 buildPanelState"
-note for ActionRequest "agent-control-surface.js:176 buildActionRequest<br/>minted unsigned by the voice-intent route at routes/voice-intent.js:225"
-note for PanelUpdate "agent-control-surface.js:206 buildPanelUpdate"
-note for PanelRetired "agent-control-surface.js:220 buildPanelRetired"
-note for AgentControlSurface "SCOPE - this module mints NIP-33 events consumed by the EXTERNAL<br/>nostr-bbs-forum-client GovernancePage, agent-control-surface.js:4-19. It is not an<br/>agentbox-native operator dashboard. See AB-11.x for the authority-gate consumer side, kinds<br/>31402 and 31403.<br/>Enum vocabularies are frozen module constants - PANEL_SCHEMAS agent-control-surface.js:43,<br/>LAYOUT_HINTS :46, ACTION_PRIORITIES :48. publishPanelEvent is a thin delegate over an<br/>ALREADY-CONNECTED NostrBridge, no in-request relay I/O :238"
+    Ag->>Ag: truncateReply to maxReply, default 280 chars (lib/junkiejarvis-agent.js:254,1118)
+Note over Ag,R: INVARIANT ADR-2088 — sendGiftWrappedDm is the ONE gift-wrap site in the repo<br/>(lib/junkiejarvis-agent.js:641). _sendDm delegates to it so the nightly forum-suggestions<br/>tenant, which has a bridge and a signer but no agent instance, sends through the identical<br/>envelope instead of hand-rolling a second one
+Note over Ag: hasSchedulingIntent may buildCalendarEvent, kind-31923 NIP-52, on behalf of forum members (lib/junkiejarvis-agent.js:358,1098)
 ```
 
 ## AB-12.13 turn-sink capture
@@ -525,8 +437,8 @@ sequenceDiagram
     autonumber
     participant Cc as Claude Code hook, Stop or UserPromptSubmit
     participant Sk as turn-sink.cjs<br/>agentbox/config/tab0-bridge/turn-sink.cjs:1
-    participant B as tab0-bridge<br/>server.mjs:736, POST /hook/turn
-    participant Su as summarise()<br/>server.mjs:341
+    participant B as tab0-bridge<br/>server.mjs:754, POST /hook/turn
+    participant Su as summarise()<br/>server.mjs:359
     participant Fe as WebSocket /feed clients
 
     Cc->>Sk: hook invocation, argv[2] equals Stop or UserPromptSubmit, JSON on stdin (turn-sink.cjs:10,37-40)
@@ -543,14 +455,14 @@ sequenceDiagram
         Sk-->>Cc: finish, no post (turn-sink.cjs:53)
     end
     Sk->>B: POST /hook/turn, body event, text sliced to 20000 chars, timeout 1500 ms (turn-sink.cjs:55-60)
-    B->>B: pushTurn(kind, text), kind from event name (server.mjs:736-740)
-    B->>Fe: broadcast, type turn (server.mjs:151,808-810)
+    B->>B: pushTurn(kind, text), kind from event name (server.mjs:754-758)
+    B->>Fe: broadcast, type turn (server.mjs:154,158)
     alt kind is assistant and text length over 350 chars
-        B->>Su: summarise(turn.text, kind), claude -p, one to three sentences (server.mjs:341-354,736)
+        B->>Su: summarise(turn.text, kind), claude -p, one to three sentences (server.mjs:359-372,760)
         Su-->>B: summary text, or null on error, fail open
-        B->>Fe: broadcast, type turn-update, turn with summary (server.mjs:743)
+        B->>Fe: broadcast, type turn-update, turn with summary (server.mjs:761)
     end
-    B-->>Sk: 200, ok true, id turn.id (server.mjs:746)
+    B-->>Sk: 200, ok true, id turn.id (server.mjs:764)
     Sk-->>Cc: Stop prints ok true json, UserPromptSubmit prints nothing, stdout would inject into context (turn-sink.cjs:2-3,12-15)
     Note over Sk: fail-open by design, any error still exits 0, 3000 ms safety timeout, unref'd (turn-sink.cjs:65)
     Note over B,Fe: boundary — the mobile bridge digests this same turn feed into a kind-30840 summary event, see AB-13.5, not drawn here
@@ -561,35 +473,35 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Cl as Client
-    participant B as tab0-bridge<br/>server.mjs:718
+    participant B as tab0-bridge<br/>server.mjs:736
     participant T as tmux CLI
     participant Nf as ~/.claude/nostr-inbox files
     participant Sc as nostr-send.cjs
 
     Note over Cl,B: family of read-only and outbound surfaces sharing the global auth gate, see AB-12.3 — one sequence covers all members
-    Cl->>B: GET /turns?n=50 (server.mjs:748-751)
-    B-->>Cl: turns array, sliced to n, capped at MAX_TURNS 300 (server.mjs:749-750,57)
-    Cl->>B: GET /tabs (server.mjs:771-773)
-    B->>T: tmux list-windows -t agentbox -F index name active (server.mjs:163-169)
+    Cl->>B: GET /turns?n=50 (server.mjs:766-768)
+    B-->>Cl: turns array, sliced to n, capped at MAX_TURNS 300 (server.mjs:767-768,57)
+    Cl->>B: GET /tabs (server.mjs:789-790)
+    B->>T: tmux list-windows -t agentbox -F index name active (server.mjs:170-176)
     T-->>B: window list
     B-->>Cl: tabs array
-    Cl->>B: GET /tabs/:n?lines=60 (server.mjs:785-789)
-    B->>T: tmux capture-pane -p -t agentbox:n -S -lines, capped at 200 (server.mjs:171-174,781)
+    Cl->>B: GET /tabs/:n?lines=60 (server.mjs:803-806)
+    B->>T: tmux capture-pane -p -t agentbox:n -S -lines, capped at 200 (server.mjs:178-181,805)
     T-->>B: pane text, trailing whitespace stripped
     B-->>Cl: index, output
-    Cl->>B: GET /nostr/status (server.mjs:756-757)
-    B->>Nf: read gateway.lock pid, check pidAlive, check mirror-key.txt exists (server.mjs:567-578)
+    Cl->>B: GET /nostr/status (server.mjs:774-775)
+    B->>Nf: read gateway.lock pid, check pidAlive, check mirror-key.txt exists (server.mjs:585-596)
     B-->>Cl: gateway armed, stale-lock or off, mirrorKey bool, sendReady bool
-    Cl->>B: GET /nostr/events?n=20 (server.mjs:759-761)
-    B->>Nf: read commands.jsonl, tail n lines, capped at 100 (server.mjs:581-587,754)
+    Cl->>B: GET /nostr/events?n=20 (server.mjs:777-779)
+    B->>Nf: read commands.jsonl, tail n lines, capped at 100 (server.mjs:599-605,778)
     B-->>Cl: events array
-    Cl->>B: POST /nostr/send, body text (server.mjs:763-769)
+    Cl->>B: POST /nostr/send, body text (server.mjs:781-787)
     alt text empty after trim and slice 3500
-        B-->>Cl: 400, error empty text (server.mjs:766)
+        B-->>Cl: 400, error empty text (server.mjs:784)
     end
-    B->>Sc: spawn node nostr-send.cjs text, 12000 ms kill timer (server.mjs:592-600)
+    B->>Sc: spawn node nostr-send.cjs text, 12000 ms kill timer (server.mjs:610-619)
     Sc-->>B: exit code 0, success, or non-zero
-    B->>B: pushTurn(nostr-out, clean) when ok (server.mjs:768)
+    B->>B: pushTurn(nostr-out, clean) when ok (server.mjs:786)
     B-->>Cl: ok boolean
-    Note over Sc: nostr-send.cjs is fail-open, exit 0 even on delivery failure — ok true means handed to the relay path, not delivered (server.mjs:590-591)
+    Note over Sc: nostr-send.cjs is fail-open, exit 0 even on delivery failure — ok true means handed to the relay path, not delivered (server.mjs:608-609)
 ```

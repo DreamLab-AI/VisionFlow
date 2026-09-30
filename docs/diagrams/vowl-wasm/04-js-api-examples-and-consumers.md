@@ -9,10 +9,9 @@ sources:
   - ../vowl-wasm/src/bindings/mod.rs
   - ../vowl-wasm/src/bindings/explorer.rs
   - ../vowl-wasm/src/interaction/mod.rs
-  - ../vowl-wasm/examples/barnes_hut_benchmark.rs
   - ../vowl-wasm/.github/workflows/ci.yml
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts
-verified_commit: {vowl-wasm: 65e2d1e78, visiongraph: 9e308164c}
+verified_commit: {vowl-wasm: 65e2d1e784bf5eb04b3cbc122d36d6926d889c22, visiongraph: ac6274f9f5e12375f92086ccb9adba50c965ecf9}
 ---
 
 ## VW-04.1 `WebVowl` — the frozen 0.1.0 JS surface
@@ -77,16 +76,6 @@ sequenceDiagram
     WV-->>JS: Option<String> node id, or null
 ```
 - The 20.0 hit-test radius is a fixed constant in the binding, not read from per-node visual size (src/bindings/mod.rs:503-504 comment: "In a real implementation, this could be configurable or per-node").
-
-## VW-04.4 `examples/barnes_hut_benchmark.rs` — O(n²) vs Barnes-Hut comparison
-```mermaid
-flowchart TB
-    GEN["create_test_graph(n)<br/>examples/barnes_hut_benchmark.rs:11<br/>nodes placed on a circle, radius 500"] --> RUN1["ForceSimulation with<br/>use_barnes_hut=false<br/>Instant::now() timed run"]
-    GEN --> RUN2["ForceSimulation with<br/>use_barnes_hut=true"]
-    RUN1 --> CMP["compare elapsed time,<br/>printed to stdout"]
-    RUN2 --> CMP
-```
-- `cargo run --release --example barnes_hut_benchmark` (examples/barnes_hut_benchmark.rs:3) is a native binary, not a criterion bench — it prints timings rather than emitting `criterion` reports (contrast with VW-05.4).
 
 ## VW-04.5 Bundle contents contract, verified in CI
 ```mermaid

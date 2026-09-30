@@ -12,7 +12,6 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-activitypub/src/http_sig.rs
   - ../solid-pod-rs/crates/solid-pod-rs-activitypub/src/store.rs
   - ../solid-pod-rs/crates/solid-pod-rs-activitypub/src/ssrf.rs
-  - ../solid-pod-rs/crates/solid-pod-rs-activitypub/src/discovery.rs
   - ../solid-pod-rs/crates/solid-pod-rs-activitypub/src/error.rs
   - ../solid-pod-rs/crates/solid-pod-rs-nostr/src/relay.rs
   - ../solid-pod-rs/crates/solid-pod-rs-nostr/src/ws.rs
@@ -39,14 +38,14 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/mcp/skills.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/handlers/legacy_notifications.rs
-verified_commit: 1d9da5270
+verified_commit: febdc8be24bdc8b148b78b43a35ae85ee863a72a
 ---
 
 ## SP-08.1 Solid Notifications 0.2 — the three channels
 
 ```mermaid
 flowchart TD
-    SE["StorageEvent from the backend watcher — see SP-06.5"]
+    SE["StorageEvent from the backend watcher — see SP-06.4"]
     CN["ChangeNotification::from_storage_event<br/>solid-pod-rs/src/notifications/mod.rs:89"]
     WS["WebSocketChannelManager<br/>solid-pod-rs/src/notifications/mod.rs:243"]
     WH["WebhookChannelManager<br/>solid-pod-rs/src/notifications/mod.rs:383"]
@@ -180,6 +179,7 @@ sequenceDiagram
 
     Note over V: INVARIANT: signature verification runs BEFORE anything is stored, and the<br/>covered-component list is validated rather than trusted — accepting whichever<br/>headers the sender chose to sign is the classic HTTP-Signature bypass.
     Note over K: The actor-key fetch is SSRF-guarded because the key URL comes from the<br/>UNTRUSTED signature header. is_private_ip<br/>(solid-pod-rs-activitypub/src/ssrf.rs:33) is the classifier.
+    Note over I: with_also_known_as (solid-pod-rs-activitypub/src/actor.rs:182) is the bridge<br/>that lets one ActivityPub actor declare the same subject as a WebID and a<br/>did:nostr — the estate's one-identity claim reaches the fediverse through<br/>this field. See SP-05.12 and ES-04. negotiate_actor_format<br/>(solid-pod-rs-activitypub/src/actor.rs:157) drives conneg between the AS2<br/>ActorFormat::ActivityJson and the Solid/LDP profile (ActorFormat enum,<br/>solid-pod-rs-activitypub/src/actor.rs:139).
 ```
 
 ## SP-08.6 ActivityPub — outbox and delivery
@@ -213,36 +213,6 @@ sequenceDiagram
         end
     end
     Note over D: DeliveryOutcome (solid-pod-rs-activitypub/src/delivery.rs:34) and<br/>DeliveryConfig (:49) make the retry policy explicit rather than implicit in a<br/>loop. Delivery is also SSRF-guarded — a follower's inbox URL is remote input.
-```
-
-## SP-08.7 ActivityPub — actor documents, caching and NodeInfo
-
-```mermaid
-classDiagram
-    class Actor {
-        solid-pod-rs-activitypub/src/actor.rs:43
-        +PublicKey  solid-pod-rs-activitypub/src/actor.rs:21
-        +Endpoints  solid-pod-rs-activitypub/src/actor.rs:32
-    }
-    class Render {
-        +generate_actor_keypair  solid-pod-rs-activitypub/src/actor.rs:74
-        +render_actor  solid-pod-rs-activitypub/src/actor.rs:97
-        +negotiate_actor_format  solid-pod-rs-activitypub/src/actor.rs:157
-        +with_also_known_as  solid-pod-rs-activitypub/src/actor.rs:182
-    }
-    class ActorCache {
-        +cache_actor  solid-pod-rs-activitypub/src/store.rs:414
-        +get_cached_actor  solid-pod-rs-activitypub/src/store.rs:431
-        +is_actor_cache_fresh  solid-pod-rs-activitypub/src/store.rs:454
-    }
-    class NodeInfo {
-        +nodeinfo_wellknown  solid-pod-rs-activitypub/src/discovery.rs:17
-        +nodeinfo_2_1  solid-pod-rs-activitypub/src/discovery.rs:33
-    }
-    Actor <.. Render
-    Actor <.. ActorCache
-    Render ..> NodeInfo
-    note for Render "with_also_known_as is the bridge that lets one ActivityPub actor declare the\nsame subject as a WebID and a did:nostr — the estate's one-identity claim\nreaches the fediverse through this field. See SP-05.12 and ES-04.\nActorFormat (solid-pod-rs-activitypub/src/actor.rs:139) drives conneg between\nthe AS2 and JSON-LD representations."
 ```
 
 ## SP-08.8 The embedded NIP-01 relay

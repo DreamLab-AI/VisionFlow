@@ -18,7 +18,6 @@ sources:
   - scripts/website-assets.mjs
   - website/build.sh
   - website/static/js/mesh-webgl.js
-  - website/static/index.html
   - website/assets.manifest.json
   - .github/workflows/deploy.yml
   - .github/workflows/estate-health.yml
@@ -28,7 +27,7 @@ sources:
   - docs/adr/ADR-2009-webgl-mesh-deep-is-sidecar-only.md
   - ./README.md
   - package.json
-verified_commit: df22182f365f7bc7b4664e4374d150ff893e6b05
+verified_commit: d4e44298646768a4b19af359119e16a6884fa80d
 ---
 
 ## VF-04.1 dream.config.json — the whole contract this repo offers the engine
@@ -86,7 +85,7 @@ stateDiagram-v2
       DOC-DRIFT: ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:44
       still calls estate-health "a fifth rotation slot".
       ADR-2009 removed webgl-mesh, so it is one of four —
-      as BASELINE-visionflow.md:151 correctly records.
+      as BASELINE-visionflow.md:153 correctly records.
     end note
 ```
 
@@ -112,10 +111,10 @@ flowchart TB
     WHY["Why asset-refs exists at all: the config had always listed<br/>asset-refs as a scan surface with no evaluator behind it, so<br/>2026-09-04 honestly recorded FALLBACK rather than inventing a<br/>measurement — dream-asset-refs-scan.sh:7"]:::scoped
     S1 --- WHY
 
-    WHY2["Why estate-health is required false: declared REQUIRED by the<br/>09-06 add, it vetoed every ACCEPT while any sibling repo's CI<br/>was red — six reds unreachable by a website patch<br/>LEDGER.md:19"]:::scoped
+    WHY2["Why estate-health is required false: declared REQUIRED by the<br/>09-06 add, it vetoed every ACCEPT while any sibling repo's CI<br/>was red — six reds unreachable by a website patch<br/>LEDGER.md:21"]:::scoped
     S2 --- WHY2
 
-    SHELL["INVARIANT: every evaluator is a CHECKED-IN script invoked<br/>quote-free. The annexe ssh dispatch strips one level of nested<br/>double quotes, so inline double-quoted logic in the config was<br/>silently mangled — dream-build-check.sh:3, LEDGER.md:6"]
+    SHELL["INVARIANT: every evaluator is a CHECKED-IN script invoked<br/>quote-free. The annexe ssh dispatch strips one level of nested<br/>double quotes, so inline double-quoted logic in the config was<br/>silently mangled — dream-build-check.sh:3, LEDGER.md:8"]
     EE -.-> SHELL
 ```
 
@@ -200,55 +199,40 @@ flowchart TB
     G5 --> WHY["a citation to a record that does not exist is a fabricated<br/>authority, and it is WORSE than no citation because the reader<br/>cannot tell the difference"]:::warn
     G2 --> LOCAL["the browser path exists, just not here:<br/>npm run test:a11y and npm run test:perf — package.json:15<br/>see VF-02.10"]:::warn
     G1 --> SRC["ground truth for the discipline: build.sh:7 —<br/>no compile step, no bundler, no WASM"]:::warn
-    G4 --> SRC2["ground truth: BASELINE-visionflow.md:261 Invariant 6"]:::warn
+    G4 --> SRC2["ground truth: BASELINE-visionflow.md:280 Invariant 6"]:::warn
 ```
 
-## VF-04.7 The ledger row — shape and what each column is allowed to say
-```mermaid
-erDiagram
-    LEDGER_ROW {
-        string Date "the night, ISO date — LEDGER.md:3"
-        string Deep "the rotation surface drawn, or operator-handoff for a human row"
-        string Finding "the hypothesis, given-when-then, truncated in the table"
-        string Issue "NONE when no issue was opened"
-        string PR "NONE when no pull request was opened"
-        string Evaluated "yes, or n/a for an operator row"
-        string Verdict "ACCEPT, INCONCLUSIVE, or OPERATOR"
-        string Effect "what changed, empty when nothing did"
-        string Witness "the session or run identifier that produced the row"
-        string PriorNightFates "what happened to the previous night's proposals"
-    }
-    LEDGER_FILE {
-        string path "docs/dream-cycle/LEDGER.md, declared at dream.config.json:75"
-        string form "a bare markdown table — header, separator, one row per night, append-only"
-        int rows "20 lines at this commit: 2 header lines and 18 night or operator rows"
-        string firstRow "2026-08-16 content-integrity, INCONCLUSIVE — LEDGER.md:3"
-    }
-    LEDGER_FILE ||--o{ LEDGER_ROW : contains
-```
-
-## VF-04.8 What the ledger actually records — nine months of verdicts and three operator audits
+## VF-04.8 What the ledger actually records — a dry September after an early run of ACCEPTs
 ```mermaid
 flowchart TB
     classDef acc fill:#e6f0dc,stroke:#4a7a2a,color:#111
     classDef inc fill:#f9f0d5,stroke:#8a7020,color:#111
     classDef op fill:#e4ecf8,stroke:#3a5a8a,color:#111
     classDef bad fill:#f7dede,stroke:#a33333,color:#111
+    classDef blk fill:#f0d9c8,stroke:#a3661a,color:#111
 
-    L["docs/dream-cycle/LEDGER.md — LEDGER.md:1"]
+    L["docs/dream-cycle/LEDGER.md — LEDGER.md:3"]
 
-    L --> A["ACCEPT nights: 08-17 x2, 08-29, 08-31, 09-01, 09-02,<br/>09-03, 09-04, 09-05"]:::acc
-    L --> I["INCONCLUSIVE nights: 08-16 content-integrity, and three<br/>webgl-mesh nights 08-30, 09-06, 09-07 — LEDGER.md:17"]:::inc
-    L --> O["OPERATOR rows — human audits, deliberately NOT counted<br/>toward the dry streak that parks a repo"]:::op
+    L --> A["ACCEPT nights (10): 08-17 x2, 08-29, 08-31, 09-01, 09-02,<br/>09-03, 09-04, 09-05, and 09-10 seo-and-meta robots.txt via<br/>PR #3 — LEDGER.md:25"]:::acc
+    L --> I["INCONCLUSIVE nights (8): 08-16 content-integrity; three<br/>webgl-mesh nights 08-30, 09-06, 09-07; then four VETOED nights<br/>09-08, 09-09, 09-11, 09-13 — LEDGER.md:19,23,24,26,28"]:::inc
+    L --> B["BLOCKED-ENV nights (1 so far): 09-12 content-integrity,<br/>VETOED — LEDGER.md:27"]:::blk
+    L --> O["OPERATOR rows (5) — human audits, deliberately NOT counted<br/>toward the dry streak that parks a repo"]:::op
 
-    O --> O1["2026-08-28 — evaluators converted to checked-in scripts after<br/>the annexe ssh dispatch mangled nested double quotes<br/>LEDGER.md:6"]:::op
-    O --> O2["2026-09-06 — estate-health added as a bound slot, verdicts<br/>OK / STALE over 36 h / RED, governed by ADR-2008<br/>LEDGER.md:16"]:::op
-    O --> O3["2026-09-07 — FABRICATED CANDIDATES audit: no branch and no PR<br/>ever existed for the 09-03 or 09-04 candidates; both patches<br/>targeted a path that has never existed in this repo, and the<br/>on-disk receipts contradict the reported counters. The parent<br/>receipts and findings are genuine; the candidate halves are<br/>not — LEDGER.md:18"]:::bad
-    O --> O4["2026-09-07 — estate-health demoted to advisory, required false;<br/>the checker is UNTOUCHED because widening the RED band or<br/>relaxing the exit code would be reward hacking — LEDGER.md:19"]:::op
-    O --> O5["2026-09-07 — webgl-mesh parked as sidecar-only per ADR-2009<br/>LEDGER.md:20"]:::op
+    O --> O1["2026-08-28 — evaluators converted to checked-in scripts after<br/>the annexe ssh dispatch mangled nested double quotes<br/>LEDGER.md:8"]:::op
+    O --> O2["2026-09-06 — estate-health added as a bound slot, verdicts<br/>OK / STALE over 36 h / RED, governed by ADR-2008<br/>LEDGER.md:18"]:::op
+    O --> O3["2026-09-07 — FABRICATED CANDIDATES audit: no branch and no PR<br/>ever existed for the 09-03 or 09-04 candidates; both patches<br/>targeted a path that has never existed in this repo, and the<br/>on-disk receipts contradict the reported counters. The parent<br/>receipts and findings are genuine; the candidate halves are<br/>not — LEDGER.md:20"]:::bad
+    O --> O4["2026-09-07 — estate-health demoted to advisory, required false;<br/>the checker is UNTOUCHED because widening the RED band or<br/>relaxing the exit code would be reward hacking — LEDGER.md:21"]:::op
+    O --> O5["2026-09-07 — webgl-mesh parked as sidecar-only per ADR-2009<br/>LEDGER.md:22"]:::op
 
-    LESSON["The ledger's own standard, from ADR-2009: a verdict that a<br/>night could not observe its subject should be rare and<br/>informative; repeating INCONCLUSIVE on a schedule for a<br/>structural reason turns it into noise<br/>ADR-2009-webgl-mesh-deep-is-sidecar-only.md:63"]
+    DRY["09-08 through 09-13: every night but one VETOED — orphan<br/>assets and a frozen build fingerprint blocked content-integrity<br/>and build-pipeline in turn, agentbox's red CI blocked<br/>estate-health, and PR #3 (09-10 ACCEPT) sat unmerged so 09-13<br/>reported the tree still frozen. One of those vetoes escalated to<br/>BLOCKED-ENV rather than INCONCLUSIVE — LEDGER.md:23-28"]:::blk
+    A -.->|"last new ACCEPT before the dry run"| DRY
+    B --> DRY
+
+    LESSON["The ledger's own standard, from ADR-2009: a verdict that a<br/>night could not observe its subject should be rare and<br/>informative; repeating INCONCLUSIVE on a schedule for a<br/>structural reason turns it into noise. The 09-08..09-13 run<br/>shows the same risk one level up — repeated VETOED nights on<br/>the same two slots are a structural impediment, not evidence<br/>of nothing to find<br/>ADR-2009-webgl-mesh-deep-is-sidecar-only.md:63"]
     I --> LESSON
+
+    SCHEMA["DIVERGENCE: the ledger header already declares Reviewer and<br/>Review-minutes columns but every row reads null, not zero — the<br/>columns exist only because FR6.6 of PRD-augmentation-conditions<br/>adds them from the PR merge event, in an unmerged agentbox<br/>branch feat/augmentation-conditions at 19463a588<br/>LEDGER.md:1"]
+    L --> SCHEMA
 ```
 
 ## VF-04.9 Landing a night's output — draft branch, human gate, no auto-merge
@@ -258,11 +242,14 @@ stateDiagram-v2
     [*] --> Hypothesis
     state "one falsifiable hypothesis against tonight's deep" as Hypothesis
     Hypothesis --> Measured
+    Hypothesis --> BlockedEnv
     state "measured on the repo's real evaluators — never on a new evaluator invented for the night" as Measured
     Measured --> Accept
     Measured --> Inconclusive
     state "ACCEPT — a change is earned" as Accept
     state "INCONCLUSIVE — the night could not observe its subject" as Inconclusive
+    state "BLOCKED-ENV — engine-raised harness or environment fault, bypassing Measured;<br/>never parsed from the model's report and never counted toward the dry streak —<br/>see AB-23.4, AB-23.18 — observed here 2026-09-12 — LEDGER.md:27" as BlockedEnv
+    BlockedEnv --> LedgerOnly
     Accept --> Branch
     state "branch dream/<deep>-<date> — prefix at dream.config.json:76" as Branch
     Branch --> Draft

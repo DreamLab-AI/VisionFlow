@@ -9,7 +9,6 @@ adrs: [ADR-2009, ADR-2007, ADR-2012]
 sources:
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/acl.rs
-  - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/provision.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/payments.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/quota.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/patch.rs
@@ -31,7 +30,7 @@ sources:
   - ../nostr-rust-forum/docs/consumer-surface-map.md
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
-verified_commit: 2f90c1916
+verified_commit: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d
 ---
 
 ## NF-04.1 Route surface
@@ -167,25 +166,6 @@ sequenceDiagram
     Note over R2: The emitted doc round-trips cleanly through this crate's own parser - that round-trip is what makes the grant readable by the next request's walk-up
 ```
 
-## NF-04.6 Pod provisioning
-
-```mermaid
-flowchart TB
-    P["provision_pod<br/>nostr-bbs-pod-worker/src/provision.rs:111"]
-    DID["owner DID minted through the shared did_nostr_uri helper<br/>nostr-bbs-pod-worker/src/provision.rs:124"]
-    ROOT["root container marker as an ldp:BasicContainer<br/>nostr-bbs-pod-worker/src/provision.rs:128"]
-    IDX["type indexes<br/>public settings/publicTypeIndex.jsonld provision.rs:26<br/>private settings/privateTypeIndex.jsonld provision.rs:31<br/>public index ACL provision.rs:36"]
-    EX["pod_exists probe<br/>nostr-bbs-pod-worker/src/provision.rs:402"]
-    ALIAS["POST /.pods provisioning alias<br/>nostr-bbs-pod-worker/src/lib.rs:592"]
-
-    ALIAS --> P --> DID --> ROOT --> IDX
-    P --> EX
-
-    N1["INVARIANT R7: every did:nostr URI is minted through the exported helper rather than a local format!,<br/>with the literal form only as a fallback for non-hex input nostr-bbs-pod-worker/src/provision.rs:124"]
-    N2["Storage layout is pods/{owner_pubkey}/... - one R2 prefix per pod, no filesystem<br/>nostr-bbs-pod-worker/src/provision.rs:118"]
-    N3["EXTERNAL: the forum client calls this eagerly at signup and again from settings - see NF-05.8;<br/>the auth-worker's own provision path is the dead under-provisioning route O3 flagged for deletion"]
-```
-
 ## NF-04.7 The LDP mechanics around each verb
 
 ```mermaid
@@ -244,7 +224,7 @@ flowchart LR
 
     N1["INVARIANT: .git paths are FORBIDDEN, not merely unimplemented - the two outcomes are distinct<br/>responses nostr-bbs-pod-worker/src/git.rs:58 versus nostr-bbs-pod-worker/src/git.rs:76. The CF-Workers<br/>tier is non-git BY DESIGN; the git-capable pod is the agentbox native tier."]
     N2["EXTERNAL: the forum client's git control panel talks to the NATIVE server's /_git/* REST API, never<br/>to this worker - see NF-05.10 and the solid-pod-rs area (SP-*)"]
-    N3["This worker serves a pod-resident /.well-known/nostr.json nostr-bbs-pod-worker/src/lib.rs:504, while<br/>the AUTH worker owns the central NIP-05 registry - see NF-02.9"]
+    N3["This worker serves a pod-resident /.well-known/nostr.json nostr-bbs-pod-worker/src/lib.rs:504, while<br/>the AUTH worker owns the central NIP-05 registry - see NF-02.2"]
 ```
 
 ## NF-04.9 HTTP 402 payments

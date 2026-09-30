@@ -24,7 +24,7 @@ sources:
   - ../project/agentbox/management-api/lib/bc20-provenance-bridge.js
   - ../project/agentbox/management-api/middleware/linked-data/surfaces/s04-did.js
   - ../project/agentbox/mcp/servers/lib/memory-tools.js
-verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2, agentbox: b7b1ab81a6ed0680bb10026e17935152a23e0c5e}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f}
 ---
 
 ## VC-23.1 Typed URN kind taxonomy — src/uri/mod.rs
@@ -115,8 +115,8 @@ sequenceDiagram
     end
     Note over Caller,U: INVARIANT mint rejects what parse tolerates -- ADR-2021
     rect rgb(255,230,204)
-    Note over U: DIVERGENCE ADR-2021 closeout -- emit_proposal_provenance formats urn:visionclaw:execution ad hoc, bypassing<br/>uri::execution and sha256-12 addressing, src/services/ontology_mutation_service.rs:181-193
-    Note over U: DIVERGENCE oxigraph_graph_repository.rs:88,97 format! urn:ngm:node / urn:ngm:edge inline instead of calling ngm::node_iri / ngm::edge_iri, src/uri/mod.rs:328,343
+    Note over U: RESOLVED ADR-2021 closeout -- emit_proposal_provenance now mints through uri::execution, content-addressing<br/>the same components as every other execution URN instead of the old urn:visionclaw:execution:kind-id ad hoc format,<br/>src/services/ontology_mutation_service.rs:199
+    Note over U: DIVERGENCE still open -- oxigraph_graph_repository.rs:88,97 define and call local node_iri / edge_iri format!<br/>helpers minting urn:ngm:node / urn:ngm:edge inline instead of the typed uri::ngm::node_iri / edge_iri, src/uri/mod.rs:355,370
     end
 ```
 
@@ -314,18 +314,22 @@ flowchart LR
     SeeNote["Note: see VC-14 for the wire protocol"]
 ```
 
-## VC-23.9 vc: CURIE, unminted legacy forms, and the ADR-050 owner-scoped path
+## VC-23.9 Legacy class IRI mint, frontmatter-only page emission, unminted forms
 ```mermaid
 flowchart TD
-    Concept["urn:visionclaw:concept:DOMAIN:SLUG -- durable subject, src/uri/mod.rs:229-239"] --> Curie["vc:referencedBy -- RDF predicate CURIE only, src/actors/elevation_actor.rs:510"]
-    Curie -.-> NotSubject["vc:DOMAIN/SLUG subject form -- NOT independently minted anywhere in src/ or crates/"]
-    QS["vc:qualityScore -- provenance noted in a source comment only, src/actors/client_filter.rs:61-62 -- expanded qualityScore key is consumed, the CURIE itself is not emitted as a literal there"]
+    Concept["urn:visionclaw:concept:DOMAIN:SLUG -- durable subject, src/uri/mod.rs:229-239"]
     LegacyClass["urn:ngm:class:SLUG -- typed legacy mint ngm::class_iri, defined crates/visionclaw-domain/src/uri.rs:31 and re-exported src/uri/mod.rs:351 -- legacy scheme, not urn:visionclaw:concept"]
+    Draft["draft_class_page -- src/actors/elevation_actor.rs:505"] --> Meta["PageMeta.resource = ngm::class_iri(slug) -- elevation_actor.rs:547"]
+    Draft --> Lists["PageMeta.extra_lists related-to -- wikilink list, elevation_actor.rs:530-541"]
+    Meta --> Render["vault::render_page(meta, body) -- frontmatter-only emission, elevation_actor.rs:561"]
+    Lists --> Render
+    Render -.-> NoFence["NO JSON-LD fence, no key:: value lines -- content.starts_with('---\n'), asserted elevation_actor.rs:1800-1806"]
+    QS["vc:qualityScore -- provenance noted in a source comment only, src/actors/client_filter.rs:61-62 -- expanded qualityScore key is consumed, the CURIE itself is not emitted as a literal there"]
     OwnerScoped["visionclaw:owner:NPUB/kg/... -- legacy ADR-050 form"] -.-> Absent["grep across src/ and crates/ -- zero occurrences -- superseded by the hex-scoped urn:visionclaw:kg:PUBKEY:ADDRESS grammar"]
 
-    DivA["DOC-CORRECTED 2026-09-05: vc:{domain}/{slug} is only an RDF predicate CURIE, never an independently minted subject<br/>IDENTIFIER-taxonomy.md now reconciles its section-1 kind table with this - no row mints a vc: CURIE and the durable<br/>concept subject is urn:visionclaw:concept:domain:slug"]
     DivB["DIVERGENCE: owner-scoped visionclaw:owner:{npub}/kg/... (legacy ADR-050) is not emitted anywhere in src/ or crates/"]
-    DriftX["RESOLVED ADR-2095 (2026-09-05): the class scheme is now a typed constructor paired with a parser<br/>CLASS_PREFIX and class_iri and parse_class_iri live in crates/visionclaw-domain/src/uri.rs:15-56 -- the domain crate, because<br/>visionclaw-adapters mints class IRIs and is upstream of the server crate -- and re-export from ngm at src/uri/mod.rs:351<br/>All five raw format! mints are routed through it: elevation_actor.rs:347 and :532, oxigraph_ontology_repository.rs:174 and :1598 and :1619<br/>Emitted strings are byte-identical -- the pre-existing literal assertion at elevation_actor.rs:1761 still passes"]
+    DriftX["ADR-2095 class IRI mint stands: CLASS_PREFIX, class_iri and parse_class_iri live in crates/visionclaw-domain/src/uri.rs:15-56, re-exported<br/>at src/uri/mod.rs:351. Mint sites: elevation_actor.rs:347 (case subject_id) and :547 (page resource), oxigraph_ontology_repository.rs:174, :1598, :1619"]
+    Refactor["DOC-DRIFT resolved: draft_class_page no longer embeds a JSON-LD fence string (superseded, ADR-2095 closeout note stale) --<br/>it emits vault YAML frontmatter via visionclaw_domain::vault::render_page; relationships move to extra_lists LISTS<br/>(PRD-sovereign-corpus Q5) rather than a comma-joined scalar, mirroring the amend path in<br/>src/services/ontology_mutation_service.rs:511-535"]
 ```
 
 ## VC-23.10 Per-kind URN grammar, mint/parse sites and live emission

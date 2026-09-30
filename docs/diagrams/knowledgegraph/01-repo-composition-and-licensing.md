@@ -11,36 +11,33 @@ sources:
   - ../knowledgeGraph/COMMERCIAL.md
   - ../knowledgeGraph/NOTICE
   - ../knowledgeGraph/CNAME
-  - ../knowledgeGraph/docs/ecosystem.md
-  - ../knowledgeGraph/docs/ci-cd/build-and-gates.md
   - ../knowledgeGraph/docs/architecture/explorer.md
-  - ../knowledgeGraph/.github/workflows/build.yml
-verified_commit: 75a5c1f1acda50bfe9d66a92a5343cf12f8b84ef
+  - ../knowledgeGraph/archive/logseq-era-2026-09-22/README.md
+  - ../knowledgeGraph/archive/github-workflows/build.yml
+verified_commit: 3a266fc3a2edb91f84ecc794718b87dd44c79417
 ---
 
-## KG-01.1 Repository composition — a corpus, a pipeline and a viewer in one tree
+## KG-01.1 Repository composition — a published corpus, a retired local pipeline, a live viewer
 
 ```mermaid
 flowchart TB
-    subgraph REPO["DreamLab-AI/knowledgeGraph — published extraction, read-only mirror"]
-        ONT["ontology/pages/<br/>8,138 Logseq .md pages<br/>README.md:52"]
-        PIPE["pipeline/<br/>10 Python modules + tests<br/>README.md:19"]
-        EXP["explorer/<br/>WasmVOWL derivative<br/>modern/ + license.txt"]
-        DOCS["docs/<br/>BASELINE + architecture + ci-cd<br/>+ methodology + playbook + adr"]
-        STATIC["static/ns/v2.jsonld<br/>JSON-LD context"]
-        SCRIPTS["scripts/adr-index-gen.js"]
-        GH[".github/workflows/build.yml<br/>build.yml:58"]
+    subgraph REPO["DreamLab-AI/knowledgeGraph — published export + read-only archive"]
+        EXP["explorer/<br/>160 tracked files — WasmVOWL derivative<br/>modern/ + rust-wasm/, still active"]
+        STATIC["static/ns/v2.jsonld<br/>JSON-LD context, still served"]
+        DIST["dist/data/<br/>12 tracked files — last local pipeline<br/>build, ODbL-1.0"]
+        DOCSN["docs/ · scripts/<br/>BASELINE + architecture + ci-cd<br/>+ methodology + playbook + adr"]
         LIC["LICENSE · LICENSE-DATA<br/>LICENSE-EXPLORER · NOTICE<br/>LICENSING.md · COMMERCIAL.md"]
         CNAME["CNAME<br/>narrativegoldmine.com"]
+        ARCHIVE["archive/logseq-era-2026-09-22/<br/>pages/ (8,138) + pipeline/ (32 files)<br/>archive/logseq-era-2026-09-22/README.md:1"]
+        ARCHGH["archive/github-workflows/build.yml<br/>retired with it — its own first step<br/>read ontology/, which had just moved<br/>build.yml:1<br/>permissions: contents: read was the whole<br/>set, at workflow + job level both — could<br/>not write even if a step tried — build.yml:6-8"]
     end
-    ONT --> PIPE
-    PIPE --> EXP
-    STATIC -.->|"@context of 7,531 blocks<br/>ecosystem.md:94"| ONT
-    GH --> PIPE
-    LIC --> ONT
-    LIC --> PIPE
+    ARCHIVE -.->|"superseded by jjohare/visionGraph<br/>Obsidian vault, vault build + Quartz<br/>archive/logseq-era-2026-09-22/README.md:3-4"| VG["visionGraph<br/>external repo — new source of truth<br/>knowledgeGraph/README.md:11-14"]
+    VG -.->|"publishes gh-pages directly<br/>knowledgeGraph/README.md:15-17"| CNAME
+    STATIC --> EXP
+    LIC --> ARCHIVE
     LIC --> EXP
-    note1["INVARIANT: this repo builds but never deploys — GH:contents:read is<br/>the whole permission set (build.yml:65-66); CNAME is served by GitHub<br/>Pages branch publishing, written by a DIFFERENT repo's CI (see KG-05.3)"]
+    LIC --> DIST
+    note1["INVARIANT: this repo no longer authors or builds the corpus — it is<br/>now the deploy TARGET plus a kept-for-history archive; ARCHGH cannot<br/>run again even if triggered (its inputs are gone) — knowledgeGraph/README.md:5-17"]
 ```
 
 ## KG-01.2 Licensing scope — three licences, one repository, one governing file
@@ -59,38 +56,5 @@ flowchart LR
     AGPL -.->|"proprietary licence negotiable<br/>removes §13 network-copyleft"| COMM
     ODBL -.->|"negotiable data licence<br/>COMMERCIAL.md track 2"| COMM
     note1["INVARIANT: MIT for explorer/ is deliberate, not oversight — the<br/>identical code is MIT one repo away at DreamLab-AI/WasmVOWL<br/>(architecture/explorer.md:302-308); AGPL-ing a WebVOWL fork here<br/>would be hollow"]
-```
-
-## KG-01.3 Publication topology — this repo is the deploy TARGET, not the publisher
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant SRC as jjohare/logseq<br/>PRIVATE source repo — not this tree
-    participant GHA as peaceiris/actions-gh-pages@v3<br/>ecosystem.md:228-236
-    participant PAGES as gh-pages branch<br/>DreamLab-AI/knowledgeGraph
-    participant SITE as narrativegoldmine.com<br/>CNAME
-    participant THIS as this repo's own CI<br/>.github/workflows/build.yml:58
-
-    Note over SRC,GHA: EXTERNAL: the ACTUAL publisher is visionGraph's<br/>.github/workflows/publish.yml — see VG-03.1/VG-04
-    SRC->>GHA: build www/ (JSON-LD pipeline + React SPA + WASM)
-    GHA->>PAGES: push external_repository=DreamLab-AI/knowledgeGraph<br/>publish_dir=www, secrets.ACCESS_TOKEN
-    PAGES->>SITE: GitHub Pages serves gh-pages, cname narrativegoldmine.com<br/>ecosystem.md:239-241
-    THIS->>THIS: build.yml runs 6 gates against ontology/pages/<br/>permissions: contents: read (build.yml:65-66)
-    Note over THIS: INVARIANT: this workflow has no deploy step — no Pages action,<br/>no secrets.* reference anywhere in the file (build.yml:1-8)
-```
-
-## KG-01.4 What each path is (file-count summary, verified 2026-07-25)
-
-```mermaid
-flowchart TB
-    P["pipeline/ — 13 tracked files<br/>Python 3 / rdflib, wholly original<br/>LICENSING.md:39-42"]
-    S["static/ — ns/v2.jsonld only<br/>3,371 bytes, original work<br/>LICENSING.md:43-44"]
-    E["explorer/ — WasmVOWL derivative<br/>modern/ + docs/ + tests/ + scripts/<br/>+ .github/workflows/wasm-publish.yml<br/>LICENSING.md:45-48"]
-    O["ontology/pages/ — 8,138 pages<br/>machine-generated, ODbL-1.0"]
-    D["dist/ — 7,874-scale build artefacts<br/>ODbL-1.0, dist/data committed<br/>dist/api gitignored"]
-    P --> O
-    E --> O
-    O --> D
-    note1["INVARIANT: dist-ci/ (this repo's CI build target) is never committed —<br/>it exists only inside a GitHub Actions run (LICENSING.md:34-36)"]
+    note2["DOC-DRIFT: LICENSING.md's scope table still names ontology/ and<br/>pipeline/ as live paths; both now live only under archive/ —<br/>the licence grant is unchanged, the path it names has moved"]
 ```

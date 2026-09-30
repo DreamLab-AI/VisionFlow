@@ -5,11 +5,10 @@ area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/docs/IDENTITY-authority-chain.md
-adrs: [ADR-2006, ADR-2010, ADR-2011, ADR-2013, ADR-2016, ADR-2020, ADR-2058, ADR-2067, ADR-2075, ADR-2090, ADR-2091, ADR-2093, ADR-2094]
+adrs: [ADR-2006, ADR-2010, ADR-2011, ADR-2013, ADR-2016, ADR-2020, ADR-2058, ADR-2067, ADR-2075, ADR-2090, ADR-2091, ADR-2093, ADR-2094, ADR-2116]
 sources:
   - ../project/src/handlers/admin_rbac_handler.rs
   - ../project/src/services/role_store.rs
-  - ../project/src/handlers/admin_sync_handler.rs
   - ../project/src/handlers/nostr_handler.rs
   - ../project/src/services/nostr_service.rs
   - ../project/src/handlers/presence_handler.rs
@@ -21,13 +20,11 @@ sources:
   - ../project/src/services/briefing_service.rs
   - ../project/src/handlers/insight_loop_handler.rs
   - ../project/src/services/insight_loop.rs
-  - ../project/src/handlers/memory_flash_handler.rs
   - ../project/src/handlers/mcp_relay_handler.rs
   - ../project/src/services/mcp_relay_manager.rs
   - ../project/src/handlers/multi_mcp_websocket_handler.rs
   - ../project/src/actors/multi_mcp_visualization_actor.rs
   - ../project/src/services/multi_mcp_agent_discovery.rs
-  - ../project/src/handlers/ontology_agent_handler.rs
   - ../project/src/services/proposal_spine.rs
   - ../project/src/handlers/solid_proxy_handler.rs
   - ../project/src/handlers/speech_socket_handler.rs
@@ -43,7 +40,6 @@ sources:
   - ../project/src/services/decision_service.rs
   - ../project/src/handlers/ingest_writeback_handler.rs
   - ../project/src/services/ontology_mutation_service.rs
-  - ../project/src/services/ontology_query_service.rs
   - ../project/src/uri/mod.rs
   - ../project/src/utils/auth.rs
   - ../project/src/utils/nip98.rs
@@ -56,7 +52,7 @@ sources:
   - ../project/src/services/nostr_bead_publisher.rs
   - ../project/src/handlers/ontology_handler.rs
   - ../project/docs/BASELINE-architecture.md
-verified_commit: {visionclaw: f223bbd40, agentbox: b7b1ab81a}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f}
 ---
 
 ## VC-05.1 `admin_rbac_handler` — whoami / list / assign / revoke (ADR-2010)
@@ -111,30 +107,6 @@ sequenceDiagram
     RS-->>H: RemovalOutcome{had_explicit_role, previous_role, effective_after, authority_reduced}
     Note over H: ADR-2010 — removal is NOT revocation (:202) — response carries<br/>"note" warning the target may still hold effective_after by ambient default
     H-->>C: 200 {reverted_to, access_revoked:authority_reduced, note}
-```
-
-## VC-05.2 `admin_sync_handler` — trigger_sync with the 600s timeout override
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as caller
-    participant TO as TimeoutMiddleware<br/>src/main.rs:1017, with_override("/api/admin/sync", 600s) :990
-    participant RG as RbacGate<br/>Admin required (any /api/admin/* method, see VC-03.6)
-    participant H as admin_sync_handler::trigger_sync<br/>src/handlers/admin_sync_handler.rs:66 (route :115)
-
-    C->>TO: POST /api/admin/sync
-    Note over TO: TimeoutConfig::with_override — this path alone gets 600s<br/>instead of the default 30s (see VC-03.13)
-    TO->>RG: pass through inner service chain
-    alt caller not Admin/Owner
-        RG-->>C: 401/403 (RbacGate deny, ["api","admin"] prefix -> Admin for every method)
-    else Ok
-        RG->>H: trigger_sync(req)
-        H-->>C: sync result
-    end
-    alt sync exceeds 600s
-        TO-->>C: 504 ErrorGatewayTimeout "Request to /api/admin/sync timed out after 600000ms"
-    end
-    Note over RG: ADR-2011 — ONE central RbacGate covers the whole /api scope, whole-segment<br/>match on ["api","admin"] requires Admin for EVERY method, not gated per-handler
 ```
 
 ## VC-05.3 `nostr_handler` — session lifecycle routes (scope `/auth/nostr`)
@@ -202,7 +174,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as XR client<br/>Godot
-    participant WS as PresenceSession<br/>src/handlers/presence_handler.rs:135 ws_presence :501 (route src/main.rs:1053)
+    participant WS as PresenceSession<br/>src/handlers/presence_handler.rs:135 ws_presence :501 (route src/main.rs:1087)
     participant NC as SeenNonces LRU<br/>presence_handler.rs:51 cap 4096
     participant IV as IdentityVerifier<br/>visionclaw_xr_presence::ports
     participant REG as PresenceRoomRegistry<br/>presence_handler.rs:41 Arc~DashMap~String,Addr~PresenceActor~~~
@@ -353,6 +325,7 @@ sequenceDiagram
     H->>H: bounded_bfs(root, max_depth, adjacency)
     H-->>C: 200 TraceResponse{derived:true, root, direction, max_depth, hops}
     Note over H: response is stamped derived:true — reachability, never a materialised<br/>or Whelk-classified transitive edge (ADR-048 Graph placement)
+    Note over DS: ADR-2116 — ontology_agent_handler.rs's POST /ontology-agent/propose is<br/>retired to 410 Gone (handler :221, route :378), but OntologyMutationService and its three<br/>error-prefix consts are NOT removed: decision_service.rs:408-411 imports CONFLICT_BLOCKED_PREFIX,<br/>IDEMPOTENCY_CONFLICT_PREFIX, ENVELOPE_REJECTED_PREFIX from it directly (used above). The 410's<br/>body tells the callers still holding that URL — agentbox's ontology-propose.js, the<br/>ontology-augment/podcast-knowledge-ingest skills, the ontology-curator agent — to run<br/>`vault propose` instead (ontology_agent_handler.rs doc comment :193-217)
 ```
 
 ## VC-05.7 shared enrichment-decide core (ADR-2006 / ADR-130 Decision 2) — three callers, one path
@@ -559,43 +532,12 @@ sequenceDiagram
     end
 ```
 
-## VC-05.11 `memory_flash_handler` — RuVector-access notification relay to WS clients
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as caller (RuVector tool wrapper)
-    participant H as memory_flash_handler<br/>src/handlers/memory_flash_handler.rs:134
-    participant CC as ClientCoordinatorActor<br/>BroadcastMessage
-
-    Note over H: NOT a RuVector client — this handler only relays a notification that a<br/>RuVector memory access already happened elsewhere, so every connected WS client<br/>can animate the corresponding embedding-cloud point(s)
-    C->>H: POST /api/memory-flash {key, namespace?, action?} :134 -> handle_memory_flash :41
-    H->>H: namespace=body.namespace or empty, action=body.action or "access"
-    H->>H: serde_json::to_string(MemoryFlashBroadcast{type:"memory_flash", data})
-    H->>CC: send(BroadcastMessage{message:json})
-    alt Ok(Ok(()))
-        CC-->>H: broadcast delivered
-        H-->>C: 200 {ok:true}
-    else Ok(Err(e))
-        CC-->>H: broadcast-level error
-        H-->>C: 200 {ok:true, warn:e}
-    else Err(mailbox error)
-        CC-->>H: actor mailbox error
-        H-->>C: 500 {ok:false, error:"actor error: {e}"}
-    end
-    C->>H: POST /api/memory-flash/batch {events:[MemoryFlashRequest]} :137 -> handle_memory_flash_batch :103
-    loop for each event in body.events
-        H->>CC: do_send(BroadcastMessage{message:json}) — fire-and-forget, no per-event ack
-        H->>H: count += 1 on successful serialize
-    end
-    H-->>C: 200 {ok:true, count}
-```
-
 ## VC-05.12 `mcp_relay_handler` — `/ws/mcp-relay` bidirectional bridge to the orchestrator
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as Client
-    participant H as mcp_relay_handler<br/>src/handlers/mcp_relay_handler.rs:442 (route src/main.rs:1078)
+    participant H as mcp_relay_handler<br/>src/handlers/mcp_relay_handler.rs:442 (route src/main.rs:1083)
     participant A as MCPRelayActor<br/>src/handlers/mcp_relay_handler.rs:39
     participant O as orchestrator WS<br/>ORCHESTRATOR_WS_URL env mcp_relay_handler.rs:78 in connect_to_orchestrator :77
 
@@ -695,65 +637,6 @@ sequenceDiagram
     end
 ```
 
-## VC-05.14 `ontology_agent_handler` — MCP tool surface + `/propose` governance door
-```mermaid
-sequenceDiagram
-    autonumber
-    participant AG as agent (MCP tool caller)
-    participant H as ontology_agent_handler<br/>src/handlers/ontology_agent_handler.rs:434 scope /ontology-agent
-    participant QS as OntologyQueryService<br/>src/services/ontology_query_service.rs
-    participant PS as scope /propose<br/>RateLimit::per_minute(20) + RequireAuth::authenticated() :444-448
-    participant MS as OntologyMutationService::propose_create/propose_amend<br/>src/services/ontology_mutation_service.rs
-    participant SP as proposal_spine::envelope_required<br/>src/services/proposal_spine.rs:411 env ONTOLOGY_REQUIRE_SIGNED_ENVELOPE
-
-    Note over H: each read-side route mirrors one MCP tool 1:1 (handler doc :1-10)
-    AG->>H: POST /discover :435 -> discover :103
-    H->>QS: discover(query, limit, domain?)
-    QS-->>AG: 200 {success, results, count} / error_json "Discovery failed"
-    AG->>H: POST /read :436 -> read_note :129
-    H->>QS: read_note(iri)
-    QS-->>AG: 200 {success, note} / "Read note failed"
-    AG->>H: POST /query :437 -> query :151
-    H->>QS: validate_and_execute_cypher(cypher)
-    QS-->>AG: 200 {success, validation} / "Query validation failed"
-    AG->>H: POST /traverse :438 -> traverse :176
-    H->>H: build_traversal(query_service, start_iri, depth, relationship_types?)
-    H-->>AG: 200 {success, traversal} / "Traversal failed"
-    AG->>H: GET /status :440 -> status :336
-    H-->>AG: 200 (service status)
-    AG->>H: POST /validate :439 -> validate :300
-    loop for each axiom in req.axioms
-        H->>QS: validate_and_execute_cypher(subject_check Cypher-like MATCH)
-        QS-->>H: extend all_errors/all_hints
-    end
-    H-->>AG: 200 {errors, hints}
-    AG->>PS: POST /propose "" ontology_agent_handler.rs:447 -> propose :217
-    PS->>PS: RateLimit::per_minute(20) then RequireAuth::authenticated()
-    alt not authenticated
-        PS-->>AG: 401/403 deny
-    else Ok(AuthenticatedUser)
-        Note over H: INVARIANT WS-1/ADR-120 — agent_context.agent_id/user_id are<br/>OVERRIDDEN with auth.pubkey (:225-226), a caller cannot self-assert another agent's identity
-        alt ProposeInput::Create
-            H->>MS: propose_create(proposal, agent_context, idempotency_key, signature)
-        else ProposeInput::Amend
-            H->>MS: propose_amend(target_iri, amendment, agent_context, idempotency_key, signature)
-        end
-        MS->>SP: envelope_required() — ONTOLOGY_REQUIRE_SIGNED_ENVELOPE truthy check, default false
-        alt required AND signature missing/invalid
-            SP-->>MS: EnvelopeError -> ENVELOPE_REJECTED_PREFIX
-            MS-->>AG: 403 {error:envelope_rejected, message}
-        else Ok(proposal_result)
-            MS-->>AG: 200 {success:true, proposal}
-        else CONFLICT_BLOCKED_PREFIX
-            MS-->>AG: 409 {error:conflict_blocked, blockingConflicts, preExisting, conflictReport}
-        else IDEMPOTENCY_CONFLICT_PREFIX
-            MS-->>AG: 409 {error:idempotency_conflict, message}
-        else other Err
-            MS-->>AG: error_json "Proposal failed"
-        end
-    end
-```
-
 ## VC-05.15 `solid_proxy_handler` — pod lifecycle, DID resolution, double-auth DIVERGENCE
 ```mermaid
 sequenceDiagram
@@ -761,7 +644,7 @@ sequenceDiagram
     participant C as Client
     participant SC as scope /solid<br/>src/handlers/solid_proxy_handler.rs:1752 configure_routes (feature solid-pod-embed), scope :1760
     participant H as solid_proxy_handler<br/>solid_proxy_handler.rs:311 handle_solid_proxy, :1313 init_pod_nip98
-    participant RG as RbacGate<br/>/api scope wrap src/main.rs:1071 (scope :1060, solid mounted :1139)
+    participant RG as RbacGate<br/>/api scope wrap src/main.rs:1105 (scope :1094, solid mounted :1173)
     participant SD as SolidPodState::extract_user_identity<br/>solid_proxy_handler.rs:188 own NIP-98 verification
 
     Note over SC: env SOLID_DATA_ROOT :130, SOLID_PROXY_SECRET_KEY :133, SOLID_ALLOW_ANONYMOUS :137
@@ -773,7 +656,7 @@ sequenceDiagram
     C->>SC: GET /pods/check :1770 -> check_pod_exists :1226
     C->>SC: POST /pods/init :1771 -> init_pod :1267
     rect rgb(255,235,235)
-    Note over C,SD: DIVERGENCE — /api/solid/pods/init-nip98 sits inside the /api scope<br/>(main.rs:1168 under scope :1060), so it is DOUBLE-authenticated (see VC-03.15)
+    Note over C,SD: DIVERGENCE — /api/solid/pods/init-nip98 sits inside the /api scope<br/>(main.rs:1173 configure_solid_routes, under scope :1094), so it is DOUBLE-authenticated (see VC-03.15)
     C->>RG: POST /api/solid/pods/init-nip98 solid_proxy_handler.rs:1772 (Authorization: Nostr event)
     RG->>RG: RbacGate verify_access(WriteGraph) — mutating method under /api
     alt RbacGate denies
@@ -802,7 +685,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client (browser voice / XR)
-    participant H as speech_socket_handler<br/>src/handlers/speech_socket_handler.rs:984 (route src/main.rs:1077)
+    participant H as speech_socket_handler<br/>src/handlers/speech_socket_handler.rs:984 (route src/main.rs:1082)
     participant SS as SpeechSocket actor<br/>speech_socket_handler.rs:89 struct, new() :110, Actor::started :474
     participant NS as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs
 
@@ -847,7 +730,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant V as voice/RunCycle trigger<br/>src/actors/elevation_actor.rs:975 Handler~RunCycle~ (VC-02 internals)
+    participant V as voice/RunCycle trigger<br/>src/actors/elevation_actor.rs:990 Handler~RunCycle~ (VC-02 internals)
     participant EA as ElevationActor/DecisionElevationActor<br/>src/actors/elevation_actor.rs:116, decision_elevation_actor.rs:128 (VC-02)
     participant FR as forum kind-31403<br/>src/services/acsp/client.rs:25 CaseDecision{event_id,created_at}
     participant DB as SqliteEnrichmentRepository::record_decision<br/>StoredDecision table — SHARED sink
@@ -859,17 +742,17 @@ sequenceDiagram
     EA->>FR: publish ActionRequest kind-31402, poll PollPrs for the signed kind-31403 reply
     Note over FR: ADR-2013 — AcspClient signs with its OWN Keys (field acsp/client.rs:70,<br/>let keys = Keys::new(secret_key) :77, publish :99 — mirrors nostr_bridge.rs:65<br/>sign_with_keys) — the panel event carries the PANEL's authority, never the admin's key
     FR-->>EA: CaseDecision{case_id,action,responder_pubkey,event_id,created_at}
-    EA->>EA: decision_record(&CaseDecision) :1464 — correlation on event_id when present
-    EA->>DB: repo.record_decision(StoredDecision{decision_event_id:Some(event_id), decision_created_at_s:Some(...)}) :1212, :1286, :1293
-    Note over EA,DB: this producer DOES retain signed-event correlation — decision_event_id is<br/>set from the signed event id (elevation_actor.rs:1519), rationale :1480-1489
+    EA->>EA: decision_record(&CaseDecision) :1479 — correlation on event_id when present
+    EA->>DB: repo.record_decision(StoredDecision{decision_event_id:Some(event_id), decision_created_at_s:Some(...)}) :1227, :1301, :1308
+    Note over EA,DB: this producer DOES retain signed-event correlation — decision_event_id is<br/>set from the signed event id (elevation_actor.rs:1534), rationale :1495-1504
     D->>DB: repo.record_decision(StoredDecision{decision_event_id:None,...}) :554-498 built, :572 written — REST path, no forum event to correlate
     Note over D,DB: DIVERGENCE — the agentbox/operator/git-bridge REST path (VC-05.7) writes<br/>decision_event_id:None every time, since it never carries a signed 31403 event
     BI->>DB: store::all() / store::get(id) — reads the SAME table both producers wrote to
     BI-->>BI: projects EITHER kind of row into the SAME BrokerCase shape, indistinguishable to the bridge
-    Note over V,BI: DIVERGENCE (ADR-2006 closeout, docs/BASELINE-architecture.md:295) —<br/>"the retained domain kernel's presence does not prove integration into the elevation<br/>actor or inbox DTO. Current source review does not certify a complete human-approval journey."<br/>Verified precisely: the two producers only converge at the SQLite table, no handler route<br/>calls into either actor, and case authority/failure/restart receipts are not modelled here
+    Note over V,BI: DIVERGENCE (ADR-2006 closeout, docs/BASELINE-architecture.md:297) —<br/>"the retained domain kernel's presence does not prove integration into the elevation<br/>actor or inbox DTO. Current source review does not certify a complete human-approval journey."<br/>Verified precisely: the two producers only converge at the SQLite table, no handler route<br/>calls into either actor, and case authority/failure/restart receipts are not modelled here
 ```
 
-## VC-05.18 `src/domain/broker/` verification — BrokerActor never merged (BASELINE l.244)
+## VC-05.18 `src/domain/broker/` verification — BrokerActor never merged (BASELINE l.246)
 ```mermaid
 flowchart TB
     KERNEL["src/domain/broker/ — storage-agnostic kernel (ADR-130 Decision 2)<br/>broker/mod.rs:1-43, broker_case.rs 490L, broker_decision.rs 437L, precedent_registry.rs 101L"]
@@ -883,9 +766,9 @@ flowchart TB
     ABSENT["src/actors/broker_actor.rs — VERIFIED ABSENT<br/>grep -r finds no file, no Neo4j adapter under src/adapters/ (listed: sqlite_*, oxigraph_*, actix_*)"]
     KERNEL -.->|"used by derive_kernel_decision (VC-05.7)"| CALLER["enrichment_proposals_handler::apply_decision"]
     KERNEL -.->|"used by decision_record (VC-05.17)"| CALLER2["elevation_actor.rs"]
-    N1["DIVERGENCE (docs/BASELINE-architecture.md:244) — BrokerActor never merged, main uses<br/>a stateless ACSP producer + this cherry-picked storage-agnostic domain broker kernel.<br/>Confirmed against source: broker/mod.rs:11-18 states the crashbug BrokerActor + its Neo4j<br/>transport were deliberately left behind"]
+    N1["DIVERGENCE (docs/BASELINE-architecture.md:246) — BrokerActor never merged, main uses<br/>a stateless ACSP producer + this cherry-picked storage-agnostic domain broker kernel.<br/>Confirmed against source: broker/mod.rs:11-18 states the crashbug BrokerActor + its Neo4j<br/>transport were deliberately left behind"]
     ABSENT --- N1
     ACSP --- N1
-    N2["DOC-DRIFT — BASELINE-architecture.md:245 sizes the kernel at ~936 LOC, but the four files<br/>measure 1,071 lines today (490 + 437 + 101 + 43). ADR-2006 Verification (accepted) otherwise<br/>matches: src/services/acsp/mod.rs documents the producer, src/domain/broker/ holds the four<br/>listed files, broker_actor.rs and the neo4j adapters are absent"]
+    N2["DOC-DRIFT — BASELINE-architecture.md:247 sizes the kernel at ~936 LOC, but the four files<br/>measure 1,071 lines today (490 + 437 + 101 + 43). ADR-2006 Verification (accepted) otherwise<br/>matches: src/services/acsp/mod.rs documents the producer, src/domain/broker/ holds the four<br/>listed files, broker_actor.rs and the neo4j adapters are absent"]
     KERNEL --- N2
 ```

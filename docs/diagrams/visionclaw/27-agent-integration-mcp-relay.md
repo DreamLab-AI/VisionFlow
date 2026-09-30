@@ -24,14 +24,12 @@ sources:
   - ../project/src/services/agent_visualization_protocol.rs
   - ../project/src/services/agent_visualization_processor.rs
   - ../project/src/handlers/bots_visualization_handler.rs
-  - ../project/src/handlers/memory_flash_handler.rs
   - ../project/src/agent_events/ingest.rs
   - ../project/src/agent_events/hub.rs
   - ../project/src/agent_events/schema.rs
   - ../project/src/agent_events/provenance.rs
-  - ../project/src/services/acsp/client.rs
   - ../project/src/main.rs
-verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
 ---
 
 ## VC-27.1 BotsClient — legacy `:9500` MCP-TCP poller (superseded path)
@@ -41,7 +39,7 @@ sequenceDiagram
     autonumber
     participant Caller as caller<br/>src/services/bots_client.rs:138
     participant BC as BotsClient<br/>src/services/bots_client.rs:113
-    participant MCP as McpTcpClient<br/>utils/mcp_tcp_client.rs:24, test_connection() :772,<br/>initialize_session() :785, query_agent_list() :291
+    participant MCP as McpTcpClient<br/>utils/mcp_tcp_client.rs:24, test_connection() :776,<br/>initialize_session() :789, query_agent_list() :291
     participant GSS as GraphServiceSupervisor<br/>actors/graph_service_supervisor.rs:421
 
     Caller->>BC: connect(_bots_url) - bots_client.rs:144
@@ -124,7 +122,7 @@ sequenceDiagram
     participant A as MCPRelayActor<br/>mcp_relay_handler.rs:39, Actor impl :200
     participant O as Orchestrator WS<br/>ORCHESTRATOR_WS_URL default ws://multi-agent-container:3002/ws (:77-78)
 
-    Client->>H: GET /ws/mcp-relay (upgrade) - main.rs:1043
+    Client->>H: GET /ws/mcp-relay (upgrade) - main.rs:1083
     H->>H: extract Bearer token or ?token= - :452-463
     alt token empty
         H-->>Client: 401 "Authentication required" - :474-476
@@ -339,6 +337,8 @@ sequenceDiagram
     AM->>AM: poll_agent_statuses(ctx) immediate re-poll - :726
     Note over AM,MAC: INVARIANT: idle cadence is 15s (not 3s) to share agentbox's per-key rate-limit<br/>bucket with task creation - backoff cap 90s exceeds agentbox's 60s continueExceeding window (:304,394-411)
     Note over AM,GSS: DIVERGENCE (roster-clobber fix): an empty Management API poll is "no information"<br/>not "all agents died" - only a confirmed 2nd consecutive empty poll clears the graph (:197-201,126-167)
+    Note over MAC: every ManagementApiClient endpoint shares one Result contract - NetworkError on<br/>transport failure, ApiError(body,status) on non-2xx, DeserializationError on a bad body<br/>(e.g. list_tasks management_api_client.rs:345-373, stop_task :375-400, create_brief<br/>:433-484) — health_check (:586-597) is the one exception - GET /health with no auth<br/>header, collapses straight to Ok(status==200), no ApiError variant
+    Note over AM,MAC: ADR-2094: AgentMonitorActor::new validates MANAGEMENT_API_KEY through the SAME<br/>validate_security_env_vars AppState::new calls (app_state.rs:82-172, pub(crate) so there is one policy,<br/>not a laxer copy) - fail-closed by default (panics without a valid key, agent_monitor_actor.rs:281-292),<br/>except an ALLOW_INSECURE_DEFAULTS-gated dev/debug build instead disables the client (Option::None, never<br/>an empty-string key) rather than aborting boot (:235-280)
 ```
 
 ## VC-27.8 TaskOrchestratorActor — CreateTask/Interrupt/Drain message handlers
@@ -402,98 +402,6 @@ sequenceDiagram
     Note over TO,AM: INVARIANT (ADR-031 item 3): every CreateTask success pushes TaskStatusChanged so<br/>AgentMonitorActor re-polls immediately rather than waiting its 15s idle cadence (see VC-27.7)
 ```
 
-## VC-27.9 ManagementApiClient — agentbox management-api HTTP calls
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Boot as AppState::new<br/>src/app_state.rs:1252-1262
-    participant MAC as ManagementApiClient<br/>src/services/management_api_client.rs:27, new() :180-199
-    participant API as agentbox management-api<br/>base_url = http://MANAGEMENT_API_HOST:MANAGEMENT_API_PORT (default agentic-workstation:9090)
-
-    Boot->>Boot: validate_security_env_vars() - :82-172
-    alt MANAGEMENT_API_KEY unset, insecure-default-listed, or <16 chars
-        Boot->>Boot: log SECURITY CONFIGURATION ERROR, panic on Err - :140-162
-    else key valid
-        Boot->>MAC: ManagementApiClient::new(host, port, mgmt_api_key) - :1262, client.rs:180
-        MAC->>MAC: reqwest Client::builder().timeout(30s).connect_timeout(10s) - :183-187
-    end
-
-    MAC->>API: POST /v1/tasks (create_task_with_context) - Authorization: Bearer api_key - :244-291
-    alt status 202/200
-        API-->>MAC: TaskResponse{task_id,...} - :295-305
-    else other status
-        MAC-->>MAC: Err(ApiError(text, status)) - :306-312
-    else transport failure
-        MAC-->>MAC: Err(NetworkError) - :291
-    end
-
-    MAC->>API: GET /v1/tasks/{task_id} (get_task_status) - :315-343
-    MAC->>API: GET /v1/tasks (list_tasks) - :345-373
-    MAC->>API: DELETE /v1/tasks/{task_id} (stop_task) - :375-400
-    MAC->>API: GET /v1/status (get_system_status) - :402-430
-    MAC->>API: POST /v1/briefs (create_brief) - :433-482
-    MAC->>API: POST /v1/briefs/{id}/execute (execute_brief) - :489-533
-    MAC->>API: POST /v1/briefs/{id}/debrief (create_debrief) - :539-580
-    MAC->>API: GET /health (health_check, no auth header) - :586-597
-    Note over MAC,API: every call above shares the same alt: 200/2xx Ok(json) else Err(ApiError(body,status)),<br/>and Err(NetworkError) on transport failure (repeated at each call site, e.g. :328-342,388-399)
-    Note over Boot,MAC: RESOLVED ADR-2094 (2026-09-05): AgentMonitorActor::new calls the same validate_security_env_vars AppState uses (app_state.rs:82)<br/>a missing or weak MANAGEMENT_API_KEY is a boot error and the client is an Option, never an empty-string key (agent_monitor_actor.rs:235-244,264-292)
-```
-
-## VC-27.10 agent_visualization_protocol — outbound wire message envelope
-
-```mermaid
-classDiagram
-    class AgentVisualizationMessage {
-        <<enum>>
-        Initialize InitializeMessage
-        PositionUpdate PositionUpdateMessage
-        StateUpdate StateUpdateMessage
-        ConnectionUpdate ConnectionUpdateMessage
-        MetricsUpdate MetricsUpdateMessage
-    }
-    class InitializeMessage {
-        +i64 timestamp
-        +String swarm_id
-        +Option~String~ session_uuid
-        +String topology
-        +List~AgentInit~ agents
-        +List~ConnectionInit~ connections
-        +VisualConfig visual_config
-        +PhysicsConfig physics_config
-        +HashMap_String_Position positions
-    }
-    class PositionUpdateMessage {
-        +i64 timestamp
-        +List~PositionUpdate~ positions
-    }
-    class StateUpdateMessage {
-        +i64 timestamp
-        +List~AgentStateUpdate~ updates
-    }
-    class ConnectionUpdateMessage {
-        +i64 timestamp
-        +List~ConnectionInit~ added
-        +List~String~ removed
-        +List~ConnectionStateUpdate~ updated
-    }
-    class MetricsUpdateMessage {
-        +i64 timestamp
-        +SwarmMetrics overall
-        +List~AgentMetrics~ agent_metrics
-    }
-    AgentVisualizationMessage --> InitializeMessage : serde rename init
-    AgentVisualizationMessage --> PositionUpdateMessage : serde rename positions
-    AgentVisualizationMessage --> StateUpdateMessage : serde rename state
-    AgentVisualizationMessage --> ConnectionUpdateMessage : serde rename connections
-    AgentVisualizationMessage --> MetricsUpdateMessage : serde rename metrics
-    note "top-level enum is serde(tag = type),<br/>internally tagged (protocol.rs 6-23)"
-    note "AgentInit (44-69): id,name,agent_type,<br/>status,color,shape,size,health,cpu,memory,<br/>activity,tasks_active,tasks_completed,<br/>success_rate,tokens,token_rate,<br/>capabilities List~String~,created_at i64"
-    note "PositionUpdate (89-98): id,x,y,z f32<br/>plus vx,vy,vz Option~f32~"
-    note "ConnectionInit (72-80): id,source,target,<br/>strength,flow_rate,color,active bool"
-    note "AgentStateUpdate (107-123): id plus<br/>status,health,cpu,memory,activity,<br/>tasks_active,current_task all Option~T~<br/>- a partial differential update"
-```
-
 ## VC-27.11 AgentVisualizationProcessor — `/api/visualization/agents/ws` init/refresh
 
 ```mermaid
@@ -539,40 +447,7 @@ sequenceDiagram
     end
     Note over Ws,Proto: PROPOSED ADR-2066 addendum: send_init_state still reports an empty roster, now explicit rather than<br/>disguised - the fake get_real_agent_data() helper is deleted. A real source exists (bots_client.get_agents_snapshot,<br/>bots_client.rs:231) but Agent lacks the profile, task counts, success_rate and timestamp AgentStatus requires, so the<br/>mapping needs a decided contract rather than invented defaults.
     Note over Ws: RESOLVED ADR-2066 addendum: the actor now carries a paused flag - pause_updates and resume_updates<br/>set it and the 16ms run_interval returns early while it is set, so the opcodes do what they advertise.
-```
-
-## VC-27.12 memory_flash_handler — `/api/memory-flash` RuVector access broadcast
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Caller as RuVector-aware caller
-    participant H as handle_memory_flash()<br/>src/handlers/memory_flash_handler.rs:41
-    participant HB as handle_memory_flash_batch()<br/>memory_flash_handler.rs:103
-    participant CC as ClientCoordinatorActor
-    participant Ws as all connected WS clients
-
-    Caller->>H: POST /api/memory-flash {key,namespace,action} - MemoryFlashRequest :16-23
-    H->>H: build MemoryFlashBroadcast{type=memory_flash, data{key,namespace,action,timestamp}} - :44-59
-    H->>CC: send(BroadcastMessage{message: json}) - :63-65
-    alt actor Ok(Ok(()))
-        H-->>Caller: 200 {ok:true} - :72
-    else actor Ok(Err(e))
-        H-->>Caller: 200 {ok:true, warn:e} - :74-76
-    else mailbox Err(e)
-        H-->>Caller: 500 {ok:false, error} - :78-83
-    else serialization Err
-        H-->>Caller: 500 {ok:false, error: serialization failed} - :87-93
-    end
-    CC->>Ws: fan out memory_flash JSON to every registered client
-
-    Caller->>HB: POST /api/memory-flash/batch {events:[...]} - MemoryFlashBatchRequest :99-101
-    loop each event in body.events (:113-127)
-        HB->>HB: build MemoryFlashBroadcast per event, shared timestamp - :107-122
-        HB->>CC: do_send(BroadcastMessage{message: json}) - :124
-    end
-    HB-->>Caller: 200 {ok:true, count} - :130
-    Note over H,CC: routes mounted at /api/memory-flash and /api/memory-flash/batch via<br/>configure_routes (:133-139), configured inside the /api scope (main.rs:1171)
+    Note over Proto: agent_visualization_protocol::AgentVisualizationMessage is internally tagged<br/>(serde(tag="type"), agent_visualization_protocol.rs:6-23) - the wire "type" field is the serde rename, not the<br/>Rust variant name: Initialize->"init", PositionUpdate->"positions", StateUpdate->"state",<br/>ConnectionUpdate->"connections", MetricsUpdate->"metrics". AgentStateUpdate (agent_visualization_protocol.rs:107-123)<br/>is a partial differential update - every field but id is Option~T~, and its status string's recognised values<br/>(idle/busy/active/initializing/terminating/offline/error, plus XR-swarm blocked/done) map to the XR client's<br/>status halo via render_store::agent_status_code (busy/active/working->working, blocked/error->blocked,<br/>done/terminating/offline->done, else idle)
 ```
 
 ## VC-27.13 `/wss/agent-events` ingest — schema validation, hub fan-out, provenance

@@ -19,7 +19,7 @@ sources:
   - ../vowl-wasm/src/graph/statistics.rs
   - ../vowl-wasm/src/graph/pinning.rs
   - ../vowl-wasm/src/bindings/mod.rs
-verified_commit: 65e2d1e78
+verified_commit: 65e2d1e784bf5eb04b3cbc122d36d6926d889c22
 ---
 
 ## VW-02.1 `loadOntology()` — JSON string to `VowlGraph`
@@ -61,6 +61,8 @@ flowchart TB
     PCN --> CN["ClassNode { id, iri, label, class_type,<br/>equivalent, attributes, ontology_meta }<br/>src/ontology/parser.rs:114"]
 ```
 - `ParserConfig` (src/ontology/parser.rs:17) has a `max_classes` cutoff enforced at src/ontology/parser.rs:62-64: a `class` array longer than the configured cap is silently truncated, not rejected.
+- The always-compiled `StandardParser` reads WebVOWL-shaped JSON (`class`/`property` arrays); the feature-gated `MarkdownParser` (src/ontology/markdown_parser.rs) reads a distinct DreamLab markdown `### OntologyBlock` shape — two independent ingest paths into the same `OntologyData`/`OntologyBlock` model family (src/ontology/mod.rs:6-14).
+- `OntologyLoader` (src/ontology/loader.rs:132, feature `markdown-ontology`) is the filesystem batch driver over `MarkdownParser::parse`: `load_file`/`load_directory`/`load_files` (src/ontology/loader.rs:169-245) plus a term index and domain grouping (src/ontology/loader.rs:296-314); native-only, no `#[wasm_bindgen]` surface.
 
 ## VW-02.3 `GraphBuilder::from_ontology` — class/property to node/edge
 ```mermaid
@@ -126,26 +128,7 @@ classDiagram
     Node --> SemanticAttributes
     Edge --> EdgeCharacteristics
 ```
-
-## VW-02.5 Markdown ontology parse (feature `markdown-ontology`)
-```mermaid
-sequenceDiagram
-    autonumber
-    participant JS as JS: parseMarkdownOntology(md)
-    participant WV as WebVowl::parse_markdown_ontology<br/>src/bindings/mod.rs:101
-    participant MP as MarkdownParser::parse<br/>src/ontology/markdown_parser.rs:56
-    MP->>MP: extract_ontology_block(markdown)
-    MP->>MP: extract_all_properties(block_content)
-    MP->>MP: get_required_property("term-id" / "preferred-term" / "owl:class")
-    MP->>MP: parse_owl_class, then build_full_iri
-    MP->>MP: separate_properties → core vs extension
-    MP->>MP: extract_owl_axioms(block_content)
-    MP-->>WV: OntologyBlock<br/>src/ontology/markdown_parser.rs:89-97
-    WV->>WV: MarkdownOntologyData::from_block(&block)
-    WV-->>JS: serde_wasm_bindgen JsValue
-```
-- The always-compiled `StandardParser` reads WebVOWL-shaped JSON (`class`/`property` arrays); the feature-gated `MarkdownParser` reads a distinct DreamLab markdown `### OntologyBlock` shape — two independent ontology-ingest paths into the same `OntologyData`/`OntologyBlock` model family (src/ontology/mod.rs:6-14, src/ontology/markdown_parser.rs).
-- `OntologyLoader` (src/ontology/loader.rs:132, feature `markdown-ontology`) is the filesystem batch driver over `MarkdownParser::parse`: `load_file`/`load_directory`/`load_files` (src/ontology/loader.rs:169-245) plus a term index and domain grouping (src/ontology/loader.rs:296-314); it is native-only (no `#[wasm_bindgen]` surface).
+- `GraphStatistics.calculate` density is defined as `0.0` when `node_count <= 1` (src/graph/statistics.rs:239-243), avoiding a divide-by-zero on `max_edges`.
 
 ## VW-02.6 `OWL2Validator` — DL compliance and antipattern gates
 ```mermaid
@@ -163,26 +146,6 @@ flowchart TB
 ```
 - INVARIANT: IRI-format and uniqueness failures are hard `errors`; DL-compliance and antipattern findings are `warnings` only (src/ontology/owl2_validator.rs:37-43) — `validate_block` never rejects a block outright.
 - `validate_blocks` (src/ontology/owl2_validator.rs:441) folds `validate_block` over a batch via `ValidationResult::merge` (src/ontology/owl2_validator.rs:48).
-
-## VW-02.7 `GraphStatistics::calculate` — the six sub-metrics
-```mermaid
-flowchart LR
-    G["VowlGraph"] --> CALC["GraphStatistics::calculate(graph)<br/>src/graph/statistics.rs:198"]
-    CALC --> BM["calculate_basic_metrics<br/>src/graph/statistics.rs:216<br/>node/edge/class/datatype counts, density"]
-    CALC --> DS["calculate_degree_statistics<br/>DegreeStatistics/DegreeInfo"]
-    CALC --> CA["calculate_component_analysis<br/>ComponentAnalysis"]
-    CALC --> O2["calculate_owl2_metrics<br/>Owl2Metrics"]
-    CALC --> PD["calculate_property_distribution<br/>PropertyDistribution"]
-    CALC --> CD["calculate_class_distribution<br/>ClassDistribution"]
-    BM --> OUT["GraphStatistics { basic, degree,<br/>components, owl2, properties, classes }<br/>src/graph/statistics.rs:13"]
-    DS --> OUT
-    CA --> OUT
-    O2 --> OUT
-    PD --> OUT
-    CD --> OUT
-    OUT -->|"getStatistics()"| JS["JS: serde_wasm_bindgen JsValue<br/>src/bindings/mod.rs:440"]
-```
-- `density` for a graph with `node_count <= 1` is defined as `0.0` (src/graph/statistics.rs:239-243), avoiding a divide-by-zero on `max_edges`.
 
 ## VW-02.8 `PinManager` — node pin lifecycle
 ```mermaid

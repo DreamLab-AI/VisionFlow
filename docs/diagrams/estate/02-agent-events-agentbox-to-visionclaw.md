@@ -44,7 +44,7 @@ sources:
   - ../project/agentbox/docs/PROTOCOL-registry.md
   - ../project/agentbox/schema/federation-kinds.json
   - ../project/docs/explanation/visionflow-coordination-platform.md
-verified_commit: {visionclaw: f223bbd40, agentbox: b7b1ab81a}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f}
 ---
 ## ES-02.1 Producer — POST /v1/agent-events/emit, NIP-98 gate, local publish
 ```mermaid
@@ -345,7 +345,7 @@ sequenceDiagram
         MGR->>DOCKER: health_manager.check_service_now("mcp-relay")
     end
     Note over MGR: INVARIANT: RetryableError classifies DockerCommandFailed/HealthCheckFailed/Timeout as<br/>retryable, ContainerNotFound as terminal
-    Note over MGR: RESOLVED ADR-2090 — the /ws/mcp-relay upgrade (mcp_relay_handler.rs, route<br/>src/main.rs:1078) and /multi-mcp/ws (multi_mcp_websocket_handler.rs) previously accepted<br/>ANY non-empty string as a credential: neither referenced NostrService at all, and the sole<br/>gate was .is_empty(), so ?token=x opened the socket. Both now resolve the token through<br/>NostrService::get_session and fail closed on absent token, absent service, or a token that<br/>names no live unexpired session. Found by vc-core, fixed here as owner. see ADR-2044
+    Note over MGR: RESOLVED ADR-2090 — the /ws/mcp-relay upgrade (mcp_relay_handler.rs, route<br/>src/main.rs:1083) and /multi-mcp/ws (multi_mcp_websocket_handler.rs) previously accepted<br/>ANY non-empty string as a credential: neither referenced NostrService at all, and the sole<br/>gate was .is_empty(), so ?token=x opened the socket. Both now resolve the token through<br/>NostrService::get_session and fail closed on absent token, absent service, or a token that<br/>names no live unexpired session. Found by vc-core, fixed here as owner. see ADR-2044
     Note over MGR: RESOLVED ADR-2090 amendment / ADR-2058 — the ?token= query carrier is now<br/>DEV-ONLY on both sockets: compiled out of release behind cfg(any(debug_assertions,<br/>feature="dev-auth")), with a SECURITY warning on the dev arm and a SECURITY rejection<br/>warning on the release arm. The Authorization header is the only release carrier, so the<br/>bearer stops reaching access logs, proxy logs and Referer. Clients that cannot set headers<br/>use the post-connect NIP-98 authenticate envelope (kind 27235). Both cfg arms type-checked
     Note over MGR: RESOLVED ADR-2091 — the /multi-mcp scope also served two REST routes that<br/>returned FICTION: GET /status (get_mcp_server_status) emitted a hardcoded server list<br/>claiming claude-flow is_connected:true with agent_count:4, never querying anything, and<br/>POST /refresh (refresh_mcp_discovery) reported "Discovery refresh initiated" while doing<br/>nothing. Both took _app_state unused. Both REMOVED with their registrations — zero callers<br/>in src/, client/ or xr-client/. Real state lives in multi_mcp_agent_discovery.rs (ES-02.9)
     end
@@ -394,7 +394,7 @@ sequenceDiagram
             BC->>BC: clear stored agents (agents_lock.clear())
         end
     end
-    Note over TCP: RESOLVED ADR-2084: ingest.rs no longer calls this deprecated. It is documented as legacy<br/>but LOAD-BEARING - the sole source of agent state snapshots (query_agent_list), constructed at<br/>app_state.rs:1217 with a boot poll, no replacement built. ADR-2084 stages the WS cutover with an<br/>acceptance test rather than implying one already exists
+    Note over TCP: RESOLVED ADR-2084: ingest.rs no longer calls this deprecated. It is documented as legacy<br/>but LOAD-BEARING - the sole source of agent state snapshots (query_agent_list), constructed at<br/>app_state.rs:1221 with a boot poll, no replacement built. ADR-2084 stages the WS cutover with an<br/>acceptance test rather than implying one already exists
 ```
 
 ## ES-02.9 LEGACY — multi-MCP agent discovery, concurrent fan-out poll
@@ -489,16 +489,19 @@ sequenceDiagram
     Note over BRF: RESOLVED ADR-2085/2072 (2026-09-05): all three routes now exist in<br/>agentbox/management-api/routes/briefing.js, registered at management-api/server.js:1193.<br/>Brief documents and the durable brief record go through the pods adapter slot, the epic and<br/>role child beads through the beads slot, and every identifier is minted via lib/uris.js.<br/>The execute step is gated by the same ADR-2041 action pipeline as POST /v1/tasks and fails<br/>closed with 503 when the execution journal has no live events adapter.<br/>Activation is staged - the routes go live at the next image rebuild.
 ```
 
-## ES-02.12 Colloquy kinds 38100-38105 — registered in both registries, deliberately not federated
+## ES-02.12 Colloquy kinds 38410-38415 — rebalanced out of the agent-response band, registered in both registries
 ```mermaid
 flowchart TB
-    ALLOC["ALLOCATION (ADR-2085, proposed) — six kinds inside the<br/>agentbox-owned agent block 38000-38201, above the 38000-38099<br/>sub-block already spent on agent intent. Nothing outside the<br/>agentbox repo moves to accommodate them.<br/>agentbox/docs/PROTOCOL-registry.md:79-81"]
+    BAND["BAND TABLE (ADR-2105) — every agentbox kind allocation cites the<br/>registry row it occupies. 38000-38099 agent intent, 38100-38199<br/>agent response, 38200-38299 job/payment, 38300-38399 LLM<br/>marketplace are all reserved; 38400-38499 is the first free<br/>hundred. agentbox/docs/PROTOCOL-registry.md:79-93"]
 
-    subgraph KINDS["The six kinds — agentbox/docs/PROTOCOL-registry.md:85-90"]
-        K0["38100 KnowledgeUnit, addressable NIP-33, d tag is the unit id"]
-        K1["38101 Confirmation and 38102 Flag, regular and append-only"]
-        K3["38103 Supersession by the proposer, 38104 Graduation by a<br/>human principal"]
-        K5["38105 ToolGapSignal, addressable, d tag is the cluster"]
+    ALLOC["ALLOCATION (ADR-2085, kinds moved by ADR-2105) — six kinds<br/>minted at 38100-38105 inside the ADR-009 agent-response<br/>reservation on 2026-09-13, moved to 38410-38415 in the free<br/>38400-38499 band on 2026-09-21. Nothing outside the agentbox<br/>repo moves to accommodate them.<br/>agentbox/docs/PROTOCOL-registry.md:103-108"]
+    BAND --> ALLOC
+
+    subgraph KINDS["The six kinds — agentbox/docs/PROTOCOL-registry.md:112-117"]
+        K0["38410 KnowledgeUnit, addressable NIP-33, d tag is the unit id"]
+        K1["38411 Confirmation and 38412 Flag, regular and append-only"]
+        K3["38413 Supersession by the proposer, 38414 Graduation by a<br/>human principal"]
+        K5["38415 ToolGapSignal, addressable, d tag is the cluster"]
     end
     ALLOC --> KINDS
 
@@ -507,14 +510,14 @@ flowchart TB
     KINDS --> HOST
     HOST --> SCHEMA
 
-    INV1["INVARIANT — the replaceable/append-only split is load-bearing.<br/>38100 is replaceable so a proposer may correct their own wording<br/>without forking the unit identity; 38101, 38102 and 38104 are<br/>regular so evidence accretes and the proposer cannot rewrite what<br/>others said. agentbox/docs/PROTOCOL-registry.md:92-97"]
-    INV2["INVARIANT — content is authoritative and tags are only an index.<br/>A d tag that disagrees with the content id is a decode error, and<br/>a unit whose content does not hash to the id it claims is refused.<br/>agentbox/docs/PROTOCOL-registry.md:99-104"]
-    INV3["INVARIANT — a 38104 Graduation cites the event id of the signed<br/>31403 that authorised it, so a human approved this is checkable<br/>against the relay rather than asserted in a string, and promotion<br/>to the public tier is refused without it.<br/>agentbox/docs/PROTOCOL-registry.md:112-116"]
+    INV1["INVARIANT — the replaceable/append-only split is load-bearing.<br/>38410 is replaceable so a proposer may correct their own wording<br/>without forking the unit identity; 38411, 38412 and 38414 are<br/>regular so evidence accretes and the proposer cannot rewrite what<br/>others said. agentbox/docs/PROTOCOL-registry.md:119-124"]
+    INV2["INVARIANT — content is authoritative and tags are only an index.<br/>A d tag that disagrees with the content id is a decode error, and<br/>a unit whose content does not hash to the id it claims is refused.<br/>agentbox/docs/PROTOCOL-registry.md:127-131"]
+    INV3["INVARIANT — a 38414 Graduation cites the event id of the signed<br/>31403 that authorised it, so a human approved this is checkable<br/>against the relay rather than asserted in a string, and promotion<br/>to the public tier is refused without it.<br/>agentbox/docs/PROTOCOL-registry.md:139-143"]
     K0 --> INV1
     K0 --> INV2
     K3 --> INV3
 
-    OPEN["OPEN — the allocation is NOT yet fixture-backed. Extending<br/>tests/fixtures/federation-identity.v1.json with these kinds under<br/>the ADR-2061 symmetric kind-map contract is a merge requirement<br/>before any 38100 event is published to a relay outside the<br/>container. agentbox/docs/PROTOCOL-registry.md:118-122"]
+    OPEN["OPEN — the allocation is NOT yet fixture-backed. Extending<br/>tests/fixtures/federation-identity.v1.json with these kinds under<br/>the ADR-2061 symmetric kind-map contract is a merge requirement<br/>before any 38410 event is published to a relay outside the<br/>container. agentbox/docs/PROTOCOL-registry.md:145-149"]
     SCHEMA --> OPEN
 
     RETIRE["RETIRED — colloquy replaced the precedent system estate-wide.<br/>No precedent-service.js or precedent-bridge.js survives in the<br/>agentbox tree at this revision. The host keeps its own broker<br/>precedent registry, which is a different thing and is drawn in<br/>ES-05."]

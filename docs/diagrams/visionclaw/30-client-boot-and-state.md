@@ -74,7 +74,7 @@ sources:
   - ../project/client/src/features/control-center/primitives/NostrAuthControl.tsx
   - ../project/client/src/features/control-center/status/StatusFlyout.tsx
   - ../project/client/src/services/nostrAuthService.ts
-verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
 ---
 ## VC-30.1 Provider nesting and top-level render states
 ```mermaid
@@ -200,10 +200,10 @@ classDiagram
     }
     class PhysicsSlice {
       +updatePhysics(graphName,params) physicsSlice.ts:19
-      +updateWarmupSettings(settings) physicsSlice.ts:122
-      +notifyPhysicsUpdate() no-op since 2026-06-03 physicsSlice.ts:133-143
-      +updateTweening(graphName,params) physicsSlice.ts:145
-      +notifyTweeningUpdate(params) dispatches window CustomEvent tweeningSettingsUpdated physicsSlice.ts:190
+      +updateWarmupSettings(settings) physicsSlice.ts:124
+      +notifyPhysicsUpdate() no-op since 2026-06-03 physicsSlice.ts:135-145
+      +updateTweening(graphName,params) physicsSlice.ts:147
+      +notifyTweeningUpdate(params) dispatches window CustomEvent tweeningSettingsUpdated physicsSlice.ts:194
     }
     class PersistenceSlice {
       +getByPath(path) persistenceSlice.ts:25
@@ -534,7 +534,7 @@ sequenceDiagram
         else not dev mode, pubkey known
             AuthI->>Nostr: signRequest(fullUrl,method,body) NIP-98<br/>authInterceptor.ts:77
             Nostr-->>AuthI: token
-            AuthI->>AuthI: Authorization: Nostr {token}<br/>authInterceptor.ts:78
+            AuthI->>AuthI: Authorization: Nostr {token}<br/>authInterceptor.ts:77
         else no pubkey
             AuthI-->>AuthI: {} - no auth headers<br/>authInterceptor.ts:73-75
         end
@@ -580,54 +580,54 @@ sequenceDiagram
     participant Topo as buildNodeIdMaps/setDataAndNotify<br/>client/src/features/graph/managers/dataManager/topology.ts
     participant WP as graphWorkerProxy<br/>client/src/features/graph/managers/graphDataManager.ts:6
 
-    Caller->>GDM: fetchInitialData()<br/>graphDataManager.ts:195
-    GDM->>GDM: includeLinkedPages = settings.nodeFilter.includeLinkedPages ?? false<br/>graphDataManager.ts:198-199
-    GDM->>Rest: fetchGraphData(graphType,graphTypeFilter,!includeLinkedPages)<br/>graphDataManager.ts:200-204
+    Caller->>GDM: fetchInitialData()<br/>graphDataManager.ts:194
+    GDM->>GDM: includeLinkedPages = settings.nodeFilter.includeLinkedPages ?? false<br/>graphDataManager.ts:197-198
+    GDM->>Rest: fetchGraphData(graphType,graphTypeFilter,!includeLinkedPages)<br/>graphDataManager.ts:199-203
     Rest->>Rest: normalise edge.source/target via String(), node.id via String()<br/>restClient.ts:107,121
     Rest-->>GDM: GraphData{nodes,edges}
-    GDM->>GDM: setGraphData(validatedData)<br/>graphDataManager.ts:206,227
+    GDM->>GDM: setGraphData(validatedData)<br/>graphDataManager.ts:205,226
     alt currentData.nodes.length == 0
-        GDM->>GDM: scheduleEmptyDataRetry(1,retryTimeout,fetchInitialData,...)<br/>T6 fix - backend up but Oxigraph empty<br/>graphDataManager.ts:212-219
+        GDM->>GDM: scheduleEmptyDataRetry(1,retryTimeout,fetchInitialData,...)<br/>T6 fix - backend up but Oxigraph empty<br/>graphDataManager.ts:211-218
     end
-    GDM-->>Caller: return currentData (lastGraphData ?? validatedData)<br/>graphDataManager.ts:208,222
+    GDM-->>Caller: return currentData (lastGraphData ?? validatedData)<br/>graphDataManager.ts:207,221
 
-    Note over GDM: setGraphData(data) - population gate + id-map build + cache + worker delivery<br/>graphDataManager.ts:227
-    GDM->>Gate: dropLinkedPageStubs(data,includeLinkedPages)<br/>strips ~14.7k of 17.1k linked_page wikilink stubs<br/>graphDataManager.ts:240
-    GDM->>GDM: nodes.map(ensureNodeHasValidPosition)<br/>graphDataManager.ts:244-248
-    GDM->>Topo: buildNodeIdMaps(nodes,nodeIdMap,reverseNodeIdMap)<br/>graphDataManager.ts:256
-    GDM->>Topo: setDataAndNotify(validatedData,lastGraphDataHash,listeners,setter)<br/>ADR-03 D5 single cached delivery path<br/>graphDataManager.ts:259-267
+    Note over GDM: setGraphData(data) - population gate + id-map build + cache + worker delivery<br/>graphDataManager.ts:226
+    GDM->>Gate: dropLinkedPageStubs(data,includeLinkedPages)<br/>strips ~14.7k of 17.1k linked_page wikilink stubs<br/>graphDataManager.ts:239
+    GDM->>GDM: nodes.map(ensureNodeHasValidPosition)<br/>graphDataManager.ts:243-247
+    GDM->>Topo: buildNodeIdMaps(nodes,nodeIdMap,reverseNodeIdMap)<br/>graphDataManager.ts:255
+    GDM->>Topo: setDataAndNotify(validatedData,lastGraphDataHash,listeners,setter)<br/>ADR-03 D5 single cached delivery path<br/>graphDataManager.ts:258-266
     Topo-->>GDM: onGraphDataChange listeners fire with validatedData
     alt graphWorkerProxy.isReady()
-        GDM->>WP: setGraphTopology(validatedData)<br/>ADR-03 D7 - worker gets topology directly from the manager,<br/>NOT from any React state<br/>graphDataManager.ts:270-272
+        GDM->>WP: setGraphTopology(validatedData)<br/>ADR-03 D7 - worker gets topology directly from the manager,<br/>NOT from any React state<br/>graphDataManager.ts:269-271
         alt setGraphTopology throws
-            Note over GDM: caught, logged warn, topology delivery to worker skipped this pass<br/>graphDataManager.ts:273-275
+            Note over GDM: caught, logged warn, topology delivery to worker skipped this pass<br/>graphDataManager.ts:272-274
         end
     end
 
-    Note over GDM: mergeGraphData(newNodes,newEdges,anchorNodeId,anchorPosition) - additive expansion,<br/>seeds new nodes on golden-angle ring around LIVE anchor position (worker/SAB,<br/>not stale cached node.position), dedups nodes/edges by String()-coerced id<br/>graphDataManager.ts:333-406
-    Note over GDM: getCachedGraphData() always returns null by design - worker data is<br/>async-only, callers must use fallback positioning<br/>graphDataManager.ts:125-128
+    Note over GDM: mergeGraphData(newNodes,newEdges,anchorNodeId,anchorPosition) - additive expansion,<br/>seeds new nodes on golden-angle ring around LIVE anchor position (worker/SAB,<br/>not stale cached node.position), dedups nodes/edges by String()-coerced id<br/>graphDataManager.ts:332-405
+    Note over GDM: getCachedGraphData() always returns null by design - worker data is<br/>async-only, callers must use fallback positioning<br/>graphDataManager.ts:126-129
 ```
 ## VC-30.10 graphDataManager binary path and the dataWithPositions forwarding invariant
 ```mermaid
 sequenceDiagram
     autonumber
     participant WS as websocketService.onBinaryMessage<br/>client/src/app/AppInitializer.tsx:210
-    participant GDM as GraphDataManager.updateNodePositions<br/>client/src/features/graph/managers/graphDataManager.ts:433
-    participant Heal as maybeSelfHealUnknownNodes<br/>client/src/features/graph/managers/graphDataManager.ts:451
+    participant GDM as GraphDataManager.updateNodePositions<br/>client/src/features/graph/managers/graphDataManager.ts:432
+    participant Heal as maybeSelfHealUnknownNodes<br/>client/src/features/graph/managers/graphDataManager.ts:450
     participant Frame as handleBinaryFrame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:19
     participant WP as graphWorkerProxy.processBinaryFrame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:45
     participant Sub as useGraphDataSubscription<br/>client/src/features/graph/hooks/useGraphDataSubscription.ts:23
     participant GM as GraphManager<br/>client/src/features/graph/components/GraphManager.tsx:310
 
-    WS->>GDM: updateNodePositions(positionData: ArrayBuffer)<br/>graphDataManager.ts:433
-    GDM->>Heal: maybeSelfHealUnknownNodes(positionData) - sampled every 120 frames<br/>graphDataManager.ts:435,451-452
+    WS->>GDM: updateNodePositions(positionData: ArrayBuffer)<br/>graphDataManager.ts:432
+    GDM->>Heal: maybeSelfHealUnknownNodes(positionData) - sampled every 120 frames<br/>graphDataManager.ts:434,450-451
     opt sample frame && nodeIdMap non-empty && no active quality/authority filter
-        Heal->>Heal: parseBinaryNodeData, check reverseNodeIdMap.has(getActualNodeId(id))<br/>graphDataManager.ts:464-465
+        Heal->>Heal: parseBinaryNodeData, check reverseNodeIdMap.has(getActualNodeId(id))<br/>graphDataManager.ts:463-464
         alt unknown ids found && cooldown (30000ms) elapsed
-            Heal->>GDM: fetchInitialData() - topology hash makes false-positive refetch a no-op<br/>graphDataManager.ts:461-471
+            Heal->>GDM: fetchInitialData() - topology hash makes false-positive refetch a no-op<br/>graphDataManager.ts:460-470
         end
     end
-    GDM->>Frame: handleBinaryFrame(positionData,lastBinaryUpdateTime,onUpdateTime)<br/>graphDataManager.ts:436-440
+    GDM->>Frame: handleBinaryFrame(positionData,lastBinaryUpdateTime,onUpdateTime)<br/>graphDataManager.ts:435-439
     alt now - lastUpdateTime < 16ms
         Frame-->>GDM: throttled, skip (~60fps cap)<br/>wsClient.ts:27
     else
@@ -653,7 +653,7 @@ sequenceDiagram
     participant AI as AppInitializer<br/>client/src/app/AppInitializer.tsx:95
     participant Proxy as GraphWorkerProxy<br/>client/src/features/graph/managers/graphWorkerProxy.ts:107
     participant Comlink as comlink wrap/transfer<br/>client/src/features/graph/managers/graphWorkerProxy.ts:33,161,248
-    participant W as GraphWorker<br/>client/src/features/graph/workers/graph.worker.ts:16,571-572
+    participant W as GraphWorker<br/>client/src/features/graph/workers/graph.worker.ts:16,570-571
     participant Test as sabOrTransferDetection.test.ts<br/>client/src/features/graph/__tests__/sabOrTransferDetection.test.ts:16
 
     Note over Proxy: WORKER_USES_SAB = SAB_CAPABLE && !FORCE_COMLINK, computed ONCE at<br/>module load - SAB_CAPABLE = typeof SharedArrayBuffer!=='undefined' &&<br/>self.crossOriginIsolated===true, FORCE_COMLINK = VITE_FORCE_COMLINK==='1'<br/>graphWorkerProxy.ts:71-82
@@ -669,10 +669,10 @@ sequenceDiagram
     AI->>Proxy: graphWorkerProxy.initialize()<br/>graphWorkerProxy.ts:139
     Proxy->>Comlink: new Worker(new URL('../workers/graph.worker.ts',import.meta.url),<br/>{type:'module'})<br/>graphWorkerProxy.ts:152-155
     Proxy->>Comlink: workerApi = wrap~GraphWorkerType~(worker)<br/>graphWorkerProxy.ts:161
-    Proxy->>W: workerApi.initialize() - handshake, resolves immediately<br/>graphWorkerProxy.ts:164, graph.worker.ts:103-106
+    Proxy->>W: workerApi.initialize() - handshake, resolves immediately<br/>graphWorkerProxy.ts:164, graph.worker.ts:102-105
     alt WORKER_USES_SAB
         Proxy->>Proxy: sharedBuffer = new SharedArrayBuffer(POSITION_BUFFER_BYTES)<br/>MAX_NODES=50000 * POSITION_FLOATS_PER_NODE=4 * 4 bytes<br/>graphWorkerProxy.ts:102-105,172-173
-        Proxy->>W: workerApi.setupSharedPositions(sharedBuffer)<br/>graphWorkerProxy.ts:174, graph.worker.ts:199-203
+        Proxy->>W: workerApi.setupSharedPositions(sharedBuffer)<br/>graphWorkerProxy.ts:174, graph.worker.ts:198-202
         alt SAB attach throws
             Proxy->>Proxy: degrade to Comlink transfer path, sharedBuffer=null<br/>graphWorkerProxy.ts:178-185
         end
@@ -681,22 +681,22 @@ sequenceDiagram
 
     Note over Proxy: D7 surface is EXACTLY 4 methods - processBinaryFrame, getPositions,<br/>setGraphTopology, dispose. Legacy methods (tick,getGraphData,<br/>getAnalyticsBuffer,reheatSimulation,updateForcePhysicsSettings) throw<br/>deprecation shims - graphWorkerProxy.ts:1-15,356-392
     AI->>Proxy: setGraphTopology(graph)<br/>graphWorkerProxy.ts:308
-    Proxy->>W: workerApi.setGraphData(graph)<br/>graphWorkerProxy.ts:312, graph.worker.ts:115
-    W->>W: ensureNodeHasValidPosition per node, String()-coerce node.id,<br/>build nodeIdMap/reverseNodeIdMap/nodeIndexMap, edge adjacency maps<br/>graph.worker.ts:117,132-157
-    W->>W: initPositionBuffers preserving old positions by nodeIndexMap match<br/>graph.worker.ts:159-166
-    W->>W: syncToSharedBuffer(), graphDataLoaded=true<br/>graph.worker.ts:185,188
+    Proxy->>W: workerApi.setGraphData(graph)<br/>graphWorkerProxy.ts:312, graph.worker.ts:114
+    W->>W: ensureNodeHasValidPosition per node, String()-coerce node.id,<br/>build nodeIdMap/reverseNodeIdMap/nodeIndexMap, edge adjacency maps<br/>graph.worker.ts:116,131-156
+    W->>W: initPositionBuffers preserving old positions by nodeIndexMap match<br/>graph.worker.ts:158-165
+    W->>W: syncToSharedBuffer(), graphDataLoaded=true<br/>graph.worker.ts:184,187
     opt pendingBinaryFrames queued (FIX 4 race guard)
-        W->>W: replay each queued frame via processBinaryData()<br/>graph.worker.ts:189-196,263-267
+        W->>W: replay each queued frame via processBinaryData()<br/>graph.worker.ts:188-195,262-266
     end
 
     rect rgb(235,235,252)
     Note over Proxy,W: processBinaryFrame single-flight (ADR-03 D2): _binaryFrameInFlight guard,<br/>_pendingLatest newest-wins slot - frames arriving mid-flight collapse to one<br/>graphWorkerProxy.ts:122-124,205-241
     Proxy->>Comlink: transfer(frame.buffer,[frame.buffer]) - neuters caller's ArrayBuffer<br/>graphWorkerProxy.ts:248
     alt WORKER_USES_SAB
-        Proxy->>W: workerApi.processBinaryFrame(transferable) - returns void,<br/>renderer reads SAB view directly<br/>graphWorkerProxy.ts:250-255, graph.worker.ts:214-218
+        Proxy->>W: workerApi.processBinaryFrame(transferable) - returns void,<br/>renderer reads SAB view directly<br/>graphWorkerProxy.ts:250-255, graph.worker.ts:213-217
     else Comlink transfer mode
         Proxy->>W: workerApi.processBinaryFrame(transferable)<br/>graphWorkerProxy.ts:259-261
-        W-->>Proxy: transfer(out,[out]) - full stride-3 currentPositions,<br/>NOT the stride-4 [nodeId,x,y,z] update array<br/>graph.worker.ts:219-223
+        W-->>Proxy: transfer(out,[out]) - full stride-3 currentPositions,<br/>NOT the stride-4 [nodeId,x,y,z] update array<br/>graph.worker.ts:218-222
         Proxy->>Proxy: lastTransferredView = new Float32Array(returned)<br/>graphWorkerProxy.ts:262-264
     end
     alt pending frame arrived during dispatch

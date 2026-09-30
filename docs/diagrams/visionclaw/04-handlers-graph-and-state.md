@@ -30,21 +30,17 @@ sources:
   - ../project/src/services/provenance_trace.rs
   - ../project/src/services/intent_match.rs
   - ../project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md
-  - ../project/src/handlers/metrics_handler.rs
   - ../project/src/handlers/consolidated_health_handler.rs
   - ../project/src/handlers/liveness_harness_handler.rs
   - ../project/src/services/liveness_harness.rs
   - ../project/src/handlers/trace_handler.rs
   - ../project/src/handlers/validation_handler.rs
   - ../project/src/handlers/schema_handler.rs
-  - ../project/src/handlers/natural_language_query_handler.rs
-  - ../project/src/handlers/semantic_pathfinding_handler.rs
   - ../project/src/handlers/semantic_handler.rs
   - ../project/src/handlers/workspace_handler.rs
   - ../project/src/handlers/pages_handler.rs
   - ../project/src/handlers/client_log_handler.rs
   - ../project/src/handlers/client_messages_handler.rs
-  - ../project/src/handlers/image_gen_handler.rs
   - ../project/src/handlers/pay_handler.rs
   - ../project/src/handlers/quic_transport_handler.rs
   - ../project/src/handlers/mod.rs
@@ -55,7 +51,7 @@ sources:
   - ../project/src/utils/binary_protocol.rs
   - ../project/src/utils/validation/sanitization.rs
   - ../project/src/handlers/fastwebsockets_handler.rs
-verified_commit: f223bbd40
+verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
 ---
 
 ## VC-04.1 api_handler graph — read path (data, paginated, positions, fold, relations, expand, pattern)
@@ -410,6 +406,7 @@ sequenceDiagram
         DAG-->>C: 200/500 per Ok/Err
     end
     Note over DAG: /semantic-forces/collision/configure (semantic_forces.rs:227) sends ConfigureCollision<br/>the SAME way — GET /hierarchy-levels and /config read GetHierarchyLevels / GetSemanticConfig
+    Note over C: `constraints` scope (src/handlers/constraints_handler.rs) shares this settings-then-GPU-push<br/>shape — POST /api/constraints/define (constraints_handler.rs:22) validates, then merges<br/>{visualisation.graphs.{knowledge,visionclaw}.physics.computeMode = 2} into app_settings<br/>(constraints_handler.rs:66) BEFORE a best-effort GPU push (constraint failures there are only<br/>warn-logged, never fail the request, constraints_handler.rs:100) — POST /validate<br/>(validate_constraint_definition, constraints_handler.rs:282 per VC-16.6) is the one route in that scope<br/>with NO settings or GPU round-trip, pure request validation
 ```
 
 ## VC-04.8 `ragflow` scope — external HTTP boundary (RAGFlow API)
@@ -453,42 +450,6 @@ sequenceDiagram
         SM-->>C: error_json! Failed to send message
     end
     Note over C,RS: /ragflow/chat and /ragflow/session/enhanced (ragflow_handler.rs:628,632) are the<br/>same external-boundary shape with an enhanced request/response envelope — GET<br/>/history/{session_id} and /history/enhanced/{session_id} (:635-636) read back session state,<br/>no outbound HTTP call on the read path
-```
-
-## VC-04.9 `constraints` scope — define/apply/remove/validate, settings round-trip plus GPU push
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Client
-    participant DC as define_constraints<br/>src/handlers/constraints_handler.rs:22
-    participant SE as settings_addr<br/>GetSettings / UpdateSettings
-    participant GPU as GPU compute actor<br/>UpdateConstraints
-    participant LC as list_constraints / get_constraints<br/>constraints_handler.rs:226,236
-
-    C->>DC: POST /api/constraints/define {ConstraintSystem}
-    DC->>DC: validate_constraint_system(&constraints)
-    alt invalid
-        DC-->>C: 400 Invalid constraint system
-    end
-    DC->>SE: settings_addr.send(GetSettings)
-    alt Err or Ok(Err)
-        DC-->>C: 503/500 Settings service unavailable
-    end
-    DC->>DC: app_settings.merge_update({visualisation.graphs.{knowledge,visionclaw}.physics.computeMode = 2})
-    DC->>SE: settings_addr.send(UpdateSettings{settings: app_settings})
-    alt Ok(Ok(()))
-        opt get_gpu_compute_addr().await is Some
-            DC->>GPU: send(UpdateConstraints{constraint_data: serde_json::to_value(constraints)})
-            Note over GPU: best-effort — GPU failure only logged (warn), does not fail the request
-        end
-        DC-->>C: 200 {status:Constraints defined successfully, constraints}
-    else Ok(Err(e)) or mailbox Err
-        DC-->>C: 500/503 Failed to save constraint settings
-    end
-    C->>LC: GET /api/constraints/list
-    LC->>GPU: gpu_addr.send(GetConstraints) (:236)
-    LC-->>C: 200 active constraint set, or settings-derived fallback via GetSettings (:258)
-    Note over C,LC: /apply (constraints_handler.rs:126) and /remove mirror /define's settings-merge<br/>plus best-effort GPU push shape — /validate (validate_constraint_definition) runs<br/>validate_constraint() with NO settings or GPU round-trip, pure request validation
 ```
 
 ## VC-04.10 `graph_state_handler` — CQRS directive/query path via `graph_adapter`
@@ -705,7 +666,7 @@ sequenceDiagram
     KC->>KR: insert_snapshot_with_lineage(hitl_snapshot, hitl_lineage) — only when decided is above zero
     KC->>KC: assemble four tiles (kpi_compute.rs:622) — Augmentation Ratio, Trust Variance and<br/>HITL Precision computed, Mesh Velocity still KpiTile::awaiting (kpi_compute.rs:545)
     Note over KC: INVARIANT (DDD invariant 8, ADR-2110) — a case resolved by the reserved system<br/>identity system:whelk-gate is excluded from BOTH terms of HITL Precision, so a window of<br/>gate rejections reports no value rather than a precision no human earned<br/>is_system_actor kpi_compute.rs:143, SYSTEM_WHELK_GATE kpi_compute.rs:140
-    Note over KC: INVARIANT (ADR-2110 auditor counter-example, b2baa2d16) — a case id must occupy<br/>WHOLE delimited URN segments before a trajectory is correlated to a case, because the URNs<br/>come off an agent-controlled envelope, so a substring match would let one agent attach a<br/>mismatched intent to another agent's case — urn_names_case kpi_compute.rs:244 shares<br/>urn_names_segment with the trace verdict, intent_match.rs:161
+    Note over KC: INVARIANT (ADR-2110 auditor counter-example, b2baa2d16) — a case id must occupy<br/>WHOLE delimited URN segments before a trajectory is correlated to a case, because the URNs<br/>come off an agent-controlled envelope, so a substring match would let one agent attach a<br/>mismatched intent to another agent's case — urn_names_case kpi_compute.rs:244 shares<br/>urn_names_segment with the trace verdict, intent_match.rs:163
     alt Ok(summary)
         SU-->>C: 200 KpiSummary (four tiles)
     else Err(e)
@@ -715,7 +676,7 @@ sequenceDiagram
     SU->>KC: lineage_for(snapshot_id)
     KC->>KR: lineage_for(snapshot_id) — DERIVED_FROM trail (WP-8 AC3)
     SU-->>C: 200 {snapshot_id, lineage}
-    par background volume tap — src/main.rs:1252 tokio::spawn(run_agent_event_tap(kpi_repo))
+    par background volume tap — src/main.rs:1257 tokio::spawn(run_agent_event_tap(kpi_repo))
         TAP->>HUB: subscribe() — same seam the render actor uses
         loop rx.recv().await — never returns, fail-open on lagged/closed channel
             HUB-->>TAP: AgentEventEnvelope
@@ -724,31 +685,6 @@ sequenceDiagram
         end
     end
     Note over KC: REC-4 ADR-130 D5 — numerator is wss/agent-events window count, denominator<br/>is ACSP escalation volume (enrichment_decisions) — see VC-24, VC-25 for the elevation<br/>and insight-loop producers of these source events
-```
-
-## VC-04.15 `GET /api/metrics` — event-bus and circuit-breaker snapshot
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Client
-    participant GM as get_metrics<br/>src/handlers/metrics_handler.rs:33
-    participant PT as ProcessStartTime<br/>web::Data — Instant captured at boot (src/main.rs:1032)
-    participant EB as EventBus<br/>app_state.event_bus
-    participant MW as MetricsMiddleware<br/>downcast via dyn Any
-
-    C->>GM: GET /api/metrics
-    GM->>PT: start_time.0.elapsed().as_secs() -> uptime_secs
-    GM->>GM: app_state.active_connections.load(Ordering::Relaxed)
-    GM->>EB: collect_event_bus_metrics(&app_state)
-    EB->>EB: bus.middlewares().await — iterate registered middleware
-    loop for each middleware
-        EB->>MW: any_ref.downcast_ref::<MetricsMiddleware>()
-        opt downcast succeeds
-            MW-->>EB: get_all_published_counts / handler_counts / error_counts
-        end
-    end
-    GM-->>C: 200 MetricsResponse{uptime_secs, active_connections, event_bus, circuit_breakers:{}}
-    Note over GM: DOC-DRIFT / DIVERGENCE — circuit_breakers is hardcoded to an empty HashMap<br/>(metrics_handler.rs:47-49) — CircuitBreakerStats type exists but no global registry is<br/>wired into AppState yet, so the field always reports empty regardless of real breaker state
 ```
 
 ## VC-04.16 `consolidated_health` — unified_health_check, physics probe, MCP relay controls
@@ -866,7 +802,7 @@ sequenceDiagram
             Note over LH: INVARIANT (REC-11 acceptance) — fires ONLY on observed live traffic that<br/>genuinely joins >= 2 live source kinds under one did:nostr, never synthetic
         end
         UT-->>C: 200 ProvenanceTrace{sourcesPresent,sourcesAbsent,totalRecords,joins,maxJoinSpan}
-        Note over PTS: FR5.2 (EXP-AC-005) — each agent-event record now carries the agent's<br/>DECLARED intent verbatim and an intent_match verdict (provenance_trace.rs:202-210).<br/>Decision and git-mark records carry neither. A null verdict means NO CLAIM WAS MADE,<br/>which is not the same as a claim that failed — intent_match.rs:218
+        Note over PTS: FR5.2 (EXP-AC-005) — each agent-event record now carries the agent's<br/>DECLARED intent verbatim and an intent_match verdict (provenance_trace.rs:202-210).<br/>Decision and git-mark records carry neither. A null verdict means NO CLAIM WAS MADE,<br/>which is not the same as a claim that failed — intent_match.rs:214
     else Err(e)
         UT-->>C: 500 {error}
     end
@@ -877,10 +813,10 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant VP as validate_payload<br/>src/handlers/validation_handler.rs:335
+    participant VP as validate_payload<br/>src/handlers/validation_handler.rs:331
     participant VS as ValidationService<br/>validation_handler.rs:11 — settings/physics/ragflow/bots/swarm schemas
     participant SAN as Sanitizer::sanitize_json<br/>src/utils/validation/sanitization.rs
-    participant GS as get_validation_stats<br/>validation_handler.rs:373
+    participant GS as get_validation_stats<br/>validation_handler.rs:369
 
     C->>VP: POST /api/validation/test/{type} {payload}
     VP->>VP: validation_type = path {type}, extract_client_id(req)
@@ -899,7 +835,7 @@ sequenceDiagram
     end
     C->>GS: GET /api/validation/stats
     GS-->>C: 200 static capability descriptor — supported_endpoints, security_features<br/>(input_sanitization, schema_validation, rate_limiting, xss/sql-injection/path-traversal prevention)
-    Note over VS: this IS the free-function validators::{validate_iri,check_sql_injection,...} consumer<br/>the ValidationMiddleware itself never calls (see VC-03.14 DOC-DRIFT) — reachable only via<br/>this explicit dry-run test route, never automatically on the real request path
+    Note over VS: this IS the free-function validators::{validate_iri,check_sql_injection,...} consumer<br/>the ValidationMiddleware itself never calls (see VC-03.1 DOC-DRIFT) — reachable only via<br/>this explicit dry-run test route, never automatically on the real request path
 ```
 
 ## VC-04.20 `schema` scope — GraphStateActor read, SchemaService cache refresh
@@ -932,45 +868,6 @@ sequenceDiagram
     NT-->>C: 200 {node_types:[{node_type,count},...]}
     Note over GSA: DIVERGENCE — a FOURTH graph-data read path alongside api_handler::graph's<br/>graph_query_handlers CQRS (VC-04.1), graph_state_handler's graph_adapter CQRS (VC-04.10)<br/>and the ACTOR graph_service_addr writes (VC-04.4-04.5) — schema_handler reads via a<br/>directly-injected Addr~GraphStateActor~, a fifth distinct app_data binding onto the same graph
     Note over C,NT: GET /schema/node-types/{type} and /edge-types/{type} (:203,239) are the SAME<br/>cached-lookup shape narrowed to one type name, not expanded here
-```
-
-## VC-04.21 `nl-query` / `pathfinding` — translation and graph-traversal services
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Client
-    participant TQ as translate_query<br/>src/handlers/natural_language_query_handler.rs:90
-    participant NLQ as NaturalLanguageQueryService<br/>web::Data~Arc~NaturalLanguageQueryService~~
-    participant FP as find_semantic_path<br/>src/handlers/semantic_pathfinding_handler.rs:29
-    participant GSA as GraphStateActor<br/>GetGraphData
-    participant PF as SemanticPathfindingService
-
-    C->>TQ: POST /api/nl-query/translate {query, suggestAlternatives}
-    alt suggest_alternatives
-        TQ->>NLQ: suggest_queries(&query) -> Vec~CypherTranslation~
-    else
-        TQ->>NLQ: translate_to_cypher(&query) -> one CypherTranslation
-    end
-    alt Ok(translations)
-        TQ-->>C: 200 QueryTranslationResponse{translations}
-    else Err(e)
-        TQ-->>C: 500 Translation failed
-    end
-    Note over TQ: GET /nl-query/examples (:137) is static — /explain and /validate<br/>(explain_cypher :168, validate_cypher :209) call NLQ with a fixed Cypher string, not a live graph
-
-    C->>FP: POST /api/pathfinding/semantic-path {startId, endId, query}
-    FP->>GSA: graph_state_actor.send(GetGraphData)
-    alt Ok(Ok(graph_data))
-        FP->>PF: find_semantic_path(&graph_data, start_id, end_id, query)
-        alt Some(path)
-            FP-->>C: 200 path
-        else None
-            FP-->>C: 500 No path found
-        end
-    else Ok(Err(e)) or mailbox Err
-        FP-->>C: 500 Graph error / Actor error
-    end
-    Note over FP,PF: /query-traversal (:60) and /chunk-traversal (:90) share the SAME<br/>GraphStateActor.send(GetGraphData) prelude before calling PF.query_traversal /<br/>chunk_traversal — query-traversal 400s if request.query is None
 ```
 
 ## VC-04.22 `semantic` — graph-analysis service, and the removed inference stack
@@ -1092,7 +989,7 @@ sequenceDiagram
     end
     CL->>CL: append entries to /app/logs/client.log
     CL-->>C: 200 {status:success}
-    Note over CL: registered EARLY in the /api scope (src/main.rs:1102) specifically to avoid<br/>scope-registration-order conflicts (VC-01.10) — RBAC-allowlisted (VC-03.6 has_segment_prefix)
+    Note over CL: registered EARLY in the /api scope (src/main.rs:1106) specifically to avoid<br/>scope-registration-order conflicts (VC-01.10) — RBAC-allowlisted (VC-03.6 has_segment_prefix)
 
     C->>WS: GET /ws/client-messages (Upgrade: websocket)
     WS->>WS: token = Authorization Bearer OR ?token= query param
@@ -1116,63 +1013,6 @@ sequenceDiagram
     Note over WS: DOC-DRIFT — the in-code comment (client_messages_handler.rs:114-116) says<br/>#quot;Currently allows but logs unauthenticated connections#quot but the code (:131-142)<br/>actually REJECTS an empty token with 401 — the token's CONTENTS are never verified<br/>against NostrService, only its presence, so any non-empty string passes
 ```
 
-## VC-04.26 `image-gen` scope — user submit (ComfyUI) vs agent submit (ComfyUI Salad, synchronous)
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Client (Nostr session)
-    participant A as Agent caller (X-Agent-Key)
-    participant SJ as submit_image_job<br/>src/handlers/image_gen_handler.rs:317-318
-    participant AJ as agent_submit_image_job<br/>image_gen_handler.rs:535-541
-    participant CU as ComfyUI<br/>COMFYUI_URL default http://comfyui:8188 (:31)
-    participant SA as ComfyUI Salad<br/>COMFYUI_SALAD_URL default http://comfyui:3000 (:36)
-    participant GJ as get_job_status<br/>image_gen_handler.rs:749-750
-
-    rect rgb(225,225,245)
-    Note over SJ,CU: PROCESS BOUNDARY — external HTTP to the ComfyUI service
-    C->>SJ: POST /api/image-gen/submit {ImageGenRequest}
-    SJ->>SJ: get_user_npub(req, nostr_service) — NIP-98 session check
-    alt no valid session
-        SJ-->>C: 401 Authentication required
-    end
-    SJ->>SJ: seed = random if body.seed < 0, job_id = Uuid::new_v4()
-    SJ->>SJ: build_flux2_workflow(body, seed, filename_prefix)
-    SJ->>CU: POST {comfyui_base}/prompt {prompt: workflow, client_id: job_id} (timeout 300s)
-    alt unreachable
-        SJ-->>C: 503 ComfyUI unreachable
-    else non-success status
-        SJ-->>C: 400 ComfyUI rejected workflow
-    else no prompt_id in response
-        SJ-->>C: 500 No prompt_id in ComfyUI response
-    else Ok
-        loop up to 60 attempts, sleep(5s) between — max ~5 minutes
-            SJ->>CU: GET {comfyui_base}/history/{prompt_id}
-            Note over SJ: poll failures are logged and retried, not fatal
-        end
-        SJ-->>C: 200 job result (output_filename/output_subfolder once ready)
-    end
-    end
-    rect rgb(225,240,225)
-    Note over AJ,SA: PROCESS BOUNDARY — external HTTP to the SEPARATE Salad Cloud ComfyUI endpoint
-    A->>AJ: POST /api/image-gen/agent-submit {AgentImageGenRequest} X-Agent-Key
-    AJ->>AJ: provided_key != agent_key() (VISIONCLAW_AGENT_KEY, default #quot;changeme-agent-key#quot :46)
-    alt key mismatch
-        AJ-->>A: 401 Invalid or missing X-Agent-Key header
-    else match
-        AJ->>SA: POST {comfyui_salad}/prompt {prompt: workflow} (timeout 360s) — SYNCHRONOUS
-        Note over SA: Salad API returns base64 images directly in ONE response — no polling loop,<br/>unlike the ComfyUI native /submit path above
-        alt unreachable or non-success
-            AJ-->>A: 503/error ComfyUI Salad API unreachable
-        else Ok
-            AJ-->>A: 200 images (base64)
-        end
-    end
-    end
-    C->>GJ: GET /api/image-gen/status/{job_id}
-    GJ-->>C: 200/404 job status lookup
-    Note over AJ: DIVERGENCE — agent_key() comparison uses plain #quot;!=#quot (image_gen_handler.rs:508),<br/>NOT the constant_time_eq used by canary_write_authorised (VC-04.17) — same<br/>X-Agent-Key credential CONCEPT, two different comparison postures in one commit.<br/>Also unlike canary, an unset VISIONCLAW_AGENT_KEY here fails OPEN to a hardcoded<br/>default string rather than failing closed
-```
-
 ## VC-04.27 `pay` scope — L402-style balance/debit gate, unconditionally mounted, inert until PAY_ENABLED
 ```mermaid
 sequenceDiagram
@@ -1185,7 +1025,7 @@ sequenceDiagram
     participant DEP as pay_deposit_handler<br/>pay_handler.rs:480
     participant ST as FsPaymentStore<br/>web::Data~Arc~FsPaymentStore~~ — get_balance/debit
 
-    Note over CFG: routes mounted UNCONDITIONALLY at src/main.rs:1068 (VC-01.6) — inert until<br/>PAY_ENABLED=true, gated handler-by-handler rather than by a scope-level middleware
+    Note over CFG: routes mounted UNCONDITIONALLY at src/main.rs:1068 (VC-01) — inert until<br/>PAY_ENABLED=true, gated handler-by-handler rather than by a scope-level middleware
     C->>INFO: GET /pay/.info (always reachable, no gate)
     INFO-->>C: 200 {enabled, methods:[lightning], costTiers} — reports the REAL enabled flag
     C->>BAL: GET /pay/.balance
@@ -1220,39 +1060,16 @@ sequenceDiagram
     Note over DEP: DIVERGENCE — Lightning deposit is a stub in this commit, spec link only (webledgers.org)
 ```
 
-## VC-04.28 `quic_transport_handler` — DOC-DRIFT: the QUIC transport was removed under ADR-2066
+## VC-04.28 `quic_transport_handler` — DOC-DRIFT: the QUIC transport was removed under ADR-2066, two Postcard structs survive
 ```mermaid
 flowchart TB
     Q["quic_transport_handler.rs (102 lines) — now holds ONLY PostcardNodeUpdate and<br/>PostcardBatchUpdate plus their BinaryNodeData round-trip impls (quic_transport_handler.rs:22-75)"]
-    IMP["imported directly by (fastwebsockets_handler.rs:34)<br/>`use super::quic_transport_handler::{PostcardBatchUpdate, PostcardNodeUpdate}`"]
+    FIELDS["PostcardNodeUpdate: id,x,y,z,vx,vy,vz,cluster_id,anomaly_score,community_id (:22-36)<br/>PostcardBatchUpdate: frame_id,timestamp_ms,nodes:Vec~PostcardNodeUpdate~ (:70-75)<br/>round-trip impls From/Into BinaryNodeData (:38-67), one #[cfg(test)] unit test (:82-100)"]
+    IMP["imported directly by (fastwebsockets_handler.rs:34)<br/>`use super::quic_transport_handler::{PostcardBatchUpdate, PostcardNodeUpdate}`<br/>— never by any HTTP/WS route in this file"]
     MODRS["src/handlers/mod.rs:111-117 — module doc comment records the removal;<br/>NO pub use re-export of anything from this module exists"]
     NONE["NO configure fn, no route, scope, or .service() call anywhere in src/main.rs<br/>registers this module — it never had one even before the removal"]
-    Q --> IMP
+    Q --> FIELDS --> IMP
     Q --> MODRS --> NONE
     D1["DOC-DRIFT (pre-dates this verification window, commit 35c2448a8) — the previously-diagrammed<br/>QuicTransportServer, QuicServerConfig, QuicClientSession, ControlMessage, TopologyNode,<br/>TopologyEdge, PostcardDeltaUpdate and the encode/decode/calculate_deltas free functions do<br/>NOT exist in this file any more. ADR-2066 removed the whole QUIC/WebTransport server as dead<br/>code — constructed nowhere, routed nowhere, only ever re-exported (never called). Only the two<br/>Postcard wire-format structs survive, kept because fastwebsockets_handler.rs's own<br/>postcard-serialized position broadcasts import them directly."]
     NONE --- D1
-```
-
-## VC-04.29 `quic_transport_handler` wire types — the two surviving Postcard structs
-```mermaid
-classDiagram
-    class PostcardNodeUpdate {
-        +u32 id
-        +f32 x
-        +f32 y
-        +f32 z
-        +f32 vx
-        +f32 vy
-        +f32 vz
-        +u32 cluster_id
-        +f32 anomaly_score
-        +u32 community_id
-    }
-    class PostcardBatchUpdate {
-        +u64 frame_id
-        +u64 timestamp_ms
-        +List~PostcardNodeUpdate~ nodes
-    }
-    PostcardBatchUpdate --> PostcardNodeUpdate : nodes
-    note for PostcardNodeUpdate "From~&BinaryNodeData~ / Into~BinaryNodeData~ round-trip impls<br/>(quic_transport_handler.rs:38-67), covered by one #[cfg(test)] unit test (:82-100).<br/>Consumed only by fastwebsockets_handler.rs — never by any HTTP/WS route in this file."
 ```

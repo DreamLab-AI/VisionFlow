@@ -20,7 +20,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md
   - ../project/agentbox/docs/adr/ADR-2084-one-published-loom-client-for-every-facade-caller.md
   - ../project/agentbox/lib/explainer-tools.nix
-verified_commit: {visionclaw: f223bbd40, agentbox: b7b1ab81a, loom: 07a0e6774}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, loom: e39bb4d2b583040cd91346c3bbaf75411c3913b4}
 ---
 ## ES-06.1 Topology — the gateway holds a façade, never a model port
 ```mermaid
@@ -30,7 +30,7 @@ flowchart LR
     end
     subgraph vcnet["visionclaw_network (docker bridge)"]
         GW["email-mcp-gateway:8765<br/>streamable-HTTP MCP, bearer auth"]
-        LOOMB["loom sidecar — Deployment B, NOT RUNNING BY DEFAULT<br/>hostname loom, LOOM_FACADE_PORT 8080<br/>docker-compose.unified.yml:304-307,<br/>gated behind the loom compose profile :366-367"]
+        LOOMB["loom sidecar — Deployment B, NOT RUNNING BY DEFAULT<br/>hostname loom, LOOM_FACADE_PORT 8080<br/>docker-compose.unified.yml:315-318,<br/>gated behind the loom compose profile :377-378"]
         XI["xinference:9997/v1<br/>bge-small-en-v1.5 / 384"]
     end
     subgraph ml["machinelearn .132"]
@@ -51,7 +51,7 @@ flowchart LR
 
     INV1["INVARIANT — consumers hold the FAÇADE, never the model port.<br/>The deployed model is a URL behind DISTILL_BACKEND_URL;<br/>swapping Muse to Gemma to Qwen3.8 to next never touches a<br/>consumer. This is the no-technical-debt-on-upgrade guarantee."]
     INV2["INVARIANT — the Loom IS the email privacy system. It<br/>delegates ONLY to a LAN/local model, never to a cloud<br/>endpoint, so mail content never leaves the LAN."]
-    DIV0["DIVERGENCE — Deployment B is SPECIFIED, not running. The loom<br/>service is gated behind compose profile loom (docker-compose.unified.yml:366-367),<br/>so a default up never starts it, and its image is not built from this repo:<br/>the referenced loom/deploy/Dockerfile does not exist in this checkout<br/>(docker-compose.unified.yml:293-302, the checkout holds README.md and app/ only). Deployment A (port 8084 on HP)<br/>is the live path. see ES-01.6"]
+    DIV0["DIVERGENCE — Deployment B is SPECIFIED, not running. The loom<br/>service is gated behind compose profile loom (docker-compose.unified.yml:377-378),<br/>so a default up never starts it, and its image is not built from this repo:<br/>the referenced loom/deploy/Dockerfile does not exist in this checkout<br/>(docker-compose.unified.yml:309-313, the checkout holds README.md and app/ only). Deployment A (port 8084 on HP)<br/>is the live path. see ES-01.6"]
     DIV1["DIVERGENCE — the connected node's old LAN address is DEAD. It<br/>sits downstream with no LAN IP and the gateway host routes and<br/>NATs it over the rail. Commit 2899b3b7e generalised the literal<br/>address out of the public repo, so the record now names it only<br/>as a retired address, agentbox/docs/adr/ADR-2023-loom-facade.md:24<br/>and agentbox/skills/email-search/SKILL.md:99. see ES-06.7"]
     DIV2["DIVERGENCE GOVERNANCE-capabilities — ADR-051 (Loom) is<br/>decision_status PROPOSED while the Loom is<br/>production-critical. Interim authority is the governing doc."]
     DIV3["RESOLVED ADR-2070 — ingress and egress have different contracts.<br/>Loom facade port 8084 and raw model port 8085 are named egress doors.<br/>Task-specific raw calls do not bypass the AoE ingress proxy."]
@@ -338,17 +338,17 @@ flowchart TB
     end
 
     subgraph PUB["Plane 2 — ADR-2080 metaharness router console: PUBLIC work only"]
-        GATE["[model_routing.neural] gate<br/>agentbox.toml:1295, enabled :1296"]
-        ART["pinned artefacts baked at rebuild<br/>config/model-router/artefacts.json<br/>flake.nix:111-112, installed flake.nix:1790-1792"]
-        ENV["entrypoint exports AGENTBOX_MODEL_ROUTER_*<br/>entrypoint-unified.sh:1677-1684<br/>assets_dir resolved at :1667, fallback :1668-1670"]
+        GATE["[model_routing.neural] gate<br/>agentbox.toml:1360, enabled :1361"]
+        ART["pinned artefacts baked at rebuild<br/>config/model-router/artefacts.json<br/>flake.nix:137-144, installed flake.nix:1840-1842"]
+        ENV["entrypoint exports AGENTBOX_MODEL_ROUTER_*<br/>entrypoint-unified.sh:1774-1781<br/>assets_dir resolved at :1764, fallback :1765-1767"]
         CON["AoE router session console<br/>embeds the task offline, asks the router for the<br/>cheapest OpenRouter model above the quality bar,<br/>executes it, writes a labelled receipt"]
         GATE --> ART --> ENV --> CON
     end
 
-    INV1["INVARIANT ADR-2079 section 4 — privacy_tier is pinned to public<br/>(agentbox.toml:1303) and the console EXITS on any other value.<br/>Private corpora never reach an OpenRouter model; that is what<br/>keeps plane 2 disjoint from plane 1."]
-    INV2["INVARIANT — the router env is SESSION-SCOPED. The entrypoint<br/>exports AGENTBOX_MODEL_ROUTER_* for the router seed only and<br/>never exports CLAUDE_FLOW_ROUTER_* globally (agentbox.toml:1293),<br/>so no other agent silently inherits a cost-optimal route."]
+    INV1["INVARIANT ADR-2079 section 4 — privacy_tier is pinned to public<br/>(agentbox.toml:1368) and the console EXITS on any other value.<br/>Private corpora never reach an OpenRouter model; that is what<br/>keeps plane 2 disjoint from plane 1."]
+    INV2["INVARIANT — the router env is SESSION-SCOPED. The entrypoint<br/>exports AGENTBOX_MODEL_ROUTER_* for the router seed only and<br/>never exports CLAUDE_FLOW_ROUTER_* globally (agentbox.toml:1357),<br/>so no other agent silently inherits a cost-optimal route."]
     INV3["INVARIANT ADR-2023 — plane 1 swaps its model behind the façade with<br/>zero consumer change. Plane 2 swaps its model PER TASK by price.<br/>Neither plane may name the other's endpoint: a raw model port in<br/>consumer config re-creates the coupling ADR-2023 removed<br/>(ADR-2023-loom-facade.md:24-25)."]
-    DEG["DIVERGENCE — the gate can be on with no artefacts present. The<br/>entrypoint then prints the fetch instruction rather than failing<br/>(entrypoint-unified.sh:1687-1688), so an operator sees a console<br/>that is enabled-but-inert until ./agentbox.sh model-router fetch<br/>or a rebuild lands the pinned set. see AB-15 and AB-28."]
+    DEG["DIVERGENCE — the gate can be on with no artefacts present. The<br/>entrypoint then prints the fetch instruction rather than failing<br/>(entrypoint-unified.sh:1785), so an operator sees a console<br/>that is enabled-but-inert until ./agentbox.sh model-router fetch<br/>or a rebuild lands the pinned set. see AB-15 and AB-28."]
 
     PRIV --> INV3
     PUB --> INV3

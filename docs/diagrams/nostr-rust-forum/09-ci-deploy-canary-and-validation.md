@@ -4,7 +4,7 @@ title: CI gates, wrangler deploy, fixtures, benchmarks, e2e and the setup-skill 
 area: nostr-rust-forum
 governing:
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
-adrs: [ADR-2002, ADR-2003, ADR-2007]
+adrs: [ADR-2002, ADR-2003, ADR-2007, ADR-2016]
 sources:
   - ../nostr-rust-forum/.github/workflows/ci.yml
   - ../nostr-rust-forum/.github/workflows/audit.yml
@@ -31,7 +31,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/validate.rs
   - ../nostr-rust-forum/README.md
-verified_commit: 2f90c1916
+verified_commit: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d
 ---
 
 ## NF-09.1 The CI gate graph
@@ -54,7 +54,7 @@ flowchart TB
 
     N1["The test job also validates the shipped configuration contract by running the kit's own validator<br/>over forum.example.toml .github/workflows/ci.yml:107"]
     N2["The security crates re-run is nostr-bbs-core, relay-worker, pod-worker, auth-worker, preview-worker<br/>and config .github/workflows/ci.yml:136 through .github/workflows/ci.yml:141"]
-    N3["The wasm32 job installs libc6-dev-i386 so the secp256k1-sys cross-compile succeeds<br/>.github/workflows/ci.yml:171 - which is why it can check the WHOLE workspace, not the two crates<br/>workspace.metadata.ci.wasm-check-packages names nostr-rust-forum/Cargo.toml:49. See NF-01.2."]
+    N3["The wasm32 job installs libc6-dev-i386 so the secp256k1-sys cross-compile succeeds<br/>.github/workflows/ci.yml:171 - which is why it can check the WHOLE workspace, not the two crates<br/>workspace.metadata.ci.wasm-check-packages names nostr-rust-forum/Cargo.toml:54. See NF-01.2."]
     N4["ci-pass iterates every job result and fails the aggregate unless all succeeded<br/>.github/workflows/ci.yml:277"]
 ```
 
@@ -65,9 +65,9 @@ flowchart LR
     DENYJ["deny job .github/workflows/ci.yml:224"]
     AUD["Security Audit workflow<br/>.github/workflows/audit.yml:9<br/>weekly Monday 06:17 UTC audit.yml:14<br/>plus Cargo.lock changes audit.yml:17"]
     SH["scripts/security-audit.sh:6 - cargo audit --deny warnings with a curated ignore list"]
-    POL["deny.toml policy<br/>advisory ignores deny.toml:12<br/>licence allowlist deny.toml:25 incl. AGPL-3.0-only deny.toml:29<br/>ring clarification deny.toml:44"]
-    HARD["wildcards = deny deny.toml:63<br/>unknown-registry = deny deny.toml:72<br/>allow-registry crates.io only deny.toml:74<br/>allow-git = [] deny.toml:75"]
-    SOFT["multiple-versions = warn deny.toml:61"]
+    POL["deny.toml policy<br/>advisory ignores deny.toml:12<br/>licence allowlist deny.toml:25 incl. AGPL-3.0-only deny.toml:29 and MITNFA deny.toml:43<br/>ring clarification deny.toml:48"]
+    HARD["wildcards = deny deny.toml:66<br/>unknown-registry = deny deny.toml:75<br/>allow-registry crates.io only deny.toml:77<br/>allow-git = [] deny.toml:78"]
+    SOFT["multiple-versions = warn deny.toml:64"]
 
     DENYJ --> POL --> HARD
     POL --> SOFT
@@ -76,6 +76,7 @@ flowchart LR
 
     N1["INVARIANT: no git dependencies. allow-git is empty deny.toml:75, which is what makes the exact<br/>crates.io pin on solid-pod-rs enforceable rather than advisory - see NF-01.4 and ADR-2007"]
     N2["The advisory ignore list is duplicated by hand between deny.toml and security-audit.sh because<br/>cargo-audit has no shared config format scripts/security-audit.sh:5 - a drift risk by construction"]
+    N3["MITNFA (MIT plus a no-false-attribution clause) was added for hex_lit, a rust-bitcoin 0.32<br/>dependency reached through the member wallet - ADR-2015 deny.toml:41"]
 ```
 
 ## NF-09.3 Repository scripts
@@ -105,14 +106,16 @@ flowchart LR
     I["ingress_policy in {allowlist, open} validate.rs:56"]
     A["admin.mode in {static, d1} validate.rs:64"]
     Z1["zone ids unique validate.rs:235"]
-    Z2["slug must be lowercase a-z 0-9 hyphen validate.rs:255 validate.rs:282"]
-    Z3["slug unique validate.rs:262"]
-    Z4["a slug must not collide with a DIFFERENT zone's id validate.rs:267"]
+    ENC["ADR-2016: encrypted && visibility = public is rejected - anonymous readers<br/>can never hold a zone key validate.rs:244"]
+    Z2["slug must be lowercase a-z 0-9 hyphen validate.rs:265 validate.rs:292"]
+    Z3["slug unique validate.rs:272"]
+    Z4["a slug must not collide with a DIFFERENT zone's id validate.rs:277"]
 
-    V --> H & R & I & A & Z1 & Z2 & Z3 & Z4
+    V --> H & R & I & A & Z1 & ENC & Z2 & Z3 & Z4
 
     N1["This is what makes forum.example.toml's zeroed placeholder pubkeys fail by design - see NF-08.1"]
     N2["The slug-versus-id collision rule is what keeps the client's zone-slug route aliases unambiguous -<br/>see NF-05.2"]
+    N3["ADR-2016 gate; the sealed-history migration CLI it authorises (nostr-bbs-zone-migrate, ADR-2017)<br/>is a config/zones concern - see NF-08"]
 ```
 
 ## NF-09.5 Deploy — the wrangler sequence
@@ -202,7 +205,7 @@ flowchart TB
     MESH --> TRAITS --> ONLYIMPL
     MESH --> DEP --> DEAD
 
-    N1["ANOMALY O9 re-verified and REFINED: the register calls nostr-bbs-mesh a trait scaffold with no impl<br/>AND no relay import. The no-impl half holds - only MockSocket implements the socket trait. The<br/>no-import half does NOT: the relay declares the dependency at nostr-bbs-relay-worker/Cargo.toml:26 and<br/>carries a documented-but-dead PeerConnector seam. README.md:431 repeats the stale claim - see NF-03.13."]
+    N1["ANOMALY O9 re-verified and REFINED: the register calls nostr-bbs-mesh a trait scaffold with no impl<br/>AND no relay import. The no-impl half holds - only MockSocket implements the socket trait. The<br/>no-import half does NOT: the relay declares the dependency at nostr-bbs-relay-worker/Cargo.toml:26 and<br/>carries a documented-but-dead PeerConnector seam. README.md:442 repeats the stale claim - see NF-03.13."]
     N2["The canary is the gate on ADR-2002: nostr-bbs-core keeps on-wasm32 Schnorr until a Shape A verdict<br/>lands AND a module is deliberately deleted - see NF-01.5"]
     N3["Both crates are DELIBERATELY inert. Neither is dead code to delete; each is a decision held open<br/>in compilable form."]
 ```

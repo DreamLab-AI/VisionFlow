@@ -31,7 +31,7 @@ sources:
   - docs/estate-review/evidence/adr-inventory.json
   - docs/BASELINE-visionflow.md
   - docs/architecture/compatibility-matrix.md
-verified_commit: df22182f365f7bc7b4664e4374d150ff893e6b05
+verified_commit: d4e44298646768a4b19af359119e16a6884fa80d
 ---
 
 ## VF-07.1 Artefact map — what produces each output and where it lands
@@ -69,7 +69,7 @@ flowchart LR
 
     RM -->|"generate-release-manifest.sh<br/>generate-release-manifest.sh:240"| O10["stdout — docs/releases/*.json by redirection<br/>releases/README.md:8"]:::auto
 
-    B1 --> NOP["NO pipeline. Two long-form root documents, 249 lines each,<br/>differing in content. Nothing builds, validates or publishes them;<br/>they are referenced once, as content the two real surfaces publish<br/>BASELINE-visionflow.md:53"]:::content
+    B1 --> NOP["NO pipeline. Two long-form root documents, 249 lines each,<br/>differing in content. Nothing builds, validates or publishes them;<br/>they are referenced once, as content the two real surfaces publish<br/>BASELINE-visionflow.md:54"]:::content
     B2 --> NOP
 
     ORPH["texput.log at the repo root — evidence of a real XeTeX run on<br/>2026-07-08 that ABORTED because main.tex is not at the root.<br/>Same date as dist/arxiv-2026-07-08.tar.gz<br/>texput.log:1"]:::content

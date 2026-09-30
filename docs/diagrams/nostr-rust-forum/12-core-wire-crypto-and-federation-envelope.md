@@ -22,13 +22,9 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/calendar.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/moderation_events.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/thread.rs
-  - ../nostr-rust-forum/crates/nostr-bbs-core/src/types.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/wasm_bridge.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/feature_gate.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/boot_profile.rs
-  - ../nostr-rust-forum/crates/nostr-bbs-core/src/d1_helpers.rs
-  - ../nostr-rust-forum/crates/nostr-bbs-core/src/cors.rs
-  - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/tests/identity_subkey_vectors.rs
   - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/envelope.rs
@@ -40,7 +36,8 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-mesh/tests/federation.rs
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml
-verified_commit: 2f90c1916
+  - ../nostr-rust-forum/crates/nostr-bbs-core/src/sealed.rs
+verified_commit: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d
 ---
 
 ## NF-12.1 Module map — what the workers and clients all link
@@ -48,40 +45,45 @@ verified_commit: 2f90c1916
 ```mermaid
 flowchart TB
     subgraph wire["Wire primitives"]
-        EV["event nostr-bbs-core/src/lib.rs:27"]
-        SG["signer nostr-bbs-core/src/lib.rs:36"]
-        TY["types nostr-bbs-core/src/lib.rs:38"]
-        N19["nip19 bech32 nostr-bbs-core/src/lib.rs:33"]
+        EV["event nostr-bbs-core/src/lib.rs:29"]
+        SG["signer nostr-bbs-core/src/lib.rs:40"]
+        TY["types nostr-bbs-core/src/lib.rs:42"]
+        N19["nip19 bech32 nostr-bbs-core/src/lib.rs:35"]
     end
     subgraph crypto["Encryption and auth"]
-        N04["nip04 nostr-bbs-core/src/lib.rs:32"]
-        N44["nip44 nostr-bbs-core/src/lib.rs:34"]
-        GW["gift_wrap NIP-59 nostr-bbs-core/src/lib.rs:28"]
-        N98["nip98 HTTP auth nostr-bbs-core/src/lib.rs:35"]
-        KY["keys nostr-bbs-core/src/lib.rs:30"]
+        N04["nip04 nostr-bbs-core/src/lib.rs:34"]
+        N44["nip44 nostr-bbs-core/src/lib.rs:36"]
+        GW["gift_wrap NIP-59 nostr-bbs-core/src/lib.rs:30"]
+        N98["nip98 HTTP auth nostr-bbs-core/src/lib.rs:37"]
+        KY["keys nostr-bbs-core/src/lib.rs:32"]
+        SEL["sealed zone-history migration ADR-2017 nostr-bbs-core/src/lib.rs:39 - see NF-12.11"]
     end
     subgraph domain["Domain kinds"]
-        CAL["calendar NIP-52 nostr-bbs-core/src/lib.rs:25"]
-        DEL["deletion NIP-09 nostr-bbs-core/src/lib.rs:26"]
-        GRP["groups NIP-29 nostr-bbs-core/src/lib.rs:29"]
-        MOD["moderation_events nostr-bbs-core/src/lib.rs:31"]
-        THR["thread NIP-28 nostr-bbs-core/src/lib.rs:37"]
-        GOV["governance nostr-bbs-core/src/lib.rs:46 - see NF-06"]
-        KAN["kanban nostr-bbs-core/src/lib.rs:47"]
+        CAL["calendar NIP-52 nostr-bbs-core/src/lib.rs:27"]
+        DEL["deletion NIP-09 nostr-bbs-core/src/lib.rs:28"]
+        GRP["groups NIP-29 nostr-bbs-core/src/lib.rs:31"]
+        MOD["moderation_events nostr-bbs-core/src/lib.rs:33"]
+        THR["thread NIP-28 nostr-bbs-core/src/lib.rs:41"]
+        GOV["governance nostr-bbs-core/src/lib.rs:50 - see NF-06"]
+        ONT["ontology_governance ACSP profile nostr-bbs-core/src/lib.rs:38 - see NF-06"]
+        KAN["kanban nostr-bbs-core/src/lib.rs:51"]
     end
     subgraph glue["Runtime glue"]
-        DID["did nostr-bbs-core/src/lib.rs:44"]
-        COR["cors nostr-bbs-core/src/lib.rs:42"]
-        FG["feature_gate nostr-bbs-core/src/lib.rs:45"]
-        BP["boot_profile nostr-bbs-core/src/lib.rs:41"]
-        D1H["d1_helpers nostr-bbs-core/src/lib.rs:43"]
-        ASH["admin_shared nostr-bbs-core/src/lib.rs:40 - see NF-08.7"]
-        WB["wasm_bridge - wasm32 only nostr-bbs-core/src/lib.rs:48"]
+        DID["did nostr-bbs-core/src/lib.rs:48"]
+        COR["cors nostr-bbs-core/src/lib.rs:46"]
+        FG["feature_gate nostr-bbs-core/src/lib.rs:49"]
+        BP["boot_profile nostr-bbs-core/src/lib.rs:45"]
+        D1H["d1_helpers nostr-bbs-core/src/lib.rs:47"]
+        ASH["admin_shared nostr-bbs-core/src/lib.rs:44 - see NF-08.7"]
+        WB["wasm_bridge - wasm32 only nostr-bbs-core/src/lib.rs:53"]
     end
 
     N1["INVARIANT ADR-2002: this layer is what the upstream nostr absorption would REPLACE. Nothing here has<br/>been deleted - the canary gates that, see NF-01.5"]
-    N2["wasm_bridge is compiled ONLY for wasm32 nostr-bbs-core/src/lib.rs:48 and exports NIP-44, subkey<br/>derivation and Schnorr signing to JS - nostr-bbs-core/src/wasm_bridge.rs:20 wasm_bridge.rs:88<br/>wasm_bridge.rs:228. ANOMALY O10 re-verified: no JS consumer exists in this repo."]
-    N3["did wraps solid_pod_rs::did_nostr_types rather than re-encoding nostr-bbs-core/src/did.rs:13 -<br/>EXTERNAL: the encoder of record is the solid-pod-rs area (SP-*), see NF-02.9 and ES-04"]
+    N2["wasm_bridge is compiled ONLY for wasm32 nostr-bbs-core/src/lib.rs:53 and exports NIP-44, subkey<br/>derivation and Schnorr signing to JS - nostr-bbs-core/src/wasm_bridge.rs:20 wasm_bridge.rs:88<br/>wasm_bridge.rs:228. ANOMALY O10 re-verified: no JS consumer exists in this repo."]
+    N3["did wraps solid_pod_rs::did_nostr_types rather than re-encoding nostr-bbs-core/src/did.rs:13 -<br/>EXTERNAL: the encoder of record is the solid-pod-rs area (SP-*), see NF-02.2 and ES-04"]
+    N4["feature_gate is why the two workers cannot disagree on what DEVICE_KEYS_ENABLED means - each reads its<br/>OWN binding nostr-bbs-core/src/feature_gate.rs:42 but shares the PARSE rule<br/>nostr-bbs-core/src/feature_gate.rs:64, so ADR-2004's lockstep requirement holds by construction rather<br/>than by review - see NF-02.7 and NF-08.8"]
+    N5["boot_profile's BOOTPROFILE_MODE nostr-bbs-core/src/boot_profile.rs:41 and is_pwa_boot<br/>nostr-bbs-core/src/boot_profile.rs:97 gate the BBS client's zone-bound one-shot PWA boot - see NF-05.11"]
+    N6["nip19 is the only place bech32 npub nostr-bbs-core/src/nip19.rs:77, nsec nip19.rs:129, nprofile<br/>nip19.rs:180 and naddr nip19.rs:249 are encoded; the recovery sheet's QR codes carry its output -<br/>see NF-05.8"]
 ```
 
 ## NF-12.2 Event identity and the signing path
@@ -284,27 +286,6 @@ flowchart TB
     N3["EXTERNAL: agentbox speaks the same gift-wrap envelope shape on its own relay - see AB-13 and ES-03"]
 ```
 
-## NF-12.9 Small shared surfaces with outsized reach
-
-```mermaid
-flowchart LR
-    CORS["POD_CORS_HEADERS nostr-bbs-core/src/cors.rs:46<br/>STANDARD_CORS_HEADERS nostr-bbs-core/src/cors.rs:31"]
-    FG["DEVICE_KEYS_ENABLED_VAR nostr-bbs-core/src/feature_gate.rs:42<br/>device_keys_enabled nostr-bbs-core/src/feature_gate.rs:64"]
-    BP["BOOTPROFILE_MODE nostr-bbs-core/src/boot_profile.rs:41<br/>is_pwa_boot nostr-bbs-core/src/boot_profile.rs:97<br/>parse_boot_profile nostr-bbs-core/src/boot_profile.rs:107"]
-    D1H["js_str D1 binding helper nostr-bbs-core/src/d1_helpers.rs:13"]
-    N19["encode_npub nostr-bbs-core/src/nip19.rs:77 | decode_nsec nostr-bbs-core/src/nip19.rs:129<br/>encode_nprofile nostr-bbs-core/src/nip19.rs:180 | decode_naddr nostr-bbs-core/src/nip19.rs:249"]
-    TYP["EventId nostr-bbs-core/src/types.rs:31 | PublicKey nostr-bbs-core/src/types.rs:108<br/>Timestamp nostr-bbs-core/src/types.rs:219 | Tag nostr-bbs-core/src/types.rs:253"]
-
-    N1["feature_gate is why the two workers cannot disagree on what DEVICE_KEYS_ENABLED means - each reads its<br/>OWN binding but shares the PARSE rule, so ADR-2004's lockstep requirement holds by construction rather<br/>than by review - see NF-02.7 and NF-08.8"]
-    N2["cors is why the pod worker's DPoP, Updates-Via, WAC and payment header envelope cannot drift per<br/>worker - see NF-04.1"]
-    N3["boot_profile is consumed by the BBS client's zone-bound one-shot PWA - see NF-05.11"]
-    CAL["is_calibration_sample keyed HMAC-SHA256 nostr-bbs-core/src/governance.rs:596<br/>ENV_CALIBRATION_SELECTION_KEY nostr-bbs-core/src/governance.rs:561"]
-
-    N4["nip19 is the only place bech32 npub, nsec, nprofile and naddr are encoded; the recovery sheet's QR<br/>codes carry its output - see NF-05.8"]
-    N5["INVARIANT: calibration selection is KEYED, not a plain hash of the request id. The id is the 31402 d<br/>tag the agent chooses freely, so an unkeyed digest would let it grind ids until one is never sampled<br/>nostr-bbs-core/src/governance.rs:596 nostr-bbs-core/src/governance.rs:612"]
-    N6["The HMAC head is read as a big-endian u64 scaled into 0..1 and compared against the rate, so the<br/>decision is deterministic per request id nostr-bbs-core/src/governance.rs:616<br/>nostr-bbs-core/src/governance.rs:617. NaN or a non-positive rate samples nothing :599 - see NF-06"]
-```
-
 ## NF-12.10 The second gift wrap — why the sender keeps a copy
 
 ```mermaid
@@ -326,4 +307,31 @@ sequenceDiagram
     Note over SD: With one wrap everything you send is write-only - encrypted to the recipient, authored by a throwaway key, p-tagged to the recipient alone, so neither an authors nor a p filter ever finds it gift_wrap.rs:513-515
     Note over SD: INVARIANT one rumor, two seals - calling the single-wrap path twice would mint two rumors with two created_at values and the sender's copy would drift from the recipient's gift_wrap.rs:536-538
     Note over RL: The two wraps are independent events with distinct ids and distinct throwaway authors, by design, so an observer cannot link them to each other or to the sender gift_wrap.rs:530-532
+```
+
+## NF-12.11 Sealed originals — zone-history migration envelope (ADR-2017)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant M as Migrator<br/>nostr-bbs-core/src/sealed.rs:312
+    participant O as seal_original<br/>nostr-bbs-core/src/sealed.rs:312
+    participant R as Relay
+    participant Z as Zone-key holder
+    participant U as open_sealed<br/>nostr-bbs-core/src/sealed.rs:375
+
+    M->>O: plaintext kind-42 original, zone, epoch, zone_pk_hex
+    O->>O: kind==42, verify_event(original), no zk tag, channel_of sealed.rs:322 sealed.rs:328 sealed.rs:330 sealed.rs:334
+    O->>O: NIP-44 v2 encrypt inner JSON, migrator_sk to zone_pk sealed.rs:346
+    O-->>R: outer kind-42 event, tags e/zk/sealed sealed.rs:344
+    R->>Z: relay admits (admin-only authorship, exempt from drift check)
+    Z->>U: outer event, zone_sk
+    U->>U: parse sealed tag, version must be 1 sealed.rs:379 sealed.rs:380
+    U->>U: NIP-44 decrypt with zone_sk x outer.pubkey sealed.rs:387
+    U->>U: check 1 kind==42 sealed.rs:393<br/>check 2 verify_event(inner) sealed.rs:397<br/>check 3 id matches sealed tag sealed.rs:401<br/>check 4 no nested zk tag sealed.rs:405<br/>check 5 channel_of matches sealed.rs:409<br/>check 6 created_at matches sealed.rs:413
+    U-->>Z: original signed NostrEvent, id/author/timestamp intact
+
+    Note over O: INVARIANT: the outer author is the migrator, not the original author - a zone-key holder already ECDHs zone_sk with the outer author's pubkey for live posts, so the same path opens envelopes sealed.rs:55-57
+    Note over U: Any single failing check makes the envelope undecryptable — callers must never partly trust it sealed.rs:50-51
+    Note over U: The outer signature is NOT verified here - the relay verifies on ingress and a forged outer pubkey fails NIP-44 MAC anyway sealed.rs:71-73
 ```

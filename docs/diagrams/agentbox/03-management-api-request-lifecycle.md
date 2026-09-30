@@ -24,12 +24,10 @@ sources:
   - ../project/agentbox/management-api/lib/failure-taxonomy.js
   - ../project/agentbox/management-api/lib/execution-journal.js
   - ../project/agentbox/management-api/observability/metrics.js
-  - ../project/agentbox/scripts/agentbox-config-validate.js
   - ../project/agentbox/tests/contract/execution-journal.contract.spec.js
-  - ../project/agentbox/agentbox.toml
   - ../project/agentbox/docker-compose.yml
-  - ../project/agentbox/flake.nix
   - ../project/agentbox/management-api/adapters/events/local-jsonl.js
+  - ../project/agentbox/management-api/lib/elevation-stage.js
   - ../project/agentbox/management-api/middleware/consumer-payer.js
   - ../project/agentbox/management-api/middleware/spend-policy.js
   - ../project/agentbox/management-api/routes/admin-users.js
@@ -49,7 +47,7 @@ sources:
   - ../project/agentbox/management-api/routes/sessions-boundary.js
   - ../project/agentbox/management-api/routes/tasks.js
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
-verified_commit: 1639f86ab
+verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
 ---
 
 ## AB-03.1 server.js boot part 1 — Fastify construction, hooks, static route registers
@@ -266,7 +264,7 @@ sequenceDiagram
         end
     end
     end
-    Note over RO,RA: ADR-2013 — 9096 is the ONE LAN-published ingress door<br/>(docker-compose.yml:54, sanctioned check-ports-loopback.mjs:94) — 9090 mgmt-api and<br/>9095 aoe serve are loopback-only (docker-compose.yml:55)
+    Note over RO,RA: ADR-2013 — 9096 is the ONE LAN-published ingress door<br/>(docker-compose.yml:47, sanctioned check-ports-loopback.mjs:94) — 9090 mgmt-api and<br/>9095 aoe serve are loopback-only (docker-compose.yml:48)
 ```
 
 ## AB-03.6 route table (a) — system, status, well-known, uri-resolver, meta probes
@@ -294,7 +292,7 @@ flowchart TD
         D1["GET /v1/uri/:urn<br/>routes/uri-resolver.js:49"] --> HD1["400 malformed / 200+307 resolvable / 404 unknown —<br/>see AB-11.15 for the full alt-chain; 410 Gone is documented<br/>but WITHDRAWN, never emitted (ADR-2049) routes/uri-resolver.js:12-25"]
         D2["GET /v1/uri<br/>routes/uri-resolver.js:161"] --> HD2["resolver capability listing"]
     end
-    Note1["DOC-DRIFT: the governing doc carries an EMPTY verified_commit<br/>(BASELINE-container.md:6), so nothing states the revision its route<br/>citations were read at. Every route line above was re-derived<br/>from the symbol at 1639f86ab"]
+    Note1["DOC-DRIFT: the governing doc carries an EMPTY verified_commit<br/>(BASELINE-container.md:6), so nothing states the revision its route<br/>citations were read at. Every route line above was re-derived<br/>from the symbol at 6a4ad132f"]
 ```
 
 ## AB-03.7 route table (b) — tasks, beads, projects
@@ -338,7 +336,7 @@ flowchart TD
         M4["GET /v1/memory<br/>memory.js:267"] --> MH4["list memory keys"]
     end
     subgraph kg["routes/kg-elevation.js — self-gates on sovereign_mesh.kg_elevation"]
-        K1["POST /v1/kg-elevation/scan<br/>kg-elevation.js:67<br/>guard verifyAgentEventRequest kg-elevation.js:104"] --> KH1["scan personal KG via memory adapter<br/>emit LINK beams + ontology-propose descriptor"]
+        K1["POST /v1/kg-elevation/scan<br/>kg-elevation.js:77<br/>guard verifyAgentEventRequest kg-elevation.js:114"] --> KH1["scan personal KG via memory adapter<br/>ADR-2116 gateElevation before federation — see AB-03.18<br/>emit LINK beams + ontology-propose descriptor"]
     end
     subgraph lo["routes/linked-objects.js — viewer.mountPath, auth-skip for /lo/*"]
         L1["GET /lo/*<br/>linked-objects.js:133"] --> LH1["static viewer bundle — no auth (server.js:244-246)"]
@@ -579,12 +577,12 @@ sequenceDiagram
     participant Ev as events adapter dispatch<br/>adapters/events/local-jsonl.js:61
 
     rect rgb(232,244,255)
-    Note over Cli,Proxy: LAN-published trust boundary — the ONE ingress door (ADR-2013, docker-compose.yml:54)
+    Note over Cli,Proxy: LAN-published trust boundary — the ONE ingress door (ADR-2013, docker-compose.yml:47)
     Cli->>Proxy: HTTPS request, NIP-98 kind-27235 Authorization header
     Proxy->>Proxy: verify Schnorr sig at the proxy, forward to upstream mgmt-api under /mgmt/<br/>agentbox/CLAUDE.md nip98-proxy entry
     end
     rect rgb(240,255,235)
-    Note over App,H: loopback-only surface — 127.0.0.1 9090 9090 (docker-compose.yml:55)
+    Note over App,H: loopback-only surface — 127.0.0.1 9090 9090 (docker-compose.yml:48)
     Proxy->>App: POST /mgmt/v1/mandate, Authorization Nostr base64-event, body JSON
     App->>App: onRequest sets request.startTime<br/>server.js:204
     App->>App: addContentTypeParser buffers body into request.rawBody<br/>middleware/auth.js:221-236
@@ -626,18 +624,40 @@ flowchart LR
     Note1["DOC-DRIFT candidate: spend-policy.js and consumer-payer.js are fully implemented<br/>but unwired at the HTTP route layer today (grep -rl across management-api routes/*.js server.js finds none)"]
 ```
 
-## AB-03.17 DIVERGENCE check — raw-body content-type parser IS registered
+## AB-03.18 lib/elevation-stage.js — gateElevation, ADR-2116 vault-propose gate before federation
 
 ```mermaid
-flowchart TD
-    Hyp["Hypothesis under test: registerRawBody is never called<br/>so direct body binding is inert on port 9090"] --> G1["grep -n registerRawBody rawBody addContentTypeParser<br/>across management-api, config, flake.nix"]
-    G1 --> F1["middleware/auth.js:220 defines registerRawBody(app)"]
-    G1 --> F2["middleware/auth.js:221 addContentTypeParser application-json parseAs buffer"]
-    G1 --> F3["server.js:102 calls registerRawBody(app) — before route registration, line 101"]
-    F1 --> R["REFUTED: registerRawBody IS invoked at boot"]
-    F2 --> R
-    F3 --> R
-    R --> Path["Working path: content-type parser sets request.rawBody Buffer<br/>preValidation-phase authMiddleware reads it for NIP-98 payload binding — see AB-03.15"]
-    Path --> Note1["NOTE: two earlier sibling agents' unevidenced claim does not hold in this working tree (b00c28a0d)<br/>request.rawBody is populated for every application/json body before verifyNip98Header runs (middleware/auth.js:76-82, server.js:222-228)"]
+sequenceDiagram
+    autonumber
+    participant K as POST /v1/kg-elevation/scan<br/>routes/kg-elevation.js:77
+    participant G as gateElevation<br/>lib/elevation-stage.js:226
+    participant Val as validateStandalone<br/>lib/elevation-stage.js
+    participant Vault as runVaultPropose<br/>lib/ontology-propose.js
+    participant Pub as elevationPublisher<br/>lib/elevation-publisher.js
+
+    K->>K: extractProposals(entries) builds candidates<br/>kg-elevation.js:157-167
+    loop per candidate p
+        K->>G: gateElevation(p, {env})<br/>kg-elevation.js:182
+        G->>G: renderStagedPage — draft page, status false, sources[id=origin]<br/>lib/elevation-stage.js:131-178
+        alt staged page collides or fails to render
+            G-->>K: {proposable false, blocked true, stage_issues}<br/>lib/elevation-stage.js:240-252,286-298
+        else staged
+            G->>Val: vault validate --strict --json in scratch repo<br/>lib/elevation-stage.js:200-212
+            alt validation fails — not DANGLING_LINK
+                Val-->>G: disqualifying issues<br/>lib/elevation-stage.js:210-212
+                G-->>K: {proposable false, blocked true, stage_issues}<br/>lib/elevation-stage.js:263
+            else standalone ok
+                G->>Vault: vault propose --diff staged page(s)<br/>lib/elevation-stage.js:265-279
+                Vault-->>G: {proposal, blockers, blocked}
+                G-->>K: outcome — proposable equals not blocked<br/>lib/elevation-stage.js:280
+            end
+        end
+        K->>K: p.patch_proposal, p.blockers, p.stage_issues, p.propose_error<br/>kg-elevation.js:183-186
+    end
+    opt outcome.blocked
+        K->>K: logger.debug kg-elevation.blocked — not federated<br/>kg-elevation.js:188-192
+    end
+    K->>Pub: publish only ungated-through candidates to Nostr<br/>see AB-03.15/AB-03.12 for the audit-chain append downstream
+    Note over G: DANGLING_LINK is the one issue code the gate tolerates standalone<br/>every relation target is dangling in a one-page scratch repo by construction (lib/elevation-stage.js:23-27)
 ```
 

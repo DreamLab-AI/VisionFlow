@@ -4,7 +4,7 @@ title: Client feature directories — API and WebSocket surface
 area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2041, ADR-2006, ADR-2074, ADR-2077]
+adrs: [ADR-2041, ADR-2115, ADR-2006, ADR-2074, ADR-2077]
 sources:
   - ../project/docs/explanation/control-center.md
   - ../project/client/src/features/settings/config/settings.ts
@@ -101,7 +101,7 @@ sources:
   - ../project/client/src/features/design-system/components/SearchInput.tsx
   - ../project/client/src/features/ontology/components/OntologyContribution.tsx
   - ../project/src/services/broker_events.rs
-verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
 ---
 ## VC-34.1 settings — field edit to server PUT
 ```mermaid
@@ -161,8 +161,9 @@ flowchart TD
     ManifestTs -->|npm run gen:manifest, ts-node| Emit["client/scripts/emit-settings-manifest.ts:18 buildManifest()"]
     Emit --> ManifestJson["registry/settings-manifest.json - 224 fields, 11 groups"]
     ManifestJson -->|consumed by| QA["browser-automation coverage phase: assert every testid present+interactive"]
-    ADR["ADR-2041: graph settings key renamed logseq to knowledge<br/>touches settings.ts, app_settings.rs, generate_types.rs output"] -.-> RustStruct
+    ADR["ADR-2041 renamed logseq to knowledge, superseded by ADR-2115<br/>which retires the server-side logseq alias entirely -<br/>touches settings.ts, app_settings.rs, generate_types.rs output"] -.-> RustStruct
     ADR -.-> Out
+    Note2["settingsStore.ts:52-56 keeps a receive-side migrateGraphSettingsKey<br/>shim for stored localStorage state - ADR-2115 retired only the<br/>server alias, not this client migration"] -.-> Out
 ```
 ## VC-34.3 ontology — JSS fetch, PATCH and WebSocket refresh (contextLoader is the shared base)
 ```mermaid
@@ -441,7 +442,7 @@ sequenceDiagram
     Hook->>UAC: POST /health/mcp/start
     HD->>Hook: getMCPLogs()
     Hook->>UAC: GET /health/mcp/logs
-    Note right of HD: HD composes design-system Card/Badge/Button/Toast primitives - see VC-34.16
+    Note right of HD: HD composes design-system Card/Badge/Button/Toast primitives - see VC-34.15
 ```
 ## VC-34.12 analytics — semantic service REST, SSSP store and wire-decoded per-node analytics
 ```mermaid
@@ -545,13 +546,6 @@ flowchart LR
     Anim -.-> DS
     MD -.-> DS
     Note1["No fetch/axios/unifiedApiClient/WebSocket anywhere under<br/>client/src/features/design-system - a pure component library, 32 importers across other feature dirs"]
-```
-## VC-34.16 contributor-studio and the workspace stub — both deleted (RESOLVED ADR-2077)
-```mermaid
-flowchart TD
-    Was["client/src/features/contributor-studio/ held only an empty types/<br/>client/src/features/workspace/ held only an empty components/"] --> Gone["Both directory trees DELETED"]
-    Gone --> R["RESOLVED ADR-2077: neither held a single source file and nothing<br/>imported either name. The feature tree no longer advertises two<br/>features that do not exist - client/src/features now holds 15<br/>directories, all with source."]
-    Gone --> Keep["The workspace IMPLEMENTATION was never in the feature dir and is<br/>untouched: client/src/api/workspaceApi.ts and<br/>client/src/hooks/useWorkspaces.ts - drawn in VC-34.17"]
 ```
 ## VC-34.17 workspace — CRUD REST plus realtime WebSocket (implementation lives outside features/)
 ```mermaid

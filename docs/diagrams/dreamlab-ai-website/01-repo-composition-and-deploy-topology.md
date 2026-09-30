@@ -18,7 +18,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
   - ../dreamlab-ai-website/forum-config/src/workers.rs
   - ../dreamlab-ai-website/src/App.tsx
-verified_commit: 08e9e8578
+verified_commit: 9b8ea495da80aaa5b45795af916bda4470467481
 ---
 
 ## DW-01.1 Repo composition — thin operator overlay, not a protocol owner
@@ -37,78 +37,67 @@ flowchart TB
 ```mermaid
 flowchart LR
     ORIGIN["dreamlab-ai.com<br/>CNAME:1"] --> ROOT["/  React 18 marketing SPA<br/>src/App.tsx, Vite+React Router<br/>BASELINE-architecture.md:50"]
-    ORIGIN --> COMM["/community/  Leptos 0.7 CSR-WASM forum<br/>kit crate nostr-bbs-forum-client, Trunk-built<br/>deploy.yml:204 'Build Leptos forum with Trunk'"]
-    ORIGIN --> BBS["/community/bbs/  retro ASCII/BBS terminal<br/>kit crate nostr-bbs-bbs-client, Trunk-built<br/>deploy.yml:295 'Build retro ASCII/BBS client'"]
+    ORIGIN --> COMM["/community/  Leptos 0.7 CSR-WASM forum<br/>kit crate nostr-bbs-forum-client, Trunk-built<br/>deploy.yml:216 'Build Leptos forum with Trunk'"]
+    ORIGIN --> BBS["/community/bbs/  retro ASCII/BBS terminal<br/>kit crate nostr-bbs-bbs-client, Trunk-built<br/>deploy.yml:307 'Build retro ASCII/BBS client'"]
     LEGACY["/bbs"] -. "301-style client redirect" .-> BBS
 ```
-- DOC-DRIFT: `README.md` frames the site as "Two SPAs, one origin"; the deploy ships a third client at `/community/bbs/` (BASELINE-architecture.md:122-124, `deploy.yml:295`).
+- DOC-DRIFT: `README.md` frames the site as "Two SPAs, one origin"; the deploy ships a third client at `/community/bbs/` (BASELINE-architecture.md:122-124, `deploy.yml:307`).
 - All three are static assets after build; React gets Vite build variables, forum/BBS get a `window.__ENV__` block injected by `sed` at deploy time (BASELINE-architecture.md:54-58).
 
 ## DW-01.3 Deploy topology — GitHub Pages primary, Cloudflare Pages gated off
 ```mermaid
 flowchart TB
-    BUILD["build-and-deploy job<br/>deploy.yml"] --> GHPAGES["peaceiris/actions-gh-pages<br/>publish_branch gh-pages, cname dreamlab-ai.com<br/>deploy.yml:366-372"]
+    BUILD["build-and-deploy job<br/>deploy.yml"] --> GHPAGES["peaceiris/actions-gh-pages<br/>publish_branch gh-pages, cname dreamlab-ai.com<br/>deploy.yml:377-383"]
     BUILD --> MIRROR{"DREAMLAB_UK_TOKEN present?<br/>deploy.yml step 'Check mirror token'"}
-    MIRROR -->|yes| MIRRORDEPLOY["mirror to TheDreamLabUK/website<br/>cname thedreamlab.uk<br/>deploy.yml:391-398"]
+    MIRROR -->|yes| MIRRORDEPLOY["mirror to TheDreamLabUK/website<br/>cname thedreamlab.uk<br/>deploy.yml:400-411"]
     MIRROR -->|no| SKIP["skip, ::notice::"]
-    BUILD --> CFGATE{"vars.CLOUDFLARE_PAGES_ENABLED == 'true'?<br/>deploy.yml:402"}
+    BUILD --> CFGATE{"vars.CLOUDFLARE_PAGES_ENABLED == 'true'?<br/>deploy.yml:414"}
     CFGATE -->|yes| CFPAGES["cloudflare/wrangler-action<br/>pages deploy dist/ --project-name=dreamlab-ai"]
     CFGATE -->|no, default| CFOFF["Cloudflare Pages step does not run"]
 ```
-- DOC-DRIFT: `README.md` frames the site as a "dual-SPA Cloudflare-edge deployment"; the origin is GitHub Pages, Cloudflare only hosts the backend Workers, and Cloudflare Pages is opt-in behind an explicit repo variable (BASELINE-architecture.md:117-121).
+- DOC-DRIFT: `README.md` frames the site as a "dual-SPA Cloudflare-edge deployment"; the origin is GitHub Pages, Cloudflare only hosts the backend Workers (five: auth, pod, relay, search, preview — `forum-config/src/workers.rs:155-172`), and Cloudflare Pages is opt-in behind an explicit repo variable (BASELINE-architecture.md:117-121).
 - INVARIANT: GitHub Pages is the origin of record for `dreamlab-ai.com` until DNS is re-cut; the Cloudflare Pages step must stay gated behind that repo variable (BASELINE-architecture.md:155-157, Invariant 4).
-
-## DW-01.4 Backend — five Cloudflare Workers, raw `workers.dev` hosts
-```mermaid
-flowchart TB
-    CLIENT["React / Leptos / BBS clients"] --> AUTH["dreamlab-auth-api<br/>forum-config/src/workers.rs:155"]
-    CLIENT --> POD["dreamlab-pod-api<br/>forum-config/src/workers.rs:159"]
-    CLIENT --> RELAY["dreamlab-nostr-relay wss<br/>forum-config/src/workers.rs:163"]
-    CLIENT --> SEARCH["dreamlab-search-api<br/>forum-config/src/workers.rs:167"]
-    CLIENT --> PREVIEW["dreamlab-link-preview<br/>forum-config/src/workers.rs:171-172"]
-    AUTH -.->|"CORS: Access-Control-Allow-Origin<br/>https://dreamlab-ai.com"| CLIENT
-```
-- The branded custom domains (`relay./api./pods./search./preview.dreamlab-ai.com`) are the documented end-state but are **not provisioned in DNS** (verified 2026-06-09 `ERR_NAME_NOT_RESOLVED`, not re-checked as of 2026-08-31) — shipping them baked in previously severed every client API call (BASELINE-architecture.md:77-82).
-- The CORS claim is asserted live by CI: `tests/forum-smoke.spec.ts:404-410` ("workers return scoped CORS") checked against all four HTTP workers.
+- The branded custom domains for those Workers (`relay./api./pods./search./preview.dreamlab-ai.com`) are the documented end-state but are **not provisioned in DNS** — the client instead talks to raw `*.workers.dev` hosts baked into the build env (`deploy.yml:47-52`; verified 2026-06-09 `ERR_NAME_NOT_RESOLVED`, not re-checked as of 2026-08-31) — shipping the branded domains baked in previously severed every client API call (BASELINE-architecture.md:77-82).
 
 ## DW-01.5 The dual-pin rule — four locations that must move together
 ```mermaid
 flowchart TB
-    A["1. KIT_REF<br/>.github/workflows/deploy.yml:98"] --- SHA["64b15d5b574608c68a527c78b75a548b91f4c6e8"]
+    A["1. KIT_REF<br/>.github/workflows/deploy.yml:104"] --- SHA["7def3e4e74e92fdf2f29416ce08ae6dadc878c8d"]
     B["2. KIT_REF<br/>.github/workflows/workers-deploy.yml:44"] --- SHA
     C["3. KIT_REF<br/>.github/workflows/rust-ci.yml:21"] --- SHA
-    D["4. rev pin, resolved version<br/>forum-config/Cargo.toml + Cargo.lock"] --- VER["1.0.0-beta.11"]
+    D["4. rev pin, resolved version<br/>forum-config/Cargo.toml:49-52"] --- VER["1.0.0-beta.11"]
     SHA -.->|"CANONICAL_KIT_SHA"| REC["kit-compatibility-record.md:30"]
     VER -.->|"CANONICAL_KIT_VERSION"| REC2["kit-compatibility-record.md:31"]
 ```
 - `workers-deploy.yml` fires on `forum-config/Cargo.lock` and `KIT_REF` changes precisely so a kit re-pin never ships a new client against old workers — the client/worker skew that "wiped the forum on 2026-06-15" (BASELINE-architecture.md:103-106).
-- DOC-DRIFT: `BASELINE-architecture.md:99-101` cites `KIT_REF = a7544687b4d1c09807862d749b27f8c8da307a12` and crate version `"1.0.0-beta.9"` (line 96) as current; the live pins (verified in `deploy.yml:98`, `workers-deploy.yml:44`, `rust-ci.yml:21`, `forum-config/Cargo.toml:49-52`, and `kit-compatibility-record.md:30-31`) are `64b15d5b574608c68a527c78b75a548b91f4c6e8` / `1.0.0-beta.11` — the kit has been re-pinned twice since this governing doc's `verified_commit: d852f61` without a doc update. All four pin sites and the compatibility record agree with each other; only the governing doc has drifted.
-- DOC-DRIFT (Wave 2, the repo's most-read file): `README.md:289` states "Live pin `2d693ed2…` (beta.6, re-pinned 2026-07-21)" — a THIRD, even-older value distinct from both the governing doc's stale beta.9 citation above and the live beta.11 pin. The README is three releases stale, not one, and unlike `BASELINE-architecture.md` it is not covered by any `verified_commit` mechanism at all.
-- DOC-DRIFT: the pin sites carry their own stale prose. `rust-ci.yml:19` still annotates the pin "tracks nostr-rust-forum v1.0.0-beta.9" while `rust-ci.yml:21` pins `64b15d5`, and `deploy.yml:95-97` still describes the beta.10 change set beside the beta.11 `KIT_REF` at `deploy.yml:98`; only `kit-compatibility-record.md:26` was rewritten with the value.
-- INVARIANT: the machine-readable pin lives in exactly one place the gate reads — `CANONICAL_KIT_SHA` / `CANONICAL_KIT_VERSION` in `kit-compatibility-record.md:30-31` — and every other site is compared against it, which is why the surrounding comments can rot without the gate noticing (see DW-05.8).
+- DOC-DRIFT: `BASELINE-architecture.md:99,101` still cites `KIT_REF = a7544687b4d1c09807862d749b27f8c8da307a12` and crate version `"1.0.0-beta.9"` (line 96) as current; the live pins (`deploy.yml:104`, `workers-deploy.yml:44`, `rust-ci.yml:21`, `forum-config/Cargo.toml:49-52`, `kit-compatibility-record.md:30-31`) are `7def3e4e74e92fdf2f29416ce08ae6dadc878c8d` / `1.0.0-beta.11` — the kit has been re-pinned repeatedly since this governing doc's `verified_commit: d852f61` without a doc update. All four pin sites and the compatibility record agree with each other; only the governing doc has drifted.
+- DOC-DRIFT (Wave 2, the repo's most-read file): `README.md:298` still states "Live pin `2d693ed2…` (beta.6, re-pinned 2026-07-21)" — a THIRD, even-older value distinct from both the governing doc's stale beta.9 citation above and the live beta.11 pin, and not covered by any `verified_commit` mechanism at all.
+- DOC-DRIFT: the pin sites carry their own stale prose. `rust-ci.yml:19` still annotates the pin "tracks nostr-rust-forum v1.0.0-beta.9" while `rust-ci.yml:21` pins `7def3e4`, and `deploy.yml:95-97` still describes the beta.9 change set beside the live beta.11 `KIT_REF` at `deploy.yml:104`; only `kit-compatibility-record.md` was rewritten with each bump.
+- INVARIANT: the machine-readable pin lives in exactly one place the gate reads — `CANONICAL_KIT_SHA` / `CANONICAL_KIT_VERSION` in `kit-compatibility-record.md:30-31` — and every other site is compared against it, which is why the surrounding comments can rot without the gate noticing.
 
 ## DW-01.6 Deploy job sequence — clone kit, build three frontends, merge, inject, deploy
 ```mermaid
 sequenceDiagram
     autonumber
     participant GH as gate job<br/>test-and-lint.yml, deploy.yml:101-108
-    participant CO as checkout + clone kit at KIT_REF<br/>deploy.yml:113-118
-    participant RB as Build React main site<br/>deploy.yml:136 npm run build
-    participant LB as Build Leptos forum with Trunk<br/>deploy.yml:204 --public-url /community/
+    participant CO as checkout + clone kit at KIT_REF<br/>deploy.yml:129-136
+    participant RB as Build React main site<br/>deploy.yml:149 npm run build
+    participant LB as Build Leptos forum with Trunk<br/>deploy.yml:216-218 --public-url /community/
     participant MG as Merge React + Forum into dist/<br/>deploy.yml step 'Merge...'
     participant ENV as Inject window.__ENV__<br/>deploy.yml step 'Inject runtime env config'
-    participant BB as Build retro BBS with Trunk<br/>deploy.yml:295
-    participant PG as Deploy to gh-pages<br/>deploy.yml:366-372
+    participant BB as Build retro BBS with Trunk<br/>deploy.yml:307
+    participant PG as Deploy to gh-pages<br/>deploy.yml:377-383
     GH->>CO: needs.gate.outputs.passed == 'true'
     CO->>RB: dist/index.html + assets
     CO->>LB: kit/dist (forum WASM)
     RB->>MG: cp -r kit/dist/* dist/community/
     LB->>MG: (forum output)
-    MG->>ENV: sed inject <script>window.__ENV__=...ZONE_CONFIG...
+    MG->>ENV: sed inject <script>window.__ENV__=...SIDESTR_WALLET,ENCRYPTION_ENABLED,ZONE_CONFIG...
     ENV->>BB: build BBS after the forum merge so `cp kit/dist/*` does not grab the bbs subtree
     BB->>PG: dist/community/bbs/ merged, rebrand step, 404 shims
 ```
 - Supply-chain hardening: every tool the deploy job downloads (Trunk, binaryen/`wasm-opt`, Tailwind CLI) is pinned to an exact version **and** SHA256-verified before use, because this job carries the Cloudflare API token (BASELINE-architecture.md:110-113, `deploy.yml:32-40`).
+- The injected payload has grown since ADR-2015/ADR-2016 shipped: `SIDESTR_WALLET:'on'` (deploy.yml:73) gates the testnet4 wallet nav/tip UI, `ENCRYPTION_ENABLED:'true'` (deploy.yml:80) is the zone E2EE master switch, and `ZONE_CONFIG_JSON` (deploy.yml:81) now marks zones 2-4 `encrypted:true` with zone4 carrying `agent_keys:true` — see DW-03/DW-04 for the zone model and encryption detail this step only injects.
 
 ## DW-01.7 SPA deep-link 404 shim — load-bearing, not incidental
 ```mermaid
@@ -123,7 +112,7 @@ stateDiagram-v2
     HardLoad --> BbsRedirect: path is /bbs or /bbs/*
     BbsRedirect --> BbsServed: replaced with /community/bbs/ directly (single-screen terminal)
 ```
-- "SPA deep links depend on a 404-redirect shim" is called out as load-bearing in the Known-divergences section, not incidental (BASELINE-architecture.md:138-141, `deploy.yml:327-363`, `250-262`).
+- "SPA deep links depend on a 404-redirect shim" is called out as load-bearing in the Known-divergences section, not incidental (BASELINE-architecture.md:138-141, `deploy.yml:338-368`, `264-273`).
 - The React pickup script is deliberately external (`public/spa-redirect.js`), not an inline `<script>`, because `index.html`'s CSP (`script-src 'self'`, no `'unsafe-inline'`) would block an injected inline script — exactly the bug class that broke `/workshops` deep links (`deploy.yml` comment above the "Deploy" step).
 
 ## DW-01.8 EXTERNAL — estate authority map beyond this repo

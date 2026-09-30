@@ -19,18 +19,19 @@ sources:
   - .github/workflows/drift-counter.yml
   - ../project/.github/workflows/ontology-publish.yml
   - ../project/src/services/ontology_pull.rs
-verified_commit: {dreamlab-ai-website: 08e9e8578, knowledgegraph: 75a5c1f1a, visionclaw: f223bbd40, visionflow: df22182f3, visiongraph: 149d8eba6, vowl-wasm: 65e2d1e78}
+verified_commit: {dreamlab-ai-website: 9b8ea495d, knowledgegraph: 3a266fc3a, visionclaw: 58f04f2eb, visionflow: d4e442986, visiongraph: ac6274f9f, vowl-wasm: 65e2d1e78}
 ---
-## ES-11.1 The publishing axis — five cross-repo edges, each previously drawn from one side only
+## ES-11.1 The publishing axis — six cross-repo edges, each previously drawn from one side only
 ```mermaid
 flowchart TB
     subgraph AUTHOR["Authoring"]
         VG["EXTERNAL: visionGraph — the vault<br/>private, jjohare/visionGraph. see VG-01"]
+        VC["EXTERNAL: DreamLab-AI/VisionClaw — vault binary<br/>release asset OR built from source<br/>at pinned VAULT_GIT_REV. see VC-21"]
     end
     subgraph PUB["Publication"]
-        PUBYML["visionGraph publish.yml<br/>publish.yml:241 peaceiris/actions-gh-pages pinned SHA"]
+        PUBYML["visionGraph publish.yml<br/>publish.yml:444-445 peaceiris/actions-gh-pages pinned SHA"]
         KG["EXTERNAL: knowledgeGraph — Pages host<br/>CNAME:1 narrativegoldmine.com. see KG-01"]
-        REL["VisionClaw ontology-latest release<br/>ontology-publish.yml:181. see ES-09.13"]
+        REL["VisionClaw ontology-latest release<br/>ontology-publish.yml:232,277. see ES-09.13"]
     end
     subgraph CONSUME["Consumption"]
         POD["VisionClaw embedded pod<br/>ontology_pull.rs:293. see ES-08.11"]
@@ -43,69 +44,73 @@ flowchart TB
         DW["EXTERNAL: dreamlab-ai-website<br/>KIT_REF rust-ci.yml:21. see DW-01"]
     end
 
-    VG -->|"edge 11 — cross-ORG deploy"| PUBYML
-    PUBYML -->|"external_repository DreamLab-AI/knowledgeGraph<br/>publish_branch gh-pages, publish.yml:244-245"| KG
-    VG -->|"edge 9 — the SAME corpus, a second path"| REL
+    VC -->|"edge 17 - NEW: publish.yml now builds/fetches<br/>a VisionClaw binary at publish time, publish.yml:42-48,81-145"| PUBYML
+    VG -->|"edge 11 - cross-ORG deploy"| PUBYML
+    PUBYML -->|"external_repository DreamLab-AI/knowledgeGraph<br/>publish_branch gh-pages, publish.yml:448-449"| KG
+    VG -->|"edge 9 - the SAME corpus, a second path"| REL
     REL --> POD
-    KG -->|"edge 16 — /ns/v2.jsonld is the contract<br/>consumers dereference, roster.json:32-36"| LOOM
+    KG -->|"edge 16 - /ns/v2.jsonld is the contract<br/>consumers dereference, roster.json:32-36"| LOOM
     KG -->|"edge 12"| EXPL
     VW --> EXPL
-    NF -->|"edge 13 — build-time clone at a pinned SHA"| DW
+    NF -->|"edge 13 - build-time clone at a pinned SHA"| DW
 
-    INV["INVARIANT — ONE authored corpus, TWO distribution paths.<br/>The gh-pages deploy publishes the browsable site to<br/>narrativegoldmine.com; the release feeds the embedded pod<br/>by boot pull. Neither is the other's fallback: a change to<br/>the vault reaches consumers by BOTH routes, on different<br/>clocks. see ES-09.13 and ES-08.11"]
-    GAP["Why this topic exists — before it, estate/ named none of<br/>vowl-wasm, KIT_REF, narrativegoldmine, roster.json or<br/>gh-pages. Each of these five edges was drawn only from the<br/>repo that owns one END of it, so a contributor changing a<br/>pin had no diagram showing who breaks."]
+    INV["INVARIANT - ONE authored corpus, TWO distribution paths.<br/>The gh-pages deploy publishes the browsable site to<br/>narrativegoldmine.com; the release feeds the embedded pod<br/>by boot pull. Neither is the other's fallback: a change to<br/>the vault reaches consumers by BOTH routes, on different<br/>clocks. see ES-09.13 and ES-08.11"]
+    GAP["Why this topic exists - before it, estate/ named none of<br/>vowl-wasm, KIT_REF, narrativegoldmine, roster.json, gh-pages<br/>or the vault binary provisioning edge. Each was drawn only<br/>from the repo that owns one END of it, so a contributor<br/>changing a pin had no diagram showing who breaks."]
 
     PUBYML --> INV
     PINS --> GAP
+    VC --> GAP
 ```
 
-## ES-11.2 Edge 11 — visionGraph publishes into another org's repo
+## ES-11.2 Edge 11 - visionGraph publishes into another org's repo, now via a VisionClaw-built vault binary and Quartz notes
 ```mermaid
 sequenceDiagram
     autonumber
     participant VG as "EXTERNAL: visionGraph publish.yml"<br/>see VG-03
-    participant EX as "existing gh-pages checkout"
+    participant VC as "EXTERNAL: DreamLab-AI/VisionClaw"<br/>see VC-21
     participant WWW as "www/ build output"
     participant KG as "EXTERNAL: DreamLab-AI/knowledgeGraph"<br/>see KG-05
 
-    VG->>WWW: write the CNAME into the artefact, publish.yml:203
-    VG->>KG: clone --branch gh-pages --depth 1, publish.yml:229-230
-    KG-->>EX: the currently published tree
-    VG->>WWW: public projection builds graph and title Markdown, publish.yml:95
-    VG->>WWW: preserve existing /notes SPA if present, publish.yml:232-235
-    VG->>WWW: apply tested responsive notes override, publish.yml:235
-    VG->>KG: actions-gh-pages pinned SHA publish.yml:241<br/>external_repository :244, publish_branch gh-pages :245
-    Note over VG,KG: INVARIANT — this is a CROSS-ORG, CROSS-REPO deploy:<br/>the workflow lives in jjohare/visionGraph and writes into<br/>DreamLab-AI/knowledgeGraph, authenticated by a personal_token<br/>secret (publish.yml:243). knowledgeGraph does not build the<br/>site it serves — it is a publication TARGET.
-    Note over EX: The /notes preservation step is why the deploy is not a<br/>clean replace — a directory the publisher never builds is<br/>carried across from the previous publication, so gh-pages<br/>content includes a separately preserved historical export.
-    Note over WWW: Public graph and Markdown share the known-private projection.
-    Note over WWW: Notes CSS repair does not rebuild the historical SPA source.
-    Note over KG: knowledgeGraph/CNAME:1 is narrativegoldmine.com — the same<br/>domain publish.yml:203 writes, so the CNAME exists on both<br/>sides of the deploy. see KG-01
+    VG->>VC: gh release download VAULT_RELEASE_TAG, publish.yml:89-94
+    alt no release asset
+        VG->>VC: checkout at pinned VAULT_GIT_REV, publish.yml:108-113
+        VG->>VG: cargo build --release -p vault, publish.yml:144
+    end
+    VG->>WWW: vault build --vault all --out site-data<br/>--publish-out quartz/content, publish.yml:186-190
+    VG->>WWW: Quartz v4 renders /notes/ from staged content<br/>(replaces the old Logseq SPA), publish.yml:297-306
+    VG->>WWW: place machine artefacts at site root, write CNAME<br/>publish.yml:309-329
+    VG->>WWW: build WasmVOWL explorer SPA at site root, publish.yml:371-409
+    VG->>KG: actions-gh-pages pinned SHA publish.yml:445<br/>external_repository :448, publish_branch :449
+    Note over VG,VC: INVARIANT - vault (VisionClaw crates/vault) is now the<br/>ONLY producer of both the machine artefacts and the Quartz<br/>content staging tree, and VisionClaw is a build-time<br/>dependency of this pipeline: a release asset when<br/>VAULT_RELEASE_TAG is set, else built from source at the<br/>pinned VAULT_GIT_REV, publish.yml:39-48. This edge did not<br/>exist at the previous audit.
+    Note over VG,KG: INVARIANT - this is still a CROSS-ORG, CROSS-REPO deploy:<br/>the workflow lives in jjohare/visionGraph and writes into<br/>DreamLab-AI/knowledgeGraph, authenticated by a personal_token<br/>secret (publish.yml:447). knowledgeGraph does not build the<br/>site it serves - it is a publication TARGET.
+    Note over WWW: DOC-DRIFT resolved - the old gh-pages clone-and-preserve<br/>/notes step is gone. Quartz v4 builds /notes/ fresh every<br/>run from vault-staged content, so there is no cross-deploy<br/>carry-over left to document.
+    Note over KG: knowledgeGraph/CNAME:1 is narrativegoldmine.com - the same<br/>domain publish.yml:329 writes, so the CNAME exists on both<br/>sides of the deploy. see KG-01
 ```
 
-## ES-11.3 Edge 12 — two VOWL explorers, two divergent bundle pins
+## ES-11.3 Edge 12 - two VOWL explorers, two divergent bundle pins
 ```mermaid
 flowchart LR
     CRATE["EXTERNAL: vowl-wasm<br/>version 0.1.2, Cargo.toml:5<br/>see VW-01"]
 
-    subgraph KGE["EXTERNAL: knowledgeGraph explorer — see KG-04"]
+    subgraph KGE["EXTERNAL: knowledgeGraph explorer - see KG-04"]
         KGP["@dreamlab-ai/vowl-wasm pinned to a<br/>RELEASE TARBALL URL for v0.1.1<br/>explorer/modern/package.json:20"]
     end
-    subgraph VGE["EXTERNAL: visionGraph WasmVOWL — see VG-03"]
+    subgraph VGE["EXTERNAL: visionGraph WasmVOWL - see VG-03"]
         VGP["@dreamlab-ai/vowl-wasm pinned to<br/>the registry range 0.1.2<br/>WasmVOWL/modern/package.json:20"]
     end
 
     CRATE -->|"published as a GitHub release asset"| KGP
     CRATE -->|"published to npm as @dreamlab-ai/vowl-wasm"| VGP
 
-    D1["DOC-DRIFT — the two consumers are a MINOR version apart AND<br/>resolve by different mechanisms. knowledgeGraph fetches a<br/>frozen v0.1.1 tarball over HTTPS; visionGraph resolves 0.1.2<br/>from the registry. A vowl-wasm release therefore reaches one<br/>explorer and not the other, and no gate compares them."]
-    D2["DIVERGENCE — the roster carries BOTH vowl-wasm and WasmVOWL<br/>as separate first-party repositories (roster.json:11,13), and<br/>registers @dreamlab-ai/vowl-wasm on npm alongside the<br/>crates.io crate (roster.json:41,46). The npm bundle is the<br/>artefact both explorers consume; the crate is what estate<br/>health actually measures. see VF-03.1"]
+    D1["DOC-DRIFT - the two consumers are a MINOR version apart AND<br/>resolve by different mechanisms. knowledgeGraph fetches a<br/>frozen v0.1.1 tarball over HTTPS; visionGraph resolves 0.1.2<br/>from the registry. A vowl-wasm release therefore reaches one<br/>explorer and not the other, and no gate compares them."]
+    D2["DIVERGENCE - the roster carries BOTH vowl-wasm and WasmVOWL<br/>as separate first-party repositories (roster.json:13,15), and<br/>registers @dreamlab-ai/vowl-wasm on npm alongside the<br/>crates.io crate (roster.json:56,62). The npm bundle is the<br/>artefact both explorers consume; the crate is what estate<br/>health actually measures. see VF-03.1"]
 
     KGP --> D1
     VGP --> D1
     CRATE --> D2
 ```
 
-## ES-11.4 Edge 13 — the forum kit pin, and the guard that keeps four files in lockstep
+## ES-11.4 Edge 13 - the forum kit pin, and the guard that keeps four files in lockstep
 ```mermaid
 sequenceDiagram
     autonumber
@@ -120,11 +125,11 @@ sequenceDiagram
     alt any of the five disagrees
         GUARD--xCI: "::error::Kit pin drift detected" kit-pin-guard.yml:29
     end
-    Note over NF,GUARD: INVARIANT — the website consumes the forum kit at BUILD time<br/>by source clone, not as a published package. The pin is<br/>therefore a SHA, and correctness depends on five files<br/>agreeing — kit-pin-guard.yml is the only thing that checks it.
-    Note over NF: EXTERNAL — this diagram asserts only what the WEBSITE's<br/>workflows state about the kit. The kit's own contract is<br/>NF's to describe. see NF-01 and DW-02
+    Note over NF,GUARD: INVARIANT - the website consumes the forum kit at BUILD time<br/>by source clone, not as a published package. The pin is<br/>therefore a SHA, and correctness depends on five files<br/>agreeing - kit-pin-guard.yml is the only thing that checks it.
+    Note over NF: EXTERNAL - this diagram asserts only what the WEBSITE's<br/>workflows state about the kit. The kit's own contract is<br/>NF's to describe. see NF-01 and DW-02
 ```
 
-## ES-11.5 Edges 14 and 15 — the roster is the estate's only enumeration, and what reads it
+## ES-11.5 Edges 14 and 15 - the roster is the estate's only enumeration, and what reads it
 ```mermaid
 flowchart TB
     ROSTER["scripts/estate-health/roster.json<br/>14 repos, plus surfaces and registries<br/>the _doc at roster.json:3 calls it the ONLY<br/>place the estate is enumerated"]
@@ -137,9 +142,9 @@ flowchart TB
     subgraph TARGETS["What it reaches"]
         R1["EXTERNAL: VisionClaw · agentbox · solid-pod-rs<br/>nostr-rust-forum · dreamlab-ai-website<br/>see VC-01, AB-01, SP-01, NF-01, DW-01"]
         R2["EXTERNAL: knowledgeGraph · visionGraph · vowl-wasm<br/>see KG-01, VG-01, VW-01"]
-        R3["EXTERNAL: loom · WasmVOWL · prose-sanitiser<br/>diagram-ir · dream-engine — rostered with NO<br/>diagram area in this tree"]
+        R3["EXTERNAL: loom · WasmVOWL · prose-sanitiser<br/>diagram-ir · dream-engine - rostered with NO<br/>diagram area in this tree"]
         SURF["public surfaces incl. narrativegoldmine.com<br/>and /ns/v2.jsonld, roster.json:20-36"]
-        REG["registries — crates.io and npm,<br/>incl. @dreamlab-ai/vowl-wasm, roster.json:40-46"]
+        REG["registries - crates.io and npm,<br/>incl. @dreamlab-ai/vowl-wasm, roster.json:55-62"]
     end
 
     ROSTER --> EH
@@ -150,9 +155,9 @@ flowchart TB
     EH --> SURF
     EH --> REG
 
-    INV["INVARIANT roster.json:3 — adding a repository to the estate means<br/>adding a ROW here: the collector holds no repository names, and<br/>the page, the snapshot order and the dream evaluator all follow<br/>roster order. This is the enumeration the tree treats as canonical."]
-    D1["DIVERGENCE — drift-counter does NOT walk the roster. It pins ONE<br/>sibling, agentbox, at a literal SHA (drift-counter.yml:60-61) so<br/>that moving the count source is a reviewed two-line diff rather<br/>than a silent change (drift-counter.yml:55-56). The two gates<br/>therefore disagree about what the estate is."]
-    D2["DIVERGENCE — ES-01.1 draws SIX repositories, the count<br/>agentbox's ecosystem doc uses. That is the VisionClaw checkout's<br/>own neighbourhood, not the estate: it omits knowledgeGraph,<br/>visionGraph, vowl-wasm and five more the roster carries.<br/>ES-01.1 now states its scope explicitly. see VF-08.3"]
+    INV["INVARIANT roster.json:3 - adding a repository to the estate means<br/>adding a ROW here: the collector holds no repository names, and<br/>the page, the snapshot order and the dream evaluator all follow<br/>roster order. This is the enumeration the tree treats as canonical."]
+    D1["DIVERGENCE - drift-counter does NOT walk the roster. It pins ONE<br/>sibling, agentbox, at a literal SHA (drift-counter.yml:61) so<br/>that moving the count source is a reviewed two-line diff rather<br/>than a silent change. The two gates therefore disagree about<br/>what the estate is."]
+    D2["DIVERGENCE - ES-01.1 draws SIX repositories, the count<br/>agentbox's ecosystem doc uses. That is the VisionClaw checkout's<br/>own neighbourhood, not the estate: it omits knowledgeGraph,<br/>visionGraph, vowl-wasm and five more the roster carries.<br/>ES-01.1 now states its scope explicitly. see VF-08"]
 
     ROSTER --> INV
     DC --> D1

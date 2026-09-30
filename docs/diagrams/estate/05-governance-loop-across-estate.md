@@ -7,27 +7,17 @@ governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: [visionclaw:ADR-2006, agentbox:ADR-2041, agentbox:ADR-2071, visionflow:ADR-2010, visionflow:ADR-2011, agentbox:ADR-2087, visionclaw:ADR-2110, nostr-rust-forum:ADR-2011, agentbox:ADR-2085, agentbox:ADR-2086]
 sources:
-  - ../project/src/services/acsp/mod.rs
   - ../project/src/services/acsp/events.rs
   - ../project/src/services/acsp/client.rs
-  - ../project/src/services/decision_elevation.rs
-  - ../project/src/handlers/broker_inbox_handler.rs
-  - ../project/src/domain/broker/broker_case.rs
-  - ../project/src/domain/broker/precedent_registry.rs
-  - ../project/docs/adr/ADR-2006-acsp-human-approval.md
-  - ../project/agentbox/management-api/lib/governance-correlation.js
   - ../project/agentbox/management-api/lib/governance-application-receipts.js
-  - ../project/src/actors/decision_elevation_actor.rs
-  - ../project/src/adapters/decision_elevation_store.rs
   - ../project/agentbox/management-api/lib/authority.js
-  - ../project/agentbox/management-api/lib/governance-decision-waiter.js
   - ../project/agentbox/management-api/lib/elevation-publisher.js
+  - ../project/agentbox/management-api/lib/elevation-stage.js
   - ../project/agentbox/management-api/lib/kg-proposal-extractor.js
   - ../project/agentbox/management-api/lib/mandate.js
   - ../project/agentbox/management-api/lib/receipt-minter.js
   - ../project/agentbox/management-api/routes/broker-bridge.js
   - ../project/agentbox/management-api/routes/kg-elevation.js
-  - ../project/agentbox/mcp/nostr-bridge/relay-consumer.js
   - ../project/src/handlers/enrichment_proposals_handler.rs
   - ../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md
   - ../project/agentbox/docs/adr/ADR-2087-task-properties-receipts-and-manual-continuation.md
@@ -37,23 +27,8 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
-verified_commit: {agentbox: b7b1ab81a, visionclaw: f223bbd40, visionflow: df22182f3, nostr-rust-forum: 2f90c1916}
+verified_commit: {agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, visionflow: d4e44298646768a4b19af359119e16a6884fa80d, nostr-rust-forum: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d}
 ---
-## ES-05.1 Approval crosses independently durable systems
-```mermaid
-flowchart LR
-    Request["Concrete operation"] --> Gate["Agentbox authority.js:226 buildAuthorityGate"]
-    Gate --> Signed["Signed 31402 request commits to operation and digest"]
-    Signed --> Forum["Forum relay stores event and guarded D1 projection"]
-    Forum --> Human["Human signed 31403 references exact request"]
-    Human --> AB["Agentbox verified allowlisted consumer<br/>request match, then local received/outcome ledger"]
-    Human --> VC["VisionClaw client.rs:265 response_matches_request<br/>own signed request journal and one dispatch claim"]
-    AB --> Mutation["Upstream committed acknowledgement is separate evidence"]
-    VC --> PR["Decision-elevation approved-to-applying claim<br/>PR URL, merge and activation are separate stages"]
-    Limits["No distributed transaction<br/>uncertain outcomes require reconciliation<br/>source tests are not live deployment receipts"] -.-> Mutation
-    Limits -.-> PR
-```
-
 ## ES-05.2 Wire fields and exact response binding
 ```mermaid
 classDiagram
@@ -81,77 +56,6 @@ classDiagram
     note for CaseDecision "A durable dispatch claim precedes delivery. It does not certify actor execution or external application."
 ```
 
-## ES-05.3 Authority gate binds the signed operation
-```mermaid
-sequenceDiagram
-    participant Caller
-    participant Gate as authority.js:226 buildAuthorityGate
-    participant Forum as Verified allowlisted consumer
-    participant Owner as broker-bridge.js mutation owner
-    participant Journal as governance-application-receipts.js:26 ApplicationReceiptStore
-    Caller->>Gate: action class and concrete operation
-    alt recoverable action
-        Gate-->>Caller: allow under existing recoverable policy
-    else escalation required
-        Gate->>Gate: canonicalise operation and SHA256 digest
-        Gate->>Forum: sign 31402 fields containing operation and digest
-        Gate->>Gate: reject producer if signed content changed
-        Forum-->>Gate: verified 31403 with exact request e reference
-        Gate->>Gate: require optional case and panel agreement
-        alt approval bound to this request
-            Gate-->>Owner: released plus request ID, response ID, operation digest
-            Owner->>Journal: durable immutable consumer-received claim
-            alt fresh claim
-                Owner->>Owner: send exact approved payload to upstream
-                Owner->>Journal: applied only on writeback_committed acknowledgement
-            else prior claim or unavailable storage
-                Owner-->>Caller: refuse replay or require reconciliation
-            end
-        else mismatch, refusal or timeout
-            Gate-->>Caller: deny
-        end
-    end
-    Note over Owner,Journal: Timeout or crash is unknown, never proof of application. Local receipt is unsigned and does not prove deployment.
-```
-
-## ES-05.4 Decision waiter requires the exact request
-```mermaid
-sequenceDiagram
-    participant Gate as authority.js
-    participant Waiter as governance-decision-waiter.js:87 awaitDecision
-    participant Relay as Existing relay consumer
-    Gate->>Waiter: awaitDecision signed request, timeout
-    Waiter->>Waiter: register by request event ID only
-    par exact response arrives
-        Relay->>Waiter: notify 31403
-        Waiter->>Waiter: governance-correlation.js checks unambiguous e reference
-        Waiter->>Waiter: optional case and panel must agree with request
-        Waiter-->>Gate: resolve matching waiter and cancel timer
-        Gate->>Gate: verify signature and outcome before release
-    and timeout fires
-        Waiter->>Waiter: remove pending entry
-        Waiter-->>Gate: null, gate denies
-    end
-    Note over Gate,Waiter: Case-only or panel-only responses never release a wait. No extra relay subscription.
-```
-
-## ES-05.5 Broker inbox reads the current case state
-```mermaid
-sequenceDiagram
-    participant Reviewer
-    participant Bridge as broker-bridge.js:288 inbox route
-    participant VC as broker_inbox_handler.rs:146
-    Reviewer->>Bridge: authenticated inbox request with status filter
-    Bridge->>VC: fetch current broker inbox
-    alt upstream available
-        VC-->>Bridge: cases and total
-        Bridge-->>Reviewer: filtered/enriched inbox
-    else upstream unavailable
-        Bridge-->>Reviewer: explicit error
-    end
-    Note over Reviewer,VC: An inbox read is not an approval or application receipt.
-```
-
 ## ES-05.6 Mutation-owner acknowledgement and replay refusal
 ```mermaid
 sequenceDiagram
@@ -176,14 +80,15 @@ sequenceDiagram
     Note over Gate,VC: Recoverable actions and an explicitly disabled authority table retain their existing policy. Live responder policy and remote state need their own evidence.
 ```
 
-## ES-05.7 Governed ontology elevation — personal to shared, federated over Nostr
+## ES-05.7 Governed ontology elevation — dry-run gate, then federated over Nostr
 ```mermaid
 sequenceDiagram
     autonumber
     participant KE as kg-elevation<br/>routes/kg-elevation.js
-    participant EX as kg-proposal-extractor<br/>lib/kg-proposal-extractor.js:330
-    participant SC as scoreCandidate<br/>lib/kg-proposal-extractor.js:186
-    participant BD as buildProposalDescriptor<br/>lib/kg-proposal-extractor.js:224
+    participant EX as kg-proposal-extractor<br/>lib/kg-proposal-extractor.js:344
+    participant SC as scoreCandidate<br/>lib/kg-proposal-extractor.js:195
+    participant BD as buildProposalDescriptor<br/>lib/kg-proposal-extractor.js:233
+    participant GT as gateElevation<br/>lib/elevation-stage.js:226
     participant EP as elevation-publisher
     participant ACS as agent-control-surface<br/>buildActionRequest / publishPanelEvent
     participant NB as NostrBridge (already connected)
@@ -194,12 +99,18 @@ sequenceDiagram
         EX->>SC: scoreCandidate(norm)
         SC-->>EX: score
         EX->>BD: buildProposalDescriptor(norm, score, opts)
-        BD->>BD: buildProposeRequest — lib/kg-proposal-extractor.js:257
-        Note over BD: propose_request is a GOVERNED {path, method, body} for<br/>/api/ontology-agent/propose — kg-proposal-extractor.js:214.<br/>governed_path is recorded at :286.
+        BD->>BD: buildVaultProposeCommand — kg-proposal-extractor.js:268
+        Note over BD: ADR-2116 retired the HTTP propose route. propose_command is<br/>a GOVERNED vault propose argv plus iri (contract C2), carrying<br/>is_subclass_of and relationships straight from the normalised<br/>entry — kg-proposal-extractor.js:276-277.
         BD-->>EX: descriptor plus an agent_action LINK beam
     end
     EX-->>KE: proposals
-    KE->>EP: publish each proposal
+    loop each proposal
+        KE->>GT: gateElevation(proposal, env) — kg-elevation.js:182
+        GT->>GT: stage candidate page, validate, run<br/>vault propose --diff --dry-run (Whelk plus conflicts)
+        GT-->>KE: {proposal, blockers, blocked}
+    end
+    Note over KE,GT: INVARIANT — the dry-run gate runs BEFORE anything is federated<br/>(kg-elevation.js:176-182). A candidate with blockers keeps its<br/>LINK beam but is reported {published:false, reason:'blocked by<br/>vault propose'} and never reaches the publisher — kg-elevation.js:229-232.
+    KE->>EP: publish each non-blocked proposal
     EP->>ACS: buildActionRequest — SIGNED ACSP kind 31402
     Note over EP,ACS: URN DISCIPLINE — the panel d-tag REUSES the proposal's own<br/>canonical urn-agentbox-thing-PUBKEY-proposal-SHA256_12,<br/>already minted through lib/uris.js. NIP-33 replaceability<br/>keys re-scans of the same concept to the SAME panel. No<br/>ad-hoc identifiers are invented (elevation-publisher.js:33-36).
     ACS->>NB: publishPanelEvent
@@ -336,11 +247,11 @@ sequenceDiagram
     participant AD as apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:483
     participant DT as declared_tier_of<br/>src/handlers/enrichment_proposals_handler.rs:393
     participant CK as check_rationale<br/>src/handlers/enrichment_proposals_handler.rs:406
-    participant RL as relay 31403 handler<br/>nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1024
-    participant FG as governance check_rationale<br/>nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs:761
+    participant RL as relay 31403 handler<br/>nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1021
+    participant FG as governance check_rationale<br/>nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs:759
 
     UI->>AD: decide a case with an outcome and optional reasoning
-    AD->>AD: read the case ONCE, its tier drives the gate<br/>enrichment_proposals_handler.rs:508
+    AD->>AD: read the case ONCE, its tier drives the gate<br/>enrichment_proposals_handler.rs:502-504
     AD->>DT: read the declared tier from the proposal body
     DT-->>AD: Some(tier), or None when the body names none, :391-392
     AD->>CK: tier, outcome, reasoning
@@ -348,7 +259,7 @@ sequenceDiagram
         CK->>CK: count trimmed Unicode scalars, :414
         alt fewer than the minimum
             CK-->>AD: Err(RationaleRejection), :419
-            AD-->>UI: 422 refused before anything is minted or persisted,<br/>enrichment_proposals_handler.rs:510-512
+            AD-->>UI: 422 refused before anything is minted or persisted,<br/>enrichment_proposals_handler.rs:527
         else long enough
             CK-->>AD: Ok(())
         end
@@ -359,11 +270,11 @@ sequenceDiagram
     Note over CK: INVARIANT — the gate is a PREDICATE, not a transformer. It<br/>returns permission and nothing else, so it is structurally<br/>incapable of supplying the text it is demanding.<br/>src/handlers/enrichment_proposals_handler.rs:402-405
 
     UI->>RL: publish a signed 31403 straight to the relay instead
-    RL->>RL: look up the case's EFFECTIVE tier, nip_handlers.rs:1025
+    RL->>RL: look up the case's EFFECTIVE tier, nip_handlers.rs:1045
     RL->>FG: effective tier, action, reasoning
     FG-->>RL: Err when the rationale is absent or too short
-    RL-->>UI: OK false carrying the refusal reason, nip_handlers.rs:1033
+    RL-->>UI: OK false carrying the refusal reason, nip_handlers.rs:1051
 
-    Note over RL,FG: INVARIANT — enforced BEFORE save_event, because a 31403 is a<br/>signed event any client or script can publish straight to the<br/>relay. A rule that lives only in the forum UI is a suggestion.<br/>nip_handlers.rs:1018-1023
-    Note over AD,RL: DIVERGENCE — the two gates read DIFFERENT tiers. The host reads<br/>the agent's DECLARED tier, the relay reads the EFFECTIVE tier<br/>computed by nostr-bbs-core effective_tier, governance.rs:516.<br/>The host call site is one line and tightens when the effective<br/>tier lands on the case row. see ES-05.12
+    Note over RL,FG: INVARIANT — enforced BEFORE save_event, because a 31403 is a<br/>signed event any client or script can publish straight to the<br/>relay. A rule that lives only in the forum UI is a suggestion.<br/>nip_handlers.rs:1037-1043
+    Note over AD,RL: DIVERGENCE — the two gates read DIFFERENT tiers. The host reads<br/>the agent's DECLARED tier, the relay reads the EFFECTIVE tier<br/>computed by nostr-bbs-core effective_tier, governance.rs:515.<br/>The host call site is one line and tightens when the effective<br/>tier lands on the case row. see ES-05.12
 ```

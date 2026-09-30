@@ -13,8 +13,6 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/oidc/jwks.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/oidc/replay.rs
-  - ../solid-pod-rs/crates/solid-pod-rs/src/webid.rs
-  - ../solid-pod-rs/crates/solid-pod-rs/src/interop.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs-nostr/src/resolver.rs
@@ -39,7 +37,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/auth.rs
   - ../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/rate_limit.rs
-verified_commit: 1d9da5270
+verified_commit: febdc8be24bdc8b148b78b43a35ae85ee863a72a
 ---
 
 ## SP-05.1 Two auth paths, one AuthContext
@@ -186,27 +184,6 @@ classDiagram
     note for ReplayStore "Contract: atomic check-and-record, no replay inside the window ever, and no\nrefresh on rejection. A process-local store loses every entry on restart, so\neach restart reopens the window for one TTL.\nDIVERGENCE: the seam has exactly ONE implementor in this repo. The second tier\n(the forum / CF edge datastore) lives in nostr-rust-forum, so ADR-2006 stays\n'standalone' until that repo pins a version carrying it."
 ```
 
-## SP-05.6 The process-local replay guard in the server
-
-```mermaid
-flowchart LR
-    ST["static NIP98_REPLAY: LazyLock<Nip98ReplayCache>::from_env<br/>solid-pod-rs-server/src/lib.rs:192"]
-    R1["worker thread 1"]
-    R2["worker thread 2"]
-    RN["worker thread N"]
-    P2["a SECOND server process or replica"]
-
-    R1 --> ST
-    R2 --> ST
-    RN --> ST
-    P2 -. "shares NOTHING" .-> ST
-
-    N["DIVERGENCE: replay protection is process-local by design. Every actix worker<br/>in this process shares the one cache, but a second replica has its own — a<br/>multi-replica deployment must add shared state before relying on it."]
-    P2 -.-> N
-    N2["A separate DPoP jti cache exists for the OIDC path so a NIP-98-only pod still<br/>gets replay protection: DpopReplayCache<br/>solid-pod-rs/src/oidc/replay.rs:89"]
-    ST -.-> N2
-```
-
 ## SP-05.7 Solid-OIDC — DPoP proof verification
 
 ```mermaid
@@ -231,7 +208,7 @@ sequenceDiagram
     Note over R: DpopReplayCache defaults: 60 s TTL (solid-pod-rs/src/oidc/replay.rs:55) and<br/>10 000 entries (solid-pod-rs/src/oidc/replay.rs:59). JtiReplayCache is the<br/>sync sibling (solid-pod-rs/src/oidc/replay.rs:312).
 ```
 
-## SP-05.8 Access-token verification and its three divergences
+## SP-05.8 Access-token verification, its divergences, and discovery versus the crypto path
 
 ```mermaid
 flowchart TD
@@ -243,35 +220,24 @@ flowchart TD
     WID["extract_webid — webid claim, else url-shaped sub<br/>solid-pod-rs/src/oidc/mod.rs:864"]
     HS["verify_access_token_hs256 — separate entry point<br/>solid-pod-rs/src/oidc/mod.rs:851"]
     INTRO["IntrospectionResponse::from_verified, RFC 7662<br/>solid-pod-rs/src/oidc/mod.rs:902"]
+    DISC["discovery_for(issuer)<br/>solid-pod-rs/src/oidc/mod.rs:156"]
+    ADV["dpop_signing_alg_values_supported = ES256, RS256<br/>solid-pod-rs/src/oidc/mod.rs:184"]
+    IDT["id_token_signing_alg_values_supported = RS256, ES256<br/>solid-pod-rs/src/oidc/mod.rs:186"]
 
     VT --> ASYM --> AUD --> WID --> INTRO
     VT --> SYMR
     VT --> OTHER
     VT -.-> HS
+    DISC --> ADV
+    DISC --> IDT
+    ADV -. "mismatch" .-> ASYM
 
     D1["DIVERGENCE (ADR-2003): aud is NOT validated — only the claim's PRESENCE is<br/>enforced, since SolidOidcClaims::aud has no serde default<br/>(solid-pod-rs/src/oidc/mod.rs:670). A token minted for another audience<br/>verifies here; a deployment needing audience restriction must enforce it above<br/>this API."]
     AUD -.-> D1
     D2["DIVERGENCE (ADR-2003): extract_webid reads only the top-level webid claim and<br/>a URL-shaped sub. There is NO cnf.webid branch, so the LWS10 C.1 delta is<br/>unshipped. CnfClaim exists (solid-pod-rs/src/oidc/mod.rs:685) but is not<br/>consulted here."]
     WID -.-> D2
-```
-
-## SP-05.9 Discovery metadata versus the crypto path
-
-```mermaid
-flowchart LR
-    DISC["discovery_for(issuer)<br/>solid-pod-rs/src/oidc/mod.rs:156"]
-    ADV["dpop_signing_alg_values_supported = ES256, RS256<br/>solid-pod-rs/src/oidc/mod.rs:184"]
-    SOL["solid_oidc_supported<br/>solid-pod-rs/src/oidc/mod.rs:185"]
-    IDT["id_token_signing_alg_values_supported = RS256, ES256<br/>solid-pod-rs/src/oidc/mod.rs:186"]
-    VER["the verifier ACCEPTS EdDSA<br/>solid-pod-rs/src/oidc/mod.rs:549"]
-
-    DISC --> ADV
-    DISC --> SOL
-    DISC --> IDT
-    ADV -. "mismatch" .-> VER
-
-    D["DIVERGENCE (baseline invariant 6, ADR-2003): discovery must match the crypto<br/>path. Today the verifier dispatches EdDSA but discovery does not advertise it.<br/>There is also no lws_supported field, no<br/>authorization_response_iss_parameter_supported and no<br/>client_registration_types_supported — this is Solid-OIDC 0.1, not LWS10."]
-    VER -.-> D
+    D3["DIVERGENCE (baseline invariant 6, ADR-2003): discovery advertises only ES256<br/>and RS256, yet the verifier also dispatches EdDSA — discovery must match the<br/>crypto path. This is Solid-OIDC 0.1, not LWS10: no lws_supported,<br/>authorization_response_iss_parameter_supported or client_registration_types_supported."]
+    ASYM -.-> D3
 ```
 
 ## SP-05.10 JWKS and discovery fetching — SSRF-pinned and cached
@@ -301,31 +267,6 @@ sequenceDiagram
     V->>V: verify_access_token_cached<br/>solid-pod-rs/src/oidc/jwks.rs:420
     Note over V: DEFAULT_CACHE_TTL 900 s (solid-pod-rs/src/oidc/jwks.rs:52) —<br/>SHORT_CACHE_TTL 300 s (solid-pod-rs/src/oidc/jwks.rs:438).
     Note over P: The client is pinned to the resolved IP so a DNS rebind between the<br/>SSRF check and the request cannot redirect the fetch. See SP-06.9.
-```
-
-## SP-05.11 WebID — generation, parsing and the pod URL family
-
-```mermaid
-classDiagram
-    class WebIdUrls {
-        +pod_root_url  solid-pod-rs/src/webid.rs:23
-        +webid_document_url  solid-pod-rs/src/webid.rs:29
-        +webid_url with fragment  solid-pod-rs/src/webid.rs:38
-        +pod_git_clone_url  solid-pod-rs/src/webid.rs:46
-    }
-    class WebIdRender {
-        +generate_webid_html  solid-pod-rs/src/webid.rs:54
-        +generate_webid_html_with_issuer  solid-pod-rs/src/webid.rs:61
-    }
-    class WebIdExtract {
-        +extract_oidc_issuer  solid-pod-rs/src/webid.rs:201
-        +extract_nostr_pubkey  solid-pod-rs/src/webid.rs:231
-        +extract_cid_openid_provider  solid-pod-rs/src/webid.rs:256
-        +validate_webid_html  solid-pod-rs/src/webid.rs:307
-    }
-    WebIdUrls ..> WebIdRender
-    WebIdRender ..> WebIdExtract
-    note for WebIdExtract "parse_json_ld (solid-pod-rs/src/webid.rs:176) pulls the JSON-LD island out of\nthe profile HTML, so a WebID document is both human-readable and machine-parsable."
 ```
 
 ## SP-05.12 did:nostr — document rendering and the bidirectional binding
@@ -537,34 +478,6 @@ sequenceDiagram
     PV->>S: update the profile card<br/>solid-pod-rs-idp/src/key_provisioning.rs:52
     PV-->>OP: KeyProvisioningOutcome<br/>solid-pod-rs-idp/src/key_provisioning.rs:68
     Note over PV: INVARIANT: no HTTP route mints keys. Returning a freshly generated nsec over<br/>HTTP is an owner-signoff decision, so this stays a library surface behind the<br/>default-off provision-keys feature — see SP-01.8.
-```
-
-## SP-05.20 Pod-resident identity discovery endpoints
-
-```mermaid
-flowchart TD
-    WKS["GET /.well-known/solid -> interop::well_known_solid<br/>solid-pod-rs/src/interop.rs:60"]
-    WF["GET /.well-known/webfinger -> webfinger_response<br/>solid-pod-rs/src/interop.rs:104"]
-    NI["GET /.well-known/nodeinfo -> nodeinfo_discovery<br/>solid-pod-rs/src/interop.rs:544"]
-    NI21["GET /.well-known/nodeinfo/2.1 -> nodeinfo_2_1<br/>solid-pod-rs/src/interop.rs:560"]
-    DN["GET /.well-known/did/nostr/{pubkey}.json<br/>solid-pod-rs-server/src/lib.rs:2108"]
-    N05["GET /.well-known/nostr.json -> nip05_document<br/>solid-pod-rs/src/interop.rs:165"]
-    N05V["verify_nip05<br/>solid-pod-rs/src/interop.rs:147"]
-    N05H["handle_well_known_nip05 with a name validator<br/>solid-pod-rs-server/src/lib.rs:2200"]
-    DND["did_nostr_document<br/>solid-pod-rs/src/interop.rs:336"]
-
-    WKS --> OUT["one pod, several identity vocabularies"]
-    WF --> OUT
-    NI --> OUT
-    NI21 --> OUT
-    DN --> DND --> OUT
-    N05 --> N05H --> OUT
-    N05V --> OUT
-
-    N["nip05_name_is_valid (solid-pod-rs-server/src/lib.rs:2189) constrains the ?name=<br/>parameter, and an unknown name returns an EMPTY document rather than a 404<br/>(solid-pod-rs-server/src/lib.rs:2248) — NIP-05 clients expect a body."]
-    N05H -.-> N
-    N2["Both did-nostr endpoints are feature-gated; a default build serves neither.<br/>See SP-02.9."]
-    DN -.-> N2
 ```
 
 ## SP-05.21 Password change — the one credential-MUTATION path

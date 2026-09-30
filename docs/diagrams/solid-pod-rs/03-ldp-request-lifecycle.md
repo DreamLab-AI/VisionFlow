@@ -7,10 +7,9 @@ adrs: [ADR-2002, ADR-2004, ADR-2005]
 sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs
-  - ../solid-pod-rs/crates/solid-pod-rs/src/storage/mod.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/mashlib.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/mod.rs
-verified_commit: 1d9da5270
+verified_commit: febdc8be24bdc8b148b78b43a35ae85ee863a72a
 ---
 
 ## SP-03.1 GET — the full read path
@@ -47,6 +46,7 @@ sequenceDiagram
     end
     G-->>C: 200 with Link, WAC-Allow, Updates-via, ETag
     Note over G: A storage NotFound becomes a bare 404<br/>solid-pod-rs-server/src/lib.rs:1405
+    Note over G: OPTIONS (handle_options, solid-pod-rs-server/src/lib.rs:2017, via<br/>ldp::options_for, solid-pod-rs/src/ldp.rs:1776) runs NO WAC check — it<br/>advertises capability, not content. Its Accept-Patch dialect list is fixed<br/>at solid-pod-rs/src/ldp.rs:1774.
 ```
 
 ## SP-03.2 Container GET — three representations
@@ -210,33 +210,6 @@ sequenceDiagram
     Note over SG: Before this fix the working graph started EMPTY, so every incremental<br/>PATCH silently discarded the resource's existing triples. Refusing an<br/>unparseable body is deliberate — fail closed rather than destroy.
 ```
 
-## SP-03.7 DELETE and OPTIONS
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Client
-    participant D as handle_delete<br/>solid-pod-rs-server/src/lib.rs:1990
-    participant O as handle_options<br/>solid-pod-rs-server/src/lib.rs:2017
-    participant OF as ldp::options_for<br/>solid-pod-rs/src/ldp.rs:1776
-    participant S as Storage
-
-    C->>D: DELETE a resource
-    D->>D: extract_pubkey with no body, then enforce_write_ctx Write<br/>solid-pod-rs-server/src/lib.rs:1997
-    D->>S: reserve a zero-size quota slot, then storage.delete
-    alt deleted
-        D-->>C: 204 No Content
-    else NotFound
-        D-->>C: 404<br/>solid-pod-rs-server/src/lib.rs:2012
-    end
-
-    C->>O: OPTIONS on a container
-    O->>OF: allow, accept-post, accept-patch, accept-ranges
-    OF-->>O: OptionsResponse<br/>solid-pod-rs/src/ldp.rs:1765
-    O-->>C: 204 with Allow, Accept-Post, Accept-Patch, Accept-Ranges, Updates-via
-    Note over O: OPTIONS runs NO WAC check — it advertises capability, not content.<br/>Accept-Patch is the fixed dialect list at solid-pod-rs/src/ldp.rs:1774.
-```
-
 ## SP-03.8 COPY — the non-standard verb
 
 ```mermaid
@@ -299,7 +272,7 @@ flowchart LR
     NT["Graph::parse_ntriples<br/>solid-pod-rs/src/ldp.rs:793"]
     OUT1["to_ntriples<br/>solid-pod-rs/src/ldp.rs:694"]
     OUT2["to_jsonld<br/>solid-pod-rs/src/ldp.rs:714"]
-    VERB["fall through to the stored bytes verbatim<br/>solid-pod-rs-server/src/lib.rs:1385"]
+    VERB["fall through to the stored bytes verbatim<br/>solid-pod-rs-server/src/lib.rs:1387"]
 
     ACC --> BEST --> NEG --> FMT
     NEG --> NT
@@ -344,7 +317,7 @@ stateDiagram-v2
     Classify --> Private: an anonymous caller would NOT have been granted
     Classify --> Public: an anonymous caller WOULD have been granted<br/>and no sidecar elevation happened
 
-    Private --> VaryAuth: append Vary Authorization<br/>solid-pod-rs-server/src/lib.rs:1193
+    Private --> VaryAuth: append Vary Authorization<br/>solid-pod-rs-server/src/lib.rs:1191
     VaryAuth --> NoStore: Cache-Control private no-store<br/>solid-pod-rs/src/ldp.rs:1915
     Public --> MediaType: cache_control_for(content_type)<br/>solid-pod-rs/src/ldp.rs:1901
     MediaType --> RdfPolicy: RDF gets private no-cache must-revalidate<br/>solid-pod-rs/src/ldp.rs:1861
@@ -363,34 +336,7 @@ stateDiagram-v2
     note right of NoStore
       INVARIANT: a private response is never advertised as publicly
       cacheable. set_cache_policy never overwrites a Cache-Control a
-      handler already set (solid-pod-rs-server/src/lib.rs:1198), so the
+      handler already set (solid-pod-rs-server/src/lib.rs:1193), so the
       mashlib wrapper's own no-store survives.
     end note
-```
-
-## SP-03.13 Error translation — PodError to HTTP status
-
-```mermaid
-flowchart LR
-    TA["to_actix<br/>solid-pod-rs-server/src/lib.rs:499"]
-    NF["NotFound to 404<br/>solid-pod-rs-server/src/lib.rs:501"]
-    BR["BadRequest to 400<br/>solid-pod-rs-server/src/lib.rs:502"]
-    UN["Unsupported to 415<br/>solid-pod-rs-server/src/lib.rs:503"]
-    FB["Forbidden to 403<br/>solid-pod-rs-server/src/lib.rs:504"]
-    UA["Unauthenticated to 401<br/>solid-pod-rs-server/src/lib.rs:505"]
-    PF["PreconditionFailed to 412<br/>solid-pod-rs-server/src/lib.rs:506"]
-    ISE["anything else to 500<br/>solid-pod-rs-server/src/lib.rs:507"]
-    PP["patch_parse_err collapses Unsupported and BadRequest to 400<br/>solid-pod-rs-server/src/lib.rs:1783"]
-
-    TA --> NF
-    TA --> BR
-    TA --> UN
-    TA --> FB
-    TA --> UA
-    TA --> PF
-    TA --> ISE
-    TA -.-> PP
-
-    N["patch_parse_err separates garbage in a supported dialect (400) from an<br/>unsupported dialect (415), which the dispatcher decides before parsing."]
-    PP -.-> N
 ```

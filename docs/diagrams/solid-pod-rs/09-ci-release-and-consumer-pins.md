@@ -28,32 +28,8 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/docs/benchmarks.md
   - ../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
-verified_commit: 727549163
+verified_commit: febdc8be24bdc8b148b78b43a35ae85ee863a72a
 ---
-
-## SP-09.1 CI triggers and the concurrency guard
-
-```mermaid
-flowchart LR
-    PUSH["push to main, path-filtered to crates, Cargo files and ci.yml<br/>../solid-pod-rs/.github/workflows/ci.yml:4"]
-    PR["pull_request to main, same path filter<br/>../solid-pod-rs/.github/workflows/ci.yml:11"]
-    CRON["schedule — Mondays 06:17 UTC<br/>../solid-pod-rs/.github/workflows/ci.yml:19"]
-    WD["workflow_dispatch<br/>../solid-pod-rs/.github/workflows/ci.yml:21"]
-    CG["concurrency group per workflow+ref, cancel-in-progress<br/>../solid-pod-rs/.github/workflows/ci.yml:23"]
-    ENVF["RUSTFLAGS and RUSTDOCFLAGS = -D warnings<br/>../solid-pod-rs/.github/workflows/ci.yml:31"]
-    JOBS["the eight jobs — SP-09.2"]
-
-    PUSH --> CG
-    PR --> CG
-    CRON --> CG
-    WD --> CG
-    CG --> ENVF --> JOBS
-
-    N["The weekly cron exists so cargo-audit re-runs against a moving advisory<br/>database even when nothing in the repo changed — a dependency becomes<br/>vulnerable without a commit."]
-    CRON -.-> N
-    N2["-D warnings is set for BOTH rustc and rustdoc at the workflow level, so a<br/>broken intra-doc link fails CI the same way a compiler warning does.<br/>../solid-pod-rs/.github/workflows/ci.yml:32"]
-    ENVF -.-> N2
-```
 
 ## SP-09.2 The eight CI jobs and the required-check aggregator
 
@@ -82,6 +58,10 @@ flowchart TD
     REQ -.-> N
     N2["INVARIANT: branch protection points at ONE check. Adding a job without adding<br/>it to the needs list and the assertion block makes it advisory, not required."]
     REQ -.-> N2
+    N3["RUSTFLAGS and RUSTDOCFLAGS are both set to -D warnings at the workflow-level<br/>env block, so a broken intra-doc link fails CI the same way a compiler warning<br/>does — applies to every job below, not just clippy.<br/>../solid-pod-rs/.github/workflows/ci.yml:31-32"]
+    BT -.-> N3
+    N4["diagrams (this DIA job) is CI's own staleness guard over the repo's OWN<br/>docs/diagrams/src/*.mmd tree (unrelated to the VisionFlow diagrams-as-code<br/>tree this topic lives in). A missing render is treated as maximally stale, so<br/>an unrendered diagram fails rather than passing by absence, and the check is<br/>pure git + coreutils — no browser or npm needed at CI time.<br/>../solid-pod-rs/scripts/check-diagram-staleness.sh:19-23"]
+    DIA -.-> N4
 ```
 
 ## SP-09.3 The build matrix
@@ -138,30 +118,10 @@ flowchart TD
     AUD -.-> N2
     N3["The coverage GATE is tarpaulin's --fail-under; the Codecov upload is reporting<br/>only, so a missing CODECOV_TOKEN cannot mask a passing gate.<br/>../solid-pod-rs/.github/workflows/ci.yml:225"]
     CC -.-> N3
-    N4["DIVERGENCE (README status, 2026-08-19): cargo audit --deny warnings FAILS on<br/>RUSTSEC-2026-0258 in both shipped HTTP/2 stacks. The gate is real and it is<br/>currently red."]
+    N4["RESOLVED (README, 2026-09-21): both advisory gates now PASS. Two dated,<br/>justified exceptions with no in-semver fix — RUSTSEC-2026-0258 (h2 0.3 via<br/>actix-http, no HTTP/2 listener enabled) and RUSTSEC-2023-0071 (rsa 0.9 Marvin,<br/>verification-only) — are ignored in lockstep by deny.toml:47,56 and<br/>.cargo/audit.toml, each with a review-by date. The separate CODE audit<br/>findings (README) remain open and are out of scope for this CI gate."]
     AUD -.-> N4
-```
-
-## SP-09.5 The diagram staleness guard
-
-```mermaid
-flowchart TD
-    SRC["docs/diagrams/src/*.mmd<br/>../solid-pod-rs/scripts/check-diagram-staleness.sh:4"]
-    ET["effective_time = mtime when untracked or dirty,<br/>else the last commit epoch<br/>../solid-pod-rs/scripts/check-diagram-staleness.sh:11"]
-    BOTH["every source needs BOTH a .svg and a .png<br/>../solid-pod-rs/scripts/check-diagram-staleness.sh:19"]
-    PASS["source and render share a commit -> equal times -> pass<br/>../solid-pod-rs/scripts/check-diagram-staleness.sh:14"]
-    FAIL["source edited alone, or a render missing -> fail"]
-
-    SRC --> ET --> PASS
-    ET --> FAIL
-    BOTH --> FAIL
-
-    N["A missing render is treated as MAXIMALLY stale, so an unrendered diagram fails<br/>rather than passing by absence.<br/>../solid-pod-rs/scripts/check-diagram-staleness.sh:21"]
-    BOTH -.-> N
-    N2["Pure git plus coreutils — no browser and no npm, so the job needs neither the<br/>Chrome sidecar nor a renderer at CI time.<br/>../solid-pod-rs/scripts/check-diagram-staleness.sh:23"]
-    ET -.-> N2
-    N3["This guards the repo's OWN docs/diagrams tree (the nine .mmd sources under<br/>crates/solid-pod-rs/docs/diagrams/src). It is unrelated to the VisionFlow<br/>diagrams-as-code tree this topic lives in."]
-    SRC -.-> N3
+    N5["The audit job also runs on the weekly schedule (SP-09.2), not just push/PR, so<br/>cargo-audit re-checks against a moving advisory database even when nothing in<br/>the repo changed — a dependency becomes vulnerable without a commit.<br/>../solid-pod-rs/.github/workflows/ci.yml:19"]
+    AUD -.-> N5
 ```
 
 ## SP-09.6 The release pipeline
@@ -201,8 +161,8 @@ sequenceDiagram
 flowchart TD
     WSV["workspace.package.version 0.5.0-alpha.9<br/>../solid-pod-rs/Cargo.toml:15"]
     INH["every crate inherits it — version.workspace = true<br/>crates/solid-pod-rs/Cargo.toml:3"]
-    REL["0.5.0-alpha.9 re-pins ALL EIGHT crates and yanks the superseded versions<br/>../solid-pod-rs/CHANGELOG.md:12"]
-    DRIFT["the drift it fixed: siblings sat at alpha.7 on crates.io while the root<br/>crate moved to alpha.8<br/>../solid-pod-rs/CHANGELOG.md:11"]
+    REL["0.5.0-alpha.9 re-pins ALL EIGHT crates and yanks the superseded versions<br/>../solid-pod-rs/CHANGELOG.md:36"]
+    DRIFT["the drift it fixed: siblings sat at alpha.7 on crates.io while the root<br/>crate moved to alpha.8<br/>../solid-pod-rs/CHANGELOG.md:35"]
 
     WSV --> INH --> REL
     DRIFT --> REL
@@ -217,35 +177,17 @@ flowchart TD
     REL --> NF
     NF --> DW
 
-    N["DOC-DRIFT: the 2026-09-05 no-version-bump note predates alpha.9.<br/>CHANGELOG.md:7-19 records the closeout release. The forum still resolves<br/>alpha.7, so local upstream fixes do not reach that consumer. Every type intended for the edge tier<br/>compiles under core. Adoption still requires publishing and resolving the<br/>new version, wiring the edge ACL/audience/replay seams and testing them;<br/>a dependency bump alone does not change caller behaviour."]
+    N["DOC-DRIFT: the 2026-09-05 no-version-bump note predates alpha.9.<br/>CHANGELOG.md:31-43 records the closeout release. The forum still resolves<br/>alpha.7, so local upstream fixes do not reach that consumer. Every type intended for the edge tier<br/>compiles under core. Adoption still requires publishing and resolving the<br/>new version, wiring the edge ACL/audience/replay seams and testing them;<br/>a dependency bump alone does not change caller behaviour."]
     NF -.-> N
     N2["The one source-compatibility note across alpha.8 to alpha.9 is ReplayError,<br/>which gained CapacityExhausted and is now non_exhaustive. nip98-replay is not in<br/>core, so no in-estate consumer is affected. See SP-05.5."]
     REL -.-> N2
+    N3["A registry-alignment bump like alpha.9 has happened before: alpha.3 was also a<br/>whole-workspace re-publish after a per-crate publish left the siblings on<br/>alpha.1 while the core crate alone moved to alpha.2<br/>(../solid-pod-rs/CHANGELOG.md:316-322, :340). Publishing the workspace as a<br/>set is what the release job's version check (SP-09.6) now enforces."]
+    REL -.-> N3
+    N4["0.5.0-alpha.6 is absent from CHANGELOG.md — the release line skips from<br/>alpha.5 (../solid-pod-rs/CHANGELOG.md:214) straight to alpha.7<br/>(../solid-pod-rs/CHANGELOG.md:137)."]
+    REL -.-> N4
 ```
 - **Open (ADR-2008, proposed):** the record makes closing the host/forum skew an exit criterion rather than a follow-up, with the host at `0.4.0-alpha.15` and the forum at an exact `=0.5.0-alpha.7` adopting one post-port version in lockstep (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:76-79) — nothing states which version that is, or who publishes it first.
 - **Debt:** removing `credit` and `debit` from the public API is named in the record as the one deliberately breaking change in the estate and a semver-major event for this crate (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:60-66, :86), so the pin matrix above is the surface that absorbs it.
-
-## SP-09.8 Release history and what each bump changed
-
-```mermaid
-flowchart TD
-    A0["0.5.0-alpha.0 — provenance and economy release<br/>../solid-pod-rs/CHANGELOG.md:340"]
-    A1["0.5.0-alpha.1 — documentation only, no code change<br/>../solid-pod-rs/CHANGELOG.md:328"]
-    A2["0.5.0-alpha.2 — core crate only, the siblings lagged<br/>../solid-pod-rs/CHANGELOG.md:316"]
-    A3["0.5.0-alpha.3 — first whole-workspace publish<br/>../solid-pod-rs/CHANGELOG.md:292"]
-    A4["0.5.0-alpha.4 — interop convergence, public API unchanged<br/>../solid-pod-rs/CHANGELOG.md:225"]
-    A5["0.5.0-alpha.5 — forge Phases 0 to 3, default-off<br/>../solid-pod-rs/CHANGELOG.md:190"]
-    A7["0.5.0-alpha.7 — the version the forum edge tier pins<br/>../solid-pod-rs/CHANGELOG.md:113"]
-    A8["0.5.0-alpha.8 — S3 dropped, cap-std storage, atomic quota<br/>../solid-pod-rs/CHANGELOG.md:46"]
-    A9["0.5.0-alpha.9 — closeout, registry re-alignment, all eight re-pinned<br/>../solid-pod-rs/CHANGELOG.md:7"]
-
-    A0 --> A1 --> A2 --> A3 --> A4 --> A5 --> A7 --> A8 --> A9
-
-    N["A registry-alignment bump appears twice in this line (alpha.3 and alpha.9),<br/>both times because a per-crate publish left the siblings behind the root crate.<br/>Publishing the workspace as a set is what the release job's version check<br/>(SP-09.6) now enforces."]
-    A9 -.-> N
-    N2["alpha.6 is absent from the changelog — the line skips from alpha.5 to alpha.7."]
-    A5 -.-> N2
-```
 
 ## SP-09.9 Repository governance and maintenance automation
 
@@ -265,10 +207,8 @@ flowchart LR
     PC --> LOCAL
     SF --> LOCAL
 
-    N["parity-check counts rows in PARITY-CHECKLIST.md and computes strict parity:<br/>every table row starting with a number is a feature row, status is the 6th<br/>pipe-delimited field, and Shipped covers present, net-new,<br/>semantic-difference and present-by-absence.<br/>../solid-pod-rs/scripts/parity-check.sh:10"]
+    N["parity-check counts rows in PARITY-CHECKLIST.md and computes strict parity:<br/>every table row starting with a number is a feature row, status is the 6th<br/>pipe-delimited field, and Shipped covers present, net-new,<br/>semantic-difference and present-by-absence. The 97.6% strict-parity DOC-DRIFT<br/>this computes is recorded at SP-10 R6.<br/>../solid-pod-rs/scripts/parity-check.sh:10"]
     PC -.-> N
-    N2["DOC-DRIFT: the README claims 97.6% strict JSS parity over 230 rows tracked<br/>through JSS 0.0.220. That number is produced by this script from a checklist<br/>file, not by any executable conformance suite — it is a curated claim, and the<br/>script's own threshold is 95%."]
-    PC -.-> N2
 ```
 
 ## SP-09.10 What CI does NOT gate

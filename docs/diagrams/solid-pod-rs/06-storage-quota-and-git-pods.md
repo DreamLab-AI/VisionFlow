@@ -11,23 +11,19 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/quota/mod.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/multitenant.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/provision.rs
-  - ../solid-pod-rs/crates/solid-pod-rs/src/security/dotfile.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/ssrf.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/cors.rs
-  - ../solid-pod-rs/crates/solid-pod-rs/src/security/rate_limit.rs
-  - ../solid-pod-rs/crates/solid-pod-rs/src/export.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/init.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/api.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/guard.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/config.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/identity.rs
-  - ../solid-pod-rs/crates/solid-pod-rs-git/src/error.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/auth.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/metrics.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/webid.rs
-verified_commit: 1d9da5270
+verified_commit: febdc8be24bdc8b148b78b43a35ae85ee863a72a
 ---
 
 ## SP-06.1 The Storage seam and its two shipped backends
@@ -121,25 +117,7 @@ sequenceDiagram
 
     Note over D: list() hides both the META_SUFFIX sidecars and any .solid-pod-tmp- file<br/>solid-pod-rs/src/storage/fs.rs:306
     Note over W: DIVERGENCE (README status section): the 2026-08-19 audit records that<br/>filesystem writes still violate the advertised atomic-storage contract. The<br/>rename is atomic per file, but the body and its sidecar are two renames — a<br/>crash between them leaves a mismatched pair.
-```
-
-## SP-06.5 Change events — the notification source
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant FS as FsBackend::watch<br/>solid-pod-rs/src/storage/fs.rs:365
-    participant N as notify recommended_watcher<br/>solid-pod-rs/src/storage/fs.rs:374
-    participant CH as mpsc channel
-    participant SUB as notification pump — see SP-08
-
-    FS->>N: register a recursive watcher
-    N->>CH: raw notify events<br/>solid-pod-rs/src/storage/fs.rs:373
-    CH->>CH: drop events whose path ends with META_SUFFIX<br/>solid-pod-rs/src/storage/fs.rs:394
-    CH->>CH: map notify::EventKind to StorageEvent<br/>solid-pod-rs/src/storage/fs.rs:404
-    CH->>SUB: StorageEvent
-    Note over FS: MemoryBackend::watch is the in-process equivalent<br/>solid-pod-rs/src/storage/memory.rs:198
-    Note over SUB: Filtering the sidecar matters: a single logical write produces two file<br/>events, and un-filtered they would double every notification.
+    Note over D: FsBackend::watch (solid-pod-rs/src/storage/fs.rs:365) registers a notify<br/>recommended_watcher (fs.rs:374) and drops any raw event whose path ends<br/>with META_SUFFIX before mapping it to a StorageEvent (fs.rs:394) — a single<br/>logical write produces two file events (body plus sidecar), and un-filtered<br/>they would double every notification the SP-08 pump receives. MemoryBackend::watch<br/>is the in-process equivalent (solid-pod-rs/src/storage/memory.rs:198).
 ```
 
 ## SP-06.6 Per-pod quota — atomic reservation
@@ -254,32 +232,38 @@ flowchart TD
     USE3 -.-> N2
 ```
 
-## SP-06.10 Dotfile allowlist, CORS and rate limiting
+## SP-06.10 CORS policy — origin echo and the credentials trap
 
 ```mermaid
-classDiagram
-    class DotfileAllowlist {
-        +DEFAULT_ALLOWED = .acl, .meta, .account  solid-pod-rs/src/security/dotfile.rs:24
-        +from_env via DOTFILE_ALLOWLIST  solid-pod-rs/src/security/dotfile.rs:47
-        +is_allowed(path)  solid-pod-rs/src/security/dotfile.rs:106
-        +is_path_allowed free fn  solid-pod-rs/src/security/dotfile.rs:233
-    }
-    class CorsPolicy {
-        +from_env  solid-pod-rs/src/security/cors.rs:95
-        +preflight_headers  solid-pod-rs/src/security/cors.rs:163
-        +response_headers  solid-pod-rs/src/security/cors.rs:209
-        +DEFAULT_MAX_AGE_SECS 3600  solid-pod-rs/src/security/cors.rs:41
-    }
-    class RateLimiter {
-        <<trait>>
-        solid-pod-rs/src/security/rate_limit.rs:112
-        +RateLimitSubject  solid-pod-rs/src/security/rate_limit.rs:50
-        +RateLimitDecision  solid-pod-rs/src/security/rate_limit.rs:90
-    }
-    DotfileAllowlist ..> CorsPolicy
-    CorsPolicy ..> RateLimiter
-    note for DotfileAllowlist "INVARIANT: .account is present in the default allowlist — a pod that could not\nread its own account sidecar would be unusable. Everything else beginning with a\ndot is refused, so the sidecar surface is a closed set."
-    note for CorsPolicy "The server's own CorsHeaders middleware (solid-pod-rs-server/src/lib.rs:3105)\nechoes the request Origin when allowed_origins is EMPTY — a local-dev default,\nnot a production one. See SP-02.3."
+flowchart TD
+    ENV["CorsPolicy::from_env<br/>solid-pod-rs/src/security/cors.rs:95"]
+    PF["preflight_headers(origin, method, headers)<br/>solid-pod-rs/src/security/cors.rs:163"]
+    RF["response_headers(origin)<br/>solid-pod-rs/src/security/cors.rs:209"]
+    EO["echo_origin<br/>solid-pod-rs/src/security/cors.rs:236"]
+    WC{"AllowedOrigins::Wildcard?<br/>solid-pod-rs/src/security/cors.rs:238"}
+    CRED{"allow_credentials?"}
+    ECHO["echo the concrete request Origin<br/>solid-pod-rs/src/security/cors.rs:240"]
+    STAR["emit literal *"]
+    EX{"AllowedOrigins::Exact(set)<br/>contains origin?<br/>solid-pod-rs/src/security/cors.rs:249"}
+    NONE["None -> caller drops all CORS headers"]
+    VARY["Vary: Origin plus Access-Control-Allow-Credentials<br/>solid-pod-rs/src/security/cors.rs:174"]
+
+    ENV --> PF
+    ENV --> RF
+    PF --> EO
+    RF --> EO
+    EO --> WC
+    WC -- yes --> CRED
+    CRED -- yes --> ECHO --> VARY
+    CRED -- no --> STAR
+    WC -- no --> EX
+    EX -- yes --> ECHO
+    EX -- no --> NONE
+
+    N["INVARIANT: Access-Control-Allow-Origin: * is invalid with credentials per the<br/>Fetch spec, so wildcard+credentials degrades to echoing the concrete Origin<br/>and always sends Vary: Origin, never *."]
+    CRED -.-> N
+    N2["The server's CorsHeaders middleware (solid-pod-rs-server/src/lib.rs:3105) is the<br/>JSS-compatible caller: an empty allowed_origins list means every Origin is<br/>echoed back — a local-dev default, not a production one. See SP-02.3."]
+    ENV -.-> N2
 ```
 
 ## SP-06.11 Git-versioned pods — repository lifecycle
@@ -311,6 +295,11 @@ stateDiagram-v2
       The runtime guard is a .git directory under data_root/{pod} — see SP-07.2.
       A memory-backed or cloud-backed pod is skipped even when the git feature is
       compiled in.
+    end note
+    note right of Marked
+      pod_git_clone_url (solid-pod-rs/src/webid.rs:46) is the always-available exit
+      for a git-backed pod: unlike the JSON-LD export route, which sits behind the
+      default-off export-jsonld feature (see SP-10), the git clone URL needs no flag.
     end note
 ```
 
@@ -344,61 +333,5 @@ sequenceDiagram
 
     Note over H: Before this gate git requests went straight to the CGI: a private pod's<br/>history was anonymously clonable and pushes were anonymous.
     Note over S: path_safe (solid-pod-rs-git/src/guard.rs:68) and extract_repo_slug<br/>(solid-pod-rs-git/src/guard.rs:18) keep the CGI's repo argument inside repo_root.
-```
-
-## SP-06.13 The `_git` control-panel REST surface
-
-```mermaid
-flowchart LR
-    OWN["require_pod_owner_with_body — caller pubkey MUST equal the pod pubkey<br/>solid-pod-rs-server/src/lib.rs:3683"]
-    ST["GET status -> git_status<br/>solid-pod-rs-git/src/api.rs:186"]
-    LG["GET log -> git_log<br/>solid-pod-rs-git/src/api.rs:300"]
-    DF["GET diff -> git_diff<br/>solid-pod-rs-git/src/api.rs:445"]
-    AD["POST stage -> git_add<br/>solid-pod-rs-git/src/api.rs:465"]
-    US["POST unstage -> git_unstage<br/>solid-pod-rs-git/src/api.rs:485"]
-    CM["POST commit -> git_commit<br/>solid-pod-rs-git/src/api.rs:502"]
-    BR["GET branches -> git_branches<br/>solid-pod-rs-git/src/api.rs:533"]
-    CB["POST branch -> git_create_branch<br/>solid-pod-rs-git/src/api.rs:578"]
-    DS["POST discard -> git_discard<br/>solid-pod-rs-git/src/api.rs:591"]
-
-    OWN --> ST
-    OWN --> LG
-    OWN --> DF
-    OWN --> AD
-    OWN --> US
-    OWN --> CM
-    OWN --> BR
-    OWN --> CB
-    OWN --> DS
-
-    N["INVARIANT: this surface is OWNER-ONLY and does not go through WAC. The gate is<br/>an identity equality check, not an ACL evaluation — history rewriting and<br/>discard are not delegable to a Control holder."]
-    OWN -.-> N
-    N2["validate_path (solid-pod-rs-git/src/api.rs:161) constrains every caller-supplied<br/>path before it reaches the git argv, and parse_status_output<br/>(solid-pod-rs-git/src/api.rs:192) parses porcelain rather than free text."]
-    AD -.-> N2
-    N3["resolve_commit (solid-pod-rs-git/src/api.rs:374) backs the _prov commit lookup<br/>— see SP-07.6."]
-    LG -.-> N3
-```
-
-## SP-06.14 Pod export — the exit right
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as GET /api/exports/all
-    participant H as handle_export_all<br/>solid-pod-rs-server/src/lib.rs:2269
-    participant E as export_pod_jsonld<br/>solid-pod-rs/src/export.rs:179
-    participant W as walk_resources<br/>solid-pod-rs/src/export.rs:122
-    participant S as Storage
-
-    C->>H: request the whole pod
-    H->>H: owner-WAC gate inside the handler
-    H->>E: ExportOptions<br/>solid-pod-rs/src/export.rs:91
-    E->>W: recursive walk
-    W->>S: list and get each resource
-    W-->>E: PodExportEntry per resource<br/>solid-pod-rs/src/export.rs:53
-    E-->>H: PodExportBundle<br/>solid-pod-rs/src/export.rs:74
-    H-->>C: application/ld+json<br/>solid-pod-rs/src/export.rs:41
-
-    Note over E: PRIVATE_CONTAINER_PREFIX (solid-pod-rs/src/export.rs:45) marks the subtree an<br/>export must treat specially — EXPORT_JSONLD_CONTEXT (solid-pod-rs/src/export.rs:37)<br/>names the bundle's vocabulary.
-    Note over H: DIVERGENCE: the export route is behind the default-off export-jsonld feature<br/>(SP-01.8), so the README's 'leave at any time and take everything with you'<br/>claim needs an explicit build flag to hold as an HTTP route. The git clone URL<br/>(solid-pod-rs/src/webid.rs:46) is the always-available exit for a git-backed pod.
+    Note over A: A separate owner-only `_git` control-panel REST surface (status/log/diff/<br/>stage/unstage/commit/branches/create-branch/discard) is gated by<br/>require_pod_owner_with_body — caller pubkey MUST equal the pod pubkey<br/>(solid-pod-rs-server/src/lib.rs:3683). INVARIANT: that gate is an identity<br/>equality check, not a WAC evaluation — history rewriting and discard are not<br/>delegable to a Control holder, unlike this smart-HTTP surface. validate_path<br/>(solid-pod-rs-git/src/api.rs:161) constrains every caller-supplied path before<br/>it reaches the git argv, parse_status_output (api.rs:192) parses porcelain<br/>rather than free text, and resolve_commit (api.rs:374) backs the _prov commit<br/>lookup — see SP-07.6.
 ```

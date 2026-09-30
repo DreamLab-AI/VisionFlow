@@ -35,7 +35,7 @@ sources:
   - ../project/src/services/nostr_service.rs
   - ../project/src/utils/auth.rs
   - ../project/src/utils/nip98.rs
-verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
 ---
 ## VC-33.1 NIP-07 extension login (client-asserted, no server verify round-trip)
 ```mermaid
@@ -99,22 +99,22 @@ sequenceDiagram
     autonumber
     participant C as Component
     participant UAC as UnifiedApiClient<br/>client/src/services/api/UnifiedApiClient.ts:116
-    participant AI as authRequestInterceptor<br/>client/src/services/api/authInterceptor.ts:41
+    participant AI as authRequestInterceptor<br/>client/src/services/api/authInterceptor.ts:80
     participant AX as axios.interceptors.request<br/>client/src/api/settings/endpoints.ts:38
     participant NA as NostrAuthService<br/>nostrAuthService.ts:197
     participant EXT as window.nostr or local passkey key
 
     rect rgb(255,235,235)
-    Note over UAC,AI: SITE A. UnifiedApiClient path, wired at client/src/app/main.tsx:28<br/>initializeAuthInterceptor. Keeps X-Request-ID and the release-mode 401 warning<br/>locally, delegates the auth branch to computeAuthHeaders authInterceptor.ts:52
+    Note over UAC,AI: SITE A. UnifiedApiClient path, wired at client/src/app/main.tsx:28<br/>initializeAuthInterceptor. Keeps X-Request-ID and the release-mode 401 warning<br/>locally, delegates the auth branch to computeAuthHeaders authInterceptor.ts:51
     C->>UAC: request GET or PUT api-path
-    UAC->>AI: onRequest(config,url) authInterceptor.ts:81
-    AI->>AI: headers['X-Request-ID']=uuidv4() authInterceptor.ts:90-91
-    AI->>NA: isAuthenticated() authInterceptor.ts:93
-    AI->>AI: computeAuthHeaders(fullUrl,method,body) authInterceptor.ts:100 calling :52-79
+    UAC->>AI: onRequest(config,url) authInterceptor.ts:80
+    AI->>AI: headers['X-Request-ID']=uuidv4() authInterceptor.ts:89-90
+    AI->>NA: isAuthenticated() authInterceptor.ts:92
+    AI->>AI: computeAuthHeaders(fullUrl,method,body) authInterceptor.ts:99 calling :51-78
     alt isDevMode
-        AI->>AI: Authorization Bearer dev-session-token + X-Nostr-Pubkey authInterceptor.ts:63-70
+        AI->>AI: Authorization Bearer dev-session-token + X-Nostr-Pubkey authInterceptor.ts:62-69
     else authenticated, pubkey known
-        AI->>NA: signRequest(fullUrl, method, body) authInterceptor.ts:77
+        AI->>NA: signRequest(fullUrl, method, body) authInterceptor.ts:76
     end
     end
 
@@ -122,15 +122,15 @@ sequenceDiagram
     Note over AX,NA: SITE B. Global axios interceptor, installed at module load. Keeps its own URL and<br/>body derivation, then calls the SAME helper endpoints.ts:38-53
     C->>AX: axios.get or axios.put api-path via settingsApi wrappers
     AX->>NA: isAuthenticated() endpoints.ts:39
-    AX->>AX: computeAuthHeaders(fullUrl,method,body) endpoints.ts:48 calling authInterceptor.ts:52-79
+    AX->>AX: computeAuthHeaders(fullUrl,method,body) endpoints.ts:48 calling authInterceptor.ts:51-78
     alt isDevMode
-        AX->>AX: Authorization Bearer dev-session-token + X-Nostr-Pubkey authInterceptor.ts:63-70
+        AX->>AX: Authorization Bearer dev-session-token + X-Nostr-Pubkey authInterceptor.ts:62-69
     else authenticated, pubkey known
-        AX->>NA: signRequest(fullUrl, method, body) authInterceptor.ts:77
+        AX->>NA: signRequest(fullUrl, method, body) authInterceptor.ts:76
     end
     end
 
-    Note over AI,AX: RESOLVED ADR-2074. FOUR transports carried this branch - authInterceptor, the<br/>axios global, contextLoader.fetchWithAuth and ldpClient.fetchWithAuth. All four<br/>now call one exported computeAuthHeaders(fullUrl, method, body) at<br/>authInterceptor.ts:52. The literal Bearer dev-session-token is constructed in<br/>exactly one place, authInterceptor.ts:65. Transport concerns (X-Request-ID, URL<br/>derivation, Headers copy, warn-on-failure) stay with each caller
+    Note over AI,AX: RESOLVED ADR-2074. FOUR transports carried this branch - authInterceptor, the<br/>axios global, contextLoader.fetchWithAuth and ldpClient.fetchWithAuth. All four<br/>now call one exported computeAuthHeaders(fullUrl, method, body) at<br/>authInterceptor.ts:51. The literal Bearer dev-session-token is constructed in<br/>exactly one place, authInterceptor.ts:64. Transport concerns (X-Request-ID, URL<br/>derivation, Headers copy, warn-on-failure) stay with each caller
 
     NA->>NA: build kind 27235 tags u=fullUrl method=METHOD nostrAuthService.ts:254-257,288-291
     Note over NA: INVARIANT. the u tag must be the exact request URL including query string. constructed via new URL(url, origin).href in both sites
@@ -148,7 +148,7 @@ sequenceDiagram
     end
     NA->>NA: btoa(JSON.stringify(signedEvent)) nostrAuthService.ts:276-277,310-311
     NA-->>AI: base64 token
-    AI->>AI: headers Authorization = Nostr token authInterceptor.ts:74
+    AI->>AI: headers Authorization = Nostr token authInterceptor.ts:77
     Note right of AI: server-side single-use replay cache and freshness window validate this token — ADR-2002 src/utils/nip98.rs
 ```
 
@@ -157,14 +157,14 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant NA as NostrAuthService<br/>nostrAuthService.ts:236
-    participant AI as authRequestInterceptor<br/>authInterceptor.ts:56-64
+    participant AI as authRequestInterceptor<br/>authInterceptor.ts:55-63
     participant LDP as fetchWithAuth<br/>client/src/services/solidPod/ldpClient.ts:91
     participant S as Server verify_access<br/>src/utils/auth.rs (ADR-2009)
 
     Note over NA: isDevMode() true requires BOTH import.meta.env.DEV and<br/>VITE_DEV_MODE_AUTH=true nostrAuthService.ts:235-237. Build-time gate, not a runtime<br/>toggle
-    AI->>AI: computeAuthHeaders(fullUrl, method, body) authInterceptor.ts:52
-    AI->>AI: Authorization Bearer dev-session-token authInterceptor.ts:65
-    AI->>AI: X-Nostr-Pubkey user.pubkey authInterceptor.ts:68-70
+    AI->>AI: computeAuthHeaders(fullUrl, method, body) authInterceptor.ts:51
+    AI->>AI: Authorization Bearer dev-session-token authInterceptor.ts:64
+    AI->>AI: X-Nostr-Pubkey user.pubkey authInterceptor.ts:67-69
     Note over AI: RESOLVED ADR-2074. The dev-token pair is constructed in ONE place.<br/>The other three HTTP transports call the same helper and add nothing of<br/>their own - endpoints.ts:48, contextLoader.ts:46, ldpClient.ts:105.<br/>An earlier reading called two of them ungated. that was WRONG - all four<br/>always branched on isDevMode. the defect was duplication, now closed
     par WebSocket auth frames stay separate - browsers cannot set WS headers
         Note over AI: client/src/api/analyticsApi.ts:450 sends JSON type auth token dev-session-token
@@ -179,7 +179,7 @@ sequenceDiagram
         S-->>AI: 200 dev-admin principal granted
     else release build or gate not satisfied
         S-->>AI: 401 Unauthorized
-        AI->>AI: warnIfServerInReleaseMode(401, sentDevToken=true) authInterceptor.ts:27-39,93-100
+        AI->>AI: warnIfServerInReleaseMode(401, sentDevToken=true) authInterceptor.ts:27-38,92-99
         Note over AI: one-shot console.warn. skipAuth is informational only client-side. the<br/>server alone decides ADR-06 section D1 comment authInterceptor.ts:12-25
     end
 
@@ -310,21 +310,9 @@ sequenceDiagram
     Note over Row,Ctl: DIVERGENCE. this is the ENTIRE client-side gating surface — a binary<br/>power-user flag, not the server's UserRole lattice (Owner greater than Admin greater<br/>than Editor greater than Viewer, docs/BASELINE-architecture.md:218). The client never<br/>fetches its own resolved role. All real enforcement happens server-side per-request in<br/>RbacGate and a rejected write surfaces only as a 401/403 after the fact, not as<br/>pre-emptive UI disablement of non-power-user fields tied to WriteGraph/Admin
     Note over Row: DOC-DRIFT. docs/BASELINE-architecture.md:222 cites the structural default at<br/>rbac_gate.rs:122-128 - public_reads_enabled is at :126-133 with its doc at :121-125.<br/>DOC-DRIFT. docs/BASELINE-architecture.md:218-228 documents server RBAC<br/>posture only. It makes no claim the client UI reflects role — none of the governing docs<br/>claim client-side role gating exists, matching what was found here
 
-    Note over Row,Ctl: server posture (not client-enforced). structural default<br/>RBAC_PUBLIC_READS=false src/middleware/rbac_gate.rs:126-132 unwrap_or(false), but<br/>docker-compose.unified.yml:99 sets RBAC_PUBLIC_READS=1 in the dev/unified compose<br/>service. An unassigned authenticated pubkey resolves to Editor via<br/>UserRole::default_authenticated() src/models/rbac.rs:68-70,<br/>src/services/role_store.rs:188,196-198 — see docs/BASELINE-architecture.md:220-226
-    Note over Row,Ctl: DOC-DRIFT: docs/BASELINE-architecture.md:222 still cites<br/>docker-compose.unified.yml:93 for RBAC_PUBLIC_READS=1 and :94 for<br/>RBAC_ALLOW_OWNERLESS=1. The ADR-2108 dev-mode block moved them to :99<br/>and :100 on 2026-09-08 - :93 is now a comment line. The posture is<br/>unchanged, the citations are not. docker-compose.unified.yml:99, :100
+    Note over Row,Ctl: server posture (not client-enforced). structural default<br/>RBAC_PUBLIC_READS=false src/middleware/rbac_gate.rs:126-132 unwrap_or(false), but<br/>docker-compose.unified.yml:106 sets RBAC_PUBLIC_READS=1 in the dev/unified compose<br/>service. An unassigned authenticated pubkey resolves to Editor via<br/>UserRole::default_authenticated() src/models/rbac.rs:68-70,<br/>src/services/role_store.rs:188,196-198 — see docs/BASELINE-architecture.md:220-226
+    Note over Row,Ctl: DOC-DRIFT: docs/BASELINE-architecture.md:222 still cites<br/>docker-compose.unified.yml:93 for RBAC_PUBLIC_READS=1 and :94 for<br/>RBAC_ALLOW_OWNERLESS=1. The block has since moved twice - ADR-2108 to :99/:100,<br/>then ADR-2114's corpus-source env additions to :106/:107 - the citations were<br/>never re-anchored. The posture is unchanged, the citations are not.<br/>docker-compose.unified.yml:106, :107
     Note over Row,Ctl: DIVERGENCE. compose ships public reads open and<br/>unassigned-pubkey-is-Editor by default, while the Rust struct-level default is<br/>fail-closed (no public reads) — two different postures depending whether you read the<br/>binary default or the shipped compose env
-```
-
-## VC-33.7 WS authenticate boundary — link to VC-32.1
-```mermaid
-sequenceDiagram
-    autonumber
-    participant NA as NostrAuthService<br/>nostrAuthService.ts:197
-    participant CM as connectionManager<br/>client/src/store/websocket/connectionManager.ts
-
-    Note over NA,CM: The browser client's WebSocket authenticate frame (dev-session-token / NIP-98<br/>event, header-equivalent) is a SEPARATE handshake from every REST NIP-98 signing<br/>site drawn in VC-33.2/VC-33.3. Full sequence, backoff and DIVERGENCE note on the<br/>accepted query-param form already drawn — see VC-32.1 Connect + NIP-98 WS<br/>authenticate handshake
-    NA->>CM: same isDevMode()/isAuthenticated() state consulted by REST interceptors feeds the WS authenticate payload
-    Note right of CM: not redrawn here per brief instruction — this file only marks the connection point into VC-32.1
 ```
 
 ## VC-33.8 Solid login boundary — OIDC-shaped WebID, session restore
@@ -343,7 +331,7 @@ sequenceDiagram
         SPS-->>U: throw Invalid npub format SolidPodService.ts:386
     else
         SPS->>LDP: fetchWithAuth POST pods/connect body npub SolidPodService.ts:389-392
-        LDP->>NA: isAuthenticated() ldpClient.ts:98 then computeAuthHeaders(url,method,body)<br/>ldpClient.ts:105 calling authInterceptor.ts:52-79 (RESOLVED ADR-2074)
+        LDP->>NA: isAuthenticated() ldpClient.ts:98 then computeAuthHeaders(url,method,body)<br/>ldpClient.ts:105 calling authInterceptor.ts:51-78 (RESOLVED ADR-2074)
         Note over LDP: SAME dual-branch NIP-98/dev-token pattern as VC-33.2/VC-33.3 — no<br/>separate Solid-specific OIDC login exists in this client. WebID identity is bootstrapped<br/>FROM the Nostr pubkey (solid:oidcIssuer = did:nostr:hex-pubkey, per<br/>client/src/__tests__/agent-pod/pod-provisioning.test.ts:104), not via a browser OIDC<br/>redirect flow
         LDP->>S: fetch credentials include ldpClient.ts:122
         alt ok
@@ -387,7 +375,7 @@ classDiagram
         +string literal Bearer dev-session-token
         storage not stored, recomputed per-request from isDevMode
         lifetime request-scoped, no expiry field
-        definedAt authInterceptor.ts:63-70 (ONE literal, ADR-2074);<br/>endpoints.ts:48 and ldpClient.ts:105 delegate there
+        definedAt authInterceptor.ts:62-69 (ONE literal, ADR-2074);<br/>endpoints.ts:48 and ldpClient.ts:105 delegate there
     }
     class Nip98EventToken {
         +string base64 signed kind 27235 event

@@ -15,11 +15,10 @@ sources:
   - ../project/src/actors/agent_beam_actor.rs
   - ../project/src/actors/gpu/force_compute_actor.rs
   - ../project/src/actors/gpu/constraint_actor.rs
-  - ../project/Cargo.toml
   - ../project/src/models/force_channels.rs
   - ../project/src/utils/binary_protocol.rs
   - ../project/src/utils/unified_gpu_compute/execution.rs
-verified_commit: f223bbd40
+verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
 ---
 
 ## VC-16.1 Node drag start — pin acquisition
@@ -50,7 +49,7 @@ sequenceDiagram
             H->>C: nodeDragStartAck :1077
         end
     end
-    Note over FCA: pinned nodes SKIP integration but STILL exert forces on neighbours - see VC-11.6
+    Note over FCA: pinned nodes SKIP integration but STILL exert forces on neighbours - see VC-11.2
     Note over MR,FCA: INVARIANT every drag and pin opcode requires a pubkey - the four opcodes are routed at message_routing.rs:80,83,86,89
 ```
 

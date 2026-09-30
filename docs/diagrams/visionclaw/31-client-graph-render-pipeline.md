@@ -2,7 +2,7 @@
 id: VC-31
 title: R3F/Three.js graph render pipeline and WASM scene effects
 area: visionclaw
-verified_commit: {visionclaw: f223bbd40ab52f7848d38ff98211ece75456b7e2}
+verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
 governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: []
@@ -452,7 +452,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant BOOT as app boot (imports troikaConfig)<br/>troikaConfig.ts:20
+    participant BOOT as app boot (imports troikaConfig)<br/>troikaConfig.ts:19
     participant IL as InstancedLabelsWebGL useMemo<br/>InstancedLabels.tsx:539
     participant ATLAS as createGlyphAtlas<br/>GlyphAtlas.ts:32
     participant MAT as createTextMaterial<br/>createTextMaterial.ts:65
