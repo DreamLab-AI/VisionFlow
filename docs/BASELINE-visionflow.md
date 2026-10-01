@@ -1,10 +1,11 @@
 ---
 title: VisionFlow Baseline — What This Repo Is and Runs Today
 doc_id: VF-BASELINE
-version: 0.5.0
+version: 0.5.1
 status: draft-for-ratification
-verified_commit: fd6162b
+verified_commit: ea33c17a2a54e06a806f0193b258282a1c049a86
 sources:
+  - README.md
   - website/build.sh
   - website/static/index.html
   - website/static/js/mesh-webgl.js
@@ -18,6 +19,7 @@ sources:
   - scripts/estate-health.mjs
   - scripts/generate-release-manifest.sh
   - docs/architecture/compatibility-matrix.md
+  - docs/architecture/repository-map.md
   - scripts/check-augmentation-citations.cjs
   - scripts/live-forum-probe.mjs
   - docs/README.md
@@ -25,7 +27,7 @@ sources:
   - docs/engineering/sovereign-corpus-contracts.md
   - package.json
   - dream.config.json
-date: 2026-08-31
+date: 2026-10-01
 ---
 
 # VisionFlow Baseline — What This Repo Is and Runs Today
@@ -35,7 +37,8 @@ date: 2026-08-31
 Single source of truth for what the VisionFlow repository **is** and **runs** at
 this commit. VisionFlow is not an application: it is the **ecosystem canon** — the
 coordination and governance layer over the DreamLab repositories (VisionClaw,
-agentbox, solid-pod-rs, nostr-rust-forum, dreamlab-ai-website) — plus one shipped
+agentbox, solid-pod-rs, nostr-rust-forum, loom, knowledgeGraph,
+dreamlab-ai-website and sidestr-rs) — plus one shipped
 artefact of its own, the `visionflow.info` **marketing website**. This document
 fixes the two things that actually exist here in present tense, with `file:line`
 citations, so that the legacy ADR-001..007 prose (now archived) is read as
@@ -110,6 +113,21 @@ running CI gates:
 Release coordination uses `scripts/generate-release-manifest.sh` against
 `docs/releases/ecosystem-release.schema.json`; the human-readable cross-repo posture
 lives in `docs/architecture/compatibility-matrix.md`.
+
+### Sidestr source capability and estate activation are separate claims
+
+VisionFlow counts `sidestr-rs` as a library component in the nine-repository estate, not as
+one of the six running substrates (`README.md`, `docs/architecture/repository-map.md`). Its
+2026-10-01 parity release matches `sidestr/spec` `fe689e9`, publishes seven crates and adds
+assets, pools, binary markets, exact producer eviction, federated tip trust, shared relay
+sockets, restorable EVM histories and Hitch channel state machines.
+
+Deployment remains separate. EVM is an unpublished overlay inside a sidestr chain,
+not an external EVM rail. Hitch is a Lightning-shaped kernel that does not speak to Lightning
+peers and still needs a host. Agentbox continues to produce `sidestr:dreamlab` with upstream
+JavaScript, and the estate chain has activated none of pools, markets, EVM or Hitch. The Dell
+BLAKE2b pair is parent-node staging only. [ADR-2012](adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md)
+therefore remains `proposed / partial / inactive`.
 
 ### The estate snapshot is collected nightly by CI and read offline by the dream cycle
 
@@ -277,12 +295,15 @@ Decisions of record:
 5. **Every count claimed in canon prose has one queryable source.** The drift gate
    must stay green; a second distinct figure for one axis anywhere in the tree is a
    failure, not a footnote.
-6. **Estate health is collected by CI and read by the dream cycle.** The nightly
+6. **Source, publication and activation are separate sidestr claims.** A crate release or
+   oracle pass may raise source maturity only. A capability becomes an estate feature when
+   the owning substrate records a deployment and acceptance receipt (ADR-2012).
+7. **Estate health is collected by CI and read by the dream cycle.** The nightly
    snapshot is written by `.github/workflows/estate-health.yml` and committed as data; a
    dream night reads it offline through `node scripts/estate-health.mjs check` and never
    collects one, acquires a token, or edits the snapshot by hand. The annexe staying
    credential-free is what this protects (ADR-2008).
-7. **One corpus, one build, one gate.** The canonical vault is
+8. **One corpus, one build, one gate.** The canonical vault is
    `/home/devuser/workspace/visionGraph` (`knowledge/` + `working/`) and no second copy
    of the corpus exists in the estate. Ontology lives in **frontmatter only** — no
    `json-ld` fences, no `key:: value` lines, no `{{embed}}` — governed by a versioned
@@ -296,7 +317,7 @@ Decisions of record:
    gate with auto-revert and are ledgered, never signed; Whelk inconsistency, subclass
    cycles and relation contradictions are blockers that cannot be approved around
    (ADR-2013).
-8. **No MCP inside the estate for the corpus.** Agents reach the corpus through the
+9. **No MCP inside the estate for the corpus.** Agents reach the corpus through the
    `vault` binary over Bash and through `loom-client`; humans use Obsidian desktop with
    core plugins only. Loom's `/mcp` is the external-host door and nothing else.
    Registering an MCP server for the corpus inside the estate requires a new ADR and an

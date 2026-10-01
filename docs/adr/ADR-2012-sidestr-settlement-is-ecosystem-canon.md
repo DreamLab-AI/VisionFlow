@@ -3,19 +3,19 @@ id: ADR-2012
 title: The financial substrate is our own sidestr sidechains: record the decision in canon, mirror the kind registry, and retire Lightning-first and the SHA-256d-only anchoring note
 date: 2026-09-21
 decision_status: proposed
-implementation_status: none
+implementation_status: partial
 activation_status: inactive
 supersedes: []
 superseded_by: []
-verified_commit: ec7f353da39e5883ff63ef24ab2fab5e2f69d341
+verified_commit: ea33c17a2a54e06a806f0193b258282a1c049a86
 owner: jjohare
-review_trigger: the first sidestr chain sealed by a federated instance; upstream sidestr changing a kind number or the chain-document shape; any proposal to reinstate Lightning, NWC or an EVM rail as a planned rail; USDT-on-RGB confirmed live on mainnet
+review_trigger: the first sidestr chain sealed by a federated instance; an estate chain activates assets, pools, markets, EVM or Hitch; upstream sidestr changes a kind number or the chain-document shape; any proposal to reinstate Lightning, NWC or an external EVM rail as a planned rail; USDT-on-RGB is confirmed live on mainnet
 repo: visionflow
 domain: BASELINE-visionflow.md
-lineage: "Canon entry for PRD-024 (agentbox docs/proposals/sovereign-settlement.md). Carries no implementation; it records the ecosystem-level decision and the cross-repo routing that agentbox ADR-2096 to ADR-2103 and the sibling records implement. Extends the event-kind registry's allocation-table ownership (F4) to the sidestr kinds."
+lineage: "Canon entry for PRD-024 (agentbox docs/proposals/sovereign-settlement.md). VisionFlow carries no substrate implementation; this record tracks verified sibling source as partial and routes the implementing decisions to agentbox ADR-2096 to ADR-2103 and sibling records. Extends the event-kind registry's allocation-table ownership (F4) to the sidestr kinds."
 ---
 
-# ADR-2012 — The financial substrate is our own sidestr sidechains: record the decision in canon, mirror the kind registry, and retire Lightning-first and the SHA-256d-only anchoring note
+# ADR-2012: The financial substrate is our own sidestr sidechains: record the decision in canon, mirror the kind registry, and retire Lightning-first and the SHA-256d-only anchoring note
 
 ## Context
 
@@ -33,19 +33,26 @@ and mainnet by explicit operator choice" (`website/static/index.html:597`). The 
 2026-09-21 that DreamLab's own sidestr sidechains are the key and only value instrument
 (PRD-024 D0 to D6).
 
+Source state moved after this record was written. `sidestr-rs` now matches
+`sidestr/spec` `fe689e9`, publishes seven crates and also contains inactive pool, market,
+EVM and Hitch implementations. Those additions do not make Lightning or an external EVM
+network an estate rail: EVM executes inside a sidestr chain, while Hitch is a
+Lightning-shaped channel kernel that does not speak to Lightning peers.
+
 ## Decision
 
 1. **Canon records one financial substrate: our own sidestr sidechains.** Value in this
    ecosystem is a UTXO on a chain DreamLab signs. The `did:nostr` payment-account claim is now
    backed by a named instrument and must be stated that way wherever canon repeats it
    (`README.md:134`, `README.md:248`, `docs/protocol/identity-spine.md`, the pitch and website
-   copy). This record ratifies nothing on its own: every axis stays `proposed / none /
-   inactive` until the implementing records are accepted and their evidence filed.
+   copy). This record ratifies nothing on its own: the decision stays proposed and
+   activation stays inactive until the implementing records are accepted and their
+   runtime evidence is filed. Verified source work may raise only the implementation axis.
 2. **Lightning-first is retired from canon.** The "Lightning over L402 and NWC as the rail
    today" and "the native NWC rail is the next phase" claims are withdrawn as unbuilt, not
    merely rescheduled; `website/static/index.html:597,1015-1016` and `docs/PRD-website.md:23-25`
    are corrected in the same change. Lightning may return only as an optional bridge on-ramp
-   into a chain. `x402` and `l402` keep classifying and stay unpayable. An EVM rail stays
+   into a chain. `x402` and `l402` keep classifying and stay unpayable. An external EVM rail stays
    rejected (agentbox PRD-015 C11 stands unamended).
 3. **The SHA-256d-only anchoring note is retired.** The parent network and the sidechain header
    family are validated configuration, not a fixed property of the estate: the set is
@@ -73,7 +80,7 @@ and mainnet by explicit operator choice" (`website/static/index.html:597`). The 
 
    | Part | Carrier |
    |---|---|
-   | Sole value instrument; clean-room Rust crates; rust-bitcoin accepted; `evm`, `pool` and `desk` rules excluded | agentbox ADR-2096 |
+   | Sole value instrument; attributed Rust crates; rust-bitcoin accepted; EVM admitted only as an in-chain overlay; estate activation of `pool` and `desk` excluded | agentbox ADR-2096 and its 2026-09-26 amendment |
    | Lightning-first superseded; `pay402` gains a fixtured `sidestr` scheme | agentbox ADR-2097 |
    | `chain` and `asset` URN kinds; Nostr kind registration; chain traffic on its own program; agentbox ADR-2012 relay allowlist narrowed to identity ingress | agentbox ADR-2098 |
    | The chain is the ledger of record; balances are UTXO folds; the blocktrail `txo[]` seam opens | agentbox ADR-2099 |
@@ -86,6 +93,26 @@ and mainnet by explicit operator choice" (`website/static/index.html:597`). The 
    | D1 ledger demoted to a derived view; `solid-pod-rs` lockstep pin; `derive_subkey` frozen as a Published Language | nostr-rust-forum ADR-2012 |
    | The programme, phases and open questions | agentbox PRD-024 |
 
+## Source qualification — 2026-10-01
+
+Source implementation is now **partial** against this ecosystem decision:
+
+- `sidestr-rs` commit `2bdee2d5606c43c67fa5674ff9ba0992d2ac12c7` matches
+  `sidestr/spec` `fe689e9`; seven crates are published and reference-oracle CI is green.
+- Assets, activation-height rules, constant-product pools, binary markets, exact producer
+  eviction, federated tip trust, shared relay sockets and retained EVM snapshots exist in
+  source. Hitch covers revocable commitments, HTLCs, recovery, snapshots, invoices and
+  one-hop routing.
+- `sidestr-evm` remains unpublished. Hitch still needs host wallet funding, relay I/O,
+  chain watches, storage and broadcasting. Its protocol is not Lightning-compatible.
+- Agentbox still produces `sidestr:dreamlab` with the upstream JavaScript engine. The estate
+  chain has activated none of pools, markets, EVM or Hitch. The isolated Dell Knots 29.4.2
+  plus rbitcoin 0.7.99 pair proves only the BLAKE2b parent path and carries no estate chain.
+
+This evidence promotes only `implementation_status` from `none` to `partial`.
+`decision_status: proposed` and `activation_status: inactive` remain unchanged. Source
+availability cannot establish estate activation under the status contract.
+
 ## Consequences
 
 Canon gains its first named financial substrate, which closes the standing finding that the
@@ -93,15 +120,17 @@ payment-account claim had no living anchor on any side. Three public claims are 
 unbuilt, and the drift counter and the site copy both have to move in the same change, which
 is the honest cost of having asserted a rail before building one. The ecosystem takes a
 dependency on a single-author upstream specification that describes itself as provisional; the
-mitigation recorded here is that consensus code is ours, clean-room and fixture-pinned. Every
+mitigation recorded here is that the attributed Rust port is fixture-pinned. Every
 repo's `solid-pod-rs` pin becomes coupled through the lockstep rule. Nothing in this record
-promotes any implementation axis: under the status contract, a source-level decision cannot
-promote activation, and missing deployment evidence stays unknown rather than inferred.
+promotes activation: under the status contract, source evidence may promote implementation
+only, and missing deployment evidence stays unknown rather than inferred.
 
 ## Verification
 
-Proposed; nothing built, and this record carries no implementation of its own. Ratification
-evidence will be:
+Partial source implementation was re-verified on 2026-10-01 against VisionFlow
+`ea33c17a2a54e06a806f0193b258282a1c049a86`, sidestr-rs
+`bcbe30b209f8b5703c614bfa832683ad9094ab33` and sidestr GitHub Actions run
+`36831527612`. Ratification and activation evidence will still require:
 
 - `grep -rn "NWC\|Lightning" website/static/index.html docs/PRD-website.md` returning only
   bridge-on-ramp or historical phrasing, with the drift counter green at that commit.
