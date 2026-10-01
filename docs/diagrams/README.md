@@ -167,7 +167,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_134 topic files, 1333 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_138 topic files, 1346 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -338,7 +338,11 @@ _134 topic files, 1333 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 
 | ID | Topic | Diagrams | Kinds | Governing | ADRs |
 |----|-------|----------|-------|-----------|------|
-| SR-01 | [sidestr-rs — six AGPL crates, what each owns, the oracle ladder, and the first live agent loop on sidestr:dreamlab](sidestr-rs/01-crates-oracle-and-live-loop.md) | 6 | flowchart, sequenceDiagram, stateDiagram-v2 | [ADR-2112-sidestr-crates-live-in-sidestr-rs.md](../../../project/agentbox/docs/adr/ADR-2112-sidestr-crates-live-in-sidestr-rs.md), [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2096, ADR-2101, ADR-2106, ADR-2112 |
+| SR-01 | [sidestr-rs workspace, reference-oracle ladder, and live estate boundary](sidestr-rs/01-workspace-oracles-and-live-boundary.md) | 4 | flowchart, stateDiagram-v2 | [ADR-0001-reference-oracle-is-the-compatibility-contract.md](../../../sidestr-rs/docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md), [ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md](../../../sidestr-rs/docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md), [ADR-2012-sidestr-settlement-is-ecosystem-canon.md](../../docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md) | ADR-2012, ADR-2096, ADR-2112 |
+| SR-02 | [Ordered asset, pool and market rules with exact producer eviction](sidestr-rs/02-assets-pools-markets-and-eviction.md) | 4 | flowchart, stateDiagram-v2, sequenceDiagram | [ADR-0001-reference-oracle-is-the-compatibility-contract.md](../../../sidestr-rs/docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md), [ADR-2012-sidestr-settlement-is-ecosystem-canon.md](../../docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md) | ADR-2012, ADR-2096 |
+| SR-03 | [In-chain EVM execution, withdrawal accounting, and retained snapshots](sidestr-rs/03-evm-overlay-and-retained-state.md) | 4 | flowchart, sequenceDiagram | [ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md](../../../sidestr-rs/docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md), [ADR-2012-sidestr-settlement-is-ecosystem-canon.md](../../docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md), [ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md](../../../project/agentbox/docs/adr/ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md) | ADR-2012, ADR-2096 |
+| SR-04 | [Hitch channel finality, recovery snapshots, routing, and the missing host](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) | 4 | flowchart, sequenceDiagram | [ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md](../../../sidestr-rs/docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md), [ADR-2012-sidestr-settlement-is-ecosystem-canon.md](../../docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md), [ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md](../../../project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md) | ADR-2012, ADR-2111 |
+| SR-05 | [Origin-neutral reserve attestations and the private Liquid adapter](sidestr-rs/05-reserve-attestation-and-liquid-adapter.md) | 3 | flowchart, stateDiagram-v2 | [ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md](../../../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md), [ADR-2117-private-owner-usd-unit-bridged-through-rgb-into-sidestr.md](../../../project/agentbox/docs/adr/ADR-2117-private-owner-usd-unit-bridged-through-rgb-into-sidestr.md) | ADR-2117 |
 
 ### estate
 
