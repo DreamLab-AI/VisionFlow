@@ -117,7 +117,7 @@ Each sibling in its own words:
 <summary><b>sidestr-rs</b> — <em>the economic engine for did:nostr agents</em></summary>
 <br/>
 
-> **sidestr-rs — Rust port of Melvin Carvalho's sidestr sidechains, AGPL-3.0-only: the economic engine for did:nostr agents. A did:nostr key is a sidechain wallet.** Six crates on crates.io (`sidestr-header`, `-core`, `-nostr`, `-wallet`, `-round`, `-agent`), each an attributed port of the [sidestr/spec](https://github.com/sidestr/spec) reference and tested against it as oracle. The estate's live chain, `sidestr:dreamlab`, runs beside Bitcoin testnet4 with a public [mirror](https://dreamlab-ai.github.io/sidestr-dreamlab); on 2026-09-23 two agents with `did:nostr` keys pegged in 50,000 test sats, made three trades delivered as Nostr kind-23500 events, and pegged out, paid on testnet4. agentbox keeps the chain instance (`config/sidechain`), not the crates (agentbox ADR-2112). Testnet only; no real funds.
+> **sidestr-rs — Rust port of Melvin Carvalho's sidestr sidechains, AGPL-3.0-only: the economic engine for did:nostr agents. A did:nostr key is a sidechain wallet.** Seven crates are on crates.io (`sidestr-header`, `-core`, `-nostr`, `-wallet`, `-round`, `-hitch`, `-agent`), each tested against its JavaScript reference as an oracle. The 2026-10-01 parity release follows `sidestr/spec` through `fe689e9`: activated assets, constant-product pools, binary prediction markets, exact producer eviction, federated tip trust, shared relay connections and restorable EVM history. The EVM crate is testnet-only and unpublished. Hitch supplies a Lightning-shaped channel kernel with revocable commitments, HTLCs, checked snapshots, invoices and one-hop routing; it is not a Lightning node and still needs a host for funding, relay I/O, chain watches, storage and broadcasting. The estate's live chain, `sidestr:dreamlab`, runs beside Bitcoin testnet4 with a public [mirror](https://dreamlab-ai.github.io/sidestr-dreamlab); on 2026-09-23 two agents with `did:nostr` keys pegged in 50,000 test sats, made three trades delivered as Nostr kind-23500 events, and pegged out, paid on testnet4. Agentbox keeps that chain instance and still runs the upstream JavaScript producer (`config/sidechain`); the Rust crates are the library component (agentbox ADR-2112). An isolated Knots 29.4.2 and rbitcoin 0.7.99 BLAKE2b testnet4 pair is synced on Dell staging, without an estate sidechain or any mainnet change. Testnet only; no real funds.
 
 </details>
 
@@ -243,7 +243,7 @@ Longer-form: the canonical vision report is under [`presentation/report`](presen
 
 ## Status & remaining work
 
-*Dated 2026-08-15. Maturity words pinned to the ADR-002 ladder (historical / planned / scaffolded / standalone / integrated / federation-verified / released). The canonical work register is VisionClaw's `docs/TODO-unified.md`; this table cites it and does not contradict it. Where the running code falls short of the principle, that is stated in the same breath — that is the house voice, not a footnote. The August 2026 gap-closure lands the trust-layer edges (SHACL, PROV-O, relay AUTH, mesh federation, the elevation terminus) at `integrated`; `federation-verified` is still earned only by the cross-substrate live-session smoke-test.*
+*Core rows dated 2026-08-15; sidestr rows added 2026-10-01. Maturity words are pinned to the ADR-002 ladder (historical / planned / scaffolded / standalone / integrated / federation-verified / released). The canonical work register is VisionClaw's `docs/TODO-unified.md`; this table cites it and does not contradict it. Where the running code falls short of the principle, that is stated in the same breath. The August 2026 gap-closure lands the trust-layer edges (SHACL, PROV-O, relay AUTH, mesh federation, the elevation terminus) at `integrated`; `federation-verified` is still earned only by the cross-substrate live-session smoke-test.*
 
 | Capability | Maturity | Honest boundary |
 |:-----------|:---------|:----------------|
@@ -254,6 +254,9 @@ Longer-form: the canonical vision report is under [`presentation/report`](presen
 | GPU graph physics | released | 82 CUDA kernels / 9 `.cu` files / 5,854 LOC. ~17k nodes live (17,147 captured); higher figures are benchmarked capacity, not live count. |
 | Hexser handlers / Actix actors | released | 44 handlers (19 directive + 25 query); 35 Actix actors; 9 ports / 12 adapters — re-verified against the live tree. |
 | `did:nostr` identity spine | integrated | One keypair as login + WAC principal + provenance author + DID subject + payment account. |
+| sidestr protocol and agent wallet | released | Seven AGPL crates are published and the `fe689e9` reference-oracle CI is green. `sidestr:dreamlab` proves the economic loop on testnet4, but Agentbox still runs the JavaScript producer; the Rust producer is not deployed. |
+| sidestr assets, pools, prediction markets and EVM | standalone | Rule activation, replay and composition are tested end to end. No estate chain has activated these overlays; `sidestr-evm` remains unpublished and testnet-only. |
+| Hitch payment channels | standalone | The published Rust kernel matches Hitch's scripts and wire messages and covers HTLCs, recovery, snapshots, invoices and one-hop routing. Host services are absent, and it does not speak to Lightning peers. |
 | ACSP signed governance (kinds 31400–31405) | integrated | Six-kind protocol live; only the admin key publishes a Decision (31403). Serves one use case today — ontology concept elevation, capped at 5 concurrent — narrower than "universal human-in-the-loop". |
 | agentbox skills | released | **124** skills (skills estate audit 2026-08-21; re-counted 2026-09-04 against the rebuilt image). Every "115"/"116" copy is stale. |
 | RuVector semantic memory | released | 1.17M+ embeddings. |
@@ -278,6 +281,6 @@ Licensing today is **AGPL-3.0-only across all four code repos** — VisionClaw's
 
 **VisionFlow is built by [DreamLab AI](https://www.dreamlab-ai.com) — coordination engineering for federated human–AI intelligence.**
 
-[VisionClaw](https://github.com/DreamLab-AI/VisionClaw) · [agentbox](https://github.com/DreamLab-AI/agentbox) · [solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) · [nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum) · [dreamlab-ai-website](https://github.com/DreamLab-AI/dreamlab-ai-website)
+[VisionClaw](https://github.com/DreamLab-AI/VisionClaw) · [agentbox](https://github.com/DreamLab-AI/agentbox) · [solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) · [nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum) · [sidestr-rs](https://github.com/DreamLab-AI/sidestr-rs) · [dreamlab-ai-website](https://github.com/DreamLab-AI/dreamlab-ai-website)
 
 </div>
