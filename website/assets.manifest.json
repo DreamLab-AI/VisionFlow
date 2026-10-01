@@ -6,6 +6,7 @@
   "required": [
     { "dest": "index.html", "why": "the page itself" },
     { "dest": "CNAME", "why": "custom-domain binding for GitHub Pages (www.visionflow.info)" },
+    { "dest": "robots.txt", "why": "crawler policy for the custom domain; ships only via the wholesale static/* copy, so the manifest must require it or a copy regression publishes the site without it" },
     { "dest": "css/styles.css", "why": "sole stylesheet, referenced by index.html" },
     { "dest": "js/main.js", "why": "sole module entrypoint, referenced by index.html" },
     { "dest": "js/mesh-webgl.js", "why": "WebGL2 mesh module imported by js/main.js" },
