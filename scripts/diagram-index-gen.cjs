@@ -826,7 +826,9 @@ function writeIndexes(topics) {
     // NOT part of COVERAGE.md: the hosted runner has no sibling checkouts, so
     // its counts would differ from a local run and the in-sync diff would fail
     // on a true statement. The gate stays honest by not diffing this file.
-    writeVerificationReport(st, topics);
+    // A partial (--only) run would overwrite the whole-tree report with its own
+    // subset counts, which --check-verification then refuses.
+    if (!flags.only) writeVerificationReport(st, topics);
     for (const x of CITE_NOTES) console.log(`  ~ ${x}`);
     for (const x of w) console.warn(`  ! ${x}`);
     if (flags.strictCitations) errors.push(...w.map(x => `citation: ${x}`));

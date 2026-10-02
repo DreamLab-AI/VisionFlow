@@ -48,7 +48,7 @@ No single repository *is* VisionFlow. The siblings call the whole the **Dynamic 
 
 | Substrate | Role | Where to run it |
 |:----------|:-----|:----------------|
-| **[VisionClaw](https://github.com/DreamLab-AI/VisionClaw)** | Flagship engine — ontology-grounded immersive 3D knowledge graph. OWL 2 EL + Whelk reasoning, 82 CUDA kernels of GPU physics, one renderer shared desktop↔headset. *Watch here, judge there — it observes, it never signs a decision.* | Clone the repo; needs a CUDA host. |
+| **[VisionClaw](https://github.com/DreamLab-AI/VisionClaw)** | Flagship engine — ontology-grounded immersive 3D knowledge graph. OWL 2 EL + Whelk reasoning, 83 CUDA kernels of GPU physics, one renderer shared desktop↔headset. *Watch here, judge there — it observes, it never signs a decision.* | Clone the repo; needs a CUDA host. |
 | **[agentbox](https://github.com/DreamLab-AI/agentbox)** | Sovereign agent runtime — reproducible Nix container, a `did:nostr` key minted per agent at spawn, 130 skills, RuVector semantic memory, NIP-59 session mirror, Solid pod bridge. *Reproduce, audit, control.* | Clone the repo; `nix` build. |
 | **[solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs)** | Personal-data-sovereignty layer — Rust Solid pod server (LDP, WAC, NIP-98, DID:Nostr, WebID). Every write is a git-mark commit; high-value writes anchor to Bitcoin. *The exit right sits in the floor, not granted at the door.* | Clone the repo; `cargo` build. |
 | **[nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum)** | Human+agent communication substrate — Nostr-native forum + relay in Rust. The one place a human decision is cryptographically signed (ACSP kinds 31400–31405). *The one place a decision gets signed.* | Clone the repo; Cloudflare Workers + Leptos WASM. |
@@ -153,7 +153,7 @@ flowchart TB
 
     subgraph VC["VisionClaw — Embodiment / Observation"]
         OWL["OWL 2 EL + Whelk\n(SHACL-lite advisory)"]
-        GPU["82 CUDA Kernels\n(semantic physics)"]
+        GPU["83 CUDA Kernels\n(semantic physics)"]
         XR["Immersive XR\n(multi-user, one renderer)"]
         MCP_VC["7 Ontology MCP Tools"]
     end
@@ -251,7 +251,7 @@ Longer-form: the canonical vision report is under [`presentation/report`](presen
 | W3C SPARQL query | integrated | Real (Oxigraph). No Neo4j anywhere — that is retired. |
 | SHACL shape validation | integrated | The `.shacl.ttl` NodeShapes load into Oxigraph and gate the write path as a dual-mode enforcing gate. |
 | PROV-O provenance | integrated | Reified as queryable RDF triples on the governed write path — decision provenance is answerable in SPARQL. |
-| GPU graph physics | released | 82 CUDA kernels / 9 `.cu` files / 5,854 LOC. ~17k nodes live (17,147 captured); higher figures are benchmarked capacity, not live count. |
+| GPU graph physics | released | 83 CUDA kernels / 10 `.cu` files / 6,302 LOC. ~17k nodes live (17,147 captured); higher figures are benchmarked capacity, not live count. |
 | Hexser handlers / Actix actors | released | 44 handlers (19 directive + 25 query); 35 Actix actors; 9 ports / 12 adapters — re-verified against the live tree. |
 | `did:nostr` identity spine | integrated | One keypair as login + WAC principal + provenance author + DID subject + payment account. |
 | sidestr protocol and agent wallet | released | Seven AGPL crates are published and the `fe689e9` reference-oracle CI is green. `sidestr:dreamlab` proves the economic loop on testnet4, but Agentbox still runs the JavaScript producer; the Rust producer is not deployed. |
