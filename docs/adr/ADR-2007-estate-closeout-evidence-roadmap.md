@@ -2,12 +2,12 @@
 id: ADR-2007
 title: Bind estate closeout to decision lineage and system evidence
 date: 2026-09-04
-decision_status: proposed
+decision_status: accepted
 implementation_status: partial
-activation_status: staged
+activation_status: live
 supersedes: []
 superseded_by: []
-verified_commit: 8cf1a1bf9e4ef2ef98ee6c7bf56ef361aa8d0304
+verified_commit: 8c5acc2efa1af7994288aba2e38a88cf8afaf2f9
 owner: estate architecture maintainers
 review_trigger: completion of ADR inventory review or a change to the estate roster
 repo: visionflow
@@ -21,7 +21,7 @@ The user requested upgrades and extensions across the estate's ADR documents to 
 
 ## Decision
 
-Propose the [estate closeout roadmap](../estate-review/closeout/README.md) as the coordinating contract. Inventory every candidate record, preserve lineage, amend operative decisions and their governing documents together, and require system-journey evidence before closeout. Declared status is not a substitute for verified implementation or activation. Repository owners retain authority over their decisions.
+**Accepted, narrowed to the evidence rule (owner decision 2026-10-02, Q8).** An item closes only on evidence that names its repository, the source revision it was checked at (plus source hashes when the tree was dirty), its evidence class (source, test, CI, deployment or runtime receipt) and its acceptance boundary. Declared status is not a substitute for verified implementation or activation: a bare ADR number, a green index or a component completion label closes nothing. Repository owners retain authority over their decisions. *Overtaken, not accepted:* the original text proposed the [estate closeout roadmap](../estate-review/closeout/README.md) as the coordinating contract, with inventory, amendment and six-journey closeout duties; that coordination is overtaken by the 2026-09-21 planning cycle and the TODO board (see Acceptance below).
 
 ## Consequences
 
@@ -100,3 +100,14 @@ Retain proposed/partial/staged for this coordinating roadmap. The remaining cust
 - **Priority:** P2 — next cycle (decide at the cycle-exit reconciliation on 20 October, when the 61-item closeout register is either retired into the cycle board or kept)
 - **Why:** The evidence discipline this record proposed now lives in accepted mechanisms: the three-axis status contract (TODO row G-15), ADR-2008 (estate health collected by CI), ADR-2010 (augmentation conditions as the audit lens), and the `adr-index-gen --check` gate and ratchet in all five ledger repos (CY-A4). Its specific claim no longer holds. The closeout roadmap (`docs/estate-review/closeout/README.md`, last touched in `ec7f353` on 15 September) is not the coordinating contract any more. Since 22 September the planning cycle (`dreamlab-cumbria/docs/planning/audit-2026-09-21/planning-cycle.md` §2, §9, §10) and `project/docs/TODO-unified.md` coordinate the work. Its acceptance bar, all six system journeys under CP-09, includes federation work that plan §3 parks for 12 weeks, so it cannot close as written. Verified against VisionFlow `main` at `7096f2b`.
 - **Next:** Owner choice at cycle exit. Either narrow this record to "every status claim names its repository, revision, evidence class and acceptance boundary", which is already met and so ready to accept, or reject it as overtaken by the cycle plan.
+
+## Acceptance — 2026-10-02
+
+Owner decision 2026-10-02, Q8: accepted, narrowed to its evidence rule. The accepted text is the Decision paragraph above; nothing else in this record is a live obligation.
+
+- **Accepted:** the evidence rule. An item closes only on evidence naming its repository, revision, evidence class and acceptance boundary. Status declarations, a green index and component completion labels close nothing.
+- **Overtaken by the cycle plan and the TODO board:** the closeout roadmap as coordinating contract, the inventory and per-record amendment programme, CP-01 to CP-09 and the six-system-journey acceptance bar. The planning cycle (`dreamlab-cumbria/docs/planning/audit-2026-09-21/planning-cycle.md` §2, §9, §10) and `project/docs/TODO-unified.md` coordinate the work now. The annexes above stay as dated history and are not reopened by this acceptance.
+- **`implementation_status: partial`.** The machine-checkable half of the rule is built: `scripts/adr-index-gen.cjs --check` requires `repo`, `verified_commit` and the three status axes on every record (`REQUIRED_FIELDS`), and the three-axis contract (`docs/architecture/adr-status-contract.md`) separates decision from implementation and activation. Evidence class and acceptance boundary are enforced only at review, not by a gate.
+- **`activation_status: live`.** That half runs on every push and pull request through `.github/workflows/adr-index.yml` (index check and ratchet), in this repo and the other ledger repos (CY-A4).
+- **`verified_commit`** moves to `8c5acc2efa1af7994288aba2e38a88cf8afaf2f9`, the VisionFlow `main` this acceptance was checked against.
+- **Diagram citations:** VF-01 cites `:7` (activation axis) and `:24` (the Decision paragraph). Both lines keep their roles; the frontmatter and Decision were edited in place, and this annex was appended. VF-01 resolves those citations at its stamped revision, so its "proposed/partial/staged" wording describes that revision until the topic is next re-verified.
