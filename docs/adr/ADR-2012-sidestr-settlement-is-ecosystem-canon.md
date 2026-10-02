@@ -54,24 +54,40 @@ Lightning-shaped channel kernel that does not speak to Lightning peers.
    are corrected in the same change. Lightning may return only as an optional bridge on-ramp
    into a chain. `x402` and `l402` keep classifying and stay unpayable. An external EVM rail stays
    rejected (agentbox PRD-015 C11 stands unamended).
-3. **The SHA-256d-only anchoring note is retired.** The parent network and the sidechain header
-   family are validated configuration, not a fixed property of the estate: the set is
-   `{btc:testnet4-blake2b, btc:mainnet-blake2b, btc:testnet4, btc:mainnet}` with header profiles
-   `{knots-blake2b-v2, sha256d}`, defaulting to upstream's BLAKE2b family, bound into the chain
-   document before its genesis hash. Canon states the choice and its liveness character rather
-   than a single hash family. Mainnet variants sit behind an implemented owner-and-legal gate.
-4. **The kind registry mirrors the sidestr kinds.** `docs/protocol/event-kind-registry.md`
-   gains rows for 23500, 23501, 23510 to 23514, 33333, 33500, 33501 and 33502 marked
-   **externally owned** and provisional (upstream spec v0.0.1, field names and kinds not final),
-   and for **38420 `sidestr-account-binding`** inside agentbox's 38400 to 38499 band as
-   estate-owned. 33502 carries two upstream schemas and the registry says so rather than
-   choosing one. The registry owns the allocation table; semantics stay with the originating
-   record, per its own source-of-record rule (`docs/protocol/event-kind-registry.md:8`).
-5. **Custody is stated honestly in canon.** DreamLab is its own federation: the root chain is a
-   level-2 k-of-n signer set of instances we operate and is custodial; child chains are level 1,
-   custodied by the root signers; an asset bridge is a custodian of the origin asset. The
-   level 1 to 2 to 3 ladder is the hardening path, and canon does not describe any rung as
-   trustless before it exists.
+3. **The SHA-256d-only anchoring note is retired.** The parent network is validated
+   configuration, not a fixed property of the estate, named by the sidestr/spec short alias
+   (0.0.2 onwards, §3.2): the set is `{tbtc4, btc, txbt4, xbt}` (`ltc` and `vtc` are reserved
+   upstream and refused until a validator carries them). The header format, proof-of-work hash
+   and sighash family are not chosen: they follow the parent (stock SHA256d beside `btc` and
+   `tbtc4`, v2 BLAKE2b with the unified sighash beside `xbt` and `txbt4`), and the parent is
+   bound into the chain document, so into the chain's hash. Documents written before 0.0.5 keep
+   the long ids they were signed with (`btc:testnet4-blake2b` = `txbt4`, `btc:mainnet-blake2b`
+   = `xbt`, `btc:testnet4` = `tbtc4`, `btc:mainnet` = `btc`), which validators accept as aliases
+   so that no running chain's document, id or address changes; new documents use the short
+   form. Canon states the choice and its liveness character rather than a single hash family.
+   Mainnet variants (`btc`, `xbt`) sit behind an implemented owner-and-legal gate.
+4. **The kind registry mirrors the sidestr and teller kinds.** `docs/protocol/event-kind-registry.md`
+   carries rows that follow sidestr/spec 0.0.5 (`e8deb63`, Appendix A) exactly, marked
+   **externally owned** and provisional (upstream says field names, kinds and document shapes
+   are not final): **3500**, the chain document, a regular immutable event whose id is the
+   chain's hash; 23500, 23501, **23503** (a signed parent transaction for a producer to
+   broadcast) and 23510 to 23514; **33333**, the tip, whose `e` tag names the 3500 event;
+   33500; **33501**, read only for chains made before 0.0.5; and 33502. It also carries the
+   solidpayorg teller kinds (`7c00cea`, `lib/teller.mjs:8-9`) as external: **30333**, the Web
+   Ledger the operator publishes and replaces, and **3700**, a request signed by the account's
+   key. **38420 `sidestr-account-binding`** stays inside agentbox's 38400 to 38499 band as
+   estate-owned; no external row falls in that band, none collides with 38420, and this
+   mirroring allocates nothing in it. 33502 carries two upstream schemas (peg record, desk
+   pledge) and the registry says so rather than choosing one. The registry owns the allocation
+   table; semantics stay with the originating record, per its own source-of-record rule
+   (`docs/protocol/event-kind-registry.md:8`).
+5. **Custody is stated honestly in canon.** DreamLab is its own federation: the root chain is
+   level 1 with one signer, an instance we operate, and is custodial (sidestr/spec 0.0.5 §9:
+   the validator trusts the signer for which peg-ins exist and that peg-outs are paid); child
+   chains are level 1, custodied by the root signer; an asset bridge is a custodian of the
+   origin asset. The level 1 to 2 (a `k`-of-`n` signer set and a parent view) to 3 ladder is the
+   hardening path, and canon does not describe any rung as reached, or as trustless, before it
+   exists.
 6. **No regulatory claim moves.** No cell of the VisionClaw ADR-124 §7 matrix is exempted by a
    sidechain, a bridge, RGB or client-side validation, and a fiat-referenced stablecoin adds the
    FCA stablecoin regime. Canon may not be cited as relief.
@@ -92,6 +108,7 @@ Lightning-shaped channel kernel that does not speak to Lightning peers.
    | `FsPaymentStore` and `/pay/*` deleted; `AnchorConfirmer` implemented; `extraction/solid-pod-rs` deleted; contracts naming disambiguated | VisionClaw ADR-2111 |
    | D1 ledger demoted to a derived view; `solid-pod-rs` lockstep pin; `derive_subkey` frozen as a Published Language | nostr-rust-forum ADR-2012 |
    | The programme, phases and open questions | agentbox PRD-024 |
+   | The anchoring rule: Blocktrails Core with the gitmark profile on `sidestr:gitmark` (the state is the commit as text, tweaked onto the full point, never lifted; blocktrails/spec `ef54a08` + `282b096`, git-mark `b852d7d`), a trail verified as blocktrails/verify `043e7af` verifies it (output keys recomputed from `pubkeyBase` and the states, then matched on chain); mirrored in `docs/protocol/event-kind-registry.md` §2.6 | agentbox ADR-2099 D5; VisionClaw ADR-2111 D2 |
 
 ## Source qualification — 2026-10-01
 
@@ -134,8 +151,9 @@ Partial source implementation was re-verified on 2026-10-01 against VisionFlow
 
 - `grep -rn "NWC\|Lightning" website/static/index.html docs/PRD-website.md` returning only
   bridge-on-ramp or historical phrasing, with the drift counter green at that commit.
-- `docs/protocol/event-kind-registry.md` carrying the sidestr rows and 38420, with no collision
-  flagged against agentbox's 38000 to 38201 block or the forum's 31400 to 31405.
+- `docs/protocol/event-kind-registry.md` carrying the sidestr 0.0.5 rows, the teller rows and
+  38420, with no collision flagged against agentbox's 38000 to 38499 bands or the forum's 31400
+  to 31405, and the same external rows as agentbox `docs/PROTOCOL-registry.md`.
 - `README.md:248` naming sidestr as the instrument behind the payment-account claim, with a
   maturity word matching the implementing records' filed axes rather than exceeding them.
 - The compatibility matrix gaining a settlement row whose evidence column cites the sibling
@@ -149,3 +167,4 @@ Partial source implementation was re-verified on 2026-10-01 against VisionFlow
 - **Why:** D2's false public claims are still live at `7096f2b`. `website/static/index.html:608` says "Lightning over L402 and NWC as the rail today". Lines `:1101-1103` say "the native NWC rail is the next phase" and show the pill "sats live, NWC next". `docs/PRD-website.md:23-25` repeats the claim. Agentbox ADR-2097 and `docs/developer/economy-loop.md:143` record NWC and NIP-47 as unbuilt and `x402`/`l402` as unpayable. The §9 confidence foil fails on exactly this kind of claim. Three other parts are overtaken. D3's parent set uses the long ids and a chosen header profile, which upstream 0.0.2 replaced with aliases `{tbtc4, btc, txbt4, xbt}` and a derived family (agentbox ADR-2103). D5 calls the root a level-2 k-of-n federation; the sealed chain is level 1 with one signer. D4 is half done: 38420 is registered (`docs/protocol/event-kind-registry.md:68,82`), but the external sidestr kinds are not, and upstream has since added 23503.
 - **Next:** Under Track B item 9, correct `index.html:608,1101-1103` and `PRD-website.md:23-25` so they say Lightning/NWC is not built and sidestr runs on testnet only, matching agentbox ADR-2097. Then revise D3 and D5 when the agentbox records reopen.
 - **Done — D2, 2026-10-02 (owner decision 2026-10-02, Q12):** the Lightning/NWC claims are withdrawn from the site and the PRD. `website/static/index.html` no longer says "Lightning over L402 and NWC as the rail today" or "the native NWC rail is the next phase". It now says no Lightning or NWC rail is built, `l402` and `x402` are recognised but not payable, Lightning may return only as an optional on-ramp, and the estate's sidestr chain is a valueless research chain sealed on `tbtc4` with a supervised producer, with real value parked (plan §9, §10). The status-table pill "sats live, NWC next" now reads "testnet research only". `docs/PRD-website.md`'s 2026-09-06 amendment carries a dated correction in place of the PRD-015 v1.2 rail. `grep -n "NWC\|Lightning" website/static/index.html` now returns only those withdrawal sentences. The same change removes the site's unbacked "55x GPU speedup" and "180+ MCP tools" figures. D1, D3, D4 and D5 are unchanged and still wait on the agentbox records. `decision_status`, `implementation_status` and `activation_status` are unchanged.
+- **Done — D3, D4, D5 and D7 revised, 2026-10-02:** D3 names parents by the short aliases `{tbtc4, btc, txbt4, xbt}` and keeps the long ids for documents written before 0.0.5. D4 follows sidestr/spec 0.0.5 (`e8deb63`): 3500 is the chain event whose id is the chain hash, 23503 is added, 33501 is pre-0.0.5 only and 33333 carries the `e` tag; the teller kinds 30333 and 3700 (`solidpayorg/teller` `7c00cea`) are added as external. `docs/protocol/event-kind-registry.md` now carries those rows (§2.1, §2.2, §2.5) with a collision check against 38420 and nothing new in 38400 to 38499. D5 states level 1 with one signer. D7 gains the anchoring-rule row (Blocktrails Core plus the gitmark profile, verified per blocktrails/verify), carried by agentbox ADR-2099 D5 and VisionClaw ADR-2111 D2, mirrored in registry §2.6. Nothing live moves: no chain id, alias, published event, deposit address or trail address changes. `decision_status`, `implementation_status` and `activation_status` are unchanged.

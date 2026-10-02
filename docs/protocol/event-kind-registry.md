@@ -4,7 +4,7 @@
 |-------|-------|
 | Status | Canonical index (Accepted, 2026-07-03) |
 | Owner | **VisionFlow `docs/protocol/`** — this file is the single cross-mesh index of record |
-| Scope | Every Nostr `kind` emitted, accepted, or federated by a DreamLab mesh substrate (VisionClaw, agentbox, nostr-rust-forum, solid-pod-rs) |
+| Scope | Every Nostr `kind` emitted, accepted, or federated by a DreamLab mesh substrate (VisionClaw, agentbox, nostr-rust-forum, solid-pod-rs), and the externally owned kinds they consume (sidestr, solidpayorg teller; §2.5) |
 | Source-of-record | The originating ADR/PRD owns each range's *semantics*; this registry owns the *allocation table* and flags collisions/gaps. It does not redefine any range. |
 
 ## 1. Why this exists
@@ -29,7 +29,13 @@ allow-list (`nostr-rust-forum/.../wrangler.toml` `MESH_FEDERATED_KINDS`)?
 | 1 | Short text note | all | NIP-01 | **yes** |
 | 3 | Contacts | all | NIP-01 | no |
 | 1059 | Gift wrap (sealed DM, session mirror) | all | NIP-59 | **yes** |
+| 3500 | sidestr chain document (regular, immutable); content the document, its **event id is the chain's hash** | **external (sidestr)** | sidestr/spec 0.0.5 §3, App. A | no |
+| 3700 | Web Ledgers teller request (`join`, `withdraw`, `transfer`), signed by the account's key | **external (solidpayorg teller)** | solidpayorg/teller `lib/teller.mjs` `REQUEST_KIND` | no |
 | 9000-9020 | Group moderation actions | nostr-rust-forum | NIP-29 | no |
+| 23500 | sidestr transaction (ephemeral); content the hex, tag `chain` = alias; any key | **external (sidestr)** | sidestr/spec 0.0.5 §11, App. A | no |
+| 23501 | sidestr faucet request (ephemeral); content an address; testnet only | **external (sidestr)** | sidestr/spec 0.0.5 §11, App. A | no |
+| 23503 | sidestr parent transaction to broadcast (ephemeral); content the hex; the producer's parent node judges it | **external (sidestr)** | sidestr/spec 0.0.4+ §11, App. A | no |
+| 23510-23514 | sidestr level-2 signing round (ephemeral): block proposal, partial signature, peg-out PSBT, co-signed PSBT, sealed block | **external (sidestr)** | sidestr/spec 0.0.5 §9.1, App. A | no |
 | 27235 | HTTP Auth token | agentbox, all auth paths | NIP-98 | no (auth, not federated) |
 
 ### 2.2 Addressable / parameterized-replaceable (30000-39999, NIP-33)
@@ -40,6 +46,7 @@ allow-list (`nostr-rust-forum/.../wrangler.toml` `MESH_FEDERATED_KINDS`)?
 | 30033 | did:nostr mesh federated-broadcast anchor (DIDNostrMesh) | nostr-rust-forum `nostr-bbs-mesh` | ADR-074 §D2 | no (mesh transport is scaffold; see FREEZE/T5) |
 | 30050 | App-defined addressable data (mesh allow-listed; no dedicated in-tree handler) | forum mesh config | — | **yes** |
 | 30078 | Application-specific data | agentbox, all | NIP-78 | **yes** |
+| 30333 | Web Ledgers teller ledger; `d` = the ledger hash (sha256 of the genesis's JCS), `t` = `webledgers`; replaced by the operator as balances move | **external (solidpayorg teller)** | solidpayorg/teller `lib/teller.mjs` `LEDGER_KIND` | no |
 | 30840 | Mobile-bridge SessionEnd digest | agentbox `nostr-pod-bridge` | sovereign_mesh mobile_bridge | no |
 | 30841 | Mobile-bridge companion (reserved) | agentbox | sovereign_mesh mobile_bridge | no |
 | 30910 | Moderation: ban | nostr-rust-forum | PRD-009 moderation | **yes** |
@@ -54,6 +61,10 @@ allow-list (`nostr-rust-forum/.../wrangler.toml` `MESH_FEDERATED_KINDS`)?
 | 31922 | Date-based calendar event | nostr-rust-forum | NIP-52 | no |
 | 31923 | Time-based calendar event | nostr-rust-forum | NIP-52 | no |
 | 31925 | Calendar RSVP | nostr-rust-forum | NIP-52 | no |
+| 33333 | sidestr chain tip, NIP-333 shape; `d` and `n` = chain alias, **`e` = the chain event (3500)**, `t` = `sidestr`, `tip`, `u`, `peg` | **external (sidestr)** | sidestr/spec 0.0.5 §11, App. A | no |
+| 33500 | sidestr rule document; `d` = chain alias : activation height | **external (sidestr)** | sidestr/spec 0.0.5 §8, App. A | no |
+| 33501 | sidestr genesis document (**legacy**: chains made before 0.0.5 only; from 0.0.5 the genesis travels inside the 3500 event) | **external (sidestr)** | sidestr/spec 0.0.5 §5, App. A | no |
+| 33502 | sidestr peg record, `d` = parent txid : vout; **dual-schema**: the desk proposal's pledge uses the same kind, and a decoder returns peg record, pledge or ambiguous rather than guessing | **external (sidestr)** | sidestr/spec 0.0.5 §7, App. A; `proposals/desk.md` | no |
 | 38000-38099 | Agent-intent (inbound agent-action request) | agentbox | PRD-004 | **yes** (38000) |
 | 38100-38199 | Agent-response (outbound response) | agentbox | PRD-004 | **yes** (38100) |
 | 38200 | Agent job cost estimate | agentbox `nostr-bridge` | agentbox payments | no |
@@ -104,6 +115,41 @@ Kinds are unchanged; new data rides NIP-33 tags and `outcome_detail`. Schema own
 
 Receipt ladder (relay `governance_receipts`): `signed → relay-accepted → projection-committed → consumer-received → applied | not-applied | applied-manually`; side receipts `escalated-on-age`, `expired`. Application stages are posted by the mutation owner to `POST /api/governance/receipts/{response_event_id}/application` (auth worker, NIP-98). `system:whelk-gate` is a reserved non-DID actor for reasoner outcomes and is never counted as a human reviewer.
 
+### 2.5 External kinds: sidestr and the solidpayorg teller
+
+Every row marked **external** above is owned upstream and mirrored here so that
+the allocation table stays complete; this registry does not define, extend or
+renumber any of them. Sources, pinned:
+
+- **sidestr** — `sidestr/spec` draft 0.0.5 at `e8deb63` (2026-10-01), Appendix A.
+  Upstream states that field names, kinds and document shapes are provisional.
+  Kind 3500 is new in 0.0.5: the chain document is a regular event whose id is
+  the chain's hash, and 33333 points at it with an `e` tag. Kind 33501 is read
+  only for chains made before 0.0.5, which keep their documents, long parent ids
+  and aliases until their signer publishes the 3500 event; the estate's existing
+  chains, chain ids and published events do not move.
+- **teller** — `solidpayorg/teller` at `7c00cea`, `lib/teller.mjs:8-9`: 30333 is
+  the Web Ledger the operator publishes and replaces, 3700 a request signed by
+  the account's `did:nostr` key.
+
+**Collision check (2026-10-02).** None of 3500, 3700, 23500, 23501, 23503,
+23510-23514, 30333, 33333 or 33500-33502 coincides with any other row in this
+table, and none falls in an estate-reserved band (38000-38499, §2.3). In
+particular none touches **38420** or 38421-38425, and no new kind is allocated in
+38400-38499 by mirroring them. None is in the forum's `MESH_FEDERATED_KINDS`, so
+every **Fed?** cell is "no"; federating any of them is the same owner decision
+as §3.
+
+### 2.6 Routing: rules that ride these kinds
+
+Some estate rules are carried by existing kinds and transactions rather than by
+a kind of their own. They are listed here so a reader of the allocation table
+lands on the record that implements them.
+
+| Rule | Definition (upstream, pinned) | Carriers |
+|------|-------------------------------|----------|
+| Anchoring: blocktrail marks on `sidestr:gitmark` | Blocktrails Core with the gitmark profile: the state is the commit as text, `TapTweak(x(P) \|\| sha256(utf8(commit)))` added to the full point, never its even-y lift; every TXO carries a commit and the base key is never an output (`blocktrails/spec` `ef54a08` + `282b096`, `blocktrails/git-mark` `b852d7d`). A trail is verified as `blocktrails/verify` `043e7af` verifies it: every mark's output key recomputed from `pubkeyBase` and the states, then compared with the output on chain | agentbox ADR-2099 D5; VisionClaw ADR-2111 D2 |
+
 ## 3. Known federation gap (unresolved — owner decision required)
 
 agentbox's per-node relay `allowed_kinds` (`agentbox.toml`) accepts and emits
@@ -135,3 +181,7 @@ edit, and is deliberately left open here. When the owner decides, update both
   ADR-074 §D2 (did:nostr / DIDNostrMesh kind-30033)
 - nostr-rust-forum: NIP-29 groups, NIP-52 calendar, PRD-009 moderation
 - NIP-01, NIP-33, NIP-51, NIP-59, NIP-78, NIP-98
+- sidestr/spec 0.0.5 (`e8deb63`) Appendix A; solidpayorg/teller `7c00cea`;
+  blocktrails/spec `ef54a08` + `282b096`, blocktrails/verify `043e7af`,
+  blocktrails/git-mark `b852d7d` (§2.5, §2.6)
+- VisionFlow ADR-2012 D4 and D7 (this registry's sidestr and teller rows)
