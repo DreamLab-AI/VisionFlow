@@ -32,7 +32,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/README.md
-verified_commit: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d
+verified_commit: 341c5d262bea5dcfc65d47dc3f5296a7d3eae675
 ---
 
 ## NF-11.1 The Durable Object and its in-memory state
@@ -289,23 +289,25 @@ toward application, and so never overwrite a ladder stage
 ```mermaid
 flowchart TB
     SIDE["Side receipts - never on the ladder<br/>escalated-on-age nostr-bbs-core/src/governance.rs:936<br/>expired nostr-bbs-core/src/governance.rs:938<br/>ladder_rank returns None for both nostr-bbs-core/src/governance.rs:982"]
-    API["GET /api/governance/receipts - NIP-98 ADMIN<br/>relay_do/receipts.rs:623, routed at nostr-bbs-relay-worker/src/lib.rs:311"]
-    JSON["receipt_json derives the flags rather than making every client<br/>re-implement stage semantics relay_do/receipts.rs:578"]
-    FLAGS["applied relay_do/receipts.rs:598<br/>awaitsProjection relay_do/receipts.rs:599<br/>isApplicationStage relay_do/receipts.rs:603<br/>appliedAt appliedBy acknowledgement relay_do/receipts.rs:604"]
-    LEDGER["ADR-2010 ledger row: proposed / partial / inactive<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:5"]
+    API["GET /api/governance/receipts - NIP-98 ADMIN<br/>relay_do/receipts.rs:639, routed at nostr-bbs-relay-worker/src/lib.rs:311"]
+    JSON["receipt_json derives the flags rather than making every client<br/>re-implement stage semantics relay_do/receipts.rs:594"]
+    FLAGS["applied relay_do/receipts.rs:614<br/>awaitsProjection relay_do/receipts.rs:615<br/>isApplicationStage relay_do/receipts.rs:619<br/>appliedAt appliedBy acknowledgement relay_do/receipts.rs:620"]
+    LEDGER["ADR-2010 ledger row: proposed / partial / staged<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:5-7"]
+    CORR["correlate now reads the first UNMARKED e tag as the request, the shape the forum client signs -<br/>before a5b809e every UI decision came back Uncorrelated relay_do/receipts.rs:128-130"]
     OPEN["Still SEPARATE consumer implementations<br/>agentbox durable received/outcome ledger<br/>VisionClaw dispatch journal and conditional PR claim"]
 
     SIDE --> JSON
     API --> JSON --> FLAGS
     LEDGER -.-> API
+    CORR --> API
     FLAGS --> OPEN
 
-    N1["The relay now serves the APPLICATION stages on the read API, so the human who approved something<br/>can learn whether it actually happened - the loop ADR-2010 left open relay_do/receipts.rs:600-603"]
+    N1["The relay now serves the APPLICATION stages on the read API, so the human who approved something<br/>can learn whether it actually happened - the loop ADR-2010 left open relay_do/receipts.rs:616-619"]
     N6["INVARIANT: migration 0006 is mirrored into ensure_schema, the live schema path, so case_side_receipts<br/>and case_delegations exist on a cold start without the migration runner<br/>nostr-bbs-relay-worker/src/lib.rs:906 nostr-bbs-relay-worker/src/lib.rs:918 - see NF-08.5"]
-    N2["INVARIANT: the projection commit is ATOMIC - decision row, case state and receipt in one batch<br/>relay_do/receipts.rs:285. A receipt that says committed cannot outlive a decision that did not land."]
-    N3["DIVERGENCE: the read stays scoped to the relay's existing ADMIN authority because ADR-2010's<br/>history-consumer extension leaves cross-case read authority to ratify relay_do/receipts.rs:619-622"]
-    N4["DOC-DRIFT: the ADR ledger row still reads proposed / partial / inactive<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:5-7 while the ten-stage ladder, the<br/>application stages and the read API are all wired. A relay receipt still cannot prove external<br/>application - EXTERNAL: see VC-24 and AB-14, estate loop ES-05"]
-    N5["This supersedes the retired NF-06.7 and refines NF-10.8: the remaining acceptance needs deployed correlation and<br/>witnessed external outcomes"]
+    N2["INVARIANT: the projection commit is ATOMIC - decision row, case state and receipt in one batch<br/>relay_do/receipts.rs:301. A receipt that says committed cannot outlive a decision that did not land."]
+    N3["DIVERGENCE: the read stays scoped to the relay's existing ADMIN authority because ADR-2010's<br/>history-consumer extension leaves cross-case read authority to ratify relay_do/receipts.rs:635-638"]
+    N4["RESOLVED at 341c5d2: the ledger row moved from inactive to staged on a live signed journey - the M4 run's<br/>system-decider 31403 read back projection-failed and applied false on the edge<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:153. A relay receipt still cannot prove external<br/>application - EXTERNAL: see VC-24 and AB-14, estate loop ES-05"]
+    N5["OPEN: the commit path is not yet witnessed live - acceptance needs the owner's own high-tier 31403 at<br/>projection-committed with its broker_decisions row docs/adr/ADR-2010-durable-governance-outcome-receipts.md:157.<br/>Refines NF-10.8; the decision card and correlation half is NF-06.17"]
 ```
 
 ## NF-11.11 The trust demotion sweep — keyset paging, explicit outcomes
@@ -314,8 +316,8 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant CR as cron trigger every 5 min
-    participant SW as sweep_inactive_demotions<br/>trust_sweep.rs:521
-    participant RUN as run_demotion_sweep<br/>trust_sweep.rs:239
+    participant SW as sweep_inactive_demotions<br/>trust_sweep.rs:522
+    participant RUN as run_demotion_sweep<br/>trust_sweep.rs:240
     participant POL as trust::decide_demotion<br/>trust.rs:326
     participant D1 as whitelist + admin_log
 
@@ -325,16 +327,16 @@ sequenceDiagram
     loop each row
         RUN->>POL: decide Hold or Demote - the SHARED pure policy
         alt Demote
-            RUN->>D1: trust UPDATE and audit INSERT in ONE batch trust_sweep.rs:207
-            RUN->>RUN: counters move only on a CONFIRMED commit trust_sweep.rs:287
+            RUN->>D1: trust UPDATE and audit INSERT in ONE batch trust_sweep.rs:208
+            RUN->>RUN: counters move only on a CONFIRMED commit trust_sweep.rs:288
         end
-        RUN->>RUN: advance the cursor for EVERY consumed row trust_sweep.rs:235
+        RUN->>RUN: advance the cursor for EVERY consumed row trust_sweep.rs:236
     end
     RUN-->>SW: DemotionSweepResult trust_sweep.rs:142
 
     Note over RUN: INVARIANT auditable: scanned == demoted + held + failed always holds, checked by is_balanced trust_sweep.rs:167-168 - no row is silently unaccounted for
     Note over RUN: A failed page query stops the sweep early and is reported DISTINCTLY from a failed row commit trust_sweep.rs:117-121 trust_sweep.rs:154
-    Note over POL: The cursor advances for held AND failed rows too, so a permanently failing row cannot wedge the sweep trust_sweep.rs:235
+    Note over POL: The cursor advances for held AND failed rows too, so a permanently failing row cannot wedge the sweep trust_sweep.rs:236
 ```
 
 ## NF-11.12 Why the sweep is keyset — and why the closeout qualification is now stale
@@ -352,7 +354,7 @@ flowchart TB
     PROB --> OUT
 
     N1["DOC-DRIFT: the IDENTITY-keys-and-trust closeout says the sweep can skip rows because OFFSET pages over<br/>a shrinking set, and that UPDATE and audit-INSERT errors are ignored before returning the planned level -<br/>concluding ADR-2006 is PARTIAL. BOTH defects are fixed in code: keyset paging trust_sweep.rs:22 and<br/>confirmed-commit-only counters trust_sweep.rs:36. The qualification is stale; ADR-2006's remaining ask -<br/>committed outcome reporting, stable pagination, recoverable audit/state consistency - is MET."]
-    N2["The one closeout clause that still holds: TL2 CAN land directly on TL0 - but that is DELIBERATE,<br/>ADR-2006 permits one committed transition per sweep rather than one rung per sweep trust_sweep.rs:230-232"]
+    N2["The one closeout clause that still holds: TL2 CAN land directly on TL0 - but that is DELIBERATE,<br/>ADR-2006 permits one committed transition per sweep rather than one rung per sweep trust_sweep.rs:231-233"]
     N3["This supersedes the note in NF-03.9 and the ADR-2006 row in NF-10.8"]
 ```
 

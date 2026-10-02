@@ -38,7 +38,7 @@ sources:
   - docs/adr/ADR-2003-pages-artifact-deploy.md
   - docs/architecture/compatibility-matrix.md
   - ./README.md
-verified_commit: e5987acc8337ddd64c72f775750d61fef46d8e0b
+verified_commit: 8698ac103c77c680a33385038feb4ade1d1abac4
 ---
 
 ## VF-02.1 The copy-only build — every step of website/build.sh
@@ -385,4 +385,4 @@ stateDiagram-v2
 
 **Debt (unverifiable citation):** `website/build-receipt.json` is gitignored at `website/.gitignore:8`, so it exists in no commit and the four citations into it are read from the working tree whatever revision this topic declares; the numbers they carry are true of one local build, not of a revision.
 
-**Drift (site vs README, CUDA counts):** since `abf8d3c` the page states 83 CUDA kernels in 10 `.cu` files and 6,302 lines (`website/static/index.html:278`, `website/static/index.html:1066`), which matches VisionClaw at `7d3ea2edb` (10 tracked `.cu` files, 6,302 lines, 83 `__global__` definitions); the repository README still states 82 kernels, 9 files and 5,854 lines (`./README.md:51`, `./README.md:254`), and the drift counter carries no CUDA axis, so the second figure does not fail any gate.
+**Invariant (site and README agree on CUDA counts; Drift resolved at VisionFlow 54e1d02):** the page states 83 CUDA kernels in 10 `.cu` files and 6,302 lines (`website/static/index.html:278`, `website/static/index.html:1066`), which matches VisionClaw at `7d3ea2edb` (10 tracked `.cu` files, 6,302 lines, 83 `__global__` definitions); since 54e1d02 the repository README states the same figures (`./README.md:51`, `./README.md:254`). The drift counter still carries no CUDA axis, so the agreement holds by review, not by a gate.

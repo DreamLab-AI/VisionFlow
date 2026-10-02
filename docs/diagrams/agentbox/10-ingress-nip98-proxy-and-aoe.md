@@ -30,7 +30,7 @@ sources:
   - ../project/agentbox/voice/console/Caddyfile
   - ../project/agentbox/management-api/lib/agent-event-auth.js
   - ../project/agentbox/management-api/lib/action-plane.js
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+verified_commit: c4ed3ec6505858e1e5ead651c29115d2f74e5546
 ---
 
 ## AB-10.1 Door inventory and port topology
@@ -40,7 +40,7 @@ flowchart TB
     LAN["LAN client"]
     P9096["nip98-proxy<br/>agentbox/config/nip98-proxy/proxy.mjs:1173<br/>listen 0.0.0.0:9096"]
     AOE9095["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2517<br/>127.0.0.1:9095"]
-    MGMT9090["management-api<br/>agentbox/management-api/server.js:1445,:47<br/>HOST 0.0.0.0 PORT 9090 in-container"]
+    MGMT9090["management-api<br/>agentbox/management-api/server.js:1457,:48<br/>HOST 0.0.0.0 PORT 9090 in-container"]
     RELAY7777["nostr-rs-relay<br/>agentbox/flake.nix:1622,:1586<br/>binds relayCfg.bind, default 127.0.0.1:7777"]
     VOICE8444["voice cockpit Caddy origin<br/>docker-compose.voice.yml:39<br/>0.0.0.0:8444"]
 
@@ -325,7 +325,7 @@ sequenceDiagram
     participant PX as forward()<br/>agentbox/config/nip98-proxy/proxy.mjs:925
     participant VI as verifyIdentity<br/>agentbox/config/nip98-proxy/proxy.mjs:629
     participant RT as routeFor<br/>agentbox/config/nip98-proxy/proxy.mjs:429
-    participant MAPI as management-api server<br/>agentbox/management-api/server.js:1445
+    participant MAPI as management-api server<br/>agentbox/management-api/server.js:1457
     participant AUTH as authMiddleware<br/>agentbox/management-api/middleware/auth.js:164
     participant NB2 as verifyNip98Header<br/>agentbox/management-api/middleware/auth.js:67
 
@@ -345,7 +345,7 @@ Note over PX: ADR-2010 - a genuinely signed NIP-98 header always reaches<br/>a n
 Note over PX: ADR-2010 - bearer_env is injected ONLY when auth.mode is<br/>not nip98, and normalizeRoute is fatal at boot if the named env var is<br/>unset proxy.mjs:332-336
         end
         PX->>MAPI: forward to 127.0.0.1:9090, path /v1/system proxy.mjs:1018-1027
-MAPI->>AUTH: authMiddleware, authMode = MANAGEMENT_API_AUTH_MODE default<br/>hybrid agentbox/management-api/server.js:222-225
+MAPI->>AUTH: authMiddleware, authMode = MANAGEMENT_API_AUTH_MODE default<br/>hybrid agentbox/management-api/server.js:223-226
 Note over AUTH: hybrid AUTO-ELEVATES to strict-nip98 when<br/>AGENTBOX_SOVEREIGN_MESH_ENABLED is true and no mode is set explicitly, and<br/>strict-nip98 rejects Bearer unconditionally<br/>agentbox/management-api/middleware/auth.js:152-162,:173-174
 AUTH->>NB2: verifyNip98Header(authHeader, request) re-verifies the<br/>signature independently agentbox/management-api/middleware/auth.js:67-82
 Note over NB2: the URL it checks against the signed u tag is rebuilt from request.host, which<br/>keeps a non-default port, since the Fastify 5 upgrade, agentbox/management-api/middleware/auth.js:72
@@ -455,14 +455,14 @@ Note over PX: DIVERGENCE query-carried credentials, WS-handshake-only - regressi
 sequenceDiagram
     autonumber
     participant DC as Direct caller (container-internal)
-    participant MAPI as management-api server<br/>agentbox/management-api/server.js:1445, HOST 0.0.0.0 PORT 9090
+    participant MAPI as management-api server<br/>agentbox/management-api/server.js:1457, HOST 0.0.0.0 PORT 9090
     participant AUTH as authMiddleware<br/>agentbox/management-api/middleware/auth.js:164
     participant BR2 as Browser via port 9096
     participant PX2 as proxy /mgmt/ route<br/>agentbox/config/nip98-proxy/proxy.mjs:410
 
     Note over DC,MAPI: port 9090 is published to the host only as 127.0.0.1:9090:9090 agentbox/flake.nix:2872 - DC must already be container-internal or on the loopback publish
     DC->>MAPI: request with its OWN Authorization Bearer API_KEY or Nostr header, no X-Agentbox-Pubkey
-    MAPI->>AUTH: authMiddleware verifies bearer or nip98 directly agentbox/management-api/server.js:222-230
+    MAPI->>AUTH: authMiddleware verifies bearer or nip98 directly agentbox/management-api/server.js:223-231
     AUTH-->>MAPI: allow or 401
 
     BR2->>PX2: request /mgmt/... over 9096, with NIP-98 or session cookie

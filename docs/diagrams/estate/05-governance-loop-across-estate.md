@@ -5,7 +5,7 @@ area: estate
 governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
   - ../project/docs/BASELINE-architecture.md
-adrs: [visionclaw:ADR-2006, agentbox:ADR-2041, agentbox:ADR-2071, visionflow:ADR-2010, visionflow:ADR-2011, agentbox:ADR-2087, visionclaw:ADR-2110, nostr-rust-forum:ADR-2011, agentbox:ADR-2085, agentbox:ADR-2086]
+adrs: [visionclaw:ADR-2006, agentbox:ADR-2041, agentbox:ADR-2071, visionflow:ADR-2010, visionflow:ADR-2011, agentbox:ADR-2087, visionclaw:ADR-2110, nostr-rust-forum:ADR-2010, nostr-rust-forum:ADR-2011, agentbox:ADR-2085, agentbox:ADR-2086]
 sources:
   - ../project/src/services/acsp/events.rs
   - ../project/src/services/acsp/client.rs
@@ -27,7 +27,17 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
-verified_commit: {agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, visionflow: d4e44298646768a4b19af359119e16a6884fa80d, nostr-rust-forum: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d}
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-governance-probe/src/main.rs
+  - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
+  - ../project/src/actors/elevation_actor.rs
+  - ../project/scripts/activation/adr-2110-check.sh
+  - ../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md
+  - ../project/agentbox/management-api/routes/exec-record.js
+  - ../project/agentbox/scripts/activation/adr-2087-check.sh
+  - ../dreamlab-ai-website/.github/workflows/workers-deploy.yml
+verified_commit: {agentbox: c4ed3ec6505858e1e5ead651c29115d2f74e5546, visionclaw: 0a9abd3f9d7225b457cd6a65d3857fbc277e1e48, visionflow: afb44af7389acd452d37c93eff7cbd06db5cb313, nostr-rust-forum: 341c5d262bea5dcfc65d47dc3f5296a7d3eae675, dreamlab-ai-website: 8ab4ab421497c37f169a6dd0e2f23ffbf23a32d8}
 ---
 ## ES-05.2 Wire fields and exact response binding
 ```mermaid
@@ -59,7 +69,7 @@ classDiagram
 ## ES-05.6 Mutation-owner acknowledgement and replay refusal
 ```mermaid
 sequenceDiagram
-    participant Bridge as broker-bridge.js:407 decide route
+    participant Bridge as broker-bridge.js:435 decide route
     participant Gate as authority.js:226
     participant Ledger as governance-application-receipts.js:26
     participant VC as VisionClaw mutation owner
@@ -207,11 +217,12 @@ flowchart LR
     READY -->|no| REFUSE["503: no unjournalled spawn"]
     READY -->|yes| LOCAL["local side-effect classification"]
     LOCAL --> SPAWN["Journalled task spawn; no extra approval receipt"]
-    NIGHT["Nightly SSH, model calls, push and publication"] -.-> GAP["ADR-2071 proposed: no universal journal/approval claim"]
+    NIGHT["Nightly SSH, model calls, push and publication"] --> REC["POST /v1/exec/record appends tool.called and tool.completed<br/>through the same journal singleton, records only<br/>exec-record.js:63"]
+    REC -.-> GAP["ADR-2071 activation live, decision still proposed:<br/>journalled, never approved or denied<br/>ADR-2071-journal-the-nightly-dream-cycle.md:5-7"]
     PEER["Same-UID process"] -.-> LIMIT["Application gate does not establish OS isolation"]
 ```
 
-Grounded in Agentbox `management-api/lib/action-plane.js` and `routes/tasks.js`; broader governance routes retain their individual contracts. A working task-spawn journal does not establish complete mediation of shell commands or nightly egress. See [audit](../../estate-review/2026-09-07-agentbox-audit.md).
+Grounded in Agentbox `management-api/lib/action-plane.js`, `routes/tasks.js` and, since ADR-2071 Phase 1, `routes/exec-record.js`; broader governance routes retain their individual contracts. A working task-spawn journal does not establish complete mediation of shell commands or nightly egress. See [audit](../../estate-review/2026-09-07-agentbox-audit.md).
 
 ## ES-05.12 The augmentation conditions — one canon decision landing in four repositories
 ```mermaid
@@ -224,15 +235,18 @@ flowchart TB
 
     AB["LANDING 1, agentbox — derives and stamps the triple on every<br/>31402 it publishes, journals every gate denial as authority.deny,<br/>mirrors the receipt ladder to the human, and gives an outage a<br/>signed manual-continuation path<br/>ADR-2087-task-properties-receipts-and-manual-continuation.md:38,50,59,69"]
     VC["LANDING 2, VisionClaw — instruments the judgment surfaces and<br/>moves the rationale gate onto the shared decide core<br/>ADR-2110-augmentation-conditions-visionclaw-substrate.md:3,120-121"]
-    FRM["LANDING 3, the forum — operator task properties set the<br/>escalation boundary, implementation_status partial<br/>ADR-2011-operator-task-properties-set-the-escalation-boundary.md:3,6"]
-    REL["LANDING 4, the relay — the FR2.2 rationale is enforced at the<br/>relay before save_event, not only in the UI<br/>nip_handlers.rs:1028-1033"]
+    FRM["LANDING 3, the forum — operator task properties set the<br/>escalation boundary, implementation partial, activation LIVE<br/>since the M4 probe run of 2 October<br/>ADR-2011-operator-task-properties-set-the-escalation-boundary.md:6-7"]
+    REL["LANDING 4, the relay — the FR2.2 rationale is enforced at the<br/>relay before save_event, not only in the UI<br/>nip_handlers.rs:1044-1051"]
 
     BOUND --> AB
     RULE --> VC
     BOUND --> FRM
     FRM --> REL
 
-    OPEN["OPEN — the server rationale gate reads the case's DECLARED tier,<br/>so an agent that under-declares escapes it. Closing it needs the<br/>effective tier on the case row, which is the forum's half.<br/>ADR-2110-augmentation-conditions-visionclaw-substrate.md:132-135"]
+    OPEN["OPEN, restated 2 October — the server rationale gate reads the<br/>case's DECLARED tier, and no VisionClaw writer records one. Closing<br/>it is a declaration, not a read: the operator declares the triple on<br/>VisionClaw's panels, then the gate takes the higher of the two tiers.<br/>ADR-2110-augmentation-conditions-visionclaw-substrate.md:132-160"]
+    NOTIER["VERIFIED AT HEAD — VisionClaw's 31400 carries only a d tag and a<br/>PanelDefinition with no tier or task-property field, and its 31402<br/>carries d, priority, category, subject-kind, subject-id and title.<br/>events.rs:211-217, events.rs:91-101, events.rs:308-323,<br/>ElevationActor panel_definition elevation_actor.rs:234"]
+    MED["so the relay folds every VisionClaw case to the advertised default,<br/>medium, and check_rationale only bites at high or critical:<br/>NEITHER rationale gate fires on a VisionClaw case<br/>governance.rs:525, wrangler.toml:48, governance.rs:764"]
+    OPEN --> NOTIER --> MED
     VC --> OPEN
 
     TIGHT["INVARIANT — the triple merges on a tightening lattice: an<br/>agent-supplied task_properties may raise the boundary for its own<br/>action and never lower it, and an undeclared class publishes all<br/>three tags at the tightest reversibility.<br/>ADR-2087-task-properties-receipts-and-manual-continuation.md:38,86-88"]
@@ -276,5 +290,45 @@ sequenceDiagram
     RL-->>UI: OK false carrying the refusal reason, nip_handlers.rs:1051
 
     Note over RL,FG: INVARIANT — enforced BEFORE save_event, because a 31403 is a<br/>signed event any client or script can publish straight to the<br/>relay. A rule that lives only in the forum UI is a suggestion.<br/>nip_handlers.rs:1037-1043
-    Note over AD,RL: DIVERGENCE — the two gates read DIFFERENT tiers. The host reads<br/>the agent's DECLARED tier, the relay reads the EFFECTIVE tier<br/>computed by nostr-bbs-core effective_tier, governance.rs:515.<br/>The host call site is one line and tightens when the effective<br/>tier lands on the case row. see ES-05.12
+    Note over AD,RL: DIVERGENCE — the two gates read DIFFERENT tiers. The host reads<br/>the agent's DECLARED tier, the relay reads the EFFECTIVE tier<br/>computed by nostr-bbs-core effective_tier, governance.rs:515.<br/>For a VisionClaw case neither is high: nothing declares a tier, so<br/>the host gate sees None and the relay folds to medium. see ES-05.12
 ```
+
+## ES-05.14 Where each record of the loop stands on 2 October, and the correlation fix that let a UI decision land
+
+**What it shows.** The governance loop's records by activation state at the stamped revisions, and the
+forum relay defect that sat between the human's decision and every downstream receipt: until `a5b809e`
+`receipts::correlate` found the request only in an `e` tag marked `request`, which no producer emits, so a
+31403 signed in the forum UI was stored and acknowledged but never projected.
+
+**Why it is this way.** Each repository activates its own record against its own evidence (ADR-2087's
+check script, the forum's M4 probe suite, ADR-2110's check script). The correlation fix was found while
+preparing ADR-2010's acceptance and reached the edge with the website kit pin to `341c5d2`.
+
+```mermaid
+flowchart TB
+    subgraph LIVE["activation live"]
+        F2011["forum ADR-2011 task properties set the boundary<br/>M4 probe run 11 of 11 on the edge, nostr-bbs-governance-probe<br/>ADR-2011-operator-task-properties-set-the-escalation-boundary.md:184, main.rs:1-2"]
+        A2071["agentbox ADR-2071 nightly journal, decision still proposed<br/>ADR-2071-journal-the-nightly-dream-cycle.md:5-7"]
+    end
+    subgraph STAGED["activation staged"]
+        A2087["agentbox ADR-2087 check exits 2 on the rebuilt image,<br/>wired, forum_auth_api set, no receipt posted yet<br/>ADR-2087-task-properties-receipts-and-manual-continuation.md:7"]
+        F2010["forum ADR-2010 durable receipts, decision proposed<br/>ADR-2010-durable-governance-outcome-receipts.md:5-7"]
+    end
+    subgraph INACTIVE["activation inactive"]
+        V2110["VisionClaw ADR-2110, dev stack not running,<br/>acceptance by adr-2110-check.sh:2<br/>ADR-2110-augmentation-conditions-visionclaw-substrate.md:281-284"]
+    end
+    LIVE --> STAGED --> INACTIVE
+
+    UI["forum UI signs a 31403 with d case and an UNMARKED e request"] --> COR["receipts.correlate: marked request, then appeal target,<br/>then the first unmarked e — never supersedes<br/>receipts.rs:128-130"]
+    COR --> PROJ["projection-committed only when the id equals the case's<br/>own nostr_event_id, so a wrong unmarked tag stays Uncorrelated"]
+    PROJ --> ACC["ADR-2010 closes on ONE owner-signed 31403 on a high or<br/>critical case, with its receipt row at projection-committed<br/>ADR-2010-durable-governance-outcome-receipts.md:157"]
+    ACC --> NOCASE["prerequisite: a REAL high-tier case. None exists:<br/>the only high cases are the two M4 probe cases<br/>ADR-2010-durable-governance-outcome-receipts.md:166"]
+    V2110 -.->|"VisionClaw cases fold to medium, see ES-05.12"| NOCASE
+    A2087 -.->|"B7 needs that first real governance response, adr-2087-check.sh:329-341"| ACC
+```
+
+**Invariant:** reading the unmarked `e` tag cannot bind a decision to the wrong case, because the projection still requires the request id to equal the case's own `nostr_event_id` (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs:121-127`).
+
+**Open:** three activations now wait on the same event — the owner's first decision on a real high-tier case — and the estate has no producer of such a case: VisionClaw declares no tier on its panels or requests (`../project/src/services/acsp/events.rs:308-323`), so its cases fold to `medium` on the forum (`../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs:525`). Who declares the first triple is the owner's policy choice (`../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md:153-155`).
+
+**Drift:** forum ADR-2011 says the FR3.2 client read is "not yet on the edge" and that on the deployed kit a UI decision "would not project" (`../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:197-201`); at website `8ab4ab4` the Workers deploy pins kit `341c5d2` (`../dreamlab-ai-website/.github/workflows/workers-deploy.yml:45`), which carries both fixes. The record was written at its own HEAD before the pin moved.

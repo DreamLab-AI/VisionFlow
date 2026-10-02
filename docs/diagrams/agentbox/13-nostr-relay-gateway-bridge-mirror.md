@@ -35,7 +35,7 @@ sources:
   - ../project/agentbox/management-api/lib/llm-marketplace.js
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/management-api/lib/agent-control-surface.js
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+verified_commit: c4ed3ec6505858e1e5ead651c29115d2f74e5546
 ---
 
 ## AB-13.1 Nostr topology — relay, gateway, pod bridge, mirror, mesh
@@ -48,7 +48,7 @@ flowchart TB
             RS["nostr-rs-relay binary<br/>flake.nix:2393 else-branch (podBridgeEnabled=false only)"]
         end
         GW["nostr-gateway daemon<br/>config/nostr-gateway/gateway.cjs:758 connect()<br/>[program:nostr-gateway] flake.nix:2058"]
-        MGMT["management-api RelayConsumer<br/>management-api/server.js:1346<br/>mcp/nostr-bridge/relay-consumer.js:85 (legacy JS consumer, still wired)"]
+        MGMT["management-api RelayConsumer<br/>management-api/server.js:1358<br/>mcp/nostr-bridge/relay-consumer.js:85 (legacy JS consumer, still wired)"]
         AOE["AoE interaction plane port 9095<br/>gateway.cjs:445-459 aoeRequest()"]
         TAB0["tab0-bridge port 8971<br/>gateway.cjs:117,377 chatTab0()"]
     end
@@ -221,7 +221,7 @@ classDiagram
         producer agentbox governance publisher outbound
         consumer relay-consumer.js:78-79 GOVERNANCE_KIND_MIN_MAX _isGovernanceEvent
         consumer relay-consumer.js:603 _writeGovernanceEvent
-        sink governance-decision-waiter server.js:1361
+        sink governance-decision-waiter server.js:1373
     }
     note for Kind31400_31405_ACSP "the ACSP producer/consumer split and the decision loop are AB-11.10 and AB-11.11.<br/>agent-control-surface.js builds these kinds for the external forum client — it is not an agentbox dashboard. see AB-12.8"
 ```
@@ -368,7 +368,7 @@ Note over ADM: DIVERGENCE ADR-2012 closeout — the RELAY already admitted, stor
             end
         end
     end
-Note over CONS,WRITE: DIVERGENCE — a SECOND, independent JS consumer<br/>(mcp/nostr-bridge/relay-consumer.js:279 _onInbound, wired at<br/>management-api/server.js:1302-1378) subscribes to the SAME relay and writes to the SAME<br/>pods/NPUB/events/inbox/ path with its own allowlist (AGENTBOX_RELAY_ALLOWED_PUBKEYS) and its<br/>own I01-I10 invariants (relay-consumer.js:39-46), independently of BridgeConfig.allowed_pubkeys<br/>here
+Note over CONS,WRITE: DIVERGENCE — a SECOND, independent JS consumer<br/>(mcp/nostr-bridge/relay-consumer.js:279 _onInbound, wired at<br/>management-api/server.js:1314-1390) subscribes to the SAME relay and writes to the SAME<br/>pods/NPUB/events/inbox/ path with its own allowlist (AGENTBOX_RELAY_ALLOWED_PUBKEYS) and its<br/>own I01-I10 invariants (relay-consumer.js:39-46), independently of BridgeConfig.allowed_pubkeys<br/>here
 ```
 
 ## AB-13.7 nostr-bridge / relay-consumer — in-process library, not an MCP tool server
@@ -376,7 +376,7 @@ Note over CONS,WRITE: DIVERGENCE — a SECOND, independent JS consumer<br/>(mcp/
 ```mermaid
 sequenceDiagram
     autonumber
-    participant BOOT as management-api boot<br/>management-api/server.js:1302
+    participant BOOT as management-api boot<br/>management-api/server.js:1314
     participant RC as RelayConsumer.start<br/>mcp/nostr-bridge/relay-consumer.js:224
     participant NB as NostrBridge<br/>mcp/servers/nostr-bridge.js:269
     participant CONN as RelayConnection<br/>mcp/servers/nostr-bridge.js:131
@@ -384,15 +384,15 @@ sequenceDiagram
     participant GDW as governance-decision-waiter<br/>management-api/lib/governance-decision-waiter.js
 
 Note over BOOT,GDW: CORRECTION — despite the path mcp/servers/nostr-bridge.js, this file's own<br/>header (lines 1-15) declares it library-only, consumed in-process by management-api. There is<br/>NO supervisord [program:nostr-bridge] and NO MCP tool schema (no tool()/registerTool calls) in<br/>either file — this sequence draws the real in-process call chain, not an MCP tool invocation
-    BOOT->>BOOT: if AGENTBOX_RELAY_ENABLED and AGENTBOX_RELAY_POD_BRIDGE server.js:1302-1303
-    BOOT->>SPEC: buildDefaultIntentSpec() server.js:1321
+    BOOT->>BOOT: if AGENTBOX_RELAY_ENABLED and AGENTBOX_RELAY_POD_BRIDGE server.js:1314-1315
+    BOOT->>SPEC: buildDefaultIntentSpec() server.js:1333
     alt AGENTBOX_INTENT_COMMAND unset
         SPEC-->>BOOT: null — marker-only path unchanged default-intent-spec.js:62-63
     else command configured
         SPEC-->>BOOT: defaultIntentSpec(event, context) function default-intent-spec.js:71-88
     end
-    BOOT->>RC: new RelayConsumer({npubs, allowedPubkeys, intentSpec, governanceDecisionSink: GDW}) server.js:1346-1363
-    BOOT->>RC: await consumer.start() server.js:1364
+    BOOT->>RC: new RelayConsumer({npubs, allowedPubkeys, intentSpec, governanceDecisionSink: GDW}) server.js:1358-1375
+    BOOT->>RC: await consumer.start() server.js:1376
     RC->>NB: this._bridge.connect() relay-consumer.js:225
     NB->>CONN: conn.connect() for each relay in NOSTR_RELAYS mcp/servers/nostr-bridge.js:341-344
     RC->>NB: this._bridge.subscribe({kinds: allowedKinds}, onInbound) relay-consumer.js:226-229
@@ -410,7 +410,7 @@ Note over BOOT,GDW: CORRECTION — despite the path mcp/servers/nostr-bridge.js,
         RC->>SPEC: intentSpec(event, context) relay-consumer.js referencing default-intent-spec.js:71
         SPEC-->>RC: {command, args, env with AGENTBOX_INTENT_SOURCE_URN} default-intent-spec.js:74-85
     else kind in 31400-31405 (governance) and inbound is 31403
-RC->>GDW: governanceDecisionSink.notify(...) server.js:1361,<br/>relay-consumer.js:603
+RC->>GDW: governanceDecisionSink.notify(...) server.js:1373,<br/>relay-consumer.js:603
     end
 Note over NB,CONN: subscription keepalive — CloudFlare Durable Object relays<br/>stop pushing to an<br/>idle REQ after ~20s regardless of socket liveness, so subRefreshMs=15000<br/>(mcp/servers/nostr-bridge.js:326) reissues every active subscription under a<br/>FRESH wire id,<br/>independent of reconnects (junkiejarvis "answers then goes quiet" regression,<br/>mcp/servers/nostr-bridge.js:301-325)
 ```

@@ -36,7 +36,7 @@ sources:
   - ../project/agentbox/services/dream-engine/src/config.rs
   - ../project/agentbox/scripts/dream-machine-nightly.mjs
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
-verified_commit: {agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047, visionclaw: 746513b319edcd24810171db12db95275153ad3a, loom: 8c618faf24950ad4ef70855308991da56a54af2c}
+verified_commit: {agentbox: c4ed3ec6505858e1e5ead651c29115d2f74e5546, visionclaw: 746513b319edcd24810171db12db95275153ad3a, loom: 8c618faf24950ad4ef70855308991da56a54af2c}
 ---
 
 ## AB-24.1 Two deployments of one facade contract — topology
@@ -253,7 +253,7 @@ sequenceDiagram
     FAC-->>CONS: unchanged contract
     Note over OP,CONS: INVARIANT ADR-2023: swapping the deployed model must NOT touch any consumer — the model<br/>is an operational detail behind port 8084
     Note over CFG: history — Gemma then Muse then Qwen3.8-27B. Since 2026-10-01 the manifest pins NO model:<br/>loom_model is empty, meaning the single model the Loom advertises at /models (agentbox.toml:2111-2113),<br/>loom_max_tokens = 32768 (agentbox.toml:2117). The nightly script discovers it (dream-machine-nightly.mjs:229)
-    Note over CFG: TENSION: the Rust dream engine does not discover — the supervisor exports LOOM_MODEL empty<br/>(flake.nix:2492) and llm_config passes it through as the request model (engine.rs:1707), so a loom night<br/>sends an empty model name and relies on a single-model Loom accepting it. The serde default<br/>qwen3.8-27B (config.rs:374) applies only when the key is absent
+    Note over CFG: INVARIANT: the Rust dream engine does not discover — the supervisor exports LOOM_MODEL empty<br/>(flake.nix:2492) and llm_config passes it through as the request model (engine.rs:1707), so a loom night<br/>sends an empty model name and depends on the Loom answering an empty name with its loaded model. Observed by a live<br/>request to the Loom door on 2026-10-02: it answered with a loom.generation block. The serde default<br/>qwen3.8-27B (config.rs:374) applies only when the key is absent, and the night provider defaults<br/>to zai (agentbox.toml:2123, config.rs:386), so loom is an opt-in
     Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites agentbox.toml by [section].key rather than<br/>raw line (ADR-2052 changelog 0.1.1) and correctly states ".loom_max_tokens = 32768, raised<br/>from 16384" — the manifest has loom_url at agentbox.toml:2110 and loom_max_tokens at<br/>agentbox.toml:2117 — the cap was raised after glm-5.3 burned ~16k reasoning tokens and hit the old 16384<br/>cap with empty content twice (agentbox.toml comment at :2114-2116)
     Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites session seeds as `slug = "loom"` /<br/>`slug = "loom-raw"` under [[interaction_plane.session_seeds]] (no raw line number) — the<br/>manifest has slug=loom at agentbox.toml:1751 and slug=loom-raw at agentbox.toml:1758
     Note over NEW: DIVERGENCE: HP's old 192.168.2.48 is DEAD — a stale model-backend route black-holes<br/>every synthesis while /health still answers

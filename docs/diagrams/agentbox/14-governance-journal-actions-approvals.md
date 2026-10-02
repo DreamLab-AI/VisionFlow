@@ -5,7 +5,7 @@ area: agentbox
 governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
   - ../project/agentbox/docs/SECURITY-profiles.md
-adrs: [ADR-2022, ADR-2027, ADR-2041, ADR-2085, ADR-2087, ADR-2108]
+adrs: [ADR-2022, ADR-2027, ADR-2041, ADR-2071, ADR-2085, ADR-2087, ADR-2108]
 sources:
   - ../project/agentbox/management-api/lib/action-plane.js
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
@@ -47,20 +47,26 @@ sources:
   - ../project/agentbox/mcp/servers/governance-bridge.js
   - ../project/agentbox/docs/adr/ADR-2087-task-properties-receipts-and-manual-continuation.md
   - ../project/agentbox/docs/adr/ADR-2108-ontology-bridge-retired-vault-baked-by-nix.md
-verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
+  - ../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md
+  - ../project/agentbox/management-api/routes/broker-bridge.js
+  - ../project/agentbox/management-api/routes/llm-marketplace.js
+  - ../project/agentbox/management-api/routes/agent-events.js
+  - ../project/agentbox/management-api/routes/exec-record.js
+  - ../project/agentbox/scripts/activation/adr-2087-check.sh
+verified_commit: c4ed3ec6505858e1e5ead651c29115d2f74e5546
 ---
 
 ## AB-14.1 Governance plane — surfaces that reach the decision point vs surfaces that miss it
 
 ```mermaid
 flowchart TB
-    subgraph SURF["Agent-initiated side-effect surfaces GOVERNANCE-capabilities.md:47-70"]
+    subgraph SURF["Agent-initiated side-effect surfaces GOVERNANCE-capabilities.md:46-70"]
         DTC["Direct tool call<br/>MCP fleet mcp/mcp.json"]
         CMS["Code-mode sub-call<br/>codeact / code-interpreter agentbox.toml:591,607"]
-        ACISHELL["ACI shell<br/>test allowlist agentbox.toml:764<br/>raw Bash still reachable outside it"]
-        CONSULT["Consultant / subagent action<br/>tree-search-coder agentbox.toml:800"]
+        ACISHELL["ACI shell<br/>test allowlist agentbox.toml:791<br/>raw Bash still reachable outside it"]
+        CONSULT["Consultant / subagent action<br/>tree-search-coder agentbox.toml:827"]
         DREAM["Background job dream-engine<br/>01:00-05:00 UTC unattended"]
-        BEADS["Background job beads work-DAG<br/>spawn_child mcp/mcp.json:197"]
+        BEADS["Background job beads work-DAG<br/>spawn_child mcp/mcp.json:219"]
         ALTHARNESS["Alternate harness path<br/>non-Claude harness"]
         TASKAPI["POST /v1/tasks<br/>routes/tasks.js:16 spawnTask"]
     end
@@ -70,7 +76,7 @@ flowchart TB
     ACTPLANE(["action-plane.js getActionPlane<br/>lazy singleton, ADR-2041, see AB-14.14"])
     COSTGATE["costGate middleware<br/>middleware/cost-gate.js, see AB-15.x"]
     ACSPGATE["ACSP authority gate<br/>authority.js:226 buildAuthorityGate.guard, see AB-11.10"]
-    AXIOMGUARD["direct_axiom_load=false guard agentbox.toml:817<br/>ADR-2108 supersedes ADR-2022, see AB-25"]
+    AXIOMGUARD["direct_axiom_load=false guard agentbox.toml:844<br/>ADR-2108 supersedes ADR-2022, see AB-25"]
     EXEC(["side effect executes"])
 
     DTC -.->|"designed target, never instantiated for this surface"| PIPE
@@ -78,6 +84,7 @@ flowchart TB
     ACISHELL -->|"allowlist only, no interceptor"| EXEC
     CONSULT -->|"spend cap only, see AB-15.x"| EXEC
     DREAM -->|"own evidence/merge gate, see AB-23"| EXEC
+    DREAM -.->|"records only, never polices: POST /v1/exec/record exec-record.js:63, ADR-2071 Phase 1"| JOURNAL
     BEADS -->|"own work-DAG guard, see AB-26"| EXEC
     ALTHARNESS -->|"no interceptor at all"| EXEC
     TASKAPI --> COSTGATE --> ACTPLANE
@@ -88,10 +95,10 @@ flowchart TB
     ACSPGATE --> EXEC
     AXIOMGUARD --> EXEC
 
-    DRIFT["DOC-DRIFT GOVERNANCE-capabilities.md:81 claims a repo-wide search of src/, services/, mcp/ for SessionEvent / execution-journal code returns nothing<br/>execution-journal.js:85 class ExecutionJournal and agent-action-pipeline.js:58 class AgentActionPipeline fully implement legacy-ADR-057/059 D1-D5<br/>under management-api/lib/, a path outside the doc's stated search scope"]
-    DIVERGE1["DIVERGENCE (NARROWED by ADR-2041) TOP OPEN RISK GOVERNANCE-capabilities.md:261-266 named 'no single policy decision point' with zero production instantiations<br/>action-plane.js now builds a real ExecutionJournal + AgentActionPipeline singleton and POST /v1/tasks calls dispatchTaskSpawn — one surface is now wired, journalled and capability-tokened<br/>every OTHER surface above (direct tool call, code-mode, ACI shell, consultant, dream, beads, alt harness) still reaches EXEC with no interceptor — the gap is narrower, not closed, see AB-14.14"]
-    DRIFT2["DOC-DRIFT the capability-surface list cites agentbox.toml line numbers that have moved and keep moving —<br/>GOVERNANCE-capabilities.md:52 says aci_shell is at agentbox.toml line 582 (it is agentbox.toml:758),<br/>:55-56 says code_interpreter line 539 and codeact line 554 (they are agentbox.toml:591 and :607),<br/>:59 says the test allowlist is line 585 (it is agentbox.toml:764), :63 says tree_search_coder line 624 (it is agentbox.toml:800)"]
-    DIVERGE7["DIVERGENCE GOVERNANCE-capabilities.md:292-293 skill lint is advisory, not a runtime capability gate<br/>lint-skills.sh gates estate hygiene only; an enabled skill with clean frontmatter is trusted at runtime with no further check"]
+    DRIFT["DOC-DRIFT GOVERNANCE-capabilities.md:81-82 claims a repo-wide search of src/, services/, mcp/ for SessionEvent / execution-journal code returns nothing<br/>execution-journal.js:85 class ExecutionJournal and agent-action-pipeline.js:58 class AgentActionPipeline fully implement legacy-ADR-057/059 D1-D5<br/>under management-api/lib/, a path outside the doc's stated search scope"]
+    DIVERGE1["DIVERGENCE (NARROWED by ADR-2041) TOP OPEN RISK GOVERNANCE-capabilities.md:276-281 named 'no single policy decision point' with zero production instantiations<br/>action-plane.js now builds a real ExecutionJournal + AgentActionPipeline singleton and POST /v1/tasks calls dispatchTaskSpawn — one surface is now wired, journalled and capability-tokened<br/>the dream engine now RECORDS each side effect into the same journal through POST /v1/exec/record (ADR-2071, activation live, decision still proposed) but nothing there approves or denies<br/>every OTHER surface above (direct tool call, code-mode, ACI shell, consultant, dream, beads, alt harness) still reaches EXEC with no interceptor — the gap is narrower, not closed, see AB-14.14"]
+    DRIFT2["DOC-DRIFT the capability-surface list cites agentbox.toml line numbers that have moved and keep moving —<br/>GOVERNANCE-capabilities.md:53 says aci_shell is at agentbox.toml line 582 (it is agentbox.toml:785),<br/>GOVERNANCE-capabilities.md:56-57 says code_interpreter line 539 and codeact line 554 (they are agentbox.toml:591 and agentbox.toml:607),<br/>GOVERNANCE-capabilities.md:60 says the test allowlist is line 585 (it is agentbox.toml:791), GOVERNANCE-capabilities.md:64 says tree_search_coder line 624 (it is agentbox.toml:827),<br/>GOVERNANCE-capabilities.md:55 says spawn_child is at mcp.json line 197 (it is mcp/mcp.json:219)"]
+    DIVERGE7["DIVERGENCE GOVERNANCE-capabilities.md:307-308 skill lint is advisory, not a runtime capability gate<br/>lint-skills.sh gates estate hygiene only; an enabled skill with clean frontmatter is trusted at runtime with no further check"]
 ```
 
 ## AB-14.2 Action lifecycle — intent through policy, approval, execution, receipt, journal
@@ -153,7 +160,7 @@ sequenceDiagram
     AAP->>AAP: _normalise(raw, opts.parentToken) :201
     Note over AAP: session_urn and capability+operation required, else ActionDenied bad_action :203-204
     opt parentToken supplied
-        AAP->>AAP: _verifyToken(parentToken) :227, HMAC-SHA256 sig check :375-377
+        AAP->>AAP: _verifyToken(parentToken) :227, defined :347-358, HMAC-SHA256 _sign :375-377
         Note over AAP: D4 child inherits parent.authority into _delegatedAuthority :230
     end
     AAP->>AAP: action_id = hash(coreIdentity + dispatchSeq) :233
@@ -343,7 +350,7 @@ flowchart LR
     TRANS["TranscriptProjection<br/>execution-projections.js:77<br/>input.claimed, assistant.completed, tool.completed only"]
     COST["CostLedgerProjection<br/>execution-projections.js:115<br/>sums usage from assistant.completed only"]
     REBUILD["Projection.rebuild(envelopes)<br/>:55, sorts by session then seq, replays apply()"]
-    COV["buildExecutionCoverage(live)<br/>execution-coverage.js:31"]
+    COV["buildExecutionCoverage(live)<br/>execution-coverage.js:42"]
     SYS["/v1/system execution block"]
 
     ENV --> APPLY --> WM
@@ -355,7 +362,7 @@ flowchart LR
 
     COV --> SYS
     COV -.->|"journal.status = live if live.journal passed, else declared"| SYS
-    COV -.->|"action_pipeline.status = live if live.pipeline passed, else declared execution-coverage.js:68"| SYS
+    COV -.->|"action_pipeline.status = live if live.pipeline passed, else declared execution-coverage.js:65"| SYS
 
     DRIFTNOTE["DOC-DRIFT (PARTIALLY RESOLVED, ADR-2041) execution-coverage.js gained buildLiveExecutionCoverage(), which pulls a REAL singleton from action-plane.js getCoverageSnapshot() when POST /v1/tasks has built one<br/>but routes/system.js:22,43 still calls the OLD buildExecutionCoverage(live) with live={} — routes/system.js:37-38 reads options.execution.snapshot and server.js never supplies one — so GET /v1/system still reports status: declared always, even though a live instance now genuinely exists"]
     COV --- DRIFTNOTE
@@ -382,7 +389,7 @@ sequenceDiagram
     SPEND->>RM: mintSpendActivity({...}) management-api/lib/receipt-minter.js:78
     RM->>URIS: mint({kind:'activity', payload:{type:'pay-'+scheme, ...}})<br/>management-api/lib/receipt-minter.js:81-91
     RM->>BC20: crossActivityOutbound(urn) management-api/lib/receipt-minter.js:95,105
-    Note over RM,BC20: fail-open — a crossOutbound failure is logged to stderr and never blocks the caller<br/>management-api/lib/receipt-minter.js:101-112
+    Note over RM,BC20: fail-open — a crossOutbound failure is logged to stderr and never blocks the caller<br/>management-api/lib/receipt-minter.js:103-112
 
     Note over WRITER,AC: separately, each JSONL record written gets hash = SHA256(prev_hash || canonical_json(record minus<br/>prev_hash,hash)) management-api/lib/audit-chain.js:7,68-72
     WRITER->>AC: verifyLines(lines, {expectedPrev}) audit-chain.js:89
@@ -427,19 +434,22 @@ sequenceDiagram
         GATE->>AJ: append({stage, reason, agent_did, action_class, operation_sha256})
         Note over AJ: an unlabelled denial is not a record — append THROWS without a stage<br/>and without a reason (authority-journal.js:96-101)
         Note over AJ: INVARIANT — fail-CLOSED on the decision, fail-OPEN and loud on the record of it<br/>(management-api/lib/authority-journal.js:31)
-        AJ-->>AG: deny carries {code, hint} naming governance_manual_continue
+        AJ-->>AG: deny carries {code, hint} naming governance_manual_continue (management-api/lib/authority.js:401-403)
+        Note over AJ,AG: since b18a52f03 the HTTP 403s keep it — management-api/routes/broker-bridge.js:525-526<br/>and management-api/routes/llm-marketplace.js:512-513 spread gate.code and gate.hint, see AB-14.15
     else admitted
         GATE->>RC: begin(gate, operation) — stage consumer-received (governance-application-receipts.js:64)
         RC->>RP: mirror the stage to the forum receipts endpoint under NIP-98
         alt transport failure
             RP->>AJ: authority.receipt-post-failed then queue in a DEDICATED outbox
-            Note over RP,AJ: not the pod outbox, whose flusher publishes Nostr events and would fail an<br/>HTTP receipt silently (management-api/lib/governance-receipt-publisher.js:32-38)
+            Note over RP: replayed at boot and once a minute by bootReceiptPublisher<br/>(management-api/lib/governance-receipt-publisher.js:471), see AB-14.15
+            Note over RP,AJ: its own directory, governance-receipt-outbox under the agentbox state dir<br/>(management-api/lib/governance-receipt-publisher.js:69-72), shared with the governance-bridge MCP process
         end
         RC->>RC: finish(claim, stage, acknowledgement)
         Note over RC: INVARIANT — applied requires a committed mutation acknowledgement,<br/>and the terminal stages are a closed set applied, not-applied, unknown,<br/>applied-manually (governance-application-receipts.js:83-84)
     end
     OP->>GB: governance_manual_continue {case_id, executed_by, evidence} (mcp/servers/governance-bridge.js:218)
-    GB->>GB: validate executed_by as did:nostr (mcp/servers/governance-bridge.js:378)
+    GB->>GB: validate executed_by is a non-empty string up to 128 chars (mcp/servers/governance-bridge.js:377)
+    GB->>GB: manualContinue requires a well-formed did:nostr (management-api/lib/governance-manual-continue.js:110-111)
     alt executed_by names an agent identity
         GB-->>OP: refused — a manual continuation must be attributed to a HUMAN operator<br/>(management-api/lib/governance-manual-continue.js:120)
     else a human did:nostr
@@ -447,7 +457,7 @@ sequenceDiagram
         Note over GB,RC: the PROV-O activity carries prov:wasAssociatedWith = the human did:nostr<br/>(management-api/lib/governance-manual-continue.js:178)
     end
     Note over GB,RP: this diagram REPLACES the precedent match, promote and retire sequence.<br/>precedent-service.js and precedent-bridge.js were deleted at commit 70d017a3b<br/>and colloquy took the ground — see AB-22.7 and AB-09.5
-    Note over TP,GATE: DEBT — the classification table names payment_settlement zero-tolerance<br/>(agentbox.toml:980) but no production path passes that actionClass. The only<br/>call sites are tests, and management-api/lib/authority.js:226 never sees it. see AB-15
+    Note over TP,GATE: DEBT — the classification table names payment_settlement zero-tolerance<br/>(agentbox.toml:1072) but no production path passes that actionClass. The only<br/>call sites are tests, and management-api/lib/authority.js:226 never sees it. see AB-15
 ```
 
 ## AB-14.12 project-tracker.js publish path and /v1/projects
@@ -577,3 +587,67 @@ sequenceDiagram
     Note over AAP: task-spawn is classified side_effect_class:'local' (FAST_PATH, no approval receipt) — a<br/>deliberate ADR-2041 rollout choice, not a permanent verdict — a future ADR may reclassify it 'mutate'<br/>once a real approver exists :85-101
     Note over RT,DTS: NARROWS but does not close GOVERNANCE-capabilities.md's TOP OPEN RISK (AB-14.1<br/>DIVERGENCE1) — exactly one surface (POST /v1/tasks) is now wired — every other agent-initiated<br/>side-effect surface still bypasses AgentActionPipeline entirely
 ```
+
+## AB-14.15 ADR-2087 activation wiring — boot replay, per-request resolution, and the staged check
+
+**What it shows.** The four wiring defects the 2 October activation found, as they are now wired at
+`c4ed3ec65`: one receipt publisher booted by `server.js` and replayed without overlap, broker-bridge
+resolving the boot-built gate and publisher per request, both HTTP denial routes carrying `{code, hint}`,
+the governance-bridge MCP server recognising itself through the Nix-store symlink, and the activation
+check that turns all of it into a `staged` or `live` verdict.
+
+**Why it is this way.** Every unit suite passed while the shipped image stayed inert: Fastify loads a
+top-level-registered plugin at the first awaited `register` inside `start()`, before the boot block
+decorates the gate, journal and publisher, so anything read at registration was `undefined`
+(ADR-2087 "Activation finding", fixed at `b18a52f03`). `scripts/activation/adr-2087-check.sh`
+(`ddfb6d056`) checks the running process rather than the tests; ADR-2087 moved to `staged` on its exit 2
+at `c4ed3ec65`.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant SRV as server.js boot block<br/>management-api/server.js:1149
+    participant BRP as bootReceiptPublisher<br/>management-api/lib/governance-receipt-publisher.js:471
+    participant BB as broker-bridge decide<br/>management-api/routes/broker-bridge.js:501
+    participant LLM as POST /v1/llm/revoke<br/>management-api/routes/llm-marketplace.js:438
+    participant GB as governance-bridge entrypoint<br/>agentbox/mcp/servers/governance-bridge.js:553
+    participant CHK as adr-2087-check.sh<br/>agentbox/scripts/activation/adr-2087-check.sh:12-18
+
+    SRV->>BRP: bootReceiptPublisher({manifest, logger, journal: authorityDenyJournal}) management-api/server.js:1149-1151
+    BRP->>BRP: log governance.receipt-replay.boot with configured true or false (management-api/lib/governance-receipt-publisher.js:494)
+    BRP->>BRP: initialFlush, then publisher.start with the same replay tick every 60 s (management-api/lib/governance-receipt-publisher.js:500-501)
+    Note over BRP: INVARIANT one replay at a time — a second tick returns the in-flight promise,<br/>so a hanging forum never posts an entry twice (management-api/lib/governance-receipt-publisher.js:480-491)
+    alt forum_auth_api unset
+        BRP->>BRP: count entries, skipped not-configured, spend no attempt (management-api/lib/governance-receipt-publisher.js:368-377)
+    else forum_auth_api set (agentbox.toml:201, the auth worker since 60b60b48d)
+        BRP->>BRP: post each queued entry, log governance.receipt-posted at info (management-api/lib/governance-receipt-publisher.js:407)
+    end
+    SRV->>SRV: decorate governanceReceiptPublisher, stop it onClose (management-api/server.js:1152-1153)
+
+    BB->>BB: authorityGate() resolves options, then fastify.authorityGate, per request (management-api/routes/broker-bridge.js:286)
+    alt nothing decorated yet
+        BB->>BB: build a journalled fallback gate once and warn broker-bridge.authority-fallback (management-api/routes/broker-bridge.js:298)
+    end
+    BB->>BB: receiptPublisher() resolves the boot publisher per request (management-api/routes/broker-bridge.js:258)
+    BB-->>BB: 403 carries gate.code and gate.hint (management-api/routes/broker-bridge.js:525-526)
+
+    LLM->>LLM: gate journal is a per-denial shim onto fastify.authorityDenyJournal (management-api/routes/llm-marketplace.js:78-87)
+    Note over LLM: an unwired journal throws, which the gate reports as authority.deny-unjournalled<br/>(management-api/lib/authority.js:313) — loud, never a silent success
+    LLM-->>LLM: 403 carries {code: no-decision-surface, hint: governance_manual_continue} (management-api/routes/llm-marketplace.js:512-513)
+    Note over LLM: an authority.deny row carries a did:nostr actor and a string target, and /v1/agent-events now serialises both<br/>(management-api/routes/agent-events.js:160-161, fc56e7a97)
+
+    GB->>GB: compare realpath of argv[1] with realpath of the module URL (agentbox/mcp/servers/governance-bridge.js:550-554)
+    Note over GB: path.resolve compared a /opt symlink with the /nix/store path Node hands an ES module,<br/>so the server exited 0 without connecting until b18a52f03
+
+    CHK->>SRV: B1 replay boot line present and no fallback-gate line for this pid (agentbox/scripts/activation/adr-2087-check.sh:185-199)
+    CHK->>LLM: B3 one live revoke of a non-existent grant, expect 403 with code and hint
+    CHK->>GB: B6 launch exactly as mcp.json does, expect governance_manual_continue (agentbox/scripts/activation/adr-2087-check.sh:283)
+    CHK->>CHK: B7 needs forum configured AND at least one governance.receipt-posted (agentbox/scripts/activation/adr-2087-check.sh:329-341)
+    Note over CHK: exit 0 LIVE, 2 STAGED, 1 FAIL. 2026-10-02 run on the rebuilt image exited 2 —<br/>posted 0, queued 0 (agentbox/docs/adr/ADR-2087-task-properties-receipts-and-manual-continuation.md:162-164)
+```
+
+**Invariant:** a receipt the forum has not yet received spends no retry budget while `forum_auth_api` is unset, so the degraded state queues rather than abandons (`management-api/lib/governance-receipt-publisher.js:368-377`).
+
+**Drift:** ADR-2087's Consequences still say the forum receipts endpoint "does not exist yet on the deployed edge" (`docs/adr/ADR-2087-task-properties-receipts-and-manual-continuation.md:94-96`), while the same record's staged section reports `forum_auth_api` configured (`docs/adr/ADR-2087-task-properties-receipts-and-manual-continuation.md:162-164`) and the manifest points it at the forum auth worker (`agentbox.toml:201`).
+
+**Open:** ADR-2087 reaches `live` only on the first real governance response after the rebuild (B7, `scripts/activation/adr-2087-check.sh:329-341`); the record does not say who is expected to produce that response, or when.

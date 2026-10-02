@@ -49,7 +49,7 @@ sources:
   - ../project/agentbox/management-api/routes/sessions-boundary.js
   - ../project/agentbox/management-api/routes/tasks.js
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+verified_commit: c4ed3ec6505858e1e5ead651c29115d2f74e5546
 ---
 
 ## AB-03.1 server.js boot part 1 — Fastify construction, hooks, static route registers
@@ -58,43 +58,43 @@ verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
 sequenceDiagram
     autonumber
     participant Boot as server.js top-level
-    participant App as fastify()<br/>server.js:82
+    participant App as fastify()<br/>server.js:83
     participant RawBody as registerRawBody<br/>middleware/auth.js:220
-    participant CORS as fastify-cors<br/>server.js:187
-    participant WS as fastify-websocket<br/>server.js:197
-    participant RL as fastify-rate-limit<br/>server.js:200
-    participant Swag as fastify-swagger(-ui)<br/>server.js:277-336
-    participant Routes as route modules<br/>server.js:339-432
+    participant CORS as fastify-cors<br/>server.js:188
+    participant WS as fastify-websocket<br/>server.js:198
+    participant RL as fastify-rate-limit<br/>server.js:201
+    participant Swag as fastify-swagger(-ui)<br/>server.js:278-337
+    participant Routes as route modules<br/>server.js:340-433
 
-    Boot->>App: fastify({loggerInstance, trustProxy true, routerOptions.maxParamLength 512})<br/>server.js:82-96
-    Note over App: INVARIANT maxParamLength 512 (server.js:94) so urn-agentbox-bead content-addressed ids over 100 chars do not 404 in find-my-way.<br/>Fastify 5 (2026-10-01) moved it under routerOptions and the pino instance to loggerInstance (server.js:85)
-    Boot->>RawBody: registerRawBody(app)<br/>server.js:105
+    Boot->>App: fastify({loggerInstance, trustProxy true, routerOptions.maxParamLength 512})<br/>server.js:83-97
+    Note over App: INVARIANT maxParamLength 512 (server.js:95) so urn-agentbox-bead content-addressed ids over 100 chars do not 404 in find-my-way.<br/>Fastify 5 (2026-10-01) moved it under routerOptions and the pino instance to loggerInstance (server.js:86)
+    Boot->>RawBody: registerRawBody(app)<br/>server.js:106
     RawBody->>App: addContentTypeParser application-json parseAs buffer<br/>middleware/auth.js:221-237
-    Note over RawBody: sets req.rawBody Buffer, still delivers parsed JSON, must run before route parsers (server.js:98-105)
-    Boot->>App: app.register(cors, allowedOrigins credentials true, methods GET HEAD PUT PATCH POST DELETE)<br/>server.js:187-194
-    Note over App: @fastify/cors 11 narrowed the default methods to GET HEAD POST, so the pre-11 list<br/>is pinned explicitly to keep PUT PATCH DELETE preflights working (server.js:190-193)
-    Boot->>App: app.register(websocket)<br/>server.js:197
-    Boot->>App: app.register(rateLimit max 100 per 1 minute allowList 127.0.0.1)<br/>server.js:200-207
-    Boot->>App: addHook onResponse metrics.recordHttpRequest<br/>server.js:212-220
+    Note over RawBody: sets req.rawBody Buffer, still delivers parsed JSON, must run before route parsers (server.js:99-106)
+    Boot->>App: app.register(cors, allowedOrigins credentials true, methods GET HEAD PUT PATCH POST DELETE)<br/>server.js:188-195
+    Note over App: @fastify/cors 11 narrowed the default methods to GET HEAD POST, so the pre-11 list<br/>is pinned explicitly to keep PUT PATCH DELETE preflights working (server.js:191-194)
+    Boot->>App: app.register(websocket)<br/>server.js:198
+    Boot->>App: app.register(rateLimit max 100 per 1 minute allowList 127.0.0.1)<br/>server.js:201-208
+    Boot->>App: addHook onResponse metrics.recordHttpRequest<br/>server.js:213-221
     Note over App: see AB-03.9 for the http_request_duration_seconds histogram this hook feeds
-    Boot->>App: addHook preValidation runs authMiddleware unless url on public allowlist<br/>server.js:233-274
-    Note over App: public allowlist livez health ready metrics v1-meta lo-star docs-star well-known-did well-known-x402 (server.js:235-271)
-    Boot->>App: app.register(fastify-swagger openapi 3.0.0)<br/>server.js:277-326
-    Boot->>App: app.register(fastify-swagger-ui routePrefix /docs)<br/>server.js:328-336
-    Boot->>Routes: app.register(routes/tasks) prefix empty<br/>server.js:339-344
-    Boot->>Routes: app.register(routes/status)<br/>server.js:346-352
-    Boot->>Routes: app.register(routes/comfyui)<br/>server.js:354-359
-    Boot->>Routes: app.register(routes/agent-events)<br/>server.js:361-365
-    Boot->>App: addHook onReady starts agent-events WS forwarder to host<br/>server.js:373-393
-    Boot->>Routes: app.register(routes/memory) prefix empty<br/>server.js:397
-    Boot->>Routes: app.register(routes/broker-bridge)<br/>server.js:402
-    Boot->>Routes: app.register(routes/git-bridge)<br/>server.js:408
-    Boot->>Routes: app.register(routes/pod-git)<br/>server.js:415
-    Boot->>Routes: app.register(routes/payments) with metrics<br/>server.js:419
-    Boot->>Routes: app.register(routes/llm-marketplace)<br/>server.js:423
-    Boot->>Routes: app.register(routes/dream)<br/>server.js:427
-    Boot->>Routes: app.register(routes/exec-record), POST /v1/exec/record, operator-gated<br/>server.js:432, ADR-2071 Phase 1
-    Boot->>App: app.get /livez /ready /health /health/pods /v1/meta /metrics /<br/>server.js:436-692
+    Boot->>App: addHook preValidation runs authMiddleware unless url on public allowlist<br/>server.js:234-275
+    Note over App: public allowlist livez health ready metrics v1-meta lo-star docs-star well-known-did well-known-x402 (server.js:236-272)
+    Boot->>App: app.register(fastify-swagger openapi 3.0.0)<br/>server.js:278-327
+    Boot->>App: app.register(fastify-swagger-ui routePrefix /docs)<br/>server.js:329-337
+    Boot->>Routes: app.register(routes/tasks) prefix empty<br/>server.js:340-345
+    Boot->>Routes: app.register(routes/status)<br/>server.js:347-353
+    Boot->>Routes: app.register(routes/comfyui)<br/>server.js:355-360
+    Boot->>Routes: app.register(routes/agent-events)<br/>server.js:362-366
+    Boot->>App: addHook onReady starts agent-events WS forwarder to host<br/>server.js:374-394
+    Boot->>Routes: app.register(routes/memory) prefix empty<br/>server.js:398
+    Boot->>Routes: app.register(routes/broker-bridge)<br/>server.js:403
+    Boot->>Routes: app.register(routes/git-bridge)<br/>server.js:409
+    Boot->>Routes: app.register(routes/pod-git)<br/>server.js:416
+    Boot->>Routes: app.register(routes/payments) with metrics<br/>server.js:420
+    Boot->>Routes: app.register(routes/llm-marketplace)<br/>server.js:424
+    Boot->>Routes: app.register(routes/dream)<br/>server.js:428
+    Boot->>Routes: app.register(routes/exec-record), POST /v1/exec/record, operator-gated<br/>server.js:433, ADR-2071 Phase 1
+    Boot->>App: app.get /livez /ready /health /health/pods /v1/meta /metrics /<br/>server.js:437-693
     Note over App: ADR-2003 server.js is baked by flake.nix from agentbox.toml at image build — not a<br/>runtime install (see AB-02.1 for the surrounding boot phases)
 ```
 
@@ -103,54 +103,55 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Start as start()<br/>server.js:882
+    participant Start as start()<br/>server.js:883
     participant Manifest as loadManifest<br/>adapters/manifest-loader.js
     participant App as fastify app
     participant Adapters as resolveAdapters<br/>adapters/index.js
 
-    Start->>Manifest: loadManifest()<br/>server.js:887
+    Start->>Manifest: loadManifest()<br/>server.js:888
     alt manifest file missing
-        Manifest-->>Start: ManifestNotFound<br/>server.js:890-892
+        Manifest-->>Start: ManifestNotFound<br/>server.js:891-893
         Start->>Start: manifest = {} all-off defaults
     end
-    Start->>Adapters: resolveAdapters(manifest)<br/>server.js:913
-    Start->>App: app.decorate adapters resolvedAdapters<br/>server.js:914
+    Start->>Adapters: resolveAdapters(manifest)<br/>server.js:914
+    Start->>App: app.decorate adapters resolvedAdapters<br/>server.js:915
     Note over Start,Adapters: see AB-04.1 for slot to implementation resolution detail
-    Start->>App: register middleware/linked-data createEncoder if linked_data.enabled<br/>server.js:920-942
-    Start->>App: register routes/uri-resolver always mounted<br/>server.js:951
-    Start->>App: register routes/system logger manifest adapters<br/>server.js:965
-    Start->>App: register routes/voice-intent with dispatchActionRequest<br/>server.js:983
-    Start->>App: register routes/kg-elevation self-gates on sovereign_mesh.kg_elevation<br/>server.js:997
-    Start->>App: new ProjectTracker + register routes/projects<br/>server.js:1014-1027
+    Start->>App: register middleware/linked-data createEncoder if linked_data.enabled<br/>server.js:921-943
+    Start->>App: register routes/uri-resolver always mounted<br/>server.js:952
+    Start->>App: register routes/system logger manifest adapters<br/>server.js:966
+    Start->>App: register routes/voice-intent with dispatchActionRequest<br/>server.js:984
+    Start->>App: register routes/kg-elevation self-gates on sovereign_mesh.kg_elevation<br/>server.js:998
+    Start->>App: new ProjectTracker + register routes/projects<br/>server.js:1015-1028
     opt project_tracking.enabled true
-        Start->>Start: tracker.scan() then tracker.startScheduler()<br/>server.js:1031-1035
+        Start->>Start: tracker.scan() then tracker.startScheduler()<br/>server.js:1032-1036
     end
     alt sovereign_mesh.multi_user.enabled true
-        Start->>App: register routes/admin-users<br/>server.js:1060
+        Start->>App: register routes/admin-users<br/>server.js:1061
     else disabled default
-        Start->>Start: /admin/users/star not mounted<br/>server.js:1070
+        Start->>Start: /admin/users/star not mounted<br/>server.js:1071
     end
-    Start->>App: resolveViewerImpl + register routes/linked-objects<br/>server.js:1080-1083
-    Start->>App: register routes/well-known x402 discovery<br/>server.js:1103
-    Start->>App: buildAuthorityConsumer + buildAuthorityGate, decorate authorityConsumer authorityGate<br/>server.js:1122-1143
-    Note over Start: fallback to governance-decision-waiter.awaitDecision when the relay signer is unavailable (server.js:1136-1138)
-    Start->>App: register routes/beads<br/>server.js:1157
-    Start->>App: register routes/mandate<br/>server.js:1168
-    Start->>App: register routes/sessions-boundary<br/>server.js:1178
-    Start->>App: register routes/approvals<br/>server.js:1188
-    Start->>Start: log SecurityProfileApplied resolved posture<br/>server.js:1263-1269
-    Start->>Adapters: connectAdapters per-slot deadline<br/>server.js:1279
+    Start->>App: resolveViewerImpl + register routes/linked-objects<br/>server.js:1081-1084
+    Start->>App: register routes/well-known x402 discovery<br/>server.js:1104
+    Start->>App: buildAuthorityConsumer + buildAuthorityJournal + buildAuthorityGate, decorate authorityDenyJournal authorityConsumer authorityGate<br/>server.js:1123-1155
+    Start->>App: bootReceiptPublisher over the same deny journal (boot flush, then one per minute), decorate governanceReceiptPublisher, stop on close<br/>server.js:1143-1153
+    Note over Start: fallback to governance-decision-waiter.awaitDecision when the relay signer is unavailable (server.js:1137-1139)
+    Start->>App: register routes/beads<br/>server.js:1169
+    Start->>App: register routes/mandate<br/>server.js:1180
+    Start->>App: register routes/sessions-boundary<br/>server.js:1190
+    Start->>App: register routes/approvals<br/>server.js:1200
+    Start->>Start: log SecurityProfileApplied resolved posture<br/>server.js:1275-1281
+    Start->>Adapters: connectAdapters per-slot deadline<br/>server.js:1291
     Note over Start,Adapters: see AB-04.6 connectAdapters per-slot deadline detail, not re-drawn here
     opt AGENTBOX_RELAY_ENABLED and AGENTBOX_RELAY_POD_BRIDGE true
-        Start->>Start: new RelayConsumer(npubs...).start()<br/>server.js:1346-1364
+        Start->>Start: new RelayConsumer(npubs...).start()<br/>server.js:1358-1376
     end
     opt junkiejarvis enabled via env or manifest
-        Start->>Start: startJunkieJarvis bridge logger<br/>server.js:1403-1411
+        Start->>Start: startJunkieJarvis bridge logger<br/>server.js:1415-1423
     end
-    Start->>Start: headroom.init(logger) decorate headroom<br/>server.js:1428-1436
-    Start->>Start: initTracing, setBuildInfo, startMetricsServer<br/>server.js:1440-1442
-    Start->>App: app.listen port PORT host HOST<br/>server.js:1445
-    Note over Start: MANAGEMENT_API_PORT default 9090 (server.js:43) HOST default 0.0.0.0 (server.js:48)<br/>compose publishes 127.0.0.1 9090 9090 only
+    Start->>Start: headroom.init(logger) decorate headroom<br/>server.js:1440-1448
+    Start->>Start: initTracing, setBuildInfo, startMetricsServer<br/>server.js:1452-1454
+    Start->>App: app.listen port PORT host HOST<br/>server.js:1457
+    Note over Start: MANAGEMENT_API_PORT default 9090 (server.js:44) HOST default 0.0.0.0 (server.js:49)<br/>compose publishes 127.0.0.1 9090 9090 only
 ```
 
 ## AB-03.3 generic request lifecycle — Fastify hook phases, auth and validation failure
@@ -159,19 +160,19 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant PreVal as preValidation hook<br/>server.js:233
+    participant PreVal as preValidation hook<br/>server.js:234
     participant Auth as authMiddleware<br/>middleware/auth.js:167
     participant Schema as Fastify schema validation
     participant PreH as route preHandler<br/>e.g. costGate/paymentGate/authz
     participant H as route handler
-    participant OnResp as onResponse hook<br/>server.js:212
+    participant OnResp as onResponse hook<br/>server.js:213
 
     C->>PreVal: HTTP request, Fastify starts its own reply timer at request start
-    Note over C,PreVal: no app-level onRequest hook since the Fastify 5 upgrade - duration comes from<br/>reply.elapsedTime (server.js:209-213), which a cors preflight answered in onRequest still has.<br/>Body parsing (registerRawBody) runs before preValidation
+    Note over C,PreVal: no app-level onRequest hook since the Fastify 5 upgrade - duration comes from<br/>reply.elapsedTime (server.js:210-214), which a cors preflight answered in onRequest still has.<br/>Body parsing (registerRawBody) runs before preValidation
     alt url on public allowlist
-        PreVal->>H: skip authMiddleware entirely<br/>server.js:235-271
+        PreVal->>H: skip authMiddleware entirely<br/>server.js:236-272
     else url requires auth
-        PreVal->>Auth: authMiddleware(request, reply)<br/>server.js:273
+        PreVal->>Auth: authMiddleware(request, reply)<br/>server.js:274
         Auth->>Auth: verifyNip98Header + verifyBearerHeader<br/>middleware/auth.js:169-170
         alt neither auth mode accepted for configured authMode
             Auth-->>C: 401 Unauthorized typed message<br/>middleware/auth.js:180-196
@@ -194,8 +195,8 @@ sequenceDiagram
     PreH->>H: route handler executes
     H-->>C: reply.send(...)
     H->>OnResp: response phase
-    OnResp->>OnResp: metrics.recordHttpRequest(method, routeOptions.url or url, statusCode, duration)<br/>server.js:212-219
-    Note over OnResp: duration = reply.elapsedTime divided by 1000 (server.js:213), feeds<br/>http_request_duration_seconds (observability/metrics.js:58)
+    OnResp->>OnResp: metrics.recordHttpRequest(method, routeOptions.url or url, statusCode, duration)<br/>server.js:213-220
+    Note over OnResp: duration = reply.elapsedTime divided by 1000 (server.js:214), feeds<br/>http_request_duration_seconds (observability/metrics.js:58)
 ```
 
 ## AB-03.4 lib/authz.js — identity resolution predicates
@@ -271,14 +272,14 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    subgraph probes["public probes — auth-skip allowlist server.js:235-271"]
-        A1["GET /livez<br/>server.js:436"] --> H1["event-loop-alive only<br/>server.js:450"]
-        A2["GET /ready<br/>server.js:455"] --> H2["bootstrap+adapters+paths check<br/>server.js:486-538"]
-        A3["GET /health<br/>server.js:554"] --> H3["adapterHealth snapshot<br/>server.js:575-586"]
-        A4["GET /health/pods<br/>server.js:591"] --> H4["probePodHealth<br/>server.js:119-183"]
-        A5["GET /v1/meta<br/>server.js:612"] --> H5["image_hash + adapter contract versions<br/>server.js:638-655"]
-        A6["GET /metrics<br/>server.js:658"] --> H6["metrics.register.metrics<br/>server.js:671"]
-        A7["GET /"] --> H7["endpoint index<br/>server.js:675-692"]
+    subgraph probes["public probes — auth-skip allowlist server.js:236-272"]
+        A1["GET /livez<br/>server.js:437"] --> H1["event-loop-alive only<br/>server.js:451"]
+        A2["GET /ready<br/>server.js:456"] --> H2["bootstrap+adapters+paths check<br/>server.js:487-539"]
+        A3["GET /health<br/>server.js:555"] --> H3["adapterHealth snapshot<br/>server.js:576-587"]
+        A4["GET /health/pods<br/>server.js:592"] --> H4["probePodHealth<br/>server.js:120-184"]
+        A5["GET /v1/meta<br/>server.js:613"] --> H5["image_hash + adapter contract versions<br/>server.js:639-656"]
+        A6["GET /metrics<br/>server.js:659"] --> H6["metrics.register.metrics<br/>server.js:672"]
+        A7["GET /"] --> H7["endpoint index<br/>server.js:676-693"]
     end
     subgraph sysroutes["routes/system.js — authed, always mounted"]
         B1["GET /v1/system<br/>routes/system.js:33"] --> HB1["buildSystemView + buildExecutionCoverage<br/>routes/system.js:37-44"]
@@ -286,7 +287,7 @@ flowchart TD
     end
     subgraph wellknown["public discovery"]
         C1["GET /.well-known/x402.json<br/>routes/well-known.js:64"] --> HC1["cached manifest or 404<br/>routes/well-known.js:34-51,90"]
-        C2["GET /.well-known/did.json<br/>auth-skip only server.js:263"] -.->|"not a fastify route here"| HC2["served by solid-pod-rs<br/>lib/uris.js:249"]
+        C2["GET /.well-known/did.json<br/>auth-skip only server.js:264"] -.->|"not a fastify route here"| HC2["served by solid-pod-rs<br/>lib/uris.js:249"]
     end
     subgraph uri["routes/uri-resolver.js — authed, always mounted"]
         D1["GET /v1/uri/:urn<br/>routes/uri-resolver.js:49"] --> HD1["400 malformed / 200+307 resolvable / 404 unknown —<br/>see AB-11.15 for the full alt-chain; 410 Gone is documented<br/>but WITHDRAWN, never emitted (ADR-2049) routes/uri-resolver.js:12-25"]
@@ -319,8 +320,8 @@ flowchart TD
         P1["GET /v1/projects<br/>projects.js:106"] --> PH1["tracker.list"]
         P2["GET /v1/projects/:id<br/>projects.js:146"] --> PH2["tracker.get"]
         P3["GET /v1/projects/:id/activity<br/>projects.js:185"] --> PH3["git commit activity"]
-        P4["POST /v1/projects/scan<br/>projects.js:233"] --> PH4["tracker.scan — server.js:1031"]
-        P5["POST /v1/projects/:id/primer<br/>projects.js:274"] --> PH5["PrimerGenerator — server.js:1014"]
+        P4["POST /v1/projects/scan<br/>projects.js:233"] --> PH4["tracker.scan — server.js:1032"]
+        P5["POST /v1/projects/:id/primer<br/>projects.js:274"] --> PH5["PrimerGenerator — server.js:1015"]
         P6["POST /v1/projects/:id/publish<br/>projects.js:327"] --> PH6["kind-30841 nostr digest publish"]
     end
 ```
@@ -339,13 +340,13 @@ flowchart TD
         K1["POST /v1/kg-elevation/scan<br/>kg-elevation.js:77<br/>guard verifyAgentEventRequest kg-elevation.js:114"] --> KH1["scan personal KG via memory adapter<br/>ADR-2116 gateElevation before federation — see AB-03.18<br/>emit LINK beams + ontology-propose descriptor"]
     end
     subgraph lo["routes/linked-objects.js — viewer.mountPath, auth-skip for /lo/*"]
-        L1["GET /lo/*<br/>linked-objects.js:133"] --> LH1["static viewer bundle — no auth (server.js:249-251)"]
+        L1["GET /lo/*<br/>linked-objects.js:133"] --> LH1["static viewer bundle — no auth (server.js:250-252)"]
         L2["GET viewer/manifest.json<br/>linked-objects.js:154"] --> LH2["pane manifest"]
         L3["GET viewer/panes/:file<br/>linked-objects.js:168"] --> LH3["pane asset"]
         L4["GET viewer/proxy<br/>linked-objects.js:206"] --> LH4["proxy fetch of a resource for the viewer"]
         L5["GET viewer.mountPath and viewer.mountPath/*<br/>linked-objects.js:258,261,271,275"] --> LH5["viewer shell — enabled/disabled variants"]
     end
-    Note1["INVARIANT: /v1/* data endpoints stay authed even when the /lo static bundle is public (server.js:245-251)"]
+    Note1["INVARIANT: /v1/* data endpoints stay authed even when the /lo static bundle is public (server.js:246-252)"]
 ```
 
 ## AB-03.9 route table (d) — sessions-boundary, agent-events, admin-users, approvals, mandate
@@ -358,15 +359,15 @@ flowchart TD
     subgraph ae["routes/agent-events.js"]
         E1["GET /v1/agent-events/stream<br/>agent-events.js:55<br/>websocket true"] --> EH1["WS push of agent action events"]
         E2["GET /v1/agent-events<br/>agent-events.js:126"] --> EH2["poll recent events"]
-        E3["POST /v1/agent-events/emit<br/>agent-events.js:313<br/>guard verifyAgentEventRequest + reconcileSourceUrn"] --> EH3["emitAgentAction — failure classified via AB-03.11"]
-        E4["POST /v1/agent-events/batch<br/>agent-events.js:434<br/>same guard per event"] --> EH4["batch emit"]
-        E5["GET /v1/agent-events/types<br/>agent-events.js:529"] --> EH5["AgentActionType enum listing"]
-        E6["POST /v1/agent-events/hook<br/>agent-events.js:563"] --> EH6["Claude Code hook ingest"]
-        E7["GET /v1/agent-events/registry<br/>agent-events.js:613"] --> EH7["registry snapshot"]
-        E8["GET /v1/agent-events/status<br/>agent-events.js:636"] --> EH8["forwarder status"]
+        E3["POST /v1/agent-events/emit<br/>agent-events.js:317<br/>guard verifyAgentEventRequest + reconcileSourceUrn"] --> EH3["emitAgentAction — failure classified via AB-03.11"]
+        E4["POST /v1/agent-events/batch<br/>agent-events.js:438<br/>same guard per event"] --> EH4["batch emit"]
+        E5["GET /v1/agent-events/types<br/>agent-events.js:533"] --> EH5["AgentActionType enum listing"]
+        E6["POST /v1/agent-events/hook<br/>agent-events.js:567"] --> EH6["Claude Code hook ingest"]
+        E7["GET /v1/agent-events/registry<br/>agent-events.js:617"] --> EH7["registry snapshot"]
+        E8["GET /v1/agent-events/status<br/>agent-events.js:640"] --> EH8["forwarder status"]
     end
     subgraph au["routes/admin-users.js — mounted only if sovereign_mesh.multi_user.enabled"]
-        AU1["POST /admin/users/provision<br/>admin-users.js:137"] --> AUH1["501 stub — see PRD-007 (server.js:1054)"]
+        AU1["POST /admin/users/provision<br/>admin-users.js:137"] --> AUH1["501 stub — see PRD-007 (server.js:1055)"]
         AU2["POST /admin/users/:pubkey/git-init<br/>admin-users.js:195"] --> AUH2["501 stub"]
         AU3["POST /admin/users/:pubkey/suspend<br/>admin-users.js:229"] --> AUH3["501 stub"]
         AU4["POST /admin/users/:pubkey/archive<br/>admin-users.js:245"] --> AUH4["501 stub"]
@@ -395,16 +396,16 @@ flowchart TD
         PY6["POST /v1/pay/withdraw<br/>payments.js:569"] --> PYH6["withdraw"]
     end
     subgraph llm["routes/llm-marketplace.js — Nostr kinds 38300-38305"]
-        LM1["POST /v1/llm/advertise<br/>llm-marketplace.js:84"] --> LMH1["advertise LLM compute"]
-        LM2["DELETE /v1/llm/advertise<br/>llm-marketplace.js:145"] --> LMH2["withdraw advert"]
-        LM3["GET /v1/llm/discover<br/>llm-marketplace.js:164"] --> LMH3["discover offers"]
-        LM4["POST /v1/llm/request<br/>llm-marketplace.js:205"] --> LMH4["request a grant"]
-        LM5["POST /v1/llm/grant<br/>llm-marketplace.js:259"] --> LMH5["grant access"]
-        LM6["POST /v1/llm/deny<br/>llm-marketplace.js:325"] --> LMH6["deny request"]
-        LM7["POST /v1/llm/receipt<br/>llm-marketplace.js:362"] --> LMH7["settle receipt"]
-        LM8["POST /v1/llm/revoke<br/>llm-marketplace.js:422"] --> LMH8["revoke grant"]
-        LM9["GET /v1/llm/grants<br/>llm-marketplace.js:514"] --> LMH9["list grants"]
-        LM10["GET /v1/llm/stats<br/>llm-marketplace.js:536"] --> LMH10["marketplace stats"]
+        LM1["POST /v1/llm/advertise<br/>llm-marketplace.js:100"] --> LMH1["advertise LLM compute"]
+        LM2["DELETE /v1/llm/advertise<br/>llm-marketplace.js:161"] --> LMH2["withdraw advert"]
+        LM3["GET /v1/llm/discover<br/>llm-marketplace.js:180"] --> LMH3["discover offers"]
+        LM4["POST /v1/llm/request<br/>llm-marketplace.js:221"] --> LMH4["request a grant"]
+        LM5["POST /v1/llm/grant<br/>llm-marketplace.js:275"] --> LMH5["grant access"]
+        LM6["POST /v1/llm/deny<br/>llm-marketplace.js:341"] --> LMH6["deny request"]
+        LM7["POST /v1/llm/receipt<br/>llm-marketplace.js:378"] --> LMH7["settle receipt"]
+        LM8["POST /v1/llm/revoke<br/>llm-marketplace.js:438"] --> LMH8["revoke grant"]
+        LM9["GET /v1/llm/grants<br/>llm-marketplace.js:534"] --> LMH9["list grants"]
+        LM10["GET /v1/llm/stats<br/>llm-marketplace.js:556"] --> LMH10["marketplace stats"]
     end
     subgraph dream["routes/dream.js — operator-gated, ADR-055"]
         DR1["GET /dream/status<br/>dream.js:24"] --> DRH1["read-only per-repo dream ledgers"]
@@ -424,15 +425,15 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph vi["routes/voice-intent.js — WS7, mandate-gated"]
-        VI1["POST /v1/voice-intent<br/>voice-intent.js:82"] --> VIH1["transcript to agent intent<br/>dispatch signed 31402 or 503 when signer unavailable (server.js:977-979)"]
+        VI1["POST /v1/voice-intent<br/>voice-intent.js:82"] --> VIH1["transcript to agent intent<br/>dispatch signed 31402 or 503 when signer unavailable (server.js:978-980)"]
     end
     subgraph bb["routes/broker-bridge.js — G6"]
-        BB1["GET /api/broker/bridge/inbox<br/>broker-bridge.js:288"] --> BBH1["enrichment review inbox"]
-        BB2["GET /api/broker/bridge/cases/:id<br/>broker-bridge.js:366"] --> BBH2["case detail"]
-        BB3["POST /api/broker/bridge/cases/:id/decide<br/>broker-bridge.js:407<br/>guard signed-31403 broker-bridge.js:473"] --> BBH3["operation-bound signed approval<br/>durable received claim before mutation<br/>applied receipt requires committed upstream acknowledgement"]
-        BBH3 --> BBH3B["receipt ladder mirrored to the forum<br/>mirrorReceipt broker-bridge.js:261<br/>consumer-received before the mutation broker-bridge.js:517<br/>then applied or not-applied broker-bridge.js:576<br/>INVARIANT: an unknown outcome posts NOTHING, broker-bridge.js:552"]
-        BB4["GET /api/broker/bridge/events<br/>broker-bridge.js:803"] --> BBH4["event feed"]
-        BB5["GET /api/broker/bridge/cases/:id/history<br/>broker-bridge.js:876"] --> BBH5["case history"]
+        BB1["GET /api/broker/bridge/inbox<br/>broker-bridge.js:316"] --> BBH1["enrichment review inbox"]
+        BB2["GET /api/broker/bridge/cases/:id<br/>broker-bridge.js:394"] --> BBH2["case detail"]
+        BB3["POST /api/broker/bridge/cases/:id/decide<br/>broker-bridge.js:435<br/>guard signed-31403 broker-bridge.js:501"] --> BBH3["operation-bound signed approval<br/>durable received claim before mutation<br/>applied receipt requires committed upstream acknowledgement"]
+        BBH3 --> BBH3B["receipt ladder mirrored to the forum<br/>mirrorReceipt broker-bridge.js:274<br/>consumer-received before the mutation broker-bridge.js:548<br/>then applied or not-applied broker-bridge.js:607<br/>INVARIANT: an unknown outcome posts NOTHING, broker-bridge.js:583"]
+        BB4["GET /api/broker/bridge/events<br/>broker-bridge.js:834"] --> BBH4["event feed"]
+        BB5["GET /api/broker/bridge/cases/:id/history<br/>broker-bridge.js:907"] --> BBH5["case history"]
     end
     subgraph gb["routes/git-bridge.js — G5, BC20"]
         GB1["POST /v1/git/clone<br/>git-bridge.js:275"] --> GBH1["clone remote"]
@@ -495,31 +496,31 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant R as POST /v1/agent-events/emit or /batch<br/>routes/agent-events.js:313,434
-    participant V as verifyAgentEventRequest / reconcileSourceUrn<br/>agent-events.js:365,374
+    participant R as POST /v1/agent-events/emit or /batch<br/>routes/agent-events.js:317,438
+    participant V as verifyAgentEventRequest / reconcileSourceUrn<br/>agent-events.js:369,378
     participant T as taxonomy.tagFailure<br/>lib/failure-taxonomy.js:171
     participant C as taxonomy.classify<br/>lib/failure-taxonomy.js:143
     participant Pub as agentEventPublisher.emitAgentAction<br/>utils/agent-event-publisher.js:50
 
-    R->>V: verifyAgentEventRequest(request)<br/>agent-events.js:365
+    R->>V: verifyAgentEventRequest(request)<br/>agent-events.js:369
     alt auth.ok is false
-        V-->>R: !auth.ok check<br/>agent-events.js:366
-        R->>T: tagFailure({error auth.error})<br/>agent-events.js:370
+        V-->>R: !auth.ok check<br/>agent-events.js:370
+        R->>T: tagFailure({error auth.error})<br/>agent-events.js:374
         T->>C: classify(ctx) — no mode, no reason, no stderr match<br/>lib/failure-taxonomy.js:146-159
         C-->>T: UNMAPPED sentinel<br/>lib/failure-taxonomy.js:30,159
         T-->>R: {failure_mode unmapped, failure_detail auth.error}<br/>lib/failure-taxonomy.js:171-183
-        R-->>R: reply.code(auth.status).send success false + tag<br/>agent-events.js:371
+        R-->>R: reply.code(auth.status).send success false + tag<br/>agent-events.js:375
     else auth ok, reconcile source_urn vs verified did
-        R->>V: reconcileSourceUrn(claimed, auth.did)<br/>agent-events.js:374
+        R->>V: reconcileSourceUrn(claimed, auth.did)<br/>agent-events.js:378
         alt reconciliation fails — caller-claimed identity mismatch
-            V-->>R: !rec.ok check<br/>agent-events.js:375
-            R->>T: tagFailure({reason REASON.IDENTITY_MISMATCH, error})<br/>agent-events.js:379
+            V-->>R: !rec.ok check<br/>agent-events.js:379
+            R->>T: tagFailure({reason REASON.IDENTITY_MISMATCH, error})<br/>agent-events.js:383
             T->>C: classify — reason matches REASON_TO_MODE table<br/>lib/failure-taxonomy.js:148-150
             C-->>T: FM-1.2 Disobey Role Specification<br/>lib/failure-taxonomy.js:82,100
             T-->>R: {failure_mode FM-1.2, failure_detail preserved text}
-            R-->>R: reply.code(rec.status).send success false + tag<br/>agent-events.js:380
+            R-->>R: reply.code(rec.status).send success false + tag<br/>agent-events.js:384
         else reconciled
-            R->>Pub: emitAgentAction(emitPayload)<br/>agent-events.js:420
+            R->>Pub: emitAgentAction(emitPayload)<br/>agent-events.js:424
             opt caller forwarded failure_mode
                 Pub->>C: classify(ctx) — pass-through when ctx.mode is a known FM-x.y<br/>utils/agent-event-publisher.js:50, lib/failure-taxonomy.js:146
             end
@@ -569,8 +570,8 @@ sequenceDiagram
     autonumber
     participant Cli as external caller
     participant Proxy as nip98-proxy port 9096<br/>config/nip98-proxy/
-    participant App as fastify app port 9090<br/>server.js:82
-    participant PreVal as preValidation hook<br/>server.js:233
+    participant App as fastify app port 9090<br/>server.js:83
+    participant PreVal as preValidation hook<br/>server.js:234
     participant Auth as authMiddleware<br/>middleware/auth.js:167
     participant Guard as authz.requireOperator<br/>lib/authz.js:184
     participant H as routes/mandate.js POST /v1/mandate<br/>mandate.js:310
@@ -585,8 +586,8 @@ sequenceDiagram
     Note over App,H: loopback-only surface — 127.0.0.1 9090 9090 (docker-compose.yml:48)
     Proxy->>App: POST /mgmt/v1/mandate, Authorization Nostr base64-event, body JSON
     App->>App: addContentTypeParser buffers body into request.rawBody<br/>middleware/auth.js:221-236
-    App->>PreVal: preValidation phase<br/>server.js:233
-    PreVal->>Auth: authMiddleware(request, reply) — url not on public allowlist<br/>server.js:273
+    App->>PreVal: preValidation phase<br/>server.js:234
+    PreVal->>Auth: authMiddleware(request, reply) — url not on public allowlist<br/>server.js:274
     Auth->>Auth: verifyNip98Header — verifyNip98(header, method, url, request.rawBody)<br/>middleware/auth.js:67-97,82
     Note over Auth: the signed URL is rebuilt from request.host, which keeps a non-default port<br/>(Fastify 5 request.hostname drops it), middleware/auth.js:72
     alt signature invalid or bridge absent
@@ -605,20 +606,20 @@ sequenceDiagram
         end
     end
     end
-    App->>App: onResponse records http_request_duration_seconds<br/>server.js:212-219, observability/metrics.js:58
+    App->>App: onResponse records http_request_duration_seconds<br/>server.js:213-220, observability/metrics.js:58
 ```
 
 ## AB-03.16 middleware/*.js inventory — which routes and hooks actually consume each file
 
 ```mermaid
 flowchart LR
-    A["middleware/auth.js<br/>createAuthMiddleware + registerRawBody"] --> A1["global preValidation hook<br/>server.js:223,233,273"]
+    A["middleware/auth.js<br/>createAuthMiddleware + registerRawBody"] --> A1["global preValidation hook<br/>server.js:224,234,274"]
     B["middleware/cost-gate.js<br/>costGate"] --> B1["preHandler on POST /v1/tasks<br/>routes/tasks.js:7,43"]
     C["middleware/payment-gate.js<br/>paymentGate"] --> C1["preHandler on POST /v1/comfyui/workflow<br/>routes/comfyui.js:10,74"]
     D["middleware/privacy-filter.js<br/>ADR-008 layer 2"] --> D1["imported by routes/memory.js<br/>memory.js:28"]
     D --> D2["also wraps every adapter dispatch<br/>see AB-04.4/AB-04.5, not re-drawn here"]
-    E["middleware/linked-data/*<br/>createEncoder, viewer, surfaces"] --> E1["booted in start() when linked_data.enabled<br/>server.js:920-942"]
-    E --> E2["routes/linked-objects.js viewer mount<br/>server.js:1080-1083"]
+    E["middleware/linked-data/*<br/>createEncoder, viewer, surfaces"] --> E1["booted in start() when linked_data.enabled<br/>server.js:921-943"]
+    E --> E2["routes/linked-objects.js viewer mount<br/>server.js:1081-1084"]
     F["middleware/spend-policy.js<br/>spendPolicy factory"] -.->|"no require() from any routes/*.js or server.js"| F1["consumed only by scripts/agentbox-config-validate.js"]
     G["middleware/consumer-payer.js<br/>C2 native consumer payer"] -.->|"no require() from any routes/*.js or server.js"| G1["consumed only by scripts/agentbox-config-validate.js"]
     Note1["DOC-DRIFT candidate: spend-policy.js and consumer-payer.js are fully implemented<br/>but unwired at the HTTP route layer today (grep -rl across management-api routes/*.js server.js finds none)"]

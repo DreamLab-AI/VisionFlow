@@ -29,7 +29,7 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/cred_sync.rs
   - ../project/agentbox/services/agentbox-manifest/src/main.rs
   - ../project/agentbox/flake.nix
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+verified_commit: c4ed3ec6505858e1e5ead651c29115d2f74e5546
 ---
 
 ## AB-05.1 GET /v1/system — catalogue plus live introspection
@@ -202,7 +202,7 @@ sequenceDiagram
     autonumber
     participant OP as operator
     participant SH as cmd_health<br/>agentbox.sh:1134
-    participant H as GET /health<br/>server.js:575-586
+    participant H as GET /health<br/>server.js:576-587
     participant M as GET /v1/meta<br/>localhost:9090
 
     OP->>SH: ./agentbox.sh health [--json]
@@ -226,9 +226,9 @@ sequenceDiagram
             SH-->>OP: exit 0
         end
     end
-    Note over SH,H: RESOLVED ADR-2037 — the old finding was that /health emits<br/>status, uptime, image_hash, manifest_checksum, adapters, degraded_count, note<br/>(server.js:577-585) with no services key, so a stale jq '.services // {}' read<br/>left the exit-1 branch unreachable. cmd_health now derives failure from<br/>.adapters (a slot fails when neither "healthy" nor "off", agentbox.sh:1160-1165)<br/>plus .degraded_count (agentbox.sh:1166) — exit 1 at agentbox.sh:1220-1221<br/>is reachable, and the condition now also fails on speech_failed (agentbox.sh:1220).<br/>Same fix as AB-04.16
+    Note over SH,H: RESOLVED ADR-2037 — the old finding was that /health emits<br/>status, uptime, image_hash, manifest_checksum, adapters, degraded_count, note<br/>(server.js:578-586) with no services key, so a stale jq '.services // {}' read<br/>left the exit-1 branch unreachable. cmd_health now derives failure from<br/>.adapters (a slot fails when neither "healthy" nor "off", agentbox.sh:1160-1165)<br/>plus .degraded_count (agentbox.sh:1166) — exit 1 at agentbox.sh:1220-1221<br/>is reachable, and the condition now also fails on speech_failed (agentbox.sh:1220).<br/>Same fix as AB-04.16
     Note over SH: BASELINE-container Adapter spine stage 4 claims agentbox.sh health exits non-zero if any slot gauge is 0 — it never reads the agentbox_adapter_health gauge at all. See AB-04.16
-    Note over H: /health self-describes as human-inspection-only and points orchestrators at /ready (server.js:584)
+    Note over H: /health self-describes as human-inspection-only and points orchestrators at /ready (server.js:585)
 ```
 
 ## AB-05.8 Artifact validation gate — the last check before exec supervisord
@@ -396,7 +396,7 @@ flowchart TB
 
 **Tension (manifest vs running estate):** `[voice].enabled = false` (`../project/agentbox/agentbox.toml:1787`) while the voice console runs under its own compose lifecycle, so the live view reports `voice-console` off for a surface that is up (`../project/agentbox/management-api/lib/system-manifest.js:166`).
 
-**Debt:** `payment_settlement` is declared `zero-tolerance` with its own task properties (`../project/agentbox/agentbox.toml:1072`, `:1120`) but no route passes that action class to the authority gate; `mandate_revoke` is the only class any route names (`../project/agentbox/management-api/routes/llm-marketplace.js:457`).
+**Debt:** `payment_settlement` is declared `zero-tolerance` with its own task properties (`../project/agentbox/agentbox.toml:1072`, `:1120`) but no route passes that action class to the authority gate; `mandate_revoke` is the only class any route names (`../project/agentbox/management-api/routes/llm-marketplace.js:473`).
 
 **Debt:** the agent, command and skill registries governed by ADR-2092 are manifest files of their own (`registered-agents.txt`, `registered-commands.txt`, `registered-skills.txt`) with no `agentbox.toml` gate and no catalogue entry, so `GET /v1/system` cannot report what the reconcilers did (`../project/agentbox/config/entrypoint-unified.sh:2923`, `../project/agentbox/management-api/lib/system-manifest.js:39`).
 

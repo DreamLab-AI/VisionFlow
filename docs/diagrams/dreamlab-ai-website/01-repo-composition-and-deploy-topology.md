@@ -18,7 +18,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
   - ../dreamlab-ai-website/forum-config/src/workers.rs
   - ../dreamlab-ai-website/src/App.tsx
-verified_commit: 6ae45762e7685787c5f44ba0d966557f386cde83
+verified_commit: 8ab4ab421497c37f169a6dd0e2f23ffbf23a32d8
 ---
 
 ## DW-01.1 Repo composition — thin operator overlay, not a protocol owner
@@ -62,7 +62,7 @@ flowchart TB
 ## DW-01.5 The dual-pin rule — four locations that must move together
 ```mermaid
 flowchart TB
-    A["1. KIT_REF<br/>.github/workflows/deploy.yml:106"] --- SHA["49904f48b7f4367ea23b92c0cd6078d4ac3b5cd2"]
+    A["1. KIT_REF<br/>.github/workflows/deploy.yml:106"] --- SHA["341c5d262bea5dcfc65d47dc3f5296a7d3eae675"]
     B["2. KIT_REF<br/>.github/workflows/workers-deploy.yml:45"] --- SHA
     C["3. KIT_REF<br/>.github/workflows/rust-ci.yml:21"] --- SHA
     D["4. rev pin, resolved version<br/>forum-config/Cargo.toml:49-52"] --- VER["1.0.0-beta.11"]
@@ -70,10 +70,10 @@ flowchart TB
     VER -.->|"CANONICAL_KIT_VERSION"| REC2["kit-compatibility-record.md:31"]
 ```
 - `workers-deploy.yml` fires on `forum-config/Cargo.lock` and `KIT_REF` changes precisely so a kit re-pin never ships a new client against old workers — the client/worker skew that "wiped the forum on 2026-06-15" (BASELINE-architecture.md:103-106).
-- DOC-DRIFT: `BASELINE-architecture.md:99,101` still cites `KIT_REF = a7544687b4d1c09807862d749b27f8c8da307a12` and crate version `"1.0.0-beta.9"` (line 96) as current; the live pins (`deploy.yml:106`, `workers-deploy.yml:45`, `rust-ci.yml:21`, `forum-config/Cargo.toml:49-52`, `kit-compatibility-record.md:30-31`) are `49904f48b7f4367ea23b92c0cd6078d4ac3b5cd2` / `1.0.0-beta.11` (re-pinned 2026-10-02 by `6ae4576`, the panel-wide alert acknowledgement) — the kit has been re-pinned repeatedly since this governing doc's `verified_commit: d852f61` without a doc update. All four pin sites and the compatibility record agree with each other; only the governing doc has drifted.
+- DOC-DRIFT: `BASELINE-architecture.md:99,101` still cites `KIT_REF = a7544687b4d1c09807862d749b27f8c8da307a12` and crate version `"1.0.0-beta.9"` (line 96) as current; the live pins (`deploy.yml:106`, `workers-deploy.yml:45`, `rust-ci.yml:21`, `forum-config/Cargo.toml:49-52`, `kit-compatibility-record.md:30-31`) are `341c5d262bea5dcfc65d47dc3f5296a7d3eae675` / `1.0.0-beta.11` (re-pinned 2026-10-02 by `8ab4ab4`, the 31403 correlation fix with ADR-2011 live; the deploy, workers-deploy, CI and kit-pin-guard runs for `8ab4ab4` all concluded success on 2026-10-02) — the kit has been re-pinned repeatedly since this governing doc's `verified_commit: d852f61` without a doc update. All four pin sites and the compatibility record agree with each other; only the governing doc has drifted.
 - DOC-DRIFT (Wave 2, the repo's most-read file): `README.md:298` still states "Live pin `2d693ed2…` (beta.6, re-pinned 2026-07-21)" — a THIRD, even-older value distinct from both the governing doc's stale beta.9 citation above and the live beta.11 pin, and not covered by any `verified_commit` mechanism at all.
 - The pin-site comments no longer restate release notes (`325734e`, 2026-10-02): `rust-ci.yml:19`, `deploy.yml:101-105` and `workers-deploy.yml:40-44` now say only that the kit crates resolve at `v1.0.0-beta.11` and defer provenance to the compatibility record, which pin-parity checks against the exact SHA. The earlier drift (a beta.9 annotation beside a beta.11 pin) is closed at the source.
-- **Drift:** the compatibility record contradicts itself — its History table still marks `931898a` (tag `v1.0.0-beta.10`) as "Current (canonical — matches `CANONICAL_KIT_SHA` above and the `KIT_REF` pins)" (`kit-compatibility-record.md:347`) while the machine-readable field is `49904f4` (`kit-compatibility-record.md:30`); the 2026-10-02 re-pin rewrote the deployment row's SHA but its notes still end at the `7def3e4` change set, so the panel-acknowledgement change it ships is described only in the commit message.
+- **Drift:** the compatibility record still contradicts itself — its History table marks `931898a` (tag `v1.0.0-beta.10`) as "Current (canonical — matches `CANONICAL_KIT_SHA` above and the `KIT_REF` pins)" (`kit-compatibility-record.md:347`) while the machine-readable field is `341c5d2` (`kit-compatibility-record.md:30`). The `8ab4ab4` re-pin did describe its own change set in the deployment row (`kit-compatibility-record.md:26` opens with the 341c5d2 notes), but the row goes from those notes straight to the older history, so the intervening `49904f4` pin (the panel-wide alert acknowledgement, `6ae4576`) is still described only in its commit message.
 - INVARIANT: the machine-readable pin lives in exactly one place the gate reads — `CANONICAL_KIT_SHA` / `CANONICAL_KIT_VERSION` in `kit-compatibility-record.md:30-31` — and every other site is compared against it, which is why the surrounding comments can rot without the gate noticing.
 
 ## DW-01.6 Deploy job sequence — clone kit, build three frontends, merge, inject, deploy

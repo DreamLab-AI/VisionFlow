@@ -27,7 +27,7 @@ sources:
   - ../project/agentbox/docker-compose.yml
   - ../project/agentbox/management-api/server.js
   - ../project/agentbox/config/nostr-gateway/nostr-send.cjs
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+verified_commit: c4ed3ec6505858e1e5ead651c29115d2f74e5546
 ---
 
 ## AB-12.2 Bridge boot — reconcile, listen, coordinator resolve
@@ -231,7 +231,7 @@ sequenceDiagram
     participant VI as lib/voice-intent.js<br/>parseIntent:112
     participant Ma as lib/mandate.js<br/>see AB-11.10
     participant ACS as agent-control-surface.js<br/>buildActionRequest:176
-    participant D as dispatchActionRequest<br/>server.js:875
+    participant D as dispatchActionRequest<br/>server.js:876
 
 Note over Ca,M: SCOPE — this route is not reached from the tab0-bridge cockpit or the Unmute<br/>voice loop, grep confirmed no reference to voice-intent.js under config/tab0-bridge. It is an<br/>independent management-api REST surface, included because the brief named it as an entry point.
     Ca->>M: POST /v1/voice-intent, transcript, actor_did, mandate (routes/voice-intent.js:82-109)
