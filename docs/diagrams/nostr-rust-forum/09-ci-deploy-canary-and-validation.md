@@ -11,6 +11,7 @@ sources:
   - ../nostr-rust-forum/deny.toml
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/rust-toolchain.toml
+  - ../nostr-rust-forum/docs/BASELINE-architecture.md
   - ../nostr-rust-forum/SETUP.md
   - ../nostr-rust-forum/scripts/adr-index-gen.js
   - ../nostr-rust-forum/scripts/anti-drift-lint.sh
@@ -31,7 +32,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/validate.rs
   - ../nostr-rust-forum/README.md
-verified_commit: d025cb063df5a532f055a18527f71cc7dee9d6e6
+verified_commit: f04d9bf63d7580e7f269d81621d3ba66dfe19274
 ---
 
 ## NF-09.1 The CI gate graph
@@ -54,9 +55,9 @@ flowchart TB
 
     N1["The test job also validates the shipped configuration contract by running the kit's own validator<br/>over forum.example.toml .github/workflows/ci.yml:107"]
     N2["The security crates re-run is nostr-bbs-core, relay-worker, pod-worker, auth-worker, preview-worker<br/>and config .github/workflows/ci.yml:136 through .github/workflows/ci.yml:141"]
-    N3["The wasm32 job installs libc6-dev-i386 so the secp256k1-sys cross-compile succeeds<br/>.github/workflows/ci.yml:171 - which is why it can check the WHOLE workspace, not the two crates<br/>workspace.metadata.ci.wasm-check-packages names nostr-rust-forum/Cargo.toml:54. See NF-01.2."]
+    N3["The wasm32 job installs libc6-dev-i386 so the secp256k1-sys cross-compile succeeds<br/>.github/workflows/ci.yml:171 - which is why it can check the WHOLE workspace, not the two crates<br/>workspace.metadata.ci.wasm-check-packages names nostr-rust-forum/Cargo.toml:58. See NF-01.2."]
     N4["ci-pass iterates every job result and fails the aggregate unless all succeeded<br/>.github/workflows/ci.yml:277"]
-    N5["DEBT: the toolchain floats on stable rust-toolchain.toml:2, so rustc 1.99 clippy turned async_trait's<br/>own must_use into a -D warnings failure; it is held green by per-trait allow(clippy::double_must_use)<br/>on every async_trait trait - nostr-bbs-mesh/src/transport.rs:236 transport.rs:249<br/>nostr-bbs-setup-skill/src/lib.rs:71 nostr-bbs-relay-worker/src/mesh.rs:141 - not by a fix upstream"]
+    N5["INVARIANT: no toolchain pin, by owner decision 2026-10-02 R8 - the forum floats on stable rust-toolchain.toml:2<br/>under -D warnings so every release is taken the day it ships BASELINE-architecture.md:234. Recovery when a new<br/>lint fires on code we do not own: a scoped per-item allow(clippy::lint) naming the cause, as rustc 1.99 needed on<br/>every async_trait trait - nostr-bbs-mesh/src/transport.rs:236 transport.rs:249 nostr-bbs-setup-skill/src/lib.rs:71<br/>nostr-bbs-relay-worker/src/mesh.rs:141 - never a crate-wide allow, never a pin"]
     CLIP -.- N5
 ```
 
@@ -134,14 +135,14 @@ sequenceDiagram
     OP->>CF: wrangler d1 create nostr-bbs-auth SETUP.md:39
     OP->>CF: wrangler d1 create nostr-bbs-relay SETUP.md:40
     OP->>CF: hand-run the auth schema SQL SETUP.md:47
-    OP->>CF: hand-run the relay events + whitelist SQL SETUP.md:69 SETUP.md:82
+    OP->>CF: hand-run the relay events SQL SETUP.md:69 - whitelist is a checked-in migration SETUP.md:83 SETUP.md:89
     OP->>CF: apply the governance migration SETUP.md:94
     OP->>CF: create four KV namespaces SETUP.md:104
     OP->>CF: create two R2 buckets SETUP.md:113
-    OP->>OP: paste resource ids into each wrangler.toml SETUP.md:119
+    OP->>OP: paste resource ids into each wrangler.toml SETUP.md:120
     OP->>CF: wrangler secret put for the two secrets SETUP.md:130
     OP->>CF: wrangler deploy, one crate at a time SETUP.md:140
-    OP->>CF: DNS - CNAME or Workers Routes per subdomain SETUP.md:151
+    OP->>CF: DNS - CNAME or Workers Routes per subdomain SETUP.md:152
     OP->>OP: FORUM_BASE=/community trunk build --release --public-url /community/ SETUP.md:237
 
     Note over OP: worker-build is pinned to 0.8.4 because 0.8.5 breaks the abort-handler codegen SETUP.md:29
