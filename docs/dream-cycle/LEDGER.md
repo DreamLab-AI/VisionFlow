@@ -30,3 +30,5 @@ Schema note (2026-09-14, unmerged): FR6.6 of PRD-augmentation-conditions adds `R
 | 2026-09-28 | content-integrity | VETOED: link gate skipped #-anchors; link-check now reports anchors-checked/dang | NONE | NONE | yes | BLOCKED-ENV |  | 8d521cf45006 |  |  |  |
 | 2026-09-29 | build-pipeline | VETOED: Given the link gate's href/src family skips every ref containing `#` (`s | NONE | NONE | yes | INCONCLUSIVE |  | 32de577099c7 |  |  |  |
 | 2026-09-30 | seo-and-meta | Given the shipped page at `d4e4429` declares an Organization but never declares  | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/4 | yes | ACCEPT |  | 65a9d02cf480 |  |  |  |
+| 2026-10-01 | build-pipeline | Given `website/static/robots.txt` reaches `dist/` only through `build.sh`'s whol | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/11 | yes | ACCEPT |  | 7f88b6695afe |  |  |  |
+| 2026-10-02 | seo-and-meta | Given the shipped page at `2480a8f` declares its brand only in `<title>`/nav cop | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/12 | yes | ACCEPT |  | 369fbc125f52 |  |  |  |
