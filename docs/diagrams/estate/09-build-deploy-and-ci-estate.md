@@ -49,10 +49,12 @@ sources:
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
   - ../project/agentbox/scripts/ci/check-no-logseq-paths.sh
   - ../project/scripts/adr-index-gen.js
+  - ../project/scripts/adr-ratchet.sh
+  - ../project/agentbox/scripts/adr-ratchet.sh
   - ../project/scripts/ontology/pack-pod-resources.py
   - ../project/scripts/launch.sh
   - ../project/scripts/start.sh
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f}
+verified_commit: {visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047}
 ---
 ## ES-09.1 The host-vs-container build trap — wrong path vs sanctioned path
 ```mermaid
@@ -284,7 +286,7 @@ flowchart TB
         VAULTMOUNT["ADR-2114 corpus vault mount<br/>agent-workspace:/vault:ro docker-compose.unified.yml:170-171<br/>external named volume multi-agent-docker_workspace<br/>declared docker-compose.unified.yml:386-391"]
         PRODSVC["visionclaw-production<br/>docker-compose.unified.yml:197<br/>profiles production and prod, docker-compose.unified.yml:266-268<br/>port 3001 only, docker-compose.unified.yml:242<br/>NO source mounts and NO docker.sock, docker-compose.unified.yml:237-239"]
         CLOUDFLARED["cloudflared<br/>docker-compose.unified.yml:271, image cloudflare/cloudflared at a pinned<br/>digest :274, profiles production and prod docker-compose.unified.yml:290-292<br/>depends_on visionclaw OR visionclaw-production (optional)"]
-        LOOM["loom<br/>docker-compose.unified.yml:315, image loom:rust built outside this repo :317<br/>loom compose profile docker-compose.unified.yml:376-377<br/>host port 8090 to container port 8080 docker-compose.unified.yml:361<br/>hostname loom :318, alias ontology-loom docker-compose.unified.yml:367"]
+        LOOM["loom<br/>docker-compose.unified.yml:315, image loom:rust built outside this repo :317<br/>loom compose profile docker-compose.unified.yml:377-378<br/>host port 8090 to container port 8080 docker-compose.unified.yml:361<br/>hostname loom :318, alias ontology-loom docker-compose.unified.yml:367"]
     end
     subgraph EXTFILE["docker-compose.cloudflared.yml (standalone)"]
         CFSTANDALONE["cloudflared<br/>joins external visionclaw_network<br/>alias visionclaw-server:3001"]
@@ -309,17 +311,17 @@ flowchart LR
     subgraph DEVNGINX["nginx.dev.conf — listen 3001 nginx.dev.conf:55"]
         DUPRUST["upstream rust_backend<br/>127.0.0.1:4000 :43-46"]
         DUPVITE["upstream vite_frontend<br/>127.0.0.1:5173 :48-51"]
-        DAPI["/api/ -> rust_backend :66-67"]
+        DAPI["^~ /api/ -> rust_backend :66-67"]
         DWSS["/wss, /ws/speech, /ws/mcp-relay -> rust_backend :85,104,123"]
-        DSOLID["/solid/, /pods/ -> rust_backend/api/solid/ :164,190"]
+        DSOLID["^~ /solid/, ^~ /pods/ -> rust_backend/api/solid/ :164,190"]
         DHMR["/vite-hmr, /@vite, /node_modules -> vite_frontend :251,263"]
         DROOT["/ -> vite_frontend (dev server, no static build) :287"]
     end
     subgraph PRODNGINX["nginx.production.conf — listen 3001 :85"]
         PUPRUST["upstream rust_backend<br/>127.0.0.1:4001 max_fails=0 :69-72"]
-        PAPI["/api/ -> rust_backend :114-115"]
+        PAPI["^~ /api/ -> rust_backend :114-115"]
         PWS["wss / ws/speech / ws/mcp-relay / ws/hybrid-status -> rust_backend :234-235"]
-        PSOLID["/solid/, /pods/ -> rust_backend/api/solid/ :169,214"]
+        PSOLID["^~ /solid/, ^~ /pods/ -> rust_backend/api/solid/ :169,214"]
         PSTATIC["/, *.html, *.js/css/png -> static /app/client/dist :269,282,295"]
         PHEALTH["/health, /healthz, /readyz -> rust_backend or static :304,313,319"]
     end
@@ -338,15 +340,19 @@ flowchart LR
     DIVNOTE["DIVERGENCE: dev proxies ALL non-API routes to the<br/>Vite dev server (live HMR); prod serves a static<br/>client/dist build directly from nginx root, only<br/>API/WS routes reach the backend upstream"]
     DROOT -.-> DIVNOTE
     PSTATIC -.-> DIVNOTE
+
+    PRECED["RESOLVED 2026-10-01 (648c9c442) — in nginx a regex location<br/>outranks a plain prefix, so the asset-extension regex<br/>(nginx.dev.conf:277, nginx.production.conf:269) captured any<br/>/solid/, /pods/ or /api/ path ending in .png or .js and sent it to<br/>Vite or the static root. Every backend prefix now carries ^~,<br/>which makes the prefix match final: nginx.dev.conf:66,164,190<br/>and nginx.production.conf:114,214 (production /solid/ already had it)."]
+    DSOLID -.-> PRECED
+    PSOLID -.-> PRECED
 ```
 
 ## ES-09.10 agentbox flake rebuild gate, and the submodule pointer-bump flow
 ```mermaid
 flowchart TB
     subgraph FLAKE["agentbox/flake.nix — image composition"]
-        NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate agentbox/flake.nix:317"]
-        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2212,2243,2259<br/>program blocks e.g. management-api, bootstrap-seal"]
-        SUPWRITE["writeText supervisord.conf<br/>agentbox/flake.nix:3288-3292"]
+        NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate agentbox/flake.nix:329"]
+        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2268,2299,2315<br/>program blocks e.g. management-api, bootstrap-seal"]
+        SUPWRITE["writeText supervisord.conf<br/>agentbox/flake.nix:3405-3409"]
     end
     subgraph TOML["agentbox/agentbox.toml — RUNNING config, not a template"]
         GATEKEY["gate key e.g. interaction_plane.enabled"]
@@ -418,26 +424,28 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GH as push/PR touching docs/**<br/>docs-ci.yml:4-20
-    participant ADR as validate-adr-ledger job<br/>docs-ci.yml:23
-    participant DOC as validate-documentation job<br/>docs-ci.yml:34
+    participant GH as push/PR touching docs/** or the ratchet<br/>docs-ci.yml:4-22
+    participant ADR as validate-adr-ledger job<br/>docs-ci.yml:25
+    participant DOC as validate-documentation job<br/>docs-ci.yml:40
 
-    GH->>ADR: checkout fetch-depth 0 :30 (staleness diffs old commits)
-    ADR->>ADR: node scripts/adr-index-gen.js docs/adr --check :32
+    GH->>ADR: checkout fetch-depth 0 :32 (staleness diffs old commits)
+    ADR->>ADR: node scripts/adr-index-gen.js docs/adr --check :34
     Note over ADR: checks frontmatter, supersession reciprocity,<br/>verified_commit staleness
+    ADR->>ADR: bash scripts/adr-ratchet.sh docs/adr BASE sha :35-38
+    Note over ADR: ADR RATCHET (2026-09-21 planning rule) — fails when more<br/>ADRs were ADDED undecided than LEFT proposed over the push<br/>range, project/scripts/adr-ratchet.sh:74-77. A record added<br/>already decided is reported, not counted (:61), an ADR-Ratchet<br/>commit trailer exempts the record it names (:52), and after<br/>ADR_RATCHET_UNTIL, default 2026-10-20 (:36), it reports only
 
     GH->>DOC: checkout
-    DOC->>DOC: validate internal links :42-107
-    DOC->>DOC: validate mermaid diagrams :109-162
-    DOC->>DOC: check stale references :164-210
-    Note over DOC: stale refs are warnings only, never a score penalty :207-210
-    DOC->>DOC: validate directory structure :212-241
-    Note over DOC: required Diataxis dirs: tutorials, how-to,<br/>explanation, reference, plus docs/README.md :221-231
-    DOC->>DOC: score = (links_rate*60 + mermaid_rate*40)/100<br/>minus 10 per structure error, clamp 0-100 :254-260
+    DOC->>DOC: validate internal links :48-113
+    DOC->>DOC: validate mermaid diagrams :115-168
+    DOC->>DOC: check stale references :170-216
+    Note over DOC: stale refs are warnings only, never a score penalty :213-216
+    DOC->>DOC: validate directory structure :218-247
+    Note over DOC: required Diataxis dirs: tutorials, how-to,<br/>explanation, reference, plus docs/README.md :227-237
+    DOC->>DOC: score = (links_rate*60 + mermaid_rate*40)/100<br/>minus 10 per structure error, clamp 0-100 :260-266
     alt score below 50
-        DOC->>GH: exit 1, quality threshold failed :326-328
+        DOC->>GH: exit 1, quality threshold failed :332-334
     else score at or above 50
-        DOC->>GH: pass :330
+        DOC->>GH: pass :336
     end
 ```
 
@@ -447,69 +455,73 @@ sequenceDiagram
     autonumber
     participant GH as push/PR/repository_dispatch<br/>ontology-publish.yml:3-16 corpus-sync
     participant VAL as validate-source job<br/>ontology-publish.yml:44
-    participant BLD as build-ontology job<br/>ontology-publish.yml:132
-    participant REL as publish-release job<br/>ontology-publish.yml:231
+    participant BLD as build-ontology job<br/>ontology-publish.yml:133
+    participant REL as publish-release job<br/>ontology-publish.yml:233
     participant SRV as visionclaw-server boot<br/>src/services/ontology_pull.rs
-    participant DEP as deploy-jss job (push path)<br/>ontology-publish.yml:301
-    participant WS as notify-websocket job<br/>ontology-publish.yml:411
-    participant PRP as pr-preview job<br/>ontology-publish.yml:490
-    participant MIS as deploy-target-missing job<br/>ontology-publish.yml:544
+    participant DEP as deploy-jss job (push path)<br/>ontology-publish.yml:303
+    participant WS as notify-websocket job<br/>ontology-publish.yml:413
+    participant PRP as pr-preview job<br/>ontology-publish.yml:492
+    participant MIS as deploy-target-missing job<br/>ontology-publish.yml:546
 
     GH->>VAL: preflight gh repo view on the private ontology source :67-73<br/>ONTOLOGY_SOURCE_TOKEN, falling back to GITHUB_TOKEN :67-68
     alt source unreadable
         VAL--xGH: ::error + OPS ACTION naming the fine-grained PAT, exit 1 :74-87
     end
-    GH->>VAL: checkout ontology source into vault-source/, same token :89-94
-    VAL->>VAL: detect changed markdown files :96-117
-    VAL->>BLD: has_changes true, needs validate-source :135-136
-    BLD->>BLD: checkout jjohare/visionGraph into vault-source/ again :147-152
-    BLD->>BLD: ADR-2113 — cargo build --release --locked -p vault :166<br/>(crates/vault in THIS repo, cached by Cargo.lock hash :154-162)
-    BLD->>BLD: ./target/release/vault --repo vault-source build<br/>--vault knowledge --out output/vault :168-171
-    BLD->>BLD: pack-pod-resources.py output/vault output/pod — public-only<br/>TTL, JSON-LD compacted against the vault context, LDP index<br/>manifest, substance floor :186-192
-    BLD->>BLD: re-parse packed resources :194-210, upload<br/>ontology-ttl :215-216 and ontology-jsonld :222-223
-    BLD->>REL: main only, needs validate-source + build-ontology :234
-    REL->>REL: assemble five assets + SHA256SUMS :254-262,<br/>create or move release tag ontology-latest
-    REL->>REL: upload --clobber, verify the public<br/>download path diffs SHA256SUMS :295-298
+    GH->>VAL: checkout ontology source into vault-source/, same token :89-95,<br/>at the dispatch payload's source_sha or main :93
+    VAL->>VAL: detect changed markdown files :97-118
+    VAL->>BLD: has_changes true, needs validate-source :136-137
+    BLD->>BLD: checkout the source into vault-source/ again :148-154,<br/>pinned to validate-source's source_sha :152
+    BLD->>BLD: ADR-2113 — cargo build --release --locked -p vault :168<br/>(crates/vault in THIS repo, cached by Cargo.lock hash :156-164)
+    BLD->>BLD: ./target/release/vault --repo vault-source build<br/>--vault knowledge --out output/vault :170-173
+    BLD->>BLD: pack-pod-resources.py output/vault output/pod — public-only<br/>TTL, JSON-LD compacted against the vault context, LDP index<br/>manifest, substance floor :188-194
+    BLD->>BLD: re-parse packed resources :196-212, upload<br/>ontology-ttl :217-218 and ontology-jsonld :224-225
+    BLD->>REL: main only, needs validate-source + build-ontology :236
+    REL->>REL: assemble five assets + SHA256SUMS :256-264,<br/>create or move release tag ontology-latest
+    REL->>REL: upload --clobber, verify the public<br/>download path diffs SHA256SUMS :297-300
     Note over SRV: ADR-2106 pull model — at boot and every<br/>ONTOLOGY_PULL_INTERVAL_SECS: GET index.jsonld, compare<br/>visionflow:buildSha with the pod's, and if moved GET<br/>SHA256SUMS plus the files, verify every digest, then write<br/>via Storage in order: containers, .acl only if absent,<br/>content, manifest last. Fail-open. see ES-08.11
     SRV->>REL: GET releases/download/ontology-latest/{index.jsonld, SHA256SUMS, ...}
     alt vars.SOLID_POD_URL set (a pod a runner can reach)
-        BLD->>DEP: needs build-ontology, ref main :305
-        DEP->>DEP: backup current pod index for rollback :328
-        DEP->>DEP: PUT visionflow.ttl, context/ontology/index jsonld :346-363, verify :372-388
+        BLD->>DEP: needs build-ontology, ref main :307
+        DEP->>DEP: backup current pod index for rollback :330
+        DEP->>DEP: PUT visionflow.ttl, context/ontology/index jsonld :348-365, verify :374-390
         alt deployment fails
-            DEP->>DEP: rollback to backed-up index :404
+            DEP->>DEP: rollback to backed-up index :406
         end
         DEP->>WS: deployment_status success
-        WS->>WS: POST to SOLID_POD_URL/.notifications :454, PATCH index.jsonld :459
+        WS->>WS: POST to SOLID_POD_URL/.notifications :456, PATCH index.jsonld :461
     else unset (default: the in-process pod is not reachable from a hosted runner)
-        REL->>MIS: ::notice: push deploy skipped, pull model in effect :548-551
+        REL->>MIS: ::notice: push deploy skipped, pull model in effect :550-553
     end
-    GH->>PRP: pull_request only: comment with stats and SHAs :490-514
+    GH->>PRP: pull_request only: comment with stats and SHAs :492-516
     Note over VAL,WS: RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL now<br/>defaults to the loopback /solid scope :36-38 — what the embedded<br/>solid-pod-rs serves in-process (ADR-032 M3). The POST to<br/>/.notifications is annotated a best-effort no-op there:<br/>that path is a GET WebSocket upgrade
     Note over BLD: RESOLVED — ADR-2112/ADR-2113 replaced the Python<br/>pipeline.build converter (0 owl:Class from 380 pages on run<br/>34045488066, itself a fix of two earlier Logseq-only jobs) first<br/>with a vault-owned Python step, now with an IN-REPO Rust build:<br/>cargo build -p vault then ./target/release/vault build against<br/>the checked-out vault-source/, no external converter left to own
     Note over GH,BLD: DRIFT resolved — the source repo is still checked out (path<br/>renamed logseq-source to vault-source, trigger renamed logseq-sync<br/>to corpus-sync :15-16) but it no longer runs anyone's pipeline in<br/>place: `vault build` reads it via --repo and writes output/vault.<br/>scripts/ontology/pack-pod-resources.py remains this repo's own<br/>script, unchanged, run from the repo root :192. see VG-04.1, KG-05
+    Note over GH,BLD: 2026-10 (805219679) — a corpus-sync dispatch may name the<br/>source repo :30 and sha :93, and the build job checks out exactly<br/>the sha validate-source detected :152, so a build can no longer<br/>publish a later corpus commit than the one it validated
     Note over SRV,MIS: RESOLVED ADR-2106 (2026-09-06): deploy-jss had never<br/>run and could not from a hosted runner — delivery inverted to a<br/>boot pull from the ontology-latest release. see ES-08.11
 ```
 
-## ES-09.14 VisionClaw xr-godot-ci.yml — gdext + GUT headless, Quest 3 advisory
+## ES-09.14 VisionClaw xr-godot-ci.yml — gdext + GUT under a GL display, Quest 3 advisory
 ```mermaid
 sequenceDiagram
     autonumber
     participant GH as push/PR xr-client/**<br/>xr-godot-ci.yml:24-36
     participant RT as xr-rust-tests job<br/>xr-godot-ci.yml:54 blocking
     participant GUT as gut-headless job<br/>xr-godot-ci.yml:77 blocking
-    participant Q3 as quest3-android job<br/>xr-godot-ci.yml:117 advisory
+    participant Q3 as quest3-android job<br/>xr-godot-ci.yml:124 advisory
 
     GH->>RT: cargo test -p visionclaw-xr-gdext --all-features :73
     RT->>RT: cargo test -p visionclaw-xr-presence :75
     GH->>GUT: cargo build -p visionclaw-xr-gdext (debug cdylib) :89
-    GUT->>GUT: install Godot 4.3-stable headless :90-96
-    GUT->>GUT: vendor GUT 9.3.1 pinned tag :97-103
-    GUT->>GUT: godot --headless -s gut_cmdln.gd :107
-    GH->>Q3: continue-on-error true :120
-    Q3->>Q3: cargo ndk build aarch64-linux-android :144
-    Q3->>Q3: export Quest 3 arm64 APK :162-163
-    Q3->>Q3: APK size gate, fail if greater than 80MB :164-169
+    GUT->>GUT: install GL display deps, xvfb and mesa :90-91
+    GUT->>GUT: install Godot 4.3-stable :92-98
+    GUT->>GUT: vendor GUT 9.3.1 pinned tag :99-105
+    GUT->>GUT: godot --headless --editor --import, register GUT classes :110
+    GUT->>GUT: xvfb-run godot gl_compatibility -s gut_cmdln.gd :112-114
+    Note over GUT: the job is still named gut-headless :77 but the suite runs<br/>under a virtual GL display, because the world-space HUD fit<br/>gate needs real GL font metrics :111
+    GH->>Q3: continue-on-error true :127
+    Q3->>Q3: cargo ndk build aarch64-linux-android :151
+    Q3->>Q3: export Quest 3 arm64 APK :167-175
+    Q3->>Q3: APK size gate, fail if greater than 80MB :176-181
     Note over Q3: advisory until first green hosted run,<br/>then promote to blocking (per file header comment)
 ```
 
@@ -528,17 +540,21 @@ sequenceDiagram
     Note over J: SANCTIONED allowlist: 9096 sovereign ingress,<br/>voice 8443/8444, browsercontainer 5903/8931/9222,<br/>gui-tools 5905/9876/9877, xr-runtime 5904
     Note over J: DIVERGENCE: implementation_status partial — the<br/>dated closeout says the scanner does not yet cover<br/>every equivalent publish syntax form
     J->>J: check-listeners.test.mjs :60, the tests/security/**<br/>trigger path guards this gate's own unit tests
-    J->>J: check-db-password.sh :63
-    J->>J: check-secret-not-in-env.sh :66
-    J->>J: check-single-metrics.js :69
-    J->>J: check-no-npx-latest.sh (ratchet) :72
-    J->>J: lint-skills.sh :75
-    J->>J: deepsec-gate.test.mjs :82
-    J->>J: check-manifest-catalogue.js (ADR-039 gate-path parity) :88
-    J->>J: check-no-logseq-paths.sh :91
+    J->>J: aoe-launch-never-attaches test (2026-10-01, the aoe pin<br/>past the non-tty attach fix) :63
+    J->>J: check-db-password.sh :66
+    J->>J: check-secret-not-in-env.sh :69
+    J->>J: check-single-metrics.js :72
+    J->>J: check-no-npx-latest.sh (ratchet) :75
+    J->>J: lint-skills.sh :78
+    J->>J: deepsec-gate.test.mjs :85
+    J->>J: check-manifest-catalogue.js (ADR-039 gate-path parity) :91
+    J->>J: check-no-logseq-paths.sh :94
     Note over J: ADR-2028: vault.root is the single corpus path<br/>authority, greps for hard-coded workspace/logseq<br/>outside docs/archive and docs/adr exemptions
-    J->>J: adr-index-gen.js docs/adr --check :106
-    J->>J: check-crate-licensing.sh :117
+    J->>J: adr-index-gen.js docs/adr --check :109
+    J->>J: adr-index-gen.js docs/adr --check-index (ADR-2001) :117
+    J->>J: adr-ratchet self-test :120, then adr-ratchet.sh over the push range :122-125
+    Note over J: the ratchet script is byte-identical to the host copy<br/>(agentbox/scripts/adr-ratchet.sh:36 carries the same 2026-10-20<br/>end date) so both ledgers run one rule. see ES-09.12
+    J->>J: check-crate-licensing.sh :128
     Note over J: DRIFT resolved — the vault-frontmatter unit test step<br/>(node --test mcp/servers/lib/__tests__/*.test.js) is GONE:<br/>ADR-2107/ADR-2108 deleted the V2 frontmatter writer it gated<br/>along with the ontology write path. `vault validate` is the<br/>successor contract check, run against the corpus not a helper.
 ```
 
@@ -551,8 +567,8 @@ sequenceDiagram
 
     GH->>C: setup Node 22 (matches runtime image) :41-46
     C->>C: npm ci in management-api/ contract-tests.yml:50<br/>and repo-root npm ci --ignore-scripts contract-tests.yml:57
-    C->>C: npx jest ../tests/contract/ with contract filename filter<br/>contract-tests.yml:61
-    C->>C: upload contract-test-results artifact contract-tests.yml:65-70
+    C->>C: npx jest ../tests/contract/ --testPathPatterns contract filename filter<br/>contract-tests.yml:61 (plural since jest 30 dropped the singular flag, 23e5818a6)
+    C->>C: upload contract-test-results artifact contract-tests.yml:63-69
     Note over C: every durable-state integration rides one of five<br/>adapter slots (beads, pods, memory, events, orchestrator)<br/>and must pass tests/contract/ for all implementation classes
 ```
 
@@ -572,7 +588,7 @@ sequenceDiagram
         V->>V: agentbox-config-validate.js out.toml :93
     end
     loop each tests/tui/fixtures/invalid-*.toml
-        V->>V: assert failure with the expected E-code :98-113
+        V->>V: assert failure with the expected E-code :97-112
     end
     V->>V: assert JSON Schema well-formed :114
     V->>V: sidechain-genesis.test.sh — document invariants, P21<br/>mainnet gate, no-key-in-git (ADR-2103) :117
@@ -688,24 +704,26 @@ flowchart TB
     TRIG --> JOB
 
     subgraph SKILLS["Skill-estate gates — required before a rebuild"]
-        S1["lint-skills.sh, the structure gate<br/>agentbox/.github/workflows/invariants.yml:75"]
-        S2["skill-count-check, the SINGLE count authority<br/>agentbox/.github/workflows/invariants.yml:76-77"]
-        S3["gen-routing-table --check, routing-table freshness<br/>generated from frontmatter<br/>agentbox/.github/workflows/invariants.yml:79"]
+        S1["lint-skills.sh, the structure gate<br/>agentbox/.github/workflows/invariants.yml:78"]
+        S2["skill-count-check, the SINGLE count authority<br/>agentbox/.github/workflows/invariants.yml:79-80"]
+        S3["gen-routing-table --check, routing-table freshness<br/>generated from frontmatter<br/>agentbox/.github/workflows/invariants.yml:82"]
     end
     JOB --> SKILLS
 
     subgraph CONTRACT["Contract gates"]
-        C1["research-gates tests, the deep-research quote, citation<br/>and independence contract<br/>agentbox/.github/workflows/invariants.yml:84-85"]
-        C2["check-manifest-catalogue, ADR-039 gate-path parity<br/>agentbox/.github/workflows/invariants.yml:88"]
-        C3["federation-fixture-check, the cross-repo identifier<br/>contract from the agentbox side<br/>agentbox/.github/workflows/invariants.yml:97-98"]
+        C1["research-gates tests, the deep-research quote, citation<br/>and independence contract<br/>agentbox/.github/workflows/invariants.yml:87-88"]
+        C2["check-manifest-catalogue, ADR-039 gate-path parity<br/>agentbox/.github/workflows/invariants.yml:91"]
+        C3["federation-fixture-check, the cross-repo identifier<br/>contract from the agentbox side<br/>agentbox/.github/workflows/invariants.yml:100-101"]
     end
     JOB --> CONTRACT
 
-    DEBT["DEBT the workflow records against itself — skill-count-check was<br/>RED and UNWIRED, and the federation fixture check was governed by<br/>a record but never run by anything, found in a script audit. The<br/>fixture's whole point is that both repositories assert the SAME<br/>table rather than two tables that happen to agree, which an<br/>ungated check cannot deliver.<br/>agentbox/.github/workflows/invariants.yml:76,97"]
+    DEBT["DEBT the workflow records against itself — skill-count-check was<br/>RED and UNWIRED, and the federation fixture check was governed by<br/>a record but never run by anything, found in a script audit. The<br/>fixture's whole point is that both repositories assert the SAME<br/>table rather than two tables that happen to agree, which an<br/>ungated check cannot deliver.<br/>agentbox/.github/workflows/invariants.yml:79,100"]
     S2 --> DEBT
     C3 --> DEBT
 
-    CAT["INVARIANT ADR-039 — a new manifest gate must arrive with a<br/>CATALOGUE entry carrying an honest apply class, and the parity<br/>check above is what enforces it. Now nineteen module entries carry<br/>apply_class boot, including six landed since the last verify: Claude<br/>Code permissions (ADR-2116), instruction tiers (ADR-2118), claude-cred-sync,<br/>skill-router-cascade (ADR-2095), routing-teacher-labels (ADR-2110,<br/>proposed) and vault-cli (ADR-2107/2108, apply_class rebuild)<br/>agentbox/management-api/lib/system-manifest.js:212,215,218,235,238,270"]
+    CAT["INVARIANT ADR-039 — a new manifest gate must arrive with a<br/>CATALOGUE entry carrying an honest apply class, and the parity<br/>check above is what enforces it. Recent module entries: Claude Code<br/>permissions (ADR-2116) and instruction tiers (ADR-2118) at boot,<br/>claude-cred-sync at rebuild, skill-router-cascade (ADR-2095) and<br/>routing-teacher-labels (ADR-2110, proposed) at boot, vault-cli<br/>(ADR-2107/2108) at rebuild<br/>agentbox/management-api/lib/system-manifest.js:212,215,218,235,238,273"]
+    HONEST["2026-10-02 — two entries show the honesty rule working. jev-compaction<br/>moved from boot to REBUILD when factrail landed (ADR-2121), because<br/>the binary and plugin are now gated in flake.nix,<br/>agentbox/management-api/lib/system-manifest.js:221-222. A new sidechain<br/>entry is rebuild-class with three gates, :257-258, and stateOf now lets<br/>a false parent gate dominate its child gates, :318. Twenty-five module<br/>entries carry boot at HEAD, down from twenty-six."]
+    CAT --> HONEST
     C2 --> CAT
 
     CLASS["Each carries apply_class boot, meaning the entrypoint projects<br/>it and a flip takes effect on the next container restart with no<br/>image rebuild. The three classes are defined at<br/>system-manifest.js:28-30."]
@@ -716,7 +734,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CI as docs-ci workflow<br/>project/.github/workflows/docs-ci.yml:32
+    participant CI as docs-ci workflow<br/>project/.github/workflows/docs-ci.yml:34
     participant GEN as adr-index-gen check<br/>project/scripts/adr-index-gen.js:190
     participant REC as one ADR record's frontmatter
     participant GIT as git
@@ -745,6 +763,7 @@ sequenceDiagram
     end
 
     Note over GEN,CI: DEBT — at visionclaw f223bbd40 FIFTEEN host records fail this<br/>gate, each naming the governed path that moved under it. The<br/>gate works, and what it is reporting is a re-verification backlog,<br/>project/scripts/adr-index-gen.js:207.
-    Note over CI: INVARIANT — the gate is wired into the docs workflow rather than<br/>left to a habit: invalid frontmatter, asymmetric supersession<br/>edges and stale verification claims all fail the build,<br/>project/.github/workflows/docs-ci.yml:32. see VF-01
+    Note over CI: INVARIANT — the gate is wired into the docs workflow rather than<br/>left to a habit: invalid frontmatter, asymmetric supersession<br/>edges and stale verification claims all fail the build,<br/>project/.github/workflows/docs-ci.yml:34. see VF-01
+    Note over CI: SECOND LEDGER GATE (2026-10, 95ec80059 and c57f6c128) — the same<br/>job now runs the ADR ratchet after this check, project/.github/workflows/docs-ci.yml:35-38.<br/>Staleness asks whether a claim still holds, the ratchet asks whether the<br/>proposed backlog grew, project/scripts/adr-ratchet.sh:74-77. see ES-09.12
     Note over REC: Presence of verified_paths is what ARMS the gate, which is why<br/>a record can be honestly unverified without failing CI,<br/>project/scripts/adr-index-gen.js:137-138.
 ```

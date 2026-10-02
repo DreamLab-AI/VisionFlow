@@ -39,7 +39,12 @@ sources:
   - ../project/agentbox/services/dream-engine/src/governance.rs
   - ../project/agentbox/services/dream-engine/src/inbox.rs
   - ../project/agentbox/services/dream-engine/src/main.rs
-verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
+  - ../project/agentbox/services/dream-engine/src/journal.rs
+  - ../project/agentbox/services/dream-engine/src/sweep.rs
+  - ../project/agentbox/services/dream-engine/src/compile.rs
+  - ../project/agentbox/management-api/routes/exec-record.js
+  - ../project/agentbox/docs/GOVERNANCE-capabilities.md
+verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
 ---
 
 ## AB-23.1 One repo-night — run phases
@@ -90,41 +95,47 @@ stateDiagram-v2
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2432
-    participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:62
+    participant SUP as supervisord<br/>agentbox/flake.nix:2488
+    participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:65
     participant GOV as governance<br/>agentbox/services/dream-engine/src/governance.rs
     participant ROS as roster<br/>agentbox/services/dream-engine/src/roster.rs
     participant RS as runstate::begin<br/>agentbox/services/dream-engine/src/runstate.rs:132
     participant MAN as manifest::freeze<br/>agentbox/services/dream-engine/src/manifest.rs:196
-    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2067
+    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2108
     participant LLM as call<br/>agentbox/services/dream-engine/src/llm.rs:49
     participant GATE as gate::decide<br/>agentbox/services/dream-engine/src/gate.rs:190
     participant LED as ledger<br/>agentbox/services/dream-engine/src/ledger.rs
-    participant DIG as digest::run<br/>agentbox/services/dream-engine/src/digest.rs:376
+    participant DIG as digest::run<br/>agentbox/services/dream-engine/src/digest.rs:383
 
     SUP->>ENG: dream-engine --loop --agentbox-toml /etc/agentbox.toml
-    Note over SUP,ENG: autostart=true autorestart=true priority=230 user=devuser (flake.nix:2432-2441)
-    alt [dream_machine] enabled = false (agentbox/agentbox.toml:2066)
+    Note over SUP,ENG: autostart=true autorestart=true priority=230 user=devuser (flake.nix:2488-2497)
+    alt [dream_machine] enabled = false (agentbox/agentbox.toml:2107)
         ENG-->>SUP: byte-identical-when-off — no supervisor block is generated at all
     else enabled
         loop nightly window
-            ENG->>ENG: dream-paused flag check — night is NOT consumed if paused (engine.rs:115-119)
-            ENG->>GOV: ingest(inbox_path, false) — carry forum decisions into tonight<br/>(engine.rs:126, see AB-23.17)
-            Note over ENG,GOV: fail-open, DREAM_GOVERNANCE=0 disables — governance::enabled() engine.rs:125
-            ENG->>ENG: UTC hour within window_start 1 .. window_end 5 (agentbox.toml:2092-2093)
-            loop each nominated repo (engine.rs:138-164)
+            ENG->>ENG: dream-paused flag check — night is NOT consumed if paused (engine.rs:118-123)
+            ENG->>ENG: Journal::from_env(session_for(night-DATE)), turn.started — the<br/>night-level work is its own journal session (engine.rs:128-132),<br/>DREAM_JOURNAL=0 disables (journal.rs:50)
+            Note over ENG,GOV: every turn and side effect posts to POST /v1/exec/record (journal.rs:235,<br/>exec-record.js:63). HTTP only — the management API is the single chain-safe writer of<br/>the hash-chained log (exec-record.js:9-14). Records, never approves or denies<br/>(exec-record.js:16-17). Fail-open: three consecutive failed posts open a breaker and<br/>the rest of the session runs unjournalled (journal.rs:30,212-217)
+            ENG->>GOV: ingest(inbox_path, false) — carry forum decisions into<br/>tonight and withdraw the cases it resolves (engine.rs:139,<br/>journalled as forum.governance engine.rs:138, see AB-23.17)
+            Note over ENG,GOV: fail-open, DREAM_GOVERNANCE=0 disables — governance::enabled() engine.rs:137
+            opt DREAM_SWEEP is not 0
+                ENG->>ENG: sweep_branches — seven-day rule for dream/* branches, before tonight<br/>adds any (engine.rs:155-159, engine.rs:1412). Merged or closed PR deletes,<br/>an open PR over 7 days is closed, no PR over 7 days deletes, the checked-out<br/>branch is never touched (sweep.rs:49-64)
+            end
+            ENG->>ENG: UTC hour within window_start 1 .. window_end 5 (agentbox.toml:2133-2134)
+            loop each nominated repo (engine.rs:163-189)
                 alt .dream-standby marker present
-                    ENG->>ENG: standby{repo, reason:"marker", streak:0} (engine.rs:139-147)
-                else dry streak — last prune_dry_streak 5 ledger rows ALL INCONCLUSIVE (agentbox.toml:2104)
-                    ENG->>ENG: standby{repo, reason:"dry-streak", streak} (engine.rs:149-161)
+                    ENG->>ENG: standby{repo, reason:"marker", streak:0} (engine.rs:164-171)
+                else dry streak — last prune_dry_streak 5 ledger rows ALL INCONCLUSIVE (agentbox.toml:2145)
+                    ENG->>ENG: standby{repo, reason:"dry-streak", streak} (engine.rs:173-186)
                     Note over ENG: REJECT counts as learning and RESETS the streak — revive via --target or a harness fix
                 else eligible
-                    ENG->>ENG: push to eligible list (engine.rs:163)
+                    ENG->>ENG: push to eligible list (engine.rs:187)
                 end
             end
-            ENG->>ROS: roster::load then select(eligible_names, max_repos_per_night) — least-recently-dreamed<br/>ordering, durable file (engine.rs:172,175)
-            Note over ROS: replaces alphabetical-sort-plus-truncate so the cap rotates the whole roster and<br/>survives a restart — repos over the cap are DEFERRED and lead next night's roster (engine.rs:176-190)
-            loop each selected repo (engine.rs:204)
+            ENG->>ROS: roster::load then select(eligible_names, max_repos_per_night) — least-recently-dreamed<br/>ordering, durable file (engine.rs:196,199)
+            Note over ROS: replaces alphabetical-sort-plus-truncate so the cap rotates the whole roster and<br/>survives a restart — repos over the cap are DEFERRED and lead next night's roster (engine.rs:200-214)
+            loop each selected repo (engine.rs:229)
+                Note over ENG,ROS: cycle_repo_recorded opens ONE journal session per repo — turn.started,<br/>a tool.called and tool.completed pair per side effect, turn.completed<br/>with the verdict or error (engine.rs:395-418)
                 ENG->>ENG: readiness::assess(cfg, repo, deep, repo_root) — readiness.rs:162, see AB-23.3
                 alt not admitted
                     ENG->>ENG: ReadinessReport refusal — HANDOFF disposition
@@ -146,24 +157,26 @@ sequenceDiagram
                         ENG->>ENG: candidate::prepare then evaluate on an ISOLATED git worktree at the<br/>DISPATCHED baseline revision (candidate.rs:41,:78) — see AB-23.5
                         ENG->>GATE: decide(manifest, strict, candidate, candidate_receipts)
                         GATE-->>ENG: GateDecision {accepted, verdict, model_verdict, vetoes, required_outcomes, summary}
-                        ENG->>LED: append the row
+                        ENG->>LED: append_and_commit_ledger — append the row, then commit<br/>THAT file only (engine.rs:1378-1408)
+                        Note over ENG,LED: ADR-2071 Phase 1: git commit --only on the default branch, local only,<br/>never pushed (ledger.rs:241,285). HEAD on another branch leaves the row<br/>for the operator (ledger.rs:263). The append stays fatal, the commit is<br/>fail-open, DREAM_LEDGER_COMMIT=0 skips it (engine.rs:1391)
                     end
                 end
-                ENG->>ROS: roster.record(name, date, verdict_label) — every outcome, including FAILED,<br/>counts a turn (engine.rs:214)
+                ENG->>ROS: roster.record(name, date, verdict_label) — every outcome, including FAILED,<br/>counts a turn (engine.rs:241)
             end
-            ENG->>ENG: build NightHealth{date, outcomes, nominated, standby, deferred} (engine.rs:229-241, see AB-23.8)
-            ENG->>ENG: write dream-last-night.json (engine.rs:243-248)
+            ENG->>ENG: build NightHealth{date, outcomes, nominated, standby, deferred, journal, sweep}<br/>(engine.rs:256-271, see AB-23.8)
+            ENG->>ENG: write dream-last-night.json (engine.rs:272-278)
             alt outcomes empty OR any FAILED/BLOCKED-ENV
-                ENG->>ENG: inbox::add("alert", ...) — zero-eligible or environment-failure text<br/>(engine.rs:254-263)
+                ENG->>ENG: inbox::add("alert", ...) — zero-eligible or environment-failure text<br/>(engine.rs:283-298)
             end
-            ENG->>GOV: publish(inbox_path, false) — every open decision as a forum case<br/>(engine.rs:275, see AB-23.17)
+            ENG->>GOV: publish(inbox_path, false) — withdraw every settled case,<br/>then publish every open decision as a forum case<br/>(engine.rs:308, see AB-23.17)
             alt DREAM_DIGEST != "0"
-                ENG->>DIG: digest::run(workspace, date, false) (engine.rs:278)
-                DIG-->>ENG: status string, recorded via record_digest_status (engine.rs:280)
+                ENG->>DIG: digest::run(workspace, date, false) (engine.rs:314)
+                DIG-->>ENG: status string, recorded via record_digest_status (engine.rs:317)
             end
         end
     end
-    Note over ENG: PROPOSED ADR-2071 #40;2026-09-05#41;: still a bypass. ADR-2041 wired the execution journal<br/>onto POST /v1/tasks only, and a faithful routing would DENY the night — its SSH, external LLM,<br/>git push and forum side effects classify as egress or mutate, and action-plane.js wires no approver.<br/>ADR-2071 stages journalling ahead of policing, HTTP-only because local-jsonl caches the hash-chain<br/>head in memory and appends unlocked. GOVERNANCE-capabilities divergences 1 and 6 stay OPEN
+    Note over ENG: ADR-2071 Phase 1 LANDED, partial — the night is journalled, not policed.<br/>Every side effect is recorded through POST /v1/exec/record, so an unattended<br/>night is visible in the hash-chained log, but nothing approves or denies it<br/>(exec-record.js:16-17). GOVERNANCE-capabilities divergences 1 and 6 stay OPEN<br/>for the policing half (ADR-2071 Phase 2)
+    Note over ENG: DRIFT: docs/GOVERNANCE-capabilities.md:439 still says ADR-2071 is<br/>proposed, not landed, while journal.rs:1-3 and exec-record.js:1-4 ship Phase 1
 ```
 
 ## AB-23.3 Evaluator-readiness admission — refusal before scheduling
@@ -171,9 +184,9 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:62
+    participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:65
     participant RDY as readiness::assess<br/>agentbox/services/dream-engine/src/readiness.rs:162
-    participant CFG as dream.config.json evaluatorEntrypoints<br/>agentbox/dream.config.json:50-54
+    participant CFG as dream.config.json evaluatorEntrypoints<br/>agentbox/dream.config.json:50-70
     participant TREE as checked-out annexe tree
 
     ENG->>RDY: assess(cfg, repo, deep, repo_root)
@@ -198,7 +211,7 @@ sequenceDiagram
         Note over RDY: an echo, a true, a bare colon — green every night, informative never<br/>(readiness.rs:39-41)
     else darwin entrypoint without a sandbox flag
         RDY-->>ENG: Unusable::DarwinSandboxMissing
-        Note over RDY: INVARIANT ADR-2024 — every @metaharness/darwin entrypoint MUST run --sandbox mock or<br/>--sandbox agent, never the no-op real default which is documented surface-INDEPENDENT<br/>and emits the same output regardless of the code under test (agentbox.toml:2020-2025)
+        Note over RDY: INVARIANT ADR-2024 — every @metaharness/darwin entrypoint MUST run --sandbox mock or<br/>--sandbox agent, never the no-op real default which is documented surface-INDEPENDENT<br/>and emits the same output regardless of the code under test (agentbox.toml:2061-2066)
     else usable
         RDY-->>ENG: admitted
     end
@@ -211,7 +224,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:62
+    participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:65
     participant VP as verdict::parse_verdict_strict<br/>agentbox/services/dream-engine/src/verdict.rs:243
     participant CR as receipts::complete_receipts<br/>agentbox/services/dream-engine/src/gate.rs:132
     participant EV as environment_vetoes<br/>agentbox/services/dream-engine/src/gate.rs:157
@@ -270,7 +283,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:62
+    participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:65
     participant PP as persist::extract_patch<br/>agentbox/services/dream-engine/src/persist.rs:50
     participant PB as persist::deletes_binary<br/>agentbox/services/dream-engine/src/persist.rs:41
     participant PREP as candidate::prepare<br/>agentbox/services/dream-engine/src/candidate.rs:41
@@ -290,11 +303,11 @@ sequenceDiagram
         ENG->>PB: deletes_binary(patch) (persist.rs:41-45)
         alt patch deletes a binary file
             PB-->>ENG: true
-            ENG->>ENG: CandidateState::Refused{detail} — refused BEFORE applying (engine.rs:922-927)
+            ENG->>ENG: CandidateState::Refused{detail} — refused BEFORE applying (engine.rs:1063-1067)
             Note over ENG,PB: a deleted binary shows only "Binary files … differ" in the diff, so the loss is<br/>invisible in review — the engine never builds a worktree for it, see AB-23.4
         else patch is textual
-            ENG->>PREP: prepare(repo, branch, patch, commit_msg, baseline_rev) (candidate.rs:41-47,<br/>engine.rs:933-939)
-            Note over ENG,PREP: ADR-2114: base is the DISPATCHED baseline revision (manifest::baseline_of, engine.rs:419),<br/>not always HEAD — the diff lands on exactly the tree the model was shown even if the<br/>operator commits while the night runs
+            ENG->>PREP: prepare(repo, branch, patch, commit_msg, baseline_rev) (candidate.rs:41-47,<br/>engine.rs:1075-1081)
+            Note over ENG,PREP: ADR-2114: base is the DISPATCHED baseline revision (manifest::baseline_of, engine.rs:507),<br/>not always HEAD — the diff lands on exactly the tree the model was shown even if the<br/>operator commits while the night runs
             PREP->>BW: build_branch_worktree_at(repo, branch, patch, commit_msg, base)
             BW->>WT: create worktree at base, on a fresh branch
             loop apply_attempts(patch), in order (persist.rs:97-115)
@@ -368,12 +381,14 @@ sequenceDiagram
     Note over H: DIVERGENCE: the human-merge boundary is a PROCESS, not a code control — ADR-2024<br/>implementation_status stays partial for that reason
 ```
 
+**Tension (dream.config.json vs compile.rs):** agentbox's own `cite-existing-adrs` discipline lists ADR-2024 among ids that "do not exist" (`../project/agentbox/dream.config.json:78`), yet every night's prompt now cites "agentbox ADR-2024" for the required-evaluator veto (`../project/agentbox/services/dream-engine/src/compile.rs:56`, commit `383a471cc`) and the record is `ADR-2024-dream-cycle-gating.md` in agentbox's ledger. The discipline text was written for nights in other repos, where the bare id was a phantom; in agentbox it now contradicts the prompt.
+
 ## AB-23.7 Run journal — restart, resume and abandonment
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:62
+    participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:65
     participant RS as runstate<br/>agentbox/services/dream-engine/src/runstate.rs
     participant F as run-state.json<br/>night directory
     participant MAN as manifest<br/>agentbox/services/dream-engine/src/manifest.rs
@@ -525,6 +540,8 @@ classDiagram
         +Vec~Standby~ standby
         +Vec~String~ deferred
         +Option~String~ digest
+        +Vec~JournalStats~ journal
+        +Vec~SweepRecord~ sweep
     }
     class Outcome {
         +String repo
@@ -545,7 +562,7 @@ classDiagram
     NightHealth --> Outcome
     NightHealth --> Standby
     note for VetoClass "Harness = the evidence could not be gathered, an operational fault. Evidence = the<br/>evidence was gathered and it is against the candidate. Unproven = there was nothing to<br/>test or nothing readable to act on (gate.rs:36-44)"
-    note for NightHealth "digest.rs:70-83 — replaces the inline JSON object the engine used to write for<br/>dream-last-night.json; reason is marker or dry-streak (digest.rs:52-64)"
+    note for NightHealth "digest.rs:70-90 — replaces the inline JSON object the engine used to write for<br/>dream-last-night.json; reason is marker or dry-streak (digest.rs:52-64)"
 ```
 
 ## AB-23.9 Dream-inbox surfacing hook
@@ -558,9 +575,9 @@ sequenceDiagram
     participant HK as dream-inbox-surface.cjs<br/>agentbox/config/hooks/dream-inbox-surface.cjs:1
     participant INBOX as dream-inbox.json<br/>/home/devuser/workspace/.agentbox/dream-inbox.json
     participant STAMP as dream-inbox.json.surfaced
-    participant EP as entrypoint registration<br/>agentbox/config/entrypoint-unified.sh:1662
+    participant EP as entrypoint registration<br/>agentbox/config/entrypoint-unified.sh:1663
 
-    Note over EP: the entrypoint prefers /opt/agentbox/config/hooks/dream-inbox-surface.cjs and falls back<br/>to the repo path (:1662-1663), then dedupes on the command substring (:1675)
+    Note over EP: the entrypoint prefers /opt/agentbox/config/hooks/dream-inbox-surface.cjs and falls back<br/>to the repo path (:1663-1664), then dedupes on the command substring (:1676)
     U->>CC: submits a prompt
     CC->>HK: UserPromptSubmit with stdin JSON
     alt prompt matches a harness-generated turn (task-notification, agent-message, system-reminder)
@@ -605,8 +622,8 @@ flowchart TB
         N6["dream-hooks-syntax.sh — an evaluatorEntrypoint, not a control surface"]
     end
     subgraph cli["dream-engine subcommands — main.rs"]
-        C1["dream-engine digest #91;--date D#93; #91;--dry-run#93;<br/>Cmd::Digest main.rs:72 -&gt; digest::run main.rs:117-118"]
-        C2["dream-engine governance publish or ingest #91;--dry-run#93;<br/>Cmd::Governance main.rs:67 -&gt; governance::publish / ingest main.rs:102-113, see AB-23.17"]
+        C1["dream-engine digest #91;--date D#93; #91;--dry-run#93;<br/>Cmd::Digest main.rs:72 -&gt; digest::run main.rs:130-131"]
+        C2["dream-engine governance publish, ingest or withdraw #91;--dry-run#93;<br/>Cmd::Governance main.rs:67 -&gt; governance::publish / ingest / withdraw<br/>main.rs:108-118, see AB-23.17"]
     end
     subgraph api["management-api"]
         R1["GET /dream/status (fastify)<br/>agentbox/management-api/routes/dream.js:24"]
@@ -651,10 +668,10 @@ flowchart TB
         B3["manifest load fails — sovereign-mesh-bridge<br/>REQUIRED gate red every night"]
         B1 --> B2 --> B3
     end
-    subgraph after["clone_repo_and_siblings + annexe_subpath<br/>engine.rs:1574, engine.rs:1605"]
-        A1["annexe_subpath#40;repo_path, workspace_root#41;<br/>canonicalizes both, strip_prefix, joins components<br/>engine.rs:1605-1622"]
+    subgraph after["clone_repo_and_siblings + annexe_subpath<br/>engine.rs:1812, engine.rs:1843"]
+        A1["annexe_subpath#40;repo_path, workspace_root#41;<br/>canonicalizes both, strip_prefix, joins components<br/>engine.rs:1843-1860"]
         A2["target ships at remote_dir/project/agentbox<br/>#40;its REAL path under the workspace, not the leaf name#41;"]
-        A3["each annexe_include sibling ships at remote_dir/&lt;its own subpath&gt;<br/>e.g. remote_dir/nostr-rust-forum — engine.rs:1585-1593"]
+        A3["each annexe_include sibling ships at remote_dir/&lt;its own subpath&gt;<br/>e.g. remote_dir/nostr-rust-forum — engine.rs:1823-1831"]
         A4["cargo ../../../../nostr-rust-forum now climbs to<br/>remote_dir/ exactly as it climbs to the workspace root locally"]
         A1 --> A2
         A1 --> A3
@@ -668,11 +685,11 @@ flowchart TB
     end
     A2 -.->|"repo_subpath passed as repo_name"| D1
     subgraph fallback["Fallback — repo outside the workspace, or either path uncanonicalisable"]
-        F1["annexe_subpath returns the leaf#40;#41; — final path component only<br/>#40;engine.rs:1608-1614, matches pre-2026-09-07 behaviour#41;"]
+        F1["annexe_subpath returns the leaf#40;#41; — final path component only<br/>#40;engine.rs:1846-1852, matches pre-2026-09-07 behaviour#41;"]
     end
     subgraph notes["ADR-2081"]
         direction TB
-        N1["INVARIANT ADR-2081: symlinked nominations resolve to their REAL depth —<br/>workspace/agentbox -> workspace/project/agentbox reports project/agentbox,<br/>proven by annexe_subpath_mirrors_real_depth_under_the_workspace#40;#41;<br/>engine.rs:1741"]
+        N1["INVARIANT ADR-2081: symlinked nominations resolve to their REAL depth —<br/>workspace/agentbox -> workspace/project/agentbox reports project/agentbox,<br/>proven by annexe_subpath_mirrors_real_depth_under_the_workspace#40;#41;<br/>engine.rs:2000"]
         N2["RESOLVED: sibling-path-deps is a REAL required gate again (dream.config.json:76) —<br/>the FALLBACK rule from PR #4 that skipped sovereign-mesh-bridge is withdrawn"]
         N1 ~~~ N2
     end
@@ -770,15 +787,15 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:62
+    participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:65
     participant CALL as call<br/>agentbox/services/dream-engine/src/llm.rs:49
     participant LOOM as call_loom<br/>agentbox/services/dream-engine/src/llm.rs:196
     participant ZAI as call_zai<br/>agentbox/services/dream-engine/src/llm.rs:111
     participant CRATE as loom-client crate<br/>published, see AB-28.11
-    participant F as Loom facade<br/>agentbox/agentbox.toml:2069
+    participant F as Loom facade<br/>agentbox/agentbox.toml:2110
 
     ENG->>CALL: call(cfg, prompt)
-    alt llm_provider = zai - the DEFAULT (agentbox.toml:2082)
+    alt llm_provider = zai - the DEFAULT (agentbox.toml:2123)
         CALL->>ZAI: POST the Anthropic Messages body with x-api-key
         ZAI-->>CALL: text parts joined, or EmptyResponse (llm.rs:173-177)
         Note over CALL,ZAI: exactly ONE retry, 20s apart, and only on a transient fault -<br/>transport, empty body, or an HTTP 5xx including Cloudflare 52x.<br/>is_transient refuses to retry a 4xx (llm.rs:69)
@@ -797,13 +814,13 @@ sequenceDiagram
     Note over CRATE: the hand-rolled client that lived in llm.rs knew ONE of the three facade<br/>traps. Two nights of verdicts in 2026-09 were derived from ontology prose that<br/>never reached a model, and truncation on a reasoning model returns EMPTY content<br/>rather than a short answer - the crate owns a token floor and a doubling retry<br/>the wrapper could not do, because it cannot see finish_reason (llm.rs:182-195)
 ```
 
-**Debt:** `agentbox/agentbox.toml:2082` keeps `llm_provider = "zai"` as the default, so nightly repository content leaves the LAN on every unattended night; the LAN-only Loom path at `../project/agentbox/services/dream-engine/src/llm.rs:196` is opt-in.
+**Debt:** `agentbox/agentbox.toml:2123` keeps `llm_provider = "zai"` as the default, so nightly repository content leaves the LAN on every unattended night; the LAN-only Loom path at `../project/agentbox/services/dream-engine/src/llm.rs:196` is opt-in.
 
 ## AB-23.16 Placeholder resolution and the refusal to dispatch to nowhere
 
 ```mermaid
 flowchart TB
-    TOML["agentbox.toml ships PLACEHOLDERS, not addresses<br/>hp_host CONNECTED_NODE_SSH agentbox.toml:2067<br/>hp_annexe_dir composite agentbox.toml:2068<br/>loom_url LOOM_BASE_URL agentbox.toml:2069"]
+    TOML["agentbox.toml ships PLACEHOLDERS, not addresses<br/>hp_host CONNECTED_NODE_SSH agentbox.toml:2108<br/>hp_annexe_dir composite agentbox.toml:2109<br/>loom_url LOOM_BASE_URL agentbox.toml:2110"]
     TOML --> RP["RuntimeConfig.resolve_placeholders<br/>agentbox/services/dream-engine/src/config.rs:330"]
     RP -->|"whole-value form"| W["resolve_env_placeholder<br/>config.rs:315 - a value that IS a placeholder"]
     RP -->|"composite form"| I["resolve_env_placeholders_infix<br/>config.rs:349 - a value that CONTAINS one"]
@@ -834,16 +851,16 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant ENG as Engine::run_night<br/>agentbox/services/dream-engine/src/engine.rs:114
+    participant ENG as Engine::run_night<br/>agentbox/services/dream-engine/src/engine.rs:117
     participant GOV as governance<br/>agentbox/services/dream-engine/src/governance.rs:1
     participant INBOX as inbox::InboxItem<br/>agentbox/services/dream-engine/src/inbox.rs:1
     participant REL as RelaySession<br/>agentbox/services/dream-engine/src/relay.rs
-    participant PANEL as forum panel #40;31400, d=dream-machine#41;<br/>governance.rs:100-135
+    participant PANEL as forum panel #40;31400, d=dream-machine#41;<br/>governance.rs:108-137
     participant ADMIN as forum admin decision #40;31403#41;
 
     Note over GOV: three wire kinds, all nostr-bbs-core::governance types so the engine cannot drift from<br/>the relay/forum's own wire format — 31400 panel #40;JunkieJarvis#41;, 31402 case per open item<br/>#40;JunkieJarvis#41;, 31403 reply #40;forum admin#41;
     rect rgb(235,245,235)
-        Note over ENG,GOV: start of night — ingest(inbox_path, false) governance.rs:563
+        Note over ENG,GOV: start of night — ingest(inbox_path, false) governance.rs:777
         ENG->>GOV: ingest(inbox_path, dry_run)
         GOV->>INBOX: load_from(inbox_path) — filter status=="open" AND published_event_id non-empty
         alt no published open items
@@ -851,29 +868,36 @@ sequenceDiagram
         else published items exist
             GOV->>REL: RelaySession::connect(relay_url, key)
             alt relay unreachable or key missing
-                GOV-->>ENG: fail-open, warn, return Report::default#40;#41; (governance.rs:571-580)
+                GOV-->>ENG: fail-open, warn, return Report::default#40;#41; (governance.rs:787-795)
             else connected
                 REL->>ADMIN: query KIND_ACTION_RESPONSE #35;d in #91;case ids, PANEL_D#93;
                 ADMIN-->>REL: 31403 events, newest per case wins
-                GOV->>GOV: resolution_for(item_kind, content) — DecisionOutcome::from_response_content<br/>(governance.rs:304)
+                GOV->>GOV: resolution_for(item_kind, content) — DecisionOutcome::from_response_content<br/>(governance.rs:508)
                 Note over GOV: approve on a question becomes answered "approve: reason", approve on an alert<br/>becomes dismissed "acknowledged: reason", reject becomes answered "reject: reason", amend<br/>#123;diff#125; becomes answered "amend: diff — reason" #40;empty diff refused#41;, delegate or other<br/>stays open
                 GOV->>INBOX: resolve the matched inbox item — write status/answer back
+                opt any item resolved tonight
+                    GOV->>REL: send_withdrawals for the just-resolved cases only (governance.rs:859-865)
+                    Note over GOV,REL: each is a NIP-09 kind-5 signed by the SAME agent key — e = the case's request id,<br/>a = its kind:pubkey:d coordinate, k = the request kind (withdrawal_event governance.rs:304-331)
+                    GOV->>INBOX: mark_withdrawn_in records the deletion id as withdrawn_event_id (inbox.rs:134)
+                end
             end
         end
     end
     rect rgb(235,245,235)
-        Note over ENG,GOV: end of night — publish(inbox_path, false) governance.rs:462
+        Note over ENG,GOV: end of night — publish(inbox_path, false) governance.rs:670
         ENG->>GOV: publish(inbox_path, dry_run)
         GOV->>INBOX: load_from(inbox_path) — filter status=="open"
-        GOV->>REL: query current 31400 for #40;pubkey, d=dream-machine, governance.rs:501-507#41;
+        GOV->>REL: query current 31400 for #40;pubkey, d=dream-machine, governance.rs:709-715#41;
         alt panel content or tags differ from the target definition
-            GOV->>PANEL: sign and publish the 31400 panel_event (governance.rs:508,512-524)
+            GOV->>PANEL: sign and publish the 31400 panel_event (governance.rs:716,720-733)
             alt relay rejects the panel
-                GOV-->>ENG: stop — a case with no panel would not render (governance.rs:516-519)
+                GOV-->>ENG: stop — a case with no panel would not render (governance.rs:724-728)
             end
         end
+        GOV->>REL: the sweep — send_withdrawals over plan_withdrawals(all items), BEFORE any new case<br/>(governance.rs:735-737). It catches items settled outside ingest, by dream-inbox.mjs or by hand
+        Note over GOV: plan_withdrawals takes every item that is not open, was published and has no withdrawn_event_id.<br/>It withholds the a coordinate when an OPEN item reuses the same id, because the relay deletes every<br/>version at a coordinate and would take the live case too (governance.rs:345-358, governance.rs:300-303)
         loop each open item with no published_event_id
-            GOV->>PANEL: sign and publish a 31402 case, d=`dream-#123;id#125;` #40;case_d, governance.rs:74,<br/>publish loop :527-541#41;
+            GOV->>PANEL: sign and publish a 31402 case, d=`dream-#123;id#125;` #40;case_d, governance.rs:87,<br/>publish loop :739-763#41;
             alt accepted
                 PANEL-->>GOV: event id
                 GOV->>INBOX: mark_published_in#40;inbox_path, item.id, event.id#41;
@@ -882,8 +906,10 @@ sequenceDiagram
             end
         end
     end
-    Note over GOV: MAX_PENDING_HOURS 168 escalates an undecided case #40;governance.rs:57, wired into<br/>PanelPolicy inside panel_event#41; — the single panel-level action ACK_ALERTS_ACTION<br/>"acknowledge-alerts" #40;governance.rs:53#41; dismisses every open alert published before it<br/>was pressed
-    Note over ENG,GOV: both calls are FAIL-OPEN and switch-gated separately — DREAM_GOVERNANCE=0<br/>#40;governance::enabled, governance.rs:69#41; disables the whole round trip — forum trouble<br/>never blocks or taints the night's evaluation, see AB-23.2
+    Note over GOV: MAX_PENDING_HOURS 168 escalates an undecided case #40;governance.rs:66, wired into<br/>PanelPolicy inside panel_event#41; — the single panel-level action ACK_ALERTS_ACTION<br/>"acknowledge-alerts" #40;governance.rs:62#41; dismisses every open alert published before it<br/>was pressed
+    Note over GOV: INVARIANT: a withdrawal is sent at most once — an accepted kind-5 is recorded as withdrawn_event_id<br/>and the planner skips any item that carries one (governance.rs:351, inbox.rs:142). A relay rejection<br/>is left unrecorded so the next sweep retries it (governance.rs:422-425). `dream-engine governance withdraw`<br/>runs the sweep on its own (main.rs:116-117)
+    Note over GOV,REL: OPEN: the card leaving the panel rests on the relay hard-deleting an author's own events on a<br/>kind-5 and the forum reading cases by subscription (governance.rs:29-32). The relay and forum code are<br/>outside this topic's sources, so that half of the round trip is asserted, not verified here
+    Note over ENG,GOV: both calls are FAIL-OPEN and switch-gated separately — DREAM_GOVERNANCE=0<br/>#40;governance::enabled, governance.rs:82#41; disables the whole round trip — forum trouble<br/>never blocks or taints the night's evaluation, see AB-23.2
 ```
 
 ## AB-23.18 Annexe preflight — the write-then-measure health probe
@@ -891,19 +917,19 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant ENG as Engine::cycle_repo<br/>agentbox/services/dream-engine/src/engine.rs:333
+    participant ENG as Engine::cycle_repo_body<br/>agentbox/services/dream-engine/src/engine.rs:420
     participant SWEEP as retention sweep<br/>agentbox/services/dream-engine/src/dispatch.rs:30
     participant AH as dispatch::annexe_health<br/>agentbox/services/dream-engine/src/dispatch.rs:266
-    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2067
+    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2108
     participant RS as runstate::begin<br/>agentbox/services/dream-engine/src/runstate.rs:132
     participant INBOX as inbox::add<br/>agentbox/services/dream-engine/src/inbox.rs:1
 
-    Note over ENG: runs AFTER manifest::freeze but BEFORE the run journal counts an attempt —<br/>an unhealthy node costs the night, never the experiment's retry budget (engine.rs:482-488)
-    ENG->>SWEEP: ssh — find night dirs older than 3 days under hp_annexe_dir, rm -rf (engine.rs:489-497)
+    Note over ENG: runs AFTER manifest::freeze but BEFORE the run journal counts an attempt —<br/>an unhealthy node costs the night, never the experiment's retry budget (engine.rs:572-578)
+    ENG->>SWEEP: ssh — find night dirs older than 3 days under hp_annexe_dir, rm -rf (engine.rs:579-590)
     alt sweep fails
-        SWEEP-->>ENG: warn only, fail-open (engine.rs:496)
+        SWEEP-->>ENG: warn only, fail-open (engine.rs:589)
     end
-    ENG->>AH: annexe_health(hp_host, hp_annexe_dir, ANNEXE_MIN_FREE_GIB 10) (engine.rs:498-502)
+    ENG->>AH: annexe_health(hp_host, hp_annexe_dir, ANNEXE_MIN_FREE_GIB 10) (engine.rs:591-598)
     AH->>HP: ssh — annexe_probe_cmd: mkdir -p, printf ok > probe file, rm -f probe file,<br/>then df -Pk (dispatch.rs:246-253)
     Note over AH,HP: the WRITE is the real test — on a fully allocated btrfs volume, df still reports<br/>tens of GiB free while every file create fails ENOSPC #40;metadata chunks exhausted,<br/>2026-09-26#41; — free space alone would have passed a broken annexe
     HP-->>AH: AVAIL-KB=N line
@@ -919,8 +945,8 @@ sequenceDiagram
         end
     end
     alt annexe unhealthy
-        ENG->>INBOX: add("alert", repo, night_id, date, "did not start: annexe unhealthy") (engine.rs:506-516)
-        ENG->>ENG: persist_blocked_env(...) — BLOCKED-ENV, no attempt counted (engine.rs:517-522)
+        ENG->>INBOX: add("alert", repo, night_id, date, "did not start: annexe unhealthy") (engine.rs:603-613)
+        ENG->>ENG: persist_blocked_env(...) — BLOCKED-ENV, no attempt counted (engine.rs:614-620)
     else healthy
         ENG->>RS: begin(dir, ...) — the journal now counts this attempt, see AB-23.7
     end

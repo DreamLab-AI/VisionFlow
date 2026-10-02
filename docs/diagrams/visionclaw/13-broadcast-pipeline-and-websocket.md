@@ -33,14 +33,14 @@ sources:
   - ../project/client/src/features/graph/workers/graph.worker.ts
   - ../project/client/src/services/BinaryWebSocketProtocol.ts
   - ../project/src/handlers/socket_flow_handler/actor_messages.rs
-verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
+verified_commit: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8
 ---
 
 ## VC-13.3 GPU broadcast frame end to end
 ```mermaid
 sequenceDiagram
     autonumber
-    participant FC as ForceComputeActor<br/>src/actors/gpu/force_compute_actor.rs:2447
+    participant FC as ForceComputeActor<br/>src/actors/gpu/force_compute_actor.rs:2440
     participant BO as BroadcastOptimizer<br/>src/gpu/broadcast_optimizer.rs:183
     participant BP as NetworkBackpressure<br/>src/gpu/backpressure.rs:262
     participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:2013
@@ -58,12 +58,12 @@ sequenceDiagram
         FC->>BP: backpressure.try_acquire()<br/>src/gpu/backpressure.rs:262
         alt token available (max_tokens=100, cost=1)<br/>src/gpu/backpressure.rs:67-70
             BP-->>FC: Some(sequence_id)
-            Note over FC: clamp NaN/Inf per-node<br/>src/actors/gpu/force_compute_actor.rs:2460
+            Note over FC: clamp NaN/Inf per-node<br/>src/actors/gpu/force_compute_actor.rs:2453
             FC->>GSS: UpdateNodePositions{positions, correlation_id}<br/>src/actors/messages/graph_messages.rs:58
-            GSS->>GSA: do_send(UpdateNodePositions clone)<br/>src/actors/graph_service_supervisor.rs:2019
+            GSS->>GSA: do_send(UpdateNodePositions clone)<br/>src/actors/graph_service_supervisor.rs:1989
             GSA-->>GSA: mutate graph_data.nodes in-place<br/>src/actors/graph_state_actor.rs:861
             Note right of GSA: polling path (subscribe_position_updates)<br/>now returns GPU-computed layout, see VC-13.6
-            GSS->>PO: do_send(UpdateNodePositions)<br/>src/actors/graph_service_supervisor.rs:2030
+            GSS->>PO: do_send(UpdateNodePositions)<br/>src/actors/graph_service_supervisor.rs:2000
             PO->>PO: throttle to 60fps (16ms gate)<br/>src/actors/physics_orchestrator_actor.rs:1191
             opt user is dragging this node
                 PO->>PO: override with pinned (x,y,z), vel=0<br/>src/actors/physics_orchestrator_actor.rs:1200
@@ -76,7 +76,7 @@ sequenceDiagram
                     CC->>WS: try_send(SendToClientBinary(unfiltered_binary clone))<br/>src/actors/client_coordinator_actor.rs:371
                 else client has an active node-id filter
                     CC->>CC: filter positions by filtered_node_ids<br/>src/actors/client_coordinator_actor.rs:374-378
-                    CC->>WS: try_send(SendToClientBinary(filtered_binary))<br/>src/actors/client_coordinator_actor.rs:382
+                    CC->>WS: try_send(SendToClientBinary(filtered_binary))<br/>src/actors/client_coordinator_actor.rs:392
                 end
             end
             Note over CC,WS: INVARIANT visibility filter default is fail-closed (ON)<br/>ADR-2003 — this per-client node-id filter is a<br/>SEPARATE mechanism from the pubkey visibility<br/>drop-set filter, which gates the polling path<br/>(fetch_nodes, see VC-13.6) and initial state sync,<br/>not this ClientCoordinatorActor broadcast
@@ -84,7 +84,7 @@ sequenceDiagram
             WS->>WS: ctx.binary(payload) over the WebSocket
         else backpressure exhausted
             BP-->>FC: None
-            FC->>BP: backpressure.record_skip()<br/>src/actors/gpu/force_compute_actor.rs:2484
+            FC->>BP: backpressure.record_skip()<br/>src/actors/gpu/force_compute_actor.rs:2477
             Note right of BP: congestion tracked, warn every<br/>log_interval_frames=60 skipped frames<br/>src/gpu/backpressure.rs:60-74,302-316
         end
     else rate-limited (inside broadcast_interval)
@@ -100,53 +100,61 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant HH as socket_flow_handler<br/>src/handlers/socket_flow_handler/http_handler.rs:53
-    participant NS as NostrService<br/>src/handlers/socket_flow_handler/http_handler.rs:155
-    participant N98 as nip98::validate_nip98_token<br/>src/utils/nip98.rs:375
-    participant WSS as SocketFlowServer actor<br/>src/handlers/socket_flow_handler/types.rs:616
+    participant NS as NostrService<br/>src/handlers/socket_flow_handler/http_handler.rs:224
+    participant N98 as nip98::validate_nip98_token<br/>src/utils/nip98.rs:428
+    participant WSS as SocketFlowServer actor<br/>src/handlers/socket_flow_handler/types.rs:610
     participant FA as filter_auth::handle_authenticate<br/>src/handlers/socket_flow_handler/filter_auth.rs:10
 
     rect rgb(225,228,245)
     Note over C,HH: process boundary — HTTP/WS upgrade at /wss
     C->>HH: GET /wss (Upgrade: websocket)
-    HH->>HH: WEBSOCKET_RATE_LIMITER.is_allowed(client_ip)<br/>src/handlers/socket_flow_handler/http_handler.rs:47
+    HH->>HH: WEBSOCKET_RATE_LIMITER.is_allowed(client_ip)<br/>src/handlers/socket_flow_handler/http_handler.rs:61
     alt rate limited
-        HH-->>C: 429 create_rate_limit_response
+        HH-->>C: 429 create_rate_limit_response<br/>src/handlers/socket_flow_handler/http_handler.rs:63
     else Origin header check
-        HH->>HH: validate Origin against CORS_ALLOWED_ORIGINS<br/>src/handlers/socket_flow_handler/http_handler.rs:58-133
+        HH->>HH: validate Origin against CORS_ALLOWED_ORIGINS<br/>src/handlers/socket_flow_handler/http_handler.rs:68-147
         alt Origin invalid and not same-host
-            HH-->>C: 403 Forbidden
+            HH-->>C: 403 Forbidden<br/>src/handlers/socket_flow_handler/http_handler.rs:123
         else Origin missing (release build)
-            HH-->>C: 400 Origin header required<br/>src/handlers/socket_flow_handler/http_handler.rs:129-131
+            HH-->>C: 400 Origin header required<br/>src/handlers/socket_flow_handler/http_handler.rs:143-145
         else Origin OK
-            HH->>HH: extract token from Authorization header<br/>OR ?token= query string (fallback)<br/>src/handlers/socket_flow_handler/http_handler.rs:139-150
-            Note right of HH: RESOLVED ADR-2058 ?token= query-string auth is a live<br/>fallback alongside the Authorization header<br/>(not header-only) — tokens can land in access<br/>logs/referrers — http_handler.rs:186 — now header-only in release builds, query path compiled out behind the dev-auth gate
+            HH->>HH: NIP-98 event carried in Sec-WebSocket-Protocol, websocket_auth_header<br/>src/handlers/socket_flow_handler/http_handler.rs:151-159
+            opt signed subprotocol present
+                HH->>NS: verify_nip98_auth(header, upgrade url, GET) single-use<br/>src/handlers/socket_flow_handler/http_handler.rs:166
+                alt invalid or replayed
+                    HH-->>C: 401 Invalid or replayed WebSocket signature<br/>src/handlers/socket_flow_handler/http_handler.rs:170
+                end
+            end
+            HH->>HH: no signed user, so take the Authorization Bearer token<br/>src/handlers/socket_flow_handler/http_handler.rs:183-189
+            Note right of HH: RESOLVED ADR-2058 the ?token= query-string fallback is compiled<br/>in only for dev builds (http_handler.rs:192-207), release builds<br/>log and ignore it (http_handler.rs:209-219) and use the header alone
             alt token present
-                HH->>NS: nostr_service.get_session(token)<br/>src/handlers/socket_flow_handler/http_handler.rs:158
+                HH->>NS: nostr_service.get_session(token)<br/>src/handlers/socket_flow_handler/http_handler.rs:227
                 alt session valid
                     NS-->>HH: Some(session)
                 else session invalid or NostrService absent
                     NS-->>HH: None
                     alt release build (or dev without ALLOW_INSECURE_DEFAULTS)
-                        HH-->>C: 401 Invalid or expired authentication token<br/>src/handlers/socket_flow_handler/http_handler.rs:215
+                        HH-->>C: 401 Invalid or expired authentication token<br/>src/handlers/socket_flow_handler/http_handler.rs:255-256
                     else dev build with ALLOW_INSECURE_DEFAULTS=1
-                        Note right of HH: dev-only bypass, compile-gated out of release<br/>src/handlers/socket_flow_handler/http_handler.rs:19-29
+                        Note right of HH: dev-only bypass, compile-gated out of release<br/>src/handlers/socket_flow_handler/http_handler.rs:21-31
                     end
                 end
             else no token at all
                 alt release build
-                    HH-->>C: 401 Authentication required<br/>src/handlers/socket_flow_handler/http_handler.rs:277
+                    HH-->>C: 401 Authentication required<br/>src/handlers/socket_flow_handler/http_handler.rs:321-322
                 else dev build with ALLOW_INSECURE_DEFAULTS=1
                     Note right of HH: unauthenticated WS permitted, dev only
                 end
             end
-            HH->>WSS: ws_server = SocketFlowServer::new(...)<br/>src/handlers/socket_flow_handler/http_handler.rs:310
-            HH->>WSS: set connection_url for NIP-98 WS validation<br/>src/handlers/socket_flow_handler/http_handler.rs:328-340
-            opt ?token= present a second time (pre-auth of the actor)
-                HH->>NS: nostr_service.get_session(token_from_qs)<br/>src/handlers/socket_flow_handler/http_handler.rs:345
+            HH->>WSS: ws_server = SocketFlowServer::new(...)<br/>src/handlers/socket_flow_handler/http_handler.rs:384
+            HH->>WSS: signed user, if any, sets pubkey and is_power_user<br/>src/handlers/socket_flow_handler/http_handler.rs:392-395
+            HH->>WSS: set connection_url for NIP-98 WS validation<br/>src/handlers/socket_flow_handler/http_handler.rs:406-418
+            opt ?token= present a second time (dev builds only, :371-382)
+                HH->>NS: nostr_service.get_session(token_from_qs)<br/>src/handlers/socket_flow_handler/http_handler.rs:423
                 NS-->>HH: user with pubkey, is_power_user
-                HH->>WSS: ws_server.pubkey = Some(user.pubkey)<br/>src/handlers/socket_flow_handler/http_handler.rs:346-347
+                HH->>WSS: ws_server.pubkey = Some(user.pubkey)<br/>src/handlers/socket_flow_handler/http_handler.rs:424-425
             end
-            HH->>C: 101 Switching Protocols (WsResponseBuilder, permessage-deflate)<br/>src/handlers/socket_flow_handler/http_handler.rs:393-399
+            HH->>C: 101 Switching Protocols (WsResponseBuilder, PUBLIC_WS_PROTOCOLS echoed)<br/>src/handlers/socket_flow_handler/http_handler.rs:438-440
         end
     end
     end
@@ -159,9 +167,9 @@ sequenceDiagram
         FA-->>C: authenticate_success (DEV_MODE_PUBKEY, power_user)<br/>src/handlers/socket_flow_handler/filter_auth.rs:26-59
     else event field present (NIP-98 path)
         FA->>N98: verify_nip98_auth auth_header=Nostr plus event_b64, ws_url, method=GET<br/>src/handlers/socket_flow_handler/filter_auth.rs:74
-        N98->>N98: check kind==27235, url/method match<br/>src/utils/nip98.rs:20,298
-        N98->>N98: freshness ±TOKEN_MAX_AGE_SECONDS=60s<br/>src/utils/nip98.rs:169,362-367
-        N98->>N98: claim event id in replay cache (TTL=120s,<br/>cap 100000, fail-closed ReplayCacheFull)<br/>src/utils/nip98.rs:171-196,316-319 (ADR-2002)
+        N98->>N98: check kind==27235, url/method match<br/>src/utils/nip98.rs:20,462,511,519
+        N98->>N98: freshness ±TOKEN_MAX_AGE_SECONDS=60s<br/>src/utils/nip98.rs:169,467-481
+        N98->>N98: claim event id in replay cache (TTL=120s,<br/>cap 100000, fail-closed ReplayCacheFull)<br/>src/utils/nip98.rs:171-198,322-324 (ADR-2002)
         alt validation and single-use claim succeed
             N98-->>FA: Ok(user)
             FA-->>C: authenticate_success{pubkey, is_power_user}<br/>src/handlers/socket_flow_handler/filter_auth.rs:104-112
@@ -183,7 +191,7 @@ sequenceDiagram
     participant WS as WebSocket.onmessage<br/>client/src/store/websocket/binaryFrameDispatcher.ts:97
     participant BFD as BinaryFrameDispatcher<br/>client/src/store/websocket/binaryFrameDispatcher.ts:43
     participant BP as processBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:462
-    participant GDM as graphDataManager<br/>client/src/features/graph/managers/graphDataManager.ts:433
+    participant GDM as graphDataManager<br/>client/src/features/graph/managers/graphDataManager.ts:432
     participant WSC as handleBinaryFrame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:19
     participant GWP as graphWorkerProxy<br/>client/src/features/graph/managers/graphWorkerProxy.ts:205
     participant WRK as graph.worker.ts<br/>client/src/features/graph/workers/graph.worker.ts:213
@@ -212,7 +220,7 @@ sequenceDiagram
                 GWP->>GWP: transfer(frame.buffer) — zero-copy neuter<br/>client/src/features/graph/managers/graphWorkerProxy.ts:248
                 alt SAB mode (SharedArrayBuffer available, cross-origin isolated)<br/>client/src/features/graph/managers/graphWorkerProxy.ts:170-186
                     GWP->>WRK: workerApi.processBinaryFrame(transferable)<br/>client/src/features/graph/managers/graphWorkerProxy.ts:253
-                    WRK->>WRK: decode V3/V5 node records into currentPositions<br/>client/src/features/graph/workers/graph.worker.ts:214
+                    WRK->>WRK: decode V3/V5 node records into currentPositions<br/>client/src/features/graph/workers/graph.worker.ts:261
                     WRK->>WRK: syncToSharedBuffer — write positionView<br/>(the SharedArrayBuffer)<br/>client/src/features/graph/workers/graph.worker.ts:225-226
                     Note right of WRK: SAB write complete — renderer reads<br/>positionView directly, no return value needed<br/>client/src/features/graph/workers/graph.worker.ts:204-217
                 else Comlink transfer mode (SAB unavailable)
@@ -230,33 +238,33 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant FC as ForceComputeActor<br/>src/actors/gpu/force_compute_actor.rs:2447
+    participant FC as ForceComputeActor<br/>src/actors/gpu/force_compute_actor.rs:2440
     participant BO as BroadcastOptimizer<br/>src/gpu/broadcast_optimizer.rs:183
     participant BP as NetworkBackpressure<br/>src/gpu/backpressure.rs:262
     participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:2013
 
     rect rgb(225,228,245)
     Note over FC: FastSettle path — force_full_broadcast set by the settle controller
-    alt actor.force_full_broadcast is true<br/>src/actors/gpu/force_compute_actor.rs:2412
-        FC->>FC: force_full_broadcast=false, suppress_intermediate_broadcasts=false<br/>src/actors/gpu/force_compute_actor.rs:2414-2415
-        FC->>BO: broadcast_optimizer.reset_broadcast_timer()<br/>src/actors/gpu/force_compute_actor.rs:2416
-        FC->>BP: backpressure.try_acquire()<br/>src/actors/gpu/force_compute_actor.rs:2418
-        FC->>GSS: UpdateNodePositions ALL nodes (final converged positions)<br/>src/actors/gpu/force_compute_actor.rs:2432-2440
-        Note right of FC: FINAL full broadcast logged every settle<br/>src/actors/gpu/force_compute_actor.rs:2433-2436
+    alt actor.force_full_broadcast is true<br/>src/actors/gpu/force_compute_actor.rs:2405
+        FC->>FC: force_full_broadcast=false, suppress_intermediate_broadcasts=false<br/>src/actors/gpu/force_compute_actor.rs:2407-2408
+        FC->>BO: broadcast_optimizer.reset_broadcast_timer()<br/>src/actors/gpu/force_compute_actor.rs:2409
+        FC->>BP: backpressure.try_acquire()<br/>src/actors/gpu/force_compute_actor.rs:2411
+        FC->>GSS: UpdateNodePositions ALL nodes (final converged positions)<br/>src/actors/gpu/force_compute_actor.rs:2425-2433
+        Note right of FC: FINAL full broadcast logged every settle<br/>src/actors/gpu/force_compute_actor.rs:2426-2429
     else actor.suppress_intermediate_broadcasts is true (settle burst in progress)
-        FC->>BO: process_frame — advances the rate-limit timer only, no send<br/>src/actors/gpu/force_compute_actor.rs:2446
+        FC->>BO: process_frame — advances the rate-limit timer only, no send<br/>src/actors/gpu/force_compute_actor.rs:2439
     else continuous mode, normal rate-limited path
-        FC->>BO: process_frame(position_velocity_buffer, node_id_buffer)<br/>src/actors/gpu/force_compute_actor.rs:2452
+        FC->>BO: process_frame(position_velocity_buffer, node_id_buffer)<br/>src/actors/gpu/force_compute_actor.rs:2445
         alt should_broadcast true and backpressure token acquired
-            FC->>GSS: UpdateNodePositions (rate-limited full snapshot)<br/>src/actors/gpu/force_compute_actor.rs:2469-2481
-            FC->>FC: last_full_broadcast_iteration = iteration_count<br/>src/actors/gpu/force_compute_actor.rs:2481
+            FC->>GSS: UpdateNodePositions (rate-limited full snapshot)<br/>src/actors/gpu/force_compute_actor.rs:2462-2474
+            FC->>FC: last_full_broadcast_iteration = iteration_count<br/>src/actors/gpu/force_compute_actor.rs:2474
         else should_broadcast false (rate-limited this tick)
-            alt iteration_count minus last_full_broadcast_iteration is at least 300<br/>src/actors/gpu/force_compute_actor.rs:2486
-                Note right of FC: periodic full broadcast for late-connecting<br/>clients — N=300 iterations, independent of the<br/>25fps rate limiter above<br/>src/actors/gpu/force_compute_actor.rs:2486-2519
-                FC->>BP: backpressure.try_acquire()<br/>src/actors/gpu/force_compute_actor.rs:2488
-                FC->>GSS: UpdateNodePositions ALL nodes (periodic full)<br/>src/actors/gpu/force_compute_actor.rs:2504-2513
-                FC->>FC: last_full_broadcast_iteration = iteration_count<br/>src/actors/gpu/force_compute_actor.rs:2516
-                FC->>BO: broadcast_optimizer.reset_broadcast_timer()<br/>src/actors/gpu/force_compute_actor.rs:2518
+            alt iteration_count minus last_full_broadcast_iteration is at least 300<br/>src/actors/gpu/force_compute_actor.rs:2479
+                Note right of FC: periodic full broadcast for late-connecting<br/>clients — N=300 iterations, independent of the<br/>25fps rate limiter above<br/>src/actors/gpu/force_compute_actor.rs:2479-2513
+                FC->>BP: backpressure.try_acquire()<br/>src/actors/gpu/force_compute_actor.rs:2481
+                FC->>GSS: UpdateNodePositions ALL nodes (periodic full)<br/>src/actors/gpu/force_compute_actor.rs:2497-2506
+                FC->>FC: last_full_broadcast_iteration = iteration_count<br/>src/actors/gpu/force_compute_actor.rs:2509
+                FC->>BO: broadcast_optimizer.reset_broadcast_timer()<br/>src/actors/gpu/force_compute_actor.rs:2511
             else below 300 iterations since last full broadcast
                 Note right of FC: no broadcast this tick — waits for either<br/>the 25fps gate or the 300-iteration escape hatch
             end
@@ -273,7 +281,7 @@ sequenceDiagram
     participant C as Client
     participant WSS as SocketFlowServer<br/>src/handlers/socket_flow_handler/message_routing.rs:16
     participant PU as position_updates handlers<br/>src/handlers/socket_flow_handler/position_updates.rs
-    participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:1495
+    participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:421
     participant GPU as GpuComputeActor
 
     rect rgb(222,236,250)
@@ -345,7 +353,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant PU as fetch_nodes<br/>src/handlers/socket_flow_handler/position_updates.rs:114
-    participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:1495
+    participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:421
     participant GSA as GraphStateActor<br/>src/actors/graph_state_actor.rs:858
     participant BIN as binary_protocol::encode_node_data_extended_with_sssp<br/>src/utils/binary_protocol.rs:415-419
 
@@ -370,7 +378,7 @@ sequenceDiagram
         PU-->>PU: Some((nodes, detailed_debug, visibility))<br/>src/handlers/socket_flow_handler/position_updates.rs:218
     end
     PU->>BIN: encode_node_data_extended_with_sssp(nodes, type_id_slices, analytics)<br/>src/handlers/socket_flow_handler/position_updates.rs:763-772
-    BIN-->>PU: V3 binary frame (WIRE_V3_ITEM_SIZE=52 bytes per node)<br/>src/utils/binary_protocol.rs:1062,1159 (ADR-2018)
+    BIN-->>PU: V3 binary frame (WIRE_V3_ITEM_SIZE=52 bytes per node)<br/>src/utils/binary_protocol.rs:75,94 (ADR-2018)
     Note right of BIN: DOC-DRIFT docs/PROTOCOL-registry.md cites the<br/>WIRE_V3_ITEM_SIZE==52 assertions at binary_protocol.rs<br/>lines 712 and 809 — the working tree has them at<br/>lines 1052 and 1149
     end
 ```

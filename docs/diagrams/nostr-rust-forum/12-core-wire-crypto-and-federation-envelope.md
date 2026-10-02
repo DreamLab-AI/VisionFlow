@@ -37,7 +37,7 @@ sources:
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/sealed.rs
-verified_commit: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d
+verified_commit: d025cb063df5a532f055a18527f71cc7dee9d6e6
 ---
 
 ## NF-12.1 Module map — what the workers and clients all link
@@ -80,10 +80,11 @@ flowchart TB
 
     N1["INVARIANT ADR-2002: this layer is what the upstream nostr absorption would REPLACE. Nothing here has<br/>been deleted - the canary gates that, see NF-01.5"]
     N2["wasm_bridge is compiled ONLY for wasm32 nostr-bbs-core/src/lib.rs:53 and exports NIP-44, subkey<br/>derivation and Schnorr signing to JS - nostr-bbs-core/src/wasm_bridge.rs:20 wasm_bridge.rs:88<br/>wasm_bridge.rs:228. ANOMALY O10 re-verified: no JS consumer exists in this repo."]
-    N3["did wraps solid_pod_rs::did_nostr_types rather than re-encoding nostr-bbs-core/src/did.rs:13 -<br/>EXTERNAL: the encoder of record is the solid-pod-rs area (SP-*), see NF-02.2 and ES-04"]
+    N3["did wraps solid_pod_rs::did_nostr_types rather than re-encoding nostr-bbs-core/src/did.rs:27 and<br/>re-exports its full-key encoder did.rs:30 - EXTERNAL: the encoder of record is the solid-pod-rs<br/>area (SP-*), see NF-02.2 and ES-04"]
+    N7["did:nostr parity model, did-nostr#145: decoding accepts both fe70102 and fe70103 Multikey<br/>prefixes and returns the same x-only key nostr-bbs-core/src/did.rs:109; read as a point a Multikey<br/>keeps its own parity did.rs:121, while a bare identifier denotes the even-y lift did.rs:74.<br/>Every forum route renders from the D1 identifier, so it only ever emits fe70102 did.rs:15"]
     N4["feature_gate is why the two workers cannot disagree on what DEVICE_KEYS_ENABLED means - each reads its<br/>OWN binding nostr-bbs-core/src/feature_gate.rs:42 but shares the PARSE rule<br/>nostr-bbs-core/src/feature_gate.rs:64, so ADR-2004's lockstep requirement holds by construction rather<br/>than by review - see NF-02.7 and NF-08.8"]
     N5["boot_profile's BOOTPROFILE_MODE nostr-bbs-core/src/boot_profile.rs:41 and is_pwa_boot<br/>nostr-bbs-core/src/boot_profile.rs:97 gate the BBS client's zone-bound one-shot PWA boot - see NF-05.11"]
-    N6["nip19 is the only place bech32 npub nostr-bbs-core/src/nip19.rs:77, nsec nip19.rs:129, nprofile<br/>nip19.rs:180 and naddr nip19.rs:249 are encoded; the recovery sheet's QR codes carry its output -<br/>see NF-05.8"]
+    N6["nip19 is the only place bech32 npub nostr-bbs-core/src/nip19.rs:77, nsec nip19.rs:85, nprofile<br/>nip19.rs:180 and naddr nip19.rs:232 are encoded; the recovery sheet's QR codes carry its output -<br/>see NF-05.8"]
 ```
 
 ## NF-12.2 Event identity and the signing path
@@ -105,13 +106,13 @@ sequenceDiagram
     S->>S: BIP-340 Schnorr sign nostr-bbs-core/src/event.rs:141
     S-->>R: NostrEvent nostr-bbs-core/src/event.rs:50
     R->>V: on admission
-    V->>V: rebuild the id and compare, then Schnorr verify nostr-bbs-core/src/event.rs:238 nostr-bbs-core/src/event.rs:241
+    V->>V: rebuild the id and compare, then Schnorr verify nostr-bbs-core/src/event.rs:210 nostr-bbs-core/src/event.rs:237
 
     Note over V: The single verification the WHOLE estate leans on. The relay calls it before any side effect (NF-03.4 step 4)
     Note over V: NIP-42 AUTH calls it (NF-03.2), and the forum client re-runs it on every inbound event rather than trusting the relay (NF-05.5)
     Note over S: sign_event_deterministic nostr-bbs-core/src/event.rs:160 exists for test vectors
     Note over S: sign_event_upstream nostr-bbs-core/src/event.rs:315 is the absorption seam onto the upstream nostr crate
-    Note over U: The Signer trait nostr-bbs-core/src/signer.rs:75 lets a NIP-07 extension, a passkey key or a pasted nsec share one call site - see NF-05.4
+    Note over U: The Signer trait nostr-bbs-core/src/signer.rs:78 lets a NIP-07 extension, a passkey key or a pasted nsec share one call site - see NF-05.4
 ```
 
 ## NF-12.3 The two key derivations, side by side
@@ -120,13 +121,13 @@ sequenceDiagram
 flowchart TB
     subgraph prf["derive_from_prf - passkey root"]
         P1["HKDF-SHA256, salt = per-identity derivation salt<br/>nostr-bbs-core/src/keys.rs:197"]
-        P2["info = HKDF_INFO || counter, 32-byte OKM<br/>nostr-bbs-core/src/keys.rs:205 constant keys.rs:15"]
+        P2["info = HKDF_INFO || counter, 32-byte OKM<br/>nostr-bbs-core/src/keys.rs:202 constant keys.rs:15"]
         P3["counter loop 0..=255 searching for a valid scalar<br/>nostr-bbs-core/src/keys.rs:201"]
     end
     subgraph sub["derive_subkey - purpose-scoped child"]
         S1["ONE raw HMAC-SHA-256, keyed by the root's 32 secret bytes<br/>nostr-bbs-core/src/keys.rs:253"]
         S2["message is the UTF-8 tag - no Extract/Expand<br/>nostr-bbs-core/src/keys.rs:255"]
-        S3["exactly crypto.createHmac sha256 root update tag digest<br/>nostr-bbs-core/src/keys.rs:230"]
+        S3["exactly crypto.createHmac sha256 root update tag digest<br/>nostr-bbs-core/src/keys.rs:229"]
     end
     KAT["known-answer JS-parity vector<br/>nostr-bbs-core/src/keys.rs:478, digest keys.rs:483<br/>shared fixture nostr-bbs-core/tests/identity_subkey_vectors.rs:30"]
 
@@ -169,22 +170,22 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    T["verify_token_full<br/>nostr-bbs-core/src/nip98.rs:414"]
-    C1["Authorization must start with the Nostr prefix<br/>nostr-bbs-core/src/nip98.rs:424 constant nip98.rs:77"]
-    C2["token and decoded JSON both capped at 64 KiB<br/>nostr-bbs-core/src/nip98.rs:429 nip98.rs:435 constant nip98.rs:74"]
-    C3["kind must be 27235<br/>nostr-bbs-core/src/nip98.rs:441 constant nip98.rs:62"]
-    C4["created_at within the tolerance window<br/>nostr-bbs-core/src/nip98.rs:451, default 60 s nip98.rs:65<br/>pubkey must be 64 hex nostr-bbs-core/src/nip98.rs:446"]
-    C5["Schnorr signature and id integrity<br/>nostr-bbs-core/src/nip98.rs:459"]
-    C6["u tag present and EXACTLY equal to the expected URL<br/>nostr-bbs-core/src/nip98.rs:465 nip98.rs:466"]
-    C7["method tag present, compared case-insensitively<br/>nostr-bbs-core/src/nip98.rs:475 nip98.rs:477"]
-    C8["payload tag REQUIRED when a body is present<br/>nostr-bbs-core/src/nip98.rs:487"]
-    C9["payload hash must equal SHA-256 of the body<br/>nostr-bbs-core/src/nip98.rs:488"]
+    T["verify_token_full<br/>nostr-bbs-core/src/nip98.rs:417"]
+    C1["Authorization must start with the Nostr prefix<br/>nostr-bbs-core/src/nip98.rs:427 constant nip98.rs:77"]
+    C2["token and decoded JSON both capped at 64 KiB<br/>nostr-bbs-core/src/nip98.rs:432 nip98.rs:438 constant nip98.rs:74"]
+    C3["kind must be 27235<br/>nostr-bbs-core/src/nip98.rs:444 constant nip98.rs:62"]
+    C4["created_at within the tolerance window<br/>nostr-bbs-core/src/nip98.rs:454, default 60 s nip98.rs:65<br/>pubkey must be 64 hex nostr-bbs-core/src/nip98.rs:449"]
+    C5["Schnorr signature and id integrity<br/>nostr-bbs-core/src/nip98.rs:462"]
+    C6["u tag present and EXACTLY equal to the expected URL<br/>nostr-bbs-core/src/nip98.rs:468 nip98.rs:469"]
+    C7["method tag present, compared case-insensitively<br/>nostr-bbs-core/src/nip98.rs:478 nip98.rs:480"]
+    C8["payload tag REQUIRED when a body is present<br/>nostr-bbs-core/src/nip98.rs:490"]
+    C9["payload hash must equal SHA-256 of the body<br/>nostr-bbs-core/src/nip98.rs:494"]
 
     T --> C1 --> C2 --> C3 --> C4 --> C5 --> C6 --> C7 --> C8 --> C9
 
     N1["INVARIANT: the URL and method are bound into the SIGNATURE, so a token minted for one endpoint cannot<br/>be replayed against another. The payload hash extends that binding to the body."]
     N2["Replay is a SEPARATE concern layered on top: REPLAY_CACHE_TTL_SECS is twice the tolerance, a safe<br/>upper bound for cache entries nostr-bbs-core/src/nip98.rs:71. The single-use INSERT OR IGNORE lives in<br/>nostr-bbs-rate-limit - see NF-02.5 and NF-07.8"]
-    N3["verify_nip98 nostr-bbs-core/src/nip98.rs:311 is the canonical entry point; every worker reaches this<br/>same implementation. EXTERNAL: agentbox terminates NIP-98 at its own proxy with an independent<br/>single-use cache - see AB-10"]
+    N3["verify_nip98 nostr-bbs-core/src/nip98.rs:314 is the canonical entry point; every worker reaches this<br/>same implementation. EXTERNAL: agentbox terminates NIP-98 at its own proxy with an independent<br/>single-use cache - see AB-10"]
 ```
 
 ## NF-12.6 Domain kinds this crate owns
@@ -257,7 +258,7 @@ classDiagram
     Envelope --> EnvelopeKind
     Envelope --> Delegation
 
-    note for EnvelopeKind "Each kind declares the ActivityStreams 2.0 outer activity it maps to at the LDN boundary — the mapping table is at nostr-bbs-mesh/src/envelope.rs:97-103, kinds enumerated from envelope.rs:83"
+    note for EnvelopeKind "Each kind declares the ActivityStreams 2.0 outer activity it maps to at the LDN boundary — the mapping table is at nostr-bbs-mesh/src/envelope.rs:97-106, kinds enumerated from envelope.rs:81"
     note for Envelope "Structural validation checks required fields, DID canonicality and the chain nostr-bbs-mesh/src/envelope.rs:255; a DID must be canonical did:nostr with 64 lowercase hex nostr-bbs-mesh/src/envelope.rs:463, normalised by nostr-bbs-mesh/src/envelope.rs:458"
     note for Delegation "EXTERNAL: this is a PUBLISHED contract other repos must match byte-for-byte, even though no transport ships here - see NF-12.8 and AB-13"
 ```
@@ -271,7 +272,7 @@ flowchart TB
     ID["so the outer kind-1059 event id - SHA-256 over canonical event JSON - is STABLE<br/>across independent encoders nostr-bbs-mesh/src/jcs.rs:6-7"]
     DEDUP["Two encoders producing semantically identical envelopes MUST emit byte-identical content,<br/>or the dedup primitive breaks nostr-bbs-mesh/src/jcs.rs:7-8"]
     HONEST["Declared a FAITHFUL SUBSET of RFC 8785, not the whole specification<br/>nostr-bbs-mesh/src/jcs.rs:11-12"]
-    TRANS["MeshSocket nostr-bbs-mesh/src/transport.rs:237 | MeshTransport nostr-bbs-mesh/src/transport.rs:249<br/>RelayTransport generic over any socket nostr-bbs-mesh/src/transport.rs:323"]
+    TRANS["MeshSocket nostr-bbs-mesh/src/transport.rs:238 | MeshTransport nostr-bbs-mesh/src/transport.rs:251<br/>RelayTransport generic over any socket nostr-bbs-mesh/src/transport.rs:325"]
     ONLY["The ONLY implementation in the tree is the test-only MockSocket<br/>nostr-bbs-mesh/src/mock.rs:249"]
     TEST["End-to-end federation tests DO exercise the full crypto stack<br/>nostr-bbs-mesh/tests/federation.rs:1"]
     CFG["MeshConfig nostr-bbs-mesh/src/config.rs:53 | MeshMode nostr-bbs-mesh/src/config.rs:98<br/>mesh_anchor_tags nostr-bbs-mesh/src/lib.rs:69"]
@@ -321,8 +322,8 @@ sequenceDiagram
     participant U as open_sealed<br/>nostr-bbs-core/src/sealed.rs:375
 
     M->>O: plaintext kind-42 original, zone, epoch, zone_pk_hex
-    O->>O: kind==42, verify_event(original), no zk tag, channel_of sealed.rs:322 sealed.rs:328 sealed.rs:330 sealed.rs:334
-    O->>O: NIP-44 v2 encrypt inner JSON, migrator_sk to zone_pk sealed.rs:346
+    O->>O: kind==42, verify_event(original), no zk tag, channel_of sealed.rs:319 sealed.rs:322 sealed.rs:325 sealed.rs:328
+    O->>O: NIP-44 v2 encrypt inner JSON, migrator_sk to zone_pk sealed.rs:462
     O-->>R: outer kind-42 event, tags e/zk/sealed sealed.rs:344
     R->>Z: relay admits (admin-only authorship, exempt from drift check)
     Z->>U: outer event, zone_sk

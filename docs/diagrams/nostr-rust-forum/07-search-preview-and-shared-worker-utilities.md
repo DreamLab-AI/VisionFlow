@@ -24,7 +24,7 @@ sources:
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/ascii_img.rs
-verified_commit: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d
+verified_commit: d025cb063df5a532f055a18527f71cc7dee9d6e6
 ---
 
 ## NF-07.1 search-worker — routes and gates
@@ -183,9 +183,9 @@ flowchart LR
     SSRFF["routed through ssrf_fetch_with_redirects parse.rs:213"]
     CAP["read_text_capped parse.rs:224"]
     OG["og:title parse.rs:31 and the reversed attribute order parse.rs:35<br/>og:description parse.rs:40, og:image parse.rs:50"]
-    FALL["title falls back to the HTML title element parse.rs:172"]
-    REL["relative image URLs resolved against the target parse.rs:178"]
-    FAV["favicon via Google's s2 service, not the target site parse.rs:169"]
+    FALL["title falls back to the HTML title element parse.rs:178"]
+    REL["relative image URLs resolved against the target parse.rs:186"]
+    FAV["favicon via Google's s2 service, not the target site parse.rs:172"]
     OE["Twitter/X oEmbed publish.twitter.com oembed.rs:11<br/>host detector oembed.rs:38 oembed.rs:49<br/>omit_script, dnt, dark theme oembed.rs:65"]
 
     FETCH --> SSRFF --> CAP --> OG --> FALL --> REL
@@ -193,7 +193,7 @@ flowchart LR
     OE --> SSRFF
 
     N1["The oEmbed path deliberately avoids Response::json because that would bypass the body cap<br/>nostr-bbs-preview-worker/src/oembed.rs:90"]
-    N2["The favicon choice is an outbound third-party dependency in an otherwise LAN-shaped design -<br/>every preview embeds a google.com favicon URL parse.rs:169"]
+    N2["The favicon choice is an outbound third-party dependency in an otherwise LAN-shaped design -<br/>every preview embeds a google.com favicon URL parse.rs:172"]
 ```
 
 ## NF-07.8 Shared utilities every worker links
@@ -225,5 +225,5 @@ classDiagram
 
     note for RateLimit "Each worker calls check_rate_limit with its OWN<br/>KV binding and its own budget - auth 20/60s on<br/>SESSIONS nostr-bbs-auth-worker/src/lib.rs:174, search<br/>100/60s on SEARCH_CONFIG nostr-bbs-search-worker/src/lib.rs:772,<br/>preview 30/60s on RATE_LIMIT nostr-bbs-preview-worker/src/lib.rs:519"
     note for Replay "INVARIANT one shared replay database - the search<br/>worker binds REPLAY_DB nostr-bbs-search-worker/src/auth.rs:31<br/>and delegates to the shared verifier<br/>nostr-bbs-search-worker/src/auth.rs:40 exactly as the auth<br/>worker does. See NF-02.5 and NF-08.4"
-    note for Ascii "The image feature pulls PURE-Rust decoders only,<br/>default-features off, so the wasm32 build stays<br/>lean nostr-rust-forum/Cargo.toml:173. The BBS client never converts<br/>client-side - it fetches a pre-rendered fragment<br/>from the preview worker nostr-bbs-bbs-client/src/ascii_img.rs:203"
+    note for Ascii "The image feature pulls PURE-Rust decoders only,<br/>default-features off, so the wasm32 build stays<br/>lean nostr-rust-forum/Cargo.toml:175. The BBS client never converts<br/>client-side - it fetches a pre-rendered fragment<br/>from the preview worker nostr-bbs-bbs-client/src/ascii_img.rs:203"
 ```

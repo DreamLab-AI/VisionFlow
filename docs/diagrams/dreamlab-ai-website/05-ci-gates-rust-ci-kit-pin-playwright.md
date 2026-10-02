@@ -22,7 +22,8 @@ sources:
   - ../dreamlab-ai-website/scripts/__tests__/pin-parity.test.mjs
   - ../dreamlab-ai-website/scripts/__tests__/dream-kit-pin-guard.test.mjs
   - ../dreamlab-ai-website/scripts/__tests__/helpers/fixture-repo.mjs
-verified_commit: 9b8ea495da80aaa5b45795af916bda4470467481
+  - ../dreamlab-ai-website/CLAUDE.md
+verified_commit: 6ae45762e7685787c5f44ba0d966557f386cde83
 ---
 
 ## DW-05.1 `ci.yml` — the ten-job PR/push gate and its aggregator
@@ -43,7 +44,7 @@ flowchart TB
 ```
 - `ci.yml:14-30` deliberately enumerates `.github/workflows/**` and `scripts/**` as trigger paths, not just the three `KIT_REF` pin sites: pin-check sweeps ALL workflow files for tag-pinned actions, so any workflow edit can break it — narrower path filters previously let `kit-pin-guard.yml` carry an unpinned `actions/checkout@v4` without re-running the gate that rejects it (2026-09-06 incident, `ci.yml:23-27` comment).
 - `rust-clippy` here is `-D warnings` (blocking, `ci.yml:` rust-clippy job) — unlike `rust-ci.yml`'s clippy job against the kit, which is explicitly advisory (DW-05.2).
-- Playwright/E2E specs (`playwright.config.ts`, `tests/forum-smoke.spec.ts`) are deliberately NOT wired into `ci.yml`, `test-and-lint.yml` or any gate job in this tree — `CLAUDE.md:63` documents `npx playwright test` as a manual command requiring a running deployment; `forum-smoke.spec.ts:404-410` is the only spec asserting workers return scoped CORS, cited by `BASELINE-architecture.md:86`.
+- Playwright/E2E specs (`playwright.config.ts`, `tests/forum-smoke.spec.ts`) are deliberately NOT wired into `ci.yml`, `test-and-lint.yml` or any gate job in this tree — `CLAUDE.md:63-64` documents `npx playwright test` as a manual command requiring a running deployment; `forum-smoke.spec.ts:404-410` is the only spec asserting workers return scoped CORS, cited by `BASELINE-architecture.md:86`.
 - `set-worker-secrets.yml` (`workflow_dispatch` only) is a one-shot operator push of four secrets (`NATIVE_POD_URL`, `NATIVE_POD_ADMIN_KEY`, `PRF_SERVER_SECRET`, `ADMIN_PUBKEYS`) to the `dreamlab-auth-api` CF Worker via the CF Workers Secrets API — the pipeline never generates these values, and the `PUT` is idempotent so the workflow is safe to re-run (`set-worker-secrets.yml:1-9`); all four are validated at deploy time by `workers-deploy.yml`'s "Validate required auth-worker secrets are set" step.
 - `docs-update.yml` is the one workflow with `contents: write` in this tree: a Sunday 22:00 UTC cron (`docs-update.yml:6-7`) that only ever proposes changes — `update-timestamps` opens a PR on `docs/auto-update-timestamps` rather than committing to `main` (`docs-update.yml:59-72`), and a second `check-outdated` job flags docs with `last_updated` >90 days old into a deduplicated rolling issue rather than spamming new ones (`docs-update.yml:126-128` names prior duplicate issues #35/#37/#39/#40 as the reason).
 
@@ -75,7 +76,7 @@ sequenceDiagram
     CALLER->>CALLER: needs.gate.outputs.passed == 'true'<br/>required in addition to needs:[gate]
 ```
 - INVARIANT: `test-and-lint.yml:1-17` documents two closed defects (ADR-2002/2003 closeout, 2026-09-05): (1) it previously ran no unit tests at all — Vitest lived only in the separate `ci.yml`, which `deploy.yml` does not depend on, so a red suite never blocked a deploy; (2) the final step wrote `passed=true` unconditionally under `if: always()`, so the output was true even when an earlier step had failed.
-- `deploy.yml:111-117` and `workers-deploy.yml:62-66` both check `needs.gate.outputs.passed == 'true'` explicitly, not merely `needs: [gate]` — the comment notes this is deliberate: requiring the gate's own verdict means a future change that makes a gate step non-blocking cannot quietly re-open the publication path.
+- `deploy.yml:118-125` and `workers-deploy.yml:63-67` both check `needs.gate.outputs.passed == 'true'` explicitly, not merely `needs: [gate]` — the comment notes this is deliberate: requiring the gate's own verdict means a future change that makes a gate step non-blocking cannot quietly re-open the publication path.
 - DOC-DRIFT: `docs/BASELINE-architecture.md:173` (estate closeout, dated 2026-09-04) claims "CI has a Vitest/pin/admin aggregator, while deployment uses a separate reusable gate without Vitest" — that description predates the fix `test-and-lint.yml`'s own header documents as landing 2026-09-05 (one day later); as of this verified commit, `test-and-lint.yml` DOES run Vitest (`id: vitest`, line 89-92) and its `passed` output is a real aggregation, not a constant.
 
 ## DW-05.4 `kit-pin-guard.yml` — pin-parity as its own gate

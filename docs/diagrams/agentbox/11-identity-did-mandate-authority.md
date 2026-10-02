@@ -34,7 +34,7 @@ sources:
   - ../project/agentbox/mcp/servers/nostr-bridge.js
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/lib/bc20-provenance-bridge.js
-verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
+verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
 ---
 
 ## AB-11.1 Identity, URN and mandate type model

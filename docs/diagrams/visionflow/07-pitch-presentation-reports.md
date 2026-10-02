@@ -31,7 +31,7 @@ sources:
   - docs/estate-review/evidence/adr-inventory.json
   - docs/BASELINE-visionflow.md
   - docs/architecture/compatibility-matrix.md
-verified_commit: d4e44298646768a4b19af359119e16a6884fa80d
+verified_commit: e5987acc8337ddd64c72f775750d61fef46d8e0b
 ---
 
 ## VF-07.1 Artefact map — what produces each output and where it lands
@@ -69,12 +69,12 @@ flowchart LR
 
     RM -->|"generate-release-manifest.sh<br/>generate-release-manifest.sh:240"| O10["stdout — docs/releases/*.json by redirection<br/>releases/README.md:8"]:::auto
 
-    B1 --> NOP["NO pipeline. Two long-form root documents, 249 lines each,<br/>differing in content. Nothing builds, validates or publishes them;<br/>they are referenced once, as content the two real surfaces publish<br/>BASELINE-visionflow.md:54"]:::content
+    B1 --> NOP["NO pipeline. Two long-form root documents, 249 lines each,<br/>differing in content. Nothing builds, validates or publishes them;<br/>they are referenced once, as content the two real surfaces publish<br/>BASELINE-visionflow.md:57"]:::content
     B2 --> NOP
 
     ORPH["texput.log at the repo root — evidence of a real XeTeX run on<br/>2026-07-08 that ABORTED because main.tex is not at the root.<br/>Same date as dist/arxiv-2026-07-08.tar.gz<br/>texput.log:1"]:::content
 
-    NOTE["DOC-DRIFT: pdf-reports/ holds byte-identical copies of the two pitch/ PDFs.<br/>No script produces them and no doc explains the duplication; ./README.md:15<br/>links the pdf-reports/ copies while ./README.md:232 points at pitch/"]
+    NOTE["DOC-DRIFT: pdf-reports/ holds byte-identical copies of the two pitch/ PDFs.<br/>No script produces them and no doc explains the duplication; ./README.md:15<br/>links the pdf-reports/ copies while ./README.md:240 points at pitch/"]
 ```
 
 ## VF-07.2 generate-release-manifest.sh — building the fourteen-repository roster
@@ -444,7 +444,7 @@ flowchart TB
     classDef content fill:#f0f0f0,stroke:#888,color:#222
     classDef surface fill:#e0f2e4,stroke:#2f7a45,color:#222
 
-    BASE["BASELINE-visionflow.md: the repo has exactly TWO concrete surfaces —<br/>a static marketing website and the governance canon under docs/.<br/>Everything else is content that those two surfaces publish<br/>BASELINE-visionflow.md:52"]
+    BASE["BASELINE-visionflow.md: the repo has exactly TWO concrete surfaces —<br/>a static marketing website and the governance canon under docs/.<br/>Everything else is content that those two surfaces publish<br/>BASELINE-visionflow.md:55"]
 
     BASE --> C1["the-bubble-is-the-architecture.md<br/>249 lines, long-form essay with numbered citations"]:::content
     BASE --> C2["the-bubble-is-the-architecture-v3.md<br/>249 lines, a revised edition with different content —<br/>its method note records how the revision was checked<br/>the-bubble-is-the-architecture-v3.md:117"]:::content

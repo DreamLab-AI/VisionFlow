@@ -4,7 +4,7 @@ title: Claude Code hook pipeline and its handlers
 area: agentbox
 governing:
   - ../project/agentbox/docs/BASELINE-container.md
-adrs: [ADR-2015, ADR-2026, ADR-2007, ADR-2068, ADR-2090, ADR-2091, ADR-2093, ADR-2094]
+adrs: [ADR-2015, ADR-2026, ADR-2007, ADR-2068, ADR-2090, ADR-2091, ADR-2093, ADR-2094, ADR-2121]
 sources:
   - ../project/agentbox/config/hooks/claude-flow-hook-adapter.cjs
   - ../project/agentbox/config/hooks/trust-seed.cjs
@@ -32,10 +32,10 @@ sources:
   - ../project/agentbox/config/hooks/skill-route.cjs
   - ../project/agentbox/config/hooks/lib/skill-route.cjs
   - ../project/agentbox/config/hooks/lib/hook-output.cjs
-  - ../project/agentbox/config/claude-plugins/jev-compaction/hooks/jev-compaction.ts
-  - ../project/agentbox/config/claude-plugins/jev-compaction/hooks/policy.mjs
-  - ../project/agentbox/config/claude-plugins/jev-compaction/lib/compact.ts
-verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
+  - ../project/agentbox/lib/factrail.nix
+  - ../project/agentbox/scripts/factrail-store-migrate.mjs
+  - ../project/agentbox/docs/adr/ADR-2121-factrail-implements-jev-compaction.md
+verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
 ---
 
 Registration ground truth (2026-09-29): `~/.claude/settings.json` is boot-generated and never tracked, so AB-08.1–AB-08.7
@@ -47,25 +47,25 @@ longer exists (ADR-2091 consolidated per-turn routing into `skill-route.cjs`, se
 ## AB-08.1 Root-session registration — what entrypoint-unified.sh seeds into ~/.claude/settings.json
 ```mermaid
 flowchart TB
-    S["settings path resolved once, CLAUDE_CONFIG_DIR<br/>fallback /home/devuser/.claude/settings.json<br/>entrypoint-unified.sh:1273"]
+    S["settings path resolved once, CLAUDE_CONFIG_DIR<br/>fallback /home/devuser/.claude/settings.json<br/>entrypoint-unified.sh:1274"]
     subgraph MIR["nostr-live-mirror.cjs — always registered, defaults to Stop only"]
     direction TB
-    M1["block entrypoint-unified.sh:1273, baked /opt hook path :1274"]
-    M2["entrypoint-unified.sh:1281 events SessionStart, UserPromptSubmit, Stop, SessionEnd<br/>idempotent marker test on the command string :1285"]
-    M3["entrypoint-unified.sh:1288 push node HOOK EVENT, timeout 8 SECONDS<br/>each event registered, but bodyForEvent skips any event outside<br/>AGENTBOX_LIVE_MIRROR_EVENTS (default Stop only) nostr-live-mirror.cjs:277-278"]
+    M1["block entrypoint-unified.sh:1274, baked /opt hook path :1275"]
+    M2["entrypoint-unified.sh:1282 events SessionStart, UserPromptSubmit, Stop, SessionEnd<br/>idempotent marker test on the command string :1286"]
+    M3["entrypoint-unified.sh:1289 push node HOOK EVENT, timeout 8 SECONDS<br/>each event registered, but bodyForEvent skips any event outside<br/>AGENTBOX_LIVE_MIRROR_EVENTS (default Stop only) nostr-live-mirror.cjs:277-278"]
     M1 --> M2 --> M3
     end
     subgraph FLT["fleet-session-start.sh — SessionStart"]
     direction TB
-    F1["block entrypoint-unified.sh:1299, baked hook path :1299<br/>off switch AGENTBOX_NOSTR_GATEWAY=0 gates the gateway launch inside the script, not registration"]
-    F2["entrypoint-unified.sh:1307 marker test, :1308 push timeout 8 seconds"]
+    F1["block entrypoint-unified.sh:1300, baked hook path :1300<br/>off switch AGENTBOX_NOSTR_GATEWAY=0 gates the gateway launch inside the script, not registration"]
+    F2["entrypoint-unified.sh:1308 marker test, :1309 push timeout 8 seconds"]
     F1 --> F2
     end
     subgraph ONT["ontology-monitor.cjs — SessionEnd, gated, detached"]
     direction TB
-    O1["entrypoint-unified.sh:1322 gate read via agentbox-manifest toml-bool<br/>defaults to 0 on any read failure"]
-    O2["entrypoint-unified.sh:1348 ON: push timeout 10 seconds (hook returns at once,<br/>a detached child does the 180s review) AND seed env AGENTBOX_ONTOLOGY_MONITOR=1 :1353"]
-    O3["entrypoint-unified.sh:1357-1361 OFF: filter the hook back out<br/>delete the emptied SessionEnd array :1361<br/>INVARIANT ADR-2020 byte-identical-when-off"]
+    O1["entrypoint-unified.sh:1323 gate read via agentbox-manifest toml-bool<br/>defaults to 0 on any read failure"]
+    O2["entrypoint-unified.sh:1349 ON: push timeout 10 seconds (hook returns at once,<br/>a detached child does the 180s review) AND seed env AGENTBOX_ONTOLOGY_MONITOR=1 :1354"]
+    O3["entrypoint-unified.sh:1358-1362 OFF: filter the hook back out<br/>delete the emptied SessionEnd array :1362<br/>INVARIANT ADR-2020 byte-identical-when-off"]
     O4["gate source agentbox.toml:116-117 enabled = true"]
     O1 --> O2
     O1 --> O3
@@ -73,15 +73,15 @@ flowchart TB
     end
     subgraph TRU["trust-seed.cjs — boot-time run ONLY, no longer a hook"]
     direction TB
-    T1["entrypoint-unified.sh:1390 hook path, :1391 gate AGENTBOX_TRUST_SEED != 0<br/>DELIBERATELY not a SessionStart hook: walked ~1,170 paths/session (avg 3.2s),<br/>raced Claude Code's own ~/.claude.json writes"]
-    T2["entrypoint-unified.sh:1392 node trust-seed.cjs, output to stderr<br/>callable by hand for a post-boot worktree: node trust-seed.cjs #60;path#62;"]
+    T1["entrypoint-unified.sh:1391 hook path, :1392 gate AGENTBOX_TRUST_SEED != 0<br/>DELIBERATELY not a SessionStart hook: walked ~1,170 paths/session (avg 3.2s),<br/>raced Claude Code's own ~/.claude.json writes"]
+    T2["entrypoint-unified.sh:1393 node trust-seed.cjs, output to stderr<br/>callable by hand for a post-boot worktree: node trust-seed.cjs #60;path#62;"]
     T1 --> T2
     end
     subgraph TRJ["trajectory-recorder.cjs — Stop and SubagentStop, gated"]
     direction TB
-    J1["block entrypoint-unified.sh:1597, hook path :1597<br/>gate: BOTH memory_learning flags checked before the block runs"]
-    J2["entrypoint-unified.sh:1619 specs = Stop, SubagentStop ONLY<br/>reconcile strips prior wiring over 4 legacy events :1622-1625<br/>then push timeout 10 seconds behind an inline env prefix :1626-1631"]
-    J3["entrypoint-unified.sh:1649 gate off: strip over the same 4 events<br/>:1649 keep-filter, :1652 log the de-registration"]
+    J1["block entrypoint-unified.sh:1598, hook path :1598<br/>gate: BOTH memory_learning flags checked before the block runs"]
+    J2["entrypoint-unified.sh:1620 specs = Stop, SubagentStop ONLY<br/>reconcile strips prior wiring over 4 legacy events :1623-1626<br/>then push timeout 10 seconds behind an inline env prefix :1627-1632"]
+    J3["entrypoint-unified.sh:1650 gate off: strip over the same 4 events<br/>:1650 keep-filter, :1653 log the de-registration"]
     J4["gate source agentbox.toml:451-452 enabled + record_trajectories"]
     J1 --> J2
     J1 --> J3
@@ -89,16 +89,16 @@ flowchart TB
     end
     subgraph OTH["turn-sink, dream-inbox, ruvnet-brain"]
     direction TB
-    X1["entrypoint-unified.sh:1480 tab0-bridge turn-sink.cjs deployed path<br/>:1488 events UserPromptSubmit and Stop, :1491 timeout 5 seconds"]
-    X2["entrypoint-unified.sh:1662 dream-inbox-surface.cjs, live-checkout fallback :1663<br/>gate DREAM_INBOX_HOOK :1664, UserPromptSubmit timeout 5 seconds :1678"]
-    X3["entrypoint-unified.sh:2077 ruvnet-brain-ground.cjs<br/>gate RUVNET_BRAIN_GROUNDING_HOOK :2078, timeout 5 seconds :2091"]
-    X4["gate source agentbox.toml:795 grounding_hook = true"]
+    X1["entrypoint-unified.sh:1481 tab0-bridge turn-sink.cjs deployed path<br/>:1489 events UserPromptSubmit and Stop, :1492 timeout 5 seconds"]
+    X2["entrypoint-unified.sh:1663 dream-inbox-surface.cjs, live-checkout fallback :1664<br/>gate DREAM_INBOX_HOOK :1665, UserPromptSubmit timeout 5 seconds :1679"]
+    X3["entrypoint-unified.sh:2078 ruvnet-brain-ground.cjs<br/>gate RUVNET_BRAIN_GROUNDING_HOOK :2079, timeout 5 seconds :2092"]
+    X4["gate source agentbox.toml:822 grounding_hook = true"]
     X1 --> X2 --> X3 --> X4
     end
     subgraph SHM["hook shim reconcile — ADR-2034 §1"]
     direction TB
-    H1["entrypoint-unified.sh:1405 block, gate AGENTBOX_HOOK_SHIM"]
-    H2["entrypoint-unified.sh:1406 agentbox-hook reconcile --root WORKSPACE --depth 2<br/>rewrites per-project ruflo CLI hooks to the resident shim"]
+    H1["entrypoint-unified.sh:1406 block, gate AGENTBOX_HOOK_SHIM"]
+    H2["entrypoint-unified.sh:1407 agentbox-hook reconcile --root WORKSPACE --depth 2<br/>rewrites per-project ruflo CLI hooks to the resident shim"]
     H1 --> H2
     end
     S --> MIR --> FLT --> ONT --> TRU --> TRJ --> OTH --> SHM
@@ -127,7 +127,7 @@ flowchart TB
     subgraph INV["invariants and divergences"]
     direction TB
     I1["INVARIANT: claude-flow-hook-adapter.cjs is wired ONLY per-profile<br/>stacks.rs:229 — never into the root settings.json"]
-    I2["INVARIANT ADR-2068: the root ontology gap is closed —<br/>entrypoint-unified.sh:1348 registers and :1357-1361 retracts,<br/>so the off state leaves no trace"]
+    I2["INVARIANT ADR-2068: the root ontology gap is closed —<br/>entrypoint-unified.sh:1349 registers and :1358-1362 retracts,<br/>so the off state leaves no trace"]
     I3["INVARIANT: a new hook is not wired by dropping a file in config/hooks/ —<br/>register it in the site that owns its session class<br/>hooks/README.md:93-96"]
     I1 --> I2 --> I3
     end
@@ -143,28 +143,29 @@ sequenceDiagram
     participant RBG as ruvnet-brain-ground.cjs<br/>agentbox/config/hooks/ruvnet-brain-ground.cjs:115
     participant TS as turn-sink.cjs<br/>agentbox/config/tab0-bridge/turn-sink.cjs:1
     participant DI as dream-inbox-surface.cjs<br/>agentbox/config/hooks/dream-inbox-surface.cjs:34
-    participant SR as main<br/>agentbox/config/hooks/skill-route.cjs:27
+    participant SR as main<br/>agentbox/config/hooks/skill-route.cjs:29
     participant M as Model context
 
-    Note over U,M: root registrations: entrypoint-unified.sh:1281 mirror, :1488 turn-sink,<br/>:1664 dream-inbox, :2078 brain-ground, :2163 skill-route — five on this one event.<br/>INVARIANT: stacks.rs no longer registers a per-profile UserPromptSubmit hook at all<br/>(stacks.rs:31-33, test :390-391) — skill-route.cjs is the sole per-turn router (ADR-2091)
-    U->>NM: node HOOK UserPromptSubmit, timeout 8 seconds<br/>entrypoint-unified.sh:1288
+    Note over U,M: root registrations: entrypoint-unified.sh:1282 mirror, :1489 turn-sink,<br/>:1665 dream-inbox, :2079 brain-ground, :2164 skill-route — five on this one event.<br/>INVARIANT: stacks.rs no longer registers a per-profile UserPromptSubmit hook at all<br/>(stacks.rs:31-33, test :390-391) — skill-route.cjs is the sole per-turn router (ADR-2091)
+    U->>NM: node HOOK UserPromptSubmit, timeout 8 seconds<br/>entrypoint-unified.sh:1289
     NM->>NM: bodyForEvent#40;#41; checks mirroredEvents#40;#41; first, returns null if not listed<br/>nostr-live-mirror.cjs:289-290
     NM-->>U: DEFAULT: null body on UserPromptSubmit, egress skipped — only Stop is<br/>mirrored by default, DEFAULT_MIRROR_EVENTS :277, widen via AGENTBOX_LIVE_MIRROR_EVENTS :278-282, see AB-13.9
     par independent root groups, unordered wrt each other
-        U->>RBG: node HOOK #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:2091
+        U->>RBG: node HOOK #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:2092
         RBG->>RBG: analyse#40;prompt#41;: DISTINCTIVE name fires alone,<br/>an ESTATE name needs an upstream-intent cue in the SAME sentence<br/>ruvnet-brain-ground.cjs:90-98
         RBG->>RBG: CLASSICAL_SUBS match needs selection intent in the same sentence<br/>ruvnet-brain-ground.cjs:100-109
         RBG-->>M: emitContext via lib/hook-output.cjs, or nothing<br/>ruvnet-brain-ground.cjs:121-124, see AB-08.11
     and
-        U->>TS: node HOOK UserPromptSubmit #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:1491
-        Note over TS: the sink is deployed to the workspace copy, not the baked one<br/>entrypoint-unified.sh:1480 — see AB-12 for the bridge itself
+        U->>TS: node HOOK UserPromptSubmit #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:1492
+        Note over TS: the sink is deployed to the workspace copy, not the baked one<br/>entrypoint-unified.sh:1481 — see AB-12 for the bridge itself
     and
-        U->>SR: ADR-2091 gate inlined as AGENTBOX_SKILL_ROUTER=jev<br/>entrypoint-unified.sh:2163, timeout = max#40;8, ceil#40;2 times judge_ms / 1000#41;#41; :2200-2201
-        SR->>SR: lib.route#40;prompt, cfg#41;: one Choice over every routable skill<br/>hooks/skill-route.cjs:35 via lib/skill-route.cjs
-        SR-->>M: emitContext#40;lib.formatContext#40;r, cfg#41;#41; via lib/hook-output.cjs, or nothing<br/>hooks/skill-route.cjs:40
-        Note over SR: INVARIANT fail-open - any error, timeout, 429/529 or a none pick<br/>returns without injection, hooks/skill-route.cjs:18 and hooks/skill-route.cjs:43
+        U->>SR: ADR-2091 gate inlined as AGENTBOX_SKILL_ROUTER=jev<br/>entrypoint-unified.sh:2164, timeout = max#40;8, ceil#40;2 times judge_ms / 1000#41;#41; :2201-2202
+        SR->>SR: lib.route#40;prompt, cfg#41;: one Choice over every routable skill<br/>hooks/skill-route.cjs:37 via lib/skill-route.cjs
+        SR->>SR: candidates also take claude.ai synced skills as anthropic-skills:name and enabled<br/>plugins' skills as plugin:skill, the Skill tool's own names (lib/skill-route.cjs:276, lib/skill-route.cjs:442),<br/>read best-effort, off with AGENTBOX_SKILL_ROUTE_CLAUDE_DIR=0 (lib/skill-route.cjs:396)
+        SR-->>M: emitContext#40;lib.formatContext#40;r, cfg#41;#41; via lib/hook-output.cjs, or nothing<br/>hooks/skill-route.cjs:42
+        Note over SR: INVARIANT fail-open - any error, timeout, 429/529 or a none pick<br/>returns without injection, hooks/skill-route.cjs:20 and hooks/skill-route.cjs:45
     and
-        U->>DI: node HOOK #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:1678
+        U->>DI: node HOOK #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:1679
         DI->>DI: skip machine-generated turns #40;task-notification, agent-message,<br/>system-reminder#41;, then count OPEN items and rate-limit via a sidecar<br/>stamp file, dream-inbox-surface.cjs:40-51
         DI-->>M: hookSpecificOutput.additionalContext = one-line pointer at the forum<br/>governance panel #40;ADR-2115#41;, or #123;#125;, dream-inbox-surface.cjs:52-61, see AB-08.12
     end
@@ -180,9 +181,9 @@ sequenceDiagram
     participant FTN as fleet-tab-name.sh<br/>agentbox/config/hooks/fleet-tab-name.sh:13
     participant AD as claude-flow-hook-adapter.cjs<br/>agentbox/config/hooks/claude-flow-hook-adapter.cjs:132
 
-    CC->>NM: node HOOK SessionStart, timeout 8 seconds<br/>entrypoint-unified.sh:1288
+    CC->>NM: node HOOK SessionStart, timeout 8 seconds<br/>entrypoint-unified.sh:1289
     NM-->>CC: DEFAULT: null body, skipped — SessionStart is not in the default<br/>mirroredEvents set, nostr-live-mirror.cjs:277 and :289-290, see AB-13.9
-    CC->>FS: bash HOOK #124;#124; true, timeout 8 seconds<br/>entrypoint-unified.sh:1308
+    CC->>FS: bash HOOK #124;#124; true, timeout 8 seconds<br/>entrypoint-unified.sh:1309
     FS->>FTN: bash fleet-tab-name.sh, errors swallowed<br/>fleet-session-start.sh:17
     Note over FTN: no TMUX or no tmux binary → exit 0<br/>fleet-tab-name.sh:14-15
     FTN->>FTN: name = git remote basename → toplevel → cwd basename :19-27
@@ -190,7 +191,7 @@ sequenceDiagram
     FTN->>FTN: write $HOME/.claude/fleet/#36;win#125;.json registry entry :37-40
     FS->>FS: gateway not running and AGENTBOX_NOSTR_GATEWAY!=0<br/>fleet-session-start.sh:19-20 → nohup node gateway.cjs, disown :23-24
     FS->>FS: deploy.sh present and AGENTBOX_TAB0_BRIDGE!=0<br/>fleet-session-start.sh:34 → nohup bash deploy.sh, disown :35-36
-    Note over CC: trust-seed.cjs is NOT registered here any more. It ran ONCE at boot,<br/>entrypoint-unified.sh:1390-1392, and is invoked by hand for a worktree made after<br/>boot: node trust-seed.cjs #60;path#62; — see AB-08.10
+    Note over CC: trust-seed.cjs is NOT registered here any more. It ran ONCE at boot,<br/>entrypoint-unified.sh:1391-1393, and is invoked by hand for a worktree made after<br/>boot: node trust-seed.cjs #60;path#62; — see AB-08.10
     CC->>AD: PER-PROFILE ONLY: session-restore, timeout 15 seconds<br/>stacks.rs:77
     Note over AD: stdout filtered by RESTORE_SIGNAL before injection<br/>claude-flow-hook-adapter.cjs:47 and :132-134
 ```
@@ -208,25 +209,25 @@ sequenceDiagram
 
     rect rgb(240,240,255)
     Note over CC,OM: SessionEnd
-    CC->>NM: node HOOK SessionEnd, timeout 8 seconds<br/>entrypoint-unified.sh:1288
+    CC->>NM: node HOOK SessionEnd, timeout 8 seconds<br/>entrypoint-unified.sh:1289
     NM-->>CC: DEFAULT: null body, skipped — SessionEnd is not in the default<br/>mirroredEvents set, nostr-live-mirror.cjs:277 and :289-290, see AB-13.9
-    CC->>OM: node HOOK #124;#124; true, timeout 10 seconds when the gate is on<br/>entrypoint-unified.sh:1348 — the review itself budgets 180s but runs DETACHED,<br/>ontology-monitor.cjs:41
+    CC->>OM: node HOOK #124;#124; true, timeout 10 seconds when the gate is on<br/>entrypoint-unified.sh:1349 — the review itself budgets 180s but runs DETACHED,<br/>ontology-monitor.cjs:41
     OM->>OM: not runInForeground: fork a detached child via spawn, stdio ignored<br/>except a logfile, unref, exit 0 at once — ontology-monitor.cjs:244-266
-    Note over OM: master switch AGENTBOX_ONTOLOGY_MONITOR seeded by entrypoint-unified.sh:1353<br/>so the hook is never a registered no-op — see AB-08.11
+    Note over OM: master switch AGENTBOX_ONTOLOGY_MONITOR seeded by entrypoint-unified.sh:1354<br/>so the hook is never a registered no-op — see AB-08.11
     CC->>AD: PER-PROFILE ONLY: session-end, timeout 10000<br/>stacks.rs:78 and :43
     end
     rect rgb(255,245,235)
     Note over CC,TR: Stop and SubagentStop
-    CC->>NM: node HOOK Stop, timeout 8 seconds<br/>entrypoint-unified.sh:1288
+    CC->>NM: node HOOK Stop, timeout 8 seconds<br/>entrypoint-unified.sh:1289
     NM-->>CC: body is the last assistant text from transcript_path — Stop IS the default<br/>mirroredEvents entry, nostr-live-mirror.cjs:302-306, scan at :250-264, see AB-13.9
-    CC->>TS: node HOOK Stop #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:1491
-    CC->>TR: inline env prefix + node HOOK EVENT, timeout 10 seconds<br/>entrypoint-unified.sh:1630, env prefix built at :1610-1613
+    CC->>TS: node HOOK Stop #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:1492
+    CC->>TR: inline env prefix + node HOOK EVENT, timeout 10 seconds<br/>entrypoint-unified.sh:1631, env prefix built at :1611-1614
     alt both gates on
         TR->>TR: handleClose on Stop or SubagentStop<br/>trajectory-recorder.cjs:569-571, see AB-08.13
     else either gate off — the default
         TR-->>CC: return 0 immediately :559-561, byte-identical to no hook present
     end
-    Note over CC,TR: INVARIANT: registration itself is gated, not just the body —<br/>gate off de-registers over all 4 legacy events entrypoint-unified.sh:1649
+    Note over CC,TR: INVARIANT: registration itself is gated, not just the body —<br/>gate off de-registers over all 4 legacy events entrypoint-unified.sh:1650
     end
 ```
 
@@ -279,13 +280,13 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant EP as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:1390
+    participant EP as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:1391
     participant TSD as trust-seed.cjs main#40;#41;<br/>agentbox/config/hooks/trust-seed.cjs:74
     participant FS as filesystem
     participant CFG as ~/.claude.json<br/>trust-seed.cjs:31
 
-    Note over EP,TSD: runs ONCE at boot, gated AGENTBOX_TRUST_SEED!=0 (:1391), never as a<br/>SessionStart hook — it walked ~1,170 paths/session (avg 3.2s) and raced Claude<br/>Code's own ~/.claude.json writes (:1385-1386). Callable by hand post-boot for a<br/>new worktree: node trust-seed.cjs #60;path#62; (:1388)
-    EP->>TSD: node trust-seed.cjs #91;--depth N#93; #91;--dry-run#93; #91;extra-path...#93; (:1392, parseArgs :34-43)
+    Note over EP,TSD: runs ONCE at boot, gated AGENTBOX_TRUST_SEED!=0 (:1392), never as a<br/>SessionStart hook — it walked ~1,170 paths/session (avg 3.2s) and raced Claude<br/>Code's own ~/.claude.json writes (:1386-1387). Callable by hand post-boot for a<br/>new worktree: node trust-seed.cjs #60;path#62; (:1389)
+    EP->>TSD: node trust-seed.cjs #91;--depth N#93; #91;--dry-run#93; #91;extra-path...#93; (:1393, parseArgs trust-seed.cjs:34-43)
     TSD->>FS: findRepos#40;WORKSPACE, depth=5, #91;#93;#41; recursive walk (:61-72)
     loop each dir entry, skip node_modules#124;target#124;.git#124;dist#124;build#124;.tmp#124;.cache#124;.venv#124;venv (:32,66)
         FS->>TSD: isProjectDir#40;p#41; = isGitRoot#40;p#41; OR has Cargo.toml#124;package.json#124;pyproject.toml#124;flake.nix#124;justfile (:45-59)
@@ -491,7 +492,7 @@ flowchart TD
     HO --> H1 & H2
     TR["trajectory-recorder.cjs<br/>agentbox/config/hooks/trajectory-recorder.cjs:47<br/>ONLY consumer of trajectory-util.cjs"]
     NM["nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:44<br/>ONLY consumer of egress-policy.cjs"]
-    RBG["ruvnet-brain-ground.cjs:123<br/>+ hooks/skill-route.cjs:25 — BOTH consumers of hook-output.cjs"]
+    RBG["ruvnet-brain-ground.cjs:123<br/>+ hooks/skill-route.cjs:27 — BOTH consumers of hook-output.cjs"]
     F7 --> TR
     G1 & G2 & G3 & G4 --> NM
     H1 & H2 --> RBG
@@ -503,53 +504,50 @@ flowchart TD
 
 Session-mirror egress: see AB-13.9.
 
-## AB-08.15 A third registration mechanism: the jev-compaction function-hook plugin (ADR-2093), now tainting at the source
+## AB-08.15 A third registration mechanism: the factrail function-hook plugin (ADR-2093, implemented by ADR-2121)
 ```mermaid
 sequenceDiagram
     autonumber
-    participant EP as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:2313
+    participant NIX as factrailPkg<br/>lib/factrail.nix:36
+    participant EP as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:2334
+    participant MIG as migrate<br/>scripts/factrail-store-migrate.mjs:74
     participant CC as Claude Code engine
-    participant REG as register<br/>config/claude-plugins/jev-compaction/hooks/jev-compaction.ts:226
+    participant SHIM as factrail shim plus binary
     participant J as System One judge
-    participant S as plugin store
 
-    EP->>CC: set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS in settings.json env (:2332)
-    EP->>CC: claude plugin install jev-compaction@agentbox with an EXPANDED manifest userConfig<br/>#40;taintTools, taintSkills, compactAtPercent, cacheWarm, keepThreshold, minReductionRatio...#41; (:2354-2365,2405)
-    Note over EP,CC: reinstall triggers on EITHER a code hash change OR a config hash change (:2391,2394),<br/>gate off retracts both - uninstall (:2411-2412) and remove the marketplace (:2416-2419),<br/>ADR-2020 byte-identical-when-off
-    CC->>REG: load the module, register SEVEN events (grew from 4)
-    REG->>CC: session.start registers the /jev-compact command, PRUNES stale taint/baseline<br/>store keys older than 30 days (jev-compaction.ts:236-252)
-    par taint at the SOURCE, before session.compact ever runs
-        CC->>REG: tool.call — mark the session STICKY-tainted the instant an email tool fires (jev-compaction.ts:258-264)
-    and
-        CC->>REG: skill.prompt — mark tainted the instant an email skill expands (jev-compaction.ts:266-270)
-    end
-    REG->>CC: command.run for the /jev-compact switch, reports the sticky taint via sessionTaint#40;#41; (jev-compaction.ts:273-292)
-    REG->>CC: turn.complete, self-triggers a compaction above the hysteresis-aware threshold (jev-compaction.ts:353-382)
-    REG->>CC: session.compact, the judged path (jev-compaction.ts:301)
-    CC->>REG: session.compact with the transcript
-    REG->>REG: sessionTaint#40;#41; checks the STICKY flag set by tool.call/skill.prompt,<br/>ORed with a fresh scanTaint#40;#41; over this batch (jev-compaction.ts:313, sessionTaint fn :184-190)
-    alt disabled, no key, or tainted and the backend is not declared local
-        REG-->>CC: next(event), the BUILT-IN summary runs (jev-compaction.ts:316-320)
+    NIX->>NIX: build DreamLab-AI/factrail at one pinned 40-char rev, vendored lockfile,<br/>whole-workspace tests in the build (lib/factrail.nix:36, :52, :60)
+    NIX->>EP: flake.nix links /opt/agentbox/bin/factrail and bakes the shim as<br/>config/claude-plugins/factrail, both only when the gate is on (flake.nix:1802, flake.nix:1858)
+    EP->>CC: set or clear CLAUDE_CODE_ENABLE_FUNCTION_HOOKS in settings.json env (:2343)
+    EP->>CC: uninstall any retired jev-compaction@agentbox WHATEVER the gate (:2352-2358)
+    Note over EP,CC: two compaction plugins on one session.compact chain would both act,<br/>ADR-2121-factrail-implements-jev-compaction.md:83-84
+    EP->>MIG: gate on and plugin plus binary baked (:2359), run the store migration (:2363)
+    MIG->>MIG: copy every tainted taint-session record and an unset switch position from<br/>jev-compaction's store into factrail's, rename the old file .migrated (factrail-store-migrate.mjs:86-104)
+    EP->>EP: project each manifest pair only if the baked plugin declares it, skip empty values<br/>_jc_project (:2381), binary = the stable /opt path, never a store path (:2389)
+    EP->>CC: claude plugin install factrail@agentbox with that userConfig (:2436)
+    Note over EP,CC: reinstall on a change of plugin code, userConfig OR the binary's own hash<br/>(:2371, :2425), gate off uninstalls and drops the marketplace (:2448-2453),<br/>ADR-2020 byte-identical-when-off
+    CC->>SHIM: load the shim, which registers seven events and delegates every decision<br/>to the binary over a versioned stdin-stdout protocol<br/>(ADR-2121-factrail-implements-jev-compaction.md:42-47, README.md:78)
+    CC->>SHIM: tool.call and skill.prompt mark a session STICKY-tainted at the source
+    CC->>SHIM: session.compact with the transcript
+    alt tainted and the judge is the cloud one
+        SHIM-->>CC: compacted on LOCAL fact rails, nothing sent (fallback rules, agentbox.toml:705)
     else judged
-        REG->>J: two scores per non-pinned tool call, keep the call and keep its result
-        J-->>REG: per-call answers
-        REG->>REG: decideCall maps them to keep, drop_result or drop_call (lib/compact.ts:101-114)
-        alt reduction below minReductionRatio
-            REG-->>CC: next(event), built-in summary (jev-compaction.ts:332-334)
-        else
-            REG-->>CC: messages kept verbatim, nothing rewritten (jev-compaction.ts:337-339)
-        end
+        SHIM->>J: text, capped tool inputs and only ok-or-error plus a size per result
+        J-->>SHIM: keep the call, keep its result verbatim
+        SHIM-->>CC: what Jev lets go is REDUCED, not deleted - head, fact lines and tail kept,<br/>full output saved with the path in the note (agentbox.toml:648-652)
     end
-    REG->>S: record the outcome note for /jev-compact status, plus a pending hysteresis<br/>baseline write whenever the compaction lands on the main conversation (jev-compaction.ts:301-309,332-338)
 ```
 
-**What it shows.** A plugin is neither a shell hook in `config/hooks/` nor an MCP server: the engine loads the module in process, and nothing in the hooks directory registers it.
-**Why it is this way.** ADR-2093 wanted compaction to drop and truncate tool calls rather than rewrite text, which the `settings.json` hook contract cannot express (`../project/agentbox/config/hooks/README.md:68-73`).
+**What it shows.** A plugin is neither a shell hook in `config/hooks/` nor an MCP server: the engine loads the shim in process, the shim hands every decision to a Rust binary, and nothing in the hooks directory registers either. Since ADR-2121 (2026-10-02) both halves come from one pinned factrail commit baked into the image, and the vendored `jev-compaction` plugin is deleted and actively uninstalled.
+**Why it is this way.** ADR-2093 wanted compaction to drop and truncate tool calls rather than rewrite text, which the `settings.json` hook contract cannot express (`../project/agentbox/config/hooks/README.md:68-73`); ADR-2121 kept that policy and replaced the implementation, because fact rails kept 50 of 50 pre-registered facts where the deleting plugin kept 4 (`../project/agentbox/docs/adr/ADR-2121-factrail-implements-jev-compaction.md:29-32`).
 
-**Drift:** `hooks/README.md:77` still lists jev-compaction's events as `session.compact, turn.complete, session.start, command.run` — the plugin now also registers `tool.call` and `skill.prompt` (taint-at-source) and `turn.start` (cache-warm nudge reset), seven events total (`../project/agentbox/config/claude-plugins/jev-compaction/hooks/jev-compaction.ts:258,266,348`).
+**Drift (resolved 2026-10-02):** `hooks/README.md` listed four plugin events where the plugin registered seven; it now lists all seven for `factrail` (`../project/agentbox/config/hooks/README.md:78`).
 
-**Invariant:** an email-tainted transcript is never sent to the judge unless the backend is declared local by the manifest gate, `backendLocal` is EXPLICIT (never inferred from a URL string) and defaults FALSE on any non-boolean value; the decision moved into a dedicated `decide()` (`../project/agentbox/config/claude-plugins/jev-compaction/hooks/policy.mjs:106-114`, parsed at `../project/agentbox/config/claude-plugins/jev-compaction/hooks/jev-compaction.ts:115`).
+**Invariant:** the sticky email taint survives the change of plugin — the boot migration only widens taint and never overwrites factrail's own switch (`../project/agentbox/scripts/factrail-store-migrate.mjs:86-94`), and it runs before the install (`../project/agentbox/config/entrypoint-unified.sh:2363`).
 
-**Invariant:** every failure path in the `session.compact` handler returns `next(event)` (the built-in summary), whether the reason is disabled/no-key/tainted or a thrown error (`../project/agentbox/config/claude-plugins/jev-compaction/hooks/jev-compaction.ts:316-320,344`).
+**Invariant:** the shim and the binary can never disagree on the hook protocol, because one `rev` supplies both and the plugin's `binary` option is the stable `/opt/agentbox/bin/factrail` path (`../project/agentbox/lib/factrail.nix:36`, `../project/agentbox/config/entrypoint-unified.sh:2389`).
+
+**Open:** the shim's event handlers and the binary's fact-rail logic live in the factrail repository, which this corpus does not map, so no claim about them here is checked at a revision; the events and the fence are cited from the agentbox README and ADR-2121 only (`../project/agentbox/docs/adr/ADR-2121-factrail-implements-jev-compaction.md:42-47`).
+
+**Open:** ADR-2121 is `activation_status: staged` — no image with factrail has yet been built and booted, and the residency soak that gates `live` has not run (`../project/agentbox/docs/adr/ADR-2121-factrail-implements-jev-compaction.md:139-141`).
 
 **Debt:** three registration mechanisms now decide what runs on a session boundary (the entrypoint's root `settings.json`, `stacks.rs` per profile, and the plugin marketplace), and only the README relates them (`../project/agentbox/config/hooks/README.md:50-58`).

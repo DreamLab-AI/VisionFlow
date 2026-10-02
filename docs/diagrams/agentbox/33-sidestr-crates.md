@@ -11,7 +11,8 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2106-sidestr-crates-are-agpl-derivatives-of-siding-published-and-consumed.md
   - ../project/agentbox/docs/developer/licensing.md
   - ../project/agentbox/docs/BASELINE-container.md
-verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
+  - ../project/agentbox/lib/sidestr-agent.nix
+verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
 ---
 
 ## For developers
@@ -54,3 +55,5 @@ flowchart TB
 ```
 
 **Open:** `solid-pod-rs` becomes AGPL-3.0 in effect the moment it links `sidestr-core` for `AnchorConfirmer`, and its manifest must say so before that edge is added — the edge does not exist yet (`../project/agentbox/docs/adr/ADR-2106-sidestr-crates-are-agpl-derivatives-of-siding-published-and-consumed.md:65-67`).
+
+**Tension (ADR-2112 vs lib/sidestr-agent.nix):** the record says agentbox consumes the sidestr crates from crates.io only, never by path or git dependency (`../project/agentbox/docs/adr/ADR-2112-sidestr-crates-live-in-sidestr-rs.md:39-41`); since `d0fa1b80b` the image bakes the `sidestr-agent` binary for the faucet by fetching sidestr-rs from GitHub at a pinned commit (`../project/agentbox/lib/sidestr-agent.nix:30-37`). It links no agentbox crate, so the permissive boundary holds, but the build source is a git revision, not crates.io.

@@ -34,7 +34,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/ssrf.rs
   - ../solid-pod-rs/.github/workflows/ci.yml
   - ../solid-pod-rs/scripts/parity-check.sh
-verified_commit: 1d9da5270
+verified_commit: 6d2e5b0d2e00fc2c9fa1e4984b8582cfa0d48556
 ---
 
 ## SP-10.1 The seven baseline invariants and where each lives in code
@@ -152,11 +152,11 @@ flowchart LR
         GIT["the git feature, and therefore all provenance<br/>crates/solid-pod-rs-server/Cargo.toml:123"]
         FORGE["the forge<br/>crates/solid-pod-rs-server/Cargo.toml:155"]
         TLS["TLS<br/>crates/solid-pod-rs-server/Cargo.toml:126"]
-        ORG["the acl:origin gate<br/>crates/solid-pod-rs/Cargo.toml:159"]
+        ORG["the acl:origin gate<br/>crates/solid-pod-rs/Cargo.toml:160"]
         OIDC["OIDC routes — auth.oidc_enabled defaults false<br/>solid-pod-rs/src/config/schema.rs:190"]
         QUOTA["quota — default_quota_bytes 0 means off<br/>solid-pod-rs/src/config/schema.rs:289"]
     end
-    ON["ON in a default library build: fs and memory backends,<br/>the tokio runtime, the notifications stack<br/>crates/solid-pod-rs/Cargo.toml:98"]
+    ON["ON in a default library build: fs and memory backends,<br/>the tokio runtime, the notifications stack<br/>crates/solid-pod-rs/Cargo.toml:99"]
 
     OFF --> POSTURE["a bare solid-pod-rs-server serves LDP under WAC and NIP-98,<br/>and opens nothing else"]
     ON --> POSTURE
@@ -202,7 +202,7 @@ flowchart LR
     R1["README: 'every write to a pod is a git-mark commit'<br/>— true only with --features git<br/>solid-pod-rs-server/src/lib.rs:3668"]
     R2["README: 'the exit right sits in the floor' — GET /api/exports/all is behind<br/>the default-off export-jsonld feature<br/>crates/solid-pod-rs-server/Cargo.toml:145"]
     R3["ecosystem-integration: 'S3 is configuration/dependency scaffolding only'<br/>— the S3 variant no longer exists in StorageBackendConfig<br/>solid-pod-rs-server/src/main.rs:139"]
-    R4["ecosystem-integration: consumers pin solid-pod-rs 0.4 — the workspace is at<br/>0.5.0-alpha.9<br/>../solid-pod-rs/Cargo.toml:15"]
+    R4["ecosystem-integration: consumers pin solid-pod-rs 0.4 — the workspace is at<br/>0.5.0-alpha.10<br/>../solid-pod-rs/Cargo.toml:15"]
     R5["README: forge 'Phases 0-3 shipped' — Phases 4-7 are feature scaffolds that<br/>compile, not implementations<br/>crates/solid-pod-rs-server/Cargo.toml:156"]
     R6["README: '97.6% strict JSS parity' — computed by a script over a curated<br/>checklist, not by an executable conformance suite<br/>../solid-pod-rs/scripts/parity-check.sh:7"]
 

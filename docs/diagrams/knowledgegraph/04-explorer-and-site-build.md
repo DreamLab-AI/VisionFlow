@@ -15,9 +15,10 @@ sources:
   - ../knowledgeGraph/docs/architecture/explorer.md
   - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
   - ../visionGraph/publishing-tools/WasmVOWL/modern/package.json
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/types/scope.ts
   - ../visionGraph/.github/workflows/publish.yml
   - ../knowledgeGraph/archive/github-workflows/build.yml
-verified_commit: {knowledgegraph: 3a266fc3a2edb91f84ecc794718b87dd44c79417, visiongraph: ac6274f9f5e12375f92086ccb9adba50c965ecf9}
+verified_commit: {knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visiongraph: 015ca2c1f2d7289955ebf16b98b6775a57ec0f7b}
 ---
 
 ## KG-04.1 Explorer topology — MIT viewer over AGPL-built, ODbL-licensed data
@@ -49,7 +50,7 @@ sequenceDiagram
 
     GP->>GP: fetch tier for current URL<br/>T0 overview.json · T1 domain-*.bin · T2 ego #40;client-derived#41;
     GP->>SCOPE: build GraphScope + RenderModel
-    SCOPE->>SCOPE: assertScope#40;#41; — throws RangeError over MAX_NODES/MAX_EDGES/FOCUS_MAX<br/>scope.ts:144-155
+    SCOPE->>SCOPE: assertScope#40;#41; — throws RangeError over MAX_NODES/MAX_EDGES/FOCUS_MAX<br/>explorer/modern/src/types/scope.ts:144-155
     SCOPE->>WK: mint NGG1 buffer #40;T0/T2 serialised client-side#41;
     WK->>NGG: loadCsr#40;buffer#41;, then tick loop #40;16ms#41;
     NGG-->>WK: positions #40;Float32Array over WASM linear memory#41;
@@ -62,12 +63,12 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    INV["INVARIANTS — scope.ts:30-36"]
+    INV["INVARIANTS — explorer/modern/src/types/scope.ts:30-36"]
     MN["MAX_NODES: 1500"]
     ME["MAX_EDGES: 4000"]
     FM["FOCUS_MAX: 300"]
     INV --> MN & ME & FM
-    ASSERT["assertScope#40;#41; — scope.ts:144<br/>throws RangeError on any over-budget scope"]
+    ASSERT["assertScope#40;#41; — explorer/modern/src/types/scope.ts:144<br/>throws RangeError on any over-budget scope"]
     MN --> ASSERT
     ME --> ASSERT
     FM --> ASSERT
@@ -107,9 +108,10 @@ flowchart TB
         SPKG["WasmVOWL/modern/package.json:20<br/>@dreamlab-ai/vowl-wasm — npm registry<br/>'0.1.2'"]
     end
     BUILDYML["this repo's build.yml — RETIRED, INERT<br/>archive/github-workflows/build.yml:1<br/>moved out of .github/workflows/ #40;its ontology/ target<br/>had already moved to archive/#41; — never builds explorer/"]
-    PUBYML["visionGraph publish.yml:371<br/>'Build the explorer SPA' step builds THIS SPA — EXTERNAL VG-03.3"]
-    SITE["narrativegoldmine.com<br/>external_repository DreamLab-AI/knowledgeGraph gh-pages<br/>EXTERNAL publish.yml:448"]
+    PUBYML["visionGraph publish.yml:376<br/>'Build the explorer SPA' step builds THIS SPA — EXTERNAL VG-03.3"]
+    SITE["narrativegoldmine.com<br/>external_repository DreamLab-AI/knowledgeGraph gh-pages<br/>EXTERNAL publish.yml:453"]
     HERE -.->|"built by NOTHING in this repo — even the retired workflow is inert"| BUILDYML
     SHIP --> PUBYML --> SITE
     note1["DOC-DRIFT: KG-04.1 through KG-04.4 document explorer/modern as THE explorer —<br/>accurate for what the source code says, but this copy is never built or<br/>deployed by anything in this repository, and the one workflow that once<br/>tried #40;build.yml#41; is now retired to archive/ — see VG-06 for the<br/>shipping tree's own topic. The two trees have DIVERGED on the one<br/>dependency both pin: HPKG v0.1.1 #40;tarball#41; vs SPKG '0.1.2' #40;npm#41;"]
+    note2["DIVERGED on domains since 2026-10-01: THIS copy's DOMAIN_SLUGS has six<br/>entries, explorer/modern/src/types/scope.ts:73-80 — the shipping tree has<br/>eight, WasmVOWL/modern/src/types/scope.ts:75-84 — see VG-06.5"]
 ```

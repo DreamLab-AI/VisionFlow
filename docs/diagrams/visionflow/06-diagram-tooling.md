@@ -28,7 +28,7 @@ sources:
   - docs/adr/ADR-2004-diagram-baseline-vendored-render-gate.md
   - docs/BASELINE-visionflow.md
   - docs/site-verification.md
-verified_commit: d4e44298646768a4b19af359119e16a6884fa80d
+verified_commit: e5987acc8337ddd64c72f775750d61fef46d8e0b
 ---
 
 ## VF-06.1 Two diagram pipelines, one repository — what each owns
@@ -55,14 +55,14 @@ flowchart TB
     subgraph B["Pipeline B — this diagrams-as-code tree"]
         direction TB
         BS["docs/diagrams/AREA/NN-*.md<br/>frontmatter plus fenced mermaid blocks"]:::pipeB
-        BGEN["diagram-index-gen.cjs main IIFE — walk, parse,<br/>validate, optionally render and index<br/>diagram-index-gen.cjs:788"]:::pipeB
-        BALLOW["citation-allowlist.json — loadAllowlist waives the revision<br/>requirement for one named citation, never the line checks<br/>diagram-index-gen.cjs:379"]:::pipeB
-        BVER["--strict-citations writes VERIFICATION.md — verified,<br/>unverified, unresolvable and allowlisted counts, plus a<br/>declared-revisions anchor<br/>writeVerificationReport diagram-index-gen.cjs:440"]:::pipeB
-        BCHKV["--check-verification (hosted CI) — refuses a VERIFICATION.md<br/>written against revisions the tree no longer declares<br/>diagram-index-gen.cjs:833"]:::pipeB
-        BREND["docs/diagrams/rendered/ via mmdc,<br/>gitignored and regenerable<br/>outDir at diagram-index-gen.cjs:691"]:::pipeB
-        BIDX["docs/diagrams/README.md index block<br/>plus COVERAGE.md inverted indexes<br/>writeIndexes at diagram-index-gen.cjs:715, COVERAGE.md written :784"]:::pipeB
+        BGEN["diagram-index-gen.cjs main IIFE — walk, parse,<br/>validate, optionally render and index<br/>diagram-index-gen.cjs:789"]:::pipeB
+        BALLOW["citation-allowlist.json — loadAllowlist waives the revision<br/>requirement for one named citation, never the line checks<br/>diagram-index-gen.cjs:380"]:::pipeB
+        BVER["any --cite-check run writes VERIFICATION.md — verified,<br/>unverified, unresolvable and allowlisted counts, plus a<br/>declared-revisions anchor<br/>writeVerificationReport diagram-index-gen.cjs:441"]:::pipeB
+        BCHKV["--check-verification (hosted CI) — refuses a VERIFICATION.md<br/>written against revisions the tree no longer declares<br/>diagram-index-gen.cjs:834"]:::pipeB
+        BREND["docs/diagrams/rendered/ via mmdc,<br/>gitignored and regenerable<br/>outDir at diagram-index-gen.cjs:692"]:::pipeB
+        BIDX["docs/diagrams/README.md index block<br/>plus COVERAGE.md inverted indexes<br/>writeIndexes at diagram-index-gen.cjs:716, COVERAGE.md written :785"]:::pipeB
         BS --> BGEN
-        BGEN -->|"--strict-citations"| BALLOW --> BVER
+        BGEN -->|"--cite-check"| BALLOW --> BVER
         BVER -.->|"CI freshness gate"| BCHKV
         BGEN -->|"--render"| BREND
         BGEN -->|"no --check, no --only"| BIDX
@@ -288,7 +288,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CLI as main IIFE<br/>diagram-index-gen.cjs:788
+    participant CLI as main IIFE<br/>diagram-index-gen.cjs:789
     participant W as walk<br/>diagram-index-gen.cjs:112
     participant P as parseTopic<br/>diagram-index-gen.cjs:190
     participant F as parseFrontmatter<br/>diagram-index-gen.cjs:141
@@ -309,18 +309,18 @@ sequenceDiagram
 flowchart TB
     I["Topic input"] --> P["Structural parse and duplicate checks<br/>diagram-index-gen.cjs:190"]
     P --> ERR["Accumulated errors"]
-    I --> C["Citation and symbol diagnostics<br/>citeCheck diagram-index-gen.cjs:488<br/>symbolCheck diagram-index-gen.cjs:616"]
-    C --> WAIVE{"allowMatch against<br/>citation-allowlist.json?<br/>diagram-index-gen.cjs:400"}
-    WAIVE -->|yes| NOTE["counted allowlisted, printed with its reason;<br/>never folded into verified or into warnings<br/>diagram-index-gen.cjs:509"]
+    I --> C["Citation and symbol diagnostics<br/>citeCheck diagram-index-gen.cjs:489<br/>symbolCheck diagram-index-gen.cjs:617"]
+    C --> WAIVE{"allowMatch against<br/>citation-allowlist.json?<br/>diagram-index-gen.cjs:401"}
+    WAIVE -->|yes| NOTE["counted allowlisted, printed with its reason;<br/>never folded into verified or into warnings<br/>diagram-index-gen.cjs:510"]
     WAIVE -->|no| STRICT{"strict-citations?"}
     STRICT -->|yes| ERR
-    STRICT -->|no| WARN["Advisory warnings remain visible,<br/>per-citation reason tracked: unverified,<br/>unresolvable or allowlisted<br/>diagram-index-gen.cjs:421"]
-    C --> VER["--strict-citations always writes VERIFICATION.md,<br/>whatever the verdict<br/>diagram-index-gen.cjs:440"]
-    I --> R["Optional render and width checks<br/>diagram-index-gen.cjs:856"]
+    STRICT -->|no| WARN["Advisory warnings remain visible,<br/>per-citation reason tracked: unverified,<br/>unresolvable or allowlisted<br/>diagram-index-gen.cjs:422"]
+    C --> VER["every --cite-check run writes VERIFICATION.md,<br/>whatever the verdict, strict or not, and under --only<br/>diagram-index-gen.cjs:816 and diagram-index-gen.cjs:829"]
+    I --> R["Optional render and width checks<br/>diagram-index-gen.cjs:857"]
     R --> ERR
-    ERR --> FAIL["Exit 1 when errors exist<br/>diagram-index-gen.cjs:861"]
+    ERR --> FAIL["Exit 1 when errors exist<br/>diagram-index-gen.cjs:862"]
     MODE["Strict citations reject no-source-paths<br/>diagram-index-gen.cjs:106"] --> STRICT
-    LIMIT["A strict pass establishes citation hygiene;<br/>semantic and deployment evidence remain separate.<br/>An allowlist entry that matches nothing is stale<br/>and fails the run rather than broadening silently<br/>diagram-index-gen.cjs:604"]
+    LIMIT["A strict pass establishes citation hygiene;<br/>semantic and deployment evidence remain separate.<br/>An allowlist entry that matches nothing is stale<br/>and fails the run rather than broadening silently<br/>diagram-index-gen.cjs:605"]
     WARN --> LIMIT
     NOTE --> LIMIT
 ```
@@ -329,33 +329,33 @@ flowchart TB
 ```mermaid
 flowchart TB
     A["Mermaid source"] --> SCAN["Dotted path plus line/range scan<br/>CITE_RE diagram-index-gen.cjs:284"]
-    SCAN --> MATCH["Exact sources: entry wins; otherwise the unique<br/>suffix match; zero or >1 hits is unresolvable/ambiguous<br/>diagram-index-gen.cjs:516"]
+    SCAN --> MATCH["Exact sources: entry wins; otherwise the unique<br/>suffix match; zero or >1 hits is unresolvable/ambiguous<br/>diagram-index-gen.cjs:517"]
     MATCH --> EXIST["existsForTopic — worktree first, else<br/>git cat-file -e &lt;sha&gt;:&lt;path&gt; at the topic's<br/>declared revision for that repo<br/>diagram-index-gen.cjs:172"]
-    MATCH --> MODE["revisionLines chooses source bytes<br/>diagram-index-gen.cjs:342"]
-    MODE --> PIN["declared revision: git show &lt;sha&gt;:&lt;path&gt;<br/>— 'verified at revision'<br/>diagram-index-gen.cjs:356"]
-    MODE --> WT["no repo mapping, no sha for repo, or a failed<br/>git show — falls back to the working tree,<br/>each reason tracked separately<br/>— 'unverified (working-tree fallback)'<br/>diagram-index-gen.cjs:346"]
+    MATCH --> MODE["revisionLines chooses source bytes<br/>diagram-index-gen.cjs:343"]
+    MODE --> PIN["declared revision: git show &lt;sha&gt;:&lt;path&gt;<br/>— 'verified at revision'<br/>diagram-index-gen.cjs:357"]
+    MODE --> WT["no repo mapping, no sha for repo, or a failed<br/>git show — falls back to the working tree,<br/>each reason tracked separately<br/>— 'unverified (working-tree fallback)'<br/>diagram-index-gen.cjs:347"]
     MODE --> WTFLAG["--worktree-citations: current working tree only,<br/>by explicit flag, not fallback"]
-    PIN --> READ["Check line bounds and anchors<br/>diagram-index-gen.cjs:539"]
-    WT --> WAIVE{"allowMatch in citation-allowlist.json?<br/>diagram-index-gen.cjs:400"}
-    WAIVE -->|yes| ALLOWED["counted allowlisted, never verified;<br/>line checks still run against it<br/>diagram-index-gen.cjs:529"]
-    WAIVE -->|no| UNVER["counted unverified, reason recorded<br/>diagram-index-gen.cjs:531"]
+    PIN --> READ["Check line bounds and anchors<br/>diagram-index-gen.cjs:540"]
+    WT --> WAIVE{"allowMatch in citation-allowlist.json?<br/>diagram-index-gen.cjs:401"}
+    WAIVE -->|yes| ALLOWED["counted allowlisted, never verified;<br/>line checks still run against it<br/>diagram-index-gen.cjs:530"]
+    WAIVE -->|no| UNVER["counted unverified, reason recorded<br/>diagram-index-gen.cjs:532"]
     ALLOWED --> READ
     UNVER --> READ
     WTFLAG --> READ
-    A --> BARE["Bare-line context from explicit citations and participant bindings<br/>diagram-index-gen.cjs:563"]
+    A --> BARE["Bare-line context from explicit citations and participant bindings<br/>diagram-index-gen.cjs:564"]
     BARE --> READ
-    A --> SYMBOL["Function-labelled participant checked against a unique definition<br/>symbolCheck diagram-index-gen.cjs:616"]
+    A --> SYMBOL["Function-labelled participant checked against a unique definition<br/>symbolCheck diagram-index-gen.cjs:617"]
     READ --> DIAG["Diagnostic: ambiguous, missing, unreadable, out of bounds or empty anchor"]
     SYMBOL --> DIAG
-    DIAG --> EXIT["Strict mode adds diagnostics to errors<br/>diagram-index-gen.cjs:831"]
+    DIAG --> EXIT["Strict mode adds diagnostics to errors<br/>diagram-index-gen.cjs:832"]
     LIMIT["Context inference and brace counting are heuristics.<br/>A real source line can still support the wrong claim.<br/>An allowlist waiver is of the revision requirement<br/>alone, never of whether the cited line is right."] --> EXIT
 ```
 
 ## VF-06.11 Render invocation and width boundary
 ```mermaid
 sequenceDiagram
-    participant G as renderAll<br/>diagram-index-gen.cjs:687
-    participant R as renderOne<br/>diagram-index-gen.cjs:662
+    participant G as renderAll<br/>diagram-index-gen.cjs:688
+    participant R as renderOne<br/>diagram-index-gen.cjs:663
     participant M as mmdc
     participant O as rendered topic directory
     G->>G: queue blocks with bounded worker concurrency
@@ -377,7 +377,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant CI as "diagram-index.yml job index"
-    participant G as writeIndexes<br/>diagram-index-gen.cjs:715
+    participant G as writeIndexes<br/>diagram-index-gen.cjs:716
     participant T as "tests/gates/diagram-index.test.cjs"
     participant RM as "docs/diagrams/README.md"
     participant CV as "docs/diagrams/COVERAGE.md"
@@ -405,14 +405,14 @@ sequenceDiagram
     rect rgb(245, 232, 250)
     Note over CI,CV: "STEP 3 — the local strict-citations run must be fresh"
     CI->>CV: "diagram-index-gen.cjs docs/diagrams --check --no-source-paths<br/>--check-verification<br/>diagram-index.yml:61"
-    Note over CV: "recomputes declaredRevisions from frontmatter alone (no source<br/>access) and refuses VERIFICATION.md if its declared-revisions<br/>anchor no longer matches — also checks citation-allowlist.json<br/>is well formed and names real topics<br/>diagram-index-gen.cjs:833"
+    Note over CV: "recomputes declaredRevisions from frontmatter alone (no source<br/>access) and refuses VERIFICATION.md if its declared-revisions<br/>anchor no longer matches — also checks citation-allowlist.json<br/>is well formed and names real topics<br/>diagram-index-gen.cjs:834"
     end
 
     rect rgb(250, 244, 228)
     Note over CI,CV: "STEP 4 — the index must already be in sync"
     CI->>CV: "copy COVERAGE.md aside, then regenerate<br/>diagram-index.yml:65"
     G->>RM: "emit topic tables and the regeneration command"
-    G->>CV: "qualify ADR identities by repository<br/>diagram-index-gen.cjs:752"
+    G->>CV: "qualify ADR identities by repository<br/>diagram-index-gen.cjs:753"
     CI->>CI: "diff the copy against the regenerated file, and a mismatch<br/>raises a workflow error saying COVERAGE.md is stale, exit 1<br/>diagram-index.yml:67"
     end
 
@@ -496,3 +496,5 @@ flowchart TB
     DIV["DIVERGENCE: this checker is wired to no workflow and no npm script.<br/>It reads docs/diagrams/rendered/, which is gitignored and regenerable,<br/>so on a fresh checkout every diagram reports render_input_matches false"]:::fail
     E1 -.-> DIV
 ```
+
+**Debt (--only rewrites VERIFICATION.md):** `--only` filters the topic set before anything else (`scripts/diagram-index-gen.cjs:793`) and suppresses the README and COVERAGE writes (`scripts/diagram-index-gen.cjs:867`), but the cite-check block still calls `writeVerificationReport` with the filtered topics (`scripts/diagram-index-gen.cjs:829`); a per-topic `--cite-check --only` run therefore overwrites the committed VERIFICATION.md with one topic's counts and a declared-revisions anchor built from that subset (`scripts/diagram-index-gen.cjs:441`), which `--check-verification` then refuses until a full run rewrites it.

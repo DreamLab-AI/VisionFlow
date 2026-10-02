@@ -17,7 +17,7 @@ sources:
   - ../project/agentbox/config/sidechain/README.md
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
   - ../project/docs/TODO-unified.md
-verified_commit: {sidestr-rs: 3aadeb7a26ff60c18614113bb986c1ba0d33d115, visionflow: e5826a84e37651e3a915fdf6df0b5ad30f2b033d, visionclaw: d5ecd38a2de3012e42509c27b950f6cd17e3fee4, agentbox: 5d5d083e2e77ea448d27e6e2dae95822eb960922}
+verified_commit: {sidestr-rs: cd177ecc08f4907541a55518263bae342f7ba8e5, visionflow: e5987acc8337ddd64c72f775750d61fef46d8e0b, visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047}
 ---
 
 ## For developers
@@ -62,17 +62,17 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    P["Pinned revisions<br/>spec, schema, blaketestnode, Hitch<br/>../sidestr-rs/.github/workflows/ci.yml:14"]
-    RT["Reference project tests<br/>../sidestr-rs/.github/workflows/ci.yml:143"]
-    FX["EVM fixtures regenerated<br/>and checked for drift<br/>../sidestr-rs/.github/workflows/ci.yml:156"]
-    O["Rust oracle and interop suites<br/>../sidestr-rs/.github/workflows/ci.yml:178"]
-    Q["fmt, clippy, tests, rustdoc,<br/>no_std and wasm gates<br/>../sidestr-rs/.github/workflows/ci.yml:41"]
+    P["Pinned revisions<br/>spec, schema, blaketestnode, Hitch, Reef<br/>../sidestr-rs/.github/workflows/ci.yml:14"]
+    RT["Reference project tests<br/>../sidestr-rs/.github/workflows/ci.yml:152"]
+    FX["EVM fixtures regenerated<br/>and checked for drift<br/>../sidestr-rs/.github/workflows/ci.yml:165"]
+    O["Rust oracle and interop suites<br/>../sidestr-rs/.github/workflows/ci.yml:187"]
+    Q["fmt, clippy, tests, rustdoc,<br/>no_std and wasm gates<br/>../sidestr-rs/.github/workflows/ci.yml:43"]
     P --> RT --> FX --> O --> Q
 ```
 
-**What it shows.** CI checks the reference repositories out at fixed revisions, runs their relevant tests, regenerates the EVM corpus, then runs the Rust workspace against those sources (`../sidestr-rs/.github/workflows/ci.yml:97`, `../sidestr-rs/.github/workflows/ci.yml:162`).
+**What it shows.** CI checks the reference repositories out at fixed revisions, runs their relevant tests, regenerates the EVM corpus, then runs the Rust workspace against those sources (`../sidestr-rs/.github/workflows/ci.yml:99`, `../sidestr-rs/.github/workflows/ci.yml:171`). Since `cd177ecc` a fifth reference joins the ladder: Reef's BIP 21 parser, pinned at `648487a`, is the oracle for `sidestr-wallet`'s payment requests and is handed to the oracle suites alongside Hitch (`../sidestr-rs/.github/workflows/ci.yml:23`, `../sidestr-rs/.github/workflows/ci.yml:127`, `../sidestr-rs/.github/workflows/ci.yml:199`). The same push moved the Hitch pin to `62f8e39` and blaketestnode to `f1da4a6` (`../sidestr-rs/.github/workflows/ci.yml:19`, `../sidestr-rs/.github/workflows/ci.yml:22`).
 
-**Why it is this way.** The reference engine is the compatibility contract. A green Rust-only test suite cannot prove wire or consensus parity on its own (`../sidestr-rs/docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md:27`).
+**Why it is this way.** The reference engine is the compatibility contract. A green Rust-only test suite cannot prove wire or consensus parity on its own (`../sidestr-rs/docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md:27`). **Drift (ADR-0001 vs CI):** the record says CI pins "all four reference repositories", but since `cd177ecc` the workflow pins five: spec, schema, blaketestnode, Hitch and Reef (`../sidestr-rs/docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md:27`, `../sidestr-rs/.github/workflows/ci.yml:24`).
 
 ## SR-01.3 Source, publication and activation are separate states
 
@@ -93,7 +93,7 @@ stateDiagram-v2
 
 **What it shows.** VisionFlow records source implementation as partial while keeping the ecosystem decision proposed and activation inactive (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:98`, `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:112`).
 
-**Why it is this way.** A library can be correct and published without any estate service importing it or any chain activating its rules. The master board closes source parity in N-9 and keeps estate adoption open in N-10 (`../project/docs/TODO-unified.md:100`, `../project/docs/TODO-unified.md:101`).
+**Why it is this way.** A library can be correct and published without any estate service importing it or any chain activating its rules. The master board closes source parity in N-9 and keeps estate adoption open in N-10 (`../project/docs/TODO-unified.md:100`, `../project/docs/TODO-unified.md:101`). Two releases after that closure, `sidestr-wallet` 0.5.1 (BIP 21 with the Reef oracle) and `sidestr-hitch` 0.2.0, are recorded as an annotation on the closed N-9 row, with adoption left under N-10 (`../project/docs/TODO-unified.md:114`).
 
 **Invariant:** source evidence may promote implementation status; it cannot promote activation status.
 

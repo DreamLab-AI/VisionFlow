@@ -58,7 +58,7 @@ sources:
   - ../project/src/services/corpus_source/mod.rs
   - ../project/src/services/corpus_source/local.rs
   - ../project/src/services/corpus_source/github.rs
-verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
+verified_commit: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8
 ---
 
 ## VC-07.1 The hexagon — ports, adapters and where each canonical type lives
@@ -367,7 +367,7 @@ flowchart TB
     B --> T
     AS["AppState::new — src/app_state.rs:577-580<br/>corpus_source = source_from_env_with_github(enhanced_content_api)<br/>GitHubSyncService::new(corpus_source, ...)"]
     B --> AS
-    N1["INVARIANT — change_marker differs by source: SHA1 blob hash for<br/>GitHub, mtime:size on disk for local (src/services/corpus_source/mod.rs:139)<br/>— equal markers across two listings mean unchanged"]
+    N1["INVARIANT — change_marker differs by source: SHA1 blob hash for<br/>GitHub (src/services/corpus_source/github.rs:40), mtime:size on disk for local<br/>(src/services/corpus_source/local.rs:139)<br/>— equal markers across two listings mean unchanged"]
     L --- N1
     G --- N1
     N2["GitHubSyncService::new took EnhancedContentAPI directly before<br/>ADR-2114; the port now sits between it and the sync pipeline so<br/>parse -> dual graph -> Whelk reasoning runs unchanged over either source"]

@@ -40,7 +40,7 @@ sources:
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/routes/linked-objects.js
   - ../project/agentbox/management-api/routes/sessions-boundary.js
-verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
+verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
 ---
 
 ## AB-04.1 resolveAdapters — slot to implementation resolution
@@ -257,13 +257,13 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SV as server.js boot<br/>server.js:1268-1286
+    participant SV as server.js boot<br/>server.js:1278-1296
     participant LC as connectAdapters<br/>adapters/lifecycle.js:217
     participant CO as connectOneSlot<br/>adapters/lifecycle.js:177
     participant AD as adapter.connect()
     participant T as deadline timer<br/>lifecycle.js:193-195
 
-    SV->>LC: connectAdapters(slots, adapters, manifest, logger, resolveOff) — server.js:1270
+    SV->>LC: connectAdapters(slots, adapters, manifest, logger, resolveOff) — server.js:1280
     par all five slots concurrently (lifecycle.js:232)
         LC->>LC: timeoutMs = connectTimeoutFor(slot, manifest) (lifecycle.js:235 and :117)
         alt adapter missing or no connect() hook (lifecycle.js:238)
@@ -284,13 +284,13 @@ sequenceDiagram
         end
     end
     LC-->>SV: readiness map and healthy flag (lifecycle.js:312-313)
-    SV->>SV: app.adapters[slot] = resolvedAdapters[slot] (server.js:1283)
-    SV->>SV: Object.assign(adapterHealth, toLegacyHealth(readiness)) (server.js:1284)
-    SV->>SV: app.decorate('adapterReadiness', readiness) (server.js:1285)
+    SV->>SV: app.adapters[slot] = resolvedAdapters[slot] (server.js:1293)
+    SV->>SV: Object.assign(adapterHealth, toLegacyHealth(readiness)) (server.js:1294)
+    SV->>SV: app.decorate('adapterReadiness', readiness) (server.js:1295)
     Note over LC,T: DEFAULT_CONNECT_TIMEOUT_MS = 10000 — lifecycle.js:70
     Note over LC: Manifest override [adapters] connect_timeout_ms scalar or per-slot map — lifecycle.js:106-107, non-positive values ignored (lifecycle.js:124)
-    Note over SV,LC: INVARIANT: ONE deadline PER SLOT, never one aggregate budget —<br/>adapters/lifecycle.js:217, wired from server.js:1269-1270. Aggregate wall-clock is<br/>bounded by the slowest single slot, not by a race that abandons work in flight<br/>(lifecycle.js:31-35). The old "10 s TOTAL budget" DOC-DRIFT is gone from<br/>BASELINE-container.md — grep finds no server.js line-1222 reference at this commit.<br/>DOC-DRIFT remaining: BASELINE-container.md:90 wires it from server.js line 1241,<br/>but connectAdapters is actually called at server.js:1269-1270.
-    Note over SV,LC: RESOLVED ADR-2035: BASELINE-container.md:90 now documents the<br/>per-slot deadline (lifecycle.js:217, :70, :106-107). The code was<br/>already correct — only the doc changed.
+    Note over SV,LC: INVARIANT: ONE deadline PER SLOT, never one aggregate budget —<br/>adapters/lifecycle.js:217, wired from server.js:1279-1280. Aggregate wall-clock is<br/>bounded by the slowest single slot, not by a race that abandons work in flight<br/>(lifecycle.js:31-35). The old "10 s TOTAL budget" DOC-DRIFT is gone from<br/>BASELINE-container.md — grep finds no server.js line-1222 reference at this commit.<br/>DOC-DRIFT remaining: BASELINE-container.md:93 wires it from server.js line 1241,<br/>but connectAdapters is actually called at server.js:1279-1280.
+    Note over SV,LC: RESOLVED ADR-2035: BASELINE-container.md:93 now documents the<br/>per-slot deadline (lifecycle.js:217, :70, :106-107). The code was<br/>already correct — only the doc changed.
     Note over CO,T: Timeout is a CONNECT FAILURE identical in consequence to an explicit rejection — lifecycle.js:32-33
 ```
 
@@ -300,7 +300,7 @@ sequenceDiagram
     autonumber
     participant LC as connectAdapters<br/>lifecycle.js:217
     participant Q as quarantineAdapter<br/>lifecycle.js:140
-    participant RO as resolveOff callback<br/>server.js:1275-1278
+    participant RO as resolveOff callback<br/>server.js:1285-1288
     participant IDX as resolveAdapters<br/>index.js:169
     participant PX as process.exit(1)<br/>lifecycle.js:307
 
@@ -593,10 +593,10 @@ flowchart TD
         A3 -->|"no"| A5["W0xx dead-policy warning only<br/>DIVERGENCE — advisory, does NOT hard-fail<br/>only structural schema violations reject<br/>BASELINE Known divergences"]
     end
     subgraph S2["Stage 2 boot probe — once per boot"]
-        B1["server.js:1269-1270 require adapters/lifecycle"] --> B2["connectAdapters lifecycle.js:217"]
+        B1["server.js:1279-1280 require adapters/lifecycle"] --> B2["connectAdapters lifecycle.js:217"]
         B2 --> B3["per-slot deadline lifecycle.js:117 and :235"]
         B3 --> B4["ready | disabled | unavailable | off<br/>lifecycle.js:55-66"]
-        B4 --> B5["toLegacyHealth lifecycle.js:324 → adapterHealth server.js:1284"]
+        B4 --> B5["toLegacyHealth lifecycle.js:324 → adapterHealth server.js:1294"]
     end
     subgraph S3["Stage 3 conformance — CI only, never at boot"]
         C1["tests/contract/memory.contract.spec.js"] --> C4["all three impl classes must behave identically"]
@@ -625,38 +625,38 @@ flowchart TD
 sequenceDiagram
     autonumber
     participant OP as operator shell
-    participant SH as cmd_health<br/>agentbox.sh:1132
-    participant H as GET /health<br/>server.js:565-576
-    participant MT as GET /v1/meta<br/>agentbox.sh:1185
+    participant SH as cmd_health<br/>agentbox.sh:1134
+    participant H as GET /health<br/>server.js:575-586
+    participant MT as GET /v1/meta<br/>agentbox.sh:1187
     participant PM as prom-client registry<br/>metrics.js:18 :26 :35
     participant SP as speech sidecars<br/>localhost port 8897 and port 8898
 
     OP->>SH: ./agentbox.sh health
-    SH->>H: curl HEALTH_URL http://localhost:$MGMT_PORT/health (agentbox.sh:619 and :1143)
+    SH->>H: curl HEALTH_URL http://localhost:$MGMT_PORT/health (agentbox.sh:619 and :1145)
     alt curl fails
         H-->>SH: no response
-        SH-->>OP: ERROR could not reach — exit 1 (agentbox.sh:1144-1146)
+        SH-->>OP: ERROR could not reach — exit 1 (agentbox.sh:1146-1148)
     else response received
         H-->>SH: status, uptime, image_hash, manifest_checksum, adapters, degraded_count, note
-        SH->>SH: degraded = jq '.adapters // {} | to_entries[] | select(.value != "healthy" and .value != "off") | .key' (agentbox.sh:1159-1163)
-        SH->>SH: degraded_count = jq '.degraded_count // 0' (agentbox.sh:1164)
-        SH->>SH: print "adapter/<slot>: <value>" from .adapters (agentbox.sh:1168-1171)
+        SH->>SH: degraded = jq '.adapters // {} | to_entries[] | select(.value != "healthy" and .value != "off") | .key' (agentbox.sh:1161-1165)
+        SH->>SH: degraded_count = jq '.degraded_count // 0' (agentbox.sh:1166)
+        SH->>SH: print "adapter/<slot>: <value>" from .adapters (agentbox.sh:1170-1173)
         SH->>MT: curl http://localhost:9090/v1/meta for observability.metrics_endpoint
         MT-->>SH: metrics_endpoint
-        SH->>PM: curl metrics_endpoint, print first 5 non-comment lines (agentbox.sh:1194-1199)
-        SH->>SP: curl -sf http://localhost:8897/health — nemotron-asr (agentbox.sh:1204-1209)
+        SH->>PM: curl metrics_endpoint, print first 5 non-comment lines (agentbox.sh:1196-1201)
+        SH->>SP: curl -sf http://localhost:8897/health — nemotron-asr (agentbox.sh:1206-1211)
         SP-->>SH: healthy or speech_failed=1
-        SH->>SP: curl -sf http://localhost:8898/health — pocket-tts (agentbox.sh:1211-1216)
+        SH->>SP: curl -sf http://localhost:8898/health — pocket-tts (agentbox.sh:1213-1218)
         SP-->>SH: healthy or speech_failed=1
         alt degraded non-empty OR degraded_count > 0 OR speech_failed > 0
-            SH-->>OP: exit 1 (agentbox.sh:1218-1219)
+            SH-->>OP: exit 1 (agentbox.sh:1220-1221)
         else
             SH-->>OP: exit 0
         end
     end
-    Note over H: /health computes degradedCount from adapterHealth (server.js:566) and emits keys<br/>status, uptime, image_hash, manifest_checksum, adapters, degraded_count, note — there<br/>is NO services key
-    Note over SH,H: RESOLVED ADR-2037 — the old finding was that BASELINE-container Adapter spine<br/>stage 4 says "agentbox.sh health exits non-zero if any slot's gauge is 0" while cmd_health<br/>actually read a .services key /health never emitted, leaving the exit-1 branch unreachable<br/>and the agentbox_adapter_health gauge never read. cmd_health now derives failure from<br/>.adapters (a slot fails when its value is neither "healthy" nor "off",<br/>agentbox.sh:1159-1163) plus .degraded_count (agentbox.sh:1164),<br/>so exit 1 at agentbox.sh:1218-1219 is reachable. Same fix as AB-05.7.
-    Note over SH,SP: the exit condition now carries a third term, speech_failed (agentbox.sh:1204,1218):<br/>nemotron-asr and pocket-tts are checked unconditionally by port, independent of the<br/>[adapters] manifest and never surfaced in /health's own adapters map.
-    Note over SH: /health itself warns it is for human inspection only and points orchestrators at /ready (server.js:574)
+    Note over H: /health computes degradedCount from adapterHealth (server.js:576) and emits keys<br/>status, uptime, image_hash, manifest_checksum, adapters, degraded_count, note — there<br/>is NO services key
+    Note over SH,H: RESOLVED ADR-2037 — the old finding was that BASELINE-container Adapter spine<br/>stage 4 says "agentbox.sh health exits non-zero if any slot's gauge is 0" while cmd_health<br/>actually read a .services key /health never emitted, leaving the exit-1 branch unreachable<br/>and the agentbox_adapter_health gauge never read. cmd_health now derives failure from<br/>.adapters (a slot fails when its value is neither "healthy" nor "off",<br/>agentbox.sh:1161-1165) plus .degraded_count (agentbox.sh:1166),<br/>so exit 1 at agentbox.sh:1220-1221 is reachable. Same fix as AB-05.7.
+    Note over SH,SP: the exit condition now carries a third term, speech_failed (agentbox.sh:1206,1220):<br/>nemotron-asr and pocket-tts are checked unconditionally by port, independent of the<br/>[adapters] manifest and never surfaced in /health's own adapters map.
+    Note over SH: /health itself warns it is for human inspection only and points orchestrators at /ready (server.js:584)
     Note over PM: gauge values off 0, degraded 1, healthy 2 via setAdapterHealth metrics.js:202-204
 ```

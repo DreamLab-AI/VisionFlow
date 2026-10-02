@@ -22,7 +22,7 @@ sources:
   - ../project/src/actors/gpu/force_compute_actor.rs
   - ../project/src/actors/gpu/stress_majorization_actor.rs
   - ../project/src/models/simulation_params.rs
-verified_commit: 36bb64e1e
+verified_commit: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8
 ---
 
 ## VC-18.1 /analytics scope — auth wrapper and route table
@@ -126,7 +126,7 @@ sequenceDiagram
 
     C->>PH: POST /analytics/params :172
     PH->>GPU: send(UpdateVisualAnalyticsParams{...}) :63
-    Note over GPU: handled by ForceComputeActor at force_compute_actor.rs:3659
+    Note over GPU: handled by ForceComputeActor at force_compute_actor.rs:3652
 
     C->>PH: GET /analytics/constraints :239
     PH->>GPU: send(GetConstraints) :112
@@ -144,7 +144,7 @@ sequenceDiagram
     C->>PH: POST /analytics/kernel-mode :175
     PH->>PH: set_kernel_mode :357
     PH->>GPU: send(SetComputeMode{mode: compute_mode}) :383
-    Note over GPU: handled by ForceComputeActor at force_compute_actor.rs:3238
+    Note over GPU: handled by ForceComputeActor at force_compute_actor.rs:3231
     alt gpu addr is None
         Note over PH: every branch above degrades to an error response rather than panicking - get_gpu_compute_addr() returns Option
     end

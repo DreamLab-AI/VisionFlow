@@ -21,7 +21,8 @@ sources:
   - ../project/scripts/backup-secrets.sh
   - ../project/agentbox/services/secret-backup/src/main.rs
   - ../project/agentbox/services/secret-backup/README.md
-verified_commit: {agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
+  - ../project/agentbox/agentbox.toml
+verified_commit: {agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047, visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8}
 ---
 
 ## AB-16.1 Container hardening posture — what actually confines the box
@@ -29,7 +30,7 @@ verified_commit: {agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, visionclaw
 ```mermaid
 flowchart TB
     subgraph HOST["docker host"]
-        CMP["docker-compose.yml:88-166"]
+        CMP["docker-compose.yml:88-167"]
     end
     subgraph CTR["agentbox container"]
         SUP["supervisord PID 1 as ROOT<br/>required at boot for tmpfs subdirs, cert gen, chown to uid 1000"]
@@ -134,9 +135,9 @@ sequenceDiagram
     D->>SUP: PID 1 as root — tmpfs subdir creation, cert generation, chown runtime dirs to uid 1000
     SUP->>EP: run bootstrap
     rect rgb(255,248,235)
-    Note over EP,TS: trust pre-acceptance, ONCE at boot — entrypoint-unified.sh:1379-1392
-    EP->>TS: node /opt/agentbox/config/hooks/trust-seed.cjs, gated on AGENTBOX_TRUST_SEED != 0 (entrypoint-unified.sh:1390-1391)
-    Note over EP: DRIFT (resolved) — trust-seed is deliberately NOT a SessionStart hook any more.<br/>entrypoint-unified.sh:1385-1387: the old registration walked ~1,170 paths (avg 3.2s) per session start<br/>and raced Claude Code's own writes to ~/.claude.json — hooks-reconcile prunes any stale registration.
+    Note over EP,TS: trust pre-acceptance, ONCE at boot — entrypoint-unified.sh:1380-1393
+    EP->>TS: node /opt/agentbox/config/hooks/trust-seed.cjs, gated on AGENTBOX_TRUST_SEED != 0 (entrypoint-unified.sh:1391-1392)
+    Note over EP: DRIFT (resolved) — trust-seed is deliberately NOT a SessionStart hook any more.<br/>entrypoint-unified.sh:1386-1388: the old registration walked ~1,170 paths (avg 3.2s) per session start<br/>and raced Claude Code's own writes to ~/.claude.json — hooks-reconcile prunes any stale registration.
     end
     TS->>TS: parseArgs — depth default 5, --dry-run, extra paths
     TS->>CFG: read ~/.claude.json projects.<abs path>
@@ -149,7 +150,7 @@ sequenceDiagram
     end
     SUP->>CC: start every long-running program with user=devuser
     CC-->>CC: no "Do you trust the files in this folder?" dialog, for every checkout that existed at boot
-    OP->>TS: node /opt/agentbox/config/hooks/trust-seed.cjs <path> — manual, for a worktree made AFTER boot (entrypoint-unified.sh:1388)
+    OP->>TS: node /opt/agentbox/config/hooks/trust-seed.cjs <path> — manual, for a worktree made AFTER boot (entrypoint-unified.sh:1389)
     Note over TS,CC: rationale trust-seed.cjs:19 — observed 2026-09-02, ten Opus worker panes sat dead for an hour behind the trust gate.<br/>DIVERGENCE — this pre-accepts a SECURITY prompt for unattended agents. It is a deliberate availability-over-confirmation trade, not a hardening measure.
 ```
 
@@ -432,3 +433,5 @@ flowchart TB
 ```
 
 **Drift (secrets inventory vs the sealed chain):** two files now live in the `agentbox-secrets` volume that this topic does not inventory — the sidestr signer key at mode 0400, which ADR-2101 D3 requires be neither in `identity.env` nor derived from the identity key, and the parent node's testnet4 RPC cookie. Both are read by path rather than passed as arguments, and the genesis gate greps the chain-document directory to prove no key sits in git (see AB-32.4, AB-32.3, AB-34.1).
+
+**Tension (custody boundary vs the faucet key):** since the sidechain faucet became a supervised program (2026-09-30), its treasury signing key is read from the workspace bind, not the `agentbox-secrets` volume — the manifest points at `/home/devuser/workspace/sidestr/agents/treasury.key` (`../project/agentbox/agentbox.toml:1576`), which is also the schema's default when the key is empty — so a spend-capable key sits on a host-visible bind, outside the `agentbox-secrets` volume this topic's custody model inventories.

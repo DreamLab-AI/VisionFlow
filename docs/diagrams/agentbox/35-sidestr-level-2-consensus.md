@@ -12,7 +12,7 @@ sources:
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
   - ../project/agentbox/docs/INGRESS-identity.md
   - ../project/agentbox/docs/PROTOCOL-registry.md
-verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
+verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
 ---
 
 ## For developers
@@ -45,7 +45,7 @@ flowchart TB
 
 **Invariant:** the safety inequality and the liveness inequality must both hold, which is what forces `n` at least `3f + 1`; assuming only the safety one produces a model with neither property (`../project/agentbox/docs/proposals/sovereign-settlement-research/REVIEW-kofn-consensus-gpt6-astra.md:46`).
 
-**Open:** PRD-024 question 13 defers the fault model itself — how many Byzantine signers, and how independent the operators, credentials, release channels and parent nodes behind the `n` keys actually are (`../project/agentbox/docs/proposals/sovereign-settlement.md:494-496`).
+**Open:** PRD-024 question 13 defers the fault model itself — how many Byzantine signers, and how independent the operators, credentials, release channels and parent nodes behind the `n` keys actually are (`../project/agentbox/docs/proposals/sovereign-settlement.md:495-497`).
 
 ## AB-35.2 Two decisions per block — authorise the template, then finalise the block
 

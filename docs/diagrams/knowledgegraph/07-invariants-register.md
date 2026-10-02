@@ -12,7 +12,7 @@ sources:
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/visibility.py
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/manifest.py
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/release_gate.py
-verified_commit: 3a266fc3a2edb91f84ecc794718b87dd44c79417
+verified_commit: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e
 ---
 
 ## KG-07.1 The 11 baseline invariants

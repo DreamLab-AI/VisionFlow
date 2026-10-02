@@ -31,7 +31,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/validate.rs
   - ../nostr-rust-forum/README.md
-verified_commit: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d
+verified_commit: d025cb063df5a532f055a18527f71cc7dee9d6e6
 ---
 
 ## NF-09.1 The CI gate graph
@@ -56,6 +56,8 @@ flowchart TB
     N2["The security crates re-run is nostr-bbs-core, relay-worker, pod-worker, auth-worker, preview-worker<br/>and config .github/workflows/ci.yml:136 through .github/workflows/ci.yml:141"]
     N3["The wasm32 job installs libc6-dev-i386 so the secp256k1-sys cross-compile succeeds<br/>.github/workflows/ci.yml:171 - which is why it can check the WHOLE workspace, not the two crates<br/>workspace.metadata.ci.wasm-check-packages names nostr-rust-forum/Cargo.toml:54. See NF-01.2."]
     N4["ci-pass iterates every job result and fails the aggregate unless all succeeded<br/>.github/workflows/ci.yml:277"]
+    N5["DEBT: the toolchain floats on stable rust-toolchain.toml:2, so rustc 1.99 clippy turned async_trait's<br/>own must_use into a -D warnings failure; it is held green by per-trait allow(clippy::double_must_use)<br/>on every async_trait trait - nostr-bbs-mesh/src/transport.rs:236 transport.rs:249<br/>nostr-bbs-setup-skill/src/lib.rs:71 nostr-bbs-relay-worker/src/mesh.rs:141 - not by a fix upstream"]
+    CLIP -.- N5
 ```
 
 ## NF-09.2 Supply-chain policy
@@ -74,7 +76,7 @@ flowchart LR
     AUD --> SH
     SH -.->|"same exceptions, no shared config format"| POL
 
-    N1["INVARIANT: no git dependencies. allow-git is empty deny.toml:75, which is what makes the exact<br/>crates.io pin on solid-pod-rs enforceable rather than advisory - see NF-01.4 and ADR-2007"]
+    N1["INVARIANT: no git dependencies. allow-git is empty deny.toml:78, which is what makes the exact<br/>crates.io pin on solid-pod-rs enforceable rather than advisory - see NF-01.4 and ADR-2007"]
     N2["The advisory ignore list is duplicated by hand between deny.toml and security-audit.sh because<br/>cargo-audit has no shared config format scripts/security-audit.sh:5 - a drift risk by construction"]
     N3["MITNFA (MIT plus a no-false-attribution clause) was added for hex_lit, a rust-bitcoin 0.32<br/>dependency reached through the member wallet - ADR-2015 deny.toml:41"]
 ```
@@ -138,7 +140,7 @@ sequenceDiagram
     OP->>CF: create two R2 buckets SETUP.md:113
     OP->>OP: paste resource ids into each wrangler.toml SETUP.md:119
     OP->>CF: wrangler secret put for the two secrets SETUP.md:130
-    OP->>CF: wrangler deploy, one crate at a time SETUP.md:139
+    OP->>CF: wrangler deploy, one crate at a time SETUP.md:140
     OP->>CF: DNS - CNAME or Workers Routes per subdomain SETUP.md:151
     OP->>OP: FORUM_BASE=/community trunk build --release --public-url /community/ SETUP.md:237
 
@@ -196,7 +198,7 @@ flowchart TB
     CAN["nostr-bbs-upstream-canary<br/>not linked into any binary nostr-bbs-upstream-canary/src/lib.rs:13"]
     SHAPE["PASS to Shape A full absorption nostr-bbs-upstream-canary/src/lib.rs:17<br/>FAIL to Shape C patch-in-place nostr-bbs-upstream-canary/src/lib.rs:19"]
     MESH["nostr-bbs-mesh"]
-    TRAITS["MeshSocket nostr-bbs-mesh/src/transport.rs:237<br/>MeshTransport nostr-bbs-mesh/src/transport.rs:249<br/>RelayTransport generic over any socket nostr-bbs-mesh/src/transport.rs:323"]
+    TRAITS["MeshSocket nostr-bbs-mesh/src/transport.rs:238<br/>MeshTransport nostr-bbs-mesh/src/transport.rs:251<br/>RelayTransport generic over any socket nostr-bbs-mesh/src/transport.rs:325"]
     ONLYIMPL["The ONLY MeshSocket impl in the tree is the test-only MockSocket<br/>nostr-bbs-mesh/src/mock.rs:249"]
     DEP["relay-worker DOES depend on the crate<br/>nostr-bbs-relay-worker/Cargo.toml:26"]
     DEAD["but its own mesh wiring is allow(dead_code)<br/>nostr-bbs-relay-worker/src/mesh.rs:48"]
@@ -215,24 +217,24 @@ flowchart TB
 ```mermaid
 classDiagram
     class Provider {
-        tier : nostr-bbs-setup-skill/src/lib.rs:74
-        provision : nostr-bbs-setup-skill/src/lib.rs:77
-        render_wrangler : nostr-bbs-setup-skill/src/lib.rs:81
+        tier : nostr-bbs-setup-skill/src/lib.rs:75
+        provision : nostr-bbs-setup-skill/src/lib.rs:78
+        render_wrangler : nostr-bbs-setup-skill/src/lib.rs:82
     }
     class SelfHostProvider {
-        nostr-bbs-setup-skill/src/lib.rs:89 - only provision with real logic
+        nostr-bbs-setup-skill/src/lib.rs:90 - only provision with real logic
     }
     class CloudflareWorkersProvider {
-        nostr-bbs-setup-skill/src/lib.rs:118
+        nostr-bbs-setup-skill/src/lib.rs:119
     }
     class FlyDotIoProvider {
-        nostr-bbs-setup-skill/src/lib.rs:148
+        nostr-bbs-setup-skill/src/lib.rs:149
     }
     class TurnkeyProvider {
-        nostr-bbs-setup-skill/src/lib.rs:176
+        nostr-bbs-setup-skill/src/lib.rs:177
     }
     class KubernetesProvider {
-        nostr-bbs-setup-skill/src/lib.rs:203
+        nostr-bbs-setup-skill/src/lib.rs:204
     }
     Provider <|.. SelfHostProvider
     Provider <|.. CloudflareWorkersProvider
@@ -240,7 +242,7 @@ classDiagram
     Provider <|.. TurnkeyProvider
     Provider <|.. KubernetesProvider
 
-    note for Provider "DIVERGENCE, self-declared: scaffold only - each impl returns SetupError::NotYetImplemented for unfinished methods nostr-bbs-setup-skill/src/lib.rs:11, e.g. nostr-bbs-setup-skill/src/lib.rs:110 and nostr-bbs-setup-skill/src/lib.rs:129"
+    note for Provider "DIVERGENCE, self-declared: scaffold only - each impl returns SetupError::NotYetImplemented for unfinished methods nostr-bbs-setup-skill/src/lib.rs:11, e.g. nostr-bbs-setup-skill/src/lib.rs:111 and nostr-bbs-setup-skill/src/lib.rs:130"
     note for TurnkeyProvider "TurnkeyProvider::render_wrangler returns Unsupported by DESIGN, not by omission - a custody-tier provider never writes a wrangler.toml (variant at nostr-bbs-setup-skill/src/lib.rs:48)"
-    note for SelfHostProvider "The provider abstraction is a CUSTODY ladder, not a hosting menu - each tier is a different answer to who holds the keys. Tiers are named at nostr-bbs-setup-skill/src/lib.rs:93"
+    note for SelfHostProvider "The provider abstraction is a CUSTODY ladder, not a hosting menu - each tier is a different answer to who holds the keys. Tiers are named at nostr-bbs-setup-skill/src/lib.rs:94"
 ```

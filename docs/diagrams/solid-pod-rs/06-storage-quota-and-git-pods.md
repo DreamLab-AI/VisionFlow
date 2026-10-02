@@ -23,7 +23,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/metrics.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/webid.rs
-verified_commit: febdc8be24bdc8b148b78b43a35ae85ee863a72a
+verified_commit: 6d2e5b0d2e00fc2c9fa1e4984b8582cfa0d48556
 ---
 
 ## SP-06.1 The Storage seam and its two shipped backends
@@ -274,7 +274,7 @@ stateDiagram-v2
     Provisioned --> Initialised: GitAutoInit.init_repo_at<br/>solid-pod-rs-git/src/init.rs:101
     Provisioned --> Plain: no git feature, or the hook failed
     Initialised --> Configured: apply_write_config<br/>solid-pod-rs-git/src/config.rs:71
-    Configured --> Identified: write_agent_identity<br/>solid-pod-rs-git/src/identity.rs:86
+    Configured --> Identified: write_agent_identity<br/>solid-pod-rs-git/src/identity.rs:103
     Identified --> Marked: every LDP write commits — see SP-07
     Marked --> Marked: git-mark per PUT / POST / PATCH
     Plain --> [*]: writes are silently skipped by git_mark_write
@@ -286,10 +286,15 @@ stateDiagram-v2
       solid-pod-rs-git/src/config.rs:37
     end note
     note right of Identified
-      AGENT_DID_FILE agent.did.json (solid-pod-rs-git/src/identity.rs:40) and the
-      nostr.privkey git-config key (solid-pod-rs-git/src/identity.rs:44) bind the
+      AGENT_DID_FILE agent.did.json (solid-pod-rs-git/src/identity.rs:50) and the
+      nostr.privkey git-config key (solid-pod-rs-git/src/identity.rs:54) bind the
       repo to a did:nostr author, so a commit's author is the same principal WAC
       authorised. See SP-05.12.
+      Since alpha.10, given the secret key, agent.did.json is rendered from the
+      full key, so an odd-y key publishes fe70103 (solid-pod-rs-git/src/identity.rs:121);
+      without it the identifier-only fe70102 form is kept (solid-pod-rs-git/src/identity.rs:124).
+      A secret whose x is not pubkey_hex is refused and nothing is written
+      (solid-pod-rs-git/src/identity.rs:116-120).
     end note
     note right of Plain
       The runtime guard is a .git directory under data_root/{pod} — see SP-07.2.

@@ -28,7 +28,7 @@ sources:
   - ../project/agentbox/flake.nix
   - ../project/agentbox/docs/adr/ADR-2085-colloquy-knowledge-units-on-the-forum.md
   - ../project/agentbox/docs/adr/ADR-2086-confirmation-weight-follows-authorising-principals.md
-verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
+verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
 ---
 
 ## AB-09.1 Registry ownership classes — what the projector may touch
@@ -42,7 +42,7 @@ flowchart TD
     BS --> NEVER["hand-written entrypoint blocks with health probes,<br/>secret handling and warmup — NEVER touched here, so the<br/>live set stays byte-identical (project-mcp-servers.mjs:22-24)"]
     RF --> DOC["GPU-sidecar skill wrappers whose mcp-server lives under a skill dir,<br/>or npx/uvx network-installer servers that cannot run on the<br/>read-only rootfs — documented, not auto-projected (:25-27)"]
     REG -.-> D1["DOC-DRIFT — BASELINE-container says skills/mcp.json is a 30-server registry.<br/>The file holds 28 (9 projector + 3 bespoke + 16 reference).<br/>The 9/3/16 split the doc gives is correct"]
-    REG -.-> D1R["RESOLVED ADR-2039: BASELINE-container.md:15 now says<br/>skills/mcp.json holds 28 servers, not 30"]
+    REG -.-> D1R["RESOLVED ADR-2039: BASELINE-container.md:17 now says<br/>skills/mcp.json holds 28 servers, not 30"]
     REG -.-> D2["separate file agentbox/mcp/mcp.json is a DIFFERENT 16-entry map<br/>and is not the projection source"]
 ```
 
@@ -131,7 +131,7 @@ sequenceDiagram
     Note over LED: the ledger is deliberately NOT stored inside .mcp.json — that file is read by the Claude Code harness and must carry no agentbox-private keys (project-mcp-servers.mjs:59-61)
     Note over EP,P: boot is NOT blocked — a non-zero exit surfaces as a loud [mcp] FAIL line in the boot log without aborting the entrypoint (:76-79)
     Note over P: DOC-DRIFT — BASELINE "Configuration projection qualification 2026-09-04" says<br/>ADR-2008 is partial because the reconciliation loop cannot remove deleted registry<br/>definitions and unreadable input leaves stale state with exit zero. The ADR-2008<br/>closeout dated 2026-09-05 fixes both as D1 and D3 (project-mcp-servers.mjs:30-49)
-    Note over P: RESOLVED ADR-2039: BASELINE-container.md:233 marks this qualification<br/>resolved with the D1/D3 evidence — ownership-ledger removal<br/>project-mcp-servers.mjs:33-39, non-zero exit on malformed input :46-49, exit codes :71-74
+    Note over P: RESOLVED ADR-2039: BASELINE-container.md:243 marks this qualification<br/>resolved with the D1/D3 evidence — ownership-ledger removal<br/>project-mcp-servers.mjs:33-39, non-zero exit on malformed input :46-49, exit codes :71-74
 ```
 
 ## AB-09.4 The four ADR-2008 closeout defects and their fixes
@@ -222,7 +222,7 @@ sequenceDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> Starting
-    Starting --> Waiting : supervisord runs agentbox-mcp hub, flake.nix:2611
+    Starting --> Waiting : supervisord runs agentbox-mcp hub, flake.nix:2725
     Waiting --> Serving : /run/agentbox/mcp-hub.json exists
     Waiting --> Waiting : re-check every 500 ms, log every 15 s
     Waiting --> FailedLoud : 120 s elapsed, hub/mod.rs:259
@@ -242,13 +242,13 @@ stateDiagram-v2
         refuses to idle. hub/mod.rs:275-281
     end note
     note right of Serving
-        BASELINE-container.md:210 carries the amended rule -
+        BASELINE-container.md:220 carries the amended rule -
         a bounded wait, a loud exit naming the projection, and
         a startsecs above that wait so the exit is a failed
         START. ADR-2063 as amended by ADR-2104.
     end note
     note right of Fatal
-        DEBT: eight servers are hub-routed (agentbox.toml:1240-1243,
+        DEBT: eight servers are hub-routed (agentbox.toml:1267-1270,
         down from nine at ADR-2104) and all refuse connections
         while this program is down, so supervisorctl status
         agentbox-mcp-hub is the first check.

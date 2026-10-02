@@ -23,7 +23,7 @@ sources:
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/docs/reference/claude-context/ruvector-memory-state.md
-verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
+verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
 ---
 
 ## AB-20.1 Server boot — fail-closed on Postgres, advisory on Xinference
@@ -493,7 +493,7 @@ sequenceDiagram
     participant CH as ruflo mcp start child
     participant PG as ruvector-postgres
 
-    Note over G: gate is projected at boot from the manifest, agentbox.toml:430<br/>into RUVECTOR_ORCHESTRATION_PROXY by entrypoint-unified.sh:1068<br/>apply class boot, management-api/lib/system-manifest.js:207
+    Note over G: gate is projected at boot from the manifest, agentbox.toml:430<br/>into RUVECTOR_ORCHESTRATION_PROXY by entrypoint-unified.sh:1069<br/>apply class boot, management-api/lib/system-manifest.js:207
     SRV->>G: orchestrationProxy()
     alt gate off
         G-->>SRV: false, orchestration stays null
@@ -522,8 +522,8 @@ sequenceDiagram
     end
     AG->>SRV: memory_store / memory_search
     SRV->>PG: always ruvector-postgres, never the child
-    Note over SRV,PG: INVARIANT — memory_* is never forwarded. The decision is recorded in<br/>docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:45-48<br/>and the manifest note repeats it at agentbox.toml:430
-    Note over SRV,PG: DOC-DRIFT: the ADR's own Decision prose still says the category default is<br/>"swarm,agent,task,coordination" (ADR-2082-orchestration-proxy-behind-governed-memory-server.md:41),<br/>but its own 2026-09-29 re-verification entry and agentbox.toml:431 agree the running<br/>config is "swarm,agent" — CODE (and the ADR's own audit trail) is authoritative
+    Note over SRV,PG: INVARIANT — memory_* is never forwarded. The decision is recorded in<br/>docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:55-58<br/>and the manifest note repeats it at agentbox.toml:430
+    Note over SRV,PG: DOC-DRIFT: the ADR's own Decision prose still says the category default is<br/>"swarm,agent,task,coordination" (ADR-2082-orchestration-proxy-behind-governed-memory-server.md:51),<br/>but its own 2026-09-29 re-verification entry and agentbox.toml:431 agree the running<br/>config is "swarm,agent" — CODE (and the ADR's own audit trail) is authoritative
     Note over SRV: DEBT — the close handler drains in-flight requests for up to 30 s because a slow<br/>first tools/list can outlive stdin (mcp/servers/ruvector-mcp.cjs:736-765)
 ```
 

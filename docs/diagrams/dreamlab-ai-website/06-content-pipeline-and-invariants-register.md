@@ -22,7 +22,7 @@ sources:
   - ../dreamlab-ai-website/docs/api/NOSTR_RELAY.md
   - ../dreamlab-ai-website/docs/api/SEARCH_API.md
   - ../dreamlab-ai-website/docs/api/MODERATION_API.md
-verified_commit: 9b8ea495da80aaa5b45795af916bda4470467481
+verified_commit: 6ae45762e7685787c5f44ba0d966557f386cde83
 ---
 
 ## DW-06.1 Pre-build content pipeline — two generators, run before every dev/build
@@ -117,7 +117,7 @@ flowchart TB
     D9["BASELINE-architecture.md itself cites a stale KIT_REF and crate version<br/>see DW-01.5"]
     D10["branding.rs dead code contradicts live dreamlab.toml branding values<br/>see DW-03.8/DW-03.1"]
     D11["BASELINE-architecture.md estate-closeout note predates the 2026-09-05 gate fix<br/>see DW-05.3"]
-    D12["README.md itself cites a stale kit pin<br/>dreamlab-ai-website/README.md:263 vs rust-ci.yml:21,<br/>workers-deploy.yml:44 — see DW-06.8"]
+    D12["README.md itself cites a stale kit pin<br/>dreamlab-ai-website/README.md:263 vs rust-ci.yml:21,<br/>workers-deploy.yml:45 — see DW-06.8"]
     D13["Root-level seed scripts hardcode a plaintext private key<br/>+ an unresolvable absolute import path — see DW-07.2"]
     D14["README's semantic-search claim (Workers AI bge-small-en-v1.5/R2) has no<br/>in-repo build path; this repo's embeddings/ tooling targets an unrelated<br/>RuVector Postgres + all-MiniLM-L6-v2 pipeline — see DW-07.4"]
     D15["IDENTITY-zones.md I7 breached: zone2/zone4 now encrypted=true too<br/>(dreamlab.toml:123,148), master gate [encryption].enabled added<br/>(dreamlab.toml:34) citing an uncommitted ADR-2016 — DW-03.1/DW-04.1<br/>still state 'only zone3 encrypted', not yet re-verified against this<br/>see DW-06.6 I7"]

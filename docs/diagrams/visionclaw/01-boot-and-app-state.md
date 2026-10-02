@@ -68,7 +68,7 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/Cargo.toml
   - ../project/src/adapters/mod.rs
-verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
+verified_commit: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8
 ---
 
 ## VC-01.1 main() phase 1 — hygiene, logging, settings, stores
@@ -428,22 +428,22 @@ flowchart LR
     S["/api scope — src/main.rs:1094-1212"]
     S --> PG["scope /pages + pages_handler::config<br/>src/main.rs:1160, src/handlers/pages_handler.rs:148 — GET ''"]
     S --> BO["scope /bots + api_handler::bots::config<br/>src/main.rs:1161"]
-    S --> BV["bots_visualization_handler::configure_routes<br/>scope /visualization — src/handlers/bots_visualization_handler.rs:500<br/>GET /agents/ws, GET snapshot, POST initialize<br/>plus POST /bots/mock-agents at :530"]
+    S --> BV["bots_visualization_handler::configure_routes<br/>scope /visualization — src/handlers/bots_visualization_handler.rs:515<br/>GET /agents/ws, GET snapshot, POST initialize<br/>plus POST /bots/mock-agents at :530"]
     S --> GE["configure_graph_export_routes<br/>scope /graph-export — src/handlers/graph_export_handler.rs:319<br/>POST '', /share, /publish — GET /shared/{id}, /stats — DELETE /shared/{id}"]
     S --> OA["configure_ontology_agent_routes<br/>scope /ontology-agent — src/handlers/ontology_agent_handler.rs:366<br/>POST /discover, /read, /query, /traverse, /validate — GET /status<br/>POST /propose — RETIRED (ADR-2116): always 410 Gone, no auth or rate-limit,<br/>names vault propose as the replacement"]
     S --> DE["configure_decision_routes<br/>scope /decisions — src/handlers/decision_handler.rs:323<br/>GET /{urn}/trace — nested scope /record POST '' — PRD-022 W-B / ADR-048"]
     S --> SO["configure_solid_routes<br/>src/handlers/solid_proxy_handler.rs:1752<br/>re-exported at src/handlers/mod.rs:121 — see VC-05"]
-    S --> IG["configure_image_gen_routes<br/>scope /image-gen — src/handlers/image_gen_handler.rs:779<br/>GET /health, /status/{job_id} — POST /submit, /agent-submit"]
+    S --> IG["configure_image_gen_routes<br/>scope /image-gen — src/handlers/image_gen_handler.rs:935<br/>GET /health, /status/{job_id} — POST /submit, /agent-submit<br/>graph chosen by IMAGE_GEN_MODEL :114 — MiniMax H3 default, FLUX 2 opt-in"]
     S --> BR["configure_briefing_routes<br/>scope /briefs — src/handlers/briefing_handler.rs:118<br/>POST '' submit_brief, POST /{brief_id}/debrief"]
     S --> MF["configure_memory_flash_routes<br/>POST /api/memory-flash and the batch route<br/>src/handlers/memory_flash_handler.rs:134-137"]
-    S --> EP["configure_enrichment_proposals_routes<br/>POST /api/enrichment-proposals/{id}/decide<br/>src/handlers/enrichment_proposals_handler.rs:434"]
+    S --> EP["configure_enrichment_proposals_routes<br/>POST /api/enrichment-proposals/{id}/decide<br/>src/handlers/enrichment_proposals_handler.rs:715"]
     S --> BI["configure_broker_inbox_routes<br/>scope /broker — src/handlers/broker_inbox_handler.rs:177<br/>GET /inbox, GET /cases/{id}, POST decide_as_operator — WS-12"]
     S --> IW["configure_ingest_writeback_routes<br/>POST /api/ingest/writeback — src/handlers/ingest_writeback_handler.rs:103 — GOV-4"]
     S --> LV["configure_liveness_routes<br/>scope /canary — src/handlers/liveness_harness_handler.rs:212<br/>POST /register, POST /observe/{canary_id}, GET /status — RES-a"]
     S --> KP["configure_kpi_routes<br/>scope /kpi — src/handlers/kpi_handler.rs:49<br/>GET /summary, GET /lineage/{snapshot_id} — REC-4 ADR-043"]
     S --> IL["configure_insight_loop_routes<br/>scope /insight-loop — src/handlers/insight_loop_handler.rs:91<br/>GET /trace, GET /trace/{case_id} — REC-10 PRD-023 WP-12"]
     S --> TR["configure_trace_routes<br/>GET /api/trace — src/handlers/trace_handler.rs:76<br/>REC-11 joins agent-events and broker decisions on did:nostr"]
-    S --> LA["configure_layout_routes<br/>scope /layout — src/handlers/layout_handler.rs:282<br/>GET /modes, /status, /zones — POST /mode, /radial, /zones, /reset — ADR-031"]
+    S --> LA["configure_layout_routes<br/>scope /layout — src/handlers/layout_handler.rs:307<br/>GET /modes, /status, /zones — POST /mode, /radial, /zones, /reset — ADR-031"]
     N["handler internals for this group see VC-04 and VC-05"]
     S --- N
 ```
@@ -465,7 +465,7 @@ flowchart TB
     RL --> A2["resource /refresh + wrap RequireAuth::authenticated()<br/>POST → refresh_graph (:1544-1547)"]
     N1["S2 escalation — /update triggers a full bulk reload (re-fetch, re-process, rebuild from<br/>AddNodesFromMetadata). Destructive and expensive, so power_user (Admin), not Authenticated.<br/>/refresh only reads back GetGraphData, so any authenticated user may call it. Comments :1531-1543"]
     A1 --- N1
-    N2["the Graph2VR reads scan every edge, so their 120/min per-resource ceiling stacks UNDER<br/>the 600/min scope limiter and is the stricter gate. Comment :1507-1512"]
+    N2["the Graph2VR reads scan every edge, so their 120/min per-resource ceiling stacks UNDER<br/>the 600/min scope limiter and is the stricter gate. Comment :1506-1512"]
     T1 --- N2
     SET["web::scope('/settings') + RateLimit::per_minute(60) — src/main.rs:1106-1109<br/>settings::api::configure_routes src/settings/api/settings_routes.rs:1736<br/>GET|PUT physics, constraints, rendering, node-filter, quality-gates, visual<br/>POST physics/reset-layout — GET all — POST|GET profiles — GET|DELETE profiles/{id}<br/>nested scope /user GET|PUT /filter (:1734-1736)"]
     SET2["settings round-trip and the OptimizedSettings/ProtectedSettings actors see VC-06"]
@@ -503,7 +503,7 @@ sequenceDiagram
                 alt any digest mismatch or missing sum entry
                     PO-->>SB: Err — write nothing (src/services/ontology_pull.rs:127)
                 else all verified
-                    PO->>ST: ensure containers, write a public-read WAC ACL at<br/>/public/ontology/.acl ONLY IF ABSENT (operator edits survive, :345, :354)
+                    PO->>ST: ensure containers, write a public-read WAC ACL at<br/>/public/ontology/.acl ONLY IF ABSENT (operator edits survive, containers :349-350, ACL :359-360)
                     PO->>ST: write content, then the manifest LAST
                     PO-->>SB: Ok(Updated { build_sha, classes, triples })
                 end

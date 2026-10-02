@@ -30,7 +30,7 @@ sources:
   - ../nostr-rust-forum/docs/consumer-surface-map.md
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
-verified_commit: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d
+verified_commit: d025cb063df5a532f055a18527f71cc7dee9d6e6
 ---
 
 ## NF-04.1 Route surface
@@ -219,7 +219,7 @@ flowchart LR
     SOLD["solid_discovery remote_storage.rs:58"]
     NJ["nostr_json - the pod-resident NIP-05 doc remote_storage.rs:82"]
     WID["webid re-export of solid_pod_rs::webid nostr-bbs-pod-worker/src/webid.rs:17"]
-    DIDM["did re-export - render_did_document_tier3, verify_webid_tag<br/>nostr-bbs-pod-worker/src/did.rs:7"]
+    DIDM["did re-export - render_did_document_tier3, verify_webid_tag<br/>nostr-bbs-pod-worker/src/did.rs:11<br/>renders from the hex identifier only, so documents carry the fe70102 Multikey did.rs:7"]
     GITG["is_git_request git.rs:44 | is_dot_git_path git.rs:53<br/>git_dir_forbidden git.rs:58 | git_not_implemented git.rs:76"]
 
     N1["INVARIANT: .git paths are FORBIDDEN, not merely unimplemented - the two outcomes are distinct<br/>responses nostr-bbs-pod-worker/src/git.rs:58 versus nostr-bbs-pod-worker/src/git.rs:76. The CF-Workers<br/>tier is non-git BY DESIGN; the git-capable pod is the agentbox native tier."]

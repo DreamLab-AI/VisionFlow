@@ -10,7 +10,7 @@ sources:
   - ../knowledgeGraph/docs/ci-cd/build-and-gates.md
   - ../knowledgeGraph/archive/github-workflows/build.yml
   - ../visionGraph/.github/workflows/publish.yml
-verified_commit: {knowledgegraph: 3a266fc3a2edb91f84ecc794718b87dd44c79417, visiongraph: ac6274f9f5e12375f92086ccb9adba50c965ecf9}
+verified_commit: {knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visiongraph: 015ca2c1f2d7289955ebf16b98b6775a57ec0f7b}
 ---
 
 ## KG-05.3 Publication topology — this repo is a pure published export, visionGraph's publish.yml is the sole builder
@@ -25,10 +25,11 @@ sequenceDiagram
     participant THIS as this repo, at rest
 
     Note over THIS: this repo is the PUBLISHED EXPORT only — corpus authoring,<br/>build and validation all happen upstream (README.md:5-9,11)
-    VG->>VAULT: vault validate --vault all, then<br/>vault build --vault all --out site-data --with-markdown-mirror<br/>(publish.yml:155-168,180-188)
+    VG->>VAULT: vault validate --vault all, then<br/>vault build --vault all --out site-data --with-markdown-mirror<br/>(publish.yml:157-170,182-190)
     VAULT-->>VG: api/ + data/ + context/ + okf/ (contract C3)<br/>vault is the ONLY producer — README.md:11-17
     VG->>PAGES: peaceiris/actions-gh-pages, external_repository=knowledgeGraph<br/>deploy step (EXTERNAL: see VG-03.1 DEPLOY)
     PAGES->>SITE: GitHub Pages serves gh-pages at narrativegoldmine.com<br/>(this repo's root CNAME is read by Pages, not written by any workflow here)
+    Note over VG,SITE: since 2026-10-01 the same run gates the bundle on the space and Earth<br/>domain contract before Quartz (publish.yml:296-297) and, after the deploy,<br/>dispatches corpus-sync to VisionClaw with the source sha (publish.yml:459-465) —<br/>neither step touches this repo, see VG-03.1 and VG-04.1
     Note over THIS: this repo's own build.yml (Python pipeline, ontology/pages) is<br/>ARCHIVED and inert under archive/github-workflows/build.yml —<br/>retired because ontology/ itself moved to archive/ first
 ```
 - **DIVERGENCE:** the governing doc (`build-and-gates.md:1-3`) still describes `build.yml` as this repo's active "reproducible half" running six gates; the workflow it names has been moved to `archive/github-workflows/` and no longer runs — the doc has not been updated to match the retirement.

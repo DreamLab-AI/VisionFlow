@@ -36,7 +36,10 @@ sources:
   - docs/BASELINE-visionflow.md
   - docs/protocol/mesh-smoke-test.md
   - package.json
-verified_commit: d4e44298646768a4b19af359119e16a6884fa80d
+  - .github/workflows/adr-index.yml
+  - scripts/adr-ratchet.sh
+  - tests/gates/estate-health-ci.test.mjs
+verified_commit: e5987acc8337ddd64c72f775750d61fef46d8e0b
 ---
 
 ## VF-05.1 Gate route table — trigger, script, verdict, blocking
@@ -94,7 +97,10 @@ flowchart TB
     SDIAG3 --> VDIAG3["exit 1 when a re-stamp was not re-resolved<br/>diagram-index.yml:61"]:::block
     SDIAG4 --> VDIAG4["exit 1 on a stale generated index<br/>diagram-index.yml:67"]:::block
 
-    NOTE1["INVARIANT: every count claimed in canon prose has one queryable source;<br/>a second distinct figure for one axis is a failure, not a footnote<br/>BASELINE-visionflow.md:258"]
+    WDIAG ~~~ WADR["adr-index.yml — triggered by push to main and by pull_request,<br/>paths docs/adr/**,<br/>adr-index-gen.cjs, adr-ratchet.sh, the workflow<br/>adr-index.yml:10 and adr-index.yml:17<br/>three steps: --check at adr-index.yml:44,<br/>adr-ratchet.sh at adr-index.yml:49,<br/>regenerate-and-diff at adr-index.yml:55"]:::tool
+    WADR --> VADR["exit 1 on invalid frontmatter, on a stale index,<br/>or when more ADRs were added undecided than left proposed<br/>adr-ratchet.sh:74, until 2026-10-20 — adr-ratchet.sh:36<br/>see VF-01.8"]:::block
+
+    NOTE1["INVARIANT: every count claimed in canon prose has one queryable source;<br/>a second distinct figure for one axis is a failure, not a footnote<br/>BASELINE-visionflow.md:295"]
     NOTE2["DIVERGENCE: mesh-smoke-preflight.sh is wired to NO workflow.<br/>Its output is pasted by hand into mesh-smoke-test.md:84"]
     NOTE3["HISTORICAL SNAPSHOT: compatibility-matrix.md:96 records the July<br/>harness PASS at target 80%, under a heading now explicitly<br/>marked historical and not rerun — compatibility-matrix.md:80.<br/>Current CI passes --target 50: different run configurations,<br/>not a fresh 80% CI result"]
 ```
@@ -174,7 +180,7 @@ flowchart TB
     HOLE["The archived-ADR-002 hole: two sites pointed at a path moved<br/>into docs/archive/, reported file-missing on every run, and that<br/>looked like coverage. Repointed 2026-09-05<br/>allowlist.json:50"]:::fail
     HOLE -.-> FMISS
 
-    DIV["DIVERGENCE: ./README.md:150 renders '7 Ontology MCP Tools' beside<br/>./README.md:157 '12 MCP Ontology Tools'. The sites regex matches only<br/>the second word order, so the adjacency escapes the gate<br/>BASELINE-visionflow.md:209"]
+    DIV["DIVERGENCE: ./README.md:158 renders '7 Ontology MCP Tools' beside<br/>./README.md:165 '12 MCP Ontology Tools'. The sites regex matches only<br/>the second word order, so the adjacency escapes the gate<br/>BASELINE-visionflow.md:229"]
 ```
 
 ## VF-05.4 drift-counter verdict — per-axis states and the fail-open rule
@@ -430,15 +436,20 @@ flowchart TB
 
     WHY["A gate nobody tests is a gate nobody knows is broken:<br/>the harness audit scored duplicate pairings 200% PASS,<br/>the drift counter policed two archived files forever, and<br/>a release candidate could assert fixture parity nothing compared<br/>run-all.sh:5"]
 
-    WHY --> RUN["bash tests/gates/run-all.sh — six suites, one verdict<br/>run-all.sh:18"]
-    RUN --> PRINT["GATE-TESTS-OK or GATE-TESTS-FAIL<br/>run-all.sh:38"]
+    WHY --> RUN["bash tests/gates/run-all.sh — seven suites, one verdict<br/>run-all.sh:18"]
+    RUN --> PRINT["GATE-TESTS-OK or GATE-TESTS-FAIL<br/>run-all.sh:39"]
 
     RUN --> S1["drift-counter.test.sh"]:::suite
     RUN --> S2["harness-audit.test.sh"]:::suite
     RUN --> S3["release-manifest.test.sh"]:::suite
     RUN --> S4["website-assets.test.sh"]:::suite
-    RUN --> S5["diagram-index.test.cjs — the two .cjs suites are run<br/>with node rather than bash, chosen per suite by extension<br/>run-all.sh:31"]:::suite
+    RUN --> S5["diagram-index.test.cjs — the .cjs and .mjs suites are run<br/>with node rather than bash, chosen per suite by extension<br/>run-all.sh:32"]:::suite
     RUN --> S6["augmentation-citations.test.cjs — see VF-05.13<br/>run-all.sh:24"]:::suite
+    RUN --> S7["estate-health-ci.test.mjs — imports the collector's pure<br/>CI-state functions and drives the 2026-09-23 knowledgeGraph<br/>false red through them — run-all.sh:25<br/>estate-health-ci.test.mjs:1 — see VF-03.4"]:::suite
+    S7 --> E1["a verdict on an older commit reads none, not red<br/>estate-health-ci.test.mjs:24"]
+    E1 --> E2["a red run on HEAD stays red<br/>estate-health-ci.test.mjs:28"]
+    E2 --> E3["only documentation carries a verdict to HEAD<br/>estate-health-ci.test.mjs:44"]
+    E3 --> E4["importing the collector runs no CLI; run bare it exits 2<br/>estate-health-ci.test.mjs:52-54"]
 
     S5 --> DI1["allowlist waives topic+diagram+path+line EXACTLY —<br/>wrong line, wrong diagram or wrong topic still fails,<br/>and an entry matching no citation fails as stale<br/>diagram-index.test.cjs:96,107,141"]
     DI1 --> DI2["VERIFICATION.md freshness — a topic re-stamped without<br/>its citations re-resolved invalidates it<br/>diagram-index.test.cjs:166"]
@@ -554,3 +565,5 @@ flowchart TB
 **Debt:** the augmentation-citations gate has no workflow of its own and reaches CI through no path, because `tests/gates/run-all.sh:24` is itself reachable only from `package.json:17`, so the eighteen cited cells of the graded matrix are verified only by a local run.
 
 **Invariant:** the substrate column set is closed — a header outside `SUBSTRATE_DIRS` fails rather than defaulting, so a new substrate cannot be graded until the checker learns where its code lives (`scripts/check-augmentation-citations.cjs:15`, `scripts/check-augmentation-citations.cjs:37`).
+
+**Debt (ratchet without a gate test):** `scripts/adr-ratchet.sh` is a blocking step of `adr-index.yml` (`.github/workflows/adr-index.yml:49`) but has no suite under `tests/gates/`, so nothing drives an added-undecided record through it and asserts the step goes red (`tests/gates/run-all.sh:18-26`); its expiry date is likewise a default in the script, not a tested property (`scripts/adr-ratchet.sh:36`).

@@ -44,7 +44,7 @@ sources:
   - ../nostr-rust-forum/docs/security/known-findings.md
   - ../nostr-rust-forum/docs/security/advisory-exceptions.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs
-verified_commit: {nostr-rust-forum: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d}
+verified_commit: {nostr-rust-forum: d025cb063df5a532f055a18527f71cc7dee9d6e6}
 ---
 
 ## NF-10.1 The compliance surface — BASELINE-architecture invariants
@@ -56,7 +56,7 @@ flowchart LR
     I3["3 channel counts are derived, never accumulated<br/>count_for nostr-bbs-forum-client/src/stores/channels.rs:159 | dedup on insert channels.rs:444 - see NF-05.6"]
     I4["4 .acl and .meta sidecar access coerces to Control<br/>nostr-bbs-pod-worker/src/acl.rs:85 | shared policy nostr-bbs-pod-worker/src/acl.rs:34 - see NF-04.3"]
     I5["5 gift-wraps are recipient-whitelist-gated, never author-gated<br/>gift_wrap_recipient nip_handlers.rs:115 | admission nip_handlers.rs:825 - see NF-03.5"]
-    I6["6 solid-pod-rs stays an EXACT pin<br/>nostr-rust-forum/Cargo.toml:155 - see NF-01.4"]
+    I6["6 solid-pod-rs stays an EXACT pin<br/>nostr-rust-forum/Cargo.toml:162 - see NF-01.4"]
 
     I1 --> I2 --> I3
     I4 --> I5 --> I6
@@ -151,8 +151,8 @@ flowchart LR
     A2006 --> Q2006
     A2010 --> Q2010
 
-    N1["DOC-DRIFT: the IDENTITY-keys-and-trust closeout still states OFFSET row-skipping and ignored write<br/>errors as CURRENT defects. Both are fixed - keyset paging nostr-bbs-relay-worker/src/trust_sweep.rs:432<br/>and confirmed-commit-only counters nostr-bbs-relay-worker/src/trust_sweep.rs:487. The governing doc needs<br/>the qualification retired; see NF-11.11 and NF-11.12."]
-    N2["DOC-DRIFT: the relay-side receipt machine is REAL, not proposed - stages at<br/>nostr-bbs-core/src/governance.rs:914, applied at relay_do/receipts.rs:285, and handle_event logs<br/>accepted-but-not-applied from the returned receipt nip_handlers.rs:1286. Only the CONSUMER half is absent.<br/>See NF-11.9 and NF-11.10."]
+    N1["DOC-DRIFT: the IDENTITY-keys-and-trust closeout still states OFFSET row-skipping and ignored write<br/>errors as CURRENT defects. Both are fixed - keyset paging nostr-bbs-relay-worker/src/trust_sweep.rs:22<br/>and confirmed-commit-only counters nostr-bbs-relay-worker/src/trust_sweep.rs:286 trust_sweep.rs:501. The governing doc needs<br/>the qualification retired; see NF-11.11 and NF-11.12."]
+    N2["DOC-DRIFT: the relay-side receipt machine is REAL, not proposed - stages at<br/>nostr-bbs-core/src/governance.rs:914, applied at relay_do/receipts.rs:286, and handle_event logs<br/>accepted-but-not-applied from the returned receipt nip_handlers.rs:1286. Only the CONSUMER half is absent.<br/>See NF-11.9 and NF-11.10."]
     N3["EXTERNAL: both remaining halves belong to other repos - VisionClaw's elevation consumer see VC-24,<br/>agentbox's approvals pipeline see AB-14, the estate loop see ES-05"]
 ```
 

@@ -19,7 +19,7 @@ sources:
   - ../project/agentbox/services/agentbox-ops/src/voyager/mod.rs
   - ../project/agentbox/management-api/lib/uris.js
   - ../project/agentbox/management-api/lib/ontology-apply.js
-verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
+verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
 ---
 
 Note: `ontology-bridge.js`, `ontology-propose.js`, `ontology-local.cjs`, `ontology-authoring-authority.js`
@@ -39,24 +39,24 @@ sequenceDiagram
     participant OUT as condense output
     participant REF as ontology-condense-refresh.sh<br/>agentbox/scripts/ontology-condense-refresh.sh:105
     participant IDX as ontology-index-build.js
-    participant LLM as Loom facade<br/>agentbox/agentbox.toml:837 — see AB-24
+    participant LLM as Loom facade<br/>agentbox/agentbox.toml:864 — see AB-24
     participant RV as RuVector ns ontology-classes<br/>see AB-20
 
-    Note over SCH: supervised as [program:ontology-condense-scheduler] (agentbox/flake.nix:2032) — launched<br/>unconditionally, exits fast when its gate is off
-    loop tick — schedule_interval_mins 60, jittered plus or minus 20 percent (agentbox.toml:850)
+    Note over SCH: supervised as [program:ontology-condense-scheduler] (agentbox/flake.nix:2088) — launched<br/>unconditionally, exits fast when its gate is off
+    loop tick — schedule_interval_mins 60, jittered plus or minus 20 percent (agentbox.toml:877)
         SCH->>GATE: require BOTH ONTOLOGY_CONDENSE_ENABLED and ONTOLOGY_CONDENSE_SCHEDULE
         alt either off
             SCH-->>SCH: no-op — byte-identical-when-off until an operator opts in and the container reboots
         else both on
             SCH->>CORP: newest page mtime
             SCH->>OUT: last condense output mtime
-            alt corpus newer OR output missing OR older than schedule_max_age_hours 24 (agentbox.toml:851)
+            alt corpus newer OR output missing OR older than schedule_max_age_hours 24 (agentbox.toml:878)
                 SCH->>REF: exec the refresh
                 Note over REF: flock-serialised (ontology-condense-refresh.sh:57-59) — SKIPS if a refresh already holds<br/>the lock. Stages overwrite/resume deterministically, so the scheduler is idempotent
                 REF->>IDX: parse the corpus into classes (ontology-condense-refresh.sh:105,111)
-                loop each KG class, max_concurrency 2 (agentbox.toml:840)
+                loop each KG class, max_concurrency 2 (agentbox.toml:867)
                     REF->>LLM: POST /v1/chat/completions — one retrieval sentence + a synonym list<br/>(ontology-condense-refresh.sh:108)
-                    Note over LLM: model qwen3.8-27B style openai (agentbox.toml:838-839). The model runs BEHIND the Loom<br/>facade so it is swappable with zero change here
+                    Note over LLM: model qwen3.8-27B style openai (agentbox.toml:865-866). The model runs BEHIND the Loom<br/>facade so it is swappable with zero change here
                 end
                 REF->>OUT: PUSH Class-Summary cache
                 REF->>RV: condensed store ns ontology-classes
@@ -204,7 +204,7 @@ flowchart TB
     TTL --> PYTEST
     PYTEST --> ELGUARD
     TTL -.->|"documents the SAME 'decision' concept CLAUDE.md/ADR-048 name<br/>that uris.js mints and ontology-apply.js applies"| APPLY
-    OFN -.->|"no loader found in mcp/servers, services/ontology-tools,<br/>or services/agentbox-ops — grep-verified"| APPLY
+    OFN -.->|"no loader found in mcp/servers, services/ or management-api<br/>— grep-verified; services/ontology-tools was retired by ADR-2119"| APPLY
     APPLY --> URIS
     subgraph notes["Invariants and drift"]
         direction TB

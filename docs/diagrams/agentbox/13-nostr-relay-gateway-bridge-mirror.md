@@ -35,7 +35,7 @@ sources:
   - ../project/agentbox/management-api/lib/llm-marketplace.js
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/management-api/lib/agent-control-surface.js
-verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
+verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
 ---
 
 ## AB-13.1 Nostr topology — relay, gateway, pod bridge, mirror, mesh
@@ -43,12 +43,12 @@ verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
 ```mermaid
 flowchart TB
     subgraph lan["LAN / container boundary"]
-        subgraph relayslot["relay slot [program:nostr-relay] flake.nix:2317-2347"]
+        subgraph relayslot["relay slot [program:nostr-relay] flake.nix:2373-2403"]
             PB["nostr-pod-bridge daemon<br/>services/nostr-pod-bridge/src/main.rs:130 run_daemon<br/>embedded relay port 7777 loopback (podBridgeEnabled=true, default)"]
-            RS["nostr-rs-relay binary<br/>flake.nix:2337 else-branch (podBridgeEnabled=false only)"]
+            RS["nostr-rs-relay binary<br/>flake.nix:2393 else-branch (podBridgeEnabled=false only)"]
         end
-        GW["nostr-gateway daemon<br/>config/nostr-gateway/gateway.cjs:758 connect()<br/>[program:nostr-gateway] flake.nix:2002"]
-        MGMT["management-api RelayConsumer<br/>management-api/server.js:1336<br/>mcp/nostr-bridge/relay-consumer.js:85 (legacy JS consumer, still wired)"]
+        GW["nostr-gateway daemon<br/>config/nostr-gateway/gateway.cjs:758 connect()<br/>[program:nostr-gateway] flake.nix:2058"]
+        MGMT["management-api RelayConsumer<br/>management-api/server.js:1346<br/>mcp/nostr-bridge/relay-consumer.js:85 (legacy JS consumer, still wired)"]
         AOE["AoE interaction plane port 9095<br/>gateway.cjs:445-459 aoeRequest()"]
         TAB0["tab0-bridge port 8971<br/>gateway.cjs:117,377 chatTab0()"]
     end
@@ -61,7 +61,7 @@ flowchart TB
     MIRROR["nostr-live-mirror.cjs hook<br/>config/hooks/nostr-live-mirror.cjs:393 main()<br/>fires on 4 hook events, mirrors Stop only by default (AB-13.9)"]
     DIGEST["nostr-pod-bridge session-summary<br/>services/nostr-pod-bridge/src/session_summary.rs:362 run()"]
     ZAI["Z.AI / GLM summariser<br/>session_summary.rs:59 DEFAULT_ZAI_BASE"]
-    FORUM["forum-backup-cron<br/>flake.nix:2563 [program:forum-backup-cron]<br/>supercronic + dreamlab-ai-website/scripts/backup/crontab (OUT OF TREE, editable without rebuild — only the stanza is baked)<br/>PATH pinned to coreutils/grep/findutils/curl/jq/gzip flake.nix:2566<br/>fails loud exit 2 if CLOUDFLARE_API_TOKEN/ACCOUNT_ID absent flake.nix:2560"]
+    FORUM["forum-backup-cron<br/>flake.nix:2619 [program:forum-backup-cron]<br/>supercronic + dreamlab-ai-website/scripts/backup/crontab (OUT OF TREE, editable without rebuild — only the stanza is baked)<br/>PATH pinned to coreutils/grep/findutils/curl/jq/gzip flake.nix:2622<br/>fails loud exit 2 if CLOUDFLARE_API_TOKEN/ACCOUNT_ID absent flake.nix:2616"]
     MESH["peer agentbox relays<br/>agentbox.toml:253-262 [mesh]"]
 
     MIRROR -->|"kind 1059 gift wrap"| CLOUD
@@ -77,7 +77,7 @@ flowchart TB
     FORUM -.->|"Cloudflare API (not Nostr)"| CLOUD
 
 N1["RESOLVED ADR-2065 (2026-09-05): the Rust spawn_consumer is the sole inbox writer when the<br/>pod-bridge daemon runs — RelayConsumer takes writeInbox=false via AGENTBOX_POD_INBOX_WRITER,<br/>projected from the same podBridgeEnabled expression that gates the daemon supervisor block.<br/>The JS consumer is narrowed, not deleted: it still solely implements ACSP governance 31400-31405,<br/>agent-intent 38000+, payments 38200/38201, the outbox publisher and external fanout"]
-    N2["INVARIANT ADR-2012: relay ingress is allowlist-only, no fallback, no auto-add — allowed_pubkeys baked at nix build (relayAllowedPubkeysCsv, flake.nix:1551)"]
+    N2["INVARIANT ADR-2012: relay ingress is allowlist-only, no fallback, no auto-add — allowed_pubkeys baked at nix build (relayAllowedPubkeysCsv, flake.nix:1591)"]
 ```
 
 ## AB-13.2 Relay ingress admission — allowlist gate before store/broadcast/OK
@@ -108,7 +108,7 @@ sequenceDiagram
     end
     alt Admitted
         ADM-->>WS: None (proceed) admission.rs:451
-        WS->>REL: dispatch_message_with_limits(relay, subs, text, limits) lib.rs:872-874
+        WS->>REL: dispatch_message_with_limits(relay, subs, text, limits) lib.rs:870-872
         REL-->>PUB: ["OK", id, true, ""]
         REL-->>WS: broadcast to live subscribers
     else Rejected
@@ -126,26 +126,26 @@ Note over ADM,REL: DIVERGENCE (ADR-2012 closeout 2026-09-04): this gate closes t
 sequenceDiagram
     autonumber
     participant TOML as agentbox.toml<br/>[sovereign_mesh.relay] agentbox.toml:144-206
-    participant NIX as flake.nix evaluation<br/>flake.nix:1402-1430
-    participant CSV as relayAllowedPubkeysCsv<br/>flake.nix:1551
-    participant TOMLGEN as relayAllowedPubkeysToml<br/>flake.nix:1552-1563
-    participant SUP as supervisord generated text<br/>flake.nix:2317-2347
+    participant NIX as flake.nix evaluation<br/>flake.nix:1434-1462
+    participant CSV as relayAllowedPubkeysCsv<br/>flake.nix:1591
+    participant TOMLGEN as relayAllowedPubkeysToml<br/>flake.nix:1592-1603
+    participant SUP as supervisord generated text<br/>flake.nix:2373-2403
     participant PB as nostr-pod-bridge process<br/>services/nostr-pod-bridge/src/lib.rs:134 BridgeConfig::from_env
 
-    NIX->>NIX: relayEnabled = relayCfg.enabled flake.nix:1402
-    NIX->>NIX: relayLocal = relayEnabled and impl in {nostr-rs-relay, rnostr} flake.nix:1404
-    NIX->>NIX: podBridgeEnabled = relayLocal and relayCfg.pod_bridge flake.nix:1430
+    NIX->>NIX: relayEnabled = relayCfg.enabled flake.nix:1434
+    NIX->>NIX: relayLocal = relayEnabled and impl in {nostr-rs-relay, rnostr} flake.nix:1436
+    NIX->>NIX: podBridgeEnabled = relayLocal and relayCfg.pod_bridge flake.nix:1462
     TOML->>NIX: allowed_pubkeys[] agentbox.toml:157-166, pod_bridge=true agentbox.toml:175
-    NIX->>CSV: relayAllowedPubkeysCsv = concatStringsSep "," allowed_pubkeys flake.nix:1551
+    NIX->>CSV: relayAllowedPubkeysCsv = concatStringsSep "," allowed_pubkeys flake.nix:1591
     alt podBridgeEnabled == true (default: pod_bridge = true)
-        NIX->>SUP: [program:nostr-relay] command=nostr-pod-bridge flake.nix:2325-2334
-        SUP->>PB: env AGENTBOX_ALLOWED_PUBKEYS=relayAllowedPubkeysCsv flake.nix:2329
-        Note over TOMLGEN: relayConfigText / relayAllowedPubkeysToml is generated but UNUSED on this path (flake.nix:1546 "Unused on the pod_bridge path — the bridge is env-configured")
+        NIX->>SUP: [program:nostr-relay] command=nostr-pod-bridge flake.nix:2381-2390
+        SUP->>PB: env AGENTBOX_ALLOWED_PUBKEYS=relayAllowedPubkeysCsv flake.nix:2385
+        Note over TOMLGEN: relayConfigText / relayAllowedPubkeysToml is generated but UNUSED on this path (flake.nix:1586 "Unused on the pod_bridge path — the bridge is env-configured")
         PB->>PB: allowed_pubkeys = env.split(",").filter(nonempty) lib.rs:145-151
     else podBridgeEnabled == false (implementation=nostr-rs-relay, pod_bridge=false)
-        NIX->>TOMLGEN: relayAllowedPubkeysToml — empty array emits explicit pubkey_whitelist = [ ] flake.nix:1552-1563
-        Note over TOMLGEN: comment explains the omission bug — an omitted pubkey_whitelist accepts EVERY author, an explicit empty array is ADR-2012 deny-all (flake.nix:1552-1559)
-        NIX->>SUP: [program:nostr-relay] command=nostr-rs-relay --config /etc/agentbox/nostr-relay.toml flake.nix:2337-2346
+        NIX->>TOMLGEN: relayAllowedPubkeysToml — empty array emits explicit pubkey_whitelist = [ ] flake.nix:1592-1603
+        Note over TOMLGEN: comment explains the omission bug — an omitted pubkey_whitelist accepts EVERY author, an explicit empty array is ADR-2012 deny-all (flake.nix:1592-1599)
+        NIX->>SUP: [program:nostr-relay] command=nostr-rs-relay --config /etc/agentbox/nostr-relay.toml flake.nix:2393-2402
     end
 Note over TOML,PB: no runtime mutation path — no auto-add, no fallback (admission.rs:139-141).<br/>Changing allowed_pubkeys requires ./agentbox.sh rebuild (Nix build-time artefact, ADR-2012<br/>Consequences)
 ```
@@ -221,7 +221,7 @@ classDiagram
         producer agentbox governance publisher outbound
         consumer relay-consumer.js:78-79 GOVERNANCE_KIND_MIN_MAX _isGovernanceEvent
         consumer relay-consumer.js:603 _writeGovernanceEvent
-        sink governance-decision-waiter server.js:1351
+        sink governance-decision-waiter server.js:1361
     }
     note for Kind31400_31405_ACSP "the ACSP producer/consumer split and the decision loop are AB-11.10 and AB-11.11.<br/>agent-control-surface.js builds these kinds for the external forum client — it is not an agentbox dashboard. see AB-12.8"
 ```
@@ -368,7 +368,7 @@ Note over ADM: DIVERGENCE ADR-2012 closeout — the RELAY already admitted, stor
             end
         end
     end
-Note over CONS,WRITE: DIVERGENCE — a SECOND, independent JS consumer<br/>(mcp/nostr-bridge/relay-consumer.js:279 _onInbound, wired at<br/>management-api/server.js:1292-1368) subscribes to the SAME relay and writes to the SAME<br/>pods/NPUB/events/inbox/ path with its own allowlist (AGENTBOX_RELAY_ALLOWED_PUBKEYS) and its<br/>own I01-I10 invariants (relay-consumer.js:39-46), independently of BridgeConfig.allowed_pubkeys<br/>here
+Note over CONS,WRITE: DIVERGENCE — a SECOND, independent JS consumer<br/>(mcp/nostr-bridge/relay-consumer.js:279 _onInbound, wired at<br/>management-api/server.js:1302-1378) subscribes to the SAME relay and writes to the SAME<br/>pods/NPUB/events/inbox/ path with its own allowlist (AGENTBOX_RELAY_ALLOWED_PUBKEYS) and its<br/>own I01-I10 invariants (relay-consumer.js:39-46), independently of BridgeConfig.allowed_pubkeys<br/>here
 ```
 
 ## AB-13.7 nostr-bridge / relay-consumer — in-process library, not an MCP tool server
@@ -376,7 +376,7 @@ Note over CONS,WRITE: DIVERGENCE — a SECOND, independent JS consumer<br/>(mcp/
 ```mermaid
 sequenceDiagram
     autonumber
-    participant BOOT as management-api boot<br/>management-api/server.js:1292
+    participant BOOT as management-api boot<br/>management-api/server.js:1302
     participant RC as RelayConsumer.start<br/>mcp/nostr-bridge/relay-consumer.js:224
     participant NB as NostrBridge<br/>mcp/servers/nostr-bridge.js:269
     participant CONN as RelayConnection<br/>mcp/servers/nostr-bridge.js:131
@@ -384,15 +384,15 @@ sequenceDiagram
     participant GDW as governance-decision-waiter<br/>management-api/lib/governance-decision-waiter.js
 
 Note over BOOT,GDW: CORRECTION — despite the path mcp/servers/nostr-bridge.js, this file's own<br/>header (lines 1-15) declares it library-only, consumed in-process by management-api. There is<br/>NO supervisord [program:nostr-bridge] and NO MCP tool schema (no tool()/registerTool calls) in<br/>either file — this sequence draws the real in-process call chain, not an MCP tool invocation
-    BOOT->>BOOT: if AGENTBOX_RELAY_ENABLED and AGENTBOX_RELAY_POD_BRIDGE server.js:1292-1293
-    BOOT->>SPEC: buildDefaultIntentSpec() server.js:1311
+    BOOT->>BOOT: if AGENTBOX_RELAY_ENABLED and AGENTBOX_RELAY_POD_BRIDGE server.js:1302-1303
+    BOOT->>SPEC: buildDefaultIntentSpec() server.js:1321
     alt AGENTBOX_INTENT_COMMAND unset
         SPEC-->>BOOT: null — marker-only path unchanged default-intent-spec.js:62-63
     else command configured
         SPEC-->>BOOT: defaultIntentSpec(event, context) function default-intent-spec.js:71-88
     end
-    BOOT->>RC: new RelayConsumer({npubs, allowedPubkeys, intentSpec, governanceDecisionSink: GDW}) server.js:1336-1353
-    BOOT->>RC: await consumer.start() server.js:1354
+    BOOT->>RC: new RelayConsumer({npubs, allowedPubkeys, intentSpec, governanceDecisionSink: GDW}) server.js:1346-1363
+    BOOT->>RC: await consumer.start() server.js:1364
     RC->>NB: this._bridge.connect() relay-consumer.js:225
     NB->>CONN: conn.connect() for each relay in NOSTR_RELAYS mcp/servers/nostr-bridge.js:341-344
     RC->>NB: this._bridge.subscribe({kinds: allowedKinds}, onInbound) relay-consumer.js:226-229
@@ -410,7 +410,7 @@ Note over BOOT,GDW: CORRECTION — despite the path mcp/servers/nostr-bridge.js,
         RC->>SPEC: intentSpec(event, context) relay-consumer.js referencing default-intent-spec.js:71
         SPEC-->>RC: {command, args, env with AGENTBOX_INTENT_SOURCE_URN} default-intent-spec.js:74-85
     else kind in 31400-31405 (governance) and inbound is 31403
-RC->>GDW: governanceDecisionSink.notify(...) server.js:1351,<br/>relay-consumer.js:603
+RC->>GDW: governanceDecisionSink.notify(...) server.js:1361,<br/>relay-consumer.js:603
     end
 Note over NB,CONN: subscription keepalive — CloudFlare Durable Object relays<br/>stop pushing to an<br/>idle REQ after ~20s regardless of socket liveness, so subRefreshMs=15000<br/>(mcp/servers/nostr-bridge.js:326) reissues every active subscription under a<br/>FRESH wire id,<br/>independent of reconnects (junkiejarvis "answers then goes quiet" regression,<br/>mcp/servers/nostr-bridge.js:301-325)
 ```

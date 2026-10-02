@@ -25,7 +25,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/examples/webhook_receiver.rs
   - ../solid-pod-rs/crates/solid-pod-rs/examples/wac_admin.rs
   - ../solid-pod-rs/crates/solid-pod-rs/examples/oidc_client.rs
-verified_commit: febdc8be24bdc8b148b78b43a35ae85ee863a72a
+verified_commit: 6d2e5b0d2e00fc2c9fa1e4984b8582cfa0d48556
 ---
 
 ## SP-01.1 Eight workspace members and the library-first split
@@ -89,14 +89,14 @@ classDiagram
         webid  solid-pod-rs/src/lib.rs:153
     }
     class FeatureGated {
-        did_nostr_types  solid-pod-rs/src/lib.rs:163
-        notifications  solid-pod-rs/src/lib.rs:174
-        provision  solid-pod-rs/src/lib.rs:176
-        quota  solid-pod-rs/src/lib.rs:178
-        storage  solid-pod-rs/src/lib.rs:180
-        oidc  solid-pod-rs/src/lib.rs:183
-        export  solid-pod-rs/src/lib.rs:199
-        handlers  solid-pod-rs/src/lib.rs:206
+        did_nostr_types  solid-pod-rs/src/lib.rs:164
+        notifications  solid-pod-rs/src/lib.rs:175
+        provision  solid-pod-rs/src/lib.rs:177
+        quota  solid-pod-rs/src/lib.rs:179
+        storage  solid-pod-rs/src/lib.rs:181
+        oidc  solid-pod-rs/src/lib.rs:184
+        export  solid-pod-rs/src/lib.rs:200
+        handlers  solid-pod-rs/src/lib.rs:207
     }
     AlwaysCompiled <.. FeatureGated
     note for AlwaysCompiled "The always-compiled half is pure logic plus the crypto and protocol primitives,\nwhich is what makes the core wasm/edge surface in SP-01.4 possible: storage,\nnotifications, provision, quota and oidc — everything that needs I/O or a\nruntime — sit behind a feature."
@@ -106,11 +106,11 @@ classDiagram
 
 ```mermaid
 flowchart TD
-    CORE_F["feature core = std + js-sys + did-nostr-types<br/>crates/solid-pod-rs/Cargo.toml:107"]
-    STD["feature std<br/>crates/solid-pod-rs/Cargo.toml:108"]
-    TOKIO["feature tokio-runtime = tokio + tungstenite + futures-util<br/>crates/solid-pod-rs/Cargo.toml:118"]
-    FSB["fs-backend = tokio-runtime + notify + cap-std<br/>crates/solid-pod-rs/Cargo.toml:120"]
-    MEMB["memory-backend = tokio-runtime<br/>crates/solid-pod-rs/Cargo.toml:121"]
+    CORE_F["feature core = std + js-sys + did-nostr-types<br/>crates/solid-pod-rs/Cargo.toml:108"]
+    STD["feature std<br/>crates/solid-pod-rs/Cargo.toml:109"]
+    TOKIO["feature tokio-runtime = tokio + tungstenite + futures-util<br/>crates/solid-pod-rs/Cargo.toml:119"]
+    FSB["fs-backend = tokio-runtime + notify + cap-std<br/>crates/solid-pod-rs/Cargo.toml:121"]
+    MEMB["memory-backend = tokio-runtime<br/>crates/solid-pod-rs/Cargo.toml:122"]
 
     CORE_F --> STD
     CORE_F -. "excludes" .-> TOKIO
@@ -122,21 +122,24 @@ flowchart TD
 
     E2["INVARIANT: classify_policy_read is runtime-free so the edge tier can adopt it<br/>solid-pod-rs/src/wac/resolver.rs:265"]
     CORE_F -.-> E2
+
+    E3["Since alpha.10 core carries k256 through did-nostr-types, pure Rust and<br/>wasm32-safe, for the did:nostr full-point encoder and point validation<br/>crates/solid-pod-rs/Cargo.toml:195"]
+    CORE_F -.-> E3
 ```
 
 ## SP-01.5 Core feature graph — auth and identity flags
 
 ```mermaid
 flowchart LR
-    NIP98S["nip98-schnorr = k256<br/>crates/solid-pod-rs/Cargo.toml:123"]
-    NIP98R["nip98-replay = lru + tokio-runtime<br/>crates/solid-pod-rs/Cargo.toml:130"]
-    LWS["lws-cid = k256<br/>crates/solid-pod-rs/Cargo.toml:135"]
-    LWSP["lws-cid-p256<br/>crates/solid-pod-rs/Cargo.toml:136"]
-    LWSE["lws-cid-eddsa<br/>crates/solid-pod-rs/Cargo.toml:137"]
-    LWSF["lws-cid-full<br/>crates/solid-pod-rs/Cargo.toml:138"]
-    OIDCF["oidc = openidconnect + jsonwebtoken + reqwest<br/>crates/solid-pod-rs/Cargo.toml:122"]
-    DPOPR["dpop-replay-cache = oidc + lru<br/>crates/solid-pod-rs/Cargo.toml:163"]
-    DPOPT["dpop-symmetric-test (TEST ONLY)<br/>crates/solid-pod-rs/Cargo.toml:169"]
+    NIP98S["nip98-schnorr = k256<br/>crates/solid-pod-rs/Cargo.toml:124"]
+    NIP98R["nip98-replay = lru + tokio-runtime<br/>crates/solid-pod-rs/Cargo.toml:131"]
+    LWS["lws-cid = k256<br/>crates/solid-pod-rs/Cargo.toml:136"]
+    LWSP["lws-cid-p256<br/>crates/solid-pod-rs/Cargo.toml:137"]
+    LWSE["lws-cid-eddsa<br/>crates/solid-pod-rs/Cargo.toml:138"]
+    LWSF["lws-cid-full<br/>crates/solid-pod-rs/Cargo.toml:139"]
+    OIDCF["oidc = openidconnect + jsonwebtoken + reqwest<br/>crates/solid-pod-rs/Cargo.toml:123"]
+    DPOPR["dpop-replay-cache = oidc + lru<br/>crates/solid-pod-rs/Cargo.toml:164"]
+    DPOPT["dpop-symmetric-test (TEST ONLY)<br/>crates/solid-pod-rs/Cargo.toml:170"]
 
     LWS --> LWSP
     LWS --> LWSE
@@ -146,7 +149,7 @@ flowchart LR
 
     G1["INVARIANT: without nip98-schnorr the verifier is a fail-CLOSED stub,<br/>never a structural-only accept<br/>solid-pod-rs/src/auth/nip98.rs:376"]
     NIP98S -.-> G1
-    G2["DIVERGENCE: dpop-symmetric-test compiles the HS256 oct arm; a symmetric DPoP alg<br/>is an RFC 9449 alg-confusion vector production must reject<br/>crates/solid-pod-rs/Cargo.toml:169"]
+    G2["DIVERGENCE: dpop-symmetric-test compiles the HS256 oct arm; a symmetric DPoP alg<br/>is an RFC 9449 alg-confusion vector production must reject<br/>crates/solid-pod-rs/Cargo.toml:170"]
     DPOPT -.-> G2
 ```
 
@@ -154,17 +157,17 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    JSS["jss-v04 (parent flag, no-op alone)<br/>crates/solid-pod-rs/Cargo.toml:146"]
-    SP["security-primitives<br/>crates/solid-pod-rs/Cargo.toml:150"]
-    LEG["legacy-notifications (solid-0.1 WS adapter)<br/>crates/solid-pod-rs/Cargo.toml:155"]
-    ORG["acl-origin (WAC acl:origin gate)<br/>crates/solid-pod-rs/Cargo.toml:159"]
-    CFGL["config-loader = serde_yaml + toml<br/>crates/solid-pod-rs/Cargo.toml:178"]
-    WHS["webhook-signing = ed25519-dalek + httpdate<br/>crates/solid-pod-rs/Cargo.toml:182"]
-    RL["rate-limit = lru + parking_lot<br/>crates/solid-pod-rs/Cargo.toml:201"]
-    QU["quota = jss-v04 + config-loader<br/>crates/solid-pod-rs/Cargo.toml:209"]
-    DNT["did-nostr-types (no new deps)<br/>crates/solid-pod-rs/Cargo.toml:189"]
-    MR["mrc20 = k256<br/>crates/solid-pod-rs/Cargo.toml:194"]
-    DN["did-nostr<br/>crates/solid-pod-rs/Cargo.toml:195"]
+    JSS["jss-v04 (parent flag, no-op alone)<br/>crates/solid-pod-rs/Cargo.toml:147"]
+    SP["security-primitives<br/>crates/solid-pod-rs/Cargo.toml:151"]
+    LEG["legacy-notifications (solid-0.1 WS adapter)<br/>crates/solid-pod-rs/Cargo.toml:156"]
+    ORG["acl-origin (WAC acl:origin gate)<br/>crates/solid-pod-rs/Cargo.toml:160"]
+    CFGL["config-loader = serde_yaml + toml<br/>crates/solid-pod-rs/Cargo.toml:179"]
+    WHS["webhook-signing = ed25519-dalek + httpdate<br/>crates/solid-pod-rs/Cargo.toml:183"]
+    RL["rate-limit = lru + parking_lot<br/>crates/solid-pod-rs/Cargo.toml:207"]
+    QU["quota = jss-v04 + config-loader<br/>crates/solid-pod-rs/Cargo.toml:215"]
+    DNT["did-nostr-types = k256, full-point Multikey<br/>crates/solid-pod-rs/Cargo.toml:195"]
+    MR["mrc20 = k256<br/>crates/solid-pod-rs/Cargo.toml:200"]
+    DN["did-nostr<br/>crates/solid-pod-rs/Cargo.toml:201"]
 
     JSS --> SP
     JSS --> LEG
@@ -185,7 +188,7 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    LIBD["core lib default = std, fs-backend,<br/>memory-backend, tokio-runtime, notifications<br/>crates/solid-pod-rs/Cargo.toml:98"]
+    LIBD["core lib default = std, fs-backend,<br/>memory-backend, tokio-runtime, notifications<br/>crates/solid-pod-rs/Cargo.toml:99"]
     SRVD["server default = [] (EMPTY)<br/>crates/solid-pod-rs-server/Cargo.toml:123"]
 
     LIBD --> R1["a default library build has FS + memory storage,<br/>the tokio runtime and the notifications stack"]
@@ -233,9 +236,9 @@ classDiagram
         +announce = solid-pod-rs-nostr + k256  crates/solid-pod-rs-forge/Cargo.toml:53
     }
     class git {
-        +default = []  crates/solid-pod-rs-git/Cargo.toml:43
-        +with-git-binary (e2e CGI tests)  crates/solid-pod-rs-git/Cargo.toml:44
-        +git-auto-init  crates/solid-pod-rs-git/Cargo.toml:49
+        +default = []  crates/solid-pod-rs-git/Cargo.toml:47
+        +with-git-binary (e2e CGI tests)  crates/solid-pod-rs-git/Cargo.toml:48
+        +git-auto-init  crates/solid-pod-rs-git/Cargo.toml:53
     }
     class idp {
         +default = []  crates/solid-pod-rs-idp/Cargo.toml:68
@@ -327,13 +330,13 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    D1["[[example]] embed_in_actix<br/>crates/solid-pod-rs/Cargo.toml:310"]
-    D2["custom_storage<br/>crates/solid-pod-rs/Cargo.toml:314"]
-    D3["nip98_client<br/>crates/solid-pod-rs/Cargo.toml:318"]
-    D4["notifications_consumer<br/>crates/solid-pod-rs/Cargo.toml:322"]
-    D5["webhook_receiver<br/>crates/solid-pod-rs/Cargo.toml:326"]
-    D6["wac_admin<br/>crates/solid-pod-rs/Cargo.toml:330"]
-    D7["oidc_client, required-features = oidc<br/>crates/solid-pod-rs/Cargo.toml:336"]
+    D1["[[example]] embed_in_actix<br/>crates/solid-pod-rs/Cargo.toml:316"]
+    D2["custom_storage<br/>crates/solid-pod-rs/Cargo.toml:320"]
+    D3["nip98_client<br/>crates/solid-pod-rs/Cargo.toml:324"]
+    D4["notifications_consumer<br/>crates/solid-pod-rs/Cargo.toml:328"]
+    D5["webhook_receiver<br/>crates/solid-pod-rs/Cargo.toml:332"]
+    D6["wac_admin<br/>crates/solid-pod-rs/Cargo.toml:336"]
+    D7["oidc_client, required-features = oidc<br/>crates/solid-pod-rs/Cargo.toml:342"]
     C1["cargo check -p solid-pod-rs --examples<br/>crates/solid-pod-rs/docs/examples-index.md:34"]
     C2["cargo check --examples --features oidc<br/>crates/solid-pod-rs/docs/examples-index.md:35"]
 

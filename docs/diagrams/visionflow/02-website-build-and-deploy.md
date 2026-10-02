@@ -37,7 +37,8 @@ sources:
   - docs/adr/ADR-2002-static-copy-only-website.md
   - docs/adr/ADR-2003-pages-artifact-deploy.md
   - docs/architecture/compatibility-matrix.md
-verified_commit: d4e44298646768a4b19af359119e16a6884fa80d
+  - ./README.md
+verified_commit: e5987acc8337ddd64c72f775750d61fef46d8e0b
 ---
 
 ## VF-02.1 The copy-only build — every step of website/build.sh
@@ -72,9 +73,9 @@ flowchart LR
     classDef ext fill:#f6efd8,stroke:#8a7020,color:#111
 
     subgraph STATIC["website/static/ — hand-written source"]
-        IDX["index.html — one page, ~97 KB<br/>one module entry at index.html:1158<br/>one local stylesheet at index.html:23"]:::src
+        IDX["index.html — one page, ~106 KB<br/>one module entry at index.html:1249<br/>one local stylesheet at index.html:26"]:::src
         CSS["css/styles.css — the sole stylesheet"]:::src
-        MAIN["js/main.js — sole ES module entrypoint<br/>DOMContentLoaded wiring at main.js:846"]:::src
+        MAIN["js/main.js — sole ES module entrypoint<br/>DOMContentLoaded wiring at main.js:908"]:::src
         MESH["js/mesh-webgl.js — hand-written WebGL2 ES module<br/>initMesh returns null without WebGL2<br/>mesh-webgl.js:15"]:::src
         DATA["data/estate-health.json — committed nightly snapshot<br/>estate-health.json:2 schema visionflow.estate-health/1<br/>see VF-03"]:::src
         MEDIA["img/showcase/*.webp and video/*.mp4"]:::src
@@ -89,7 +90,7 @@ flowchart LR
     ASSETS["repo assets/diagrams, assets/generated,<br/>assets/heroes, assets/screenshots<br/>staged by the manifest, not by static/*"]:::src
     ASSETS ==>|"website-assets.mjs stage"| DIST
 
-    FONTS["EXTERNAL fetch: Google Fonts only<br/>Inter and JetBrains Mono, index.html:22<br/>preconnect at index.html:20"]:::ext
+    FONTS["EXTERNAL fetch: Google Fonts only<br/>Inter and JetBrains Mono, index.html:25<br/>preconnect at index.html:23"]:::ext
     IDX -.-> FONTS
 
     NEG["ABSENT BY DECISION: no Cargo.toml, no rs, no wasm,<br/>no bundler, no framework, no CDN CSS<br/>ADR-2002-static-copy-only-website.md:53"]
@@ -105,9 +106,9 @@ flowchart TB
 
     M["website/assets.manifest.json<br/>manifest_version 1, site_root static, output dist<br/>assets.manifest.json:4"]
 
-    M --> REQ["required — 14 entries<br/>assets.manifest.json:6<br/>index.html, CNAME, css/styles.css, js/main.js,<br/>js/mesh-webgl.js, data/estate-health.json,<br/>img/og-card.png, five showcase webp, two mp4"]:::req
-    M --> DER["derived — required destinations sourced from OUTSIDE static/<br/>assets.manifest.json:58 img/og-card.png<br/>from ../assets/screenshots/visionflow-final.png"]:::der
-    M --> OPT["optional — four directory groups<br/>repo-diagrams, repo-generated, repo-heroes, repo-screenshots<br/>assets.manifest.json:22"]:::opt
+    M --> REQ["required — 15 entries<br/>assets.manifest.json:6<br/>index.html, CNAME, robots.txt, css/styles.css, js/main.js,<br/>js/mesh-webgl.js, data/estate-health.json,<br/>img/og-card.png, five showcase webp, two mp4"]:::req
+    M --> DER["derived — required destinations sourced from OUTSIDE static/<br/>assets.manifest.json:59 img/og-card.png<br/>from ../assets/screenshots/visionflow-final.png"]:::der
+    M --> OPT["optional — four directory groups<br/>repo-diagrams, repo-generated, repo-heroes, repo-screenshots<br/>assets.manifest.json:23"]:::opt
 
     REQ -->|"absent or zero bytes in dist/"| F1["verify exits 1, naming the file and its 'why'<br/>website-assets.mjs:250"]:::req
     DER -->|"source file missing"| F2["stage exits 1 — a derived entry backs a REQUIRED dest<br/>website-assets.mjs:129"]:::der
@@ -116,8 +117,10 @@ flowchart TB
     HIST["The defect this closes: build.sh staged repo images with<br/>cp -r ... 2 dev null or true, so every optional copy could<br/>fail while the build still printed BUILD-COMPLETE<br/>website-assets.mjs:9"]
     M -.-> HIST
 
-    LINK["data/estate-health.json is REQUIRED specifically because<br/>the estate section links it by href, so the link-integrity<br/>gate must resolve it in dist/ — assets.manifest.json:12"]:::req
+    LINK["data/estate-health.json is REQUIRED specifically because<br/>the estate section links it by href, so the link-integrity<br/>gate must resolve it in dist/ — assets.manifest.json:13"]:::req
     REQ -.-> LINK
+    ROBOTS["robots.txt is REQUIRED since dream PR 11 (2026-10-01 night):<br/>it reaches dist/ only through the wholesale static/* copy,<br/>so without the entry a copy regression would publish<br/>the site with no crawler policy — assets.manifest.json:9"]:::req
+    REQ -.-> ROBOTS
 ```
 
 ## VF-02.4 website-assets.mjs — stage, verify, and the receipt handoff
@@ -205,12 +208,14 @@ flowchart TB
     G5 --> G6["BLOCKING 6 committed diagram baseline text visibility<br/>node scripts/check-diagram-text.js — deploy.yml:125"]:::block
     G6 --> G7["REPORTED 7 self-description drift counter<br/>blocks only when the agentbox checkout landed<br/>deploy.yml:134"]:::report
 
+    HEAD["what gates 4 and 5 now see in the head — dream PR 12 and abf8d3c:<br/>og:site_name, index.html:10, og:image width and height 1280 x 720,<br/>index.html:15-16, an Organization block that now carries legalName<br/>DreamLab AI Consulting Ltd, index.html:31, and a second JSON-LD<br/>block typed WebSite, index.html:37-42"]
+    G5 -.-> HEAD
     G7 --> REC["write gate verdicts and the published block into the receipt<br/>deploy.yml:147"]:::ok
     REC --> UPR["upload-artifact website-build-receipt — deploy.yml:172"]:::ok
     UPR --> UP["upload-pages-artifact@v3, path website/dist<br/>reached only when every blocking gate passed<br/>deploy.yml:180"]:::ok
     UP --> J2["job deploy, needs build<br/>environment github-pages, deploy-pages@v4<br/>deploy.yml:193"]:::ok
 
-    INV["INVARIANT: no gh-pages branch push anywhere;<br/>the CNAME is emitted by build.sh into the artefact<br/>ADR-2003-pages-artifact-deploy.md:29<br/>BASELINE-visionflow.md:271"]
+    INV["INVARIANT: no gh-pages branch push anywhere;<br/>the CNAME is emitted by build.sh into the artefact<br/>ADR-2003-pages-artifact-deploy.md:29<br/>BASELINE-visionflow.md:289"]
     J2 -.-> INV
 ```
 
@@ -277,7 +282,7 @@ flowchart LR
     S3 --> S4["npm run check:sidecar<br/>node scripts/check-cdp-sidecar.mjs — package.json:8"]:::needs
     S4 --> S5["npm run test:site<br/>playwright test — package.json:14"]:::needs
 
-    S3 --> SUITES["six suites, each driving a deliberate defect through its<br/>gate and asserting the gate goes red — harness-audit,<br/>drift-counter, release-manifest, website-assets and, since<br/>2026-09-14, diagram-index and augmentation-citations<br/>run-all.sh:18, sentinel GATE-TESTS-OK at run-all.sh:38"]:::step
+    S3 --> SUITES["seven suites, each driving a deliberate defect through its<br/>gate and asserting the gate goes red — harness-audit,<br/>drift-counter, release-manifest, website-assets, since<br/>2026-09-14 diagram-index and augmentation-citations, and since<br/>2026-09-23 estate-health-ci, which drives the collector's<br/>CI-state-at-HEAD rule (see VF-03.4) — run-all.sh:18, run-all.sh:25<br/>.cjs and .mjs suites run under node — run-all.sh:32<br/>sentinel GATE-TESTS-OK at run-all.sh:39"]:::step
 
     SIDE["EXTERNAL, not in this repo: the browsercontainer Chrome sidecar<br/>in-network port 9223, from the host port 9222<br/>check-cdp-sidecar.mjs:15, probes /json/version at :31<br/>see ES-01 for the sidecar's place in the estate"]:::needs
     S4 --- SIDE
@@ -307,7 +312,7 @@ sequenceDiagram
     P-->>T: "structure assertions: ten named sections, the mesh canvas,<br/>four particle canvases, zero console errors — site.spec.js:31"
     P-->>T: "@a11y — axe-core analyze, violations must be empty<br/>site.spec.js:85"
     P-->>T: "@perf — total transferSize at most 800 KB<br/>site.spec.js:108"
-    Note over T,CH: "INVARIANT: no local Chromium is installed in CI — both<br/>projects, chromium and mobile-chrome, drive the sidecar<br/>BASELINE-visionflow.md:270"
+    Note over T,CH: "INVARIANT: no local Chromium is installed in CI — both<br/>projects, chromium and mobile-chrome, drive the sidecar<br/>BASELINE-visionflow.md:288"
 ```
 
 ## VF-02.11 The deeper browser receipt — three scenarios over raw CDP
@@ -341,13 +346,13 @@ stateDiagram-v2
     [*] --> Parse
     state "browser parses index.html — one stylesheet, one module" as Parse
     Parse --> DOMReady
-    state "DOMContentLoaded handler — main.js:846" as DOMReady
+    state "DOMContentLoaded handler — main.js:908" as DOMReady
     DOMReady --> Nav
     DOMReady --> Sections
     DOMReady --> Estate
     DOMReady --> Mesh
     state "initNavScroll, initSmoothScroll, initScrollReveal" as Nav
-    state "initFigures, initDoors, initReadingSwitch, initIndex, initProgress, initSheet" as Sections
+    state "initFigures, initDoors, initSidechainCarousel, initReadingSwitch, initIndex, initProgress, initSheet" as Sections
     state "initEstateHealth, async, renders at rest without it — see VF-03" as Estate
     state "initMeshBackdrop" as Mesh
     Mesh --> WebGL2Yes : getContext webgl2 succeeded
@@ -361,7 +366,7 @@ stateDiagram-v2
     Estate --> [*]
     note right of Estate
       The background video is skipped entirely under
-      reduced motion — main.js:857
+      reduced motion — main.js:921
     end note
     note right of WebGL2No
       DOC-DRIFT: PRD-website.md:194 still requires a static
@@ -374,8 +379,10 @@ stateDiagram-v2
 
 **Invariant (supply chain):** every third-party action in the publication workflow is pinned to a commit sha rather than a moving tag, so a compromised `@v4` cannot enter the artefact (`.github/workflows/deploy.yml:52`, `.github/workflows/deploy.yml:55`).
 
-**Drift (page copy vs the graded table):** the deployed page dates the augmentation grade to 14 September 2026 and links that anchor (`website/static/index.html:546`), while the section it links is now headed *graded 2026-09-15* (`docs/architecture/compatibility-matrix.md:23`).
+**Drift (page copy vs the graded table):** the deployed page dates the augmentation grade to 14 September 2026 and links that anchor (`website/static/index.html:557`), while the section it links is now headed *graded 2026-09-15* (`docs/architecture/compatibility-matrix.md:23`).
 
-**Debt (reveal threshold):** `initScrollReveal` was moved from a 10 percent intersection threshold to zero because a tall section may never occupy a tenth of its own area in the viewport (`website/static/js/main.js:40`); nothing in the site tests asserts that a long section still reveals.
+**Debt (reveal threshold):** `initScrollReveal` was moved from a 10 percent intersection threshold to zero because a tall section may never occupy a tenth of its own area in the viewport (`website/static/js/main.js:41`); nothing in the site tests asserts that a long section still reveals.
 
 **Debt (unverifiable citation):** `website/build-receipt.json` is gitignored at `website/.gitignore:8`, so it exists in no commit and the four citations into it are read from the working tree whatever revision this topic declares; the numbers they carry are true of one local build, not of a revision.
+
+**Drift (site vs README, CUDA counts):** since `abf8d3c` the page states 83 CUDA kernels in 10 `.cu` files and 6,302 lines (`website/static/index.html:278`, `website/static/index.html:1066`), which matches VisionClaw at `7d3ea2edb` (10 tracked `.cu` files, 6,302 lines, 83 `__global__` definitions); the repository README still states 82 kernels, 9 files and 5,854 lines (`./README.md:51`, `./README.md:254`), and the drift counter carries no CUDA axis, so the second figure does not fail any gate.

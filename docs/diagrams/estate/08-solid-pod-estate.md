@@ -37,7 +37,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../project/agentbox/docs/adr/ADR-2099-the-chain-is-the-ledger-of-record.md
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, solid-pod-rs: febdc8be24bdc8b148b78b43a35ae85ee863a72a, nostr-rust-forum: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d}
+verified_commit: {visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047, solid-pod-rs: 6d2e5b0d2e00fc2c9fa1e4984b8582cfa0d48556, nostr-rust-forum: d025cb063df5a532f055a18527f71cc7dee9d6e6}
 ---
 ## ES-08.1 Four coexisting Solid-pod deployments — topology contrast
 
@@ -52,9 +52,9 @@ flowchart TB
     end
 
     subgraph AB["agentbox container — supervised service"]
-        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2271"]
+        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2327"]
         SRV["solid-pod-rs-server  port 8484<br/>agentbox/agentbox.toml:497-499"]
-        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2288"]
+        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2344"]
         SUP -->|"exec solidPodRsLauncher"| SRV
         HTTPS -->|"TLS terminate to  port 8484"| SRV
     end
@@ -387,7 +387,7 @@ classDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> STOPPED
-    STOPPED --> STARTING : autostart true, flake.nix 2271-2281
+    STOPPED --> STARTING : autostart true, flake.nix 2327-2337
     STARTING --> RUNNING : solidPodRsLauncher exec succeeds
     STARTING --> BACKOFF : exec fails within startsecs
     BACKOFF --> STARTING : autorestart true, retry
@@ -398,8 +398,8 @@ stateDiagram-v2
     STOPPING --> STOPPED
     FATAL --> [*]
 
-    note right of STARTING : priority 30, user devuser<br/>environment SOLID_POD_PUBLIC_URL, SOLID_ADMIN_KEY<br/>AGENTBOX_REQUIRED_FOR_READINESS true, flake.nix 2271-2281
-    note right of RUNNING : https-bridge TLS-terminates to this port when<br/>sovereignCfg.https_bridge true, flake.nix 2288-2298
+    note right of STARTING : priority 30, user devuser<br/>environment SOLID_POD_PUBLIC_URL, SOLID_ADMIN_KEY<br/>AGENTBOX_REQUIRED_FOR_READINESS true, flake.nix 2327-2337
+    note right of RUNNING : https-bridge TLS-terminates to this port when<br/>sovereignCfg.https_bridge true, flake.nix 2344-2354
     note right of FATAL : DIVERGENCE, no point-in-time backup for the pod<br/>store, scripts backup-sqlite.sh covers SQLite only<br/>docs/DATA-authority-erasure.md Known divergences,<br/>no cross-store consistent restore, no declared RPO or RTO
 ```
 

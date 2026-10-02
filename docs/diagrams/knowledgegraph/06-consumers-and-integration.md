@@ -11,7 +11,7 @@ sources:
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/ontocast_import.py
   - ../knowledgeGraph/README.md
   - docs/architecture/licensing.md
-verified_commit: {knowledgegraph: 3a266fc3a2edb91f84ecc794718b87dd44c79417, visionflow: d4e44298646768a4b19af359119e16a6884fa80d}
+verified_commit: {knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visionflow: e5987acc8337ddd64c72f775750d61fef46d8e0b}
 ---
 
 ## KG-06.1 Sibling repository map — what actually depends on what
@@ -27,8 +27,9 @@ flowchart TB
     AB["DreamLab-AI/agentbox — AGPL-3.0<br/>EXTERNAL: see AB-24, AB-25 — tooling provenance, no code dep"]
     MO["DreamLab-AI/Metaverse-Ontology — closest independent precedent<br/>Logseq properties + Rust extractor, different method"]
     SPR["DreamLab-AI/solid-pod-rs — AGPL-3.0<br/>indirect: cause of VisionClaw's AGPL relicence"]
+    SSR["DreamLab-AI/sidestr-rs — AGPL-3.0-only<br/>listed 2026-10-02 as an estate sibling, NOT a corpus consumer<br/>knowledgeGraph/README.md:356"]
     VG -->|"publish.yml deploys gh-pages to external_repository — see VG-03.1, VG-04.1"| KG
-    VG -.->|"primary corpus source now #40;ADR-2114#41; — see VC-21, VG-04.3"| VC
+    VG -.->|"primary corpus source now #40;ADR-2114#41;, plus a corpus-sync dispatch<br/>after each deploy since 2026-10-01 — see VC-21, VG-04.1"| VC
     KG -->|"fetches markdown + Turtle over GitHub — see KG-06.2"| VC
     WV -->|"explorer/ is a fork, MIT lineage"| KG
     WV -.->|"same MIT-derivative lineage"| VW
@@ -37,6 +38,7 @@ flowchart TB
     note1["Excluded deliberately: VisionFlow-Ontology-Engine is a fork of<br/>OpenPlanter #40;op-cli/op-core/...#41;, nothing to do with this corpus<br/>#40;ecosystem.md:213-219#41;"]
     note2["ARCHIVED at HEAD: this repo's own ontology/pages/ source tree and<br/>seven-stage rdflib pipeline/ are archived — kept for history, not built<br/>from, not accepted into #40;README.md:15-16#41;"]
 ```
+- **No dependency edge for sidestr-rs:** the README added it to the sibling table on 2026-10-02 with the explicit qualifier "Estate sibling, not a corpus consumer" (`../knowledgeGraph/README.md:356`), so it appears on the map with no arrow; nothing in this repo reads or is read by it.
 - **Authoring moved:** the corpus of record is now visionGraph's Obsidian vault, not this repo's `ontology/pages/` — see VG-01 for the vault contract and VG-04.3 for the two independent distribution paths that both start from it.
 
 ## KG-06.2 VisionClaw ingest — static artefact becomes a live, reasoned graph

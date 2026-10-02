@@ -68,7 +68,7 @@ sources:
   - ../project/src/utils/unified_gpu_compute/execution.rs
   - ../project/src/handlers/api_handler/analytics/anomaly_handlers.rs
   - ../project/src/handlers/api_handler/analytics/clustering_handlers.rs
-verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
+verified_commit: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8
 ---
 
 ## VC-09.1 Config load precedence — main() boot order
@@ -206,7 +206,7 @@ sequenceDiagram
     V->>V: 3. argv --allow-skip-auth → AllowSkipAuthArgv
     V->>V: 4. build carries dev-auth → DevAuthFeatureInArtefact (ADR-2037)
     Note over M,BI: INVARIANT (2026-09-07) — the dev launcher builds profile dev-runtime, which inherits<br/>release but keeps debug-assertions and overflow-checks (Cargo.toml:301-304), and exports<br/>CARGO_PROFILE_DEV_RUNTIME_DEBUG_ASSERTIONS=true (scripts/rust-backend-wrapper.sh:45). That is<br/>what keeps BuildIdentity::current() reporting a DEBUG artefact for a dev-auth binary, so this<br/>assertion warns and continues instead of refusing to bind. See VC-08.9.
-    V->>V: 5. report_mode_requested(env) (src/config/security_profile.rs:520)
+    V->>V: 5. report_mode_requested(env) (src/config/security_profile.rs:525)
     alt public_reads_enabled_in(env) AND NOT visibility_filter_enabled_in(env)
         V->>V: 5b. findings.push(FullDisclosureFlagPair) — ADR-2043
         Note over V: RESOLVED ADR-2043 — the ADR-2003 illegal pair, rejected unconditionally.<br/>public_reads_enabled_in mirrors rbac_gate::public_reads_enabled (only 1/true enable)<br/>visibility_filter_enabled_in mirrors position_updates::parse_visibility_flag (default ON,<br/>only 0/false/off/no disable). Duplicated against the snapshot, not called live, because<br/>the gate reads the process env while the assertion reads the boot snapshot.
@@ -221,7 +221,7 @@ sequenceDiagram
         Note over A: ADR-2038 — a mis-promoted image never accepts a single request
     else debug build
         A-->>M: log::warn per finding then continue
-        Note over A: may_bind_listener() src/config/security_profile.rs:383 — debug builds may continue
+        Note over A: may_bind_listener() src/config/security_profile.rs:388 — debug builds may continue
     end
 ```
 
@@ -382,13 +382,13 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph REQ["required — hard-fail in production"]
-        E1["SYSTEM_NETWORK_PORT<br/>required list src/main.rs:63 · read :807"]
+        E1["SYSTEM_NETWORK_PORT<br/>required list src/main.rs:63 · read :841"]
     end
     subgraph RECO["recommended — warn only, src/main.rs:70"]
         E2["MANAGEMENT_API_KEY<br/>src/app_state.rs:87 · src/main.rs:709"] --> E3["JWT_SECRET<br/>src/app_state.rs:121"] --> E4["CORS_ALLOWED_ORIGINS<br/>src/main.rs:952"]
     end
     subgraph IDENT["process identity — gates the release refusal"]
-        E5["APP_ENV<br/>unset = non-production<br/>src/main.rs:85 and :944"] --> E6["NODE_ENV<br/>src/main.rs:141"] --> E7["DOCKER_ENV<br/>src/main.rs:144"] --> E8["VISIONCLAW_GIT_SHA<br/>src/services/liveness_harness.rs:279"]
+        E5["APP_ENV<br/>unset = non-production<br/>src/main.rs:85 and :978"] --> E6["NODE_ENV<br/>src/main.rs:141"] --> E7["DOCKER_ENV<br/>src/main.rs:144"] --> E8["VISIONCLAW_GIT_SHA<br/>src/services/liveness_harness.rs:279"]
     end
     subgraph PATHS["paths, stores and logging"]
         E9["DATA_DIR<br/>src/main.rs:362 · src/app_state.rs:451"] --> E10["SETTINGS_FILE_PATH<br/>default /app/settings.yaml<br/>src/main.rs:302"] --> E11["EVENT_STORE_PATH<br/>src/app_state.rs:899"] --> E12["LOG_DIR<br/>src/utils/advanced_logging.rs:570"] --> E13["TELEMETRY_LOG_DIR<br/>src/main.rs:272"] --> E14["DEBUG_ENABLED<br/>src/utils/advanced_logging.rs:643"]
@@ -406,16 +406,16 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph RBAC["RBAC lattice — request-time behaviour see VC-03"]
-        S1["RBAC_PUBLIC_READS<br/>default OFF, fail-closed unwrap_or(false)<br/>src/middleware/rbac_gate.rs:126-133, doc :121-125"] --> S2["RBAC_ALLOW_OWNERLESS<br/>const src/services/role_store.rs:33<br/>read src/main.rs:775 — absence refuses boot"] --> S3["RBAC_OWNER_PUBKEY<br/>const src/services/role_store.rs:27, read :642"] --> S4["RBAC_DEFAULT_ROLE<br/>const src/services/role_store.rs:41, read :218<br/>default Editor, fail-closed to viewer"] --> S5["RBAC_GATE_MODE<br/>default enforce<br/>src/middleware/rbac_gate.rs:80-113"] --> S6["RBAC_REPORT_MODE_ACK<br/>must equal today exactly<br/>src/config/security_profile.rs:473"] --> S7["POWER_USER_PUBKEYS<br/>src/services/nostr_service.rs:125<br/>maps to Admin when unassigned"]
+        S1["RBAC_PUBLIC_READS<br/>default OFF, fail-closed unwrap_or(false)<br/>src/middleware/rbac_gate.rs:126-133, doc :121-125"] --> S2["RBAC_ALLOW_OWNERLESS<br/>const src/services/role_store.rs:33<br/>read src/main.rs:775 — absence refuses boot"] --> S3["RBAC_OWNER_PUBKEY<br/>const src/services/role_store.rs:27, read :642"] --> S4["RBAC_DEFAULT_ROLE<br/>const src/services/role_store.rs:41, read :218<br/>default Editor, fail-closed to viewer"] --> S5["RBAC_GATE_MODE<br/>default enforce<br/>src/middleware/rbac_gate.rs:80-113"] --> S6["RBAC_REPORT_MODE_ACK<br/>must equal today exactly<br/>src/config/security_profile.rs:473"] --> S7["POWER_USER_PUBKEYS<br/>src/services/nostr_service.rs:132<br/>maps to Admin when unassigned"]
     end
     subgraph BYPASS["dev bypass — presence refused in release"]
-        S8["VISIONCLAW_DEV_MODE<br/>src/utils/auth.rs:100 dev_full_bypass_active"] --> S9["DEV_AUTH_LOOPBACK<br/>src/utils/auth.rs:123"] --> S10["SETTINGS_AUTH_BYPASS<br/>presence only — src/main.rs:130-134"] --> S11["ALLOW_INSECURE_DEFAULTS<br/>src/main.rs:956 · src/agent_events/ingest.rs:61<br/>src/handlers/socket_flow_handler/http_handler.rs:21"]
+        S8["VISIONCLAW_DEV_MODE<br/>src/utils/auth.rs:100 dev_full_bypass_active"] --> S9["DEV_AUTH_LOOPBACK<br/>src/utils/auth.rs:123"] --> S10["SETTINGS_AUTH_BYPASS<br/>presence only — src/main.rs:130-134"] --> S11["ALLOW_INSECURE_DEFAULTS<br/>src/main.rs:956 · src/agent_events/ingest.rs:61<br/>src/handlers/socket_flow_handler/http_handler.rs:23"]
     end
     subgraph POSTURE["posture selectors"]
         S12["VISIONCLAW_SECURITY_PROFILE<br/>src/config/security_profile.rs:54"] --> S13["PUBLIC_DEMO<br/>const src/middleware/public_demo.rs:24, read :28"] --> S14["PUBKEY_VISIBILITY_FILTER<br/>default ON, read ONCE and cached<br/>position_updates.rs:26 :34-43 :50-58"]
     end
     subgraph SESS["session realm"]
-        S15["AUTH_TOKEN_EXPIRY<br/>src/handlers/nostr_handler.rs:134 :234<br/>src/services/nostr_service.rs:131"] --> S16["REDIS_URL<br/>src/services/nostr_service.rs:140<br/>src/actors/optimized_settings_actor.rs:146"]
+        S15["AUTH_TOKEN_EXPIRY<br/>src/handlers/nostr_handler.rs:134 :234<br/>src/services/nostr_service.rs:138"] --> S16["REDIS_URL<br/>src/services/nostr_service.rs:147<br/>src/actors/optimized_settings_actor.rs:146"]
     end
     RBAC --> BYPASS --> POSTURE --> SESS
     N2["FORBIDDEN_DEV_VARS src/config/security_profile.rs:60-66 = the four in BYPASS<br/>PROFILE_FLAGS src/config/security_profile.rs:68-76 = S1 S2 S3 S4 S14 S5"]
@@ -429,7 +429,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph KEYS["signing keys"]
-        K1["VISIONCLAW_NOSTR_PRIVKEY<br/>src/services/nostr_bridge.rs:37<br/>src/services/nostr_bead_publisher.rs:40<br/>src/app_state.rs:1363<br/>src/actors/elevation_actor.rs:200<br/>src/actors/decision_elevation_actor.rs:184"] --> K2["ACSP_PANEL_NOSTR_PRIVKEY<br/>src/app_state.rs:1362<br/>src/actors/elevation_actor.rs:199<br/>src/actors/decision_elevation_actor.rs:183<br/>src/services/voice_intent_client.rs:152"] --> K3["VISIONCLAW_AGENT_KEY<br/>src/handlers/enrichment_proposals_handler.rs:171<br/>src/handlers/image_gen_handler.rs:46<br/>src/handlers/liveness_harness_handler.rs:36"]
+        K1["VISIONCLAW_NOSTR_PRIVKEY<br/>src/services/nostr_bridge.rs:37<br/>src/services/nostr_bead_publisher.rs:40<br/>src/app_state.rs:1363<br/>src/actors/elevation_actor.rs:200<br/>src/actors/decision_elevation_actor.rs:184"] --> K2["ACSP_PANEL_NOSTR_PRIVKEY<br/>src/app_state.rs:1362<br/>src/actors/elevation_actor.rs:199<br/>src/actors/decision_elevation_actor.rs:183<br/>src/services/voice_intent_client.rs:152"] --> K3["VISIONCLAW_AGENT_KEY<br/>src/handlers/enrichment_proposals_handler.rs:171<br/>src/handlers/image_gen_handler.rs:84<br/>src/handlers/liveness_harness_handler.rs:36"]
     end
     subgraph RELAYS["relays and taps"]
         R1["FORUM_RELAY_URL<br/>src/services/nostr_bridge.rs:40 · src/app_state.rs:1361<br/>src/actors/elevation_actor.rs:198<br/>src/actors/decision_elevation_actor.rs:182"] --> R2["NOSTR_RELAY_URL<br/>src/services/nostr_bridge.rs:44<br/>src/services/nostr_bead_publisher.rs:44"] --> R3["CANARY_TAP_RELAY_URL<br/>unset = tap not started<br/>src/services/canary_nostr_tap.rs:246"] --> R4["CANARY_TAP_ALLOWED_PUBKEYS<br/>src/services/canary_nostr_tap.rs:256"]
@@ -453,15 +453,15 @@ flowchart TB
         T1["PRIVATE_REPO_GITHUB_PAT<br/>const GITHUB_TOKEN_ENV src/services/github/config.rs:23<br/>read src/services/github/config.rs:28"]
     end
     subgraph LOC["repository coordinates"]
-        L1["GITHUB_OWNER<br/>src/services/github/config.rs:72-73<br/>src/services/github_pr_service.rs:129"] --> L2["GITHUB_REPO<br/>src/services/github/config.rs:75-76<br/>src/services/github_pr_service.rs:135"] --> L3["GITHUB_BRANCH<br/>src/services/github/config.rs:97<br/>src/services/github_pr_service.rs:141"] --> L4["GITHUB_BASE_PATHS preferred, GITHUB_BASE_PATH legacy singular<br/>src/services/github/config.rs:82-84"] --> L5["GITHUB_REPO_OWNER :130 · GITHUB_REPO_NAME :136<br/>GITHUB_BASE_BRANCH :142<br/>all in src/services/github_pr_service.rs"]
+        L1["GITHUB_OWNER<br/>src/services/github/config.rs:72-73<br/>src/services/github_pr_service.rs:129"] --> L2["GITHUB_REPO<br/>src/services/github/config.rs:75-76<br/>src/services/github_pr_service.rs:135"] --> L3["GITHUB_BRANCH<br/>src/services/github/config.rs:97<br/>src/services/github_pr_service.rs:141"] --> L4["GITHUB_BASE_PATHS preferred, GITHUB_BASE_PATH legacy singular<br/>src/services/github/config.rs:82-84"] --> L5["GITHUB_REPO_OWNER src/services/github_pr_service.rs:130<br/>GITHUB_REPO_NAME src/services/github_pr_service.rs:136<br/>GITHUB_BASE_BRANCH src/services/github_pr_service.rs:142"]
     end
     subgraph BEHAV["sync behaviour"]
-        B1["FORCE_FULL_SYNC — bypasses the incremental filter<br/>src/services/github_sync_service.rs:351"] --> B2["FANOUT_NODE_THRESHOLD<br/>src/services/github_sync_service.rs:436 and :697"] --> B3["GITHUB_RATE_LIMIT<br/>src/services/github/config.rs:99"] --> B4["GITHUB_API_VERSION<br/>src/services/github/config.rs:103"]
+        B1["FORCE_FULL_SYNC — bypasses the incremental filter<br/>src/services/github_sync_service.rs:351"] --> B2["FANOUT_NODE_THRESHOLD<br/>src/services/github_sync_service.rs:436 and :697"] --> B3["GITHUB_RATE_LIMIT<br/>src/services/github/config.rs:99"] --> B4["GITHUB_API_VERSION<br/>src/services/github/config.rs:103"] --> B5["SYNC_GRAPH_REPORT_PATH — optional JSON receipt of the persisted graph<br/>src/bin/sync_corpus.rs:111; any sync error now exits non-zero :116"]
     end
     SEL --> TOK --> LOC --> BEHAV
     N4["DIVERGENCE — GITHUB_REPO_OWNER, GITHUB_REPO_NAME and GITHUB_BASE_BRANCH are read<br/>only by github_pr_service.rs and duplicate GITHUB_OWNER, GITHUB_REPO and GITHUB_BRANCH<br/>read elsewhere — two naming grammars for the same coordinates, unreconciled"]
     LOC --- N4
-    N5["RESOLVED ADR-2115 — GitHubConfig::disabled() src/services/github/config.rs:53 lets<br/>src/bin/sync_corpus.rs:55-56 boot with CORPUS_SOURCE=local and no GitHub variable<br/>read at all; GITHUB_TOKEN_ENV_LEGACY and src/services/local_file_sync_service.rs<br/>are both deleted. CorpusSource port and the sync binary's source-selection<br/>match see VC-21."]
+    N5["RESOLVED ADR-2115 — GitHubConfig::disabled() src/services/github/config.rs:53 lets<br/>src/bin/sync_corpus.rs:56-57 boot with CORPUS_SOURCE=local and no GitHub variable<br/>read at all; GITHUB_TOKEN_ENV_LEGACY and src/services/local_file_sync_service.rs<br/>are both deleted. CorpusSource port and the sync binary's source-selection<br/>match see VC-21."]
     SEL --- N5
 ```
 
@@ -470,7 +470,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph MCP["MCP transport"]
-        M1["MCP_HOST<br/>src/app_state.rs:1175 · src/services/bots_client.rs:121<br/>src/services/speech_service.rs:1097<br/>src/services/ontology_class_index.rs:88<br/>analytics/anomaly_handlers.rs:101<br/>analytics/clustering_handlers.rs:346"] --> M2["MCP_TCP_PORT<br/>src/app_state.rs:1176 · src/services/bots_client.rs:123<br/>src/services/multi_mcp_agent_discovery.rs:92<br/>src/services/speech_service.rs:1098<br/>src/services/ontology_class_index.rs:89<br/>plus the two analytics handlers above"] --> M3["CLAUDE_FLOW_HOST<br/>src/services/bots_client.rs:120<br/>src/services/multi_mcp_agent_discovery.rs:91"]
+        M1["MCP_HOST<br/>src/app_state.rs:1175 · src/services/bots_client.rs:121<br/>src/services/speech_service.rs:1097<br/>src/services/ontology_class_index.rs:88<br/>analytics/anomaly_handlers.rs:101<br/>analytics/clustering_handlers.rs:346"] --> M2["MCP_TCP_PORT<br/>src/app_state.rs:1176 · src/services/bots_client.rs:123<br/>src/services/multi_mcp_agent_discovery.rs:130<br/>src/services/speech_service.rs:1098<br/>src/services/ontology_class_index.rs:89<br/>plus the two analytics handlers above"] --> M3["CLAUDE_FLOW_HOST<br/>src/services/bots_client.rs:120<br/>src/services/multi_mcp_agent_discovery.rs:129"]
     end
     subgraph MGMT["management API"]
         G1["MANAGEMENT_API_HOST<br/>src/main.rs:704 · src/app_state.rs:1257<br/>src/actors/agent_monitor_actor.rs:253"] --> G2["MANAGEMENT_API_PORT<br/>src/main.rs:705 · src/app_state.rs:1259<br/>src/actors/agent_monitor_actor.rs:255"] --> G3["MANAGEMENT_API_KEY<br/>src/main.rs:709 · src/app_state.rs:87<br/>decide_management_api_credential() src/actors/agent_monitor_actor.rs:235-244<br/>called at :264-267, fail-closed panic at :287-290 (ADR-2094)"]
@@ -491,13 +491,13 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph EXT["external inference and RAG"]
-        X1["RAGFLOW_API_KEY ragflow_service.rs:107 · RAGFLOW_API_BASE_URL ragflow_service.rs:118<br/>RAGFLOW_AGENT_ID ragflow_service.rs:129"] --> X2["COMFYUI_URL src/handlers/image_gen_handler.rs:31<br/>COMFYUI_SALAD_URL :36"] --> X3["PRIMARY_PROVIDER<br/>src/actors/voice_interface_actor.rs:161<br/>src/handlers/bots_handler.rs:301 :408 :541 :724"]
+        X1["RAGFLOW_API_KEY ragflow_service.rs:107 · RAGFLOW_API_BASE_URL ragflow_service.rs:118<br/>RAGFLOW_AGENT_ID ragflow_service.rs:129"] --> X2["COMFYUI_URL src/handlers/image_gen_handler.rs:38<br/>IMAGE_GEN_MODEL src/handlers/image_gen_handler.rs:114 — minimax-h3 default,<br/>flux2 or flux-2 opt-in :106-111; COMFYUI_SALAD_URL deleted in b39b1a626"] --> X3["PRIMARY_PROVIDER<br/>src/actors/voice_interface_actor.rs:161<br/>src/handlers/bots_handler.rs:301 :408 :541 :724"]
     end
     subgraph PAY["HTTP 402 payment — feature solid-pod-embed"]
         P1["PAY_ENABLED<br/>src/handlers/pay_handler.rs:95 and :966<br/>routes inert until true"] --> P2["PAY_COST_SATS :98 :967 · PAY_INFERENCE_COST_SATS :106<br/>PAY_IMAGE_GEN_COST_SATS :110 · PAY_ANALYTICS_COST_SATS :114<br/>all in src/handlers/pay_handler.rs"] --> P3["PAY_LEDGER_DIR<br/>src/handlers/pay_handler.rs:102 and :968"]
     end
     subgraph SOLID["Solid pod proxy"]
-        O1["SOLID_DATA_ROOT :130 · SOLID_PROXY_SECRET_KEY :133<br/>SOLID_ALLOW_ANONYMOUS :137<br/>all in src/handlers/solid_proxy_handler.rs"] --> O2["SOLID_INTERNAL_URL<br/>src/handlers/image_gen_handler.rs:41"]
+        O1["SOLID_DATA_ROOT src/handlers/solid_proxy_handler.rs:130<br/>SOLID_PROXY_SECRET_KEY src/handlers/solid_proxy_handler.rs:133<br/>SOLID_ALLOW_ANONYMOUS src/handlers/solid_proxy_handler.rs:137"] --> O2["SOLID_INTERNAL_URL<br/>src/handlers/image_gen_handler.rs:43"]
     end
     subgraph SELF["self-reference and liveness"]
         F1["VISIONCLAW_SELF_URL<br/>default http 127.0.0.1 port<br/>src/main.rs:1235"] --> F2["VISIONCLAW_KG_WATCHDOG_SECS<br/>default 30 · src/main.rs:1237"] --> F3["VISIONCLAW_INTERNAL_URL<br/>src/actors/voice_interface_actor.rs:159<br/>src/handlers/bots_handler.rs:522"]

@@ -32,7 +32,11 @@ sources:
   - ../loom/crates/loom-facade/src/routes/attest.rs
   - ../loom/crates/loom-facade/src/routes/health.rs
   - ../loom/crates/loom-domain/src/model.rs
-verified_commit: {agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, loom: e39bb4d2b583040cd91346c3bbaf75411c3913b4}
+  - ../project/agentbox/services/dream-engine/src/engine.rs
+  - ../project/agentbox/services/dream-engine/src/config.rs
+  - ../project/agentbox/scripts/dream-machine-nightly.mjs
+  - ../project/agentbox/docs/GOVERNANCE-capabilities.md
+verified_commit: {agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047, visionclaw: 746513b319edcd24810171db12db95275153ad3a, loom: 8c618faf24950ad4ef70855308991da56a54af2c}
 ---
 
 ## AB-24.1 Two deployments of one facade contract — topology
@@ -41,10 +45,10 @@ verified_commit: {agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, visionclaw
 flowchart TB
     subgraph consumers["Consumers hold a DOOR, never a raw model port (ADR-2023)"]
         RET["ontology-retrieval brain<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:734"]
-        COND["ontology condense<br/>agentbox/agentbox.toml:835"]
-        DREAM["dream-engine loom_url<br/>agentbox/agentbox.toml:2069"]
-        SEED["AoE session seed slug=loom<br/>agentbox/agentbox.toml:1710"]
-        SEEDRAW["AoE session seed slug=loom-raw #40;LEGACY ALIAS#41;<br/>agentbox/agentbox.toml:1717"]
+        COND["ontology condense<br/>agentbox/agentbox.toml:862"]
+        DREAM["dream-engine loom_url<br/>agentbox/agentbox.toml:2110"]
+        SEED["AoE session seed slug=loom<br/>agentbox/agentbox.toml:1751"]
+        SEEDRAW["AoE session seed slug=loom-raw #40;LEGACY ALIAS#41;<br/>agentbox/agentbox.toml:1758"]
         EMAIL["email gateway REASONER_BASE_URL<br/>see AB-27"]
     end
     subgraph depA["Deployment A — LAN facade on machinelearn .132"]
@@ -70,7 +74,7 @@ flowchart TB
     SIDE -->|"entrypoint copies .rvdb off :ro — opening redb mutates it"| TMPFS
     subgraph notes["Invariants and drift"]
         direction TB
-        N1["WITHDRAWN in code: the loom-raw SEED no longer holds a raw model door. openCodeConfig<br/>gives loom-lan, loom-agent and loom-raw the SAME LOOM_BASE_URL #40;aoe-seed-sessions.mjs:213,<br/>aoe-seed-sessions.mjs:248, aoe-seed-sessions.mjs:254#41; and declines the scaffold per request<br/>instead #40;aoe-seed-sessions.mjs:227#41;, the ADR-139 answer to what the raw port was for.<br/>LOOM_RAW_BASE_URL survives only as a compose default #40;flake.nix:3243#41; that nothing seeds"]
+        N1["WITHDRAWN in code: the loom-raw SEED no longer holds a raw model door. openCodeConfig<br/>gives loom-lan, loom-agent and loom-raw the SAME LOOM_BASE_URL #40;aoe-seed-sessions.mjs:213,<br/>aoe-seed-sessions.mjs:248, aoe-seed-sessions.mjs:254#41; and declines the scaffold per request<br/>instead #40;aoe-seed-sessions.mjs:227#41;, the ADR-139 answer to what the raw port was for.<br/>LOOM_RAW_BASE_URL survives only as a compose default #40;flake.nix:3360#41; that nothing seeds"]
         N2["RESOLVED ADR-2055: opf-router is the PRIVACY-FILTER redaction sidecar on OPF_PORT<br/>9092 (agentbox.toml [privacy_filter].port, scripts/opf-router.py:41, flake.nix<br/>[program:opf-router]). BASELINE-container previously described it as an<br/>OpenAI-compatible facade on port 8084 — corrected. No agentbox program serves<br/>port 8084 — that is the Loom facade on machinelearn"]
         N3["The loom-facade implementation lives OUTSIDE this repo at /home/devuser/workspace/loom.<br/>This repo holds the deployment contract only (loom/README.md:8-15)"]
         N1 ~~~ N2 ~~~ N3
@@ -248,11 +252,14 @@ sequenceDiagram
     CONS->>FAC: unchanged calls
     FAC-->>CONS: unchanged contract
     Note over OP,CONS: INVARIANT ADR-2023: swapping the deployed model must NOT touch any consumer — the model<br/>is an operational detail behind port 8084
-    Note over CFG: history — Gemma then Muse then Qwen3.8-27B — agentbox.toml:2072 loom_model =<br/>qwen3.8-27B, agentbox.toml:2076 loom_max_tokens = 32768
-    Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites agentbox.toml by [section].key rather than<br/>raw line (ADR-2052 changelog 0.1.1) and correctly states ".loom_max_tokens = 32768, raised<br/>from 16384" — the manifest has loom_url at agentbox.toml:2069 and loom_max_tokens at<br/>agentbox.toml:2076 — the cap was raised after glm-5.3 burned ~16k reasoning tokens and hit the old 16384<br/>cap with empty content twice (agentbox.toml comment at :2073-2075)
-    Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites session seeds as `slug = "loom"` /<br/>`slug = "loom-raw"` under [[interaction_plane.session_seeds]] (no raw line number) — the<br/>manifest has slug=loom at agentbox.toml:1710 and slug=loom-raw at agentbox.toml:1717
+    Note over CFG: history — Gemma then Muse then Qwen3.8-27B. Since 2026-10-01 the manifest pins NO model:<br/>loom_model is empty, meaning the single model the Loom advertises at /models (agentbox.toml:2111-2113),<br/>loom_max_tokens = 32768 (agentbox.toml:2117). The nightly script discovers it (dream-machine-nightly.mjs:229)
+    Note over CFG: TENSION: the Rust dream engine does not discover — the supervisor exports LOOM_MODEL empty<br/>(flake.nix:2492) and llm_config passes it through as the request model (engine.rs:1707), so a loom night<br/>sends an empty model name and relies on a single-model Loom accepting it. The serde default<br/>qwen3.8-27B (config.rs:374) applies only when the key is absent
+    Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites agentbox.toml by [section].key rather than<br/>raw line (ADR-2052 changelog 0.1.1) and correctly states ".loom_max_tokens = 32768, raised<br/>from 16384" — the manifest has loom_url at agentbox.toml:2110 and loom_max_tokens at<br/>agentbox.toml:2117 — the cap was raised after glm-5.3 burned ~16k reasoning tokens and hit the old 16384<br/>cap with empty content twice (agentbox.toml comment at :2114-2116)
+    Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites session seeds as `slug = "loom"` /<br/>`slug = "loom-raw"` under [[interaction_plane.session_seeds]] (no raw line number) — the<br/>manifest has slug=loom at agentbox.toml:1751 and slug=loom-raw at agentbox.toml:1758
     Note over NEW: DIVERGENCE: HP's old 192.168.2.48 is DEAD — a stale model-backend route black-holes<br/>every synthesis while /health still answers
 ```
+
+**Drift:** `../project/agentbox/docs/GOVERNANCE-capabilities.md:257` still names **Qwen3.8-27B** as the current model by `[dream_machine].loom_model`, which has been empty since `878f23311` (`../project/agentbox/agentbox.toml:2113`): the manifest now leaves the model to whatever the Loom advertises.
 
 ## AB-24.8 Deployment B bring-up and the staging traps
 
@@ -307,15 +314,15 @@ flowchart LR
     subgraph doors["Doors"]
         D84["LAN facade port 8084/v1"]
         D80["sidecar loom:8080/v1"]
-        D85["raw model port 8085, compose default only<br/>agentbox/flake.nix:3243, seeded by nothing"]
+        D85["raw model port 8085, compose default only<br/>agentbox/flake.nix:3360, seeded by nothing"]
     end
     RET["ontology-retrieval brain<br/>LOOM_FACADE_URL<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:491"] --> D84
-    COND["ontology condense endpoint<br/>agentbox/agentbox.toml:837<br/>model qwen3.8-27B style openai max_concurrency 2 #40;agentbox.toml:840#41;"] --> D84
-    DREAM["dream_machine loom_url<br/>agentbox/agentbox.toml:2069"] --> D84
-    SEEDL["session seed slug=loom<br/>agentbox/agentbox.toml:1710<br/>model loom-lan/qwen3.8-27B agentbox.toml:1712, scaffolded for knowledge work"] --> D84
-    SEEDR["session seed slug=loom-raw<br/>agentbox/agentbox.toml:1717<br/>model loom-agent/current agentbox.toml:1719, model-agnostic passthrough"] --> D84
+    COND["ontology condense endpoint<br/>agentbox/agentbox.toml:864<br/>model qwen3.8-27B style openai max_concurrency 2 #40;agentbox.toml:867#41;"] --> D84
+    DREAM["dream_machine loom_url<br/>agentbox/agentbox.toml:2110"] --> D84
+    SEEDL["session seed slug=loom<br/>agentbox/agentbox.toml:1751<br/>model loom-lan/qwen3.8-27B agentbox.toml:1753, scaffolded for knowledge work"] --> D84
+    SEEDR["session seed slug=loom-raw<br/>agentbox/agentbox.toml:1758<br/>model loom-agent/current agentbox.toml:1760, model-agnostic passthrough"] --> D84
     EMAIL["email gateway<br/>REASONER_BASE_URL http://loom:8080/v1<br/>loom/README.md:19-21"] --> D80
-    CUST["security.deepsec custom ai_base_url<br/>agentbox/agentbox.toml:2028 #40;deepsec#39;s own AI-reviewer<br/>backend, NOT the #91;consultants#93; tier#41;"] --> D80
+    CUST["security.deepsec custom ai_base_url<br/>agentbox/agentbox.toml:2069 #40;deepsec#39;s own AI-reviewer<br/>backend, NOT the #91;consultants#93; tier#41;"] --> D80
     D84 --> M["qwen3.8-27B"]
     D80 --> M
     D85 --> M

@@ -16,7 +16,7 @@ sources:
   - ../sidestr-rs/sidestr-core/tests/eviction.rs
   - ../sidestr-rs/README.md
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
-verified_commit: {sidestr-rs: 3aadeb7a26ff60c18614113bb986c1ba0d33d115, agentbox: 5d5d083e2e77ea448d27e6e2dae95822eb960922}
+verified_commit: {sidestr-rs: cd177ecc08f4907541a55518263bae342f7ba8e5, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047}
 ---
 
 ## For developers

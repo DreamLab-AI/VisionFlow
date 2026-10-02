@@ -37,7 +37,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/auth.rs
   - ../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/rate_limit.rs
-verified_commit: febdc8be24bdc8b148b78b43a35ae85ee863a72a
+verified_commit: 6d2e5b0d2e00fc2c9fa1e4984b8582cfa0d48556
 ---
 
 ## SP-05.1 Two auth paths, one AuthContext
@@ -269,32 +269,53 @@ sequenceDiagram
     Note over P: The client is pinned to the resolved IP so a DNS rebind between the<br/>SSRF check and the request cannot redirect the fetch. See SP-06.9.
 ```
 
-## SP-05.12 did:nostr — document rendering and the bidirectional binding
+## SP-05.12 did:nostr — document rendering, the parity model and the bidirectional binding
 
 ```mermaid
 flowchart TD
-    PK["NostrPubkey — 32 bytes<br/>solid-pod-rs/src/did_nostr_types.rs:39"]
-    URI["did_nostr_uri<br/>solid-pod-rs/src/did_nostr_types.rs:65"]
-    WKP["well_known_path<br/>solid-pod-rs/src/did_nostr_types.rs:71"]
-    T1["render_did_document_tier1<br/>solid-pod-rs/src/did_nostr_types.rs:167"]
-    T3["render_did_document_tier3<br/>solid-pod-rs/src/did_nostr_types.rs:182"]
-    TC["render_did_document_complete<br/>solid-pod-rs/src/did_nostr_types.rs:206"]
-    MB["format_multibase_schnorr / parse_multibase_schnorr<br/>solid-pod-rs/src/did_nostr_types.rs:290"]
-    VT["verify_webid_tag<br/>solid-pod-rs/src/did_nostr_types.rs:358"]
-    WD["webid_declares_pubkey<br/>solid-pod-rs/src/did_nostr_types.rs:420"]
+    PK["NostrPubkey — 32-byte x-only identifier, no parity<br/>solid-pod-rs/src/did_nostr_types.rs:68"]
+    URI["did_nostr_uri<br/>solid-pod-rs/src/did_nostr_types.rs:152"]
+    WKP["well_known_path<br/>solid-pod-rs/src/did_nostr_types.rs:158"]
     RT["handle_well_known_did_nostr — the served endpoint<br/>solid-pod-rs-server/src/lib.rs:2108"]
+    VT["verify_webid_tag<br/>solid-pod-rs/src/did_nostr_types.rs:612"]
+    WD["webid_declares_pubkey<br/>solid-pod-rs/src/did_nostr_types.rs:674"]
 
-    PK --> URI --> T1
+    subgraph IDONLY["Identifier only — minimal or offline resolution, always 0x02"]
+        RD["render_did_document<br/>solid-pod-rs/src/did_nostr_types.rs:230"]
+        T1["render_did_document_tier1, back-compat alias<br/>solid-pod-rs/src/did_nostr_types.rs:296"]
+        T3["render_did_document_tier3<br/>solid-pod-rs/src/did_nostr_types.rs:311"]
+        TC["render_did_document_complete<br/>solid-pod-rs/src/did_nostr_types.rs:335"]
+        MB["format_multibase_schnorr — fe70102 then X<br/>solid-pod-rs/src/did_nostr_types.rs:437"]
+    end
+
+    subgraph FULL["Controller holds the full key — parity follows the actual y"]
+        FPK["NostrPubkey.from_public_key / to_even_public_key<br/>solid-pod-rs/src/did_nostr_types.rs:103, :130"]
+        RDP["render_did_document_published<br/>solid-pod-rs/src/did_nostr_types.rs:261"]
+        MBF["format_multibase_public_key / format_multibase_sec1<br/>fe70102 or fe70103 then X<br/>solid-pod-rs/src/did_nostr_types.rs:462, :491"]
+    end
+
+    subgraph DECODE["Verifiers accept both prefixes"]
+        PS["parse_multibase_schnorr — to the x-only identifier<br/>solid-pod-rs/src/did_nostr_types.rs:555"]
+        PSEC["parse_multibase_sec1 — to the full point, parity kept<br/>solid-pod-rs/src/did_nostr_types.rs:577"]
+    end
+
+    PK --> URI --> RD --> T1 --> T3 --> TC
+    RD --> MB
     PK --> WKP --> RT
-    T1 --> T3 --> TC
-    PK --> MB
     URI --> VT --> WD
+    PK --> FPK --> RDP --> MBF
+    MB --> PS
+    MBF --> PS
+    MBF --> PSEC
 
-    N["MULTIKEY_PREFIX fe70102 for an even-y key and fe70103 for odd<br/>(solid-pod-rs/src/did_nostr_types.rs:265 and :270), fixed length 71<br/>(solid-pod-rs/src/did_nostr_types.rs:274)."]
-    MB -.-> N
+    N["MULTIKEY_PREFIX fe70102 for an even-y key and MULTIKEY_PREFIX_ODD fe70103<br/>(solid-pod-rs/src/did_nostr_types.rs:396 and :404), fixed length 71<br/>(solid-pod-rs/src/did_nostr_types.rs:408)."]
+    MBF -.-> N
     N2["EXTERNAL: the same did:nostr identifier is the estate's single spine —<br/>login, WAC principal, provenance author, DID subject and payment account.<br/>See ES-04, AB-11 and VC-23."]
     URI -.-> N2
 ```
+- **What it shows:** since `0.5.0-alpha.10` (2026-10-01, `8b5d0a5` and `0302cde`) the module follows the did:nostr parity model of nostrcg/did-nostr#145 (`solid-pod-rs/src/did_nostr_types.rs:36-49`). The identifier carries no parity. A resolver holding only the identifier emits `0x02`, so `render_did_document` and `format_multibase_schnorr` never change. A controller holding its full key publishes through `render_did_document_published`, which emits `fe70103` when y is odd (`solid-pod-rs/src/did_nostr_types.rs:261-266`, `:462-463`). Decoders accept both prefixes in `split_multikey` (`solid-pod-rs/src/did_nostr_types.rs:512-515`).
+- **Why it is this way:** before alpha.10 the encoder always produced `fe70102` and the docs called `0x02` invariant. A key derived by additive tweaking has unpredictable parity, and its controller must be able to publish it truthfully. Point reading matches `basePoint()` and `multikey()` in sidestr/spec PR #28. The module deliberately has no key-arithmetic (tweak) API until that PR settles (`solid-pod-rs/src/did_nostr_types.rs:56-57`).
+- **Invariant:** the x-coordinate is the identifier whichever prefix a document carries. `parse_multibase_schnorr` drops the parity byte and returns X (`solid-pod-rs/src/did_nostr_types.rs:555-556`), so a BIP-340 signature verifies against the same key either way.
 
 ## SP-05.13 did:nostr resolution — WebID and DID-Doc must agree
 

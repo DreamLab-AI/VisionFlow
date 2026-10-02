@@ -37,7 +37,7 @@ sources:
   - ../project/xr-client/rust/src/webrtc_audio.rs
   - ../project/client/src/services/WebSocketEventBus.ts
   - ../project/src/actors/elevation_actor.rs
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, unmute: c49982eb3aeaf76633dfe4155fa3b8dcb5b3d962}
+verified_commit: {visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047, unmute: c49982eb3aeaf76633dfe4155fa3b8dcb5b3d962}
 ---
 
 ## VC-35.1 Push-to-talk state machine and the agent DID binding
@@ -309,7 +309,7 @@ sequenceDiagram
     participant GATE as ClarificationGate.evaluate/merge<br/>src/services/voice_clarification (app_state.clarification_gate)
     participant PGV as process_governed_voice<br/>speech_socket_handler.rs:376
     participant PVI as process_voice_intent<br/>speech_socket_handler.rs:316
-    participant VC as VoiceIntentClient.dispatch<br/>src/services/voice_intent_client.rs:325 (call site)
+    participant VC as VoiceIntentClient.dispatch<br/>src/services/voice_intent_client.rs:195
     participant AB as agentbox /v1/voice-intent
     participant KO as PocketTts TTS
 
@@ -344,7 +344,7 @@ sequenceDiagram
                     AB-->>VC: VoiceIntentError::Rejected | Http
                     VC-->>PVI: Err(e)
                     PVI-->>PGV: Err(e.to_string())
-                    PGV-->>SS: Err(e) - "governed voice dispatch failed"<br/>speech_socket_handler.rs:848, :854 - NEVER re-routed to the<br/>settings assistant on a bound command
+                    PGV-->>SS: Err(e) - "governed voice dispatch failed"<br/>speech_socket_handler.rs:845, :853 - NEVER re-routed to the<br/>settings assistant on a bound command
                 end
             end
         end
@@ -500,7 +500,7 @@ flowchart TB
     SEP["SEPARATE SUBSYSTEM: this is the agentbox tmux voice plane (Track A),<br/>not the VisionClaw graph voice loop of VC-35.1 to VC-35.11. Its LLM is<br/>the tab0-bridge reached as KYUTAI_LLM_URL, its STT is the Kyutai<br/>service, and its TTS is now the SAME pocket-tts VisionClaw uses.<br/>agentbox/voice/compose.web.yml:45, :44. see AB-06 for the console boundary"]
     owned --> CONV
     CONV["DRIFT CLOSED 2026-09-13 (ab5724422): the two tracks used to run<br/>different synthesisers - Kokoro for the VisionClaw visualiser and<br/>Kyutai TTS for the web stack. One pocket-tts service now serves both,<br/>and voice-stack/unmute-override.yml was deleted with the split.<br/>voice-stack/README.md:3, :8"]
-    DIV["Kokoros, Whisper-WebUI and xinference are UNTRACKED symlinks at the repo root,<br/>gitignored at .gitignore:227-229 and absent from .gitmodules - NOT submodules.<br/>All three dangle in this container. git ls-files returns nothing for any of them.<br/>Kokoros and Whisper-WebUI are now doubly stale: the Kokoro TTS branch was<br/>deleted from the server on 2026-09-13. xinference is DIFFERENT - it has live<br/>compose consumers (docker-compose.unified.yml:329, agentbox/docker-compose.yml:108),<br/>so Xinference is a runtime endpoint dependency. Those URL consumers do not prove<br/>the dangling checkout link is used. see ES-01.6"]
+    DIV["Kokoros, Whisper-WebUI and xinference are UNTRACKED symlinks at the repo root,<br/>gitignored at .gitignore:227-229 and absent from .gitmodules - NOT submodules.<br/>All three dangle in this container. git ls-files returns nothing for any of them.<br/>Kokoros and Whisper-WebUI are now doubly stale: the Kokoro TTS branch was<br/>deleted from the server on 2026-09-13. xinference is DIFFERENT - it has live<br/>compose consumers (docker-compose.unified.yml:329, agentbox/docker-compose.yml:86),<br/>so Xinference is a runtime endpoint dependency. Those URL consumers do not prove<br/>the dangling checkout link is used. see ES-01.6"]
     legacy --> DIV
     HIST["Historical engine benchmarks and their retired harness live under<br/>docs/gap-close-evidence/voice-latency-2026-09-10/ and are NOT<br/>deployment files. voice-stack/README.md:14, :15"]
     CONV --> HIST

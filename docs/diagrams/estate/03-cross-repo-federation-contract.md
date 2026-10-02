@@ -36,7 +36,7 @@ sources:
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, visionflow: d4e44298646768a4b19af359119e16a6884fa80d, solid-pod-rs: febdc8be24bdc8b148b78b43a35ae85ee863a72a, nostr-rust-forum: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d}
+verified_commit: {visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047, visionflow: e5987acc8337ddd64c72f775750d61fef46d8e0b, solid-pod-rs: 6d2e5b0d2e00fc2c9fa1e4984b8582cfa0d48556, nostr-rust-forum: d025cb063df5a532f055a18527f71cc7dee9d6e6}
 ---
 ## ES-03.1 Shared wire envelope: AgentActionNotification (agentbox emit -> VisionClaw ingest)
 ```mermaid
@@ -100,10 +100,10 @@ flowchart TD
     KG["kg owner_pubkey, content<br/>src/uri/mod.rs:242<br/>kg plus hex-pubkey plus sha256-12"]
     KGADDR["kg_with_address owner_pubkey, content_addr<br/>src/uri/mod.rs:255"]
     BEAD["bead owner_pubkey, content<br/>src/uri/mod.rs:265<br/>bead plus hex-pubkey plus sha256-12"]
-    EXEC["execution content<br/>src/uri/mod.rs:277<br/>execution plus sha256-12, unscoped"]
-    GROUP["group_members team<br/>src/uri/mod.rs:282<br/>group plus team plus members"]
-    ROOM["room content<br/>src/uri/mod.rs:292<br/>room plus sha256-12, unscoped"]
-    AVATAR["avatar pubkey<br/>src/uri/mod.rs:297<br/>avatar plus hex-pubkey, identity-bound 1:1 with DID"]
+    EXEC["execution content<br/>src/uri/mod.rs:293<br/>execution plus sha256-12, unscoped"]
+    GROUP["group_members team<br/>src/uri/mod.rs:298<br/>group plus team plus members"]
+    ROOM["room content<br/>src/uri/mod.rs:308<br/>room plus sha256-12, unscoped"]
+    AVATAR["avatar pubkey<br/>src/uri/mod.rs:313<br/>avatar plus hex-pubkey, identity-bound 1:1 with DID"]
     NS --> DID
     NS --> CONCEPT
     NS --> KG
@@ -116,8 +116,8 @@ flowchart TD
     ERR["UriError::MalformedUri"]
     KGADDR -- "require_content_address fails<br/>:169-174" --> ERR
     subgraph LEGACY["Legacy coexistence"]
-        NGM["urn:ngm:* LEGACY_NGM_NS<br/>src/uri/mod.rs:46"]
-        DUAL["parse_dual()<br/>src/uri/mod.rs:619<br/>resolve paths only"]
+        NGM["urn:ngm:* LEGACY_NGM_NS<br/>src/uri/mod.rs:45"]
+        DUAL["parse_dual()<br/>src/uri/mod.rs:630<br/>resolve paths only"]
         NGM --> DUAL
     end
     NOTE1["INVARIANT: no urn:visionclaw:agent kind - identity IS the DID<br/>src/uri/mod.rs:26-27,51-52"]
@@ -366,7 +366,7 @@ sequenceDiagram
     participant AA as assertPrivacyFilterApplied<br/>privacy-filter.js:595
     participant Ad as Adapter impl call
     rect rgb(240,240,255)
-    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:237.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
+    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:247.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
     Rt->>WD: instrumentedDispatch(...args)
     WD->>WD: executionId = uris.mint kind event,pubkey,payload
     WD->>PF: privacyWrapped(...args)
@@ -408,7 +408,7 @@ sequenceDiagram
     end
     Note over LD: INVARIANT DDD-004 par L08 - privacy redaction completes before the encoder runs, verified<br/>per-dispatch not per-module-load
     Note over Ad: DIVERGENCE agentbox/docs/BASELINE-container.md - adapter contract versions are STALE<br/>PLACEHOLDERS. pods, memory, events and orchestrator all still declare 1.0.0 despite live<br/>churn, so a breaking change would need a MAJOR bump that has NOT happened. A consumer<br/>cannot tell from the version whether the contract it compiled against still holds.
-    Note over Ad: CORRECTED (ADR-2035) - there is NO orchestrator-specific fatal probe. connectAdapters<br/>races EVERY slot against its OWN deadline (lifecycle.js:31), failure and timeout are<br/>equally fatal and both quarantine the adapter (lifecycle.js:256,274). If the off-replacement<br/>cannot be built the slot is left unavailable and dispatch throws AdapterQuarantined rather<br/>than reach a degraded adapter (lifecycle.js:292-299). toLegacyHealth maps all five slots<br/>uniformly into adapterHealth (server.js:1284), and /ready blocks on ANY manifest slot that<br/>is not healthy (server.js:485-486) - no slot is privileged.
+    Note over Ad: CORRECTED (ADR-2035) - there is NO orchestrator-specific fatal probe. connectAdapters<br/>races EVERY slot against its OWN deadline (lifecycle.js:31), failure and timeout are<br/>equally fatal and both quarantine the adapter (lifecycle.js:256,274). If the off-replacement<br/>cannot be built the slot is left unavailable and dispatch throws AdapterQuarantined rather<br/>than reach a degraded adapter (lifecycle.js:292-299). toLegacyHealth maps all five slots<br/>uniformly into adapterHealth (server.js:1294), and /ready blocks on ANY manifest slot that<br/>is not healthy (server.js:495-496) - no slot is privileged.
 ```
 ## ES-03.10 Partial convergence: typed operational crossings and remaining RDF identity seams
 ```mermaid
@@ -437,7 +437,7 @@ flowchart TD
 
 
 
-## ES-03.11 PROPOSED sovereign settlement — one decision, six repositories, nothing live
+## ES-03.11 PROPOSED sovereign settlement — one decision, six repositories, nothing live beyond an interim testnet
 ```mermaid
 flowchart TB
     PRD["PROPOSED — PRD-024 Sovereign Settlement, the source record<br/>our own sidestr sidechains are the sole value instrument<br/>agentbox/docs/proposals/sovereign-settlement.md:42"]
@@ -449,8 +449,8 @@ flowchart TB
     end
     PRD --> AB
 
-    CANON["PROPOSED — VisionFlow canon entry<br/>docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:3<br/>decision_status proposed, implementation_status none, :5-6"]
-    HOST["PROPOSED — host re-sequences ADR-124/128 for bridged assets<br/>only, DELETES FsPaymentStore and moves AnchorConfirmer onto<br/>sidestr-node<br/>ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:38,43"]
+    CANON["PROPOSED — VisionFlow canon entry<br/>docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:3<br/>decision_status proposed, implementation_status partial,<br/>activation_status inactive, :5-7"]
+    HOST["PROPOSED — host re-sequences ADR-124/128 for bridged assets<br/>only, DELETES FsPaymentStore and moves AnchorConfirmer onto<br/>sidestr-node<br/>ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:38,43<br/>A 2026-10-01 source qualification records that the sidestr-rs<br/>parity release implements none of it: FsPaymentStore and /pay/*<br/>remain, ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:83"]
     SPR["PROPOSED — solid-pod-rs ports bitcoin_tx.rs and mrc20.rs<br/>to rust-bitcoin and makes WebLedger a derived chain view<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:37"]
     FRM["PROPOSED — the forum pod-worker D1 ledger is demoted to a<br/>derived, height-stamped view<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:37"]
 
@@ -459,8 +459,10 @@ flowchart TB
     AB --> SPR
     AB --> FRM
 
-    INV["INVARIANT — every record in this pack still carries decision_status<br/>proposed. ADR-2096 alone has moved to implementation_status partial<br/>(crates/sidestr shipped and relocated to DreamLab-AI/sidestr-rs,<br/>ADR-2096:5-6). The other five stay at implementation_status none:<br/>the canon entry at ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-6,<br/>the host at ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:5-6,<br/>solid-pod-rs at ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-6<br/>and the forum at ADR-2012-d1-ledger-becomes-a-chain-view.md:5-6."]
+    INV["INVARIANT — every record in this pack still carries decision_status<br/>proposed. Two have moved to implementation_status partial: ADR-2096<br/>(crates/sidestr shipped and relocated to DreamLab-AI/sidestr-rs,<br/>ADR-2096:5-6) and the canon entry, which since e5826a8 tracks the<br/>verified sidestr-rs source as partial while staying inactive,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7. The other<br/>three stay at implementation_status none:<br/>the host at ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:5-6,<br/>solid-pod-rs at ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-6<br/>and the forum at ADR-2012-d1-ledger-becomes-a-chain-view.md:5-6."]
     CANON --> INV
+    SRCST["PARTIAL, INACTIVE — the canon entry now records that sidestr-rs<br/>publishes seven crates and carries inactive pool, market, EVM and<br/>Hitch code. EVM executes inside a sidestr chain and Hitch speaks to<br/>no Lightning peer, so neither is an estate rail,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:36-40.<br/>The one running piece is agentbox's interim testnet producer,<br/>mirror and faucet under the sidechain gates, with no sidestr-node,<br/>bridge or port 9097 bind, BASELINE-container.md:206."]
+    CANON --> SRCST
 
     RET["RETIRED — Lightning-first is superseded. x402 and l402 stay<br/>payable false permanently and Lightning may return only as a<br/>bridge on-ramp, never as the planned rail.<br/>agentbox/docs/developer/economy-loop.md:143"]
     PRD --> RET

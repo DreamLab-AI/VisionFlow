@@ -27,7 +27,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/zone_approval.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/lib.rs
-verified_commit: 7def3e4e74e92fdf2f29416ce08ae6dadc878c8d
+verified_commit: d025cb063df5a532f055a18527f71cc7dee9d6e6
 ---
 
 ## NF-02.1 Request entry — bootstrap, rate limit, body pre-read, dispatch
@@ -40,7 +40,7 @@ sequenceDiagram
     participant H as handle_request<br/>nostr-bbs-auth-worker/src/lib.rs:157
     participant S as schema::ensure_schema<br/>nostr-bbs-auth-worker/src/schema.rs:19
     participant RL as rate-limit + replay schema<br/>nostr-bbs-auth-worker/src/lib.rs:174
-    participant R as route<br/>nostr-bbs-auth-worker/src/lib.rs:355
+    participant R as route<br/>nostr-bbs-auth-worker/src/lib.rs:224
 
     C->>F: HTTP request
     F->>H: handle_request (all errors caught by the wrapper)
@@ -65,7 +65,7 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph pub["Public - no auth"]
-        DID["GET /.well-known/did/nostr/{pk}.json<br/>nostr-bbs-auth-worker/src/lib.rs:233 to did::handle_did_document nostr-bbs-auth-worker/src/did.rs:20<br/>rendering delegates to nostr_bbs_core::did, canonical Multikey doc carries no alsoKnownAs did.rs:8,86,87"]
+        DID["GET /.well-known/did/nostr/{pk}.json<br/>nostr-bbs-auth-worker/src/lib.rs:233 to did::handle_did_document nostr-bbs-auth-worker/src/did.rs:23<br/>rendering delegates to nostr_bbs_core::did, canonical Multikey doc carries no alsoKnownAs did.rs:8,89,90<br/>the route holds only the D1 identifier, so publicKeyMultibase is the fe70102 even-y form, did-nostr#145 did.rs:18"]
         HEALTH["GET /health nostr-bbs-auth-worker/src/lib.rs:240"]
         REGO["POST /auth/register/options nostr-bbs-auth-worker/src/lib.rs:253"]
         REGV["POST /auth/register/verify nostr-bbs-auth-worker/src/lib.rs:258"]
@@ -92,7 +92,7 @@ flowchart TB
         PROF["GET /api/profile nostr-bbs-auth-worker/src/lib.rs:333 to pod::handle_profile nostr-bbs-auth-worker/src/pod.rs:9"]
     end
 
-    ENTRY["route nostr-bbs-auth-worker/src/lib.rs:355"] --> pub
+    ENTRY["route nostr-bbs-auth-worker/src/lib.rs:224"] --> pub
     ENTRY --> sprint
     ENTRY -->|"falls through when route_sprint_api returns None nostr-bbs-auth-worker/src/lib.rs:287"| legacy
     legacy -->|"no match"| NF["404 Not found nostr-bbs-auth-worker/src/lib.rs:348"]
@@ -116,7 +116,7 @@ sequenceDiagram
     RO->>RO: 32-byte challenge from getrandom webauthn.rs:733
     RO->>RO: server-controlled PRF salt, 32 bytes webauthn.rs:739
     RO->>D1: batch DELETE expired + INSERT challenge (pubkey column = the challenge) webauthn.rs:756
-    RO->>RO: rp_id_required fails CLOSED on a placeholder RP_ID webauthn.rs:773
+    RO->>RO: rp_id_required fails CLOSED on a placeholder RP_ID webauthn.rs:772
     RO-->>C: options with residentKey required, userVerification required webauthn.rs:791
     C->>RV: POST /auth/register/verify
     RV->>RV: reject cross-origin ceremony webauthn.rs:878
@@ -148,7 +148,7 @@ sequenceDiagram
     participant D1 as D1
 
     C->>LO: POST /auth/login/options
-    LO-->>C: indistinguishable shape for known and unknown pubkeys webauthn.rs:1069-1078
+    LO-->>C: indistinguishable shape for known and unknown pubkeys webauthn.rs:1070-1078
     C->>LV: POST /auth/login/verify
     LV->>LV: optional NIP-98 header verified with replay protection webauthn.rs:1200
     LV->>D1: SELECT credential_id, public_key, counter webauthn.rs:1215
@@ -171,8 +171,8 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant H as Route handler
-    participant A as auth::verify_nip98_replay<br/>nostr-bbs-auth-worker/src/auth.rs:16
-    participant RLC as nostr_bbs_rate_limit::verify_nip98<br/>nostr-bbs-rate-limit/src/lib.rs:1
+    participant A as auth::verify_nip98_replay<br/>nostr-bbs-auth-worker/src/auth.rs:15
+    participant RLC as nostr_bbs_rate_limit::verify_nip98<br/>nostr-bbs-rate-limit/src/lib.rs:21
     participant D1 as nostr-bbs-auth D1 (binding DB)
 
     H->>A: header, canonical URL, method, body bytes

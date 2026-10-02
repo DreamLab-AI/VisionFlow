@@ -44,7 +44,7 @@ sources:
   - ../project/agentbox/docs/PROTOCOL-registry.md
   - ../project/agentbox/schema/federation-kinds.json
   - ../project/docs/explanation/visionflow-coordination-platform.md
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f}
+verified_commit: {visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047}
 ---
 ## ES-02.1 Producer — POST /v1/agent-events/emit, NIP-98 gate, local publish
 ```mermaid
@@ -52,8 +52,8 @@ sequenceDiagram
     autonumber
     participant CF as claude-flow hook<br/>agentbox/management-api/routes/agent-events.js:560-561
     participant RT as agentEventsRoutes<br/>agentbox/management-api/routes/agent-events.js:20
-    participant AUTH as verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:46
-    participant PUB as agentEventPublisher<br/>agentbox/management-api/utils/agent-event-publisher.js:22
+    participant AUTH as verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:108
+    participant PUB as agentEventPublisher<br/>agentbox/management-api/utils/agent-event-publisher.js:347
     participant WS as wsConnections<br/>agentbox/management-api/routes/agent-events.js:24
 
     rect rgb(230,235,245)
@@ -87,7 +87,7 @@ sequenceDiagram
     PUB-->>RT: fullEvent {id, version:3, ...}
     RT-->>CF: 200 {success:true, event_id, broadcast_count: wsConnections.size}
     PUB->>WS: subscribed callback: createMcpNotification(event) -> JSON.stringify
-    WS->>WS: socket.binaryMode (agent-events.js:34,59) selects<br/>createBinaryPayload agent-event-publisher.js:267, 19-byte header,<br/>else the JSON message
+    WS->>WS: socket.binaryMode (agent-events.js:34,59) selects<br/>createBinaryPayload agent-event-publisher.js:267 with a 19-byte header,<br/>else the JSON message
     Note over WS: INVARIANT: binary header 19 bytes =<br/>version(1)+type(1)+source(4)+target(4)+action(1)+ts(4)+dur(2)+len(2), version=0x02 type=0x23
     end
 ```
@@ -96,11 +96,11 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant PUB as agentEventPublisher<br/>agentbox/management-api/utils/agent-event-publisher.js:22
+    participant PUB as agentEventPublisher<br/>agentbox/management-api/utils/agent-event-publisher.js:347
     participant SUB as AgentEventWsSubscriber<br/>agentbox/management-api/utils/agent-event-ws-subscriber.js:30
     participant VCW as agent_events_ws<br/>src/agent_events/ingest.rs:296-297
-    participant NS as NostrService.get_session<br/>src/agent_events/ingest.rs:268
-    participant PF as process_frame<br/>src/agent_events/ingest.rs:94
+    participant NS as NostrService.get_session<br/>src/agent_events/ingest.rs:274
+    participant PF as process_frame<br/>src/agent_events/ingest.rs:100
     participant PROV as provenance::record<br/>src/agent_events/provenance.rs:96
     participant HUB as AGENT_EVENT_HUB<br/>src/agent_events/hub.rs:24
 
@@ -134,7 +134,7 @@ sequenceDiagram
         HUB-->>PF: receivers: usize (0 until AgentBeamActor subscribes)
         PF-->>VCW: IngestOutcome::Published{action,attributed,provenance_status,crossings_recorded,ctc_present,receivers}
         opt ctc_present
-            VCW->>VCW: fire_ctc_canary CANARY-VC-REC3-CTC (one-shot, AtomicBool)<br/>src/agent_events/ingest.rs:167-184
+            VCW->>VCW: fire_ctc_canary CANARY-VC-REC3-CTC (one-shot, AtomicBool)<br/>src/agent_events/ingest.rs:173-190
         end
     else valid JSON-RPC, wrong method or version<3
         PF-->>VCW: IngestOutcome::NonCanonical
@@ -272,8 +272,8 @@ classDiagram
     }
     AgentActionEvent --> AgentActionType : action_type
     note for AgentActionEvent "single frame src/utils/binary_protocol.rs:1554-1564: byte0=0x23 tag, then<br/>AGENT_ACTION_HEADER_SIZE=15 bytes: [0-3]source_agent_id [4-7]target_node_id [8]action_type<br/>[9-12]timestamp [13-14]duration_ms, then variable payload - all multi-byte fields<br/>little-endian"
-    note for AgentActionEvent "batch frame src/utils/binary_protocol.rs:1645-1668: [0]0x23 tag [1-2]u16 event_count, then<br/>per-event: [u16 event_len][event bytes minus its own tag byte] repeated event_count times"
-    note for AgentActionEvent "decode_agent_actions src/utils/binary_protocol.rs:1604 rejects<br/>data.len()>MAX_PAYLOAD_SIZE at :1609, the 10MB const at :64, before parsing any event"
+    note for AgentActionEvent "batch frame src/utils/binary_protocol.rs:1645-1665: [0]0x23 tag [1-2]u16 event_count, then<br/>per-event: [u16 event_len][event bytes minus its own tag byte] repeated event_count times"
+    note for AgentActionEvent "decode_agent_actions src/utils/binary_protocol.rs:1668 rejects<br/>data.len()>MAX_PAYLOAD_SIZE at :1673, the 10MB const at :64, before parsing any event"
 ```
 
 ## ES-02.6 Client render — decode, beam store, DIVERGENCE beam+gluon vs class_charge
@@ -303,7 +303,7 @@ sequenceDiagram
     STORE->>STORE: pushBeams: clampDuration (MIN_BEAM_DURATION_MS=400, DEFAULT=1500), FIFO cap MAX_TRANSIENT_BEAMS=256<br/>client/src/store/transientBeamStore.ts:57-61,25
     LAYER->>STORE: useTransientBeams() reads beams, calls pruneExpired() every frame
     LAYER->>LAYER: render coloured cylinder agent-node -> KG-node, opacity fade-in/hold/fade-out over durationMs, shape by action_type
-    Note over LAYER: DIVERGENCE: render is a beam coloured cylinder only, no attractive gluon edge is wired.<br/>archived draft ADR docs/archive/adr/ADR-059-bidirectional-agent-channel-server.md rationale<br/>only specified a class_charge-modulation gluon, retracted because class_charge is bulk<br/>ontology-clustering metadata uploaded whole-array at construction<br/>src/utils/unified_gpu_compute/construction.rs:65,366 memory.rs:84 upload_class_metadata<br/>execution.rs:917 with no per-node update path
+    Note over LAYER: DIVERGENCE: render is a beam coloured cylinder only, no attractive gluon edge is wired.<br/>archived draft ADR docs/archive/adr/ADR-059-bidirectional-agent-channel-server.md rationale<br/>only specified a class_charge-modulation gluon, retracted because class_charge is bulk<br/>ontology-clustering metadata uploaded whole-array at construction<br/>src/utils/unified_gpu_compute/construction.rs:64,345 memory.rs:84 upload_class_metadata<br/>execution.rs:917 with no per-node update path
     Note over LAYER: DIVERGENCE: src/actors/agent_beam_actor.rs:327-363 documents the transient-attractive-edge<br/>mechanism gluon as DEFERRED, no UpsertTransientEdge GPU message exists, CSR edge buffers<br/>have no incremental insert path agent_beam_actor.rs:336-349, only the beam ships today
 ```
 
@@ -355,12 +355,12 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant BC as BotsClient<br/>src/services/bots_client.rs:107
+    participant BC as BotsClient<br/>src/services/bots_client.rs:108
     participant TCP as McpTcpClient<br/>src/utils/mcp_tcp_client.rs:24
     participant SRV as MCP server<br/>multi-agent-container:9500 (env MCP_TCP_PORT, default 9500)
     participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs
 
-    BC->>BC: new(): host=env CLAUDE_FLOW_HOST or MCP_HOST or multi-agent-container, port=env MCP_TCP_PORT or 9500<br/>src/services/bots_client.rs:114-123
+    BC->>BC: new(): host=env CLAUDE_FLOW_HOST or MCP_HOST or multi-agent-container, port=env MCP_TCP_PORT or 9500<br/>src/services/bots_client.rs:119-126
     Note over BC: RESOLVED ADR-2088 — get_status() previously returned THREE literals<br/>(connected: true, host: agentic-workstation, port: 9090) that contradicted these<br/>resolved values. It now reports self.mcp_client.host/.port and a real<br/>AtomicBool connection state set by connect(). Routed from vc-knowledge (VC-27.1)
     BC->>TCP: connect(): test_connection() then initialize_session()
     alt server reachable
@@ -370,7 +370,7 @@ sequenceDiagram
         TCP-->>BC: Ok(false)
         BC-->>BC: Err "MCP server is not reachable"
     end
-    loop tokio interval 2s (Duration::from_secs(2))<br/>src/services/bots_client.rs:178
+    loop tokio interval 2s (Duration::from_secs(2))<br/>src/services/bots_client.rs:187
         BC->>TCP: query_agent_list()
         TCP->>TCP: try_send_request(method:"agent_list", params:{filter:"all",include_metadata:true})<br/>src/utils/mcp_tcp_client.rs:291-299
         TCP->>SRV: TcpStream write_all JSON-RPC 2.0 request + newline<br/>src/utils/mcp_tcp_client.rs:242-246
@@ -378,7 +378,7 @@ sequenceDiagram
         alt response line received before timeout
             SRV-->>TCP: {"jsonrpc":"2.0","result":[...],"id":N}
             TCP-->>BC: Ok(Vec~MultiMcpAgentStatus~)
-            BC->>BC: Agent::from(mcp_agent) per entry incl did_nostr validate_did_nostr round-trip<br/>src/services/bots_client.rs:54-64,79-104
+            BC->>BC: Agent::from(mcp_agent) per entry incl did_nostr validate_did_nostr round-trip<br/>src/services/bots_client.rs:55-65,80-104
             opt graph_service_addr set
                 BC->>GSS: do_send(UpdateBotsGraph{agents})
             end
@@ -402,7 +402,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant CALLER as start_discovery caller
-    participant DISC as MultiMcpAgentDiscovery<br/>src/services/multi_mcp_agent_discovery.rs:62
+    participant DISC as MultiMcpAgentDiscovery<br/>src/services/multi_mcp_agent_discovery.rs:100
     participant CF as claude-flow server<br/>MCP_TCP_PORT default 9500
     participant RS as ruv-swarm server<br/>RUV_SWARM_PORT default 9501
     participant DAA as DAA server<br/>src/services/multi_mcp_agent_discovery.rs:161-167
@@ -441,7 +441,7 @@ sequenceDiagram
 
     rect rgb(230,245,232)
     Note over VC,TASKS: TRUST BOUNDARY: VisionClaw container -> agentbox management-api, http://agentic-workstation:9090
-    VC->>TASKS: POST /v1/tasks {agent,task,provider,claude_flow_agent_id?,user_context?,with_beads?,parent_bead_id?}<br/>Authorization: Bearer api_key<br/>src/services/management_api_client.rs:234-291 -> agentbox/management-api/routes/tasks.js:15
+    VC->>TASKS: POST /v1/tasks {agent,task,provider,claude_flow_agent_id?,user_context?,with_beads?,parent_bead_id?}<br/>Authorization: Bearer api_key<br/>src/services/management_api_client.rs:234-291 -> agentbox/management-api/routes/tasks.js:16
     TASKS->>AUTH: authMiddleware(request)
     alt Bearer token matches API_KEY (authMode allows bearer)
         AUTH-->>TASKS: request.auth = bearerResult
@@ -452,11 +452,11 @@ sequenceDiagram
     else authMode=strict-nip98, Bearer present, no Nostr header
         AUTH-->>TASKS: 401 {message:"Auth mode is strict-nip98 - Bearer tokens are not accepted"}
     end
-    VC->>TASKS: GET /v1/tasks/:taskId<br/>src/services/management_api_client.rs:315-343 -> agentbox/management-api/routes/tasks.js:71
+    VC->>TASKS: GET /v1/tasks/:taskId<br/>src/services/management_api_client.rs:315-343 -> agentbox/management-api/routes/tasks.js:107
     TASKS-->>VC: 200 TaskStatus{status:Running|Completed|Failed,exit_code?,claude_flow_agent_id?} or 4xx ApiError
-    VC->>TASKS: GET /v1/tasks<br/>src/services/management_api_client.rs:345-373 -> agentbox/management-api/routes/tasks.js:125
+    VC->>TASKS: GET /v1/tasks<br/>src/services/management_api_client.rs:345-373 -> agentbox/management-api/routes/tasks.js:161
     TASKS-->>VC: 200 TaskListResponse{active_tasks:List~TaskInfo~,count}
-    VC->>TASKS: DELETE /v1/tasks/:taskId<br/>src/services/management_api_client.rs:375-400 -> agentbox/management-api/routes/tasks.js:163
+    VC->>TASKS: DELETE /v1/tasks/:taskId<br/>src/services/management_api_client.rs:375-400 -> agentbox/management-api/routes/tasks.js:199
     TASKS-->>VC: 200 (stopped) or ApiError
     Note over VC: family: create_task/create_task_with_context, get_task_status, list_tasks, stop_task all<br/>share identical Bearer-header + StatusCode-match + ApiError(text,status) shape -<br/>src/services/management_api_client.rs:201-400
     end
@@ -467,9 +467,9 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant VC as ManagementApiClient<br/>src/services/management_api_client.rs:27
-    participant BRF as briefs handlers<br/>agentbox/management-api/routes/briefing.js:1
+    participant BRF as briefs handlers<br/>agentbox/management-api/routes/briefing.js:207
     participant STA as status route<br/>agentbox/management-api/routes/status.js:12
-    participant HLT as GET /health<br/>agentbox/management-api/server.js:544
+    participant HLT as GET /health<br/>agentbox/management-api/server.js:554
 
     VC->>BRF: POST /v1/briefs {content,roles,user_context}<br/>src/services/management_api_client.rs:433-486
     BRF-->>VC: 201/200 BriefResponse{brief_id,brief_path,bead_id?} or ApiError
@@ -480,13 +480,13 @@ sequenceDiagram
     VC->>STA: GET /v1/status (Bearer auth)<br/>src/services/management_api_client.rs:402-430
     STA-->>VC: 200 SystemStatus{api,tasks,gpu?,providers,system} or ApiError
     VC->>HLT: GET /health (no Authorization header sent)<br/>src/services/management_api_client.rs:586-597
-    alt Fastify preValidation hook exempts /health from auth<br/>agentbox/management-api/server.js:231-232
+    alt Fastify preValidation hook exempts /health from auth<br/>agentbox/management-api/server.js:236-237
         HLT-->>VC: 200 -> health_check() Ok(true)
     else non-200
         HLT-->>VC: Ok(false)
     end
     Note over VC,BRF: family: create_brief/execute_brief/create_debrief share identical Bearer + StatusCode-match<br/>+ ApiError(text,status) shape - src/services/management_api_client.rs:432-584
-    Note over BRF: RESOLVED ADR-2085/2072 (2026-09-05): all three routes now exist in<br/>agentbox/management-api/routes/briefing.js, registered at management-api/server.js:1193.<br/>Brief documents and the durable brief record go through the pods adapter slot, the epic and<br/>role child beads through the beads slot, and every identifier is minted via lib/uris.js.<br/>The execute step is gated by the same ADR-2041 action pipeline as POST /v1/tasks and fails<br/>closed with 503 when the execution journal has no live events adapter.<br/>Activation is staged - the routes go live at the next image rebuild.
+    Note over BRF: RESOLVED ADR-2085/2072 (2026-09-05): all three routes now exist in<br/>agentbox/management-api/routes/briefing.js, registered at management-api/server.js:1203.<br/>Brief documents and the durable brief record go through the pods adapter slot, the epic and<br/>role child beads through the beads slot, and every identifier is minted via lib/uris.js.<br/>The execute step is gated by the same ADR-2041 action pipeline as POST /v1/tasks and fails<br/>closed with 503 when the execution journal has no live events adapter.<br/>Activation is staged - the routes go live at the next image rebuild.
 ```
 
 ## ES-02.12 Colloquy kinds 38410-38415 — rebalanced out of the agent-response band, registered in both registries

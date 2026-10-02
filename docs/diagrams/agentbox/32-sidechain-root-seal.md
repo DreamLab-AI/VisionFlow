@@ -15,7 +15,7 @@ sources:
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/schema/agentbox.toml.schema.json
-verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
+verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
 ---
 
 ## For developers
@@ -41,7 +41,7 @@ flowchart TB
     subgraph parent["Parent — the family decides the header (SPEC 3)"]
         P["parent tbtc4, Bitcoin testnet4 on the estate's node<br/>dreamlab/chain.json:4"]
         PL["powLimit 7fff…ffff, bits pinned, never retargets<br/>dreamlab/chain.json:7"]
-        PF["stock 80-byte SHA-256d header, version bit 31 clear<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:189"]
+        PF["stock 80-byte SHA-256d header, version bit 31 clear<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:197"]
     end
     subgraph econ["Peg and fee parameters"]
         PEGS["pegs is EMPTY: the genesis mints nothing and<br/>needs no parent funds - dreamlab/chain.json:16"]
@@ -71,31 +71,31 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph committed["Committed by upstream's buildGenesis"]
-        C1["the chain id, as the coinbase marker<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:198"]
-        C2["the pegs - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:199"]
-        C3["genesisTime - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:199"]
-        C4["the signer's witness - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:199"]
+        C1["the chain id, as the coinbase marker<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:206"]
+        C2["the pegs - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:207"]
+        C3["genesisTime - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:207"]
+        C4["the signer's witness - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:207"]
     end
     subgraph notcommitted["NOT committed, although the record said they were"]
-        N1["parent - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:199-200"]
-        N2["comment, signers - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:199"]
-        N3["every containment field - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:200"]
+        N1["parent - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:207-208"]
+        N2["comment, signers - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:207"]
+        N3["every containment field - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:208"]
     end
     subgraph pin["The pin that would close it"]
-        PIN["a coinbase pin: record carrying containmentDigest<br/>is UNBUILT - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:202-203"]
-        UP["building it changes genesis construction, so it is an<br/>UPSTREAM proposal, never a local overlay - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:204-206"]
+        PIN["a coinbase pin: record carrying containmentDigest<br/>is UNBUILT - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:210-211"]
+        UP["building it changes genesis construction, so it is an<br/>UPSTREAM proposal, never a local overlay - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:212-214"]
         PIN --> UP
     end
     committed --> BIND["Until the pin exists, the binding of parent and containment is the<br/>committed document plus its genesisHash<br/>sidechain/README.md:30"]
     notcommitted --> BIND
     BIND --> pin
-    notcommitted --> TEN["TENSION: ADR-2103 D3 says parent and containment are<br/>bound on-seal. They are not. The record now says so in<br/>its own amendment - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:200"]
+    notcommitted --> TEN["TENSION: ADR-2103 D3 says parent and containment are<br/>bound on-seal. They are not. The record now says so in<br/>its own amendment - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:208"]
 ```
 
 
-**Tension (ADR-2103 D3 vs the sealed chain):** D3 states that `parent`, `headerProfile`, `currencyPin`, `cashOut`, `pegConfirmations` and `refundBlocks` are committed as a `pin:` record in the genesis coinbase (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:63`), but the seal established that upstream commits only four things and the pin is unbuilt (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:200`).
+**Tension (ADR-2103 D3 vs the sealed chain):** D3 states that `parent`, `headerProfile`, `currencyPin`, `cashOut`, `pegConfirmations` and `refundBlocks` are committed as a `pin:` record in the genesis coinbase (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:71`), but the seal established that upstream commits only four things and the pin is unbuilt (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:208`).
 
-**Open:** whether the pin lands at all depends on an upstream proposal to change genesis construction, which has not been filed (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:204`).
+**Open:** whether the pin lands at all depends on an upstream proposal to change genesis construction, which has not been filed (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:212`).
 
 ## AB-32.3 The engine-free genesis gate, case by case
 
@@ -133,7 +133,7 @@ sequenceDiagram
 
 **Invariant:** no key material can sit beside a chain document — case 5 greps the directory for a bare 32-byte hex file and fails the run if it finds one (`../project/agentbox/tests/config/sidechain-genesis.test.sh:76`).
 
-**Debt:** case 3 enforces only that a mainnet parent carries a `p21Receipt` field. ADR-2103 D4 asks for a CI check that the receipt *resolves*, a second check forbidding a level-1 chain on a mainnet parent, and a node that refuses to open one; none is built (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:221-222`).
+**Debt:** case 3 enforces only that a mainnet parent carries a `p21Receipt` field. ADR-2103 D4 asks for a CI check that the receipt *resolves*, a second check forbidding a level-1 chain on a mainnet parent, and a node that refuses to open one; none is built (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:229-230`).
 
 ## AB-32.4 Where the three non-git things live
 
@@ -169,28 +169,30 @@ flowchart TB
         D2["block 0's header hashed independently to the document<br/>sovereign-settlement.md:336"]
         D3["the testnet4 peg wallet funded with 0.001 tBTC<br/>sovereign-settlement.md:336"]
         D4["the interim producer live, announcing to five relays<br/>see AB-34.1"]
+        D5["2026-09-30: producer, Pages mirror and DREAM faucet supervised<br/>behind [sidechain] - sovereign-settlement.md:337, see AB-34"]
     end
     subgraph missing["Not yet, named by the same row"]
-        M1["supervised sidestr-node and sidestr-producer programs"]
+        M1["a native sidestr-node - the supervised producer is still<br/>upstream's JS engine - config/sidechain/README.md:79"]
         M2["the mirror on loopback port 9097 behind the nip98 proxy"]
         M3["the chain and asset URN kinds"]
         M4["the kind-38420 account binding"]
         M5["the first peg-in"]
         M1 ~~~ M2 ~~~ M3 ~~~ M4 ~~~ M5
     end
-    subgraph gate["The manifest block that cannot exist yet"]
+    subgraph gate["The manifest block, half landed"]
         G1["schema/agentbox.toml.schema.json sets<br/>additionalProperties false at the top level<br/>schema/agentbox.toml.schema.json:7"]
-        G2["and has NO sidechain entry, so [sidechain] cannot be<br/>added to agentbox.toml without the schema change<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:207-209"]
-        G1 --> G2
+        G2["a sidechain entry now exists for the interim supervision keys only:<br/>enabled, announce_mirror, mirror, mirror_checkout, faucet, faucet_key_file<br/>schema/agentbox.toml.schema.json:3223-3252"]
+        G3["it is closed too, additionalProperties false, so D1's parent and<br/>header_profile still cannot be written and the sealed document stays<br/>the only source of the parent - schema/agentbox.toml.schema.json:3225"]
+        G1 --> G2 --> G3
     end
-    done --> STATUS["implementation_status partial: the seal exists and is<br/>verifiable, D1, D3's pin and boot check, D4's CI receipt<br/>check and the faucet compile-out are not built<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:220-223"]
+    done --> STATUS["implementation_status partial: the seal exists and is<br/>verifiable, D1, D3's pin and boot check, D4's CI receipt<br/>check and the faucet compile-out are not built<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:228-231"]
     missing --> STATUS
     gate --> STATUS
 ```
 
 
-**Resolved (was DOC-DRIFT):** the governing document's proposed section now states plainly that the Rust crates live outside this repository, published from `sidestr-rs` (ADR-2112) and consumed from crates.io — it no longer claims `crates/sidestr/` is empty (`../project/agentbox/docs/BASELINE-container.md:196`).
+**Drift (ADR-2103 vs the schema):** the record's first-seal snapshot says `schema/agentbox.toml.schema.json` has no `sidechain` entry (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:215-217`); since `d0fa1b80b` it has one, for the interim supervision keys only (`../project/agentbox/schema/agentbox.toml.schema.json:3223-3252`). The conclusion still holds for D1, because the new entry is closed and names no `parent` or `header_profile` (`../project/agentbox/schema/agentbox.toml.schema.json:3225`).
 
-**Debt:** `[sidechain]` is a specified manifest gate with a catalogue entry, an apply class and a supervised program set (`../project/agentbox/docs/BASELINE-container.md:284`, `../project/agentbox/docs/BASELINE-container.md:335`), and none of it is expressible until the schema gains the block (`../project/agentbox/schema/agentbox.toml.schema.json:7`). See AB-05.13 for where it would appear in the gate catalogue.
+**Debt:** the specified `[sidechain]` gate, with its catalogue entry, apply class and supervised program set (`../project/agentbox/docs/BASELINE-container.md:294`, `../project/agentbox/docs/BASELINE-container.md:349`), is still not expressible: what landed is an interim block of six supervision keys, and the specified keys (parent, header profile, signer and bridge children) wait on a schema change (`../project/agentbox/schema/agentbox.toml.schema.json:3225`). See AB-05.13 for where it would appear in the gate catalogue.
 
-**Open:** PRD-024's question 9 is answered — the first seal is `tbtc4` with stock headers, sealed 2026-09-22 (`../project/agentbox/docs/proposals/sovereign-settlement.md:485-490`) — but questions 8, 13, 14 and 15 remain, and each changes what gets built (`../project/agentbox/docs/proposals/sovereign-settlement.md:494`).
+**Open:** PRD-024's question 9 is answered — the first seal is `tbtc4` with stock headers, sealed 2026-09-22 (`../project/agentbox/docs/proposals/sovereign-settlement.md:486-491`) — but questions 8, 13, 14 and 15 remain, question 19 (the next chain's parent, beside `txbt4`) was added on 2026-09-30 (`../project/agentbox/docs/proposals/sovereign-settlement.md:527`), and each changes what gets built (`../project/agentbox/docs/proposals/sovereign-settlement.md:495`).

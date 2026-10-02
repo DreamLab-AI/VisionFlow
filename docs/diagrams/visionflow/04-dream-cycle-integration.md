@@ -27,7 +27,7 @@ sources:
   - docs/adr/ADR-2009-webgl-mesh-deep-is-sidecar-only.md
   - ./README.md
   - package.json
-verified_commit: d4e44298646768a4b19af359119e16a6884fa80d
+verified_commit: e5987acc8337ddd64c72f775750d61fef46d8e0b
 ---
 
 ## VF-04.1 dream.config.json — the whole contract this repo offers the engine
@@ -47,7 +47,7 @@ flowchart LR
     C --> OUT["ledgerPath docs/dream-cycle/LEDGER.md,<br/>branchPrefix dream/, labels dream-cycle and marketing-site,<br/>autoMerge FALSE<br/>dream.config.json:75 and dream.config.json:81"]:::cfg
     C --> MISC["competitors empty, adrConvention 4-digit<br/>dream.config.json:66 and dream.config.json:67"]:::cfg
 
-    ENG["EXTERNAL: the dream ENGINE is not in this repo. DreamLab's<br/>dream-engine, a tracking fork of ruvnet/dream-machine, runs the<br/>night and consumes this file — see AB-23 for the engine, its<br/>gates and its acceptance path. ./README.md:128"]
+    ENG["EXTERNAL: the dream ENGINE is not in this repo. DreamLab's<br/>dream-engine, a tracking fork of ruvnet/dream-machine, runs the<br/>night and consumes this file — see AB-23 for the engine, its<br/>gates and its acceptance path. ./README.md:136"]
     C -.->|"read by"| ENG
 ```
 
@@ -85,7 +85,7 @@ stateDiagram-v2
       DOC-DRIFT: ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:44
       still calls estate-health "a fifth rotation slot".
       ADR-2009 removed webgl-mesh, so it is one of four —
-      as BASELINE-visionflow.md:153 correctly records.
+      as BASELINE-visionflow.md:171 correctly records.
     end note
 ```
 
@@ -148,8 +148,8 @@ flowchart LR
     E5 --> E5X["orphans are a MEASUREMENT, never a failure: optional groups<br/>are staged deliberately for deep links<br/>dream-asset-refs-scan.sh:22"]:::odd
 
     E6["estate-health.mjs check — offline read of the committed snapshot"]
-    E6 --> E6P["ESTATE-HEALTH-OK, exit 0 — estate-health.mjs:869"]:::pass
-    E6 --> E6F["ESTATE-HEALTH-RED or ESTATE-HEALTH-STALE, exit 1<br/>estate-health.mjs:858 and estate-health.mjs:865"]:::fail
+    E6 --> E6P["ESTATE-HEALTH-OK, exit 0 — estate-health.mjs:992"]:::pass
+    E6 --> E6F["ESTATE-HEALTH-RED or ESTATE-HEALTH-STALE, exit 1<br/>estate-health.mjs:981 and estate-health.mjs:988"]:::fail
 ```
 
 ## VF-04.5 A night end to end — probe, build, evaluate, ledger, branch, human gate
@@ -175,7 +175,7 @@ sequenceDiagram
     alt a change is proposed
         ENG->>BR: "branch named with prefix dream/ — dream.config.json:76"
         ENG->>H: "open a DRAFT pull request, labels dream-cycle and marketing-site<br/>dream.config.json:77"
-        Note over ENG,H: "INVARIANT: autoMerge is false — dream.config.json:81<br/>evaluation is not promotion — an agent proposes, a human signs<br/>./README.md:128"
+        Note over ENG,H: "INVARIANT: autoMerge is false — dream.config.json:81<br/>evaluation is not promotion — an agent proposes, a human signs<br/>./README.md:136"
         H-->>BR: "merge, or refuse"
     else no change earned
         ENG->>LED: "the row stands alone, no branch, no PR"
@@ -199,10 +199,10 @@ flowchart TB
     G5 --> WHY["a citation to a record that does not exist is a fabricated<br/>authority, and it is WORSE than no citation because the reader<br/>cannot tell the difference"]:::warn
     G2 --> LOCAL["the browser path exists, just not here:<br/>npm run test:a11y and npm run test:perf — package.json:15<br/>see VF-02.10"]:::warn
     G1 --> SRC["ground truth for the discipline: build.sh:7 —<br/>no compile step, no bundler, no WASM"]:::warn
-    G4 --> SRC2["ground truth: BASELINE-visionflow.md:280 Invariant 6"]:::warn
+    G4 --> SRC2["ground truth: BASELINE-visionflow.md:301 Invariant 7<br/>renumbered from 6 when the sidestr invariant was inserted"]:::warn
 ```
 
-## VF-04.8 What the ledger actually records — a dry September after an early run of ACCEPTs
+## VF-04.8 What the ledger actually records — a dry September, a silent fortnight, then three ACCEPTs
 ```mermaid
 flowchart TB
     classDef acc fill:#e6f0dc,stroke:#4a7a2a,color:#111
@@ -213,9 +213,9 @@ flowchart TB
 
     L["docs/dream-cycle/LEDGER.md — LEDGER.md:3"]
 
-    L --> A["ACCEPT nights (10): 08-17 x2, 08-29, 08-31, 09-01, 09-02,<br/>09-03, 09-04, 09-05, and 09-10 seo-and-meta robots.txt via<br/>PR #3 — LEDGER.md:25"]:::acc
-    L --> I["INCONCLUSIVE nights (8): 08-16 content-integrity; three<br/>webgl-mesh nights 08-30, 09-06, 09-07; then four VETOED nights<br/>09-08, 09-09, 09-11, 09-13 — LEDGER.md:19,23,24,26,28"]:::inc
-    L --> B["BLOCKED-ENV nights (1 so far): 09-12 content-integrity,<br/>VETOED — LEDGER.md:27"]:::blk
+    L --> A["ACCEPT nights (13): 08-17 x2, 08-29, 08-31, 09-01, 09-02,<br/>09-03, 09-04, 09-05, 09-10 seo-and-meta robots.txt via<br/>PR #3 — LEDGER.md:25 — then 09-30, 10-01 and 10-02"]:::acc
+    L --> I["INCONCLUSIVE nights (10): 08-16 content-integrity; three<br/>webgl-mesh nights 08-30, 09-06, 09-07; then six VETOED nights<br/>09-08, 09-09, 09-11, 09-13, 09-27, 09-29<br/>LEDGER.md:19,23,24,26,28,29,31"]:::inc
+    L --> B["BLOCKED-ENV nights (2): 09-12 and 09-28, both<br/>content-integrity, both VETOED — LEDGER.md:27,30"]:::blk
     L --> O["OPERATOR rows (5) — human audits, deliberately NOT counted<br/>toward the dry streak that parks a repo"]:::op
 
     O --> O1["2026-08-28 — evaluators converted to checked-in scripts after<br/>the annexe ssh dispatch mangled nested double quotes<br/>LEDGER.md:8"]:::op
@@ -227,6 +227,11 @@ flowchart TB
     DRY["09-08 through 09-13: every night but one VETOED — orphan<br/>assets and a frozen build fingerprint blocked content-integrity<br/>and build-pipeline in turn, agentbox's red CI blocked<br/>estate-health, and PR #3 (09-10 ACCEPT) sat unmerged so 09-13<br/>reported the tree still frozen. One of those vetoes escalated to<br/>BLOCKED-ENV rather than INCONCLUSIVE — LEDGER.md:23-28"]:::blk
     A -.->|"last new ACCEPT before the dry run"| DRY
     B --> DRY
+
+    GAP["No row at all for 09-14 through 09-26 — thirteen nights with<br/>no verdict of any kind in the ledger; the next row is 09-27<br/>LEDGER.md:28-29"]:::bad
+    DRY --> GAP
+    GAP --> LATE["09-27 estate-health INCONCLUSIVE and 09-29 build-pipeline<br/>INCONCLUSIVE; 09-28 content-integrity BLOCKED-ENV after the<br/>link gate was found to skip every ref containing a hash<br/>LEDGER.md:29-31"]:::inc
+    LATE --> RUN["three ACCEPTs in a row: 09-30 seo-and-meta PR #4,<br/>10-01 build-pipeline PR #11 making robots.txt a REQUIRED<br/>asset, 10-02 seo-and-meta PR #12 adding og:site_name and a<br/>WebSite JSON-LD block — LEDGER.md:32-34<br/>#11 and #12 landed on main as 1a34285 and dc970bc — see VF-02.3, VF-02.6"]:::acc
 
     LESSON["The ledger's own standard, from ADR-2009: a verdict that a<br/>night could not observe its subject should be rare and<br/>informative; repeating INCONCLUSIVE on a schedule for a<br/>structural reason turns it into noise. The 09-08..09-13 run<br/>shows the same risk one level up — repeated VETOED nights on<br/>the same two slots are a structural impediment, not evidence<br/>of nothing to find<br/>ADR-2009-webgl-mesh-deep-is-sidecar-only.md:63"]
     I --> LESSON
@@ -267,7 +272,7 @@ stateDiagram-v2
     LedgerOnly --> [*]
     note right of Draft
       The judgment-broker boundary wired into development:
-      evaluation is not promotion. ./README.md:128
+      evaluation is not promotion. ./README.md:136
       DIVERGENCE: nothing in this repo enforces the draft-PR
       shape — the branch prefix, the labels and autoMerge
       false are declarations the external engine honours —
@@ -297,7 +302,7 @@ flowchart LR
     end
 
     subgraph CIONLY["Publication only"]
-        C1["website-assets.mjs verify — ASSET-INVENTORY-OK<br/>deploy.yml:83, reused indirectly by the asset-refs scan<br/>dream-asset-refs-scan.sh:30"]:::gap
+        C1["website-assets.mjs verify — ASSET-INVENTORY-OK<br/>deploy.yml:83, reused indirectly by the asset-refs scan<br/>dream-asset-refs-scan.sh:30 — since the 10-01 ACCEPT its<br/>required list carries robots.txt, a dream finding promoted<br/>into a publication gate — assets.manifest.json:9"]:::gap
         C2["check-diagram-text.js — committed diagram baseline<br/>deploy.yml:125"]:::gap
         C3["drift-counter.mjs — reported or enforced — deploy.yml:134"]:::gap
     end
@@ -308,3 +313,5 @@ flowchart LR
     NOBROWSER["COVERAGE GAP, by decision: no browser evaluator on either<br/>path. The mesh module is read by nothing — verified by grep<br/>at ADR-2009-webgl-mesh-deep-is-sidecar-only.md:84 — and the<br/>a11y and perf specs run only by hand — mesh-webgl.js:10"]:::gap
     DREAMONLY -.-> NOBROWSER
 ```
+
+**Debt (ledger rows reach main by hand):** the engine wrote the 09-27 to 09-30 rows to the working tree and never committed them; they reached main only in a human commit (`f3d54a0`), and the 10-01 and 10-02 rows likewise in `e52dba7` (`docs/dream-cycle/LEDGER.md:29-34`). The ledger the next night reads is therefore whatever an operator last committed, and the 09-14 to 09-26 silence cannot be told apart from rows that were written and lost.

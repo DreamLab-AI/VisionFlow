@@ -12,11 +12,15 @@ sources:
   - ../visionGraph/publishing-tools/WasmVOWL/modern/package.json
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/site/mesh.ts
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/router.tsx
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/types/scope.ts
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/site/domains.ts
   - ../visionGraph/.github/workflows/publish.yml
   - ../knowledgeGraph/explorer/CLAUDE.md
   - ../knowledgeGraph/explorer/modern/package.json
   - ../knowledgeGraph/explorer/modern/src/site/mesh.ts
-verified_commit: {visiongraph: ac6274f9f5e12375f92086ccb9adba50c965ecf9, knowledgegraph: 3a266fc3a2edb91f84ecc794718b87dd44c79417}
+  - ../knowledgeGraph/explorer/modern/src/types/scope.ts
+  - ../knowledgeGraph/explorer/modern/src/site/domains.ts
+verified_commit: {visiongraph: 015ca2c1f2d7289955ebf16b98b6775a57ec0f7b, knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e}
 ---
 
 ## VG-06.1 Two copies of one codebase — now diverging in router.tsx too, not just the old 10-file list
@@ -30,7 +34,7 @@ flowchart TB
         MODERN2["explorer/modern/src/router.tsx — 111 lines<br/>no readBaseUrl#40;#41;, createBrowserRouter takes no basename"]
     end
     HERE -.->|"router.tsx is now a NEW divergence #40;was byte-identical at VG-06's prior stamp#41;"| SIBLING
-    DIFF["package.json, package-lock.json, CLAUDE.md, llms.txt #40;x2#41;,<br/>AboutPage/DataPage/HomePage.tsx, site/mesh.ts, site.css<br/>— plus router.tsx as of this commit"]
+    DIFF["33 shared files now differ, up from 24 — package.json, package-lock.json,<br/>CLAUDE.md, llms.txt #40;x2#41;, About/Data/Home pages, site/mesh.ts, site.css,<br/>router.tsx, and since 2026-10-01 the eight-domain set: scope.ts, domains.ts,<br/>icons.tsx, palette.ts, EdgeLegend, GraphPage, PageView, theme.css — see VG-06.5"]
     HERE --> DIFF
     SIBLING --> DIFF
     note1["Neither copy is strictly ahead: VG-06.2 below shows THIS #40;shipping#41; tree's<br/>CLAUDE.md is MORE stale than knowledgeGraph's copy of the same file, while<br/>VG-06.4 shows THIS tree's site/mesh.ts is missing an export knowledgeGraph's<br/>copy already has, and router.tsx now diverges in the OPPOSITE direction —<br/>the shipping tree gained a capability #40;sub-path basename#41; the sibling lacks"]
@@ -60,7 +64,7 @@ flowchart LR
     TOOLCHAIN["CAPABILITIES.md:6 — 'measured with rustc 1.97.0,<br/>wasm-pack 0.15.0, node 22.23.1, vite 6.4.3, python 3.12'"]
     NOTOOL["no Rust toolchain is invoked anywhere in publish.yml —<br/>npm ci pulls the PUBLISHED @dreamlab-ai/vowl-wasm package<br/>EXTERNAL: see VG-03.3"]
     PIPEPATH["CAPABILITIES.md:24 — 'python -m pipeline.build<br/>mainKnowledgeGraph/pages www': 7,444 pages"]
-    REALPATH["publish.yml now fetches or builds a `vault` binary<br/>#40;VisionClaw crates/vault#41; and runs vault validate + vault build<br/>--vault all --publish-out — publish.yml:81-198;<br/>python -m pipeline.build does not appear in the workflow"]
+    REALPATH["publish.yml now fetches or builds a `vault` binary<br/>#40;VisionClaw crates/vault#41; and runs vault validate + vault build<br/>--vault all --publish-out — publish.yml:83-200;<br/>python -m pipeline.build does not appear in the workflow"]
     TOOLCHAIN -.->|"stale — pre-externalisation local Rust build"| NOTOOL
     PIPEPATH -.->|"doubly stale — the Python pipeline this line<br/>describes has been REPLACED, not just relocated"| REALPATH
     note1["DOC-DRIFT #40;widened#41;: CAPABILITIES.md's 'Working' table was already stale<br/>#40;vowl-wasm externalisation, Logseq→Obsidian split#41; and the workflow<br/>it partly described has since been rewritten wholesale to the vault<br/>binary + Quartz #47;notes#47; pipeline — see VG-03 for that migration"]
@@ -79,3 +83,21 @@ flowchart TB
     ROUTER -.->|"gained a capability the sibling lacks"| ROUTERSIB
     note1["DIVERGENCE: mesh.ts and router.tsx drift in OPPOSITE directions from the<br/>same sibling repo. mesh.ts — the sibling #40;knowledgeGraph#47;explorer#41; has an<br/>edit #40;Loom link#41; never ported here. router.tsx — THIS #40;shipping#41; tree has<br/>gained sub-path basename support the sibling never received. Same-repo<br/>pair, no shared sync discipline either way"]
 ```
+
+## VG-06.5 Eight domains in the shipping tree, six in the sibling
+
+```mermaid
+flowchart TB
+    VGSCOPE["shipping tree — DOMAIN_SLUGS, index = NGG1 domain id,<br/>eight entries ending space-science-and-systems and<br/>earth-observation-and-geospatial-sensing<br/>WasmVOWL/modern/src/types/scope.ts:75-84"]
+    VGMETA["shipping domains.ts — 'the eight-Domain descriptor table'<br/>WasmVOWL/modern/src/site/domains.ts:2"]
+    KGSCOPE["knowledgeGraph/explorer — DOMAIN_SLUGS stops at<br/>infrastructure, six entries<br/>explorer/modern/src/types/scope.ts:73-80"]
+    KGMETA["sibling domains.ts — 'the six-Domain descriptor table'<br/>explorer/modern/src/site/domains.ts:2"]
+    VGSCOPE --> VGMETA
+    KGSCOPE --> KGMETA
+    VGSCOPE -.->|"ids 0-5 identical, 6 and 7 only here"| KGSCOPE
+    note1["INVARIANT: the slug order IS the NGG1 u16 domain id and is frozen,<br/>so new domains append — WasmVOWL/modern/src/types/scope.ts:74"]
+```
+
+**What it shows:** the 2026-10-01 space and Earth-observation change landed only in the tree that ships. Its scope contract lists eight domain slugs, with the two new ones appended at ids 6 and 7. The knowledgeGraph copy still lists six, and its descriptor table still calls itself "six-Domain".
+**Why it is this way:** the domain work was done in visionGraph, where `publish.yml` builds the explorer, and no sync discipline carries edits to the sibling (VG-06.4). Because the sibling is built by nothing (KG-04.6), the gap does not reach the live site today. It does mean the sibling can no longer be dropped in as a replacement for the shipping tree.
+**Debt:** the two explorer copies now differ in 33 shared files, up from 24 at the previous stamp; the domain contract (`scope.ts`, `domains.ts`, icons, palette, legend) is the largest new block.

@@ -45,19 +45,19 @@ sources:
   - ../project/agentbox/flake.nix
   - ../project/agentbox/config/harness-wrappers/router.sh
   - ../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md
-verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
+verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
 ---
 
 ## AB-15.1 Gate lattice — manifest to package set to supervisor to runtime trace
 ```mermaid
 flowchart TD
     subgraph M["agentbox.toml — declared gates"]
-        M1["[skills.tree_search_coder]<br/>agentbox.toml:800"]
-        M2["[toolchains].deepsec<br/>agentbox.toml:1759"]
-        M3["[security.deepsec]<br/>agentbox.toml:2016"]
-        M4["[dream_machine]<br/>agentbox.toml:2065"]
-        M5["[payments]<br/>agentbox.toml:1502"]
-        M6["[consultants.*]<br/>agentbox.toml:1272-1304"]
+        M1["[skills.tree_search_coder]<br/>agentbox.toml:827"]
+        M2["[toolchains].deepsec<br/>agentbox.toml:1800"]
+        M3["[security.deepsec]<br/>agentbox.toml:2057"]
+        M4["[dream_machine]<br/>agentbox.toml:2106"]
+        M5["[payments]<br/>agentbox.toml:1529"]
+        M6["[consultants.*]<br/>agentbox.toml:1299-1331"]
         M7["[claude_code].permission_mode<br/>+ permission_deny (ADR-2116)"]
         M8["[vault].cli (ADR-2107/2108)"]
     end
@@ -70,7 +70,7 @@ flowchart TD
         S2["management-api program"]
     end
     subgraph C["CATALOGUE entries<br/>management-api/lib/system-manifest.js:39"]
-        C1["tree-search-coder<br/>apply_class rebuild<br/>:276"]
+        C1["tree-search-coder<br/>apply_class rebuild<br/>:279"]
         C2["deepsec<br/>gates toolchains.deepsec + security.deepsec.enabled<br/>apply_class rebuild<br/>:91"]
         C3["dream-machine<br/>apply_class boot<br/>:154"]
         C4["payments<br/>apply_class boot<br/>:188"]
@@ -78,9 +78,9 @@ flowchart TD
         C6["claude-code-permissions<br/>apply_class boot<br/>:212"]
         C7["instruction-tiers<br/>gate null, apply_class boot<br/>:215"]
         C8["claude-cred-sync<br/>apply_class rebuild<br/>:218"]
-        C9["vault-cli<br/>apply_class rebuild<br/>:270"]
+        C9["vault-cli<br/>apply_class rebuild<br/>:273"]
     end
-    R["runtime trace<br/>GET /v1/system stateOf()<br/>system-manifest.js:314"]
+    R["runtime trace<br/>GET /v1/system stateOf()<br/>system-manifest.js:317"]
 
     M1 -->|"rebuild"| C1
     M2 -->|"rebuild — bakes npm closure"| N1
@@ -163,12 +163,12 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant TOML as agentbox.toml<br/>agentbox/agentbox.toml:2016
-    participant Entry as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:2441
+    participant TOML as agentbox.toml<br/>agentbox/agentbox.toml:2057
+    participant Entry as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:2475
     participant MB as agentbox-manifest bin<br/>agentbox/services/agentbox-manifest/src/main.rs:418
     participant Sup as supervisord<br/>dream-engine program
     participant API as management-api<br/>routes/system.js:33
-    participant SM as system-manifest.js<br/>CATALOGUE + buildSystemView<br/>management-api/lib/system-manifest.js:345
+    participant SM as system-manifest.js<br/>CATALOGUE + buildSystemView<br/>management-api/lib/system-manifest.js:350
 
     Note over Entry: boot — Phase reconciles every restart
     Entry->>MB: agentbox-manifest toml-string --manifest /etc/agentbox.toml --path consultants.antigravity.model
@@ -182,13 +182,13 @@ sequenceDiagram
     Entry->>Entry: export AGENTBOX_ANTIGRAVITY_MODEL only if not already set
     Entry->>Sup: reconcile [dream_machine] enabled — dream-engine reads /etc/agentbox.toml itself at start
     Note over Sup: apply_class boot — dream-engine self-reads the manifest,<br/>so a restart (not a hot edit) is what applies a dream_machine change
-    Note over Entry: ADR-2118, same boot phase — entrypoint-unified.sh:2298 also runs<br/>agentbox-manifest instructions-project #40;CATALOGUE id instruction-tiers, gate null#41;,<br/>composing #126;/.claude/CLAUDE.md and #126;/workspace/AGENTS.md #124; CLAUDE.md from<br/>config/instructions/ every restart, repo-authoritative, drift-checked
+    Note over Entry: ADR-2118, same boot phase — entrypoint-unified.sh:2299 also runs<br/>agentbox-manifest instructions-project #40;CATALOGUE id instruction-tiers, gate null#41;,<br/>composing #126;/.claude/CLAUDE.md and #126;/workspace/AGENTS.md #124; CLAUDE.md from<br/>config/instructions/ every restart, repo-authoritative, drift-checked
 
     Note over API: live — every GET /v1/system request
     API->>SM: buildSystemView(manifest, adapters)
     loop for each CATALOGUE entry
-        SM->>SM: resolveGate(manifest, entry.gate) -- tomlval-equivalent dotted lookup<br/>system-manifest.js:282
-        SM->>SM: stateOf(manifest, entry) -- on #124; off #124; available<br/>system-manifest.js:296
+        SM->>SM: resolveGate(manifest, entry.gate) -- tomlval-equivalent dotted lookup<br/>system-manifest.js:285
+        SM->>SM: stateOf(manifest, entry) -- on #124; off #124; available<br/>system-manifest.js:299
     end
     SM-->>API: apply_classes, core, surfaces, modules, counts
     API-->>API: reply.send #40;generated_at, ...view, execution#41;
@@ -231,8 +231,8 @@ stateDiagram-v2
 sequenceDiagram
     autonumber
     participant Op as Operator
-    participant Val as agentbox-config-validate.js<br/>agentbox/scripts/agentbox-config-validate.js:1464
-    participant TOML as agentbox.toml<br/>[skills.tree_search_coder]<br/>agentbox.toml:800-807
+    participant Val as agentbox-config-validate.js<br/>agentbox/scripts/agentbox-config-validate.js:1465
+    participant TOML as agentbox.toml<br/>[skills.tree_search_coder]<br/>agentbox.toml:827-834
     participant Skill as tree-search-coder SKILL.md<br/>agentbox/skills/tree-search-coder/SKILL.md:78
     participant CLI as tree-search-cap<br/>src/bin/tree-search-cap.rs:1
     participant Lim as Limiter<br/>cost_cap/mod.rs:330,336
@@ -285,7 +285,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Agent as Agentbox consumer<br/>[payments.consumer]<br/>agentbox.toml:1456
+    participant Agent as Agentbox consumer<br/>[payments.consumer]<br/>agentbox.toml:1548
     participant Merchant as External merchant endpoint
     participant Classify as pay402.classify()<br/>lib/pay402.js:169
     participant Pay as /v1/pay/* routes<br/>routes/payments.js:145-677
@@ -306,7 +306,7 @@ sequenceDiagram
     end
 
     rect rgb(220,240,220)
-    Note over Agent,Pod: payable path — [payments.consumer].enabled required (agentbox.toml:1457)
+    Note over Agent,Pod: payable path — [payments.consumer].enabled required (agentbox.toml:1549)
     Agent->>Pay: POST /v1/pay/estimate {endpoint, units}
     Pay-->>Agent: 200 estimated_sats, hold_sats = ceil(estimated*HOLD_BUFFER_RATIO)
     Agent->>Pay: GET /v1/pay/balance (NIP-98 auth)
@@ -325,9 +325,9 @@ sequenceDiagram
         Merchant-->>Agent: 200 OK — settled
     end
     end
-    Note over Agent,Pay: DEBT — the authority classification table names payment_settlement<br/>zero-tolerance as an irreversible above-threshold sats spend (agentbox.toml:980),<br/>but no production path passes that actionClass to the gate. The only call sites<br/>are tests/sovereign/authority.test.js:129 and :248, and routes/payments.js never<br/>reaches management-api/lib/authority.js:226. see AB-14.11
+    Note over Agent,Pay: DEBT — the authority classification table names payment_settlement<br/>zero-tolerance as an irreversible above-threshold sats spend (agentbox.toml:1007),<br/>but no production path passes that actionClass to the gate. The only call sites<br/>are tests/sovereign/authority.test.js:129 and :248, and routes/payments.js never<br/>reaches management-api/lib/authority.js:226. see AB-14.11
     Note over Agent,Pay: DEBT — spend is accounted in three stores that never reconcile:<br/>the flock-guarded cost_cap ledger file (services/agentbox-ops/src/cost_cap/ledger.rs:75),<br/>the pod-held sats balance behind GET /v1/pay/balance (management-api/routes/payments.js:245),<br/>and the marketplace token_budget carried on a grant (management-api/lib/llm-marketplace.js:85).<br/>No surface sums them, so no single number answers what this container has spent
-    Note over Agent: DIVERGENCE: #91;payments.consumer#93;.enabled = false by default #40;agentbox.toml:1457#41;,<br/>#91;payments.broadcast#93;.enabled = false and well_known = false #40;agentbox.toml:1466-1467#41; — see AB-11.15
+    Note over Agent: DIVERGENCE: #91;payments.consumer#93;.enabled = false by default #40;agentbox.toml:1549#41;,<br/>#91;payments.broadcast#93;.enabled = false and well_known = false #40;agentbox.toml:1558-1559#41; — see AB-11.15
 ```
 
 ## AB-15.7 routes/payments.js — GET info, GET balance, POST deposit
@@ -558,9 +558,9 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant PreBoot as Pre-boot environment
-    participant Entry as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:2441
+    participant Entry as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:2475
     participant MB as agentbox-manifest toml-string<br/>services/agentbox-manifest/src/main.rs:418
-    participant TOML as agentbox.toml<br/>[consultants.antigravity]<br/>agentbox.toml:1283-1287
+    participant TOML as agentbox.toml<br/>[consultants.antigravity]<br/>agentbox.toml:1310-1314
     participant Reg as skills/mcp.json registry default
     participant Srv as antigravity server.js<br/>mcp/consultants/antigravity/server.js:20
 
@@ -659,7 +659,7 @@ sequenceDiagram
     autonumber
     participant Op as build-with-quality caller
     participant Gate as deepsec-gate.sh<br/>skills/build-with-quality/scripts/deepsec-gate.sh:1
-    participant TOML as [security.deepsec]<br/>agentbox.toml:1951-1962
+    participant TOML as [security.deepsec]<br/>agentbox.toml:2057-2069
     participant CLI as deepsec CLI<br/>#40;vercel-labs/deepsec, baked by toolchains.deepsec#41;
     participant Local as claude #124; codex CLI<br/>#40;operator's own login#41;
     participant Loom as Loom façade<br/>http://loom:8080/v1<br/>LAN-only
@@ -712,15 +712,15 @@ Note over Gate: DOC-DRIFT ADR-2033: nodeModulesHash was resolved at flake.nix<br
 ## AB-15.14 ADR-2080 — the metaharness router console gate (new since verified_commit)
 ```mermaid
 flowchart TD
-    T["[model_routing.neural]<br/>agentbox.toml:1360-1369<br/>enabled, provider, quality_bar,<br/>cost_ceiling_usd_per_mtok, privacy_tier=public,<br/>trajectory, assets_dir"]
-    SEED["[[interaction_plane.session_seeds]]<br/>slug=router, tool=custom:router<br/>agentbox.toml:1724-1725"]
+    T["[model_routing.neural]<br/>agentbox.toml:1387-1396<br/>enabled, provider, quality_bar,<br/>cost_ceiling_usd_per_mtok, privacy_tier=public,<br/>trajectory, assets_dir"]
+    SEED["[[interaction_plane.session_seeds]]<br/>slug=router, tool=custom:router<br/>agentbox.toml:1765-1766"]
     CAT["CATALOGUE id: model-routing-neural<br/>gate model_routing.neural.enabled<br/>apply_class rebuild<br/>system-manifest.js:109-111"]
     NIX["flake.nix modelRoutingNeuralCfg<br/>+ modelRouterAssets fetchurl closure<br/>flake.nix:136,138"]
-    BAKE["flake.nix bake block -- gate off ⇒<br/>nothing copied, byte-identical-when-off<br/>flake.nix:1837-1843"]
-    ENTRY["entrypoint-unified.sh boot reconcile<br/>AGENTBOX_MODEL_ROUTER_* exported,<br/>scoped to the router session process only<br/>entrypoint-unified.sh:1754-1782"]
+    BAKE["flake.nix bake block -- gate off ⇒<br/>nothing copied, byte-identical-when-off<br/>flake.nix:1893-1899"]
+    ENTRY["entrypoint-unified.sh boot reconcile<br/>AGENTBOX_MODEL_ROUTER_* exported,<br/>scoped to the router session process only<br/>entrypoint-unified.sh:1755-1783"]
     WRAP["config/harness-wrappers/router.sh<br/>AoE custom_agents.router wrapper --<br/>asserts privacy_tier=public, hard-fails loudly"]
     CONSOLE["config/model-router/console.mjs<br/>embeds offline, asks metaharness router<br/>inside the baked ruflo closure, executes<br/>through OpenRouter"]
-    CLI["agentbox.sh model-router<br/>fetch #124; check #124; status #124; route #124; console<br/>agentbox.sh:2574"]
+    CLI["agentbox.sh model-router<br/>fetch #124; check #124; status #124; route #124; console<br/>agentbox.sh:2576"]
     CATCHECK["scripts/ci/check-manifest-catalogue.js<br/>BASELINE: model_routing.neural.trajectory<br/>sub-option of the catalogued gate"]
 
     T -->|"apply_class rebuild"| NIX
@@ -743,3 +743,5 @@ flowchart TD
 
 
 **Drift (spend gating vs the wallet that now exists):** the capability lattice above gates LLM spend and HTTP 402 settlement, and a second spend surface has since been published — `sidestr-wallet` consults a `SpendPolicy` before every signature and ships only a permissive implementation, leaving the authority gate (ADR-2100) to the caller, which nothing in this topic yet supplies (see AB-33.7). The level-2 review that reshaped the federation design was itself run through the consultant tier drawn at AB-15.12 (see AB-35).
+
+**Drift (manifest comment vs pin):** the `[toolchains].deepsec` comment still names `vercel-labs/deepsec@2.3.9` (`../project/agentbox/agentbox.toml:1800`) while the flake's exact pin moved to `2.3.10` on 2026-10-01 (`../project/agentbox/flake.nix:542`); ADR-2033 was re-verified against the new pin, the manifest comment was not.

@@ -22,7 +22,7 @@ sources:
   - ../project/src/utils/gpu_diagnostics.rs
   - ../project/src/gpu/mod.rs
   - ../project/src/physics/mod.rs
-verified_commit: f223bbd40
+verified_commit: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8
 ---
 ## VC-12.1 SimParams full 212-byte repr(C) layout
 ```mermaid
@@ -106,7 +106,7 @@ classDiagram
     note for SimParams "INVARIANT: size_of equals 212<br/>align 4, zero pad, both sides"
     note for SimParams "RESOLVED ADR-2060: 180-byte comment corrected to 212"
     note for ABIEvidence "citations for the 212-byte lock and the tail-append rule"
-    note for ForceChannelBacking "force_channels.rs:157-212<br/>strength_of/feature_flag/is_read_only"
+    note for ForceChannelBacking "force_channels.rs:127-212<br/>strength_of/feature_flag/is_read_only"
 ```
 
 ## VC-12.2 feature_flags bitfield (u32 at offset 52)
@@ -141,7 +141,7 @@ classDiagram
     note for FeatureFlags_Rust "crates/visionclaw-domain/src/models/simulation_params.rs:111-119"
     note for FeatureFlags_CUDA "crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu:123-129"
     note for FeatureFlags_Rust "ADR-2060: bit3/bit5 are RESERVED Rust-side<br/>zero hits in CUDA, not a defect"
-    note for FeatureFlags_Rust "KEYSTONE: ENABLE_CONSTRAINTS is<br/>residency-owned (execution.rs:954)"
+    note for FeatureFlags_Rust "KEYSTONE: ENABLE_CONSTRAINTS is<br/>residency-owned (execution.rs:1003-1006)"
 ```
 
 ## VC-12.3 GPU core physics buffers: per-node, per-edge, per-grid-cell
@@ -237,7 +237,7 @@ classDiagram
     note for UnifiedGPUCompute "production per-node buffer owner<br/>(construction.rs:31-241)"
     note for PhysicsV2Gated "DOC-DRIFT — no buffers.rs exists. REMOVED under ADR-2055 (src/gpu/mod.rs:10-15):<br/>PhysicsGpuBuffers was gated behind the physics-v2 feature, itself retired<br/>(src/physics/mod.rs:69-73). Never shipped in a build; UnifiedGPUCompute was<br/>always the sole per-node GPU buffer owner"
     note for DeprecatedManager "dynamic_buffer_manager.rs:1-16<br/>use memory_manager.rs"
-    note for MemoryBudgetTracker "memory_manager.rs:127-152<br/>force_compute_actor.rs:880-910"
+    note for MemoryBudgetTracker "memory_manager.rs:127-152 GpuBuffer, :382 GpuMemoryManager<br/>force_compute_actor.rs:880-910"
 ```
 
 ## VC-12.4 GPU analytics-adjacent buffers: cluster, community, block, scalar
@@ -276,7 +276,7 @@ classDiagram
     UnifiedGPUCompute *-- PerBlockBuffers
     UnifiedGPUCompute *-- ScalarBuffers
 
-    note for PerClusterBuffers "stride 4B, max_clusters = 50 fixed (construction.rs:401)"
+    note for PerClusterBuffers "stride 4B, max_clusters = 50 fixed (construction.rs:380)"
     note for PerCommunityBuffers "stride 4B, count=num_nodes.max(1), Louvain exceeds 50 (L408)"
     note for PerBlockBuffers "stride 4B, count = ceil(num_nodes/256) per reduction block"
     note for ScalarBuffers "stride 4B, count = 1 (single-element buffers)"

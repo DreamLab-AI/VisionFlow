@@ -26,7 +26,7 @@ sources:
   - ../project/src/settings/auth_extractor.rs
   - ../project/client/src/services/nostrAuthService.ts
   - ../project/agentbox/docs/INGRESS-identity.md
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f}
+verified_commit: {visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047}
 ---
 ## ES-04.1 verification mesh — who signs, who verifies whom
 ```mermaid
@@ -36,8 +36,8 @@ flowchart LR
     end
     subgraph vc["VisionClaw process<br/>src/"]
         AE["AuthenticatedUser extractor<br/>src/settings/auth_extractor.rs:89"]
-        NS["NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs:579"]
-        N98["validate_nip98_token<br/>src/utils/nip98.rs:330"]
+        NS["NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs:624"]
+        N98["validate_nip98_token<br/>src/utils/nip98.rs:428"]
         NIV["NostrIdentityVerifier<br/>src/services/nostr_identity_verifier.rs:34"]
         NB["NostrBridge (re-sign)<br/>src/services/nostr_bridge.rs:28"]
         MAC["ManagementApiClient<br/>src/services/management_api_client.rs:179"]
@@ -46,11 +46,11 @@ flowchart LR
         PROXY["nip98-proxy  port 9096<br/>agentbox/config/nip98-proxy/proxy.mjs:96"]
         NBB["NostrBridge.verifyNip98<br/>agentbox/mcp/servers/nostr-bridge.js:459"]
         PS["pod-signer buildPodNip98<br/>agentbox/management-api/lib/pod-signer.js:42"]
-        AGID["agent-identity loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:107"]
-        AEA["agent-event-auth verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:46"]
+        AGID["agent-identity loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:125"]
+        AEA["agent-event-auth verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:108"]
     end
     subgraph aoe["AoE daemon  port 9095<br/>loopback only"]
-        AOE["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2461"]
+        AOE["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2517"]
     end
     subgraph solid["EXTERNAL: solid-pod-rs<br/>default-deny pod"]
         POD["Solid pod HTTP endpoint"]
@@ -82,7 +82,7 @@ sequenceDiagram
     participant C as caller
     participant V as validate_nip98_token<br/>src/utils/nip98.rs:428
     participant R as claim_signed_id<br/>src/utils/nip98.rs:227
-    participant CACHE as REPLAY_CACHE<br/>Mutex-guarded, src/utils/nip98.rs:200
+    participant CACHE as REPLAY_CACHE<br/>Mutex-guarded, src/utils/nip98.rs:221
 
     C->>V: base64 token, expected url, expected method, body
     alt decode fails
@@ -90,21 +90,21 @@ sequenceDiagram
     else decoded
         V->>V: kind check
         alt kind is not 27235
-            V-->>C: Err InvalidKind — nip98.rs:349
+            V-->>C: Err InvalidKind — nip98.rs:463
         else kind ok
             V->>V: FRESHNESS — compare created_at to now
             alt age exceeds TOKEN_MAX_AGE_SECONDS 60
-                V-->>C: Err TokenExpired — nip98.rs:364
+                V-->>C: Err TokenExpired — nip98.rs:478
             else created_at is in the future
-                V-->>C: Err TokenFromFuture — nip98.rs:369
+                V-->>C: Err TokenFromFuture — nip98.rs:483
             else fresh
                 V->>V: TAG MATCH — host-checked u tag
                 alt url differs
-                    V-->>C: Err UrlMismatch{expected, actual} — nip98.rs:397
+                    V-->>C: Err UrlMismatch{expected, actual} — nip98.rs:511
                 else method differs
-                    V-->>C: Err MethodMismatch{expected, actual} — nip98.rs:405
+                    V-->>C: Err MethodMismatch{expected, actual} — nip98.rs:519
                 else payload hash present and differs
-                    V-->>C: Err PayloadHashMismatch — nip98.rs:416
+                    V-->>C: Err PayloadHashMismatch — nip98.rs:537
                 else tags match
                     V->>V: SIGNATURE verification
                     alt signature invalid
@@ -113,7 +113,7 @@ sequenceDiagram
                         V->>R: claim_signed_id(event.id, pubkey, Instant::now())
                         Note over R,CACHE: Check-and-insert is ATOMIC under the Mutex —<br/>no TOCTOU (nip98.rs:200-203). Instant is MONOTONIC, so a<br/>backward wall-clock step cannot un-spend an id (nip98.rs:205-208).
                         alt a still-live entry exists
-                            R-->>V: Err TokenReplayed — nip98.rs:256
+                            R-->>V: Err TokenReplayed — nip98.rs:307
                             V-->>C: rejected
                         else live set is at REPLAY_CACHE_MAX_ENTRIES
                             R-->>V: Err ReplayCacheFull
@@ -127,7 +127,7 @@ sequenceDiagram
             end
         end
     end
-    Note over C,CACHE: INVARIANT — the replay CLAIM is the LAST step<br/>(nip98.rs:435). It must never precede signature verification,<br/>or a forged token would burn a legitimate event id.
+    Note over C,CACHE: INVARIANT — the replay CLAIM is the LAST step<br/>(nip98.rs:573). It must never precede signature verification,<br/>or a forged token would burn a legitimate event id.
     Note over V,CACHE: INVARIANT — REPLAY_CACHE_TTL must stay at 2x the freshness<br/>window (nip98.rs:178). A token created at now+60 stays valid<br/>until now+120, so a shorter TTL would let it replay after<br/>its entry prunes.
     Note over R,CACHE: REPLAY_CACHE_PRUNE_THRESHOLD = 4096 triggers an opportunistic<br/>O(n) sweep on insert (nip98.rs:183). INVARIANT — on a FULL cache the code<br/>REFUSES new auth (ReplayCacheFull) and must NOT evict the oldest live<br/>entry — evicting would let a flooder purge a genuine still-valid id and<br/>re-enable the very replay this layer prevents (nip98.rs:189-197).<br/>Bounded memory beats availability.
 ```
@@ -154,7 +154,7 @@ sequenceDiagram
             CALLER->>POD: LDP write with the signed header
             POD-->>CALLER: 2xx
         else signer unavailable or the key will not decrypt
-            Note over S,POD: DIVERGENCE — pod signing can fall back UNSIGNED<br/>(legacy agentbox ADR-026). Combined with the did:nostr:local<br/>placeholder fallback at agent-identity.js:175, a degraded boot<br/>can silently produce a NON-SOVEREIGN identity.
+            Note over S,POD: DIVERGENCE — pod signing can fall back UNSIGNED<br/>(legacy agentbox ADR-026). Combined with the did:nostr:local<br/>placeholder fallback that agent-identity.js:41-43 says the<br/>entrypoint still runs unconditionally, a degraded boot<br/>can silently produce a NON-SOVEREIGN identity.
             S-->>H: none
             H-->>CALLER: no header
             CALLER->>POD: UNSIGNED write

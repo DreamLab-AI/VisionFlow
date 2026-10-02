@@ -28,7 +28,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/docs/benchmarks.md
   - ../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
-verified_commit: febdc8be24bdc8b148b78b43a35ae85ee863a72a
+verified_commit: 6d2e5b0d2e00fc2c9fa1e4984b8582cfa0d48556
 ---
 
 ## SP-09.2 The eight CI jobs and the required-check aggregator
@@ -159,34 +159,38 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    WSV["workspace.package.version 0.5.0-alpha.9<br/>../solid-pod-rs/Cargo.toml:15"]
+    WSV["workspace.package.version 0.5.0-alpha.10<br/>../solid-pod-rs/Cargo.toml:15"]
     INH["every crate inherits it — version.workspace = true<br/>crates/solid-pod-rs/Cargo.toml:3"]
-    REL["0.5.0-alpha.9 re-pins ALL EIGHT crates and yanks the superseded versions<br/>../solid-pod-rs/CHANGELOG.md:36"]
-    DRIFT["the drift it fixed: siblings sat at alpha.7 on crates.io while the root<br/>crate moved to alpha.8<br/>../solid-pod-rs/CHANGELOG.md:35"]
+    REL10["0.5.0-alpha.10, 2026-10-01 — the did:nostr parity release<br/>re-pins all eight crates again<br/>../solid-pod-rs/CHANGELOG.md:9, :17"]
+    REL["0.5.0-alpha.9 re-pins ALL EIGHT crates and yanks the superseded versions<br/>../solid-pod-rs/CHANGELOG.md:81-82"]
+    DRIFT["the drift it fixed: siblings sat at alpha.7 on crates.io while the root<br/>crate moved to alpha.8<br/>../solid-pod-rs/CHANGELOG.md:79-80"]
 
-    WSV --> INH --> REL
+    WSV --> INH --> REL10
+    REL --> REL10
     DRIFT --> REL
 
-    AB["EXTERNAL: agentbox builds a PINNED solid-pod-rs-server binary through Nix for<br/>the native pod tier — the estate pin is v0.5.0-alpha.9. See AB-08, AB-06 and ES-08."]
-    VC["EXTERNAL: VisionClaw consumes solid-pod-rs at the current alpha line with the<br/>feature set its embedded pod needs (LDP, WAC, NIP-98, WebID, did:nostr). See VC-26."]
-    NF["EXTERNAL: nostr-rust-forum pins solid-pod-rs =0.5.0-alpha.7,<br/>default-features = false, features = core — an EXACT pin, behind the alpha.9 source line.<br/>See the nostr-rust-forum area."]
+    AB["EXTERNAL: agentbox builds a PINNED solid-pod-rs-server binary through Nix for<br/>the native pod tier — that Nix pin is still v0.5.0-alpha.9, one release behind.<br/>See AB-08, AB-06 and ES-08."]
+    VC["EXTERNAL: VisionClaw consumes solid-pod-rs 0.4.0-alpha.15 — the pre-pivot line,<br/>see the Open note below — with the feature set its embedded pod needs<br/>(LDP, WAC, NIP-98, WebID, did:nostr). See VC-26."]
+    NF["EXTERNAL: nostr-rust-forum pins solid-pod-rs =0.5.0-alpha.10,<br/>default-features = false, features = core — an EXACT pin, now resolved from<br/>crates.io at the current source line. See the nostr-rust-forum area."]
     DW["EXTERNAL: dreamlab-ai-website has no direct dependency; it inherits whatever<br/>the forum kit pins. See the dreamlab-ai-website area."]
 
-    REL --> AB
-    REL --> VC
-    REL --> NF
+    REL10 --> AB
+    REL10 --> VC
+    REL10 --> NF
     NF --> DW
 
-    N["DOC-DRIFT: the 2026-09-05 no-version-bump note predates alpha.9.<br/>CHANGELOG.md:31-43 records the closeout release. The forum still resolves<br/>alpha.7, so local upstream fixes do not reach that consumer. Every type intended for the edge tier<br/>compiles under core. Adoption still requires publishing and resolving the<br/>new version, wiring the edge ACL/audience/replay seams and testing them;<br/>a dependency bump alone does not change caller behaviour."]
+    N["The forum's alpha.7 lag is closed: it moved straight to alpha.10 for the<br/>full-key Multikey encoder and decoder, CHANGELOG.md:21-30. Every type intended<br/>for the edge tier compiles under core. A dependency bump alone does not change<br/>caller behaviour — wiring the edge ACL, audience and replay seams is separate work."]
     NF -.-> N
     N2["The one source-compatibility note across alpha.8 to alpha.9 is ReplayError,<br/>which gained CapacityExhausted and is now non_exhaustive. nip98-replay is not in<br/>core, so no in-estate consumer is affected. See SP-05.5."]
     REL -.-> N2
-    N3["A registry-alignment bump like alpha.9 has happened before: alpha.3 was also a<br/>whole-workspace re-publish after a per-crate publish left the siblings on<br/>alpha.1 while the core crate alone moved to alpha.2<br/>(../solid-pod-rs/CHANGELOG.md:316-322, :340). Publishing the workspace as a<br/>set is what the release job's version check (SP-09.6) now enforces."]
+    N3["A registry-alignment bump like alpha.9 has happened before: alpha.3 was also a<br/>whole-workspace re-publish after a per-crate publish left the siblings on<br/>alpha.1 while the core crate alone moved to alpha.2<br/>(../solid-pod-rs/CHANGELOG.md:360-366, :386). Publishing the workspace as a<br/>set is what the release job's version check (SP-09.6) now enforces."]
     REL -.-> N3
-    N4["0.5.0-alpha.6 is absent from CHANGELOG.md — the release line skips from<br/>alpha.5 (../solid-pod-rs/CHANGELOG.md:214) straight to alpha.7<br/>(../solid-pod-rs/CHANGELOG.md:137)."]
+    N4["0.5.0-alpha.6 is absent from CHANGELOG.md — the release line skips from<br/>alpha.5 (../solid-pod-rs/CHANGELOG.md:258) straight to alpha.7<br/>(../solid-pod-rs/CHANGELOG.md:181)."]
     REL -.-> N4
 ```
 - **Open (ADR-2008, proposed):** the record makes closing the host/forum skew an exit criterion rather than a follow-up, with the host at `0.4.0-alpha.15` and the forum at an exact `=0.5.0-alpha.7` adopting one post-port version in lockstep (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:76-79) — nothing states which version that is, or who publishes it first.
+- **Drift (ADR-2008 vs the pins):** the record still describes the forum at an exact `=0.5.0-alpha.7` (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:76-79), but the forum has since moved to `=0.5.0-alpha.10` for the did:nostr parity release (`../solid-pod-rs/CHANGELOG.md:9`), while the host stays at `0.4.0-alpha.15` and agentbox's Nix build at `v0.5.0-alpha.9`. The skew the record wants closed now spans three versions, not two.
+- Packaging hygiene since alpha.10: the core crate's manifest excludes `.claude-flow` agent runtime state from the published package (`crates/solid-pod-rs/Cargo.toml:15`, `f5a191e`, 2026-10-01).
 - **Debt:** removing `credit` and `debit` from the public API is named in the record as the one deliberately breaking change in the estate and a semver-major event for this crate (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:60-66, :86), so the pin matrix above is the surface that absorbs it.
 
 ## SP-09.9 Repository governance and maintenance automation
@@ -217,7 +221,7 @@ flowchart LR
 flowchart TD
     GATED["gated by ci-required"]
     NG1["the forge feature — the matrix runs default, oidc and all-features on the<br/>CORE crate; the workspace job runs siblings at DEFAULT features, and every<br/>sibling default is empty (SP-01.9)"]
-    NG2["the git feature end-to-end — the CGI integration tests sit behind<br/>with-git-binary<br/>crates/solid-pod-rs-git/Cargo.toml:44"]
+    NG2["the git feature end-to-end — the CGI integration tests sit behind<br/>with-git-binary<br/>crates/solid-pod-rs-git/Cargo.toml:48"]
     NG3["the tls feature — no matrix row builds it<br/>crates/solid-pod-rs-server/Cargo.toml:126"]
     NG4["deployed behaviour: no job starts the binary, exercises a real cache, or<br/>crosses a restart"]
     NG5["any out-of-repo consumer's conformance — the edge ACL resolver lives in<br/>nostr-rust-forum"]
@@ -245,7 +249,7 @@ flowchart TD
         B4["nip98_verify_bench — valid and tampered tokens<br/>crates/solid-pod-rs/benches/nip98_verify_bench.rs:100"]
         B5["dpop_replay_bench — single-threaded and concurrent<br/>crates/solid-pod-rs/benches/dpop_replay_bench.rs:49"]
     end
-    DECL["[[bench]] declarations<br/>crates/solid-pod-rs/Cargo.toml:342"]
+    DECL["[[bench]] declarations<br/>crates/solid-pod-rs/Cargo.toml:348"]
     FUZZ["fuzz_target over apply_sparql_patch<br/>crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:6"]
     CI["ci-required — see SP-09.2"]
 
@@ -282,6 +286,6 @@ flowchart TD
     ASSERT -.-> N
     N2["The size cap is the first line of defence and the fuzzer deliberately spends<br/>most of its budget BELOW it<br/>(crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:9) — fuzzing above the<br/>cap would only re-test the guard."]
     PARSE -.-> N2
-    N3["DOC-DRIFT: docs/benchmarks.md opens 'Four criterion-based benches'<br/>(crates/solid-pod-rs/docs/benchmarks.md:3) and its Running section lists four<br/>(:11 to :14). There are FIVE bench files and five [[bench]] declarations —<br/>dpop_replay_bench (crates/solid-pod-rs/Cargo.toml:358) is in neither."]
+    N3["DOC-DRIFT: docs/benchmarks.md opens 'Four criterion-based benches'<br/>(crates/solid-pod-rs/docs/benchmarks.md:3) and its Running section lists four<br/>(:11 to :14). There are FIVE bench files and five [[bench]] declarations —<br/>dpop_replay_bench (crates/solid-pod-rs/Cargo.toml:364) is in neither."]
     IN -.-> N3
 ```

@@ -21,7 +21,7 @@ sources:
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/config/hooks/nostr-live-mirror.cjs
   - ../project/agentbox/mcp/servers/ruvector-mcp.cjs
-verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
+verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
 ---
 
 ## AB-21.1 Capture — transcript-driven grading
@@ -160,7 +160,7 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:1985
+    participant SUP as supervisord<br/>agentbox/flake.nix:2041
     participant SW as ruvector-aggregate-sweep.mjs<br/>agentbox/scripts/ruvector-aggregate-sweep.mjs:1
     participant G as gates
     participant MT as governed memStore/memRetrieve<br/>agentbox/mcp/servers/lib/memory-tools.js
@@ -206,7 +206,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2014
+    participant SUP as supervisord<br/>agentbox/flake.nix:2070
     participant DS as ruvector-pattern-distill.mjs<br/>agentbox/scripts/ruvector-pattern-distill.mjs:1
     participant G as gates
     participant PG as trajectory_steps
@@ -407,8 +407,8 @@ flowchart LR
     subgraph proc["Self-gating processes"]
         direction TB
         H["trajectory-recorder.cjs<br/>Stop hook"]
-        A["ruvector-aggregate-sweep.mjs<br/>agentbox/flake.nix:1985"]
-        D["ruvector-pattern-distill.mjs<br/>agentbox/flake.nix:2014"]
+        A["ruvector-aggregate-sweep.mjs<br/>agentbox/flake.nix:2041"]
+        D["ruvector-pattern-distill.mjs<br/>agentbox/flake.nix:2070"]
         HY["memory-hybrid re-rank"]
     end
     M --> E1
