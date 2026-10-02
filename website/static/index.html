@@ -108,9 +108,8 @@
       </div>
       <div class="hero-stats">
         <div class="stat"><span class="stat-num">6</span><span class="stat-label">Federated Substrates</span></div>
-        <div class="stat"><span class="stat-num">82</span><span class="stat-label">CUDA Kernels</span></div>
-        <div class="stat"><span class="stat-num">180+</span><span class="stat-label">MCP Tools</span></div>
-        <div class="stat"><span class="stat-num">55x</span><span class="stat-label">GPU Speedup</span></div>
+        <div class="stat"><span class="stat-num">83</span><span class="stat-label">CUDA Kernels</span></div>
+        <div class="stat"><span class="stat-num">6,302</span><span class="stat-label">Lines of CUDA</span></div>
       </div>
     </div>
     <a href="#questions" class="scroll-cue" aria-label="Scroll to enter the mesh">
@@ -275,7 +274,7 @@
           </div>
           <ul>
             <li>OWL 2 EL formal reasoning (Whelk-rs) + SHACL shapes loaded into Oxigraph, gating writes as a dual-mode enforcing gate</li>
-            <li>83 CUDA kernels (10 .cu files, 6,302 LOC), 55x GPU speedup</li>
+            <li>83 CUDA kernels (10 .cu files, 6,302 LOC) running the semantic physics on the GPU</li>
             <li>Oxigraph triple store + W3C SPARQL; PROV-O provenance reified as queryable RDF triples on the governed write path</li>
             <li>IS-Envelope spec owner + governed knowledge graph gating</li>
             <li>6 native MCP ontology tools</li>
@@ -293,7 +292,7 @@
           </div>
           <ul>
             <li>Governance event relay + broker bridge to VisionClaw</li>
-            <li>130 agent skills, 180+ MCP tools</li>
+            <li>130 agent skills</li>
             <li>Published crates: prose-sanitiser, diagram-ir (extracted clean-room Rust workspaces)</li>
             <li>12-tool ontology bridge to VisionClaw SPARQL</li>
             <li>Browser-based setup wizard (zero dependencies)</li>
@@ -605,7 +604,7 @@
       <p class="section-lead">Once every actor is a <code>did:nostr</code> identity and every write is anchored, <strong>value and trust</strong> travel the same rails as the mesh&rsquo;s messages: no EVM, no bridge, no custodian.</p>
       <div class="identity-callout">
         <code>agent &rarr; pod &rarr; 402 settle &rarr; anchor &rarr; did:nostr</code>
-        <p>The same <code>did:nostr</code> key that is a WAC principal, a relay identity and a provenance author is also a payment account, so an agent can earn, spend and sign across the mesh as one actor. The unit of account is the <strong>satoshi</strong>: a Web Ledger in sats, HTTP 402 gating, an order book and a constant-product exchange, all routed through one ledger path with replay protection, with <strong>Lightning</strong> over L402 and NWC as the rail today, served by a resident Bitcoin node in the estate that runs mainnet and testnet4 side by side with Core-Lightning (ADR-061). Stablecoin rails are not ruled out: x402 challenges sit in the same 402 grammar and are payable by delegation, a later choice rather than a closed door. The same taproot core mints <strong>MRC20 tokens</strong> on Bitcoin, inherited from JSS; DREAM, the operator&rsquo;s internal token at ten per sat, is configured across the runtime and the edge and has been minted experimentally on testnet. The same key is also a <strong>sidechain wallet</strong>: <a href="https://github.com/DreamLab-AI/sidestr-rs" target="_blank" rel="noopener">sidestr-rs</a>, a Rust port of Melvin Carvalho&rsquo;s sidestr sidechains, and on 2026-09-23 two agents pegged 50,000 test sats into the estate&rsquo;s <code>sidestr:dreamlab</code> chain beside Bitcoin testnet4, traded three times over Nostr and pegged back out, paid on testnet4; testnet only, no real funds. Private digital objects and contracts stay in the owner&rsquo;s pod and inherit <strong>Bitcoin&rsquo;s security model</strong> through taproot-anchored commitments, on testnet4 by default and mainnet by explicit operator choice.</p>
+        <p>The same <code>did:nostr</code> key that is a WAC principal, a relay identity and a provenance author is also a payment account, so an agent can earn, spend and sign across the mesh as one actor. The unit of account is the <strong>satoshi</strong>: a Web Ledger in sats, HTTP 402 gating, an order book and a constant-product exchange, all routed through one ledger path with replay protection. No Lightning or NWC rail is built: L402 and x402 challenges are recognised by the same 402 grammar but are not payable, and Lightning may return only as an optional on-ramp into a chain. The estate runs its own Bitcoin node, mainnet and testnet4, for anchoring. The same taproot core mints <strong>MRC20 tokens</strong> on Bitcoin, inherited from JSS; DREAM, the operator&rsquo;s internal token at ten per sat, is configured across the runtime and the edge and has been minted experimentally on testnet. The same key is also a <strong>sidechain wallet</strong>: <a href="https://github.com/DreamLab-AI/sidestr-rs" target="_blank" rel="noopener">sidestr-rs</a>, a Rust port of Melvin Carvalho&rsquo;s sidestr sidechains, and on 2026-09-23 two agents pegged 50,000 test sats into the estate&rsquo;s <code>sidestr:dreamlab</code> chain beside Bitcoin testnet4, traded three times over Nostr and pegged back out, paid on testnet4; testnet only, no real funds. The estate&rsquo;s sidestr chain is a valueless research chain, sealed on Bitcoin testnet4 (<code>tbtc4</code>) with one supervised block producer; real value is parked until its gates are built. Private digital objects and contracts stay in the owner&rsquo;s pod and inherit <strong>Bitcoin&rsquo;s security model</strong> through taproot-anchored commitments, on testnet4 by default and mainnet by explicit operator choice.</p>
       </div>
 
       <h3 class="sub-head">The web-contract trust ladder</h3>
@@ -929,7 +928,7 @@
         <div class="scale-card">
           <div class="scale-tier">Single Operator</div>
           <h3>Token-Efficient</h3>
-          <p>One Agentbox, standalone mode. Local SQLite beads, local Solid pod, local events. 130 skills, 180+ tools, privacy filter active.</p>
+          <p>One Agentbox, standalone mode. Local SQLite beads, local Solid pod, local events. 130 skills, privacy filter active.</p>
           <div class="scale-cost">One API key. One container. Minutes to deploy.</div>
         </div>
         <div class="scale-card scale-card-mid">
@@ -1098,9 +1097,9 @@
               <td><span class="st-pill st-progress">L0 and L1</span></td>
             </tr>
             <tr>
-              <td class="st-area"><strong>Value rail</strong>Sats Web Ledger, HTTP 402 gating, MRC20 mint, Lightning over L402 and NWC, sidestr sidechains</td>
-              <td class="st-what"><p>Ledger, gating, exchange and mint are routed and test-proven, on testnet4 by default. The estate now runs its own Bitcoin node, mainnet and testnet4, for anchoring and Lightning. L402 challenges are recognised and payable by delegation; the native NWC rail is the next phase. On the estate&rsquo;s testnet sidechain <code>sidestr:dreamlab</code>, two <code>did:nostr</code> agents ran a full peg-in, trade and peg-out loop on 2026-09-23, with sidestr-rs on the agents&rsquo; side and the upstream engine producing blocks; level 1, one signer, test sats only.</p></td>
-              <td><span class="st-pill st-progress">sats live, NWC next</span></td>
+              <td class="st-area"><strong>Value rail</strong>Sats Web Ledger, HTTP 402 gating, MRC20 mint, sidestr sidechains</td>
+              <td class="st-what"><p>Ledger, gating, exchange and mint are routed and test-proven, on testnet4 by default. The estate now runs its own Bitcoin node, mainnet and testnet4, for anchoring. No Lightning or NWC rail is built; L402 and x402 challenges are recognised but not payable. On the estate&rsquo;s testnet sidechain <code>sidestr:dreamlab</code>, two <code>did:nostr</code> agents ran a full peg-in, trade and peg-out loop on 2026-09-23, with sidestr-rs on the agents&rsquo; side and the upstream engine producing blocks; level 1, one signer, test sats only. The chain is a valueless research chain sealed on testnet4 (<code>tbtc4</code>) with a supervised producer; real value is parked.</p></td>
+              <td><span class="st-pill st-progress">testnet research only</span></td>
             </tr>
             <tr>
               <td class="st-area"><strong>Cross-org mesh federation</strong>IS-Envelopes between sovereign nodes</td>
@@ -1159,7 +1158,7 @@
         <a href="https://github.com/DreamLab-AI/agentbox" target="_blank" rel="noopener" class="repo-card">
           <h3>Agentbox</h3>
           <p>Harness engineering runtime</p>
-          <span class="repo-tech">Nix &middot; 130 skills &middot; 180+ tools &middot; Solid pods</span>
+          <span class="repo-tech">Nix &middot; 130 skills &middot; Solid pods</span>
         </a>
         <a href="https://github.com/DreamLab-AI/solid-pod-rs" target="_blank" rel="noopener" class="repo-card">
           <h3>solid-pod-rs</h3>

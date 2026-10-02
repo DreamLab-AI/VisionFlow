@@ -20,10 +20,14 @@
 > settlement rail as first drafted. Same-day follow-up: the rail was re-verified against
 > solid-pod-rs (`payments.rs` default currency `satoshi`; routed 402 / order book / AMM;
 > `bitcoin_tx.rs::mint_token`, the JSS `token.js` MRC20 genesis on a taproot output;
-> `testnet4` default) and agentbox PRD-015 v1.2 (Lightning/L402/NWC chosen; x402 stays
-> in the grammar, payable by delegation; C10 NWC rail still open) and ADR-061 (resident
-> Bitcoin node, mainnet + testnet4 + Core-Lightning, which the operator reports as now
-> running). The site's earlier "USD stablecoins" line was unbacked and is replaced by the
+> `testnet4` default) and ADR-061 (resident Bitcoin node, mainnet + testnet4, which the
+> operator reports as now running). *Corrected 2026-10-02 (VisionFlow ADR-2012 D2; owner
+> decision 2026-10-02, Q12):* this note first recorded agentbox PRD-015 v1.2's
+> Lightning/L402/NWC rail as chosen. That rail was never built and is retired (agentbox
+> ADR-2097): `l402` and `x402` classify but are not payable, and Lightning may return only as
+> an optional on-ramp into a sidestr chain. The estate's sidestr chain is a valueless
+> research chain sealed on testnet4 (`tbtc4`) with a supervised producer; real value is
+> parked. The site's earlier "USD stablecoins" line was unbacked and is replaced by the
 > sats statement, with DREAM named as the operator's internal token (ticker in
 > `agentbox.toml` and the edge pod worker). Stablecoin rails are stated as a later choice,
 > not a rejection. Two operator statements have no filed evidence yet: no testnet mint
@@ -150,7 +154,7 @@ Deliver a public-facing marketing and technical reference site for the VisionFlo
 | Substrate | Key facts to surface |
 |---|---|
 | VisionClaw | Knowledge engineering; OWL 2 EL reasoning; 82 CUDA kernels (9 `.cu` files, 5,854 LOC) |
-| Agentbox | Hardened agent runtime; 130 skills; 180+ tools |
+| Agentbox | Hardened agent runtime; 130 skills |
 | solid-pod-rs | Rust Solid Protocol implementation; DID:Nostr identity; WAC; Web Ledgers |
 | nostr-rust-forum | Governance UI; passkey authentication; Agent Control Surface Protocol |
 | dreamlab-ai-website | React SPA; Leptos WASM forum |
