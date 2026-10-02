@@ -141,3 +141,10 @@ Partial source implementation was re-verified on 2026-10-01 against VisionFlow
 - The compatibility matrix gaining a settlement row whose evidence column cites the sibling
   records above by id and their verified commits.
 - Each carrier record in the routing table resolvable by id in its repo's generated ADR index.
+
+## Disposition — 2026-10-02
+
+- **Suitability:** fits, needs revision
+- **Priority:** P1 — this cycle (Track B item 9, public claims gated on citations; follow-up to TODO CY-B9), for D2's site correction only; the rest waits on the agentbox records (P2, planning-cycle §3 reopening)
+- **Why:** D2's false public claims are still live at `7096f2b`. `website/static/index.html:608` says "Lightning over L402 and NWC as the rail today". Lines `:1101-1103` say "the native NWC rail is the next phase" and show the pill "sats live, NWC next". `docs/PRD-website.md:23-25` repeats the claim. Agentbox ADR-2097 and `docs/developer/economy-loop.md:143` record NWC and NIP-47 as unbuilt and `x402`/`l402` as unpayable. The §9 confidence foil fails on exactly this kind of claim. Three other parts are overtaken. D3's parent set uses the long ids and a chosen header profile, which upstream 0.0.2 replaced with aliases `{tbtc4, btc, txbt4, xbt}` and a derived family (agentbox ADR-2103). D5 calls the root a level-2 k-of-n federation; the sealed chain is level 1 with one signer. D4 is half done: 38420 is registered (`docs/protocol/event-kind-registry.md:68,82`), but the external sidestr kinds are not, and upstream has since added 23503.
+- **Next:** Under Track B item 9, correct `index.html:608,1101-1103` and `PRD-website.md:23-25` so they say Lightning/NWC is not built and sidestr runs on testnet only, matching agentbox ADR-2097. Then revise D3 and D5 when the agentbox records reopen.
