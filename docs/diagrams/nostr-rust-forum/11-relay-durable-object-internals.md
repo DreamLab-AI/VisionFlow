@@ -5,7 +5,7 @@ area: nostr-rust-forum
 governing:
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
-adrs: [ADR-2005, ADR-2006, ADR-2010, ADR-2011, ADR-2013, ADR-2017, ADR-2018]
+adrs: [ADR-2005, ADR-2006, ADR-2010, ADR-2011, ADR-2013, ADR-2014, ADR-2017, ADR-2018]
 sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/mod.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/session.rs
@@ -32,7 +32,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/README.md
-verified_commit: 341c5d262bea5dcfc65d47dc3f5296a7d3eae675
+verified_commit: 13cbe6cbad7ee7ff3b609233a8bee3dd8eae1f3e
 ---
 
 ## NF-11.1 The Durable Object and its in-memory state
@@ -65,7 +65,7 @@ classDiagram
     note for NostrRelayDO "EVERY field except state and env is volatile in-memory cache. Hibernation wipes all of it, which is what NF-11.2 exists to survive."
     note for NostrRelayDO "rate_limit_per_sec is lazily resolved and CACHED because Env::var crosses the JS boundary on every read relay_do/mod.rs:86-88"
     note for NostrRelayDO "ADR-2018: the four newest fields are 60s-TTL memos plus a throttled activity ledger, added because authorize_event and resolve_viewer_context were re-reading D1 per frame - see NF-11.16"
-    note for DurableObject "The DO is a singleton reached by get_by_name main from the worker fetch nostr-bbs-relay-worker/src/lib.rs:206 - see NF-03.1"
+    note for DurableObject "The DO is a singleton reached by get_by_name main from the worker fetch nostr-bbs-relay-worker/src/lib.rs:207 - see NF-03.1"
 ```
 
 ## NF-11.2 Hibernation — recover_untracked_sessions runs on EVERY wake path
@@ -289,7 +289,7 @@ toward application, and so never overwrite a ladder stage
 ```mermaid
 flowchart TB
     SIDE["Side receipts - never on the ladder<br/>escalated-on-age nostr-bbs-core/src/governance.rs:936<br/>expired nostr-bbs-core/src/governance.rs:938<br/>ladder_rank returns None for both nostr-bbs-core/src/governance.rs:982"]
-    API["GET /api/governance/receipts - NIP-98 ADMIN<br/>relay_do/receipts.rs:639, routed at nostr-bbs-relay-worker/src/lib.rs:311"]
+    API["GET /api/governance/receipts - NIP-98 ADMIN<br/>relay_do/receipts.rs:639, routed at nostr-bbs-relay-worker/src/lib.rs:312"]
     JSON["receipt_json derives the flags rather than making every client<br/>re-implement stage semantics relay_do/receipts.rs:594"]
     FLAGS["applied relay_do/receipts.rs:614<br/>awaitsProjection relay_do/receipts.rs:615<br/>isApplicationStage relay_do/receipts.rs:619<br/>appliedAt appliedBy acknowledgement relay_do/receipts.rs:620"]
     LEDGER["ADR-2010 ledger row: proposed / partial / staged<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:5-7"]
@@ -303,7 +303,7 @@ flowchart TB
     FLAGS --> OPEN
 
     N1["The relay now serves the APPLICATION stages on the read API, so the human who approved something<br/>can learn whether it actually happened - the loop ADR-2010 left open relay_do/receipts.rs:616-619"]
-    N6["INVARIANT: migration 0006 is mirrored into ensure_schema, the live schema path, so case_side_receipts<br/>and case_delegations exist on a cold start without the migration runner<br/>nostr-bbs-relay-worker/src/lib.rs:906 nostr-bbs-relay-worker/src/lib.rs:918 - see NF-08.5"]
+    N6["INVARIANT: migration 0006 is mirrored into ensure_schema, the live schema path, so case_side_receipts<br/>and case_delegations exist on a cold start without the migration runner<br/>nostr-bbs-relay-worker/src/lib.rs:917 nostr-bbs-relay-worker/src/lib.rs:929 - see NF-08.5"]
     N2["INVARIANT: the projection commit is ATOMIC - decision row, case state and receipt in one batch<br/>relay_do/receipts.rs:301. A receipt that says committed cannot outlive a decision that did not land."]
     N3["DIVERGENCE: the read stays scoped to the relay's existing ADMIN authority because ADR-2010's<br/>history-consumer extension leaves cross-case read authority to ratify relay_do/receipts.rs:635-638"]
     N4["RESOLVED at 341c5d2: the ledger row moved from inactive to staged on a live signed journey - the M4 run's<br/>system-decider 31403 read back projection-failed and applied false on the edge<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:153. A relay receipt still cannot prove external<br/>application - EXTERNAL: see VC-24 and AB-14, estate loop ES-05"]
@@ -362,14 +362,14 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    CRON["scheduled entry<br/>nostr-bbs-relay-worker/src/lib.rs:1011"]
+    CRON["scheduled entry<br/>nostr-bbs-relay-worker/src/lib.rs:1022"]
     BF["backfill_profiles - ONE-SHOT, manual only<br/>nostr-bbs-relay-worker/src/cron.rs:72"]
     CAP["BACKFILL_MAX_ROWS ceiling per run<br/>nostr-bbs-relay-worker/src/cron.rs:49, stop at cron.rs:126"]
     RES["BackfillResult<br/>nostr-bbs-relay-worker/src/cron.rs:159"]
     RET["retention / NIP-40 expiry sweep<br/>nostr-bbs-relay-worker/src/cron.rs:345"]
     AGE["ageing sweep - escalate_stale_cases<br/>nostr-bbs-relay-worker/src/cron.rs:591"]
     SW["trust demotion sweep - moved OUT to trust_sweep<br/>nostr-bbs-relay-worker/src/cron.rs:269"]
-    EXP["ADR-2013: expire_stale_proposals - closes ontology proposals past stale_after<br/>nostr-bbs-relay-worker/src/cron.rs:747, runs AFTER the ageing sweep<br/>nostr-bbs-relay-worker/src/lib.rs:1083"]
+    EXP["ADR-2013: expire_stale_proposals - closes ontology proposals past stale_after<br/>nostr-bbs-relay-worker/src/cron.rs:747, runs AFTER the ageing sweep<br/>nostr-bbs-relay-worker/src/lib.rs:1094"]
 
     CRON --> RET & SW & AGE --> EXP
     BF --> CAP --> RES
@@ -381,7 +381,7 @@ flowchart LR
     N5["INVARIANT: the ageing sweep is ordered and filtered by each case's OWN deadline, not by created_at -<br/>panels declare different deadlines, so oldest first is not most overdue first, and ordering by<br/>created_at made the page ceiling cut the LEAST overdue nostr-bbs-relay-worker/src/cron.rs:602-609,<br/>the SQL at nostr-bbs-relay-worker/src/cron.rs:612"]
     N6["A case exactly AT its deadline has not yet exceeded it nostr-bbs-relay-worker/src/cron.rs:570,<br/>the predicate at nostr-bbs-relay-worker/src/cron.rs:571, asserted nostr-bbs-relay-worker/src/cron.rs:1172"]
     N7["An ageing escalation is a SIDE receipt - it records what happened to a case without advancing it<br/>toward application nostr-bbs-core/src/governance.rs:936 - see NF-11.10"]
-    N8["ADR-2013: a proposal expires when the corpus has moved past its digest - the ontology page it named no<br/>longer describes the same content, so applying a stale decision would silently promote or demote the<br/>WRONG state. Closed WITHOUT a decision, receipted expired rather than left pending forever<br/>nostr-bbs-relay-worker/src/cron.rs:721-746. Runs after ageing so a case that is both overdue and<br/>expired accrues both receipts in the order they became true, per the scheduled-entry comment<br/>nostr-bbs-relay-worker/src/lib.rs:1078-1082"]
+    N8["ADR-2013: a proposal expires when the corpus has moved past its digest - the ontology page it named no<br/>longer describes the same content, so applying a stale decision would silently promote or demote the<br/>WRONG state. Closed WITHOUT a decision, receipted expired rather than left pending forever<br/>nostr-bbs-relay-worker/src/cron.rs:721-746. Runs after ageing so a case that is both overdue and<br/>expired accrues both receipts in the order they became true, per the scheduled-entry comment<br/>nostr-bbs-relay-worker/src/lib.rs:1089-1093"]
 ```
 
 ## NF-11.14 NIP-11 — the relay information document cannot lie about its own gate
@@ -408,7 +408,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    UA["user_admin<br/>delete_user user_admin.rs:147 | suspend :257 | silence :335<br/>notes get :397 set :425 | aliases list :483 set :523"]
+    UA["user_admin<br/>delete_user user_admin.rs:149 | suspend user_admin.rs:259 | silence user_admin.rs:337<br/>notes get user_admin.rs:399 set user_admin.rs:427 | aliases list user_admin.rs:485 set user_admin.rs:525"]
     MOD["moderation<br/>insert_report moderation.rs:62 | list moderation.rs:142 | resolve moderation.rs:234"]
     AUD["audit<br/>log_admin_action audit.rs:25 | list audit.rs:82"]
     PRO["profiles<br/>batch profiles.rs:96 | search profiles.rs:251 - search excludes pubkey_aliases old_pubkey rows"]
@@ -422,6 +422,7 @@ flowchart TB
     N3["agent_disclosure is a PUBLIC endpoint - the client's agent badge reads it without auth, see NF-05.10.<br/>It is how a reader can tell a human post from an agent post."]
     N4["Every admin mutation routes through log_admin_action into admin_log, the same table the trust sweep<br/>writes its audit rows to nostr-bbs-relay-worker/src/audit.rs:25 - see NF-08.5"]
     N5["A key REPLACED via pubkey_aliases is excluded from both search shapes - roster mode profiles.rs:307<br/>and query mode profiles.rs:318 - so a renamed pubkey never shows twice under two identities"]
+    N6["INVARIANT since 1a26e51: alias_set with inherit_cohorts grants the old key's cohorts to the new one through the<br/>shared merge statement, so the successor keeps any cohort it already held user_admin.rs:602-605 user_admin.rs:612"]
 ```
 
 ## NF-11.16 ADR-2017 sealed originals — migrating history into an encrypted zone without a fresh-write hole

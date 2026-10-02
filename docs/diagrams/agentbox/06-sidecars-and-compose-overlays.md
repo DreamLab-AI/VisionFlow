@@ -26,7 +26,7 @@ sources:
   - ../project/agentbox/docker-compose.system-one.yml
   - ../project/agentbox/docker-compose.speech.yml
   - ../project/agentbox/management-api/lib/system-manifest.js
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+verified_commit: e4993a3bce0146062bd5fd5863df7f8e747cf21b
 ---
 
 ## AB-06.1 Compose overlay topology on visionclaw_network

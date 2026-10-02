@@ -5,7 +5,7 @@ area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/docs/SECURITY-profiles.md
-adrs: [ADR-2012, ADR-2026, ADR-2037, ADR-2038, ADR-2039, ADR-2041, ADR-2043, ADR-2046, ADR-2094, ADR-2114, ADR-2115]
+adrs: [ADR-2012, ADR-2026, ADR-2037, ADR-2038, ADR-2039, ADR-2041, ADR-2043, ADR-2046, ADR-2094, ADR-2114, ADR-2115, ADR-2119]
 sources:
   - ../project/src/main.rs
   - ../project/src/app_state.rs
@@ -68,7 +68,8 @@ sources:
   - ../project/src/utils/unified_gpu_compute/execution.rs
   - ../project/src/handlers/api_handler/analytics/anomaly_handlers.rs
   - ../project/src/handlers/api_handler/analytics/clustering_handlers.rs
-verified_commit: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8
+  - ../project/scripts/launch.sh
+verified_commit: dd420fbc722a7a4a50e968162ac6c3eaff6972b2
 ---
 
 ## VC-09.1 Config load precedence — main() boot order
@@ -202,6 +203,7 @@ sequenceDiagram
     Note over V: pure — reads no process env and no clock of its own
     V->>V: 1. FORBIDDEN_DEV_VARS presence scan (src/config/security_profile.rs:60-66)
     Note over V: SETTINGS_AUTH_BYPASS, ALLOW_INSECURE_DEFAULTS, VISIONCLAW_DEV_MODE, DEV_AUTH_LOOPBACK<br/>presence not truthiness — SETTINGS_AUTH_BYPASS=0 is still a finding
+    Note over M,V: INVARIANT (ADR-2119, 2026-10-02) — launch.sh up prod refuses the same four names before docker starts<br/>(scripts/launch.sh:195), so the launcher list and FORBIDDEN_DEV_VARS must move together.<br/>VISIONCLAW_INGRESS=lan or tunnel is a launcher declaration only (scripts/launch.sh:167-176),<br/>the server never reads it, and the boot assertion is the same for both ingress modes
     V->>V: 2. NODE_ENV=development + DOCKER_ENV → DevelopmentNodeEnvInContainer
     V->>V: 3. argv --allow-skip-auth → AllowSkipAuthArgv
     V->>V: 4. build carries dev-auth → DevAuthFeatureInArtefact (ADR-2037)

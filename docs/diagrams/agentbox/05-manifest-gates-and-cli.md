@@ -29,7 +29,10 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/cred_sync.rs
   - ../project/agentbox/services/agentbox-manifest/src/main.rs
   - ../project/agentbox/flake.nix
-verified_commit: c4ed3ec6505858e1e5ead651c29115d2f74e5546
+  - ../project/agentbox/management-api/lib/junkiejarvis-clarify.js
+  - ../project/agentbox/services/agentbox-manifest/tests/golden/live-agentbox.toml
+  - ../project/agentbox/scripts/experiments/exp-b8-label-log.cjs
+verified_commit: e4993a3bce0146062bd5fd5863df7f8e747cf21b
 ---
 
 ## AB-05.1 GET /v1/system — catalogue plus live introspection
@@ -175,13 +178,13 @@ sequenceDiagram
     Note over AB: image pin lives in agentbox.toml [integrations.ruvector_external] and is mirrored into docker-compose.yml (agentbox.sh:1026-1029)
     alt status | check | test (ruvector-sidecar-update.sh:1173-1175)
         SC-->>OP: sidecar state, pinned-vs-Docker-Hub comparison
-    else update (:1176)
+    else update (ruvector-sidecar-update.sh:1176)
         SC->>SC: dump then pg_basebackup snapshot then candidate rehearsal then swap
-    else rollback (:1177)
+    else rollback (ruvector-sidecar-update.sh:1177)
         SC->>SC: restore previous image plus datadir from the recorded snapshot
-    else migrate-trajectories | repair-namespaces | backfill-embeddings | archive-legacy | aggregate-effectiveness | build-metadata-gin (:1178-1183)
+    else migrate-trajectories | repair-namespaces | backfill-embeddings | archive-legacy | aggregate-effectiveness | build-metadata-gin (ruvector-sidecar-update.sh:1178-1183)
         SC-->>OP: DRY-RUN by default — each needs --yes plus its manifest flag
-    else recall (:1184)
+    else recall (ruvector-sidecar-update.sh:1184)
         SC->>SC: cmd_recall (:1146) — require_prod_running then node present
         SC->>SC: resolve governed MCP env via mcp_env_pairs from .mcp.json (:1156)
         SC->>H: env ENVP node ruvector-recall-harness.mjs "$@" (:1167)
@@ -359,15 +362,17 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     TOML["agentbox.toml"]
-    TOML --> F1["[features.jev_compaction] enabled = true, fallback = rules<br/>agentbox.toml:645, :683, :705"]
-    TOML --> F2["[features.sovereign_system_one] enabled = false<br/>agentbox.toml:710, :735"]
-    TOML --> F3["[skills.routing] router = jev, cascade, label_log<br/>agentbox.toml:945, :965, :981-982, :990"]
-    TOML --> F4["[resources] mcp_hub, hooks.shim, session_hygiene<br/>agentbox.toml:1263-1283"]
-    TOML --> F5["[voice] enabled = false<br/>agentbox.toml:1787"]
-    TOML --> F6["NEW ADR-2116: [claude_code] permission_mode :630,<br/>permission_deny :638-641"]
+    TOML --> F1["[features.jev_compaction] enabled = true, fallback = rules<br/>agentbox.toml:644, :682, :704"]
+    TOML --> F2["[features.sovereign_system_one] enabled = false<br/>agentbox.toml:709, :734"]
+    TOML --> F3["[skills.routing] router = jev, cascade, label_log<br/>label_log = true since 2026-10-02, the bounded EXP-B8 run<br/>agentbox.toml:944, :964, :980-981, :994"]
+    TOML --> F4["[resources] mcp_hub, hooks.shim, session_hygiene<br/>agentbox.toml:1267-1287"]
+    TOML --> F5["[voice] enabled = false<br/>agentbox.toml:1791"]
+    TOML --> F6["NEW ADR-2116: [claude_code] permission_mode :629,<br/>permission_deny :637-640"]
     TOML --> F7["NEW ADR-2118: config/instructions/ (not a toml key —<br/>gate is null, the directory's own presence)"]
-    TOML --> F8["NEW ADR-2118: [toolchains] claude_code = true :1794<br/>service claude-cred-sync"]
-    TOML --> F9["NEW PRD-024 P1: [sidechain] enabled, mirror, faucet<br/>agentbox.toml:1570-1575"]
+    TOML --> F8["NEW ADR-2118: [toolchains] claude_code = true :1798<br/>service claude-cred-sync"]
+    TOML --> F9["NEW PRD-024 P1: [sidechain] enabled, mirror, faucet<br/>agentbox.toml:1574-1579"]
+    F9 ~~~ F10["NEW 2026-10-02: [sovereign_mesh] junkiejarvis = true<br/>the only switch, the env override is gone<br/>agentbox.toml:50, junkiejarvisEnabled junkiejarvis-clarify.js:447-453"]
+    TOML --> F10
 
     F1 --> C1["catalogue jev-compaction (factrail), apply_class REBUILD<br/>since ADR-2121, was boot - system-manifest.js:221-222"]
     F2 --> C2["catalogue sovereign-system-one, apply_class boot<br/>system-manifest.js:224-225"]
@@ -387,22 +392,31 @@ flowchart TB
     C9 --> B9["flake.nix bakes program:sidestr-producer, -mirror, -faucet<br/>see AB-01.1 and AB-02.6"]
     C8 --> B8["[program:claude-cred-sync] polls container ~/.claude/.credentials.json<br/>against host-claude bind every 2s, later expiresAt wins<br/>flake.nix:2696-2706, services/agentbox-manifest/src/cred_sync.rs"]
 
-    C5 --> DIV["DIVERGENCE - the manifest declares voice off while the voice<br/>stack has its own compose lifecycle outside agentbox up,<br/>so a running console reports state off, agentbox.toml:1787"]
+    C5 --> DIV["DIVERGENCE - the manifest declares voice off while the voice<br/>stack has its own compose lifecycle outside agentbox up,<br/>so a running console reports state off, agentbox.toml:1791"]
+    F10 --> C10["NO catalogue entry - GET /v1/system cannot report it;<br/>server.js:1397-1398 and the forum-suggestions tenant<br/>both call junkiejarvisEnabled(manifest)"]
     C4 --> REB["INVARIANT - mcp-hub is rebuild-class because its supervisor<br/>program is composed into the image, so flipping the gate and<br/>restarting does not add it, system-manifest.js:292"]
 ```
 
 **What it shows.** The nine manifest gate families added since 2026-09-06 — System One, Jev compaction (now factrail, ADR-2121) and its cascade/teacher-label addenda, the ADR-2116 permission posture, ADR-2118 instruction tiers and credential sync, and the PRD-024 `[sidechain]` gate of 2026-09-30 — each traced from its `agentbox.toml` section to its catalogue entry and to the boot step that applies it.
 **Why it is this way.** ADR-039's honesty rule: a gate is catalogued with the apply class of the place it is consumed, so `sovereign_system_one` is boot-class here even though its sidecar has a lifecycle of its own (`../project/agentbox/management-api/lib/system-manifest.js:225`); `claude-cred-sync` is rebuild-class because the polling daemon is a supervised program baked into the image (`flake.nix:2696`), not because the credential merge logic itself needs a rebuild. The same rule moved `jev-compaction` from boot to rebuild when ADR-2121 replaced the vendored plugin with a factrail binary and plugin that `flake.nix` bakes only when the gate is on (`../project/agentbox/management-api/lib/system-manifest.js:222`).
 
-**Tension (manifest vs running estate):** `[voice].enabled = false` (`../project/agentbox/agentbox.toml:1787`) while the voice console runs under its own compose lifecycle, so the live view reports `voice-console` off for a surface that is up (`../project/agentbox/management-api/lib/system-manifest.js:166`).
+**Tension (manifest vs running estate):** `[voice].enabled = false` (`../project/agentbox/agentbox.toml:1791`) while the voice console runs under its own compose lifecycle, so the live view reports `voice-console` off for a surface that is up (`../project/agentbox/management-api/lib/system-manifest.js:166`).
 
-**Debt:** `payment_settlement` is declared `zero-tolerance` with its own task properties (`../project/agentbox/agentbox.toml:1072`, `:1120`) but no route passes that action class to the authority gate; `mandate_revoke` is the only class any route names (`../project/agentbox/management-api/routes/llm-marketplace.js:473`).
+**Debt:** `payment_settlement` is declared `zero-tolerance` with its own task properties (`../project/agentbox/agentbox.toml:1076`, `:1120`) but no route passes that action class to the authority gate; `mandate_revoke` is the only class any route names (`../project/agentbox/management-api/routes/llm-marketplace.js:473`).
+
+**Drift (resolved 2026-10-02, JunkieJarvis gate):** the manifest comment used to promise that `JUNKIEJARVIS_ENABLED` overrode `[sovereign_mesh].junkiejarvis`; `f63760e19` made the key the only switch and turned it on (`../project/agentbox/agentbox.toml:45-50`), and management-api now reads it through `junkiejarvisEnabled(manifest)` alone (`../project/agentbox/management-api/server.js:1397-1398`, `../project/agentbox/management-api/lib/junkiejarvis-clarify.js:447-453`).
+
+**Debt:** `junkiejarvis` gates a forum-facing agent and the forum-suggestions tenant's clarifying DMs, yet it has no `CATALOGUE` entry (`../project/agentbox/management-api/lib/system-manifest.js:39`), so `GET /v1/system` cannot say whether JunkieJarvis is on.
+
+**Drift (golden fixture vs manifest):** the manifest parser's golden copy of the live manifest still carries the retired wording, with BOTH the gate and the env var required and the gate false (`../project/agentbox/services/agentbox-manifest/tests/golden/live-agentbox.toml:46-51`).
+
+**Tension (ADR-030 gate vs EXP-B8):** the EXP-B8 tick signs its one forum summary with the JunkieJarvis key (`../project/agentbox/scripts/experiments/exp-b8-label-log.cjs:521-524`) and publishes it (`../project/agentbox/scripts/experiments/exp-b8-label-log.cjs:544-557`) without consulting `junkiejarvisEnabled`, so a manifest with `junkiejarvis = false` would still see a JunkieJarvis post when the experiment stops.
 
 **Debt:** the agent, command and skill registries governed by ADR-2092 are manifest files of their own (`registered-agents.txt`, `registered-commands.txt`, `registered-skills.txt`) with no `agentbox.toml` gate and no catalogue entry, so `GET /v1/system` cannot report what the reconcilers did (`../project/agentbox/config/entrypoint-unified.sh:2923`, `../project/agentbox/management-api/lib/system-manifest.js:39`).
 
-**Drift (resolved 2026-09-30, gate catalogue vs the sealed chain):** `[sidechain]` used to be a fully specified gate the schema refused; it now exists in the schema (`../project/agentbox/schema/agentbox.toml.schema.json:3223-3225`, itself `additionalProperties: false`), in `agentbox.toml` (`../project/agentbox/agentbox.toml:1570-1575`) and in the catalogue (`../project/agentbox/management-api/lib/system-manifest.js:257-259`), gating the interim producer, mirror and faucet (see AB-32.5, AB-34.5).
+**Drift (resolved 2026-09-30, gate catalogue vs the sealed chain):** `[sidechain]` used to be a fully specified gate the schema refused; it now exists in the schema (`../project/agentbox/schema/agentbox.toml.schema.json:3223-3225`, itself `additionalProperties: false`), in `agentbox.toml` (`../project/agentbox/agentbox.toml:1574-1579`) and in the catalogue (`../project/agentbox/management-api/lib/system-manifest.js:257-259`), gating the interim producer, mirror and faucet (see AB-32.5, AB-34.5).
 
-**Tension (proposed design vs the landed gate):** the BASELINE's PROPOSED supervised-set table still gates `sidestr-producer` on `[sidechain.signer].enabled` (`../project/agentbox/docs/BASELINE-container.md:350`), while the code gates it on the top-level `[sidechain].enabled` (`../project/agentbox/agentbox.toml:1571`); the `signer` and `bridge` sub-blocks (`../project/agentbox/docs/BASELINE-container.md:309-310`) have no schema entry, so adding either is a schema change too.
+**Tension (proposed design vs the landed gate):** the BASELINE's PROPOSED supervised-set table still gates `sidestr-producer` on `[sidechain.signer].enabled` (`../project/agentbox/docs/BASELINE-container.md:350`), while the code gates it on the top-level `[sidechain].enabled` (`../project/agentbox/agentbox.toml:1575`); the `signer` and `bridge` sub-blocks (`../project/agentbox/docs/BASELINE-container.md:309-310`) have no schema entry, so adding either is a schema change too.
 
 ## AB-05.14 Instruction tier projection (ADR-2118) — the mount contract two tiers rewrite every boot
 ```mermaid

@@ -27,7 +27,7 @@ sources:
   - ../project/src/actors/gpu/connected_components_actor.rs
   - ../project/src/actors/physics_orchestrator_actor.rs
   - ../project/src/app_state.rs
-verified_commit: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8
+verified_commit: dd420fbc722a7a4a50e968162ac6c3eaff6972b2
 ---
 
 ## VC-10.1 GPU supervision tree
@@ -41,7 +41,7 @@ flowchart TD
     AS["AnalyticsSupervisor<br/>analytics_supervisor.rs"]
     GAS["GraphAnalyticsSupervisor<br/>graph_analytics_supervisor.rs"]
     GRA["GPUResourceActor<br/>gpu_resource_actor.rs:449 InitializeGPU"]
-    FCA["ForceComputeActor<br/>force_compute_actor.rs:1860 ComputeForces"]
+    FCA["ForceComputeActor<br/>force_compute_actor.rs:1850 ComputeForces"]
     SMA["StressMajorizationActor<br/>stress_majorization_actor.rs:315"]
     CA["ConstraintActor<br/>constraint_actor.rs:193"]
     OCA["OntologyConstraintActor<br/>ontology_constraint_actor.rs:451"]
@@ -236,35 +236,35 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:755 self-init guard
+    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:764 self-init guard
     participant RS as ResourceSupervisor<br/>resource_supervisor.rs:129
     participant PS as PhysicsSupervisor<br/>physics_supervisor.rs:768
 
     Note over FCA: Fields gpu_self_init_attempts :315, gpu_self_init_max_retries = 3 :425, gpu_self_init_last_attempt :319
-    alt shared_context already present (force_compute_actor.rs:754)
-        Note over FCA: trace "GPU context already present, skipping self-init" - supervisor-supplied context wins (:755)
-    else attempts >= max_retries (force_compute_actor.rs:760)
-        Note over FCA: trace "GPU self-init exhausted all 3 retries, skipping" (:761-764) - actor stays without a context permanently
-    else backoff not elapsed (force_compute_actor.rs:770-779)
-        Note over FCA: backoff_secs = 1u64 << (attempts - 1) (:772) giving 1s then 2s then 4s
+    alt shared_context already present (force_compute_actor.rs:763)
+        Note over FCA: trace "GPU context already present, skipping self-init" - supervisor-supplied context wins (:764)
+    else attempts >= max_retries (force_compute_actor.rs:769)
+        Note over FCA: trace "GPU self-init exhausted all 3 retries, skipping" (:770-773) - actor stays without a context permanently
+    else backoff not elapsed (force_compute_actor.rs:779-788)
+        Note over FCA: backoff_secs = 1u64 << (attempts - 1) (:781) giving 1s then 2s then 4s
     else proceed
-        FCA->>FCA: gpu_self_init_attempts += 1 :783, gpu_self_init_last_attempt = now :784
+        FCA->>FCA: gpu_self_init_attempts += 1 :792, gpu_self_init_last_attempt = now :793
         FCA->>FCA: create its own CUDA context
     end
     RS->>PS: SetSharedGPUContext :151
-    PS->>FCA: SetSharedGPUContext (force_compute_actor.rs:3818, impl Handler)
-    alt had_context true (force_compute_actor.rs:3822)
-        Note over FCA: info "Received SharedGPUContext from supervisor chain (replacing self-initialized context)" (force_compute_actor.rs:3824)
+    PS->>FCA: SetSharedGPUContext (force_compute_actor.rs:3808, impl Handler)
+    alt had_context true (force_compute_actor.rs:3812)
+        Note over FCA: info "Received SharedGPUContext from supervisor chain (replacing self-initialized context)" (force_compute_actor.rs:3814)
     else first context
-        Note over FCA: info "Received SharedGPUContext from supervisor chain" (force_compute_actor.rs:3826)
+        Note over FCA: info "Received SharedGPUContext from supervisor chain" (force_compute_actor.rs:3816)
     end
-    FCA->>FCA: shared_context = Some(msg.context) (force_compute_actor.rs:3833) then gpu_state.is_initialized = true (force_compute_actor.rs:3842)
-    opt pending_graph_data is Some (force_compute_actor.rs:3847)
-        FCA->>FCA: try_upload_pending_graph_data (force_compute_actor.rs:3849)
+    FCA->>FCA: shared_context = Some(msg.context) (force_compute_actor.rs:3823) then gpu_state.is_initialized = true (force_compute_actor.rs:3832)
+    opt pending_graph_data is Some (force_compute_actor.rs:3837)
+        FCA->>FCA: try_upload_pending_graph_data (force_compute_actor.rs:3839)
     end
-    Note over FCA,PS: INVARIANT: the externally supplied context always replaces a self-created one so every GPU actor shares one CUDA device and stream :3829-3832
+    Note over FCA,PS: INVARIANT: the externally supplied context always replaces a self-created one so every GPU actor shares one CUDA device and stream :3819-3822
     Note over FCA: DIVERGENCE: self-init is a second, unsupervised path to a CUDA context that bypasses ResourceSupervisor timeouts and backoff entirely
-    Note over FCA: InitializeGPU :3387 deliberately does NOT set gpu_state.num_nodes - that happens only after a successful upload, preventing ComputeForces on uninitialised buffers and CUDA mutex poisoning :3399-3401
+    Note over FCA: InitializeGPU :3377 deliberately does NOT set gpu_state.num_nodes - that happens only after a successful upload, preventing ComputeForces on uninitialised buffers and CUDA mutex poisoning :3389-3391
 ```
 
 ## VC-10.10 GPU-absent and CPU-fallback behaviour per actor
@@ -273,7 +273,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs:379
-    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3115
+    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3105
     participant SMA as StressMajorizationActor<br/>stress_majorization_actor.rs:95
     participant CCA as ConnectedComponentsActor<br/>connected_components_actor.rs:82
     participant OCA as OntologyConstraintActor<br/>ontology_constraint_actor.rs:291
@@ -286,9 +286,9 @@ sequenceDiagram
     end
     Note over PO: on the CPU path no PhysicsStepCompleted message comes back :379 so the orchestrator must not await one
     FCA->>FCA: ForceFullBroadcast with no context
-    Note over FCA: warn "ForceFullBroadcast - no GPU context, skipping" :3115 - the frame is DROPPED, not computed on CPU
+    Note over FCA: warn "ForceFullBroadcast - no GPU context, skipping" :3105 - the frame is DROPPED, not computed on CPU
     FCA->>FCA: recover_from_divergence with no context
-    Note over FCA: warn "recover_from_divergence called with no GPU context" :1688
+    Note over FCA: warn "recover_from_divergence called with no GPU context" :1678
     SMA->>SMA: stress majorization requested
     Note over SMA: returns Err "GPU not available for stress majorization" :95 - hard failure, no CPU path
     CCA->>CCA: GPU kernel failed

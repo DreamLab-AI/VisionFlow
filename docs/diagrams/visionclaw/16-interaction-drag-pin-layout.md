@@ -22,7 +22,9 @@ sources:
   - ../project/src/adapters/oxigraph_graph_repository.rs
   - ../project/crates/vault-core/src/domains.rs
   - ../project/docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md
-verified_commit: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8
+  - ../project/crates/visionclaw-domain/src/models/edge.rs
+  - ../project/src/services/inferred_edge_materialiser.rs
+verified_commit: dd420fbc722a7a4a50e968162ac6c3eaff6972b2
 ---
 
 ## VC-16.1 Node drag start — pin acquisition
@@ -33,7 +35,7 @@ sequenceDiagram
     participant C as Browser / XR client
     participant MR as message_routing<br/>src/handlers/socket_flow_handler/message_routing.rs:80
     participant H as handle_node_drag_start<br/>position_updates.rs:954
-    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3360
+    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3350
 
     C->>MR: JSON text frame type nodeDragStart
     Note over C: payload shape { "type": "nodeDragStart", "data": { "nodeId": 42, "position": { "x", "y", "z" } } } documented at position_updates.rs:952
@@ -48,8 +50,8 @@ sequenceDiagram
         else valid
             H->>H: drag_last_update.insert(node_id, Instant::now()) :1028
             H->>FCA: do_send PinNodePositions{pins, unpin, reheat} :1065
-            FCA->>FCA: set entries in pinned_mask :3360
-            FCA->>FCA: reheat_factor = max(reheat_factor, 0.3) :3373
+            FCA->>FCA: set entries in pinned_mask :3350
+            FCA->>FCA: reheat_factor = max(reheat_factor, 0.3) :3363
             H->>C: nodeDragStartAck :1077
         end
     end
@@ -66,7 +68,7 @@ sequenceDiagram
     participant MR as message_routing<br/>message_routing.rs:86
     participant HU as handle_node_drag_update<br/>position_updates.rs:1105
     participant HE as handle_node_drag_end<br/>position_updates.rs:1311
-    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3360
+    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3350
 
     loop while the pointer is held
         C->>MR: nodeDragUpdate with nodeId, position, timestamp (position_updates.rs:1103)
@@ -154,7 +156,7 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant LH as layout_handler<br/>src/handlers/layout_handler.rs:307
-    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:2634
+    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:2624
 
     C->>LH: GET /modes :310
     LH->>C: get_layout_modes :30 - five modes advertised (LIVE_LAYOUT_MODES :22-27, ADR-2055)
@@ -164,13 +166,13 @@ sequenceDiagram
         LH->>C: RESOLVED ADR-2055 - 400 ErrorBadRequest naming the accepted values, no longer a silent coercion to ForceDirected :58-60
     else parsed
         LH->>FCA: addr.send(SetLayoutMode{mode}) :73
-        FCA->>FCA: SetLayoutMode handler :2634 on the live UnifiedGPUCompute path
+        FCA->>FCA: SetLayoutMode handler :2624 on the live UnifiedGPUCompute path
     end
     C->>LH: POST /radial :312
     LH->>LH: set_radial_layout :171
-    LH->>FCA: SetRadialLayout :205 -> handler at force_compute_actor.rs:2723
+    LH->>FCA: SetRadialLayout :205 -> handler at force_compute_actor.rs:2713
     C->>LH: GET status :313 / POST zones :314 / GET zones :315 / reset :316
-    LH->>FCA: reset_layout :275 triggers ResetPositions :279 -> handler at force_compute_actor.rs:3887 which sets reheat_factor = 1.0 :3962
+    LH->>FCA: reset_layout :275 triggers ResetPositions :279 -> handler at force_compute_actor.rs:3877 which sets reheat_factor = 1.0 :3952
     Note over LH: RESOLVED ADR-2055 - Clustered is no longer advertised. It had no dedicated arm in SetLayoutMode and was indistinguishable from ForceDirected, so advertising it promised behaviour the server could not deliver
     Note over LH,FCA: REMOVED ADR-2055 - the physics-v2 engine registry that this diagram previously showed as a compiled-out alternative path no longer exists
 ```
@@ -183,7 +185,7 @@ sequenceDiagram
     participant C as Client
     participant CH as constraints_handler<br/>src/handlers/constraints_handler.rs:11
     participant CA as ConstraintActor<br/>src/actors/gpu/constraint_actor.rs:193
-    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3693
+    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3683
     participant EX as execution.rs flag derivation
 
     C->>CH: POST /constraints/define :14
@@ -205,7 +207,7 @@ sequenceDiagram
     CH->>CA: GetConstraints (constraint_actor.rs:215) and GetConstraintStatistics (constraint_actor.rs:264)
     C->>CH: POST /constraints/validate :18
     CH->>CH: validate_constraint_definition :282 over LegacyConstraintData - pure validation, no actor call
-    CA->>FCA: UploadConstraintsToGPU :224 then (force_compute_actor.rs:3693)
+    CA->>FCA: UploadConstraintsToGPU :224 then (force_compute_actor.rs:3683)
     FCA->>EX: next physics step with num_constraints
     alt num_constraints > 0
         Note over EX: ENABLE_CONSTRAINTS set by derive_dispatch_feature_flags force_channels.rs:502-504
@@ -238,7 +240,7 @@ flowchart LR
     subgraph SRVPUSH["Server-initiated"]
         B1["0x23 AGENT_ACTION beam<br/>agent_beam_actor.rs:285"]
     end
-    GPU["ForceComputeActor pinned_mask and SimParams<br/>force_compute_actor.rs:3360"]
+    GPU["ForceComputeActor pinned_mask and SimParams<br/>force_compute_actor.rs:3350"]
     CA["ConstraintActor<br/>constraint_actor.rs:193"]
     CC["ClientCoordinatorActor fan-out"]
 
@@ -261,27 +263,35 @@ flowchart LR
     B1 -.- N2
 ```
 
-## VC-16.8 DAG rank orientation — domain-root membership edges under the collapsed label
+## VC-16.8 DAG rank layering — subClassOf provenance, domain spokes as domain_member
 
 ```mermaid
 flowchart TB
-    subgraph PROD["producer — corpus sync writes membership as hierarchical"]
-        P1["ensure_source_domain src/services/github_sync_service.rs:2372<br/>every page node gets a group, derive_source_domain<br/>falls back to infrastructure :2364"]
+    subgraph PROD["producers — what each edge carries"]
+        P1["ensure_source_domain src/services/github_sync_service.rs:2380<br/>every page node gets a group, derive_source_domain<br/>falls back to infrastructure :2372"]
         P2["group round-trips through Oxigraph since 7b6330608<br/>vc:group written src/adapters/oxigraph_graph_repository.rs:239<br/>read back :1412, source_domain fallback :1462"]
-        P3["materialise_domain_roots src/services/github_sync_service.rs:853<br/>one root per populated domain of DOMAIN_ROOTS :854<br/>eight slugs at crates/vault-core/src/domains.rs:4"]
-        P4["Edge source = root_id, target = member_id<br/>edge_type hierarchical — src/services/github_sync_service.rs:919-924"]
+        P3["materialise_domain_roots src/services/github_sync_service.rs:853<br/>one root per populated domain of DOMAIN_ROOTS :854<br/>slugs at crates/vault-core/src/domains.rs:4"]
+        P4["spoke = domain_membership_edge(root_id, member_id)<br/>src/services/github_sync_service.rs:919, built at :2238<br/>edge_type DOMAIN_MEMBER_EDGE_TYPE = domain_member<br/>crates/visionclaw-domain/src/models/edge.rs:12"]
+        P5["is-a relation edges keep the folded predicate<br/>owl_property_iri Some(predicate) src/services/github_sync_service.rs:1841<br/>Oxigraph writes vc:owlProperty src/adapters/oxigraph_graph_repository.rs:551"]
+        P6["reasoner-inferred child to parent edge, label hierarchical<br/>with rdfs:subClassOf provenance src/services/inferred_edge_materialiser.rs:71"]
         P1 --> P2 --> P3 --> P4
     end
     subgraph RANK["consumer — ForceComputeActor DAG ranks"]
-        R1["is_directed_hierarchy_relation accepts hierarchical<br/>src/actors/gpu/force_compute_actor.rs:581, match arm :587"]
-        R2["edge.source read as CHILD, edge.target as PARENT<br/>src/actors/gpu/force_compute_actor.rs:1244-1247"]
-        R3["compute_dag_ranks src/actors/gpu/force_compute_actor.rs:591<br/>roots are participants that are never a child :613"]
-        R4["ranks cached for SetRadialLayout DagRank :1257, uploaded :1258"]
+        R1["Edge::asserts_subsumption crates/visionclaw-domain/src/models/edge.rs:234<br/>explicit subclass labels pass; hierarchical passes only when<br/>owl_property_iri is RDFS_SUBCLASS_OF_IRI (edge.rs:237-238)"]
+        R2["hierarchy_pairs src/actors/gpu/force_compute_actor.rs:581<br/>filter asserts_subsumption :587, source is CHILD and target PARENT :593"]
+        R3["compute_dag_ranks src/actors/gpu/force_compute_actor.rs:600<br/>roots are participants that are never a child :622"]
+        R4["called from graph upload src/actors/gpu/force_compute_actor.rs:1240<br/>ranks cached for SetRadialLayout DagRank :1247, uploaded :1248"]
         R1 --> R2 --> R3 --> R4
     end
-    P4 --> R1
-    D["DRIFT: ADR-2035 accepts the label on the premise that ingest never writes<br/>membership under it (docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md:35-37).<br/>Each domain root is now the child of every member, so members seed rank 0<br/>and the root ranks 1, one shell OUTSIDE its members in Radial DAG and Hierarchy.<br/>Inferred from source, not observed on screen. Fix undecided by the owner."]
-    R3 --- D
+    P4 -. "domain_member never passes asserts_subsumption" .-> R1
+    P5 --> R1
+    P6 --> R1
+    I["INVARIANT: a rank layer exists only for a class-subsumption edge.<br/>The hierarchical label is a force category that also folds equivalentClass,<br/>sameAs, subPropertyOf and instance-of, so it ranks only with subClassOf<br/>provenance (crates/visionclaw-domain/src/models/edge.rs:234-243).<br/>ADR-2035 amended 2026-10-02, fix 8bdece469."]
+    R1 --- I
 ```
 
-**Drift (ADR-2035 vs code):** ADR-2035 accepts the collapsed `hierarchical` label because "its ingest does not" reuse it for domain membership (`docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md:35-37`), but since 7b6330608 made node groups survive reload, `materialise_domain_roots` writes root → member edges under that label (`src/services/github_sync_service.rs:919-924`) and the ranker reads `edge.source` as the child (`src/actors/gpu/force_compute_actor.rs:1244-1247`), so every domain root ranks below its own members. The ADR's own re-verification records the trigger as fired (`docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md:163`); the remedy (a distinct producer label, or a successor ADR fixing orientation) is the owner's open decision. Effect on the rendered layout is inferred, not seen.
+**Invariant (ADR-2035, amended 2026-10-02):** the DAG ranker layers an edge only when `Edge::asserts_subsumption` holds (`crates/visionclaw-domain/src/models/edge.rs:234-243`), applied in `hierarchy_pairs` (`src/actors/gpu/force_compute_actor.rs:587`); a `hierarchical` edge counts only with `rdfs:subClassOf` in `owl_property_iri`, and domain-root spokes carry `domain_member` (`src/services/github_sync_service.rs:2238`, `crates/visionclaw-domain/src/models/edge.rs:12`). This resolves the earlier drift in which the ADR accepted the bare label on the premise that ingest never wrote membership under it, while `materialise_domain_roots` did, ranking every domain root below its own members. The amendment records the observed census: 9,796 subclass edges plus 6,400 spokes ranked together on the pre-fix binary (`docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md:196`).
+
+**Drift (ADR-2035 vs code):** the record's Context still says the ranker uses `is_directed_hierarchy_relation` (`docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md:28-29`), and its Consequences still describe the accept as coupled to ingest labelling (`docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md:61-62`). That function was deleted in 8bdece469 and replaced by `hierarchy_pairs` (`src/actors/gpu/force_compute_actor.rs:581`). The Decision section (`:37-43`) is current; the surrounding prose is not.
+
+**Open:** the fix moves a dependency onto provenance. A producer that writes a `hierarchical` subclass edge without `rdfs:subClassOf` in `owl_property_iri`, or a store path that drops `vc:owlProperty` (`src/adapters/oxigraph_graph_repository.rs:551`), would silently stop ranking. The ADR names this as its review trigger; nothing at boot detects it.

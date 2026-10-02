@@ -24,7 +24,6 @@ sources:
   - ../project/agentbox/docker-compose.yml
   - ../project/agentbox/scripts/ci/check-seccomp.sh
   - ../project/agentbox/docs/adr/ADR-2007-profile-isolation.md
-  - ../project/agentbox/.agentic-qe/llm-config.json
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/mcp/servers/lib/ontology-index-build.js
   - ../project/agentbox/mcp/servers/ruvector-mcp.cjs
@@ -35,7 +34,7 @@ sources:
   - ../project/agentbox/agents/registered-agents.txt
   - ../project/agentbox/config/registered-commands.txt
   - ../project/agentbox/docs/adr/ADR-2104-direct-control-over-mcp.md
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+verified_commit: e4993a3bce0146062bd5fd5863df7f8e747cf21b
 ---
 ## AB-02.1 boot phases 1-3 — vault resolution, directories, sovereign identity
 ```mermaid
@@ -51,15 +50,15 @@ sequenceDiagram
     Note over E: ADR-2028 vault resolve runs before Phase 1<br/>every supervised program inherits PID1 env
     E->>TV: _ab_vault_resolve() (:96) calls _ab_toml_val vault root (:101)
     TV->>FS: awk anchored-section parse of AGENTBOX_CONFIG (/etc/agentbox.toml)
-    alt VAULT_ROOT empty (:102)
+    alt VAULT_ROOT empty (entrypoint-unified.sh:102)
         E->>E: unset VAULT_* export AGENTBOX_VAULT_ENABLED=0 (:103-105)
         E-->>D: echo "[vault] disabled — no [vault] in agentbox.toml" (:106)
-        alt AGENTBOX_VAULT_LEGACY_PATHS=1 (:110)
+        alt AGENTBOX_VAULT_LEGACY_PATHS=1 (entrypoint-unified.sh:110)
             E->>E: retain ONTOLOGY_PAGES_DIR (:111-113)
-        else no legacy opt-in (:117)
+        else no legacy opt-in (entrypoint-unified.sh:117)
             E->>E: clear ONTOLOGY_PAGES_DIR="" (:121-122)
         end
-    else VAULT_ROOT set (:126)
+    else VAULT_ROOT set (entrypoint-unified.sh:126)
         E->>E: export VAULT_ROOT/VAULT_PAGES/VAULT_FORMAT/VAULT_TUI/VAULT_WORKING_ROOT/VAULT_TRANSCRIPTS AGENTBOX_VAULT_ENABLED=1 (:126-156)
         E->>E: export ONTOLOGY_PAGES_DIR default to VAULT_PAGES (:165)
     end
@@ -74,13 +73,13 @@ sequenceDiagram
     E-->>D: echo "[3/8] Ensuring workspace defaults..." (:451)
     E->>FS: mkdir WORKSPACE/agents if absent (:452-454)
     E->>FS: ln -sf /home/devuser/.claude WORKSPACE/.claude (:466)
-    opt DREAM_CMD_SRC exists and no dream.md (:478)
+    opt DREAM_CMD_SRC exists and no dream.md (entrypoint-unified.sh:478)
         E->>FS: cp dream.md to /home/devuser/.claude/commands/ (:484)
     end
-    opt skill-creator not yet registered (:500)
+    opt skill-creator not yet registered (entrypoint-unified.sh:500)
         E->>E: agentbox-manifest plugin-register --key skill-creator@claude-plugins-official (:501-506)
     end
-    opt codex plugin baked and not registered (:525)
+    opt codex plugin baked and not registered (entrypoint-unified.sh:525)
         E->>E: agentbox-manifest plugin-register --key codex@openai-codex (:526-531)
     end
 ```
@@ -100,7 +99,7 @@ sequenceDiagram
     E->>FS: chown -R 1000:1000 WORKSPACE/profiles (:592)
     E-->>E: echo "[5/8] Validating runtime closure..." (:599)
     E->>FS: bash validate-artifacts.sh (:600)
-    alt validate-artifacts.sh fails (:600)
+    alt validate-artifacts.sh fails (entrypoint-unified.sh:600)
         E-->>E: fatal BootstrapFailed, exit 1 (:601-603)
     end
     E->>FS: mkdir /run/agentbox /run/agentbox/hooks (:611) — bootstrap-seal writes here later
@@ -108,17 +107,17 @@ sequenceDiagram
     Note over E: N-05 verify — expect mode 700 owner 1000,<br/>logs N-05-VIOLATION marker, non-fatal (:628-648)
     Note over E,FS: ADR-2040 — code-server and jupyter-lab credential minting<br/>runs here (:650-737), between the N-05 verify and the identity.env source<br/>below. Not re-diagrammed here — see AB-06.7 and AB-07.9
     E->>FS: source /run/agentbox/identity.env into PID1 env (:746-747)
-    alt AGENTBOX_BRIDGE_SK set (:758)
+    alt AGENTBOX_BRIDGE_SK set (entrypoint-unified.sh:758)
         E->>FS: write /run/secrets/nostr.key 0400 devuser, unset AGENTBOX_BRIDGE_SK from env (:757-767)
     end
     Note over E: ADR-2028 D3 — ontology PUSH cache refresh (Phase 5c)
-    alt ONTO_PAGES empty (:796)
+    alt ONTO_PAGES empty (entrypoint-unified.sh:796)
         E-->>E: echo "[5c/8] ontology PUSH cache refresh skipped ([vault] disabled)" (:797)
-    else ONTO_PAGES dir exists and builder present (:798)
+    else ONTO_PAGES dir exists and builder present (entrypoint-unified.sh:798)
         E->>FS: run_as_devuser node ontology-index-build.js (:800-802)
     end
     Note over E: Phase 5d(ii) — vault CLI liveness gate (ADR-2107/2108):<br/>the corpus's only programmatic door now, so a missing/broken<br/>binary is fail-LOUD, never fail-fatal (:805-827)
-    alt AGENTBOX_VAULT_ENABLED=1 (:828)
+    alt AGENTBOX_VAULT_ENABLED=1 (entrypoint-unified.sh:828)
         E->>FS: /opt/agentbox/bin/vault --version liveness probe (:829-831)
         alt probe succeeds
             E-->>E: echo "[5d/8] vault OK — version (bin)" (:832)
@@ -130,7 +129,7 @@ sequenceDiagram
     else vault disabled
         E-->>E: echo "[5d/8] vault gate skipped ([vault] disabled)" (:844)
     end
-    opt AGENTBOX_TAB0_BRIDGE_SUPERVISED=1 and BRIDGE_TOKEN unset (:858)
+    opt AGENTBOX_TAB0_BRIDGE_SUPERVISED=1 and BRIDGE_TOKEN unset (entrypoint-unified.sh:858)
         E->>FS: generate/read BRIDGE_TOKEN, write 0600 secrets file (:859-871)
     end
     E-->>E: echo "[5b/8] Starting supervisord..." (:876)
@@ -138,13 +137,13 @@ sequenceDiagram
     Note over E,SV: Stage A process image is REPLACED by supervisord (exec) —<br/>PID1 is now supervisord, not the shell
     SV->>B: spawn [program:bootstrap] with AGENTBOX_BOOTSTRAP_STAGE=B (flake.nix, not this file)
     B->>B: re-export WORKSPACE/RUVECTOR_DATA_DIR/SOLID_POD_ROOT/AGENTBOX_CONFIG defaults (:889-894)
-    alt AGENTBOX_VAULT_ENABLED unset (:897)
+    alt AGENTBOX_VAULT_ENABLED unset (entrypoint-unified.sh:897)
         B->>B: _ab_vault_resolve() again (standalone-invocation fallback) (:897)
     end
     B-->>SV: echo "[6/8] Validating pre-packaged service closures..." (:911)
-    loop _probe_closure for management-api, mcp, gated toolchains (:928-952)
+    loop _probe_closure for management-api, mcp, gated toolchains (entrypoint-unified.sh:928-952)
         B->>FS: test -d node_modules under each closure dir
-        alt node_modules missing (:921)
+        alt node_modules missing (entrypoint-unified.sh:921)
             B-->>SV: fatal MissingArtifactDetected, exit 1 (:921-924)
         end
     end
@@ -164,27 +163,27 @@ sequenceDiagram
 
     B-->>B: echo "[7/8] Bootstrapping ruflo plugins..." (:1029)
     B->>FS: mkdir ~/.claude-flow/plugins, /var/cache/ruflo-plugins (:1031-1035)
-    opt claude-flow-config.template.json present, config.json stale (:1045)
+    opt claude-flow-config.template.json present, config.json stale (entrypoint-unified.sh:1045)
         B->>FS: sed RUVECTOR_PG_PASSWORD into ~/.claude-flow/config.json (:1047-1050)
     end
     Note over B: PRD-018/ADR-036 D6 — read RuVector memory gate flags<br/>via _ab_toml_bool memory_learning.* (:1062-1091), fail-open all-off
     B->>MCP: ensure .mcp.json points at ruvector-mcp.cjs, idempotent (:1102-1156)
     B->>MCP: inject PRD-018 RuVector memory gate env (:1166-1248)
-    opt browser-gpu sidecar reachable (:1700)
+    opt browser-gpu sidecar reachable (entrypoint-unified.sh:1700)
         B->>AM: agentbox-manifest mcp-set-server --name browser-gpu (:1703)
     end
     B->>AM: agentbox-manifest mcp-reconcile-aqe --provider "$_MR_PROVIDER_ARG" (:1725)
-    opt _MR_ENABLED=1 — ADR-041 model routing (:1735)
+    opt _MR_ENABLED=1 — ADR-041 model routing (entrypoint-unified.sh:1735)
         B->>AM: run_as_devuser agentbox-manifest model-routing-project --manifest AGENTBOX_CONFIG --workspace WORKSPACE (:1736-1739)
-        Note right of AM: projects [model_routing.routes] into every<br/>.agentic-qe/llm-config.json under the workspace
+        Note right of AM: projects [model_routing.routes] into every<br/>.agentic-qe/llm-config.json under the workspace,<br/>a runtime file the repository does not track
     end
     Note over B: ADR-069 — interaction_plane.proxy projected every boot (:1790-1801)
-    opt AGENTBOX_CONFIG exists and agentbox-manifest present (:1796)
+    opt AGENTBOX_CONFIG exists and agentbox-manifest present (entrypoint-unified.sh:1796)
         B->>AM: agentbox-manifest nip98-config --manifest AGENTBOX_CONFIG --out .agentbox/nip98-proxy-config.json (:1797)
         B->>FS: chown 1000:1000, chmod 600 nip98-proxy-config.json (:1799-1800)
     end
     Note over B: RESOLVED — the ontology-bridge MCP registration that used to sit<br/>here (gated ENABLE_ONTOLOGY) is GONE (ADR-2107/2108): agents reach the<br/>corpus only through the vault CLI and the Loom over HTTP (:1806-1810)
-    opt AGENTBOX_TRUST_SEED not 0 and node present (:1392)
+    opt AGENTBOX_TRUST_SEED not 0 and node present (entrypoint-unified.sh:1392)
         B->>TS: node trust-seed.cjs marks workspace root and worktrees trusted, once (:1392-1393)
         Note right of TS: DOC-DRIFT resolved — deliberately NOT a SessionStart hook any<br/>more (it walked ~1,170 paths per session start, avg 3.2s, and raced<br/>Claude Code's own ~/.claude.json writes) — hook shim reconcile below prunes<br/>any stale registration
     end
@@ -310,46 +309,46 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant O as Orchestrator/probe
-    participant R as management-api routes<br/>server.js:455 /ready, :554 /health
-    participant BS as bootstrapState<br/>server.js:56-64 fs watch of BOOTSTRAP_SENTINEL
-    participant ML as adapters/manifest-loader<br/>server.js:489
-    participant AH as adapterHealth map<br/>server.js:496
-    participant FS as fs.promises.access<br/>server.js:513-519
+    participant R as management-api routes<br/>server.js:456 /ready, :555 /health
+    participant BS as bootstrapState<br/>server.js:57-65 fs watch of BOOTSTRAP_SENTINEL
+    participant ML as adapters/manifest-loader<br/>server.js:490
+    participant AH as adapterHealth map<br/>server.js:497
+    participant FS as fs.promises.access<br/>server.js:514-520
 
     O->>R: GET /ready
-    R->>BS: read bootstrapState.completed (poll every 2s of /run/agentbox/bootstrap.done, server.js:75)
+    R->>BS: read bootstrapState.completed (poll every 2s of /run/agentbox/bootstrap.done, server.js:76)
     alt bootstrap.done sentinel absent
-        R->>R: missing.push('bootstrap.done sentinel') (:483)
+        R->>R: missing.push('bootstrap.done sentinel') (:484)
     end
-    R->>ML: loadManifest() (:489)
-    Note over R: 2. Adapter health — every non-off slot must be healthy (:486)
-    loop for slot, impl in manifestAdapters (:494)
+    R->>ML: loadManifest() (:490)
+    Note over R: 2. Adapter health — every non-off slot must be healthy (:487)
+    loop for slot, impl in manifestAdapters (server.js:495)
         alt impl === 'off'
-            R->>R: continue (:495)
-        else adapterHealth[slot] !== 'healthy' (:496)
-            R->>R: missing.push adapter:<slot> not healthy (:497)
+            R->>R: continue (:496)
+        else adapterHealth[slot] !== 'healthy' (server.js:497)
+            R->>R: missing.push adapter:<slot> not healthy (:498)
         end
     end
-    Note over R: 3. Required filesystem paths (:501)
-    R->>FS: access WORKSPACE, /var/lib/ruvector (:506)
-    opt manifestAdapters.pods === local-solid-rs (:508)
-        R->>R: add integrations.solid_pod_rs.storage_root to requiredPaths (:508-511)
+    Note over R: 3. Required filesystem paths (:502)
+    R->>FS: access WORKSPACE, /var/lib/ruvector (:507)
+    opt manifestAdapters.pods === local-solid-rs (server.js:509)
+        R->>R: add integrations.solid_pod_rs.storage_root to requiredPaths (:509-512)
     end
-    opt sovereign_mesh.publish_agent_events === true (:525)
-        alt NOSTR_RELAYS env empty (:528)
-            R->>R: missing.push publish_agent_events but NOSTR_RELAYS empty (:529)
+    opt sovereign_mesh.publish_agent_events === true (server.js:526)
+        alt NOSTR_RELAYS env empty (server.js:529)
+            R->>R: missing.push publish_agent_events but NOSTR_RELAYS empty (:530)
         end
     end
-    alt missing.length greater than 0 (:535)
-        R-->>O: 503 ready:false reason, missing[] (:536-541)
+    alt missing.length greater than 0 (server.js:536)
+        R-->>O: 503 ready:false reason, missing[] (:537-542)
     else
-        R-->>O: 200 ready:true since bootstrapState.since (:544-548)
+        R-->>O: 200 ready:true since bootstrapState.since (:545-549)
     end
 
     rect rgb(240,240,240)
-    Note over O,R: /health (server.js:554-586) is human-inspection-only —<br/>note field at :584 says "Use /ready for orchestrator readiness probes"
+    Note over O,R: /health (server.js:555-587) is human-inspection-only —<br/>note field at :585 says "Use /ready for orchestrator readiness probes"
     O->>R: GET /health
-    R-->>O: 200 status ok/degraded, uptime, adapters map, degraded_count (:577-585)
+    R-->>O: 200 status ok/degraded, uptime, adapters map, degraded_count (:578-586)
     end
 ```
 
@@ -504,17 +503,17 @@ sequenceDiagram
     participant PROG as supervised programs<br/>flake.nix program blocks
 
     VR->>TOML: _ab_toml_val vault root/pages/format/tui/repo/working/transcripts (:101,126-145)
-    alt vault section absent, VAULT_ROOT empty (:102)
+    alt vault section absent, VAULT_ROOT empty (entrypoint-unified.sh:102)
         VR-->>VR: echo "[vault] disabled — no [vault] in agentbox.toml" (:106)
         Note right of VR: fail-loud absent-vault branch — every consumer<br/>disables itself rather than indexing a stale tree
-        alt AGENTBOX_VAULT_LEGACY_PATHS=1 opt-in (:110)
+        alt AGENTBOX_VAULT_LEGACY_PATHS=1 opt-in (entrypoint-unified.sh:110)
             VR-->>VR: RETAIN deprecated ONTOLOGY_PAGES_DIR (:111-113)
         else no opt-in
             VR-->>VR: ONTOLOGY_PAGES_DIR="" cleared, warns once (:118-122)
         end
-    else VAULT_ROOT resolved (:126)
+    else VAULT_ROOT resolved (entrypoint-unified.sh:126)
         VR->>VR: VAULT_REPO from [vault].repo, else derived from VAULT_ROOT<br/>(knowledge/working to parent, else root itself) (:144-150)
-        alt VAULT_REPO/ontology/vocabulary.yaml absent (:151)
+        alt VAULT_REPO/ontology/vocabulary.yaml absent (entrypoint-unified.sh:151)
             VR-->>VR: warn, VAULT_REPO="" (governed vault writes then refuse) (:152-153)
         end
         VR->>VR: export VAULT_ROOT/VAULT_REPO/VAULT_PAGES/VAULT_FORMAT/VAULT_TUI/<br/>VAULT_WORKING_ROOT/VAULT_WORKING_PAGES/VAULT_TRANSCRIPTS (:155-156)
@@ -639,7 +638,7 @@ flowchart TB
     RO -.-> NOTE2["router is its own program (config/harness-wrappers/router.sh)<br/>with no detection alias — EXTERNAL: the router.sh console itself<br/>and its custom_agents wiring are owned by AB-29"]
 ```
 
-- `buildCoverage()` resolves each session_seed slug present in `WRAPPER_SLUGS` to `path.join(WRAPPER_DIR, WRAPPER_SLUGS[slug].file)` as its `customAgents` program, and sets `detectAs[slug]` only `if (WRAPPER_SLUGS[slug].detectAs)` (aoe-seed-sessions.mjs:341-352) — the `router` slug from `[[interaction_plane.session_seeds]]` (`agentbox.toml:1764-1768`, `tool = "custom:router"` at `:1766`) resolves through this table exactly like `openrouter`/`zai` did before ADR-2080, but with `detectAs` left unset.
+- `buildCoverage()` resolves each session_seed slug present in `WRAPPER_SLUGS` to `path.join(WRAPPER_DIR, WRAPPER_SLUGS[slug].file)` as its `customAgents` program, and sets `detectAs[slug]` only `if (WRAPPER_SLUGS[slug].detectAs)` (aoe-seed-sessions.mjs:341-352) — the `router` slug from `[[interaction_plane.session_seeds]]` (`agentbox.toml:1768-1772`, `tool = "custom:router"` at `:1766`) resolves through this table exactly like `openrouter`/`zai` did before ADR-2080, but with `detectAs` left unset.
 - see AB-01.11, AB-05.11 for the `[model_routing.neural]` gate that bakes `router.sh`'s artefact directory; see AB-29 for the console's own request/response flow.
 
 ## AB-02.22 bootstrap.done now means the promised projections exist (ADR-2104)
@@ -650,7 +649,7 @@ sequenceDiagram
     participant CP as _check_projections<br/>seal-bootstrap.sh:149
     participant AM as agentbox-manifest toml-bool<br/>seal-bootstrap.sh:144
     participant FS as /run/agentbox
-    participant RDY as GET /ready<br/>management-api/server.js:455
+    participant RDY as GET /ready<br/>management-api/server.js:456
 
     SEAL->>CP: after every AGENTBOX_REQUIRED_FOR_READINESS program is RUNNING
     Note over CP: rows are gate:path pairs, default<br/>resources.mcp_hub.enabled:/run/agentbox/mcp-hub.json<br/>seal-bootstrap.sh:138

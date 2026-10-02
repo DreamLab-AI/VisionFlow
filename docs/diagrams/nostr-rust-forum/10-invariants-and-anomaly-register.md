@@ -5,12 +5,14 @@ area: nostr-rust-forum
 governing:
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
-adrs: [ADR-2002, ADR-2003, ADR-2004, ADR-2005, ADR-2006, ADR-2007, ADR-2008, ADR-2009, ADR-2010]
+adrs: [ADR-2002, ADR-2003, ADR-2004, ADR-2005, ADR-2006, ADR-2007, ADR-2008, ADR-2009, ADR-2010, ADR-2014, ADR-2019]
 sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs
   - ../nostr-rust-forum/docs/diagrams/00-anomaly-register.md
   - ../nostr-rust-forum/README.md
   - ../nostr-rust-forum/SETUP.md
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0008_whitelist.sql
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
@@ -31,6 +33,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-preview-worker/src/ssrf.rs
   - ../nostr-rust-forum/crates/nostr-bbs-preview-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/channels.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/dm/mod.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/settings.rs
@@ -44,7 +47,7 @@ sources:
   - ../nostr-rust-forum/docs/security/known-findings.md
   - ../nostr-rust-forum/docs/security/advisory-exceptions.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs
-verified_commit: {nostr-rust-forum: d025cb063df5a532f055a18527f71cc7dee9d6e6}
+verified_commit: {nostr-rust-forum: 13cbe6cbad7ee7ff3b609233a8bee3dd8eae1f3e}
 ---
 
 ## NF-10.1 The compliance surface — BASELINE-architecture invariants
@@ -56,7 +59,7 @@ flowchart LR
     I3["3 channel counts are derived, never accumulated<br/>count_for nostr-bbs-forum-client/src/stores/channels.rs:159 | dedup on insert channels.rs:444 - see NF-05.6"]
     I4["4 .acl and .meta sidecar access coerces to Control<br/>nostr-bbs-pod-worker/src/acl.rs:85 | shared policy nostr-bbs-pod-worker/src/acl.rs:34 - see NF-04.3"]
     I5["5 gift-wraps are recipient-whitelist-gated, never author-gated<br/>gift_wrap_recipient nip_handlers.rs:115 | admission nip_handlers.rs:825 - see NF-03.5"]
-    I6["6 solid-pod-rs stays an EXACT pin<br/>nostr-rust-forum/Cargo.toml:162 - see NF-01.4"]
+    I6["6 solid-pod-rs stays an EXACT pin<br/>nostr-rust-forum/Cargo.toml:170 - see NF-01.4"]
 
     I1 --> I2 --> I3
     I4 --> I5 --> I6
@@ -110,7 +113,7 @@ flowchart TB
     O7["O7 NIP05_USERNAME_HOST hardcoded - NARROWER than filed. nostr-bbs-forum-client/src/pages/settings.rs:32 defines<br/>and settings.rs:334 uses it; signup.rs reads no such constant. A settings-only display fallback. See NF-05.7."]
     O9["O9 nostr-bbs-mesh has no impl AND no relay import - HALF holds. No production MeshSocket impl exists<br/>(only nostr-bbs-mesh/src/mock.rs:249), but the relay DOES declare the dependency nostr-bbs-relay-worker/Cargo.toml:26.<br/>See NF-09.8."]
     O10["O10 wasm_bridge has no JS consumers - CONFIRMED. The upstream-vector suite is soft-skipped, not<br/>failed, when fixtures are absent (nostr-bbs-core/tests/upstream_vectors/mod.rs:11) and no workflow runs<br/>sync-fixtures.sh. See NF-09.3."]
-    O11c["O11 broker_decisions is write-only - CORRECTED. A read endpoint exists:<br/>GET /api/governance/decisions with pagination and a case filter,<br/>nostr-bbs-auth-worker/src/governance_api.rs:622. See NF-06.9."]
+    O11c["O11 broker_decisions is write-only - CORRECTED. A read endpoint exists:<br/>GET /api/governance/decisions with pagination and a case filter,<br/>nostr-bbs-auth-worker/src/governance_api.rs:619. See NF-06.9."]
 ```
 
 ## NF-10.6 New doc-drift found in this pass
@@ -120,7 +123,7 @@ flowchart TB
     DD1["README.md:441 calls NIP-42 AUTH scaffolded with auth_required false. The code says otherwise:<br/>nip42 is the DEFAULT nip42.rs:115, the template ships AUTH_MODE nip42 nostr-bbs-relay-worker/wrangler.toml:31,<br/>and every EVENT passes the gate first nip_handlers.rs:812. The row understates a shipped feature.<br/>See NF-03.3."]
     DD2["README.md:442 says nostr-bbs-mesh is NOT a dependency of the relay-worker.<br/>nostr-bbs-relay-worker/Cargo.toml:26 declares it. See NF-09.8."]
     DD3["nostr-bbs-relay-worker/wrangler.toml:10 asserts there is no ADMIN_PUBKEYS reader in src/.<br/>nostr-bbs-relay-worker/src/auth.rs:183 reads it, and so does nostr-bbs-auth-worker/src/admin.rs:71.<br/>Only nostr-bbs-search-worker/wrangler.toml:33 declares the var. See NF-08.7."]
-    DD4["nostr-rust-forum/Cargo.toml:54 workspace.metadata.ci.wasm-check-packages names two crates and is read by NOTHING -<br/>the wasm job checks the whole workspace .github/workflows/ci.yml:174. Inert metadata. See NF-01.2."]
+    DD4["nostr-rust-forum/Cargo.toml:58 workspace.metadata.ci.wasm-check-packages names two crates and is read by NOTHING -<br/>the wasm job checks the whole workspace .github/workflows/ci.yml:174. Inert metadata. See NF-01.2."]
     DD5["nostr-bbs-upstream-canary/src/lib.rs:10 names a five-NIP build matrix but only three smokes exist<br/>nostr-bbs-upstream-canary/src/lib.rs:35 nostr-bbs-upstream-canary/src/lib.rs:56 nostr-bbs-upstream-canary/src/lib.rs:89 - nip04, nip59 and nip98 are unexercised. The same doc calls the crate<br/>nostr-upstream-canary nostr-bbs-upstream-canary/src/lib.rs:14 while the package is nostr-bbs-upstream-canary. See NF-01.5."]
     DD6["The search-worker cron runs every five minutes and reindexes NOTHING - the handler body is a<br/>load_store warm touch nostr-bbs-search-worker/src/lib.rs:851. See NF-07.1."]
     DD7["nostr-bbs-core/src/governance.rs:1202 KIND_GOVERNANCE_AUDIT_LOG is numerically the SAME kind as<br/>KIND_PANEL_RETIRED nostr-bbs-core/src/governance.rs:32, and only three of the six documented ACS types have<br/>Rust structs. See NF-06.1 and NF-06.2."]
@@ -131,12 +134,13 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    S1["The relay's two most load-bearing tables - events and whitelist - are created by a SETUP.md<br/>copy-paste SETUP.md:69 SETUP.md:82, not by a repo migration, while every other table is created<br/>idempotently in code. See NF-08.6."]
-    S2["ADMIN_PUBKEYS is read by auth and relay but declared in neither template and named in no SETUP step<br/>SETUP.md:121. A by-the-book deployment has no static admin bootstrap. See NF-08.7."]
+    S1["The relay events table is still created by a SETUP.md copy-paste SETUP.md:69, not by a repo migration.<br/>RESOLVED 1a26e51: whitelist now has its first DDL, migration 0008_whitelist.sql:30, and ensure_schema<br/>runs the same shared statement first nostr-bbs-relay-worker/src/lib.rs:695 before the ALTER list,<br/>which now adds expires_at nostr-bbs-relay-worker/src/lib.rs:714. See NF-08.6."]
+    S2["ADMIN_PUBKEYS is read by auth and relay but declared in neither template and named in no SETUP step<br/>SETUP.md:122. A by-the-book deployment has no static admin bootstrap. See NF-08.7."]
     S3["The preview worker's SSRF guard is denylist-only without PREVIEW_ALLOWED_HOSTS, which the template<br/>never sets nostr-bbs-preview-worker/wrangler.toml:13. The code says so itself - the Workers runtime exposes no<br/>resolve-then-pin primitive nostr-bbs-preview-worker/src/ssrf.rs:13 - and there is no wall-clock timeout.<br/>See NF-07.6."]
     S4["DEVICE_KEYS_ENABLED ships false in BOTH templates nostr-bbs-auth-worker/wrangler.toml:55<br/>nostr-bbs-relay-worker/wrangler.toml:21, so the whole ADR-099/100 device story is dormant by default and<br/>revocation has no effect at AUTH. See NF-02.7."]
     S5["MESH_ALLOWED_REMOTE_DIDS ships empty nostr-bbs-relay-worker/wrangler.toml:71, so the federated-kind gate at<br/>nip_handlers.rs:3088 is inert. Standalone is the only supported mode. See NF-03.13."]
     S6["Neither anti-drift-lint.sh nor identity-vector-parity.mjs is invoked by any workflow, so the<br/>ADR-2003 cross-stack parity proof is manual on the JS side. See NF-09.3."]
+    S7["The ADR-2019 member wallet view of BLAKE2b testnet4 coins ships dark: with BLAKE_TESTNET_API unset or not https,<br/>api_base is None and the page makes no request to any BLAKE backend<br/>nostr-bbs-forum-client/src/wallet/parent.rs:13-14 nostr-bbs-forum-client/src/wallet/parent.rs:36-43.<br/>It is read-only by construction - nothing is signed and no coin moves nostr-bbs-forum-client/src/wallet/parent.rs:8-10"]
 ```
 
 ## NF-10.8 ADR-2006 and ADR-2010 — what the closeout holds open
@@ -152,7 +156,7 @@ flowchart LR
     A2010 --> Q2010
 
     N1["DOC-DRIFT: the IDENTITY-keys-and-trust closeout still states OFFSET row-skipping and ignored write<br/>errors as CURRENT defects. Both are fixed - keyset paging nostr-bbs-relay-worker/src/trust_sweep.rs:22<br/>and confirmed-commit-only counters nostr-bbs-relay-worker/src/trust_sweep.rs:286 trust_sweep.rs:501. The governing doc needs<br/>the qualification retired; see NF-11.11 and NF-11.12."]
-    N2["DOC-DRIFT: the relay-side receipt machine is REAL, not proposed - stages at<br/>nostr-bbs-core/src/governance.rs:914, applied at relay_do/receipts.rs:286, and handle_event logs<br/>accepted-but-not-applied from the returned receipt nip_handlers.rs:1286. Only the CONSUMER half is absent.<br/>See NF-11.9 and NF-11.10."]
+    N2["DOC-DRIFT: the relay-side receipt machine is REAL, not proposed - stages at<br/>nostr-bbs-core/src/governance.rs:914, applied at relay_do/receipts.rs:301, and handle_event logs<br/>accepted-but-not-applied from the returned receipt nip_handlers.rs:1286. Only the CONSUMER half is absent.<br/>See NF-11.9 and NF-11.10."]
     N3["EXTERNAL: both remaining halves belong to other repos - VisionClaw's elevation consumer see VC-24,<br/>agentbox's approvals pipeline see AB-14, the estate loop see ES-05"]
 ```
 

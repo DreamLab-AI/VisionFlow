@@ -68,7 +68,7 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/Cargo.toml
   - ../project/src/adapters/mod.rs
-verified_commit: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8
+verified_commit: dd420fbc722a7a4a50e968162ac6c3eaff6972b2
 ---
 
 ## VC-01.1 main() phase 1 — hygiene, logging, settings, stores

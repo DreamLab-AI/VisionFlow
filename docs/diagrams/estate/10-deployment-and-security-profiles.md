@@ -7,7 +7,7 @@ governing:
   - ../project/agentbox/docs/SECURITY-profiles.md
   - ../project/agentbox/docs/INGRESS-identity.md
   - ../project/docs/IDENTITY-authority-chain.md
-adrs: [agentbox:ADR-2098, agentbox:ADR-2101, visionclaw:ADR-2003, visionclaw:ADR-2010, visionclaw:ADR-2012, agentbox:ADR-2012, agentbox:ADR-2013, visionclaw:ADR-2026, visionclaw:ADR-2027, agentbox:ADR-2027, visionclaw:ADR-2037, visionclaw:ADR-2038, visionclaw:ADR-2039, agentbox:ADR-2062, visionclaw:ADR-2086, visionclaw:ADR-2087]
+adrs: [agentbox:ADR-2098, agentbox:ADR-2101, visionclaw:ADR-2003, visionclaw:ADR-2010, visionclaw:ADR-2012, agentbox:ADR-2012, agentbox:ADR-2013, visionclaw:ADR-2026, visionclaw:ADR-2027, agentbox:ADR-2027, visionclaw:ADR-2037, visionclaw:ADR-2038, visionclaw:ADR-2039, agentbox:ADR-2062, visionclaw:ADR-2086, visionclaw:ADR-2087, visionclaw:ADR-2119]
 sources:
   - ../project/src/middleware/rbac_gate.rs
   - ../project/src/main.rs
@@ -22,6 +22,8 @@ sources:
   - ../project/docs/adr/ADR-2037-production-build-excludes-dev-auth.md
   - ../project/docs/adr/ADR-2038-boot-time-profile-assertion.md
   - ../project/docs/adr/ADR-2039-visionclaw-dev-mode-lan-local-bypass.md
+  - ../project/docs/adr/ADR-2119-prod-ingress-is-declared-lan-or-tunnel.md
+  - ../project/scripts/launch.sh
   - ../project/agentbox/docs/adr/ADR-2013-loopback-publish-except-9096.md
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
   - ../project/agentbox/flake.nix
@@ -35,7 +37,7 @@ sources:
   - ../project/agentbox/docs/INGRESS-identity.md
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/docs/adr/ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md
-verified_commit: {visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047}
+verified_commit: {visionclaw: dd420fbc722a7a4a50e968162ac6c3eaff6972b2, agentbox: e4993a3bce0146062bd5fd5863df7f8e747cf21b}
 ---
 ## ES-10.1 Three named profiles — exact flag set per profile vs the fail-closed code default
 ```mermaid
@@ -156,6 +158,8 @@ flowchart LR
     B5 --> NET
     NET --> DRIFT1
     NET --> CFT
+    LANGAP["OPEN — ADR-2119 makes the unified file's cloudflared opt-in<br/>under its own tunnel profile, but leaves this standalone file<br/>unaffected, ADR-2119-prod-ingress-is-declared-lan-or-tunnel.md:64-66.<br/>VISIONCLAW_INGRESS=lan therefore does not stop a hand-started<br/>standalone tunnel fronting a LAN-declared host."]
+    CFT --> LANGAP
     A1 --> DRIFT2
 ```
 
@@ -171,6 +175,14 @@ flowchart TB
         H3E["FATAL — project/src/main.rs:140-146"]
         H4["RBAC_ALLOW_OWNERLESS=0 with no RBAC_OWNER_PUBKEY<br/>and no prior Owner"]
         H4E["PermissionDenied, refuses to start<br/>project/src/main.rs:793"]
+    end
+    subgraph launcher["Launcher pre-flight — launch.sh up prod, before docker is touched"]
+        P1[".env.prod defines SETTINGS_AUTH_BYPASS, ALLOW_INSECURE_DEFAULTS,<br/>VISIONCLAW_DEV_MODE or DEV_AUTH_LOOPBACK, even as false"]
+        P1E["exit 1, in LAN and tunnel ingress alike<br/>project/scripts/launch.sh:195-198"]
+        P2["VISIONCLAW_INGRESS neither lan nor tunnel (ADR-2119)"]
+        P2E["exit 1 — project/scripts/launch.sh:171-177"]
+        P3["tunnel without CLOUDFLARE_TUNNEL_TOKEN, or<br/>lan without CORS_ALLOWED_ORIGINS"]
+        P3E["exit 1 — project/scripts/launch.sh:205-220"]
     end
     subgraph soft["Refuses to activate — falls back to safe value"]
         S1["RBAC_GATE_MODE=report in release without<br/>RBAC_REPORT_MODE_ACK = today UTC"]
@@ -188,6 +200,9 @@ flowchart TB
     H3 --> H3E
     H4 --> H4E
     S1 --> S1E
+    P1 --> P1E
+    P2 --> P2E
+    P3 --> P3E
     N1 --> N1E
     N2 --> N2E
 ```
@@ -235,7 +250,7 @@ sequenceDiagram
     participant DK as Docker bridge SNAT
     participant AX as AuthenticatedUser extractor<br/>src/settings/auth_extractor.rs
     participant DB as dev_full_bypass_active<br/>src/utils/auth.rs:99
-    participant VA as verify_access<br/>src/utils/auth.rs:142
+    participant VA as verify_access<br/>src/utils/auth.rs:174
     participant WS as WS handshake<br/>src/handlers/socket_flow_handler/filter_auth.rs
 
     Note over HP,DK: CONTEXT ADR-2039 — Docker port-publishing SNATs the<br/>source, so the backend sees the bridge gateway not the<br/>real HP. Neither a loopback check nor a LAN-CIDR<br/>allow-list can express trust my headset.
@@ -255,7 +270,8 @@ sequenceDiagram
         AX->>WS: same bypass on WS upgrade
     end
     end
-    Note over HP,WS: DIVERGENCE ADR-2039 is decision_status proposed but<br/>implementation_status COMPLETE and activation inactive.<br/>Root cause it works around — the client's NIP-98 signing<br/>has a standing u-tag URL-mismatch bug, so every<br/>server-write HUD action returns 403.
+    Note over HP,WS: DIVERGENCE ADR-2039 is decision_status proposed but<br/>implementation_status COMPLETE and activation inactive,<br/>ADR-2039-visionclaw-dev-mode-lan-local-bypass.md:5-7
+    Note over HP,WS: CORRECTED 2026-10-02 (e7e6b61d8) — the record's premise, a client-side<br/>u-tag bug, was wrong. The headset signs correctly. The prod nginx dropped<br/>the port, so a LAN-signed host:3001 URL failed urls_match. One<br/>nip98_request_url now rebuilds the URL from X-Forwarded-Host for<br/>verify_access and the settings extractor, auth.rs:153-171,249 and<br/>auth_extractor.rs:149. The bypass now serves the dev rig only,<br/>ADR-2039-visionclaw-dev-mode-lan-local-bypass.md:142-144
 ```
 
 ## ES-10.7 Boot-time profile assertion and remaining decision divergence
@@ -339,15 +355,15 @@ flowchart TB
         C6["Dream remote-execution identity<br/>ssh/scp uses AMBIENT ssh config, no explicit identity file"]
         C7["VisionClaw legacy backup<br/>scripts/backup-secrets.sh: ZIP plus manifest"]
         C8["Agentbox Rust backup source<br/>services/secret-backup: tar inside age, owner-only output"]
-        C9["Claude Code session permission posture (ADR-2116)<br/>agentbox.toml:624-639 [claude_code] bypassPermissions default<br/>plus deny rules (docker run/compose, ssh to machinelearn)"]
+        C9["Claude Code session permission posture (ADR-2116)<br/>agentbox.toml:623-638 [claude_code] bypassPermissions default<br/>plus deny rules (docker run/compose, ssh to machinelearn)"]
     end
     ST["STATUS — proposed governing surface. Every custodian,<br/>deployed location, rotation cadence and incident response<br/>time is UNCONFIRMED. No cadence is invented."]
     D1["PARTIAL — break-glass checks optional expiry and method/path scope.<br/>Unset bounds allow unbounded use. Acceptance/refusal logs include<br/>a fingerprint and counters, but durable per-use audit is unproven."]
     D2["TWO SOURCE PATHS — VisionClaw backup-secrets.sh still writes<br/>ordinary ZIP with an integrity check, without explicit encryption<br/>or permission hardening. Agentbox Rust backup refuses missing<br/>encryption authority and hardens output to 0600. Its existence<br/>does not replace the legacy script or prove deployed adoption."]
-    D3["DIVERGENCE ADR-040 D3 — agentbox/agentbox.toml:161 marks the<br/>governance publisher key-split PENDING, so governance<br/>events and server identity still share a key."]
+    D3["DIVERGENCE ADR-040 D3 — agentbox/agentbox.toml:160 marks the<br/>governance publisher key-split PENDING, so governance<br/>events and server identity still share a key."]
     D4["DIVERGENCE — deleting the AoE state file alone does NOT<br/>rotate the daemon token, because the proxy holds a<br/>last-good cache. Daemon and proxy must rotate coherently."]
     D5["DIVERGENCE SOPS never executed (legacy ADR-109, accepted<br/>2026-05-09) — VisionClaw .env is PLAINTEXT today, no SOPS<br/>artifacts in tree."]
-    D6["SCOPED OUT — ADR-2116 permission posture governs WHO can run<br/>tools inside a Claude Code session, not custody of a secret<br/>value. Deny rules (agentbox.toml:639-643) are pattern matches a<br/>sh -c wrapper evades, so it is access control, not a vault entry."]
+    D6["SCOPED OUT — ADR-2116 permission posture governs WHO can run<br/>tools inside a Claude Code session, not custody of a secret<br/>value. Deny rules (agentbox.toml:638-642) are pattern matches a<br/>sh -c wrapper evades, so it is access control, not a vault entry."]
 
     reg --> ST
     C3 --> D1
@@ -390,14 +406,14 @@ flowchart TB
     INV["INVARIANT — a publish that is not on this list, in any compose<br/>file, fails CI. The parser rewrite exists because the previous<br/>walker armed only on a line whose first token was ports, so the<br/>same port written as a nested flow mapping passed.<br/>agentbox/scripts/ci/check-ports-loopback.mjs:10-18"]
     DOORS --> INV
 
-    PROP["PARTLY BUILT 2026-09-30 (d0fa1b80b) — the sidechain manifest block now<br/>gates three supervised programs, sidestr-producer, sidestr-mirror and<br/>sidestr-faucet, agentbox/flake.nix:2641,2659,2676 and agentbox/agentbox.toml:1570-1576.<br/>The chain plane is still NOT a door: no sidestr-node, no sidestr-bridge<br/>and no loopback port 9097 bind behind the nip98-proxy exist,<br/>agentbox/docs/BASELINE-container.md:206. The planned program is still<br/>agentbox/docs/adr/ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md:48-51"]
+    PROP["PARTLY BUILT 2026-09-30 (d0fa1b80b) — the sidechain manifest block now<br/>gates three supervised programs, sidestr-producer, sidestr-mirror and<br/>sidestr-faucet, agentbox/flake.nix:2641,2659,2676 and agentbox/agentbox.toml:1574-1580.<br/>The chain plane is still NOT a door: no sidestr-node, no sidestr-bridge<br/>and no loopback port 9097 bind behind the nip98-proxy exist,<br/>agentbox/docs/BASELINE-container.md:206. The planned program is still<br/>agentbox/docs/adr/ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md:48-51"]
     INV --> PROP
-    GATEDRIFT["DRIFT — ADR-2098 gates a validator-and-mirror sidestr-node on the<br/>sidechain enabled key and the producer on a separate signer key,<br/>agentbox/docs/adr/ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md:48-50.<br/>The build has no sidestr-node and gates the producer on the<br/>enabled key itself, agentbox/flake.nix:240,2631 and agentbox/agentbox.toml:1571."]
+    GATEDRIFT["DRIFT — ADR-2098 gates a validator-and-mirror sidestr-node on the<br/>sidechain enabled key and the producer on a separate signer key,<br/>agentbox/docs/adr/ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md:48-50.<br/>The build has no sidestr-node and gates the producer on the<br/>enabled key itself, agentbox/flake.nix:240,2631 and agentbox/agentbox.toml:1575."]
     PROP --> GATEDRIFT
 
-    NARROW["PROPOSED scope change to Invariant 6 — the relay allowlist governs<br/>IDENTITY ingress; chain ingress would be authenticated by consensus<br/>instead. Recorded as a proposed note, with the live compliance<br/>surface unchanged.<br/>agentbox/docs/INGRESS-identity.md:263"]
+    NARROW["PROPOSED scope change to Invariant 6 — the relay allowlist governs<br/>IDENTITY ingress; chain ingress would be authenticated by consensus<br/>instead. Recorded as a proposed note, with the live compliance<br/>surface unchanged.<br/>agentbox/docs/INGRESS-identity.md:269"]
     PROP --> NARROW
 
-    TENSION["TENSION — two of the ten doors, ports 8443 and 8444, are<br/>PERMANENTLY sanctioned while the manifest declares that plane off<br/>(agentbox/agentbox.toml:1787). The door list and the feature gate<br/>answer different questions and neither is the answer to whether<br/>voice is running. see ES-01.5"]
+    TENSION["TENSION — two of the ten doors, ports 8443 and 8444, are<br/>PERMANENTLY sanctioned while the manifest declares that plane off<br/>(agentbox/agentbox.toml:1791). The door list and the feature gate<br/>answer different questions and neither is the answer to whether<br/>voice is running. see ES-01.5"]
     D1 --> TENSION
 ```

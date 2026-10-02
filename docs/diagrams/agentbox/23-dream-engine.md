@@ -4,7 +4,7 @@ title: Dream machine — nightly cycle, gates and acceptance path
 area: agentbox
 governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
-adrs: [ADR-2024, ADR-2053, ADR-2081, ADR-2084, ADR-2087]
+adrs: [ADR-2024, ADR-2053, ADR-2071, ADR-2081, ADR-2084, ADR-2087]
 sources:
   - ../project/agentbox/services/dream-engine/src/engine.rs
   - ../project/agentbox/services/dream-engine/src/config.rs
@@ -44,7 +44,10 @@ sources:
   - ../project/agentbox/services/dream-engine/src/compile.rs
   - ../project/agentbox/management-api/routes/exec-record.js
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+  - ../project/agentbox/scripts/activation/adr-2071-api-down-night.sh
+  - ../project/agentbox/skills/podcast-knowledge-ingest/crontab
+  - ../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md
+verified_commit: e4993a3bce0146062bd5fd5863df7f8e747cf21b
 ---
 
 ## AB-23.1 One repo-night — run phases
@@ -101,7 +104,7 @@ sequenceDiagram
     participant ROS as roster<br/>agentbox/services/dream-engine/src/roster.rs
     participant RS as runstate::begin<br/>agentbox/services/dream-engine/src/runstate.rs:132
     participant MAN as manifest::freeze<br/>agentbox/services/dream-engine/src/manifest.rs:196
-    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2108
+    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2112
     participant LLM as call<br/>agentbox/services/dream-engine/src/llm.rs:49
     participant GATE as gate::decide<br/>agentbox/services/dream-engine/src/gate.rs:190
     participant LED as ledger<br/>agentbox/services/dream-engine/src/ledger.rs
@@ -109,7 +112,7 @@ sequenceDiagram
 
     SUP->>ENG: dream-engine --loop --agentbox-toml /etc/agentbox.toml
     Note over SUP,ENG: autostart=true autorestart=true priority=230 user=devuser (flake.nix:2488-2497)
-    alt [dream_machine] enabled = false (agentbox/agentbox.toml:2107)
+    alt [dream_machine] enabled = false (agentbox/agentbox.toml:2111)
         ENG-->>SUP: byte-identical-when-off — no supervisor block is generated at all
     else enabled
         loop nightly window
@@ -121,11 +124,11 @@ sequenceDiagram
             opt DREAM_SWEEP is not 0
                 ENG->>ENG: sweep_branches — seven-day rule for dream/* branches, before tonight<br/>adds any (engine.rs:155-159, engine.rs:1412). Merged or closed PR deletes,<br/>an open PR over 7 days is closed, no PR over 7 days deletes, the checked-out<br/>branch is never touched (sweep.rs:49-64)
             end
-            ENG->>ENG: UTC hour within window_start 1 .. window_end 5 (agentbox.toml:2133-2134)
+            ENG->>ENG: UTC hour within window_start 1 .. window_end 5 (agentbox.toml:2137-2138)
             loop each nominated repo (engine.rs:163-189)
                 alt .dream-standby marker present
                     ENG->>ENG: standby{repo, reason:"marker", streak:0} (engine.rs:164-171)
-                else dry streak — last prune_dry_streak 5 ledger rows ALL INCONCLUSIVE (agentbox.toml:2145)
+                else dry streak — last prune_dry_streak 5 ledger rows ALL INCONCLUSIVE (agentbox.toml:2149)
                     ENG->>ENG: standby{repo, reason:"dry-streak", streak} (engine.rs:173-186)
                     Note over ENG: REJECT counts as learning and RESETS the streak — revive via --target or a harness fix
                 else eligible
@@ -211,7 +214,7 @@ sequenceDiagram
         Note over RDY: an echo, a true, a bare colon — green every night, informative never<br/>(readiness.rs:39-41)
     else darwin entrypoint without a sandbox flag
         RDY-->>ENG: Unusable::DarwinSandboxMissing
-        Note over RDY: INVARIANT ADR-2024 — every @metaharness/darwin entrypoint MUST run --sandbox mock or<br/>--sandbox agent, never the no-op real default which is documented surface-INDEPENDENT<br/>and emits the same output regardless of the code under test (agentbox.toml:2061-2066)
+        Note over RDY: INVARIANT ADR-2024 — every @metaharness/darwin entrypoint MUST run --sandbox mock or<br/>--sandbox agent, never the no-op real default which is documented surface-INDEPENDENT<br/>and emits the same output regardless of the code under test (agentbox.toml:2065-2070)
     else usable
         RDY-->>ENG: admitted
     end
@@ -658,6 +661,8 @@ flowchart TB
     end
 ```
 
+**Invariant (2026-10-02, owner decision Q10):** the forum-suggestions tenant asks a member to clarify only when JunkieJarvis may speak; it reads the same `junkiejarvisEnabled(manifest)` that management-api uses, and with it off an unclear post is held — no DM, no ledger row, not parked — so it is asked once JunkieJarvis is on (`../project/agentbox/scripts/dream-forum-suggestions.mjs:215-221`, `../project/agentbox/scripts/dream-forum-suggestions.mjs:378-381`).
+
 ## AB-23.11 ADR-2081 — the annexe mirrors real workspace depth
 
 ```mermaid
@@ -792,10 +797,10 @@ sequenceDiagram
     participant LOOM as call_loom<br/>agentbox/services/dream-engine/src/llm.rs:196
     participant ZAI as call_zai<br/>agentbox/services/dream-engine/src/llm.rs:111
     participant CRATE as loom-client crate<br/>published, see AB-28.11
-    participant F as Loom facade<br/>agentbox/agentbox.toml:2110
+    participant F as Loom facade<br/>agentbox/agentbox.toml:2114
 
     ENG->>CALL: call(cfg, prompt)
-    alt llm_provider = zai - the DEFAULT (agentbox.toml:2123)
+    alt llm_provider = zai - the DEFAULT (agentbox.toml:2127)
         CALL->>ZAI: POST the Anthropic Messages body with x-api-key
         ZAI-->>CALL: text parts joined, or EmptyResponse (llm.rs:173-177)
         Note over CALL,ZAI: exactly ONE retry, 20s apart, and only on a transient fault -<br/>transport, empty body, or an HTTP 5xx including Cloudflare 52x.<br/>is_transient refuses to retry a 4xx (llm.rs:69)
@@ -814,13 +819,13 @@ sequenceDiagram
     Note over CRATE: the hand-rolled client that lived in llm.rs knew ONE of the three facade<br/>traps. Two nights of verdicts in 2026-09 were derived from ontology prose that<br/>never reached a model, and truncation on a reasoning model returns EMPTY content<br/>rather than a short answer - the crate owns a token floor and a doubling retry<br/>the wrapper could not do, because it cannot see finish_reason (llm.rs:182-195)
 ```
 
-**Debt:** `agentbox/agentbox.toml:2123` keeps `llm_provider = "zai"` as the default, so nightly repository content leaves the LAN on every unattended night; the LAN-only Loom path at `../project/agentbox/services/dream-engine/src/llm.rs:196` is opt-in.
+**Debt:** `agentbox/agentbox.toml:2127` keeps `llm_provider = "zai"` as the default, so nightly repository content leaves the LAN on every unattended night; the LAN-only Loom path at `../project/agentbox/services/dream-engine/src/llm.rs:196` is opt-in.
 
 ## AB-23.16 Placeholder resolution and the refusal to dispatch to nowhere
 
 ```mermaid
 flowchart TB
-    TOML["agentbox.toml ships PLACEHOLDERS, not addresses<br/>hp_host CONNECTED_NODE_SSH agentbox.toml:2108<br/>hp_annexe_dir composite agentbox.toml:2109<br/>loom_url LOOM_BASE_URL agentbox.toml:2110"]
+    TOML["agentbox.toml ships PLACEHOLDERS, not addresses<br/>hp_host CONNECTED_NODE_SSH agentbox.toml:2112<br/>hp_annexe_dir composite agentbox.toml:2113<br/>loom_url LOOM_BASE_URL agentbox.toml:2114"]
     TOML --> RP["RuntimeConfig.resolve_placeholders<br/>agentbox/services/dream-engine/src/config.rs:330"]
     RP -->|"whole-value form"| W["resolve_env_placeholder<br/>config.rs:315 - a value that IS a placeholder"]
     RP -->|"composite form"| I["resolve_env_placeholders_infix<br/>config.rs:349 - a value that CONTAINS one"]
@@ -920,7 +925,7 @@ sequenceDiagram
     participant ENG as Engine::cycle_repo_body<br/>agentbox/services/dream-engine/src/engine.rs:420
     participant SWEEP as retention sweep<br/>agentbox/services/dream-engine/src/dispatch.rs:30
     participant AH as dispatch::annexe_health<br/>agentbox/services/dream-engine/src/dispatch.rs:266
-    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2108
+    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2112
     participant RS as runstate::begin<br/>agentbox/services/dream-engine/src/runstate.rs:132
     participant INBOX as inbox::add<br/>agentbox/services/dream-engine/src/inbox.rs:1
 
@@ -953,6 +958,38 @@ sequenceDiagram
 ```
 
 **Invariant:** the annexe probe writes and deletes a file before it trusts `df`'s free-space figure, so a metadata-exhausted btrfs volume that still reports free capacity is still caught (`../project/agentbox/services/dream-engine/src/dispatch.rs:246-253`).
+
+## AB-23.19 ADR-2071 clause (c) — the one-shot night with management-api stopped
+
+```mermaid
+flowchart TB
+    CRON["podcast-cron supercronic reads the checkout crontab<br/>every 10 min on 5-7 Oct: crontab:42<br/>the one schedule that survives a restart without a rebuild, crontab:35-37"]
+    CRON --> TICK["adr-2071-api-down-night.sh tick<br/>stateless: marker, state file and the UTC clock only<br/>adr-2071-api-down-night.sh:9-15"]
+    TICK --> MK{"marker names a YYYY-MM-DD?<br/>adr-2071-api-down-night.sh:82-87"}
+    MK -->|"no marker"| NOOP["exit 0, nothing happens"]
+    MK -->|"yes"| PH{"state phase<br/>adr-2071-api-down-night.sh:91-94"}
+    PH -->|"done or missed"| RET["retire: marker renamed .consumed<br/>adr-2071-api-down-night.sh:89"]
+    PH -->|"none, 00:30-00:59 UTC on the night"| PAUSE{"dream-paused flag?<br/>adr-2071-api-down-night.sh:100-104"}
+    PAUSE -->|"yes"| MISS["phase missed, the API stays up<br/>adr-2071-api-down-night.sh:102"]
+    PAUSE -->|"no"| STOP["EXIT trap armed, supervisorctl stop management-api<br/>phase stopped, stopped_at written<br/>adr-2071-api-down-night.sh:106-110"]
+    PH -->|"none, first tick at or after 01:00"| MISS2["phase missed, reason no-tick-before-window<br/>adr-2071-api-down-night.sh:120-123"]
+    STOP --> NIGHT["the dream window runs with no API:<br/>window_start 1, window_end 5 UTC<br/>agentbox.toml:2137-2138"]
+    NIGHT --> RS{"phase stopped: which comes first?<br/>adr-2071-api-down-night.sh:129-143"}
+    RS -->|"dream-last-night.json dated the night"| R1["reason night-record<br/>adr-2071-api-down-night.sh:136-137"]
+    RS -->|"API RUNNING again"| R2["reason interrupted, a container restart<br/>adr-2071-api-down-night.sh:138-139"]
+    RS -->|"07:30 UTC passed"| R3["reason deadline<br/>adr-2071-api-down-night.sh:140-141"]
+    R1 --> START["supervisorctl start, phase done, marker retired<br/>adr-2071-api-down-night.sh:144-147"]
+    R2 --> START
+    R3 --> START
+    START --> CHK["the morning after: adr-2087-check.sh --api-down-night DATE<br/>C3 passes only on night-record or deadline, see AB-14.15"]
+```
+
+**What it shows.** How the estate will run its first dream night with the management API deliberately down: a marker file names the night, a ten-minute cron tick stops the API in the half-hour before the window, and the first tick that sees the night record, the 07:30 UTC deadline or an API that came back on its own restarts it and retires the marker.
+**Why it is this way.** ADR-2071 can only be accepted once clause (c) shows the night still completes, and journals its failures, with nothing to journal to. The owner fixed the night of Monday 5 October (owner decision 2026-10-02, Q9; `../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md:179`). The schedule rides the checkout crontab rather than the image so that a container restart neither loses it nor needs a rebuild (`../project/agentbox/skills/podcast-knowledge-ingest/crontab:34-42`). The tick is pure bash plus coreutils because that cron PATH has no `sed` or `awk` (`../project/agentbox/scripts/activation/adr-2071-api-down-night.sh:59-60`).
+
+**Invariant:** the API is never left down by a dying tick: an EXIT trap restarts management-api from the moment the stop is attempted until the state write lands (`../project/agentbox/scripts/activation/adr-2071-api-down-night.sh:105-109`).
+
+**Debt:** the crontab block is a dated one-shot that has to be removed by hand ("Remove this block after 7 Oct 2026", `../project/agentbox/skills/podcast-knowledge-ingest/crontab:41`). The same checkout crontab now also ticks the EXP-B8 label-log experiment every 30 minutes until its own PR merges (`../project/agentbox/skills/podcast-knowledge-ingest/crontab:44-54`), so a supervised program named for podcast ingest carries two schedules that have nothing to do with podcasts.
 
 ## Audit qualification - 2026-09-07
 

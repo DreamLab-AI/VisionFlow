@@ -33,14 +33,16 @@ sources:
   - ../project/client/src/features/graph/workers/graph.worker.ts
   - ../project/client/src/services/BinaryWebSocketProtocol.ts
   - ../project/src/handlers/socket_flow_handler/actor_messages.rs
-verified_commit: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8
+  - ../project/src/utils/auth.rs
+  - ../project/nginx.production.conf
+verified_commit: dd420fbc722a7a4a50e968162ac6c3eaff6972b2
 ---
 
 ## VC-13.3 GPU broadcast frame end to end
 ```mermaid
 sequenceDiagram
     autonumber
-    participant FC as ForceComputeActor<br/>src/actors/gpu/force_compute_actor.rs:2440
+    participant FC as ForceComputeActor<br/>src/actors/gpu/force_compute_actor.rs:2430
     participant BO as BroadcastOptimizer<br/>src/gpu/broadcast_optimizer.rs:183
     participant BP as NetworkBackpressure<br/>src/gpu/backpressure.rs:262
     participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:2013
@@ -58,7 +60,7 @@ sequenceDiagram
         FC->>BP: backpressure.try_acquire()<br/>src/gpu/backpressure.rs:262
         alt token available (max_tokens=100, cost=1)<br/>src/gpu/backpressure.rs:67-70
             BP-->>FC: Some(sequence_id)
-            Note over FC: clamp NaN/Inf per-node<br/>src/actors/gpu/force_compute_actor.rs:2453
+            Note over FC: clamp NaN/Inf per-node<br/>src/actors/gpu/force_compute_actor.rs:2443
             FC->>GSS: UpdateNodePositions{positions, correlation_id}<br/>src/actors/messages/graph_messages.rs:58
             GSS->>GSA: do_send(UpdateNodePositions clone)<br/>src/actors/graph_service_supervisor.rs:1989
             GSA-->>GSA: mutate graph_data.nodes in-place<br/>src/actors/graph_state_actor.rs:861
@@ -84,7 +86,7 @@ sequenceDiagram
             WS->>WS: ctx.binary(payload) over the WebSocket
         else backpressure exhausted
             BP-->>FC: None
-            FC->>BP: backpressure.record_skip()<br/>src/actors/gpu/force_compute_actor.rs:2477
+            FC->>BP: backpressure.record_skip()<br/>src/actors/gpu/force_compute_actor.rs:2467
             Note right of BP: congestion tracked, warn every<br/>log_interval_frames=60 skipped frames<br/>src/gpu/backpressure.rs:60-74,302-316
         end
     else rate-limited (inside broadcast_interval)
@@ -148,13 +150,14 @@ sequenceDiagram
             end
             HH->>WSS: ws_server = SocketFlowServer::new(...)<br/>src/handlers/socket_flow_handler/http_handler.rs:384
             HH->>WSS: signed user, if any, sets pubkey and is_power_user<br/>src/handlers/socket_flow_handler/http_handler.rs:392-395
-            HH->>WSS: set connection_url for NIP-98 WS validation<br/>src/handlers/socket_flow_handler/http_handler.rs:406-418
-            opt ?token= present a second time (dev builds only, :371-382)
-                HH->>NS: nostr_service.get_session(token_from_qs)<br/>src/handlers/socket_flow_handler/http_handler.rs:423
+            HH->>WSS: connection_url = nip98_request_url(req) for NIP-98 WS validation<br/>src/handlers/socket_flow_handler/http_handler.rs:406-407
+            Note over HH: INVARIANT: one u-tag reconstruction for every NIP-98 entry point,<br/>X-Forwarded-Proto and X-Forwarded-Host win over connection_info<br/>src/utils/auth.rs:153-162, nginx forwards X-Forwarded-Host $http_host<br/>for /wss so the dialled port survives, nginx.production.conf:248
+            opt ?token= present a second time (dev builds only, src/handlers/socket_flow_handler/http_handler.rs:371-382)
+                HH->>NS: nostr_service.get_session(token_from_qs)<br/>src/handlers/socket_flow_handler/http_handler.rs:412
                 NS-->>HH: user with pubkey, is_power_user
-                HH->>WSS: ws_server.pubkey = Some(user.pubkey)<br/>src/handlers/socket_flow_handler/http_handler.rs:424-425
+                HH->>WSS: ws_server.pubkey = Some(user.pubkey)<br/>src/handlers/socket_flow_handler/http_handler.rs:413-414
             end
-            HH->>C: 101 Switching Protocols (WsResponseBuilder, PUBLIC_WS_PROTOCOLS echoed)<br/>src/handlers/socket_flow_handler/http_handler.rs:438-440
+            HH->>C: 101 Switching Protocols (WsResponseBuilder, PUBLIC_WS_PROTOCOLS echoed)<br/>src/handlers/socket_flow_handler/http_handler.rs:427-429
         end
     end
     end
@@ -238,33 +241,33 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant FC as ForceComputeActor<br/>src/actors/gpu/force_compute_actor.rs:2440
+    participant FC as ForceComputeActor<br/>src/actors/gpu/force_compute_actor.rs:2430
     participant BO as BroadcastOptimizer<br/>src/gpu/broadcast_optimizer.rs:183
     participant BP as NetworkBackpressure<br/>src/gpu/backpressure.rs:262
     participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:2013
 
     rect rgb(225,228,245)
     Note over FC: FastSettle path — force_full_broadcast set by the settle controller
-    alt actor.force_full_broadcast is true<br/>src/actors/gpu/force_compute_actor.rs:2405
-        FC->>FC: force_full_broadcast=false, suppress_intermediate_broadcasts=false<br/>src/actors/gpu/force_compute_actor.rs:2407-2408
-        FC->>BO: broadcast_optimizer.reset_broadcast_timer()<br/>src/actors/gpu/force_compute_actor.rs:2409
-        FC->>BP: backpressure.try_acquire()<br/>src/actors/gpu/force_compute_actor.rs:2411
-        FC->>GSS: UpdateNodePositions ALL nodes (final converged positions)<br/>src/actors/gpu/force_compute_actor.rs:2425-2433
-        Note right of FC: FINAL full broadcast logged every settle<br/>src/actors/gpu/force_compute_actor.rs:2426-2429
+    alt actor.force_full_broadcast is true<br/>src/actors/gpu/force_compute_actor.rs:2395
+        FC->>FC: force_full_broadcast=false, suppress_intermediate_broadcasts=false<br/>src/actors/gpu/force_compute_actor.rs:2397-2398
+        FC->>BO: broadcast_optimizer.reset_broadcast_timer()<br/>src/actors/gpu/force_compute_actor.rs:2399
+        FC->>BP: backpressure.try_acquire()<br/>src/actors/gpu/force_compute_actor.rs:2401
+        FC->>GSS: UpdateNodePositions ALL nodes (final converged positions)<br/>src/actors/gpu/force_compute_actor.rs:2415-2423
+        Note right of FC: FINAL full broadcast logged every settle<br/>src/actors/gpu/force_compute_actor.rs:2416-2419
     else actor.suppress_intermediate_broadcasts is true (settle burst in progress)
-        FC->>BO: process_frame — advances the rate-limit timer only, no send<br/>src/actors/gpu/force_compute_actor.rs:2439
+        FC->>BO: process_frame — advances the rate-limit timer only, no send<br/>src/actors/gpu/force_compute_actor.rs:2429
     else continuous mode, normal rate-limited path
-        FC->>BO: process_frame(position_velocity_buffer, node_id_buffer)<br/>src/actors/gpu/force_compute_actor.rs:2445
+        FC->>BO: process_frame(position_velocity_buffer, node_id_buffer)<br/>src/actors/gpu/force_compute_actor.rs:2435
         alt should_broadcast true and backpressure token acquired
-            FC->>GSS: UpdateNodePositions (rate-limited full snapshot)<br/>src/actors/gpu/force_compute_actor.rs:2462-2474
-            FC->>FC: last_full_broadcast_iteration = iteration_count<br/>src/actors/gpu/force_compute_actor.rs:2474
+            FC->>GSS: UpdateNodePositions (rate-limited full snapshot)<br/>src/actors/gpu/force_compute_actor.rs:2452-2464
+            FC->>FC: last_full_broadcast_iteration = iteration_count<br/>src/actors/gpu/force_compute_actor.rs:2464
         else should_broadcast false (rate-limited this tick)
-            alt iteration_count minus last_full_broadcast_iteration is at least 300<br/>src/actors/gpu/force_compute_actor.rs:2479
-                Note right of FC: periodic full broadcast for late-connecting<br/>clients — N=300 iterations, independent of the<br/>25fps rate limiter above<br/>src/actors/gpu/force_compute_actor.rs:2479-2513
-                FC->>BP: backpressure.try_acquire()<br/>src/actors/gpu/force_compute_actor.rs:2481
-                FC->>GSS: UpdateNodePositions ALL nodes (periodic full)<br/>src/actors/gpu/force_compute_actor.rs:2497-2506
-                FC->>FC: last_full_broadcast_iteration = iteration_count<br/>src/actors/gpu/force_compute_actor.rs:2509
-                FC->>BO: broadcast_optimizer.reset_broadcast_timer()<br/>src/actors/gpu/force_compute_actor.rs:2511
+            alt iteration_count minus last_full_broadcast_iteration is at least 300<br/>src/actors/gpu/force_compute_actor.rs:2469
+                Note right of FC: periodic full broadcast for late-connecting<br/>clients — N=300 iterations, independent of the<br/>25fps rate limiter above<br/>src/actors/gpu/force_compute_actor.rs:2469-2503
+                FC->>BP: backpressure.try_acquire()<br/>src/actors/gpu/force_compute_actor.rs:2471
+                FC->>GSS: UpdateNodePositions ALL nodes (periodic full)<br/>src/actors/gpu/force_compute_actor.rs:2487-2496
+                FC->>FC: last_full_broadcast_iteration = iteration_count<br/>src/actors/gpu/force_compute_actor.rs:2499
+                FC->>BO: broadcast_optimizer.reset_broadcast_timer()<br/>src/actors/gpu/force_compute_actor.rs:2501
             else below 300 iterations since last full broadcast
                 Note right of FC: no broadcast this tick — waits for either<br/>the 25fps gate or the 300-iteration escape hatch
             end

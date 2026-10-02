@@ -5,7 +5,7 @@ area: estate
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/agentbox/docs/BASELINE-container.md
-adrs: [visionclaw:ADR-2008, visionclaw:ADR-2037, agentbox:ADR-2013, agentbox:ADR-2028, agentbox:ADR-2039, agentbox:ADR-2056, agentbox:ADR-2082, agentbox:ADR-2083, agentbox:ADR-2085, agentbox:ADR-2091, agentbox:ADR-2092, agentbox:ADR-2093, agentbox:ADR-2094, visionclaw:ADR-2086]
+adrs: [visionclaw:ADR-2008, visionclaw:ADR-2037, agentbox:ADR-2013, agentbox:ADR-2028, agentbox:ADR-2039, agentbox:ADR-2056, agentbox:ADR-2082, agentbox:ADR-2083, agentbox:ADR-2085, agentbox:ADR-2091, agentbox:ADR-2092, agentbox:ADR-2093, agentbox:ADR-2094, visionclaw:ADR-2086, visionclaw:ADR-2119]
 sources:
   - ../project/Dockerfile.unified
   - ../project/Dockerfile.production
@@ -20,6 +20,9 @@ sources:
   - ../project/scripts/rust-backend-wrapper.sh
   - ../project/scripts/prod-entrypoint.sh
   - ../project/src/main.rs
+  - ../project/src/utils/auth.rs
+  - ../project/src/handlers/solid_proxy_handler.rs
+  - ../project/docs/adr/ADR-2119-prod-ingress-is-declared-lan-or-tunnel.md
   - ../project/.gitmodules
   - ../project/agentbox/flake.nix
   - ../project/agentbox/agentbox.toml
@@ -54,7 +57,7 @@ sources:
   - ../project/scripts/ontology/pack-pod-resources.py
   - ../project/scripts/launch.sh
   - ../project/scripts/start.sh
-verified_commit: {visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047}
+verified_commit: {visionclaw: dd420fbc722a7a4a50e968162ac6c3eaff6972b2, agentbox: e4993a3bce0146062bd5fd5863df7f8e747cf21b}
 ---
 ## ES-09.1 The host-vs-container build trap — wrong path vs sanctioned path
 ```mermaid
@@ -278,20 +281,23 @@ stateDiagram-v2
     end note
 ```
 
-## ES-09.8 Compose profiles — dev, production, loom, cloudflared
+## ES-09.8 Compose profiles — dev, production, tunnel, loom
 ```mermaid
 flowchart TB
     subgraph PROFILES["docker-compose.unified.yml services block"]
         DEVSVC["visionclaw<br/>docker-compose.unified.yml:54 target development<br/>profiles development and dev, docker-compose.unified.yml:193-194<br/>ports 3001 and 4000, docker-compose.unified.yml:173-174<br/>source-bind volumes docker-compose.unified.yml:127-171,<br/>docker.sock read-only docker-compose.unified.yml:164"]
-        VAULTMOUNT["ADR-2114 corpus vault mount<br/>agent-workspace:/vault:ro docker-compose.unified.yml:170-171<br/>external named volume multi-agent-docker_workspace<br/>declared docker-compose.unified.yml:386-391"]
+        VAULTMOUNT["ADR-2114 corpus vault mount<br/>agent-workspace:/vault:ro docker-compose.unified.yml:170-171<br/>external named volume multi-agent-docker_workspace<br/>declared docker-compose.unified.yml:390-392"]
         PRODSVC["visionclaw-production<br/>docker-compose.unified.yml:197<br/>profiles production and prod, docker-compose.unified.yml:266-268<br/>port 3001 only, docker-compose.unified.yml:242<br/>NO source mounts and NO docker.sock, docker-compose.unified.yml:237-239"]
-        CLOUDFLARED["cloudflared<br/>docker-compose.unified.yml:271, image cloudflare/cloudflared at a pinned<br/>digest :274, profiles production and prod docker-compose.unified.yml:290-292<br/>depends_on visionclaw OR visionclaw-production (optional)"]
-        LOOM["loom<br/>docker-compose.unified.yml:315, image loom:rust built outside this repo :317<br/>loom compose profile docker-compose.unified.yml:377-378<br/>host port 8090 to container port 8080 docker-compose.unified.yml:361<br/>hostname loom :318, alias ontology-loom docker-compose.unified.yml:367"]
+        CLOUDFLARED["cloudflared<br/>docker-compose.unified.yml:273, image cloudflare/cloudflared at a pinned<br/>digest :276, its OWN profile tunnel docker-compose.unified.yml:292-293 (ADR-2119)<br/>depends_on visionclaw OR visionclaw-production (optional)"]
+        LOOM["loom<br/>docker-compose.unified.yml:316, image loom:rust built outside this repo :318<br/>loom compose profile docker-compose.unified.yml:378-379<br/>host port 8090 to container port 8080 docker-compose.unified.yml:363<br/>hostname loom :319, alias ontology-loom docker-compose.unified.yml:368"]
     end
     subgraph EXTFILE["docker-compose.cloudflared.yml (standalone)"]
         CFSTANDALONE["cloudflared<br/>joins external visionclaw_network<br/>alias visionclaw-server:3001"]
     end
-    NET["visionclaw_network (external, pre-created)<br/>docker-compose.unified.yml:380-383"]
+    NET["visionclaw_network (external, pre-created)<br/>docker-compose.unified.yml:381-384"]
+    INGRESS["launch.sh up prod reads VISIONCLAW_INGRESS from .env.prod,<br/>lan or tunnel, undeclared means tunnel, scripts/launch.sh:167-180<br/>tunnel activates prod,tunnel, lan activates prod alone :266-271"]
+    INGRESS -->|"tunnel"| CLOUDFLARED
+    INGRESS -->|"prod in both modes"| PRODSVC
 
     DEVSVC --> VAULTMOUNT
     DEVSVC --> NET
@@ -312,20 +318,22 @@ flowchart LR
         DUPRUST["upstream rust_backend<br/>127.0.0.1:4000 :43-46"]
         DUPVITE["upstream vite_frontend<br/>127.0.0.1:5173 :48-51"]
         DAPI["^~ /api/ -> rust_backend :66-67"]
-        DWSS["/wss, /ws/speech, /ws/mcp-relay -> rust_backend :85,104,123"]
-        DSOLID["^~ /solid/, ^~ /pods/ -> rust_backend/api/solid/ :164,190"]
-        DHMR["/vite-hmr, /@vite, /node_modules -> vite_frontend :251,263"]
-        DROOT["/ -> vite_frontend (dev server, no static build) :287"]
+        DWSS["/wss, /ws/speech, /ws/mcp-relay -> rust_backend :86,106,126"]
+        DSOLID["^~ /solid/, ^~ /pods/ -> rust_backend/api/solid/ :167,193"]
+        DHMR["/vite-hmr, /@vite, /node_modules -> vite_frontend :254,266"]
+        DROOT["/ -> vite_frontend (dev server, no static build) :290"]
+        DXFH["X-Forwarded-Host = http_host, the dialled host:port,<br/>on /api/, /wss and /ws/speech only nginx.dev.conf:70,92,112<br/>/solid/ and /pods/ still send host without port nginx.dev.conf:174,200"]
     end
     subgraph PRODNGINX["nginx.production.conf — listen 3001 :85"]
         PUPRUST["upstream rust_backend<br/>127.0.0.1:4001 max_fails=0 :69-72"]
         PAPI["^~ /api/ -> rust_backend :114-115"]
-        PWS["wss / ws/speech / ws/mcp-relay / ws/hybrid-status -> rust_backend :234-235"]
-        PSOLID["^~ /solid/, ^~ /pods/ -> rust_backend/api/solid/ :169,214"]
-        PSTATIC["/, *.html, *.js/css/png -> static /app/client/dist :269,282,295"]
-        PHEALTH["/health, /healthz, /readyz -> rust_backend or static :304,313,319"]
+        PWS["wss / ws/speech / ws/mcp-relay / ws/hybrid-status -> rust_backend :235-236"]
+        PSOLID["^~ /solid/, ^~ /pods/ -> rust_backend/api/solid/ :170,215"]
+        PSTATIC["/, *.html, *.js/css/png -> static /app/client/dist :271,284,297"]
+        PHEALTH["/health, /healthz, /readyz -> rust_backend or static :306,315,321"]
+        PXFH["X-Forwarded-Host = http_host on /api/ and the ws routes<br/>nginx.production.conf:126,248<br/>/solid/ and /pods/ send host nginx.production.conf:177,222"]
     end
-    LEGACY["nginx.conf (root, listen 4000 :82)<br/>generic template, NOT referenced by any<br/>Dockerfile/compose COPY — kept as reference only"]
+    LEGACY["nginx.conf (root, listen 4000 nginx.conf:82)<br/>generic template, NOT referenced by any<br/>Dockerfile/compose COPY — kept as reference only"]
 
     DAPI --> DUPRUST
     DWSS --> DUPRUST
@@ -336,12 +344,19 @@ flowchart LR
     PWS --> PUPRUST
     PSOLID --> PUPRUST
     PHEALTH --> PUPRUST
+    DAPI -.-> DXFH
+    PAPI -.-> PXFH
+    XFHWHY["2026-10-02 (e7e6b61d8): a NIP-98 u tag signs the URL the client<br/>dialled, port included. nginx Host drops the port, so the backend<br/>rebuilds the URL from X-Forwarded-Proto and X-Forwarded-Host,<br/>auth.rs:153-171"]
+    DXFH -.-> XFHWHY
+    PXFH -.-> XFHWHY
+    XFHOPEN["OPEN: the pod NIP-98 check also rebuilds its URL from<br/>X-Forwarded-Host, solid_proxy_handler.rs:207-222, but the /solid/ and<br/>/pods/ blocks still forward host without the port. Whether a LAN<br/>client signing host:3001 for a pod write is refused is untested."]
+    DSOLID -.-> XFHOPEN
 
     DIVNOTE["DIVERGENCE: dev proxies ALL non-API routes to the<br/>Vite dev server (live HMR); prod serves a static<br/>client/dist build directly from nginx root, only<br/>API/WS routes reach the backend upstream"]
     DROOT -.-> DIVNOTE
     PSTATIC -.-> DIVNOTE
 
-    PRECED["RESOLVED 2026-10-01 (648c9c442) — in nginx a regex location<br/>outranks a plain prefix, so the asset-extension regex<br/>(nginx.dev.conf:277, nginx.production.conf:269) captured any<br/>/solid/, /pods/ or /api/ path ending in .png or .js and sent it to<br/>Vite or the static root. Every backend prefix now carries ^~,<br/>which makes the prefix match final: nginx.dev.conf:66,164,190<br/>and nginx.production.conf:114,214 (production /solid/ already had it)."]
+    PRECED["RESOLVED 2026-10-01 (648c9c442) — in nginx a regex location<br/>outranks a plain prefix, so the asset-extension regex<br/>(nginx.dev.conf:280, nginx.production.conf:271) captured any<br/>/solid/, /pods/ or /api/ path ending in .png or .js and sent it to<br/>Vite or the static root. Every backend prefix now carries ^~,<br/>which makes the prefix match final: nginx.dev.conf:66,167,193<br/>and nginx.production.conf:114,215 (production /solid/ already had it)."]
     DSOLID -.-> PRECED
     PSOLID -.-> PRECED
 ```
@@ -406,7 +421,7 @@ sequenceDiagram
     GH->>CPU: cargo build CPU_CRATES :105, now built over<br/>vault-core and vault (ADR-2113), replacing vault-migrate :90-91
     CPU->>CPU: cargo clippy CPU_CRATES --all-targets :109
     CPU->>CPU: cargo test CPU_CRATES :111
-    CPU->>CPU: cargo clippy/test -p visionclaw-integration-tests :118,120
+    CPU->>CPU: cargo clippy/test -p visionclaw-integration-tests, hermetic targets<br/>backup_posture, dev_build_inputs and prod_ingress (ADR-2119) :118,120
     GH->>CLI: npm ci :136-137, then npm run test (vitest) :141
     GH->>GATE: hermetic text assertion over the<br/>committed Dockerfiles/entrypoints :146-155
     GATE->>GATE: no --release cargo line may name dev-auth :163-168
@@ -667,27 +682,28 @@ sequenceDiagram
 ## ES-09.21 scripts/launch.sh — env-file resolution and the two divergent code paths
 ```mermaid
 flowchart TB
-    START["launch.sh main()<br/>scripts/launch.sh:1170<br/>PROJECT_ROOT = dirname SCRIPT_DIR :15"]
+    START["launch.sh main()<br/>scripts/launch.sh:1242<br/>PROJECT_ROOT = dirname SCRIPT_DIR :15"]
 
     subgraph SANCTIONED["Sanctioned path — up / rebuild dev|prod"]
-        LOADENV["load_environment<br/>looks for .env.$ENVIRONMENT :158"]
-        PRODREQ["production: .env.prod REQUIRED<br/>refuses forbidden dev settings :167<br/>demands concrete values :176<br/>hard error if absent :189"]
-        DEVFALL["dev: falls back to plain .env :193-198<br/>hard error if neither exists :200"]
-        HPR["HOST_PROJECT_ROOT export :279,:287,:295<br/>— the DinD path translation the schema<br/>mount in ES-09.20 depends on"]
+        LOADENV["load_env_config<br/>looks for .env.$ENVIRONMENT :183-184"]
+        INGR["prod: resolve_prod_ingress reads VISIONCLAW_INGRESS,<br/>lan or tunnel, anything else exits :190,167-180"]
+        PRODREQ["production: .env.prod REQUIRED<br/>refuses four forbidden dev settings :195-197<br/>demands concrete values :218-219, the tunnel token only<br/>for tunnel, CORS_ALLOWED_ORIGINS for lan :205-209<br/>hard error if absent :232"]
+        DEVFALL["dev: falls back to plain .env :236-241<br/>hard error if neither exists :243"]
+        HPR["HOST_PROJECT_ROOT export :328,:336,:344<br/>— the DinD path translation the schema<br/>mount in ES-09.20 depends on"]
     end
 
     subgraph LEGACY["rebuild_agent_container — legacy MAD path"]
-        CD["cd $PROJECT_ROOT/multi-agent-docker :812"]
-        MK[".env absent -> cp env.example .env :817-819<br/>then blocks on an interactive read :822"]
+        CD["cd $PROJECT_ROOT/multi-agent-docker :880"]
+        MK[".env absent -> cp env.example .env :884-887<br/>then blocks on an interactive read :890"]
     end
 
     START --> LOADENV
-    LOADENV --> PRODREQ
+    LOADENV --> INGR --> PRODREQ
     LOADENV --> DEVFALL
     LOADENV --> HPR
-    START -->|"launch.sh rebuild-agent :1236"| CD --> MK
+    START -->|"launch.sh rebuild-agent, scripts/launch.sh:1305-1308"| CD --> MK
 
-    FIX["RESOLVED 2026-09-06 — the auto-create branch tested for a dotted<br/>.env.example that has never existed in the tree, so it always fell<br/>through to the error exit. It now copies env.example, the template<br/>that actually ships (scripts/launch.sh:817-819, env.example)."]
+    FIX["RESOLVED 2026-09-06 — the auto-create branch tested for a dotted<br/>.env.example that has never existed in the tree, so it always fell<br/>through to the error exit. It now copies env.example, the template<br/>that actually ships (scripts/launch.sh:884-887, env.example)."]
     DIV["DIVERGENCE — multi-agent-docker/ is not present in this checkout,<br/>so rebuild_agent_container cds into a missing directory before it<br/>reaches the fixed branch. The repaired .env creation is correct but<br/>currently unreachable; the MAD stack is the deprecated predecessor<br/>whose only surviving trace is the mad-workspace volume. see ES-01.4"]
     INV["INVARIANT ADR-2027 — profile selection is env-file driven, and the<br/>production branch fails closed: a missing or dev-contaminated<br/>.env.prod aborts the launch rather than defaulting. see ES-10"]
 

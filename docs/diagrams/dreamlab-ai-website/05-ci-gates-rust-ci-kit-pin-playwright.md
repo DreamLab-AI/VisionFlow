@@ -23,7 +23,7 @@ sources:
   - ../dreamlab-ai-website/scripts/__tests__/dream-kit-pin-guard.test.mjs
   - ../dreamlab-ai-website/scripts/__tests__/helpers/fixture-repo.mjs
   - ../dreamlab-ai-website/CLAUDE.md
-verified_commit: 8ab4ab421497c37f169a6dd0e2f23ffbf23a32d8
+verified_commit: 81ec18c4d56240dcf8e9dd8b07a2dca8239adaea
 ---
 
 ## DW-05.1 `ci.yml` — the ten-job PR/push gate and its aggregator

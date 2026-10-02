@@ -24,7 +24,7 @@ sources:
   - ../project/src/utils/visionflow_unified.ptx
   - ../project/src/actors/gpu/gpu_resource_actor.rs
   - ../project/crates/vault-core/src/domains.rs
-verified_commit: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8
+verified_commit: dd420fbc722a7a4a50e968162ac6c3eaff6972b2
 ---
 
 ## VC-11.1 Physics tick — phase 1, params and flag word
@@ -34,18 +34,18 @@ sequenceDiagram
     autonumber
     participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs
     participant PS as PhysicsSupervisor<br/>physics_supervisor.rs:628
-    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:1860
+    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:1850
     participant EX as UnifiedGPUCompute::execute<br/>src/utils/unified_gpu_compute/execution.rs:172
     participant FC as derive_dispatch_feature_flags<br/>src/models/force_channels.rs:486
 
     PO->>PS: ComputeForces
     PS->>FCA: ComputeForces forwarded :628
     alt shared_context is None
-        Note over FCA: no GPU context - frame skipped, logged every 300th skip :1885,:1927
+        Note over FCA: no GPU context - frame skipped, logged every 300th skip :1875,:1917
     else GPU ready
-        FCA->>FCA: stability_warmup_remaining -= 1 :2000
-        Note over FCA: warmup reset on graph upload - 1200 frames when edge_count == 0 else 600 :1417
-        FCA->>FCA: reheat_factor read :2002
+        FCA->>FCA: stability_warmup_remaining -= 1 :1990
+        Note over FCA: warmup reset on graph upload - 1200 frames when edge_count == 0 else 600 :1407
+        FCA->>FCA: reheat_factor read :1992
         FCA->>EX: execute(sim_params) with num_constraints
         EX->>FC: derive_dispatch_feature_flags(ForceDispatchInputs) :1003
         FC-->>EX: flags word
@@ -78,7 +78,7 @@ sequenceDiagram
     EX->>K1: prev_force_x/y/z for FA2 swing and traction adaptive speed
     EX->>K1: pinned_mask device pointer
     Note over K1: pinned nodes SKIP integration but still exert forces on neighbours
-    Note over EX: UploadPositions handler (force_compute_actor.rs:3296) re-uploads a dragged node's new position directly via spawn_blocking, without blocking the Tokio runtime - distinct from PinNodePositions
+    Note over EX: UploadPositions handler (force_compute_actor.rs:3286) re-uploads a dragged node's new position directly via spawn_blocking, without blocking the Tokio runtime - distinct from PinNodePositions
     K1->>K2: forces written
     Note over K2: integrate_pass adds boundary push (viewport_bounds + boundary_damping) and annealing jitter (temperature + cooling_rate) per force_channels.rs:37-38
     EX->>EV: completion_event.record(stream)
@@ -185,7 +185,7 @@ sequenceDiagram
     participant API as constraints_handler<br/>src/handlers/constraints_handler.rs:13
     participant CA as ConstraintActor<br/>constraint_actor.rs:193
     participant OCA as OntologyConstraintActor<br/>ontology_constraint_actor.rs:451
-    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3693
+    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3683
     participant EX as execution.rs:1003
 
     API->>CA: UpdateConstraints from POST /constraints/define :91 or /apply, handled at constraint_actor.rs:193
@@ -195,7 +195,7 @@ sequenceDiagram
     alt GPU context absent
         Note over OCA: info "GPU not available, constraints cached for next physics step" :291 and cpu_fallback_count += 1 :286,:293
     else GPU ready
-        OCA->>FCA: UpdateOntologyConstraintBuffer (force_compute_actor.rs:3798)
+        OCA->>FCA: UpdateOntologyConstraintBuffer (force_compute_actor.rs:3788)
     end
     OCA->>OCA: ApplyMaterializedAxioms :522, AdjustConstraintWeights :723
     FCA->>EX: execute with num_constraints = resident count
@@ -206,8 +206,8 @@ sequenceDiagram
     end
     Note over CA,EX: INVARIANT ADR-2029 - enablement is owned by residency, never by settings
     Note over OCA: class_id, class_charge and class_mass are uploaded as separate per-node device buffers and passed to force_pass_kernel, not carried in SimParams
-    Note over FCA: class_id = domain_class_id(source_domain) src/actors/gpu/force_compute_actor.rs:1175<br/>from the shared registry crates/vault-core/src/domains.rs:33 since 805219679 - 0 unknown,<br/>1-8 for the eight DOMAIN_ROOTS, legacy short names ai, bc, mv, rb, ngm, tc keep ids 1-6<br/>charge 0.6 known, 1.2 unknown src/actors/gpu/force_compute_actor.rs:1176
-    Note over FCA: DEBT: GPUResourceActor uploads the same ids with charges 0.3 and 2.5<br/>src/actors/gpu/gpu_resource_actor.rs:228-229, upload :234 - two charge tables,<br/>the later upload_class_metadata call wins, src/actors/gpu/force_compute_actor.rs:1182
+    Note over FCA: class_id = domain_class_id(source_domain) src/actors/gpu/force_compute_actor.rs:1184<br/>from the shared registry crates/vault-core/src/domains.rs:33 since 805219679 - 0 unknown,<br/>1-8 for the eight DOMAIN_ROOTS, legacy short names ai, bc, mv, rb, ngm, tc keep ids 1-6<br/>charge 0.6 known, 1.2 unknown src/actors/gpu/force_compute_actor.rs:1185
+    Note over FCA: DEBT: GPUResourceActor uploads the same ids with charges 0.3 and 2.5<br/>src/actors/gpu/gpu_resource_actor.rs:228-229, upload :234 - two charge tables,<br/>the later upload_class_metadata call wins, src/actors/gpu/force_compute_actor.rs:1191
 ```
 
 ## VC-11.7 Semantic forces and stress majorization
@@ -218,7 +218,7 @@ sequenceDiagram
     participant PS as PhysicsSupervisor<br/>physics_supervisor.rs:1032
     participant SFA as SemanticForcesActor<br/>semantic_forces_actor.rs:751
     participant SMA as StressMajorizationActor<br/>stress_majorization_actor.rs:315
-    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3717
+    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3707
 
     PS->>SFA: ConfigureDAG (semantic_forces_actor.rs:751)
     PS->>SFA: ConfigureTypeClustering (semantic_forces_actor.rs:778)
@@ -234,8 +234,8 @@ sequenceDiagram
         Note over SMA: returns Err "GPU not available for stress majorization" :95 - hard failure, no CPU degradation
     else GPU ready
         SMA->>SMA: CheckStressMajorization :369, UpdateStressMajorizationParams :347
-        SMA->>FCA: TriggerStressMajorization (force_compute_actor.rs:3717)
-        FCA->>FCA: GetStressMajorizationStats :3729, ResetStressMajorizationSafety :3745
+        SMA->>FCA: TriggerStressMajorization (force_compute_actor.rs:3707)
+        FCA->>FCA: GetStressMajorizationStats :3719, ResetStressMajorizationSafety :3735
     end
     Note over SMA,FCA: DIVERGENCE bit5 ENABLE_STRESS_MAJORIZATION is declared but never set by derive_dispatch_feature_flags - stress majorization is not a GPU force channel
     Note over SMA,FCA: Stress majorization params live on CPU in SemanticProcessorActor and are absent from GPU SimParams - project/src/models/simulation_params.rs:77
@@ -265,7 +265,7 @@ stateDiagram-v2
     note right of Warmup
         warmup = 1200 frames when edge_count == 0
         else 600 frames, reset after graph upload
-        force_compute_actor.rs:1417
+        force_compute_actor.rs:1407
     end note
     note right of Settled
         SETTLE_KE_EPSILON = 1e-4 line 439

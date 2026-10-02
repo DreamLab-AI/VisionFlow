@@ -21,7 +21,8 @@ sources:
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/lib/system-manifest.js
   - ../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+  - ../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md
+verified_commit: e4993a3bce0146062bd5fd5863df7f8e747cf21b
 ---
 
 ## For developers
@@ -39,7 +40,7 @@ The settlement chain is reachable by anyone, through public infrastructure the e
 ```mermaid
 flowchart TB
     subgraph sup["supervisord, baked only when [sidechain].enabled - flake.nix:2631-2641"]
-        SP["[program:sidestr-producer] runs run-producer.sh with --announce-mirror<br/>from [sidechain].announce_mirror - flake.nix:2642, agentbox.toml:1572"]
+        SP["[program:sidestr-producer] runs run-producer.sh with --announce-mirror<br/>from [sidechain].announce_mirror - flake.nix:2642, agentbox.toml:1576"]
         SR["autorestart, but startretries 5 then FATAL: a failed start means<br/>a pin to fix, not a restart loop - flake.nix:2636-2638, flake.nix:2648"]
         SP --> SR
     end
@@ -121,7 +122,7 @@ sequenceDiagram
     participant F as run-faucet.sh<br/>config/sidechain/run-faucet.sh:29
 
     Note over SV: [program:sidestr-mirror] is baked only when [sidechain].mirror AND enabled<br/>(flake.nix:241, flake.nix:2655-2660), and the catalogue reports a child off when its parent is off<br/>(management-api/lib/system-manifest.js:318-319)
-    SV->>M: mirror-sync.sh mirror_checkout 120 (flake.nix:2660, agentbox.toml:1574)
+    SV->>M: mirror-sync.sh mirror_checkout 120 (flake.nix:2660, agentbox.toml:1578)
     loop every 120 s by default (mirror-sync.sh:14)
         M->>P: curl chain.json with a 10 s cap
         alt it answered
@@ -147,7 +148,7 @@ sequenceDiagram
 
 **Debt:** the mirror is a public git repository rather than the specified loopback port 9097 behind the nip98 proxy at `/chain/`, and the script says so in its own header (`../project/agentbox/config/sidechain/mirror-sync.sh:5-6`, `../project/agentbox/docs/BASELINE-container.md:349`).
 
-**Tension (secrets convention vs the faucet):** the producer's convention is that keys are files under `/var/lib/agentbox/secrets` (`../project/agentbox/config/sidechain/run-producer.sh:5-6`), but the faucet's treasury key defaults to, and the live manifest sets, a path in the workspace (`../project/agentbox/config/sidechain/run-faucet.sh:17`, `../project/agentbox/agentbox.toml:1576`). It is still passed as a file, never an argument value.
+**Tension (secrets convention vs the faucet):** the producer's convention is that keys are files under `/var/lib/agentbox/secrets` (`../project/agentbox/config/sidechain/run-producer.sh:5-6`), but the faucet's treasury key defaults to, and the live manifest sets, a path in the workspace (`../project/agentbox/config/sidechain/run-faucet.sh:17`, `../project/agentbox/agentbox.toml:1580`). It is still passed as a file, never an argument value.
 
 ## AB-34.4 The kind plane as built, and the band it moved into
 
@@ -181,7 +182,7 @@ flowchart TB
     subgraph now["Running, status 2026-09-30 - sovereign-settlement.md:337"]
         N1["upstream JS producer under supervisord, gated on<br/>upstream-pins - config/sidechain/run-producer.sh:2-3,33"]
         N2["announcing kind 33333 to five public relays;<br/>block 594 reached 5 of 5 and the Pages mirror"]
-        N3["GitHub Pages mirror dreamlab-ai.github.io/sidestr-dreamlab<br/>agentbox.toml:1572, sidechain/README.md:61"]
+        N3["GitHub Pages mirror dreamlab-ai.github.io/sidestr-dreamlab<br/>agentbox.toml:1576, sidechain/README.md:61"]
         N4["the relays ARE the registry - sidechain/README.md:66-68"]
         N5["the DREAM faucet for member wallets, sidestr-agent baked from a<br/>pinned sidestr-rs revision - sidechain/README.md:62"]
         N6["Level 2 usable: sidestr-round 0.1.0's cosign co-signs<br/>with the JS signers live - sovereign-settlement.md:336"]
@@ -201,6 +202,7 @@ flowchart TB
     now --> GAP["The chain is now inside the container's supervision and its<br/>manifest, but not its ingress - see AB-32.5 for the schema"]
     spec --> GAP
     next -.-> spec
+    GAP --> FED["OPEN: ADR-2101 rewritten 2026-10-02 - each client runs its own root,<br/>sealed only by its own signers, nested under sidestr:dreamlab for pegs alone,<br/>no DreamLab key in it - ADR-2101-federation-topology-and-key-separation.md:40-48<br/>the set above runs one root, sidestr:dreamlab on tbtc4, chain.json:2-4;<br/>nothing here says where a client root runs or declares its parent link,<br/>and the stage needs the client able to drop that link - ADR-2101-federation-topology-and-key-separation.md:45-47"]
 ```
 
 **Open:** none of the four pieces still specified has a landing date; PRD-024's 2026-09-30 status row lists them as "not yet" beside the supervised set (`../project/agentbox/docs/proposals/sovereign-settlement.md:337`); and the next chain's parent, PRD-024 open question 19, waits on the owner confirming a BLAKE2b testnet4 node, then the chain's name and purpose (`../project/agentbox/docs/proposals/sovereign-settlement.md:527-530`).

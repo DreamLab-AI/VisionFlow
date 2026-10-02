@@ -36,8 +36,9 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md
   - ../project/agentbox/management-api/routes/exec-record.js
   - ../project/agentbox/scripts/activation/adr-2087-check.sh
+  - ../project/agentbox/scripts/activation/adr-2071-api-down-night.sh
   - ../dreamlab-ai-website/.github/workflows/workers-deploy.yml
-verified_commit: {agentbox: c4ed3ec6505858e1e5ead651c29115d2f74e5546, visionclaw: 0a9abd3f9d7225b457cd6a65d3857fbc277e1e48, visionflow: afb44af7389acd452d37c93eff7cbd06db5cb313, nostr-rust-forum: 341c5d262bea5dcfc65d47dc3f5296a7d3eae675, dreamlab-ai-website: 8ab4ab421497c37f169a6dd0e2f23ffbf23a32d8}
+verified_commit: {agentbox: e4993a3bce0146062bd5fd5863df7f8e747cf21b, visionclaw: dd420fbc722a7a4a50e968162ac6c3eaff6972b2, visionflow: afb44af7389acd452d37c93eff7cbd06db5cb313, nostr-rust-forum: 13cbe6cbad7ee7ff3b609233a8bee3dd8eae1f3e, dreamlab-ai-website: 81ec18c4d56240dcf8e9dd8b07a2dca8239adaea}
 ---
 ## ES-05.2 Wire fields and exact response binding
 ```mermaid
@@ -302,7 +303,10 @@ forum relay defect that sat between the human's decision and every downstream re
 
 **Why it is this way.** Each repository activates its own record against its own evidence (ADR-2087's
 check script, the forum's M4 probe suite, ADR-2110's check script). The correlation fix was found while
-preparing ADR-2010's acceptance and reached the edge with the website kit pin to `341c5d2`.
+preparing ADR-2010's acceptance and reached the edge with the website kit pin to `341c5d2`; the website now
+pins `13cbe6c`, a descendant. On 2 October VisionClaw's ADR-2110 check passed on the owner's dev stack and
+the record moved to staged, and agentbox armed a one-shot to stop management-api for the night of 5 October
+so that ADR-2071's last clause can be judged.
 
 ```mermaid
 flowchart TB
@@ -310,25 +314,28 @@ flowchart TB
         F2011["forum ADR-2011 task properties set the boundary<br/>M4 probe run 11 of 11 on the edge, nostr-bbs-governance-probe<br/>ADR-2011-operator-task-properties-set-the-escalation-boundary.md:184, main.rs:1-2"]
         A2071["agentbox ADR-2071 nightly journal, decision still proposed<br/>ADR-2071-journal-the-nightly-dream-cycle.md:5-7"]
     end
+    A2071 -.->|"clause c, one-shot stops management-api 00:30-00:59 UTC on 6 Oct, ADR-2071-journal-the-nightly-dream-cycle.md:179"| ONESHOT["adr-2071-api-down-night.sh, a stateless tick every 10 minutes<br/>from the checkout crontab, adr-2071-api-down-night.sh:6-7<br/>stops the API in the 00:30-01:00 UTC window, adr-2071-api-down-night.sh:99-110<br/>restarts on night record, deadline or an API back on its own,<br/>adr-2071-api-down-night.sh:136-145"]
+    ONESHOT -.->|"C3 now also requires a clean stop and restart, adr-2087-check.sh:411-413"| A2087
     subgraph STAGED["activation staged"]
         A2087["agentbox ADR-2087 check exits 2 on the rebuilt image,<br/>wired, forum_auth_api set, no receipt posted yet<br/>ADR-2087-task-properties-receipts-and-manual-continuation.md:7"]
         F2010["forum ADR-2010 durable receipts, decision proposed<br/>ADR-2010-durable-governance-outcome-receipts.md:5-7"]
+        V2110["VisionClaw ADR-2110, six checks passed on the dev stack 2 Oct,<br/>staged until a human-decided case, adr-2110-check.sh:2<br/>ADR-2110-augmentation-conditions-visionclaw-substrate.md:324-334"]
     end
-    subgraph INACTIVE["activation inactive"]
-        V2110["VisionClaw ADR-2110, dev stack not running,<br/>acceptance by adr-2110-check.sh:2<br/>ADR-2110-augmentation-conditions-visionclaw-substrate.md:281-284"]
-    end
-    LIVE --> STAGED --> INACTIVE
+    LIVE --> STAGED
 
     UI["forum UI signs a 31403 with d case and an UNMARKED e request"] --> COR["receipts.correlate: marked request, then appeal target,<br/>then the first unmarked e — never supersedes<br/>receipts.rs:128-130"]
     COR --> PROJ["projection-committed only when the id equals the case's<br/>own nostr_event_id, so a wrong unmarked tag stays Uncorrelated"]
     PROJ --> ACC["ADR-2010 closes on ONE owner-signed 31403 on a high or<br/>critical case, with its receipt row at projection-committed<br/>ADR-2010-durable-governance-outcome-receipts.md:157"]
-    ACC --> NOCASE["prerequisite: a REAL high-tier case. None exists:<br/>the only high cases are the two M4 probe cases<br/>ADR-2010-durable-governance-outcome-receipts.md:166"]
+    ACC --> NOCASE["prerequisite: a REAL high-tier case. The forum record says<br/>none exists, the only high cases being the two M4 probe cases<br/>ADR-2010-durable-governance-outcome-receipts.md:166"]
+    V2110 -.->|"names one raised 2 Oct on agentbox-release-ops, ADR-2110-augmentation-conditions-visionclaw-substrate.md:335-337"| NOCASE
     V2110 -.->|"VisionClaw cases fold to medium, see ES-05.12"| NOCASE
-    A2087 -.->|"B7 needs that first real governance response, adr-2087-check.sh:329-341"| ACC
+    A2087 -.->|"B7 needs that first real governance response, adr-2087-check.sh:332-344"| ACC
 ```
 
 **Invariant:** reading the unmarked `e` tag cannot bind a decision to the wrong case, because the projection still requires the request id to equal the case's own `nostr_event_id` (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs:121-127`).
 
-**Open:** three activations now wait on the same event — the owner's first decision on a real high-tier case — and the estate has no producer of such a case: VisionClaw declares no tier on its panels or requests (`../project/src/services/acsp/events.rs:308-323`), so its cases fold to `medium` on the forum (`../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs:525`). Who declares the first triple is the owner's policy choice (`../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md:153-155`).
+**Open:** three activations now wait on the same event — the owner's first decision on a real high-tier case. VisionClaw still declares no tier on its panels or requests (`../project/src/services/acsp/events.rs:308-323`), so its cases fold to `medium` on the forum (`../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs:525`); the candidate case is agentbox's, raised on the agentbox-release-ops panel on 2 October (`../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md:335-337`). Whether the relay stamped it `effective_tier: high` is the prerequisite forum ADR-2010 left unchecked (`../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md:176`), and who declares the first VisionClaw triple remains the owner's policy choice (`../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md:153-155`).
 
-**Drift:** forum ADR-2011 says the FR3.2 client read is "not yet on the edge" and that on the deployed kit a UI decision "would not project" (`../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:197-201`); at website `8ab4ab4` the Workers deploy pins kit `341c5d2` (`../dreamlab-ai-website/.github/workflows/workers-deploy.yml:45`), which carries both fixes. The record was written at its own HEAD before the pin moved.
+**Tension (forum ADR-2010 and ADR-2011 vs VisionClaw ADR-2110):** the forum records say the only high cases on the edge are the two M4 probe cases (`../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md:166`, `../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:197`); VisionClaw's ADR-2110 names a real high-tier case raised the same day (`../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md:335-337`). Neither cites a `--list-cases` read of it.
+
+The former drift on the FR3.2 client read is closed: forum ADR-2011 now records it on the edge with kit `341c5d2` (`../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:203`), and the Workers deploy pins `13cbe6c`, a descendant (`../dreamlab-ai-website/.github/workflows/workers-deploy.yml:45`).

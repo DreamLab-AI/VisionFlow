@@ -27,7 +27,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/zone_approval.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/lib.rs
-verified_commit: d025cb063df5a532f055a18527f71cc7dee9d6e6
+verified_commit: 13cbe6cbad7ee7ff3b609233a8bee3dd8eae1f3e
 ---
 
 ## NF-02.1 Request entry — bootstrap, rate limit, body pre-read, dispatch
@@ -198,8 +198,8 @@ flowchart LR
     ISA["is_admin - static union RELAY_DB union DB<br/>nostr-bbs-auth-worker/src/admin.rs:57"]
 
     RA --> ISA
-    ADMINONLY["Admin-only: mod actions moderation.rs:209 | wot status wot.rs:128 | welcome config welcome.rs:148<br/>| admins add admins.rs:161 | governance register governance_api.rs:361 | provision governance_api.rs:438<br/>| roles grant governance_api.rs:673 | admin registrations username.rs:689<br/>| reviewer telemetry governance_api.rs:1410"]
-    AUTHED["Authed-only: mod report moderation.rs:316 | invite create invites.rs:291 | redeem invites.rs:577<br/>| devices register devices.rs:361 | list devices.rs:452 | revoke devices.rs:488<br/>| username claim username.rs:568 | governance cases governance_api.rs:564 | decisions governance_api.rs:629<br/>| receipt application governance_api.rs:1133 - authed, then authorised by ROLE inside the handler"]
+    ADMINONLY["Admin-only: mod actions moderation.rs:209 | wot status wot.rs:128 | welcome config welcome.rs:148<br/>| admins add admins.rs:161 | governance register governance_api.rs:362 | provision governance_api.rs:441<br/>| roles grant governance_api.rs:670 | admin registrations username.rs:689<br/>| reviewer telemetry governance_api.rs:1407"]
+    AUTHED["Authed-only: mod report moderation.rs:316 | invite create invites.rs:291 | redeem invites.rs:577<br/>| devices register devices.rs:361 | list devices.rs:452 | revoke devices.rs:488<br/>| username claim username.rs:568 | governance cases governance_api.rs:561 | decisions governance_api.rs:626<br/>| receipt application governance_api.rs:1130 - authed, then authorised by ROLE inside the handler"]
 
     RA --> ADMINONLY
     RU --> AUTHED
@@ -267,25 +267,25 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Caller
-    participant H as handle_receipt_application<br/>nostr-bbs-auth-worker/src/governance_api.rs:1124
+    participant H as handle_receipt_application<br/>nostr-bbs-auth-worker/src/governance_api.rs:1121
     participant RD as relay D1
-    participant PL as plan_application_advance<br/>nostr-bbs-auth-worker/src/governance_api.rs:1058
-    participant RV as handle_list_reviewers<br/>nostr-bbs-auth-worker/src/governance_api.rs:1404
+    participant PL as plan_application_advance<br/>nostr-bbs-auth-worker/src/governance_api.rs:1055
+    participant RV as handle_list_reviewers<br/>nostr-bbs-auth-worker/src/governance_api.rs:1401
 
-    C->>H: POST /api/governance/receipts/{event id}/application governance_api.rs:1131
-    H->>H: require_authed - NIP-98 only, no admin gate here governance_api.rs:1133
-    H->>H: parse the requested stage, unknown stage refused governance_api.rs:1143
-    H->>RD: SELECT stage, case_id FROM governance_receipts governance_api.rs:1156
-    RD-->>H: 404 when the receipt does not exist governance_api.rs:1161
-    H->>RD: SELECT case state, created_by and the latest decision outcome governance_api.rs:1175
-    H->>H: build the caller - is_admin, is_registered_agent, is_case_owner governance_api.rs:1186
+    C->>H: POST /api/governance/receipts/{event id}/application governance_api.rs:1128
+    H->>H: require_authed - NIP-98 only, no admin gate here governance_api.rs:1130
+    H->>H: parse the requested stage, unknown stage refused governance_api.rs:1140
+    H->>RD: SELECT stage, case_id FROM governance_receipts governance_api.rs:1153
+    RD-->>H: 404 when the receipt does not exist governance_api.rs:1158
+    H->>RD: SELECT case state, created_by and the latest decision outcome governance_api.rs:1172
+    H->>H: build the caller - is_admin, is_registered_agent, is_case_owner governance_api.rs:1183
     H->>PL: may this caller advance current to requested
-    PL-->>H: refusal with its own status, or proceed governance_api.rs:1202
-    H->>RD: UPDATE guarded by the CURRENT stage governance_api.rs:1213
-    RD-->>C: 409 when another consumer won the race governance_api.rs:1235
-    C->>RV: GET /api/governance/reviewers - ADMIN only governance_api.rs:1410
+    PL-->>H: refusal with its own status, or proceed governance_api.rs:1199
+    H->>RD: UPDATE guarded by the CURRENT stage governance_api.rs:1210
+    RD-->>C: 409 when another consumer won the race governance_api.rs:1232
+    C->>RV: GET /api/governance/reviewers - ADMIN only governance_api.rs:1407
 
-    Note over H: INVARIANT the case owner is matched case-insensitively, so a mixed-case NIP-98 pubkey still resolves to the owner it belongs to governance_api.rs:1184 governance_api.rs:1192
-    Note over H: INVARIANT the stage write is a compare-and-swap - two consumers racing the same receipt cannot both win, the loser sees a 409 governance_api.rs:1205-1207
-    Note over RV: Reviewer telemetry measures the humans, not only the agents, and is admin-gated where the case and decision reads are member-visible governance_api.rs:1410
+    Note over H: INVARIANT the case owner is matched case-insensitively, so a mixed-case NIP-98 pubkey still resolves to the owner it belongs to governance_api.rs:1181 governance_api.rs:1189
+    Note over H: INVARIANT the stage write is a compare-and-swap - two consumers racing the same receipt cannot both win, the loser sees a 409 governance_api.rs:1202-1204
+    Note over RV: Reviewer telemetry measures the humans, not only the agents, and is admin-gated where the case and decision reads are member-visible governance_api.rs:1407
 ```

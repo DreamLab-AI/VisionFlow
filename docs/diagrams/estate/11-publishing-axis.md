@@ -19,7 +19,7 @@ sources:
   - .github/workflows/drift-counter.yml
   - ../project/.github/workflows/ontology-publish.yml
   - ../project/src/services/ontology_pull.rs
-verified_commit: {dreamlab-ai-website: 6ae45762e7685787c5f44ba0d966557f386cde83, knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, visionflow: e5987acc8337ddd64c72f775750d61fef46d8e0b, visiongraph: 015ca2c1f2d7289955ebf16b98b6775a57ec0f7b, vowl-wasm: 65e2d1e784bf5eb04b3cbc122d36d6926d889c22}
+verified_commit: {dreamlab-ai-website: 81ec18c4d56240dcf8e9dd8b07a2dca8239adaea, knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visionclaw: dd420fbc722a7a4a50e968162ac6c3eaff6972b2, visionflow: e5987acc8337ddd64c72f775750d61fef46d8e0b, visiongraph: 015ca2c1f2d7289955ebf16b98b6775a57ec0f7b, vowl-wasm: 65e2d1e784bf5eb04b3cbc122d36d6926d889c22}
 ---
 ## ES-11.1 The publishing axis — six cross-repo edges, each previously drawn from one side only
 ```mermaid
@@ -121,7 +121,7 @@ sequenceDiagram
     participant GUARD as "EXTERNAL: kit-pin-guard.yml"<br/>see DW-02
 
     CI->>NF: git clone the kit, then checkout --detach $KIT_REF<br/>rust-ci.yml:34
-    Note over CI: KIT_REF is a literal 40-char SHA pinned in the workflow<br/>env block, rust-ci.yml:21, with the comment at :18<br/>requiring lockstep with workers-deploy.yml and deploy.yml.<br/>On 2 Oct (6ae4576) it moved to forum 49904f4, whose crates<br/>resolve at v1.0.0-beta.11, rust-ci.yml:19
+    Note over CI: KIT_REF is a literal 40-char SHA pinned in the workflow<br/>env block, rust-ci.yml:21, with the comment at :18<br/>requiring lockstep with workers-deploy.yml and deploy.yml.<br/>On 2 Oct it moved three times, to forum 49904f4 (6ae4576),<br/>341c5d2 (8ab4ab4) and 13cbe6c (81ec18c). The crates still<br/>resolve at v1.0.0-beta.11, rust-ci.yml:19
     NF-->>CI: the kit tree at exactly that commit
     GUARD->>GUARD: compare the pin across deploy.yml, workers-deploy.yml,<br/>rust-ci.yml, forum-config/Cargo.toml crate versions and the<br/>CANONICAL_ entries in the kit-compatibility record
     alt any of the five disagrees

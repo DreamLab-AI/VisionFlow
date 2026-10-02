@@ -4,7 +4,7 @@ title: Agent Control Surface Protocol — kinds 31400-31405, the broker aggregat
 area: nostr-rust-forum
 governing:
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
-adrs: [ADR-2010, ADR-2011]
+adrs: [ADR-2010, ADR-2011, ADR-2014]
 sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
@@ -31,7 +31,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md
   - ../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md
-verified_commit: {nostr-rust-forum: 341c5d262bea5dcfc65d47dc3f5296a7d3eae675, dreamlab-ai-website: 8ab4ab421497c37f169a6dd0e2f23ffbf23a32d8}
+verified_commit: {nostr-rust-forum: 13cbe6cbad7ee7ff3b609233a8bee3dd8eae1f3e, dreamlab-ai-website: 81ec18c4d56240dcf8e9dd8b07a2dca8239adaea}
 ---
 
 ## NF-06.1 The six kinds and their publishers
@@ -58,7 +58,7 @@ classDiagram
     ACSKinds --> TypedPayloads
     ACSKinds --> RegisteredAgent
 
-    note for ACSKinds "This repo OWNS the 31400-31405 schema for the estate. Every kind constant is re-exported at crate level so no consumer hardcodes a number nostr-bbs-core/src/lib.rs:143"
+    note for ACSKinds "This repo OWNS the 31400-31405 schema for the estate. Every kind constant is re-exported at crate level so no consumer hardcodes a number nostr-bbs-core/src/lib.rs:144"
     note for TypedPayloads "DOC-DRIFT: the README table (README.md:250-255) and this module's own doc table (nostr-bbs-core/src/governance.rs:9-16) name six types, but only THREE have a Rust struct - PanelDefinition, ActionRequest and ActionResponse. PanelState, PanelUpdate and PanelRetired exist as kind constants and doc rows only."
     note for RegisteredAgent "INVARIANT: only kinds 31400, 31401, 31402, 31404 and 31405 are agent-published. 31403 is the HUMAN half - see NF-06.3"
 ```
@@ -100,7 +100,7 @@ sequenceDiagram
     FC->>FC: ingest_event into the panel registry nostr-bbs-forum-client/src/app.rs:823
     FC-->>HU: render the decision card
     HU->>FC: approve / reject on the decision card
-    FC->>R: kind 31403 ActionResponse nostr-bbs-forum-client/src/pages/governance.rs:845
+    FC->>R: kind 31403 ActionResponse nostr-bbs-forum-client/src/pages/governance.rs:848
     R->>R: admin-or-delegated-reviewer gate nip_handlers.rs:1021 via response_admission nip_handlers.rs:234
     R->>R: correlate reads the request id, falling back to the first unmarked e tag nostr-bbs-relay-worker/src/relay_do/receipts.rs:130
     R->>R: project_action_response nip_handlers.rs:1283
@@ -108,7 +108,7 @@ sequenceDiagram
 
     Note over R: INVARIANT P1-6+FR6.2: a Decision is a PRIVILEGED act, not a generic member action - kind 31403 from a non-admin, non-delegated-reviewer is blocked outright nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1021-1033
     Note over R: 31403 is EXEMPT from the agent-registry gate - it is the human half of the protocol nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1001
-    Note over FC: The published response carries an UNMARKED e-tag naming the request it answers nostr-bbs-forum-client/src/pages/governance.rs:848 - the relay read only a request-marked tag until a5b809e, so every UI decision was stored and never projected - see NF-06.17
+    Note over FC: The published response carries an UNMARKED e-tag naming the request it answers nostr-bbs-forum-client/src/pages/governance.rs:851 - the relay read only a request-marked tag until a5b809e, so every UI decision was stored and never projected - see NF-06.17
 ```
 
 ## NF-06.4 The two gates a governance event must pass at ingress
@@ -216,7 +216,7 @@ erDiagram
 
 The auth-worker writes `agent_registry` and `whitelist` through the shared `RELAY_DB`
 binding so the relay DO can read the registry at admission with no cross-worker call
-(`nostr-bbs-auth-worker/src/governance_api.rs:30`). Migration 0007 is additive and
+(`nostr-bbs-auth-worker/src/governance_api.rs:31`). Migration 0007 is additive and
 nullable: a case that is not an ontology proposal has no `stale_after` and is
 invisible to the expiry sweep — see NF-06.16.
 
@@ -230,16 +230,17 @@ sequenceDiagram
     participant RD as relay D1 (RELAY_DB)
     participant R as relay-worker admission
 
-    AD->>API: POST /api/governance/agents/register governance_api.rs:354
-    API->>RD: INSERT OR REPLACE agent_registry governance_api.rs:380
-    AD->>API: POST /api/governance/agents/provision governance_api.rs:431
-    API->>RD: whitelist INSERT governance_api.rs:465
-    API->>RD: agent_registry upsert reusing the same identity governance_api.rs:479
-    AD->>API: POST /api/governance/agents/revoke governance_api.rs:506
-    API->>RD: UPDATE agent_registry SET active = 0 governance_api.rs:535
+    AD->>API: POST /api/governance/agents/register governance_api.rs:355
+    API->>RD: INSERT OR REPLACE agent_registry governance_api.rs:381
+    AD->>API: POST /api/governance/agents/provision governance_api.rs:434
+    API->>RD: whitelist cohort MERGE, never a replace governance_api.rs:466
+    API->>RD: agent_registry upsert reusing the same identity governance_api.rs:476
+    AD->>API: POST /api/governance/agents/revoke governance_api.rs:503
+    API->>RD: UPDATE agent_registry SET active = 0 governance_api.rs:532
     R->>RD: is_registered_agent at every governance-kind admission
 
-    Note over API: Provisioning is a TWO-table act - allowlist write plus registry upsert - so an agent that can publish is also a forum member governance_api.rs:420-427
+    Note over API: Provisioning is a TWO-table act - allowlist write plus registry upsert - so an agent that can publish is also a forum member, issued as one D1 batch so it is all-or-nothing governance_api.rs:420-422 governance_api.rs:490
+    Note over API: INVARIANT since 1a26e51 provisioning MERGES the agent cohorts into any row the pubkey already holds, so a re-provision or a human grant is never revoked by it governance_api.rs:429-431 governance_api.rs:464-466
     Note over API: Register, provision, revoke and role grant/revoke are require_admin - list agents, cases, decisions and roles are require_authed - see NF-02.6
     Note over R: EXTERNAL: agents mint their own did:nostr key at spawn in agentbox and are registered here - see AB-11 and ES-04
 ```
@@ -249,7 +250,7 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     RELAY["relay-worker - schema owner and gate"]
-    FCADMIN["forum-client /governance/admin<br/>decision card publishes 31403 nostr-bbs-forum-client/src/pages/governance.rs:845<br/>panel actions publish 31403 nostr-bbs-forum-client/src/pages/governance.rs:458"]
+    FCADMIN["forum-client /governance/admin<br/>decision card publishes 31403 nostr-bbs-forum-client/src/pages/governance.rs:848<br/>panel actions publish 31403 nostr-bbs-forum-client/src/pages/governance.rs:461"]
     FCMEM["forum-client /governance member view<br/>read-only, no 31403 publish path compiles<br/>nostr-bbs-forum-client/src/pages/governance.rs:39"]
     BOARD["forum-client kanban board<br/>subscribes to 31402 and 31403 only<br/>nostr-bbs-forum-client/src/pages/board.rs:392"]
     REG["PanelRegistry store<br/>nostr-bbs-forum-client/src/stores/panel_registry.rs:212"]
@@ -344,7 +345,7 @@ flowchart TB
     KEY["ENV_CALIBRATION_SELECTION_KEY is a SECRET, never a plaintext var<br/>nostr-bbs-core/src/governance.rs:560, nostr-bbs-relay-worker/wrangler.toml:51-54"]
     RATE["rate declared on the panel, default 0.1<br/>nostr-bbs-core/src/governance.rs:122 nostr-bbs-core/src/governance.rs:368"]
     PROBE["a probe tag is honoured ONLY from the panel's registered probe agent<br/>nostr-bbs-core/src/governance.rs:695, dropped from anyone else<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:360-361"]
-    BLIND["probe blinding: the tag is filtered at the tag-WRITING trigger<br/>nostr-bbs-relay-worker/src/lib.rs:664, mirrored into the live schema path<br/>nostr-bbs-relay-worker/src/lib.rs:931"]
+    BLIND["probe blinding: the tag is filtered at the tag-WRITING trigger<br/>nostr-bbs-relay-worker/src/lib.rs:665, mirrored into the live schema path<br/>nostr-bbs-relay-worker/src/lib.rs:942"]
 
     SUP --> ONLY --> CAL
     KEY --> CAL
@@ -353,28 +354,28 @@ flowchart TB
 
     N1["INVARIANT the selection is KEYED. The request id is the 31402 d tag the agent chooses freely, so an<br/>unkeyed digest would let it grind ids until one is never sampled - opting itself out of oversight<br/>nostr-bbs-relay-worker/wrangler.toml:56-59"]
     N2["INVARIANT unset key still samples - silently disabling oversight is treated as the worse failure,<br/>and the relay logs a warning on every projection nostr-bbs-relay-worker/wrangler.toml:63-65"]
-    N3["The blinding lives in the tag-writing trigger, not a watcher, because SQLite does not fire a trigger<br/>from inside another trigger without recursive_triggers, which is set nowhere here - the watcher was<br/>read as enforcement and was inert nostr-bbs-relay-worker/src/lib.rs:650-661"]
+    N3["The blinding lives in the tag-writing trigger, not a watcher, because SQLite does not fire a trigger<br/>from inside another trigger without recursive_triggers, which is set nowhere here - the watcher was<br/>read as enforcement and was inert nostr-bbs-relay-worker/src/lib.rs:651-657"]
     N4["DIVERGENCE: what the relay enforces is NARROWER than DDD invariant 7. The tag remains on the raw<br/>signed 31402 served over REQ, because removing it would break the signature both clients verify<br/>strictly - blindness on the rendered surface is the CLIENT's responsibility<br/>nostr-bbs-core/src/governance.rs:357-364"]
-    N5["The last purge statement is the one the original migration failed to mirror into the live path, so a<br/>deployed relay kept every probe row it had already indexed nostr-bbs-relay-worker/src/lib.rs:677"]
+    N5["The last purge statement is the one the original migration failed to mirror into the live path, so a<br/>deployed relay kept every probe row it had already indexed nostr-bbs-relay-worker/src/lib.rs:678"]
 ```
 
 ## NF-06.15 Two stale-identity classes the registry closed
 
 ```mermaid
 flowchart TB
-    REG["agent registration wrote the pubkey VERBATIM before this fix<br/>nostr-bbs-auth-worker/src/governance_api.rs:85"]
-    LOOK["every other path canonicalises to lowercase, and is_registered_agent<br/>looks up with lower(pubkey)<br/>nostr-bbs-auth-worker/src/governance_api.rs:100-104"]
+    REG["agent registration wrote the pubkey VERBATIM before this fix<br/>nostr-bbs-auth-worker/src/governance_api.rs:86"]
+    LOOK["every other path canonicalises to lowercase, and is_registered_agent<br/>looks up with lower(pubkey)<br/>nostr-bbs-auth-worker/src/governance_api.rs:101-105"]
     BUG["so an agent registered with uppercase hex was written and then NEVER matched<br/>by the lookup that decides whether its governance events are admitted"]
-    FIX["canonical_agent_pubkey - validate, then lowercase - now called by register too<br/>nostr-bbs-auth-worker/src/governance_api.rs:107"]
-    ECHO["the response echoes what was STORED, not what was sent<br/>nostr-bbs-auth-worker/src/governance_api.rs:395-397"]
+    FIX["canonical_agent_pubkey - validate, then lowercase - now called by register too<br/>nostr-bbs-auth-worker/src/governance_api.rs:108"]
+    ECHO["the response echoes what was STORED, not what was sent<br/>nostr-bbs-auth-worker/src/governance_api.rs:396-398"]
     NIP33["client side: NIP-33 replaceability per pubkey and d tag - a replayed OLDER<br/>31400 must not roll back the operator's declaration<br/>nostr-bbs-forum-client/src/stores/panel_registry.rs:242"]
     HELD["supersedes_held decides it, and accept_panel_state records the newest<br/>31401 or 31404 per address<br/>nostr-bbs-forum-client/src/stores/panel_registry.rs:461<br/>nostr-bbs-forum-client/src/stores/panel_registry.rs:199"]
 
     REG --> LOOK --> BUG --> FIX --> ECHO
     NIP33 --> HELD
 
-    N1["INVARIANT: NIP-98 accepts case-insensitive hex and returns event.pubkey verbatim, and the event id is<br/>recomputed over that string, so the SAME key can legitimately present in two casings and both verify<br/>nostr-bbs-auth-worker/src/governance_api.rs:97-99"]
-    N2["Canonicalisation is idempotent and still rejects everything it always rejected - length, non-hex and<br/>a blank name nostr-bbs-auth-worker/src/governance_api.rs:86-90"]
+    N1["INVARIANT: NIP-98 accepts case-insensitive hex and returns event.pubkey verbatim, and the event id is<br/>recomputed over that string, so the SAME key can legitimately present in two casings and both verify<br/>nostr-bbs-auth-worker/src/governance_api.rs:98-100"]
+    N2["Canonicalisation is idempotent and still rejects everything it always rejected - length, non-hex and<br/>a blank name nostr-bbs-auth-worker/src/governance_api.rs:87-91"]
     N3["The registry keeps superseded events rather than deleting them - DecisionView tracks whether each<br/>entry is superseded and whether it is the current effective decision<br/>nostr-bbs-forum-client/src/stores/panel_registry.rs:174"]
 ```
 
@@ -394,7 +395,7 @@ sequenceDiagram
     OG-->>PB: Option i64, only for a PatchProposal level tag
     PB->>DB: stale_after copied onto the case at projection<br/>migrations/0007_ontology_governance.sql:16
 
-    loop scheduled Worker cron nostr-bbs-relay-worker/src/lib.rs:1083
+    loop scheduled Worker cron nostr-bbs-relay-worker/src/lib.rs:1094
         CRON->>DB: SELECT id, stale_after WHERE state='pending' AND stale_after IS NOT NULL<br/>cron.rs:762-765
         CRON->>OG: is_expired(stale_after, now) ontology_governance.rs:265
         CRON->>DB: INSERT case_side_receipts (closed without a decision) cron.rs:794-802
@@ -411,10 +412,10 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     CARD["decision card boundary computed from the signed events<br/>nostr-bbs-forum-client/src/pages/governance.rs:136"]
-    TIERIN["effective_tier_in reads broker_cases.effective_tier from the case projection<br/>nostr-bbs-forum-client/src/stores/case_projection.rs:96"]
+    TIERIN["effective_tier_in reads broker_cases.effective_tier from the case projection,<br/>answering only for the card's own author nostr-bbs-forum-client/src/stores/case_projection.rs:126-136"]
     WITH["with_relay_tier adopts the relay's stored tier wherever it has spoken<br/>nostr-bbs-forum-client/src/utils/governance_view.rs:279"]
-    GATE["the rationale gate on every control reads that effective tier<br/>nostr-bbs-forum-client/src/pages/governance.rs:895"]
-    PUB["the card signs d plus an UNMARKED e naming the request<br/>nostr-bbs-forum-client/src/pages/governance.rs:846-848"]
+    GATE["the rationale gate on every control reads that effective tier<br/>nostr-bbs-forum-client/src/pages/governance.rs:898"]
+    PUB["the card signs d plus an UNMARKED e naming the request<br/>nostr-bbs-forum-client/src/pages/governance.rs:849-851"]
     CORR["correlate: marked request, else appeal target, else first unmarked e<br/>nostr-bbs-relay-worker/src/relay_do/receipts.rs:128-130"]
     UNM["unmarked_tag - fewer than four elements or an empty marker<br/>nostr-bbs-relay-worker/src/relay_do/receipts.rs:159"]
     BIND["the projection still requires that id to equal the case's own nostr_event_id<br/>nostr-bbs-relay-worker/src/relay_do/receipts.rs:126-127"]
@@ -425,8 +426,9 @@ flowchart TB
 
     N1["INVARIANT: an unrecognised stored tier is IGNORED, not parsed - RiskTier::parse maps anything unknown<br/>to Medium, and a garbled column must not loosen a high case<br/>nostr-bbs-forum-client/src/utils/governance_view.rs:276-278"]
     N2["INVARIANT: a tag carrying any other marker - supersedes, appeal - is never read as the request, so<br/>the fallback cannot bind a decision to the wrong case nostr-bbs-relay-worker/src/relay_do/receipts.rs:124-127"]
-    N3["DRIFT: the CaseProjection field doc still says effective_tier is carried for cross-checking and is<br/>not yet what the surfaces gate on nostr-bbs-forum-client/src/stores/case_projection.rs:38-39,<br/>while with_relay_tier now makes it the tier the card gates on"]
-    N4["Panel actions such as Acknowledge all alerts now also carry an a tag binding them to THIS<br/>author's panel across republication nostr-bbs-forum-client/src/pages/governance.rs:396<br/>nostr-bbs-forum-client/src/pages/governance.rs:462"]
+    N3["DRIFT: the CaseProjection field doc still says effective_tier is carried for cross-checking and is<br/>not yet what the surfaces gate on nostr-bbs-forum-client/src/stores/case_projection.rs:47-48,<br/>while with_relay_tier now makes it the tier the card gates on"]
+    N4["Panel actions such as Acknowledge all alerts now also carry an a tag binding them to THIS<br/>author's panel across republication nostr-bbs-forum-client/src/pages/governance.rs:399<br/>nostr-bbs-forum-client/src/pages/governance.rs:465"]
+    N5["INVARIANT since ff5780a: a projection row answers only for the card its author published. The map is keyed<br/>by the d tag the requesting agent chooses, which collides across authors, so a second agent reusing a d would<br/>otherwise inherit the first one's tier and calibration flag case_projection.rs:22-28 - is_by matches created_by<br/>case-insensitively case_projection.rs:57-60, and the card passes its own agent pubkey<br/>nostr-bbs-forum-client/src/pages/governance.rs:145-148"]
 ```
 
 ## NF-06.18 The M4 probe suite and what live activation does not establish
@@ -437,10 +439,10 @@ flowchart TB
     OWN["probes live on their own panel and never need the owner's key<br/>nostr-bbs-governance-probe/src/lib.rs:12-19, PANEL_D nostr-bbs-governance-probe/src/lib.rs:58"]
     TABLE["P01 to P11 - NIP-11 posture, routes, effective_tier stamped high, probe tag blinding,<br/>rationale refusal, system decider refusal, withdrawal nostr-bbs-governance-probe/src/lib.rs:23-35"]
     NOTRUN["NotRun never counts as a pass nostr-bbs-governance-probe/src/lib.rs:43-45"]
-    BIN["the binary reads the signing key from a named variable and never prints it<br/>nostr-bbs-governance-probe/src/main.rs:10-13"]
+    BIN["the binary reads the signing key from a named variable and never prints it<br/>nostr-bbs-governance-probe/src/main.rs:10-11"]
     LIVE["ADR-2011 activation live: run 20261002t132144z passed 11 of 11 on the edge<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:187"]
     REC["ADR-2010 activation staged on the same run - the refusal path is live, the commit path is not<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:7, docs/adr/ADR-2010-durable-governance-outcome-receipts.md:153"]
-    PIN["the edge kit pin is now 341c5d2, carrying the correlation fix and the tier read<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:26"]
+    PIN["the edge kit pin is now 13cbe6c, a descendant of the correlation fix a5b809e<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:30"]
 
     SUITE --> OWN --> TABLE --> NOTRUN
     SUITE --> BIN
@@ -449,6 +451,7 @@ flowchart TB
 
     N1["OPEN: the requesting agent holds the admin flag, and the relay tells a human from a system by the<br/>31403's own decided_by - so the boundary is as strong as the admin list; not exercised live, on purpose<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:195"]
     N2["OPEN: no human has yet decided a high-tier case; the owner's first such 31403 at projection-committed<br/>is what closes ADR-2010 docs/adr/ADR-2010-durable-governance-outcome-receipts.md:157"]
-    N3["DRIFT: ADR-2010 still says the correlation fix is not on the edge until the kit pin moves past a5b809e<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:155 - the website record now pins 341c5d2<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:26"]
+    N3["RESOLVED 13cbe6c: ADR-2010 now records the correlation fix as on the edge, pinned through 341c5d2<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:155"]
     N4["Probe cases persist as open broker_cases rows after withdrawal, identifiable by subject_kind m4-probe<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:198"]
+    N5["DRIFT: the kit record's canonical row pins 13cbe6c in its SHA column, but its branch column still reads main<br/>at 341c5d2 and its narrative describes nothing later - the cohort merge, the whitelist migration and the<br/>author-scoped tier lookup are absent ../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:26"]
 ```

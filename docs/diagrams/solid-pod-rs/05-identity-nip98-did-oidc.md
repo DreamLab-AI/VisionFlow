@@ -37,7 +37,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/auth.rs
   - ../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/rate_limit.rs
-verified_commit: 6d2e5b0d2e00fc2c9fa1e4984b8582cfa0d48556
+verified_commit: 4aeb66c1f083e7c3cda7b9a8762aaaca1f40c711
 ---
 
 ## SP-05.1 Two auth paths, one AuthContext
@@ -45,14 +45,14 @@ verified_commit: 6d2e5b0d2e00fc2c9fa1e4984b8582cfa0d48556
 ```mermaid
 flowchart TD
     REQ["inbound request"]
-    EX["extract_pubkey_with_body<br/>solid-pod-rs-server/src/lib.rs:529"]
-    BEAR{"Authorization starts with 'Bearer '?<br/>solid-pod-rs-server/src/lib.rs:537"}
-    DEV["verify_dev_bearer — HMAC dev token<br/>solid-pod-rs-server/src/lib.rs:589"]
-    N98["nip98::verify_at over the reconstructed URL<br/>solid-pod-rs-server/src/lib.rs:558"]
-    REPLAY["NIP98_REPLAY.check_and_record<br/>solid-pod-rs-server/src/lib.rs:563"]
+    EX["extract_pubkey_with_body<br/>solid-pod-rs-server/src/lib.rs:513"]
+    BEAR{"Authorization starts with 'Bearer '?<br/>solid-pod-rs-server/src/lib.rs:521"}
+    DEV["verify_dev_bearer — HMAC dev token<br/>solid-pod-rs-server/src/lib.rs:573"]
+    N98["nip98::verify_at over the reconstructed URL<br/>solid-pod-rs-server/src/lib.rs:542"]
+    REPLAY["NIP98_REPLAY.check_and_record<br/>solid-pod-rs-server/src/lib.rs:547"]
     PK["Some(pubkey)"]
     ANON["None — treated as anonymous, WAC then denies"]
-    AGENT["agent_uri: did:nostr prefix, or a WebID URL passed through<br/>solid-pod-rs-server/src/lib.rs:579"]
+    AGENT["agent_uri: did:nostr prefix, or a WebID URL passed through<br/>solid-pod-rs-server/src/lib.rs:563"]
 
     REQ --> EX --> BEAR
     BEAR -- yes --> DEV
@@ -64,9 +64,9 @@ flowchart TD
     N98 -- verification failed --> ANON
     PK --> AGENT
 
-    N1["The signed URL is reconstructed from actix connection_info, honouring<br/>X-Forwarded-Proto — hardcoding http:// would break every TLS-fronted pod.<br/>solid-pod-rs-server/src/lib.rs:552"]
+    N1["The signed URL is reconstructed from actix connection_info, honouring<br/>X-Forwarded-Proto — hardcoding http:// would break every TLS-fronted pod.<br/>solid-pod-rs-server/src/lib.rs:536"]
     N98 -.-> N1
-    N2["INVARIANT: a rejected replay returns None, i.e. anonymous — it never becomes<br/>an error path the caller can distinguish from 'no credential'.<br/>solid-pod-rs-server/src/lib.rs:571"]
+    N2["INVARIANT: a rejected replay returns None, i.e. anonymous — it never becomes<br/>an error path the caller can distinguish from 'no credential'.<br/>solid-pod-rs-server/src/lib.rs:555"]
     REPLAY -.-> N2
     N3["EXTERNAL: agentbox mints a did:nostr per agent at spawn and signs pod writes<br/>with it; the same principal string reaches WAC here. See AB-11 and ES-04."]
     AGENT -.-> N3
@@ -276,7 +276,7 @@ flowchart TD
     PK["NostrPubkey — 32-byte x-only identifier, no parity<br/>solid-pod-rs/src/did_nostr_types.rs:68"]
     URI["did_nostr_uri<br/>solid-pod-rs/src/did_nostr_types.rs:152"]
     WKP["well_known_path<br/>solid-pod-rs/src/did_nostr_types.rs:158"]
-    RT["handle_well_known_did_nostr — the served endpoint<br/>solid-pod-rs-server/src/lib.rs:2108"]
+    RT["handle_well_known_did_nostr — the served endpoint<br/>solid-pod-rs-server/src/lib.rs:2092"]
     VT["verify_webid_tag<br/>solid-pod-rs/src/did_nostr_types.rs:612"]
     WD["webid_declares_pubkey<br/>solid-pod-rs/src/did_nostr_types.rs:674"]
 
