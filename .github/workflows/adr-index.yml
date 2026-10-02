@@ -43,7 +43,7 @@ jobs:
       - name: Validate ADR frontmatter
         run: node scripts/adr-index-gen.cjs docs/adr --check
 
-      - name: adr-ratchet (planning cycle 2026-09-21 — a new ADR must close a proposed one)
+      - name: adr-ratchet (planning cycle 2026-09-21 — a new proposal must close a proposed one)
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: bash scripts/adr-ratchet.sh docs/adr "${BASE:-0}" "${{ github.sha }}"
