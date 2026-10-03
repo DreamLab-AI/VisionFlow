@@ -65,6 +65,8 @@
     { "registry": "crates.io", "name": "sidestr-nostr" },
     { "registry": "crates.io", "name": "sidestr-wallet" },
     { "registry": "crates.io", "name": "sidestr-round" },
+    { "registry": "crates.io", "name": "sidestr-hitch" },
+    { "registry": "crates.io", "name": "sidestr-agent" },
     { "registry": "npm",       "name": "@dreamlab-ai/vowl-wasm" }
   ]
 }
