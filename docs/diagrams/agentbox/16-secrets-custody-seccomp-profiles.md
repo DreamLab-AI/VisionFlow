@@ -5,7 +5,7 @@ area: agentbox
 governing:
   - ../project/agentbox/docs/SECURITY-profiles.md
   - ../project/agentbox/docs/INGRESS-identity.md
-adrs: [ADR-2007, ADR-2026, ADR-2027, ADR-2033, ADR-2046]
+adrs: [ADR-2007, ADR-2026, ADR-2027, ADR-2033, ADR-2046, ADR-2122]
 sources:
   - ../project/agentbox/config/seccomp-agentbox.json
   - ../project/agentbox/docker-compose.yml
@@ -22,7 +22,23 @@ sources:
   - ../project/agentbox/services/secret-backup/src/main.rs
   - ../project/agentbox/services/secret-backup/README.md
   - ../project/agentbox/agentbox.toml
-verified_commit: {agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047, visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8}
+  - ../project/agentbox/config/lib/role-custody.sh
+  - ../project/agentbox/config/role-accounts.json
+  - ../project/agentbox/config/custody/env-classes.json
+  - ../project/agentbox/config/custody/identity-port-acl.json
+  - ../project/agentbox/scripts/ci/env-secret-inventory.js
+  - ../project/agentbox/config/hooks/lib/operator-key.cjs
+  - ../project/agentbox/management-api/lib/role-secret.js
+  - ../project/agentbox/services/nostr-pod-bridge/src/role_secret.rs
+  - ../project/agentbox/services/nostr-pod-bridge/src/bootstrap.rs
+  - ../project/agentbox/services/nostr-pod-bridge/src/identity.rs
+  - ../project/agentbox/services/nostr-pod-bridge/src/lib.rs
+  - ../project/agentbox/services/nostr-pod-bridge/src/mirror_key.rs
+  - ../project/agentbox/services/nostr-pod-bridge/src/identity_port/port.rs
+  - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
+  - ../project/agentbox/tests/runtime-contract/RC-X1-06.sh
+  - ../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md
+verified_commit: {agentbox: d03defbeaca6c52d6bf3f7338d3f465a109fcdbf, visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8}
 ---
 
 ## AB-16.1 Container hardening posture — what actually confines the box
@@ -30,25 +46,26 @@ verified_commit: {agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047, visionclaw
 ```mermaid
 flowchart TB
     subgraph HOST["docker host"]
-        CMP["docker-compose.yml:88-167"]
+        CMP["docker-compose.yml:88-168"]
     end
     subgraph CTR["agentbox container"]
         SUP["supervisord PID 1 as ROOT<br/>required at boot for tmpfs subdirs, cert gen, chown to uid 1000"]
-        PROG["every long-running program<br/>user=devuser uid 1000"]
+        PROG["every long-running program<br/>user=devuser uid 1000, except role programs<br/>under role_isolation, which run as their own uid 960-968"]
     end
     CMP -->|"read_only: true (compose:94)"| CTR
     CMP -->|"cap_drop: ALL (compose:95-96)"| CTR
     CMP -->|"cap_add: CHOWN FOWNER DAC_OVERRIDE AUDIT_WRITE KILL SETUID SETGID NET_ADMIN (compose:97-104)"| CTR
-    CMP -->|"security_opt: no-new-privileges:true (compose:128)"| CTR
-    CMP -->|"security_opt: seccomp=./config/seccomp-agentbox.json (compose:129)"| CTR
-    CMP -->|"tmpfs: /tmp 8G, /run 256M, /var/log 128M, ~/.cache 4G, ~/.npm 4G, /usr/local/bin 8M exec+suid … (compose:107-126)"| CTR
-    CMP -->|"deploy.resources: cpus 56 / memory 256G / pids 32768 limits, nvidia GPU count all reservation (compose:154-166)"| CTR
+    CMP -->|"security_opt: no-new-privileges:true (compose:129)"| CTR
+    CMP -->|"security_opt: seccomp=./config/seccomp-agentbox.json (compose:130)"| CTR
+    CMP -->|"tmpfs: /tmp 8G, /run 256M, /run/secrets 8M root 0711 own mount, /var/log 128M, ~/.cache 4G, ~/.npm 4G, /usr/local/bin 8M exec+suid … (compose:107-127)"| CTR
+    CMP -->|"deploy.resources: cpus 56 / memory 256G / pids 32768 limits, nvidia GPU count all reservation (compose:156-168)"| CTR
     SUP -->|"setgroups + setuid demotion"| PROG
     CMP -.-> N1["INVARIANT compose:88-93 — no runtime sudo.<br/>Root-at-boot via supervisord PID 1 is the ONLY elevation.<br/>No agent-facing process runs as root after bootstrap."]
     CMP -.-> N2["SETUID and SETGID are cap_add'ed for privilege DROPPING, not gaining.<br/>supervisord needs CAP_SETGID/CAP_SETUID to demote children to devuser.<br/>no-new-privileges:true neuters setuid FILE BITS at execve, which is a different axis and does not replace these caps."]
     CTR -.-> N3["DIVERGENCE — ADR-2007 governs configuration separation only.<br/>Profile isolation replaced Linux pseudo-user isolation, so profiles are NOT an OS boundary.<br/>SECURITY-profiles states this explicitly. Every profile shares uid 1000."]
-    PROG -.-> N4["CONSEQUENCE — a same-uid boundary. Every supervised program, MCP server, skill and agent runs as devuser,<br/>so each can read every other's 0600 key file, the AoE daemon token and the mirror key. see AB-16.7"]
-    CMP -.-> N5["The GPU/CPU resource envelope (compose:154-166) is a scheduling ceiling,<br/>not a security boundary — it widens the pids limit and grants a whole GPU;<br/>the confinement posture is entirely the caps/read_only/seccomp lines above. see AB-06"]
+    PROG -.-> N4["role_isolation OFF, the shipped default — a same-uid boundary. Every supervised program, MCP server, skill and agent runs as devuser,<br/>so each can read every other's 0600 key file, the AoE daemon token and the mirror key. see AB-16.7"]
+    PROG -.-> N6["INVARIANT under role_isolation — each role's runtime secrets sit in /run/secrets/role, a 0500 dir of 0400 files<br/>owned by that role, config/lib/role-custody.sh:104-111, role-custody.sh:282-286. The at-rest volume<br/>is still chowned to devuser in both modes, entrypoint-unified.sh:526, entrypoint-unified.sh:554. see AB-16.13, AB-36"]
+    CMP -.-> N5["The GPU/CPU resource envelope (compose:156-168) is a scheduling ceiling,<br/>not a security boundary — it widens the pids limit and grants a whole GPU;<br/>the confinement posture is entirely the caps/read_only/seccomp lines above. see AB-06"]
 ```
 
 ## AB-16.2 The seccomp profile is a supplemental denylist, not a sandbox
@@ -135,9 +152,9 @@ sequenceDiagram
     D->>SUP: PID 1 as root — tmpfs subdir creation, cert generation, chown runtime dirs to uid 1000
     SUP->>EP: run bootstrap
     rect rgb(255,248,235)
-    Note over EP,TS: trust pre-acceptance, ONCE at boot — entrypoint-unified.sh:1380-1393
-    EP->>TS: node /opt/agentbox/config/hooks/trust-seed.cjs, gated on AGENTBOX_TRUST_SEED != 0 (entrypoint-unified.sh:1391-1392)
-    Note over EP: DRIFT (resolved) — trust-seed is deliberately NOT a SessionStart hook any more.<br/>entrypoint-unified.sh:1386-1388: the old registration walked ~1,170 paths (avg 3.2s) per session start<br/>and raced Claude Code's own writes to ~/.claude.json — hooks-reconcile prunes any stale registration.
+    Note over EP,TS: trust pre-acceptance, ONCE at boot — entrypoint-unified.sh:1675-1688
+    EP->>TS: node /opt/agentbox/config/hooks/trust-seed.cjs, gated on AGENTBOX_TRUST_SEED != 0 (entrypoint-unified.sh:1686-1687)
+    Note over EP: DRIFT (resolved) — trust-seed is deliberately NOT a SessionStart hook any more.<br/>entrypoint-unified.sh:1681-1683: the old registration walked ~1,170 paths (avg 3.2s) per session start<br/>and raced Claude Code's own writes to ~/.claude.json — hooks-reconcile prunes any stale registration.
     end
     TS->>TS: parseArgs — depth default 5, --dry-run, extra paths
     TS->>CFG: read ~/.claude.json projects.<abs path>
@@ -150,7 +167,7 @@ sequenceDiagram
     end
     SUP->>CC: start every long-running program with user=devuser
     CC-->>CC: no "Do you trust the files in this folder?" dialog, for every checkout that existed at boot
-    OP->>TS: node /opt/agentbox/config/hooks/trust-seed.cjs <path> — manual, for a worktree made AFTER boot (entrypoint-unified.sh:1389)
+    OP->>TS: node /opt/agentbox/config/hooks/trust-seed.cjs <path> — manual, for a worktree made AFTER boot (entrypoint-unified.sh:1684)
     Note over TS,CC: rationale trust-seed.cjs:19 — observed 2026-09-02, ten Opus worker panes sat dead for an hour behind the trust gate.<br/>DIVERGENCE — this pre-accepts a SECURITY prompt for unattended agents. It is a deliberate availability-over-confirmation trade, not a hardening measure.
 ```
 
@@ -159,41 +176,48 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant ENV as operator key<br/>AGENTBOX_PRIVKEY_HEX or AGENTBOX_BRIDGE_SK or OPERATOR_NOSTR_PRIVKEY
-    participant GW as gateway.cjs<br/>agentbox/config/nostr-gateway/gateway.cjs:184-194
-    participant MIR as deriveChildKey<br/>agentbox/config/hooks/nostr-live-mirror.cjs:210
+    participant ENV as operatorKeyHex<br/>agentbox/config/hooks/lib/operator-key.cjs:55
+    participant GW as gateway.cjs<br/>agentbox/config/nostr-gateway/gateway.cjs:186-196
+    participant MIR as deriveChildKey<br/>agentbox/config/hooks/nostr-live-mirror.cjs:211
     participant PHONE as operator phone (Amethyst)
     participant RELAY as relays
 
     rect rgb(235,245,255)
-    Note over ENV,GW: gateway identity — gateway.cjs:184-194
-    GW->>ENV: envFirst(AGENTBOX_PRIVKEY_HEX, AGENTBOX_BRIDGE_SK, OPERATOR_NOSTR_PRIVKEY)
+    Note over ENV,GW: gateway identity — gateway.cjs:186-196
+    GW->>ENV: operatorKeyHex (gateway.cjs:186)
+    alt role_isolation off
+        ENV-->>GW: first non-empty of AGENTBOX_PRIVKEY_HEX, AGENTBOX_BRIDGE_SK, OPERATOR_NOSTR_PRIVKEY (operator-key.cjs:58)
+    else role_isolation on
+        ENV-->>GW: the role-secret file only, a bare variable is a reported leak (operator-key.cjs:59-69)
+        Note over GW: as ab-gateway it holds no key file, so it gets none and exits below. ADR-2122 owes the port cutover (W3b)
+    end
     alt not 64-hex
-        GW-->>GW: log "no operator key (AGENTBOX_PRIVKEY_HEX) — exiting" then process.exit(0) (gateway.cjs:185)
+        GW-->>GW: log "no operator key (AGENTBOX_PRIVKEY_HEX) — exiting" then process.exit(0) (gateway.cjs:187)
         Note over GW: FAIL-CLOSED by exit — the gateway refuses to run keyless rather than degrading
     end
-    GW->>GW: adminPub = getPublicKey(rawSk) — the ONLY pubkey allowed to command (gateway.cjs:187,193)
+    GW->>GW: adminPub = getPublicKey(rawSk) — the ONLY pubkey allowed to command (gateway.cjs:189,195)
     alt AGENTBOX_GATEWAY_IDENTITY === 'gateway'
-        GW->>GW: sk = HMAC-SHA256(operator_sk, AGENTBOX_GATEWAY_KEY_TAG or 'agentbox-gateway-v1') (gateway.cjs:190)
+        GW->>GW: sk = HMAC-SHA256(operator_sk, AGENTBOX_GATEWAY_KEY_TAG or 'agentbox-gateway-v1') (gateway.cjs:192)
     else default 'operator'
-        GW->>GW: sk = rawSk — the gateway signs AS the operator (gateway.cjs:191)
+        GW->>GW: sk = rawSk — the gateway signs AS the operator (gateway.cjs:193)
         Note over GW: DIVERGENCE — the DEFAULT identity is 'operator', so out of the box the gateway holds and signs with the ROOT operator key.<br/>The derived-child mode exists but is opt-in via env.
     end
-    GW->>RELAY: auth and receive as getPublicKey(sk), reply to AGENTBOX_GATEWAY_REPLY_TO or adminPub (gateway.cjs:194)
+    GW->>RELAY: auth and receive as getPublicKey(sk), reply to AGENTBOX_GATEWAY_REPLY_TO or adminPub (gateway.cjs:196)
     end
     rect rgb(240,255,240)
-    Note over MIR,PHONE: mirror child key — nostr-live-mirror.cjs:210
+    Note over MIR,PHONE: mirror child key — nostr-live-mirror.cjs:211-222, operator hex from operatorKeyHex (nostr-live-mirror.cjs:214)
     MIR->>MIR: cached in _childCache, computed once per process
     alt AGENTBOX_MIRROR_CHILD === '0'
         MIR-->>MIR: null — child mode off, LEGACY operator-self-DM path is used instead
-    else operator key not 64-hex
-        MIR-->>MIR: null — same legacy fallback
+    else operator key not 64-hex, which is the devuser hook's case under role_isolation
+        MIR-->>MIR: null — same legacy fallback, sealed under a throwaway sender when no operator key is readable (nostr-live-mirror.cjs:225-233)
     else
         MIR->>MIR: child_sk = HMAC-SHA256(operator_sk, AGENTBOX_MIRROR_KEY_TAG or 'agentbox-mirror-v1')
         MIR->>PHONE: only the CHILD nsec is imported to the device — the root operator key stays off the phone
         Note over MIR,PHONE: rotatable by bumping the tag. The mirror is a self-DM on the child identity, and the child signs nothing of consequence. see AB-13
     end
     end
+    Note over MIR,PHONE: TENSION — the identity port grants devuser mirror_key with secret true (identity-port-acl.json:42),<br/>and the port returns the child secret_hex (port.rs:635-637). The ACL comment justifies it by the hook signing the self-DM wrap<br/>with the child (identity-port-acl.json:14-15), so the phone's key becomes devuser-readable, where a wrap-only operation<br/>would have kept it in ab-identity. ADR-2101 calls a generic sign-this-payload port a bypass (ADR-2101:110-111)
     Note over GW,MIR: DIVERGENCE ADR-2027 — neither derived key appears in the SECURITY-profiles provisional custody register.<br/>Both are bespoke HMAC-SHA256 constructions rather than a standard KDF (HKDF), and rotation is "bump the env tag" with no revocation of the previously derived child at any relay.
 ```
 
@@ -203,32 +227,32 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant ATK as any LAN client
-    participant PX as nip98-proxy verifyIdentity<br/>agentbox/config/nip98-proxy/proxy.mjs:629
-    participant CT as constantTimeEqual<br/>agentbox/config/nip98-proxy/proxy.mjs:543
+    participant PX as nip98-proxy verifyIdentity<br/>agentbox/config/nip98-proxy/proxy.mjs:662
+    participant CT as constantTimeEqual<br/>agentbox/config/nip98-proxy/proxy.mjs:576
     participant UP as upstream (AoE or mgmt-api)
     participant ADR as ADR-2027 requirement<br/>agentbox/docs/adr/ADR-2027-secret-custody-rotation-break-glass.md
 
     ATK->>PX: Authorization Bearer <token> on port 9096 over the LAN
-    alt BREAK_GLASS unset (proxy.mjs:99 NIP98_PROXY_ALLOW_BEARER)
+    alt BREAK_GLASS unset or unreadable (proxy.mjs:131 roleSecret NIP98_PROXY_ALLOW_BEARER, file-only under role_isolation, proxy.mjs:116-130)
         PX-->>ATK: branch skipped entirely — break-glass disabled
     else configured
-        PX->>CT: constantTimeEqual(token, BREAK_GLASS) (proxy.mjs:639)
+        PX->>CT: constantTimeEqual(token, BREAK_GLASS) (proxy.mjs:672)
         alt no match
             PX-->>ATK: fall through to the NIP-98 branch. see AB-10.3
         else match
             CT-->>PX: true
-            PX->>PX: breakGlassNotExpired() (proxy.mjs:640) — ADR-2027: matching the token alone is not sufficient
+            PX->>PX: breakGlassNotExpired() (proxy.mjs:673) — ADR-2027: matching the token alone is not sufficient
             alt expired
-                PX->>PX: breakGlassUse.refused++, log warn break-glass REFUSED (proxy.mjs:641-648)
+                PX->>PX: breakGlassUse.refused++, log warn break-glass REFUSED (proxy.mjs:674-681)
                 PX-->>ATK: ok false, break_glass_expired
             else not expired
-                PX->>PX: breakGlassScopeAllows(req.method, req.url) (proxy.mjs:650)
+                PX->>PX: breakGlassScopeAllows(req.method, req.url) (proxy.mjs:683)
                 alt out of scope
-                    PX->>PX: breakGlassUse.refused++, log warn break-glass REFUSED (proxy.mjs:651-658)
+                    PX->>PX: breakGlassUse.refused++, log warn break-glass REFUSED (proxy.mjs:684-691)
                     PX-->>ATK: ok false, break_glass_out_of_scope
                 else in scope
-                    PX->>PX: breakGlassUse.accepted++, log warn break-glass USED with fingerprint, NOT the token (proxy.mjs:661-671)
-                    PX->>PX: ok true, pubkey BREAK_GLASS_PUBKEY, mode "break-glass" (proxy.mjs:673)
+                    PX->>PX: breakGlassUse.accepted++, log warn break-glass USED with fingerprint, NOT the token (proxy.mjs:693-705)
+                    PX->>PX: ok true, pubkey BREAK_GLASS_PUBKEY, mode "break-glass" (proxy.mjs:706)
                     PX->>UP: forward with X-Agentbox-Pubkey = the sentinel
                     Note over PX,UP: the sentinel identity is NOT a real pubkey, so every downstream attribution for this request is a placeholder
                 end
@@ -252,24 +276,31 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant AI as agent-identity loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:107
+    participant AI as agent-identity loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:128
     participant KF as profile key file
     participant AOE as AoE daemon token<br/>~/.config/agent-of-empires/serve.url
     participant BSK as bridge key<br/>AGENTBOX_BRIDGE_SK_FILE default /run/secrets/nostr.key
     participant PEER as any co-resident devuser process
 
-    AI->>KF: writeFileSync(privHex, mode 0o600) then chmodSync 0o600 (agent-identity.js:141-142)
-    Note over AI,KF: comment at agent-identity.js:139 — "Persist with 0600 so the key survives a restart of this profile and no other uid can read it"
+    AI->>KF: writeFileSync(privHex, mode 0o600) then chmodSync 0o600 (agent-identity.js:165-166)
+    Note over AI,KF: comment at agent-identity.js:160-161 — "Persist with 0600 so the key survives a restart of this profile and no other uid can read it"
     AOE-->>AOE: minted by the daemon at launch into an owner-only 0700 directory, not env-settable
-    BSK-->>BSK: loaded by nostr-pod-bridge, legacy environment fallback still present
+    BSK-->>BSK: loaded by load_agent_sk, the legacy environment fallback honoured only while role_isolation is off (lib.rs:179-181)
     rect rgb(255,240,240)
-    Note over PEER,BSK: the residual limit, stated in the governing docs
-    PEER->>KF: read — SUCCEEDS, same uid
-    PEER->>AOE: read — SUCCEEDS, same uid
-    PEER->>BSK: read — SUCCEEDS, same uid
+    alt role_isolation off, the shipped default
+        Note over PEER,BSK: the residual limit, stated in the governing docs
+        PEER->>KF: read — SUCCEEDS, same uid
+        PEER->>AOE: read — SUCCEEDS, same uid
+        PEER->>BSK: read — SUCCEEDS, the boot writes it 0400 devuser (entrypoint-unified.sh:1019-1028)
+    else role_isolation on
+        PEER->>BSK: read — REFUSED, the runtime copy is /run/secrets/ab-identity/nostr.key, 0400 ab-identity in a 0500 dir (role-accounts.json:24)
+        PEER->>KF: read — still SUCCEEDS, per-agent DID keys stay devuser files and are not in the port's keyring (identity-port-acl.json:17-32)
+        PEER->>AOE: read — still SUCCEEDS, the AoE bearer is devuser-class by design
     end
-    Note over PEER: DIVERGENCE GOVERNANCE-capabilities item 5 — "a process running as the same devuser can still read the token file.<br/>The token raises the bar but does not isolate same-uid peers. Per-process isolation is future work."<br/>The same sentence applies verbatim to the agent key and the bridge key. see AB-16.1
-    Note over AI,KF: DIVERGENCE SECURITY-profiles custody row — persistence failure is NON-FATAL (agent-identity.js:145-148),<br/>so a container can run a whole session on an in-memory key that vanishes at restart. "Key persistence failure can produce a valid but unstable identity." see AB-11.2
+    end
+    Note over PEER: DIVERGENCE GOVERNANCE-capabilities item 5 — "a process running as the same devuser can still read the token file.<br/>The token raises the bar but does not isolate same-uid peers. Per-process isolation is future work."<br/>With the flag off the same sentence applies verbatim to the agent key and the bridge key. see AB-16.1
+    Note over PEER,BSK: TENSION — under role_isolation the RUNTIME copy is role-only, but the AT-REST copies are not: the boot chowns /var/lib/agentbox/secrets<br/>to devuser in both modes (entrypoint-unified.sh:526, entrypoint-unified.sh:554), and ADR-2122 records that until W2 custody devuser<br/>can still read those copies, so the flag gives no confidentiality on its own (ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:206-209)
+    Note over AI,KF: DIVERGENCE SECURITY-profiles custody row — persistence failure is NON-FATAL (agent-identity.js:168-171),<br/>so a container can run a whole session on an in-memory key that vanishes at restart. "Key persistence failure can produce a valid but unstable identity." see AB-11.2
 ```
 
 ## AB-16.8 A secret's lifecycle — implemented versus proposed
@@ -291,7 +322,9 @@ stateDiagram-v2
         IMPLEMENTED. Storage interfaces exist and are source-verified:
         0600 profile key file, /run/secrets/nostr.key, the AoE serve.url
         state file, NIP98_PROXY_ALLOW_BEARER and NIP98_PROXY_SESSION_SECRET
-        captured at process start.
+        captured at process start. Under role_isolation the root boot
+        copies each role's secrets into its own /run/secrets subdirectory
+        at 0400 and unsets the variables before supervisord. see AB-16.13
     end note
     note right of BackedUp
         PARTIAL and unverified. SECURITY-profiles: the backup script invokes
@@ -319,10 +352,10 @@ stateDiagram-v2
 ```mermaid
 flowchart LR
     R["SECURITY-profiles.md<br/>Provisional custody register 2026-09-04"]
-    R --> C1["Bridge identity / unwrap key<br/>src: AGENTBOX_BRIDGE_SK_FILE default /run/secrets/nostr.key<br/>legacy env fallback remains"]
+    R --> C1["Bridge identity / unwrap key<br/>src: AGENTBOX_BRIDGE_SK_FILE default /run/secrets/nostr.key<br/>under role_isolation held by ab-identity uid 960, role-accounts.json:19-29<br/>legacy env fallback only while the flag is off"]
     R --> C2["Shared server publisher identity<br/>src: relay key list, build-projected<br/>ADR-2012 per-consumer split PENDING"]
-    R --> C3["Proxy break-glass bearer<br/>src: NIP98_PROXY_ALLOW_BEARER captured at process start<br/>see AB-16.6"]
-    R --> C4["Proxy browser-session signing secret<br/>src: NIP98_PROXY_SESSION_SECRET or per-boot random<br/>see AB-10.8"]
+    R --> C3["Proxy break-glass bearer<br/>src: NIP98_PROXY_ALLOW_BEARER read at process start, proxy.mjs:131<br/>under role_isolation a file of ab-ingress uid 962, role-accounts.json:39-46<br/>still the same value as BRIDGE_TOKEN until Q4, see AB-16.6"]
+    R --> C4["Proxy browser-session signing secret<br/>src: NIP98_PROXY_SESSION_SECRET or per-boot random, proxy.mjs:244-245<br/>under role_isolation a file of ab-ingress, see AB-10.8"]
     R --> C5["AoE daemon token<br/>src: daemon state file read by the proxy with a last-good cache<br/>see AB-10.11"]
     R --> C6["Dream remote-execution identity<br/>src: ssh/scp dispatch on AMBIENT ssh config<br/>no explicit identity file in the inspected calls"]
     R --> C7["Secret backup artefact and recovery access<br/>src: scripts/backup-secrets.sh to workspace/secret-backups ZIP + manifest"]
@@ -335,6 +368,7 @@ flowchart LR
     C7 --> U
     U --> N1["DIVERGENCE — 'Suggested responsible role' in the register is a role TO ASSIGN,<br/>not an assertion that anyone has accepted custody. 'No cadence is invented here.'"]
     U --> N2["DIVERGENCE — these seven rows are a STARTING SET, not completeness certification.<br/>Provider credentials and other estate identities are not yet inventoried.<br/>The two derived HMAC keys in AB-16.5 are absent from the register entirely."]
+    R -.-> N4["ROLE ACCOUNTS 2026-10-03, config/role-accounts.json:17-93 — a holder uid per secret-bearing role:<br/>ab-identity 960, ab-gateway 961 holding no key, ab-ingress 962, ab-spend 963 account only,<br/>ab-sidestr-dreamlab 964, ab-faucet-dreamlab 966, txbt4 producer 967 and faucet 968.<br/>965 is reserved for the host docker group, role-accounts.json:5-7.<br/>A holder uid is not a custodian: every row above stays UNCONFIRMED"]
     R -.-> N3["Refer to secret identifiers and custodian ROLES, never secret values.<br/>Do not copy secrets into this register. SECURITY-profiles preamble."]
 ```
 
@@ -432,6 +466,70 @@ flowchart TB
     end
 ```
 
-**Drift (secrets inventory vs the sealed chain):** two files now live in the `agentbox-secrets` volume that this topic does not inventory — the sidestr signer key at mode 0400, which ADR-2101 D3 requires be neither in `identity.env` nor derived from the identity key, and the parent node's testnet4 RPC cookie. Both are read by path rather than passed as arguments, and the genesis gate greps the chain-document directory to prove no key sits in git (see AB-32.4, AB-32.3, AB-34.1).
+## AB-16.13 Role secret delivery — the shipped default versus role_isolation
 
-**Tension (custody boundary vs the faucet key):** since the sidechain faucet became a supervised program (2026-09-30), its treasury signing key is read from the workspace bind, not the `agentbox-secrets` volume — the manifest points at `/home/devuser/workspace/sidestr/agents/treasury.key` (`../project/agentbox/agentbox.toml:1576`), which is also the schema's default when the key is empty — so a spend-capable key sits on a host-visible bind, outside the `agentbox-secrets` volume this topic's custody model inventories.
+```mermaid
+flowchart TB
+    subgraph OFF["role_isolation = false, the shipped default: today's boot, unchanged"]
+        direction TB
+        O1["/run/secrets handed to devuser at 0700<br/>config/entrypoint-unified.sh:388-391"]
+        O2["the bridge key written 0400 devuser and AGENTBOX_BRIDGE_SK unset<br/>entrypoint-unified.sh:1019-1028"]
+        O3["capture and scrub return at their first line, so every other ROLE variable stays in PID 1<br/>and reaches every child, entrypoint-unified.sh:424, entrypoint-unified.sh:468"]
+        O4["exec supervisord with /etc/supervisord.conf and a byte-identical environment<br/>entrypoint-unified.sh:1144, tests/runtime-contract/RC-X1-06.sh:12"]
+        O1 --> O2 --> O3 --> O4
+    end
+    subgraph ON["role_isolation = true: per-role files under a root-owned mount"]
+        direction TB
+        N1["/run/secrets is its own root tmpfs, prepared root 0711, a mount point devuser cannot rename<br/>config/lib/role-custody.sh:86-100, entrypoint-unified.sh:352-355"]
+        N2["each ROLE variable from the eleven-name list goes to /run/secrets/role/NAME at 0400 and is unset,<br/>before the identity bootstrap runs, entrypoint-unified.sh:411, entrypoint-unified.sh:489"]
+        N3["identity.env is rendered public-only: no AGENTBOX_NSEC, no AGENTBOX_BRIDGE_SK,<br/>only the key file's path, services/nostr-pod-bridge/src/bootstrap.rs:230-250"]
+        N4["the baked plan /etc/agentbox/role-secrets.tsv is executed row by row<br/>entrypoint-unified.sh:1147, role-custody.sh:160-289"]
+        N5["each file lands via a 0400 temp owned by the role, then a rename, role-custody.sh:104-111.<br/>Role dirs are sealed 0500 and role-owned last, role-custody.sh:282-286"]
+        N6["final scrub: a ROLE variable still present is logged ROLE-ISOLATION-LEAK and unset,<br/>entrypoint-unified.sh:1158, then exec the roles config, entrypoint-unified.sh:1159"]
+        N7["readers take NAME_FILE, then AGENTBOX_SECRETS_DIR/NAME, then a default file,<br/>and the bare variable only with the flag off<br/>services/nostr-pod-bridge/src/role_secret.rs:9-22, management-api/lib/role-secret.js:13-25"]
+        N1 --> N2 --> N3 --> N4 --> N5 --> N6 --> N7
+    end
+    OFF --> ON
+    N6 -.-> INV1["INVARIANT under role_isolation: no ROLE variable reaches supervisord's environment.<br/>Captured at entrypoint-unified.sh:489, scrubbed at entrypoint-unified.sh:1158"]
+    N5 -.-> INV2["Each chain's signer key and parent credential are delivered to that chain's producer uid only,<br/>role-accounts.json:61-62, role-accounts.json:80-81. The treasury source is still the workspace bind,<br/>role-accounts.json:71, so its at-rest copy stays host-visible"]
+    N3 -.-> TEN1["TENSION: role-accounts.json:21 calls ab-identity the sole holder of the sovereign key,<br/>yet the identity file, which carries private_key_hex (identity.rs:71),<br/>is chowned devuser 0600 in BOTH modes, entrypoint-unified.sh:695-699"]
+    N4 -.-> TEN2["TENSION: the at-rest volume /var/lib/agentbox/secrets is chowned to devuser in both modes,<br/>entrypoint-unified.sh:526, entrypoint-unified.sh:554. Locking it is owed as W2 custody,<br/>ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:206-209"]
+```
+
+**What it shows.** With the flag off the boot is unchanged and every ROLE secret is ambient. With it on the root boot moves each role's secrets into its own 0500 directory of 0400 files under a root-owned mount, writes a public-only `identity.env`, and scrubs the environment twice before `supervisord` starts, so no role program and no devuser process inherits a signing key from PID 1.
+
+**Why it is this way.** ADR-2122 chose per-role Unix accounts over a separate signing container because supervisord already drops privilege per program; the flag is boot-class so the image carries both paths and the owner's rehearsal flips it without a rebuild (see AB-36). The runtime copies are only half of custody: the at-rest volumes are W2's, and until that lands the flag's confidentiality claim is about the environment and `/run/secrets`, not the disk.
+
+## AB-16.14 Environment classes — every secret-shaped name in exactly one class
+
+```mermaid
+flowchart TB
+    T["config/custody/env-classes.json<br/>names only, never values, env-classes.json:2"]
+    T --> ROLE["ROLE, 11 names, env-classes.json:33<br/>a signing, join or session key owned by one role:<br/>ab-identity, ab-ingress, or root for TAILSCALE_AUTHKEY"]
+    T --> DEV["DEVUSER_CLASS, 35 names, env-classes.json:90<br/>provider and devuser credentials kept in devuser's environment,<br/>each with a reason and the Q8 exception"]
+    T --> NS["NON_SECRET, 612 exact names and no patterns, env-classes.json:232<br/>a secret-shaped name can never land here by pattern"]
+    ROLE --> EP["must equal the entrypoint's scrub list, entrypoint-unified.sh:411<br/>scripts/ci/env-secret-inventory.js:259-262"]
+    ROLE --> W1["must match W1's delivery plan, every from_env with the same role<br/>env-secret-inventory.js:206-224"]
+    T --> CHK["node scripts/ci/env-secret-inventory.js --check fails CI on an unclassified,<br/>ambiguous or secret-shaped-by-pattern name, env-secret-inventory.js:227-238"]
+    DEV -.-> DEBT["DEBT: the 35 DEVUSER_CLASS credentials stay in every agent process by exception,<br/>owner disposition Q8 pending, env-classes.json:92. see AB-36"]
+```
+
+**What it shows.** One table classifies every environment name the boot path and the role-secret consumers read. Only the ROLE class leaves PID 1 under the flag; the CI inventory keeps that set equal to the entrypoint's scrub list and to the role table's delivery plan, so a new key cannot be added to one and forgotten in another.
+
+**Why it is this way.** Bypass 3 of the custody design was that `.env` reached every process through PID 1. A denylist of role secrets, rather than an allowlist of the environment, lets the flag ship without breaking agent tooling; the price is the DEVUSER_CLASS exception, which the owner has not yet ruled on.
+
+**Invariant (under role_isolation):** the runtime copy of every role secret is readable only by its role — each file is `0400` and role-owned inside a `0500` role-owned directory (`../project/agentbox/config/lib/role-custody.sh:104-111`, `../project/agentbox/config/lib/role-custody.sh:282-286`) on a root-owned mount devuser cannot rename (`../project/agentbox/config/lib/role-custody.sh:86-100`). With the flag off, `/run/secrets` is devuser's as before (`../project/agentbox/config/entrypoint-unified.sh:388-391`).
+
+**Invariant (under role_isolation):** no ROLE variable is in PID 1's environment when `supervisord` starts (`../project/agentbox/config/entrypoint-unified.sh:489`, `../project/agentbox/config/entrypoint-unified.sh:1158`); with the flag off both functions return at their first line and the environment is today's (`../project/agentbox/config/entrypoint-unified.sh:424`, `../project/agentbox/config/entrypoint-unified.sh:468`).
+
+**Tension (role isolation vs the at-rest volumes):** the flag makes the runtime copies role-only, but the boot still chowns `/var/lib/agentbox/secrets` to devuser in both modes (`../project/agentbox/config/entrypoint-unified.sh:526`, `../project/agentbox/config/entrypoint-unified.sh:554`), and ADR-2122 itself records that until W2 custody devuser can read the at-rest copies, so the flag gives no confidentiality on its own (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:206-209`).
+
+**Tension (role table vs the identity file):** the role table names `ab-identity` the sole holder of the sovereign key (`../project/agentbox/config/role-accounts.json:21`), but the identity JSON carrying `private_key_hex` (`../project/agentbox/services/nostr-pod-bridge/src/identity.rs:71`) is chowned `devuser 0600` in both modes (`../project/agentbox/config/entrypoint-unified.sh:695-699`).
+
+**Tension (identity port vs the mirror child):** the port hands devuser the live-mirror child secret (`../project/agentbox/config/custody/identity-port-acl.json:42`, `../project/agentbox/services/nostr-pod-bridge/src/identity_port/port.rs:635-637`) because the hook signs the self-DM wrap with it (`../project/agentbox/config/custody/identity-port-acl.json:14-15`), so the phone's key is a devuser-class credential under the flag; ADR-2101 allows named operations only (`../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md:110-111`). The ACL comment cites the wrap at `nostr-live-mirror.cjs:487`; the signing line is `../project/agentbox/config/hooks/nostr-live-mirror.cjs:488`.
+
+**Open:** under the flag the live-mirror hook, still on its own key read, gets no operator key as devuser (`../project/agentbox/config/hooks/nostr-live-mirror.cjs:214`, `../project/agentbox/config/hooks/lib/operator-key.cjs:59-69`) and does not yet call the port's `mirror_key`, so the mirror falls back to a throwaway sender (`../project/agentbox/config/hooks/nostr-live-mirror.cjs:225-233`) until the W3b cutover (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:218-219`).
+
+**Drift (resolved 2026-10-03, secrets inventory vs the sealed chain):** this topic used to omit two files in the `agentbox-secrets` volume — the sidestr signer key at mode 0400, which ADR-2101 D3 requires be neither in `identity.env` nor derived from the identity key, and the parent node's testnet4 RPC cookie. The role table now names both as deliveries to the producer uid (`../project/agentbox/config/role-accounts.json:61-62`, `../project/agentbox/config/role-accounts.json:80-81`) and AB-16.13 draws them. Both are still read by path rather than passed as arguments (see AB-32.4, AB-32.3, AB-34.1).
+
+**Tension (custody boundary vs the faucet key):** since the sidechain faucet became a supervised program (2026-09-30), its treasury signing key is read from the workspace bind, not the `agentbox-secrets` volume — the manifest points at `/home/devuser/workspace/sidestr/agents/treasury.key` (`../project/agentbox/agentbox.toml:1578`), which is also the schema's default when the key is empty — so a spend-capable key sits on a host-visible bind, outside the `agentbox-secrets` volume this topic's custody model inventories. Narrowed, not resolved, on 2026-10-03: under `role_isolation` the runtime copy goes to the faucet uid at 0400, but the role table still sources it from the same bind (`../project/agentbox/config/role-accounts.json:71`).

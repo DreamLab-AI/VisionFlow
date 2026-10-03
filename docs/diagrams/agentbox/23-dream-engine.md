@@ -4,7 +4,7 @@ title: Dream machine — nightly cycle, gates and acceptance path
 area: agentbox
 governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
-adrs: [ADR-2024, ADR-2053, ADR-2071, ADR-2081, ADR-2084, ADR-2087]
+adrs: [ADR-2024, ADR-2053, ADR-2071, ADR-2081, ADR-2084, ADR-2087, ADR-2122]
 sources:
   - ../project/agentbox/services/dream-engine/src/engine.rs
   - ../project/agentbox/services/dream-engine/src/config.rs
@@ -38,6 +38,11 @@ sources:
   - ../project/agentbox/services/dream-engine/src/digest.rs
   - ../project/agentbox/services/dream-engine/src/governance.rs
   - ../project/agentbox/services/dream-engine/src/inbox.rs
+  - ../project/agentbox/services/dream-engine/src/relay.rs
+  - ../project/agentbox/management-api/lib/role-secret.js
+  - ../project/agentbox/config/custody/identity-port-acl.json
+  - ../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs
+  - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
   - ../project/agentbox/services/dream-engine/src/main.rs
   - ../project/agentbox/services/dream-engine/src/journal.rs
   - ../project/agentbox/services/dream-engine/src/sweep.rs
@@ -47,7 +52,7 @@ sources:
   - ../project/agentbox/scripts/activation/adr-2071-api-down-night.sh
   - ../project/agentbox/skills/podcast-knowledge-ingest/crontab
   - ../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md
-verified_commit: e4993a3bce0146062bd5fd5863df7f8e747cf21b
+verified_commit: d03defbeaca6c52d6bf3f7338d3f465a109fcdbf
 ---
 
 ## AB-23.1 One repo-night — run phases
@@ -98,21 +103,21 @@ stateDiagram-v2
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2488
+    participant SUP as supervisord<br/>agentbox/flake.nix:2590
     participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:65
     participant GOV as governance<br/>agentbox/services/dream-engine/src/governance.rs
     participant ROS as roster<br/>agentbox/services/dream-engine/src/roster.rs
     participant RS as runstate::begin<br/>agentbox/services/dream-engine/src/runstate.rs:132
     participant MAN as manifest::freeze<br/>agentbox/services/dream-engine/src/manifest.rs:196
-    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2112
+    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2176
     participant LLM as call<br/>agentbox/services/dream-engine/src/llm.rs:49
     participant GATE as gate::decide<br/>agentbox/services/dream-engine/src/gate.rs:190
     participant LED as ledger<br/>agentbox/services/dream-engine/src/ledger.rs
     participant DIG as digest::run<br/>agentbox/services/dream-engine/src/digest.rs:383
 
     SUP->>ENG: dream-engine --loop --agentbox-toml /etc/agentbox.toml
-    Note over SUP,ENG: autostart=true autorestart=true priority=230 user=devuser (flake.nix:2488-2497)
-    alt [dream_machine] enabled = false (agentbox/agentbox.toml:2111)
+    Note over SUP,ENG: autostart=true autorestart=true priority=230 user=devuser (flake.nix:2590-2599)
+    alt [dream_machine] enabled = false (agentbox/agentbox.toml:2175)
         ENG-->>SUP: byte-identical-when-off — no supervisor block is generated at all
     else enabled
         loop nightly window
@@ -124,11 +129,11 @@ sequenceDiagram
             opt DREAM_SWEEP is not 0
                 ENG->>ENG: sweep_branches — seven-day rule for dream/* branches, before tonight<br/>adds any (engine.rs:155-159, engine.rs:1412). Merged or closed PR deletes,<br/>an open PR over 7 days is closed, no PR over 7 days deletes, the checked-out<br/>branch is never touched (sweep.rs:49-64)
             end
-            ENG->>ENG: UTC hour within window_start 1 .. window_end 5 (agentbox.toml:2137-2138)
+            ENG->>ENG: UTC hour within window_start 1 .. window_end 5 (agentbox.toml:2201-2202)
             loop each nominated repo (engine.rs:163-189)
                 alt .dream-standby marker present
                     ENG->>ENG: standby{repo, reason:"marker", streak:0} (engine.rs:164-171)
-                else dry streak — last prune_dry_streak 5 ledger rows ALL INCONCLUSIVE (agentbox.toml:2149)
+                else dry streak — last prune_dry_streak 5 ledger rows ALL INCONCLUSIVE (agentbox.toml:2213)
                     ENG->>ENG: standby{repo, reason:"dry-streak", streak} (engine.rs:173-186)
                     Note over ENG: REJECT counts as learning and RESETS the streak — revive via --target or a harness fix
                 else eligible
@@ -214,7 +219,7 @@ sequenceDiagram
         Note over RDY: an echo, a true, a bare colon — green every night, informative never<br/>(readiness.rs:39-41)
     else darwin entrypoint without a sandbox flag
         RDY-->>ENG: Unusable::DarwinSandboxMissing
-        Note over RDY: INVARIANT ADR-2024 — every @metaharness/darwin entrypoint MUST run --sandbox mock or<br/>--sandbox agent, never the no-op real default which is documented surface-INDEPENDENT<br/>and emits the same output regardless of the code under test (agentbox.toml:2065-2070)
+        Note over RDY: INVARIANT ADR-2024 — every @metaharness/darwin entrypoint MUST run --sandbox mock or<br/>--sandbox agent, never the no-op real default which is documented surface-INDEPENDENT<br/>and emits the same output regardless of the code under test (agentbox.toml:2129-2134)
     else usable
         RDY-->>ENG: admitted
     end
@@ -578,9 +583,9 @@ sequenceDiagram
     participant HK as dream-inbox-surface.cjs<br/>agentbox/config/hooks/dream-inbox-surface.cjs:1
     participant INBOX as dream-inbox.json<br/>/home/devuser/workspace/.agentbox/dream-inbox.json
     participant STAMP as dream-inbox.json.surfaced
-    participant EP as entrypoint registration<br/>agentbox/config/entrypoint-unified.sh:1663
+    participant EP as entrypoint registration<br/>agentbox/config/entrypoint-unified.sh:1958
 
-    Note over EP: the entrypoint prefers /opt/agentbox/config/hooks/dream-inbox-surface.cjs and falls back<br/>to the repo path (:1663-1664), then dedupes on the command substring (:1676)
+    Note over EP: the entrypoint prefers /opt/agentbox/config/hooks/dream-inbox-surface.cjs and falls back<br/>to the repo path (:1958-1959), then dedupes on the command substring (:1971)
     U->>CC: submits a prompt
     CC->>HK: UserPromptSubmit with stdin JSON
     alt prompt matches a harness-generated turn (task-notification, agent-message, system-reminder)
@@ -661,7 +666,7 @@ flowchart TB
     end
 ```
 
-**Invariant (2026-10-02, owner decision Q10):** the forum-suggestions tenant asks a member to clarify only when JunkieJarvis may speak; it reads the same `junkiejarvisEnabled(manifest)` that management-api uses, and with it off an unclear post is held — no DM, no ledger row, not parked — so it is asked once JunkieJarvis is on (`../project/agentbox/scripts/dream-forum-suggestions.mjs:215-221`, `../project/agentbox/scripts/dream-forum-suggestions.mjs:378-381`).
+**Invariant (2026-10-02, owner decision Q10):** the forum-suggestions tenant asks a member to clarify only when JunkieJarvis may speak; it reads the same `junkiejarvisEnabled(manifest)` that management-api uses, and with it off an unclear post is held — no DM, no ledger row, not parked — so it is asked once JunkieJarvis is on (`../project/agentbox/scripts/dream-forum-suggestions.mjs:225-231`, `../project/agentbox/scripts/dream-forum-suggestions.mjs:388-391`).
 
 ## AB-23.11 ADR-2081 — the annexe mirrors real workspace depth
 
@@ -797,10 +802,10 @@ sequenceDiagram
     participant LOOM as call_loom<br/>agentbox/services/dream-engine/src/llm.rs:196
     participant ZAI as call_zai<br/>agentbox/services/dream-engine/src/llm.rs:111
     participant CRATE as loom-client crate<br/>published, see AB-28.11
-    participant F as Loom facade<br/>agentbox/agentbox.toml:2114
+    participant F as Loom facade<br/>agentbox/agentbox.toml:2178
 
     ENG->>CALL: call(cfg, prompt)
-    alt llm_provider = zai - the DEFAULT (agentbox.toml:2127)
+    alt llm_provider = zai - the DEFAULT (agentbox.toml:2191)
         CALL->>ZAI: POST the Anthropic Messages body with x-api-key
         ZAI-->>CALL: text parts joined, or EmptyResponse (llm.rs:173-177)
         Note over CALL,ZAI: exactly ONE retry, 20s apart, and only on a transient fault -<br/>transport, empty body, or an HTTP 5xx including Cloudflare 52x.<br/>is_transient refuses to retry a 4xx (llm.rs:69)
@@ -819,13 +824,13 @@ sequenceDiagram
     Note over CRATE: the hand-rolled client that lived in llm.rs knew ONE of the three facade<br/>traps. Two nights of verdicts in 2026-09 were derived from ontology prose that<br/>never reached a model, and truncation on a reasoning model returns EMPTY content<br/>rather than a short answer - the crate owns a token floor and a doubling retry<br/>the wrapper could not do, because it cannot see finish_reason (llm.rs:182-195)
 ```
 
-**Debt:** `agentbox/agentbox.toml:2127` keeps `llm_provider = "zai"` as the default, so nightly repository content leaves the LAN on every unattended night; the LAN-only Loom path at `../project/agentbox/services/dream-engine/src/llm.rs:196` is opt-in.
+**Debt:** `agentbox/agentbox.toml:2191` keeps `llm_provider = "zai"` as the default, so nightly repository content leaves the LAN on every unattended night; the LAN-only Loom path at `../project/agentbox/services/dream-engine/src/llm.rs:196` is opt-in.
 
 ## AB-23.16 Placeholder resolution and the refusal to dispatch to nowhere
 
 ```mermaid
 flowchart TB
-    TOML["agentbox.toml ships PLACEHOLDERS, not addresses<br/>hp_host CONNECTED_NODE_SSH agentbox.toml:2112<br/>hp_annexe_dir composite agentbox.toml:2113<br/>loom_url LOOM_BASE_URL agentbox.toml:2114"]
+    TOML["agentbox.toml ships PLACEHOLDERS, not addresses<br/>hp_host CONNECTED_NODE_SSH agentbox.toml:2176<br/>hp_annexe_dir composite agentbox.toml:2177<br/>loom_url LOOM_BASE_URL agentbox.toml:2178"]
     TOML --> RP["RuntimeConfig.resolve_placeholders<br/>agentbox/services/dream-engine/src/config.rs:330"]
     RP -->|"whole-value form"| W["resolve_env_placeholder<br/>config.rs:315 - a value that IS a placeholder"]
     RP -->|"composite form"| I["resolve_env_placeholders_infix<br/>config.rs:349 - a value that CONTAINS one"]
@@ -925,7 +930,7 @@ sequenceDiagram
     participant ENG as Engine::cycle_repo_body<br/>agentbox/services/dream-engine/src/engine.rs:420
     participant SWEEP as retention sweep<br/>agentbox/services/dream-engine/src/dispatch.rs:30
     participant AH as dispatch::annexe_health<br/>agentbox/services/dream-engine/src/dispatch.rs:266
-    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2112
+    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2176
     participant RS as runstate::begin<br/>agentbox/services/dream-engine/src/runstate.rs:132
     participant INBOX as inbox::add<br/>agentbox/services/dream-engine/src/inbox.rs:1
 
@@ -973,7 +978,7 @@ flowchart TB
     PAUSE -->|"yes"| MISS["phase missed, the API stays up<br/>adr-2071-api-down-night.sh:102"]
     PAUSE -->|"no"| STOP["EXIT trap armed, supervisorctl stop management-api<br/>phase stopped, stopped_at written<br/>adr-2071-api-down-night.sh:106-110"]
     PH -->|"none, first tick at or after 01:00"| MISS2["phase missed, reason no-tick-before-window<br/>adr-2071-api-down-night.sh:120-123"]
-    STOP --> NIGHT["the dream window runs with no API:<br/>window_start 1, window_end 5 UTC<br/>agentbox.toml:2137-2138"]
+    STOP --> NIGHT["the dream window runs with no API:<br/>window_start 1, window_end 5 UTC<br/>agentbox.toml:2201-2202"]
     NIGHT --> RS{"phase stopped: which comes first?<br/>adr-2071-api-down-night.sh:129-143"}
     RS -->|"dream-last-night.json dated the night"| R1["reason night-record<br/>adr-2071-api-down-night.sh:136-137"]
     RS -->|"API RUNNING again"| R2["reason interrupted, a container restart<br/>adr-2071-api-down-night.sh:138-139"]
@@ -985,11 +990,54 @@ flowchart TB
 ```
 
 **What it shows.** How the estate will run its first dream night with the management API deliberately down: a marker file names the night, a ten-minute cron tick stops the API in the half-hour before the window, and the first tick that sees the night record, the 07:30 UTC deadline or an API that came back on its own restarts it and retires the marker.
-**Why it is this way.** ADR-2071 can only be accepted once clause (c) shows the night still completes, and journals its failures, with nothing to journal to. The owner fixed the night of Monday 5 October (owner decision 2026-10-02, Q9; `../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md:179`). The schedule rides the checkout crontab rather than the image so that a container restart neither loses it nor needs a rebuild (`../project/agentbox/skills/podcast-knowledge-ingest/crontab:34-42`). The tick is pure bash plus coreutils because that cron PATH has no `sed` or `awk` (`../project/agentbox/scripts/activation/adr-2071-api-down-night.sh:59-60`).
+**Why it is this way.** ADR-2071 can only be accepted once clause (c) shows the night still completes, and journals its failures, with nothing to journal to. The owner fixed the night of Monday 5 October (owner decision 2026-10-02, Q9; `../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md:191`). The schedule rides the checkout crontab rather than the image so that a container restart neither loses it nor needs a rebuild (`../project/agentbox/skills/podcast-knowledge-ingest/crontab:34-42`). The tick is pure bash plus coreutils because that cron PATH has no `sed` or `awk` (`../project/agentbox/scripts/activation/adr-2071-api-down-night.sh:59-60`).
 
 **Invariant:** the API is never left down by a dying tick: an EXIT trap restarts management-api from the moment the stop is attempted until the state write lands (`../project/agentbox/scripts/activation/adr-2071-api-down-night.sh:105-109`).
 
 **Debt:** the crontab block is a dated one-shot that has to be removed by hand ("Remove this block after 7 Oct 2026", `../project/agentbox/skills/podcast-knowledge-ingest/crontab:41`). The same checkout crontab now also ticks the EXP-B8 label-log experiment every 30 minutes until its own PR merges (`../project/agentbox/skills/podcast-knowledge-ingest/crontab:44-54`), so a supervised program named for podcast ingest carries two schedules that have nothing to do with podcasts.
+
+## AB-23.20 Which key signs the forum round trip — role isolation off and on
+
+```mermaid
+flowchart TB
+    GOVN["governance load_key, before any panel, case or withdrawal<br/>services/dream-engine/src/governance.rs:645-653"]
+    LSK["relay::load_signing_key on JUNKIEJARVIS_PRIVKEY_HEX<br/>services/dream-engine/src/relay.rs:76-78, governance.rs:64"]
+    FV{"JUNKIEJARVIS_PRIVKEY_HEX_FILE set?<br/>relay.rs:95"}
+    GOVN --> LSK --> FV
+    subgraph off["[security].role_isolation off - how it ships"]
+        O1["the bare variable from the environment, inherited from PID 1<br/>relay.rs:102-103"]
+        O2["else the KEY= line of the repo .env on the workspace bind<br/>relay.rs:104-118, default path governance.rs:75-79"]
+        O3["dream-engine signs 31400, 31402 and kind 5 with the key in its<br/>own memory - AB-23.17"]
+        O1 --> O2 --> O3
+    end
+    subgraph on["[security].role_isolation on"]
+        E1["boot writes the key to /run/secrets/ab-identity/JUNKIEJARVIS_PRIVKEY_HEX,<br/>0400, owned by ab-identity uid 960, dir 0500<br/>config/entrypoint-unified.sh:452-453, config/entrypoint-unified.sh:462"]
+        E2["exports the _FILE path to every program and unsets the variable<br/>config/entrypoint-unified.sh:454-455"]
+        E3["dream-engine stays devuser - ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:66-67"]
+        E4["the _FILE wins and an unreadable file is an error, never a fallback<br/>relay.rs:70-71, relay.rs:96"]
+        E5["the bare variable and the repo .env are refused, a set variable<br/>is reported as ROLE-ISOLATION-LEAK - relay.rs:97-101, relay.rs:89-94"]
+        E6["devuser cannot open an ab-identity 0400 file, so load_key warns<br/>agent key unavailable and the round trip is SKIPPED, fail-open<br/>governance.rs:647-651"]
+        E1 --> E2 --> E3 --> E4 --> E6
+        E4 --> E5
+    end
+    FV -->|"no, flag off"| off
+    FV -->|"yes, flag on"| on
+    subgraph port["The identity port, the intended signer"]
+        P1["devuser may ask forum_event for the junkiejarvis key,<br/>kinds 1, 42 and 31923 only - config/custody/identity-port-acl.json:40"]
+        P2["31400 to 31405 may NEVER be granted: governance kinds record a<br/>human decision and must not carry a container key<br/>services/nostr-pod-bridge/src/identity_port/acl.rs:65-73"]
+        P3["the dream-engine cutover to the port is owed, W3b<br/>ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:218-219"]
+        P1 --> P2
+        P3 --> P2
+    end
+    E6 -.->|"no client for it at this revision"| port
+    P2 -.-> T["TENSION: the 31400 panel and 31402 cases this engine signs are<br/>exactly the kinds the port refuses to grant - governance.rs:9-10"]
+```
+
+**Invariant (under role_isolation):** dream-engine never reads the JunkieJarvis key from its environment or from the repo `.env` on the workspace bind: with the flag on only `JUNKIEJARVIS_PRIVKEY_HEX_FILE` is consulted, and its absence is an error (`../project/agentbox/services/dream-engine/src/relay.rs:95-101`). With the flag off, which is how it ships, the pre-W2 order stands: the bare variable, then the `.env` line (`../project/agentbox/services/dream-engine/src/relay.rs:102-118`), the same loader contract as `scripts/dream-forum-suggestions.mjs`, which reads it through `role-secret.js` (`../project/agentbox/scripts/dream-forum-suggestions.mjs:194-200`, `../project/agentbox/management-api/lib/role-secret.js:120`).
+
+**Tension (identity port ACL vs the forum governance round trip):** the port's loader refuses to grant kinds 31400-31405 to anyone, because a governance event records a human decision and must not carry a container key (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:65-73`). Yet the dream engine publishes the 31400 panel and 31402 cases signed with the JunkieJarvis key (`../project/agentbox/services/dream-engine/src/governance.rs:9-10`), and ADR-2122 still plans to move dream-engine onto the port in W3b (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:218-219`). As written, the port can never sign what AB-23.17 sends.
+
+**Open:** under `[security].role_isolation` the forum governance round trip stops without an error. The delivered key file belongs to `ab-identity`, dream-engine runs as devuser, and `load_key` treats the refusal as fail-open and skips (`../project/agentbox/config/entrypoint-unified.sh:452-454`, `../project/agentbox/services/dream-engine/src/governance.rs:645-653`). Nothing at this revision says whether that is the intended state until W3b, or a gap the boot rehearsal must catch.
 
 ## Audit qualification - 2026-09-07
 
