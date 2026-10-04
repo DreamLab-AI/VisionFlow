@@ -32,3 +32,5 @@ Schema note (2026-09-14, unmerged): FR6.6 of PRD-augmentation-conditions adds `R
 | 2026-09-30 | seo-and-meta | Given the shipped page at `d4e4429` declares an Organization but never declares  | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/4 | yes | ACCEPT |  | 65a9d02cf480 |  |  |  |
 | 2026-10-01 | build-pipeline | Given `website/static/robots.txt` reaches `dist/` only through `build.sh`'s whol | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/11 | yes | ACCEPT |  | 7f88b6695afe |  |  |  |
 | 2026-10-02 | seo-and-meta | Given the shipped page at `2480a8f` declares its brand only in `<title>`/nav cop | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/12 | yes | ACCEPT |  | 369fbc125f52 |  |  |  |
+| 2026-10-03 | estate-health | Given canon declares seven sidestr crates on crates.io while `scripts/estate-hea | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/13 | yes | ACCEPT |  | 9c56f9ff2d42 |  |  |  |
+| 2026-10-04 | content-integrity | Given the shipped page's `href="#…"` anchors all resolve to `id="…"` targets in  | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/14 | yes | ACCEPT |  | 617ce2f95547 |  |  |  |
