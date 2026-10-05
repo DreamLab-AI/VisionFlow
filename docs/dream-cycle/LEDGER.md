@@ -34,3 +34,4 @@ Schema note (2026-09-14, unmerged): FR6.6 of PRD-augmentation-conditions adds `R
 | 2026-10-02 | seo-and-meta | Given the shipped page at `2480a8f` declares its brand only in `<title>`/nav cop | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/12 | yes | ACCEPT |  | 369fbc125f52 |  |  |  |
 | 2026-10-03 | estate-health | Given canon declares seven sidestr crates on crates.io while `scripts/estate-hea | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/13 | yes | ACCEPT |  | 9c56f9ff2d42 |  |  |  |
 | 2026-10-04 | content-integrity | Given the shipped page's `href="#…"` anchors all resolve to `id="…"` targets in  | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/14 | yes | ACCEPT |  | 617ce2f95547 |  |  |  |
+| 2026-10-05 | build-pipeline | Given the link gate's href/src family excludes every ref containing `#` (`script | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/15 | yes | ACCEPT |  | 965a9e549a3c |  |  |  |
