@@ -1,9 +1,9 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-10-04T08:36:17.550Z",
+  "generated_at": "2026-10-05T09:17:09.297Z",
   "generator": {
-    "revision": "85acdca7c1afdcfe0bf2b6f58c18a5d1297f61d9",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/37189445288",
+    "revision": "b6806b8663a27300cdb99169dcdeca74c2feeffd",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/37288979203",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
@@ -14,7 +14,7 @@
     "none": 0,
     "exempt": 2,
     "unreadable": 1,
-    "open_prs": 12,
+    "open_prs": 13,
     "surfaces_ok": 6,
     "surfaces_total": 6
   },
@@ -30,11 +30,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "85acdca7c1afdcfe0bf2b6f58c18a5d1297f61d9",
-        "short": "85acdca",
-        "date": "2026-10-03T12:20:53Z",
-        "message": "docs(diagrams): re-stamp AB-16, AB-34, AB-36 at agentbox 8f55d9a43 — at-rest custody lands",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/85acdca7c1afdcfe0bf2b6f58c18a5d1297f61d9"
+        "sha": "b6806b8663a27300cdb99169dcdeca74c2feeffd",
+        "short": "b6806b8",
+        "date": "2026-10-04T08:36:17Z",
+        "message": "chore(estate-health): nightly snapshot 2026-10-04 — 10/15 green",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/b6806b8663a27300cdb99169dcdeca74c2feeffd"
       },
       "ci": {
         "state": "green",
@@ -57,8 +57,8 @@
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/37122579092",
-            "updated_at": "2026-10-03T12:21:27Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/37189463245",
+            "updated_at": "2026-10-04T08:37:02Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
@@ -78,12 +78,12 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/37109400257",
-            "updated_at": "2026-10-03T08:21:29Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/37189445288",
+            "updated_at": "2026-10-04T08:36:22Z"
           }
         ]
       },
-      "open_prs": 2,
+      "open_prs": 3,
       "open_issues": 1,
       "release": null,
       "pages": {
@@ -106,11 +106,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "6832e0a2aaafbdfdafa82607d64460843243f154",
-        "short": "6832e0a",
-        "date": "2026-10-03T13:10:31Z",
-        "message": "chore(agentbox): bump to 76b711969 — ruflo 3.51.1, Claude Code 2.1.288, ruflo-console baked (gate off), content-addressed brain corpus, estate pins",
-        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/6832e0a2aaafbdfdafa82607d64460843243f154"
+        "sha": "ea5606b86496fe546f476913cba25dbb0fa0a155",
+        "short": "ea5606b",
+        "date": "2026-10-04T10:40:38Z",
+        "message": "chore(agentbox): bump to 25b4c7f57 — governed ruflo memory on the sidecar (ADR-2123)",
+        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/ea5606b86496fe546f476913cba25dbb0fa0a155"
       },
       "ci": {
         "state": "green",
@@ -119,8 +119,8 @@
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/37125292152",
-            "updated_at": "2026-10-03T13:14:19Z"
+            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/37196135104",
+            "updated_at": "2026-10-04T10:44:29Z"
           },
           {
             "workflow": "Documentation Quality CI",
@@ -166,11 +166,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "2df10dc945223b8b790eebbc2e78413223afae93",
-        "short": "2df10dc",
-        "date": "2026-10-03T19:09:43Z",
-        "message": "fix(ruflo): run console projector through image symlink",
-        "url": "https://github.com/DreamLab-AI/agentbox/commit/2df10dc945223b8b790eebbc2e78413223afae93"
+        "sha": "25b4c7f57a8d2aaf176f7cb27f9f5397e48cdfaf",
+        "short": "25b4c7f",
+        "date": "2026-10-04T10:40:27Z",
+        "message": "Merge pull request #19 from DreamLab-AI/ruflo-memory-governed",
+        "url": "https://github.com/DreamLab-AI/agentbox/commit/25b4c7f57a8d2aaf176f7cb27f9f5397e48cdfaf"
       },
       "ci": {
         "state": "red",
@@ -179,47 +179,47 @@
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37146892288",
-            "updated_at": "2026-10-03T19:11:07Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37196125169",
+            "updated_at": "2026-10-04T10:41:32Z"
           },
           {
             "workflow": "Contract tests",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37146892289",
-            "updated_at": "2026-10-03T19:11:24Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37196125173",
+            "updated_at": "2026-10-04T10:42:12Z"
           },
           {
             "workflow": "Manifest validate",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37146892296",
-            "updated_at": "2026-10-03T19:10:52Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37196125162",
+            "updated_at": "2026-10-04T10:41:23Z"
           },
           {
             "workflow": "Secret Scan",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37146892316",
-            "updated_at": "2026-10-03T19:10:29Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37196125129",
+            "updated_at": "2026-10-04T10:41:17Z"
           },
           {
             "workflow": "Security Invariants",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37146892341",
-            "updated_at": "2026-10-03T19:10:29Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37196125204",
+            "updated_at": "2026-10-04T10:41:08Z"
           },
           {
             "workflow": "ShellCheck",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37146892340",
-            "updated_at": "2026-10-03T19:10:21Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37196125130",
+            "updated_at": "2026-10-04T10:41:00Z"
           }
         ]
       },
-      "open_prs": 1,
+      "open_prs": 0,
       "open_issues": 2,
       "release": null,
       "pages": null,
@@ -369,6 +369,13 @@
             "updated_at": "2026-10-03T20:58:41Z"
           },
           {
+            "workflow": "Documentation Auto-Update",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/37248154276",
+            "updated_at": "2026-10-05T00:36:25Z"
+          },
+          {
             "workflow": "kit-pin-guard",
             "conclusion": "success",
             "status": "completed",
@@ -384,7 +391,7 @@
           }
         ]
       },
-      "open_prs": 2,
+      "open_prs": 3,
       "open_issues": 2,
       "release": null,
       "pages": {
@@ -736,7 +743,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 177,
+      "latency_ms": 356,
       "note": null
     },
     {
@@ -745,7 +752,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 135,
+      "latency_ms": 229,
       "note": null
     },
     {
@@ -754,7 +761,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 143,
+      "latency_ms": 212,
       "note": null
     },
     {
@@ -763,7 +770,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 147,
+      "latency_ms": 232,
       "note": "classes=9354 pages=9350 nodes=9354"
     },
     {
@@ -772,7 +779,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 199,
+      "latency_ms": 471,
       "note": null
     },
     {
@@ -781,7 +788,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 210,
+      "latency_ms": 283,
       "note": null
     }
   ],
