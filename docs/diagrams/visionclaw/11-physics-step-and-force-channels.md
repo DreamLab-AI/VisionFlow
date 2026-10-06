@@ -24,7 +24,7 @@ sources:
   - ../project/src/utils/visionflow_unified.ptx
   - ../project/src/actors/gpu/gpu_resource_actor.rs
   - ../project/crates/vault-core/src/domains.rs
-verified_commit: dd420fbc722a7a4a50e968162ac6c3eaff6972b2
+verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
 ---
 
 ## VC-11.1 Physics tick — phase 1, params and flag word

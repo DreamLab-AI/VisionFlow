@@ -24,7 +24,7 @@ sources:
   - ../project/crates/visionclaw-domain/src/vault/link.rs
   - ../project/crates/visionclaw-domain/src/models/node.rs
   - ../project/scripts/pre-commit-validate.sh
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
 ---
 
 ## VC-21.1 Corpus sync entry points and the CorpusSource ingest path
@@ -35,13 +35,13 @@ sequenceDiagram
     autonumber
     participant Admin as admin_sync_handler::trigger_sync<br/>src/handlers/admin_sync_handler.rs:66
     participant Boot as boot sync task<br/>src/app_state.rs:614
-    participant Bin as sync_corpus.rs::main<br/>src/bin/sync_corpus.rs:23
+    participant Bin as sync_corpus.rs::main<br/>src/bin/sync_corpus.rs:25
     participant Svc as GitHubSyncService::sync_graphs_with<br/>src/services/github_sync_service.rs:254
     participant Src as CorpusSource::list_pages<br/>src/services/corpus_source/mod.rs:106
-    participant SHA as filter_changed_files<br/>src/services/github_sync_service.rs:1979
-    participant Batch as process_batch_incremental<br/>src/services/github_sync_service.rs:1505
-    participant File as process_fetched_file<br/>src/services/github_sync_service.rs:1687
-    participant KG as kg_repo (Oxigraph)<br/>src/services/github_sync_service.rs:1619
+    participant SHA as filter_changed_files<br/>src/services/github_sync_service.rs:1928
+    participant Batch as process_batch_incremental<br/>src/services/github_sync_service.rs:1454
+    participant File as process_fetched_file<br/>src/services/github_sync_service.rs:1636
+    participant KG as kg_repo (Oxigraph)<br/>src/services/github_sync_service.rs:1568
 
     Admin->>Svc: sync_graphs_with(force_full) - POST /api/admin/sync
     Boot->>Svc: sync_graphs() - spawned at server boot
@@ -64,28 +64,28 @@ sequenceDiagram
     end
     loop chunks(BATCH_SIZE=50) - github_sync_service.rs:60
         Svc->>Batch: process_batch_incremental(batch, deferred_edges, scope)
-        loop PARALLEL_FETCHES=8 concurrent - :1521
+        loop PARALLEL_FETCHES=8 concurrent - :1470
             Batch->>Src: fetch_page(file)
         end
         Batch->>File: process_fetched_file(file, content, scope)
         File->>File: page_parser::parse_page(content, path) - src/services/page_parser.rs:66
         alt Ok(Some(parsed)) - under knowledge/ AND frontmatter type is Class or Property or Individual
-            File->>File: page_is_kg_included(content) - the same gate as the plain path, :2159
+            File->>File: page_is_kg_included(content) - the same gate as the plain path, :2108
             Note over File: DRIFT: ADR-2014's "formal data ingests unconditionally, bypasses the publish gate" no longer holds post-ADR-2114 - both paths share one gate
-            File->>File: build_node_from_entity + enrich_node_from_frontmatter - :134,2206
+            File->>File: build_node_from_entity + enrich_node_from_frontmatter - :134,2155
         else Ok(None) - plain vault page
-            File->>File: process_plain_vault_file(file, content, scope) - :1883
+            File->>File: process_plain_vault_file(file, content, scope) - :1832
             Note over File: see VC-21.2 for the inclusion gate applied here
         else Err(invalid frontmatter YAML)
             File->>File: skip (warn log, fail-closed)
         end
-        Batch->>KG: batch_add_nodes(real_nodes) / batch_add_nodes_if_absent(stub_nodes) - :1619,1630
-        Batch->>KG: batch_add_edges(immediate_edges) - :1653 same-batch endpoints only
+        Batch->>KG: batch_add_nodes(real_nodes) / batch_add_nodes_if_absent(stub_nodes) - :1568,1579
+        Batch->>KG: batch_add_edges(immediate_edges) - :1602 same-batch endpoints only
     end
     Svc->>Svc: deferred_edges partition: resolvable vs dangling - :455
     Svc->>KG: batch_add_edges(resolvable)
     Note over Svc,KG: DIVERGENCE: dangling wikilinks mint no stub - they fold into wikilink_count weight plus co-citation springs (FANOUT_NODE_THRESHOLD, default 3)
-    Svc->>Svc: update_file_metadata(all_files_to_process) - :2016
+    Svc->>Svc: update_file_metadata(all_files_to_process) - :1965
     Svc-->>Admin: SyncStatistics{total_files,kg_files_processed,total_nodes,total_edges,errors}
 ```
 
@@ -95,8 +95,8 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Caller as process_fetched_file / process_plain_vault_file<br/>src/services/github_sync_service.rs:1687,1883
-    participant Gate as page_is_kg_included<br/>src/services/github_sync_service.rs:2159
+    participant Caller as process_fetched_file / process_plain_vault_file<br/>src/services/github_sync_service.rs:1636,1832
+    participant Gate as page_is_kg_included<br/>src/services/github_sync_service.rs:2108
     participant Vault as vault::parse<br/>crates/visionclaw-domain/src/vault/mod.rs:278
     participant PM as PageMeta::is_kg_included<br/>crates/visionclaw-domain/src/vault/mod.rs:162
 
@@ -120,7 +120,7 @@ sequenceDiagram
     else Gate returns true
         Caller-->>Caller: node ingested - page, linked_page or ontology-typed per VC-21.3
     end
-    Note over Gate: RESOLVED ADR-2070: the VAULT readers table now cites github_sync_service.rs:2159 for this fn
+    Note over Gate: RESOLVED ADR-2070: the VAULT readers table now cites github_sync_service.rs:2108 for this fn
     Note over Caller: DRIFT: ADR-2014's ontology bypass is superseded post-ADR-2114 - an ontology-declaring page (VC-21.1) is gated here too, not exempted
 ```
 
@@ -130,7 +130,7 @@ sequenceDiagram
 ```mermaid
 flowchart TD
     F["markdown file (post source fetch)"] --> PP{"page_parser::parse_page<br/>src/services/page_parser.rs:66"}
-    PP -->|Ok Some - knowledge/ path AND type is Class/Property/Individual| GATE1{"page_is_kg_included?<br/>github_sync_service.rs:2159"}
+    PP -->|Ok Some - knowledge/ path AND type is Class/Property/Individual| GATE1{"page_is_kg_included?<br/>github_sync_service.rs:2108"}
     GATE1 -->|true| PN["build_node_from_entity<br/>github_sync_service.rs:134<br/>metadata ontology_type=Class/Property/Individual"]
     GATE1 -->|false| SKIP1["page skipped - see VC-21.2"]
     PP -->|Ok None - plain vault page| KP["KnowledgeGraphParser::create_page_node<br/>knowledge_graph_parser.rs:145"]
@@ -144,7 +144,7 @@ flowchart TD
     VR -->|bare target, several matches| RES3["same-folder wins, else first in sorted path order"]
     VR -->|no match anywhere| STUB["linked_page stub id"]
     STUB -.->|DIVERGENCE| DROP["dropped at ingest - stub nodes never materialise, fold into wikilink_count plus co-citation weight instead"]
-    PN --> CLS["GraphStateActor::classify_node<br/>src/actors/graph_state_actor.rs:238"]
+    PN --> CLS["GraphStateActor::classify_node<br/>src/actors/graph_state_actor.rs:242"]
     ON --> CLS
     PG --> CLS
     CLS --> POP["Node::population_type()<br/>crates/visionclaw-domain/src/models/node.rs:271"]

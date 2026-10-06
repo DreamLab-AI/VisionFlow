@@ -35,7 +35,7 @@ sources:
   - ../project/agentbox/lib/factrail.nix
   - ../project/agentbox/scripts/factrail-store-migrate.mjs
   - ../project/agentbox/docs/adr/ADR-2121-factrail-implements-jev-compaction.md
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
 ---
 
 Registration ground truth (2026-09-29): `~/.claude/settings.json` is boot-generated and never tracked, so AB-08.1–AB-08.7
@@ -47,58 +47,58 @@ longer exists (ADR-2091 consolidated per-turn routing into `skill-route.cjs`, se
 ## AB-08.1 Root-session registration — what entrypoint-unified.sh seeds into ~/.claude/settings.json
 ```mermaid
 flowchart TB
-    S["settings path resolved once, CLAUDE_CONFIG_DIR<br/>fallback /home/devuser/.claude/settings.json<br/>entrypoint-unified.sh:1274"]
+    S["settings path resolved once, CLAUDE_CONFIG_DIR<br/>fallback /home/devuser/.claude/settings.json<br/>entrypoint-unified.sh:1632"]
     subgraph MIR["nostr-live-mirror.cjs — always registered, defaults to Stop only"]
     direction TB
-    M1["block entrypoint-unified.sh:1274, baked /opt hook path :1275"]
-    M2["entrypoint-unified.sh:1282 events SessionStart, UserPromptSubmit, Stop, SessionEnd<br/>idempotent marker test on the command string :1286"]
-    M3["entrypoint-unified.sh:1289 push node HOOK EVENT, timeout 8 SECONDS<br/>each event registered, but bodyForEvent skips any event outside<br/>AGENTBOX_LIVE_MIRROR_EVENTS (default Stop only) nostr-live-mirror.cjs:277-278"]
+    M1["block entrypoint-unified.sh:1632, baked /opt hook path :1633"]
+    M2["entrypoint-unified.sh:1642 events SessionStart, UserPromptSubmit, Stop, SessionEnd<br/>idempotent marker test on the command string :1644"]
+    M3["entrypoint-unified.sh:1647 push node HOOK EVENT, timeout 8 SECONDS<br/>each event registered, but bodyForEvent skips any event outside<br/>AGENTBOX_LIVE_MIRROR_EVENTS (default Stop only) nostr-live-mirror.cjs:278-279"]
     M1 --> M2 --> M3
     end
     subgraph FLT["fleet-session-start.sh — SessionStart"]
     direction TB
-    F1["block entrypoint-unified.sh:1300, baked hook path :1300<br/>off switch AGENTBOX_NOSTR_GATEWAY=0 gates the gateway launch inside the script, not registration"]
-    F2["entrypoint-unified.sh:1308 marker test, :1309 push timeout 8 seconds"]
+    F1["block entrypoint-unified.sh:1659, baked hook path :1658<br/>off switch AGENTBOX_NOSTR_GATEWAY=0 gates the gateway launch inside the script, not registration"]
+    F2["entrypoint-unified.sh:1666 marker test, :1667 push timeout 8 seconds"]
     F1 --> F2
     end
     subgraph ONT["ontology-monitor.cjs — SessionEnd, gated, detached"]
     direction TB
-    O1["entrypoint-unified.sh:1323 gate read via agentbox-manifest toml-bool<br/>defaults to 0 on any read failure"]
-    O2["entrypoint-unified.sh:1349 ON: push timeout 10 seconds (hook returns at once,<br/>a detached child does the 180s review) AND seed env AGENTBOX_ONTOLOGY_MONITOR=1 :1354"]
-    O3["entrypoint-unified.sh:1358-1362 OFF: filter the hook back out<br/>delete the emptied SessionEnd array :1362<br/>INVARIANT ADR-2020 byte-identical-when-off"]
-    O4["gate source agentbox.toml:116-117 enabled = true"]
+    O1["entrypoint-unified.sh:1684 gate read via agentbox-manifest toml-bool<br/>defaults to 0 on any read failure"]
+    O2["entrypoint-unified.sh:1707 ON: push timeout 10 seconds (hook returns at once,<br/>a detached child does the 180s review) AND seed env AGENTBOX_ONTOLOGY_MONITOR=1 :1712"]
+    O3["entrypoint-unified.sh:1716-1720 OFF: filter the hook back out<br/>delete the emptied SessionEnd array :1720<br/>INVARIANT ADR-2020 byte-identical-when-off"]
+    O4["gate source agentbox.toml:115-116 enabled = true"]
     O1 --> O2
     O1 --> O3
     O1 --> O4
     end
     subgraph TRU["trust-seed.cjs — boot-time run ONLY, no longer a hook"]
     direction TB
-    T1["entrypoint-unified.sh:1391 hook path, :1392 gate AGENTBOX_TRUST_SEED != 0<br/>DELIBERATELY not a SessionStart hook: walked ~1,170 paths/session (avg 3.2s),<br/>raced Claude Code's own ~/.claude.json writes"]
-    T2["entrypoint-unified.sh:1393 node trust-seed.cjs, output to stderr<br/>callable by hand for a post-boot worktree: node trust-seed.cjs #60;path#62;"]
+    T1["entrypoint-unified.sh:1749 hook path, :1750 gate AGENTBOX_TRUST_SEED != 0<br/>DELIBERATELY not a SessionStart hook: walked ~1,170 paths/session (avg 3.2s),<br/>raced Claude Code's own ~/.claude.json writes"]
+    T2["entrypoint-unified.sh:1751 node trust-seed.cjs, output to stderr<br/>callable by hand for a post-boot worktree: node trust-seed.cjs #60;path#62;"]
     T1 --> T2
     end
     subgraph TRJ["trajectory-recorder.cjs — Stop and SubagentStop, gated"]
     direction TB
-    J1["block entrypoint-unified.sh:1598, hook path :1598<br/>gate: BOTH memory_learning flags checked before the block runs"]
-    J2["entrypoint-unified.sh:1620 specs = Stop, SubagentStop ONLY<br/>reconcile strips prior wiring over 4 legacy events :1623-1626<br/>then push timeout 10 seconds behind an inline env prefix :1627-1632"]
-    J3["entrypoint-unified.sh:1650 gate off: strip over the same 4 events<br/>:1650 keep-filter, :1653 log the de-registration"]
-    J4["gate source agentbox.toml:451-452 enabled + record_trajectories"]
+    J1["block entrypoint-unified.sh:1943, hook path :1956<br/>gate: BOTH memory_learning flags checked before the block runs"]
+    J2["entrypoint-unified.sh:1981 specs = Stop, SubagentStop ONLY<br/>reconcile strips prior wiring over 4 legacy events :1981-1984<br/>then push timeout 10 seconds behind an inline env prefix :1985-1989"]
+    J3["entrypoint-unified.sh:2005 gate off: strip over the same 4 events<br/>:2008 keep-filter, :2011 log the de-registration"]
+    J4["gate source agentbox.toml:471-472 enabled + record_trajectories"]
     J1 --> J2
     J1 --> J3
     J1 --> J4
     end
     subgraph OTH["turn-sink, dream-inbox, ruvnet-brain"]
     direction TB
-    X1["entrypoint-unified.sh:1481 tab0-bridge turn-sink.cjs deployed path<br/>:1489 events UserPromptSubmit and Stop, :1492 timeout 5 seconds"]
-    X2["entrypoint-unified.sh:1663 dream-inbox-surface.cjs, live-checkout fallback :1664<br/>gate DREAM_INBOX_HOOK :1665, UserPromptSubmit timeout 5 seconds :1679"]
-    X3["entrypoint-unified.sh:2078 ruvnet-brain-ground.cjs<br/>gate RUVNET_BRAIN_GROUNDING_HOOK :2079, timeout 5 seconds :2092"]
-    X4["gate source agentbox.toml:822 grounding_hook = true"]
+    X1["entrypoint-unified.sh:1839 tab0-bridge turn-sink.cjs deployed path<br/>:1847 events UserPromptSubmit and Stop, :1850 timeout 5 seconds"]
+    X2["entrypoint-unified.sh:2021 dream-inbox-surface.cjs, live-checkout fallback :2022<br/>gate DREAM_INBOX_HOOK :2023, UserPromptSubmit timeout 5 seconds :2037"]
+    X3["entrypoint-unified.sh:2436 ruvnet-brain-ground.cjs<br/>gate RUVNET_BRAIN_GROUNDING_HOOK :2437, timeout 5 seconds :2450"]
+    X4["gate source agentbox.toml:840 grounding_hook = true"]
     X1 --> X2 --> X3 --> X4
     end
     subgraph SHM["hook shim reconcile — ADR-2034 §1"]
     direction TB
-    H1["entrypoint-unified.sh:1406 block, gate AGENTBOX_HOOK_SHIM"]
-    H2["entrypoint-unified.sh:1407 agentbox-hook reconcile --root WORKSPACE --depth 2<br/>rewrites per-project ruflo CLI hooks to the resident shim"]
+    H1["entrypoint-unified.sh:1764 block, gate AGENTBOX_HOOK_SHIM"]
+    H2["entrypoint-unified.sh:1765 agentbox-hook reconcile --root WORKSPACE --depth 2<br/>rewrites per-project ruflo CLI hooks to the resident shim"]
     H1 --> H2
     end
     S --> MIR --> FLT --> ONT --> TRU --> TRJ --> OTH --> SHM
@@ -127,7 +127,7 @@ flowchart TB
     subgraph INV["invariants and divergences"]
     direction TB
     I1["INVARIANT: claude-flow-hook-adapter.cjs is wired ONLY per-profile<br/>stacks.rs:229 — never into the root settings.json"]
-    I2["INVARIANT ADR-2068: the root ontology gap is closed —<br/>entrypoint-unified.sh:1349 registers and :1358-1362 retracts,<br/>so the off state leaves no trace"]
+    I2["INVARIANT ADR-2068: the root ontology gap is closed —<br/>entrypoint-unified.sh:1707 registers and :1716-1720 retracts,<br/>so the off state leaves no trace"]
     I3["INVARIANT: a new hook is not wired by dropping a file in config/hooks/ —<br/>register it in the site that owns its session class<br/>hooks/README.md:93-96"]
     I1 --> I2 --> I3
     end
@@ -139,33 +139,33 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant U as User turn
-    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:393
+    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:394
     participant RBG as ruvnet-brain-ground.cjs<br/>agentbox/config/hooks/ruvnet-brain-ground.cjs:115
     participant TS as turn-sink.cjs<br/>agentbox/config/tab0-bridge/turn-sink.cjs:1
     participant DI as dream-inbox-surface.cjs<br/>agentbox/config/hooks/dream-inbox-surface.cjs:34
     participant SR as main<br/>agentbox/config/hooks/skill-route.cjs:29
     participant M as Model context
 
-    Note over U,M: root registrations: entrypoint-unified.sh:1282 mirror, :1489 turn-sink,<br/>:1665 dream-inbox, :2079 brain-ground, :2164 skill-route — five on this one event.<br/>INVARIANT: stacks.rs no longer registers a per-profile UserPromptSubmit hook at all<br/>(stacks.rs:31-33, test :390-391) — skill-route.cjs is the sole per-turn router (ADR-2091)
-    U->>NM: node HOOK UserPromptSubmit, timeout 8 seconds<br/>entrypoint-unified.sh:1289
-    NM->>NM: bodyForEvent#40;#41; checks mirroredEvents#40;#41; first, returns null if not listed<br/>nostr-live-mirror.cjs:289-290
+    Note over U,M: root registrations: entrypoint-unified.sh:1642 mirror, :1847 turn-sink,<br/>:2023 dream-inbox, :2437 brain-ground, :2522 skill-route — five on this one event.<br/>INVARIANT: stacks.rs no longer registers a per-profile UserPromptSubmit hook at all<br/>(stacks.rs:31-33, test :390-391) — skill-route.cjs is the sole per-turn router (ADR-2091)
+    U->>NM: node HOOK UserPromptSubmit, timeout 8 seconds<br/>entrypoint-unified.sh:1647
+    NM->>NM: bodyForEvent#40;#41; checks mirroredEvents#40;#41; first, returns null if not listed<br/>nostr-live-mirror.cjs:290-291
     NM-->>U: DEFAULT: null body on UserPromptSubmit, egress skipped — only Stop is<br/>mirrored by default, DEFAULT_MIRROR_EVENTS :277, widen via AGENTBOX_LIVE_MIRROR_EVENTS :278-282, see AB-13.9
     par independent root groups, unordered wrt each other
-        U->>RBG: node HOOK #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:2092
+        U->>RBG: node HOOK #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:2450
         RBG->>RBG: analyse#40;prompt#41;: DISTINCTIVE name fires alone,<br/>an ESTATE name needs an upstream-intent cue in the SAME sentence<br/>ruvnet-brain-ground.cjs:90-98
         RBG->>RBG: CLASSICAL_SUBS match needs selection intent in the same sentence<br/>ruvnet-brain-ground.cjs:100-109
         RBG-->>M: emitContext via lib/hook-output.cjs, or nothing<br/>ruvnet-brain-ground.cjs:121-124, see AB-08.11
     and
-        U->>TS: node HOOK UserPromptSubmit #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:1492
+        U->>TS: node HOOK UserPromptSubmit #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:1850
         Note over TS: the sink is deployed to the workspace copy, not the baked one<br/>entrypoint-unified.sh:1481 — see AB-12 for the bridge itself
     and
-        U->>SR: ADR-2091 gate inlined as AGENTBOX_SKILL_ROUTER=jev<br/>entrypoint-unified.sh:2164, timeout = max#40;8, ceil#40;2 times judge_ms / 1000#41;#41; :2201-2202
+        U->>SR: ADR-2091 gate inlined as AGENTBOX_SKILL_ROUTER=jev<br/>entrypoint-unified.sh:2522, env prefix :2543, timeout = max#40;8, ceil#40;2 times judge_ms / 1000#41;#41; :2560
         SR->>SR: lib.route#40;prompt, cfg#41;: one Choice over every routable skill<br/>hooks/skill-route.cjs:37 via lib/skill-route.cjs
-        SR->>SR: candidates also take claude.ai synced skills as anthropic-skills:name and enabled<br/>plugins' skills as plugin:skill, the Skill tool's own names (lib/skill-route.cjs:276, lib/skill-route.cjs:442),<br/>read best-effort, off with AGENTBOX_SKILL_ROUTE_CLAUDE_DIR=0 (lib/skill-route.cjs:396)
+        SR->>SR: candidates also take claude.ai synced skills as anthropic-skills:name and enabled<br/>plugins' skills as plugin:skill, the Skill tool's own names (lib/skill-route.cjs:292, lib/skill-route.cjs:311),<br/>read best-effort, off with AGENTBOX_SKILL_ROUTE_CLAUDE_DIR=0 (lib/skill-route.cjs:396)
         SR-->>M: emitContext#40;lib.formatContext#40;r, cfg#41;#41; via lib/hook-output.cjs, or nothing<br/>hooks/skill-route.cjs:42
         Note over SR: INVARIANT fail-open - any error, timeout, 429/529 or a none pick<br/>returns without injection, hooks/skill-route.cjs:20 and hooks/skill-route.cjs:45
     and
-        U->>DI: node HOOK #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:1679
+        U->>DI: node HOOK #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:2037
         DI->>DI: skip machine-generated turns #40;task-notification, agent-message,<br/>system-reminder#41;, then count OPEN items and rate-limit via a sidecar<br/>stamp file, dream-inbox-surface.cjs:40-51
         DI-->>M: hookSpecificOutput.additionalContext = one-line pointer at the forum<br/>governance panel #40;ADR-2115#41;, or #123;#125;, dream-inbox-surface.cjs:52-61, see AB-08.12
     end
@@ -176,14 +176,14 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant CC as Claude Code core
-    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:393
+    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:394
     participant FS as fleet-session-start.sh<br/>agentbox/config/hooks/fleet-session-start.sh:13
     participant FTN as fleet-tab-name.sh<br/>agentbox/config/hooks/fleet-tab-name.sh:13
     participant AD as claude-flow-hook-adapter.cjs<br/>agentbox/config/hooks/claude-flow-hook-adapter.cjs:132
 
-    CC->>NM: node HOOK SessionStart, timeout 8 seconds<br/>entrypoint-unified.sh:1289
-    NM-->>CC: DEFAULT: null body, skipped — SessionStart is not in the default<br/>mirroredEvents set, nostr-live-mirror.cjs:277 and :289-290, see AB-13.9
-    CC->>FS: bash HOOK #124;#124; true, timeout 8 seconds<br/>entrypoint-unified.sh:1309
+    CC->>NM: node HOOK SessionStart, timeout 8 seconds<br/>entrypoint-unified.sh:1647
+    NM-->>CC: DEFAULT: null body, skipped — SessionStart is not in the default<br/>mirroredEvents set, nostr-live-mirror.cjs:278 and :290-291, see AB-13.9
+    CC->>FS: bash HOOK #124;#124; true, timeout 8 seconds<br/>entrypoint-unified.sh:1667
     FS->>FTN: bash fleet-tab-name.sh, errors swallowed<br/>fleet-session-start.sh:17
     Note over FTN: no TMUX or no tmux binary → exit 0<br/>fleet-tab-name.sh:14-15
     FTN->>FTN: name = git remote basename → toplevel → cwd basename :19-27
@@ -191,7 +191,7 @@ sequenceDiagram
     FTN->>FTN: write $HOME/.claude/fleet/#36;win#125;.json registry entry :37-40
     FS->>FS: gateway not running and AGENTBOX_NOSTR_GATEWAY!=0<br/>fleet-session-start.sh:19-20 → nohup node gateway.cjs, disown :23-24
     FS->>FS: deploy.sh present and AGENTBOX_TAB0_BRIDGE!=0<br/>fleet-session-start.sh:34 → nohup bash deploy.sh, disown :35-36
-    Note over CC: trust-seed.cjs is NOT registered here any more. It ran ONCE at boot,<br/>entrypoint-unified.sh:1391-1393, and is invoked by hand for a worktree made after<br/>boot: node trust-seed.cjs #60;path#62; — see AB-08.10
+    Note over CC: trust-seed.cjs is NOT registered here any more. It ran ONCE at boot,<br/>entrypoint-unified.sh:1749-1751, and is invoked by hand for a worktree made after<br/>boot: node trust-seed.cjs #60;path#62; — see AB-08.10
     CC->>AD: PER-PROFILE ONLY: session-restore, timeout 15 seconds<br/>stacks.rs:77
     Note over AD: stdout filtered by RESTORE_SIGNAL before injection<br/>claude-flow-hook-adapter.cjs:47 and :132-134
 ```
@@ -201,33 +201,33 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant CC as Claude Code core
-    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:393
-    participant OM as ontology-monitor.cjs<br/>agentbox/config/hooks/ontology-monitor.cjs:266
+    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:394
+    participant OM as ontology-monitor.cjs<br/>agentbox/config/hooks/ontology-monitor.cjs:263
     participant TS as turn-sink.cjs Stop<br/>agentbox/config/tab0-bridge/turn-sink.cjs:1
     participant TR as trajectory-recorder.cjs<br/>agentbox/config/hooks/trajectory-recorder.cjs:555
     participant AD as claude-flow-hook-adapter.cjs<br/>agentbox/config/hooks/claude-flow-hook-adapter.cjs:135
 
     rect rgb(240,240,255)
     Note over CC,OM: SessionEnd
-    CC->>NM: node HOOK SessionEnd, timeout 8 seconds<br/>entrypoint-unified.sh:1289
-    NM-->>CC: DEFAULT: null body, skipped — SessionEnd is not in the default<br/>mirroredEvents set, nostr-live-mirror.cjs:277 and :289-290, see AB-13.9
-    CC->>OM: node HOOK #124;#124; true, timeout 10 seconds when the gate is on<br/>entrypoint-unified.sh:1349 — the review itself budgets 180s but runs DETACHED,<br/>ontology-monitor.cjs:41
-    OM->>OM: not runInForeground: fork a detached child via spawn, stdio ignored<br/>except a logfile, unref, exit 0 at once — ontology-monitor.cjs:244-266
-    Note over OM: master switch AGENTBOX_ONTOLOGY_MONITOR seeded by entrypoint-unified.sh:1354<br/>so the hook is never a registered no-op — see AB-08.11
+    CC->>NM: node HOOK SessionEnd, timeout 8 seconds<br/>entrypoint-unified.sh:1647
+    NM-->>CC: DEFAULT: null body, skipped — SessionEnd is not in the default<br/>mirroredEvents set, nostr-live-mirror.cjs:278 and :290-291, see AB-13.9
+    CC->>OM: node HOOK #124;#124; true, timeout 10 seconds when the gate is on<br/>entrypoint-unified.sh:1707 — the review itself budgets 180s but runs DETACHED,<br/>ontology-monitor.cjs:38
+    OM->>OM: not runInForeground: fork a detached child via spawn, stdio ignored<br/>except a logfile, unref, exit 0 at once — ontology-monitor.cjs:241-258
+    Note over OM: master switch AGENTBOX_ONTOLOGY_MONITOR seeded by entrypoint-unified.sh:1712<br/>so the hook is never a registered no-op — see AB-08.11
     CC->>AD: PER-PROFILE ONLY: session-end, timeout 10000<br/>stacks.rs:78 and :43
     end
     rect rgb(255,245,235)
     Note over CC,TR: Stop and SubagentStop
-    CC->>NM: node HOOK Stop, timeout 8 seconds<br/>entrypoint-unified.sh:1289
-    NM-->>CC: body is the last assistant text from transcript_path — Stop IS the default<br/>mirroredEvents entry, nostr-live-mirror.cjs:302-306, scan at :250-264, see AB-13.9
-    CC->>TS: node HOOK Stop #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:1492
-    CC->>TR: inline env prefix + node HOOK EVENT, timeout 10 seconds<br/>entrypoint-unified.sh:1631, env prefix built at :1611-1614
+    CC->>NM: node HOOK Stop, timeout 8 seconds<br/>entrypoint-unified.sh:1647
+    NM-->>CC: body is the last assistant text from transcript_path — Stop IS the default<br/>mirroredEvents entry, nostr-live-mirror.cjs:303-306, scan at :251-264, see AB-13.9
+    CC->>TS: node HOOK Stop #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:1850
+    CC->>TR: inline env prefix + node HOOK EVENT, timeout 10 seconds<br/>entrypoint-unified.sh:1987, env prefix built at :1969-1972
     alt both gates on
         TR->>TR: handleClose on Stop or SubagentStop<br/>trajectory-recorder.cjs:569-571, see AB-08.13
     else either gate off — the default
         TR-->>CC: return 0 immediately :559-561, byte-identical to no hook present
     end
-    Note over CC,TR: INVARIANT: registration itself is gated, not just the body —<br/>gate off de-registers over all 4 legacy events entrypoint-unified.sh:1650
+    Note over CC,TR: INVARIANT: registration itself is gated, not just the body —<br/>gate off de-registers over all 4 legacy events entrypoint-unified.sh:2005-2011
     end
 ```
 
@@ -280,7 +280,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant EP as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:1391
+    participant EP as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:1749
     participant TSD as trust-seed.cjs main#40;#41;<br/>agentbox/config/hooks/trust-seed.cjs:74
     participant FS as filesystem
     participant CFG as ~/.claude.json<br/>trust-seed.cjs:31
@@ -322,10 +322,10 @@ sequenceDiagram
     participant RBG as ruvnet-brain-ground.cjs<br/>agentbox/config/hooks/ruvnet-brain-ground.cjs:115
     participant HO as lib/hook-output.cjs<br/>agentbox/config/hooks/lib/hook-output.cjs:32
     participant SE as SessionEnd
-    participant OMP as ontology-monitor.cjs parent<br/>agentbox/config/hooks/ontology-monitor.cjs:266
-    participant OMC as ontology-monitor.cjs DETACHED CHILD<br/>agentbox/config/hooks/ontology-monitor.cjs:253
+    participant OMP as ontology-monitor.cjs parent<br/>agentbox/config/hooks/ontology-monitor.cjs:263
+    participant OMC as ontology-monitor.cjs DETACHED CHILD<br/>agentbox/config/hooks/ontology-monitor.cjs:250
     participant ONT as local ontology route<br/>mcp/servers/lib/ontology-local.js
-    participant ZAI as claude-zai CLI<br/>AGENTBOX_ZAI_BIN, ZAI_URL (:176-185)
+    participant ZAI as claude-zai CLI<br/>AGENTBOX_ZAI_BIN, ZAI_URL (:177-183)
     participant FB as forum broker gate<br/>NostrBridge kind 31402
 
     rect rgb(235,245,255)
@@ -346,7 +346,7 @@ sequenceDiagram
     alt gatedOff#40;#41;: master switch off, no ZAI key, or publish mode missing<br/>MANAGEMENT_API_KEY/NOSTR_RELAYS
         OMP-->>SE: log no-op, exit 0 (:77-82,267-268)
     else gated on
-        OMP->>OMC: NOT runInForeground: spawn detached child, stdio ignored except a<br/>logfile, unref, exit 0 AT ONCE — SessionEnd never waits (:240-263,269)
+        OMP->>OMC: NOT runInForeground: spawn detached child, stdio ignored except a<br/>logfile, unref, exit 0 AT ONCE — SessionEnd never waits (:241-258, exit :266)
         Note over OMC: BUDGET_MS=180000 wall clock, read from AGENTBOX_ONTOLOGY_MONITOR_BUDGET_MS (:38,41)
         OMC->>OMC: gatherWork#40;payload#41; - git status --porcelain + transcript tail 12k chars (:93-119)
         OMC->>ONT: createLocalOntology#40;#41;.classList#40;limit:100000#41; (:125-129)
@@ -376,9 +376,9 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant CALLER as management API<br/>POST /v1/projects/:id/publish #40;NOT a Claude Code hook trigger#41;
-    participant PTP as project-tracking-publish.cjs<br/>agentbox/config/hooks/project-tracking-publish.cjs:202
-    participant MAPI as management-api<br/>GET /v1/projects on port 9090 (:133-180)
-    participant NPB as nostr-pod-bridge track<br/>spawnSync binary (:184-200)
+    participant PTP as project-tracking-publish.cjs<br/>agentbox/config/hooks/project-tracking-publish.cjs:205
+    participant MAPI as management-api<br/>GET /v1/projects on port 9090 (:136-180)
+    participant NPB as nostr-pod-bridge track<br/>spawnSync binary (:186-200)
     participant U as UserPromptSubmit
     participant DI as dream-inbox-surface.cjs<br/>agentbox/config/hooks/dream-inbox-surface.cjs:34
     participant INBOX as dream-inbox.json #43; .surfaced stamp<br/>DREAM_INBOX_PATH override, dream-inbox-surface.cjs:28-29
@@ -386,23 +386,23 @@ sequenceDiagram
 
     rect rgb(245,235,255)
     Note over CALLER,NPB: RESOLVED ADR-2068 #40;2026-09-05#41;: not a divergence — this is a CLI, not a hook.<br/>The management API spawns it from the /v1/projects publish route #40;routes/projects.js lines 28 and 322#41;.<br/>config/hooks/README.md section 3 names every file in config/hooks/ that is a CLI or helper rather than a hook
-    CALLER->>PTP: node project-tracking-publish.cjs, optional ProjectTrackingDigest on stdin (:202,210-225)
+    CALLER->>PTP: node project-tracking-publish.cjs, optional ProjectTrackingDigest on stdin (:205,213-228)
     alt AGENTBOX_PROJECT_TRACKING_PUBLISH===0, or bridge secrets absent (:60-66,204-206)
         PTP-->>CALLER: return 0, silent no-op
     else
         alt stdin carries a valid digest #40;project_id present#41;
-            PTP->>PTP: use verbatim (:215-216)
+            PTP->>PTP: use verbatim (:218-219)
         else stdin is a TrackedProject or empty
             PTP->>MAPI: GET /v1/projects, Authorization Bearer MANAGEMENT_API_KEY (:135-146)
             MAPI-->>PTP: project list, mapped via toDigest#40;#41; (:92-110,228-233)
         end
         loop each digest
-            PTP->>NPB: spawnSync nostr-pod-bridge track, digest JSON on stdin, t=30000 (:183-200)
+            PTP->>NPB: spawnSync nostr-pod-bridge track, digest JSON on stdin, t=30000 (:186-200)
             NPB-->>PTP: kind-30841 addressable event, d-tag=project slug, dual-write pod inbox
         end
         PTP-->>CALLER: log published N/total, return 0 (:241)
     end
-    Note over PTP: guard setTimeout DEADLINE_MS=30000#43;1500 force-exits process (:246-247)
+    Note over PTP: guard setTimeout DEADLINE_MS=30000#43;1500 force-exits process (:248-249)
     end
     rect rgb(235,255,240)
     Note over DI: DRIFT resolved #40;ADR-2115#41;: no longer relays item text. The nightly engine now<br/>publishes each item as a forum governance case, this hook adds ONE pointer line<br/>with a count, dream-inbox-surface.cjs:2-10
@@ -491,7 +491,7 @@ flowchart TD
     H2["emitContext#40;#41; :32-44 — resolves true only once the write flushes"]
     HO --> H1 & H2
     TR["trajectory-recorder.cjs<br/>agentbox/config/hooks/trajectory-recorder.cjs:47<br/>ONLY consumer of trajectory-util.cjs"]
-    NM["nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:44<br/>ONLY consumer of egress-policy.cjs"]
+    NM["nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:46<br/>ONLY consumer of egress-policy.cjs"]
     RBG["ruvnet-brain-ground.cjs:123<br/>+ hooks/skill-route.cjs:27 — BOTH consumers of hook-output.cjs"]
     F7 --> TR
     G1 & G2 & G3 & G4 --> NM
@@ -509,20 +509,20 @@ Session-mirror egress: see AB-13.9.
 sequenceDiagram
     autonumber
     participant NIX as factrailPkg<br/>lib/factrail.nix:36
-    participant EP as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:2334
+    participant EP as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:2672
     participant MIG as migrate<br/>scripts/factrail-store-migrate.mjs:74
     participant CC as Claude Code engine
     participant SHIM as factrail shim plus binary
     participant J as System One judge
 
     NIX->>NIX: build DreamLab-AI/factrail at one pinned 40-char rev, vendored lockfile,<br/>whole-workspace tests in the build (lib/factrail.nix:36, :52, :60)
-    NIX->>EP: flake.nix links /opt/agentbox/bin/factrail and bakes the shim as<br/>config/claude-plugins/factrail, both only when the gate is on (flake.nix:1802, flake.nix:1858)
+    NIX->>EP: flake.nix links /opt/agentbox/bin/factrail and bakes the shim as<br/>config/claude-plugins/factrail, both only when the gate is on (flake.nix:2012, flake.nix:2068)
     EP->>CC: set or clear CLAUDE_CODE_ENABLE_FUNCTION_HOOKS in settings.json env (:2343)
     EP->>CC: uninstall any retired jev-compaction@agentbox WHATEVER the gate (:2352-2358)
     Note over EP,CC: two compaction plugins on one session.compact chain would both act,<br/>ADR-2121-factrail-implements-jev-compaction.md:83-84
     EP->>MIG: gate on and plugin plus binary baked (:2359), run the store migration (:2363)
     MIG->>MIG: copy every tainted taint-session record and an unset switch position from<br/>jev-compaction's store into factrail's, rename the old file .migrated (factrail-store-migrate.mjs:86-104)
-    EP->>EP: project each manifest pair only if the baked plugin declares it, skip empty values<br/>_jc_project (:2381), binary = the stable /opt path, never a store path (:2389)
+    EP->>EP: project each manifest pair only if the baked plugin declares it, skip empty values<br/>_jc_project (:2743), binary = the stable /opt path, never a store path (:2699)
     EP->>CC: claude plugin install factrail@agentbox with that userConfig (:2436)
     Note over EP,CC: reinstall on a change of plugin code, userConfig OR the binary's own hash<br/>(:2371, :2425), gate off uninstalls and drops the marketplace (:2448-2453),<br/>ADR-2020 byte-identical-when-off
     CC->>SHIM: load the shim, which registers seven events and delegates every decision<br/>to the binary over a versioned stdin-stdout protocol<br/>(ADR-2121-factrail-implements-jev-compaction.md:42-47, README.md:78)
@@ -542,9 +542,9 @@ sequenceDiagram
 
 **Drift (resolved 2026-10-02):** `hooks/README.md` listed four plugin events where the plugin registered seven; it now lists all seven for `factrail` (`../project/agentbox/config/hooks/README.md:78`).
 
-**Invariant:** the sticky email taint survives the change of plugin — the boot migration only widens taint and never overwrites factrail's own switch (`../project/agentbox/scripts/factrail-store-migrate.mjs:86-94`), and it runs before the install (`../project/agentbox/config/entrypoint-unified.sh:2363`).
+**Invariant:** the sticky email taint survives the change of plugin — the boot migration only widens taint and never overwrites factrail's own switch (`../project/agentbox/scripts/factrail-store-migrate.mjs:86-94`), and it runs before the install (`../project/agentbox/config/entrypoint-unified.sh:2725`).
 
-**Invariant:** the shim and the binary can never disagree on the hook protocol, because one `rev` supplies both and the plugin's `binary` option is the stable `/opt/agentbox/bin/factrail` path (`../project/agentbox/lib/factrail.nix:36`, `../project/agentbox/config/entrypoint-unified.sh:2389`).
+**Invariant:** the shim and the binary can never disagree on the hook protocol, because one `rev` supplies both and the plugin's `binary` option is the stable `/opt/agentbox/bin/factrail` path (`../project/agentbox/lib/factrail.nix:36`, `../project/agentbox/config/entrypoint-unified.sh:2699`).
 
 **Open:** the shim's event handlers and the binary's fact-rail logic live in the factrail repository, which this corpus does not map, so no claim about them here is checked at a revision; the events and the fence are cited from the agentbox README and ADR-2121 only (`../project/agentbox/docs/adr/ADR-2121-factrail-implements-jev-compaction.md:42-47`).
 

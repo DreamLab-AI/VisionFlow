@@ -32,7 +32,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/username.rs
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
-verified_commit: 13cbe6cbad7ee7ff3b609233a8bee3dd8eae1f3e
+verified_commit: 72463fbde35ac4c68539b1f65a08ff03b9941201
 ---
 
 ## NF-08.1 forum.toml — the single source of access truth and its projection
@@ -41,7 +41,7 @@ verified_commit: 13cbe6cbad7ee7ff3b609233a8bee3dd8eae1f3e
 flowchart TB
     TOML["forum.toml (operator-owned)<br/>forum.example.toml:30 deployment<br/>forum.example.toml:38 webauthn<br/>forum.example.toml:46 pod<br/>forum.example.toml:56 relay<br/>forum.example.toml:66 admin"]
     TOML2["forum.toml continued<br/>forum.example.toml:76 branding<br/>forum.example.toml:105 zones (4 example blocks)<br/>forum.example.toml:147 trust :154 invites :161 moderation<br/>forum.example.toml:175 mesh :201 ratelimit :208 features"]
-    TOML3["forum.toml continued<br/>forum.example.toml:221 nip05 :229 native_pod :241 provision<br/>forum.example.toml:251 export :261 git :272 governance<br/>forum.example.toml:287 payments :291 payments.token<br/>forum.example.toml:302 calendar :312 custody"]
+    TOML3["forum.toml continued<br/>forum.example.toml:222 nip05 :230 native_pod :242 provision<br/>forum.example.toml:252 export :262 git :273 governance<br/>forum.example.toml:288 payments :292 payments.token<br/>forum.example.toml:303 calendar :312 poker :335 custody"]
     ZC["ZONE_CONFIG JSON (zones serialised)"]
     RELAYENV["relay-worker env<br/>nostr-bbs-relay-worker/wrangler.toml:18"]
     CLIENTENV["client window.__ENV__.ZONE_CONFIG"]
@@ -274,11 +274,11 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    WRITE["kind-42 write into a zone<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1123"]
-    LOOKUP["ZoneConfig.load(env).is_encrypted(zone)<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1123"]
+    WRITE["kind-42 write into a zone<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1150"]
+    LOOKUP["ZoneConfig.load(env).is_encrypted(zone)<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1156-1157"]
     TAGCHK["is_zone_ciphertext - zk tag: zone id, epoch >= 1, 64-hex zone pubkey<br/>nostr-bbs-relay-worker/src/zone_config.rs:205-211"]
     SHAPECHK["content shaped as NIP-44 v2 - base64, version 0x02, length 132..87472<br/>nostr-bbs-relay-worker/src/zone_config.rs:212-217"]
-    REJECT["send_ok false - blocked: encrypted zone requires zone-key ciphertext<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1126-1132"]
+    REJECT["send_ok false - blocked: encrypted zone requires zone-key ciphertext<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1158-1163"]
     ACCEPT["event stored"]
 
     WRITE --> LOOKUP
@@ -290,5 +290,5 @@ flowchart TB
     SHAPECHK -->|"fails"| REJECT
 
     N1["INVARIANT: shape only, no decryption - the relay holds no zone key and cannot tell a real<br/>ciphertext from random bytes of the right length; what it guarantees is that no plaintext,<br/>from any client or any author including admins, lands in an encrypted zone zone_config.rs:198-201"]
-    N2["A sealed ADR-2017 envelope into an encrypted zone is exempt from this drift check but still<br/>subject to the admin-only sealed-write gate - nip_handlers.rs:1105-1114"]
+    N2["A sealed ADR-2017 envelope into an encrypted zone is exempt from this drift check but still<br/>subject to the admin-only sealed-write gate - nip_handlers.rs:1134-1145"]
 ```

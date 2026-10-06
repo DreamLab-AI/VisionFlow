@@ -35,7 +35,7 @@ sources:
   - ../project/src/handlers/socket_flow_handler/actor_messages.rs
   - ../project/src/utils/auth.rs
   - ../project/nginx.production.conf
-verified_commit: dd420fbc722a7a4a50e968162ac6c3eaff6972b2
+verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
 ---
 
 ## VC-13.3 GPU broadcast frame end to end
@@ -45,8 +45,8 @@ sequenceDiagram
     participant FC as ForceComputeActor<br/>src/actors/gpu/force_compute_actor.rs:2430
     participant BO as BroadcastOptimizer<br/>src/gpu/broadcast_optimizer.rs:183
     participant BP as NetworkBackpressure<br/>src/gpu/backpressure.rs:262
-    participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:2013
-    participant GSA as GraphStateActor<br/>src/actors/graph_state_actor.rs:858
+    participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:1996
+    participant GSA as GraphStateActor<br/>src/actors/graph_state_actor.rs:862
     participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs:1178
     participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:345
     participant WS as SocketFlowServer<br/>src/handlers/socket_flow_handler/types.rs
@@ -62,10 +62,10 @@ sequenceDiagram
             BP-->>FC: Some(sequence_id)
             Note over FC: clamp NaN/Inf per-node<br/>src/actors/gpu/force_compute_actor.rs:2443
             FC->>GSS: UpdateNodePositions{positions, correlation_id}<br/>src/actors/messages/graph_messages.rs:58
-            GSS->>GSA: do_send(UpdateNodePositions clone)<br/>src/actors/graph_service_supervisor.rs:1989
-            GSA-->>GSA: mutate graph_data.nodes in-place<br/>src/actors/graph_state_actor.rs:861
+            GSS->>GSA: do_send(UpdateNodePositions clone)<br/>src/actors/graph_service_supervisor.rs:2002
+            GSA-->>GSA: mutate graph_data.nodes in-place<br/>src/actors/graph_state_actor.rs:865
             Note right of GSA: polling path (subscribe_position_updates)<br/>now returns GPU-computed layout, see VC-13.6
-            GSS->>PO: do_send(UpdateNodePositions)<br/>src/actors/graph_service_supervisor.rs:2000
+            GSS->>PO: do_send(UpdateNodePositions)<br/>src/actors/graph_service_supervisor.rs:2013
             PO->>PO: throttle to 60fps (16ms gate)<br/>src/actors/physics_orchestrator_actor.rs:1191
             opt user is dragging this node
                 PO->>PO: override with pinned (x,y,z), vel=0<br/>src/actors/physics_orchestrator_actor.rs:1200
@@ -244,7 +244,7 @@ sequenceDiagram
     participant FC as ForceComputeActor<br/>src/actors/gpu/force_compute_actor.rs:2430
     participant BO as BroadcastOptimizer<br/>src/gpu/broadcast_optimizer.rs:183
     participant BP as NetworkBackpressure<br/>src/gpu/backpressure.rs:262
-    participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:2013
+    participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:1996
 
     rect rgb(225,228,245)
     Note over FC: FastSettle path — force_full_broadcast set by the settle controller
@@ -357,7 +357,7 @@ sequenceDiagram
     autonumber
     participant PU as fetch_nodes<br/>src/handlers/socket_flow_handler/position_updates.rs:114
     participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:421
-    participant GSA as GraphStateActor<br/>src/actors/graph_state_actor.rs:858
+    participant GSA as GraphStateActor<br/>src/actors/graph_state_actor.rs:862
     participant BIN as binary_protocol::encode_node_data_extended_with_sssp<br/>src/utils/binary_protocol.rs:415-419
 
     rect rgb(225,228,245)

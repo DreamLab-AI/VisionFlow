@@ -25,7 +25,7 @@ sources:
   - ../project/src/handlers/nostr_handler.rs
   - ../project/src/middleware/rbac_gate.rs
   - ../project/crates/visionclaw-domain/src/config/graph_type.rs
-verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
+verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
 ---
 
 ## VC-06.1 Settings route surface and the actor behind it

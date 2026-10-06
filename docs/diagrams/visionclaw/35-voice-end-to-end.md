@@ -37,7 +37,7 @@ sources:
   - ../project/xr-client/rust/src/webrtc_audio.rs
   - ../project/client/src/services/WebSocketEventBus.ts
   - ../project/src/actors/elevation_actor.rs
-verified_commit: {visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047, unmute: c49982eb3aeaf76633dfe4155fa3b8dcb5b3d962}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, unmute: c49982eb3aeaf76633dfe4155fa3b8dcb5b3d962}
 ---
 
 ## VC-35.1 Push-to-talk state machine and the agent DID binding
@@ -196,9 +196,9 @@ sequenceDiagram
     VW->>SV: WebSocket upgrade (no header, no query token)
     rect rgb(238, 244, 252)
         SV->>SV: derive connection_url from scheme, host and path_and_query
-        Note over SV: speech_socket_handler.rs:998, :1000. This is the HTTP-equivalent<br/>URL the client must sign as the NIP-98 u tag - same derivation the<br/>graph socket uses at socket_flow_handler/http_handler.rs:364
+        Note over SV: speech_socket_handler.rs:998. The HTTP-equivalent URL the<br/>client must sign as the NIP-98 u tag now comes from the shared helper<br/>nip98_request_url(&req) - same derivation the graph socket uses at<br/>socket_flow_handler/http_handler.rs:407
         SV->>SS: SpeechSocket::new(id, app_state, None, connection_url, dev_bypass_ok)
-        Note over SV,SS: speech_socket_handler.rs:1005. dev_bypass_ok is<br/>dev_bypass_permitted(&req) behind cfg(debug_assertions or dev-auth),<br/>false in release. pubkey starts None
+        Note over SV,SS: speech_socket_handler.rs:1001. dev_bypass_ok is<br/>dev_bypass_permitted(&req) behind cfg(debug_assertions or dev-auth),<br/>false in release. pubkey starts None
         SV-->>VW: 101 Switching Protocols
         Note over SV,VW: RESOLVED ADR-2075: NO credential is checked at upgrade. The old<br/>path accepted any non-empty Bearer value OR ?token= query parameter<br/>without verifying either, and browsers cannot set WebSocket headers,<br/>so the browser client (which sent neither) was 401d outright. Query<br/>token auth is removed. The socket opens anonymous and useless
     end
@@ -309,7 +309,7 @@ sequenceDiagram
     participant GATE as ClarificationGate.evaluate/merge<br/>src/services/voice_clarification (app_state.clarification_gate)
     participant PGV as process_governed_voice<br/>speech_socket_handler.rs:376
     participant PVI as process_voice_intent<br/>speech_socket_handler.rs:316
-    participant VC as VoiceIntentClient.dispatch<br/>src/services/voice_intent_client.rs:195
+    participant VC as VoiceIntentClient.dispatch<br/>src/services/voice_intent_client.rs:207
     participant AB as agentbox /v1/voice-intent
     participant KO as PocketTts TTS
 
@@ -331,7 +331,7 @@ sequenceDiagram
             alt no VoiceIntentClient configured
                 PVI-->>PGV: Err "governed voice loop unconfigured"<br/>speech_socket_handler.rs:324
             else configured
-                VC->>AB: POST /v1/voice-intent - endpoint resolution, ACSP_PANEL_NOSTR_PRIVKEY<br/>gating, 31402 signing and identical broker/voice signing all live<br/>inside VoiceIntentClient::dispatch (voice_intent_client.rs) - see EXTERNAL note
+                VC->>AB: POST /v1/voice-intent - endpoint resolution, the panel signing key<br/>(load_panel_secret, voice_intent_client.rs:151) gating, 31402 signing and<br/>identical broker/voice signing all live inside<br/>VoiceIntentClient::dispatch (voice_intent_client.rs) - see EXTERNAL note
                 alt accepted
                     AB-->>VC: VoiceIntentAccepted{event_id, intent.verb}
                     PVI->>PVI: ack = ack_sentence(accepted, actor_did)<br/>speech_socket_handler.rs:331
@@ -352,7 +352,7 @@ sequenceDiagram
         SS->>SS: is_swarm_command? handle_swarm_voice_command<br/>speech_socket_handler.rs:450, :461, :861, :862<br/>else the ungoverned global settings assistant path at :883
         Note right of SS: VoiceCommand::parse(text,session_id) src/actors/voice_commands.rs:13,116<br/>maps free text to SwarmIntent (SpawnAgent|QueryStatus|ExecuteTask|<br/>UpdateGraph|ListAgents|StopAgent|Help, enum at voice_commands.rs:43).<br/>VoicePreamble::generate(intent) prefixes the LLM reply with a<br/>per-intent voice hint (e.g. SpawnAgent to "Confirm agent creation.")<br/>before this ungoverned path speaks, voice_commands.rs:90-104
     end
-    Note over VC,AB: EXTERNAL: endpoint resolution (AGENTBOX_VOICE_INTENT_URL else<br/>AGENTBOX_MANAGEMENT_URL+VOICE_INTENT_PATH), the ACSP_PANEL_NOSTR_PRIVKEY<br/>gate, and 31402 signing identical to the broker path all live in<br/>VoiceIntentClient (voice_intent_client.rs) - unchanged by this refactor,<br/>only encapsulated behind client.dispatch() instead of being inlined here.
+    Note over VC,AB: EXTERNAL: endpoint resolution (AGENTBOX_VOICE_INTENT_URL else<br/>AGENTBOX_MANAGEMENT_URL+VOICE_INTENT_PATH), the panel signing key resolved<br/>by acsp key_file load_panel_secret (voice_intent_client.rs:154-163, was<br/>the ACSP_PANEL_NOSTR_PRIVKEY env var), and 31402 signing identical to the<br/>broker path all live in VoiceIntentClient - encapsulated behind<br/>client.dispatch() instead of being inlined here.
 ```
 
 ## VC-35.9 TTS over PocketTts, streamed PCM and the barge-in cancel path
@@ -431,9 +431,9 @@ sequenceDiagram
         alt elevation intent recognised
             PE-->>EA: Some(label)
             EA->>KO: speak a short confirmation into the immersive session
-            Note over EA,KO: fn speak - fire-and-forget, never blocks case<br/>handling. src/actors/elevation_actor.rs:224
+            Note over EA,KO: fn speak - fire-and-forget, never blocks case<br/>handling. src/actors/elevation_actor.rs:229
         end
-        Note over EA: logs "voice guidance active (local Whisper STT to demand<br/>ledger. PocketTts TTS confirmations)"<br/>src/actors/elevation_actor.rs:917
+        Note over EA: logs "voice guidance active (local Whisper STT to demand<br/>ledger. PocketTts TTS confirmations)"<br/>src/actors/elevation_actor.rs:1133
     end
 ```
 
@@ -500,7 +500,7 @@ flowchart TB
     SEP["SEPARATE SUBSYSTEM: this is the agentbox tmux voice plane (Track A),<br/>not the VisionClaw graph voice loop of VC-35.1 to VC-35.11. Its LLM is<br/>the tab0-bridge reached as KYUTAI_LLM_URL, its STT is the Kyutai<br/>service, and its TTS is now the SAME pocket-tts VisionClaw uses.<br/>agentbox/voice/compose.web.yml:45, :44. see AB-06 for the console boundary"]
     owned --> CONV
     CONV["DRIFT CLOSED 2026-09-13 (ab5724422): the two tracks used to run<br/>different synthesisers - Kokoro for the VisionClaw visualiser and<br/>Kyutai TTS for the web stack. One pocket-tts service now serves both,<br/>and voice-stack/unmute-override.yml was deleted with the split.<br/>voice-stack/README.md:3, :8"]
-    DIV["Kokoros, Whisper-WebUI and xinference are UNTRACKED symlinks at the repo root,<br/>gitignored at .gitignore:227-229 and absent from .gitmodules - NOT submodules.<br/>All three dangle in this container. git ls-files returns nothing for any of them.<br/>Kokoros and Whisper-WebUI are now doubly stale: the Kokoro TTS branch was<br/>deleted from the server on 2026-09-13. xinference is DIFFERENT - it has live<br/>compose consumers (docker-compose.unified.yml:329, agentbox/docker-compose.yml:86),<br/>so Xinference is a runtime endpoint dependency. Those URL consumers do not prove<br/>the dangling checkout link is used. see ES-01.6"]
+    DIV["Kokoros, Whisper-WebUI and xinference are UNTRACKED symlinks at the repo root,<br/>gitignored at .gitignore:227-229 and absent from .gitmodules - NOT submodules.<br/>All three dangle in this container. git ls-files returns nothing for any of them.<br/>Kokoros and Whisper-WebUI are now doubly stale: the Kokoro TTS branch was<br/>deleted from the server on 2026-09-13. xinference is DIFFERENT - it has live<br/>compose consumers (docker-compose.unified.yml:330, agentbox/docker-compose.yml:86),<br/>so Xinference is a runtime endpoint dependency. Those URL consumers do not prove<br/>the dangling checkout link is used. see ES-01.6"]
     legacy --> DIV
     HIST["Historical engine benchmarks and their retired harness live under<br/>docs/gap-close-evidence/voice-latency-2026-09-10/ and are NOT<br/>deployment files. voice-stack/README.md:14, :15"]
     CONV --> HIST

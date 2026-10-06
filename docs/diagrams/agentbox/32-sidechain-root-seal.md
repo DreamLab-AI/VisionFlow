@@ -15,7 +15,8 @@ sources:
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/schema/agentbox.toml.schema.json
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+  - ../project/agentbox/agentbox.toml
+verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
 ---
 
 ## For developers
@@ -23,6 +24,8 @@ verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
 On 2026-09-22 the estate stopped proposing a settlement chain and sealed one: `sidestr:dreamlab`, genesis `4db37517…d453dbc0`, one signer, prefix `drm`, no pegs, an 80-byte stock header beside Bitcoin testnet4 (`sidechain/README.md:10`). The committed chain document is the chain's identity, not its configuration — changing a sealed field is a new chain, never an edit (`sidechain/README.md:5-6`). AB-31 is the design this partly implements, AB-33 the crates that can now verify it, AB-34 what is actually running.
 
 **Drift (this topic vs ADR-2112):** the crates this topic points to in AB-33 moved to `DreamLab-AI/sidestr-rs` on 2026-09-23 (ADR-2112); the sealed chain document and its tests stay in agentbox `config/sidechain/`. See SR-01.
+
+**Drift (this topic vs the directory it catalogues):** `sidestr:dreamlab` is no longer the only seal — `sidestr:dreamlab-txbt4` beside BLAKE2b testnet4 was sealed 2026-10-02 and its table ships enabled (`config/sidechain/README.md:11`, `../project/agentbox/agentbox.toml:1648-1649`); the genesis test now runs one pass per committed document, so it covers both chains. Neither chain is anchored: no producer writes checkpoints into its parent (`config/sidechain/README.md:13-18`).
 
 ## For the business
 
@@ -64,7 +67,7 @@ flowchart TB
 ```
 
 
-**Invariant:** `challenge` is `5120` concatenated with `signer`, so a document cannot name one key and be sealed by another — the genesis test asserts exactly that equality (`../project/agentbox/tests/config/sidechain-genesis.test.sh:58`).
+**Invariant:** `challenge` is `5120` concatenated with `signer`, so a document cannot name one key and be sealed by another — the genesis test asserts exactly that equality (`../project/agentbox/tests/config/sidechain-genesis.test.sh:83`).
 
 ## AB-32.2 What the genesis commits to, and what it does not
 
@@ -86,52 +89,52 @@ flowchart TB
         UP["building it changes genesis construction, so it is an<br/>UPSTREAM proposal, never a local overlay - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:212-214"]
         PIN --> UP
     end
-    committed --> BIND["Until the pin exists, the binding of parent and containment is the<br/>committed document plus its genesisHash<br/>sidechain/README.md:30"]
+    committed --> BIND["Until the pin exists, the binding of parent and containment is the<br/>committed document plus its genesisHash<br/>sidechain/README.md:77"]
     notcommitted --> BIND
     BIND --> pin
     notcommitted --> TEN["TENSION: ADR-2103 D3 says parent and containment are<br/>bound on-seal. They are not. The record now says so in<br/>its own amendment - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:208"]
 ```
 
 
-**Tension (ADR-2103 D3 vs the sealed chain):** D3 states that `parent`, `headerProfile`, `currencyPin`, `cashOut`, `pegConfirmations` and `refundBlocks` are committed as a `pin:` record in the genesis coinbase (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:71`), but the seal established that upstream commits only four things and the pin is unbuilt (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:208`).
+**Tension (ADR-2103 D3 vs the sealed chain):** D3 states that `parent`, `headerProfile`, `currencyPin`, `cashOut`, `pegConfirmations` and `refundBlocks` are committed as a `pin:` record in the genesis coinbase (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:73-74`), but the seal established that upstream commits only four things and the pin is unbuilt (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:208`).
 
-**Open:** whether the pin lands at all depends on an upstream proposal to change genesis construction, which has not been filed (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:212`).
+**Open:** whether the pin lands at all depends on an upstream proposal to change genesis construction, which has not been filed (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:213`).
 
 ## AB-32.3 The engine-free genesis gate, case by case
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CI as manifest-validate.yml<br/>.github/workflows/manifest-validate.yml:120
-    participant T as sidechain-genesis.test.sh<br/>tests/config/sidechain-genesis.test.sh:33
+    participant CI as manifest-validate.yml<br/>.github/workflows/manifest-validate.yml:157
+    participant T as sidechain-genesis.test.sh<br/>tests/config/sidechain-genesis.test.sh:58
     participant DOC as config/sidechain/*/chain.json
-    participant DAT as blocks.dat under SIDESTR_STATE_ROOT<br/>tests/config/sidechain-genesis.test.sh:23
+    participant DAT as blocks.dat under SIDESTR_STATE_ROOT<br/>tests/config/sidechain-genesis.test.sh:29
 
     CI->>T: bash the test, one run per committed document
-    T->>DOC: case 1, required fields present with the right shapes (:46)
-    T->>DOC: case 1, id equals sidestr plus name, directory equals name (:53)
-    T->>DOC: case 2, challenge equals 5120 concatenated with signer (:58)
-    T->>DOC: case 3, parent is a SPEC 3.2 alias from btc, tbtc4, xbt, txbt4 (:59)
+    T->>DOC: case 1, required fields present with the right shapes (:72-74)
+    T->>DOC: case 1, id equals sidestr plus name, directory equals name (:77-78)
+    T->>DOC: case 2, challenge equals 5120 concatenated with signer (:83)
+    T->>DOC: case 3, parent is a SPEC 3.2 alias from btc, tbtc4, xbt, txbt4 (:84-85)
     alt the alias is a mainnet one
-        T->>DOC: refuse unless p21Receipt is present (:61)
+        T->>DOC: refuse unless p21Receipt is present (:86)
         Note over T: ADR-2103 D4 as far as it is built, a receipt field must<br/>exist. Resolving the receipt is NOT checked
     end
-    T->>DOC: case 4, containmentDigest equals sha256 of JCS containment (:64)
-    T->>DOC: case 4, containment.parent equals parent, cashOut is false (:67)
-    T->>T: case 5, no bare 32-byte hex file beside the document (:76)
+    T->>DOC: case 4, containmentDigest equals sha256 of JCS containment (:91)
+    T->>DOC: case 4, containment.parent equals parent, cashOut is false (:92-93)
+    T->>T: case 5, no bare 32-byte hex file beside the document (:101)
     alt the block file is reachable
-        T->>DAT: case 6, first entry is height 0 (:90)
-        DAT-->>T: sha256d of the 80-byte header equals genesisHash (:91)
-        DAT-->>T: prev is all zeros, header time equals genesisTime (:92)
-        DAT-->>T: bit 31 clear on a stock-header chain (:94)
+        T->>DAT: case 6, first entry is height 0 (:114)
+        DAT-->>T: header hash in the parent's family equals genesisHash (:124)
+        DAT-->>T: prev is all zeros, header time equals genesisTime (:125-126)
+        DAT-->>T: bit 31 clear on a stock-header chain (:123), set on a<br/>BLAKE2b v2 one (:118)
     else absent in CI
-        T->>T: skip, the block file is not in the repository<br/>.github/workflows/manifest-validate.yml:118
+        T->>T: skip, the block file is not in the repository<br/>.github/workflows/manifest-validate.yml:155-156
     end
-    T-->>CI: exit non-zero if any case failed (:109)
+    T-->>CI: exit non-zero if any case failed (:137, :140)
 ```
 
 
-**Invariant:** no key material can sit beside a chain document — case 5 greps the directory for a bare 32-byte hex file and fails the run if it finds one (`../project/agentbox/tests/config/sidechain-genesis.test.sh:76`).
+**Invariant:** no key material can sit beside a chain document — case 5 greps the directory for a bare 32-byte hex file and fails the run if it finds one (`../project/agentbox/tests/config/sidechain-genesis.test.sh:101`).
 
 **Debt:** case 3 enforces only that a mainnet parent carries a `p21Receipt` field. ADR-2103 D4 asks for a CI check that the receipt *resolves*, a second check forbidding a level-1 chain on a mainnet parent, and a node that refuses to open one; none is built (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:229-230`).
 
@@ -139,10 +142,10 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    DOCF["chain document<br/>config/sidechain/dreamlab/chain.json, in git<br/>sidechain/README.md:16"]
-    KEY["signer key, 32 bytes hex, mode 0400<br/>/var/lib/agentbox/secrets/sidestr-dreamlab.key<br/>sidechain/README.md:17"]
-    BLK["block file and index, blocks.dat and blocks.json<br/>under WORKSPACE/sidestr/dreamlab, a host bind<br/>sidechain/README.md:18"]
-    NODE["parent node, Bitcoin Core testnet4 on the LAN,<br/>RPC port 48332, wallet sidestr-peg<br/>sidechain/README.md:19"]
+    DOCF["chain document<br/>config/sidechain/dreamlab/chain.json, in git<br/>sidechain/README.md:24"]
+    KEY["signer key, 32 bytes hex, mode 0400<br/>/var/lib/agentbox/secrets/sidestr-dreamlab.key<br/>sidechain/README.md:25"]
+    BLK["block file and index, blocks.dat and blocks.json<br/>under WORKSPACE/sidestr/dreamlab, a host bind<br/>sidechain/README.md:26"]
+    NODE["parent node, Bitcoin Core testnet4 on the LAN,<br/>RPC port 48332, wallet sidestr-peg<br/>sidechain/README.md:27"]
     subgraph custody["Custody rules the key obeys (ADR-2101 D3)"]
         K1["agentbox-secrets named volume, survives rebuilds"]
         K2["NEVER in identity.env"]
@@ -150,15 +153,15 @@ flowchart TB
         K1 ~~~ K2 ~~~ K3
     end
     KEY --> custody
-    DOCF --> REPLAY["Replaying the genesis needs the document, the key and<br/>two upstream checkouts, and no npm install<br/>sidechain/README.md:39-45"]
+    DOCF --> REPLAY["Replaying the genesis needs the document, the key and<br/>two upstream checkouts, and no npm install<br/>sidechain/README.md:96-104"]
     KEY --> REPLAY
-    REPLAY --> OPEN["open refuses a block file whose block 0 does not hash<br/>to the document's genesisHash - sidechain/README.md:47"]
+    REPLAY --> OPEN["open refuses a block file whose block 0 does not hash<br/>to the document's genesisHash - sidechain/README.md:104"]
     BLK --> OPEN
-    NODE --> PEG["coins enter only by peg-in at pegConfirmations<br/>sidechain/README.md:21-23"]
+    NODE --> PEG["coins enter only by peg-in at pegConfirmations<br/>sidechain/README.md:37-39"]
 ```
 
 
-**Invariant:** the block file is reproducible from the document plus the key while the chain is at genesis, which is why the repository can hold the document alone and still let anyone rebuild block 0 (`../project/agentbox/config/sidechain/README.md:18`).
+**Invariant:** the block file is reproducible from the document plus the key while the chain is at genesis, which is why the repository can hold the document alone and still let anyone rebuild block 0 (`../project/agentbox/config/sidechain/README.md:26`).
 
 ## AB-32.5 What P1 delivered, and what it did not
 
@@ -172,7 +175,7 @@ flowchart TB
         D5["2026-09-30: producer, Pages mirror and DREAM faucet supervised<br/>behind [sidechain] - sovereign-settlement.md:337, see AB-34"]
     end
     subgraph missing["Not yet, named by the same row"]
-        M1["a native sidestr-node - the supervised producer is still<br/>upstream's JS engine - config/sidechain/README.md:79"]
+        M1["a native sidestr-node - the supervised producer is still<br/>upstream's JS engine - config/sidechain/README.md:172"]
         M2["the mirror on loopback port 9097 behind the nip98 proxy"]
         M3["the chain and asset URN kinds"]
         M4["the kind-38420 account binding"]
@@ -181,8 +184,8 @@ flowchart TB
     end
     subgraph gate["The manifest block, half landed"]
         G1["schema/agentbox.toml.schema.json sets<br/>additionalProperties false at the top level<br/>schema/agentbox.toml.schema.json:7"]
-        G2["a sidechain entry now exists for the interim supervision keys only:<br/>enabled, announce_mirror, mirror, mirror_checkout, faucet, faucet_key_file<br/>schema/agentbox.toml.schema.json:3223-3252"]
-        G3["it is closed too, additionalProperties false, so D1's parent and<br/>header_profile still cannot be written and the sealed document stays<br/>the only source of the parent - schema/agentbox.toml.schema.json:3225"]
+        G2["a sidechain entry now exists for the interim supervision keys only:<br/>enabled, announce_mirror, mirror, mirror_checkout, faucet, faucet_key_file<br/>schema/agentbox.toml.schema.json:3327-3368"]
+        G3["it is closed too, additionalProperties false, so D1's parent and<br/>header_profile still cannot be written and the sealed document stays<br/>the only source of the parent - schema/agentbox.toml.schema.json:3329"]
         G1 --> G2 --> G3
     end
     done --> STATUS["implementation_status partial: the seal exists and is<br/>verifiable, D1, D3's pin and boot check, D4's CI receipt<br/>check and the faucet compile-out are not built<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:228-231"]
@@ -191,8 +194,8 @@ flowchart TB
 ```
 
 
-**Drift (ADR-2103 vs the schema):** the record's first-seal snapshot says `schema/agentbox.toml.schema.json` has no `sidechain` entry (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:215-217`); since `d0fa1b80b` it has one, for the interim supervision keys only (`../project/agentbox/schema/agentbox.toml.schema.json:3223-3252`). The conclusion still holds for D1, because the new entry is closed and names no `parent` or `header_profile` (`../project/agentbox/schema/agentbox.toml.schema.json:3225`).
+**Drift (ADR-2103 vs the schema):** the record's first-seal snapshot says `schema/agentbox.toml.schema.json` has no `sidechain` entry (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:215-217`); since `d0fa1b80b` it has one, for the interim supervision keys only (`../project/agentbox/schema/agentbox.toml.schema.json:3327-3368`). The conclusion still holds for D1, because the new entry is closed and names no `parent` or `header_profile` (`../project/agentbox/schema/agentbox.toml.schema.json:3329`).
 
-**Debt:** the specified `[sidechain]` gate, with its catalogue entry, apply class and supervised program set (`../project/agentbox/docs/BASELINE-container.md:294`, `../project/agentbox/docs/BASELINE-container.md:349`), is still not expressible: what landed is an interim block of six supervision keys, and the specified keys (parent, header profile, signer and bridge children) wait on a schema change (`../project/agentbox/schema/agentbox.toml.schema.json:3225`). See AB-05.13 for where it would appear in the gate catalogue.
+**Debt:** the specified `[sidechain]` gate, with its catalogue entry, apply class and supervised program set (`../project/agentbox/docs/BASELINE-container.md:301`, `../project/agentbox/docs/BASELINE-container.md:356`), is still not expressible: what landed is an interim block of six supervision keys, and the specified keys (parent, header profile, signer and bridge children) wait on a schema change (`../project/agentbox/schema/agentbox.toml.schema.json:3329`). See AB-05.13 for where it would appear in the gate catalogue.
 
 **Open:** PRD-024's question 9 is answered — the first seal is `tbtc4` with stock headers, sealed 2026-09-22 (`../project/agentbox/docs/proposals/sovereign-settlement.md:486-491`) — but questions 8, 13, 14 and 15 remain, question 19 (the next chain's parent, beside `txbt4`) was added on 2026-09-30 (`../project/agentbox/docs/proposals/sovereign-settlement.md:527`), and each changes what gets built (`../project/agentbox/docs/proposals/sovereign-settlement.md:495`).

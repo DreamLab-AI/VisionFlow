@@ -27,25 +27,25 @@ sources:
   - ../project/agentbox/docker-compose.yml
   - ../project/agentbox/management-api/server.js
   - ../project/agentbox/config/nostr-gateway/nostr-send.cjs
-verified_commit: c4ed3ec6505858e1e5ead651c29115d2f74e5546
+verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
 ---
 
 ## AB-12.2 Bridge boot — reconcile, listen, coordinator resolve
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Sup as Supervisor<br/>agentbox/flake.nix:2568
+    participant Sup as Supervisor<br/>agentbox/flake.nix:2846
     participant Dep as deploy.sh<br/>agentbox/config/tab0-bridge/deploy.sh:1
     participant Node as server.mjs<br/>agentbox/config/tab0-bridge/server.mjs:45
     participant AoEd as AoE daemon port 9095
 
-    Sup->>Dep: bash deploy.sh reconcile, one supervisor command line (flake.nix:2569)
+    Sup->>Dep: bash deploy.sh reconcile, one supervisor command line (flake.nix:2847)
     Dep->>Dep: copy server.mjs, turn-sink.cjs, start.sh, package.json via md5 compare (deploy.sh:27-35)
     opt node_modules/ws missing
         Dep->>Dep: npm install --omit=dev (deploy.sh:37-39)
     end
     Dep-->>Sup: exit 0, reconcile-only mode, no launch (deploy.sh:44-46)
-    Sup->>Node: exec node server.mjs, foreground, autorestart, same command line (flake.nix:2569)
+    Sup->>Node: exec node server.mjs, foreground, autorestart, same command line (flake.nix:2847)
     Node->>Node: read BRIDGE_PORT, default 8971 (server.mjs:45)
     Node->>Node: read BRIDGE_TMUX_SESSION, default agentbox (server.mjs:47)
     Node->>Node: read BRIDGE_TOKEN, default empty string (server.mjs:49)
@@ -194,7 +194,7 @@ sequenceDiagram
 
     rect rgb(255,240,240)
     Note over Mic,UBE: trust boundary — LAN door 1, port 8444 published 0.0.0.0
-    Note over Mic,Cad: TENSION manifest vs deployment — [voice].enabled is false (agentbox.toml:1787)<br/>while this whole stack runs. The gate is declared apply-class sidecar, so the voice<br/>compose overlay has its own lifecycle and `agentbox up` never consults the flag<br/>(docker-compose.voice.yml:1). The manifest therefore describes a surface it does not govern
+    Note over Mic,Cad: TENSION resolved in the manifest's own terms — [voice].enabled is now TRUE<br/>(agentbox.toml:1955), descriptive sidecar state for /v1/system. The gate stays apply-class<br/>sidecar, so the voice compose overlay still has its own lifecycle and `agentbox up`<br/>never consults the flag (docker-compose.voice.yml:1) - the manifest describes the<br/>surface, the overlay governs it
     Mic->>Cad: HTTPS, mic audio via /embed and /api/* (Caddyfile handle /embed*, handle_path /api/*)
     Cad->>UFE: reverse_proxy frontend:3000 (Caddyfile handle /embed*)
     Cad->>UBE: reverse_proxy backend:80, /v1/realtime (Caddyfile handle_path /api/*)
@@ -217,7 +217,7 @@ sequenceDiagram
         B-->>UBE: SSE data DONE (server.mjs:567)
     end
     UBE-->>UFE: synthesised speech, TTS
-Note over B: DIVERGENCE — port 8444 and port 8443 are published 0.0.0.0 by<br/>docker-compose.voice.yml:38-39, while only port 9096 is the ADR-045 D2 sanctioned NIP-98-gated LAN<br/>door covered by the loopback CI gate. The Unmute voice loop itself reaches tab0-bridge only<br/>over the internal visionclaw_network hostname agentbox:8971, which is never host-published<br/>(docker-compose.yml:33,151-152)
+Note over B: DIVERGENCE — port 8444 and port 8443 are published 0.0.0.0 by<br/>docker-compose.voice.yml:38-39, while only port 9096 is the ADR-045 D2 sanctioned NIP-98-gated LAN<br/>door covered by the loopback CI gate. The Unmute voice loop itself reaches tab0-bridge only<br/>over the internal visionclaw_network hostname agentbox:8971, which is never host-published<br/>(docker-compose.yml:33,152-153)
 Note over Cad,B: RESOLVED ADR-2047 — voice/README.md now routes /feed and /bridge/* to<br/>agentbox:9096 in both its route table and its ASCII map, naming the ADR-069 server-side<br/>BRIDGE_TOKEN credential exchange (voice/README.md:26,115-116). The remaining 8971 reference<br/>above is correct — it is this Unmute backend calling the bridge container-to-container, not a<br/>browser path through Caddy (voice/README.md:37)
 Note over Cc: lean headless surface (measured 2.1.280/haiku: 38.4k-token/9.3s prefix → 6.8k/2.7s<br/>with MCP, hooks, skills and CLAUDE.md stripped) — CHILD_ENV.MAX_THINKING_TOKENS=0 and<br/>CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 set once at boot, see AB-12.2 (server.mjs:131-133)
 ```
@@ -231,7 +231,7 @@ sequenceDiagram
     participant VI as lib/voice-intent.js<br/>parseIntent:112
     participant Ma as lib/mandate.js<br/>see AB-11.10
     participant ACS as agent-control-surface.js<br/>buildActionRequest:176
-    participant D as dispatchActionRequest<br/>server.js:876
+    participant D as dispatchActionRequest<br/>server.js:902
 
 Note over Ca,M: SCOPE — this route is not reached from the tab0-bridge cockpit or the Unmute<br/>voice loop, grep confirmed no reference to voice-intent.js under config/tab0-bridge. It is an<br/>independent management-api REST surface, included because the brief named it as an entry point.
     Ca->>M: POST /v1/voice-intent, transcript, actor_did, mandate (routes/voice-intent.js:82-109)
@@ -352,7 +352,7 @@ sequenceDiagram
     Op->>Cad: GET /aoe/*, NIP-98 or nip07 session cookie (Caddyfile handle_path /aoe/*)
     Cad->>Pr: reverse_proxy agentbox:9096, Authorization forwarded
     Pr->>Pr: verifyNip98 or session cookie, X-Agentbox-Pubkey injected, see AB-10.3, AB-10.7
-    Pr->>AoEd: forward, Authorization Bearer daemon token replaces browser credential, see AB-10.9 (proxy.mjs:1004-1012)
+    Pr->>AoEd: forward, Authorization Bearer daemon token replaces browser credential, see AB-10.9 (proxy.mjs:1037-1045)
     AoEd-->>Pr: session list json
     Pr-->>Cad: response
     Cad-->>Op: session list rendered
@@ -378,24 +378,24 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant R as Nostr relay pool, via NostrBridge
-    participant Ag as JunkieJarvisAgent<br/>lib/junkiejarvis-agent.js:692
-    participant Llm as callLlm()<br/>lib/junkiejarvis-agent.js:429
+    participant Ag as JunkieJarvisAgent<br/>lib/junkiejarvis-agent.js:705
+    participant Llm as callLlm()<br/>lib/junkiejarvis-agent.js:442
 
 Note over R,Ag: SCOPE — junkiejarvis-agent.js has no reference to tab0-bridge, tmux, AoE or<br/>port 8971, grep confirmed. An independent forum bot riding management-api's shared NostrBridge,<br/>included because the brief named it as an entry point.
-    Ag->>R: bridge.subscribe, kinds 1059, filter p equals pubkey — carries both gift-wrapped DMs and zone-key grants (lib/junkiejarvis-agent.js:755-760)
-    Ag->>R: bridge.subscribe, kinds 42, filter p equals pubkey, channel mentions (lib/junkiejarvis-agent.js:766-771)
-    Ag->>Ag: _scheduleProfilePublish, setTimeout 2000 ms, then publish kind-0 profile (lib/junkiejarvis-agent.js:781)
-    R-->>Ag: inbound event, kind 1059 or kind 42 (lib/junkiejarvis-agent.js:823-828)
-    Ag->>Ag: _dedup(event.id), in-memory set capped at DEFAULT_DEDUP_CAP (lib/junkiejarvis-agent.js:737-746)
+    Ag->>R: bridge.subscribe, kinds 1059, filter p equals pubkey — carries both gift-wrapped DMs and zone-key grants (lib/junkiejarvis-agent.js:768-773)
+    Ag->>R: bridge.subscribe, kinds 42, filter p equals pubkey, channel mentions (lib/junkiejarvis-agent.js:779-784)
+    Ag->>Ag: _scheduleProfilePublish, setTimeout 2000 ms, then publish kind-0 profile (lib/junkiejarvis-agent.js:794)
+    R-->>Ag: inbound event, kind 1059 or kind 42 (lib/junkiejarvis-agent.js:836-841)
+    Ag->>Ag: _dedup(event.id), in-memory set capped at DEFAULT_DEDUP_CAP (lib/junkiejarvis-agent.js:750-759)
     alt already seen
-        Ag->>Ag: drop event (lib/junkiejarvis-agent.js:826)
+        Ag->>Ag: drop event (lib/junkiejarvis-agent.js:839)
     end
     alt kind is 1059, gift wrap
-        Ag->>Ag: nip59.unwrapEvent(wrap, signer.skBytes), recover rumor (lib/junkiejarvis-agent.js:844-845)
+        Ag->>Ag: nip59.unwrapEvent(wrap, signer.skBytes), recover rumor (lib/junkiejarvis-agent.js:857-858)
         alt rumor.kind is KIND_ZONE_KEY_GRANT (21453)
-            Ag->>Ag: _handleGrant(wrap) — key material, no dedup/backlog floor, a grant sent while down is still valid (lib/junkiejarvis-agent.js:853,884-897)
-            Ag->>Ag: zoneKeys.unwrapAny(wrap, skBytes) re-opens the seal — authenticates the SENDER, unlike nip59.unwrapEvent (lib/junkiejarvis-agent.js:891)
-            Ag->>Ag: _acceptGrantWithRetry(opened, 0) — checks isAdmin(sender) before storing (lib/junkiejarvis-agent.js:904-925)
+            Ag->>Ag: _handleGrant(wrap) — key material, no dedup/backlog floor, a grant sent while down is still valid (lib/junkiejarvis-agent.js:866,901-914)
+            Ag->>Ag: zoneKeys.unwrapAny(wrap, skBytes) re-opens the seal — authenticates the SENDER, unlike nip59.unwrapEvent (lib/junkiejarvis-agent.js:908)
+            Ag->>Ag: _acceptGrantWithRetry(opened, 0) — checks isAdmin(sender) before storing (lib/junkiejarvis-agent.js:921-942)
             alt granted
                 Ag->>Ag: store zone key, log zone+epoch only, never the secret
             else rejected
@@ -405,30 +405,30 @@ Note over R,Ag: SCOPE — junkiejarvis-agent.js has no reference to tab0-bridge,
             end
             Note over Ag: never falls through to _handleDm — a grant is never treated as a DM message
         else rumor.kind is KIND_DM_RUMOR
-            Ag->>Ag: _shouldIgnore(rumor.pubkey), _dedup(rumor.id), backlog floor (lib/junkiejarvis-agent.js:855-860)
-            Ag->>Llm: callLlm(userText), brisk professional personality (lib/junkiejarvis-agent.js:864,429)
+            Ag->>Ag: _shouldIgnore(rumor.pubkey), _dedup(rumor.id), backlog floor (lib/junkiejarvis-agent.js:868-877)
+            Ag->>Llm: callLlm(userText), brisk professional personality (lib/junkiejarvis-agent.js:881,442)
             Llm-->>Ag: reply text, or apology on outage, fail-open
-            Ag->>R: _sendDm → sendGiftWrappedDm, nip59, to the asker (lib/junkiejarvis-agent.js:875,961-970)
+            Ag->>R: _sendDm → sendGiftWrappedDm, nip59, to the asker (lib/junkiejarvis-agent.js:892,978-987)
         end
     else kind is 42, channel message
-        Ag->>Ag: _shouldIgnore(pubkey), backlog floor (lib/junkiejarvis-agent.js:978-979)
+        Ag->>Ag: _shouldIgnore(pubkey), backlog floor (lib/junkiejarvis-agent.js:995-996)
         alt zoneKeys.hasZkTag(tags)
-            Ag->>Ag: zoneKeys.readOutcome(event, _lookupZoneKey) (lib/junkiejarvis-agent.js:981-982,928-930)
+            Ag->>Ag: zoneKeys.readOutcome(event, _lookupZoneKey) (lib/junkiejarvis-agent.js:998-999,941-943)
             alt not decrypted, key missing or wrong
-                Ag->>Ag: log outcome, skip — ciphertext never reaches the LLM (lib/junkiejarvis-agent.js:983-990)
+                Ag->>Ag: log outcome, skip — ciphertext never reaches the LLM (lib/junkiejarvis-agent.js:1000-1007)
             else decrypted
-                Ag->>Ag: sealed original present — attribute to inner author, id, tags, not the migrator (lib/junkiejarvis-agent.js:996-1000)
+                Ag->>Ag: sealed original present — attribute to inner author, id, tags, not the migrator (lib/junkiejarvis-agent.js:1013-1017)
             end
         end
-        Ag->>Ag: isChannelMention, p-tag or at-junkiejarvis text (lib/junkiejarvis-agent.js:133,1003)
-        Ag->>Llm: callLlm(userText), brisk professional personality (lib/junkiejarvis-agent.js:1011,429)
+        Ag->>Ag: isChannelMention, p-tag or at-junkiejarvis text (lib/junkiejarvis-agent.js:146,1020)
+        Ag->>Llm: callLlm(userText), brisk professional personality (lib/junkiejarvis-agent.js:1028,442)
         Llm-->>Ag: reply text, or apology on outage, fail-open
-        Ag->>Ag: _replyZone(srcEvent, channelId) — zk tag first, else cached kind-40 section lookup (lib/junkiejarvis-agent.js:1045,939-955)
-        Ag->>R: _sendChannelReply — e-tag root preserved, p-tag asker, zoneKeys.writePlan encrypts when the target zone is set (lib/junkiejarvis-agent.js:1016,1019-1057)
+        Ag->>Ag: _replyZone(srcEvent, channelId) — zk tag first, else cached kind-40 section lookup (lib/junkiejarvis-agent.js:1062,956-968)
+        Ag->>R: _sendChannelReply — e-tag root preserved, p-tag asker, zoneKeys.writePlan encrypts when the target zone is set (lib/junkiejarvis-agent.js:1033,1036-1070)
     end
-    Ag->>Ag: truncateReply to maxReply, default 280 chars (lib/junkiejarvis-agent.js:254,1118)
-Note over Ag,R: INVARIANT ADR-2088 — sendGiftWrappedDm is the ONE gift-wrap site in the repo<br/>(lib/junkiejarvis-agent.js:641). _sendDm delegates to it so the nightly forum-suggestions<br/>tenant, which has a bridge and a signer but no agent instance, sends through the identical<br/>envelope instead of hand-rolling a second one
-Note over Ag: hasSchedulingIntent may buildCalendarEvent, kind-31923 NIP-52, on behalf of forum members (lib/junkiejarvis-agent.js:358,1098)
+    Ag->>Ag: truncateReply to maxReply, default 280 chars (lib/junkiejarvis-agent.js:267,1134-1135)
+Note over Ag,R: INVARIANT ADR-2088 — sendGiftWrappedDm is the ONE gift-wrap site in the repo<br/>(lib/junkiejarvis-agent.js:654). _sendDm delegates to it so the nightly forum-suggestions<br/>tenant, which has a bridge and a signer but no agent instance, sends through the identical<br/>envelope instead of hand-rolling a second one
+Note over Ag: hasSchedulingIntent may buildCalendarEvent, kind-31923 NIP-52, on behalf of forum members (lib/junkiejarvis-agent.js:371,1115)
 ```
 
 ## AB-12.13 turn-sink capture

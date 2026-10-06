@@ -2,7 +2,7 @@
 id: VC-31
 title: R3F/Three.js graph render pipeline and WASM scene effects
 area: visionclaw
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
 governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: []
@@ -74,9 +74,9 @@ flowchart LR
     GM --> GE["GlassEdges x2 (main + highlight)<br/>components/GlassEdges.tsx:180"]
     GM --> IE["InferredEdges<br/>components/InferredEdges.tsx:36"]
     GM --> KR["KnowledgeRings<br/>components/KnowledgeRings.tsx:32"]
-    GM --> CH["ClusterHulls<br/>components/ClusterHulls.tsx:223"]
+    GM --> CH["ClusterHulls<br/>components/ClusterHulls.tsx:210"]
     GM --> TBL["TransientBeamsLayer<br/>visualisation/components/TransientBeamsLayer.tsx:69"]
-    GM --> IL["InstancedLabels<br/>components/InstancedLabels.tsx:294"]
+    GM --> IL["InstancedLabels<br/>components/InstancedLabels.tsx:285"]
     CANVAS --> OC["OrbitControls (makeDefault)"]
     CANVAS --> GPP["GemPostProcessing<br/>client/src/rendering/GemPostProcessing.tsx"]
     GC --> LMI["LayoutModeIndicator (HTML overlay)"]
@@ -183,14 +183,14 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant PARENT as InstancedLabels wrapper<br/>InstancedLabels.tsx:294
-    participant WGL as InstancedLabelsWebGL.useFrame priority 0<br/>InstancedLabels.tsx:588
-    participant GEO as InstancedBufferGeometry aLabelPos etc<br/>InstancedLabels.tsx:556-575
+    participant PARENT as InstancedLabels wrapper<br/>InstancedLabels.tsx:285
+    participant WGL as InstancedLabelsWebGL.useFrame priority 0<br/>InstancedLabels.tsx:581
+    participant GEO as InstancedBufferGeometry aLabelPos etc<br/>InstancedLabels.tsx:537-568
     participant LAYOUT as layoutTextInline<br/>textLayout.ts
     participant ATLAS as createGlyphAtlas<br/>GlyphAtlas.ts
 
-    Note over PARENT: isWebGPURenderer routes to InstancedLabelsWebGPU (Html overlay, InstancedLabels.tsx:328) instead of this WebGL instanced path
-    Note over PARENT: INVARIANT nodePositionsRef must be forwarded by every caller. Historical bug: a missing forward silently fell back to stale labelPositionsRef, logged once at InstancedLabels.tsx:636-643
+    Note over PARENT: isWebGPURenderer routes to InstancedLabelsWebGPU (Html overlay, InstancedLabels.tsx:318) instead of this WebGL instanced path
+    Note over PARENT: INVARIANT nodePositionsRef must be forwarded by every caller. Historical bug: a missing forward silently fell back to stale labelPositionsRef, logged once at InstancedLabels.tsx:629-636
     WGL->>WGL: frameCountRef++ , camera motion check (posDelta>0.5 or rotDelta>0.001)
     alt cameraMovingFast
         WGL->>GEO: geometry.instanceCount = 0 (hide all labels)
@@ -199,7 +199,7 @@ sequenceDiagram
         WGL-->>PARENT: return
     else camera settled
         rect rgb(232,248,238)
-        Note over WGL,GEO: Phase 1 -- every still frame: patch aLabelPos from SAB (InstancedLabels.tsx:627-678)
+        Note over WGL,GEO: Phase 1 -- every still frame: patch aLabelPos from SAB (InstancedLabels.tsx:620-671)
         loop for each entry in nodeGlyphMapRef (existing glyphs)
             WGL->>WGL: wx,wy,wz = rawPositions[physicsIndex*3 .. +2] plus labelOffsetY on Y
             loop for g in glyphStart..glyphStart+glyphCount
@@ -212,7 +212,7 @@ sequenceDiagram
             WGL-->>PARENT: return (skip phase 2 this frame)
         else every Nth frame -- full layout rebuild
             rect rgb(250,232,235)
-            Note over WGL,LAYOUT: Phase 2 -- frustum cull + layoutTextInline (InstancedLabels.tsx:711-884)
+            Note over WGL,LAYOUT: Phase 2 -- frustum cull + layoutTextInline (InstancedLabels.tsx:700-874)
             WGL->>WGL: widen frustum by 0.9x scale on projection elements 0,5 (~10% margin)
             WGL->>WGL: sort nodes by squared distance to camera (closest first)
             loop for each node in distance order
@@ -234,7 +234,7 @@ sequenceDiagram
             end
         end
     end
-    Note over PARENT,ATLAS: createGlyphAtlas and createTextMaterial run once in useMemo (InstancedLabels.tsx:539-577), not per frame
+    Note over PARENT,ATLAS: createGlyphAtlas and createTextMaterial run once in useMemo (InstancedLabels.tsx:532-570), not per frame
 ```
 
 ## VC-31.4 GlassEdges instancing -- allocation, matrix composition, imperative hot path
@@ -453,7 +453,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant BOOT as app boot (imports troikaConfig)<br/>troikaConfig.ts:19
-    participant IL as InstancedLabelsWebGL useMemo<br/>InstancedLabels.tsx:539
+    participant IL as InstancedLabelsWebGL useMemo<br/>InstancedLabels.tsx:532
     participant ATLAS as createGlyphAtlas<br/>GlyphAtlas.ts:32
     participant MAT as createTextMaterial<br/>createTextMaterial.ts:65
     participant LAY as layoutTextInline<br/>textLayout.ts:87

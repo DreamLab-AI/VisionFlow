@@ -49,7 +49,7 @@ sources:
   - ../project/agentbox/management-api/routes/sessions-boundary.js
   - ../project/agentbox/management-api/routes/tasks.js
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
-verified_commit: c4ed3ec6505858e1e5ead651c29115d2f74e5546
+verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
 ---
 
 ## AB-03.1 server.js boot part 1 — Fastify construction, hooks, static route registers
@@ -103,41 +103,41 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Start as start()<br/>server.js:883
+    participant Start as start()<br/>server.js:909
     participant Manifest as loadManifest<br/>adapters/manifest-loader.js
     participant App as fastify app
     participant Adapters as resolveAdapters<br/>adapters/index.js
 
-    Start->>Manifest: loadManifest()<br/>server.js:888
+    Start->>Manifest: loadManifest()<br/>server.js:914
     alt manifest file missing
-        Manifest-->>Start: ManifestNotFound<br/>server.js:891-893
+        Manifest-->>Start: ManifestNotFound<br/>server.js:917-921
         Start->>Start: manifest = {} all-off defaults
     end
-    Start->>Adapters: resolveAdapters(manifest)<br/>server.js:914
-    Start->>App: app.decorate adapters resolvedAdapters<br/>server.js:915
+    Start->>Adapters: resolveAdapters(manifest)<br/>server.js:940
+    Start->>App: app.decorate adapters resolvedAdapters<br/>server.js:941
     Note over Start,Adapters: see AB-04.1 for slot to implementation resolution detail
-    Start->>App: register middleware/linked-data createEncoder if linked_data.enabled<br/>server.js:921-943
-    Start->>App: register routes/uri-resolver always mounted<br/>server.js:952
-    Start->>App: register routes/system logger manifest adapters<br/>server.js:966
-    Start->>App: register routes/voice-intent with dispatchActionRequest<br/>server.js:984
-    Start->>App: register routes/kg-elevation self-gates on sovereign_mesh.kg_elevation<br/>server.js:998
-    Start->>App: new ProjectTracker + register routes/projects<br/>server.js:1015-1028
+    Start->>App: register middleware/linked-data createEncoder if linked_data.enabled<br/>server.js:948-968
+    Start->>App: register routes/uri-resolver always mounted<br/>server.js:978
+    Start->>App: register routes/system logger manifest adapters<br/>server.js:1018
+    Start->>App: register routes/voice-intent with dispatchActionRequest<br/>server.js:1036
+    Start->>App: register routes/kg-elevation self-gates on sovereign_mesh.kg_elevation<br/>server.js:1050
+    Start->>App: new ProjectTracker + register routes/projects<br/>server.js:1072-1080
     opt project_tracking.enabled true
-        Start->>Start: tracker.scan() then tracker.startScheduler()<br/>server.js:1032-1036
+        Start->>Start: tracker.scan() then tracker.startScheduler()<br/>server.js:1084-1089
     end
     alt sovereign_mesh.multi_user.enabled true
-        Start->>App: register routes/admin-users<br/>server.js:1061
+        Start->>App: register routes/admin-users<br/>server.js:1113
     else disabled default
-        Start->>Start: /admin/users/star not mounted<br/>server.js:1071
+        Start->>Start: /admin/users/* not mounted<br/>server.js:1123
     end
-    Start->>App: resolveViewerImpl + register routes/linked-objects<br/>server.js:1081-1084
-    Start->>App: register routes/well-known x402 discovery<br/>server.js:1104
-    Start->>App: buildAuthorityConsumer + buildAuthorityJournal + buildAuthorityGate, decorate authorityDenyJournal authorityConsumer authorityGate<br/>server.js:1123-1155
-    Start->>App: bootReceiptPublisher over the same deny journal (boot flush, then one per minute), decorate governanceReceiptPublisher, stop on close<br/>server.js:1143-1153
-    Note over Start: fallback to governance-decision-waiter.awaitDecision when the relay signer is unavailable (server.js:1137-1139)
-    Start->>App: register routes/beads<br/>server.js:1169
-    Start->>App: register routes/mandate<br/>server.js:1180
-    Start->>App: register routes/sessions-boundary<br/>server.js:1190
+    Start->>App: resolveViewerImpl + register routes/linked-objects<br/>server.js:1133-1136
+    Start->>App: register routes/well-known x402 discovery<br/>server.js:1156
+    Start->>App: buildAuthorityConsumer + buildAuthorityJournal + buildAuthorityGate, decorate authorityDenyJournal authorityConsumer authorityGate<br/>server.js:1175-1207
+    Start->>App: bootReceiptPublisher over the same deny journal (boot flush, then one per minute), decorate governanceReceiptPublisher, stop on close<br/>server.js:1201-1204
+    Note over Start: fallback to governance-decision-waiter.awaitDecision when the relay signer is unavailable (server.js:1189-1191)
+    Start->>App: register routes/beads<br/>server.js:1221
+    Start->>App: register routes/mandate<br/>server.js:1232
+    Start->>App: register routes/sessions-boundary<br/>server.js:1242
     Start->>App: register routes/approvals<br/>server.js:1200
     Start->>Start: log SecurityProfileApplied resolved posture<br/>server.js:1275-1281
     Start->>Adapters: connectAdapters per-slot deadline<br/>server.js:1291
@@ -274,26 +274,26 @@ sequenceDiagram
 flowchart TD
     subgraph probes["public probes — auth-skip allowlist server.js:236-272"]
         A1["GET /livez<br/>server.js:437"] --> H1["event-loop-alive only<br/>server.js:451"]
-        A2["GET /ready<br/>server.js:456"] --> H2["bootstrap+adapters+paths check<br/>server.js:487-539"]
-        A3["GET /health<br/>server.js:555"] --> H3["adapterHealth snapshot<br/>server.js:576-587"]
-        A4["GET /health/pods<br/>server.js:592"] --> H4["probePodHealth<br/>server.js:120-184"]
-        A5["GET /v1/meta<br/>server.js:613"] --> H5["image_hash + adapter contract versions<br/>server.js:639-656"]
-        A6["GET /metrics<br/>server.js:659"] --> H6["metrics.register.metrics<br/>server.js:672"]
-        A7["GET /"] --> H7["endpoint index<br/>server.js:676-693"]
+        A2["GET /ready<br/>server.js:468"] --> H2["bootstrap+adapters+paths check<br/>server.js:493-572"]
+        A3["GET /health<br/>server.js:581"] --> H3["adapterHealth snapshot<br/>server.js:602-612"]
+        A4["GET /health/pods<br/>server.js:618"] --> H4["probePodHealth<br/>server.js:120-184"]
+        A5["GET /v1/meta<br/>server.js:639"] --> H5["image_hash + adapter contract versions<br/>server.js:660-680"]
+        A6["GET /metrics<br/>server.js:685"] --> H6["metrics.register.metrics<br/>server.js:698"]
+        A7["GET /"] --> H7["endpoint index<br/>server.js:702-719"]
     end
     subgraph sysroutes["routes/system.js — authed, always mounted"]
-        B1["GET /v1/system<br/>routes/system.js:33"] --> HB1["buildSystemView + buildExecutionCoverage<br/>routes/system.js:37-44"]
-        B2["GET /v1/system/audit-chain<br/>routes/system.js:47"] --> HB2["auditChain.verifyFiles(?days=N)<br/>routes/system.js:56-76 see AB-03.10"]
+        B1["GET /v1/system<br/>routes/system.js:44"] --> HB1["buildSystemView + buildExecutionCoverage<br/>routes/system.js:58-61"]
+        B2["GET /v1/system/audit-chain<br/>routes/system.js:65"] --> HB2["auditChain.verifyFiles(?days=N)<br/>routes/system.js:85-93 see AB-03.10"]
     end
     subgraph wellknown["public discovery"]
         C1["GET /.well-known/x402.json<br/>routes/well-known.js:64"] --> HC1["cached manifest or 404<br/>routes/well-known.js:34-51,90"]
-        C2["GET /.well-known/did.json<br/>auth-skip only server.js:264"] -.->|"not a fastify route here"| HC2["served by solid-pod-rs<br/>lib/uris.js:249"]
+        C2["GET /.well-known/did.json<br/>auth-skip only server.js:264"] -.->|"not a fastify route here"| HC2["served by solid-pod-rs<br/>lib/uris.js:278"]
     end
     subgraph uri["routes/uri-resolver.js — authed, always mounted"]
         D1["GET /v1/uri/:urn<br/>routes/uri-resolver.js:49"] --> HD1["400 malformed / 200+307 resolvable / 404 unknown —<br/>see AB-11.15 for the full alt-chain; 410 Gone is documented<br/>but WITHDRAWN, never emitted (ADR-2049) routes/uri-resolver.js:12-25"]
         D2["GET /v1/uri<br/>routes/uri-resolver.js:161"] --> HD2["resolver capability listing"]
     end
-    Note1["DOC-DRIFT: the governing doc carries an EMPTY verified_commit<br/>(BASELINE-container.md:6), so nothing states the revision its route<br/>citations were read at. Every route line above was re-derived<br/>from the symbol at 6a4ad132f"]
+    Note1["DOC-DRIFT: the governing doc carries an EMPTY verified_commit<br/>(BASELINE-container.md:6), so nothing states the revision its route<br/>citations were read at. Every route line above was re-derived<br/>from the symbol at 6466e393"]
 ```
 
 ## AB-03.7 route table (b) — tasks, beads, projects
@@ -303,9 +303,9 @@ flowchart TD
     subgraph tasks["routes/tasks.js"]
         T1["POST /v1/tasks<br/>tasks.js:16<br/>guard costGate tasks.js:43"] --> TH1["processManager.spawn"]
         T2["GET /v1/tasks/:taskId<br/>tasks.js:107"] --> TH2["task status lookup"]
-        T3["GET /v1/tasks<br/>tasks.js:161"] --> TH3["list active tasks"]
-        T4["DELETE /v1/tasks/:taskId<br/>tasks.js:199"] --> TH4["processManager.stop"]
-        T5["GET /v1/tasks/:taskId/logs/stream<br/>tasks.js:269"] --> TH5["log tail stream"]
+        T3["GET /v1/tasks<br/>tasks.js:163"] --> TH3["list active tasks"]
+        T4["DELETE /v1/tasks/:taskId<br/>tasks.js:203"] --> TH4["processManager.stop"]
+        T5["GET /v1/tasks/:taskId/logs/stream<br/>tasks.js:273"] --> TH5["log tail stream"]
     end
     subgraph beads["routes/beads.js — self-gates 503 when beads adapter off"]
         B1["GET /v1/beads<br/>beads.js:93"] --> BH1["list beads via adapter"]
@@ -354,7 +354,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph sb["routes/sessions-boundary.js — ADR-043 D4.1-D4.5"]
-        S1["POST /v1/sessions/boundary<br/>sessions-boundary.js:166"] --> SH1["bind did:nostr + URN + beads epic + memory namespace"]
+        S1["POST /v1/sessions/boundary<br/>sessions-boundary.js:167"] --> SH1["bind did:nostr + URN + beads epic + memory namespace"]
     end
     subgraph ae["routes/agent-events.js"]
         E1["GET /v1/agent-events/stream<br/>agent-events.js:55<br/>websocket true"] --> EH1["WS push of agent action events"]
@@ -367,7 +367,7 @@ flowchart TD
         E8["GET /v1/agent-events/status<br/>agent-events.js:640"] --> EH8["forwarder status"]
     end
     subgraph au["routes/admin-users.js — mounted only if sovereign_mesh.multi_user.enabled"]
-        AU1["POST /admin/users/provision<br/>admin-users.js:137"] --> AUH1["501 stub — see PRD-007 (server.js:1055)"]
+        AU1["POST /admin/users/provision<br/>admin-users.js:137"] --> AUH1["501 stub — see PRD-007 (server.js:1113)"]
         AU2["POST /admin/users/:pubkey/git-init<br/>admin-users.js:195"] --> AUH2["501 stub"]
         AU3["POST /admin/users/:pubkey/suspend<br/>admin-users.js:229"] --> AUH3["501 stub"]
         AU4["POST /admin/users/:pubkey/archive<br/>admin-users.js:245"] --> AUH4["501 stub"]
@@ -388,12 +388,12 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph pay["routes/payments.js — x402 web ledger"]
-        PY1["GET /v1/pay/info<br/>payments.js:145"] --> PYH1["ledger info"]
-        PY2["GET /v1/pay/balance<br/>payments.js:203"] --> PYH2["balance via solid-pod-rs"]
-        PY3["POST /v1/pay/deposit<br/>payments.js:278"] --> PYH3["deposit — consumed by middleware/consumer-payer.js"]
-        PY4["POST /v1/pay/estimate<br/>payments.js:359"] --> PYH4["cost estimate"]
-        PY5["POST /v1/pay/buy<br/>payments.js:446"] --> PYH5["buy compute/LLM resource"]
-        PY6["POST /v1/pay/withdraw<br/>payments.js:569"] --> PYH6["withdraw"]
+        PY1["GET /v1/pay/info<br/>payments.js:147"] --> PYH1["ledger info"]
+        PY2["GET /v1/pay/balance<br/>payments.js:205"] --> PYH2["balance via solid-pod-rs"]
+        PY3["POST /v1/pay/deposit<br/>payments.js:286"] --> PYH3["deposit — consumed by middleware/consumer-payer.js"]
+        PY4["POST /v1/pay/estimate<br/>payments.js:315"] --> PYH4["cost estimate"]
+        PY5["POST /v1/pay/buy<br/>payments.js:402"] --> PYH5["buy compute/LLM resource"]
+        PY6["POST /v1/pay/withdraw<br/>payments.js:525"] --> PYH6["withdraw"]
     end
     subgraph llm["routes/llm-marketplace.js — Nostr kinds 38300-38305"]
         LM1["POST /v1/llm/advertise<br/>llm-marketplace.js:100"] --> LMH1["advertise LLM compute"]
@@ -618,11 +618,11 @@ flowchart LR
     C["middleware/payment-gate.js<br/>paymentGate"] --> C1["preHandler on POST /v1/comfyui/workflow<br/>routes/comfyui.js:10,74"]
     D["middleware/privacy-filter.js<br/>ADR-008 layer 2"] --> D1["imported by routes/memory.js<br/>memory.js:28"]
     D --> D2["also wraps every adapter dispatch<br/>see AB-04.4/AB-04.5, not re-drawn here"]
-    E["middleware/linked-data/*<br/>createEncoder, viewer, surfaces"] --> E1["booted in start() when linked_data.enabled<br/>server.js:921-943"]
-    E --> E2["routes/linked-objects.js viewer mount<br/>server.js:1081-1084"]
+    E["middleware/linked-data/*<br/>createEncoder, viewer, surfaces"] --> E1["booted in start() when linked_data.enabled<br/>server.js:948-968"]
+    E --> E2["routes/linked-objects.js viewer mount<br/>server.js:1133-1136"]
     F["middleware/spend-policy.js<br/>spendPolicy factory"] -.->|"no require() from any routes/*.js or server.js"| F1["consumed only by scripts/agentbox-config-validate.js"]
     G["middleware/consumer-payer.js<br/>C2 native consumer payer"] -.->|"no require() from any routes/*.js or server.js"| G1["consumed only by scripts/agentbox-config-validate.js"]
-    Note1["DOC-DRIFT candidate: spend-policy.js and consumer-payer.js are fully implemented<br/>but unwired at the HTTP route layer today (grep -rl across management-api routes/*.js server.js finds none)"]
+    Note1["wired via routes/chain-payments.js (spend-policy.js:34, consumer-payer.js:35) —<br/>POST /v1/chain/pay is the only route carrying them; no other routes/*.js or server.js dispatch uses them"]
 ```
 
 ## AB-03.18 lib/elevation-stage.js — gateElevation, ADR-2116 vault-propose gate before federation

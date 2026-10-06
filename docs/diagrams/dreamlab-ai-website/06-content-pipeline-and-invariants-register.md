@@ -22,7 +22,7 @@ sources:
   - ../dreamlab-ai-website/docs/api/NOSTR_RELAY.md
   - ../dreamlab-ai-website/docs/api/SEARCH_API.md
   - ../dreamlab-ai-website/docs/api/MODERATION_API.md
-verified_commit: 6ae45762e7685787c5f44ba0d966557f386cde83
+verified_commit: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80
 ---
 
 ## DW-06.1 Pre-build content pipeline — two generators, run before every dev/build
@@ -51,7 +51,7 @@ sequenceDiagram
 ## DW-06.2 Workshop manifest generation — page ordering rules
 ```mermaid
 flowchart TB
-    FILES["workshop dir .md files"] --> SORT["pageItems.sort<br/>generate-workshop-list.mjs:72-82"]
+    FILES["workshop dir .md files"] --> SORT["pageItems.sort<br/>generate-workshop-list.mjs:72-83"]
     SORT --> R1{"slug === readme.md?"}
     R1 -->|yes| FIRST["sorts first, always"]
     R1 -->|no| R2{"both slugs match ^(digits)[_.]?"}
@@ -81,29 +81,29 @@ flowchart TB
     SEC --> S6["QE_AUDIT_WORKERS.md"]
     SEC --> S7["QE_COVERAGE_REPORT.md"]
 ```
-- `MODERATION_API.md`'s four endpoint families are backed by Nostr parameterised-replaceable event kinds **30910-30914**, with D1 projections into `moderation_actions`/`reports` for fast querying; every mutating endpoint requires a NIP-98 header binding method, URL and body-SHA256 to prevent replay (`docs/api/MODERATION_API.md:1-10`).
+- `MODERATION_API.md`'s four endpoint families are backed by Nostr parameterised-replaceable event kinds **30910-30914** (`docs/api/MODERATION_API.md:15`), with D1 projections into `moderation_actions`/`reports` for fast querying; every mutating endpoint requires a NIP-98 header binding method, URL and body-SHA256 to prevent replay (`docs/api/MODERATION_API.md:9`).
 
 ## DW-06.6 Invariants register — consolidated from both governing docs
 ```mermaid
 flowchart TB
-    I1["1. KIT_REF + Cargo pin lockstep<br/>BASELINE-architecture.md:145-148 — see DW-01.5"]
-    I2["2. Privileged deploy downloads nothing unverified<br/>BASELINE-architecture.md:149-151 — see DW-01.6"]
-    I3["3. window.__ENV__ vs Vite build vars, validate every endpoint<br/>BASELINE-architecture.md:152-154"]
-    I4["4. GitHub Pages is origin of record until DNS re-cut<br/>BASELINE-architecture.md:155-157 — see DW-01.3"]
-    I5["5. Identity stays raw 64-hex pubkey, no silent DID move<br/>IDENTITY-zones.md:141-143 — see DW-04.1"]
-    I6["6. Zone required_cohorts stays dual-accept<br/>IDENTITY-zones.md:144-145 — see DW-03.1"]
-    I7["7. BREACHED at HEAD: doc says only zone3 is encrypted<br/>IDENTITY-zones.md:146-147, but dreamlab.toml has zone2/3/4<br/>encrypted=true (dreamlab.toml:123,137,148); the toml's own<br/>[encryption] gate + zone4.agent_keys cite 'ADR-2016'<br/>(dreamlab.toml:34,149) but no ADR-2016-*.md exists in<br/>docs/adr/ at HEAD — the record was never written<br/>see DW-03.1"]
-    I8["8. Talk-to-AI reply relays subset of of agent publish fan-out<br/>IDENTITY-zones.md:148-149 — see DW-04.3"]
-    I9["9. Admin/Jarvis pubkeys + ZONE_CONFIG hand-mirrored, rotation touches every mirror<br/>IDENTITY-zones.md:150-152 — see DW-03.3/DW-03.5"]
+    I1["1. KIT_REF + Cargo pin lockstep<br/>BASELINE-architecture.md:161-164 — see DW-01.5"]
+    I2["2. Privileged deploy downloads nothing unverified<br/>BASELINE-architecture.md:165-167 — see DW-01.6"]
+    I3["3. window.__ENV__ vs Vite build vars, validate every endpoint<br/>BASELINE-architecture.md:168-170"]
+    I4["4. GitHub Pages is origin of record until DNS re-cut<br/>BASELINE-architecture.md:171-173 — see DW-01.3"]
+    I5["5. Identity stays raw 64-hex pubkey, no silent DID move<br/>IDENTITY-zones.md:161-163 — see DW-04.1"]
+    I6["6. Zone required_cohorts stays dual-accept<br/>IDENTITY-zones.md:164-165 — see DW-03.1"]
+    I7["7. BREACHED at HEAD: doc says only zone3 is encrypted<br/>IDENTITY-zones.md:166-167, but dreamlab.toml has zone2/3/4<br/>encrypted=true (dreamlab.toml:123,137,148); the toml's own<br/>[encryption] gate + zone4.agent_keys cite 'ADR-2016'<br/>(dreamlab.toml:34,149) but no ADR-2016-*.md exists in<br/>docs/adr/ at HEAD — the record was never written<br/>see DW-03.1"]
+    I8["8. Talk-to-AI reply relays subset of of agent publish fan-out<br/>IDENTITY-zones.md:168-169 — see DW-04.3"]
+    I9["9. Admin/Jarvis pubkeys + ZONE_CONFIG hand-mirrored, rotation touches every mirror<br/>IDENTITY-zones.md:170-172 — see DW-03.3/DW-03.5"]
 ```
-- These nine invariants are the compliance surface for this area: any change touching them requires a governing-doc update plus a thin ADR under `docs/adr/`, per each doc's own Change-process section — the pack itself is a **thin ledger** amending `BASELINE-architecture.md` / `IDENTITY-zones.md` (the living docs are normative); the pre-2026-08-31 legacy corpus (numbered 013+) is frozen under `docs/archive/adr/` as evidence, not authority (`CLAUDE.md:19-21`). Its ADR-2xxx numbering overlaps VisionFlow/agentbox's own ADR-2xxx space by design — each area's ids are area-scoped, resolved by directory, not globally unique across repos.
+- These nine invariants are the compliance surface for this area: any change touching them requires a governing-doc update plus a thin ADR under `docs/adr/`, per each doc's own Change-process section — the pack itself is a **thin ledger** amending `BASELINE-architecture.md` / `IDENTITY-zones.md` (the living docs are normative); the pre-2026-08-31 legacy corpus (numbered 013+) is frozen under `docs/archive/adr/` as evidence, not authority (`CLAUDE.md:21-23`). Its ADR-2xxx numbering overlaps VisionFlow/agentbox's own ADR-2xxx space by design — each area's ids are area-scoped, resolved by directory, not globally unique across repos.
 
 ## DW-06.7 Known divergences / DOC-DRIFT register — this area's open items
 ```mermaid
 flowchart TB
     D1["README: two SPAs vs three shipped clients<br/>see DW-01.2"]
     D2["README: Cloudflare-edge vs GitHub Pages origin<br/>see DW-01.3"]
-    D3["forum-config/README.md pin note stale: git rev vs crates.io version<br/>BASELINE-architecture.md:132-134"]
+    D3["forum-config/README.md pin note stale: git rev vs crates.io version<br/>BASELINE-architecture.md:148-150"]
     D4["Branded worker custom domains undeployed, workers.dev is shipped reality<br/>see DW-01.3"]
     D5["dreamlab.toml README: 'Friends' zone does not exist<br/>see DW-03.1"]
     D6["DID/Multikey convergence is documentation-only<br/>see DW-04.1"]
@@ -122,7 +122,7 @@ flowchart TB
     D14["README's semantic-search claim (Workers AI bge-small-en-v1.5/R2) has no<br/>in-repo build path; this repo's embeddings/ tooling targets an unrelated<br/>RuVector Postgres + all-MiniLM-L6-v2 pipeline — see DW-07.4"]
     D15["IDENTITY-zones.md I7 breached: zone2/zone4 now encrypted=true too<br/>(dreamlab.toml:123,148), master gate [encryption].enabled added<br/>(dreamlab.toml:34) citing an uncommitted ADR-2016 — DW-03.1/DW-04.1<br/>still state 'only zone3 encrypted', not yet re-verified against this<br/>see DW-06.6 I7"]
 ```
-- D9 and D11 are findings from this diagram-authoring pass, not pre-existing entries in either governing doc's own Known-divergences section — both are consequences of the governing docs' `verified_commit: d852f61` being older than this area's current HEAD (`08e9e8578`) and the estate-closeout note's own explicit 2026-09-04 dating.
+- D9 and D11 are findings from this diagram-authoring pass, not pre-existing entries in either governing doc's own Known-divergences section — both are consequences of the governing docs' `verified_commit: d852f61` being older than this repo's HEAD at this topic's stamp (`ebaf16c04`) and the estate-closeout note's own explicit 2026-09-04 dating.
 - D12/D13/D14 are Wave 2 findings, closing the material gaps the estate audit (`reports/audit-web.md`) identified for this area; D15 is a Wave 3 finding — see DW-06.6/DW-06.6 for the full evidence.
 
 ## DW-06.8 README feature claims — confirmed, kit-external, or drifted

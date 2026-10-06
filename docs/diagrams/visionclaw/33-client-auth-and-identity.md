@@ -35,7 +35,7 @@ sources:
   - ../project/src/services/nostr_service.rs
   - ../project/src/utils/auth.rs
   - ../project/src/utils/nip98.rs
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
 ---
 ## VC-33.1 NIP-07 extension login (client-asserted, no server verify round-trip)
 ```mermaid

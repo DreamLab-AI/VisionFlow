@@ -28,7 +28,7 @@ sources:
   - ../project/agentbox/flake.nix
   - ../project/agentbox/docs/adr/ADR-2085-colloquy-knowledge-units-on-the-forum.md
   - ../project/agentbox/docs/adr/ADR-2086-confirmation-weight-follows-authorising-principals.md
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
 ---
 
 ## AB-09.1 Registry ownership classes — what the projector may touch
@@ -42,7 +42,7 @@ flowchart TD
     BS --> NEVER["hand-written entrypoint blocks with health probes,<br/>secret handling and warmup — NEVER touched here, so the<br/>live set stays byte-identical (project-mcp-servers.mjs:22-24)"]
     RF --> DOC["GPU-sidecar skill wrappers whose mcp-server lives under a skill dir,<br/>or npx/uvx network-installer servers that cannot run on the<br/>read-only rootfs — documented, not auto-projected (:25-27)"]
     REG -.-> D1["DOC-DRIFT — BASELINE-container says skills/mcp.json is a 30-server registry.<br/>The file holds 28 (9 projector + 3 bespoke + 16 reference).<br/>The 9/3/16 split the doc gives is correct"]
-    REG -.-> D1R["RESOLVED ADR-2039: BASELINE-container.md:17 now says<br/>skills/mcp.json holds 28 servers, not 30"]
+    REG -.-> D1R["RESOLVED ADR-2039: BASELINE-container.md:20 (changelog 0.3.0) says<br/>skills/mcp.json holds 28 servers, not 30"]
     REG -.-> D2["separate file agentbox/mcp/mcp.json is a DIFFERENT 16-entry map<br/>and is not the projection source"]
 ```
 
@@ -131,7 +131,7 @@ sequenceDiagram
     Note over LED: the ledger is deliberately NOT stored inside .mcp.json — that file is read by the Claude Code harness and must carry no agentbox-private keys (project-mcp-servers.mjs:59-61)
     Note over EP,P: boot is NOT blocked — a non-zero exit surfaces as a loud [mcp] FAIL line in the boot log without aborting the entrypoint (:76-79)
     Note over P: DOC-DRIFT — BASELINE "Configuration projection qualification 2026-09-04" says<br/>ADR-2008 is partial because the reconciliation loop cannot remove deleted registry<br/>definitions and unreadable input leaves stale state with exit zero. The ADR-2008<br/>closeout dated 2026-09-05 fixes both as D1 and D3 (project-mcp-servers.mjs:30-49)
-    Note over P: RESOLVED ADR-2039: BASELINE-container.md:243 marks this qualification<br/>resolved with the D1/D3 evidence — ownership-ledger removal<br/>project-mcp-servers.mjs:33-39, non-zero exit on malformed input :46-49, exit codes :71-74
+    Note over P: RESOLVED ADR-2039: BASELINE-container.md:250 marks this qualification<br/>resolved with the D1/D3 evidence — ownership-ledger removal<br/>project-mcp-servers.mjs:33-39, non-zero exit on malformed input :46-49, exit codes :71-74
 ```
 
 ## AB-09.4 The four ADR-2008 closeout defects and their fixes
@@ -176,7 +176,7 @@ flowchart TB
         H["substrate-tools mcp/servers/substrate-tools.js:31"] --> HT["13 tools — refine :34, refine_validate :51, refine_rollback :56,<br/>refine_history :61, refine_list :70, ws_note :77, ws_get :86,<br/>ws_list :91, ws_drop :96, ws_revalidate :101, spawn_child :108,<br/>spawn_ready :125, spawn_complete :130"]
     end
     subgraph KB["corpus and memory"]
-        I["ruvnet-brain mcp/ruvnet-brain/server.js:198 v0.2.0"] --> IT["search_ruvnet :205, ruvnet_brain_status :221"]
+        I["ruvnet-brain mcp/ruvnet-brain/server.js:213 v0.2.0"] --> IT["search_ruvnet :220, ruvnet_brain_status :236 —<br/>status also surfaces release provenance :195-204:<br/>archive digest, signature present/verified, receipt digest, shipped runtime"]
         J["ruvector-mcp.cjs — 26 tools = 20 base ruvector-mcp.cjs:251<br/>+ 6 pushed only when their gate is on :430-514<br/>ADVERTISED_TOOLS set built from the final list :534"] --> JT["memory_store, memory_search, memory_retrieve, memory_list, memory_usage,<br/>memory_health, memory_orient, memory_hybrid_search, memory_sweep_episodic,<br/>memory_repair_embeddings, swarm_init, swarm_status, agent_spawn,<br/>task_orchestrate, coordination_sync, load_balance, parallel_execute,<br/>neural_patterns, sona_health, sparc_mode, performance_report,<br/>bottleneck_analyze, workflow_create, workflow_execute,<br/>github_pr_manage, github_repo_analyze"]
         J -.-> JS["shapedSearch(query, namespace, sourceType) wraps memory_search —<br/>bounds output via min_score / snippet_chars; internal callers (hybrid,<br/>orient) still call memSearch directly for whole values (:241-245)"]
     end
@@ -222,7 +222,7 @@ sequenceDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> Starting
-    Starting --> Waiting : supervisord runs agentbox-mcp hub, flake.nix:2725
+    Starting --> Waiting : supervisord runs agentbox-mcp hub, flake.nix:3135
     Waiting --> Serving : /run/agentbox/mcp-hub.json exists
     Waiting --> Waiting : re-check every 500 ms, log every 15 s
     Waiting --> FailedLoud : 120 s elapsed, hub/mod.rs:259
@@ -242,13 +242,13 @@ stateDiagram-v2
         refuses to idle. hub/mod.rs:275-281
     end note
     note right of Serving
-        BASELINE-container.md:220 carries the amended rule -
+        BASELINE-container.md:227 carries the amended rule -
         a bounded wait, a loud exit naming the projection, and
         a startsecs above that wait so the exit is a failed
         START. ADR-2063 as amended by ADR-2104.
     end note
     note right of Fatal
-        DEBT: eight servers are hub-routed (agentbox.toml:1267-1270,
+        DEBT: eight servers are hub-routed (agentbox.toml:1329-1332,
         down from nine at ADR-2104) and all refuse connections
         while this program is down, so supervisorctl status
         agentbox-mcp-hub is the first check.

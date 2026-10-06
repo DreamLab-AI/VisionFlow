@@ -13,7 +13,7 @@ sources:
   - ../loom/docs/design/ADR-139-per-request-scaffold-opt-out.md
   - ../loom/docs/design/LOOM-POSITIONING.md
   - ../project/agentbox/skills/email-search/SKILL.md
-verified_commit: {loom: e39bb4d2b583040cd91346c3bbaf75411c3913b4, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f, visionflow: d4e44298646768a4b19af359119e16a6884fa80d}
+verified_commit: {loom: 37a320ce3f15787a1ee10fac0faae043ab1ac12e, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12}
 ---
 
 ## For developers
@@ -22,7 +22,11 @@ PRD-028 is a preregistration, not a result. It fixes, in advance, what the Loom 
 show to keep its structured serving path, and the conditions under which it would be judged not
 to earn its complexity. Read the records before you read a benchmark number: the only measured
 verdicts the estate holds are the three in PRD-025 §3.1, and the later addendum re-centres what
-the headline figure means. Nothing in PRD-028 has been run.
+the headline figure means. The study itself has not been run, but Phase 0 is no longer empty:
+a 2026-10-02 disposition on the PRD records the visionGraph strata inventoried with
+reproducible counts, the pilot floor NOT met from that source, and the remaining inventory
+(owner-gated estate operational records) still to do
+(`../loom/docs/design/PRD-028-does-loom-earn-its-complexity.md:315-326`).
 The facade mechanics live in AB-24; this topic is about the evidence, not the wire.
 
 ## For the business
@@ -185,7 +189,7 @@ flowchart TB
     FORBID["The next paper may NOT infer general ontology superiority from<br/>beating closed book, may not claim uncontaminated training from<br/>low unaided scores, may not claim absence of reasoning from a<br/>negative gain over copy, and may not claim enterprise<br/>generalisation from a single synthetic organisation<br/>PRD-028-does-loom-earn-its-complexity.md:288"]
     NOTFAIL --> FORBID
 
-    OPENIN["OPEN — the PRD does not assume an eligible private corpus exists.<br/>The candidate corpus, the owner permissions, the empirical token<br/>profile, the checkpoint identities, the labour budget and the<br/>acceptable business error costs all remain to be supplied.<br/>PRD-028-does-loom-earn-its-complexity.md:294"]
+    OPENIN["OPEN — the PRD does not assume an eligible private corpus exists.<br/>Phase 0 has started: the visionGraph strata are inventoried with<br/>reproducible counts and its gate is NOT met (302 curator notes, below<br/>the 400-unit pilot floor), so the owner-gated inventory of the<br/>estate's operational records remains.<br/>PRD-028-does-loom-earn-its-complexity.md:315-326"]
     P0 --> OPENIN
 
     COST["DEBT already visible in the plan — about 200 reviewer-hours of<br/>blinded human review per primary model before adjudication, which<br/>the record itself calls potentially more constraining than GPU<br/>capacity. PRD-028-does-loom-earn-its-complexity.md:277"]

@@ -27,7 +27,7 @@ sources:
   - ../project/crates/visionclaw-actors/src/supervisor.rs
   - ../project/tests/orchestration_improvements_test.rs
   - ../project/src/actors/mod.rs
-verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
+verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
 ---
 
 ## VC-02.1 Supervision-tree topology — AppState::new boot order
@@ -133,13 +133,13 @@ flowchart LR
         H19["msgs::InitializeGPUConnection graph_service_supervisor.rs:1854"]
         H20["msgs::SetAppGpuComputeAddr graph_service_supervisor.rs:1952"]
         H21["msgs::UpdateBotsGraph graph_service_supervisor.rs:1966"]
-        H22["msgs::UpdateNodePositions graph_service_supervisor.rs:1983"]
-        H23["msgs::NodeInteractionMessage graph_service_supervisor.rs:2010"]
-        H24["msgs::GetGraphStateActor graph_service_supervisor.rs:2078"]
-        H25["msgs::GetPhysicsOrchestratorActor graph_service_supervisor.rs:2087"]
-        H26["msgs::GetNodeTypeArrays graph_service_supervisor.rs:2102"]
-        H27["msgs::GetNodeIdMapping graph_service_supervisor.rs:2124"]
-        H28["msgs::AddEdge graph_service_supervisor.rs:2146"]
+        H22["msgs::UpdateNodePositions graph_service_supervisor.rs:1996"]
+        H23["msgs::NodeInteractionMessage graph_service_supervisor.rs:2023"]
+        H24["msgs::GetGraphStateActor graph_service_supervisor.rs:2091"]
+        H25["msgs::GetPhysicsOrchestratorActor graph_service_supervisor.rs:2100"]
+        H26["msgs::GetNodeTypeArrays graph_service_supervisor.rs:2115"]
+        H27["msgs::GetNodeIdMapping graph_service_supervisor.rs:2137"]
+        H28["msgs::AddEdge graph_service_supervisor.rs:2159"]
     end
     GS["self.graph_state (GraphStateActor)"]
     PH["self.physics (PhysicsOrchestratorActor)"]
@@ -177,7 +177,7 @@ flowchart LR
     H20 --> SELF
     H24 --> SELF
 
-    N1["H12/H13/H28 also call notify_graph_updated (debounced graphUpdated broadcast) before forwarding<br/>H24/H26/H27 default-value fallback when the target child is None (never propagate an error to caller)<br/>H22 UpdateNodePositions mutates GraphStateActor's Arc~GraphData~ in-place (graph_state_actor.rs:857-858)<br/>so a subsequent GetGraphData poll (H7) returns the GPU-computed layout — no separate read-model push"]
+    N1["H12/H13/H28 also call notify_graph_updated (debounced graphUpdated broadcast) before forwarding<br/>H24/H26/H27 default-value fallback when the target child is None (never propagate an error to caller)<br/>H22 UpdateNodePositions mutates GraphStateActor's Arc~GraphData~ in-place (graph_state_actor.rs:888-889)<br/>so a subsequent GetGraphData poll (H7) returns the GPU-computed layout — no separate read-model push"]
     H12 --- N1
 ```
 
@@ -346,7 +346,7 @@ classDiagram
     GraphServiceSupervisor ..> AddNodesFromMetadata
     GraphServiceSupervisor ..> AddEdge
     GraphServiceSupervisor ..> NodeInteractionMessage
-    note for GetGraphData "src/actors/messages/ — RegisterClient/UnregisterClient/BroadcastMessage\nowned by client_coordinator_actor.rs consumer; Result types confirmed from\nHandler impls at graph_service_supervisor.rs:1465,1664,1983,1694,2146,2010"
+    note for GetGraphData "src/actors/messages/ — RegisterClient/UnregisterClient/BroadcastMessage\nowned by client_coordinator_actor.rs consumer; Result types confirmed from\nHandler impls at graph_service_supervisor.rs:1465,1664,1996,1694,2159,2023"
 ```
 
 ## VC-02.10 Message catalogue — supervision and heartbeat messages
@@ -419,9 +419,9 @@ sequenceDiagram
     GSS->>PO: SimulationStep (:1737)
     GSS->>PO: UpdateSimulationParams (:1797)
     GSS->>PO: ForceResumePhysics (:1825)
-    GSS->>PO: NodeInteractionMessage (:2010)
+    GSS->>PO: NodeInteractionMessage (:2023)
     GSS->>PO: StoreGPUComputeAddress (:1854, do_send at :1886, from the GPUManagerActor GetForceComputeActor reply)
-    GSS->>PO: UpdateNodePositions (:1983, forwarded alongside GraphStateActor)
+    GSS->>PO: UpdateNodePositions (:1996, forwarded alongside GraphStateActor)
     Note over GPU,CC: INVARIANT (BASELINE Invariants) — position broadcast path is<br/>GPU to ForceComputeActor to PhysicsOrchestratorActor to ClientCoordinatorActor to WebSocket
     GPU->>PO: computed positions (GPU internals boundary only, see VC-10)
     PO->>CC: forward for WebSocket push

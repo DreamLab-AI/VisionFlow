@@ -44,13 +44,13 @@ sources:
   - ../project/agentbox/docs/PROTOCOL-registry.md
   - ../project/agentbox/schema/federation-kinds.json
   - ../project/docs/explanation/visionflow-coordination-platform.md
-verified_commit: {visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296}
 ---
 ## ES-02.1 Producer — POST /v1/agent-events/emit, NIP-98 gate, local publish
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CF as claude-flow hook<br/>agentbox/management-api/routes/agent-events.js:560-561
+    participant CF as claude-flow hook<br/>agentbox/management-api/routes/agent-events.js:567
     participant RT as agentEventsRoutes<br/>agentbox/management-api/routes/agent-events.js:20
     participant AUTH as verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:108
     participant PUB as agentEventPublisher<br/>agentbox/management-api/utils/agent-event-publisher.js:347
@@ -345,7 +345,7 @@ sequenceDiagram
         MGR->>DOCKER: health_manager.check_service_now("mcp-relay")
     end
     Note over MGR: INVARIANT: RetryableError classifies DockerCommandFailed/HealthCheckFailed/Timeout as<br/>retryable, ContainerNotFound as terminal
-    Note over MGR: RESOLVED ADR-2090 — the /ws/mcp-relay upgrade (mcp_relay_handler.rs, route<br/>src/main.rs:1083) and /multi-mcp/ws (multi_mcp_websocket_handler.rs) previously accepted<br/>ANY non-empty string as a credential: neither referenced NostrService at all, and the sole<br/>gate was .is_empty(), so ?token=x opened the socket. Both now resolve the token through<br/>NostrService::get_session and fail closed on absent token, absent service, or a token that<br/>names no live unexpired session. Found by vc-core, fixed here as owner. see ADR-2044
+    Note over MGR: RESOLVED ADR-2090 — the /ws/mcp-relay upgrade (mcp_relay_handler.rs, route<br/>src/main.rs:1091) and /multi-mcp/ws (multi_mcp_websocket_handler.rs) previously accepted<br/>ANY non-empty string as a credential: neither referenced NostrService at all, and the sole<br/>gate was .is_empty(), so ?token=x opened the socket. Both now resolve the token through<br/>NostrService::get_session and fail closed on absent token, absent service, or a token that<br/>names no live unexpired session. Found by vc-core, fixed here as owner. see ADR-2044
     Note over MGR: RESOLVED ADR-2090 amendment / ADR-2058 — the ?token= query carrier is now<br/>DEV-ONLY on both sockets: compiled out of release behind cfg(any(debug_assertions,<br/>feature="dev-auth")), with a SECURITY warning on the dev arm and a SECURITY rejection<br/>warning on the release arm. The Authorization header is the only release carrier, so the<br/>bearer stops reaching access logs, proxy logs and Referer. Clients that cannot set headers<br/>use the post-connect NIP-98 authenticate envelope (kind 27235). Both cfg arms type-checked
     Note over MGR: RESOLVED ADR-2091 — the /multi-mcp scope also served two REST routes that<br/>returned FICTION: GET /status (get_mcp_server_status) emitted a hardcoded server list<br/>claiming claude-flow is_connected:true with agent_count:4, never querying anything, and<br/>POST /refresh (refresh_mcp_discovery) reported "Discovery refresh initiated" while doing<br/>nothing. Both took _app_state unused. Both REMOVED with their registrations — zero callers<br/>in src/, client/ or xr-client/. Real state lives in multi_mcp_agent_discovery.rs (ES-02.9)
     end
@@ -441,7 +441,7 @@ sequenceDiagram
 
     rect rgb(230,245,232)
     Note over VC,TASKS: TRUST BOUNDARY: VisionClaw container -> agentbox management-api, http://agentic-workstation:9090
-    VC->>TASKS: POST /v1/tasks {agent,task,provider,claude_flow_agent_id?,user_context?,with_beads?,parent_bead_id?}<br/>Authorization: Bearer api_key<br/>src/services/management_api_client.rs:234-291 -> agentbox/management-api/routes/tasks.js:16
+    VC->>TASKS: POST /v1/tasks {agent,task,provider,claude_flow_agent_id?,user_context?,with_beads?,parent_bead_id?}<br/>Authorization: Bearer api_key<br/>src/services/management_api_client.rs:207-239 -> agentbox/management-api/routes/tasks.js:16
     TASKS->>AUTH: authMiddleware(request)
     alt Bearer token matches API_KEY (authMode allows bearer)
         AUTH-->>TASKS: request.auth = bearerResult
@@ -452,13 +452,13 @@ sequenceDiagram
     else authMode=strict-nip98, Bearer present, no Nostr header
         AUTH-->>TASKS: 401 {message:"Auth mode is strict-nip98 - Bearer tokens are not accepted"}
     end
-    VC->>TASKS: GET /v1/tasks/:taskId<br/>src/services/management_api_client.rs:315-343 -> agentbox/management-api/routes/tasks.js:107
+    VC->>TASKS: GET /v1/tasks/:taskId<br/>src/services/management_api_client.rs:321-350 -> agentbox/management-api/routes/tasks.js:107
     TASKS-->>VC: 200 TaskStatus{status:Running|Completed|Failed,exit_code?,claude_flow_agent_id?} or 4xx ApiError
-    VC->>TASKS: GET /v1/tasks<br/>src/services/management_api_client.rs:345-373 -> agentbox/management-api/routes/tasks.js:161
+    VC->>TASKS: GET /v1/tasks<br/>src/services/management_api_client.rs:351-385 -> agentbox/management-api/routes/tasks.js:163
     TASKS-->>VC: 200 TaskListResponse{active_tasks:List~TaskInfo~,count}
-    VC->>TASKS: DELETE /v1/tasks/:taskId<br/>src/services/management_api_client.rs:375-400 -> agentbox/management-api/routes/tasks.js:199
+    VC->>TASKS: DELETE /v1/tasks/:taskId<br/>src/services/management_api_client.rs:420-446 -> agentbox/management-api/routes/tasks.js:203
     TASKS-->>VC: 200 (stopped) or ApiError
-    Note over VC: family: create_task/create_task_with_context, get_task_status, list_tasks, stop_task all<br/>share identical Bearer-header + StatusCode-match + ApiError(text,status) shape -<br/>src/services/management_api_client.rs:201-400
+    Note over VC: family: create_task/create_task_with_context, get_task_status, list_tasks, stop_task all<br/>share identical Bearer-header + StatusCode-match + ApiError(text,status) shape -<br/>src/services/management_api_client.rs:207-446
     end
 ```
 
@@ -469,32 +469,32 @@ sequenceDiagram
     participant VC as ManagementApiClient<br/>src/services/management_api_client.rs:27
     participant BRF as briefs handlers<br/>agentbox/management-api/routes/briefing.js:207
     participant STA as status route<br/>agentbox/management-api/routes/status.js:12
-    participant HLT as GET /health<br/>agentbox/management-api/server.js:554
+    participant HLT as GET /health<br/>agentbox/management-api/server.js:581
 
-    VC->>BRF: POST /v1/briefs {content,roles,user_context}<br/>src/services/management_api_client.rs:433-486
+    VC->>BRF: POST /v1/briefs {content,roles,user_context}<br/>src/services/management_api_client.rs:478-533
     BRF-->>VC: 201/200 BriefResponse{brief_id,brief_path,bead_id?} or ApiError
-    VC->>BRF: POST /v1/briefs/:brief_id/execute {brief_path,roles,user_context,epic_bead_id?}<br/>src/services/management_api_client.rs:489-536
+    VC->>BRF: POST /v1/briefs/:brief_id/execute {brief_path,roles,user_context,epic_bead_id?}<br/>src/services/management_api_client.rs:534-583
     BRF-->>VC: 202/200 ExecuteBriefResponse.role_tasks:List~RoleTask~ or ApiError
-    VC->>BRF: POST /v1/briefs/:brief_id/debrief {role_responses,user_context}<br/>src/services/management_api_client.rs:539-584
+    VC->>BRF: POST /v1/briefs/:brief_id/debrief {role_responses,user_context}<br/>src/services/management_api_client.rs:584-630
     BRF-->>VC: 201/200 DebriefResponse{debrief_path} or ApiError
-    VC->>STA: GET /v1/status (Bearer auth)<br/>src/services/management_api_client.rs:402-430
+    VC->>STA: GET /v1/status (Bearer auth)<br/>src/services/management_api_client.rs:447-477
     STA-->>VC: 200 SystemStatus{api,tasks,gpu?,providers,system} or ApiError
-    VC->>HLT: GET /health (no Authorization header sent)<br/>src/services/management_api_client.rs:586-597
-    alt Fastify preValidation hook exempts /health from auth<br/>agentbox/management-api/server.js:236-237
+    VC->>HLT: GET /health (no Authorization header sent)<br/>src/services/management_api_client.rs:631-642
+    alt Fastify preValidation hook exempts /health from auth<br/>agentbox/management-api/server.js:234-238
         HLT-->>VC: 200 -> health_check() Ok(true)
     else non-200
         HLT-->>VC: Ok(false)
     end
-    Note over VC,BRF: family: create_brief/execute_brief/create_debrief share identical Bearer + StatusCode-match<br/>+ ApiError(text,status) shape - src/services/management_api_client.rs:432-584
-    Note over BRF: RESOLVED ADR-2085/2072 (2026-09-05): all three routes now exist in<br/>agentbox/management-api/routes/briefing.js, registered at management-api/server.js:1203.<br/>Brief documents and the durable brief record go through the pods adapter slot, the epic and<br/>role child beads through the beads slot, and every identifier is minted via lib/uris.js.<br/>The execute step is gated by the same ADR-2041 action pipeline as POST /v1/tasks and fails<br/>closed with 503 when the execution journal has no live events adapter.<br/>Activation is staged - the routes go live at the next image rebuild.
+    Note over VC,BRF: family: create_brief/execute_brief/create_debrief share identical Bearer + StatusCode-match<br/>+ ApiError(text,status) shape - src/services/management_api_client.rs:477-630
+    Note over BRF: RESOLVED ADR-2085/2072 (2026-09-05): all three routes now exist in<br/>agentbox/management-api/routes/briefing.js, registered at management-api/server.js:1267.<br/>Brief documents and the durable brief record go through the pods adapter slot, the epic and<br/>role child beads through the beads slot, and every identifier is minted via lib/uris.js.<br/>The execute step is gated by the same ADR-2041 action pipeline as POST /v1/tasks and fails<br/>closed with 503 when the execution journal has no live events adapter.<br/>Activation is staged - the routes go live at the next image rebuild.
 ```
 
 ## ES-02.12 Colloquy kinds 38410-38415 — rebalanced out of the agent-response band, registered in both registries
 ```mermaid
 flowchart TB
-    BAND["BAND TABLE (ADR-2105) — every agentbox kind allocation cites the<br/>registry row it occupies. 38000-38099 agent intent, 38100-38199<br/>agent response, 38200-38299 job/payment, 38300-38399 LLM<br/>marketplace are all reserved; 38400-38499 is the first free<br/>hundred. agentbox/docs/PROTOCOL-registry.md:79-93"]
+    BAND["BAND TABLE (ADR-2105) — every agentbox kind allocation cites the<br/>registry row it occupies. 38000-38099 agent intent, 38100-38199<br/>agent response, 38200-38299 job/payment, 38300-38399 LLM<br/>marketplace are all reserved; within 38400-38499 the row<br/>38400-38409 is free and 38410-38415 is already SPENT by colloquy.<br/>agentbox/docs/PROTOCOL-registry.md:85-90"]
 
-    ALLOC["ALLOCATION (ADR-2085, kinds moved by ADR-2105) — six kinds<br/>minted at 38100-38105 inside the ADR-009 agent-response<br/>reservation on 2026-09-13, moved to 38410-38415 in the free<br/>38400-38499 band on 2026-09-21. Nothing outside the agentbox<br/>repo moves to accommodate them.<br/>agentbox/docs/PROTOCOL-registry.md:103-108"]
+    ALLOC["ALLOCATION (ADR-2085, kinds moved by ADR-2105) — six kinds<br/>minted at 38100-38105 inside the ADR-009 agent-response<br/>reservation on 2026-09-13, moved to 38410-38415 in the agentbox<br/>38400-38499 band on 2026-09-21. Nothing outside the agentbox<br/>repo moves to accommodate them.<br/>agentbox/docs/PROTOCOL-registry.md:103-107"]
     BAND --> ALLOC
 
     subgraph KINDS["The six kinds — agentbox/docs/PROTOCOL-registry.md:112-117"]
@@ -510,14 +510,14 @@ flowchart TB
     KINDS --> HOST
     HOST --> SCHEMA
 
-    INV1["INVARIANT — the replaceable/append-only split is load-bearing.<br/>38410 is replaceable so a proposer may correct their own wording<br/>without forking the unit identity; 38411, 38412 and 38414 are<br/>regular so evidence accretes and the proposer cannot rewrite what<br/>others said. agentbox/docs/PROTOCOL-registry.md:119-124"]
+    INV1["INVARIANT — the replaceable/append-only split is load-bearing.<br/>38410 is replaceable so a proposer may correct their own wording<br/>without forking the unit identity; 38411, 38412 and 38414 are<br/>regular so evidence accretes and the proposer cannot rewrite what<br/>others said. agentbox/docs/PROTOCOL-registry.md:119-121"]
     INV2["INVARIANT — content is authoritative and tags are only an index.<br/>A d tag that disagrees with the content id is a decode error, and<br/>a unit whose content does not hash to the id it claims is refused.<br/>agentbox/docs/PROTOCOL-registry.md:127-131"]
     INV3["INVARIANT — a 38414 Graduation cites the event id of the signed<br/>31403 that authorised it, so a human approved this is checkable<br/>against the relay rather than asserted in a string, and promotion<br/>to the public tier is refused without it.<br/>agentbox/docs/PROTOCOL-registry.md:139-143"]
     K0 --> INV1
     K0 --> INV2
     K3 --> INV3
 
-    OPEN["OPEN — the allocation is NOT yet fixture-backed. Extending<br/>tests/fixtures/federation-identity.v1.json with these kinds under<br/>the ADR-2061 symmetric kind-map contract is a merge requirement<br/>before any 38410 event is published to a relay outside the<br/>container. agentbox/docs/PROTOCOL-registry.md:145-149"]
+    OPEN["OPEN — the allocation is NOT yet fixture-backed. Extending<br/>tests/fixtures/federation-identity.v1.json with these kinds under<br/>the ADR-2061 symmetric kind-map contract is a merge requirement<br/>before any 38410 event is published to a relay outside the<br/>container. agentbox/docs/PROTOCOL-registry.md:146-147"]
     SCHEMA --> OPEN
 
     RETIRE["RETIRED — colloquy replaced the precedent system estate-wide.<br/>No precedent-service.js or precedent-bridge.js survives in the<br/>agentbox tree at this revision. The host keeps its own broker<br/>precedent registry, which is a different thing and is drawn in<br/>ES-05."]

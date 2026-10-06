@@ -22,7 +22,7 @@ sources:
   - ../project/src/utils/gpu_diagnostics.rs
   - ../project/src/gpu/mod.rs
   - ../project/src/physics/mod.rs
-verified_commit: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8
+verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
 ---
 ## VC-12.1 SimParams full 212-byte repr(C) layout
 ```mermaid

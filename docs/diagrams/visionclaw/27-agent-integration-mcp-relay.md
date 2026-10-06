@@ -29,7 +29,7 @@ sources:
   - ../project/src/agent_events/schema.rs
   - ../project/src/agent_events/provenance.rs
   - ../project/src/main.rs
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
 ---
 
 ## VC-27.1 BotsClient — legacy `:9500` MCP-TCP poller (superseded path)
@@ -304,7 +304,7 @@ classDiagram
 sequenceDiagram
     autonumber
     participant Sup as AppState / supervisor
-    participant AM as AgentMonitorActor<br/>src/actors/agent_monitor_actor.rs:169-203 (struct), new() :247-314
+    participant AM as AgentMonitorActor<br/>src/actors/agent_monitor_actor.rs:199-235 (struct), new() :281-349
     participant MAC as ManagementApiClient<br/>host=MANAGEMENT_API_HOST port=MANAGEMENT_API_PORT default 9090 (:253-258)
     participant GSS as GraphServiceSupervisor
 
@@ -318,27 +318,27 @@ sequenceDiagram
         else tasks_result Err
             AM->>AM: do_send(RecordPollFailure) - :386
         end
-        AM->>AM: next_poll_delay() - base 15s (:304), doubles per consecutive_poll_failures (max shift 5), capped 90s - :404-411
+        AM->>AM: next_poll_delay() - base 15s (:338), doubles per consecutive_poll_failures (max shift 5), capped 90s - :448-465
     end
-    AM->>AM: handle(ProcessAgentStatuses) - :568
+    AM->>AM: handle(ProcessAgentStatuses) - :634
     opt agents empty and MOCK_AGENTS=true/1
-        AM->>AM: build_mock_swarm_agents() 5 mock agents - :466-567
+        AM->>AM: build_mock_swarm_agents() 5 mock agents - :529-628
     end
     AM->>AM: golden-angle spiral position per agent, poll_offset round-robin (ADR-031 item 1) - :596-634
-    AM->>AM: decide_bots_graph_emit(count, last_nonempty, consecutive_empty) - call :640-644, fn body :126-167
+    AM->>AM: decide_bots_graph_emit(count, last_nonempty, consecutive_empty) - call :704-708, fn body :156-197
     alt roster non-empty (fn :131-137)
-        AM->>GSS: do_send(UpdateBotsGraph{agents}) - :648-655
+        AM->>GSS: do_send(UpdateBotsGraph{agents}) - :712-719
     else roster empty and consecutive_empty < EMPTY_CONFIRM_THRESHOLD=2 (fn :140-148,159-165)
         AM->>AM: suppress emit - debounce a transient blip - :656-662
     else roster empty and confirmed (2nd consecutive empty) (fn :150-158)
-        AM->>GSS: do_send(UpdateBotsGraph{agents: []}) - clears once - :648-655
+        AM->>GSS: do_send(UpdateBotsGraph{agents: []}) - clears once - :712-719
     end
     Sup->>AM: TaskStatusChanged{agent_type,running_task_count} (from TaskOrchestratorActor, ADR-031 item 3) - handler :717-728
-    AM->>AM: poll_agent_statuses(ctx) immediate re-poll - :726
-    Note over AM,MAC: INVARIANT: idle cadence is 15s (not 3s) to share agentbox's per-key rate-limit<br/>bucket with task creation - backoff cap 90s exceeds agentbox's 60s continueExceeding window (:304,394-411)
-    Note over AM,GSS: DIVERGENCE (roster-clobber fix): an empty Management API poll is "no information"<br/>not "all agents died" - only a confirmed 2nd consecutive empty poll clears the graph (:197-201,126-167)
+    AM->>AM: poll_agent_statuses(ctx) immediate re-poll - :860
+    Note over AM,MAC: INVARIANT: idle cadence is 15s (not 3s) to share agentbox's per-key rate-limit<br/>bucket with task creation - backoff cap 90s exceeds agentbox's 60s continueExceeding window (:338,448-465)
+    Note over AM,GSS: DIVERGENCE (roster-clobber fix): an empty Management API poll is "no information"<br/>not "all agents died" - only a confirmed 2nd consecutive empty poll clears the graph (:227-231,156-197)
     Note over MAC: every ManagementApiClient endpoint shares one Result contract - NetworkError on<br/>transport failure, ApiError(body,status) on non-2xx, DeserializationError on a bad body<br/>(e.g. list_tasks management_api_client.rs:345-373, stop_task :375-400, create_brief<br/>:433-484) — health_check (:586-597) is the one exception - GET /health with no auth<br/>header, collapses straight to Ok(status==200), no ApiError variant
-    Note over AM,MAC: ADR-2094: AgentMonitorActor::new validates MANAGEMENT_API_KEY through the SAME<br/>validate_security_env_vars AppState::new calls (app_state.rs:82-172, pub(crate) so there is one policy,<br/>not a laxer copy) - fail-closed by default (panics without a valid key, agent_monitor_actor.rs:281-292),<br/>except an ALLOW_INSECURE_DEFAULTS-gated dev/debug build instead disables the client (Option::None, never<br/>an empty-string key) rather than aborting boot (:235-280)
+    Note over AM,MAC: ADR-2094: AgentMonitorActor::new validates MANAGEMENT_API_KEY through the SAME<br/>validate_security_env_vars AppState::new calls (app_state.rs:82-172, pub(crate) so there is one policy,<br/>not a laxer copy) - fail-closed by default (panics without a valid key, agent_monitor_actor.rs:315-325),<br/>except an ALLOW_INSECURE_DEFAULTS-gated dev/debug build instead disables the client (Option::None, never<br/>an empty-string key) rather than aborting boot (:303-314)
 ```
 
 ## VC-27.8 TaskOrchestratorActor — CreateTask/Interrupt/Drain message handlers

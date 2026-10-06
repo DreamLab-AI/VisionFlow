@@ -74,7 +74,7 @@ sources:
   - ../project/client/src/features/control-center/primitives/NostrAuthControl.tsx
   - ../project/client/src/features/control-center/status/StatusFlyout.tsx
   - ../project/client/src/services/nostrAuthService.ts
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
 ---
 ## VC-30.1 Provider nesting and top-level render states
 ```mermaid
@@ -731,8 +731,8 @@ flowchart LR
     RevealSetting["useRevealSetting hook<br/>client/src/features/control-center/hooks/useRevealSetting.ts"]
     NostrAuthControl["NostrAuthControl<br/>client/src/features/control-center/primitives/NostrAuthControl.tsx"]
     StatusFlyout["StatusFlyout<br/>client/src/features/control-center/status/StatusFlyout.tsx"]
-    BotsVisualization["BotsVisualization<br/>client/src/features/bots/components/BotsVisualization.tsx:38"]
-    BotsNode["BotsNode<br/>client/src/features/bots/components/BotsNode.tsx:150"]
+    BotsVisualization["BotsVisualization<br/>client/src/features/bots/components/BotsVisualization.tsx:39"]
+    BotsNode["BotsNode<br/>client/src/features/bots/components/BotsNode.tsx:152"]
     WorkerErrorModal["WorkerErrorModal<br/>client/src/components/WorkerErrorModal.tsx:7"]
     AppInitializer["AppInitializer<br/>client/src/app/AppInitializer.tsx:117,127"]
     EmbeddingCloudLayer["EmbeddingCloudLayer<br/>client/src/features/visualisation/components/EmbeddingCloudLayer.tsx:110,254"]
@@ -763,7 +763,7 @@ flowchart LR
     agentTargetStore --> BotsVisualization
     nodePosCtx --> BotsVisualization
     BotsVisualization -->|"nudgeTargetsRef, agent id to target world position"| BotsNode
-    NudgeNote["2026-09-11: BotsVisualization resolves each agent's target node to a<br/>world position every frame and BotsNode lerps its target 0.35 of the way<br/>toward it, so agents cluster over the area they are working on.<br/>BotsVisualization.tsx:145, :143, BotsNode.tsx:265, :268"]
+    NudgeNote["2026-09-11: BotsVisualization resolves each agent's target node to a<br/>world position every frame and BotsNode lerps its target 0.35 of the way<br/>toward it, so agents cluster over the area they are working on.<br/>BotsVisualization.tsx:146, :143, BotsNode.tsx:267, :270"]
     BotsNode --- NudgeNote
     NudgeDebt["DEBT: the reader takes the live SAB view and the id map from a<br/>module-level mutable singleton rather than a React context, so nothing<br/>invalidates a stale reader after a remount.<br/>client/src/features/graph/contexts/NodePositionContext.tsx:13"]
     nodePosCtx --- NudgeDebt

@@ -52,7 +52,7 @@ sources:
   - ../project/src/services/nostr_bead_publisher.rs
   - ../project/src/handlers/ontology_handler.rs
   - ../project/docs/BASELINE-architecture.md
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296}
 ---
 
 ## VC-05.1 `admin_rbac_handler` — whoami / list / assign / revoke (ADR-2010)
@@ -174,7 +174,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as XR client<br/>Godot
-    participant WS as PresenceSession<br/>src/handlers/presence_handler.rs:135 ws_presence :501 (route src/main.rs:1087)
+    participant WS as PresenceSession<br/>src/handlers/presence_handler.rs:135 ws_presence :501 (route src/main.rs:1095)
     participant NC as SeenNonces LRU<br/>presence_handler.rs:51 cap 4096
     participant IV as IdentityVerifier<br/>visionclaw_xr_presence::ports
     participant REG as PresenceRoomRegistry<br/>presence_handler.rs:41 Arc~DashMap~String,Addr~PresenceActor~~~
@@ -403,7 +403,7 @@ sequenceDiagram
             FR-->>AD: forum_projection="failed" (DEGRADED, warn)
         end
     else None configured
-        AD->>AD: forum_projection="skipped" (DEGRADED — needs FORUM_RELAY_URL+ACSP_PANEL_NOSTR_PRIVKEY)
+        AD->>AD: forum_projection="skipped" (DEGRADED — needs FORUM_RELAY_URL and a panel key via acsp key_file)
     end
     AD->>AD: state.liveness_harness.observe(CANARY_REC2_CASE, evidence) — REC-2 canary, real traffic only
     end
@@ -433,9 +433,9 @@ sequenceDiagram
         H->>ST: store::all()
         ST-->>H: Vec~EnrichmentProposal~
         H->>H: project each into BrokerCase{id,category:"knowledge_enrichment",status,metadata}
-        H-->>C: 200 {cases:[BrokerCase], total} — the bridge re-shapes it as total plus filtered_total (broker-bridge.js:357-358)
+        H-->>C: 200 {cases:[BrokerCase], total} — the bridge re-shapes it as total plus filtered_total (broker-bridge.js:385-386)
     end
-    C->>SC: GET /api/broker/cases/{id} (bridge route broker-bridge.js:366)
+    C->>SC: GET /api/broker/cases/{id} (bridge route broker-bridge.js:394)
     SC->>H: case_by_id(id) :157
     H->>ST: store::get(id)
     alt Some(p)
@@ -443,7 +443,7 @@ sequenceDiagram
     else None
         ST-->>C: 404 {error:"not-found", message:"no broker case with id {id}"}
     end
-    C->>SC: POST /api/broker/cases/{id}/decide (bridge route broker-bridge.js:407, proxied at :537)
+    C->>SC: POST /api/broker/cases/{id}/decide (bridge route broker-bridge.js:435, proxied at :568)
     SC->>H: delegates to enrichment_proposals_handler::decide_as_operator (see VC-05.7)
     Note over H: REC-2 / D3 (PRD-023 WP-4) — power-user-gated by the surrounding scope,<br/>funnels through the SAME decision core as the agentbox X-Agent-Key route
 ```
@@ -537,7 +537,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant H as mcp_relay_handler<br/>src/handlers/mcp_relay_handler.rs:442 (route src/main.rs:1083)
+    participant H as mcp_relay_handler<br/>src/handlers/mcp_relay_handler.rs:442 (route src/main.rs:1091)
     participant A as MCPRelayActor<br/>src/handlers/mcp_relay_handler.rs:39
     participant O as orchestrator WS<br/>ORCHESTRATOR_WS_URL env mcp_relay_handler.rs:78 in connect_to_orchestrator :77
 
@@ -642,41 +642,41 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant SC as scope /solid<br/>src/handlers/solid_proxy_handler.rs:1752 configure_routes (feature solid-pod-embed), scope :1760
-    participant H as solid_proxy_handler<br/>solid_proxy_handler.rs:311 handle_solid_proxy, :1313 init_pod_nip98
-    participant RG as RbacGate<br/>/api scope wrap src/main.rs:1105 (scope :1094, solid mounted :1173)
+    participant SC as scope /solid<br/>src/handlers/solid_proxy_handler.rs:1770 configure_routes (feature solid-pod-embed), scope :1778
+    participant H as solid_proxy_handler<br/>solid_proxy_handler.rs:311 handle_solid_proxy, :1331 init_pod_nip98
+    participant RG as RbacGate<br/>/api scope wrap src/main.rs:1113 (scope :1102, solid mounted :1181)
     participant SD as SolidPodState::extract_user_identity<br/>solid_proxy_handler.rs:188 own NIP-98 verification
 
     Note over SC: env SOLID_DATA_ROOT :130, SOLID_PROXY_SECRET_KEY :133, SOLID_ALLOW_ANONYMOUS :137
-    Note over SC: ADR-2067 — WITHOUT solid-pod-embed the twin configure_routes :1800 registers<br/>NOTHING (doc :1790): /solid/*, /.well-known/did.json and /did/* all 404. The<br/>503-stub route tree this diagram used to show is gone, and so are the individual<br/>stub twins (handle_solid_proxy :382, solid_health_check :1610,<br/>init_pod_nip98 :1370, SolidPodState::new :180-184)
-    C->>SC: GET /health :1762 -> solid_health_check :1593
+    Note over SC: ADR-2067 — WITHOUT solid-pod-embed the twin configure_routes :1818 registers<br/>NOTHING (doc :1807-1816): /solid/*, /.well-known/did.json and /did/* all 404. The<br/>503-stub route tree this diagram used to show is gone, and so are the individual<br/>stub twins — each leaves a removal note (handle_solid_proxy :382, solid_health_check :1627,<br/>init_pod_nip98 :1326-1327, SolidPodState::new :180-183)
+    C->>SC: GET /health :1780 -> solid_health_check :1611
     SC-->>C: 200 {status:healthy, backend:solid-pod-rs, data_root}
-    C->>SC: GET /.notifications :1764-1767 -> handle_solid_notifications_ws :1567 (solid-0.1 WS protocol)
-    C->>SC: POST /pods :1769 -> create_pod :1168
-    C->>SC: GET /pods/check :1770 -> check_pod_exists :1226
-    C->>SC: POST /pods/init :1771 -> init_pod :1267
+    C->>SC: GET /.notifications :1782-1785 -> handle_solid_notifications_ws :1585 (solid-0.1 WS protocol)
+    C->>SC: POST /pods :1787 -> create_pod :1186
+    C->>SC: GET /pods/check :1788 -> check_pod_exists :1244
+    C->>SC: POST /pods/init :1789 -> init_pod :1285
     rect rgb(255,235,235)
-    Note over C,SD: DIVERGENCE — /api/solid/pods/init-nip98 sits inside the /api scope<br/>(main.rs:1173 configure_solid_routes, under scope :1094), so it is DOUBLE-authenticated (see VC-03.15)
-    C->>RG: POST /api/solid/pods/init-nip98 solid_proxy_handler.rs:1772 (Authorization: Nostr event)
+    Note over C,SD: DIVERGENCE — /api/solid/pods/init-nip98 sits inside the /api scope<br/>(main.rs:1181 configure_solid_routes, under scope :1102), so it is DOUBLE-authenticated (see VC-03.15)
+    C->>RG: POST /api/solid/pods/init-nip98 solid_proxy_handler.rs:1790 (Authorization: Nostr event)
     RG->>RG: RbacGate verify_access(WriteGraph) — mutating method under /api
     alt RbacGate denies
         RG-->>C: 401/403
     else Ok
-        RG->>H: init_pod_nip98(req, state) solid_proxy_handler.rs:1313
-        H->>SD: extract_user_identity(req) :1314 — SECOND, fully independent NIP-98 re-verification
+        RG->>H: init_pod_nip98(req, state) solid_proxy_handler.rs:1331
+        H->>SD: extract_user_identity(req) :1332 — SECOND, fully independent NIP-98 re-verification
         alt SD returns None (bad/missing token)
-            SD-->>C: 401 {error:"NIP-98 authentication required"} :1316-1321
+            SD-->>C: 401 {error:"NIP-98 authentication required"} :1335-1338
         else Some(identity)
-            H->>H: PublicKey::from_hex(identity.pubkey).to_bech32() -> npub :1325-1337
-            H->>H: ensure_pod_exists(state, npub, pubkey, pod_base_url) :1130 (call :1349)
-            H-->>C: 200 {pod_url, webid:structure.profile, created, structure, npub} :1351-1357
+            H->>H: PublicKey::from_hex(identity.pubkey).to_bech32() -> npub :1343-1361
+            H->>H: ensure_pod_exists(state, npub, pubkey, pod_base_url) :1148 (call :1366)
+            H-->>C: 200 {pod_url, webid:structure.profile, created, structure, npub} :1369-1375
         end
     end
     end
-    C->>SC: any method /{tail:.*} :1774-1778 plus PATCH :1779-1782 -> handle_solid_proxy :311 (LDP CRUD)
+    C->>SC: any method /{tail:.*} :1792-1796 plus PATCH :1797-1800 -> handle_solid_proxy :311 (LDP CRUD)
     Note over H: handle_solid_proxy auth flow doc :306-309 — NIP-98 header -> WAC, else<br/>SOLID_ALLOW_ANONYMOUS -> public ACL check, else 401
-    C->>SC: GET /.well-known/did.json :1785 -> handle_did_wellknown :1618
-    C->>SC: GET /did/{tail:.*} :1786 -> handle_did_proxy :1656 -> solid_pod_rs::interop::did_nostr::did_nostr_document
+    C->>SC: GET /.well-known/did.json :1803 -> handle_did_wellknown :1636
+    C->>SC: GET /did/{tail:.*} :1804 -> handle_did_proxy :1674 -> solid_pod_rs::interop::did_nostr::did_nostr_document
     Note over H: full pod/LDP internals (storage backend, ACL, containers) — see VC-26
 ```
 
@@ -685,20 +685,20 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client (browser voice / XR)
-    participant H as speech_socket_handler<br/>src/handlers/speech_socket_handler.rs:984 (route src/main.rs:1082)
+    participant H as speech_socket_handler<br/>src/handlers/speech_socket_handler.rs:984 (route src/main.rs:1090)
     participant SS as SpeechSocket actor<br/>speech_socket_handler.rs:89 struct, new() :110, Actor::started :474
     participant NS as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs
 
     Note over H: RESOLVED — this upgrade no longer authenticates. ADR-2075 (doc :990-997)<br/>moved the check AFTER the upgrade because browsers cannot set WebSocket headers,<br/>so the old presence-only Bearer/?token= gate rejected the browser voice client<br/>outright. There is no 401 on this path any more
     C->>H: GET /ws/speech (no credential required at upgrade)
-    H->>H: connection_url = scheme://host + path_and_query :998-1009 — the NIP-98 `u` tag
-    H->>H: dev_bypass_ok = dev_bypass_permitted(req) under cfg(debug_assertions, dev-auth) :1011-1014
-    H->>SS: SpeechSocket::new(socket_id "speech_{uuid}", app_state, None, connection_url, dev_bypass_ok) :1016-1010
-    H->>SS: ws::start(socket, req, stream) :1025
+    H->>H: connection_url = utils::auth::nip98_request_url(req) :998 — the NIP-98 `u` tag
+    H->>H: dev_bypass_ok = dev_bypass_permitted(req) under cfg(debug_assertions, dev-auth) :1000-1003
+    H->>SS: SpeechSocket::new(socket_id "speech_{uuid}", app_state, None, connection_url, dev_bypass_ok) :1006-1012
+    H->>SS: ws::start(socket, req, stream) :1014
     alt Err
-        SS-->>C: start failure logged, propagated as actix_web::Error :1030-1029
+        SS-->>C: start failure logged, propagated as actix_web::Error :1019-1021
     else Ok
-        SS-->>C: 101 Switching Protocols :1026-1029
+        SS-->>C: 101 Switching Protocols :1015-1018
     end
     SS->>SS: Actor::started :474 — start_heartbeat, then run_later(AUTH_DEADLINE) :481
     Note over SS: ADR-2075 — AUTH_DEADLINE = 30s (:22, doc :19-21). A socket still carrying<br/>pubkey:None at the deadline is told "authentication deadline exceeded" and stopped<br/>(:482-495), so an unauthenticated peer cannot hold a broadcast subscription open
@@ -730,7 +730,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant V as voice/RunCycle trigger<br/>src/actors/elevation_actor.rs:990 Handler~RunCycle~ (VC-02 internals)
+    participant V as voice/RunCycle trigger<br/>src/actors/elevation_actor.rs:1206 Handler~RunCycle~ (VC-02 internals)
     participant EA as ElevationActor/DecisionElevationActor<br/>src/actors/elevation_actor.rs:116, decision_elevation_actor.rs:128 (VC-02)
     participant FR as forum kind-31403<br/>src/services/acsp/client.rs:25 CaseDecision{event_id,created_at}
     participant DB as SqliteEnrichmentRepository::record_decision<br/>StoredDecision table — SHARED sink
@@ -742,17 +742,17 @@ sequenceDiagram
     EA->>FR: publish ActionRequest kind-31402, poll PollPrs for the signed kind-31403 reply
     Note over FR: ADR-2013 — AcspClient signs with its OWN Keys (field acsp/client.rs:70,<br/>let keys = Keys::new(secret_key) :77, publish :99 — mirrors nostr_bridge.rs:65<br/>sign_with_keys) — the panel event carries the PANEL's authority, never the admin's key
     FR-->>EA: CaseDecision{case_id,action,responder_pubkey,event_id,created_at}
-    EA->>EA: decision_record(&CaseDecision) :1479 — correlation on event_id when present
-    EA->>DB: repo.record_decision(StoredDecision{decision_event_id:Some(event_id), decision_created_at_s:Some(...)}) :1227, :1301, :1308
-    Note over EA,DB: this producer DOES retain signed-event correlation — decision_event_id is<br/>set from the signed event id (elevation_actor.rs:1534), rationale :1495-1504
+    EA->>EA: decision_record(&CaseDecision) :1694 — correlation on event_id when present
+    EA->>DB: repo.record_decision(StoredDecision{decision_event_id:Some(event_id), decision_created_at_s:Some(...)}) :1443, :1516, :1523
+    Note over EA,DB: this producer DOES retain signed-event correlation — decision_event_id is<br/>set from the signed event id (elevation_actor.rs:1749), rationale :1710-1719
     D->>DB: repo.record_decision(StoredDecision{decision_event_id:None,...}) :554-498 built, :572 written — REST path, no forum event to correlate
     Note over D,DB: DIVERGENCE — the agentbox/operator/git-bridge REST path (VC-05.7) writes<br/>decision_event_id:None every time, since it never carries a signed 31403 event
     BI->>DB: store::all() / store::get(id) — reads the SAME table both producers wrote to
     BI-->>BI: projects EITHER kind of row into the SAME BrokerCase shape, indistinguishable to the bridge
-    Note over V,BI: DIVERGENCE (ADR-2006 closeout, docs/BASELINE-architecture.md:297) —<br/>"the retained domain kernel's presence does not prove integration into the elevation<br/>actor or inbox DTO. Current source review does not certify a complete human-approval journey."<br/>Verified precisely: the two producers only converge at the SQLite table, no handler route<br/>calls into either actor, and case authority/failure/restart receipts are not modelled here
+    Note over V,BI: DIVERGENCE (ADR-2006 closeout, docs/BASELINE-architecture.md:306) —<br/>"the retained domain kernel's presence does not prove integration into the elevation<br/>actor or inbox DTO. Current source review does not certify a complete human-approval journey."<br/>Verified precisely: the two producers only converge at the SQLite table, no handler route<br/>calls into either actor, and case authority/failure/restart receipts are not modelled here
 ```
 
-## VC-05.18 `src/domain/broker/` verification — BrokerActor never merged (BASELINE l.246)
+## VC-05.18 `src/domain/broker/` verification — BrokerActor never merged (BASELINE-architecture.md:255)
 ```mermaid
 flowchart TB
     KERNEL["src/domain/broker/ — storage-agnostic kernel (ADR-130 Decision 2)<br/>broker/mod.rs:1-43, broker_case.rs 490L, broker_decision.rs 437L, precedent_registry.rs 101L"]
@@ -766,9 +766,9 @@ flowchart TB
     ABSENT["src/actors/broker_actor.rs — VERIFIED ABSENT<br/>grep -r finds no file, no Neo4j adapter under src/adapters/ (listed: sqlite_*, oxigraph_*, actix_*)"]
     KERNEL -.->|"used by derive_kernel_decision (VC-05.7)"| CALLER["enrichment_proposals_handler::apply_decision"]
     KERNEL -.->|"used by decision_record (VC-05.17)"| CALLER2["elevation_actor.rs"]
-    N1["DIVERGENCE (docs/BASELINE-architecture.md:246) — BrokerActor never merged, main uses<br/>a stateless ACSP producer + this cherry-picked storage-agnostic domain broker kernel.<br/>Confirmed against source: broker/mod.rs:11-18 states the crashbug BrokerActor + its Neo4j<br/>transport were deliberately left behind"]
+    N1["DIVERGENCE (docs/BASELINE-architecture.md:255) — BrokerActor never merged, main uses<br/>a stateless ACSP producer + this cherry-picked storage-agnostic domain broker kernel.<br/>Confirmed against source: broker/mod.rs:11-18 states the crashbug BrokerActor + its Neo4j<br/>transport were deliberately left behind"]
     ABSENT --- N1
     ACSP --- N1
-    N2["DOC-DRIFT — BASELINE-architecture.md:247 sizes the kernel at ~936 LOC, but the four files<br/>measure 1,071 lines today (490 + 437 + 101 + 43). ADR-2006 Verification (accepted) otherwise<br/>matches: src/services/acsp/mod.rs documents the producer, src/domain/broker/ holds the four<br/>listed files, broker_actor.rs and the neo4j adapters are absent"]
+    N2["DOC-DRIFT — BASELINE-architecture.md:256 sizes the kernel at ~936 LOC, but the four files<br/>measure 1,071 lines today (490 + 437 + 101 + 43). ADR-2006 Verification (accepted) otherwise<br/>matches: src/services/acsp/mod.rs documents the producer, src/domain/broker/ holds the four<br/>listed files, broker_actor.rs and the neo4j adapters are absent"]
     KERNEL --- N2
 ```

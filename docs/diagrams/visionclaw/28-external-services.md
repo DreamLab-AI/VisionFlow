@@ -19,7 +19,7 @@ sources:
   - ../project/src/config/feature_access.rs
   - ../project/docs/reference/configuration.md
   - ../project/docs/how-to/agent-orchestration.md
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
 ---
 ## VC-28.1 ragflow_service — outbound RAGFlow agent API
 ```mermaid
@@ -158,113 +158,105 @@ sequenceDiagram
         end
     end
     end
-    Note over PS: DOC-CORRECTED 2026-09-05: endpoint config is read from AppFullSettings.perplexity - api_url, api_key, model at :99-120<br/>not from PERPLEXITY_* env vars - only PERPLEXITY_ENABLED_PUBKEYS gates feature access at feature_access.rs:20 and<br/>PERPLEXITY_API_KEY is read solely as a readiness expectation signal at app_state.rs:1520 - configuration.md:220 and<br/>how-to/agent-orchestration.md:449 corrected
+    Note over PS: DOC-CORRECTED 2026-09-05: endpoint config is read from AppFullSettings.perplexity - api_url, api_key, model at :99-120<br/>not from PERPLEXITY_* env vars - only PERPLEXITY_ENABLED_PUBKEYS gates feature access at feature_access.rs:20 and<br/>PERPLEXITY_API_KEY is read solely as a readiness expectation signal at app_state.rs:1524 - configuration.md:220 and<br/>how-to/agent-orchestration.md:449 corrected
 ```
 ## VC-28.4 image_gen_handler — ComfyUI submit path (user session)
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as Client
-    participant IG as submit_image_job<br/>src/handlers/image_gen_handler.rs:317-318
+    participant IG as submit_image_job<br/>src/handlers/image_gen_handler.rs:628-632
     participant ENV as env
-    participant CF as ComfyUI native API<br/>COMFYUI_URL :31
-    participant SOLID as Solid proxy<br/>SOLID_INTERNAL_URL :41
+    participant CF as ComfyUI native API<br/>COMFYUI_URL :37
+    participant SOLID as Solid proxy<br/>SOLID_INTERNAL_URL :43
 
-    IG->>ENV: comfyui_base() = COMFYUI_URL or http://comfyui:8188 - :30-32
-    C->>IG: POST /image-gen/submit - configure_routes :823
-    alt no Nostr session - get_user_npub :290 returns None
-        IG-->>C: 401 Authentication required - :327-330
+    IG->>ENV: comfyui_base() = COMFYUI_URL or http://comfyui:8188 - :37-38
+    C->>IG: POST /image-gen/submit - configure_routes :939
+    alt no Nostr session - get_user_npub :600 returns None
+        IG-->>C: 401 Authentication required - :633-642
     else authed
-        IG->>IG: build_flux2_workflow(body,seed,prefix) - :342
-        IG->>CF: POST {comfyui_base}/prompt - :357-361<br/>{prompt:workflow,client_id:job_id} - client timeout 300s :344-347
-        alt connection error - :364
+        IG->>IG: build_workflow(model,body,seed,prefix) - :653<br/>model = ImageModel::from_env IMAGE_GEN_MODEL - :113-115
+        IG->>CF: run_comfyui_job(workflow,job_id) - :662, fn :490
+        IG->>CF: POST {comfyui_base}/prompt - :496-499<br/>{prompt:workflow,client_id:job_id} - client timeout 300s :492-494
+        alt connection error - :500-507
             CF-->>IG: reqwest Err
-            IG-->>C: 503 ComfyUI unreachable - :366-369
-        else non-2xx - :373
+            IG-->>C: 503 ComfyUI unreachable - :503-506
+        else non-2xx - :509-516
             CF-->>IG: status + body
-            IG-->>C: 400 ComfyUI rejected workflow - :376-379
-        else no prompt_id in response - :394
-            IG-->>C: 500 No prompt_id in ComfyUI response - :395-398
-        else accepted - :402
-            loop attempt 0..60 - sleep 5s - :409-410
-                IG->>CF: GET {comfyui_base}/history/{prompt_id} - :412
-                CF-->>IG: {[prompt_id]:{outputs}} or poll error (logged, retried) - :414-417
+            IG-->>C: 400 ComfyUI rejected workflow - :512-516
+        else no prompt_id in response - :526-535
+            IG-->>C: 500 No prompt_id in ComfyUI response - :529-534
+        else accepted - :537-541
+            loop attempt 0..60 - sleep 5s - :543-544<br/>HISTORY_POLLS :462, HISTORY_POLL_INTERVAL :463
+                IG->>CF: GET {comfyui_base}/history/{prompt_id} - :541,545
+                CF-->>IG: {[prompt_id]:{outputs}} or poll error (logged, retried) - :546-557
             end
-            alt output_filename still None after 60 attempts (~5min) - :445-446
-                IG-->>C: 504 GatewayTimeout - :448-451
+            alt still no saved image after 60 attempts (~5min) - :563-568
+                IG-->>C: 504 GatewayTimeout Timed out waiting for ComfyUI - :563-568
             else found
-                IG->>CF: GET {comfyui_base}/view?filename=..&subfolder=..&type=output - :459-465
-                alt GET or bytes() fails - :468,475
-                    IG-->>C: 500 Failed to fetch/GET image - :469-472,476-479
+                IG->>CF: GET {comfyui_base}/view?filename=..&subfolder=..&type=output - :570-577
+                alt GET or bytes() fails - :578-586
+                    IG-->>C: 500 Failed to GET image / fetch image bytes - :581-585
                 else bytes ok
-                    IG->>SOLID: PUT {solid_base}/api/solid/pods/{npub}/{folder}/{job}.png - :488-495<br/>header Authorization forwarded from client - :496-503
-                    alt PUT succeeds (2xx or 201) - :509
+                    IG->>SOLID: PUT {solid_base}/api/solid/pods/{npub}/{folder}/{job}.png - :671-679<br/>header Authorization forwarded from client - :688-696, client timeout 60s :681-685
+                    alt PUT succeeds (2xx or 201) - :700
                         SOLID-->>IG: stored
-                        IG-->>C: 200 {job_id,pod_image_url,comfyui_filename,seed} - :523-532
-                    else PUT fails or errors - :513,517
+                        IG-->>C: 200 {job_id,pod_image_url,comfyui_filename,seed} - :714-724
+                    else PUT fails or errors - :704-712
                         SOLID-->>IG: non-2xx or reqwest Err
-                        IG-->>C: 200 pod_image_url:null - store skipped, warn logged - :514-515,518-519
+                        IG-->>C: 200 pod_image_url:null - store skipped, warn logged - :704-712
                     end
                 end
             end
         end
     end
 ```
-## VC-28.5 image_gen_handler — ComfyUI Salad agent path, status, health
+## VC-28.5 image_gen_handler — ComfyUI agent path (native pipeline), status, health
 ```mermaid
 sequenceDiagram
     autonumber
     participant A as MCP Agent
-    participant AS as agent_submit_image_job<br/>src/handlers/image_gen_handler.rs:535-541
+    participant AS as agent_submit_image_job<br/>src/handlers/image_gen_handler.rs:732-735
     participant ENV as env
-    participant SAL as ComfyUI Salad wrapper<br/>COMFYUI_SALAD_URL :36
+    participant CF as ComfyUI native API<br/>COMFYUI_URL :37
     participant POD as embedded solid-pod-rs
 
-    ENV-->>AS: agent_key_authorised() reads VISIONCLAW_AGENT_KEY, constant-time compare<br/>fails closed if unset/empty - NO changeme-agent-key default (ADR-2093) - :63-85
-    A->>AS: POST /image-gen/agent-submit - configure_routes :824<br/>header X-Agent-Key
-    alt X-Agent-Key missing or wrong - :546-550
-        AS-->>A: 401 Invalid or missing X-Agent-Key - :551-553
+    ENV-->>AS: agent_key_authorised() reads VISIONCLAW_AGENT_KEY, constant-time compare<br/>fails closed if unset/empty - NO changeme-agent-key default (ADR-2093) - :82-88<br/>dev or dev-auth builds bypass to always-true - :92-95
+    A->>AS: POST /image-gen/agent-submit - configure_routes :940<br/>header X-Agent-Key - :739
+    alt X-Agent-Key missing or wrong - :741-748
+        AS-->>A: 401 Invalid or missing X-Agent-Key - :742-747
     else authed
-        AS->>SAL: POST {comfyui_salad}/prompt - :593-597<br/>{prompt:workflow} - client timeout 360s :580-583
-        alt unreachable - :599
-            SAL-->>AS: reqwest Err
-            AS-->>A: 503 ComfyUI Salad API unreachable - :601-604
-        else non-2xx - :608
-            AS-->>A: 400 ComfyUI rejected workflow - :610-612
-        else no images array - :639
-            AS-->>A: 500 No images in Salad response - :639-644
-        else base64 decode fails - :663
-            AS-->>A: 500 Failed to decode base64 image - :664-668
-        else ok
-            SAL-->>AS: {id,images:[base64],filenames,stats} - :615
-            opt feature solid-pod-embed - :691
-                AS->>POD: storage.exists/create_container/put - :710-725
-                POD-->>AS: Ok(url) or None on failure (warn, non-fatal) - :727-735
-            end
-            AS-->>A: 200 {job_id,pod_image_url,comfyui_filename,seed} - :674-683
+        AS->>AS: user_npub defaults to agent - :749-751<br/>build_workflow from IMAGE_GEN_MODEL - :770-772
+        Note over AS,CF: CHANGED 2026-10 (af3dff3f): the ComfyUI Salad wrapper is deleted<br/>- COMFYUI_SALAD_URL is gone from the file - and the agent path now runs<br/>the SAME native ComfyUI pipeline as /submit via run_comfyui_job - :779, fn :490<br/>(doc comment :726-730 records why: the wrapper on port 3000 was never reached)
+        AS->>CF: POST {comfyui_base}/prompt, poll /history, GET /view - :779
+        CF-->>AS: ComfyJob prompt_id + filename + bytes - :491-595
+        opt feature solid-pod-embed - :807-808
+            AS->>POD: storage.exists/create_container/put - :814-851
+            POD-->>AS: Ok(url) or None on failure (warn, non-fatal) - :847-851
         end
+        AS-->>A: 200 {job_id,pod_image_url,comfyui_filename,seed} - :788-799
     end
 
-    Note over AS: DIVERGENCE: try_store_in_pod is a no-op returning None when<br/>the solid-pod-embed feature is disabled - :738-747
+    Note over AS: DIVERGENCE: try_store_in_pod is a no-op returning None when<br/>the solid-pod-embed feature is disabled - :854-863
 
-    participant GJ as get_job_status<br/>src/handlers/image_gen_handler.rs:750
-    A->>GJ: GET /image-gen/status/{job_id} - configure_routes :825
-    GJ->>SAL: GET {comfyui_base}/history/{job_id} - :753,755
-    alt request errors - :777
-        GJ-->>A: 503 ComfyUI unreachable
-    else body has job_id key - :759
-        GJ-->>A: 200 status completed + outputs - :760-764
-    else not found yet - :765
-        GJ-->>A: 200 status pending or unknown by HTTP status - :766-774
+    participant GJ as get_job_status<br/>src/handlers/image_gen_handler.rs:866-869
+    A->>GJ: GET /image-gen/status/{job_id} - configure_routes :941
+    GJ->>CF: GET {comfyui_base}/history/{job_id} - :869
+    alt request errors - :893-898
+        GJ-->>A: 503 ComfyUI unreachable - :893-896
+    else body has job_id key - :875
+        GJ-->>A: 200 status completed + outputs - :875-882
+    else not found yet - :884-893
+        GJ-->>A: 200 status pending or unknown by HTTP status - :884-893
     end
 
-    participant HL as health<br/>src/handlers/image_gen_handler.rs:785
-    A->>HL: GET /image-gen/health - configure_routes :822
-    HL->>SAL: GET {comfyui_base}/system_stats - :791-792 (timeout 5s :786-789)
-    alt 2xx - :796
-        HL-->>A: 200 status ok, vram_free/total - :796-803
-    else non-2xx or unreachable - :805,809
-        HL-->>A: 200 status degraded (never a 5xx) - :805-813
+    participant HL as health<br/>src/handlers/image_gen_handler.rs:901-905
+    A->>HL: GET /image-gen/health - configure_routes :938
+    HL->>CF: GET {comfyui_base}/system_stats - :907-909 (timeout 5s :902-905)
+    alt 2xx - :910
+        HL-->>A: 200 status ok, vram_free/total - :910-918
+    else non-2xx or unreachable - :921,925
+        HL-->>A: 200 status degraded (never a 5xx) - :921-930
     end
 ```
 ## VC-28.6 github_pr_service — outbound GitHub REST API (git data + PR)
@@ -382,8 +374,8 @@ flowchart LR
     subgraph app["visionclaw_container"]
         RS["RAGFlowService<br/>ragflow_service.rs:94"]
         PS["PerplexityService<br/>perplexity_service.rs:35"]
-        IG["image_gen_handler<br/>submit_image_job:272"]
-        AG["image_gen_handler<br/>agent_submit_image_job:495"]
+        IG["image_gen_handler<br/>submit_image_job:628"]
+        AG["image_gen_handler<br/>agent_submit_image_job:732"]
         GH["GitHubPRService<br/>github_pr_service.rs:21"]
         SS["SpeechService<br/>speech_service.rs:32"]
     end
@@ -391,7 +383,6 @@ flowchart LR
     RF["RAGFlow API<br/>env RAGFLOW_API_BASE_URL - no default, boot fails if unset"]
     PX["Perplexity API<br/>settings.perplexity.api_url - no env default"]
     CFU["ComfyUI native<br/>env COMFYUI_URL default http://comfyui:8188"]
-    CFS["ComfyUI Salad<br/>env COMFYUI_SALAD_URL default http://comfyui:3000"]
     SOL["Solid proxy<br/>env SOLID_INTERNAL_URL default http://127.0.0.1 port 4001, path /api/solid"]
     GHA["api.github.com<br/>env PRIVATE_REPO_GITHUB_PAT / GITHUB_OWNER / GITHUB_REPO"]
     PT["PocketTts<br/>settings.pocket_tts.api_url default http://pocket-tts:8000<br/>visionclaw-domain/src/config/app_settings.rs:99"]
@@ -401,7 +392,7 @@ flowchart LR
     RS -->|"POST /api/v1/agents/.. - fatal: no fallback"| RF
     PS -->|"POST api_url - degraded: error surfaced to caller"| PX
     IG -->|"POST /prompt, GET /history, GET /view - fatal for that job"| CFU
-    AG -->|"POST /prompt - fatal for that job"| CFS
+    AG -->|"POST /prompt, GET /history, GET /view via run_comfyui_job - fatal for that job"| CFU
     IG -->|"PUT pods/.. - degraded: pod_image_url null, image still returned"| SOL
     GH -->|"git data + pulls API - fatal: PR/state ops fail"| GHA
     SS -->|"TTS - degraded: audio chunk skipped, chat continues"| PT
@@ -415,6 +406,6 @@ flowchart LR
 
     classDef fatal fill:#5a1e1e,stroke:#c0392b,color:#fff
     classDef degraded fill:#4a3a10,stroke:#d4a017,color:#fff
-    class RF,GHA,CFU,CFS fatal
+    class RF,GHA,CFU fatal
     class PX,SOL,PT,WHI,MCPS degraded
 ```

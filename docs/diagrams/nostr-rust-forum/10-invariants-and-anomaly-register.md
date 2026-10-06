@@ -17,6 +17,8 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/filter.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/cron.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip42.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs
@@ -47,7 +49,7 @@ sources:
   - ../nostr-rust-forum/docs/security/known-findings.md
   - ../nostr-rust-forum/docs/security/advisory-exceptions.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs
-verified_commit: {nostr-rust-forum: 13cbe6cbad7ee7ff3b609233a8bee3dd8eae1f3e}
+verified_commit: {nostr-rust-forum: 72463fbde35ac4c68539b1f65a08ff03b9941201}
 ---
 
 ## NF-10.1 The compliance surface — BASELINE-architecture invariants
@@ -58,8 +60,8 @@ flowchart LR
     I2["2 FORUM_BASE is applied in exactly TWO places<br/>Router base nostr-bbs-forum-client/src/app.rs:867 | base_href nostr-bbs-forum-client/src/app.rs:54 - see NF-05.1"]
     I3["3 channel counts are derived, never accumulated<br/>count_for nostr-bbs-forum-client/src/stores/channels.rs:159 | dedup on insert channels.rs:444 - see NF-05.6"]
     I4["4 .acl and .meta sidecar access coerces to Control<br/>nostr-bbs-pod-worker/src/acl.rs:85 | shared policy nostr-bbs-pod-worker/src/acl.rs:34 - see NF-04.3"]
-    I5["5 gift-wraps are recipient-whitelist-gated, never author-gated<br/>gift_wrap_recipient nip_handlers.rs:115 | admission nip_handlers.rs:825 - see NF-03.5"]
-    I6["6 solid-pod-rs stays an EXACT pin<br/>nostr-rust-forum/Cargo.toml:170 - see NF-01.4"]
+    I5["5 gift-wraps are recipient-whitelist-gated, never author-gated<br/>gift_wrap_recipient nip_handlers.rs:115 | admission nip_handlers.rs:858 - see NF-03.5"]
+    I6["6 solid-pod-rs stays an EXACT pin<br/>nostr-rust-forum/Cargo.toml:181 - see NF-01.4"]
 
     I1 --> I2 --> I3
     I4 --> I5 --> I6
@@ -91,12 +93,12 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph closed["Confirmed CLOSED at this commit"]
-        O1["O1 TL1 promotion and demotion unwired - CLOSED.<br/>Reads tally then check_promotion nip_handlers.rs:1536; demotion is cron-driven. See NF-03.8."]
+        O1["O1 TL1 promotion and demotion unwired - CLOSED.<br/>Reads tally then check_promotion nip_handlers.rs:1913; demotion is cron-driven. See NF-03.8."]
         O3["O3 KV ACL fast-path masks R2 delegation - CLOSED.<br/>R2 authoritative, KV miss-fallback only nostr-bbs-pod-worker/src/acl.rs:311, rationale acl.rs:253. See NF-04.4."]
     end
     subgraph live["Confirmed STILL LIVE"]
-        O2["O2 NIP-29 group metadata 39000-39002 accepted from admin CLIENTS rather than relay-key-signed.<br/>Acknowledged TODO nip_handlers.rs:976, admin gate nip_handlers.rs:984. Spec drift. See NF-03.4 step 11."]
-        O5["O5 deleting a kind-40 destroys the is_channel_creator lookup, locking a TL2 author out of their own<br/>channel metadata - lookup nip_handlers.rs:937, deletion path nip_handlers.rs:2088. See NF-03.7."]
+        O2["O2 NIP-29 group metadata 39000-39002 accepted from admin CLIENTS rather than relay-key-signed.<br/>Acknowledged TODO nip_handlers.rs:1010, admin gate nip_handlers.rs:1017. Spec drift. See NF-03.4 step 11."]
+        O5["O5 deleting a kind-40 destroys the is_channel_creator lookup, locking a TL2 author out of their own<br/>channel metadata - lookup nip_handlers.rs:970, deletion path nip_handlers.rs:2121. See NF-03.7."]
         O11a["O11 KV and SESSIONS are the SAME physical namespace id -<br/>nostr-bbs-auth-worker/wrangler.toml:24 and nostr-bbs-auth-worker/wrangler.toml:39. See NF-08.4."]
         O11b["O11 /api/native-pod/provision has no in-repo caller and placeholder vars -<br/>route nostr-bbs-auth-worker/src/lib.rs:599, NATIVE_POD_URL nostr-bbs-auth-worker/wrangler.toml:52. See NF-02.2."]
         O8a["O8 qr_svg is defined TWICE with no shared helper -<br/>recovery_sheet.rs:66 and utils/devices.rs:236. See NF-05.4."]
@@ -120,13 +122,13 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    DD1["README.md:441 calls NIP-42 AUTH scaffolded with auth_required false. The code says otherwise:<br/>nip42 is the DEFAULT nip42.rs:115, the template ships AUTH_MODE nip42 nostr-bbs-relay-worker/wrangler.toml:31,<br/>and every EVENT passes the gate first nip_handlers.rs:812. The row understates a shipped feature.<br/>See NF-03.3."]
+    DD1["README.md:441 calls NIP-42 AUTH scaffolded with auth_required false. The code says otherwise:<br/>nip42 is the DEFAULT nip42.rs:115, the template ships AUTH_MODE nip42 nostr-bbs-relay-worker/wrangler.toml:31,<br/>and every EVENT passes the gate first nip_handlers.rs:845. The row understates a shipped feature.<br/>See NF-03.3."]
     DD2["README.md:442 says nostr-bbs-mesh is NOT a dependency of the relay-worker.<br/>nostr-bbs-relay-worker/Cargo.toml:26 declares it. See NF-09.8."]
     DD3["nostr-bbs-relay-worker/wrangler.toml:10 asserts there is no ADMIN_PUBKEYS reader in src/.<br/>nostr-bbs-relay-worker/src/auth.rs:183 reads it, and so does nostr-bbs-auth-worker/src/admin.rs:71.<br/>Only nostr-bbs-search-worker/wrangler.toml:33 declares the var. See NF-08.7."]
-    DD4["nostr-rust-forum/Cargo.toml:58 workspace.metadata.ci.wasm-check-packages names two crates and is read by NOTHING -<br/>the wasm job checks the whole workspace .github/workflows/ci.yml:174. Inert metadata. See NF-01.2."]
+    DD4["nostr-rust-forum/Cargo.toml:69 workspace.metadata.ci.wasm-check-packages names two crates and is read by NOTHING -<br/>the wasm job checks the whole workspace .github/workflows/ci.yml:174. Inert metadata. See NF-01.2."]
     DD5["nostr-bbs-upstream-canary/src/lib.rs:10 names a five-NIP build matrix but only three smokes exist<br/>nostr-bbs-upstream-canary/src/lib.rs:35 nostr-bbs-upstream-canary/src/lib.rs:56 nostr-bbs-upstream-canary/src/lib.rs:89 - nip04, nip59 and nip98 are unexercised. The same doc calls the crate<br/>nostr-upstream-canary nostr-bbs-upstream-canary/src/lib.rs:14 while the package is nostr-bbs-upstream-canary. See NF-01.5."]
     DD6["The search-worker cron runs every five minutes and reindexes NOTHING - the handler body is a<br/>load_store warm touch nostr-bbs-search-worker/src/lib.rs:851. See NF-07.1."]
-    DD7["nostr-bbs-core/src/governance.rs:1202 KIND_GOVERNANCE_AUDIT_LOG is numerically the SAME kind as<br/>KIND_PANEL_RETIRED nostr-bbs-core/src/governance.rs:32, and only three of the six documented ACS types have<br/>Rust structs. See NF-06.1 and NF-06.2."]
+    DD7["nostr-bbs-core/src/governance.rs:1226 KIND_GOVERNANCE_AUDIT_LOG is numerically the SAME kind as<br/>KIND_PANEL_RETIRED nostr-bbs-core/src/governance.rs:32, and only three of the six documented ACS types have<br/>Rust structs. See NF-06.1 and NF-06.2."]
     DD8["docs/consumer-surface-map.md:21 lists the git panel as calling /.well-known/apps; the client fetches<br/>/apps/manifest.json and no .well-known path exists in that crate. See NF-05.10."]
 ```
 
@@ -138,7 +140,7 @@ flowchart TB
     S2["ADMIN_PUBKEYS is read by auth and relay but declared in neither template and named in no SETUP step<br/>SETUP.md:122. A by-the-book deployment has no static admin bootstrap. See NF-08.7."]
     S3["The preview worker's SSRF guard is denylist-only without PREVIEW_ALLOWED_HOSTS, which the template<br/>never sets nostr-bbs-preview-worker/wrangler.toml:13. The code says so itself - the Workers runtime exposes no<br/>resolve-then-pin primitive nostr-bbs-preview-worker/src/ssrf.rs:13 - and there is no wall-clock timeout.<br/>See NF-07.6."]
     S4["DEVICE_KEYS_ENABLED ships false in BOTH templates nostr-bbs-auth-worker/wrangler.toml:55<br/>nostr-bbs-relay-worker/wrangler.toml:21, so the whole ADR-099/100 device story is dormant by default and<br/>revocation has no effect at AUTH. See NF-02.7."]
-    S5["MESH_ALLOWED_REMOTE_DIDS ships empty nostr-bbs-relay-worker/wrangler.toml:71, so the federated-kind gate at<br/>nip_handlers.rs:3088 is inert. Standalone is the only supported mode. See NF-03.13."]
+    S5["MESH_ALLOWED_REMOTE_DIDS ships empty nostr-bbs-relay-worker/wrangler.toml:71, so the federated-kind gate at<br/>nip_handlers.rs:3118 is inert. Standalone is the only supported mode. See NF-03.13."]
     S6["Neither anti-drift-lint.sh nor identity-vector-parity.mjs is invoked by any workflow, so the<br/>ADR-2003 cross-stack parity proof is manual on the JS side. See NF-09.3."]
     S7["The ADR-2019 member wallet view of BLAKE2b testnet4 coins ships dark: with BLAKE_TESTNET_API unset or not https,<br/>api_base is None and the page makes no request to any BLAKE backend<br/>nostr-bbs-forum-client/src/wallet/parent.rs:13-14 nostr-bbs-forum-client/src/wallet/parent.rs:36-43.<br/>It is read-only by construction - nothing is signed and no coin moves nostr-bbs-forum-client/src/wallet/parent.rs:8-10"]
 ```
@@ -156,7 +158,7 @@ flowchart LR
     A2010 --> Q2010
 
     N1["DOC-DRIFT: the IDENTITY-keys-and-trust closeout still states OFFSET row-skipping and ignored write<br/>errors as CURRENT defects. Both are fixed - keyset paging nostr-bbs-relay-worker/src/trust_sweep.rs:22<br/>and confirmed-commit-only counters nostr-bbs-relay-worker/src/trust_sweep.rs:286 trust_sweep.rs:501. The governing doc needs<br/>the qualification retired; see NF-11.11 and NF-11.12."]
-    N2["DOC-DRIFT: the relay-side receipt machine is REAL, not proposed - stages at<br/>nostr-bbs-core/src/governance.rs:914, applied at relay_do/receipts.rs:301, and handle_event logs<br/>accepted-but-not-applied from the returned receipt nip_handlers.rs:1286. Only the CONSUMER half is absent.<br/>See NF-11.9 and NF-11.10."]
+    N2["DOC-DRIFT: the relay-side receipt machine is REAL, not proposed - stages at<br/>nostr-bbs-core/src/governance.rs:938, applied at relay_do/receipts.rs:301, and handle_event logs<br/>accepted-but-not-applied from the returned receipt nip_handlers.rs:1317. Only the CONSUMER half is absent.<br/>See NF-11.9 and NF-11.10."]
     N3["EXTERNAL: both remaining halves belong to other repos - VisionClaw's elevation consumer see VC-24,<br/>agentbox's approvals pipeline see AB-14, the estate loop see ES-05"]
 ```
 
@@ -194,7 +196,7 @@ flowchart TB
 
     GATE --> RULE --> NOTSUP --> SEP
 
-    N1["Debt KF-1 HIGH_BUG: the NIP-40 expiry sweep and the serve path disagree on a malformed expiration<br/>tag, and the reap side wins docs/security/known-findings.md:22 - relay maintainers"]
+    N1["Debt KF-1 HIGH_BUG: the NIP-40 expiry sweep and the serve path disagree on a malformed expiration<br/>tag, and the reap side wins docs/security/known-findings.md:22 - relay maintainers.<br/>MECHANISM FIXED at HEAD, row not yet retired: admission refuses a malformed or past expiration<br/>(expiration_admission filter.rs:277, called before any side effect nip_handlers.rs:813) and the sweep's<br/>SQL now skips non-numeric values cron.rs:419, so an accepted event can no longer be silently swept"]
     N2["Debt KF-2 and KF-2a: the governance READ endpoints verify a NIP-98 signature with no membership<br/>check, so authenticated is effectively anonymous, and the admin-gated reviewer aggregate can be<br/>reconstructed from the un-gated decisions read docs/security/known-findings.md:23<br/>docs/security/known-findings.md:24 - an operator decision, taken once for both"]
     N3["Debt KF-3: ensure_schema runs its DDL on EVERY request, before the CORS short-circuit and any<br/>authentication docs/security/known-findings.md:26 - see NF-08.5"]
     N4["Debt KF-4 and KF-9: the write gate resolves a device key to its owner, but the moderation gates<br/>that follow key on the RAW signing pubkey, and a gift wrap has no author to resolve at all<br/>docs/security/known-findings.md:27 docs/security/known-findings.md:44 - see NF-03.4 and NF-03.5"]
@@ -208,11 +210,12 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    ENUM["DecisionOutcome adds Demote iri alongside Promote iri<br/>enum def governance.rs:1463 | Promote governance.rs:1474 | Demote governance.rs:1480"]
-    STATE["Demote maps to CaseState.Decided, NOT a dedicated Demoted state - only<br/>Promoted predates this enum's first consumer governance.rs:1747-1752 | Promote maps Promoted governance.rs:1754"]
-    GATE["Both variants stay ADMIN-ONLY: 31403 admission already established the<br/>signer is admin or a delegated reviewer response_admission nip_handlers.rs:1031"]
+    ENUM["DecisionOutcome adds Demote iri alongside Promote iri<br/>enum def governance.rs:1487 | Promote governance.rs:1498 | Demote governance.rs:1504"]
+    STATE["Demote maps to CaseState.Decided, NOT a dedicated Demoted state - only<br/>Promoted predates this enum's first consumer governance.rs:1771-1776 | Promote maps Promoted governance.rs:1778"]
+    GATE["Both variants stay ADMIN-ONLY: 31403 admission already established the<br/>signer is admin or a delegated reviewer response_admission nip_handlers.rs:1064"]
+    RATIONALE["NEW at this commit: promote and demote on an ontology case now carry the<br/>SAME rationale rule as approve - outcome_requires_rationale names both<br/>governance.rs:743-746, so a scripted 31403 cannot skip what the UI enforces"]
 
-    ENUM --> STATE --> GATE
+    ENUM --> STATE --> GATE --> RATIONALE
 
-    N1["OPEN: Demote is new at this commit (ADR-2013 ontology promotion/demotion). This repo is a producer<br/>with no confirmed consumer yet - EXTERNAL: VisionClaw's elevation actor is the candidate consumer, see VC-24"]
+    N1["OPEN: Demote is no longer brand new (ADR-2013 ontology promotion/demotion) but still has no confirmed<br/>consumer downstream - this repo is a producer.<br/>EXTERNAL: VisionClaw's elevation actor is the candidate consumer, see VC-24"]
 ```

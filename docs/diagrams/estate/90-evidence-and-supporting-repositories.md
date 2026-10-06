@@ -5,7 +5,7 @@ area: estate
 governing:
   - docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md
   - docs/architecture/repository-map.md
-adrs: [visionflow:ADR-2004, visionflow:ADR-2006, visionflow:ADR-2007, dream-engine:ADR-0003, dream-engine:ADR-0005, WasmVOWL:ADR-001]
+adrs: [visionflow:ADR-2004, visionflow:ADR-2006, visionflow:ADR-2007, dream-engine:ADR-0003, dream-engine:ADR-0005, dream-engine:ADR-0006, dream-engine:ADR-0007, WasmVOWL:ADR-001]
 sources:
   - scripts/estate-health/roster.json
   - scripts/estate-doc-audit.py
@@ -24,7 +24,7 @@ sources:
   - ../loom/Cargo.toml
   - ../RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs
   - docs/estate-review/2026-09-07-estate-audit.md
-verified_commit: {visionflow: e5987acc8337ddd64c72f775750d61fef46d8e0b, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, RuView: b48ab7dada5002414ec18d36a5d652e0f1bd4a67, loom: 8c618faf24950ad4ef70855308991da56a54af2c, dream-machine: 824993cabdbc02dc1715084e0ba165bba3e2b3d6, prose-sanitiser: b134ddb58b2f2a753244e1a2c3e4b9513d8195d3, diagram-ir: eed5ebde490830fc143a744e299c2ec0ed8b0028}
+verified_commit: {visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, RuView: b48ab7dada5002414ec18d36a5d652e0f1bd4a67, loom: 37a320ce3f15787a1ee10fac0faae043ab1ac12e, dream-machine: 6426583e72b10b731ac0a1630f62fbeb2ae0f5b5, prose-sanitiser: 5548922aaf499d37f0d0440db0735992ce07f003, diagram-ir: eed5ebde490830fc143a744e299c2ec0ed8b0028}
 ---
 
 ## ES-90.1 Three scopes — health roster, source review and workspace neighbours
@@ -43,24 +43,25 @@ flowchart TB
 ## ES-90.2 Dream compiler, diagnostic and runtime are separate paths
 ```mermaid
 sequenceDiagram
-    participant C as compile prompt<br/>compile/src/index.ts:268-269
+    participant C as compile prompt<br/>compile/src/index.ts:268-270
     participant A as agent session
     participant D as verify-entrypoint<br/>cli/src/index.ts:323
-    participant E as darwin evaluator<br/>scripts/darwin-entrypoint.sh:78
-    participant B as checkDarwinBounds<br/>darwinBounds.ts:75
+    participant E as darwin evaluator<br/>scripts/darwin-entrypoint.sh:155
+    participant B as checkDarwinBounds<br/>darwinBounds.ts:104
     participant R as Agentbox Rust service<br/>services/dream-engine/src/engine.rs
-    C-->>A: parent and candidate evaluation rules, human promotion rule
+    C-->>A: parent-then-candidate evaluation rule and the<br/>promotion gate, compile/src/index.ts:248-249
     A->>E: the configured darwin evaluator, dream.config.json:55
-    E->>E: refuse exit 64 unless darwin is exact-pinned and<br/>sandboxed mock or agent, scripts/darwin-entrypoint.sh:57-67
-    E->>D: verify-entrypoint darwin --passthrough, scripts/darwin-entrypoint.sh:78
-    D->>D: run darwin, echo its output, classify liveness, cli/src/index.ts:347-354
+    E->>E: refuse exit 64 unless darwin is exact-pinned, sandboxed<br/>mock or agent, and the ruvllm mutator names its Loom door,<br/>scripts/darwin-entrypoint.sh:46-93
+    E->>D: verify-entrypoint darwin --passthrough, scripts/darwin-entrypoint.sh:155
+    D->>D: run darwin, echo its output under --passthrough, classify liveness,<br/>cli/src/index.ts:347-355
     opt live Darwin output
-        D->>B: parse rows, pass promotedLineages zero
-        B-->>D: violations against 3 generations, 5 candidates,<br/>1 lineage, darwinBounds.ts:43-48
-        D-->>E: exit 3 on a breach
+        D->>B: parse rows, pass promotedLineages zero,<br/>cli/src/index.ts:369-383
+        B-->>D: violations against 3 generations, 5 candidates,<br/>1 lineage, darwinBounds.ts:61-66, and score uniformity<br/>with realMutation count, darwinBounds.ts:190-197
+        D-->>E: exit 3 on a bound breach, an unparsable leaderboard,<br/>or uniform scores with zero real shim edits, cli/src/index.ts:405-412
     end
-    E-->>A: exit status IS the evaluator outcome, so a breach is a<br/>FAILED required evaluator, scripts/darwin-entrypoint.sh:18-24
-    Note over D,B: CHANGED 2026-10-02 (ADR-0005) — the check was a hand-run diagnostic<br/>and is now the darwin evaluator itself, and the bound rose from four<br/>candidates per generation to five to match darwin 0.10.2's five-surface<br/>map, darwinBounds.ts:46. Promotion count is still unobserved: the leaderboard<br/>has no promotion line, so zero is passed explicitly
+    E-->>A: exit status IS the evaluator outcome, so a breach is a<br/>FAILED required evaluator, scripts/darwin-entrypoint.sh:26-36,157
+    Note over E,R: CHANGED 2026-10-06 (ADR-0006, ADR-0007) — with --mutator ruvllm the<br/>mutator is routed through a loopback Loom shim that outlasts darwin's<br/>30 s fetch abort, scripts/darwin-entrypoint.sh:115-142, and a uniform<br/>leaderboard then fails only when the shim counted zero real model edits
+    Note over D,B: CHANGED 2026-10-02 (ADR-0005) — the check was a hand-run diagnostic<br/>and is now the darwin evaluator itself, and the bound rose from four<br/>candidates per generation to five to match darwin 0.10.2's five-surface<br/>map, darwinBounds.ts:63-64. Promotion count is still unobserved: the leaderboard<br/>has no promotion line, so zero is passed explicitly, cli/src/index.ts:369-374
     Note over E,R: EXTERNAL: enforcement still depends on the annexe runner honouring a<br/>failed required evaluator. This repo makes the failure, it does not veto the night
     Note over A,R: EXTERNAL: the Rust service has its own candidate/evaluator path.<br/>Toolkit tests do not identify the loaded Nix binary or prove a nightly run
 ```

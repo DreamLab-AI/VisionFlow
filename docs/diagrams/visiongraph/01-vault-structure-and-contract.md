@@ -61,8 +61,8 @@ flowchart TB
 ```
 
 **What it shows:** the repository as it stands after the Python `pipeline/` was deleted: two vaults, the governed vocabulary, the `vault.toml` manifest, Quartz v4 and the vendored explorer, with `publish.yml` as the one publisher.
-**Why it is this way:** `.github/workflows/publish.yml:79` states the Python pipeline "is gone: it parses the json-ld fences [the] migration folded into frontmatter, so against the current corpus it emits an empty bundle". ADR-VG-003 (accepted 2026-10-01) then retired the remaining legacy authoring and migration systems (`ADR-VG-003-obsidian-only-authoring.md:16-24`), and the same commit brought `README.md` into line: the layout block and licensing table no longer list `pipeline/`, and the README states there is "no Python ontology pipeline fallback" (`README.md:128-131`). The README's trigger list was not widened when the workflow's was.
-**Drift:** `README.md:125-126` lists `knowledge/**`, `quartz/**` and `ontology/**` as the publish triggers; `publish.yml:23-29` also fires on `publishing-tools/WasmVOWL/modern/**` and `static/**`.
+**Why it is this way:** `.github/workflows/publish.yml:79` states the Python pipeline "is gone: it parses the json-ld fences [the] migration folded into frontmatter, so against the current corpus it emits an empty bundle". ADR-VG-003 (accepted 2026-10-01) then retired the remaining legacy authoring and migration systems (`ADR-VG-003-obsidian-only-authoring.md:16-24`), and the same commit brought `README.md` into line: the layout block and licensing table no longer list `pipeline/`, and the README states there is "no Python ontology pipeline fallback" (`../visionGraph/README.md:128-131`). The README's trigger list was not widened when the workflow's was.
+**Drift:** `../visionGraph/README.md:125-126` lists `knowledge/**`, `quartz/**` and `ontology/**` as the publish triggers; `publish.yml:23-29` also fires on `publishing-tools/WasmVOWL/modern/**` and `static/**`.
 
 ## VG-01.3 Producers and consumers — Quartz joins the site publisher, VisionClaw and agentbox
 
@@ -85,7 +85,7 @@ flowchart TB
 ```
 
 **What it shows:** the site publisher (`vault build`) feeding two downstreams: Quartz v4, which renders `/notes/` from the staging tree `vault build` writes and still applies its own `ExplicitPublish({ key: "public" })` gate (`quartz/README.md:25-26`), and, new on 2026-10-01, VisionClaw's ontology release, which the publisher now triggers with a `corpus-sync` dispatch naming the exact source sha (`publish.yml:459-465`).
-**Why it is this way:** `README.md:134-137` makes `/notes/` the Quartz render of "the staging tree produced by `vault build`", gated on typed `public: true`, with `_misc/` and `misc/` held back; `quartz/README.md` now says the Rust `vault` builder owns staging and there is no alternate staging implementation (the `stage-content.sh` awk emulator was deleted). The workflow header records that Quartz replaced "the old Logseq notes app there" (`publish.yml:11-12`).
+**Why it is this way:** `../visionGraph/README.md:134-137` makes `/notes/` the Quartz render of "the staging tree produced by `vault build`", gated on typed `public: true`, with `_misc/` and `misc/` held back; `quartz/README.md` now says the Rust `vault` builder owns staging and there is no alternate staging implementation (the `stage-content.sh` awk emulator was deleted). The workflow header records that Quartz replaced "the old Logseq notes app there" (`publish.yml:11-12`).
 **Tension (CLAUDE.md vs PUBLICATION-contract):** the agent rules now say typed `public: true` is the knowledge-graph gate and only governed ontology types feed the ontology projection (`CLAUDE.md:10-11`); the contract body still describes VisionClaw's interface as `public` or `owl-class` (`PUBLICATION-contract.md:16`).
 
 ## VG-01.4 Boundary cases — malformed fences now REJECTED, not silently dropped
@@ -105,7 +105,7 @@ flowchart LR
 ```
 
 **What it shows:** B2–B4 are unchanged since the 2026-09-07 audit `PUBLICATION-contract.md:18` records; B1 has moved from "the source parser silently drops [malformed fences]" to outright validation failure, because the JSON-LD fence format itself no longer exists to be parsed.
-**Why it is this way:** the format migration (`README.md:48-51`, `vault.toml`) closed B1 as a side effect rather than as a targeted fix — the contract's proposed ADRs (B2–B4) remain `proposed`/`inactive` per `docs/adr/README.md:7-8`, while the four records added beside them on 2026-10-01 (ADR-VG-003 to 006) are accepted (`docs/adr/README.md:9-12`).
+**Why it is this way:** the format migration (`../visionGraph/README.md:48-51`, `vault.toml`) closed B1 as a side effect rather than as a targeted fix — the contract's proposed ADRs (B2–B4) remain `proposed`/`inactive` per `docs/adr/README.md:7-8`, while the four records added beside them on 2026-10-01 (ADR-VG-003 to 006) are accepted (`docs/adr/README.md:9-12`).
 
 ## VG-01.5 vault.toml — the corpus manifest binding roles, vocabulary, build and publish
 
@@ -157,7 +157,7 @@ flowchart TB
 ```
 
 **What it shows:** the ten committed `.base` files that give the curator a working surface without a plugin beyond core Bases, and the single validator (`scripts/check-bases.sh`) that checks all of them for schema conformance and undeclared formula references.
-**Why it is this way:** `README.md:99-101` was written when `working/bases/` held three files; three more were added without the prose being updated, so the README undercounts the curator's actual working surface by half.
+**Why it is this way:** `../visionGraph/README.md:99-101` was written when `working/bases/` held three files; three more were added without the prose being updated, so the README undercounts the curator's actual working surface by half.
 
 ## VG-01.7 Eight domain roots — space and Earth observation join the vocabulary
 

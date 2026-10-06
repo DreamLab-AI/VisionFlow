@@ -21,7 +21,7 @@ sources:
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/config/hooks/nostr-live-mirror.cjs
   - ../project/agentbox/mcp/servers/ruvector-mcp.cjs
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
 ---
 
 ## AB-21.1 Capture — transcript-driven grading

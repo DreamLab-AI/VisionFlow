@@ -32,7 +32,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/validate.rs
   - ../nostr-rust-forum/README.md
-verified_commit: 13cbe6cbad7ee7ff3b609233a8bee3dd8eae1f3e
+verified_commit: 72463fbde35ac4c68539b1f65a08ff03b9941201
 ---
 
 ## NF-09.1 The CI gate graph
@@ -40,24 +40,24 @@ verified_commit: 13cbe6cbad7ee7ff3b609233a8bee3dd8eae1f3e
 ```mermaid
 flowchart TB
     subgraph gates["Eight required jobs"]
-        FMT["fmt - cargo fmt --all --check<br/>.github/workflows/ci.yml:58 .github/workflows/ci.yml:69"]
-        CLIP["clippy - workspace, all targets, all features, -D warnings<br/>.github/workflows/ci.yml:74 .github/workflows/ci.yml:87"]
-        TEST["test - cargo test --workspace --all-targets --all-features<br/>.github/workflows/ci.yml:92 .github/workflows/ci.yml:103"]
-        SEC["test-security - six security-critical crates re-run alone<br/>.github/workflows/ci.yml:121 .github/workflows/ci.yml:134"]
-        WASM["wasm32 check - cargo check --workspace --target wasm32-unknown-unknown<br/>.github/workflows/ci.yml:156 .github/workflows/ci.yml:174"]
-        DOC["doc - cargo doc --workspace --no-deps<br/>.github/workflows/ci.yml:179 .github/workflows/ci.yml:194"]
-        COV["coverage - cargo llvm-cov lcov artefact<br/>.github/workflows/ci.yml:196 .github/workflows/ci.yml:213"]
-        DENY["deny - cargo deny check<br/>.github/workflows/ci.yml:224 .github/workflows/ci.yml:244"]
+        FMT["fmt - cargo fmt --all --check<br/>.github/workflows/ci.yml:63 .github/workflows/ci.yml:73"]
+        CLIP["clippy - workspace, all targets, all features, -D warnings<br/>.github/workflows/ci.yml:79 .github/workflows/ci.yml:91"]
+        TEST["test - cargo test --workspace --all-targets --all-features<br/>.github/workflows/ci.yml:97 .github/workflows/ci.yml:107"]
+        SEC["test-security - six security-critical crates re-run alone<br/>.github/workflows/ci.yml:129 .github/workflows/ci.yml:141"]
+        WASM["wasm32 check - cargo check --workspace --target wasm32-unknown-unknown<br/>.github/workflows/ci.yml:164 .github/workflows/ci.yml:181"]
+        DOC["doc - cargo doc --workspace --no-deps<br/>.github/workflows/ci.yml:187 .github/workflows/ci.yml:199"]
+        COV["coverage - cargo llvm-cov lcov artefact<br/>.github/workflows/ci.yml:204 .github/workflows/ci.yml:220"]
+        DENY["deny - cargo deny check<br/>.github/workflows/ci.yml:232 .github/workflows/ci.yml:251"]
     end
-    PASS["ci-pass - the single branch-protection target named CI required<br/>.github/workflows/ci.yml:251 .github/workflows/ci.yml:265"]
+    PASS["ci-pass - the single branch-protection target named CI required<br/>.github/workflows/ci.yml:258 .github/workflows/ci.yml:261"]
 
     FMT & CLIP & TEST & SEC & WASM & DOC & COV & DENY --> PASS
 
-    N1["The test job also validates the shipped configuration contract by running the kit's own validator<br/>over forum.example.toml .github/workflows/ci.yml:107"]
-    N2["The security crates re-run is nostr-bbs-core, relay-worker, pod-worker, auth-worker, preview-worker<br/>and config .github/workflows/ci.yml:136 through .github/workflows/ci.yml:141"]
-    N3["The wasm32 job installs libc6-dev-i386 so the secp256k1-sys cross-compile succeeds<br/>.github/workflows/ci.yml:171 - which is why it can check the WHOLE workspace, not the two crates<br/>workspace.metadata.ci.wasm-check-packages names nostr-rust-forum/Cargo.toml:58. See NF-01.2."]
-    N4["ci-pass iterates every job result and fails the aggregate unless all succeeded<br/>.github/workflows/ci.yml:277"]
-    N5["INVARIANT: no toolchain pin, by owner decision 2026-10-02 R8 - the forum floats on stable rust-toolchain.toml:2<br/>under -D warnings so every release is taken the day it ships BASELINE-architecture.md:236. Recovery when a new<br/>lint fires on code we do not own: a scoped per-item allow(clippy::lint) naming the cause, as rustc 1.99 needed on<br/>every async_trait trait - nostr-bbs-mesh/src/transport.rs:236 transport.rs:249 nostr-bbs-setup-skill/src/lib.rs:71<br/>nostr-bbs-relay-worker/src/mesh.rs:141 - never a crate-wide allow, never a pin"]
+    N1["The test job also validates the shipped configuration contract by running the kit's own validator<br/>over forum.example.toml .github/workflows/ci.yml:114"]
+    N2["The security crates re-run is nostr-bbs-core, relay-worker, pod-worker, auth-worker, preview-worker<br/>and config .github/workflows/ci.yml:143 through .github/workflows/ci.yml:148"]
+    N3["The wasm32 job installs libc6-dev-i386 so the secp256k1-sys cross-compile succeeds<br/>.github/workflows/ci.yml:178 - which is why it can check the WHOLE workspace, not the two crates<br/>workspace.metadata.ci.wasm-check-packages names nostr-rust-forum/Cargo.toml:69. See NF-01.2."]
+    N4["ci-pass iterates every job result and fails the aggregate unless all succeeded<br/>.github/workflows/ci.yml:284"]
+    N5["INVARIANT: no toolchain pin, by owner decision 2026-10-02 R8 - the forum floats on stable rust-toolchain.toml:2<br/>under -D warnings so every release is taken the day it ships BASELINE-architecture.md:244-246. Recovery when a new<br/>lint fires on code we do not own: a scoped per-item allow(clippy::lint) naming the cause, as rustc 1.99 needed on<br/>every async_trait trait - nostr-bbs-mesh/src/transport.rs:236 transport.rs:249 nostr-bbs-setup-skill/src/lib.rs:71<br/>nostr-bbs-relay-worker/src/mesh.rs:141 - never a crate-wide allow, never a pin"]
     CLIP -.- N5
 ```
 
@@ -109,8 +109,8 @@ flowchart LR
     I["ingress_policy in {allowlist, open} validate.rs:56"]
     A["admin.mode in {static, d1} validate.rs:64"]
     Z1["zone ids unique validate.rs:235"]
-    ENC["ADR-2016: encrypted && visibility = public is rejected - anonymous readers<br/>can never hold a zone key validate.rs:244"]
-    Z2["slug must be lowercase a-z 0-9 hyphen validate.rs:265 validate.rs:292"]
+    ENC["ADR-2016: encrypted && visibility = public is rejected - anonymous readers<br/>can never hold a zone key validate.rs:247"]
+    Z2["slug must be lowercase a-z 0-9 hyphen validate.rs:265 validate.rs:294"]
     Z3["slug unique validate.rs:272"]
     Z4["a slug must not collide with a DIFFERENT zone's id validate.rs:277"]
 
@@ -171,7 +171,7 @@ flowchart TB
         S3["7 search :157 | 8 route nav :196 | 9 WASM :220 | 10 console errors :235"]
     end
 
-    N1["DIVERGENCE: both suites drive a REAL deployment over the public internet with a Nix-pinned Chromium<br/>path baked in e2e-forum-test.mjs:18. They are operator smoke tests, not CI gates - ci.yml runs neither."]
+    N1["DIVERGENCE: both suites drive a REAL deployment over the public internet with a Nix-pinned Chromium<br/>path baked in e2e-forum-test.mjs:19. They are operator smoke tests, not CI gates - ci.yml runs neither."]
     N2["The journeys exercise all five workers from a browser context, which is the only place the CORS and<br/>ALLOWED_ORIGIN envelopes are actually proved - see NF-07.5 and NF-08.8"]
     N3["EXTERNAL: dreamlab-ai.com is a thin CONSUMER of this kit, not part of it - see the dreamlab-ai-website<br/>area (DW-*)"]
 ```

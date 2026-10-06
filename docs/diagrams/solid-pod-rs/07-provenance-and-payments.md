@@ -20,7 +20,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/conditions.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/api.rs
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
-verified_commit: febdc8be24bdc8b148b78b43a35ae85ee863a72a
+verified_commit: 93e2200218fad37927df16a1b7784c93c475670d
 ---
 
 ## SP-07.1 The two provenance tiers
@@ -47,16 +47,16 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    IN["git_mark_write(state, resource_path, agent, message)<br/>solid-pod-rs-server/src/lib.rs:3462"]
-    SIDE{"path ends .acl, .meta or .prov.ttl?<br/>solid-pod-rs-server/src/lib.rs:3473"}
+    IN["git_mark_write(state, resource_path, agent, message)<br/>solid-pod-rs-server/src/lib.rs:3444"]
+    SIDE{"path ends .acl, .meta or .prov.ttl?<br/>solid-pod-rs-server/src/lib.rs:3455"}
     S1["Skipped: ExcludedPath<br/>solid-pod-rs/src/provenance.rs:688"]
-    CONT{"path ends with a slash?<br/>solid-pod-rs-server/src/lib.rs:3480"}
+    CONT{"path ends with a slash?<br/>solid-pod-rs-server/src/lib.rs:3462"}
     S2["Skipped: Container<br/>solid-pod-rs/src/provenance.rs:690"]
-    ROOT{"data_root configured?<br/>solid-pod-rs-server/src/lib.rs:3485"}
+    ROOT{"data_root configured?<br/>solid-pod-rs-server/src/lib.rs:3467"}
     S3["Skipped: NotConfigured<br/>solid-pod-rs/src/provenance.rs:682"]
-    SPLIT{"path splits into pod plus rest?<br/>solid-pod-rs-server/src/lib.rs:3494"}
+    SPLIT{"path splits into pod plus rest?<br/>solid-pod-rs-server/src/lib.rs:3473"}
     S4["Skipped: UnresolvablePath<br/>solid-pod-rs/src/provenance.rs:692"]
-    GITD{"data_root/{pod}/.git is a directory?<br/>solid-pod-rs-server/src/lib.rs:3502"}
+    GITD{"data_root/{pod}/.git is a directory?<br/>solid-pod-rs-server/src/lib.rs:3484"}
     S5["Skipped: NotGitBacked<br/>solid-pod-rs/src/provenance.rs:685"]
     GO["proceed to policy resolution — SP-07.3"]
 
@@ -76,7 +76,7 @@ flowchart TD
     S1 -.-> N
     N2["A skip is not a fault. ProvenanceSkip exists precisely so a correctly<br/>unmarked write is never reported as a provenance failure.<br/>solid-pod-rs/src/provenance.rs:677"]
     S5 -.-> N2
-    N3["DIVERGENCE (ADR-2004): with the server's empty default feature set this whole<br/>function is the no-op shim (solid-pod-rs-server/src/lib.rs:3668), so a default<br/>build records ZERO marks. Every provenance claim carries a --features git caveat."]
+    N3["DIVERGENCE (ADR-2004): with the server's empty default feature set this whole<br/>function is the no-op shim (solid-pod-rs-server/src/lib.rs:3650), so a default<br/>build records ZERO marks. Every provenance claim carries a --features git caveat."]
     IN -.-> N3
 ```
 
@@ -108,7 +108,7 @@ flowchart TD
 
     N["Never and Epoch never anchor INLINE — Epoch defers to the accumulator.<br/>Always is unconditional; HighValue is inline only when the resource is flagged.<br/>solid-pod-rs/src/provenance.rs:398"]
     INLINE -.-> N
-    N2["The handler rewrites Epoch to Never before calling record, then batches the SHA<br/>itself, so record's inline path only ever sees Never, Always or HighValue.<br/>solid-pod-rs-server/src/lib.rs:3545"]
+    N2["The handler rewrites Epoch to Never before calling record, then batches the SHA<br/>itself, so record's inline path only ever sees Never, Always or HighValue.<br/>solid-pod-rs-server/src/lib.rs:3527"]
     EP -.-> N2
 ```
 
@@ -145,7 +145,7 @@ stateDiagram-v2
     note right of AnchorFailed
       A failed anchor never suppresses a successful git-mark
       (solid-pod-rs/src/provenance.rs:565), and the server logs it separately
-      (solid-pod-rs-server/src/lib.rs:3586).
+      (solid-pod-rs-server/src/lib.rs:3568).
     end note
 ```
 
@@ -155,19 +155,19 @@ stateDiagram-v2
 sequenceDiagram
     autonumber
     participant H as LDP write handler
-    participant G as git_mark_write<br/>solid-pod-rs-server/src/lib.rs:3462
+    participant G as git_mark_write<br/>solid-pod-rs-server/src/lib.rs:3444
     participant R as ProvenanceReceipt<br/>solid-pod-rs/src/provenance.rs:726
     participant S as Storage
     participant C as Client
 
     H->>G: mark the write
-    G->>R: record_receipt then restore the full pod-relative path<br/>solid-pod-rs-server/src/lib.rs:3571
+    G->>R: record_receipt then restore the full pod-relative path<br/>solid-pod-rs-server/src/lib.rs:3553
     opt policy is Epoch
         G->>G: epoch_push_and_maybe_anchor — one tx notarises many commits<br/>solid-pod-rs-server/src/handlers/prov.rs:177
     end
-    G->>S: write <resource>.prov.ttl<br/>solid-pod-rs-server/src/lib.rs:3640
+    G->>S: write <resource>.prov.ttl<br/>solid-pod-rs-server/src/lib.rs:3618
     alt sidecar write failed
-        G->>R: mark_error set, stage stays local-mark-committed<br/>solid-pod-rs-server/src/lib.rs:3650
+        G->>R: mark_error set, stage stays local-mark-committed<br/>solid-pod-rs-server/src/lib.rs:3632
     end
     G-->>H: receipt
     H->>C: X-Provenance = receipt.summary()<br/>solid-pod-rs/src/provenance.rs:806
@@ -184,8 +184,8 @@ flowchart LR
     R2["POST /{pod}/_prov/anchor -> handle_anchor<br/>solid-pod-rs-server/src/handlers/prov.rs:316"]
     REG["handlers::prov::register<br/>solid-pod-rs-server/src/handlers/prov.rs:529"]
     RC["resolve_commit against the pod repo<br/>solid-pod-rs-git/src/api.rs:374"]
-    PRICE["anchor_price_sats<br/>solid-pod-rs-server/src/handlers/prov.rs:457"]
-    DEB["debit then credit on failure<br/>solid-pod-rs-server/src/handlers/prov.rs:474"]
+    PRICE["anchor_price_sats<br/>solid-pod-rs-server/src/handlers/prov.rs:460"]
+    DEB["debit then refund on failure<br/>solid-pod-rs-server/src/handlers/prov.rs:478"]
     SIDE["the .prov.ttl sidecar GET is an ORDINARY LDP read"]
 
     REG --> R1 --> RC
@@ -194,9 +194,9 @@ flowchart LR
 
     N["DIVERGENCE (baseline open item REC-11): the provenance query surface is<br/>POINT-LOOKUP only — one commit SHA, or a per-resource sidecar. There is no<br/>pod-wide _prov enumeration, so 'one queryable trace over a whole pod' is not<br/>delivered by this repo."]
     R1 -.-> N
-    N2["The explicit git-mark to Bitcoin-anchor upgrade is payment-gated and refunds on<br/>failure — credit (solid-pod-rs-server/src/handlers/prov.rs:502) is the<br/>compensating half of debit."]
+    N2["The explicit git-mark to Bitcoin-anchor upgrade is payment-gated and refunds on<br/>failure — refund (solid-pod-rs-server/src/handlers/prov.rs:508) is the<br/>compensating half of debit."]
     DEB -.-> N2
-    N3["is_sidecar (solid-pod-rs-server/src/handlers/prov.rs:451) keeps the anchor<br/>endpoint off control-plane paths."]
+    N3["is_sidecar (solid-pod-rs-server/src/handlers/prov.rs:454) keeps the anchor<br/>endpoint off control-plane paths."]
     R2 -.-> N3
 ```
 
@@ -230,17 +230,17 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    JCS["jcs — RFC 8785 canonical JSON<br/>solid-pod-rs/src/mrc20.rs:32"]
-    SHA["sha256_hex over the canonical form<br/>solid-pod-rs/src/mrc20.rs:66"]
-    ST["Mrc20State<br/>solid-pod-rs/src/mrc20.rs:77"]
-    VAL["validate_mrc20_state<br/>solid-pod-rs/src/mrc20.rs:134"]
-    LNK["verify_state_link — prev-state hash chaining<br/>solid-pod-rs/src/mrc20.rs:151"]
-    TR["Mrc20Trail<br/>solid-pod-rs/src/mrc20.rs:110"]
-    DEP["verify_mrc20_deposit<br/>solid-pod-rs/src/mrc20.rs:196"]
-    KEY["bt_derive_chained_pubkey / privkey<br/>solid-pod-rs/src/mrc20.rs:350"]
-    ADDR["bt_address — bech32m taproot<br/>solid-pod-rs/src/mrc20.rs:474"]
-    VER["verify_mrc20_anchor<br/>solid-pod-rs/src/mrc20.rs:509"]
-    ML["MempoolLookup trait<br/>solid-pod-rs/src/mrc20.rs:292"]
+    JCS["jcs — RFC 8785 canonical JSON<br/>solid-pod-rs/src/mrc20.rs:43"]
+    SHA["sha256_hex over the canonical form<br/>solid-pod-rs/src/mrc20.rs:77"]
+    ST["Mrc20State<br/>solid-pod-rs/src/mrc20.rs:115"]
+    VAL["validate_mrc20_state<br/>solid-pod-rs/src/mrc20.rs:199"]
+    LNK["verify_state_link — prev-state hash chaining<br/>solid-pod-rs/src/mrc20.rs:216"]
+    TR["Mrc20Trail<br/>solid-pod-rs/src/mrc20.rs:162"]
+    DEP["verify_mrc20_deposit<br/>solid-pod-rs/src/mrc20.rs:261"]
+    KEY["bt_derive_chained_pubkey / privkey<br/>solid-pod-rs/src/mrc20.rs:546"]
+    ADDR["bt_address — bech32m taproot<br/>solid-pod-rs/src/mrc20.rs:747"]
+    VER["verify_mrc20_anchor — state chain plus a live<br/>mempool UTXO read via MempoolLookup<br/>solid-pod-rs/src/mrc20.rs:882"]
+    ML["MempoolLookup trait<br/>solid-pod-rs/src/mrc20.rs:357"]
 
     JCS --> SHA --> ST --> VAL --> LNK --> TR
     TR --> DEP
@@ -248,32 +248,29 @@ flowchart TD
 
     N["INVARIANT: the state hash is taken over the RFC 8785 canonical serialisation,<br/>not over the raw bytes — two semantically identical JSON documents must hash<br/>identically or the chain breaks on a formatting change."]
     JCS -.-> N
-    N2["MRC20_PROFILE mono.mrc20.v0.1 and TRANSFER_OP name the wire contract<br/>solid-pod-rs/src/mrc20.rs:23"]
+    N2["MRC20_PROFILE mono.mrc20.v0.1 and TRANSFER_OP name the wire contract<br/>solid-pod-rs/src/mrc20.rs:33 and :35"]
     ST -.-> N2
-    N3["extract_transfers_to and total_transferred_to are the read side<br/>solid-pod-rs/src/mrc20.rs:174"]
+    N3["extract_transfers_to and total_transferred_to are the read side<br/>solid-pod-rs/src/mrc20.rs:239"]
     DEP -.-> N3
 ```
 
-## SP-07.10 The hand-rolled Bitcoin transaction path
+## SP-07.10 The rust-bitcoin transaction builder (ADR-2008 D1, landed)
 
 ```mermaid
 flowchart LR
-    BLD["build_transaction<br/>solid-pod-rs/src/bitcoin_tx.rs:293"]
-    P2TR["p2tr_script<br/>solid-pod-rs/src/bitcoin_tx.rs:191"]
-    TAG["tagged_hash — BIP-340/341 domain separation<br/>solid-pod-rs/src/bitcoin_tx.rs:117"]
-    XO["xonly_of<br/>solid-pod-rs/src/bitcoin_tx.rs:206"]
-    VS["verify_keypath_signature<br/>solid-pod-rs/src/bitcoin_tx.rs:464"]
-    FEE["DEFAULT_FEE_SATS 300, DUST_LIMIT_SATS 546<br/>solid-pod-rs/src/bitcoin_tx.rs:69"]
-    CO["checked_output — refuses to mint value<br/>solid-pod-rs/src/bitcoin_tx.rs:929"]
-    MINT["mint_token<br/>solid-pod-rs/src/bitcoin_tx.rs:617"]
-    XFER["transfer_token_with_key<br/>solid-pod-rs/src/bitcoin_tx.rs:718"]
-    ANC["anchor_state<br/>solid-pod-rs/src/bitcoin_tx.rs:824"]
-    VCH["build_withdraw_voucher<br/>solid-pod-rs/src/bitcoin_tx.rs:985"]
-    TXO["parse_txo_voucher<br/>solid-pod-rs/src/bitcoin_tx.rs:511"]
-    BC["MempoolBroadcast trait<br/>solid-pod-rs/src/bitcoin_tx.rs:580"]
+    BLD["build_transaction<br/>solid-pod-rs/src/bitcoin_tx.rs:272"]
+    P2TR["p2tr_script<br/>solid-pod-rs/src/bitcoin_tx.rs:117"]
+    VS["verify_keypath_signature<br/>solid-pod-rs/src/bitcoin_tx.rs:378"]
+    FEE["DEFAULT_FEE_SATS 300, DUST_LIMIT_SATS 546<br/>solid-pod-rs/src/bitcoin_tx.rs:73"]
+    CO["checked_output — refuses to mint value<br/>solid-pod-rs/src/bitcoin_tx.rs:840"]
+    MINT["mint_token<br/>solid-pod-rs/src/bitcoin_tx.rs:529"]
+    XFER["transfer_token_with_key<br/>solid-pod-rs/src/bitcoin_tx.rs:629"]
+    ANC["anchor_state<br/>solid-pod-rs/src/bitcoin_tx.rs:735"]
+    VCH["build_withdraw_voucher<br/>solid-pod-rs/src/bitcoin_tx.rs:896"]
+    TXO["parse_txo_voucher<br/>solid-pod-rs/src/bitcoin_tx.rs:423"]
+    BC["MempoolBroadcast trait<br/>solid-pod-rs/src/bitcoin_tx.rs:492"]
 
-    TAG --> P2TR --> BLD --> CO
-    XO --> BLD
+    P2TR --> BLD --> CO
     BLD --> MINT
     BLD --> XFER
     BLD --> ANC
@@ -283,9 +280,9 @@ flowchart LR
     FEE --> BLD
     TXO --> BC
 
-    N["DIVERGENCE: this is a hand-rolled consensus-serialisation and BIP-341 sighash<br/>implementation rather than a maintained Bitcoin crate. The README states the<br/>write side is validated against the OFFICIAL BIP-340/341 test vectors, which is<br/>what makes it auditable — but it remains bespoke crypto plumbing in a security<br/>path, and the workspace's own unsafe_code = deny does not cover correctness."]
+    N["The former DIVERGENCE is closed (ADR-2008 D1, landed at 0befa5b): serialisation,<br/>CompactSize, txid order, the P2TR script, the BIP-341 TapSighash and TapTweak,<br/>BIP-340 signing and bech32m now come from rust-bitcoin and libsecp256k1<br/>(solid-pod-rs/src/bitcoin_tx.rs:15). tagged_hash, xonly_of, add_mod_n,<br/>neg_mod_n and the hand-rolled bech32m encoder are DELETED. The module still<br/>decides only WHAT to build; determinism is kept with aux_rand = 0^32 so the<br/>cross-implementation golden fixture stays byte-identical to JSS."]
     BLD -.-> N
-    N2["reverse_txid, write_var_int and the modular helpers are the raw wire layer<br/>solid-pod-rs/src/bitcoin_tx.rs:86"]
+    N2["DEBT: the write side remains a native-only concern — the module is gated<br/>cfg(not(target_arch = wasm32)) behind the mrc20 feature<br/>(solid-pod-rs/src/bitcoin_tx.rs:50), so wasm consumers cannot build transactions."]
     BLD -.-> N2
 ```
 
@@ -294,7 +291,7 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main<br/>solid-pod-rs-server/src/main.rs:284
+    participant M as main<br/>solid-pod-rs-server/src/main.rs:210
     participant SEL as select_mempool_endpoint<br/>solid-pod-rs-server/src/mempool.rs:260
     participant INF as infer_network<br/>solid-pod-rs-server/src/mempool.rs:164
     participant LOG as log_mempool_selection_once<br/>solid-pod-rs-server/src/mempool.rs:325
@@ -342,53 +339,60 @@ sequenceDiagram
 
 ```mermaid
 classDiagram
+    direction TB
     class WebLedger {
-        +get_balance(did)  solid-pod-rs/src/payments.rs:136
-        +credit(did, amount)  solid-pod-rs/src/payments.rs:144
-        +debit(did, amount)  solid-pod-rs/src/payments.rs:158
+        +get_balance(did)  solid-pod-rs/src/payments.rs:412
+        +credit_by_outpoint(txid, vout, ...)  solid-pod-rs/src/payments.rs:450
+        +debit_by_payout(amount, txid)  solid-pod-rs/src/payments.rs:501
+        +reverse_payout(txid)  solid-pod-rs/src/payments.rs:536
+        +check_genesis()  solid-pod-rs/src/payments.rs:372
     }
     class LedgerEntry {
         solid-pod-rs/src/payments.rs:35
         +LedgerAmount  solid-pod-rs/src/payments.rs:47
         +chain_balance(chain)  solid-pod-rs/src/payments.rs:83
     }
+    class LedgerGenesis {
+        solid-pod-rs/src/payments.rs:121
+        operator, name, currency, created, confirmations
+    }
     class PayConfig {
-        solid-pod-rs/src/payments.rs:184
-        +ChainConfig bitcoin_mainnet  solid-pod-rs/src/payments.rs:223
-        +ChainConfig bitcoin_testnet4  solid-pod-rs/src/payments.rs:241
-        +ChainConfig bitcoin_signet  solid-pod-rs/src/payments.rs:250
+        solid-pod-rs/src/payments.rs:638
+        +ChainConfig  solid-pod-rs/src/payments.rs:688
     }
     class PaymentStore {
         <<trait>>
-        solid-pod-rs/src/payments.rs:438
+        solid-pod-rs/src/payments.rs:911
     }
     class Identity {
-        +pubkey_to_did  solid-pod-rs/src/payments.rs:450
-        +did_to_pubkey  solid-pod-rs/src/payments.rs:455
+        +pubkey_to_did  solid-pod-rs/src/payments.rs:923
+        +did_to_pubkey  solid-pod-rs/src/payments.rs:928
     }
     WebLedger *-- LedgerEntry
+    WebLedger ..> LedgerGenesis
     WebLedger ..> PaymentStore
     PayConfig ..> WebLedger
     WebLedger ..> Identity
-    note for WebLedger "debit fails closed on an insufficient or missing balance\n(solid-pod-rs/src/payments.rs:158) — that is what makes the WAC PaymentCondition\ngate in SP-04.13 safe to charge against.\npayment_required_body (solid-pod-rs/src/payments.rs:265) is the HTTP-402 body;\npay_info (:278) backs GET /pay/.info."
+    note for WebLedger "TELLER-shaped — see the paragraphs below"
 ```
+- **What it shows:** the ledger is TELLER-shaped (solidpayorg/teller parity): a fresh ledger is born with a genesis whose identity is `sha256(JCS(genesis))`, and `check_genesis` (`solid-pod-rs/src/payments.rs:372`) refuses a document whose hash is not the hash of its genesis. The only credit is `credit_by_outpoint` — the deposit's outpoint is the receipt, and a second credit for a recorded outpoint is a no-op (`ReceiptOutcome::AlreadyApplied`, `solid-pod-rs/src/payments.rs:450`). Debits are recorded as payout receipts; `reverse_payout` (`:536`) undoes a payout whose transaction never reached the chain. ADR-2008 D4/D5 (chain-derived view, credit/debit removal) are NOT built — this is still a stored number. `payment_required_body` (`solid-pod-rs/src/payments.rs:738`) is the HTTP-402 body; `pay_info` (`:751`) backs GET /pay/.info.
 
 ## SP-07.14 The `/pay/*` route family
 
 ```mermaid
 flowchart LR
-    REG["handlers::pay::register<br/>solid-pod-rs-server/src/handlers/pay.rs:1645"]
-    BAL["GET /pay/.balance -> handle_balance<br/>solid-pod-rs-server/src/handlers/pay.rs:363"]
-    DEP["POST /pay/.deposit -> handle_deposit<br/>solid-pod-rs-server/src/handlers/pay.rs:436"]
-    ADDR["GET /pay/.address -> handle_address<br/>solid-pod-rs-server/src/handlers/pay.rs:682"]
-    OFF["GET /pay/.offers -> handle_offers<br/>solid-pod-rs-server/src/handlers/pay.rs:774"]
-    SELL["POST /pay/.sell -> handle_sell<br/>solid-pod-rs-server/src/handlers/pay.rs:809"]
-    SWAP["POST /pay/.swap -> handle_swap<br/>solid-pod-rs-server/src/handlers/pay.rs:864"]
-    POOLG["GET /pay/.pool -> handle_pool_get<br/>solid-pod-rs-server/src/handlers/pay.rs:927"]
-    POOLP["POST /pay/.pool -> handle_pool_post<br/>solid-pod-rs-server/src/handlers/pay.rs:982"]
-    BUY["POST /pay/.buy -> handle_buy<br/>solid-pod-rs-server/src/handlers/pay.rs:1295"]
-    WD["POST /pay/.withdraw -> handle_withdraw<br/>solid-pod-rs-server/src/handlers/pay.rs:1384"]
-    WDS["POST /pay/.withdraw-sats -> handle_withdraw_sats<br/>solid-pod-rs-server/src/handlers/pay.rs:1487"]
+    REG["handlers::pay::register<br/>solid-pod-rs-server/src/handlers/pay.rs:1717"]
+    BAL["GET /pay/.balance -> handle_balance<br/>solid-pod-rs-server/src/handlers/pay.rs:392"]
+    DEP["POST /pay/.deposit -> handle_deposit<br/>solid-pod-rs-server/src/handlers/pay.rs:452"]
+    ADDR["GET /pay/.address -> handle_address<br/>solid-pod-rs-server/src/handlers/pay.rs:733"]
+    OFF["GET /pay/.offers -> handle_offers<br/>solid-pod-rs-server/src/handlers/pay.rs:825"]
+    SELL["POST /pay/.sell -> handle_sell<br/>solid-pod-rs-server/src/handlers/pay.rs:860"]
+    SWAP["POST /pay/.swap -> handle_swap<br/>solid-pod-rs-server/src/handlers/pay.rs:915"]
+    POOLG["GET /pay/.pool -> handle_pool_get<br/>solid-pod-rs-server/src/handlers/pay.rs:978"]
+    POOLP["POST /pay/.pool -> handle_pool_post<br/>solid-pod-rs-server/src/handlers/pay.rs:1033"]
+    BUY["POST /pay/.buy -> handle_buy<br/>solid-pod-rs-server/src/handlers/pay.rs:1362"]
+    WD["POST /pay/.withdraw -> handle_withdraw<br/>solid-pod-rs-server/src/handlers/pay.rs:1451"]
+    WDS["POST /pay/.withdraw-sats -> handle_withdraw_sats<br/>solid-pod-rs-server/src/handlers/pay.rs:1554"]
 
     REG --> BAL
     REG --> DEP
@@ -402,9 +406,9 @@ flowchart LR
     REG --> WD
     REG --> WDS
 
-    N["Every write route resolves the caller's did:nostr first — require_did and<br/>require_did_with_body (solid-pod-rs-server/src/handlers/pay.rs:326), so a pay<br/>action is always attributable to a signing key.<br/>is_valid_did_nostr (:752) is the syntax gate."]
+    N["Every write route resolves the caller's did:nostr first — require_did and<br/>require_did_with_body (solid-pod-rs-server/src/handlers/pay.rs:349), so a pay<br/>action is always attributable to a signing key.<br/>is_valid_did_nostr (:803) is the syntax gate."]
     REG -.-> N
-    N2["DIVERGENCE: the whole /pay/* surface is registered with the SAME gating as<br/>/pay/.info — always on, with no payments feature flag<br/>(solid-pod-rs-server/src/lib.rs:4643). The README's status section says not to<br/>carry value through these routes until the audit findings are fixed."]
+    N2["DIVERGENCE: the whole /pay/* surface is registered with the SAME gating as<br/>/pay/.info — always on, with no payments feature flag<br/>(solid-pod-rs-server/src/lib.rs:4625). The README's status section says not to<br/>carry value through these routes until the audit findings are fixed."]
     REG -.-> N2
 ```
 
@@ -415,21 +419,21 @@ sequenceDiagram
     autonumber
     participant H as a /pay/* handler
     participant L as PAYMENT_STATE_LOCK<br/>solid-pod-rs-server/src/lib.rs:200
-    participant PS as StoragePaymentStore<br/>solid-pod-rs-server/src/handlers/pay.rs:128
+    participant PS as StoragePaymentStore<br/>solid-pod-rs-server/src/handlers/pay.rs:129
     participant S as Storage
-    participant RC as recover_payment_intents<br/>solid-pod-rs-server/src/handlers/pay.rs:231
+    participant RC as recover_payment_intents<br/>solid-pod-rs-server/src/handlers/pay.rs:246
 
     H->>L: acquire the process-wide mutex
     Note over L: The storage API has NO cross-resource CAS primitive, so the guard must be<br/>held across the replay check, the ledger/order/pool/trail mutation and the<br/>persist.
-    H->>PS: check_replay(key)<br/>solid-pod-rs-server/src/handlers/pay.rs:279
-    H->>PS: read_state<br/>solid-pod-rs-server/src/handlers/pay.rs:168
+    H->>PS: check_replay(key)<br/>solid-pod-rs-server/src/handlers/pay.rs:302
+    H->>PS: read_state<br/>solid-pod-rs-server/src/handlers/pay.rs:169
     H->>H: mutate the ledger, order book or pool
-    H->>PS: commit_state<br/>solid-pod-rs-server/src/handlers/pay.rs:187
+    H->>PS: commit_state<br/>solid-pod-rs-server/src/handlers/pay.rs:198
     PS->>S: persist
-    H->>PS: record_replay(key)<br/>solid-pod-rs-server/src/handlers/pay.rs:283
+    H->>PS: record_replay(key)<br/>solid-pod-rs-server/src/handlers/pay.rs:306
     H->>L: release
 
-    Note over RC: A durable intent record gives crash recovery where an EXTERNAL broadcast is<br/>involved: raw_transaction_txid (solid-pod-rs-server/src/handlers/pay.rs:218)<br/>re-derives the txid so a re-run can tell "already broadcast" from "never sent".
+    Note over RC: A durable intent record gives crash recovery where an EXTERNAL broadcast is<br/>involved, raw_transaction_txid (solid-pod-rs-server/src/handlers/pay.rs:229)<br/>re-derives the txid so a re-run can tell "already broadcast" from "never sent".<br/>A definite 404 reverses the recorded payout via reverse_payout, an intent with<br/>no payout receipt is RETAINED with a warning — the ledger cannot restore a<br/>debit it has no receipt for (solid-pod-rs-server/src/handlers/pay.rs:246).
     Note over L: DIVERGENCE: the lock is PROCESS-wide. Two replicas serving the same pod<br/>storage share no lock, and the README's audit line records "non-atomic payment<br/>state" as a reproduced critical finding.
 ```
 
@@ -438,86 +442,82 @@ sequenceDiagram
 ```mermaid
 classDiagram
     class OrderBook {
-        +create_order  solid-pod-rs/src/trading.rs:180
-        +list_offers  solid-pod-rs/src/trading.rs:206
-        +cancel_order  solid-pod-rs/src/trading.rs:218
-        +execute_swap  solid-pod-rs/src/trading.rs:240
+        +create_order  solid-pod-rs/src/trading.rs:183
+        +list_offers  solid-pod-rs/src/trading.rs:209
+        +cancel_order  solid-pod-rs/src/trading.rs:221
+        +execute_swap  solid-pod-rs/src/trading.rs:243
     }
     class SellOrder {
-        solid-pod-rs/src/trading.rs:145
+        solid-pod-rs/src/trading.rs:148
     }
     class AmmPool {
-        +new(a, b, fee_bps)  solid-pod-rs/src/trading.rs:342
-        +add_liquidity  solid-pod-rs/src/trading.rs:359
-        +remove_liquidity  solid-pod-rs/src/trading.rs:408
-        +swap — constant product  solid-pod-rs/src/trading.rs:459
-        +pool_info  solid-pod-rs/src/trading.rs:531
+        +new(a, b, fee_bps)  solid-pod-rs/src/trading.rs:345
+        +add_liquidity  solid-pod-rs/src/trading.rs:362
+        +remove_liquidity  solid-pod-rs/src/trading.rs:411
+        +swap — constant product  solid-pod-rs/src/trading.rs:462
+        +pool_info  solid-pod-rs/src/trading.rs:534
     }
     class Exchange {
-        +get_or_create_pool  solid-pod-rs/src/trading.rs:568
-        +get_pool  solid-pod-rs/src/trading.rs:581
+        +get_or_create_pool  solid-pod-rs/src/trading.rs:571
+        +get_pool  solid-pod-rs/src/trading.rs:584
     }
-    class MultiCurrency {
-        +get_currency_balance  solid-pod-rs/src/trading.rs:34
-        +credit_currency  solid-pod-rs/src/trading.rs:43
-        +debit_currency  solid-pod-rs/src/trading.rs:87
+    class WebLedgerTrading {
+        <<impl WebLedger>>
+        +get_currency_balance  solid-pod-rs/src/trading.rs:37
+        -credit_currency  solid-pod-rs/src/trading.rs:46
+        -debit_currency  solid-pod-rs/src/trading.rs:90
     }
     Exchange *-- AmmPool
     OrderBook *-- SellOrder
-    OrderBook ..> MultiCurrency
-    AmmPool ..> MultiCurrency
-    note for AmmPool "pool_key (solid-pod-rs/src/trading.rs:598) normalises the currency pair so\n(A,B) and (B,A) resolve to one pool; isqrt_u128 (:607) is the integer square\nroot the LP-share maths needs — everything is integer arithmetic, no floats\nin a value path."
+    OrderBook ..> WebLedgerTrading
+    AmmPool ..> WebLedgerTrading
+    note for AmmPool "pool_key (solid-pod-rs/src/trading.rs:601) normalises the currency pair so\n(A,B) and (B,A) resolve to one pool; isqrt_u128 (:610) is the integer square\nroot the LP-share maths needs — everything is integer arithmetic, no floats\nin a value path. Per-currency balances are crate-private helpers on WebLedger:\noutside this crate a balance is raised only by credit_by_outpoint."
 ```
 
-## SP-07.17 The unverified deposit stand-in
+## SP-07.17 Deposits are MRC20-only — the stand-in is deleted (ADR-2008 D6)
 
 ```mermaid
 flowchart TD
-    IN["POST /pay/.deposit -> handle_deposit<br/>solid-pod-rs-server/src/handlers/pay.rs:436"]
-    SNIFF{"body_is_mrc20?<br/>solid-pod-rs-server/src/handlers/pay.rs:529"}
-    MRC["handle_mrc20_deposit — the VERIFIED path<br/>solid-pod-rs-server/src/handlers/pay.rs:563"]
-    FLAG{"deposit_txo_standin_enabled?<br/>solid-pod-rs-server/src/lib.rs:390"}
-    R501["501 Not Implemented"]
-    STAND["credit (vout + 1) * 1000 sats with NO chain check<br/>solid-pod-rs-server/src/main.rs:124"]
+    IN["POST /pay/.deposit -> handle_deposit<br/>solid-pod-rs-server/src/handlers/pay.rs:452"]
+    SNIFF{"body_is_mrc20?<br/>solid-pod-rs-server/src/handlers/pay.rs:480"}
+    MRC["handle_mrc20_deposit — the only credit path<br/>solid-pod-rs-server/src/handlers/pay.rs:521"]
+    R501["501 Not Implemented — unconditionally:<br/>no flag, no branch, no payment state written<br/>solid-pod-rs-server/src/handlers/pay.rs:467"]
 
     IN --> SNIFF
     SNIFF -- yes --> MRC
-    SNIFF -- no --> FLAG
-    FLAG -- off, the DEFAULT --> R501
-    FLAG -- explicitly on --> STAND
+    SNIFF -- no --> R501
 
-    N["INVARIANT: the stand-in is OFF by default and the binary logs a loud warning<br/>when it is switched on (solid-pod-rs-server/src/main.rs:307). It is a free-money<br/>oracle until backed by a live UTXO existence, value and ownership check."]
-    STAND -.-> N
-    N2["The genuinely verified MRC20 deposit path is unaffected by the flag — the two<br/>branches are separated by a body sniff, not by a shared code path."]
+    N["INVARIANT: the Phase-0 stand-in that credited (vout + 1) * 1000 sats behind<br/>an operator flag was DELETED at e62d028, not left default-off (ADR-2008 D6):<br/>a pod must not carry a reachable free-money oracle. A non-MRC20 body gets 501<br/>and writes no payment state."]
+    R501 -.-> N
+    N2["ISSUER AND TICKER BINDING: the trail must be anchored on the pod's configured<br/>issuer key — pod_issuer_pubkey<br/>(solid-pod-rs-server/src/handlers/pay.rs:494), accepts_issuer check :546 —<br/>and carry the configured ticker. A self-issued trail with the right ticker is<br/>a different token: 403. Another ticker: 400."]
     MRC -.-> N2
-    N3["pod_issuer_pubkey (solid-pod-rs-server/src/handlers/pay.rs:543) identifies the<br/>pod's own issuing key on the verified branch."]
+    N3["CREDIT BY OUTPOINT RECEIPT: after verify_mrc20_anchor and a replay guard on<br/>the anchor outpoint, credit_by_outpoint credits the caller's TICKER balance,<br/>never the satoshi balance<br/>(solid-pod-rs-server/src/handlers/pay.rs:652). One coin can never pay twice."]
     MRC -.-> N3
 ```
 
-## SP-07.18 The ledger today, and the proposed chain view (ADR-2008, proposed)
+## SP-07.18 The ledger today, and the remaining chain-view work (ADR-2008, partial)
 
 ```mermaid
 flowchart TB
-    subgraph LIVE["LIVE at 727549163 — a stored number this crate mutates"]
-        GB["get_balance reads the stored map<br/>solid-pod-rs/src/payments.rs:136"]
-        CR["credit mutates it upward<br/>solid-pod-rs/src/payments.rs:144"]
-        DB["debit fails closed on an insufficient balance<br/>solid-pod-rs/src/payments.rs:158"]
-        WL["write_ledger on PaymentStore is the authority<br/>solid-pod-rs/src/payments.rs:440"]
-        ST["Phase 0 stand-in credits vout plus one, times 1000 sats<br/>solid-pod-rs-server/src/handlers/pay.rs:498"]
-        ST --> CR
+    subgraph LIVE["LIVE at 93e22002 — a stored number this crate mutates"]
+        GB["get_balance reads the stored map<br/>solid-pod-rs/src/payments.rs:412"]
+        CR["credit_by_outpoint — the only credit, outpoint<br/>as receipt; verified MRC20 deposits only<br/>solid-pod-rs/src/payments.rs:450"]
+        DB["debit_by_payout records a payout receipt;<br/>reverse_payout undoes an unconfirmed payout<br/>solid-pod-rs/src/payments.rs:501"]
+        WL["write_ledger on PaymentStore is still the authority<br/>solid-pod-rs/src/payments.rs:913"]
+        ST["Landed: rust-bitcoin port D1, golden tests D2,<br/>TXO stand-in deleted D6 — verified at e62d028<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:97"]
+        ST -.-> CR
         CR --> WL
         DB --> WL
         GB --> WL
     end
-    subgraph PROP["PROPOSED, nothing built — decision_status proposed,<br/>implementation_status none, adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-6"]
-        P1["get_balance reads through sidestr-node and folds<br/>the UTXOs for that did:nostr, bounded cache<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:55"]
-        P2["credit and debit leave the public API — the only<br/>credit is a peg-in claim on the chain<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:60"]
+    subgraph PROP["NOT BUILT — decision_status proposed, implementation_status partial,<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-6"]
+        P1["D4: get_balance reads through sidestr-node and folds<br/>the UTXOs for that did:nostr, bounded cache<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:55"]
+        P2["D5: credit and debit leave the public API — the only<br/>credit is a peg-in claim on the chain<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:60"]
         P3["write_ledger stops being an authority, writes<br/>become cache population<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:62"]
-        P4["the TXO stand-in is DELETED, not left default-off<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:67"]
-        P5["bitcoin_tx.rs and mrc20.rs port to rust-bitcoin<br/>plus secp256k1, add_mod_n and neg_mod_n deleted<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:37"]
-        P6["acceptance gate: the three golden tests pass<br/>byte-identical over an unmodified fixture<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:43"]
+        P4["D7: non-atomic payment state fixed first<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:72"]
+        P5["D8: both consumers adopt one post-port version<br/>in lockstep — an exit criterion, not a follow-up<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:76"]
         P1 --> P2 --> P3
-        P4 --> P5 --> P6
+        P4 --> P5
     end
     LIVE --> PROP
 
@@ -525,9 +525,9 @@ flowchart TB
     PROP -.-> N
     N2["EXTERNAL: ADR-2008 is this crate's projection of decisions taken elsewhere —<br/>agentbox ADR-2096 D3 and ADR-2099 D2/D3, and PRD-024 D0/D3/D4 — extending<br/>ADR-2007's single-explorer seam with the estate's own chain. MRC20 retires as a<br/>token rail but is retained as an anchoring primitive because block-trail anchors<br/>and the host's AnchorConfirmer depend on it.<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:15"]
     PROP -.-> N2
-    N3["EXTERNAL: both consumers adopt one post-port version in LOCKSTEP — the host at<br/>0.4.0-alpha.15 and the forum at an exact 0.5.0-alpha.7 — and closing that skew is<br/>an exit criterion, not a follow-up. See SP-09.7.<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:76"]
-    PROP -.-> N3
+    N3["DIVERGENCE (D3 in part): the chained-key derivation ports and stays<br/>byte-identical, but the .buy / .withdraw MRC20 token routes are still live —<br/>their retirement belongs with D4/D5<br/>(adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:50,<br/>implementation note :144-145)."]
+    LIVE -.-> N3
 ```
-- **Tension (ADR-2008 vs code):** the record describes the TXO stand-in as "guarded only by a replay key" (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:67-69), but the branch is gated on `deposit_txo_standin_enabled` (`solid-pod-rs-server/src/handlers/pay.rs:461`) which defaults to false (`solid-pod-rs-server/src/lib.rs:390`); the free-money oracle is reachable only when an operator switches it on, as SP-07.17 draws it.
+- **Tension (ADR-2008 vs code):** D3 declares MRC20 "retired as a token rail" (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:50-52), yet `/pay/.buy` and `/pay/.withdraw` still execute token trades and withdrawals against the stored ledger (`solid-pod-rs-server/src/handlers/pay.rs:1362`, `:1451`) — the record itself concedes this is D3 "in part", pending D4/D5 (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:98, :144-145).
 - **Open:** the record makes fixing non-atomic payment state a precondition of the port (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:72), but the lock it would have to replace is process-wide with no cross-resource CAS primitive behind it (`solid-pod-rs-server/src/lib.rs:200`) — nothing states what replaces it.
-- **Invariant:** nothing in the PROPOSED half is drawn as live; the record carries `decision_status: proposed` and `implementation_status: none` (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-6), and its own Verification section says "Proposed; nothing built" (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:97).
+- **Invariant:** the PROPOSED half is drawn as not built; the record carries `decision_status: proposed` and `implementation_status: partial` (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-6), and its Verification section states exactly what landed — "D1, D2 and D6 are built and verified at `e62d028`" while "D4, D5, D7 and D8 are not built" (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:97-98).

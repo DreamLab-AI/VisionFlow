@@ -38,7 +38,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/mcp/skills.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/handlers/legacy_notifications.rs
-verified_commit: febdc8be24bdc8b148b78b43a35ae85ee863a72a
+verified_commit: 93e2200218fad37927df16a1b7784c93c475670d
 ---
 
 ## SP-08.1 Solid Notifications 0.2 — the three channels
@@ -62,7 +62,7 @@ flowchart TD
 
     N["InMemoryNotifications caps subscriptions at DEFAULT_MAX_SUBSCRIPTIONS 10 000<br/>(solid-pod-rs/src/notifications/mod.rs:125) — an unbounded subscription table is<br/>a memory-exhaustion vector on a public pod."]
     SUB -.-> N
-    N2["The Updates-via response header advertises the WebSocket endpoint on every LDP<br/>response (solid-pod-rs-server/src/lib.rs:1141) — see SP-03.11."]
+    N2["The Updates-via response header advertises the WebSocket endpoint on every LDP<br/>response (solid-pod-rs-server/src/lib.rs:1126) — see SP-03.11."]
     WS -.-> N2
 ```
 
@@ -278,7 +278,7 @@ stateDiagram-v2
 sequenceDiagram
     autonumber
     participant C as Client
-    participant SRV as handle_forge<br/>solid-pod-rs-server/src/lib.rs:4466
+    participant SRV as handle_forge<br/>solid-pod-rs-server/src/lib.rs:4448
     participant F as ForgeService::handle<br/>solid-pod-rs-forge/src/lib.rs:219
     participant A as resolve_agent<br/>solid-pod-rs-forge/src/auth.rs:29
     participant R as parse_route<br/>solid-pod-rs-forge/src/router.rs:172

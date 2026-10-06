@@ -41,7 +41,7 @@ sources:
   - ../project/src/main.rs
   - ../project/src/handlers/api_handler/analytics/params_handlers.rs
   - ../project/src/handlers/api_handler/analytics/types.rs
-verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
+verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
 ---
 
 ## VC-15.1 POST /analytics/clustering/run — spectral/kmeans/louvain/default dispatch with CPU fallback
@@ -361,7 +361,7 @@ sequenceDiagram
     participant RT as Route<br/>analytics/mod.rs:186
     participant CS as compute_sssp<br/>sssp_handlers.rs:165
     participant GSS as GraphServiceSupervisor (graph_service_addr)<br/>graph_service_supervisor.rs:1638
-    participant GSA as GraphStateActor<br/>graph_state_actor.rs:1273
+    participant GSA as GraphStateActor<br/>graph_state_actor.rs:1301
 
     C->>RT: POST /analytics/sssp/compute {sourceNode}
     RT->>CS: compute_sssp(request)
@@ -371,7 +371,7 @@ sequenceDiagram
     alt source_node_id not in node_map
         GSA-->>GSS: Err Source node not found :753-755
     else
-        GSA->>GSA: reconstruct predecessor chain into path_map :802-812
+        GSA->>GSA: reconstruct predecessor chain into path_map :808-824
         GSA-->>GSS: Ok(PathfindingResult{distances,paths,computation_time_ms})
     end
     GSS-->>CS: propagate
@@ -474,7 +474,7 @@ sequenceDiagram
     participant GSA as GraphStateActor<br/>graph_state_actor.rs
     participant SVC as SemanticPathfindingService<br/>semantic_pathfinding_service.rs:86
 
-    Note over CFG: mounted at web-scope pathfinding by main.rs:1143, distinct from the analytics-scope path family in VC-15.6 to VC-15.9
+    Note over CFG: mounted at web-scope pathfinding by main.rs:1151, distinct from the analytics-scope path family in VC-15.6 to VC-15.9
 
     C->>CFG: POST /pathfinding/semantic-path {startId,endId,query}
     CFG->>FSP: find_semantic_path(request)

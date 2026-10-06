@@ -28,10 +28,10 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-preview-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-search-worker/wrangler.toml
   - ../nostr-rust-forum/.github/workflows/ci.yml
-verified_commit: 13cbe6cbad7ee7ff3b609233a8bee3dd8eae1f3e
+verified_commit: 72463fbde35ac4c68539b1f65a08ff03b9941201
 ---
 
-## NF-01.1 Fifteen crates in four layers
+## NF-01.1 Nineteen crates in four layers
 
 ```mermaid
 flowchart TB
@@ -56,8 +56,11 @@ flowchart TB
         FC["nostr-bbs-forum-client nostr-rust-forum/Cargo.toml:29"]
         BBS["nostr-bbs-bbs-client nostr-rust-forum/Cargo.toml:32 - served at /community/bbs/"]
     end
-    ZM["nostr-bbs-zone-migrate nostr-rust-forum/Cargo.toml:37 - operator CLI, native-only binary, ADR-2017 sealed-original migration"]
-    CANARY["nostr-bbs-upstream-canary nostr-rust-forum/Cargo.toml:46 - validation only, linked into no binary"]
+    ZM["nostr-bbs-zone-migrate nostr-rust-forum/Cargo.toml:48 - operator CLI, native-only binary, ADR-2017 sealed-original migration"]
+    PK["heads-up poker - pure engine + native house seat<br/>nostr-bbs-poker nostr-rust-forum/Cargo.toml:30<br/>nostr-bbs-poker-citizen nostr-rust-forum/Cargo.toml:33"]
+    SA["nostr-bbs-sidestr-admin nostr-rust-forum/Cargo.toml:37 - operator CLI for the pinned sidestr chains"]
+    GP["nostr-bbs-governance-probe nostr-rust-forum/Cargo.toml:52 - ADR-2011 M4 probe suite, one receipt per probe"]
+    CANARY["nostr-bbs-upstream-canary nostr-rust-forum/Cargo.toml:57 - validation only, linked into no binary"]
 
     AUTH --> CORE
     POD --> CORE
@@ -67,6 +70,9 @@ flowchart TB
     FC --> CORE
     BBS --> CORE
     ZM --> CORE
+    PK --> CORE
+    SA --> CORE
+    GP --> CORE
     CFG --> RELAY
     CFG --> FC
     RATE --> AUTH
@@ -75,10 +81,10 @@ flowchart TB
     ASCII --> BBS
     MESH -.->|"designed, not wired in README.md:210"| RELAY
 
-    N1["resolver 2, edition 2021, rust-version 1.85 nostr-rust-forum/Cargo.toml:2 nostr-rust-forum/Cargo.toml:53"]
-    N2["DIVERGENCE: the kit releases as one set, but only four crates moved to 1.0.0-beta.12<br/>nostr-rust-forum/Cargo.toml:173-176, crates/nostr-bbs-core/Cargo.toml:3 - nostr-bbs-ascii<br/>is still beta.10 nostr-rust-forum/Cargo.toml:177, crates/nostr-bbs-ascii/Cargo.toml:3"]
-    N3["DOC-DRIFT ADR-2007 / BASELINE known-divergence: the Cargo.toml comment above the path deps still<br/>says published to crates.io as 1.0.0-beta.3 while the tree is on beta.12 nostr-rust-forum/Cargo.toml:172"]
-    N4["nostr-bbs-zone-migrate is library-plus-native-binary only, so it still passes the wasm32 workspace<br/>check nostr-rust-forum/Cargo.toml:34-36; seals plaintext channel history into sealed-original<br/>envelopes, verifies, then purges the plaintext crates/nostr-bbs-zone-migrate/Cargo.toml:5"]
+    N1["resolver 2, edition 2021, rust-version 1.85 nostr-rust-forum/Cargo.toml:2 nostr-rust-forum/Cargo.toml:64"]
+    N2["DIVERGENCE: the kit releases as one set, but only six crates moved to 1.0.0-beta.15<br/>nostr-rust-forum/Cargo.toml:184-189, crates/nostr-bbs-core/Cargo.toml:3 - nostr-bbs-ascii<br/>is still beta.10 nostr-rust-forum/Cargo.toml:188, crates/nostr-bbs-ascii/Cargo.toml:3"]
+    N3["DOC-DRIFT ADR-2007 / BASELINE known-divergence: the Cargo.toml comment above the path deps still<br/>says published to crates.io as 1.0.0-beta.3 while the tree is on beta.15 nostr-rust-forum/Cargo.toml:183"]
+    N4["nostr-bbs-zone-migrate is library-plus-native-binary only, so it still passes the wasm32 workspace<br/>check nostr-rust-forum/Cargo.toml:46-48; seals plaintext channel history into sealed-original<br/>envelopes, verifies, then purges the plaintext crates/nostr-bbs-zone-migrate/Cargo.toml:5"]
 ```
 
 ## NF-01.2 Build matrix — one target, one release profile
@@ -86,18 +92,18 @@ flowchart TB
 ```mermaid
 flowchart LR
     TC["rust-toolchain.toml:2 channel stable<br/>rust-toolchain.toml:3 targets wasm32-unknown-unknown"]
-    PROF["release profile nostr-rust-forum/Cargo.toml:191<br/>opt-level z nostr-rust-forum/Cargo.toml:192<br/>panic abort nostr-rust-forum/Cargo.toml:196"]
+    PROF["release profile nostr-rust-forum/Cargo.toml:203<br/>opt-level z nostr-rust-forum/Cargo.toml:204<br/>panic abort nostr-rust-forum/Cargo.toml:208"]
     WB["worker-build --release<br/>nostr-bbs-auth-worker/wrangler.toml:6<br/>nostr-bbs-relay-worker/wrangler.toml:6<br/>nostr-bbs-pod-worker/wrangler.toml:6<br/>nostr-bbs-preview-worker/wrangler.toml:6<br/>nostr-bbs-search-worker/wrangler.toml:6"]
     SHIM["build/worker/shim.mjs entrypoint<br/>nostr-bbs-relay-worker/wrangler.toml:2"]
-    CIW["declared wasm-check set is two crates<br/>nostr-rust-forum/Cargo.toml:58"]
-    CIJOB["actual CI wasm job checks the WHOLE workspace<br/>.github/workflows/ci.yml:174"]
+    CIW["declared wasm-check set is two crates<br/>nostr-rust-forum/Cargo.toml:69"]
+    CIJOB["actual CI wasm job checks the WHOLE workspace<br/>.github/workflows/ci.yml:181"]
 
     TC --> PROF --> WB --> SHIM
     TC --> CIW
     TC --> CIJOB
 
-    N1["panic = abort is not a tuning choice - workers and WASM cannot unwind, so the unwinding tables are<br/>dead weight nostr-rust-forum/Cargo.toml:186-190"]
-    N2["DOC-DRIFT: workspace.metadata.ci.wasm-check-packages names two crates nostr-rust-forum/Cargo.toml:58<br/>with a comment saying to expand it as the secp256k1-sys cross-compile resolves nostr-rust-forum/Cargo.toml:55-57,<br/>but no workflow or script reads that key - the wasm job runs cargo check --workspace<br/>.github/workflows/ci.yml:174, made possible by installing libc6-dev-i386 .github/workflows/ci.yml:171.<br/>The metadata is inert."]
+    N1["panic = abort is not a tuning choice - workers and WASM cannot unwind, so the unwinding tables are<br/>dead weight nostr-rust-forum/Cargo.toml:198-201"]
+    N2["DOC-DRIFT: workspace.metadata.ci.wasm-check-packages names two crates nostr-rust-forum/Cargo.toml:69<br/>with a comment saying to expand it as the secp256k1-sys cross-compile resolves nostr-rust-forum/Cargo.toml:67-68,<br/>but no workflow or script reads that key - the wasm job runs cargo check --workspace<br/>.github/workflows/ci.yml:181, made possible by installing libc6-dev-i386 .github/workflows/ci.yml:178.<br/>The metadata is inert."]
     N3["compatibility_date 2025-09-01 is identical across all five templates, e.g. nostr-bbs-search-worker/wrangler.toml:3"]
 ```
 
@@ -146,7 +152,7 @@ classDiagram
         comrak 0.38 : nostr-rust-forum/Cargo.toml:122
         image 0.24 pure-Rust decoders only : nostr-rust-forum/Cargo.toml:183
         rusqlite 0.37 bundled, test-only for the shared whitelist SQL : nostr-rust-forum/Cargo.toml:64
-        solid-pod-rs EXACT =0.5.0-alpha.10 core : nostr-rust-forum/Cargo.toml:170
+        solid-pod-rs EXACT =0.5.0-alpha.12 core : nostr-rust-forum/Cargo.toml:181
     }
     class SolidPodRs {
         wac : pod-worker acl
@@ -156,7 +162,7 @@ classDiagram
     }
     Workspace --> SolidPodRs
 
-    note for Workspace "INVARIANT ADR-2007: solid-pod-rs stays an EXACT (=) pin - a caret range would let a resolve pull a newer published alpha silently nostr-rust-forum/Cargo.toml:167-170"
+    note for Workspace "INVARIANT ADR-2007: solid-pod-rs stays an EXACT (=) pin - a caret range would let a resolve pull a newer published alpha silently nostr-rust-forum/Cargo.toml:178-180"
     note for SolidPodRs "EXTERNAL: the consumer surface is enumerated in docs/consumer-surface-map.md:14 - see the solid-pod-rs area (SP-*) and NF-04"
 ```
 

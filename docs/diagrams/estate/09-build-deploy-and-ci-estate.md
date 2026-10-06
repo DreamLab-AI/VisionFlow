@@ -68,7 +68,7 @@ sources:
   - ../project/agentbox/services/nostr-pod-bridge/tests/role_isolation.rs
   - ../project/agentbox/scripts/ci/env-secret-inventory.js
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
-verified_commit: {visionclaw: dd420fbc722a7a4a50e968162ac6c3eaff6972b2, agentbox: d03defbeaca6c52d6bf3f7338d3f465a109fcdbf}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296}
 ---
 ## ES-09.1 The host-vs-container build trap — wrong path vs sanctioned path
 ```mermaid
@@ -284,7 +284,7 @@ stateDiagram-v2
         binary already compiled, no wrapper script
     end note
     note left of supervisordRootProd
-        cross-estate compare (agentbox flake.nix 2004):
+        cross-estate compare (agentbox flake.nix 3521):
         agentbox supervisord also runs as PID1 root,
         but every long-running program declares user devuser
         per-program — this file has no per-program user line
@@ -376,16 +376,16 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph FLAKE["agentbox/flake.nix — image composition"]
-        NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate agentbox/flake.nix:359"]
-        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2315, agentbox/flake.nix:2346,<br/>agentbox/flake.nix:2362<br/>program blocks e.g. management-api, bootstrap-seal"]
-        SUPWRITE["writeText supervisord.conf<br/>agentbox/flake.nix:3565-3569"]
+        NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate agentbox/flake.nix:427"]
+        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2491, agentbox/flake.nix:2522,<br/>agentbox/flake.nix:2538<br/>program blocks e.g. management-api, bootstrap-seal"]
+        SUPWRITE["writeText supervisord.conf<br/>agentbox/flake.nix:3825-3829"]
     end
     subgraph TOML["agentbox/agentbox.toml — RUNNING config, not a template"]
         GATEKEY["gate key e.g. interaction_plane.enabled"]
     end
     subgraph MANIFEST["agentbox/management-api/lib/system-manifest.js"]
-        CATALOGUE["CATALOGUE entry<br/>system-manifest.js:42<br/>gate, service, apply_class"]
-        APPLYCLASS["APPLY_CLASSES:<br/>live system-manifest.js:28, boot system-manifest.js:29,<br/>rebuild system-manifest.js:30<br/>ADR-039 apply-class taxonomy"]
+        CATALOGUE["CATALOGUE entry<br/>system-manifest.js:39<br/>gate, service, apply_class"]
+        APPLYCLASS["APPLY_CLASSES:<br/>live system-manifest.js:27, boot system-manifest.js:28,<br/>rebuild system-manifest.js:29<br/>ADR-039 apply-class taxonomy"]
     end
 
     GATEKEY -->|"read at eval time"| NIXPKG
@@ -406,7 +406,7 @@ flowchart TB
 
     subgraph SUBMOD["VisionClaw submodule pointer-bump"]
         GITMODULES[".gitmodules<br/>submodule agentbox<br/>url github.com/DreamLab-AI/agentbox.git"]
-        SUBSTATUS["git submodule status<br/>+89301ec7...5535 agentbox<br/>+ prefix: checkout differs from index"]
+        SUBSTATUS["git submodule status<br/>+6466e393...393 agentbox<br/>+ prefix: checkout differs from index"]
         SUBUPDATE["cd agentbox and git checkout NEW_SHA<br/>then git add agentbox (records gitlink)"]
         SUBCOMMIT["git commit records new gitlink SHA<br/>in the VisionClaw superproject tree"]
     end
@@ -555,36 +555,40 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GH as push touching compose, ADRs, the egress policy, entrypoint,<br/>management-api, lib, scripts, tests/security, flake, skills, mcp,<br/>schema or the manifest invariants.yml:7-33
-    participant J as invariants job<br/>invariants.yml:41
+    participant GH as push touching compose, ADRs, the egress policy, entrypoint,<br/>management-api, lib, scripts, tests/security, flake, skills, mcp,<br/>schema or the manifest invariants.yml:7-45
+    participant J as invariants job<br/>invariants.yml:53
 
-    GH->>J: checkout fetch-depth 0 :47
-    J->>J: check-seccomp.sh :58
-    J->>J: check-nnp.sh (no-new-privileges) :61
-    J->>J: check-ports-loopback.sh :64
+    GH->>J: checkout fetch-depth 0 :59
+    J->>J: runtime-delivery.test.cjs, non-disruptive preparation<br/>and scoped activation (ADR-2132) :70
+    J->>J: check-seccomp.sh :73
+    J->>J: check-nnp.sh (no-new-privileges) :76
+    J->>J: check-ports-loopback.sh :79
     Note over J: ADR-2013: sweeps EVERY docker-compose*.yml via a real<br/>YAML parser (check-ports-loopback.mjs), replacing an<br/>awk line-walker that missed nested-mapping publishes
     Note over J: SANCTIONED allowlist: 9096 sovereign ingress,<br/>voice 8443/8444, browsercontainer 5903/8931/9222,<br/>gui-tools 5905/9876/9877, xr-runtime 5904
     Note over J: DIVERGENCE: implementation_status partial — the<br/>dated closeout says the scanner does not yet cover<br/>every equivalent publish syntax form
-    J->>J: check-listeners.test.mjs :67, the tests/security/**<br/>trigger path guards this gate's own unit tests
-    J->>J: aoe-launch-never-attaches test (2026-10-01, the aoe pin<br/>past the non-tty attach fix) :70
-    J->>J: check-db-password.sh :73
-    J->>J: check-secret-not-in-env.sh :76
-    J->>J: custody W2 - env-secret-inventory --check, its unit tests and the<br/>RC-X1-06 scrub contract :83, :85, :87 - see ES-09.24
-    J->>J: check-single-metrics.js :90
-    J->>J: check-no-npx-latest.sh (ratchet) :93
-    J->>J: lint-skills.sh :96
-    J->>J: deepsec-gate.test.mjs :103
-    J->>J: check-manifest-catalogue.js (ADR-039 gate-path parity) :109
-    J->>J: check-declared-vs-running against the dated runtime snapshot :116
-    J->>J: check-no-logseq-paths.sh :121
+    J->>J: check-listeners.test.mjs :82, the tests/security/**<br/>trigger path guards this gate's own unit tests
+    J->>J: aoe-launch-never-attaches test (2026-10-01, the aoe pin<br/>past the non-tty attach fix) :85
+    J->>J: check-db-password.sh :88
+    J->>J: check-secret-not-in-env.sh :91
+    J->>J: custody W2 - env-secret-inventory --check and its unit<br/>tests, plus compose-role-env (W10) :98, :103, :105 - see ES-09.24
+    J->>J: RC-X1-01 to RC-X1-07 runtime contracts, the real entrypoint<br/>functions against a scratch root - :112, :114, :116, :118,<br/>:120, :122, :124 - see ES-09.24
+    J->>J: check-single-metrics.js :127
+    J->>J: check-no-npx-latest.sh (ratchet) :130
+    J->>J: lint-skills.sh :133
+    J->>J: deepsec-gate.test.mjs :140
+    J->>J: check-manifest-catalogue.js (ADR-039 gate-path parity) :146
+    J->>J: ruflo-console bake + boot projection test :149
+    J->>J: check-declared-vs-running against the dated runtime snapshot,<br/>plus its unit tests :156, :158
+    J->>J: check-no-logseq-paths.sh :161
     Note over J: ADR-2028: vault.root is the single corpus path<br/>authority, greps for hard-coded workspace/logseq<br/>outside docs/archive and docs/adr exemptions
-    J->>J: protocol-registry-lint, kind rows owned and no collisions :133
-    J->>J: adr-index-gen.js docs/adr --check :143
-    J->>J: adr-index-gen.js docs/adr --check-index (ADR-2001) :151
-    J->>J: N-7 render-egress-register.js --check :158 - see ES-09.24
-    J->>J: adr-ratchet self-test :161, then adr-ratchet.sh over the push range :163-166
+    J->>J: federation-fixture-check (ADR-2025) :168
+    J->>J: protocol-registry-lint and its unit tests, kind rows<br/>owned and no collisions (ADR-2105) :173, :175
+    J->>J: adr-index-gen.js docs/adr --check :183
+    J->>J: adr-index-gen.js docs/adr --check-index (ADR-2001) :191
+    J->>J: N-7 render-egress-register.js --check :198 - see ES-09.24
+    J->>J: adr-ratchet self-test :201, then adr-ratchet.sh over the push range :206
     Note over J: the ratchet script is byte-identical to the host copy<br/>(agentbox/scripts/adr-ratchet.sh:36 carries the same 2026-10-20<br/>end date) so both ledgers run one rule. see ES-09.12
-    J->>J: check-crate-licensing.sh :169
+    J->>J: check-crate-licensing.sh :209
     Note over J: DRIFT resolved — the vault-frontmatter unit test step<br/>(node --test mcp/servers/lib/__tests__/*.test.js) is GONE:<br/>ADR-2107/ADR-2108 deleted the V2 frontmatter writer it gated<br/>along with the ontology write path. `vault validate` is the<br/>successor contract check, run against the corpus not a helper.
 ```
 
@@ -592,16 +596,22 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GH as PR touching adapters, the sovereign signer,<br/>role-secret and sidechain paths<br/>contract-tests.yml:5-43
-    participant C as contract job<br/>contract-tests.yml:92
+    participant GH as PR touching adapters, the sovereign signer,<br/>role-secret and sidechain paths<br/>contract-tests.yml:5-55
+    participant C as contract job<br/>contract-tests.yml:116
+    participant CU as custody job (ADR-2122)<br/>contract-tests.yml:195
 
-    GH->>C: setup Node 22 (matches runtime image) :99-104
-    C->>C: npm ci in management-api/ contract-tests.yml:108<br/>and repo-root npm ci --ignore-scripts contract-tests.yml:115
-    C->>C: npx jest ../tests/contract/ --testPathPatterns contract filename filter<br/>contract-tests.yml:119 (plural since jest 30 dropped the singular flag, 23e5818a6)
-    C->>C: node:test - chain identity route, pods signer as the sovereign identity,<br/>the sidestr rail, sidechain tip-age and witness - contract-tests.yml:123-149
-    C->>C: upload contract-test-results artifact contract-tests.yml:151-157
+    GH->>C: setup Node 22 (matches runtime image) :123-128
+    C->>C: npm ci in management-api/ contract-tests.yml:132<br/>and repo-root npm ci --ignore-scripts contract-tests.yml:139
+    C->>C: npx jest ../tests/contract/ --testPathPatterns contract filename filter<br/>contract-tests.yml:143 (plural since jest 30 dropped the singular flag, 23e5818a6)
+    C->>C: node:test - chain identity route, pods signer as the sovereign identity,<br/>the ROLE-SECRET loader and its consumers (custody W2), the sidestr<br/>rail, sidechain tip-age and witness - contract-tests.yml:147-179
+    C->>C: upload contract-test-results artifact contract-tests.yml:181-187
     Note over C: every durable-state integration rides one of five<br/>adapter slots (beads, pods, memory, events, orchestrator)<br/>and must pass tests/contract/ for all implementation classes
-    Note over C: DEBT: tests/sovereign/role-secret.node-test.js and role-secret.js<br/>TRIGGER this job (contract-tests.yml:20-21) but no step runs that test,<br/>while invariants.yml:84 says the loader runs here - see ES-09.24
+    GH->>CU: nostr-pod-bridge, custody config, role-accounts, the<br/>rehearsal and the identity-port test are trigger paths :42-55
+    CU->>CU: rebuilds the layout lib/nostr-pod-bridge.nix pins: agentbox<br/>plus the nostr-rust-forum and solid-pod-rs siblings at their<br/>forumRev/solidRev revisions :207-226
+    CU->>CU: cargo test --locked services/nostr-pod-bridge - the identity port<br/>(transport, SO_PEERCRED ACL, receipts) and the Rust role-isolation<br/>readers - contract-tests.yml:252-254
+    CU->>CU: builds the bridge binary and runs the JS identity-port end to end,<br/>failing on any skip :256-267
+    CU->>CU: role-isolation rehearsal decides correctly against a scratch root<br/>with fake /proc, supervisorctl, stat, docker, sudo and curl :273-274
+    Note over C,CU: RESOLVED 2026-10-03 (by 6466e3931): the role-secret loader suite<br/>that invariants.yml points at now runs here - contract-tests.yml:161-163<br/>- and the custody job executes the identity port and the rehearsal<br/>that previously ran only on a developer's box. see ES-09.24
 ```
 
 ## ES-09.17 agentbox manifest-validate.yml — config validator and TUI round-trip
@@ -622,12 +632,12 @@ sequenceDiagram
     loop each tests/tui/fixtures/invalid-*.toml
         V->>V: assert failure with the expected E-code :113-128
     end
-    V->>V: assert JSON Schema well-formed :130
-    V->>V: ADR-2122 - the two supervisor configs cannot drift, the /run/secrets<br/>delivery tree, and flag off boots as today :133-147 - see ES-09.24
-    V->>V: sidechain-genesis.test.sh — document invariants, P21<br/>mainnet gate, no-key-in-git (ADR-2103) :149-152
-    V->>V: mirror chain-event, producer parent gates, catalogue gates and<br/>mirror retry, the dream-inbox reminder :154-169
-    V->>V: assert all W-codes route to warnings :171-183
-    V->>V: assert E021 fires when exception block missing :185
+    V->>V: assert JSON Schema well-formed :131
+    V->>V: ADR-2122 - the two supervisor configs cannot drift, the /run/secrets<br/>delivery tree, at-rest custody migrate/revert, and flag off boots as<br/>today :133-152 - see ES-09.24
+    V->>V: sidechain-genesis.test.sh — document invariants, P21<br/>mainnet gate, no-key-in-git (ADR-2103) :154-157
+    V->>V: mirror chain-event, producer parent gates, catalogue gates and<br/>mirror retry, the dream-inbox reminder :159-174
+    V->>V: assert all W-codes route to warnings :176-188
+    V->>V: assert E021 fires when exception block missing :190-208
     Note over V: same validator the TUI runs on every section<br/>transition and the flake evaluator runs at build time
 ```
 
@@ -734,34 +744,34 @@ flowchart TB
 ## ES-09.22 The agentbox invariants gate grew six checks, and each one names the record it enforces
 ```mermaid
 flowchart TB
-    TRIG["push or PR touching compose, ADRs, entrypoint, management-api,<br/>lib, scripts, tests/security, flake.nix, skills, mcp, schema<br/>or the manifest<br/>agentbox/.github/workflows/invariants.yml:7-33"]
-    JOB["the single invariants job<br/>agentbox/.github/workflows/invariants.yml:41"]
+    TRIG["push or PR touching compose, ADRs, entrypoint, management-api,<br/>lib, scripts, tests/security, flake.nix, skills, mcp, schema<br/>or the manifest<br/>agentbox/.github/workflows/invariants.yml:7-45"]
+    JOB["the single invariants job<br/>agentbox/.github/workflows/invariants.yml:53"]
     TRIG --> JOB
 
     subgraph SKILLS["Skill-estate gates — required before a rebuild"]
-        S1["lint-skills.sh, the structure gate<br/>agentbox/.github/workflows/invariants.yml:96"]
-        S2["skill-count-check, the SINGLE count authority<br/>agentbox/.github/workflows/invariants.yml:97-98"]
-        S3["gen-routing-table --check, routing-table freshness<br/>generated from frontmatter<br/>agentbox/.github/workflows/invariants.yml:100"]
+        S1["lint-skills.sh, the structure gate<br/>agentbox/.github/workflows/invariants.yml:133"]
+        S2["skill-count-check, the SINGLE count authority<br/>agentbox/.github/workflows/invariants.yml:134-135"]
+        S3["gen-routing-table --check, routing-table freshness<br/>generated from frontmatter<br/>agentbox/.github/workflows/invariants.yml:137"]
     end
     JOB --> SKILLS
 
     subgraph CONTRACT["Contract gates"]
-        C1["research-gates tests, the deep-research quote, citation<br/>and independence contract<br/>agentbox/.github/workflows/invariants.yml:105-106"]
-        C2["check-manifest-catalogue, ADR-039 gate-path parity<br/>agentbox/.github/workflows/invariants.yml:109"]
-        C3["federation-fixture-check, the cross-repo identifier<br/>contract from the agentbox side<br/>agentbox/.github/workflows/invariants.yml:127-128"]
+        C1["research-gates tests, the deep-research quote, citation<br/>and independence contract<br/>agentbox/.github/workflows/invariants.yml:142-143"]
+        C2["check-manifest-catalogue, ADR-039 gate-path parity<br/>agentbox/.github/workflows/invariants.yml:146"]
+        C3["federation-fixture-check, the cross-repo identifier<br/>contract from the agentbox side<br/>agentbox/.github/workflows/invariants.yml:167-168"]
     end
     JOB --> CONTRACT
 
-    DEBT["DEBT the workflow records against itself — skill-count-check was<br/>RED and UNWIRED, and the federation fixture check was governed by<br/>a record but never run by anything, found in a script audit. The<br/>fixture's whole point is that both repositories assert the SAME<br/>table rather than two tables that happen to agree, which an<br/>ungated check cannot deliver.<br/>agentbox/.github/workflows/invariants.yml:97,<br/>agentbox/.github/workflows/invariants.yml:123-126"]
+    DEBT["DEBT the workflow records against itself — skill-count-check was<br/>RED and UNWIRED, and the federation fixture check was governed by<br/>a record but never run by anything, found in a script audit. The<br/>fixture's whole point is that both repositories assert the SAME<br/>table rather than two tables that happen to agree, which an<br/>ungated check cannot deliver.<br/>agentbox/.github/workflows/invariants.yml:134,<br/>agentbox/.github/workflows/invariants.yml:163-166"]
     S2 --> DEBT
     C3 --> DEBT
 
-    CAT["INVARIANT ADR-039 — a new manifest gate must arrive with a<br/>CATALOGUE entry carrying an honest apply class, and the parity<br/>check above is what enforces it. Recent module entries: Claude Code<br/>permissions (ADR-2116) and instruction tiers (ADR-2118) at boot,<br/>claude-cred-sync at rebuild, skill-router-cascade (ADR-2095) and<br/>routing-teacher-labels (ADR-2110, proposed) at boot, vault-cli<br/>(ADR-2107/2108) at rebuild<br/>agentbox/management-api/lib/system-manifest.js:220 and lines 223, 226,<br/>243, 246 and 286 of the same file"]
-    HONEST["2026-10-02 — two entries show the honesty rule working. jev-compaction<br/>moved from boot to REBUILD when factrail landed (ADR-2121), because<br/>the binary and plugin are now gated in flake.nix,<br/>agentbox/management-api/lib/system-manifest.js:229-230. A new sidechain<br/>entry is rebuild-class with three gates,<br/>agentbox/management-api/lib/system-manifest.js:265-266, and stateOf<br/>lets a false parent gate dominate its child gates,<br/>agentbox/management-api/lib/system-manifest.js:334. 2026-10-03: the<br/>role-isolation entry arrives at BOOT, because both supervisor configs<br/>ship in every image, agentbox/management-api/lib/system-manifest.js:94-95"]
+    CAT["INVARIANT ADR-039 — a new manifest gate must arrive with a<br/>CATALOGUE entry carrying an honest apply class, and the parity<br/>check above is what enforces it. Recent module entries: Claude Code<br/>permissions (ADR-2116) and instruction tiers (ADR-2118) at boot,<br/>claude-cred-sync at rebuild, skill-router-cascade (ADR-2095) and<br/>routing-teacher-labels (ADR-2110, proposed) at boot, vault-cli<br/>(ADR-2107/2108) at rebuild<br/>agentbox/management-api/lib/system-manifest.js:232 and lines 235, 238,<br/>255, 258 and 301 of the same file"]
+    HONEST["2026-10-02 — two entries show the honesty rule working. jev-compaction<br/>moved from boot to REBUILD when factrail landed (ADR-2121), because<br/>the binary and plugin are now gated in flake.nix,<br/>agentbox/management-api/lib/system-manifest.js:241-242. A new sidechain<br/>entry is rebuild-class with three gates,<br/>agentbox/management-api/lib/system-manifest.js:280-281, and stateOf<br/>lets a false parent gate dominate its child gates,<br/>agentbox/management-api/lib/system-manifest.js:349. 2026-10-03: the<br/>role-isolation entry arrives at BOOT, because both supervisor configs<br/>ship in every image, agentbox/management-api/lib/system-manifest.js:94-96"]
     CAT --> HONEST
     C2 --> CAT
 
-    CLASS["Each carries apply_class boot, meaning the entrypoint projects<br/>it and a flip takes effect on the next container restart with no<br/>image rebuild. The three classes are defined at<br/>system-manifest.js:28-30."]
+    CLASS["Each carries apply_class boot, meaning the entrypoint projects<br/>it and a flip takes effect on the next container restart with no<br/>image rebuild. The three classes are defined at<br/>system-manifest.js:27-29."]
     CAT --> CLASS
 ```
 
@@ -803,43 +813,47 @@ sequenceDiagram
     Note over REC: Presence of verified_paths is what ARMS the gate, which is why<br/>a record can be honestly unverified without failing CI,<br/>project/scripts/adr-index-gen.js:137-138.
 ```
 
-## ES-09.24 Custody X-1 step 1 in agentbox CI — what is gated, and what nothing runs
+## ES-09.24 Custody X-1 step 1 in agentbox CI — what is gated, and the two suites nothing runs
 
 ```mermaid
 flowchart TB
     subgraph INV["invariants.yml, every push touching scripts, lib, the entrypoint or the egress policy"]
-        I1["env-secret-inventory --check: every env name the boot path and the<br/>role-secret consumers read sits in exactly one class, names only<br/>agentbox/.github/workflows/invariants.yml:82-83"]
-        I2["its unit tests, then RC-X1-06, the role-secret scrub contract, no Docker<br/>agentbox/.github/workflows/invariants.yml:84-87"]
-        I3["N-7: the SECURITY-profiles egress table must match egress-policy.json,<br/>and an unmarked gap fails - agentbox/.github/workflows/invariants.yml:153-158"]
+        I1["env-secret-inventory --check: every env name the boot path and the<br/>role-secret consumers read sits in exactly one class, names only<br/>agentbox/.github/workflows/invariants.yml:97-98"]
+        I2["its unit tests, compose-role-env W10, then the RC-X1-01..07<br/>runtime contracts - the real entrypoint functions against a<br/>scratch root, no Docker, no root<br/>agentbox/.github/workflows/invariants.yml:102-124"]
+        I3["N-7: the SECURITY-profiles egress table must match egress-policy.json,<br/>and an unmarked gap fails - agentbox/.github/workflows/invariants.yml:197-198"]
     end
     subgraph MV["manifest-validate.yml, on the role table, config/lib or the entrypoint"]
-        M1["the two supervisor configs cannot drift: only role programs' user=<br/>and environment= differ - agentbox/.github/workflows/manifest-validate.yml:133-136"]
-        M2["/run/secrets delivery builds the right owner and mode tree, chown stubbed<br/>agentbox/.github/workflows/manifest-validate.yml:140-142"]
-        M3["with role_isolation off the boot is today's<br/>agentbox/.github/workflows/manifest-validate.yml:146-147"]
+        M1["the two supervisor configs cannot drift: only role programs' user=<br/>and environment= differ - agentbox/.github/workflows/manifest-validate.yml:133-138"]
+        M2["/run/secrets delivery builds the right owner and mode tree, chown stubbed,<br/>plus at-rest custody migrate/revert - agentbox/.github/workflows/manifest-validate.yml:140-149"]
+        M3["with role_isolation off the boot is today's<br/>agentbox/.github/workflows/manifest-validate.yml:151-152"]
     end
     subgraph TUI["tui-tests.yml, on services/agentbox-manifest"]
         T1["cargo test agentbox-manifest, which carries the role_accounts unit tests<br/>agentbox/.github/workflows/tui-tests.yml:54"]
     end
-    subgraph BC["browsercontainer.yml, NEW 2026-10-03 for W9"]
+    subgraph CT["contract-tests.yml custody job, NEW 2026-10 for ADR-2122"]
+        C1["cargo test nostr-pod-bridge: the identity port's transport, SO_PEERCRED<br/>ACL and receipts, and the Rust role-isolation readers<br/>agentbox/.github/workflows/contract-tests.yml:252-254"]
+        C2["identity port end to end, JS client against the built bridge binary,<br/>a skip fails the job - agentbox/.github/workflows/contract-tests.yml:262-267"]
+        C3["role-isolation rehearsal decides correctly against a scratch root<br/>agentbox/.github/workflows/contract-tests.yml:273-274"]
+        C1 --> C2
+    end
+    subgraph BC["browsercontainer.yml, for W9"]
         B1["best-effort fetch of the pinned Podkey artefact, continue-on-error<br/>agentbox/.github/workflows/browsercontainer.yml:48-52"]
         B2["fetch-podkey pin, sha256 and content, launch flags, podkey-ctl<br/>load-once, the profile volume - agentbox/.github/workflows/browsercontainer.yml:54-64"]
         B1 --> B2
     end
     subgraph NONE["Custody tests no workflow runs at this revision"]
-        N1["RC-X1-01 to RC-X1-05: root PATH, Stage B one-shot, group root,<br/>docker socket, read proxy - need no container, README says so<br/>agentbox/tests/runtime-contract/README.md:58-63"]
-        N2["the role-secret JS loader suite, a contract-tests TRIGGER path only<br/>agentbox/tests/sovereign/role-secret.node-test.js:2-4,<br/>agentbox/.github/workflows/contract-tests.yml:20"]
-        N3["the identity port: the JS pods-signer client and the Rust end-to-end<br/>over a real socket - agentbox/tests/sovereign/identity-port.node-test.js:4,<br/>agentbox/services/nostr-pod-bridge/tests/identity_port.rs:1-2"]
-        N4["the Rust ROLE readers under the flag<br/>agentbox/services/nostr-pod-bridge/tests/role_isolation.rs:1-3"]
-        N5["the rehearsal decides correctly, the producer runs the bake, the G-5<br/>dual-admit - agentbox/tests/config/role-isolation-rehearsal.test.sh:2,<br/>agentbox/tests/config/sidechain-producer-baked.test.sh:2,<br/>agentbox/tests/sovereign/g5-key-split.node-test.js:3"]
+        N1["the G-5 dual-admit key-split suite<br/>agentbox/tests/sovereign/g5-key-split.node-test.js:3"]
+        N2["the baked-producer test, the producer runs the bake<br/>agentbox/tests/config/sidechain-producer-baked.test.sh:2"]
     end
     INV ~~~ MV
     MV ~~~ TUI
-    TUI ~~~ BC
+    TUI ~~~ CT
+    CT ~~~ BC
     BC ~~~ NONE
-    NONE --> D["DEBT: the boundary the flag will rely on - the port's uid admission, the<br/>role-only reads, PATH and the one-shot Stage B - is proven only on a<br/>developer's run; RC-X1 lint is shellcheck, not execution,<br/>agentbox/.github/workflows/shellcheck.yml:5-6, and ci.yml dropped<br/>runtime-contract, agentbox/.github/workflows/ci.yml:9"]
+    NONE --> D["RESIDUAL DEBT: the G-5 dual-admit and the baked-producer bake have<br/>no CI step; everything else custody needs - the port's uid admission,<br/>the role-only reads, PATH and the one-shot Stage B - is now executed<br/>by invariants and the custody job"]
 ```
 
-**Debt (custody tests vs CI):** of the custody X-1 suites only the env-class inventory, RC-X1-06, the supervisor-drift, delivery and flag-off boot tests, the manifest crate's unit tests and the browsercontainer tests are wired (`../project/agentbox/.github/workflows/invariants.yml:82-87`, `../project/agentbox/.github/workflows/manifest-validate.yml:133-147`, `../project/agentbox/.github/workflows/browsercontainer.yml:54-64`). RC-X1-01 to RC-X1-05 need no container, by the suite's own README, yet no step runs them (`../project/agentbox/tests/runtime-contract/README.md:58-63`). The identity port's JS and Rust suites, the Rust role-isolation readers, the rehearsal's self-test and the baked-producer test have no step either.
+**Debt (custody tests vs CI), RESOLVED at agentbox 6466e3931 except two suites:** through 2026-10-03 only the env-class inventory, RC-X1-06, the supervisor-drift, delivery and flag-off boot tests, the manifest crate's unit tests and the browsercontainer tests were wired. Now the RC-X1-01..07 runtime contracts run in invariants (`../project/agentbox/.github/workflows/invariants.yml:111-124`), and a `custody` job in contract-tests builds the bridge and runs the identity port's Rust and JS suites plus the rehearsal, failing on skips (`../project/agentbox/.github/workflows/contract-tests.yml:252-274`). The G-5 dual-admit key-split suite (`../project/agentbox/tests/sovereign/g5-key-split.node-test.js:3`) and the baked-producer test (`../project/agentbox/tests/config/sidechain-producer-baked.test.sh:2`) still have no step.
 
-**Drift (invariants.yml comment vs contract-tests.yml):** the invariants job says the role-secret loader and its consumers "run in contract-tests" (`../project/agentbox/.github/workflows/invariants.yml:84`). `contract-tests.yml` only lists that test as a trigger path (`../project/agentbox/.github/workflows/contract-tests.yml:20-21`); none of its steps runs it (`../project/agentbox/.github/workflows/contract-tests.yml:117-149`).
+**Drift (invariants.yml comment vs contract-tests.yml), RESOLVED:** the invariants job's env-secret-inventory label used to claim the role-secret loader "runs in contract-tests" with no such step existing — the workflow now records that honestly (`../project/agentbox/.github/workflows/invariants.yml:99-101`), and the step it names is real: contract-tests runs the loader and its consumers (`../project/agentbox/.github/workflows/contract-tests.yml:161-163`).
 

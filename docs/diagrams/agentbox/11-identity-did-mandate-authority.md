@@ -34,7 +34,7 @@ sources:
   - ../project/agentbox/mcp/servers/nostr-bridge.js
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/lib/bc20-provenance-bridge.js
-verified_commit: c4ed3ec6505858e1e5ead651c29115d2f74e5546
+verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
 ---
 
 ## AB-11.1 Identity, URN and mandate type model
@@ -52,11 +52,11 @@ classDiagram
         -string privHex
     }
     class MULTIKEY {
-        <<const agent-identity.js:63>>
+        <<const agent-identity.js:64>>
         +string MULTIKEY_PREFIX
     }
     class UrnKindSpec {
-        <<uris.js:87 KINDS frozen>>
+        <<uris.js:88 KINDS frozen>>
         +bool ownerScope
         +bool scopeRequired
         +bool contentAddressed
@@ -89,9 +89,9 @@ classDiagram
     UrnKindSpec <-- MandateRecord : kind mandate ownerScope+scopeRequired+contentAddressed
     MandateRecord --> AgentIdentity : issuer and agent are did nostr
     AuthorityGate --> CapabilityScope : narrows what a granted action may touch
-    note for MULTIKEY "MULTIKEY_PREFIX = fe70102 -> f base16-lower + e701 varint multicodec + 02 compressed-point tag<br/>Fixed 71-char publicKeyMultibase. agent-identity.js:60 notes the derivation always yields even-y so 02 is invariant."
-    note for AgentIdentity "INVARIANT ADR-2011 hex-canonical: lowercase 64-hex BIP-340 x-only pubkey is the single storage and URL identity<br/>did is did:nostr:hex. npub bech32 is display or symlink form only. privHex NEVER leaves agent-identity.js (agent-identity.js:67-69)."
-    note for UrnKindSpec "19 kinds at uris.js:87 — pod envelope credential mandate receipt activity event decision mcp memory skill adr prd ddd thing dataset bead agent meta<br/>decision IS-A prov:Activity (legacy ADR-048) and mirrors activity plumbing. bead is content-addressed to match urn:visionclaw:bead so BC20 can cross it (audit 2026-06-09 A3)."
+    note for MULTIKEY "MULTIKEY_PREFIX = fe70102 -> f base16-lower + e701 varint multicodec + 02 compressed-point tag<br/>Fixed 71-char publicKeyMultibase. agent-identity.js:61 notes the derivation always yields even-y so 02 is invariant."
+    note for AgentIdentity "INVARIANT ADR-2011 hex-canonical: lowercase 64-hex BIP-340 x-only pubkey is the single storage and URL identity<br/>did is did:nostr:hex. npub bech32 is display or symlink form only. privHex NEVER leaves agent-identity.js (agent-identity.js:68-70)."
+    note for UrnKindSpec "19 kinds at uris.js:88 — pod envelope credential mandate receipt activity event decision mcp memory skill adr prd ddd thing dataset bead agent meta<br/>decision IS-A prov:Activity (legacy ADR-048) and mirrors activity plumbing. bead is content-addressed to match urn:visionclaw:bead so BC20 can cross it (audit 2026-06-09 A3)."
 ```
 
 ## AB-11.2 loadOrMint — private-key precedence and 0600 persistence
@@ -100,7 +100,7 @@ classDiagram
 sequenceDiagram
     autonumber
     participant CALLER as caller<br/>agentbox/management-api/server.js
-    participant AI as loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:125
+    participant AI as loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:128
     participant ENV as process.env
     participant FS as profile key file<br/>profileKeyPath opts
     participant NT as nostr-tools<br/>getNostrTools
@@ -108,7 +108,7 @@ sequenceDiagram
     CALLER->>AI: loadOrMint({keyPath, profile, identityDir})
     rect rgb(235,245,255)
     Note over AI,ENV: PRECEDENCE 1 — stable-identity injection
-    AI->>ENV: AGENTBOX_AGENT_PRIVKEY_HEX (agent-identity.js:131)
+    AI->>ENV: AGENTBOX_AGENT_PRIVKEY_HEX via the role-secret loader<br/>(agent-identity.js:134-139 — NAME_FILE, then the secrets dir,<br/>bare env only while role_isolation is off)
     ENV-->>AI: value (trimmed, lowercased)
     alt HEX64.test(envHex)
         AI->>AI: privHex = envHex
@@ -136,7 +136,7 @@ sequenceDiagram
         Note over AI,CALLER: DIVERGENCE INGRESS-identity: caller then keeps did:nostr:local — a degraded boot yields a non-sovereign identity. see AB-11.3
     else derived
         critical persist so the DID survives a restart
-            AI->>FS: mkdirSync(dirname, recursive) then writeFileSync(privHex, mode 0o600) then chmodSync 0o600 (agent-identity.js:158-160)
+            AI->>FS: mkdirSync(dirname, recursive) then writeFileSync(privHex, mode 0o600) then chmodSync 0o600 (agent-identity.js:164-166)
             FS-->>AI: persisted = true
         option write throws
             FS-->>AI: catch — persisted = false, NON-FATAL
@@ -144,7 +144,7 @@ sequenceDiagram
         end
         AI-->>CALLER: {did, pubkey, multikey, keyPath, minted, persisted}
     end
-    Note over AI,FS: INVARIANT ADR-2011 — privHex is never returned, logged or printed. Only did / x-only pubkey / multikey are emitted (agent-identity.js exports at :167).
+    Note over AI,FS: INVARIANT ADR-2011 — privHex is never returned, logged or printed. Only did / x-only pubkey / multikey are emitted (agent-identity.js exports at :173).
 ```
 
 ## AB-11.3 agent-identity CLI mint — ADR-2044 fail-CLOSED entrypoint export contract
@@ -154,7 +154,7 @@ sequenceDiagram
     autonumber
     participant EP as entrypoint<br/>agentbox/config/entrypoint-unified.sh
     participant CLI as agent-identity.js main<br/>agentbox/management-api/lib/agent-identity.js:201
-    participant LM as loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:125
+    participant LM as loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:128
     participant SHELL as supervised programs and tmux windows
 
     EP->>CLI: node agent-identity.js mint
@@ -183,14 +183,14 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    K["uris.js:87 KINDS Object.freeze — 19 kinds"]
+    K["uris.js:88 KINDS Object.freeze — 19 kinds"]
     K --> POD["pod / envelope / credential / mandate / receipt<br/>ownerScope=true scopeRequired=true contentAddressed=true<br/>surface: pods"]
     K --> ACT["activity / event / decision<br/>ownerScope=true scopeRequired=true contentAddressed=true<br/>surface: agent-events"]
     K --> BEAD["bead<br/>ownerScope=true scopeRequired=true contentAddressed=true<br/>surface: beads"]
     K --> DSET["dataset<br/>ownerScope=true scopeRequired=true contentAddressed=false<br/>surface: memory"]
     K --> OPT["memory / thing / agent<br/>ownerScope=true scopeRequired=FALSE contentAddressed=false<br/>surfaces: memory / things / agents"]
     K --> UNS["mcp / skill / adr / prd / ddd / meta<br/>ownerScope=false scopeRequired=false contentAddressed=false<br/>surfaces: things / skills / docs / meta"]
-    POD --> R["resolveCanonical -> base + /v1/uri/{urn}?surface={resolvableSurface}<br/>uris.js:244"]
+    POD --> R["resolveCanonical -> base + /v1/uri/{urn}?surface={resolvableSurface}<br/>uris.js:273"]
     ACT --> R
     BEAD --> R
     DSET --> R
@@ -208,10 +208,10 @@ BEAD -.-> N3["DIVERGENCE ADR-2025 PROTOCOL-registry URN-crossing row: JS support
 sequenceDiagram
     autonumber
     participant C as caller (any surface)
-    participant M as mint<br/>agentbox/management-api/lib/uris.js:162
-    participant CA as _contentAddress<br/>agentbox/management-api/lib/uris.js:286
-    participant SS as _stableStringify<br/>agentbox/management-api/lib/uris.js:297
-    participant NP as _normalisePubkey<br/>agentbox/management-api/lib/uris.js:208
+    participant M as mint<br/>agentbox/management-api/lib/uris.js:181
+    participant CA as _contentAddress<br/>agentbox/management-api/lib/uris.js:460
+    participant SS as _stableStringify<br/>agentbox/management-api/lib/uris.js:471
+    participant NP as _normalisePubkey<br/>agentbox/management-api/lib/uris.js:237
 
     C->>M: mint({kind, pubkey|npub, payload, localId})
     alt kind not in KINDS
@@ -228,7 +228,7 @@ sequenceDiagram
             CA-->>M: local = sha256-12-<first 12 hex>
         end
     else localId supplied
-        M->>M: local = _slug(localId) — [^A-Za-z0-9._-] to underscore, sliced to 96 chars (uris.js:305)
+        M->>M: local = _slug(localId) — [^A-Za-z0-9._-] to underscore, sliced to 96 chars (uris.js:479)
     else neither
         M-->>C: throw MalformedUri "kind requires localId"
     end
@@ -253,7 +253,7 @@ sequenceDiagram
     else not owner-scoped
         M-->>C: urn:agentbox:<kind>:<local>
     end
-    Note over M,SS: DOC-DRIFT PROTOCOL-registry content-address row — the registry requires "same input bytes, twelve lowercase digest hex characters, explicit serialisation".<br/>_contentAddress hashes a JS stableStringify string as utf8, and its own comment at uris.js:286<br/>says "deterministic enough beats exactly RFC 8785 because we are producing a name, not a<br/>signature input". VisionClaw content_address hashes bytes. Byte-parity is asserted nowhere.
+    Note over M,SS: DOC-DRIFT PROTOCOL-registry content-address row — the registry requires "same input bytes, twelve lowercase digest hex characters, explicit serialisation".<br/>_contentAddress hashes a JS stableStringify string as utf8, and its own comment at uris.js:460<br/>says "deterministic enough beats exactly RFC 8785 because we are producing a name, not a<br/>signature input". VisionClaw content_address hashes bytes. Byte-parity is asserted nowhere.
 ```
 
 ## AB-11.6 parse, isCanonical and resolveCanonical
@@ -262,9 +262,9 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as caller
-    participant P as parse<br/>agentbox/management-api/lib/uris.js:266
-    participant IC as isCanonical<br/>agentbox/management-api/lib/uris.js:282
-    participant RC as resolveCanonical<br/>agentbox/management-api/lib/uris.js:244
+    participant P as parse<br/>agentbox/management-api/lib/uris.js:296
+    participant IC as isCanonical<br/>agentbox/management-api/lib/uris.js:313
+    participant RC as resolveCanonical<br/>agentbox/management-api/lib/uris.js:273
 
     C->>P: parse(uri)
     alt DID_NOSTR_RE matches
@@ -290,7 +290,7 @@ sequenceDiagram
         end
     else uri is a urn with a known kind
         RC-->>C: <managementApiBase>/v1/uri/<encodeURIComponent(uri)>?surface=<spec.resolvableSurface>
-        Note over RC: every agentbox URI routes through management-api so auth, content negotiation and CORS live in one place (uris.js:244 comment)
+        Note over RC: every agentbox URI routes through management-api so auth, content negotiation and CORS live in one place (uris.js:273 comment)
     else unknown kind or non-matching
         RC-->>C: null
     end
@@ -305,7 +305,7 @@ sequenceDiagram
     participant RT as mandateRoutes<br/>agentbox/management-api/routes/mandate.js:285
     participant CS as createSignedMandate<br/>agentbox/management-api/routes/mandate.js:191
     participant CM as createMandate<br/>agentbox/management-api/lib/mandate.js:99
-    participant U as uris.mint<br/>agentbox/management-api/lib/uris.js:162
+    participant U as uris.mint<br/>agentbox/management-api/lib/uris.js:181
     participant SM as signMandate<br/>agentbox/management-api/lib/mandate.js:163
     participant SG as _loadSigner<br/>agentbox/management-api/routes/mandate.js:97
     participant REG as registry.json<br/>agentbox/management-api/routes/mandate.js:52
@@ -508,7 +508,7 @@ note for EffectType "DIVERGENCE GOVERNANCE-capabilities: this classification is 
 sequenceDiagram
     autonumber
     participant BOOT as management-api boot<br/>agentbox/management-api/server.js
-    participant PS as buildPodNip98<br/>agentbox/management-api/lib/pod-signer.js:42
+    participant PS as buildPodNip98<br/>agentbox/management-api/lib/pod-signer.js:70
     participant MF as agentbox.toml<br/>[integrations.solid_pod_rs]
     participant ENV as process.env
     participant NB as nostr-bridge loadSigner / buildNip98Header
@@ -519,12 +519,12 @@ sequenceDiagram
     PS->>MF: manifest.integrations.solid_pod_rs.sign_requests
     alt sign_requests falsy
         PS-->>BOOT: return null
-        Note over PS,ADP: INVARIANT pod-signer.js:16-17 — default (unsigned)<br/>behaviour stays byte-identical. Enabling the flag is the ONLY<br/>behavioural change. Compare ADR-2020 byte-identical-when-off, see AB-15
+        Note over PS,ADP: INVARIANT pod-signer.js:33-35 — with sign_requests OFF<br/>the originator returns null without touching key material and the<br/>adapter goes out unsigned, byte-identical. Enabling the flag is the ONLY<br/>behavioural change. Compare ADR-2020 byte-identical-when-off, see AB-15
     else enabled
         PS->>ENV: AGENTBOX_STACK then AGENTBOX_PROFILE then integ.sign_stack
         alt no stack resolves
             PS->>BOOT: deps.onError("sign_requests is on but no stack resolved")
-            PS-->>BOOT: return null — but requireSigned still rides with the config<br/>(adapters/index.js:63,74-77), so the adapter FAILS CLOSED
+            PS-->>BOOT: return null — but requireSigned still rides with the config<br/>(adapters/index.js:64-65,76-79), so the adapter FAILS CLOSED
         else stack resolved
             PS-->>BOOT: async nip98(method, url, body)
         end
@@ -542,7 +542,7 @@ sequenceDiagram
             else flag off
                 ADP->>POD: request goes out UNSIGNED — the pre-signing baseline
             end
-            Note over ADP,POD: RESOLVED ADR-2064: the fail-OPEN is gone.<br/>A null header no longer means "go out unsigned":<br/>pod-signer.js:12-22 makes null mean only "no<br/>originator could be built" and hands the outcome<br/>to the adapter, which throws SigningUnavailable<br/>per request when sign_requests is on<br/>(_solid-http-base.js:84-91,104-106). Unsigned is<br/>reachable ONLY with the flag off, where it is the<br/>byte-identical pre-signing baseline.
+            Note over ADP,POD: RESOLVED ADR-2064, closed by ADR-2078 (2026-10-02).<br/>A null header no longer means "go out unsigned":<br/>pod-signer.js:12-37 selects the signing source<br/>deterministically — the sovereign identity<br/>loadSovereignSigner returns (agent-identity.js:232),<br/>per-stack only when a stack is named — and a null<br/>originator hands the outcome to the adapter, which<br/>throws SigningUnavailable per request when<br/>sign_requests is on (_solid-http-base.js:84-91,104-106).<br/>Unsigned is reachable ONLY with the flag off, where it<br/>is the byte-identical pre-signing baseline.
         end
     end
     alt signer available
@@ -623,7 +623,7 @@ sequenceDiagram
     autonumber
     participant C as client
     participant UR as uri-resolver<br/>agentbox/management-api/routes/uri-resolver.js
-    participant K as uris.parse + KINDS<br/>agentbox/management-api/lib/uris.js:266,87
+    participant K as uris.parse + KINDS<br/>agentbox/management-api/lib/uris.js:296,87
     participant POD as pod base (solid-pod-rs)
     participant AE as /v1/agent-events
     participant WK as well-known x402<br/>agentbox/management-api/routes/well-known.js:64
@@ -663,7 +663,7 @@ Note over WK: cached once at BOOT in a closure — generatedAt is plugin-registr
 sequenceDiagram
     autonumber
     participant BOOT as entrypoint boot
-    participant AI as agent-identity loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:125
+    participant AI as agent-identity loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:128
     participant KF as profile key file 0600
     participant BR as nostr-pod-bridge<br/>AGENTBOX_BRIDGE_SK_FILE default /run/secrets/nostr.key
     participant PX as nip98-proxy break-glass bearer<br/>config/nip98-proxy/proxy.mjs (see AB-10.3)
@@ -672,17 +672,17 @@ sequenceDiagram
     rect rgb(240,255,240)
     Note over BOOT,KF: IMPLEMENTED — what the code actually does
     BOOT->>AI: mint or load the per-profile agent key<br/>ADR-2044 (2026-09-05): the CLI now exits non-zero on mint or persist failure<br/>instead of tolerating did:nostr:local — see AB-11.3
-    AI->>KF: writeFileSync mode 0o600 then chmodSync 0o600 (agent-identity.js:158-160)
+    AI->>KF: writeFileSync mode 0o600 then chmodSync 0o600 (agent-identity.js:164-166)
     KF-->>AI: readable only by this uid
     BOOT->>BR: load bridge identity from AGENTBOX_BRIDGE_SK_FILE, legacy environment fallback remains
-    BOOT->>PX: RESOLVED ADR-2027 (2026-09-05, partial) — break-glass bearer now checks<br/>breakGlassNotExpired() and breakGlassScopeAllows() before granting, and every<br/>use/refusal is audited by token fingerprint (proxy.mjs:635-674, both bounds<br/>default-OFF and opt-in) — see AB-10.3
+    BOOT->>PX: RESOLVED ADR-2027 (2026-09-05, partial) — break-glass bearer now checks<br/>breakGlassNotExpired() and breakGlassScopeAllows() before granting, and every<br/>use/refusal is audited by token fingerprint (proxy.mjs:668-707, both bounds<br/>default-OFF and opt-in) — see AB-10.3
     end
     rect rgb(255,240,240)
     Note over ADR,PX: STILL PROPOSED AND NOT ACTIVE — the ADR-2027 requirements below have no code behind them
-    ADR-->>PX: restart-invalidation and multi-instance policy for NIP98_PROXY_SESSION_SECRET — today it still defaults to per-boot crypto.randomBytes (proxy.mjs:212)
-    ADR-->>BR: per-consumer key split — the governance publisher still shares the operator/server identity (legacy ADR-040 D3, relay allowlist entry agentbox.toml:161)
+    ADR-->>PX: restart-invalidation and multi-instance policy for NIP98_PROXY_SESSION_SECRET — today it still defaults to per-boot crypto.randomBytes unless the role-secret loader pins one (proxy.mjs:244-245)
+    ADR-->>BR: per-consumer key split — the 31403 governance decisions are signed by the operator's NIP-07 signer, while visionclaw-server signs 31402 under its own key (Q15, 2026-10-03, relay allowlist entry agentbox.toml:159-160 and legacy ADR-040 D3)
     ADR-->>AI: rotation cadence, revocation procedure, named custodian, maximum response window — every row is UNCONFIRMED
     end
-Note over ADR: DIVERGENCE SECURITY-profiles provisional custody register 2026-09-04 — seven<br/>credential roles are identified as ROLES TO ASSIGN, not accepted custodians. "No cadence is<br/>invented here." No dated failure/recovery receipt exists for any row.
+Note over ADR: DIVERGENCE SECURITY-profiles provisional custody register 2026-09-04 — seven<br/>credential roles are identified as ROLES TO ASSIGN, not accepted custodians. "No cadence is<br/>invented here." No dated failure/recovery receipt exists for any row. Since 2026-10-03 the same<br/>doc also carries a generated prompt-egress register (31 routes, devuser-class credentials<br/>under Q8) - it catalogues egress routes, it does not settle custody<br/>
 Note over BOOT,KF: DIVERGENCE — a 0600 file is a same-uid boundary only. Every agentbox process<br/>runs as devuser, so co-resident code can read the agent key, the bridge key and the AoE daemon<br/>token alike. Per-process isolation is named future work in GOVERNANCE-capabilities item 5. see<br/>AB-16
 ```

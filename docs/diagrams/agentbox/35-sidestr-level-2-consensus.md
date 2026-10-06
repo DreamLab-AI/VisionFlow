@@ -12,7 +12,7 @@ sources:
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
   - ../project/agentbox/docs/INGRESS-identity.md
   - ../project/agentbox/docs/PROTOCOL-registry.md
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
 ---
 
 ## For developers
@@ -20,6 +20,8 @@ verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
 Nothing here is built. A consultant review on 2026-09-22 (GPT-6 Astra through the Codex consultant tier, see AB-15.12 for that path) took ADR-2101's k-of-n federation apart and returned a different shape, which the record then adopted (`ADR-2101-federation-topology-and-key-separation.md:133-136`). The change that matters most: a threshold signature is not a consensus protocol, so `q` and `k` are two numbers, and the block a federation signs is not the block it finalises.
 
 **Drift (this topic vs sidestr-rs):** "nothing here is built" held at `ec60a8f14`; since then `sidestr-round` (0.1.x, now 0.2.0) has shipped upstream's availability-tolerant round (not the reviewed BFT shape) and, with the other crates, moved to `DreamLab-AI/sidestr-rs` under ADR-2112. Not re-stamped here; see SR-01.6.
+
+**Drift (this topic vs ADR-2101's federation stage, 2026-10-02):** the owner decision R5c rewrote the federation stage this topic reviews — each client now runs its OWN root nested under `sidestr:dreamlab` for pegs only, and a co-signed k-of-n root shared between operators is explicitly REJECTED (`ADR-2101-federation-topology-and-key-separation.md:219-226`). The consultant-review amendments below still govern any root that runs k-of-n — ours across our own instances, or a client's across theirs — but no longer describe a root shared between operators (`ADR-2101-federation-topology-and-key-separation.md:226`).
 
 ## For the business
 
@@ -80,7 +82,7 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph have["What exists as codecs: kinds 23510-23514, external since 2026-09-23"]
-        C1["kinds 23510 to 23514, the level-2 signing round, ported and<br/>published as sidestr-nostr on crates.io - no longer in this repo<br/>PROTOCOL-registry.md:165, see AB-33.7"]
+        C1["kinds 23510 to 23514, the level-2 signing round, ported and<br/>published as sidestr-nostr on crates.io - no longer in this repo<br/>PROTOCOL-registry.md:167, see AB-33.7"]
     end
     subgraph broken["Why those kinds cannot carry it"]
         B1["23510 to 23514 are EPHEMERAL under NIP-01: relays are not<br/>expected to retain them<br/>REVIEW-kofn-consensus-gpt6-astra.md:217"]
@@ -98,9 +100,9 @@ flowchart TB
     want --> BAND["the estate band for this is unallocated: 38420 to 38425 are<br/>spent on the binding and the five domain events<br/>see AB-34.4"]
 ```
 
-**Debt:** the registry still allocates the ephemeral `23510`-`23514` band to "level-2 signing round" without recording that the review rejected the shape those kinds were built for (`../project/agentbox/docs/PROTOCOL-registry.md:165`), and the corrected wire profile below has no allocation of its own (`../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md:162-168`).
+**Debt:** the registry still allocates the ephemeral `23510`-`23514` band to "level-2 signing round" without recording that the review rejected the shape those kinds were built for (`../project/agentbox/docs/PROTOCOL-registry.md:167`), and the corrected wire profile below has no allocation of its own (`../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md:162-168`).
 
-**Open:** the stored kinds the review requires have no allocation in the registry, whose sidestr section still records only the external `2xxxx`/`3xxxx` set and `38420`-`38425` (`../project/agentbox/docs/PROTOCOL-registry.md:163-171`).
+**Open:** the stored kinds the review requires have no allocation in the registry, whose sidestr section still records only the external `2xxxx`/`3xxxx` set and `38420`-`38425` (`../project/agentbox/docs/PROTOCOL-registry.md:163-173`).
 
 ## AB-35.4 What a finality proof is, and what a quorum certificate is not
 

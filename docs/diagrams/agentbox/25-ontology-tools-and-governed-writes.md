@@ -19,7 +19,7 @@ sources:
   - ../project/agentbox/services/agentbox-ops/src/voyager/mod.rs
   - ../project/agentbox/management-api/lib/uris.js
   - ../project/agentbox/management-api/lib/ontology-apply.js
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
 ---
 
 Note: `ontology-bridge.js`, `ontology-propose.js`, `ontology-local.cjs`, `ontology-authoring-authority.js`
@@ -39,24 +39,24 @@ sequenceDiagram
     participant OUT as condense output
     participant REF as ontology-condense-refresh.sh<br/>agentbox/scripts/ontology-condense-refresh.sh:105
     participant IDX as ontology-index-build.js
-    participant LLM as Loom facade<br/>agentbox/agentbox.toml:864 — see AB-24
+    participant LLM as Loom facade<br/>agentbox/agentbox.toml:882 — see AB-24
     participant RV as RuVector ns ontology-classes<br/>see AB-20
 
-    Note over SCH: supervised as [program:ontology-condense-scheduler] (agentbox/flake.nix:2088) — launched<br/>unconditionally, exits fast when its gate is off
-    loop tick — schedule_interval_mins 60, jittered plus or minus 20 percent (agentbox.toml:877)
+    Note over SCH: supervised as [program:ontology-condense-scheduler] (agentbox/flake.nix:2311) — launched<br/>unconditionally, exits fast when its gate is off
+    loop tick — schedule_interval_mins 60, jittered plus or minus 20 percent (agentbox.toml:895)
         SCH->>GATE: require BOTH ONTOLOGY_CONDENSE_ENABLED and ONTOLOGY_CONDENSE_SCHEDULE
         alt either off
             SCH-->>SCH: no-op — byte-identical-when-off until an operator opts in and the container reboots
         else both on
             SCH->>CORP: newest page mtime
             SCH->>OUT: last condense output mtime
-            alt corpus newer OR output missing OR older than schedule_max_age_hours 24 (agentbox.toml:878)
+            alt corpus newer OR output missing OR older than schedule_max_age_hours 24 (agentbox.toml:896)
                 SCH->>REF: exec the refresh
                 Note over REF: flock-serialised (ontology-condense-refresh.sh:57-59) — SKIPS if a refresh already holds<br/>the lock. Stages overwrite/resume deterministically, so the scheduler is idempotent
                 REF->>IDX: parse the corpus into classes (ontology-condense-refresh.sh:105,111)
-                loop each KG class, max_concurrency 2 (agentbox.toml:867)
+                loop each KG class, max_concurrency 2 (agentbox.toml:885)
                     REF->>LLM: POST /v1/chat/completions — one retrieval sentence + a synonym list<br/>(ontology-condense-refresh.sh:108)
-                    Note over LLM: model qwen3.8-27B style openai (agentbox.toml:865-866). The model runs BEHIND the Loom<br/>facade so it is swappable with zero change here
+                    Note over LLM: model qwen3.8-27B style openai (agentbox.toml:883-884). The model runs BEHIND the Loom<br/>facade so it is swappable with zero change here
                 end
                 REF->>OUT: PUSH Class-Summary cache
                 REF->>RV: condensed store ns ontology-classes
@@ -76,7 +76,7 @@ sequenceDiagram
     autonumber
     participant CC as Claude Code SessionEnd
     participant MON as ontology-monitor.cjs<br/>agentbox/config/hooks/ontology-monitor.cjs:1
-    participant CHILD as detached child<br/>ontology-monitor.cjs:244
+    participant CHILD as detached child<br/>ontology-monitor.cjs:250
     participant LOC as local ontology route<br/>VisionClaw-free
     participant ZAI as Z.AI GLM worker
     participant JSONL as ontology-proposals.jsonl<br/>AGENTBOX_STATE
@@ -88,14 +88,14 @@ sequenceDiagram
     alt AGENTBOX_ONTOLOGY_MONITOR not 1, then no Z.AI key, then publish mode missing<br/>MANAGEMENT_API_KEY/NOSTR_RELAYS
         MON-->>CC: silent no-op — fail-open on any miss (:78-80)
     else all gates pass
-        alt AGENTBOX_ONTOLOGY_MONITOR_FOREGROUND not set (:240-242)
-            MON->>CHILD: spawn detached, own session, unref'd,<br/>stdin payload carried via env (:244-259)
-            MON-->>CC: exit at once — SessionEnd never waits on the review (:269)
+        alt AGENTBOX_ONTOLOGY_MONITOR_FOREGROUND not set (:237-239)
+            MON->>CHILD: spawn detached, own session, unref'd,<br/>stdin payload carried via env (:250-256)
+            MON-->>CC: exit at once — SessionEnd never waits on the review (:266)
             CHILD->>CHILD: gather the session's concept-bearing work
             CHILD->>LOC: match ontology concepts via the local route
             CHILD->>ZAI: ONE review call
             ZAI-->>CHILD: proposals where the corpus looks stale, wrong or missing
-            CHILD->>CHILD: drop proposals already in the seen-ledger (fingerprint dedup, :271-282)
+            CHILD->>CHILD: drop proposals already in the seen-ledger (fingerprint dedup, :278-282)
             loop each fresh proposal
                 CHILD->>CHILD: build an ACSP ActionRequest kind 31402
                 alt AGENTBOX_ONTOLOGY_MONITOR_MODE = dryrun (the DEFAULT)
@@ -198,8 +198,8 @@ flowchart TB
         ELGUARD["EL-SAFETY GUARD: asserts NO triple in the graph uses<br/>owl:inverseOf / owl:FunctionalProperty / owl:InverseFunctionalProperty<br/>ontology/test_decision_layer.py:9-11"]
     end
     subgraph runtime["Runtime governance-write path (ADR-2109) — see AB-04.13"]
-        APPLY["applyOntologyDecision — signed 31403 → vault edit --expect<br/>management-api/lib/ontology-apply.js:350"]
-        URIS["management-api/lib/uris.js — the ONE URN minter for<br/>all 19 kinds, incl. decision (agentbox/CLAUDE.md URI/URN scheme)"]
+        APPLY["applyOntologyDecision — signed 31403 → vault edit --expect,<br/>then a pathspec-limited commit and push of that ONE page<br/>(commit failure recorded, never thrown)<br/>management-api/lib/ontology-apply.js:365,821"]
+        URIS["management-api/lib/uris.js — the ONE URN minter for<br/>all 21 kinds, incl. decision (agentbox/CLAUDE.md URI/URN scheme)"]
     end
     TTL --> PYTEST
     PYTEST --> ELGUARD

@@ -39,7 +39,7 @@ sources:
   - ../project/src/uri/mod.rs
   - ../project/src/config/security_profile.rs
   - ../project/crates/visionclaw-domain/src/utils/visibility_filter.rs
-verified_commit: 58f04f2eb272a2707737f2065f8241b931229e81
+verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
 ---
 
 ## VC-03.1 REST request end-to-end — nginx to handler, real middleware order
@@ -50,7 +50,7 @@ sequenceDiagram
     participant AC as actix HttpServer<br/>src/main.rs:938-1218
     participant LG as Logger<br/>wrap #1 src/main.rs:1019
     participant CO as cors<br/>wrap #2 src/main.rs:1020
-    participant CP as Compress<br/>wrap #3 src/main.rs:1021
+    participant CP as Compress<br/>wrap #3 src/main.rs:1029
     participant TO as TimeoutMiddleware<br/>wrap #4 src/main.rs:1022
     participant SC as scope /api<br/>src/main.rs:1094
     participant PD as PublicDemoGuard::from_env<br/>src/main.rs:1098
@@ -62,7 +62,7 @@ sequenceDiagram
     Note over LG,TO: registration order in main.rs is Logger,cors,Compress,TimeoutMiddleware (src/main.rs:1019-1022)<br/>so the REAL request-time order is TimeoutMiddleware,Compress,cors,Logger,then routing
     NG->>AC: HTTP request
     AC->>TO: enter (outermost of the four)
-    TO->>TO: get_timeout(path) — default 30s, override 600s for "/api/admin/sync" (src/main.rs:1024)
+    TO->>TO: get_timeout(path) — default 30s, override 600s for "/api/admin/sync" (src/main.rs:1030-1032)
     Note over TO: TimeoutConfig::new(30s).with_override(...) constructed src/main.rs:1023-1024 —<br/>get_timeout (timeout.rs:37-41) looks up an exact-path HashMap (endpoint_overrides) —<br/>no prefix/glob matching, so only "/api/admin/sync" itself gets 600s
     Note over LG,TO: ValidationMiddleware (src/middleware/validation.rs:124) is defined and unit-tested<br/>(content-length cap, JSON content-type check) but NOT in this .wrap() chain — grep across<br/>src/main.rs finds no .wrap(ValidateInput::...) call. Limits it would enforce if wired:<br/>MAX_REQUEST_SIZE 1MiB (validation.rs:22, default), MAX_ONTOLOGY_SIZE 10MiB (:19),<br/>MAX_STRING_LENGTH 100KiB (:25)
     TO->>CP: enter
@@ -187,7 +187,7 @@ sequenceDiagram
         else header not UTF-8
             FR-->>R: 401 "Invalid pubkey header" (:211)
         end
-        Note over FR: legacy Bearer requires validate_session(pubkey, token)<br/>auth_extractor.rs:252 - default-off migration flag applies
+        Note over FR: legacy Bearer requires validate_session(pubkey, token)<br/>auth_extractor.rs:227-228 - default-off migration flag applies
     else unrecognised prefix
         FR-->>R: 401 "Invalid authorization format" (:185)
     end
@@ -197,7 +197,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant H as caller<br/>auth.rs:142 / auth_extractor.rs:93
+    participant H as caller<br/>auth.rs:174 / auth_extractor.rs:93
     participant NS as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs:624
     participant V as validate_nip98_token<br/>src/utils/nip98.rs:428
     participant RC as REPLAY_CACHE<br/>src/utils/nip98.rs:215 Mutex~HashMap~
@@ -272,7 +272,7 @@ sequenceDiagram
     rect rgb(225,245,225)
     Note over C,API: REALM 1 — request-signing, re-verified on EVERY call
     C->>API: Authorization: Nostr <base64 kind-27235 event>
-    API->>NS: verify_nip98_auth per request (verify_access, auth.rs:142)
+    API->>NS: verify_nip98_auth per request (verify_access, auth.rs:174)
     C->>SET: Authorization: Nostr <event> (primary path, auth_extractor.rs:132)
     end
     rect rgb(225,225,245)
@@ -284,7 +284,7 @@ sequenceDiagram
     C->>API: legacy X-Nostr-Pubkey + X-Nostr-Token headers (auth.rs:266-283)
     API->>NS: validate_session(pubkey, token) — DOES check now - last_seen <= token_expiry (nostr_service.rs:478-483)
     end
-    Note over SET: Settings Bearer fallback validates the session before user lookup<br/>auth_extractor.rs:252 - caller pubkey alone is insufficient
+    Note over SET: Settings Bearer fallback validates the session before user lookup<br/>auth_extractor.rs:227-228 - caller pubkey alone is insufficient
     Note over API,SET: Graph browser signs the HTTP GET upgrade via NIP-98 subprotocol.<br/>Server verifies before upgrade and never echoes the credential.<br/>Legacy compatibility remains explicit for other consumers.
 ```
 
@@ -295,7 +295,7 @@ sequenceDiagram
     participant R as request
     participant RG as RbacGateMiddleware::call<br/>src/middleware/rbac_gate.rs:242
     participant RL as required_level<br/>src/middleware/rbac_gate.rs:138
-    participant VA as verify_access<br/>src/utils/auth.rs:142
+    participant VA as verify_access<br/>src/utils/auth.rs:174
 
     RG->>RL: required_level(method, path, public_reads)
     RL->>RL: segments(path) split on "/" (:64)
@@ -448,7 +448,7 @@ sequenceDiagram
 
     Note over B: gate 0 (compile-time) — this whole codepath is #[cfg(any(debug_assertions,#quot —dev-auth#quot —))]<br/>compiled OUT of a release binary entirely — release stub always returns false/None
     alt release build (no debug_assertions, no dev-auth feature)
-        B->>B: enforce_release_env_hygiene runs at boot (src/main.rs:201)
+        B->>B: enforce_release_env_hygiene runs at boot (src/main.rs:209)
         alt VISIONCLAW_DEV_MODE present (any value, presence not truthiness)
             B-->>R: FATAL eprintln, std::process::exit(2) (SUSPECT_ENVS, :130-134,:156)
         end
@@ -507,7 +507,7 @@ sequenceDiagram
     participant K as secp256k1 keypair (client-held)
     participant U as uri::did_nostr<br/>src/uri/mod.rs:220
     participant NS as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs:624
-    participant SP as init_pod_nip98<br/>src/handlers/solid_proxy_handler.rs:1312
+    participant SP as init_pod_nip98<br/>src/handlers/solid_proxy_handler.rs:1331
     participant RS as RoleStore::effective_role<br/>src/services/role_store.rs:359
     participant AL as AccessLevel<br/>src/utils/auth.rs:16
 
@@ -521,7 +521,7 @@ sequenceDiagram
         SP->>SP: extract_user_identity(req) — re-verifies NIP-98 (this route sits under /api,<br/>so RbacGate ALSO requires WriteGraph via verify_access before the handler runs)
         SP->>SP: PublicKey::from_hex(pubkey).to_bech32() -> npub
         SP->>SP: ensure_pod_exists(npub, pubkey, pod_base_url)
-        SP-->>K: { pod_url, webid: structure.profile, npub } (:1352)
+        SP-->>K: { pod_url, webid: structure.profile, npub } (:1368)
         Note over SP: GET /did/nostr:{pubkey} resolves a did+ld+json document via<br/>solid_pod_rs::interop::did_nostr::did_nostr_document (solid_proxy_handler.rs:1655,<br/>route registered :1786). Full pod/LDP detail: see VC-26.
     end
     K->>RS: canonicalise_pubkey(pubkey) (role_store.rs:154) then effective_role(pubkey, is_power_user)

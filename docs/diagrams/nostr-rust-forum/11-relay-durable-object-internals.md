@@ -32,7 +32,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/README.md
-verified_commit: 13cbe6cbad7ee7ff3b609233a8bee3dd8eae1f3e
+verified_commit: 72463fbde35ac4c68539b1f65a08ff03b9941201
 ---
 
 ## NF-11.1 The Durable Object and its in-memory state
@@ -119,7 +119,7 @@ flowchart TB
     INS --> D2D
     REG --> SAVE
 
-    N1["The d_tag column is what makes parameterised replacement a single indexed DELETE rather than a scan -<br/>it is written at INSERT time relay_do/storage.rs:80, extracted by relay_do/filter.rs:271"]
+    N1["The d_tag column is what makes parameterised replacement a single indexed DELETE rather than a scan -<br/>it is written at INSERT time relay_do/storage.rs:80, extracted by relay_do/filter.rs:292"]
     N2["kind-1059 gift wraps are REGULAR events - no replacement semantics - asserted<br/>relay_do/broadcast.rs:434"]
     N3["query_events serves REQ from the same table relay_do/storage.rs:249; is_whitelisted is the admission<br/>lookup NF-03.4 step 6 calls relay_do/storage.rs:345"]
 ```
@@ -147,8 +147,8 @@ sequenceDiagram
 
     Note over B: INVARIANT NIP-59: a sealed DM is delivered ONLY to the session whose AUTHENTICATED pubkey matches the p tag - subscribing to kind 1059 is not enough relay_do/broadcast.rs:49-51
     Note over B: This is the read-side twin of the write-side recipient gate in NF-03.5. Admission bounds who may PUBLISH a wrap, this bounds who may RECEIVE one.
-    Note over B: INVARIANT what broadcast matches against is the GATED filter, because handle_req now stores the authorised filter rather than the client's raw one relay_do/nip_handlers.rs:1485-1487 relay_do/nip_handlers.rs:1491-1493 - see NF-03.14
-    Note over B: A separate filter-level gate rewrites kind-1059 REQ filters to a mandatory #p in BOTH auth modes relay_do/nip_handlers.rs:1760 - so DM privacy never depends on AUTH_MODE relay_do/nip42.rs:236-239
+    Note over B: INVARIANT what broadcast matches against is the GATED filter, because handle_req now stores the authorised filter rather than the client's raw one relay_do/nip_handlers.rs:1487-1490 relay_do/nip_handlers.rs:1491-1494 - see NF-03.14
+    Note over B: A separate filter-level gate rewrites kind-1059 REQ filters to a mandatory #p in BOTH auth modes relay_do/nip_handlers.rs:1786 - so DM privacy never depends on AUTH_MODE relay_do/nip42.rs:236-239
 ```
 
 ## NF-11.6 Subscription matching — the REQ filter predicate
@@ -174,7 +174,7 @@ flowchart TB
     N2["The SAME predicate serves both directions: query_events replays history relay_do/storage.rs:249 and<br/>broadcast_event tests each live event against every session subscription - see NF-11.5"]
     N3["d_tag_value is what storage stamps at INSERT so parameterised replacement is an indexed DELETE -<br/>see NF-11.4 N1"]
     N4["Before a filter is even evaluated: a malformed websocket frame is answered with a NOTICE rather than a<br/>socket close - the relay never drops a connection for one bad message relay_do/mod.rs:232-240"]
-    N5["Subscriptions that install a filter are capped at MAX_SUBSCRIPTIONS = 20 per session, enforced on REQ<br/>relay_do/nip_handlers.rs:45 relay_do/nip_handlers.rs:1432"]
+    N5["Subscriptions that install a filter are capped at MAX_SUBSCRIPTIONS = 20 per session, enforced on REQ<br/>relay_do/nip_handlers.rs:45 relay_do/nip_handlers.rs:1465"]
 ```
 
 ## NF-11.7 ModCache — a 60-second ban gate that fails CLOSED
@@ -240,14 +240,14 @@ flowchart TB
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Signed: valid signature, correlates to a case<br/>nostr-bbs-core/src/governance.rs:916
-    Signed --> RelayAccepted: durably stored - what an OK actually certifies<br/>nostr-bbs-core/src/governance.rs:919
-    RelayAccepted --> ProjectionCommitted: decision row, case state and receipt commit TOGETHER<br/>nostr-bbs-core/src/governance.rs:921
-    RelayAccepted --> ProjectionFailed: attempted and did not commit<br/>nostr-bbs-core/src/governance.rs:924
-    ProjectionCommitted --> ConsumerReceived: the mutation owner has READ it, not acted<br/>nostr-bbs-core/src/governance.rs:926
-    ConsumerReceived --> Applied: the act was performed and took effect<br/>nostr-bbs-core/src/governance.rs:928
-    ConsumerReceived --> NotApplied: the owner did not perform it, and says so<br/>nostr-bbs-core/src/governance.rs:931
-    ConsumerReceived --> AppliedManually: an operator did it by hand during an outage<br/>nostr-bbs-core/src/governance.rs:933
+    [*] --> Signed: valid signature, correlates to a case<br/>nostr-bbs-core/src/governance.rs:940
+    Signed --> RelayAccepted: durably stored - what an OK actually certifies<br/>nostr-bbs-core/src/governance.rs:943
+    RelayAccepted --> ProjectionCommitted: decision row, case state and receipt commit TOGETHER<br/>nostr-bbs-core/src/governance.rs:945
+    RelayAccepted --> ProjectionFailed: attempted and did not commit<br/>nostr-bbs-core/src/governance.rs:948
+    ProjectionCommitted --> ConsumerReceived: the mutation owner has READ it, not acted<br/>nostr-bbs-core/src/governance.rs:950
+    ConsumerReceived --> Applied: the act was performed and took effect<br/>nostr-bbs-core/src/governance.rs:952
+    ConsumerReceived --> NotApplied: the owner did not perform it, and says so<br/>nostr-bbs-core/src/governance.rs:955
+    ConsumerReceived --> AppliedManually: an operator did it by hand during an outage<br/>nostr-bbs-core/src/governance.rs:957
     Applied --> [*]
     NotApplied --> [*]
     AppliedManually --> [*]
@@ -264,9 +264,9 @@ stateDiagram-v2
     note right of ProjectionFailed
         is_applied is the distinction a downstream operator needs - a DENIED
         action and an APPROVED action whose write FAILED must never look the
-        same nostr-bbs-core/src/governance.rs:929-930
+        same nostr-bbs-core/src/governance.rs:953-954
         Terminal until a reconciliation retry supersedes it
-        nostr-bbs-core/src/governance.rs:922-923
+        nostr-bbs-core/src/governance.rs:946-947
     end note
     note right of Applied
         INVARIANT the three application outcomes are a SET, not an order.
@@ -274,21 +274,21 @@ stateDiagram-v2
         rungs up to consumer-received and NOT for these three - they are
         mutually exclusive claims about the world, and a consumer that reduces
         them with max displays a success as a failure
-        nostr-bbs-core/src/governance.rs:892-902
+        nostr-bbs-core/src/governance.rs:919-935
         Compare rungs by ladder_rank, treat outcomes as a set
-        nostr-bbs-core/src/governance.rs:975
+        nostr-bbs-core/src/governance.rs:999
     end note
 ```
 
 **Two side receipts** record something that happened to a case without advancing it
 toward application, and so never overwrite a ladder stage
-(`nostr-bbs-core/src/governance.rs:988`).
+(`nostr-bbs-core/src/governance.rs:1012`).
 
 ## NF-11.10 Side receipts, the read API, and what ADR-2010 still leaves open
 
 ```mermaid
 flowchart TB
-    SIDE["Side receipts - never on the ladder<br/>escalated-on-age nostr-bbs-core/src/governance.rs:936<br/>expired nostr-bbs-core/src/governance.rs:938<br/>ladder_rank returns None for both nostr-bbs-core/src/governance.rs:982"]
+    SIDE["Side receipts - never on the ladder<br/>escalated-on-age nostr-bbs-core/src/governance.rs:960<br/>expired nostr-bbs-core/src/governance.rs:962<br/>ladder_rank returns None for both nostr-bbs-core/src/governance.rs:1006"]
     API["GET /api/governance/receipts - NIP-98 ADMIN<br/>relay_do/receipts.rs:639, routed at nostr-bbs-relay-worker/src/lib.rs:312"]
     JSON["receipt_json derives the flags rather than making every client<br/>re-implement stage semantics relay_do/receipts.rs:594"]
     FLAGS["applied relay_do/receipts.rs:614<br/>awaitsProjection relay_do/receipts.rs:615<br/>isApplicationStage relay_do/receipts.rs:619<br/>appliedAt appliedBy acknowledgement relay_do/receipts.rs:620"]
@@ -367,9 +367,9 @@ flowchart LR
     CAP["BACKFILL_MAX_ROWS ceiling per run<br/>nostr-bbs-relay-worker/src/cron.rs:49, stop at cron.rs:126"]
     RES["BackfillResult<br/>nostr-bbs-relay-worker/src/cron.rs:159"]
     RET["retention / NIP-40 expiry sweep<br/>nostr-bbs-relay-worker/src/cron.rs:345"]
-    AGE["ageing sweep - escalate_stale_cases<br/>nostr-bbs-relay-worker/src/cron.rs:591"]
+    AGE["ageing sweep - escalate_stale_cases<br/>nostr-bbs-relay-worker/src/cron.rs:592"]
     SW["trust demotion sweep - moved OUT to trust_sweep<br/>nostr-bbs-relay-worker/src/cron.rs:269"]
-    EXP["ADR-2013: expire_stale_proposals - closes ontology proposals past stale_after<br/>nostr-bbs-relay-worker/src/cron.rs:747, runs AFTER the ageing sweep<br/>nostr-bbs-relay-worker/src/lib.rs:1094"]
+    EXP["ADR-2013: expire_stale_proposals - closes ontology proposals past stale_after<br/>nostr-bbs-relay-worker/src/cron.rs:748, runs AFTER the ageing sweep<br/>nostr-bbs-relay-worker/src/lib.rs:1094"]
 
     CRON --> RET & SW & AGE --> EXP
     BF --> CAP --> RES
@@ -378,10 +378,11 @@ flowchart LR
     N2["It is idempotent behind a freshness guard, so a re-run never overwrites a newer row<br/>nostr-bbs-relay-worker/src/cron.rs:11"]
     N3["The sweep was MOVED out of cron.rs because the inline form was unsound - it mutates trust_level, the<br/>very column its own candidate predicate filters on nostr-bbs-relay-worker/src/cron.rs:269-271. See NF-11.12."]
     N4["The advertised retention windows are built from the SAME RETENTION_POLICY the sweep uses, so NIP-11 and<br/>the cron can never diverge nostr-bbs-relay-worker/src/nip11.rs:173-175"]
-    N5["INVARIANT: the ageing sweep is ordered and filtered by each case's OWN deadline, not by created_at -<br/>panels declare different deadlines, so oldest first is not most overdue first, and ordering by<br/>created_at made the page ceiling cut the LEAST overdue nostr-bbs-relay-worker/src/cron.rs:602-609,<br/>the SQL at nostr-bbs-relay-worker/src/cron.rs:612"]
-    N6["A case exactly AT its deadline has not yet exceeded it nostr-bbs-relay-worker/src/cron.rs:570,<br/>the predicate at nostr-bbs-relay-worker/src/cron.rs:571, asserted nostr-bbs-relay-worker/src/cron.rs:1172"]
-    N7["An ageing escalation is a SIDE receipt - it records what happened to a case without advancing it<br/>toward application nostr-bbs-core/src/governance.rs:936 - see NF-11.10"]
-    N8["ADR-2013: a proposal expires when the corpus has moved past its digest - the ontology page it named no<br/>longer describes the same content, so applying a stale decision would silently promote or demote the<br/>WRONG state. Closed WITHOUT a decision, receipted expired rather than left pending forever<br/>nostr-bbs-relay-worker/src/cron.rs:721-746. Runs after ageing so a case that is both overdue and<br/>expired accrues both receipts in the order they became true, per the scheduled-entry comment<br/>nostr-bbs-relay-worker/src/lib.rs:1089-1093"]
+    N5["INVARIANT: the ageing sweep is ordered and filtered by each case's OWN deadline, not by created_at -<br/>panels declare different deadlines, so oldest first is not most overdue first, and ordering by<br/>created_at made the page ceiling cut the LEAST overdue nostr-bbs-relay-worker/src/cron.rs:603-610,<br/>the SQL at nostr-bbs-relay-worker/src/cron.rs:613"]
+    N6["A case exactly AT its deadline has not yet exceeded it nostr-bbs-relay-worker/src/cron.rs:571,<br/>the predicate at nostr-bbs-relay-worker/src/cron.rs:572, asserted nostr-bbs-relay-worker/src/cron.rs:1173"]
+    N7["An ageing escalation is a SIDE receipt - it records what happened to a case without advancing it<br/>toward application nostr-bbs-core/src/governance.rs:960 - see NF-11.10"]
+    N8["ADR-2013: a proposal expires when the corpus has moved past its digest - the ontology page it named no<br/>longer describes the same content, so applying a stale decision would silently promote or demote the<br/>WRONG state. Closed WITHOUT a decision, receipted expired rather than left pending forever<br/>nostr-bbs-relay-worker/src/cron.rs:722-747. Runs after ageing so a case that is both overdue and<br/>expired accrues both receipts in the order they became true, per the scheduled-entry comment<br/>nostr-bbs-relay-worker/src/lib.rs:1089-1093"]
+    N9["NEW at this commit, the admission twin of the retention sweep: a malformed or past NIP-40 expiration<br/>is REFUSED at admission rather than accepted then swept - expiration_admission<br/>relay_do/filter.rs:277 runs before any side effect relay_do/nip_handlers.rs:813, and the sweep's SQL<br/>skips non-numeric values nostr-bbs-relay-worker/src/cron.rs:419. Closes the mechanism of KF-1, see NF-10.11"]
 ```
 
 ## NF-11.14 NIP-11 — the relay information document cannot lie about its own gate
@@ -429,15 +430,15 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    VAL["validate_event<br/>relay_do/nip_handlers.rs:1298"]
-    DRIFT["timestamp_drift_ok<br/>relay_do/nip_handlers.rs:1363"]
-    EXEMPT["sealed_drift_exempt - kind 42 AND a well-formed sealed tag<br/>relay_do/nip_handlers.rs:1353"]
-    PAST["exempt ONLY from the past bound - created_at must still not be in the future<br/>relay_do/nip_handlers.rs:1364"]
-    HAS["has_sealed_tag - ANY sealed tag, well formed or not<br/>relay_do/nip_handlers.rs:1105"]
-    REJ["sealed_write_rejection<br/>relay_do/nip_handlers.rs:1384"]
-    ADMIN["not admin -> SEALED_ADMIN_ONLY<br/>relay_do/nip_handlers.rs:1393"]
-    ENCZ["zone not encrypted -> SEALED_ENCRYPTED_ZONES_ONLY<br/>relay_do/nip_handlers.rs:1396"]
-    CIPHER["is_zone_ciphertext shape check - NIP-44 v2 ciphertext, no readable text even for admins<br/>zone_config.rs:202, gate at relay_do/nip_handlers.rs:1124"]
+    VAL["validate_event<br/>relay_do/nip_handlers.rs:1331"]
+    DRIFT["timestamp_drift_ok<br/>relay_do/nip_handlers.rs:1396"]
+    EXEMPT["sealed_drift_exempt - kind 42 AND a well-formed sealed tag<br/>relay_do/nip_handlers.rs:1386"]
+    PAST["exempt ONLY from the past bound - created_at must still not be in the future<br/>relay_do/nip_handlers.rs:1397"]
+    HAS["has_sealed_tag - ANY sealed tag, well formed or not<br/>relay_do/nip_handlers.rs:1138"]
+    REJ["sealed_write_rejection<br/>relay_do/nip_handlers.rs:1417"]
+    ADMIN["not admin -> SEALED_ADMIN_ONLY<br/>relay_do/nip_handlers.rs:1426"]
+    ENCZ["zone not encrypted -> SEALED_ENCRYPTED_ZONES_ONLY<br/>relay_do/nip_handlers.rs:1429"]
+    CIPHER["is_zone_ciphertext shape check - NIP-44 v2 ciphertext, no readable text even for admins<br/>zone_config.rs:202, gate at relay_do/nip_handlers.rs:1157"]
     OK["event accepted, saved with its ORIGINAL created_at"]
 
     VAL --> DRIFT --> EXEMPT --> PAST
@@ -445,24 +446,24 @@ flowchart TB
     REJ --> ENCZ
     ENCZ -.-> CIPHER --> OK
 
-    N1["INVARIANT: the drift exemption and the write rejection are SEPARATE gates that must both hold - a<br/>malformed sealed marker fails parse_sealed so EXEMPT never fires, but HAS still fires on the raw tag, so<br/>the write is refused rather than silently accepted as a fresh non-exempt event<br/>relay_do/nip_handlers.rs:1353-1360"]
-    N2["INVARIANT: order matters. An UNSCOPED channel otherwise lets any whitelisted member post, so the<br/>encrypted-zone check must reject a sealed envelope there even from an admin - checked BEFORE the ordinary<br/>zone-write gate, not folded into it relay_do/nip_handlers.rs:1101-1113"]
-    N3["The relay holds no zone key, so CIPHER is a SHAPE check only - it cannot prove the ciphertext decrypts<br/>to anything, only that it is not plaintext masquerading as migrated history relay_do/nip_handlers.rs:1121-1129"]
-    N4["Why this exists: an envelope keeps its original created_at so pagination, ordering and client unread<br/>logic stay correct across a migration that is usually far older than MAX_TIMESTAMP_DRIFT (7 days)<br/>relay_do/nip_handlers.rs:1342-1344"]
+    N1["INVARIANT: the drift exemption and the write rejection are SEPARATE gates that must both hold - a<br/>malformed sealed marker fails parse_sealed so EXEMPT never fires, but HAS still fires on the raw tag, so<br/>the write is refused rather than silently accepted as a fresh non-exempt event<br/>relay_do/nip_handlers.rs:1382-1385"]
+    N2["INVARIANT: order matters. An UNSCOPED channel otherwise lets any whitelisted member post, so the<br/>encrypted-zone check must reject a sealed envelope there even from an admin - checked BEFORE the ordinary<br/>zone-write gate, not folded into it relay_do/nip_handlers.rs:1133-1147"]
+    N3["The relay holds no zone key, so CIPHER is a SHAPE check only - it cannot prove the ciphertext decrypts<br/>to anything, only that it is not plaintext masquerading as migrated history relay_do/nip_handlers.rs:1154-1157"]
+    N4["Why this exists: an envelope keeps its original created_at so pagination, ordering and client unread<br/>logic stay correct across a migration that is usually far older than MAX_TIMESTAMP_DRIFT (7 days)<br/>relay_do/nip_handlers.rs:1375-1377"]
 ```
 
 ## NF-11.17 ADR-2018 read-side caching — per-DO memos and a throttled activity ledger
 
 ```mermaid
 flowchart TB
-    ZONE["cached_channel_zone - 60s memo, POSITIVE results only<br/>relay_do/nip_handlers.rs:1821"]
-    COH["cached_viewer_cohorts - 60s memo of cohorts, is_admin, BOTH outcomes cached<br/>relay_do/nip_handlers.rs:1835"]
-    DEV["cached_device_owner - 60s memo, BOTH outcomes cached<br/>relay_do/nip_handlers.rs:1848"]
+    ZONE["cached_channel_zone - 60s memo, POSITIVE results only<br/>relay_do/nip_handlers.rs:1854"]
+    COH["cached_viewer_cohorts - 60s memo of cohorts, is_admin, BOTH outcomes cached<br/>relay_do/nip_handlers.rs:1868"]
+    DEV["cached_device_owner - 60s memo, BOTH outcomes cached<br/>relay_do/nip_handlers.rs:1881"]
     TTL["TtlCache generic memo, entries expire ttl_secs after being stored<br/>read_cache.rs:56"]
-    READ["note_read_activity - accumulates delivered reads<br/>relay_do/nip_handlers.rs:1860"]
-    WRITE["note_write_activity - stamps EVERY accepted EVENT<br/>relay_do/nip_handlers.rs:1870"]
+    READ["note_read_activity - accumulates delivered reads<br/>relay_do/nip_handlers.rs:1893"]
+    WRITE["note_write_activity - stamps EVERY accepted EVENT<br/>relay_do/nip_handlers.rs:1903"]
     LEDGER["ActivityLedger - flush at most once per pubkey per 300s, or at 50 pending reads<br/>read_cache.rs:98, thresholds read_cache.rs:44-48"]
-    FLUSH["flush_activity - increment_posts_read_by, update_last_active, check_promotion<br/>relay_do/nip_handlers.rs:1877"]
+    FLUSH["flush_activity - increment_posts_read_by, update_last_active, check_promotion<br/>relay_do/nip_handlers.rs:1910"]
 
     ZONE & COH & DEV --> TTL
     READ & WRITE --> LEDGER --> FLUSH

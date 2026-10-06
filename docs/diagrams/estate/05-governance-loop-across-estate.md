@@ -44,7 +44,7 @@ sources:
   - ../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs
   - ../project/agentbox/services/dream-engine/src/governance.rs
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
-verified_commit: {agentbox: d03defbeaca6c52d6bf3f7338d3f465a109fcdbf, visionclaw: dd420fbc722a7a4a50e968162ac6c3eaff6972b2, visionflow: afb44af7389acd452d37c93eff7cbd06db5cb313, nostr-rust-forum: 13cbe6cbad7ee7ff3b609233a8bee3dd8eae1f3e, dreamlab-ai-website: 81ec18c4d56240dcf8e9dd8b07a2dca8239adaea}
+verified_commit: {agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, nostr-rust-forum: 72463fbde35ac4c68539b1f65a08ff03b9941201, dreamlab-ai-website: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80}
 ---
 ## ES-05.2 Wire fields and exact response binding
 ```mermaid
@@ -225,7 +225,7 @@ flowchart LR
     READY -->|yes| LOCAL["local side-effect classification"]
     LOCAL --> SPAWN["Journalled task spawn; no extra approval receipt"]
     NIGHT["Nightly SSH, model calls, push and publication"] --> REC["POST /v1/exec/record appends tool.called and tool.completed<br/>through the same journal singleton, records only<br/>exec-record.js:63"]
-    REC -.-> GAP["ADR-2071 activation live, decision still proposed:<br/>journalled, never approved or denied<br/>ADR-2071-journal-the-nightly-dream-cycle.md:5-7"]
+    REC -.-> GAP["ADR-2071 accepted 2026-10-04, activation live:<br/>journalled, never approved or denied<br/>(Phase 2 policing stays out of scope)<br/>ADR-2071-journal-the-nightly-dream-cycle.md:5-7,193"]
     PEER["Same-UID process"] -.-> LIMIT["Application gate does not establish OS isolation"]
 ```
 
@@ -243,7 +243,7 @@ flowchart TB
     AB["LANDING 1, agentbox — derives and stamps the triple on every<br/>31402 it publishes, journals every gate denial as authority.deny,<br/>mirrors the receipt ladder to the human, and gives an outage a<br/>signed manual-continuation path<br/>ADR-2087-task-properties-receipts-and-manual-continuation.md:38,50,59,69"]
     VC["LANDING 2, VisionClaw — instruments the judgment surfaces and<br/>moves the rationale gate onto the shared decide core<br/>ADR-2110-augmentation-conditions-visionclaw-substrate.md:3,120-121"]
     FRM["LANDING 3, the forum — operator task properties set the<br/>escalation boundary, implementation partial, activation LIVE<br/>since the M4 probe run of 2 October<br/>ADR-2011-operator-task-properties-set-the-escalation-boundary.md:6-7"]
-    REL["LANDING 4, the relay — the FR2.2 rationale is enforced at the<br/>relay before save_event, not only in the UI<br/>nip_handlers.rs:1044-1051"]
+    REL["LANDING 4, the relay — the FR2.2 rationale is enforced at the<br/>relay before save_event, not only in the UI<br/>nip_handlers.rs:1071-1084"]
 
     BOUND --> AB
     RULE --> VC
@@ -251,8 +251,8 @@ flowchart TB
     FRM --> REL
 
     OPEN["OPEN, restated 2 October — the server rationale gate reads the<br/>case's DECLARED tier, and no VisionClaw writer records one. Closing<br/>it is a declaration, not a read: the operator declares the triple on<br/>VisionClaw's panels, then the gate takes the higher of the two tiers.<br/>ADR-2110-augmentation-conditions-visionclaw-substrate.md:132-160"]
-    NOTIER["VERIFIED AT HEAD — VisionClaw's 31400 carries only a d tag and a<br/>PanelDefinition with no tier or task-property field, and its 31402<br/>carries d, priority, category, subject-kind, subject-id and title.<br/>events.rs:211-217, events.rs:91-101, events.rs:308-323,<br/>ElevationActor panel_definition elevation_actor.rs:234"]
-    MED["so the relay folds every VisionClaw case to the advertised default,<br/>medium, and check_rationale only bites at high or critical:<br/>NEITHER rationale gate fires on a VisionClaw case<br/>nostr-bbs-core/src/governance.rs:525, wrangler.toml:48, nostr-bbs-core/src/governance.rs:764"]
+    NOTIER["VERIFIED AT HEAD — VisionClaw's 31400 carries only a d tag and a<br/>PanelDefinition with no tier or task-property field, and its 31402<br/>carries d, priority, category, subject-kind, subject-id and title.<br/>events.rs:211-217, events.rs:91-101, events.rs:308-323,<br/>ElevationActor panel_definition elevation_actor.rs:239"]
+    MED["so the relay folds every VisionClaw case to the advertised default,<br/>medium, and check_rationale only bites at high or critical:<br/>NEITHER rationale gate fires on a VisionClaw case<br/>nostr-bbs-core/src/governance.rs:525, wrangler.toml:48, nostr-bbs-core/src/governance.rs:769"]
     OPEN --> NOTIER --> MED
     VC --> OPEN
 
@@ -268,8 +268,8 @@ sequenceDiagram
     participant AD as apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:483
     participant DT as declared_tier_of<br/>src/handlers/enrichment_proposals_handler.rs:393
     participant CK as check_rationale<br/>src/handlers/enrichment_proposals_handler.rs:406
-    participant RL as relay 31403 handler<br/>nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1021
-    participant FG as governance check_rationale<br/>nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs:759
+    participant RL as relay 31403 handler<br/>nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1054
+    participant FG as governance check_rationale<br/>nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs:764
 
     UI->>AD: decide a case with an outcome and optional reasoning
     AD->>AD: read the case ONCE, its tier drives the gate<br/>enrichment_proposals_handler.rs:502-504
@@ -291,12 +291,12 @@ sequenceDiagram
     Note over CK: INVARIANT — the gate is a PREDICATE, not a transformer. It<br/>returns permission and nothing else, so it is structurally<br/>incapable of supplying the text it is demanding.<br/>src/handlers/enrichment_proposals_handler.rs:402-405
 
     UI->>RL: publish a signed 31403 straight to the relay instead
-    RL->>RL: look up the case's EFFECTIVE tier, nip_handlers.rs:1045
+    RL->>RL: look up the case's EFFECTIVE tier, nip_handlers.rs:1078
     RL->>FG: effective tier, action, reasoning
     FG-->>RL: Err when the rationale is absent or too short
-    RL-->>UI: OK false carrying the refusal reason, nip_handlers.rs:1051
+    RL-->>UI: OK false carrying the refusal reason, nip_handlers.rs:1084
 
-    Note over RL,FG: INVARIANT — enforced BEFORE save_event, because a 31403 is a<br/>signed event any client or script can publish straight to the<br/>relay. A rule that lives only in the forum UI is a suggestion.<br/>nip_handlers.rs:1037-1043
+    Note over RL,FG: INVARIANT — enforced BEFORE save_event, because a 31403 is a<br/>signed event any client or script can publish straight to the<br/>relay. A rule that lives only in the forum UI is a suggestion.<br/>nip_handlers.rs:1071-1077
     Note over AD,RL: DIVERGENCE — the two gates read DIFFERENT tiers. The host reads<br/>the agent's DECLARED tier, the relay reads the EFFECTIVE tier<br/>computed by nostr-bbs-core effective_tier, nostr-bbs-core/src/governance.rs:515.<br/>For a VisionClaw case neither is high: nothing declares a tier, so<br/>the host gate sees None and the relay folds to medium. see ES-05.12
 ```
 
@@ -305,22 +305,24 @@ sequenceDiagram
 **What it shows.** The governance loop's records by activation state at the stamped revisions, and the
 forum relay defect that sat between the human's decision and every downstream receipt: until `a5b809e`
 `receipts::correlate` found the request only in an `e` tag marked `request`, which no producer emits, so a
-31403 signed in the forum UI was stored and acknowledged but never projected.
+31403 signed in the forum UI was stored and acknowledged but never projected. ADR-2071 left the proposed
+list on 4 October: clause (c) ran that morning as a manual API-down night on the live image, all three
+Phase 1 clauses passed, and the record is accepted with the 6 October cron one-shot retired.
 
 **Why it is this way.** Each repository activates its own record against its own evidence (ADR-2087's
 check script, the forum's M4 probe suite, ADR-2110's check script). The correlation fix was found while
 preparing ADR-2010's acceptance and reached the edge with the website kit pin to `341c5d2`; the website now
-pins `13cbe6c`, a descendant. On 2 October VisionClaw's ADR-2110 check passed on the owner's dev stack and
-the record moved to staged, and agentbox armed a one-shot to stop management-api for the night of 5 October
-so that ADR-2071's last clause can be judged.
+pins `72463fbd`, a descendant of `13cbe6c`. On 2 October VisionClaw's ADR-2110 check passed on the owner's
+dev stack and the record moved to staged; agentbox's one-shot for the night of 6 October was stood down
+unused after the manual 4 October run met clause (c) instead.
 
 ```mermaid
 flowchart TB
     subgraph LIVE["activation live"]
         F2011["forum ADR-2011 task properties set the boundary<br/>M4 probe run 11 of 11 on the edge, nostr-bbs-governance-probe<br/>ADR-2011-operator-task-properties-set-the-escalation-boundary.md:184, main.rs:1-2"]
-        A2071["agentbox ADR-2071 nightly journal, decision still proposed<br/>ADR-2071-journal-the-nightly-dream-cycle.md:5-7"]
+        A2071["agentbox ADR-2071 nightly journal, ACCEPTED 2026-10-04<br/>clause (c) met on a manual API-down night, activation live<br/>ADR-2071-journal-the-nightly-dream-cycle.md:5-7,193"]
     end
-    A2071 -.->|"clause c, one-shot stops management-api 00:30-00:59 UTC on 6 Oct, ADR-2071-journal-the-nightly-dream-cycle.md:191"| ONESHOT["adr-2071-api-down-night.sh, a stateless tick every 10 minutes<br/>from the checkout crontab, adr-2071-api-down-night.sh:6-7<br/>stops the API in the 00:30-01:00 UTC window, adr-2071-api-down-night.sh:99-110<br/>restarts on night record, deadline or an API back on its own,<br/>adr-2071-api-down-night.sh:136-145"]
+    A2071 -.->|"clause c was arranged as a cron one-shot for 6 Oct<br/>(ADR-2071-journal-the-nightly-dream-cycle.md:191), stood down<br/>unused after the manual 4 Oct run"| ONESHOT["adr-2071-api-down-night.sh, a stateless tick every 10 minutes<br/>from the checkout crontab, adr-2071-api-down-night.sh:6-7<br/>stops the API in the 00:30-01:00 UTC window, adr-2071-api-down-night.sh:100-108<br/>restarts on night record, deadline or an API back on its own,<br/>adr-2071-api-down-night.sh:133-150 — kept for reuse, crontab removed"]
     ONESHOT -.->|"C3 now also requires a clean stop and restart, adr-2087-check.sh:411-413"| A2087
     subgraph STAGED["activation staged"]
         A2087["agentbox ADR-2087 check exits 2 on the rebuilt image,<br/>wired, forum_auth_api set, no receipt posted yet<br/>ADR-2087-task-properties-receipts-and-manual-continuation.md:7"]
@@ -340,11 +342,11 @@ flowchart TB
 
 **Invariant:** reading the unmarked `e` tag cannot bind a decision to the wrong case, because the projection still requires the request id to equal the case's own `nostr_event_id` (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs:121-127`).
 
-**Open:** three activations now wait on the same event — the owner's first decision on a real high-tier case. VisionClaw still declares no tier on its panels or requests (`../project/src/services/acsp/events.rs:308-323`), so its cases fold to `medium` on the forum (`../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs:525`); the candidate case is agentbox's, raised on the agentbox-release-ops panel on 2 October (`../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md:335-337`). Whether the relay stamped it `effective_tier: high` is the prerequisite forum ADR-2010 left unchecked (`../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md:176`), and who declares the first VisionClaw triple remains the owner's policy choice (`../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md:153-155`).
+**Open:** two activations now wait on the same event — the owner's first decision on a real high-tier case. VisionClaw still declares no tier on its panels or requests (`../project/src/services/acsp/events.rs:308-323`), so its cases fold to `medium` on the forum (`../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs:525`); the candidate case is agentbox's, raised on the agentbox-release-ops panel on 2 October (`../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md:335-337`). Whether the relay stamped it `effective_tier: high` is the prerequisite forum ADR-2010 left unchecked (`../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md:176`), and who declares the first VisionClaw triple remains the owner's policy choice (`../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md:153-155`).
 
 **Tension (forum ADR-2010 and ADR-2011 vs VisionClaw ADR-2110):** the forum records say the only high cases on the edge are the two M4 probe cases (`../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md:166`, `../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:197`); VisionClaw's ADR-2110 names a real high-tier case raised the same day (`../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md:335-337`). Neither cites a `--list-cases` read of it.
 
-The former drift on the FR3.2 client read is closed: forum ADR-2011 now records it on the edge with kit `341c5d2` (`../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:203`), and the Workers deploy pins `13cbe6c`, a descendant (`../dreamlab-ai-website/.github/workflows/workers-deploy.yml:45`).
+The former drift on the FR3.2 client read is closed: forum ADR-2011 now records it on the edge with kit `341c5d2` (`../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:203`), and the Workers deploy pins `72463fbd`, a descendant (`../dreamlab-ai-website/.github/workflows/workers-deploy.yml:45`).
 
 ## ES-05.15 Who signs which governance kind, and what the agentbox identity port will never sign
 
@@ -360,7 +362,7 @@ flowchart TB
     PORT["agentbox identity port, live only under role_isolation: kinds 31400-31405<br/>can never be granted to any caller, and an ACL that tries does not load<br/>agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:71-73"]
     SIGNERS --> PORT
     PORT -.-> INV["INVARIANT under role_isolation: no agentbox container process signs a governance<br/>request, panel or decision through the port, so a decision always carries a key<br/>held outside the box. The devuser grant lists only colloquy, digest and forum kinds,<br/>agentbox/config/custody/identity-port-acl.json:34-44"]
-    JJ -.-> TEN["TENSION: the dream engine is a named W3b consumer of the port,<br/>agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:218-219,<br/>yet the kinds its governance panel publishes are exactly the ones the port refuses,<br/>so under the flag the dream panel has no signing path at this revision"]
+    JJ -.-> TEN["TENSION: the dream engine is a named W3b consumer of the port,<br/>agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:224-225,<br/>yet the kinds its governance panel publishes are exactly the ones the port refuses,<br/>so under the flag the dream panel has no signing path at this revision"]
     VCS -.-> OPN["OPEN: the house key stays admitted for every use until its roles are listed as<br/>withdrawn, and that list is empty, agentbox/config/custody/g5-key-split.json:32"]
 ```
 
@@ -370,6 +372,6 @@ flowchart TB
 
 **Invariant (under role_isolation):** the agentbox identity port refuses to load any ACL that grants a governance kind (31400-31405) or a graduation (38414), so no container caller can obtain a governance signature from it (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:71-73`).
 
-**Tension (identity port vs the dream governance panel):** the dream engine publishes its 31400 panel and 31402 cases as JunkieJarvis (`../project/agentbox/services/dream-engine/src/governance.rs:9-10`) and is listed for the W3b move onto the port (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:218-219`), but the port never signs those kinds (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:71-73`); with the flag on, the panel has no signer at this revision.
+**Tension (identity port vs the dream governance panel):** the dream engine publishes its 31400 panel and 31402 cases as JunkieJarvis (`../project/agentbox/services/dream-engine/src/governance.rs:9-10`) and is listed for the W3b move onto the port (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:224-225`), but the port never signs those kinds (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:71-73`); with the flag on, the panel has no signer at this revision.
 
 **Drift (resolved 2026-10-03, Q15):** the relay allowlist used to call `b4165401…` the visionclaw-server governance publisher; it now records it as the operator's NIP-07 signer for 31403 decisions, with visionclaw-server signing 31402 as the house key (`../project/agentbox/agentbox.toml:160`). Resolved in the manifest's wording only; the verifier set is unchanged.

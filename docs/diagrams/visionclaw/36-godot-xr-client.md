@@ -60,7 +60,7 @@ sources:
   - ../project/xr-client/tests/unit/test_write_denied_notice.gd
   - ../project/docs/adr/ADR-2108-dev-profile-arms-visionclaw-dev-mode-by-default.md
   - ../project/docs/adr/ADR-2109-xr-agent-embodiment-single-pose-owner-and-demo-via-ingest.md
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
 ---
 
 ## VC-36.1 Boot — OpenXR init, capability probe, deferred scene swap (ADR-2036)
@@ -170,8 +170,8 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GS as _connect_from_env<br/>xr-client/scripts/graph_scene.gd:1193
-    participant CT as connect_to_server<br/>xr-client/scripts/graph_scene.gd:1223
+    participant GS as _connect_from_env<br/>xr-client/scripts/graph_scene.gd:1195
+    participant CT as connect_to_server<br/>xr-client/scripts/graph_scene.gd:1225
     participant BP as BinaryProtocolClient (gdext)<br/>xr-client/rust/src/binary_protocol.rs:864
     participant TR as spawn_graph_stream<br/>xr-client/rust/src/transport.rs:69
     participant SG as NostrSigner<br/>xr-client/rust/src/signer.rs:112
@@ -180,7 +180,7 @@ sequenceDiagram
     Note over GS: XR_BACKEND_WS default ws://localhost:4000<br/>GRAPH_STREAM_PATH="/wss" graph_scene.gd:72<br/>PRESENCE_PATH="/ws/presence" graph_scene.gd:73
     GS->>GS: _env_or("XR_BACKEND_WS", DEFAULT_BACKEND_WS).rstrip("/")
     GS->>CT: connect_to_server(base+"/wss", base+"/ws/presence", XR_ROOM_URN, XR_DISPLAY_NAME, XR_NOSTR_SECRET)
-    Note over GS,CT: RESOLVED ADR-2076: no token argument. with_token, the token<br/>parameters of spawn_graph_stream / graph_pump / connect_to_url,<br/>and XR_GRAPH_TOKEN are deleted. Query-token auth is gone from<br/>this client - NIP-98 is the only graph-socket credential. Also RESOLVED<br/>ADR-2058 (2026-09-05, see VC-32.1): the server's own ?token= query fallback is<br/>now compiled out of release entirely and survives only dev-auth-gated with a<br/>SECURITY: warning - BASELINE-architecture.md's "Known divergences" bullet<br/>(:237) recording it as still-open was not updated when ADR-2058 landed.
+    Note over GS,CT: RESOLVED ADR-2076: no token argument. with_token, the token<br/>parameters of spawn_graph_stream / graph_pump / connect_to_url,<br/>and XR_GRAPH_TOKEN are deleted. Query-token auth is gone from<br/>this client - NIP-98 is the only graph-socket credential. Also RESOLVED<br/>ADR-2058 (2026-09-05, see VC-32.1): the server's own ?token= query fallback is<br/>now compiled out of release entirely and survives only dev-auth-gated with a<br/>SECURITY: warning - BASELINE-architecture.md's "Known divergences" bullet<br/>(:248) recording it as still-open was not updated when ADR-2058 landed.
     CT->>BP: connect_to_url(url, nostr_secret_hex) binary_protocol.rs:948
     BP->>TR: spawn_graph_stream(url, nostr_secret_hex, inbox)
     TR->>SV: connect_async_with_config(url, ws_config(), false)
@@ -222,11 +222,11 @@ stateDiagram-v2
     Authenticated --> Backoff: socket closed
     Backoff --> Connecting: timer expires
     note right of Backoff
-        _backoff_delay(attempts) graph_scene.gd:2634-2638
+        _backoff_delay(attempts) graph_scene.gd:2636-2638
         min(RECONNECT_BASE_DELAY_SEC * 2^(attempts-1), RECONNECT_MAX_DELAY_SEC)
         base 2.0s graph_scene.gd:21, cap 60.0s graph_scene.gd:22
-        graph socket timer graph_scene.gd:2643
-        presence socket timer graph_scene.gd:2651
+        graph socket timer graph_scene.gd:2645
+        presence socket timer graph_scene.gd:2653
         INVARIANT the two sockets back off INDEPENDENTLY
         graph_scene.gd:165, 167, 2643, 2651
     end note
@@ -345,8 +345,8 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant GD as graph_scene.gd _process
-    participant UE as _update_edge_multimesh<br/>xr-client/scripts/graph_scene.gd:1886
-    participant UB as _update_beam_multimesh<br/>xr-client/scripts/graph_scene.gd:1908
+    participant UE as _update_edge_multimesh<br/>xr-client/scripts/graph_scene.gd:1888
+    participant UB as _update_beam_multimesh<br/>xr-client/scripts/graph_scene.gd:1910
     participant RS as build_edge_buffer<br/>xr-client/rust/src/render_store.rs:1602
     participant SC as edge_style_code<br/>xr-client/rust/src/render_store.rs:122
     participant MM as MultiMesh GraphRoot/EdgesMulti<br/>use_custom_data = true
@@ -366,7 +366,7 @@ sequenceDiagram
     end
     RS-->>UE: PackedFloat32Array (16 floats/instance)
     UE->>UE: count = buf.size() / 16
-    Note over UE,MM: ADR-2034 INVARIANT: divide by 16, never 12.<br/>A /12 divisor mis-sizes instance_count, set_buffer rejects<br/>EVERY frame and all edges vanish (regression 63d9bb9b8).<br/>graph_scene.gd:1893-1897
+    Note over UE,MM: ADR-2034 INVARIANT: divide by 16, never 12.<br/>A /12 divisor mis-sizes instance_count, set_buffer rejects<br/>EVERY frame and all edges vanish (regression 63d9bb9b8).<br/>graph_scene.gd:1895-1897
     opt mm.instance_count != count
         UE->>MM: instance_count = count
     end
@@ -449,7 +449,7 @@ sequenceDiagram
     RS->>RS: agent_hover_offset(target, agent_id, HOVER_RADIUS)
     Note over RS: Hover motion IS implemented. Golden-angle walk 2.3999632 rad keyed by<br/>agent id fans multiple agents around one node instead of stacking them,<br/>lifted by HOVER_LIFT. HOVER_RADIUS = 1.5 render_store.rs:401, :411-421
     Note over RS: Per-node target priority render_store.rs:1435-1450 - a grabbed node is<br/>pinned, an ACTIVE AGENT hovers at its target (local hover point, not a<br/>server position), a member folding IN chases its representative, everything<br/>else eases to self.targets. DIVERGENCE agent endpoints use LOCAL positions<br/>directly while beam targets are fold-remapped and drawn-gated - the closeout<br/>asks for explicit state precedence, expiry and visible stale/error handling.<br/>docs/XR-client.md 'Estate closeout qualification 2026-09-04'
-    Note over RS,HD: ADR-2109 changed WHERE a beam starts, not what feeds the registry.<br/>The registry is now also the source of embodiment - see VC-36.21.<br/>graph_scene.gd:2279
+    Note over RS,HD: ADR-2109 changed WHERE a beam starts, not what feeds the registry.<br/>The registry is now also the source of embodiment - see VC-36.21.<br/>graph_scene.gd:2281
 ```
 
 ## VC-36.10 Presence socket — challenge/auth/joined handshake and 0x43 pose traffic
@@ -457,7 +457,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GS as graph_scene.gd connect_to_server<br/>xr-client/scripts/graph_scene.gd:1176
+    participant GS as graph_scene.gd connect_to_server<br/>xr-client/scripts/graph_scene.gd:1178
     participant PC as PresenceClient::handshake<br/>xr-client/rust/src/presence.rs:295
     participant SG as NostrSigner<br/>xr-client/rust/src/signer.rs:30
     participant SV as server /ws/presence<br/>src/actors/presence_actor.rs:380
@@ -497,7 +497,7 @@ sequenceDiagram
     autonumber
     participant HD as hud.gd control_pressed
     participant GS as graph_scene.gd handler
-    participant HB as _http_base<br/>xr-client/scripts/graph_scene.gd:1211
+    participant HB as _http_base<br/>xr-client/scripts/graph_scene.gd:1213
     participant AH as _auth_headers<br/>xr-client/scripts/graph_scene.gd:1114
     participant NA as NostrAuth (gdext)<br/>xr-client/rust/src/signer.rs:194
     participant SV as VisionClaw REST
@@ -527,13 +527,13 @@ sequenceDiagram
     end
     AH-->>GS: Content-Type: application/json
     GS->>SV: POST /api/settings/physics/reset-layout graph_scene.gd:1131
-    GS->>SV: PUT /api/settings/physics?graph=knowledge graph_scene.gd:1173
+    GS->>SV: PUT /api/settings/physics?graph=knowledge graph_scene.gd:1175
     GS->>SV: GET /api/graph/fold?level=<n> graph_scene.gd:878
-    GS->>SV: GET /api/graph/node/<id>/relations graph_scene.gd:3139
-    GS->>SV: POST /api/canary/observe/<CANARY_M4_RAY> graph_scene.gd:2571
+    GS->>SV: GET /api/graph/node/<id>/relations graph_scene.gd:3141
+    GS->>SV: POST /api/canary/observe/<CANARY_M4_RAY> graph_scene.gd:2573
     Note over GS,SV: hud.gd's intervention decide POST uses the same signing path<br/>via hud.configure_intervention(_http_base(), _nostr_auth) graph_scene.gd:720
     SV-->>GS: 401 or 403
-    GS->>GS: _describe_write_failure names status, credential path and remedy<br/>xr-client/scripts/graph_scene.gd:1153
+    GS->>GS: _describe_write_failure names status, credential path and remedy<br/>xr-client/scripts/graph_scene.gd:1155
     GS->>HD: hud.flash_notice(_last_write_error) graph_scene.gd:1100
     Note over GS,HD: ADR-2108: the HP is never a loopback peer, so before this landed<br/>every server-routed HUD write 401d into an invisible push_warning.<br/>GUT cover: test_write_denied_notice.gd:16, :30, :38
 ```
@@ -549,7 +549,7 @@ sequenceDiagram
     participant PR as _post_radial<br/>xr-client/scripts/graph_scene.gd:1032
     participant LH as layout_handler.rs<br/>src/handlers/layout_handler.rs:10
     participant FC as force_compute_actor.rs<br/>src/actors/gpu/force_compute_actor.rs:581
-    participant DR as compute_dag_ranks<br/>src/actors/gpu/force_compute_actor.rs:591
+    participant DR as compute_dag_ranks<br/>src/actors/gpu/force_compute_actor.rs:600
 
     Note over GS: LAYOUT_MODES = [forceDirected, hierarchical, radial, spectral,<br/>temporal, clustered] graph_scene.gd:222 - server enumerates the<br/>same list at layout_handler.rs:10
     HD->>GS: control_pressed("layout_cycle")
@@ -565,25 +565,25 @@ sequenceDiagram
     GS->>LH: PUT dagLevelDistance graph_scene.gd:958
     LH->>FC: SetRadialLayout{DagRank}
     loop each edge
-        FC->>FC: is_directed_hierarchy_relation(rel)
-        alt rel in {is_subclass_of, subclass_of, SUBCLASS_OF, hierarchical, HIERARCHICAL}
-            FC-->>DR: edge counts as hierarchy
-            Note right of FC: ADR-2035 INVARIANT: the collapsed "hierarchical" label<br/>MUST be accepted - this deployment's ingest writes it<br/>instead of explicit subclass provenance.<br/>force_compute_actor.rs:581-589
-        else anything else
-            FC-->>DR: rejected
-            Note right of FC: equivalent_class / same_as are SYMMETRIC and<br/>sub_property_of is a separate hierarchy - both excluded<br/>force_compute_actor.rs:574-576
+        FC->>FC: hierarchy_pairs - filter edge.asserts_subsumption
+        alt owl_property_iri provenance is rdfs:subClassOf
+            FC-->>DR: (parent_idx, child_idx) pair
+            Note right of FC: ADR-2035 AMENDED 2026-10-02 (N-14): ranks key on<br/>subClassOf PROVENANCE (Edge.asserts_subsumption),<br/>never on the bare "hierarchical" force label.<br/>force_compute_actor.rs:574-580, :581-599
+        else equivalentClass, sameAs, subPropertyOf, instance-of,<br/>domain membership, or no provenance at all
+            FC-->>DR: skipped - edge not on the GPU is skipped too
+            Note right of FC: the ingest folds equivalence, sameAs, sub-property<br/>and instance-of into the same "hierarchical" label and<br/>domain membership has its own label - ranking any of<br/>them would fabricate layers. force_compute_actor.rs:574-579
         end
     end
     DR->>DR: ranks initialised to -1.0 for every node
     alt num_nodes == 0 or hierarchy_edges empty
         DR-->>LH: all nodes stay -1.0 (unranked)
-        Note right of DR: Before the accept landed (73540faa0) EVERY node stayed<br/>unranked, so Radial: DAG and the Hierarchy toggle were<br/>silently inert - reported in-headset as the Radial Shells<br/>buttons "appearing disconnected". force_compute_actor.rs:591-595
+        Note right of DR: Before the accept landed (73540faa0) EVERY node stayed<br/>unranked, so Radial: DAG and the Hierarchy toggle were<br/>silently inert - reported in-headset as the Radial Shells<br/>buttons "appearing disconnected". force_compute_actor.rs:600-604
     else
         DR-->>LH: ranks assigned
     end
-    Note over FC: DOC-DRIFT: docs/XR-client.md flags the stale doc-comment above<br/>the predicate that claims "hierarchical" is EXCLUDED. In the working<br/>tree the comment at force_compute_actor.rs:574-580 has been corrected<br/>to state the accept - the contradiction is resolved in code.
-    Note over DR: RESOLVED ADR-2079: the XR-client closeout no longer claims ADR-2035's<br/>predicate test fails. directed_hierarchy_accepts_subsumption_and_the_collapsed_label<br/>at force_compute_actor.rs:4562 ASSERTS the accept for is_subclass_of,<br/>subclass_of, SUBCLASS_OF, hierarchical and HIERARCHICAL - the earlier<br/>test contradicted both the implementation and the ratified decision.
-    Note over FC,DR: DIVERGENCE the accept is lossy by design and the cost is recorded,<br/>not hidden: a producer that reuses the collapsed label for DOMAIN<br/>MEMBERSHIP contributes edges ranked as if they were subsumption.<br/>That is a producer-provenance question, not a reason for the<br/>consumer predicate to reject its own ingest's label.<br/>force_compute_actor.rs:4576-4580 - ADR-2035 review_trigger
+    Note over FC: RESOLVED DOC-DRIFT: docs/XR-client.md 0.1.3 (2026-10-02) now<br/>documents the provenance keying, and the corrected doc-comment<br/>at force_compute_actor.rs:574-580 is committed at this revision -<br/>the old excludes-vs-accepts contradiction is gone from both.
+    Note over DR: RESOLVED ADR-2079, SUPERSEDED by the amendment: the closeout's<br/>predicate test is replaced by only_subsumption_provenance_ranks<br/>at force_compute_actor.rs:4623 - bare "hierarchical" with no<br/>subClassOf IRI is now REJECTED, and equivalence, sub-property,<br/>sameAs and instance-of foldings stay out of the rank space.
+    Note over FC,DR: RESOLVED DIVERGENCE: the old lossy-accept cost is gone - a<br/>domain-membership edge under "hierarchical" no longer ranks and<br/>can no longer shortcut a subclass chain (BFS lift), asserted by<br/>membership_edges_neither_rank_nor_shortcut_a_subclass_chain at<br/>force_compute_actor.rs:4703 and a_domain_root_never_ranks at :4515.
 ```
 
 ## VC-36.13 gdext class surface (GDScript composes, Rust owns the wire)
@@ -709,7 +709,7 @@ sequenceDiagram
     participant CO as dev service environment<br/>docker-compose.unified.yml:90
     participant MN as enforce_release_env_hygiene<br/>project/src/main.rs:132
     participant DM as dev_mode_enabled<br/>src/utils/auth.rs:100
-    participant AU as auth resolve<br/>src/utils/auth.rs:154
+    participant AU as auth resolve<br/>src/utils/auth.rs:60
     participant SV as VisionClaw handlers
 
     rect rgb(240, 232, 210)
@@ -733,14 +733,14 @@ sequenceDiagram
     SV->>AU: resolve identity
     alt dev mode on
         AU-->>SV: Ok(DEV_MODE_PUBKEY)
-        Note over AU: LAN-local FULL bypass, peer-agnostic: no NIP-98,<br/>no token, no peer check. src/utils/auth.rs:154-169
+        Note over AU: LAN-local FULL bypass, peer-agnostic: no NIP-98,<br/>no token, no peer check. src/utils/auth.rs:186-201
         SV-->>HP: drag / pin / physics writes all accepted
         Note over HP,SV: This is what makes a 100%-local headset over the 25G rail<br/>friction-free: XR_NOSTR_SECRET can be empty and the<br/>ephemeral signer still works. graph_scene.gd:446-451
     else dev mode off
         AU->>AU: require NIP-98 / bearer / peer check
         alt no credential
             AU-->>HP: 401 - drag/pin refused, read stream still served
-            Note over HP: ADR-2108 INVARIANT: the refusal is now VISIBLE in the headset.<br/>_describe_write_failure names the status, the credential path and<br/>the remedy, and hud.flash_notice puts it on the bottom strip of<br/>every tab. graph_scene.gd:1153, hud.gd:970
+            Note over HP: ADR-2108 INVARIANT: the refusal is now VISIBLE in the headset.<br/>_describe_write_failure names the status, the credential path and<br/>the remedy, and hud.flash_notice puts it on the bottom strip of<br/>every tab. graph_scene.gd:1155, hud.gd:970
         end
     end
 ```
@@ -823,7 +823,7 @@ sequenceDiagram
     participant SL as _set_labelled_nodes<br/>xr-client/scripts/graph_scene.gd:687
     participant BP as set_labelled<br/>xr-client/rust/src/binary_protocol.rs:1261
     participant RS as RenderStore.set_labelled<br/>xr-client/rust/src/render_store.rs:1002
-    participant UM as _update_multimesh<br/>xr-client/scripts/graph_scene.gd:1855
+    participant UM as _update_multimesh<br/>xr-client/scripts/graph_scene.gd:1857
     participant NM as NodesMulti (opaque, gem.tres)
     participant NF as NodesFadedMulti (transparent, gem_faded.tres)<br/>xr-client/scenes/GraphScene.tscn:98
 
@@ -852,8 +852,8 @@ sequenceDiagram
             end
         end
         RS-->>UM: buf (opaque) via build_node_buffer<br/>faded_buf via faded_node_buffer() render_store.rs:1018
-        UM->>NM: buffer = buf, instance_count = buf.size()/20<br/>graph_scene.gd:1863-1868
-        UM->>NF: buffer = faded_buf, instance_count = faded_buf.size()/20<br/>graph_scene.gd:1875-1881
+        UM->>NM: buffer = buf, instance_count = buf.size()/20<br/>graph_scene.gd:1865-1868
+        UM->>NF: buffer = faded_buf, instance_count = faded_buf.size()/20<br/>graph_scene.gd:1877-1881
     end
     Note over RS,NF: INVARIANT a fading/labelled node still enters drawn +<br/>render_ids/render_positions in emit_node (render_store.rs:1595-1597)<br/>even though it left the opaque buffer, so edges still attach to it and<br/>the interaction ray still hits it.
     Note over NF: node_halo.gdshader multiplies rim ALPHA by COLOR.a<br/>(node_halo.gdshader:55, :86) so the halo dims with the sphere too.
@@ -890,13 +890,13 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant PR as _process label cadence<br/>xr-client/scripts/graph_scene.gd:1353
-    participant RC as _reconcile_embodiment<br/>xr-client/scripts/graph_scene.gd:2279
+    participant PR as _process label cadence<br/>xr-client/scripts/graph_scene.gd:1355
+    participant RC as _reconcile_embodiment<br/>xr-client/scripts/graph_scene.gd:2281
     participant BP as BinaryProtocolClient registry<br/>xr-client/rust/src/binary_protocol.rs:864
-    participant SP as _spawn_work_agent<br/>xr-client/scripts/graph_scene.gd:2311
+    participant SP as _spawn_work_agent<br/>xr-client/scripts/graph_scene.gd:2313
     participant CH as AgentChoreography.add_agent<br/>xr-client/scripts/agent_choreography.gd:65
     participant RL as AgentRole.infer<br/>xr-client/scripts/agent_role.gd:62
-    participant DS as _despawn_work_agent<br/>xr-client/scripts/graph_scene.gd:2347
+    participant DS as _despawn_work_agent<br/>xr-client/scripts/graph_scene.gd:2349
 
     PR->>RC: every LABEL_UPDATE_SEC (~4 Hz), alongside the proximity labels
     RC->>BP: agent_ids()
@@ -907,12 +907,12 @@ sequenceDiagram
             Note over SP: ADR-2109 INVARIANT: embodiments hang off the UNIT-SCALE AgentsRoot,<br/>never under GraphRoot. Under GraphRoot they inherited the fit scale and<br/>a 0.15 m orb rendered as about 5 mm. graph_scene.gd:406, :408
             SP->>RL: infer(display_name, "")
             RL-->>SP: architect, analyst, coder, reviewer, tester, optimizer or generic<br/>xr-client/scripts/agent_role.gd:18
-            SP->>SP: place at _rim_slot(cursor), alpha 0<br/>xr-client/scripts/graph_scene.gd:2334
+            SP->>SP: place at _rim_slot(cursor), alpha 0<br/>xr-client/scripts/graph_scene.gd:2336
             SP->>CH: add_agent(sid, rim, 0.0, rim)
         end
         RC->>BP: agent_status, agent_target_node, agent_task
         RC->>CH: update_registry(sid, status, has_target, target_id, target_world)<br/>xr-client/scripts/agent_choreography.gd:108
-        Note over RC,CH: to_global converts the streamed server position to world metres<br/>graph_scene.gd:2268. Server owns WHICH node, status and task, the<br/>client owns WHERE in the room (ADR-140 motion-authority split).
+        Note over RC,CH: to_global converts the streamed server position to world metres<br/>graph_scene.gd:2270. Server owns WHICH node, status and task, the<br/>client owns WHERE in the room (ADR-140 motion-authority split).
         opt role still generic
             RC->>RL: infer(display_name, task) - a live agent may reveal its role in the task line
         end
@@ -920,7 +920,7 @@ sequenceDiagram
     loop each embodied id no longer in the registry
         RC->>DS: _despawn_work_agent(id) - remove record, clear its work ring, free the node
     end
-    Note over RC: DEBT: the reconcile walks the whole registry every tick and rebuilds<br/>nothing incrementally. That is cheap at swarm scale (tens) and would not<br/>be at graph scale. graph_scene.gd:2279
+    Note over RC: DEBT: the reconcile walks the whole registry every tick and rebuilds<br/>nothing incrementally. That is cheap at swarm scale (tens) and would not<br/>be at graph scale. graph_scene.gd:2281
 ```
 
 ## VC-36.22 The single pose owner, one embodiment's phase machine
@@ -943,9 +943,9 @@ stateDiagram-v2
     note right of Work
         agent_choreography.gd is the SOLE writer of a work-layer
         embodiment's position and alpha. tick agent_choreography.gd:120
-        pose agent_choreography.gd:126, applied graph_scene.gd:2443
+        pose agent_choreography.gd:126, applied graph_scene.gd:2445
         INVARIANT the proxemics arc places CONVERSATION-layer avatars only
-        graph_scene.gd:2159, graph_scene.gd:2416
+        graph_scene.gd:2161, graph_scene.gd:2418
         INVARIANT nudge targets, idle radial drift and random graph points
         are deleted and must not return, ADR-2109 Consequences
     end note
@@ -969,7 +969,7 @@ stateDiagram-v2
 sequenceDiagram
     autonumber
     participant HD as Swarm tab Start Agent Demo<br/>xr-client/scripts/hud.gd:534
-    participant GS as _toggle_demo<br/>xr-client/scripts/graph_scene.gd:3669
+    participant GS as _toggle_demo<br/>xr-client/scripts/graph_scene.gd:3671
     participant DD as AgentDemoDirector.start<br/>xr-client/scripts/agent_demo_director.gd:104
     participant EN as encode_action_frame<br/>xr-client/scripts/agent_demo_director.gd:325
     participant BP as BinaryProtocolClient.ingest<br/>xr-client/rust/src/binary_protocol.rs:1105
@@ -979,7 +979,7 @@ sequenceDiagram
     GS->>DD: start(_binary_client, _server_to_world)
     DD->>DD: _build_adjacency from get_edges, _pick_candidates, _separated_starts<br/>xr-client/scripts/agent_demo_director.gd:224
     alt no candidate nodes
-        DD-->>GS: false, HUD flashes "Demo needs a loaded graph" graph_scene.gd:3675
+        DD-->>GS: false, HUD flashes "Demo needs a loaded graph" graph_scene.gd:3677
     else running
         loop per role, staggered STAGGER_SEC
             DD->>EN: {source: 0x80000000 | 0xD001..0xD006, target: a REAL node id,<br/>action, ts, duration_ms, payload {"intent": caption}}
@@ -1020,7 +1020,7 @@ flowchart TB
         BEAM["Work beam on GraphRoot/AgentMulti, origin at the anchor<br/>xr-client/rust/src/render_store.rs:1693"]
     end
     EV["_choreo.take_events drains depart, arrive, handoff, complete, park<br/>xr-client/scripts/agent_choreography.gd:145"]
-    RM["Reduced motion default ON: beads, flash and hover suppressed<br/>xr-client/scripts/graph_scene.gd:2394"]
+    RM["Reduced motion default ON: beads, flash and hover suppressed<br/>xr-client/scripts/graph_scene.gd:2396"]
     TOG["Agents layer toggle hides AgentsRoot and AgentEffectsRoot only<br/>choreography, registry, handles and physics keep running<br/>xr-client/scripts/graph_scene.gd:821"]
     CORE --> FRAME --> PTR --> BADGE --> CAP
     CAP --> EV

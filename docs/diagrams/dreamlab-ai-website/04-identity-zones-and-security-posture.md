@@ -12,7 +12,7 @@ sources:
   - ../dreamlab-ai-website/src/lib/nostr.ts
   - ../dreamlab-ai-website/src/components/AIChatFab.tsx
   - ../dreamlab-ai-website/forum-config/deploy/search-worker.wrangler.toml
-verified_commit: 9a3dd8830
+verified_commit: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80
 ---
 
 ## DW-04.1 Identity is raw-hex Schnorr, not a DID document
@@ -25,9 +25,9 @@ flowchart TB
     KEY --> METHODS["auth methods offered by the upstream kit:<br/>WebAuthn PRF passkeys, NIP-07 extension, raw private key"]
     METHODS --> KEY
 ```
-- INVARIANT (`IDENTITY-zones.md:141-143`): identity in the shipped surface is the raw 64-hex secp256k1 pubkey; any move to emit or require a Multikey/DID document is a code change and a new ADR, not a docs edit.
+- INVARIANT (`IDENTITY-zones.md:161-163`): identity in the shipped surface is the raw 64-hex secp256k1 pubkey; any move to emit or require a Multikey/DID document is a code change and a new ADR, not a docs edit.
 - DOC-DRIFT within this repo's OWN docs: `docs/security/AUTHENTICATION.md` (`## NIP-98 HTTP Authentication`, line 200) documents NIP-98 as the upstream kit auth-worker's HTTP-API scheme (passkey/session auth to REST endpoints) — a genuinely different protocol from the NIP-42 relay-challenge flow this repo's own `src/lib/nostr.ts` implements for DM transport. `IDENTITY-zones.md:34-35`'s claim that "the string NIP-98 appears nowhere in nostr.ts" is true and specific to that one file; it does not mean NIP-98 is absent from the deployed system.
-- DIVERGENCE: legacy ADR-027's `did:nostr`/Multikey document form is docs-only — `fe70102` is not a commit hash, it is the Multikey encoding prefix itself (base16-multibase `f` + secp256k1-pub multicodec varint `e701` + compressed-point `02`, `IDENTITY-zones.md:46-49`); the two commits that landed it (`d62ab40`, `8d942d7`) touched only docs and JSON-LD, and the binding spec they cite (`ADR-125-did-nostr-multikey-convergence.md`) does not exist in this repo — it is kit-owned. ADR-027 is archived as "Deferred — kit-owned" (`IDENTITY-zones.md:56`); treat any claim that this repo emits `did:nostr` Multikey documents as false until a code path produces one (`IDENTITY-zones.md:128-130`).
+- DIVERGENCE: legacy ADR-027's `did:nostr`/Multikey document form is docs-only — `fe70102` is not a commit hash, it is the Multikey encoding prefix itself (base16-multibase `f` + secp256k1-pub multicodec varint `e701` + compressed-point `02`, `IDENTITY-zones.md:46-49`); the two commits that landed it (`d62ab40`, `8d942d7`) touched only docs and JSON-LD, and the binding spec they cite (`ADR-125-did-nostr-multikey-convergence.md`) does not exist in this repo — it is kit-owned. ADR-027 is archived as "Deferred — kit-owned" (`IDENTITY-zones.md:56`); treat any claim that this repo emits `did:nostr` Multikey documents as false until a code path produces one (`IDENTITY-zones.md:148-150`).
 
 ## DW-04.3 Talk-to-AI — client-side Nostr DM, not an HTTP chat endpoint
 ```mermaid
@@ -48,8 +48,8 @@ sequenceDiagram
     Note right of R: primary relay's whitelist gate rejects<br/>kind-1059 addressed to the ephemeral session key
     OPEN--)FAB: reply readable only from open relays<br/>the agent (junkiejarvis) also publishes to
 ```
-- INVARIANT (`IDENTITY-zones.md:148-149`): the Talk-to-AI reply-relay set must remain a subset of the agent's own publish fan-out, or replies are never seen.
-- `AIChatFab.tsx`'s own closeout comment flags what is NOT yet built: "the DM transport carries no protocol-level correlation" for request/reply matching — a late answer to a timed-out question can otherwise read as the answer to whatever was asked most recently (`ChatMessage.lateForQuestion`, `AIChatFab.tsx:9-19`); the estate closeout note (`IDENTITY-zones.md:169`) calls this out explicitly: "Preserve sender verification while adding request/reply correlation and verifying real agent fan-out."
+- INVARIANT (`IDENTITY-zones.md:168-169`): the Talk-to-AI reply-relay set must remain a subset of the agent's own publish fan-out, or replies are never seen.
+- `AIChatFab.tsx`'s own closeout comment flags what is NOT yet built: "the DM transport carries no protocol-level correlation" for request/reply matching — a late answer to a timed-out question can otherwise read as the answer to whatever was asked most recently (`ChatMessage.lateForQuestion`, `AIChatFab.tsx:9-19`); the estate closeout note (`IDENTITY-zones.md:189`) calls this out explicitly: "Preserve sender verification while adding request/reply correlation and verifying real agent fan-out."
 
 ## DW-04.4 NIP-42 AUTH — lazy challenge-response on publish
 ```mermaid

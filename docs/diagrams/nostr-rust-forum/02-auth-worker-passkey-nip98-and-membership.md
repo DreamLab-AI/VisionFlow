@@ -27,7 +27,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/zone_approval.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/lib.rs
-verified_commit: 13cbe6cbad7ee7ff3b609233a8bee3dd8eae1f3e
+verified_commit: 72463fbde35ac4c68539b1f65a08ff03b9941201
 ---
 
 ## NF-02.1 Request entry — bootstrap, rate limit, body pre-read, dispatch

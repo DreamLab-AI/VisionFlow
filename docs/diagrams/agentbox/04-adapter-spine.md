@@ -40,35 +40,35 @@ sources:
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/routes/linked-objects.js
   - ../project/agentbox/management-api/routes/sessions-boundary.js
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
 ---
 
 ## AB-04.1 resolveAdapters — slot to implementation resolution
 ```mermaid
 flowchart TD
-    M["agentbox.toml [adapters]<br/>manifest-loader.js loadManifest()"] --> RA["resolveAdapters(manifest)<br/>adapters/index.js:169"]
-    RA --> LOOP["for slot of SLOTS<br/>index.js:173"]
+    M["agentbox.toml [adapters]<br/>manifest-loader.js loadManifest()"] --> RA["resolveAdapters(manifest)<br/>adapters/index.js:171"]
+    RA --> LOOP["for slot of SLOTS<br/>index.js:175"]
     LOOP --> S1["SLOTS = beads, pods, memory, events, orchestrator<br/>index.js:17"]
-    S1 --> IMPL["impl = adapterDecls[slot] || 'off'<br/>index.js:170-174"]
-    IMPL --> REQ["requireImpl(slot, impl)<br/>index.js:115"]
-    REQ --> P1{"require adapters/&lt;slot&gt;/&lt;impl&gt;.js<br/>index.js:116-118"}
+    S1 --> IMPL["impl = adapterDecls[slot] || 'off'<br/>index.js:176"]
+    IMPL --> REQ["requireImpl(slot, impl)<br/>index.js:117"]
+    REQ --> P1{"require adapters/&lt;slot&gt;/&lt;impl&gt;.js<br/>index.js:118-120"}
     P1 -->|found| CFG
-    P1 -->|"MODULE_NOT_FOUND and impl==='off'"| PH["fallback adapters/&lt;slot&gt;/placeholder.js<br/>index.js:126-128"]
+    P1 -->|"MODULE_NOT_FOUND and impl==='off'"| PH["fallback adapters/&lt;slot&gt;/placeholder.js<br/>index.js:126-130"]
     PH -->|found| CFG
-    PH -->|missing| UAI["throw UnknownAdapterImpl(slot, impl)<br/>index.js:19 / :116"]
+    PH -->|missing| UAI["throw UnknownAdapterImpl(slot, impl)<br/>index.js:19 / :134"]
     P1 -->|"MODULE_NOT_FOUND, impl!=='off'"| UAI
     CFG["slotConfig(slot, impl, manifest)<br/>index.js:35"] --> CM["memory + external-pg<br/>conninfo from integrations.ruvector_external<br/>index.js:41-43"]
     CFG --> CB["beads / events + external<br/>externalUrl from federation.external_url<br/>index.js:46-49"]
-    CFG --> CP["pods: buildPodNip98(manifest)<br/>index.js:64 → lib/pod-signer.js"]
-    CP --> CP2["local-solid-rs → baseUrl<br/>http://sp.bind:sp.port default 127.0.0.1:8484<br/>index.js:82-86"]
-    CFG --> CO["orchestrator + stdio-bridge<br/>externalUrl + protocol default 'stdio'<br/>index.js:92-97"]
+    CFG --> CP["pods: buildPodNip98(manifest)<br/>index.js:66 → lib/pod-signer.js"]
+    CP --> CP2["local-solid-rs → baseUrl<br/>http://sp.bind:sp.port default 127.0.0.1:8484<br/>index.js:84-88"]
+    CFG --> CO["orchestrator + stdio-bridge<br/>externalUrl + protocol default 'stdio'<br/>index.js:93-99"]
     CM --> NEW
     CB --> NEW
     CP2 --> NEW
     CO --> NEW
-    NEW["new AdapterClass(cfg)<br/>index.js:180-186"] --> INST["instrumentAdapter(adapter, slot, impl, manifest)<br/>index.js:147"]
-    INST --> META["adapter._implName = impl<br/>adapter._slot = slot<br/>index.js:189-190"]
-    META --> OUT["returns beads, pods, memory, events, orchestrator<br/>index.js:193"]
+    NEW["new AdapterClass(cfg)<br/>index.js:182-185"] --> INST["instrumentAdapter(adapter, slot, impl, manifest)<br/>index.js:147"]
+    INST --> META["adapter._implName = impl<br/>adapter._slot = slot<br/>index.js:191-192"]
+    META --> OUT["returns beads, pods, memory, events, orchestrator<br/>index.js:195"]
     UAI --> FAIL["startup aborts — no silent 'off' substitution<br/>INVARIANT ADR-2004"]
 ```
 
@@ -147,7 +147,7 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant RA as resolveAdapters<br/>adapters/index.js:169
+    participant RA as resolveAdapters<br/>adapters/index.js:171
     participant IA as instrumentAdapter<br/>adapters/index.js:147
     participant PR as Object.getPrototypeOf chain<br/>index.js:149-162
     participant WD as wrapDispatch<br/>observability/metrics.js:125
@@ -159,9 +159,9 @@ sequenceDiagram
         PR-->>IA: getOwnPropertyNames(proto)
         loop for each name
             alt name in NON_DISPATCH or name startsWith underscore
-                IA->>IA: skip — index.js:145 and :137
+                IA->>IA: skip — index.js:147 and :154
             else descriptor value is not a function
-                IA->>IA: skip — index.js:155
+                IA->>IA: skip — index.js:156
             else
                 IA->>WD: wrapDispatch(slot, impl, name, desc.value.bind(adapter), manifest)
                 WD-->>IA: instrumentedDispatch
@@ -171,7 +171,7 @@ sequenceDiagram
         IA->>PR: proto = getPrototypeOf(proto)
     end
     IA-->>RA: adapter (own props now shadow the prototype methods)
-    Note over IA,PR: NON_DISPATCH = constructor, connect, disconnect — index.js:145
+    Note over IA,PR: NON_DISPATCH = constructor, connect, disconnect — index.js:147
     Note over IA,PR: connect() stays unwrapped so lifecycle.js owns its failure semantics
     Note over PR,A: pods walks LocalSolidRsPodsAdapter then SolidHttpPodsAdapter then BaseAdapter
     Note over A: INVARIANT ADR-2004 — every durable-state call rides one of the five slots
@@ -184,7 +184,7 @@ sequenceDiagram
     participant C as Route handler<br/>management-api/routes/*.js
     participant L1 as Layer 1 observability<br/>metrics.js:125 wrapDispatch
     participant L2 as Layer 2 privacy filter<br/>privacy-filter.js:649
-    participant FN as raw adapter method<br/>bound at index.js:156
+    participant FN as raw adapter method<br/>bound at index.js:158
     participant PM as prom-client registry<br/>metrics.js:18 and :26
     participant LOG as stdout JSON log<br/>metrics.js:150-164
 
@@ -257,13 +257,13 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SV as server.js boot<br/>server.js:1278-1296
+    participant SV as server.js boot<br/>server.js:1342-1360
     participant LC as connectAdapters<br/>adapters/lifecycle.js:217
     participant CO as connectOneSlot<br/>adapters/lifecycle.js:177
     participant AD as adapter.connect()
     participant T as deadline timer<br/>lifecycle.js:193-195
 
-    SV->>LC: connectAdapters(slots, adapters, manifest, logger, resolveOff) — server.js:1280
+    SV->>LC: connectAdapters(slots, adapters, manifest, logger, resolveOff) — server.js:1344
     par all five slots concurrently (lifecycle.js:232)
         LC->>LC: timeoutMs = connectTimeoutFor(slot, manifest) (lifecycle.js:235 and :117)
         alt adapter missing or no connect() hook (lifecycle.js:238)
@@ -284,13 +284,13 @@ sequenceDiagram
         end
     end
     LC-->>SV: readiness map and healthy flag (lifecycle.js:312-313)
-    SV->>SV: app.adapters[slot] = resolvedAdapters[slot] (server.js:1293)
-    SV->>SV: Object.assign(adapterHealth, toLegacyHealth(readiness)) (server.js:1294)
-    SV->>SV: app.decorate('adapterReadiness', readiness) (server.js:1295)
+    SV->>SV: app.adapters[slot] = resolvedAdapters[slot] (server.js:1357)
+    SV->>SV: Object.assign(adapterHealth, toLegacyHealth(readiness)) (server.js:1358)
+    SV->>SV: app.decorate('adapterReadiness', readiness) (server.js:1359)
     Note over LC,T: DEFAULT_CONNECT_TIMEOUT_MS = 10000 — lifecycle.js:70
     Note over LC: Manifest override [adapters] connect_timeout_ms scalar or per-slot map — lifecycle.js:106-107, non-positive values ignored (lifecycle.js:124)
-    Note over SV,LC: INVARIANT: ONE deadline PER SLOT, never one aggregate budget —<br/>adapters/lifecycle.js:217, wired from server.js:1279-1280. Aggregate wall-clock is<br/>bounded by the slowest single slot, not by a race that abandons work in flight<br/>(lifecycle.js:31-35). The old "10 s TOTAL budget" DOC-DRIFT is gone from<br/>BASELINE-container.md — grep finds no server.js line-1222 reference at this commit.<br/>DOC-DRIFT remaining: BASELINE-container.md:93 wires it from server.js line 1241,<br/>but connectAdapters is actually called at server.js:1279-1280.
-    Note over SV,LC: RESOLVED ADR-2035: BASELINE-container.md:93 now documents the<br/>per-slot deadline (lifecycle.js:217, :70, :106-107). The code was<br/>already correct — only the doc changed.
+    Note over SV,LC: INVARIANT: ONE deadline PER SLOT, never one aggregate budget —<br/>adapters/lifecycle.js:217, wired from server.js:1343-1344. Aggregate wall-clock is<br/>bounded by the slowest single slot, not by a race that abandons work in flight<br/>(lifecycle.js:31-35). The old "10 s TOTAL budget" DOC-DRIFT is gone from<br/>BASELINE-container.md — grep finds no server.js line-1222 reference at this commit.<br/>DOC-DRIFT resolved — BASELINE-container.md:94 documents the spine and<br/>connectAdapters is called at server.js:1343-1344.
+    Note over SV,LC: RESOLVED ADR-2035: BASELINE-container.md:94 now documents the<br/>per-slot deadline (lifecycle.js:217, :70, :106-107). The code was<br/>already correct — only the doc changed.
     Note over CO,T: Timeout is a CONNECT FAILURE identical in consequence to an explicit rejection — lifecycle.js:32-33
 ```
 
@@ -300,7 +300,7 @@ sequenceDiagram
     autonumber
     participant LC as connectAdapters<br/>lifecycle.js:217
     participant Q as quarantineAdapter<br/>lifecycle.js:140
-    participant RO as resolveOff callback<br/>server.js:1285-1288
+    participant RO as resolveOff callback<br/>server.js:1349-1352
     participant IDX as resolveAdapters<br/>index.js:169
     participant PX as process.exit(1)<br/>lifecycle.js:307
 
@@ -342,7 +342,7 @@ sequenceDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> Unresolved
-    Unresolved --> Constructed: resolveAdapters index.js:177-184
+    Unresolved --> Constructed: resolveAdapters index.js:175-188
     Constructed --> Instrumented: instrumentAdapter index.js:147
     Instrumented --> NoConnectHook: adapter.connect not a function lifecycle.js:238
     Instrumented --> Connecting: connectOneSlot lifecycle.js:177
@@ -466,17 +466,17 @@ sequenceDiagram
     participant L2 as Layer 2 privacy<br/>privacy-filter.js:654
     participant PA as LocalSolidRsPodsAdapter<br/>pods/local-solid-rs.js:27
     participant SF as _signedFetch<br/>_solid-http-base.js:78
-    participant SG as nip98 signer<br/>lib/pod-signer.js:91
+    participant SG as nip98 signer<br/>lib/pod-signer.js:124
     participant SP as solid-pod-rs<br/>127.0.0.1:8484
 
-    Note over PA: cfg.baseUrl resolved at index.js:82-86 from integrations.solid_pod_rs bind and port.<br/>withSigner threads nip98 AND requireSigned onto it - index.js:63,74-77
+    Note over PA: cfg.baseUrl resolved at index.js:82-86 from integrations.solid_pod_rs bind and port.<br/>withSigner threads nip98 AND requireSigned onto it - index.js:65,76-79
     R->>L1: pods.write(uri, body, contentType)
     L1->>L2: privacyWrapped(uri, body, contentType)
     L2->>PA: write(uri, body, contentType default application/ld+json) — _solid-http-base.js:119
     PA->>SF: this._fetch(base + uri) with method PUT
-    alt signer wired — buildPodNip98 returned a function (index.js:64, pod-signer.js:42)
+    alt signer wired — buildPodNip98 returned a function (index.js:66, pod-signer.js:70)
         SF->>SF: hasAuth check on existing headers — caller header is trusted, never overwritten (_solid-http-base.js:81-82)
-        SF->>SG: nip98(method, url, body) — returns null when no signer resolves (pod-signer.js:91-94)
+        SF->>SG: nip98(method, url, body) — returns null when no signer resolves (pod-signer.js:124-128)
         SG-->>SF: Authorization header value or null
         alt header is falsy
             alt requireSigned — sign_requests on
@@ -496,7 +496,7 @@ sequenceDiagram
     PA->>PA: _assert(res, [200, 201]) — _solid-http-base.js:195
     PA-->>L1: uri, status, created_at
     L1-->>R: result
-    Note over R,SG: INVARIANT: ADR-2064 - sign_requests is a fail-closed switch, not a best-effort hint.<br/>buildPodNip98 failure only warns (index.js:65-72), but requireSigned rides with the config<br/>regardless, so the pods slot degrades VISIBLY instead of going out anonymous at a default-deny pod
+    Note over R,SG: INVARIANT: ADR-2064 - sign_requests is a fail-closed switch, not a best-effort hint.<br/>buildPodNip98 failure only warns (index.js:67-74), but requireSigned rides with the config<br/>regardless, so the pods slot degrades VISIBLY instead of going out anonymous at a default-deny pod
     Note over PA: local-solid-rs overrides probeCapabilities :51, list :72, patch :126 over the shared base
     Note over PA,SP: pods contract 1.0.0 — contract-versions.js:9
 ```
@@ -523,29 +523,29 @@ sequenceDiagram
 
     R->>L1: orchestrator.handleGovernanceDecision(event)
     L1->>L2: privacyWrapped(event)
-    L2->>OA: handleGovernanceDecision(event) — local-process-manager.js:134
-    OA->>OA: outcome = parsed.action or parsed.outcome — local-process-manager.js:149
-    alt outcome is promote or demote — ADR-2109 (local-process-manager.js:196)
+    L2->>OA: handleGovernanceDecision(event) — local-process-manager.js:142
+    OA->>OA: outcome = parsed.action or parsed.outcome — local-process-manager.js:157
+    alt outcome is promote or demote — ADR-2109 (local-process-manager.js:226)
         opt eTag present and stored request's d tag matches
-            OA->>OD: proposal = proposalFromRequest(request) — ontology-apply.js:498
+            OA->>OD: proposal = proposalFromRequest(request) — ontology-apply.js:529
         end
-        OA->>OD: applyOntologyDecision(proposal, outcome, iri, page, signerNpub, at, caseId, digest) — local-process-manager.js:232
+        OA->>OD: applyOntologyDecision(proposal, outcome, iri, page, signerNpub, at, caseId, digest) — local-process-manager.js:461
         alt proposal.kind is create
-            OD->>OD: applyCreateProposal(decision, proposal, deps) — ontology-apply.js:522
+            OD->>OD: applyCreateProposal(decision, proposal, deps) — ontology-apply.js:553
         else existing page
-            OD->>OD: resolveIriToPage(iri, opts) — ontology-apply.js:193
+            OD->>OD: resolveIriToPage(iri, opts) — ontology-apply.js:208
         end
         OD->>VC: vault edit page --set ... --expect N --json
         VC-->>OD: edited or refused
-        OD->>OD: attest(ledger body) — ontology-apply.js:401,610
+        OD->>OD: attest(ledger body) — ontology-apply.js:431,620
         OD-->>OA: applied, page, outcome, attested, attestError
         opt applyOntologyDecision throws
-            OA->>OA: ontology = applied false, error message — local-process-manager.js:247-248
+            OA->>OA: ontology = applied false, error message — local-process-manager.js:481-487
         end
     end
-    OA->>OA: decision record with activity_urn, receipt_urn, ontology — local-process-manager.js:267
-    OA->>P: matchedEntry.proc.stdin.write(decision) when an agent matches refId — local-process-manager.js:282
-    OA-->>L1: dispatched, target, event_id, ontology — local-process-manager.js:338,361
+    OA->>OA: decision record with activity_urn, receipt_urn, ontology — local-process-manager.js:264-266
+    OA->>P: matchedEntry.proc.stdin.write(decision) when an agent matches refId — local-process-manager.js:269-274
+    OA-->>L1: dispatched, target, event_id, ontology — local-process-manager.js:327,350
     L1-->>R: result
 
     opt stream and control
@@ -593,10 +593,10 @@ flowchart TD
         A3 -->|"no"| A5["W0xx dead-policy warning only<br/>DIVERGENCE — advisory, does NOT hard-fail<br/>only structural schema violations reject<br/>BASELINE Known divergences"]
     end
     subgraph S2["Stage 2 boot probe — once per boot"]
-        B1["server.js:1279-1280 require adapters/lifecycle"] --> B2["connectAdapters lifecycle.js:217"]
+        B1["server.js:1343-1344 require adapters/lifecycle"] --> B2["connectAdapters lifecycle.js:217"]
         B2 --> B3["per-slot deadline lifecycle.js:117 and :235"]
         B3 --> B4["ready | disabled | unavailable | off<br/>lifecycle.js:55-66"]
-        B4 --> B5["toLegacyHealth lifecycle.js:324 → adapterHealth server.js:1294"]
+        B4 --> B5["toLegacyHealth lifecycle.js:324 → adapterHealth server.js:1358"]
     end
     subgraph S3["Stage 3 conformance — CI only, never at boot"]
         C1["tests/contract/memory.contract.spec.js"] --> C4["all three impl classes must behave identically"]
@@ -626,7 +626,7 @@ sequenceDiagram
     autonumber
     participant OP as operator shell
     participant SH as cmd_health<br/>agentbox.sh:1134
-    participant H as GET /health<br/>server.js:575-586
+    participant H as GET /health<br/>server.js:581-613
     participant MT as GET /v1/meta<br/>agentbox.sh:1187
     participant PM as prom-client registry<br/>metrics.js:18 :26 :35
     participant SP as speech sidecars<br/>localhost port 8897 and port 8898
@@ -638,8 +638,8 @@ sequenceDiagram
         SH-->>OP: ERROR could not reach — exit 1 (agentbox.sh:1146-1148)
     else response received
         H-->>SH: status, uptime, image_hash, manifest_checksum, adapters, degraded_count, note
-        SH->>SH: degraded = jq '.adapters // {} | to_entries[] | select(.value != "healthy" and .value != "off") | .key' (agentbox.sh:1161-1165)
-        SH->>SH: degraded_count = jq '.degraded_count // 0' (agentbox.sh:1166)
+        SH->>SH: degraded = jq '.adapters // {} | to_entries[] | select(.value != "healthy" and .value != "off") | .key' (agentbox.sh:1142-1146)
+        SH->>SH: degraded_count = jq '.degraded_count // 0' (agentbox.sh:1147)
         SH->>SH: print "adapter/<slot>: <value>" from .adapters (agentbox.sh:1170-1173)
         SH->>MT: curl http://localhost:9090/v1/meta for observability.metrics_endpoint
         MT-->>SH: metrics_endpoint
@@ -649,14 +649,14 @@ sequenceDiagram
         SH->>SP: curl -sf http://localhost:8898/health — pocket-tts (agentbox.sh:1213-1218)
         SP-->>SH: healthy or speech_failed=1
         alt degraded non-empty OR degraded_count > 0 OR speech_failed > 0
-            SH-->>OP: exit 1 (agentbox.sh:1220-1221)
+            SH-->>OP: exit 1 (agentbox.sh:1201-1202)
         else
             SH-->>OP: exit 0
         end
     end
-    Note over H: /health computes degradedCount from adapterHealth (server.js:576) and emits keys<br/>status, uptime, image_hash, manifest_checksum, adapters, degraded_count, note — there<br/>is NO services key
-    Note over SH,H: RESOLVED ADR-2037 — the old finding was that BASELINE-container Adapter spine<br/>stage 4 says "agentbox.sh health exits non-zero if any slot's gauge is 0" while cmd_health<br/>actually read a .services key /health never emitted, leaving the exit-1 branch unreachable<br/>and the agentbox_adapter_health gauge never read. cmd_health now derives failure from<br/>.adapters (a slot fails when its value is neither "healthy" nor "off",<br/>agentbox.sh:1161-1165) plus .degraded_count (agentbox.sh:1166),<br/>so exit 1 at agentbox.sh:1220-1221 is reachable. Same fix as AB-05.7.
-    Note over SH,SP: the exit condition now carries a third term, speech_failed (agentbox.sh:1206,1220):<br/>nemotron-asr and pocket-tts are checked unconditionally by port, independent of the<br/>[adapters] manifest and never surfaced in /health's own adapters map.
+    Note over H: /health computes degradedCount from adapterHealth (server.js:603) and emits keys<br/>status, uptime, image_hash, manifest_checksum, adapters, degraded_count, note — there<br/>is NO services key
+    Note over SH,H: RESOLVED ADR-2037 — the old finding was that BASELINE-container Adapter spine<br/>stage 4 says "agentbox.sh health exits non-zero if any slot's gauge is 0" while cmd_health<br/>actually read a .services key /health never emitted, leaving the exit-1 branch unreachable<br/>and the agentbox_adapter_health gauge never read. cmd_health now derives failure from<br/>.adapters (a slot fails when its value is neither "healthy" nor "off",<br/>agentbox.sh:1142-1146) plus .degraded_count (agentbox.sh:1147),<br/>so exit 1 at agentbox.sh:1201-1202 is reachable. Same fix as AB-05.7.
+    Note over SH,SP: the exit condition now carries a third term, speech_failed (agentbox.sh:1187,1201):<br/>nemotron-asr and pocket-tts are checked unconditionally by port, independent of the<br/>[adapters] manifest and never surfaced in /health's own adapters map.
     Note over SH: /health itself warns it is for human inspection only and points orchestrators at /ready (server.js:584)
     Note over PM: gauge values off 0, degraded 1, healthy 2 via setAdapterHealth metrics.js:202-204
 ```

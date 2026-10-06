@@ -22,7 +22,7 @@ sources:
   - ../project/src/actors/gpu/force_compute_actor.rs
   - ../project/src/actors/gpu/stress_majorization_actor.rs
   - ../project/src/models/simulation_params.rs
-verified_commit: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8
+verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
 ---
 
 ## VC-18.1 /analytics scope — auth wrapper and route table
@@ -126,7 +126,7 @@ sequenceDiagram
 
     C->>PH: POST /analytics/params :172
     PH->>GPU: send(UpdateVisualAnalyticsParams{...}) :63
-    Note over GPU: handled by ForceComputeActor at force_compute_actor.rs:3652
+    Note over GPU: handled by ForceComputeActor at force_compute_actor.rs:3650
 
     C->>PH: GET /analytics/constraints :239
     PH->>GPU: send(GetConstraints) :112

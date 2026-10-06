@@ -34,15 +34,15 @@ sources:
   - ../project/client/src/features/solid/components/PodSettings.tsx
   - ../project/client/src/features/solid/components/ResourceEditor.tsx
   - ../project/src/handlers/image_gen_handler.rs
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
 ---
 
 ## VC-26.1 Deployment topology — embedded pod vs feature-off stub
 ```mermaid
 flowchart TB
     subgraph cargo["Cargo.toml"]
-        DEFAULT["default = [gpu, ontology, persistence-oxigraph, solid-pod-embed]<br/>Cargo.toml:254"]
-        FEAT["solid-pod-embed feature<br/>Cargo.toml:283-285<br/>deps: solid-pod-rs, -nostr, -idp, -server"]
+        DEFAULT["default = [gpu, ontology, persistence-oxigraph, solid-pod-embed]<br/>Cargo.toml:256"]
+        FEAT["solid-pod-embed feature<br/>Cargo.toml:285-287<br/>deps: solid-pod-rs, -nostr, -idp, -server"]
     end
     DEFAULT --> FEAT
     FEAT -->|"cfg(feature = solid-pod-embed)"| ON["ON: embedded solid-pod-rs"]
@@ -53,14 +53,14 @@ flowchart TB
         APPDATA["app.app_data(solid_state.clone())<br/>main.rs:1063"]
         CFG["configure_solid_routes<br/>main.rs:1173"]
         FS["FsBackend::new(SOLID_DATA_ROOT)<br/>solid_proxy_handler.rs:141,151"]
-        ROUTES["Full /solid scope: health, .notifications,<br/>pods*, LDP CRUD, DID<br/>solid_proxy_handler.rs:1753-1787"]
+        ROUTES["Full /solid scope: health, .notifications,<br/>pods*, LDP CRUD, DID<br/>solid_proxy_handler.rs:1770-1804"]
         INIT --> FS
         INIT --> APPDATA --> CFG --> ROUTES
     end
 
     subgraph offpath["main.rs — feature OFF"]
         NOINIT["solid_state app_data block compiled out<br/>main.rs:880 and :1062"]
-        STUBCFG["configure_routes (feature-off twin)<br/>solid_proxy_handler.rs:1800-1804"]
+        STUBCFG["configure_routes (feature-off twin)<br/>solid_proxy_handler.rs:1818-1822"]
         STUBROUTES["RESOLVED ADR-2067 — registers nothing at all<br/>/solid/*, /.well-known/did.json and /did/* all 404<br/>in a feature-off build (was: a full table of 503 stubs)"]
         NOINIT --> STUBCFG --> STUBROUTES
     end
@@ -78,7 +78,7 @@ flowchart TB
     Note3["RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL's default in ontology-publish.yml and env.example<br/>was http://jss:3030 / http://visionclaw-jss:3030 - both DNS-dead JSS-sidecar names, a leftover<br/>from before ADR-032 M3 embedded solid-pod-rs. Both now default to http://localhost:4000/solid,<br/>the SYSTEM_NETWORK_PORT (default 4000, main.rs:841) this diagram's own INIT/APPDATA/CFG path<br/>actually serves. The /.notifications POST the workflow still sends is a documented no-op there -<br/>the embedded pod's /.notifications is a GET WebSocket upgrade (see VC-26.9), not a POST trigger."]
     ON -.-> Note3
 
-    Note4["PROPOSED, not live (ADR-2111, decision_status proposed, implementation_status none,<br/>2026-09-21): this repo would keep depending on the PUBLISHED solid-pod-rs crate<br/>(Cargo.toml:222, 0.4.0-alpha.15) and delete the extraction/solid-pod-rs mirror,<br/>moving to the post-port crate version in lockstep with the forum. Nothing in the<br/>live path above changes until that record is accepted and implemented.<br/>docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:4"]
+    Note4["PROPOSED, not live (ADR-2111, decision_status proposed, implementation_status none,<br/>still at HEAD): this repo already depends on the PUBLISHED solid-pod-rs crate -<br/>now pinned =0.5.0-alpha.12 in lockstep with nostr-rust-forum (b73ec8c),<br/>Cargo.toml:224, which adds the mrc20 feature whose blocktrails walker<br/>src/web_contract verifies trails with. ADR-2111's own review trigger - the<br/>solid-pod-rs post-port version landing - has now FIRED; what remains proposed is<br/>deleting the extraction/solid-pod-rs mirror and the payment-store rework. The<br/>embedded-pod path shown above is unchanged.<br/>docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:7-8"]
     FEAT -.-> Note4
 ```
 
@@ -87,9 +87,9 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant C as Client
-    participant H as handle_solid_proxy<br/>solid_proxy_handler.rs:304-311
-    participant AUTH as authenticate_request<br/>solid_proxy_handler.rs:244-246
-    participant ACL as load_acl_for_path<br/>solid_proxy_handler.rs:882
+    participant H as handle_solid_proxy<br/>solid_proxy_handler.rs:311-318
+    participant AUTH as authenticate_request<br/>solid_proxy_handler.rs:246-248
+    participant ACL as load_acl_for_path<br/>solid_proxy_handler.rs:891
     participant WAC as evaluate_access<br/>solid_pod_rs::wac (imported :55)
     participant FS as FsBackend<br/>solid_pod_rs::storage::fs (imported :53)
 
@@ -102,7 +102,7 @@ sequenceDiagram
         AUTH-->>H: Ok(None)
     else no Authorization and NOT allow_anonymous
         AUTH-->>H: Err(401 Authentication required)
-        H-->>C: 401 solid_proxy_handler.rs:248-251
+        H-->>C: 401 solid_proxy_handler.rs:250-253
     end
     H->>ACL: load_acl_for_path(storage, storage_path)
     ACL->>FS: get(/<res>.acl or /<container>/.acl)<br/>walk parents to /.acl (rs:896-927)
@@ -112,13 +112,13 @@ sequenceDiagram
         H->>H: dispatch by method (rs:363-374)
         Note over H,FS: GET/HEAD/PUT/POST/DELETE/PATCH - see VC-26.5
     else denied, agent is None
-        H-->>C: 401 solid_proxy_handler.rs:347-352
+        H-->>C: 401 solid_proxy_handler.rs:351-358
     else denied, agent present
         H-->>C: 403 WAC denies access (rs:353-359)
     end
 
     rect rgb(250,225,225)
-    Note over C,H: DOC-DRIFT (fixed in this pass): this rect used to show a 503 stub<br/>handler. RESOLVED ADR-2067 removed it - configure_routes' feature-off twin<br/>(solid_proxy_handler.rs:1799-1803) registers NO /solid routes at all, so a<br/>feature-off build 404s (Actix's own not-found), never dispatching to handle_solid_proxy.
+    Note over C,H: DOC-DRIFT (fixed in this pass): this rect used to show a 503 stub<br/>handler. RESOLVED ADR-2067 removed it - configure_routes' feature-off twin<br/>(solid_proxy_handler.rs:1818) registers NO /solid routes at all, so a<br/>feature-off build 404s (Actix's own not-found), never dispatching to handle_solid_proxy.
     C->>H: METHOD /solid/{tail} (feature OFF)
     H-->>C: 404 (no route registered - see VC-26.1)
     end
@@ -132,7 +132,7 @@ sequenceDiagram
     participant NA as nostrAuth<br/>services/nostrAuthService
     participant S as SolidPodService<br/>services/SolidPodService.ts:115
     participant L as ldpClient.fetchWithAuth<br/>solidPod/ldpClient.ts:91
-    participant B as init_pod / init_pod_nip98<br/>solid_proxy_handler.rs:1267,1313
+    participant B as init_pod / init_pod_nip98<br/>solid_proxy_handler.rs:1285,1331
 
     U->>U: useEffect - authenticated and nostrAuth.isAuthenticated()<br/>useSolidPod.ts:115-121
     U->>S: initPod() (checkPod / createPod call the same path)<br/>useSolidPod.ts:43,68 -> SolidPodService.ts:171
@@ -145,12 +145,12 @@ sequenceDiagram
         L->>L: logger.warn - request sent WITHOUT auth headers<br/>ldpClient.ts:110-114
     end
     L->>B: fetch(url, {credentials: include})
-    B->>B: get_user_from_request - NIP-98 or Bearer session<br/>solid_proxy_handler.rs:1374-1422
-    B->>B: ensure_pod_exists(npub, pubkey, pod_base_url)<br/>solid_proxy_handler.rs:1136
+    B->>B: get_user_from_request - NIP-98 or Bearer session<br/>solid_proxy_handler.rs:1392-1444
+    B->>B: ensure_pod_exists(npub, pubkey, pod_base_url)<br/>solid_proxy_handler.rs:1148
     alt pod already exists
         B-->>L: 200 {pod_url, webid, created:false, structure}
     else pod missing
-        B->>B: create_pod_with_structure - provision_pod + WAC root ACL<br/>solid_proxy_handler.rs:959,1081
+        B->>B: create_pod_with_structure - provision_pod + WAC root ACL<br/>solid_proxy_handler.rs:969,1096
         B-->>L: 200 {pod_url, webid, created:true, structure}
     end
     L-->>S: Response
@@ -173,7 +173,7 @@ sequenceDiagram
     NA-->>ldp: Authorization: Nostr <token>
 
     participant ldp as fetchWithAuth<br/>ldpClient.ts:91
-    participant AUTH as extract_user_identity<br/>solid_proxy_handler.rs:186-188
+    participant AUTH as extract_user_identity<br/>solid_proxy_handler.rs:188-190
     participant VAL as validate_nip98_token<br/>nip98.rs:428
     participant CACHE as REPLAY_CACHE<br/>nip98.rs:215 (Mutex<HashMap>)
 
@@ -215,7 +215,7 @@ sequenceDiagram
     participant App as caller (agentMemory / typeIndex / wacManager)
     participant L as ldpClient<br/>solidPod/ldpClient.ts
     participant F as fetchWithAuth<br/>ldpClient.ts:91
-    participant P as handle_solid_proxy<br/>solid_proxy_handler.rs:304-311
+    participant P as handle_solid_proxy<br/>solid_proxy_handler.rs:311-318
 
     App->>L: fetchJsonLd(path) / fetchTurtle(path)<br/>ldpClient.ts:125,139
     L->>F: GET, Accept ld+json|turtle
@@ -320,8 +320,8 @@ sequenceDiagram
     participant WAC as writeContainerAcl<br/>wacManager.ts:69
     participant B as buildAclTurtle<br/>wacManager.ts:30
     participant F as fetchWithAuth (PUT .acl)<br/>ldpClient.ts:91
-    participant H as handle_solid_proxy<br/>solid_proxy_handler.rs:304-311
-    participant R as load_acl_for_path<br/>solid_proxy_handler.rs:882
+    participant H as handle_solid_proxy<br/>solid_proxy_handler.rs:311-318
+    participant R as load_acl_for_path<br/>solid_proxy_handler.rs:891
 
     Caller->>WAC: writeContainerAcl(containerPath, ownerWebId, agentEntry)
     WAC->>B: buildAclTurtle(containerUrl, ownerWebId, agentEntry)<br/>emits acl:Authorization owner + agent (wacManager.ts:37-55)
@@ -337,8 +337,9 @@ sequenceDiagram
 
     Note over H,R: A later GET/PUT/DELETE on any resource under this<br/>container re-triggers server-side ACL resolution (VC-26.2)
     H->>R: load_acl_for_path(storage, resource_path)
-    R->>R: try {resource}.acl then walk parents to /.acl<br/>(solid_proxy_handler.rs:897)
-    R-->>H: AclDocument (parsed via parse_acl_body, JSON-LD then Turtle)<br/>solid_proxy_handler.rs:933
+    R->>R: try {resource}.acl then walk parents to /.acl<br/>(solid_proxy_handler.rs:903)
+    R-->>H: AclDocument (parsed via parse_acl_body, JSON-LD then Turtle)<br/>solid_proxy_handler.rs:943
+    Note over H,R: INVARIANT (added since the last stamp): an ACL found by walking<br/>up is marked inherited (inherited_from_ancestor applied at<br/>solid_proxy_handler.rs:914,926 fn :935) - the evaluator then honours<br/>ONLY its acl:default rules and ignores accessTo (WAC par 4.2), so a pod<br/>root public rule via accessTo ./ covers the root, not its children
 ```
 
 ## VC-26.8 typeIndex — registration and discovery
@@ -488,8 +489,8 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant M as main.rs (solid-pod-embed)<br/>main.rs:888
-    participant SB as spawn_boot_pull<br/>ontology_pull.rs:387
-    participant PO as pull_once<br/>ontology_pull.rs:293
+    participant SB as spawn_boot_pull<br/>ontology_pull.rs:389
+    participant PO as pull_once<br/>ontology_pull.rs:295
     participant GH as GitHub release<br/>ontology-latest (DEFAULT_RELEASE_URL, ontology_pull.rs:42)
     participant ST as Storage (FsBackend)<br/>solid_pod_rs::Storage
 
@@ -499,27 +500,27 @@ sequenceDiagram
     alt cfg.enabled == false
         SB-->>M: return - "ontology pull disabled" (ontology_pull.rs:389-391)
     else enabled
-        SB->>SB: tokio::spawn(async move loop)<br/>ontology_pull.rs:396 - never blocks start-up
+        SB->>SB: tokio::spawn(async move loop)<br/>ontology_pull.rs:398 - never blocks start-up
         loop every cfg.interval (re-check - None means boot-only)
             SB->>PO: pull_once(&fetch, storage, &cfg)
             PO->>GH: GET index.jsonld
-            PO->>PO: pod_build_sha(storage) vs manifest.build_sha<br/>ontology_pull.rs:307
+            PO->>PO: pod_build_sha(storage) vs manifest.build_sha<br/>ontology_pull.rs:312
             alt build_sha unchanged
                 PO-->>SB: PullOutcome::UpToDate - one small GET, nothing written
             else build moved
                 PO->>GH: GET SHA256SUMS + each of visionflow.ttl, context.jsonld,<br/>ontology.jsonld, visionflow.stats.json (ontology_pull.rs:53)
-                PO->>PO: sha256_hex(body) == expected for every file + the manifest itself<br/>ontology_pull.rs:318
+                PO->>PO: sha256_hex(body) == expected for every file + the manifest itself<br/>ontology_pull.rs:320-339
                 alt any digest missing or mismatched, or fetch fails
                     PO-->>SB: Err(PullError) - pod untouched, fail-open
                 else all verified
                     PO->>ST: create /public/, /public/ontology/ containers if absent
-                    PO->>ST: PUT /public/ontology/.acl (public-read WAC)<br/>ONLY IF ABSENT - operator edits survive<br/>ontology_pull.rs:359
+                    PO->>ST: PUT /public/ontology/.acl (public-read WAC)<br/>ONLY IF ABSENT - operator edits survive<br/>ontology_pull.rs:361-366
                     PO->>ST: publish_ontology: stage all five resources and sidecars<br/>ontology_generation.rs:127
                     ST->>ST: fsync staged generation and atomically replace active pointer<br/>ontology_generation.rs:127
                     PO-->>SB: "PullOutcome::Updated(build_sha, classes, triples)"
                 end
             end
-            SB->>SB: log_outcome(result, cfg) - info! or warn!, never panics<br/>ontology_pull.rs:414
+            SB->>SB: log_outcome(result, cfg) - info! or warn!, never panics<br/>ontology_pull.rs:416
         end
     end
     Note over PO,ST: INVARIANT fail-open (module doc ontology_pull.rs:12-17): any network or<br/>verification failure is logged and the pod keeps whatever it already held -<br/>see VC-26.10/26.13 for the client read side and EXTERNAL ES-09.13 for the<br/>GitHub-hosted publish job this inverts (a hosted runner cannot reach the<br/>in-process pod, ADR-2098).

@@ -37,7 +37,7 @@ sources:
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/sealed.rs
-verified_commit: d025cb063df5a532f055a18527f71cc7dee9d6e6
+verified_commit: 72463fbde35ac4c68539b1f65a08ff03b9941201
 ---
 
 ## NF-12.1 Module map — what the workers and clients all link
@@ -145,25 +145,25 @@ sequenceDiagram
     autonumber
     participant SD as Sender
     participant RU as rumor kind 14<br/>nostr-bbs-core/src/gift_wrap.rs:185
-    participant SE as seal kind 13<br/>nostr-bbs-core/src/gift_wrap.rs:209
-    participant WR as wrap kind 1059<br/>nostr-bbs-core/src/gift_wrap.rs:256
+    participant SE as seal kind 13<br/>nostr-bbs-core/src/gift_wrap.rs:242
+    participant WR as wrap kind 1059<br/>nostr-bbs-core/src/gift_wrap.rs:293
     participant RC as Recipient
 
-    SD->>RU: create_rumor - UNSIGNED, carries the recipient p tag gift_wrap.rs:190
+    SD->>RU: create_rumor - UNSIGNED, carries the recipient p tag gift_wrap.rs:204
     RU->>SE: seal_rumor - signed by the sender's REAL key, NIP-44 encrypted
-    SE->>WR: wrap_seal - a fresh THROWAWAY keypair gift_wrap.rs:259
-    WR->>WR: NIP-44 encrypt the seal JSON, throwaway sk to recipient pk gift_wrap.rs:277
-    WR->>WR: outer p tag names the recipient gift_wrap.rs:285
+    SE->>WR: wrap_seal - a fresh THROWAWAY keypair gift_wrap.rs:295
+    WR->>WR: NIP-44 encrypt the seal JSON, throwaway sk to recipient pk gift_wrap.rs:314
+    WR->>WR: outer p tag names the recipient gift_wrap.rs:322
     WR-->>RC: kind 1059
-    RC->>RC: unwrap_gift gift_wrap.rs:341
-    RC->>RC: verify the SEAL's Schnorr signature before trusting seal.pubkey gift_wrap.rs:374
-    RC->>RC: rumor.pubkey MUST equal the verified seal.pubkey gift_wrap.rs:396
+    RC->>RC: unwrap_gift gift_wrap.rs:395
+    RC->>RC: verify the SEAL's Schnorr signature before trusting seal.pubkey gift_wrap.rs:438
+    RC->>RC: rumor.pubkey MUST equal the verified seal.pubkey gift_wrap.rs:460
 
     Note over WR: The ephemeral author is why relay admission cannot key on the author - it keys on the outer p tag instead, see NF-03.5, and delivery keys on the AUTHENTICATED session, see NF-11.5
     Note over RC: INVARIANT author binding: the rumor's claimed author must match the signature-verified seal author gift_wrap.rs:396 - without this check a seal could carry any rumor
     Note over SE: Kind constants: seal 13 gift_wrap.rs:30, wrap 1059 gift_wrap.rs:33. NIP-44 wire format is version || nonce 32 || ciphertext || mac 32 nostr-bbs-core/src/nip44.rs:11
-    Note over WR: INVARIANT the wrap timestamp is backdated PAST ONLY,<br/>never the future gift_wrap.rs:154. The wrap created_at is<br/>the only timestamp a relay can see, and relays refuse events<br/>dated ahead, so the old symmetric jitter silently dropped<br/>about half of all outbound DMs at admission gift_wrap.rs:130
-    Note over WR: The throwaway secret is held in Zeroizing so it scrubs<br/>on drop and on every early return gift_wrap.rs:266. The previous<br/>copy-then-zeroize left the original binding live, so that<br/>defence-in-depth scrub was a no-op
+    Note over WR: INVARIANT the wrap timestamp is backdated PAST ONLY,<br/>never the future gift_wrap.rs:154. The wrap created_at is<br/>the only timestamp a relay can see, and relays refuse events<br/>dated ahead, so the old symmetric jitter silently dropped<br/>about half of all outbound DMs at admission gift_wrap.rs:144
+    Note over WR: The throwaway secret is held in Zeroizing so it scrubs<br/>on drop and on every early return gift_wrap.rs:303. The previous<br/>copy-then-zeroize left the original binding live, so that<br/>defence-in-depth scrub was a no-op
 ```
 
 ## NF-12.5 NIP-98 — the ten checks every REST call passes
@@ -292,22 +292,22 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SD as gift_wrap_pair_with_signer<br/>nostr-bbs-core/src/gift_wrap.rs:539
+    participant SD as gift_wrap_pair_with_signer<br/>nostr-bbs-core/src/gift_wrap.rs:615
     participant RU as create_rumor<br/>nostr-bbs-core/src/gift_wrap.rs:185
-    participant SR as seal_rumor_with_signer<br/>nostr-bbs-core/src/gift_wrap.rs:462
-    participant WS as wrap_seal<br/>nostr-bbs-core/src/gift_wrap.rs:256
+    participant SR as seal_rumor_with_signer<br/>nostr-bbs-core/src/gift_wrap.rs:526
+    participant WS as wrap_seal<br/>nostr-bbs-core/src/gift_wrap.rs:293
     participant RL as relay
 
-    SD->>RU: ONE rumor, shared by both seals gift_wrap.rs:549
-    SD->>SR: seal encrypted to the recipient gift_wrap.rs:552
-    SR->>WS: wrap it under a fresh throwaway key gift_wrap.rs:553
-    SD->>SR: seal encrypted to the SENDER's own pubkey gift_wrap.rs:559
-    SR->>WS: wrap that one under a different throwaway key gift_wrap.rs:560
-    SD-->>RL: publish BOTH kind 1059 events gift_wrap.rs:563
+    SD->>RU: ONE rumor, shared by both seals gift_wrap.rs:625
+    SD->>SR: seal encrypted to the recipient gift_wrap.rs:628
+    SR->>WS: wrap it under a fresh throwaway key gift_wrap.rs:629
+    SD->>SR: seal encrypted to the SENDER's own pubkey gift_wrap.rs:635
+    SR->>WS: wrap that one under a different throwaway key gift_wrap.rs:636
+    SD-->>RL: publish BOTH kind 1059 events gift_wrap.rs:606
 
-    Note over SD: With one wrap everything you send is write-only - encrypted to the recipient, authored by a throwaway key, p-tagged to the recipient alone, so neither an authors nor a p filter ever finds it gift_wrap.rs:513-515
-    Note over SD: INVARIANT one rumor, two seals - calling the single-wrap path twice would mint two rumors with two created_at values and the sender's copy would drift from the recipient's gift_wrap.rs:536-538
-    Note over RL: The two wraps are independent events with distinct ids and distinct throwaway authors, by design, so an observer cannot link them to each other or to the sender gift_wrap.rs:530-532
+    Note over SD: With one wrap everything you send is write-only - encrypted to the recipient, authored by a throwaway key, p-tagged to the recipient alone, so neither an authors nor a p filter ever finds it gift_wrap.rs:589-591
+    Note over SD: INVARIANT one rumor, two seals - calling the single-wrap path twice would mint two rumors with two created_at values and the sender's copy would drift from the recipient's gift_wrap.rs:612-614
+    Note over RL: The two wraps are independent events with distinct ids and distinct throwaway authors, by design, so an observer cannot link them to each other or to the sender gift_wrap.rs:606-608
 ```
 
 ## NF-12.11 Sealed originals — zone-history migration envelope (ADR-2017)

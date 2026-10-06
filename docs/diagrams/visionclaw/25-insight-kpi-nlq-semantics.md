@@ -38,7 +38,7 @@ sources:
   - ../project/src/services/nostr_bead_publisher.rs
   - ../project/src/services/ontology_enrichment_service.rs
   - ../project/src/services/schema_service.rs
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
 ---
 
 ## VC-25.1 Insight loop trace assembly (REC-10, compute-on-read)
@@ -355,7 +355,7 @@ sequenceDiagram
     autonumber
     participant SPA as SemanticProcessorActor::process_metadata_blocking<br/>src/actors/semantic_processor_actor.rs:260
     participant SA as SemanticAnalyzer::analyze_metadata<br/>src/services/semantic_analyzer.rs:261
-    participant GS as GitHubSyncService::relation_edges<br/>src/services/github_sync_service.rs:1816
+    participant GS as GitHubSyncService::relation_edges<br/>src/services/github_sync_service.rs:1765
     participant REG as SemanticTypeRegistry<br/>src/services/semantic_type_registry.rs:90
 
     SPA->>SA: analyze_metadata(metadata)
@@ -369,18 +369,18 @@ sequenceDiagram
     end
     Note over SA: compute_similarity weights: topic 0.4 + domain 0.2 + file_type 0.1 + depth 0.1 + temporal 0.1 + importance 0.1<br/>src/services/semantic_analyzer.rs:545-580
 
-    Note over GS: one typed edge per vocab.relations key whose ParsedPage frontmatter has<br/>a wikilink target — an unmapped edge-type predicate is skipped, not defaulted<br/>src/services/github_sync_service.rs:1826-1836
-    GS->>REG: get_or_register_id(edge_type)<br/>src/services/semantic_type_registry.rs:625,src/services/github_sync_service.rs:1837
-    REG->>REG: get_id(uri) - read_uri_map lookup<br/>src/services/semantic_type_registry.rs:619-621
+    Note over GS: one typed edge per vocab.relations key whose ParsedPage frontmatter has<br/>a wikilink target — an unmapped edge-type predicate is skipped, not defaulted<br/>src/services/github_sync_service.rs:1775-1785
+    GS->>REG: get_or_register_id(edge_type)<br/>src/services/semantic_type_registry.rs:652,src/services/github_sync_service.rs:1786
+    REG->>REG: get_id(uri) - read_uri_map lookup<br/>src/services/semantic_type_registry.rs:646-648
     alt uri already registered
         REG-->>GS: existing id
     else uri unknown
-        REG->>REG: register(uri, RelationshipForceConfig::default())<br/>src/services/semantic_type_registry.rs:601
-        REG->>REG: register_internal(uri, config) - assign next_id, push uri/config<br/>src/services/semantic_type_registry.rs:585
+        REG->>REG: register(uri, RelationshipForceConfig::default())<br/>src/services/semantic_type_registry.rs:628
+        REG->>REG: register_internal(uri, config) - assign next_id, push uri/config<br/>src/services/semantic_type_registry.rs:612
         REG-->>GS: new id
     end
-    GS->>REG: get_config(reg_id) - strength*2.0 normalised to spring weight<br/>src/services/semantic_type_registry.rs:635,src/services/github_sync_service.rs:1839-1840
-    Note over REG: version() = next_id atomic counter, used for hot-reload detection<br/>src/services/semantic_type_registry.rs:679
+    GS->>REG: get_config(reg_id) - strength*2.0 normalised to spring weight<br/>src/services/semantic_type_registry.rs:662,src/services/github_sync_service.rs:1788-1789
+    Note over REG: version() = next_id atomic counter, used for hot-reload detection<br/>src/services/semantic_type_registry.rs:706
 ```
 
 ## VC-25.10 edge_classifier classification rules

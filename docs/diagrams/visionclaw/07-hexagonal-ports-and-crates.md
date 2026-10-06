@@ -6,6 +6,7 @@ governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: [ADR-2004, ADR-2005, ADR-2016]
 sources:
+  - ../project/docs/BASELINE-architecture.md
   - ../project/src/lib.rs
   - ../project/src/ports/mod.rs
   - ../project/src/ports/settings_repository.rs
@@ -58,7 +59,7 @@ sources:
   - ../project/src/services/corpus_source/mod.rs
   - ../project/src/services/corpus_source/local.rs
   - ../project/src/services/corpus_source/github.rs
-verified_commit: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8
+verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
 ---
 
 ## VC-07.1 The hexagon — ports, adapters and where each canonical type lives
@@ -131,9 +132,9 @@ sequenceDiagram
     C->>SH: use crate::ports::{inference_engine, ontology_repository, gpu_physics_adapter, gpu_semantic_analyzer}
     SH->>CR: pub use visionclaw_domain::ports::* (src/ports/mod.rs:26-45)
     Note over SH: module-path aliases kept so legacy call sites keep resolving
-    Note over C,CR: project/src/lib.rs:47-64 re-exports ClientCoordinatorActor, MetadataActor,<br/>OptimizedSettingsActor, AppState, UserSettings from the root crate itself, plus ADR-090<br/>compatibility aliases MetadataStore, ProtectedSettings, SimulationParams from<br/>visionclaw_domain::models — preserving the old visionclaw_server:: API for external callers
-    Note over C,CR: DIVERGENCE (BASELINE l.222) — actor extraction incomplete, 25 src/actors/*.rs<br/>vs 11 in crates/visionclaw-actors. The live tree runs from src/. See VC-02.
-    Note over C,CR: DIVERGENCE (BASELINE 2026-09-04 crate and supervision closeout, l.277) — ADR-2005<br/>remains partial. The workspace adds converter and integration-test members to the census.
+    Note over C,CR: project/src/lib.rs:51-59 re-exports ClientCoordinatorActor, MetadataActor,<br/>OptimizedSettingsActor, AppState, UserSettings from the root crate itself, plus ADR-090<br/>compatibility aliases MetadataStore, ProtectedSettings, SimulationParams from<br/>visionclaw_domain::models — preserving the old visionclaw_server:: API for external callers
+    Note over C,CR: DIVERGENCE (BASELINE-architecture.md:93) — actor extraction incomplete, 23 src/actors/*.rs<br/>vs 11 in crates/visionclaw-actors. The live tree runs from src/. See VC-02.
+    Note over C,CR: DIVERGENCE (BASELINE 2026-09-04 crate and supervision closeout, BASELINE-architecture.md:308) — ADR-2005<br/>remains partial. The workspace adds converter and integration-test members to the census.
 ```
 
 ## VC-07.5 CQRS application layer — settings and knowledge-graph domains
@@ -327,8 +328,8 @@ sequenceDiagram
     H->>AD: persist StoredDecision / EnrichmentProposal
     H->>AC: emit ACSP event
     Note over AC: stateless producer — there is no BrokerActor
-    Note over H,AC: DIVERGENCE (BASELINE l.224) — BrokerActor was never merged. main uses a stateless<br/>ACSP producer plus a cherry-picked storage-agnostic domain broker kernel (~936 LOC).<br/>Measured here: broker_case.rs 490 + broker_decision.rs 437 = 927 lines, 1071 including<br/>mod.rs and precedent_registry.rs — consistent with the doc's ~936.
-    Note over H,AC: DIVERGENCE (BASELINE ACSP workflow closeout 2026-09-04, l.273) — the retained kernel's<br/>presence does not prove integration into the elevation actor or the inbox DTO.<br/>Current source review does not certify a complete human-approval journey. See VC-05.
+    Note over H,AC: DIVERGENCE (BASELINE-architecture.md:253) — BrokerActor was never merged. main uses a stateless<br/>ACSP producer plus a cherry-picked storage-agnostic domain broker kernel (~936 LOC).<br/>Measured here: broker_case.rs 490 + broker_decision.rs 437 = 927 lines, 1071 including<br/>mod.rs and precedent_registry.rs — consistent with the doc's ~936.
+    Note over H,AC: DIVERGENCE (BASELINE ACSP workflow closeout 2026-09-04, BASELINE-architecture.md:306) — the retained kernel's<br/>presence does not prove integration into the elevation actor or the inbox DTO.<br/>Current source review does not certify a complete human-approval journey. See VC-05.
     Note over K,AD: ADR-2016 provenance append-only applies to the decision record — see VC-22
 ```
 

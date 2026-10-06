@@ -37,24 +37,24 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../project/agentbox/docs/adr/ADR-2099-the-chain-is-the-ledger-of-record.md
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
-verified_commit: {visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047, solid-pod-rs: 6d2e5b0d2e00fc2c9fa1e4984b8582cfa0d48556, nostr-rust-forum: d025cb063df5a532f055a18527f71cc7dee9d6e6}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, solid-pod-rs: 93e2200218fad37927df16a1b7784c93c475670d, nostr-rust-forum: 72463fbde35ac4c68539b1f65a08ff03b9941201}
 ---
 ## ES-08.1 Four coexisting Solid-pod deployments — topology contrast
 
 ```mermaid
 flowchart TB
     subgraph VC["VisionClaw process — single binary"]
-        FLAG{{"cargo feature #quot;solid-pod-embed#quot;<br/>in default at Cargo.toml:254, declared :285 (default ON)"}}
-        EMB["solid_proxy_handler.rs<br/>handle_solid_proxy:307"]
-        STUB["no routes registered at all<br/>configure_routes twin, solid_proxy_handler.rs:1800-1802"]
+        FLAG{{"cargo feature #quot;solid-pod-embed#quot;<br/>in default at Cargo.toml:256, declared :287 (default ON)"}}
+        EMB["solid_proxy_handler.rs<br/>handle_solid_proxy:311"]
+        STUB["no routes registered at all<br/>configure_routes twin, solid_proxy_handler.rs:1818-1820"]
         FLAG -->|"feature ON"| EMB
         FLAG -->|"feature OFF"| STUB
     end
 
     subgraph AB["agentbox container — supervised service"]
-        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2327"]
-        SRV["solid-pod-rs-server  port 8484<br/>agentbox/agentbox.toml:497-499"]
-        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2344"]
+        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2550"]
+        SRV["solid-pod-rs-server  port 8484<br/>agentbox/agentbox.toml:517-518"]
+        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2567"]
         SUP -->|"exec solidPodRsLauncher"| SRV
         HTTPS -->|"TLS terminate to  port 8484"| SRV
     end
@@ -82,13 +82,13 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant AG as Agent<br/>internal caller
-    participant ADP as adapters/index.js<br/>slotConfig:53-70
-    participant PS as pod-signer<br/>buildPodNip98:42
+    participant ADP as adapters/index.js<br/>slotConfig:53-78
+    participant PS as pod-signer<br/>buildPodNip98:70
     participant BR as nostr-bridge<br/>loadSigner/buildNip98Header
     participant BASE as SolidHttpPodsAdapter<br/>_solid-http-base.js:32
     participant SRV as solid-pod-rs-server<br/>port 8484
 
-    Note over ADP,PS: INVARIANT: nip98 is null unless integrations.solid_pod_rs.sign_requests=true<br/>(pod-signer.js:45) — default keeps prior unsigned behaviour byte-identical (pod-signer.js:16-17)
+    Note over ADP,PS: INVARIANT: nip98 is null unless integrations.solid_pod_rs.sign_requests=true<br/>(pod-signer.js:73) — default keeps prior unsigned behaviour byte-identical (pod-signer.js:34-35)
 
     ADP->>PS: buildPodNip98(manifest, opts) pod-signer.js:42
     alt sign_requests off or no stack resolved
@@ -96,20 +96,20 @@ sequenceDiagram
         Note over ADP,BASE: RESOLVED ADR-2064 (2026-09-05): sign_requests now sets requireSigned on the adapter<br/>even when no signer could be built, so a falsy nip98 fails closed instead of going out unsigned
     else sign_requests on
         PS-->>ADP: nip98 fn method,url,body returning string or null
-        ADP->>BASE: withSigner(cfg) attaches opts.nip98 AND opts.requireSigned adapters/index.js:74-77
+        ADP->>BASE: withSigner(cfg) attaches opts.nip98 AND opts.requireSigned adapters/index.js:76-78
     end
 
     AG->>BASE: write(uri, body) _solid-http-base.js:119
     BASE->>BASE: this._fetch = (this._nip98 || this._requireSigned) ? _signedFetch : _rawFetch (line 62-64)
     alt signer configured (this._nip98 set)
         BASE->>PS: nip98(method,url,body) _signedFetch:78,95
-        PS->>PS: getSigner() lazy-load, cached (pod-signer.js:79-89)
+        PS->>PS: getSigner() lazy-load, cached (pod-signer.js:106-116)
         alt key load fails
             PS-->>BASE: null (loadFailed=true, cached — never retried)
             Note over BASE,SRV: RESOLVED ADR-2064 (2026-09-05): _signedFetch throws typed SigningUnavailable<br/>when requireSigned and no header can be built — no request is emitted
             BASE-->>AG: throw SigningUnavailable (_solid-http-base.js:103-106)
         else key loads
-            PS->>BR: buildNip98Header(signer,method,url,body) pod-signer.js:94
+            PS->>BR: buildNip98Header(signer,method,url,body) pod-signer.js:127
             BR-->>PS: base64 kind-27235 event
             PS-->>BASE: Authorization header, Nostr token
             BASE->>SRV: PUT/POST with Authorization Nostr token
@@ -122,7 +122,7 @@ sequenceDiagram
     SRV-->>BASE: 2xx / 401 / 403 (WAC — see ES-08.4)
 
     Note over PS: Lifecycle mirrors lib/elevation-publisher.js bridge+signer built ONCE,<br/>loaded lazily on first use, cached — a load failure is cached and never retried
-    Note over AG,SRV: RESOLVED ADR-2064: the degraded-boot hole is closed with sign_requests on -<br/>a did:nostr:local placeholder boot (agent-identity.js:42-43, catch at :175) can no longer write<br/>unsigned to a default-deny pod - the slot throws instead. It remains reachable only<br/>with the flag off, where unsigned is the declared baseline
+    Note over AG,SRV: RESOLVED ADR-2064: the degraded-boot hole is closed with sign_requests on -<br/>a did:nostr:local placeholder boot (agent-identity.js:42-43, catch at :181) can no longer write<br/>unsigned to a default-deny pod - the slot throws instead. It remains reachable only<br/>with the flag off, where unsigned is the declared baseline
 ```
 
 ## ES-08.3 User pod write — SolidPodService through ldpClient
@@ -168,45 +168,45 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Caller
-    participant H as handle_solid_proxy<br/>solid_proxy_handler.rs:304-311
-    participant AUTH as authenticate_request<br/>solid_proxy_handler.rs:244-246
-    participant ACL as load_acl_for_path<br/>solid_proxy_handler.rs:882
+    participant H as handle_solid_proxy<br/>solid_proxy_handler.rs:311-317
+    participant AUTH as authenticate_request<br/>solid_proxy_handler.rs:246-254
+    participant ACL as load_acl_for_path<br/>solid_proxy_handler.rs:891
     participant WAC as evaluate_access<br/>solid_pod_rs::wac (imported line 55)
     participant FS as FsBackend storage
 
-    C->>H: GET /solid/{tail:.*} solid_proxy_handler.rs:1774
-    H->>AUTH: authenticate_request(req) line 316
+    C->>H: GET /solid/{tail:.*} solid_proxy_handler.rs:1792
+    H->>AUTH: authenticate_request(req) line 325
     AUTH->>AUTH: extract_user_identity, parse NIP-98 Authorization header
     alt NIP-98 present and valid
-        AUTH-->>H: Ok Some did:nostr pubkey line 240
+        AUTH-->>H: Ok Some did:nostr pubkey line 248
     else no identity, allow_anonymous=true
-        AUTH-->>H: Ok None line 242
+        AUTH-->>H: Ok None line 250
     else no identity, allow_anonymous=false
-        AUTH-->>H: Err 401 Authentication required line 244-247
-        H-->>C: 401, return resp line 320
+        AUTH-->>H: Err 401 Authentication required line 251-254
+        H-->>C: 401, return resp line 327
     end
 
-    H->>H: method_to_mode(method) line 331
-    H->>ACL: load_acl_for_path(storage, storage_path) line 338
-    ACL->>FS: get resource.acl then walk parents to root .acl lines 897-925
+    H->>H: method_to_mode(method) line 335
+    H->>ACL: load_acl_for_path(storage, storage_path) line 340
+    ACL->>FS: get resource.acl then walk parents to root .acl lines 897-929
     FS-->>ACL: AclDocument or None
     ACL-->>H: acl_doc
 
-    H->>WAC: evaluate_access(acl_doc, agent, path, access_mode, None) lines 338-344
+    H->>WAC: evaluate_access(acl_doc, agent, path, access_mode, None) lines 343-349
     alt allowed
         WAC-->>H: true
-        H->>H: dispatch GET/PUT/POST/DELETE/PATCH lines 362-373
+        H->>H: dispatch GET/PUT/POST/DELETE/PATCH lines 368-379
         H-->>C: 200, handle_get, ES-08.6 for PATCH
     else denied, agent is None
         WAC-->>H: false
-        H-->>C: 401 Authentication required lines 347-352
+        H-->>C: 401 Authentication required lines 353-357
     else denied, agent present
         WAC-->>H: false
-        H-->>C: 403 WAC denies access_mode access to path lines 353-360
+        H-->>C: 403 WAC denies access_mode access to path lines 358-364
     end
 
-    Note over H: RESOLVED ADR-2067 — the cfg(not(solid-pod-embed)) 503 stub twins are GONE<br/>(solid_proxy_handler.rs:1801). With the feature off,<br/>configure_routes registers NO /solid routes at all (:1800-1802), so an<br/>unfeatured build 404s at the router rather than 503ing in a handler. see ES-08.1
-    Note over ACL,FS: WAC resource-specific ACL, containers use dir slash dot acl,<br/>non-containers use resource dot acl WAC spec section 4.1, falls back to<br/>parent-container acl then root acl, solid_proxy_handler.rs:894-926
+    Note over H: RESOLVED ADR-2067 — the cfg(not(solid-pod-embed)) 503 stub twins are GONE<br/>(solid_proxy_handler.rs:1807-1817). With the feature off,<br/>configure_routes registers NO /solid routes at all (:1818-1820), so an<br/>unfeatured build 404s at the router rather than 503ing in a handler. see ES-08.1
+    Note over ACL,FS: WAC resource-specific ACL, containers use dir slash dot acl,<br/>non-containers use resource dot acl WAC spec section 4.1, falls back to<br/>parent-container acl then root acl, solid_proxy_handler.rs:891-931
 ```
 
 ## ES-08.5 Pod provisioning for a new user
@@ -215,17 +215,17 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant CL as Client
-    participant R as init_pod_nip98<br/>solid_proxy_handler.rs:1312
-    participant PE as pod_exists<br/>solid_proxy_handler.rs:946
-    participant CS as create_pod_with_structure<br/>solid_proxy_handler.rs:952
+    participant R as init_pod_nip98<br/>solid_proxy_handler.rs:1331
+    participant PE as pod_exists<br/>solid_proxy_handler.rs:962
+    participant CS as create_pod_with_structure<br/>solid_proxy_handler.rs:969
     participant PP as provision_pod<br/>solid_pod_rs::provision (imported line 51)
     participant FS as FsBackend storage
     participant AU as admin-users.js<br/>POST /admin/users/provision:137
 
     CL->>R: POST /solid/pods/init-nip98 with NIP-98 header
     R->>R: validate_nip98_token, derive did:nostr pubkey
-    R->>PE: pod_exists(storage, npub) line 952
-    PE->>FS: exists(/npub/) line 953-954
+    R->>PE: pod_exists(storage, npub) line 1154
+    PE->>FS: exists(/npub/) line 963-964
     alt pod already exists
         FS-->>PE: true
         PE-->>R: true
@@ -233,13 +233,13 @@ sequenceDiagram
     else pod absent
         FS-->>PE: false
         PE-->>R: false
-        R->>CS: create_pod_with_structure(storage,npub,pubkey,base_url) line 959
-        CS->>CS: build ProvisionPlan, containers profile,ontology,<br/>ontology/contributions,proposals,annotations,preferences,inbox line 968-978
-        CS->>PP: provision_pod(storage, plan) line 989
+        R->>CS: create_pod_with_structure(storage,npub,pubkey,base_url) line 1179
+        CS->>CS: build ProvisionPlan, containers profile,ontology,<br/>ontology/contributions,proposals,annotations,preferences,inbox line 982-989
+        CS->>PP: provision_pod(storage, plan) line 999
         PP->>FS: write profile card, root acl, each container
         alt provision_pod partial failure
             PP-->>CS: Err(e)
-            CS->>CS: warn, continue with manual structure creation line 999
+            CS->>CS: warn, continue with manual structure creation line 1007
         else success
             PP-->>CS: Ok(outcome), webid, containers_created
         end
@@ -249,7 +249,7 @@ sequenceDiagram
 
     Note over AU: Separate agentbox-side path (management-api), same solid-pod-rs<br/>server, different call: AU calls POST /_admin/provision/pubkey on<br/>solid-pod-rs-server, PSK-gated by SOLID_ADMIN_KEY admin-users.js:28-35
     Note over AU: DOC-DRIFT: agentbox/docs/user/multi-user-pods.md says these<br/>lifecycle endpoints return 501 Not Implemented in the scaffold release.<br/>Code lands POST /admin/users/provision fully admin-users.js:137-186,<br/>201 with pod_url/web_id/git_url. Only suspend line 229-242 and<br/>archive line 245-258 still return 501, per code, not per the doc claim
-    Note over AU: sovereign_mesh.multi_user defaults off agentbox.toml comment<br/>block near line 27, git auto_init true wires a git repo per pod<br/>ensurePodGit admin-users.js when GIT_POD_ENABLED not false
+    Note over AU: sovereign_mesh.multi_user defaults off agentbox.toml comment<br/>block near line 32, git auto_init true wires a git repo per pod<br/>ensurePodGit admin-users.js when GIT_POD_ENABLED not false
 ```
 
 ## ES-08.6 Non-destructive PATCH — N3 Patch, SPARQL-Update, JSON Patch dialects
@@ -387,7 +387,7 @@ classDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> STOPPED
-    STOPPED --> STARTING : autostart true, flake.nix 2327-2337
+    STOPPED --> STARTING : autostart true, flake.nix 2550-2560
     STARTING --> RUNNING : solidPodRsLauncher exec succeeds
     STARTING --> BACKOFF : exec fails within startsecs
     BACKOFF --> STARTING : autorestart true, retry
@@ -398,8 +398,8 @@ stateDiagram-v2
     STOPPING --> STOPPED
     FATAL --> [*]
 
-    note right of STARTING : priority 30, user devuser<br/>environment SOLID_POD_PUBLIC_URL, SOLID_ADMIN_KEY<br/>AGENTBOX_REQUIRED_FOR_READINESS true, flake.nix 2327-2337
-    note right of RUNNING : https-bridge TLS-terminates to this port when<br/>sovereignCfg.https_bridge true, flake.nix 2344-2354
+    note right of STARTING : priority 30, user devuser<br/>environment SOLID_POD_PUBLIC_URL, SOLID_ADMIN_KEY<br/>AGENTBOX_REQUIRED_FOR_READINESS true, flake.nix 2550-2560
+    note right of RUNNING : https-bridge TLS-terminates to this port when<br/>sovereignCfg.https_bridge true, flake.nix 2567-2577
     note right of FATAL : DIVERGENCE, no point-in-time backup for the pod<br/>store, scripts backup-sqlite.sh covers SQLite only<br/>docs/DATA-authority-erasure.md Known divergences,<br/>no cross-store consistent restore, no declared RPO or RTO
 ```
 
@@ -453,26 +453,26 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as "server boot (solid-pod-embed)"<br/>src/main.rs:888
-    participant SP as spawn_boot_pull<br/>src/services/ontology_pull.rs:387
-    participant CFG as OntologyPullConfig::from_env<br/>src/services/ontology_pull.rs:77
-    participant P1 as pull_once<br/>src/services/ontology_pull.rs:293
-    participant REL as "GitHub release ontology-latest"<br/>src/services/ontology_pull.rs:38
+    participant M as "server boot (solid-pod-embed)"<br/>src/main.rs:896
+    participant SP as spawn_boot_pull<br/>src/services/ontology_pull.rs:389
+    participant CFG as OntologyPullConfig::from_env<br/>src/services/ontology_pull.rs:80
+    participant P1 as pull_once<br/>src/services/ontology_pull.rs:295
+    participant REL as "GitHub release ontology-latest"<br/>src/services/ontology_pull.rs:42
     participant ST as "pod Storage (FsBackend)"
 
     M->>SP: spawn_boot_pull(Arc::clone(solid_state.storage))
-    SP->>CFG: read ONTOLOGY_PULL_ENABLED / _URL / _TIMEOUT_SECS / _INTERVAL_SECS<br/>ontology_pull.rs:78-92
+    SP->>CFG: read ONTOLOGY_PULL_ENABLED / _URL / _TIMEOUT_SECS / _INTERVAL_SECS<br/>ontology_pull.rs:80-103
     alt disabled
-        SP-->>M: log "ontology pull disabled" and return<br/>ontology_pull.rs:390-391
+        SP-->>M: log "ontology pull disabled" and return<br/>ontology_pull.rs:394-395
     end
-    SP->>P1: loop { pull_once — sleep(interval) } — break when interval None<br/>ontology_pull.rs:401-407
-    P1->>REL: GET index.jsonld<br/>ontology_pull.rs:307
-    P1->>ST: pod_build_sha plus active-generation check<br/>ontology_pull.rs:310
+    SP->>P1: loop { pull_once — sleep(interval) } — break when interval None<br/>ontology_pull.rs:406-410
+    P1->>REL: GET index.jsonld<br/>ontology_pull.rs:309
+    P1->>ST: pod_build_sha plus active-generation check<br/>ontology_pull.rs:312-315
     alt buildSha unchanged AND active atomic generation exists
         P1-->>SP: UpToDate, no mutation
     end
-    P1->>REL: GET SHA256SUMS and four content resources<br/>ontology_pull.rs:318
-    P1->>P1: Verify content hashes and manifest hash<br/>ontology_pull.rs:322
+    P1->>REL: GET SHA256SUMS and four content resources<br/>ontology_pull.rs:320-326
+    P1->>P1: Verify content hashes and manifest hash<br/>ontology_pull.rs:322-337
     Note over P1,ST: Preserve existing ACL, an existence-probe error aborts.<br/>Verified resources are staged as an immutable generation,<br/>then fsynced before atomic pointer activation.
     P1->>ST: publish_ontology five resources<br/>ontology_generation.rs:216
     ST->>ST: Sync content/sidecars, generation directory and pending pointer<br/>ontology_generation.rs:127
@@ -488,7 +488,7 @@ The 2026-09-07 audit distinguishes ES-08.9's missing cross-store erasure dispatc
 ## ES-08.12 PROPOSED — the pod ledger becomes a chain view, and the hand-rolled crypto goes
 ```mermaid
 flowchart TB
-    CRYPTO["TODAY — the crate owns the estate's whole Bitcoin transaction<br/>construction and HAND-ROLLS it: BIP-341 scripts, the TapSighash<br/>and key-path Schnorr on raw k256, with big-endian mod-n scalar<br/>arithmetic written out by hand<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:22-26"]
+    CRYPTO["WHAT D1 REMOVES — the released crate owns the estate's whole<br/>Bitcoin transaction construction and HAND-ROLLS it: BIP-341 scripts,<br/>the TapSighash and key-path Schnorr on raw k256, with big-endian mod-n<br/>scalar arithmetic written out by hand<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:22-26;<br/>the rust-bitcoin port that retires this posture is landed on main,<br/>unreleased (ADR-2008:119-158)"]
 
     PORT["PROPOSED D1 — bitcoin_tx.rs and mrc20.rs port to rust-bitcoin<br/>plus secp256k1; the hand-rolled scalar helpers are DELETED<br/>rather than kept beside the library ones. Highest priority in<br/>the programme because it is the only item that removes<br/>hand-rolled crypto.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:37-42"]
     CRYPTO --> PORT
@@ -503,13 +503,13 @@ flowchart TB
     TXO["PROPOSED D6 — the TXO stand-in deposit is DELETED, not left<br/>default-off: it credits sats for any parseable TXO URI guarded<br/>only by a replay key. A chain-settled estate must not keep a<br/>reachable free-money oracle.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:67-71"]
     API --> TXO
 
-    FORUM["PROPOSED, the forum half — the pod-worker D1 ledger is demoted<br/>to a derived view in lockstep, and solid-pod-rs moves with the<br/>host. ADR-2012-d1-ledger-becomes-a-chain-view.md:37-40"]
+    FORUM["PROPOSED, the forum half — the pod-worker D1 ledger is demoted<br/>to a derived view in lockstep, and solid-pod-rs moves with the<br/>host. ADR-2012-d1-ledger-becomes-a-chain-view.md:48-51"]
     VIEW --> FORUM
 
     PRE["INVARIANT the record sets on itself — non-atomic payment state<br/>is fixed FIRST. The crate's own README reproduces a critical<br/>finding saying not to carry value through the payment routes<br/>until it is fixed, and that is a precondition rather than a<br/>follow-up.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:72-75"]
     TXO --> PRE
 
-    NOTLIVE["INVARIANT — decision_status proposed, implementation_status none<br/>on both records. Nothing on this diagram is built.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-6<br/>and ADR-2012-d1-ledger-becomes-a-chain-view.md:5-6. see ES-03.11"]
+    NOTLIVE["STATUS — decision_status proposed, implementation_status PARTIAL<br/>on both records: owner decision Q17 (2026-10-02) ordered the crypto items<br/>done and the port landed on main, unreleased, under D2's pinned golden<br/>fixtures — ADR-2008:5-7 and its Implementation section<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:119-158,<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:5-7. Activation is staged<br/>(crate) and inactive (forum) until a release ships it. see ES-03.11"]
     PORT --> NOTLIVE
 
     THREE["DIVERGENCE — this is one of THREE unsynced did:nostr-keyed sats<br/>ledgers, and the pod's is the one the chain-view work starts<br/>from. agentbox/docs/proposals/sovereign-settlement.md:61. see ES-03.12"]

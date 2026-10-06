@@ -51,7 +51,7 @@ sources:
   - ../project/src/utils/binary_protocol.rs
   - ../project/src/utils/validation/sanitization.rs
   - ../project/src/handlers/fastwebsockets_handler.rs
-verified_commit: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8
+verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
 ---
 
 ## VC-04.1 api_handler graph — read path (data, paginated, positions, fold, relations, expand, pattern)
@@ -260,9 +260,9 @@ sequenceDiagram
     participant C as Client / AgentDetailPanel
     participant GD as get_bots_data<br/>src/handlers/bots_handler.rs:217
     participant UD as update_bots_graph<br/>bots_handler.rs:191
-    participant IH as initialize_hive_mind_swarm<br/>bots_handler.rs:250
-    participant SA as spawn_agent_hybrid<br/>bots_handler.rs:400
-    participant ST as submit_task / interrupt_task / get_task_status / remove_task<br/>bots_handler.rs:699,791,889,596
+    participant IH as initialize_hive_mind_swarm<br/>bots_handler.rs:261
+    participant SA as spawn_agent_hybrid<br/>bots_handler.rs:411
+    participant ST as submit_task / interrupt_task / get_task_status / remove_task<br/>bots_handler.rs:710,802,900,607
     participant GS as GraphServiceSupervisor<br/>GetBotsGraphData
     participant TO as TaskOrchestratorActor<br/>state.get_task_orchestrator_addr()
     participant BG as BOTS_GRAPH static<br/>RwLock fallback store
@@ -307,7 +307,7 @@ sequenceDiagram
     else Ok(Err(e)) or mailbox Err
         ST-->>C: 500 TaskResponse{success:false, error}
     end
-    Note over GD,ST: GET /api/bots/status -> get_bots_connection_status (bots_handler.rs:359,<br/>reads state.bots_client.get_status()) — GET /api/bots/agents -> get_bots_agents<br/>(bots_handler.rs:366, fetch_hive_mind_agents via AgentMonitorActor, see VC-02) —<br/>neither shown expanded, single call-through to one dependency each
+    Note over GD,ST: GET /api/bots/status -> get_bots_connection_status (bots_handler.rs:370,<br/>reads state.bots_client.get_status()) — GET /api/bots/agents -> get_bots_agents<br/>(bots_handler.rs:377, fetch_hive_mind_agents via AgentMonitorActor, see VC-02) —<br/>neither shown expanded, single call-through to one dependency each
 ```
 
 ## VC-04.6 `analytics` scope — GPU-touching compute triggers and telemetry reads
@@ -676,7 +676,7 @@ sequenceDiagram
     SU->>KC: lineage_for(snapshot_id)
     KC->>KR: lineage_for(snapshot_id) — DERIVED_FROM trail (WP-8 AC3)
     SU-->>C: 200 {snapshot_id, lineage}
-    par background volume tap — src/main.rs:1257 tokio::spawn(run_agent_event_tap(kpi_repo))
+    par background volume tap — src/main.rs:1265 tokio::spawn(run_agent_event_tap(kpi_repo))
         TAP->>HUB: subscribe() — same seam the render actor uses
         loop rx.recv().await — never returns, fail-open on lagged/closed channel
             HUB-->>TAP: AgentEventEnvelope
@@ -1020,12 +1020,12 @@ sequenceDiagram
     participant C as Client
     participant CFG as VcPayConfig::from_env<br/>src/handlers/pay_handler.rs:93 — PAY_ENABLED, PAY_COST_SATS, PAY_LEDGER_DIR
     participant INFO as pay_info_handler<br/>GET /pay/.info
-    participant BAL as pay_balance_handler<br/>pay_handler.rs:453
-    participant RES as pay_resource_handler<br/>pay_handler.rs:506
+    participant BAL as pay_balance_handler<br/>pay_handler.rs:444
+    participant RES as pay_resource_handler<br/>pay_handler.rs:497
     participant DEP as pay_deposit_handler<br/>pay_handler.rs:480
     participant ST as FsPaymentStore<br/>web::Data~Arc~FsPaymentStore~~ — get_balance/debit
 
-    Note over CFG: routes mounted UNCONDITIONALLY at src/main.rs:1068 (VC-01) — inert until<br/>PAY_ENABLED=true, gated handler-by-handler rather than by a scope-level middleware
+    Note over CFG: routes mounted UNCONDITIONALLY at src/main.rs:1081 (VC-01) — inert until<br/>PAY_ENABLED=true, gated handler-by-handler rather than by a scope-level middleware
     C->>INFO: GET /pay/.info (always reachable, no gate)
     INFO-->>C: 200 {enabled, methods:[lightning], costTiers} — reports the REAL enabled flag
     C->>BAL: GET /pay/.balance

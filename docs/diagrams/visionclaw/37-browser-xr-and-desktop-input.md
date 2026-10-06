@@ -25,7 +25,7 @@ sources:
   - ../project/client/src/services/remoteLogger.ts
   - ../project/client/src/features/graph/contexts/NodePositionContext.tsx
   - ../project/client/src/features/bots/components/BotsVisualization.tsx
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
 ---
 
 ## VC-37.1 Browser XR capability probe — what platformManager actually does
@@ -307,7 +307,7 @@ flowchart LR
         SAB["SharedArrayBuffer node positions"]
         ILx["InstancedLabels.tsx<br/>client/src/features/graph/components/InstancedLabels.tsx"]
         NPC["NodePositionContext module singleton<br/>sharedNodePositions and sharedNodeIdToIndexMap<br/>client/src/features/graph/contexts/NodePositionContext.tsx:8"]
-        BVx["BotsVisualization reads the same live buffer<br/>client/src/features/bots/components/BotsVisualization.tsx:28"]
+        BVx["BotsVisualization reads the same live buffer<br/>client/src/features/bots/components/BotsVisualization.tsx:29"]
     end
     SP --> HKx["useSpacePilot useThree camera, scene, gl<br/>useSpacePilot.ts:49"] --> CAM
     HT --> HPCx["HeadTrackedParallaxController useThree camera, size<br/>HeadTrackedParallaxController.tsx:14"] --> CAM

@@ -19,7 +19,7 @@ sources:
   - .github/workflows/drift-counter.yml
   - ../project/.github/workflows/ontology-publish.yml
   - ../project/src/services/ontology_pull.rs
-verified_commit: {dreamlab-ai-website: 81ec18c4d56240dcf8e9dd8b07a2dca8239adaea, knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visionclaw: dd420fbc722a7a4a50e968162ac6c3eaff6972b2, visionflow: e5987acc8337ddd64c72f775750d61fef46d8e0b, visiongraph: 015ca2c1f2d7289955ebf16b98b6775a57ec0f7b, vowl-wasm: 65e2d1e784bf5eb04b3cbc122d36d6926d889c22}
+verified_commit: {dreamlab-ai-website: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80, knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, visiongraph: 9d6675626cd393a3570a29570eaa8ea66fe1b83a, vowl-wasm: 65e2d1e784bf5eb04b3cbc122d36d6926d889c22}
 ---
 ## ES-11.1 The publishing axis — six cross-repo edges, each previously drawn from one side only
 ```mermaid
@@ -34,7 +34,7 @@ flowchart TB
         REL["VisionClaw ontology-latest release<br/>ontology-publish.yml:234,279. see ES-09.13"]
     end
     subgraph CONSUME["Consumption"]
-        POD["VisionClaw embedded pod<br/>ontology_pull.rs:293. see ES-08.11"]
+        POD["VisionClaw embedded pod<br/>ontology_pull.rs:295. see ES-08.11"]
         EXPL["EXTERNAL: two VOWL explorers<br/>see KG-04, VG-03"]
         LOOM["Ontology Loom grounding<br/>see ES-06.1"]
     end
@@ -105,7 +105,7 @@ flowchart LR
     CRATE -->|"published to npm as @dreamlab-ai/vowl-wasm"| VGP
 
     D1["DOC-DRIFT - the two consumers are a MINOR version apart AND<br/>resolve by different mechanisms. knowledgeGraph fetches a<br/>frozen v0.1.1 tarball over HTTPS; visionGraph resolves 0.1.2<br/>from the registry. A vowl-wasm release therefore reaches one<br/>explorer and not the other, and no gate compares them."]
-    D2["DIVERGENCE - the roster carries BOTH vowl-wasm and WasmVOWL<br/>as separate first-party repositories (roster.json:14,16), and<br/>registers @dreamlab-ai/vowl-wasm on npm alongside the<br/>crates.io crate (roster.json:57,68). The npm bundle is the<br/>artefact both explorers consume; the crate is what estate<br/>health actually measures. see VF-03.1"]
+    D2["DIVERGENCE - the roster carries BOTH vowl-wasm and WasmVOWL<br/>as separate first-party repositories (roster.json:14,16), and<br/>registers @dreamlab-ai/vowl-wasm on npm alongside the<br/>crates.io crate (roster.json:57,70). The npm bundle is the<br/>artefact both explorers consume; the crate is what estate<br/>health actually measures. see VF-03.1"]
 
     KGP --> D1
     VGP --> D1
@@ -121,7 +121,7 @@ sequenceDiagram
     participant GUARD as "EXTERNAL: kit-pin-guard.yml"<br/>see DW-02
 
     CI->>NF: git clone the kit, then checkout --detach $KIT_REF<br/>rust-ci.yml:34
-    Note over CI: KIT_REF is a literal 40-char SHA pinned in the workflow<br/>env block, rust-ci.yml:21, with the comment at :18<br/>requiring lockstep with workers-deploy.yml and deploy.yml.<br/>On 2 Oct it moved three times, to forum 49904f4 (6ae4576),<br/>341c5d2 (8ab4ab4) and 13cbe6c (81ec18c). The crates still<br/>resolve at v1.0.0-beta.11, rust-ci.yml:19
+    Note over CI: KIT_REF is a literal 40-char SHA pinned in the workflow<br/>env block, rust-ci.yml:21, with the comment at :18<br/>requiring lockstep with workers-deploy.yml and deploy.yml.<br/>On 2 Oct it moved three times, to forum 49904f4 (6ae4576),<br/>341c5d2 (8ab4ab4) and 13cbe6c (81ec18c), and it has kept<br/>moving with the kit since — this revision pins 72463fb at ebaf16c.<br/>The crates now resolve at v1.0.0-beta.14, rust-ci.yml:19
     NF-->>CI: the kit tree at exactly that commit
     GUARD->>GUARD: compare the pin across deploy.yml, workers-deploy.yml,<br/>rust-ci.yml, forum-config/Cargo.toml crate versions and the<br/>CANONICAL_ entries in the kit-compatibility record
     alt any of the five disagrees
@@ -146,7 +146,7 @@ flowchart TB
         R2["EXTERNAL: knowledgeGraph · visionGraph · vowl-wasm<br/>see KG-01, VG-01, VW-01"]
         R3["EXTERNAL: loom · WasmVOWL · prose-sanitiser<br/>diagram-ir · dream-engine - rostered with NO<br/>diagram area in this tree"]
         SURF["public surfaces incl. narrativegoldmine.com<br/>and /ns/v2.jsonld, roster.json:21-37"]
-        REG["registries - crates.io and npm,<br/>incl. @dreamlab-ai/vowl-wasm and, since c001415,<br/>the five sidestr crates, roster.json:56-69"]
+        REG["registries - crates.io and npm,<br/>incl. @dreamlab-ai/vowl-wasm and, since c001415,<br/>the seven sidestr crates, roster.json:56-70"]
     end
 
     ROSTER --> EH

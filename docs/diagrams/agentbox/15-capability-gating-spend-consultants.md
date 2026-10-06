@@ -45,7 +45,7 @@ sources:
   - ../project/agentbox/flake.nix
   - ../project/agentbox/config/harness-wrappers/router.sh
   - ../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
 ---
 
 ## AB-15.1 Gate lattice — manifest to package set to supervisor to runtime trace
@@ -55,9 +55,9 @@ flowchart TD
         M1["[skills.tree_search_coder]<br/>agentbox.toml:827"]
         M2["[toolchains].deepsec<br/>agentbox.toml:1800"]
         M3["[security.deepsec]<br/>agentbox.toml:2057"]
-        M4["[dream_machine]<br/>agentbox.toml:2106"]
-        M5["[payments]<br/>agentbox.toml:1529"]
-        M6["[consultants.*]<br/>agentbox.toml:1299-1331"]
+        M4["[dream_machine]<br/>agentbox.toml:2289"]
+        M5["[payments]<br/>agentbox.toml:1591"]
+        M6["[consultants.*]<br/>agentbox.toml:1361-1400"]
         M7["[claude_code].permission_mode<br/>+ permission_deny (ADR-2116)"]
         M8["[vault].cli (ADR-2107/2108)"]
     end
@@ -167,7 +167,7 @@ sequenceDiagram
     participant Entry as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:2475
     participant MB as agentbox-manifest bin<br/>agentbox/services/agentbox-manifest/src/main.rs:418
     participant Sup as supervisord<br/>dream-engine program
-    participant API as management-api<br/>routes/system.js:33
+    participant API as management-api<br/>routes/system.js:34
     participant SM as system-manifest.js<br/>CATALOGUE + buildSystemView<br/>management-api/lib/system-manifest.js:350
 
     Note over Entry: boot — Phase reconciles every restart
@@ -285,10 +285,10 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Agent as Agentbox consumer<br/>[payments.consumer]<br/>agentbox.toml:1548
+    participant Agent as Agentbox consumer<br/>[payments.consumer]<br/>agentbox.toml:1610
     participant Merchant as External merchant endpoint
     participant Classify as pay402.classify()<br/>lib/pay402.js:169
-    participant Pay as /v1/pay/* routes<br/>routes/payments.js:145-677
+    participant Pay as /v1/pay/* routes<br/>routes/payments.js:147-655
     participant Pod as solid-pod-rs<br/>127.0.0.1:8484
 
     Agent->>Merchant: original request
@@ -326,7 +326,7 @@ sequenceDiagram
     end
     end
     Note over Agent,Pay: DEBT — the authority classification table names payment_settlement<br/>zero-tolerance as an irreversible above-threshold sats spend (agentbox.toml:1007),<br/>but no production path passes that actionClass to the gate. The only call sites<br/>are tests/sovereign/authority.test.js:129 and :248, and routes/payments.js never<br/>reaches management-api/lib/authority.js:226. see AB-14.11
-    Note over Agent,Pay: DEBT — spend is accounted in three stores that never reconcile:<br/>the flock-guarded cost_cap ledger file (services/agentbox-ops/src/cost_cap/ledger.rs:75),<br/>the pod-held sats balance behind GET /v1/pay/balance (management-api/routes/payments.js:245),<br/>and the marketplace token_budget carried on a grant (management-api/lib/llm-marketplace.js:85).<br/>No surface sums them, so no single number answers what this container has spent
+    Note over Agent,Pay: DEBT — spend is accounted in three stores that never reconcile:<br/>the flock-guarded cost_cap ledger file (services/agentbox-ops/src/cost_cap/ledger.rs:75),<br/>the pod-held sats balance behind GET /v1/pay/balance (management-api/routes/payments.js:205),<br/>and the marketplace token_budget carried on a grant (management-api/lib/llm-marketplace.js:85).<br/>No surface sums them, so no single number answers what this container has spent
     Note over Agent: DIVERGENCE: #91;payments.consumer#93;.enabled = false by default #40;agentbox.toml:1549#41;,<br/>#91;payments.broadcast#93;.enabled = false and well_known = false #40;agentbox.toml:1558-1559#41; — see AB-11.15
 ```
 
@@ -338,15 +338,15 @@ sequenceDiagram
     participant R as paymentRoutes<br/>routes/payments.js:139
     participant Pod as solid-pod-rs<br/>127.0.0.1:8484
 
-    Note over R: all routes behind global onRequest auth hook — bearer or NIP-98 (payments.js:29)
+    Note over R: all routes behind global onRequest auth hook — bearer or NIP-98 (payments.js:31)
 
-    C->>R: GET /v1/pay/info<br/>payments.js:145
+    C->>R: GET /v1/pay/info<br/>payments.js:147
     R->>Pod: GET /pay/.info
     alt pod-rs reachable
         Pod-->>R: 200 upstream chains
         R-->>C: 200 chains, base_cost_sats, dream_per_sat, tiers, operator_did
     else pod-rs unreachable
-        Note over R: logged, falls through to local config — never a 502 here (payments.js:172)
+        Note over R: logged, falls through to local config — never a 502 here (payments.js:174-180)
         R-->>C: 200 chains=#91;btc#93; #40;local default#41;, tiers from TIER_MULTIPLIERS
     end
 
@@ -395,7 +395,7 @@ sequenceDiagram
         R-->>C: 200 estimated_sats, hold_sats, dream_tokens, breakdown #40;local computation, no pod-rs call#41;
     end
 
-    C->>R: POST /v1/pay/buy {amount}<br/>payments.js:446
+    C->>R: POST /v1/pay/buy {amount}<br/>payments.js:402
     alt callerDid(req) is null
         R-->>C: 401 identity-required
     else identified
@@ -417,7 +417,7 @@ sequenceDiagram
         end
     end
 
-    C->>R: POST /v1/pay/withdraw {amount}<br/>payments.js:569
+    C->>R: POST /v1/pay/withdraw {amount}<br/>payments.js:525
     alt callerDid(req) is null
         R-->>C: 401 identity-required
     else floor#40;amount/DREAM_PER_SAT#41; #60;#61; 0
@@ -452,7 +452,7 @@ sequenceDiagram
     participant OB as Orderbook<br/>lib/llm-marketplace.js:220
     participant Gate as authorityGate.guard<br/>see AB-14.x
 
-    Prov->>R: POST /v1/llm/advertise {model, context_window, endpoint}<br/>:84
+    Prov->>R: POST /v1/llm/advertise {model, context_window, endpoint}<br/>routes/llm-marketplace.js:99
     alt validateAdvertisement fails
         R-->>Prov: 422 validation_failed
     else valid
@@ -713,11 +713,11 @@ Note over Gate: DOC-DRIFT ADR-2033: nodeModulesHash was resolved at flake.nix<br
 ```mermaid
 flowchart TD
     T["[model_routing.neural]<br/>agentbox.toml:1387-1396<br/>enabled, provider, quality_bar,<br/>cost_ceiling_usd_per_mtok, privacy_tier=public,<br/>trajectory, assets_dir"]
-    SEED["[[interaction_plane.session_seeds]]<br/>slug=router, tool=custom:router<br/>agentbox.toml:1765-1766"]
+    SEED["[[interaction_plane.session_seeds]]<br/>slug=router, tool=custom:router<br/>agentbox.toml:1928-1930"]
     CAT["CATALOGUE id: model-routing-neural<br/>gate model_routing.neural.enabled<br/>apply_class rebuild<br/>system-manifest.js:109-111"]
-    NIX["flake.nix modelRoutingNeuralCfg<br/>+ modelRouterAssets fetchurl closure<br/>flake.nix:136,138"]
-    BAKE["flake.nix bake block -- gate off ⇒<br/>nothing copied, byte-identical-when-off<br/>flake.nix:1893-1899"]
-    ENTRY["entrypoint-unified.sh boot reconcile<br/>AGENTBOX_MODEL_ROUTER_* exported,<br/>scoped to the router session process only<br/>entrypoint-unified.sh:1755-1783"]
+    NIX["flake.nix modelRoutingNeuralCfg<br/>+ modelRouterAssets fetchurl closure<br/>flake.nix:148-150"]
+    BAKE["flake.nix bake block -- gate off ⇒<br/>nothing copied, byte-identical-when-off<br/>flake.nix:2114-2121"]
+    ENTRY["entrypoint-unified.sh boot reconcile<br/>AGENTBOX_MODEL_ROUTER_* exported,<br/>scoped to the router session process only<br/>entrypoint-unified.sh:2114-2130"]
     WRAP["config/harness-wrappers/router.sh<br/>AoE custom_agents.router wrapper --<br/>asserts privacy_tier=public, hard-fails loudly"]
     CONSOLE["config/model-router/console.mjs<br/>embeds offline, asks metaharness router<br/>inside the baked ruflo closure, executes<br/>through OpenRouter"]
     CLI["agentbox.sh model-router<br/>fetch #124; check #124; status #124; route #124; console<br/>agentbox.sh:2576"]

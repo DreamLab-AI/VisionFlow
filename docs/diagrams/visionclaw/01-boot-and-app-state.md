@@ -68,7 +68,7 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/Cargo.toml
   - ../project/src/adapters/mod.rs
-verified_commit: dd420fbc722a7a4a50e968162ac6c3eaff6972b2
+verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
 ---
 
 ## VC-01.1 main() phase 1 — hygiene, logging, settings, stores
@@ -85,7 +85,7 @@ sequenceDiagram
 
     rect rgb(240,232,232)
     Note over M,EH: refusal band — nothing has bound a socket yet
-    M->>EH: enforce_release_env_hygiene() (src/main.rs:201)
+    M->>EH: enforce_release_env_hygiene() (src/main.rs:209)
     alt release build and a dev env var or --allow-skip-auth is present
         EH-->>M: eprintln FATAL then exit(1) argv / exit(2) env
         Note over EH: ADR-2026 + ADR-2037 — detail see VC-09.3
@@ -128,14 +128,14 @@ sequenceDiagram
 
     M->>AS: AppState::new(...) — see VC-01.5 for actor start order
     AS-->>M: AppState (liveness_harness, kpi_compute_service, sqlite_kpi_repository, addrs)
-    M->>GH: build client — GitHubConfig::from_env() (src/main.rs:389) — Err falls back to GitHubConfig::disabled() (src/main.rs:396)
+    M->>GH: build client — GitHubConfig::from_env() (src/main.rs:397) — Err falls back to GitHubConfig::disabled() (src/main.rs:404)
     Note over GH: ADR-2115 — GitHub ingest is optional, off by default. Boot never depends on<br/>GITHUB_OWNER/GITHUB_REPO — the disabled() placeholder itself validates.<br/>token const GITHUB_TOKEN_ENV = PRIVATE_REPO_GITHUB_PAT (src/services/github/config.rs:22, read :27)<br/>the LOGSEQ_PRIVATE_REPO_GITHUB legacy alias was deleted (no longer read anywhere)
     M->>CS: source_from_env_with_github(enhanced_content_api) (src/main.rs:471)
     Note over CS: ADR-2114 — the CorpusSource port replaces a direct GitHub read. corpus_source_kind()<br/>(src/services/corpus_source/mod.rs:193) resolves CORPUS_SOURCE=local|github, default Local when<br/>VAULT_ROOT is set and non-empty (src/services/corpus_source/mod.rs:223), else GitHub.<br/>Local walks VAULT_ROOT on disk (LocalDirectorySource::from_env, local.rs:68) — a misconfigured<br/>local source logs an error and falls back to GitHubSource rather than failing boot<br/>(src/services/corpus_source/mod.rs:157-171).
-    M->>SY: GithubSyncService::new(corpus_source, ...) (src/main.rs:474) — corpus ingest over CorpusSource, see VC-21
+    M->>SY: GithubSyncService::new(corpus_source, ...) (src/main.rs:482) — corpus ingest over CorpusSource, see VC-21
     RS->>RS: bootstrap_owner_from_env — RBAC_OWNER_PUBKEY_ENV (src/services/role_store.rs:643)
     alt no Owner assigned and RBAC_ALLOW_OWNERLESS unset
-        RS-->>M: boot FAILS — "RBAC: no Owner assigned and RBAC_ALLOW_OWNERLESS not set" (src/main.rs:793-796)
+        RS-->>M: boot FAILS — "RBAC: no Owner assigned and RBAC_ALLOW_OWNERLESS not set" (src/main.rs:803-806)
         Note over RS: fail-closed, ADR-2026 — const RBAC_ALLOW_OWNERLESS_ENV src/services/role_store.rs:33
     else RBAC_ALLOW_OWNERLESS=1
         RS-->>M: warn and continue with no Owner (src/main.rs:781-785)
@@ -159,7 +159,7 @@ sequenceDiagram
     end
     M->>PR: assert_effective_profile_or_exit(EnvSnapshot::from_process(), BuildIdentity::current(), today) (src/main.rs:923)
     Note over PR: ADR-2038 boot-time profile assertion — runs BEFORE bind. Detail see VC-09.4
-    PR-->>M: EffectiveProfile logged as summary + observed_flags (src/main.rs:929-933)
+    PR-->>M: EffectiveProfile logged as summary + observed_flags (src/main.rs:937-940)
 ```
 
 ## VC-01.3 HttpServer worker factory and middleware stack order
@@ -178,7 +178,7 @@ sequenceDiagram
     W->>A: App::new()
     A->>A: .wrap(Logger::default()) (src/main.rs:1019)
     A->>A: .wrap(cors) (src/main.rs:1020)
-    A->>A: .wrap(Compress::default()) (src/main.rs:1021)
+    A->>A: .wrap(Compress::default()) (src/main.rs:1029)
     A->>A: .wrap(TimeoutMiddleware::with_config(30s, override /api/admin/sync 600s)) (src/main.rs:1022)
     Note over A: actix applies .wrap in REVERSE registration order — the LAST wrap is OUTERMOST.<br/>So an inbound request meets TimeoutMiddleware first and Logger last.
     rect rgb(232,240,232)
@@ -191,7 +191,7 @@ sequenceDiagram
     A->>A: .wrap(RateLimit::per_minute(60)) (src/main.rs:1112)
     end
     Note over A: /api/graph carries its own scope limiter RateLimit::per_minute(600) plus<br/>tighter 120/min per-resource wraps — src/handlers/api_handler/graph/mod.rs:1493 and :1515-1529
-    M->>M: .bind(&bind_address) (src/main.rs:1224) then .run() (src/main.rs:1226)
+    M->>M: .bind(&bind_address) (src/main.rs:1232) then .run() (src/main.rs:1234)
     REQ->>A: request order = Timeout → Compress → Cors → Logger → [PublicDemoGuard → RbacGate] → extractor → handler
     Note over REQ,A: request-time behaviour of each middleware see VC-03
 ```
@@ -268,7 +268,7 @@ sequenceDiagram
     Note over GPU: GPU actor group — GPUManagerActor only. RESOLVED ADR-2053: the standalone<br/>ShortestPathActor and ConnectedComponentsActor spawns were removed. They were never sent<br/>a SharedGPUContext (ResourceSupervisor distributes it only to the subsystem supervisors),<br/>so every /api/analytics pathfinding route addressed a GPU-blind pair.
     AS->>GPU: GPUManagerActor::new().start()
     AS->>GPU: gpu_manager.do_send(SetNodeSSSP { node_sssp }) — ADR-031 D2b, wire slot 28<br/>forwarded GPUManagerActor to GraphAnalyticsSupervisor to the SUPERVISED ShortestPathActor
-    Note over GPU: DOC-DRIFT — this block carries NO #[cfg(feature = "gpu")] gate. app_state.rs itself<br/>carries no solid-pod-embed cfg gates either — the only cfg(feature) sites for that flag are in<br/>main.rs:880, main.rs:887 (ADR-2106 ontology_pull::spawn_boot_pull), main.rs:893, main.rs:1062,<br/>main.rs:1068. It works<br/>because gpu is in the DEFAULT feature set (Cargo.toml:254 default = gpu, ontology,<br/>persistence-oxigraph, solid-pod-embed) while the adapter layer IS gated (src/adapters/mod.rs:19,<br/>:37) — so the actor start and its adapters are gated inconsistently. GPU internals see VC-10.
+    Note over GPU: DOC-DRIFT — this block carries NO #[cfg(feature = "gpu")] gate. app_state.rs itself<br/>carries no solid-pod-embed cfg gates either — the only cfg(feature) sites for that flag are in<br/>main.rs:888, main.rs:896 (ADR-2106 ontology_pull::spawn_boot_pull), main.rs:901, main.rs:1070,<br/>main.rs:1076. It works<br/>because gpu is in the DEFAULT feature set (Cargo.toml:256 default = gpu, ontology,<br/>persistence-oxigraph, solid-pod-embed) while the adapter layer IS gated (src/adapters/mod.rs:19,<br/>:37) — so the actor start and its adapters are gated inconsistently. GPU internals see VC-10.
     end
     AS->>SE: settings_actor.start() → settings_addr
     par peer actors
@@ -329,22 +329,22 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant M as main<br/>src/main.rs:172
-    participant SH as server_handle<br/>src/main.rs:1228
+    participant SH as server_handle<br/>src/main.rs:1236
     participant WD as run_kg_watchdog<br/>src/services/liveness_harness.rs
     participant TAP as run_agent_event_tap<br/>src/services/kpi_compute.rs
     participant CT as CanaryNostrTap<br/>src/services/canary_nostr_tap.rs
-    participant SIG as signal handlers<br/>src/main.rs:1274-1275
+    participant SIG as signal handlers<br/>src/main.rs:1282-1283
 
     M->>SH: let server_handle = server.handle()
     par detached background tasks
         M->>WD: tokio::spawn(run_kg_watchdog(harness, self_url, interval))
-        Note over WD: VISIONCLAW_SELF_URL default http://127.0.0.1:{port} (src/main.rs:1235)<br/>VISIONCLAW_KG_WATCHDOG_SECS default 30 (src/main.rs:1237)
+        Note over WD: VISIONCLAW_SELF_URL default http://127.0.0.1:{port} (src/main.rs:1243)<br/>VISIONCLAW_KG_WATCHDOG_SECS default 30 (src/main.rs:1245)
         loop every VISIONCLAW_KG_WATCHDOG_SECS (default 30s)
             WD->>M: GET /api/health on itself — this server IS the KG backend
             WD->>WD: drive kg_backend_up gauge, fire CANARY-VC-RESA-KG on every transition
         end
     and
-        M->>TAP: tokio::spawn(run_agent_event_tap(kpi_repo)) (src/main.rs:1257)
+        M->>TAP: tokio::spawn(run_agent_event_tap(kpi_repo)) (src/main.rs:1265)
         Note over TAP: REC-4 ADR-130 D5 — subscribes to the process-global /wss/agent-events hub,<br/>one volume row per envelope. Augmentation-Ratio numerator. Fail-open on lagged/closed.
     and
         alt CANARY_TAP_RELAY_URL is set
@@ -427,10 +427,10 @@ flowchart LR
 flowchart LR
     S["/api scope — src/main.rs:1094-1212"]
     S --> PG["scope /pages + pages_handler::config<br/>src/main.rs:1160, src/handlers/pages_handler.rs:148 — GET ''"]
-    S --> BO["scope /bots + api_handler::bots::config<br/>src/main.rs:1161"]
+    S --> BO["scope /bots + api_handler::bots::config<br/>src/main.rs:1169"]
     S --> BV["bots_visualization_handler::configure_routes<br/>scope /visualization — src/handlers/bots_visualization_handler.rs:515<br/>GET /agents/ws, GET snapshot, POST initialize<br/>plus POST /bots/mock-agents at :530"]
     S --> GE["configure_graph_export_routes<br/>scope /graph-export — src/handlers/graph_export_handler.rs:319<br/>POST '', /share, /publish — GET /shared/{id}, /stats — DELETE /shared/{id}"]
-    S --> OA["configure_ontology_agent_routes<br/>scope /ontology-agent — src/handlers/ontology_agent_handler.rs:366<br/>POST /discover, /read, /query, /traverse, /validate — GET /status<br/>POST /propose — RETIRED (ADR-2116): always 410 Gone, no auth or rate-limit,<br/>names vault propose as the replacement"]
+    S --> OA["configure_ontology_agent_routes<br/>scope /ontology-agent — src/handlers/ontology_agent_handler.rs:382<br/>POST /discover, /read, /query, /traverse, /validate — GET /status<br/>POST /propose — RETIRED (ADR-2116): always 410 Gone, no auth or rate-limit,<br/>names vault propose as the replacement"]
     S --> DE["configure_decision_routes<br/>scope /decisions — src/handlers/decision_handler.rs:323<br/>GET /{urn}/trace — nested scope /record POST '' — PRD-022 W-B / ADR-048"]
     S --> SO["configure_solid_routes<br/>src/handlers/solid_proxy_handler.rs:1752<br/>re-exported at src/handlers/mod.rs:121 — see VC-05"]
     S --> IG["configure_image_gen_routes<br/>scope /image-gen — src/handlers/image_gen_handler.rs:935<br/>GET /health, /status/{job_id} — POST /submit, /agent-submit<br/>graph chosen by IMAGE_GEN_MODEL :114 — MiniMax H3 default, FLUX 2 opt-in"]
@@ -477,18 +477,18 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant M as main<br/>src/main.rs:888
-    participant SB as spawn_boot_pull<br/>src/services/ontology_pull.rs:387
-    participant PO as pull_once<br/>src/services/ontology_pull.rs:293
+    participant SB as spawn_boot_pull<br/>src/services/ontology_pull.rs:389
+    participant PO as pull_once<br/>src/services/ontology_pull.rs:295
     participant GH as GitHub release<br/>ontology-latest
     participant ST as Storage (embedded pod)
 
     Note over M,SB: feature solid-pod-embed only — spawned right after init_solid_state,<br/>BEFORE pay state construction (src/main.rs:880)
     M->>SB: ontology_pull::spawn_boot_pull(Arc::clone(&solid_state.storage))
-    SB->>SB: OntologyPullConfig::from_env (src/services/ontology_pull.rs:76)<br/>ONTOLOGY_PULL_URL, _ENABLED (default true), _TIMEOUT_SECS (default 120), _INTERVAL_SECS (default 3600)
+    SB->>SB: OntologyPullConfig::from_env (src/services/ontology_pull.rs:80)<br/>ONTOLOGY_PULL_URL, _ENABLED (default true), _TIMEOUT_SECS (default 120), _INTERVAL_SECS (default 3600)
     alt ONTOLOGY_PULL_ENABLED=false|0
-        SB-->>M: return — logs "ontology pull disabled" (src/services/ontology_pull.rs:390), nothing spawned
+        SB-->>M: return — logs "ontology pull disabled" (src/services/ontology_pull.rs:395), nothing spawned
     else enabled
-        SB->>SB: tokio::spawn(async move { loop { ... } }) (src/services/ontology_pull.rs:396)
+        SB->>SB: tokio::spawn(async move { loop { ... } }) (src/services/ontology_pull.rs:398)
         loop every ONTOLOGY_PULL_INTERVAL_SECS (0 disables re-checks, one-shot)
             SB->>PO: pull_once(&fetch, storage, &cfg)
             PO->>GH: GET index.jsonld (MANIFEST, src/services/ontology_pull.rs:48)
@@ -503,14 +503,14 @@ sequenceDiagram
                 alt any digest mismatch or missing sum entry
                     PO-->>SB: Err — write nothing (src/services/ontology_pull.rs:127)
                 else all verified
-                    PO->>ST: ensure containers, write a public-read WAC ACL at<br/>/public/ontology/.acl ONLY IF ABSENT (operator edits survive, containers :349-350, ACL :359-360)
+                    PO->>ST: ensure containers, write a public-read WAC ACL at<br/>/public/ontology/.acl ONLY IF ABSENT (operator edits survive, containers :351-359, ACL :361-366)
                     PO->>ST: write content, then the manifest LAST
                     PO-->>SB: Ok(Updated { build_sha, classes, triples })
                 end
             end
         end
     end
-    Note over PO,ST: fail-open throughout — any error is logged (log_outcome, src/services/ontology_pull.rs:414)<br/>and the pod keeps whatever it already held. Ten unit tests cover the sequence against<br/>MemoryBackend and a map-backed fetcher.
+    Note over PO,ST: fail-open throughout — any error is logged (log_outcome, src/services/ontology_pull.rs:416)<br/>and the pod keeps whatever it already held. Ten unit tests cover the sequence against<br/>MemoryBackend and a map-backed fetcher.
     Note over M,GH: rationale — deploy-jss PUTs to the in-process pod, unreachable from a hosted<br/>GitHub Actions runner (no self-hosted runner exists). Delivery is inverted — ontology-publish.yml's<br/>publish-release job attaches the five pod resources + SHA256SUMS to the rolling release<br/>ontology-latest, and the server now PULLS from it instead. See ES-09.13 (EXTERNAL) for the release job.
 ```
 

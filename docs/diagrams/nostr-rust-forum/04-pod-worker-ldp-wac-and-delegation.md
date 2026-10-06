@@ -10,6 +10,8 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/acl.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/payments.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/pay_ledger.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/deposit_address.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/quota.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/patch.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/content_negotiation.rs
@@ -30,36 +32,37 @@ sources:
   - ../nostr-rust-forum/docs/consumer-surface-map.md
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
-verified_commit: d025cb063df5a532f055a18527f71cc7dee9d6e6
+  - ../nostr-rust-forum/Cargo.toml
+verified_commit: 72463fbde35ac4c68539b1f65a08ff03b9941201
 ---
 
 ## NF-04.1 Route surface
 
 ```mermaid
 flowchart TB
-    F["fetch nostr-bbs-pod-worker/src/lib.rs:420"]
-    OPT["Options preflight lib.rs:425"]
-    HEALTH["/health lib.rs:435"]
+    F["fetch nostr-bbs-pod-worker/src/lib.rs:422"]
+    OPT["Options preflight lib.rs:427"]
+    HEALTH["/health lib.rs:437"]
     subgraph disc["Discovery documents"]
-        WF["/.well-known/webfinger lib.rs:470"]
-        SOL["/.well-known/solid lib.rs:493"]
-        N05["/.well-known/nostr.json lib.rs:504"]
-        DID["/.well-known/did/nostr/{pk} lib.rs:560"]
-        WL["/.well-known/webledgers/webledgers.json lib.rs:581"]
+        WF["/.well-known/webfinger lib.rs:472"]
+        SOL["/.well-known/solid lib.rs:495"]
+        N05["/.well-known/nostr.json lib.rs:506"]
+        DID["/.well-known/did/nostr/{pk} lib.rs:562"]
+        WL["/.well-known/webledgers/webledgers.json lib.rs:583"]
     end
-    PODS["POST /.pods - authenticated provisioning alias lib.rs:592"]
-    PAY["/pay/ routes - HTTP 402 Web Ledgers lib.rs:648 lib.rs:682"]
-    GITG["_git request guard lib.rs:718"]
-    LDP["/pods/{pubkey}/... LDP resource verbs<br/>parsed at lib.rs:93<br/>GET/HEAD lib.rs:984 PUT lib.rs:1210 POST lib.rs:1286<br/>PATCH lib.rs:1422 DELETE lib.rs:1514"]
-    PROV["/.provision lib.rs:122 and /.deprovision lib.rs:127"]
+    PODS["POST /.pods - authenticated provisioning alias lib.rs:594"]
+    PAY["/pay/ routes - HTTP 402 Web Ledgers lib.rs:652 lib.rs:689"]
+    GITG["_git request guard lib.rs:743"]
+    LDP["/pods/{pubkey}/... LDP resource verbs<br/>parsed at lib.rs:94<br/>GET/HEAD lib.rs:991 PUT lib.rs:1217 POST lib.rs:1293<br/>PATCH lib.rs:1429 DELETE lib.rs:1521"]
+    PROV["/.provision lib.rs:124 and /.deprovision lib.rs:129"]
 
     F --> OPT --> HEALTH
     F --> disc
     F --> PODS & PAY & GITG & LDP & PROV
 
-    N1["CORS uses the canonical POD_CORS_HEADERS constant from core so the DPoP, Updates-Via, WAC and<br/>payment headers cannot drift per worker nostr-bbs-pod-worker/src/lib.rs:168, constant<br/>nostr-bbs-core/src/cors.rs:46"]
-    N2["Every LDP response advertises resource-sidecar notification discovery via Updates-Via<br/>nostr-bbs-pod-worker/src/lib.rs:275"]
-    N3["A 401 emits a JSS-compatible Solid challenge - WWW-Authenticate with DPoP and Bearer realms<br/>nostr-bbs-pod-worker/src/lib.rs:346"]
+    N1["CORS uses the canonical POD_CORS_HEADERS constant from core so the DPoP, Updates-Via, WAC and<br/>payment headers cannot drift per worker nostr-bbs-pod-worker/src/lib.rs:170, constant<br/>nostr-bbs-core/src/cors.rs:46"]
+    N2["Every LDP response advertises resource-sidecar notification discovery via Updates-Via<br/>nostr-bbs-pod-worker/src/lib.rs:277"]
+    N3["A 401 emits a JSS-compatible Solid challenge - WWW-Authenticate with DPoP and Bearer realms<br/>nostr-bbs-pod-worker/src/lib.rs:348"]
 ```
 
 ## NF-04.2 A resource request, end to end
@@ -68,33 +71,33 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant C as Client
-    participant W as pod-worker fetch<br/>nostr-bbs-pod-worker/src/lib.rs:420
+    participant W as pod-worker fetch<br/>nostr-bbs-pod-worker/src/lib.rs:422
     participant A as NIP-98 verify<br/>nostr-bbs-pod-worker/src/auth.rs:13
     participant ACL as find_effective_acl<br/>nostr-bbs-pod-worker/src/acl.rs:285
     participant R2 as PODS bucket
     participant Q as quota
 
     C->>W: METHOD /pods/{pubkey}/{path}
-    W->>W: parse owner + resource path lib.rs:93
-    W->>W: git request guard lib.rs:718
-    W->>A: Authorization: Nostr <base64 event> lib.rs:1869
-    W->>W: required_mode = coerce_required_mode_for_acl lib.rs:959
-    W->>ACL: resolve the effective ACL lib.rs:960
+    W->>W: parse owner + resource path lib.rs:94
+    W->>W: git request guard lib.rs:743
+    W->>A: Authorization: Nostr <base64 event> lib.rs:766
+    W->>W: required_mode = coerce_required_mode_for_acl lib.rs:966
+    W->>ACL: resolve the effective ACL lib.rs:967
     ACL->>R2: sidecar walk, most specific first acl.rs:295
     ACL->>ACL: KV miss-fallback only acl.rs:311
     W->>W: evaluate_access against the resolved doc acl.rs:56
     alt GET or HEAD
-        W->>W: content negotiation lib.rs:1055, preconditions lib.rs:1074
+        W->>W: content negotiation lib.rs:1062, preconditions lib.rs:1081
     else PUT
-        W->>Q: atomic check_and_reserve_d1 lib.rs:1251
-        W->>W: notify_change subscribers lib.rs:1272
+        W->>Q: atomic check_and_reserve_d1 lib.rs:1258
+        W->>W: notify_change subscribers lib.rs:1279
     else POST or PATCH
-        W->>Q: reservation_account then check_and_reserve_with_limit_d1 lib.rs:1308 lib.rs:1313
+        W->>Q: reservation_account then check_and_reserve_with_limit_d1 lib.rs:1315 lib.rs:1320
     end
     W-->>C: response with the WAC allow header
 
     Note over W: The quota reservation is ATOMIC in D1 - reserve-then-write, so a concurrent PUT cannot both pass a stale check nostr-bbs-pod-worker/src/quota.rs:110
-    Note over W: Teardown releases the owner's quota best-effort - a stale quota row must not fail the deprovision nostr-bbs-pod-worker/src/lib.rs:915
+    Note over W: Teardown releases the owner's quota best-effort - a stale quota row must not fail the deprovision nostr-bbs-pod-worker/src/lib.rs:922
     Note over A: Replay protection shares the auth-worker's D1 through REPLAY_DB nostr-bbs-pod-worker/wrangler.toml:25 - see NF-02.5 and NF-08.4
 ```
 
@@ -224,7 +227,7 @@ flowchart LR
 
     N1["INVARIANT: .git paths are FORBIDDEN, not merely unimplemented - the two outcomes are distinct<br/>responses nostr-bbs-pod-worker/src/git.rs:58 versus nostr-bbs-pod-worker/src/git.rs:76. The CF-Workers<br/>tier is non-git BY DESIGN; the git-capable pod is the agentbox native tier."]
     N2["EXTERNAL: the forum client's git control panel talks to the NATIVE server's /_git/* REST API, never<br/>to this worker - see NF-05.10 and the solid-pod-rs area (SP-*)"]
-    N3["This worker serves a pod-resident /.well-known/nostr.json nostr-bbs-pod-worker/src/lib.rs:504, while<br/>the AUTH worker owns the central NIP-05 registry - see NF-02.2"]
+    N3["This worker serves a pod-resident /.well-known/nostr.json nostr-bbs-pod-worker/src/lib.rs:506, while<br/>the AUTH worker owns the central NIP-05 registry - see NF-02.2"]
 ```
 
 ## NF-04.9 HTTP 402 payments
@@ -234,23 +237,22 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant W as pod-worker
-    participant PAY as payments::handle_pay_route<br/>nostr-bbs-pod-worker/src/payments.rs:511
+    participant PAY as payments::handle_pay_route<br/>nostr-bbs-pod-worker/src/payments.rs:157
     participant D1 as payment schema
     participant CH as chain
 
     W->>W: PAY_ENABLED and PAY_COST_SATS from env nostr-bbs-pod-worker/wrangler.toml:31 wrangler.toml:32
     C->>W: request a paid resource
-    W->>PAY: /pay/ route dispatch nostr-bbs-pod-worker/src/lib.rs:682
-    PAY->>D1: ensure_payment_schema payments.rs:50
-    PAY->>CH: verify_txo_multichain payments.rs:408
-    PAY->>PAY: derive_deposit_address payments.rs:1616
-    PAY->>PAY: handle_address_route payments.rs:1689
-    PAY->>D1: recover_orphaned_jobs payments.rs:1434
+    W->>PAY: /pay/ route dispatch nostr-bbs-pod-worker/src/lib.rs:689
+    PAY->>D1: ensure_payment_schema over pay_ledger SCHEMA payments.rs:45 pay_ledger.rs:130
+    PAY->>CH: deposit credits a TXO only via qualifying_output - it must pay the pod's<br/>deposit address, keyed with its chain pay_ledger.rs:564 pay_ledger.rs:618
+    PAY->>PAY: .address derives the frozen deposit address deposit_address.rs:120 pay_ledger.rs:802
+    PAY->>D1: recover_orphaned_jobs pay_ledger.rs:1273
     PAY-->>C: 402 with the Web Ledgers payment body
 
-    Note over PAY: The whole payment vocabulary is RE-EXPORTED from solid_pod_rs::payments rather than reimplemented nostr-bbs-pod-worker/src/payments.rs:31 - EXTERNAL: see the solid-pod-rs area (SP-*)
-    Note over W: Payments ship DISABLED - PAY_ENABLED is "false" in the template nostr-bbs-pod-worker/wrangler.toml:31
-    Note over PAY: The orphaned-job recovery path exists because a chain confirmation can outlive a Worker invocation payments.rs:1434
+    Note over PAY: The discovery/config vocabulary is re-exported from solid_pod_rs::payments rather than reimplemented nostr-bbs-pod-worker/src/payments.rs:34 - EXTERNAL: see the solid-pod-rs area (SP-*)
+    Note over W: The shipped template has PAY_ENABLED "false" nostr-bbs-pod-worker/wrangler.toml:31<br/>DRIFT: production sets it "true" - ADR-2012's 2026-10-02 amendment withdraws the<br/>dormant assumption ADR-2012-d1-ledger-becomes-a-chain-view.md:35-40
+    Note over PAY: The orphaned-job recovery path exists because a chain confirmation can outlive a Worker invocation pay_ledger.rs:1273
 ```
 
 ## NF-04.10 The three wasm32-unreachable Phase-1 surfaces
@@ -258,11 +260,11 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     FEAT["solid-pod-rs-phase1 feature<br/>nostr-bbs-pod-worker/Cargo.toml:22"]
-    F1["solid-pod-rs/provision-keys Cargo.toml:23"]
-    F2["solid-pod-rs/nip05-endpoint Cargo.toml:24"]
-    F3["solid-pod-rs/export-jsonld Cargo.toml:25"]
+    F1["solid-pod-rs/provision-keys nostr-bbs-pod-worker/Cargo.toml:23"]
+    F2["solid-pod-rs/nip05-endpoint nostr-bbs-pod-worker/Cargo.toml:24"]
+    F3["solid-pod-rs/export-jsonld nostr-bbs-pod-worker/Cargo.toml:25"]
     EXPORT["export.rs is a bare re-export of solid_pod_rs::export<br/>nostr-bbs-pod-worker/src/export.rs:19"]
-    STATE["Off by default: only the core feature is enabled today<br/>Cargo.toml:54, and the whole trio is default-off Cargo.toml:20"]
+    STATE["Off by default: the workspace dep enables only the core feature<br/>nostr-rust-forum/Cargo.toml:181, pulled bare by the worker nostr-bbs-pod-worker/Cargo.toml:56<br/>the trio is opt-in only nostr-bbs-pod-worker/Cargo.toml:22"]
 
     FEAT --> F1 & F2 & F3
     FEAT -.-> EXPORT
@@ -274,28 +276,34 @@ flowchart TB
     N4["Property tests cover the WAC document handling this whole topic rests on<br/>nostr-bbs-pod-worker/tests/wac_proptests.rs:1"]
 ```
 
-## NF-04.11 The D1 ledger today, and the chain view ADR-2012 proposes
+## NF-04.11 The journalled D1 ledger today, and the chain view ADR-2012 is moving to
 
 ```mermaid
 flowchart TB
-    subgraph live["LIVE at this revision - D1 is the ledger"]
-        STORE["D1PaymentStore<br/>nostr-bbs-pod-worker/src/payments.rs:148"]
-        CRED["credit_atomic - single-statement INSERT or update<br/>nostr-bbs-pod-worker/src/payments.rs:161"]
-        DEB["debit_atomic - UPDATE guarded by balance greater or equal cost<br/>nostr-bbs-pod-worker/src/payments.rs:183"]
-        BAL["read_balance returns the STORED number<br/>nostr-bbs-pod-worker/src/payments.rs:217"]
-        TRAIT["PaymentStore trait impl - read_ledger payments.rs:279,<br/>write_ledger payments.rs:301, for trait compliance only"]
+    subgraph live["LIVE at this revision - D1 is a journalled cache, credits carry evidence"]
+        JOURNAL["pay_credits journal - every credit row names a chain + outpoint<br/>or the NIP-98 request id that released a job-hold, CHECK-enforced<br/>nostr-bbs-pod-worker/src/pay_ledger.rs:110"]
+        SCHEMA["idempotent SCHEMA run at worker startup<br/>pay_ledger.rs:130 payments.rs:45"]
+        DEP["deposit - a TXO is credited once, only via qualifying_output,<br/>keyed with its chain pay_ledger.rs:618 pay_ledger.rs:564"]
+        APPLY["SQL_APPLY_CREDIT - the ONE statement that creates or raises a<br/>balance, reading account and amount from an unapplied journal row<br/>pay_ledger.rs:168"]
+        DEB["debit - the surviving spend-side primitive<br/>pay_ledger.rs:434"]
+        BAL["read_balance returns the cached D1 number<br/>pay_ledger.rs:412"]
+        REC["recover_orphaned_jobs pay_ledger.rs:1273"]
+        ADDR["derive_deposit_address frozen as live, ported to rust-bitcoin<br/>nostr-bbs-pod-worker/src/deposit_address.rs:120"]
     end
-    STORE --> CRED --> DEB --> BAL --> TRAIT
+    SCHEMA --> JOURNAL
+    DEP --> JOURNAL --> APPLY --> BAL
+    DEB --> BAL
+    REC -.-> JOURNAL
 
-    PROP["PROPOSED, NOT BUILT - ADR-2012 decision_status proposed,<br/>implementation_status none<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:5-6"]
-    P1["D1 is demoted to a height-stamped derived view folded from<br/>sidestr UTXOs, and a staleness bound becomes an error<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:37-41"]
-    P2["credit_atomic and debit_atomic stop being settlement - the only<br/>credit is a peg-in claim, the only debit a chain spend<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:42-46"]
-    P3["solid-pod-rs moves in lockstep with the host, closing the pin<br/>skew as a P1 exit criterion<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:50-54"]
+    PROP["STILL PROPOSED - the full view: decision_status proposed,<br/>implementation_status partial<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:6-7"]
+    P1["D1 demoted to a height-stamped derived view folded from sidestr UTXOs,<br/>staleness bound an error - not yet built<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:48-52"]
+    P2["DONE in the amendment: credit_atomic and D1PaymentStore (with its<br/>write_ledger) are REMOVED - every credit is a journalled row<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:61-68"]
+    P3["solid-pod-rs moves in lockstep with the host, closing the pin<br/>skew as a P1 exit criterion - pending<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:76-80"]
 
-    TRAIT -.->|"proposed successor"| PROP
+    BAL -.->|"proposed successor"| PROP
     PROP --> P1 & P2 & P3
 
-    N1["INVARIANT held today: settlement is a single SQL statement, never a read-modify-write -<br/>the module itself says to prefer the atomic pair over write_ledger<br/>nostr-bbs-pod-worker/src/payments.rs:303"]
-    N2["DIVERGENCE: atomicity is not authority. Nothing reconciles this balance with the two other<br/>did:nostr-keyed ledgers in the estate, which is the defect ADR-2012 exists to end<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:26-30"]
-    N3["EXTERNAL: ADR-2012 D5 freezes derive_subkey and its JS-parity vector as a Published Language<br/>for the settlement domain nostr-bbs-core/src/keys.rs:251, ADR-2012-d1-ledger-becomes-a-chain-view.md:55-62"]
+    N1["INVARIANT ADR-2012 D6 (structural): tests/pay_credit_guard.rs scans every workspace source<br/>that can reach the shared D1 and fails unless the only balance-raising statement is<br/>SQL_APPLY_CREDIT - no statement sets or adds balance_sats from a bound parameter<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:109-117"]
+    N2["DRIFT the amendment withdraws: the routes were triaged as dormant, but production sets<br/>PAY_ENABLED true - the three evidence-free value paths named in the amendment are the<br/>defect this journal closes ADR-2012-d1-ledger-becomes-a-chain-view.md:35-44"]
+    N3["EXTERNAL: ADR-2012 D5 freezes derive_subkey and its JS-parity vector as a Published Language<br/>for the settlement domain nostr-bbs-core/src/keys.rs:251-265, ADR-2012-d1-ledger-becomes-a-chain-view.md:81-89"]
 ```

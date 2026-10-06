@@ -39,7 +39,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
   - ../project/agentbox/tests/runtime-contract/RC-X1-06.sh
   - ../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md
-verified_commit: {agentbox: 8f55d9a435a1abdf6a2c77d362ba1379a8f2520f, visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8}
+verified_commit: {agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
 ---
 
 ## AB-16.1 Container hardening posture — what actually confines the box
@@ -355,7 +355,7 @@ flowchart LR
     R["SECURITY-profiles.md<br/>Provisional custody register 2026-09-04"]
     R --> C1["Bridge identity / unwrap key<br/>src: AGENTBOX_BRIDGE_SK_FILE default /run/secrets/nostr.key<br/>under role_isolation held by ab-identity uid 960, role-accounts.json:20-34<br/>legacy env fallback only while the flag is off"]
     R --> C2["Shared server publisher identity<br/>src: relay key list, build-projected<br/>ADR-2012 per-consumer split PENDING"]
-    R --> C3["Proxy break-glass bearer<br/>src: NIP98_PROXY_ALLOW_BEARER read at process start, proxy.mjs:131<br/>under role_isolation a file of ab-ingress uid 962, role-accounts.json:44-51<br/>still the same value as BRIDGE_TOKEN until Q4, see AB-16.6"]
+    R --> C3["Proxy break-glass bearer<br/>src: NIP98_PROXY_ALLOW_BEARER read at process start, proxy.mjs:131<br/>under role_isolation a file of ab-ingress uid 962, role-accounts.json:46-53<br/>still the same value as BRIDGE_TOKEN until Q4, see AB-16.6"]
     R --> C4["Proxy browser-session signing secret<br/>src: NIP98_PROXY_SESSION_SECRET or per-boot random, proxy.mjs:244-245<br/>under role_isolation a file of ab-ingress, see AB-10.8"]
     R --> C5["AoE daemon token<br/>src: daemon state file read by the proxy with a last-good cache<br/>see AB-10.11"]
     R --> C6["Dream remote-execution identity<br/>src: ssh/scp dispatch on AMBIENT ssh config<br/>no explicit identity file in the inspected calls"]
@@ -369,7 +369,7 @@ flowchart LR
     C7 --> U
     U --> N1["DIVERGENCE — 'Suggested responsible role' in the register is a role TO ASSIGN,<br/>not an assertion that anyone has accepted custody. 'No cadence is invented here.'"]
     U --> N2["DIVERGENCE — these seven rows are a STARTING SET, not completeness certification.<br/>Provider credentials and other estate identities are not yet inventoried.<br/>The two derived HMAC keys in AB-16.5 are absent from the register entirely."]
-    R -.-> N4["ROLE ACCOUNTS 2026-10-03, config/role-accounts.json:18-107 — a holder uid per secret-bearing role:<br/>ab-identity 960, ab-gateway 961 holding no key, ab-ingress 962, ab-spend 963 account only,<br/>ab-sidestr-dreamlab 964, ab-faucet-dreamlab 966, txbt4 producer 967 and faucet 968,<br/>ab-poker-citizen 970, role-accounts.json:99-100.<br/>965 is reserved for the host docker group, role-accounts.json:5-7.<br/>A holder uid is not a custodian: every row above stays UNCONFIRMED"]
+    R -.-> N4["ROLE ACCOUNTS 2026-10-03, config/role-accounts.json:18-127 — a holder uid per secret-bearing role:<br/>ab-identity 960, ab-gateway 961 holding no key, ab-ingress 962, ab-spend 963 account only,<br/>ab-sidestr-dreamlab 964, ab-faucet-dreamlab 966, txbt4 producer 967 and faucet 968,<br/>ab-poker-citizen 970 (role-accounts.json:101-102), the txbt4 house seat 971<br/>and the poker-coach identity-only key 972 (role-accounts.json:104-126).<br/>965 is reserved for the host docker group, role-accounts.json:5-7.<br/>A holder uid is not a custodian: every row above stays UNCONFIRMED"]
     R -.-> N3["Refer to secret identifiers and custodian ROLES, never secret values.<br/>Do not copy secrets into this register. SECURITY-profiles preamble."]
 ```
 
@@ -493,7 +493,7 @@ flowchart TB
     OFF --> ON
     N6 -.-> INV1["INVARIANT under role_isolation: no ROLE variable reaches supervisord's environment.<br/>Captured at entrypoint-unified.sh:489, scrubbed at entrypoint-unified.sh:1221"]
     N5 -.-> INV2["Each chain's signer key and parent credential are delivered to that chain's producer uid only,<br/>role-accounts.json:66-67, role-accounts.json:85-86. The treasury source is now the volume copy,<br/>role-accounts.json:76, its workspace twin a legacy copy migrate never deletes, ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:212-215"]
-    N3 -.-> TEN1["INVARIANT: role-accounts.json:22 calls ab-identity the sole holder of the sovereign key;<br/>under role_isolation the identity file, which carries private_key_hex (identity.rs:71),<br/>is ab-identity 0400, entrypoint-unified.sh:757-758, role-accounts.json:32.<br/>Flag off it stays devuser 0600, entrypoint-unified.sh:759-761"]
+    N3 -.-> TEN1["INVARIANT: role-accounts.json:22-24 calls ab-identity the sole holder of the sovereign key;<br/>under role_isolation the identity file, which carries private_key_hex (identity.rs:71),<br/>is ab-identity 0400, entrypoint-unified.sh:757-758, role-accounts.json:34.<br/>Flag off it stays devuser 0600, entrypoint-unified.sh:759-761"]
     N4 -.-> TEN2["INVARIANT: under the flag the at-rest volume /var/lib/agentbox/secrets is never handed to devuser,<br/>entrypoint-unified.sh:548; ab_custody_migrate, role-custody.sh:447, called at entrypoint-unified.sh:723,<br/>makes it root 0700, role-custody.sh:567. Flag off, ab_custody_revert hands it back, entrypoint-unified.sh:725"]
 ```
 
@@ -525,7 +525,7 @@ flowchart TB
 
 **Invariant (role isolation vs the at-rest volumes):** under `[security].role_isolation` the at-rest copies are role-only as well as the runtime ones. The boot skips the devuser chown of `/var/lib/agentbox/secrets` when the flag is on (`../project/agentbox/config/entrypoint-unified.sh:548`) and calls `ab_custody_migrate` on the baked plan (`../project/agentbox/config/entrypoint-unified.sh:723`), whose `atrest`/`atrestdir` rows `agentbox-manifest role-accounts isolate` derives from the role table (`../project/agentbox/services/agentbox-manifest/src/role_accounts.rs:1011-1028`). `ab_custody_migrate` (`../project/agentbox/config/lib/role-custody.sh:447`) hands each registry copy to its role at 0400 (`../project/agentbox/config/lib/role-custody.sh:556`) and each volume dir to root (`../project/agentbox/config/lib/role-custody.sh:567`); with the flag off `ab_custody_revert` hands them back (`../project/agentbox/config/entrypoint-unified.sh:725`). The legacy workspace twins are copied once and never deleted, so they stay devuser-readable by design until a manual purge (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:212-215`).
 
-**Invariant (role table vs the identity file):** the role table names `ab-identity` the sole holder of the sovereign key (`../project/agentbox/config/role-accounts.json:22`) and registers the identity JSON carrying `private_key_hex` (`../project/agentbox/services/nostr-pod-bridge/src/identity.rs:71`) as its at-rest copy (`../project/agentbox/config/role-accounts.json:32`). Under the flag the boot hands that file to `ab-identity` at 0400 after the bootstrap rewrites it (`../project/agentbox/config/entrypoint-unified.sh:757-758`); with the flag off, which is how it ships, it stays `devuser 0600` for the pods signer (`../project/agentbox/config/entrypoint-unified.sh:759-761`).
+**Invariant (role table vs the identity file):** the role table names `ab-identity` the sole holder of the sovereign key (`../project/agentbox/config/role-accounts.json:22-24`) and registers the identity JSON carrying `private_key_hex` (`../project/agentbox/services/nostr-pod-bridge/src/identity.rs:71`) as its at-rest copy (`../project/agentbox/config/role-accounts.json:34`). Under the flag the boot hands that file to `ab-identity` at 0400 after the bootstrap rewrites it (`../project/agentbox/config/entrypoint-unified.sh:757-758`); with the flag off, which is how it ships, it stays `devuser 0600` for the pods signer (`../project/agentbox/config/entrypoint-unified.sh:759-761`).
 
 **Tension (identity port vs the mirror child):** the port hands devuser the live-mirror child secret (`../project/agentbox/config/custody/identity-port-acl.json:42`, `../project/agentbox/services/nostr-pod-bridge/src/identity_port/port.rs:635-637`) because the hook signs the self-DM wrap with it (`../project/agentbox/config/custody/identity-port-acl.json:14-15`), so the phone's key is a devuser-class credential under the flag; ADR-2101 allows named operations only (`../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md:110-111`). The ACL comment cites the wrap at `nostr-live-mirror.cjs:487`; the signing line is `../project/agentbox/config/hooks/nostr-live-mirror.cjs:488`.
 

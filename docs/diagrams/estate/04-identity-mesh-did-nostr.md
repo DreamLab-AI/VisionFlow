@@ -15,6 +15,7 @@ sources:
   - ../project/agentbox/management-api/lib/agent-event-auth.js
   - ../project/agentbox/mcp/servers/nostr-bridge.js
   - ../project/agentbox/config/hooks/nostr-live-mirror.cjs
+  - ../project/agentbox/config/nostr-gateway/gateway.cjs
   - ../project/agentbox/flake.nix
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/docs/SECURITY-profiles.md
@@ -26,7 +27,7 @@ sources:
   - ../project/src/settings/auth_extractor.rs
   - ../project/client/src/services/nostrAuthService.ts
   - ../project/agentbox/docs/INGRESS-identity.md
-verified_commit: {visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296}
 ---
 ## ES-04.1 verification mesh — who signs, who verifies whom
 ```mermaid
@@ -40,17 +41,17 @@ flowchart LR
         N98["validate_nip98_token<br/>src/utils/nip98.rs:428"]
         NIV["NostrIdentityVerifier<br/>src/services/nostr_identity_verifier.rs:34"]
         NB["NostrBridge (re-sign)<br/>src/services/nostr_bridge.rs:28"]
-        MAC["ManagementApiClient<br/>src/services/management_api_client.rs:179"]
+        MAC["ManagementApiClient<br/>src/services/management_api_client.rs:27"]
     end
     subgraph agentbox["agentbox host processes"]
         PROXY["nip98-proxy  port 9096<br/>agentbox/config/nip98-proxy/proxy.mjs:96"]
-        NBB["NostrBridge.verifyNip98<br/>agentbox/mcp/servers/nostr-bridge.js:459"]
-        PS["pod-signer buildPodNip98<br/>agentbox/management-api/lib/pod-signer.js:42"]
-        AGID["agent-identity loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:125"]
+        NBB["NostrBridge.verifyNip98<br/>agentbox/mcp/servers/nostr-bridge.js:500"]
+        PS["pod-signer buildPodNip98<br/>agentbox/management-api/lib/pod-signer.js:70"]
+        AGID["agent-identity loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:128"]
         AEA["agent-event-auth verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:108"]
     end
     subgraph aoe["AoE daemon  port 9095<br/>loopback only"]
-        AOE["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2517"]
+        AOE["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2795"]
     end
     subgraph solid["EXTERNAL: solid-pod-rs<br/>default-deny pod"]
         POD["Solid pod HTTP endpoint"]
@@ -63,7 +64,7 @@ flowchart LR
     AE -- "NIP-98 kind-27235" --> NS --> N98
     NS -- "Bearer + X-Nostr-Pubkey<br/>explicit migration flag; default off" --> AE
     NIV -. "XR presence Schnorr(nonce||ts)<br/>NOT NIP-98" .-> NB
-    MAC -- "Authorization: Bearer api_key<br/>management_api_client.rs:286" --> PROXY
+    MAC -- "Authorization: Bearer api_key<br/>management_api_client.rs:292" --> PROXY
     PROXY -- "NIP-98 kind-27235<br/>proxy-verified" --> NBB
     PROXY -- "X-Agentbox-Pubkey<br/>injected, never trusted inbound" --> AOE
     PROXY -- "Authorization: Bearer <aoe token><br/>read from serve.url" --> AOE
@@ -137,19 +138,19 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant CALLER as management-api caller
-    participant B as buildPodNip98<br/>agentbox/management-api/lib/pod-signer.js:42
+    participant B as buildPodNip98<br/>agentbox/management-api/lib/pod-signer.js:70
     participant S as signer (lazy-loaded, cached)
-    participant H as buildNip98Header<br/>deps injection, pod-signer.js:36
+    participant H as buildNip98Header<br/>deps injection, pod-signer.js:92
     participant POD as Solid pod
 
     CALLER->>B: buildPodNip98(manifest, deps)
     alt pod signing enabled in the manifest
-        B-->>CALLER: async (method, url, body) => header<br/>pod-signer.js:91
+        B-->>CALLER: async (method, url, body) => header<br/>pod-signer.js:124
         CALLER->>H: nip98(method, url, body)
         H->>S: resolve signer (loaded lazily on first use, then cached)
         alt signer available
             S-->>H: signer
-            H->>H: buildNip98Header(s, method, url, {body})<br/>pod-signer.js:94
+            H->>H: buildNip98Header(s, method, url, {body})<br/>pod-signer.js:127
             H-->>CALLER: Authorization header carrying the kind-27235 event
             CALLER->>POD: LDP write with the signed header
             POD-->>CALLER: 2xx
@@ -185,8 +186,8 @@ flowchart TB
 
     K5 -->|"NIP-59 gift wrap, kind 1059"| REL
 
-    D1["DIVERGENCE ADR-040 D3 — agentbox.toml:161 marks the governance<br/>publisher key-split PENDING, so governance-published events<br/>and server identity STILL SHARE a key."]
-    D2["DIVERGENCE — NIP98_PROXY_SESSION_SECRET defaults to<br/>crypto.randomBytes (proxy.mjs:212), so NIP-07 sessions do<br/>NOT survive a proxy restart. Intentional, but every restart<br/>forces re-authentication."]
+    D1["PARTIALLY RESOLVED (Q15, 2026-10-03) — agentbox.toml:160 now records<br/>the separation: the operator NIP-07 signer signs the 31403 governance<br/>decisions and is NOT visionclaw-server, which signs 31402 under a<br/>different key. The earlier revision of this node cited the roster row<br/>that still marked the governance publisher key-split PENDING (ADR-040 D3)."]
+    D2["DIVERGENCE — NIP98_PROXY_SESSION_SECRET defaults to<br/>crypto.randomBytes (proxy.mjs:245), so NIP-07 sessions do<br/>NOT survive a proxy restart. Intentional, but every restart<br/>forces re-authentication."]
     D3["DIVERGENCE — a same-uid (devuser) process can still READ the<br/>AoE token file. The token raises the bar but does NOT isolate<br/>same-user peers. Per-process isolation is future work."]
     D4["DIVERGENCE — deleting the AoE state file alone does NOT<br/>rotate the token, because the proxy holds a last-good cache.<br/>Daemon and proxy must rotate COHERENTLY. see ES-10.10"]
     D5["DIVERGENCE — every custodian, deployed location, rotation<br/>cadence and incident-response window in the agentbox custody<br/>register is UNCONFIRMED (proposed governing surface)."]
@@ -211,22 +212,22 @@ sequenceDiagram
     participant AM as Amethyst on mobile
 
     T->>HK: per-turn hook fires (event = SessionStart|UserPromptSubmit|Stop|SessionEnd)
-    HK->>HK: EARLY EXIT — egressDecision('live-mirror',{}) then recipientAllowlist(),<br/>checked BEFORE key derivation or stdin read<br/>nostr-live-mirror.cjs:408-415
+    HK->>HK: EARLY EXIT — egressDecision('live-mirror',{}) then recipientAllowlist(),<br/>checked BEFORE key derivation or stdin read<br/>nostr-live-mirror.cjs:405-414
     alt AGENTBOX_LIVE_MIRROR=0 or no valid recipient allowlist
         HK-->>T: return 0 — ~170ms/event saved vs deriving keys first
     else no recipient pubkey configured
         HK-->>T: silent no-op
     else armed
-        HK->>HK: mirroredEvents() gate — default {Stop} only,<br/>widened by AGENTBOX_LIVE_MIRROR_EVENTS<br/>nostr-live-mirror.cjs:273-281
+        HK->>HK: mirroredEvents() gate — default {Stop} only,<br/>widened by AGENTBOX_LIVE_MIRROR_EVENTS<br/>nostr-live-mirror.cjs:278-284
         alt event not in mirroredEvents()
-            HK-->>T: bodyForEvent() returns null — skip, nostr-live-mirror.cjs:289-290
+            HK-->>T: bodyForEvent() returns null — skip, nostr-live-mirror.cjs:290-291
         else event mirrored
             HK->>MK: load derived mirror child key
             HK->>HK: build kind-14 DM rumor
-            Note over HK: A urn:agentbox:activity reference is placed INSIDE the<br/>already gift-wrap-sealed rumor (mintActivityUrn, nostr-live-mirror.cjs:165),<br/>so the URN never appears in cleartext on the wire.
-            HK->>W: seal sender identity, wrap as KIND_GIFT_WRAP 1059<br/>nostr-live-mirror.cjs:60, rumor kind 14 at :61
+            Note over HK: A urn:agentbox:activity reference is placed INSIDE the<br/>already gift-wrap-sealed rumor (mintActivityUrn, nostr-live-mirror.cjs:166),<br/>so the URN never appears in cleartext on the wire.
+            HK->>W: seal sender identity, wrap as KIND_GIFT_WRAP 1059<br/>nostr-live-mirror.cjs:61, rumor kind 14 at :62
             W-->>HK: signed gift wrap
-            HK->>REL: publish ONE pre-signed gift wrap, await the relay OK<br/>publishWrap nostr-live-mirror.cjs:331
+            HK->>REL: publish ONE pre-signed gift wrap, await the relay OK<br/>publishWrap nostr-live-mirror.cjs:332
             alt relay accepts
                 REL-->>HK: ok
                 REL->>AM: readable with the derived mirror child key
@@ -238,11 +239,11 @@ sequenceDiagram
     end
     Note over HK,REL: INVARIANT ADR-2026 — the ONLY network egress is the<br/>ENCRYPTED gift wrap. The relay accepts a kind-1059 iff its<br/>FIRST ["p"] recipient is whitelisted (nostr-live-mirror.cjs:19).
     Note over T,AM: Digest sibling — ONE curated kind-30840 summary at SessionEnd<br/>(nostr-live-mirror.cjs:8), via [sovereign_mesh.mobile_bridge].
-    Note over HK: DOC-DRIFT agentbox/docs/SECURITY-profiles.md:11 still asserts the live<br/>hook composes UNREDACTED text —<br/>SECURITY-profiles.md:69 and the code<br/>(redactForEgress before compose, nostr-live-mirror.cjs:452) say this<br/>closed 2026-09-05 on both paths. Doc line 11 is stale prose, not code.
+    Note over HK: DOC-DRIFT agentbox/docs/SECURITY-profiles.md:11 still asserts the live<br/>hook composes UNREDACTED text —<br/>SECURITY-profiles.md:68-69 and the code<br/>(redactForEgress before compose, nostr-live-mirror.cjs:453) say this<br/>closed 2026-09-05 on both paths. Doc line 11 is stale prose, not code.
 ```
 
 Encrypted forum zones (ADR-2016, INGRESS-identity.md item 10): zone-key grants, gating and
-admin-relay retry live in AB-12.11 and AB-13.5 (`zone-keys.js`, `gateway.cjs:721`), not here.
+admin-relay retry live in AB-12.11 and AB-13.5 (`zone-keys.js`, `../project/agentbox/config/nostr-gateway/gateway.cjs:721`), not here.
 
 The 2026-09-07 source closeout makes opaque session issuance, lookup and refresh
 conditional on `VISIONCLAW_LEGACY_SESSIONS=1/true`, default off. Browser REST signs
@@ -255,26 +256,26 @@ actual proxy/reconnect deployment have migrated. See VC-03.17 and the
 ## ES-04.7 PROPOSED key separation — one identity key, two derived families, a second Multikey
 ```mermaid
 flowchart TB
-    KID["k_id — the sovereign identity key, minted by the identity binary<br/>agentbox/docs/INGRESS-identity.md:431<br/>PROPOSED rule: it never spends and never seals a block"]
+    KID["k_id — the sovereign identity key, minted by the identity binary<br/>agentbox/docs/INGRESS-identity.md:456<br/>PROPOSED rule: it never spends and never seals a block"]
 
-    SPEND["k_spend(chain) = derive_subkey(k_id, sidestr/spend/ chain_id)<br/>used on the wallet path, spends UTXOs on exactly that chain<br/>agentbox/docs/INGRESS-identity.md:432"]
-    SIGN["k_sign(chain) = derive_subkey(k_id, sidestr/sign/ chain_id)<br/>federated instance operators only, seals blocks on that chain<br/>agentbox/docs/INGRESS-identity.md:433"]
+    SPEND["k_spend(chain) = derive_subkey(k_id, sidestr/spend/ chain_id)<br/>used on the wallet path, spends UTXOs on exactly that chain<br/>agentbox/docs/INGRESS-identity.md:457"]
+    SIGN["k_sign(chain) = derive_subkey(k_id, sidestr/sign/ chain_id)<br/>federated instance operators only, seals blocks on that chain<br/>agentbox/docs/INGRESS-identity.md:458"]
 
-    KID -->|"HMAC-SHA256 domain-separated child derivation,<br/>a tool the estate already owns<br/>agentbox/docs/INGRESS-identity.md:426"| SPEND
+    KID -->|"HMAC-SHA256 domain-separated child derivation,<br/>a tool the estate already owns<br/>agentbox/docs/INGRESS-identity.md:451"| SPEND
     KID -->|"same derivation, different domain string"| SIGN
 
-    BIND["PROPOSED kind 38420 sidestr-account-binding (ADR-2105, band<br/>38400-38499), addressable, d tag is chain id plus did hex,<br/>content is the derived spend pubkey, signed by k_id<br/>agentbox/docs/INGRESS-identity.md:444-445"]
+    BIND["PROPOSED kind 38420 sidestr-account-binding (ADR-2105, band<br/>38400-38499), addressable, d tag is chain id plus did hex,<br/>content is the derived spend pubkey, signed by k_id<br/>agentbox/docs/INGRESS-identity.md:469-470"]
     SPEND --> BIND
 
-    MK["PROPOSED — a SECOND Multikey entry in the DID document for the<br/>per-chain spend key. This AMENDS legacy ADR-033, whose<br/>single-Multikey form is what build_did_document emits today.<br/>agentbox/docs/INGRESS-identity.md:447-448"]
+    MK["PROPOSED — a SECOND Multikey entry in the DID document for the<br/>per-chain spend key. This AMENDS legacy ADR-033, whose<br/>single-Multikey form is what build_did_document emits today.<br/>agentbox/docs/INGRESS-identity.md:472-473"]
     BIND --> MK
 
-    LIVE["LIVE today — one Multikey, publicKeyMultibase is the<br/>MULTIKEY_PREFIX followed by the x-only hex, and the private key<br/>never leaves the function<br/>agentbox/docs/INGRESS-identity.md:160,163"]
+    LIVE["LIVE today — one Multikey, publicKeyMultibase is the<br/>MULTIKEY_PREFIX followed by the x-only hex, and the private key<br/>never leaves the function<br/>agentbox/docs/INGRESS-identity.md:161,164"]
     MK -.->|"amends"| LIVE
 
-    SCOPE["PROPOSED scope note — Invariant 6 is narrowed to IDENTITY<br/>ingress; chain ingress is authenticated by consensus rather than<br/>by the relay allowlist.<br/>agentbox/docs/INGRESS-identity.md:263"]
+    SCOPE["PROPOSED scope note — Invariant 6 is narrowed to IDENTITY<br/>ingress; chain ingress is authenticated by consensus rather than<br/>by the relay allowlist.<br/>agentbox/docs/INGRESS-identity.md:270"]
     KID --> SCOPE
 
-    INV["INVARIANT — the whole of this diagram sits in a clearly marked<br/>PROPOSED section and the live compliance surface above it is<br/>unchanged apart from that one scope note.<br/>agentbox/docs/INGRESS-identity.md:10,420. see ES-03.11"]
+    INV["INVARIANT — the whole of this diagram sits in a clearly marked<br/>PROPOSED section and the live compliance surface above it is<br/>unchanged apart from that one scope note.<br/>agentbox/docs/INGRESS-identity.md:11,445. see ES-03.11"]
     SCOPE --> INV
 ```

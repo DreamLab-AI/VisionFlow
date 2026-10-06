@@ -12,6 +12,7 @@ governing:
 adrs: [visionclaw:ADR-2023, visionclaw:ADR-2025, agentbox:ADR-2061, agentbox:ADR-2085, agentbox:ADR-2096, agentbox:ADR-2097, agentbox:ADR-2098, agentbox:ADR-2099, agentbox:ADR-2100, agentbox:ADR-2101, agentbox:ADR-2102, agentbox:ADR-2103, visionclaw:ADR-2111, visionflow:ADR-2012, solid-pod-rs:ADR-2008, nostr-rust-forum:ADR-2012]
 sources:
   - ../project/src/uri/mod.rs
+  - ../project/Cargo.toml
   - ../project/src/services/provenance_writer.rs
   - ../project/src/agent_events/schema.rs
   - ../project/crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs
@@ -36,7 +37,7 @@ sources:
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
-verified_commit: {visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047, visionflow: e5987acc8337ddd64c72f775750d61fef46d8e0b, solid-pod-rs: 6d2e5b0d2e00fc2c9fa1e4984b8582cfa0d48556, nostr-rust-forum: d025cb063df5a532f055a18527f71cc7dee9d6e6}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, solid-pod-rs: 93e2200218fad37927df16a1b7784c93c475670d, nostr-rust-forum: 72463fbde35ac4c68539b1f65a08ff03b9941201}
 ---
 ## ES-03.1 Shared wire envelope: AgentActionNotification (agentbox emit -> VisionClaw ingest)
 ```mermaid
@@ -127,11 +128,11 @@ flowchart TD
     NOTE2 -.-> NS
     DUAL -.-> NOTE3
 ```
-## ES-03.3 agentbox urn:agentbox grammar - 20 kinds (uris.js KINDS)
+## ES-03.3 agentbox urn:agentbox grammar - 21 kinds (uris.js KINDS)
 ```mermaid
 flowchart TD
-    RE["URN_RE = urn:agentbox colon kind colon scope-or-local<br/>agentbox/management-api/lib/uris.js:119"]
-    MINT["mint kind, pubkey, npub, payload, localId<br/>uris.js:162"]
+    RE["URN_RE = urn:agentbox colon kind colon scope-or-local<br/>agentbox/management-api/lib/uris.js:138"]
+    MINT["mint kind, pubkey, npub, payload, localId<br/>uris.js:181"]
     RE --> MINT
     subgraph CA["contentAddressed true - sha256-12 payload hash"]
         POD["pod - pods surface"]
@@ -143,7 +144,7 @@ flowchart TD
         EVENT["event - agent-events surface"]
         DECISION["decision - agent-events surface, ADR-048, ownerScope required"]
         BEAD["bead - beads surface, content-addressed to match urn:visionclaw:bead"]
-        KNOW["knowledge - memory surface, ADR-2085 colloquy unit<br/>uris.js:114"]
+        KNOW["knowledge - memory surface, ADR-2085 colloquy unit<br/>uris.js:115"]
     end
     subgraph SLUG["contentAddressed false - localId slug"]
         MCP["mcp - things, no owner scope"]
@@ -156,12 +157,13 @@ flowchart TD
         DATASET["dataset - memory, ownerScope required"]
         AGENT["agent - agents, ownerScope optional"]
         META["meta - meta, no owner scope"]
+        CHAIN["chain - chains, no owner scope,<br/>64-hex chain-event-id local, ADR-2098"]
     end
     MINT --> CA
     MINT --> SLUG
-    NORM["_normalisePubkey supplied<br/>uris.js:208-232<br/>accepts hex, did:nostr hex, or npub1 bech32"]
+    NORM["_normalisePubkey supplied<br/>uris.js:237-259<br/>accepts hex, did:nostr hex, or npub1 bech32"]
     MINT -- "spec.ownerScope true" --> NORM
-    NOTE_KIND["INVARIANT: 20 kinds total, decision added by ADR-048 and<br/>knowledge by ADR-2085 at uris.js:114. The KINDS table is frozen at<br/>uris.js:87 and every durable identifier is minted through it.<br/>agentbox/CLAUDE.md Parallel namespace"]
+    NOTE_KIND["INVARIANT: 21 kinds total, decision added by ADR-048,<br/>knowledge by ADR-2085 and chain by ADR-2098 (uris.js:115).<br/>The KINDS table is frozen at uris.js:88 and every durable<br/>identifier is minted through it.<br/>agentbox/CLAUDE.md Parallel namespace"]
     NOTE_R1["INVARIANT: R1 content-addressed local is sha256-12 plus first 12 hex chars, same input gives same URI<br/>uris.js:37-42"]
     RE -.-> NOTE_KIND
     CA -.-> NOTE_R1
@@ -233,14 +235,14 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant JSC as uris.js._contentAddress<br/>agentbox/management-api/lib/uris.js:286
-    participant JSS as uris.js._stableStringify<br/>uris.js:297
+    participant JSC as uris.js._contentAddress<br/>agentbox/management-api/lib/uris.js:460
+    participant JSS as uris.js._stableStringify<br/>uris.js:471
     participant RSW as provenance_writer.rs::mint_assertion_version_urn<br/>src/services/provenance_writer.rs:301
     participant RSS as provenance_writer.rs::stable_stringify<br/>src/services/provenance_writer.rs:233
     participant RSC as provenance_writer.rs::content_address<br/>src/services/provenance_writer.rs:264
     Note over JSC,RSC: INVARIANT ADR-2023 - sha256-12 is SHA-256 truncated to first 6 bytes, 12 lowercase hex<br/>chars, byte-identical both sides
     JSC->>JSS: canon = _stableStringify(payload)
-    Note right of JSS: sorted object keys, JSON.stringify primitives, no whitespace<br/>uris.js:297-302
+    Note right of JSS: sorted object keys, JSON.stringify primitives, no whitespace<br/>uris.js:471-477
     JSS-->>JSC: canon string
     JSC->>JSC: hex = sha256(canon).digest(hex).slice(0,12)
     JSC-->>JSC: sha256-12- + hex
@@ -261,18 +263,18 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Caller
-    participant M as mint kind,pubkey,npub,payload,localId<br/>agentbox/management-api/lib/uris.js:162
-    participant CA as _contentAddress<br/>uris.js:286
-    participant SL as _slug<br/>uris.js:305
-    participant NP as _normalisePubkey<br/>uris.js:208
+    participant M as mint kind,pubkey,npub,payload,localId<br/>agentbox/management-api/lib/uris.js:181
+    participant CA as _contentAddress<br/>uris.js:460
+    participant SL as _slug<br/>uris.js:479
+    participant NP as _normalisePubkey<br/>uris.js:237
     C->>M: mint({kind, ...})
     alt kind not in KINDS
-        M-->>C: throw UnknownUriKind kind<br/>uris.js:163
+        M-->>C: throw UnknownUriKind kind<br/>uris.js:182
     end
     M->>M: spec = KINDS[kind]
     alt spec.contentAddressed true
         alt payload is undefined
-            M-->>C: throw MalformedUri content-addressed kind requires payload<br/>uris.js:169
+            M-->>C: throw MalformedUri content-addressed kind requires payload<br/>uris.js:188
         else payload present
             M->>CA: _contentAddress(payload)
             CA->>CA: canon = _stableStringify(payload)
@@ -283,15 +285,15 @@ sequenceDiagram
             M->>SL: _slug(localId)
             SL-->>M: local, alnum plus dot underscore dash, max 96 chars
         else localId missing
-            M-->>C: throw MalformedUri kind requires localId<br/>uris.js:175
+            M-->>C: throw MalformedUri kind requires localId<br/>uris.js:204
         end
     end
     alt spec.ownerScope true
         alt no pubkey and no npub supplied
             alt spec.scopeRequired false
-                M-->>C: return urn:agentbox: + kind + : + local, unscoped form<br/>uris.js:183
+                M-->>C: return urn:agentbox: + kind + : + local, unscoped form<br/>uris.js:212
             else scopeRequired true (default)
-                M-->>C: throw MalformedUri kind requires pubkey scope<br/>uris.js:185
+                M-->>C: throw MalformedUri kind requires pubkey scope<br/>uris.js:214
             end
         else pubkey or npub supplied
             M->>NP: _normalisePubkey(supplied)
@@ -310,13 +312,13 @@ sequenceDiagram
                 NP-->>M: null
             end
             alt normalised is null
-                M-->>C: throw MalformedUri bad pubkey supplied<br/>:189
+                M-->>C: throw MalformedUri bad pubkey supplied<br/>:218
             else normalised ok
-                M-->>C: return urn:agentbox: + kind + : + normalised + : + local<br/>:191
+                M-->>C: return urn:agentbox: + kind + : + normalised + : + local<br/>:220
             end
         end
     else ownerScope false
-        M-->>C: return urn:agentbox: + kind + : + local<br/>:194
+        M-->>C: return urn:agentbox: + kind + : + local<br/>:223
     end
     Note over M: INVARIANT - fail-closed minting, a malformed input yields an error rather than a<br/>structurally-invalid identifier
 ```
@@ -325,21 +327,21 @@ sequenceDiagram
 sequenceDiagram
     participant C as Client
     participant R as GET URI resolver<br/>uri-resolver.js:49
-    participant U as URI grammar<br/>uris.js:261
+    participant U as URI grammar<br/>uris.js:296
     C->>R: request a canonical identifier
     R->>U: isCanonical then parse
     alt malformed
-        R-->>C: 400 malformed-uri<br/>uri-resolver.js:53-58
+        R-->>C: 400 malformed-uri<br/>uri-resolver.js:53-57
     else did:nostr
         alt DID documents disabled
-            R-->>C: 404 not-resolvable<br/>uri-resolver.js:66-74
+            R-->>C: 404 not-resolvable<br/>uri-resolver.js:67-74
         else enabled
             R-->>C: 307 pod well-known DID document<br/>uri-resolver.js:75
         end
     else operational URN
         R->>R: select known kind or return 404<br/>uri-resolver.js:80-84
         alt pod or envelope or credential or mandate or receipt
-            R-->>C: scoped pod redirect, else 404<br/>uri-resolver.js:92-102
+            R-->>C: scoped pod redirect, else 404<br/>uri-resolver.js:96-103
         else activity or event
             R-->>C: 307 agent-events query<br/>uri-resolver.js:108
         else mcp or thing
@@ -348,8 +350,10 @@ sequenceDiagram
             R-->>C: 307 memory path and optional namespace<br/>uri-resolver.js:116-126
         else skill or document or meta or bead
             R-->>C: 307 kind-specific route<br/>uri-resolver.js:131-146
+        else chain
+            R-->>C: 307 /v1/chain/info keyed by the chain event id<br/>uri-resolver.js:149-152
         else no mapped resolver
-            R-->>C: 404 not-resolvable<br/>uri-resolver.js:149-155
+            R-->>C: 404 not-resolvable<br/>uri-resolver.js:155-162
         end
     end
     Note over R,C: DIVERGENCE: historical 410 language has no implemented 410 response.<br/>A 307 proves a route was selected, and the target may still be missing or refuse access.<br/>Deterministic naming does not guarantee collision-free or available data.
@@ -366,7 +370,7 @@ sequenceDiagram
     participant AA as assertPrivacyFilterApplied<br/>privacy-filter.js:595
     participant Ad as Adapter impl call
     rect rgb(240,240,255)
-    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:247.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
+    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:254.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
     Rt->>WD: instrumentedDispatch(...args)
     WD->>WD: executionId = uris.mint kind event,pubkey,payload
     WD->>PF: privacyWrapped(...args)
@@ -408,7 +412,7 @@ sequenceDiagram
     end
     Note over LD: INVARIANT DDD-004 par L08 - privacy redaction completes before the encoder runs, verified<br/>per-dispatch not per-module-load
     Note over Ad: DIVERGENCE agentbox/docs/BASELINE-container.md - adapter contract versions are STALE<br/>PLACEHOLDERS. pods, memory, events and orchestrator all still declare 1.0.0 despite live<br/>churn, so a breaking change would need a MAJOR bump that has NOT happened. A consumer<br/>cannot tell from the version whether the contract it compiled against still holds.
-    Note over Ad: CORRECTED (ADR-2035) - there is NO orchestrator-specific fatal probe. connectAdapters<br/>races EVERY slot against its OWN deadline (lifecycle.js:31), failure and timeout are<br/>equally fatal and both quarantine the adapter (lifecycle.js:256,274). If the off-replacement<br/>cannot be built the slot is left unavailable and dispatch throws AdapterQuarantined rather<br/>than reach a degraded adapter (lifecycle.js:292-299). toLegacyHealth maps all five slots<br/>uniformly into adapterHealth (server.js:1294), and /ready blocks on ANY manifest slot that<br/>is not healthy (server.js:495-496) - no slot is privileged.
+    Note over Ad: CORRECTED (ADR-2035) - there is NO orchestrator-specific fatal probe. connectAdapters<br/>races EVERY slot against its OWN deadline (lifecycle.js:31), failure and timeout are<br/>equally fatal and both quarantine the adapter (lifecycle.js:256,274). If the off-replacement<br/>cannot be built the slot is left unavailable and dispatch throws AdapterQuarantined rather<br/>than reach a degraded adapter (lifecycle.js:292-299). toLegacyHealth maps all five slots<br/>uniformly into adapterHealth (server.js:1358), and /ready blocks on ANY manifest slot that<br/>is not healthy (server.js:511-512) - no slot is privileged.
 ```
 ## ES-03.10 Partial convergence: typed operational crossings and remaining RDF identity seams
 ```mermaid
@@ -459,7 +463,7 @@ flowchart TB
     AB --> SPR
     AB --> FRM
 
-    INV["INVARIANT — every record in this pack still carries decision_status<br/>proposed. Two have moved to implementation_status partial: ADR-2096<br/>(crates/sidestr shipped and relocated to DreamLab-AI/sidestr-rs,<br/>ADR-2096:5-6) and the canon entry, which since e5826a8 tracks the<br/>verified sidestr-rs source as partial while staying inactive,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7. The other<br/>three stay at implementation_status none:<br/>the host at ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:5-6,<br/>solid-pod-rs at ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-6<br/>and the forum at ADR-2012-d1-ledger-becomes-a-chain-view.md:5-6."]
+    INV["INVARIANT — every record in this pack still carries decision_status<br/>proposed. Four have moved to implementation_status partial: ADR-2096<br/>(crates/sidestr shipped and relocated to DreamLab-AI/sidestr-rs,<br/>ADR-2096:5-6), the canon entry, which since e5826a8 tracks the<br/>verified sidestr-rs source as partial while staying inactive<br/>(ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7), the<br/>solid-pod-rs port, now partial and staged<br/>(ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-7),<br/>and the forum D1 demotion, now partial but inactive<br/>(ADR-2012-d1-ledger-becomes-a-chain-view.md:5-7). Two stay at<br/>implementation_status none:<br/>the host at ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:5-6<br/>and ADR-2099 at ADR-2099-the-chain-is-the-ledger-of-record.md:5-6."]
     CANON --> INV
     SRCST["PARTIAL, INACTIVE — the canon entry now records that sidestr-rs<br/>publishes seven crates and carries inactive pool, market, EVM and<br/>Hitch code. EVM executes inside a sidestr chain and Hitch speaks to<br/>no Lightning peer, so neither is an estate rail,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:36-40.<br/>The one running piece is agentbox's interim testnet producer,<br/>mirror and faucet under the sidechain gates, with no sidestr-node,<br/>bridge or port 9097 bind, BASELINE-container.md:206."]
     CANON --> SRCST
@@ -486,7 +490,7 @@ flowchart LR
     CHAIN["PROPOSED — the chain is the ledger of record and a balance<br/>is a UTXO fold rather than a stored number<br/>agentbox/docs/adr/ADR-2099-the-chain-is-the-ledger-of-record.md:33"]
     L1 -->|"PROPOSED: credit and debit leave the public API;<br/>the only credit is a peg-in claim, ADR-2099:37"| CHAIN
     L2 -->|"PROPOSED: deleted outright and replaced by a thin proxy<br/>to the agentbox wallet and chain surfaces, ADR-2111:38"| CHAIN
-    L3 -->|"PROPOSED: demoted to a bounded cache whose staleness<br/>bound is an error, ADR-2012-d1-ledger-becomes-a-chain-view.md:37-40"| CHAIN
+    L3 -->|"PROPOSED: demoted to a bounded cache whose staleness<br/>bound is an error, ADR-2012-d1-ledger-becomes-a-chain-view.md:48-51"| CHAIN
 
     INV2["INVARIANT — atomicity is not authority. The forum store settles<br/>atomically and still reconciles with nothing: the record that says<br/>so is the same one that demotes it.<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:27-29"]
     L3 --> INV2
@@ -494,6 +498,6 @@ flowchart LR
     GATE["OPEN — the payment_settlement authority class is declared today<br/>and currently GATES NOTHING. The settlement pack is what would<br/>give it work to do.<br/>agentbox/docs/developer/economy-loop.md:270"]
     CHAIN --> GATE
 
-    SKEW["DOC-DRIFT — the version pins skew across the three: the host<br/>holds solid-pod-rs 0.4.0-alpha.15 while the forum resolves<br/>0.5.0-alpha.7, and no gate compares them.<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:28-30. see ES-01.1"]
+    SKEW["DOC-DRIFT — the version pins skew across the three: the forum<br/>record still reads the host at solid-pod-rs 0.4.0-alpha.15 while the<br/>forum resolves 0.5.0-alpha.7<br/>(ADR-2012-d1-ledger-becomes-a-chain-view.md:28-30), and no gate<br/>compares them — while the VisionClaw checkout has since moved its own<br/>crates.io pin to =0.5.0-alpha.12 (Cargo.toml:224). see ES-01.1"]
     TODAY --> SKEW
 ```

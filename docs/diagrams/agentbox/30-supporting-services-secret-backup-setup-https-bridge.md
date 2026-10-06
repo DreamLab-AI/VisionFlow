@@ -18,7 +18,7 @@ sources:
   - ../project/agentbox/services/secret-backup/src/main.rs
   - ../project/agentbox/docs/archive/adr/ADR-024-setup-dashboard.md
   - ../project/agentbox/docs/BASELINE-container.md
-verified_commit: 5ab197a9d49e9721b85b791bf9efe30842c9e047
+verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
 ---
 
 ## AB-30.2 setup/server — three-tier fallback (legacy-ADR-024 D1)
@@ -32,14 +32,14 @@ flowchart TD
     BINCHECK -->|no| FRONTENDCHECK{"setup/frontend/dist/index.html exists?<br/>start-agentbox.sh:440"}
     FRONTENDCHECK -->|"yes, python3 present — tier 2"| COPYFILES["cp agentbox.toml + schema alongside the frontend HTML<br/>start-agentbox.sh:442-445"]
     COPYFILES --> PYSERVE["exec python3 -m http.server SETUP_PORT --directory DIST_DIR --bind 127.0.0.1<br/>ephemeral port via a throwaway socket bind, start-agentbox.sh:458,470"]
-    FRONTENDCHECK -->|"no python3 — tier 3"| MANUAL["operator opens setup/frontend/dist/index.html directly<br/>drag-and-drop or file-picker load, save via browser download<br/>quickstart.md:78"]
+    FRONTENDCHECK -->|"no python3 — tier 3"| MANUAL["operator opens setup/frontend/dist/index.html directly<br/>drag-and-drop or file-picker load, save via browser download<br/>quickstart.md:84"]
     EXECBIN --> AXUM["axum::Router — /api/config, /api/shutdown,<br/>/api/proxy/#123;*path#125;, fallback serve_frontend<br/>setup/server/src/main.rs:222-228"]
     AXUM --> BIND["TcpListener::bind 127.0.0.1:0 — EPHEMERAL port, not fixed<br/>setup/server/src/main.rs:229-232"]
     BIND --> OPEN["open::that#40;url#41; — auto-launch the OS default browser<br/>setup/server/src/main.rs:246"]
     subgraph notes["Invariants and drift"]
         direction TB
         N1["INVARIANT: the Rust binary tier NEVER hard-codes a port — audit reports of<br/>fixed ports #40;2104-2106, 2126-2127#41; describe a DIFFERENT case list elsewhere in<br/>this topic tree #40;see AB-05#41;, not this service. This binary always binds ephemeral port 0 and<br/>prints the resolved ephemeral address #40;setup/server/src/main.rs:234-241#41;"]
-        N2["DIVERGENCE: three fallback tiers exist so setup works with zero installed<br/>dependencies beyond python3 #40;quickstart.md:67#41; — but only tier 1 #40;the compiled<br/>binary#41; can write agentbox.toml server-side #40;save_config, setup/server/src/main.rs:60-77#41;;<br/>tier 3 saves via a browser file download instead of writing back in place"]
+        N2["DIVERGENCE: three fallback tiers exist so setup works with zero installed<br/>dependencies beyond python3 #40;quickstart.md:75#41; — but only tier 1 #40;the compiled<br/>binary#41; can write agentbox.toml server-side #40;save_config, setup/server/src/main.rs:60-77#41;;<br/>tier 3 saves via a browser file download instead of writing back in place"]
         N1 ~~~ N2
     end
 ```
@@ -94,24 +94,24 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord [program:https-bridge]<br/>flake.nix:2344-2353
-    participant BOOT as entrypoint root phase<br/>flake.nix:3608-3642
+    participant SUP as supervisord [program:https-bridge]<br/>flake.nix:2567-2576
+    participant BOOT as entrypoint root phase<br/>flake.nix:4064-4079
     participant OSSL as openssl req -x509
     participant NODE as https-proxy.js<br/>process.env-driven config
     participant BROWSER as Browser client
     participant TARGET as http://HOST_IP:TARGET_PORT
 
-    BOOT->>BOOT: mkdir -p /var/lib/https-bridge/certs (tmpfs, uid 1000)<br/>flake.nix:3634, flake.nix:3125
+    BOOT->>BOOT: mkdir -p /var/lib/https-bridge/certs (tmpfs, uid 1000)<br/>flake.nix:4070, flake.nix:3545
     alt server.key already present
         BOOT-->>NODE: skip generation — cert persists for the tmpfs lifetime
     else missing
-        BOOT->>OSSL: openssl req -x509 -newkey rsa:2048 -days 365 -nodes -subj "/CN=localhost"<br/>flake.nix:3636-3639
-        OSSL-->>BOOT: server.key #40;0600#41;, server.crt #40;0644#41; — flake.nix:3641-3642
+        BOOT->>OSSL: openssl req -x509 -newkey rsa:2048 -days 365 -nodes -subj "/CN=localhost"<br/>flake.nix:4072-4075
+        OSSL-->>BOOT: server.key #40;0600#41;, server.crt #40;0644#41; — flake.nix:4077-4078
     end
-    SUP->>NODE: node https-proxy.js<br/>CERT_DIR=/var/lib/https-bridge/certs, MANAGEMENT_API_PORT env — flake.nix:2348
-    Note over SUP,NODE: flake.nix:1835 copies ./https-bridge into the built image. SUP's full<br/>environment= is HOME, MANAGEMENT_API_PORT, CERT_DIR, SSL_KEY, SSL_CERT #40;flake.nix:2348#41;,<br/>stdout/stderr logged to /var/log/https-bridge.log + .error.log #40;flake.nix:2352-2353#41;.<br/>Its tmpfs #40;mode=755 size=8M uid/gid=1000#41; is declared in BOTH docker-compose.yml:113<br/>AND flake.nix:3125 — keep the two in sync
+    SUP->>NODE: node https-proxy.js<br/>CERT_DIR=/var/lib/https-bridge/certs, MANAGEMENT_API_PORT env — flake.nix:2571
+    Note over SUP,NODE: flake.nix:2045 copies ./https-bridge into the built image. SUP's full<br/>environment= is HOME, MANAGEMENT_API_PORT, CERT_DIR, SSL_KEY, SSL_CERT #40;flake.nix:2571#41;,<br/>stdout/stderr logged to /var/log/https-bridge.log + .error.log #40;flake.nix:2575-2576#41;.<br/>Its tmpfs #40;mode=755 size=8M uid/gid=1000#41; is declared in BOTH docker-compose.yml:114<br/>AND flake.nix:3545 — keep the two in sync
     NODE->>NODE: ensureCertificates#40;#41; — fs.existsSync check, hand-rolled node:crypto<br/>X.509 builder ONLY IF openssl's boot-time generation is somehow absent<br/>https-proxy.js:48-49,67 — buildSelfSignedX509 at :79
-    Note over BOOT,NODE: DESIGN: the trusted path is openssl #40;flake.nix#41; — the hand-rolled builder in<br/>https-proxy.js is a fail-open FALLBACK only, per the boot-script's own comment<br/>#40;flake.nix:3631-3633#41; — not the primary certificate source
+    Note over BOOT,NODE: DESIGN: the trusted path is openssl #40;flake.nix#41; — the hand-rolled builder in<br/>https-proxy.js is a fail-open FALLBACK only, per the boot-script's own comment<br/>#40;flake.nix:4064-4069#41; — not the primary certificate source
     NODE->>NODE: https.createServer#40;{key, cert}#41;.listen#40;HTTPS_PORT, HTTPS_HOST#41;<br/>https-proxy.js:190,262 — HTTPS_HOST defaults 0.0.0.0, published loopback-only<br/>via compose #40;R-003 comment, https-proxy.js:31-33#41;
     BROWSER->>NODE: HTTPS request to localhost:HTTPS_PORT
     NODE->>NODE: detectGatewayIP#40;#41; if HOST_IP unset — `ip route | grep default`<br/>https-proxy.js:21-28, falls back to 192.168.0.51 on any failure
@@ -120,5 +120,5 @@ sequenceDiagram
     NODE->>NODE: set Access-Control-Allow-Origin * AND Access-Control-Allow-Credentials true<br/>https-proxy.js:208-211
     NODE-->>BROWSER: response, CORS headers attached
     Note over NODE: DIVERGENCE: Access-Control-Allow-Origin "*" combined with<br/>Access-Control-Allow-Credentials "true" is a combination browsers reject for<br/>credentialed requests per the Fetch spec — the two headers as written cannot<br/>both take effect for any request that actually carries credentials
-    Note over SUP: BASELINE-container.md:68 supervisord table names this program 'pod HTTPS<br/>bridge' — its own module doc-comment #40;https-proxy.js:3-4#41; describes it more<br/>generically as solving cross-origin issues for local dev against the<br/>management API. Both describe the same mechanism, framing differs by doc
+    Note over SUP: BASELINE-container.md:71 supervisord table names this program 'pod HTTPS<br/>bridge' — its own module doc-comment #40;https-proxy.js:3-4#41; describes it more<br/>generically as solving cross-origin issues for local dev against the<br/>management API. Both describe the same mechanism, framing differs by doc
 ```

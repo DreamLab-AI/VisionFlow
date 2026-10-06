@@ -101,7 +101,7 @@ sources:
   - ../project/client/src/features/design-system/components/SearchInput.tsx
   - ../project/client/src/features/ontology/components/OntologyContribution.tsx
   - ../project/src/services/broker_events.rs
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
 ---
 ## VC-34.1 settings — field edit to server PUT
 ```mermaid
@@ -358,8 +358,8 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Ctx as BotsDataContext<br/>client/src/features/bots/contexts/BotsDataContext.tsx
-    participant Hook as useAgentPolling<br/>client/src/features/bots/hooks/useAgentPolling.ts:111
-    participant Svc as AgentPollingService<br/>client/src/features/bots/services/AgentPollingService.ts:68
+    participant Hook as useAgentPolling<br/>client/src/features/bots/hooks/useAgentPolling.ts:141
+    participant Svc as AgentPollingService<br/>client/src/features/bots/services/AgentPollingService.ts:79
     participant UAC as unifiedApiClient
     participant SRV as GraphStateActor bots_graph_data store
 

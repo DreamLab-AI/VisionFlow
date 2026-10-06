@@ -29,7 +29,7 @@ sources:
   - ../dreamlab-ai-website/.gitignore
   - ../dreamlab-ai-website/README.md
   - ../dreamlab-ai-website/forum-config/deploy/search-worker.wrangler.toml
-verified_commit: 9b8ea495da80aaa5b45795af916bda4470467481
+verified_commit: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80
 ---
 
 ## DW-07.2 Root-level seeders — a hardcoded key and a broken import path

@@ -13,7 +13,7 @@ sources:
   - ../dreamlab-ai-website/index.html
   - ../dreamlab-ai-website/src/lib/og-meta.ts
   - ../dreamlab-ai-website/src/pages/Contact.tsx
-verified_commit: 9b8ea495da80aaa5b45795af916bda4470467481
+verified_commit: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80
 ---
 
 ## DW-02.1 Route table — lazy-loaded, code-split
@@ -49,7 +49,7 @@ flowchart TB
     RUSTT["cd forum-config && cargo test"] --> RUSTOVERLAY["operator-overlay tests:<br/>config parsing, branding, deploy manifests"]
 ```
 - CLAUDE.md's Behavioral Rules require `npm run build` and `npm run lint` before committing.
-- TypeScript strict mode is **partial**: `noImplicitAny: false`, `strictNullChecks: true` (CLAUDE.md:190).
+- TypeScript strict mode is **partial**: `noImplicitAny: false`, `strictNullChecks: true` (CLAUDE.md:196).
 
 ## DW-02.4 Dev-server hardening — `/data/team` path-traversal guard
 ```mermaid

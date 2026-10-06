@@ -37,7 +37,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/auth.rs
   - ../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/rate_limit.rs
-verified_commit: 4aeb66c1f083e7c3cda7b9a8762aaaca1f40c711
+verified_commit: 93e2200218fad37927df16a1b7784c93c475670d
 ---
 
 ## SP-05.1 Two auth paths, one AuthContext

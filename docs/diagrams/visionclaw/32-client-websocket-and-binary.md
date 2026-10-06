@@ -37,7 +37,7 @@ sources:
   - ../project/client/src/utils/validation.ts
   - ../project/src/handlers/socket_flow_handler/http_handler.rs
   - ../project/src/settings/api/settings_routes.rs
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
 ---
 ## VC-32.1 Connect + NIP-98 WS authenticate handshake
 ```mermaid
@@ -64,7 +64,7 @@ sequenceDiagram
     else no current user (nostrAuth.getCurrentUser() is null)
         Note over AH: no authenticate message sent connectionManager.ts:373-394
     end
-    Note over S: RESOLVED ADR-2058 (2026-09-05, PROTOCOL-registry.md:224-226): the Authorization<br/>header is the ONLY accepted carrier in a release build - the ?token= query fallback is<br/>compiled out of release entirely (http_handler.rs:136-166) and survives only behind the<br/>dev-auth gate with a SECURITY: warning. DOC-DRIFT: BASELINE-architecture.md:239 still lists<br/>this as an open "Known divergence" - it was not updated when ADR-2058 landed. Client code<br/>above only ever sends the header-equivalent authenticate event, never a query form.
+    Note over S: RESOLVED ADR-2058 (2026-09-05, PROTOCOL-registry.md:224-226): the Authorization<br/>header is the ONLY accepted carrier in a release build - the ?token= query fallback is<br/>compiled out of release entirely (http_handler.rs:136-166) and survives only behind the<br/>dev-auth gate with a SECURITY: warning. DOC-DRIFT: BASELINE-architecture.md:248 still lists<br/>this as an open "Known divergence" - it was not updated when ADR-2058 landed. Client code<br/>above only ever sends the header-equivalent authenticate event, never a query form.
     opt currentFilter present index.ts:180
         C->>C: sendMessage(filter_update, ...) index.ts:188
     end

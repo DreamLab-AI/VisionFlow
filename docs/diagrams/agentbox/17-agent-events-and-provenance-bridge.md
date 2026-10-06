@@ -19,7 +19,7 @@ sources:
   - ../project/agentbox/management-api/routes/kg-elevation.js
   - ../project/agentbox/management-api/lib/ontology-propose.js
   - ../project/agentbox/management-api/lib/elevation-stage.js
-verified_commit: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f
+verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
 ---
 
 ## AB-17.1 The agent-event wire envelope — single canonical builder
@@ -138,7 +138,7 @@ sequenceDiagram
     PUB->>WS: notify every subscriber via createMcpNotification. see AB-17.1
     RT-->>C: 2xx
     Note over RT,BUF: ADR-2026 — GET /v1/agent-events?id=<ref> for a BARE NUMERIC id stays process-local (resolved only against the in-memory ring, never the durable archive, because ids restart at 1 per process)<br/>a non-numeric urn reference additionally falls back to the durable agent-event-archive before returning 404 (agent-events.js:216-251). Route table for the whole surface: AB-03.9.
-    Note over RT,AEA: POST /v1/agent-events/batch verifies auth ONCE for the whole batch (agent-events.js:465) but reruns reconcileSourceUrn PER ITEM inside the loop (agent-events.js:477), so a mixed batch cannot smuggle one mis-attributed event past a single header check.
+    Note over RT,AEA: POST /v1/agent-events/batch verifies auth ONCE for the whole batch (agent-events.js:469) but reruns reconcileSourceUrn PER ITEM inside the loop (agent-events.js:481), so a mixed batch cannot smuggle one mis-attributed event past a single header check.
 ```
 
 ## AB-17.4 BC20 kind map — the closed cross-namespace contract

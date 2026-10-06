@@ -16,7 +16,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
   - ../nostr-rust-forum/README.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml
-verified_commit: d025cb063df5a532f055a18527f71cc7dee9d6e6
+verified_commit: 72463fbde35ac4c68539b1f65a08ff03b9941201
 ---
 
 ## NF-03.1 Worker entry — three doors into the relay
@@ -25,11 +25,11 @@ verified_commit: d025cb063df5a532f055a18527f71cc7dee9d6e6
 flowchart TB
     REQ["HTTP or WebSocket request"]
     F["fetch<br/>nostr-bbs-relay-worker/src/lib.rs:192"]
-    BOOT["ensure_schema + ensure_replay_schema<br/>nostr-bbs-relay-worker/src/lib.rs:194 lib.rs:195"]
+    BOOT["ensure_schema + ensure_replay_schema<br/>nostr-bbs-relay-worker/src/lib.rs:195 lib.rs:196"]
     WS["Upgrade: websocket to Durable Object RELAY<br/>nostr-bbs-relay-worker/src/lib.rs:205"]
-    N11["Accept application/nostr+json to NIP-11 relay info<br/>nostr-bbs-relay-worker/src/lib.rs:213"]
-    RT["route dispatches the HTTP admin/REST route table<br/>nostr-bbs-relay-worker/src/lib.rs:229 lib.rs:262"]
-    CRON["scheduled every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:1011<br/>nostr-bbs-relay-worker/wrangler.toml:98"]
+    N11["Accept application/nostr+json to NIP-11 relay info<br/>nostr-bbs-relay-worker/src/lib.rs:214"]
+    RT["route dispatches the HTTP admin/REST route table<br/>nostr-bbs-relay-worker/src/lib.rs:230 lib.rs:263"]
+    CRON["scheduled every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:1021<br/>nostr-bbs-relay-worker/wrangler.toml:98"]
 
     REQ --> F --> BOOT
     BOOT --> WS
@@ -37,8 +37,8 @@ flowchart TB
     BOOT --> RT
     CRON -.-> BOOT
 
-    N1["The DO is a SINGLETON: every socket goes to get_by_name main<br/>nostr-bbs-relay-worker/src/lib.rs:206"]
-    N2["Error responses are JSON-shaped by hand rather than leaking the framework's Debug text<br/>nostr-bbs-relay-worker/src/lib.rs:233"]
+    N1["The DO is a SINGLETON: every socket goes to get_by_name main<br/>nostr-bbs-relay-worker/src/lib.rs:207"]
+    N2["Error responses are JSON-shaped by hand rather than leaking the framework's Debug text<br/>nostr-bbs-relay-worker/src/lib.rs:234"]
 ```
 
 ## NF-03.2 NIP-42 AUTH — the verdict table
@@ -90,7 +90,7 @@ stateDiagram-v2
         and that challenge/response is "not yet the enforced admission path".
         The code says the opposite: nip42 IS the default (nip42.rs:115), the template
         ships AUTH_MODE = "nip42" (nostr-bbs-relay-worker/wrangler.toml:31), and
-        every EVENT passes write_auth_ok (nip_handlers.rs:812) before any other check.
+        every EVENT passes write_auth_ok (nip_handlers.rs:845) before any other check.
     end note
     note right of WriteDenied
         INVARIANT fail-closed parse: a typo, an empty value or any unrecognised
@@ -104,43 +104,43 @@ stateDiagram-v2
 sequenceDiagram
     autonumber
     participant C as Authenticated socket
-    participant H as handle_event<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:756
+    participant H as handle_event<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:792
     participant Z as zone_config<br/>nostr-bbs-relay-worker/src/zone_config.rs:202
     participant D1 as relay D1
     participant B as broadcast_event
 
     C->>H: ["EVENT", event]
-    H->>H: 1 per-IP rate limit nip_handlers.rs:764
-    H->>H: 2 structural validation nip_handlers.rs:770
-    H->>H: 3 NIP-40 expiration tag in the past nip_handlers.rs:776
-    H->>H: 4 verify_event_strict BEFORE any side effect nip_handlers.rs:787
-    H->>H: 5 NIP-42 write gate write_auth_ok nip_handlers.rs:812
+    H->>H: 1 per-IP rate limit nip_handlers.rs:800
+    H->>H: 2 structural validation nip_handlers.rs:806
+    H->>H: 3 NIP-40 expiration tag in the past nip_handlers.rs:813
+    H->>H: 4 verify_event_strict BEFORE any side effect nip_handlers.rs:820
+    H->>H: 5 NIP-42 write gate write_auth_ok nip_handlers.rs:845
     alt kind 1059 gift wrap
-        H->>D1: 6a recipient from first p tag must be whitelisted nip_handlers.rs:824 nip_handlers.rs:826
+        H->>D1: 6a recipient from first p tag must be whitelisted nip_handlers.rs:858 nip_handlers.rs:859
     else every other kind
-        H->>D1: 6b effective_pubkey then is_whitelisted nip_handlers.rs:845 nip_handlers.rs:846
+        H->>D1: 6b effective_pubkey then is_whitelisted nip_handlers.rs:878 nip_handlers.rs:879
     end
-    H->>H: 7 mesh peer? federated_kinds allowlist nip_handlers.rs:861
-    H->>D1: 8 suspension and silence nip_handlers.rs:872
-    H->>D1: 9 ban/mute ingress gate, admins bypass nip_handlers.rs:895
-    H->>D1: 10 trust-level gates for 40, 41, 1984 and 5 nip_handlers.rs:907
-    H->>H: 11 NIP-29 admin kinds need an h tag and an admin nip_handlers.rs:976
-    H->>D1: 12 governance kinds need agent_registry, except a kanban approval request nip_handlers.rs:1001 nip_handlers.rs:1010
-    H->>H: 13 kind-31403 is admin, or a reviewer delegated to THIS case nip_handlers.rs:1021 nip_handlers.rs:1049
-    H->>D1: 14 a superseding 31403 is authority-gated nip_handlers.rs:1066 nip_handlers.rs:1072
-    H->>Z: 15a ADR-2017 kind-42 sealed tag: admin-only AND an encrypted zone, else rejected nip_handlers.rs:1105 nip_handlers.rs:1110
-    H->>D1: 15b kind-42 zone write gate nip_handlers.rs:1115 nip_handlers.rs:1118
-    H->>Z: 15c ADR-2018 encrypted zone requires NIP-44 v2 shaped ciphertext nip_handlers.rs:1123 nip_handlers.rs:1130
-    H->>D1: 16 NIP-52 RSVP and calendar/kanban write gates nip_handlers.rs:1156 nip_handlers.rs:1181
-    H->>H: 17 NIP-16 treatment - Ephemeral is OK-then-broadcast, never saved nip_handlers.rs:1206
-    H->>D1: 18 save_event nip_handlers.rs:1213
-    H->>B: 19 broadcast + post-save effects, incl. ADR-2018 activity coalescing nip_handlers.rs:1214 nip_handlers.rs:1226
+    H->>H: 7 mesh peer? federated_kinds allowlist nip_handlers.rs:894
+    H->>D1: 8 suspension and silence nip_handlers.rs:905
+    H->>D1: 9 ban/mute ingress gate, admins bypass nip_handlers.rs:928
+    H->>D1: 10 trust-level gates for 40, 41, 1984 and 5 nip_handlers.rs:940
+    H->>H: 11 NIP-29 admin kinds need an h tag and an admin nip_handlers.rs:1013
+    H->>D1: 12 governance kinds need agent_registry, except a kanban approval request nip_handlers.rs:1034 nip_handlers.rs:1036
+    H->>H: 13 kind-31403 is admin, or a reviewer delegated to THIS case nip_handlers.rs:1054 nip_handlers.rs:1082
+    H->>D1: 14 a superseding 31403 is authority-gated nip_handlers.rs:1100 nip_handlers.rs:1105
+    H->>Z: 15a ADR-2017 kind-42 sealed tag: admin-only AND an encrypted zone, else rejected nip_handlers.rs:1138 nip_handlers.rs:1143
+    H->>D1: 15b kind-42 zone write gate nip_handlers.rs:1148 nip_handlers.rs:1151
+    H->>Z: 15c ADR-2018 encrypted zone requires NIP-44 v2 shaped ciphertext nip_handlers.rs:1157 nip_handlers.rs:1163
+    H->>D1: 16 NIP-52 RSVP and calendar/kanban write gates nip_handlers.rs:1189 nip_handlers.rs:1214
+    H->>H: 17 NIP-16 treatment - Ephemeral is OK-then-broadcast, never saved nip_handlers.rs:1239
+    H->>D1: 18 save_event nip_handlers.rs:1246
+    H->>B: 19 broadcast + post-save effects, incl. ADR-2018 activity coalescing nip_handlers.rs:1248 nip_handlers.rs:1259
 
-    Note over H: INVARIANT: the signature is verified BEFORE any side effect - admission state changes and activity tracking alike nip_handlers.rs:785-787
-    Note over H: In nip42 mode gift wraps are NOT exempt from the write gate - the wrap is signed by an ephemeral key but is published over the sender's authenticated socket nip_handlers.rs:797-804
-    Note over H: INVARIANT FR2.2 is enforced at the RELAY, not only in the UI - a 31403 is a signed event any client or script can publish straight here, so a rule that lives only in the forum UI is a suggestion nip_handlers.rs:1049 governance.rs:759
-    Note over H: A refusal never fills the rationale in - absence is refused, not papered over governance.rs:756-758
-    Note over Z: INVARIANT ADR-2017: a sealed original is exempt from validate_event's timestamp-drift check on the tag alone, so this write gate is what actually enforces admin-only AND encrypted-zone-only for it nip_handlers.rs:1339-1354 nip_handlers.rs:1384-1398
+    Note over H: INVARIANT: the signature is verified BEFORE any side effect - admission state changes and activity tracking alike nip_handlers.rs:818-820
+    Note over H: In nip42 mode gift wraps are NOT exempt from the write gate - the wrap is signed by an ephemeral key but is published over the sender's authenticated socket nip_handlers.rs:830-837
+    Note over H: INVARIANT FR2.2 is enforced at the RELAY, not only in the UI - a 31403 is a signed event any client or script can publish straight here, so a rule that lives only in the forum UI is a suggestion nip_handlers.rs:1070-1076 governance.rs:758
+    Note over H: A refusal never fills the rationale in - absence is refused, not papered over governance.rs:761-763
+    Note over Z: INVARIANT ADR-2017: a sealed original is exempt from validate_event's timestamp-drift check on the tag alone, so this write gate is what actually enforces admin-only AND encrypted-zone-only for it nip_handlers.rs:1372-1380 nip_handlers.rs:1417-1431
 ```
 
 ## NF-03.5 Gift-wrap admission — recipient-keyed, never author-keyed
@@ -151,15 +151,15 @@ flowchart LR
     EX["gift_wrap_recipient<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:115"]
     K["kind must be 1059<br/>nip_handlers.rs:116"]
     T["first non-empty p tag<br/>nip_handlers.rs:119"]
-    WL["is_whitelisted(recipient)<br/>nip_handlers.rs:826"]
+    WL["is_whitelisted(recipient)<br/>nip_handlers.rs:859"]
     OK["accepted"]
-    NO["blocked: gift-wrap recipient not whitelisted<br/>nip_handlers.rs:834"]
+    NO["blocked: gift-wrap recipient not whitelisted<br/>nip_handlers.rs:867"]
 
     EV --> EX --> K --> T --> WL
     WL -->|"member"| OK
     WL -->|"not a member, or no p tag"| NO
 
-    N1["INVARIANT ADR-2005: the ephemeral author must NEVER be the admission principal - an author-keyed<br/>check would reject every gift wrap nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:817-823"]
+    N1["INVARIANT ADR-2005: the ephemeral author must NEVER be the admission principal - an author-keyed<br/>check would reject every gift wrap nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:850-856"]
     N2["Gift wraps are DELIBERATELY excluded from ban gating: each is signed by a throwaway key so an<br/>author-keyed ban cannot bind. The recipient-whitelist gate is what bounds them instead<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:56-65, exclusion visible in nip_handlers.rs:69-75"]
     N3["EXTERNAL: agentbox mirrors sessions as NIP-59 gift-wrapped self-DMs to a different relay - see AB-13"]
 ```
@@ -173,13 +173,13 @@ flowchart TB
     REP["1984 NIP-56 report nip_handlers.rs:70"]
     CAL["calendar date/plain events, 31925 RSVP<br/>nip_handlers.rs:71 nip_handlers.rs:72 nip_handlers.rs:73"]
     KAN["kanban kinds + agent-intent<br/>nip_handlers.rs:74 nip_handlers.rs:75"]
-    CALL["call site: admins bypass, then ModCache 60 s check<br/>nip_handlers.rs:895"]
+    CALL["call site: admins bypass, then ModCache 60 s check<br/>nip_handlers.rs:928"]
 
     GATE --> LIT & REP & CAL & KAN
     GATE --> CALL
 
     N1["WI-2 history: the gate previously fired only for kinds 1 and 42, so a banned user could still<br/>publish reactions, deletions, reports, long-form articles, channel create/metadata, calendar<br/>events/RSVPs, kanban and agent-intent nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:56-65"]
-    N2["Admins bypass at the call site so they can publish warnings while themselves under moderation<br/>for something else nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:905"]
+    N2["Admins bypass at the call site so they can publish warnings while themselves under moderation<br/>for something else nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:929"]
     N3["Pure predicate by design, so the gate's SCOPE is unit-testable without an Env<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:67"]
 ```
 
@@ -187,19 +187,19 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    ADMIN{"admin_cache.is_admin<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:905"}
-    TL["get_trust_level<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:907"]
-    K40["kind 40 channel creation<br/>TL2+ nip_handlers.rs:910"]
-    K41["kind 41 channel metadata<br/>TL2+ for own, TL3+ for any<br/>nip_handlers.rs:926 nip_handlers.rs:936"]
-    K1984["kind 1984 report<br/>TL1+ nip_handlers.rs:950"]
-    K5["kind 5 deletion<br/>own always, others TL3+<br/>nip_handlers.rs:961 nip_handlers.rs:963"]
+    ADMIN{"admin_cache.is_admin<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:938"}
+    TL["get_trust_level<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:940"]
+    K40["kind 40 channel creation<br/>TL2+ nip_handlers.rs:943"]
+    K41["kind 41 channel metadata<br/>TL2+ for own, TL3+ for any<br/>nip_handlers.rs:959 nip_handlers.rs:969"]
+    K1984["kind 1984 report<br/>TL1+ nip_handlers.rs:983"]
+    K5["kind 5 deletion<br/>own always, others TL3+<br/>nip_handlers.rs:994 nip_handlers.rs:996"]
 
     ADMIN -->|"admin: skip the whole block"| SKIP["gates bypassed"]
     ADMIN -->|"non-admin"| TL --> K40 & K41 & K1984 & K5
 
-    N1["kind 41 without an e tag is rejected as invalid before the trust check<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:922-923"]
-    N2["ANOMALY O5 re-verified and STILL LIVE: is_channel_creator is looked up from the kind-40 event<br/>nip_handlers.rs:937, so deleting the kind-40 destroys the lookup and locks a TL2 author out of<br/>their own channel's metadata"]
-    N3["The kind-5 privilege is re-derived after save because trust_level is scoped to this non-admin<br/>block that admins skip entirely nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1233-1236"]
+    N1["kind 41 without an e tag is rejected as invalid before the trust check<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:955-956"]
+    N2["ANOMALY O5 re-verified and STILL LIVE: is_channel_creator is looked up from the kind-40 event<br/>nip_handlers.rs:970, so deleting the kind-40 destroys the lookup and locks a TL2 author out of<br/>their own channel's metadata"]
+    N3["The kind-5 privilege is re-derived after save because trust_level is scoped to this non-admin<br/>block that admins skip entirely nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1266-1269"]
 ```
 
 ## NF-03.8 The trust ladder — promotion, hysteresis, and what is never demoted
@@ -266,34 +266,34 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant H as handle_event after save<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1213
-    participant A as ActivityLedger<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1870
+    participant H as handle_event after save<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1246
+    participant A as ActivityLedger<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1903
     participant T as trust
     participant M as moderation_actions
     participant G as broker_cases / broker_decisions
 
-    H->>H: OK then broadcast nip_handlers.rs:1214 nip_handlers.rs:1215
-    H->>T: increment_posts_created for kinds 1, 7, 40, 42, 1984 nip_handlers.rs:1220
-    H->>A: note_write_activity - ADR-2018 coalesced flush, replaces a per-event update_last_active + check_promotion nip_handlers.rs:1226 nip_handlers.rs:1870
+    H->>H: OK then broadcast nip_handlers.rs:1247 nip_handlers.rs:1248
+    H->>T: increment_posts_created for kinds 1, 7, 40, 42, 1984 nip_handlers.rs:1253
+    H->>A: note_write_activity - ADR-2018 coalesced flush, replaces a per-event update_last_active + check_promotion nip_handlers.rs:1259 nip_handlers.rs:1903
     alt kind 5
-        H->>H: process_deletion, can_delete_any = admin or TL3+ nip_handlers.rs:1233
+        H->>H: process_deletion, can_delete_any = admin or TL3+ nip_handlers.rs:1267
     end
     alt kind 1984
-        H->>H: process_report, auto-hide check nip_handlers.rs:1242
+        H->>H: process_report, auto-hide check nip_handlers.rs:1275
     end
     alt kinds 30910 / 30911 / 30915 / 30916 from an ADMIN
-        H->>M: mirror_moderation_action + mod_cache.invalidate nip_handlers.rs:1251
+        H->>M: mirror_moderation_action + mod_cache.invalidate nip_handlers.rs:1284
     end
     alt kind 31402
-        H->>G: project_appeal if an appeal e-tag, else project_action_request nip_handlers.rs:1264 nip_handlers.rs:1266
+        H->>G: project_appeal if an appeal e-tag, else project_action_request nip_handlers.rs:1297 nip_handlers.rs:1299
     end
     alt kind 31403
-        H->>G: project_supersession if a supersedes e-tag, else project_action_response nip_handlers.rs:1275 nip_handlers.rs:1283
+        H->>G: project_supersession if a supersedes e-tag, else project_action_response nip_handlers.rs:1310 nip_handlers.rs:1316
     end
 
-    Note over H: ADR-2010: the relay OK certified STORAGE ONLY.<br/>If the decision did not reach projection-committed the response is accepted<br/>but NOT applied, and the relay says so rather than letting its OK stand as<br/>the last word nip_handlers.rs:1279-1290
-    Note over A: DRIFT resolved: the read path (NF-03.14) also flushes through this<br/>same ledger via note_read_activity, so a promotion check now runs at most once<br/>per pubkey per coalescing window across BOTH writes and reads<br/>nip_handlers.rs:1860 nip_handlers.rs:1878-1880
-    Note over M: A moderation mirror is only respected when the signer is an admin ON THIS RELAY - a lifted ban must also stop being enforced nip_handlers.rs:1251
+    Note over H: ADR-2010: the relay OK certified STORAGE ONLY.<br/>If the decision did not reach projection-committed the response is accepted<br/>but NOT applied, and the relay says so rather than letting its OK stand as<br/>the last word nip_handlers.rs:1312-1323
+    Note over A: DRIFT resolved: the read path (NF-03.14) also flushes through this<br/>same ledger via note_read_activity, so a promotion check now runs at most once<br/>per pubkey per coalescing window across BOTH writes and reads<br/>nip_handlers.rs:1893 nip_handlers.rs:1911-1913
+    Note over M: A moderation mirror is only respected when the signer is an admin ON THIS RELAY - a lifted ban must also stop being enforced nip_handlers.rs:1284
     Note over G: EXTERNAL: the human-approval loop these projections serve spans the estate - see ES-05 and AB-14
 ```
 
@@ -301,13 +301,13 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    V["validate_event<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1298"]
-    L1["id 64, pubkey 64, sig 128 hex chars<br/>nip_handlers.rs:1299"]
-    L2["content cap - registration kinds 0 and 9024 get 8 KiB<br/>nip_handlers.rs:1303 nip_handlers.rs:1309 nip_handlers.rs:41"]
-    L3["max 2000 tags nip_handlers.rs:1313 nip_handlers.rs:42"]
-    L4["max 1024 bytes per tag value nip_handlers.rs:1318 nip_handlers.rs:43"]
-    L5["created_at drift cap 7 days, sealed originals exempt (ADR-2017) nip_handlers.rs:1324 nip_handlers.rs:44 nip_handlers.rs:1354"]
-    L6["max 20 subscriptions per socket nip_handlers.rs:45 nip_handlers.rs:1432"]
+    V["validate_event<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1331"]
+    L1["id 64, pubkey 64, sig 128 hex chars<br/>nip_handlers.rs:1332"]
+    L2["content cap - registration kinds 0 and 9024 get 8 KiB<br/>nip_handlers.rs:1336 nip_handlers.rs:1342 nip_handlers.rs:41"]
+    L3["max 2000 tags nip_handlers.rs:1346 nip_handlers.rs:42"]
+    L4["max 1024 bytes per tag value nip_handlers.rs:1351 nip_handlers.rs:43"]
+    L5["created_at drift cap 7 days, sealed originals exempt (ADR-2017) nip_handlers.rs:1357 nip_handlers.rs:44 nip_handlers.rs:1397"]
+    L6["max 20 subscriptions per socket nip_handlers.rs:45 nip_handlers.rs:1465"]
 
     V --> L1 & L2 & L3 & L4 & L5
     V -.-> L6
@@ -317,16 +317,16 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    K42["kind 42 channel message<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1079"]
-    ETAG["e tag required, else invalid<br/>nip_handlers.rs:1081"]
-    CZ["cached_channel_zone - memoised channel_zones lookup<br/>nip_handlers.rs:1100 nip_handlers.rs:1821"]
-    SEALED{"has_sealed_tag<br/>nip_handlers.rs:1105"}
-    SREJ["sealed_write_rejection: non-admin -> admin-only; zone not encrypted -> encrypted-zones-only (ADR-2017)<br/>nip_handlers.rs:1110 nip_handlers.rs:1384-1398"]
+    K42["kind 42 channel message<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1112"]
+    ETAG["e tag required, else invalid<br/>nip_handlers.rs:1114"]
+    CZ["cached_channel_zone - memoised channel_zones lookup<br/>nip_handlers.rs:1133 nip_handlers.rs:1854"]
+    SEALED{"has_sealed_tag<br/>nip_handlers.rs:1138"}
+    SREJ["sealed_write_rejection: non-admin -> admin-only; zone not encrypted -> encrypted-zones-only (ADR-2017)<br/>nip_handlers.rs:1143 nip_handlers.rs:1417-1431"]
     UNSCOPED["no row: UNSCOPED, any whitelisted member may post"]
-    WGATE["has_zone_write_access<br/>nip_handlers.rs:1116"]
-    CIPHER["is_encrypted zone requires is_zone_ciphertext - zk tag + NIP-44 v2 shape (ADR-2018)<br/>nip_handlers.rs:1123 zone_config.rs:127 zone_config.rs:202"]
-    CAL["31922 / 31923 / kanban: zone tag then write cohorts<br/>nip_handlers.rs:1181 nip_handlers.rs:1192"]
-    RSVP["31925 RSVP: author's projection tier for the TARGET must be Full<br/>nip_handlers.rs:1156 nip_handlers.rs:1157 nip_handlers.rs:1171"]
+    WGATE["has_zone_write_access<br/>nip_handlers.rs:1149"]
+    CIPHER["is_encrypted zone requires is_zone_ciphertext - zk tag + NIP-44 v2 shape (ADR-2018)<br/>nip_handlers.rs:1157 zone_config.rs:127 zone_config.rs:202"]
+    CAL["31922 / 31923 / kanban: zone tag then write cohorts<br/>nip_handlers.rs:1214 nip_handlers.rs:1225"]
+    RSVP["31925 RSVP: author's projection tier for the TARGET must be Full<br/>nip_handlers.rs:1189 nip_handlers.rs:1190 nip_handlers.rs:1204"]
 
     K42 --> ETAG --> CZ
     CZ --> SEALED
@@ -335,9 +335,9 @@ flowchart TB
     WGATE --> CIPHER
     CAL --> WGATE
 
-    N1["Finding-5 fix: an undeclared channel previously defaulted to a home zone that the shipped four-zone<br/>model does not define, so the write gate denied ALL non-admins - a permanent lockout of every<br/>non-admin-created channel, including the creator's own nip_handlers.rs:1090-1099"]
-    N2["INVARIANT: channel_zones rows are written SOLELY by the admin-only /api/admin/channel-zone endpoint<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1084-1088"]
-    N3["The RSVP target is resolved from D1, NEVER from an author-mirrored tag which would be spoofable;<br/>an unresolvable target denies for non-admins nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1146-1151, deny at nip_handlers.rs:1175"]
+    N1["Finding-5 fix: an undeclared channel previously defaulted to a home zone that the shipped four-zone<br/>model does not define, so the write gate denied ALL non-admins - a permanent lockout of every<br/>non-admin-created channel, including the creator's own nip_handlers.rs:1123-1132"]
+    N2["INVARIANT: channel_zones rows are written SOLELY by the admin-only /api/admin/channel-zone endpoint<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1117-1121"]
+    N3["The RSVP target is resolved from D1, NEVER from an author-mirrored tag which would be spoofable;<br/>an unresolvable target denies for non-admins nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1179-1184, deny at nip_handlers.rs:1211"]
     N4["Writes route through write_cohorts ?? required_cohorts, so a public zone can be read-by-all yet<br/>write-restricted - see NF-08.2"]
     N5["INVARIANT ADR-2018: the relay holds no zone key, so is_zone_ciphertext is a SHAPE check only - it<br/>guarantees nothing readable is stored in an encrypted zone by ANY author, admins included<br/>zone_config.rs:193-201"]
 ```
@@ -350,11 +350,11 @@ flowchart LR
     PEERS["MESH_PEER_RELAYS empty<br/>nostr-bbs-relay-worker/wrangler.toml:69"]
     KINDS["MESH_FEDERATED_KINDS - 14 kinds incl. 31400-31405<br/>nostr-bbs-relay-worker/wrangler.toml:70"]
     DIDS["MESH_ALLOWED_REMOTE_DIDS empty<br/>nostr-bbs-relay-worker/wrangler.toml:71"]
-    GATE["is_mesh_peer AND NOT is_federated_kind_allowed to blocked<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:861"]
+    GATE["is_mesh_peer AND NOT is_federated_kind_allowed to blocked<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:894"]
 
     MODE & PEERS & KINDS & DIDS --> GATE
 
-    N1["A local client whose pubkey is not in the remote-DID list bypasses this check entirely<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:859-860"]
+    N1["A local client whose pubkey is not in the remote-DID list bypasses this check entirely<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:891-893"]
     N2["DOC-DRIFT README.md:442: the row is right that federation is designed-not-shipped (no concrete<br/>MeshTransport impl ships) but wrong on one fact - it says nostr-bbs-mesh is NOT a dependency of the<br/>relay-worker, while nostr-bbs-relay-worker/Cargo.toml:26 declares it. With MESH_ALLOWED_REMOTE_DIDS<br/>empty the gate above is inert regardless."]
     N3["The federated-kind list is where the Agent Control Surface would cross a relay boundary -<br/>EXTERNAL: see NF-06 and, for the consuming side, VC-24 and AB-14"]
 ```
@@ -365,28 +365,28 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant C as Client socket
-    participant RQ as handle_req<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1406
+    participant RQ as handle_req<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1439
     participant PG as protected_read_blocked<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:241
-    participant VC as resolve_viewer_context<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1788
-    participant AE as authorize_event<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1894
+    participant VC as resolve_viewer_context<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1821
+    participant AE as authorize_event<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1927
     participant PP as protected_read_permitted<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:85
-    participant A as ActivityLedger<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1860
+    participant A as ActivityLedger<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1893
 
     C->>RQ: REQ sub id, filters
-    RQ->>PG: do these filters NAME a protected kind nip_handlers.rs:1462
-    PG-->>C: CLOSED auth-required when they do nip_handlers.rs:1466
-    RQ->>RQ: gate_kind_1059_filters rewrites the mandatory p tag nip_handlers.rs:1474
-    RQ->>RQ: store the GATED filter, never the client's raw one nip_handlers.rs:1493
-    RQ->>RQ: query_events against the gated filter nip_handlers.rs:1501
-    RQ->>VC: ADR-2018: memoised cached_viewer_cohorts + admin check, once per REQ<br/>nip_handlers.rs:1509 nip_handlers.rs:1835
-    RQ->>AE: every returned event, one at a time, against the resolved<br/>ViewerContext nip_handlers.rs:1516
-    AE->>PP: kind, author, p recipients, viewer, mode nip_handlers.rs:1912
+    RQ->>PG: do these filters NAME a protected kind nip_handlers.rs:1495
+    PG-->>C: CLOSED auth-required when they do nip_handlers.rs:1496
+    RQ->>RQ: gate_kind_1059_filters rewrites the mandatory p tag nip_handlers.rs:1507
+    RQ->>RQ: store the GATED filter, never the client's raw one nip_handlers.rs:1526
+    RQ->>RQ: query_events against the gated filter nip_handlers.rs:1534
+    RQ->>VC: ADR-2018: memoised cached_viewer_cohorts + admin check, once per REQ<br/>nip_handlers.rs:1542 nip_handlers.rs:1833
+    RQ->>AE: every returned event, one at a time, against the resolved<br/>ViewerContext nip_handlers.rs:1549
+    AE->>PP: kind, author, p recipients, viewer, mode nip_handlers.rs:1945
     PP-->>AE: correspondence needs a party to it, moderation needs only auth nip42.rs:85
-    AE-->>RQ: Withhold when not permitted nip_handlers.rs:1919
-    RQ->>A: note_read_activity - only for delivered events, batched into the SAME<br/>coalesced flush as writes nip_handlers.rs:1547 nip_handlers.rs:1860
+    AE-->>RQ: Withhold when not permitted nip_handlers.rs:1952
+    RQ->>A: note_read_activity - only for delivered events, batched into the SAME<br/>coalesced flush as writes nip_handlers.rs:1580 nip_handlers.rs:1893
 
-    Note over RQ: INVARIANT ordering is load-bearing - both gates run BEFORE the<br/>subscription is stored. The previous order stored the raw filter, so a refused<br/>historical read still delivered every later matching event live<br/>nip_handlers.rs:1453-1466
-    Note over AE: INVARIANT the protected check is per EVENT, not per filter - a<br/>filter that omits kinds matches every kind while naming none and passed both<br/>filter gates nip_handlers.rs:1905-1911
-    Note over VC: DRIFT resolved: has_zone_access (a per-event D1 read) was removed<br/>from trust.rs — zone_read_permitted decides purely from the cached<br/>ViewerContext instead trust.rs:640-642 nip_handlers.rs:1746
+    Note over RQ: INVARIANT ordering is load-bearing - both gates run BEFORE the<br/>subscription is stored. The previous order stored the raw filter, so a refused<br/>historical read still delivered every later matching event live<br/>nip_handlers.rs:1495-1527
+    Note over AE: INVARIANT the protected check is per EVENT, not per filter - a<br/>filter that omits kinds matches every kind while naming none and passed both<br/>filter gates nip_handlers.rs:1933-1937
+    Note over VC: DRIFT resolved: has_zone_access (a per-event D1 read) was removed<br/>from trust.rs — zone_read_permitted decides purely from the cached<br/>ViewerContext instead trust.rs:640-642 nip_handlers.rs:1779
     Note over PP: The two halves of the protected set have different rules - a<br/>moderation event is readable by the membership, a DM only by a party to it<br/>nip42.rs:53-60
 ```

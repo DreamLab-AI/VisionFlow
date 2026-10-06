@@ -24,7 +24,7 @@ sources:
   - ../project/agentbox/management-api/lib/bc20-provenance-bridge.js
   - ../project/agentbox/management-api/middleware/linked-data/surfaces/s04-did.js
   - ../project/agentbox/mcp/servers/lib/memory-tools.js
-verified_commit: {visionclaw: 58f04f2eb272a2707737f2065f8241b931229e81, agentbox: 6a4ad132f2dc5ddaedd05c679fdd10066bf30a0f}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296}
 ---
 
 ## VC-23.1 Typed URN kind taxonomy — src/uri/mod.rs
@@ -273,6 +273,7 @@ sequenceDiagram
     Note over CallerVC,RS: INVARIANT callers record the raw string plus an unmapped marker, never a synthetic ID, on None -- ADR-2025, src/uri/mod.rs:828-831
     Note over JS,RS: 2026-09-14: the agentbox Colloquy learning protocol, Nostr kinds 38100-38105,<br/>is registered in the host protocol table as agentbox-and-forum only and<br/>DELIBERATELY not federated to VisionClaw.<br/>docs/explanation/visionflow-coordination-platform.md:167
     Note over RS: INVARIANT the refusal is RECORDED, not absent: the knowledge kind carries<br/>refusal_class not-federated with a reason and a null fixture, so the closed map<br/>derives the None arm from data rather than from an omission.<br/>agentbox/schema/federation-kinds.json:279, :282, :286
+    Note over RS: 2026-10-02: a sidestr chain kind was appended to the same closed map,<br/>also not-federated - a chain is named by its kind-3500 event id, already a<br/>globally verifiable identifier, so minting a VisionClaw URN would duplicate<br/>identity (ADR-2098 amended). federation-kinds.json:291-300
 ```
 
 ## VC-23.7 Wire node-id u32 bit layout and overflow policy (ADR-2024)
@@ -319,16 +320,16 @@ flowchart LR
 flowchart TD
     Concept["urn:visionclaw:concept:DOMAIN:SLUG -- durable subject, src/uri/mod.rs:229-239"]
     LegacyClass["urn:ngm:class:SLUG -- typed legacy mint ngm::class_iri, defined crates/visionclaw-domain/src/uri.rs:31 and re-exported src/uri/mod.rs:351 -- legacy scheme, not urn:visionclaw:concept"]
-    Draft["draft_class_page -- src/actors/elevation_actor.rs:505"] --> Meta["PageMeta.resource = ngm::class_iri(slug) -- elevation_actor.rs:547"]
-    Draft --> Lists["PageMeta.extra_lists related-to -- wikilink list, elevation_actor.rs:530-541"]
-    Meta --> Render["vault::render_page(meta, body) -- frontmatter-only emission, elevation_actor.rs:561"]
+    Draft["draft_class_page -- src/actors/elevation_actor.rs:510"] --> Meta["PageMeta.resource = ngm::class_iri(slug) -- elevation_actor.rs:552"]
+    Draft --> Lists["PageMeta.extra_lists related-to -- wikilink list, elevation_actor.rs:535-546"]
+    Meta --> Render["vault::render_page(meta, body) -- frontmatter-only emission, elevation_actor.rs:566"]
     Lists --> Render
-    Render -.-> NoFence["NO JSON-LD fence, no key:: value lines -- content.starts_with('---\n'), asserted elevation_actor.rs:1800-1806"]
+    Render -.-> NoFence["NO JSON-LD fence, no key:: value lines -- content.starts_with('---\n'), asserted elevation_actor.rs:2018-2021"]
     QS["vc:qualityScore -- provenance noted in a source comment only, src/actors/client_filter.rs:61-62 -- expanded qualityScore key is consumed, the CURIE itself is not emitted as a literal there"]
     OwnerScoped["visionclaw:owner:NPUB/kg/... -- legacy ADR-050 form"] -.-> Absent["grep across src/ and crates/ -- zero occurrences -- superseded by the hex-scoped urn:visionclaw:kg:PUBKEY:ADDRESS grammar"]
 
     DivB["DIVERGENCE: owner-scoped visionclaw:owner:{npub}/kg/... (legacy ADR-050) is not emitted anywhere in src/ or crates/"]
-    DriftX["ADR-2095 class IRI mint stands: CLASS_PREFIX, class_iri and parse_class_iri live in crates/visionclaw-domain/src/uri.rs:15-56, re-exported<br/>at src/uri/mod.rs:351. Mint sites: elevation_actor.rs:347 (case subject_id) and :547 (page resource), oxigraph_ontology_repository.rs:174, :1598, :1619"]
+    DriftX["ADR-2095 class IRI mint stands: CLASS_PREFIX, class_iri and parse_class_iri live in crates/visionclaw-domain/src/uri.rs:15-56, re-exported<br/>at src/uri/mod.rs:351. Mint sites: elevation_actor.rs:352 (case subject_id) and :552 (page resource), oxigraph_ontology_repository.rs:174, :1600, :1629"]
     Refactor["DOC-DRIFT resolved: draft_class_page no longer embeds a JSON-LD fence string (superseded, ADR-2095 closeout note stale) --<br/>it emits vault YAML frontmatter via visionclaw_domain::vault::render_page; relationships move to extra_lists LISTS<br/>(PRD-sovereign-corpus Q5) rather than a comma-joined scalar, mirroring the amend path in<br/>src/services/ontology_mutation_service.rs:511-535"]
 ```
 

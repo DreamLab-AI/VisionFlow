@@ -69,7 +69,7 @@ sources:
   - ../project/agentbox/management-api/lib/junkiejarvis-agent.js
   - ../project/agentbox/scripts/dream-forum-suggestions.mjs
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
-verified_commit: d03defbeaca6c52d6bf3f7338d3f465a109fcdbf
+verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
 ---
 
 ## AB-14.1 Governance plane — surfaces that reach the decision point vs surfaces that miss it
@@ -111,9 +111,9 @@ flowchart TB
     ACSPGATE --> EXEC
     AXIOMGUARD --> EXEC
 
-    DRIFT["DOC-DRIFT GOVERNANCE-capabilities.md:81-82 claims a repo-wide search of src/, services/, mcp/ for SessionEvent / execution-journal code returns nothing<br/>execution-journal.js:85 class ExecutionJournal and agent-action-pipeline.js:58 class AgentActionPipeline fully implement legacy-ADR-057/059 D1-D5<br/>under management-api/lib/, a path outside the doc's stated search scope"]
+    DRIFT["DOC-DRIFT GOVERNANCE-capabilities.md:86-87 claims a repo-wide search of src/, services/, mcp/ for SessionEvent / execution-journal code returns nothing<br/>execution-journal.js:85 class ExecutionJournal and agent-action-pipeline.js:58 class AgentActionPipeline fully implement legacy-ADR-057/059 D1-D5<br/>under management-api/lib/, a path outside the doc's stated search scope"]
     DIVERGE1["DIVERGENCE (NARROWED by ADR-2041) TOP OPEN RISK GOVERNANCE-capabilities.md:276-281 named 'no single policy decision point' with zero production instantiations<br/>action-plane.js now builds a real ExecutionJournal + AgentActionPipeline singleton and POST /v1/tasks calls dispatchTaskSpawn — one surface is now wired, journalled and capability-tokened<br/>the dream engine now RECORDS each side effect into the same journal through POST /v1/exec/record (ADR-2071, activation live, decision still proposed) but nothing there approves or denies<br/>every OTHER surface above (direct tool call, code-mode, ACI shell, consultant, dream, beads, alt harness) still reaches EXEC with no interceptor — the gap is narrower, not closed, see AB-14.14"]
-    DRIFT2["DOC-DRIFT the capability-surface list cites agentbox.toml line numbers that have moved and keep moving —<br/>GOVERNANCE-capabilities.md:53 says aci_shell is at agentbox.toml line 582 (it is agentbox.toml:782),<br/>GOVERNANCE-capabilities.md:56-57 says code_interpreter line 539 and codeact line 554 (they are agentbox.toml:588 and agentbox.toml:604),<br/>GOVERNANCE-capabilities.md:60 says the test allowlist is line 585 (it is agentbox.toml:788), GOVERNANCE-capabilities.md:64 says tree_search_coder line 624 (it is agentbox.toml:824),<br/>GOVERNANCE-capabilities.md:55 says spawn_child is at mcp.json line 197 (it is mcp/mcp.json:219)"]
+    DRIFT2["DOC-DRIFT the capability-surface list cites agentbox.toml line numbers that have moved and keep moving —<br/>GOVERNANCE-capabilities.md:58 says aci_shell is at agentbox.toml line 582 (it is agentbox.toml:803),<br/>GOVERNANCE-capabilities.md:61-62 says code_interpreter line 539 and codeact line 554 (they are agentbox.toml:609 and agentbox.toml:625),<br/>GOVERNANCE-capabilities.md:65 says the test allowlist is line 585 (it is agentbox.toml:809), GOVERNANCE-capabilities.md:69 says tree_search_coder line 624 (it is agentbox.toml:845),<br/>GOVERNANCE-capabilities.md:59-60 says spawn_child is at mcp.json line 197 (it is mcp/mcp.json:219)"]
     DIVERGE7["DIVERGENCE GOVERNANCE-capabilities.md:307-308 skill lint is advisory, not a runtime capability gate<br/>lint-skills.sh gates estate hygiene only; an enabled skill with clean frontmatter is trusted at runtime with no further check"]
 ```
 
