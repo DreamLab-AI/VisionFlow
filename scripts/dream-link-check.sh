@@ -3,7 +3,7 @@
 # the built static site. Emits a surface-dependent count; non-zero missing
 # refs prints LINK-INTEGRITY-FAIL. Used as a dream-cycle evaluator entrypoint.
 #
-# Two ref families are resolved:
+# Three ref families are resolved:
 #   1. href/src attributes — ordinary markup links and asset references.
 #   2. meta[content] media URLs (og:image, twitter:image, …). These were a
 #      shared blind spot: dream-meta-tags-scan.sh COUNTS the tags but never
@@ -11,6 +11,11 @@
 #      og:image pointing at a file absent from dist/ passed both gates. The
 #      social card is a required asset in website/assets.manifest.json, and
 #      this makes that requirement observable from the link surface too.
+#   3. in-page anchors — every href="#id" must resolve to an id in the same
+#      shipped document. Family 1 skips refs containing '#' by design, so a
+#      nav link to a renamed or removed section passed this gate silently
+#      (2026-09-28 finding; that PR never landed). Baseline 0 dangling,
+#      operator-verified 2026-10-02, so dangling > 0 now FAILS.
 #
 # Social URLs are absolute on the canonical domain (they must be, for the
 # crawlers), so "site-relative" here includes same-origin absolute URLs: the
@@ -38,7 +43,7 @@ resolve_ref() {
   esac
 }
 
-miss=0; checked=0
+miss=0; checked=0; anchors=0; dangling=0
 while IFS= read -r f; do
   d=$(dirname "$f")
 
@@ -58,6 +63,16 @@ while IFS= read -r f; do
     checked=$((checked+1))
     [ -e "$d/$t" ] || [ -e "./$t" ] || { echo "MISSING: $f -> $ref"; miss=$((miss+1)); }
   done
+
+  # 3. in-page anchors — same-document only: a fragment never names a file, so
+  #    resolution is an id lookup within the referring page itself.
+  ids=$(grep -oE 'id="[^"]+"' "$f" 2>/dev/null | sed -E 's/^id="([^"]*)"$/\1/' | sort -u)
+  for ref in $(grep -oE 'href="#[^"]+"' "$f" 2>/dev/null | sed -E 's/^href="#([^"]*)"$/\1/'); do
+    anchors=$((anchors+1))
+    printf '%s\n' "$ids" | grep -qxF -- "$ref" \
+      || { echo "DANGLING-ANCHOR: $f -> #$ref"; dangling=$((dangling+1)); }
+  done
 done < <(find . -name '*.html')
 echo "internal-refs-checked: $checked  missing: $miss"
-[ "$miss" -eq 0 ] && echo LINK-INTEGRITY-OK || echo LINK-INTEGRITY-FAIL
+echo "anchors-checked: $anchors  dangling: $dangling"
+[ "$miss" -eq 0 ] && [ "$dangling" -eq 0 ] && echo LINK-INTEGRITY-OK || echo LINK-INTEGRITY-FAIL
