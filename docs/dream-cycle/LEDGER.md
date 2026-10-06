@@ -35,3 +35,4 @@ Schema note (2026-09-14, unmerged): FR6.6 of PRD-augmentation-conditions adds `R
 | 2026-10-03 | estate-health | Given canon declares seven sidestr crates on crates.io while `scripts/estate-hea | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/13 | yes | ACCEPT |  | 9c56f9ff2d42 |  |  |  |
 | 2026-10-04 | content-integrity | Given the shipped page's `href="#…"` anchors all resolve to `id="…"` targets in  | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/14 | yes | ACCEPT |  | 617ce2f95547 |  |  |  |
 | 2026-10-05 | build-pipeline | Given the link gate's href/src family excludes every ref containing `#` (`script | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/15 | yes | ACCEPT |  | 965a9e549a3c |  |  |  |
+| 2026-10-06 | seo-and-meta | Given the built page's only crawler-policy artifact is `dist/robots.txt` while t | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/16 | yes | ACCEPT |  | b749fc421f75 |  |  |  |
