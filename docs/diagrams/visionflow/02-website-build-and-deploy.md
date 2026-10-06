@@ -38,7 +38,7 @@ sources:
   - docs/adr/ADR-2003-pages-artifact-deploy.md
   - docs/architecture/compatibility-matrix.md
   - ./README.md
-verified_commit: 8698ac103c77c680a33385038feb4ade1d1abac4
+verified_commit: 62d16e02fe3bdd5551e4433b2d42552ec93adb12
 ---
 
 ## VF-02.1 The copy-only build — every step of website/build.sh
@@ -73,7 +73,7 @@ flowchart LR
     classDef ext fill:#f6efd8,stroke:#8a7020,color:#111
 
     subgraph STATIC["website/static/ — hand-written source"]
-        IDX["index.html — one page, ~106 KB<br/>one module entry at index.html:1249<br/>one local stylesheet at index.html:26"]:::src
+        IDX["index.html — one page, ~106 KB<br/>one module entry at index.html:1249<br/>one local stylesheet at index.html:27"]:::src
         CSS["css/styles.css — the sole stylesheet"]:::src
         MAIN["js/main.js — sole ES module entrypoint<br/>DOMContentLoaded wiring at main.js:908"]:::src
         MESH["js/mesh-webgl.js — hand-written WebGL2 ES module<br/>initMesh returns null without WebGL2<br/>mesh-webgl.js:15"]:::src
@@ -90,7 +90,7 @@ flowchart LR
     ASSETS["repo assets/diagrams, assets/generated,<br/>assets/heroes, assets/screenshots<br/>staged by the manifest, not by static/*"]:::src
     ASSETS ==>|"website-assets.mjs stage"| DIST
 
-    FONTS["EXTERNAL fetch: Google Fonts only<br/>Inter and JetBrains Mono, index.html:25<br/>preconnect at index.html:23"]:::ext
+    FONTS["EXTERNAL fetch: Google Fonts only<br/>Inter and JetBrains Mono, index.html:26<br/>preconnect at index.html:24"]:::ext
     IDX -.-> FONTS
 
     NEG["ABSENT BY DECISION: no Cargo.toml, no rs, no wasm,<br/>no bundler, no framework, no CDN CSS<br/>ADR-2002-static-copy-only-website.md:53"]
@@ -208,7 +208,7 @@ flowchart TB
     G5 --> G6["BLOCKING 6 committed diagram baseline text visibility<br/>node scripts/check-diagram-text.js — deploy.yml:125"]:::block
     G6 --> G7["REPORTED 7 self-description drift counter<br/>blocks only when the agentbox checkout landed<br/>deploy.yml:134"]:::report
 
-    HEAD["what gates 4 and 5 now see in the head — dream PR 12 and abf8d3c:<br/>og:site_name, index.html:10, og:image width and height 1280 x 720,<br/>index.html:15-16, an Organization block that now carries legalName<br/>DreamLab AI Consulting Ltd, index.html:31, and a second JSON-LD<br/>block typed WebSite, index.html:37-42"]
+    HEAD["what gates 4 and 5 now see in the head — dream PRs 12 to 16:<br/>a robots meta, index.html:9 (PR 16), og:site_name, index.html:11,<br/>og:image width and height 1280 x 720, index.html:16-17, an<br/>Organization block that carries legalName DreamLab AI Consulting<br/>Ltd, index.html:32, and a second JSON-LD block typed WebSite,<br/>index.html:38-43"]
     G5 -.-> HEAD
     G7 --> REC["write gate verdicts and the published block into the receipt<br/>deploy.yml:147"]:::ok
     REC --> UPR["upload-artifact website-build-receipt — deploy.yml:172"]:::ok
@@ -228,9 +228,9 @@ sequenceDiagram
     participant SH as "bash"
 
     W->>S: "capture stdout of bash scripts/dream-link-check.sh"
-    S->>SH: "cd website/dist, or echo NO-DIST and exit 0<br/>dream-link-check.sh:20"
+    S->>SH: "cd website/dist, or echo NO-DIST and exit 0<br/>dream-link-check.sh:25"
     Note over S: "the evaluators exit 0 even on failure, because the dream<br/>annexe reads a non-zero exit as an infrastructure fault<br/>rather than as a finding"
-    S-->>W: "stdout ends LINK-INTEGRITY-OK or LINK-INTEGRITY-FAIL<br/>dream-link-check.sh:63"
+    S-->>W: "stdout ends LINK-INTEGRITY-OK or LINK-INTEGRITY-FAIL<br/>since the 10-05 ACCEPT the gate also reports anchors-checked<br/>and dangling, and a dangling anchor fails it — dream-link-check.sh:77-78"
     W->>W: "grep -q for the OK sentinel, else exit 1"
     Note over W: deploy.yml:100
     alt sentinel absent
@@ -369,8 +369,8 @@ stateDiagram-v2
       reduced motion — main.js:921
     end note
     note right of WebGL2No
-      DOC-DRIFT: PRD-website.md:194 still requires a static
-      SVG fallback under reduced motion, and PRD-website.md:136
+      DOC-DRIFT: PRD-website.md:198 still requires a static
+      SVG fallback under reduced motion, and PRD-website.md:140
       requires role img plus an aria-label on the canvas
       elements. What ships is a null return and a single
       settled WebGL2 frame.

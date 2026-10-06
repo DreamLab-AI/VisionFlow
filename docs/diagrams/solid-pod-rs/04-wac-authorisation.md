@@ -17,7 +17,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/origin.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/serializer.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
-verified_commit: febdc8be24bdc8b148b78b43a35ae85ee863a72a
+verified_commit: 93e2200218fad37927df16a1b7784c93c475670d
 ---
 
 ## SP-04.1 The write gate, end to end
@@ -26,27 +26,27 @@ verified_commit: febdc8be24bdc8b148b78b43a35ae85ee863a72a
 sequenceDiagram
     autonumber
     participant H as LDP write handler
-    participant EW as enforce_write_ctx<br/>solid-pod-rs-server/src/lib.rs:819
+    participant EW as enforce_write_ctx<br/>solid-pod-rs-server/src/lib.rs:803
     participant ET as wac::effective_acl_target<br/>solid-pod-rs/src/wac/mod.rs:252
-    participant RP as resolve_policy_dyn<br/>solid-pod-rs-server/src/lib.rs:1941
-    participant BAL as resolve_balance_sats<br/>solid-pod-rs-server/src/lib.rs:670
+    participant RP as resolve_policy_dyn<br/>solid-pod-rs-server/src/lib.rs:1926
+    participant BAL as resolve_balance_sats<br/>solid-pod-rs-server/src/lib.rs:654
     participant EV as wac::evaluate_access_ctx_with_registry<br/>solid-pod-rs/src/wac/evaluator.rs:234
-    participant CH as charge_granted_payment<br/>solid-pod-rs-server/src/lib.rs:913
+    participant CH as charge_granted_payment<br/>solid-pod-rs-server/src/lib.rs:897
 
     H->>EW: (path, mode, agent_uri, Origin)
-    EW->>EW: wac::Origin::parse of the raw Origin header<br/>solid-pod-rs-server/src/lib.rs:826
+    EW->>EW: wac::Origin::parse of the raw Origin header<br/>solid-pod-rs-server/src/lib.rs:810
     EW->>ET: map (path, mode) to the resource actually governed
     ET-->>EW: (resource, eff_mode) — sidecars elevate to Control
     EW->>RP: typed policy resolution over the effective resource
     RP-->>EW: PolicyOutcome
     alt outcome.is_failure()
-        EW-->>H: policy_failure_to_actix — 403 or 503<br/>solid-pod-rs-server/src/lib.rs:1957
+        EW-->>H: policy_failure_to_actix — 403 or 503<br/>solid-pod-rs-server/src/lib.rs:1942
     end
     EW->>BAL: Web-Ledger balance for the principal (None if anonymous)
     EW->>EV: (acl_doc, ctx, resource, eff_mode, origin, groups, registry)
     EV-->>EW: granted true or false
     alt not granted
-        EW-->>H: acl_denial — 401 with WWW-Authenticate, or 403<br/>solid-pod-rs-server/src/lib.rs:939
+        EW-->>H: acl_denial — 401 with WWW-Authenticate, or 403<br/>solid-pod-rs-server/src/lib.rs:923
     end
     opt resource == path, i.e. no sidecar elevation
         EW->>CH: debit the granting rule's PaymentCondition cost
@@ -60,9 +60,9 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant H as handle_get / handle_glob_get
-    participant ER as enforce_read_ctx<br/>solid-pod-rs-server/src/lib.rs:994
-    participant ET as effective_acl_target with base Read<br/>solid-pod-rs-server/src/lib.rs:1012
-    participant RP as resolve_policy_dyn<br/>solid-pod-rs-server/src/lib.rs:1941
+    participant ER as enforce_read_ctx<br/>solid-pod-rs-server/src/lib.rs:978
+    participant ET as effective_acl_target with base Read<br/>solid-pod-rs-server/src/lib.rs:996
+    participant RP as resolve_policy_dyn<br/>solid-pod-rs-server/src/lib.rs:1926
     participant EV as evaluate_access_ctx_with_registry<br/>solid-pod-rs/src/wac/evaluator.rs:234
 
     H->>ER: (path, agent_uri, Origin)
@@ -71,9 +71,9 @@ sequenceDiagram
     RP-->>ER: PolicyOutcome, failures deny here
     ER->>EV: evaluate for the PRINCIPAL
     EV-->>ER: granted or denial
-    ER->>EV: RE-evaluate the SAME document with web_id = None<br/>solid-pod-rs-server/src/lib.rs:1074
+    ER->>EV: RE-evaluate the SAME document with web_id = None<br/>solid-pod-rs-server/src/lib.rs:1058
     EV-->>ER: anonymous_would_be_granted
-    ER-->>H: Public only when anonymous is granted AND no elevation happened<br/>solid-pod-rs-server/src/lib.rs:1083
+    ER-->>H: Public only when anonymous is granted AND no elevation happened<br/>solid-pod-rs-server/src/lib.rs:1067
     Note over ER: The second evaluation is pure — no extra storage I/O. A sidecar read<br/>and a payment-gated read both classify Private by construction.
     Note over H: HEAD routes to handle_get, so HEAD inherits this same gate — see SP-02.11.
 ```
@@ -156,8 +156,8 @@ flowchart LR
     PR["protected_resource_for_acl(path)<br/>solid-pod-rs/src/wac/mod.rs:217"]
     ORD["ordinary resource -> (path, base_mode) unchanged<br/>solid-pod-rs/src/wac/mod.rs:255"]
     ELV["sidecar -> (protected_resource, Control)<br/>solid-pod-rs/src/wac/mod.rs:254"]
-    RD["enforce_read_ctx passes base Read<br/>solid-pod-rs-server/src/lib.rs:1012"]
-    WR["enforce_write_ctx passes the request's write mode<br/>solid-pod-rs-server/src/lib.rs:838"]
+    RD["enforce_read_ctx passes base Read<br/>solid-pod-rs-server/src/lib.rs:996"]
+    WR["enforce_write_ctx passes the request's write mode<br/>solid-pod-rs-server/src/lib.rs:822"]
 
     IN --> PR
     PR -- None --> ORD
@@ -180,8 +180,8 @@ sequenceDiagram
     autonumber
     participant C as Client with Control
     participant H as PUT / POST / PATCH handler
-    participant G as proposed_acl_keeps_caller_control<br/>solid-pod-rs-server/src/lib.rs:721
-    participant IDS as ids_of_acl_field<br/>solid-pod-rs-server/src/lib.rs:788
+    participant G as proposed_acl_keeps_caller_control<br/>solid-pod-rs-server/src/lib.rs:705
+    participant IDS as ids_of_acl_field<br/>solid-pod-rs-server/src/lib.rs:772
 
     C->>H: write a new .acl body
     H->>H: enforce Control on the protected resource (SP-04.5)
@@ -192,9 +192,9 @@ sequenceDiagram
         H->>H: proceed with the write
     else
         G-->>H: false
-        H-->>C: 409 Conflict — refused<br/>solid-pod-rs-server/src/lib.rs:1477
+        H-->>C: 409 Conflict — refused<br/>solid-pod-rs-server/src/lib.rs:1462
     end
-    Note over H: The guard runs on all three write paths: PUT (lib.rs:1474),<br/>POST after Slug resolution (lib.rs:1582), and PATCH on the SERIALISED<br/>post-patch document (lib.rs:1718) — F7 closed the PATCH hole.
+    Note over H: The guard runs on all three write paths: PUT (lib.rs:1459),<br/>POST after Slug resolution (lib.rs:1567), and PATCH on the SERIALISED<br/>post-patch document (lib.rs:1703) — F7 closed the PATCH hole. The<br/>create-via-PATCH branch runs the same guard (lib.rs:1737).
 ```
 
 ## SP-04.7 evaluate_access_ctx_inner — the decision loop
@@ -325,7 +325,7 @@ flowchart TD
     BODY["PaymentConditionBody with cost_sats<br/>solid-pod-rs/src/wac/payment.rs:27"]
     TOT["total_payment_cost over a condition list<br/>solid-pod-rs/src/wac/payment.rs:85"]
     GPC["wac::granted_payment_cost — cost of the ONE granting rule<br/>solid-pod-rs/src/wac/evaluator.rs:375"]
-    CG["charge_granted_payment then debit_ledger<br/>solid-pod-rs-server/src/lib.rs:913"]
+    CG["charge_granted_payment then debit_ledger<br/>(WebLedger::charge since alpha.11)<br/>solid-pod-rs-server/src/lib.rs:897"]
     CLI["ClientConditionEvaluator::evaluate<br/>solid-pod-rs/src/wac/client.rs:54"]
     ISS["IssuerConditionEvaluator::evaluate<br/>solid-pod-rs/src/wac/issuer.rs:44"]
     ANC["ProvenanceAnchorEvaluator::evaluate — a MARKER, always satisfied<br/>solid-pod-rs/src/wac/anchor.rs:102"]
@@ -340,7 +340,7 @@ flowchart TD
 
     N1["A granted request is charged the cost of the rule it actually used, not the<br/>sum of every PaymentCondition in the document."]
     GPC -.-> N1
-    N2["INVARIANT: a debit failure denies the request with the same shape as a WAC<br/>denial — the pod never serves unpaid, even if a concurrent spend raced the<br/>balance below cost after the gate passed.<br/>solid-pod-rs-server/src/lib.rs:928"]
+    N2["INVARIANT: a debit failure denies the request with the same shape as a WAC<br/>denial — the pod never serves unpaid, even if a concurrent spend raced the<br/>balance below cost after the gate passed.<br/>solid-pod-rs-server/src/lib.rs:912"]
     CG -.-> N2
     N3["ProvenanceAnchor is not an access gate — it never denies. Treating it as one<br/>would make an anchor-worthy resource unreadable."]
     ANC -.-> N3
@@ -350,12 +350,12 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    IN["acl_denial(acl_doc, agent_uri, path)<br/>solid-pod-rs-server/src/lib.rs:939"]
+    IN["acl_denial(acl_doc, agent_uri, path)<br/>solid-pod-rs-server/src/lib.rs:923"]
     ANON{"agent_uri is None?"}
-    U401["401 Unauthorized, body 'authentication required'<br/>solid-pod-rs-server/src/lib.rs:946"]
-    F403["403 Forbidden, body 'access forbidden'<br/>solid-pod-rs-server/src/lib.rs:948"]
-    WA["WAC-Allow advisory header on BOTH<br/>solid-pod-rs-server/src/lib.rs:952"]
-    CH["WWW-Authenticate: Nostr, DPoP, Bearer — all three realms<br/>solid-pod-rs-server/src/lib.rs:966"]
+    U401["401 Unauthorized, body 'authentication required'<br/>solid-pod-rs-server/src/lib.rs:930"]
+    F403["403 Forbidden, body 'access forbidden'<br/>solid-pod-rs-server/src/lib.rs:932"]
+    WA["WAC-Allow advisory header on BOTH<br/>solid-pod-rs-server/src/lib.rs:936"]
+    CH["WWW-Authenticate: Nostr, DPoP, Bearer — all three realms<br/>solid-pod-rs-server/src/lib.rs:950"]
 
     IN --> ANON
     ANON -- yes --> U401 --> WA
@@ -364,7 +364,7 @@ flowchart LR
 
     N["Advertising the Nostr scheme matters: without it a did:nostr agent has no<br/>protocol signal that NIP-98 is accepted and cannot know how to retry."]
     CH -.-> N
-    N2["A policy FAILURE is a different shape: Invalid gives 403 'governing ACL is<br/>invalid', Unavailable gives 503 'access control unavailable'.<br/>solid-pod-rs-server/src/lib.rs:1957"]
+    N2["A policy FAILURE is a different shape: Invalid gives 403 'governing ACL is<br/>invalid', Unavailable gives 503 'access control unavailable'.<br/>solid-pod-rs-server/src/lib.rs:1942"]
     IN -.-> N2
 ```
 

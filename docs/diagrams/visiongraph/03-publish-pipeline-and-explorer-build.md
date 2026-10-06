@@ -9,7 +9,7 @@ sources:
   - ../visionGraph/.github/workflows/publish.yml
   - ../visionGraph/publishing-tools/WasmVOWL/modern/scripts/check-space-domains.mjs
   - ../visionGraph/docs/adr/ADR-VG-004-space-and-earth-domains.md
-verified_commit: 015ca2c1f2d7289955ebf16b98b6775a57ec0f7b
+verified_commit: 9d6675626cd393a3570a29570eaa8ea66fe1b83a
 ---
 
 ## VG-03.1 publish.yml — checkout to deploy, one job, three producers into one site
@@ -76,12 +76,12 @@ flowchart TD
     SUBST["Substance check: search-index entries, api/pages count,<br/>ontology.ttl line count each at least 1000<br/>publish.yml:280-289"]
     BIN --> VALIDATE --> BUILDCMD --> SPLIT --> ASSETS --> BOTH --> CTX --> GATE --> SUBST --> SPACE
     SPACE["Space and Earth domain contract — domains 6 and 7 present with<br/>stable ids and minimum member counts, published roots and tiers<br/>check-space-domains.mjs:13-26"]
-    SPACECNT["Every one of 934 expansion identities public draft,<br/>264 researched drafts carry article text, the rest none<br/>check-space-domains.mjs:39-54"]
+    SPACECNT["Every one of 934 expansion identities public draft,<br/>660 researched drafts carry article text, the rest none<br/>check-space-domains.mjs:39-54"]
     SPACE --> SPACECNT
     note1["INVARIANT: --vault all is required — omitting it silently<br/>falls back to knowledge-only and every later gate still<br/>passes green, publish.yml:182-187"]
 ```
 - **INVARIANT:** presence of an artefact path proves nothing — a producer can write every expected file empty, as the retired Python pipeline did against the migrated corpus; `SUBST` exists specifically to catch that (`publish.yml:274-289`).
-- **Debt:** the space and Earth gate pins exact totals — 934 expansion identities and 264 researched drafts (`check-space-domains.mjs:53-54`) — so every research batch must edit the release gate in the same commit; the gate file changed in 23 commits between `b382a1275` and `015ca2c1f`, almost all of them article batches.
+- **Debt:** the space and Earth gate pins exact totals — 934 expansion identities and 660 researched drafts (`check-space-domains.mjs:53-54`) — so every research batch must edit the release gate in the same commit; the gate file changed in 56 commits between `b382a1275` and `9d667562`, almost all of them article batches.
 
 ## VG-03.6 Quartz notes build, credential and layout gates, deploy
 

@@ -27,7 +27,7 @@ sources:
   - docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md
   - docs/BASELINE-visionflow.md
   - ./README.md
-verified_commit: {visionflow: e5987acc8337ddd64c72f775750d61fef46d8e0b, visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047, nostr-rust-forum: d025cb063df5a532f055a18527f71cc7dee9d6e6}
+verified_commit: {visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, visionclaw: 7d3ea2edb067432a57e6fe1fd951fd8254380bb8, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047, nostr-rust-forum: d025cb063df5a532f055a18527f71cc7dee9d6e6}
 ---
 
 Source reconciliation: 2026-09-07. These panels follow the current sections of the compatibility matrix and status reconciliation, plus the source audits named in frontmatter. Historical metrics and register cuts remain historical. This review did not certify a live federation, image, hardware session or replica-wide authentication contract.
@@ -135,10 +135,10 @@ flowchart TB
     ID --> SOURCE["Describe implemented mechanism"]
     SOURCE --> TEST["Attach actual test or measurement"]
     TEST --> LIMIT["State missing runtime, replica, hardware or integration proof"]
-    LIMIT --> VIEW["Update current canon view and closeout roadmap"]
+    LIMIT --> VIEW["Update current canon view under the ACCEPTED evidence rule:<br/>an item closes only on evidence naming its repository,<br/>the revision it was checked at, its evidence class and its<br/>acceptance boundary — ADR-2007-estate-closeout-evidence-roadmap.md:24"]
     PROPOSAL["Proposed ADR or imported design"] -.-> SCOPE["Explicit proposal/adoption disposition"]
     SCOPE --> VIEW
     VIEW --> BOUNDARY["No blanket completion from diagrams, hashes or passing helper tests"]
 ```
 
-VisionFlow owns the cross-repository view and evidence vocabulary. Source audits can correct that view, while implementation changes belong to the owning repository. Source hashes bind observations; they do not turn a planned feature or a helper assertion into a running end-to-end system.
+VisionFlow owns the cross-repository view and evidence vocabulary. Source audits can correct that view, while implementation changes belong to the owning repository. Source hashes bind observations; they do not turn a planned feature or a helper assertion into a running end-to-end system. ADR-2007 was accepted on 2026-10-02, narrowed to exactly this evidence rule (`docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md:24`); the estate closeout roadmap it originally proposed is recorded there as overtaken, not accepted, so this panel states the accepted rule rather than the abandoned coordinating contract.

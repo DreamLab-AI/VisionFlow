@@ -12,12 +12,12 @@ sources:
   - ../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md
   - ../project/agentbox/docs/adr/ADR-2117-private-owner-usd-unit-bridged-through-rgb-into-sidestr.md
   - ../project/docs/TODO-unified.md
-verified_commit: {sidestr-rs: 3aadeb7a26ff60c18614113bb986c1ba0d33d115, visionclaw: d5ecd38a2de3012e42509c27b950f6cd17e3fee4, agentbox: 5d5d083e2e77ea448d27e6e2dae95822eb960922}
+verified_commit: {sidestr-rs: a7aadd68d536167507e00e1ce6237fbecb5b46fa, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 9fd49a935611a4f1b3591030d52fe13610179397}
 ---
 
 ## For developers
 
-`sidestr-reserve` defines a deterministic statement about a reserve origin, its replay-keyed credits and the final origin tip. `sidestr-bridge-liquid` is one adapter that reads a Liquid wallet through LWK and produces that statement. Neither crate implements or activates the consuming `bridge` rule.
+`sidestr-reserve` defines a deterministic statement about a reserve origin, its replay-keyed credits and the final origin tip. Its canonical bytes are RFC 8785 (JCS) JSON, held to `serde_jcs` and to the teller's `jcs` by a cross-check suite, and the digest a key signs is a BIP-340-style tagged SHA-256. `sidestr-bridge-liquid` is one adapter that reads a Liquid wallet through LWK and produces that statement. Neither crate implements or activates the consuming `bridge` rule.
 
 ## For the business
 
@@ -27,7 +27,7 @@ Source can describe and sign what a private reserve wallet held at a specific or
 
 ```mermaid
 flowchart LR
-    O["reserve origin"] --> AD["origin-specific adapter<br/>sidestr-bridge-liquid/src/lib.rs:21"]
+    O["reserve origin"] --> AD["origin-specific adapter<br/>sidestr-bridge-liquid/src/lib.rs:25"]
     AD --> OR["Origin<br/>network, asset, decimals"]
     AD --> CR["final credits<br/>replay-keyed ids"]
     AD --> TIP["final origin tip"]
@@ -37,7 +37,7 @@ flowchart LR
     AT -. "future consumer" .-> BR["bridge rule"]
 ```
 
-**What it shows.** The neutral crate identifies an origin by network, asset and decimals and identifies each credit by an origin-appropriate replay key (`../sidestr-rs/sidestr-reserve/src/lib.rs:132`, `../sidestr-rs/sidestr-reserve/src/lib.rs:223`). A Liquid-specific adapter supplies the wallet, sync and registry interpretation (`../sidestr-rs/sidestr-bridge-liquid/src/lib.rs:14`).
+**What it shows.** The neutral crate identifies an origin by network, asset and decimals and identifies each credit by an origin-appropriate replay key (`../sidestr-rs/sidestr-reserve/src/lib.rs:351`, `../sidestr-rs/sidestr-reserve/src/lib.rs:436`). A Liquid-specific adapter supplies the wallet, sync and registry interpretation (`../sidestr-rs/sidestr-bridge-liquid/src/lib.rs:17`).
 
 **Why it is this way.** Another origin can provide a sibling adapter while a future bridge rule consumes one stable statement shape. The local ADR keeps origin dependencies isolated (`../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md:26`).
 
@@ -45,14 +45,14 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    IN["origin, tip, credits,<br/>source and time<br/>sidestr-reserve/src/lib.rs:277"] --> SORT["sort credit ids and<br/>refuse duplicates"]
-    SORT --> JSON["canonical compact JSON"]
-    JSON --> SHA["SHA-256 digest"]
-    SHA --> SIG["BIP-340 signer hook"]
+    IN["origin, tip, credits,<br/>source and time<br/>sidestr-reserve/src/lib.rs:499"] --> SORT["sort credit ids and<br/>refuse duplicates"]
+    SORT --> JSON["RFC 8785 JCS canonical JSON<br/>sidestr-reserve/src/lib.rs:577"]
+    JSON --> SHA["tagged SHA-256 digest<br/>sidestr-reserve/src/lib.rs:584"]
+    SHA --> SIG["BIP-340 signer hook<br/>sidestr-reserve/src/lib.rs:611"]
     SIG --> CHECK["verify before return"]
 ```
 
-**What it shows.** Attestation construction sorts credits, refuses duplicate ids and totals amounts with checked arithmetic (`../sidestr-rs/sidestr-reserve/src/lib.rs:277`). Canonical JSON fixes key and credit order before SHA-256 and BIP-340 signing (`../sidestr-rs/sidestr-reserve/src/lib.rs:323`, `../sidestr-rs/sidestr-reserve/src/lib.rs:368`).
+**What it shows.** Attestation construction sorts credit ids through a set, refuses duplicates and totals amounts with checked arithmetic (`../sidestr-rs/sidestr-reserve/src/lib.rs:499`). Canonical form is RFC 8785 (JCS) JSON — keys ascending by byte order, no whitespace — fixed before a BIP-340-style tagged SHA-256 digest and BIP-340 signing (`../sidestr-rs/sidestr-reserve/src/lib.rs:577`, `../sidestr-rs/sidestr-reserve/src/lib.rs:584`, `../sidestr-rs/sidestr-reserve/src/lib.rs:611`). The bytes are held to `serde_jcs` and to the JCS of the solidpayorg teller `7c00cea` by `tests/jcs.rs` (`../sidestr-rs/sidestr-reserve/src/lib.rs:60`).
 
 **Why it is this way.** Independent adapters and validators must reproduce exactly the bytes that were signed, and a credit must not support two mints.
 

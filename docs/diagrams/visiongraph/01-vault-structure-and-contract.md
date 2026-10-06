@@ -30,7 +30,7 @@ sources:
   - ../visionGraph/working/bases/podcast-evidence.base
   - ../visionGraph/working/bases/public.base
   - ../visionGraph/working/bases/review-before-publish.base
-verified_commit: 015ca2c1f2d7289955ebf16b98b6775a57ec0f7b
+verified_commit: 9d6675626cd393a3570a29570eaa8ea66fe1b83a
 ---
 
 ## VG-01.1 Repo composition — two vaults, a corpus manifest, Quartz replaces the deleted pipeline
@@ -165,16 +165,18 @@ flowchart TB
 flowchart TB
     ADR["ADR-VG-004 — accepted 2026-10-01, implementation complete,<br/>activation staged — docs/adr/README.md:10"]
     SLUGS["two linked domains, slugs space-science-and-systems and<br/>earth-observation-and-geospatial-sensing<br/>ADR-VG-004-space-and-earth-domains.md:16-19"]
-    ROOTS["vocabulary.yaml roots — six legacy plus the two new slugs<br/>vocabulary.yaml:308-310"]
+    ROOTS["vocabulary.yaml roots — six legacy plus the two new slugs<br/>vocabulary.yaml:322-324"]
     IDS["domain ids 6 and 7 appended after legacy 0-5,<br/>existing numeric identities preserved<br/>ADR-VG-004-space-and-earth-domains.md:35"]
     GATE["publish gate asserts ids 6 and 7, minimum member counts,<br/>a published root page and a domain tier per slug<br/>check-space-domains.mjs:13-26"]
     ADR --> SLUGS --> ROOTS --> IDS --> GATE
     note1["INVARIANT: domain roots stay non-disjoint — membership is not<br/>disjointness, multiple inheritance is intentional<br/>ADR-VG-004-space-and-earth-domains.md:28-30"]
-    note2["DRIFT: vocabulary.yaml:125 and :302-303 still say six domain roots"]
+    note2["DRIFT: vocabulary.yaml:125 and :316-317 still say six domain roots"]
     note3["DRIFT: ADR-VG-004:35 says the two roots exist as private draft<br/>classes, not deployed — the gate requires each root published,<br/>check-space-domains.mjs:22-23"]
 ```
 
 **What it shows:** how a domain is added to the corpus: an accepted record names the slugs, the vocabulary's `roots` list grows from six to eight, the new domains take the next numeric ids so existing explorer and consumer identities do not move, and the publish workflow refuses to deploy unless the built bundle carries both domains with their published roots and tiers (`publish.yml:296-297`).
 **Why it is this way:** ADR-VG-004 chose two linked domains rather than one, because space science reaches beyond Earth observation and geospatial sensing includes terrestrial and airborne systems (`ADR-VG-004-space-and-earth-domains.md:23-26`); appending ids 6 and 7 keeps the legacy 0–5 assignments stable (`ADR-VG-004-space-and-earth-domains.md:35`).
-**Drift:** `vocabulary.yaml:125` ("one of the six domain roots") and the `sourceDomain` comment at `vocabulary.yaml:302-303` ("six of which are the taxonomic domain roots") were not updated when `roots` gained the two new slugs (`vocabulary.yaml:308-310`).
+**Drift:** `vocabulary.yaml:125` ("one of the six domain roots") and the `sourceDomain` comment at `vocabulary.yaml:316-317` ("six of which are the taxonomic domain roots") were not updated when `roots` gained the two new slugs (`vocabulary.yaml:322-324`).
+
+**Since the last stamp:** the relations section gained the provisional `disjoint-with` relation. Its sibling-disjointness rule requires a shared parent and excludes domain roots (`ontology/vocabulary.yaml:219-231`, adopted 2026-10-05, ADR-2125).
 **Drift (ADR-VG-004 vs code):** the record's consequences say "the two roots exist as private draft classes" and "the changes are not deployed" (`ADR-VG-004-space-and-earth-domains.md:35`), while the release gate fails unless each root is present in the public search index (`check-space-domains.mjs:22-23`) and the workflow that runs it deploys on push (`publish.yml:296-297`).

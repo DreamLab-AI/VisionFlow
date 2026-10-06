@@ -25,7 +25,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/examples/webhook_receiver.rs
   - ../solid-pod-rs/crates/solid-pod-rs/examples/wac_admin.rs
   - ../solid-pod-rs/crates/solid-pod-rs/examples/oidc_client.rs
-verified_commit: 6d2e5b0d2e00fc2c9fa1e4984b8582cfa0d48556
+verified_commit: 93e2200218fad37927df16a1b7784c93c475670d
 ---
 
 ## SP-01.1 Eight workspace members and the library-first split
@@ -106,11 +106,11 @@ classDiagram
 
 ```mermaid
 flowchart TD
-    CORE_F["feature core = std + js-sys + did-nostr-types<br/>crates/solid-pod-rs/Cargo.toml:108"]
-    STD["feature std<br/>crates/solid-pod-rs/Cargo.toml:109"]
-    TOKIO["feature tokio-runtime = tokio + tungstenite + futures-util<br/>crates/solid-pod-rs/Cargo.toml:119"]
-    FSB["fs-backend = tokio-runtime + notify + cap-std<br/>crates/solid-pod-rs/Cargo.toml:121"]
-    MEMB["memory-backend = tokio-runtime<br/>crates/solid-pod-rs/Cargo.toml:122"]
+    CORE_F["feature core = std + js-sys + did-nostr-types<br/>crates/solid-pod-rs/Cargo.toml:116"]
+    STD["feature std<br/>crates/solid-pod-rs/Cargo.toml:117"]
+    TOKIO["feature tokio-runtime = tokio + tungstenite + futures-util<br/>crates/solid-pod-rs/Cargo.toml:127"]
+    FSB["fs-backend = tokio-runtime + notify + cap-std<br/>crates/solid-pod-rs/Cargo.toml:129"]
+    MEMB["memory-backend = tokio-runtime<br/>crates/solid-pod-rs/Cargo.toml:130"]
 
     CORE_F --> STD
     CORE_F -. "excludes" .-> TOKIO
@@ -123,7 +123,7 @@ flowchart TD
     E2["INVARIANT: classify_policy_read is runtime-free so the edge tier can adopt it<br/>solid-pod-rs/src/wac/resolver.rs:265"]
     CORE_F -.-> E2
 
-    E3["Since alpha.10 core carries k256 through did-nostr-types, pure Rust and<br/>wasm32-safe, for the did:nostr full-point encoder and point validation<br/>crates/solid-pod-rs/Cargo.toml:195"]
+    E3["Since alpha.10 core carries k256 through did-nostr-types, pure Rust and<br/>wasm32-safe, for the did:nostr full-point encoder and point validation<br/>crates/solid-pod-rs/Cargo.toml:203"]
     CORE_F -.-> E3
 ```
 
@@ -131,15 +131,15 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    NIP98S["nip98-schnorr = k256<br/>crates/solid-pod-rs/Cargo.toml:124"]
-    NIP98R["nip98-replay = lru + tokio-runtime<br/>crates/solid-pod-rs/Cargo.toml:131"]
-    LWS["lws-cid = k256<br/>crates/solid-pod-rs/Cargo.toml:136"]
-    LWSP["lws-cid-p256<br/>crates/solid-pod-rs/Cargo.toml:137"]
-    LWSE["lws-cid-eddsa<br/>crates/solid-pod-rs/Cargo.toml:138"]
-    LWSF["lws-cid-full<br/>crates/solid-pod-rs/Cargo.toml:139"]
-    OIDCF["oidc = openidconnect + jsonwebtoken + reqwest<br/>crates/solid-pod-rs/Cargo.toml:123"]
-    DPOPR["dpop-replay-cache = oidc + lru<br/>crates/solid-pod-rs/Cargo.toml:164"]
-    DPOPT["dpop-symmetric-test (TEST ONLY)<br/>crates/solid-pod-rs/Cargo.toml:170"]
+    NIP98S["nip98-schnorr = k256<br/>crates/solid-pod-rs/Cargo.toml:132"]
+    NIP98R["nip98-replay = lru + tokio-runtime<br/>crates/solid-pod-rs/Cargo.toml:139"]
+    LWS["lws-cid = k256<br/>crates/solid-pod-rs/Cargo.toml:144"]
+    LWSP["lws-cid-p256<br/>crates/solid-pod-rs/Cargo.toml:145"]
+    LWSE["lws-cid-eddsa<br/>crates/solid-pod-rs/Cargo.toml:146"]
+    LWSF["lws-cid-full<br/>crates/solid-pod-rs/Cargo.toml:147"]
+    OIDCF["oidc = openidconnect + jsonwebtoken + reqwest<br/>crates/solid-pod-rs/Cargo.toml:131"]
+    DPOPR["dpop-replay-cache = oidc + lru<br/>crates/solid-pod-rs/Cargo.toml:172"]
+    DPOPT["dpop-symmetric-test (TEST ONLY)<br/>crates/solid-pod-rs/Cargo.toml:178"]
 
     LWS --> LWSP
     LWS --> LWSE
@@ -157,17 +157,17 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    JSS["jss-v04 (parent flag, no-op alone)<br/>crates/solid-pod-rs/Cargo.toml:147"]
-    SP["security-primitives<br/>crates/solid-pod-rs/Cargo.toml:151"]
-    LEG["legacy-notifications (solid-0.1 WS adapter)<br/>crates/solid-pod-rs/Cargo.toml:156"]
-    ORG["acl-origin (WAC acl:origin gate)<br/>crates/solid-pod-rs/Cargo.toml:160"]
-    CFGL["config-loader = serde_yaml + toml<br/>crates/solid-pod-rs/Cargo.toml:179"]
-    WHS["webhook-signing = ed25519-dalek + httpdate<br/>crates/solid-pod-rs/Cargo.toml:183"]
-    RL["rate-limit = lru + parking_lot<br/>crates/solid-pod-rs/Cargo.toml:207"]
-    QU["quota = jss-v04 + config-loader<br/>crates/solid-pod-rs/Cargo.toml:215"]
-    DNT["did-nostr-types = k256, full-point Multikey<br/>crates/solid-pod-rs/Cargo.toml:195"]
-    MR["mrc20 = k256<br/>crates/solid-pod-rs/Cargo.toml:200"]
-    DN["did-nostr<br/>crates/solid-pod-rs/Cargo.toml:201"]
+    JSS["jss-v04 (parent flag, no-op alone)<br/>crates/solid-pod-rs/Cargo.toml:155"]
+    SP["security-primitives<br/>crates/solid-pod-rs/Cargo.toml:159"]
+    LEG["legacy-notifications (solid-0.1 WS adapter)<br/>crates/solid-pod-rs/Cargo.toml:164"]
+    ORG["acl-origin (WAC acl:origin gate)<br/>crates/solid-pod-rs/Cargo.toml:168"]
+    CFGL["config-loader = serde_yaml + toml<br/>crates/solid-pod-rs/Cargo.toml:187"]
+    WHS["webhook-signing = ed25519-dalek + httpdate<br/>crates/solid-pod-rs/Cargo.toml:191"]
+    RL["rate-limit = lru + parking_lot<br/>crates/solid-pod-rs/Cargo.toml:217"]
+    QU["quota = jss-v04 + config-loader<br/>crates/solid-pod-rs/Cargo.toml:225"]
+    DNT["did-nostr-types = k256, full-point Multikey<br/>crates/solid-pod-rs/Cargo.toml:203"]
+    MR["mrc20 = dep:bitcoin — BIP-341 taproot and BIP-340 signing<br/>moved to rust-bitcoin 0.32 in alpha.11 (ADR-2008); links<br/>libsecp256k1 (C), so wasm32 mrc20 needs a C toolchain<br/>crates/solid-pod-rs/Cargo.toml:210"]
+    DN["did-nostr<br/>crates/solid-pod-rs/Cargo.toml:211"]
 
     JSS --> SP
     JSS --> LEG
@@ -188,13 +188,13 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    LIBD["core lib default = std, fs-backend,<br/>memory-backend, tokio-runtime, notifications<br/>crates/solid-pod-rs/Cargo.toml:99"]
+    LIBD["core lib default = std, fs-backend,<br/>memory-backend, tokio-runtime, notifications<br/>crates/solid-pod-rs/Cargo.toml:107"]
     SRVD["server default = [] (EMPTY)<br/>crates/solid-pod-rs-server/Cargo.toml:123"]
 
     LIBD --> R1["a default library build has FS + memory storage,<br/>the tokio runtime and the notifications stack"]
     SRVD --> R2["a default server build has NO tls, NO git, NO forge,<br/>NO quota, NO did-nostr, NO export, NO nip05"]
 
-    D1["INVARIANT (ADR-2004): the empty server default means git_mark_write compiles to<br/>the no-op shim, so a default build records ZERO provenance marks<br/>solid-pod-rs-server/src/lib.rs:3668"]
+    D1["INVARIANT (ADR-2004): the empty server default means git_mark_write compiles to<br/>the no-op shim, so a default build records ZERO provenance marks<br/>solid-pod-rs-server/src/lib.rs:3650"]
     SRVD -.-> D1
 ```
 
@@ -280,12 +280,12 @@ classDiagram
 ```mermaid
 flowchart LR
     ADV["[advisories] yanked = deny<br/>../solid-pod-rs/deny.toml:37"]
-    LIC["[licenses] allow-list<br/>../solid-pod-rs/deny.toml:67"]
-    BANS["[bans] wildcards = deny<br/>../solid-pod-rs/deny.toml:108"]
-    MULTI["multiple-versions = warn<br/>../solid-pod-rs/deny.toml:107"]
-    SRC["[sources] unknown-registry = deny<br/>../solid-pod-rs/deny.toml:132"]
-    GITS["unknown-git = deny, allow-git = []<br/>../solid-pod-rs/deny.toml:133"]
-    REG["allow-registry = crates.io only<br/>../solid-pod-rs/deny.toml:134"]
+    LIC["[licenses] allow-list<br/>../solid-pod-rs/deny.toml:66"]
+    BANS["[bans] wildcards = deny<br/>../solid-pod-rs/deny.toml:117"]
+    MULTI["multiple-versions = warn<br/>../solid-pod-rs/deny.toml:116"]
+    SRC["[sources] unknown-registry = deny<br/>../solid-pod-rs/deny.toml:141"]
+    GITS["unknown-git = deny, allow-git = []<br/>../solid-pod-rs/deny.toml:142"]
+    REG["allow-registry = crates.io only<br/>../solid-pod-rs/deny.toml:143"]
 
     ADV --> OUT["cargo-deny CI job — see SP-09.4"]
     LIC --> OUT
@@ -297,6 +297,8 @@ flowchart LR
 
     N["INVARIANT: allow-git is empty — every dependency resolves from the crates.io<br/>index, so a git-patched dependency cannot enter a release build."]
     GITS -.-> N
+    X["EXCEPTION: the licences gate carries one scoped exception — hex_lit (a dep of<br/>rust-bitcoin per ADR-2008) is allowed under MITNFA, MIT plus a<br/>no-false-attribution clause, crate-scoped not workspace-wide.<br/>../solid-pod-rs/deny.toml:102"]
+    LIC -.-> X
 ```
 
 ## SP-01.12 The `examples/` integration surface — the library-first contract
@@ -330,13 +332,13 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    D1["[[example]] embed_in_actix<br/>crates/solid-pod-rs/Cargo.toml:316"]
-    D2["custom_storage<br/>crates/solid-pod-rs/Cargo.toml:320"]
-    D3["nip98_client<br/>crates/solid-pod-rs/Cargo.toml:324"]
-    D4["notifications_consumer<br/>crates/solid-pod-rs/Cargo.toml:328"]
-    D5["webhook_receiver<br/>crates/solid-pod-rs/Cargo.toml:332"]
-    D6["wac_admin<br/>crates/solid-pod-rs/Cargo.toml:336"]
-    D7["oidc_client, required-features = oidc<br/>crates/solid-pod-rs/Cargo.toml:342"]
+    D1["[[example]] embed_in_actix<br/>crates/solid-pod-rs/Cargo.toml:326"]
+    D2["custom_storage<br/>crates/solid-pod-rs/Cargo.toml:330"]
+    D3["nip98_client<br/>crates/solid-pod-rs/Cargo.toml:334"]
+    D4["notifications_consumer<br/>crates/solid-pod-rs/Cargo.toml:338"]
+    D5["webhook_receiver<br/>crates/solid-pod-rs/Cargo.toml:342"]
+    D6["wac_admin<br/>crates/solid-pod-rs/Cargo.toml:346"]
+    D7["oidc_client, required-features = oidc<br/>crates/solid-pod-rs/Cargo.toml:350"]
     C1["cargo check -p solid-pod-rs --examples<br/>crates/solid-pod-rs/docs/examples-index.md:34"]
     C2["cargo check --examples --features oidc<br/>crates/solid-pod-rs/docs/examples-index.md:35"]
 

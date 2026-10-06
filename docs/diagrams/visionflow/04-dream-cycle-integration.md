@@ -27,7 +27,7 @@ sources:
   - docs/adr/ADR-2009-webgl-mesh-deep-is-sidecar-only.md
   - ./README.md
   - package.json
-verified_commit: e5987acc8337ddd64c72f775750d61fef46d8e0b
+verified_commit: 62d16e02fe3bdd5551e4433b2d42552ec93adb12
 ---
 
 ## VF-04.1 dream.config.json — the whole contract this repo offers the engine
@@ -43,8 +43,8 @@ flowchart LR
     C --> CP["controlPlaneProbes — node --version and a listing of<br/>website/static and website/dist<br/>dream.config.json:38"]:::cfg
     C --> BS["buildStep — cd website and run build.sh, tail 8 lines;<br/>degradeOnWasmFailure false because there is no WASM<br/>dream.config.json:43 and dream.config.json:44"]:::cfg
     C --> EE["evaluatorEntrypoints — 6 entries, 4 plain strings and<br/>2 objects carrying required and deeps<br/>dream.config.json:46"]:::gate
-    C --> ED["extraDisciplines — 5 guardrails, prose, enforced by the<br/>night's own reasoning rather than by code<br/>dream.config.json:68"]:::gate
-    C --> OUT["ledgerPath docs/dream-cycle/LEDGER.md,<br/>branchPrefix dream/, labels dream-cycle and marketing-site,<br/>autoMerge FALSE<br/>dream.config.json:75 and dream.config.json:81"]:::cfg
+    C --> ED["extraDisciplines — 6 guardrails, prose, enforced by the<br/>night's own reasoning rather than by code<br/>dream.config.json:68"]:::gate
+    C --> OUT["ledgerPath docs/dream-cycle/LEDGER.md,<br/>branchPrefix dream/, labels dream-cycle and marketing-site,<br/>autoMerge FALSE<br/>dream.config.json:76 and dream.config.json:82"]:::cfg
     C --> MISC["competitors empty, adrConvention 4-digit<br/>dream.config.json:66 and dream.config.json:67"]:::cfg
 
     ENG["EXTERNAL: the dream ENGINE is not in this repo. DreamLab's<br/>dream-engine, a tracking fork of ruvnet/dream-machine, runs the<br/>night and consumes this file — see AB-23 for the engine, its<br/>gates and its acceptance path. ./README.md:136"]
@@ -129,10 +129,10 @@ flowchart LR
     E1 --> E1P["prints page count and byte total, then BUILD-OK<br/>dream-build-check.sh:7"]:::pass
     E1 --> E1F["otherwise BUILD-FAIL — dream-build-check.sh:8<br/>exit status is 0 either way"]:::fail
 
-    E2["dream-link-check.sh<br/>resolves href/src refs AND meta content media URLs<br/>dream-link-check.sh:46 and dream-link-check.sh:54"]
-    E2 --> E2P["internal-refs-checked N, missing 0, then LINK-INTEGRITY-OK<br/>dream-link-check.sh:62"]:::pass
-    E2 --> E2F["any missing ref prints MISSING and LINK-INTEGRITY-FAIL<br/>dream-link-check.sh:63"]:::fail
-    E2 --> E2X["no dist/ prints NO-DIST and exits 0 with NO sentinel<br/>dream-link-check.sh:20"]:::odd
+    E2["dream-link-check.sh<br/>three ref families: href/src attrs, meta content media URLs<br/>and — since the 10-05 ACCEPT — in-page anchors<br/>dream-link-check.sh:6, dream-link-check.sh:8 and dream-link-check.sh:14"]
+    E2 --> E2P["internal-refs-checked N, missing 0, anchors-checked N,<br/>dangling 0, then LINK-INTEGRITY-OK<br/>dream-link-check.sh:76 and dream-link-check.sh:78"]:::pass
+    E2 --> E2F["any missing ref prints MISSING, or a dangling anchor prints<br/>DANGLING-ANCHOR, then LINK-INTEGRITY-FAIL<br/>dream-link-check.sh:64 and dream-link-check.sh:73"]:::fail
+    E2 --> E2X["no dist/ prints NO-DIST and exits 0 with NO sentinel<br/>dream-link-check.sh:25"]:::odd
 
     E3["dream-meta-tags-scan.sh<br/>counts title, description, canonical, viewport as REQUIRED;<br/>og, twitter and robots counted but optional<br/>dream-meta-tags-scan.sh:24"]
     E3 --> E3P["required-missing 0, then META-SCAN-OK<br/>dream-meta-tags-scan.sh:33"]:::pass
@@ -171,18 +171,18 @@ sequenceDiagram
     ENG->>ENG: "form ONE falsifiable hypothesis against tonight's deep"
     ENG->>EV: run the always-on evaluators plus any scoped to this deep
     EV-->>ENG: "stdout receipts — the last sentinel line is the verdict"
-    ENG->>LED: "append one dated row — verdict ACCEPT, INCONCLUSIVE or OPERATOR<br/>ledgerPath at dream.config.json:75"
+    ENG->>LED: "append one dated row — verdict ACCEPT, INCONCLUSIVE or OPERATOR<br/>ledgerPath at dream.config.json:76"
     alt a change is proposed
-        ENG->>BR: "branch named with prefix dream/ — dream.config.json:76"
-        ENG->>H: "open a DRAFT pull request, labels dream-cycle and marketing-site<br/>dream.config.json:77"
-        Note over ENG,H: "INVARIANT: autoMerge is false — dream.config.json:81<br/>evaluation is not promotion — an agent proposes, a human signs<br/>./README.md:136"
+        ENG->>BR: "branch named with prefix dream/ — dream.config.json:77"
+        ENG->>H: "open a DRAFT pull request, labels dream-cycle and marketing-site<br/>dream.config.json:78"
+        Note over ENG,H: "INVARIANT: autoMerge is false — dream.config.json:82<br/>evaluation is not promotion — an agent proposes, a human signs<br/>./README.md:136"
         H-->>BR: "merge, or refuse"
     else no change earned
         ENG->>LED: "the row stands alone, no branch, no PR"
     end
 ```
 
-## VF-04.6 The five extraDisciplines — guardrails written as prose, checked by judgement
+## VF-04.6 The six extraDisciplines — guardrails written as prose, checked by judgement
 ```mermaid
 flowchart TB
     classDef inv fill:#e6f0dc,stroke:#4a7a2a,color:#111
@@ -197,12 +197,14 @@ flowchart TB
     D --> G5["INVARIANT adr-citations-must-exist: cite only ids present in<br/>docs/adr/; propose new ADRs by title and leave the id to the<br/>operator. Reports have cited ADR-0057, ADR-056 and ADR-2024 —<br/>none exist, and two are not even this repo's 4-digit scheme.<br/>dream.config.json:73"]:::inv
 
     G5 --> WHY["a citation to a record that does not exist is a fabricated<br/>authority, and it is WORSE than no citation because the reader<br/>cannot tell the difference"]:::warn
+    D --> G6["INVARIANT orphan-assets-are-kept: owner decision 2026-10-02 (Q13),<br/>added after orphan-image vetoes blocked six nights — the unused<br/>website diagram images are kept on purpose; the asset-refs orphan<br/>count stays a measurement only and no night may propose a prune<br/>dream.config.json:74"]:::inv
+    G6 -.->|"fences the 09-08..09-13 veto pattern"| DRYP["see VF-04.8"]
     G2 --> LOCAL["the browser path exists, just not here:<br/>npm run test:a11y and npm run test:perf — package.json:15<br/>see VF-02.10"]:::warn
     G1 --> SRC["ground truth for the discipline: build.sh:7 —<br/>no compile step, no bundler, no WASM"]:::warn
     G4 --> SRC2["ground truth: BASELINE-visionflow.md:301 Invariant 7<br/>renumbered from 6 when the sidestr invariant was inserted"]:::warn
 ```
 
-## VF-04.8 What the ledger actually records — a dry September, a silent fortnight, then three ACCEPTs
+## VF-04.8 What the ledger actually records — a dry September, a silent fortnight, then seven ACCEPTs
 ```mermaid
 flowchart TB
     classDef acc fill:#e6f0dc,stroke:#4a7a2a,color:#111
@@ -213,7 +215,7 @@ flowchart TB
 
     L["docs/dream-cycle/LEDGER.md — LEDGER.md:3"]
 
-    L --> A["ACCEPT nights (13): 08-17 x2, 08-29, 08-31, 09-01, 09-02,<br/>09-03, 09-04, 09-05, 09-10 seo-and-meta robots.txt via<br/>PR #3 — LEDGER.md:25 — then 09-30, 10-01 and 10-02"]:::acc
+    L --> A["ACCEPT nights (17): 08-17 x2, 08-29, 08-31, 09-01, 09-02,<br/>09-03, 09-04, 09-05, 09-10 seo-and-meta robots.txt via<br/>PR #3 — LEDGER.md:25 — then seven in a row, 09-30 to 10-06"]:::acc
     L --> I["INCONCLUSIVE nights (10): 08-16 content-integrity; three<br/>webgl-mesh nights 08-30, 09-06, 09-07; then six VETOED nights<br/>09-08, 09-09, 09-11, 09-13, 09-27, 09-29<br/>LEDGER.md:19,23,24,26,28,29,31"]:::inc
     L --> B["BLOCKED-ENV nights (2): 09-12 and 09-28, both<br/>content-integrity, both VETOED — LEDGER.md:27,30"]:::blk
     L --> O["OPERATOR rows (5) — human audits, deliberately NOT counted<br/>toward the dry streak that parks a repo"]:::op
@@ -231,7 +233,7 @@ flowchart TB
     GAP["No row at all for 09-14 through 09-26 — thirteen nights with<br/>no verdict of any kind in the ledger; the next row is 09-27<br/>LEDGER.md:28-29"]:::bad
     DRY --> GAP
     GAP --> LATE["09-27 estate-health INCONCLUSIVE and 09-29 build-pipeline<br/>INCONCLUSIVE; 09-28 content-integrity BLOCKED-ENV after the<br/>link gate was found to skip every ref containing a hash<br/>LEDGER.md:29-31"]:::inc
-    LATE --> RUN["three ACCEPTs in a row: 09-30 seo-and-meta PR #4,<br/>10-01 build-pipeline PR #11 making robots.txt a REQUIRED<br/>asset, 10-02 seo-and-meta PR #12 adding og:site_name and a<br/>WebSite JSON-LD block — LEDGER.md:32-34<br/>#11 and #12 landed on main as 1a34285 and dc970bc — see VF-02.3, VF-02.6"]:::acc
+    LATE --> RUN["seven ACCEPTs in a row: 09-30 seo-and-meta PR #4,<br/>10-01 build-pipeline PR #11 making robots.txt a REQUIRED<br/>asset, 10-02 seo-and-meta PR #12 adding og:site_name and a<br/>WebSite JSON-LD block, 10-03 estate-health PR #13 adding<br/>sidestr-hitch and sidestr-agent to the roster, 10-04<br/>content-integrity PR #14, 10-05 build-pipeline PR #15 adding<br/>the in-page-anchor family to the link gate, 10-06 seo-and-meta<br/>PR #16 adding a robots meta — LEDGER.md:32-38<br/>#11 to #16 all landed on main — see VF-02.3, VF-02.6, VF-03.1"]:::acc
 
     LESSON["The ledger's own standard, from ADR-2009: a verdict that a<br/>night could not observe its subject should be rare and<br/>informative; repeating INCONCLUSIVE on a schedule for a<br/>structural reason turns it into noise. The 09-08..09-13 run<br/>shows the same risk one level up — repeated VETOED nights on<br/>the same two slots are a structural impediment, not evidence<br/>of nothing to find<br/>ADR-2009-webgl-mesh-deep-is-sidecar-only.md:63"]
     I --> LESSON
@@ -256,11 +258,11 @@ stateDiagram-v2
     state "BLOCKED-ENV — engine-raised harness or environment fault, bypassing Measured;<br/>never parsed from the model's report and never counted toward the dry streak —<br/>see AB-23.4, AB-23.18 — observed here 2026-09-12 — LEDGER.md:27" as BlockedEnv
     BlockedEnv --> LedgerOnly
     Accept --> Branch
-    state "branch dream/<deep>-<date> — prefix at dream.config.json:76" as Branch
+    state "branch dream/<deep>-<date> — prefix at dream.config.json:77" as Branch
     Branch --> Draft
-    state "DRAFT pull request, labels dream-cycle and marketing-site — dream.config.json:77" as Draft
+    state "DRAFT pull request, labels dream-cycle and marketing-site — dream.config.json:78" as Draft
     Draft --> Human
-    state "a human reads the receipts and merges, or refuses — autoMerge false at dream.config.json:81" as Human
+    state "a human reads the receipts and merges, or refuses — autoMerge false at dream.config.json:82" as Human
     Human --> Merged
     Human --> Refused
     state "merged to main — deploy.yml then runs every blocking gate like any other push — see VF-02.6" as Merged
@@ -297,7 +299,7 @@ flowchart LR
     end
 
     subgraph DREAMONLY["Dream only"]
-        D1["dream-asset-refs-scan.sh — ASSET-SCAN-OK<br/>orphan and payload decomposition, no CI consumer<br/>dream.config.json:51"]:::only
+        D1["dream-asset-refs-scan.sh — ASSET-SCAN-OK<br/>orphan and payload decomposition, no CI consumer<br/>dream.config.json:51 — and since 10-02 orphans are KEPT<br/>by owner decision: no night may propose a prune<br/>dream.config.json:74"]:::only
         D2["estate-health.mjs check — read-only estate verdict<br/>dream.config.json:59; CI runs the same command but only<br/>as a reported step — estate-health.yml:105"]:::only
     end
 
@@ -314,4 +316,4 @@ flowchart LR
     DREAMONLY -.-> NOBROWSER
 ```
 
-**Debt (ledger rows reach main by hand):** the engine wrote the 09-27 to 09-30 rows to the working tree and never committed them; they reached main only in a human commit (`f3d54a0`), and the 10-01 and 10-02 rows likewise in `e52dba7` (`docs/dream-cycle/LEDGER.md:29-34`). The ledger the next night reads is therefore whatever an operator last committed, and the 09-14 to 09-26 silence cannot be told apart from rows that were written and lost.
+**Debt (ledger rows reach main by hand):** the engine writes each night's row to the working tree and never commits it; the 09-27 to 09-30 rows reached main only in a human commit (`f3d54a0`) and the 10-01 and 10-02 rows likewise in `e52dba7` (`docs/dream-cycle/LEDGER.md:29-34`); the 10-03 to 10-06 rows landed with their own ACCEPT PR merges, but only because each PR carried its row (`docs/dream-cycle/LEDGER.md:35-38`). The ledger the next night reads is therefore whatever an operator last committed, and the 09-14 to 09-26 silence cannot be told apart from rows that were written and lost.

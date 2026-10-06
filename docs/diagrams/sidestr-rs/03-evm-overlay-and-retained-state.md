@@ -18,7 +18,7 @@ sources:
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
   - ../project/agentbox/docs/adr/ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
-verified_commit: {sidestr-rs: cd177ecc08f4907541a55518263bae342f7ba8e5, visionflow: e5987acc8337ddd64c72f775750d61fef46d8e0b, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047}
+verified_commit: {sidestr-rs: a7aadd68d536167507e00e1ce6237fbecb5b46fa, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, agentbox: 9fd49a935611a4f1b3591030d52fe13610179397}
 ---
 
 ## For developers
@@ -44,7 +44,7 @@ flowchart LR
     CB --> BLOCK["accepted sidestr block"]
 ```
 
-**What it shows.** The overlay recognises deposits, carried Ethereum transactions, withdrawals and the root committed by the sidechain coinbase (`../sidestr-rs/sidestr-evm/src/lib.rs:19`). One sat maps to one gwei inside the overlay (`../sidestr-rs/sidestr-evm/src/lib.rs:10`).
+**What it shows.** The overlay's record table recognises deposits, carried Ethereum transactions and withdrawals (`../sidestr-rs/sidestr-evm/src/lib.rs:21-25`). One sat maps to one gwei inside the overlay (`../sidestr-rs/sidestr-evm/src/lib.rs:5`).
 
 **Why it is this way.** Deposits and withdrawals remain accountable in the host chain's block. Estate policy therefore treats EVM as in-chain execution rather than a second value rail (`../project/agentbox/docs/adr/ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:116`).
 
@@ -68,9 +68,9 @@ sequenceDiagram
     Note over R,S: sidestr-evm/src/rule.rs:62
 ```
 
-**What it shows.** `EvmRule` exposes validation, coinbase allowance and applied-block commit through the core rule interface (`../sidestr-rs/sidestr-evm/src/rule.rs:62`). Preparation checks both the root and withdrawal payments before state can commit (`../sidestr-rs/sidestr-evm/src/state.rs:459`).
+**What it shows.** `EvmRule` exposes validation, coinbase allowance and applied-block commit through the core rule interface (`../sidestr-rs/sidestr-evm/src/rule.rs:62`). Preparation checks both the root and withdrawal payments before state can commit (`../sidestr-rs/sidestr-evm/src/state.rs:468`).
 
-**Why it is this way.** Validation and producer sequencing must not mutate durable state. The crate deliberately commits only an applied block (`../sidestr-rs/sidestr-evm/src/lib.rs:78`).
+**Why it is this way.** Validation and producer sequencing must not mutate durable state. The crate deliberately commits only an applied block, unlike the reference's `prepare` (`../sidestr-rs/sidestr-evm/src/lib.rs:84`).
 
 ## SR-03.3 Retained-height snapshots
 
@@ -86,7 +86,7 @@ flowchart TB
     V -->|no| REF["refuse snapshot"]
 ```
 
-**What it shows.** A snapshot contains the versioned execution worlds, times, block hashes and receipts (`../sidestr-rs/sidestr-evm/src/state.rs:161`). Restore verifies version, configuration, root and time, then clears transient execution state (`../sidestr-rs/sidestr-evm/src/state.rs:291`).
+**What it shows.** A snapshot contains the versioned execution worlds, times, block hashes and receipts (`../sidestr-rs/sidestr-evm/src/state.rs:161`). Restore verifies version, configuration, root and time, then clears transient execution state (`../sidestr-rs/sidestr-evm/src/state.rs:305`).
 
 **Why it is this way.** A follower can resume from any retained sidechain height without treating unverified serialised state as consensus truth.
 
@@ -101,8 +101,8 @@ flowchart LR
     SRC -. "separate release and deployment" .-> LIVE["estate activation"]
 ```
 
-**What it shows.** CI regenerates the EVM fixtures against the pinned reference and fails on drift (`../sidestr-rs/.github/workflows/ci.yml:165`). The oracle suite checks roots, withdrawals, hashes, receipts and refused blocks (`../sidestr-rs/sidestr-evm/tests/oracle.rs:1`).
+**What it shows.** CI regenerates the EVM fixtures against the pinned reference and fails on drift (`../sidestr-rs/.github/workflows/ci.yml:186`). The oracle suite checks roots, withdrawals, hashes, receipts and refused blocks (`../sidestr-rs/sidestr-evm/tests/oracle.rs:1`).
 
-**Why it is this way.** Byte-level parity supports a source claim. It does not publish the crate or alter a sealed chain document. VisionFlow records both limits explicitly (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:106`).
+**Why it is this way.** Byte-level parity supports a source claim. It does not publish the crate or alter a sealed chain document. VisionFlow records both limits explicitly (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:123-126`).
 
-**Open:** `sidestr-evm` is unpublished, and the `sidestr:dreamlab` document reaches `containmentDigest` without an `evm` rule (`../project/agentbox/config/sidechain/dreamlab/chain.json:5`, `../project/agentbox/config/sidechain/dreamlab/chain.json:28`).
+**Open:** `sidestr-evm` is unpublished, and the `sidestr:dreamlab` document reaches `containmentDigest` without an `evm` rule (`../project/agentbox/config/sidechain/dreamlab/chain.json:1`, `../project/agentbox/config/sidechain/dreamlab/chain.json:28`).

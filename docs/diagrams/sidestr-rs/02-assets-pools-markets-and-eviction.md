@@ -16,7 +16,7 @@ sources:
   - ../sidestr-rs/sidestr-core/tests/eviction.rs
   - ../sidestr-rs/README.md
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
-verified_commit: {sidestr-rs: cd177ecc08f4907541a55518263bae342f7ba8e5, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047}
+verified_commit: {sidestr-rs: a7aadd68d536167507e00e1ce6237fbecb5b46fa, agentbox: 5ab197a9d49e9721b85b791bf9efe30842c9e047}
 ---
 
 ## For developers
@@ -86,9 +86,12 @@ stateDiagram-v2
 
 ```mermaid
 sequenceDiagram
+    participant A as submit<br/>sidestr-core/src/state.rs:636
     participant M as mempool
     participant S as temporary overlay state
     participant B as block builder
+    A->>A: refuse immature BIP 68 or nLockTime<br/>state.rs:717-728
+    A->>M: store eligible transaction<br/>state.rs:729-732
     M->>S: replay candidate in order
     alt valid in the candidate block
         S-->>B: keep transaction
@@ -96,11 +99,11 @@ sequenceDiagram
         S-->>M: evict exact serialised transaction
     end
     B->>B: validate final block and apply once
-    Note over M,B: sidestr-core/src/state.rs:851
+    Note over M,B: sidestr-core/src/state.rs:874
 ```
 
-**What it shows.** The builder walks the mempool in order and removes transactions that admission accepted but current block state rejects (`../sidestr-rs/sidestr-core/src/state.rs:851`). Eviction matches the exact transaction bytes, so a witness-repaired transaction with the same txid is not removed accidentally (`../sidestr-rs/sidestr-core/src/state.rs:718`, `../sidestr-rs/sidestr-core/tests/eviction.rs:16`).
+**What it shows.** Admission refuses a transaction whose BIP 68 relative lock or `nLockTime` has not matured at the next height, so an immature channel sweep or HTLC refund never enters the mempool and production is never asked to evict it (`../sidestr-rs/sidestr-core/src/state.rs:628`, `../sidestr-rs/sidestr-core/src/state.rs:721`). When admission and block validation still disagree, the builder walks the mempool in order and removes transactions that admission accepted but current block state rejects (`../sidestr-rs/sidestr-core/src/state.rs:874`). Eviction matches the exact transaction bytes, so a witness-repaired transaction with the same txid is not removed accidentally (`../sidestr-rs/sidestr-core/src/state.rs:759`, `../sidestr-rs/sidestr-core/tests/eviction.rs:16`).
 
-**Why it is this way.** Rule state changes as earlier candidates enter a block. Exact-byte eviction prevents one invalid witness form from suppressing a repaired form that shares its txid.
+**Why it is this way.** Rule state changes as earlier candidates enter a block. Turning immature locks away at admission means they can be submitted again once their height arrives instead of being evicted from a produced block (`../sidestr-rs/sidestr-core/src/state.rs:631`). Exact-byte eviction prevents one invalid witness form from suppressing a repaired form that shares its txid.
 
 **Open:** assets, pools and markets remain inactive on `sidestr:dreamlab`; its sealed document reaches `containmentDigest` without a `rules` field (`../project/agentbox/config/sidechain/dreamlab/chain.json:5`, `../project/agentbox/config/sidechain/dreamlab/chain.json:28`).

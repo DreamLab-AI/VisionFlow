@@ -59,7 +59,7 @@ sources:
   - docs/engineering/README.md
   - docs/engineering/ADR-004-harness-engineering-framework.md
   - docs/engineering/ADR-005-mandate-at-grant-governance.md
-verified_commit: e5987acc8337ddd64c72f775750d61fef46d8e0b
+verified_commit: 62d16e02fe3bdd5551e4433b2d42552ec93adb12
 ---
 
 ## VF-01.2 Document taxonomy — which class a file belongs to, and who owns its truth
@@ -162,8 +162,9 @@ stateDiagram-v2
     end note
     note right of ACT
       adr-index-gen.cjs:33
-      ADR-2007 sits proposed/partial/staged
-      ADR-2007-estate-closeout-evidence-roadmap.md:7
+      ADR-2007 sits accepted/partial/live
+      since the 2026-10-02 acceptance
+      ADR-2007-estate-closeout-evidence-roadmap.md:5-7
     end note
 ```
 
@@ -257,7 +258,7 @@ flowchart TB
     A4["ADR-2004 committed diagram baseline, vendored Mermaid<br/>diverges from legacy ADR-005 D3<br/>ADR-2004-diagram-baseline-vendored-render-gate.md:30"]:::live
     A5["ADR-2005 drift counter, allowlist-anchored, fail-open per axis<br/>implementation_status PARTIAL — 2 of 4 axes unenforced<br/>ADR-2005-drift-counter-allowlist-substrate-sourced.md:30"]:::part
     A6["ADR-2006 canon-only — cross-repo view, never substrate truth<br/>makes BASELINE Invariant 4 a standing constraint<br/>ADR-2006-canon-owns-crossrepo-view-not-implementation.md:32"]:::live
-    A7["ADR-2007 estate closeout evidence roadmap<br/>proposed / partial / staged — the roadmap, not the work<br/>ADR-2007-estate-closeout-evidence-roadmap.md:24"]:::part
+    A7["ADR-2007 estate closeout evidence roadmap<br/>accepted / partial / live — narrowed to its evidence rule<br/>(owner decision 2026-10-02); the coordinating-roadmap half<br/>is overtaken by the planning cycle — ADR-2007-estate-closeout-evidence-roadmap.md:24"]:::part
     A8["ADR-2008 estate health collected by CI, read by the dream cycle<br/>extends ADR-2006 — see VF-03<br/>ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:34"]:::live
     A9["ADR-2009 webgl-mesh deep is sidecar-only<br/>applies the ADR-2008 pattern, parks a rotation slot — see VF-04<br/>ADR-2009-webgl-mesh-deep-is-sidecar-only.md:36"]:::live
     A10["ADR-2010 the six augmentation conditions are the canon's audit lens<br/>accepted / complete / staged — extends ADR-2006 by giving<br/>the cross-repo view a rubric — see VF-01.13 and VF-05.13<br/>ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md:26"]:::live
@@ -318,7 +319,7 @@ flowchart TB
 
     D1["DOC-DRIFT: ./README.md:202 still says<br/>'The site is a Rust/WASM build under website/'<br/>and ./README.md:206 'wasm-pack builds both WASM crates'<br/>recorded open at BASELINE-visionflow.md:211"]:::drift
     D2["DOC-DRIFT: site-verification.md:10 'builds both WASM crates'<br/>and site-verification.md:17 'wasm-pack release builds complete'"]:::drift
-    D3["DOC-DRIFT: PRD-website.md:120 still specifies two required<br/>WASM modules, mesh-hero and particle-field,<br/>with PRD-website.md:128 a 300 KB gzip WASM budget"]:::drift
+    D3["DOC-DRIFT: PRD-website.md:124 still specifies two required<br/>WASM modules, mesh-hero and particle-field,<br/>with PRD-website.md:132 a 300 KB gzip WASM budget"]:::drift
     SRC -.->|"contradicted by"| D1
     SRC -.->|"contradicted by"| D2
     SRC -.->|"contradicted by"| D3
@@ -362,7 +363,7 @@ flowchart TB
 
     TIER["ADR-2011 — the operator-declared task-property triple<br/>verifiability, reversibility, stakes — sets the escalation<br/>boundary; a request may TIGHTEN it, never loosen it<br/>ADR-2011-task-properties-set-the-boundary-not-agent-self-tiering.md:28<br/>risk_tier survives as telemetry with no authority of its own<br/>ADR-2011-task-properties-set-the-boundary-not-agent-self-tiering.md:32"]:::rec
     SRC --> TIER
-    TIER --> KINDS["the allocation table mirrors the new tags rather than<br/>new kinds: tp-verifiability, tp-reversibility, tp-stakes,<br/>probe, Delegate ride 31400 to 31405<br/>event-kind-registry.md:96 and event-kind-registry.md:103"]:::tbl
+    TIER --> KINDS["the allocation table mirrors the new tags rather than<br/>new kinds: tp-verifiability, tp-reversibility, tp-stakes,<br/>probe, Delegate ride 31400 to 31405<br/>event-kind-registry.md:107 and event-kind-registry.md:112"]:::tbl
 
     BASE["BASELINE-visionflow.md:186 carries the subsection;<br/>ADR-2010 and ADR-2011 are pinned to 03db671, a third<br/>commit distinct from the document's own frontmatter<br/>BASELINE-visionflow.md:209"]
     SRC --> BASE
@@ -386,36 +387,36 @@ flowchart TB
 
     REC["PROPOSED — ADR-2012, decision proposed,<br/>implementation PARTIAL, activation inactive<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7<br/>NOT a live surface: VisionFlow carries no substrate code;<br/>partial tracks verified sibling source only<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:15"]:::prop
 
-    REC --> P1["P1 — canon records ONE financial substrate: DreamLab's own<br/>sidestr sidechains. Decision stays proposed and activation<br/>inactive until the implementing records are accepted and their<br/>runtime evidence is filed; verified source may raise<br/>only the implementation axis<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:44"]:::prop
+    REC --> P1["P1 — canon records ONE financial substrate: DreamLab's own<br/>sidestr sidechains. Decision stays proposed and activation<br/>inactive until the implementing records are accepted and their<br/>runtime evidence is filed; verified source may raise<br/>only the implementation axis<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:48-50"]:::prop
     REC --> P2["P2 — Lightning-first is RETIRED as unbuilt, not rescheduled<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:51"]:::retire
-    REC --> P3["P3 — the SHA-256d-only anchoring note is RETIRED;<br/>parent network and header family become validated<br/>configuration, not a fixed property of the estate<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:57"]:::retire
-    REC --> P4["P4 — the kind registry MIRRORS the sidestr kinds as<br/>externally owned and provisional, plus estate-owned 38420<br/>sidestr-account-binding (agentbox ADR-2105 moved the whole<br/>settlement pack from 38100-38199 into the 38400-38499 band)<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:63-66,<br/>event-kind-registry.md:68 and event-kind-registry.md:82"]:::tbl
-    REC --> P5["P5 — custody is stated honestly: the root chain is a<br/>k-of-n signer set we operate and is CUSTODIAL<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:70"]:::prop
-    REC --> P6["P6 — no regulatory claim moves; canon may not be cited<br/>as relief for any cell of the ADR-124 matrix<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:75"]:::prop
+    REC --> P3["P3 — the SHA-256d-only anchoring note is RETIRED;<br/>the parent is named by the sidestr/spec short alias<br/>(0.0.2 onwards): tbtc4, btc, txbt4, xbt — header family<br/>follows the parent, and long ids survive as aliases<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:57-62"]:::retire
+    REC --> P4["P4 — the kind registry MIRRORS the sidestr 0.0.5 and teller<br/>kinds as externally owned and provisional — 3500, 23500, 23501,<br/>23503, 23510-23514, 33333, 33500-33502, plus teller 30333 and<br/>3700 — and estate-owned 38420 sidestr-account-binding inside<br/>agentbox's 38400-38499 band (ADR-2105)<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:69-79,<br/>event-kind-registry.md:32-38, event-kind-registry.md:64-67<br/>and event-kind-registry.md:79"]:::tbl
+    REC --> P5["P5 — custody is stated honestly: the root chain is LEVEL 1<br/>with one signer we operate and is CUSTODIAL; the k-of-n<br/>federation is rung 2 of the hardening path, not reached<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:84-87"]:::prop
+    REC --> P6["P6 — no regulatory claim moves; canon may not be cited<br/>as relief for any cell of the ADR-124 matrix<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:91"]:::prop
 
-    P2 --> C1["the claims being withdrawn are LIVE on the published page:<br/>'Lightning over L402 and NWC as the rail today' and<br/>'the native NWC rail is the next phase'<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:28<br/>sourced from docs/PRD-website.md:23"]:::retire
-    P1 --> C2["the did:nostr payment-account claim gets a named instrument<br/>for the first time — ./README.md:142 and ./README.md:256<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:25"]:::prop
+    P2 --> C1["the claims P2 withdraws were corrected on the published page<br/>on 2026-10-02 (owner decision Q12): the page now says no<br/>Lightning or NWC rail is built and the pill reads<br/>'testnet research only'<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:169<br/>website/static/index.html:608 and website/static/index.html:1103"]:::retire
+    P1 --> C2["the did:nostr payment-account claim gets a named instrument<br/>for the first time — ./README.md:142 and ./README.md:256<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:45-46"]:::prop
 
-    P4 --> REG["the registry owns the ALLOCATION TABLE; semantics stay with<br/>the originating record — event-kind-registry.md:8<br/>this ratification criterion is now MET: the sidestr rows and<br/>38420 are written, inside the ADR-2105 band, with no collision<br/>flagged — event-kind-registry.md:67-69,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:137"]:::tbl
+    P4 --> REG["the registry owns the ALLOCATION TABLE; semantics stay with<br/>the originating record — event-kind-registry.md:8<br/>this ratification criterion is now MET: the sidestr 0.0.5 rows,<br/>the teller rows and 38420 are written, with the §2.5 collision<br/>check finding no collision and nothing new in 38400-38499 —<br/>event-kind-registry.md:135,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:153"]:::tbl
 
-    ROUTE["Cross-repo routing table — canon records which sibling record<br/>carries each part so a reader lands on the implementing decision<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:78"]:::ext
+    ROUTE["Cross-repo routing table — canon records which sibling record<br/>carries each part so a reader lands on the implementing decision<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:94"]:::ext
     REC --> ROUTE
-    ROUTE --> EXT1["EXTERNAL: agentbox ADR-2096 (now with its 2026-09-26<br/>amendment: attributed crates, EVM only as an in-chain overlay)<br/>to ADR-2103 and PRD-024, solid-pod-rs ADR-2008, VisionClaw<br/>ADR-2111, nostr-rust-forum ADR-2012 — see AB-NN, SP-NN, VC-NN,<br/>NF-NN, SR-01. Canon routes to them, it does not restate their<br/>mechanics — ADR-2012-sidestr-settlement-is-ecosystem-canon.md:83"]:::ext
+    ROUTE --> EXT1["EXTERNAL: agentbox ADR-2096 (now with its 2026-09-26<br/>amendment: attributed crates, EVM only as an in-chain overlay)<br/>to ADR-2103 and PRD-024, solid-pod-rs ADR-2008, VisionClaw<br/>ADR-2111, nostr-rust-forum ADR-2012 — see AB-NN, SP-NN, VC-NN,<br/>NF-NN, SR-01. Canon routes to them, it does not restate their<br/>mechanics — ADR-2012-sidestr-settlement-is-ecosystem-canon.md:99-108"]:::ext
 
-    QUAL["Source qualification 2026-10-01 — sidestr-rs matches spec fe689e9,<br/>seven crates published, oracle CI green; pools, markets, EVM<br/>and Hitch exist in source; sidestr-evm unpublished; agentbox<br/>still produces sidestr:dreamlab with upstream JavaScript and no<br/>overlay is activated — ADR-2012-sidestr-settlement-is-ecosystem-canon.md:96-110<br/>this promotes implementation only, none to partial<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:112-114"]:::tbl
+    QUAL["Source qualification 2026-10-01 — sidestr-rs matches spec fe689e9,<br/>seven crates published, oracle CI green; pools, markets, EVM<br/>and Hitch exist in source; sidestr-evm unpublished; agentbox<br/>still produces sidestr:dreamlab with upstream JavaScript and no<br/>overlay is activated — ADR-2012-sidestr-settlement-is-ecosystem-canon.md:113-128<br/>this promotes implementation only, none to partial<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:129-130"]:::tbl
     REC --> QUAL
     BASEL["the BASELINE mirrors it as its own subsection<br/>and keeps ADR-2012 at proposed / partial / inactive<br/>BASELINE-visionflow.md:117-130"]:::tbl
     QUAL --> BASEL
 
-    VER["DIVERGENCE: ratification evidence is PARTIAL — the registry criterion<br/>is now met (see REG), but the compatibility matrix carries no settlement<br/>row and the site still states Lightning/NWC as the live rail<br/>(website/static/index.html:608, echoed at :1101-1103 'sats live, NWC next')<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:128-133,<br/>decision proposed and activation inactive throughout"]:::retire
+    VER["Ratification evidence is PARTIAL but narrowed: the registry criterion<br/>is met (see REG) and the site's Lightning/NWC claims are withdrawn<br/>(see C1, PR #15, commit 273a934), yet the compatibility matrix still<br/>carries no settlement row — event-kind-registry.md:135,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:159-160,<br/>decision proposed and activation inactive throughout<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7"]:::retire
     REC --> VER
 ```
 
-**Tension (ADR-2012 vs the shipped site):** ADR-2012 withdraws the Lightning and NWC rail claims as unbuilt (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:51`), but the record is `proposed / partial / inactive` (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7`), so the claims it retires are still the ones the deployed page serves (`website/static/index.html:608`, `website/static/index.html:1102`).
+**Tension (ADR-2012 vs the shipped site) — RESOLVED 2026-10-02:** ADR-2012 withdraws the Lightning and NWC rail claims as unbuilt (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:51`), and as of owner decision Q12 the deployed page says the same: no Lightning or NWC rail is built, with the status pill reading "testnet research only" (`website/static/index.html:608`, `website/static/index.html:1103`; disposition at `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:169`). The record itself stays `proposed / partial / inactive` (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7`).
 
-**Drift (ADR-2012 context vs HEAD):** the record's context still points at line 597 and lines 1015 to 1016 of the site page for the withdrawn claims, and at README lines 134 and 248 for the payment-account rows (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:27-29`); at this commit those sentences sit at `website/static/index.html:608` and `website/static/index.html:1102`, and at `./README.md:142` and `./README.md:256`.
+**Drift (ADR-2012 context vs HEAD):** the record's context still points at line 597 and lines 1015 to 1016 of the site page for the withdrawn claims, and at README lines 134 and 248 for the payment-account rows (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:28-33`); the site sentences have since been rewritten in place — the withdrawal text sits at `website/static/index.html:608` and the corrected pill at `website/static/index.html:1103` — and the README sentences sit at `./README.md:142` and `./README.md:256`.
 
-**Drift (site tile vs canon):** README, BASELINE and ADR-2012 all say seven sidestr-rs crates are published (`./README.md:120`, `docs/BASELINE-visionflow.md:121`, `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:101`), while the website's repository tile still says six (`website/static/index.html:1192`).
+**Drift (site tile vs canon):** README, BASELINE and ADR-2012 all say seven sidestr-rs crates are published (`./README.md:120`, `docs/BASELINE-visionflow.md:121`, `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:117`), while the website's repository tile still says six (`website/static/index.html:1192`).
 
 ## VF-01.15 ADR-2013 sovereign corpus — four disagreeing doors become one vault, one parser, one gate
 ```mermaid

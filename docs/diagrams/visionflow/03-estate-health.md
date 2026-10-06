@@ -23,7 +23,7 @@ sources:
   - tests/gates/estate-health-ci.test.mjs
   - tests/gates/run-all.sh
   - ./README.md
-verified_commit: e5987acc8337ddd64c72f775750d61fef46d8e0b
+verified_commit: 62d16e02fe3bdd5551e4433b2d42552ec93adb12
 ---
 
 ## VF-03.1 The roster — the only place the estate is enumerated
@@ -53,7 +53,7 @@ flowchart LR
     REPOS --> P14["DreamLab-AI/dream-engine — provenance IMPORTED,<br/>fork of ruvnet/dream-machine — roster.json:19<br/>EXTERNAL: the dream engine itself, see AB-23"]:::imp
 
     R --> SURF["surfaces — 6 probes — roster.json:21<br/>www.visionflow.info, narrativegoldmine.com,<br/>its /ns/v2.jsonld and /data/graph/stats.json,<br/>www.dreamlab-ai.com, and the VisionClaw<br/>ontology-latest/index.jsonld release asset"]
-    R --> REG["registries — 12 entries — roster.json:56<br/>crates.io: vowl-wasm, prose-sanitiser, diagram-ir,<br/>solid-pod-rs, solid-pod-rs-server, nostr-bbs-core,<br/>and five sidestr crates: header, core, nostr, wallet, round<br/>roster.json:63-67 — npm: @dreamlab-ai/vowl-wasm — roster.json:68"]
+    R --> REG["registries — 14 entries — roster.json:56<br/>crates.io: vowl-wasm, prose-sanitiser, diagram-ir,<br/>solid-pod-rs, solid-pod-rs-server, nostr-bbs-core,<br/>and all seven sidestr crates: header, core, nostr, wallet,<br/>round, hitch, agent — roster.json:63-69<br/>npm: @dreamlab-ai/vowl-wasm — roster.json:70"]
 
     NOTE["The two enumerations of the estate are reconciled in one<br/>direction: repository-map.md:8 lists ten repositories with local<br/>paths, sidestr-rs among them at repository-map.md:18, and<br/>repository-map.md:23 names the roster as THE authoritative list for<br/>nightly collection, scoping the other five roster repositories as<br/>supporting components — repository-map.md:27. The roster still<br/>does not reference the map back."]
     R -.-> NOTE
@@ -276,14 +276,14 @@ flowchart TB
     classDef green fill:#e6f0dc,stroke:#4a7a2a,color:#111
     classDef amb fill:#f9f0d5,stroke:#8a7020,color:#111
 
-    SNAP["schema visionflow.estate-health/1, generated 2026-10-02T08:42Z<br/>collected by the nightly run at revision cbf456a<br/>estate-health.json:2, estate-health.json:3 and estate-health.json:5"]
+    SNAP["schema visionflow.estate-health/1, generated 2026-10-06T09:09Z<br/>collected by the nightly run at revision 68adfad6<br/>estate-health.json:2, estate-health.json:3 and estate-health.json:5"]
 
-    SNAP --> SUM["summary — 15 repos: 9 green, 3 red, 0 amber,<br/>0 none, 2 exempt, 1 unreadable, 12 open PRs,<br/>6 of 6 surfaces reachable<br/>estate-health.json:10 through estate-health.json:19"]
+    SNAP --> SUM["summary — 15 repos: 9 green, 3 red, 0 amber,<br/>0 none, 2 exempt, 1 unreadable, 16 open PRs,<br/>6 of 6 surfaces reachable<br/>estate-health.json:10 through estate-health.json:19"]
 
-    SUM --> R1["RED — VisionClaw. Documentation Quality CI concluded<br/>failure while CI stayed green<br/>estate-health.json:116, estate-health.json:119 and estate-health.json:126"]:::red
-    SUM --> R2["RED — agentbox. Contract tests concluded failure on<br/>2026-10-01 while CI stayed green<br/>estate-health.json:169 and estate-health.json:179"]:::red
-    SUM --> R3["RED — nostr-rust-forum. Its CI workflow concluded failure;<br/>Security Audit stayed green<br/>estate-health.json:302 and estate-health.json:312"]:::red
-    SUM --> E1["EXEMPT — knowledgeGraph. Its last Build and verify run failed on<br/>an older commit, so the HEAD rule reports none and ci_by_design<br/>turns that into exempt; both notes are kept<br/>estate-health.json:464, estate-health.json:484 and estate-health.json:485"]:::amb
+    SUM --> R1["RED — VisionClaw. Its CI workflow concluded failure while<br/>Documentation Quality CI stayed green<br/>estate-health.json:116, estate-health.json:119 and estate-health.json:125"]:::red
+    SUM --> R2["RED — agentbox. Contract tests concluded failure on<br/>2026-10-06 while CI stayed green<br/>estate-health.json:176 and estate-health.json:186"]:::red
+    SUM --> R3["RED — nostr-rust-forum. Its ADR ledger workflow concluded<br/>failure while CI and Security Audit stayed green<br/>estate-health.json:302, estate-health.json:305 and estate-health.json:312"]:::red
+    SUM --> E1["EXEMPT — knowledgeGraph. Its last Build and verify run failed on<br/>an older commit, so the HEAD rule reports none and ci_by_design<br/>turns that into exempt; both notes are kept<br/>estate-health.json:464, estate-health.json:467 and estate-health.json:484"]:::amb
     SUM --> E2["EXEMPT — WasmVOWL, no workflows by design<br/>estate-health.json:541"]:::amb
     SUM --> U1["UNREADABLE — jjohare/visionGraph, the one known hole<br/>see VF-03.5 — estate-health.json:560"]:::amb
     SUM --> G1["GREEN — VisionFlow itself, solid-pod-rs, dreamlab-ai-website,<br/>loom, sidestr-rs, vowl-wasm, prose-sanitiser, diagram-ir,<br/>dream-engine"]:::green
@@ -297,4 +297,4 @@ flowchart TB
 
 **Debt:** since the 2026-09-23 snapshot knowledgeGraph moved from red to exempt by rule rather than by a passing run, dreamlab-ai-website turned green, and agentbox turned red; no mechanism records why a row flips, so any trend is only visible by reading committed snapshots in sequence (`website/static/data/estate-health.json:11`).
 
-**Debt (registry roster vs canon):** canon says seven sidestr crates are on crates.io (`./README.md:120`), but the roster tracks five of them (`scripts/estate-health/roster.json:63-67`); `sidestr-hitch` and `sidestr-agent` are never probed, so a yanked or stale release of either cannot reach the snapshot.
+**Debt (registry roster vs canon) — RESOLVED 2026-10-03:** canon says seven sidestr crates are on crates.io (`./README.md:120`), and since the 10-03 dream ACCEPT (PR #13, merged as `c1e1498`) the roster tracks all seven (`scripts/estate-health/roster.json:63-69`); `sidestr-hitch` and `sidestr-agent` are now probed every night, so a yanked or stale release of either reaches the snapshot.

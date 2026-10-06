@@ -28,7 +28,7 @@ sources:
   - docs/adr/ADR-2004-diagram-baseline-vendored-render-gate.md
   - docs/BASELINE-visionflow.md
   - docs/site-verification.md
-verified_commit: 8698ac103c77c680a33385038feb4ade1d1abac4
+verified_commit: 62d16e02fe3bdd5551e4433b2d42552ec93adb12
 ---
 
 ## VF-06.1 Two diagram pipelines, one repository — what each owns
