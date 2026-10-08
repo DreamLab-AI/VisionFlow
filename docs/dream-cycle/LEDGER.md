@@ -37,3 +37,4 @@ Schema note (2026-09-14, unmerged): FR6.6 of PRD-augmentation-conditions adds `R
 | 2026-10-05 | build-pipeline | Given the link gate's href/src family excludes every ref containing `#` (`script | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/15 | yes | ACCEPT |  | 965a9e549a3c |  |  |  |
 | 2026-10-06 | seo-and-meta | Given the built page's only crawler-policy artifact is `dist/robots.txt` while t | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/16 | yes | ACCEPT |  | b749fc421f75 |  |  |  |
 | 2026-10-07 | estate-health | agentbox 3 red workflows (2 new); source estate-health.mjs:500-997 not shown | NONE | NONE | yes | INCONCLUSIVE |  | df6d4f1da83e |  |  |  |
+| 2026-10-08 | content-integrity | Link gate family 4 resolves JSON-LD URLs: +1 ref (org logo), 0 missing, gate OK | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/18 | yes | ACCEPT |  | 92bc5d236d5e |  |  |  |
