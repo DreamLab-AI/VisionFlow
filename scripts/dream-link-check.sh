@@ -3,7 +3,7 @@
 # the built static site. Emits a surface-dependent count; non-zero missing
 # refs prints LINK-INTEGRITY-FAIL. Used as a dream-cycle evaluator entrypoint.
 #
-# Three ref families are resolved:
+# Four ref families are resolved:
 #   1. href/src attributes — ordinary markup links and asset references.
 #   2. meta[content] media URLs (og:image, twitter:image, …). These were a
 #      shared blind spot: dream-meta-tags-scan.sh COUNTS the tags but never
@@ -16,6 +16,14 @@
 #      nav link to a renamed or removed section passed this gate silently
 #      (2026-09-28 finding; that PR never landed). Baseline 0 dangling,
 #      operator-verified 2026-10-02, so dangling > 0 now FAILS.
+#
+#   4. JSON-LD URLs — every same-origin absolute URL inside an
+#      application/ld+json block must resolve in dist/.
+#      dream-structured-data-scan.sh PARSES the blocks but never looks at
+#      the URLs they carry (Organization logo/url, WebSite url, …), so a
+#      logo pointing at a file absent from dist/ passed every gate — the
+#      same blind spot family 2 closed for meta[content]. Off-site URLs
+#      are skipped, exactly as in every other family.
 #
 # Social URLs are absolute on the canonical domain (they must be, for the
 # crawlers), so "site-relative" here includes same-origin absolute URLs: the
@@ -71,6 +79,18 @@ while IFS= read -r f; do
     anchors=$((anchors+1))
     printf '%s\n' "$ids" | grep -qxF -- "$ref" \
       || { echo "DANGLING-ANCHOR: $f -> #$ref"; dangling=$((dangling+1)); }
+  done
+
+  # 4. JSON-LD URLs — ld+json payloads carry absolute URLs (logo, url, …).
+  #    Same-origin ones must exist in dist/; off-site skipped as everywhere.
+  #    dream-structured-data-scan.sh parses these blocks for JSON validity
+  #    but never resolves the URLs inside them.
+  for ref in $(sed -n '/<script[^>]*application\/ld+json/,/<\/script>/p' "$f" 2>/dev/null \
+             | grep -oE '"https?://[^"]+"' | tr -d '"'); do
+    t=$(resolve_ref "$ref")
+    [ -n "$t" ] || continue
+    checked=$((checked+1))
+    [ -e "$d/$t" ] || [ -e "./$t" ] || { echo "MISSING: $f -> $ref"; miss=$((miss+1)); }
   done
 done < <(find . -name '*.html')
 echo "internal-refs-checked: $checked  missing: $miss"
