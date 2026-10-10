@@ -39,3 +39,4 @@ Schema note (2026-09-14, unmerged): FR6.6 of PRD-augmentation-conditions adds `R
 | 2026-10-07 | estate-health | agentbox 3 red workflows (2 new); source estate-health.mjs:500-997 not shown | NONE | NONE | yes | INCONCLUSIVE |  | df6d4f1da83e |  |  |  |
 | 2026-10-08 | content-integrity | Link gate family 4 resolves JSON-LD URLs: +1 ref (org logo), 0 missing, gate OK | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/18 | yes | ACCEPT |  | 92bc5d236d5e |  |  |  |
 | 2026-10-09 | build-pipeline | VETOED: CNAME↔page-host drift now fails the link gate; baseline 2 checked, 0… | NONE | NONE | yes | BLOCKED-ENV |  | 5fd5d6f7422f |  |  |  |
+| 2026-10-10 | seo-and-meta | Adds op-approved og:locale en_GB + @id/publisher JSON-LD link; og-tags 9->10 | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/19 | yes | ACCEPT |  | a8973da6a2e1 |  |  |  |
