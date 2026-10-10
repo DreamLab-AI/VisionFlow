@@ -1,9 +1,9 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-10-09T09:21:05.393Z",
+  "generated_at": "2026-10-10T08:42:25.278Z",
   "generator": {
-    "revision": "fa88f8f24f0b40ee3238131e2657556189a61698",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/37910654512",
+    "revision": "3942765d7b20a9fcb255c03497ed23bb0e42163b",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38038789003",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
@@ -14,7 +14,7 @@
     "none": 0,
     "exempt": 2,
     "unreadable": 1,
-    "open_prs": 5,
+    "open_prs": 7,
     "surfaces_ok": 6,
     "surfaces_total": 6
   },
@@ -30,11 +30,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "fa88f8f24f0b40ee3238131e2657556189a61698",
-        "short": "fa88f8f",
-        "date": "2026-10-08T09:12:06Z",
-        "message": "chore(estate-health): nightly snapshot 2026-10-08 — 9/15 green",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/fa88f8f24f0b40ee3238131e2657556189a61698"
+        "sha": "3942765d7b20a9fcb255c03497ed23bb0e42163b",
+        "short": "3942765",
+        "date": "2026-10-09T09:21:06Z",
+        "message": "chore(estate-health): nightly snapshot 2026-10-09 — 10/15 green",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/3942765d7b20a9fcb255c03497ed23bb0e42163b"
       },
       "ci": {
         "state": "green",
@@ -57,8 +57,8 @@
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/37755006315",
-            "updated_at": "2026-10-08T09:12:56Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/37910710696",
+            "updated_at": "2026-10-09T09:21:49Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
@@ -71,12 +71,12 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/37754955665",
-            "updated_at": "2026-10-08T09:12:12Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/37910654512",
+            "updated_at": "2026-10-09T09:21:14Z"
           }
         ]
       },
-      "open_prs": 1,
+      "open_prs": 2,
       "open_issues": 1,
       "release": null,
       "pages": {
@@ -377,7 +377,7 @@
           }
         ]
       },
-      "open_prs": 2,
+      "open_prs": 3,
       "open_issues": 2,
       "release": null,
       "pages": {
@@ -729,7 +729,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 208,
+      "latency_ms": 202,
       "note": null
     },
     {
@@ -738,7 +738,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 212,
+      "latency_ms": 331,
       "note": null
     },
     {
@@ -747,7 +747,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 224,
+      "latency_ms": 199,
       "note": null
     },
     {
@@ -756,7 +756,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 243,
+      "latency_ms": 218,
       "note": "classes=9354 pages=9350 nodes=9354"
     },
     {
@@ -765,7 +765,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 375,
+      "latency_ms": 657,
       "note": null
     },
     {
@@ -774,7 +774,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 269,
+      "latency_ms": 352,
       "note": null
     }
   ],
