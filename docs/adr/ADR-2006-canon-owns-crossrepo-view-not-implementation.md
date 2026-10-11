@@ -7,7 +7,12 @@ implementation_status: complete
 activation_status: live
 supersedes: []
 superseded_by: []
-verified_commit: cf535f8
+verified_commit: 4b8cb48
+verified_paths:
+  - scripts/generate-release-manifest.sh
+  - docs/releases/ecosystem-release.schema.json
+  - docs/estate-review/evidence/adr-inventory.json
+  - tests/gates/release-manifest.test.sh
 owner: jjohare
 review_trigger: any move to host substrate implementation in this repo, or to publish a maturity claim above its evidence tier
 repo: visionflow
@@ -157,12 +162,45 @@ The fourteen-repository release roster above is a historical verified state, not
 a permanent inventory size. [Ontomark](https://github.com/DreamLab-AI/ontomark) now
 owns the shared ontology crates, CLI/engine assets and graph package;
 [ontomark-obsidian](https://github.com/DreamLab-AI/ontomark-obsidian) owns the separate
-desktop plugin distribution. Both belong in the next authoritative release roster
-and producer/consumer evidence matrix. Updating this ADR does not add them to the
-release generator, schema or inventory; those operational roster changes remain
-open and must land together with their count-integrity tests.
+desktop plugin distribution. Both now appear in the authoritative release
+generator, schema and inventory at `4b8cb48`. The current roster contains sixteen
+identities: twelve first-party, two imported and two upstream. Manifest version 2
+retains its existing fields and adds an optional `repository_url` for the two
+public producers. Missing checkouts remain explicit entries with an all-zero
+head; release tags are dated inventory observations, not inferred from checkout
+state or treated as compatibility qualification.
 
-[Core delivery evidence](https://github.com/DreamLab-AI/ontomark/blob/4abbce9/README.md)
-and [plugin target evidence](https://github.com/DreamLab-AI/ontomark-obsidian/blob/ebf8fd6/docs/desktop-acceptance.md)
-bound the current claims. This canon records their ownership and dated receipts;
-it does not award a higher maturity tier or certify mobile/estate-wide activation.
+The 2026-10-11 observations pin core HEAD
+`f2b259804c58b32d84a2fbc77a45803a4c54834f` and plugin HEAD
+`003956f94dd0d4dbc29a2c75d64efb2d1a55e521`. Published distributions are the core
+[native CLI/engine `v0.1.0-rc.1`](https://github.com/DreamLab-AI/ontomark/releases/tag/v0.1.0-rc.1),
+[graph package `ontomark-graph-v0.1.0`](https://github.com/DreamLab-AI/ontomark/releases/tag/ontomark-graph-v0.1.0)
+and [desktop plugin `0.1.0`](https://github.com/DreamLab-AI/ontomark-obsidian/releases/tag/0.1.0).
+These observed HEADs do not replace the distributions' own source pins.
+[Core delivery evidence](https://github.com/DreamLab-AI/ontomark/blob/f2b2598/README.md)
+and [plugin target evidence](https://github.com/DreamLab-AI/ontomark-obsidian/blob/003956f/docs/desktop-acceptance.md)
+bound the claims; no maturity tier is raised and mobile/estate-wide activation
+remains unqualified.
+
+The inventory preserves its 2026-09-05 scan date, method, fourteen original rows
+and every classified record. Only two repository observations are appended,
+explicitly marked `classification_status: not-scanned`; no ADR counts are
+fabricated. The original canon-boundary receipt at `cf535f8` and the historical
+six-to-fourteen closeout above remain dated evidence.
+
+Count-integrity regression tests first failed nineteen assertions for the omitted
+producers and outdated schema. The completed suite passes fifty assertions: roster/inventory counts
+and unique identities, all inventoried paths, public URLs, provenance counts,
+missing and present checkout state, resolved commits, dirty state and explicit
+canonical fixture selection. A real-workspace local draft also passes JSON
+Schema Draft 2020-12 validation with format checks. All seven governance gate
+suites pass with `DRIFT_AGENTBOX_DIR` pointing to the allowlist's declared
+historical agentbox pin `b859b37d2ffb74c08cfbb9aa9ad7e1cc61d6b188`; the mutable
+workspace checkout is not substituted for that dated count source. These are
+local checks, not a coordinated-release qualification or hosted CI receipt.
+
+Current governed paths: `scripts/generate-release-manifest.sh`,
+`docs/releases/ecosystem-release.schema.json`,
+`docs/estate-review/evidence/adr-inventory.json`,
+`tests/gates/release-manifest.test.sh`, `docs/releases/README.md` and
+`docs/BASELINE-visionflow.md`.

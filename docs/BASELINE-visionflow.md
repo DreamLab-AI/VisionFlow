@@ -1,9 +1,9 @@
 ---
 title: VisionFlow Baseline — What This Repo Is and Runs Today
 doc_id: VF-BASELINE
-version: 0.5.1
+version: 0.5.2
 status: draft-for-ratification
-verified_commit: ea33c17a2a54e06a806f0193b258282a1c049a86
+verified_commit: 4b8cb48
 sources:
   - README.md
   - website/build.sh
@@ -18,6 +18,9 @@ sources:
   - scripts/drift-counter/drift-counter.mjs
   - scripts/estate-health.mjs
   - scripts/generate-release-manifest.sh
+  - docs/releases/ecosystem-release.schema.json
+  - docs/estate-review/evidence/adr-inventory.json
+  - tests/gates/release-manifest.test.sh
   - docs/architecture/compatibility-matrix.md
   - docs/architecture/repository-map.md
   - scripts/check-augmentation-citations.cjs
@@ -27,7 +30,7 @@ sources:
   - docs/engineering/sovereign-corpus-contracts.md
   - package.json
   - dream.config.json
-date: 2026-10-01
+date: 2026-10-11
 ---
 
 # VisionFlow Baseline — What This Repo Is and Runs Today
@@ -52,8 +55,14 @@ host integration in its separate plugin repository. This remains canon work:
 no substrate implementation moves into VisionFlow. Producer receipts bound the
 released capabilities and Linux desktop checks; estate-wide migration and mobile
 acceptance remain open. [ADR-2006](adr/ADR-2006-canon-owns-crossrepo-view-not-implementation.md)
-records the pending addition of both repositories to the operational release
-roster, without claiming that a prose update changes the generator or schema.
+records the addition of both public producers to the operational release roster:
+[`scripts/generate-release-manifest.sh`](../scripts/generate-release-manifest.sh#L106),
+the [schema](releases/ecosystem-release.schema.json) and
+[inventory](estate-review/evidence/adr-inventory.json) now cover sixteen identities,
+checked by the [count-integrity suite](../tests/gates/release-manifest.test.sh).
+The original fourteen-repository inventory scan and closeout remain dated
+2026-09-05 evidence. Adding producer identities does not qualify a coordinated
+release or raise a maturity claim.
 
 ## Current State
 
