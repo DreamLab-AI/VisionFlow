@@ -1,9 +1,9 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-10-10T08:42:25.278Z",
+  "generated_at": "2026-10-11T09:06:09.096Z",
   "generator": {
-    "revision": "3942765d7b20a9fcb255c03497ed23bb0e42163b",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38038789003",
+    "revision": "e3586ada6b28f4ba69e8c7d2ab626b86127dce66",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38127149796",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
@@ -14,7 +14,7 @@
     "none": 0,
     "exempt": 2,
     "unreadable": 1,
-    "open_prs": 7,
+    "open_prs": 10,
     "surfaces_ok": 6,
     "surfaces_total": 6
   },
@@ -30,11 +30,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "3942765d7b20a9fcb255c03497ed23bb0e42163b",
-        "short": "3942765",
-        "date": "2026-10-09T09:21:06Z",
-        "message": "chore(estate-health): nightly snapshot 2026-10-09 — 10/15 green",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/3942765d7b20a9fcb255c03497ed23bb0e42163b"
+        "sha": "e3586ada6b28f4ba69e8c7d2ab626b86127dce66",
+        "short": "e3586ad",
+        "date": "2026-10-10T08:42:25Z",
+        "message": "chore(estate-health): nightly snapshot 2026-10-10 — 10/15 green",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/e3586ada6b28f4ba69e8c7d2ab626b86127dce66"
       },
       "ci": {
         "state": "green",
@@ -57,8 +57,8 @@
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/37910710696",
-            "updated_at": "2026-10-09T09:21:49Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38038813166",
+            "updated_at": "2026-10-10T08:43:05Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
@@ -71,12 +71,12 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/37910654512",
-            "updated_at": "2026-10-09T09:21:14Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38038789003",
+            "updated_at": "2026-10-10T08:42:31Z"
           }
         ]
       },
-      "open_prs": 2,
+      "open_prs": 3,
       "open_issues": 1,
       "release": null,
       "pages": {
@@ -331,11 +331,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "cbc47001205f145133fd93ef02fd0eeb53b6a71c",
-        "short": "cbc4700",
-        "date": "2026-10-08T18:14:45Z",
-        "message": "ci: avoid duplicate main-branch test gate",
-        "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/commit/cbc47001205f145133fd93ef02fd0eeb53b6a71c"
+        "sha": "869833fea9e2e356ab4644377a78286afbad35e3",
+        "short": "869833f",
+        "date": "2026-10-10T14:19:22Z",
+        "message": "feat(programmes): state POA pricing and publish Course structured data",
+        "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/commit/869833fea9e2e356ab4644377a78286afbad35e3"
       },
       "ci": {
         "state": "green",
@@ -344,8 +344,8 @@
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/37822782594",
-            "updated_at": "2026-10-08T18:15:41Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/38059144951",
+            "updated_at": "2026-10-10T14:20:35Z"
           },
           {
             "workflow": "Deploy Cloudflare Workers",
@@ -358,15 +358,15 @@
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/37821688188",
-            "updated_at": "2026-10-08T18:17:55Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/38059145210",
+            "updated_at": "2026-10-10T14:30:48Z"
           },
           {
             "workflow": "kit-pin-guard",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/37822782614",
-            "updated_at": "2026-10-08T18:15:41Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/38059144876",
+            "updated_at": "2026-10-10T14:19:44Z"
           },
           {
             "workflow": "Test and Lint (Reusable)",
@@ -377,7 +377,7 @@
           }
         ]
       },
-      "open_prs": 3,
+      "open_prs": 4,
       "open_issues": 2,
       "release": null,
       "pages": {
@@ -711,7 +711,7 @@
           }
         ]
       },
-      "open_prs": 1,
+      "open_prs": 2,
       "open_issues": 0,
       "release": null,
       "pages": {
@@ -729,7 +729,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 202,
+      "latency_ms": 217,
       "note": null
     },
     {
@@ -738,7 +738,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 331,
+      "latency_ms": 220,
       "note": null
     },
     {
@@ -747,7 +747,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 199,
+      "latency_ms": 224,
       "note": null
     },
     {
@@ -756,7 +756,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 218,
+      "latency_ms": 220,
       "note": "classes=9354 pages=9350 nodes=9354"
     },
     {
@@ -765,7 +765,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 657,
+      "latency_ms": 285,
       "note": null
     },
     {
@@ -774,7 +774,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 352,
+      "latency_ms": 227,
       "note": null
     }
   ],
