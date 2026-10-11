@@ -335,6 +335,19 @@ a CI gate requires: (1) updating the affected section here with the new `file:li
 `docs/archive/adr/` is citable evidence, never authority — cite it, do not defer to
 it.
 
+## Proposed shared ontology workspace (2026-10-11)
+
+[ADR-2014](adr/ADR-2014-shared-ontology-workspace.md),
+[ADR-2015](adr/ADR-2015-typed-ontology-model-and-migration.md) and
+[ADR-2016](adr/ADR-2016-local-markdown-ontology-application.md) propose shared
+Rust/native/WASM capabilities, a revised typed ontology model and a complete
+local Obsidian application. Markdown and machine-readable headers remain the
+authored authority. The proposal includes estate consumer consolidation and
+reversible migration, with OCR and non-Markdown ingestion out of scope.
+These records are proposed, unimplemented and inactive; they do not supersede
+the accepted corpus baseline. See the
+[investigation and delivery gates](../../visionGraph/planning/ontology-workspace/README.md).
+
 ## Proposed estate closeout extension (2026-09-04)
 
 [ADR-2007](adr/ADR-2007-estate-closeout-evidence-roadmap.md) proposes an
