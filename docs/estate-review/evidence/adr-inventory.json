@@ -1,5 +1,7 @@
 {
   "date": "2026-09-05",
+  "roster_updated": "2026-10-11",
+  "roster_extension_method": "Public repository HEADs and release tags observed through the GitHub API; no ADR classification scan or maturity qualification for the two added producers.",
   "method": "tracked and nonignored files; name/path candidates; classifications provisional; no declared completion treated as verified",
   "repos": [
     {
@@ -120,6 +122,39 @@
         "support": 3,
         "decision": 219
       }
+    },
+    {
+      "repo": "ontomark",
+      "head": "f2b259804c58b32d84a2fbc77a45803a4c54834f",
+      "observed_date": "2026-10-11",
+      "repository_url": "https://github.com/DreamLab-AI/ontomark",
+      "classification_status": "not-scanned",
+      "releases": [
+        {
+          "tag": "v0.1.0-rc.1",
+          "role": "native CLI and engine",
+          "url": "https://github.com/DreamLab-AI/ontomark/releases/tag/v0.1.0-rc.1"
+        },
+        {
+          "tag": "ontomark-graph-v0.1.0",
+          "role": "shared graph package",
+          "url": "https://github.com/DreamLab-AI/ontomark/releases/tag/ontomark-graph-v0.1.0"
+        }
+      ]
+    },
+    {
+      "repo": "ontomark-obsidian",
+      "head": "003956f94dd0d4dbc29a2c75d64efb2d1a55e521",
+      "observed_date": "2026-10-11",
+      "repository_url": "https://github.com/DreamLab-AI/ontomark-obsidian",
+      "classification_status": "not-scanned",
+      "releases": [
+        {
+          "tag": "0.1.0",
+          "role": "standalone desktop plugin",
+          "url": "https://github.com/DreamLab-AI/ontomark-obsidian/releases/tag/0.1.0"
+        }
+      ]
     }
   ],
   "records": [

@@ -31,6 +31,22 @@ COUNT="$(jq -r '.repositories | length' <<< "$DRAFT")"
 WANT="$(jq -r '.repos | length' "$INVENTORY")"
 eq "roster size matches the ADR inventory" "$COUNT" "$WANT"
 eq "manifest_version is 2" "$(jq -r '.manifest_version' <<< "$DRAFT")" "2"
+eq "current release roster contains sixteen repositories" "$COUNT" "16"
+eq "inventory contains the same sixteen identities" "$WANT" "16"
+eq "inventory identities are unique" "$(jq '[.repos[].repo] | unique | length' "$INVENTORY")" "$WANT"
+eq "repository names are unique" "$(jq '[.repositories[].name] | unique | length' <<< "$DRAFT")" "$COUNT"
+eq "repository paths are unique" "$(jq '[.repositories[].path] | unique | length' <<< "$DRAFT")" "$COUNT"
+
+for name in ontomark ontomark-obsidian; do
+  eq "$name appears exactly once at its workspace path" \
+    "$(jq --arg n "$name" '[.repositories[] | select(.name == $n and .path == "../"+$n)] | length' <<< "$DRAFT")" "1"
+  eq "$name names its public producer repository" \
+    "$(jq -r --arg n "$name" '.repositories[] | select(.name == $n) | .repository_url' <<< "$DRAFT")" \
+    "https://github.com/DreamLab-AI/$name"
+  eq "$name inventory URL agrees with the generator" \
+    "$(jq -r --arg n "$name" '.repos[] | select(.repo == $n) | .repository_url' "$INVENTORY")" \
+    "$(jq -r --arg n "$name" '.repositories[] | select(.name == $n) | .repository_url' <<< "$DRAFT")"
+done
 
 # Every inventoried repo path appears in the roster.
 MISSING=""
@@ -47,6 +63,8 @@ echo "[2] every repository declares its provenance"
 BADPROV="$(jq -r '[.repositories[] | select((.provenance|type) != "string"
              or ([.provenance] | inside(["first-party","imported","upstream"]) | not))] | length' <<< "$DRAFT")"
 eq "no repository lacks a valid provenance flag" "$BADPROV" "0"
+eq "first-party repository count includes the two Ontomark producers" \
+   "$(jq '[.repositories[] | select(.provenance=="first-party")] | length' <<< "$DRAFT")" "12"
 eq "imported repositories are flagged" \
    "$(jq -r '[.repositories[] | select(.provenance=="imported")] | length' <<< "$DRAFT")" "2"
 eq "upstream repositories are flagged" \
@@ -141,6 +159,48 @@ else
   BADHEAD="$(jq -r '[.repositories[] | select(.head | test("^[0-9a-f]{40}$") | not)] | length' <<< "$DRAFT")"
   eq "every head is a 40-char sha" "$BADHEAD" "0"
 fi
+
+# A fixed roster must retain absent producers and resolve their real Git state
+# when present. These fixtures are local and contain no estate corpus data.
+echo
+echo "[8] new producer entries survive missing checkouts and resolve present ones"
+TEST_WORKSPACE="$(mktemp -d)"
+trap 'rm -rf "$TEST_WORKSPACE"' EXIT
+ABSENT="$(bash "$GEN" --workspace "$TEST_WORKSPACE" 2>/dev/null)"; RC=$?
+eq "an empty workspace still produces a draft" "$RC" "0"
+eq "both absent Ontomark producers are recorded, not omitted" \
+  "$(jq '[.repositories[] | select((.name=="ontomark" or .name=="ontomark-obsidian") and .present==false and .branch=="missing" and .dirty==true and .head=="0000000000000000000000000000000000000000")] | length' <<< "$ABSENT")" "2"
+for name in ontomark ontomark-obsidian; do
+  mkdir -p "$TEST_WORKSPACE/$name/tests/fixtures"
+  git -C "$TEST_WORKSPACE/$name" init -q
+  printf '{"synthetic":true}\n' > "$TEST_WORKSPACE/$name/tests/fixtures/roster.json"
+  git -C "$TEST_WORKSPACE/$name" add tests/fixtures/roster.json
+  git -C "$TEST_WORKSPACE/$name" -c user.name='Release gate' -c user.email='release-gate@example.invalid' commit -qm 'Synthetic roster fixture'
+done
+printf 'dirty fixture\n' > "$TEST_WORKSPACE/ontomark-obsidian/untracked.txt"
+PRESENT="$(bash "$GEN" --workspace "$TEST_WORKSPACE" 2>/dev/null)"; RC=$?
+eq "the synthetic producer workspace generates successfully" "$RC" "0"
+for name in ontomark ontomark-obsidian; do
+  eq "$name records the resolved checkout commit" \
+    "$(jq -r --arg n "$name" '.repositories[] | select(.name==$n) | .head' <<< "$PRESENT")" \
+    "$(git -C "$TEST_WORKSPACE/$name" rev-parse HEAD)"
+  eq "$name is recorded as present" \
+    "$(jq -r --arg n "$name" '.repositories[] | select(.name==$n) | .present' <<< "$PRESENT")" "true"
+done
+eq "a clean core checkout stays clean" "$(jq -r '.repositories[] | select(.name=="ontomark") | .dirty' <<< "$PRESENT")" "false"
+eq "plugin untracked work is recorded as dirty" "$(jq -r '.repositories[] | select(.name=="ontomark-obsidian") | .dirty' <<< "$PRESENT")" "true"
+NEW_CANONICAL="$(bash "$GEN" --workspace "$TEST_WORKSPACE" --status candidate --fixtures-canonical 'ontomark@HEAD:tests/fixtures' 2>/dev/null)"; RC=$?
+eq "the core is usable as an explicitly named canonical fixture producer" "$RC" "0"
+eq "canonical fixture revision resolves to the core commit" \
+  "$(jq -r '.fixtures.canonical.revision' <<< "$NEW_CANONICAL")" \
+  "$(git -C "$TEST_WORKSPACE/ontomark" rev-parse HEAD)"
+eq "canonical fixture count is observed" "$(jq -r '.fixtures.canonical.fixture_count' <<< "$NEW_CANONICAL")" "1"
+eq "schema roster minimum equals current inventory size" \
+  "$(jq -r '.properties.repositories.minItems' "$SCHEMA")" "$WANT"
+eq "schema roster minimum includes both new producers" \
+  "$(jq -r '.properties.repositories.minItems' "$SCHEMA")" "16"
+eq "schema permits the public producer URL" \
+  "$(jq -r '.properties.repositories.items.properties.repository_url.format' "$SCHEMA")" "uri"
 
 # ── summary ──────────────────────────────────────────────────────────────
 echo

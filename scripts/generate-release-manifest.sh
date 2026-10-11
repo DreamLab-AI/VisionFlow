@@ -26,6 +26,11 @@
 #      are stamped fixtures.status="not-compared" so the gap is visible in the
 #      artefact rather than implied by its absence.
 #
+# On 2026-10-11, Ontomark and its separate Obsidian plugin extend the current
+# roster to sixteen. The fourteen-repository closeout remains a dated record.
+# Public producer URLs are optional additive fields in manifest version 2;
+# observed release tags belong to the dated inventory, not to checkout state.
+#
 # Exit codes:
 #   0  Manifest written to stdout
 #   2  Usage error
@@ -75,7 +80,7 @@ esac
 command -v jq >/dev/null || { echo "ERROR: jq is required" >&2; exit 2; }
 
 # ── roster ───────────────────────────────────────────────────────────────
-# NAME|PATH|PROVENANCE|UPSTREAM|ROLE
+# NAME|PATH|PROVENANCE|UPSTREAM|ROLE|REPOSITORY_URL (optional)
 #
 # provenance:
 #   first-party  authored and released by the estate
@@ -98,10 +103,12 @@ ROSTER=(
   "logseq|project4|imported|github.com/logseq/logseq|archived Logseq-era publisher lineage, read-only (authoring moved to the visionGraph vault 2026-09-22)"
   "ruvector|ruvector|upstream|github.com/ruvnet/ruvector|vector memory substrate consumed by the estate"
   "RuView|RuView|upstream|github.com/ruvnet/RuView|sensing/consensus research substrate consumed by the estate"
+  "ontomark|ontomark|first-party||shared ontology crates, native CLI/engine and graph package producer|https://github.com/DreamLab-AI/ontomark"
+  "ontomark-obsidian|ontomark-obsidian|first-party||standalone Obsidian desktop plugin distribution|https://github.com/DreamLab-AI/ontomark-obsidian"
 )
 
 repo_json() {
-  local name="$1" path="$2" provenance="$3" upstream="$4" role="$5"
+  local name="$1" path="$2" provenance="$3" upstream="$4" role="$5" repository_url="${6:-}"
   local abs="$WORKSPACE/$path"
   local head branch dirty
 
@@ -110,10 +117,11 @@ repo_json() {
   # agentbox submodule as "missing" even at its correct path.
   if ! head="$(git -C "$abs" rev-parse HEAD 2>/dev/null)"; then
     jq -nc --arg n "$name" --arg p "../$path" --arg pr "$provenance" \
-           --arg u "$upstream" --arg r "$role" \
+           --arg u "$upstream" --arg r "$role" --arg url "$repository_url" \
       '{name:$n,path:$p,head:"0000000000000000000000000000000000000000",
         branch:"missing",dirty:true,present:false,provenance:$pr,
-        upstream:(if $u=="" then null else $u end),role:$r}'
+        upstream:(if $u=="" then null else $u end),role:$r}
+        + (if $url=="" then {} else {repository_url:$url} end)'
     return
   fi
 
@@ -122,15 +130,16 @@ repo_json() {
 
   jq -nc --arg n "$name" --arg p "../$path" --arg h "$head" \
          --arg b "${branch:-detached}" --argjson d "$dirty" \
-         --arg pr "$provenance" --arg u "$upstream" --arg r "$role" \
+         --arg pr "$provenance" --arg u "$upstream" --arg r "$role" --arg url "$repository_url" \
     '{name:$n,path:$p,head:$h,branch:$b,dirty:$d,present:true,provenance:$pr,
-      upstream:(if $u=="" then null else $u end),role:$r}'
+      upstream:(if $u=="" then null else $u end),role:$r}
+      + (if $url=="" then {} else {repository_url:$url} end)'
 }
 
 REPOS_JSON="$(
   for entry in "${ROSTER[@]}"; do
-    IFS='|' read -r n p pr u r <<< "$entry"
-    repo_json "$n" "$p" "$pr" "$u" "$r"
+    IFS='|' read -r n p pr u r url <<< "$entry"
+    repo_json "$n" "$p" "$pr" "$u" "$r" "$url"
   done | jq -sc '.'
 )"
 
