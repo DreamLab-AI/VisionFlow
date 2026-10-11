@@ -150,3 +150,19 @@ Governed paths changed: `scripts/generate-release-manifest.sh`,
 `.github/workflows/fixture-drift.yml`,
 `.github/workflows/harness-fitness-gates.yml`,
 `tests/gates/release-manifest.test.sh` (new).
+
+## Ontomark roster continuation — 2026-10-11
+
+The fourteen-repository release roster above is a historical verified state, not
+a permanent inventory size. [Ontomark](https://github.com/DreamLab-AI/ontomark) now
+owns the shared ontology crates, CLI/engine assets and graph package;
+[ontomark-obsidian](https://github.com/DreamLab-AI/ontomark-obsidian) owns the separate
+desktop plugin distribution. Both belong in the next authoritative release roster
+and producer/consumer evidence matrix. Updating this ADR does not add them to the
+release generator, schema or inventory; those operational roster changes remain
+open and must land together with their count-integrity tests.
+
+[Core delivery evidence](https://github.com/DreamLab-AI/ontomark/blob/4abbce9/README.md)
+and [plugin target evidence](https://github.com/DreamLab-AI/ontomark-obsidian/blob/ebf8fd6/docs/desktop-acceptance.md)
+bound the current claims. This canon records their ownership and dated receipts;
+it does not award a higher maturity tier or certify mobile/estate-wide activation.

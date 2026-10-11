@@ -2,13 +2,13 @@
 id: ADR-2016
 title: Make Obsidian a local application of the shared ontology core
 date: 2026-10-11
-decision_status: proposed
-implementation_status: none
-activation_status: inactive
+decision_status: accepted
+implementation_status: partial
+activation_status: staged
 supersedes: []
 superseded_by: []
 depends_on: [ADR-2014, ADR-2015]
-verified_commit: "not applicable — proposal without implementation"
+verified_commit: 813a759
 verified_paths: []
 owner: jjohare
 review_trigger: plugin capability, target support, model integration or persistence change
@@ -22,9 +22,9 @@ domain: BASELINE-visionflow.md
 
 The owner wants maximum useful Obsidian functionality with even broader utility for estate consumers. Users should need no knowledge of the estate. Local processing and Markdown authority are settled requirements; OCR and non-Markdown document ingestion are outside the present scope.
 
-## Proposed decision
+## Decision
 
-Ship a self-contained plugin with bundled portable Rust/WASM capabilities and Obsidian adapters. It opens ordinary vaults without imposing estate folder names, namespaces or governance headers. Installation requires no database, account, service, model download or CLI. Existing notes remain readable and editable without the plugin.
+Ship the self-contained plugin from [DreamLab-AI/ontomark-obsidian](https://github.com/DreamLab-AI/ontomark-obsidian), with bundled portable Rust/WASM capabilities and Obsidian adapters. Ontomark owns the core engine and shared `packages/graph`; the separate plugin repository owns installation, Obsidian APIs, vault events, commands, settings and host UI. It opens ordinary vaults without imposing estate folder names, namespaces or governance headers. Installation requires no database, account, service, model download or CLI. Existing notes remain readable and editable without the plugin.
 
 Expose substantial functionality through progressive UI: typed relation editing, vocabulary inspection, identity/reference diagnostics, supported reasoning and its explanations/limits, graph navigation, local queries, export preview and guarded Markdown changes. Keep ordinary links and formal axioms visibly distinguishable. A normal vault with no ontology metadata starts with document navigation and explicit tools to introduce typed structure; it is not silently converted into a class hierarchy.
 
@@ -48,4 +48,23 @@ Borrow evidence, uncertainty and extraction-contract patterns from permissive pr
 
 Required installed-plugin tests run with network disabled on a plain vault and the estate fixture: parse, edit, rename, delete, validate, reason, inspect evidence, navigate, query, export and unload/reload. Check malformed headers, ambiguous references, interrupted updates, stale worker results and non-ASCII source spans. Model-assisted tests are separate from deterministic core tests.
 
-WASM Whelk execution, mobile support, resource budgets and full plugin packaging are unproved. The [delivery gates](../../../visionGraph/planning/ontology-workspace/README.md) prevent a renderer-only stub being counted as completion. Consult [Obsidian mobile guidance](https://docs.obsidian.md/Plugins/Getting%20started/Mobile%20development) and [release packaging](https://docs.obsidian.md/plugins/releasing/submit-plugin) when implementing.
+Portable Whelk execution and desktop packaging now have the bounded evidence below. Mobile support, broad desktop compatibility and resource-budget acceptance remain unproved. The [delivery gates](../../../visionGraph/planning/ontology-workspace/README.md) prevent a renderer-only stub being counted as completion. Consult [Obsidian mobile guidance](https://docs.obsidian.md/Plugins/Getting%20started/Mobile%20development) and [release packaging](https://docs.obsidian.md/plugins/releasing/submit-plugin) when implementing.
+
+## Desktop implementation continuation — 2026-10-11
+
+The [standalone plugin README](https://github.com/DreamLab-AI/ontomark-obsidian/blob/ebf8fd6/README.md)
+and [installed acceptance receipt](https://github.com/DreamLab-AI/ontomark-obsidian/blob/ebf8fd6/docs/desktop-acceptance.md)
+record Obsidian 1.14.4 on Linux with synthetic notes: the real Blob worker compiles
+the embedded rc1 engine, indexes, classifies, answers local queries, applies a
+reviewed edit, refuses a concurrent edit and unloads/reloads. Shared graph checks
+cover search, keyboard activation, zoom, neighbourhood focus, inferred-edge
+filtering, note opening and cleanup. The separate network-isolated Obsidian shim
+passes 40 checks; its result is not substituted for the installed application.
+
+Distribution comprises `main.js`, `manifest.json`, `styles.css`, an installable ZIP
+and licence notices, with the engine embedded. Node and Rust are build tools, not
+end-user prerequisites. The plugin consumes the immutable Ontomark graph 0.1.0
+package; it does not own another renderer or codec. This is partial delivery of
+the stated capability scope. Mobile is unsupported, and model-assisted extraction,
+all proposed editing workflows, large-vault budgets and broad target coverage
+remain separate acceptance work.

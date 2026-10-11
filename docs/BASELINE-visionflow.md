@@ -45,6 +45,16 @@ citations, so that the legacy ADR-001..007 prose (now archived) is read as
 evidence and history, never as the current build. Ground-truth order:
 live code/config in this repo > legacy ADR prose.
 
+Ownership continuation, 2026-10-11: [ADR-2014](adr/ADR-2014-shared-ontology-workspace.md)
+selects Ontomark as the external core, codec and shared graph source owner;
+[ADR-2016](adr/ADR-2016-local-markdown-ontology-application.md) locates Obsidian
+host integration in its separate plugin repository. This remains canon work:
+no substrate implementation moves into VisionFlow. Producer receipts bound the
+released capabilities and Linux desktop checks; estate-wide migration and mobile
+acceptance remain open. [ADR-2006](adr/ADR-2006-canon-owns-crossrepo-view-not-implementation.md)
+records the pending addition of both repositories to the operational release
+roster, without claiming that a prose update changes the generator or schema.
+
 ## Current State
 
 ### The repo has two concrete surfaces
