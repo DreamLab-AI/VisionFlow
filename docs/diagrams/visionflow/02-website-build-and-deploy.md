@@ -38,7 +38,7 @@ sources:
   - docs/adr/ADR-2003-pages-artifact-deploy.md
   - docs/architecture/compatibility-matrix.md
   - ./README.md
-verified_commit: 62d16e02fe3bdd5551e4433b2d42552ec93adb12
+verified_commit: da57b49a28974dd9bff5b5358369eef94a439273
 ---
 
 ## VF-02.1 The copy-only build — every step of website/build.sh
@@ -73,7 +73,7 @@ flowchart LR
     classDef ext fill:#f6efd8,stroke:#8a7020,color:#111
 
     subgraph STATIC["website/static/ — hand-written source"]
-        IDX["index.html — one page, ~106 KB<br/>one module entry at index.html:1249<br/>one local stylesheet at index.html:27"]:::src
+        IDX["index.html — one page, ~106 KB<br/>one module entry at index.html:1253<br/>one local stylesheet at index.html:28"]:::src
         CSS["css/styles.css — the sole stylesheet"]:::src
         MAIN["js/main.js — sole ES module entrypoint<br/>DOMContentLoaded wiring at main.js:908"]:::src
         MESH["js/mesh-webgl.js — hand-written WebGL2 ES module<br/>initMesh returns null without WebGL2<br/>mesh-webgl.js:15"]:::src
@@ -90,7 +90,7 @@ flowchart LR
     ASSETS["repo assets/diagrams, assets/generated,<br/>assets/heroes, assets/screenshots<br/>staged by the manifest, not by static/*"]:::src
     ASSETS ==>|"website-assets.mjs stage"| DIST
 
-    FONTS["EXTERNAL fetch: Google Fonts only<br/>Inter and JetBrains Mono, index.html:26<br/>preconnect at index.html:24"]:::ext
+    FONTS["EXTERNAL fetch: Google Fonts only<br/>Inter and JetBrains Mono, index.html:27<br/>preconnect at index.html:25"]:::ext
     IDX -.-> FONTS
 
     NEG["ABSENT BY DECISION: no Cargo.toml, no rs, no wasm,<br/>no bundler, no framework, no CDN CSS<br/>ADR-2002-static-copy-only-website.md:53"]
@@ -208,14 +208,14 @@ flowchart TB
     G5 --> G6["BLOCKING 6 committed diagram baseline text visibility<br/>node scripts/check-diagram-text.js — deploy.yml:125"]:::block
     G6 --> G7["REPORTED 7 self-description drift counter<br/>blocks only when the agentbox checkout landed<br/>deploy.yml:134"]:::report
 
-    HEAD["what gates 4 and 5 now see in the head — dream PRs 12 to 16:<br/>a robots meta, index.html:9 (PR 16), og:site_name, index.html:11,<br/>og:image width and height 1280 x 720, index.html:16-17, an<br/>Organization block that carries legalName DreamLab AI Consulting<br/>Ltd, index.html:32, and a second JSON-LD block typed WebSite,<br/>index.html:38-43"]
+    HEAD["what gates 4 and 5 now see in the head — dream PRs 12 to 16:<br/>a robots meta, index.html:9 (PR 16), og:site_name, index.html:11,<br/>og:image width and height 1280 x 720, index.html:16-17, an<br/>Organization block that carries legalName DreamLab AI Consulting<br/>Ltd, index.html:34, and a second JSON-LD block typed WebSite,<br/>index.html:40-46, which now links the Organization by @id (index.html:32, :43),<br/>plus og:locale en_GB, index.html:19"]
     G5 -.-> HEAD
     G7 --> REC["write gate verdicts and the published block into the receipt<br/>deploy.yml:147"]:::ok
     REC --> UPR["upload-artifact website-build-receipt — deploy.yml:172"]:::ok
     UPR --> UP["upload-pages-artifact@v3, path website/dist<br/>reached only when every blocking gate passed<br/>deploy.yml:180"]:::ok
     UP --> J2["job deploy, needs build<br/>environment github-pages, deploy-pages@v4<br/>deploy.yml:193"]:::ok
 
-    INV["INVARIANT: no gh-pages branch push anywhere;<br/>the CNAME is emitted by build.sh into the artefact<br/>ADR-2003-pages-artifact-deploy.md:29<br/>BASELINE-visionflow.md:289"]
+    INV["INVARIANT: no gh-pages branch push anywhere;<br/>the CNAME is emitted by build.sh into the artefact<br/>ADR-2003-pages-artifact-deploy.md:29<br/>BASELINE-visionflow.md:310"]
     J2 -.-> INV
 ```
 
@@ -228,9 +228,9 @@ sequenceDiagram
     participant SH as "bash"
 
     W->>S: "capture stdout of bash scripts/dream-link-check.sh"
-    S->>SH: "cd website/dist, or echo NO-DIST and exit 0<br/>dream-link-check.sh:25"
+    S->>SH: "cd website/dist, or echo NO-DIST and exit 0<br/>dream-link-check.sh:33"
     Note over S: "the evaluators exit 0 even on failure, because the dream<br/>annexe reads a non-zero exit as an infrastructure fault<br/>rather than as a finding"
-    S-->>W: "stdout ends LINK-INTEGRITY-OK or LINK-INTEGRITY-FAIL<br/>since the 10-05 ACCEPT the gate also reports anchors-checked<br/>and dangling, and a dangling anchor fails it — dream-link-check.sh:77-78"
+    S-->>W: "stdout ends LINK-INTEGRITY-OK or LINK-INTEGRITY-FAIL<br/>since the 10-05 ACCEPT the gate also reports anchors-checked<br/>and dangling, and a dangling anchor fails it — dream-link-check.sh:97-98"
     W->>W: "grep -q for the OK sentinel, else exit 1"
     Note over W: deploy.yml:100
     alt sentinel absent
@@ -312,7 +312,7 @@ sequenceDiagram
     P-->>T: "structure assertions: ten named sections, the mesh canvas,<br/>four particle canvases, zero console errors — site.spec.js:31"
     P-->>T: "@a11y — axe-core analyze, violations must be empty<br/>site.spec.js:85"
     P-->>T: "@perf — total transferSize at most 800 KB<br/>site.spec.js:108"
-    Note over T,CH: "INVARIANT: no local Chromium is installed in CI — both<br/>projects, chromium and mobile-chrome, drive the sidecar<br/>BASELINE-visionflow.md:288"
+    Note over T,CH: "INVARIANT: no local Chromium is installed in CI — both<br/>projects, chromium and mobile-chrome, drive the sidecar<br/>BASELINE-visionflow.md:309"
 ```
 
 ## VF-02.11 The deeper browser receipt — three scenarios over raw CDP
@@ -379,10 +379,10 @@ stateDiagram-v2
 
 **Invariant (supply chain):** every third-party action in the publication workflow is pinned to a commit sha rather than a moving tag, so a compromised `@v4` cannot enter the artefact (`.github/workflows/deploy.yml:52`, `.github/workflows/deploy.yml:55`).
 
-**Drift (page copy vs the graded table):** the deployed page dates the augmentation grade to 14 September 2026 and links that anchor (`website/static/index.html:557`), while the section it links is now headed *graded 2026-09-15* (`docs/architecture/compatibility-matrix.md:23`).
+**Drift (page copy vs the graded table):** the deployed page dates the augmentation grade to 14 September 2026 and links that anchor (`website/static/index.html:561`), while the section it links is now headed *graded 2026-09-15* (`docs/architecture/compatibility-matrix.md:23`).
 
 **Debt (reveal threshold):** `initScrollReveal` was moved from a 10 percent intersection threshold to zero because a tall section may never occupy a tenth of its own area in the viewport (`website/static/js/main.js:41`); nothing in the site tests asserts that a long section still reveals.
 
 **Debt (unverifiable citation):** `website/build-receipt.json` is gitignored at `website/.gitignore:8`, so it exists in no commit and the four citations into it are read from the working tree whatever revision this topic declares; the numbers they carry are true of one local build, not of a revision.
 
-**Invariant (site and README agree on CUDA counts; Drift resolved at VisionFlow 54e1d02):** the page states 83 CUDA kernels in 10 `.cu` files and 6,302 lines (`website/static/index.html:278`, `website/static/index.html:1066`), which matches VisionClaw at `7d3ea2edb` (10 tracked `.cu` files, 6,302 lines, 83 `__global__` definitions); since 54e1d02 the repository README states the same figures (`./README.md:51`, `./README.md:254`). The drift counter still carries no CUDA axis, so the agreement holds by review, not by a gate.
+**Invariant (site and README agree on CUDA counts; Drift resolved at VisionFlow 54e1d02):** the page states 83 CUDA kernels in 10 `.cu` files and 6,302 lines (`website/static/index.html:282`, `website/static/index.html:1070`), which matches VisionClaw at `7d3ea2edb` (10 tracked `.cu` files, 6,302 lines, 83 `__global__` definitions); since 54e1d02 the repository README states the same figures (`./README.md:51`, `./README.md:254`). The drift counter still carries no CUDA axis, so the agreement holds by review, not by a gate.

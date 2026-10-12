@@ -68,7 +68,7 @@ sources:
   - ../project/agentbox/services/nostr-pod-bridge/tests/role_isolation.rs
   - ../project/agentbox/scripts/ci/env-secret-inventory.js
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987}
 ---
 ## ES-09.1 The host-vs-container build trap — wrong path vs sanctioned path
 ```mermaid
@@ -376,9 +376,9 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph FLAKE["agentbox/flake.nix — image composition"]
-        NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate agentbox/flake.nix:427"]
-        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2491, agentbox/flake.nix:2522,<br/>agentbox/flake.nix:2538<br/>program blocks e.g. management-api, bootstrap-seal"]
-        SUPWRITE["writeText supervisord.conf<br/>agentbox/flake.nix:3825-3829"]
+        NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate agentbox/flake.nix:450"]
+        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2542, agentbox/flake.nix:2573,<br/>agentbox/flake.nix:2589<br/>program blocks e.g. management-api, bootstrap-seal"]
+        SUPWRITE["writeText supervisord.conf<br/>agentbox/flake.nix:3949-3953"]
     end
     subgraph TOML["agentbox/agentbox.toml — RUNNING config, not a template"]
         GATEKEY["gate key e.g. interaction_plane.enabled"]
@@ -767,7 +767,7 @@ flowchart TB
     C3 --> DEBT
 
     CAT["INVARIANT ADR-039 — a new manifest gate must arrive with a<br/>CATALOGUE entry carrying an honest apply class, and the parity<br/>check above is what enforces it. Recent module entries: Claude Code<br/>permissions (ADR-2116) and instruction tiers (ADR-2118) at boot,<br/>claude-cred-sync at rebuild, skill-router-cascade (ADR-2095) and<br/>routing-teacher-labels (ADR-2110, proposed) at boot, vault-cli<br/>(ADR-2107/2108) at rebuild<br/>agentbox/management-api/lib/system-manifest.js:232 and lines 235, 238,<br/>255, 258 and 301 of the same file"]
-    HONEST["2026-10-02 — two entries show the honesty rule working. jev-compaction<br/>moved from boot to REBUILD when factrail landed (ADR-2121), because<br/>the binary and plugin are now gated in flake.nix,<br/>agentbox/management-api/lib/system-manifest.js:241-242. A new sidechain<br/>entry is rebuild-class with three gates,<br/>agentbox/management-api/lib/system-manifest.js:280-281, and stateOf<br/>lets a false parent gate dominate its child gates,<br/>agentbox/management-api/lib/system-manifest.js:349. 2026-10-03: the<br/>role-isolation entry arrives at BOOT, because both supervisor configs<br/>ship in every image, agentbox/management-api/lib/system-manifest.js:94-96"]
+    HONEST["2026-10-02 — two entries show the honesty rule working. jev-compaction<br/>moved from boot to REBUILD when factrail landed (ADR-2121), because<br/>the binary and plugin are now gated in flake.nix,<br/>agentbox/management-api/lib/system-manifest.js:244-245. A new sidechain<br/>entry is rebuild-class with three gates,<br/>agentbox/management-api/lib/system-manifest.js:292-293, and stateOf<br/>lets a false parent gate dominate its child gates,<br/>agentbox/management-api/lib/system-manifest.js:364. 2026-10-03: the<br/>role-isolation entry arrives at BOOT, because both supervisor configs<br/>ship in every image, agentbox/management-api/lib/system-manifest.js:94-96"]
     CAT --> HONEST
     C2 --> CAT
 

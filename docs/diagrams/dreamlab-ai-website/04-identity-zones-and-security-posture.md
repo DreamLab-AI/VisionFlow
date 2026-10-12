@@ -12,7 +12,7 @@ sources:
   - ../dreamlab-ai-website/src/lib/nostr.ts
   - ../dreamlab-ai-website/src/components/AIChatFab.tsx
   - ../dreamlab-ai-website/forum-config/deploy/search-worker.wrangler.toml
-verified_commit: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80
+verified_commit: 2e358bb6c47dad3130bbfea8a73278cfbea1157c
 ---
 
 ## DW-04.1 Identity is raw-hex Schnorr, not a DID document

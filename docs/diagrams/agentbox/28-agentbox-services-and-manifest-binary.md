@@ -4,7 +4,7 @@ title: Agentbox service crates and the manifest binary
 area: agentbox
 governing:
   - ../project/agentbox/docs/BASELINE-container.md
-adrs: [ADR-2030, ADR-2031, ADR-2032, ADR-2084, ADR-2085, ADR-2086, ADR-2104, ADR-2116, ADR-2118]
+adrs: [ADR-2030, ADR-2031, ADR-2032, ADR-2084, ADR-2085, ADR-2086, ADR-2104, ADR-2116, ADR-2118, ADR-2134, ADR-2139]
 sources:
   - ../project/agentbox/services/agentbox-manifest/src/main.rs
   - ../project/agentbox/services/agentbox-manifest/src/mcp.rs
@@ -60,59 +60,61 @@ sources:
   - ../project/agentbox/services/agentbox-mcp/src/web_summary/fetch.rs
   - ../project/agentbox/services/agentbox-mcp/src/web_summary/youtube.rs
   - ../project/agentbox/services/skill-tools/src/docs_alignment/mermaid.rs
-verified_commit: {agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12}
+verified_commit: {agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12}
 ---
 
 ## AB-28.1 agentbox-manifest — the boot-time projection surface
 
 ```mermaid
 flowchart TB
-    subgraph cli["agentbox-manifest — one clap binary, Boot-time TOML/JSON projection for agentbox<br/>(agentbox-manifest/src/main.rs:50-55)"]
+    subgraph cli["agentbox-manifest — one clap binary, Boot-time TOML/JSON projection for agentbox<br/>(agentbox-manifest/src/main.rs:51-56)"]
         direction TB
         subgraph mcpg["MCP projection — src/mcp.rs"]
-            C1["mcp-set-server --file --name<br/>agentbox-manifest/src/main.rs:86-91"]
-            C2["mcp-reconcile-aqe --file --provider<br/>agentbox-manifest/src/main.rs:93-99"]
-            C3["mcp-protect-namespace --file --server --namespace<br/>agentbox-manifest/src/main.rs:101-108"]
-            C4["mcp-deregister-fork --file<br/>agentbox-manifest/src/main.rs:110-113"]
-            C18["mcp-hub-project --file --state --out --hub-url --bind<br/>agentbox-manifest/src/main.rs:62-83, lifts stdio servers<br/>behind the loopback hub, --disable restores them"]
+            C1["mcp-set-server --file --name<br/>agentbox-manifest/src/main.rs:87-92"]
+            C2["mcp-reconcile-aqe --file --provider<br/>agentbox-manifest/src/main.rs:104-110"]
+            C3["mcp-protect-namespace --file --server --namespace<br/>agentbox-manifest/src/main.rs:112-119"]
+            C4["mcp-deregister-fork --file<br/>agentbox-manifest/src/main.rs:121-124"]
+            C24["mcp-mirror-server --from --to --name claude-flow<br/>agentbox-manifest/src/main.rs:93-102 · src/mcp.rs:143-166<br/>copies one .mcp.json entry into ~/.claude/.claude.json"]
+            C18["mcp-hub-project --file --state --out --hub-url --bind<br/>agentbox-manifest/src/main.rs:63-84, lifts stdio servers<br/>behind the loopback hub, --disable restores them"]
         end
         subgraph plug["Plugins — src/plugins.rs"]
-            C5["plugin-register --file --key --install-path --message<br/>agentbox-manifest/src/main.rs:115-129"]
-            C6["plugin-list --manifest<br/>agentbox-manifest/src/main.rs:131-134"]
+            C5["plugin-register --file --key --install-path --message<br/>agentbox-manifest/src/main.rs:126-140"]
+            C6["plugin-list --manifest<br/>agentbox-manifest/src/main.rs:142-145"]
         end
         subgraph proj["Config projection"]
-            C7["nip98-config --manifest --out<br/>agentbox-manifest/src/main.rs:136-141 · src/proxy.rs"]
-            C8["model-routing-project --manifest --workspace --dry-run<br/>agentbox-manifest/src/main.rs:143-150 · src/routing.rs"]
-            C9["provision-stacks<br/>agentbox-manifest/src/main.rs:152 · src/stacks.rs"]
-            C19["sso-project --manifest --format<br/>agentbox-manifest/src/main.rs:223-229, ADR-2094. Disabled<br/>prints NOTHING and exits 0, so the cloud path is byte-identical"]
+            C7["nip98-config --manifest --out<br/>agentbox-manifest/src/main.rs:147-152 · src/proxy.rs"]
+            C8["model-routing-project --manifest --workspace --dry-run<br/>agentbox-manifest/src/main.rs:154-161 · src/routing.rs"]
+            C9["provision-stacks<br/>agentbox-manifest/src/main.rs:163 · src/stacks.rs"]
+            C19["sso-project --manifest --format<br/>agentbox-manifest/src/main.rs:235-241, ADR-2094. Disabled<br/>prints NOTHING and exits 0, so the cloud path is byte-identical"]
+            C25["system-one-project --manifest --format --existing --switch<br/>agentbox-manifest/src/main.rs:242-257, ADR-2139. Disabled prints NOTHING<br/>and exits 0, a refused --switch exits 1. Exclusive with sso-project (E081,<br/>entrypoint-unified.sh:2480)"]
         end
         subgraph recon["Boot reconciliation — settings, instructions, credentials"]
-            C20["hooks-reconcile --settings --registry --dry-run<br/>agentbox-manifest/src/main.rs:157-164 · src/hooks.rs<br/>prunes vendor scaffolding, fixes owned hooks' timeouts to<br/>SECONDS, never adds a hook"]
-            C21["instructions-project --layers --global-out --no-global<br/>--workspace-out --workspace-claude-out --check<br/>agentbox-manifest/src/main.rs:171-186 · src/instructions.rs<br/>ADR-2118/ADR-2111 — repo is authoritative, live edits overwritten"]
-            C22["cred-sync --container --host --interval-secs --once<br/>agentbox-manifest/src/main.rs:190-199 · src/cred_sync.rs<br/>ADR-2118 — merges OAuth credentials, later expiresAt wins"]
-            C23["permissions-project --manifest --settings --dry-run<br/>agentbox-manifest/src/main.rs:203-211 · src/permissions.rs<br/>ADR-2116 — [claude_code] mode + deny rules, hand-added deny kept"]
+            C20["hooks-reconcile --settings --registry --dry-run<br/>agentbox-manifest/src/main.rs:168-175 · src/hooks.rs<br/>prunes vendor scaffolding, fixes owned hooks' timeouts to<br/>SECONDS, never adds a hook"]
+            C21["instructions-project --layers --global-out --no-global<br/>--workspace-out --workspace-claude-out --check<br/>agentbox-manifest/src/main.rs:182-197 · src/instructions.rs<br/>ADR-2118/ADR-2111 — repo is authoritative, live edits overwritten"]
+            C22["cred-sync --container --host --interval-secs --once<br/>agentbox-manifest/src/main.rs:201-210 · src/cred_sync.rs<br/>ADR-2118 — merges OAuth credentials, later expiresAt wins"]
+            C23["permissions-project --manifest --settings --dry-run<br/>agentbox-manifest/src/main.rs:215-223 · src/permissions.rs<br/>ADR-2116 — [claude_code] mode + deny rules, hand-added deny kept<br/>ADR-2134 — model, effort and advisor roles (permissions.rs:114, 219), skipped for<br/>gateway profiles (permissions.rs:255)"]
         end
         subgraph tui["TUI round-trip"]
-            C10["tui-read config state<br/>agentbox-manifest/src/main.rs:213 · src/tui_read.rs"]
-            C11["tui-write state output existing<br/>agentbox-manifest/src/main.rs:215-219 · src/tui_write.rs"]
-            C12["state-get file key<br/>agentbox-manifest/src/main.rs:254"]
-            C13["state-set file key value<br/>agentbox-manifest/src/main.rs:256-260"]
-            C14["state-set-bool file key value<br/>agentbox-manifest/src/main.rs:262-266"]
+            C10["tui-read config state<br/>agentbox-manifest/src/main.rs:225 · src/tui_read.rs"]
+            C11["tui-write state output existing<br/>agentbox-manifest/src/main.rs:227-231 · src/tui_write.rs"]
+            C12["state-get file key<br/>agentbox-manifest/src/main.rs:282"]
+            C13["state-set file key value<br/>agentbox-manifest/src/main.rs:284-288"]
+            C14["state-set-bool file key value<br/>agentbox-manifest/src/main.rs:290-294"]
         end
         subgraph read["Manifest readers — src/tomlval.rs"]
-            C15["toml-bool --manifest --path<br/>agentbox-manifest/src/main.rs:231-236 · prints 1 or 0, ALWAYS exits 0"]
-            C16["toml-string --manifest --path<br/>agentbox-manifest/src/main.rs:238-243 · prints a string or empty, ALWAYS exits 0"]
-            C17["embedding-dim<br/>agentbox-manifest/src/main.rs:252 · reads an OpenAI-shaped response on stdin"]
+            C15["toml-bool --manifest --path<br/>agentbox-manifest/src/main.rs:259-264 · prints 1 or 0, ALWAYS exits 0"]
+            C16["toml-string --manifest --path<br/>agentbox-manifest/src/main.rs:266-271 · prints a string or empty, ALWAYS exits 0"]
+            C17["embedding-dim<br/>agentbox-manifest/src/main.rs:280 · reads an OpenAI-shaped response on stdin"]
         end
     end
     EP["config/entrypoint-unified.sh"] --> cli
     subgraph notes["Invariants and drift"]
         direction TB
         N1["INVARIANT: this ONE binary owns every manifest read and config projection at boot. It<br/>replaced about 377 lines of inline python3 in the entrypoint plus four scripts, so<br/>PYTHON3 IS NO LONGER A BOOT DEPENDENCY — python3 stays in the image only for the<br/>supervised Python services opf-router and code-interpreter"]
-        N2["SECURITY: mcp-set-server reads the spec JSON from STDIN specifically so bearer tokens<br/>and passwords never appear in the process list (agentbox-manifest/src/main.rs:84-85)"]
+        N2["SECURITY: mcp-set-server reads the spec JSON from STDIN specifically so bearer tokens<br/>and passwords never appear in the process list (agentbox-manifest/src/main.rs:85-86)"]
         N3["toml-bool and toml-string ALWAYS EXIT 0 — a missing key is an empty answer, not a boot<br/>failure, so the entrypoint can read an absent gate without set -e killing the boot"]
-        N4["mcp-protect-namespace is APPEND-ONLY on the governed server's protected list<br/>(agentbox-manifest/src/main.rs:101) — see AB-20.2 for the protected-namespace write guard it feeds"]
-        N5["hooks-reconcile, instructions-project, permissions-project and cred-sync are four NEW<br/>subcommands added for ADR-2116/2118 boot-time Claude Code settings reconciliation —<br/>none existed at the previous verified revision"]
+        N4["mcp-protect-namespace is APPEND-ONLY on the governed server's protected list<br/>(agentbox-manifest/src/main.rs:112) — see AB-20.2 for the protected-namespace write guard it feeds"]
+        N5["hooks-reconcile, instructions-project, permissions-project and cred-sync are four NEW<br/>subcommands added for ADR-2116/2118 boot-time Claude Code settings reconciliation —<br/>none existed at the previous verified revision. mcp-mirror-server (memory MCP to user scope) and system-one-project (ADR-2139) have since joined them"]
         N1 ~~~ N2 ~~~ N3 ~~~ N4 ~~~ N5
     end
 ```
@@ -123,15 +125,16 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant EP as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh
-    participant BIN as agentbox-manifest<br/>agentbox/services/agentbox-manifest/src/main.rs:62
+    participant BIN as agentbox-manifest<br/>agentbox/services/agentbox-manifest/src/main.rs:63
     participant TOML as /etc/agentbox.toml
     participant MCPJ as .mcp.json
+    participant UCJ as ~/.claude/.claude.json
     participant PROXY as nip98-proxy config
     participant AQE as .agentic-qe/llm-config.json
     participant PROF as WORKSPACE/profiles
 
-    Note over BIN: main() calls restore_default_sigpipe() FIRST (agentbox-manifest/src/main.rs:324-325)
-    Note over BIN: Rust installs SIG_IGN for SIGPIPE at startup, which turns a closed downstream pipe into<br/>a PANIC-WITH-BACKTRACE on the next println!. The entrypoint pipes this binary into sed<br/>and consumes plugin-list through command substitution, and a backtrace in the boot log<br/>would be both alarming and useless (agentbox-manifest/src/main.rs:311-322)
+    Note over BIN: main() calls restore_default_sigpipe() FIRST (agentbox-manifest/src/main.rs:352-353)
+    Note over BIN: Rust installs SIG_IGN for SIGPIPE at startup, which turns a closed downstream pipe into<br/>a PANIC-WITH-BACKTRACE on the next println!. The entrypoint pipes this binary into sed<br/>and consumes plugin-list through command substitution, and a backtrace in the boot log<br/>would be both alarming and useless (agentbox-manifest/src/main.rs:339-350)
     EP->>BIN: toml-bool --manifest /etc/agentbox.toml --path <dotted.gate>
     BIN->>TOML: read
     BIN-->>EP: "1" or "0", exit 0 always
@@ -140,31 +143,36 @@ sequenceDiagram
         BIN->>MCPJ: upsert
     end
     EP->>BIN: mcp-deregister-fork --file .mcp.json
-    BIN->>MCPJ: de-register any ruvector-mcp OUTSIDE /opt/agentbox (ADR-036 D2, agentbox-manifest/src/main.rs:109)
+    BIN->>MCPJ: de-register any ruvector-mcp OUTSIDE /opt/agentbox (ADR-036 D2, agentbox-manifest/src/main.rs:120)
     Note over BIN,MCPJ: this is what keeps a stray forked memory server from shadowing the governed one — see<br/>AB-20
     EP->>BIN: mcp-reconcile-aqe --file .mcp.json --provider <p>
-    Note over BIN: an EMPTY or omitted provider REMOVES AQE_LLM_PROVIDER rather than blanking it<br/>(agentbox-manifest/src/main.rs:96)
+    Note over BIN: an EMPTY or omitted provider REMOVES AQE_LLM_PROVIDER rather than blanking it<br/>(agentbox-manifest/src/main.rs:107)
     EP->>BIN: mcp-protect-namespace --file .mcp.json --server claude-flow --namespace <ns>
     EP->>BIN: nip98-config --manifest --out
-    BIN->>PROXY: project [interaction_plane.proxy] (ADR-069, agentbox-manifest/src/main.rs:135) — see AB-10
+    BIN->>PROXY: project [interaction_plane.proxy] (ADR-069, agentbox-manifest/src/main.rs:146) — see AB-10
     EP->>BIN: model-routing-project --manifest --workspace --dry-run?
-    BIN->>AQE: project [model_routing] into EVERY .agentic-qe/llm-config.json (ADR-041, agentbox-manifest/src/main.rs:142)
+    BIN->>AQE: project [model_routing] into EVERY .agentic-qe/llm-config.json (ADR-041, agentbox-manifest/src/main.rs:153)
     EP->>BIN: provision-stacks
     BIN->>PROF: provision the per-stack profile tree under WORKSPACE/profiles
     EP->>BIN: plugin-list --manifest
-    BIN-->>EP: name<TAB>source for enabled, VALIDATED [[plugins.packages]] (agentbox-manifest/src/main.rs:130)
+    BIN-->>EP: name<TAB>source for enabled, VALIDATED [[plugins.packages]] (agentbox-manifest/src/main.rs:141)
     loop each plugin to install
         EP->>BIN: plugin-register --file installed_plugins.json --key --install-path --message
-        Note over BIN: --message is printed ONLY when the plugin was actually added (agentbox-manifest/src/main.rs:122). --now<br/>freezes the installedAt/lastUpdated stamp and is TEST-ONLY and hidden — without it the<br/>value is the wall clock, which no golden could pin (agentbox-manifest/src/main.rs:125-127)
+        Note over BIN: --message is printed ONLY when the plugin was actually added (agentbox-manifest/src/main.rs:133). --now<br/>freezes the installedAt/lastUpdated stamp and is TEST-ONLY and hidden — without it the<br/>value is the wall clock, which no golden could pin (agentbox-manifest/src/main.rs:136-138)
     end
     EP->>BIN: permissions-project --manifest /etc/agentbox.toml --settings <root+profiles><br/>entrypoint-unified.sh:1777-1783
-    BIN-->>EP: [claude_code] mode + deny rules reconciled into every settings.json (ADR-2116,<br/>agentbox-manifest/src/main.rs:203-211 · src/permissions.rs) — hand-added deny rules kept
-    EP->>BIN: hooks-reconcile --settings <file> --registry registered-hooks.txt<br/>entrypoint-unified.sh:2635-2643
-    BIN-->>EP: prune/keep/own applied, owned hooks' timeouts fixed to SECONDS (agentbox-manifest/src/main.rs:157-164<br/>· src/hooks.rs) — never adds a hook
-    EP->>BIN: instructions-project --layers /etc/agentbox/instructions --global-out --workspace-out<br/>--workspace-claude-out<br/>entrypoint-unified.sh:2655-2666
-    BIN-->>EP: global/workspace/workspace-claude tiers composed from tracked + local layers and<br/>written, repo authoritative (ADR-2118/2111, agentbox-manifest/src/main.rs:171-186 · src/instructions.rs)
-    Note over EP,BIN: cred-sync runs as its own long-lived supervised program, not a one-shot boot call<br/>(agentbox-manifest/src/main.rs:190-199 · src/cred_sync.rs, ADR-2118) — merges OAuth credentials<br/>between the container volume and the host bind, later expiresAt wins
-    Note over EP,BIN: every failure path prints to stderr and returns ExitCode::FAILURE (agentbox-manifest/src/main.rs:328-331)
+    BIN-->>EP: [claude_code] mode + deny rules reconciled into every settings.json (ADR-2116,<br/>agentbox-manifest/src/main.rs:215-223 · src/permissions.rs) — hand-added deny rules kept. Model, effort and<br/>advisor roles (ADR-2134) are applied too, except to gateway profiles (src/permissions.rs:219, src/permissions.rs:255)
+    EP->>BIN: system-one-project --manifest --format json, shell, plugin-config (only when [system_one].enabled, else sso-project)<br/>entrypoint-unified.sh:2483-2497
+    BIN-->>EP: ADR-2139 vendor-slot projection, written atomically to system-one.json for the proxy (agentbox-manifest/src/main.rs:242-257 · entrypoint-unified.sh:2490-2491)
+    EP->>BIN: hooks-reconcile --settings <file> --registry registered-hooks.txt<br/>entrypoint-unified.sh:2680-2688
+    BIN-->>EP: prune/keep/own applied, owned hooks' timeouts fixed to SECONDS (agentbox-manifest/src/main.rs:168-175<br/>· src/hooks.rs) — never adds a hook
+    EP->>BIN: instructions-project --layers /etc/agentbox/instructions --global-out --workspace-out<br/>--workspace-claude-out<br/>entrypoint-unified.sh:2700-2711
+    BIN-->>EP: global/workspace/workspace-claude tiers composed from tracked + local layers and<br/>written, repo authoritative (ADR-2118/2111, agentbox-manifest/src/main.rs:182-197 · src/instructions.rs)
+    EP->>BIN: mcp-mirror-server --from .mcp.json --to ~/.claude/.claude.json --name claude-flow<br/>entrypoint-unified.sh:3099-3103
+    BIN->>UCJ: after the hub projection, copy ONLY mcpServers.claude-flow so RuVector memory loads from any cwd (agentbox-manifest/src/main.rs:93-102 · src/mcp.rs:143-166)
+    Note over BIN,UCJ: rewritten only when the entry differs, mode 0600 because it carries the conninfo. A missing<br/>source entry is a no-op and an unparseable destination is left untouched (src/mcp.rs:143-166)
+    Note over EP,BIN: cred-sync runs as its own long-lived supervised program, not a one-shot boot call<br/>(agentbox-manifest/src/main.rs:201-210 · src/cred_sync.rs, ADR-2118) — merges OAuth credentials<br/>between the container volume and the host bind, later expiresAt wins
+    Note over EP,BIN: every failure path prints to stderr and returns ExitCode::FAILURE (agentbox-manifest/src/main.rs:356-359)
 ```
 
 ## AB-28.3 Consultant model projection (ADR-2031)
@@ -174,7 +182,7 @@ sequenceDiagram
     autonumber
     participant EP as entrypoint-unified.sh
     participant BIN as agentbox-manifest toml-string<br/>agentbox/services/agentbox-manifest/src/tomlval.rs
-    participant TOML as agentbox.toml [consultants.*]<br/>agentbox/agentbox.toml:1361
+    participant TOML as agentbox.toml [consultants.*]<br/>agentbox/agentbox.toml:1546
     participant ENV as consultant environment
     participant TUI as TUI save path
 
@@ -187,7 +195,7 @@ sequenceDiagram
     end
     TUI->>TOML: an operator saves the TUI
     Note over TUI,TOML: INVARIANT ADR-2031: a TUI save NEVER resets an operator's model
-    Note over TOML: consultant sections: agentbox.toml:1366 codex, agentbox.toml:1372 antigravity,<br/>agentbox.toml:1378 zai, agentbox.toml:1385 perplexity, agentbox.toml:1390 deepseek
+    Note over TOML: consultant sections: agentbox.toml:1551 codex, agentbox.toml:1557 antigravity,<br/>agentbox.toml:1563 zai, agentbox.toml:1570 perplexity, agentbox.toml:1575 deepseek
     Note over TOML: INVARIANT ADR-2031: cost figures are DATED API-EQUIVALENT ESTIMATES or null, NEVER a<br/>stale constant
     Note over BIN: INVARIANT: consultant models come FROM THE MANIFEST — agentbox-manifest toml-string is<br/>the single projection path
 ```
@@ -200,7 +208,7 @@ sequenceDiagram
     participant OP as Operator TUI
     participant RD as tui-read<br/>agentbox/services/agentbox-manifest/src/tui_read.rs
     participant STATE as flat TUI state JSON
-    participant GET as state-get / state-set / state-set-bool<br/>agentbox/services/agentbox-manifest/src/main.rs:181-194
+    participant GET as state-get / state-set / state-set-bool<br/>agentbox/services/agentbox-manifest/src/main.rs:282-294
     participant WR as tui-write<br/>agentbox/services/agentbox-manifest/src/tui_write.rs
     participant TOML as canonical agentbox.toml
 
@@ -228,7 +236,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2492
+    participant SUP as supervisord<br/>agentbox/flake.nix:2543
     participant BIN as agentbox-mcp<br/>agentbox/services/agentbox-mcp/src/main.rs:65
     participant LOG as tracing_subscriber
     participant T as rmcp stdio transport
@@ -283,7 +291,7 @@ flowchart LR
     end
     subgraph rust["Rust MCP binaries"]
         R1["agentbox-mcp imagemagick, web-summary, gemini-url-context<br/>see AB-28.6"]
-        R2["colloquy-mcp: query, propose, confirm, flag, reflect, status<br/>agentbox/crates/colloquy/colloquy-mcp/src/server.rs:29<br/>gate skills.colloquy agentbox.toml:1060, tier agentbox.toml:1067"]
+        R2["colloquy-mcp: query, propose, confirm, flag, reflect, status<br/>agentbox/crates/colloquy/colloquy-mcp/src/server.rs:29<br/>gate skills.colloquy agentbox.toml:1229, tier agentbox.toml:1236"]
     end
     subgraph proj["Projection — see AB-09 and AB-22.10"]
         P1["agentbox/mcp/mcp.json — the fleet declaration"]
@@ -301,9 +309,9 @@ flowchart LR
         N1["Every server reads its gates from agentbox.toml through the entrypoint's env projection<br/>— no server parses the manifest itself, so one gate edit reaches every surface"]
         N2["INVARIANT: a gated-off server is NOT REGISTERED AT ALL rather than<br/>registered-and-disabled — byte-identical-when-off"]
         N3["RESOLVED since AB-22.13 was written: the [skills.harness] block now reads the<br/>manifest gate, agentbox-manifest toml-bool --path skills.harness.enabled,<br/>config/entrypoint-unified.sh:2286-2291. Its [skills.precedent] twin was removed from<br/>agentbox.toml with the precedent bridge, so no stanza is left unguarded"]
-        N4["INVARIANT: the colloquy binary is symlinked as /opt/agentbox/bin/colloquy-mcp<br/>(agentbox/flake.nix:1996) and NEVER as a /nix/store path, because a store path is<br/>content-addressed and garbage-collected, which is how the registration came to fail<br/>ENOENT against a path no longer on disk (flake.nix:1987-1994)"]
+        N4["INVARIANT: the colloquy binary is symlinked as /opt/agentbox/bin/colloquy-mcp<br/>(agentbox/flake.nix:2035) and NEVER as a /nix/store path, because a store path is<br/>content-addressed and garbage-collected, which is how the registration came to fail<br/>ENOENT against a path no longer on disk (flake.nix:2026-2033)"]
         N5["OPEN: ADR-2104 is recorded decision_status: proposed, implementation_status: partial<br/>(docs/adr/ADR-2104-direct-control-over-mcp.md:5-7), so its rule that an MCP server is a<br/>disposable adapter over a crate, never the control surface (:36-38), is not yet a<br/>compliance surface for this fleet"]
-        N6["DRIFT (open): flake.nix's default hub server roster (mcpHubServers, used only when<br/>[resources.mcp_hub].servers is unset) no longer names ontology-bridge (flake.nix:195-198),<br/>matching S2's deletion — but it still names precedent-bridge, the server AB-28.11 records<br/>as DELETED; agentbox.toml sets its own roster explicitly, so the default is dormant"]
+        N6["DRIFT (open): flake.nix's default hub server roster (mcpHubServers, used only when<br/>[resources.mcp_hub].servers is unset) no longer names ontology-bridge (flake.nix:204-207),<br/>matching S2's deletion — but it still names precedent-bridge, the server AB-28.11 records<br/>as DELETED; agentbox.toml sets its own roster explicitly, so the default is dormant"]
         N1 ~~~ N2 ~~~ N3 ~~~ N4 ~~~ N5 ~~~ N6
     end
 ```
@@ -421,11 +429,11 @@ flowchart TB
     end
     P6 --> verbs
     subgraph gates["Manifest gates - agentbox.toml [skills.colloquy]"]
-        M1["enabled agentbox.toml:1060 - gates the MCP REGISTRATION only,<br/>the binary is always baked, exactly as the bridge it supersedes was"]
-        M2["tier agentbox.toml:1067 - shared by default: the agents in one container<br/>are one operator's, and a private tier-1 store would lose every learning<br/>at the end of the session"]
-        M3["namespace agentbox.toml:1073 - its OWN namespace, never patterns"]
-        M4["principal agentbox.toml:1080 - empty derives it from the Nostr operator"]
-        M5["reflect_candidates agentbox.toml:1087 - a Stop hook registered at<br/>config/entrypoint-unified.sh:1893 that writes CANDIDATES, never units"]
+        M1["enabled agentbox.toml:1229 - gates the MCP REGISTRATION only,<br/>the binary is always baked, exactly as the bridge it supersedes was"]
+        M2["tier agentbox.toml:1236 - shared by default: the agents in one container<br/>are one operator's, and a private tier-1 store would lose every learning<br/>at the end of the session"]
+        M3["namespace agentbox.toml:1242 - its OWN namespace, never patterns"]
+        M4["principal agentbox.toml:1249 - empty derives it from the Nostr operator"]
+        M5["reflect_candidates agentbox.toml:1256 - a Stop hook registered at<br/>config/entrypoint-unified.sh:1893 that writes CANDIDATES, never units"]
         M1 ~~~ M2 ~~~ M3 ~~~ M4 ~~~ M5
     end
     P6 --> gates
@@ -433,9 +441,9 @@ flowchart TB
 
 **Debt (corpus vs repo):** this topic listed the deleted `mcp/servers/precedent-bridge.js` in its own `sources:` until this pass, so every citation into it was an unresolvable warning and the file-existence check was failing the whole tree; the successor is `../project/agentbox/crates/colloquy/colloquy-mcp/src/server.rs:29`.
 
-**Invariant:** mixing colloquy units into the `patterns` namespace would move the frozen recall band, so the shared tier gets its own (`../project/agentbox/agentbox.toml:1073`).
+**Invariant:** mixing colloquy units into the `patterns` namespace would move the frozen recall band, so the shared tier gets its own (`../project/agentbox/agentbox.toml:1242`).
 
-**Invariant:** an agent that authorises itself defeats principal collapse, so the principal must never equal the agent's own member id and the binary exits rather than start that way (`../project/agentbox/agentbox.toml:1077-1079`).
+**Invariant:** an agent that authorises itself defeats principal collapse, so the principal must never equal the agent's own member id and the binary exits rather than start that way (`../project/agentbox/agentbox.toml:1246-1248`).
 
 ## AB-28.13 ADR-2084 - the facade client the service crates share
 

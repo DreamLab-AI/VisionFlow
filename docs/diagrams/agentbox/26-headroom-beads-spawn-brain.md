@@ -28,7 +28,7 @@ sources:
   - ../project/agentbox/tests/contract/beads.contract.spec.js
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/mcp/servers/lib/ontology-local.js
-verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
+verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
 ---
 
 ## AB-26.1 headroom — lazy native load and slot gating
@@ -46,12 +46,12 @@ sequenceDiagram
     MW->>H: compress(content, slot, opts)
     alt slot == events
         H-->>MW: input UNCHANGED
-        Note over H: HARD-CODED regardless of manifest config — the AUDIT TRAIL MUST NEVER BE COMPRESSED<br/>(headroom.js:15-17). agentbox.toml:2191 events = false agrees, but the code does not<br/>trust it
+        Note over H: HARD-CODED regardless of manifest config — the AUDIT TRAIL MUST NEVER BE COMPRESSED<br/>(headroom.js:15-17). agentbox.toml:2378 events = false agrees, but the code does not<br/>trust it
     else slot not enabled in [compression.slots]
         H->>CFG: read the manifest
-        Note over CFG: agentbox.toml:2188-2193 — memory true, pods true, events false, beads true, orchestrator<br/>false
+        Note over CFG: agentbox.toml:2375-2380 — memory true, pods true, events false, beads true, orchestrator<br/>false
         H-->>MW: input UNCHANGED — fail-open
-    else compression.enabled false (agentbox.toml:2182)
+    else compression.enabled false (agentbox.toml:2369)
         H-->>MW: input UNCHANGED — fail-open
     else enabled and slot on
         H->>LN: load the addon on FIRST CALL, not at require() time
@@ -91,7 +91,7 @@ sequenceDiagram
     alt json_array
         JS->>SC: smart_crush(input, SmartCrushOptions)
         SC->>SC: analyse the schema, preserve ANCHORS and OUTLIERS, sample the rest
-        Note over SC: target_ratio default 0.3 in-crate (smart_crusher.rs:11), min_items default 2.<br/>agentbox.toml:2186 sets an aggressive target_ratio = 0.15 — keep about 15 percent
+        Note over SC: target_ratio default 0.3 in-crate (smart_crusher.rs:11), min_items default 2.<br/>agentbox.toml:2373 sets an aggressive target_ratio = 0.15 — keep about 15 percent
         SC->>CCR: emit a CCR sentinel per DROPPED row
     else log_output
         JS->>LC: compress_log(input, LogCompressOptions)
@@ -105,7 +105,7 @@ sequenceDiagram
     end
     CCR->>DB: ccr_store_entry(hash, original) — lib.rs:61
     Note over CCR,DB: BLAKE3 hash prefix, 24 hex chars, identifies the stored content (types.rs:5-12).<br/>Process-global singleton via OnceLock (ccr_store.rs:11-12), DashMap over a rusqlite<br/>Connection
-    Note over DB: backend sqlite (memory also supported, redis DEFERRED), ttl_minutes 30, max_entries 1000<br/>with LRU eviction (agentbox.toml:2183-2185)
+    Note over DB: backend sqlite (memory also supported, redis DEFERRED), ttl_minutes 30, max_entries 1000<br/>with LRU eviction (agentbox.toml:2370-2372)
     JS-->>JS: CompressResult {compressed, original_bytes, ...}
 ```
 
@@ -363,19 +363,19 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    subgraph man["agentbox.toml [compression] — line 2181"]
-        E["enabled = true agentbox.toml:2182<br/>headroom-napi crate built, compression active"]
-        B["backend = sqlite agentbox.toml:2183<br/>sqlite or memory, redis DEFERRED"]
-        T["ttl_minutes = 30 agentbox.toml:2184"]
-        M["max_entries = 1000 agentbox.toml:2185<br/>LRU eviction"]
-        R["target_ratio = 0.15 agentbox.toml:2186<br/>aggressive default, keep about 15 percent"]
+    subgraph man["agentbox.toml [compression] — line 2368"]
+        E["enabled = true agentbox.toml:2369<br/>headroom-napi crate built, compression active"]
+        B["backend = sqlite agentbox.toml:2370<br/>sqlite or memory, redis DEFERRED"]
+        T["ttl_minutes = 30 agentbox.toml:2371"]
+        M["max_entries = 1000 agentbox.toml:2372<br/>LRU eviction"]
+        R["target_ratio = 0.15 agentbox.toml:2373<br/>aggressive default, keep about 15 percent"]
     end
-    subgraph slots["[compression.slots] — line 1978"]
-        S1["memory = true agentbox.toml:2189<br/>compress memory search results"]
-        S2["pods = true agentbox.toml:2190<br/>compress pod writes"]
-        S3["events = false agentbox.toml:2191<br/>NEVER compress audit trail"]
-        S4["beads = true agentbox.toml:2192<br/>compress bead payloads"]
-        S5["orchestrator = false agentbox.toml:2193<br/>skip orchestrator coordination"]
+    subgraph slots["[compression.slots] — line 2375"]
+        S1["memory = true agentbox.toml:2376<br/>compress memory search results"]
+        S2["pods = true agentbox.toml:2377<br/>compress pod writes"]
+        S3["events = false agentbox.toml:2378<br/>NEVER compress audit trail"]
+        S4["beads = true agentbox.toml:2379<br/>compress bead payloads"]
+        S5["orchestrator = false agentbox.toml:2380<br/>skip orchestrator coordination"]
     end
     subgraph adapters["The five adapter slots (legacy ADR-005) — dispatch in AB-04"]
         A1["memory → RuVector, see AB-20"]

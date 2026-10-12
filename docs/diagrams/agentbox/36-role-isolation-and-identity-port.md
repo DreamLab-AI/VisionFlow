@@ -30,14 +30,12 @@ sources:
   - ../project/agentbox/tests/config/role-isolation-rehearsal.test.sh
   - ../project/agentbox/tests/config/role-isolation-supervisor.test.sh
   - ../project/agentbox/docs/estate-closeout/x1-rehearsal-20261003T090708Z.json
-verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
+verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
 ---
 
 ## For developers
 
-Until this change every secret in the container reached every process. Compose feeds `.env` to PID 1, supervisord passes its environment to every child, and every long-running program ran as devuser (uid 1000), so a 0600 key file protected nothing from a co-resident agent (AB-16.1, AB-16.7). ADR-2122 is X-1 step 1 of the custody programme (swarm `custody-isolation-2026-10-03`). It gives each secret-bearing role its own Unix account, delivers that role's secrets into a root-owned `/run/secrets/<role>/`, and moves the sovereign, operator and JunkieJarvis keys behind one process. That process, `nostr-pod-bridge serve-identity`, signs a closed set of named operations for callers it authorises by kernel peer uid. All of it sits behind `[security].role_isolation` (`agentbox.toml:2227`), which ships **false**. The flag is boot-class. The image always carries both supervisor configs, the accounts, the delivery plan and the port, and the entrypoint picks a shape at its final `exec`. With the flag off the boot is today's. Three changes ship unconditionally, because they close bypasses that would void any boundary: devuser leaves group `root`, the root boot `PATH` drops workspace paths and Stage B runs once per container start (AB-02), and `/run/secrets` becomes its own mount. A fourth bypass, the host Docker socket, only closes under the flag, and only fully once the host narrows the socket's mode (see the Open on AB-36.7).
-
-This topic covers the accounts table, the two supervisor configs, the `/run/secrets` delivery, the identity port's transport, authorisation and receipts, the environment classes, and the activation rehearsal. Boot ordering is in AB-02, the manifest key in AB-05, the compose mount and the browser sidecar's own key (Podkey, K_browser) in AB-06, the secrets inventory and the mirror child key in AB-16, governance signing in AB-14, and the baked producer upstream in AB-34. Not read here: the pods signer cutover in `management-api/lib/pod-signer.js` (AB-14 and AB-16 cover it) and the per-op signing code inside `port.rs` beyond its dispatch. The design (custody design §2, the swarm's working document) is recorded in ADR-2122, which is `proposed` with `activation_status: inactive`. It may move only on a flag-on rehearsal receipt from the owner's rebuild.
+Until this change every secret in the container reached every process. Compose feeds `.env` to PID 1, supervisord passes its environment to every child, and every long-running program ran as devuser (uid 1000), so a 0600 key file protected nothing from a co-resident agent (AB-16.1, AB-16.7). ADR-2122 is X-1 step 1 of the custody programme (swarm `custody-isolation-2026-10-03`). It gives each secret-bearing role its own Unix account, delivers that role's secrets into a root-owned `/run/secrets/<role>/`, and moves the sovereign, operator and JunkieJarvis keys behind one process. That process, `nostr-pod-bridge serve-identity`, signs a closed set of named operations for callers it authorises by kernel peer uid. All of it sits behind `[security].role_isolation` (`agentbox.toml:2414`), which ships **false**. The flag is boot-class. The image always carries both supervisor configs, the accounts, the delivery plan and the port, and the entrypoint picks a shape at its final `exec`. With the flag off the boot is today's. Three changes ship unconditionally, because they close bypasses that would void any boundary: devuser leaves group `root`, the root boot `PATH` drops workspace paths and Stage B runs once per container start (AB-02), and `/run/secrets` becomes its own mount. A fourth bypass, the host Docker socket, only closes under the flag, and only fully once the host narrows the socket's mode (see the Open on AB-36.7). This topic covers the accounts table, the two supervisor configs, the `/run/secrets` delivery, the identity port's transport, authorisation and receipts, the environment classes, and the activation rehearsal. Boot ordering is in AB-02, the manifest key in AB-05, the compose mount and the browser sidecar's own key (Podkey, K_browser) in AB-06, the secrets inventory and the mirror child key in AB-16, governance signing in AB-14, and the baked producer upstream in AB-34. Not read here: the pods signer cutover in `management-api/lib/pod-signer.js` (AB-14 and AB-16 cover it) and the per-op signing code inside `port.rs` beyond its dispatch. The design (custody design §2, the swarm's working document) is recorded in ADR-2122, which is `proposed` with `activation_status: inactive`. It may move only on a flag-on rehearsal receipt from the owner's rebuild.
 
 ## For the business
 
@@ -63,10 +61,10 @@ flowchart TB
         DIR["dir /var/lib/agentbox/events/sign<br/>ab-identity:devuser 2750 (config/role-accounts.json:143-147)"]
     end
     subgraph BUILD["image build — flake.nix"]
-        PW["agentbox-manifest role-accounts passwd >> /etc/passwd (flake.nix:3856)"]
-        GR["agentbox-manifest role-accounts group >> /etc/group (flake.nix:3869)"]
-        ROOTG["root:x:0: — devuser is no longer in group root (flake.nix:3863)<br/>UNCONDITIONAL, both modes, reversed only by a rebuild"]
-        ROOTG -.-> N1["INVARIANT: devuser is not in group root in either mode (flake.nix:3863),<br/>probed from devuser by rehearsal check (f) (role-isolation-rehearsal.sh:25-26)"]
+        PW["agentbox-manifest role-accounts passwd >> /etc/passwd (flake.nix:3980)"]
+        GR["agentbox-manifest role-accounts group >> /etc/group (flake.nix:3993)"]
+        ROOTG["root:x:0: — devuser is no longer in group root (flake.nix:3987)<br/>UNCONDITIONAL, both modes, reversed only by a rebuild"]
+        ROOTG -.-> N1["INVARIANT: devuser is not in group root in either mode (flake.nix:3987),<br/>probed from devuser by rehearsal check (f) (role-isolation-rehearsal.sh:25-26)"]
     end
     subgraph RUST["services/agentbox-manifest/src/role_accounts.rs"]
         VAL["validate (role_accounts.rs:297)<br/>a reserved uid is refused (role_accounts.rs:359)<br/>root, devuser, wheel, nobody are not role names (role_accounts.rs:541)"]
@@ -86,13 +84,13 @@ flowchart TB
 flowchart TB
     subgraph BUILD["image build"]
         TODAY["/etc/supervisord.conf — today's, rendered by flake.nix"]
-        ISO["agentbox-manifest role-accounts isolate (flake.nix:3836)<br/>writes /etc/supervisord.roles.conf and /etc/agentbox/role-secrets.tsv"]
+        ISO["agentbox-manifest role-accounts isolate (flake.nix:3960)<br/>writes /etc/supervisord.roles.conf and /etc/agentbox/role-secrets.tsv"]
         TODAY --> ISO
         ISO --> R1["user=devuser becomes user=role (role_accounts.rs:914)"]
         ISO --> R2["environment= gains the role's /run/secrets paths (role_accounts.rs:958)"]
         ISO --> F1["REFUSE: a role program not starting as devuser (role_accounts.rs:906)"]
         ISO --> F2["REFUSE: a secret-bearing program no role runs — the build fails (role_accounts.rs:855)"]
-        ISO --> F3["INVARIANT: a user=devuser program outside secret_bearing_programs whose environment<br/>names a key variable fails the build (role_accounts.rs:865-874). Key variable = suffix<br/>_PRIVKEY_HEX, _SK or _KEY_FILE (role_accounts.rs:769) or a ROLE-class name or its file twin<br/>(role_accounts.rs:793-801, role_accounts.rs:773-790); the build passes env-classes.json<br/>to isolate (flake.nix:3836); unit test role_accounts.rs:1241-1250"]
+        ISO --> F3["INVARIANT: a user=devuser program outside secret_bearing_programs whose environment<br/>names a key variable fails the build (role_accounts.rs:865-874). Key variable = suffix<br/>_PRIVKEY_HEX, _SK or _KEY_FILE (role_accounts.rs:769) or a ROLE-class name or its file twin<br/>(role_accounts.rs:793-801, role_accounts.rs:773-790); the build passes env-classes.json<br/>to isolate (flake.nix:3960); unit test role_accounts.rs:1241-1250"]
         T["drift test: with user= and environment= removed<br/>the two configs are identical (tests/config/role-isolation-supervisor.test.sh:11-13)"]
         R1 --> T
         R2 --> T
@@ -119,7 +117,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    MNT["/run/secrets tmpfs mode=711 uid=0 gid=0 noexec nosuid nodev<br/>docker-compose.yml:110, flake.nix:3538<br/>its OWN mount: devuser owns /run but cannot rename a mount point"]
+    MNT["/run/secrets tmpfs mode=711 uid=0 gid=0 noexec nosuid nodev<br/>docker-compose.yml:110, flake.nix:3662<br/>its OWN mount: devuser owns /run but cannot rename a mount point"]
     MNT --> MODE{"[security].role_isolation"}
     MODE -->|"off"| OFF["chown 1000:1000, chmod 0700 as before (entrypoint-unified.sh:388)<br/>devuser's /run/secrets/nostr.key is written as today"]
     MODE -->|"on"| PREP["ab_secrets_root_prepare: root 0711 (role-custody.sh:89)<br/>not a mount point: ROLE-ISOLATION-DEGRADED secrets-mount (role-custody.sh:99)"]
@@ -214,8 +212,8 @@ flowchart TB
 flowchart TB
     TAB["config/custody/env-classes.json — every env NAME the boot path and the role-secret readers use,<br/>in exactly one class, names only (env-classes.json:2)"]
     TAB --> ROLE["ROLE, 11 names (env-classes.json:33)<br/>sovereign, operator, bridge, JunkieJarvis, concierge, agent keys to ab-identity,<br/>break-glass bearer and session secret to ab-ingress, TAILSCALE_AUTHKEY to root"]
-    TAB --> DC["DEVUSER_CLASS, 35 names (env-classes.json:90)<br/>each carries an exception, the Q8 default (env-classes.json:92)"]
-    TAB --> NS["NON_SECRET (env-classes.json:232)"]
+    TAB --> DC["DEVUSER_CLASS, 37 names (env-classes.json:90)<br/>each carries an exception, the Q8 default (env-classes.json:92)"]
+    TAB --> NS["NON_SECRET (env-classes.json:240)"]
     ROLE --> EP["_AB_ROLE_ENV_VARS, NAME:role pairs (entrypoint-unified.sh:411)<br/>captured to files and unset under the flag only"]
     DC --> STAY["stay in devuser's ambient environment in BOTH modes"]
     CI["scripts/ci/env-secret-inventory.js --check"]
@@ -223,9 +221,11 @@ flowchart TB
     CI -->|"a DEVUSER_CLASS entry must name its exception (env-secret-inventory.js:253)"| DC
 ```
 
-**What it shows.** The scrub is a denylist of role secrets, not an allowlist of the environment. Eleven names leave PID 1 under the flag. Thirty-five credentials stay in every devuser process by recorded exception. A CI check keeps the entrypoint's list and the table equal and refuses an exception without a reason. **Why it is this way.** A denylist leaves agent tooling working when the flag flips. The agents are the users of provider keys, so hiding those keys from devuser would break the agents and protect nothing (custody design §1, C8). Which of them should leave the ambient environment is owner question Q8, defaulted to "stay" for this step.
+**What it shows.** The scrub is a denylist of role secrets, not an allowlist of the environment. Eleven names leave PID 1 under the flag. Thirty-seven names stay in every devuser process by recorded exception. A CI check keeps the entrypoint's list and the table equal and refuses an exception without a reason. **Why it is this way.** A denylist leaves agent tooling working when the flag flips. The agents are the users of provider keys, so hiding those keys from devuser would break the agents and protect nothing (custody design §1, C8). Which of them should leave the ambient environment is owner question Q8, defaulted to "stay" for this step.
 
-**Debt:** 35 DEVUSER_CLASS credentials, among them provider API keys, `BRIDGE_TOKEN` and `MANAGEMENT_API_KEY`, remain in the agent environment by exception Q8 (`config/custody/env-classes.json:90`, `config/custody/env-classes.json:92`, `ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:158-159`).
+**Debt:** 37 DEVUSER_CLASS names, among them provider API keys, `BRIDGE_TOKEN`, `MANAGEMENT_API_KEY`, the SubQ key for the System One proxy and the ssh-agent socket path that grants use of every key the agent holds, remain in the agent environment by exception Q8 (`config/custody/env-classes.json:191`, `config/custody/env-classes.json:199`, `config/custody/env-classes.json:90`, `config/custody/env-classes.json:92`, `ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:158-159`).
+
+**Drift (the inventory gate vs the entrypoint at this revision):** `env-secret-inventory.js --check` fails here with 24 `UNCLASSIFIED` names read in the entrypoint, the System One and Jev-checkpoints locals among them (`AGENTBOX_SYSTEM_ONE_PROXY`, `_SO_PROJECTION`, `_JK_API`) and the secret-shaped `FACTRAIL_API_KEY`, so the "every name in exactly one class" claim above is not enforced by a green gate (`../project/agentbox/scripts/ci/env-secret-inventory.js:235`, `../project/agentbox/config/entrypoint-unified.sh:2774`, `../project/agentbox/config/entrypoint-unified.sh:2484`, `../project/agentbox/config/entrypoint-unified.sh:2919`).
 
 ## AB-36.7 The activation rehearsal: two halves, one receipt, flag still off
 
@@ -256,12 +256,12 @@ flowchart TB
 
 **What it shows.** The rehearsal decides whether the flag may stay on. Its container half probes as devuser and its host half probes as root. A flag-off run is STAGED, not PASS. The only receipt in the repository is a STAGED run with the flag off. **Why it is this way.** The flag removes root's view from inside the container, so positive probes (a role can read its own file) need the host, and negative probes (devuser cannot) need devuser. Rebuilds and activation belong to the owner. Agents stop at "staged", and peer agent messages are not approval (`ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:142-143`).
 
-**Open:** `role_isolation` ships off (`agentbox.toml:2227`) and is live only after the owner's boot rehearsal receipt. The decision is accepted only when both halves pass on a rebuilt image with the flag on, and `activation_status` moves only on that receipt (`ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:135-143`). The committed receipt is STAGED with the flag false (`docs/estate-closeout/x1-rehearsal-20261003T090708Z.json:4`, `docs/estate-closeout/x1-rehearsal-20261003T090708Z.json:8`).
+**Open:** `role_isolation` ships off (`agentbox.toml:2414`) and is live only after the owner's boot rehearsal receipt. The decision is accepted only when both halves pass on a rebuilt image with the flag on, and `activation_status` moves only on that receipt (`ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:135-143`). The committed receipt is STAGED with the flag false (`docs/estate-closeout/x1-rehearsal-20261003T090708Z.json:4`, `docs/estate-closeout/x1-rehearsal-20261003T090708Z.json:8`).
 
 **Open (R2):** the host Docker socket inode stays world-accessible until the host chmods it. The socket is a bind of the host inode that earlier boots widened, and skipping the chmod under the flag does not narrow it (`docker-compose.override.yml:116-117`). The flag-on boot can only detect and record `degraded:docker-socket` (`config/entrypoint-unified.sh:605`). The host half records the mode for the owner without gating on it (`scripts/activation/role-isolation-rehearsal.host.sh:18-19`), while ADR-2122 counts `degraded:docker-socket` as a failure (`ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:142`).
 
 **Invariant:** the identity socket's directory cannot be renamed by devuser. It sits inside the root-owned `/run/secrets` mount (`docker-compose.yml:110`). Check (a) attempts the rename and a create beside it as devuser and passes only if both are refused (`scripts/activation/role-isolation-rehearsal.sh:282-289`). Test case 17 puts the directory under a devuser-writable parent, the `/run/agentbox` case, and shows (a) failing with the directory restored (`tests/config/role-isolation-rehearsal.test.sh:29-30`, `tests/config/role-isolation-rehearsal.test.sh:322`).
 
-**Tension (sudoers vs the no-runtime-sudo design):** the sudo route now follows the BUILD-time flag, not the boot-time one. Built with `role_isolation` off, which is how it ships, the image keeps devuser in `wheel` (`../project/agentbox/flake.nix:3864`) and bakes a `NOPASSWD: ALL` drop-in (`../project/agentbox/config/bake-devuser-privilege.sh:44-47`, called at `../project/agentbox/flake.nix:3878`); built with it on, devuser leaves `wheel` and `root` and gets no drop-in (`../project/agentbox/config/bake-devuser-privilege.sh:29-39`). The same flake says the setuid wrapper is gone and there is no runtime escalation path (`../project/agentbox/flake.nix:3632-3636`). In the shipped image the grant is inert only because `no-new-privileges` is set (`../project/agentbox/docker-compose.yml:129`) and no setuid sudo ships, and an image built off but booted on records `degraded:devuser-sudo` rather than repairing it (`../project/agentbox/config/entrypoint-unified.sh:642`); check (f) probes `sudo -n true` (`../project/agentbox/scripts/activation/role-isolation-rehearsal.sh:591-592`). Reverting either guard on a flag-off build turns devuser back into root, past every role boundary in this topic.
+**Tension (sudoers vs the no-runtime-sudo design):** the sudo route now follows the BUILD-time flag, not the boot-time one. Built with `role_isolation` off, which is how it ships, the image keeps devuser in `wheel` (`../project/agentbox/flake.nix:3988`) and bakes a `NOPASSWD: ALL` drop-in (`../project/agentbox/config/bake-devuser-privilege.sh:44-47`, called at `../project/agentbox/flake.nix:4002`); built with it on, devuser leaves `wheel` and `root` and gets no drop-in (`../project/agentbox/config/bake-devuser-privilege.sh:29-39`). The same flake says the setuid wrapper is gone and there is no runtime escalation path (`../project/agentbox/flake.nix:3756-3760`). In the shipped image the grant is inert only because `no-new-privileges` is set (`../project/agentbox/docker-compose.yml:129`) and no setuid sudo ships, and an image built off but booted on records `degraded:devuser-sudo` rather than repairing it (`../project/agentbox/config/entrypoint-unified.sh:642`); check (f) probes `sudo -n true` (`../project/agentbox/scripts/activation/role-isolation-rehearsal.sh:591-592`). Reverting either guard on a flag-off build turns devuser back into root, past every role boundary in this topic.
 
 **Drift (committed receipt vs rehearsal):** the committed receipt's uid table is "derived from /etc/agentbox.toml (design §2.2 numbering)" (`docs/estate-closeout/x1-rehearsal-20261003T090708Z.json:26`), from a run at an earlier commit (`docs/estate-closeout/x1-rehearsal-20261003T090708Z.json:16`). The rehearsal at this revision requires the baked table and plan, with no derived numbering (`scripts/activation/role-isolation-rehearsal.sh:41-43`). The receipt predates the rule it would now fail.

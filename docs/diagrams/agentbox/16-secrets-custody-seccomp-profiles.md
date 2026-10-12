@@ -39,7 +39,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
   - ../project/agentbox/tests/runtime-contract/RC-X1-06.sh
   - ../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md
-verified_commit: {agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
+verified_commit: {agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
 ---
 
 ## AB-16.1 Container hardening posture — what actually confines the box
@@ -507,12 +507,12 @@ flowchart TB
 flowchart TB
     T["config/custody/env-classes.json<br/>names only, never values, env-classes.json:2"]
     T --> ROLE["ROLE, 11 names, env-classes.json:33<br/>a signing, join or session key owned by one role:<br/>ab-identity, ab-ingress, or root for TAILSCALE_AUTHKEY"]
-    T --> DEV["DEVUSER_CLASS, 35 names, env-classes.json:90<br/>provider and devuser credentials kept in devuser's environment,<br/>each with a reason and the Q8 exception"]
-    T --> NS["NON_SECRET, 612 exact names and no patterns, env-classes.json:232<br/>a secret-shaped name can never land here by pattern"]
+    T --> DEV["DEVUSER_CLASS, 37 names, env-classes.json:90<br/>provider and devuser credentials kept in devuser's environment,<br/>each with a reason and the Q8 exception; SSH_AUTH_SOCK and SUBQ_API_KEY joined in 2026-10 (env-classes.json:191, :199)"]
+    T --> NS["NON_SECRET, 626 exact names and no patterns, env-classes.json:240<br/>a secret-shaped name can never land here by pattern"]
     ROLE --> EP["must equal the entrypoint's scrub list, entrypoint-unified.sh:411<br/>scripts/ci/env-secret-inventory.js:259-262"]
     ROLE --> W1["must match W1's delivery plan, every from_env with the same role<br/>env-secret-inventory.js:206-224"]
     T --> CHK["node scripts/ci/env-secret-inventory.js --check fails CI on an unclassified,<br/>ambiguous or secret-shaped-by-pattern name, env-secret-inventory.js:227-238"]
-    DEV -.-> DEBT["DEBT: the 35 DEVUSER_CLASS credentials stay in every agent process by exception,<br/>owner disposition Q8 pending, env-classes.json:92. see AB-36"]
+    DEV -.-> DEBT["DEBT: the 37 DEVUSER_CLASS credentials stay in every agent process by exception,<br/>owner disposition Q8 pending, env-classes.json:92. see AB-36"]
 ```
 
 **What it shows.** One table classifies every environment name the boot path and the role-secret consumers read. Only the ROLE class leaves PID 1 under the flag; the CI inventory keeps that set equal to the entrypoint's scrub list and to the role table's delivery plan, so a new key cannot be added to one and forgotten in another.
@@ -533,4 +533,4 @@ flowchart TB
 
 **Drift (resolved 2026-10-03, secrets inventory vs the sealed chain):** this topic used to omit two files in the `agentbox-secrets` volume — the sidestr signer key at mode 0400, which ADR-2101 D3 requires be neither in `identity.env` nor derived from the identity key, and the parent node's testnet4 RPC cookie. The role table now names both as deliveries to the producer uid (`../project/agentbox/config/role-accounts.json:66-67`, `../project/agentbox/config/role-accounts.json:85-86`) and AB-16.13 draws them. Both are still read by path rather than passed as arguments (see AB-32.4, AB-32.3, AB-34.1).
 
-**Tension (custody boundary vs the faucet key):** since the sidechain faucet became a supervised program (2026-09-30), its treasury signing key is read from the workspace bind, not the `agentbox-secrets` volume — the manifest points at `/home/devuser/workspace/sidestr/agents/treasury.key` (`../project/agentbox/agentbox.toml:1578`), which is also the schema's default when the key is empty — so a spend-capable key sits on a host-visible bind, outside the `agentbox-secrets` volume this topic's custody model inventories. Narrowed again at `8f55d9a43`: the role table now sources the treasury key from the volume copy and names the workspace file only as its legacy twin (`../project/agentbox/config/role-accounts.json:76`), so under the flag the faucet uid reads a role-owned copy; but the migrate step copies the legacy file once and never deletes it (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:212-215`), and with the flag off the manifest still points the faucet at the bind.
+**Tension (custody boundary vs the faucet key):** since the sidechain faucet became a supervised program (2026-09-30), its treasury signing key is read from the workspace bind, not the `agentbox-secrets` volume — the manifest points at `/home/devuser/workspace/sidestr/agents/treasury.key` (`../project/agentbox/agentbox.toml:1763`), which is also the schema's default when the key is empty — so a spend-capable key sits on a host-visible bind, outside the `agentbox-secrets` volume this topic's custody model inventories. Narrowed again at `8f55d9a43`: the role table now sources the treasury key from the volume copy and names the workspace file only as its legacy twin (`../project/agentbox/config/role-accounts.json:76`), so under the flag the faucet uid reads a role-owned copy; but the migrate step copies the legacy file once and never deletes it (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:212-215`), and with the flag off the manifest still points the faucet at the bind.

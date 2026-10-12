@@ -31,7 +31,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md
   - ../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md
-verified_commit: {nostr-rust-forum: 72463fbde35ac4c68539b1f65a08ff03b9941201, dreamlab-ai-website: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80}
+verified_commit: {nostr-rust-forum: cbb3a8112320caf769b4d0713d3b1057db51d3e1, dreamlab-ai-website: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80}
 ---
 
 ## NF-06.1 The six kinds and their publishers

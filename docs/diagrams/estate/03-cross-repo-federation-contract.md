@@ -37,7 +37,7 @@ sources:
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, solid-pod-rs: 93e2200218fad37927df16a1b7784c93c475670d, nostr-rust-forum: 72463fbde35ac4c68539b1f65a08ff03b9941201}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, solid-pod-rs: 93e2200218fad37927df16a1b7784c93c475670d, nostr-rust-forum: 72463fbde35ac4c68539b1f65a08ff03b9941201}
 ---
 ## ES-03.1 Shared wire envelope: AgentActionNotification (agentbox emit -> VisionClaw ingest)
 ```mermaid
@@ -370,7 +370,7 @@ sequenceDiagram
     participant AA as assertPrivacyFilterApplied<br/>privacy-filter.js:595
     participant Ad as Adapter impl call
     rect rgb(240,240,255)
-    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:254.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
+    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:267.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
     Rt->>WD: instrumentedDispatch(...args)
     WD->>WD: executionId = uris.mint kind event,pubkey,payload
     WD->>PF: privacyWrapped(...args)
@@ -465,7 +465,7 @@ flowchart TB
 
     INV["INVARIANT — every record in this pack still carries decision_status<br/>proposed. Four have moved to implementation_status partial: ADR-2096<br/>(crates/sidestr shipped and relocated to DreamLab-AI/sidestr-rs,<br/>ADR-2096:5-6), the canon entry, which since e5826a8 tracks the<br/>verified sidestr-rs source as partial while staying inactive<br/>(ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7), the<br/>solid-pod-rs port, now partial and staged<br/>(ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-7),<br/>and the forum D1 demotion, now partial but inactive<br/>(ADR-2012-d1-ledger-becomes-a-chain-view.md:5-7). Two stay at<br/>implementation_status none:<br/>the host at ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:5-6<br/>and ADR-2099 at ADR-2099-the-chain-is-the-ledger-of-record.md:5-6."]
     CANON --> INV
-    SRCST["PARTIAL, INACTIVE — the canon entry now records that sidestr-rs<br/>publishes seven crates and carries inactive pool, market, EVM and<br/>Hitch code. EVM executes inside a sidestr chain and Hitch speaks to<br/>no Lightning peer, so neither is an estate rail,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:36-40.<br/>The one running piece is agentbox's interim testnet producer,<br/>mirror and faucet under the sidechain gates, with no sidestr-node,<br/>bridge or port 9097 bind, BASELINE-container.md:206."]
+    SRCST["PARTIAL, INACTIVE — the canon entry now records that sidestr-rs<br/>publishes seven crates and carries inactive pool, market, EVM and<br/>Hitch code. EVM executes inside a sidestr chain and Hitch speaks to<br/>no Lightning peer, so neither is an estate rail,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:36-40.<br/>The one running piece is agentbox's interim testnet producer,<br/>mirror and faucet under the sidechain gates, with no sidestr-node,<br/>bridge or port 9097 bind, BASELINE-container.md:207."]
     CANON --> SRCST
 
     RET["RETIRED — Lightning-first is superseded. x402 and l402 stay<br/>payable false permanently and Lightning may return only as a<br/>bridge on-ramp, never as the planned rail.<br/>agentbox/docs/developer/economy-loop.md:143"]

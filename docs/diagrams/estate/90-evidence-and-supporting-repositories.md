@@ -24,7 +24,7 @@ sources:
   - ../loom/Cargo.toml
   - ../RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs
   - docs/estate-review/2026-09-07-estate-audit.md
-verified_commit: {visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, RuView: b48ab7dada5002414ec18d36a5d652e0f1bd4a67, loom: 37a320ce3f15787a1ee10fac0faae043ab1ac12e, dream-machine: 6426583e72b10b731ac0a1630f62fbeb2ae0f5b5, prose-sanitiser: 5548922aaf499d37f0d0440db0735992ce07f003, diagram-ir: eed5ebde490830fc143a744e299c2ec0ed8b0028}
+verified_commit: {visionflow: da57b49a28974dd9bff5b5358369eef94a439273, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, RuView: b48ab7dada5002414ec18d36a5d652e0f1bd4a67, loom: d01dffcdda572216a480353870be350c795d2825, dream-machine: 6426583e72b10b731ac0a1630f62fbeb2ae0f5b5, prose-sanitiser: 5548922aaf499d37f0d0440db0735992ce07f003, diagram-ir: eed5ebde490830fc143a744e299c2ec0ed8b0028}
 ---
 
 ## ES-90.1 Three scopes — health roster, source review and workspace neighbours
@@ -97,21 +97,21 @@ flowchart TB
 ## ES-90.5 Evidence types do not imply one another
 ```mermaid
 flowchart TB
-    F["Source paths and ADR metadata"] --> G["Structural/index gate: writeIndexes<br/>diagram-index-gen.cjs:716"]
-    F --> C["Citation diagnostics; strict mode refuses warnings<br/>citeCheck, diagram-index-gen.cjs:489"]
-    F --> SYM["Symbol-anchor check: warns when a cited line<br/>falls outside the labelled function's body<br/>symbolCheck, diagram-index-gen.cjs:617"]
-    F --> R["Optional Mermaid rendering: renderAll<br/>diagram-index-gen.cjs:688"]
+    F["Source paths and ADR metadata"] --> G["Structural/index gate: writeIndexes<br/>diagram-index-gen.cjs:717"]
+    F --> C["Citation diagnostics; strict mode refuses warnings<br/>citeCheck, diagram-index-gen.cjs:490"]
+    F --> SYM["Symbol-anchor check: warns when a cited line<br/>falls outside the labelled function's body<br/>symbolCheck, diagram-index-gen.cjs:618"]
+    F --> R["Optional Mermaid rendering: renderAll<br/>diagram-index-gen.cjs:689"]
     F --> S["Semantic source review with file hashes<br/>scripts/estate-doc-audit.py"]
     G --> DOC["Documentation evidence"]
     C --> DOC
     SYM --> DOC
     R --> DOC
     S --> DOC
-    ALLOW["citation-allowlist.json waives a citation<br/>that exists in no commit, with a reason;<br/>a stale entry fails the run<br/>loadAllowlist, diagram-index-gen.cjs:380"] --> DOC
-    VER["VERIFICATION.md: declared-revisions anchor,<br/>records what actually resolved at HEAD<br/>writeVerificationReport, diagram-index-gen.cjs:441"] --> DOC
+    ALLOW["citation-allowlist.json waives a citation<br/>that exists in no commit, with a reason;<br/>a stale entry fails the run<br/>loadAllowlist, diagram-index-gen.cjs:381"] --> DOC
+    VER["VERIFICATION.md: declared-revisions anchor,<br/>records what actually resolved at HEAD<br/>writeVerificationReport, diagram-index-gen.cjs:442"] --> DOC
     TEST["Named local test and raw result"] --> LOCAL["Only the exercised contract"]
     RUN["Loaded binary, effective config,<br/>identity and cross-service receipt"] --> ACCEPT["Only the observed system journey"]
     DOC -.->|"does not establish"| ACCEPT
     LOCAL -.->|"does not establish"| ACCEPT
-    NOTE["INVARIANT: default citations may read declared revisions;<br/>worktree-citations explicitly checks current source.<br/>Neither mode proves behaviour or deployment.<br/>revisionLines, diagram-index-gen.cjs:343,346"] --> DOC
+    NOTE["INVARIANT: default citations may read declared revisions;<br/>worktree-citations explicitly checks current source.<br/>Neither mode proves behaviour or deployment.<br/>revisionLines, diagram-index-gen.cjs:344,347"] --> DOC
 ```

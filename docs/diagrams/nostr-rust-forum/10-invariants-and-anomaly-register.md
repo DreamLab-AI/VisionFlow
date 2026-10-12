@@ -98,7 +98,7 @@ flowchart TB
     end
     subgraph live["Confirmed STILL LIVE"]
         O2["O2 NIP-29 group metadata 39000-39002 accepted from admin CLIENTS rather than relay-key-signed.<br/>Acknowledged TODO nip_handlers.rs:1010, admin gate nip_handlers.rs:1017. Spec drift. See NF-03.4 step 11."]
-        O5["O5 deleting a kind-40 destroys the is_channel_creator lookup, locking a TL2 author out of their own<br/>channel metadata - lookup nip_handlers.rs:970, deletion path nip_handlers.rs:2121. See NF-03.7."]
+        O5["O5 deleting a kind-40 destroys the is_channel_creator lookup, locking a TL2 author out of their own<br/>channel metadata - lookup nip_handlers.rs:970, deletion path nip_handlers.rs:2121. See NF-03.7.<br/>RESOLVED in nostr-rust-forum 66ca8d8 (after the verified revision): the creator is persisted in a channel_creators table, so deleting the kind-40 no longer drops the lookup."]
         O11a["O11 KV and SESSIONS are the SAME physical namespace id -<br/>nostr-bbs-auth-worker/wrangler.toml:24 and nostr-bbs-auth-worker/wrangler.toml:39. See NF-08.4."]
         O11b["O11 /api/native-pod/provision has no in-repo caller and placeholder vars -<br/>route nostr-bbs-auth-worker/src/lib.rs:599, NATIVE_POD_URL nostr-bbs-auth-worker/wrangler.toml:52. See NF-02.2."]
         O8a["O8 qr_svg is defined TWICE with no shared helper -<br/>recovery_sheet.rs:66 and utils/devices.rs:236. See NF-05.4."]
@@ -136,7 +136,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    S1["The relay events table is still created by a SETUP.md copy-paste SETUP.md:69, not by a repo migration.<br/>RESOLVED 1a26e51: whitelist now has its first DDL, migration 0008_whitelist.sql:30, and ensure_schema<br/>runs the same shared statement first nostr-bbs-relay-worker/src/lib.rs:695 before the ALTER list,<br/>which now adds expires_at nostr-bbs-relay-worker/src/lib.rs:714. See NF-08.6."]
+    S1["The relay events table is still created by a SETUP.md copy-paste SETUP.md:69, not by a repo migration.<br/>RESOLVED 1a26e51: whitelist now has its first DDL, migration 0008_whitelist.sql:30, and ensure_schema<br/>runs the same shared statement first nostr-bbs-relay-worker/src/lib.rs:695 before the ALTER list,<br/>which now adds expires_at nostr-bbs-relay-worker/src/lib.rs:714. See NF-08.6.<br/>RESOLVED again in 66ca8d8 (after the verified revision): migration 0009_events.sql creates events and ensure_schema creates it first, so SETUP.md no longer carries the DDL."]
     S2["ADMIN_PUBKEYS is read by auth and relay but declared in neither template and named in no SETUP step<br/>SETUP.md:122. A by-the-book deployment has no static admin bootstrap. See NF-08.7."]
     S3["The preview worker's SSRF guard is denylist-only without PREVIEW_ALLOWED_HOSTS, which the template<br/>never sets nostr-bbs-preview-worker/wrangler.toml:13. The code says so itself - the Workers runtime exposes no<br/>resolve-then-pin primitive nostr-bbs-preview-worker/src/ssrf.rs:13 - and there is no wall-clock timeout.<br/>See NF-07.6."]
     S4["DEVICE_KEYS_ENABLED ships false in BOTH templates nostr-bbs-auth-worker/wrangler.toml:55<br/>nostr-bbs-relay-worker/wrangler.toml:21, so the whole ADR-099/100 device story is dormant by default and<br/>revocation has no effect at AUTH. See NF-02.7."]

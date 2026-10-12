@@ -20,7 +20,7 @@ sources:
   - ../project/agentbox/management-api/lib/system-manifest.js
   - ../project/agentbox/services/agentbox-manifest/src/tui_read.rs
   - ../project/agentbox/services/agentbox-manifest/src/tui_sections.rs
-verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
+verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
 ---
 
 ## AB-29.1 Composition — what is baked, and why the npm tarball lacks it
@@ -38,11 +38,11 @@ flowchart TB
         FILES["17 files total, each {dest,url,sha256,size}<br/>artefacts.json:20"]
     end
     subgraph readers["Two readers of the ONE manifest"]
-        NIX["flake.nix modelRouterArtefacts<br/>flake.nix:149 — fetchurl per file, sha256-pinned"]
+        NIX["flake.nix modelRouterArtefacts<br/>flake.nix:158 — fetchurl per file, sha256-pinned"]
         FETCH["scripts/model-router-fetch.sh<br/>reads m.files, sha256sum-verifies, curl -fL, refuses hash mismatch"]
     end
     subgraph outputs["Two possible artefact locations"]
-        BAKED["/opt/agentbox/model-router<br/>flake.nix:2117-2118 — rebuild class, byte-identical-when-off"]
+        BAKED["/opt/agentbox/model-router<br/>flake.nix:2168-2169 — rebuild class, byte-identical-when-off"]
         FALLBACK["$WORKSPACE/.agentbox/model-router<br/>pre-rebuild fallback"]
     end
     T1 --> ART
@@ -64,10 +64,10 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant TOML as agentbox.toml<br/>[model_routing.neural]<br/>agentbox.toml:1449-1459
+    participant TOML as agentbox.toml<br/>[model_routing.neural]<br/>agentbox.toml:1634-1644
     participant EP as entrypoint-unified.sh<br/>config/entrypoint-unified.sh:2121
     participant DISK as /opt/agentbox/model-router<br/>or $WORKSPACE/.agentbox/model-router
-    participant ENV as runtime-env file<br/>config/entrypoint-unified.sh:3339
+    participant ENV as runtime-env file<br/>config/entrypoint-unified.sh:3514
 
     EP->>TOML: _ab_toml_bool model_routing.neural enabled
     alt enabled = false
@@ -97,7 +97,7 @@ sequenceDiagram
 
     SEEDER->>SEEDER: WRAPPER_SLUGS.router = {file: 'router.sh', detectAs: null}<br/>scripts/aoe-seed-sessions.mjs:113
     SEEDER->>CFG: customAgents.router = path.join(WRAPPER_DIR, 'router.sh')<br/>scripts/aoe-seed-sessions.mjs:349-350 (no detectAs alias — router is its own program)
-    AOE->>WRAP: exec router.sh (session seed for slug=router, agentbox.toml:1928-1932)
+    AOE->>WRAP: exec router.sh (session seed for slug=router, agentbox.toml:2115-2119)
     WRAP->>WRAP: _die if console missing, node absent, or ruflo not resolvable<br/>router.sh:47,51,52
     WRAP->>WRAP: locate artefacts: $AGENTBOX_MODEL_ROUTER_DIR else<br/>/opt/agentbox/model-router else $WORKSPACE/.agentbox/model-router<br/>router.sh:58-64
     alt no seed-router.krr.json found anywhere
@@ -222,7 +222,7 @@ stateDiagram-v2
     note right of Refused
         Manifest schema also constrains this at the config layer:
         privacy_tier accepts only "public" (ADR-2080 Decision §4,
-        agentbox.toml:1457 comment "the ONLY accepted value")
+        agentbox.toml:1642 comment "the ONLY accepted value")
     end note
     note right of NormalRun
         ADR-2079 §4: privacy tier is the FIRST routing axis, before cost.
@@ -269,13 +269,13 @@ flowchart TD
 ```mermaid
 flowchart TB
     subgraph cli["./agentbox.sh model-router <sub>"]
-        CMD["cmd_model_router<br/>agentbox.sh:2197"]
-        FETCH2["fetch runs model-router-fetch.sh<br/>agentbox.sh:2202"]
-        CHECK2["check runs model-router-fetch.sh --check<br/>agentbox.sh:2203"]
-        STATUS2["status runs node console.mjs --status<br/>agentbox.sh:2204"]
-        ROUTE2["route 'task' runs node console.mjs --once<br/>agentbox.sh:2205-2206"]
-        CONSOLE2["console runs harness-wrappers/router.sh<br/>agentbox.sh:2207"]
-        DISPATCH["top-level case dispatch<br/>agentbox.sh:2588"]
+        CMD["cmd_model_router<br/>agentbox.sh:2207"]
+        FETCH2["fetch runs model-router-fetch.sh<br/>agentbox.sh:2212"]
+        CHECK2["check runs model-router-fetch.sh --check<br/>agentbox.sh:2213"]
+        STATUS2["status runs node console.mjs --status<br/>agentbox.sh:2214"]
+        ROUTE2["route 'task' runs node console.mjs --once<br/>agentbox.sh:2215-2216"]
+        CONSOLE2["console runs harness-wrappers/router.sh<br/>agentbox.sh:2217"]
+        DISPATCH["top-level case dispatch<br/>agentbox.sh:2697"]
     end
     subgraph catalogue["Manifest gate catalogue"]
         GATE["id: model-routing-neural<br/>gate: model_routing.neural.enabled<br/>apply_class: rebuild<br/>management-api/lib/system-manifest.js:115-117"]
@@ -324,6 +324,6 @@ sequenceDiagram
     Note over RET: every cost is AGENT-LEVEL, the whole agentic loop per run, which is why<br/>per-token list price is a poor proxy for per-task cost<br/>(retort-benchmarks.json:8)
 ```
 
-**Invariant:** the Retort file changes only which tier is chosen; the quality bar, the cost ceiling and the privacy tier stay manifest values projected through `AGENTBOX_MODEL_ROUTER_*` (`../project/agentbox/agentbox.toml:1452`, `../project/agentbox/agentbox.toml:1456`, `../project/agentbox/agentbox.toml:1457`).
+**Invariant:** the Retort file changes only which tier is chosen; the quality bar, the cost ceiling and the privacy tier stay manifest values projected through `AGENTBOX_MODEL_ROUTER_*` (`../project/agentbox/agentbox.toml:1637`, `../project/agentbox/agentbox.toml:1641`, `../project/agentbox/agentbox.toml:1642`).
 
-**Open:** the manifest now carries Retort's measured guidance as a comment on `quality_bar` (`../project/agentbox/agentbox.toml:1453-1455`) while the shipped default stays 0.50 (`../project/agentbox/agentbox.toml:1452`); nothing records whether the 0.25 to 0.35 band that comment recommends for routine work has been run against this estate's own corpus.
+**Open:** the manifest now carries Retort's measured guidance as a comment on `quality_bar` (`../project/agentbox/agentbox.toml:1638-1640`) while the shipped default stays 0.50 (`../project/agentbox/agentbox.toml:1637`); nothing records whether the 0.25 to 0.35 band that comment recommends for routine work has been run against this estate's own corpus.

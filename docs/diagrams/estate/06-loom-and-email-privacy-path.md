@@ -5,12 +5,14 @@ area: estate
 governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
   - ../project/agentbox/docs/BASELINE-container.md
-adrs: [agentbox:ADR-2023, agentbox:ADR-2079, agentbox:ADR-2080, agentbox:ADR-2084, loom:ADR-139, agentbox:ADR-051]
+adrs: [agentbox:ADR-2023, agentbox:ADR-2079, agentbox:ADR-2080, agentbox:ADR-2084, loom:ADR-139, loom:ADR-141, loom:ADR-142, agentbox:ADR-051]
 sources:
   - ../project/agentbox/skills/email-search/SKILL.md
   - ../project/agentbox/docs/adr/ADR-2023-loom-facade.md
   - ../project/loom/README.md
-  - ../loom/scripts/reload-published-generation.py
+  - ../loom/crates/loom-facade/src/reload.rs
+  - ../loom/crates/loom-facade/src/bin/reload_published_generation.rs
+  - ../loom/docs/design/ADR-142-consume-versioned-shared-ontology-contracts.md
   - ../loom/deploy/loom-generation-reload.service
   - ../project/docker-compose.unified.yml
   - ../project/agentbox/flake.nix
@@ -20,7 +22,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md
   - ../project/agentbox/docs/adr/ADR-2084-one-published-loom-client-for-every-facade-caller.md
   - ../project/agentbox/lib/explainer-tools.nix
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, loom: 37a320ce3f15787a1ee10fac0faae043ab1ac12e}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, loom: d01dffcdda572216a480353870be350c795d2825}
 ---
 ## ES-06.1 Topology — the gateway holds a façade, never a model port
 ```mermaid
@@ -206,7 +208,7 @@ flowchart TB
     GEN["A full generation = scaffold-index.json + prose-index.json<br/>+ the TTLs + ontology-corpus.rvdb with its .generation.json"]
     T1["TRAP the empty floor — with an empty or mis-pointed<br/>LOOM_DATA_SOURCE the façade STILL starts and /health STILL<br/>returns 200, but the log reads lexical index NOT loaded ...<br/>empty floor. That is a staging bug, not a dead container.<br/>Check the mount before you check the process."]
     T2["The .rvdb is mounted read-only, but OPENING it mutates the<br/>redb file even for reads (the HNSW index is repacked on open),<br/>so the entrypoint copies it to a writable tmpfs at /run/loom.<br/>The tmpfs uid/gid must stay 65532 to match the image's<br/>non-root user or that copy fails EACCES."]
-    D1["V1 P2 source closeout: scripts/reload-published-generation.py verifies<br/>all six published artefacts and semantic generation before restart.<br/>Pending receipt precedes reload, served receipt requires matching live identity.<br/>The opt-in timer remains uninstalled: live graph and semantic bundles disagree."]
+    D1["Reload is the Rust binary reload_published_generation (reload_published_generation.rs:185), which replaced the<br/>deleted scripts/reload-published-generation.py. reconcile (reload.rs:380) calls verified_bundle (reload.rs:211):<br/>the six REQUIRED artefacts (reload.rs:36), strict marker, per-file sha256, sidecar. It writes reload-pending<br/>before the restart (reload.rs:399) and served only after the live identity matches (reload.rs:413).<br/>One tick at a time: try_lock (reload_published_generation.rs:161). The unit runs the binary<br/>(loom-generation-reload.service:6). ADR-142 records the first served Ontomark bundle (ADR-142-consume-versioned-shared-ontology-contracts.md:56) and that the<br/>stale 23 Sep generation was the host unit still calling the deleted script (ADR-142-consume-versioned-shared-ontology-contracts.md:58)."]
     D2["DIVERGENCE — app/ontology-mcp/ (stdio MCP server, JavaScript)<br/>survived the Python deletion but now has NO build or run path<br/>from this repo. PRD-025/ADR-135 treat it as a thin client of<br/>the Loom index; placement is an open decision."]
 
     nomodel --> GEN
@@ -338,19 +340,19 @@ flowchart TB
     end
 
     subgraph PUB["Plane 2 — ADR-2080 metaharness router console: PUBLIC work only"]
-        GATE["[model_routing.neural] gate<br/>agentbox.toml:1449, enabled :1450"]
-        ART["pinned artefacts baked at rebuild<br/>config/model-router/artefacts.json<br/>flake.nix:142-149, installed flake.nix:2117-2119"]
+        GATE["[model_routing.neural] gate<br/>agentbox.toml:1634, enabled :1450"]
+        ART["pinned artefacts baked at rebuild<br/>config/model-router/artefacts.json<br/>flake.nix:151-158, installed flake.nix:2168-2170"]
         ENV["entrypoint exports AGENTBOX_MODEL_ROUTER_*<br/>entrypoint-unified.sh:2120-2127<br/>assets_dir resolved at :2123, fallback :2124-2126"]
         CON["AoE router session console<br/>embeds the task offline, asks the router for the<br/>cheapest OpenRouter model above the quality bar,<br/>executes it, writes a labelled receipt"]
         GATE --> ART --> ENV --> CON
     end
 
-    INV1["INVARIANT ADR-2079 section 4 — privacy_tier is pinned to public<br/>(agentbox.toml:1457) and the console EXITS on any other value.<br/>Private corpora never reach an OpenRouter model; that is what<br/>keeps plane 2 disjoint from plane 1."]
-    INV2["INVARIANT — the router env is SESSION-SCOPED. The entrypoint<br/>exports AGENTBOX_MODEL_ROUTER_* for the router seed only and<br/>never exports CLAUDE_FLOW_ROUTER_* globally (agentbox.toml:1447),<br/>so no other agent silently inherits a cost-optimal route."]
+    INV1["INVARIANT ADR-2079 section 4 — privacy_tier is pinned to public<br/>(agentbox.toml:1642) and the console EXITS on any other value.<br/>Private corpora never reach an OpenRouter model; that is what<br/>keeps plane 2 disjoint from plane 1."]
+    INV2["INVARIANT — the router env is SESSION-SCOPED. The entrypoint<br/>exports AGENTBOX_MODEL_ROUTER_* for the router seed only and<br/>never exports CLAUDE_FLOW_ROUTER_* globally (agentbox.toml:1632),<br/>so no other agent silently inherits a cost-optimal route."]
     INV3["INVARIANT ADR-2023 — plane 1 swaps its model behind the façade with<br/>zero consumer change. Plane 2 swaps its model PER TASK by price.<br/>Neither plane may name the other's endpoint: a raw model port in<br/>consumer config re-creates the coupling ADR-2023 removed<br/>(ADR-2023-loom-facade.md:42-43)."]
     DEG["DIVERGENCE — the gate can be on with no artefacts present. The<br/>entrypoint then prints the fetch instruction rather than failing<br/>(entrypoint-unified.sh:2144), so an operator sees a console<br/>that is enabled-but-inert until ./agentbox.sh model-router fetch<br/>or a rebuild lands the pinned set. see AB-15 and AB-28."]
 
-    NOPIN["INVARIANT 2026-10-01, 878f23311 — no agentbox default names the<br/>Loom's model any more. dream_machine loom_model is empty<br/>(agentbox.toml:2296), the dream-engine supervisor passes an empty<br/>LOOM_MODEL (flake.nix:2770) and the generated compose defaults<br/>LOOM_MODEL empty (flake.nix:3781). Empty means use the single<br/>model the facade advertises at /models, so a swap behind the<br/>facade no longer breaks a seeder that asked for a stale alias."]
+    NOPIN["INVARIANT 2026-10-01, 878f23311 — no agentbox default names the<br/>Loom's model any more. dream_machine loom_model is empty<br/>(agentbox.toml:2483), the dream-engine supervisor passes an empty<br/>LOOM_MODEL (flake.nix:2821) and the generated compose defaults<br/>LOOM_MODEL empty (flake.nix:3905). Empty means use the single<br/>model the facade advertises at /models, so a swap behind the<br/>facade no longer breaks a seeder that asked for a stale alias."]
     MDL --> NOPIN
     PRIV --> INV3
     PUB --> INV3

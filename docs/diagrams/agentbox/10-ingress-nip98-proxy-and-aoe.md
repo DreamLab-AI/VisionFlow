@@ -30,7 +30,7 @@ sources:
   - ../project/agentbox/voice/console/Caddyfile
   - ../project/agentbox/management-api/lib/agent-event-auth.js
   - ../project/agentbox/management-api/lib/action-plane.js
-verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
+verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
 ---
 
 ## AB-10.1 Door inventory and port topology
@@ -39,22 +39,22 @@ verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
 flowchart TB
     LAN["LAN client"]
     P9096["nip98-proxy<br/>agentbox/config/nip98-proxy/proxy.mjs:1206<br/>listen 0.0.0.0:9096"]
-    AOE9095["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2795<br/>127.0.0.1:9095"]
+    AOE9095["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2846<br/>127.0.0.1:9095"]
     MGMT9090["management-api<br/>agentbox/management-api/server.js:1457,:48<br/>HOST 0.0.0.0 PORT 9090 in-container"]
-    RELAY7777["nostr-rs-relay<br/>agentbox/flake.nix:1824,:1788<br/>binds relayCfg.bind, default 127.0.0.1:7777"]
+    RELAY7777["nostr-rs-relay<br/>agentbox/flake.nix:1862,:1826<br/>binds relayCfg.bind, default 127.0.0.1:7777"]
     VOICE8444["voice cockpit Caddy origin<br/>docker-compose.voice.yml:39<br/>0.0.0.0:8444"]
 
     LAN -->|"9096:9096 SANCTIONED agentbox/scripts/ci/check-ports-loopback.mjs:94,:74-91 ADR-2013"| P9096
     P9096 -->|"default route, Authorization UNCONDITIONALLY replaced with daemon token agentbox/config/nip98-proxy/proxy.mjs:1037-1045"| AOE9095
     P9096 -->|"prefix /mgmt/ NIP98_PROXY_MGMT_UPSTREAM agentbox/config/nip98-proxy/proxy.mjs:443-449"| MGMT9090
-    LAN -.->|"127.0.0.1:9090:9090 host publish agentbox/flake.nix:3353 not LAN-reachable"| MGMT9090
+    LAN -.->|"127.0.0.1:9090:9090 host publish agentbox/flake.nix:3477 not LAN-reachable"| MGMT9090
     LAN -->|"8443/8444 SANCTIONED docker-compose.voice.yml:39 agentbox/scripts/ci/check-ports-loopback.mjs:95-96"| VOICE8444
     VOICE8444 -->|"slash lo and slash docs ONLY - direct to management-api voice/console/Caddyfile:82-87"| MGMT9090
     VOICE8444 -->|"slash aoe, slash approvals, slash mgmt, slash dream, slash feed, slash bridge, slash nip07 - Authorization forwarded to the NIP-98 door voice/console/Caddyfile:54-75,:90-111"| P9096
 
 N1["RESOLVED ADR-2047: not a breach - a decided, enumerated exposure. The LAN surface is TEN<br/>sanctioned publishes across five compose files, matched on the normalised host_ip/published/<br/>target/protocol tuple: 9096 sovereign ingress, voice 8443 and 8444, browsercontainer 5903<br/>8931 9222-to-9223, gui-tools 5905 9876 9877, xr-runtime 5904 - each cited at<br/>agentbox/scripts/ci/check-ports-loopback.mjs:93-104. 9096 is the sole IDENTITY ingress to the<br/>AoE plane; the others carry their own auth. The old framing understated the count as well."]
-N2["RESOLVED ADR-2047: the stale --auth none bullet is gone. flake.nix:3349 reads<br/>aoe serve, --auth token is NEVER published, matching the live supervisor command at<br/>flake.nix:2795, and INGRESS-identity now records the bullet as Resolved rather than<br/>open. The doc body's drifted verifyIdentity anchor (a stale 410-450 range) is<br/>corrected to proxy.mjs:662."]
-N6["INVARIANT ADR-2013: sovereign_mesh.relay.expose does NOT open a LAN door. When true it adds<br/>ONE publish and that publish is loopback-pinned - 127.0.0.1:port:port at<br/>agentbox/flake.nix:3358-3359 - so the relay never reaches the SANCTIONED LAN list at<br/>check-ports-loopback.mjs:93-104. Default is expose=false, agentbox.toml:148."]
+N2["RESOLVED ADR-2047: the stale --auth none bullet is gone. flake.nix:3473 reads<br/>aoe serve, --auth token is NEVER published, matching the live supervisor command at<br/>flake.nix:2846, and INGRESS-identity now records the bullet as Resolved rather than<br/>open. The doc body's drifted verifyIdentity anchor (a stale 410-450 range) is<br/>corrected to proxy.mjs:662."]
+N6["INVARIANT ADR-2013: sovereign_mesh.relay.expose does NOT open a LAN door. When true it adds<br/>ONE publish and that publish is loopback-pinned - 127.0.0.1:port:port at<br/>agentbox/flake.nix:3482-3483 - so the relay never reaches the SANCTIONED LAN list at<br/>check-ports-loopback.mjs:93-104. Default is expose=false, agentbox.toml:148."]
 N3["INVARIANT ADR-2009: aoe serve binds 127.0.0.1 plus --behind-proxy - nip98-proxy is the sole<br/>IDENTITY ingress to port 9095, nothing else may open that port<br/>agentbox/config/nip98-proxy/README.md:40-50"]
 N4["RESOLVED ADR-2047: the compose-exposure qualification is superseded in the governing doc.<br/>The line-walker bypass is fixed - check-ports-loopback.sh is a wrapper that execs<br/>check-ports-loopback.mjs, a strict YAML reader for the compose subset, and anything outside that<br/>subset is REJECTED with file and line, never skipped. ADR-2013 stays partial for the DEPLOYMENT<br/>half only: overlay order, interpolation, external files and active-listener evidence.<br/>Receipt: agentbox/docs/estate-closeout/2026-09-05/adr-2013-ports-gate.json."]
 N5["INVARIANT ADR-2013: the wrapper FAILS LOUDLY when the .mjs gate is missing - a copy of the<br/>wrapper without its gate exits 3 with an explicit message rather than looking like a pass<br/>agentbox/scripts/ci/check-ports-loopback.sh:38-42"]
@@ -286,7 +286,7 @@ sequenceDiagram
     participant RT as routeFor<br/>agentbox/config/nip98-proxy/proxy.mjs:462
     participant TOK as readAoeToken<br/>agentbox/config/nip98-proxy/proxy.mjs:311
     participant FS as serve.url state file<br/>~/.config/agent-of-empires/serve.url
-    participant AOE as aoe serve --auth token<br/>agentbox/flake.nix:2795 127.0.0.1:9095
+    participant AOE as aoe serve --auth token<br/>agentbox/flake.nix:2846 127.0.0.1:9095
 
     BR->>PX: GET /api/sessions (or dashboard asset) proxy.mjs:947
     PX->>PX: buffer request body, size-capped MAX_BODY_BYTES 25MiB proxy.mjs:954,:1079-1083
@@ -460,7 +460,7 @@ sequenceDiagram
     participant BR2 as Browser via port 9096
     participant PX2 as proxy /mgmt/ route<br/>agentbox/config/nip98-proxy/proxy.mjs:443
 
-    Note over DC,MAPI: port 9090 is published to the host only as 127.0.0.1:9090:9090 agentbox/flake.nix:3282 - DC must already be container-internal or on the loopback publish
+    Note over DC,MAPI: port 9090 is published to the host only as 127.0.0.1:9090:9090 agentbox/flake.nix:3406 - DC must already be container-internal or on the loopback publish
     DC->>MAPI: request with its OWN Authorization Bearer API_KEY or Nostr header, no X-Agentbox-Pubkey
     MAPI->>AUTH: authMiddleware verifies bearer or nip98 directly agentbox/management-api/server.js:223-231
     AUTH-->>MAPI: allow or 401
@@ -481,7 +481,7 @@ sequenceDiagram
     participant GW as aoeRequest<br/>agentbox/config/nostr-gateway/gateway.cjs:433
     participant TOKFN as readAoeToken<br/>agentbox/config/nostr-gateway/gateway.cjs:129
     participant FS2 as serve.url<br/>AGENTBOX_AOE_TOKEN_FILE override, default ~/.config/agent-of-empires/serve.url
-    participant AOE2 as aoe serve on port 9095<br/>agentbox/flake.nix:2745
+    participant AOE2 as aoe serve on port 9095<br/>agentbox/flake.nix:2796
 
     OP->>GW: /spawn dir agent text - aoeCreateSession(repoPath, tool, title) agentbox/config/nostr-gateway/gateway.cjs:321-325,:454-455
     GW->>GW: POST /api/sessions?wait=ready via aoeRequest gateway.cjs:454-455

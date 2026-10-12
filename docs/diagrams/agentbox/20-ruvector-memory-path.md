@@ -16,6 +16,7 @@ sources:
   - ../project/agentbox/mcp/servers/lib/orchestration-proxy.js
   - ../project/agentbox/management-api/lib/system-manifest.js
   - ../project/agentbox/config/entrypoint-unified.sh
+  - ../project/agentbox/services/agentbox-manifest/src/mcp.rs
   - ../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md
   - ../project/agentbox/scripts/ruvector-recall-harness.mjs
   - ../project/agentbox/scripts/ruvector-sona-feeder.mjs
@@ -23,7 +24,7 @@ sources:
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/docs/reference/claude-context/ruvector-memory-state.md
-verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
+verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
 ---
 
 ## AB-20.1 Server boot — fail-closed on Postgres, advisory on Xinference
@@ -39,6 +40,7 @@ sequenceDiagram
     participant MT as createMemoryTools<br/>agentbox/mcp/servers/ruvector-mcp.cjs:205
 
     SUP->>SRV: start
+    Note over SUP,SRV: REGISTRATION has two routes, both written at boot: the entrypoint writes $WORKSPACE/.mcp.json<br/>(config/entrypoint-unified.sh:1464), found only by walking up from the cwd, and then<br/>`agentbox-manifest mcp-mirror-server` copies the final claude-flow entry into the user-level<br/>~/.claude/.claude.json (config/entrypoint-unified.sh:3100, services/agentbox-manifest/src/mcp.rs:143)<br/>so a session started outside the workspace, for example in $HOME, still loads memory
     SRV->>PG: SELECT 1 (mcp/servers/ruvector-mcp.cjs:155)
     alt unreachable
         PG--xSRV: error
@@ -392,7 +394,9 @@ stateDiagram-v2
     end note
     Degraded --> Rebuilding : SERIAL, non-concurrent rebuild; max_parallel_maintenance_workers=0
     note right of Rebuilding
-        Takes about 5 minutes. This is the ONLY sanctioned recovery.
+        Takes about 5 minutes. This is the ONLY sanctioned recovery. It is now one command,
+        ./agentbox.sh ruvector reindex --yes (ADR-2133, agentbox.sh:104): serial build beside the
+        live index, one-transaction swap, recall measured before and after.
     end note
     Rebuilding --> Verifying : rebuild complete
     Verifying --> Healthy : recall harness PASSES the band (see AB-20.9)
@@ -493,7 +497,7 @@ sequenceDiagram
     participant CH as ruflo mcp start child
     participant PG as ruvector-postgres
 
-    Note over G: gate is projected at boot from the manifest, agentbox.toml:430<br/>into RUVECTOR_ORCHESTRATION_PROXY by entrypoint-unified.sh:1069<br/>apply class boot, management-api/lib/system-manifest.js:207
+    Note over G: gate is projected at boot from the manifest, agentbox.toml:455<br/>into RUVECTOR_ORCHESTRATION_PROXY by entrypoint-unified.sh:1563<br/>apply class boot, management-api/lib/system-manifest.js:227
     SRV->>G: orchestrationProxy()
     alt gate off
         G-->>SRV: false, orchestration stays null
@@ -504,7 +508,7 @@ sequenceDiagram
         AG->>SRV: tools/list
         SRV->>OP: advertise(TOOLS) (mcp/servers/lib/orchestration-proxy.js:354)
         OP->>CH: lazy spawn, CLAUDE_FLOW_MCP_TOOLS = categories from RUVECTOR_ORCHESTRATION_TOOLS<br/>(mcp/servers/lib/orchestration-proxy.js:224,:289)
-        Note over CH: running config narrowed 2026-09-25 — orchestration_tools = swarm,agent only<br/>(agentbox.toml:431), task and coordination dropped as unused (~185 tok/tool). Only<br/>swarm_init / agent_spawn forward, task_orchestrate / coordination_sync stay honest stubs
+        Note over CH: running config narrowed 2026-09-25 — orchestration_tools = swarm,agent only<br/>(agentbox.toml:456), task and coordination dropped as unused (~185 tok/tool). Only<br/>swarm_init / agent_spawn forward, task_orchestrate / coordination_sync stay honest stubs
         CH-->>OP: its tools/list
         OP->>OP: drop every denied name before merging (mcp/servers/lib/orchestration-proxy.js:125)
         Note over OP: INVARIANT ADR-2014 — DENIED_PREFIXES memory_, agentdb_, embeddings_,<br/>hooks_, agentic_flow_, ruvllm_, agenticow_ are enforced on the PROXY side<br/>whatever filter the child honours, so ruflo SQLite memory is unreachable<br/>through this server (mcp/servers/lib/orchestration-proxy.js:43)
@@ -522,8 +526,8 @@ sequenceDiagram
     end
     AG->>SRV: memory_store / memory_search
     SRV->>PG: always ruvector-postgres, never the child
-    Note over SRV,PG: INVARIANT — memory_* is never forwarded. The decision is recorded in<br/>docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:55-58<br/>and the manifest note repeats it at agentbox.toml:430
-    Note over SRV,PG: DOC-DRIFT: the ADR's own Decision prose still says the category default is<br/>"swarm,agent,task,coordination" (ADR-2082-orchestration-proxy-behind-governed-memory-server.md:51),<br/>but its own 2026-09-29 re-verification entry and agentbox.toml:431 agree the running<br/>config is "swarm,agent" — CODE (and the ADR's own audit trail) is authoritative
+    Note over SRV,PG: INVARIANT — memory_* is never forwarded. The decision is recorded in<br/>docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:55-58<br/>and the manifest note repeats it at agentbox.toml:455
+    Note over SRV,PG: DOC-DRIFT: the ADR's own Decision prose still says the category default is<br/>"swarm,agent,task,coordination" (ADR-2082-orchestration-proxy-behind-governed-memory-server.md:51),<br/>but its own 2026-09-29 re-verification entry and agentbox.toml:456 agree the running<br/>config is "swarm,agent" — CODE (and the ADR's own audit trail) is authoritative
     Note over SRV: DEBT — the close handler drains in-flight requests for up to 30 s because a slow<br/>first tools/list can outlive stdin (mcp/servers/ruvector-mcp.cjs:736-765)
 ```
 

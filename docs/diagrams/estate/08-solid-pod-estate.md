@@ -37,7 +37,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../project/agentbox/docs/adr/ADR-2099-the-chain-is-the-ledger-of-record.md
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, solid-pod-rs: 93e2200218fad37927df16a1b7784c93c475670d, nostr-rust-forum: 72463fbde35ac4c68539b1f65a08ff03b9941201}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, solid-pod-rs: 93e2200218fad37927df16a1b7784c93c475670d, nostr-rust-forum: 72463fbde35ac4c68539b1f65a08ff03b9941201}
 ---
 ## ES-08.1 Four coexisting Solid-pod deployments — topology contrast
 
@@ -52,9 +52,9 @@ flowchart TB
     end
 
     subgraph AB["agentbox container — supervised service"]
-        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2550"]
-        SRV["solid-pod-rs-server  port 8484<br/>agentbox/agentbox.toml:517-518"]
-        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2567"]
+        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2601"]
+        SRV["solid-pod-rs-server  port 8484<br/>agentbox/agentbox.toml:522-523"]
+        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2618"]
         SUP -->|"exec solidPodRsLauncher"| SRV
         HTTPS -->|"TLS terminate to  port 8484"| SRV
     end

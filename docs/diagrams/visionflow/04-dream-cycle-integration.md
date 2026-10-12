@@ -27,7 +27,7 @@ sources:
   - docs/adr/ADR-2009-webgl-mesh-deep-is-sidecar-only.md
   - ./README.md
   - package.json
-verified_commit: 62d16e02fe3bdd5551e4433b2d42552ec93adb12
+verified_commit: da57b49a28974dd9bff5b5358369eef94a439273
 ---
 
 ## VF-04.1 dream.config.json — the whole contract this repo offers the engine
@@ -85,7 +85,7 @@ stateDiagram-v2
       DOC-DRIFT: ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:44
       still calls estate-health "a fifth rotation slot".
       ADR-2009 removed webgl-mesh, so it is one of four —
-      as BASELINE-visionflow.md:171 correctly records.
+      as BASELINE-visionflow.md:192 correctly records.
     end note
 ```
 
@@ -129,10 +129,10 @@ flowchart LR
     E1 --> E1P["prints page count and byte total, then BUILD-OK<br/>dream-build-check.sh:7"]:::pass
     E1 --> E1F["otherwise BUILD-FAIL — dream-build-check.sh:8<br/>exit status is 0 either way"]:::fail
 
-    E2["dream-link-check.sh<br/>three ref families: href/src attrs, meta content media URLs<br/>and — since the 10-05 ACCEPT — in-page anchors<br/>dream-link-check.sh:6, dream-link-check.sh:8 and dream-link-check.sh:14"]
-    E2 --> E2P["internal-refs-checked N, missing 0, anchors-checked N,<br/>dangling 0, then LINK-INTEGRITY-OK<br/>dream-link-check.sh:76 and dream-link-check.sh:78"]:::pass
-    E2 --> E2F["any missing ref prints MISSING, or a dangling anchor prints<br/>DANGLING-ANCHOR, then LINK-INTEGRITY-FAIL<br/>dream-link-check.sh:64 and dream-link-check.sh:73"]:::fail
-    E2 --> E2X["no dist/ prints NO-DIST and exits 0 with NO sentinel<br/>dream-link-check.sh:25"]:::odd
+    E2["dream-link-check.sh<br/>four ref families: href/src attrs, meta content media URLs,<br/>in-page anchors (since the 10-05 ACCEPT) and — since the 10-08 ACCEPT — same-origin<br/>URLs inside JSON-LD blocks<br/>dream-link-check.sh:6, :8, :14 and :20"]
+    E2 --> E2P["internal-refs-checked N, missing 0, anchors-checked N,<br/>dangling 0, then LINK-INTEGRITY-OK<br/>dream-link-check.sh:96 and dream-link-check.sh:98"]:::pass
+    E2 --> E2F["any missing ref prints MISSING, or a dangling anchor prints<br/>DANGLING-ANCHOR, then LINK-INTEGRITY-FAIL<br/>dream-link-check.sh:61 and dream-link-check.sh:81"]:::fail
+    E2 --> E2X["no dist/ prints NO-DIST and exits 0 with NO sentinel<br/>dream-link-check.sh:33"]:::odd
 
     E3["dream-meta-tags-scan.sh<br/>counts title, description, canonical, viewport as REQUIRED;<br/>og, twitter and robots counted but optional<br/>dream-meta-tags-scan.sh:24"]
     E3 --> E3P["required-missing 0, then META-SCAN-OK<br/>dream-meta-tags-scan.sh:33"]:::pass
@@ -148,8 +148,8 @@ flowchart LR
     E5 --> E5X["orphans are a MEASUREMENT, never a failure: optional groups<br/>are staged deliberately for deep links<br/>dream-asset-refs-scan.sh:22"]:::odd
 
     E6["estate-health.mjs check — offline read of the committed snapshot"]
-    E6 --> E6P["ESTATE-HEALTH-OK, exit 0 — estate-health.mjs:992"]:::pass
-    E6 --> E6F["ESTATE-HEALTH-RED or ESTATE-HEALTH-STALE, exit 1<br/>estate-health.mjs:981 and estate-health.mjs:988"]:::fail
+    E6 --> E6P["ESTATE-HEALTH-OK, exit 0 — estate-health.mjs:1002"]:::pass
+    E6 --> E6F["ESTATE-HEALTH-RED or ESTATE-HEALTH-STALE, exit 1<br/>estate-health.mjs:991 and estate-health.mjs:998"]:::fail
 ```
 
 ## VF-04.5 A night end to end — probe, build, evaluate, ledger, branch, human gate
@@ -201,7 +201,7 @@ flowchart TB
     G6 -.->|"fences the 09-08..09-13 veto pattern"| DRYP["see VF-04.8"]
     G2 --> LOCAL["the browser path exists, just not here:<br/>npm run test:a11y and npm run test:perf — package.json:15<br/>see VF-02.10"]:::warn
     G1 --> SRC["ground truth for the discipline: build.sh:7 —<br/>no compile step, no bundler, no WASM"]:::warn
-    G4 --> SRC2["ground truth: BASELINE-visionflow.md:301 Invariant 7<br/>renumbered from 6 when the sidestr invariant was inserted"]:::warn
+    G4 --> SRC2["ground truth: BASELINE-visionflow.md:322 Invariant 7<br/>renumbered from 6 when the sidestr invariant was inserted"]:::warn
 ```
 
 ## VF-04.8 What the ledger actually records — a dry September, a silent fortnight, then seven ACCEPTs
@@ -215,9 +215,9 @@ flowchart TB
 
     L["docs/dream-cycle/LEDGER.md — LEDGER.md:3"]
 
-    L --> A["ACCEPT nights (17): 08-17 x2, 08-29, 08-31, 09-01, 09-02,<br/>09-03, 09-04, 09-05, 09-10 seo-and-meta robots.txt via<br/>PR #3 — LEDGER.md:25 — then seven in a row, 09-30 to 10-06"]:::acc
-    L --> I["INCONCLUSIVE nights (10): 08-16 content-integrity; three<br/>webgl-mesh nights 08-30, 09-06, 09-07; then six VETOED nights<br/>09-08, 09-09, 09-11, 09-13, 09-27, 09-29<br/>LEDGER.md:19,23,24,26,28,29,31"]:::inc
-    L --> B["BLOCKED-ENV nights (2): 09-12 and 09-28, both<br/>content-integrity, both VETOED — LEDGER.md:27,30"]:::blk
+    L --> A["ACCEPT nights (20): 08-17 x2, 08-29, 08-31, 09-01, 09-02,<br/>09-03, 09-04, 09-05, 09-10 seo-and-meta robots.txt via<br/>PR #3 — LEDGER.md:25 — then seven in a row, 09-30 to 10-06,<br/>then 10-08, 10-10 and 10-11 — LEDGER.md:40,42,43"]:::acc
+    L --> I["INCONCLUSIVE nights (11): 08-16 content-integrity; three<br/>webgl-mesh nights 08-30, 09-06, 09-07; then six VETOED nights<br/>09-08, 09-09, 09-11, 09-13, 09-27, 09-29; and 10-07 estate-health<br/>(three red agentbox workflows, the collector source, lines 500 to 997 at the night, not shown to it)<br/>LEDGER.md:19,23,24,26,28,29,31,39"]:::inc
+    L --> B["BLOCKED-ENV nights (3): 09-12 and 09-28, both<br/>content-integrity, both VETOED — LEDGER.md:27,30 — and 10-09<br/>build-pipeline, VETOED when CNAME-versus-page-host drift failed the link gate<br/>LEDGER.md:41"]:::blk
     L --> O["OPERATOR rows (5) — human audits, deliberately NOT counted<br/>toward the dry streak that parks a repo"]:::op
 
     O --> O1["2026-08-28 — evaluators converted to checked-in scripts after<br/>the annexe ssh dispatch mangled nested double quotes<br/>LEDGER.md:8"]:::op
