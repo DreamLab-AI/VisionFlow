@@ -82,4 +82,4 @@ completed native migration of the 690 recorded legacy declarations.
 and [standalone desktop acceptance](https://github.com/DreamLab-AI/ontomark-obsidian/blob/ebf8fd6/docs/desktop-acceptance.md)
 supply consumer-specific evidence. Remaining work includes the normative estate
 profile migration, other consumer adapters and removal of remaining duplicate
-transformations. Neither these receipts nor publication alone close those gates.
+transformations. Assisted ingest ([ADR-OM-003](https://github.com/DreamLab-AI/ontomark/blob/main/docs/adr/ADR-OM-003-native-assisted-ingest.md)) is an optional shared capability of the workspace: a pure, host-driven plan/accept core any consumer may adopt; adopting it is each consumer's own gate. Neither these receipts nor publication alone close those gates.
