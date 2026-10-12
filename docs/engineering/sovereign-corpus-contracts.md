@@ -113,12 +113,15 @@ Identity of a page = vault-relative path without `.md` (`knowledge/pages/Knowled
 <out>/data/scaffold-index.json       v1 shape (Loom loom-scaffold/index.rs RawIndex) — byte-parity golden vs current build
 <out>/data/prose-index.json
 <out>/data/ontology-corpus.records.jsonl  --with-rvdb only: portable records (key, text, metadata.generation,
-                                          384-dim bge-small-en-v1.5 embedding inline). NOT a database. Loom's
+                                          384-dim bge-small-en-v1.5 embedding inline). NOT a database. Emitted by
+                                          ontomark since 2026-10-12 (build::records, pure; the Xinference transport
+                                          is the CLI's `--embed-endpoint`, OM-00 S1.4) as well as by vault. Loom's
                                           `promote_vault_build` turns it into the serving `ontology-corpus.rvdb`
                                           (ruvector-core) + `.generation.json` sidecar and lists both in the marker
                                           with a `derived` note. (Corrected 2026-09-23: vault had written the JSONL
                                           under the `.rvdb` name, which Loom's reader cannot open.)
-<out>/api/search-index.json, <out>/api/pages/<slug>.json, <out>/api/census.json, <out>/api/validation-report.json
+<out>/api/search-index.json, <out>/api/pages/<slug>.json, <out>/api/pages/_domain-index.json, <out>/api/census.json,
+<out>/api/validation-report.json
 <out>/ns/v2.jsonld                   JSON-LD context (served path is /ns/v2.jsonld; loom-graph-oxigraph cites narrativegoldmine.com/ns/v1#)
 <out>/api/schema/context.jsonld      the same document, byte-identical — the old site's pinned URL (publish.yml requires it); also context/v1.jsonld
 <out>/data/ontology.json             WebVOWL graph (explorer build input)
@@ -134,12 +137,19 @@ Identity of a page = vault-relative path without `.md` (`knowledge/pages/Knowled
                                       Held back at any depth whatever the flag: `_misc/`, `misc/` (matches `**/misc/**`
                                       and stage-content.sh, so check-urls' staged == built completeness holds)
 <out>/okf/                            OKF bundle export (index.md + concept files) for external exchange
-<out>/.generation.json:   { id: "visionGraph@<sha>", commit: <sha>, content_digest, generated_at,
+<out>/.generation.json:   { id: "visionGraph@<sha>", commit: <sha>, dirty, content_digest, ontology_digest, generated_at,
                             class_count, page_count, vocabulary_version, stale_after, artifacts:[{name,sha256,bytes}] }
+<out>/data/.generation.json  the same stamp scoped to data/ (artefact names relative to data/); what Loom reads.
+                            Marker rule (OM-00 S2.5, 2026-10-12): a marker never lists itself; the root marker lists
+                            data/.generation.json with its real hash; with --publish-out the publish/ files are listed
+                            as artefacts although they live outside <out>.
 ```
 
-`content_digest` identifies the **source corpus**: SHA-256 over the sorted `(page path, page bytes)` pairs the build read
-(`vault::build::generation::content_digest`). It is NOT a digest of the artefacts and cannot be recomputed from them. A
+`content_digest` identifies the **source corpus**: SHA-256 over the sorted `(path, sha256(bytes))` pairs of every byte the
+build read — pages and journals of every loaded vault (knowledge, `working/` when staged, the sibling read for link
+resolution) and the vocabulary (`ontomark_compile::build::generation::content_digest_of_hashes`, OM-00 S2.2, 2026-10-12;
+vault's `content_digest` hashed one vault's page bytes and the two values are not comparable). It is NOT a digest of the
+artefacts and cannot be recomputed from them. A
 consumer that needs to prove what it serves hashes the listed artefacts itself — Loom's served `identity.content_digest`
 is that artefact-set digest (`name:sha256` pairs, sorted, joined by newlines, SHA-256). Artefact `name`s are relative paths
 inside the bundle and may include a subdirectory (`graph/full.bin`); `..`, absolute paths and symlinks are refused.

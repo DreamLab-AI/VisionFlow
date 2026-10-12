@@ -281,6 +281,30 @@ flowchart LR
 - INVARIANT: the closure-vs-Whelk split is KEEP, pinned by `the_closure_and_the_reasoner_agree_on_the_taxonomy` (`ontomark-compile/src/build/mod.rs:1254`); the NGG1 category ancestry walk at `ontomark-compile/src/build/graph_tiers.rs:154` has no such test.
 - DIVERGENCE: `reason.rs:79` gained `refusals.is_empty()` in 6c040a5 together with `checked` (`reason.rs:590-597`); reverting it would let refusals pass, so it stays.
 
+### Resolution at ontomark `8d654d1` (2026-10-12)
+
+Phase 3 wrote one failing test per item (`93c78a8`, 19 tests across `register_sev{1,2,3}.rs` and `register_sev{1,2}_cli.rs`); Phase 4 landed the fixes in one commit. Every cited line above is at `ffe06e4` and describes the state the fixes removed; this table is prose and carries no line citations.
+
+| Item | Status | What landed |
+|---|---|---|
+| S1.1 | FIXED | `Redactor::new` is fallible (`RegexBuilder` with an explicit size limit); `PublicationBlocked::Redactor` refuses the build. `ProseRedactor::{new,with_size_limit}` are public so the refusal is testable. |
+| S1.2 | FIXED | Rendered frontmatter is scanned beside the body, in the publish gate and in `validate` (`SECRET_DETECTED`). |
+| S1.3 | FIXED | `Frontmatter::boolean` and `Page::is_public` accept a YAML bool only; `validate` reports `INVALID_PUBLIC_FLAG`; SHACL emits a quoted `"true"` as a plain literal; conformance row C03 rewritten. |
+| S1.4 | FIXED (emitter, not contract-only) | `build::records` ports VisionClaw's `rvdb.rs` as pure code; the Xinference transport is in the CLI (`embed.rs`) behind `--with-rvdb`/`--embed-endpoint`; `build::run_with` takes the host's `Embedder`. The compile crate still opens no socket. |
+| S1.5 | FIXED | `gate` and `conflicts` iterate every selected vault. One vault keeps the legacy bytes; `all` prints per-vault verdicts and a JSON map. The golden `gate-full.{prose,json}` had recorded the bug and was re-captured (knowledge verdict byte-identical, working verdict added). |
+| S2.1 | FIXED, contract changed | Typed `build::Unsatisfiable`; the CLI exits **2** (same refusal class as `OutputCollision`). Recorded in ADR-OM-005's amendment rather than a separate ADR: the crate doc is the contract and was amended in the same commit. |
+| S2.2 | FIXED | `content_digest` is computed from `Page::source_sha256` (hashed at parse) over every loaded vault incl. journals and the sibling vault, plus the vocabulary. No re-read; a read error can no longer hash empty bytes. Definition change: the legacy value is not reproducible. |
+| S2.3 | FIXED | `publish::write_to` stages beside the target and swaps in through the shared `swap_in`; the bundle promotion uses the same. `promote`'s doc no longer claims atomicity: it is two renames with restore on failure. |
+| S2.4 | FIXED | `--tier` and `--severity` are clap `value_parser`s; unknown values exit 2. |
+| S2.5 | FIXED, wording corrected | The root marker lists `data/.generation.json` with its real hash, and `--publish-out` files are recorded as external artefacts. **A marker never lists itself** (a file cannot contain its own hash), so the register's "both markers" became this rule. |
+| S3.1 | KEEP | Unchanged; NGG2 item. |
+| S3.2 | FIXED | `SkipReason::NotARegularFile`; the census counts it `excluded_not_regular_file`. |
+| S3.3 | FIXED, wording corrected | `Split::unterminated` / `Page::unterminated_frontmatter`; the census refuses it as `invalid_input`; `validate` reports `UNCLOSED_FRONTMATTER`. The register said the page became "private"; the census had counted it `excluded_no_frontmatter`, which is what the fix replaces. |
+| S3.4 | KEEP | Unchanged; the parity mechanism. |
+| step 1 | DONE | `run()` walks `pages/` once: `inspect_walk`, `Vault::load_with_walk` and `excluded_identities_of` share the listing. `sibling_working` folded into `sibling_vault`; one `vault_kinds` for every verb including `migrate`. |
+
+Parity after the fixes: every artefact of the `estate-small` golden is byte-identical except the two generation markers, which `conformance.rs` now compares structurally (identity fields equal; every legacy artefact present with the same hash and size). The decision-4 phrase "`--vault all`, unredacted" in ADR-OM-005 is withdrawn by this register: `--vault all` is the public publish's value, and private-link redaction applies to the machine bundle as to any bundle. The private machine-bundle mode needs its own flag and is the next item.
+
 ## OM-00.4 Canonical run() after reconciliation
 
 ```mermaid
