@@ -48,6 +48,8 @@ citations, so that the legacy ADR-001..007 prose (now archived) is read as
 evidence and history, never as the current build. Ground-truth order:
 live code/config in this repo > legacy ADR prose.
 
+Estate alignment, 2026-10-12: [ADR-2014](adr/ADR-2014-shared-ontology-workspace.md) §Estate alignment records that VisionClaw consumes the shared build (its force superset is an explicit projection), that its publish build job is retired behind gates, that `working/` stays in the GPU view via a private machine bundle, and that generation identity is separable from distribution. Evidence in Ontomark ADR-OM-005.
+
 Ownership continuation, 2026-10-11: [ADR-2014](adr/ADR-2014-shared-ontology-workspace.md)
 selects Ontomark as the external core, codec and shared graph source owner;
 [ADR-2016](adr/ADR-2016-local-markdown-ontology-application.md) locates Obsidian
