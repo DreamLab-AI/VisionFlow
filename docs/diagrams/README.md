@@ -168,7 +168,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_139 topic files, 1375 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_146 topic files, 1417 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -345,6 +345,18 @@ _139 topic files, 1375 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | SR-03 | [In-chain EVM execution, withdrawal accounting, and retained snapshots](sidestr-rs/03-evm-overlay-and-retained-state.md) | 4 | flowchart, sequenceDiagram | [ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md](../../../sidestr-rs/docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md), [ADR-2012-sidestr-settlement-is-ecosystem-canon.md](../../docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md), [ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md](../../../project/agentbox/docs/adr/ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md) | ADR-2012, ADR-2096 |
 | SR-04 | [Hitch channel finality, recovery snapshots, routing, and the missing host](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) | 5 | flowchart, sequenceDiagram | [ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md](../../../sidestr-rs/docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md), [ADR-2012-sidestr-settlement-is-ecosystem-canon.md](../../docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md), [ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md](../../../project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md) | ADR-2012, ADR-2111 |
 | SR-05 | [Origin-neutral reserve attestations and the private Liquid adapter](sidestr-rs/05-reserve-attestation-and-liquid-adapter.md) | 3 | flowchart, stateDiagram-v2 | [ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md](../../../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md), [ADR-2117-private-owner-usd-unit-bridged-through-rgb-into-sidestr.md](../../../project/agentbox/docs/adr/ADR-2117-private-owner-usd-unit-bridged-through-rgb-into-sidestr.md) | ADR-2117 |
+
+### ontomark
+
+| ID | Topic | Diagrams | Kinds | Governing | ADRs |
+|----|-------|----------|-------|-----------|------|
+| OM-00 | [Anomaly register — duplicated rules, ranked faults, outcomes at ee9e04a, canonical run()](ontomark/00-anomaly-register-and-reconciliation.md) | 5 | flowchart | [sovereign-corpus-contracts.md](../../docs/engineering/sovereign-corpus-contracts.md) | ADR-OM-001, ADR-OM-005, ADR-2137 |
+| OM-01 | [Input layer — vault, pages, frontmatter gates, secrets, slugs, vocabulary](ontomark/01-input-layer-vault-pages-and-gates.md) | 6 | flowchart, sequenceDiagram | [sovereign-corpus-contracts.md](../../docs/engineering/sovereign-corpus-contracts.md) | ADR-OM-001, ADR-OM-005 |
+| OM-02 | [IR corpus, public projection and private-link redaction](ontomark/02-ir-corpus-projection-and-redaction.md) | 6 | flowchart, sequenceDiagram | [sovereign-corpus-contracts.md](../../docs/engineering/sovereign-corpus-contracts.md) | ADR-OM-001, ADR-OM-005 |
+| OM-03 | [vault build — run() gates, staging, promotion and generation identity](ontomark/03-build-run-gates-staging-and-generation.md) | 7 | sequenceDiagram, flowchart | [sovereign-corpus-contracts.md](../../docs/engineering/sovereign-corpus-contracts.md) | ADR-OM-001, ADR-OM-005, ADR-2124, ADR-2125, ADR-2128 |
+| OM-04 | [Artefact emitters — Turtle, reasoner, indexes, NGG1 tiers, WebVOWL, OKF, against contract C3](ontomark/04-emitters-turtle-indexes-tiers-and-contract-c3.md) | 7 | flowchart | [sovereign-corpus-contracts.md](../../docs/engineering/sovereign-corpus-contracts.md) | ADR-OM-001, ADR-OM-004, ADR-2124, ADR-2128 |
+| OM-05 | [ontomark CLI — commands, vault selector, exit codes and consumers](ontomark/05-cli-commands-vault-selector-and-exit-codes.md) | 6 | flowchart | [sovereign-corpus-contracts.md](../../docs/engineering/sovereign-corpus-contracts.md) | ADR-OM-001, ADR-OM-005, ADR-2137 |
+| OM-06 | [Machine scope, the records emitter and the ingest plan/accept contract](ontomark/06-machine-scope-and-ingest-contract.md) | 5 | flowchart, sequenceDiagram | [sovereign-corpus-contracts.md](../../docs/engineering/sovereign-corpus-contracts.md) | ADR-OM-003, ADR-OM-005, ADR-2136, ADR-2137 |
 
 ### estate
 

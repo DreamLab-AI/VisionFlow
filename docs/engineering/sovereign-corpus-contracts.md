@@ -146,9 +146,10 @@ Identity of a page = vault-relative path without `.md` (`knowledge/pages/Knowled
                             inferred TTL, ontology_digest, NGG1 tiers, OKF, scaffold, prose-index) PLUS working/'s public
                             pages as plain records in api/pages/working/<slug-path>.json and the search index; page_count
                             counts them. It writes no publish/. ontology_digest is EQUAL across scopes by design, so a
-                            consumer cache keyed on it must also key on scope. Readers must tolerate the field (the
-                            engine's Generation reader and VisionClaw's serde_json::Value reader do; Loom's reader is
-                            unverified as of this note).
+                            consumer cache keyed on it must also key on scope. Readers must tolerate the field: the
+                            engine's Generation reader, VisionClaw's serde_json::Value reader and Loom's named-field
+                            readers (loom-facade mirror.rs, no deny_unknown_fields) all do; verified live 2026-10-12
+                            when the Loom reloaded visionGraph@45976a8c7 from an ontomark 0.2.0 bundle.
 <out>/data/.generation.json  the same stamp scoped to data/ (artefact names relative to data/); what Loom reads.
                             Marker rule (OM-00 S2.5, 2026-10-12): a marker never lists itself; the root marker lists
                             data/.generation.json with its real hash; with --publish-out the publish/ files are listed

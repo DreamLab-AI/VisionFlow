@@ -1,6 +1,6 @@
 ---
 id: OM-00
-title: Anomaly register — duplicated rules, ranked faults, revert-or-reconcile, canonical run()
+title: Anomaly register — duplicated rules, ranked faults, outcomes at ee9e04a, canonical run()
 area: ontomark
 governing:
   - docs/engineering/sovereign-corpus-contracts.md
@@ -36,6 +36,15 @@ sources:
   - ../ontomark/crates/ontomark-ngg1/src/lib.rs
   - ../ontomark/crates/ontomark-cli/src/main.rs
   - ../ontomark/crates/ontomark-cli/src/migrate_cmd.rs
+  - ../ontomark/crates/ontomark-compile/src/build/records.rs
+  - ../ontomark/crates/ontomark-compile/src/build/generation.rs
+  - ../ontomark/crates/ontomark-compile/tests/register_sev1.rs
+  - ../ontomark/crates/ontomark-compile/tests/register_sev2.rs
+  - ../ontomark/crates/ontomark-compile/tests/register_sev3.rs
+  - ../ontomark/crates/ontomark-cli/tests/register_sev1_cli.rs
+  - ../ontomark/crates/ontomark-cli/tests/register_sev2_cli.rs
+  - ../ontomark/crates/ontomark-cli/tests/conformance.rs
+  - ../ontomark/crates/ontomark-cli/src/embed.rs
   - ../ontomark/docs/HANDOFF.md
   - ../ontomark/docs/DEPRECATION.md
   - ../ontomark/docs/adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md
@@ -50,63 +59,65 @@ sources:
   - ../project/crates/vault-core/src/frontmatter.rs
   - ../project/crates/vault-core/src/page.rs
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: ffe06e45bfebd388a1d85849b24a8810e4d0d610, visionclaw: 4806604edacf68179877e8db995299dceba46e75, visionflow: 3abc1afcde9cf73e3488351d0955bf1bb53272a5}
+verified_commit: {ontomark: ee9e04a25715e70d3de211c17a012e878d14f339, visionclaw: 4806604edacf68179877e8db995299dceba46e75, visionflow: 3abc1afcde9cf73e3488351d0955bf1bb53272a5}
 ---
 
-## OM-00.1 Duplicated rules — every copy, whether it diverges, and the one home each should collapse into
+## OM-00.1 Duplicated rules — every copy at ee9e04a, whether it still diverges, and the one home each collapses into
 
 ```mermaid
 flowchart LR
     subgraph PUB["public gate x4"]
-        P1["lenient: strings true/false accepted<br/>input/page.rs:211-213 via input/frontmatter.rs:233-236"]
-        P2["strict: only a YAML bool, anything else refuses the build<br/>ir/projection.rs:112-116"]
-        P3["profile-configurable lenient_booleans<br/>ontomark-model/src/profile.rs:604-611"]
-        P4["strict, gate key optional<br/>ontomark-wasm/src/profile.rs:316-321"]
+        P1["Page::is_public: only Value::Bool(true) publishes — RESOLVED 8d654d1 (S1.3)<br/>input/page.rs:231-236"]
+        P2["build census: bool true or false or absent; any other value is invalid_publication_flag<br/>ir/projection.rs:138-142"]
+        P3["model Profile: strings accepted only when the profile sets lenient_booleans<br/>ontomark-model/src/profile.rs:604-612"]
+        P4["wasm profile: strict bool, gate key optional<br/>ontomark-wasm/src/profile.rs:316-321"]
     end
-    PUBC["CANONICAL: one is_public on the model Profile,<br/>estate profile with lenient_booleans false<br/>ontomark-model/src/profile.rs:607"]
-    P1 -->|DIVERGENCE| PUBC
+    PUBC["CANONICAL: the model Profile is_public, estate profile with lenient_booleans false<br/>ontomark-model/src/profile.rs:604"]
+    P1 -->|same rule since 8d654d1| PUBC
     P2 -->|same rule| PUBC
     P3 --> PUBC
     P4 -->|same rule| PUBC
 
-    subgraph WALK["directory walk x3"]
-        W1["walk_pages: errors surface, skips reported, dot rule<br/>input/page.rs:492-515"]
-        W2["inspect_inputs census: own dot + unpublished filter<br/>ir/projection.rs:77, ir/projection.rs:93"]
-        W3["excluded_identities: filter_map ok swallows walk errors, no dot rule<br/>ir/projection.rs:172-175"]
+    subgraph WALK["directory walk — one listing since 8d654d1"]
+        W1["walk_pages: errors surface, skips reported, dot rule<br/>input/page.rs:532"]
+        W2["census inspect_walk over the SAME PageWalk — RESOLVED<br/>ir/projection.rs:95"]
+        W3["excluded_identities_of reads held pages out of the loaded Vault, no second walk — RESOLVED<br/>ir/projection.rs:227"]
+        W4["excluded_identities by path still walks on its own and has no production caller<br/>ir/projection.rs:201-204"]
     end
-    WALKC["CANONICAL: walk_pages once, PageWalk feeds census and holds<br/>input/page.rs:492"]
-    W2 -->|DIVERGENCE| WALKC
-    W3 -->|DIVERGENCE| WALKC
+    WALKC["CANONICAL: walk_pages once, PageWalk feeds census, load and holds<br/>ontomark-compile/src/build/mod.rs:512-518"]
     W1 --> WALKC
+    W2 --> WALKC
+    W3 --> WALKC
+    W4 -->|dup only| WALKC
 
     subgraph LINK["wikilink resolve x4"]
         L1["Corpus::build resolve, fragment and .md kept<br/>ir/model.rs:336-342"]
-        L2["PrivateLinks::resolve strips fragment and .md<br/>build/redact.rs:209-226"]
-        L3["shacl Resolver::page, no slug key, case-sensitive<br/>shacl.rs:1197-1199"]
+        L2["PrivateLinks::resolve strips fragment and .md; also the machine scope resolver<br/>ontomark-compile/src/build/redact.rs:210-229"]
+        L3["shacl Resolver::page, no slug key, case-sensitive id then lower-cased title and alias<br/>shacl.rs:1201-1207"]
         L4["curated links slug verbatim via target_slug<br/>ir/model.rs:424"]
     end
-    LINKC["CANONICAL: one Resolver in ir/, rules of build/redact.rs:209"]
+    LINKC["CANONICAL: one Resolver in ir/, rules of redact.rs resolve_public<br/>ontomark-compile/src/build/redact.rs:239"]
     L1 -->|DIVERGENCE| LINKC
     L2 --> LINKC
     L3 -->|DIVERGENCE| LINKC
     L4 -->|DIVERGENCE| LINKC
 
     subgraph HOLD["held-back list x4"]
-        H1["UNPUBLISHED_DIRS _misc, first component only<br/>input/page.rs:38, input/page.rs:543-547"]
+        H1["UNPUBLISHED_DIRS _misc, first component only<br/>input/page.rs:38, input/page.rs:583-588"]
         H2["HELD_BACK_DIRS _misc + misc at any depth<br/>ontomark-compile/src/build/publish.rs:130-142"]
-        H3["copy of the excluded_identities loop<br/>migrate/compile.rs:90-99"]
-        H4["held_back applied only on the redacted projection path<br/>ir/projection.rs:467"]
+        H3["migrate delegates to is_unpublished but keeps its own excluded-identity loop<br/>migrate/compile.rs:38-39, migrate/compile.rs:90-99"]
+        H4["held_back applied on the redacted path; the compat path skips it — KEEP (S3.4)<br/>ir/projection.rs:623, ir/projection.rs:668, ontomark-compile/src/build/mod.rs:612-616"]
     end
-    HOLDC["CANONICAL: one held_back(rel) in input/, one list<br/>ontomark-compile/src/build/publish.rs:134"]
+    HOLDC["CANONICAL: one held_back(rel) in input/<br/>ontomark-compile/src/build/publish.rs:134"]
     H1 -->|DIVERGENCE| HOLDC
     H2 --> HOLDC
     H3 -->|dup only| HOLDC
-    H4 -->|DIVERGENCE| HOLDC
+    H4 -->|DIVERGENCE kept| HOLDC
 
     subgraph SLUG["slugify x3"]
-        S1["regex non-alnum to dash, trimmed<br/>input/slug.rs:15-32"]
-        S2["hand-rolled, same output, parity-tallied<br/>ontomark-model/src/mint.rs:73-88, adr2015.rs:727"]
-        S3["target_slug: kebab target taken verbatim, keeps leading/doubled dashes<br/>input/slug.rs:66-75"]
+        S1["regex non-alnum to dash, trimmed<br/>input/slug.rs:14-16, input/slug.rs:28"]
+        S2["hand-rolled, same output, parity-tallied<br/>ontomark-model/src/mint.rs:73-88, ontomark-model/tests/adr2015.rs:727"]
+        S3["target_slug: kebab target taken verbatim, keeps leading and doubled dashes<br/>input/slug.rs:65-75"]
     end
     SLUGC["CANONICAL: the model minter<br/>ontomark-model/src/mint.rs:73"]
     S1 -->|dup only| SLUGC
@@ -139,7 +150,7 @@ flowchart LR
 
     subgraph DOM["domain normalisation x5"]
         D1["verbatim<br/>turtle.rs:302-304"]
-        D2["alias fold via profile<br/>ontomark-compile/src/build/graph_tiers.rs:81-90"]
+        D2["alias fold via profile<br/>ontomark-compile/src/build/graph_tiers.rs:81-89"]
         D3["raw slug match<br/>webvowl.rs:91"]
         D4["empty to unclassified<br/>page_api.rs:147-148"]
         D5["title-case for display<br/>indexes.rs:328"]
@@ -151,105 +162,95 @@ flowchart LR
     D5 -->|presentation| DOMC
     D2 --> DOMC
 
-    subgraph VK["vault_kinds x3"]
-        K1["unknown to knowledge, clap-guarded<br/>ontomark-cli/src/main.rs:141-147"]
-        K2["unknown to BOTH vaults<br/>migrate_cmd.rs:59-65"]
+    subgraph VK["vault_kinds — one since 8d654d1"]
+        K1["vault_kinds, VAULT_VALUES as clap value_parser, used by every verb<br/>ontomark-cli/src/migrate_cmd.rs:72-76, ontomark-cli/src/main.rs:41"]
         K3["VisionClaw legacy copy<br/>vault/src/main.rs:165"]
     end
-    VKC["CANONICAL: one VaultSelector beside VAULT_VALUES<br/>ontomark-cli/src/main.rs:131"]
+    VKC["CANONICAL: the one selector in migrate_cmd<br/>ontomark-cli/src/migrate_cmd.rs:72"]
     K1 --> VKC
-    K2 -->|DIVERGENCE| VKC
     K3 -->|"EXTERNAL: dup until VC-60 retires"| VKC
 
-    subgraph RED["body redaction x3, Corpus::build x3, sibling loaders x2, secret scan x2"]
-        Y1["links.body on cleaned vault<br/>ir/projection.rs:497"]
-        Y2["links.body in render<br/>ontomark-compile/src/build/publish.rs:168"]
-        Y3["links.body + prose redactor for the mirror tally<br/>ontomark-compile/src/build/mod.rs:516"]
-        C1["Corpus::build raw<br/>ontomark-compile/src/build/mod.rs:313"]
-        C2["Corpus::build collision probe, result discarded<br/>ir/projection.rs:460"]
-        C3["Corpus::build cleaned<br/>ir/projection.rs:499"]
-        G1["sibling_working ignores vault.kind<br/>ontomark-compile/src/build/publish.rs:336-346"]
-        G2["sibling_vault(kind)<br/>ontomark-compile/src/build/publish.rs:353"]
-        X1["validate scans page.body only<br/>check/validate.rs:305"]
-        X2["staging scans page.body only<br/>ontomark-compile/src/build/publish.rs:224"]
+    subgraph RED["redaction, Corpus::build, sibling loaders, secret scan"]
+        Y1["link-cleaned vault built once per projection<br/>ir/projection.rs:616"]
+        Y2["markdown mirror redacts the prose again for the mirror tally<br/>ontomark-compile/src/build/mod.rs:785-790"]
+        C1["Corpus::build raw<br/>ontomark-compile/src/build/mod.rs:520"]
+        C2["Corpus::build over the cleaned vault<br/>ir/projection.rs:609"]
+        G1["one sibling_vault(kind) loader — RESOLVED, sibling_working folded<br/>ontomark-compile/src/build/publish.rs:356"]
+        X1["validate scans body AND rendered frontmatter — RESOLVED (S1.2)<br/>check/validate.rs:305, check/validate.rs:323"]
+        X2["staging scans body AND rendered frontmatter — RESOLVED (S1.2)<br/>ontomark-compile/src/build/publish.rs:224, ontomark-compile/src/build/publish.rs:236"]
     end
-    REDC["CANONICAL: one redacted page view, one Corpus::build,<br/>sibling_vault only, one census scan of rendered bytes"]
+    REDC["CANONICAL: one redacted page view, one Corpus::build, one census scan of rendered bytes (SEV-4, open)"]
     Y1 -->|dup only| REDC
     Y2 -->|dup only| REDC
-    Y3 -->|dup only| REDC
     C1 -->|dup only| REDC
     C2 -->|dup only| REDC
-    C3 -->|dup only| REDC
-    G1 -->|DIVERGENCE| REDC
-    G2 --> REDC
-    X1 -->|dup only| REDC
-    X2 -->|dup only| REDC
+    G1 --> REDC
+    X1 --> REDC
+    X2 --> REDC
 ```
-- DIVERGENCE: an edge labelled DIVERGENCE joins a copy whose output differs from the canonical rule for some input; `dup only` copies agree today and differ only in cost.
-- DIVERGENCE: slug.rs vs mint.rs are equivalent (`[^a-z0-9]+` at `input/slug.rs:17` vs ASCII-alnum at `ontomark-model/src/mint.rs:77`), overruling OM-01's "two slugify" as a divergence; the real fork is `target_slug` at `input/slug.rs:66-75`.
+- INVARIANT: after 8d654d1 the in-tree copies of the public gate, the walk, `vault_kinds`, the sibling loader and the credential scan agree; an edge labelled DIVERGENCE is a copy whose output still differs from the canonical rule for some input.
+- DIVERGENCE: `slug.rs` and `mint.rs` are equivalent (`[^a-z0-9]+` at `input/slug.rs:14-16` vs ASCII-alnum at `ontomark-model/src/mint.rs:77`); the real fork is `target_slug` at `input/slug.rs:65-75`.
 
-## OM-00.2 Ranked anomalies, grouped by severity
+## OM-00.2 Ranked anomalies and their outcome at ee9e04a
 
 ```mermaid
 flowchart TB
     subgraph SEV1["SEV-1 publication boundary"]
-        A1["S1.1 prose redactor fails OPEN: Regex::new(..).ok() leaves pattern None, redact returns text unchanged<br/>ir/projection.rs:232, ir/projection.rs:243-245"]
-        A2["S1.2 credential scan is body-only, but render publishes re-rendered frontmatter<br/>ontomark-compile/src/build/publish.rs:224, ontomark-compile/src/build/publish.rs:164"]
-        A3["S1.3 public: #quot;true#quot; string passes validate and stage, refused only by the build census<br/>input/page.rs:211-213, ir/projection.rs:112-116, ontomark-compile/src/build/mod.rs:309"]
-        A4["S1.4 C3 names data/ontology-corpus.records.jsonl, no Options field or emitter writes it<br/>sovereign-corpus-contracts.md:115, ontomark-compile/src/build/mod.rs:48-82"]
-        A5["S1.5 gate and conflicts take only the first vault under --vault all<br/>ontomark-cli/src/main.rs:334-337, ontomark-cli/src/main.rs:369-372"]
+        A1["S1.1 prose redactor failed OPEN on a regex compile error — RESOLVED 8d654d1<br/>fix: ir/projection.rs:306-322, ir/projection.rs:463, ir/projection.rs:586; test s1_1_redactor_refuses_rather_than_fails_open register_sev1.rs:115"]
+        A2["S1.2 credential scan was body-only but render publishes frontmatter — RESOLVED 8d654d1<br/>fix: check/validate.rs:323, ontomark-compile/src/build/publish.rs:236; tests s1_2_build_refuses_a_credential_in_published_frontmatter register_sev1.rs:141, s1_2_validate_reports_a_credential_in_frontmatter register_sev1.rs:172"]
+        A3["S1.3 public string passed validate and stage, refused only by the census — RESOLVED 8d654d1<br/>fix: input/page.rs:231-236, input/frontmatter.rs:247-252, check/validate.rs:354-367; test s1_3_validate_and_build_agree_on_a_string_public_flag register_sev1.rs:204; row C03 conformance/evidence/standards.md:179"]
+        A4["S1.4 C3 names data/ontology-corpus.records.jsonl, no emitter wrote it — RESOLVED 8d654d1, contract first then emitter<br/>fix: build/records.rs, ontomark-cli/src/embed.rs:14, ontomark-compile/src/build/mod.rs:847-851; test s1_4_c3_records_jsonl_has_an_emitter register_sev1.rs:236; see OM-06.3"]
+        A5["S1.5 gate and conflicts took only the first vault under --vault all — RESOLVED 8d654d1<br/>fix: ontomark-cli/src/main.rs:374, ontomark-cli/src/main.rs:433; tests s1_5_gate_all_reports_a_working_only_page register_sev1_cli.rs:83, s1_5_conflicts_all_reports_a_working_only_conflict register_sev1_cli.rs:101"]
     end
     subgraph SEV2["SEV-2 contract and exit code"]
-        B1["S2.1 unsatisfiable corpus is anyhow::ensure!, exits 1<br/>ontomark-compile/src/build/mod.rs:395-399, ontomark-cli/src/main.rs:441-445"]
-        B2["S2.2 content_digest covers one vault's pages, re-read, read error hashes empty bytes<br/>ontomark-compile/src/build/mod.rs:578-586"]
-        B3["S2.3 promote is two renames; publish_out is remove_dir_all then write, after promote<br/>ontomark-compile/src/build/mod.rs:241-246, ontomark-compile/src/build/publish.rs:316-317"]
-        B4["S2.4 --tier and --severity accept anything, unknown becomes quick or high<br/>check/gate.rs:42-48, check/conflicts.rs:48-55"]
-        B5["S2.5 generation markers are not in the artefact list they stamp, and publish/ is unhashed when publish_out is set<br/>ontomark-compile/src/build/mod.rs:602-608, ontomark-compile/src/build/mod.rs:411"]
+        B1["S2.1 unsatisfiable corpus was anyhow ensure, exit 1 — RESOLVED 8d654d1, typed Unsatisfiable exits 2<br/>fix: ontomark-compile/src/build/mod.rs:185-191, ontomark-compile/src/build/mod.rs:642-648, ontomark-cli/src/main.rs:548-550; test s2_1_unsatisfiable_corpus_is_a_typed_error_not_a_bare_string register_sev2.rs:84"]
+        B2["S2.2 content_digest covered one vault, re-read, a read error hashed empty bytes — RESOLVED 8d654d1<br/>fix: input/page.rs:186, ontomark-compile/src/build/generation.rs:221, ontomark-compile/src/build/mod.rs:879; tests s2_2a_content_digest_covers_published_working_pages register_sev2.rs:144, s2_2b_content_digest_covers_the_vocabulary register_sev2.rs:167"]
+        B3["S2.3 promote and publish_out were remove-then-write — RESOLVED 8d654d1<br/>fix: ontomark-compile/src/build/mod.rs:254, ontomark-compile/src/build/mod.rs:361, ontomark-compile/src/build/publish.rs:331-349; test s2_3_failed_publish_out_replacement_keeps_the_previous_publication register_sev2.rs:215"]
+        B4["S2.4 --tier and --severity accepted anything — RESOLVED 8d654d1, clap value_parser, unknown exits 2<br/>fix: ontomark-cli/src/main.rs:160-163, ontomark-cli/src/main.rs:179, ontomark-cli/src/main.rs:189; tests s2_4a_gate_refuses_an_unknown_tier register_sev2_cli.rs:46, s2_4b_conflicts_refuses_an_unknown_severity register_sev2_cli.rs:70"]
+        B5["S2.5 markers were not in the artefact list they stamp, publish/ unhashed under publish_out — RESOLVED 8d654d1<br/>fix: ontomark-compile/src/build/mod.rs:311, ontomark-compile/src/build/mod.rs:903-911; tests s2_5a_generation_markers_are_listed_among_the_artifacts register_sev2.rs:256, s2_5b_publish_files_are_hashed_when_publish_out_is_set register_sev2.rs:283"]
     end
     subgraph SEV3["SEV-3 silent data loss into consumers"]
-        C1["S3.1 NGG1: 12 relations collapse to EDGE_RELATION, dedup key merges distinct relations<br/>ontomark-compile/src/build/graph_tiers.rs:283, ontomark-compile/src/build/graph_tiers.rs:313-315"]
-        C2["S3.2 a symlinked .md is skipped with no Skip record<br/>input/page.rs:496, input/page.rs:501-503"]
-        C3["S3.3 unclosed opening --- is read as no frontmatter, page silently private<br/>input/frontmatter.rs:120-130, input/frontmatter.rs:153-157"]
-        C4["S3.4 compat projection never applies held_back, a public misc/ page is projected<br/>ontomark-compile/src/build/mod.rs:368-369, ir/projection.rs:467"]
+        C1["S3.1 NGG1: 12 relations collapse to EDGE_RELATION, the dedup key merges distinct relations — KEEP, needs an NGG2 format bump<br/>ontomark-compile/src/build/graph_tiers.rs:283, ontomark-compile/src/build/graph_tiers.rs:313-315; EDGE_RELATION is a published wire value ontomark-ngg1/src/lib.rs:144; pinned by build_is_byte_identical_to_the_legacy_golden conformance.rs:164"]
+        C2["S3.2 a symlinked .md was skipped with no Skip record — RESOLVED 8d654d1<br/>fix: input/page.rs:63-72, input/page.rs:548-558; test s3_2_symlinked_page_is_reported_not_dropped register_sev3.rs:12"]
+        C3["S3.3 unclosed opening fence read as no frontmatter, page silently private — RESOLVED 8d654d1<br/>fix: input/frontmatter.rs:164-169, ir/projection.rs:122-125, check/validate.rs:342-348; test s3_3_unclosed_frontmatter_is_invalid_input_not_private register_sev3.rs:64"]
+        C4["S3.4 compat projection never applies held_back — KEEP, the compat flag is the byte-parity mechanism<br/>ontomark-compile/src/build/mod.rs:614-616; pinned by build_is_byte_identical_to_the_legacy_golden conformance.rs:164, which passes --no-redact-private-links conformance.rs:179"]
     end
     subgraph SEV4["SEV-4 duplication and cost"]
-        E1["three WalkDir passes, three filters<br/>input/page.rs:496, ir/projection.rs:77, ir/projection.rs:172"]
-        E2["three Corpus::build<br/>ontomark-compile/src/build/mod.rs:313, ir/projection.rs:460, ir/projection.rs:499"]
-        E3["each public page read 3x, held page 4x; digest re-reads<br/>input/page.rs:413, ontomark-compile/src/build/mod.rs:582"]
-        E4["by_class_slug built twice<br/>ir/model.rs:436, ir/projection.rs:428"]
-        E5["ontology_digest computed twice, same value<br/>turtle.rs:488, ontomark-compile/src/build/mod.rs:590"]
+        E1["three WalkDir passes — RESOLVED, one walk_pages<br/>ontomark-compile/src/build/mod.rs:512-518"]
+        E2["Corpus::build runs for the raw corpus, the collision probe and the cleaned vault<br/>ontomark-compile/src/build/mod.rs:520, ir/projection.rs:609"]
+        E3["each public page is parsed once; the digest no longer re-reads — RESOLVED<br/>input/page.rs:452, input/page.rs:186"]
+        E4["by_class_slug built twice<br/>ir/model.rs:436"]
+        E5["ontology_digest computed twice, same value<br/>turtle.rs:488, ontomark-compile/src/build/mod.rs:881-883"]
     end
     subgraph SEV5["SEV-5 dead code and doc drift"]
-        F1["no production caller: page_files input/page.rs:536, parse_page input/page.rs:557,<br/>Vault::get input/page.rs:454, has_secret input/secrets.rs:191, iri_for input/slug.rs:88"]
-        F2["no production caller: whelk_inconsistent input/consistency.rs:144,<br/>PromotionState input/promotion.rs:30, publish::stage ontomark-compile/src/build/publish.rs:185"]
+        F1["removed in 8d654d1: page_files, iri_for, has_secret, unsatisfiable_message. Still no production caller: parse_page input/page.rs:598, Vault::get input/page.rs:493. all_pages now has one, the digest loop ontomark-compile/src/build/mod.rs:866"]
+        F2["no production caller: whelk_inconsistent input/consistency.rs:144, PromotionState input/promotion.rs:30, publish::stage ontomark-compile/src/build/publish.rs:185"]
         F3["test-only pub: version_iri turtle.rs:645, reason_with reason.rs:604, page_api::build page_api.rs:55"]
-        F4["constant or unreachable: Census.rejected ir/projection.rs:142,<br/>Report.unsatisfiable ontomark-compile/src/build/mod.rs:103-104"]
-        F5["DOC-DRIFT: gate FIRST ontomark-compile/src/build/mod.rs:315; atomic promote ontomark-compile/src/build/mod.rs:12;<br/>one shared reader input/page.rs:1; --stats prints counts ontomark-cli/src/main.rs:189"]
-        F6["latent: unsatisfiable_message ignores refusals<br/>ontomark-compile/src/build/mod.rs:652-660"]
-        F7["no production caller: Vault::get_mut input/page.rs:459, all_pages input/page.rs:468, public input/page.rs:473;<br/>let _ = line input/frontmatter.rs:135"]
-        F8["unreachable: generic-profile auto-detect needs ontology/vocabulary.yaml<br/>ontomark-cli/src/main.rs:265-268"]
-        F9["DOC-DRIFT: projections are knowledge's by definition ontomark-cli/src/main.rs:391-392, yet --vault working builds them from working/;<br/>Census error documented ir/projection.rs:168 but io::Error returned ir/projection.rs:169"]
-        F10["DOC-DRIFT: emitted but not in C3: api/pages/_domain-index.json ontomark-compile/src/build/mod.rs:440,<br/>context/v1.jsonld ontomark-compile/src/build/mod.rs:453, data/.generation.json ontomark-compile/src/build/mod.rs:607"]
+        F4["constant by design: Census.rejected is always 0 and kept for the published census shape ir/projection.rs:61-62; Report.unsatisfiable is always empty ontomark-compile/src/build/mod.rs:110-114"]
+        F5["DOC-DRIFT: the promote doc now describes the staged swap ontomark-compile/src/build/mod.rs:359-360, but the module doc still says promote atomically ontomark-compile/src/build/mod.rs:12; the CLI print path takes --stats from ontomark-cli/src/main.rs:214-216"]
+        F8["unreachable: the generic-profile fallback needs a root without ontology/vocabulary.yaml<br/>ontomark-cli/src/main.rs:299-302"]
+        F10["DOC-DRIFT: emitted but not in C3: api/pages/_domain-index.json ontomark-compile/src/build/mod.rs:710, context/v1.jsonld ontomark-compile/src/build/mod.rs:723, data/.generation.json ontomark-compile/src/build/mod.rs:910"]
     end
     SEV1 --> SEV2 --> SEV3 --> SEV4 --> SEV5
-    N1["DIVERGENCE: refusal-only reads 0 unsatisfiable is NOT reachable from run(): reason() wraps every path in checked,<br/>refusals become ReasoningError::UnsupportedProfile and exit 2; overrules OM-03 finding 3, demoted to SEV-5<br/>reason.rs:571, reason.rs:587-597, ontomark-cli/src/main.rs:441"]
-    N2["DIVERGENCE: S1.1 is reachable only when the escaped-literal alternation exceeds the regex size limit;<br/>the Phase 3 repro must measure the private-title count that trips it<br/>ir/projection.rs:231-232"]
-    N3["INVARIANT: S1.3 never leaks through build: the census at ontomark-compile/src/build/mod.rs:309 runs before staging,<br/>but publish::stage and migrate trust the lenient gate<br/>ontomark-compile/src/build/publish.rs:185, migrate/compile.rs:101"]
-    F6 -.- N1
+    N1["INVARIANT: refusals reach exit 2 through ReasoningError::UnsupportedProfile; the unsatisfiable gate is the typed build::Unsatisfiable, so both exit 2<br/>reason.rs:571, reason.rs:587-597, ontomark-cli/src/main.rs:548"]
+    N2["INVARIANT: S1.1 is closed by refusing, not by repairing: a marker alternation past the size limit stops the build<br/>ir/projection.rs:288, ir/projection.rs:316-318"]
+    N3["INVARIANT: S1.3 is one rule now: census, validate, publish and redact all read a YAML bool only<br/>ir/projection.rs:138-142, check/validate.rs:354-367, ontomark-compile/src/build/redact.rs:167"]
+    F4 -.- N1
     A1 -.- N2
     A3 -.- N3
 ```
-- DIVERGENCE: S2.1 conforms to the crate doc, which lists only credential, collision and reasoner-cap refusals as exit 2 (`ontomark-cli/src/main.rs:6-9`); making it 2 is a contract decision recorded in an ADR, not a bug fix.
+- INVARIANT: S2.1 changed the contract, not only the code: exit 2 now covers the unsatisfiable corpus beside credentials, collisions and reasoner-cap refusals, recorded in the crate doc (`ontomark-cli/src/main.rs:6-9`) and the ADR-OM-005 amendment.
+- DIVERGENCE: the test files still carry their pre-fix header comments saying each test is expected to fail (`register_sev2.rs:6-8`); the tests pass at ee9e04a.
 
-## OM-00.3 Revert, reconcile or keep — origin of each SEV-1..3 divergence
+## OM-00.3 Revert, reconcile or keep — origin of each SEV-1..3 item and what shipped
 
 ```mermaid
 flowchart LR
     VC["VisionClaw crates/vault, the legacy producer,<br/>relocated by 2bb20ec WIP relocate legacy pipeline into ontomark-compile<br/>and d7863ff Relocate the vault pipeline: byte parity"]
     S11["S1.1 fail-open redactor<br/>INHERITED vault/src/projection.rs:229"]
-    S12["S1.2 body-only scan, frontmatter published<br/>INHERITED vault/src/build/publish.rs:159-160, vault/src/build/publish.rs:200;<br/>d5c1188 EXP-04 wrapped link redaction round render, not the scan<br/>ontomark-compile/src/build/publish.rs:162-168"]
-    S13["S1.3 lenient vs strict public<br/>INHERITED vault-core/src/page.rs:211-213, vault/src/projection.rs:112<br/>lenient pinned as expected by standards.md:179"]
-    S14["S1.4 records.jsonl absent<br/>VisionClaw has --with-rvdb vault/src/main.rs:389-392; git log --all -S with_rvdb finds no ontomark commit, never ported;<br/>deferral DEPRECATION.md:145; C3 line added by VisionFlow 6443781 sovereign-corpus-contracts.md:115"]
+    S12["S1.2 body-only scan, frontmatter published<br/>INHERITED vault/src/build/publish.rs:159-160, vault/src/build/publish.rs:200;<br/>d5c1188 EXP-04 wrapped link redaction round render, not the scan"]
+    S13["S1.3 lenient vs strict public<br/>INHERITED vault-core/src/page.rs:211-213, vault/src/projection.rs:112<br/>lenient had been pinned by the conformance row C03"]
+    S14["S1.4 records.jsonl absent<br/>VisionClaw has --with-rvdb vault/src/main.rs:389-392; never ported until 8d654d1;<br/>deferral DEPRECATION.md:145; C3 line added by VisionFlow 6443781 sovereign-corpus-contracts.md:115"]
     S15["S1.5 gate/conflicts first vault only<br/>INHERITED vault/src/main.rs:855-858 via d7863ff"]
     S21["S2.1 unsatisfiable exit 1<br/>INHERITED vault/src/build/mod.rs:348 via 2bb20ec"]
     S22["S2.2 narrow digest<br/>INHERITED vault/src/build/mod.rs:514 via 2bb20ec"]
@@ -258,102 +259,74 @@ flowchart LR
     S31["S3.1 NGG1 relation collapse<br/>INHERITED vault/src/build/graph_tiers.rs:426-428;<br/>format published as ontomark-ngg1 0.1.0, 6c71ebc"]
     S32["S3.2 silent symlink skip<br/>INHERITED vault-core/src/page.rs:501-503 via 2bb20ec"]
     S33["S3.3 unclosed fence<br/>INHERITED vault-core/src/frontmatter.rs:153-157 via 2bb20ec"]
-    S34["S3.4 compat path without held_back<br/>d5c1188 EXP-04 added the compat branch to keep legacy bytes; e96f726 merge put held_back on the redacted path only<br/>ontomark-compile/src/build/mod.rs:368-369, ir/projection.rs:467"]
+    S34["S3.4 compat path without held_back<br/>d5c1188 EXP-04 added the compat branch to keep legacy bytes; e96f726 merge put held_back on the redacted path only"]
     VC --> S11 & S12 & S13 & S14 & S15 & S21 & S22 & S23 & S24 & S31 & S32 & S33
-    S11 --> RC1["RECONCILE: ProseRedactor::new returns Result, build refuses on failure (fail closed)<br/>ir/projection.rs:232"]
-    S12 --> RC2["RECONCILE: scan the rendered page bytes, frontmatter + body, once in the census<br/>ontomark-compile/src/build/publish.rs:164, check/validate.rs:305"]
-    S13 --> RC3["RECONCILE: strict rule canonical per its own comment ir/projection.rs:110-111;<br/>validate reports the string flag; rewrite standards.md:179 C03 row"]
-    S14 --> RC4["RECONCILE contract first: C3 marks records.jsonl VisionClaw-only until the optional<br/>capability of DEPRECATION.md:145 lands; never fake an empty file"]
-    S15 --> RC5["RECONCILE: loop every selected vault as validate does<br/>ontomark-cli/src/main.rs:304"]
-    S21 --> RC6["RECONCILE by ADR: typed Unsatisfiable error, exit 2 beside ReasoningError,<br/>then amend ontomark-cli/src/main.rs:6-9"]
-    S22 --> RC7["RECONCILE: digest the bytes parsed at input/page.rs:413 for every vault + vocabulary; read error refuses"]
-    S23 --> RC8["RECONCILE: stage publish_out as a sibling and swap; promote doc says two renames<br/>ontomark-compile/src/build/publish.rs:316"]
-    S24 --> RC9["RECONCILE: clap value_parser as VAULT_VALUES does<br/>ontomark-cli/src/main.rs:131"]
-    S31 --> KP1["KEEP in NGG1 v1, DIVERGENCE recorded: EDGE_RELATION ontomark-ngg1/src/lib.rs:144 is a published<br/>wire value; per-relation edge types need an NGG2 format bump; TTL keeps them turtle.rs:337-341"]
-    S32 --> RC10["RECONCILE: SkipReason for symlinks, honouring input/page.rs:79-81"]
-    S33 --> RC11["RECONCILE: unclosed fence is an invalid_input census count, not a private page"]
-    S34 --> KP2["KEEP: the compat flag is the parity comparison mechanism, docs/HANDOFF.md:28-29;<br/>default build takes the redacted path ontomark-compile/src/build/mod.rs:366"]
-    NOREV["DIVERGENCE: no SEV-1..3 item is a regression of an earlier ontomark copy, so REVERT applies to none;<br/>reverting 2bb20ec or d7863ff would remove the whole port"]
+    S11 --> RC1["RESOLVED 8d654d1: ProseRedactor::new returns Result, the build refuses on failure (fail closed)<br/>ir/projection.rs:463, ir/projection.rs:586"]
+    S12 --> RC2["RESOLVED 8d654d1: the rendered frontmatter is scanned beside the body in validate and in staging<br/>check/validate.rs:323, ontomark-compile/src/build/publish.rs:236"]
+    S13 --> RC3["RESOLVED 8d654d1: the strict rule is canonical; validate reports INVALID_PUBLIC_FLAG; row C03 rewritten<br/>input/page.rs:231, check/validate.rs:354, conformance/evidence/standards.md:179"]
+    S14 --> RC4["RESOLVED 8d654d1: contract first (C3 marks the file VisionClaw-only), then the optional emitter behind --with-rvdb; never an empty file<br/>ontomark-compile/src/build/mod.rs:847-851, ontomark-cli/src/main.rs:230-235"]
+    S15 --> RC5["RESOLVED 8d654d1: gate and conflicts loop every selected vault as validate does<br/>ontomark-cli/src/main.rs:338, ontomark-cli/src/main.rs:374, ontomark-cli/src/main.rs:433"]
+    S21 --> RC6["RESOLVED 8d654d1 by ADR: typed Unsatisfiable, exit 2 beside ReasoningError, crate doc amended<br/>ontomark-compile/src/build/mod.rs:185, ontomark-cli/src/main.rs:548"]
+    S22 --> RC7["RESOLVED 8d654d1: digest of the hashes taken as each page was parsed, every loaded vault plus the vocabulary, a read error refuses<br/>ontomark-compile/src/build/mod.rs:862-879"]
+    S23 --> RC8["RESOLVED 8d654d1: publish_out staged beside the target and swapped; promote doc says two renames<br/>ontomark-compile/src/build/publish.rs:331-349, ontomark-compile/src/build/mod.rs:254"]
+    S24 --> RC9["RESOLVED 8d654d1: clap value_parser as VAULT_VALUES does<br/>ontomark-cli/src/main.rs:160-163"]
+    S31 --> KP1["KEEP in NGG1 v1, DIVERGENCE recorded: EDGE_RELATION ontomark-ngg1/src/lib.rs:144 is a published wire value; per-relation edge types need an NGG2 format bump; TTL keeps them turtle.rs:337-341"]
+    S32 --> RC10["RESOLVED 8d654d1: SkipReason::NotARegularFile, honouring input/page.rs:84-87<br/>input/page.rs:548-558"]
+    S33 --> RC11["RESOLVED 8d654d1: an unclosed fence is an invalid_input census count, not a private page<br/>input/frontmatter.rs:164-169, ir/projection.rs:122-125"]
+    S34 --> KP2["KEEP: the compat flag is the parity comparison mechanism, docs/HANDOFF.md:28-29;<br/>default build takes the redacted path ontomark-compile/src/build/mod.rs:612"]
+    NOREV["DIVERGENCE: no SEV-1..3 item was a regression of an earlier ontomark copy, so REVERT applied to none;<br/>reverting 2bb20ec or d7863ff would have removed the whole port"]
     RC1 -.- NOREV
-    EXT["EXTERNAL: VisionClaw's vault build job ships S1.1, S1.2, S1.5, S2.3 and S3.1 unchanged<br/>until VC-60 retires under its four gates<br/>ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:11"]
+    EXT["EXTERNAL: VisionClaw's vault build job still ships S1.1, S1.2, S1.5, S2.3 and S3.1 unchanged<br/>until VC-60 retires under its four gates<br/>ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:11"]
     VC -.- EXT
 ```
-- INVARIANT: the closure-vs-Whelk split is KEEP, pinned by `the_closure_and_the_reasoner_agree_on_the_taxonomy` (`ontomark-compile/src/build/mod.rs:1254`); the NGG1 category ancestry walk at `ontomark-compile/src/build/graph_tiers.rs:154` has no such test.
+- INVARIANT: the closure-vs-Whelk split is KEEP, pinned by `the_closure_and_the_reasoner_agree_on_the_taxonomy` (`ontomark-compile/src/build/mod.rs:1543`); the NGG1 category ancestry walk at `ontomark-compile/src/build/graph_tiers.rs:154` has no such test.
 - DIVERGENCE: `reason.rs:79` gained `refusals.is_empty()` in 6c040a5 together with `checked` (`reason.rs:590-597`); reverting it would let refusals pass, so it stays.
 
-## OM-00.5 Resolution at ontomark 8d654d1 (2026-10-12)
-
-```mermaid
-flowchart TB
-    PH3["Phase 3: 19 red reproduction tests, commit 93c78a8<br/>register_sev1/2/3.rs and register_sev1_cli/2_cli.rs;<br/>two passing controls; S1.1 driven through the redactor API"]
-    PH4["Phase 4: one fix commit 8d654d1<br/>829 tests pass; clippy, strict rustdoc, wasm32, fmt clean"]
-    PH3 --> PH4
-    subgraph SEV1["SEV-1 publication boundary"]
-        direction TB
-        F11["S1.1 FIXED: Redactor::new fallible, RegexBuilder size limit;<br/>PublicationBlocked::Redactor refuses;<br/>ProseRedactor::{new,with_size_limit} public"]
-        F12["S1.2 FIXED: rendered frontmatter scanned beside the body<br/>in the publish gate and in validate (SECRET_DETECTED)"]
-        F13["S1.3 FIXED: Frontmatter::boolean and Page::is_public take a YAML bool only;<br/>INVALID_PUBLIC_FLAG; SHACL emits a quoted true as a plain literal;<br/>conformance row C03 rewritten"]
-        F14["S1.4 FIXED as an emitter: build::records ports VisionClaw rvdb.rs (pure);<br/>CLI embed.rs holds the Xinference transport<br/>behind --with-rvdb / --embed-endpoint; build::run_with(embedder)"]
-        F15["S1.5 FIXED: gate and conflicts iterate every selected vault;<br/>one vault = legacy bytes, all = per-vault + JSON map;<br/>golden gate-full re-captured: it had recorded the bug"]
-        F11 ~~~ F12 ~~~ F13 ~~~ F14 ~~~ F15
-    end
-    subgraph SEV2["SEV-2 contract and exit codes"]
-        direction TB
-        F21["S2.1 FIXED, CONTRACT CHANGED: typed build::Unsatisfiable exits 2<br/>(same refusal class as OutputCollision); CLI crate doc amended;<br/>recorded in the ADR-OM-005 amendment"]
-        F22["S2.2 FIXED: content_digest_of_hashes over Page::source_sha256<br/>for every loaded vault, journals, sibling vault and vocabulary;<br/>no re-read; legacy value not reproducible"]
-        F23["S2.3 FIXED: publish::write_to stages beside the target<br/>and swaps via the shared swap_in; promote doc no longer<br/>claims atomicity (two renames, restore on failure)"]
-        F24["S2.4 FIXED: --tier and --severity are clap value_parsers;<br/>unknown values exit 2"]
-        F25["S2.5 FIXED, WORDING CORRECTED: root marker lists data/.generation.json;<br/>--publish-out files recorded as external artefacts;<br/>RULE: a marker never lists itself"]
-        F21 ~~~ F22 ~~~ F23 ~~~ F24 ~~~ F25
-    end
-    subgraph SEV3["SEV-3, structure, parity"]
-        direction TB
-        F32["S3.2 FIXED: SkipReason::NotARegularFile;<br/>census counts excluded_not_regular_file"]
-        F33["S3.3 FIXED, WORDING CORRECTED: Split::unterminated /<br/>Page::unterminated_frontmatter; census refuses as invalid_input;<br/>validate reports UNCLOSED_FRONTMATTER (was counted excluded)"]
-        ST1["Step 1 DONE: run() walks pages/ once; inspect_walk,<br/>Vault::load_with_walk and excluded_identities_of share the listing;<br/>sibling_working folded; one vault_kinds for every verb"]
-        KP["KEEP unchanged: S3.1 NGG1 relation byte (NGG2 item);<br/>S3.4 compat projection (the parity mechanism)"]
-        PAR["Parity: estate-small golden byte-identical except the two<br/>generation markers, compared structurally in conformance.rs<br/>(identity fields equal; every legacy artefact present, same hash)"]
-        WD["DIVERGENCE withdrawn: ADR-OM-005 decision 4 said the machine bundle<br/>is --vault all, unredacted; --vault all is the public publish value and<br/>redaction applies to every bundle. The mode needs its own flag: next item"]
-        F32 ~~~ F33 ~~~ ST1 ~~~ KP ~~~ PAR ~~~ WD
-    end
-    PH4 --> SEV1 & SEV2 & SEV3
-```
-- Every citation in OM-00.1 to OM-00.4 is at `ffe06e4` and describes the state the fixes removed; this section carries commit shas only.
-- Dead code removed with the fixes: `page_files`, `iri_for`, `has_secret`, `unsatisfiable_message`; docs corrected for `parse_page`, `excluded_identities` and `Census.rejected`.
-
-## OM-00.4 Canonical run() after reconciliation
+## OM-00.4 Canonical run() — as built at ee9e04a
 
 ```mermaid
 flowchart TD
-    W["1 WALK once: walk_pages per selected vault, keep bytes in memory<br/>replaces ir/projection.rs:77, ir/projection.rs:172, ontomark-compile/src/build/mod.rs:311<br/>input/page.rs:492, input/page.rs:413"]
-    V["2 VAULT SET: knowledge + optional working from one VaultSelector<br/>replaces ontomark-compile/src/build/publish.rs:336-353, ontomark-cli/src/main.rs:396-406"]
-    CEN["3 CENSUS: strict public gate, one held_back, secrets over rendered frontmatter + body; refusal exits 2<br/>replaces ir/projection.rs:112-116, input/page.rs:211, ontomark-compile/src/build/publish.rs:224, check/validate.rs:305"]
-    CB["4 Corpus::build ONCE on the link-cleaned vault<br/>replaces ontomark-compile/src/build/mod.rs:313, ir/projection.rs:460, ir/projection.rs:499"]
-    VAL["5 VALIDATE incl. DUPLICATE_IRI<br/>ontomark-compile/src/build/mod.rs:356-362, check/validate.rs:561"]
-    PR["6 PROJECT + REDACT once: one Resolver, fallible ProseRedactor, one redacted page view<br/>replaces ir/projection.rs:232, build/redact.rs:209, ir/projection.rs:497, ontomark-compile/src/build/mod.rs:516"]
-    RS["7 REASON: closure + Whelk, typed Unsatisfiable refusal<br/>ontomark-compile/src/build/mod.rs:372-399"]
-    EM["8 EMIT over a public-only view: one relation table, one domain resolver, one label rule<br/>ir/model.rs:456-460, ir/model.rs:36"]
-    ST["9 STAGE write-once: bundle, publish/, markers, optional records.jsonl capability<br/>ontomark-compile/src/build/mod.rs:160-167, ontomark-compile/src/build/mod.rs:576"]
-    DG["10 DIGEST over every byte read in step 1 + vocabulary, no re-read<br/>replaces ontomark-compile/src/build/mod.rs:578-586"]
-    PM["11 PROMOTE atomic: out and publish_out staged as siblings, swapped<br/>replaces ontomark-compile/src/build/mod.rs:241-246, ontomark-compile/src/build/publish.rs:316"]
-    RP["12 REPORT, without the dead unsatisfiable field<br/>ontomark-compile/src/build/mod.rs:615-645"]
+    W["1 WALK once: walk_pages per vault, the PageWalk feeds census and load<br/>ontomark-compile/src/build/mod.rs:512-518, input/page.rs:436"]
+    V["2 VAULT SET: knowledge, plus working for --scope machine or --vault all, from one selector<br/>ontomark-compile/src/build/mod.rs:539-549, ontomark-cli/src/main.rs:483"]
+    CEN["3 CENSUS: strict public gate, one held_back, credential scan over rendered frontmatter and body; refusal exits 2<br/>ir/projection.rs:95, ontomark-compile/src/build/publish.rs:224-243"]
+    CB["4 Corpus::build on the raw vault<br/>ontomark-compile/src/build/mod.rs:520"]
+    VAL["5 VALIDATE incl. DUPLICATE_IRI; working validated too under machine scope<br/>ontomark-compile/src/build/mod.rs:576-582, ontomark-compile/src/build/mod.rs:586-597"]
+    PR["6 PROJECT + REDACT: fallible ProseRedactor, Split::checked; machine scope forks to project_machine<br/>ontomark-compile/src/build/mod.rs:600-617, ir/projection.rs:751"]
+    RS["7 REASON: closure + Whelk, typed Unsatisfiable refusal<br/>ontomark-compile/src/build/mod.rs:630-648"]
+    EM["8 EMIT over the public-only view: Turtle, indexes, page API, graph tiers, OKF; optional records.jsonl<br/>ontomark-compile/src/build/mod.rs:659-660, ontomark-compile/src/build/mod.rs:690, ontomark-compile/src/build/mod.rs:847-851"]
+    ST["9 STAGE write-once: bundle, publish/ unless machine, markers; ensure_single_claims<br/>ontomark-compile/src/build/mod.rs:662-670, ontomark-compile/src/build/mod.rs:855"]
+    DG["10 DIGEST over every hash taken in step 1 + vocabulary, no re-read<br/>ontomark-compile/src/build/mod.rs:862-879"]
+    PM["11 PROMOTE by swap: out and publish_out staged as siblings and swapped, restore on failure<br/>ontomark-compile/src/build/mod.rs:254, ontomark-compile/src/build/mod.rs:361, ontomark-compile/src/build/mod.rs:913-916"]
+    RP["12 REPORT, with the machine summary when scoped<br/>ontomark-compile/src/build/mod.rs:918-955"]
     W --> V --> CEN --> CB --> VAL --> PR --> RS --> EM --> ST --> DG --> PM --> RP
-    PRIV["FLAG private machine bundle, ADR-OM-005 decision 4: steps 1-2 select knowledge + working for the machine artefacts,<br/>step 6 skips redaction, steps 9-11 write a separate out, never publish/ or the site<br/>ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:13"]
+    PRIV["RESOLVED: the private machine bundle of ADR-OM-005 decision 4 is --scope machine, not --vault all;<br/>steps 2, 5, 6, 9 and 12 fork on it, redaction is not skipped, publish/ is never written, see OM-06.1<br/>ontomark-compile/src/build/mod.rs:503-506, ontomark-compile/src/build/mod.rs:426-465"]
     PRIV -.-> V
     PRIV -.-> PR
     PRIV -.-> ST
-    NOW["DIVERGENCE: today --vault all only widens publish/ staging; every machine artefact is knowledge's<br/>ontomark-cli/src/main.rs:391-406; the private mode is a new flag on this shape, not the current run()"]
-    PRIV -.- NOW
-    NAME["DIVERGENCE: the ADR names the private mode --vault all, the value visionGraph's public publish passes today;<br/>implemented literally it would move the public site build onto the unredacted bundle, so the mode needs its own flag<br/>ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:13, ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:53"]
-    PRIV -.- NAME
-    I1["INVARIANT: zero differences over 32 artefact lines and 12 command outputs<br/>docs/HANDOFF.md:27-29"]
-    I2["INVARIANT: write-once Staged refuses a second claim before stamp or promote<br/>ontomark-compile/src/build/mod.rs:160-162, ontomark-compile/src/build/mod.rs:609"]
-    I3["INVARIANT: DUPLICATE_IRI refusal stays an error<br/>check/validate.rs:561"]
-    I4["INVARIANT: structural closure == Whelk taxonomy<br/>ontomark-compile/src/build/mod.rs:1254"]
+    I1["INVARIANT: zero differences over 32 artefact lines and 12 command outputs; since 8d654d1 the two markers compare structurally<br/>docs/HANDOFF.md:27-29"]
+    I2["INVARIANT: write-once Staged refuses a second claim before stamp or promote<br/>ontomark-compile/src/build/mod.rs:855, ontomark-compile/src/build/mod.rs:912"]
+    I3["INVARIANT: DUPLICATE_IRI refusal stays an error<br/>check/validate.rs:614"]
+    I4["INVARIANT: structural closure == Whelk taxonomy<br/>ontomark-compile/src/build/mod.rs:1543"]
     ST -.- I2
     VAL -.- I3
     RS -.- I4
     RP -.- I1
 ```
-- INVARIANT: the parity receipt is over the complete committed corpus through the compat flag (`docs/HANDOFF.md:27-29`), so S3.4 stays byte-identical; a strict validate cannot move it, because the census at `ontomark-compile/src/build/mod.rs:309` already runs on every build, compat included, so a corpus with a passing receipt holds only real booleans.
-- INVARIANT: the census refusal must keep exit 2 and stage nothing (`ontomark-compile/src/build/publish.rs:246-248`, `ontomark-cli/src/main.rs:429-431`).
+- INVARIANT: the parity receipt is over the complete committed corpus through the compat flag (`docs/HANDOFF.md:27-29`), so S3.4 stays byte-identical; the census at `ir/projection.rs:95` runs on every build, compat included, so a passing corpus holds only real booleans.
+- INVARIANT: the census refusal keeps exit 2 and stages nothing (`ontomark-compile/src/build/publish.rs:258-260`, `ontomark-cli/src/main.rs:526-532`).
+## OM-00.5 Open items carried out of the register
+
+```mermaid
+flowchart TB
+    PH3["Phase 3: 19 red reproduction tests, commit 93c78a8<br/>register_sev1/2/3.rs and register_sev1_cli/2_cli.rs; two passing controls"]
+    PH4["Phase 4: one fix commit 8d654d1; the amendments cd93750 and the machine scope cd2ff4b, ee9e04a followed"]
+    PH3 --> PH4
+    OPEN1["OPEN S3.1: per-predicate NGG1 collapse. KEEP at v1 because EDGE_RELATION is a published wire byte; closing it is an NGG2 format bump, a per-edge property IRI left undecided in ADR-OM-005<br/>ontomark-compile/src/build/graph_tiers.rs:313-315, ontomark-ngg1/src/lib.rs:144"]
+    OPEN2["OPEN S3.4: the compat projection. KEEP, the explicit parity flag, default builds take the redacted path<br/>ontomark-compile/src/build/mod.rs:612-616"]
+    OPEN3["OPEN ADR D-name: ADR-OM-005 decision 4 named the private mode --vault all; resolved by a separate flag, build --scope machine, see OM-06.1<br/>ontomark-cli/src/main.rs:140-158"]
+    OPEN4["OPEN AB-P6: the pod-resource pack is to be produced from build --scope machine; agentbox ADR-2136 still names the private --vault all machine bundle, which is the public publish value<br/>DEPRECATION.md:462, see OM-06.5"]
+    PH4 --> OPEN1 & OPEN2 & OPEN3 & OPEN4
+    PAR["Parity: estate-small golden byte-identical except the two generation markers, compared structurally<br/>ontomark-cli/tests/conformance.rs:130, ontomark-cli/tests/conformance.rs:164"]
+    PH4 --> PAR
+```
+- INVARIANT: every register row is closed or carries a KEEP with its pinning test; the three STILL-OPEN rows of the ADR are S3.1, S3.4 and the AB-P6 wording.
