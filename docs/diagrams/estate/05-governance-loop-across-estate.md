@@ -44,7 +44,7 @@ sources:
   - ../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs
   - ../project/agentbox/services/dream-engine/src/governance.rs
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
-verified_commit: {agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, nostr-rust-forum: 72463fbde35ac4c68539b1f65a08ff03b9941201, dreamlab-ai-website: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80}
+verified_commit: {agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, nostr-rust-forum: cbb3a8112320caf769b4d0713d3b1057db51d3e1, dreamlab-ai-website: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80}
 ---
 ## ES-05.2 Wire fields and exact response binding
 ```mermaid
@@ -252,7 +252,7 @@ flowchart TB
 
     OPEN["OPEN, restated 2 October — the server rationale gate reads the<br/>case's DECLARED tier, and no VisionClaw writer records one. Closing<br/>it is a declaration, not a read: the operator declares the triple on<br/>VisionClaw's panels, then the gate takes the higher of the two tiers.<br/>ADR-2110-augmentation-conditions-visionclaw-substrate.md:132-160"]
     NOTIER["VERIFIED AT HEAD — VisionClaw's 31400 carries only a d tag and a<br/>PanelDefinition with no tier or task-property field, and its 31402<br/>carries d, priority, category, subject-kind, subject-id and title.<br/>events.rs:211-217, events.rs:91-101, events.rs:308-323,<br/>ElevationActor panel_definition elevation_actor.rs:239"]
-    MED["so the relay folds every VisionClaw case to the advertised default,<br/>medium, and check_rationale only bites at high or critical:<br/>NEITHER rationale gate fires on a VisionClaw case<br/>nostr-bbs-core/src/governance.rs:525, wrangler.toml:48, nostr-bbs-core/src/governance.rs:769"]
+    MED["so the relay folds every VisionClaw case to the advertised default,<br/>medium, and check_rationale only bites at high or critical:<br/>NEITHER rationale gate fires on a VisionClaw case<br/>nostr-bbs-core/src/governance.rs:783, wrangler.toml:48, nostr-bbs-core/src/governance.rs:1033"]
     OPEN --> NOTIER --> MED
     VC --> OPEN
 
@@ -269,7 +269,7 @@ sequenceDiagram
     participant DT as declared_tier_of<br/>src/handlers/enrichment_proposals_handler.rs:393
     participant CK as check_rationale<br/>src/handlers/enrichment_proposals_handler.rs:406
     participant RL as relay 31403 handler<br/>nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1054
-    participant FG as governance check_rationale<br/>nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs:764
+    participant FG as governance check_rationale<br/>nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs:716
 
     UI->>AD: decide a case with an outcome and optional reasoning
     AD->>AD: read the case ONCE, its tier drives the gate<br/>enrichment_proposals_handler.rs:502-504
@@ -297,7 +297,7 @@ sequenceDiagram
     RL-->>UI: OK false carrying the refusal reason, nip_handlers.rs:1084
 
     Note over RL,FG: INVARIANT — enforced BEFORE save_event, because a 31403 is a<br/>signed event any client or script can publish straight to the<br/>relay. A rule that lives only in the forum UI is a suggestion.<br/>nip_handlers.rs:1071-1077
-    Note over AD,RL: DIVERGENCE — the two gates read DIFFERENT tiers. The host reads<br/>the agent's DECLARED tier, the relay reads the EFFECTIVE tier<br/>computed by nostr-bbs-core effective_tier, nostr-bbs-core/src/governance.rs:515.<br/>For a VisionClaw case neither is high: nothing declares a tier, so<br/>the host gate sees None and the relay folds to medium. see ES-05.12
+    Note over AD,RL: DIVERGENCE — the two gates read DIFFERENT tiers. The host reads<br/>the agent's DECLARED tier, the relay reads the EFFECTIVE tier<br/>computed by nostr-bbs-core effective_tier, nostr-bbs-core/src/governance.rs:773.<br/>For a VisionClaw case neither is high: nothing declares a tier, so<br/>the host gate sees None and the relay folds to medium. see ES-05.12
 ```
 
 ## ES-05.14 Where each record of the loop stands on 2 October, and the correlation fix that let a UI decision land
@@ -342,7 +342,7 @@ flowchart TB
 
 **Invariant:** reading the unmarked `e` tag cannot bind a decision to the wrong case, because the projection still requires the request id to equal the case's own `nostr_event_id` (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs:121-127`).
 
-**Open:** two activations now wait on the same event — the owner's first decision on a real high-tier case. VisionClaw still declares no tier on its panels or requests (`../project/src/services/acsp/events.rs:308-323`), so its cases fold to `medium` on the forum (`../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs:525`); the candidate case is agentbox's, raised on the agentbox-release-ops panel on 2 October (`../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md:335-337`). Whether the relay stamped it `effective_tier: high` is the prerequisite forum ADR-2010 left unchecked (`../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md:176`), and who declares the first VisionClaw triple remains the owner's policy choice (`../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md:153-155`).
+**Open:** two activations now wait on the same event — the owner's first decision on a real high-tier case. VisionClaw still declares no tier on its panels or requests (`../project/src/services/acsp/events.rs:308-323`), so its cases fold to `medium` on the forum (`../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs:783`); the candidate case is agentbox's, raised on the agentbox-release-ops panel on 2 October (`../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md:335-337`). Whether the relay stamped it `effective_tier: high` is the prerequisite forum ADR-2010 left unchecked (`../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md:176`), and who declares the first VisionClaw triple remains the owner's policy choice (`../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md:153-155`).
 
 **Tension (forum ADR-2010 and ADR-2011 vs VisionClaw ADR-2110):** the forum records say the only high cases on the edge are the two M4 probe cases (`../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md:166`, `../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:197`); VisionClaw's ADR-2110 names a real high-tier case raised the same day (`../project/docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md:335-337`). Neither cites a `--list-cases` read of it.
 
@@ -356,7 +356,7 @@ flowchart TB
         direction TB
         DEC["31403 decisions: the operator's NIP-07 signer b4165401, on the relay allowlist<br/>agentbox/agentbox.toml:160 — recorded 2026-10-03 as Q15, NOT visionclaw-server"]
         VCS["31402 requests from visionclaw-server: signed as the agentbox house key 11ed6422,<br/>agentbox/agentbox.toml:160. Its replacement K_broker is to be minted inside VisionClaw<br/>and still has a null pubkey, agentbox/config/custody/g5-key-split.json:23-30"]
-        JJ["31400 panel and 31402 cases from the dream engine: signed as JunkieJarvis<br/>agentbox/services/dream-engine/src/governance.rs:9-10, agentbox/services/dream-engine/src/governance.rs:645-646"]
+        JJ["31400 panel and 31402 cases from the dream engine: signed as JunkieJarvis<br/>agentbox/services/dream-engine/src/governance.rs:9-10, agentbox/services/dream-engine/src/governance.rs:903-904"]
         DEC --> VCS --> JJ
     end
     PORT["agentbox identity port, live only under role_isolation: kinds 31400-31405<br/>can never be granted to any caller, and an ACL that tries does not load<br/>agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:71-73"]

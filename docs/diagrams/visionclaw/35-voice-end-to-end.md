@@ -37,7 +37,7 @@ sources:
   - ../project/xr-client/rust/src/webrtc_audio.rs
   - ../project/client/src/services/WebSocketEventBus.ts
   - ../project/src/actors/elevation_actor.rs
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, unmute: c49982eb3aeaf76633dfe4155fa3b8dcb5b3d962}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, unmute: c49982eb3aeaf76633dfe4155fa3b8dcb5b3d962}
 ---
 
 ## VC-35.1 Push-to-talk state machine and the agent DID binding

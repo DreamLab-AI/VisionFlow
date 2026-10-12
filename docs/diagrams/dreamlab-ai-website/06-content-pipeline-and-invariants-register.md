@@ -16,13 +16,14 @@ sources:
   - ../dreamlab-ai-website/.github/workflows/workers-deploy.yml
   - ../dreamlab-ai-website/scripts/generate-workshop-list.mjs
   - ../dreamlab-ai-website/scripts/generate-testimonials.mjs
+  - ../dreamlab-ai-website/scripts/lib/content-generators.mjs
   - ../dreamlab-ai-website/docs/security/SECURITY_OVERVIEW.md
   - ../dreamlab-ai-website/docs/api/AUTH_API.md
   - ../dreamlab-ai-website/docs/api/POD_API.md
   - ../dreamlab-ai-website/docs/api/NOSTR_RELAY.md
   - ../dreamlab-ai-website/docs/api/SEARCH_API.md
   - ../dreamlab-ai-website/docs/api/MODERATION_API.md
-verified_commit: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80
+verified_commit: 2e358bb6c47dad3130bbfea8a73278cfbea1157c
 ---
 
 ## DW-06.1 Pre-build content pipeline — two generators, run before every dev/build
@@ -36,22 +37,22 @@ sequenceDiagram
     participant YAML as content/site-content.yaml
     participant OUT as src/data/*.json
     NPM->>WS: predev/prebuild step
-    WS->>WD: readdir(workshopsBaseDir)<br/>generate-workshop-list.mjs:5,32
+    WS->>WD: readdir(workshopsBaseDir)<br/>generate-workshop-list.mjs:5,33
     WD-->>WS: per-workshop dirs, .md files
     WS->>WS: extractTitleFromMd: first H1, fallback to<br/>Title Cased filename<br/>generate-workshop-list.mjs:8-25
-    WS->>WD: write manifest.json per workshop dir<br/>{title, pages: [{slug, title}]}<br/>generate-workshop-list.mjs:85-88
-    WS->>OUT: write src/data/workshop-list.json<br/>generate-workshop-list.mjs:97-98
+    WS->>WD: queue the manifest, then write manifest.json per workshop dir<br/>{title, pages: [{slug, title, pageTitle?}]}<br/>generate-workshop-list.mjs:86-90, 112
+    WS->>OUT: write src/data/workshop-list.json<br/>generate-workshop-list.mjs:117-118
     NPM->>TS: predev/prebuild step
     TS->>YAML: parseYaml(site-content.yaml)<br/>generate-testimonials.mjs:11-12
     TS->>TS: data.pages.testimonials.items<br/>generate-testimonials.mjs:14
     TS->>OUT: write src/data/testimonials.json<br/>generate-testimonials.mjs:18
 ```
-- Both generators fail soft: a missing `public/data/workshops/` writes an empty `workshop-list.json` instead of failing the build (`generate-workshop-list.mjs:97-99`), and a YAML parse error writes an empty `testimonials.json` (`generate-testimonials.mjs:22-25`) — CLAUDE.md's Data directory note explicitly marks these two JSON files as GENERATED, do-not-hand-edit.
+- Both generators fail soft: a missing `public/data/workshops/` writes an empty `workshop-list.json` instead of failing the build (`generate-workshop-list.mjs:121-124`), and a YAML parse error writes an empty `testimonials.json` (`generate-testimonials.mjs:22-25`) — CLAUDE.md's Data directory note explicitly marks these two JSON files as GENERATED, do-not-hand-edit.
 
 ## DW-06.2 Workshop manifest generation — page ordering rules
 ```mermaid
 flowchart TB
-    FILES["workshop dir .md files"] --> SORT["pageItems.sort<br/>generate-workshop-list.mjs:72-83"]
+    FILES["workshop dir .md files"] --> SORT["pageItems.sort<br/>generate-workshop-list.mjs:73-84"]
     SORT --> R1{"slug === readme.md?"}
     R1 -->|yes| FIRST["sorts first, always"]
     R1 -->|no| R2{"both slugs match ^(digits)[_.]?"}
@@ -61,7 +62,8 @@ flowchart TB
     NUMERIC --> MANIFEST
     ALPHA --> MANIFEST
 ```
-- The workshop id itself is reformatted for display: `workshop-01-foo` becomes `01 - Foo` via a regex that splits the leading number from the rest and title-cases each word (`generate-workshop-list.mjs:39-45`).
+- The workshop id itself is reformatted for display: `workshop-01-foo` becomes `01 - Foo` via a regex that splits the leading number from the rest and title-cases each word (`generate-workshop-list.mjs:40-46`).
+- Manifests are now written in a second pass: every workshop's manifest is queued first (`generate-workshop-list.mjs:86-90`), then lessons whose title duplicates another lesson's, or repeats their own workshop's title, gain a `pageTitle` (`generate-workshop-list.mjs:98-110`) before the write (`generate-workshop-list.mjs:112`). The ordering rules above are unchanged. Content correctness is also checked by `scripts/lib/content-generators.mjs`, which re-derives counts from the generators' inputs (`scripts/lib/content-generators.mjs:7-11`), because both JSON artefacts are committed yet rebuilt by `prebuild`.
 
 ## DW-06.5 API and security documentation inventory
 ```mermaid
@@ -117,12 +119,12 @@ flowchart TB
     D9["BASELINE-architecture.md itself cites a stale KIT_REF and crate version<br/>see DW-01.5"]
     D10["branding.rs dead code contradicts live dreamlab.toml branding values<br/>see DW-03.8/DW-03.1"]
     D11["BASELINE-architecture.md estate-closeout note predates the 2026-09-05 gate fix<br/>see DW-05.3"]
-    D12["README.md itself cites a stale kit pin<br/>dreamlab-ai-website/README.md:263 vs rust-ci.yml:21,<br/>workers-deploy.yml:45 — see DW-06.8"]
-    D13["Root-level seed scripts hardcode a plaintext private key<br/>+ an unresolvable absolute import path — see DW-07.2"]
+    D12["README.md itself cites a stale kit pin<br/>dreamlab-ai-website/README.md:263 vs rust-ci.yml:20,<br/>workers-deploy.yml:44 — see DW-06.8"]
+    D13["RESOLVED 2026-10-07: root-level seed scripts with a hardcoded key<br/>deleted by 3baf2fa4, historical — see DW-07.2"]
     D14["README's semantic-search claim (Workers AI bge-small-en-v1.5/R2) has no<br/>in-repo build path; this repo's embeddings/ tooling targets an unrelated<br/>RuVector Postgres + all-MiniLM-L6-v2 pipeline — see DW-07.4"]
     D15["IDENTITY-zones.md I7 breached: zone2/zone4 now encrypted=true too<br/>(dreamlab.toml:123,148), master gate [encryption].enabled added<br/>(dreamlab.toml:34) citing an uncommitted ADR-2016 — DW-03.1/DW-04.1<br/>still state 'only zone3 encrypted', not yet re-verified against this<br/>see DW-06.6 I7"]
 ```
-- D9 and D11 are findings from this diagram-authoring pass, not pre-existing entries in either governing doc's own Known-divergences section — both are consequences of the governing docs' `verified_commit: d852f61` being older than this repo's HEAD at this topic's stamp (`ebaf16c04`) and the estate-closeout note's own explicit 2026-09-04 dating.
+- D9 and D11 are findings from this diagram-authoring pass, not pre-existing entries in either governing doc's own Known-divergences section — both are consequences of the governing docs' `verified_commit: d852f61` being older than this repo's HEAD at this topic's stamp (`2e358bb6`) and the estate-closeout note's own explicit 2026-09-04 dating.
 - D12/D13/D14 are Wave 2 findings, closing the material gaps the estate audit (`reports/audit-web.md`) identified for this area; D15 is a Wave 3 finding — see DW-06.6/DW-06.6 for the full evidence.
 
 ## DW-06.8 README feature claims — confirmed, kit-external, or drifted

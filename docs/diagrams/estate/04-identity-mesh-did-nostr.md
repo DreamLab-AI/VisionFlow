@@ -27,7 +27,7 @@ sources:
   - ../project/src/settings/auth_extractor.rs
   - ../project/client/src/services/nostrAuthService.ts
   - ../project/agentbox/docs/INGRESS-identity.md
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987}
 ---
 ## ES-04.1 verification mesh — who signs, who verifies whom
 ```mermaid
@@ -51,7 +51,7 @@ flowchart LR
         AEA["agent-event-auth verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:108"]
     end
     subgraph aoe["AoE daemon  port 9095<br/>loopback only"]
-        AOE["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2795"]
+        AOE["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2846"]
     end
     subgraph solid["EXTERNAL: solid-pod-rs<br/>default-deny pod"]
         POD["Solid pod HTTP endpoint"]

@@ -27,25 +27,25 @@ sources:
   - ../project/agentbox/docker-compose.yml
   - ../project/agentbox/management-api/server.js
   - ../project/agentbox/config/nostr-gateway/nostr-send.cjs
-verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
+verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
 ---
 
 ## AB-12.2 Bridge boot — reconcile, listen, coordinator resolve
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Sup as Supervisor<br/>agentbox/flake.nix:2846
+    participant Sup as Supervisor<br/>agentbox/flake.nix:2897
     participant Dep as deploy.sh<br/>agentbox/config/tab0-bridge/deploy.sh:1
     participant Node as server.mjs<br/>agentbox/config/tab0-bridge/server.mjs:45
     participant AoEd as AoE daemon port 9095
 
-    Sup->>Dep: bash deploy.sh reconcile, one supervisor command line (flake.nix:2847)
+    Sup->>Dep: bash deploy.sh reconcile, one supervisor command line (flake.nix:2898)
     Dep->>Dep: copy server.mjs, turn-sink.cjs, start.sh, package.json via md5 compare (deploy.sh:27-35)
     opt node_modules/ws missing
         Dep->>Dep: npm install --omit=dev (deploy.sh:37-39)
     end
     Dep-->>Sup: exit 0, reconcile-only mode, no launch (deploy.sh:44-46)
-    Sup->>Node: exec node server.mjs, foreground, autorestart, same command line (flake.nix:2847)
+    Sup->>Node: exec node server.mjs, foreground, autorestart, same command line (flake.nix:2898)
     Node->>Node: read BRIDGE_PORT, default 8971 (server.mjs:45)
     Node->>Node: read BRIDGE_TMUX_SESSION, default agentbox (server.mjs:47)
     Node->>Node: read BRIDGE_TOKEN, default empty string (server.mjs:49)
@@ -194,7 +194,7 @@ sequenceDiagram
 
     rect rgb(255,240,240)
     Note over Mic,UBE: trust boundary — LAN door 1, port 8444 published 0.0.0.0
-    Note over Mic,Cad: TENSION resolved in the manifest's own terms — [voice].enabled is now TRUE<br/>(agentbox.toml:1955), descriptive sidecar state for /v1/system. The gate stays apply-class<br/>sidecar, so the voice compose overlay still has its own lifecycle and `agentbox up`<br/>never consults the flag (docker-compose.voice.yml:1) - the manifest describes the<br/>surface, the overlay governs it
+    Note over Mic,Cad: TENSION resolved in the manifest's own terms — [voice].enabled is now TRUE<br/>(agentbox.toml:2142), descriptive sidecar state for /v1/system. The gate stays apply-class<br/>sidecar, so the voice compose overlay still has its own lifecycle and `agentbox up`<br/>never consults the flag (docker-compose.voice.yml:1) - the manifest describes the<br/>surface, the overlay governs it
     Mic->>Cad: HTTPS, mic audio via /embed and /api/* (Caddyfile handle /embed*, handle_path /api/*)
     Cad->>UFE: reverse_proxy frontend:3000 (Caddyfile handle /embed*)
     Cad->>UBE: reverse_proxy backend:80, /v1/realtime (Caddyfile handle_path /api/*)

@@ -198,7 +198,7 @@ flowchart TB
     ADMIN -->|"non-admin"| TL --> K40 & K41 & K1984 & K5
 
     N1["kind 41 without an e tag is rejected as invalid before the trust check<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:955-956"]
-    N2["ANOMALY O5 re-verified and STILL LIVE: is_channel_creator is looked up from the kind-40 event<br/>nip_handlers.rs:970, so deleting the kind-40 destroys the lookup and locks a TL2 author out of<br/>their own channel's metadata"]
+    N2["ANOMALY O5 re-verified and STILL LIVE: is_channel_creator is looked up from the kind-40 event<br/>nip_handlers.rs:970, so deleting the kind-40 destroys the lookup and locks a TL2 author out of<br/>their own channel's metadata<br/>RESOLVED in nostr-rust-forum 66ca8d8 (after the verified revision): is_channel_creator now reads the persisted channel_creators table."]
     N3["The kind-5 privilege is re-derived after save because trust_level is scoped to this non-admin<br/>block that admins skip entirely nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1266-1269"]
 ```
 

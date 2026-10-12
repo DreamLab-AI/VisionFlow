@@ -12,7 +12,7 @@ sources:
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
   - ../project/agentbox/docs/INGRESS-identity.md
   - ../project/agentbox/docs/PROTOCOL-registry.md
-verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
+verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
 ---
 
 ## For developers

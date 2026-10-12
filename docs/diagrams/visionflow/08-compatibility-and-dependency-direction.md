@@ -27,7 +27,7 @@ sources:
   - docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md
   - docs/BASELINE-visionflow.md
   - ./README.md
-verified_commit: {visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, nostr-rust-forum: 72463fbde35ac4c68539b1f65a08ff03b9941201}
+verified_commit: {visionflow: da57b49a28974dd9bff5b5358369eef94a439273, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, nostr-rust-forum: 72463fbde35ac4c68539b1f65a08ff03b9941201}
 ---
 
 Source reconciliation: 2026-09-07. These panels follow the current sections of the compatibility matrix and status reconciliation, plus the source audits named in frontmatter. Historical metrics and register cuts remain historical. This review did not certify a live federation, image, hardware session or replica-wide authentication contract.
@@ -48,12 +48,12 @@ flowchart TB
     LOOM["Loom: ontology facade, HTTP only"] -->|configured retrieval| AB
     RV["RuVector: selected core or image"] --> LOOM
     RV -->|MCP and Postgres boundary| AB
-    VAULT["vault CLI, VisionClaw crates/vault<br/>agentbox.toml:929 cli=true<br/>main.rs:44 enum Command"] --> AB
+    VAULT["vault CLI, VisionClaw crates/vault<br/>agentbox.toml:1076 cli=true<br/>main.rs:44 enum Command"] --> AB
     SCOPE["Arrows identify implemented source seams, not a verified complete mesh"]
     VF -.-> SCOPE
 ```
 
-**INVARIANT: no MCP inside the estate for the corpus (BASELINE-visionflow.md:320, Invariant 9 since the sidestr invariant was inserted as 6).** Agentbox retired `ontology-bridge.js` (deleted; see AB-25); agents and the Loom reach the corpus only through the `vault` binary over Bash and the Loom's HTTP surface, never a registered MCP server.
+**INVARIANT: no MCP inside the estate for the corpus (BASELINE-visionflow.md:341, Invariant 9 since the sidestr invariant was inserted as 6).** Agentbox retired `ontology-bridge.js` (deleted; see AB-25); agents and the Loom reach the corpus only through the `vault` binary over Bash and the Loom's HTTP surface, never a registered MCP server.
 
 **INVARIANT: `verified_commit` is a `{repo: sha}` map, not one sha, for any topic whose `sources:` span more than one repo (`compatibility-matrix.md:8`).** A repository present in `sources:` but missing from that map resolves its citations against the working tree without complaint — a silent source-identity gap, not a verified stamp.
 

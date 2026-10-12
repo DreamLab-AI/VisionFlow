@@ -195,7 +195,7 @@ flowchart TB
     CORE["one DDL string, WHITELIST_CREATE_SQL<br/>nostr-bbs-core/src/whitelist_sql.rs:42"]
     ENS["ensure_schema runs it first on every cold start<br/>nostr-bbs-relay-worker/src/lib.rs:695"]
     READERS["Read on the hot path<br/>whitelist SELECT nostr-bbs-relay-worker/src/whitelist.rs:135<br/>whitelist cohort grant nostr-bbs-relay-worker/src/whitelist.rs:366<br/>whitelist admin count nostr-bbs-relay-worker/src/whitelist.rs:475"]
-    NOCREATE["No CREATE TABLE for events exists in<br/>relay migrations 0001-0008 or in ensure_schema<br/>nostr-bbs-relay-worker/src/lib.rs:686"]
+    NOCREATE["No CREATE TABLE for events exists in<br/>relay migrations 0001-0008 or in ensure_schema<br/>nostr-bbs-relay-worker/src/lib.rs:686<br/>Drift (resolved in 66ca8d8, after the verified revision): migration 0009_events.sql and an ensure_schema statement now create events and channel_creators."]
 
     SETUP --> EVENTS
     MIG --> CORE
@@ -238,7 +238,7 @@ flowchart TB
 
     N1["INVARIANT: the pubkey is lower-cased before every lookup - a mixed-case NIP-98 pubkey would<br/>otherwise miss every store and be silently denied nostr-bbs-auth-worker/src/admin.rs:62"]
     N2["INVARIANT fail-closed: any D1 error or missing row returns false, never ambient authority<br/>nostr-bbs-auth-worker/src/admin.rs:103"]
-    N3["DIVERGENCE: the relay reads members from its OWN D1 (nostr-bbs-relay) at<br/>nostr-bbs-relay-worker/src/auth.rs:192, but no migration and no bootstrap creates a members table there<br/>(relay lib.rs:686 creates 16 tables, none of them members). That branch is structurally dead;<br/>effective relay authority is ADMIN_PUBKEYS union whitelist.is_admin only."]
+    N3["DIVERGENCE: the relay reads members from its OWN D1 (nostr-bbs-relay) at<br/>nostr-bbs-relay-worker/src/auth.rs:192, but no migration and no bootstrap creates a members table there<br/>(relay lib.rs:686 creates 16 tables, none of them members). That branch is structurally dead;<br/>effective relay authority is ADMIN_PUBKEYS union whitelist.is_admin only.<br/>Drift (resolved in 66ca8d8, after the verified revision): the dead members query was removed from the relay, so the relay now reads the static set and whitelist only."]
     N4["DOC-DRIFT: ADMIN_PUBKEYS is DECLARED in exactly one wrangler template - the search worker,<br/>nostr-bbs-search-worker/wrangler.toml:33 - yet is read by the auth worker (admin.rs:71) and the relay<br/>(auth.rs:183). The relay template asserts the opposite: there is no ADMIN_PUBKEYS reader in src/<br/>nostr-bbs-relay-worker/wrangler.toml:10-13. SETUP.md:122-126 never lists it either."]
     N5["Consequence of N4: a by-the-book deployment has NO static admin bootstrap on relay or auth,<br/>and the search worker ships a REAL non-placeholder pubkey as its default admin<br/>nostr-bbs-search-worker/wrangler.toml:33 - the only non-generic value in any template."]
 ```

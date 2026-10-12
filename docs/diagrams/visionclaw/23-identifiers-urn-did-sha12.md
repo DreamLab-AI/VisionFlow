@@ -24,7 +24,7 @@ sources:
   - ../project/agentbox/management-api/lib/bc20-provenance-bridge.js
   - ../project/agentbox/management-api/middleware/linked-data/surfaces/s04-did.js
   - ../project/agentbox/mcp/servers/lib/memory-tools.js
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987}
 ---
 
 ## VC-23.1 Typed URN kind taxonomy — src/uri/mod.rs

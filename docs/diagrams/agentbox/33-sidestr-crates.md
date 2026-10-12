@@ -12,7 +12,7 @@ sources:
   - ../project/agentbox/docs/developer/licensing.md
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/lib/sidestr-agent.nix
-verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
+verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
 ---
 
 ## For developers
@@ -47,10 +47,10 @@ flowchart TB
 ```mermaid
 flowchart TB
     R1["consume from crates.io only, never by path or git dependency<br/>ADR-2112-sidestr-crates-live-in-sidestr-rs.md:39"]
-    R2["a component that links one is AGPL-3.0 in effect and<br/>declares it<br/>docs/developer/licensing.md:11"]
-    R3["never under services/, so ADR-2030's permissive<br/>default is untouched<br/>docs/developer/licensing.md:13-14"]
-    R4["no permissive crate on a crates.io path may<br/>depend on them<br/>docs/developer/licensing.md:14"]
-    R5["scripts/ci/check-crate-licensing.sh enforces this<br/>on every push and pull request<br/>docs/developer/licensing.md:17"]
+    R2["a component that links one is AGPL-3.0 in effect and<br/>declares it<br/>docs/developer/licensing.md:46-47"]
+    R3["never under services/, so ADR-2030's permissive<br/>default is untouched<br/>docs/developer/licensing.md:49-50"]
+    R4["no permissive crate on a crates.io path may<br/>depend on them<br/>docs/developer/licensing.md:50"]
+    R5["scripts/ci/check-crate-licensing.sh enforces this<br/>on every push and pull request<br/>docs/developer/licensing.md:53-54"]
     R1 --> R2 --> R3 --> R4 --> R5
 ```
 

@@ -31,7 +31,7 @@ sources:
   - docs/estate-review/evidence/adr-inventory.json
   - docs/BASELINE-visionflow.md
   - docs/architecture/compatibility-matrix.md
-verified_commit: 62d16e02fe3bdd5551e4433b2d42552ec93adb12
+verified_commit: da57b49a28974dd9bff5b5358369eef94a439273
 ---
 
 ## VF-07.1 Artefact map — what produces each output and where it lands
@@ -50,7 +50,7 @@ flowchart LR
         D1["presentation/pitch-deck-2026-07/prompt-files/*.prompt<br/>twenty self-contained image prompts<br/>pitch-deck-2026-07/README.md:5"]
         B1["the-bubble-is-the-architecture.md"]:::content
         B2["the-bubble-is-the-architecture-v3.md"]:::content
-        RM["the estate itself — fourteen repository checkouts"]
+        RM["the estate itself — sixteen repository checkouts"]
     end
 
     R2 -->|"render-wardley.mjs<br/>render-wardley.mjs:88"| O2["presentation/report/wardley/rendered/*.svg + *.png<br/>AND presentation/report/images/wardley-0N-*.png<br/>render-wardley.mjs:78"]:::auto
@@ -67,9 +67,9 @@ flowchart LR
     D1 -->|"render-batch.sh, one retry per slide<br/>render-batch.sh:13"| O8["pitch-deck-2026-07/slides/slide-NN.png"]:::auto
     O8 -->|"make-pdf.sh — resize to jpg, then img2pdf<br/>make-pdf.sh:9"| O9["pitch-deck-2026-07/visionflow-pitch-deck-2026-07.pdf"]:::auto
 
-    RM -->|"generate-release-manifest.sh<br/>generate-release-manifest.sh:240"| O10["stdout — docs/releases/*.json by redirection<br/>releases/README.md:8"]:::auto
+    RM -->|"generate-release-manifest.sh<br/>generate-release-manifest.sh:249"| O10["stdout — docs/releases/*.json by redirection<br/>releases/README.md:8"]:::auto
 
-    B1 --> NOP["NO pipeline. Two long-form root documents, 249 lines each,<br/>differing in content. Nothing builds, validates or publishes them;<br/>they are referenced once, as content the two real surfaces publish<br/>BASELINE-visionflow.md:57"]:::content
+    B1 --> NOP["NO pipeline. Two long-form root documents, 249 lines each,<br/>differing in content. Nothing builds, validates or publishes them;<br/>they are referenced once, as content the two real surfaces publish<br/>BASELINE-visionflow.md:78"]:::content
     B2 --> NOP
 
     ORPH["texput.log at the repo root — evidence of a real XeTeX run on<br/>2026-07-08 that ABORTED because main.tex is not at the root.<br/>Same date as dist/arxiv-2026-07-08.tar.gz<br/>texput.log:1"]:::content
@@ -77,38 +77,38 @@ flowchart LR
     NOTE["DOC-DRIFT: pdf-reports/ holds byte-identical copies of the two pitch/ PDFs.<br/>No script produces them and no doc explains the duplication; ./README.md:15<br/>links the pdf-reports/ copies while ./README.md:240 points at pitch/"]
 ```
 
-## VF-07.2 generate-release-manifest.sh — building the fourteen-repository roster
+## VF-07.2 generate-release-manifest.sh — building the sixteen-repository roster
 ```mermaid
 sequenceDiagram
     autonumber
     participant OP as "operator or tests/gates suite"
     participant G as "generate-release-manifest.sh"
-    participant RO as "ROSTER — 14 pipe-delimited entries<br/>generate-release-manifest.sh:86"
+    participant RO as "ROSTER — 16 pipe-delimited entries, the last two with a repository URL<br/>generate-release-manifest.sh:91"
     participant GIT as "each sibling checkout under the workspace"
     participant JQ as "jq -n emitter"
 
-    OP->>G: optional --status, --fixtures-canonical,<br/>--require-fixtures, --workspace<br/>generate-release-manifest.sh:59
-    G->>G: status must be local-draft, candidate or released, else exit 2<br/>generate-release-manifest.sh:70
-    G->>G: jq is a hard dependency, else exit 2<br/>generate-release-manifest.sh:75
+    OP->>G: optional --status, --fixtures-canonical,<br/>--require-fixtures, --workspace<br/>generate-release-manifest.sh:64
+    G->>G: status must be local-draft, candidate or released, else exit 2<br/>generate-release-manifest.sh:75
+    G->>G: jq is a hard dependency, else exit 2<br/>generate-release-manifest.sh:80
 
-    loop each roster entry NAME, PATH, PROVENANCE, UPSTREAM, ROLE
+    loop each roster entry NAME, PATH, PROVENANCE, UPSTREAM, ROLE, optional REPOSITORY_URL
         G->>GIT: git -C PATH rev-parse HEAD
         alt not a repository, or absent
-            GIT-->>G: record head as forty zeroes, branch "missing",<br/>dirty true, present false — never omitted<br/>generate-release-manifest.sh:114
+            GIT-->>G: record head as forty zeroes, branch "missing",<br/>dirty true, present false — never omitted<br/>generate-release-manifest.sh:121
         else resolved
-            GIT-->>G: head, branch --show-current, dirty from git status --short<br/>generate-release-manifest.sh:120
+            GIT-->>G: head, branch --show-current, dirty from git status --short<br/>generate-release-manifest.sh:128
         end
     end
 
-    Note over G,GIT: DETECTION FIX: presence is tested with git rev-parse, not by looking<br/>for a .git DIRECTORY — a submodule's .git is a gitdir FILE, which made<br/>the agentbox submodule read as missing at its correct path<br/>generate-release-manifest.sh:110
+    Note over G,GIT: DETECTION FIX: presence is tested with git rev-parse, not by looking<br/>for a .git DIRECTORY — a submodule's .git is a gitdir FILE, which made<br/>the agentbox submodule read as missing at its correct path<br/>generate-release-manifest.sh:117
 
-    Note over RO: DEFECT CLOSED: the generator covered six repositories while the ADR<br/>inventory records fourteen. loom, knowledgeGraph, WasmVOWL, visionGraph,<br/>dream-machine, logseq, ruvector and RuView could each move under a release<br/>with no record<br/>generate-release-manifest.sh:11
+    Note over RO: DEFECT CLOSED: the generator covered six repositories while the ADR<br/>inventory recorded fourteen on 2026-09-05, and Ontomark with ontomark-obsidian extend it to sixteen<br/>(generate-release-manifest.sh:106-107). loom, knowledgeGraph, WasmVOWL, visionGraph,<br/>dream-machine, logseq, ruvector and RuView could each move under a release<br/>with no record<br/>generate-release-manifest.sh:11
 
-    G->>JQ: assemble manifest_version 2, generated_at, status,<br/>repositories, fixtures and compatibility<br/>generate-release-manifest.sh:246
-    JQ-->>OP: JSON on stdout — the caller redirects it<br/>generate-release-manifest.sh:240
+    G->>JQ: assemble manifest_version 2, generated_at, status,<br/>repositories, fixtures and compatibility<br/>generate-release-manifest.sh:255
+    JQ-->>OP: JSON on stdout — the caller redirects it<br/>generate-release-manifest.sh:249
 
-    Note over OP,RO: EXTERNAL: the roster spans VisionClaw (VC-NN), agentbox (AB-NN),<br/>solid-pod-rs (SP-NN), nostr-rust-forum (NF-NN), dreamlab-ai-website (DW-NN),<br/>vowl-wasm (VW-NN), knowledgeGraph (KG-NN) and visionGraph (VG-NN),<br/>plus loom, dream-machine, logseq, ruvector and RuView
-    Note over RO: DIVERGENCE: the roster names the WASM ontology visualiser "WasmVOWL"<br/>at path WasmVOWL, while repository-map.md names it vowl-wasm at ../vowl-wasm —<br/>see VF-08 for the ownership consequence<br/>generate-release-manifest.sh:95
+    Note over OP,RO: EXTERNAL: the roster spans VisionClaw (VC-NN), agentbox (AB-NN),<br/>solid-pod-rs (SP-NN), nostr-rust-forum (NF-NN), dreamlab-ai-website (DW-NN),<br/>vowl-wasm (VW-NN), knowledgeGraph (KG-NN) and visionGraph (VG-NN),<br/>plus loom, dream-machine, logseq, ruvector, RuView, ontomark and ontomark-obsidian
+    Note over RO: DIVERGENCE: the roster names the WASM ontology visualiser "WasmVOWL"<br/>at path WasmVOWL, while repository-map.md names it vowl-wasm at ../vowl-wasm —<br/>see VF-08 for the ownership consequence<br/>generate-release-manifest.sh:100
 ```
 
 ## VF-07.3 The fixtures block — a canonical revision set, or an explicit refusal
@@ -118,28 +118,28 @@ flowchart TB
     classDef ok fill:#e0f2e4,stroke:#2f7a45,color:#222
     classDef honest fill:#fff4d6,stroke:#aa8833,color:#222
 
-    START["--fixtures-canonical supplied?<br/>generate-release-manifest.sh:214"] -->|no| Q1{"status is local-draft<br/>AND --require-fixtures absent?"}
+    START["--fixtures-canonical supplied?<br/>generate-release-manifest.sh:223"] -->|no| Q1{"status is local-draft<br/>AND --require-fixtures absent?"}
 
-    Q1 -->|no| REF["ERROR: no canonical fixture revision set supplied.<br/>The message names the exact remedy and exits 3<br/>generate-release-manifest.sh:233"]:::refuse
-    Q1 -->|yes| DRAFT["fixtures.status = not-compared with a reason string,<br/>so the gap is VISIBLE in the artefact rather than implied<br/>generate-release-manifest.sh:235"]:::honest
+    Q1 -->|no| REF["ERROR: no canonical fixture revision set supplied.<br/>The message names the exact remedy and exits 3<br/>generate-release-manifest.sh:242"]:::refuse
+    Q1 -->|yes| DRAFT["fixtures.status = not-compared with a reason string,<br/>so the gap is VISIBLE in the artefact rather than implied<br/>generate-release-manifest.sh:244"]:::honest
 
     START -->|yes| PARSE{"matches REPO@REV:DIR ?"}
-    PARSE -->|no| E1["ERROR: --fixtures-canonical must be REPO@REV:DIR, exit 3<br/>generate-release-manifest.sh:157"]:::refuse
+    PARSE -->|no| E1["ERROR: --fixtures-canonical must be REPO@REV:DIR, exit 3<br/>generate-release-manifest.sh:166"]:::refuse
     PARSE -->|yes| ROSTER{"REPO resolves to a roster<br/>name or path?"}
-    ROSTER -->|no| E2["ERROR: canonical repo is not in the release roster, exit 3<br/>generate-release-manifest.sh:164"]:::refuse
+    ROSTER -->|no| E2["ERROR: canonical repo is not in the release roster, exit 3<br/>generate-release-manifest.sh:173"]:::refuse
     ROSTER -->|yes| REV{"git rev-parse --verify REV^{commit}"}
-    REV -->|"fails"| E3["ERROR: canonical revision does not resolve to a commit, exit 3.<br/>Plain rev-parse would echo any well-formed 40-hex string back<br/>unverified, recording a nonexistent commit as canonical<br/>generate-release-manifest.sh:173"]:::refuse
+    REV -->|"fails"| E3["ERROR: canonical revision does not resolve to a commit, exit 3.<br/>Plain rev-parse would echo any well-formed 40-hex string back<br/>unverified, recording a nonexistent commit as canonical<br/>generate-release-manifest.sh:182"]:::refuse
     REV -->|"resolves"| DIR{"corpus directory exists?"}
-    DIR -->|no| E4["ERROR: canonical corpus directory not found, exit 3<br/>generate-release-manifest.sh:178"]:::refuse
-    DIR -->|yes| DIG["digest: sha256 over the SORTED sha256-plus-filename lines<br/>of the corpus, so two manifests agree if and only if they<br/>qualified against byte-identical fixtures<br/>generate-release-manifest.sh:186"]
+    DIR -->|no| E4["ERROR: canonical corpus directory not found, exit 3<br/>generate-release-manifest.sh:187"]:::refuse
+    DIR -->|yes| DIG["digest: sha256 over the SORTED sha256-plus-filename lines<br/>of the corpus, so two manifests agree if and only if they<br/>qualified against byte-identical fixtures<br/>generate-release-manifest.sh:195"]
     DIG --> CNT{"any *.json fixtures?"}
-    CNT -->|no| E5["ERROR: corpus contains no *.json fixtures, exit 3<br/>generate-release-manifest.sh:189"]:::refuse
-    CNT -->|yes| CMP["run check-fixture-drift.sh against the corpus when it is<br/>executable here; verdict is match, drift, or not-run<br/>generate-release-manifest.sh:197"]
-    CMP --> OUT["fixtures.status = compared, with canonical repo, resolved<br/>revision, dir, corpus_sha256 and fixture_count<br/>generate-release-manifest.sh:205"]:::ok
+    CNT -->|no| E5["ERROR: corpus contains no *.json fixtures, exit 3<br/>generate-release-manifest.sh:198"]:::refuse
+    CNT -->|yes| CMP["run check-fixture-drift.sh against the corpus when it is<br/>executable here; verdict is match, drift, or not-run<br/>generate-release-manifest.sh:206"]
+    CMP --> OUT["fixtures.status = compared, with canonical repo, resolved<br/>revision, dir, corpus_sha256 and fixture_count<br/>generate-release-manifest.sh:214"]:::ok
 
     NOTE["INVARIANT: the release qualification CLAIMS fixture parity, so the<br/>generator will not manufacture one. Version 1 asserted parity in prose —<br/>run npm run verify plus substrate-specific CI — with no evidence at all<br/>generate-release-manifest.sh:20"]
 
-    NOTE2["DIVERGENCE: consumers is always an empty array. The comparison is run<br/>for a verdict but its per-repository detail is never recorded, so a<br/>compared manifest names WHICH corpus but not WHICH consumers matched<br/>generate-release-manifest.sh:196"]
+    NOTE2["DIVERGENCE: consumers is always an empty array. The comparison is run<br/>for a verdict but its per-repository detail is never recorded, so a<br/>compared manifest names WHICH corpus but not WHICH consumers matched<br/>generate-release-manifest.sh:205"]
 
     NOTE3["DOC-DRIFT: check-fixture-drift.sh is invoked with only --canonical and<br/>--quiet, so it falls back to its hardcoded consumer paths — see VF-05.6,<br/>where the same script's canonical default points at a deleted directory"]
 ```
@@ -151,10 +151,10 @@ classDiagram
         +integer manifest_version "const 2 — ecosystem-release.schema.json:9"
         +string generated_at "format date-time"
         +string status "local-draft | candidate | released — ecosystem-release.schema.json:11"
-        +Repository[] repositories "minItems 14 — ecosystem-release.schema.json:15"
+        +Repository[] repositories "minItems 16 — ecosystem-release.schema.json:15"
         +Fixtures fixtures
         +Compatibility compatibility
-        additionalProperties = false "ecosystem-release.schema.json:102"
+        additionalProperties = false "ecosystem-release.schema.json:103"
     }
 
     class Repository {
@@ -172,7 +172,7 @@ classDiagram
 
     class Fixtures {
         +string status
-        oneOf NotCompared or Compared "ecosystem-release.schema.json:47"
+        oneOf NotCompared or Compared "ecosystem-release.schema.json:48"
     }
 
     class NotCompared {
@@ -185,15 +185,15 @@ classDiagram
     class Compared {
         +const status "compared"
         +Canonical canonical "REQUIRED"
-        +string verdict "match | drift | not-run — ecosystem-release.schema.json:79"
+        +string verdict "match | drift | not-run — ecosystem-release.schema.json:80"
         +object[] consumers
     }
 
     class Canonical {
         +string repo
-        +string revision "40 hex — HEAD resolved at generation time — ecosystem-release.schema.json:66"
+        +string revision "40 hex — HEAD resolved at generation time — ecosystem-release.schema.json:67"
         +string dir
-        +string corpus_sha256 "64 hex over the sorted digest lines — ecosystem-release.schema.json:70"
+        +string corpus_sha256 "64 hex over the sorted digest lines — ecosystem-release.schema.json:71"
         +integer fixture_count "minimum 1"
     }
 
@@ -212,7 +212,7 @@ classDiagram
     Fixtures <|-- Compared
     Compared o-- Canonical
 
-    note for EcosystemReleaseManifest "INVARIANT: minItems 14 equals the repo count in\nadr-inventory.json. A manifest listing fewer is a\ncoordinated view of PART of the estate, which is what\nversion 1 silently shipped. ecosystem-release.schema.json:14"
+    note for EcosystemReleaseManifest "INVARIANT: minItems 16 equals the current roster count in\nadr-inventory.json. A manifest listing fewer is a\ncoordinated view of PART of the estate, which is what\nversion 1 silently shipped. ecosystem-release.schema.json:14"
     note for Repository "provenance decides qualification: first-party and imported\nare qualified for release; upstream repositories are PINNED,\nnot qualified. ecosystem-release.schema.json:32"
 ```
 
@@ -227,16 +227,17 @@ flowchart TB
     V["validate against docs/releases/ecosystem-release.schema.json"]
 
     V --> F1["manifest_version is 1; the schema pins const 2<br/>candidate-2026-05-22.json:2 vs ecosystem-release.schema.json:9"]:::fail
-    V --> F2["repositories has SIX entries; the schema requires<br/>minItems 14<br/>candidate-2026-05-22.json:5 vs ecosystem-release.schema.json:15"]:::fail
+    V --> F2["repositories has SIX entries; the schema requires<br/>minItems 16<br/>candidate-2026-05-22.json:5 vs ecosystem-release.schema.json:15"]:::fail
     V --> F3["no repository declares provenance, which the schema<br/>lists as required for every item<br/>ecosystem-release.schema.json:18"]:::fail
     V --> F4["no fixtures block at all, and fixtures is a top-level<br/>required key — so this candidate asserts nothing about<br/>fixture parity while being labelled a candidate<br/>ecosystem-release.schema.json:7"]:::fail
     V --> F5["compatibility.verification claims parity through<br/>cargo test in named versions rather than a compared corpus<br/>candidate-2026-05-22.json:54"]:::fail
 
     F1 --> VERD["DOC-DRIFT: the committed release candidate cannot validate<br/>against the committed schema. The ADR-2006 closeout rewrote the<br/>generator and schema on 2026-09-05 and left the artefact at v1"]:::fail
 
-    RM["docs/releases/README.md still describes the v1 world"] --> D1["the candidate row reads 'Pins all 6 repos at main branch HEADs'<br/>releases/README.md:17"]:::doc
-    RM --> D2["the Required Fields table lists neither provenance nor<br/>fixtures, both of which the v2 schema requires<br/>releases/README.md:23"]:::doc
+    RM["docs/releases/README.md still describes the v1 world"] --> D1["the candidate row reads 'Pins all 6 repos at main branch HEADs'<br/>releases/README.md:28"]:::doc
+    RM --> D2["the Required Fields table lists neither provenance nor<br/>fixtures, both of which the v2 schema requires<br/>releases/README.md:32"]:::doc
     RM --> D3["the generate command still writes to<br/>ecosystem-release.local.json, uncommitted by default<br/>releases/README.md:8"]
+    RM --> D4["PARTLY CURRENT: a 2026-10-11 paragraph now states the sixteen-repository roster<br/>and that a roster entry is not a maturity claim (releases/README.md:13-22),<br/>but the candidate row and the field table above were not touched"]:::doc
 
     VERSIONS["DOC-DRIFT in the pinned version claims, cross-checked against the<br/>sibling checkouts: the candidate pins solid-pod-rs v0.4.0-alpha.15 and<br/>nostr-rust-forum v3.0-rc3, which the compatibility matrix repeats"]:::doc
     VERSIONS --> X1["EXTERNAL: solid-pod-rs Cargo.toml now declares 0.5.0-alpha.9 — see SP-NN"]
@@ -260,27 +261,36 @@ sequenceDiagram
     T->>INV: read the repos inventory
     T->>G: generate a manifest
     T->>T: every inventoried repository path appears in the roster<br/>release-manifest.test.sh:27
-    T->>T: every repository declares provenance<br/>release-manifest.test.sh:46
+    T->>T: the roster is exactly sixteen with unique names and paths,<br/>and ontomark and ontomark-obsidian each carry their public URL<br/>release-manifest.test.sh:34-48
+    T->>T: every repository declares provenance, twelve of them first-party<br/>release-manifest.test.sh:62
 
     rect rgb(250, 244, 228)
     Note over T,G: the core regression — a claim with no comparison behind it
     T->>G: local draft with no canonical revision set
-    G-->>T: fixtures.status not-compared, and it SAYS so<br/>release-manifest.test.sh:59
+    G-->>T: fixtures.status not-compared, and it SAYS so<br/>release-manifest.test.sh:77
     T->>G: --status candidate with no canonical revision set
-    G-->>T: REFUSED, exit 3<br/>release-manifest.test.sh:70
+    G-->>T: REFUSED, exit 3<br/>release-manifest.test.sh:88
     T->>G: --require-fixtures on a local draft
-    G-->>T: refused too<br/>release-manifest.test.sh:78
+    G-->>T: refused too<br/>release-manifest.test.sh:96
     T->>G: --status released with no canonical revision set
-    G-->>T: refused<br/>release-manifest.test.sh:83
+    G-->>T: refused<br/>release-manifest.test.sh:101
     T->>G: a canonical revision set that does not resolve
-    G-->>T: refused<br/>release-manifest.test.sh:89
+    G-->>T: refused<br/>release-manifest.test.sh:107
     T->>G: a valid canonical revision set
-    G-->>T: a comparison record with repo, revision, digest and count<br/>release-manifest.test.sh:101
+    G-->>T: a comparison record with repo, revision, digest and count<br/>release-manifest.test.sh:119
     end
 
-    T->>SC: assert the generated output against the committed schema<br/>release-manifest.test.sh:125
+    rect rgb(228, 244, 232)
+    Note over T,G: the 2026-10-11 producer fixtures, run against a scratch workspace
+    T->>G: an empty workspace
+    G-->>T: both Ontomark producers recorded as missing, never omitted<br/>release-manifest.test.sh:166
+    T->>G: two synthetic git checkouts, one with untracked work
+    G-->>T: each records its real HEAD, the plugin reads dirty,<br/>and the core is usable as an explicit canonical fixture producer<br/>release-manifest.test.sh:166
+    end
+
+    T->>SC: assert the generated output against the committed schema<br/>release-manifest.test.sh:143
     alt no JSON-Schema validator installed
-        T->>SC: fall back to the schema's own hard constraints —<br/>roster size against minItems, manifest_version const,<br/>and that fixtures is required<br/>release-manifest.test.sh:132
+        T->>SC: fall back to the schema's own hard constraints —<br/>roster size against minItems, manifest_version const,<br/>and that fixtures is required<br/>release-manifest.test.sh:150
     end
 
     T-->>CI: RELEASE-MANIFEST-TESTS-OK or ...-FAIL
@@ -444,7 +454,7 @@ flowchart TB
     classDef content fill:#f0f0f0,stroke:#888,color:#222
     classDef surface fill:#e0f2e4,stroke:#2f7a45,color:#222
 
-    BASE["BASELINE-visionflow.md: the repo has exactly TWO concrete surfaces —<br/>a static marketing website and the governance canon under docs/.<br/>Everything else is content that those two surfaces publish<br/>BASELINE-visionflow.md:55"]
+    BASE["BASELINE-visionflow.md: the repo has exactly TWO concrete surfaces —<br/>a static marketing website and the governance canon under docs/.<br/>Everything else is content that those two surfaces publish<br/>BASELINE-visionflow.md:76"]
 
     BASE --> C1["the-bubble-is-the-architecture.md<br/>249 lines, long-form essay with numbered citations"]:::content
     BASE --> C2["the-bubble-is-the-architecture-v3.md<br/>249 lines, a revised edition with different content —<br/>its method note records how the revision was checked<br/>the-bubble-is-the-architecture-v3.md:117"]:::content

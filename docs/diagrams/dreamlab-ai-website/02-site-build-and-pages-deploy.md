@@ -13,30 +13,35 @@ sources:
   - ../dreamlab-ai-website/index.html
   - ../dreamlab-ai-website/src/lib/og-meta.ts
   - ../dreamlab-ai-website/src/pages/Contact.tsx
-verified_commit: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80
+  - ../dreamlab-ai-website/scripts/prerender.mjs
+  - ../dreamlab-ai-website/scripts/generate-llms-full.mjs
+  - ../dreamlab-ai-website/scripts/check-discovery.mjs
+  - ../dreamlab-ai-website/docs/archive/adr/043-ai-search-visibility-aeo.md
+verified_commit: 2e358bb6c47dad3130bbfea8a73278cfbea1157c
 ---
 
 ## DW-02.1 Route table — lazy-loaded, code-split
 ```mermaid
 flowchart TB
-    APP["App.tsx:29 <App>"] --> BR["BrowserRouter<br/>v7_startTransition, v7_relativeSplatPath<br/>src/App.tsx:39-40"]
-    BR --> IDX["/ -> Index<br/>src/App.tsx:47"]
-    BR --> PRG["/programmes -> Programmes<br/>src/App.tsx:48"]
-    BR --> CC["/co-create -> CoCreate<br/>src/App.tsx:49"]
-    BR --> RES["/research -> Research<br/>src/App.tsx:50"]
-    BR --> ECO["/ecosystem -> Ecosystem<br/>src/App.tsx:51"]
-    BR --> TEAM["/team -> Team<br/>src/App.tsx:52"]
-    BR --> WSI["/workshops -> WorkshopIndex<br/>src/App.tsx:55"]
-    BR --> WSP["/workshops/:workshopId(/:pageSlug) -> WorkshopPage<br/>src/App.tsx:56-57"]
-    BR --> TST["/testimonials -> Testimonials<br/>src/App.tsx:60"]
-    BR --> VEN["/ventures -> Ventures, unlinked direct-URL only<br/>src/App.tsx:62-63"]
-    BR --> CNT["/contact -> Contact<br/>src/App.tsx:65"]
-    BR --> PRIV["/privacy -> Privacy<br/>src/App.tsx:66"]
-    BR --> NF["* -> NotFound<br/>src/App.tsx:76"]
+    APP["App.tsx:30 <App>"] --> BR["BrowserRouter<br/>v7_startTransition, v7_relativeSplatPath<br/>src/App.tsx:40-42"]
+    BR --> IDX["/ -> Index<br/>src/App.tsx:48"]
+    BR --> PRG["/programmes -> Programmes<br/>src/App.tsx:49"]
+    BR --> CC["/co-create -> CoCreate<br/>src/App.tsx:50"]
+    BR --> RES["/research -> Research<br/>src/App.tsx:51"]
+    BR --> ECO["/ecosystem -> Ecosystem<br/>src/App.tsx:52"]
+    BR --> TEAM["/team -> Team<br/>src/App.tsx:53"]
+    BR --> WSI["/workshops -> WorkshopIndex<br/>src/App.tsx:56"]
+    BR --> WSP["/workshops/:workshopId(/:pageSlug) -> WorkshopPage<br/>src/App.tsx:57-58"]
+    BR --> TST["/testimonials -> Testimonials<br/>src/App.tsx:61"]
+    BR --> VEN["/ventures -> Ventures, unlinked direct-URL only<br/>src/App.tsx:63-64"]
+    BR --> CHN["/chain -> ChainMirror<br/>src/App.tsx:65"]
+    BR --> CNT["/contact -> Contact<br/>src/App.tsx:67"]
+    BR --> PRIV["/privacy -> Privacy<br/>src/App.tsx:68"]
+    BR --> NF["* -> NotFound<br/>src/App.tsx:78"]
 ```
-- All route components are `lazy()`-loaded (src/App.tsx:10-22); `RouteErrorBoundary` (src/App.tsx:44) contains a failed lazy chunk so it does not white-screen the whole SPA (Sprint v9 D3, src/App.tsx:42-43 comment).
-- `v7_relativeSplatPath` is audited as a no-op here (the sole splat route's links are all absolute); `v7_startTransition` only changes how a navigation to a not-yet-loaded chunk holds the outgoing page (src/App.tsx:32-38).
-- Route-level lazy loading is supplemented by Rollup manual chunks (`vendor`, `nostr`, `ui`) grouping React/router, `nostr-tools` and Radix primitives into separate bundles (vite.config.ts:70-79).
+- All route components are `lazy()`-loaded (src/App.tsx:10-23); `RouteErrorBoundary` (src/App.tsx:45) contains a failed lazy chunk so it does not white-screen the whole SPA (Sprint v9 D3, src/App.tsx:43-44 comment).
+- `v7_relativeSplatPath` is audited as a no-op here (the sole splat route's links are all absolute); `v7_startTransition` only changes how a navigation to a not-yet-loaded chunk holds the outgoing page (src/App.tsx:33-39).
+- Route-level lazy loading is supplemented by Rollup manual chunks (`vendor`, `nostr`, `ui`) grouping React/router, `nostr-tools` and Radix primitives into separate bundles (vite.config.ts:61-70).
 
 ## DW-02.3 Build & test commands
 ```mermaid
@@ -44,49 +49,56 @@ flowchart TB
     DEV["npm run dev<br/>package.json:22"] --> PRE1["pre-step: generate-workshop-list.mjs<br/>+ generate-testimonials.mjs<br/>package.json:21 predev"]
     BUILD["npm run build<br/>package.json:24"] --> PRE1B["package.json:23 prebuild, same pre-step"]
     PRE1B --> VITE["Vite 5.4, SWC plugin, production build"]
+    VITE --> POST["package.json:31 postbuild, three scripts in series"]
+    POST --> PRER["prerender.mjs: render each route to dist/route/index.html,<br/>redirect stubs, sitemap.xml, workshops/llms.txt<br/>scripts/prerender.mjs:128-143"]
+    PRER --> LLMS["generate-llms-full.mjs: dist/llms-full.txt<br/>from the prerendered HTML<br/>scripts/generate-llms-full.mjs:2-4"]
+    LLMS --> DISC["check-discovery.mjs: asserts canonical, schema,<br/>sitemap and no __BUILD_DATE__ token<br/>scripts/check-discovery.mjs:32"]
     LINT["npm run lint<br/>package.json:26"] --> ESLINT["ESLint 9 flat config<br/>eslint.config.js, ignores dist/"]
     TEST["npm run test<br/>package.json:28"] --> VITEST["Vitest + Testing Library, jsdom<br/>src/**/__tests__"]
     RUSTT["cd forum-config && cargo test"] --> RUSTOVERLAY["operator-overlay tests:<br/>config parsing, branding, deploy manifests"]
 ```
+- The postbuild step is new since the freshness plugin left vite.config.ts: `prerender.mjs` reads the built `dist/index.html` as its template (scripts/prerender.mjs:50) and renders every route through Vite's SSR loader (scripts/prerender.mjs:53), so the deploy ships static HTML per route; `deploy.yml` now triggers on all of `scripts/**` (`.github/workflows/deploy.yml:27`) because of it.
 - CLAUDE.md's Behavioral Rules require `npm run build` and `npm run lint` before committing.
-- TypeScript strict mode is **partial**: `noImplicitAny: false`, `strictNullChecks: true` (CLAUDE.md:196).
+- TypeScript strict mode is **partial**: `noImplicitAny: false`, `strictNullChecks: true` (CLAUDE.md:199).
 
 ## DW-02.4 Dev-server hardening — `/data/team` path-traversal guard
 ```mermaid
 sequenceDiagram
     autonumber
     participant B as browser dev request
-    participant MW as configureServer middleware<br/>vite.config.ts:29-30 server.middlewares.use('/data/team', ...)
+    participant MW as configureServer middleware<br/>vite.config.ts:20-21 server.middlewares.use('/data/team', ...)
     participant FS as public/data/team/
     B->>MW: GET /data/team/<path>
-    MW->>MW: reject if req.url includes '..' or '%2e'<br/>vite.config.ts:31-36 400 Invalid request
+    MW->>MW: reject if req.url includes '..' or '%2e'<br/>vite.config.ts:23-27 400 Invalid request
     MW->>FS: readdirSync(teamDir) when req.url === '/'
     FS-->>MW: file list
-    MW->>MW: filter to *.md, drop dotfiles<br/>vite.config.ts safeFiles filter
+    MW->>MW: filter to *.md, drop dotfiles<br/>vite.config.ts:34 safeFiles filter
     MW-->>B: text/plain file list
 ```
 - This middleware exists only in the Vite dev server (`configureServer`); the production static build serves `public/data/team/` as plain files with no equivalent runtime guard.
 
-## DW-02.5 `index.html` — CSP and build-date injection
+## DW-02.5 `index.html` — CSP, and where build-date handling went
 ```mermaid
 flowchart LR
-    HTML["index.html"] --> CSP["script-src 'self', no 'unsafe-inline'<br/>referenced by deploy.yml comment on the pickup script"]
-    HTML --> DATE["__BUILD_DATE__ placeholder<br/>index.html:176,187,269"]
-    PLUGIN["inject-build-date plugin, ADR-043 W4<br/>vite.config.ts:22-23 transformIndexHtml"] --> DATE
-    DATE --> REPLACED["replaced with new Date().toISOString().slice(0,10)<br/>vite.config.ts:24"]
+    HTML["index.html"] --> CSP["script-src 'self', no 'unsafe-inline'<br/>index.html:64-67, 80"]
+    HTML --> NODATE["no __BUILD_DATE__ placeholder remains<br/>index.html keeps only a static Organization graph<br/>index.html:18; per-route schema is src/lib/og-meta.ts:251-260"]
+    VITE["vite.config.ts plugins: react, configure-server only<br/>vite.config.ts:16-19"] -. "inject-build-date removed" .-> NODATE
+    PRER["prerender.mjs per-route meta, canonical, JSON-LD<br/>scripts/prerender.mjs:84-112"] --> LASTMOD["sitemap lastmod from git log of page source<br/>scripts/prerender.mjs:43-46"]
+    DISC["check-discovery.mjs:32 fails the build on any token"] -. guards .-> NODATE
 ```
-- The CSP is why the React `__p` deep-link pickup lives in the external `public/spa-redirect.js` rather than an inline script injected at deploy time (see DW-01.7); an inline script would be blocked.
-- OG/social-card image URLs (src/lib/og-meta.ts:40-41) must point at files that already exist under `public/`; there is no OG-image generation pipeline, so meta and imagery are hand-kept in sync.
+- The CSP is why the React `__p` deep-link pickup lives in the external `public/spa-redirect.js` rather than an inline script injected at deploy time (see DW-01.7; `index.html:85-88`); an inline script would be blocked.
+- **Drift:** the earlier reading of this topic (and the archived ADR-043, `docs/archive/adr/043-ai-search-visibility-aeo.md:5-6`) that a Vite `inject-build-date` plugin replaces `__BUILD_DATE__` in `index.html` is false at HEAD: the plugin and every placeholder are gone, `dateModified` is no longer stamped with the build date, and freshness is the per-page git commit date in the sitemap `<lastmod>` (`scripts/prerender.mjs:43-46`), omitted rather than faked on a shallow clone (`scripts/prerender.mjs:42`), which is why `deploy.yml` checks out with `fetch-depth: 0` (`.github/workflows/deploy.yml:153-154`).
+- OG/social-card image URLs (src/lib/og-meta.ts:42-51) must point at files that already exist under `public/`; there is no OG-image generation pipeline, so meta and imagery are hand-kept in sync.
 
 ## DW-02.7 Contact form — RHF + Zod boundary, no database write
 ```mermaid
 flowchart TB
-    SCHEMA["formSchema = z.object({...})<br/>src/pages/Contact.tsx:43-48<br/>name >=2 chars, email format,<br/>projectType required, message >=10 chars"]
-    HOOK["useForm(FormValues)<br/>resolver: zodResolver(formSchema)<br/>src/pages/Contact.tsx:364-365"]
+    SCHEMA["formSchema = z.object({...})<br/>src/pages/Contact.tsx:44-50<br/>name >=2 chars, email format,<br/>projectType required, message >=10 chars"]
+    HOOK["useForm(FormValues)<br/>resolver: zodResolver(formSchema)<br/>src/pages/Contact.tsx:453-454"]
     SCHEMA --> HOOK
-    HOOK --> VIEW["ContactMobile / ContactDesktop<br/>share one form + onSubmit via ContactViewProps<br/>src/pages/Contact.tsx:53-58"]
-    VIEW --> GUARD["onSubmit: if RELAY_URL/ADMIN_PUBKEY unset<br/>toast.error(unavailable), return<br/>src/pages/Contact.tsx:380-385"]
-    GUARD --> SEND["generateEphemeralIdentity -> buildEnquiryRumor<br/>-> wrapDm -> publishGiftWrap<br/>src/pages/Contact.tsx:395-409, see DW-04.3/DW-04.4"]
-    SEND --> OK["result.ok? toast.success + form.reset<br/>: toast.error<br/>src/pages/Contact.tsx:411-417"]
+    HOOK --> VIEW["ContactMobile / ContactDesktop<br/>share one form + onSubmit via ContactViewProps<br/>src/pages/Contact.tsx:54-59"]
+    VIEW --> GUARD["onSubmit: if RELAY_URL/ADMIN_PUBKEY unset<br/>toast.error(unavailable), return<br/>src/pages/Contact.tsx:479-482"]
+    GUARD --> SEND["generateEphemeralIdentity -> buildEnquiryRumor<br/>-> wrapDm -> publishGiftWrap<br/>src/pages/Contact.tsx:492-506, see DW-04.3/DW-04.4"]
+    SEND --> OK["result.ok? toast.success + form.reset<br/>: toast.error<br/>src/pages/Contact.tsx:508-514"]
 ```
-- No REST endpoint and no database row: validated form data is packaged straight into the NIP-17 gift-wrap DM ingress that DW-04 diagrams; success is gated strictly on the relay's OK-true (src/pages/Contact.tsx:389-391 comment, ADR-041 D4).
+- No REST endpoint and no database row: validated form data is packaged straight into the NIP-17 gift-wrap DM ingress that DW-04 diagrams; success is gated strictly on the relay's OK-true (src/pages/Contact.tsx:486-488 comment, ADR-041 D4).

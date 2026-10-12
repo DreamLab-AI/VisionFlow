@@ -28,33 +28,33 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md
   - ../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
-verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
+verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
 ---
 
 ## For developers
 
-Since `d0fa1b80b` (2026-09-30) the chain is supervised. `[sidechain]` in `agentbox.toml` bakes three supervisord programs, all REBUILD-class: `sidestr-producer` runs `run-producer.sh`, `sidestr-mirror` runs `mirror-sync.sh`, which pushes the block file into a GitHub Pages checkout because Pages already serves open CORS and Range requests, which is all a mirror is (`mirror-sync.sh:4-5`), and `sidestr-faucet` runs `run-faucet.sh`, which pays DREAM and testnet sats to the forum's member wallets through the baked `sidestr-agent`. Each further sealed chain is a `[sidechain.<name>]` table that bakes its own `-<name>` trio from the same runners (`config/sidechain/README.md:147-157`); the first, `sidestr:dreamlab-txbt4`, ships enabled and runs beside BLAKE2b testnet4 (`agentbox.toml:1649`). The children apply only with the parent gate on, both in the Nix bake (`flake.nix:260-261`) and in the catalogue's state word (`system-manifest.js:346-350`). Custody X-1 step 1 (ADR-2122, 2026-10-03) changed two things here. The producer no longer runs the upstream JS engine out of workspace checkouts: by default it runs a read-only `/nix/store` bake of the commits in `upstream-pins` (`lib/sidestr-upstream.nix`), whatever `[security].role_isolation` says, and a workspace checkout runs only under `SIDESTR_ALLOW_UNPINNED=1` (AB-34.1). And with `[security].role_isolation = true` the producers and faucets become role programs under their own uids, reading their keys from root-delivered copies under `/run/secrets/<role>/` (AB-34.6; the mechanism is AB-36). The flag ships off. There is still no registry to register with: the relays are it, and the five `sidestr-*` crates that read and verify this wire moved out of this repository on 2026-09-23 (ADR-2112). What is still not built is the native half: a Rust `sidestr-node`, the loopback mirror on port 9097 behind the nip98 proxy, the `chain` and `asset` URN kinds and the kind-38420 binding (`config/sidechain/README.md:170-174`). The producer also publishes the chain's kind-3500 chain event since SPEC 0.0.5 and the mirror syncs it (`mirror-sync.sh:9-16`).
+Since `d0fa1b80b` (2026-09-30) the chain is supervised. `[sidechain]` in `agentbox.toml` bakes three supervisord programs, all REBUILD-class: `sidestr-producer` runs `run-producer.sh`, `sidestr-mirror` runs `mirror-sync.sh`, which pushes the block file into a Git checkout, because GitHub's raw file endpoint already serves open CORS and Range requests, which is all a mirror is, without starting a Pages build for every block (`mirror-sync.sh:4-6`), and `sidestr-faucet` runs `run-faucet.sh`, which pays DREAM and testnet sats to the forum's member wallets through the baked `sidestr-agent`. Each further sealed chain is a `[sidechain.<name>]` table that bakes its own `-<name>` trio from the same runners (`config/sidechain/README.md:148-158`); the first, `sidestr:dreamlab-txbt4`, has its own table `enabled = true` beside BLAKE2b testnet4 (`agentbox.toml:1836`). The children apply only with the parent gate on, both in the Nix bake (`flake.nix:283-284`, `flake.nix:298`) and in the catalogue's state word (`system-manifest.js:361-365`), and the parent gate now ships **false**: the manifest pauses the whole chain after an ENOSPC block-persistence failure, so nothing in the paragraph above is baked at this revision until it is re-enabled (`agentbox.toml:1818-1820`). Custody X-1 step 1 (ADR-2122, 2026-10-03) changed two things here. The producer no longer runs the upstream JS engine out of workspace checkouts: by default it runs a read-only `/nix/store` bake of the commits in `upstream-pins` (`lib/sidestr-upstream.nix`), whatever `[security].role_isolation` says, and a workspace checkout runs only under `SIDESTR_ALLOW_UNPINNED=1` (AB-34.1). And with `[security].role_isolation = true` the producers and faucets become role programs under their own uids, reading their keys from root-delivered copies under `/run/secrets/<role>/` (AB-34.6; the mechanism is AB-36). The flag ships off. There is still no registry to register with: the relays are it, and the five `sidestr-*` crates that read and verify this wire moved out of this repository on 2026-09-23 (ADR-2112). What is still not built is the native half: a Rust `sidestr-node`, the loopback mirror on port 9097 behind the nip98 proxy, the `chain` and `asset` URN kinds and the kind-38420 binding (`config/sidechain/README.md:171-175`). The producer also publishes the chain's kind-3500 chain event since SPEC 0.0.5 and the mirror syncs it (`mirror-sync.sh:9-16`).
 
 **Drift (this topic vs agentbox since ad45e7bf8):** the `sidestr-nostr` sources cited here were in agentbox's `crates/sidestr/` at `ec60a8f14`; ADR-2112 (2026-09-23) moved the crates to `DreamLab-AI/sidestr-rs`, and agentbox keeps only the chain instance in `config/sidechain/`. The producer and mirror described here are unaffected; the crates are SR-01.
 
 ## For the business
 
-The settlement chain is reachable by anyone, through public infrastructure the estate does not own or pay for, and it announces itself rather than being listed anywhere. Until the end of September it ran in a terminal window, and a container restart on 25 September stopped it for four days with nothing to bring it back. It is now a managed service that restarts with the container, and a third service hands new forum members a small amount of the DREAM test token and test bitcoin so their wallets have something to use. Since 3 October the code that makes blocks is fixed into the container image itself, so nothing running inside the box, an agent included, can change the rules the chain is produced by. A second chain beside a different test network, sealed at the start of October, now runs the same way. A further switch, not yet turned on, moves the chains' signing and treasury keys under accounts of their own. It is not complete: the stored copies of those keys are still readable from inside the box. It is still a test chain: nothing on it carries real value, and the parts that would let it hold real value are designed but not built.
+The settlement chain is reachable by anyone, through public infrastructure the estate does not own or pay for, and it announces itself rather than being listed anywhere. Until the end of September it ran in a terminal window, and a container restart on 25 September stopped it for four days with nothing to bring it back. It is now a managed service that restarts with the container, and a third service hands new forum members a small amount of the DREAM test token and test bitcoin so their wallets have something to use. Since 3 October the code that makes blocks is fixed into the container image itself, so nothing running inside the box, an agent included, can change the rules the chain is produced by. A second chain beside a different test network, sealed at the start of October, is set up the same way. At this revision, though, the whole chain is switched off in the manifest after a disk-space failure persisting blocks, so neither chain is being produced until the operator recovers the state and turns it back on. A further switch, not yet turned on, moves the chains' signing and treasury keys under accounts of their own. It is not complete: the stored copies of those keys are still readable from inside the box. It is still a test chain: nothing on it carries real value, and the parts that would let it hold real value are designed but not built.
 
 ## AB-34.1 The supervised producer, and what it refuses to start without
 
 ```mermaid
 flowchart TB
-    subgraph sup["supervisord, baked only when [sidechain].enabled - flake.nix:2934-2958"]
-        SP["[program:sidestr-producer] runs run-producer.sh with --announce-mirror<br/>from [sidechain].announce_mirror - flake.nix:2945-2946, agentbox.toml:1634"]
-        SR["autorestart, but startretries 5 then FATAL: a failed start means<br/>a pin to fix, not a restart loop - flake.nix:2939-2942, flake.nix:2952"]
+    subgraph sup["supervisord, baked only when [sidechain].enabled - flake.nix:3038-3062"]
+        SP["[program:sidestr-producer] runs run-producer.sh with --announce-mirror<br/>from [sidechain].announce_mirror - flake.nix:3049-3050, agentbox.toml:1821"]
+        SR["autorestart, but startretries 5 then FATAL: a failed start means<br/>a pin to fix, not a restart loop - flake.nix:3043-3046, flake.nix:3056"]
         SP --> SR
     end
     subgraph bake["The bake - lib/sidestr-upstream.nix"]
         B1["spec, schema, blaketestnode fetched from GitHub at the pinned revs<br/>lib/sidestr-upstream.nix:80"]
         B2["evaluation THROWS when a rev here disagrees with upstream-pins<br/>lib/sidestr-upstream.nix:72-78"]
         B3["each directory records .pin-commit at build time<br/>lib/sidestr-upstream.nix:89-95"]
-        B4["linked at /opt/agentbox/sidestr/upstream when [sidechain].enabled<br/>flake.nix:2002-2008"]
+        B4["linked at /opt/agentbox/sidestr/upstream when [sidechain].enabled<br/>flake.nix:2041-2047"]
         B1 --> B2 --> B3 --> B4
     end
     subgraph pick["Which upstream runs - run-producer.sh:83-107"]
@@ -98,7 +98,7 @@ flowchart TB
     pre --> rule
 ```
 
-**Tension (BASELINE proposed section vs flake.nix):** the proposed supervised set gates `sidestr-producer` on `[sidechain.signer].enabled` and gives `[sidechain].enabled` to a `sidestr-node` on loopback port 9097 (`../project/agentbox/docs/BASELINE-container.md:356-357`); as built, `[sidechain].enabled` gates the JS producer itself and there is no `sidestr-node` (`../project/agentbox/flake.nix:2934-2958`). ADR-2103's 2026-09-30 amendment approves the interim shape without amending that table (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:233-237`).
+**Tension (BASELINE proposed section vs flake.nix):** the proposed supervised set gates `sidestr-producer` on `[sidechain.signer].enabled` and gives `[sidechain].enabled` to a `sidestr-node` on loopback port 9097 (`../project/agentbox/docs/BASELINE-container.md:369-370`); as built, `[sidechain].enabled` gates the JS producer itself and there is no `sidestr-node` (`../project/agentbox/flake.nix:3038-3062`). ADR-2103's 2026-09-30 amendment approves the interim shape without amending that table (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:233-237`).
 
 **Invariant:** the producer never learns a secret from its command line — the key and the parent credential are paths, checked for readability before `exec` and passed as `--key-file` and `--parent-cookie` (`../project/agentbox/config/sidechain/run-producer.sh:109-110`, `../project/agentbox/config/sidechain/run-producer.sh:169`, `../project/agentbox/config/sidechain/run-producer.sh:172`).
 
@@ -130,27 +130,27 @@ sequenceDiagram
     else it is not
         CL->>CL: refuse
     end
-    Note over CL: EXTERNAL - this verification and mirror-trust logic<br/>is sidestr-nostr, moved with its history to<br/>DreamLab-AI/sidestr-rs on 2026-09-23<br/>crates/sidestr/README.md, docs/BASELINE-container.md:16
+    Note over CL: EXTERNAL - this verification and mirror-trust logic<br/>is sidestr-nostr, moved with its history to<br/>DreamLab-AI/sidestr-rs on 2026-09-23<br/>crates/sidestr/README.md, docs/BASELINE-container.md:17
 ```
 
 **Invariant:** kind 33333 is an addressable chain tip, filterable by `#d`, owned externally by the sidestr spec, not by this repository; since SPEC 0.0.5 its `e` tag carries the chain event's id (`../project/agentbox/docs/PROTOCOL-registry.md:168`).
 
-**EXTERNAL:** the signature-before-decode check and the mirror trust rule this diagram depicts are implemented in the `sidestr-nostr` crate, which this repository no longer hosts — it moved with its full history to [DreamLab-AI/sidestr-rs](https://github.com/DreamLab-AI/sidestr-rs) on 2026-09-23 (`../project/agentbox/crates/sidestr/README.md:5-14`, `../project/agentbox/docs/BASELINE-container.md:16`, ADR-2112); the only sidestr-rs code the image now carries is the standalone `sidestr-agent` binary the faucet runs, baked from a pinned revision (AB-34.3). The pattern is still load-bearing for this repository's producer and mirror; its source can no longer be cited by `path:line` from here.
+**EXTERNAL:** the signature-before-decode check and the mirror trust rule this diagram depicts are implemented in the `sidestr-nostr` crate, which this repository no longer hosts — it moved with its full history to [DreamLab-AI/sidestr-rs](https://github.com/DreamLab-AI/sidestr-rs) on 2026-09-23 (`../project/agentbox/crates/sidestr/README.md:5-14`, `../project/agentbox/docs/BASELINE-container.md:17`, ADR-2112); the only sidestr-rs code the image now carries is the standalone `sidestr-agent` binary the faucet runs, baked from a pinned revision (AB-34.3). The pattern is still load-bearing for this repository's producer and mirror; its source can no longer be cited by `path:line` from here.
 
 ## AB-34.3 The mirror loop and the faucet, both children of the producer
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SV as supervisord<br/>agentbox/flake.nix:2963
+    participant SV as supervisord<br/>agentbox/flake.nix:3067
     participant M as mirror-sync.sh<br/>config/sidechain/mirror-sync.sh:69
     participant P as the producer on loopback port 3450<br/>config/sidechain/mirror-sync.sh:31
     participant S as the block file directory<br/>config/sidechain/mirror-sync.sh:29-30
-    participant G as a GitHub Pages checkout
+    participant G as a Git checkout, served by GitHub's raw endpoint
     participant F as run-faucet.sh<br/>config/sidechain/run-faucet.sh:73
 
-    Note over SV: [program:sidestr-mirror] is baked only when [sidechain].mirror AND enabled<br/>(flake.nix:260, flake.nix:2959-2964), and the catalogue reports a child off when its parent is off<br/>(management-api/lib/system-manifest.js:349-350)
-    SV->>M: mirror-sync.sh mirror_checkout 120 (flake.nix:2964, agentbox.toml:1636)
+    Note over SV: [program:sidestr-mirror] is baked only when [sidechain].mirror AND enabled<br/>(flake.nix:283, flake.nix:3063-3068), and the catalogue reports a child off when its parent is off<br/>(management-api/lib/system-manifest.js:364-365)
+    SV->>M: mirror-sync.sh mirror_checkout 120 (flake.nix:3068, agentbox.toml:1823)
     loop every 120 s by default (mirror-sync.sh:37)
         M->>P: curl chain.json with a 10 s cap
         alt it answered
@@ -168,17 +168,17 @@ sequenceDiagram
             M->>G: push, and report synchronized, or push failed and will retry<br/>(mirror-sync.sh:84-85)
         end
     end
-    Note over G: Pages serves them with open CORS and Range requests,<br/>which is ALL a mirror is, and it is where the forum wallet reads the chain<br/>(mirror-sync.sh:5-6)
-    SV->>F: [program:sidestr-faucet] when [sidechain].faucet AND enabled (flake.nix:261, flake.nix:2976-2981)
+    Note over G: the raw file endpoint serves them with open CORS and Range requests,<br/>which is ALL a mirror is, with no Pages build per block<br/>(mirror-sync.sh:4-6, sidechain/README.md:126-128)
+    SV->>F: [program:sidestr-faucet] when [sidechain].faucet AND enabled (flake.nix:284, flake.nix:3080-3085)
     F->>P: wait on GET tip every 15 s, so boot does not burn supervisor retries<br/>(run-faucet.sh:65-68)
-    F->>F: exec sidestr-agent faucet — 1000 DREAM and 2000 sats per script per 24 h<br/>(agentbox.toml:1639-1640), 20 grants an hour, answering kind-23501 requests<br/>(run-faucet.sh:71-77, run-faucet.sh:5-8)
+    F->>F: exec sidestr-agent faucet — 1000 DREAM and 2000 sats per script per 24 h<br/>(agentbox.toml:1826-1827), 20 grants an hour, answering kind-23501 requests<br/>(run-faucet.sh:71-77, run-faucet.sh:5-8)
 ```
 
 **Invariant:** a commit whose push failed is retried on the next pass even when the producer has made no new block, because the retry keys on the branch being ahead of its upstream, not on a changed file (`../project/agentbox/config/sidechain/mirror-sync.sh:81-86`).
 
-**Debt:** the mirror is a public git repository rather than the specified loopback port 9097 behind the nip98 proxy at `/chain/`, and the script says so in its own header (`../project/agentbox/config/sidechain/mirror-sync.sh:6-7`, `../project/agentbox/docs/BASELINE-container.md:356`).
+**Debt:** the mirror is a public git repository rather than the specified loopback port 9097 behind the nip98 proxy at `/chain/`, and the script says so in its own header (`../project/agentbox/config/sidechain/mirror-sync.sh:6-7`, `../project/agentbox/docs/BASELINE-container.md:369`).
 
-**Tension (secrets convention vs the faucet), narrowed by custody:** the producer's convention is that keys are files under `/var/lib/agentbox/secrets` (`../project/agentbox/config/sidechain/run-producer.sh:7`). The role table now follows it for the faucet: the treasury key's source is the volume copy, with the workspace file named only as its legacy twin (`../project/agentbox/config/role-accounts.json:78`), and under `[security].role_isolation` the faucet uid reads a root-delivered 0400 copy of it (`../project/agentbox/config/lib/role-custody.sh:321`). With the flag off, which is how it ships, the faucet still defaults to, and the live manifest still sets, the workspace path (`../project/agentbox/config/sidechain/run-faucet.sh:27`, `../project/agentbox/agentbox.toml:1638`), and the migrate step copies that legacy file once and never deletes it, so a spend-capable key stays on the host-visible bind in both modes until a manual purge (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:212-215`).
+**Tension (secrets convention vs the faucet), narrowed by custody:** the producer's convention is that keys are files under `/var/lib/agentbox/secrets` (`../project/agentbox/config/sidechain/run-producer.sh:7`). The role table now follows it for the faucet: the treasury key's source is the volume copy, with the workspace file named only as its legacy twin (`../project/agentbox/config/role-accounts.json:78`), and under `[security].role_isolation` the faucet uid reads a root-delivered 0400 copy of it (`../project/agentbox/config/lib/role-custody.sh:321`). With the flag off, which is how it ships, the faucet still defaults to, and the live manifest still sets, the workspace path (`../project/agentbox/config/sidechain/run-faucet.sh:27`, `../project/agentbox/agentbox.toml:1825`), and the migrate step copies that legacy file once and never deletes it, so a spend-capable key stays on the host-visible bind in both modes until a manual purge (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:212-215`).
 
 ## AB-34.4 The kind plane as built, and the band it moved into
 
@@ -213,23 +213,23 @@ flowchart TB
 flowchart TB
     subgraph now["Running, status 2026-09-30 - sovereign-settlement.md:337"]
         N1["upstream JS producer under supervisord, running the read-only<br/>bake of upstream-pins - config/sidechain/run-producer.sh:9-16"]
-        N2["announcing kind 33333 to five public relays;<br/>block 594 reached 5 of 5 and the Pages mirror"]
-        N3["GitHub Pages mirror dreamlab-ai.github.io/sidestr-dreamlab<br/>agentbox.toml:1574, sidechain/README.md:118"]
+        N2["announcing kind 33333 to five public relays;<br/>block 594 reached 5 of 5 and the mirror"]
+        N3["Git mirror announced as raw.githubusercontent.com/DreamLab-AI/sidestr-dreamlab/main<br/>agentbox.toml:1821, sidechain/README.md:118"]
         N4["the relays ARE the registry - sidechain/README.md:123-125"]
         N5["the DREAM faucet for member wallets, sidestr-agent baked from a<br/>pinned sidestr-rs revision - sidechain/README.md:119"]
         N6["Level 2 usable: sidestr-round 0.1.0's cosign co-signs<br/>with the JS signers live - sovereign-settlement.md:336"]
     end
-    subgraph spec["Specified, and not built - sidechain/README.md:170-174"]
+    subgraph spec["Specified, and not built - sidechain/README.md:171-175"]
         S2["a native sidestr-node; the producer is still upstream's JS engine"]
         S3["the mirror on loopback port 9097 behind the nip98 proxy<br/>at /chain/"]
         S4["the chain and asset URN kinds"]
         S5["the kind-38420 account binding"]
         S2 ~~~ S3 ~~~ S4 ~~~ S5
     end
-    subgraph next["The second chain - sealed 2026-10-02, enabled, live"]
-        X1["sidestr:dreamlab-txbt4 beside BLAKE2b testnet4, its own table,<br/>port 3451, its own mirror repository and faucet<br/>agentbox.toml:1642-1649, sidechain/README.md:159-166"]
-        X2["enabled = true and live: the trio of -dreamlab-txbt4 programs<br/>is baked (agentbox.toml:1649); the table gate still dominates<br/>its own mirror and faucet - sidechain/README.md:147-157"]
-        X3["NOT ANCHORED: checkpoint_every = 0 (owner SC5)<br/>agentbox.toml:1666"]
+    subgraph next["The second chain - sealed 2026-10-02, table enabled, parent gate off"]
+        X1["sidestr:dreamlab-txbt4 beside BLAKE2b testnet4, its own table,<br/>port 3451, its own mirror repository and faucet<br/>agentbox.toml:1829-1836, sidechain/README.md:160-166"]
+        X2["table enabled = true (agentbox.toml:1836), but [sidechain].enabled = false dominates it<br/>(agentbox.toml:1820, flake.nix:298), so the -dreamlab-txbt4 trio is not baked;<br/>the table gate also dominates its own mirror and faucet - sidechain/README.md:153-154"]
+        X3["NOT ANCHORED: checkpoint_every = 0 (owner SC5)<br/>agentbox.toml:1853"]
         X4["DRIFT: PRD-024 open question 19 still calls this chain proposed and<br/>blocked on a BLAKE2b node - sovereign-settlement.md:527-530"]
         X1 --> X2 --> X3
         X1 --> X4
@@ -240,15 +240,17 @@ flowchart TB
     GAP --> FED["OPEN: ADR-2101 rewritten 2026-10-02 - each client runs its own root,<br/>sealed only by its own signers, nested under sidestr:dreamlab for pegs alone,<br/>no DreamLab key in it - ADR-2101-federation-topology-and-key-separation.md:40-48<br/>the set above runs one root, sidestr:dreamlab on tbtc4, chain.json:2-4;<br/>nothing here says where a client root runs or declares its parent link,<br/>and the stage needs the client able to drop that link - ADR-2101-federation-topology-and-key-separation.md:45-47"]
 ```
 
+**Drift (the 2026-09-30 "Running" set vs the manifest):** the Running box is a status row, not the current manifest — `[sidechain].enabled` now ships `false`, "paused after the ENOSPC block-persistence failure; retain state and backups", and it dominates producers, mirrors, faucets and poker citizens (`../project/agentbox/agentbox.toml:1818-1820`, `../project/agentbox/flake.nix:282-284`). The second chain's own table still says `enabled = true` and "live 2026-10-03" (`../project/agentbox/agentbox.toml:1836`), which the parent gate makes inert until the re-enable the comment conditions on state recovery and a merged upstream fix. The mirror wording drifted too: the mirror moved from GitHub Pages to a plain Git checkout read through the raw file endpoint, and both `announce_mirror` values now name `raw.githubusercontent.com` (`../project/agentbox/agentbox.toml:1821`, `../project/agentbox/agentbox.toml:1847`, `../project/agentbox/config/sidechain/README.md:118`). Three places still say Pages: the baked supervisor comment, the runner's `PAGES` variable and prompt, and the txbt4 README row (`../project/agentbox/flake.nix:3065`, `../project/agentbox/config/sidechain/mirror-sync.sh:37`, `../project/agentbox/config/sidechain/README.md:164`). The README also says the txbt4 table "ships `enabled = false`" while the manifest sets it true (`../project/agentbox/config/sidechain/README.md:169`, `../project/agentbox/agentbox.toml:1836`).
+
 **Open:** none of the four pieces still specified has a landing date; PRD-024's 2026-09-30 status row lists them as "not yet" beside the supervised set (`../project/agentbox/docs/proposals/sovereign-settlement.md:337`).
 
 ## AB-34.6 Chain programs under role isolation — both modes
 
 ```mermaid
 flowchart TB
-    FLAG{"[security].role_isolation<br/>ships false - agentbox.toml:2227"}
+    FLAG{"[security].role_isolation<br/>ships false - agentbox.toml:2414"}
     subgraph off["Flag off - today's /etc/supervisord.conf"]
-        O1["sidestr-producer, -faucet and their -NAME twins run user=devuser<br/>flake.nix:2947, flake.nix:2982, flake.nix:3054"]
+        O1["sidestr-producer, -faucet and their -NAME twins run user=devuser<br/>flake.nix:3051, flake.nix:3086, flake.nix:3158"]
         O2["key, parent credential and treasury key read straight from<br/>their at-rest paths by devuser - run-producer.sh:70-71, run-faucet.sh:27"]
         O3["state, block file and faucet ledger under WORKSPACE<br/>run-producer.sh:62, run-faucet.sh:28;<br/>refuses to start when the custody copy is ahead, run-producer.sh:63-65"]
         O1 --> O2 --> O3
@@ -269,7 +271,7 @@ flowchart TB
         R4 --> R5 --> R6
     end
     subgraph same["Unchanged in both modes"]
-        U1["sidestr-mirror stays devuser: it holds none of the chain's keys<br/>flake.nix:2777"]
+        U1["sidestr-mirror stays devuser: it holds none of the chain's keys<br/>flake.nix:3069"]
         U2["the producer runs the read-only bake either way<br/>run-producer.sh:15-16"]
     end
     FLAG -->|false| off
@@ -278,6 +280,6 @@ flowchart TB
     on --> same
 ```
 
-**Invariant (role isolation vs the at-rest copies):** under the flag both copies of a chain's key are role-only. The runtime copy is a 0400 file owned by its role under `/run/secrets/<role>/` (`../project/agentbox/config/role-accounts.json:63-98`, `../project/agentbox/config/lib/role-custody.sh:321`). The at-rest copy is too: the boot skips the devuser chown of the secrets volume root when the flag is on (`../project/agentbox/config/entrypoint-unified.sh:548`) and calls `ab_custody_migrate` (`../project/agentbox/config/entrypoint-unified.sh:723`) on the `atrest`/`atrestdir` rows that `role-accounts isolate` derives from the table (`../project/agentbox/services/agentbox-manifest/src/role_accounts.rs:1011-1028`). `ab_custody_migrate` (`../project/agentbox/config/lib/role-custody.sh:447`) hands each copy to its role at 0400 (`../project/agentbox/config/lib/role-custody.sh:556`) and the volume dir to root 0700 (`../project/agentbox/config/lib/role-custody.sh:567`). "A chain's key is readable only by its producer" therefore holds under the flag, for every copy except the legacy workspace twins, which stay devuser-readable by design (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:212-215`). With the flag off, which is how it ships (`../project/agentbox/agentbox.toml:2227`), every chain program runs as devuser anyway (`../project/agentbox/flake.nix:2947`, `../project/agentbox/flake.nix:2982`) and `ab_custody_revert` hands any migrated copy back (`../project/agentbox/config/entrypoint-unified.sh:725`).
+**Invariant (role isolation vs the at-rest copies):** under the flag both copies of a chain's key are role-only. The runtime copy is a 0400 file owned by its role under `/run/secrets/<role>/` (`../project/agentbox/config/role-accounts.json:63-98`, `../project/agentbox/config/lib/role-custody.sh:321`). The at-rest copy is too: the boot skips the devuser chown of the secrets volume root when the flag is on (`../project/agentbox/config/entrypoint-unified.sh:548`) and calls `ab_custody_migrate` (`../project/agentbox/config/entrypoint-unified.sh:723`) on the `atrest`/`atrestdir` rows that `role-accounts isolate` derives from the table (`../project/agentbox/services/agentbox-manifest/src/role_accounts.rs:1011-1028`). `ab_custody_migrate` (`../project/agentbox/config/lib/role-custody.sh:447`) hands each copy to its role at 0400 (`../project/agentbox/config/lib/role-custody.sh:556`) and the volume dir to root 0700 (`../project/agentbox/config/lib/role-custody.sh:567`). "A chain's key is readable only by its producer" therefore holds under the flag, for every copy except the legacy workspace twins, which stay devuser-readable by design (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:212-215`). With the flag off, which is how it ships (`../project/agentbox/agentbox.toml:2414`), every chain program runs as devuser anyway (`../project/agentbox/flake.nix:3051`, `../project/agentbox/flake.nix:3086`) and `ab_custody_revert` hands any migrated copy back (`../project/agentbox/config/entrypoint-unified.sh:725`).
 
 **Invariant (chain state under custody):** under the flag a role program's HOME is on the tmpfs, so the producer, mirror and faucet default their state to the agentbox-events volume instead of the workspace (`../project/agentbox/config/sidechain/run-producer.sh:56-59`, `../project/agentbox/config/sidechain/mirror-sync.sh:29-30`, `../project/agentbox/config/sidechain/run-faucet.sh:38-40`). The role table declares those directories, owned by each role with group devuser 2750 and seeded once from the workspace state (`../project/agentbox/config/role-accounts.json:147-176`). With the flag off the producer refuses to start when the custody copy has outgrown the workspace copy (`../project/agentbox/config/sidechain/run-producer.sh:63-65`), and the faucet likewise (`../project/agentbox/config/sidechain/run-faucet.sh:42-44`), which covers a rollback after blocks or grants were made under the flag. ADR-2122 now records W4 as built and the `ab-sidestr-read` group as unneeded (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:233-235`).

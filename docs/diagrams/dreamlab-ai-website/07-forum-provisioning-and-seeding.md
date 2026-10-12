@@ -6,9 +6,7 @@ governing:
   - ../dreamlab-ai-website/docs/BASELINE-architecture.md
 adrs: [ADR-2005]
 sources:
-  - ../dreamlab-ai-website/scripts/seed-forum.mjs
-  - ../dreamlab-ai-website/scripts/seed-semantic.mjs
-  - ../dreamlab-ai-website/scripts/assign-cohorts.mjs
+  - ../dreamlab-ai-website/CLOSEOUT-SECURITY-AUDIT.md
   - ../dreamlab-ai-website/scripts/seed/seed-forum-zones.mjs
   - ../dreamlab-ai-website/scripts/seed/provision-carol-agent.mjs
   - ../dreamlab-ai-website/scripts/seed/provision-junkiejarvis-relay.mjs
@@ -29,23 +27,19 @@ sources:
   - ../dreamlab-ai-website/.gitignore
   - ../dreamlab-ai-website/README.md
   - ../dreamlab-ai-website/forum-config/deploy/search-worker.wrangler.toml
-verified_commit: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80
+verified_commit: 2e358bb6c47dad3130bbfea8a73278cfbea1157c
 ---
 
-## DW-07.2 Root-level seeders — a hardcoded key and a broken import path
+## DW-07.2 Root-level seeders — deleted 2026-10-07 (historical)
 ```mermaid
 flowchart TB
-    KEY["ADMIN_PRIVKEY_HEX, a plaintext secp256k1 private key<br/>hardcoded in source"] --> F1["seed-forum.mjs:20"]
-    KEY --> F2["seed-semantic.mjs:17"]
-    KEY --> F3["assign-cohorts.mjs:17"]
-    IMPORT["imports from an absolute path outside this repo:<br/>/home/devuser/workspace/project2/community-forum/node_modules/..."] --> F1
-    IMPORT --> F2
-    IMPORT --> F3
-    F1 --> RESULT["none of the three can run in a fresh checkout;<br/>the referenced path does not exist in this repo or its siblings"]
+    OLD["scripts/seed-forum.mjs, seed-semantic.mjs, assign-cohorts.mjs<br/>HISTORICAL, absent at HEAD<br/>CLOSEOUT-SECURITY-AUDIT.md:113"] --> KEY["each imported nostr-tools from an absolute path in another project<br/>CLOSEOUT-SECURITY-AUDIT.md:113-114<br/>and embedded a plaintext ADMIN_PRIVKEY_HEX, CLOSEOUT-SECURITY-AUDIT.md:300"]
+    KEY --> GONE["deleted as dead operator code, commit 3baf2fa4, 2026-10-07<br/>key not rotated, remains in history from c0bcece<br/>CLOSEOUT-SECURITY-AUDIT.md:116"]
+    GONE --> LIVE["live seeding is scripts/seed/, key read from ADMIN_PRIVKEY_HEX in the environment<br/>see DW-07.3"]
 ```
-- INVARIANT VIOLATION: `CLAUDE.md`'s own Security Rules state "NEVER hardcode API keys, secrets, or credentials in source files" (`CLAUDE.md` Security Rules section) — these three files do exactly that, unconditionally, not behind a `--dev`/env-gated fallback.
-- Whether the embedded key is still live cannot be determined from this repo alone; it is not one of the pubkeys enumerated in `dreamlab.toml [admin]`/`[[agents]]` (DW-03.3), so it appears to be a standalone test identity rather than the operator's admin key — but a plaintext private key checked into git history is a credential-hygiene defect regardless of scope.
-- Contrast with `scripts/seed/`'s current tier (DW-07.3): every script there reads its signing key from an external `.env` at request time, never embeds one — the two tiers are chronologically distinct generations, not two views of the same thing, and `scripts/seed/` holds **31** files (verified `find scripts/seed -type f | wc -l`), bringing the total provisioning-script count to **34**, not the 37 an earlier audit brief cited.
+- **Drift:** this topic previously described the three root-level seeders as live code (stamp `ebaf16c`); `scripts/seed-forum.mjs`, `scripts/seed-semantic.mjs` and `scripts/assign-cohorts.mjs` were deleted by `3baf2fa4` (2026-10-07, "delete the three dead seed scripts carrying a hard-coded admin key"). Their original line anchors resolve only at `ebaf16c`, so they are no longer cited. The seeding they once did is not relocated one-for-one: live seeding is `scripts/seed/` (`CLOSEOUT-SECURITY-AUDIT.md:116`), and nothing there replaces the semantic-seed or cohort-assignment scripts by name.
+- **Debt:** the plaintext private key stays in git history from `c0bcece`; the owner judges it unused or already replaced, so no rotation followed (`CLOSEOUT-SECURITY-AUDIT.md:116`). Whether it is live cannot be decided from this repo; the `CLAUDE.md` rule against hardcoded credentials was breached for as long as the files existed.
+- Contrast with `scripts/seed/` (DW-07.3): every script there reads its signing key from the environment or an external `.env`, never embeds one. `scripts/seed/` holds **36** tracked files at HEAD (`git ls-files scripts/seed`, the same at `ebaf16c`), correcting the earlier count of 31 and total of 34.
 
 ## DW-07.3 `scripts/seed/` — keys sourced externally, not embedded
 ```mermaid

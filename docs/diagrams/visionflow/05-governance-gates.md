@@ -39,7 +39,7 @@ sources:
   - .github/workflows/adr-index.yml
   - scripts/adr-ratchet.sh
   - tests/gates/estate-health-ci.test.mjs
-verified_commit: 62d16e02fe3bdd5551e4433b2d42552ec93adb12
+verified_commit: da57b49a28974dd9bff5b5358369eef94a439273
 ---
 
 ## VF-05.1 Gate route table — trigger, script, verdict, blocking
@@ -84,7 +84,7 @@ flowchart TB
     WDEPL --> DG2["drift counter, REPORTED when the<br/>pinned agentbox checkout failed<br/>deploy.yml:134"]:::report
 
     MANUAL["operator, by hand — no workflow"] --> SMESH["mesh-smoke-preflight.sh<br/>read-only substrate probe<br/>mesh-smoke-preflight.sh:337"]:::report
-    MANUAL --> SREL["generate-release-manifest.sh<br/>exit 3 without a canonical revision set<br/>generate-release-manifest.sh:233"]:::block
+    MANUAL --> SREL["generate-release-manifest.sh<br/>exit 3 without a canonical revision set<br/>generate-release-manifest.sh:242"]:::block
 
     PR --> WDIAG["diagram-index.yml<br/>paths docs/diagrams/**, diagram-index-gen.cjs,<br/>diagram-index.test.cjs, diagram-index.yml<br/>diagram-index.yml:6"]
     PUSHMAIN --> WDIAG
@@ -100,7 +100,7 @@ flowchart TB
     WDIAG ~~~ WADR["adr-index.yml — triggered by push to main and by pull_request,<br/>paths docs/adr/**,<br/>adr-index-gen.cjs, adr-ratchet.sh, the workflow<br/>adr-index.yml:10 and adr-index.yml:17<br/>three steps: --check at adr-index.yml:44,<br/>adr-ratchet.sh at adr-index.yml:49,<br/>regenerate-and-diff at adr-index.yml:55"]:::tool
     WADR --> VADR["exit 1 on invalid frontmatter, on a stale index,<br/>or when more ADRs were added undecided than left proposed<br/>adr-ratchet.sh:74, until 2026-10-20 — adr-ratchet.sh:36<br/>see VF-01.8"]:::block
 
-    NOTE1["INVARIANT: every count claimed in canon prose has one queryable source;<br/>a second distinct figure for one axis is a failure, not a footnote<br/>BASELINE-visionflow.md:295"]
+    NOTE1["INVARIANT: every count claimed in canon prose has one queryable source;<br/>a second distinct figure for one axis is a failure, not a footnote<br/>BASELINE-visionflow.md:316"]
     NOTE2["DIVERGENCE: mesh-smoke-preflight.sh is wired to NO workflow.<br/>Its output is pasted by hand into mesh-smoke-test.md:84"]
     NOTE3["HISTORICAL SNAPSHOT: compatibility-matrix.md:96 records the July<br/>harness PASS at target 80%, under a heading now explicitly<br/>marked historical and not rerun — compatibility-matrix.md:80.<br/>Current CI passes --target 50: different run configurations,<br/>not a fresh 80% CI result"]
 ```
@@ -180,7 +180,7 @@ flowchart TB
     HOLE["The archived-ADR-002 hole: two sites pointed at a path moved<br/>into docs/archive/, reported file-missing on every run, and that<br/>looked like coverage. Repointed 2026-09-05<br/>allowlist.json:50"]:::fail
     HOLE -.-> FMISS
 
-    DIV["DIVERGENCE: ./README.md:158 renders '7 Ontology MCP Tools' beside<br/>./README.md:165 '12 MCP Ontology Tools'. The sites regex matches only<br/>the second word order, so the adjacency escapes the gate<br/>BASELINE-visionflow.md:229"]
+    DIV["DIVERGENCE: ./README.md:158 renders '7 Ontology MCP Tools' beside<br/>./README.md:165 '12 MCP Ontology Tools'. The sites regex matches only<br/>the second word order, so the adjacency escapes the gate<br/>BASELINE-visionflow.md:250"]
 ```
 
 ## VF-05.4 drift-counter verdict — per-axis states and the fail-open rule
@@ -469,11 +469,12 @@ flowchart TB
     H5 --> H6["a dangling edge cannot evidence coverage<br/>harness-audit.test.sh:116"]
     H6 --> H7["the committed templates still pass<br/>harness-audit.test.sh:126"]
 
-    S3 --> R1["the roster covers every inventoried repository<br/>release-manifest.test.sh:27"]
-    R1 --> R2["every repository declares provenance<br/>release-manifest.test.sh:46"]
-    R2 --> R3["a candidate with no canonical revision set is REFUSED<br/>release-manifest.test.sh:70"]
-    R3 --> R4["an unresolvable canonical revision set is refused<br/>release-manifest.test.sh:89"]
-    R4 --> R5["output validates against the committed schema<br/>release-manifest.test.sh:125"]
+    S3 --> R1["the roster covers every inventoried repository, now sixteen<br/>with ontomark and ontomark-obsidian (release-manifest.test.sh:27, :34-35)"]
+    R1 --> R2["every repository declares provenance<br/>release-manifest.test.sh:62"]
+    R2 --> R3["a candidate with no canonical revision set is REFUSED<br/>release-manifest.test.sh:88"]
+    R3 --> R4["an unresolvable canonical revision set is refused<br/>release-manifest.test.sh:107"]
+    R4 --> R5["output validates against the committed schema<br/>release-manifest.test.sh:143"]
+    R5 --> R6["absent Ontomark producers are recorded, not omitted;<br/>present ones resolve their real HEAD and dirty state<br/>release-manifest.test.sh:166"]
 
     S4 --> W1["a missing required asset fails the build<br/>website-assets.test.sh:61"]
     W1 --> W2["a zero-byte required asset also fails<br/>website-assets.test.sh:77"]

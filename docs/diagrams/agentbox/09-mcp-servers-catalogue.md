@@ -24,11 +24,12 @@ sources:
   - ../project/agentbox/crates/colloquy/colloquy-core/src/cluster.rs
   - ../project/agentbox/services/agentbox-mcp/src/main.rs
   - ../project/agentbox/services/agentbox-mcp/src/hub/mod.rs
+  - ../project/agentbox/services/agentbox-manifest/src/mcp.rs
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/flake.nix
   - ../project/agentbox/docs/adr/ADR-2085-colloquy-knowledge-units-on-the-forum.md
   - ../project/agentbox/docs/adr/ADR-2086-confirmation-weight-follows-authorising-principals.md
-verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
+verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
 ---
 
 ## AB-09.1 Registry ownership classes — what the projector may touch
@@ -131,7 +132,7 @@ sequenceDiagram
     Note over LED: the ledger is deliberately NOT stored inside .mcp.json — that file is read by the Claude Code harness and must carry no agentbox-private keys (project-mcp-servers.mjs:59-61)
     Note over EP,P: boot is NOT blocked — a non-zero exit surfaces as a loud [mcp] FAIL line in the boot log without aborting the entrypoint (:76-79)
     Note over P: DOC-DRIFT — BASELINE "Configuration projection qualification 2026-09-04" says<br/>ADR-2008 is partial because the reconciliation loop cannot remove deleted registry<br/>definitions and unreadable input leaves stale state with exit zero. The ADR-2008<br/>closeout dated 2026-09-05 fixes both as D1 and D3 (project-mcp-servers.mjs:30-49)
-    Note over P: RESOLVED ADR-2039: BASELINE-container.md:250 marks this qualification<br/>resolved with the D1/D3 evidence — ownership-ledger removal<br/>project-mcp-servers.mjs:33-39, non-zero exit on malformed input :46-49, exit codes :71-74
+    Note over P: RESOLVED ADR-2039: BASELINE-container.md:263 marks this qualification<br/>resolved with the D1/D3 evidence — ownership-ledger removal<br/>project-mcp-servers.mjs:33-39, non-zero exit on malformed input :46-49, exit codes :71-74
 ```
 
 ## AB-09.4 The four ADR-2008 closeout defects and their fixes
@@ -215,6 +216,7 @@ sequenceDiagram
     H-->>M: tool result
     Note over S: aci-shell records agentbox_aci_calls_total and agentbox_aci_duration_ms — the server is instrumented like the adapter spine
     Note over H,J: a server whose gate or requires failed at boot is ABSENT from .mcp.json, so the harness never offers its tools rather than offering a dead entry
+    Note over H,J: .mcp.json is found only by walking up from the cwd, so a session started outside WORKSPACE saw none of it, boot therefore also mirrors the final claude-flow entry (RuVector memory) into the user-level ~/.claude/.claude.json via agentbox-manifest mcp-mirror-server (entrypoint-unified.sh:3094-3102, mcp.rs:143), after the hub projection
     Note over M,H: bespoke servers claude-flow, browser-gpu and perplexity reach the harness through hand-written entrypoint blocks, not through this projection
 ```
 
@@ -222,7 +224,7 @@ sequenceDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> Starting
-    Starting --> Waiting : supervisord runs agentbox-mcp hub, flake.nix:3135
+    Starting --> Waiting : supervisord runs agentbox-mcp hub, flake.nix:3239
     Waiting --> Serving : /run/agentbox/mcp-hub.json exists
     Waiting --> Waiting : re-check every 500 ms, log every 15 s
     Waiting --> FailedLoud : 120 s elapsed, hub/mod.rs:259
@@ -248,7 +250,7 @@ stateDiagram-v2
         START. ADR-2063 as amended by ADR-2104.
     end note
     note right of Fatal
-        DEBT: eight servers are hub-routed (agentbox.toml:1329-1332,
+        DEBT: eight servers are hub-routed (agentbox.toml:1498-1501,
         down from nine at ADR-2104) and all refuse connections
         while this program is down, so supervisorctl status
         agentbox-mcp-hub is the first check.

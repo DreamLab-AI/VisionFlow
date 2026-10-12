@@ -13,7 +13,7 @@ sources:
   - ../loom/docs/design/ADR-139-per-request-scaffold-opt-out.md
   - ../loom/docs/design/LOOM-POSITIONING.md
   - ../project/agentbox/skills/email-search/SKILL.md
-verified_commit: {loom: 37a320ce3f15787a1ee10fac0faae043ab1ac12e, agentbox: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12}
+verified_commit: {loom: 37a320ce3f15787a1ee10fac0faae043ab1ac12e, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12}
 ---
 
 ## For developers

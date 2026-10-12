@@ -35,7 +35,7 @@ sources:
   - ../project/agentbox/management-api/lib/llm-marketplace.js
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/management-api/lib/agent-control-surface.js
-verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
+verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
 ---
 
 ## AB-13.1 Nostr topology — relay, gateway, pod bridge, mirror, mesh
@@ -43,11 +43,11 @@ verified_commit: 6466e39313c3eb4ba0cadfc2efd4e7ffa3ccc296
 ```mermaid
 flowchart TB
     subgraph lan["LAN / container boundary"]
-        subgraph relayslot["relay slot [program:nostr-relay] flake.nix:2596-2626"]
+        subgraph relayslot["relay slot [program:nostr-relay] flake.nix:2647-2677"]
             PB["nostr-pod-bridge daemon<br/>services/nostr-pod-bridge/src/main.rs:144 run_daemon<br/>embedded relay port 7777 loopback (podBridgeEnabled=true, default)"]
-            RS["nostr-rs-relay binary<br/>flake.nix:2616 else-branch (podBridgeEnabled=false only)"]
+            RS["nostr-rs-relay binary<br/>flake.nix:2667 else-branch (podBridgeEnabled=false only)"]
         end
-        GW["nostr-gateway daemon<br/>config/nostr-gateway/gateway.cjs:771 connect()<br/>[program:nostr-gateway] flake.nix:2281"]
+        GW["nostr-gateway daemon<br/>config/nostr-gateway/gateway.cjs:771 connect()<br/>[program:nostr-gateway] flake.nix:2332"]
         MGMT["management-api RelayConsumer<br/>management-api/server.js:1410<br/>mcp/nostr-bridge/relay-consumer.js:107 (legacy JS consumer, still wired)"]
         AOE["AoE interaction plane port 9095<br/>gateway.cjs:447-461 aoeRequest()"]
         TAB0["tab0-bridge port 8971<br/>gateway.cjs:118,379 chatTab0()"]
@@ -61,7 +61,7 @@ flowchart TB
     MIRROR["nostr-live-mirror.cjs hook<br/>config/hooks/nostr-live-mirror.cjs:394 main()<br/>fires on 4 hook events, mirrors Stop only by default (AB-13.9)"]
     DIGEST["nostr-pod-bridge session-summary<br/>services/nostr-pod-bridge/src/session_summary.rs:389 run()"]
     ZAI["Z.AI / GLM summariser<br/>session_summary.rs:60 DEFAULT_ZAI_BASE"]
-    FORUM["forum-backup-cron<br/>flake.nix:2922 [program:forum-backup-cron]<br/>supercronic + dreamlab-ai-website/scripts/backup/crontab (OUT OF TREE, editable without rebuild — only the stanza is baked)<br/>PATH pinned to coreutils/grep/findutils/curl/jq/gzip flake.nix:2925<br/>fails loud exit 2 if CLOUDFLARE_API_TOKEN/ACCOUNT_ID absent flake.nix:2919"]
+    FORUM["forum-backup-cron<br/>flake.nix:3026 [program:forum-backup-cron]<br/>supercronic + dreamlab-ai-website/scripts/backup/crontab (OUT OF TREE, editable without rebuild — only the stanza is baked)<br/>PATH pinned to coreutils/grep/findutils/curl/jq/gzip flake.nix:3029<br/>fails loud exit 2 if CLOUDFLARE_API_TOKEN/ACCOUNT_ID absent flake.nix:3023"]
     MESH["peer agentbox relays<br/>agentbox.toml:273-282 [mesh]"]
 
     MIRROR -->|"kind 1059 gift wrap"| CLOUD
@@ -77,7 +77,7 @@ flowchart TB
     FORUM -.->|"Cloudflare API (not Nostr)"| CLOUD
 
 N1["RESOLVED ADR-2065 (2026-09-05): the Rust spawn_consumer is the sole inbox writer when the<br/>pod-bridge daemon runs — RelayConsumer takes writeInbox=false via AGENTBOX_POD_INBOX_WRITER,<br/>projected from the same podBridgeEnabled expression that gates the daemon supervisor block.<br/>The JS consumer is narrowed, not deleted: it still solely implements ACSP governance 31400-31405,<br/>agent-intent 38000+, payments 38200/38201, the outbox publisher and external fanout"]
-    N2["INVARIANT ADR-2012: relay ingress is allowlist-only, no fallback, no auto-add — allowed_pubkeys baked at nix build (relayAllowedPubkeysCsv, flake.nix:1793)"]
+    N2["INVARIANT ADR-2012: relay ingress is allowlist-only, no fallback, no auto-add — allowed_pubkeys baked at nix build (relayAllowedPubkeysCsv, flake.nix:1831)"]
 ```
 
 ## AB-13.2 Relay ingress admission — allowlist gate before store/broadcast/OK
@@ -126,26 +126,26 @@ Note over ADM,REL: DIVERGENCE (ADR-2012 closeout 2026-09-04): this gate closes t
 sequenceDiagram
     autonumber
     participant TOML as agentbox.toml<br/>[sovereign_mesh.relay] agentbox.toml:143-205
-    participant NIX as flake.nix evaluation<br/>flake.nix:1612-1640
-    participant CSV as relayAllowedPubkeysCsv<br/>flake.nix:1793
-    participant TOMLGEN as relayAllowedPubkeysToml<br/>flake.nix:1802-1805
-    participant SUP as supervisord generated text<br/>flake.nix:2596-2626
+    participant NIX as flake.nix evaluation<br/>flake.nix:1643-1671
+    participant CSV as relayAllowedPubkeysCsv<br/>flake.nix:1831
+    participant TOMLGEN as relayAllowedPubkeysToml<br/>flake.nix:1840-1843
+    participant SUP as supervisord generated text<br/>flake.nix:2647-2677
     participant PB as nostr-pod-bridge process<br/>services/nostr-pod-bridge/src/lib.rs:139 BridgeConfig::from_env
 
-    NIX->>NIX: relayEnabled = relayCfg.enabled flake.nix:1612
-    NIX->>NIX: relayLocal = relayEnabled and impl in {nostr-rs-relay, rnostr} flake.nix:1614
-    NIX->>NIX: podBridgeEnabled = relayLocal and relayCfg.pod_bridge flake.nix:1640
+    NIX->>NIX: relayEnabled = relayCfg.enabled flake.nix:1643
+    NIX->>NIX: relayLocal = relayEnabled and impl in {nostr-rs-relay, rnostr} flake.nix:1645
+    NIX->>NIX: podBridgeEnabled = relayLocal and relayCfg.pod_bridge flake.nix:1671
     TOML->>NIX: allowed_pubkeys[] agentbox.toml:156-165, pod_bridge=true agentbox.toml:174
-    NIX->>CSV: relayAllowedPubkeysCsv = concatStringsSep "," allowed_pubkeys flake.nix:1793
+    NIX->>CSV: relayAllowedPubkeysCsv = concatStringsSep "," allowed_pubkeys flake.nix:1831
     alt podBridgeEnabled == true (default: pod_bridge = true)
-        NIX->>SUP: [program:nostr-relay] command=nostr-pod-bridge flake.nix:2604-2613
-        SUP->>PB: env AGENTBOX_ALLOWED_PUBKEYS=relayAllowedPubkeysCsv flake.nix:2608
-        Note over TOMLGEN: relayConfigText / relayAllowedPubkeysToml is generated but UNUSED on this path (flake.nix:1788 "Unused on the pod_bridge path — the bridge is env-configured")
+        NIX->>SUP: [program:nostr-relay] command=nostr-pod-bridge flake.nix:2655-2664
+        SUP->>PB: env AGENTBOX_ALLOWED_PUBKEYS=relayAllowedPubkeysCsv flake.nix:2659
+        Note over TOMLGEN: relayConfigText / relayAllowedPubkeysToml is generated but UNUSED on this path (flake.nix:1826 "Unused on the pod_bridge path — the bridge is env-configured")
         PB->>PB: allowed_pubkeys = env.split(",").filter(nonempty) lib.rs:150-156
     else podBridgeEnabled == false (implementation=nostr-rs-relay, pod_bridge=false)
-        NIX->>TOMLGEN: relayAllowedPubkeysToml — empty array emits explicit pubkey_whitelist = [ ] flake.nix:1802-1805
-        Note over TOMLGEN: comment explains the omission bug — an omitted pubkey_whitelist accepts EVERY author, an explicit empty array is ADR-2012 deny-all (flake.nix:1802-1805)
-        NIX->>SUP: [program:nostr-relay] command=nostr-rs-relay --config /etc/agentbox/nostr-relay.toml flake.nix:2616-2625
+        NIX->>TOMLGEN: relayAllowedPubkeysToml — empty array emits explicit pubkey_whitelist = [ ] flake.nix:1840-1843
+        Note over TOMLGEN: comment explains the omission bug — an omitted pubkey_whitelist accepts EVERY author, an explicit empty array is ADR-2012 deny-all (flake.nix:1840-1843)
+        NIX->>SUP: [program:nostr-relay] command=nostr-rs-relay --config /etc/agentbox/nostr-relay.toml flake.nix:2667-2676
     end
 Note over TOML,PB: no runtime mutation path — no auto-add, no fallback (admission.rs:139-141).<br/>Changing allowed_pubkeys requires ./agentbox.sh rebuild (Nix build-time artefact, ADR-2012<br/>Consequences)
 ```

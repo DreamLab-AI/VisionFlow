@@ -13,6 +13,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/README.md
   - ../dreamlab-ai-website/scripts/lib/config-mirrors.mjs
   - ../dreamlab-ai-website/scripts/check-config-mirrors.mjs
+  - ../dreamlab-ai-website/scripts/__tests__/operator-var-mirrors.test.mjs
   - ../dreamlab-ai-website/.github/workflows/deploy.yml
   - ../dreamlab-ai-website/.github/workflows/workers-deploy.yml
   - ../dreamlab-ai-website/docs/IDENTITY-zones.md
@@ -22,7 +23,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/deploy/search-worker.wrangler.toml
   - ../dreamlab-ai-website/forum-config/deploy/preview-worker.wrangler.toml
   - ../dreamlab-ai-website/forum-config/deploy/migrations/001_init.sql
-verified_commit: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80
+verified_commit: 2e358bb6c47dad3130bbfea8a73278cfbea1157c
 ---
 
 ## DW-03.1 The four-zone model plus the encryption master gate
@@ -40,9 +41,9 @@ flowchart TB
 - INVARIANT (`IDENTITY-zones.md:164-165`): `required_cohorts` must stay dual-accept (zone id + legacy slug) until every legacy slug grant is migrated, or locked-zone members lose access — dropping either arm collapsed legacy members to welcome-only in a 2026-07-20 regression (`dreamlab.toml:116-119` comment).
 - DOC-DRIFT: `IDENTITY-zones.md`'s invariant "only `zone3` is encrypted" (`IDENTITY-zones.md:166-167`) no longer holds — `zone2`/`zone3`/`zone4` all carry `encrypted = true` (`dreamlab.toml:123,137,148`) and `zone4` additionally sets `agent_keys = true` (`dreamlab.toml:149`); the new `[encryption].enabled` gate is the actual global override (`dreamlab.toml:33-37`) and is itself a hand-synced mirror — see DW-03.6 M7.
 - DOC-DRIFT: `README.md` markets locked "Friends, Family, and DreamLab" zones; the config has no `friends` zone — the second zone is `minimoonoir` (`IDENTITY-zones.md:140-142`, `dreamlab.toml:112-115`). The public zone is `zone1` Welcome, not `minimoonoir`; "Public MiniMooNoir landing" in the README is misleading — `minimoonoir` (`zone2`) is `visibility = "locked"` (`IDENTITY-zones.md:144-146`, `dreamlab.toml:107,121`).
-- DOC-DRIFT: `dreamlab_zone_names()` (`branding.rs:41-43`) documents a legacy 3-zone naming scheme (`home`/`members`/`private` displayed as `Lobby`/`DreamLab`/`MiniMooNoir`) predating this four-zone model; its only caller is its own unit test (`branding.rs:66-72`) — not `workers.rs`, `lib.rs`, or any deploy step — so it is dead code describing a superseded scheme.
-- The branding overlay now matches the authored TOML: `dreamlab_branding()` sets `node_name` to `MINIMOONOIR` and `logo_url` to `None` (`branding.rs:18,29`), the values `dreamlab.toml:82,86` author, and a unit test pins the pair so the programmatic mirror cannot diverge again (`branding.rs:56-63`; dream-cycle candidate `5dbf18b`, 2026-10-02). Before it the overlay said `DREAMLAB BBS` and pointed at `/assets/logo.svg`.
-- **Drift:** the deploy env the overlay claims to mirror (`branding.rs:24-25`) still projects the dead asset: `BBS_LOGO_URL` is `https://dreamlab-ai.com/assets/logo.svg` (`deploy.yml:107`) and is injected into the BBS client's `window.__ENV__.LOGO_URL` (`deploy.yml:346`), while `dreamlab.toml:86` records that path as a 404 and the overlay now returns no logo. `BBS_NODE_NAME` (`deploy.yml:103`) does agree.
+- DOC-DRIFT: `dreamlab_zone_names()` (`branding.rs:40-42`) documents a legacy 3-zone naming scheme (`home`/`members`/`private` displayed as `Lobby`/`DreamLab`/`MiniMooNoir`) predating this four-zone model; its only caller is its own unit test (`branding.rs:65-71`) — not `workers.rs`, `lib.rs`, or any deploy step — so it is dead code describing a superseded scheme.
+- The branding overlay matches the authored TOML: `dreamlab_branding()` sets `node_name` to `MINIMOONOIR` and `logo_url` to `/brand/mark.svg` (`branding.rs:17,28`), the values `dreamlab.toml:82,86` author, and a unit test pins the pair so the programmatic mirror cannot diverge again (`branding.rs:54-63`; dream-cycle candidate `5dbf18b`, 2026-10-02). The golden-field mark replaced the earlier state in which the overlay returned `None` because `/assets/logo.svg` was a 404.
+- The earlier **Drift** on the BBS logo is closed: `BBS_LOGO_URL` is now `https://dreamlab-ai.com/brand/mark.svg` (`deploy.yml:114`), injected as `window.__ENV__.LOGO_URL` (`deploy.yml:353`), agreeing with the overlay and TOML in asset though not in form (absolute URL in the deploy env, root-relative path in `dreamlab.toml:86` and `branding.rs:17`); `BBS_NODE_NAME` (`deploy.yml:110`) still agrees.
 
 ## DW-03.3 Admin roster — four trust domains, one unsplit key
 ```mermaid
@@ -91,7 +92,7 @@ stateDiagram-v2
     end note
 ```
 - The four locations the split must move together: `[admin].static_pubkeys` in `dreamlab.toml`, the relay/search worker `ADMIN_PUBKEYS` `[vars]`, and the auth-worker `ADMIN_PUBKEYS` Cloudflare secret (`docs/deployment/admin-key-split-runbook.md`, referenced `dreamlab.toml:54-55`).
-- `deploy.yml:61-66` marks `VITE_ADMIN_PUBKEY` as INTERIM per legacy ADR-041: the operator's current working admin key, already relay-whitelisted so signup DMs deliver with no runbook step; the ADR-040 D3 runbook must re-point it when executed, extending the split to a five-location atomic change (adding the client mirror).
+- `deploy.yml:62-73` marks `VITE_ADMIN_PUBKEY` as INTERIM per legacy ADR-041: the operator's current working admin key, already relay-whitelisted so signup DMs deliver with no runbook step; the ADR-040 D3 runbook must re-point it when executed, extending the split to a five-location atomic change (adding the client mirror).
 
 ## DW-03.5 The hand-synced mirror set (1/2) — admin, jarvis, zone-model
 ```mermaid
@@ -122,18 +123,19 @@ flowchart TB
     T["forum-config/dreamlab.toml<br/>authored source"] --> M4
     subgraph M4["pod-base-url — 4 sites"]
         direction LR
-        P1["[pod].base_url<br/>dreamlab.toml:21"] --- P2["deploy.yml VITE_POD_API_URL<br/>deploy.yml:52"] --- P3["pod wrangler [vars].POD_BASE_URL<br/>pod-worker.wrangler.toml:52"] --- P4["auth wrangler [vars].POD_BASE_URL<br/>auth-worker.wrangler.toml:75"]
+        P1["[pod].base_url<br/>dreamlab.toml:21"] --- P2["deploy.yml VITE_POD_API_URL<br/>deploy.yml:59"] --- P3["pod wrangler [vars].POD_BASE_URL<br/>pod-worker.wrangler.toml:52"] --- P4["auth wrangler [vars].POD_BASE_URL<br/>auth-worker.wrangler.toml:75"]
     end
-    T --> M5["client-admin-pubkey — 2 sites<br/>deploy.yml:66 VITE_ADMIN_PUBKEY must be a MEMBER of<br/>[admin].static_pubkeys, dreamlab.toml:39,41"]
-    T --> M6["relay-url — 2 sites<br/>[relay].url dreamlab.toml:27, deploy.yml:50 VITE_RELAY_URL"]
+    T --> M5["client-admin-pubkey — 2 sites<br/>deploy.yml:73 VITE_ADMIN_PUBKEY must be a MEMBER of<br/>[admin].static_pubkeys, dreamlab.toml:39,41"]
+    T --> M6["relay-url — 2 sites<br/>[relay].url dreamlab.toml:27, deploy.yml:57 VITE_RELAY_URL"]
     T --> M7
     subgraph M7["encryption-enabled — 3 sites (ADR-2016)"]
         direction LR
-        E1["[encryption].enabled<br/>dreamlab.toml:33,37"] --- E2["deploy.yml env.ENCRYPTION_ENABLED<br/>deploy.yml:93"] --- E3["relay wrangler [vars].ENCRYPTION_ENABLED<br/>relay-worker.wrangler.toml:16"]
+        E1["[encryption].enabled<br/>dreamlab.toml:33,37"] --- E2["deploy.yml env.ENCRYPTION_ENABLED<br/>deploy.yml:100"] --- E3["relay wrangler [vars].ENCRYPTION_ENABLED<br/>relay-worker.wrangler.toml:16"]
     end
 ```
 - Seven mirror groups total across DW-03.5/DW-03.6 — this is the actual shape of the brief's "known three-way manual sync anomaly": not three locations but seven independently-tracked governed data points, each with its own site count. `encryption-enabled` is the newest of the enumerated seven, added alongside `[encryption].enabled` (see DW-03.1).
-- **Drift (an eighth, unenumerated mirror):** the poker parameters are now also hand-synced — `dreamlab.toml` `[poker]` is mirrored BY HAND into `deploy.yml` `POKER_CONFIG_JSON` (dreamlab.toml:305-308 comment; deploy.yml:83-89, injected at deploy.yml:274,346). Neither site appears in `config-mirrors.mjs`'s `MIRROR_BEARING_KEYS` (`config-mirrors.mjs:41-47`), so the DW-03.7 completeness sweep cannot see it: a `[poker]` edit that misses the deploy mirror ships stale table parameters silently. The sweep's guarantee ("nothing ELSE governed exists unchecked") holds only for the six keys it enumerates.
+- **Drift (five further datums, bench-enforced only):** `checkOperatorVarMirrors` compares `[webauthn].rp_id`/`expected_origin` with the auth-worker `RP_ID`/`EXPECTED_ORIGIN` and `[mesh].mode`/`peer_relays`/`allowed_remote_dids` with the relay-worker `MESH_*` vars (`config-mirrors.mjs:328-338,400-436`) — hand-synced mirrors the original seven skipped, added 2026-10-11 (PR #59). It is deliberately not folded into `checkConfigMirrors` nor its `MIRROR_BEARING_KEYS` sweep (`config-mirrors.mjs:345-347`), and `check-config-mirrors.mjs` imports and calls only `checkConfigMirrors` (`check-config-mirrors.mjs:15,26`), so the `Config mirror parity` CI step never sees them; they are enforced only by the vitest bench test (`operator-var-mirrors.test.mjs:44`). Not yet compared at all: `[mesh].federated_kinds` and `[nip05]` (`config-mirrors.mjs:348-350`).
+- **Drift (an eighth, unenumerated mirror):** the poker parameters are now also hand-synced — `dreamlab.toml` `[poker]` is mirrored BY HAND into `deploy.yml` `POKER_CONFIG_JSON` (dreamlab.toml:305-308 comment; deploy.yml:90-96, injected at deploy.yml:281,353). Neither site appears in `config-mirrors.mjs`'s `MIRROR_BEARING_KEYS` (`config-mirrors.mjs:41-47`), so the DW-03.7 completeness sweep cannot see it: a `[poker]` edit that misses the deploy mirror ships stale table parameters silently. The sweep's guarantee ("nothing ELSE governed exists unchecked") holds only for the six keys it enumerates.
 
 ## DW-03.7 Completeness sweep — catching an unenumerated mirror
 ```mermaid
@@ -161,8 +163,8 @@ flowchart TB
     CHECK -->|missing| FAIL2["DeployConfigError::MissingSecret"]
     FAIL2 --> DEPLOYSTEP["workers-deploy.yml 'Validate required auth-worker secrets are set'<br/>fails the deploy job, not just a request"]
 ```
-- The `provision-kv` pre-job in `workers-deploy.yml` (line 61) resolves or creates a SINGLE shared `dreamlab-admin-kv` namespace before the per-worker matrix runs, specifically so the auth-worker's `ADMIN_KV` (read/write) and pod-worker's `ADMIN_KV_RO` (read-only) bind the same namespace — a per-worker title would split it and silently drop bans/mutes.
-- `NATIVE_POD_ADMIN_KEY`/`NATIVE_POD_URL` are OPTIONAL secrets (`workers-deploy.yml:299-305`): absent, `/api/native-pod/provision` 503s "native pod not configured" rather than crashing — the deploy step warns but does not block on these two.
+- The `provision-kv` pre-job in `workers-deploy.yml` (`workers-deploy.yml:60`) resolves or creates a SINGLE shared `dreamlab-admin-kv` namespace before the per-worker matrix runs, specifically so the auth-worker's `ADMIN_KV` (read/write) and pod-worker's `ADMIN_KV_RO` (read-only) bind the same namespace — a per-worker title would split it and silently drop bans/mutes.
+- `NATIVE_POD_ADMIN_KEY`/`NATIVE_POD_URL` are OPTIONAL secrets (`workers-deploy.yml:298-304`): absent, `/api/native-pod/provision` 503s "native pod not configured" rather than crashing — the deploy step warns but does not block on these two.
 
 ## DW-03.9 Per-worker wrangler bindings (1/2) — auth-worker and pod-worker
 ```mermaid

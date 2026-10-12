@@ -49,7 +49,7 @@ sources:
   - ../project/agentbox/docs/developer/economy-loop.md
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
   - scripts/estate-health/roster.json
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 20499efc6c5a269cc4dabfcf60c9127b45211033, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12}
+verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12}
 ---
 ## ES-01.1 Substrate map — the VisionClaw checkout's neighbourhood, not the whole estate
 ```mermaid
@@ -228,7 +228,7 @@ flowchart LR
     N1["Every overlay declares the same external network under the<br/>local alias visionclaw, so all sidecars share one bridge."]
     N2["group_add 965 is the docker socket gid — the container drives<br/>docker WITHOUT sudo, which no-new-privileges blocks."]
     D1["RESOLVED ADR-2013 — the voice overlay publishes port 8443 and<br/>port 8444 on 0.0.0.0 while the main compose publishes only port<br/>9096. Both voice doors sit on the CI-enforced SANCTIONED list<br/>(check-ports-loopback.mjs:95-96), beside the port 9096 ingress<br/>(:94) and the browser CDP door (:99) — decided exposures, not a<br/>breach. see ES-10.8"]
-    D3["RESOLVED TENSION — the manifest and the stack now agree that the<br/>voice plane is UP. agentbox.toml:1954-1955 sets [voice] enabled = true<br/>and calls it sidecar state with its own lifecycle; the two doors that<br/>stack publishes are sanctioned in CI (check-ports-loopback.mjs:95-96).<br/>The earlier revision of this node recorded the opposite tension — the<br/>manifest then declared the plane OFF while the doors stayed sanctioned."]
+    D3["RESOLVED TENSION — the manifest and the stack now agree that the<br/>voice plane is UP. agentbox.toml:2141-2142 sets [voice] enabled = true<br/>and calls it sidecar state with its own lifecycle; the two doors that<br/>stack publishes are sanctioned in CI (check-ports-loopback.mjs:95-96).<br/>The earlier revision of this node recorded the opposite tension — the<br/>manifest then declared the plane OFF while the doors stayed sanctioned."]
     D2["TRAP — a build launched from INSIDE this container resolves bind<br/>paths against the HOST filesystem and silently bakes stale code.<br/>Build only from the host shell. see ES-09"]
 
     OV --> N1
@@ -273,15 +273,15 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord program block<br/>agentbox/flake.nix:3134
+    participant SUP as supervisord program block<br/>agentbox/flake.nix:3238
     participant MAIN as Hub subcommand<br/>agentbox/services/agentbox-mcp/src/main.rs:46
     participant WAIT as wait_for_config<br/>agentbox/services/agentbox-mcp/src/hub/mod.rs:252
     participant SERVE as serve<br/>agentbox/services/agentbox-mcp/src/hub/mod.rs:292
-    participant MAN as agentbox.toml resources.mcp_hub<br/>agentbox/agentbox.toml:1325
+    participant MAN as agentbox.toml resources.mcp_hub<br/>agentbox/agentbox.toml:1494
 
-    SUP->>MAIN: agentbox-mcp hub --config /run/agentbox/mcp-hub.json<br/>--bind --wait-config-secs 120, flake.nix:3135
+    SUP->>MAIN: agentbox-mcp hub --config /run/agentbox/mcp-hub.json<br/>--bind --wait-config-secs 120, flake.nix:3239
     MAIN->>SERVE: hand the wait budget over, main.rs:101
-    Note over MAIN: The budget is a CLI argument, default 120 seconds,<br/>main.rs:59-60, and the supervisor block passes 120<br/>explicitly, flake.nix:2725. A BOUNDED wait, not indefinite.
+    Note over MAIN: The budget is a CLI argument, default 120 seconds,<br/>main.rs:59-60, and the supervisor block passes 120<br/>explicitly, flake.nix:2776. A BOUNDED wait, not indefinite.
     SERVE->>WAIT: poll for the projection, hub/mod.rs:297
     loop every 500 ms until the file exists
         WAIT->>WAIT: log progress every 15 s, hub/mod.rs:283-285
@@ -290,36 +290,36 @@ sequenceDiagram
         WAIT-->>SERVE: bail naming the path and asking whether the<br/>bootstrap program is projecting it, hub/mod.rs:275-281
     else the projection is there
         SERVE->>MAN: load the config and read the server list
-        MAN-->>SERVE: eight hub-routed servers, agentbox.toml:1329-1332
+        MAN-->>SERVE: eight hub-routed servers, agentbox.toml:1498-1501
         SERVE->>SERVE: refuse any non-loopback bind, hub/mod.rs:300-301
         SERVE->>SERVE: bind the listener and register each child,<br/>hub/mod.rs:308,305
     end
     Note over SUP,MAN: INVARIANT — the hub is loopback only and refuses to<br/>start on any other bind, hub/mod.rs:300-301 (ADR-2034 §2).
-    Note over SUP,WAIT: RESOLVED ADR-2104 — startsecs=130, flake.nix:3141, is<br/>deliberately LONGER than the 120s wait budget, so a missing<br/>projection is now a FAILED START: autorestart=unexpected and<br/>startretries=2, flake.nix:3140,3142, park the program FATAL<br/>instead of the old autorestart=true + startsecs=2 reading<br/>RUNNING for days over an unbound port, flake.nix:3128-3133.
-    Note over MAN: Eight servers ride the hub (was nine at an earlier<br/>revision), so this one program is the first check when<br/>several MCP servers refuse connections at once,<br/>agentbox.toml:1329-1332. see AB-09
+    Note over SUP,WAIT: RESOLVED ADR-2104 — startsecs=130, flake.nix:3245, is<br/>deliberately LONGER than the 120s wait budget, so a missing<br/>projection is now a FAILED START: autorestart=unexpected and<br/>startretries=2, flake.nix:3215,3142, park the program FATAL<br/>instead of the old autorestart=true + startsecs=2 reading<br/>RUNNING for days over an unbound port, flake.nix:3232-3237.
+    Note over MAN: Eight servers ride the hub (was nine at an earlier<br/>revision), so this one program is the first check when<br/>several MCP servers refuse connections at once,<br/>agentbox.toml:1498-1501. see AB-09
 ```
 
 ## ES-01.8 The four governing documents and the proposed settlement sections they now carry
 ```mermaid
 flowchart TB
     subgraph LIVE["Live compliance surface — unchanged by the settlement pack"]
-        BC["BASELINE-container 0.5.5<br/>agentbox/docs/BASELINE-container.md:4"]
+        BC["BASELINE-container 0.5.6<br/>agentbox/docs/BASELINE-container.md:4"]
         IG["INGRESS-identity 0.2.2<br/>agentbox/docs/INGRESS-identity.md:4"]
-        GC["GOVERNANCE-capabilities 0.6.4<br/>agentbox/docs/GOVERNANCE-capabilities.md:4"]
+        GC["GOVERNANCE-capabilities 0.6.6<br/>agentbox/docs/GOVERNANCE-capabilities.md:4"]
         PR["PROTOCOL-registry, proposed governing surface<br/>agentbox/docs/PROTOCOL-registry.md:3"]
     end
 
     PRD["PROPOSED — PRD-024 sovereign settlement<br/>agentbox/docs/developer/economy-loop.md:249<br/>the chain is the sole value instrument"]
 
-    PRD -->|"sidechain manifest block, sidestr programs,<br/>rust-bitcoin accepted, three proposed invariants<br/>BASELINE-container.md:17"| BC
+    PRD -->|"sidechain manifest block, sidestr programs,<br/>rust-bitcoin accepted, three proposed invariants<br/>BASELINE-container.md:18"| BC
     PRD -->|"three domain-separated keys, kind 38420,<br/>a second Multikey in the DID document<br/>INGRESS-identity.md:11"| IG
-    PRD -->|"every settlement passes payment_settlement,<br/>durable budget, fail-closed, anchor-not-seal<br/>GOVERNANCE-capabilities.md:12"| GC
+    PRD -->|"every settlement passes payment_settlement,<br/>durable budget, fail-closed, anchor-not-seal<br/>GOVERNANCE-capabilities.md:14"| GC
     PRD -.->|"the kind table gains the chain-plane kinds"| PR
 
     RET["RETIRED — Lightning-first is superseded. x402 and l402<br/>classify but stay payable false permanently, and Lightning<br/>may return only as a bridge on-ramp<br/>agentbox/docs/developer/economy-loop.md:143"]
     PRD --> RET
 
-    INV["INVARIANT — every one of these amendments is recorded in a<br/>clearly marked PROPOSED section and the Invariants compliance<br/>surface above it is unchanged. BASELINE-container.md:17,<br/>INGRESS-identity.md:11 and GOVERNANCE-capabilities.md:12 each<br/>say so in their own changelog entry. The proposed sections<br/>are not live; only the interim testnet producer, mirror and<br/>faucet are now supervised under the sidechain gates,<br/>BASELINE-container.md:12,212, with no sidestr-node, bridge<br/>or port 9097 bind."]
+    INV["INVARIANT — every one of these amendments is recorded in a<br/>clearly marked PROPOSED section and the Invariants compliance<br/>surface above it is unchanged. BASELINE-container.md:18,<br/>INGRESS-identity.md:11 and GOVERNANCE-capabilities.md:14 each<br/>say so in their own changelog entry. The proposed sections<br/>are not live; only the interim testnet producer, mirror and<br/>faucet are now supervised under the sidechain gates,<br/>BASELINE-container.md:13,212, with no sidestr-node, bridge<br/>or port 9097 bind."]
     BC --> INV
     IG --> INV
     GC --> INV

@@ -32,7 +32,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/README.md
-verified_commit: 72463fbde35ac4c68539b1f65a08ff03b9941201
+verified_commit: cbb3a8112320caf769b4d0713d3b1057db51d3e1
 ---
 
 ## NF-11.1 The Durable Object and its in-memory state
