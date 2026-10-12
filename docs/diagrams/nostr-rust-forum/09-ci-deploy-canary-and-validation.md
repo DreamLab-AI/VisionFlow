@@ -32,7 +32,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/validate.rs
   - ../nostr-rust-forum/README.md
-verified_commit: 72463fbde35ac4c68539b1f65a08ff03b9941201
+verified_commit: 66ca8d8c0b7d1471503f916c513089846aba27c3
 ---
 
 ## NF-09.1 The CI gate graph
@@ -135,19 +135,19 @@ sequenceDiagram
     OP->>CF: wrangler d1 create nostr-bbs-auth SETUP.md:39
     OP->>CF: wrangler d1 create nostr-bbs-relay SETUP.md:40
     OP->>CF: hand-run the auth schema SQL SETUP.md:47
-    OP->>CF: hand-run the relay events SQL SETUP.md:69 - whitelist is a checked-in migration SETUP.md:83 SETUP.md:89
-    OP->>CF: apply the governance migration SETUP.md:94
-    OP->>CF: create four KV namespaces SETUP.md:104
-    OP->>CF: create two R2 buckets SETUP.md:113
-    OP->>OP: paste resource ids into each wrangler.toml SETUP.md:120
-    OP->>CF: wrangler secret put for the two secrets SETUP.md:130
-    OP->>CF: wrangler deploy, one crate at a time SETUP.md:140
-    OP->>CF: DNS - CNAME or Workers Routes per subdomain SETUP.md:152
-    OP->>OP: FORUM_BASE=/community trunk build --release --public-url /community/ SETUP.md:237
+    OP->>CF: apply the events migration, optional because the relay creates it itself SETUP.md:72 - whitelist is a checked-in migration SETUP.md:80 SETUP.md:86
+    OP->>CF: apply the governance migration SETUP.md:91
+    OP->>CF: create four KV namespaces SETUP.md:101
+    OP->>CF: create two R2 buckets SETUP.md:110
+    OP->>OP: paste resource ids into each wrangler.toml SETUP.md:117
+    OP->>CF: wrangler secret put for the two secrets SETUP.md:127
+    OP->>CF: wrangler deploy, one crate at a time SETUP.md:137
+    OP->>CF: DNS - CNAME or Workers Routes per subdomain SETUP.md:149
+    OP->>OP: FORUM_BASE=/community trunk build --release --public-url /community/ SETUP.md:234
 
     Note over OP: worker-build is pinned to 0.8.4 because 0.8.5 breaks the abort-handler codegen SETUP.md:29
     Note over OP: The client build is where FORUM_BASE is baked in - it is a COMPILE-TIME constant, so a base change is a rebuild, not a config flip. See NF-05.1.
-    Note over CF: DIVERGENCE: steps 4-7 are hand-run SQL, not repo migrations - see NF-08.6
+    Note over CF: DIVERGENCE (narrowed at 66ca8d8): the auth schema at step 6 is still hand-run SQL pasted from the guide, but the relay tables are migration files the relay also creates at startup - see NF-08.6
 ```
 
 ## NF-09.6 End-to-end journeys — against production, not a fixture

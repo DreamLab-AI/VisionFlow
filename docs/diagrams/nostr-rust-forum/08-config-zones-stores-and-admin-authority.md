@@ -22,6 +22,8 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_config.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/whitelist.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0008_whitelist.sql
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0009_events.sql
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/tests/events_schema.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/whitelist_sql.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/admin_shared.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0002_governance.sql
@@ -32,7 +34,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/username.rs
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
-verified_commit: 72463fbde35ac4c68539b1f65a08ff03b9941201
+verified_commit: 66ca8d8c0b7d1471503f916c513089846aba27c3
 ---
 
 ## NF-08.1 forum.toml — the single source of access truth and its projection
@@ -169,59 +171,72 @@ flowchart TB
         A2["mod_reports schema.rs:82<br/>wot_entries schema.rs:103<br/>members schema.rs:116<br/>invitations schema.rs:123"]
         A3["invitation_redemptions schema.rs:136<br/>welcome_messages schema.rs:164<br/>instance_settings schema.rs:182<br/>username_reservations schema.rs:208"]
     end
-    subgraph relayd1["nostr-bbs-relay D1 - bootstrapped by nostr-bbs-relay-worker/src/lib.rs:686"]
-        R0["whitelist lib.rs:695 - WHITELIST_CREATE_SQL from nostr-bbs-core/src/whitelist_sql.rs:42<br/>then the ALTER column list lib.rs:701-714"]
-        R1["channel_zones lib.rs:751<br/>admin_log lib.rs:756<br/>settings lib.rs:767<br/>reports lib.rs:773<br/>hidden_events lib.rs:788<br/>moderation_actions lib.rs:797"]
-        R2["profiles lib.rs:810<br/>agent_registry lib.rs:824<br/>broker_cases lib.rs:834<br/>broker_decisions lib.rs:856"]
-        R3["governance_receipts lib.rs:873<br/>broker_roles lib.rs:891<br/>pubkey_aliases lib.rs:904<br/>case_side_receipts lib.rs:917<br/>case_delegations lib.rs:929<br/>device_keys - created by the AUTH worker nostr-bbs-auth-worker/src/devices.rs:123"]
+    subgraph relayd1["nostr-bbs-relay D1 - bootstrapped by nostr-bbs-relay-worker/src/lib.rs:710"]
+        RE["events lib.rs:721 and channel_creators lib.rs:724 - EVENTS_CREATE_SQL lib.rs:684 and<br/>CHANNEL_CREATORS_CREATE_SQL lib.rs:699, created before every ALTER and index"]
+        R0["whitelist lib.rs:737 - WHITELIST_CREATE_SQL from nostr-bbs-core/src/whitelist_sql.rs:42<br/>then the ALTER column list lib.rs:743-756"]
+        R1["channel_zones lib.rs:793<br/>admin_log lib.rs:798<br/>settings lib.rs:809<br/>reports lib.rs:815<br/>hidden_events lib.rs:830<br/>moderation_actions lib.rs:839"]
+        R2["profiles lib.rs:852<br/>agent_registry lib.rs:866<br/>broker_cases lib.rs:876<br/>broker_decisions lib.rs:898"]
+        R3["governance_receipts lib.rs:915<br/>broker_roles lib.rs:933<br/>pubkey_aliases lib.rs:946<br/>case_side_receipts lib.rs:959<br/>case_delegations lib.rs:971<br/>device_keys - created by the AUTH worker nostr-bbs-auth-worker/src/devices.rs:123"]
     end
 
-    N1["INVARIANT: both bootstraps are idempotent and run on EVERY cold start, so a newly added table exists<br/>before any handler touches it - CREATE TABLE IF NOT EXISTS throughout schema.rs:27 and lib.rs:751"]
+    N1["INVARIANT: both bootstraps are idempotent and run on EVERY cold start, so a newly added table exists<br/>before any handler touches it - CREATE TABLE IF NOT EXISTS throughout schema.rs:27 and lib.rs:793"]
     N2["device_keys is the one cross-worker table: the AUTH worker creates and writes it into the RELAY's D1<br/>so the relay DO can read it at NIP-42 AUTH with no cross-worker call - see NF-02.7"]
-    N3["One table, events, is missing from BOTH bootstraps - see NF-08.6"]
-    N4["INVARIANT: migration 0006 is MIRRORED into ensure_schema, the live schema path, so the<br/>application-receipt and delegation tables exist on a cold start without the migration runner<br/>lib.rs:917 lib.rs:929"]
+    N3["events and channel_creators are created by the relay bootstrap since 66ca8d8, and checked in as migration 0009 - see NF-08.6"]
+    N4["INVARIANT: migration 0006 is MIRRORED into ensure_schema, the live schema path, so the<br/>application-receipt and delegation tables exist on a cold start without the migration runner<br/>lib.rs:959 lib.rs:971"]
 ```
 
 Both workers bootstrap idempotently on every cold start — the auth worker at
-`nostr-bbs-auth-worker/src/schema.rs:19`, the relay at `nostr-bbs-relay-worker/src/lib.rs:686`.
+`nostr-bbs-auth-worker/src/schema.rs:19`, the relay at `nostr-bbs-relay-worker/src/lib.rs:710`.
 
-## NF-08.6 Where the relay's two load-bearing tables come from
+## NF-08.6 Where the relay's load-bearing tables come from
 
 ```mermaid
 flowchart TB
-    SETUP["SETUP.md operator step 1"]
-    EVENTS["events table<br/>SETUP.md:69 - created by wrangler d1 execute"]
+    SETUP["SETUP.md relay step: wrangler d1 execute --file migrations/0009_events.sql<br/>optional, the relay creates the tables itself SETUP.md:72"]
+    MIGE["events and channel_creators, checked in<br/>migrations/0009_events.sql:23 migrations/0009_events.sql:44"]
+    CONSTE["EVENTS_CREATE_SQL nostr-bbs-relay-worker/src/lib.rs:684<br/>CHANNEL_CREATORS_CREATE_SQL nostr-bbs-relay-worker/src/lib.rs:699"]
+    TEST["a test holds the migration and the constants identical<br/>tests/events_schema.rs:66"]
+    ENSE["ensure_schema runs both first on every cold start<br/>nostr-bbs-relay-worker/src/lib.rs:721 nostr-bbs-relay-worker/src/lib.rs:724"]
+    ALT["then ALTER TABLE events ADD COLUMN d_tag and received_at,<br/>for a table made from the older SETUP.md<br/>nostr-bbs-relay-worker/src/lib.rs:728 nostr-bbs-relay-worker/src/lib.rs:729"]
     MIG["whitelist table, checked in<br/>migrations/0008_whitelist.sql:30"]
     CORE["one DDL string, WHITELIST_CREATE_SQL<br/>nostr-bbs-core/src/whitelist_sql.rs:42"]
-    ENS["ensure_schema runs it first on every cold start<br/>nostr-bbs-relay-worker/src/lib.rs:695"]
+    ENS["ensure_schema runs it next, before the whitelist ALTER list<br/>nostr-bbs-relay-worker/src/lib.rs:737"]
     READERS["Read on the hot path<br/>whitelist SELECT nostr-bbs-relay-worker/src/whitelist.rs:135<br/>whitelist cohort grant nostr-bbs-relay-worker/src/whitelist.rs:366<br/>whitelist admin count nostr-bbs-relay-worker/src/whitelist.rs:475"]
-    NOCREATE["No CREATE TABLE for events exists in<br/>relay migrations 0001-0008 or in ensure_schema<br/>nostr-bbs-relay-worker/src/lib.rs:686<br/>Drift (resolved in 66ca8d8, after the verified revision): migration 0009_events.sql and an ensure_schema statement now create events and channel_creators."]
 
-    SETUP --> EVENTS
+    SETUP -.-> MIGE
+    MIGE --> CONSTE
+    TEST -.-> CONSTE
+    CONSTE --> ENSE --> ALT --> ENS
     MIG --> CORE
     CORE --> ENS
     ENS --> READERS
-    NOCREATE -.-> EVENTS
 
-    N1["INVARIANT (ADR-2014 phase 1): the whitelist DDL is one string shared by the migration record and the<br/>live bootstrap, and it precedes the ALTER list so a fresh D1 has a table to alter<br/>nostr-bbs-relay-worker/src/lib.rs:692-697 and migrations/0008_whitelist.sql:14-20"]
-    N2["DIVERGENCE (narrowed): events is still a deployment-time artefact of a SETUP.md copy-paste,<br/>not a repo migration. A deployment that skips SETUP.md:65-80 boots and then fails every event query."]
-    N3["Governance tables are created TWICE - by migration 0002_governance.sql:5,17,39,52 and inline by<br/>the relay bootstrap relay lib.rs:824,834,856,891. Both use IF NOT EXISTS, so this is duplication, not drift.<br/>SETUP.md:98 states the same."]
+    N1["INVARIANT (ADR-2014 phase 1, extended to events at 66ca8d8): each table's DDL is one string shared by the<br/>migration record and the live bootstrap, and each precedes the ALTERs and indexes that touch it, so a<br/>fresh D1 has a table to alter. events first nostr-bbs-relay-worker/src/lib.rs:721, whitelist next<br/>nostr-bbs-relay-worker/src/lib.rs:734-738, with migrations/0008_whitelist.sql:14-20"]
+    N2["Closed at 66ca8d8: no migration created events, and the SETUP.md copy-paste omitted d_tag and received_at,<br/>which save_event inserts on every write, so a deploy that followed the guide failed every save<br/>migrations/0009_events.sql:3-6"]
+    N3["Governance tables are created TWICE - by migration 0002_governance.sql:5,17,39,52 and inline by<br/>the relay bootstrap, agent_registry lib.rs:866, broker_cases lib.rs:876, broker_decisions lib.rs:898,<br/>broker_roles lib.rs:933. Both use IF NOT EXISTS, so this is duplication, not drift.<br/>SETUP.md:95 states the same."]
+    N4["DEBT: the migration cannot repair an existing table - SQLite has no ADD COLUMN IF NOT EXISTS, so the<br/>0009 file adds no column and leaves the two ALTERs to its header comment or to ensure_schema, which<br/>discards their result (let _ =), so a real failure there is silent migrations/0009_events.sql:12-17 nostr-bbs-relay-worker/src/lib.rs:731"]
 ```
 
-**What it shows.** Until 1a26e51 neither `events` nor `whitelist` was created
-by any code in the repository. The whitelist now has a checked-in migration
-(`migrations/0008_whitelist.sql:30`) and the relay bootstrap runs the same
-statement, `WHITELIST_CREATE_SQL` (`nostr-bbs-core/src/whitelist_sql.rs:42`),
-before its column `ALTER`s (`nostr-bbs-relay-worker/src/lib.rs:695`). `events` is still
-created only by the operator's copy-paste from `SETUP.md:69`.
+**What it shows.** Until 66ca8d8 no code in the repository created `events`: the
+bootstrap only indexed it and the operator copied seven columns out of
+`SETUP.md`. The relay now creates `events` and `channel_creators` first in
+`ensure_schema` (`nostr-bbs-relay-worker/src/lib.rs:721`), from constants a
+test holds identical to `migrations/0009_events.sql` (`tests/events_schema.rs:66`),
+and then adds the two missing columns to an older table
+(`nostr-bbs-relay-worker/src/lib.rs:728`). The whitelist follows the same
+shape from 1a26e51 (`migrations/0008_whitelist.sql:30`).
 
-**Why it is this way.** ADR-2014 phase 1 checked the table in because admission
-reads `expires_at`, which no DDL created at all (`migrations/0008_whitelist.sql:5-8`).
+**Why it is this way.** ADR-2014 phase 1 checked the whitelist in because
+admission reads `expires_at`, which no DDL created at all
+(`migrations/0008_whitelist.sql:5-8`); 66ca8d8 applies the same pattern to the
+table every write depends on.
 
-**Debt:** the relay `events` table is still created only by `SETUP.md:69`; no
-migration and no bootstrap creates it (`nostr-bbs-relay-worker/src/lib.rs:686`).
+**Debt:** the migration is not a complete record of a deployed schema, because
+the two column additions are a hand-applied comment in the file
+(`migrations/0009_events.sql:12-17`) and a bootstrap loop that discards its
+result (`nostr-bbs-relay-worker/src/lib.rs:731`).
 
-## NF-08.7 Admin authority — three sources, one union, and where they disagree
+## NF-08.7 Admin authority — three sources, two unions, and where they differ
 
 ```mermaid
 flowchart TB
@@ -230,16 +245,18 @@ flowchart TB
     S2["2. RELAY_DB whitelist.is_admin<br/>nostr-bbs-core/src/admin_shared.rs:72"]
     S3["3. auth DB members.is_admin<br/>nostr-bbs-core/src/admin_shared.rs:76"]
     AUTHIS["auth-worker is_admin - union of all three<br/>nostr-bbs-auth-worker/src/admin.rs:57<br/>static nostr-bbs-auth-worker/src/admin.rs:71<br/>RELAY_DB nostr-bbs-auth-worker/src/admin.rs:76<br/>DB nostr-bbs-auth-worker/src/admin.rs:90"]
-    RELIS["relay-worker query_is_admin<br/>nostr-bbs-relay-worker/src/auth.rs:179<br/>static nostr-bbs-relay-worker/src/auth.rs:183<br/>members nostr-bbs-relay-worker/src/auth.rs:192<br/>whitelist nostr-bbs-relay-worker/src/auth.rs:201"]
+    RELIS["relay-worker query_is_admin<br/>nostr-bbs-relay-worker/src/auth.rs:181<br/>static nostr-bbs-relay-worker/src/auth.rs:185<br/>whitelist nostr-bbs-relay-worker/src/auth.rs:194"]
 
     CANON --> S1 & S2 & S3
     S1 & S2 & S3 --> AUTHIS
-    S1 & S2 & S3 --> RELIS
+    S1 & S2 --> RELIS
 
     N1["INVARIANT: the pubkey is lower-cased before every lookup - a mixed-case NIP-98 pubkey would<br/>otherwise miss every store and be silently denied nostr-bbs-auth-worker/src/admin.rs:62"]
     N2["INVARIANT fail-closed: any D1 error or missing row returns false, never ambient authority<br/>nostr-bbs-auth-worker/src/admin.rs:103"]
-    N3["DIVERGENCE: the relay reads members from its OWN D1 (nostr-bbs-relay) at<br/>nostr-bbs-relay-worker/src/auth.rs:192, but no migration and no bootstrap creates a members table there<br/>(relay lib.rs:686 creates 16 tables, none of them members). That branch is structurally dead;<br/>effective relay authority is ADMIN_PUBKEYS union whitelist.is_admin only.<br/>Drift (resolved in 66ca8d8, after the verified revision): the dead members query was removed from the relay, so the relay now reads the static set and whitelist only."]
-    N4["DOC-DRIFT: ADMIN_PUBKEYS is DECLARED in exactly one wrangler template - the search worker,<br/>nostr-bbs-search-worker/wrangler.toml:33 - yet is read by the auth worker (admin.rs:71) and the relay<br/>(auth.rs:183). The relay template asserts the opposite: there is no ADMIN_PUBKEYS reader in src/<br/>nostr-bbs-relay-worker/wrangler.toml:10-13. SETUP.md:122-126 never lists it either."]
+    N3["CLOSED at 66ca8d8: the relay used to query members in its OWN D1 where no migration or bootstrap creates<br/>that table, so the branch failed on every call and the error was swallowed. The query is removed, and relay<br/>authority is ADMIN_PUBKEYS union whitelist.is_admin only nostr-bbs-relay-worker/src/auth.rs:185 nostr-bbs-relay-worker/src/auth.rs:194"]
+    N3B["DRIFT: the doc comment on query_is_admin still names members - its Task #7 paragraph says the relay<br/>whitelist/members tables may carry no is_admin row, below a paragraph saying the relay no longer queries it<br/>nostr-bbs-relay-worker/src/auth.rs:174 nostr-bbs-relay-worker/src/auth.rs:164"]
+    N3C["INVARIANT: the two workers differ by design - the auth worker unions three sources, the relay two,<br/>because members lives only in the auth D1 nostr-bbs-auth-worker/src/admin.rs:90 nostr-bbs-relay-worker/src/auth.rs:194"]
+    N4["DOC-DRIFT: ADMIN_PUBKEYS is DECLARED in exactly one wrangler template - the search worker,<br/>nostr-bbs-search-worker/wrangler.toml:33 - yet is read by the auth worker (admin.rs:71) and the relay<br/>(auth.rs:185). The relay template asserts the opposite: there is no ADMIN_PUBKEYS reader in src/<br/>nostr-bbs-relay-worker/wrangler.toml:10-13. SETUP.md:119-123 never lists it either."]
     N5["Consequence of N4: a by-the-book deployment has NO static admin bootstrap on relay or auth,<br/>and the search worker ships a REAL non-placeholder pubkey as its default admin<br/>nostr-bbs-search-worker/wrangler.toml:33 - the only non-generic value in any template."]
 ```
 
@@ -249,7 +266,7 @@ flowchart TB
 flowchart LR
     DKA["auth-worker DEVICE_KEYS_ENABLED=false<br/>nostr-bbs-auth-worker/wrangler.toml:55"]
     DKR["relay-worker DEVICE_KEYS_ENABLED=false<br/>nostr-bbs-relay-worker/wrangler.toml:21"]
-    DKC["client window.__ENV__ third setting<br/>SETUP.md:133-136"]
+    DKC["client window.__ENV__ third setting<br/>SETUP.md:130-133"]
     GATEFN["auth gate reads its OWN binding<br/>nostr-bbs-auth-worker/src/devices.rs:100"]
     SHARED["shared parse rule only<br/>nostr-bbs-core feature_gate"]
     AM["AUTH_MODE=nip42 default<br/>nostr-bbs-relay-worker/wrangler.toml:31"]

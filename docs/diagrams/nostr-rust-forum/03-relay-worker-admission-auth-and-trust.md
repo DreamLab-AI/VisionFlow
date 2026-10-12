@@ -10,13 +10,15 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip42.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0009_events.sql
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_config.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
   - ../nostr-rust-forum/README.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml
-verified_commit: 72463fbde35ac4c68539b1f65a08ff03b9941201
+verified_commit: 66ca8d8c0b7d1471503f916c513089846aba27c3
 ---
 
 ## NF-03.1 Worker entry — three doors into the relay
@@ -29,7 +31,7 @@ flowchart TB
     WS["Upgrade: websocket to Durable Object RELAY<br/>nostr-bbs-relay-worker/src/lib.rs:205"]
     N11["Accept application/nostr+json to NIP-11 relay info<br/>nostr-bbs-relay-worker/src/lib.rs:214"]
     RT["route dispatches the HTTP admin/REST route table<br/>nostr-bbs-relay-worker/src/lib.rs:230 lib.rs:263"]
-    CRON["scheduled every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:1021<br/>nostr-bbs-relay-worker/wrangler.toml:98"]
+    CRON["scheduled every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:1066<br/>nostr-bbs-relay-worker/wrangler.toml:98"]
 
     REQ --> F --> BOOT
     BOOT --> WS
@@ -193,13 +195,28 @@ flowchart TB
     K41["kind 41 channel metadata<br/>TL2+ for own, TL3+ for any<br/>nip_handlers.rs:959 nip_handlers.rs:969"]
     K1984["kind 1984 report<br/>TL1+ nip_handlers.rs:983"]
     K5["kind 5 deletion<br/>own always, others TL3+<br/>nip_handlers.rs:994 nip_handlers.rs:996"]
+    IC["TL2 branch only: is_channel_creator<br/>nip_handlers.rs:970 defined nip_handlers.rs:2207"]
+    CC["1. channel_creators row for the channel id<br/>nip_handlers.rs:2219"]
+    FB["2. fallback when no row: the kind-40 event itself<br/>nip_handlers.rs:2220"]
+    ANS["first row found decides: row.pubkey equals the author<br/>nip_handlers.rs:2226"]
+    SAVE["save_event, when a kind 40 was stored<br/>relay_do/storage.rs:159"]
+    INS["INSERT INTO channel_creators, first write wins<br/>relay_do/storage.rs:162 relay_do/storage.rs:163"]
+    DDL["table created by ensure_schema from CHANNEL_CREATORS_CREATE_SQL<br/>nostr-bbs-relay-worker/src/lib.rs:699 lib.rs:724<br/>and by migrations/0009_events.sql:44"]
+    DEL["kind-5 process_deletion removes only the kind-40 events row<br/>nip_handlers.rs:2121"]
 
     ADMIN -->|"admin: skip the whole block"| SKIP["gates bypassed"]
     ADMIN -->|"non-admin"| TL --> K40 & K41 & K1984 & K5
+    K41 --> IC --> CC -->|"no row"| FB
+    CC --> ANS
+    FB --> ANS
+    K40 -.->|"accepted and stored"| SAVE --> INS --> DDL
+    DEL -.->|"leaves untouched"| CC
 
     N1["kind 41 without an e tag is rejected as invalid before the trust check<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:955-956"]
-    N2["ANOMALY O5 re-verified and STILL LIVE: is_channel_creator is looked up from the kind-40 event<br/>nip_handlers.rs:970, so deleting the kind-40 destroys the lookup and locks a TL2 author out of<br/>their own channel's metadata<br/>RESOLVED in nostr-rust-forum 66ca8d8 (after the verified revision): is_channel_creator now reads the persisted channel_creators table."]
+    N2["ANOMALY O5 CLOSED at 66ca8d8: the creator used to be re-read from the kind-40 event, so a kind-5<br/>deletion of it locked a TL2 author out of their own channel. The creator is now persisted at creation in<br/>channel_creators and read first, so the deletion no longer changes the answer<br/>nip_handlers.rs:2219 storage.rs:162"]
     N3["The kind-5 privilege is re-derived after save because trust_level is scoped to this non-admin<br/>block that admins skip entirely nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1266-1269"]
+    N4["DEBT: the creator INSERT result is discarded (let _ =) and the code comment says failures never block<br/>storage, so a channel whose write failed has no row and is still on the deletion-exposed fallback<br/>relay_do/storage.rs:171 nip_handlers.rs:2220. Channels created before the table existed have no row either<br/>and are likewise exposed, nip_handlers.rs:2205-2206"]
+    N5["INVARIANT: the answer comes from the first of the two lookups that returns a row, so once a<br/>channel_creators row exists the kind-40 event is never consulted again<br/>nip_handlers.rs:2226"]
 ```
 
 ## NF-03.8 The trust ladder — promotion, hysteresis, and what is never demoted

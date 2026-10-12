@@ -9,6 +9,7 @@ sources:
   - ../solid-pod-rs/deny.toml
   - ../solid-pod-rs/crates/solid-pod-rs/Cargo.toml
   - ../solid-pod-rs/crates/solid-pod-rs/src/lib.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/src/blocktrail.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/Cargo.toml
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs-forge/Cargo.toml
@@ -25,7 +26,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/examples/webhook_receiver.rs
   - ../solid-pod-rs/crates/solid-pod-rs/examples/wac_admin.rs
   - ../solid-pod-rs/crates/solid-pod-rs/examples/oidc_client.rs
-verified_commit: 93e2200218fad37927df16a1b7784c93c475670d
+verified_commit: d64131b
 ---
 
 ## SP-01.1 Eight workspace members and the library-first split
@@ -73,33 +74,34 @@ classDiagram
     class AlwaysCompiled {
         auth  solid-pod-rs/src/lib.rs:134
         bitcoin_tx  solid-pod-rs/src/lib.rs:139
-        config  solid-pod-rs/src/lib.rs:140
-        error  solid-pod-rs/src/lib.rs:141
-        interop  solid-pod-rs/src/lib.rs:142
-        ldp  solid-pod-rs/src/lib.rs:143
-        mashlib  solid-pod-rs/src/lib.rs:144
-        metrics  solid-pod-rs/src/lib.rs:145
-        mrc20  solid-pod-rs/src/lib.rs:146
-        multitenant  solid-pod-rs/src/lib.rs:147
-        payments  solid-pod-rs/src/lib.rs:148
-        provenance  solid-pod-rs/src/lib.rs:149
-        security  solid-pod-rs/src/lib.rs:150
-        trading  solid-pod-rs/src/lib.rs:151
-        wac  solid-pod-rs/src/lib.rs:152
-        webid  solid-pod-rs/src/lib.rs:153
+        blocktrail  solid-pod-rs/src/lib.rs:140
+        config  solid-pod-rs/src/lib.rs:141
+        error  solid-pod-rs/src/lib.rs:142
+        interop  solid-pod-rs/src/lib.rs:143
+        ldp  solid-pod-rs/src/lib.rs:144
+        mashlib  solid-pod-rs/src/lib.rs:145
+        metrics  solid-pod-rs/src/lib.rs:146
+        mrc20  solid-pod-rs/src/lib.rs:147
+        multitenant  solid-pod-rs/src/lib.rs:148
+        payments  solid-pod-rs/src/lib.rs:149
+        provenance  solid-pod-rs/src/lib.rs:150
+        security  solid-pod-rs/src/lib.rs:151
+        trading  solid-pod-rs/src/lib.rs:152
+        wac  solid-pod-rs/src/lib.rs:153
+        webid  solid-pod-rs/src/lib.rs:154
     }
     class FeatureGated {
-        did_nostr_types  solid-pod-rs/src/lib.rs:164
-        notifications  solid-pod-rs/src/lib.rs:175
-        provision  solid-pod-rs/src/lib.rs:177
-        quota  solid-pod-rs/src/lib.rs:179
-        storage  solid-pod-rs/src/lib.rs:181
-        oidc  solid-pod-rs/src/lib.rs:184
-        export  solid-pod-rs/src/lib.rs:200
-        handlers  solid-pod-rs/src/lib.rs:207
+        did_nostr_types  solid-pod-rs/src/lib.rs:165
+        notifications  solid-pod-rs/src/lib.rs:176
+        provision  solid-pod-rs/src/lib.rs:178
+        quota  solid-pod-rs/src/lib.rs:180
+        storage  solid-pod-rs/src/lib.rs:182
+        oidc  solid-pod-rs/src/lib.rs:185
+        export  solid-pod-rs/src/lib.rs:201
+        handlers  solid-pod-rs/src/lib.rs:208
     }
     AlwaysCompiled <.. FeatureGated
-    note for AlwaysCompiled "The always-compiled half is pure logic plus the crypto and protocol primitives,\nwhich is what makes the core wasm/edge surface in SP-01.4 possible: storage,\nnotifications, provision, quota and oidc — everything that needs I/O or a\nruntime — sit behind a feature."
+    note for AlwaysCompiled "The always-compiled half is pure logic plus the crypto and protocol primitives,\nwhich is what makes the core wasm/edge surface in SP-01.4 possible: storage,\nnotifications, provision, quota and oidc — everything that needs I/O or a\nruntime — sit behind a feature. blocktrail (new in 0.5.0-alpha.12) is always compiled for the shared\nBlocktrail type and TXO URIs, but its walk and per-link verification sit behind mrc20\n(solid-pod-rs/src/blocktrail.rs:896)."
 ```
 
 ## SP-01.4 `core` — the no-IO wasm/edge subset

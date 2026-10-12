@@ -34,7 +34,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/ssrf.rs
   - ../solid-pod-rs/.github/workflows/ci.yml
   - ../solid-pod-rs/scripts/parity-check.sh
-verified_commit: 93e2200218fad37927df16a1b7784c93c475670d
+verified_commit: d64131b
 ---
 
 ## SP-10.1 The seven baseline invariants and where each lives in code
@@ -46,7 +46,7 @@ flowchart TD
     I3["3. Pod-label '..' scrubbing stays ITERATIVE<br/>solid-pod-rs/src/multitenant.rs:184"]
     I4["4. ACL parsing stays SIZE-CAPPED at the parse boundary<br/>solid-pod-rs/src/wac/parser.rs:40"]
     I4b["4b. ONLY an absent policy inherits<br/>solid-pod-rs/src/wac/resolver.rs:153"]
-    I5["5. Provenance never changes a write's HTTP status —<br/>but the failure is no longer swallowed<br/>solid-pod-rs/src/provenance.rs:567"]
+    I5["5. Provenance never changes a write's HTTP status —<br/>but the failure is no longer swallowed<br/>solid-pod-rs/src/provenance.rs:514"]
     I6["6. Discovery metadata must MATCH the crypto path<br/>solid-pod-rs/src/oidc/mod.rs:184"]
     I7["7. A private response is never advertised as publicly cacheable<br/>solid-pod-rs/src/ldp.rs:1915"]
 
@@ -105,9 +105,9 @@ sequenceDiagram
     alt mark succeeded
         P-->>H: stage local-mark-committed
     else mark failed
-        P-->>H: stage resource-stored plus mark_error<br/>solid-pod-rs/src/provenance.rs:642
+        P-->>H: stage resource-stored plus mark_error<br/>solid-pod-rs/src/provenance.rs:589
     else anchor failed
-        P-->>H: the mark stands, anchor_error carried alongside<br/>solid-pod-rs/src/provenance.rs:565
+        P-->>H: the mark stands, anchor_error carried alongside<br/>solid-pod-rs/src/provenance.rs:512
     else sidecar write failed
         P-->>H: stage unchanged, mark_error set<br/>solid-pod-rs-server/src/lib.rs:3632
     end
@@ -176,8 +176,8 @@ flowchart TD
     D4["ADR-2004: provenance is off in a default build<br/>crates/solid-pod-rs-server/Cargo.toml:123"]
     D5["ADR-2005: the edge ACL resolver is out of repo and still treats a failed or<br/>invalid read as a miss<br/>solid-pod-rs/src/wac/resolver.rs:265"]
     D6["ADR-2006: the ReplayStore seam has exactly ONE implementor<br/>solid-pod-rs/src/auth/replay_store.rs:90"]
-    D7["ADR-2007: one mempool URL, no fallback chain, public testnet4 default<br/>solid-pod-rs-server/src/mempool.rs:56"]
-    D8["REC-11: no pod-wide _prov enumeration — point lookup only<br/>solid-pod-rs-server/src/handlers/prov.rs:535"]
+    D7["ADR-2007: one mempool URL, no fallback chain, public testnet4 default<br/>solid-pod-rs-server/src/mempool.rs:60"]
+    D8["REC-11: no pod-wide _prov enumeration — point lookup only<br/>solid-pod-rs-server/src/handlers/prov.rs:546"]
 
     D1 --> LEDGER["the ADR ledger amending the baseline"]
     D2 --> LEDGER
@@ -201,7 +201,7 @@ flowchart LR
     R1["README: 'every write to a pod is a git-mark commit'<br/>— true only with --features git<br/>solid-pod-rs-server/src/lib.rs:3444"]
     R2["README: 'the exit right sits in the floor' — GET /api/exports/all is behind<br/>the default-off export-jsonld feature<br/>crates/solid-pod-rs-server/Cargo.toml:145"]
     R3["ecosystem-integration: 'S3 is configuration/dependency scaffolding only'<br/>— the S3 variant no longer exists in StorageBackendConfig<br/>solid-pod-rs-server/src/main.rs:130"]
-    R4["ecosystem-integration: consumers pin solid-pod-rs 0.4 — the workspace is at<br/>0.5.0-alpha.11<br/>../solid-pod-rs/Cargo.toml:15"]
+    R4["ecosystem-integration: consumers pin solid-pod-rs 0.4 — the workspace is at<br/>0.5.0-alpha.12<br/>../solid-pod-rs/Cargo.toml:15"]
     R5["README: forge 'Phases 0-3 shipped' — Phases 4-7 are feature scaffolds that<br/>compile, not implementations<br/>crates/solid-pod-rs-server/Cargo.toml:156"]
     R6["README: '97.7% strict JSS parity' — computed by a script over a curated<br/>checklist, not by an executable conformance suite<br/>../solid-pod-rs/scripts/parity-check.sh:7"]
 
@@ -355,7 +355,7 @@ flowchart TD
     end
     subgraph LOG["Structured tracing"]
         L1["log_5xx and format_error_chain<br/>solid-pod-rs-server/src/lib.rs:3279"]
-        L2["mempool selection recorded once at startup<br/>solid-pod-rs-server/src/mempool.rs:325"]
+        L2["mempool selection recorded once at startup<br/>solid-pod-rs-server/src/mempool.rs:329"]
         L3["a denied ACL logs the policy path and reason<br/>solid-pod-rs-server/src/lib.rs:1942"]
     end
 

@@ -31,7 +31,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md
   - ../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md
-verified_commit: {nostr-rust-forum: cbb3a8112320caf769b4d0713d3b1057db51d3e1, dreamlab-ai-website: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80}
+verified_commit: {nostr-rust-forum: 66ca8d8c0b7d1471503f916c513089846aba27c3, dreamlab-ai-website: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80}
 ---
 
 ## NF-06.1 The six kinds and their publishers
@@ -96,14 +96,14 @@ sequenceDiagram
     R->>REG: is_registered_agent gate nip_handlers.rs:1037
     R-->>FC: subscription on 31400-31405 nostr-bbs-forum-client/src/app.rs:852
     AG->>R: kind 31402 ActionRequest
-    R->>R: project_action_request into broker_cases nip_handlers.rs:2398
+    R->>R: project_action_request into broker_cases nip_handlers.rs:2407
     FC->>FC: ingest_event into the panel registry nostr-bbs-forum-client/src/app.rs:858
     FC-->>HU: render the decision card
     HU->>FC: approve / reject on the decision card
     FC->>R: kind 31403 ActionResponse nostr-bbs-forum-client/src/pages/governance.rs:919
     R->>R: admin-or-delegated-reviewer gate nip_handlers.rs:1064 via response_admission nip_handlers.rs:234
     R->>R: correlate reads the request id, falling back to the first unmarked e tag nostr-bbs-relay-worker/src/relay_do/receipts.rs:130
-    R->>R: project_action_response nip_handlers.rs:2606
+    R->>R: project_action_response nip_handlers.rs:2615
     R-->>AG: subscription on 31403
 
     Note over R: INVARIANT P1-6+FR6.2: a Decision is a PRIVILEGED act, not a generic member action - kind 31403 from a non-admin, non-delegated-reviewer is blocked outright nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1054-1067
@@ -138,10 +138,10 @@ flowchart TB
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Open: 31402 ActionRequest projected<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2398
-    Open --> Reopened: 31402 carrying an appeal e-tag<br/>project_appeal nip_handlers.rs:3028
+    [*] --> Open: 31402 ActionRequest projected<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2407
+    Open --> Reopened: 31402 carrying an appeal e-tag<br/>project_appeal nip_handlers.rs:3037
     Open --> Decided: 31403 routed through the DecisionOrchestrator<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:523-524
-    Decided --> Superseded: 31403 carrying a supersedes e-tag<br/>project_supersession nip_handlers.rs:2893
+    Decided --> Superseded: 31403 carrying a supersedes e-tag<br/>project_supersession nip_handlers.rs:2902
     Decided --> [*]
 
     note right of Decided
@@ -270,7 +270,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    EVENT["Stored signed response; relay OK still means storage<br/>project_action_response nip_handlers.rs:2606"] --> CORR["Require matching event, case, request, signer and outcome at apply<br/>receipts::correlate receipts.rs:115"]
+    EVENT["Stored signed response; relay OK still means storage<br/>project_action_response nip_handlers.rs:2615"] --> CORR["Require matching event, case, request, signer and outcome at apply<br/>receipts::correlate receipts.rs:115"]
     CORR --> REPLAY["Completed receipt checked before planning against terminal case"]
     REPLAY --> PLAN["Existing case only; reject unknown persisted state"]
     PLAN --> ACCEPT["Record relay-accepted receipt by full event ID"]
@@ -291,7 +291,7 @@ flowchart TB
     TIER["effective_tier - total and pure over four inputs<br/>nostr-bbs-core/src/governance.rs:515"]
     DECL["the agent's own risk_tier is TELEMETRY from here on - it can raise<br/>the tier and never lower it below the properties' floor<br/>nostr-bbs-core/src/governance.rs:508-509"]
     DEF["an entirely unlabelled request folds to the relay's advertised<br/>ESCALATION_DEFAULT_TIER nostr-bbs-core/src/governance.rs:525,<br/>nostr-bbs-relay-worker/wrangler.toml:48"]
-    STORE["stored on broker_cases.effective_tier at projection<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2427,<br/>read back nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2458"]
+    STORE["stored on broker_cases.effective_tier at projection<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2436,<br/>read back nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2467"]
 
     PANEL --> MERGE
     REQUEST --> MERGE
@@ -319,8 +319,8 @@ sequenceDiagram
 
     H->>R: signed kind 31403
     R->>R: extract the case id from the d tag nip_handlers.rs:1055
-    R->>D1: is_reviewer nip_handlers.rs:2501
-    R->>D1: is_delegated_for_case nip_handlers.rs:2525
+    R->>D1: is_reviewer nip_handlers.rs:2510
+    R->>D1: is_delegated_for_case nip_handlers.rs:2534
     R->>AD: is_admin, is_reviewer, delegated for THIS case
     AD-->>R: Admit, BlockedNotAuthorised or BlockedNotDelegated nip_handlers.rs:240 nip_handlers.rs:243 nip_handlers.rs:248
     R->>D1: case_effective_tier nip_handlers.rs:1078
@@ -345,7 +345,7 @@ flowchart TB
     KEY["ENV_CALIBRATION_SELECTION_KEY is a SECRET, never a plaintext var<br/>nostr-bbs-core/src/governance.rs:560, nostr-bbs-relay-worker/wrangler.toml:51-54"]
     RATE["rate declared on the panel, default 0.1<br/>nostr-bbs-core/src/governance.rs:122 nostr-bbs-core/src/governance.rs:368"]
     PROBE["a probe tag is honoured ONLY from the panel's registered probe agent<br/>nostr-bbs-core/src/governance.rs:695, dropped from anyone else<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:360-361"]
-    BLIND["probe blinding: the tag is filtered at the tag-WRITING trigger<br/>nostr-bbs-relay-worker/src/lib.rs:665, mirrored into the live schema path<br/>nostr-bbs-relay-worker/src/lib.rs:942"]
+    BLIND["probe blinding: the tag is filtered at the tag-WRITING trigger<br/>nostr-bbs-relay-worker/src/lib.rs:665, mirrored into the live schema path<br/>nostr-bbs-relay-worker/src/lib.rs:984"]
 
     SUP --> ONLY --> CAL
     KEY --> CAL
@@ -395,7 +395,7 @@ sequenceDiagram
     OG-->>PB: Option i64, only for a PatchProposal level tag
     PB->>DB: stale_after copied onto the case at projection<br/>migrations/0007_ontology_governance.sql:16
 
-    loop scheduled Worker cron nostr-bbs-relay-worker/src/lib.rs:1094
+    loop scheduled Worker cron nostr-bbs-relay-worker/src/lib.rs:1139
         CRON->>DB: SELECT id, stale_after WHERE state='pending' AND stale_after IS NOT NULL<br/>cron.rs:762-765
         CRON->>OG: is_expired(stale_after, now) ontology_governance.rs:265
         CRON->>DB: INSERT case_side_receipts (closed without a decision) cron.rs:794-802
