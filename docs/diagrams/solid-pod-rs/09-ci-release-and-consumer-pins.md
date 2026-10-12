@@ -28,7 +28,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/docs/benchmarks.md
   - ../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
-verified_commit: 93e2200218fad37927df16a1b7784c93c475670d
+verified_commit: d64131b
 ---
 
 ## SP-09.2 The eight CI jobs and the required-check aggregator
@@ -163,43 +163,45 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    WSV["workspace.package.version 0.5.0-alpha.11<br/>../solid-pod-rs/Cargo.toml:15"]
+    WSV["workspace.package.version 0.5.0-alpha.12<br/>../solid-pod-rs/Cargo.toml:15"]
     INH["every crate inherits it — version.workspace = true<br/>crates/solid-pod-rs/Cargo.toml:3"]
-    REL11["0.5.0-alpha.11, 2026-10-02 — the deposit-binding release:<br/>rust-bitcoin anchor validation, the TXO stand-in deleted,<br/>WebLedger receipts; all eight crates re-pinned<br/>../solid-pod-rs/CHANGELOG.md:9"]
-    REL10["0.5.0-alpha.10, 2026-10-01 — the did:nostr parity release,<br/>re-pinned all eight crates<br/>../solid-pod-rs/CHANGELOG.md:161, :169"]
-    REL["0.5.0-alpha.9 re-pins ALL EIGHT crates and yanks the superseded versions<br/>../solid-pod-rs/CHANGELOG.md:233-234"]
-    DRIFT["the drift it fixed: siblings sat at alpha.7 on crates.io while the root<br/>crate moved to alpha.8<br/>../solid-pod-rs/CHANGELOG.md:231-232"]
+    REL12["0.5.0-alpha.12, 2026-10-03 — the whole-trail verification release:<br/>blocktrail module, git-mark anchors, verify_mrc20_anchor walks every link;<br/>all eight crates re-pinned<br/>../solid-pod-rs/CHANGELOG.md:9"]
+    REL11["0.5.0-alpha.11, 2026-10-02 — the deposit-binding release:<br/>rust-bitcoin anchor validation, the TXO stand-in deleted,<br/>WebLedger receipts; all eight crates re-pinned<br/>../solid-pod-rs/CHANGELOG.md:74"]
+    REL10["0.5.0-alpha.10, 2026-10-01 — the did:nostr parity release,<br/>re-pinned all eight crates<br/>../solid-pod-rs/CHANGELOG.md:226, :234"]
+    REL["0.5.0-alpha.9 re-pins ALL EIGHT crates and yanks the superseded versions<br/>../solid-pod-rs/CHANGELOG.md:298-299"]
+    DRIFT["the drift it fixed: siblings sat at alpha.7 on crates.io while the root<br/>crate moved to alpha.8<br/>../solid-pod-rs/CHANGELOG.md:296-297"]
 
-    WSV --> INH --> REL11
+    WSV --> INH --> REL12
+    REL11 --> REL12
     REL10 --> REL11
     REL --> REL10
     DRIFT --> REL
 
-    AB["EXTERNAL: agentbox builds a PINNED solid-pod-rs-server binary through Nix for<br/>the native pod tier — that Nix pin is now v0.5.0-alpha.12 (rev d64131b),<br/>bumped from alpha.9 on the estate-wide upgrade and AHEAD of this topic's<br/>checked-out alpha.11 HEAD. See AB-08, AB-06 and ES-08."]
+    AB["EXTERNAL: agentbox builds a PINNED solid-pod-rs-server binary through Nix for<br/>the native pod tier — that Nix pin is now v0.5.0-alpha.12 (rev d64131b),<br/>bumped from alpha.9 on the estate-wide upgrade and equal to this topic's<br/>verified alpha.12 HEAD. See AB-08, AB-06 and ES-08."]
     VC["EXTERNAL: VisionClaw consumes solid-pod-rs 0.4.0-alpha.15 — the pre-pivot line,<br/>see the Open note below — with the feature set its embedded pod needs<br/>(LDP, WAC, NIP-98, WebID, did:nostr). See VC-26."]
     NF["EXTERNAL: nostr-rust-forum pins solid-pod-rs =0.5.0-alpha.12,<br/>default-features = false, features = core — an EXACT pin, gated on that<br/>version being PUBLISHED to crates.io. See the nostr-rust-forum area."]
     DW["EXTERNAL: dreamlab-ai-website has no direct dependency; it inherits whatever<br/>the forum kit pins. See the dreamlab-ai-website area."]
 
-    REL11 --> AB
-    REL11 --> VC
-    REL11 --> NF
+    REL12 --> AB
+    REL12 --> VC
+    REL12 --> NF
     NF --> DW
 
-    N["The forum's alpha.7 lag is long closed: it moved to alpha.10 for the<br/>full-key Multikey encoder and decoder (../solid-pod-rs/CHANGELOG.md:173-176)<br/>and is now pinned at =0.5.0-alpha.12. Every type intended for the edge tier<br/>compiles under core. A dependency bump alone does not change caller<br/>behaviour — wiring the edge ACL, audience and replay seams is separate work."]
+    N["The forum's alpha.7 lag is long closed: it moved to alpha.10 for the<br/>full-key Multikey encoder and decoder (../solid-pod-rs/CHANGELOG.md:238-241)<br/>and is now pinned at =0.5.0-alpha.12. Every type intended for the edge tier<br/>compiles under core. A dependency bump alone does not change caller<br/>behaviour — wiring the edge ACL, audience and replay seams is separate work."]
     NF -.-> N
-    N2["The source-compatibility notes since alpha.9: ReplayError gained<br/>CapacityExhausted and is non_exhaustive (nip98-replay is not in core, so no<br/>in-estate consumer was affected); alpha.11 makes WebLedger::credit/debit<br/>pub(crate) receipt-only (../solid-pod-rs/CHANGELOG.md:98-101) and restricts the<br/>paying routes to did:nostr<br/>accounts (../solid-pod-rs/CHANGELOG.md:133-137) — the core wasm surface is<br/>untouched. See SP-05.5."]
+    N2["The source-compatibility notes since alpha.9: ReplayError gained<br/>CapacityExhausted and is non_exhaustive (nip98-replay is not in core, so no<br/>in-estate consumer was affected); alpha.11 makes WebLedger::credit/debit<br/>pub(crate) receipt-only (../solid-pod-rs/CHANGELOG.md:163-166) and restricts the<br/>paying routes to did:nostr<br/>accounts (../solid-pod-rs/CHANGELOG.md:198-202) — the core wasm surface is<br/>untouched. See SP-05.5."]
     REL11 -.-> N2
-    N3["A registry-alignment bump like alpha.9 has happened before: alpha.3 was also a<br/>whole-workspace re-publish after a per-crate publish left the siblings on<br/>alpha.1 while the core crate alone moved to alpha.2<br/>(../solid-pod-rs/CHANGELOG.md:514-519, :538). Publishing the workspace as a<br/>set is what the release job's version check (SP-09.6) now enforces."]
+    N3["A registry-alignment bump like alpha.9 has happened before: alpha.3 was also a<br/>whole-workspace re-publish after a per-crate publish left the siblings on<br/>alpha.1 while the core crate alone moved to alpha.2<br/>(../solid-pod-rs/CHANGELOG.md:579-584, :603). Publishing the workspace as a<br/>set is what the release job's version check (SP-09.6) now enforces."]
     REL -.-> N3
-    N4["0.5.0-alpha.6 is absent from CHANGELOG.md — the release line skips from<br/>alpha.5 (../solid-pod-rs/CHANGELOG.md:410) straight to alpha.7<br/>(../solid-pod-rs/CHANGELOG.md:333)."]
+    N4["0.5.0-alpha.6 is absent from CHANGELOG.md — the release line skips from<br/>alpha.5 (../solid-pod-rs/CHANGELOG.md:475) straight to alpha.7<br/>(../solid-pod-rs/CHANGELOG.md:398)."]
     REL -.-> N4
 ```
 - **Open (ADR-2008, proposed):** the record makes closing the host/forum skew an exit criterion rather than a follow-up, with both consumers adopting one post-port version in lockstep (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:76-79). D8 is still listed as not built after the 2026-10-02 port (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:147-148), and nothing states which version the lockstep bump adopts, or who publishes it first.
 - The record no longer contradicts the pins it lists: its D8 text still quotes the forum at `=0.5.0-alpha.7` (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:76-79), but its 2026-10-02 Disposition names those pins as overtaken and restates them as workspace `0.5.0-alpha.10`, forum `=0.5.0-alpha.10`, host `0.4.0-alpha.15` (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:116). agentbox's Nix build — now pinned at `v0.5.0-alpha.12` — is still a version the record does not mention.
-- **Debt (breaking change shipped, consumers not yet moved):** the rust-bitcoin port, the TXO stand-in deletion and the WebLedger receipt rework all shipped in 0.5.0-alpha.11 (../solid-pod-rs/CHANGELOG.md:9). The deletion removes the public `AppState` field and the `--deposit-txo-standin` CLI flag (../solid-pod-rs/CHANGELOG.md:70-71), and `credit`/`debit` are now `pub(crate)` receipt-only (../solid-pod-rs/CHANGELOG.md:98-101), so consumers still pinned at alpha.10 or older do not run the current surface until they re-pin.
+- **Debt (breaking change shipped, consumers not yet moved):** the rust-bitcoin port, the TXO stand-in deletion and the WebLedger receipt rework all shipped in 0.5.0-alpha.11 (../solid-pod-rs/CHANGELOG.md:74). The deletion removes the public `AppState` field and the `--deposit-txo-standin` CLI flag (../solid-pod-rs/CHANGELOG.md:135-136), and `credit`/`debit` are now `pub(crate)` receipt-only (../solid-pod-rs/CHANGELOG.md:163-166), so consumers still pinned at alpha.10 or older do not run the current surface until they re-pin.
 - **Debt (consumer of the deleted route):** agentbox's payments route still proxies `{txo_uri, amount_sats}` to this server's `/pay/.deposit` and will surface the new 501 once its build exercises an alpha.11-or-newer binary (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:151-152).
 - Packaging hygiene since alpha.10: the core crate's manifest excludes `.claude-flow` agent runtime state from the published package (`crates/solid-pod-rs/Cargo.toml:15`, `f5a191e`, 2026-10-01).
-- **Debt (resolved in alpha.11):** removing `credit` and `debit` from the public API was named in the record as the one deliberately breaking change in the estate and a semver-major event for this crate (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:60-66, :86). It has now happened: both are `pub(crate)` receipt-only in 0.5.0-alpha.11 (../solid-pod-rs/CHANGELOG.md:98-101), so the pin matrix above is the surface that absorbed it. D5 remains not built (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:147).
+- **Debt (resolved in alpha.11):** removing `credit` and `debit` from the public API was named in the record as the one deliberately breaking change in the estate and a semver-major event for this crate (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:60-66, :86). It has now happened: both are `pub(crate)` receipt-only in 0.5.0-alpha.11 (../solid-pod-rs/CHANGELOG.md:163-166), so the pin matrix above is the surface that absorbed it. D5 remains not built (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:147).
 
 ## SP-09.9 Repository governance and maintenance automation
 

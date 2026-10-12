@@ -32,7 +32,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/README.md
-verified_commit: cbb3a8112320caf769b4d0713d3b1057db51d3e1
+verified_commit: 66ca8d8c0b7d1471503f916c513089846aba27c3
 ---
 
 ## NF-11.1 The Durable Object and its in-memory state
@@ -112,16 +112,20 @@ flowchart TB
     INS["INSERT INTO events with d_tag and received_at<br/>relay_do/storage.rs:80"]
     D1D["Replaceable: DELETE older rows for (pubkey, kind)<br/>relay_do/storage.rs:100"]
     D2D["Parameterized: DELETE older rows for (pubkey, kind, d_tag)<br/>relay_do/storage.rs:121"]
+    CRE["kind 40 stored: INSERT INTO channel_creators, first write wins<br/>relay_do/storage.rs:159 relay_do/storage.rs:162"]
+    ISCC["is_channel_creator reads that row, else the kind-40 event<br/>relay_do/nip_handlers.rs:2219 relay_do/nip_handlers.rs:2220"]
 
     T --> EPH & REP & PAR & REG
     REP --> SAVE --> INS --> D1D
     PAR --> SAVE
     INS --> D2D
     REG --> SAVE
+    INS --> CRE --> ISCC
 
     N1["The d_tag column is what makes parameterised replacement a single indexed DELETE rather than a scan -<br/>it is written at INSERT time relay_do/storage.rs:80, extracted by relay_do/filter.rs:292"]
     N2["kind-1059 gift wraps are REGULAR events - no replacement semantics - asserted<br/>relay_do/broadcast.rs:434"]
-    N3["query_events serves REQ from the same table relay_do/storage.rs:249; is_whitelisted is the admission<br/>lookup NF-03.4 step 6 calls relay_do/storage.rs:345"]
+    N3["query_events serves REQ from the same table relay_do/storage.rs:268; is_whitelisted is the admission<br/>lookup NF-03.4 step 6 calls relay_do/storage.rs:364"]
+    N4["INVARIANT: the channel creator is recorded in the same save that stores the kind-40, so a later kind-5 deletion of the event<br/>cannot change who may edit the channel relay_do/storage.rs:159. DEBT: the INSERT result is discarded<br/>relay_do/storage.rs:171, so a failed write leaves the lookup on the event row relay_do/nip_handlers.rs:2220"]
 ```
 
 ## NF-11.5 Broadcast — the kind-1059 delivery gate
@@ -171,7 +175,7 @@ flowchart TB
     M -.-> HELP
 
     N1["Semantics are AND across fields, OR within a field - an absent field is UNCONSTRAINED, which is why<br/>a filter naming no kinds requests everything and is still not blocked by the protected-read gate<br/>(asserted relay_do/nip42.rs:360). See NF-03.3."]
-    N2["The SAME predicate serves both directions: query_events replays history relay_do/storage.rs:249 and<br/>broadcast_event tests each live event against every session subscription - see NF-11.5"]
+    N2["The SAME predicate serves both directions: query_events replays history relay_do/storage.rs:268 and<br/>broadcast_event tests each live event against every session subscription - see NF-11.5"]
     N3["d_tag_value is what storage stamps at INSERT so parameterised replacement is an indexed DELETE -<br/>see NF-11.4 N1"]
     N4["Before a filter is even evaluated: a malformed websocket frame is answered with a NOTICE rather than a<br/>socket close - the relay never drops a connection for one bad message relay_do/mod.rs:232-240"]
     N5["Subscriptions that install a filter are capped at MAX_SUBSCRIPTIONS = 20 per session, enforced on REQ<br/>relay_do/nip_handlers.rs:45 relay_do/nip_handlers.rs:1465"]
@@ -303,7 +307,7 @@ flowchart TB
     FLAGS --> OPEN
 
     N1["The relay now serves the APPLICATION stages on the read API, so the human who approved something<br/>can learn whether it actually happened - the loop ADR-2010 left open relay_do/receipts.rs:616-619"]
-    N6["INVARIANT: migration 0006 is mirrored into ensure_schema, the live schema path, so case_side_receipts<br/>and case_delegations exist on a cold start without the migration runner<br/>nostr-bbs-relay-worker/src/lib.rs:917 nostr-bbs-relay-worker/src/lib.rs:929 - see NF-08.5"]
+    N6["INVARIANT: migration 0006 is mirrored into ensure_schema, the live schema path, so case_side_receipts<br/>and case_delegations exist on a cold start without the migration runner<br/>nostr-bbs-relay-worker/src/lib.rs:959 nostr-bbs-relay-worker/src/lib.rs:971 - see NF-08.5"]
     N2["INVARIANT: the projection commit is ATOMIC - decision row, case state and receipt in one batch<br/>relay_do/receipts.rs:301. A receipt that says committed cannot outlive a decision that did not land."]
     N3["DIVERGENCE: the read stays scoped to the relay's existing ADMIN authority because ADR-2010's<br/>history-consumer extension leaves cross-case read authority to ratify relay_do/receipts.rs:635-638"]
     N4["RESOLVED at 341c5d2: the ledger row moved from inactive to staged on a live signed journey - the M4 run's<br/>system-decider 31403 read back projection-failed and applied false on the edge<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:153. A relay receipt still cannot prove external<br/>application - EXTERNAL: see VC-24 and AB-14, estate loop ES-05"]
@@ -362,14 +366,14 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    CRON["scheduled entry<br/>nostr-bbs-relay-worker/src/lib.rs:1022"]
+    CRON["scheduled entry<br/>nostr-bbs-relay-worker/src/lib.rs:1067"]
     BF["backfill_profiles - ONE-SHOT, manual only<br/>nostr-bbs-relay-worker/src/cron.rs:72"]
     CAP["BACKFILL_MAX_ROWS ceiling per run<br/>nostr-bbs-relay-worker/src/cron.rs:49, stop at cron.rs:126"]
     RES["BackfillResult<br/>nostr-bbs-relay-worker/src/cron.rs:159"]
     RET["retention / NIP-40 expiry sweep<br/>nostr-bbs-relay-worker/src/cron.rs:345"]
     AGE["ageing sweep - escalate_stale_cases<br/>nostr-bbs-relay-worker/src/cron.rs:592"]
     SW["trust demotion sweep - moved OUT to trust_sweep<br/>nostr-bbs-relay-worker/src/cron.rs:269"]
-    EXP["ADR-2013: expire_stale_proposals - closes ontology proposals past stale_after<br/>nostr-bbs-relay-worker/src/cron.rs:748, runs AFTER the ageing sweep<br/>nostr-bbs-relay-worker/src/lib.rs:1094"]
+    EXP["ADR-2013: expire_stale_proposals - closes ontology proposals past stale_after<br/>nostr-bbs-relay-worker/src/cron.rs:748, runs AFTER the ageing sweep<br/>nostr-bbs-relay-worker/src/lib.rs:1139"]
 
     CRON --> RET & SW & AGE --> EXP
     BF --> CAP --> RES
@@ -381,7 +385,7 @@ flowchart LR
     N5["INVARIANT: the ageing sweep is ordered and filtered by each case's OWN deadline, not by created_at -<br/>panels declare different deadlines, so oldest first is not most overdue first, and ordering by<br/>created_at made the page ceiling cut the LEAST overdue nostr-bbs-relay-worker/src/cron.rs:603-610,<br/>the SQL at nostr-bbs-relay-worker/src/cron.rs:613"]
     N6["A case exactly AT its deadline has not yet exceeded it nostr-bbs-relay-worker/src/cron.rs:571,<br/>the predicate at nostr-bbs-relay-worker/src/cron.rs:572, asserted nostr-bbs-relay-worker/src/cron.rs:1173"]
     N7["An ageing escalation is a SIDE receipt - it records what happened to a case without advancing it<br/>toward application nostr-bbs-core/src/governance.rs:960 - see NF-11.10"]
-    N8["ADR-2013: a proposal expires when the corpus has moved past its digest - the ontology page it named no<br/>longer describes the same content, so applying a stale decision would silently promote or demote the<br/>WRONG state. Closed WITHOUT a decision, receipted expired rather than left pending forever<br/>nostr-bbs-relay-worker/src/cron.rs:722-747. Runs after ageing so a case that is both overdue and<br/>expired accrues both receipts in the order they became true, per the scheduled-entry comment<br/>nostr-bbs-relay-worker/src/lib.rs:1089-1093"]
+    N8["ADR-2013: a proposal expires when the corpus has moved past its digest - the ontology page it named no<br/>longer describes the same content, so applying a stale decision would silently promote or demote the<br/>WRONG state. Closed WITHOUT a decision, receipted expired rather than left pending forever<br/>nostr-bbs-relay-worker/src/cron.rs:722-747. Runs after ageing so a case that is both overdue and<br/>expired accrues both receipts in the order they became true, per the scheduled-entry comment<br/>nostr-bbs-relay-worker/src/lib.rs:1134-1138"]
     N9["NEW at this commit, the admission twin of the retention sweep: a malformed or past NIP-40 expiration<br/>is REFUSED at admission rather than accepted then swept - expiration_admission<br/>relay_do/filter.rs:277 runs before any side effect relay_do/nip_handlers.rs:813, and the sweep's SQL<br/>skips non-numeric values nostr-bbs-relay-worker/src/cron.rs:419. Closes the mechanism of KF-1, see NF-10.11"]
 ```
 

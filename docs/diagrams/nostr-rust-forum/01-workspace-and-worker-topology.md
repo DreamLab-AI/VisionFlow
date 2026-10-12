@@ -28,7 +28,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-preview-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-search-worker/wrangler.toml
   - ../nostr-rust-forum/.github/workflows/ci.yml
-verified_commit: 72463fbde35ac4c68539b1f65a08ff03b9941201
+verified_commit: 66ca8d8c0b7d1471503f916c513089846aba27c3
 ---
 
 ## NF-01.1 Nineteen crates in four layers
@@ -117,7 +117,7 @@ flowchart TB
     end
     subgraph cronentry["#[event(scheduled)] handlers"]
         AC["auth-worker scheduled<br/>nostr-bbs-auth-worker/src/lib.rs:856"]
-        RC["relay-worker scheduled - every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:1021<br/>trigger nostr-bbs-relay-worker/wrangler.toml:98"]
+        RC["relay-worker scheduled - every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:1066<br/>trigger nostr-bbs-relay-worker/wrangler.toml:98"]
         SC["search-worker cron - every 5 min<br/>nostr-bbs-search-worker/wrangler.toml:36"]
     end
     WSUP["WebSocket upgrade to the Durable Object<br/>nostr-bbs-relay-worker/src/lib.rs:205"]

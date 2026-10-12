@@ -7,6 +7,7 @@ adrs: [ADR-2004, ADR-2007, ADR-2008]
 sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/provenance.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/mrc20.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/src/blocktrail.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/bitcoin_tx.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/payments.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/trading.rs
@@ -20,7 +21,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/conditions.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/api.rs
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
-verified_commit: 93e2200218fad37927df16a1b7784c93c475670d
+verified_commit: d64131b
 ---
 
 ## SP-07.1 The two provenance tiers
@@ -28,18 +29,18 @@ verified_commit: 93e2200218fad37927df16a1b7784c93c475670d
 ```mermaid
 flowchart LR
     W["an LDP write that already succeeded"]
-    GM["git-mark — cheap, ALWAYS attempted<br/>solid-pod-rs/src/provenance.rs:526"]
-    AN["block-trail anchor — expensive, opt-in<br/>solid-pod-rs/src/provenance.rs:535"]
-    SC["PROV-O sidecar at <resource>.prov.ttl<br/>solid-pod-rs/src/provenance.rs:1165"]
-    MK["ProvenanceMark<br/>solid-pod-rs/src/provenance.rs:45"]
+    GM["git-mark — cheap, ALWAYS attempted<br/>solid-pod-rs/src/provenance.rs:473"]
+    AN["block-trail anchor — expensive, opt-in<br/>solid-pod-rs/src/provenance.rs:482"]
+    SC["PROV-O sidecar at <resource>.prov.ttl<br/>solid-pod-rs/src/provenance.rs:1112"]
+    MK["ProvenanceMark<br/>solid-pod-rs/src/provenance.rs:47"]
 
     W --> GM --> MK
     GM --> AN --> MK
     MK --> SC
 
-    N["INVARIANT: the anchored state_hash IS the git commit SHA, so the Bitcoin UTXO<br/>commits to the git history — the two primitives form one chain rather than two<br/>parallel records.<br/>solid-pod-rs/src/provenance.rs:537"]
+    N["INVARIANT: the anchored state_hash IS the git commit SHA, so the Bitcoin UTXO<br/>commits to the git history — the two primitives form one chain rather than two<br/>parallel records.<br/>solid-pod-rs/src/provenance.rs:484"]
     AN -.-> N
-    N2["GitMark (solid-pod-rs/src/provenance.rs:62) and BlockTrailAnchor<br/>(solid-pod-rs/src/provenance.rs:158) are the two tier records;<br/>GitMarkEnvelope (:92) and BlocktrailEnvelope (:217) are their wire forms."]
+    N2["GitMark (solid-pod-rs/src/provenance.rs:64) and BlockTrailAnchor<br/>(solid-pod-rs/src/provenance.rs:166) are the two tier records;<br/>GitMarkEnvelope (:94) and BlocktrailEnvelope (:209, since alpha.12 an alias of blocktrail::Blocktrail<br/>re-exported at :199) are their wire forms."]
     MK -.-> N2
 ```
 
@@ -49,15 +50,15 @@ flowchart LR
 flowchart TD
     IN["git_mark_write(state, resource_path, agent, message)<br/>solid-pod-rs-server/src/lib.rs:3444"]
     SIDE{"path ends .acl, .meta or .prov.ttl?<br/>solid-pod-rs-server/src/lib.rs:3455"}
-    S1["Skipped: ExcludedPath<br/>solid-pod-rs/src/provenance.rs:688"]
+    S1["Skipped: ExcludedPath<br/>solid-pod-rs/src/provenance.rs:635"]
     CONT{"path ends with a slash?<br/>solid-pod-rs-server/src/lib.rs:3462"}
-    S2["Skipped: Container<br/>solid-pod-rs/src/provenance.rs:690"]
+    S2["Skipped: Container<br/>solid-pod-rs/src/provenance.rs:637"]
     ROOT{"data_root configured?<br/>solid-pod-rs-server/src/lib.rs:3467"}
-    S3["Skipped: NotConfigured<br/>solid-pod-rs/src/provenance.rs:682"]
+    S3["Skipped: NotConfigured<br/>solid-pod-rs/src/provenance.rs:629"]
     SPLIT{"path splits into pod plus rest?<br/>solid-pod-rs-server/src/lib.rs:3473"}
-    S4["Skipped: UnresolvablePath<br/>solid-pod-rs/src/provenance.rs:692"]
+    S4["Skipped: UnresolvablePath<br/>solid-pod-rs/src/provenance.rs:639"]
     GITD{"data_root/{pod}/.git is a directory?<br/>solid-pod-rs-server/src/lib.rs:3484"}
-    S5["Skipped: NotGitBacked<br/>solid-pod-rs/src/provenance.rs:685"]
+    S5["Skipped: NotGitBacked<br/>solid-pod-rs/src/provenance.rs:632"]
     GO["proceed to policy resolution — SP-07.3"]
 
     IN --> SIDE
@@ -74,7 +75,7 @@ flowchart TD
 
     N["INVARIANT: marking a .prov.ttl would RECURSE, and ACL/meta writes are<br/>control-plane traffic, not content — both are excluded by construction."]
     S1 -.-> N
-    N2["A skip is not a fault. ProvenanceSkip exists precisely so a correctly<br/>unmarked write is never reported as a provenance failure.<br/>solid-pod-rs/src/provenance.rs:677"]
+    N2["A skip is not a fault. ProvenanceSkip exists precisely so a correctly<br/>unmarked write is never reported as a provenance failure.<br/>solid-pod-rs/src/provenance.rs:624"]
     S5 -.-> N2
     N3["DIVERGENCE (ADR-2004): with the server's empty default feature set this whole<br/>function is the no-op shim (solid-pod-rs-server/src/lib.rs:3650), so a default<br/>build records ZERO marks. Every provenance claim carries a --features git caveat."]
     IN -.-> N3
@@ -87,13 +88,15 @@ flowchart TD
     ACL["the resource's effective ACL"]
     COND["acl:ProvenanceAnchor condition<br/>solid-pod-rs/src/wac/conditions.rs:61"]
     MODE["anchor_mode_of -> AnchorMode<br/>solid-pod-rs/src/wac/anchor.rs:119"]
-    RES["resolve_anchor_policy<br/>solid-pod-rs-server/src/handlers/prov.rs:82"]
-    NEVER["AnchorPolicy::Never — the default for an ordinary write<br/>solid-pod-rs/src/provenance.rs:376"]
-    ALWAYS["AnchorPolicy::Always<br/>solid-pod-rs/src/provenance.rs:378"]
-    HV["AnchorPolicy::HighValue<br/>solid-pod-rs/src/provenance.rs:381"]
-    EP["AnchorPolicy::Epoch<br/>solid-pod-rs/src/provenance.rs:384"]
-    INLINE["anchors_inline(high_value)<br/>solid-pod-rs/src/provenance.rs:396"]
-    BLD["build_anchorer — only when the policy is not Never<br/>solid-pod-rs-server/src/handlers/prov.rs:120"]
+    RES["resolve_anchor_policy<br/>solid-pod-rs-server/src/handlers/prov.rs:83"]
+    NEVER["AnchorPolicy::Never — the default for an ordinary write<br/>solid-pod-rs/src/provenance.rs:323"]
+    ALWAYS["AnchorPolicy::Always<br/>solid-pod-rs/src/provenance.rs:325"]
+    HV["AnchorPolicy::HighValue<br/>solid-pod-rs/src/provenance.rs:328"]
+    EP["AnchorPolicy::Epoch<br/>solid-pod-rs/src/provenance.rs:331"]
+    INLINE["anchors_inline(high_value)<br/>solid-pod-rs/src/provenance.rs:343"]
+    BLD["build_anchorer — only when the policy is not Never<br/>solid-pod-rs-server/src/handlers/prov.rs:124<br/>called from solid-pod-rs-server/src/lib.rs:3507"]
+    BMR["an MRC20 trail already issued under the name (needs the pay-token):<br/>MempoolBlockAnchorer<br/>solid-pod-rs-server/src/handlers/prov.rs:143"]
+    BGM["otherwise a started git-mark trail: GitmarkAnchorer, else None<br/>solid-pod-rs-server/src/handlers/prov.rs:153"]
 
     ACL --> COND --> MODE --> RES
     RES --> NEVER
@@ -105,29 +108,37 @@ flowchart TD
     HV --> INLINE
     EP --> INLINE
     RES --> BLD
+    BLD --> BMR
+    BLD --> BGM
 
-    N["Never and Epoch never anchor INLINE — Epoch defers to the accumulator.<br/>Always is unconditional; HighValue is inline only when the resource is flagged.<br/>solid-pod-rs/src/provenance.rs:398"]
+    N["Never and Epoch never anchor INLINE — Epoch defers to the accumulator.<br/>Always is unconditional; HighValue is inline only when the resource is flagged.<br/>solid-pod-rs/src/provenance.rs:345"]
     INLINE -.-> N
     N2["The handler rewrites Epoch to Never before calling record, then batches the SHA<br/>itself, so record's inline path only ever sees Never, Always or HighValue.<br/>solid-pod-rs-server/src/lib.rs:3527"]
     EP -.-> N2
+    N3["The trail is named by the request ticker, else the pay-token ticker, else the default<br/>name prov (solid-pod-rs-server/src/trail_store.rs:128). Since alpha.12 a pod with<br/>no pay-token can anchor, provided a git-mark trail of that name has been started."]
+    BLD -.-> N3
+    N4["DRIFT: the _prov/anchor handler still answers 'no pay-token / trail not minted'<br/>and comments that the pod 'must have a minted trail'<br/>(solid-pod-rs-server/src/handlers/prov.rs:383), but build_anchorer no longer<br/>requires a pay-token (:128). The message misdirects an operator whose pod has<br/>neither trail kind started."]
+    BGM -.-> N4
+    N5["OPEN: nothing outside the tests calls GitmarkAnchorer::genesis<br/>(solid-pod-rs-server/src/mempool.rs:943), and no route, CLI verb or boot step<br/>writes a git-mark trail file (solid-pod-rs-server/src/trail_store.rs:191). A new pod<br/>therefore has no way to reach the git-mark branch above from this repository."]
+    BGM -.-> N5
 ```
 
 ## SP-07.4 record_receipt — typed, per-tier outcomes (ADR-2004)
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Attempt: record_receipt(WriteRecord)<br/>solid-pod-rs/src/provenance.rs:569
-    Attempt --> MarkFailed: marker.mark_write returned an error<br/>solid-pod-rs/src/provenance.rs:579
+    [*] --> Attempt: record_receipt(WriteRecord)<br/>solid-pod-rs/src/provenance.rs:516
+    Attempt --> MarkFailed: marker.mark_write returned an error<br/>solid-pod-rs/src/provenance.rs:526
     Attempt --> Marked: a commit SHA exists
 
-    MarkFailed --> ResourceStored: stage resource-stored plus mark_error<br/>solid-pod-rs/src/provenance.rs:642
+    MarkFailed --> ResourceStored: stage resource-stored plus mark_error<br/>solid-pod-rs/src/provenance.rs:589
     Marked --> NoAnchor: policy did not want one
     Marked --> AnchorTried: policy wanted one
 
-    NoAnchor --> LocalMarkCommitted: stage local-mark-committed<br/>solid-pod-rs/src/provenance.rs:645
+    NoAnchor --> LocalMarkCommitted: stage local-mark-committed<br/>solid-pod-rs/src/provenance.rs:592
     AnchorTried --> AnchorFailed: anchor_error recorded, the MARK STANDS
-    AnchorTried --> Submitted: stage anchor-submitted<br/>solid-pod-rs/src/provenance.rs:648
-    Submitted --> Confirmed: stage anchor-confirmed<br/>solid-pod-rs/src/provenance.rs:651
+    AnchorTried --> Submitted: stage anchor-submitted<br/>solid-pod-rs/src/provenance.rs:595
+    Submitted --> Confirmed: stage anchor-confirmed<br/>solid-pod-rs/src/provenance.rs:598
     AnchorFailed --> LocalMarkCommitted
 
     ResourceStored --> [*]
@@ -140,11 +151,11 @@ stateDiagram-v2
       swallowed into a warn! line. Silently discarding it would make a stored write
       and a stored-and-provably-marked write indistinguishable to the caller.
       record_receipt never returns an error at all
-      (solid-pod-rs/src/provenance.rs:567).
+      (solid-pod-rs/src/provenance.rs:514).
     end note
     note right of AnchorFailed
       A failed anchor never suppresses a successful git-mark
-      (solid-pod-rs/src/provenance.rs:565), and the server logs it separately
+      (solid-pod-rs/src/provenance.rs:512), and the server logs it separately
       (solid-pod-rs-server/src/lib.rs:3568).
     end note
 ```
@@ -156,36 +167,36 @@ sequenceDiagram
     autonumber
     participant H as LDP write handler
     participant G as git_mark_write<br/>solid-pod-rs-server/src/lib.rs:3444
-    participant R as ProvenanceReceipt<br/>solid-pod-rs/src/provenance.rs:726
+    participant R as ProvenanceReceipt<br/>solid-pod-rs/src/provenance.rs:673
     participant S as Storage
     participant C as Client
 
     H->>G: mark the write
     G->>R: record_receipt then restore the full pod-relative path<br/>solid-pod-rs-server/src/lib.rs:3553
     opt policy is Epoch
-        G->>G: epoch_push_and_maybe_anchor — one tx notarises many commits<br/>solid-pod-rs-server/src/handlers/prov.rs:177
+        G->>G: epoch_push_and_maybe_anchor — one tx notarises many commits<br/>solid-pod-rs-server/src/handlers/prov.rs:188
     end
     G->>S: write <resource>.prov.ttl<br/>solid-pod-rs-server/src/lib.rs:3618
     alt sidecar write failed
         G->>R: mark_error set, stage stays local-mark-committed<br/>solid-pod-rs-server/src/lib.rs:3632
     end
     G-->>H: receipt
-    H->>C: X-Provenance = receipt.summary()<br/>solid-pod-rs/src/provenance.rs:806
-    H->>C: X-Provenance-Commit = receipt.commit_sha()<br/>solid-pod-rs/src/provenance.rs:796
+    H->>C: X-Provenance = receipt.summary()<br/>solid-pod-rs/src/provenance.rs:753
+    H->>C: X-Provenance-Commit = receipt.commit_sha()<br/>solid-pod-rs/src/provenance.rs:743
     Note over G: The sidecar write also fires the FS-watch StorageEvent the Updates-via<br/>notification stream relays, so subscribers see the new mark. It ends in<br/>.prov.ttl, so the skip guard in SP-07.2 stops the recursion.
-    Note over H: header_safe (solid-pod-rs/src/provenance.rs:827) sanitises the summary before<br/>it becomes a header value.
+    Note over H: header_safe (solid-pod-rs/src/provenance.rs:774) sanitises the summary before<br/>it becomes a header value.
 ```
 
 ## SP-07.6 The `_prov` query surface
 
 ```mermaid
 flowchart LR
-    R1["GET /{pod}/_prov/{commit_sha} -> handle_resolve<br/>solid-pod-rs-server/src/handlers/prov.rs:223"]
-    R2["POST /{pod}/_prov/anchor -> handle_anchor<br/>solid-pod-rs-server/src/handlers/prov.rs:316"]
-    REG["handlers::prov::register<br/>solid-pod-rs-server/src/handlers/prov.rs:529"]
+    R1["GET /{pod}/_prov/{commit_sha} -> handle_resolve<br/>solid-pod-rs-server/src/handlers/prov.rs:234"]
+    R2["POST /{pod}/_prov/anchor -> handle_anchor<br/>solid-pod-rs-server/src/handlers/prov.rs:327"]
+    REG["handlers::prov::register<br/>solid-pod-rs-server/src/handlers/prov.rs:540"]
     RC["resolve_commit against the pod repo<br/>solid-pod-rs-git/src/api.rs:374"]
-    PRICE["anchor_price_sats<br/>solid-pod-rs-server/src/handlers/prov.rs:460"]
-    DEB["debit then refund on failure<br/>solid-pod-rs-server/src/handlers/prov.rs:478"]
+    PRICE["anchor_price_sats<br/>solid-pod-rs-server/src/handlers/prov.rs:471"]
+    DEB["debit then refund on failure<br/>solid-pod-rs-server/src/handlers/prov.rs:489"]
     SIDE["the .prov.ttl sidecar GET is an ORDINARY LDP read"]
 
     REG --> R1 --> RC
@@ -194,9 +205,9 @@ flowchart LR
 
     N["DIVERGENCE (baseline open item REC-11): the provenance query surface is<br/>POINT-LOOKUP only — one commit SHA, or a per-resource sidecar. There is no<br/>pod-wide _prov enumeration, so 'one queryable trace over a whole pod' is not<br/>delivered by this repo."]
     R1 -.-> N
-    N2["The explicit git-mark to Bitcoin-anchor upgrade is payment-gated and refunds on<br/>failure — refund (solid-pod-rs-server/src/handlers/prov.rs:508) is the<br/>compensating half of debit."]
+    N2["The explicit git-mark to Bitcoin-anchor upgrade is payment-gated and refunds on<br/>failure — refund (solid-pod-rs-server/src/handlers/prov.rs:519) is the<br/>compensating half of debit."]
     DEB -.-> N2
-    N3["is_sidecar (solid-pod-rs-server/src/handlers/prov.rs:454) keeps the anchor<br/>endpoint off control-plane paths."]
+    N3["is_sidecar (solid-pod-rs-server/src/handlers/prov.rs:465) keeps the anchor<br/>endpoint off control-plane paths."]
     R2 -.-> N3
 ```
 
@@ -206,69 +217,76 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant G as git_mark_write
-    participant L as load_epoch_commits<br/>solid-pod-rs-server/src/handlers/prov.rs:148
-    participant A as EpochAccumulator<br/>solid-pod-rs/src/provenance.rs:937
-    participant M as merkle_root<br/>solid-pod-rs/src/provenance.rs:878
+    participant L as load_epoch_commits<br/>solid-pod-rs-server/src/handlers/prov.rs:159
+    participant A as EpochAccumulator<br/>solid-pod-rs/src/provenance.rs:884
+    participant M as merkle_root<br/>solid-pod-rs/src/provenance.rs:825
     participant AN as BlockAnchorer
-    participant S as save_epoch_commits<br/>solid-pod-rs-server/src/handlers/prov.rs:156
+    participant S as save_epoch_commits<br/>solid-pod-rs-server/src/handlers/prov.rs:167
 
     G->>L: read the pod's current epoch commit list
-    G->>A: push the fresh commit SHA<br/>solid-pod-rs/src/provenance.rs:967
+    G->>A: push the fresh commit SHA<br/>solid-pod-rs/src/provenance.rs:914
     alt the epoch is below JSS_PROV_EPOCH_SIZE
-        A-->>S: persist and stop<br/>solid-pod-rs-server/src/handlers/prov.rs:49
+        A-->>S: persist and stop<br/>solid-pod-rs-server/src/handlers/prov.rs:50
     else the epoch fills
-        A->>M: merkle_leaf per commit, then the root<br/>solid-pod-rs/src/provenance.rs:906
+        A->>M: merkle_leaf per commit, then the root<br/>solid-pod-rs/src/provenance.rs:853
         M->>AN: anchor the ROOT once
-        AN-->>A: ClosedEpoch<br/>solid-pod-rs/src/provenance.rs:948
+        AN-->>A: ClosedEpoch<br/>solid-pod-rs/src/provenance.rs:895
         A->>S: reset the accumulator
     end
     Note over AN: A failed batch anchor is swallowed — it never fails the write nor the<br/>git-mark (solid-pod-rs-server/src/lib.rs:3626).
-    Note over M: MerkleProof (solid-pod-rs/src/provenance.rs:914) lets one commit prove its<br/>membership in the anchored root without revealing the rest of the epoch.<br/>merkle_root is deterministic and order-sensitive<br/>(solid-pod-rs/src/provenance.rs:1757).
+    Note over M: MerkleProof (solid-pod-rs/src/provenance.rs:861) lets one commit prove its<br/>membership in the anchored root without revealing the rest of the epoch.<br/>merkle_root is deterministic and order-sensitive<br/>(solid-pod-rs/src/provenance.rs:1745).
 ```
 
 ## SP-07.9 MRC20 state chain and Bitcoin anchoring
 
 ```mermaid
 flowchart TD
-    JCS["jcs — RFC 8785 canonical JSON<br/>solid-pod-rs/src/mrc20.rs:43"]
-    SHA["sha256_hex over the canonical form<br/>solid-pod-rs/src/mrc20.rs:77"]
-    ST["Mrc20State<br/>solid-pod-rs/src/mrc20.rs:115"]
-    VAL["validate_mrc20_state<br/>solid-pod-rs/src/mrc20.rs:199"]
-    LNK["verify_state_link — prev-state hash chaining<br/>solid-pod-rs/src/mrc20.rs:216"]
-    TR["Mrc20Trail<br/>solid-pod-rs/src/mrc20.rs:162"]
-    DEP["verify_mrc20_deposit<br/>solid-pod-rs/src/mrc20.rs:261"]
-    KEY["bt_derive_chained_pubkey / privkey<br/>solid-pod-rs/src/mrc20.rs:546"]
-    ADDR["bt_address — bech32m taproot<br/>solid-pod-rs/src/mrc20.rs:747"]
-    VER["verify_mrc20_anchor — state chain plus a live<br/>mempool UTXO read via MempoolLookup<br/>solid-pod-rs/src/mrc20.rs:882"]
-    ML["MempoolLookup trait<br/>solid-pod-rs/src/mrc20.rs:357"]
+    JCS["jcs — RFC 8785 canonical JSON<br/>solid-pod-rs/src/mrc20.rs:44"]
+    SHA["sha256_hex over the canonical form<br/>solid-pod-rs/src/mrc20.rs:78"]
+    ST["Mrc20State<br/>solid-pod-rs/src/mrc20.rs:116"]
+    VAL["validate_mrc20_state<br/>solid-pod-rs/src/mrc20.rs:200"]
+    LNK["verify_state_link — prev-state hash chaining<br/>solid-pod-rs/src/mrc20.rs:217"]
+    TR["Mrc20Trail<br/>solid-pod-rs/src/mrc20.rs:163"]
+    DEP["verify_mrc20_deposit<br/>solid-pod-rs/src/mrc20.rs:262"]
+    KEY["bt_derive_chained_pubkey / privkey<br/>solid-pod-rs/src/mrc20.rs:561"]
+    ADDR["bt_address — bech32m taproot<br/>solid-pod-rs/src/mrc20.rs:766"]
+    VER["verify_mrc20_anchor — state chain, a head UTXO read via MempoolLookup,<br/>then a walk of every earlier mark<br/>solid-pod-rs/src/mrc20.rs:1004"]
+    WALK["verify_anchor_chain — back from the head outpoint to genesis<br/>solid-pod-rs/src/blocktrail.rs:1068"]
+    ML["MempoolLookup trait<br/>solid-pod-rs/src/mrc20.rs:372"]
 
     JCS --> SHA --> ST --> VAL --> LNK --> TR
     TR --> DEP
     KEY --> ADDR --> VER --> ML
+    VER --> WALK
 
     N["INVARIANT: the state hash is taken over the RFC 8785 canonical serialisation,<br/>not over the raw bytes — two semantically identical JSON documents must hash<br/>identically or the chain breaks on a formatting change."]
     JCS -.-> N
-    N2["MRC20_PROFILE mono.mrc20.v0.1 and TRANSFER_OP name the wire contract<br/>solid-pod-rs/src/mrc20.rs:33 and :35"]
+    N2["MRC20_PROFILE mono.mrc20.v0.1 and TRANSFER_OP name the wire contract<br/>solid-pod-rs/src/mrc20.rs:34 and :36"]
     ST -.-> N2
-    N3["extract_transfers_to and total_transferred_to are the read side<br/>solid-pod-rs/src/mrc20.rs:239"]
+    N3["extract_transfers_to and total_transferred_to are the read side<br/>solid-pod-rs/src/mrc20.rs:240"]
     DEP -.-> N3
+    N4["CHANGED in alpha.12: a UTXO at the head address no longer suffices. Each earlier mark must<br/>be the key its prefix of states derives and spend the mark before it, else the call<br/>fails with 'does not verify link by link'. A head still in the mempool is still<br/>accepted (intact, not verified). Per-link detail: SP-07.19.<br/>solid-pod-rs/src/mrc20.rs:1004"]
+    VER -.-> N4
 ```
 
 ## SP-07.10 The rust-bitcoin transaction builder (ADR-2008 D1, landed)
 
 ```mermaid
 flowchart LR
-    BLD["build_transaction<br/>solid-pod-rs/src/bitcoin_tx.rs:272"]
-    P2TR["p2tr_script<br/>solid-pod-rs/src/bitcoin_tx.rs:117"]
-    VS["verify_keypath_signature<br/>solid-pod-rs/src/bitcoin_tx.rs:378"]
-    FEE["DEFAULT_FEE_SATS 300, DUST_LIMIT_SATS 546<br/>solid-pod-rs/src/bitcoin_tx.rs:73"]
-    CO["checked_output — refuses to mint value<br/>solid-pod-rs/src/bitcoin_tx.rs:840"]
-    MINT["mint_token<br/>solid-pod-rs/src/bitcoin_tx.rs:529"]
-    XFER["transfer_token_with_key<br/>solid-pod-rs/src/bitcoin_tx.rs:629"]
-    ANC["anchor_state<br/>solid-pod-rs/src/bitcoin_tx.rs:735"]
-    VCH["build_withdraw_voucher<br/>solid-pod-rs/src/bitcoin_tx.rs:896"]
-    TXO["parse_txo_voucher<br/>solid-pod-rs/src/bitcoin_tx.rs:423"]
-    BC["MempoolBroadcast trait<br/>solid-pod-rs/src/bitcoin_tx.rs:492"]
+    BLD["build_transaction<br/>solid-pod-rs/src/bitcoin_tx.rs:281"]
+    P2TR["p2tr_script<br/>solid-pod-rs/src/bitcoin_tx.rs:124"]
+    VS["verify_keypath_signature<br/>solid-pod-rs/src/bitcoin_tx.rs:388"]
+    FEE["DEFAULT_FEE_SATS 300, DUST_LIMIT_SATS 546<br/>solid-pod-rs/src/bitcoin_tx.rs:80"]
+    CO["checked_output — refuses to mint value<br/>solid-pod-rs/src/bitcoin_tx.rs:1081"]
+    MINT["mint_token<br/>solid-pod-rs/src/bitcoin_tx.rs:539"]
+    XFER["transfer_token_with_key<br/>solid-pod-rs/src/bitcoin_tx.rs:639"]
+    ANC["anchor_state<br/>solid-pod-rs/src/bitcoin_tx.rs:745"]
+    VCH["build_withdraw_voucher<br/>solid-pod-rs/src/bitcoin_tx.rs:1137"]
+    TXO["parse_txo_voucher<br/>solid-pod-rs/src/bitcoin_tx.rs:433"]
+    BC["MempoolBroadcast trait<br/>solid-pod-rs/src/bitcoin_tx.rs:502"]
+    GG["gitmark_genesis — voucher to the first mark, state is the commit as text<br/>solid-pod-rs/src/bitcoin_tx.rs:869"]
+    GA["gitmark_advance — spend the newest mark to the next<br/>solid-pod-rs/src/bitcoin_tx.rs:929"]
+    DTI["decode_tx_info — raw hex to the TxInfo view, inputs included<br/>solid-pod-rs/src/bitcoin_tx.rs:1028"]
 
     P2TR --> BLD --> CO
     BLD --> MINT
@@ -276,13 +294,18 @@ flowchart LR
     BLD --> ANC
     BLD --> VCH
     BLD --> BC
+    BLD --> GG
+    BLD --> GA
+    DTI -.-> BC
     VS --> BLD
     FEE --> BLD
     TXO --> BC
 
-    N["The former DIVERGENCE is closed (ADR-2008 D1, landed at 0befa5b): serialisation,<br/>CompactSize, txid order, the P2TR script, the BIP-341 TapSighash and TapTweak,<br/>BIP-340 signing and bech32m now come from rust-bitcoin and libsecp256k1<br/>(solid-pod-rs/src/bitcoin_tx.rs:15). tagged_hash, xonly_of, add_mod_n,<br/>neg_mod_n and the hand-rolled bech32m encoder are DELETED. The module still<br/>decides only WHAT to build; determinism is kept with aux_rand = 0^32 so the<br/>cross-implementation golden fixture stays byte-identical to JSS."]
+    N["The former DIVERGENCE is closed (ADR-2008 D1, landed at 0befa5b): serialisation,<br/>CompactSize, txid order, the P2TR script, the BIP-341 TapSighash and TapTweak,<br/>BIP-340 signing and bech32m now come from rust-bitcoin and libsecp256k1<br/>(solid-pod-rs/src/bitcoin_tx.rs:18). tagged_hash, xonly_of, add_mod_n,<br/>neg_mod_n and the hand-rolled bech32m encoder are DELETED. The module still<br/>decides only WHAT to build; determinism is kept with aux_rand = 0^32 so the<br/>cross-implementation golden fixture stays byte-identical to JSS."]
     BLD -.-> N
-    N2["DEBT: the write side remains a native-only concern — the module is gated<br/>cfg(not(target_arch = wasm32)) behind the mrc20 feature<br/>(solid-pod-rs/src/bitcoin_tx.rs:50), so wasm consumers cannot build transactions."]
+    N3["alpha.12 adds the git-mark composers beside anchor_state. A git-mark state is the commit<br/>hash as text with no MRC20 wrapper, 40 or 64 lowercase hex (check_commit,<br/>solid-pod-rs/src/bitcoin_tx.rs:844). gitmark_advance refuses to extend a trail<br/>whose newest mark on-chain is not the key its states derive. BuiltTx now carries the<br/>txid (solid-pod-rs/src/bitcoin_tx.rs:174)."]
+    GA -.-> N3
+    N2["DEBT: the write side remains a native-only concern — the module is gated<br/>cfg(not(target_arch = wasm32)) behind the mrc20 feature<br/>(solid-pod-rs/src/bitcoin_tx.rs:53), so wasm consumers cannot build transactions."]
     BLD -.-> N2
 ```
 
@@ -292,22 +315,22 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant M as main<br/>solid-pod-rs-server/src/main.rs:210
-    participant SEL as select_mempool_endpoint<br/>solid-pod-rs-server/src/mempool.rs:260
-    participant INF as infer_network<br/>solid-pod-rs-server/src/mempool.rs:164
-    participant LOG as log_mempool_selection_once<br/>solid-pod-rs-server/src/mempool.rs:325
-    participant C as MempoolHttpClient<br/>solid-pod-rs-server/src/mempool.rs:336
+    participant SEL as select_mempool_endpoint<br/>solid-pod-rs-server/src/mempool.rs:264
+    participant INF as infer_network<br/>solid-pod-rs-server/src/mempool.rs:168
+    participant LOG as log_mempool_selection_once<br/>solid-pod-rs-server/src/mempool.rs:329
+    participant C as MempoolHttpClient<br/>solid-pod-rs-server/src/mempool.rs:340
 
     M->>SEL: the configured URL, or None
     SEL->>INF: derive the Bitcoin network from the URL
-    INF-->>SEL: BitcoinNetwork<br/>solid-pod-rs-server/src/mempool.rs:109
-    SEL-->>M: MempoolSelection with a MempoolConfigSource<br/>solid-pod-rs-server/src/mempool.rs:77
+    INF-->>SEL: BitcoinNetwork<br/>solid-pod-rs-server/src/mempool.rs:113
+    SEL-->>M: MempoolSelection with a MempoolConfigSource<br/>solid-pod-rs-server/src/mempool.rs:81
     M->>LOG: record base URL, inferred network and explicit-vs-defaulted, ONCE
-    LOG-->>M: a warning when the network is unknown or the endpoint defaulted<br/>solid-pod-rs-server/src/mempool.rs:289
-    C->>C: transaction_exists distinguishes 404 from an ambiguous failure<br/>solid-pod-rs-server/src/mempool.rs:406
+    LOG-->>M: a warning when the network is unknown or the endpoint defaulted<br/>solid-pod-rs-server/src/mempool.rs:293
+    C->>C: transaction_exists distinguishes 404 from an ambiguous failure<br/>solid-pod-rs-server/src/mempool.rs:410
 
-    Note over SEL: DEFAULT_MEMPOOL_URL is the PUBLIC mempool.space testnet4 explorer<br/>(solid-pod-rs-server/src/mempool.rs:56), read from JSS_PAY_MEMPOOL_URL<br/>(solid-pod-rs-server/src/mempool.rs:52).
+    Note over SEL: DEFAULT_MEMPOOL_URL is the PUBLIC mempool.space testnet4 explorer<br/>(solid-pod-rs-server/src/mempool.rs:60), read from JSS_PAY_MEMPOOL_URL<br/>(solid-pod-rs-server/src/mempool.rs:56).
     Note over M: DIVERGENCE (ADR-2007): ONE URL, no fallback chain. Without the startup log an<br/>operator cannot tell from the logs which chain anchors are being written to.<br/>The LAN Bitcoin node cutover remains deployment config, not a crate default.
-    Note over C: to_manifest_json (solid-pod-rs-server/src/mempool.rs:243) makes the selection<br/>machine-readable for a deployment manifest.
+    Note over C: to_manifest_json (solid-pod-rs-server/src/mempool.rs:247) makes the selection<br/>machine-readable for a deployment manifest.
 ```
 
 ## SP-07.12 The block anchorer
@@ -316,24 +339,25 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant P as ProvenanceLog
-    participant A as MempoolBlockAnchorer::anchor<br/>solid-pod-rs-server/src/mempool.rs:647
-    participant TS as trail_store<br/>solid-pod-rs-server/src/trail_store.rs:89
+    participant A as MempoolBlockAnchorer::anchor (MRC20 trails already issued)<br/>solid-pod-rs-server/src/mempool.rs:676
+    participant TS as trail_store<br/>solid-pod-rs-server/src/trail_store.rs:90
     participant M as mempool REST
-    participant V as verify<br/>solid-pod-rs-server/src/mempool.rs:721
+    participant V as verify<br/>solid-pod-rs-server/src/mempool.rs:749
 
     P->>A: (ticker, commit_sha as the state hash, network)
-    A->>TS: load_trail for the ticker<br/>solid-pod-rs-server/src/trail_store.rs:27
-    TS-->>A: StoredTrail, private key included<br/>solid-pod-rs-server/src/trail_store.rs:37
+    A->>TS: load_trail for the ticker<br/>solid-pod-rs-server/src/trail_store.rs:28
+    TS-->>A: StoredTrail, private key included<br/>solid-pod-rs-server/src/trail_store.rs:38
     A->>M: build, sign and broadcast the anchoring tx
     M-->>A: txid
-    A->>TS: save_trail with the new state<br/>solid-pod-rs-server/src/trail_store.rs:105
+    A->>TS: save_trail with the new state<br/>solid-pod-rs-server/src/trail_store.rs:106
     A-->>P: BlockTrailAnchor
-    P->>V: later, confirm the anchor's depth
-    V-->>P: confirmed or not
+    P->>V: later, verify the anchor
+    V-->>P: true when every mark back to genesis is intact, via verify_anchor_report<br/>solid-pod-rs-server/src/mempool.rs:785
 
-    Note over TS: to_public (solid-pod-rs-server/src/trail_store.rs:58) strips the private key<br/>before a trail is served — merge_public (:76) folds a public update back in<br/>WITHOUT losing the secret. A test pins that the key never leaks<br/>(solid-pod-rs-server/src/trail_store.rs:167).
+    Note over TS: to_public (solid-pod-rs-server/src/trail_store.rs:59) strips the private key<br/>before a trail is served — merge_public (:77) folds a public update back in<br/>WITHOUT losing the secret. A test pins that the key never leaks<br/>(solid-pod-rs-server/src/trail_store.rs:263).
 ```
-- **Debt:** `load_trail` maps every storage read error to `Ok(None)` (`solid-pod-rs-server/src/trail_store.rs:93-99`), so a transient or permissions failure reads identically to "no trail exists yet" — a durability fault and a genuinely fresh ticker are indistinguishable to the anchorer.
+- Changed in alpha.12: the former head-only `verify` (one UTXO at the derived address) is gone: both anchorers now walk the trail from the anchor's outpoint through `verify_anchor_report` (`solid-pod-rs-server/src/mempool.rs:785`), and an anchor stays verifiable after a later anchor spends it. New trails use `GitmarkAnchorer`, SP-07.20.
+- **Debt:** `load_trail` maps every storage read error to `Ok(None)` (`solid-pod-rs-server/src/trail_store.rs:94-100`), so a transient or permissions failure reads identically to "no trail exists yet" — a durability fault and a genuinely fresh ticker are indistinguishable to the anchorer. `load_gitmark_trail` copies the fault (`solid-pod-rs-server/src/trail_store.rs:186`), so a transient storage fault makes `build_anchorer` return `None`, which the anchor handler reports as 'not configured'.
 
 ## SP-07.13 The web ledger
 
@@ -491,7 +515,7 @@ flowchart TD
     R501 -.-> N
     N2["ISSUER AND TICKER BINDING: the trail must be anchored on the pod's configured<br/>issuer key — pod_issuer_pubkey<br/>(solid-pod-rs-server/src/handlers/pay.rs:494), accepts_issuer check :546 —<br/>and carry the configured ticker. A self-issued trail with the right ticker is<br/>a different token: 403. Another ticker: 400."]
     MRC -.-> N2
-    N3["CREDIT BY OUTPOINT RECEIPT: after verify_mrc20_anchor and a replay guard on<br/>the anchor outpoint, credit_by_outpoint credits the caller's TICKER balance,<br/>never the satoshi balance<br/>(solid-pod-rs-server/src/handlers/pay.rs:652). One coin can never pay twice."]
+    N3["CREDIT BY OUTPOINT RECEIPT: after verify_mrc20_anchor (which since alpha.12 walks every mark of the<br/>trail, not the head alone) and a replay guard on<br/>the anchor outpoint, credit_by_outpoint credits the caller's TICKER balance,<br/>never the satoshi balance<br/>(solid-pod-rs-server/src/handlers/pay.rs:652). One coin can never pay twice."]
     MRC -.-> N3
 ```
 
@@ -499,7 +523,7 @@ flowchart TD
 
 ```mermaid
 flowchart TB
-    subgraph LIVE["LIVE at 93e22002 — a stored number this crate mutates"]
+    subgraph LIVE["LIVE at d64131b — a stored number this crate mutates"]
         GB["get_balance reads the stored map<br/>solid-pod-rs/src/payments.rs:412"]
         CR["credit_by_outpoint — the only credit, outpoint<br/>as receipt; verified MRC20 deposits only<br/>solid-pod-rs/src/payments.rs:450"]
         DB["debit_by_payout records a payout receipt;<br/>reverse_payout undoes an unconfirmed payout<br/>solid-pod-rs/src/payments.rs:501"]
@@ -531,3 +555,76 @@ flowchart TB
 - **Tension (ADR-2008 vs code):** D3 declares MRC20 "retired as a token rail" (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:50-52), yet `/pay/.buy` and `/pay/.withdraw` still execute token trades and withdrawals against the stored ledger (`solid-pod-rs-server/src/handlers/pay.rs:1362`, `:1451`) — the record itself concedes this is D3 "in part", pending D4/D5 (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:98, :144-145).
 - **Open:** the record makes fixing non-atomic payment state a precondition of the port (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:72), but the lock it would have to replace is process-wide with no cross-resource CAS primitive behind it (`solid-pod-rs-server/src/lib.rs:200`) — nothing states what replaces it.
 - **Invariant:** the PROPOSED half is drawn as not built; the record carries `decision_status: proposed` and `implementation_status: partial` (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-6), and its Verification section states exactly what landed — "D1, D2 and D6 are built and verified at `e62d028`" while "D4, D5, D7 and D8 are not built" (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:97-98).
+
+## SP-07.19 Whole-trail verification — every mark walked back from the head (alpha.12)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant V as verify<br/>solid-pod-rs-server/src/mempool.rs:749
+    participant R as verify_anchor_report<br/>solid-pod-rs-server/src/mempool.rs:785
+    participant W as verify_anchor_chain<br/>solid-pod-rs/src/blocktrail.rs:1068
+    participant M as MempoolLookup
+    participant T as TrailReport<br/>solid-pod-rs/src/blocktrail.rs:765
+
+    V->>R: the anchor with its portable proof
+    R-->>V: None when pubkey or state_strings are absent<br/>solid-pod-rs-server/src/mempool.rs:792
+    R-->>V: None when the recorded address is not the derivation, a forged anchor<br/>solid-pod-rs-server/src/mempool.rs:803
+    R->>W: pubkey, state_strings and the anchor's txid and vout<br/>solid-pod-rs-server/src/mempool.rs:809
+    loop mark k-1 down to 0
+        W->>M: tx for the current outpoint<br/>solid-pod-rs/src/blocktrail.rs:1106
+        M-->>W: TxInfo with vin, vout and confirmation
+        W->>W: the output script must be the key this prefix of states derives<br/>solid-pod-rs/src/blocktrail.rs:1113
+        W->>W: the spent input becomes the previous mark<br/>solid-pod-rs/src/blocktrail.rs:1136
+    end
+    W-->>R: TrailReport, one MarkReport per state
+    R-->>V: Some(report)
+    V->>T: is_intact decides the boolean<br/>solid-pod-rs-server/src/mempool.rs:752
+    Note over T: is_verified needs every mark confirmed (solid-pod-rs/src/blocktrail.rs:841), is_intact also<br/>accepts a head still in the mempool (solid-pod-rs/src/blocktrail.rs:849). verify answers<br/>with is_intact, so an unconfirmed head passes.
+    Note over W: INVARIANT: the amount is not checked on this path, because an MRC20 trail keeps only its head<br/>outpoint (solid-pod-rs/src/blocktrail.rs:1068). The key and the spend order are the whole check.
+    Note over W: A mark that does not spend its predecessor is BrokenLink and counts as a failure<br/>(solid-pod-rs/src/blocktrail.rs:647). The blocktrails/verify page shows the broken link but<br/>still labels the mark verified, so this crate is deliberately stricter than its reference.
+```
+- **What it shows:** `verify` on either anchorer is a walk, not a lookup. From the anchor's own outpoint back to genesis every mark must exist, be the key its prefix of states derives, and be spent by the next.
+- **Why it is this way:** a UTXO at the head address proves only that the head key was paid, so the earlier version accepted a trail whose history was missing or paid other keys (0.5.0-alpha.12 CHANGELOG, `Changed`). Verification follows blocktrails/verify 043e7af, with fixtures generated from the page itself.
+
+## SP-07.20 GitmarkAnchorer — the git-mark profile for new trails (alpha.12)
+
+```mermaid
+flowchart TB
+    GEN["genesis(name, voucher, commit, network)<br/>solid-pod-rs-server/src/mempool.rs:943"]
+    EXISTS{"trail already stored?<br/>solid-pod-rs-server/src/mempool.rs:959"}
+    GG["gitmark_genesis — voucher to the first mark<br/>solid-pod-rs/src/bitcoin_tx.rs:869"]
+    ANC["anchor(ticker, commit, network)<br/>solid-pod-rs-server/src/mempool.rs:994"]
+    NOGEN["Err: trail has no genesis on this pod<br/>solid-pod-rs-server/src/mempool.rs:1006"]
+    NETC{"stored.network equals the requested network?<br/>solid-pod-rs-server/src/mempool.rs:1012"}
+    GA["gitmark_advance — newest mark must be the derived key, else refuse<br/>solid-pod-rs/src/bitcoin_tx.rs:929"]
+    BAS["broadcast_and_save<br/>solid-pod-rs-server/src/mempool.rs:890"]
+    BC["broadcast_tx returns the txid, written into the new txo entry<br/>solid-pod-rs-server/src/mempool.rs:906"]
+    SAVE["save_gitmark_trail<br/>solid-pod-rs-server/src/trail_store.rs:191"]
+    P1["/.well-known/gitmark/name.json with the base secret<br/>solid-pod-rs-server/src/trail_store.rs:133"]
+    P2["/.well-known/gitmark/name/blocktrails.json, no secret<br/>solid-pod-rs-server/src/trail_store.rs:140"]
+    ANCHOR["BlockTrailAnchor with state_strings and the trail's base key<br/>solid-pod-rs-server/src/mempool.rs:890"]
+
+    GEN --> EXISTS
+    EXISTS -- yes --> ERR1["Err: already exists"]
+    EXISTS -- no --> GG --> BAS
+    ANC -- no trail --> NOGEN
+    ANC --> NETC
+    NETC -- no --> ERR2["Err: network mismatch"]
+    NETC -- yes --> GA --> BAS
+    BAS --> BC --> SAVE
+    SAVE --> P1
+    SAVE --> P2
+    BAS --> ANCHOR
+
+    N["DEBT: anchor holds no lock across load, advance, broadcast and save. Two concurrent<br/>anchors on one trail would both spend the same head, and the second broadcast<br/>fails as a double spend after the first has saved.<br/>solid-pod-rs-server/src/mempool.rs:994"]
+    ANC -.-> N
+    N2["OPEN: nothing outside the tests calls genesis, so no pod reaches this path from<br/>this repository (see SP-07.3).<br/>solid-pod-rs-server/src/mempool.rs:943"]
+    GEN -.-> N2
+    N3["INVARIANT: an issued MRC20 trail is never moved to this profile. build_anchorer keeps<br/>MempoolBlockAnchorer whenever one exists under the name.<br/>solid-pod-rs-server/src/handlers/prov.rs:141"]
+    BAS -.-> N3
+    N4["The gitmark network name encodes addresses with the gm HRP, bc and tb unchanged<br/>solid-pod-rs/src/blocktrail.rs:60"]
+    GG -.-> N4
+```
+- **What it shows:** the git-mark anchorer starts a trail from a funding voucher, advances it one commit per anchor, and publishes a secret-free `blocktrails.json` beside the secret-bearing trail file where a verifier can read it.
+- **Why it is this way:** new trails follow blocktrails/git-mark b852d7d, with the commit as the state and no MRC20 wrapper, while issued MRC20 trails keep their on-chain keys and `urn:mono:op:anchor` states untouched (0.5.0-alpha.12 CHANGELOG, `Added`). Both anchorers share one read side, `verify_anchor_report`.

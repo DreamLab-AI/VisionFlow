@@ -24,7 +24,7 @@ sources:
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/ascii_img.rs
-verified_commit: 72463fbde35ac4c68539b1f65a08ff03b9941201
+verified_commit: 66ca8d8c0b7d1471503f916c513089846aba27c3
 ---
 
 ## NF-07.1 search-worker — routes and gates

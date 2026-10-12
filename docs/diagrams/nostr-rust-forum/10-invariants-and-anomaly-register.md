@@ -12,6 +12,8 @@ sources:
   - ../nostr-rust-forum/README.md
   - ../nostr-rust-forum/SETUP.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0008_whitelist.sql
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0009_events.sql
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
@@ -49,7 +51,7 @@ sources:
   - ../nostr-rust-forum/docs/security/known-findings.md
   - ../nostr-rust-forum/docs/security/advisory-exceptions.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs
-verified_commit: {nostr-rust-forum: 72463fbde35ac4c68539b1f65a08ff03b9941201}
+verified_commit: {nostr-rust-forum: 66ca8d8c0b7d1471503f916c513089846aba27c3}
 ---
 
 ## NF-10.1 The compliance surface — BASELINE-architecture invariants
@@ -95,10 +97,10 @@ flowchart TB
     subgraph closed["Confirmed CLOSED at this commit"]
         O1["O1 TL1 promotion and demotion unwired - CLOSED.<br/>Reads tally then check_promotion nip_handlers.rs:1913; demotion is cron-driven. See NF-03.8."]
         O3["O3 KV ACL fast-path masks R2 delegation - CLOSED.<br/>R2 authoritative, KV miss-fallback only nostr-bbs-pod-worker/src/acl.rs:311, rationale acl.rs:253. See NF-04.4."]
+        O5["O5 deleting a kind-40 destroyed the is_channel_creator lookup, locking a TL2 author out of their own<br/>channel metadata - CLOSED at 66ca8d8. The creator is persisted at creation, relay_do/storage.rs:162, and read<br/>first, nip_handlers.rs:2219, so the kind-5 path nip_handlers.rs:2121 no longer changes the answer.<br/>Residual: a failed write and a pre-existing channel fall back to the kind-40 event, nip_handlers.rs:2220. See NF-03.7."]
     end
     subgraph live["Confirmed STILL LIVE"]
         O2["O2 NIP-29 group metadata 39000-39002 accepted from admin CLIENTS rather than relay-key-signed.<br/>Acknowledged TODO nip_handlers.rs:1010, admin gate nip_handlers.rs:1017. Spec drift. See NF-03.4 step 11."]
-        O5["O5 deleting a kind-40 destroys the is_channel_creator lookup, locking a TL2 author out of their own<br/>channel metadata - lookup nip_handlers.rs:970, deletion path nip_handlers.rs:2121. See NF-03.7.<br/>RESOLVED in nostr-rust-forum 66ca8d8 (after the verified revision): the creator is persisted in a channel_creators table, so deleting the kind-40 no longer drops the lookup."]
         O11a["O11 KV and SESSIONS are the SAME physical namespace id -<br/>nostr-bbs-auth-worker/wrangler.toml:24 and nostr-bbs-auth-worker/wrangler.toml:39. See NF-08.4."]
         O11b["O11 /api/native-pod/provision has no in-repo caller and placeholder vars -<br/>route nostr-bbs-auth-worker/src/lib.rs:599, NATIVE_POD_URL nostr-bbs-auth-worker/wrangler.toml:52. See NF-02.2."]
         O8a["O8 qr_svg is defined TWICE with no shared helper -<br/>recovery_sheet.rs:66 and utils/devices.rs:236. See NF-05.4."]
@@ -110,7 +112,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    O4["O4 members-vs-whitelist admin split - PARTLY fixed, then broken differently.<br/>Both workers now union static plus both tables (nostr-bbs-auth-worker/src/admin.rs:57, nostr-bbs-relay-worker/src/auth.rs:179),<br/>but the relay queries members in its OWN D1 (nostr-bbs-relay-worker/src/auth.rs:192) where no migration creates it.<br/>See NF-08.7."]
+    O4["O4 members-vs-whitelist admin split - CLOSED on the relay side at 66ca8d8. The relay no longer queries members, which<br/>lives only in the auth D1: it unions the static set and whitelist (nostr-bbs-relay-worker/src/auth.rs:185, nostr-bbs-relay-worker/src/auth.rs:194),<br/>while the auth worker still unions all three (nostr-bbs-auth-worker/src/admin.rs:57). A doc comment on query_is_admin still names members<br/>nostr-bbs-relay-worker/src/auth.rs:174. See NF-08.7."]
     O6["O6 NIP-07 silent no-op DM subscription - CORRECTED. The subscription registers unconditionally<br/>(nostr-bbs-forum-client/src/dm/mod.rs:232). The real limit is per-event: a NIP-04-only extension fails gift-wrap<br/>unwrap at nostr-bbs-forum-client/src/dm/mod.rs:796 and it IS surfaced via state.error at dm/mod.rs:818. See NF-05.9."]
     O7["O7 NIP05_USERNAME_HOST hardcoded - NARROWER than filed. nostr-bbs-forum-client/src/pages/settings.rs:32 defines<br/>and settings.rs:334 uses it; signup.rs reads no such constant. A settings-only display fallback. See NF-05.7."]
     O9["O9 nostr-bbs-mesh has no impl AND no relay import - HALF holds. No production MeshSocket impl exists<br/>(only nostr-bbs-mesh/src/mock.rs:249), but the relay DOES declare the dependency nostr-bbs-relay-worker/Cargo.toml:26.<br/>See NF-09.8."]
@@ -124,7 +126,7 @@ flowchart TB
 flowchart TB
     DD1["README.md:441 calls NIP-42 AUTH scaffolded with auth_required false. The code says otherwise:<br/>nip42 is the DEFAULT nip42.rs:115, the template ships AUTH_MODE nip42 nostr-bbs-relay-worker/wrangler.toml:31,<br/>and every EVENT passes the gate first nip_handlers.rs:845. The row understates a shipped feature.<br/>See NF-03.3."]
     DD2["README.md:442 says nostr-bbs-mesh is NOT a dependency of the relay-worker.<br/>nostr-bbs-relay-worker/Cargo.toml:26 declares it. See NF-09.8."]
-    DD3["nostr-bbs-relay-worker/wrangler.toml:10 asserts there is no ADMIN_PUBKEYS reader in src/.<br/>nostr-bbs-relay-worker/src/auth.rs:183 reads it, and so does nostr-bbs-auth-worker/src/admin.rs:71.<br/>Only nostr-bbs-search-worker/wrangler.toml:33 declares the var. See NF-08.7."]
+    DD3["nostr-bbs-relay-worker/wrangler.toml:10 asserts there is no ADMIN_PUBKEYS reader in src/.<br/>nostr-bbs-relay-worker/src/auth.rs:185 reads it, and so does nostr-bbs-auth-worker/src/admin.rs:71.<br/>Only nostr-bbs-search-worker/wrangler.toml:33 declares the var. See NF-08.7."]
     DD4["nostr-rust-forum/Cargo.toml:69 workspace.metadata.ci.wasm-check-packages names two crates and is read by NOTHING -<br/>the wasm job checks the whole workspace .github/workflows/ci.yml:174. Inert metadata. See NF-01.2."]
     DD5["nostr-bbs-upstream-canary/src/lib.rs:10 names a five-NIP build matrix but only three smokes exist<br/>nostr-bbs-upstream-canary/src/lib.rs:35 nostr-bbs-upstream-canary/src/lib.rs:56 nostr-bbs-upstream-canary/src/lib.rs:89 - nip04, nip59 and nip98 are unexercised. The same doc calls the crate<br/>nostr-upstream-canary nostr-bbs-upstream-canary/src/lib.rs:14 while the package is nostr-bbs-upstream-canary. See NF-01.5."]
     DD6["The search-worker cron runs every five minutes and reindexes NOTHING - the handler body is a<br/>load_store warm touch nostr-bbs-search-worker/src/lib.rs:851. See NF-07.1."]
@@ -136,11 +138,11 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    S1["The relay events table is still created by a SETUP.md copy-paste SETUP.md:69, not by a repo migration.<br/>RESOLVED 1a26e51: whitelist now has its first DDL, migration 0008_whitelist.sql:30, and ensure_schema<br/>runs the same shared statement first nostr-bbs-relay-worker/src/lib.rs:695 before the ALTER list,<br/>which now adds expires_at nostr-bbs-relay-worker/src/lib.rs:714. See NF-08.6.<br/>RESOLVED again in 66ca8d8 (after the verified revision): migration 0009_events.sql creates events and ensure_schema creates it first, so SETUP.md no longer carries the DDL."]
-    S2["ADMIN_PUBKEYS is read by auth and relay but declared in neither template and named in no SETUP step<br/>SETUP.md:122. A by-the-book deployment has no static admin bootstrap. See NF-08.7."]
+    S1["The relay events table was created only by a SETUP.md copy-paste - CLOSED in two steps. 1a26e51: whitelist got its first DDL, migration 0008_whitelist.sql:30,<br/>run first by ensure_schema nostr-bbs-relay-worker/src/lib.rs:737 before the ALTER list nostr-bbs-relay-worker/src/lib.rs:756. 66ca8d8: migration 0009_events.sql:23 creates events<br/>and ensure_schema creates it first, nostr-bbs-relay-worker/src/lib.rs:721, so SETUP.md now points at the migration SETUP.md:72 instead of carrying the DDL.<br/>Residual: the auth schema is still pasted SQL SETUP.md:47. See NF-08.6."]
+    S2["ADMIN_PUBKEYS is read by auth and relay but declared in neither template and named in no SETUP step<br/>SETUP.md:119. A by-the-book deployment has no static admin bootstrap. See NF-08.7."]
     S3["The preview worker's SSRF guard is denylist-only without PREVIEW_ALLOWED_HOSTS, which the template<br/>never sets nostr-bbs-preview-worker/wrangler.toml:13. The code says so itself - the Workers runtime exposes no<br/>resolve-then-pin primitive nostr-bbs-preview-worker/src/ssrf.rs:13 - and there is no wall-clock timeout.<br/>See NF-07.6."]
     S4["DEVICE_KEYS_ENABLED ships false in BOTH templates nostr-bbs-auth-worker/wrangler.toml:55<br/>nostr-bbs-relay-worker/wrangler.toml:21, so the whole ADR-099/100 device story is dormant by default and<br/>revocation has no effect at AUTH. See NF-02.7."]
-    S5["MESH_ALLOWED_REMOTE_DIDS ships empty nostr-bbs-relay-worker/wrangler.toml:71, so the federated-kind gate at<br/>nip_handlers.rs:3118 is inert. Standalone is the only supported mode. See NF-03.13."]
+    S5["MESH_ALLOWED_REMOTE_DIDS ships empty nostr-bbs-relay-worker/wrangler.toml:71, so the federated-kind gate at<br/>nip_handlers.rs:3127 is inert. Standalone is the only supported mode. See NF-03.13."]
     S6["Neither anti-drift-lint.sh nor identity-vector-parity.mjs is invoked by any workflow, so the<br/>ADR-2003 cross-stack parity proof is manual on the JS side. See NF-09.3."]
     S7["The ADR-2019 member wallet view of BLAKE2b testnet4 coins ships dark: with BLAKE_TESTNET_API unset or not https,<br/>api_base is None and the page makes no request to any BLAKE backend<br/>nostr-bbs-forum-client/src/wallet/parent.rs:13-14 nostr-bbs-forum-client/src/wallet/parent.rs:36-43.<br/>It is read-only by construction - nothing is signed and no coin moves nostr-bbs-forum-client/src/wallet/parent.rs:8-10"]
 ```

@@ -9,7 +9,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/mashlib.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/mod.rs
-verified_commit: 93e2200218fad37927df16a1b7784c93c475670d
+verified_commit: d64131b
 ---
 
 ## SP-03.1 GET — the full read path

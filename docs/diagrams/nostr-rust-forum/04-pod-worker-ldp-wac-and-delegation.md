@@ -33,7 +33,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
   - ../nostr-rust-forum/Cargo.toml
-verified_commit: 72463fbde35ac4c68539b1f65a08ff03b9941201
+verified_commit: 66ca8d8c0b7d1471503f916c513089846aba27c3
 ---
 
 ## NF-04.1 Route surface
