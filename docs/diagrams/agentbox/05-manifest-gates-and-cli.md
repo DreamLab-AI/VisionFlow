@@ -415,7 +415,7 @@ flowchart TB
     C8 --> B8["[program:claude-cred-sync] polls container ~/.claude/.credentials.json<br/>against host-claude bind every 2s, later expiresAt wins<br/>flake.nix:3210-3222, services/agentbox-manifest/src/cred_sync.rs"]
 
     C5 --> DIV["RESOLVED - the manifest now declares voice on, apply-class sidecar,<br/>so a running console no longer reports state off, agentbox.toml:2142"]
-    F10 --> C10["NO catalogue entry - GET /v1/system cannot report it;<br/>server.js:1449-1450 and the forum-suggestions tenant<br/>both call junkiejarvisEnabled(manifest)"]
+    F10 --> C10["NO catalogue entry - GET /v1/system cannot report it;<br/>server.js:1449-1450 and the forum-suggestions tenant<br/>both call junkiejarvisEnabled(manifest)<br/>RESOLVED on branch fix/s7-hygiene (agentbox 2ee7c4874, after the verified revision): a junkiejarvis CATALOGUE entry now exists"]
     C4 --> REB["INVARIANT - mcp-hub is rebuild-class because its supervisor<br/>program is composed into the image, so flipping the gate and<br/>restarting does not add it, system-manifest.js:317"]
 ```
 
@@ -428,7 +428,7 @@ flowchart TB
 
 **Drift (resolved 2026-10-02, JunkieJarvis gate):** the manifest comment used to promise that `JUNKIEJARVIS_ENABLED` overrode `[sovereign_mesh].junkiejarvis`; `f63760e19` made the key the only switch and turned it on (`../project/agentbox/agentbox.toml:45-50`, still true at this revision), and management-api now reads it through `junkiejarvisEnabled(manifest)` alone (`../project/agentbox/management-api/server.js:1449-1450`, `../project/agentbox/management-api/lib/junkiejarvis-clarify.js:447-453`).
 
-**Debt:** `junkiejarvis` gates a forum-facing agent and the forum-suggestions tenant's clarifying DMs, yet it has no `CATALOGUE` entry (`../project/agentbox/management-api/lib/system-manifest.js:39`), so `GET /v1/system` cannot say whether JunkieJarvis is on.
+**Debt:** `junkiejarvis` gates a forum-facing agent and the forum-suggestions tenant's clarifying DMs, yet it has no `CATALOGUE` entry (`../project/agentbox/management-api/lib/system-manifest.js:39`), so `GET /v1/system` cannot say whether JunkieJarvis is on. **Resolved after the verified revision:** agentbox branch `fix/s7-hygiene` (not yet merged) adds the `CATALOGUE` entry and a test.
 
 **Drift (golden fixture vs manifest):** the manifest parser's golden copy of the live manifest still carries the retired wording, with BOTH the gate and the env var required and the gate false (`../project/agentbox/services/agentbox-manifest/tests/golden/live-agentbox.toml:45-51`).
 
