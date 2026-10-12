@@ -260,7 +260,7 @@ sequenceDiagram
     WRAP-->>FLAKE: ruvectorPkg derivation
     FLAKE->>ALWAYS: npmCliAlwaysPackages = [ ruvectorPkg wranglerPkg ]<br/>flake.nix:756
     Note over FLAKE,ALWAYS: the nix-prefetch-url comment at flake.nix:440 and the version field<br/>at flake.nix:443 now agree on ruvector-0.3.3 (bumped together 2026-10-01)
-    Note over FLAKE,ALWAYS: DRIFT: BASELINE-container.md:56 still states ruvector pins 0.3.0<br/>and that the prefetch comment names the old tarball, but flake.nix:443 pins 0.3.3<br/>and the comment at flake.nix:440 matches it - only the doc is stale now<br/>(the doc's 3,297-line flake size claim at BASELINE-container.md:54 is stale too -<br/>HEAD flake.nix is 4,533 lines)
+    Note over FLAKE,ALWAYS: DRIFT: BASELINE-container.md:56 still states ruvector pins 0.3.0<br/>and that the prefetch comment names the old tarball, but flake.nix:443 pins 0.3.3<br/>and the comment at flake.nix:440 matches it - only the doc is stale now<br/>(the doc's 3,297-line flake size claim at BASELINE-container.md:54 is stale too -<br/>HEAD flake.nix is 4,533 lines)<br/>RESOLVED on agentbox branch fix/s7-hygiene (86308cc91, after the verified revision): BASELINE now states ruvector 0.3.3 and 4,581 lines on main
 ```
 
 ## AB-01.6 gpu-wrap.nix wrapGpuBins - LD_LIBRARY_PATH suffix and vendor ICDs
