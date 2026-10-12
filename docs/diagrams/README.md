@@ -21,6 +21,7 @@ fragment) and resolve by suffix against the file's own `sources:`.
 | `vowl-wasm/NN-*.md` | `VW-NN` | vowl-wasm — VOWL notation engine, WASM (`../vowl-wasm`) |
 | `knowledgegraph/NN-*.md` | `KG-NN` | knowledgeGraph — published corpus and build pipeline (`../knowledgeGraph`) |
 | `visiongraph/NN-*.md` | `VG-NN` | visionGraph — authoring vault and publishing pipeline (`../visionGraph`) |
+| `ontomark/NN-*.md` | `OM-NN` | ontomark — the shared Markdown-ontology toolchain: parser, typed model, EL reasoner, compiler/build, assisted ingest, WASM engine (`../ontomark`) |
 | `estate/NN-*.md` | `ES-NN` | cross-repo and infrastructure interfaces; `verified_commit` is a `{repo: sha}` map |
 | `COVERAGE.md` | | generated inverted indexes: diagram → file, ADR → files, governing doc → files, source path → files |
 | `hero/` | | marketing hero images and their Mermaid → Nano Banana pipeline; not part of the coverage tree |

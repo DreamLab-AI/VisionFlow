@@ -74,7 +74,7 @@ const path = require('path');
 const os = require('os');
 const { spawn } = require('child_process');
 
-const AREAS = new Set(['visionflow', 'visionclaw', 'agentbox', 'solid-pod-rs', 'nostr-rust-forum', 'dreamlab-ai-website', 'vowl-wasm', 'knowledgegraph', 'visiongraph', 'sidestr-rs', 'estate']);
+const AREAS = new Set(['visionflow', 'visionclaw', 'agentbox', 'solid-pod-rs', 'nostr-rust-forum', 'dreamlab-ai-website', 'vowl-wasm', 'knowledgegraph', 'visiongraph', 'sidestr-rs', 'ontomark', 'estate']);
 const SKIP_DIRS = new Set(['hero', 'archive', 'rendered', 'src', 'upgraded', 'regen-2026-06-14', 'triptych-src', '.claude-flow', 'node_modules']);
 const SKIP_FILES = new Set(['README.md', 'COVERAGE.md']);
 const MAX_WIDTH = 4500; // px — wider renders are illegible at any zoom
@@ -300,6 +300,7 @@ const REPO_PREFIXES = [
   { key: 'vowl-wasm', prefix: '../vowl-wasm/' },
   { key: 'knowledgegraph', prefix: '../knowledgeGraph/' },
   { key: 'visiongraph', prefix: '../visionGraph/' },
+  { key: 'ontomark', prefix: '../ontomark/' },
   { key: 'ruview', prefix: '../RuView/' },
   { key: 'wasmvowl', prefix: '../WasmVOWL/' },
   { key: 'loom', prefix: '../loom/' },
@@ -309,7 +310,7 @@ const REPO_PREFIXES = [
   { key: 'diagram-ir', prefix: '../diagram-ir/' },
   { key: 'visionflow', prefix: '' },
 ];
-const AREA_REPO = { visionflow: 'visionflow', visionclaw: 'visionclaw', agentbox: 'agentbox', 'solid-pod-rs': 'solid-pod-rs', 'nostr-rust-forum': 'nostr-rust-forum', 'dreamlab-ai-website': 'dreamlab-ai-website', 'vowl-wasm': 'vowl-wasm', knowledgegraph: 'knowledgegraph', visiongraph: 'visiongraph', 'sidestr-rs': 'sidestr-rs' };
+const AREA_REPO = { visionflow: 'visionflow', visionclaw: 'visionclaw', agentbox: 'agentbox', 'solid-pod-rs': 'solid-pod-rs', 'nostr-rust-forum': 'nostr-rust-forum', 'dreamlab-ai-website': 'dreamlab-ai-website', 'vowl-wasm': 'vowl-wasm', knowledgegraph: 'knowledgegraph', visiongraph: 'visiongraph', 'sidestr-rs': 'sidestr-rs', ontomark: 'ontomark' };
 function repoOf(p) {
   const clean = p.replace(/^\.\//, '');
   for (const r of REPO_PREFIXES) if (r.prefix && clean.startsWith(r.prefix)) return { key: r.key, rel: clean.slice(r.prefix.length), abs: path.join(repoRoot, r.prefix) };
