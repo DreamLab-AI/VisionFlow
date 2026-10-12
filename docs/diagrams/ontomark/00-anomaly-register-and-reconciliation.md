@@ -281,29 +281,45 @@ flowchart LR
 - INVARIANT: the closure-vs-Whelk split is KEEP, pinned by `the_closure_and_the_reasoner_agree_on_the_taxonomy` (`ontomark-compile/src/build/mod.rs:1254`); the NGG1 category ancestry walk at `ontomark-compile/src/build/graph_tiers.rs:154` has no such test.
 - DIVERGENCE: `reason.rs:79` gained `refusals.is_empty()` in 6c040a5 together with `checked` (`reason.rs:590-597`); reverting it would let refusals pass, so it stays.
 
-### Resolution at ontomark `8d654d1` (2026-10-12)
+## OM-00.5 Resolution at ontomark 8d654d1 (2026-10-12)
 
-Phase 3 wrote one failing test per item (`93c78a8`, 19 tests across `register_sev{1,2,3}.rs` and `register_sev{1,2}_cli.rs`); Phase 4 landed the fixes in one commit. Every cited line above is at `ffe06e4` and describes the state the fixes removed; this table is prose and carries no line citations.
-
-| Item | Status | What landed |
-|---|---|---|
-| S1.1 | FIXED | `Redactor::new` is fallible (`RegexBuilder` with an explicit size limit); `PublicationBlocked::Redactor` refuses the build. `ProseRedactor::{new,with_size_limit}` are public so the refusal is testable. |
-| S1.2 | FIXED | Rendered frontmatter is scanned beside the body, in the publish gate and in `validate` (`SECRET_DETECTED`). |
-| S1.3 | FIXED | `Frontmatter::boolean` and `Page::is_public` accept a YAML bool only; `validate` reports `INVALID_PUBLIC_FLAG`; SHACL emits a quoted `"true"` as a plain literal; conformance row C03 rewritten. |
-| S1.4 | FIXED (emitter, not contract-only) | `build::records` ports VisionClaw's `rvdb.rs` as pure code; the Xinference transport is in the CLI (`embed.rs`) behind `--with-rvdb`/`--embed-endpoint`; `build::run_with` takes the host's `Embedder`. The compile crate still opens no socket. |
-| S1.5 | FIXED | `gate` and `conflicts` iterate every selected vault. One vault keeps the legacy bytes; `all` prints per-vault verdicts and a JSON map. The golden `gate-full.{prose,json}` had recorded the bug and was re-captured (knowledge verdict byte-identical, working verdict added). |
-| S2.1 | FIXED, contract changed | Typed `build::Unsatisfiable`; the CLI exits **2** (same refusal class as `OutputCollision`). Recorded in ADR-OM-005's amendment rather than a separate ADR: the crate doc is the contract and was amended in the same commit. |
-| S2.2 | FIXED | `content_digest` is computed from `Page::source_sha256` (hashed at parse) over every loaded vault incl. journals and the sibling vault, plus the vocabulary. No re-read; a read error can no longer hash empty bytes. Definition change: the legacy value is not reproducible. |
-| S2.3 | FIXED | `publish::write_to` stages beside the target and swaps in through the shared `swap_in`; the bundle promotion uses the same. `promote`'s doc no longer claims atomicity: it is two renames with restore on failure. |
-| S2.4 | FIXED | `--tier` and `--severity` are clap `value_parser`s; unknown values exit 2. |
-| S2.5 | FIXED, wording corrected | The root marker lists `data/.generation.json` with its real hash, and `--publish-out` files are recorded as external artefacts. **A marker never lists itself** (a file cannot contain its own hash), so the register's "both markers" became this rule. |
-| S3.1 | KEEP | Unchanged; NGG2 item. |
-| S3.2 | FIXED | `SkipReason::NotARegularFile`; the census counts it `excluded_not_regular_file`. |
-| S3.3 | FIXED, wording corrected | `Split::unterminated` / `Page::unterminated_frontmatter`; the census refuses it as `invalid_input`; `validate` reports `UNCLOSED_FRONTMATTER`. The register said the page became "private"; the census had counted it `excluded_no_frontmatter`, which is what the fix replaces. |
-| S3.4 | KEEP | Unchanged; the parity mechanism. |
-| step 1 | DONE | `run()` walks `pages/` once: `inspect_walk`, `Vault::load_with_walk` and `excluded_identities_of` share the listing. `sibling_working` folded into `sibling_vault`; one `vault_kinds` for every verb including `migrate`. |
-
-Parity after the fixes: every artefact of the `estate-small` golden is byte-identical except the two generation markers, which `conformance.rs` now compares structurally (identity fields equal; every legacy artefact present with the same hash and size). The decision-4 phrase "`--vault all`, unredacted" in ADR-OM-005 is withdrawn by this register: `--vault all` is the public publish's value, and private-link redaction applies to the machine bundle as to any bundle. The private machine-bundle mode needs its own flag and is the next item.
+```mermaid
+flowchart TB
+    PH3["Phase 3: 19 red reproduction tests, commit 93c78a8<br/>register_sev1/2/3.rs and register_sev1_cli/2_cli.rs;<br/>two passing controls; S1.1 driven through the redactor API"]
+    PH4["Phase 4: one fix commit 8d654d1<br/>829 tests pass; clippy, strict rustdoc, wasm32, fmt clean"]
+    PH3 --> PH4
+    subgraph SEV1["SEV-1 publication boundary"]
+        direction TB
+        F11["S1.1 FIXED: Redactor::new fallible, RegexBuilder size limit;<br/>PublicationBlocked::Redactor refuses;<br/>ProseRedactor::{new,with_size_limit} public"]
+        F12["S1.2 FIXED: rendered frontmatter scanned beside the body<br/>in the publish gate and in validate (SECRET_DETECTED)"]
+        F13["S1.3 FIXED: Frontmatter::boolean and Page::is_public take a YAML bool only;<br/>INVALID_PUBLIC_FLAG; SHACL emits a quoted true as a plain literal;<br/>conformance row C03 rewritten"]
+        F14["S1.4 FIXED as an emitter: build::records ports VisionClaw rvdb.rs (pure);<br/>CLI embed.rs holds the Xinference transport<br/>behind --with-rvdb / --embed-endpoint; build::run_with(embedder)"]
+        F15["S1.5 FIXED: gate and conflicts iterate every selected vault;<br/>one vault = legacy bytes, all = per-vault + JSON map;<br/>golden gate-full re-captured: it had recorded the bug"]
+        F11 ~~~ F12 ~~~ F13 ~~~ F14 ~~~ F15
+    end
+    subgraph SEV2["SEV-2 contract and exit codes"]
+        direction TB
+        F21["S2.1 FIXED, CONTRACT CHANGED: typed build::Unsatisfiable exits 2<br/>(same refusal class as OutputCollision); CLI crate doc amended;<br/>recorded in the ADR-OM-005 amendment"]
+        F22["S2.2 FIXED: content_digest_of_hashes over Page::source_sha256<br/>for every loaded vault, journals, sibling vault and vocabulary;<br/>no re-read; legacy value not reproducible"]
+        F23["S2.3 FIXED: publish::write_to stages beside the target<br/>and swaps via the shared swap_in; promote doc no longer<br/>claims atomicity (two renames, restore on failure)"]
+        F24["S2.4 FIXED: --tier and --severity are clap value_parsers;<br/>unknown values exit 2"]
+        F25["S2.5 FIXED, WORDING CORRECTED: root marker lists data/.generation.json;<br/>--publish-out files recorded as external artefacts;<br/>RULE: a marker never lists itself"]
+        F21 ~~~ F22 ~~~ F23 ~~~ F24 ~~~ F25
+    end
+    subgraph SEV3["SEV-3, structure, parity"]
+        direction TB
+        F32["S3.2 FIXED: SkipReason::NotARegularFile;<br/>census counts excluded_not_regular_file"]
+        F33["S3.3 FIXED, WORDING CORRECTED: Split::unterminated /<br/>Page::unterminated_frontmatter; census refuses as invalid_input;<br/>validate reports UNCLOSED_FRONTMATTER (was counted excluded)"]
+        ST1["Step 1 DONE: run() walks pages/ once; inspect_walk,<br/>Vault::load_with_walk and excluded_identities_of share the listing;<br/>sibling_working folded; one vault_kinds for every verb"]
+        KP["KEEP unchanged: S3.1 NGG1 relation byte (NGG2 item);<br/>S3.4 compat projection (the parity mechanism)"]
+        PAR["Parity: estate-small golden byte-identical except the two<br/>generation markers, compared structurally in conformance.rs<br/>(identity fields equal; every legacy artefact present, same hash)"]
+        WD["DIVERGENCE withdrawn: ADR-OM-005 decision 4 said the machine bundle<br/>is --vault all, unredacted; --vault all is the public publish value and<br/>redaction applies to every bundle. The mode needs its own flag: next item"]
+        F32 ~~~ F33 ~~~ ST1 ~~~ KP ~~~ PAR ~~~ WD
+    end
+    PH4 --> SEV1 & SEV2 & SEV3
+```
+- Every citation in OM-00.1 to OM-00.4 is at `ffe06e4` and describes the state the fixes removed; this section carries commit shas only.
+- Dead code removed with the fixes: `page_files`, `iri_for`, `has_secret`, `unsatisfiable_message`; docs corrected for `parse_page`, `excluded_identities` and `Census.rejected`.
 
 ## OM-00.4 Canonical run() after reconciliation
 
