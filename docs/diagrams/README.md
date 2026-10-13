@@ -168,7 +168,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_147 topic files, 1442 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_147 topic files, 1441 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -190,7 +190,7 @@ _147 topic files, 1442 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VC-01 | [Server boot, AppState construction and the full route table](visionclaw/01-boot-and-app-state.md) | 13 | sequenceDiagram, flowchart | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2004, ADR-2005, ADR-2007, ADR-2008, ADR-2026, ADR-2037, ADR-2038, ADR-2045, ADR-2053 |
 | VC-02 | [Actor supervision tree, GraphServiceSupervisor routing and peer actor surfaces](visionclaw/02-actor-supervision.md) | 14 | flowchart, sequenceDiagram, stateDiagram-v2, classDiagram | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2005, ADR-2007, ADR-2045 |
 | VC-03 | [Request lifecycle, identity and the RBAC lattice](visionclaw/03-request-lifecycle-and-rbac.md) | 14 | sequenceDiagram, flowchart | [IDENTITY-authority-chain.md](../../../project/docs/IDENTITY-authority-chain.md), [SECURITY-profiles.md](../../../project/docs/SECURITY-profiles.md), [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2002, ADR-2003, ADR-2009, ADR-2010, ADR-2011, ADR-2012, ADR-2013, ADR-2026, ADR-2039, ADR-2043, ADR-2044 |
-| VC-04 | [Handler internals — graph, state, and domain route families](visionclaw/04-handlers-graph-and-state.md) | 24 | sequenceDiagram, flowchart | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2005, ADR-2007, ADR-2011, ADR-2111 |
+| VC-04 | [Handler internals — graph, state, and domain route families](visionclaw/04-handlers-graph-and-state.md) | 23 | sequenceDiagram, flowchart | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2005, ADR-2007, ADR-2011, ADR-2111 |
 | VC-05 | [Governance and identity handler families](visionclaw/05-handlers-governance-and-identity.md) | 15 | sequenceDiagram, flowchart | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md), [IDENTITY-authority-chain.md](../../../project/docs/IDENTITY-authority-chain.md) | ADR-2006, ADR-2010, ADR-2011, ADR-2013, ADR-2016, ADR-2020, ADR-2058, ADR-2067, ADR-2075, ADR-2090, ADR-2091, ADR-2093, ADR-2094, ADR-2116 |
 | VC-06 | [Settings round trip — REST, actors, SQLite adapter and generated client types](visionclaw/06-settings-round-trip.md) | 8 | flowchart, sequenceDiagram | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2005, ADR-2011, ADR-2041, ADR-2046, ADR-2047, ADR-2080, ADR-2115 |
 | VC-07 | [Hexagonal ports, adapters, the CQRS application layer and the crate split](visionclaw/07-hexagonal-ports-and-crates.md) | 9 | flowchart, sequenceDiagram, classDiagram | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2004, ADR-2005, ADR-2016 |

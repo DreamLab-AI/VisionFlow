@@ -15,7 +15,6 @@ sources:
   - ../project/src/handlers/api_handler/semantic_forces.rs
   - ../project/src/handlers/ragflow_handler.rs
   - ../project/src/handlers/constraints_handler.rs
-  - ../project/src/handlers/graph_state_handler.rs
   - ../project/src/handlers/graph_export_handler.rs
   - ../project/src/handlers/layout_handler.rs
   - ../project/src/handlers/physics_handler.rs
@@ -32,6 +31,7 @@ sources:
   - ../project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md
   - ../project/src/handlers/consolidated_health_handler.rs
   - ../project/src/handlers/liveness_harness_handler.rs
+  - ../project/src/utils/agent_key.rs
   - ../project/src/services/liveness_harness.rs
   - ../project/src/handlers/trace_handler.rs
   - ../project/src/handlers/validation_handler.rs
@@ -44,6 +44,7 @@ sources:
   - ../project/src/handlers/pay_handler.rs
   - ../project/src/handlers/quic_transport_handler.rs
   - ../project/src/handlers/mod.rs
+  - ../project/src/handlers/api_handler/mod.rs
   - ../project/src/main.rs
   - ../project/src/actors/gpu/analytics_telemetry.rs
   - ../project/src/handlers/api_handler/analytics/performance_handlers.rs
@@ -51,7 +52,7 @@ sources:
   - ../project/src/utils/binary_protocol.rs
   - ../project/src/utils/validation/sanitization.rs
   - ../project/src/handlers/fastwebsockets_handler.rs
-verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
+verified_commit: 061d8cbf8cfaa34e9d4c581165f5297f23d5741e
 ---
 
 ## VC-04.1 api_handler graph — read path (data, paginated, positions, fold, relations, expand, pattern)
@@ -59,10 +60,10 @@ verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
 sequenceDiagram
     autonumber
     participant C as Client
-    participant H as get_graph_data<br/>src/handlers/api_handler/graph/mod.rs:189
+    participant H as get_graph_data<br/>src/handlers/api_handler/graph/mod.rs:188
     participant QH as graph_query_handlers<br/>AppState CQRS handler set
-    participant GPU as ForceComputeActor<br/>fetch_settlement, graph/mod.rs:153
-    participant POP as PopulationFilter::parse<br/>graph/mod.rs:121
+    participant GPU as ForceComputeActor<br/>fetch_settlement, graph/mod.rs:152
+    participant POP as PopulationFilter::parse<br/>graph/mod.rs:120
 
     C->>H: GET /api/graph/data?graph_type=&exclude_linked_pages=
     par CQRS queries via execute_in_thread
@@ -79,14 +80,14 @@ sequenceDiagram
             GPU-->>H: Some(SettlementSnapshot)
         end
     end
-    H->>POP: PopulationFilter::parse(graph_type) — Agent / Knowledge / Ontology bit-mirrors (graph/mod.rs:107-147)
+    H->>POP: PopulationFilter::parse(graph_type) — Agent / Knowledge / Ontology bit-mirrors (graph/mod.rs:106-146)
     alt query.graph_type set
         H->>H: filter nodes by population.matches(node_type, metadata)
     else absent
         H->>H: no population filtering
     end
     opt exclude_linked_pages=true
-        H->>H: drop nodes whose origin resolves to linked_page (graph/mod.rs:272-283)
+        H->>H: drop nodes whose origin resolves to linked_page (graph/mod.rs:269-280)
     end
     alt all three CQRS queries Ok
         H-->>C: 200 GraphResponseWithPositions{nodes,edges,metadata,settlement_state}
@@ -95,10 +96,10 @@ sequenceDiagram
     else any handler Err
         H-->>C: 500 Failed to retrieve graph data
     end
-    Note over H: GET /api/graph/data/paginated (graph/mod.rs:332) is the SAME CQRS GetGraphData<br/>read plus offset/limit slicing — GraphQuery{page,page_size} — see graph/mod.rs:335
-    Note over H: GET /api/graph/positions (graph/mod.rs:601) skips CQRS entirely — reads<br/>ForceComputeActor.send(GetCurrentPositions) directly, 503 if gpu_addr is None
-    Note over H: GET /api/graph/fold -> fold::get_fold_plan (graph/mod.rs:1501, module fold) —<br/>read-only Wave-3 fold-ladder plan, not expanded here (see governing doc fold section)
-    Note over H: GET /api/graph/auto-balance-notifications (graph/mod.rs:566) — CQRS<br/>GetAutoBalanceNotifications{since_timestamp} via execute_in_thread, same Ok/Err split
+    Note over H: GET /api/graph/data/paginated (graph/mod.rs:329) is the SAME CQRS GetGraphData<br/>read plus offset/limit slicing — GraphQuery{page,page_size} — see graph/mod.rs:332
+    Note over H: GET /api/graph/positions (graph/mod.rs:600) skips CQRS entirely — reads<br/>ForceComputeActor.send(GetCurrentPositions) directly, 503 if gpu_addr is None
+    Note over H: GET /api/graph/fold -> fold::get_fold_plan (graph/mod.rs:1500, module fold) —<br/>read-only Wave-3 fold-ladder plan, not expanded here (see governing doc fold section)
+    Note over H: GET /api/graph/auto-balance-notifications (graph/mod.rs:565) — CQRS<br/>GetAutoBalanceNotifications{since_timestamp} via execute_in_thread, same Ok/Err split
 ```
 
 ## VC-04.2 api_handler graph — node/{id} relations, expand, pattern-query (RateLimit 120/min)
@@ -106,9 +107,9 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as XR client (visual query builder)
-    participant GR as get_node_relations<br/>src/handlers/api_handler/graph/mod.rs:991
-    participant EX as expand_node<br/>graph/mod.rs:1022
-    participant QP as query_pattern<br/>graph/mod.rs:1459
+    participant GR as get_node_relations<br/>src/handlers/api_handler/graph/mod.rs:990
+    participant EX as expand_node<br/>graph/mod.rs:1021
+    participant QP as query_pattern<br/>graph/mod.rs:1458
     participant SNAP as fetch_graph_snapshot<br/>mod.rs (Arc~GraphData~ CQRS read)
 
     C->>GR: GET /api/graph/node/{id}/relations
@@ -133,11 +134,11 @@ sequenceDiagram
         EX-->>C: 200 neighbours, heaviest-weight first, capped
     end
     C->>QP: POST /api/graph/query/pattern {triples:[{src,edgeType,tgt}]}
-    Note over QP: pattern variables are JSON strings by convention #quot;?vN#quot —<br/>concrete ids are JSON numbers, masked with NODE_ID_MASK (graph/mod.rs:1083-1089)
+    Note over QP: pattern variables are JSON strings by convention #quot;?vN#quot —<br/>concrete ids are JSON numbers, masked with NODE_ID_MASK (graph/mod.rs:1082-1088)
     QP->>SNAP: fetch_graph_snapshot(&state) — SAME in-memory typed graph as /relations and /expand
-    Note over QP: deliberately NOT translated to SPARQL/Oxigraph — that store holds only<br/>the OWL ontology, not graph node/edge instances (graph/mod.rs:1078-1081)
+    Note over QP: deliberately NOT translated to SPARQL/Oxigraph — that store holds only<br/>the OWL ontology, not graph node/edge instances (graph/mod.rs:1077-1080)
     QP-->>C: 200 pattern bindings over the visible graph
-    Note over GR,QP: all three sit UNDER RateLimit::per_minute(120) resource wraps<br/>(graph/mod.rs:1513-1529), stacked under the scope-wide 600/min limiter
+    Note over GR,QP: all three sit UNDER RateLimit::per_minute(120) resource wraps<br/>(graph/mod.rs:1512-1528), stacked under the scope-wide 600/min limiter
 ```
 
 ## VC-04.3 api_handler graph — update (power_user bulk reload) and refresh (authenticated read-back)
@@ -145,17 +146,17 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RA as RequireAuth::power_user<br/>src/handlers/api_handler/graph/mod.rs:1539
-    participant UG as update_graph<br/>graph/mod.rs:471
+    participant RA as RequireAuth::power_user<br/>src/handlers/api_handler/graph/mod.rs:1538
+    participant UG as update_graph<br/>graph/mod.rs:470
     participant FS as FileService<br/>src/services/file_service.rs
     participant MD as MetadataActor<br/>UpdateMetadata
     participant GS as GraphServiceSupervisor<br/>AddNodesFromMetadata
-    participant RG as RequireAuth::authenticated<br/>graph/mod.rs:1546
-    participant RF as refresh_graph<br/>graph/mod.rs:434
+    participant RG as RequireAuth::authenticated<br/>graph/mod.rs:1545
+    participant RF as refresh_graph<br/>graph/mod.rs:432
     participant QH as graph_query_handlers.get_graph_data
 
     rect rgb(240,225,225)
-    Note over RA,GS: S2 escalation — POST /api/graph/update triggers a FULL bulk reload<br/>(re-fetch, re-process, rebuild). Destructive and expensive -> power_user (Admin) only (graph/mod.rs:1531-1543)
+    Note over RA,GS: S2 escalation — POST /api/graph/update triggers a FULL bulk reload<br/>(re-fetch, re-process, rebuild). Destructive and expensive -> power_user (Admin) only (graph/mod.rs:1530-1542)
     C->>RA: POST /api/graph/update
     alt caller is not power_user
         RA-->>C: 403 Forbidden
@@ -182,7 +183,7 @@ sequenceDiagram
     end
     end
     rect rgb(225,240,225)
-    Note over RG,QH: /refresh only reads back GetGraphData — any authenticated user may call it (graph/mod.rs:1544-1547)
+    Note over RG,QH: /refresh only reads back GetGraphData — any authenticated user may call it (graph/mod.rs:1543-1546)
     C->>RG: POST /api/graph/refresh
     RG->>RF: call handler
     RF->>QH: execute_in_thread(get_graph_data.handle(GetGraphData))
@@ -195,6 +196,8 @@ sequenceDiagram
     end
     end
 ```
+
+**Drift (RESOLVED, graph_state_handler removed in project commit 061d8cbf8):** this topic used to draw a second `/api/graph` family, `graph_state_handler` (nine routes: GET `/state`, GET `/statistics`, POST `/nodes`, GET, PUT and DELETE `/nodes/{id}`, POST `/edges`, PUT `/edges/{id}`, POST `/positions/batch`). Each handler ran a hexser CQRS handler over `state.graph_adapter`, the Oxigraph graph repository, directly, with no `GraphServiceSupervisor` message and so no actor notify, a third write path beside the actor path and the `graph_query_handlers` read path. The family never ran: `graph::config` registers `web::scope("/graph")` first (`src/handlers/api_handler/mod.rs:112`, comment at `src/handlers/api_handler/graph/mod.rs:1487`), actix claims the prefix for that first scope and answers 404 for every route of a later same-prefix scope, and none of the nine paths exists in the first. A same-order actix test confirmed 200 for the first scope and 404 for the second. The module, its `pub mod` and `.configure(...)` registrations and `tests/graph_state_integration.rs` were deleted. The surviving `/api/graph` surface is the single scope drawn in VC-04.1 to VC-04.3: `/data`, `/data/paginated`, `/positions`, `/fold`, `/auto-balance-notifications`, `/node/{id}/relations`, `/node/{id}/expand`, `/query/pattern`, `/update`, `/refresh` (`src/handlers/api_handler/graph/mod.rs:1491`).
 
 ## VC-04.4 `files` scope — process/get_content/refresh_graph/update_graph
 ```mermaid
@@ -258,11 +261,11 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client / AgentDetailPanel
-    participant GD as get_bots_data<br/>src/handlers/bots_handler.rs:217
-    participant UD as update_bots_graph<br/>bots_handler.rs:191
-    participant IH as initialize_hive_mind_swarm<br/>bots_handler.rs:261
-    participant SA as spawn_agent_hybrid<br/>bots_handler.rs:411
-    participant ST as submit_task / interrupt_task / get_task_status / remove_task<br/>bots_handler.rs:710,802,900,607
+    participant GD as get_bots_data<br/>src/handlers/bots_handler.rs:216
+    participant UD as update_bots_graph<br/>bots_handler.rs:190
+    participant IH as initialize_hive_mind_swarm<br/>bots_handler.rs:258
+    participant SA as spawn_agent_hybrid<br/>bots_handler.rs:404
+    participant ST as submit_task / interrupt_task / get_task_status / remove_task<br/>bots_handler.rs:703,795,893,600
     participant GS as GraphServiceSupervisor<br/>GetBotsGraphData
     participant TO as TaskOrchestratorActor<br/>state.get_task_orchestrator_addr()
     participant BG as BOTS_GRAPH static<br/>RwLock fallback store
@@ -273,7 +276,7 @@ sequenceDiagram
         GD-->>C: 200 {success, nodes, edges} — from live actor
     else actor empty or errored
         GD->>BG: BOTS_GRAPH.read()
-        GD-->>C: 200 {success, nodes, edges, metadata} — static fallback (bots_handler.rs:236-247)
+        GD-->>C: 200 {success, nodes, edges, metadata} — static fallback (bots_handler.rs:243-253)
     end
     C->>UD: POST /api/bots/data or /api/bots/update (AuthenticatedUser required)
     UD->>UD: convert_agents_to_nodes(request.nodes) — edges hardcoded empty
@@ -307,7 +310,7 @@ sequenceDiagram
     else Ok(Err(e)) or mailbox Err
         ST-->>C: 500 TaskResponse{success:false, error}
     end
-    Note over GD,ST: GET /api/bots/status -> get_bots_connection_status (bots_handler.rs:370,<br/>reads state.bots_client.get_status()) — GET /api/bots/agents -> get_bots_agents<br/>(bots_handler.rs:377, fetch_hive_mind_agents via AgentMonitorActor, see VC-02) —<br/>neither shown expanded, single call-through to one dependency each
+    Note over GD,ST: GET /api/bots/status -> get_bots_connection_status (bots_handler.rs:366,<br/>reads state.bots_client.get_status()) — GET /api/bots/agents -> get_bots_agents<br/>(bots_handler.rs:373, fetch_hive_mind_agents via AgentMonitorActor, see VC-02) —<br/>neither shown expanded, single call-through to one dependency each
 ```
 
 ## VC-04.6 `analytics` scope — GPU-touching compute triggers and telemetry reads
@@ -414,9 +417,9 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant SM as send_message<br/>src/handlers/ragflow_handler.rs:51
+    participant SM as send_message<br/>src/handlers/ragflow_handler.rs:52
     participant CS as create_session<br/>ragflow_handler.rs:139
-    participant RS as RAGFlowService<br/>src/services/ragflow_service.rs:94
+    participant RS as RAGFlowService<br/>src/services/ragflow_service.rs:101
     participant TTS as speech_service.text_to_speech<br/>state.speech_service
 
     C->>CS: POST /api/ragflow/session {userId}
@@ -433,7 +436,8 @@ sequenceDiagram
     rect rgb(225,225,245)
     Note over RS: PROCESS BOUNDARY — external HTTP call, credentials from env
     SM->>RS: send_message(session_id, question, false, None, stream.unwrap_or(true))
-    RS->>RS: reqwest::Client — Authorization Bearer RAGFLOW_API_KEY,<br/>base RAGFLOW_API_BASE_URL, RAGFLOW_AGENT_ID (ragflow_service.rs:107-142)
+    RS->>RS: RAGFlowService::new reads RAGFLOW_API_KEY, RAGFLOW_API_BASE_URL and RAGFLOW_AGENT_ID through config_from (ragflow_service.rs:114-141),<br/>every request then carries Authorization Bearer (ragflow_service.rs:171)
+    Note over RS: an absent or blank key is RAGFlowError::NotConfigured (ragflow_service.rs:121) and boot logs a warning, so state.ragflow_service stays None and the 503 branches above fire (main.rs:431).<br/>A key without base URL or agent id is a ParseError (ragflow_service.rs:123-129)
     end
     alt Ok(response_stream)
         opt enable_tts
@@ -449,45 +453,7 @@ sequenceDiagram
     else Err(e)
         SM-->>C: error_json! Failed to send message
     end
-    Note over C,RS: /ragflow/chat and /ragflow/session/enhanced (ragflow_handler.rs:628,632) are the<br/>same external-boundary shape with an enhanced request/response envelope — GET<br/>/history/{session_id} and /history/enhanced/{session_id} (:635-636) read back session state,<br/>no outbound HTTP call on the read path
-```
-
-## VC-04.10 `graph_state_handler` — CQRS directive/query path via `graph_adapter`
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Client
-    participant GS as get_graph_state<br/>src/handlers/graph_state_handler.rs:66
-    participant AN as add_node<br/>graph_state_handler.rs:156
-    participant BP as batch_update_positions<br/>graph_state_handler.rs:358
-    participant GA as graph_adapter<br/>state.graph_adapter (hexser QueryHandler/CommandHandler)
-
-    C->>GS: GET /api/graph/state
-    GS->>GA: execute_in_thread(LoadGraphHandler::new(graph_adapter).handle(LoadGraph))
-    alt Ok(Ok(QueryResult::Graph(graph_arc)))
-        GS-->>C: 200 GraphStateResponse{nodes_count,edges_count,metadata_count,positions,settings_version,timestamp}
-    else unexpected QueryResult variant
-        GS-->>C: 500 Unexpected query result type
-    else Ok(Err(e)) or thread Err
-        GS-->>C: 500 Failed to retrieve graph state / Internal server error
-    end
-    Note over GS: GET /api/graph/statistics (:125) is the SAME shape with<br/>GetGraphStatisticsHandler.handle(GetGraphStatistics) -> QueryResult::Statistics
-    C->>AN: POST /api/graph/nodes {node} (AuthenticatedUser)
-    AN->>GA: execute_in_thread(AddNodeHandler::new(graph_adapter).handle(AddNode{node}))
-    alt Ok(Ok(()))
-        AN-->>C: 200 {success:true, node_id}
-    else Ok(Err(e)) or thread Err
-        AN-->>C: 500 Failed to add node / Internal server error
-    end
-    Note over AN: GET/PUT/DELETE /api/graph/nodes/{id} (get_node :251, update_node :191, remove_node :221)<br/>and POST/PUT /api/graph/edges[/{id}] (add_edge :291, update_edge :328) are the SAME<br/>execute_in_thread(Handler::new(graph_adapter).handle(Command/Query)) shape — one CQRS<br/>directive or query type per route, all AuthenticatedUser-gated except the two GETs
-    C->>BP: POST /api/graph/positions/batch {positions} (AuthenticatedUser)
-    BP->>GA: execute_in_thread(BatchUpdatePositionsHandler.handle(BatchUpdatePositions{positions}))
-    alt Ok(Ok(()))
-        BP-->>C: 200 {success:true}
-    else Ok(Err(e)) or thread Err
-        BP-->>C: 500 Failed to update positions / Internal server error
-    end
-    Note over GA: DIVERGENCE — this handler family reaches the graph through a DIFFERENT store<br/>reference (graph_adapter, CQRS hexser handlers) than api_handler::graph (VC-04.1-04.3),<br/>which reads via graph_query_handlers, and bots/files/graph_state, which write via the<br/>ACTOR graph_service_addr.send(AddNodesFromMetadata) — three distinct graph-mutation paths<br/>coexist in this commit with no single write gateway (BASELINE-architecture.md persistence closeout)
+    Note over C,RS: /ragflow/chat and /ragflow/session/enhanced (ragflow_handler.rs:631,635) are the<br/>same external-boundary shape with an enhanced request/response envelope — GET<br/>/history/{session_id} and /history/enhanced/{session_id} (:638-639) read back session state,<br/>no outbound HTTP call on the read path
 ```
 
 ## VC-04.11 `graph-export` scope — rate limit, serialization, shared-link lifecycle
@@ -676,7 +642,7 @@ sequenceDiagram
     SU->>KC: lineage_for(snapshot_id)
     KC->>KR: lineage_for(snapshot_id) — DERIVED_FROM trail (WP-8 AC3)
     SU-->>C: 200 {snapshot_id, lineage}
-    par background volume tap — src/main.rs:1265 tokio::spawn(run_agent_event_tap(kpi_repo))
+    par background volume tap — src/main.rs:1280 tokio::spawn(run_agent_event_tap(kpi_repo))
         TAP->>HUB: subscribe() — same seam the render actor uses
         loop rx.recv().await — never returns, fail-open on lagged/closed channel
             HUB-->>TAP: AgentEventEnvelope
@@ -730,22 +696,22 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Reporting repo / Godot dev client
-    participant AU as canary_write_authorised<br/>src/handlers/liveness_harness_handler.rs:34 release / :85 dev
-    participant RG as register<br/>liveness_harness_handler.rs:133
-    participant OB as observe<br/>liveness_harness_handler.rs:171
-    participant ST as status<br/>liveness_harness_handler.rs:199
+    participant AU as canary_write_authorised<br/>src/handlers/liveness_harness_handler.rs:35 release / :49 dev
+    participant RG as register<br/>liveness_harness_handler.rs:97
+    participant OB as observe<br/>liveness_harness_handler.rs:135
+    participant ST as status<br/>liveness_harness_handler.rs:163
     participant LH as LivenessHarness<br/>src/services/liveness_harness.rs
 
     C->>RG: POST /api/canary/register {canaryId,description,kind,ownerRepo,wave,shaAtRegistration}
     RG->>AU: canary_write_authorised(req)
     alt release build (no debug_assertions, no dev-auth)
         AU->>AU: expected = VISIONCLAW_AGENT_KEY env — provided = X-Agent-Key header
-        AU->>AU: constant_time_eq(key.as_bytes(), got.as_bytes()) — length-safe, timing-safe
+        AU->>AU: crate::utils::agent_key::check_agent_key(expected, provided) (agent_key.rs:13) — subtle ConstantTimeEq on the key bytes (agent_key.rs:15),<br/>a length mismatch rejects at once because the length is not secret
         alt env unset/empty OR header missing/mismatched
             AU-->>RG: false — FAIL CLOSED
         end
     else debug or dev-auth build
-        AU-->>RG: true — unauthenticated dev flow preserved (:85-87)
+        AU-->>RG: true — unauthenticated dev flow preserved (:49-51)
     end
     alt not authorised
         RG-->>C: 401 {error: missing or invalid X-Agent-Key}
@@ -802,7 +768,7 @@ sequenceDiagram
             Note over LH: INVARIANT (REC-11 acceptance) — fires ONLY on observed live traffic that<br/>genuinely joins >= 2 live source kinds under one did:nostr, never synthetic
         end
         UT-->>C: 200 ProvenanceTrace{sourcesPresent,sourcesAbsent,totalRecords,joins,maxJoinSpan}
-        Note over PTS: FR5.2 (EXP-AC-005) — each agent-event record now carries the agent's<br/>DECLARED intent verbatim and an intent_match verdict (provenance_trace.rs:202-210).<br/>Decision and git-mark records carry neither. A null verdict means NO CLAIM WAS MADE,<br/>which is not the same as a claim that failed — intent_match.rs:214
+        Note over PTS: FR5.2 (EXP-AC-005) — each agent-event record now carries the agent's<br/>DECLARED intent verbatim and an intent_match verdict (provenance_trace.rs:203-211).<br/>Decision and git-mark records carry neither. A null verdict means NO CLAIM WAS MADE,<br/>which is not the same as a claim that failed — intent_match.rs:214
     else Err(e)
         UT-->>C: 500 {error}
     end
@@ -813,10 +779,10 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant VP as validate_payload<br/>src/handlers/validation_handler.rs:331
+    participant VP as validate_payload<br/>src/handlers/validation_handler.rs:344
     participant VS as ValidationService<br/>validation_handler.rs:11 — settings/physics/ragflow/bots/swarm schemas
     participant SAN as Sanitizer::sanitize_json<br/>src/utils/validation/sanitization.rs
-    participant GS as get_validation_stats<br/>validation_handler.rs:369
+    participant GS as get_validation_stats<br/>validation_handler.rs:382
 
     C->>VP: POST /api/validation/test/{type} {payload}
     VP->>VP: validation_type = path {type}, extract_client_id(req)
@@ -866,7 +832,7 @@ sequenceDiagram
     C->>NT: GET /api/schema/node-types (and /edge-types)
     NT->>SS: read cached type/count table
     NT-->>C: 200 {node_types:[{node_type,count},...]}
-    Note over GSA: DIVERGENCE — a FOURTH graph-data read path alongside api_handler::graph's<br/>graph_query_handlers CQRS (VC-04.1), graph_state_handler's graph_adapter CQRS (VC-04.10)<br/>and the ACTOR graph_service_addr writes (VC-04.4-04.5) — schema_handler reads via a<br/>directly-injected Addr~GraphStateActor~, a fifth distinct app_data binding onto the same graph
+    Note over GSA: DIVERGENCE — a THIRD graph-data read path alongside api_handler::graph's<br/>graph_query_handlers CQRS (VC-04.1) and the ACTOR graph_service_addr writes (VC-04.4-04.5) — schema_handler reads via a<br/>directly-injected Addr~GraphStateActor~, a fourth distinct app_data binding onto the same graph
     Note over C,NT: GET /schema/node-types/{type} and /edge-types/{type} (:203,239) are the SAME<br/>cached-lookup shape narrowed to one type name, not expanded here
 ```
 
@@ -895,7 +861,7 @@ sequenceDiagram
     Note over DC,SEM: /centrality, /shortest-path, /generate-constraints (compute_centrality :110,<br/>compute_shortest_path :160, generate_constraints :187) share the SAME<br/>read-graph-then-initialize-then-compute shape — /cache/invalidate (:229) and<br/>GET /statistics (:214) skip the graph read entirely
 
 C--xRI: POST /api/inference/run — route no longer registered
-    Note over RI: REMOVED ADR-2066 — the whole Phase 7 inference stack was deleted as dead code.<br/>src/handlers/inference_handler.rs, src/application/inference_service.rs and<br/>src/events/inference_triggers.rs are gone, and the registration (comment block at<br/>src/main.rs:1145-1150) was removed with them. Removal rationale recorded at src/handlers/mod.rs:44-49
+    Note over RI: REMOVED ADR-2066 — the whole Phase 7 inference stack was deleted as dead code.<br/>src/handlers/inference_handler.rs, src/application/inference_service.rs and<br/>src/events/inference_triggers.rs are gone, and the registration (comment block at<br/>src/main.rs:1153-1158) was removed with them. Removal rationale recorded at src/handlers/mod.rs:43-48
     Note over RI: root cause — all seven handlers extracted web::Data of Arc RwLock InferenceService<br/>but InferenceService was never registered as app data anywhere, so every<br/>/api/inference/* route 500'd at the extractor. The live reasoning path is<br/>GitHubSyncService::run_post_sync_reasoning — see VC-20.3
 ```
 
@@ -973,7 +939,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant CL as handle_client_logs<br/>src/handlers/client_log_handler.rs:38
+    participant CL as handle_client_logs<br/>src/handlers/client_log_handler.rs:39
     participant TL as telemetry logger<br/>get_telemetry_logger()
     participant WS as websocket_client_messages<br/>src/handlers/client_messages_handler.rs:106
     participant CW as ClientMessagesWs actor<br/>client_messages_handler.rs:10
@@ -989,7 +955,7 @@ sequenceDiagram
     end
     CL->>CL: append entries to /app/logs/client.log
     CL-->>C: 200 {status:success}
-    Note over CL: registered EARLY in the /api scope (src/main.rs:1106) specifically to avoid<br/>scope-registration-order conflicts (VC-01.10) — RBAC-allowlisted (VC-03.6 has_segment_prefix)
+    Note over CL: registered EARLY in the /api scope (src/main.rs:1114) specifically to avoid<br/>scope-registration-order conflicts (VC-01.10) — RBAC-allowlisted (VC-03.6 has_segment_prefix)
 
     C->>WS: GET /ws/client-messages (Upgrade: websocket)
     WS->>WS: token = Authorization Bearer OR ?token= query param
@@ -1025,7 +991,7 @@ sequenceDiagram
     participant DEP as pay_deposit_handler<br/>pay_handler.rs:480
     participant ST as FsPaymentStore<br/>web::Data~Arc~FsPaymentStore~~ — get_balance/debit
 
-    Note over CFG: routes mounted UNCONDITIONALLY at src/main.rs:1081 (VC-01) — inert until<br/>PAY_ENABLED=true, gated handler-by-handler rather than by a scope-level middleware
+    Note over CFG: routes mounted UNCONDITIONALLY at src/main.rs:1089 (VC-01) — inert until<br/>PAY_ENABLED=true, gated handler-by-handler rather than by a scope-level middleware
     C->>INFO: GET /pay/.info (always reachable, no gate)
     INFO-->>C: 200 {enabled, methods:[lightning], costTiers} — reports the REAL enabled flag
     C->>BAL: GET /pay/.balance
@@ -1066,7 +1032,7 @@ flowchart TB
     Q["quic_transport_handler.rs (102 lines) — now holds ONLY PostcardNodeUpdate and<br/>PostcardBatchUpdate plus their BinaryNodeData round-trip impls (quic_transport_handler.rs:22-75)"]
     FIELDS["PostcardNodeUpdate: id,x,y,z,vx,vy,vz,cluster_id,anomaly_score,community_id (:22-36)<br/>PostcardBatchUpdate: frame_id,timestamp_ms,nodes:Vec~PostcardNodeUpdate~ (:70-75)<br/>round-trip impls From/Into BinaryNodeData (:38-67), one #[cfg(test)] unit test (:82-100)"]
     IMP["imported directly by (fastwebsockets_handler.rs:34)<br/>`use super::quic_transport_handler::{PostcardBatchUpdate, PostcardNodeUpdate}`<br/>— never by any HTTP/WS route in this file"]
-    MODRS["src/handlers/mod.rs:111-117 — module doc comment records the removal;<br/>NO pub use re-export of anything from this module exists"]
+    MODRS["src/handlers/mod.rs:113-119 — module doc comment records the removal;<br/>NO pub use re-export of anything from this module exists"]
     NONE["NO configure fn, no route, scope, or .service() call anywhere in src/main.rs<br/>registers this module — it never had one even before the removal"]
     Q --> FIELDS --> IMP
     Q --> MODRS --> NONE
