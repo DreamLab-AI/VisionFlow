@@ -6,7 +6,7 @@
 # contract hold when the script is run on its own). Used as a dream-cycle
 # evaluator entrypoint.
 #
-# Four ref families are resolved:
+# Five ref families are resolved:
 #   1. href/src attributes — ordinary markup links and asset references.
 #   2. meta[content] media URLs (og:image, twitter:image, …). These were a
 #      shared blind spot: dream-meta-tags-scan.sh COUNTS the tags but never
@@ -27,6 +27,13 @@
 #      logo pointing at a file absent from dist/ passed every gate — the
 #      same blind spot family 2 closed for meta[content]. Off-site URLs
 #      are skipped, exactly as in every other family.
+#
+#   5. CNAME↔page-host agreement — canonical, og:url and the JSON-LD `url`
+#      fields declare this site's own address, and social-card images must
+#      be same-site (operator decision 2026-10-09). Families 1-4 treat any
+#      host that is not dist/CNAME's as off-site and skip it, so a canonical
+#      drifting to the apex host or a card on a CDN passed every gate
+#      silently; family 5 makes that drift the failure it is.
 #
 # Social URLs are absolute on the canonical domain (they must be, for the
 # crawlers), so "site-relative" here includes same-origin absolute URLs: the
@@ -54,7 +61,7 @@ resolve_ref() {
   esac
 }
 
-miss=0; checked=0; anchors=0; dangling=0
+miss=0; checked=0; anchors=0; dangling=0; hostrefs=0; drift=0
 while IFS= read -r f; do
   d=$(dirname "$f")
 
@@ -95,10 +102,54 @@ while IFS= read -r f; do
     checked=$((checked+1))
     [ -e "$d/$t" ] || [ -e "./$t" ] || { echo "MISSING: $f -> $ref"; miss=$((miss+1)); }
   done
+  # 5. CNAME↔page-host agreement. canonical, og:url and the JSON-LD `url`
+  #    fields declare THIS site's address, and social-card images must be
+  #    same-site (operator decision 2026-10-09). Families 1-4 treat any host
+  #    that is not dist/CNAME's as off-site and skip it, so a canonical
+  #    drifting to the apex host or a card on a CDN passed every gate
+  #    silently; here the wrong host on a self-referential declaration is
+  #    itself the defect.
+  if [ -n "$site_host" ]; then
+    # canonical link — the page's own preferred URL.
+    for ref in $(grep -oE '<link[^>]+rel="canonical"[^>]*>' "$f" 2>/dev/null | grep -oE 'href="[^"]+"' | sed -E 's/href="([^"]+)"/\1/'); do
+      hostrefs=$((hostrefs+1))
+      case "$ref" in
+        "https://$site_host"|"https://$site_host/"*) ;;
+        *) echo "HOST-DRIFT: $f -> $ref (canonical; CNAME host is $site_host)"; drift=$((drift+1)) ;;
+      esac
+    done
+    # og:url — the address crawlers are told is canonical.
+    for ref in $(grep -oiE '<meta[^>]*(property|name)="og:url"[^>]*>' "$f" 2>/dev/null | grep -oE 'content="[^"]+"' | sed -E 's/content="([^"]+)"/\1/'); do
+      hostrefs=$((hostrefs+1))
+      case "$ref" in
+        "https://$site_host"|"https://$site_host/"*) ;;
+        *) echo "HOST-DRIFT: $f -> $ref (og:url; CNAME host is $site_host)"; drift=$((drift+1)) ;;
+      esac
+    done
+    # JSON-LD "url" fields (Organization, WebSite). sameAs, logo and @id are
+    # excluded: they may legitimately point elsewhere or carry a fragment.
+    for ref in $(sed -n '/<script[^>]*application\/ld+json/,/<\/script>/p' "$f" 2>/dev/null | grep -oE '"url": *"[^"]+"' | sed -E 's/"url": *"([^"]+)"/\1/'); do
+      hostrefs=$((hostrefs+1))
+      case "$ref" in
+        "https://$site_host"|"https://$site_host/"*) ;;
+        *) echo "HOST-DRIFT: $f -> $ref (JSON-LD url; CNAME host is $site_host)"; drift=$((drift+1)) ;;
+      esac
+    done
+    # Social-card images: same-site required (operator decision 2026-10-09);
+    #    a relative path stays legal and is resolved by family 2 above.
+    for ref in $(grep -oiE '<meta[^>]*(property|name)="(og:image(:secure_url|:url)?|twitter:image)"[^>]*>' "$f" 2>/dev/null | grep -oE 'content="[^"]+"' | sed -E 's/content="([^"]+)"/\1/'); do
+      hostrefs=$((hostrefs+1))
+      case "$ref" in
+        "https://$site_host/"*|"http://$site_host/"*) ;;
+        https:*|http:*|//*) echo "OFFSITE-IMAGE: $f -> $ref (must be same-site per 2026-10-09)"; drift=$((drift+1)) ;;
+      esac
+    done
+  fi
 done < <(find . -name '*.html')
 echo "internal-refs-checked: $checked  missing: $miss"
 echo "anchors-checked: $anchors  dangling: $dangling"
-if [ "$miss" -eq 0 ] && [ "$dangling" -eq 0 ]; then
+echo "cname-host-refs: $hostrefs  drift: $drift"
+if [ "$miss" -eq 0 ] && [ "$dangling" -eq 0 ] && [ "$drift" -eq 0 ]; then
   echo LINK-INTEGRITY-OK
 else
   echo LINK-INTEGRITY-FAIL
