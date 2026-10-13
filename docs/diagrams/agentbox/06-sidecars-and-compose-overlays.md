@@ -360,7 +360,7 @@ flowchart TB
     PIN --> F1 --> D1 --> D2 --> D3 --> L1 --> L2
     L1 --> L3 --> VOL
     VOL -.-> OPEN1["OPEN: the vault is meant to hold K_browser, not the house key,<br/>but k_browser's pubkey is still null, g5-key-split.json:16-19, and the<br/>nip98-proxy roster still admits the house key for it, agentbox.toml:1907"]
-    PIN -.-> OPEN2["OPEN: the pinned CI artefact expires on 2026-12-24, podkey.pin:11,<br/>after which a fresh fetch needs a new pin"]
+    PIN -.-> OPEN2["OPEN (RESOLVED 2026-10-12, agentbox 8fad68285): at the stamped revision the pinned CI artefact expired on 2026-12-24 (podkey.pin:11).<br/>The pin now names run 38386898958 and expires 2027-01-11, and podkey CI has workflow_dispatch so the next re-pin needs no upstream commit"]
 ```
 
 **What it shows.** The browser sidecar now carries an identity of its own. The Podkey extension is the upstream CI artefact named exactly by `podkey.pin`. It is fetched on the host and only verified and unpacked during the image build. Chrome is locked to that one extension by managed policy and loads it in whichever mode the browser supports. The Chrome profile, which holds Podkey's encrypted vault, moved from a throwaway `/tmp` path to a named volume so it survives container recreation.
