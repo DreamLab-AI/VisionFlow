@@ -39,7 +39,7 @@ sources:
   - ../project/src/uri/mod.rs
   - ../project/src/config/security_profile.rs
   - ../project/crates/visionclaw-domain/src/utils/visibility_filter.rs
-verified_commit: a6de5a421cb77fb75469dbde2dda73e6508deb47
+verified_commit: 4f43455036717302073a15ab5006a6fa05fd13b0
 ---
 
 ## VC-03.1 REST request end-to-end — nginx to handler, real middleware order
@@ -125,7 +125,7 @@ sequenceDiagram
     end
     opt signed_user is still None
         WS->>WS: token = Authorization Bearer header (http_handler.rs:183-188)
-        Note over WS: DOC-DRIFT (was "DEPRECATED ADR-2044, kept for XR/native clients") — that premise is gone.<br/>ADR-2058 confined ?token= to dev/dev-auth builds only (http_handler.rs:191-206,<br/>fastwebsockets_handler.rs:243, client_messages_handler.rs:145, mcp_relay_handler.rs:482,<br/>multi_mcp_websocket_handler.rs:799) — a RELEASE build actively REJECTS it and logs a<br/>SECURITY warning, then reads the header alone (http_handler.rs:208-218, fastwebsockets_handler.rs:261-263,<br/>mcp_relay_handler.rs:498-500, multi_mcp_websocket_handler.rs:815-817). The code's own<br/>rationale for the old "XR/native clients cannot set headers" claim is that it was WRONG —<br/>neither xr-client/rust/src/ nor client/src/services/ ever used a token= query<br/>(client_messages_handler.rs:120-126) — the Godot client authenticates post-connect via the<br/>NIP-98 authenticate envelope instead. filter_auth.rs:138 is unrelated to this — that is a<br/>WS MESSAGE BODY legacy fallback, not an upgrade query param. speech_socket_handler.rs has<br/>NO query path and does full NIP-98 verification (verify_nip98_auth, speech_socket_handler.rs:222).
+        Note over WS: DOC-DRIFT (was "DEPRECATED ADR-2044, kept for XR/native clients") — that premise is gone.<br/>ADR-2058 confined ?token= to dev/dev-auth builds only (http_handler.rs:191-206,<br/>fastwebsockets_handler.rs:243, client_messages_handler.rs:145, mcp_relay_handler.rs:482,<br/>multi_mcp_websocket_handler.rs:814) — a RELEASE build actively REJECTS it and logs a<br/>SECURITY warning, then reads the header alone (http_handler.rs:208-218, fastwebsockets_handler.rs:261-263,<br/>mcp_relay_handler.rs:498-500, multi_mcp_websocket_handler.rs:830-832). The code's own<br/>rationale for the old "XR/native clients cannot set headers" claim is that it was WRONG —<br/>neither xr-client/rust/src/ nor client/src/services/ ever used a token= query<br/>(client_messages_handler.rs:120-126) — the Godot client authenticates post-connect via the<br/>NIP-98 authenticate envelope instead. filter_auth.rs:138 is unrelated to this — that is a<br/>WS MESSAGE BODY legacy fallback, not an upgrade query param. speech_socket_handler.rs has<br/>NO query path and does full NIP-98 verification (verify_nip98_auth, speech_socket_handler.rs:222).
         alt token present and non-empty
             WS->>NS: get_session(token) (http_handler.rs:226)
             alt session found

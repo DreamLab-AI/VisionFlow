@@ -4,7 +4,7 @@ title: Server boot, AppState construction and the full route table
 area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2004, ADR-2005, ADR-2007, ADR-2008, ADR-2026, ADR-2037, ADR-2038, ADR-2045, ADR-2053]
+adrs: [ADR-2004, ADR-2005, ADR-2007, ADR-2008, ADR-2026, ADR-2037, ADR-2038, ADR-2045, ADR-2053, ADR-2091]
 sources:
   - ../project/src/main.rs
   - ../project/src/app_state.rs
@@ -68,7 +68,7 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/Cargo.toml
   - ../project/src/adapters/mod.rs
-verified_commit: 061d8cbf8cfaa34e9d4c581165f5297f23d5741e
+verified_commit: 4f43455036717302073a15ab5006a6fa05fd13b0
 ---
 
 ## VC-01.1 main() phase 1 — hygiene, logging, settings, stores
@@ -118,7 +118,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant M as main<br/>src/main.rs:172
-    participant AS as AppState::new<br/>src/app_state.rs:386
+    participant AS as AppState::new<br/>src/app_state.rs:390
     participant GH as GitHub client + ContentAPI<br/>src/services/github/config.rs
     participant CS as source_from_env_with_github<br/>src/services/corpus_source/mod.rs:157
     participant SY as GithubSyncService<br/>src/services/github_sync_service.rs:210
@@ -248,13 +248,13 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant AS as AppState::new<br/>src/app_state.rs:386
-    participant CC as ClientCoordinatorActor<br/>src/app_state.rs:686
-    participant AB as AgentBeamActor<br/>src/app_state.rs:699
-    participant MD as MetadataActor<br/>src/app_state.rs:781
-    participant GS as GraphServiceSupervisor<br/>src/app_state.rs:786
-    participant GPU as GPU actor group<br/>src/app_state.rs:939-953
-    participant SE as settings_actor<br/>src/app_state.rs:1135
+    participant AS as AppState::new<br/>src/app_state.rs:390
+    participant CC as ClientCoordinatorActor<br/>src/app_state.rs:690
+    participant AB as AgentBeamActor<br/>src/app_state.rs:703
+    participant MD as MetadataActor<br/>src/app_state.rs:785
+    participant GS as GraphServiceSupervisor<br/>src/app_state.rs:790
+    participant GPU as GPU actor group<br/>src/app_state.rs:943-957
+    participant SE as settings_actor<br/>src/app_state.rs:1139
     participant PEERS as peer actors
 
     Note over AS: pub struct AppState src/app_state.rs:269
@@ -262,8 +262,8 @@ sequenceDiagram
     AS->>AB: AgentBeamActor::new(client_manager_addr.clone()).start()
     AS->>MD: MetadataActor::new(MetadataStore::new()).start() → metadata_addr
     AS->>GS: GraphServiceSupervisor::new(graph_adapter.clone()).start() → graph_service_addr
-    AS->>GS: SetClientCoordinatorAddr { ... } (src/app_state.rs:797)
-    Note over CC,GS: INVARIANT (BASELINE Invariants) — the live ClientCoordinatorActor must be the one<br/>clients register with (registry not empty). The re-bind at :797 is what enforces it.
+    AS->>GS: SetClientCoordinatorAddr { ... } (src/app_state.rs:801)
+    Note over CC,GS: INVARIANT (BASELINE Invariants) — the live ClientCoordinatorActor must be the one<br/>clients register with (registry not empty). The re-bind at :801 is what enforces it.
     rect rgb(236,236,244)
     Note over GPU: GPU actor group — GPUManagerActor only. RESOLVED ADR-2053: the standalone<br/>ShortestPathActor and ConnectedComponentsActor spawns were removed. They were never sent<br/>a SharedGPUContext (ResourceSupervisor distributes it only to the subsystem supervisors),<br/>so every /api/analytics pathfinding route addressed a GPU-blind pair.
     AS->>GPU: GPUManagerActor::new().start()
@@ -272,27 +272,30 @@ sequenceDiagram
     end
     AS->>SE: settings_actor.start() → settings_addr
     par peer actors
-        AS->>PEERS: AgentMonitorActor::new(claude_flow_client, graph_service_addr).start() (:1158)
+        AS->>PEERS: AgentMonitorActor::new(claude_flow_client, graph_service_addr).start() (:1162)
     and
-        AS->>PEERS: ProtectedSettingsActor::new(ProtectedSettings::default()).start() (:1171)
+        AS->>PEERS: ProtectedSettingsActor::new(ProtectedSettings::default()).start() (:1175)
     and
-        AS->>PEERS: WorkspaceActor::new().start() → workspace_addr (:1174)
+        AS->>PEERS: WorkspaceActor::new().start() → workspace_addr (:1178)
     and
-        AS->>PEERS: OntologyActor.start() (:1186)
+        AS->>PEERS: OntologyActor.start() (:1190)
     and
-        AS->>PEERS: TaskOrchestratorActor::new(mgmt_client).start() (:1237)
+        AS->>PEERS: BotsClient::with_graph_service (:1195), then MultiMcpAgentDiscovery::new() (:1198) and initialize_default_servers().await (:1200) - stored as AppState.multi_mcp_discovery (field :362, struct literal :1425)
+    and
+        AS->>PEERS: TaskOrchestratorActor::new(mgmt_client).start() (:1246)
     end
-    alt ElevationActor::new(...) returns Some (src/app_state.rs:1245-1263)
+    alt ElevationActor::new(...) returns Some (src/app_state.rs:1254-1272)
         AS->>PEERS: let _ = actor.start() — ACSP knowledge-elevation panel live
         Note over PEERS: GOV-7 ADR-130 — Some(ontology_repository) is passed so the EL++ consistency<br/>gate is armed. A None here would fail the gate CLOSED, blocking approvals.
     else None
         AS->>AS: log disabled — needs ELEVATION_ACTOR_ENABLED plus FORUM_RELAY_URL plus ACSP_PANEL_NOSTR_PRIVKEY
     end
-    alt VoiceInterfaceActor::new(task_orchestrator_addr, speech_service) returns Some (:1268-1279)
+    alt VoiceInterfaceActor::new(task_orchestrator_addr, speech_service) returns Some (:1277-1288)
         AS->>PEERS: let _ = actor.start() — ADR-110 voice to settings-assistant bridge
     else None
         AS->>AS: log disabled (no speech service)
     end
+    Note over AS,PEERS: Added with project 6a1a74b8b/4f4345503 (2026-10-12) - AppState now holds the multi-MCP discovery handle: built and given its default servers at boot<br/>(src/app_state.rs:1197-1200) and handed to every /multi-mcp/ws socket (VC-05.13, which records the drift this closed). Boot does NOT start its poll loop: the first connected socket attaches and starts it (src/handlers/multi_mcp_websocket_handler.rs:417)
     Note over AS,PEERS: full supervision tree and per-actor message surfaces see VC-02
 ```
 
@@ -417,7 +420,7 @@ flowchart LR
     S --> IN["REMOVED ADR-2066 — configure_inference_routes<br/>the /api/inference scope was deleted, comment block at src/main.rs:1119<br/>every handler extracted an InferenceService that was never<br/>registered as app data, so each route 500'd at the extractor<br/>live reasoning path is GitHubSyncService::run_post_sync_reasoning"]
     S --> HE["consolidated_health_handler::configure_routes<br/>scope /health — src/handlers/consolidated_health_handler.rs:474<br/>GET '', /physics — scope /mcp POST /start, GET /logs<br/>plus a second /healthz and /readyz at :488-489"]
     S --> ME["metrics_handler::configure_routes<br/>GET /api/metrics — src/handlers/metrics_handler.rs:92"]
-    S --> MM["configure_multi_mcp_routes<br/>scope /multi-mcp — src/handlers/multi_mcp_websocket_handler.rs:843<br/>GET /ws, GET /status, POST /refresh"]
+    S --> MM["configure_multi_mcp_routes<br/>scope /multi-mcp — src/handlers/multi_mcp_websocket_handler.rs:862<br/>GET /ws only (the /status and /refresh stubs were deleted under ADR-2091)<br/>the upgrade hands the socket AppState.multi_mcp_discovery (src/handlers/multi_mcp_websocket_handler.rs:856)"]
     N["port and adapter hops behind these routes see VC-07 — GPU internals see VC-10"]
     S --- N
 ```

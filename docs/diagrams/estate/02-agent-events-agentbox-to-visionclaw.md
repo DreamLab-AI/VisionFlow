@@ -44,7 +44,7 @@ sources:
   - ../project/agentbox/docs/PROTOCOL-registry.md
   - ../project/agentbox/schema/federation-kinds.json
   - ../project/docs/explanation/visionflow-coordination-platform.md
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987}
+verified_commit: {visionclaw: 4f43455036717302073a15ab5006a6fa05fd13b0, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987}
 ---
 ## ES-02.1 Producer — POST /v1/agent-events/emit, NIP-98 gate, local publish
 ```mermaid
@@ -148,7 +148,7 @@ sequenceDiagram
         VCW-->>SUB: ctx.text {"error":"malformed_json"}
     end
     Note over HUB: INVARIANT: HUB_CAPACITY=256 tokio broadcast channel, a lagged receiver observes<br/>RecvError::Lagged(skipped) and resyncs on next frame drop-oldest no crash
-    Note over VCW: RESOLVED ADR-2084: src/agent_events/mod.rs and ingest.rs now state that the beam render<br/>actor is SHIPPED and subscribes to this hub, and that the attractive gluon transient edge is a<br/>separate deferred sub-feature (agent_beam_actor.rs:327, packed-CSR reason). The stale<br/>beam-plus-gluon Phase 2b framing is gone
+    Note over VCW: RESOLVED ADR-2084: src/agent_events/mod.rs and ingest.rs now state that the beam render<br/>actor is SHIPPED and subscribes to this hub, and that the attractive gluon transient edge is a<br/>separate deferred sub-feature. The stale<br/>beam-plus-gluon Phase 2b framing is gone. DOC-DRIFT (found 2026-10-13): mod.rs:13 and ingest.rs:11, :24 still send the reader to<br/>agent_beam_actor.rs:327 for the packed-CSR reason, but that gluon_deferral_note block was deleted by 4a3452c91 and HEAD :327 is the test module,<br/>while the comment at agent_beam_actor.rs:292 still names the deleted note
     end
 ```
 
@@ -203,7 +203,7 @@ sequenceDiagram
     participant HUB as AGENT_EVENT_HUB<br/>src/agent_events/hub.rs:24
     participant BA as AgentBeamActor<br/>src/actors/agent_beam_actor.rs:182
     participant BC as BeamCoalescer<br/>src/actors/agent_beam_actor.rs:119
-    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:474
+    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:562
 
     BA->>HUB: agent_events::hub::subscribe()<br/>src/actors/agent_beam_actor.rs:199
     loop forwarding task, empty backlog blocks on rx.recv()
@@ -240,10 +240,12 @@ sequenceDiagram
     else backlog empty
         BC-->>BA: None
     end
-    CC->>CC: client_manager.read().broadcast_to_all(frame)<br/>src/actors/client_coordinator_actor.rs:1462-1500
-    opt slow clients detected
-        CC->>CC: evict slow client via manager.unregister_client(id) (ADR-031 item 5)
+    CC->>CC: client_manager.read().broadcast_to_all(frame)<br/>src/actors/client_coordinator_actor.rs:1534-1561
+    CC->>CC: settle_broadcast_result(&broadcast_result, "agent-action frame") (ADR-031 item 5)<br/>src/actors/client_coordinator_actor.rs:1549, fn :630
+    opt closed or congested clients
+        CC->>CC: closed clients are evicted via manager.unregister_client(id) :641-647 - congested clients only skip this frame and are tracked by record_congestion :639 and evict_stalled :640
     end
+    Note over CC: Changed by d90064950 (fix(ws), after the previous stamp) - the inline slow-client eviction loop right after broadcast_to_all became settle_broadcast_result,<br/>which evicts closed clients at once, only skips a frame for a congested one, and calls evict_stalled on every broadcast (src/actors/client_coordinator_actor.rs:630-649, evict_stalled :329)<br/>to unregister a client that has stayed congested for its stall timeout
     Note over BC: INVARIANT: past MAX_PENDING_ACTIONS=256 the OLDEST buffered action is evicted and<br/>dropped_total incremented - never a silent drop-and-spam
 ```
 
@@ -275,9 +277,9 @@ classDiagram
       Transform = 5
     }
     AgentActionEvent --> AgentActionType : action_type
-    note for AgentActionEvent "single frame src/utils/binary_protocol.rs:1554-1564: byte0=0x23 tag, then<br/>AGENT_ACTION_HEADER_SIZE=15 bytes: [0-3]source_agent_id [4-7]target_node_id [8]action_type<br/>[9-12]timestamp [13-14]duration_ms, then variable payload - all multi-byte fields<br/>little-endian"
-    note for AgentActionEvent "batch frame src/utils/binary_protocol.rs:1645-1665: [0]0x23 tag [1-2]u16 event_count, then<br/>per-event: [u16 event_len][event bytes minus its own tag byte] repeated event_count times"
-    note for AgentActionEvent "decode_agent_actions src/utils/binary_protocol.rs:1668 rejects<br/>data.len()>MAX_PAYLOAD_SIZE at :1673, the 10MB const at :64, before parsing any event"
+    note for AgentActionEvent "single frame src/utils/binary_protocol.rs:1561-1571: byte0=0x23 tag, then<br/>AGENT_ACTION_HEADER_SIZE=15 bytes: [0-3]source_agent_id [4-7]target_node_id [8]action_type<br/>[9-12]timestamp [13-14]duration_ms, then variable payload - all multi-byte fields<br/>little-endian"
+    note for AgentActionEvent "batch frame src/utils/binary_protocol.rs:1652-1672: [0]0x23 tag [1-2]u16 event_count, then<br/>per-event: [u16 event_len][event bytes minus its own tag byte] repeated event_count times"
+    note for AgentActionEvent "decode_agent_actions src/utils/binary_protocol.rs:1675 rejects<br/>data.len()>MAX_PAYLOAD_SIZE at :1680, the 10MB const at :63, before parsing any event"
 ```
 
 ## ES-02.6 Client render — decode, beam store, DIVERGENCE beam+gluon vs class_charge
@@ -307,15 +309,15 @@ sequenceDiagram
     STORE->>STORE: pushBeams: clampDuration (MIN_BEAM_DURATION_MS=400, DEFAULT=1500), FIFO cap MAX_TRANSIENT_BEAMS=256<br/>client/src/store/transientBeamStore.ts:57-61,25
     LAYER->>STORE: useTransientBeams() reads beams, calls pruneExpired() every frame
     LAYER->>LAYER: render coloured cylinder agent-node -> KG-node, opacity fade-in/hold/fade-out over durationMs, shape by action_type
-    Note over LAYER: DIVERGENCE: render is a beam coloured cylinder only, no attractive gluon edge is wired.<br/>archived draft ADR docs/archive/adr/ADR-059-bidirectional-agent-channel-server.md rationale<br/>only specified a class_charge-modulation gluon, retracted because class_charge is bulk<br/>ontology-clustering metadata uploaded whole-array at construction<br/>src/utils/unified_gpu_compute/construction.rs:64,345 memory.rs:84 upload_class_metadata<br/>execution.rs:917 with no per-node update path
-    Note over LAYER: DIVERGENCE: src/actors/agent_beam_actor.rs:327-363 documents the transient-attractive-edge<br/>mechanism gluon as DEFERRED, no UpsertTransientEdge GPU message exists, CSR edge buffers<br/>have no incremental insert path agent_beam_actor.rs:336-349, only the beam ships today
+    Note over LAYER: DIVERGENCE: render is a beam coloured cylinder only, no attractive gluon edge is wired.<br/>archived draft ADR docs/archive/adr/ADR-059-bidirectional-agent-channel-server.md rationale<br/>only specified a class_charge-modulation gluon, retracted because class_charge is bulk<br/>ontology-clustering metadata uploaded whole-array at construction<br/>src/utils/unified_gpu_compute/construction.rs:63,342 memory.rs:84 upload_class_metadata<br/>execution.rs:913 with no per-node update path
+    Note over LAYER: DIVERGENCE: the transient-attractive-edge gluon is still DEFERRED and only the beam ships today. DOC-DRIFT: the rationale block this note used to cite<br/>(agent_beam_actor.rs gluon_deferral_note, four reasons including no incremental CSR insert) was deleted by 4a3452c91, so only the comment at agent_beam_actor.rs:292<br/>and the module docs (ingest.rs:11, mod.rs:13) assert the deferral. Still true in code: no UpsertTransientEdge message exists in src/, and edges reach the GPU<br/>as a wholesale packed CSR upload (memory.rs:204 upload_edges_csr, :750 initialize_graph, reallocation :435 resize_buffers)
 ```
 
 ## ES-02.7 LEGACY — :9500 MCP-TCP relay lifecycle (docker-exec supervision)
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CALL as ensure_mcp_ready<br/>src/services/mcp_relay_manager.rs:277
+    participant CALL as ensure_mcp_ready<br/>src/services/mcp_relay_manager.rs:280
     participant MGR as McpRelayManager<br/>src/services/mcp_relay_manager.rs:13
     participant CB as CircuitBreaker<br/>src/services/mcp_relay_manager.rs:14
     participant DOCKER as docker exec multi-agent-container
@@ -349,7 +351,7 @@ sequenceDiagram
         MGR->>DOCKER: health_manager.check_service_now("mcp-relay")
     end
     Note over MGR: INVARIANT: RetryableError classifies DockerCommandFailed/HealthCheckFailed/Timeout as<br/>retryable, ContainerNotFound as terminal
-    Note over MGR: RESOLVED ADR-2090 — the /ws/mcp-relay upgrade (mcp_relay_handler.rs, route<br/>src/main.rs:1091) and /multi-mcp/ws (multi_mcp_websocket_handler.rs) previously accepted<br/>ANY non-empty string as a credential: neither referenced NostrService at all, and the sole<br/>gate was .is_empty(), so ?token=x opened the socket. Both now resolve the token through<br/>NostrService::get_session and fail closed on absent token, absent service, or a token that<br/>names no live unexpired session. Found by vc-core, fixed here as owner. see ADR-2044
+    Note over MGR: RESOLVED ADR-2090 — the /ws/mcp-relay upgrade (mcp_relay_handler.rs, route<br/>src/main.rs:1099) and /multi-mcp/ws (multi_mcp_websocket_handler.rs) previously accepted<br/>ANY non-empty string as a credential: neither referenced NostrService at all, and the sole<br/>gate was .is_empty(), so ?token=x opened the socket. Both now resolve the token through<br/>NostrService::get_session and fail closed on absent token, absent service, or a token that<br/>names no live unexpired session. Found by vc-core, fixed here as owner. see ADR-2044
     Note over MGR: RESOLVED ADR-2090 amendment / ADR-2058 — the ?token= query carrier is now<br/>DEV-ONLY on both sockets: compiled out of release behind cfg(any(debug_assertions,<br/>feature="dev-auth")), with a SECURITY warning on the dev arm and a SECURITY rejection<br/>warning on the release arm. The Authorization header is the only release carrier, so the<br/>bearer stops reaching access logs, proxy logs and Referer. Clients that cannot set headers<br/>use the post-connect NIP-98 authenticate envelope (kind 27235). Both cfg arms type-checked
     Note over MGR: RESOLVED ADR-2091 — the /multi-mcp scope also served two REST routes that<br/>returned FICTION: GET /status (get_mcp_server_status) emitted a hardcoded server list<br/>claiming claude-flow is_connected:true with agent_count:4, never querying anything, and<br/>POST /refresh (refresh_mcp_discovery) reported "Discovery refresh initiated" while doing<br/>nothing. Both took _app_state unused. Both REMOVED with their registrations — zero callers<br/>in src/, client/ or xr-client/. Real state lives in multi_mcp_agent_discovery.rs (ES-02.9)
     end
@@ -376,8 +378,8 @@ sequenceDiagram
     end
     loop tokio interval 2s (Duration::from_secs(2))<br/>src/services/bots_client.rs:187
         BC->>TCP: query_agent_list()
-        TCP->>TCP: try_send_request(method:"agent_list", params:{filter:"all",include_metadata:true})<br/>src/utils/mcp_tcp_client.rs:291-299
-        TCP->>SRV: TcpStream write_all JSON-RPC 2.0 request + newline<br/>src/utils/mcp_tcp_client.rs:242-246
+        TCP->>TCP: try_send_request(method:"agent_list", params:{filter:"all",include_metadata:true})<br/>src/utils/mcp_tcp_client.rs:293-301
+        TCP->>SRV: TcpStream write_all JSON-RPC 2.0 request + newline<br/>src/utils/mcp_tcp_client.rs:244-248
         TCP->>SRV: BufReader.read_line() with self.timeout (10s)
         alt response line received before timeout
             SRV-->>TCP: {"jsonrpc":"2.0","result":[...],"id":N}
@@ -398,24 +400,25 @@ sequenceDiagram
             BC->>BC: clear stored agents (agents_lock.clear())
         end
     end
-    Note over TCP: RESOLVED ADR-2084: ingest.rs no longer calls this deprecated. It is documented as legacy<br/>but LOAD-BEARING - the sole source of agent state snapshots (query_agent_list), constructed at<br/>app_state.rs:1221 with a boot poll, no replacement built. ADR-2084 stages the WS cutover with an<br/>acceptance test rather than implying one already exists
+    Note over TCP: RESOLVED ADR-2084: ingest.rs no longer calls this deprecated. It is documented as legacy<br/>but LOAD-BEARING - the sole source of agent state snapshots (query_agent_list), constructed at<br/>app_state.rs:1195 with a boot poll, no replacement built. ADR-2084 stages the WS cutover with an<br/>acceptance test rather than implying one already exists
 ```
 
-## ES-02.9 LEGACY — multi-MCP agent discovery, concurrent fan-out poll
+## ES-02.9 LEGACY — multi-MCP agent discovery, concurrent fan-out poll, run only while a /multi-mcp/ws socket is attached
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CALLER as start_discovery caller
-    participant DISC as MultiMcpAgentDiscovery<br/>src/services/multi_mcp_agent_discovery.rs:100
-    participant CF as claude-flow server<br/>MCP_TCP_PORT default 9500
-    participant RS as ruv-swarm server<br/>RUV_SWARM_PORT default 9501
-    participant DAA as DAA server<br/>src/services/multi_mcp_agent_discovery.rs:161-167
+    participant CALLER as sync_running<br/>src/services/multi_mcp_agent_discovery.rs:174
+    participant DISC as MultiMcpAgentDiscovery<br/>src/services/multi_mcp_agent_discovery.rs:101
+    participant CF as claude-flow server<br/>CLAUDE_FLOW_HOST default localhost, MCP_TCP_PORT default 9500
+    participant RS as ruv-swarm server<br/>RUV_SWARM_PORT default 9501, enabled only when set
+    participant DAA as DAA server<br/>src/services/multi_mcp_agent_discovery.rs:244-248, enabled only when set
 
-    CALLER->>DISC: start_discovery()<br/>src/services/multi_mcp_agent_discovery.rs:169
+    Note over CALLER,DISC: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - this diagram used to open with an unnamed start_discovery caller because nothing constructed the service.<br/>AppState::new now builds it and initialises the default servers (src/app_state.rs:1197-1200), and each /multi-mcp/ws socket attaches and calls sync_running (VC-05.13)
+    CALLER->>DISC: attach() then sync_running() which calls start_discovery()<br/>src/services/multi_mcp_agent_discovery.rs:160, :174-183, :288
     alt discovery_running already true
-        DISC-->>CALLER: warn Discovery already running, return
+        DISC-->>CALLER: warn Discovery already running, return<br/>src/services/multi_mcp_agent_discovery.rs:290-293
     end
-    loop while discovery_running :226, sleep derived per ADR-2083 by<br/>select_discovery_interval_ms :45, called at src/services/multi_mcp_agent_discovery.rs:232
+    loop while discovery_running and this loop's own epoch is current :317, sleep derived per ADR-2083 by<br/>select_discovery_interval_ms :46, called at src/services/multi_mcp_agent_discovery.rs:323
         par concurrent per enabled server (futures::future::join_all)
             DISC->>CF: discover_claude_flow_agents(config)
             CF-->>DISC: Ok((server_info, agents, topology)) or Err
@@ -427,12 +430,16 @@ sequenceDiagram
             DAA-->>DISC: Ok(...) or Err
         end
         alt server discovery Ok
-            DISC->>DISC: insert into discovered_agents/server_statuses/topology_data, stats.successful_discoveries+=1 :266,<br/>average_discovery_time_ms rolling avg src/services/multi_mcp_agent_discovery.rs:268-270
+            DISC->>DISC: insert into discovered_agents/server_statuses/topology_data, stats.successful_discoveries+=1 :357,<br/>average_discovery_time_ms rolling avg src/services/multi_mcp_agent_discovery.rs:359-361
         else server discovery Err
-            DISC->>DISC: stats.failed_discoveries+=1, server_info.is_connected=false<br/>src/services/multi_mcp_agent_discovery.rs:235-247
+            DISC->>DISC: stats.failed_discoveries+=1 :373, server_info.is_connected=false :394,<br/>entry inserted when absent so a first-cycle failure is visible src/services/multi_mcp_agent_discovery.rs:382-393
         end
     end
-    Note over DISC: RESOLVED ADR-2083: discovery_interval_ms is now READ. select_discovery_interval_ms<br/>(:45) takes the MINIMUM across ENABLED servers so each is polled at least as often as it<br/>asked, floored at MIN_DISCOVERY_INTERVAL_MS 250 so a misconfigured 0 cannot busy-poll, with<br/>DEFAULT_DISCOVERY_INTERVAL_MS 5000 when no server is enabled. The hardcoded 1000ms sleep is<br/>gone - the loop now sleeps sleep_ms (:232 derived, :303 applied). Routed from vc-knowledge
+    Note over DISC: RESOLVED ADR-2083: discovery_interval_ms is now READ. select_discovery_interval_ms<br/>(:46) takes the MINIMUM across ENABLED servers so each is polled at least as often as it<br/>asked, floored at MIN_DISCOVERY_INTERVAL_MS 250 so a misconfigured 0 cannot busy-poll, with<br/>DEFAULT_DISCOVERY_INTERVAL_MS 5000 when no server is enabled. The hardcoded 1000ms sleep is<br/>gone - the loop now sleeps sleep_ms (:323 derived, :416-419 applied). Routed from vc-knowledge
+    rect rgb(255,235,235)
+    Note over DISC: OPEN: ruv-swarm and daa are enabled only when RUV_SWARM_HOST or RUV_SWARM_PORT, DAA_HOST or DAA_PORT is non-empty (src/services/multi_mcp_agent_discovery.rs:232, :249).<br/>They have no confirmed endpoint in this estate, and nothing was observed against a live claude-flow hub
+    Note over DISC: TENSION: the discovery doc comment says claude-flow shares CLAUDE_FLOW_HOST/MCP_TCP_PORT with BotsClient (src/services/multi_mcp_agent_discovery.rs:131), yet its host falls back to localhost (src/services/multi_mcp_agent_discovery.rs:210) while BotsClient falls back to MCP_HOST then<br/>multi-agent-container (src/services/bots_client.rs:120-122), so with CLAUDE_FLOW_HOST unset the two pollers target different hosts on port 9500
+    end
 ```
 
 ## ES-02.10 REVERSE — VisionClaw calling agentbox: task lifecycle family
@@ -445,7 +452,7 @@ sequenceDiagram
 
     rect rgb(230,245,232)
     Note over VC,TASKS: TRUST BOUNDARY: VisionClaw container -> agentbox management-api, http://agentic-workstation:9090
-    VC->>TASKS: POST /v1/tasks {agent,task,provider,claude_flow_agent_id?,user_context?,with_beads?,parent_bead_id?}<br/>Authorization: Bearer api_key<br/>src/services/management_api_client.rs:207-239 -> agentbox/management-api/routes/tasks.js:16
+    VC->>TASKS: POST /v1/tasks {agent,task,provider,claude_flow_agent_id?,user_context?,with_beads?,parent_bead_id?}<br/>Authorization: Bearer api_key<br/>src/services/management_api_client.rs:219-249 -> agentbox/management-api/routes/tasks.js:16
     TASKS->>AUTH: authMiddleware(request)
     alt Bearer token matches API_KEY (authMode allows bearer)
         AUTH-->>TASKS: request.auth = bearerResult
@@ -456,13 +463,13 @@ sequenceDiagram
     else authMode=strict-nip98, Bearer present, no Nostr header
         AUTH-->>TASKS: 401 {message:"Auth mode is strict-nip98 - Bearer tokens are not accepted"}
     end
-    VC->>TASKS: GET /v1/tasks/:taskId<br/>src/services/management_api_client.rs:321-350 -> agentbox/management-api/routes/tasks.js:107
+    VC->>TASKS: GET /v1/tasks/:taskId<br/>src/services/management_api_client.rs:334-362 -> agentbox/management-api/routes/tasks.js:107
     TASKS-->>VC: 200 TaskStatus{status:Running|Completed|Failed,exit_code?,claude_flow_agent_id?} or 4xx ApiError
-    VC->>TASKS: GET /v1/tasks<br/>src/services/management_api_client.rs:351-385 -> agentbox/management-api/routes/tasks.js:163
+    VC->>TASKS: GET /v1/tasks<br/>src/services/management_api_client.rs:364-398 -> agentbox/management-api/routes/tasks.js:163
     TASKS-->>VC: 200 TaskListResponse{active_tasks:List~TaskInfo~,count}
-    VC->>TASKS: DELETE /v1/tasks/:taskId<br/>src/services/management_api_client.rs:420-446 -> agentbox/management-api/routes/tasks.js:203
+    VC->>TASKS: DELETE /v1/tasks/:taskId<br/>src/services/management_api_client.rs:433-458 -> agentbox/management-api/routes/tasks.js:203
     TASKS-->>VC: 200 (stopped) or ApiError
-    Note over VC: family: create_task/create_task_with_context, get_task_status, list_tasks, stop_task all<br/>share identical Bearer-header + StatusCode-match + ApiError(text,status) shape -<br/>src/services/management_api_client.rs:207-446
+    Note over VC: family: create_task/create_task_with_context, get_task_status, list_tasks, stop_task all<br/>share identical Bearer-header + StatusCode-match + ApiError(text,status) shape -<br/>src/services/management_api_client.rs:219-458
     end
 ```
 
@@ -475,21 +482,21 @@ sequenceDiagram
     participant STA as status route<br/>agentbox/management-api/routes/status.js:12
     participant HLT as GET /health<br/>agentbox/management-api/server.js:581
 
-    VC->>BRF: POST /v1/briefs {content,roles,user_context}<br/>src/services/management_api_client.rs:478-533
+    VC->>BRF: POST /v1/briefs {content,roles,user_context}<br/>src/services/management_api_client.rs:491-546
     BRF-->>VC: 201/200 BriefResponse{brief_id,brief_path,bead_id?} or ApiError
-    VC->>BRF: POST /v1/briefs/:brief_id/execute {brief_path,roles,user_context,epic_bead_id?}<br/>src/services/management_api_client.rs:534-583
+    VC->>BRF: POST /v1/briefs/:brief_id/execute {brief_path,roles,user_context,epic_bead_id?}<br/>src/services/management_api_client.rs:547-596
     BRF-->>VC: 202/200 ExecuteBriefResponse.role_tasks:List~RoleTask~ or ApiError
-    VC->>BRF: POST /v1/briefs/:brief_id/debrief {role_responses,user_context}<br/>src/services/management_api_client.rs:584-630
+    VC->>BRF: POST /v1/briefs/:brief_id/debrief {role_responses,user_context}<br/>src/services/management_api_client.rs:597-642
     BRF-->>VC: 201/200 DebriefResponse{debrief_path} or ApiError
-    VC->>STA: GET /v1/status (Bearer auth)<br/>src/services/management_api_client.rs:447-477
+    VC->>STA: GET /v1/status (Bearer auth)<br/>src/services/management_api_client.rs:460-490
     STA-->>VC: 200 SystemStatus{api,tasks,gpu?,providers,system} or ApiError
-    VC->>HLT: GET /health (no Authorization header sent)<br/>src/services/management_api_client.rs:631-642
+    VC->>HLT: GET /health (no Authorization header sent)<br/>src/services/management_api_client.rs:644-655
     alt Fastify preValidation hook exempts /health from auth<br/>agentbox/management-api/server.js:234-238
         HLT-->>VC: 200 -> health_check() Ok(true)
     else non-200
         HLT-->>VC: Ok(false)
     end
-    Note over VC,BRF: family: create_brief/execute_brief/create_debrief share identical Bearer + StatusCode-match<br/>+ ApiError(text,status) shape - src/services/management_api_client.rs:477-630
+    Note over VC,BRF: family: create_brief/execute_brief/create_debrief share identical Bearer + StatusCode-match<br/>+ ApiError(text,status) shape - src/services/management_api_client.rs:491-642
     Note over BRF: RESOLVED ADR-2085/2072 (2026-09-05): all three routes now exist in<br/>agentbox/management-api/routes/briefing.js, registered at management-api/server.js:1267.<br/>Brief documents and the durable brief record go through the pods adapter slot, the epic and<br/>role child beads through the beads slot, and every identifier is minted via lib/uris.js.<br/>The execute step is gated by the same ADR-2041 action pipeline as POST /v1/tasks and fails<br/>closed with 503 when the execution journal has no live events adapter.<br/>Activation is staged - the routes go live at the next image rebuild.
 ```
 

@@ -29,7 +29,7 @@ sources:
   - ../project/src/agent_events/schema.rs
   - ../project/src/agent_events/provenance.rs
   - ../project/src/main.rs
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
+verified_commit: {visionclaw: 4f43455036717302073a15ab5006a6fa05fd13b0}
 ---
 
 ## VC-27.1 BotsClient — legacy `:9500` MCP-TCP poller (superseded path)
@@ -39,7 +39,7 @@ sequenceDiagram
     autonumber
     participant Caller as caller<br/>src/services/bots_client.rs:138
     participant BC as BotsClient<br/>src/services/bots_client.rs:113
-    participant MCP as McpTcpClient<br/>utils/mcp_tcp_client.rs:24, test_connection() :776,<br/>initialize_session() :789, query_agent_list() :291
+    participant MCP as McpTcpClient<br/>utils/mcp_tcp_client.rs:24, test_connection() :778,<br/>initialize_session() :791, query_agent_list() :293
     participant GSS as GraphServiceSupervisor<br/>actors/graph_service_supervisor.rs:421
 
     Caller->>BC: connect(_bots_url) - bots_client.rs:144
@@ -75,41 +75,41 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Caller as ensure_mcp_ready()<br/>src/services/mcp_relay_manager.rs:277
-    participant MRM as McpRelayManager<br/>mcp_relay_manager.rs:43
-    participant CB as CircuitBreaker<br/>failure_threshold=3, recovery_timeout=30s (:45-53)
+    participant Caller as ensure_mcp_ready()<br/>src/services/mcp_relay_manager.rs:280
+    participant MRM as McpRelayManager<br/>mcp_relay_manager.rs:41
+    participant CB as CircuitBreaker<br/>failure_threshold=3, recovery_timeout=30s (:43-51)
     participant Docker as docker exec<br/>multi-agent-container
 
-    Caller->>MRM: check_mcp_container() - :265
+    Caller->>MRM: check_mcp_container() - :262
     Docker-->>MRM: docker ps -q -f name=multi-agent-container
     alt container absent
-        MRM-->>Caller: Err("multi-agent-container is not running") - :279
+        MRM-->>Caller: Err("multi-agent-container is not running") - :282
     else container present
-        Caller->>MRM: ensure_relay_running() - :160
-        MRM->>MRM: health_manager.check_service_now("mcp-relay") - :161
-        MRM->>CB: execute(check_relay_status_internal) - :64-73
-        CB->>Docker: exec multi-agent-container pgrep -f mcp-server - mcp_relay_manager.rs:92-94
+        Caller->>MRM: ensure_relay_running() - :157
+        MRM->>MRM: health_manager.check_service_now("mcp-relay") - :158
+        MRM->>CB: execute(check_relay_status_internal) - :61-70
+        CB->>Docker: exec multi-agent-container pgrep -f mcp-server - mcp_relay_manager.rs:89-91
         alt pgrep succeeds (already running)
             Docker-->>MRM: status.success()=true
-            MRM-->>Caller: Ok(()) - :175-177
+            MRM-->>Caller: Ok(()) - :172-174
         else not running
-            MRM->>Docker: exec -d multi-agent-container bash -c 'cd /app then npm run mcp:start' - :181-190
-            MRM->>MRM: std::thread::sleep(2s) - :197
-            MRM->>Docker: re-check pgrep - :199
+            MRM->>Docker: exec -d multi-agent-container bash -c 'cd /app then npm run mcp:start' - :178-187
+            MRM->>MRM: std::thread::sleep(2s) - :194
+            MRM->>Docker: re-check pgrep - :196
             alt now running
                 MRM-->>Caller: Ok(())
             else still failing
-                MRM-->>Caller: Err("MCP relay started but not running") - :202
+                MRM-->>Caller: Err("MCP relay started but not running") - :199
             end
         end
-        Caller->>Caller: tokio::time::sleep(1s) - :286
+        Caller->>Caller: tokio::time::sleep(1s) - :289
     end
     par background health loop
-        loop every 30s (start_health_monitoring, :244-247)
-            MRM->>MRM: health_manager.check_service_now("mcp-relay") - :249
+        loop every 30s (start_health_monitoring, :241-244)
+            MRM->>MRM: health_manager.check_service_now("mcp-relay") - :246
         end
     end
-    Note over MRM,CB: INVARIANT: CircuitBreakerConfig failure_rate_threshold=0.5, success_threshold=2,<br/>half_open_max_requests=3, minimum_request_threshold=5 (:45-53)
+    Note over MRM,CB: INVARIANT: CircuitBreakerConfig failure_rate_threshold=0.5, success_threshold=2,<br/>half_open_max_requests=3, minimum_request_threshold=5 (:43-51)
 ```
 
 ## VC-27.3 MCPRelayActor — `/ws/mcp-relay` session lifecycle (connect/retry/teardown)
@@ -118,19 +118,21 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Client as WS client
-    participant H as mcp_relay_handler()<br/>src/handlers/mcp_relay_handler.rs:442
+    participant H as mcp_relay_handler()<br/>src/handlers/mcp_relay_handler.rs:438
     participant A as MCPRelayActor<br/>mcp_relay_handler.rs:39, Actor impl :200
     participant O as Orchestrator WS<br/>ORCHESTRATOR_WS_URL default ws://multi-agent-container:3002/ws (:77-78)
 
-    Client->>H: GET /ws/mcp-relay (upgrade) - main.rs:1083
-    H->>H: extract Bearer token or ?token= - :452-463
-    alt token empty
-        H-->>Client: 401 "Authentication required" - :474-476
-        Note over H: SECURITY: logged but not yet enforced on all clients (:447-450)
-    else token present
-        H->>A: ws::start(MCPRelayActor::new()) - :479
-        A->>A: started() - register health endpoint, run_interval 30s ping+check (:209-233)
-        A->>A: run_interval 60s circuit-breaker stats log (:235-251)
+    Client->>H: GET /ws/mcp-relay (upgrade) - main.rs:1099
+    H->>H: header_token = Authorization Bearer - :475-480 (the ?token= carrier is dev-only :482-494, a release build drops it :496-505)
+    alt no token
+        H-->>Client: 401 "Authentication required" via the unauthorised closure - :459-467, :507-510
+    else NostrService absent or get_session finds no live session
+        H-->>Client: 401 fail-closed - :514-516, :518-520
+        Note over H: RESOLVED ADR-2090 - the old note here said the token check was logged but not enforced.<br/>The upgrade now resolves the token through NostrService::get_session before ws::start (:445-452), see VC-05.12
+    else token names a live session
+        H->>A: ws::start(MCPRelayActor::new()) - :523
+        A->>A: started() - register the orchestrator health endpoint :209-219, run_interval 30s ping+check (:221-232)
+        A->>A: run_interval 60s circuit-breaker stats log (:234-250)
         A->>O: connect_to_orchestrator() - circuit_breaker.execute(connect_async, timeout) (:94-113)
         alt connect ok
             O-->>A: ws_stream split into tx/rx - :121-125
@@ -142,56 +144,64 @@ sequenceDiagram
         else connect fails or times out
             A->>A: retry_delay = min(5s * 2^(attempts-1), 60s) - :186-189
             A->>A: sleep(retry_delay) then do_send("retry") - :192-193
-            A->>A: connect_to_orchestrator() again - :276-277
+            A->>A: connect_to_orchestrator() again - :275-276
         end
     end
     Client->>A: ws::Message::Text (JSON)
     alt type == "ping"
-        A-->>Client: {"type":"pong", timestamp} - :320-328
+        A-->>Client: {"type":"pong", timestamp} - :320-326
     else forward to orchestrator
         alt orchestrator_tx set and healthy
-            A->>O: send Text/Binary, 5s timeout (:355-372,404-421)
+            A->>O: send Text (:350-370) or Binary (:399-419), 5s timeout
         else unhealthy or absent
-            A-->>Client: {"type":"error", message} - :337-346,375-384
+            A-->>Client: {"type":"error", message} - :333-342,373-380
         end
     end
     Client->>A: ws::Message::Close
-    A->>A: ctx.stop() - :427
-    A->>A: stopped() logs - :256-258
+    A->>A: ctx.stop() - :424
+    A->>A: stopped() logs - :255-257
 ```
 
-## VC-27.4 MultiMcpAgentDiscovery — per-server agent + tool discovery
+## VC-27.4 MultiMcpAgentDiscovery — per-server agent + tool discovery, polled only while a socket is attached
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Caller as start_discovery()<br/>src/services/multi_mcp_agent_discovery.rs:207
-    participant D as MultiMcpAgentDiscovery<br/>multi_mcp_agent_discovery.rs:62
-    participant CF as claude-flow server<br/>host=CLAUDE_FLOW_HOST port=MCP_TCP_PORT default 9500 (:129-133)
-    participant RS as ruv-swarm server<br/>host=RUV_SWARM_HOST port=RUV_SWARM_PORT default 9501 (:146-150)
-    participant DAA as daa server<br/>host=DAA_HOST port=DAA_PORT default 9502 (:163-167)
+    participant Sync as sync_running<br/>src/services/multi_mcp_agent_discovery.rs:174
+    participant D as MultiMcpAgentDiscovery<br/>multi_mcp_agent_discovery.rs:101
+    participant CF as claude-flow server<br/>host=CLAUDE_FLOW_HOST (default localhost) port=MCP_TCP_PORT default 9500 (:210-214)
+    participant RS as ruv-swarm server<br/>host=RUV_SWARM_HOST port=RUV_SWARM_PORT default 9501 (:227-231)
+    participant DAA as daa server<br/>host=DAA_HOST port=DAA_PORT default 9502 (:244-248)
 
-    Caller->>D: initialize_default_servers() - :121-179
-    D->>D: insert claude-flow/ruv-swarm/daa McpServerConfig - :124-173
-    Caller->>D: start_discovery() - :207
-    loop while discovery_running (tokio::spawn, :225-304)
-        par concurrent per enabled server (:235-295)
-            D->>CF: discover_server_agents -> discover_claude_flow_agents - :335-336,346-407
-            CF-->>D: query_server_info / query_agent_list / query_swarm_status - :376,397,420
-            D->>RS: discover_ruv_swarm_agents - :337,434-526
-            RS-->>D: same three-call pattern, server_type=RuvSwarm - :464,490,513
-            D->>DAA: discover_daa_agents - :338,527-609
-            DAA-->>D: same pattern, server_type=Daa - :557,582,602
+    Note over Sync,D: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - this diagram used to show start_discovery() driven by an unnamed Caller, because nothing constructed the service.<br/>AppState::new now builds it and runs initialize_default_servers (src/app_state.rs:1197-1200), and every /multi-mcp/ws socket attaches and calls sync_running (VC-05.13)
+    Sync->>D: initialize_default_servers() once at boot - :202-260 (called at src/app_state.rs:1200)
+    D->>D: insert claude-flow :205-220 (enabled :215), ruv-swarm :222-237 (enabled only if env_configured :232), daa :239-254 (enabled only if env_configured :249) - env_configured :134-137
+    Sync->>D: attach() :160 and detach() :165 move the subscriber count synchronously, sync_running :174-183 starts or stops the loop to match
+    D->>D: start_discovery :288 - epoch bumped :297, wake notified :298, so a quick restart leaves one loop
+    loop while running and this loop's epoch is current (tokio::spawn multi_mcp_agent_discovery.rs:314-425, condition :317)
+        par concurrent per enabled server (multi_mcp_agent_discovery.rs:326-401)
+            D->>CF: discover_server_agents :443 -> discover_claude_flow_agents - :463, :473-559
+            CF-->>D: query_server_info / query_agent_list / query_swarm_status - :503,524,547
+            D->>RS: discover_ruv_swarm_agents - :464, :561-652
+            RS-->>D: same three-call pattern, server_type=RuvSwarm - :591,617,640
+            D->>DAA: discover_daa_agents - :465, :654-741
+            DAA-->>D: same pattern, server_type=Daa - :684,709,729
         end
         alt discover_server_agents Ok
-            D->>D: insert server_info/agents/topology, successful_discoveries+=1 - :246-271
+            D->>D: insert server_info/agents/topology, successful_discoveries+=1 - :338-368
         else Err (connect/timeout)
-            D->>D: failed_discoveries+=1, is_connected=false - :278-291
+            D->>D: failed_discoveries+=1, is_connected=false, entry inserted if absent so a first-cycle failure is visible - :369-397
         end
-        D->>D: tokio::time::sleep(sleep_ms) - :303
+        D->>D: cycles += 1 :404, epoch recheck :408, then select between sleep(sleep_ms) and wake - :416-419
     end
-    Note over D,CF: RESOLVED ADR-2083 (estate) - WIRED, not removed: the per-server values are deliberate, so the<br/>loop now sleeps the minimum interval across ENABLED servers (select_discovery_interval_ms :232), with a named<br/>MIN_DISCOVERY_INTERVAL_MS floor so a misconfigured 0 cannot spin it, and a named fallback when no server is<br/>enabled. The flat 1000ms sleep is gone (:299-303).
-    Note over CF,DAA: supported_tools fallback differs per server when query_server_info fails:<br/>claude-flow=[agent_list,swarm_status,server_info] (multi_mcp_agent_discovery.rs:387-391),<br/>ruv-swarm and daa each have their own equivalent fallback list in their own discover_*_agents function
+    D->>D: stop_discovery :428-441 - running=false, epoch bumped :432, caches cleared :437-439
+    Note over D,CF: RESOLVED ADR-2083 (estate) - WIRED, not removed: the per-server values are deliberate, so the<br/>loop now sleeps the minimum interval across ENABLED servers (select_discovery_interval_ms :46, called :323), with a named<br/>MIN_DISCOVERY_INTERVAL_MS floor so a misconfigured 0 cannot spin it, and a named fallback when no server is<br/>enabled. The flat 1000ms sleep is gone (:416-419).
+    Note over CF,DAA: supported_tools fallback differs per server when query_server_info fails:<br/>claude-flow=[agent_list,swarm_status,server_info] (multi_mcp_agent_discovery.rs:514-518),<br/>ruv-swarm (:605) and daa (:698) each have their own equivalent fallback list in their own discover_*_agents function
+    rect rgb(255,235,235)
+    Note over D,DAA: OPEN: ruv-swarm and daa have no confirmed endpoint in this estate and stay disabled unless RUV_SWARM_* or DAA_* are set (:232, :249).<br/>None of this was observed against a live claude-flow hub
+    Note over D,DAA: TENSION: the doc comment claims claude-flow shares CLAUDE_FLOW_HOST/MCP_TCP_PORT with BotsClient (multi_mcp_agent_discovery.rs:131), yet the host falls back to localhost here (multi_mcp_agent_discovery.rs:210) but to MCP_HOST, then multi-agent-container, for BotsClient<br/>(src/services/bots_client.rs:120-122), so with CLAUDE_FLOW_HOST unset the two pollers target different hosts on port 9500
+    Note over D,DAA: DEBT: DiscoveryStats total_discoveries :91, total_agents_discovered :94, servers_online :97 and servers_offline :98 are declared but never written<br/>by this loop, which updates only successful_discoveries :357, failed_discoveries :373 and last_discovery_time :358
+    end
 ```
 
 ## VC-27.5 MultiMcpVisualizationWs — `/multi-mcp/ws` session and opcodes
@@ -200,49 +210,64 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Client as WS client
-    participant H as multi_mcp_visualization_ws()<br/>src/handlers/multi_mcp_websocket_handler.rs:823
-    participant Ws as MultiMcpVisualizationWs<br/>multi_mcp_websocket_handler.rs:473 (Actor::started)
+    participant H as multi_mcp_visualization_ws()<br/>src/handlers/multi_mcp_websocket_handler.rs:771
+    participant Ws as MultiMcpVisualizationWs<br/>multi_mcp_websocket_handler.rs:408 (Actor::started)
+    participant DS as MultiMcpAgentDiscovery<br/>src/services/multi_mcp_agent_discovery.rs:101
 
-    Client->>H: GET /multi-mcp/ws (upgrade) - configure_multi_mcp_routes :911-921
-    H->>H: require Bearer/token or 401 - :831-906
-    H->>Ws: ws::start(MultiMcpVisualizationWs::new) - :908
-    Ws->>Ws: started() - start_heartbeat, register MONITORED_SERVICES health endpoints,<br/>start_health_monitor (ADR-2094), start_position_updates - :473-500
-    Ws->>Ws: run_interval 60s recovery-if-idle-300s + circuit stats log - :502-524
-    Ws->>Ws: send_discovery_data(ctx) - :526
-    loop position updates (PerformanceMode: HighFreq=16ms/Normal=100ms/Low=1000ms, OnDemand=none) - :127-135,176-178
+    Client->>H: GET /multi-mcp/ws (upgrade) - configure_multi_mcp_routes :862-873
+    H->>H: require Authorization Bearer and a live session or 401 - :778-853
+    H->>Ws: ws::start(MultiMcpVisualizationWs::new(app_state.multi_mcp_discovery.clone())) - :855-859
+    Ws->>Ws: started() - start_heartbeat :411, discovery.attach() :417, spawn sync_running :419, start_health_monitor :420 (ADR-2094), start_position_updates :433 - :408-433
+    Ws->>DS: attach() moves the subscriber count, sync_running starts the poll loop - multi_mcp_agent_discovery.rs:160, :174-183 (VC-27.4)
+    Ws->>Ws: run_interval 1s - cycle_count() above last_frame_cycle triggers send_discovery_data - :425-431
+    Ws->>Ws: run_interval 60s recovery-if-idle-300s + circuit stats log - :435-457
+    Note over Ws: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - started() used to register MONITORED_SERVICES health endpoints and call send_discovery_data(ctx) on connect.<br/>Both are gone: the localhost port 8080+i registration no longer exists and nothing is sent at connect, because an empty cache would read as no agents (comment :422-424)
+    loop position updates (PerformanceMode: HighFreq=16ms/Normal=100ms/Low=1000ms, OnDemand=none) - multi_mcp_websocket_handler.rs:107-116, :146-155
         Ws->>Ws: do_send(RequestAgentUpdate)
     end
-    loop heartbeat every 5s (start_heartbeat) - :187-200
+    loop heartbeat every 5s (start_heartbeat) - multi_mcp_websocket_handler.rs:158-171
         alt no pong for >30s
-            Ws-->>Client: ctx.close(None) - :194
+            Ws-->>Client: ctx.close(None) - :165
         else
-            Ws-->>Client: ctx.ping(b"ping") - :198
+            Ws-->>Client: ctx.ping(b"ping") - :169
         end
     end
     Client->>Ws: Text "ping" (plain)
-    Ws-->>Client: "pong" - :546-549
-    Client->>Ws: Text JSON {action, data} - ClientRequest :677-680
+    Ws-->>Client: "pong" - :481-484
+    Client->>Ws: Text JSON {action, data} - ClientRequest :612-615
     alt action == configure
-        Ws->>Ws: handle_client_config(ClientConfig{subscription_filters,performance_mode}) - :367-389
+        Ws->>Ws: handle_client_config(ClientConfig{subscription_filters,performance_mode}) - :311-333
     else action == request_discovery
-        Ws->>Ws: handle_discovery_request(ctx) - :391-404
+        Ws->>Ws: handle_discovery_request(ctx) - :335-348, rate-limited to 1 per second :338-344
+        Ws->>Ws: send_discovery_data - :249-309
+        alt cached verdict or fresh get_server_statuses() says no server connected
+            Ws-->>Client: {type:error, message:"No connected MCP servers"} - :257-264, :282-290
+        else at least one connected
+            Ws-->>Client: {type:discovery_data, servers, agents, topology, stats} filtered by SubscriptionFilters - build_discovery_frame :357-403
+        end
     else action == request_agents
-        Ws->>Ws: do_send(RequestAgentUpdate), degrade under open circuit breaker - :567-603
+        Ws->>Ws: reads CircuitBreaker stats then do_send(RequestAgentUpdate) in both arms - :502-538
     else action == request_performance
         alt has_healthy_services() true
-            Ws->>Ws: do_send(RequestPerformanceUpdate) - :619
+            Ws->>Ws: do_send(RequestPerformanceUpdate) - :554
         else degraded
-            Ws-->>Client: cached "performance_data" status=degraded - :606-617
+            Ws-->>Client: cached "performance_data" status=degraded - :541-552
         end
     else action == request_topology
-        Ws->>Ws: do_send(RequestTopologyUpdate{swarm_id}) - :622-632
+        Ws->>Ws: do_send(RequestTopologyUpdate{swarm_id}) - :557-567
     else unknown action
-        Ws-->>Client: send_error_response("Unknown action: ...") - :633-639
+        Ws-->>Client: send_error_response("Unknown action: ...") - :568-574
     end
     Client->>Ws: ws::Message::Close
-    Ws->>Ws: log final circuit-breaker stats, ctx.close(reason) - :646-663
-    Note over Ws: RESOLVED ADR-2094 (2026-09-05): has_healthy_services (:253) is a pure atomic read of a cached verdict<br/>one monitor task started at connection init publishes it and stops when the client drops (start_health_monitor :209) - no per-call spawn
-    Note over H,Ws: RESOLVED ADR-2091 (supersedes an earlier DOC-DRIFT finding that they merely returned<br/>fiction): GET /multi-mcp/status and POST /multi-mcp/refresh are DELETED, not just hardcoded -<br/>configure_multi_mcp_routes only registers /ws now (:911-921). /status served a hardcoded<br/>two-server JSON literal (claude-flow is_connected:true agent_count:4, never queried) and<br/>/refresh echoed "initiated" while never calling MultiMcpAgentDiscovery::start_discovery - both<br/>took an unused _app_state. Real discovery state lives in multi_mcp_agent_discovery.rs (see VC-27.4).
+    Ws->>Ws: log final circuit-breaker stats, ctx.close(reason) - :581-598
+    Ws->>DS: stopped() - detach() :463, spawn sync_running :465, the loop stops when the last socket leaves and its caches are cleared (multi_mcp_agent_discovery.rs:428-441)
+    Note over Ws: RESOLVED ADR-2094 (2026-09-05): has_healthy_services (:226) is a pure atomic read of a cached verdict<br/>one monitor task started at connection init publishes it and stops when the client drops (start_health_monitor :180) - no per-call spawn
+    Note over Ws: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - the monitor used to probe localhost port 8080+i through a HealthCheckManager, services that were not the ones discovery polls.<br/>It now folds the discovery service's own per-server is_connected (get_server_statuses :202, fold_service_health :208), one task per connection as before
+    Note over H,Ws: RESOLVED ADR-2091 (supersedes an earlier DOC-DRIFT finding that they merely returned<br/>fiction): GET /multi-mcp/status and POST /multi-mcp/refresh are DELETED, not just hardcoded -<br/>configure_multi_mcp_routes only registers /ws now (:862-873). /status served a hardcoded<br/>two-server JSON literal (claude-flow is_connected:true agent_count:4, never queried) and<br/>/refresh echoed "initiated"
+    rect rgb(255,235,235)
+    Note over Ws,DS: DEBT: request_agents, request_performance and request_topology never reach the discovery service - the RequestAgentUpdate, RequestPerformanceUpdate and<br/>RequestTopologyUpdate handlers only log at debug (multi_mcp_websocket_handler.rs:664-666, :689-694, :700-705). The ADR-2091 addendum names the request_agents circuit-breaker path as a simulation left unchanged
+    Note over Ws,DS: OPEN: no client in client/src or xr-client consumes the discovery_data frame, so its shape is provisional and defined only by build_discovery_frame (multi_mcp_websocket_handler.rs:357-403).<br/>Nothing was observed against a live hub, and ruv-swarm and daa have no confirmed endpoint (VC-27.4)
+    end
 ```
 
 ## VC-27.6 MultiMcpVisualizationActor — message set and periodic ticks
@@ -304,41 +329,41 @@ classDiagram
 sequenceDiagram
     autonumber
     participant Sup as AppState / supervisor
-    participant AM as AgentMonitorActor<br/>src/actors/agent_monitor_actor.rs:199-235 (struct), new() :281-349
-    participant MAC as ManagementApiClient<br/>host=MANAGEMENT_API_HOST port=MANAGEMENT_API_PORT default 9090 (:253-258)
+    participant AM as AgentMonitorActor<br/>src/actors/agent_monitor_actor.rs:199-233 (struct), new() :279-346
+    participant MAC as ManagementApiClient<br/>host=MANAGEMENT_API_HOST port=MANAGEMENT_API_PORT default 9090 (:251-256)
     participant GSS as GraphServiceSupervisor
 
-    Sup->>AM: started() - is_connected=true, do_send(InitializeActor) - :434-441
-    AM->>AM: handle(InitializeActor) - run_later(100ms) poll_agent_statuses + schedule_next_poll - :448-463
-    loop self-rescheduling poll (schedule_next_poll, :415-421)
-        AM->>MAC: tokio::join!(list_tasks(), get_system_status()) - :333-334
+    Sup->>AM: started() - is_connected=true, do_send(InitializeActor) - :431-438
+    AM->>AM: handle(InitializeActor) - run_later(100ms) poll_agent_statuses + schedule_next_poll - :445-460
+    loop self-rescheduling poll (schedule_next_poll, :412-418)
+        AM->>MAC: tokio::join!(list_tasks(), get_system_status()) - :331-332
         alt tasks_result Ok
-            AM->>AM: task_to_agent_status per active task - :376-380
-            AM->>AM: do_send(ProcessAgentStatuses{agents,telemetry}) - :382
+            AM->>AM: task_to_agent_status per active task - :373-377
+            AM->>AM: do_send(ProcessAgentStatuses{agents,telemetry}) - :379
         else tasks_result Err
-            AM->>AM: do_send(RecordPollFailure) - :386
+            AM->>AM: do_send(RecordPollFailure) - :383
         end
-        AM->>AM: next_poll_delay() - base 15s (:338), doubles per consecutive_poll_failures (max shift 5), capped 90s - :448-465
+        AM->>AM: next_poll_delay() - base 15s (:336), doubles per consecutive_poll_failures (max shift 5), capped 90s - :445-462
     end
-    AM->>AM: handle(ProcessAgentStatuses) - :634
+    AM->>AM: handle(ProcessAgentStatuses) - :631
     opt agents empty and MOCK_AGENTS=true/1
-        AM->>AM: build_mock_swarm_agents() 5 mock agents - :529-628
+        AM->>AM: build_mock_swarm_agents() 5 mock agents - :526-625
     end
-    AM->>AM: golden-angle spiral position per agent, poll_offset round-robin (ADR-031 item 1) - :596-634
-    AM->>AM: decide_bots_graph_emit(count, last_nonempty, consecutive_empty) - call :704-708, fn body :156-197
+    AM->>AM: golden-angle spiral position per agent, poll_offset round-robin (ADR-031 item 1) - :593-631
+    AM->>AM: decide_bots_graph_emit(count, last_nonempty, consecutive_empty) - call :701-705, fn body :156-197
     alt roster non-empty (fn :131-137)
-        AM->>GSS: do_send(UpdateBotsGraph{agents}) - :712-719
+        AM->>GSS: do_send(UpdateBotsGraph{agents}) - :709-716
     else roster empty and consecutive_empty < EMPTY_CONFIRM_THRESHOLD=2 (fn :140-148,159-165)
-        AM->>AM: suppress emit - debounce a transient blip - :656-662
+        AM->>AM: suppress emit - debounce a transient blip - :653-659
     else roster empty and confirmed (2nd consecutive empty) (fn :150-158)
-        AM->>GSS: do_send(UpdateBotsGraph{agents: []}) - clears once - :712-719
+        AM->>GSS: do_send(UpdateBotsGraph{agents: []}) - clears once - :709-716
     end
-    Sup->>AM: TaskStatusChanged{agent_type,running_task_count} (from TaskOrchestratorActor, ADR-031 item 3) - handler :717-728
-    AM->>AM: poll_agent_statuses(ctx) immediate re-poll - :860
-    Note over AM,MAC: INVARIANT: idle cadence is 15s (not 3s) to share agentbox's per-key rate-limit<br/>bucket with task creation - backoff cap 90s exceeds agentbox's 60s continueExceeding window (:338,448-465)
-    Note over AM,GSS: DIVERGENCE (roster-clobber fix): an empty Management API poll is "no information"<br/>not "all agents died" - only a confirmed 2nd consecutive empty poll clears the graph (:227-231,156-197)
-    Note over MAC: every ManagementApiClient endpoint shares one Result contract - NetworkError on<br/>transport failure, ApiError(body,status) on non-2xx, DeserializationError on a bad body<br/>(e.g. list_tasks management_api_client.rs:345-373, stop_task :375-400, create_brief<br/>:433-484) — health_check (:586-597) is the one exception - GET /health with no auth<br/>header, collapses straight to Ok(status==200), no ApiError variant
-    Note over AM,MAC: ADR-2094: AgentMonitorActor::new validates MANAGEMENT_API_KEY through the SAME<br/>validate_security_env_vars AppState::new calls (app_state.rs:82-172, pub(crate) so there is one policy,<br/>not a laxer copy) - fail-closed by default (panics without a valid key, agent_monitor_actor.rs:315-325),<br/>except an ALLOW_INSECURE_DEFAULTS-gated dev/debug build instead disables the client (Option::None, never<br/>an empty-string key) rather than aborting boot (:303-314)
+    Sup->>AM: TaskStatusChanged{agent_type,running_task_count} (from TaskOrchestratorActor, ADR-031 item 3) - handler :714-725
+    AM->>AM: poll_agent_statuses(ctx) immediate re-poll - :857
+    Note over AM,MAC: INVARIANT: idle cadence is 15s (not 3s) to share agentbox's per-key rate-limit<br/>bucket with task creation - backoff cap 90s exceeds agentbox's 60s continueExceeding window (:336,445-462)
+    Note over AM,GSS: DIVERGENCE (roster-clobber fix): an empty Management API poll is "no information"<br/>not "all agents died" - only a confirmed 2nd consecutive empty poll clears the graph (:225-229,156-197)
+    Note over MAC: every ManagementApiClient endpoint shares one Result contract - NetworkError on<br/>transport failure, ApiError(body,status) on non-2xx, DeserializationError on a bad body<br/>(e.g. list_tasks management_api_client.rs:358-386, stop_task :388-413, create_brief<br/>:446-497) — health_check (:599-610) is the one exception - GET /health with no auth<br/>header, collapses straight to Ok(status==200), no ApiError variant
+    Note over AM,MAC: ADR-2094: AgentMonitorActor::new validates MANAGEMENT_API_KEY through the SAME<br/>validate_security_env_vars AppState::new calls (app_state.rs:82-174, pub(crate) so there is one policy,<br/>not a laxer copy) - fail-closed by default (panics without a valid key, agent_monitor_actor.rs:313-323),<br/>except an ALLOW_INSECURE_DEFAULTS-gated dev/debug build instead disables the client (Option::None, never<br/>an empty-string key) rather than aborting boot (:301-312)
 ```
 
 ## VC-27.8 TaskOrchestratorActor — CreateTask/Interrupt/Drain message handlers
@@ -408,42 +433,42 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Client as WS client
-    participant H as agent_visualization_ws()<br/>src/handlers/bots_visualization_handler.rs:214
-    participant Ws as AgentVisualizationWs<br/>bots_visualization_handler.rs:17, Actor :93
-    participant Proto as AgentVisualizationProtocol<br/>services/agent_visualization_protocol.rs:434, new() :457
+    participant H as agent_visualization_ws()<br/>src/handlers/bots_visualization_handler.rs:203
+    participant Ws as AgentVisualizationWs<br/>bots_visualization_handler.rs:17, Actor :92
+    participant Proto as AgentVisualizationProtocol<br/>services/agent_visualization_protocol.rs:429, new() :451
     participant Proc as AgentVisualizationProcessor<br/>services/agent_visualization_processor.rs:162, new() :168
 
-    Client->>H: GET /api/visualization/agents/ws - configure_routes :515-531
-    H->>Ws: ws::start(AgentVisualizationWs::new) - :219
-    Ws->>Ws: started() - do_send(InitConnection), start_heartbeat, start_position_updates - :96-104
-    Ws->>Ws: handle(InitConnection) -> send_init_state(ctx) - :132-134
-    Ws->>Proto: create_init_message("swarm-001","hierarchical", agents=Vec::new()) - :58-59
-    Proto->>Proc: create_visualization_packet(agents, swarm_id, topology) - agent_visualization_protocol.rs:543 calling agent_visualization_processor.rs:308
+    Client->>H: GET /api/visualization/agents/ws - configure_routes :504-520
+    H->>Ws: ws::start(AgentVisualizationWs::new) - :208
+    Ws->>Ws: started() - do_send(InitConnection), start_heartbeat, start_position_updates - :95-103
+    Ws->>Ws: handle(InitConnection) -> send_init_state(ctx) - :131-133
+    Ws->>Proto: create_init_message("swarm-001","hierarchical", agents=Vec::new()) - :57-58
+    Proto->>Proc: create_visualization_packet(agents, swarm_id, topology) - agent_visualization_protocol.rs:535 calling agent_visualization_processor.rs:308
     Proc->>Proc: process_agents() - color/shape/animation via get_visual_properties, spherical fallback position, glow_intensity - :175-257
     Proc->>Proc: create_connections(), create_clusters() - :365-389,391-420
     Proc-->>Proto: AgentVisualizationData{swarm,agents,connections,physics_config,...}
-    Proto-->>Ws: init_json (AgentInit list mapped from VisualizedAgent) - agent_visualization_protocol.rs:549-585
-    Ws-->>Client: ctx.text(init_json) - :62
-    loop position updates every 16ms (bots_visualization_handler.rs:69-78)
-        Ws->>Proto: create_position_update() - :74
+    Proto-->>Ws: init_json (AgentInit list mapped from VisualizedAgent) - agent_visualization_protocol.rs:541-577
+    Ws-->>Client: ctx.text(init_json) - :61
+    loop position updates every 16ms (bots_visualization_handler.rs:68-77)
+        Ws->>Proto: create_position_update() - :73
         opt buffered updates present
             Ws-->>Client: ctx.text(update_json)
         end
     end
-    loop heartbeat every 5s (bots_visualization_handler.rs:80-90)
+    loop heartbeat every 5s (bots_visualization_handler.rs:79-89)
         alt no pong for >10s
-            Ws-->>Client: ctx.stop() - :82-85
+            Ws-->>Client: ctx.stop() - :81-84
         else
-            Ws-->>Client: ctx.ping(b"ping") - :88
+            Ws-->>Client: ctx.ping(b"ping") - :87
         end
     end
-    Client->>Ws: Text {action} - :164-193
+    Client->>Ws: Text {action} - :165-184
     alt action == refresh
-        Ws->>Ws: send_init_state(ctx) again - :177-179
+        Ws->>Ws: send_init_state(ctx) again - :168-170
     else action == pause_updates or resume_updates
-        Ws->>Ws: sets self.paused (ADR-2066 addendum), then debug log - :180-183,184-187
+        Ws->>Ws: sets self.paused (ADR-2066 addendum), then debug log - :171-174,184-187
     else unknown action
-        Ws->>Ws: warn "Unknown client action" - :188-190
+        Ws->>Ws: warn "Unknown client action" - :179-181
     end
     Note over Ws,Proto: PROPOSED ADR-2066 addendum: send_init_state still reports an empty roster, now explicit rather than<br/>disguised - the fake get_real_agent_data() helper is deleted. A real source exists (bots_client.get_agents_snapshot,<br/>bots_client.rs:231) but Agent lacks the profile, task counts, success_rate and timestamp AgentStatus requires, so the<br/>mapping needs a decided contract rather than invented defaults.
     Note over Ws: RESOLVED ADR-2066 addendum: the actor now carries a paused flag - pause_updates and resume_updates<br/>set it and the 16ms run_interval returns early while it is set, so the opcodes do what they advertise.
