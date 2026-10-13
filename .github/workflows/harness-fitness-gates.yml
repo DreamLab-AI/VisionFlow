@@ -164,3 +164,8 @@ jobs:
       # it, and covered six of fourteen repositories.
       - name: Release manifest regression tests
         run: bash tests/gates/release-manifest.test.sh
+
+      # TODO-unified S-7d: the dream evaluators exit with their verdict as well
+      # as printing it, so the contract holds when they run outside deploy.yml.
+      - name: Dream evaluator exit-code tests
+        run: bash tests/gates/dream-evaluator-exit.test.sh

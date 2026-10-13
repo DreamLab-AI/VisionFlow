@@ -1,7 +1,10 @@
 #!/bin/bash
 # dream-link-check.sh — provably-live internal-link/asset integrity check for
 # the built static site. Emits a surface-dependent count; non-zero missing
-# refs prints LINK-INTEGRITY-FAIL. Used as a dream-cycle evaluator entrypoint.
+# refs prints LINK-INTEGRITY-FAIL and exits 1 (the printed marker stays the
+# verdict the deploy gate and the dream engine read; the exit code makes the
+# contract hold when the script is run on its own). Used as a dream-cycle
+# evaluator entrypoint.
 #
 # Four ref families are resolved:
 #   1. href/src attributes — ordinary markup links and asset references.
@@ -95,4 +98,9 @@ while IFS= read -r f; do
 done < <(find . -name '*.html')
 echo "internal-refs-checked: $checked  missing: $miss"
 echo "anchors-checked: $anchors  dangling: $dangling"
-[ "$miss" -eq 0 ] && [ "$dangling" -eq 0 ] && echo LINK-INTEGRITY-OK || echo LINK-INTEGRITY-FAIL
+if [ "$miss" -eq 0 ] && [ "$dangling" -eq 0 ]; then
+  echo LINK-INTEGRITY-OK
+else
+  echo LINK-INTEGRITY-FAIL
+  exit 1
+fi

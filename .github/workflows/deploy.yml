@@ -87,7 +87,9 @@ jobs:
       - name: Gate — build output
         run: |
           set -euo pipefail
-          OUT="$(bash scripts/dream-build-check.sh)"
+          # The script exits non-zero on failure; keep the output so the marker grep
+          # below reports it (set -e would otherwise abort before the echo).
+          OUT="$(bash scripts/dream-build-check.sh)" || true
           echo "$OUT"
           grep -q '^BUILD-OK$' <<< "$OUT" || { echo "::error::build output check failed"; exit 1; }
 
@@ -95,7 +97,9 @@ jobs:
       - name: Gate — internal link integrity
         run: |
           set -euo pipefail
-          OUT="$(bash scripts/dream-link-check.sh)"
+          # The script exits non-zero on failure; keep the output so the marker grep
+          # below reports it (set -e would otherwise abort before the echo).
+          OUT="$(bash scripts/dream-link-check.sh)" || true
           echo "$OUT"
           grep -q '^LINK-INTEGRITY-OK$' <<< "$OUT" \
             || { echo "::error::internal links or assets are missing from dist/"; exit 1; }
