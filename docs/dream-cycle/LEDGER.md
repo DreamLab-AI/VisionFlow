@@ -41,3 +41,4 @@ Schema note (2026-09-14, unmerged): FR6.6 of PRD-augmentation-conditions adds `R
 | 2026-10-09 | build-pipeline | VETOED: CNAME↔page-host drift now fails the link gate; baseline 2 checked, 0… | NONE | NONE | yes | BLOCKED-ENV |  | 5fd5d6f7422f |  |  |  |
 | 2026-10-10 | seo-and-meta | Adds op-approved og:locale en_GB + @id/publisher JSON-LD link; og-tags 9->10 | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/19 | yes | ACCEPT |  | a8973da6a2e1 |  |  |  |
 | 2026-10-11 | estate-health | check() hid snapshot age under RED; INFO age line added, verdict/exit unchanged | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/20 | yes | ACCEPT |  | 23d9611580d1 |  |  |  |
+| 2026-10-13 | build-pipeline | family 5: canonical/og:url/JSON-LD url + card images must match CNAME host; 6/0 | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/21 | yes | ACCEPT |  | 3e8d804832a8 |  |  |  |
