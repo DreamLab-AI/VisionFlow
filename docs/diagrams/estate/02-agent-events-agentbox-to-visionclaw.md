@@ -438,7 +438,7 @@ sequenceDiagram
     Note over DISC: RESOLVED ADR-2083: discovery_interval_ms is now READ. select_discovery_interval_ms<br/>(:46) takes the MINIMUM across ENABLED servers so each is polled at least as often as it<br/>asked, floored at MIN_DISCOVERY_INTERVAL_MS 250 so a misconfigured 0 cannot busy-poll, with<br/>DEFAULT_DISCOVERY_INTERVAL_MS 5000 when no server is enabled. The hardcoded 1000ms sleep is<br/>gone - the loop now sleeps sleep_ms (:323 derived, :416-419 applied). Routed from vc-knowledge
     rect rgb(255,235,235)
     Note over DISC: OPEN: ruv-swarm and daa are enabled only when RUV_SWARM_HOST or RUV_SWARM_PORT, DAA_HOST or DAA_PORT is non-empty (src/services/multi_mcp_agent_discovery.rs:232, :249).<br/>They have no confirmed endpoint in this estate, and nothing was observed against a live claude-flow hub
-    Note over DISC: TENSION: the discovery doc comment says claude-flow shares CLAUDE_FLOW_HOST/MCP_TCP_PORT with BotsClient (src/services/multi_mcp_agent_discovery.rs:131), yet its host falls back to localhost (src/services/multi_mcp_agent_discovery.rs:210) while BotsClient falls back to MCP_HOST then<br/>multi-agent-container (src/services/bots_client.rs:120-122), so with CLAUDE_FLOW_HOST unset the two pollers target different hosts on port 9500
+    Note over DISC: RESOLVED 2026-10-12 (project 9f98e3787): discovery now resolves the claude-flow host as BotsClient does (CLAUDE_FLOW_HOST, then MCP_HOST, then multi-agent-container), so both pollers target the same host on port 9500. At the stamped revision the discovery fallback was localhost (multi_mcp_agent_discovery.rs:210) against bots_client.rs:120-122.
     end
 ```
 

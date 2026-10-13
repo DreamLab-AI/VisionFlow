@@ -199,7 +199,7 @@ sequenceDiagram
     Note over CF,DAA: supported_tools fallback differs per server when query_server_info fails:<br/>claude-flow=[agent_list,swarm_status,server_info] (multi_mcp_agent_discovery.rs:514-518),<br/>ruv-swarm (:605) and daa (:698) each have their own equivalent fallback list in their own discover_*_agents function
     rect rgb(255,235,235)
     Note over D,DAA: OPEN: ruv-swarm and daa have no confirmed endpoint in this estate and stay disabled unless RUV_SWARM_* or DAA_* are set (:232, :249).<br/>None of this was observed against a live claude-flow hub
-    Note over D,DAA: TENSION: the doc comment claims claude-flow shares CLAUDE_FLOW_HOST/MCP_TCP_PORT with BotsClient (multi_mcp_agent_discovery.rs:131), yet the host falls back to localhost here (multi_mcp_agent_discovery.rs:210) but to MCP_HOST, then multi-agent-container, for BotsClient<br/>(src/services/bots_client.rs:120-122), so with CLAUDE_FLOW_HOST unset the two pollers target different hosts on port 9500
+    Note over D,DAA: RESOLVED 2026-10-12 (project 9f98e3787): discovery now resolves the claude-flow host as BotsClient does (CLAUDE_FLOW_HOST, then MCP_HOST, then multi-agent-container), so both pollers target the same host on port 9500. At the stamped revision the discovery fallback was localhost (multi_mcp_agent_discovery.rs:210) against bots_client.rs:120-122.
     Note over D,DAA: DEBT: DiscoveryStats total_discoveries :91, total_agents_discovered :94, servers_online :97 and servers_offline :98 are declared but never written<br/>by this loop, which updates only successful_discoveries :357, failed_discoveries :373 and last_discovery_time :358
     end
 ```
