@@ -168,7 +168,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_147 topic files, 1441 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_147 topic files, 1442 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -199,7 +199,7 @@ _147 topic files, 1441 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VC-10 | [GPU supervision and context bus](visionclaw/10-gpu-supervision-and-context-bus.md) | 7 | flowchart, sequenceDiagram, stateDiagram-v2 | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md), [GPU-wire-abi.md](../../../project/docs/GPU-wire-abi.md) | ADR-2007, ADR-2053 |
 | VC-11 | [Physics step and force channels](visionclaw/11-physics-step-and-force-channels.md) | 8 | sequenceDiagram, flowchart, classDiagram, stateDiagram-v2 | [GPU-wire-abi.md](../../../project/docs/GPU-wire-abi.md), [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2007, ADR-2028, ADR-2029, ADR-2055, ADR-2060 |
 | VC-12 | [SimParams ABI, GPU buffers and PTX](visionclaw/12-simparams-abi-and-ptx.md) | 7 | classDiagram, sequenceDiagram, flowchart | [GPU-wire-abi.md](../../../project/docs/GPU-wire-abi.md) | ADR-2028, ADR-2030, ADR-2054, ADR-2055, ADR-2056 |
-| VC-13 | [Position broadcast pipeline and WebSocket](visionclaw/13-broadcast-pipeline-and-websocket.md) | 7 | sequenceDiagram, stateDiagram-v2 | [PROTOCOL-registry.md](../../../project/docs/PROTOCOL-registry.md), [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2003, ADR-2018, ADR-2009, ADR-2002 |
+| VC-13 | [Position broadcast pipeline and WebSocket](visionclaw/13-broadcast-pipeline-and-websocket.md) | 8 | sequenceDiagram, stateDiagram-v2 | [PROTOCOL-registry.md](../../../project/docs/PROTOCOL-registry.md), [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2003, ADR-2018, ADR-2009, ADR-2002 |
 | VC-14 | [Wire frames and tag registry](visionclaw/14-wire-frames-and-tag-registry.md) | 9 | classDiagram, flowchart, sequenceDiagram | [PROTOCOL-registry.md](../../../project/docs/PROTOCOL-registry.md), [GPU-wire-abi.md](../../../project/docs/GPU-wire-abi.md) | ADR-2018, ADR-2019, ADR-2020, ADR-2024, ADR-2057, ADR-2060 |
 | VC-15 | [GPU analytics kernels and pathfinding](visionclaw/15-gpu-analytics.md) | 12 | sequenceDiagram, classDiagram, flowchart | [GPU-wire-abi.md](../../../project/docs/GPU-wire-abi.md) | ADR-2007, ADR-2053, ADR-2054, ADR-2061 |
 | VC-16 | [Interaction — drag, pin, layout, constraints and agent beams](visionclaw/16-interaction-drag-pin-layout.md) | 8 | sequenceDiagram, flowchart | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md), [PROTOCOL-registry.md](../../../project/docs/PROTOCOL-registry.md) | ADR-2020, ADR-2029, ADR-2035, ADR-2055 |
