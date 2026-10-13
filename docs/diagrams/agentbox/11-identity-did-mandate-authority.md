@@ -597,7 +597,7 @@ Note over AEA,RT: RESOLVED ADR-2044 (was DIVERGENCE) — DEFAULT_POLICY flipped 
             alt header present and well-formed
                 PVP-->>AEA: pubkey
                 AEA-->>RT: {ok true, did "did:nostr:<pubkey>", pubkey} agent-event-auth.js:158-159
-                Note over AEA,PVP: this path trusts the SOLE identity ingress at port 9096 (nip98-proxy) to have<br/>already verified the caller and stripped/re-injected the header — see AB-10.3.<br/>Documented residual risk: server.js binds 0.0.0.0, so a holder of MANAGEMENT_API_KEY<br/>on the docker network could also forge this header (agent-event-auth.js:31-39)
+                Note over AEA,PVP: this path trusts the SOLE identity ingress at port 9096 (nip98-proxy) to have<br/>already verified the caller and stripped/re-injected the header — see AB-10.3.<br/>DRIFT (resolved 2026-10-12, agentbox main b9e0ea9a8): at the stamp a holder of MANAGEMENT_API_KEY<br/>on the docker network could forge this header (agent-event-auth.js:31-39), on main proxyVerifiedPubkey<br/>returns null unless peerIsProxy holds, i.e. the TCP peer is loopback or listed in AGENTBOX_PROXY_PEERS
             else header absent or malformed
                 PVP-->>AEA: null
                 AEA-->>RT: {ok false, status 401, error "NIP-98 Authorization header required"} agent-event-auth.js:162
@@ -615,6 +615,10 @@ Note over AEA,RT: RESOLVED ADR-2044 (was DIVERGENCE) — DEFAULT_POLICY flipped 
         RT-->>CALLER: 202 — source_urn is provable, derived from the SIGNATURE. see AB-17
     end
 ```
+
+**Drift (resolved 2026-10-12, agentbox main b9e0ea9a8):** the path-2 branch above is drawn as stamped, where `proxyVerifiedPubkey` read the header from any peer (`agentbox/management-api/lib/agent-event-auth.js:90-96`) and the stated residual was cross-container forgery by a `MANAGEMENT_API_KEY` holder (`agentbox/management-api/lib/agent-event-auth.js:31-39`, `agentbox/management-api/server.js:49`). On agentbox `main` the function takes `(request, env)`, returns null unless the new `peerIsProxy` holds, and is exported so `action-plane.js` `resolveAgentDid` shares it; a request with no socket information is refused (fail closed). A forged header from a non-loopback peer now falls through to the 401 "NIP-98 Authorization header required" branch.
+
+**Debt:** a process inside the container reaches management-api over loopback and so passes `peerIsProxy`; the path-2 identity is therefore as strong as the same-UID boundary (TODO-unified X-1), not as strong as the signature path 1 verifies (`agentbox/management-api/lib/agent-event-auth.js:157-160`).
 
 ## AB-11.15 URI resolution surface — /v1/uri and .well-known
 

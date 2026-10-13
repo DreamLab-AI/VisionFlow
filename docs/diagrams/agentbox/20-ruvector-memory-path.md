@@ -432,6 +432,7 @@ sequenceDiagram
         SW->>SONA: learn under a FIXED 384-dim scope
         SONA->>BIN: forward
         BIN-->>SONA: status "learned"
+        Note over SW: the feeder counts fed on status learned alone ruvector-sona-feeder.mjs:515-516, which is acceptance by learn and NOT proof of accumulation<br/>agentbox main c274ae233 (S-7c) adds engine_accumulating to SonaRunCompleted, from buffered plus stored in the stats read after the batch (null when unreadable)
         Note over BIN: DIVERGENCE D1: the prebuilt binary HARDCODES embedding_dim = 256. A 384-dim learn<br/>returns status "learned" but ACCUMULATES NOTHING — verified live. Both gates stay off<br/>until a 384-dim-capable binary ships (agentbox.toml sona keys)
     end
     SH-->>SH: surfaces the SONA verdict for an operator
@@ -440,6 +441,10 @@ sequenceDiagram
     Note over SW: DIVERGENCE D6: the v2 model-lifecycle keys embedding_dual_write,<br/>embedding_active_column, graph_backbone, param_tuning_enabled and the m3 / legacy-mining<br/>hygiene ops are DECLARED AND DEFAULT-OFF, gated on a passing recall harness run before<br/>any may flip
     Note over BIN: DIVERGENCE D2: agentbox.toml justifies the feed_retrieval flip with "78 aggregates >=20<br/>samples (2026-08-31)" while<br/>agentbox/docs/reference/claude-context/ruvector-memory-state.md records 12 from the<br/>2026-07-21 sweep. The toml is the running config and the more recent number
 ```
+
+**Drift (resolved 2026-10-12, agentbox main c274ae233):** at the stamp the feeder reported only `fed`, the count of `ruvector_sona_learn` calls that returned `status:"learned"` (`agentbox/scripts/ruvector-sona-feeder.mjs:515-516`), and printed it as "N fed" (`agentbox/scripts/ruvector-sona-feeder.mjs:628`). That figure is not proof the engine kept anything: the 256-dim surface answers `learned` for a 384-dim learn it buffers nowhere (header note, `agentbox/scripts/ruvector-sona-feeder.mjs:55-56`). Agentbox `main` commit c274ae233 keeps `fed` (it drives the cursor and the event contract) and adds `engineAccumulating`, true only when `trajectories_buffered + patterns_stored` is above zero in the post-batch stats and null when they could not be read. `SonaRunCompleted` carries it as `engine_accumulating`, and the human lines now read "N accepted by learn, M failed, engine accumulating: yes/no/unknown". A high `fed` beside `engine accumulating: no` therefore means the D1 binary kept nothing.
+
+**Open:** once a 384-dim-capable binary ships, is `engine_accumulating` true or the recall harness the reading that flips the SONA gates, given the reseed guard still treats `buffered + stored == 0` as the steady state of a healthy 384-dim scope (`agentbox/scripts/ruvector-sona-feeder.mjs:55-60`)?
 
 ## AB-20.12 memory_health and the store schema
 

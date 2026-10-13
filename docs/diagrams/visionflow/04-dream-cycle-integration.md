@@ -13,6 +13,7 @@ sources:
   - scripts/dream-link-check.sh
   - scripts/dream-meta-tags-scan.sh
   - scripts/dream-structured-data-scan.sh
+  - tests/gates/dream-evaluator-exit.test.sh
   - scripts/dream-asset-refs-scan.sh
   - scripts/estate-health.mjs
   - scripts/website-assets.mjs
@@ -27,7 +28,7 @@ sources:
   - docs/adr/ADR-2009-webgl-mesh-deep-is-sidecar-only.md
   - ./README.md
   - package.json
-verified_commit: da57b49a28974dd9bff5b5358369eef94a439273
+verified_commit: 4159e085a73dac3e9d52fb1bc7e476350bf369c1
 ---
 
 ## VF-04.1 dream.config.json — the whole contract this repo offers the engine
@@ -125,14 +126,14 @@ flowchart LR
     classDef fail fill:#f7dede,stroke:#a33333,color:#111
     classDef odd fill:#f9f0d5,stroke:#8a7020,color:#111
 
-    E1["dream-build-check.sh<br/>cd website/dist and test -f index.html<br/>dream-build-check.sh:6"]
-    E1 --> E1P["prints page count and byte total, then BUILD-OK<br/>dream-build-check.sh:7"]:::pass
-    E1 --> E1F["otherwise BUILD-FAIL — dream-build-check.sh:8<br/>exit status is 0 either way"]:::fail
+    E1["dream-build-check.sh<br/>cd website/dist and test -f index.html<br/>dream-build-check.sh:8"]
+    E1 --> E1P["prints page count and byte total, then BUILD-OK<br/>dream-build-check.sh:9 and dream-build-check.sh:10"]:::pass
+    E1 --> E1F["otherwise BUILD-FAIL and exit 1 — dream-build-check.sh:12 and dream-build-check.sh:13<br/>RESOLVED 2026-10-12 (4159e08): the exit status used to be 0 either way"]:::fail
 
-    E2["dream-link-check.sh<br/>four ref families: href/src attrs, meta content media URLs,<br/>in-page anchors (since the 10-05 ACCEPT) and — since the 10-08 ACCEPT — same-origin<br/>URLs inside JSON-LD blocks<br/>dream-link-check.sh:6, :8, :14 and :20"]
-    E2 --> E2P["internal-refs-checked N, missing 0, anchors-checked N,<br/>dangling 0, then LINK-INTEGRITY-OK<br/>dream-link-check.sh:96 and dream-link-check.sh:98"]:::pass
-    E2 --> E2F["any missing ref prints MISSING, or a dangling anchor prints<br/>DANGLING-ANCHOR, then LINK-INTEGRITY-FAIL<br/>dream-link-check.sh:61 and dream-link-check.sh:81"]:::fail
-    E2 --> E2X["no dist/ prints NO-DIST and exits 0 with NO sentinel<br/>dream-link-check.sh:33"]:::odd
+    E2["dream-link-check.sh<br/>four ref families: href/src attrs, meta content media URLs,<br/>in-page anchors (since the 10-05 ACCEPT) and — since the 10-08 ACCEPT — same-origin<br/>URLs inside JSON-LD blocks<br/>dream-link-check.sh:9, :11, :17 and :23"]
+    E2 --> E2P["internal-refs-checked N, missing 0, anchors-checked N,<br/>dangling 0, then LINK-INTEGRITY-OK<br/>dream-link-check.sh:99 and dream-link-check.sh:102"]:::pass
+    E2 --> E2F["any missing ref prints MISSING, or a dangling anchor prints<br/>DANGLING-ANCHOR, then LINK-INTEGRITY-FAIL and exit 1 (RESOLVED 2026-10-12, 4159e08)<br/>dream-link-check.sh:64, dream-link-check.sh:84 and dream-link-check.sh:104-105"]:::fail
+    E2 --> E2X["no dist/ prints NO-DIST and still exits 0 with NO sentinel<br/>dream-link-check.sh:36"]:::odd
 
     E3["dream-meta-tags-scan.sh<br/>counts title, description, canonical, viewport as REQUIRED;<br/>og, twitter and robots counted but optional<br/>dream-meta-tags-scan.sh:24"]
     E3 --> E3P["required-missing 0, then META-SCAN-OK<br/>dream-meta-tags-scan.sh:33"]:::pass
@@ -151,6 +152,8 @@ flowchart LR
     E6 --> E6P["ESTATE-HEALTH-OK, exit 0 — estate-health.mjs:1002"]:::pass
     E6 --> E6F["ESTATE-HEALTH-RED or ESTATE-HEALTH-STALE, exit 1<br/>estate-health.mjs:991 and estate-health.mjs:998"]:::fail
 ```
+
+**Drift (resolved 2026-10-12, `4159e08`):** this diagram recorded the build and link evaluators as exiting 0 on failure (`exit status is 0 either way`); `scripts/dream-build-check.sh:12-13` and `scripts/dream-link-check.sh:104-105` now print the FAIL marker and exit 1, and the script headers state that the printed marker remains the verdict the deploy gate and the dream engine read (`scripts/dream-build-check.sh:5-6`, `scripts/dream-link-check.sh:3-7`, engine side in AB-23). `deploy.yml` discards the code with an or-true and keeps the marker grep (`.github/workflows/deploy.yml:92`, `.github/workflows/deploy.yml:94`, `.github/workflows/deploy.yml:102`, `.github/workflows/deploy.yml:104`), and `tests/gates/dream-evaluator-exit.test.sh:36-65` pins marker and code together. The meta-tags and structured-data scans are unchanged and still exit 0 after printing their FAIL marker (`scripts/dream-meta-tags-scan.sh:9`, `scripts/dream-structured-data-scan.sh:9`).
 
 ## VF-04.5 A night end to end — probe, build, evaluate, ledger, branch, human gate
 ```mermaid
@@ -292,10 +295,10 @@ flowchart LR
     classDef gap fill:#f9f0d5,stroke:#8a7020,color:#111
 
     subgraph SHARED["Same script, two consumers"]
-        S1["dream-build-check.sh — BUILD-OK<br/>dream.config.json:47 and deploy.yml:92"]:::sh
-        S2["dream-link-check.sh — LINK-INTEGRITY-OK<br/>dream.config.json:48 and deploy.yml:100"]:::sh
-        S3["dream-meta-tags-scan.sh — META-SCAN-OK<br/>dream.config.json:49 and deploy.yml:109"]:::sh
-        S4["dream-structured-data-scan.sh — SD-SCAN-OK<br/>dream.config.json:50 and deploy.yml:118"]:::sh
+        S1["dream-build-check.sh — BUILD-OK<br/>dream.config.json:47 and deploy.yml:94"]:::sh
+        S2["dream-link-check.sh — LINK-INTEGRITY-OK<br/>dream.config.json:48 and deploy.yml:104"]:::sh
+        S3["dream-meta-tags-scan.sh — META-SCAN-OK<br/>dream.config.json:49 and deploy.yml:113"]:::sh
+        S4["dream-structured-data-scan.sh — SD-SCAN-OK<br/>dream.config.json:50 and deploy.yml:122"]:::sh
     end
 
     subgraph DREAMONLY["Dream only"]
@@ -305,11 +308,11 @@ flowchart LR
 
     subgraph CIONLY["Publication only"]
         C1["website-assets.mjs verify — ASSET-INVENTORY-OK<br/>deploy.yml:83, reused indirectly by the asset-refs scan<br/>dream-asset-refs-scan.sh:30 — since the 10-01 ACCEPT its<br/>required list carries robots.txt, a dream finding promoted<br/>into a publication gate — assets.manifest.json:9"]:::gap
-        C2["check-diagram-text.js — committed diagram baseline<br/>deploy.yml:125"]:::gap
-        C3["drift-counter.mjs — reported or enforced — deploy.yml:134"]:::gap
+        C2["check-diagram-text.js — committed diagram baseline<br/>deploy.yml:129"]:::gap
+        C3["drift-counter.mjs — reported or enforced — deploy.yml:138"]:::gap
     end
 
-    SENT["The shared contract that makes the reuse safe: each script<br/>exits 0 even on failure and states its verdict as the last<br/>stdout sentinel, so the annexe can tell a finding from an<br/>infrastructure fault while CI greps the same line<br/>dream-meta-tags-scan.sh:9"]
+    SENT["The shared contract that makes the reuse safe: each script<br/>states its verdict as the last stdout sentinel, which CI greps<br/>and the dream engine reads. RESOLVED 2026-10-12 (4159e08): the build<br/>and link scripts now also exit 1 after printing FAIL, where all four<br/>used to exit 0 on failure. deploy.yml keeps the grep and discards the<br/>code with an or-true — deploy.yml:92 and deploy.yml:102<br/>meta and structured-data scans keep the exit-0 contract — dream-meta-tags-scan.sh:9"]
     SHARED -.-> SENT
 
     NOBROWSER["COVERAGE GAP, by decision: no browser evaluator on either<br/>path. The mesh module is read by nothing — verified by grep<br/>at ADR-2009-webgl-mesh-deep-is-sidecar-only.md:84 — and the<br/>a11y and perf specs run only by hand — mesh-webgl.js:10"]:::gap

@@ -165,6 +165,7 @@ sequenceDiagram
     Note over RS,BUS: RESOLVED ADR-2053: direct point-to-point delivery is now the DECLARED authoritative mechanism - the bus is a supplementary broadcast for non-supervisor observers and a zero receiver count is normal
     Note over RS,BUS: RESOLVED ADR-2053 + ADR-2060: BASELINE said "not a central handle" - corrected to describe the code, which delivers direct-first and publishes to the bus as a supplement
     Note over RS: RESOLVED ADR-2053: try_send results are now inspected - a failure logs error!, is recorded in context_delivery_failures, and forces get_health to report Degraded instead of Healthy
+    Note over RS,BUS: RECORDED in the ADR-2053 addendum of 2026-10-12 (commit 31c87da5e, a record newer than this topic's stamp): the supervisor chain is the<br/>authoritative path but NOT the only one - ForceComputeActor::initialize_own_gpu_context (force_compute_actor.rs:762) builds a SharedGPUContext<br/>itself when none has arrived, a deliberate bounded fallback for boot-time message races, see VC-10.6
 ```
 
 ## VC-10.4 GPU readiness lifecycle
@@ -263,7 +264,7 @@ sequenceDiagram
         FCA->>FCA: try_upload_pending_graph_data (force_compute_actor.rs:3839)
     end
     Note over FCA,PS: INVARIANT: the externally supplied context always replaces a self-created one so every GPU actor shares one CUDA device and stream :3819-3822
-    Note over FCA: DIVERGENCE: self-init is a second, unsupervised path to a CUDA context that bypasses ResourceSupervisor timeouts and backoff entirely
+    Note over FCA: DIVERGENCE, now RECORDED as deliberate by the ADR-2053 addendum of 2026-10-12 (commit 31c87da5e, newer than this stamp): self-init is a second,<br/>unsupervised path to a CUDA context that bypasses ResourceSupervisor timeouts and backoff. It runs only while shared_context is None and a delivered<br/>context always wins (force_compute_actor.rs:763-764), it is bounded by 3 retries with 1s 2s 4s backoff (force_compute_actor.rs:769-788), and the ADR<br/>states that a context built this way is invisible to ResourceSupervisor accounting and GetSubsystemHealth, so the boot line "GPU context<br/>self-initialized successfully" (force_compute_actor.rs:942) means the supervisor path failed. The ADR sets a review trigger: remove the fallback once<br/>delivery has been boot-reliable across a release
     Note over FCA: InitializeGPU :3377 deliberately does NOT set gpu_state.num_nodes - that happens only after a successful upload, preventing ComputeForces on uninitialised buffers and CUDA mutex poisoning :3389-3391
 ```
 

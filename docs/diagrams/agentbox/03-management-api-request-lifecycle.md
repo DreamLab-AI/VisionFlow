@@ -152,6 +152,7 @@ sequenceDiagram
     Start->>Start: initTracing, setBuildInfo, startMetricsServer<br/>server.js:1452-1454
     Start->>App: app.listen port PORT host HOST<br/>server.js:1457
     Note over Start: MANAGEMENT_API_PORT default 9090 (server.js:44) HOST default 0.0.0.0 (server.js:49)<br/>compose publishes 127.0.0.1 9090 9090 only
+    Note over Start: agentbox main b9e0ea9a8 (S-3) leaves the 0.0.0.0 bind alone and instead makes the two readers of X-Agentbox-Pubkey (agent-event-auth and action-plane resolveAgentDid)<br/>honour it only from a loopback TCP peer, so a cross-container MANAGEMENT_API_KEY holder can no longer assert an identity through it. The auth gate itself never reads the header, see AB-10.14
 ```
 
 ## AB-03.3 generic request lifecycle — Fastify hook phases, auth and validation failure

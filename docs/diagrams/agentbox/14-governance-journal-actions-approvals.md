@@ -591,6 +591,7 @@ sequenceDiagram
     else ready
         DTS->>DTS: sessionUrn = uris.mint({kind:'meta', localId:'session-task-...'}) :258
         DTS->>DTS: agentDid = resolveAgentDid(request) :259, auth.pubkey then X-Agentbox-Pubkey then AGENTBOX_AGENT_DID then null :221-231
+        Note over DTS: DRIFT (resolved 2026-10-12, agentbox main b9e0ea9a8): at the stamp the header step read x-agentbox-pubkey from any peer<br/>on main resolveAgentDid calls proxyVerifiedPubkey from agent-event-auth, so the header counts only from a loopback TCP peer
         DTS->>AAP: pipeline.dispatch({session_urn, agent_did, capability:'agentbox.tasks', operation:'spawn', args, target}) :261-274
         AAP-->>DTS: {decision, output or reason, journal_event_id}
         alt decision is deny
@@ -603,6 +604,10 @@ sequenceDiagram
     Note over AAP: task-spawn is classified side_effect_class:'local' (FAST_PATH, no approval receipt) — a<br/>deliberate ADR-2041 rollout choice, not a permanent verdict — a future ADR may reclassify it 'mutate'<br/>once a real approver exists :85-101
     Note over RT,DTS: NARROWS but does not close GOVERNANCE-capabilities.md's TOP OPEN RISK (AB-14.1<br/>DIVERGENCE1) — exactly one surface (POST /v1/tasks) is now wired — every other agent-initiated<br/>side-effect surface still bypasses AgentActionPipeline entirely
 ```
+
+**Drift (resolved 2026-10-12, agentbox main b9e0ea9a8):** `resolveAgentDid` is the identity every journalled task-spawn is attributed to, and at the stamp its second step took `X-Agentbox-Pubkey` from any peer past the general gate (`agentbox/management-api/lib/action-plane.js:221-231`), `server.js` binding `0.0.0.0` (`agentbox/management-api/server.js:49`). On agentbox `main` it delegates to the shared `proxyVerifiedPubkey` (`agent-event-auth.js`), so a `MANAGEMENT_API_KEY` holder on the docker network can no longer put another `did:nostr` into `agent_did` and the journal. The precedence is otherwise unchanged: `auth.pubkey`, header, `AGENTBOX_AGENT_DID`, null.
+
+**Debt:** a same-container process still passes the loopback test and can stamp any pubkey into the journalled `agent_did` (the same-UID boundary, TODO-unified X-1; `agentbox/management-api/lib/action-plane.js:221-231`).
 
 ## AB-14.15 ADR-2087 activation wiring — boot replay, per-request resolution, and the staged check
 

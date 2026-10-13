@@ -31,7 +31,7 @@ sources:
   - docs/estate-review/evidence/adr-inventory.json
   - docs/BASELINE-visionflow.md
   - docs/architecture/compatibility-matrix.md
-verified_commit: da57b49a28974dd9bff5b5358369eef94a439273
+verified_commit: 4159e085a73dac3e9d52fb1bc7e476350bf369c1
 ---
 
 ## VF-07.1 Artefact map — what produces each output and where it lands
@@ -256,7 +256,7 @@ sequenceDiagram
     participant INV as "docs/estate-review/evidence/adr-inventory.json"
     participant SC as "docs/releases/ecosystem-release.schema.json"
 
-    CI->>T: bash the suite — the ONLY step in this job<br/>harness-fitness-gates.yml:166
+    CI->>T: bash the suite — the first of two steps in this job, the second being the dream evaluator exit-code test (harness-fitness-gates.yml:170-171)<br/>harness-fitness-gates.yml:166
 
     T->>INV: read the repos inventory
     T->>G: generate a manifest

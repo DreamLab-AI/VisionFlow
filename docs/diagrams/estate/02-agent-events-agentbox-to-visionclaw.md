@@ -60,7 +60,7 @@ sequenceDiagram
     Note over CF,RT: TRUST BOUNDARY: agentbox management-api process
     CF->>RT: POST /v1/agent-events/emit {source_agent_id,target_node_id,action_type}
     RT->>AUTH: verifyAgentEventRequest(request)
-    alt AGENTBOX_AGENT_EVENT_AUTH=off (default)
+    alt AGENTBOX_AGENT_EVENT_AUTH=off (explicit opt-out only, default is nip98 since ADR-2044)
         AUTH-->>RT: {ok:true, did:null}
     else policy=nip98, header present, verifyNip98 valid
         AUTH-->>RT: {ok:true, did:"did:nostr:<pubkey>"}
@@ -91,6 +91,10 @@ sequenceDiagram
     Note over WS: INVARIANT: binary header 19 bytes =<br/>version(1)+type(1)+source(4)+target(4)+action(1)+ts(4)+dur(2)+len(2), version=0x02 type=0x23
     end
 ```
+
+**Drift (resolved 2026-10-12, agentbox main b9e0ea9a8):** the `did` that `verifyAgentEventRequest` hands to `reconcileSourceUrn` comes from a signature on path 1 and from the proxy-stamped `X-Agentbox-Pubkey` on path 2 (`agentbox/management-api/lib/agent-event-auth.js:157-160`). At the stamp the header was trusted from any TCP peer, so a `MANAGEMENT_API_KEY` holder on the docker network could emit events under another `did:nostr` that VisionClaw then ingested as attributed (`agentbox/management-api/lib/agent-event-auth.js:31-39`). On agentbox `main` it counts only from a loopback peer.
+
+**Debt:** a process inside the agentbox container can still stamp any pubkey over loopback (TODO-unified X-1), so attribution on the session and break-glass hop is bounded by the same-UID boundary (`agentbox/management-api/lib/agent-event-auth.js:157-160`).
 
 ## ES-02.2 Cross-container forward — agentbox WS subscriber to VisionClaw ingest, auth + envelope validation
 ```mermaid

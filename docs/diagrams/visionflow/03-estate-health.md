@@ -23,7 +23,7 @@ sources:
   - tests/gates/estate-health-ci.test.mjs
   - tests/gates/run-all.sh
   - ./README.md
-verified_commit: da57b49a28974dd9bff5b5358369eef94a439273
+verified_commit: 4159e085a73dac3e9d52fb1bc7e476350bf369c1
 ---
 
 ## VF-03.1 The roster — the only place the estate is enumerated

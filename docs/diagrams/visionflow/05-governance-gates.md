@@ -27,6 +27,7 @@ sources:
   - tests/gates/harness-audit.test.sh
   - tests/gates/release-manifest.test.sh
   - tests/gates/website-assets.test.sh
+  - tests/gates/dream-evaluator-exit.test.sh
   - tests/gates/diagram-index.test.cjs
   - tests/gates/augmentation-citations.test.cjs
   - scripts/check-augmentation-citations.cjs
@@ -39,7 +40,7 @@ sources:
   - .github/workflows/adr-index.yml
   - scripts/adr-ratchet.sh
   - tests/gates/estate-health-ci.test.mjs
-verified_commit: da57b49a28974dd9bff5b5358369eef94a439273
+verified_commit: 4159e085a73dac3e9d52fb1bc7e476350bf369c1
 ---
 
 ## VF-05.1 Gate route table — trigger, script, verdict, blocking
@@ -70,7 +71,7 @@ flowchart TB
     PUSHMAIN --> WHARN
     WHARN --> J1["job harness-audit<br/>harness-audit.sh --target 50<br/>harness-fitness-gates.yml:56"]:::tool
     WHARN --> J2["job fixture-parity<br/>inline jq template schema check<br/>harness-fitness-gates.yml:108"]:::tool
-    WHARN --> J3["job release-manifest<br/>release-manifest.test.sh<br/>harness-fitness-gates.yml:166"]:::tool
+    WHARN --> J3["job release-manifest<br/>release-manifest.test.sh, then dream-evaluator-exit.test.sh<br/>harness-fitness-gates.yml:166 and harness-fitness-gates.yml:171"]:::tool
     J1 --> VH["exit 1 when pairing ratio &lt; target<br/>harness-audit.sh:430"]:::block
     J2 --> VH2["exit 1 on bad JSON, missing field,<br/>duplicate id or dangling pairing ref<br/>harness-fitness-gates.yml:144"]:::block
     J3 --> VH3["exit 1 when a candidate manifest<br/>can be cut with no fixture comparison"]:::block
@@ -80,8 +81,8 @@ flowchart TB
     SCOPY --> VCOPY["exit 1 if luddites.txt / doctorow.txt<br/>or any unallowlisted root .txt is tracked<br/>copyright-guard.yml:45"]:::block
 
     PUSHMAIN --> WDEPL["deploy.yml<br/>publication path"]
-    WDEPL --> DG1["BLOCKING gate 6 — committed diagram<br/>baseline text visibility<br/>deploy.yml:124"]:::block
-    WDEPL --> DG2["drift counter, REPORTED when the<br/>pinned agentbox checkout failed<br/>deploy.yml:134"]:::report
+    WDEPL --> DG1["BLOCKING gate 6 — committed diagram<br/>baseline text visibility<br/>deploy.yml:128"]:::block
+    WDEPL --> DG2["drift counter, REPORTED when the<br/>pinned agentbox checkout failed<br/>deploy.yml:138"]:::report
 
     MANUAL["operator, by hand — no workflow"] --> SMESH["mesh-smoke-preflight.sh<br/>read-only substrate probe<br/>mesh-smoke-preflight.sh:337"]:::report
     MANUAL --> SREL["generate-release-manifest.sh<br/>exit 3 without a canonical revision set<br/>generate-release-manifest.sh:242"]:::block
@@ -347,11 +348,17 @@ flowchart LR
     B4 --> B5["every pairing guide_id and sensor_id<br/>resolves to a declared control<br/>harness-fitness-gates.yml:129"]:::block
     B5 --> B6["errors accumulate, one exit 1 at the end<br/>harness-fitness-gates.yml:144"]
 
-    C --> C1["tests/gates/release-manifest.test.sh only —<br/>the generator itself is not run in CI<br/>harness-fitness-gates.yml:166"]:::block
+    C --> C1["tests/gates/release-manifest.test.sh —<br/>the generator itself is not run in CI<br/>harness-fitness-gates.yml:166"]:::block
+    C --> C2["then tests/gates/dream-evaluator-exit.test.sh (4159e08):<br/>dream-build-check.sh and dream-link-check.sh must print<br/>the FAIL marker AND exit 1 on a broken tree<br/>harness-fitness-gates.yml:171"]:::block
 
     NOTE1["TARGET SCOPE: the script default is 80 (harness-audit.sh:57).<br/>Historical Harness Coverage totals at compatibility-matrix.md:96<br/>record July's PASS at target 80%, while this workflow passes --target 50"]
+    NOTE4["the new step lives in this job, not in run-all.sh: the SUITES<br/>array still lists seven suites and omits it - run-all.sh:18-26"]
     NOTE2["INVARIANT: the missing template directory is a skip, not a failure —<br/>job B exits 0 when docs/engineering/templates does not exist"]
 ```
+
+**Drift (resolved 2026-10-12, `4159e08`):** the release-manifest job gained a second step, `tests/gates/dream-evaluator-exit.test.sh` (`.github/workflows/harness-fitness-gates.yml:170-171`), which copies `scripts/dream-build-check.sh` and `scripts/dream-link-check.sh` into a scratch tree and asserts each prints its marker and exits with it (`tests/gates/dream-evaluator-exit.test.sh:36-65`); the evaluators it pins are described in VF-02.7 and VF-04.4.
+
+**Debt:** the workflow's path filter names `tests/gates/**` but neither dream script (`.github/workflows/harness-fitness-gates.yml:5-12`), so an edit to `scripts/dream-build-check.sh` alone does not run the suite that pins its exit code, and `tests/gates/run-all.sh` does not list the suite (`tests/gates/run-all.sh:18-26`).
 
 ## VF-05.8 harness-audit.sh — the three defects the counting rules close
 ```mermaid

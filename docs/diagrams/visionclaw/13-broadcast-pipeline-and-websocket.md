@@ -133,6 +133,7 @@ sequenceDiagram
                 HH->>NS: nostr_service.get_session(token)<br/>src/handlers/socket_flow_handler/http_handler.rs:227
                 alt session valid
                     NS-->>HH: Some(session)
+                    Note right of HH: RESOLVED 0d636fd0e (a commit after this topic's stamp, verified in VC-03.2): the validated session is now kept as signed_user,<br/>so a header-session client reaches the pubkey and is_power_user assignment below like the signed-subprotocol client.<br/>At the stamped revision the session was only checked here and then dropped, so that client stayed anonymous
                 else session invalid or NostrService absent
                     NS-->>HH: None
                     alt release build (or dev without ALLOW_INSECURE_DEFAULTS)
@@ -149,7 +150,7 @@ sequenceDiagram
                 end
             end
             HH->>WSS: ws_server = SocketFlowServer::new(...)<br/>src/handlers/socket_flow_handler/http_handler.rs:384
-            HH->>WSS: signed user, if any, sets pubkey and is_power_user<br/>src/handlers/socket_flow_handler/http_handler.rs:392-395
+            HH->>WSS: signed user, if any, sets pubkey and is_power_user (at this stamp only the signed-subprotocol path fills signed_user, since 0d636fd0e the validated header session does too)<br/>src/handlers/socket_flow_handler/http_handler.rs:392-395
             HH->>WSS: connection_url = nip98_request_url(req) for NIP-98 WS validation<br/>src/handlers/socket_flow_handler/http_handler.rs:406-407
             Note over HH: INVARIANT: one u-tag reconstruction for every NIP-98 entry point,<br/>X-Forwarded-Proto and X-Forwarded-Host win over connection_info<br/>src/utils/auth.rs:153-162, nginx forwards X-Forwarded-Host $http_host<br/>for /wss so the dialled port survives, nginx.production.conf:248
             opt ?token= present a second time (dev builds only, src/handlers/socket_flow_handler/http_handler.rs:371-382)
@@ -394,7 +395,7 @@ stateDiagram-v2
     Connecting --> Connected: 101 Switching Protocols<br/>src/handlers/socket_flow_handler/http_handler.rs:393-399
     Rejected --> [*]
 
-    Connected --> Anonymous: SocketFlowServer started<br/>send_full_state_sync public-only view<br/>src/handlers/socket_flow_handler/types.rs:613-666
+    Connected --> Anonymous: SocketFlowServer started, pubkey None unless the upgrade carried a signed subprotocol (since 0d636fd0e also a validated header session)<br/>send_full_state_sync public-only view<br/>src/handlers/socket_flow_handler/types.rs:613-666
     Anonymous --> Authenticated: authenticate message<br/>NIP-98 kind-27235 or legacy token/pubkey<br/>src/handlers/socket_flow_handler/filter_auth.rs:10 (ADR-2009)
     Anonymous --> Subscribed: subscribe_position_updates<br/>(pubkey stays None, public-only stream)<br/>src/handlers/socket_flow_handler/position_updates.rs:603
 

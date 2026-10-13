@@ -165,7 +165,7 @@ flowchart TB
         G4["allow_namespace_repair = false<br/>agentbox.toml:505"]
         G5["allow_pattern_graduation = false RESERVED<br/>agentbox.toml:511"]
     end
-    D1["DIVERGENCE D1 — SONA is INERT. The prebuilt<br/>@ruvector/sona@0.1.5 NAPI binary hardcodes<br/>embedding_dim = 256, so 384-dim learns return<br/>status:learned but accumulate NOTHING (verified live).<br/>Both gates stay off until a 384-dim-capable binary."]
+    D1["DIVERGENCE D1 — SONA is INERT. The prebuilt<br/>@ruvector/sona@0.1.5 NAPI binary hardcodes<br/>embedding_dim = 256, so 384-dim learns return<br/>status:learned but accumulate NOTHING (verified live).<br/>The feeder's fed count is that status:learned count, not proof of accumulation<br/>(agentbox main c274ae233 adds engine_accumulating beside it).<br/>Both gates stay off until a 384-dim-capable binary."]
     D1B["attention_rerank is OFF BY MEASUREMENT, not caution —<br/>on an L2-normalised corpus the attention blend is a<br/>mathematical identity (max diff 4e-7)."]
     D2["DIVERGENCE D2 — aggregate-count drift. agentbox.toml:480<br/>cites 78 aggregates >=20 samples (2026-08-31); the<br/>reference doc records 12 from the 2026-07-21 sweep.<br/>The toml is the running config and the newer number."]
     D4["DOC-DRIFT D4 — agentbox/README.md:338 still lists BOTH<br/>feed_retrieval and feed_routing as open gates awaiting the<br/>Wilson floor. Half of that is now stale: the running manifest<br/>has feed_retrieval = true since 2026-08-31 (agentbox.toml:480)<br/>and only feed_routing is still false (agentbox.toml:481)."]
@@ -179,6 +179,8 @@ flowchart TB
     G4 --> D5
     G5 --> D5
 ```
+
+**Drift (resolved 2026-10-12, agentbox main c274ae233):** the feeder's `fed` counts calls whose result was `status:"learned"` (`agentbox/scripts/ruvector-sona-feeder.mjs:515-516`), which D1 shows the 256-dim binary also returns for a 384-dim learn it keeps nowhere, so `fed` was never evidence of accumulation. Agentbox `main` adds `engine_accumulating` to the `SonaRunCompleted` event, derived from the post-batch `trajectories_buffered + patterns_stored` (null when the stats are unreadable), and rewords the human lines to "accepted by learn ... engine accumulating: yes/no/unknown". `fed` is kept for the cursor and the event contract. Both SONA gates stay off, so the loop's shipped state is unchanged.
 
 ## Audit qualification — 2026-09-07
 

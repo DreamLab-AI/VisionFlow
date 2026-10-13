@@ -28,7 +28,7 @@ sources:
   - docs/adr/ADR-2004-diagram-baseline-vendored-render-gate.md
   - docs/BASELINE-visionflow.md
   - docs/site-verification.md
-verified_commit: da57b49a28974dd9bff5b5358369eef94a439273
+verified_commit: 4159e085a73dac3e9d52fb1bc7e476350bf369c1
 ---
 
 ## VF-06.1 Two diagram pipelines, one repository — what each owns
@@ -70,7 +70,7 @@ flowchart TB
 
     WA["diagram-render.yml — PR-triggered on<br/>presentation/report/diagrams/**<br/>diagram-render.yml:18"] --> A
     WB["diagram-index.yml — push and PR on<br/>docs/diagrams/**<br/>diagram-index.yml:7"] --> B
-    WD["deploy.yml — BLOCKING publication gate runs<br/>the browser-free baseline probe only<br/>deploy.yml:124"] --> ACHK
+    WD["deploy.yml — BLOCKING publication gate runs<br/>the browser-free baseline probe only<br/>deploy.yml:128"] --> ACHK
 
     subgraph O["Neither pipeline — unwired scripts"]
         OV["validate-mermaid-diagrams.sh<br/>hardcoded to a file in ANOTHER repo<br/>validate-mermaid-diagrams.sh:7"]:::orphan
@@ -248,7 +248,7 @@ flowchart TB
     L2 --> AGG
     L5 --> AGG["failures counted, one exit 1 after every file is judged<br/>check-diagram-text.js:208"]:::bad
 
-    NOTE["INVARIANT: pure node built-ins — no browser, no npm dependency — so<br/>this probe runs anywhere, including as a blocking step at deploy.yml:124<br/>check-diagram-text.js:16"]
+    NOTE["INVARIANT: pure node built-ins — no browser, no npm dependency — so<br/>this probe runs anywhere, including as a blocking step at deploy.yml:128<br/>check-diagram-text.js:16"]
 ```
 
 ## VF-06.7 check-diagram-text.js --diff — word-set drift against the baseline

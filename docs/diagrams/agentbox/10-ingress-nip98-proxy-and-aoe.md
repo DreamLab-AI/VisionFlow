@@ -359,7 +359,7 @@ AUTH-->>MAPI: allow, nip98 accepted<br/>agentbox/management-api/middleware/auth.
         MAPI-->>PX: response
         PX-->>BR: relay status and body proxy.mjs:1058-1060
     end
-Note over MAPI,AUTH: the AUTH GATE never reads X-Agentbox-Pubkey - createAuthMiddleware<br/>re-verifies Authorization itself on every request<br/>agentbox/management-api/middleware/auth.js:164-199. Two consumers BEHIND the gate do<br/>trust the stamp under ADR-2042 - see AB-10.14
+Note over MAPI,AUTH: the AUTH GATE never reads X-Agentbox-Pubkey - createAuthMiddleware<br/>re-verifies Authorization itself on every request<br/>agentbox/management-api/middleware/auth.js:164-199. Two consumers BEHIND the gate do<br/>trust the stamp under ADR-2042 (on agentbox main b9e0ea9a8 only from a loopback peer) - see AB-10.14
 ```
 
 ## AB-10.8 NIP-07 browser session handshake
@@ -572,10 +572,15 @@ sequenceDiagram
     end
     GATE->>APL: any action-plane dispatch past the gate
     APL->>APL: DID priority request.auth.pubkey, then x-agentbox-pubkey, then AGENTBOX_AGENT_DID, then null action-plane.js:221-231
-    Note over AEA,APL: DIVERGENCE ADR-2042 Consequences, stated in-source - path 2 is sound only while<br/>nothing but the proxy reaches port 9090, and that is NOT true today, server.js binds 0.0.0.0<br/>in-container so any holder of MANAGEMENT_API_KEY clears the gate and can then forge the<br/>stamp agent-event-auth.js:31-39
+    Note over AEA,APL: DRIFT (resolved 2026-10-12, agentbox main b9e0ea9a8) - at the stamp path 2 trusted the stamp from any TCP peer<br/>so a MANAGEMENT_API_KEY holder on the docker network could forge it, server.js binds 0.0.0.0 agent-event-auth.js:31-39.<br/>On main both consumers now go through proxyVerifiedPubkey, honoured only from a loopback peer (peerIsProxy)
+    Note over AEA,APL: DEBT residual - a process INSIDE the container can still connect over loopback and forge the stamp, the same-UID boundary (TODO-unified X-1)<br/>AGENTBOX_PROXY_PEERS replaces the loopback default for a proxy that connects from elsewhere
     Note over AEA: policy gate AGENTBOX_AGENT_EVENT_AUTH, default nip98 since ADR-2044, off is<br/>explicitly selectable and returns did null agent-event-auth.js:112-115
 ```
 
 The governing doc states Invariant 2 as "X-Agentbox-Pubkey always proxy-injected,
 never trusted inbound" — true at the ingress, and the two ADR-2042 consumers above
 are the deliberate, documented exception on the far side of the gate.
+
+**Drift (resolved 2026-10-12, agentbox main b9e0ea9a8):** the diagram above is drawn at the stamped lineage, where path 2 and `resolveAgentDid` read the header from any TCP peer once the general gate had passed (`agentbox/management-api/lib/agent-event-auth.js:157-160`, `agentbox/management-api/lib/action-plane.js:221-231`) and `server.js` binds `0.0.0.0` (`agentbox/management-api/server.js:49`), so a `MANAGEMENT_API_KEY` holder on the docker network could forge any `did:nostr`. Agentbox `main` commit b9e0ea9a8 (S-3) adds `peerIsProxy` and an exported `proxyVerifiedPubkey` in `agent-event-auth.js`: the header counts only when `request.raw.socket.remoteAddress` is loopback (`127.0.0.1`, `::1`, `::ffff:127.0.0.1`) or an exact address in `AGENTBOX_PROXY_PEERS`, and a request with no socket information fails closed. `action-plane.js` `resolveAgentDid` now calls the same helper, so the two consumers cannot disagree. ADR-2042 gained an "Update 2026-10-12" section. The stamped lineage does not contain the commit, so the lines above still describe it.
+
+**Debt:** the loopback test authenticates the network position, not the process: anything inside the container can open its own loopback connection and forge the stamp (the same-UID boundary, TODO-unified X-1), and the unconditional trust it replaces is still what the stamped lineage ships (`agentbox/management-api/lib/agent-event-auth.js:157-160`).

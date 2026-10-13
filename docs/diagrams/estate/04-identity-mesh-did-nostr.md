@@ -76,6 +76,10 @@ flowchart LR
     Note1["EXTERNAL: nostr-rust-forum, dreamlab-ai-website,<br/>code-as-harness sign their own events;<br/>not on disk in this repo — asserted only where cited"]
 ```
 
+**Drift (resolved 2026-10-12, agentbox main b9e0ea9a8):** the edge from `AEA` to `NBB` is path 1 only. Path 2 of `verifyAgentEventRequest` accepts the proxy-stamped `X-Agentbox-Pubkey` without a signature (`agentbox/management-api/lib/agent-event-auth.js:157-160`), and at the stamp any `MANAGEMENT_API_KEY` holder on the docker network could forge it because management-api binds `0.0.0.0` (`agentbox/management-api/lib/agent-event-auth.js:31-39`). On agentbox `main` the header is honoured only from a loopback TCP peer (`peerIsProxy`, `AGENTBOX_PROXY_PEERS` overrides) in both `agent-event-auth` and `action-plane` `resolveAgentDid`, so the `did:nostr` carried into agent-events and the task journal cannot be asserted from another container.
+
+**Debt:** the stamp's strength is the same-UID boundary of the agentbox container, because any process inside it reaches management-api over loopback (TODO-unified X-1; `agentbox/management-api/lib/agent-event-auth.js:157-160`).
+
 ## ES-04.3 validate_nip98_token — the fixed check order, replay claimed LAST
 ```mermaid
 sequenceDiagram

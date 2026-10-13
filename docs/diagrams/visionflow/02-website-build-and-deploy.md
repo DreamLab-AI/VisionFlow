@@ -21,6 +21,8 @@ sources:
   - scripts/check-cdp-sidecar.mjs
   - scripts/dream-build-check.sh
   - scripts/dream-link-check.sh
+  - tests/gates/dream-evaluator-exit.test.sh
+  - .github/workflows/harness-fitness-gates.yml
   - scripts/dream-meta-tags-scan.sh
   - scripts/dream-structured-data-scan.sh
   - scripts/check-diagram-text.js
@@ -38,7 +40,7 @@ sources:
   - docs/adr/ADR-2003-pages-artifact-deploy.md
   - docs/architecture/compatibility-matrix.md
   - ./README.md
-verified_commit: da57b49a28974dd9bff5b5358369eef94a439273
+verified_commit: 4159e085a73dac3e9d52fb1bc7e476350bf369c1
 ---
 
 ## VF-02.1 The copy-only build — every step of website/build.sh
@@ -170,8 +172,8 @@ erDiagram
         list missing_required "dest plus why plus reason absent or empty — website-assets.mjs:180"
         object staging "the stage-step sidecar, derived and optional outcomes"
         bool ok "true when missing_required is empty — website-assets.mjs:236"
-        object gates "per-gate verdict, written by the deploy workflow — deploy.yml:151"
-        object published "target, revision, workflow_run, ref — deploy.yml:160"
+        object gates "per-gate verdict, written by the deploy workflow — deploy.yml:155"
+        object published "target, revision, workflow_run, ref — deploy.yml:164"
     }
     REQUIRED_ASSET {
         string dest "dist-relative path"
@@ -180,7 +182,7 @@ erDiagram
     }
     ARTEFACT {
         string placement "the receipt lives OUTSIDE dist/ so it never becomes part of the tree it hashes — website-assets.mjs:36"
-        string upload "uploaded as its own workflow artefact named website-build-receipt — deploy.yml:173"
+        string upload "uploaded as its own workflow artefact named website-build-receipt — deploy.yml:177"
     }
     BUILD_RECEIPT ||--o{ REQUIRED_ASSET : lists
     BUILD_RECEIPT ||--|| ARTEFACT : describes
@@ -201,25 +203,25 @@ flowchart TB
     AB --> BUILD["run website/build.sh — deploy.yml:78"]
 
     BUILD --> G1["BLOCKING 1 asset inventory<br/>website-assets.mjs verify --published-revision GITHUB_SHA<br/>deploy.yml:83"]:::block
-    G1 --> G2["BLOCKING 2 build output, grep BUILD-OK<br/>deploy.yml:92"]:::block
-    G2 --> G3["BLOCKING 3 internal link integrity, grep LINK-INTEGRITY-OK<br/>deploy.yml:100"]:::block
-    G3 --> G4["BLOCKING 4 meta tags, grep META-SCAN-OK<br/>deploy.yml:109"]:::block
-    G4 --> G5["BLOCKING 5 structured data, grep SD-SCAN-OK<br/>deploy.yml:118"]:::block
-    G5 --> G6["BLOCKING 6 committed diagram baseline text visibility<br/>node scripts/check-diagram-text.js — deploy.yml:125"]:::block
-    G6 --> G7["REPORTED 7 self-description drift counter<br/>blocks only when the agentbox checkout landed<br/>deploy.yml:134"]:::report
+    G1 --> G2["BLOCKING 2 build output, grep BUILD-OK<br/>deploy.yml:94"]:::block
+    G2 --> G3["BLOCKING 3 internal link integrity, grep LINK-INTEGRITY-OK<br/>deploy.yml:104"]:::block
+    G3 --> G4["BLOCKING 4 meta tags, grep META-SCAN-OK<br/>deploy.yml:113"]:::block
+    G4 --> G5["BLOCKING 5 structured data, grep SD-SCAN-OK<br/>deploy.yml:122"]:::block
+    G5 --> G6["BLOCKING 6 committed diagram baseline text visibility<br/>node scripts/check-diagram-text.js — deploy.yml:129"]:::block
+    G6 --> G7["REPORTED 7 self-description drift counter<br/>blocks only when the agentbox checkout landed<br/>deploy.yml:138"]:::report
 
     HEAD["what gates 4 and 5 now see in the head — dream PRs 12 to 16:<br/>a robots meta, index.html:9 (PR 16), og:site_name, index.html:11,<br/>og:image width and height 1280 x 720, index.html:16-17, an<br/>Organization block that carries legalName DreamLab AI Consulting<br/>Ltd, index.html:34, and a second JSON-LD block typed WebSite,<br/>index.html:40-46, which now links the Organization by @id (index.html:32, :43),<br/>plus og:locale en_GB, index.html:19"]
     G5 -.-> HEAD
-    G7 --> REC["write gate verdicts and the published block into the receipt<br/>deploy.yml:147"]:::ok
-    REC --> UPR["upload-artifact website-build-receipt — deploy.yml:172"]:::ok
-    UPR --> UP["upload-pages-artifact@v3, path website/dist<br/>reached only when every blocking gate passed<br/>deploy.yml:180"]:::ok
-    UP --> J2["job deploy, needs build<br/>environment github-pages, deploy-pages@v4<br/>deploy.yml:193"]:::ok
+    G7 --> REC["write gate verdicts and the published block into the receipt<br/>deploy.yml:151"]:::ok
+    REC --> UPR["upload-artifact website-build-receipt — deploy.yml:176"]:::ok
+    UPR --> UP["upload-pages-artifact@v3, path website/dist<br/>reached only when every blocking gate passed<br/>deploy.yml:184"]:::ok
+    UP --> J2["job deploy, needs build<br/>environment github-pages, deploy-pages@v4<br/>deploy.yml:197"]:::ok
 
     INV["INVARIANT: no gh-pages branch push anywhere;<br/>the CNAME is emitted by build.sh into the artefact<br/>ADR-2003-pages-artifact-deploy.md:29<br/>BASELINE-visionflow.md:310"]
     J2 -.-> INV
 ```
 
-## VF-02.7 Why every gate greps a sentinel instead of trusting the exit code
+## VF-02.7 Why every gate still greps a sentinel - and what the exit code now adds
 ```mermaid
 sequenceDiagram
     autonumber
@@ -227,19 +229,23 @@ sequenceDiagram
     participant S as "scripts/dream-link-check.sh"
     participant SH as "bash"
 
-    W->>S: "capture stdout of bash scripts/dream-link-check.sh"
-    S->>SH: "cd website/dist, or echo NO-DIST and exit 0<br/>dream-link-check.sh:33"
-    Note over S: "the evaluators exit 0 even on failure, because the dream<br/>annexe reads a non-zero exit as an infrastructure fault<br/>rather than as a finding"
-    S-->>W: "stdout ends LINK-INTEGRITY-OK or LINK-INTEGRITY-FAIL<br/>since the 10-05 ACCEPT the gate also reports anchors-checked<br/>and dangling, and a dangling anchor fails it — dream-link-check.sh:97-98"
+    W->>S: "capture stdout of bash scripts/dream-link-check.sh, an or-true keeps set -e from aborting before the echo<br/>deploy.yml:102"
+    S->>SH: "cd website/dist, or echo NO-DIST and exit 0<br/>dream-link-check.sh:36"
+    Note over S: "RESOLVED 2026-10-12 (4159e08): the evaluators used to exit 0 even on failure.<br/>Both now print the marker AND exit 1 on failure, so the verdict holds when the<br/>script runs on its own - dream-link-check.sh:104-105, dream-build-check.sh:12-13"
+    S-->>W: "stdout ends LINK-INTEGRITY-OK or LINK-INTEGRITY-FAIL<br/>since the 10-05 ACCEPT the gate also reports anchors-checked<br/>and dangling, and a dangling anchor fails it - dream-link-check.sh:99-100"
     W->>W: "grep -q for the OK sentinel, else exit 1"
-    Note over W: deploy.yml:100
+    Note over W: deploy.yml:104
     alt sentinel absent
         W-->>W: "::error:: internal links or assets are missing from dist/"
     else sentinel present
         W-->>W: continue to the next gate
     end
-    Note over W,S: "INVARIANT: the exit code is NOT the contract — the last<br/>stdout sentinel is. Without the grep the first five gates<br/>would be decorative — ADR-2003-pages-artifact-deploy.md:85"
+    Note over W,S: "INVARIANT: the marker, not the exit code, is what the workflow reads - the or-true<br/>discards the code and the grep decides. Without the grep the first five gates<br/>would be decorative - ADR-2003-pages-artifact-deploy.md:85"
 ```
+
+**Drift (resolved 2026-10-12, `4159e08`):** this topic recorded that the dream evaluators exit 0 on failure, so that the annexe would read a failure as a finding rather than an infrastructure fault; `scripts/dream-build-check.sh:12-13` now prints `BUILD-FAIL` and exits 1, and `scripts/dream-link-check.sh:104-105` prints `LINK-INTEGRITY-FAIL` and exits 1, while the header comment (`scripts/dream-build-check.sh:5-6`) states that the printed marker stays the verdict the deploy gate and the dream engine read (the engine side is catalogued in AB-23). `tests/gates/dream-evaluator-exit.test.sh:36-65` drives both scripts through a scratch tree and asserts marker and exit code together, and `.github/workflows/harness-fitness-gates.yml:170-171` runs it (see VF-05.7).
+
+**Debt:** the no-`dist/` path still prints `NO-DIST` and exits 0 with no marker (`scripts/dream-link-check.sh:36`), and the exit-code test exercises only the marker paths (`tests/gates/dream-evaluator-exit.test.sh:48-65`).
 
 ## VF-02.8 The drift counter's two modes — reported vs enforced
 ```mermaid
@@ -260,7 +266,7 @@ stateDiagram-v2
       revision as the drift-counter allowlist source_pin
     end note
     note right of Reported
-      deploy.yml:135 — the partial-source failure mode:
+      deploy.yml:139 — the partial-source failure mode:
       an axis whose truth lives in a sibling repo cannot
       be evaluated without that checkout, so it is not
       allowed to block. DIVERGENCE: on a runner without
