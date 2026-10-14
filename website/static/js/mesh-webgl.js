@@ -174,10 +174,12 @@ export function initMesh(canvas) {
     { sel: '#evolution', lines: ringLines, nodes: ringNodes, anchors: ringAnchor, labels: ringLabels },
     { sel: '#loom', lines: helixSpokes, nodes: helixNodes, anchors: helixPos, labels: helixLabels, extra: helixSpine },
   ];
-  let heroTop = 0, heroBot = 1;
+  let heroTop = 0, heroBot = 1, fedTop = null;
   function measure() {
     const hero = document.getElementById('hero');
     if (hero) { heroTop = hero.offsetTop; heroBot = hero.offsetTop + hero.offsetHeight; }
+    const fed = document.getElementById('cases'); // the federation section: the spine holds until here
+    fedTop = fed ? fed.offsetTop : null;
     FIGURES.forEach((f) => { const el = document.querySelector(f.sel); f.top = el ? el.offsetTop : null; f.h = el ? el.offsetHeight : 0; });
   }
 
@@ -226,13 +228,21 @@ export function initMesh(canvas) {
 
     // hero presence fades out once scrolled past the hero
     const heroFade = clamp(1 - Math.max(0, scrollY - heroTop * 0.2) / (heroBot * 0.75), 0, 1);
+    // The spine and its orbiting hubs settle to a quieter level after the hero, hold
+    // until the federation section is half a screen away, then fade over ~1.8 screens.
+    const SPINE_HOLD = 0.4;
+    const lateFade = fedTop == null ? 1 : 1 - smooth(clamp((scrollY - (fedTop - H * 0.5)) / (H * 1.8), 0, 1));
+    const spineLevel = Math.max(heroFade, SPINE_HOLD) * lateFade;
+    const orbit = reduced ? 0 : t * 0.12 + scrollY * 0.0007; // hubs orbit, and scroll nudges them round
     gl.clear(gl.COLOR_BUFFER_BIT);
     if (heroFade > 0.01) {
       dpt(stars, transRotY(0, 0, 0, yrot * 0.4, 0), heroFade, ptScale);
-      dln(spine, IDENT, heroFade * 0.5, gl.LINE_STRIP);
-      dpt(heroHubs, transRotY(0, 0, 0, yrot, 0), heroFade * 0.9, ptScale);
     } else {
       dpt(stars, transRotY(0, 0, 0, yrot * 0.4, 0), 0.06, ptScale); // faint ambient dust over the video
+    }
+    if (spineLevel > 0.01) {
+      dln(spine, IDENT, spineLevel * 0.5, gl.LINE_STRIP);
+      dpt(heroHubs, transRotY(0, 0, 0, orbit, 0), spineLevel * 0.9, ptScale);
     }
 
     // figures: reveal + spin as their section passes the viewport centre
