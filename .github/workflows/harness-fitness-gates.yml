@@ -169,3 +169,38 @@ jobs:
       # as printing it, so the contract holds when they run outside deploy.yml.
       - name: Dream evaluator exit-code tests
         run: bash tests/gates/dream-evaluator-exit.test.sh
+
+  # TODO-unified ER-5(a): tests/gates/run-all.sh was in no workflow, so the
+  # suites it aggregates (augmentation-citations, website-assets,
+  # estate-health-ci among them) never ran in CI. This job runs the aggregate
+  # as the single entry point; it mirrors the CI-like layout used to verify it
+  # (no sibling checkouts beside the canon, agentbox at the drift-counter pin).
+  gate-suites:
+    name: All governance-gate regression suites
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      # The drift-counter suite reads its count sources from agentbox. Keep
+      # `ref` equal to scripts/drift-counter/allowlist.json .source_pin.revision
+      # and to the ref in drift-counter.yml.
+      - name: Check out agentbox (count sources, pinned)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: DreamLab-AI/agentbox
+          ref: b859b37d2ffb74c08cfbb9aa9ad7e1cc61d6b188
+          path: _agentbox
+
+      - name: Install jq
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq jq
+
+      - name: Install Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+
+      - name: Run every gate regression suite
+        env:
+          DRIFT_AGENTBOX_DIR: ${{ github.workspace }}/_agentbox
+        run: bash tests/gates/run-all.sh
