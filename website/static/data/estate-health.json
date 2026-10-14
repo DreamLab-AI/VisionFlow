@@ -1,16 +1,16 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-10-14T07:50:01.327Z",
+  "generated_at": "2026-10-14T10:29:54.996Z",
   "generator": {
-    "revision": "daf5b71cd91563bf7c9563441928bf7edcac0fb2",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38530885726",
+    "revision": "02ae8a4cc0fb9a7f01bda75c339207907ed6c53f",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38549932311",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
-    "repos": 15,
+    "repos": 17,
     "green": 8,
     "red": 2,
-    "amber": 0,
+    "amber": 2,
     "none": 2,
     "exempt": 2,
     "unreadable": 1,
@@ -30,14 +30,14 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "daf5b71cd91563bf7c9563441928bf7edcac0fb2",
-        "short": "daf5b71",
-        "date": "2026-10-13T11:07:30Z",
-        "message": "docs(diagrams): the Podkey pin expiry is resolved",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/daf5b71cd91563bf7c9563441928bf7edcac0fb2"
+        "sha": "02ae8a4cc0fb9a7f01bda75c339207907ed6c53f",
+        "short": "02ae8a4",
+        "date": "2026-10-14T10:29:27Z",
+        "message": "feat(website): add ontomark + ontomark-obsidian to the estate roster and repo map",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/02ae8a4cc0fb9a7f01bda75c339207907ed6c53f"
       },
       "ci": {
-        "state": "green",
+        "state": "amber",
         "runs": [
           {
             "workflow": "ADR frontmatter gate",
@@ -48,17 +48,17 @@
           },
           {
             "workflow": "Copyright Source Guard",
-            "conclusion": "success",
-            "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38388059589",
-            "updated_at": "2026-10-13T11:07:48Z"
+            "conclusion": null,
+            "status": "in_progress",
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38549932077",
+            "updated_at": "2026-10-14T10:29:34Z"
           },
           {
             "workflow": "Deploy to GitHub Pages",
-            "conclusion": "success",
-            "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38388059575",
-            "updated_at": "2026-10-13T11:08:10Z"
+            "conclusion": null,
+            "status": "in_progress",
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38549932159",
+            "updated_at": "2026-10-14T10:29:34Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
@@ -78,12 +78,12 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38377388146",
-            "updated_at": "2026-10-13T09:35:48Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38530885726",
+            "updated_at": "2026-10-14T07:50:09Z"
           }
         ]
       },
-      "open_prs": 2,
+      "open_prs": 1,
       "open_issues": 1,
       "release": null,
       "pages": {
@@ -106,11 +106,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "f82a92c48e335a11e6850949d421f7e07c4ef288",
-        "short": "f82a92c",
-        "date": "2026-10-13T21:36:19Z",
-        "message": "fix(protocol): late acks, bounded backoff, fair share, revocation (Codex review of ADR-2141)",
-        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/f82a92c48e335a11e6850949d421f7e07c4ef288"
+        "sha": "b112b0fc855ccde2e74880a5ab31387fb8d06e69",
+        "short": "b112b0f",
+        "date": "2026-10-14T08:31:05Z",
+        "message": "feat(agents): one server-side agents demo both clients control and both see (ADR-2142)",
+        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/b112b0fc855ccde2e74880a5ab31387fb8d06e69"
       },
       "ci": {
         "state": "none",
@@ -147,7 +147,7 @@
         "build_type": "workflow"
       },
       "notes": [
-        "no qualifying run on HEAD f82a92c; the latest runs are on older commits (52851ce, b06ef57) and were green, reported none"
+        "no qualifying run on HEAD b112b0f; the latest runs are on older commits (52851ce, b06ef57) and were green, reported none"
       ]
     },
     {
@@ -161,11 +161,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "3e1c662d31db5b7f6450220b1ff2588f634f2329",
-        "short": "3e1c662",
-        "date": "2026-10-13T11:49:20Z",
-        "message": "fix(docs): use supported inline ADR verification paths and refresh index",
-        "url": "https://github.com/DreamLab-AI/agentbox/commit/3e1c662d31db5b7f6450220b1ff2588f634f2329"
+        "sha": "78960162584173acf8b49017f78da67da72d4fca",
+        "short": "7896016",
+        "date": "2026-10-14T10:20:56Z",
+        "message": "docs(hp): verify the first production reload of a new vault generation",
+        "url": "https://github.com/DreamLab-AI/agentbox/commit/78960162584173acf8b49017f78da67da72d4fca"
       },
       "ci": {
         "state": "none",
@@ -226,7 +226,7 @@
       "release": null,
       "pages": null,
       "notes": [
-        "no qualifying run on HEAD 3e1c662; the latest runs are on older commits (27dbeef, c49339d) and were red, reported none"
+        "no qualifying run on HEAD 7896016; the latest runs are on older commits (27dbeef, c49339d) and were red, reported none"
       ]
     },
     {
@@ -518,6 +518,84 @@
       "notes": []
     },
     {
+      "name": "ontomark",
+      "full_name": "DreamLab-AI/ontomark",
+      "url": "https://github.com/DreamLab-AI/ontomark",
+      "provenance": "first-party",
+      "role": "Markdown-ontology toolchain: lossless parser, typed model, OWL 2 EL reasoner, compiler, whelk-el and the portable WASM engine; sole producer of visionGraph's machine artefacts",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "9e8031fab51859aff287e9b3e55595c8aa8e10de",
+        "short": "9e8031f",
+        "date": "2026-10-14T01:18:11Z",
+        "message": "dream-cycle: 2026-10-14-ontomark ledger row (REJECT)",
+        "url": "https://github.com/DreamLab-AI/ontomark/commit/9e8031fab51859aff287e9b3e55595c8aa8e10de"
+      },
+      "ci": {
+        "state": "amber",
+        "runs": [
+          {
+            "workflow": "ci",
+            "conclusion": null,
+            "status": "in_progress",
+            "url": "https://github.com/DreamLab-AI/ontomark/actions/runs/38549922545",
+            "updated_at": "2026-10-14T10:29:35Z"
+          }
+        ]
+      },
+      "open_prs": 1,
+      "open_issues": 0,
+      "release": {
+        "tag": "v0.2.2",
+        "date": "2026-10-13T10:43:39Z",
+        "url": "https://github.com/DreamLab-AI/ontomark/releases/tag/v0.2.2"
+      },
+      "pages": null,
+      "notes": []
+    },
+    {
+      "name": "ontomark-obsidian",
+      "full_name": "DreamLab-AI/ontomark-obsidian",
+      "url": "https://github.com/DreamLab-AI/ontomark-obsidian",
+      "provenance": "first-party",
+      "role": "Obsidian desktop plugin over the ontomark engine: offline reasoning, SPARQL and reviewed frontmatter edits",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "cc306295d0d56359cebdac12e3f148b420038be7",
+        "short": "cc30629",
+        "date": "2026-10-13T11:05:52Z",
+        "message": "docs: point manual install at 0.3.3; say which engine the benchmark used",
+        "url": "https://github.com/DreamLab-AI/ontomark-obsidian/commit/cc306295d0d56359cebdac12e3f148b420038be7"
+      },
+      "ci": {
+        "state": "green",
+        "runs": [
+          {
+            "workflow": "Plugin checks",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/ontomark-obsidian/actions/runs/38387872909",
+            "updated_at": "2026-10-13T11:06:28Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 1,
+      "release": {
+        "tag": "0.3.3",
+        "date": "2026-10-13T10:57:00Z",
+        "url": "https://github.com/DreamLab-AI/ontomark-obsidian/releases/tag/0.3.3"
+      },
+      "pages": null,
+      "notes": []
+    },
+    {
       "name": "WasmVOWL",
       "full_name": "DreamLab-AI/WasmVOWL",
       "url": "https://github.com/DreamLab-AI/WasmVOWL",
@@ -747,7 +825,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 219,
+      "latency_ms": 240,
       "note": null
     },
     {
@@ -756,7 +834,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 188,
+      "latency_ms": 246,
       "note": null
     },
     {
@@ -765,7 +843,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 188,
+      "latency_ms": 256,
       "note": null
     },
     {
@@ -774,7 +852,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 197,
+      "latency_ms": 271,
       "note": "classes=9244 pages=9242 nodes=9244"
     },
     {
@@ -783,7 +861,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 338,
+      "latency_ms": 543,
       "note": null
     },
     {
@@ -792,7 +870,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 331,
+      "latency_ms": 287,
       "note": null
     }
   ],
@@ -843,6 +921,62 @@
       "version": "1.0.0-beta.15",
       "published_at": "2026-10-05T19:34:07.656591Z",
       "url": "https://crates.io/crates/nostr-bbs-core",
+      "note": null
+    },
+    {
+      "registry": "crates.io",
+      "name": "ontomark-parse",
+      "version": "0.1.2",
+      "published_at": "2026-10-13T11:03:31.454405Z",
+      "url": "https://crates.io/crates/ontomark-parse",
+      "note": null
+    },
+    {
+      "registry": "crates.io",
+      "name": "ontomark-model",
+      "version": "0.1.2",
+      "published_at": "2026-10-12T19:03:29.448462Z",
+      "url": "https://crates.io/crates/ontomark-model",
+      "note": null
+    },
+    {
+      "registry": "crates.io",
+      "name": "ontomark-reason",
+      "version": "0.1.2",
+      "published_at": "2026-10-12T19:03:38.171110Z",
+      "url": "https://crates.io/crates/ontomark-reason",
+      "note": null
+    },
+    {
+      "registry": "crates.io",
+      "name": "ontomark-compile",
+      "version": "0.2.0",
+      "published_at": "2026-10-12T18:26:50.970748Z",
+      "url": "https://crates.io/crates/ontomark-compile",
+      "note": null
+    },
+    {
+      "registry": "crates.io",
+      "name": "ontomark-ingest",
+      "version": "0.1.0",
+      "published_at": "2026-10-12T18:00:59.911817Z",
+      "url": "https://crates.io/crates/ontomark-ingest",
+      "note": null
+    },
+    {
+      "registry": "crates.io",
+      "name": "ontomark-ngg1",
+      "version": "0.1.0",
+      "published_at": "2026-10-11T19:03:52.919410Z",
+      "url": "https://crates.io/crates/ontomark-ngg1",
+      "note": null
+    },
+    {
+      "registry": "crates.io",
+      "name": "whelk-el",
+      "version": "0.1.1",
+      "published_at": "2026-10-11T21:10:23.319975Z",
+      "url": "https://crates.io/crates/whelk-el",
       "note": null
     },
     {
