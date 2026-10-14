@@ -107,6 +107,7 @@
     <div class="hero-content" data-num="01">
       <h1>Federated Human&ndash;AI<br/>Intelligence</h1>
       <p class="hero-sub"><span class="hero-m-drop">Coordination engineering is the discipline of designing systems that reliably orchestrate autonomous agents across heterogeneous substrates. </span>As AI collapses the cost of routing work, the human is promoted from router to judgment broker. Thin agents on a shared formal semantic layer<span class="hero-m-drop"> (the architecture the industry now calls neurosymbolic), with self-sovereign data, cryptographic provenance, and human-in-the-loop governance.</span><span class="hero-m-only">, with self-sovereign data and cryptographic provenance.</span></p>
+      <p class="hero-gap">AI agents now do real work, but most organisations can&rsquo;t say who authorised an action, what it drew on, or who owns the result. VisionFlow gives people and AI a shared, accountable way to work: data stays with its owner, key claims are checked, every decision is recorded, and anything consequential goes to a person.</p>
       <div class="hero-actions">
         <a href="#substrates" class="btn btn-primary">Explore the Architecture</a>
         <a href="https://github.com/DreamLab-AI/VisionFlow" target="_blank" rel="noopener" class="btn btn-ghost">View on GitHub &rarr;</a>
@@ -299,7 +300,7 @@
             <li>Governance event relay + broker bridge to VisionClaw</li>
             <li>130 agent skills</li>
             <li>Published crates: prose-sanitiser, diagram-ir (extracted clean-room Rust workspaces)</li>
-            <li>12-tool ontology bridge to VisionClaw SPARQL</li>
+            <li>Ontology access through the baked <code>vault</code> CLI and <code>loom-client</code> (the old ontology bridge is retired)</li>
             <li>Browser-based setup wizard (zero dependencies)</li>
             <li>BIP-340 sovereign identity at bootstrap</li>
             <li>Private Email MCP Gateway: local-model email intelligence, privacy-sanitised by default; raw access only via an owner-key-gated capability</li>
@@ -336,7 +337,7 @@
             <li>Judgment Broker decision surface (2,100-line governance model)</li>
             <li>Agent Control Surface Protocol (kinds 31400-31405)</li>
             <li>Leptos WASM client (20 pages, 60+ components)</li>
-            <li>14 crates, passkey-first auth, 5 CF Workers</li>
+            <li>19 crates, passkey-first auth, 5 CF Workers</li>
             <li>NIP-42 challenge/response at the relay; federated NIP-05 resolution and cross-org mesh routing across sovereign nodes</li>
           </ul>
           <a href="https://github.com/DreamLab-AI/nostr-rust-forum" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
@@ -367,7 +368,7 @@
           <ul>
             <li>Model-swappable, OpenAI-compatible fa&ccedil;ade: the model is a URL (Qwen3.8-27B today), swapped behind the fa&ccedil;ade with no consumer change</li>
             <li>Static ontology scaffold lifts grounded recall roughly 3&times; (a near-random baseline to graph parity), and the gain reproduces across every model behind the fa&ccedil;ade; prose adds nothing</li>
-            <li>In-process pyoxigraph read-truth store: 286,500-triple reasoned closure, read-only SPARQL + node search</li>
+            <li>In-process native oxigraph (Rust) read-truth store: 286,500-triple reasoned closure, read-only SPARQL + node search</li>
             <li>Confidence-aware selective injection (live): strong match &rarr; full budget, weak &rarr; scaled, off-topic &rarr; gated: avoids context interference</li>
             <li>Reasoning-model safe: server-side <code>max_tokens</code> floor so a model never truncates to empty</li>
             <li>Agentbox &ldquo;one brain&rdquo; retrieval resolves through the Loom, live</li>
@@ -418,11 +419,11 @@
         </div>
         <div class="ledger-card">
           <h3>The elevation loop closes</h3>
-          <p class="ledger-trans">A concept an agent proposes passes the Whelk consistency gate when a human approves it, then goes out as a pull request. Personal insight reaches the shared ontology through one governed door; the closing <code>ConceptElevated</code> event on merge is still to be wired.</p>
+          <p class="ledger-trans">A concept an agent proposes passes the Whelk consistency gate when a human approves it, then goes out as a pull request. Personal insight reaches the shared ontology through one governed door; when the pull request merges, the actor publishes the closing <code>ConceptElevated</code> event (kind 31404) and marks the case elevated. It needs a GitHub token configured to poll the merge.</p>
         </div>
         <div class="ledger-card">
           <h3>Action carries force</h3>
-          <p class="ledger-trans">Agent activity drives the GPU physics directly. A transient-edge attractive force draws related concepts together as work happens, so the graph moves the way the reasoning does.</p>
+          <p class="ledger-trans">Agent activity is drawn on the graph as it happens: each action becomes a beam from the agent to the concept it touched. An attractive force that would also pull related concepts together is designed but not built yet.</p>
         </div>
       </div>
 
@@ -484,7 +485,7 @@
           <circle class="f-pulse" r="4" fill="var(--bright-gold)" style="offset-path: path('M74 106 H824')"/>
         </svg>
       </div>
-      <p class="figcap">Nothing drifts into canon by accident, and nothing lands there without a signature on it. The closing merge event is the one edge still to be wired.</p>
+      <p class="figcap">Nothing drifts into canon by accident, and nothing lands there without a signature on it. The closing merge event is wired; it needs a GitHub token to poll the pull request.</p>
     </div>
   </section>
 
@@ -805,7 +806,7 @@
         </div>
         <div class="glass-card gap-card">
           <h3>A single read-truth</h3>
-          <p>The Loom holds the reasoned generation in an in-process pyoxigraph store (286,500 triples of assertion-plus-closure) and answers read-only SPARQL and node search over it. One queryable source of ontological truth behind the fa&ccedil;ade, never the working graph.</p>
+          <p>The Loom holds the reasoned generation in an in-process native oxigraph store (the Rust Loom; the Python implementation is retired) (286,500 triples of assertion-plus-closure) and answers read-only SPARQL and node search over it. One queryable source of ontological truth behind the fa&ccedil;ade, never the working graph.</p>
         </div>
         <div class="glass-card gap-card">
           <h3>Governed elevation, end to end</h3>
@@ -1078,7 +1079,7 @@
             </tr>
             <tr>
               <td class="st-area"><strong>Governance loop</strong>ACSP kinds 31400 to 31405, signed decisions, NIP-42 at the relay</td>
-              <td class="st-what"><p>Running, for one use case today: ontology concept elevation. The closing <code>ConceptElevated</code> event on merge is still to be wired.</p></td>
+              <td class="st-what"><p>Running, for one use case today: ontology concept elevation. The closing <code>ConceptElevated</code> event is published when the pull request merges, and needs a GitHub token configured to poll it.</p></td>
               <td><span class="st-pill st-integrated">integrated</span></td>
             </tr>
             <tr>
@@ -1173,7 +1174,7 @@
         <a href="https://github.com/DreamLab-AI/nostr-rust-forum" target="_blank" rel="noopener" class="repo-card">
           <h3>nostr-rust-forum</h3>
           <p>Governance UI + relay kit</p>
-          <span class="repo-tech">14 crates &middot; Passkey auth &middot; Leptos WASM</span>
+          <span class="repo-tech">19 crates &middot; Passkey auth &middot; Leptos WASM</span>
         </a>
         <a href="https://github.com/DreamLab-AI/dreamlab-ai-website" target="_blank" rel="noopener" class="repo-card">
           <h3>dreamlab-ai-website</h3>

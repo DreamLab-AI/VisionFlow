@@ -207,6 +207,15 @@ body {
   opacity: 0;
   animation: fadeUp 0.6s 0.6s forwards;
 }
+.hero-gap {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--text);
+  max-width: 600px;
+  margin: 0 auto 44px;
+  opacity: 0;
+  animation: fadeUp 0.6s 0.7s forwards;
+}
 .hero-actions {
   display: flex;
   gap: 16px;
@@ -1254,7 +1263,7 @@ a.substrate-shot:hover {
     transition-duration: 0.01ms !important;
   }
   .reveal { opacity: 1; transform: none; }
-  .hero-badge, .hero h1, .hero-sub, .hero-actions, .hero-stats {
+  .hero-badge, .hero h1, .hero-sub, .hero-gap, .hero-actions, .hero-stats {
     opacity: 1;
     animation: none;
   }
@@ -1446,6 +1455,7 @@ a.substrate-shot:hover {
   .hero-content { padding: 0 var(--m-gutter-r) 0 var(--m-gutter-l); max-width: none; }
   .hero h1 { font-size: 36px; line-height: 1.08; letter-spacing: -0.025em; margin-bottom: 22px; }
   .hero-sub { font-size: 17px; line-height: 1.6; color: var(--m-body); }
+  .hero-gap { font-size: 16px; line-height: 1.6; color: var(--m-body); margin-bottom: 28px; }
   .hero-m-drop { display: none; }                        /* trim the technical hero sub to its last clauses on mobile */
   .hero-m-only { display: inline; }
   .hero-actions { display: none; }                       /* the sticky bar carries the one action */

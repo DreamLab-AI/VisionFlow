@@ -262,7 +262,7 @@ const PANES = [
   ] },
   { id: 'broker', sel: '.identity-callout p', plains: [
     'The whole loop, end to end: someone speaks, an agent acts as itself and writes to that person&rsquo;s own store, the action appears live in the shared 3D view, and anything worth keeping is proposed for a person to approve.',
-    'Value moves on the same rails as everything else. The identity that signs the work can also be paid. Balances are kept in satoshis, access is charged through the web&rsquo;s own payment-required response, and the real-money rail today is Lightning, backed by the estate&rsquo;s own Bitcoin node; stablecoin rails can follow later. The same machinery can issue tokens on Bitcoin; DREAM, the operator&rsquo;s own token, has been minted experimentally on the test network. High-value records borrow Bitcoin&rsquo;s security, on the test network by default.'
+    'Value moves on the same rails as everything else. The identity that signs the work can also be paid. Balances are kept in satoshis, access is charged through the web&rsquo;s own payment-required response, and the estate runs its own Bitcoin node for anchoring. No Lightning rail is built yet; stablecoin and Lightning rails could follow later. The same machinery can issue tokens on Bitcoin; DREAM, the operator&rsquo;s own token, has been minted experimentally on the test network. High-value records borrow Bitcoin&rsquo;s security, on the test network by default.'
   ] },
   { id: 'economic', sel: '.econ-card > p', plains: [
     'Uncoordinated agents waste most of their effort rediscovering context, repeating reasoning and contradicting each other. Every session starts from cold.',
