@@ -23,9 +23,7 @@ ownership and checkout state, not maturity or compatibility qualification.
 
 ## Release Candidates
 
-| Date | File | Status | Notes |
-|---|---|---|---|
-| 2026-05-22 | [`candidate-2026-05-22.json`](candidate-2026-05-22.json) | candidate | First ecosystem release candidate. Pins all 6 repos at main branch HEADs. 4 repos have uncommitted local changes (VisionClaw, solid-pod-rs, nostr-rust-forum, dreamlab-ai-website) that must be resolved before promotion to released. |
+None committed. The one earlier candidate (`candidate-2026-05-22.json`, six repositories, `manifest_version` 1) was deleted on 2026-10-14: it could not validate against the current schema (`manifest_version` 2, sixteen repositories), nothing read it, and its commit pins are recoverable from git history. Cut the next candidate with `scripts/generate-release-manifest.sh` and commit it here.
 
 ## Required Fields
 
