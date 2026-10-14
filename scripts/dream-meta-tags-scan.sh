@@ -25,6 +25,8 @@ have "title"            '<title[ >]'                                        requ
 have "meta-description" '<meta[^>]+name="description"'                      required
 have "canonical"        '<link[^>]+rel="canonical"'                         required
 have "viewport"         '<meta[^>]+name="viewport"'                         required
+have "og-image"         '<meta[^>]+property="og:image"'                     required
+have "twitter-card"     '<meta[^>]+name="twitter:card"'                     required
 have "og-tags"          '<meta[^>]+property="og:'
 have "twitter-tags"     '<meta[^>]+name="twitter:'
 have "robots"           '<meta[^>]+name="robots"'
