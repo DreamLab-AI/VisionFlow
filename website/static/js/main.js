@@ -233,7 +233,7 @@ const PANES = [
     'Balances, charges, exchange and token issuing work today on Bitcoin&rsquo;s test network. The estate runs its own Bitcoin node, and the Lightning rail is chosen and being wired in.',
     'Organisations can connect their own instances, but a full live test between two of them has not been run yet, so a single instance remains the supported setup.',
     'Each night the code proposes one improvement to itself and a person decides whether to merge it. That runs here; extending it across every part is in progress.',
-    'There is no contact form yet. The button on this page takes you straight to DreamLab AI.'
+    'The form on this page sends your message, encrypted in your browser, to DreamLab AI. Nothing is stored on this site.'
   ] },
   { id: 'substrates', sel: '.substrate-card ul', plains: [
     'The knowledge engine. It holds the shared, machine-checked model of your field, shows it as a 3D graph you can explore, and runs the reasoning and physics that keep it consistent, running fast on the graphics card.',
@@ -545,9 +545,9 @@ function initProgress() {
   secs.forEach((s) => io.observe(s));
 }
 
-// Contact bottom sheet — the one primary action. No form submission exists in
-// this repo (the contact endpoint is deferred), so the sheet routes to the real
-// front door rather than faking a send.
+// Contact bottom sheet — the one primary action on mobile. The form inside it
+// is mounted by js/contact.js (same component as the #contact section) and
+// delivers over Nostr; the DreamLab AI link remains as the human front door.
 function initSheet() {
   const sheet = document.getElementById('m-sheet');
   const scrim = document.querySelector('.m-scrim');
@@ -560,7 +560,7 @@ function initSheet() {
     scrim.classList.add('open');
     sheet.classList.add('open');
     if (main) main.setAttribute('inert', '');
-    const first = sheet.querySelector('a, button');
+    const first = sheet.querySelector('input, textarea, a, button');
     if (first) requestAnimationFrame(() => first.focus());
     document.addEventListener('keydown', onKey);
   }

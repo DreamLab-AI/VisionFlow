@@ -10,6 +10,8 @@
     { "dest": "css/styles.css", "why": "sole stylesheet, referenced by index.html" },
     { "dest": "js/main.js", "why": "sole module entrypoint, referenced by index.html" },
     { "dest": "js/mesh-webgl.js", "why": "WebGL2 mesh module imported by js/main.js" },
+    { "dest": "js/contact.js", "why": "contact form component mounted by index.html (#contact section and mobile sheet)" },
+    { "dest": "js/nostr-contact.js", "why": "vendored Nostr gift-wrap transport imported by js/contact.js on first submit; rebuilt from dreamlab-ai-website scripts/contact-embed" },
     { "dest": "data/estate-health.json", "why": "nightly estate-health snapshot; required because the #estate section links it by href, so the link-integrity gate must resolve it in dist/" },
     { "dest": "img/og-card.png", "why": "og:image / twitter:image social card referenced by index.html" },
     { "dest": "img/showcase/cave-knowledge-graph.webp", "why": "showcase figure referenced by index.html" },

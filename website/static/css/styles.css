@@ -1943,3 +1943,26 @@ a.substrate-shot:hover {
 @media (prefers-reduced-motion: reduce) {
   .sc-track { scroll-behavior: auto; }
 }
+
+/* ── Contact form (js/contact.js) ─────────────────────────────────────── */
+.contact-section .contact-lead { color: var(--text-muted); max-width: 40rem; margin: 0 auto 1.75rem; text-align: center; }
+.contact-card { max-width: 36rem; margin: 0 auto; padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; }
+.cf { display: flex; flex-direction: column; gap: 0.9rem; }
+.cf-field { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.85rem; color: var(--text-muted); }
+.cf-field input, .cf-field textarea {
+  font: 400 1rem var(--font); color: var(--text); background: rgba(10, 10, 13, 0.6);
+  border: 1px solid var(--border); border-radius: 10px; padding: 0.7rem 0.85rem; min-height: 44px;
+}
+.cf-field textarea { resize: vertical; min-height: 7rem; }
+.cf-field input:focus-visible, .cf-field textarea:focus-visible, .cf-send:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.cf-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.cf-send {
+  min-height: 48px; border: 0; border-radius: 12px; cursor: pointer;
+  font: 700 1rem var(--font); background: var(--gold); color: #0e0e11;
+}
+.cf-send:disabled { opacity: 0.6; cursor: progress; }
+.cf-status { min-height: 1.25rem; margin: 0; font-size: 0.9rem; color: var(--text-muted); }
+.cf-status[data-state="ok"] { color: var(--emerald); }
+.cf-status[data-state="error"] { color: #f87171; }
+.cf-note { margin: 0; font-size: 0.75rem; color: var(--text-dim); }
+#m-sheet { max-height: 92vh; overflow-y: auto; }
