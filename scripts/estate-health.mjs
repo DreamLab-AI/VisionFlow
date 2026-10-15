@@ -977,22 +977,25 @@ function check() {
     process.stdout.write(`DOWN ${surface.name} ${surface.status ?? surface.note ?? 'unreachable'}\n`);
   }
 
+  // Informational only, now on every path (the 2026-10-11 line printed only
+  // under RED): RED beats STALE for the verdict, but a persistent red is only
+  // a live measurement while the snapshot is fresh — a broken collector or a
+  // stuck commit guard would republish one stale red forever, and the same
+  // blindness lets a GREEN estate read OK while its snapshot ages towards
+  // STALE. Measured 2026-10-15: the 02:30 UTC collection was 15.3 h old at
+  // dream time. Report the age without changing precedence or the exit code.
+  const ageHours = (Date.now() - Date.parse(snap.generated_at)) / 3_600_000;
+  if (Number.isFinite(ageHours)) {
+    process.stdout.write(
+      `INFO snapshot age ${ageHours.toFixed(1)} h (limit ${MAX_AGE_HOURS} h)`
+      + ` generated_at ${snap.generated_at}\n`);
+  }
+
   if (red) {
-    // Informational only: RED beats STALE for the verdict, but a persistent
-    // red is only a live measurement while the snapshot is fresh — a broken
-    // collector or a stuck commit guard would republish one stale red
-    // forever. Report the age without changing precedence or the exit code.
-    const ageH = (Date.now() - Date.parse(snap.generated_at)) / 3_600_000;
-    if (Number.isFinite(ageH)) {
-      process.stdout.write(
-        `INFO snapshot age ${ageH.toFixed(1)} h (limit ${MAX_AGE_HOURS} h)`
-        + ` generated_at ${snap.generated_at}\n`);
-    }
     process.stdout.write('ESTATE-HEALTH-RED\n');
     return 1;
   }
 
-  const ageHours = (Date.now() - Date.parse(snap.generated_at)) / 3_600_000;
   if (!Number.isFinite(ageHours) || ageHours > MAX_AGE_HOURS) {
     const age = Number.isFinite(ageHours) ? `${ageHours.toFixed(1)} h` : 'unknown age';
     process.stdout.write(`DOWN snapshot stale ${age} (limit ${MAX_AGE_HOURS} h)\nESTATE-HEALTH-STALE\n`);
