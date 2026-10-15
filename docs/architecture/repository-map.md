@@ -1,7 +1,7 @@
 # Repository Map
 
 **Status:** Source-reviewed map; deployment acceptance is separate
-**Reviewed:** 2026-09-07 (initial map 2026-05-20; sidestr row refreshed 2026-10-01)
+**Reviewed:** 2026-09-07 (initial map 2026-05-20; sidestr row refreshed 2026-10-01; dream-engine and dream-machine rows refreshed 2026-10-15)
 
 VisionFlow is a federated ecosystem. No single repository contains the whole runtime.
 
@@ -27,7 +27,8 @@ The [health roster](../../scripts/estate-health/roster.json) is the authoritativ
 | Repository | Local path | Scope |
 |---|---|---|
 | Loom | `../loom` | Roster component: Rust grounding facade; declared sibling RuVector dependency and generation-identity consumer contract |
-| Dream Engine | `../dream-machine` | Roster component: TypeScript toolkit/fork; distinct from Agentbox's Rust service and loaded annexe runner |
+| Dream Engine | `../dream-engine` | Roster component: the extracted Rust judgement and loop crates (`pairwise-gate`, `failure-fingerprint`, `dream-gate`, `dream-core`, `dream-cli`), MIT OR Apache-2.0, with its own diagram corpus. Local build, pending first push and crates.io publication; Agentbox's AGPL-3.0-only `services/dream-engine` adapter consumes it by path pin until the push (agentbox ADR-2141). The roster row still describes the former fork until the rename lands |
+| dream-machine | `../dream-machine` | Archived: the former TypeScript fork of ruvnet/dream-machine, renamed from DreamLab-AI/dream-engine; toolkit and Darwin evaluator history only, not the running engine |
 | WasmVOWL | `../WasmVOWL` | Roster component: retained standalone demo, not an alias for the published vowl-wasm engine or embedded explorers |
 | prose-sanitiser | `../prose-sanitiser` | Roster tool package; invocation and publication integration must be traced separately |
 | diagram-ir | `../diagram-ir` | Roster diagram tool package; availability does not prove the topic-tree gate calls it |

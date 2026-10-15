@@ -144,7 +144,7 @@ flowchart TB
     subgraph TARGETS["What it reaches"]
         R1["EXTERNAL: VisionClaw · agentbox · solid-pod-rs<br/>nostr-rust-forum · dreamlab-ai-website · sidestr-rs<br/>see VC-01, AB-01, SP-01, NF-01, DW-01, SR-01<br/>sidestr-rs rostered since c001415, roster.json:13"]
         R2["EXTERNAL: knowledgeGraph · visionGraph · vowl-wasm<br/>see KG-01, VG-01, VW-01"]
-        R3["EXTERNAL: loom · WasmVOWL · prose-sanitiser<br/>diagram-ir · dream-engine - rostered with NO<br/>diagram area in this tree"]
+        R3["EXTERNAL: loom · WasmVOWL · prose-sanitiser<br/>diagram-ir - rostered with NO diagram<br/>area in this tree (dream-engine has DE-01)"]
         SURF["public surfaces incl. narrativegoldmine.com<br/>and /ns/v2.jsonld, roster.json:21-37"]
         REG["registries - crates.io and npm,<br/>incl. @dreamlab-ai/vowl-wasm and, since c001415,<br/>the seven sidestr crates, roster.json:56-70"]
     end

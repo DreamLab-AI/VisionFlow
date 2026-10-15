@@ -5,7 +5,7 @@ area: estate
 governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
   - ../project/docs/BASELINE-architecture.md
-adrs: [visionclaw:ADR-2006, agentbox:ADR-2041, agentbox:ADR-2071, visionflow:ADR-2010, visionflow:ADR-2011, agentbox:ADR-2087, visionclaw:ADR-2110, nostr-rust-forum:ADR-2010, nostr-rust-forum:ADR-2011, agentbox:ADR-2085, agentbox:ADR-2086, agentbox:ADR-2122]
+adrs: [agentbox:ADR-2141, visionclaw:ADR-2006, agentbox:ADR-2041, agentbox:ADR-2071, visionflow:ADR-2010, visionflow:ADR-2011, agentbox:ADR-2087, visionclaw:ADR-2110, nostr-rust-forum:ADR-2010, nostr-rust-forum:ADR-2011, agentbox:ADR-2085, agentbox:ADR-2086, agentbox:ADR-2122]
 sources:
   - ../project/src/services/acsp/events.rs
   - ../project/src/services/acsp/client.rs
@@ -43,8 +43,15 @@ sources:
   - ../project/agentbox/config/custody/identity-port-acl.json
   - ../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs
   - ../project/agentbox/services/dream-engine/src/governance.rs
+  - ../project/agentbox/services/dream-engine/src/engine.rs
+  - ../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md
+  - ../dream-engine/crates/dream-core/src/seams.rs
+  - ../dream-engine/crates/dream-core/src/automerge.rs
+  - ../dream-engine/crates/dream-core/src/runstate.rs
+  - ../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md
+  - ../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
-verified_commit: {agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, nostr-rust-forum: cbb3a8112320caf769b4d0713d3b1057db51d3e1, dreamlab-ai-website: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80}
+verified_commit: {dream-engine: 0f6a66913c072603b6e29a80bdc67350737b9b21, agentbox: 1565f477326bcb853886994421e6071c56e27d94, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, nostr-rust-forum: cbb3a8112320caf769b4d0713d3b1057db51d3e1, dreamlab-ai-website: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80}
 ---
 ## ES-05.2 Wire fields and exact response binding
 ```mermaid
@@ -375,3 +382,46 @@ flowchart TB
 **Tension (identity port vs the dream governance panel):** the dream engine publishes its 31400 panel and 31402 cases as JunkieJarvis (`../project/agentbox/services/dream-engine/src/governance.rs:9-10`) and is listed for the W3b move onto the port (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:224-225`), but the port never signs those kinds (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:71-73`); with the flag on, the panel has no signer at this revision.
 
 **Drift (resolved 2026-10-03, Q15):** the relay allowlist used to call `b4165401…` the visionclaw-server governance publisher; it now records it as the operator's NIP-07 signer for 31403 decisions, with visionclaw-server signing 31402 as the house key (`../project/agentbox/agentbox.toml:160`). Resolved in the manifest's wording only; the verifier set is unchanged.
+
+## ES-05.16 The dream engine's two human gates after the extraction
+
+```mermaid
+flowchart TB
+    subgraph CORE["dream-engine repository, MIT OR Apache-2.0, pending first push (DE-01)"]
+        direction TB
+        VER["gate verdict: ACCEPT survives only if every required evaluator passed<br/>on a candidate the protected-path guard let through"]
+        FG["GhForge::publish_draft: push the branch, open a DRAFT pull request<br/>dream-engine/crates/dream-core/src/seams.rs:425"]
+        AM["automerge::decide, default OFF, refuses self-referential targets<br/>dream-engine/crates/dream-core/src/automerge.rs:110"]
+        VER --> FG
+        AM -.-> FG
+    end
+    subgraph ADAPT["agentbox services/dream-engine, AGPL-3.0-only (the adapter)"]
+        direction TB
+        PER["runstate::persist BEFORE the forge request and the ledger commit<br/>agentbox/services/dream-engine/src/engine.rs:1618"]
+        PUB["forge.publish_draft called directly by the engine<br/>agentbox/services/dream-engine/src/engine.rs:1667"]
+        GOVP["governance::publish after the night: the 31400 panel and one 31402 case per open item<br/>agentbox/services/dream-engine/src/engine.rs:398"]
+        GOVI["governance::ingest at the start of the next night: 31403 decisions resolve inbox items<br/>agentbox/services/dream-engine/src/engine.rs:179"]
+        PER --> PUB
+        GOVP --> GOVI
+    end
+    PUB --> FG
+    PRM["GATE 1, the merge: a human merges or closes the draft pull request,<br/>evaluation is not promotion"]
+    FG --> PRM
+    FORUM["GATE 2, the answer: a forum admin signs a 31403 decision on the case,<br/>never a container key (ES-05.15)"]
+    GOVP --> FORUM
+    FORUM --> GOVI
+    SIGN["the adapter signs 31400 and 31402 as JunkieJarvis<br/>agentbox/services/dream-engine/src/governance.rs:9-10"]
+    GOVP --- SIGN
+    WHY["WHY the governance drivers stay in the adapter: they link nostr-bbs-core, and zone_crypto is never published<br/>agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:27"]
+    ADAPT --- WHY
+```
+
+**What it shows.** The two places a human enters the dream loop, and which side of the new licence boundary each sits on. The merge gate is a draft pull request opened through the core's forge seam, the answer gate is a forum case published by the adapter's governance driver. The persist-before-effect journal write sits between the verdict and the forge request.
+
+**Why it is this way.** ADR-2141 kept every driver that signs Nostr events inside the AGPL adapter and moved only the judgement and the loop mechanism out, so the permissive repository holds no key material and no forum wire format.
+
+**Invariant (at source, staged until the image is rebuilt, ADR-2141 activation_status):** the engine journals `Persisted` before it asks the forge for anything, so a restart can lose a draft pull request but cannot open a second one for the same night (`../project/agentbox/services/dream-engine/src/engine.rs:1618`, `../dream-engine/crates/dream-core/src/runstate.rs:22`).
+
+**Tension (automerge option vs adapter):** the permissive repository ships an automerge decision tree that is off unless the repository's `dream.config.json` turns it on (`../dream-engine/crates/dream-core/src/automerge.rs:110`), but the adapter calls the forge's draft publication directly and never the function that applies that tree (`../project/agentbox/services/dream-engine/src/engine.rs:1667`), so the option cannot take effect in the estate at this revision. The merge gate stays a human, by omission as much as by default.
+
+**Open:** the forge step has not been exercised against real GitHub, by the core repository's own statement (`../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md:41`), and its publish outcome is not reconciled after a crash, which the core records as a deliberate at-most-once limit (`../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md:34`).
