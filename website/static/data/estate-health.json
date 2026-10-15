@@ -1,20 +1,20 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-10-14T10:29:54.996Z",
+  "generated_at": "2026-10-15T07:36:08.067Z",
   "generator": {
-    "revision": "02ae8a4cc0fb9a7f01bda75c339207907ed6c53f",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38549932311",
+    "revision": "56d29c550dced5c4e17908d5b48762e6e507d46a",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38699807007",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
     "repos": 17,
-    "green": 8,
+    "green": 10,
     "red": 2,
-    "amber": 2,
+    "amber": 0,
     "none": 2,
     "exempt": 2,
     "unreadable": 1,
-    "open_prs": 11,
+    "open_prs": 9,
     "surfaces_ok": 6,
     "surfaces_total": 6
   },
@@ -30,14 +30,14 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "02ae8a4cc0fb9a7f01bda75c339207907ed6c53f",
-        "short": "02ae8a4",
-        "date": "2026-10-14T10:29:27Z",
-        "message": "feat(website): add ontomark + ontomark-obsidian to the estate roster and repo map",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/02ae8a4cc0fb9a7f01bda75c339207907ed6c53f"
+        "sha": "56d29c550dced5c4e17908d5b48762e6e507d46a",
+        "short": "56d29c5",
+        "date": "2026-10-14T17:05:00Z",
+        "message": "docs(releases): delete the manifest_version 1 candidate nothing reads (ER-5d)",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/56d29c550dced5c4e17908d5b48762e6e507d46a"
       },
       "ci": {
-        "state": "amber",
+        "state": "green",
         "runs": [
           {
             "workflow": "ADR frontmatter gate",
@@ -48,17 +48,17 @@
           },
           {
             "workflow": "Copyright Source Guard",
-            "conclusion": null,
-            "status": "in_progress",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38549932077",
-            "updated_at": "2026-10-14T10:29:34Z"
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38645708429",
+            "updated_at": "2026-10-14T22:10:13Z"
           },
           {
             "workflow": "Deploy to GitHub Pages",
-            "conclusion": null,
-            "status": "in_progress",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38549932159",
-            "updated_at": "2026-10-14T10:29:34Z"
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38645708478",
+            "updated_at": "2026-10-14T22:10:35Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
@@ -78,8 +78,8 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38530885726",
-            "updated_at": "2026-10-14T07:50:09Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38549932311",
+            "updated_at": "2026-10-14T10:30:01Z"
           }
         ]
       },
@@ -106,11 +106,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "b112b0fc855ccde2e74880a5ab31387fb8d06e69",
-        "short": "b112b0f",
-        "date": "2026-10-14T08:31:05Z",
-        "message": "feat(agents): one server-side agents demo both clients control and both see (ADR-2142)",
-        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/b112b0fc855ccde2e74880a5ab31387fb8d06e69"
+        "sha": "f6c7a8f9d6f101cebb2fa1e5f6d011d41639374b",
+        "short": "f6c7a8f",
+        "date": "2026-10-14T21:43:29Z",
+        "message": "chore(deps): solid-pod-rs 0.5.0-alpha.13, nostr-bbs-core 1.0.0-beta.16 (ER-22 security release)",
+        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/f6c7a8f9d6f101cebb2fa1e5f6d011d41639374b"
       },
       "ci": {
         "state": "none",
@@ -147,7 +147,7 @@
         "build_type": "workflow"
       },
       "notes": [
-        "no qualifying run on HEAD b112b0f; the latest runs are on older commits (52851ce, b06ef57) and were green, reported none"
+        "no qualifying run on HEAD f6c7a8f; the latest runs are on older commits (52851ce, b06ef57) and were green, reported none"
       ]
     },
     {
@@ -161,11 +161,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "78960162584173acf8b49017f78da67da72d4fca",
-        "short": "7896016",
-        "date": "2026-10-14T10:20:56Z",
-        "message": "docs(hp): verify the first production reload of a new vault generation",
-        "url": "https://github.com/DreamLab-AI/agentbox/commit/78960162584173acf8b49017f78da67da72d4fca"
+        "sha": "606e252ea75bf41570370b2263cd1d30826457c8",
+        "short": "606e252",
+        "date": "2026-10-14T21:43:13Z",
+        "message": "chore(deps): dream-engine pins nostr-bbs-core =1.0.0-beta.16 (solid-pod-rs 0.5.0-alpha.13 security release)",
+        "url": "https://github.com/DreamLab-AI/agentbox/commit/606e252ea75bf41570370b2263cd1d30826457c8"
       },
       "ci": {
         "state": "none",
@@ -226,7 +226,7 @@
       "release": null,
       "pages": null,
       "notes": [
-        "no qualifying run on HEAD 7896016; the latest runs are on older commits (27dbeef, c49339d) and were red, reported none"
+        "no qualifying run on HEAD 606e252; the latest runs are on older commits (27dbeef, c49339d) and were red, reported none"
       ]
     },
     {
@@ -240,11 +240,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "bfbeea05b3a5bfeace06dc1b06a556647ca797b1",
-        "short": "bfbeea0",
-        "date": "2026-10-12T23:48:10Z",
-        "message": "ci: keep the ci-required banner above its job",
-        "url": "https://github.com/DreamLab-AI/solid-pod-rs/commit/bfbeea05b3a5bfeace06dc1b06a556647ca797b1"
+        "sha": "193f4962ffccdda28f84caefe2afd5437e0b7685",
+        "short": "193f496",
+        "date": "2026-10-14T20:57:55Z",
+        "message": "docs(changelog): 0.5.0-alpha.13 security notes for the full ER-22 series",
+        "url": "https://github.com/DreamLab-AI/solid-pod-rs/commit/193f4962ffccdda28f84caefe2afd5437e0b7685"
       },
       "ci": {
         "state": "red",
@@ -260,8 +260,8 @@
             "workflow": "CI",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/38385377803",
-            "updated_at": "2026-10-13T11:24:33Z"
+            "url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/38637427141",
+            "updated_at": "2026-10-14T21:37:02Z"
           },
           {
             "workflow": "Release",
@@ -289,11 +289,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "66ca8d8c0b7d1471503f916c513089846aba27c3",
-        "short": "66ca8d8",
-        "date": "2026-10-12T21:57:53Z",
-        "message": "fix(relay): create the events table from a migration, persist channel creators, drop the dead members query",
-        "url": "https://github.com/DreamLab-AI/nostr-rust-forum/commit/66ca8d8c0b7d1471503f916c513089846aba27c3"
+        "sha": "dd454474295510fac1d643f911b3817a3a292c0f",
+        "short": "dd45447",
+        "date": "2026-10-15T07:32:12Z",
+        "message": "fix(deps): rustls 0.23.46, quinn-proto 0.11.19 — clears RUSTSEC-2026-0339..0349",
+        "url": "https://github.com/DreamLab-AI/nostr-rust-forum/commit/dd454474295510fac1d643f911b3817a3a292c0f"
       },
       "ci": {
         "state": "red",
@@ -309,15 +309,15 @@
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/38380952373",
-            "updated_at": "2026-10-13T10:08:26Z"
+            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/38699420649",
+            "updated_at": "2026-10-15T07:35:08Z"
           },
           {
             "workflow": "Security Audit",
-            "conclusion": "failure",
+            "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/38380952393",
-            "updated_at": "2026-10-13T10:08:26Z"
+            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/38699420651",
+            "updated_at": "2026-10-15T07:34:29Z"
           }
         ]
       },
@@ -342,11 +342,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "805a554c934026cf72199c8d6f7dcbc72169e6ce",
-        "short": "805a554",
-        "date": "2026-10-13T11:54:03Z",
-        "message": "dream(site-build-content): candidate for 2026-10-13-dreamlab-ai-website (#61)",
-        "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/commit/805a554c934026cf72199c8d6f7dcbc72169e6ce"
+        "sha": "4968d13867cd5fcf66ade4bae576d7b3ceddfe77",
+        "short": "4968d13",
+        "date": "2026-10-14T10:31:36Z",
+        "message": "dream(operator-overlay): workers.rs POD/RELAY URL constants mirror TOML unguarded… (#62)",
+        "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/commit/4968d13867cd5fcf66ade4bae576d7b3ceddfe77"
       },
       "ci": {
         "state": "green",
@@ -355,8 +355,8 @@
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/38393427032",
-            "updated_at": "2026-10-13T11:55:20Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/38550193349",
+            "updated_at": "2026-10-14T10:32:54Z"
           },
           {
             "workflow": "Deploy Cloudflare Workers",
@@ -369,8 +369,8 @@
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/38393427402",
-            "updated_at": "2026-10-13T12:05:27Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/38550193450",
+            "updated_at": "2026-10-14T10:45:04Z"
           },
           {
             "workflow": "Documentation Auto-Update",
@@ -383,8 +383,8 @@
             "workflow": "kit-pin-guard",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/38393427049",
-            "updated_at": "2026-10-13T11:54:22Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/38550193375",
+            "updated_at": "2026-10-14T10:31:58Z"
           },
           {
             "workflow": "Test and Lint (Reusable)",
@@ -395,7 +395,7 @@
           }
         ]
       },
-      "open_prs": 1,
+      "open_prs": 0,
       "open_issues": 2,
       "release": null,
       "pages": {
@@ -528,21 +528,21 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "9e8031fab51859aff287e9b3e55595c8aa8e10de",
-        "short": "9e8031f",
-        "date": "2026-10-14T01:18:11Z",
-        "message": "dream-cycle: 2026-10-14-ontomark ledger row (REJECT)",
-        "url": "https://github.com/DreamLab-AI/ontomark/commit/9e8031fab51859aff287e9b3e55595c8aa8e10de"
+        "sha": "c935048977ea52c500e9a3afdf0414135c3869e7",
+        "short": "c935048",
+        "date": "2026-10-14T10:31:30Z",
+        "message": "dream(bundle-and-rdf): candidate for 2026-10-13-ontomark (#1)",
+        "url": "https://github.com/DreamLab-AI/ontomark/commit/c935048977ea52c500e9a3afdf0414135c3869e7"
       },
       "ci": {
-        "state": "amber",
+        "state": "green",
         "runs": [
           {
             "workflow": "ci",
-            "conclusion": null,
-            "status": "in_progress",
-            "url": "https://github.com/DreamLab-AI/ontomark/actions/runs/38549922545",
-            "updated_at": "2026-10-14T10:29:35Z"
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/ontomark/actions/runs/38550182581",
+            "updated_at": "2026-10-14T10:34:48Z"
           }
         ]
       },
@@ -775,11 +775,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "46d6151c337a3a06bf62ab62bc9ed406d8800afa",
-        "short": "46d6151",
-        "date": "2026-10-11T10:33:42Z",
-        "message": "dream(ledger-signals): ledger parsers split escaped pipes, shifting cells; now… (#29)",
-        "url": "https://github.com/DreamLab-AI/dream-engine/commit/46d6151c337a3a06bf62ab62bc9ed406d8800afa"
+        "sha": "b77093e564ef689923fb523b0e0b18d2bb4a21a4",
+        "short": "b77093e",
+        "date": "2026-10-14T10:32:07Z",
+        "message": "dream(developer-experience): candidate for 2026-10-14-dream-machine",
+        "url": "https://github.com/DreamLab-AI/dream-engine/commit/b77093e564ef689923fb523b0e0b18d2bb4a21a4"
       },
       "ci": {
         "state": "green",
@@ -788,15 +788,15 @@
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/38132389563",
-            "updated_at": "2026-10-11T10:34:15Z"
+            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/38550384994",
+            "updated_at": "2026-10-14T10:33:54Z"
           },
           {
             "workflow": "CodeQL",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/38278542093",
-            "updated_at": "2026-10-12T16:37:23Z"
+            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/38550384832",
+            "updated_at": "2026-10-14T10:34:34Z"
           },
           {
             "workflow": "Deploy Pages",
@@ -807,7 +807,7 @@
           }
         ]
       },
-      "open_prs": 6,
+      "open_prs": 5,
       "open_issues": 0,
       "release": null,
       "pages": {
@@ -825,7 +825,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 240,
+      "latency_ms": 233,
       "note": null
     },
     {
@@ -834,7 +834,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 246,
+      "latency_ms": 211,
       "note": null
     },
     {
@@ -843,7 +843,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 256,
+      "latency_ms": 344,
       "note": null
     },
     {
@@ -852,7 +852,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 271,
+      "latency_ms": 274,
       "note": "classes=9244 pages=9242 nodes=9244"
     },
     {
@@ -861,7 +861,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 543,
+      "latency_ms": 451,
       "note": null
     },
     {
@@ -870,7 +870,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 287,
+      "latency_ms": 325,
       "note": null
     }
   ],
@@ -902,24 +902,24 @@
     {
       "registry": "crates.io",
       "name": "solid-pod-rs",
-      "version": "0.5.0-alpha.12",
-      "published_at": "2026-10-02T23:34:02.574089Z",
+      "version": "0.5.0-alpha.13",
+      "published_at": "2026-10-14T21:04:18.986687Z",
       "url": "https://crates.io/crates/solid-pod-rs",
       "note": null
     },
     {
       "registry": "crates.io",
       "name": "solid-pod-rs-server",
-      "version": "0.5.0-alpha.12",
-      "published_at": "2026-10-02T23:36:02.852306Z",
+      "version": "0.5.0-alpha.13",
+      "published_at": "2026-10-14T21:04:34.770394Z",
       "url": "https://crates.io/crates/solid-pod-rs-server",
       "note": null
     },
     {
       "registry": "crates.io",
       "name": "nostr-bbs-core",
-      "version": "1.0.0-beta.15",
-      "published_at": "2026-10-05T19:34:07.656591Z",
+      "version": "1.0.0-beta.16",
+      "published_at": "2026-10-14T21:07:34.928058Z",
       "url": "https://crates.io/crates/nostr-bbs-core",
       "note": null
     },
