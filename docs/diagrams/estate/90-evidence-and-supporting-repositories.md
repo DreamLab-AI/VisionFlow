@@ -25,7 +25,7 @@ sources:
   - ../loom/Cargo.toml
   - ../RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs
   - docs/estate-review/2026-09-07-estate-audit.md
-verified_commit: {visionflow: da57b49a28974dd9bff5b5358369eef94a439273, agentbox: 1565f477326bcb853886994421e6071c56e27d94, dream-engine: 0f6a66913c072603b6e29a80bdc67350737b9b21, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, RuView: b48ab7dada5002414ec18d36a5d652e0f1bd4a67, loom: d01dffcdda572216a480353870be350c795d2825, dream-machine: 6426583e72b10b731ac0a1630f62fbeb2ae0f5b5, prose-sanitiser: 5548922aaf499d37f0d0440db0735992ce07f003, diagram-ir: eed5ebde490830fc143a744e299c2ec0ed8b0028}
+verified_commit: {visionflow: da57b49a28974dd9bff5b5358369eef94a439273, agentbox: 8b8497bc295a46ff58fac0dbc4eed5c5b8bdb1d6, dream-engine: 5578a24146080703acf7696f72005f71d83c6171, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, RuView: b48ab7dada5002414ec18d36a5d652e0f1bd4a67, loom: d01dffcdda572216a480353870be350c795d2825, dream-machine: 6426583e72b10b731ac0a1630f62fbeb2ae0f5b5, prose-sanitiser: 5548922aaf499d37f0d0440db0735992ce07f003, diagram-ir: eed5ebde490830fc143a744e299c2ec0ed8b0028}
 ---
 
 ## ES-90.1 Three scopes — health roster, source review and workspace neighbours
@@ -64,10 +64,10 @@ sequenceDiagram
     Note over E,R: CHANGED 2026-10-06 (ADR-0006, ADR-0007) — with --mutator ruvllm the<br/>mutator is routed through a loopback Loom shim that outlasts darwin's<br/>30 s fetch abort, scripts/darwin-entrypoint.sh:115-142, and a uniform<br/>leaderboard then fails only when the shim counted zero real model edits
     Note over D,B: CHANGED 2026-10-02 (ADR-0005) — the check was a hand-run diagnostic<br/>and is now the darwin evaluator itself, and the bound rose from four<br/>candidates per generation to five to match darwin 0.10.2's five-surface<br/>map, darwinBounds.ts:63-64. Promotion count is still unobserved: the leaderboard<br/>has no promotion line, so zero is passed explicitly, cli/src/index.ts:369-374
     Note over E,R: EXTERNAL: enforcement still depends on the annexe runner honouring a<br/>failed required evaluator. This repo makes the failure, it does not veto the night
-    Note over A,R: EXTERNAL: the Rust judgement and loop moved to DreamLab-AI/dream-engine<br/>(DE-01, pending first push) and the estate adapter is AB-23.<br/>Toolkit tests do not identify the loaded Nix binary or prove a nightly run
+    Note over A,R: EXTERNAL: the Rust judgement and loop moved to DreamLab-AI/dream-engine<br/>(DE-01, public with five crates at 0.1.0) and the estate adapter is AB-23.<br/>Toolkit tests do not identify the loaded Nix binary or prove a nightly run
 ```
 
-**Drift:** the toolkit this diagram traces is no longer the estate's dream engine. The previous TypeScript fork is renamed DreamLab-AI/dream-machine and archived, and the slug DreamLab-AI/dream-engine now belongs to the Rust repository that holds the extracted judgement and loop crates (mapped in DE-01, pending first push). The Darwin path drawn above is not carried into it: the Rust core keeps only a readiness refusal for a darwin entrypoint run without a sandbox flag (`../dream-engine/crates/dream-core/src/readiness.rs:228-229`). The estate adapter is AB-23.
+**Drift:** the toolkit this diagram traces is no longer the estate's dream engine. The previous TypeScript fork is renamed DreamLab-AI/dream-machine and archived, and the slug DreamLab-AI/dream-engine now belongs to the Rust repository that holds the extracted judgement and loop crates (mapped in DE-01, public at 5578a24 with five crates at 0.1.0 on crates.io; the adapter side is agentbox PR 28, open and not merged). The Darwin path drawn above is not carried into it: the Rust core keeps only a readiness refusal for a darwin entrypoint run without a sandbox flag, a safety check that appends a problem to the admission report and mutates nothing (`../dream-engine/crates/dream-core/src/readiness.rs:228-232`). The estate adapter is AB-23.
 
 **Open:** the dream-machine stamp above (`6426583`) is the last revision the toolkit paths were read at, and nothing in this topic re-verifies them after the archive.
 

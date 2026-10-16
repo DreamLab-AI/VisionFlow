@@ -51,7 +51,7 @@ sources:
   - ../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md
   - ../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
-verified_commit: {dream-engine: 0f6a66913c072603b6e29a80bdc67350737b9b21, agentbox: 1565f477326bcb853886994421e6071c56e27d94, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, nostr-rust-forum: cbb3a8112320caf769b4d0713d3b1057db51d3e1, dreamlab-ai-website: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80}
+verified_commit: {dream-engine: 5578a24146080703acf7696f72005f71d83c6171, agentbox: 8b8497bc295a46ff58fac0dbc4eed5c5b8bdb1d6, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, nostr-rust-forum: cbb3a8112320caf769b4d0713d3b1057db51d3e1, dreamlab-ai-website: ebaf16c0462407ba4eb09dcc3220a1846b0d5c80}
 ---
 ## ES-05.2 Wire fields and exact response binding
 ```mermaid
@@ -387,7 +387,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    subgraph CORE["dream-engine repository, MIT OR Apache-2.0, pending first push (DE-01)"]
+    subgraph CORE["dream-engine repository, MIT OR Apache-2.0, public, five crates at 0.1.0 (DE-01)"]
         direction TB
         VER["gate verdict: ACCEPT survives only if every required evaluator passed<br/>on a candidate the protected-path guard let through"]
         FG["GhForge::publish_draft: push the branch, open a DRAFT pull request<br/>dream-engine/crates/dream-core/src/seams.rs:425"]
@@ -422,6 +422,6 @@ flowchart TB
 
 **Invariant (at source, staged until the image is rebuilt, ADR-2141 activation_status):** the engine journals `Persisted` before it asks the forge for anything, so a restart can lose a draft pull request but cannot open a second one for the same night (`../project/agentbox/services/dream-engine/src/engine.rs:1618`, `../dream-engine/crates/dream-core/src/runstate.rs:22`).
 
-**Tension (automerge option vs adapter):** the permissive repository ships an automerge decision tree that is off unless the repository's `dream.config.json` turns it on (`../dream-engine/crates/dream-core/src/automerge.rs:110`), but the adapter calls the forge's draft publication directly and never the function that applies that tree (`../project/agentbox/services/dream-engine/src/engine.rs:1667`), so the option cannot take effect in the estate at this revision. The merge gate stays a human, by omission as much as by default.
+**Tension (automerge option vs adapter):** the permissive repository ships an automerge decision tree that is off unless the repository's `dream.config.json` turns it on (`../dream-engine/crates/dream-core/src/automerge.rs:110`), but the adapter calls the forge's draft publication directly and never the function that applies that tree (`../project/agentbox/services/dream-engine/src/engine.rs:1667`), so the option cannot take effect in the estate at this revision: autoMerge is inert in the adapter. The core now states it (`../dream-engine/README.md:67-71`, `../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md:44-48`): only `persist::publish` applies the policy, and the first consuming host publishes through `Forge::publish_draft`. Switching the host over is a deliberate separate step, taken only after the `gh` calls are exercised against real GitHub. The merge gate stays a human, by omission as much as by default. Checked on 2026-10-16 against dream-engine 5578a24 and agentbox 8b8497bc2, the head of the open PR 28.
 
 **Open:** the forge step has not been exercised against real GitHub, by the core repository's own statement (`../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md:41`), and its publish outcome is not reconciled after a crash, which the core records as a deliberate at-most-once limit (`../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md:34`).

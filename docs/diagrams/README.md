@@ -22,7 +22,7 @@ fragment) and resolve by suffix against the file's own `sources:`.
 | `knowledgegraph/NN-*.md` | `KG-NN` | knowledgeGraph — published corpus and build pipeline (`../knowledgeGraph`) |
 | `visiongraph/NN-*.md` | `VG-NN` | visionGraph — authoring vault and publishing pipeline (`../visionGraph`) |
 | `ontomark/NN-*.md` | `OM-NN` | ontomark — the shared Markdown-ontology toolchain: parser, typed model, EL reasoner, compiler/build, assisted ingest, WASM engine (`../ontomark`) |
-| `dream-engine/NN-*.md` | `DE-NN` | dream-engine — the extracted permissive judgement and loop crates (MIT OR Apache-2.0), seen from the estate: crate DAG, licence fence, pending push and publish. The repository's own eight-topic corpus is linked, not duplicated (`../dream-engine`, local build, pending first push). The estate adapter is `AB-23` |
+| `dream-engine/NN-*.md` | `DE-NN` | dream-engine — the extracted permissive judgement and loop crates (MIT OR Apache-2.0), seen from the estate: crate DAG, licence fence, published crates and open items. The repository's own eight-topic corpus is linked, not duplicated (`../dream-engine`, public, `main` 5578a24). The estate adapter is `AB-23` |
 | `estate/NN-*.md` | `ES-NN` | cross-repo and infrastructure interfaces; `verified_commit` is a `{repo: sha}` map |
 | `COVERAGE.md` | | generated inverted indexes: diagram → file, ADR → files, governing doc → files, source path → files |
 | `hero/` | | marketing hero images and their Mermaid → Nano Banana pipeline; not part of the coverage tree |

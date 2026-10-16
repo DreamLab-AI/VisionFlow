@@ -71,9 +71,11 @@ sources:
   - ../dream-engine/crates/dream-cli/src/lib.rs
   - ../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md
   - ../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md
-verified_commit: {agentbox: 1565f477326bcb853886994421e6071c56e27d94, dream-engine: 0f6a66913c072603b6e29a80bdc67350737b9b21}
+verified_commit: {agentbox: 8b8497bc295a46ff58fac0dbc4eed5c5b8bdb1d6, dream-engine: 5578a24146080703acf7696f72005f71d83c6171}
 ---
 This topic draws the adapter and the boundary after the 2026-10-15 extraction (agentbox ADR-2141). The judgement and the loop mechanism moved to the permissive repository DreamLab-AI/dream-engine, mapped in DE-01 and in its own corpus at `../dream-engine/docs/diagrams/README.md`, which is not duplicated here. AB-23.9 onward are adapter-owned and re-cited at the new revision.
+
+State on 2026-10-16, each checked that day: dream-engine is public at `main` 5578a24 with five crates published at 0.1.0 (`git ls-remote`, crates.io API), and the adapter depends on `dream-core` and `dream-gate` at `=0.1.0` from the registry. The adapter side is agentbox pull request 28, open and not merged, head 8b8497bc2 (`gh pr view 28`), so the agentbox stamp is the head of an unmerged branch.
 
 ## AB-23.1 One repo-night — run phases
 
@@ -238,15 +240,15 @@ flowchart TB
         E8["governance.rs, relay.rs, inbox.rs, digest.rs, zone_crypto.rs<br/>the forum drivers, linked to nostr-bbs-core"]
         E9["journal.rs, prompt.rs, records.rs, present.rs, baseline.rs, config.rs"]
     end
-    subgraph core["DreamLab-AI/dream-engine, MIT OR Apache-2.0 (pending push)"]
+    subgraph core["DreamLab-AI/dream-engine, MIT OR Apache-2.0 (public, five crates at 0.1.0)"]
         direction TB
         C1["dream-core: runner, ledger, readiness, runstate and NightLock, roster, sweep, compile,<br/>source, context, candidate, persist, seams, testfmt, streak, replay, automerge<br/>dream-core/src/lib.rs:1"]
         C2["dream-gate: verdict, manifest, receipts, witness, gate, guard, patch, outcome, config schema<br/>dream-gate/src/lib.rs:1"]
         C3["pairwise-gate and failure-fingerprint, leaf crates<br/>pairwise-gate/src/lib.rs:1"]
         C4["dream-cli, a thin shell over the core<br/>dream-cli/src/lib.rs:1"]
     end
-    E1 -->|"path dependency"| C1
-    E1 -->|"path dependency"| C2
+    E1 -->|"registry dependency, exact pin"| C1
+    E1 -->|"registry dependency, exact pin"| C2
     C1 --> C2
     C2 --> C3
     C4 --> C1
@@ -254,7 +256,7 @@ flowchart TB
     E7 -.->|"implements EvaluatorRunner, MemorySink and Notifier"| C1
     BARRIER["INVARIANT: the adapter depends on the core and never the reverse. zone_crypto is never published<br/>and the adapter links nostr-bbs-core, which is why it stays AGPL-3.0-only<br/>agentbox/services/dream-engine/Cargo.toml:8"]
     E8 --- BARRIER
-    STAMP["TENSION: both stamps are provisional. agentbox 1565f47 is the head of an UNMERGED worktree branch and<br/>dream-engine 0f6a669 is an UNPUSHED local head, so every citation into either must be re-resolved after the merge and the push"]
+    STAMP["OPEN: agentbox 8b8497bc2 is the head of PR 28, open and not merged, so adapter pin merged is pending.<br/>dream-engine 5578a24 is the published main"]
     BARRIER --- STAMP
 ```
 
@@ -262,9 +264,13 @@ flowchart TB
 
 **Why it is this way.** ADR-2141 chose the boundary so that the gate and the loop can be reviewed and versioned without the estate. The seams (`Llm`, `EvaluatorRunner`, `MemorySink`, `Notifier`, `Forge`) are implemented in the adapter and defined in `dream-core` (CRT-02 in the core corpus).
 
-**Tension (pending push):** the two core crates are consumed as path dependencies on an absolute local build directory (`../project/agentbox/services/dream-engine/Cargo.toml:27-28`), so the adapter cannot build anywhere the build directory is not mounted. ADR-2141 names the flip to one shared git revision as the follow-on and leaves `lib/dream-engine.nix` untouched until then (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:31`, `../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:40`).
+**Resolved (pin):** the two core crates are registry dependencies pinned `=0.1.0` (`../project/agentbox/services/dream-engine/Cargo.toml:26-27`), the lockfile carries their checksums, and ADR-2141 records that `lib/dream-engine.nix` needs no `outputHashes` because every dependency is a registry crate (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:31`). The image rebuild that bakes them in is the operator's step (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:40`).
 
-**Debt:** a path and a git dependency mixed would link two copies of `dream-gate` whose types would not unify, so the flip must move both lines to the same revision in one change (`../project/agentbox/services/dream-engine/Cargo.toml:22-26`).
+**Invariant:** both pins must stay on one release, because a mismatch links two copies of `dream-gate` whose types would not unify (`../project/agentbox/services/dream-engine/Cargo.toml:22-27`).
+
+**Open (PR 28):** the pin is on pull request 28, open and not merged. A squash merge would leave 8b8497bc2 off `main` and force another re-stamp.
+
+**Debt (no CI gate):** the agentbox repository's GitHub Actions have not run since 2026-10-08 (`gh run list`, latest 2026-10-08T18:49Z, and `gh pr checks 28` reports no checks), so PR 28 has no CI gate.
 
 ## AB-23.4 The guard ordering and the deterministic gate
 
@@ -389,7 +395,7 @@ sequenceDiagram
 
 **Why it is this way.** Persist-before-effect is the at-most-once guarantee (ADR-DE-007). The merge gate stays a process, not a code control, because `autoMerge` is false and, as below, is not consulted by the adapter at all.
 
-**Open:** `autoMerge` is read from the repository's `dream.config.json` and defaults to off (`../dream-engine/crates/dream-gate/src/config.rs:364-369`), and the core ships a pure decision tree plus a `persist::publish` that applies it (`../dream-engine/crates/dream-core/src/persist.rs:291`, `../dream-engine/crates/dream-core/src/automerge.rs:110`). The adapter calls `Forge::publish_draft` directly (`../project/agentbox/services/dream-engine/src/engine.rs:1667`) and never `persist::publish`, so setting `autoMerge: true` would have no effect here. The forge calls behind the option have not been exercised against real GitHub, by the core's own statement (`../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md:41`).
+**Open:** `autoMerge` is read from the repository's `dream.config.json` and defaults to off (`../dream-engine/crates/dream-gate/src/config.rs:364-369`), and the core ships a pure decision tree plus a `persist::publish` that applies it (`../dream-engine/crates/dream-core/src/persist.rs:291`, `../dream-engine/crates/dream-core/src/automerge.rs:110`). The adapter calls `Forge::publish_draft` directly (`../project/agentbox/services/dream-engine/src/engine.rs:1667`) and never `persist::publish`, so setting `autoMerge: true` would have no effect here: the option is inert in the adapter. The core now says so itself, that only `persist::publish` applies the policy and a host publishing through `Forge::publish_draft` never merges whatever `autoMerge` says (`../dream-engine/README.md:67-71`, `../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md:44-48`), and that the first consuming host is exactly that case. The forge calls behind the option have not been exercised against real GitHub (`../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md:41-42`). See ES-05.
 
 **Tension (dream.config.json vs the prompt):** RESOLVED. The previous stamp recorded that every night's prompt cited "agentbox ADR-2024" while the discipline `cite-existing-adrs` listed ADR-2024 as non-existent (`../project/agentbox/dream.config.json:78`). The estate tag is now stripped from the shared compiler's output: the prompt test removes the string from the pre-extraction golden before comparing (`../project/agentbox/services/dream-engine/src/prompt.rs:82`).
 
@@ -918,7 +924,7 @@ sequenceDiagram
     alt sweep fails
         SWEEP-->>ENG: warn only, fail-open (engine.rs:818-820)
     end
-    ENG->>AH: annexe_health(hp_host, hp_annexe_dir, ANNEXE_MIN_FREE_GIB 10) (engine.rs:822, dispatch.rs:303)
+    ENG->>AH: annexe_health(hp_host, hp_annexe_dir, min_free_gib_from DREAM_ANNEXE_MIN_FREE_GIB, default ANNEXE_MIN_FREE_GIB 10) (engine.rs:822-826, engine.rs:2186, dispatch.rs:303)
     AH->>HP: ssh, annexe_probe_cmd: mkdir -p, printf ok to a probe file, rm -f the probe file,<br/>then df -Pk (dispatch.rs:311-316)
     Note over AH,HP: the WRITE is the real test. On a fully allocated btrfs volume df still reports<br/>tens of GiB free while every file create fails ENOSPC (metadata chunks exhausted,<br/>2026-09-26), free space alone would have passed a broken annexe
     HP-->>AH: AVAIL-KB=N line
@@ -1018,9 +1024,9 @@ flowchart TB
 
 **Open:** under `[security].role_isolation` the forum governance round trip stops without an error. The delivered key file belongs to `ab-identity`, dream-engine runs as devuser, and `load_key` treats the refusal as fail-open and skips (`../project/agentbox/config/entrypoint-unified.sh:456-458`, `../project/agentbox/services/dream-engine/src/governance.rs:903-911`). Nothing at this revision says whether that is the intended state until W3b, or a gap the boot rehearsal must catch.
 
-## Audit qualification — 2026-10-15
+## Audit qualification — 2026-10-16
 
-This topic describes the extraction at the head of an **unmerged worktree branch**, not the image the supervisor is running. ADR-2141 states that `lib/dream-engine.nix` is not touched until the two path dependencies flip to a pushed git revision, "because it cannot build with path dependencies outside this repository" (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:31`). The loaded Nix-store binary therefore remains the pre-extraction one, and the guard-before-apply, the finished-night rule and the corrected dry streak are **source behaviour, not live behaviour**, until the new repository is pushed, the pin is flipped, the image is rebuilt and a process-identity receipt is taken. The ADR itself records `implementation_status: partial` and `activation_status: staged` (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:6-7`).
+This topic describes the extraction at the head of **pull request 28, which is open and not merged**, not the image the supervisor is running. The pin is resolved: the crates are on crates.io and the adapter depends on them at `=0.1.0` (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:31`). What remains is activation: the loaded Nix-store binary is still the pre-extraction one, and the guard-before-apply, the finished-night rule and the corrected dry streak are **source behaviour, not live behaviour**, until the PR is merged, the image is rebuilt and a process-identity receipt is taken. The ADR records `implementation_status: complete`, for the extraction and the pin only, and `activation_status: staged` (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:6-7`).
 
 **Open:** the same ADR names a dependent correction as the follow-on: `ontomark/dream.config.json` (`"adrConvention": "ADR-OM-NNN"`) no longer loads under the stricter `dream-gate` validation (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:35`). Until it is corrected the estate's ontomark nomination would be refused by config validation rather than dreamed.
 
