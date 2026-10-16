@@ -75,7 +75,7 @@ verified_commit: {agentbox: 8b8497bc295a46ff58fac0dbc4eed5c5b8bdb1d6, dream-engi
 ---
 This topic draws the adapter and the boundary after the 2026-10-15 extraction (agentbox ADR-2141). The judgement and the loop mechanism moved to the permissive repository DreamLab-AI/dream-engine, mapped in DE-01 and in its own corpus at `../dream-engine/docs/diagrams/README.md`, which is not duplicated here. AB-23.9 onward are adapter-owned and re-cited at the new revision.
 
-State on 2026-10-16, each checked that day: dream-engine is public at `main` 5578a24 with five crates published at 0.1.0 (`git ls-remote`, crates.io API), and the adapter depends on `dream-core` and `dream-gate` at `=0.1.0` from the registry. The adapter side is agentbox pull request 28, open and not merged, head 8b8497bc2 (`gh pr view 28`), so the agentbox stamp is the head of an unmerged branch.
+State on 2026-10-16, each checked that day: dream-engine is public at `main` 5578a24 with five crates published at 0.1.0 (`git ls-remote`, crates.io API), and the adapter depends on `dream-core` and `dream-gate` at `=0.1.0` from the registry. The adapter side is agentbox pull request 28, merged as aa9b094c3 on `main` (`gh pr view 28`), and the agentbox stamp is its head 8b8497bc2, an ancestor of that merge.
 
 ## AB-23.1 One repo-night — run phases
 
@@ -256,7 +256,7 @@ flowchart TB
     E7 -.->|"implements EvaluatorRunner, MemorySink and Notifier"| C1
     BARRIER["INVARIANT: the adapter depends on the core and never the reverse. zone_crypto is never published<br/>and the adapter links nostr-bbs-core, which is why it stays AGPL-3.0-only<br/>agentbox/services/dream-engine/Cargo.toml:8"]
     E8 --- BARRIER
-    STAMP["OPEN: agentbox 8b8497bc2 is the head of PR 28, open and not merged, so adapter pin merged is pending.<br/>dream-engine 5578a24 is the published main"]
+    STAMP["RESOLVED: agentbox 8b8497bc2 is the head of PR 28, merged on agentbox main as aa9b094c3.<br/>dream-engine 5578a24 is the published main"]
     BARRIER --- STAMP
 ```
 
@@ -268,9 +268,9 @@ flowchart TB
 
 **Invariant:** both pins must stay on one release, because a mismatch links two copies of `dream-gate` whose types would not unify (`../project/agentbox/services/dream-engine/Cargo.toml:22-27`).
 
-**Open (PR 28):** the pin is on pull request 28, open and not merged. A squash merge would leave 8b8497bc2 off `main` and force another re-stamp.
+**Resolved (PR 28):** the pin is merged on agentbox main as aa9b094c3, whose ancestor is the stamped head 8b8497bc2, so the stamp stays valid.
 
-**Debt (no CI gate):** the agentbox repository's GitHub Actions have not run since 2026-10-08 (`gh run list`, latest 2026-10-08T18:49Z, and `gh pr checks 28` reports no checks), so PR 28 has no CI gate.
+**Debt (no CI gate):** the agentbox repository's GitHub Actions have not run since 2026-10-08 (`gh run list`, latest 2026-10-08T18:49Z, and `gh pr checks 28` reports no checks), so PR 28 merged with no CI gate.
 
 ## AB-23.4 The guard ordering and the deterministic gate
 
@@ -1026,7 +1026,7 @@ flowchart TB
 
 ## Audit qualification — 2026-10-16
 
-This topic describes the extraction at the head of **pull request 28, which is open and not merged**, not the image the supervisor is running. The pin is resolved: the crates are on crates.io and the adapter depends on them at `=0.1.0` (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:31`). What remains is activation: the loaded Nix-store binary is still the pre-extraction one, and the guard-before-apply, the finished-night rule and the corrected dry streak are **source behaviour, not live behaviour**, until the PR is merged, the image is rebuilt and a process-identity receipt is taken. The ADR records `implementation_status: complete`, for the extraction and the pin only, and `activation_status: staged` (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:6-7`).
+This topic describes the extraction at the head of **pull request 28, now merged on agentbox `main` as aa9b094c3**, not the image the supervisor is running. The pin is resolved: the crates are on crates.io and the adapter depends on them at `=0.1.0` (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:31`). What remains is activation: the loaded Nix-store binary is still the pre-extraction one, and the guard-before-apply, the finished-night rule and the corrected dry streak are **source behaviour, not live behaviour**, until the image is rebuilt (pending with the operator, so the running daemon is still the pre-extraction binary) and a process-identity receipt is taken. The ADR records `implementation_status: complete`, for the extraction and the pin only, and `activation_status: staged` (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:6-7`).
 
 **Open:** the same ADR names a dependent correction as the follow-on: `ontomark/dream.config.json` (`"adrConvention": "ADR-OM-NNN"`) no longer loads under the stricter `dream-gate` validation (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:35`). Until it is corrected the estate's ontomark nomination would be refused by config validation rather than dreamed.
 
