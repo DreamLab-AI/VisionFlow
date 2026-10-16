@@ -320,3 +320,5 @@ flowchart LR
 ```
 
 **Debt (ledger rows reach main by hand):** the engine writes each night's row to the working tree and never commits it; the 09-27 to 09-30 rows reached main only in a human commit (`f3d54a0`) and the 10-01 and 10-02 rows likewise in `e52dba7` (`docs/dream-cycle/LEDGER.md:29-34`); the 10-03 to 10-06 rows landed with their own ACCEPT PR merges, but only because each PR carried its row (`docs/dream-cycle/LEDGER.md:35-38`). The ledger the next night reads is therefore whatever an operator last committed, and the 09-14 to 09-26 silence cannot be told apart from rows that were written and lost.
+
+**Drift (2026-10-15, dream-engine extraction):** the engine named in the diagrams above as a tracking fork of ruvnet/dream-machine is superseded. The Rust engine is split into the permissive repository DreamLab-AI/dream-engine (public, five crates at 0.1.0 on crates.io, checked 2026-10-16) and the agentbox adapter (AB-23, PR 28 merged as aa9b094c3, image rebuild pending), and the TypeScript fork is renamed DreamLab-AI/dream-machine and archived. This topic is stamped before the move and its citations remain true at its stamp; the current map is DE-01.

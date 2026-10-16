@@ -5,7 +5,7 @@ area: estate
 governing:
   - docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md
   - docs/architecture/repository-map.md
-adrs: [visionflow:ADR-2004, visionflow:ADR-2006, visionflow:ADR-2007, dream-engine:ADR-0003, dream-engine:ADR-0005, dream-engine:ADR-0006, dream-engine:ADR-0007, WasmVOWL:ADR-001]
+adrs: [visionflow:ADR-2004, visionflow:ADR-2006, visionflow:ADR-2007, dream-machine:ADR-0003, dream-machine:ADR-0005, dream-machine:ADR-0006, dream-machine:ADR-0007, WasmVOWL:ADR-001]
 sources:
   - scripts/estate-health/roster.json
   - scripts/estate-doc-audit.py
@@ -16,6 +16,7 @@ sources:
   - ../dream-machine/scripts/darwin-entrypoint.sh
   - ../dream-machine/dream.config.json
   - ../project/agentbox/services/dream-engine/src/engine.rs
+  - ../dream-engine/crates/dream-core/src/readiness.rs
   - ../WasmVOWL/modern/src/hooks/useWasmSimulation.ts
   - ../WasmVOWL/modern/package-lock.json
   - docs/estate-review/evidence/execution-2026-09-07/wasmvowl-schema-probe.log
@@ -24,14 +25,14 @@ sources:
   - ../loom/Cargo.toml
   - ../RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs
   - docs/estate-review/2026-09-07-estate-audit.md
-verified_commit: {visionflow: da57b49a28974dd9bff5b5358369eef94a439273, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, RuView: b48ab7dada5002414ec18d36a5d652e0f1bd4a67, loom: d01dffcdda572216a480353870be350c795d2825, dream-machine: 6426583e72b10b731ac0a1630f62fbeb2ae0f5b5, prose-sanitiser: 5548922aaf499d37f0d0440db0735992ce07f003, diagram-ir: eed5ebde490830fc143a744e299c2ec0ed8b0028}
+verified_commit: {visionflow: da57b49a28974dd9bff5b5358369eef94a439273, agentbox: 8b8497bc295a46ff58fac0dbc4eed5c5b8bdb1d6, dream-engine: 5578a24146080703acf7696f72005f71d83c6171, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, RuView: b48ab7dada5002414ec18d36a5d652e0f1bd4a67, loom: d01dffcdda572216a480353870be350c795d2825, dream-machine: 6426583e72b10b731ac0a1630f62fbeb2ae0f5b5, prose-sanitiser: 5548922aaf499d37f0d0440db0735992ce07f003, diagram-ir: eed5ebde490830fc143a744e299c2ec0ed8b0028}
 ---
 
 ## ES-90.1 Three scopes — health roster, source review and workspace neighbours
 ```mermaid
 flowchart TB
     R["Declared health roster: 15 repositories<br/>scripts/estate-health/roster.json:5-19"] --> P["Ten primary diagram directories:<br/>VisionFlow, VisionClaw, Agentbox, pod, forum,<br/>website, knowledgeGraph, visionGraph, vowl-wasm,<br/>sidestr-rs, rostered at roster.json:13"]
-    R --> S["Also on roster: Loom, Dream Engine,<br/>WasmVOWL, prose-sanitiser, diagram-ir"]
+    R --> S["Also on roster: Loom, Dream Engine (the row still names the<br/>archived TypeScript fork, see DE-01), WasmVOWL,<br/>prose-sanitiser, diagram-ir"]
     C["Git census and ADR candidate discovery<br/>scripts/estate-doc-audit.py"] --> R
     C --> D["Consumed or historical extension:<br/>RuVector, RuView, archived Logseq"]
     C --> N["Other checkouts: inventory only,<br/>no estate adoption from directory proximity"]
@@ -40,7 +41,7 @@ flowchart TB
     D --> E
 ```
 
-## ES-90.2 Dream compiler, diagnostic and runtime are separate paths
+## ES-90.2 Archived TypeScript fork: compiler, diagnostic and runtime are separate paths
 ```mermaid
 sequenceDiagram
     participant C as compile prompt<br/>compile/src/index.ts:268-270
@@ -63,8 +64,12 @@ sequenceDiagram
     Note over E,R: CHANGED 2026-10-06 (ADR-0006, ADR-0007) — with --mutator ruvllm the<br/>mutator is routed through a loopback Loom shim that outlasts darwin's<br/>30 s fetch abort, scripts/darwin-entrypoint.sh:115-142, and a uniform<br/>leaderboard then fails only when the shim counted zero real model edits
     Note over D,B: CHANGED 2026-10-02 (ADR-0005) — the check was a hand-run diagnostic<br/>and is now the darwin evaluator itself, and the bound rose from four<br/>candidates per generation to five to match darwin 0.10.2's five-surface<br/>map, darwinBounds.ts:63-64. Promotion count is still unobserved: the leaderboard<br/>has no promotion line, so zero is passed explicitly, cli/src/index.ts:369-374
     Note over E,R: EXTERNAL: enforcement still depends on the annexe runner honouring a<br/>failed required evaluator. This repo makes the failure, it does not veto the night
-    Note over A,R: EXTERNAL: the Rust service has its own candidate/evaluator path.<br/>Toolkit tests do not identify the loaded Nix binary or prove a nightly run
+    Note over A,R: EXTERNAL: the Rust judgement and loop moved to DreamLab-AI/dream-engine<br/>(DE-01, public with five crates at 0.1.0) and the estate adapter is AB-23.<br/>Toolkit tests do not identify the loaded Nix binary or prove a nightly run
 ```
+
+**Drift:** the toolkit this diagram traces is no longer the estate's dream engine. The previous TypeScript fork is renamed DreamLab-AI/dream-machine and archived, and the slug DreamLab-AI/dream-engine now belongs to the Rust repository that holds the extracted judgement and loop crates (mapped in DE-01, public at 5578a24 with five crates at 0.1.0 on crates.io; the adapter side is agentbox PR 28, merged as aa9b094c3, with the image rebuild pending). The Darwin path drawn above is not carried into it: the Rust core keeps only a readiness refusal for a darwin entrypoint run without a sandbox flag, a safety check that appends a problem to the admission report and mutates nothing (`../dream-engine/crates/dream-core/src/readiness.rs:228-232`). The estate adapter is AB-23.
+
+**Open:** the dream-machine stamp above (`6426583`) is the last revision the toolkit paths were read at, and nothing in this topic re-verifies them after the archive.
 
 ## ES-90.3 WasmVOWL demo is a separate consumer from the published engine
 ```mermaid
