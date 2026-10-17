@@ -23,6 +23,7 @@ SUITES=(
   "diagram-index.test.cjs"
   "augmentation-citations.test.cjs"
   "estate-health-ci.test.mjs"
+  "dream-evaluator-exit.test.sh"
 )
 
 FAILED=()
