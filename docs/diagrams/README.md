@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_148 topic files, 1444 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_155 topic files, 1476 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -365,6 +365,18 @@ _148 topic files, 1444 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | ID | Topic | Diagrams | Kinds | Governing | ADRs |
 |----|-------|----------|-------|-----------|------|
 | DE-01 | [The extracted dream-engine repository — crate DAG, licence boundary and estate status](dream-engine/01-crates-licence-boundary-and-estate-status.md) | 2 | flowchart | [repository-map.md](../../docs/architecture/repository-map.md) | ADR-DE-001, ADR-DE-002, ADR-DE-005, ADR-DE-006, ADR-DE-007 |
+
+### visiontouch-rs
+
+| ID | Topic | Diagrams | Kinds | Governing | ADRs |
+|----|-------|----------|-------|-----------|------|
+| VT-01 | [Clean-room method and provenance](visiontouch-rs/01-clean-room-method-and-provenance.md) | 4 | flowchart, sequenceDiagram | [BASELINE-visiontouch-rs.md](../../../visiontouch-rs/docs/BASELINE-visiontouch-rs.md), [POLICY.md](../../../visiontouch-rs/docs/clean-room/POLICY.md), [ADR-0001-observation-first-clean-room.md](../../../visiontouch-rs/docs/adr/ADR-0001-observation-first-clean-room.md) | visiontouch-rs:ADR-0001 |
+| VT-02 | [Transport, software EPP cycle and force session](visiontouch-rs/02-transport-software-epp-and-force-session.md) | 5 | sequenceDiagram, stateDiagram-v2 | [BASELINE-visiontouch-rs.md](../../../visiontouch-rs/docs/BASELINE-visiontouch-rs.md), [10-device-readout.md](../../../visiontouch-rs/docs/spec/10-device-readout.md), [12-force-feedback.md](../../../visiontouch-rs/docs/spec/12-force-feedback.md) | visiontouch-rs:ADR-0002 |
+| VT-03 | [Device SDK and force guard](visiontouch-rs/03-device-sdk-and-force-guard.md) | 5 | flowchart, sequenceDiagram, stateDiagram-v2 | [BASELINE-visiontouch-rs.md](../../../visiontouch-rs/docs/BASELINE-visiontouch-rs.md), [ADR-0002-layered-software-force-envelope.md](../../../visiontouch-rs/docs/adr/ADR-0002-layered-software-force-envelope.md), [ADR-0004-reset-pose-registration.md](../../../visiontouch-rs/docs/adr/ADR-0004-reset-pose-registration.md) | visiontouch-rs:ADR-0002, visiontouch-rs:ADR-0004 |
+| VT-04 | [Mass Lab servo-rate coupling](visiontouch-rs/04-mass-lab-servo-rate-coupling.md) | 5 | sequenceDiagram, flowchart | [BASELINE-visiontouch-rs.md](../../../visiontouch-rs/docs/BASELINE-visiontouch-rs.md), [11-relative-pointer.md](../../../visiontouch-rs/docs/spec/11-relative-pointer.md), [12-force-feedback.md](../../../visiontouch-rs/docs/spec/12-force-feedback.md), [ADR-0002-layered-software-force-envelope.md](../../../visiontouch-rs/docs/adr/ADR-0002-layered-software-force-envelope.md) | visiontouch-rs:ADR-0002 |
+| VT-05 | [Effects and force models](visiontouch-rs/05-effects-and-force-models.md) | 5 | sequenceDiagram, flowchart, stateDiagram-v2 | [BASELINE-visiontouch-rs.md](../../../visiontouch-rs/docs/BASELINE-visiontouch-rs.md), [12-force-feedback.md](../../../visiontouch-rs/docs/spec/12-force-feedback.md) | visiontouch-rs:ADR-0002 |
+| VT-06 | [Tools and the evidence path](visiontouch-rs/06-tools-and-evidence-path.md) | 4 | flowchart, sequenceDiagram | [BASELINE-visiontouch-rs.md](../../../visiontouch-rs/docs/BASELINE-visiontouch-rs.md), [ADR-0005-build-with-quality-retrofit.md](../../../visiontouch-rs/docs/adr/ADR-0005-build-with-quality-retrofit.md) | visiontouch-rs:ADR-0005 |
+| VT-07 | [Estate position and the future VisionClaw grab path](visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path.md) | 4 | flowchart, sequenceDiagram | [ADR-0006-estate-membership-lab-evaluation.md](../../../visiontouch-rs/docs/adr/ADR-0006-estate-membership-lab-evaluation.md), [ADR-2017-haptic-input-device-is-a-supporting-study.md](../../docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md), [repository-map.md](../../docs/architecture/repository-map.md) | visiontouch-rs:ADR-0006, visionflow:ADR-2017 |
 
 ### estate
 
