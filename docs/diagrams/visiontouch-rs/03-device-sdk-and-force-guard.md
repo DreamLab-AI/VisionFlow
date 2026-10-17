@@ -13,7 +13,7 @@ sources:
   - ../visiontouch-rs/docs/spec/12-force-feedback.md
   - ../visiontouch-rs/docs/adr/ADR-0002-layered-software-force-envelope.md
   - ../visiontouch-rs/docs/adr/ADR-0004-reset-pose-registration.md
-verified_commit: 3875bfd994d73c068a8dafa6ea0ec6f012063e1e
+verified_commit: 77898bc42b29d5928b4eae00040ef0c26c3cd0a3
 ---
 
 ## For developers
@@ -50,7 +50,7 @@ flowchart TB
     N1["INVARIANT: ceilings are compile-time ordered, DAC ceiling cannot exceed the transport clamp<br/>crates/device/src/lib.rs:79-81"]
     N2["INVARIANT: the 134 counts per newton gain gives 268 counts at 2 N so 300 is the only bound independent of the uncertain gains<br/>docs/spec/12-force-feedback.md:64-66"]
     N3["DEBT: CONTINUOUS_FORCE_N is documented as the cap for content and ADR-0002 relies on it<br/>docs/adr/ADR-0002-layered-software-force-envelope.md:38 but no code reads the constant, only crates/device/src/lib.rs:50 mentions it"]
-    N4["DIVERGENCE: ADR-0002 and ADR-0004 are proposed, none, inactive<br/>docs/adr/ADR-0002-layered-software-force-envelope.md:5-7 while the code and tests exist at crates/device/src/lib.rs:625"]
+    N4["INVARIANT: ADR-0002 and ADR-0004 are accepted, complete, live, and the code and tests exist<br/>docs/adr/ADR-0002-layered-software-force-envelope.md:5-7 and crates/device/src/lib.rs:625"]
     CONT --- N3
     DACMAX --- N1
     HAL --- N2

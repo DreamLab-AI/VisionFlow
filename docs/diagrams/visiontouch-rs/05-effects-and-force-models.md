@@ -11,7 +11,7 @@ sources:
   - ../visiontouch-rs/docs/spec/12-force-feedback.md
   - ../visiontouch-rs/crates/device/src/lib.rs
   - ../visiontouch-rs/docs/adr/ADR-0004-reset-pose-registration.md
-verified_commit: 3875bfd994d73c068a8dafa6ea0ec6f012063e1e
+verified_commit: 77898bc42b29d5928b4eae00040ef0c26c3cd0a3
 ---
 
 ## For developers

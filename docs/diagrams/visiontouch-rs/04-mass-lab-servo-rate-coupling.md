@@ -16,7 +16,7 @@ sources:
   - ../visiontouch-rs/docs/spec/11-relative-pointer.md
   - ../visiontouch-rs/docs/spec/12-force-feedback.md
   - ../visiontouch-rs/docs/adr/ADR-0002-layered-software-force-envelope.md
-verified_commit: 3875bfd994d73c068a8dafa6ea0ec6f012063e1e
+verified_commit: 77898bc42b29d5928b4eae00040ef0c26c3cd0a3
 ---
 
 ## For developers
@@ -126,8 +126,8 @@ flowchart TB
     DESC --> SPR
     SPR --> GUARD
     PX --> REAC
-    N1["DOC-DRIFT: spec says the proxy reaction is reported to the device SDK<br/>docs/spec/12-force-feedback.md:126 but reaction_force is read only by tests, see apps/mass-lab/src/physics.rs:529"]
-    N2["DOC-DRIFT: spec says a fixed stiffness of 150 N/m<br/>docs/spec/12-force-feedback.md:109 while a 20 to 1500 slider exists at apps/mass-lab/src/main.rs:353"]
+    N1["DOC-DRIFT: spec says the proxy reaction is reported to the device SDK<br/>docs/spec/12-force-feedback.md:129 but reaction_force is read only by tests, see apps/mass-lab/src/physics.rs:529"]
+    N2["INVARIANT: spec and code agree that 150 N/m is a default, with a 20 to 1500 slider bounded in practice by the 0.5 N, 96-count limits<br/>docs/spec/12-force-feedback.md:112-113 and apps/mass-lab/src/main.rs:353"]
     N3["INVARIANT: Mass Lab sets ForceLimits::default and cannot raise limits, only the Studio ladder does<br/>apps/mass-lab/src/pointer.rs:272-278"]
     REAC --- N1
     SPR --- N2
@@ -153,7 +153,7 @@ sequenceDiagram
     WK->>DV: set default limits then enable_feedback (apps/mass-lab/src/pointer.rs:275-279)
     DV-->>WK: any error drops the device and reports Error (apps/mass-lab/src/pointer.rs:283-285)
     Note over UI,DV: INVARIANT: feedback cannot be enabled before registration on this connection<br/>apps/mass-lab/src/pointer.rs:268 and crates/device/src/lib.rs:515-516
-    Note over WK,DV: INVARIANT: SIGINT or SIGTERM only set a flag and the worker does the cleanup<br/>apps/mass-lab/src/pointer.rs:257-259 and docs/spec/12-force-feedback.md:142-144
+    Note over WK,DV: INVARIANT: SIGINT or SIGTERM only set a flag and the worker does the cleanup<br/>apps/mass-lab/src/pointer.rs:257-259 and docs/spec/12-force-feedback.md:145-147
 ```
 
 Registering always turns force off, so the operator has to enable it again deliberately after zeroing.

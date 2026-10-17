@@ -17,7 +17,7 @@ sources:
   - ../visiontouch-rs/docs/research/overload-and-calibration.md
   - ../visiontouch-rs/scripts/quality-gate.sh
   - ../visiontouch-rs/.gitignore
-verified_commit: 3875bfd994d73c068a8dafa6ea0ec6f012063e1e
+verified_commit: 77898bc42b29d5928b4eae00040ef0c26c3cd0a3
 ---
 
 ## For developers
@@ -77,7 +77,7 @@ sequenceDiagram
     RS->>QG: gate runs fmt, clippy, tests, rustdoc (scripts/quality-gate.sh:14-23)
     QG->>QG: only the vendor-artefact scan polices this ladder (scripts/quality-gate.sh:38)
     Note over PV,RS: INVARIANT: spec and provenance precede code, evidenced by commit order,<br/>git log --follow docs/spec/10-device-readout.md in docs/adr/ADR-0001-observation-first-clean-room.md:61
-    Note over RS,QG: DIVERGENCE: BASELINE says each invariant names where it is enforced<br/>docs/BASELINE-visiontouch-rs.md:49 but invariant 2 at :54 has no mechanical check
+    Note over RS,QG: OPEN: invariant 2 at :54 has no mechanical check, which BASELINE now states itself: invariants 2, 3 and 12 are process rules enforced by review and PROVENANCE ordering<br/>docs/BASELINE-visiontouch-rs.md:49
 ```
 
 The ladder is ordered by the commit history only. Nothing in the gate fails a Rust change that lacks a spec paragraph or a provenance row.
@@ -121,7 +121,7 @@ flowchart TB
     T2["sell services or hardware based on it<br/>docs/legal/POSITION.md:45"]
     T3["any decompilation of a vendor binary<br/>docs/legal/POSITION.md:46"]
     T4["contact from the rights holder<br/>docs/legal/POSITION.md:47"]
-    POS["posture: private lab evaluation, no economic use<br/>docs/BASELINE-visiontouch-rs.md:90"]
+    POS["posture: private lab evaluation, no economic use<br/>docs/BASELINE-visiontouch-rs.md:91-92"]
     R5 --> GI
     GI --> SC
     R6 -. "judgement only" .-> SC

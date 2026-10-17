@@ -20,7 +20,7 @@ sources:
   - ../visiontouch-rs/.github/workflows/ci.yml
   - ../visiontouch-rs/docs/adr/ADR-0005-build-with-quality-retrofit.md
   - ../visiontouch-rs/AGENTS.md
-verified_commit: 3875bfd994d73c068a8dafa6ea0ec6f012063e1e
+verified_commit: 77898bc42b29d5928b4eae00040ef0c26c3cd0a3
 ---
 
 ## For developers
@@ -39,7 +39,7 @@ flowchart TB
     RO["device-readout: active setup then N raw packets, no force packets<br/>tools/device-readout/src/main.rs:10<br/>tools/device-readout/src/main.rs:22"]
     RC["port-recorder: LD_PRELOAD log of ppdev calls from a reference run<br/>tools/port-recorder/src/lib.rs:1"]
     WPA["with-port-access: group-access check before sudo<br/>scripts/with-port-access:10"]
-    OWN["owner runs the attended session on the host<br/>AGENTS.md:58-60"]
+    OWN["owner runs the attended session on the host<br/>AGENTS.md:59-61"]
     EV["P-NNNN row of class OBSERVE or OWNER and evidence under docs/evidence<br/>docs/adr/ADR-0005-build-with-quality-retrofit.md:40-42"]
     CI["CI and quality gate: software claims only<br/>.github/workflows/ci.yml:3-5"]
     PR --> OWN
@@ -120,9 +120,9 @@ flowchart TB
     G1 --> G2 --> G3 --> G4 --> G5 --> G6 --> G7 --> G8
     CI --> G1
     N1["INVARIANT: ADR staleness needs full history, so CI checks out with fetch-depth 0<br/>.github/workflows/ci.yml:19-22"]
-    N2["DEBT: the recorder shim is meant to stay test-covered yet its check.py is run by hand and no gate step runs it<br/>AGENTS.md:52 and tools/port-recorder/README.md:11 vs scripts/quality-gate.sh:35"]
+    N2["DEBT: the recorder shim is meant to stay test-covered yet its check.py is run by hand and no gate step runs it<br/>AGENTS.md:53 and tools/port-recorder/README.md:11 vs scripts/quality-gate.sh:35"]
     N3["DOC-DRIFT: ADR-0005 lists the gate steps without the vendor scan that the gate and BASELINE include<br/>docs/adr/ADR-0005-build-with-quality-retrofit.md:34-38 vs scripts/quality-gate.sh:37-38"]
-    N4["DIVERGENCE: ADR-0005 is proposed, partial, staged<br/>docs/adr/ADR-0005-build-with-quality-retrofit.md:5-7 while CI is wired"]
+    N4["INVARIANT: ADR-0005 is accepted, complete, live, matching the wired CI<br/>docs/adr/ADR-0005-build-with-quality-retrofit.md:5-7"]
     CI --- N1
     G7 --- N2
     G8 --- N3

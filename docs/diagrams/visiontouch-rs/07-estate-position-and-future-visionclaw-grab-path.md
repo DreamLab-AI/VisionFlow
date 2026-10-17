@@ -19,7 +19,7 @@ sources:
   - ../project/client/src/features/graph/services/interactionModes/vrArMode.ts
   - ../project/xr-client/rust/src/selection.rs
   - ../project/src/handlers/socket_flow_handler/message_routing.rs
-verified_commit: {visiontouch-rs: 3875bfd994d73c068a8dafa6ea0ec6f012063e1e, visionflow: 1e3bdd074f43400cb51200b20d5f41ea711af47d, visionclaw: 458b0ded5da35b968ebd7ad056eba8bc06da38a5}
+verified_commit: {visiontouch-rs: 77898bc42b29d5928b4eae00040ef0c26c3cd0a3, visionflow: 1e3bdd074f43400cb51200b20d5f41ea711af47d, visionclaw: 458b0ded5da35b968ebd7ad056eba8bc06da38a5}
 ---
 
 ## For developers
@@ -35,7 +35,7 @@ The lab wants a physical stylus that can pick up and drag nodes in the VisionCla
 ```mermaid
 flowchart TB
     HR["visiontouch-rs, private lab evaluation, no economic use<br/>docs/architecture/repository-map.md:36"]
-    A6["repository ADR-0006: proposed, none, inactive<br/>../visiontouch-rs/docs/adr/ADR-0006-estate-membership-lab-evaluation.md:5-7"]
+    A6["repository ADR-0006: accepted, complete, live<br/>../visiontouch-rs/docs/adr/ADR-0006-estate-membership-lab-evaluation.md:5-7"]
     A17["canon ADR-2017: accepted, none, inactive<br/>docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md:5-6"]
     MAP["canon repository map, dependency sketch node HR<br/>docs/architecture/repository-map.md:52"]
     VC["VisionClaw graph: future consumer only<br/>docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md:28"]
@@ -46,9 +46,9 @@ flowchart TB
     HR --> OUT
     OUT -. "EXTERNAL: not built" .-> VC
     N1["INVARIANT: the repository stays private and no canon text may call it a product, service, release or driver<br/>../visiontouch-rs/docs/adr/ADR-0006-estate-membership-lab-evaluation.md:35-41"]
-    N2["DIVERGENCE: the same decision is proposed in the study repository and accepted in the canon<br/>../visiontouch-rs/docs/adr/ADR-0006-estate-membership-lab-evaluation.md:5 vs docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md:5"]
+    N2["DIVERGENCE: the same decision is accepted, complete and live in the study repository but accepted with implementation none in the canon<br/>../visiontouch-rs/docs/adr/ADR-0006-estate-membership-lab-evaluation.md:5-7 vs docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md:5-6"]
     N3["DOC-DRIFT: ADR-2017 verified_commit 4a8d4b5 predates the commit that added the ADR (1e3bdd0)<br/>docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md:10"]
-    N4["DEBT: ADR-0006 verified_commit is blank until the study repository commits<br/>../visiontouch-rs/docs/adr/ADR-0006-estate-membership-lab-evaluation.md:10"]
+    N4["INVARIANT: ADR-0006 now carries a committed verified_commit and its verification paragraph names this diagrams area (VT-01 to VT-08)<br/>../visiontouch-rs/docs/adr/ADR-0006-estate-membership-lab-evaluation.md:10 and ../visiontouch-rs/docs/adr/ADR-0006-estate-membership-lab-evaluation.md:54-57"]
     A6 --- N1
     A6 --- N2
     A17 --- N3

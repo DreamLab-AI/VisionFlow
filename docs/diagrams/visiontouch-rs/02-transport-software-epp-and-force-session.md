@@ -12,7 +12,7 @@ sources:
   - ../visiontouch-rs/docs/spec/10-device-readout.md
   - ../visiontouch-rs/docs/spec/12-force-feedback.md
   - ../visiontouch-rs/docs/adr/ADR-0002-layered-software-force-envelope.md
-verified_commit: 3875bfd994d73c068a8dafa6ea0ec6f012063e1e
+verified_commit: 77898bc42b29d5928b4eae00040ef0c26c3cd0a3
 ---
 
 ## For developers
@@ -89,7 +89,7 @@ sequenceDiagram
     SA-->>SM: six little-endian counters in order 2 0 1 3 4 5 (crates/hal/src/device.rs:160-161)
     SA-->>SM: stylus button is active low on byte 13 bit 1 (crates/hal/src/device.rs:156)
     Note over SM: INVARIANT: any failed transaction marks the connection unhealthy for good<br/>crates/hal/src/device.rs:246-248
-    Note over SM,SA: INVARIANT: acknowledgement is by echo of the last written sequence byte, an old duplicate read fails<br/>docs/spec/12-force-feedback.md:134-136
+    Note over SM,SA: INVARIANT: acknowledgement is by echo of the last written sequence byte, an old duplicate read fails<br/>docs/spec/12-force-feedback.md:137-139
 ```
 
 The raw 16 bytes are never decoded as a sample unless the full transfer completed. Counter semantics beyond the first twelve bytes and the button bit are unestablished.
