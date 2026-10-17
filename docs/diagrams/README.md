@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_155 topic files, 1476 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_156 topic files, 1482 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -377,6 +377,7 @@ _155 topic files, 1476 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VT-05 | [Effects and force models](visiontouch-rs/05-effects-and-force-models.md) | 5 | sequenceDiagram, flowchart, stateDiagram-v2 | [BASELINE-visiontouch-rs.md](../../../visiontouch-rs/docs/BASELINE-visiontouch-rs.md), [12-force-feedback.md](../../../visiontouch-rs/docs/spec/12-force-feedback.md) | visiontouch-rs:ADR-0002 |
 | VT-06 | [Tools and the evidence path](visiontouch-rs/06-tools-and-evidence-path.md) | 4 | flowchart, sequenceDiagram | [BASELINE-visiontouch-rs.md](../../../visiontouch-rs/docs/BASELINE-visiontouch-rs.md), [ADR-0005-build-with-quality-retrofit.md](../../../visiontouch-rs/docs/adr/ADR-0005-build-with-quality-retrofit.md) | visiontouch-rs:ADR-0005 |
 | VT-07 | [Estate position and the future VisionClaw grab path](visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path.md) | 4 | flowchart, sequenceDiagram | [ADR-0006-estate-membership-lab-evaluation.md](../../../visiontouch-rs/docs/adr/ADR-0006-estate-membership-lab-evaluation.md), [ADR-2017-haptic-input-device-is-a-supporting-study.md](../../docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md), [repository-map.md](../../docs/architecture/repository-map.md) | visiontouch-rs:ADR-0006, visionflow:ADR-2017 |
+| VT-08 | [Calibration Studio and the verification ladder](visiontouch-rs/08-calibration-studio-and-verification-ladder.md) | 6 | sequenceDiagram, flowchart, classDiagram | [BASELINE-visiontouch-rs.md](../../../visiontouch-rs/docs/BASELINE-visiontouch-rs.md), [ADR-0003-staged-force-verification-ladder.md](../../../visiontouch-rs/docs/adr/ADR-0003-staged-force-verification-ladder.md), [ADR-0004-reset-pose-registration.md](../../../visiontouch-rs/docs/adr/ADR-0004-reset-pose-registration.md) | visiontouch-rs:ADR-0003, visiontouch-rs:ADR-0004 |
 
 ### estate
 
