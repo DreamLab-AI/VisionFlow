@@ -18,7 +18,8 @@
     { "name": "vowl-wasm",           "full_name": "DreamLab-AI/vowl-wasm",           "provenance": "first-party", "role": "published VOWL engine crate + npm bundle" },
     { "name": "prose-sanitiser",     "full_name": "DreamLab-AI/prose-sanitiser",     "provenance": "first-party", "role": "published crate" },
     { "name": "diagram-ir",          "full_name": "DreamLab-AI/diagram-ir",          "provenance": "first-party", "role": "published crate" },
-    { "name": "dream-engine",        "full_name": "DreamLab-AI/dream-engine",        "provenance": "imported",    "role": "dream-cycle engine, fork of ruvnet/dream-machine" }
+    { "name": "dream-engine",        "full_name": "DreamLab-AI/dream-engine",        "provenance": "imported",    "role": "dream-cycle engine, fork of ruvnet/dream-machine" },
+    { "name": "visiontouch-rs",        "full_name": "DreamLab-AI/visiontouch-rs",        "provenance": "first-party", "role": "haptic input device study (private proof of principle)" }
   ],
   "surfaces": [
     {

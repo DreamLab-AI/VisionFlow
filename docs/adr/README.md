@@ -26,7 +26,7 @@ precisely because it drifted from the code; see
 
 The [estate status/evidence contract](../architecture/adr-status-contract.md) defines the independent decision, implementation and activation axes and distinguishes lineage from supersession (2026-09-07).
 
-_16 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
+_17 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
 
 | ID | Title | Date | Decision | Impl | Activation | Supersedes | Superseded by | Owner | Repo |
 |----|-------|------|----------|------|------------|------------|---------------|-------|------|
@@ -46,3 +46,4 @@ _16 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
 | [ADR-2014](ADR-2014-shared-ontology-workspace.md) | Own shared ontology capabilities in one Rust workspace | 2026-10-11 | accepted | partial | staged | — | — | jjohare | visionflow |
 | [ADR-2015](ADR-2015-typed-ontology-model-and-migration.md) | Separate ontology meaning from documents and presentation | 2026-10-11 | proposed | none | inactive | — | — | jjohare | visionflow |
 | [ADR-2016](ADR-2016-local-markdown-ontology-application.md) | Make Obsidian a local application of the shared ontology core | 2026-10-11 | accepted | partial | staged | — | — | jjohare | visionflow |
+| [ADR-2017](ADR-2017-haptic-input-device-is-a-supporting-study.md) | Admit visiontouch-rs as a private proof-of-principle haptic input study, with node grab in VisionClaw as a future integration | 2026-10-17 | accepted | none | inactive | — | — | jjohare | visionflow |

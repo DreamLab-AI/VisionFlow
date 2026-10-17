@@ -301,6 +301,7 @@ const REPO_PREFIXES = [
   { key: 'knowledgegraph', prefix: '../knowledgeGraph/' },
   { key: 'visiongraph', prefix: '../visionGraph/' },
   { key: 'ontomark', prefix: '../ontomark/' },
+  { key: 'visiontouch-rs', prefix: '../visiontouch-rs/' },
   { key: 'ruview', prefix: '../RuView/' },
   { key: 'wasmvowl', prefix: '../WasmVOWL/' },
   { key: 'loom', prefix: '../loom/' },
@@ -311,7 +312,7 @@ const REPO_PREFIXES = [
   { key: 'diagram-ir', prefix: '../diagram-ir/' },
   { key: 'visionflow', prefix: '' },
 ];
-const AREA_REPO = { visionflow: 'visionflow', visionclaw: 'visionclaw', agentbox: 'agentbox', 'solid-pod-rs': 'solid-pod-rs', 'nostr-rust-forum': 'nostr-rust-forum', 'dreamlab-ai-website': 'dreamlab-ai-website', 'vowl-wasm': 'vowl-wasm', knowledgegraph: 'knowledgegraph', visiongraph: 'visiongraph', 'sidestr-rs': 'sidestr-rs', ontomark: 'ontomark', 'dream-engine': 'dream-engine' };
+const AREA_REPO = { visionflow: 'visionflow', visionclaw: 'visionclaw', agentbox: 'agentbox', 'solid-pod-rs': 'solid-pod-rs', 'nostr-rust-forum': 'nostr-rust-forum', 'dreamlab-ai-website': 'dreamlab-ai-website', 'vowl-wasm': 'vowl-wasm', knowledgegraph: 'knowledgegraph', visiongraph: 'visiongraph', 'sidestr-rs': 'sidestr-rs', ontomark: 'ontomark', 'dream-engine': 'dream-engine' , 'visiontouch-rs': 'visiontouch-rs' };
 function repoOf(p) {
   const clean = p.replace(/^\.\//, '');
   for (const r of REPO_PREFIXES) if (r.prefix && clean.startsWith(r.prefix)) return { key: r.key, rel: clean.slice(r.prefix.length), abs: path.join(repoRoot, r.prefix) };

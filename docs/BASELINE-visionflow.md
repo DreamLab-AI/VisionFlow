@@ -1,9 +1,9 @@
 ---
 title: VisionFlow Baseline — What This Repo Is and Runs Today
 doc_id: VF-BASELINE
-version: 0.5.2
+version: 0.5.3
 status: draft-for-ratification
-verified_commit: 4b8cb48
+verified_commit: 4a8d4b5
 sources:
   - README.md
   - website/build.sh
@@ -368,6 +368,15 @@ reversible migration, with OCR and non-Markdown ingestion out of scope.
 These records are proposed, unimplemented and inactive; they do not supersede
 the accepted corpus baseline. See the
 [investigation and delivery gates](../../visionGraph/planning/ontology-workspace/README.md).
+
+## Supporting haptic input study (2026-10-17)
+
+[ADR-2017](adr/ADR-2017-haptic-input-device-is-a-supporting-study.md) admits
+visiontouch-rs, a private proof-of-principle study of a clean-room host stack for
+a lawfully owned haptic arm, as a supporting repository. It is not a substrate,
+has no economic use and does not change the invariants above. Node grab in
+VisionClaw is a future integration through the existing input path only. The
+record is accepted, unimplemented and inactive.
 
 ## Proposed estate closeout extension (2026-09-04)
 

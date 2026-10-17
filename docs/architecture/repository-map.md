@@ -1,7 +1,7 @@
 # Repository Map
 
 **Status:** Source-reviewed map; deployment acceptance is separate
-**Reviewed:** 2026-09-07 (initial map 2026-05-20; sidestr row refreshed 2026-10-01; dream-engine and dream-machine rows refreshed 2026-10-15)
+**Reviewed:** 2026-10-17 (initial map 2026-05-20; sidestr row refreshed 2026-10-01; dream-engine and dream-machine rows refreshed 2026-10-15; visiontouch-rs row added 2026-10-17)
 
 VisionFlow is a federated ecosystem. No single repository contains the whole runtime.
 
@@ -34,6 +34,7 @@ The [health roster](../../scripts/estate-health/roster.json) is the authoritativ
 | diagram-ir | `../diagram-ir` | Roster diagram tool package; availability does not prove the topic-tree gate calls it |
 | RuVector | `../ruvector` | Consumed dependency source; local core, registry crates and Agentbox Postgres image are distinct identities |
 | RuView | `../RuView` | Optional sensing product/dependency review; simulation and firmware source do not establish hardware acceptance |
+| visiontouch-rs | `../visiontouch-rs` | Private supporting study (proof of principle, no economic use): clean-room Rust host stack for a lawfully owned haptic arm; source and offline tests do not establish hardware acceptance or delivered force; node-grab input into VisionClaw is a future integration ([ADR-2017](../adr/ADR-2017-haptic-input-device-is-a-supporting-study.md)) |
 | Logseq history | `../project4` (`../logseq` alias) | Archived publisher lineage; current authoring/publishing owner is visionGraph |
 
 ## Dependency Direction
@@ -49,6 +50,7 @@ flowchart TB
     VW["vowl-wasm\nVOWL WASM engine (MIT)"]
     KG["knowledgeGraph\npublished corpus + pipeline"]
     VG["visionGraph\nauthoring vault + narrativegoldmine.com"]
+    VT["visiontouch-rs\nhaptic input (proof of principle)"]
 
     SPR --> VC
     SPR --> AB
@@ -72,6 +74,7 @@ flowchart TB
     VF -.-> VW
     VF -.-> KG
     VF -.-> VG
+    VF -.-> VT
 ```
 
 ## Ownership Rule

@@ -32,6 +32,7 @@ VisionFlow is not a single executable. It is a coordination architecture that em
 | loom (Ontology Loom) | Grounding node: model-swappable façade serving the reasoned ontology into any model's context at query time (`/loom/scaffold` + OpenAI-compatible chat); the context-assembly layer | Serving façade; the model behind it is a URL, swapped by benchmark |
 | nostr-rust-forum | Governance UI and relay kit: passkey auth, Cloudflare Workers, Agent Control Surface events | Human decision surface and Nostr relay edge |
 | dreamlab-ai-website | Branded DreamLab deployment and operator overlay for the forum kit | Public site and Cloudflare deployment config |
+| visiontouch-rs (supporting, proof of principle) | Private study of a clean-room host stack for a lawfully owned haptic arm; future 6-DoF pose and button input for node grab in VisionClaw. Not a substrate | Supporting repository; no economic use; force delivery unverified ([ADR-2017](adr/ADR-2017-haptic-input-device-is-a-supporting-study.md)) |
 
 The common primitive is `did:nostr:<hex-pubkey>`. Docs consistently describe it as the identity used for relay authentication, HTTP request signing, WAC ACL subjects, provenance, and cross-substrate routing.
 
