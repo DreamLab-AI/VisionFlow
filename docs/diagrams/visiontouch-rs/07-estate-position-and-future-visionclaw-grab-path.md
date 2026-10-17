@@ -19,7 +19,7 @@ sources:
   - ../project/client/src/features/graph/services/interactionModes/vrArMode.ts
   - ../project/xr-client/rust/src/selection.rs
   - ../project/src/handlers/socket_flow_handler/message_routing.rs
-verified_commit: {visiontouch-rs: 3875bfd994d73c068a8dafa6ea0ec6f012063e1e, visionflow: d29c2ac8117b42d564e1f18e8358916c0b1a12fe, visionclaw: 458b0ded5da35b968ebd7ad056eba8bc06da38a5}
+verified_commit: {visiontouch-rs: 3875bfd994d73c068a8dafa6ea0ec6f012063e1e, visionflow: 1e3bdd074f43400cb51200b20d5f41ea711af47d, visionclaw: 458b0ded5da35b968ebd7ad056eba8bc06da38a5}
 ---
 
 ## For developers
@@ -47,7 +47,7 @@ flowchart TB
     OUT -. "EXTERNAL: not built" .-> VC
     N1["INVARIANT: the repository stays private and no canon text may call it a product, service, release or driver<br/>../visiontouch-rs/docs/adr/ADR-0006-estate-membership-lab-evaluation.md:35-41"]
     N2["DIVERGENCE: the same decision is proposed in the study repository and accepted in the canon<br/>../visiontouch-rs/docs/adr/ADR-0006-estate-membership-lab-evaluation.md:5 vs docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md:5"]
-    N3["DOC-DRIFT: ADR-2017 verified_commit 4a8d4b5 predates the commit that added the ADR (d29c2ac)<br/>docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md:10"]
+    N3["DOC-DRIFT: ADR-2017 verified_commit 4a8d4b5 predates the commit that added the ADR (1e3bdd0)<br/>docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md:10"]
     N4["DEBT: ADR-0006 verified_commit is blank until the study repository commits<br/>../visiontouch-rs/docs/adr/ADR-0006-estate-membership-lab-evaluation.md:10"]
     A6 --- N1
     A6 --- N2
