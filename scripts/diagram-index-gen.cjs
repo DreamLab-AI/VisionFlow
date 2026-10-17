@@ -74,7 +74,7 @@ const path = require('path');
 const os = require('os');
 const { spawn } = require('child_process');
 
-const AREAS = new Set(['visionflow', 'visionclaw', 'agentbox', 'solid-pod-rs', 'nostr-rust-forum', 'dreamlab-ai-website', 'vowl-wasm', 'knowledgegraph', 'visiongraph', 'sidestr-rs', 'ontomark', 'dream-engine', 'estate']);
+const AREAS = new Set(['visionflow', 'visionclaw', 'agentbox', 'solid-pod-rs', 'nostr-rust-forum', 'dreamlab-ai-website', 'vowl-wasm', 'knowledgegraph', 'visiongraph', 'sidestr-rs', 'ontomark', 'dream-engine', 'visiontouch-rs', 'estate']);
 const SKIP_DIRS = new Set(['hero', 'archive', 'rendered', 'src', 'upgraded', 'regen-2026-06-14', 'triptych-src', '.claude-flow', 'node_modules']);
 const SKIP_FILES = new Set(['README.md', 'COVERAGE.md']);
 const MAX_WIDTH = 4500; // px — wider renders are illegible at any zoom
