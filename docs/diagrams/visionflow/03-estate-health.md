@@ -182,7 +182,7 @@ flowchart TB
     R2 --> HOLE
     TRAP["TRAP recorded in the workflow itself: a maintainer's full-scope<br/>local PAT reads visionGraph WITHOUT the fallback, so a readable<br/>row in a locally produced snapshot is NOT evidence that the CI<br/>path works — estate-health.yml:92"]:::bad
     HOLE --> TRAP
-    LIVE["Confirmed at this commit: summary.unreadable is 1 and<br/>summary.repos is 15 — estate-health.json:16 and estate-health.json:10"]:::bad
+    LIVE["Confirmed at this commit: summary.unreadable is 1 and<br/>summary.repos is 17 — estate-health.json:16 and estate-health.json:10"]:::bad
     HOLE --> LIVE
 ```
 
@@ -207,9 +207,9 @@ stateDiagram-v2
     Verdict --> RED : any red repo OR any unreachable surface — exit 1
     Verdict --> STALE : otherwise, generated_at older than 36 h — exit 1
     Verdict --> OK : otherwise — exit 0
-    state "ESTATE-HEALTH-RED — estate-health.mjs:991" as RED
-    state "ESTATE-HEALTH-STALE — estate-health.mjs:998" as STALE
-    state "ESTATE-HEALTH-OK — estate-health.mjs:1002" as OK
+    state "ESTATE-HEALTH-RED — estate-health.mjs:995" as RED
+    state "ESTATE-HEALTH-STALE — estate-health.mjs:1001" as STALE
+    state "ESTATE-HEALTH-OK — estate-health.mjs:1005" as OK
     state "ESTATE-HEALTH-STALE" as Stale1
     state "ESTATE-HEALTH-STALE" as Stale2
     state "ESTATE-HEALTH-STALE" as Stale3
@@ -218,8 +218,8 @@ stateDiagram-v2
       still shows a failure, and reporting staleness would
       bury the defect — estate-health.mjs:85
       AMBER prints a line but does NOT change the verdict.
-      Under RED an INFO line now reports the snapshot age against the
-      limit, without changing precedence or exit code — estate-health.mjs:981-989
+      On every path an INFO line reports the snapshot age against the
+      limit, without changing precedence or exit code — estate-health.mjs:980-992
       Freshness window: --max-age-hours, default 36
       estate-health.mjs:206
     end note
@@ -273,25 +273,25 @@ sequenceDiagram
     Note over P,F: "The file is a REQUIRED entry in website/assets.manifest.json,<br/>so a missing snapshot fails the asset gate — assets.manifest.json:13"
 ```
 
-## VF-03.11 The snapshot as it stands — 9 of 15 green, 2 exempt by design
+## VF-03.11 The snapshot as it stands — 9 of 17 green, 3 red, 2 exempt by design
 ```mermaid
 flowchart TB
     classDef red fill:#f7dede,stroke:#a33333,color:#111
     classDef green fill:#e6f0dc,stroke:#4a7a2a,color:#111
     classDef amb fill:#f9f0d5,stroke:#8a7020,color:#111
 
-    SNAP["schema visionflow.estate-health/1, generated 2026-10-12T09:29Z<br/>collected by the nightly run at revision 7cb004d1<br/>estate-health.json:2, estate-health.json:3 and estate-health.json:5"]
+    SNAP["schema visionflow.estate-health/1, generated 2026-10-17T07:04Z<br/>collected by the nightly run at revision 40b3f2f<br/>estate-health.json:2, estate-health.json:3 and estate-health.json:5"]
 
-    SNAP --> SUM["summary — 15 repos: 9 green, 1 red, 0 amber,<br/>2 none, 2 exempt, 1 unreadable, 5 open PRs,<br/>6 of 6 surfaces reachable<br/>estate-health.json:10 through estate-health.json:19"]
+    SNAP --> SUM["summary — 17 repos: 9 green, 3 red, 0 amber,<br/>2 none, 2 exempt, 1 unreadable, 6 open PRs,<br/>6 of 6 surfaces reachable<br/>estate-health.json:10 through estate-health.json:19"]
 
-    SUM --> R3["RED — nostr-rust-forum. Its ADR ledger workflow concluded<br/>failure while CI and Security Audit stayed green<br/>estate-health.json:299, estate-health.json:302 and estate-health.json:303"]:::red
+    SUM --> R3["RED — solid-pod-rs (CI failed), ontomark (ci failed) and<br/>ontomark-obsidian (Plugin checks failed)<br/>estate-health.json:250, estate-health.json:531 and estate-health.json:570"]:::red
     SUM --> N1["NONE — VisionClaw and agentbox. No run sits on HEAD, so the older<br/>verdicts are reported none: VisionClaw's were green, agentbox's red<br/>(Contract tests and Security Invariants failed on older commits)<br/>estate-health.json:116, estate-health.json:150, estate-health.json:171 and estate-health.json:229 — estate-health.mjs:436"]:::amb
-    SUM --> E1["EXEMPT — knowledgeGraph. Its last Build and verify run failed on<br/>an older commit, so the HEAD rule reports none and ci_by_design<br/>turns that into exempt; both notes are kept<br/>estate-health.json:461, estate-health.json:465 and estate-health.json:481"]:::amb
-    SUM --> E2["EXEMPT — WasmVOWL, no workflows by design<br/>estate-health.json:538"]:::amb
-    SUM --> U1["UNREADABLE — jjohare/visionGraph, the one known hole<br/>see VF-03.5 — estate-health.json:561"]:::amb
-    SUM --> G1["GREEN — VisionFlow itself, solid-pod-rs, dreamlab-ai-website,<br/>loom, sidestr-rs, vowl-wasm, prose-sanitiser, diagram-ir,<br/>dream-engine"]:::green
+    SUM --> E1["EXEMPT — knowledgeGraph. Its last Build and verify run failed on<br/>an older commit, so the HEAD rule reports none and ci_by_design<br/>turns that into exempt; both notes are kept<br/>estate-health.json:454, estate-health.json:474 and estate-health.json:475"]:::amb
+    SUM --> E2["EXEMPT — WasmVOWL, no workflows by design<br/>estate-health.json:609 and estate-health.json:617"]:::amb
+    SUM --> U1["UNREADABLE — jjohare/visionGraph, the one known hole<br/>see VF-03.5 — estate-health.json:628"]:::amb
+    SUM --> G1["GREEN — VisionFlow itself, nostr-rust-forum, dreamlab-ai-website,<br/>loom, sidestr-rs, vowl-wasm, prose-sanitiser, diagram-ir,<br/>dream-engine"]:::green
 
-    VERD["The offline check therefore returns ESTATE-HEALTH-RED:<br/>any red repo is enough, and the verdict beats staleness<br/>estate-health.mjs:991 — see VF-03.6. check() has no branch for<br/>exempt, so an exempt row prints nothing and moves no verdict<br/>estate-health.mjs:960 and estate-health.mjs:969"]:::red
+    VERD["The offline check therefore returns ESTATE-HEALTH-RED:<br/>any red repo is enough, and the verdict beats staleness<br/>estate-health.mjs:995 — see VF-03.6. check() has no branch for<br/>exempt, so an exempt row prints nothing and moves no verdict<br/>estate-health.mjs:960 and estate-health.mjs:969"]:::red
     SUM --> VERD
 
     INV["INVARIANT: the collector reports GitHub's own conclusion for the<br/>latest run per workflow and asserts nothing about whether that<br/>conclusion is correct<br/>ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:104"]
