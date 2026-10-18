@@ -6,20 +6,22 @@ governing:
   - ../visionGraph/docs/PUBLICATION-contract.md
 adrs: [ADR-VG-001, ADR-VG-002]
 sources:
+  - ../project/crates/visionclaw-domain/src/vault/mod.rs
   - ../visionGraph/docs/PUBLICATION-contract.md
   - ../visionGraph/docs/adr/ADR-VG-001-publication-policy-boundaries.md
   - ../visionGraph/docs/adr/ADR-VG-002-generation-and-consumer-identity.md
   - ../visionGraph/CLAUDE.md
   - ../visionGraph/README.md
   - ../visionGraph/docs/adr/ADR-VG-003-obsidian-only-authoring.md
-verified_commit: 015ca2c1f2d7289955ebf16b98b6775a57ec0f7b
+verified_commit: {visiongraph: bc4845c34, visionclaw: 3b5dbdd58430afcd22764e05fa81bed8c26d6ab9}
+worktree: 2026-10-18
 ---
 
 ## VG-05.1 Live invariants — what actually holds today
 
 ```mermaid
 flowchart TB
-    I1["1 · typed public: true is the KG inclusion gate;<br/>only governed ontology types in knowledge#47; feed<br/>the ontology projection — CLAUDE.md:10-11"]
+    I1["1 · the KG inclusion gate is typed public: true OR a governed<br/>owl-class — PageMeta::is_kg_included, vault/mod.rs:162-163;<br/>the site publisher reads public alone — CLAUDE.md:10-11"]
     I2["2 · NO frontmatter means private — the gate<br/>fails CLOSED, not open"]
     I3["3 · Page identity is the vault-relative path under<br/>pages/ WITHOUT .md, / as namespace separator"]
     I4["4 · Journals #40;YYYY-MM-DD.md#41; are excluded<br/>from graph ingest"]
@@ -29,7 +31,7 @@ flowchart TB
     note1["Sources: README.md 'vault contract' + 'How consumers bind to it';<br/>CLAUDE.md 'Vault contract' + 'Agents never push this repo'"]
 ```
 
-**What it shows:** the seven contract facts the corpus and its consumers rely on today. Invariant 1 changed on 2026-10-01: the agent rules no longer say a non-empty `owl-class` ingests unconditionally; the gate is the typed `public: true` flag, and only governed ontology types in `knowledge/` reach the ontology projection (`CLAUDE.md:10-11`).
+**What it shows:** the seven contract facts the corpus and its consumers rely on today. Invariant 1 changed on 2026-10-01: the agent rules no longer say a non-empty `owl-class` ingests unconditionally; the gate is the typed `public: true` flag, and only governed ontology types in `knowledge/` reach the ontology projection (`CLAUDE.md:10-11`). Invariant 1 was corrected again on 2026-10-18 (estate register ER-4): the code never changed, `PageMeta::is_kg_included` is `public || owl_class.is_some()` (`vault/mod.rs:162-163`, VC-21.2), and `CLAUDE.md:10-11` now says so (`bc4845c34`).
 **Why it is this way:** ADR-VG-003 made YAML frontmatter and Obsidian Markdown the sole authoring format and the Rust `vault` CLI the only parser (`ADR-VG-003-obsidian-only-authoring.md:16-18`), so the rules were restated in terms of that one parser.
 
 ## VG-05.2 Proposed, inactive — ADR-VG-001 and ADR-VG-002 acceptance requirements

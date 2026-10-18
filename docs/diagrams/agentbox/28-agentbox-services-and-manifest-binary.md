@@ -6,6 +6,7 @@ governing:
   - ../project/agentbox/docs/BASELINE-container.md
 adrs: [ADR-2030, ADR-2031, ADR-2032, ADR-2084, ADR-2085, ADR-2086, ADR-2104, ADR-2116, ADR-2118, ADR-2134, ADR-2139]
 sources:
+  - ../project/agentbox/crates/colloquy/colloquy-nostr/src/kinds.rs
   - ../project/agentbox/services/agentbox-manifest/src/main.rs
   - ../project/agentbox/services/agentbox-manifest/src/mcp.rs
   - ../project/agentbox/services/agentbox-manifest/src/routing.rs
@@ -60,7 +61,7 @@ sources:
   - ../project/agentbox/services/agentbox-mcp/src/web_summary/fetch.rs
   - ../project/agentbox/services/agentbox-mcp/src/web_summary/youtube.rs
   - ../project/agentbox/services/skill-tools/src/docs_alignment/mermaid.rs
-verified_commit: {agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12}
+verified_commit: {agentbox: cc67198cec478adc0aefa0f4a68fb8a631fcee83, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12}
 ---
 
 ## AB-28.1 agentbox-manifest — the boot-time projection surface
@@ -413,7 +414,7 @@ flowchart TB
     subgraph crates["crates/colloquy - clean-room in Rust, six crates"]
         P1["colloquy-core - the standard, pure and wasm-capable, PUBLISHED"]
         P2["colloquy-view - presentation models, depends on core alone"]
-        P3["colloquy-nostr - kinds 38100 to 38105, owns the NIP-01 structs"]
+        P3["colloquy-nostr - kinds 38410 to 38415 after ADR-2105, formerly 38100 to 38105,<br/>owns the NIP-01 structs<br/>agentbox/crates/colloquy/colloquy-nostr/src/kinds.rs:15-19"]
         P4["colloquy-store - local, shared and relay behind ONE trait"]
         P5["colloquy-backends - INTERNAL: the governed ruvector-mcp child and the relay socket"]
         P6["colloquy-mcp - INTERNAL binary, the six verbs over stdio<br/>agentbox/crates/colloquy/colloquy-mcp/src/server.rs:29"]

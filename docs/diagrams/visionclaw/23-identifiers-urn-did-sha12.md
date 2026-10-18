@@ -24,7 +24,8 @@ sources:
   - ../project/agentbox/management-api/lib/bc20-provenance-bridge.js
   - ../project/agentbox/management-api/middleware/linked-data/surfaces/s04-did.js
   - ../project/agentbox/mcp/servers/lib/memory-tools.js
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987}
+verified_commit: {visionclaw: 3b5dbdd58430afcd22764e05fa81bed8c26d6ab9, agentbox: cc67198cec478adc0aefa0f4a68fb8a631fcee83}
+worktree: 2026-10-18
 ---
 
 ## VC-23.1 Typed URN kind taxonomy — src/uri/mod.rs
@@ -271,7 +272,7 @@ sequenceDiagram
     end
     Note over JS,RS: RESOLVED ADR-2072 -- cross_from_agentbox now has a bead arm (src/uri/mod.rs:846-856) that crosses<br/>structurally via bead_with_address (:284), PRESERVING the existing sha256-12 address rather than re-hashing,<br/>matching bc20-provenance-bridge.js:191-206. agentbox ADR-2061 holds the cross-repo parity test. The kind map<br/>itself is DERIVED from agentbox/schema/federation-kinds.json, never transcribed (src/uri/mod.rs:828-832).
     Note over CallerVC,RS: INVARIANT callers record the raw string plus an unmapped marker, never a synthetic ID, on None -- ADR-2025, src/uri/mod.rs:828-831
-    Note over JS,RS: 2026-09-14: the agentbox Colloquy learning protocol, Nostr kinds 38100-38105,<br/>is registered in the host protocol table as agentbox-and-forum only and<br/>DELIBERATELY not federated to VisionClaw.<br/>docs/explanation/visionflow-coordination-platform.md:167
+    Note over JS,RS: 2026-09-14: the agentbox Colloquy learning protocol, Nostr kinds 38410-38415<br/>(agentbox ADR-2105, formerly 38100-38105),<br/>is registered in the host protocol table as agentbox-and-forum only and<br/>DELIBERATELY not federated to VisionClaw.<br/>docs/explanation/visionflow-coordination-platform.md:167
     Note over RS: INVARIANT the refusal is RECORDED, not absent: the knowledge kind carries<br/>refusal_class not-federated with a reason and a null fixture, so the closed map<br/>derives the None arm from data rather than from an omission.<br/>agentbox/schema/federation-kinds.json:279, :282, :286
     Note over RS: 2026-10-02: a sidestr chain kind was appended to the same closed map,<br/>also not-federated - a chain is named by its kind-3500 event id, already a<br/>globally verifiable identifier, so minting a VisionClaw URN would duplicate<br/>identity (ADR-2098 amended). federation-kinds.json:291-300
 ```
@@ -299,16 +300,16 @@ flowchart TD
 
     Setters["all six wire-id branches call enforce_wire_id_bounds -- agent line 204, knowledge line 208, ontology-class line 258, ontology-individual line 262, ontology-property line 266, untyped fallback line 445"] --> Enc
 
-    Drift["RESOLVED ADR-2070: IDENTIFIER-taxonomy.md now describes the code - every encoder branch routes through enforce_wire_id_bounds (binary_protocol.rs:192-213), masking via remap_wire_id (:201,224-226) and logging error! on overflow in ALL builds, untyped fallback included (:470). debug_assert! (:193-200) is a development aid, not the bound. An over-range id is still masked and therefore aliases, but never silently."]
+    Drift["RESOLVED ADR-2070: IDENTIFIER-taxonomy.md now describes the code - every encoder branch routes through enforce_wire_id_bounds (binary_protocol.rs:192-213), masking via remap_wire_id (:201,217-219) and logging error! on overflow in ALL builds, untyped fallback included (:470). debug_assert! (:186-193) is a development aid, not the bound. An over-range id is still masked and therefore aliases, but never silently."]
 ```
 
 ## VC-23.8 Durable urn:visionclaw vs ephemeral wire node-id
 ```mermaid
 flowchart LR
-    Counter["NEXT_NODE_ID atomic counter"] --> BareId["bare u32 id, 0..67108863 -- NODE_ID_MASK, binary_protocol.rs:29"]
-    BareId --> Flagged["flagged wire id -- set_agent_flag / set_knowledge_flag / set_ontology_*_flag, binary_protocol.rs:203-267"]
+    Counter["NEXT_NODE_ID atomic counter"] --> BareId["bare u32 id, 0..67108863 -- NODE_ID_MASK, binary_protocol.rs:28"]
+    BareId --> Flagged["flagged wire id -- set_agent_flag / set_knowledge_flag / set_ontology_*_flag, binary_protocol.rs:221-285"]
     Flagged --> Wire["Protocol V3 wire frame, 52 bytes per node, binary_protocol.rs:37-51"]
-    Wire --> Decode["decode_node_data_v3 -- get_actual_node_id strips flags, binary_protocol.rs:252-254 and :610,744"]
+    Wire --> Decode["decode_node_data_v3 -- get_actual_node_id strips flags, binary_protocol.rs:252-254 and :610,775"]
     Decode --> Durable["urn:visionclaw:kg:PUBKEY:sha256-12-HEX -- graph store, src/uri/mod.rs:242-251"]
     Durable -.-> NoReverse["no code path derives a wire id FROM a urn -- render-plane id is allocated independently per session"]
     Inv["INVARIANT: wire id maps TO a durable urn:visionclaw:kg:*, never the reverse"]
@@ -329,7 +330,7 @@ flowchart TD
     OwnerScoped["visionclaw:owner:NPUB/kg/... -- legacy ADR-050 form"] -.-> Absent["grep across src/ and crates/ -- zero occurrences -- superseded by the hex-scoped urn:visionclaw:kg:PUBKEY:ADDRESS grammar"]
 
     DivB["DIVERGENCE: owner-scoped visionclaw:owner:{npub}/kg/... (legacy ADR-050) is not emitted anywhere in src/ or crates/"]
-    DriftX["ADR-2095 class IRI mint stands: CLASS_PREFIX, class_iri and parse_class_iri live in crates/visionclaw-domain/src/uri.rs:15-56, re-exported<br/>at src/uri/mod.rs:351. Mint sites: elevation_actor.rs:352 (case subject_id) and :552 (page resource), oxigraph_ontology_repository.rs:174, :1600, :1629"]
+    DriftX["ADR-2095 class IRI mint stands: CLASS_PREFIX, class_iri and parse_class_iri live in crates/visionclaw-domain/src/uri.rs:15-56, re-exported<br/>at src/uri/mod.rs:351. Mint sites: elevation_actor.rs:352 (case subject_id) and :552 (page resource), oxigraph_ontology_repository.rs:174, :1597, :1629"]
     Refactor["DOC-DRIFT resolved: draft_class_page no longer embeds a JSON-LD fence string (superseded, ADR-2095 closeout note stale) --<br/>it emits vault YAML frontmatter via visionclaw_domain::vault::render_page; relationships move to extra_lists LISTS<br/>(PRD-sovereign-corpus Q5) rather than a comma-joined scalar, mirroring the amend path in<br/>src/services/ontology_mutation_service.rs:511-535"]
 ```
 

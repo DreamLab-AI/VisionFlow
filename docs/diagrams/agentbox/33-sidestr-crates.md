@@ -7,12 +7,13 @@ governing:
 adrs: [ADR-2106, ADR-2112]
 sources:
   - ../project/agentbox/crates/sidestr/README.md
+  - ../sidestr-rs/Cargo.toml
   - ../project/agentbox/docs/adr/ADR-2112-sidestr-crates-live-in-sidestr-rs.md
   - ../project/agentbox/docs/adr/ADR-2106-sidestr-crates-are-agpl-derivatives-of-siding-published-and-consumed.md
   - ../project/agentbox/docs/developer/licensing.md
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/lib/sidestr-agent.nix
-verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
+verified_commit: {agentbox: fd08841cdf5609bb8c9a719f468a07a47f0f114c, sidestr-rs: f77856dd}
 ---
 
 ## For developers
@@ -32,7 +33,7 @@ flowchart TB
     OLD["crates/sidestr/ used to hold the sidestr crates and their own CI<br/>crates/sidestr/README.md:5-6"]
     PTR["crates/sidestr/README.md — pointer only<br/>crates/sidestr/README.md:1"]
     REPO["github.com/DreamLab-AI/sidestr-rs<br/>source, issues, CI, releases<br/>ADR-2112-sidestr-crates-live-in-sidestr-rs.md:34"]
-    FIVE["five crates: header, core, nostr, wallet, round<br/>published to crates.io, all AGPL-3.0-only<br/>crates/sidestr/README.md:8-14"]
+    FIVE["eight published crates: header, core, nostr, wallet, round, hitch, agent, webledgers-teller<br/>of eleven workspace members, three publish = false, all AGPL<br/>../sidestr-rs/Cargo.toml:7-43, crates/sidestr/README.md:8-16"]
     CHAIN["config/sidechain/ — the chain instance agentbox keeps<br/>sealed sidestr:dreamlab document, interim producer, mirror sync<br/>ADR-2112-sidestr-crates-live-in-sidestr-rs.md:36"]
     OLD --> PTR
     PTR --> REPO
@@ -40,7 +41,7 @@ flowchart TB
     PTR -.->|"agentbox hosts the chain, not the crates"| CHAIN
 ```
 
-**Invariant:** nothing under `config/`, `scripts/`, `flake.nix`, `lib/` or `.github/` names `crates/sidestr`, and no `services/*/Cargo.toml` links a `sidestr-*` crate, so no agentbox build links the published crates today (`../project/agentbox/docs/adr/ADR-2112-sidestr-crates-live-in-sidestr-rs.md:61-65`).
+**Invariant:** nothing under `config/`, `scripts/`, `flake.nix`, `lib/` or `.github/` names `crates/sidestr`, and no `services/*/Cargo.toml` links a `sidestr-*` crate, so no agentbox build links the published crates today (`../project/agentbox/docs/adr/ADR-2112-sidestr-crates-live-in-sidestr-rs.md:61-65`). 
 
 ## AB-33.8 The AGPL consumption boundary
 

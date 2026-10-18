@@ -30,7 +30,7 @@ sources:
   - ../visionGraph/working/bases/podcast-evidence.base
   - ../visionGraph/working/bases/public.base
   - ../visionGraph/working/bases/review-before-publish.base
-verified_commit: 9d6675626cd393a3570a29570eaa8ea66fe1b83a
+verified_commit: bc4845c34
 ---
 
 ## VG-01.1 Repo composition — two vaults, a corpus manifest, Quartz replaces the deleted pipeline
@@ -80,13 +80,13 @@ flowchart TB
     SRC --> VC
     SRC --> AB
     SITE --> KG
-    note1["DRIFT, narrowed: PUBLICATION-contract.md:16 still says the site publisher<br/>'reads JSON-LD Page vc:public' — a rejected format #40;visionGraph/README.md:49#41; —<br/>but a 2026-10-01 banner now marks the body historical, PUBLICATION-contract.md:3-8"]
+    note1["DRIFT, narrowed: PUBLICATION-contract.md:16 still says the site publisher<br/>'reads JSON-LD Page vc:public' — a rejected format #40;visionGraph/README.md:50#41; —<br/>but a 2026-10-01 banner now marks the body historical, PUBLICATION-contract.md:3-8"]
     note2["DIVERGENCE: these four consumers have DISTINCT inclusion policies —<br/>changing one flag does not establish removal from every consumer<br/>#40;PUBLICATION-contract.md:16#41;"]
 ```
 
 **What it shows:** the site publisher (`vault build`) feeding two downstreams: Quartz v4, which renders `/notes/` from the staging tree `vault build` writes and still applies its own `ExplicitPublish({ key: "public" })` gate (`quartz/README.md:25-26`), and, new on 2026-10-01, VisionClaw's ontology release, which the publisher now triggers with a `corpus-sync` dispatch naming the exact source sha (`publish.yml:459-465`).
 **Why it is this way:** `../visionGraph/README.md:134-137` makes `/notes/` the Quartz render of "the staging tree produced by `vault build`", gated on typed `public: true`, with `_misc/` and `misc/` held back; `quartz/README.md` now says the Rust `vault` builder owns staging and there is no alternate staging implementation (the `stage-content.sh` awk emulator was deleted). The workflow header records that Quartz replaced "the old Logseq notes app there" (`publish.yml:11-12`).
-**Tension (CLAUDE.md vs PUBLICATION-contract):** the agent rules now say typed `public: true` is the knowledge-graph gate and only governed ontology types feed the ontology projection (`CLAUDE.md:10-11`); the contract body still describes VisionClaw's interface as `public` or `owl-class` (`PUBLICATION-contract.md:16`).
+The agent rules read typed `public: true` alone as the knowledge-graph gate from 2026-10-01 until `bc4845c34` (2026-10-18); the contract body always described VisionClaw's interface as `public` or `owl-class` (`PUBLICATION-contract.md:16`), which is what the code does (VC-21.2), and `CLAUDE.md:10-11` now agrees (estate register ER-4).
 
 ## VG-01.4 Boundary cases — malformed fences now REJECTED, not silently dropped
 
@@ -113,7 +113,7 @@ flowchart LR
 flowchart TB
     MAN["vault.toml — corpus manifest<br/>read by VisionClaw crates/vault<br/>vault.toml:11-15"]
     RK["roles.knowledge — governed<br/>unknown_keys FAIL, public_gate public<br/>vault.toml:27,33,35"]
-    RW["roles.working — curator<br/>unknown_keys ALLOW, publishable false<br/>vault.toml:40-41,45,47"]
+    RW["roles.working — curator<br/>unknown_keys ALLOW, publishable false<br/>vault.toml:41-42,46,48"]
     VOC["vocabulary — ontology/vocabulary.yaml v1<br/>vault.toml:17-18"]
     BLD["build — vault knowledge, public_only<br/>writes okf/ data/ api/ context/<br/>vault.toml:70-72"]
     PUB["publish — quartz v4, gate_key public<br/>content knowledge/, trigger owner<br/>vault.toml:139,141,144-145,148"]
@@ -137,10 +137,10 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph KB["knowledge/bases/ — 4 views, matches README"]
-        RQ["review-queue.base — Awaiting review<br/>Lowest confidence first<br/>knowledge/bases/review-queue.base:31,52"]
-        ST["stale.base — Expired<br/>Expired and still stable<br/>knowledge/bases/stale.base:28"]
-        BD["by-domain.base — All classes by domain<br/>knowledge/bases/by-domain.base:29"]
-        MC["machine-confirmed-awaiting-me.base<br/>Awaiting my signature<br/>knowledge/bases/machine-confirmed-awaiting-me.base:37"]
+        RQ["review-queue.base — Awaiting review<br/>Lowest confidence first<br/>knowledge/bases/review-queue.base:34,54"]
+        ST["stale.base — Expired<br/>Expired and still stable<br/>knowledge/bases/stale.base:31"]
+        BD["by-domain.base — All classes by domain<br/>knowledge/bases/by-domain.base:32"]
+        MC["machine-confirmed-awaiting-me.base<br/>Awaiting my signature<br/>knowledge/bases/machine-confirmed-awaiting-me.base:40"]
     end
     subgraph WB["working/bases/ — 6 views, README names only 3"]
         DC["draft-concepts.base — Ready to propose<br/>working/bases/draft-concepts.base:30"]
@@ -153,11 +153,11 @@ flowchart TB
     CHK["scripts/check-bases.sh — YAML parse +<br/>Bases schema conformance, per-file, exit 1 on any fail<br/>scripts/check-bases.sh:7"]
     KB --> CHK
     WB --> CHK
-    note1["DRIFT: visionGraph/README.md:99-101 names only draft-concepts, episodes and<br/>journal in working#47; — podcast-evidence, public and<br/>review-before-publish exist too and are undocumented there"]
+    note1["DRIFT: visionGraph/README.md:104-106 names only draft-concepts, episodes and<br/>journal in working#47; — podcast-evidence, public and<br/>review-before-publish exist too and are undocumented there"]
 ```
 
 **What it shows:** the ten committed `.base` files that give the curator a working surface without a plugin beyond core Bases, and the single validator (`scripts/check-bases.sh`) that checks all of them for schema conformance and undeclared formula references.
-**Why it is this way:** `../visionGraph/README.md:99-101` was written when `working/bases/` held three files; three more were added without the prose being updated, so the README undercounts the curator's actual working surface by half.
+**Why it is this way:** `../visionGraph/README.md:104-106` was written when `working/bases/` held three files; three more were added without the prose being updated, so the README undercounts the curator's actual working surface by half.
 
 ## VG-01.7 Eight domain roots — space and Earth observation join the vocabulary
 

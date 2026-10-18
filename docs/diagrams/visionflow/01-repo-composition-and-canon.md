@@ -49,7 +49,6 @@ sources:
   - docs/ecosystem-map.md
   - docs/releases/README.md
   - docs/releases/ecosystem-release.schema.json
-  - docs/releases/candidate-2026-05-22.json
   - docs/registers/gap-register-v1.3.md
   - docs/registers/F9-federation-fork-record.md
   - docs/PRD-website.md
@@ -59,7 +58,7 @@ sources:
   - docs/engineering/README.md
   - docs/engineering/ADR-004-harness-engineering-framework.md
   - docs/engineering/ADR-005-mandate-at-grant-governance.md
-verified_commit: da57b49a28974dd9bff5b5358369eef94a439273
+verified_commit: dceb64f4a9164eed59122cd43b2f5b0913940ce4
 ---
 
 ## VF-01.2 Document taxonomy — which class a file belongs to, and who owns its truth
@@ -85,7 +84,7 @@ flowchart LR
 
     subgraph EVID["REGISTERS, RELEASES AND EVIDENCE"]
         REG["docs/registers/ — gap-register v1.1 / v1.2 / v1.3<br/>plus the F9 fork record<br/>gap-register-v1.3.md:3 forward-chains, never edits in place"]:::reg
-        REL["docs/releases/ — releases/README.md:8 generator invocation,<br/>ecosystem-release.schema.json, candidate-2026-05-22.json<br/>manifest machinery — see VF-07"]:::reg
+        REL["docs/releases/ — releases/README.md:8 generator invocation,<br/>ecosystem-release.schema.json; no committed manifest since the v1 candidate<br/>was deleted on 2026-10-15 — see VF-07"]:::reg
         CLOSE["docs/closeout/final-design.md:5 and docs/estate-closeout/<br/>dated audits — evidence of a day, not the living view"]:::reg
         REVIEW["docs/estate-review/README.md:2<br/>in-progress estate assessment + closeout programme CP-01..CP-09"]:::reg
     end

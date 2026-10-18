@@ -12,7 +12,6 @@ sources:
   - scripts/render-wardley.mjs
   - scripts/check-fixture-drift.sh
   - docs/releases/ecosystem-release.schema.json
-  - docs/releases/candidate-2026-05-22.json
   - docs/releases/README.md
   - tests/gates/release-manifest.test.sh
   - .github/workflows/harness-fitness-gates.yml
@@ -31,7 +30,7 @@ sources:
   - docs/estate-review/evidence/adr-inventory.json
   - docs/BASELINE-visionflow.md
   - docs/architecture/compatibility-matrix.md
-verified_commit: 4159e085a73dac3e9d52fb1bc7e476350bf369c1
+verified_commit: dceb64f4a9164eed59122cd43b2f5b0913940ce4
 ---
 
 ## VF-07.1 Artefact map — what produces each output and where it lands
@@ -216,35 +215,25 @@ classDiagram
     note for Repository "provenance decides qualification: first-party and imported\nare qualified for release; upstream repositories are PINNED,\nnot qualified. ecosystem-release.schema.json:32"
 ```
 
-## VF-07.5 candidate-2026-05-22.json against the committed schema — a v1 artefact under a v2 contract
+## VF-07.5 The v1 release candidate is gone, the releases README still describes the v1 world
 ```mermaid
 flowchart TB
-    classDef fail fill:#ffe0e0,stroke:#aa3333,color:#222
     classDef doc fill:#fff4d6,stroke:#aa8833,color:#222
+    classDef ok fill:#e0f0e0,stroke:#338833,color:#222
 
-    CAND["docs/releases/candidate-2026-05-22.json<br/>the only committed manifest, status candidate<br/>candidate-2026-05-22.json:4"] --> V
-
-    V["validate against docs/releases/ecosystem-release.schema.json"]
-
-    V --> F1["manifest_version is 1; the schema pins const 2<br/>candidate-2026-05-22.json:2 vs ecosystem-release.schema.json:9"]:::fail
-    V --> F2["repositories has SIX entries; the schema requires<br/>minItems 16<br/>candidate-2026-05-22.json:5 vs ecosystem-release.schema.json:15"]:::fail
-    V --> F3["no repository declares provenance, which the schema<br/>lists as required for every item<br/>ecosystem-release.schema.json:18"]:::fail
-    V --> F4["no fixtures block at all, and fixtures is a top-level<br/>required key — so this candidate asserts nothing about<br/>fixture parity while being labelled a candidate<br/>ecosystem-release.schema.json:7"]:::fail
-    V --> F5["compatibility.verification claims parity through<br/>cargo test in named versions rather than a compared corpus<br/>candidate-2026-05-22.json:54"]:::fail
-
-    F1 --> VERD["DOC-DRIFT: the committed release candidate cannot validate<br/>against the committed schema. The ADR-2006 closeout rewrote the<br/>generator and schema on 2026-09-05 and left the artefact at v1"]:::fail
+    CAND["docs/releases/candidate-2026-05-22.json — the only committed manifest,<br/>a manifest_version 1 artefact under the v2 schema, DELETED 2026-10-15<br/>(estate register ER-5d). No committed manifest exists; the generator<br/>writes ecosystem-release.local.json, uncommitted by default<br/>releases/README.md:8"]:::ok
 
     RM["docs/releases/README.md still describes the v1 world"] --> D1["the candidate row reads 'Pins all 6 repos at main branch HEADs'<br/>releases/README.md:28"]:::doc
-    RM --> D2["the Required Fields table lists neither provenance nor<br/>fixtures, both of which the v2 schema requires<br/>releases/README.md:32"]:::doc
-    RM --> D3["the generate command still writes to<br/>ecosystem-release.local.json, uncommitted by default<br/>releases/README.md:8"]
-    RM --> D4["PARTLY CURRENT: a 2026-10-11 paragraph now states the sixteen-repository roster<br/>and that a roster entry is not a maturity claim (releases/README.md:13-22),<br/>but the candidate row and the field table above were not touched"]:::doc
+    RM --> D2["the Required Fields table lists neither provenance nor<br/>fixtures, both of which the v2 schema requires<br/>releases/README.md:32 vs ecosystem-release.schema.json:7"]:::doc
+    RM --> D4["PARTLY CURRENT: a 2026-10-11 paragraph states the sixteen-repository roster<br/>and that a roster entry is not a maturity claim (releases/README.md:13-22),<br/>but the candidate row and the field table were not touched"]:::doc
+    CAND --> RM
 
-    VERSIONS["DOC-DRIFT in the pinned version claims, cross-checked against the<br/>sibling checkouts: the candidate pins solid-pod-rs v0.4.0-alpha.15 and<br/>nostr-rust-forum v3.0-rc3, which the compatibility matrix repeats"]:::doc
-    VERSIONS --> X1["EXTERNAL: solid-pod-rs Cargo.toml now declares 0.5.0-alpha.9 — see SP-NN"]
-    VERSIONS --> X2["EXTERNAL: nostr-rust-forum workspace crates now declare 1.0.0-beta.10,<br/>and status-reconciliation.md separately says 3.0.0-rc11 — see NF-NN"]
-
-    GATE["The gate that would catch this does not run on the artefact:<br/>harness-fitness-gates.yml runs only the regression suite, never the<br/>generator or a validator against the committed candidate<br/>harness-fitness-gates.yml:166"]:::fail
+    GATE["harness-fitness-gates.yml runs the regression suite against GENERATED output;<br/>with no committed artefact there is nothing else for it to validate<br/>harness-fitness-gates.yml:166"]
 ```
+
+**What it shows.** The artefact this diagram used to fail against the schema (five findings, VF-07.5 before 2026-10-18) was deleted on 2026-10-15 in `5a3107d`, so the drift between a v1 manifest and the v2 contract is closed by removal. What remains is documentary: `docs/releases/README.md` still carries the v1 candidate row and a field table that omits `provenance` and `fixtures` (`releases/README.md:28`, `releases/README.md:32`).
+
+**Why it is this way:** the ADR-2006 closeout rewrote the generator and schema on 2026-09-05 and left the artefact at v1; estate register row ER-5(d) deleted it as a file with no consumer (ER-33 recorded the stale citations here). **Drift (releases README vs schema):** the candidate row and the Required Fields table describe the v1 shape (`releases/README.md:28`, `releases/README.md:32`); the schema requires `provenance` and `fixtures` (`ecosystem-release.schema.json:7`, `ecosystem-release.schema.json:18`).
 
 ## VF-07.6 release-manifest.test.sh — what the release gate actually proves
 ```mermaid

@@ -5,6 +5,7 @@ area: solid-pod-rs
 governing: [../solid-pod-rs/README.md, ../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md]
 adrs: [ADR-2002, ADR-2003, ADR-2004, ADR-2005, ADR-2006, ADR-2007]
 sources:
+  - ../solid-pod-rs/CHANGELOG.md
   - ../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/auth/replay_store.rs
@@ -34,7 +35,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/ssrf.rs
   - ../solid-pod-rs/.github/workflows/ci.yml
   - ../solid-pod-rs/scripts/parity-check.sh
-verified_commit: d64131b
+verified_commit: 193f4962ffccdda28f84caefe2afd5437e0b7685
 ---
 
 ## SP-10.1 The seven baseline invariants and where each lives in code
@@ -126,7 +127,7 @@ flowchart TD
     W4["PAYMENT_STATE_LOCK is process-wide, not storage-wide — two replicas over one<br/>pod store share no lock<br/>solid-pod-rs-server/src/lib.rs:200"]
     W5["the NIP-98 freshness window is two-sided and 60 s wide; only the single-use<br/>store closes it<br/>solid-pod-rs/src/auth/nip98.rs:28"]
     W6["COPY authorises Write on the destination and never checks Read on the source<br/>solid-pod-rs-server/src/lib.rs:2563"]
-    W7["glob GET gates on the FOLDER; a child with a stricter ACL is still merged<br/>solid-pod-rs-server/src/lib.rs:2640"]
+    W7["glob GET gates on the folder acl:Read, then enforce_read_inner per child,<br/>a refused child is skipped not merged — CLOSED in alpha.13<br/>solid-pod-rs-server/src/lib.rs:2797-2803, lib.rs:2818-2824, CHANGELOG.md:22"]
 
     W1 --> R["recorded, not closed"]
     W2 --> R
@@ -177,7 +178,7 @@ flowchart TD
     D5["ADR-2005: the edge ACL resolver is out of repo and still treats a failed or<br/>invalid read as a miss<br/>solid-pod-rs/src/wac/resolver.rs:265"]
     D6["ADR-2006: the ReplayStore seam has exactly ONE implementor<br/>solid-pod-rs/src/auth/replay_store.rs:90"]
     D7["ADR-2007: one mempool URL, no fallback chain, public testnet4 default<br/>solid-pod-rs-server/src/mempool.rs:60"]
-    D8["REC-11: no pod-wide _prov enumeration — point lookup only<br/>solid-pod-rs-server/src/handlers/prov.rs:546"]
+    D8["REC-11: no pod-wide _prov enumeration — point lookup only<br/>solid-pod-rs-server/src/handlers/prov.rs:749"]
 
     D1 --> LEDGER["the ADR ledger amending the baseline"]
     D2 --> LEDGER
@@ -222,9 +223,9 @@ flowchart LR
 flowchart TD
     A["dated security and quality audit, 2026-08-19"]
     F1["filesystem symlink root escape — closed by the cap-std capability handle<br/>solid-pod-rs/src/storage/fs.rs:53"]
-    F2["anonymous MCP reads / WAC sidecar bypass — mitigated by MCP being off<br/>solid-pod-rs-server/src/lib.rs:370"]
+    F2["anonymous MCP reads / WAC sidecar bypass — CLOSED in 0.5.0-alpha.13: one path<br/>canonicaliser feeds permission check and storage on every route, MCP enforces<br/>the dotfile allowlist and the REST quota path<br/>CHANGELOG.md:26, CHANGELOG.md:35"]
     F3["forged IdP identity — mitigated by not exposing the optional IdP router"]
-    F4["non-atomic payment state — the process lock narrows it, does not close it<br/>solid-pod-rs-server/src/lib.rs:200"]
+    F4["non-atomic payment state — alpha.13 holds the payment lock across anchor<br/>charges and refunds, closing the lost-update race<br/>CHANGELOG.md:56"]
     F5["filesystem writes violate the advertised atomic storage contract<br/>solid-pod-rs/src/storage/fs.rs:111"]
     F6["supply-chain advisories RUSTSEC-2026-0258 / RUSTSEC-2023-0071 — now carried<br/>as dated, justified exceptions, so the audit gate PASSES (SP-09.4)<br/>../solid-pod-rs/.github/workflows/ci.yml:191"]
 
@@ -250,7 +251,7 @@ flowchart TD
     PF["policy_failure_to_actix — 403 for Invalid, 503 for Unavailable<br/>solid-pod-rs-server/src/lib.rs:1942"]
     AD["acl_denial — 401 with a WWW-Authenticate challenge, or 403<br/>solid-pod-rs-server/src/lib.rs:923"]
     PE["PaymentError<br/>solid-pod-rs/src/payments.rs:938"]
-    PR["payment_error_response<br/>solid-pod-rs-server/src/handlers/pay.rs:366"]
+    PR["payment_error_response<br/>solid-pod-rs-server/src/handlers/pay.rs:369"]
     LOG["ErrorLoggingMiddleware — log_5xx and format_error_chain<br/>solid-pod-rs-server/src/lib.rs:3279"]
     C["the caller"]
 
@@ -272,16 +273,16 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    B1["request body cap — JSS_MAX_REQUEST_BODY, default 50 MiB<br/>solid-pod-rs-server/src/lib.rs:340"]
+    B1["request body cap — JSS_MAX_REQUEST_BODY, default 50 MiB<br/>solid-pod-rs-server/src/lib.rs:351"]
     B2["ACL byte cap — MAX_ACL_BYTES 1 MiB<br/>solid-pod-rs/src/wac/mod.rs:28"]
     B3["ACL JSON depth cap — 32, checked WITHOUT parsing<br/>solid-pod-rs/src/wac/mod.rs:33"]
     B4["NIP-98 token cap — MAX_EVENT_SIZE 64 KiB, before and after base64<br/>solid-pod-rs/src/auth/nip98.rs:29"]
     B5["replay store cap — DEFAULT_MAX_SIZE 10 000, refuses rather than evicting<br/>solid-pod-rs/src/auth/replay.rs:82"]
-    B6["pod creation — one POST /.pods per IP per day<br/>solid-pod-rs-server/src/lib.rs:450"]
+    B6["pod creation — one POST /.pods per IP per day<br/>solid-pod-rs-server/src/lib.rs:454"]
     B7["proxy byte cap — DEFAULT_PROXY_BYTE_CAP 50 MiB<br/>solid-pod-rs-server/src/lib.rs:2750"]
     B8["notification subscriptions — 10 000 overall, 100 per legacy connection<br/>solid-pod-rs/src/notifications/mod.rs:125"]
     B9["Slug length — MAX_SLUG_BYTES 255<br/>solid-pod-rs/src/ldp.rs:144"]
-    B10["POST unique-name probing is bounded, with a hash fallback<br/>solid-pod-rs-server/src/lib.rs:1494"]
+    B10["POST unique-name probing is bounded, with a hash fallback<br/>solid-pod-rs-server/src/lib.rs:1585"]
 
     B1 --> D["bounded before allocation"]
     B2 --> D
@@ -351,7 +352,7 @@ flowchart TD
     subgraph HDR["Per-response signals a client can read"]
         H1["X-Provenance and X-Provenance-Commit<br/>solid-pod-rs-server/src/lib.rs:1147"]
         H2["WAC-Allow, advisory on grant AND denial<br/>solid-pod-rs-server/src/lib.rs:1119"]
-        H3["Updates-via — the notification endpoint<br/>solid-pod-rs-server/src/lib.rs:1126"]
+        H3["Updates-via — the notification endpoint<br/>solid-pod-rs-server/src/lib.rs:1213"]
     end
     subgraph LOG["Structured tracing"]
         L1["log_5xx and format_error_chain<br/>solid-pod-rs-server/src/lib.rs:3279"]
