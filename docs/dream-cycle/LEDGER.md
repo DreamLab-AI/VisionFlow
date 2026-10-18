@@ -44,3 +44,4 @@ Schema note (2026-09-14, unmerged): FR6.6 of PRD-augmentation-conditions adds `R
 | 2026-10-13 | build-pipeline | family 5: canonical/og:url/JSON-LD url + card images must match CNAME host; 6/0 | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/21 | yes | ACCEPT |  | 3e8d804832a8 |  |  |  |
 | 2026-10-14 | seo-and-meta | Meta gate required no social tags; og:image+twitter:card promoted to required | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/22 | yes | ACCEPT |  | 8a8e8a66d087 |  |  |  |
 | 2026-10-15 | estate-health | check() age INFO on every path; 02:30 collector run 15.3 h late at dream time | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/23 | yes | ACCEPT |  | 204154ab320a |  |  |  |
+| 2026-10-18 | seo-and-meta | twitter:image:alt added reusing og alt; meta twitter-tags 4->5, all gates pass | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/25 | yes | ACCEPT |  | 23db6b1c3d6c |  |  |  |
