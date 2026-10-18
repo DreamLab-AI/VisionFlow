@@ -58,7 +58,7 @@ sources:
   - docs/engineering/README.md
   - docs/engineering/ADR-004-harness-engineering-framework.md
   - docs/engineering/ADR-005-mandate-at-grant-governance.md
-verified_commit: dceb64f4a9164eed59122cd43b2f5b0913940ce4
+verified_commit: 26df6c9dc96f896b0d8f0d012471a54738d53b3c
 ---
 
 ## VF-01.2 Document taxonomy — which class a file belongs to, and who owns its truth
@@ -415,7 +415,7 @@ flowchart TB
 
 **Drift (ADR-2012 context vs HEAD):** the record's context still points at line 597 and lines 1015 to 1016 of the site page for the withdrawn claims, and at README lines 134 and 248 for the payment-account rows (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:28-33`); the site sentences have since been rewritten in place — the withdrawal text sits at `website/static/index.html:612` and the corrected pill at `website/static/index.html:1107` — and the README sentences sit at `./README.md:142` and `./README.md:256`.
 
-**Drift (site tile vs canon):** README, BASELINE and ADR-2012 all say seven sidestr-rs crates are published (`./README.md:120`, `docs/BASELINE-visionflow.md:142`, `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:117`), while the website's repository tile still says six (`website/static/index.html:1196`).
+The site tile, README and roster agree on eight published sidestr-rs crates since `26df6c9` (`./README.md:120`, `website/static/index.html:1197`, estate register ER-3); BASELINE and ADR-2012 keep seven as the count at the 2026-10-01 parity release they record (`docs/BASELINE-visionflow.md:142`, `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:118`).
 
 ## VF-01.15 ADR-2013 sovereign corpus — four disagreeing doors become one vault, one parser, one gate
 ```mermaid

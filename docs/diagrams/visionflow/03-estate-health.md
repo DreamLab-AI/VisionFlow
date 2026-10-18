@@ -23,7 +23,7 @@ sources:
   - tests/gates/estate-health-ci.test.mjs
   - tests/gates/run-all.sh
   - ./README.md
-verified_commit: 4159e085a73dac3e9d52fb1bc7e476350bf369c1
+verified_commit: 26df6c9dc96f896b0d8f0d012471a54738d53b3c
 ---
 
 ## VF-03.1 The roster — the only place the estate is enumerated
@@ -35,7 +35,7 @@ flowchart LR
 
     R["scripts/estate-health/roster.json<br/>roster_version 1 — roster.json:2<br/>INVARIANT: estate-health.mjs holds NO repository names;<br/>roster order fixes the published display order — roster.json:3"]
 
-    R --> REPOS["repos — 17 entries"]
+    R --> REPOS["repos — 18 entries"]
     REPOS --> P1["DreamLab-AI/VisionFlow — canon (this area)<br/>roster.json:5"]:::fp
     REPOS --> P2["DreamLab-AI/VisionClaw — GPU engine, OWL 2 EL<br/>EXTERNAL: area visionclaw, VC-01..VC-37 — roster.json:6"]:::fp
     REPOS --> P3["DreamLab-AI/agentbox — sovereign agent runtime<br/>EXTERNAL: area agentbox, AB-01..AB-28 — roster.json:7"]:::fp
@@ -53,11 +53,12 @@ flowchart LR
     REPOS --> P12["DreamLab-AI/prose-sanitiser — published crate — roster.json:19"]:::fp
     REPOS --> P13["DreamLab-AI/diagram-ir — published crate — roster.json:20"]:::fp
     REPOS --> P14["DreamLab-AI/dream-engine — provenance IMPORTED,<br/>fork of ruvnet/dream-machine — roster.json:21<br/>EXTERNAL: the dream engine itself, see AB-23"]:::imp
+    REPOS --> P15["DreamLab-AI/visiontouch-rs — haptic input device study,<br/>private proof of principle, admitted by ADR-2017 — roster.json:22"]:::fp
 
-    R --> SURF["surfaces — 6 probes — roster.json:23<br/>www.visionflow.info, narrativegoldmine.com,<br/>its /ns/v2.jsonld and /data/graph/stats.json,<br/>www.dreamlab-ai.com, and the VisionClaw<br/>ontology-latest/index.jsonld release asset"]
-    R --> REG["registries — 21 entries — roster.json:58<br/>crates.io: vowl-wasm, prose-sanitiser, diagram-ir,<br/>solid-pod-rs, solid-pod-rs-server, nostr-bbs-core — roster.json:59-64,<br/>the six ontomark-family crates (parse, model, reason, compile,<br/>ingest, ngg1) and whelk-el — roster.json:65-71,<br/>and all seven sidestr crates: header, core, nostr, wallet,<br/>round, hitch, agent — roster.json:72-78<br/>npm: @dreamlab-ai/vowl-wasm — roster.json:79"]
+    R --> SURF["surfaces — 6 probes — roster.json:24<br/>www.visionflow.info, narrativegoldmine.com,<br/>its /ns/v2.jsonld and /data/graph/stats.json,<br/>www.dreamlab-ai.com, and the VisionClaw<br/>ontology-latest/index.jsonld release asset"]
+    R --> REG["registries — 22 entries — roster.json:59<br/>crates.io: vowl-wasm, prose-sanitiser, diagram-ir,<br/>solid-pod-rs, solid-pod-rs-server, nostr-bbs-core — roster.json:60-65,<br/>the six ontomark-family crates (parse, model, reason, compile,<br/>ingest, ngg1) and whelk-el — roster.json:66-72,<br/>and all eight sidestr-rs crates: header, core, nostr, wallet,<br/>round, hitch, agent, webledgers-teller — roster.json:73-80<br/>npm: @dreamlab-ai/vowl-wasm — roster.json:81"]
 
-    NOTE["The two enumerations of the estate are reconciled in one<br/>direction: repository-map.md:8 lists ten repositories with local<br/>paths, sidestr-rs among them at repository-map.md:18, and<br/>repository-map.md:24 names the roster as THE authoritative list for<br/>nightly collection, scoping the other five roster repositories as<br/>supporting components — repository-map.md:28. The roster still<br/>does not reference the map back."]
+    NOTE["The two enumerations of the estate are reconciled in one<br/>direction: repository-map.md:8 lists twelve repositories with local<br/>paths, sidestr-rs among them at repository-map.md:18, and<br/>repository-map.md:25 names the roster as THE authoritative list for<br/>nightly collection, scoping the other six roster repositories as<br/>supporting components — repository-map.md:29-37. The roster still<br/>does not reference the map back."]
     R -.-> NOTE
 ```
 
@@ -300,6 +301,6 @@ flowchart TB
 
 **Debt:** since the 2026-09-23 snapshot knowledgeGraph moved from red to exempt by rule rather than by a passing run and dreamlab-ai-website turned green; since 2026-10-06 VisionClaw and agentbox moved from red to none because their failing runs are on older commits (the HEAD rule), not because a run passed; no mechanism records why a row flips, so any trend is only visible by reading committed snapshots in sequence (`website/static/data/estate-health.json:11`).
 
-**Debt (registry roster vs canon) — RESOLVED 2026-10-03:** canon says seven sidestr crates are on crates.io (`./README.md:120`), and since the 10-03 dream ACCEPT (PR #13, merged as `c1e1498`) the roster tracks all seven (`scripts/estate-health/roster.json:63-69`); `sidestr-hitch` and `sidestr-agent` are now probed every night, so a yanked or stale release of either reaches the snapshot.
+**Debt (registry roster vs canon) — RESOLVED 2026-10-03, re-opened and RESOLVED again 2026-10-18:** the 10-03 dream ACCEPT (PR #13, merged as `c1e1498`) brought the roster to the seven sidestr crates canon then named; `webledgers-teller` was published later and went unprobed until `26df6c9` added it, with canon updated to eight in the same commit (`./README.md:120`, `scripts/estate-health/roster.json:73-80`, estate register ER-3).
 
 **Drift (2026-10-15, dream-engine extraction):** the roster row for `dream-engine` (`provenance: imported`, a fork of ruvnet/dream-machine) is stamped before the extraction. The slug now names the new Rust repository and the fork is renamed dream-machine and archived (checked 2026-10-16). The row has not been changed, because the release manifest and its gate assert two imported rows, see DE-01.
