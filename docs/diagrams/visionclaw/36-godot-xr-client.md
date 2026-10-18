@@ -762,7 +762,7 @@ flowchart LR
     end
     acts --> prof
     prof --> XI["project.godot:65<br/>openxr/default_action_map"]
-    P13 -. "BOUND" .-> EG["TENSION: ADR-2036 says the extension is never blind-bound (docs/adr/ADR-2036-defensive-openxr-boot.md:31), yet the map binds default_pose to<br/>/user/eyes_ext/input/gaze_ext/pose in the eye-gaze profile, loaded unconditionally.<br/>xr_boot only QUERIES support and the gaze source degrades to head at runtime.<br/>openxr_action_map.tres:1652-1656 project.godot:65 xr_boot.gd:40-50 gaze.rs:138"]
+    P13 -. "BOUND" .-> EG["Former tension, removed in VisionClaw 2bf892c3f (ER-13): ADR-2036 says the extension is never blind-bound (docs/adr/ADR-2036-defensive-openxr-boot.md:31), yet the map binds default_pose to<br/>/user/eyes_ext/input/gaze_ext/pose in the eye-gaze profile, loaded unconditionally.<br/>xr_boot only QUERIES support and the gaze source degrades to head at runtime.<br/>openxr_action_map.tres:1652-1656 project.godot:65 xr_boot.gd:40-50 gaze.rs:138"]
     XI --> CTL["XRController3D left and right read the actions<br/>xr-client/scripts/graph_scene.gd:429 xr-client/scripts/graph_scene.gd:430"]
     CTL -. "GDScript pushes values, no action-map read in Rust" .-> XR["XrInteraction (RefCounted) hand ray + pinch<br/>xr-client/rust/src/interaction.rs:122 xr-client/scripts/graph_scene.gd:459"]
     CTL -.-> GZ["GazeTracker (RefCounted) head/eye ray<br/>xr-client/rust/src/gaze.rs:215 xr-client/scripts/graph_scene.gd:464"]

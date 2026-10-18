@@ -13,7 +13,7 @@ sources:
   - ../project/agentbox/docs/developer/licensing.md
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/lib/sidestr-agent.nix
-verified_commit: {agentbox: fd08841cdf5609bb8c9a719f468a07a47f0f114c, sidestr-rs: f77856dd}
+verified_commit: {agentbox: fd08841cdf5609bb8c9a719f468a07a47f0f114c, sidestr-rs: f77856dd18a4b6348445463456c4865de5285e9a}
 ---
 
 ## For developers

@@ -143,7 +143,7 @@ stateDiagram-v2
       not a VowlGraph (src/layout/csr_sim.rs:303).
     end note
 ```
-- DOC-DRIFT: only `CsrSimulation`/`NggExplorer` expose a `reheat` (src/layout/csr_sim.rs:368, src/bindings/explorer.rs:106) — `WebVowl`/`ForceSimulation` have no equivalent JS-reachable re-anneal call; a settled `WebVowl` graph can only be restarted via a fresh `initSimulation()`.
+- At this revision only `CsrSimulation`/`NggExplorer` expose a `reheat` (src/layout/csr_sim.rs:368, src/bindings/explorer.rs:106) — `WebVowl`/`ForceSimulation` have no equivalent JS-reachable re-anneal call; a settled `WebVowl` graph can only be restarted via a fresh `initSimulation()`. vowl-wasm `ac22cce` (estate register ER-20) adds `reheat` to both.
 - `ForceSimulation` implements `LayoutAlgorithm` (src/layout/mod.rs:17); `CsrSimulation` deliberately does not — the two engines share a design (annealing, Hooke springs, Coulomb repulsion) but not a common Rust interface.
 
 ## VW-03.9 Seeding — `ForceSimulation::initialize` vs `CsrSimulation::load`

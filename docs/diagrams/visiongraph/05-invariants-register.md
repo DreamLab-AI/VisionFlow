@@ -13,7 +13,7 @@ sources:
   - ../visionGraph/CLAUDE.md
   - ../visionGraph/README.md
   - ../visionGraph/docs/adr/ADR-VG-003-obsidian-only-authoring.md
-verified_commit: {visiongraph: bc4845c34, visionclaw: 3b5dbdd58430afcd22764e05fa81bed8c26d6ab9}
+verified_commit: {visiongraph: bc4845c34a59b07ca004c40f3857caddb5f1489c, visionclaw: 3b5dbdd58430afcd22764e05fa81bed8c26d6ab9}
 worktree: 2026-10-18
 ---
 

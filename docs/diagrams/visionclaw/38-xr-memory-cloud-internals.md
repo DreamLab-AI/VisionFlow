@@ -376,7 +376,7 @@ flowchart TB
 
 **Invariant:** `RouteFrame.path` rows are range-checked against the loaded row count before an Apply (xr-client/rust/src/memory_route.rs:627), hit points are checked only for finiteness.
 
-**Debt:** `reloaded_for` is set at the first Reload and never cleared, not on Apply and not on Clear (xr-client/rust/src/memory_route.rs:621), so a second mismatch for an id once reloaded for is dropped instead of reloaded, whatever has happened since.
+At this revision `reloaded_for` is set at the first Reload and never cleared, not on Apply and not on Clear (xr-client/rust/src/memory_route.rs:621), so a second mismatch for an id once reloaded for is dropped instead of reloaded. VisionClaw `6ca5ff4b2` (2026-10-18, estate register ER-26) clears it on Apply and on Clear and keeps the drop for the re-offer after a failed reload.
 
 **Open:** `sent_at` is Unix milliseconds on both paths, the relay's `sentAt` passed through unrebased and the headset's own `Time.get_unix_time_from_system()` (xr-client/scripts/memory_cloud_layer.gd:491), so a headset clock ahead of the desktop's makes desktop frames `Stale` until the desktop catches up and a clock behind does the reverse; nothing states the unit or bounds the skew.
 
@@ -580,7 +580,7 @@ sequenceDiagram
 
 **What it shows.** Two text frames are consumed by the beat module and the rest fall through. The offset estimator is the NTP minimum-delay filter: the least-delayed of the last eight round trips alone sets the clock. **Why it is this way.** ADR-2134 relays the desktop explorer's beat clock to the same user's sessions at up to 4 Hz (src/handlers/socket_flow_handler/message_routing.rs:94); the headset keeps its own offset because its wall clock and the server's differ.
 
-**Debt:** the provisional seed from the first relayed frame carries `rtt 0`, and the minimum-rtt filter prefers it to every real ping sample until eight more pongs push it out of the window, so for roughly sixteen seconds `rtt_ms` reads 0 and the offset carries the one-way downlink bias (xr-client/rust/src/beat.rs:410, xr-client/rust/src/beat.rs:311). The comment at xr-client/rust/src/beat.rs:406 records the bias, not the persistence.
+At this revision the provisional seed from the first relayed frame carries `rtt 0`, and the minimum-rtt filter prefers it to every real ping sample until eight more pongs push it out of the window, so for roughly sixteen seconds `rtt_ms` reads 0 and the offset carries the one-way downlink bias (xr-client/rust/src/beat.rs:410, xr-client/rust/src/beat.rs:311). The comment at xr-client/rust/src/beat.rs:406 records the bias, not the persistence. VisionClaw `6ca5ff4b2` (estate register ER-26) keeps the seed out of the sample window as a separate provisional offset that the first real round trip discards, with `rtt_ms` unset until then.
 
 ## VC-38.15 BeatSync arbitration - which clock drives the pulse
 

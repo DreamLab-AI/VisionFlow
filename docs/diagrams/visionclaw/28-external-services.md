@@ -366,7 +366,7 @@ sequenceDiagram
     Note over SS: see VC-35 for the full speech pipeline - WS ingress, tag manager,<br/>voice command parsing, TTS response routing are out of scope here
     Note over SS: DRIFT CLOSED 2026-09-13 (ab5724422): TTSProvider is now a ONE-variant<br/>enum, PocketTts. The OpenAI branch and its api.openai.com call are deleted<br/>and Kokoro is gone, so this boundary no longer reaches any paid TTS API.<br/>visionclaw-domain/src/types/speech.rs:66, default at speech_service.rs:74
     Note over SS: STTProvider still declares three variants and only Whisper is wired.<br/>TurboWhisper warns not-yet-implemented on BOTH transcription commands.<br/>visionclaw-domain/src/types/speech.rs:71, speech_service.rs:460, :790
-    Note over SS: DEBT: ProcessAudioChunkForUser is a logged no-op, so per-user STT<br/>attribution has an entry point and no implementation.<br/>src/services/speech_service.rs:808, :810
+    Note over SS: ProcessAudioChunkForUser is a logged no-op here, an entry point<br/>with no sender, deleted in VisionClaw cefd9d1d7 under ER-24.<br/>src/services/speech_service.rs:808, :810
 ```
 ## VC-28.9 consolidated external-dependency map
 ```mermaid
