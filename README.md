@@ -54,6 +54,7 @@ No single repository *is* VisionFlow. The siblings call the whole the **Dynamic 
 | **[nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum)** | Human+agent communication substrate — Nostr-native forum + relay in Rust. The one place a human decision is cryptographically signed (ACSP kinds 31400–31405). *The one place a decision gets signed.* | Clone the repo; Cloudflare Workers + Leptos WASM. |
 | **[dreamlab-ai-website](https://github.com/DreamLab-AI/dreamlab-ai-website)** | Commercial face — DreamLab AI company site, a thin consumer of the forum kit at the Cloudflare edge. | Clone the repo. |
 | **[loom](https://github.com/DreamLab-AI/loom)** | Grounding node — a portable, model-swappable façade that serves the reasoned knowledge graph into any model's context at query time (the context-assembly layer). *The stable door; models swap behind it.* | Clone the repo; `docker compose up`. |
+| **[Codescape](https://github.com/DreamLab-AI/codescape)** (born as a VisionClaw section, ADR-2143; now its own repository) | Code-graph section: a near-real-time 3D view of a codebase that humans and agents share over push-to-talk voice. Its own Cargo workspace and compose service, isolated from the knowledge-work system by tested boundaries, reusing the V3/V5 wire so the desktop and XR clients render it unchanged (ADR-2143, diagrams [VC-39](docs/diagrams/visionclaw/39-codescape.md)). | Inside VisionClaw: opt-in `CODESCAPE=1`, then `/codescape/` on the dev port 3001. |
 
 Each sibling in its own words:
 

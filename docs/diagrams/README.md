@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_156 topic files, 1482 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_157 topic files, 1489 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -224,6 +224,7 @@ _156 topic files, 1482 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VC-36 | [Godot + gdext OpenXR immersive client](visionclaw/36-godot-xr-client.md) | 26 | sequenceDiagram, flowchart, stateDiagram-v2, classDiagram | [XR-client.md](../../../project/docs/XR-client.md), [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2032, ADR-2033, ADR-2034, ADR-2035, ADR-2036, ADR-2039, ADR-2076, ADR-2079, ADR-2107, ADR-2108, ADR-2109, ADR-2133, ADR-2134, ADR-2135 |
 | VC-37 | [Browser XR surface and desktop spatial input](visionclaw/37-browser-xr-and-desktop-input.md) | 10 | sequenceDiagram, flowchart, stateDiagram-v2 | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md), [XR-client.md](../../../project/docs/XR-client.md) | ADR-2032, ADR-2081 |
 | VC-38 | [XR memory cloud internals - snapshot, route, query, beat and semantic encoding](visionclaw/38-xr-memory-cloud-internals.md) | 19 | flowchart, sequenceDiagram, classDiagram, stateDiagram-v2 | [XR-client.md](../../../project/docs/XR-client.md) | ADR-2107, ADR-2133, ADR-2134, ADR-2135, ADR-2136 |
+| VC-39 | [Codescape - the separate code-graph section, its crates, wire reuse, voice and proxy trust](visionclaw/39-codescape.md) | 7 | flowchart, sequenceDiagram, classDiagram | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md), [PROTOCOL-registry.md](../../../project/docs/PROTOCOL-registry.md) | ADR-2143, ADR-2018, ADR-2019, ADR-2024, ADR-2141 |
 
 ### agentbox
 
