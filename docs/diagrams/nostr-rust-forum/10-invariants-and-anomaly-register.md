@@ -204,7 +204,7 @@ flowchart TB
     N4["Debt KF-4 and KF-9: the write gate resolves a device key to its owner, but the moderation gates<br/>that follow key on the RAW signing pubkey, and a gift wrap has no author to resolve at all<br/>docs/security/known-findings.md:27 docs/security/known-findings.md:44 - see NF-03.4 and NF-03.5"]
     N5["Debt KF-5: decision_id is a 64-bit truncation of the event id and is already a primary key, so<br/>changing it is a migration docs/security/known-findings.md:28"]
     N6["Debt KF-6: the self-review and original-signer guards compare pubkeys case-SENSITIVELY while<br/>NIP-98 returns the pubkey verbatim docs/security/known-findings.md:29 - the same class the registry<br/>closed in NF-06.15, left open in the core aggregate"]
-    N7["Debt KF-8: KIND_PANEL_RETIRED and KIND_GOVERNANCE_AUDIT_LOG are both 31405, so a legitimate<br/>PanelRetired is validated under the append-only audit rules<br/>docs/security/known-findings.md:43 - see NF-06.2 N2"]
+    N7["Former debt KF-8, closed by forum 04e27d4 (ER-21): KIND_PANEL_RETIRED and KIND_GOVERNANCE_AUDIT_LOG are both 31405, so a legitimate<br/>PanelRetired is validated under the append-only audit rules<br/>docs/security/known-findings.md:43 - see NF-06.2 N2"]
     N8["KF-10 and probe blindness are recorded as a DOCUMENTED LIMITATION rather than an untriaged defect:<br/>the digest cannot leave the signed envelope without invalidating the signature both clients verify<br/>strictly docs/security/known-findings.md:33-42 docs/security/known-findings.md:45 - it is ADR-2011's<br/>own review_trigger, see NF-06.14"]
 ```
 

@@ -134,7 +134,7 @@ flowchart TD
     W2 -.-> N2
 ```
 - INVARIANT: `excluded_identities(pages_dir)` with its own walk survives as public API (`ir/projection.rs:201`) but `run` calls only `excluded_identities_of` (`build/mod.rs:599`), which filters by `is_unpublished` alone (`projection.rs:234`).
-- DIVERGENCE: the hold-back rule is still written twice: `is_unpublished` covers `_misc` at top level only (`input/page.rs:38,583`), `held_back` (`build/publish.rs:134`) adds `misc` at any depth through `HELD_BACK_DIRS` (`publish.rs:130`), and `clean_vault` and `hold_back` use the wider one (`projection.rs:623,668`).
+- DIVERGENCE: the hold-back rule is still written twice: `is_unpublished` covers `_misc` at top level only (`input/page.rs:38,583`), `held_back` (`build/publish.rs:134`) adds `misc` at any depth through `HELD_BACK_DIRS` (`publish.rs:130`), and `clean_vault` and `hold_back` use the wider one (`projection.rs:623,668`). ontomark `95208e8` (2026-10-18, estate register ER-18) stops `HELD_BACK_DIRS` restating `_misc` and has `held_back` apply `UNPUBLISHED_DIRS` at any depth, so the lists no longer overlap; `is_unpublished` itself still applies `_misc` at top level only, which is the divergence that remains.
 
 ## OM-03.4 Credential gate and publish staging
 

@@ -38,7 +38,6 @@ sources:
   - ../project/client/src/services/WebSocketEventBus.ts
   - ../project/src/actors/elevation_actor.rs
 verified_commit: {visionclaw: 3b5dbdd58430afcd22764e05fa81bed8c26d6ab9, agentbox: cc67198cec478adc0aefa0f4a68fb8a631fcee83, unmute: c49982eb3aeaf76633dfe4155fa3b8dcb5b3d962}
-worktree: 2026-10-18
 ---
 
 ## VC-35.1 Push-to-talk state machine and the agent DID binding
@@ -260,6 +259,8 @@ sequenceDiagram
 ```
 
 ## VC-35.6 STT — Whisper and Turbo Whisper backends
+
+At this revision `ProcessAudioChunkForUser`, `TextToSpeechForUser`, `TextToSpeechSpatial` and the `TurboWhisper` provider are declared with no sender. VisionClaw `cefd9d1d7` (2026-10-18, estate register ER-24) deleted all four.
 
 ```mermaid
 sequenceDiagram
