@@ -378,6 +378,17 @@ has no economic use and does not change the invariants above. Node grab in
 VisionClaw is a future integration through the existing input path only. The
 record is accepted, unimplemented and inactive.
 
+## Parity claims name their comparator (2026-10-19)
+
+[ADR-2018](adr/ADR-2018-parity-claims-name-their-comparator.md) fixes how canon states
+solid-pod-rs parity with JavaScriptSolidServer: by comparator, commit and row count,
+sourced from the solid-pod-rs checklist script. The current figure is 97.3% strict over
+244 rows against JSS `8d68ceb` (package `0.0.221`) and, for the forge only, the JSS
+`plugins` repository at `63a16cb`. Forge features (repo-held git-mark trails, the
+opt-in kind-30618 mirror) reach consumers only through a solid-pod-rs release and stay
+default-off until a consumer's own ADR enables them. The record is accepted, partial
+and inactive.
+
 ## Proposed estate closeout extension (2026-09-04)
 
 [ADR-2007](adr/ADR-2007-estate-closeout-evidence-roadmap.md) proposes an

@@ -183,7 +183,7 @@ flowchart TB
     end
 
     subgraph PROTO["Protocol Layer"]
-        SPR["solid-pod-rs\n(JSS Rust port, ~96% parity)"]
+        SPR["solid-pod-rs\n(JSS Rust port, 97.3% strict parity, 244 rows)"]
         NRF["nostr-rust-forum\n(ACSP 31400-31405)"]
     end
 
