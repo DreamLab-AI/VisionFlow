@@ -107,6 +107,14 @@ Each sibling in its own words:
 </details>
 
 <details>
+<summary><b>Codescape</b> — <em>a shared 3D view of a codebase, born as a VisionClaw section</em></summary>
+<br/>
+
+> **Humans and agents work in the same near-real-time 3D view of a codebase, and you steer it by voice.** Codescape extracts a code graph from one or more repositories, lays it out on the GPU or the CPU, and streams it to a desktop browser client and the Godot XR client from one port, with agents appearing at the node they touch. Two crates (`codescape-model`, `codescape-collab`) are MIT OR Apache-2.0 on crates.io; the rest is AGPL-3.0-only. The CPU layout runs standalone; the CUDA layout and the deploy contract lean on VisionClaw, and source and CI do not establish headset or GPU acceptance. See [ADR-2143](https://github.com/DreamLab-AI/VisionClaw/blob/main/docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md) and diagram [VC-39](docs/diagrams/visionclaw/39-codescape.md).
+
+</details>
+
+<details>
 <summary><b>knowledgeGraph</b> — <em>the published corpus at narrativegoldmine.com</em></summary>
 <br/>
 

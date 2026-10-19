@@ -1,7 +1,7 @@
 # Repository Map
 
 **Status:** Source-reviewed map; deployment acceptance is separate
-**Reviewed:** 2026-10-17 (initial map 2026-05-20; sidestr row refreshed 2026-10-01; dream-engine and dream-machine rows refreshed 2026-10-15; visiontouch-rs row added 2026-10-17)
+**Reviewed:** 2026-10-17 (initial map 2026-05-20; sidestr row refreshed 2026-10-01; dream-engine and dream-machine rows refreshed 2026-10-15; visiontouch-rs row added 2026-10-17; Codescape row and edges added 2026-10-19)
 
 VisionFlow is a federated ecosystem. No single repository contains the whole runtime.
 
@@ -34,6 +34,7 @@ The [health roster](../../scripts/estate-health/roster.json) is the authoritativ
 | diagram-ir | `../diagram-ir` | Roster diagram tool package; availability does not prove the topic-tree gate calls it |
 | RuVector | `../ruvector` | Consumed dependency source; local core, registry crates and Agentbox Postgres image are distinct identities |
 | RuView | `../RuView` | Optional sensing product/dependency review; simulation and firmware source do not establish hardware acceptance |
+| Codescape | `../codescape` | Public code-graph repository, born as a VisionClaw section and extracted under [ADR-2143](https://github.com/DreamLab-AI/VisionClaw/blob/main/docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md) (mounted back into VisionClaw as the `codescape/` submodule). Five crates: `codescape-model` and `codescape-collab` are MIT OR Apache-2.0 and published on crates.io at 0.1.0; ingest, layout, server and the desktop client are AGPL-3.0-only. The CPU layout runs standalone; the CUDA engine drives VisionClaw's `visionclaw_unified` PTX, and the deploy contract is VisionClaw-shaped. The agent-activity hook (agentbox ADR-2144) is on branch `feat/codescape-activity-sink`, not agentbox `main`. Source and CI do not establish headset or GPU acceptance |
 | visiontouch-rs | `../visiontouch-rs` | Private supporting study (proof of principle, no economic use): clean-room Rust host stack for a lawfully owned haptic arm; source and offline tests do not establish hardware acceptance or delivered force; node-grab input into VisionClaw is a future integration ([ADR-2017](../adr/ADR-2017-haptic-input-device-is-a-supporting-study.md)) |
 | Logseq history | `../project4` (`../logseq` alias) | Archived publisher lineage; current authoring/publishing owner is visionGraph |
 
@@ -51,6 +52,8 @@ flowchart TB
     KG["knowledgeGraph\npublished corpus + pipeline"]
     VG["visionGraph\nauthoring vault + narrativegoldmine.com"]
     VT["visiontouch-rs\nhaptic input (proof of principle)"]
+    CS["Codescape\ncode-graph 3D view"]
+    GR["Graphicle\ncode-graph extraction (external)"]
 
     SPR --> VC
     SPR --> AB
@@ -75,6 +78,10 @@ flowchart TB
     VF -.-> KG
     VF -.-> VG
     VF -.-> VT
+    VC -->|"hosts compose service, V3/V5 wire, runtime PTX"| CS
+    GR -->|"extraction library, pinned rev"| CS
+    AB -.->|"ADR-2144 activity hook, branch only"| CS
+    VF -.-> CS
 ```
 
 ## Ownership Rule
