@@ -382,12 +382,13 @@ record is accepted, unimplemented and inactive.
 
 [ADR-2018](adr/ADR-2018-parity-claims-name-their-comparator.md) fixes how canon states
 solid-pod-rs parity with JavaScriptSolidServer: by comparator, commit and row count,
-sourced from the solid-pod-rs checklist script. The current figure is 97.3% strict over
-244 rows against JSS `8d68ceb` (package `0.0.221`) and, for the forge only, the JSS
-`plugins` repository at `63a16cb`. Forge features (repo-held git-mark trails, the
-opt-in kind-30618 mirror) reach consumers only through a solid-pod-rs release and stay
-default-off until a consumer's own ADR enables them. The record is accepted, partial
-and inactive.
+sourced from the solid-pod-rs checklist script. The current figure is 99.2% strict over
+264 rows against JSS `8d68ceb` (package `0.0.221`) and, for the forge only, the JSS
+`plugins` repository at `63a16cb`. Forge features reach consumers only through a
+solid-pod-rs release. [ADR-2019](adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md)
+supersedes ADR-2018's default-off clause: shipped agentbox pods run the forge and the
+mirror, inert until configured, while open edit, mainnet and any external follow list
+stay opt-in. Both records are accepted, partial and inactive.
 
 ## Proposed estate closeout extension (2026-09-04)
 
