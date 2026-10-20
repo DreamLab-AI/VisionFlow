@@ -4,7 +4,7 @@ title: Ontology pipeline - OWL extraction, Oxigraph, Whelk reasoning, governed m
 area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2004, ADR-2071, ADR-2064, ADR-2066, ADR-2068, ADR-2114, ADR-2116]
+adrs: [ADR-2004, ADR-2071, ADR-2064, ADR-2066, ADR-2068, ADR-2114, ADR-2116, ADR-2125, ADR-2147]
 sources:
   - ../project/src/bin/load_ontology.rs
   - ../project/src/services/owl_extractor_service.rs
@@ -28,6 +28,15 @@ sources:
   - ../project/src/inference/mod.rs
   - ../project/src/reasoning/mod.rs
   - ../project/src/services/github_sync_service.rs
+  - ../project/crates/vault/src/main.rs
+  - ../project/crates/vault/src/certificate.rs
+  - ../project/crates/vault/src/propose.rs
+  - ../project/crates/vault/src/whelk.rs
+  - ../project/crates/vault/src/build/turtle.rs
+  - ../project/crates/vault-core/src/proposal.rs
+  - ../project/crates/vault/tests/certificate_oo_cert.rs
+  - ../project/crates/visionclaw-ontology/shapes/ontology-class.shacl.ttl
+  - ../project/crates/visionclaw-ontology/src/services/jsonld_validator/shacl.rs
   - ../project/src/main.rs
   - ../project/src/handlers/utils.rs
   - ../project/crates/visionclaw-adapters/src/sparql_migrations.rs
@@ -36,7 +45,7 @@ sources:
   - ../project/src/actors/gpu/physics_supervisor.rs
   - ../project/src/settings/models.rs
   - ../project/tests/integration/pipeline_test.rs
-verified_commit: {visionclaw: a6de5a421cb77fb75469dbde2dda73e6508deb47}
+verified_commit: {visionclaw: 9717f9d071c811cbfc78228c05e6d225d5cfd7ff}
 ---
 
 ## VC-20.1 load_ontology bin - CorpusSource-backed corpus loader
@@ -249,7 +258,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Client
-    participant Rbac as RbacGate on /api scope<br/>src/main.rs:1121
+    participant Rbac as RbacGate on /api scope<br/>project/src/main.rs:1121
     participant OntScope as /api/ontology scope<br/>src/handlers/api_handler/ontology/mod.rs:1642
     participant DerivedScope as /api/ontology/derived scope<br/>src/handlers/ontology_derived_handler.rs:185
     participant CountScope as /api/ontology/class-count scope<br/>src/handlers/ontology_class_count_handler.rs:76
@@ -344,4 +353,61 @@ sequenceDiagram
     H-->>CL: 200 property, 404 not found, or 500
     Note over H,QH: get_owl_property and add_owl_property were the LAST two bare<br/>calls in this file, closed 2026-09-16 (ad8b83ad4). The same defect was<br/>fixed for one endpoint on 2026-08-10 and for add_axiom at<br/>ontology_handler.rs:632.
     Note over QH: Regression cover: owl_property_handlers_round_trip_off_the_async_worker<br/>ontology_handler.rs:1132, and the bare call pinned as the panic it is at<br/>ontology_handler.rs:1167. DEBT: the wrapping is load-bearing only while<br/>the CQRS handlers stay sync - the test module says to delete it if they<br/>become async-direct. ontology_handler.rs:1107
+```
+
+## VC-20.14 vault certify — the derivation certificate and the Whelk-parity invariant (ADR-2147)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant CLI as vault certify<br/>crates/vault/src/main.rs:494
+    participant G as build_graph_attributed<br/>crates/vault/src/build/turtle.rs:216
+    participant CE as certificate::certify<br/>crates/vault/src/certificate.rs:382
+    participant EN as Engine worklist<br/>crates/vault/src/certificate.rs:226
+    participant W as whelk::reason<br/>crates/vault/src/whelk.rs:505
+    participant OO as oo-cert (Lean 4, external, never vendored)
+
+    CLI->>G: the graph vault build publishes (knowledge vault, projected, attributed, public only)
+    CLI->>CE: certify(&graph)
+    CE->>EN: insert every asserted triple (N-Triples spelled, interned)
+    loop until the queue is empty
+        EN->>EN: consequences_of(f) — rdfs2/3/5/7/9/11 in both premise positions<br/>certificate.rs:263; run_to_fixpoint :367
+        Note over EN: a new fact is indexed, queued and, if derived, recorded as ONE step<br/>rule TAB conclusion TAB premise1 TAB premise2 — premises are asserted or EARLIER lines
+    end
+    CE-->>CLI: Certificate (asserted, steps)
+    CLI->>CE: write(out, generation) — asserted.tsv, derivations.tsv, asserted.sha256, scope.tsv<br/>certificate.rs:525
+    CLI->>W: reason(&graph).inferred
+    CLI->>CE: named_subclass_closure() certificate.rs:459
+    Note over CLI,W: INVARIANT whelk_parity: certified named closure == Whelk's, exit 1 otherwise<br/>vault/src/main.rs:527. Structural today: the emitter puts restrictions only on the<br/>superclass side, so every named entailment is rdfs11. Pinned at certificate.rs:871
+    CLI->>OO: oo-cert asserted.tsv derivations.tsv (reviewer / CI, OO_CERT_BIN)
+    OO-->>CLI: {"ok":true,"theorem":"OOCert.certificate_sound"} or exit 1 naming the first bad line and rule
+    Note over OO: Measured 2026-10-20 on visionGraph 1ec5774ad: 351,450 asserted, 731,144 derivations,<br/>certify 1.2 s, oo-cert 9.2 s accept; a forged line refused. tests/certificate_oo_cert.rs:72, :91
+```
+
+## VC-20.15 vault propose — the consequence delta on the PatchProposal (ADR-2147)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant P as vault propose<br/>crates/vault/src/main.rs:236
+    participant B as build_with_certificates<br/>crates/vault/src/propose.rs:524
+    participant A as Assessment::of (base, then patched)<br/>crates/vault/src/propose.rs:118
+    participant D as consequence_delta<br/>crates/vault/src/certificate.rs:570
+    participant PP as PatchProposal.consequences<br/>crates/vault-core/src/proposal.rs:157
+    participant F as forum 31402
+
+    P->>B: build_with_certificates(vault, corpus, vocab, generation, options)
+    B->>A: Assessment::of(base) — validation, conflicts, Whelk, certificate
+    B->>A: Assessment::of(patched) — the same four, once
+    B->>D: consequence_delta(&before.certificate, &after.certificate)
+    Note over D: compares the CLOSURE (asserted ∪ derived) with blank-node-bearing triples counted, not compared<br/>certificate.rs:551. Derived-only misreports a consequence that becomes asserted —<br/>cross-vendor audit finding, pinned at certificate.rs:942
+    D-->>B: ConsequenceDelta — verdict word, new/lost, by predicate, examples, proposal asserted.sha256<br/>crates/vault-core/src/proposal.rs:176
+    B->>PP: with_consequences(delta) propose.rs:611
+    opt --certificate-dir
+        B->>B: Built::write_certificates — base/, proposed/, consequences.json propose.rs:502
+    end
+    B-->>P: Built { proposal, base, proposed } propose.rs:486
+    P->>F: the proposal JSON is the 31402 content, consequences included; the certificate files stay on disk, the digest travels
+    Note over PP,F: INVARIANT (VAULT-corpus-format 12): the delta is shown to the signer and never blocks;<br/>WHELK_INCONSISTENT stays the only reasoning blocker (ADR-2125). Measured: one rdfs:domain on<br/>vc:requires = 206,476 new consequences; AI Operator is-a Robotics = 6; a dry run on the live corpus 11.8 s
+    Note over P: SHACL side-finding of the same spike: ontology-class.shacl.ttl:21 now sh:nodeKind sh:Literal;<br/>the evaluator types @language as rdf:langString shacl.rs:749 and enforces sh:Literal shacl.rs:305, :767
 ```

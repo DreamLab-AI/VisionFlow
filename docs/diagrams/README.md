@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_157 topic files, 1489 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_157 topic files, 1491 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -206,7 +206,7 @@ _157 topic files, 1489 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VC-16 | [Interaction — drag, pin, layout, constraints and agent beams](visionclaw/16-interaction-drag-pin-layout.md) | 8 | sequenceDiagram, flowchart | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md), [PROTOCOL-registry.md](../../../project/docs/PROTOCOL-registry.md) | ADR-2020, ADR-2029, ADR-2035, ADR-2055 |
 | VC-17 | [XR presence crate and co-presence](visionclaw/17-xr-presence-crate.md) | 4 | sequenceDiagram, classDiagram | [PROTOCOL-registry.md](../../../project/docs/PROTOCOL-registry.md), [XR-client.md](../../../project/docs/XR-client.md) | ADR-2019, ADR-2020 |
 | VC-18 | [Analytics support handlers and the analytics WebSocket](visionclaw/18-analytics-support-handlers.md) | 9 | flowchart, sequenceDiagram, classDiagram | [PROTOCOL-registry.md](../../../project/docs/PROTOCOL-registry.md), [GPU-wire-abi.md](../../../project/docs/GPU-wire-abi.md) | ADR-2007, ADR-2009, ADR-2059 |
-| VC-20 | [Ontology pipeline - OWL extraction, Oxigraph, Whelk reasoning, governed mutation](visionclaw/20-ontology-pipeline-oxigraph-whelk.md) | 9 | sequenceDiagram, erDiagram, classDiagram | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2004, ADR-2071, ADR-2064, ADR-2066, ADR-2068, ADR-2114, ADR-2116 |
+| VC-20 | [Ontology pipeline - OWL extraction, Oxigraph, Whelk reasoning, governed mutation](visionclaw/20-ontology-pipeline-oxigraph-whelk.md) | 11 | sequenceDiagram, erDiagram, classDiagram | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2004, ADR-2071, ADR-2064, ADR-2066, ADR-2068, ADR-2114, ADR-2116, ADR-2125, ADR-2147 |
 | VC-21 | [Corpus ingest (CorpusSource port, ADR-2114) and the frontmatter inclusion gate](visionclaw/21-corpus-ingest-and-vault.md) | 5 | sequenceDiagram, flowchart | [VAULT-corpus-format.md](../../../project/docs/VAULT-corpus-format.md), [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2014, ADR-2040, ADR-2070, ADR-2112, ADR-2113, ADR-2114 |
 | VC-22 | [Data authority, provenance and erasure](visionclaw/22-data-authority-provenance-erasure.md) | 11 | flowchart, erDiagram, sequenceDiagram | [DATA-authority-erasure.md](../../../project/docs/DATA-authority-erasure.md), [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2004, ADR-2015, ADR-2016, ADR-2017, ADR-2069, ADR-2070 |
 | VC-23 | [Identifier taxonomy — typed URN, did:nostr, sha256-12, federation crossing, wire node-id](visionclaw/23-identifiers-urn-did-sha12.md) | 10 | classDiagram, sequenceDiagram, flowchart | [IDENTIFIER-taxonomy.md](../../../project/docs/IDENTIFIER-taxonomy.md) | ADR-2021, ADR-2022, ADR-2023, ADR-2024, ADR-2025, ADR-2070, ADR-2072 |
