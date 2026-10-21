@@ -1,0 +1,29 @@
+README UPDATE: 0454319ab8ed2f1df5755b78693205d98445161e|2026-10-20T00:50:37Z|docs(adr): ADR-2019 forge and mirror on in shipped pods; 99.2% strict parity
+HEAD: b8d83a25f7010c77d67eb6fdb9532aaca2c284bf
+
+COMMITS SINCE README
+b8d83a2 2026-10-21T01:59:40Z dream-cycle: 2026-10-21-VisionFlow ledger row (REJECT)
+0ce39c0 2026-10-20T15:37:15Z diagrams(VC-20): the certificate engine is the shared rdfs-certificate crate
+af3d8ea 2026-10-20T15:01:09Z diagrams(VC-20): vault certify and the consequence delta (VisionClaw ADR-2147)
+7368363 2026-10-20T15:01:09Z dream-cycle: 2026-10-20-VisionFlow ledger row (REJECT)
+1a94f66 2026-10-20T07:47:32Z chore(estate-health): nightly snapshot 2026-10-20 — 8/18 green
+
+RECENT HISTORY
+b8d83a2 2026-10-21T01:59:40Z dream-cycle: 2026-10-21-VisionFlow ledger row (REJECT)
+0ce39c0 2026-10-20T15:37:15Z diagrams(VC-20): the certificate engine is the shared rdfs-certificate crate
+af3d8ea 2026-10-20T15:01:09Z diagrams(VC-20): vault certify and the consequence delta (VisionClaw ADR-2147)
+7368363 2026-10-20T15:01:09Z dream-cycle: 2026-10-20-VisionFlow ledger row (REJECT)
+1a94f66 2026-10-20T07:47:32Z chore(estate-health): nightly snapshot 2026-10-20 — 8/18 green
+0454319 2026-10-20T00:50:37Z docs(adr): ADR-2019 forge and mirror on in shipped pods; 99.2% strict parity
+4027542 2026-10-19T17:56:51Z docs(adr): ADR-2018 parity claims name their comparator
+587ea80 2026-10-19T10:22:49Z docs(ecosystem): cross-link Codescape in the repository map, ecosystem map, compatibility matrix and README
+a9f6ed6 2026-10-19T09:59:30Z docs(review): GLM audit outputs and triage notes, 2026-10-16 to 2026-10-19
+dbb9aa0 2026-10-19T08:09:58Z dream(seo-and-meta): candidate for 2026-10-18-VisionFlow (#25)
+bb5fe62 2026-10-19T07:57:42Z chore(estate-health): nightly snapshot 2026-10-19 — 9/18 green
+fbcfe00 2026-10-18T18:19:29Z docs(diagrams): VC-35 and VG-05 read their stamped commits; ER-18 and ER-21 recorded in OM-03, NF-06, NF-10
+7798721 2026-10-18T15:40:00Z docs(estate): Codescape on the site, in the README and as diagram topic VC-39
+fcdc324 2026-10-18T15:38:27Z Merge remote-tracking branch 'origin/main' into HEAD
+ce0c5cb 2026-10-18T15:23:02Z docs(diagrams): retire six markers fixed on 2026-10-18; full-length stamps
+6b643d2 2026-10-18T15:05:41Z docs(diagrams): VF-03 at 18 repos and 22 registries, VF-01 sidestr drift retired (ER-3)
+26df6c9 2026-10-18T15:05:06Z estate-health: probe webledgers-teller; README and site tile say eight sidestr crates (ER-3)
+d128ddc 2026-10-18T12:06:47Z docs(diagrams): VF-04.4 exit-path citations re-derived at 4159e085

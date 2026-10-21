@@ -1,0 +1,142 @@
+[
+  {
+    "repo": "VisionFlow",
+    "path": "/home/devuser/workspace/VisionFlow/README.md",
+    "initial_head": "b8d83a25f7010c77d67eb6fdb9532aaca2c284bf",
+    "final_head": "b8d83a25f7010c77d67eb6fdb9532aaca2c284bf",
+    "initial_readme_commit": "0454319ab8ed2f1df5755b78693205d98445161e|2026-10-20T00:50:37Z|docs(adr): ADR-2019 forge and mirror on in shipped pods; 99.2% strict parity",
+    "changed_from_initial_readme": true,
+    "readme_sha256": "910c36acd04ddd7103a03e96578f843010f510ec9df885d5f6965fc74862b525",
+    "diff_check_exit": 0
+  },
+  {
+    "repo": "VisionClaw",
+    "path": "/home/devuser/workspace/project/README.md",
+    "initial_head": "e2d4e2cc131454db236b175226ab809014b6a88d",
+    "final_head": "e2d4e2cc131454db236b175226ab809014b6a88d",
+    "initial_readme_commit": "8e380aad3a0b0561af751901f3a3273714528038|2026-10-20T14:43:25Z|docs: ADR-2147 derivation certificates and consequence delta; VAULT-corpus-format 2.4.0",
+    "changed_from_initial_readme": true,
+    "readme_sha256": "fbe7c10aab44ae1d13677c9874245acedb0482c9d393d027c98b22591dc101b5",
+    "diff_check_exit": 0
+  },
+  {
+    "repo": "agentbox",
+    "path": "/home/devuser/workspace/agentbox/README.md",
+    "initial_head": "bda9ccfb2459b3e8e16c65ee28defcce7c847d48",
+    "final_head": "5e5c07779dfe269d7d5f642ae105c63d92f6b74e",
+    "initial_readme_commit": "10ef2a180147eaf3a52114e42ebe4d81b8861d61|2026-10-15T14:11:50Z|docs: make the dream engine docs true after the ADR-2141 extraction",
+    "changed_from_initial_readme": true,
+    "readme_sha256": "95c2ec4bebf3ef625dae697523d4048434001ef907e8cf8f39fe6ffae00848e7",
+    "diff_check_exit": 0
+  },
+  {
+    "repo": "solid-pod-rs",
+    "path": "/home/devuser/workspace/solid-pod-rs/README.md",
+    "initial_head": "55bfec1f6d8127f4437ebaea82ff73de4475fcf7",
+    "final_head": "55bfec1f6d8127f4437ebaea82ff73de4475fcf7",
+    "initial_readme_commit": "55bfec1f6d8127f4437ebaea82ff73de4475fcf7|2026-10-20T00:31:00Z|release: 0.5.0-alpha.17",
+    "changed_from_initial_readme": true,
+    "readme_sha256": "8965cd5ae8dea58969884a691630d1d09e265348a93ad1d1baae57e365fff452",
+    "diff_check_exit": 0
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "path": "/home/devuser/workspace/nostr-rust-forum/README.md",
+    "initial_head": "c1657fc63297d28ef499451fe31acd800f68d064",
+    "final_head": "c1657fc63297d28ef499451fe31acd800f68d064",
+    "initial_readme_commit": "053f734c1138f7434bd2934af16ac2677581c188|2026-10-20T19:42:03Z|docs(readme): frame wider-Nostr interop for the merged state (off-by-default flags, not branch caveats)",
+    "changed_from_initial_readme": true,
+    "readme_sha256": "dc49b983f58cf5bb8bcf911ffc9ebfb9da2eaddee94272695a60e4627079b0a1",
+    "diff_check_exit": 0
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "path": "/home/devuser/workspace/dreamlab-ai-website/README.md",
+    "initial_head": "79635b52bb8146f521ff83d76365aa8e9ee505f8",
+    "final_head": "79635b52bb8146f521ff83d76365aa8e9ee505f8",
+    "initial_readme_commit": "bb8b887dc1e7e1ee5e48215a5326f9f93e893e88|2026-09-23T15:48:16Z|docs(readme): add sidestr-rs to the estate components",
+    "changed_from_initial_readme": true,
+    "readme_sha256": "bb794c1da94e24997621d633845ae5be077ed8f5c890b59c6916d8cfe1ed7860",
+    "diff_check_exit": 0
+  },
+  {
+    "repo": "loom",
+    "path": "/home/devuser/workspace/loom/README.md",
+    "initial_head": "e2e42736abe9bbaff7643f3faa23495c114958ca",
+    "final_head": "e2e42736abe9bbaff7643f3faa23495c114958ca",
+    "initial_readme_commit": "84c029a5d2a862bc9a8007358dcb40f2cf80bd13|2026-10-13T12:05:07Z|chore(data): stop tracking the served ontomark bundle; note ADR-140 P0 delivered",
+    "changed_from_initial_readme": true,
+    "readme_sha256": "1e372646e2e2bc62226393bf5dd8a284f5d45b6bd810eb3cc6dd2604abe2a0c9",
+    "diff_check_exit": 0
+  },
+  {
+    "repo": "knowledgeGraph",
+    "path": "/home/devuser/workspace/knowledgeGraph/README.md",
+    "initial_head": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "final_head": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "initial_readme_commit": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e|2026-09-23T15:48:19Z|docs(readme): add sidestr-rs to the estate components",
+    "changed_from_initial_readme": true,
+    "readme_sha256": "040f7fae76e560571fc7b48f443109f001151d969c6eb5ab148ad065c9c08091",
+    "diff_check_exit": 0
+  },
+  {
+    "repo": "sidestr-rs",
+    "path": "/home/devuser/workspace/sidestr-rs/README.md",
+    "initial_head": "f77856dd18a4b6348445463456c4865de5285e9a",
+    "final_head": "f77856dd18a4b6348445463456c4865de5285e9a",
+    "initial_readme_commit": "f77856dd18a4b6348445463456c4865de5285e9a|2026-10-18T10:54:49Z|docs(readme): add the webledgers-teller row so the crate table matches the manifest (ER-3)",
+    "changed_from_initial_readme": true,
+    "readme_sha256": "fbb83dc079662a7cdea5f6be84108ca4e487dbbfa7326b88ba3280af56eeb61b",
+    "diff_check_exit": 0
+  },
+  {
+    "repo": "ontomark",
+    "path": "/home/devuser/workspace/ontomark/README.md",
+    "initial_head": "6944be3f23d574f347f39f7ee21ec46e90fe602c",
+    "final_head": "6944be3f23d574f347f39f7ee21ec46e90fe602c",
+    "initial_readme_commit": "96d318973d45be7ec2d57643a478c26f32d1c0fc|2026-10-20T15:29:58Z|release 0.6.0: every published closure carries a derivation certificate (ADR-OM-009)",
+    "changed_from_initial_readme": true,
+    "readme_sha256": "172fd085981a3fa2e74c5131e5eeb2c347bd7ef856f0798cb488bd91043d5fd1",
+    "diff_check_exit": 0
+  },
+  {
+    "repo": "ontomark-obsidian",
+    "path": "/home/devuser/workspace/ontomark-obsidian/README.md",
+    "initial_head": "53af1cff3b2d552401ac606b172cf7fb6a368ad2",
+    "final_head": "53af1cff3b2d552401ac606b172cf7fb6a368ad2",
+    "initial_readme_commit": "53af1cff3b2d552401ac606b172cf7fb6a368ad2|2026-10-17T09:44:02Z|release: 0.3.6 \u2014 repin engine v0.4.0",
+    "changed_from_initial_readme": true,
+    "readme_sha256": "5b213e726abcfe918f0715bee7eae2ebe67d10df50391a1196e5ad0609931be7",
+    "diff_check_exit": 0
+  },
+  {
+    "repo": "dream-engine",
+    "path": "/home/devuser/workspace/dream-engine/README.md",
+    "initial_head": "64e83240577a2a8fcdcbaca04a26d170ed2ef87c",
+    "final_head": "64e83240577a2a8fcdcbaca04a26d170ed2ef87c",
+    "initial_readme_commit": "5578a24146080703acf7696f72005f71d83c6171|2026-10-15T21:17:25Z|docs: automerge applies only through persist::publish; the first host does not call it yet",
+    "changed_from_initial_readme": true,
+    "readme_sha256": "a0d934a8add8d9b8b6ff0b8ce4aaa20c868826d5f1a1d000f61adee714e855a2",
+    "diff_check_exit": 0
+  },
+  {
+    "repo": "visiontouch-rs",
+    "path": "/home/devuser/workspace/visiontouch-rs/README.md",
+    "initial_head": "6402fbe1e5fb45c0397eba95d95db5f0e65702fe",
+    "final_head": "6402fbe1e5fb45c0397eba95d95db5f0e65702fe",
+    "initial_readme_commit": "990beb0cf8acfb48013fe0f5c04e688f45248c9e|2026-10-19T10:22:38Z|docs(readme): estate style, sibling table and VisionFlow footer",
+    "changed_from_initial_readme": true,
+    "readme_sha256": "a3108b8a3917ba7dfdcaf1d94bad53dafcfcf26fd972a57d09fce62f4b595a7e",
+    "diff_check_exit": 0
+  },
+  {
+    "repo": "codescape",
+    "path": "/home/devuser/workspace/codescape/README.md",
+    "initial_head": "ffb98c2cfb0a30856c9b55d0bbe2c1358396a54a",
+    "final_head": "ffb98c2cfb0a30856c9b55d0bbe2c1358396a54a",
+    "initial_readme_commit": "e300451cfdca8bd2368d64d75d9de177ff4a5125|2026-10-19T13:51:35Z|docs: add live-captured screenshots and a See it section to the README",
+    "changed_from_initial_readme": true,
+    "readme_sha256": "9517ca066a71a812e75535eb258b0f49a609f789062923676019e4883e03ca04",
+    "diff_check_exit": 0
+  }
+]

@@ -1,0 +1,32 @@
+
+> visionflow-site-verification@0.1.0 build
+> cd website && ./build.sh
+
+==> Preparing dist/...
+==> Copying static assets...
+==> Writing CNAME...
+==> Staging manifest assets (required + optional)...
+    derived  img/og-card.png  <- ../assets/screenshots/visionflow-final.png
+    optional repo-diagrams: 17 file(s), 12876785 bytes
+    optional repo-generated: 5 file(s), 5765178 bytes
+    optional repo-heroes: 5 file(s), 1087718 bytes
+    optional repo-screenshots: 3 file(s), 1273200 bytes
+==> Verifying asset inventory and writing build receipt...
+    required : 17/17 present
+    dist     : 54 files, 60335021 bytes
+    tree     : sha256:9ca7f86c87be7fa68caf2bbf7f4bc65d6b4255f0a10c566b0bb092139c695013
+    receipt  : website/build-receipt.json
+ASSET-INVENTORY-OK
+==> Build complete. Output in dist/
+total 148
+drwxr-xr-x 7 devuser devuser   4096 Oct 21 11:31 .
+drwxr-xr-x 6 devuser devuser   4096 Oct 21 11:31 ..
+-rw-r--r-- 1 devuser devuser     20 Oct 21 11:31 CNAME
+drwxr-xr-x 2 devuser devuser   4096 Oct 21 11:31 css
+drwxr-xr-x 2 devuser devuser   4096 Oct 21 11:31 data
+drwxr-xr-x 3 devuser devuser   4096 Oct 21 11:31 img
+-rw-r--r-- 1 devuser devuser 111619 Oct 21 11:31 index.html
+drwxr-xr-x 2 devuser devuser   4096 Oct 21 11:31 js
+-rw-r--r-- 1 devuser devuser     23 Oct 21 11:31 robots.txt
+drwxr-xr-x 2 devuser devuser   4096 Oct 21 11:31 video
+BUILD-COMPLETE bytes: 60335021

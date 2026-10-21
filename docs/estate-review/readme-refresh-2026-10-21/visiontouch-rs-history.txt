@@ -1,0 +1,25 @@
+README UPDATE: 990beb0cf8acfb48013fe0f5c04e688f45248c9e|2026-10-19T10:22:38Z|docs(readme): estate style, sibling table and VisionFlow footer
+HEAD: 6402fbe1e5fb45c0397eba95d95db5f0e65702fe
+
+COMMITS SINCE README
+6402fbe 2026-10-19T10:22:38Z docs(adr): re-stamp ADR-0006 at the README restyle
+
+RECENT HISTORY
+6402fbe 2026-10-19T10:22:38Z docs(adr): re-stamp ADR-0006 at the README restyle
+990beb0 2026-10-19T10:22:38Z docs(readme): estate style, sibling table and VisionFlow footer
+72e094d 2026-10-17T13:54:49+01:00 Replace calibration onboarding with a guided physical workflow
+0ccd990 2026-10-17T13:46:55+01:00 Specify guided onboarding from attended calibration feedback
+77898bc 2026-10-17T12:21:10Z Re-stamp ADR-0003 to ADR-0006 after the audit alignment
+5e658b8 2026-10-17T12:21:09Z Align ledger, specs and Studio after the documentation audit
+f9e245b 2026-10-17T12:01:19Z Re-stamp ADR-0003 after the interlock velocity change
+93c9c49 2026-10-17T12:01:18Z Measure interlock velocity over a fixed 9.6 ms window, not four samples
+d879973 2026-10-17T11:57:37Z Record the review of the owner photograph archive
+8b7065f 2026-10-17T11:39:13Z Point ADR-0006 at the VisionFlow commits that actually landed
+818bda4 2026-10-17T11:37:50Z Record the VisionFlow canon commit in ADR-0006
+0d0ec22 2026-10-17T12:33:40+01:00 Make the saved reset reference visible during calibration
+07e95eb 2026-10-17T12:15:19+01:00 Pace real calibration sampling at the specified 2.4 ms interval
+476af99 2026-10-17T12:14:50+01:00 Record early liveness speed stops and specify intended worker cadence
+3875bfd 2026-10-17T10:43:51Z Stamp the ADR ledger and baseline at the rebuild commit
+e6f9d01 2026-10-17T10:43:39Z Rebuild force verification on the published reset-pose protocol; rename to visiontouch-rs
+bef1ccd 2026-10-16T22:59:01+01:00 Replace straight teaching with freehand reverse-route recording
+faccdcb 2026-10-16T22:53:10+01:00 Specify freehand reverse-route calibration workflow

@@ -2,302 +2,162 @@
 
 # VisionFlow
 
-### Coordination Engineering for Federated Human–AI Intelligence
+### Coordination engineering for federated human–AI intelligence
 
-[![License](https://img.shields.io/badge/License-AGPL--3.0%20%28MPL%202.0%20relicense%20proposed%29-blue?style=flat-square)](docs/architecture/licensing.md)
-[![Substrates](https://img.shields.io/badge/Substrates-6%20federated-8b5cf6?style=flat-square)](docs/architecture/repository-map.md)
-[![Identity](https://img.shields.io/badge/Identity-did%3Anostr-10b981?style=flat-square)](docs/protocol/identity-spine.md)
+**A guide to the DreamLab estate: what each system owns, how they connect, and what is ready to use.**
 
-**Maintainer**: [John O'Hare](https://github.com/jjohare) · **Upstream IP**: [Melvin Carvalho](https://github.com/melvincarvalho) ([JSS](https://github.com/JavaScriptSolidServer/JavaScriptSolidServer), [DID:Nostr](https://github.com/nicholasgasior/did-nostr), [Web Ledgers](https://webledgers.org)) · [MAINTAINERS.md](MAINTAINERS.md)
-
-[Ecosystem](#the-ecosystem) · [Architecture](#six-substrates-one-identity) · [Quickstart](#quickstart) · [Docs](docs/README.md) · [Terminology](docs/terminology.md) · [Status](#status--remaining-work)
-
-**PDF pitch:** [One-Pager](pdf-reports/visionflow-onepager.pdf) · [Ecosystem Technical Pitch](pdf-reports/visionflow-ecosystem-pitch.pdf)
+[Website](https://www.visionflow.info/) · [Start here](#choose-your-starting-point) · [Architecture](#how-the-pieces-fit) · [Status](#working-status) · [Documentation](docs/README.md)
 
 </div>
 
----
+VisionFlow connects knowledge authoring, formal reasoning, agent execution, human review and self-owned data. The aim is practical: let agents work on shared knowledge while people retain authority over what becomes accepted knowledge, with an inspectable record of the decision.
 
-> **Six honest systems can still assemble one collective lie — VisionFlow is the canon that stops that.** It holds the ADRs, PRDs, compatibility matrix and honest status ledger for a nine-repo human–AI mesh built on one wager: AI collapses the cost of routing information, so the human is promoted from router to judgment broker. This repo ships words, not runtime — and it is graded on their accuracy.
+This repository maintains the ecosystem architecture, compatibility records, diagrams and public website. Install the individual products from their own repositories; build this checkout to preview or improve the website.
 
----
+The [vision report](presentation/report/) and [ecosystem pitch](pdf-reports/visionflow-ecosystem-pitch.pdf) explain the strategic argument. The [repository map](docs/architecture/repository-map.md) and [compatibility matrix](docs/architecture/compatibility-matrix.md) describe the implementation boundaries.
 
-## What this repository is
+## Choose your starting point
 
-Hierarchy was an information-routing protocol bounded by human bandwidth. AI is collapsing the cost of that routing towards zero, so the human role is not eliminated — it is promoted from **router** to **judgment broker**: the person who holds the decision at the intersections a machine should not close on its own.
+| You want to… | Start with | What it owns |
+|---|---|---|
+| Write an ontology as Markdown | [Ontomark](https://github.com/DreamLab-AI/ontomark) and its [Obsidian plugin](https://github.com/DreamLab-AI/ontomark-obsidian) | Parsing, typed models, reasoning, compilation and reviewed note edits |
+| Explore knowledge spatially | [VisionClaw](https://github.com/DreamLab-AI/VisionClaw) | Knowledge graph, GPU layout, desktop/XR clients and governed knowledge workflows |
+| Give agents a controlled working environment | [Agentbox](https://github.com/DreamLab-AI/agentbox) | Nix-composed runtime, tools, memory adapters, identity and capability policy |
+| Ground model answers in your corpus | [Loom](https://github.com/DreamLab-AI/loom) | Retrieval and context assembly behind a model-swappable serving interface |
+| Own and serve personal or agent data | [solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) | Solid storage, access control, identity and tier-specific server features |
+| Host a Nostr community and governance surface | [nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum) | Forum kit, relay and human/agent communication |
+| Deploy DreamLab's branded site | [dreamlab-ai-website](https://github.com/DreamLab-AI/dreamlab-ai-website) | Marketing content and operator configuration consuming the forum kit |
+| Inspect the published corpus | [knowledgeGraph](https://github.com/DreamLab-AI/knowledgeGraph) | Public corpus distribution at [narrativegoldmine.com](https://narrativegoldmine.com/) |
+| Build agent payment or sidechain applications | [sidestr-rs](https://github.com/DreamLab-AI/sidestr-rs) | Rust protocol, wallet, settlement and channel libraries; deployment is separate |
+| Propose measured repository improvements | [dream-engine](https://github.com/DreamLab-AI/dream-engine) | Evidence-gated experiment and judgement crates; a host supplies the nightly driver |
+| Collaborate around a codebase in 3D | [Codescape](https://github.com/DreamLab-AI/codescape) | Code graph, layout, agent activity and voice collaboration, isolated from knowledge work |
+| Study haptic graph interaction | visiontouch-rs | Private supporting device study; proof of principle, with hardware acceptance separate |
 
-**VisionFlow is the canon for that thesis.** This repository is the coordination-of-coordination layer for six federated substrates — the ADRs and PRDs, the ecosystem map, the maturity vocabulary, the marketing website, the vision report and the pitch decks. It is the thing that stops six honest local truths from assembling into one collective lie.
+The site's **six substrates** are a conceptual grouping, not the total repository count. Libraries, authoring tools, published data and supporting studies have their own release and acceptance boundaries. The [nightly health roster](scripts/estate-health/roster.json) also includes supporting repositories beyond this table.
 
-In 2026 the wider industry converged on the same design from the other direction: agent loops are unbounded by construction, and an ontology — the formal vocabulary of classes, typed properties and rules that defines what *can* be said — shared across a mesh rather than wired into each agent, is the way to bound them. The vocabulary is new (**neurosymbolic AI**: thin agents over a shared formal semantic layer); the architecture is what these repositories already run, in named pieces: an OWL 2 ontology, two symbolic reasoners, a runtime knowledge graph, and the Ontology Loom. The published corpus at narrativegoldmine.com *is* the ontology in readable form — pure TBox, every page a class, zero individuals by design. The knowledge graph is that ontology populated with live instances at runtime: VisionClaw's running graph, agents' working graphs, the personal graphs written into Solid pods. Reasoning here is a machine check, not an LLM thinking hard: the pipeline's EL-profile reasoner gates the published closure at build, and the Whelk EL++ reasoner classifies the shared runtime graph and rejects contradictions before they enter it. And the grounding is measured, not claimed: the Ontology Loom serves the checked graph into a model's context at query time, so answers restate verified facts rather than guesses. With that grounding, a static ontology scaffold lifts grounded recall to roughly 0.94 across every model tested (0.15→0.94 on Gemma, 0.27→0.94 on Muse, paired uplift with bootstrap 95% CIs), and it runs faster than the bare model. An input-exposure control keeps the reading honest: the copy ceiling on this node is 0.964 and gain over copy is uniformly slightly negative across ten models from five providers, so the measured product is faithful delivery of curated, checked facts, not model reasoning over injected structure — exactly what private-knowledge grounding needs, with a judged negative-control ladder confirming the lift is content-specific ([the paper](https://github.com/DreamLab-AI/loom/blob/main/docs/research/paper-v3/main.pdf)).
-
-**This repo is documentation and website — not a runtime.** The running systems live in the sibling repositories linked below; VisionFlow holds the story, the compatibility record and the honest status ledger that grades those systems against their own code. Its own maturity claim is deliberately the most modest of the set: it ships words, and it is accountable for their accuracy.
-
-<div align="center">
-
-![VisionFlow Wardley Map — strategic positioning](assets/diagrams/wardley-map.png)
-
-*The differentiating capabilities (OWL reasoning, GPU semantic physics, cryptographic agent identity, human-in-the-loop governance) sit in the genesis-to-custom zone where competitors cluster in commodity execution. Full competitive analysis lives in [`presentation/report`](presentation/report/) and the [ecosystem pitch PDF](pdf-reports/visionflow-ecosystem-pitch.pdf), not here — it is high-churn content and does not belong in the front door.*
-
-</div>
-
----
-
-## The ecosystem
-
-No single repository *is* VisionFlow. The siblings call the whole the **Dynamic Agentic Mesh** — nine repositories: six running substrates, this canon, the published corpus, and the settlement crates. It emerges when six independent systems mesh through one cryptographic identity spine — every actor, human or agent or server, is a single secp256k1 keypair expressed as `did:nostr:<hex-pubkey>`.
-
-| Substrate | Role | Where to run it |
-|:----------|:-----|:----------------|
-| **[VisionClaw](https://github.com/DreamLab-AI/VisionClaw)** | Flagship engine — ontology-grounded immersive 3D knowledge graph. OWL 2 EL + Whelk reasoning, 83 CUDA kernels of GPU physics, one renderer shared desktop↔headset. *Watch here, judge there — it observes, it never signs a decision.* | Clone the repo; needs a CUDA host. |
-| **[agentbox](https://github.com/DreamLab-AI/agentbox)** | Sovereign agent runtime — reproducible Nix container, a `did:nostr` key minted per agent at spawn, 130 skills, RuVector semantic memory, NIP-59 session mirror, Solid pod bridge. *Reproduce, audit, control.* | Clone the repo; `nix` build. |
-| **[solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs)** | Personal-data-sovereignty layer — Rust Solid pod server (LDP, WAC, NIP-98, DID:Nostr, WebID). Every write is a git-mark commit; high-value writes anchor to Bitcoin. *The exit right sits in the floor, not granted at the door.* | Clone the repo; `cargo` build. |
-| **[nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum)** | Human+agent communication substrate — Nostr-native forum + relay in Rust. The one place a human decision is cryptographically signed (ACSP kinds 31400–31405). *The one place a decision gets signed.* | Clone the repo; Cloudflare Workers + Leptos WASM. |
-| **[dreamlab-ai-website](https://github.com/DreamLab-AI/dreamlab-ai-website)** | Commercial face — DreamLab AI company site, a thin consumer of the forum kit at the Cloudflare edge. | Clone the repo. |
-| **[loom](https://github.com/DreamLab-AI/loom)** | Grounding node — a portable, model-swappable façade that serves the reasoned knowledge graph into any model's context at query time (the context-assembly layer). *The stable door; models swap behind it.* | Clone the repo; `docker compose up`. |
-| **[Codescape](https://github.com/DreamLab-AI/codescape)** (born as a VisionClaw section, ADR-2143; now its own repository) | Code-graph section: a near-real-time 3D view of a codebase that humans and agents share over push-to-talk voice. Its own Cargo workspace and compose service, isolated from the knowledge-work system by tested boundaries, reusing the V3/V5 wire so the desktop and XR clients render it unchanged (ADR-2143, diagrams [VC-39](docs/diagrams/visionclaw/39-codescape.md)). | Inside VisionClaw: opt-in `CODESCAPE=1`, then `/codescape/` on the dev port 3001. |
-
-Each sibling in its own words:
-
-<details>
-<summary><b>VisionClaw</b> — <em>flagship engine, ontology-grounded immersive 3D knowledge graph</em></summary>
-<br/>
-
-> **Agent swarms are invisible; VisionClaw makes them something you can stand inside and watch.** It reasons over a curated corpus with an OWL 2 EL engine (Whelk, 5,975 classes), settles the result as a 3D graph under GPU physics, and renders agents acting inside it — desktop and Quest 3 alike, every agent action drawn as a beam to the concept it touched. It observes and never signs: the engine you can watch is deliberately not the surface that can commit.
-
-</details>
-
-<details>
-<summary><b>agentbox</b> — <em>sovereign agent runtime</em></summary>
-<br/>
-
-> **An agent runtime you can't reproduce is an audit you can't run — Agentbox is a byte-for-byte reproducible Nix container driven by one TOML manifest.** Every agent is minted its own `did:nostr` key at spawn, every durable write passes a privacy filter into a cryptographic audit trail, and what agents may touch is bounded by explicit fail-closed gates. Reproduce the runtime, audit every action, control every capability.
-
-</details>
-
-<details>
-<summary><b>solid-pod-rs</b> — <em>personal-data-sovereignty layer</em></summary>
-<br/>
-
-> **Your data's exit right should sit in the floor, not be granted at the door — solid-pod-rs gives every human and agent a self-owned RDF pod under their own key.** A Rust-native Solid Protocol server with WAC access control and `did:nostr` identity; every write is a git-mark commit and high-value writes anchor to Bitcoin. Standards-based sovereignty: leave at any time, and take everything with you.
-
-</details>
-
-<details>
-<summary><b>nostr-rust-forum</b> — <em>human+agent communication substrate</em></summary>
-<br/>
-
-> **Machine coordination is cheap; accountable decisions are not — this forum is the one place in the mesh where a decision gets signed.** Humans and agents are the same kind of participant: each holds a `did:nostr` keypair and publishes Schnorr-signed events to an immutable log, so every governance outcome carries a human signature by construction. The kit ships vanilla — one TOML file stands up a community, no forking.
-
-</details>
-
-<details>
-<summary><b>dreamlab-ai-website</b> — <em>commercial face, a thin consumer of the forum kit</em></summary>
-<br/>
-
-> **The commercial face of the mesh, running on the mesh's own rails.** A React marketing site and a Rust/Leptos WASM community forum share one Cloudflare-edge origin, end-to-end encrypted where it matters. It is deliberately a thin consumer of the nostr-rust-forum kit — branding and zone config live here, the protocol lives upstream — living proof the kit stands up a real community without a fork.
-
-</details>
-
-<details>
-<summary><b>loom</b> — <em>grounding node, the stable model-swappable door</em></summary>
-<br/>
-
-> **Your LLM doesn't know your data — Loom makes any LLM answer from it, verifiably.** Point any OpenAI-compatible client at one URL and every answer is grounded in your curated, reasoner-checked private corpus: recall on in-domain questions rises from as low as 0.15 to ~0.94, faster than the bare model, with every claim traceable to a corpus generation. The model is just a URL behind the door — swap it for the next one and nothing else changes, because the knowledge lives in the corpus you govern, not the weights you rent.
-
-</details>
-
-<details>
-<summary><b>Codescape</b> — <em>a shared 3D view of a codebase, born as a VisionClaw section</em></summary>
-<br/>
-
-> **Humans and agents work in the same near-real-time 3D view of a codebase, and you steer it by voice.** Codescape extracts a code graph from one or more repositories, lays it out on the GPU or the CPU, and streams it to a desktop browser client and the Godot XR client from one port, with agents appearing at the node they touch. Two crates (`codescape-model`, `codescape-collab`) are MIT OR Apache-2.0 on crates.io; the rest is AGPL-3.0-only. The CPU layout runs standalone; the CUDA layout and the deploy contract lean on VisionClaw, and source and CI do not establish headset or GPU acceptance. See [ADR-2143](https://github.com/DreamLab-AI/VisionClaw/blob/main/docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md) and diagram [VC-39](docs/diagrams/visionclaw/39-codescape.md).
-
-</details>
-
-<details>
-<summary><b>knowledgeGraph</b> — <em>the published corpus at narrativegoldmine.com</em></summary>
-<br/>
-
-> **8,100+ ordinary Obsidian markdown pages whose frontmatter compiles losslessly into a formal OWL 2 ontology — pure TBox, every page a class, zero individuals by design.** Corpus, pipeline, viewer and method ship as one open release (ODbL-1.0 data, AGPL-3.0 pipeline) published as OKF v0.2 via Quartz at narrativegoldmine.com; siblings reason over it (VisionClaw) and serve it as measured LLM grounding (Loom, ~0.94 grounded recall), and third-party extractors such as OntoCast stage RDF into it as governed, reviewable candidates. Rigorous curation is amortised once and reused per query — this repo is the once.
-
-</details>
-
-<details>
-<summary><b>sidestr-rs</b> — <em>the economic engine for did:nostr agents</em></summary>
-<br/>
-
-> **sidestr-rs — Rust port of Melvin Carvalho's sidestr sidechains, AGPL-3.0-only: the economic engine for did:nostr agents. A did:nostr key is a sidechain wallet.** Eight crates are on crates.io (`sidestr-header`, `-core`, `-nostr`, `-wallet`, `-round`, `-hitch`, `-agent` and `webledgers-teller`), each tested against its JavaScript reference as an oracle. The 2026-10-01 parity release follows `sidestr/spec` through `fe689e9`: activated assets, constant-product pools, binary prediction markets, exact producer eviction, federated tip trust, shared relay connections and restorable EVM history. The EVM crate is testnet-only and unpublished. Hitch supplies a Lightning-shaped channel kernel with revocable commitments, HTLCs, checked snapshots, invoices and one-hop routing; it is not a Lightning node and still needs a host for funding, relay I/O, chain watches, storage and broadcasting. The estate's live chain, `sidestr:dreamlab`, runs beside Bitcoin testnet4 with a public [mirror](https://dreamlab-ai.github.io/sidestr-dreamlab); on 2026-09-23 two agents with `did:nostr` keys pegged in 50,000 test sats, made three trades delivered as Nostr kind-23500 events, and pegged out, paid on testnet4. Agentbox keeps that chain instance and still runs the upstream JavaScript producer (`config/sidechain`); the Rust crates are the library component (agentbox ADR-2112). An isolated Knots 29.4.2 and rbitcoin 0.7.99 BLAKE2b testnet4 pair is synced on Dell staging, without an estate sidechain or any mainnet change. Testnet only; no real funds.
-
-</details>
-
-<details>
-<summary><b>visiontouch-rs</b> — <em>a private proof-of-principle haptic input study</em></summary>
-<br/>
-
-> **visiontouch-rs — a private study, proof of principle only, with no economic use.** A clean-room Rust host stack (Linux, EPP parallel port via ppdev) for a lawfully owned 1990s haptic arm whose vendor stack is unsupported, built for the lab's VisionFlow installation. Product names are used referentially only; the project is not affiliated with 3D Systems. The outputs are an academic paper on the method and, later, a 6-DoF pose and stylus-button input for grabbing and dragging nodes in the VisionClaw graph; that integration is not built. Physical force delivery is not yet verified. It is a supporting repository, not a substrate, and is not part of the mesh ([ADR-2017](docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md)). The repository is private and has no public link.
-
-</details>
-
-Published corpus: **[knowledgeGraph](https://github.com/DreamLab-AI/knowledgeGraph)** serves the readable `public: true` corpus — an Obsidian corpus that is also an OWL ontology, published as OKF v0.2 — at [narrativegoldmine.com](https://narrativegoldmine.com), the same ontology VisionClaw renders in 3D. Since July 2026 it also releases the corpus itself: 8,100+ public pages under ODbL-1.0, the archived seven-stage rdflib pipeline (AGPL-3.0) that compiled them losslessly into the formal ontology — 286,533 triples with the pipeline's EL-inferred closure and 101,313 resolvable edges across 6 domains at dataset 2026-08-11; live figures in [stats.json](https://narrativegoldmine.com/data/graph/stats.json) — the WasmVOWL explorer (MIT), the prebuilt artefacts, and [the method write-up](https://github.com/DreamLab-AI/knowledgeGraph/blob/main/docs/methodology/the-hybrid-approach.md). The corpus is mostly synthetic content, generated by agents under human direction by design: a testbed for the pipeline and the grounding stack it feeds, not an authoritative encyclopaedia. (The corpus *is* the ontology in markdown form — pure TBox, every page a class, zero individuals by design; the pipeline compiles it in losslessly.) Validation stands at 0 errors and 0 warnings; 1,396 classes deliberately declare more than one parent — the taxonomy is a lattice, not a tree, and the overlap is published as data.
-
-### Independent convergence — Block's Buzz
-
-In July 2026 Block (Jack Dorsey) released [**Buzz**](https://github.com/block/buzz), a self-hosted, Nostr-native team-chat + AI-agent + git platform written in Rust. It arrives independently at the substrate this ecosystem has been building since 2022: Nostr events as the source of truth, agents as first-class signed participants with their own keypairs, NIP-42/98 authentication, kind-based extensibility. Read it as industry validation of the direction, stated plainly.
-
-Where Buzz is ahead: its NIP-42 relay gate and git forge are wired end-to-end today, whereas the forum's NIP-42 gate is currently a pubkey allowlist and cross-relay mesh federation is designed, not shipped, on both sides. What Buzz does not carry: OWL 2 EL knowledge-graph grounding, Solid-pod personal-data sovereignty, immersive 3D embodiment, and closed memory/learning loops. That set is the differentiation — not a claim to win by default.
-
----
-
-### Self-improvement: the nightly dream
-
-The mesh improves itself the way it governs — agents propose, a human signs. Every repository here can run a nightly **dream cycle**: form one falsifiable hypothesis against tonight's rotation surface, measure it on the repo's real evaluators, and open a *draft* PR a human merges. The judgment-broker boundary wired into development — *evaluation is not promotion*. It is a cross-cutting loop, not a seventh substrate: it runs on **this** repository today (`dream.config.json`, a link-integrity evaluator, a dated `docs/dream-cycle/LEDGER.md`); the estate-wide orchestrator over the [agentbox](https://github.com/DreamLab-AI/agentbox) fleet, and a `did:nostr` identity per cycle, are in progress. Engine: **[dream-engine](https://github.com/DreamLab-AI/dream-engine)** — DreamLab's standalone Rust engine (`MIT OR Apache-2.0`: the gate, the loop mechanism and a CLI; agentbox keeps the estate-specific `AGPL-3.0-only` adapter), which replaces the earlier TypeScript tracking fork of rUv's [`ruvnet/dream-machine`](https://github.com/ruvnet/dream-machine), now renamed `DreamLab-AI/dream-machine` and archived. The new repository is public, with its five crates published on crates.io at 0.1.0; the agentbox adapter that consumes them is merged on agentbox main, and its image rebuild is pending. It follows *AutoDesign: Meta-Harness Optimization* ([arXiv:2608.13560](https://arxiv.org/abs/2608.13560)): *freeze the model, evolve the harness.*
-
-That loop now reads a nightly estate check. At 02:30 UTC `.github/workflows/estate-health.yml` queries every repository in the estate — CI on the default branch, open PRs, latest release, last commit — along with the public surfaces and the published crates, and commits one snapshot, `website/static/data/estate-health.json`, which deploys through the same publication gates as the rest of the site and renders as the **Nightly estate check** section on [www.visionflow.info](https://www.visionflow.info/#estate). The dream cycle *reads* that file and never collects it — the annexe holds no credentials, so a red repository is evidence for the next night's hypothesis, not a live query. It replaces the hand-maintained closeout table, which was accurate at 08:00Z and stale by the evening. Governed by [ADR-2008](docs/adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md).
-
-## Six Substrates, One Identity
-
-One canonical diagram. The identity spine is the coordination primitive: no shared session store, no token exchange between tiers — the same `did:nostr` keypair is login, WAC principal, provenance author, DID subject and payment account at once.
+## How the pieces fit
 
 ```mermaid
 flowchart TB
-    subgraph VF["VisionFlow Coordination Canon"]
-        direction LR
-        MESH["Nostr Relay Mesh\n(NIP-01 WS · pubkey allowlist)"]
-        DID["did:nostr Identity Spine\n(secp256k1 everywhere)"]
-        WAC["WAC Access Control\n(Solid Protocol)"]
-        PROV["Provenance\n(content-addressed beads)"]
-    end
-
-    subgraph VC["VisionClaw — Embodiment / Observation"]
-        OWL["OWL 2 EL + Whelk\n(SHACL-lite advisory)"]
-        GPU["83 CUDA Kernels\n(semantic physics)"]
-        XR["Immersive XR\n(multi-user, one renderer)"]
-        MCP_VC["7 Ontology MCP Tools"]
-    end
-
-    subgraph AB["agentbox — Sovereign Runtime"]
-        AGENTS["130 Agent Skills\n(manifest-driven)"]
-        NIX["Reproducible Runtime\n(Nix flakes)"]
-        MEM["RuVector Memory\n(1.17M+ embeddings)"]
-        BRIDGE["12 MCP Ontology Tools\n(SPARQL bridge)"]
-    end
-
-    subgraph PROTO["Protocol Layer"]
-        SPR["solid-pod-rs\n(JSS Rust port, 99.2% strict parity, 264 rows)"]
-        NRF["nostr-rust-forum\n(ACSP 31400-31405)"]
-    end
-
-    subgraph EDGE["DreamLab Edge"]
-        SITE["dreamlab-ai-website\n(thin forum-kit consumer)"]
-    end
-
-    VC <--> VF
-    AB <--> VF
-    PROTO <--> VF
-    EDGE <--> VF
-
-    VC <-.->|"case queue\ngraph-state ingress"| AB
-    SPR -->|"dep"| NRF
-    SPR -->|"dep"| AB
-    SPR -->|"dep"| VC
-
-    style VF fill:#1a1a2e,stroke:#e94560,color:#fff
-    style VC fill:#0a1a2a,stroke:#00d4ff,color:#fff
-    style AB fill:#1a0a2a,stroke:#8b5cf6,color:#fff
-    style PROTO fill:#0a2a1a,stroke:#10b981,color:#fff
-    style EDGE fill:#2a1a0a,stroke:#f59e0b,color:#fff
+    AUTHOR["Author: Markdown notes"] --> OM["Ontomark: parse, validate, reason, compile"]
+    PLUGIN["Obsidian plugin: local authoring and reviewed edits"] --> AUTHOR
+    OM --> BUNDLE["Versioned ontology artefacts"]
+    BUNDLE --> KG["knowledgeGraph: public distribution"]
+    BUNDLE --> VC["VisionClaw: knowledge graph and spatial observation"]
+    BUNDLE --> LOOM["Loom: retrieval and model grounding"]
+    LOOM --> AB["Agentbox: controlled agent execution"]
+    AB -->|"proposals and activity"| VC
+    AB -->|"scoped data access"| POD["solid-pod-rs: personal data"]
+    FORUM["nostr-rust-forum: communication and review"] -.->|"governance event contract"| VC
+    FORUM --> EDGE["dreamlab-ai-website: branded consumer"]
+    CS["Codescape: separate code graph"] -.->|"shared wire and host deployment"| VC
+    DE["dream-engine: measured improvement proposals"] --> HOST["Repository-specific nightly hosts"]
+    SR["sidestr-rs: economic protocol libraries"] -.->|"consumer-specific integration"| AB
 ```
 
-That single keypair is gated at the relay by a pubkey allowlist, verified at every HTTP request via NIP-98 Schnorr signatures, evaluated against WAC ACLs on every pod read/write, embedded in every provenance bead as author, and resolvable as a DID Document at `/.well-known/did.json`. The full contract is in [`docs/protocol/identity-spine.md`](docs/protocol/identity-spine.md).
+Arrows describe ownership and intended data flow; they do not certify that every edge is active in one deployment. Solid pods, governance events, grounding requests and graph-position frames have different contracts. The [cross-estate diagrams](docs/diagrams/estate/) and [compatibility matrix](docs/architecture/compatibility-matrix.md) track those seams explicitly.
 
----
+### One workflow: from a note to shared knowledge
 
-## Quickstart
+1. An author writes Markdown with ontology frontmatter. Ontomark builds a typed model, reports unsupported constructs and produces machine-readable artefacts.
+2. Consumers use an identified corpus generation. VisionClaw makes knowledge visible; Loom selects context for model requests. Private working knowledge and public releases remain distinct projections.
+3. An agent proposes a change. The human review path and consistency checks decide whether it may proceed; a proposal is not an accepted fact.
+4. A pull request or reviewed edit carries the change through the owning repository's workflow. Merge observation and downstream refresh depend on the configured adapters and credentials.
 
-VisionFlow has no application runtime of its own — it is the canon repo. There are two honest things to do here.
+Read the [sovereign corpus contracts](docs/engineering/sovereign-corpus-contracts.md), [identity spine](docs/protocol/identity-spine.md) and [mesh smoke-test procedure](docs/protocol/mesh-smoke-test.md) for the integration requirements. These boundaries matter for research corpora, engineering handover, organisational knowledge and immersive teaching alike.
 
-**1. Build and verify the marketing website locally.** The site is a Rust/WASM build under `website/`, driven from `package.json`:
+<details>
+<summary><strong>Identity, reasoning and grounding: the terms used across the estate</strong></summary>
+
+The identity spine uses `did:nostr` identifiers derived from secp256k1 public keys. Each service still needs its own verification, authorisation, replay and key-custody policy. Sharing an identifier does not grant a capability or establish that every consumer implements the same policy.
+
+An **ontology** defines vocabulary and axioms. A **knowledge graph** holds represented knowledge using those terms. **Reasoning** derives consequences under the engine's supported formal profile. **Grounding** selects corpus material for a model's context. None of these alone proves that a claim in the corpus is true or that a generated answer is correct.
+
+The published corpus is a testbed that includes synthetic material, rather than an authoritative encyclopaedia. Research results must retain their dataset, model and evaluation scope. See the [terminology guide](docs/terminology.md), [Loom research](https://github.com/DreamLab-AI/loom/tree/main/docs/research) and [published corpus repository](https://github.com/DreamLab-AI/knowledgeGraph).
+
+</details>
+
+## Build the website
+
+The website is static HTML, CSS and JavaScript with a WebGL2 mesh experience. Its build copies the static tree, stages declared assets and writes an asset receipt. Node is required for the build scripts; there is no Rust or WASM compilation step.
 
 ```bash
 npm ci
-npm run build     # runs website/build.sh — wasm-pack builds both WASM crates, writes website/dist/
-npm run verify    # build + CDP sidecar check + Playwright site tests (see docs/site-verification.md)
+npm run build
+# Output: website/dist/
+
+# Serve it locally with any static HTTP server, for example:
+python3 -m http.server 8000 --directory website/dist
 ```
 
-`npm run verify` expects the external Chrome sidecar (`npm run check:sidecar` probes `/json/version`); CI uses the same sidecar and installs no local Chromium. Verification status against the website PRD lives in [`docs/site-verification.md`](docs/site-verification.md).
+Open `http://localhost:8000`. Python is only one option for serving the built files.
 
-**2. Run the real systems — from their own repositories.** The runtime lives in the siblings, each with its own README and build path:
+```bash
+npm run check:assets
+npm run test:gates
 
-| Want to run… | Clone | Build path |
-|:-------------|:------|:-----------|
-| The 3D knowledge-graph engine | [VisionClaw](https://github.com/DreamLab-AI/VisionClaw) | Docker + CUDA host |
-| A sovereign agent runtime | [agentbox](https://github.com/DreamLab-AI/agentbox) | Nix flake container |
-| A personal Solid pod server | [solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) | `cargo build` |
-| The forum + relay + governance UI | [nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum) | Cloudflare Workers + Leptos |
+# Full verification also needs the external Chrome/CDP sidecar:
+npm run verify
+```
 
----
+The sidecar prerequisites and browser checks are documented in [site verification](docs/site-verification.md). A successful static build establishes that the declared assets can be staged; it does not establish that a browser journey or a sibling service works.
 
-## Documentation
+<details>
+<summary><strong>What CI publishes and checks</strong></summary>
 
-Everything below is local to this repository and verified present on disk.
+[`deploy.yml`](.github/workflows/deploy.yml) builds [`website/static/`](website/static/) through [`website/build.sh`](website/build.sh), checks the candidate and uploads `website/dist/` as a GitHub Pages artefact. The build writes `www.visionflow.info` into its CNAME.
 
-| Document | What it holds |
-|:---------|:--------------|
-| [`docs/README.md`](docs/README.md) | Docs index — ADR-002, the PRDs, compatibility matrix, roadmap |
-| [`docs/ecosystem-map.md`](docs/ecosystem-map.md) | Synthesis of the sibling repositories, system flows and gap register |
-| [`docs/terminology.md`](docs/terminology.md) | The terminology playbook — ontology, knowledge graph, reasoning and grounding, each defined once and used that way across every surface |
-| [`docs/roadmap.md`](docs/roadmap.md) | Phased roadmap from docs honesty to mesh proof and operations |
-| [`docs/architecture/repository-map.md`](docs/architecture/repository-map.md) | Local path and role map for the federated repositories |
-| [`docs/architecture/licensing.md`](docs/architecture/licensing.md) | Licence boundaries across the ecosystem |
-| [`docs/protocol/identity-spine.md`](docs/protocol/identity-spine.md) | The shared `did:nostr` identity contract |
-| [`docs/site-verification.md`](docs/site-verification.md) | Website verification status against the PRD acceptance criteria |
-| [`docs/closeout/final-design.md`](docs/closeout/final-design.md) | The 2026-07-03 closeout audit — the honest source for what is shipped versus overstated |
-| [`MAINTAINERS.md`](MAINTAINERS.md) | Maintainers and upstream IP attribution |
+Blocking publication checks cover the declared asset inventory, build output, internal links, metadata, structured data and diagram baseline. The drift counter's enforcement depends on whether the pinned sibling source is available. The [build receipt tooling](scripts/website-assets.mjs) records the artefact revision, asset hashes and inventory results.
 
-Longer-form: the canonical vision report is under [`presentation/report`](presentation/report/) (LaTeX `main.tex`), the pitch decks in [`pitch/`](pitch/), and the packaged PDFs in [`pdf-reports/`](pdf-reports/).
+The [estate-health workflow](.github/workflows/estate-health.yml) collects repository and public-surface information into [`estate-health.json`](website/static/data/estate-health.json). The website displays that committed snapshot. It is dated evidence, not a query made when a visitor opens the page.
 
----
+The [dream configuration](dream.config.json) supplies this repository's improvement evaluators. An accepted experiment is not a deployment or proof of cross-estate acceptance.
 
-## Status & remaining work
+</details>
 
-*Core rows dated 2026-08-15; sidestr rows added 2026-10-01. Maturity words are pinned to the ADR-002 ladder (historical / planned / scaffolded / standalone / integrated / federation-verified / released). The canonical work register is VisionClaw's `docs/TODO-unified.md`; this table cites it and does not contradict it. Where the running code falls short of the principle, that is stated in the same breath. The August 2026 gap-closure lands the trust-layer edges (SHACL, PROV-O, relay AUTH, mesh federation, the elevation terminus) at `integrated`; `federation-verified` is still earned only by the cross-substrate live-session smoke-test.*
+## Working status
 
-| Capability | Maturity | Honest boundary |
-|:-----------|:---------|:----------------|
-| OWL 2 EL + Whelk reasoning (VisionClaw) | integrated | Real and running — 5,975 classes. |
-| W3C SPARQL query | integrated | Real (Oxigraph). No Neo4j anywhere — that is retired. |
-| SHACL shape validation | integrated | The `.shacl.ttl` NodeShapes load into Oxigraph and gate the write path as a dual-mode enforcing gate. |
-| PROV-O provenance | integrated | Reified as queryable RDF triples on the governed write path — decision provenance is answerable in SPARQL. |
-| GPU graph physics | released | 83 CUDA kernels / 10 `.cu` files / 6,302 LOC. ~17k nodes live (17,147 captured); higher figures are benchmarked capacity, not live count. |
-| Hexser handlers / Actix actors | released | 44 handlers (19 directive + 25 query); 35 Actix actors; 9 ports / 12 adapters — re-verified against the live tree. |
-| `did:nostr` identity spine | integrated | One keypair as login + WAC principal + provenance author + DID subject + payment account. |
-| sidestr protocol and agent wallet | released | Eight AGPL crates are published and the `fe689e9` reference-oracle CI is green. `sidestr:dreamlab` proves the economic loop on testnet4, but Agentbox still runs the JavaScript producer; the Rust producer is not deployed. |
-| sidestr assets, pools, prediction markets and EVM | standalone | Rule activation, replay and composition are tested end to end. No estate chain has activated these overlays; `sidestr-evm` remains unpublished and testnet-only. |
-| Hitch payment channels | standalone | The published Rust kernel matches Hitch's scripts and wire messages and covers HTLCs, recovery, snapshots, invoices and one-hop routing. Host services are absent, and it does not speak to Lightning peers. |
-| ACSP signed governance (kinds 31400–31405) | integrated | Six-kind protocol live; only the admin key publishes a Decision (31403). Serves one use case today — ontology concept elevation, capped at 5 concurrent — narrower than "universal human-in-the-loop". |
-| agentbox skills | released | **124** skills (skills estate audit 2026-08-21; re-counted 2026-09-04 against the rebuilt image). Every "115"/"116" copy is stale. |
-| RuVector semantic memory | released | 1.17M+ embeddings. |
-| Sovereign mesh (agentbox, allowlisted relay) | integrated | Condense scheduler + relay allowlist live; cross-org federation routes IS-Envelopes across nodes. |
-| Cross-org mesh federation | integrated | The `nostr-bbs-mesh` `MeshTransport`, peer discovery and IS-Envelope routing carry envelopes between sovereign nodes; `federation-verified` awaits the live-session smoke-test. |
-| Judgment Broker | integrated | Runs as an `ElevationActor` / case queue on VisionClaw `main` (superseded the distributed `BrokerActor`, ADR-130). On approve, the Whelk EL++ consistency gate runs before the PR opens (GOV-7); elevation terminates at PR creation — no `ConceptElevated` event fires on merge yet (verified absent in source 2026-09-06). |
-| Forum NIP-42 relay AUTH | integrated | NIP-42 challenge/response enforced at the relay. |
+**Reviewed 21 October 2026.** This repository ships documentation, site assets and verification tooling. Runtime claims belong to their implementation repositories. Read a status word together with its revision, feature flags, deployment configuration and acceptance evidence.
 
-For the full grading and the wager — every open gap becoming a dated, falsifiable commitment — see [`docs/closeout/final-design.md`](docs/closeout/final-design.md) (2026-07-03 audit, Theme T7) and VisionClaw's `docs/TODO-unified.md`.
+| Surface | What this checkout establishes | What needs separate evidence |
+|---|---|---|
+| Public website | Static source, build, asset inventory and publication workflow | Current deployed revision and browser behaviour |
+| Architecture and diagrams | A traceable source map with declared revision stamps | Semantic review after source changes; live integration |
+| Estate health | A CI-collected, committed snapshot | Anything that changed after collection |
+| Shared ontology | Ontomark ownership and explicit consumer projections are documented | Consumer upgrades, generation alignment and deployment |
+| Governance | Proposal, review and identity contracts are documented | A complete configured live session across the participating services |
+| Dreaming | Repository-specific experiment configuration and records | Host activation and any estate-wide orchestration claim |
+| GPU, XR and haptics | Product-specific source and evidence links | Hardware acceptance on the intended device |
 
----
+The canonical maturity vocabulary is explained in the [status reconciliation](docs/architecture/status-reconciliation.md). Do not raise the maturity of a whole mesh from a passing unit test, a package release or a single working consumer.
 
-## Upstream & licence
+<details>
+<summary><strong>Recent changes to follow in the implementation repositories</strong></summary>
 
-VisionFlow's protocol layer builds on [Melvin Carvalho](https://github.com/melvincarvalho)'s [JavaScriptSolidServer (JSS)](https://github.com/JavaScriptSolidServer/JavaScriptSolidServer) and [DID:Nostr](https://github.com/nicholasgasior/did-nostr). solid-pod-rs is a Rust port; protocol-level decisions defer to upstream JSS. The SAND stack — **S**olid + **A**ctivityPub + **N**ostr + **D**ID — binds a WebID, a Nostr pubkey and a DID document into one verifiable identity chain via the `alsoKnownAs` triple.
+- **Shared authoring and certificates:** Ontomark's compiler is the shared producer. The recent derivation-certificate work and VisionClaw's `vault certify` / consequence-delta tooling extend the explanation of inferred consequences. Follow [Ontomark's decisions](https://github.com/DreamLab-AI/ontomark/tree/main/docs/adr) and the [VisionClaw ontology diagram](docs/diagrams/visionclaw/20-ontology-pipeline-oxigraph-whelk.md) at their declared revisions.
+- **Codescape extraction:** the code-graph product has its own repository and workspace. It shares wire/deployment contracts with VisionClaw while excluding the knowledge-work stores. See [the Codescape diagram](docs/diagrams/visionclaw/39-codescape.md) and its [governing baseline](https://github.com/DreamLab-AI/codescape/blob/main/docs/BASELINE-codescape.md).
+- **Dream Engine extraction:** the current Rust crates are distinct from the historical TypeScript fork. [The estate diagram](docs/diagrams/dream-engine/01-crates-licence-boundary-and-estate-status.md) separates library publication from Agentbox adapter activation.
+- **Pod forge and mirror:** [ADR-2019](docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md) records the consumer-specific policy. The decision, compiled features, running service and configured follow list are separate facts; the forum's Worker tier cannot run a native git forge.
 
-Licensing today is **AGPL-3.0-only across all four code repos** — VisionClaw's `LICENSE` and `Cargo.toml` say AGPL-3.0-only, as do solid-pod-rs, agentbox and nostr-rust-forum — a network-service copyleft that preserves the upstream JSS ecosystem. A **proposed** relicense would move VisionClaw to [MPL 2.0](https://github.com/DreamLab-AI/VisionClaw/blob/main/LICENSE.MPL) (the file ships in-tree but is not yet operative). Boundaries and commercial-licensing routes: [`docs/architecture/licensing.md`](docs/architecture/licensing.md) and [MAINTAINERS.md](MAINTAINERS.md).
+</details>
 
----
+## Read the architecture
 
-<div align="center">
+| Entry point | Use it for |
+|---|---|
+| [Documentation index](docs/README.md) | Requirements, architecture, protocols and engineering guides |
+| [Current baseline](docs/BASELINE-visionflow.md) and [decision ledger](docs/adr/README.md) | This repository's governing architecture and amendments |
+| [Repository map](docs/architecture/repository-map.md) | Repository ownership and local checkout paths |
+| [Compatibility matrix](docs/architecture/compatibility-matrix.md) | Cross-service integration and acceptance boundaries |
+| [Diagrams as code](docs/diagrams/README.md) | Detailed sequences, dependencies, source references and revision stamps |
+| [Release manifests](docs/releases/README.md) | Identified component revisions for coordinated releases |
+| [Estate review](docs/estate-review/README.md) | Dated audits and their evidence limits |
+| [Roadmap](docs/roadmap.md) | Work still needed to earn stronger integration claims |
 
-**VisionFlow is built by [DreamLab AI](https://www.dreamlab-ai.com) — coordination engineering for federated human–AI intelligence.**
+To improve the canon, change the relevant source document, follow its implementation links and update assertions that the current code no longer supports. Keep historical evidence dated. For website changes, run the build and appropriate publication checks before proposing the change.
 
-[VisionClaw](https://github.com/DreamLab-AI/VisionClaw) · [agentbox](https://github.com/DreamLab-AI/agentbox) · [solid-pod-rs](https://github.com/DreamLab-AI/solid-pod-rs) · [nostr-rust-forum](https://github.com/DreamLab-AI/nostr-rust-forum) · [sidestr-rs](https://github.com/DreamLab-AI/sidestr-rs) · [dreamlab-ai-website](https://github.com/DreamLab-AI/dreamlab-ai-website)
+## Attribution and reuse
 
-</div>
+Maintained by [DreamLab AI](https://www.dreamlab-ai.com/) and [John O'Hare](https://github.com/jjohare); see [MAINTAINERS.md](MAINTAINERS.md). The Solid and identity lineage includes [Melvin Carvalho](https://github.com/melvincarvalho)'s [JavaScriptSolidServer](https://github.com/JavaScriptSolidServer/JavaScriptSolidServer), DID:Nostr and [Web Ledgers](https://webledgers.org/).
+
+Licences vary across the estate: server/application code, permissive libraries, published data and third-party assets have distinct terms. Use each repository's licence and notices. This checkout has no root licence grant; its [licence notes](LICENSES/README.md) require maintainer confirmation for reuse of local documentation and website assets outside the ecosystem. The [licensing map](docs/architecture/licensing.md) is a navigation aid, not a substitute for those terms.

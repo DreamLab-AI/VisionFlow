@@ -1,0 +1,25 @@
+README UPDATE: 53af1cff3b2d552401ac606b172cf7fb6a368ad2|2026-10-17T09:44:02Z|release: 0.3.6 — repin engine v0.4.0
+HEAD: 53af1cff3b2d552401ac606b172cf7fb6a368ad2
+
+COMMITS SINCE README
+
+
+RECENT HISTORY
+53af1cf 2026-10-17T09:44:02Z release: 0.3.6 — repin engine v0.4.0
+8830665 2026-10-17T09:14:05Z chore: ignore .claude/ (agent worktrees)
+8e45c60 2026-10-17T09:13:40Z Merge: excluded folders and Obsidian's excluded files are not indexed (ADR-OBS-005)
+7b4f545 2026-10-17T09:12:56Z release: 0.3.5 — excluded folders and Obsidian's Excluded files (ADR-OBS-005)
+fd83471 2026-10-16T13:44:04Z release: 0.3.4 — repin engine v0.3.0
+cc30629 2026-10-13T11:05:52Z docs: point manual install at 0.3.3; say which engine the benchmark used
+548a7fb 2026-10-13T10:50:45Z docs: Bases needs note["subclass-of"] for a hyphenated property; tighten two claims
+1e99372 2026-10-13T10:48:39Z release: 0.3.3 — repin engine v0.2.2, list-form guidance, refreshed screenshots
+74b6865 2026-10-13T10:43:51Z docs: recommend list-form relations; accept info diagnostics
+f71b3ca 2026-10-13T10:36:01Z release: 0.3.2 — tracked glue typings carry no blanket lint directives
+8b32ea2 2026-10-13T10:30:09Z release: 0.3.1 — declarative settings tab, typed wasm glue
+6dd648b 2026-10-13T10:18:37Z release: 0.3.0 — SPARQL in a note, after Dot Triples (ADR-OBS-004)
+9b33cd2 2026-10-13T01:20:25Z engine: repin to ontomark v0.2.1
+0c01806 2026-10-12T20:46:51Z release: 0.2.2 — same code as the re-tagged 0.2.1
+ab9a513 2026-10-12T20:45:57Z release: 0.2.1 — clear the directory review's remaining lint
+059492f 2026-10-12T20:39:25Z release: 0.2.1 clears the directory's automated review
+8a22001 2026-10-12T20:36:13Z release: 0.2.1 — directory review fixes
+1d0c3b6 2026-10-12T20:34:04Z release: directory review fixes — full-stop description, reachable authorUrl, detectable LICENSE

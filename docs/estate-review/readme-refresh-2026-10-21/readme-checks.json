@@ -1,0 +1,100 @@
+[
+  {
+    "repo": "VisionFlow",
+    "issues": [],
+    "unicode_exit": 0,
+    "diff_exit": 0,
+    "details_balanced": true
+  },
+  {
+    "repo": "VisionClaw",
+    "issues": [],
+    "unicode_exit": 0,
+    "diff_exit": 0,
+    "details_balanced": true
+  },
+  {
+    "repo": "agentbox",
+    "issues": [],
+    "unicode_exit": 0,
+    "diff_exit": 0,
+    "details_balanced": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "issues": [],
+    "unicode_exit": 0,
+    "diff_exit": 0,
+    "details_balanced": true
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "issues": [],
+    "unicode_exit": 0,
+    "diff_exit": 0,
+    "details_balanced": true
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "issues": [],
+    "unicode_exit": 0,
+    "diff_exit": 0,
+    "details_balanced": true
+  },
+  {
+    "repo": "loom",
+    "issues": [],
+    "unicode_exit": 0,
+    "diff_exit": 0,
+    "details_balanced": true
+  },
+  {
+    "repo": "knowledgeGraph",
+    "issues": [],
+    "unicode_exit": 0,
+    "diff_exit": 0,
+    "details_balanced": true
+  },
+  {
+    "repo": "sidestr-rs",
+    "issues": [],
+    "unicode_exit": 0,
+    "diff_exit": 0,
+    "details_balanced": true
+  },
+  {
+    "repo": "ontomark",
+    "issues": [],
+    "unicode_exit": 0,
+    "diff_exit": 0,
+    "details_balanced": true
+  },
+  {
+    "repo": "ontomark-obsidian",
+    "issues": [],
+    "unicode_exit": 0,
+    "diff_exit": 0,
+    "details_balanced": true
+  },
+  {
+    "repo": "dream-engine",
+    "issues": [],
+    "unicode_exit": 0,
+    "diff_exit": 0,
+    "details_balanced": true
+  },
+  {
+    "repo": "visiontouch-rs",
+    "issues": [],
+    "unicode_exit": 0,
+    "diff_exit": 0,
+    "details_balanced": true
+  },
+  {
+    "repo": "codescape",
+    "issues": [],
+    "unicode_exit": 0,
+    "diff_exit": 0,
+    "details_balanced": true
+  }
+]

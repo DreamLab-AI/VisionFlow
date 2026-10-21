@@ -1,0 +1,56 @@
+drift-counter.mjs regression tests
+==================================
+
+[1] a policed figure that agrees with the source passes
+  ok   reports PASS
+  ok   site reported ok
+  ok   exit 0
+
+[2] an intentional mismatch at a policed site is detected
+  ok   reports FAIL
+  ok   names the drift
+  ok   shows stated vs truth
+  ok   exit 1 on drift
+
+[2b] the mismatch is machine-readable for CI
+  ok   ok:false in JSON
+  ok   finding is ok:false
+  ok   denominator is published
+
+[3] a policed site whose file has moved fails the gate
+  ok   reports file-missing
+  ok   reports FAIL
+  ok   exit 1 on unreadable policed site
+
+[4] a policed site whose pattern no longer matches fails
+  ok   reports site-missing
+  ok   exit 1 on vanished figure
+
+[5] a sibling checkout off the pinned revision fails the gate
+  FAIL pin failure reported
+     expected to find: source pin  : FAIL
+  FAIL names the pinned revision
+     expected to find: 0000000000000000000000000000000000000000
+  FAIL exit 1 on pin mismatch
+     got 0
+
+[5b] --allow-pin-drift downgrades the pin mismatch to a warning
+  FAIL warned, not failed
+     expected to find: source pin  : WARN
+  ok   gate still passes
+  ok   exit 0 with explicit override
+
+[6] the committed allowlist passes with no unreadable policed site
+  ok   reports PASS
+  ok   no file-missing
+  ok   no site-missing
+  FAIL pin verified
+     expected to find: source pin  : OK
+  FAIL archived ADR-002 site is read
+     expected to find: docs/archive/adr/ADR-002-ecosystem-alignment-governance.md
+  ok   unavailable axis states its exit condition
+  ok   exit 0
+
+==================================
+passed: 22   failed: 6
+DRIFT-COUNTER-TESTS-FAIL

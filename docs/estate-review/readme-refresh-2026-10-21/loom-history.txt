@@ -1,0 +1,29 @@
+README UPDATE: 84c029a5d2a862bc9a8007358dcb40f2cf80bd13|2026-10-13T12:05:07Z|chore(data): stop tracking the served ontomark bundle; note ADR-140 P0 delivered
+HEAD: e2e42736abe9bbaff7643f3faa23495c114958ca
+
+COMMITS SINCE README
+e2e4273 2026-10-13T14:29:02Z feat(bench): ADR-140 P1 pilot runner, preregistration and result (#4)
+fa21f97 2026-10-13T13:55:33Z docs(bench): correct the per-question disagreement counts in the P1 result
+a72361a 2026-10-13T13:55:21Z docs(bench): ADR-140 P1 pilot result and ADR-140 note
+148b017 2026-10-13T12:20:19Z feat(bench): loom-bench, the ADR-140 P1 pilot runner, with its preregistration and 40 questions
+0683a6b 2026-10-13T12:06:14Z chore(data): stop tracking the served ontomark bundle (#3)
+
+RECENT HISTORY
+e2e4273 2026-10-13T14:29:02Z feat(bench): ADR-140 P1 pilot runner, preregistration and result (#4)
+fa21f97 2026-10-13T13:55:33Z docs(bench): correct the per-question disagreement counts in the P1 result
+a72361a 2026-10-13T13:55:21Z docs(bench): ADR-140 P1 pilot result and ADR-140 note
+148b017 2026-10-13T12:20:19Z feat(bench): loom-bench, the ADR-140 P1 pilot runner, with its preregistration and 40 questions
+0683a6b 2026-10-13T12:06:14Z chore(data): stop tracking the served ontomark bundle (#3)
+84c029a 2026-10-13T12:05:07Z chore(data): stop tracking the served ontomark bundle; note ADR-140 P0 delivered
+d01dffc 2026-10-12T18:18:38Z docs(adr-142): record the first served Ontomark bundle and the reload-timer root cause
+c751fba 2026-10-12T14:56:07Z docs(adr): propose ADR-141 amendment separating generation identity from distribution; note producer in ADR-142
+eef1bec 2026-10-11T20:53:31Z feat: consume pinned Ontomark contracts and track worktree revisions
+739f71a 2026-10-11T20:17:26Z Merge publishing audit preparation into Rust reload integration with verified fixes
+f46aa7f 2026-10-11T19:33:23Z fix(loom-facade): strict marker refuses a non-string commit
+003d3f5 2026-10-11T19:32:12Z docs: lands with ontomark step 10 — repair the step-10 docs after the Codex audit
+4bac82c 2026-10-11T19:31:18Z test(ontomark/cli-publish): harden step 10 migration test; drop LM-06; add LM-04
+9275191 2026-10-11T19:26:30Z Delete the Python reloader and its test (LM-06)
+31812f5 2026-10-11T19:26:30Z docs: runbook describes the real reload_published_generation (exit codes, verify, receipt)
+dd47042 2026-10-11T19:26:12Z deploy: loom-generation-reload.service runs the Rust reload_published_generation
+8946afb 2026-10-11T19:25:59Z feat(loom-facade): reload_published_generation binary (LM-06)
+2468d1d 2026-10-11T19:25:59Z chore(loom-facade): clear four pre-existing clippy findings in the sibling bins

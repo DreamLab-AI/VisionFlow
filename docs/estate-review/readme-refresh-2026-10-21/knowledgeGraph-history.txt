@@ -1,0 +1,25 @@
+README UPDATE: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e|2026-09-23T15:48:19Z|docs(readme): add sidestr-rs to the estate components
+HEAD: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e
+
+COMMITS SINCE README
+
+
+RECENT HISTORY
+4ed9ac159d 2026-09-23T15:48:19Z docs(readme): add sidestr-rs to the estate components
+3a266fc3a2 2026-09-23T08:15:29Z ci: retire build.yml with the archived Logseq pipeline
+721d8074c5 2026-09-22T21:50:52Z chore(archive): the Logseq-format corpus and its Python pipeline move to archive/
+75a5c1f1ac 2026-09-07T13:21:44Z docs: preserve repository identity in generated ADR index
+cd0928aa6a 2026-09-07T13:16:15Z docs: land grounded corpus baseline and preserved closeout receipts
+d09a476124 2026-09-07T11:58:22Z fix(ci): archive corpus output without normalising filenames
+7b93117864 2026-09-07T11:39:28Z fix(publication): unify public projection and validated generation outputs
+2791111fc4 2026-09-06T14:18:30Z chore(explorer): move the vowl-wasm pin to 0.1.1
+3191d3ed55 2026-09-06T13:26:05Z feat(explorer): consume the published vowl-wasm engine, delete the vendored crate
+7bbf0aae2b 2026-08-31T15:11:51Z docs(adr): mint the operative decision pack (2026-08-31)
+6be5871c40 2026-08-31T13:47:52Z docs: consolidate ADR corpus — living ground truth + thin ledger (2026-08-31)
+4886fbb3da 2026-08-25T16:15:01Z playbook: Phase 6 — continuous enrichment from stream sources
+b7532bac2f 2026-08-19T09:23:48Z readme: knowledgeGraph pitch — note OntoCast governed-candidate ingest
+67ab0af13e 2026-08-19T09:13:19Z readme: unified ecosystem elevator pitches — own pitch above the fold, sibling pitches folded into the ecosystem map
+682dfccae0 2026-08-19T09:13:19Z feat(import): stage OntoCast RDF as governed Logseq candidates
+7e3f63aa13 2026-08-16T12:00:04Z docs(readme): name the nightly dream loop in the ecosystem context
+accd020e66 2026-08-15T09:55:21Z readme: promote pure TBox to the opening — it licenses the word ontology
+845c22a546 2026-08-15T09:28:29Z readme: terminology pass — corpus/ontology/knowledge-graph layers kept distinct

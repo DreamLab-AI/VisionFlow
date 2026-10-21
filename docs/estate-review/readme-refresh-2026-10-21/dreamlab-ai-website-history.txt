@@ -1,0 +1,168 @@
+README UPDATE: bb8b887dc1e7e1ee5e48215a5326f9f93e893e88|2026-09-23T15:48:16Z|docs(readme): add sidestr-rs to the estate components
+HEAD: 79635b52bb8146f521ff83d76365aa8e9ee505f8
+
+COMMITS SINCE README
+79635b52 2026-10-20T01:57:39Z dream-cycle: 2026-10-20-dreamlab-ai-website ledger row (ACCEPT)
+bca989c5 2026-10-19T22:17:28Z chore(mirrors): register the relay worker's RELAY_URL as a third site of the relay-url mirror
+ab4dcb9a 2026-10-19T22:08:09Z fix(relay-config): set RELAY_URL so NIP-42 relay-tag scoping is enforced
+32897f5b 2026-10-19T21:49:38Z feat(push): switch on Web Push for the forum relay (kit ADR-2023)
+0d50b982 2026-10-19T21:48:42Z Merge pull request #70: repin kit to 631c09f for Web Push (ADR-2023) + security remediation
+47ea9a9d 2026-10-19T21:44:33Z chore(kit): repin to nostr-rust-forum 631c09f (session-id isolate collision fix)
+e1a0163b 2026-10-19T21:04:56Z chore(kit): repin to nostr-rust-forum 516889b (deepsec remediation: four reviewed branches)
+38dd6806 2026-10-19T18:20:56Z chore(kit): repin to nostr-rust-forum c86c1e7 (logout teardown)
+fa1e6c23 2026-10-19T17:33:24Z chore(kit): repin to nostr-rust-forum 37ef113 (protected-kind broadcast gate, coach classification)
+26d571cc 2026-10-19T16:28:49Z chore(kit): repin to nostr-rust-forum d9653a2
+ffc27c52 2026-10-19T15:41:18Z chore(kit): repin to nostr-rust-forum 758058b (kind-42 channel gate fix)
+94e7d621 2026-10-19T14:51:01Z chore(kit): repin to nostr-rust-forum 92021e2 (D1 chunking, prefs gate)
+f1803233 2026-10-19T14:08:48Z chore(kit): repin to nostr-rust-forum c1ed1fb (one flush per burst, app-wide DM alerts)
+d7a0d119 2026-10-19T13:58:46Z chore(kit): repin to nostr-rust-forum 773a623fe899aa7adc024c2d82750832902d873c (throttle, flush, findings fixes)
+362a25a5 2026-10-19T13:23:07Z chore(kit): repin to nostr-rust-forum 6cf4191 for content-free Web Push (ADR-2023)
+dab39e03 2026-10-19T02:16:10Z dream-cycle: 2026-10-19-dreamlab-ai-website ledger row (REJECT)
+cf2ee9ae 2026-10-18T17:34:43Z ci(mirrors): gate the operator var mirrors and add federated_kinds and poker (ER-23)
+e6181b67 2026-10-18T11:23:24Z team (mobile): tap opens bio drawer, press-and-hold toggles roster
+ee193801 2026-10-18T01:44:56Z dream-cycle: 2026-10-18-dreamlab-ai-website ledger row (REJECT)
+08c2c025 2026-10-17T17:58:26Z Merge pull request #68 from DreamLab-AI/feat/clickthrough-estate-flyer
+3c5aa85d 2026-10-17T17:56:20Z flyer: estate edition (dark mesh infographic), corporate layout to legacy/
+9abd8e8d 2026-10-17T16:58:52Z Merge pull request #67 from DreamLab-AI/feat/clickthrough-mesh-iteration
+011ce6e8 2026-10-17T16:56:50Z Click Through landing + flyer: mesh iteration (hero, journey strip, consent, a11y)
+aa598968 2026-10-17T16:21:37Z Merge pull request #66 from DreamLab-AI/feat/clickthrough-residential
+cb65e31e 2026-10-17T16:18:41Z Click Through × DreamLab residential: hidden landing page and A4 flyer
+df144a19 2026-10-17T09:32:13Z fix(prerender): skip dep optimiser to silence 'build was canceled' noise (#65)
+fc121f28 2026-10-17T09:28:00Z test: guard that deploy.yml path filters are a subset of ci.yml's (#64)
+6fd5206c 2026-10-17T09:24:30Z dream(site-build-content): candidate for 2026-10-17-dreamlab-ai-website (#63)
+1b9071fa 2026-10-17T01:24:13Z dream-cycle: 2026-10-17-dreamlab-ai-website ledger row (ACCEPT)
+1258d69c 2026-10-15T18:49:33Z inbox-watch: page through wraps and time-box every fetch
+628efe97 2026-10-15T18:16:40Z kit: pin ea7d95e (gift wraps readable only by their recipient)
+dfa5b4f9 2026-10-15T15:57:46Z docs: ADR-2011 verified live after the kit move
+8293c444 2026-10-15T15:35:46Z inbox-watch: never mark messages seen when no operator was told
+f2407070 2026-10-15T15:09:11Z docs: BASELINE kit-pin section current; stale reset-db and pin comments
+65637de7 2026-10-15T15:07:01Z kit: pin nostr-rust-forum aee1997 (beta.16) and declare the site's ingress recipients
+e02c95d0 2026-10-15T14:36:09Z docs: ADR-2011 live, verified against the relay
+b7b7fe46 2026-10-15T14:20:41Z inbox-watch: sanitise and bound the digest; provisioning waits for AUTH
+56d1f51e 2026-10-15T14:17:06Z identity: adopt the monitor key as the website-info user (ADR-2011)
+bd02fb6f 2026-10-15T12:30:26Z seo: link internal routes with trailing slashes to stop Search Console 'Page with redirect'
+7a9c996f 2026-10-15T11:45:03Z chore: drop leftover Supabase references from docs and the smoke-test filter
+08628f06 2026-10-15T10:52:48Z feat: monitor co-recipient for contact, signup and chat + nightly inbox watch
+3ad77f59 2026-10-15T10:52:48Z dream-cycle: 2026-10-15-dreamlab-ai-website ledger row (REJECT)
+f4263e0f 2026-10-15T10:52:48Z dream-cycle: 2026-10-14-dreamlab-ai-website ledger row (ACCEPT)
+4968d138 2026-10-14T10:31:36Z dream(operator-overlay): workers.rs POD/RELAY URL constants mirror TOML unguarded… (#62)
+805a554c 2026-10-13T12:54:03+01:00 dream(site-build-content): candidate for 2026-10-13-dreamlab-ai-website (#61)
+2e358bb6 2026-10-12T19:33:20Z seo-watch: nightly SEO and agent-searchability watch alongside the dream engine (ADR-2010)
+5a6ac5fe 2026-10-12T12:38:57Z content: add two Google reviews to the testimonials page
+55e87e17 2026-10-11T13:33:29Z brand: site-wide rebrand to the golden field mark
+1e86011a 2026-10-11T13:20:28Z brand: LinkedIn diamond redrawn (05) and a constellation-diamond hybrid (06), static and animated
+88744d03 2026-10-11T13:18:35Z workshops: Module 10 assessment (15 questions, rubric)
+d685e053 2026-10-11T13:18:35Z seo: redirect pages for retired URLs and /bbs; sitemap lastmod from git history
+2a277ac7 2026-10-11T13:18:35Z content: replace synthetic testimonials with a real Google review; drop invented instructors and stale waitlist copy
+8f611919 2026-10-11T13:18:35Z brand: logos read DreamLab AI, not the collective's lowercase dreamlab; add CONSULTING variants
+9c8c3e8d 2026-10-11T14:10:17+01:00 dream-cycle: 2026-10-11-project2 ledger row (ACCEPT)
+bea5d17c 2026-10-11T12:31:21Z brand: four logo directions as SVG and animated SVG, with a preview page
+c6f5db46 2026-10-11T12:27:47Z agents: security.txt and a generated llms-full.txt
+ae4f2555 2026-10-11T12:25:33Z contact: every channel on Nostr; enquiry types match what we sell; Supabase gone
+04b6100e 2026-10-11T12:22:49Z content: one source for site facts; typos, stale lines, headings, titles
+053cd61b 2026-10-11T12:15:17Z perf+a11y: lighter desktop hero and images; contrast, landmarks, FAQ on mobile
+91484463 2026-10-11T10:39:36Z dream-cycle: 2026-10-11-dreamlab-ai-website ledger row (ACCEPT)
+b7dd8afc 2026-10-11T11:39:26+01:00 dream(ci-workflows): rust-ci.yml KIT_REF comment restated beta.14 (canonical… (#60)
+61f201e2 2026-10-11T11:32:59+01:00 dream(operator-overlay): webauthn+mesh TOML-to-wrangler mirrors unenumerated; bench… (#59)
+c6f17f98 2026-10-11T11:32:52+01:00 dream(site-build-content): candidate for 2026-10-09-dreamlab-ai-website (#58)
+710e1e28 2026-10-11T11:32:45+01:00 dream(kit-pin-integrity): candidate for 2026-10-08-dreamlab-ai-website (#57)
+869833fe 2026-10-10T14:19:22Z feat(programmes): state POA pricing and publish Course structured data
+76365663 2026-10-10T13:53:16Z feat(seo): restore homepage FAQ layer and target the training query
+978c8cc7 2026-10-10T13:51:45Z chore(seo): Google Search Console ownership verification file
+4d01cbaf 2026-10-10T13:32:00Z fix(seo): canonical URLs name the 200 response, not the Pages redirect
+ffb9544f 2026-10-10T13:13:50Z feat(workshops): add Module 10 — SEO & AI discoverability
+8c66fdee 2026-10-10T13:13:49Z feat(seo): prerender every public route and lesson to static HTML
+d02fd379 2026-10-10T01:42:09Z dream-cycle: 2026-10-10-dreamlab-ai-website ledger row (ACCEPT)
+da6ae132 2026-10-09T01:34:54Z dream-cycle: 2026-10-09-dreamlab-ai-website ledger row (ACCEPT)
+cbc47001 2026-10-08T18:14:45Z ci: avoid duplicate main-branch test gate
+bb6812ec 2026-10-08T18:06:07Z feat: surface Nostr chain tips with Git snapshots
+5578425a 2026-10-08T09:57:35Z fix(index): drop trailing full stop from hero tagline
+8c1a6f9e 2026-10-08T01:27:40Z dream-cycle: 2026-10-08-dreamlab-ai-website ledger row (ACCEPT)
+3baf2fa4 2026-10-07T11:34:38Z chore(scripts): delete the three dead seed scripts carrying a hard-coded admin key
+a93d6f61 2026-10-07T08:22:38+01:00 dream(ci-workflows): candidate for 2026-10-07-dreamlab-ai-website (#56)
+c169eeae 2026-10-07T01:24:59Z dream-cycle: 2026-10-07-dreamlab-ai-website ledger row (ACCEPT)
+ebaf16c0 2026-10-06T14:45:45+01:00 dream(operator-overlay): candidate for 2026-10-06-dreamlab-ai-website (#55)
+81a6430c 2026-10-06T14:34:42+01:00 dream(site-build-content): ` (src/lib/markdown.ts:40-49) returns `response.text()` with (#54)
+9b8627a2 2026-10-06T14:34:36+01:00 dream(kit-pin-integrity): candidate for 2026-10-04-dreamlab-ai-website (#53)
+a5148afc 2026-10-06T14:34:30+01:00 dream(ci-workflows): candidate for 2026-10-03-dreamlab-ai-website (#52)
+6920660c 2026-10-06T10:30:14Z chore(kit): pin forum kit at 72463fb — zone keys granted on allocation and at sign-in
+810abc34 2026-10-06T10:11:11Z chore(kit): pin forum kit at 8a6a106 — poker replay order, single payment per hand, queued payments
+b49a19dd 2026-10-06T09:19:22Z chore(kit): pin forum kit at 4530505 — the poker house survives a relay redeploy
+cb6ad9b7 2026-10-06T08:18:59Z chore(kit): pin forum kit at 3a424a2 — threads open at the bottom, poker on phones, board assignees by nickname
+5cb4e7c3 2026-10-06T01:35:37Z dream-cycle: 2026-10-06-dreamlab-ai-website ledger row (ACCEPT)
+53976da2 2026-10-05T19:39:50Z chore(kit): pin forum kit at d5f6308 / 1.0.0-beta.15 — ontology Promote/Demote
+737a0c98 2026-10-05T19:07:56Z chore(kit): pin forum kit at 5652c93 — re-posted requests move their case
+81490524 2026-10-05T18:44:11Z chore(kit): pin forum kit at 0f95c2d — relay refuses a malformed NIP-40 expiration
+7b7105ff 2026-10-05T18:26:50Z chore(kit): pin forum kit at faba9b7 — beta.14, ontology proposals in the governance inbox
+c5964c80 2026-10-05T01:20:52Z dream-cycle: 2026-10-05-dreamlab-ai-website ledger row (ACCEPT)
+688486b7 2026-10-04T09:58:16Z dream-cycle: 2026-10-04-dreamlab-ai-website ledger row (ACCEPT)
+d10c9cf0 2026-10-04T01:16:43Z dream-cycle: 2026-10-04-dreamlab-ai-website ledger row (ACCEPT)
+16e6cbb3 2026-10-03T20:47:42Z chore(kit): pin forum kit at d383e42 — sidestr-admin faucet (agrees with the agentbox bake)
+66095e3d 2026-10-03T19:28:51Z chore(kit): pin forum kit at 39ec4d4 — the coach box waits on "the coach"
+64231692 2026-10-03T19:10:40Z feat(forum): practice-table coach on its own key — pin kit at 428e533
+21efebac 2026-10-03T17:42:51Z feat(forum): BLAKES7 asset id on sidestr:dreamlab-txbt4 — second wallet and table go live
+5947ff61 2026-10-03T17:40:57Z chore(kit): pin forum kit at 2ef7ead — table dispose panics fixed; sidestr admin CLI
+14c76c46 2026-10-03T17:35:13Z chore(kit): pin forum kit at 34a4bd6 — the browser's seal carries the rumor id too
+bee693e7 2026-10-03T17:12:17Z chore(kit): pin forum kit at c5037e5 — sealed rumors carry their NIP-01 id (coach replies)
+0f636c00 2026-10-03T16:38:01Z feat(forum): practice-table poker coach via JunkieJarvis — pin kit at 7f7d3c9
+1c18e376 2026-10-03T16:18:40Z chore(kit): pin forum kit at fb23bf3 — click-to-copy keys, card hover-zoom (3D + flat)
+c03cd552 2026-10-03T14:47:06Z fix(scripts): toml-lite reads inline tables and quoted keys — unblocks [poker].citizens
+c36d7fd9 2026-10-03T14:42:28Z feat(forum): two sidestr chains — pin kit at 7fe04b6, BLAKES7 house seat, chain list
+92f8139e 2026-10-03T11:05:15Z chore(kit): pin forum kit at 594bfe2 — the 3D poker table (Three.js r186, WebGPU with WebGL 2 fallback, opt-in)
+b9c453db 2026-10-03T09:42:09Z feat(forum): the DREAM poker table — pin kit at d673708, name the poker-citizen house seat (ADR-2009)
+d21dbff6 2026-10-03T01:52:15Z chore(kit): pin forum kit at 8044871 — wallet coinbase maturity 6,705 (ADR-2019 D1)
+a87d2852 2026-10-03T01:19:35Z dream-cycle: 2026-10-03-dreamlab-ai-website ledger row (ACCEPT)
+6a74ef90 2026-10-02T23:58:03Z chore(kit): pin forum kit at b73ec8c — solid-pod-rs alpha.12 and sidestr agent 0.6 / core 0.4.2 / nostr 0.6
+5ab564e3 2026-10-02T21:10:41Z docs(record): deployment row follows the kit pin to 457cb8e
+62a9f112 2026-10-02T21:09:57Z feat(forum): practice poker table — pin kit at 457cb8e, switch [features] poker on
+484521bf 2026-10-02T21:08:15Z chore(kit): pin forum kit at 7a40fcf — solid-pod-rs alpha.11 and sidestr spec 0.0.5 crates
+861ab39f 2026-10-02T19:50:16Z chore(kit): pin forum kit at 1caecad — tips sit right of the reactions
+8a366a8e 2026-10-02T19:33:11Z fix(pins): align every kit pin site on ed67732 and record it
+f0040a3e 2026-10-02T19:29:00Z fix(workers): ship the kit at ed67732 to close /pay/ evidence-free credits
+81ec18c4 2026-10-02T19:07:26Z chore(kit): pin forum kit at 13cbe6c — cohort merge-not-replace, author-scoped tier lookup, member wallet (off)
+8ab4ab42 2026-10-02T13:45:18Z chore(kit): pin forum kit at 341c5d2 — 31403 correlation fix, ADR-2011 live
+6ae45762 2026-10-02T11:50:54Z chore(kit): pin forum kit at 49904f4 — panel-wide alert acknowledgement
+e4c22c71 2026-10-02T08:57:11Z docs(forum-config): the crates are pinned at beta.11, not beta.6
+96186070 2026-10-02T08:57:11Z fix(og-meta): re-run on any config change, not five chosen fields
+d3ecd059 2026-10-02T08:57:11Z ci(deploy): publish on lockfile-only dependency bumps
+325734e4 2026-10-02T08:55:02Z ci: stop restating kit release notes in workflow comments
+5dbf18b6 2026-10-02T09:54:29+01:00 dream(operator-overlay): candidate for 2026-10-02-dreamlab-ai-website (#51)
+21dbc9a8 2026-10-02T01:13:27Z dream-cycle: 2026-10-02-dreamlab-ai-website ledger row (ACCEPT)
+9b8ea495 2026-09-29T02:39:40Z chore(kit): pin forum 7def3e4 — relay read cost scales with requests, not delivered events (ADR-2018)
+2096a685 2026-09-28T07:31:58Z chore(kit): pin forum 36d3850 — fresh member roster before zone-key grant/rotate
+13fad752 2026-09-28T07:17:26Z docs(changelog): record the encrypted-zone history migration run
+be3d4554 2026-09-27T19:05:11Z chore(kit): pin forum 2f437bc — sealed-original history migration (ADR-2017)
+b97ec082 2026-09-27T16:16:54Z chore(kit): pin forum dd97fce — keep every accepted zone-key grant, update resumed PWAs
+82cddee6 2026-09-26T21:45:16Z test(config-mirrors): flip the encryption gate from its current state
+2865c12b 2026-09-26T21:41:14Z feat(forum): switch on zone E2EE for zones 2-4 (ENCRYPTION_ENABLED=true)
+a6d26b95 2026-09-26T14:52:34Z chore(kit): pin forum 49e70de — encrypted-zone fixes from the browser run, still switched off
+8b0f3399 2026-09-26T12:03:01Z chore(kit): pin forum 3a7f329 — end-to-end encrypted zones, gated off
+bb09f2c0 2026-09-25T19:46:29Z chore(forum-config): declare JunkieJarvis as a governance agent
+2e50d538 2026-09-25T19:46:18Z fix(backup): make the nightly forum backup actually produce a backup
+eb673754 2026-09-25T18:16:10Z chore(kit): pin forum 87c580c — user cards, identity links, thread landing, search deep links
+d70a6984 2026-09-25T12:22:03Z chore(kit): pin forum c3f147f — sidestr-core 0.3.2
+c5f59890 2026-09-25T11:35:47Z chore(kit): pin forum d79ae26 — wording for Podkey's sidechain-spends opt-in
+14733edd 2026-09-24T18:25:07Z chore(kit): pin forum 21562c6 — spend through a browser signer (window.nostr.sidestr)
+b58451eb 2026-09-24T12:57:55Z docs(changelog): member wallets switched on; opening DREAM distribution
+0c6161b5 2026-09-24T12:56:15Z feat(forum): switch on member wallets and DREAM tips (SIDESTR_WALLET=on)
+7ed77bf7 2026-09-24T08:33:36Z chore(kit): pin forum aabfb85 — Pending tab fix; member wallets and DREAM tips staged off
+
+RECENT HISTORY
+79635b52 2026-10-20T01:57:39Z dream-cycle: 2026-10-20-dreamlab-ai-website ledger row (ACCEPT)
+bca989c5 2026-10-19T22:17:28Z chore(mirrors): register the relay worker's RELAY_URL as a third site of the relay-url mirror
+ab4dcb9a 2026-10-19T22:08:09Z fix(relay-config): set RELAY_URL so NIP-42 relay-tag scoping is enforced
+32897f5b 2026-10-19T21:49:38Z feat(push): switch on Web Push for the forum relay (kit ADR-2023)
+0d50b982 2026-10-19T21:48:42Z Merge pull request #70: repin kit to 631c09f for Web Push (ADR-2023) + security remediation
+47ea9a9d 2026-10-19T21:44:33Z chore(kit): repin to nostr-rust-forum 631c09f (session-id isolate collision fix)
+e1a0163b 2026-10-19T21:04:56Z chore(kit): repin to nostr-rust-forum 516889b (deepsec remediation: four reviewed branches)
+38dd6806 2026-10-19T18:20:56Z chore(kit): repin to nostr-rust-forum c86c1e7 (logout teardown)
+fa1e6c23 2026-10-19T17:33:24Z chore(kit): repin to nostr-rust-forum 37ef113 (protected-kind broadcast gate, coach classification)
+26d571cc 2026-10-19T16:28:49Z chore(kit): repin to nostr-rust-forum d9653a2
+ffc27c52 2026-10-19T15:41:18Z chore(kit): repin to nostr-rust-forum 758058b (kind-42 channel gate fix)
+94e7d621 2026-10-19T14:51:01Z chore(kit): repin to nostr-rust-forum 92021e2 (D1 chunking, prefs gate)
+f1803233 2026-10-19T14:08:48Z chore(kit): repin to nostr-rust-forum c1ed1fb (one flush per burst, app-wide DM alerts)
+d7a0d119 2026-10-19T13:58:46Z chore(kit): repin to nostr-rust-forum 773a623fe899aa7adc024c2d82750832902d873c (throttle, flush, findings fixes)
+362a25a5 2026-10-19T13:23:07Z chore(kit): repin to nostr-rust-forum 6cf4191 for content-free Web Push (ADR-2023)
+dab39e03 2026-10-19T02:16:10Z dream-cycle: 2026-10-19-dreamlab-ai-website ledger row (REJECT)
+cf2ee9ae 2026-10-18T17:34:43Z ci(mirrors): gate the operator var mirrors and add federated_kinds and poker (ER-23)
+e6181b67 2026-10-18T11:23:24Z team (mobile): tap opens bio drawer, press-and-hold toggles roster

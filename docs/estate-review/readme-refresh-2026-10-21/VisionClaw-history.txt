@@ -1,0 +1,30 @@
+README UPDATE: 8e380aad3a0b0561af751901f3a3273714528038|2026-10-20T14:43:25Z|docs: ADR-2147 derivation certificates and consequence delta; VAULT-corpus-format 2.4.0
+HEAD: e2d4e2cc131454db236b175226ab809014b6a88d
+
+COMMITS SINCE README
+e2d4e2cc1 2026-10-20T15:34:44Z Merge pull request #33 from DreamLab-AI/chore/vault-consume-rdfs-certificate
+b7d2a23da 2026-10-20T15:34:28Z vault: consume the rdfs-certificate crate instead of a private engine (ADR-2147 amended)
+4a197008a 2026-10-20T14:59:43Z Merge pull request #32 from DreamLab-AI/feat/adr-2147-derivation-certificates
+17faf9fdf 2026-10-20T14:59:22Z feat: enable ADR-2147 — certify in the publish job, consequences chip in the client
+b603e6597 2026-10-20T14:50:15Z fix(vault): qualify the Actor intra-doc link so rustdoc passes with -D warnings
+b65a0bb69 2026-10-20T14:44:33Z docs(adr): re-verify six records stale against this branch; index gains ADR-2147
+
+RECENT HISTORY
+e2d4e2cc1 2026-10-20T15:34:44Z Merge pull request #33 from DreamLab-AI/chore/vault-consume-rdfs-certificate
+b7d2a23da 2026-10-20T15:34:28Z vault: consume the rdfs-certificate crate instead of a private engine (ADR-2147 amended)
+4a197008a 2026-10-20T14:59:43Z Merge pull request #32 from DreamLab-AI/feat/adr-2147-derivation-certificates
+17faf9fdf 2026-10-20T14:59:22Z feat: enable ADR-2147 — certify in the publish job, consequences chip in the client
+b603e6597 2026-10-20T14:50:15Z fix(vault): qualify the Actor intra-doc link so rustdoc passes with -D warnings
+b65a0bb69 2026-10-20T14:44:33Z docs(adr): re-verify six records stale against this branch; index gains ADR-2147
+8e380aad3 2026-10-20T14:43:25Z docs: ADR-2147 derivation certificates and consequence delta; VAULT-corpus-format 2.4.0
+9717f9d07 2026-10-20T14:41:23Z feat(vault): derivation certificates and the consequence delta (ADR-2147)
+db7ea58de 2026-10-20T00:52:45Z chore(deps): bump solid-pod-rs crates to 0.5.0-alpha.17
+6892106cd 2026-10-20T00:50:43Z docs: parity figure 99.2% strict over 264 rows (VisionFlow ADR-2018/2019)
+a7ff1b6f8 2026-10-19T17:57:18Z docs: state solid-pod-rs parity as 97.3% strict over 244 rows
+6b116bc39 2026-10-19T14:13:34Z chore(codescape): bump submodule to e300451 (README screenshots)
+96a3b81ff 2026-10-19T11:33:52Z Merge pull request #31 from DreamLab-AI/fix/nvcc-host-toolchain
+f1a7c7458 2026-10-19T11:33:37Z docs(adr): stamp ADR-2030 at 779f67397640e4f65a093778b18c299de9b6339d
+779f67397 2026-10-19T11:33:35Z docs(adr-2030): record the host toolchain selection and re-verify
+3d6d38c91 2026-10-19T11:33:19Z Merge main into fix/nvcc-host-toolchain
+56e84a282 2026-10-19T11:33:10Z Merge pull request #30 from DreamLab-AI/adr-reverify-all
+972577f44 2026-10-19T11:32:57Z fix(gpu): pick the nvcc host compiler and include dir from the environment

@@ -1,0 +1,125 @@
+README UPDATE: 10ef2a180147eaf3a52114e42ebe4d81b8861d61|2026-10-15T14:11:50Z|docs: make the dream engine docs true after the ADR-2141 extraction
+HEAD: bda9ccfb2459b3e8e16c65ee28defcce7c847d48
+
+COMMITS SINCE README
+bda9ccfb2 2026-10-21T08:40:45+01:00 docs(adr): verify identity delivery and dependency refresh boundaries
+161392193 2026-10-21T08:40:11+01:00 chore(deps): refresh Nix inputs and locked runtime tools
+340e60d74 2026-10-21T08:39:15+01:00 chore(deps): refresh released agent CLIs, Ontomark and sidecar pins
+2b59a2bf4 2026-10-21T08:38:38+01:00 fix(deps): discover npm releases and hash the reviewed lockfile
+b9f1a7550 2026-10-21T08:30:06+01:00 fix(identity): route inbox-addressed grants through authenticated unwrap
+5e082c6d3 2026-10-21T08:25:43+01:00 merge: include upstream vault certificate updates
+6c7f3d3a6 2026-10-21T08:25:27+01:00 feat(identity): accept signed epoch tickets and optional zone inbox keys
+76cc7a8f3 2026-10-21T08:25:27+01:00 chore(security): bound the final deepsec sweep to minimal thinking
+6d7bd5f4c 2026-10-20T15:35:44Z Merge pull request #33 from DreamLab-AI/chore/pin-vault-rdfs-certificate
+29c992c4a 2026-10-20T15:35:37Z flake: pin vaultSrc to VisionClaw main e2d4e2cc1 (rdfs-certificate crate)
+63ca1f48b 2026-10-20T15:00:50Z Merge pull request #32 from DreamLab-AI/chore/pin-vault-adr-2147
+5236d37ff 2026-10-20T15:00:40Z flake: pin vaultSrc to VisionClaw main 4a197008a (ADR-2147 certificates)
+a6e008ba9 2026-10-20T15:00:16Z flake: pin vaultSrc to VisionClaw main 4a197008a (ADR-2147 certificates)
+decad82bf 2026-10-20T09:40:41+01:00 docs(deploy): record live floor, forge and preserved estate checks
+dd6ff7e06 2026-10-20T09:33:31+01:00 build(compose): materialise managed-policy tmpfs mount
+26a4b722b 2026-10-20T09:32:56+01:00 fix(floor): provide root-owned tmpfs for managed policy projection
+d4988b1b0 2026-10-20T09:13:32+01:00 docs(adr): verify isolated-profile floor hook reconciliation
+ca056f046 2026-10-20T09:13:28+01:00 fix(floor): preserve decline recording in isolated Claude profiles
+f00597dea 2026-10-20T09:10:51+01:00 docs(adr): verify merged activity sink and CLI compatibility
+653b8b638 2026-10-20T09:10:26+01:00 merge: include activity sink and ASR marker fixes; resolve ADR numbering
+0e47628c6 2026-10-20T09:08:34+01:00 docs(adr): reverify floor and forge manifest integration before build
+61f27d5b3 2026-10-20T09:08:12+01:00 fix(manifest): register floor and forge configuration and apply classes
+bbbc754eb 2026-10-20T09:08:12+01:00 chore(cli): update Claude Code and Codex with upstream resource layout
+a15c3d0a2 2026-10-20T09:08:12+01:00 fix(pod): align bridge with alpha.17 and retain security floor checks
+dd0269f5b 2026-10-20T07:17:45Z docs(pod): document the unpopulated mirror follow list; forge on agentbox only
+92835b944 2026-10-20T00:50:30Z feat(pod): pin solid-pod-rs 0.5.0-alpha.17 and compile in the forge and mirror (ADR-2145)
+2edd6a241 2026-10-19T19:26:57Z docs(adr): ADR-2144 — the floor is a managed tier and a decline is recorded verbatim
+3acd4fa08 2026-10-19T19:26:01Z feat(floor): collaboration and welfare floor as a managed tier, declines recorded verbatim
+3f4442634 2026-10-19T12:56:16+01:00 docs(adr): reverify CUDA, podcast and SSH dispatch maintenance changes
+52183d76f 2026-10-19T12:56:12+01:00 test(gpu): verify toolkit identity instead of its package display name
+e624ffff7 2026-10-19T11:22:06Z feat(podcast): resumable catch-up loop and a lock the weekly cron shares
+5fe7d1f8d 2026-10-19T11:20:41Z fix(gpu): keep gpu-backend attrset shape stable (nvccWrapper = null elsewhere)
+769d52bd1 2026-10-19T11:18:28Z fix(podcast): one state shape, and a throttled or failed subtitle fetch leaves no trace
+efec6ebf9 2026-10-19T11:18:22Z feat(gpu): nvcc wrapper with gcc14 host compiler and CUDA_PATH include for local-cuda
+a861ebe25 2026-10-19T11:07:26Z fix(podcast): link a term only to a page titled or aliased exactly that
+3858102ba 2026-10-19T10:09:36Z fix(podcast): a failed listing is an error; ledgers read and written in the working-vault layout
+ef6737c44 2026-10-19T10:01:11Z fix(dream-engine): send evaluator scripts to the connected node over stdin, not through its fish login shell
+afb6753a9 2026-10-19T09:17:08+01:00 docs(adr): reverify governed paths for the October maintenance build
+dfe78f076 2026-10-19T09:17:04+01:00 docs(agents): align role-isolation lifecycle with rebuild requirement
+8a6b6c522 2026-10-19T08:10:00Z comfyui-sidecar: pin master c06bf5f for native MOSS-Image support
+e07b1a366 2026-10-18T20:40:09Z feat(identity-port): agent-governance keys may sign panels and cases (ER-6, owner decision)
+09575bd74 2026-10-18T20:29:32Z ontomark 0.5.0: repin (sha256 e0f63fce…)
+d435ca0e5 2026-10-18T19:20:53Z deps(prose-sanitiser): pin 0.1.4 for the October rustls and zip advisories (N-11)
+df40f70c6 2026-10-18T17:38:58Z feat(broker-bridge): forward the forum effective_tier to VisionClaw's decide (ER-7)
+3fac2c485 2026-10-18T17:30:56Z fix(memory): expiry predicates guard the timestamp cast with pg_input_is_valid
+be683fb60 2026-10-18T16:34:31Z docs(adr-2136): the vault and ontomark issue lists match entry for entry
+490fdec1e 2026-10-18T16:10:56Z fix(vault): pin VisionClaw 4fe620296 so the baked vault CLI reads the flat corpus (ER-12)
+218ec9db4 2026-10-18T15:25:57Z test(cy-a2): recapture the runtime snapshot; five declared modules post-date the 10-02 capture
+537868035 2026-10-18T11:12:56Z docs(adr-2122): record the ER-6 decision options for the identity port and dream-engine kinds
+fd08841cd 2026-10-18T11:11:42Z docs+config: eight sidestr crates, classify _VAULT_PAGES_REL, record the mirror_key export exception (ER-3, ER-16, ER-10)
+a16840f1b 2026-10-18T11:00:45Z fix(activation): rehearsal boots the database /ready needs and picks the variant (X-4)
+9ed98d5b2 2026-10-18T10:57:17Z feat(activation): flake-update rehearsal host script (X-4)
+c60633247 2026-10-18T10:57:17Z docs(role-isolation): drop stale boot-class wording, list the class test (ER-9)
+cc67198ce 2026-10-18T10:49:58Z fix(manifest): classify role_isolation as rebuild-class (ER-9)
+f5304bc78 2026-10-17T21:08:20Z feat(hooks): manifest-gated activity-sink hook for external consumers (ADR-2144)
+42995b070 2026-10-17T13:51:47+01:00 docs(adr): record activation of dream source requests and decisions
+96e835958 2026-10-17T13:38:44+01:00 test(manifest): align TUI output goldens with DeepSeek Flash default
+e6363a3e0 2026-10-17T13:36:46+01:00 docs(governance): reconcile routing and ADR evidence after model refresh
+f33c4fc03 2026-10-17T13:36:18+01:00 Merge remote-tracking branch 'origin/main'
+575514505 2026-10-17T13:36:18+01:00 feat(deepseek): refresh Flash routing and optional OpenCode free model
+32dd6a3e1 2026-10-17T10:30:08Z docs(adr): re-verify the 22 records whose governed paths changed only by the flat-vault pages default
+e8d59c23c 2026-10-17T10:28:14Z docs(adr): re-verify ADR-2028 after the flat-vault pages default; regenerate the ADR index
+a2c6d5520 2026-10-17T10:28:11Z vault: pages sit at the vault root; [vault].pages defaults to "." (ADR-2028 amendment)
+1a3ed1260 2026-10-17T10:22:07Z docs(adr): re-verify ADR-2141 at the dream-core/dream-gate 0.2.0 pin
+2a739c6d1 2026-10-17T10:21:10Z docs(adr): re-verify ADR-2030/2071/2081/2114/2115 after ADR-2143 and stamp ADR-2143
+2305d675e 2026-10-17T10:21:06Z fix(dream-engine): review fixes for the requested-sources store and decision parser
+471e8cc55 2026-10-17T10:21:06Z feat(dream-engine): source supply is plumbing; operator questions are four plain-English fields (ADR-2143)
+6835738f7 2026-10-17T10:19:58Z docs(adr): re-verify ADR-2129/2140 after the ontomark 0.4.0 repin
+426b43250 2026-10-17T10:14:11Z Merge PR #31: ontomark 0.4.0 repin, corpus verbs routed to ontomark
+d38b28b3f 2026-10-17T10:13:35Z drop a teammate's untracked draft swept into the repin commit (services/dream-engine/src/wanted.rs)
+d1fef5e29 2026-10-17T09:44:00Z ontomark 0.4.0: repin (sha256 6f21e446…)
+f1dcd1b77 2026-10-17T08:58:34Z fix(forum-suggestions): treat ledger rows as handled so a lost state file cannot re-ask members
+aa983e4e7 2026-10-16T13:46:35Z ontomark 0.3.0: repin, and route find/retrieve/tree to it
+04224b79a 2026-10-16T09:54:59Z docs(adr): re-verify ADR-2030 and ADR-2119 after the dream-engine pin and slot change
+7e3e4ebb2 2026-10-16T09:54:06Z docs(adr): re-verify ADR-2141 at the 0.1.1 pin
+8e1ef8e34 2026-10-16T09:52:12Z Merge pull request #30 from DreamLab-AI/chore/dream-0.1.1
+84e21091a 2026-10-16T09:51:40Z chore(dream-engine): move to dream-core/gate 0.1.1, retire the dream-engine deep slot
+d256236f6 2026-10-16T09:57:21+01:00 docs(adr): record dream-engine and Blender deployment evidence
+9fcd1eef9 2026-10-16T09:15:41+01:00 fix(dream-engine): make nightly test shims runnable in Nix
+83851deb0 2026-10-16T09:06:23+01:00 docs(dream-engine): trim extraction ledger trailing whitespace
+5d970e74b 2026-10-16T07:48:47Z Merge pull request #29: sidecar-first Blender, reviewed and hardened (ADR-2142)
+c048815f0 2026-10-16T07:43:32Z docs(adr): re-verify 23 ADRs against the sidecar-first Blender change; add ADR-2142
+efa293b87 2026-10-16T07:42:29Z docs(blender): ADR-2142 sidecar-first Blender; fix consumers that assumed a local binary
+e33616643 2026-10-16T07:41:32Z fix(blender): sidecar job runner hardening (unreachable detection, symlink safety, pid reuse, tolerant wait)
+963eece90 2026-10-16T07:35:25Z fix(manifest): catalogue the blender_local gate and correct the blender-mcp summary
+c73d17e98 2026-10-16T07:18:47Z Merge origin/main (dream-engine extraction, PR #28) into local main
+aa9b094c3 2026-10-16T07:18:23Z Merge pull request #28: consume the extracted permissive dream-engine core (ADR-2141)
+8b8497bc2 2026-10-16T07:03:46Z docs(adr): re-verify ADR-2030, 2071, 2081, 2114, 2115 against the dream-engine changes
+33c8b3472 2026-10-16T07:03:15Z docs(dream-engine): crates are published on crates.io at 0.1.0; record the pin flip
+8a48863cf 2026-10-16T07:02:29Z feat(dream-engine): consume dream-core and dream-gate =0.1.0 from crates.io
+1565f4773 2026-10-15T20:37:42Z fix(dream-engine): a night skipped because another engine holds it raises no empty-roster alarm
+5a219e813 2026-10-15T20:32:01Z fix(dream-engine): per-night lock, BLOCKED-ENV on a damaged journal, evaluator paths resolved against the baseline tree
+c4c12c2fe 2026-10-15T20:00:19Z fix(dream-engine): a finished night is never repeated after its own ledger commit
+3e9bbdd24 2026-10-15T19:06:15Z skills(blender): sidecar-first job runner over the shared volume; document the topology
+95e2c0866 2026-10-15T19:06:15Z config: Blender is sidecar-first; add blender_local to stop baking the in-container binary
+16bdfeb53 2026-10-15T18:54:36Z skills(blender): add blender-introspect tool; report timeouts as outcome unknown
+2c5a79c3a 2026-10-15T18:53:07Z skills(blender): introspect-before-scripting, operating rules, 5.2.2 facts, Scenario plugin evaluation
+6d579e7b6 2026-10-15T14:18:25Z Merge branch 'worktree-agent-aac2a719ec35d16d8' into worktree-agent-a5c956227d2c07435
+62676fff8 2026-10-15T14:17:36Z test(dream-engine): whole-night end-to-end tests through run_night
+1e0ae042f 2026-10-15T14:12:54Z docs(adr): re-verify ADR-2030 against the dream engine licence boundary
+342ca5021 2026-10-15T14:12:42Z refactor(dream-engine): inject forge and model, env switches for pause flag and health path
+
+RECENT HISTORY
+bda9ccfb2 2026-10-21T08:40:45+01:00 docs(adr): verify identity delivery and dependency refresh boundaries
+161392193 2026-10-21T08:40:11+01:00 chore(deps): refresh Nix inputs and locked runtime tools
+340e60d74 2026-10-21T08:39:15+01:00 chore(deps): refresh released agent CLIs, Ontomark and sidecar pins
+2b59a2bf4 2026-10-21T08:38:38+01:00 fix(deps): discover npm releases and hash the reviewed lockfile
+b9f1a7550 2026-10-21T08:30:06+01:00 fix(identity): route inbox-addressed grants through authenticated unwrap
+5e082c6d3 2026-10-21T08:25:43+01:00 merge: include upstream vault certificate updates
+6c7f3d3a6 2026-10-21T08:25:27+01:00 feat(identity): accept signed epoch tickets and optional zone inbox keys
+76cc7a8f3 2026-10-21T08:25:27+01:00 chore(security): bound the final deepsec sweep to minimal thinking
+6d7bd5f4c 2026-10-20T15:35:44Z Merge pull request #33 from DreamLab-AI/chore/pin-vault-rdfs-certificate
+29c992c4a 2026-10-20T15:35:37Z flake: pin vaultSrc to VisionClaw main e2d4e2cc1 (rdfs-certificate crate)
+63ca1f48b 2026-10-20T15:00:50Z Merge pull request #32 from DreamLab-AI/chore/pin-vault-adr-2147
+5236d37ff 2026-10-20T15:00:40Z flake: pin vaultSrc to VisionClaw main 4a197008a (ADR-2147 certificates)
+a6e008ba9 2026-10-20T15:00:16Z flake: pin vaultSrc to VisionClaw main 4a197008a (ADR-2147 certificates)
+decad82bf 2026-10-20T09:40:41+01:00 docs(deploy): record live floor, forge and preserved estate checks
+dd6ff7e06 2026-10-20T09:33:31+01:00 build(compose): materialise managed-policy tmpfs mount
+26a4b722b 2026-10-20T09:32:56+01:00 fix(floor): provide root-owned tmpfs for managed policy projection
+d4988b1b0 2026-10-20T09:13:32+01:00 docs(adr): verify isolated-profile floor hook reconciliation
+ca056f046 2026-10-20T09:13:28+01:00 fix(floor): preserve decline recording in isolated Claude profiles

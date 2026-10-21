@@ -1,0 +1,14 @@
+README UPDATE: e300451cfdca8bd2368d64d75d9de177ff4a5125|2026-10-19T13:51:35Z|docs: add live-captured screenshots and a See it section to the README
+HEAD: ffb98c2cfb0a30856c9b55d0bbe2c1358396a54a
+
+COMMITS SINCE README
+ffb98c2 2026-10-21T08:09:24Z feat(client): repository panel, estate scenes and the SpaceMouse push axis
+
+RECENT HISTORY
+ffb98c2 2026-10-21T08:09:24Z feat(client): repository panel, estate scenes and the SpaceMouse push axis
+e300451 2026-10-19T13:51:35Z docs: add live-captured screenshots and a See it section to the README
+cb250b4 2026-10-19T10:22:25Z docs: bring README and agent instructions into line with the VisionFlow estate style
+9b8d5de 2026-10-19T08:10:09Z fix(deploy): extract the client sources without restoring ownership
+7532a75 2026-10-18T16:16:49Z test(ingest): give the max-wait flush test finite scheduling slack
+235d9a5 2026-10-18T16:13:49Z feat: import Codescape from VisionClaw cac36a028 (ADR-0001)
+77a1748 2026-10-18T12:28:50Z chore: scaffold the Codescape repository (extracted from VisionClaw ADR-2143)

@@ -1,0 +1,30 @@
+drift-counter (RES-d) — self-description drift gate
+  truth as of : 2026-09-06
+  agentbox    : /tmp/vf-drift-pinned
+  strict      : false
+  source pin  : OK — agentbox @ b859b37d2ffb
+
+  [ENFORCED]    skills = 130   (source: /tmp/vf-drift-pinned/scripts/skill-count-check.js (.count))
+                counts: skill directories in the agentbox checkout that contain a SKILL.md
+      ok    docs/ecosystem-map.md:30  states 130
+      ok    docs/PRD-website.md:157  states 130
+  [ENFORCED]    mcp-ontology-tools = 12   (source: /tmp/vf-drift-pinned/mcp/servers/ontology-bridge.js (TOOLS.length))
+                counts: tool descriptors registered by the agentbox ontology bridge MCP server
+      ok    docs/ecosystem-map.md:30  states 12
+      ok    docs/architecture/compatibility-matrix.md:52  states 12
+      ok    docs/architecture/compatibility-matrix.md:54  states 12
+      ok    docs/DDD-ecosystem-alignment-context.md:24  states 12
+      ok    docs/DDD-ecosystem-alignment-context.md:112  states 12
+      ok    docs/architecture/status-reconciliation.md:57  states 12
+      ok    docs/archive/adr/ADR-002-ecosystem-alignment-governance.md:46  states 12
+      ok    docs/archive/adr/ADR-002-ecosystem-alignment-governance.md:83  states 12
+      ok    docs/engineering/DDD-harness-engineering-context.md:223  states 12
+      ok    docs/engineering/PRD-harness-engineering.md:52  states 12
+      ok    docs/protocol/mesh-smoke-test.md:28  states 12
+      ok    docs/PRD-ecosystem-alignment.md:90  states 12
+  [UNAVAILABLE] ontology-classes — VisionClaw ClassCountSource is `planned`, not published as a script-queryable committed count this wave (ddd-gap-close-visionclaw-context.md:155). Partial-source mode: axis not enforced (ADR-005 §Decision 2).
+                resolves when: VisionClaw publishing a committed count file (or an equivalent queryable endpoint) for its ontology owl:Class total (owner: VisionClaw substrate)
+  [PLANNED]     roster — Not yet single-sourced; the forum must expose agent_registry as script-queryable before the counter can track it (DDD-gap-close-canon-context §12 open issue 3). Distinct from the 610 external turbo-flow templates and from the skill count.
+                resolves when: nostr-rust-forum exposing agent_registry as a script-queryable surface (committed count file or CLI/HTTP query) (owner: nostr-rust-forum substrate)
+
+RESULT: PASS — no drift on any enforced axis.

@@ -1,0 +1,25 @@
+README UPDATE: 55bfec1f6d8127f4437ebaea82ff73de4475fcf7|2026-10-20T00:31:00Z|release: 0.5.0-alpha.17
+HEAD: 55bfec1f6d8127f4437ebaea82ff73de4475fcf7
+
+COMMITS SINCE README
+
+
+RECENT HISTORY
+55bfec1 2026-10-20T00:31:00Z release: 0.5.0-alpha.17
+16d3f29 2026-10-20T00:06:05Z test(server): give each invite-redemption request its own peer address
+8dd5dc1 2026-10-19T23:57:24Z Merge branch 'parity/secfix'
+3b00d8f 2026-10-19T23:57:24Z feat(server): redeem invites at registration (X-Invite-Token)
+84a3f15 2026-10-19T23:57:12Z fix(mirror): run the size walk on its own task so it cannot starve pipes or the deadline (L4)
+34fcc23 2026-10-19T23:52:32Z Merge branch 'parity/secfix'
+49f6445 2026-10-19T23:51:44Z fix(server): invite revoke by id prefix (L7); rustdoc examples for the new public items
+ccb7e5c 2026-10-19T23:51:44Z fix(forge): pin host_url to base_url (M1); widget CSP only by internal marker (M4)
+f416bc7 2026-10-19T23:51:44Z fix(mirror): enqueue refuses far-future events and keeps the lowest id on a tie (L3)
+741712f 2026-10-19T23:51:44Z fix(forge): take the fetch size baseline before the fetch starts (M2)
+09b86b8 2026-10-19T23:22:17Z fix(forge): cross-fork head access, runner limits, mirror, routing, CSP (H1 M2 L1 L2 L3 L5 L6 M4)
+72b56e0 2026-10-19T23:22:16Z fix(server): invite store consume, lock and hashing; atomic AP key file (L7, L8)
+eba1323 2026-10-19T23:22:16Z fix(server): take the public origin from config, not client Host headers (M1)
+8ee5a36 2026-10-19T23:22:16Z fix(did-nostr): pin vetted IP, cap alsoKnownAs, add total deadline (M3)
+0ea0c1a 2026-10-19T22:39:10Z docs(parity): ledger rows for the forge port, core row reclassifications, web-edit
+3149a2a 2026-10-19T22:28:41Z Merge branch 'parity/webedit'
+9f9d8d5 2026-10-19T22:28:20Z fix(forge): web-edit never echoes git stderr; also take the merge lock
+600bdc9 2026-10-19T22:25:09Z feat(forge): web-edit and ephemeral preview tiers (JSS apiRepoEdit, apiRepoPreview)

@@ -1,0 +1,26 @@
+README UPDATE: 96d318973d45be7ec2d57643a478c26f32d1c0fc|2026-10-20T15:29:58Z|release 0.6.0: every published closure carries a derivation certificate (ADR-OM-009)
+HEAD: 6944be3f23d574f347f39f7ee21ec46e90fe602c
+
+COMMITS SINCE README
+6944be3 2026-10-21T01:38:24Z dream-cycle: 2026-10-21-ontomark ledger row (INCONCLUSIVE)
+eb1d5a4 2026-10-20T15:31:01Z Merge pull request #4 from DreamLab-AI/feat/adr-om-009-derivation-certificates
+
+RECENT HISTORY
+6944be3 2026-10-21T01:38:24Z dream-cycle: 2026-10-21-ontomark ledger row (INCONCLUSIVE)
+eb1d5a4 2026-10-20T15:31:01Z Merge pull request #4 from DreamLab-AI/feat/adr-om-009-derivation-certificates
+96d3189 2026-10-20T15:29:58Z release 0.6.0: every published closure carries a derivation certificate (ADR-OM-009)
+f381fbc 2026-10-20T01:34:15Z dream-cycle: 2026-10-20-ontomark ledger row (INCONCLUSIVE)
+00aa143 2026-10-19T11:18:33Z docs(conformance): record the host-libm sensitivity behind the HP-only golden failure
+25de5e3 2026-10-19T01:47:06Z dream-cycle: 2026-10-19-ontomark ledger row (INCONCLUSIVE)
+7263017 2026-10-18T18:59:48Z Merge remote-tracking branch 'origin/main' into supply-chains-release
+0b0d65b 2026-10-18T18:40:27Z conformance: re-capture corpus-visiongraph at visionGraph 15d9835b3 (final supply-chain corpus)
+b0a989c 2026-10-18T18:12:30Z release 0.5.0: the Supply Chains and Logistics domain
+1050f19 2026-10-18T17:57:03Z profile(estate): append the supply-chain-management category (position 67)
+63fe632 2026-10-18T17:57:03Z profile(estate): append the Supply Chains and Logistics domain and its 14 categories
+95208e8 2026-10-18T10:54:49Z fix(compile): one held-back list, unpublished dirs applied at any depth (ER-18)
+ec7e68d 2026-10-18T01:25:46Z dream-cycle: 2026-10-18-ontomark ledger row (ACCEPT)
+7bf703d 2026-10-17T09:58:28Z conformance: re-capture corpus-visiongraph with ontomark 0.4.0 at visionGraph de30b0d58
+cb563e8 2026-10-17T09:33:20Z Merge: any Obsidian vault is a repository; crates documented; whelk feature gates (ADR-OM-008)
+3cb298c 2026-10-17T09:32:23Z Generalise ontomark beyond the estate: any Obsidian vault is a repository (ADR-OM-008)
+a6b5cbe 2026-10-17T01:09:40Z dream-cycle: 2026-10-17-ontomark ledger row (INCONCLUSIVE)
+ba852e7 2026-10-16T14:20:04Z conformance: re-capture corpus-visiongraph on the flattened vault (ontomark 0.3.0 self-capture)

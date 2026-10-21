@@ -1,0 +1,26 @@
+README UPDATE: 053f734c1138f7434bd2934af16ac2677581c188|2026-10-20T19:42:03Z|docs(readme): frame wider-Nostr interop for the merged state (off-by-default flags, not branch caveats)
+HEAD: c1657fc63297d28ef499451fe31acd800f68d064
+
+COMMITS SINCE README
+c1657fc 2026-10-20T20:24:42Z fix(relay): keep the proof column out of migration 0011 so a fresh D1 migrates (deepsec HIGH_BUG)
+1078cd1 2026-10-20T19:59:32Z fix(mesh): NIP-26 time-bounded delegation fails closed without a verifier clock (deepsec #5)
+
+RECENT HISTORY
+c1657fc 2026-10-20T20:24:42Z fix(relay): keep the proof column out of migration 0011 so a fresh D1 migrates (deepsec HIGH_BUG)
+1078cd1 2026-10-20T19:59:32Z fix(mesh): NIP-26 time-bounded delegation fails closed without a verifier clock (deepsec #5)
+053f734 2026-10-20T19:42:03Z docs(readme): frame wider-Nostr interop for the merged state (off-by-default flags, not branch caveats)
+d49a034 2026-10-20T19:27:41Z docs(readme): add the wider-Nostr ecosystem interoperability section and link the setup docs
+2047c1b 2026-10-20T19:24:46Z fix(security): resolve the deepsec HIGH set (inbox-key attestation, mesh NIP-26 expiry, whitelist, auto_grant)
+7df61ae 2026-10-20T18:02:40Z feat: upgrade Phase 4, NIP-171 zone key plane (ADR-2028), flagged off; relay-URL fail-closed; DM reconnect
+36b7272 2026-10-20T15:15:54Z feat: upgrade Phase 3, NIP-17 overlay (ADR-2027 accepted), flagged off; core beta.20
+6851029 2026-10-20T12:41:43Z docs(adr): ADR-2027 accepted by the operator; decision 2 landed in Phase 2; consent text fixed in the record
+8038b54 2026-10-20T12:36:48Z feat: upgrade Phase 2, private inbox keys for zone-key grants (ADR-2027 decision 2), flagged off
+1324cd1 2026-10-20T11:39:31Z docs(interop): Phase 2 design gains the landing section, how dual paths come down at cutover
+22ad7e2 2026-10-20T11:35:24Z fix(relay): plain replaceable kinds follow NIP-01 order and report whether the row was kept
+8126e52 2026-10-20T11:11:39Z docs(interop): Phase 2 design, separate inbox keys for grants and the mirror (ADR-2027 decision 2)
+75e48b4 2026-10-20T10:59:46Z feat: upgrade Phase 0 (DR runbook, restore rehearsal) and Phase 1 (interop hygiene, core beta.19)
+4454618 2026-10-20T10:15:09Z docs(adr): ADR-2026 is superseded by ADR-2028, so its status says so
+7ccfcf2 2026-10-20T10:13:24Z Merge licence-rebase (PR #73 rebased): nostr-bbs-core MIT OR Apache-2.0 from 1.0.0-beta.18, DID behind off-by-default feature
+faf26ef 2026-10-20T10:07:52Z licence(core): nostr-bbs-core is MIT OR Apache-2.0 from 1.0.0-beta.18; DID behind an off-by-default feature
+f7de28a 2026-10-20T10:06:07Z Merge feat/nip59-strict-unwrap-adr-2025: gift-wrap verification before decrypt (ADR-2025); interop assessments and proposed ADR-2027/2028/2029
+4c72167 2026-10-20T09:53:09Z docs: interoperability with nostr.chat, Anagram and Iris; room deployment profile (ADR-2027, 2028, 2029 proposed)

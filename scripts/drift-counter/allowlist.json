@@ -18,18 +18,18 @@
         "_doc": "Stated so a reader can settle what a policed figure is claiming without reading the counter. 'N skills' at a policed site means THIS number."
       },
       "source": { "kind": "agentbox-skill-count", "invoke": "scripts/skill-count-check.js", "jsonKey": "count" },
+      "_retired_front_pages_2026_10_21": "README.md and website/static/index.html now link to configured registrations rather than assert a numeric skill total. They are removed from count-required scan sites because no tracked figure remains; remaining numeric claims stay enforced.",
       "match": "scan",
       "pattern": "\\b(\\d+)\\+?\\s+(?:[Aa]gent\\s+|active\\s+)?[Ss]kills?\\b",
       "_files_note": "The live self-description surface only. Two classes of prose are deliberately NOT whole-file scanned. (1) The book/report prose under presentation/ is a dated narrative artifact that uses 'N agent skills' rhetorically (e.g. a '10-15 agent skills' pilot-selection range, a TCO example); its current-count references are reconciled by hand and recorded in the evidence file. (2) Accepted ADRs under docs/adr/ and docs/engineering/ state the figure that held WHEN THE DECISION WAS TAKEN — docs/engineering/ADR-004 §Context reads '115 skills' as of 2026-07-08. An ADR Context paragraph is a dated record, not a live self-description; rewriting it to track the current count would falsify the decision record. Removed from this list on 2026-09-05 for that reason; the current figure is carried in that ADR's dated acceptance annex instead.",
       "files": [
-        "README.md",
         "docs/ecosystem-map.md",
-        "docs/PRD-website.md",
-        "website/static/index.html"
+        "docs/PRD-website.md"
       ]
     },
     "mcp-ontology-tools": {
       "label": "agentbox ontology-bridge MCP tool count",
+      "_readme_retired_2026_10_21": "The top-level README no longer repeats a numeric ontology-bridge claim: the bridge is retired in current Agentbox. Other revision-pinned historical sites remain monitored.",
       "denominator": {
         "counts": "tool descriptors registered by the agentbox ontology bridge MCP server",
         "expression": "number of top-level elements of the `const TOOLS = [ … ];` array in mcp/servers/ontology-bridge.js (object literals and bare imported references; nested inputSchema objects are indented deeper and are not elements)",
@@ -40,7 +40,6 @@
       "source": { "kind": "js-array-length", "file": "mcp/servers/ontology-bridge.js", "array": "TOOLS" },
       "match": "sites",
       "sites": [
-        { "file": "README.md", "pattern": "(\\d+)\\s+MCP Ontology Tools" },
         { "file": "docs/ecosystem-map.md", "pattern": "(\\d+)-tool ontology bridge" },
         { "file": "docs/architecture/compatibility-matrix.md", "pattern": "\\*\\*(\\d+)-tool\\*\\* ontology bridge" },
         { "file": "docs/architecture/compatibility-matrix.md", "pattern": "\\*\\*(\\d+) MCP tools\\*\\* \\(`mcp/servers/ontology-bridge.js`\\)" },

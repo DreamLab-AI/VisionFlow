@@ -1,0 +1,39 @@
+README UPDATE: 5578a24146080703acf7696f72005f71d83c6171|2026-10-15T21:17:25Z|docs: automerge applies only through persist::publish; the first host does not call it yet
+HEAD: 64e83240577a2a8fcdcbaca04a26d170ed2ef87c
+
+COMMITS SINCE README
+64e8324 2026-10-21T01:29:28Z dream-cycle: 2026-10-21-dream-engine ledger row (REJECT)
+fd7aa5b 2026-10-20T01:23:35Z dream-cycle: 2026-10-20-dream-engine ledger row (ACCEPT)
+ee46e75 2026-10-19T10:00:28Z docs(review): record the 2026-10-18 triage and ledger rows
+e689b1c 2026-10-19T01:36:47Z dream-cycle: 2026-10-19-dream-engine ledger row (INCONCLUSIVE)
+d4ab519 2026-10-18T01:14:29Z dream-cycle: 2026-10-18-dream-engine ledger row (INCONCLUSIVE)
+5efc947 2026-10-17T09:52:12Z dream-cycle: 2026-10-17-dream-engine ledger row (BLOCKED-ENV)
+8b59c04 2026-10-17T09:50:24Z feat(source): honour requested sources first, capped (0.2.0, ADR-DE-008) (#6)
+fda3602 2026-10-17T09:09:31Z fix(dream): make the fmt evaluator print its outcome so a clean run is not BLOCKED-ENV (#5)
+1ec4ecf 2026-10-16T10:07:18Z Merge pull request #3 from DreamLab-AI/dependabot/github_actions/actions/checkout-7.0.1
+e411d11 2026-10-16T10:06:35Z Merge branch 'main' into dependabot/github_actions/actions/checkout-7.0.1
+124f08f 2026-10-16T10:05:51Z Merge pull request #1 from DreamLab-AI/dependabot/cargo/sha2-0.11.1
+91ae09b 2026-10-16T09:48:45Z build(deps): bump sha2 from 0.10.9 to 0.11.1
+b3ec7ba 2026-10-16T09:46:41Z Merge pull request #4 from DreamLab-AI/fix/adr-template-prefix
+1483b7c 2026-10-16T09:45:26Z fix(dream-gate): render the ADR example from a free-form template, keeping its prefix
+b4af3f0 2026-10-15T22:21:36Z build(deps): bump actions/checkout from 4.4.0 to 7.0.1
+
+RECENT HISTORY
+64e8324 2026-10-21T01:29:28Z dream-cycle: 2026-10-21-dream-engine ledger row (REJECT)
+fd7aa5b 2026-10-20T01:23:35Z dream-cycle: 2026-10-20-dream-engine ledger row (ACCEPT)
+ee46e75 2026-10-19T10:00:28Z docs(review): record the 2026-10-18 triage and ledger rows
+e689b1c 2026-10-19T01:36:47Z dream-cycle: 2026-10-19-dream-engine ledger row (INCONCLUSIVE)
+d4ab519 2026-10-18T01:14:29Z dream-cycle: 2026-10-18-dream-engine ledger row (INCONCLUSIVE)
+5efc947 2026-10-17T09:52:12Z dream-cycle: 2026-10-17-dream-engine ledger row (BLOCKED-ENV)
+8b59c04 2026-10-17T09:50:24Z feat(source): honour requested sources first, capped (0.2.0, ADR-DE-008) (#6)
+fda3602 2026-10-17T09:09:31Z fix(dream): make the fmt evaluator print its outcome so a clean run is not BLOCKED-ENV (#5)
+1ec4ecf 2026-10-16T10:07:18Z Merge pull request #3 from DreamLab-AI/dependabot/github_actions/actions/checkout-7.0.1
+e411d11 2026-10-16T10:06:35Z Merge branch 'main' into dependabot/github_actions/actions/checkout-7.0.1
+124f08f 2026-10-16T10:05:51Z Merge pull request #1 from DreamLab-AI/dependabot/cargo/sha2-0.11.1
+91ae09b 2026-10-16T09:48:45Z build(deps): bump sha2 from 0.10.9 to 0.11.1
+b3ec7ba 2026-10-16T09:46:41Z Merge pull request #4 from DreamLab-AI/fix/adr-template-prefix
+1483b7c 2026-10-16T09:45:26Z fix(dream-gate): render the ADR example from a free-form template, keeping its prefix
+b4af3f0 2026-10-15T22:21:36Z build(deps): bump actions/checkout from 4.4.0 to 7.0.1
+5578a24 2026-10-15T21:17:25Z docs: automerge applies only through persist::publish; the first host does not call it yet
+c27391d 2026-10-15T20:45:06Z docs(diagrams): re-verify and re-stamp the corpus at 0f6a669 after the audit hardening
+0f6a669 2026-10-15T20:39:28Z test(persist): actually assert that no patch file appears in the temp dir (unused helper failed clippy)

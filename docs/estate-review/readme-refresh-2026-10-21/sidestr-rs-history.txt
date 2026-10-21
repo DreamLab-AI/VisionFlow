@@ -1,0 +1,25 @@
+README UPDATE: f77856dd18a4b6348445463456c4865de5285e9a|2026-10-18T10:54:49Z|docs(readme): add the webledgers-teller row so the crate table matches the manifest (ER-3)
+HEAD: f77856dd18a4b6348445463456c4865de5285e9a
+
+COMMITS SINCE README
+
+
+RECENT HISTORY
+f77856dd 2026-10-18T10:54:49Z docs(readme): add the webledgers-teller row so the crate table matches the manifest (ER-3)
+dc8e1ca8 2026-10-11T14:54:14Z docs: write the brand as dreamlab in prose
+a7aadd68 2026-10-02T23:44:15Z release: sidestr-core 0.4.2, sidestr-nostr 0.6.0, sidestr-wallet 0.5.3, sidestr-hitch 0.2.1, sidestr-agent 0.6.0, sidestr-round 0.5.0, webledgers-teller 0.2.0
+20954b1e 2026-10-02T23:38:08Z Merge up/estate-chain-hash-2: estate kinds by chain hash, nested parents, spend-key KAT
+e44bd503 2026-10-02T23:33:08Z feat(nostr): estate domain events 38421-38425 by chain hash; legacy bindings read; chains held
+77562ee4 2026-10-02T23:21:10Z test(wallet): pin the v1 spend-key derivation with external known answers
+2465d857 2026-10-02T23:21:10Z feat(core): resolve a sidestr chain's hash as a parent (SPEC 3.1), a recorded departure
+ace2f5b5 2026-10-02T22:08:04Z feat(hitch): host sidestr-hitch 0.2 in sidestr-agent (stream S2, N-10)
+481607db 2026-10-02T21:09:36Z docs(adr): ADR-0002, the producer-halt remedy verified at c3b9e7a and e8deb63
+ea9f392e 2026-10-02T21:07:26Z feat(core): accept Hitch channel leaves on transaction inputs (S1, SC6)
+41df9c7f 2026-10-02T20:31:13Z release: sidestr-core 0.4.1, sidestr-wallet 0.5.2, sidestr-nostr 0.5.0, sidestr-round 0.4.0, sidestr-agent 0.5.0, webledgers-teller 0.1.0
+68ac8f72 2026-10-02T19:45:18Z Merge fix/reserve-canonical-form
+3dd5cdfc 2026-10-02T19:45:09Z Merge up/teller
+cb1ce7a0 2026-10-02T19:44:58Z Merge up/spec-005
+cee7d778 2026-10-02T19:44:44Z Merge up/keys-pegtweak
+bd291528 2026-10-02T19:29:15Z feat(nostr,agent,round)!: SPEC 0.0.5 chain event and resolution (siding e8deb63)
+309b01e0 2026-10-02T19:24:07Z feat(core,wallet,agent): keys, peg-in tweak form, Fid KATs, txbt4 parent maturity
+ee17b32a 2026-10-02T19:21:04Z feat(reserve)!: JCS-checked canonical form, tagged attestation digest

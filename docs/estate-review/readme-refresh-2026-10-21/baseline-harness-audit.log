@@ -1,0 +1,49 @@
+harness-audit.sh regression tests
+=================================
+
+[1] duplicate pairing edges are de-duplicated
+  ok   coverage is 100%, not 200%
+  ok   no 200% anywhere
+  ok   duplicate edge is reported
+  ok   exit 0 (coverage genuinely complete)
+
+[2] nonexistent source path is not source-backed
+  ok   unresolved count is 2
+  ok   resolved count is 0
+  ok   backing is 0%
+  ok   unresolved sources are listed
+  ok   exit 0 without --strict-sources (reported, not enforced)
+
+[2b] --strict-sources turns unresolved sources into a failure
+  ok   strict verdict present
+  ok   exit 1 under --strict-sources
+
+[3] an existing source path resolves and is source-backed
+  ok   both sources resolved
+  ok   backing is 100%
+  ok   exit 0 under --strict-sources
+
+[4] two controls sharing one source count as one distinct source
+  ok   one distinct source across two controls
+  ok   per-control figure still reported
+
+[5] a substrate with no checkout is unverifiable, not source-backed
+  ok   counted unverifiable
+  ok   not counted as backed
+  ok   listed explicitly
+  ok   exit 0 (partial-source failure mode: reported, not enforced)
+
+[6] a pairing referencing a non-existent control is not counted
+  ok   dangling edge reported
+  ok   coverage is 0%
+  ok   exit 1 (coverage below target)
+
+[7] the committed templates pass with zero unresolved sources
+  FAIL zero unresolved
+     expected to find: unresolved (declared present, path absent) : 0
+  ok   coverage 100%
+  ok   exit 0
+
+=================================
+passed: 25   failed: 1
+HARNESS-AUDIT-TESTS-FAIL
