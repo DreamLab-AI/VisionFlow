@@ -1,0 +1,196 @@
+[
+  {
+    "repo": "VisionFlow",
+    "repository": "DreamLab-AI/VisionFlow",
+    "commit": "909bd92b142d630f0cd62e9a14917154d31007a9",
+    "readme_blob": "edae76ba3410782168855215d3ce8eb06c875173",
+    "remote_readme_blob": "edae76ba3410782168855215d3ce8eb06c875173",
+    "verified": true,
+    "files": [
+      "README.md",
+      "docs/architecture/licensing.md",
+      "docs/estate-review/readme-refresh-2026-10-21/README.md",
+      "docs/estate-review/readme-refresh-2026-10-21/VisionClaw-history.txt",
+      "docs/estate-review/readme-refresh-2026-10-21/VisionFlow-history.txt",
+      "docs/estate-review/readme-refresh-2026-10-21/agentbox-history.txt",
+      "docs/estate-review/readme-refresh-2026-10-21/baseline-drift-counter.log",
+      "docs/estate-review/readme-refresh-2026-10-21/baseline-harness-audit.log",
+      "docs/estate-review/readme-refresh-2026-10-21/browser-checks.json",
+      "docs/estate-review/readme-refresh-2026-10-21/codescape-history.txt",
+      "docs/estate-review/readme-refresh-2026-10-21/completion-audit.md",
+      "docs/estate-review/readme-refresh-2026-10-21/dream-engine-history.txt",
+      "docs/estate-review/readme-refresh-2026-10-21/dreamlab-ai-website-history.txt",
+      "docs/estate-review/readme-refresh-2026-10-21/final-state.json",
+      "docs/estate-review/readme-refresh-2026-10-21/gate-baseline-path.txt",
+      "docs/estate-review/readme-refresh-2026-10-21/gate-tests.log",
+      "docs/estate-review/readme-refresh-2026-10-21/inventory.json",
+      "docs/estate-review/readme-refresh-2026-10-21/knowledgeGraph-history.txt",
+      "docs/estate-review/readme-refresh-2026-10-21/loom-history.txt",
+      "docs/estate-review/readme-refresh-2026-10-21/media.md",
+      "docs/estate-review/readme-refresh-2026-10-21/meta-tags.log",
+      "docs/estate-review/readme-refresh-2026-10-21/nostr-rust-forum-history.txt",
+      "docs/estate-review/readme-refresh-2026-10-21/ontomark-history.txt",
+      "docs/estate-review/readme-refresh-2026-10-21/ontomark-obsidian-history.txt",
+      "docs/estate-review/readme-refresh-2026-10-21/pinned-drift.log",
+      "docs/estate-review/readme-refresh-2026-10-21/public-corpus-stats-2026-10-21.json",
+      "docs/estate-review/readme-refresh-2026-10-21/publication.md",
+      "docs/estate-review/readme-refresh-2026-10-21/readme-checks.json",
+      "docs/estate-review/readme-refresh-2026-10-21/sidestr-rs-history.txt",
+      "docs/estate-review/readme-refresh-2026-10-21/site-build.log",
+      "docs/estate-review/readme-refresh-2026-10-21/solid-pod-rs-history.txt",
+      "docs/estate-review/readme-refresh-2026-10-21/verification.md",
+      "docs/estate-review/readme-refresh-2026-10-21/visiontouch-rs-history.txt",
+      "docs/estate-review/readme-refresh-2026-10-21/website-doc-checks.log",
+      "scripts/drift-counter/allowlist.json",
+      "website/static/index.html"
+    ]
+  },
+  {
+    "repo": "VisionClaw",
+    "repository": "DreamLab-AI/VisionClaw",
+    "commit": "d84d0e29ae1a7fc7f91beb689f4d871f2aca35b2",
+    "readme_blob": "e2034bb88fd3e2a410bed072b93ba11881dc8bed",
+    "remote_readme_blob": "e2034bb88fd3e2a410bed072b93ba11881dc8bed",
+    "verified": true,
+    "files": [
+      "README.md",
+      "env.example"
+    ]
+  },
+  {
+    "repo": "agentbox",
+    "repository": "DreamLab-AI/agentbox",
+    "commit": "f9eb13b85ab4167612e847136a83048f0e92885d",
+    "readme_blob": "e94f6714a6271d4671aff36e16df55bd4bf62205",
+    "remote_readme_blob": "e94f6714a6271d4671aff36e16df55bd4bf62205",
+    "verified": true,
+    "files": [
+      "README.md",
+      "docs/images/agentbox-workshop-2026-10.png"
+    ]
+  },
+  {
+    "repo": "solid-pod-rs",
+    "repository": "DreamLab-AI/solid-pod-rs",
+    "commit": "7b5c781a4d8b89d59d0b96bca7211ccb984fbf68",
+    "readme_blob": "0c5afa4579c63bd80a1ce612ae9a100db5649f1d",
+    "remote_readme_blob": "0c5afa4579c63bd80a1ce612ae9a100db5649f1d",
+    "verified": true,
+    "files": [
+      "README.md"
+    ]
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "repository": "DreamLab-AI/nostr-rust-forum",
+    "commit": "7eaecc3152942793cbc09fc9a2b243ec2e5f8c4c",
+    "readme_blob": "651db40f01d76a237364c79f3947ade31ccde8d1",
+    "remote_readme_blob": "651db40f01d76a237364c79f3947ade31ccde8d1",
+    "verified": true,
+    "files": [
+      "README.md"
+    ]
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "repository": "DreamLab-AI/dreamlab-ai-website",
+    "commit": "af70144a3908c79687c4e2f8da6baf961fe58900",
+    "readme_blob": "045357e9eb3fff06c17d0910aad7d5b15928102c",
+    "remote_readme_blob": "045357e9eb3fff06c17d0910aad7d5b15928102c",
+    "verified": true,
+    "files": [
+      "README.md"
+    ]
+  },
+  {
+    "repo": "loom",
+    "repository": "DreamLab-AI/loom",
+    "commit": "3487ceed5e2040eddc3eaa478d383e84094513c6",
+    "readme_blob": "4e526942c41e97f8712486ae4c3dd60bc92941bc",
+    "remote_readme_blob": "4e526942c41e97f8712486ae4c3dd60bc92941bc",
+    "verified": true,
+    "files": [
+      "README.md"
+    ]
+  },
+  {
+    "repo": "knowledgeGraph",
+    "repository": "DreamLab-AI/knowledgeGraph",
+    "commit": "1edcfc93de90ccff564073ef82cb198c422f75e3",
+    "readme_blob": "e777be327e081ae29819dc836e137bfd3b51deb6",
+    "remote_readme_blob": "e777be327e081ae29819dc836e137bfd3b51deb6",
+    "verified": true,
+    "files": [
+      "LICENSING.md",
+      "README.md",
+      "docs/BASELINE-narrativegoldmine.md"
+    ]
+  },
+  {
+    "repo": "sidestr-rs",
+    "repository": "DreamLab-AI/sidestr-rs",
+    "commit": "1249e34def303fbb4b9f8380de684c0719a9c75f",
+    "readme_blob": "3478fdbf4e3064d113455e738615c73cc57154cb",
+    "remote_readme_blob": "3478fdbf4e3064d113455e738615c73cc57154cb",
+    "verified": true,
+    "files": [
+      "README.md"
+    ]
+  },
+  {
+    "repo": "ontomark",
+    "repository": "DreamLab-AI/ontomark",
+    "commit": "3e909e52b8ddd20effa832666677798fda644cfc",
+    "readme_blob": "f6812e1580e9c98d4dac487809ecccd87e67d2a0",
+    "remote_readme_blob": "f6812e1580e9c98d4dac487809ecccd87e67d2a0",
+    "verified": true,
+    "files": [
+      "README.md"
+    ]
+  },
+  {
+    "repo": "ontomark-obsidian",
+    "repository": "DreamLab-AI/ontomark-obsidian",
+    "commit": "7af6a92f0e4166c0e4b80e72f0b3a3ebf14cdebb",
+    "readme_blob": "7963afec8aa7411a74db534ec17d00462908c869",
+    "remote_readme_blob": "7963afec8aa7411a74db534ec17d00462908c869",
+    "verified": true,
+    "files": [
+      "README.md",
+      "docs/adr/ADR-OBS-003-ingest-action-and-offline-contract.md"
+    ]
+  },
+  {
+    "repo": "dream-engine",
+    "repository": "DreamLab-AI/dream-engine",
+    "commit": "8079c081a5ee5a5a25a6064efc5f115a50b731c0",
+    "readme_blob": "5b489487a32bce8ad6fc619812fb900e19f8cb8c",
+    "remote_readme_blob": "5b489487a32bce8ad6fc619812fb900e19f8cb8c",
+    "verified": true,
+    "files": [
+      "README.md"
+    ]
+  },
+  {
+    "repo": "visiontouch-rs",
+    "repository": "DreamLab-AI/visiontouch-rs",
+    "commit": "08c6f1bb688a9daf8cfbe89488557a2878cf86cf",
+    "readme_blob": "464d5b40fbc13bad3ee5de9ebeb6cfc809281aad",
+    "remote_readme_blob": "464d5b40fbc13bad3ee5de9ebeb6cfc809281aad",
+    "verified": true,
+    "files": [
+      "README.md"
+    ]
+  },
+  {
+    "repo": "codescape",
+    "repository": "DreamLab-AI/codescape",
+    "commit": "259347806982a85d0d64c2c7949d9a238acdd01f",
+    "readme_blob": "00f880e0e041dadccc09cf16ee45126395167a0d",
+    "remote_readme_blob": "00f880e0e041dadccc09cf16ee45126395167a0d",
+    "verified": true,
+    "files": [
+      "README.md"
+    ]
+  }
+]
