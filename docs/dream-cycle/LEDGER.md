@@ -46,3 +46,4 @@ Schema note (2026-09-14, unmerged): FR6.6 of PRD-augmentation-conditions adds `R
 | 2026-10-15 | estate-health | check() age INFO on every path; 02:30 collector run 15.3 h late at dream time | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/23 | yes | ACCEPT |  | 204154ab320a |  |  |  |
 | 2026-10-18 | seo-and-meta | twitter:image:alt added reusing og alt; meta twitter-tags 4->5, all gates pass | NONE | https://github.com/DreamLab-AI/VisionFlow/pull/25 | yes | ACCEPT |  | 23db6b1c3d6c |  |  |  |
 | 2026-10-20 | content-integrity | VETOED: SD scan inventories per-block JSON-LD URLs; new block's repo claim… | NONE | NONE | yes | REJECT |  | d8fd1785a4bb |  |  |  |
+| 2026-10-21 | build-pipeline | VETOED: family-5 red-path cases (host-drift, offsite image) added to exit-code… | NONE | NONE | yes | REJECT |  | 7f8e1c7d8321 |  |  |  |
