@@ -125,8 +125,10 @@ flowchart TB
     ENG -.-> LOOM
     DESK["desktop client: base from a /codescape first path segment, ?server= override<br/>client/src/codescape/src/net/config.ts:15-18 client/src/codescape/src/net/config.ts:32-57"]
     XR["Godot XR client: Backend toggle appends /codescape to XR_BACKEND_WS once<br/>xr-client/scripts/graph_scene.gd:75 xr-client/scripts/graph_scene.gd:839-847 xr-client/scripts/graph_scene.gd:1444-1453"]
+    XRN["see VC-40.1 and VC-40.2 - after this stamp (ADR-2143 A6) the XR client gates every server-bound request<br/>on a per-backend capability table and abandons in-flight requests on a switch"]
     DESK --- LAN
     XR --- LAN
+    XR -.- XRN
     REF["INVARIANT I8: RUVECTOR_PG_CONNINFO in the environment exits 2 before argument parsing<br/>codescape-server/src/main.rs:47-51 codescape-server/src/config.rs:15"]
     CS --- REF
 ```
@@ -332,7 +334,8 @@ flowchart TB
         direction TB
         X1["OPEN: empty agent hover label in the headset, actor ids carry AGENT_FLAG but the headset<br/>names agents from its label table, else a demo role, else agent N<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:113 xr-client/scripts/graph_scene.gd:2601-2609"]
         X2["DOC-DRIFT: the P4 row says /ws/presence is unimplemented, but the route is registered<br/>and A4.5 adds the shim<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:113 codescape-server/src/routes/mod.rs:415 ADR-2143-codescape-section-separate-workspace-and-port.md:216-217"]
-        X1 --- X2
+        X3["OPEN: /wss ignores nodePin, nodeUnpin and nodeDrag and there is no physics write, so the headset greys<br/>those controls (see VC-40.1); whether Codescape should honour drag and pin is undecided"]
+        X1 --- X2 --- X3
     end
     subgraph EXT["OPEN: A5 extraction to DreamLab-AI/codescape, in progress, no A5 amendment at this revision"]
         direction TB

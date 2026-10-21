@@ -476,6 +476,7 @@ sequenceDiagram
     HUD->>HUD: flash_notice writes the bottom strip on EVERY tab<br/>xr-client/scripts/hud.gd:1436, rendered at hud.gd:1750
     Note over HUD: ADR-2108: a rejected server write used to reach only push_warning,<br/>invisible in the headset. The strip is now the in-HMD channel for it.
     Note over HUD: Overflow guard and overlay shield remain explicit<br/>xr-client/scripts/hud.gd:1412<br/>xr-client/scripts/hud.gd:1400
+    Note over HUD: see VC-40.1 - after this stamp (ADR-2143 A6) set_backend_capabilities greys every server-bound control<br/>and hides Forces, Swarm and Pins when the backend is Codescape; see VC-40.3 for colour mode 2
 ```
 
 ## VC-36.9 Agent co-presence and the 0x23 work-beam data plane
