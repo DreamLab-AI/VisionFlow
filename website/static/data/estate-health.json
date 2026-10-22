@@ -1,20 +1,20 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-10-21T07:51:20.292Z",
+  "generated_at": "2026-10-22T07:47:17.249Z",
   "generator": {
-    "revision": "0ce39c0ccd5aeaecf17fc21095006043580a664b",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39564883739",
+    "revision": "da332bece70fecc65a60e4e64b74e327a672c0b9",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39742910158",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
     "repos": 18,
-    "green": 7,
-    "red": 5,
+    "green": 8,
+    "red": 3,
     "amber": 0,
-    "none": 2,
+    "none": 3,
     "exempt": 2,
     "unreadable": 2,
-    "open_prs": 8,
+    "open_prs": 9,
     "surfaces_ok": 6,
     "surfaces_total": 6
   },
@@ -30,14 +30,14 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "0ce39c0ccd5aeaecf17fc21095006043580a664b",
-        "short": "0ce39c0",
-        "date": "2026-10-20T15:37:15Z",
-        "message": "diagrams(VC-20): the certificate engine is the shared rdfs-certificate crate",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/0ce39c0ccd5aeaecf17fc21095006043580a664b"
+        "sha": "da332bece70fecc65a60e4e64b74e327a672c0b9",
+        "short": "da332be",
+        "date": "2026-10-21T14:27:35Z",
+        "message": "diagrams: VC-40, the XR client on two backends (capability table, gate, switch, Codescape palette)",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/da332bece70fecc65a60e4e64b74e327a672c0b9"
       },
       "ci": {
-        "state": "red",
+        "state": "green",
         "runs": [
           {
             "workflow": "ADR frontmatter gate",
@@ -50,22 +50,22 @@
             "workflow": "Copyright Source Guard",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39450108386",
-            "updated_at": "2026-10-20T15:37:34Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39617429642",
+            "updated_at": "2026-10-21T14:33:30Z"
           },
           {
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39450108324",
-            "updated_at": "2026-10-20T15:38:08Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39617429662",
+            "updated_at": "2026-10-21T14:35:36Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
-            "conclusion": "failure",
+            "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39450108355",
-            "updated_at": "2026-10-20T15:37:36Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39617429641",
+            "updated_at": "2026-10-21T14:32:23Z"
           },
           {
             "workflow": "Harness Fitness Gates",
@@ -78,8 +78,8 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39388804984",
-            "updated_at": "2026-10-20T07:47:41Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39564883739",
+            "updated_at": "2026-10-21T07:51:27Z"
           }
         ]
       },
@@ -106,11 +106,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "e2d4e2cc131454db236b175226ab809014b6a88d",
-        "short": "e2d4e2c",
-        "date": "2026-10-20T15:34:44Z",
-        "message": "Merge pull request #33 from DreamLab-AI/chore/vault-consume-rdfs-certificate",
-        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/e2d4e2cc131454db236b175226ab809014b6a88d"
+        "sha": "44571160c01200668aa2d149b0721b7ba64ea744",
+        "short": "4457116",
+        "date": "2026-10-21T14:12:17Z",
+        "message": "chore: bump codescape submodule to 9140a0f (XR Codescape mode recorded)",
+        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/44571160c01200668aa2d149b0721b7ba64ea744"
       },
       "ci": {
         "state": "none",
@@ -147,7 +147,7 @@
         "build_type": "workflow"
       },
       "notes": [
-        "no qualifying run on HEAD e2d4e2c; the latest runs are on older commits (52851ce, b06ef57) and were green, reported none"
+        "no qualifying run on HEAD 4457116; the latest runs are on older commits (52851ce, b06ef57) and were green, reported none"
       ]
     },
     {
@@ -161,11 +161,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "bda9ccfb2459b3e8e16c65ee28defcce7c847d48",
-        "short": "bda9ccf",
-        "date": "2026-10-21T07:40:45Z",
-        "message": "docs(adr): verify identity delivery and dependency refresh boundaries",
-        "url": "https://github.com/DreamLab-AI/agentbox/commit/bda9ccfb2459b3e8e16c65ee28defcce7c847d48"
+        "sha": "1d5efde4e748d42319f0624baa8bd90a164a0d01",
+        "short": "1d5efde",
+        "date": "2026-10-21T22:45:35Z",
+        "message": "docs(media): record verified sidecar cutovers",
+        "url": "https://github.com/DreamLab-AI/agentbox/commit/1d5efde4e748d42319f0624baa8bd90a164a0d01"
       },
       "ci": {
         "state": "none",
@@ -226,7 +226,7 @@
       "release": null,
       "pages": null,
       "notes": [
-        "no qualifying run on HEAD bda9ccf; the latest runs are on older commits (27dbeef, c49339d) and were red, reported none"
+        "no qualifying run on HEAD 1d5efde; the latest runs are on older commits (27dbeef, c49339d) and were red, reported none"
       ]
     },
     {
@@ -240,14 +240,14 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "55bfec1f6d8127f4437ebaea82ff73de4475fcf7",
-        "short": "55bfec1",
-        "date": "2026-10-20T00:31:00Z",
-        "message": "release: 0.5.0-alpha.17",
-        "url": "https://github.com/DreamLab-AI/solid-pod-rs/commit/55bfec1f6d8127f4437ebaea82ff73de4475fcf7"
+        "sha": "7b5c781a4d8b89d59d0b96bca7211ccb984fbf68",
+        "short": "7b5c781",
+        "date": "2026-10-21T11:49:45Z",
+        "message": "docs: refresh README with current scope, setup and status",
+        "url": "https://github.com/DreamLab-AI/solid-pod-rs/commit/7b5c781a4d8b89d59d0b96bca7211ccb984fbf68"
       },
       "ci": {
-        "state": "red",
+        "state": "none",
         "runs": [
           {
             "workflow": "ADR ledger",
@@ -276,7 +276,9 @@
       "open_issues": 1,
       "release": null,
       "pages": null,
-      "notes": []
+      "notes": [
+        "no qualifying run on HEAD 7b5c781; the latest runs are on older commits (55bfec1, b2a3a54) and were red, reported none"
+      ]
     },
     {
       "name": "nostr-rust-forum",
@@ -289,11 +291,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "7096903336d3daa349b02328c7c92c6a79823f86",
-        "short": "7096903",
-        "date": "2026-10-20T19:43:37Z",
-        "message": "docs: preview the wider-Nostr interop README and its docs on main (docs only, code lands with the branch merge)",
-        "url": "https://github.com/DreamLab-AI/nostr-rust-forum/commit/7096903336d3daa349b02328c7c92c6a79823f86"
+        "sha": "7eaecc3152942793cbc09fc9a2b243ec2e5f8c4c",
+        "short": "7eaecc3",
+        "date": "2026-10-21T11:49:46Z",
+        "message": "docs: refresh README with current scope, setup and status",
+        "url": "https://github.com/DreamLab-AI/nostr-rust-forum/commit/7eaecc3152942793cbc09fc9a2b243ec2e5f8c4c"
       },
       "ci": {
         "state": "green",
@@ -319,6 +321,10 @@
             "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/39406403937",
             "updated_at": "2026-10-20T10:13:56Z"
           }
+        ],
+        "carried_from": [
+          "7096903336d3daa349b02328c7c92c6a79823f86",
+          "7ccfcf2086e4b5cb8955d39dab06460fc4116668"
         ]
       },
       "open_prs": 0,
@@ -329,7 +335,9 @@
         "status": null,
         "build_type": "workflow"
       },
-      "notes": []
+      "notes": [
+        "no qualifying run on HEAD 7eaecc3; HEAD differs from 7096903, 7ccfcf2 only in documentation, so their green is carried"
+      ]
     },
     {
       "name": "dreamlab-ai-website",
@@ -342,11 +350,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "bca989c5eb0bcf237d533ac3723aa6974a45507c",
-        "short": "bca989c",
-        "date": "2026-10-19T22:17:28Z",
-        "message": "chore(mirrors): register the relay worker's RELAY_URL as a third site of the relay-url mirror",
-        "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/commit/bca989c5eb0bcf237d533ac3723aa6974a45507c"
+        "sha": "af70144a3908c79687c4e2f8da6baf961fe58900",
+        "short": "af70144",
+        "date": "2026-10-21T11:49:47Z",
+        "message": "docs: refresh README with current scope, setup and status",
+        "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/commit/af70144a3908c79687c4e2f8da6baf961fe58900"
       },
       "ci": {
         "state": "red",
@@ -383,8 +391,8 @@
             "workflow": "kit-pin-guard",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39333887826",
-            "updated_at": "2026-10-19T22:17:47Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39594898076",
+            "updated_at": "2026-10-21T11:50:21Z"
           },
           {
             "workflow": "Set CF Worker secrets (native pod mesh)",
@@ -395,7 +403,7 @@
           }
         ]
       },
-      "open_prs": 3,
+      "open_prs": 4,
       "open_issues": 2,
       "release": null,
       "pages": {
@@ -416,11 +424,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "e2e42736abe9bbaff7643f3faa23495c114958ca",
-        "short": "e2e4273",
-        "date": "2026-10-13T14:29:02Z",
-        "message": "feat(bench): ADR-140 P1 pilot runner, preregistration and result (#4)",
-        "url": "https://github.com/DreamLab-AI/loom/commit/e2e42736abe9bbaff7643f3faa23495c114958ca"
+        "sha": "3487ceed5e2040eddc3eaa478d383e84094513c6",
+        "short": "3487cee",
+        "date": "2026-10-21T11:49:48Z",
+        "message": "docs: refresh README with current scope, setup and status",
+        "url": "https://github.com/DreamLab-AI/loom/commit/3487ceed5e2040eddc3eaa478d383e84094513c6"
       },
       "ci": {
         "state": "green",
@@ -429,8 +437,8 @@
             "workflow": "Rust contracts",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/loom/actions/runs/38413750173",
-            "updated_at": "2026-10-13T14:37:21Z"
+            "url": "https://github.com/DreamLab-AI/loom/actions/runs/39594896685",
+            "updated_at": "2026-10-21T11:57:46Z"
           }
         ]
       },
@@ -451,11 +459,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
-        "short": "4ed9ac1",
-        "date": "2026-09-23T15:48:19Z",
-        "message": "docs(readme): add sidestr-rs to the estate components",
-        "url": "https://github.com/DreamLab-AI/knowledgeGraph/commit/4ed9ac159daf402b4fb252ce559dbeb894a8d91e"
+        "sha": "1edcfc93de90ccff564073ef82cb198c422f75e3",
+        "short": "1edcfc9",
+        "date": "2026-10-21T11:49:48Z",
+        "message": "docs: refresh README with current scope, setup and status",
+        "url": "https://github.com/DreamLab-AI/knowledgeGraph/commit/1edcfc93de90ccff564073ef82cb198c422f75e3"
       },
       "ci": {
         "state": "exempt",
@@ -478,7 +486,7 @@
         "build_type": "legacy"
       },
       "notes": [
-        "no qualifying run on HEAD 4ed9ac1; the latest runs are on older commits (721d807) and were red, reported none",
+        "no qualifying run on HEAD 1edcfc9; the latest runs are on older commits (721d807) and were red, reported none",
         "no CI by design: publish target: content is pushed by visionGraph's publish workflow, and its only workflow is GitHub's Pages build on gh-pages"
       ]
     },
@@ -493,11 +501,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "f77856dd18a4b6348445463456c4865de5285e9a",
-        "short": "f77856d",
-        "date": "2026-10-18T10:54:49Z",
-        "message": "docs(readme): add the webledgers-teller row so the crate table matches the manifest (ER-3)",
-        "url": "https://github.com/DreamLab-AI/sidestr-rs/commit/f77856dd18a4b6348445463456c4865de5285e9a"
+        "sha": "1249e34def303fbb4b9f8380de684c0719a9c75f",
+        "short": "1249e34",
+        "date": "2026-10-21T11:49:48Z",
+        "message": "docs: refresh README with current scope, setup and status",
+        "url": "https://github.com/DreamLab-AI/sidestr-rs/commit/1249e34def303fbb4b9f8380de684c0719a9c75f"
       },
       "ci": {
         "state": "green",
@@ -506,8 +514,8 @@
             "workflow": "ci",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/sidestr-rs/actions/runs/39153528005",
-            "updated_at": "2026-10-18T18:28:16Z"
+            "url": "https://github.com/DreamLab-AI/sidestr-rs/actions/runs/39594897561",
+            "updated_at": "2026-10-21T11:58:00Z"
           }
         ]
       },
@@ -528,11 +536,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "eb1d5a469f07b33b4f7e9a5da1009170cb2c36ea",
-        "short": "eb1d5a4",
-        "date": "2026-10-20T15:31:01Z",
-        "message": "Merge pull request #4 from DreamLab-AI/feat/adr-om-009-derivation-certificates",
-        "url": "https://github.com/DreamLab-AI/ontomark/commit/eb1d5a469f07b33b4f7e9a5da1009170cb2c36ea"
+        "sha": "3e909e52b8ddd20effa832666677798fda644cfc",
+        "short": "3e909e5",
+        "date": "2026-10-21T11:49:49Z",
+        "message": "docs: refresh README with current scope, setup and status",
+        "url": "https://github.com/DreamLab-AI/ontomark/commit/3e909e52b8ddd20effa832666677798fda644cfc"
       },
       "ci": {
         "state": "green",
@@ -541,8 +549,8 @@
             "workflow": "ci",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/ontomark/actions/runs/39449140918",
-            "updated_at": "2026-10-20T15:34:09Z"
+            "url": "https://github.com/DreamLab-AI/ontomark/actions/runs/39594898073",
+            "updated_at": "2026-10-21T11:53:39Z"
           }
         ]
       },
@@ -567,11 +575,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "53af1cff3b2d552401ac606b172cf7fb6a368ad2",
-        "short": "53af1cf",
-        "date": "2026-10-17T09:44:02Z",
-        "message": "release: 0.3.6 — repin engine v0.4.0",
-        "url": "https://github.com/DreamLab-AI/ontomark-obsidian/commit/53af1cff3b2d552401ac606b172cf7fb6a368ad2"
+        "sha": "7af6a92f0e4166c0e4b80e72f0b3a3ebf14cdebb",
+        "short": "7af6a92",
+        "date": "2026-10-21T11:49:49Z",
+        "message": "docs: refresh README with current scope, setup and status",
+        "url": "https://github.com/DreamLab-AI/ontomark-obsidian/commit/7af6a92f0e4166c0e4b80e72f0b3a3ebf14cdebb"
       },
       "ci": {
         "state": "red",
@@ -580,8 +588,8 @@
             "workflow": "Plugin checks",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/ontomark-obsidian/actions/runs/39022249711",
-            "updated_at": "2026-10-17T09:44:19Z"
+            "url": "https://github.com/DreamLab-AI/ontomark-obsidian/actions/runs/39594897119",
+            "updated_at": "2026-10-21T11:50:25Z"
           }
         ]
       },
@@ -775,11 +783,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "ee46e75d9beedd521c5ffde52731d3eb0804e1e1",
-        "short": "ee46e75",
-        "date": "2026-10-19T10:00:28Z",
-        "message": "docs(review): record the 2026-10-18 triage and ledger rows",
-        "url": "https://github.com/DreamLab-AI/dream-engine/commit/ee46e75d9beedd521c5ffde52731d3eb0804e1e1"
+        "sha": "8079c081a5ee5a5a25a6064efc5f115a50b731c0",
+        "short": "8079c08",
+        "date": "2026-10-21T11:49:49Z",
+        "message": "docs: refresh README with current scope, setup and status",
+        "url": "https://github.com/DreamLab-AI/dream-engine/commit/8079c081a5ee5a5a25a6064efc5f115a50b731c0"
       },
       "ci": {
         "state": "green",
@@ -788,8 +796,8 @@
             "workflow": "ci",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/39234290111",
-            "updated_at": "2026-10-19T10:01:07Z"
+            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/39594896650",
+            "updated_at": "2026-10-21T11:50:38Z"
           }
         ]
       },
@@ -830,7 +838,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 389,
+      "latency_ms": 267,
       "note": null
     },
     {
@@ -839,7 +847,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 194,
+      "latency_ms": 86,
       "note": null
     },
     {
@@ -848,7 +856,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 191,
+      "latency_ms": 88,
       "note": null
     },
     {
@@ -857,7 +865,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 181,
+      "latency_ms": 102,
       "note": "classes=9532 pages=9530 nodes=9532"
     },
     {
@@ -866,7 +874,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 338,
+      "latency_ms": 176,
       "note": null
     },
     {
@@ -875,7 +883,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 302,
+      "latency_ms": 170,
       "note": null
     }
   ],
