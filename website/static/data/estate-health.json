@@ -1,19 +1,19 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-10-22T07:47:17.249Z",
+  "generated_at": "2026-10-23T07:46:08.334Z",
   "generator": {
-    "revision": "da332bece70fecc65a60e4e64b74e327a672c0b9",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39742910158",
+    "revision": "4999baa6ac467ed196341b76e05b403c0bee91bb",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39919952773",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
     "repos": 18,
-    "green": 8,
+    "green": 9,
     "red": 3,
     "amber": 0,
     "none": 3,
     "exempt": 2,
-    "unreadable": 2,
+    "unreadable": 1,
     "open_prs": 9,
     "surfaces_ok": 6,
     "surfaces_total": 6
@@ -30,11 +30,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "da332bece70fecc65a60e4e64b74e327a672c0b9",
-        "short": "da332be",
-        "date": "2026-10-21T14:27:35Z",
-        "message": "diagrams: VC-40, the XR client on two backends (capability table, gate, switch, Codescape palette)",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/da332bece70fecc65a60e4e64b74e327a672c0b9"
+        "sha": "4999baa6ac467ed196341b76e05b403c0bee91bb",
+        "short": "4999baa",
+        "date": "2026-10-22T07:47:17Z",
+        "message": "chore(estate-health): nightly snapshot 2026-10-22 — 8/18 green",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/4999baa6ac467ed196341b76e05b403c0bee91bb"
       },
       "ci": {
         "state": "green",
@@ -57,8 +57,8 @@
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39617429662",
-            "updated_at": "2026-10-21T14:35:36Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39742959752",
+            "updated_at": "2026-10-22T07:48:00Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
@@ -78,8 +78,8 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39564883739",
-            "updated_at": "2026-10-21T07:51:27Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39742910158",
+            "updated_at": "2026-10-22T07:47:22Z"
           }
         ]
       },
@@ -106,11 +106,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "44571160c01200668aa2d149b0721b7ba64ea744",
-        "short": "4457116",
-        "date": "2026-10-21T14:12:17Z",
-        "message": "chore: bump codescape submodule to 9140a0f (XR Codescape mode recorded)",
-        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/44571160c01200668aa2d149b0721b7ba64ea744"
+        "sha": "73208db92ae3f7810dba54f7e83f750834bdaf5f",
+        "short": "73208db",
+        "date": "2026-10-22T12:40:07Z",
+        "message": "chore(agentbox): pin main with Isaac lifecycle and regional media nodes",
+        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/73208db92ae3f7810dba54f7e83f750834bdaf5f"
       },
       "ci": {
         "state": "none",
@@ -147,7 +147,7 @@
         "build_type": "workflow"
       },
       "notes": [
-        "no qualifying run on HEAD 4457116; the latest runs are on older commits (52851ce, b06ef57) and were green, reported none"
+        "no qualifying run on HEAD 73208db; the latest runs are on older commits (52851ce, b06ef57) and were green, reported none"
       ]
     },
     {
@@ -161,11 +161,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "1d5efde4e748d42319f0624baa8bd90a164a0d01",
-        "short": "1d5efde",
-        "date": "2026-10-21T22:45:35Z",
-        "message": "docs(media): record verified sidecar cutovers",
-        "url": "https://github.com/DreamLab-AI/agentbox/commit/1d5efde4e748d42319f0624baa8bd90a164a0d01"
+        "sha": "96a9a925dec7b19b8b75ecb891cce7a0a24d09e4",
+        "short": "96a9a92",
+        "date": "2026-10-22T18:52:12Z",
+        "message": "docs(dream-cycle): who-reacted popover already shipped; RedDread told in-thread",
+        "url": "https://github.com/DreamLab-AI/agentbox/commit/96a9a925dec7b19b8b75ecb891cce7a0a24d09e4"
       },
       "ci": {
         "state": "none",
@@ -226,7 +226,7 @@
       "release": null,
       "pages": null,
       "notes": [
-        "no qualifying run on HEAD 1d5efde; the latest runs are on older commits (27dbeef, c49339d) and were red, reported none"
+        "no qualifying run on HEAD 96a9a92; the latest runs are on older commits (27dbeef, c49339d) and were red, reported none"
       ]
     },
     {
@@ -291,11 +291,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "7eaecc3152942793cbc09fc9a2b243ec2e5f8c4c",
-        "short": "7eaecc3",
-        "date": "2026-10-21T11:49:46Z",
-        "message": "docs: refresh README with current scope, setup and status",
-        "url": "https://github.com/DreamLab-AI/nostr-rust-forum/commit/7eaecc3152942793cbc09fc9a2b243ec2e5f8c4c"
+        "sha": "ebcfaa2c600f61a69ca4e84befc55a2f7518df4a",
+        "short": "ebcfaa2",
+        "date": "2026-10-22T14:47:35Z",
+        "message": "Merge pull request #76: image uploads, paste-to-attach, latest-poster bylines, DM unread marks, notification deep links, admin counts",
+        "url": "https://github.com/DreamLab-AI/nostr-rust-forum/commit/ebcfaa2c600f61a69ca4e84befc55a2f7518df4a"
       },
       "ci": {
         "state": "green",
@@ -311,20 +311,16 @@
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/39406403969",
-            "updated_at": "2026-10-20T10:17:58Z"
+            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/39798812191",
+            "updated_at": "2026-10-22T14:57:50Z"
           },
           {
             "workflow": "Security Audit",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/39406403937",
-            "updated_at": "2026-10-20T10:13:56Z"
+            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/39798812178",
+            "updated_at": "2026-10-22T14:50:18Z"
           }
-        ],
-        "carried_from": [
-          "7096903336d3daa349b02328c7c92c6a79823f86",
-          "7ccfcf2086e4b5cb8955d39dab06460fc4116668"
         ]
       },
       "open_prs": 0,
@@ -335,9 +331,7 @@
         "status": null,
         "build_type": "workflow"
       },
-      "notes": [
-        "no qualifying run on HEAD 7eaecc3; HEAD differs from 7096903, 7ccfcf2 only in documentation, so their green is carried"
-      ]
+      "notes": []
     },
     {
       "name": "dreamlab-ai-website",
@@ -350,11 +344,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "af70144a3908c79687c4e2f8da6baf961fe58900",
-        "short": "af70144",
-        "date": "2026-10-21T11:49:47Z",
-        "message": "docs: refresh README with current scope, setup and status",
-        "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/commit/af70144a3908c79687c4e2f8da6baf961fe58900"
+        "sha": "e79fcc033e21768a0dd9f0d6b742d735d7e79fcc",
+        "short": "e79fcc0",
+        "date": "2026-10-22T15:20:01Z",
+        "message": "Merge pull request #75: retry the post-deploy health probe through a cold start",
+        "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/commit/e79fcc033e21768a0dd9f0d6b742d735d7e79fcc"
       },
       "ci": {
         "state": "red",
@@ -363,22 +357,22 @@
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39333887800",
-            "updated_at": "2026-10-19T22:18:50Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39803838488",
+            "updated_at": "2026-10-22T15:21:15Z"
           },
           {
             "workflow": "Deploy Cloudflare Workers",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39333974868",
-            "updated_at": "2026-10-19T22:22:31Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39803838773",
+            "updated_at": "2026-10-22T15:24:31Z"
           },
           {
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39333887790",
-            "updated_at": "2026-10-19T22:28:00Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39800580090",
+            "updated_at": "2026-10-22T15:50:31Z"
           },
           {
             "workflow": "Documentation Auto-Update",
@@ -391,8 +385,8 @@
             "workflow": "kit-pin-guard",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39594898076",
-            "updated_at": "2026-10-21T11:50:21Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39803838619",
+            "updated_at": "2026-10-22T15:20:22Z"
           },
           {
             "workflow": "Set CF Worker secrets (native pod mesh)",
@@ -403,7 +397,7 @@
           }
         ]
       },
-      "open_prs": 4,
+      "open_prs": 2,
       "open_issues": 2,
       "release": null,
       "pages": {
@@ -554,7 +548,7 @@
           }
         ]
       },
-      "open_prs": 1,
+      "open_prs": 2,
       "open_issues": 0,
       "release": {
         "tag": "v0.6.0",
@@ -783,11 +777,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "8079c081a5ee5a5a25a6064efc5f115a50b731c0",
-        "short": "8079c08",
-        "date": "2026-10-21T11:49:49Z",
-        "message": "docs: refresh README with current scope, setup and status",
-        "url": "https://github.com/DreamLab-AI/dream-engine/commit/8079c081a5ee5a5a25a6064efc5f115a50b731c0"
+        "sha": "a460a564f120ea9e9bfdf42d03a714166c056bdd",
+        "short": "a460a56",
+        "date": "2026-10-22T16:45:11Z",
+        "message": "Merge pull request #9: format a candidate before the gate judges it (ADR-DE-009); 0.3.0",
+        "url": "https://github.com/DreamLab-AI/dream-engine/commit/a460a564f120ea9e9bfdf42d03a714166c056bdd"
       },
       "ci": {
         "state": "green",
@@ -796,12 +790,12 @@
             "workflow": "ci",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/39594896650",
-            "updated_at": "2026-10-21T11:50:38Z"
+            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/39816592813",
+            "updated_at": "2026-10-22T16:45:49Z"
           }
         ]
       },
-      "open_prs": 3,
+      "open_prs": 4,
       "open_issues": 0,
       "release": null,
       "pages": null,
@@ -813,22 +807,34 @@
       "url": "https://github.com/DreamLab-AI/visiontouch-rs",
       "provenance": "first-party",
       "role": "haptic input device study (private proof of principle)",
-      "visibility": null,
-      "archived": null,
-      "readable": false,
-      "default_branch": null,
-      "head": null,
-      "ci": {
-        "state": "unknown",
-        "runs": []
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+        "short": "7b95fb2",
+        "date": "2026-10-21T13:59:35Z",
+        "message": "Record velocity-window regression verification",
+        "url": "https://github.com/DreamLab-AI/visiontouch-rs/commit/7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d"
       },
-      "open_prs": null,
-      "open_issues": null,
+      "ci": {
+        "state": "green",
+        "runs": [
+          {
+            "workflow": "CI",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/visiontouch-rs/actions/runs/39612860183",
+            "updated_at": "2026-10-21T14:00:39Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 0,
       "release": null,
       "pages": null,
-      "notes": [
-        "repository not readable: HTTP 404 with both tokens (ESTATE_READ_TOKEN also tried)"
-      ]
+      "notes": []
     }
   ],
   "surfaces": [
@@ -838,7 +844,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 267,
+      "latency_ms": 364,
       "note": null
     },
     {
@@ -847,7 +853,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 86,
+      "latency_ms": 100,
       "note": null
     },
     {
@@ -856,7 +862,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 88,
+      "latency_ms": 179,
       "note": null
     },
     {
@@ -865,7 +871,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 102,
+      "latency_ms": 108,
       "note": "classes=9532 pages=9530 nodes=9532"
     },
     {
@@ -874,7 +880,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 176,
+      "latency_ms": 368,
       "note": null
     },
     {
@@ -883,7 +889,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 170,
+      "latency_ms": 403,
       "note": null
     }
   ],
