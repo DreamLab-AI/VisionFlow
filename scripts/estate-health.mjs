@@ -130,6 +130,12 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
+import { createRequire } from 'node:module';
+
+// The opt-in Jev option (docs/jev-option.md): advisory only, off by default.
+const nodeRequire = createRequire(import.meta.url);
+const jev = nodeRequire('./lib/jev.cjs');
+const jevQ = nodeRequire('./lib/jev-questions.cjs');
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '..');
@@ -196,7 +202,7 @@ function opt(name, fallback) {
 if (IS_MAIN && !['collect', 'check'].includes(CMD)) {
   process.stderr.write(
     'usage: estate-health.mjs collect [--out PATH] [--roster PATH]\n'
-    + '       estate-health.mjs check  [--file PATH] [--max-age-hours 36]\n');
+    + '       estate-health.mjs check  [--file PATH] [--max-age-hours 36] [--jev[=health,triage]]\n');
   process.exit(2);
 }
 
@@ -933,7 +939,7 @@ async function collect() {
  * shows a failure, and reporting staleness would bury the defect; STALE is
  * therefore only reached when the estate is otherwise clean.
  */
-function check() {
+async function check() {
   if (!existsSync(CHECK_PATH)) {
     process.stdout.write(`DOWN snapshot missing ${CHECK_PATH}\nESTATE-HEALTH-STALE\n`);
     return 1;
@@ -955,6 +961,8 @@ function check() {
   }
 
   let red = false;
+  let buf = '';
+  const jevItems = [];
 
   for (const repo of snap.repos ?? []) {
     if (repo.ci?.state === 'red' || repo.ci?.state === 'amber') {
@@ -964,17 +972,20 @@ function check() {
         const bad = run.status !== 'completed' || !CONCLUSION_GREEN.has(run.conclusion);
         if (!bad) continue;
         const outcome = run.status === 'completed' ? (run.conclusion ?? 'null') : run.status;
-        process.stdout.write(`${label} ${repo.name} ${run.workflow}=${outcome} ${run.url ?? repo.url}\n`);
+        buf += `${label} ${repo.name} ${run.workflow}=${outcome} ${run.url ?? repo.url}\n`;
+        if (label === 'RED') jevItems.push({ kind: 'ci', repo: repo.name, workflow: run.workflow, outcome });
       }
     } else if (repo.readable === false) {
-      process.stdout.write(`AMBER ${repo.name} repository=unreadable ${repo.url}\n`);
+      buf += `AMBER ${repo.name} repository=unreadable ${repo.url}\n`;
+      jevItems.push({ kind: 'repository-unreadable', repo: repo.name });
     }
   }
 
   for (const surface of snap.surfaces ?? []) {
     if (surface.ok) continue;
     red = true;
-    process.stdout.write(`DOWN ${surface.name} ${surface.status ?? surface.note ?? 'unreachable'}\n`);
+    buf += `DOWN ${surface.name} ${surface.status ?? surface.note ?? 'unreachable'}\n`;
+    jevItems.push({ kind: 'surface-down', surface: surface.name, status: surface.status ?? null });
   }
 
   // Informational only, now on every path (the 2026-10-11 line printed only
@@ -986,25 +997,75 @@ function check() {
   // dream time. Report the age without changing precedence or the exit code.
   const ageHours = (Date.now() - Date.parse(snap.generated_at)) / 3_600_000;
   if (Number.isFinite(ageHours)) {
-    process.stdout.write(
+    buf += (
       `INFO snapshot age ${ageHours.toFixed(1)} h (limit ${MAX_AGE_HOURS} h)`
       + ` generated_at ${snap.generated_at}\n`);
   }
 
+  buf += await jevAdvisory(jevItems);
+
   if (red) {
-    process.stdout.write('ESTATE-HEALTH-RED\n');
+    process.stdout.write(`${buf}ESTATE-HEALTH-RED\n`);
     return 1;
   }
 
   if (!Number.isFinite(ageHours) || ageHours > MAX_AGE_HOURS) {
     const age = Number.isFinite(ageHours) ? `${ageHours.toFixed(1)} h` : 'unknown age';
-    process.stdout.write(`DOWN snapshot stale ${age} (limit ${MAX_AGE_HOURS} h)\nESTATE-HEALTH-STALE\n`);
+    process.stdout.write(`${buf}DOWN snapshot stale ${age} (limit ${MAX_AGE_HOURS} h)\nESTATE-HEALTH-STALE\n`);
     return 1;
   }
 
-  process.stdout.write('ESTATE-HEALTH-OK\n');
+  process.stdout.write(`${buf}ESTATE-HEALTH-OK\n`);
   return 0;
 }
 
+/**
+ * The Jev option for `check` (VF-03-S1-01 prioritise, ES-09-S1-01 triage).
+ * ADVISORY ONLY and OFF by default (`--jev[=health,triage]` or VISIONFLOW_JEV).
+ * Returns extra `JEV ...` lines to print before the verdict sentinel, or '' —
+ * which is exactly the pre-change output — on flag-off, no endpoint, error,
+ * timeout, malformed or low-confidence. It never touches the verdict, the exit
+ * code or the snapshot, and `collect` is untouched. The input is the exact
+ * failed/unreadable observations the deterministic check already printed;
+ * only workflow names, outcomes and repository names leave the process (the
+ * snapshot is already published on the site). The snapshot carries no failed
+ * step text, so the triage state is workflow + outcome only.
+ */
+const JEV_MAX_ITEMS = 12;
+export async function jevAdvisory(items, { env = process.env, args = argv, fetchImpl, log } = {}) {
+  if (!items.length) return '';
+  const cli = jev.cliFlag(args);
+  const opts = { env, fetchImpl, log, dataClass: 'public' };
+  const capped = items.slice(0, JEV_MAX_ITEMS);
+  let out = '';
+  if (jev.enabled('health', { env, cli })) {
+    const q = jevQ.healthPriority(capped);
+    const r = await jev.decide({ ...q, ...opts });
+    if (r.outcome === 'accepted') {
+      const ranked = q.ids
+        .map(({ id, index }) => ({ index, score: r.answers[id].score, conf: r.answers[id].confidence }))
+        .sort((x, y) => y.score - x.score || x.index - y.index);
+      ranked.forEach((x, n) => {
+        const it = capped[x.index];
+        out += `JEV priority ${n + 1} ${it.repo ?? it.surface} ${it.workflow ?? it.kind} impact=${x.score.toFixed(2)} conf=${x.conf.toFixed(2)} (advisory; unmeasured)\n`;
+      });
+    }
+  }
+  if (jev.enabled('triage', { env, cli })) {
+    const ci = capped.filter((it) => it.kind === 'ci');
+    if (ci.length) {
+      const q = jevQ.failureTriage(ci);
+      const r = await jev.decide({ ...q, ...opts });
+      if (r.outcome === 'accepted') {
+        for (const { id, index } of q.ids) {
+          const a = r.answers[id];
+          out += `JEV triage ${ci[index].repo} ${ci[index].workflow} -> ${a.choice} conf=${a.confidence.toFixed(2)} (advisory; not a verdict)\n`;
+        }
+      }
+    }
+  }
+  return out;
+}
+
 // ── entrypoint ───────────────────────────────────────────────────────────
-if (IS_MAIN) process.exitCode = CMD === 'collect' ? await collect() : check();
+if (IS_MAIN) process.exitCode = CMD === 'collect' ? await collect() : await check();

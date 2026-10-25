@@ -10,6 +10,10 @@
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
+// Opt-in Jev option (VF-01-S1-01), advisory only: `--jev` or VISIONFLOW_JEV=claim.
+// It never changes a FAIL, the summary line or the exit code. See docs/jev-option.md.
+const jev = require('./lib/jev.cjs');
+const jevQ = require('./lib/jev-questions.cjs');
 
 const root = (() => { const i = process.argv.indexOf('--root'); return i > -1 ? process.argv[i + 1] : path.resolve(__dirname, '..', '..'); })();
 const SUBSTRATE_DIRS = { 'nostr-rust-forum': 'nostr-rust-forum', agentbox: 'agentbox', VisionClaw: 'project' };
@@ -20,6 +24,7 @@ const CITE_RE = /`([^`\s]+?):(\d+(?:-\d+)?(?:,\d+(?:-\d+)?)*)`/g;
 
 const matrix = fs.readFileSync(path.resolve(__dirname, '..', 'docs/architecture/compatibility-matrix.md'), 'utf8');
 let failures = 0, checked = 0;
+const jevCells = []; // non-absent cells with their cited excerpts, for the advisory pass
 const fail = (msg) => { console.error(`FAIL ${msg}`); failures++; };
 
 const start = matrix.indexOf('## Augmentation conditions');
@@ -59,6 +64,7 @@ for (const row of body) {
     if (!status) { fail(`${cond}/${substrate}: no status token`); return; }
     const cites = [...cell.matchAll(CITE_RE)].map(m => ({ file: m[1], lines: m[2] }));
     if (status !== 'absent' && cites.length === 0) fail(`${cond}/${substrate}: ${status} without a citation`);
+    const excerpts = [];
     for (const { file, lines: ln } of cites) {
       checked++;
       if (file.includes('...')) { fail(`${cond}/${substrate}: elided path ${file}`); continue; }
@@ -71,8 +77,38 @@ for (const row of body) {
       const total = lineCount(full);
       const maxLine = Math.max(...ln.split(',').flatMap(r => r.split('-').map(Number)));
       if (maxLine > total) fail(`${cond}/${substrate}: ${file}:${ln} cites line ${maxLine} but the file has ${total} lines`);
+      else {
+        const fl = fs.readFileSync(full, 'utf8').split('\n');
+        for (const part of ln.split(',')) {
+          const [a, b] = part.split('-').map(Number);
+          const text = jevQ.excerpt(fl, a, b);
+          if (text) excerpts.push({ ref: `${file}:${part}`, text });
+        }
+      }
     }
+    if (status !== 'absent' && excerpts.length) jevCells.push({ key: `${cond}/${substrate}`, text: cell.replace(/\s+/g, ' ').slice(0, 900), status, excerpts: excerpts.slice(0, 6) });
   });
 }
 console.log(`${checked} citations checked across ${body.length} rows × ${cols.length} substrates; ${failures} failure(s)`);
-process.exit(failures ? 1 : 0);
+
+/**
+ * The Jev pass: runs only when asked for, after the deterministic gate has
+ * printed its verdict, and can only append `JEV` lines. Excerpts of sibling
+ * checkouts leave the process, so this consumer is local-only: it needs a
+ * declared-local endpoint (AGENTBOX_SYSTEM_ONE_BACKEND_LOCAL=1 or an explicit
+ * VISIONFLOW_JEV_ENDPOINT). Any fallback prints nothing more.
+ */
+async function jevPass(deps = {}) {
+  if (!jev.enabled('claim', { env: process.env, cli: jev.cliFlag(process.argv.slice(2)) }) || !jevCells.length) return;
+  const q = jevQ.claimCheck(jevCells);
+  const r = await jev.decide({ ...q, dataClass: 'local-only', env: process.env, ...deps });
+  if (r.outcome !== 'accepted') return;
+  for (const { id, key } of q.ids) {
+    const a = r.answers[id];
+    if (a.choice !== 'supported') {
+      console.log(`JEV claim ${key}: ${a.choice} conf=${a.confidence.toFixed(2)} (advisory; reviewer disposition and exact citations required; no status is changed)`);
+    }
+  }
+}
+
+jevPass().catch(() => {}).finally(() => process.exit(failures ? 1 : 0));

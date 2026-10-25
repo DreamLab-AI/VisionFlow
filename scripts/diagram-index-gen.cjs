@@ -82,7 +82,7 @@ const REQUIRED = ['id', 'title', 'area', 'governing', 'adrs', 'sources', 'verifi
 
 function usage(msg) {
   if (msg) console.error(msg);
-  console.error('Usage: node scripts/diagram-index-gen.cjs <dir> [--check] [--render] [--cite-check] [--strict-citations] [--worktree-citations] [--check-verification] [--no-source-paths] [--jobs N] [--only S]');
+  console.error('Usage: node scripts/diagram-index-gen.cjs <dir> [--check] [--render] [--cite-check] [--strict-citations] [--worktree-citations] [--check-verification] [--no-source-paths] [--jobs N] [--only S] [--jev[=diagram]] [--jev-report PATH] [--jev-max N]');
   process.exit(2);
 }
 
@@ -101,6 +101,9 @@ for (let i = 1; i < argv.length; i++) {
   else if (a === '--only') flags.only = argv[++i];
   else if (a === '--no-source-paths') flags.noSourcePaths = true; // CI: sibling checkouts absent
   else if (a === '--check-verification') flags.checkVerification = true;
+  else if (a === '--jev' || a.startsWith('--jev=')) flags.jev = a === '--jev' ? true : a.slice(6); // opt-in advisory review, see docs/jev-option.md
+  else if (a === '--jev-report') flags.jevReport = argv[++i];
+  else if (a === '--jev-max') flags.jevMax = parseInt(argv[++i], 10) || 5;
   else usage(`unknown flag ${a}`);
 }
 if (flags.strictCitations && flags.noSourcePaths) usage('--strict-citations requires source paths; do not combine with --no-source-paths');
@@ -788,6 +791,60 @@ function writeIndexes(topics) {
   fs.writeFileSync(path.join(root, 'COVERAGE.md'), out.join('\n') + '\n');
 }
 
+// ── The Jev option (VF-06-S1-01): advisory semantic diagram-to-source review ──
+// OFF by default (`--jev` / VISIONFLOW_JEV=diagram). It runs AFTER every
+// deterministic check, on stderr only (or --jev-report PATH), and can never
+// add an error, change an exit code, write an index, touch VERIFICATION.md or
+// restamp verified_commit: a finding is a pointer for a human reviewer, with
+// path:line anchors. Excerpts of sibling-repo source leave the process, so this
+// consumer is local-only (needs a declared-local endpoint). See docs/jev-option.md.
+const jev = require('./lib/jev.cjs');
+const jevQ = require('./lib/jev-questions.cjs');
+function jevDiagramInputs(t, d) {
+  const excerpts = [];
+  const re = new RegExp(CITE_RE.source, 'g');
+  const sources = (t.fm.sources || []).map((s) => s.split(':')[0]);
+  for (const m of d.src.replace(/\\n/g, '\n').matchAll(re)) {
+    if (/^\d+(\.\d+)+$/.test(m[1])) continue;
+    const exact = sources.filter((sp) => sp === m[1] || sp === './' + m[1]);
+    const hits = exact.length ? exact : sources.filter((sp) => sp.endsWith('/' + m[1]));
+    if (hits.length !== 1) continue;
+    const { lines } = revisionLines(t, hits[0]);
+    const text = lines && jevQ.excerpt(lines, Number(m[2]), m[3] ? Number(m[3]) : undefined);
+    if (text && !excerpts.some((e) => e.ref === `${hits[0]}:${m[2]}${m[3] ? '-' + m[3] : ''}`)) {
+      excerpts.push({ ref: `${hits[0]}:${m[2]}${m[3] ? '-' + m[3] : ''}`, text });
+    }
+  }
+  return excerpts.slice(0, 8);
+}
+async function jevDiagramReview(topics, deps = {}) {
+  if (!jev.enabled('diagram', { env: process.env, cli: flags.jev })) return;
+  const max = flags.jevMax || 5;
+  const report = [];
+  let asked = 0;
+  for (const t of topics) {
+    CURRENT_TOPIC = t;
+    for (const d of t.diagrams) {
+      if (asked >= max) break;
+      const excerpts = jevDiagramInputs(t, d);
+      if (!excerpts.length) continue;
+      asked++;
+      const q = jevQ.diagramReview({ id: `${t.fm.id}/${d.id}`, source: d.src.slice(0, 6000), excerpts });
+      const r = await jev.decide({ ...q, dataClass: 'local-only', env: process.env, ...deps });
+      if (r.outcome !== 'accepted') continue;
+      const verdict = r.answers.verdict;
+      const rec = { topic: t.rel, diagram: d.id, verdict: verdict.choice, confidence: verdict.confidence, p_supported: r.answers.supported.noul, anchors: excerpts.map((e) => e.ref), question_set: q.version };
+      report.push(rec);
+      if (verdict.choice === 'contradicted') {
+        console.error(`JEV-ADVISORY ${t.rel}:${d.id} contradicted conf=${verdict.confidence.toFixed(2)} anchors=${rec.anchors.join(',')} (needs human review before any restamp)`);
+      }
+    }
+  }
+  if (flags.jevReport && report.length) {
+    try { fs.writeFileSync(flags.jevReport, JSON.stringify({ advisory: true, results: report }, null, 2) + '\n'); } catch { /* report is best-effort */ }
+  }
+}
+
 // ---------------------------------------------------------------- main
 (async () => {
   const errors = [];
@@ -836,6 +893,7 @@ function writeIndexes(topics) {
     for (const x of w) console.warn(`  ! ${x}`);
     if (flags.strictCitations) errors.push(...w.map(x => `citation: ${x}`));
   }
+  await jevDiagramReview(topics).catch(() => {});
   if (flags.checkVerification) {
     // The runner cannot resolve cross-repository revisions, so it cannot repeat
     // the citation check. What it CAN do is refuse a VERIFICATION.md written
