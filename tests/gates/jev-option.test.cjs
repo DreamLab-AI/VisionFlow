@@ -63,6 +63,15 @@ const FB_NAMES = ['flag off', 'flag on, no endpoint', 'transport error', 'timeou
     const e3 = jev.resolveEndpoint({ TYPESAFE_API_KEY: 't' });
     assert.deepEqual([e3.url, e3.model, e3.headers.Authorization], [jev.DEFAULT_API, 'jev-latest', 'Bearer t']);
     assert.equal(jev.resolveEndpoint({ AGENTBOX_SYSTEM_ONE_PROXY: '1', AGENTBOX_SYSTEM_ONE_ENDPOINT: 'http://p' }).reason, 'no-endpoint'); });
+  await ok('proxy aliases: AGENTBOX_SKILL_ROUTE_API / _MODEL accepted, primary names win, no Authorization', () => {
+    const a = jev.resolveEndpoint({ AGENTBOX_SYSTEM_ONE_PROXY: '1', AGENTBOX_SKILL_ROUTE_API: 'http://alias', AGENTBOX_SKILL_ROUTE_MODEL: 'am', TYPESAFE_API_KEY: 't' });
+    assert.deepEqual([a.url, a.model, 'Authorization' in a.headers], ['http://alias', 'am', false]);
+    const m = jev.resolveEndpoint({ AGENTBOX_SYSTEM_ONE_PROXY: '1', AGENTBOX_SYSTEM_ONE_ENDPOINT: 'http://p', AGENTBOX_SKILL_ROUTE_MODEL: 'am' });
+    assert.deepEqual([m.url, m.model], ['http://p', 'am']);
+    const w = jev.resolveEndpoint({ AGENTBOX_SYSTEM_ONE_PROXY: '1', AGENTBOX_SYSTEM_ONE_ENDPOINT: 'http://p', AGENTBOX_SYSTEM_ONE_MODEL: 'pm', AGENTBOX_SKILL_ROUTE_API: 'http://alias', AGENTBOX_SKILL_ROUTE_MODEL: 'am' });
+    assert.deepEqual([w.url, w.model], ['http://p', 'pm']);
+    assert.equal(jev.resolveEndpoint({ AGENTBOX_SKILL_ROUTE_API: 'http://alias', AGENTBOX_SKILL_ROUTE_MODEL: 'am' }).reason, 'no-endpoint', 'alias needs PROXY=1');
+    assert.equal(jev.resolveEndpoint({ AGENTBOX_SYSTEM_ONE_PROXY: '1', AGENTBOX_SKILL_ROUTE_API: 'http://alias', AGENTBOX_SKILL_ROUTE_MODEL: 'am' }, 'local-only').reason, 'local-only-refused'); });
   await ok('local-only refuses proxy and typesafe unless declared local', () => {
     const proxy = { AGENTBOX_SYSTEM_ONE_PROXY: '1', AGENTBOX_SYSTEM_ONE_ENDPOINT: 'http://p', AGENTBOX_SYSTEM_ONE_MODEL: 'pm' };
     assert.equal(jev.resolveEndpoint(proxy, 'local-only').reason, 'local-only-refused');

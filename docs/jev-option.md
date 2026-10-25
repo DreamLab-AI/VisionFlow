@@ -30,7 +30,7 @@ VF-06 and VF-01 read source from sibling checkouts, so they are **local-only**: 
 Endpoint resolution (first match wins; `scripts/lib/jev.cjs`):
 
 1. `VISIONFLOW_JEV_ENDPOINT` (+ `VISIONFLOW_JEV_MODEL`, default `jev-latest`; `VISIONFLOW_JEV_KEY_ENV` names the env var holding a Bearer key).
-2. `AGENTBOX_SYSTEM_ONE_ENDPOINT` + `AGENTBOX_SYSTEM_ONE_MODEL` when `AGENTBOX_SYSTEM_ONE_PROXY=1` (loopback proxy; no `Authorization` header sent).
+2. `AGENTBOX_SYSTEM_ONE_ENDPOINT` (or `AGENTBOX_SKILL_ROUTE_API`) + `AGENTBOX_SYSTEM_ONE_MODEL` (or `AGENTBOX_SKILL_ROUTE_MODEL`) when `AGENTBOX_SYSTEM_ONE_PROXY=1` (loopback proxy; no `Authorization` header sent).
 3. `https://api.typesafe.ai/v1/systemone`, model `jev-latest`, Bearer `$TYPESAFE_API_KEY`, only if that key is set.
 4. Otherwise Jev is unavailable and the script falls back.
 

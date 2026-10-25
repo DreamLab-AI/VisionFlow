@@ -79,9 +79,11 @@ function resolveEndpoint(env, dataClass = 'public') {
     return { url: env.VISIONFLOW_JEV_ENDPOINT, model: env.VISIONFLOW_JEV_MODEL || DEFAULT_MODEL, headers };
   }
   const local = env.AGENTBOX_SYSTEM_ONE_BACKEND_LOCAL === '1';
-  if (env.AGENTBOX_SYSTEM_ONE_PROXY === '1' && env.AGENTBOX_SYSTEM_ONE_ENDPOINT && env.AGENTBOX_SYSTEM_ONE_MODEL) {
+  const proxyUrl = env.AGENTBOX_SYSTEM_ONE_ENDPOINT || env.AGENTBOX_SKILL_ROUTE_API;
+  const proxyModel = env.AGENTBOX_SYSTEM_ONE_MODEL || env.AGENTBOX_SKILL_ROUTE_MODEL;
+  if (env.AGENTBOX_SYSTEM_ONE_PROXY === '1' && proxyUrl && proxyModel) {
     if (dataClass === 'local-only' && !local) return { reason: 'local-only-refused' };
-    return { url: env.AGENTBOX_SYSTEM_ONE_ENDPOINT, model: env.AGENTBOX_SYSTEM_ONE_MODEL, headers: base };
+    return { url: proxyUrl, model: proxyModel, headers: base };
   }
   if (env.TYPESAFE_API_KEY) {
     if (dataClass === 'local-only' && !local) return { reason: 'local-only-refused' };
