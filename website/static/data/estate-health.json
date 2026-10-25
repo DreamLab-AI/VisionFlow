@@ -1,9 +1,9 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-10-24T07:28:10.831Z",
+  "generated_at": "2026-10-25T07:41:41.248Z",
   "generator": {
-    "revision": "537b6ea3f372a1afa321456eebfabc25e5bd87ea",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/40074225178",
+    "revision": "b4a774c1a34051f36d957e229af1d5384b308f98",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/40173715290",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
@@ -14,7 +14,7 @@
     "none": 1,
     "exempt": 2,
     "unreadable": 1,
-    "open_prs": 10,
+    "open_prs": 12,
     "surfaces_ok": 6,
     "surfaces_total": 6
   },
@@ -30,11 +30,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "537b6ea3f372a1afa321456eebfabc25e5bd87ea",
-        "short": "537b6ea",
-        "date": "2026-10-23T07:46:08Z",
-        "message": "chore(estate-health): nightly snapshot 2026-10-23 — 9/18 green",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/537b6ea3f372a1afa321456eebfabc25e5bd87ea"
+        "sha": "b4a774c1a34051f36d957e229af1d5384b308f98",
+        "short": "b4a774c",
+        "date": "2026-10-24T07:28:11Z",
+        "message": "chore(estate-health): nightly snapshot 2026-10-24 — 12/18 green",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/b4a774c1a34051f36d957e229af1d5384b308f98"
       },
       "ci": {
         "state": "green",
@@ -57,8 +57,8 @@
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39919999954",
-            "updated_at": "2026-10-23T07:47:04Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/40074252097",
+            "updated_at": "2026-10-24T07:28:56Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
@@ -78,8 +78,8 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39919952773",
-            "updated_at": "2026-10-23T07:46:15Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/40074225178",
+            "updated_at": "2026-10-24T07:28:16Z"
           }
         ]
       },
@@ -277,7 +277,7 @@
           }
         ]
       },
-      "open_prs": 1,
+      "open_prs": 2,
       "open_issues": 1,
       "release": null,
       "pages": null,
@@ -347,11 +347,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "3d5abce4451fe3891150f5fe47504e981dd56a46",
-        "short": "3d5abce",
-        "date": "2026-10-23T16:17:30Z",
-        "message": "deps: bump dompurify 3.4.11 to 3.4.17 (#76)",
-        "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/commit/3d5abce4451fe3891150f5fe47504e981dd56a46"
+        "sha": "8105f9b2f5754c5e66709f96de560f88e13ec5fc",
+        "short": "8105f9b",
+        "date": "2026-10-24T19:30:25Z",
+        "message": "dream(kit-pin-integrity): duplicate RESOLVED record lines collapsed last-wins; gate… (#77)",
+        "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/commit/8105f9b2f5754c5e66709f96de560f88e13ec5fc"
       },
       "ci": {
         "state": "red",
@@ -360,8 +360,8 @@
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39985562374",
-            "updated_at": "2026-10-23T16:18:48Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/40125601264",
+            "updated_at": "2026-10-24T19:31:34Z"
           },
           {
             "workflow": "Deploy Cloudflare Workers",
@@ -374,22 +374,15 @@
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39985562437",
-            "updated_at": "2026-10-23T16:31:02Z"
-          },
-          {
-            "workflow": "Documentation Auto-Update",
-            "conclusion": "success",
-            "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39178887043",
-            "updated_at": "2026-10-19T00:01:36Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/40125601334",
+            "updated_at": "2026-10-24T19:43:59Z"
           },
           {
             "workflow": "kit-pin-guard",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39985562307",
-            "updated_at": "2026-10-23T16:17:52Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/40125601268",
+            "updated_at": "2026-10-24T19:30:43Z"
           },
           {
             "workflow": "Set CF Worker secrets (native pod mesh)",
@@ -516,7 +509,7 @@
           }
         ]
       },
-      "open_prs": 0,
+      "open_prs": 1,
       "open_issues": 0,
       "release": null,
       "pages": null,
@@ -533,11 +526,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "a6b078c74abb8e504ab7cb846e25e021a2c9f1dc",
-        "short": "a6b078c",
-        "date": "2026-10-23T11:30:37Z",
-        "message": "test(conformance): tolerate libm drift in layout coordinates (#7)",
-        "url": "https://github.com/DreamLab-AI/ontomark/commit/a6b078c74abb8e504ab7cb846e25e021a2c9f1dc"
+        "sha": "a14c2ddf1a9078f74c261569daedfea681368a37",
+        "short": "a14c2dd",
+        "date": "2026-10-24T19:30:28Z",
+        "message": "fix(compile): gate unused TYPE constant behind its feature (#5)",
+        "url": "https://github.com/DreamLab-AI/ontomark/commit/a14c2ddf1a9078f74c261569daedfea681368a37"
       },
       "ci": {
         "state": "green",
@@ -546,12 +539,12 @@
             "workflow": "ci",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/ontomark/actions/runs/39946578482",
-            "updated_at": "2026-10-23T11:33:25Z"
+            "url": "https://github.com/DreamLab-AI/ontomark/actions/runs/40125606680",
+            "updated_at": "2026-10-24T19:33:55Z"
           }
         ]
       },
-      "open_prs": 2,
+      "open_prs": 1,
       "open_issues": 0,
       "release": {
         "tag": "v0.6.0",
@@ -720,7 +713,7 @@
           }
         ]
       },
-      "open_prs": 0,
+      "open_prs": 1,
       "open_issues": 0,
       "release": {
         "tag": "v0.1.4",
@@ -847,7 +840,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 234,
+      "latency_ms": 303,
       "note": null
     },
     {
@@ -856,7 +849,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 141,
+      "latency_ms": 205,
       "note": null
     },
     {
@@ -865,7 +858,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 152,
+      "latency_ms": 211,
       "note": null
     },
     {
@@ -874,7 +867,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 142,
+      "latency_ms": 216,
       "note": "classes=9532 pages=9530 nodes=9532"
     },
     {
@@ -883,7 +876,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 383,
+      "latency_ms": 317,
       "note": null
     },
     {
@@ -892,7 +885,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 325,
+      "latency_ms": 314,
       "note": null
     }
   ],
