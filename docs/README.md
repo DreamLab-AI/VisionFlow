@@ -10,6 +10,7 @@ Back to the [top-level README](../README.md) for the ecosystem overview, quickst
 
 | Document | Purpose |
 |---|---|
+| [Jev option](jev-option.md) | Opt-in, advisory typed-decision checks beside four gates; off by default, what leaves and where to |
 | [Estate Review](estate-review/README.md) | Developing source-grounded assessment of the expanded estate: vision, implementation, integration and gaps |
 | [Ecosystem Alignment PRD](PRD-ecosystem-alignment.md) | Requirements for compatibility, maturity, ownership, fixture, and release-readiness work |
 | [Ecosystem Alignment ADR-002](archive/adr/ADR-002-ecosystem-alignment-governance.md) _(archived)_ | Decision record for cross-repo alignment governance and maturity vocabulary |

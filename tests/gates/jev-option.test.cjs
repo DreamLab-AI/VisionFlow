@@ -208,6 +208,12 @@ const FB_NAMES = ['flag off', 'flag on, no endpoint', 'transport error', 'timeou
       const t = mkTree(`dg-${i}`); const now = sh(DG, [t.root, '--check', '--cite-check', '--jev', ...(env.VISIONFLOW_JEV ? [] : [])].filter((a) => a !== '--jev' || env.VISIONFLOW_JEV), { ...env, AGENTBOX_SYSTEM_ONE_BACKEND_LOCAL: '1' });
       assert.deepEqual(now, { ...ref, stdout: now.stdout.split(t.root).join(refT.root), stderr: now.stderr.split(t.root).join(refT.root) }); assert.deepEqual(tree(t.root), refFiles); }));
   }
+  await ok('flag off + endpoint set: no request is made by any of the three scripts', () => {
+    const t = mkTree('nolog').root; const lf = path.join(tmp, 'nolog.log'); fs.rmSync(lf, { force: true });
+    const env = { ...ENV, JEV_MOCK: 'accept', JEV_MOCK_LOG: lf, AGENTBOX_SYSTEM_ONE_BACKEND_LOCAL: '1' };
+    sh(EH, ['check', '--file', snap, '--max-age-hours', '1000'], env); sh(AC, ['--root', estate], env); sh(DG, [t, '--check', '--cite-check'], env);
+    assert.ok(!fs.existsSync(lf)); });
+
   await ok('VF-06 accept: stderr advisory with path:line anchors + report; stdout, exit and indexes untouched; Noul+Choice wire shape', () => {
     const a = mkTree('dg-acc-off'); const b = mkTree('dg-acc-on'); fs.rmSync(logf, { force: true });
     const off = sh(DG, [a.root, '--check', '--cite-check']); const reportPath = path.join(tmp, 'dg-report.json');

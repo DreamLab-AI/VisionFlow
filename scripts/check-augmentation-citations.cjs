@@ -24,6 +24,7 @@ const CITE_RE = /`([^`\s]+?):(\d+(?:-\d+)?(?:,\d+(?:-\d+)?)*)`/g;
 
 const matrix = fs.readFileSync(path.resolve(__dirname, '..', 'docs/architecture/compatibility-matrix.md'), 'utf8');
 let failures = 0, checked = 0;
+const wantJev = jev.enabled('claim', { env: process.env, cli: jev.cliFlag(process.argv.slice(2)) });
 const jevCells = []; // non-absent cells with their cited excerpts, for the advisory pass
 const fail = (msg) => { console.error(`FAIL ${msg}`); failures++; };
 
@@ -77,7 +78,7 @@ for (const row of body) {
       const total = lineCount(full);
       const maxLine = Math.max(...ln.split(',').flatMap(r => r.split('-').map(Number)));
       if (maxLine > total) fail(`${cond}/${substrate}: ${file}:${ln} cites line ${maxLine} but the file has ${total} lines`);
-      else {
+      else if (wantJev) {
         const fl = fs.readFileSync(full, 'utf8').split('\n');
         for (const part of ln.split(',')) {
           const [a, b] = part.split('-').map(Number);
@@ -99,7 +100,7 @@ console.log(`${checked} citations checked across ${body.length} rows × ${cols.l
  * VISIONFLOW_JEV_ENDPOINT). Any fallback prints nothing more.
  */
 async function jevPass(deps = {}) {
-  if (!jev.enabled('claim', { env: process.env, cli: jev.cliFlag(process.argv.slice(2)) }) || !jevCells.length) return;
+  if (!wantJev || !jevCells.length) return;
   const q = jevQ.claimCheck(jevCells);
   const r = await jev.decide({ ...q, dataClass: 'local-only', env: process.env, ...deps });
   if (r.outcome !== 'accepted') return;

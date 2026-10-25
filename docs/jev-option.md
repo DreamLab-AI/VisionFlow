@@ -13,7 +13,7 @@ Status of every item: *proposed research candidate; no measured uplift.* The tes
 | VF-03-S1-01 health priority | `scripts/estate-health.mjs check` | `--jev[=health]` | public | One Score per failed/unreadable observation; `JEV priority N ...` lines before the verdict sentinel. |
 | ES-09-S1-01 failure triage | `scripts/estate-health.mjs check` | `--jev[=triage]` | public | One Choice per failed CI run (`source-build / stale-bind-path / pin-or-schema / dependency / gpu-xr / runtime-evidence-gap / insufficient`); `JEV triage ...` lines before the sentinel. |
 
-`VISIONFLOW_JEV` enables the same items from the environment: `1`/`all`, or a comma list (`diagram,claim,health,triage`). `--jev` on the command line wins. The dream-cycle entrypoint (`node scripts/estate-health.mjs check`) passes no flag, so a dream night stays offline.
+`VISIONFLOW_JEV` enables the same items from the environment: `1`/`all`, or a comma list (`diagram,claim,health,triage`). `--jev` on the command line wins. The dream-cycle entrypoint (`node scripts/estate-health.mjs check`) passes no flag, so a dream night stays offline as long as `VISIONFLOW_JEV` is unset in the annexe environment (it holds no tokens either, so an enabled run would fall back).
 
 **Authority stays in code.** The CI-colour rule, HEAD verdict, `unknown`/`red`/`green`/exempt rules, citation resolution, syntax/render gates, ADR checks and the sentinel line are untouched and run first. Jev output cannot change a pass/fail result, write an index, restamp a topic, or edit the snapshot. `collect` never calls Jev.
 
