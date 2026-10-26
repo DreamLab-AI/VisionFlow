@@ -116,18 +116,28 @@ check "reports site-missing" "site-missing" "$OUT"
 [[ $RC -eq 1 ]] && ok "exit 1 on vanished figure" || bad "exit 1" "got $RC"
 
 # ── 5. The sibling source pin is enforced ────────────────────────────────
+# Hermetic: the pin check only reads `git rev-parse HEAD` of whatever
+# DRIFT_AGENTBOX_DIR names, so a throwaway one-commit repo stands in for the
+# sibling. Before this, [5]/[5b] needed a real agentbox checkout and failed
+# (source pin : UNVERIFIABLE, not FAIL/WARN) on any machine without one.
+FAKE_AB="$SCRATCH/agentbox"
+mkdir -p "$FAKE_AB/mcp/servers"
+: > "$FAKE_AB/mcp/servers/ontology-bridge.js"
+git -C "$FAKE_AB" init -q
+git -C "$FAKE_AB" add -A
+git -C "$FAKE_AB" -c user.name=test -c user.email=test@example.invalid commit -q -m fixture
 echo
 echo "[5] a sibling checkout off the pinned revision fails the gate"
 echo "The system exposes 42 test units today." > "$ABS"
 mk_allowlist "$AL" "$REL" "0000000000000000000000000000000000000000"
-OUT="$(DRIFT_ALLOWLIST="$AL" DRIFT_VISIONCLAW_CLASS_COUNT=42 node "$COUNTER" 2>&1)"; RC=$?
+OUT="$(DRIFT_AGENTBOX_DIR="$FAKE_AB" DRIFT_ALLOWLIST="$AL" DRIFT_VISIONCLAW_CLASS_COUNT=42 node "$COUNTER" 2>&1)"; RC=$?
 check "pin failure reported" "source pin  : FAIL" "$OUT"
 check "names the pinned revision" "0000000000000000000000000000000000000000" "$OUT"
 [[ $RC -eq 1 ]] && ok "exit 1 on pin mismatch" || bad "exit 1 on pin mismatch" "got $RC"
 
 echo
 echo "[5b] --allow-pin-drift downgrades the pin mismatch to a warning"
-OUT="$(DRIFT_ALLOWLIST="$AL" DRIFT_VISIONCLAW_CLASS_COUNT=42 node "$COUNTER" --allow-pin-drift 2>&1)"; RC=$?
+OUT="$(DRIFT_AGENTBOX_DIR="$FAKE_AB" DRIFT_ALLOWLIST="$AL" DRIFT_VISIONCLAW_CLASS_COUNT=42 node "$COUNTER" --allow-pin-drift 2>&1)"; RC=$?
 check "warned, not failed" "source pin  : WARN" "$OUT"
 check "gate still passes"  "RESULT: PASS" "$OUT"
 [[ $RC -eq 0 ]] && ok "exit 0 with explicit override" || bad "exit 0 with override" "got $RC"
@@ -135,6 +145,10 @@ check "gate still passes"  "RESULT: PASS" "$OUT"
 # ── 6. The committed allowlist is green and reads every policed site ─────
 echo
 echo "[6] the committed allowlist passes with no unreadable policed site"
+# This section needs the REAL agentbox checkout at allowlist.json .source_pin
+# (CI sets DRIFT_AGENTBOX_DIR to it). Locally: git fetch the pinned revision
+# into a scratch dir and export DRIFT_AGENTBOX_DIR.
+[[ -n "${DRIFT_AGENTBOX_DIR:-}" ]] || echo "  note: DRIFT_AGENTBOX_DIR unset; [6] needs the pinned agentbox checkout"
 OUT="$(node "$COUNTER" 2>&1)"; RC=$?
 check "reports PASS"        "RESULT: PASS" "$OUT"
 nocheck "no file-missing"   "file-missing" "$OUT"
