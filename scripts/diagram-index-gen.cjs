@@ -296,6 +296,7 @@ const CITE_RE = /([A-Za-z0-9_./-]*[A-Za-z0-9_-]\.[A-Za-z0-9]{1,12}):(\d+)(?:\s*-
 const REPO_PREFIXES = [
   { key: 'agentbox', prefix: '../project/agentbox/' },
   { key: 'unmute', prefix: '../project/voice-stack/unmute/' },   // nested repo, not tracked by visionclaw
+  { key: 'codescape', prefix: '../project/codescape/' },         // git submodule since ADR-2143 A5: its own repository and revision
   { key: 'visionclaw', prefix: '../project/' },
   { key: 'solid-pod-rs', prefix: '../solid-pod-rs/' },
   { key: 'nostr-rust-forum', prefix: '../nostr-rust-forum/' },
