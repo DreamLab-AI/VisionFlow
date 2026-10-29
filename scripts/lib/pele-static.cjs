@@ -36,14 +36,17 @@ async function loadPele() {
 
 /** Replace every Pele CSS variable with its declared default. */
 function flatten(svg, { background = null } = {}) {
-  let out = svg.replace(/var\(--pele-[\w-]+,([^()]*?)\)/g, (_, fallback) => fallback.trim());
+  // Only tag markup is rewritten: diagram text may legitimately read `var(...)`.
+  const inTags = (s, fn) => s.replace(/<[^>]*>/g, fn);
+  let out = inTags(svg, (tag) => tag.replace(/var\(--pele-[\w-]+,([^()]*?)\)/g, (_, fallback) => fallback.trim()));
   const root = /^<svg\b[^>]*\bstyle="([^"]*)"/.exec(out);
   const local = new Map();
   if (root) for (const m of root[1].matchAll(/(--_[\w-]+):([^;]*)/g)) local.set(m[1], m[2].trim());
-  for (let pass = 0; pass < 4 && out.includes('var(--_'); pass++) {
-    out = out.replace(/var\((--_[\w-]+)\)/g, (whole, name) => (local.has(name) ? local.get(name) : whole));
+  for (let pass = 0; pass < 4; pass++) {
+    out = inTags(out, (tag) => tag.replace(/var\((--_[\w-]+)\)/g, (whole, name) => (local.has(name) ? local.get(name) : whole)));
   }
-  if (out.includes('var(')) throw new Error(`unresolved CSS variable left in SVG: ${/var\([^)]*\)/.exec(out)[0]}`);
+  const left = (out.match(/<[^>]*>/g) || []).find((tag) => tag.includes('var(--'));
+  if (left) throw new Error(`unresolved CSS variable left in SVG: ${/var\(--[^)]*\)/.exec(left)[0]}`);
   if (background) out = out.replace(/^(<svg\b[^>]*>)/, `$1<rect x="0" y="0" width="100%" height="100%" fill="${background}"/>`);
   return out;
 }
