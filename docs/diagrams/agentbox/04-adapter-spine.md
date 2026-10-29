@@ -40,7 +40,7 @@ sources:
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/routes/linked-objects.js
   - ../project/agentbox/management-api/routes/sessions-boundary.js
-verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
+verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
 ---
 
 ## AB-04.1 resolveAdapters — slot to implementation resolution
@@ -289,8 +289,8 @@ sequenceDiagram
     SV->>SV: app.decorate('adapterReadiness', readiness) (server.js:1359)
     Note over LC,T: DEFAULT_CONNECT_TIMEOUT_MS = 10000 — lifecycle.js:70
     Note over LC: Manifest override [adapters] connect_timeout_ms scalar or per-slot map — lifecycle.js:106-107, non-positive values ignored (lifecycle.js:124)
-    Note over SV,LC: INVARIANT: ONE deadline PER SLOT, never one aggregate budget —<br/>adapters/lifecycle.js:217, wired from server.js:1343-1344. Aggregate wall-clock is<br/>bounded by the slowest single slot, not by a race that abandons work in flight<br/>(lifecycle.js:31-35). The old "10 s TOTAL budget" DOC-DRIFT is gone from<br/>BASELINE-container.md — grep finds no server.js line-1222 reference at this commit.<br/>DOC-DRIFT resolved — BASELINE-container.md:100 documents the spine and<br/>connectAdapters is called at server.js:1343-1344.
-    Note over SV,LC: RESOLVED ADR-2035: BASELINE-container.md:100 now documents the<br/>per-slot deadline (lifecycle.js:217, :70, :106-107). The code was<br/>already correct — only the doc changed.
+    Note over SV,LC: INVARIANT: ONE deadline PER SLOT, never one aggregate budget —<br/>adapters/lifecycle.js:217, wired from server.js:1343-1344. Aggregate wall-clock is<br/>bounded by the slowest single slot, not by a race that abandons work in flight<br/>(lifecycle.js:31-35). The old "10 s TOTAL budget" DOC-DRIFT is gone from<br/>BASELINE-container.md — grep finds no server.js line-1222 reference at this commit.<br/>DOC-DRIFT resolved — BASELINE-container.md:115 documents the spine and<br/>connectAdapters is called at server.js:1343-1344.
+    Note over SV,LC: RESOLVED ADR-2035: BASELINE-container.md:115 now documents the<br/>per-slot deadline (lifecycle.js:217, :70, :106-107). The code was<br/>already correct — only the doc changed.
     Note over CO,T: Timeout is a CONNECT FAILURE identical in consequence to an explicit rejection — lifecycle.js:32-33
 ```
 
@@ -625,38 +625,38 @@ flowchart TD
 sequenceDiagram
     autonumber
     participant OP as operator shell
-    participant SH as cmd_health<br/>agentbox.sh:1144
+    participant SH as cmd_health<br/>agentbox.sh:1149
     participant H as GET /health<br/>server.js:581-613
-    participant MT as GET /v1/meta<br/>agentbox.sh:1197
+    participant MT as GET /v1/meta<br/>agentbox.sh:1202
     participant PM as prom-client registry<br/>metrics.js:18 :26 :35
     participant SP as speech sidecars<br/>localhost port 8897 and port 8898
 
     OP->>SH: ./agentbox.sh health
-    SH->>H: curl HEALTH_URL http://localhost:$MGMT_PORT/health (agentbox.sh:623 and :1155)
+    SH->>H: curl HEALTH_URL http://localhost:$MGMT_PORT/health (agentbox.sh:626 and :1160)
     alt curl fails
         H-->>SH: no response
-        SH-->>OP: ERROR could not reach — exit 1 (agentbox.sh:1156-1158)
+        SH-->>OP: ERROR could not reach — exit 1 (agentbox.sh:1161-1163)
     else response received
         H-->>SH: status, uptime, image_hash, manifest_checksum, adapters, degraded_count, note
-        SH->>SH: degraded = jq '.adapters // {} | to_entries[] | select(.value != "healthy" and .value != "off") | .key' (agentbox.sh:1152-1156)
-        SH->>SH: degraded_count = jq '.degraded_count // 0' (agentbox.sh:1157)
-        SH->>SH: print "adapter/<slot>: <value>" from .adapters (agentbox.sh:1180-1183)
+        SH->>SH: degraded = jq '.adapters // {} | to_entries[] | select(.value != "healthy" and .value != "off") | .key' (agentbox.sh:1157-1161)
+        SH->>SH: degraded_count = jq '.degraded_count // 0' (agentbox.sh:1162)
+        SH->>SH: print "adapter/<slot>: <value>" from .adapters (agentbox.sh:1185-1188)
         SH->>MT: curl http://localhost:9090/v1/meta for observability.metrics_endpoint
         MT-->>SH: metrics_endpoint
-        SH->>PM: curl metrics_endpoint, print first 5 non-comment lines (agentbox.sh:1206-1211)
-        SH->>SP: curl -sf http://localhost:8897/health — nemotron-asr (agentbox.sh:1216-1221)
+        SH->>PM: curl metrics_endpoint, print first 5 non-comment lines (agentbox.sh:1211-1216)
+        SH->>SP: curl -sf http://localhost:8897/health — nemotron-asr (agentbox.sh:1221-1226)
         SP-->>SH: healthy or speech_failed=1
-        SH->>SP: curl -sf http://localhost:8898/health — pocket-tts (agentbox.sh:1223-1228)
+        SH->>SP: curl -sf http://localhost:8898/health — pocket-tts (agentbox.sh:1228-1233)
         SP-->>SH: healthy or speech_failed=1
         alt degraded non-empty OR degraded_count > 0 OR speech_failed > 0
-            SH-->>OP: exit 1 (agentbox.sh:1211-1212)
+            SH-->>OP: exit 1 (agentbox.sh:1216-1217)
         else
             SH-->>OP: exit 0
         end
     end
     Note over H: /health computes degradedCount from adapterHealth (server.js:603) and emits keys<br/>status, uptime, image_hash, manifest_checksum, adapters, degraded_count, note — there<br/>is NO services key
-    Note over SH,H: RESOLVED ADR-2037 — the old finding was that BASELINE-container Adapter spine<br/>stage 4 says "agentbox.sh health exits non-zero if any slot's gauge is 0" while cmd_health<br/>actually read a .services key /health never emitted, leaving the exit-1 branch unreachable<br/>and the agentbox_adapter_health gauge never read. cmd_health now derives failure from<br/>.adapters (a slot fails when its value is neither "healthy" nor "off",<br/>agentbox.sh:1152-1156) plus .degraded_count (agentbox.sh:1157),<br/>so exit 1 at agentbox.sh:1211-1212 is reachable. Same fix as AB-05.7.
-    Note over SH,SP: the exit condition now carries a third term, speech_failed (agentbox.sh:1197,1211):<br/>nemotron-asr and pocket-tts are checked unconditionally by port, independent of the<br/>[adapters] manifest and never surfaced in /health's own adapters map.
+    Note over SH,H: RESOLVED ADR-2037 — the old finding was that BASELINE-container Adapter spine<br/>stage 4 says "agentbox.sh health exits non-zero if any slot's gauge is 0" while cmd_health<br/>actually read a .services key /health never emitted, leaving the exit-1 branch unreachable<br/>and the agentbox_adapter_health gauge never read. cmd_health now derives failure from<br/>.adapters (a slot fails when its value is neither "healthy" nor "off",<br/>agentbox.sh:1157-1161) plus .degraded_count (agentbox.sh:1162),<br/>so exit 1 at agentbox.sh:1216-1217 is reachable. Same fix as AB-05.7.
+    Note over SH,SP: the exit condition now carries a third term, speech_failed (agentbox.sh:1202,1216):<br/>nemotron-asr and pocket-tts are checked unconditionally by port, independent of the<br/>[adapters] manifest and never surfaced in /health's own adapters map.
     Note over SH: /health itself warns it is for human inspection only and points orchestrators at /ready (server.js:584)
     Note over PM: gauge values off 0, degraded 1, healthy 2 via setAdapterHealth metrics.js:202-204
 ```

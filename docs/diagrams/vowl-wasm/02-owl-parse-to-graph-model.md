@@ -4,14 +4,12 @@ title: OWL parse → graph model
 area: vowl-wasm
 governing:
   - ../vowl-wasm/README.md
-adrs: []
+  - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
+adrs: [vowl-wasm:ADR-001]
 sources:
   - ../vowl-wasm/src/ontology/mod.rs
   - ../vowl-wasm/src/ontology/parser.rs
   - ../vowl-wasm/src/ontology/model.rs
-  - ../vowl-wasm/src/ontology/owl2_validator.rs
-  - ../vowl-wasm/src/ontology/loader.rs
-  - ../vowl-wasm/src/ontology/markdown_parser.rs
   - ../vowl-wasm/src/graph/mod.rs
   - ../vowl-wasm/src/graph/builder.rs
   - ../vowl-wasm/src/graph/node.rs
@@ -19,7 +17,9 @@ sources:
   - ../vowl-wasm/src/graph/statistics.rs
   - ../vowl-wasm/src/graph/pinning.rs
   - ../vowl-wasm/src/bindings/mod.rs
-verified_commit: 65e2d1e784bf5eb04b3cbc122d36d6926d889c22
+  - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
+  - ../vowl-wasm/README.md
+verified_commit: 89d1a0a32eec16e79a7fa507eaa6f8fcb92e4f0b
 ---
 
 ## VW-02.1 `loadOntology()` — JSON string to `VowlGraph`
@@ -27,7 +27,7 @@ verified_commit: 65e2d1e784bf5eb04b3cbc122d36d6926d889c22
 sequenceDiagram
     autonumber
     participant JS as JS: vowl.loadOntology(json)
-    participant WV as WebVowl::load_ontology<br/>src/bindings/mod.rs:57
+    participant WV as WebVowl::load_ontology<br/>src/bindings/mod.rs:56
     participant SP as StandardParser<br/>src/ontology/parser.rs:38
     participant OV as StandardParser::validate<br/>src/ontology/parser.rs:485 impl OntologyParser
     participant GB as GraphBuilder::from_ontology<br/>src/graph/builder.rs:20
@@ -40,9 +40,9 @@ sequenceDiagram
     WV->>GB: GraphBuilder::from_ontology(&ontology_data)
     GB->>G: add_node() per class, EdgeBuilder per property
     GB-->>WV: VowlGraph
-    WV->>WV: store metadata and graph on self<br/>src/bindings/mod.rs:71-72
+    WV->>WV: store metadata and graph on self<br/>src/bindings/mod.rs:69-70
 ```
-- Every stage's `VowlError` is mapped to `JsValue::from_str` before returning to JS (src/bindings/mod.rs:59,63,67) — see VW-01.4.
+- Every stage's `VowlError` is mapped to `JsValue::from_str` before returning to JS (src/bindings/mod.rs:58,62,66) — see VW-01.4.
 
 ## VW-02.2 `StandardParser` — classes, properties, metadata
 ```mermaid
@@ -61,8 +61,8 @@ flowchart TB
     PCN --> CN["ClassNode { id, iri, label, class_type,<br/>equivalent, attributes, ontology_meta }<br/>src/ontology/parser.rs:114"]
 ```
 - `ParserConfig` (src/ontology/parser.rs:17) has a `max_classes` cutoff enforced at src/ontology/parser.rs:62-64: a `class` array longer than the configured cap is silently truncated, not rejected.
-- The always-compiled `StandardParser` reads WebVOWL-shaped JSON (`class`/`property` arrays); the feature-gated `MarkdownParser` (src/ontology/markdown_parser.rs) reads a distinct DreamLab markdown `### OntologyBlock` shape — two independent ingest paths into the same `OntologyData`/`OntologyBlock` model family (src/ontology/mod.rs:6-14).
-- `OntologyLoader` (src/ontology/loader.rs:132, feature `markdown-ontology`) is the filesystem batch driver over `MarkdownParser::parse`: `load_file`/`load_directory`/`load_files` (src/ontology/loader.rs:169-245) plus a term index and domain grouping (src/ontology/loader.rs:296-314); native-only, no `#[wasm_bindgen]` surface.
+- `StandardParser` is the only ingest path: it reads WebVOWL-shaped JSON (`class`/`property` arrays) into `OntologyData` (src/ontology/mod.rs:6-7, src/ontology/mod.rs:24). The second path that existed at the earlier stamp, a feature-gated `MarkdownParser` over DreamLab `### OntologyBlock` markdown with an `OntologyLoader` filesystem driver and an `OWL2Validator`, was deleted together with the `markdown-ontology` feature and the `Domain` and `OntologyBlock` types (docs/adr/ADR-001-shared-ontology-rendering-contract.md:26, README.md:204-205). Parsing Markdown vaults is left to `ontomark-parse` (README.md:205).
+- Class metadata now accepts caller-supplied domain strings, or none, and the renderer holds no domain registry (README.md:210-212).
 
 ## VW-02.3 `GraphBuilder::from_ontology` — class/property to node/edge
 ```mermaid
@@ -129,23 +129,6 @@ classDiagram
     Edge --> EdgeCharacteristics
 ```
 - `GraphStatistics.calculate` density is defined as `0.0` when `node_count <= 1` (src/graph/statistics.rs:239-243), avoiding a divide-by-zero on `max_edges`.
-
-## VW-02.6 `OWL2Validator` — DL compliance and antipattern gates
-```mermaid
-flowchart TB
-    VB["validate_block(block)<br/>src/ontology/owl2_validator.rs:88"] --> IRI["validate_iri_format(iri)<br/>src/ontology/owl2_validator.rs:134"]
-    VB --> UNIQ["check_iri_uniqueness(iri)<br/>src/ontology/owl2_validator.rs:192"]
-    VB --> NS["validate_namespace(domain, iri)<br/>src/ontology/owl2_validator.rs:210"]
-    VB --> DL["check_owl2_dl_compliance(block)<br/>src/ontology/owl2_validator.rs:262"]
-    VB --> AP["detect_antipatterns(block)<br/>src/ontology/owl2_validator.rs:341"]
-    IRI -->|error| RES["ValidationResult { errors, warnings }<br/>src/ontology/owl2_validator.rs:15"]
-    UNIQ -->|error| RES
-    NS -->|error| RES
-    DL -->|warning| RES
-    AP -->|warning| RES
-```
-- INVARIANT: IRI-format and uniqueness failures are hard `errors`; DL-compliance and antipattern findings are `warnings` only (src/ontology/owl2_validator.rs:37-43) — `validate_block` never rejects a block outright.
-- `validate_blocks` (src/ontology/owl2_validator.rs:441) folds `validate_block` over a batch via `ValidationResult::merge` (src/ontology/owl2_validator.rs:48).
 
 ## VW-02.8 `PinManager` — node pin lifecycle
 ```mermaid

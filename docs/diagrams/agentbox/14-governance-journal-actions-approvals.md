@@ -67,20 +67,23 @@ sources:
   - ../project/agentbox/flake.nix
   - ../project/agentbox/management-api/lib/pod-signer.js
   - ../project/agentbox/management-api/lib/junkiejarvis-agent.js
+  - ../project/agentbox/management-api/lib/agent-event-auth.js
+  - ../project/agentbox/management-api/lib/approval-review-jev.js
+  - ../project/agentbox/management-api/lib/governance-evidence-rubric.js
   - ../project/agentbox/scripts/dream-forum-suggestions.mjs
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
-verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
+verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
 ---
 
 ## AB-14.1 Governance plane — surfaces that reach the decision point vs surfaces that miss it
 
 ```mermaid
 flowchart TB
-    subgraph SURF["Agent-initiated side-effect surfaces GOVERNANCE-capabilities.md:46-70"]
+    subgraph SURF["Agent-initiated side-effect surfaces GOVERNANCE-capabilities.md:59-76"]
         DTC["Direct tool call<br/>MCP fleet mcp/mcp.json"]
-        CMS["Code-mode sub-call<br/>codeact / code-interpreter agentbox.toml:593,609"]
-        ACISHELL["ACI shell<br/>test allowlist agentbox.toml:935<br/>raw Bash still reachable outside it"]
-        CONSULT["Consultant / subagent action<br/>tree-search-coder agentbox.toml:971"]
+        CMS["Code-mode sub-call<br/>codeact / code-interpreter agentbox.toml:665,681"]
+        ACISHELL["ACI shell<br/>test allowlist agentbox.toml:1020<br/>raw Bash still reachable outside it"]
+        CONSULT["Consultant / subagent action<br/>tree-search-coder agentbox.toml:1056"]
         DREAM["Background job dream-engine<br/>01:00-05:00 UTC unattended"]
         BEADS["Background job beads work-DAG<br/>spawn_child mcp/mcp.json:219"]
         ALTHARNESS["Alternate harness path<br/>non-Claude harness"]
@@ -92,7 +95,7 @@ flowchart TB
     ACTPLANE(["action-plane.js getActionPlane<br/>lazy singleton, ADR-2041, see AB-14.14"])
     COSTGATE["costGate middleware<br/>middleware/cost-gate.js, see AB-15.x"]
     ACSPGATE["ACSP authority gate<br/>authority.js:226 buildAuthorityGate.guard, see AB-11.10"]
-    AXIOMGUARD["direct_axiom_load=false guard agentbox.toml:988<br/>ADR-2108 supersedes ADR-2022, see AB-25"]
+    AXIOMGUARD["direct_axiom_load=false guard agentbox.toml:1073<br/>ADR-2108 supersedes ADR-2022, see AB-25"]
     EXEC(["side effect executes"])
 
     DTC -.->|"designed target, never instantiated for this surface"| PIPE
@@ -111,10 +114,10 @@ flowchart TB
     ACSPGATE --> EXEC
     AXIOMGUARD --> EXEC
 
-    DRIFT["DOC-DRIFT GOVERNANCE-capabilities.md:86-87 claims a repo-wide search of src/, services/, mcp/ for SessionEvent / execution-journal code returns nothing<br/>execution-journal.js:85 class ExecutionJournal and agent-action-pipeline.js:58 class AgentActionPipeline fully implement legacy-ADR-057/059 D1-D5<br/>under management-api/lib/, a path outside the doc's stated search scope"]
-    DIVERGE1["DIVERGENCE (NARROWED by ADR-2041) TOP OPEN RISK GOVERNANCE-capabilities.md:276-281 named 'no single policy decision point' with zero production instantiations<br/>action-plane.js now builds a real ExecutionJournal + AgentActionPipeline singleton and POST /v1/tasks calls dispatchTaskSpawn — one surface is now wired, journalled and capability-tokened<br/>the dream engine now RECORDS each side effect into the same journal through POST /v1/exec/record (ADR-2071, activation live, decision still proposed) but nothing there approves or denies<br/>every OTHER surface above (direct tool call, code-mode, ACI shell, consultant, dream, beads, alt harness) still reaches EXEC with no interceptor — the gap is narrower, not closed, see AB-14.14"]
-    DRIFT2["DOC-DRIFT the capability-surface list cites agentbox.toml line numbers that have moved and keep moving —<br/>GOVERNANCE-capabilities.md:58 says aci_shell is at agentbox.toml line 582 (it is agentbox.toml:950),<br/>GOVERNANCE-capabilities.md:61-62 says code_interpreter line 539 and codeact line 554 (they are agentbox.toml:614 and agentbox.toml:630),<br/>GOVERNANCE-capabilities.md:65 says the test allowlist is line 585 (it is agentbox.toml:956), GOVERNANCE-capabilities.md:69 says tree_search_coder line 624 (it is agentbox.toml:992),<br/>GOVERNANCE-capabilities.md:59-60 says spawn_child is at mcp.json line 197 (it is mcp/mcp.json:219)"]
-    DIVERGE7["DIVERGENCE GOVERNANCE-capabilities.md:307-308 skill lint is advisory, not a runtime capability gate<br/>lint-skills.sh gates estate hygiene only; an enabled skill with clean frontmatter is trusted at runtime with no further check"]
+    DRIFT["DOC-DRIFT GOVERNANCE-capabilities.md:92-93 claims a repo-wide search of src/, services/, mcp/ for SessionEvent / execution-journal code returns nothing<br/>execution-journal.js:85 class ExecutionJournal and agent-action-pipeline.js:58 class AgentActionPipeline fully implement legacy-ADR-057/059 D1-D5<br/>under management-api/lib/, a path outside the doc's stated search scope"]
+    DIVERGE1["DIVERGENCE (NARROWED by ADR-2041) TOP OPEN RISK GOVERNANCE-capabilities.md:334-337 named 'no single policy decision point' with zero production instantiations<br/>action-plane.js now builds a real ExecutionJournal + AgentActionPipeline singleton and POST /v1/tasks calls dispatchTaskSpawn — one surface is now wired, journalled and capability-tokened<br/>the dream engine now RECORDS each side effect into the same journal through POST /v1/exec/record (ADR-2071, activation live, decision still proposed) but nothing there approves or denies<br/>every OTHER surface above (direct tool call, code-mode, ACI shell, consultant, dream, beads, alt harness) still reaches EXEC with no interceptor — the gap is narrower, not closed, see AB-14.14"]
+    DRIFT2["DOC-DRIFT the capability-surface list cites agentbox.toml line numbers that have moved and keep moving —<br/>GOVERNANCE-capabilities.md:64 says aci_shell is at agentbox.toml line 582 (it is agentbox.toml:1014),<br/>GOVERNANCE-capabilities.md:67-68 says code_interpreter line 539 and codeact line 554 (they are agentbox.toml:665 and agentbox.toml:681),<br/>GOVERNANCE-capabilities.md:71 says the test allowlist is line 585 (it is agentbox.toml:1020), GOVERNANCE-capabilities.md:75 says tree_search_coder line 624 (it is agentbox.toml:1056),<br/>GOVERNANCE-capabilities.md:65-66 says spawn_child is at mcp.json line 197 (it is mcp/mcp.json:219)"]
+    DIVERGE7["DIVERGENCE GOVERNANCE-capabilities.md:365-366 skill lint is advisory, not a runtime capability gate<br/>lint-skills.sh gates estate hygiene only; an enabled skill with clean frontmatter is trusted at runtime with no further check"]
 ```
 
 ## AB-14.2 Action lifecycle — intent through policy, approval, execution, receipt, journal
@@ -214,44 +217,44 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant AG as authority gate<br/>see AB-11.10
-    participant AC as authority consumer<br/>fastify.authorityConsumer, approvals.js:47
+    participant AC as authority consumer<br/>fastify.authorityConsumer, approvals.js:51
     participant OP as operator<br/>NIP-98 authed caller
-    participant RT as POST /v1/approvals/:id/decide<br/>approvals.js:92
-    participant AUTHZ as authz.isApprover<br/>approvals.js:143
+    participant RT as POST /v1/approvals/:id/decide<br/>approvals.js:99
+    participant AUTHZ as authz.isApprover<br/>approvals.js:150
 
     AG->>AC: publish kind-31402 ActionRequest, awaiting decision
     Note over AC: request now pending — c.getPending(id) can find it
     OP->>RT: POST /v1/approvals/:id/decide {outcome or decision, reasoning}
     alt request.auth.mode is not nip98
-        RT-->>OP: 401 nip98_required approvals.js:132-137
+        RT-->>OP: 401 nip98_required approvals.js:139-144
     end
-    RT->>AUTHZ: isApprover(request.auth.pubkey, manifest) :143
+    RT->>AUTHZ: isApprover(request.auth.pubkey, manifest) :150
     alt pubkey not on approval allowlist
-        RT-->>OP: 403 forbidden_not_approver approvals.js:148-152
+        RT-->>OP: 403 forbidden_not_approver approvals.js:155-159
     end
     alt c.isDecided(id) true
-        RT->>AC: getDecision(id) :168
-        RT-->>OP: 409 already_decided {request_event_id, outcome, response_event_id} :169-175
+        RT->>AC: getDecision(id) :175
+        RT-->>OP: 409 already_decided {request_event_id, outcome, response_event_id} :176-182
     end
     alt c.getPending(id) is falsy
-        RT-->>OP: 404 unknown_request approvals.js:177-182
+        RT-->>OP: 404 unknown_request approvals.js:184-189
     end
-    RT->>RT: normalise decision=deny to outcome=reject :186-187
+    RT->>RT: normalise decision=deny to outcome=reject :193-194
     alt outcome not in approve,reject,defer
-        RT-->>OP: 400 invalid_outcome approvals.js:188-193
+        RT-->>OP: 400 invalid_outcome approvals.js:195-200
     end
-    RT->>AC: signAndPublishDecision({requestId, outcome, reasoning}) :198
+    RT->>AC: signAndPublishDecision({requestId, outcome, reasoning}) :205
     AC-->>RT: signed kind-31403 event, race-safe errors ALREADY_DECIDED/NOT_PENDING/DECISION_IN_FLIGHT
     alt err.code is ALREADY_DECIDED
-        RT-->>OP: 409 already_decided approvals.js:203-204
+        RT-->>OP: 409 already_decided approvals.js:210-211
     else err.code is NOT_PENDING
-        RT-->>OP: 404 unknown_request approvals.js:206-207
+        RT-->>OP: 404 unknown_request approvals.js:213-214
     else err.code is DECISION_IN_FLIGHT
-        RT-->>OP: 409 decision_in_flight approvals.js:209-212, concurrent decider already claimed it
+        RT-->>OP: 409 decision_in_flight approvals.js:216-219, concurrent decider already claimed it
     else sign/publish throws for another reason
-        RT-->>OP: 502 sign_publish_failed approvals.js:214-215
+        RT-->>OP: 502 sign_publish_failed approvals.js:221-222
     end
-    RT-->>OP: 200 {success, request_event_id, response_event_id, outcome, decided_by} :223-229
+    RT-->>OP: 200 {success, request_event_id, response_event_id, outcome, decided_by} :230-236
     Note over AG,AC: governance-decision-waiter.js notify() then resolves any gate awaiting this request, see AB-14.6
 ```
 
@@ -261,44 +264,50 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as client
-    participant FA as fastify<br/>approvals.js:33 approvalsRoutes
-    participant CON as consumer()<br/>approvals.js:46-48
+    participant FA as fastify<br/>approvals.js:34 approvalsRoutes
+    participant CON as consumer()<br/>approvals.js:50-52
+    participant AJ as annotate<br/>approval-review-jev.js:120
 
-    C->>FA: GET /v1/approvals approvals.js:51
+    C->>FA: GET /v1/approvals approvals.js:55
     FA->>CON: options.authorityConsumer or fastify.authorityConsumer
     alt no consumer or listPending not a function
-        FA-->>C: 200 {approvals:[], count:0, wired:false, note} :85
+        FA-->>C: 200 {approvals:[], count:0, wired:false, note} :89
     else consumer wired
-        FA-->>C: 200 {approvals, count, wired:true} :87-88
+        FA->>AJ: annotateApprovals(c.listPending()) :94, the Jev option
+        AJ-->>FA: the same array unless AGENTBOX_JEV_APPROVAL_REVIEW is on and a local endpoint answers
+        FA-->>C: 200 {approvals, count, wired:true} :87-88,95
     end
+    Note over FA,AJ: INVARIANT: the review_aid is advisory, annotate never reorders or hides a request<br/>and the decide route below never consults it, approval-review-jev.js:120-134
 
-    C->>FA: POST /v1/approvals/:id/decide approvals.js:92
-    Note over FA: body accepts outcome approve/reject/defer OR decision approve/deny/reject/defer :101-107
+    C->>FA: POST /v1/approvals/:id/decide approvals.js:99
+    Note over FA: body accepts outcome approve/reject/defer OR decision approve/deny/reject/defer :108-114
     alt not NIP-98 authed
-        FA-->>C: 401 nip98_required :132-137
+        FA-->>C: 401 nip98_required :139-144
     else pubkey not on approval allowlist
-        FA-->>C: 403 forbidden_not_approver :148-152
+        FA-->>C: 403 forbidden_not_approver :155-159
     else no consumer or signAndPublishDecision not a function
-        FA-->>C: 503 authority_consumer_unwired :155-160
+        FA-->>C: 503 authority_consumer_unwired :162-167
     else c.isDecided(id)
-        FA-->>C: 409 already_decided :167-176
+        FA-->>C: 409 already_decided :174-183
     else not c.getPending(id)
-        FA-->>C: 404 unknown_request :177-182
+        FA-->>C: 404 unknown_request :184-189
     else outcome missing or invalid
-        FA-->>C: 400 invalid_outcome :188-193
+        FA-->>C: 400 invalid_outcome :195-200
     else signAndPublishDecision throws ALREADY_DECIDED
-        FA-->>C: 409 already_decided :203-204
+        FA-->>C: 409 already_decided :210-211
     else signAndPublishDecision throws NOT_PENDING
-        FA-->>C: 404 unknown_request :206-207
+        FA-->>C: 404 unknown_request :213-214
     else signAndPublishDecision throws DECISION_IN_FLIGHT
-        FA-->>C: 409 decision_in_flight :209-212
+        FA-->>C: 409 decision_in_flight :216-219
     else signAndPublishDecision throws other
-        FA-->>C: 502 sign_publish_failed :214-215
+        FA-->>C: 502 sign_publish_failed :221-222
     else signed ok
-        FA-->>C: 200 {success:true, request_event_id, response_event_id, outcome, decided_by} :223-229
+        FA-->>C: 200 {success:true, request_event_id, response_event_id, outcome, decided_by} :230-236
     end
     Note over FA: legacy-ADR-043 D4.7 hard rule — the route never writes an unsigned approval, approvals.js:16-22
 ```
+
+**Invariant:** the pending listing is annotated by an optional Jev step that returns its input array untouched on any miss and never hides, reorders or decides a request; `POST /v1/approvals/:id/decide` does not consult it (`agentbox/management-api/routes/approvals.js:94`, `agentbox/management-api/lib/approval-review-jev.js:120-134`).
 
 ## AB-14.6 Decision waiter — exact request and bounded timeout
 
@@ -451,7 +460,7 @@ sequenceDiagram
         Note over AJ: an unlabelled denial is not a record — append THROWS without a stage<br/>and without a reason (authority-journal.js:96-101)
         Note over AJ: INVARIANT — fail-CLOSED on the decision, fail-OPEN and loud on the record of it<br/>(management-api/lib/authority-journal.js:31)
         AJ-->>AG: deny carries {code, hint} naming governance_manual_continue (management-api/lib/authority.js:401-403)
-        Note over AJ,AG: since b18a52f03 the HTTP 403s keep it — management-api/routes/broker-bridge.js:525-526<br/>and management-api/routes/llm-marketplace.js:512-513 spread gate.code and gate.hint, see AB-14.15
+        Note over AJ,AG: since b18a52f03 the HTTP 403s keep it — management-api/routes/broker-bridge.js:533-534<br/>and management-api/routes/llm-marketplace.js:512-513 spread gate.code and gate.hint, see AB-14.15
     else admitted
         GATE->>RC: begin(gate, operation) — stage consumer-received (governance-application-receipts.js:64)
         RC->>RP: mirror the stage to the forum receipts endpoint under NIP-98
@@ -473,7 +482,7 @@ sequenceDiagram
         Note over GB,RC: the PROV-O activity carries prov:wasAssociatedWith = the human did:nostr<br/>(management-api/lib/governance-manual-continue.js:178)
     end
     Note over GB,RP: this diagram REPLACES the precedent match, promote and retire sequence.<br/>precedent-service.js and precedent-bridge.js were deleted at commit 70d017a3b<br/>and colloquy took the ground — see AB-22.7 and AB-09.5
-    Note over TP,GATE: DEBT — the classification table names payment_settlement zero-tolerance<br/>(agentbox.toml:1243) but no production path passes that actionClass. The only<br/>call sites are tests, and management-api/lib/authority.js:226 never sees it. see AB-15
+    Note over TP,GATE: DEBT — the classification table names payment_settlement zero-tolerance<br/>(agentbox.toml:1378) but no production path passes that actionClass. The only<br/>call sites are tests, and management-api/lib/authority.js:226 never sees it. see AB-15
 ```
 
 ## AB-14.12 project-tracker.js publish path and /v1/projects
@@ -525,39 +534,47 @@ governed door is now `vault propose`/`vault edit --expect`, argv built by `lib/o
 sequenceDiagram
     autonumber
     participant KGE as kg-elevation candidate builder<br/>lib/kg-proposal-extractor.js, see AB-17
-    participant EP as buildElevationPublisher<br/>lib/elevation-publisher.js:79
-    participant BC20 as bc20-provenance-bridge<br/>durableStore :166
+    participant EP as buildElevationPublisher<br/>lib/elevation-publisher.js:80
+    participant BC20 as bc20-provenance-bridge<br/>durableStore :167
     participant BRIDGE as NostrBridge<br/>mcp/servers/nostr-bridge.js
     participant ACS as agent-control-surface<br/>buildActionRequest, publishPanelEvent
+    participant RUB as governance-evidence-rubric<br/>governance-evidence-rubric.js:108
 
-    KGE->>EP: publish(proposal) :151
+    KGE->>EP: publish(proposal) :152
     alt nostrBridgeEnabled(manifest) is false and no deps.bridge
-        EP-->>KGE: {published:false, reason:'nostr-bridge-gate-off'} :86-87,102-103
+        EP-->>KGE: {published:false, reason:'nostr-bridge-gate-off'} :87-88,103-104
     else resolveRelays(env) empty and no deps.bridge
-        EP-->>KGE: {published:false, reason:'no-relays'} :88-89
+        EP-->>KGE: {published:false, reason:'no-relays'} :89-90
     else no signing stack (AGENTBOX_STACK/AGENTBOX_PROFILE unset) and no deps.signer
-        EP-->>KGE: {published:false, reason:'no-signing-stack'} :91-93
+        EP-->>KGE: {published:false, reason:'no-signing-stack'} :92-94
     end
-    Note over EP: static eligibility decided ONCE at boot — reason is cached, logged at debug, never thrown into the request path :84-103
-    EP->>EP: ensureConnected() :122, lazy cache bridge+signer, mirrors lib/pod-signer
+    Note over EP: static eligibility decided ONCE at boot — reason is cached, logged at debug, never thrown into the request path :85-104
+    EP->>EP: ensureConnected() :123, lazy cache bridge+signer, mirrors lib/pod-signer
     alt bridge/signer load throws
-        EP-->>KGE: {published:false, reason: loadFailReason} :152-153
+        EP-->>KGE: {published:false, reason: loadFailReason} :153-154
     end
     opt proposal.proposal_foreign_urn present
-        EP->>BC20: durableStore().put({agentbox_urn, visionclaw_urn, owner_did}) :162-171
-        Note over EP,BC20: additive — a storage failure never blocks the publish :159,172
+        EP->>BC20: durableStore().put({agentbox_urn, visionclaw_urn, owner_did}) :163-172
+        Note over EP,BC20: additive — a storage failure never blocks the publish :160,173
     end
-    EP->>ACS: buildActionRequest({panelId: proposal_urn, category:'ontology-elevation', subjectKind:'concept', fields:{propose_command, propose_iri, patch_proposal, ...}}) :179-206
-    Note over EP: propose_command is proposal.propose_command.argv, the governed vault propose invocation ADR-2108 :199 — propose_iri is its target :200, patch_proposal carries the machine-gated PatchProposal when the route dry-ran it :204 — none of this is an HTTP request descriptor any more
-    EP->>ACS: publishPanelEvent(bridge, signer, unsigned) :208
+    EP->>ACS: buildActionRequest({panelId: proposal_urn, category:'ontology-elevation', subjectKind:'concept', fields:{propose_command, propose_iri, patch_proposal, ...}}) :180-207
+    Note over EP: propose_command is proposal.propose_command.argv, the governed vault propose invocation ADR-2108 :200 — propose_iri is its target :201, patch_proposal carries the machine-gated PatchProposal when the route dry-ran it :205 — none of this is an HTTP request descriptor any more
+    EP->>ACS: publishPanelEvent(bridge, signer, unsigned) :209
     ACS->>BRIDGE: publish signed kind-31402 ActionRequest
     alt publish throws
-        EP-->>KGE: {published:false, reason: err.message} :214-220, federation is additive
+        EP-->>KGE: {published:false, reason: err.message} :224-230, federation is additive
     else published
-        EP-->>KGE: {published:true, event_id, kind} :213
+        opt AGENTBOX_JEV_GOVERNANCE_RUBRIC is on (off by default)
+            EP->>RUB: assess(unsigned, {env}) :218, after the card is built and signed
+            RUB-->>EP: advisory signal, authority 'none', governance-evidence-rubric.js:135
+            EP->>RUB: recordSignal(signal, event_id, env) :220, sidecar file, then result.evidence_signal :221
+        end
+        EP-->>KGE: {published:true, event_id, kind, evidence_signal when on} :214,223
     end
     Note over EP,ACS: the relay agent_registry gate plus broker_cases projection then surface the elevation in the governance inbox a human approves from — never an ungoverned local write, see ADR-2108 (supersedes ADR-2022) and AB-25
 ```
+
+**Invariant:** the optional evidence-quality signal runs after the 31402 is built and published and is returned beside the result, never inside the card, so it cannot alter or stand in for an approval (`agentbox/management-api/lib/elevation-publisher.js:214-223`, `agentbox/management-api/lib/governance-evidence-rubric.js:135`).
 
 ## AB-14.14 action-plane.js — the one wired production instantiation (ADR-2041)
 
@@ -565,49 +582,49 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant RT as POST /v1/tasks<br/>routes/tasks.js:16, preHandler costGate
-    participant AP as getActionPlane<br/>lib/action-plane.js:114, lazy module singleton
-    participant MAN as loadManifest + resolveAdapters<br/>action-plane.js:123,140
-    participant EJ as new ExecutionJournal<br/>action-plane.js:168
-    participant AAP as new AgentActionPipeline<br/>action-plane.js:184, classifier='local' :102-104
-    participant DTS as dispatchTaskSpawn<br/>action-plane.js:252
+    participant AP as getActionPlane<br/>lib/action-plane.js:115, lazy module singleton
+    participant MAN as loadManifest + resolveAdapters<br/>action-plane.js:124,141
+    participant EJ as new ExecutionJournal<br/>action-plane.js:169
+    participant AAP as new AgentActionPipeline<br/>action-plane.js:185, classifier='local' :103-105
+    participant DTS as dispatchTaskSpawn<br/>action-plane.js:254
 
     RT->>DTS: dispatchTaskSpawn({agent, task, provider, ...}, {processManager, logger}) :252
-    DTS->>AP: getActionPlane({logger, processManager}) :253
+    DTS->>AP: getActionPlane({logger, processManager}) :255
     alt singleton already built
         AP-->>DTS: cached {ready, journal, pipeline}
     else first call
-        AP->>MAN: loadManifest() then resolveAdapters(manifest) :123,140
-        alt adapters.events missing, no dispatch(), or _implName==='off' action-plane.js:155-164
-            AP-->>DTS: {ready:false, reason:'events adapter is not live...'} :156-163
+        AP->>MAN: loadManifest() then resolveAdapters(manifest) :124,141
+        alt adapters.events missing, no dispatch(), or _implName==='off' action-plane.js:156-165
+            AP-->>DTS: {ready:false, reason:'events adapter is not live...'} :157-164
         else events adapter live
-            AP->>EJ: new ExecutionJournal({eventsAdapter}) :168
-            AP->>AAP: new AgentActionPipeline({secret, journal, classifier:_classifyTaskSpawn, executor}) :184-195
-            Note over AAP: executor closes over _boundProcessManager, calls processManager.spawnTask(...) only inside the protected seam :188-193
-            AP-->>DTS: {ready:true, journal, pipeline} :204
+            AP->>EJ: new ExecutionJournal({eventsAdapter}) :169
+            AP->>AAP: new AgentActionPipeline({secret, journal, classifier:_classifyTaskSpawn, executor}) :185-196
+            Note over AAP: executor closes over _boundProcessManager, calls processManager.spawnTask(...) only inside the protected seam :189-194
+            AP-->>DTS: {ready:true, journal, pipeline} :205
         end
     end
     alt plane.ready is false
-        DTS-->>RT: {ready:false, reason} :254-256, route replies 503, never spawns unjournalled
+        DTS-->>RT: {ready:false, reason} :256-258, route replies 503, never spawns unjournalled
     else ready
-        DTS->>DTS: sessionUrn = uris.mint({kind:'meta', localId:'session-task-...'}) :258
-        DTS->>DTS: agentDid = resolveAgentDid(request) :259, auth.pubkey then X-Agentbox-Pubkey then AGENTBOX_AGENT_DID then null :221-231
-        Note over DTS: DRIFT (resolved 2026-10-12, agentbox main b9e0ea9a8): at the stamp the header step read x-agentbox-pubkey from any peer<br/>on main resolveAgentDid calls proxyVerifiedPubkey from agent-event-auth, so the header counts only from a loopback TCP peer
-        DTS->>AAP: pipeline.dispatch({session_urn, agent_did, capability:'agentbox.tasks', operation:'spawn', args, target}) :261-274
+        DTS->>DTS: sessionUrn = uris.mint({kind:'meta', localId:'session-task-...'}) :260
+        DTS->>DTS: agentDid = resolveAgentDid(request) :261, auth.pubkey then X-Agentbox-Pubkey then AGENTBOX_AGENT_DID then null :222-233
+        Note over DTS: INVARIANT: the header step calls proxyVerifiedPubkey from agent-event-auth.js, so<br/>x-agentbox-pubkey counts only from a loopback TCP peer, action-plane.js:229, agent-event-auth.js:117
+        DTS->>AAP: pipeline.dispatch({session_urn, agent_did, capability:'agentbox.tasks', operation:'spawn', args, target}) :263-276
         AAP-->>DTS: {decision, output or reason, journal_event_id}
         alt decision is deny
-            DTS-->>RT: {ready:true, decision:'denied', denyReason, journalEventId} :281-282
+            DTS-->>RT: {ready:true, decision:'denied', denyReason, journalEventId} :283-284
         else decision is allow
-            DTS-->>RT: {ready:true, decision:'allow', output, journalEventId} :284
+            DTS-->>RT: {ready:true, decision:'allow', output, journalEventId} :286
         end
     end
-    Note over AP: fail-closed by design :146-154 — ADR-005's off events impl would satisfy ExecutionJournal's own<br/>dispatch-is-a-function guard and silently drop events — action-plane.js checks _implName equal to off<br/>explicitly, one level stricter
-    Note over AAP: task-spawn is classified side_effect_class:'local' (FAST_PATH, no approval receipt) — a<br/>deliberate ADR-2041 rollout choice, not a permanent verdict — a future ADR may reclassify it 'mutate'<br/>once a real approver exists :85-101
+    Note over AP: fail-closed by design :147-155 — ADR-005's off events impl would satisfy ExecutionJournal's own<br/>dispatch-is-a-function guard and silently drop events — action-plane.js checks _implName equal to off<br/>explicitly, one level stricter
+    Note over AAP: task-spawn is classified side_effect_class:'local' (FAST_PATH, no approval receipt) — a<br/>deliberate ADR-2041 rollout choice, not a permanent verdict — a future ADR may reclassify it 'mutate'<br/>once a real approver exists :86-102
     Note over RT,DTS: NARROWS but does not close GOVERNANCE-capabilities.md's TOP OPEN RISK (AB-14.1<br/>DIVERGENCE1) — exactly one surface (POST /v1/tasks) is now wired — every other agent-initiated<br/>side-effect surface still bypasses AgentActionPipeline entirely
 ```
 
-**Drift (resolved 2026-10-12, agentbox main b9e0ea9a8):** `resolveAgentDid` is the identity every journalled task-spawn is attributed to, and at the stamp its second step took `X-Agentbox-Pubkey` from any peer past the general gate (`agentbox/management-api/lib/action-plane.js:221-231`), `server.js` binding `0.0.0.0` (`agentbox/management-api/server.js:49`). On agentbox `main` it delegates to the shared `proxyVerifiedPubkey` (`agent-event-auth.js`), so a `MANAGEMENT_API_KEY` holder on the docker network can no longer put another `did:nostr` into `agent_did` and the journal. The precedence is otherwise unchanged: `auth.pubkey`, header, `AGENTBOX_AGENT_DID`, null.
+**Invariant:** `resolveAgentDid` is the identity every journalled task-spawn is attributed to, and its header step delegates to the shared `proxyVerifiedPubkey`, so a `MANAGEMENT_API_KEY` holder on the docker network (`server.js` binds `0.0.0.0`, `agentbox/management-api/server.js:49`) cannot put another `did:nostr` into `agent_did` and the journal; the precedence is `auth.pubkey`, header, `AGENTBOX_AGENT_DID`, null (`agentbox/management-api/lib/action-plane.js:222-233`, `agentbox/management-api/lib/agent-event-auth.js:117`).
 
-**Debt:** a same-container process still passes the loopback test and can stamp any pubkey into the journalled `agent_did` (the same-UID boundary, TODO-unified X-1; `agentbox/management-api/lib/action-plane.js:221-231`).
+**Debt:** a same-container process still passes the loopback test and can stamp any pubkey into the journalled `agent_did` (the same-UID boundary, TODO-unified X-1; `agentbox/management-api/lib/action-plane.js:222-233`).
 
 ## AB-14.15 ADR-2087 activation wiring — boot replay, per-request resolution, and the staged check
 
@@ -629,43 +646,45 @@ sequenceDiagram
     autonumber
     participant SRV as server.js boot block<br/>management-api/server.js:1201
     participant BRP as bootReceiptPublisher<br/>management-api/lib/governance-receipt-publisher.js:471
-    participant BB as broker-bridge decide<br/>management-api/routes/broker-bridge.js:501
+    participant BB as broker-bridge decide<br/>management-api/routes/broker-bridge.js:509
     participant LLM as POST /v1/llm/revoke<br/>management-api/routes/llm-marketplace.js:438
     participant GB as governance-bridge entrypoint<br/>agentbox/mcp/servers/governance-bridge.js:553
     participant CHK as adr-2087-check.sh<br/>agentbox/scripts/activation/adr-2087-check.sh:12-18
 
-    SRV->>BRP: bootReceiptPublisher({manifest, logger, journal: authorityDenyJournal}) management-api/server.js:1201-1203
-    BRP->>BRP: log governance.receipt-replay.boot with configured true or false (management-api/lib/governance-receipt-publisher.js:494)
-    BRP->>BRP: initialFlush, then publisher.start with the same replay tick every 60 s (management-api/lib/governance-receipt-publisher.js:500-501)
-    Note over BRP: INVARIANT one replay at a time — a second tick returns the in-flight promise,<br/>so a hanging forum never posts an entry twice (management-api/lib/governance-receipt-publisher.js:480-491)
+    SRV->>BRP: bootReceiptPublisher({manifest, logger, journal: authorityDenyJournal})<br/>management-api/server.js:1201-1203
+    BRP->>BRP: log governance.receipt-replay.boot with configured true or false<br/>(management-api/lib/governance-receipt-publisher.js:494)
+    BRP->>BRP: initialFlush, then publisher.start with the same replay tick every 60 s<br/>(management-api/lib/governance-receipt-publisher.js:500-501)
+    Note over BRP: INVARIANT one replay at a time — a second tick returns the in-flight promise,<br/>so a hanging forum never posts an entry twice<br/>(management-api/lib/governance-receipt-publisher.js:480-491)
     alt forum_auth_api unset
-        BRP->>BRP: count entries, skipped not-configured, spend no attempt (management-api/lib/governance-receipt-publisher.js:368-377)
+        BRP->>BRP: count entries, skipped not-configured, spend no attempt<br/>(management-api/lib/governance-receipt-publisher.js:368-377)
     else forum_auth_api set (agentbox.toml:200, the auth worker since 60b60b48d)
-        BRP->>BRP: post each queued entry, log governance.receipt-posted at info (management-api/lib/governance-receipt-publisher.js:407)
+        BRP->>BRP: post each queued entry, log governance.receipt-posted at info<br/>(management-api/lib/governance-receipt-publisher.js:407)
     end
     SRV->>SRV: decorate governanceReceiptPublisher, stop it onClose (management-api/server.js:1204-1205)
 
-    BB->>BB: authorityGate() resolves options, then fastify.authorityGate, per request (management-api/routes/broker-bridge.js:286)
+    BB->>BB: authorityGate() resolves options, then fastify.authorityGate, per request<br/>(management-api/routes/broker-bridge.js:286)
     alt nothing decorated yet
-        BB->>BB: build a journalled fallback gate once and warn broker-bridge.authority-fallback (management-api/routes/broker-bridge.js:298)
+        BB->>BB: build a journalled fallback gate once and warn broker-bridge.authority-fallback<br/>(management-api/routes/broker-bridge.js:298)
     end
-    BB->>BB: receiptPublisher() resolves the boot publisher per request (management-api/routes/broker-bridge.js:258)
-    BB-->>BB: 403 carries gate.code and gate.hint (management-api/routes/broker-bridge.js:525-526)
+    BB->>BB: receiptPublisher() resolves the boot publisher per request<br/>(management-api/routes/broker-bridge.js:258)
+    BB->>BB: body may carry effective_tier, one of low medium high critical, copied into the operation<br/>payload only when present<br/>(management-api/routes/broker-bridge.js:461,488,497)
+    Note over BB: the forum tier is forwarded to VisionClaw's rationale gate, which takes the stricter of it<br/>and the declared tier,<br/>so a caller can only tighten the gate with it, receipt and authority dispatch unchanged<br/>(management-api/routes/broker-bridge.js:456-460)
+    BB-->>BB: 403 carries gate.code and gate.hint (management-api/routes/broker-bridge.js:533-534)
 
-    LLM->>LLM: gate journal is a per-denial shim onto fastify.authorityDenyJournal (management-api/routes/llm-marketplace.js:78-87)
+    LLM->>LLM: gate journal is a per-denial shim onto fastify.authorityDenyJournal<br/>(management-api/routes/llm-marketplace.js:78-87)
     Note over LLM: an unwired journal throws, which the gate reports as authority.deny-unjournalled<br/>(management-api/lib/authority.js:313) — loud, never a silent success
-    LLM-->>LLM: 403 carries {code: no-decision-surface, hint: governance_manual_continue} (management-api/routes/llm-marketplace.js:512-513)
-    Note over LLM: an authority.deny row carries a did:nostr actor and a string target, and /v1/agent-events now serialises both<br/>(management-api/routes/agent-events.js:160-161, fc56e7a97)
+    LLM-->>LLM: 403 carries {code: no-decision-surface, hint: governance_manual_continue}<br/>(management-api/routes/llm-marketplace.js:512-513)
+    Note over LLM: an authority.deny row carries a did:nostr actor and a string target, and /v1/agent-events<br/>now serialises both<br/>(management-api/routes/agent-events.js:160-161, fc56e7a97)
 
-    GB->>GB: compare realpath of argv[1] with realpath of the module URL (agentbox/mcp/servers/governance-bridge.js:550-554)
+    GB->>GB: compare realpath of argv[1] with realpath of the module URL<br/>(agentbox/mcp/servers/governance-bridge.js:550-554)
     Note over GB: path.resolve compared a /opt symlink with the /nix/store path Node hands an ES module,<br/>so the server exited 0 without connecting until b18a52f03
 
-    CHK->>SRV: B1 replay boot line present and no fallback-gate line for this pid (agentbox/scripts/activation/adr-2087-check.sh:188-202)
+    CHK->>SRV: B1 replay boot line present and no fallback-gate line for this pid<br/>(agentbox/scripts/activation/adr-2087-check.sh:188-202)
     CHK->>LLM: B3 one live revoke of a non-existent grant, expect 403 with code and hint
-    CHK->>GB: B6 launch exactly as mcp.json does, expect governance_manual_continue (agentbox/scripts/activation/adr-2087-check.sh:286)
-    CHK->>CHK: B7 needs forum configured AND at least one governance.receipt-posted (agentbox/scripts/activation/adr-2087-check.sh:332-344)
-    CHK->>CHK: C3 only with --api-down-night DATE, and only when the one-shot state shows phase done,<br/>a stop time and reason night-record or deadline (agentbox/scripts/activation/adr-2087-check.sh:411-413)
-    Note over CHK: exit 0 LIVE, 2 STAGED, 1 FAIL. 2026-10-02 run on the rebuilt image exited 2 —<br/>posted 0, queued 0 (agentbox/docs/adr/ADR-2087-task-properties-receipts-and-manual-continuation.md:164-166)
+    CHK->>GB: B6 launch exactly as mcp.json does, expect governance_manual_continue<br/>(agentbox/scripts/activation/adr-2087-check.sh:286)
+    CHK->>CHK: B7 needs forum configured AND at least one governance.receipt-posted<br/>(agentbox/scripts/activation/adr-2087-check.sh:332-344)
+    CHK->>CHK: C3 only with --api-down-night DATE, and only when the one-shot state shows phase done,<br/>a stop time and reason night-record or deadline<br/>(agentbox/scripts/activation/adr-2087-check.sh:411-413)
+    Note over CHK: exit 0 LIVE, 2 STAGED, 1 FAIL. 2026-10-02 run on the rebuilt image exited 2 —<br/>posted 0, queued 0<br/>(agentbox/docs/adr/ADR-2087-task-properties-receipts-and-manual-continuation.md:164-166)
 ```
 
 **Invariant:** a receipt the forum has not yet received spends no retry budget while `forum_auth_api` is unset, so the degraded state queues rather than abandons (`management-api/lib/governance-receipt-publisher.js:368-377`).
@@ -685,14 +704,14 @@ flowchart TB
     subgraph OFF["role_isolation = false, the default the image ships: every signer holds its own key"]
         direction TB
         OEXIT["serve-identity prints one line and exits 0, reading no key<br/>services/nostr-pod-bridge/src/identity_port/mod.rs:92-96"]
-        OJJ["JunkieJarvis, forum suggestions and EXP-B8 read the JJ key through role-secret,<br/>where the bare variable still counts while the flag is off<br/>management-api/lib/junkiejarvis-agent.js:92-99, scripts/dream-forum-suggestions.mjs:194-200"]
+        OJJ["JunkieJarvis, forum suggestions and EXP-B8 read the JJ key through role-secret,<br/>where the bare variable still counts while the flag is off<br/>management-api/lib/junkiejarvis-agent.js:92-99, scripts/dream-forum-suggestions.mjs:215-221"]
         OCOL["colloquy publish and the digests load the bridge key from AGENTBOX_BRIDGE_SK_FILE<br/>or the legacy variable, services/nostr-pod-bridge/src/lib.rs:179-192"]
         OPOD["pods NIP-98 keeps its key-file or stack-key source<br/>management-api/lib/pod-signer.js:76-79"]
         OEXIT --> OJJ --> OCOL --> OPOD
     end
     subgraph ON["role_isolation = true: one process holds the keys and signs named operations"]
         direction TB
-        PROG["serve-identity runs under ab-identity in the isolated config,<br/>env -i so PID 1's inherited environment never reaches it, flake.nix:2566-2582"]
+        PROG["serve-identity runs under ab-identity in the isolated config,<br/>env -i so PID 1's inherited environment never reaches it, flake.nix:2820-2845"]
         SOCK["socket /run/secrets/ab-identity-port/identity.sock, mode 0660 in group ab-identity-port<br/>services/nostr-pod-bridge/src/identity_port/server.rs:17, config/role-accounts.json:94-102"]
         PEER["the peer uid comes from SO_PEERCRED on every connection, never from the socket mode<br/>server.rs:104-111"]
         GATE{"uid in the ACL, op in the closed list, op granted to that uid<br/>services/nostr-pod-bridge/src/identity_port/port.rs:361-379"}
@@ -707,16 +726,20 @@ flowchart TB
         GWY --> REC
     end
     OFF --> ON
-    GATE -.-> INV1["INVARIANT: kinds 27235, 22242, 31400-31405 and 38414 can never be granted to sign_event or forum_event.<br/>The ACL loader refuses a file that tries, so a container key never signs a governance decision<br/>or a graduation, services/nostr-pod-bridge/src/identity_port/acl.rs:71-73, acl.rs:267-268"]
+    GATE -.-> INV1["INVARIANT: kinds 27235, 22242, 31401, 31403-31405 and 38414 can never be granted to sign_event or forum_event.<br/>31400 and 31402 are grantable only on forum_event, only to a key declared agent_governance, which may not<br/>share a grant, take another operation or be the mirror_root (ER-6, ADR-2122). The ACL loader refuses a file<br/>that tries, so a container key never signs a human decision or a graduation,<br/>services/nostr-pod-bridge/src/identity_port/acl.rs:71-73,84,209-210,287-308"]
     REC -.-> INV2["INVARIANT: nothing is signed off the record. An admitted request whose receipt line<br/>cannot be written is answered as a refusal, port.rs:320-326"]
     DEV -.-> WIRE["pods NIP-98 is the one wired client: the flag forces the port, then<br/>nostr-pod-bridge sign-request nip98 over the socket, management-api/lib/pod-signer.js:132-136,<br/>pod-signer.js:152-170, services/nostr-pod-bridge/src/main.rs:81"]
-    WIRE -.-> OPEN1["OPEN: sign_event, forum_event and nip42_auth have no client at this revision. JunkieJarvis,<br/>forum suggestions, colloquy publish and the gateway still read ab-identity key files<br/>that devuser cannot open under the flag, so they fail closed until the W3b cutover,<br/>docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:218-219"]
+    WIRE -.-> OPEN1["OPEN: sign_event, forum_event and nip42_auth have no client at this revision. JunkieJarvis,<br/>forum suggestions, colloquy publish and the gateway still read ab-identity key files<br/>that devuser cannot open under the flag, so they fail closed until the W3b cutover,<br/>docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:224-225"]
 ```
 
-**What it shows.** Flag off, nothing changes: `serve-identity` exits at once and every governance-adjacent signer reads its own key as before. Flag on, `nostr-pod-bridge serve-identity` is the only holder of the core and JunkieJarvis keys. It authorises each connection by the kernel's peer uid, admits only a closed set of operations per uid, writes a receipt for every admit and refusal, and refuses outright any ACL that would let a container key sign a governance kind or a graduation.
+**What it shows.** Flag off, nothing changes: `serve-identity` exits at once and every governance-adjacent signer reads its own key as before. Flag on, `nostr-pod-bridge serve-identity` is the only holder of the core and JunkieJarvis keys. It authorises each connection by the kernel's peer uid, admits only a closed set of operations per uid, writes a receipt for every admit and refusal, and refuses outright any ACL that would let a container key sign a human governance decision or a graduation; only a separately marked agent-governance key may be granted the panel and case kinds.
 
 **Why it is this way.** ADR-2122 (custody X-1 step 1) keeps the boundary in-container: a second supervisor config runs role programs under their own uids, and ADR-2101's rule that a generic "sign this payload" port is a bypass becomes the closed operation list. Only the pods signer was moved onto the port in W3. The remaining consumers are owed as W3b, which is why the flag must stay off until the owner's boot rehearsal says otherwise (see AB-36).
 
-**Invariant (under role_isolation):** the governance kinds 31400-31405 and the graduation kind 38414 cannot be signed by any container process through the port, because no ACL that grants them loads (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:71-73`, `../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:267-268`). With the flag off the port does not run (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/mod.rs:92-96`) and this says nothing about the env-key signers.
+**Invariant (under role_isolation):** the human-decision governance kinds 31401 and 31403-31405 and the graduation kind 38414 cannot be signed by any container process through the port, because no ACL that grants them loads; the agent-authored panel and case kinds 31400 and 31402 load only as a `forum_event` grant to a key marked `agent_governance` (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:71-73`, `../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:84`, `../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:304-307`). With the flag off the port does not run (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/mod.rs:92-96`) and this says nothing about the env-key signers.
 
-**Open:** under the flag the JunkieJarvis agent reads its key through role-secret and gets nothing it can open (`../project/agentbox/management-api/lib/junkiejarvis-agent.js:92-99`), so forum replies and governance-panel posts signed as JunkieJarvis stop until the W3b consumer cutover lands (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:218-219`); the port's `forum_event` grant (`../project/agentbox/config/custody/identity-port-acl.json:40`) has no caller yet.
+**Open:** under the flag the JunkieJarvis agent reads its key through role-secret and gets nothing it can open (`../project/agentbox/management-api/lib/junkiejarvis-agent.js:92-99`), so forum replies and governance-panel posts signed as JunkieJarvis stop until the W3b consumer cutover lands (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:224-225`); the port's `forum_event` grant (`../project/agentbox/config/custody/identity-port-acl.json:40`) has no caller yet.
+
+**Open:** ADR-2122 ER-6 chose an agent-governance signer so dream-engine can publish panels and cases through the port, but the shipped ACL grants no such key because the key does not exist yet, and dream-engine still reads its own key file (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:623`, `../project/agentbox/config/custody/identity-port-acl.json:40`).
+
+**Drift (identity-port-acl.json vs acl.rs):** the shipped ACL's own note still says kinds 31400-31405 cannot be granted (`../project/agentbox/config/custody/identity-port-acl.json:13`), while the loader now admits 31400 and 31402 to an `agent_governance` key on `forum_event` (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:84`, `../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:304-307`).

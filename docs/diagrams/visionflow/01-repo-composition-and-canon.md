@@ -6,7 +6,7 @@ governing:
   - docs/BASELINE-visionflow.md
   - docs/README.md
   - docs/architecture/repository-map.md
-adrs: [ADR-2001, ADR-2002, ADR-2005, ADR-2006, ADR-2007, ADR-2010, ADR-2011, ADR-2012, ADR-2013]
+adrs: [ADR-2001, ADR-2002, ADR-2005, ADR-2006, ADR-2007, ADR-2010, ADR-2011, ADR-2012, ADR-2013, ADR-2018, ADR-2019, ADR-2020]
 sources:
   - ./README.md
   - docs/README.md
@@ -58,7 +58,7 @@ sources:
   - docs/engineering/README.md
   - docs/engineering/ADR-004-harness-engineering-framework.md
   - docs/engineering/ADR-005-mandate-at-grant-governance.md
-verified_commit: 26df6c9dc96f896b0d8f0d012471a54738d53b3c
+verified_commit: 1d7183a73c1eae4996a7006067d5047308fab7a5
 ---
 
 ## VF-01.2 Document taxonomy — which class a file belongs to, and who owns its truth
@@ -71,13 +71,13 @@ flowchart LR
     classDef other fill:#f2e6f5,stroke:#7a4a8a,color:#111
 
     subgraph LIVING["NORMATIVE — the living decision surface"]
-        BASE["docs/BASELINE-visionflow.md<br/>doc_id VF-BASELINE, version 0.5.2<br/>'Invariants' section IS the compliance surface<br/>BASELINE-visionflow.md:301"]:::norm
-        LED["docs/adr/ — thin ledger, 16 records ADR-2001..2016<br/>generated index + hand-written PREAMBLE + TEMPLATE<br/>docs/adr/README.md:29"]:::norm
+        BASE["docs/BASELINE-visionflow.md<br/>doc_id VF-BASELINE, version 0.5.4<br/>'Invariants' section IS the compliance surface<br/>BASELINE-visionflow.md:301"]:::norm
+        LED["docs/adr/ — thin ledger, 20 records ADR-2001..2020<br/>generated index + hand-written PREAMBLE + TEMPLATE<br/>docs/adr/README.md:29"]:::norm
     end
 
     subgraph SPECS["REQUIREMENT AND DESIGN SET"]
-        PRD["docs/PRD-*.md — 7 records<br/>website, ecosystem-alignment, judgment-broker,<br/>gap-close-sprint, gap-close-canon, augmentation-conditions,<br/>sovereign-corpus (added with ADR-2013) — docs/README.md:31,33"]:::spec
-        DDD["docs/DDD-*.md — 6 bounded-context records<br/>website, ecosystem-alignment, judgment-broker,<br/>gap-close, gap-close-canon, augmentation-conditions<br/>docs/README.md:32"]:::spec
+        PRD["docs/PRD-*.md — 7 records<br/>website, ecosystem-alignment, judgment-broker,<br/>gap-close-sprint, gap-close-canon, augmentation-conditions,<br/>sovereign-corpus (added with ADR-2013) — docs/README.md:32,34"]:::spec
+        DDD["docs/DDD-*.md — 6 bounded-context records<br/>website, ecosystem-alignment, judgment-broker,<br/>gap-close, gap-close-canon, augmentation-conditions<br/>docs/README.md:33"]:::spec
         ARCH["docs/architecture/ — compatibility-matrix.md:10,<br/>repository-map.md:8, licensing.md:1,<br/>pod-tier-matrix.md:1, status-reconciliation.md:1,<br/>adr-status-contract.md:1 — the three-axis evidence contract"]:::spec
         PROTO["docs/protocol/identity-spine.md:6<br/>the shared did:nostr contract, plus mesh-smoke-test.md<br/>and the cross-mesh allocation table event-kind-registry.md:8"]:::spec
     end
@@ -116,10 +116,10 @@ flowchart TB
 
     Q(["A claim about what VisionFlow is or runs"])
     Q --> S1["1. The governing doc for the domain<br/>docs/BASELINE-visionflow.md<br/>docs/adr/PREAMBLE.md:12"]:::step
-    S1 --> S2["2. Its file:line citations into code and config<br/>the doc names them; follow them, do not trust the prose<br/>BASELINE-visionflow.md:48 ground-truth order"]:::step
+    S1 --> S2["2. Its file:line citations into code and config<br/>the doc names them; follow them, do not trust the prose<br/>BASELINE-visionflow.md:50 ground-truth order"]:::step
     S2 --> S3["3. The ledger records that AMEND it<br/>docs/adr/README.md:31 index table"]:::step
     S3 --> S4["4. docs/archive/adr/ — RATIONALE AND HISTORY ONLY<br/>archive/adr/README.md:5 frozen because it drifted"]:::step
-    S4 -.->|"NEVER as authority"| DENY["INVARIANT: live code/config in this repo outranks<br/>legacy ADR prose, never the reverse<br/>BASELINE-visionflow.md:48-49"]:::deny
+    S4 -.->|"NEVER as authority"| DENY["INVARIANT: live code/config in this repo outranks<br/>legacy ADR prose, never the reverse<br/>BASELINE-visionflow.md:50-51"]:::deny
 
     ROUTE["Domain routing table — one row today<br/>docs/adr/PREAMBLE.md:10<br/>'What VisionFlow is, the static website,<br/>the canon/governance role, CI gates' -> BASELINE-visionflow.md"]:::step
     S1 --- ROUTE
@@ -316,22 +316,22 @@ flowchart TB
 
     SRC["Ground truth: website/build.sh is copy-only<br/>ADR-2002-static-copy-only-website.md:30"]:::settled
 
-    D1["DOC-DRIFT: ./README.md:202 still says<br/>'The site is a Rust/WASM build under website/'<br/>and ./README.md:206 'wasm-pack builds both WASM crates'<br/>recorded open at BASELINE-visionflow.md:232"]:::drift
+    D1["DRIFT: BASELINE-visionflow.md:238-246 still records two README sentences ('The site is a Rust/WASM build' at the old line 192,<br/>'wasm-pack builds both WASM crates' at the old line 196) as open, but the README<br/>at this stamp is 164 lines, says static HTML, CSS and JavaScript and carries neither — ./README.md:82"]:::drift
     D2["DOC-DRIFT: site-verification.md:10 'builds both WASM crates'<br/>and site-verification.md:17 'wasm-pack release builds complete'"]:::drift
     D3["DOC-DRIFT: PRD-website.md:124 still specifies two required<br/>WASM modules, mesh-hero and particle-field,<br/>with PRD-website.md:132 a 300 KB gzip WASM budget"]:::drift
     SRC -.->|"contradicted by"| D1
     SRC -.->|"contradicted by"| D2
     SRC -.->|"contradicted by"| D3
 
-    S1["SETTLED: Tailwind Play CDN never shipped — local CSS ratified<br/>BASELINE-visionflow.md:243"]:::settled
-    S2["SETTLED: gh-pages branch push superseded by the Pages actions<br/>BASELINE-visionflow.md:247"]:::settled
+    S1["SETTLED: Tailwind Play CDN never shipped — local CSS ratified<br/>BASELINE-visionflow.md:247"]:::settled
+    S2["SETTLED: gh-pages branch push superseded by the Pages actions<br/>BASELINE-visionflow.md:251"]:::settled
 
-    O1["OPEN: ontology-bridge tool count shows two figures<br/>in one README diagram (README.md:158 '7', :165 '12') —<br/>the exact re-drift the ADR-2005 gate exists to catch<br/>BASELINE-visionflow.md:250"]:::drift
+    O1["DRIFT: BASELINE still records an ontology-bridge tool count of two figures<br/>in one README diagram (old lines 148 '7' and 155 '12'), but the README diagram<br/>at this stamp has no MCP tool-count node — ./README.md:40-56<br/>BASELINE-visionflow.md:254-261"]:::drift
     O2["OPEN: dual ADR numbering hazard — docs/engineering/<br/>carries its own ADR-004 and ADR-005<br/>BASELINE-visionflow.md:268<br/>engineering/ADR-005-mandate-at-grant-governance.md:3 self-labels speculative"]:::drift
     O3["OPEN: legacy ADR-007 governance-loop closure is specified,<br/>not shipped; cross-repo, tracked here not fixed here<br/>BASELINE-visionflow.md:274"]:::drift
-    O4["OPEN: the diagram-render gate shipped under a different design<br/>than legacy ADR-005 D3 named — intent honoured,<br/>named artefact absent<br/>BASELINE-visionflow.md:258"]:::drift
+    O4["OPEN: the diagram-render gate shipped under a different design<br/>than legacy ADR-005 D3 named — intent honoured,<br/>named artefact absent<br/>BASELINE-visionflow.md:262"]:::drift
 
-    INV["INVARIANT: BASELINE-visionflow.md:6 pins the document's own<br/>verified_commit; each dated subsection instead carries the commit<br/>at which ITS facts were last checked (ADR-2008 subsection: pending<br/>vs c205575, BASELINE-visionflow.md:204; ADR-2010/2011 subsection:<br/>03db671, BASELINE-visionflow.md:230) — per the change process<br/>(BASELINE-visionflow.md:349-354) this is intended per-section staging,<br/>not undetected drift, provided every subsection is re-recorded when its<br/>own facts change"]:::settled
+    INV["INVARIANT: BASELINE-visionflow.md:6 pins the document's own<br/>verified_commit; each dated subsection instead carries the commit<br/>at which ITS facts were last checked (ADR-2008 subsection: pending<br/>vs c205575, BASELINE-visionflow.md:208; ADR-2010/2011 subsection:<br/>03db671, BASELINE-visionflow.md:234) — per the change process<br/>(BASELINE-visionflow.md:349-354) this is intended per-section staging,<br/>not undetected drift, provided every subsection is re-recorded when its<br/>own facts change"]:::settled
 ```
 
 ## VF-01.13 The augmentation conditions enter canon — a rubric, a graded table and a gate
@@ -349,13 +349,13 @@ flowchart TB
     SRC --> D3["D3 — the workflow record lists its required fields and<br/>marks which substrate owns each. A field with no owner<br/>is a MATRIX DEFECT, not a footnote<br/>ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md:30"]:::rec
     SRC --> D4["D4 — no surface may fabricate a human's rationale, an agent's<br/>intent or a confidence value. Absence renders as absence<br/>ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md:31"]:::rec
 
-    D1 --> TBL["docs/architecture/compatibility-matrix.md:23<br/>Augmentation conditions, graded 2026-09-15<br/>six rows by three substrate columns, 18 cells<br/>compatibility-matrix.md:27"]:::tbl
-    TBL --> R1["C1 partial, partial, measured — compatibility-matrix.md:29"]:::tbl
-    TBL --> R2["C2 and C3 measured across all three — compatibility-matrix.md:30"]:::tbl
-    TBL --> R3["C4 to C6 are LONGITUDINAL: a first measured is a baseline,<br/>not a pass, and the second cycle is 2026-12-14<br/>compatibility-matrix.md:32"]:::tbl
-    D3 --> OWN["all three prior field-ownership defects now have an owner<br/>compatibility-matrix.md:38"]:::tbl
+    D1 --> TBL["docs/architecture/compatibility-matrix.md:24<br/>Augmentation conditions, graded 2026-09-15<br/>six rows by three substrate columns, 18 cells<br/>compatibility-matrix.md:28"]:::tbl
+    TBL --> R1["C1 partial, partial, measured — compatibility-matrix.md:30"]:::tbl
+    TBL --> R2["C2 and C3 measured across all three — compatibility-matrix.md:31"]:::tbl
+    TBL --> R3["C4 to C6 are LONGITUDINAL: a first measured is a baseline,<br/>not a pass, and the second cycle is 2026-12-14<br/>compatibility-matrix.md:33"]:::tbl
+    D3 --> OWN["all three prior field-ownership defects now have an owner<br/>compatibility-matrix.md:39"]:::tbl
 
-    TBL --> GATE["the table is machine-checked — exit 1 on a missing path,<br/>an elided path, or a measured cell citing a document<br/>BASELINE-visionflow.md:213 — the gate itself is drawn at VF-05.13"]:::gate
+    TBL --> GATE["the table is machine-checked — exit 1 on a missing path,<br/>an elided path, or a measured cell citing a document<br/>BASELINE-visionflow.md:217 — the gate itself is drawn at VF-05.13"]:::gate
 
     D4 --> VOCAB["docs/terminology.md:51 'vacuous verification'<br/>a signed decision made without the proposal, its provenance<br/>or a human-authored rationale in view"]
     SRC --> VOCAB2["docs/terminology.md:49 augmentation condition<br/>docs/terminology.md:50 task-property triple<br/>docs/terminology.md:52 calibration sample"]
@@ -364,7 +364,7 @@ flowchart TB
     SRC --> TIER
     TIER --> KINDS["the allocation table mirrors the new tags rather than<br/>new kinds: tp-verifiability, tp-reversibility, tp-stakes,<br/>probe, Delegate ride 31400 to 31405<br/>event-kind-registry.md:107 and event-kind-registry.md:112"]:::tbl
 
-    BASE["BASELINE-visionflow.md:207 carries the subsection;<br/>ADR-2010 and ADR-2011 are pinned to 03db671, a third<br/>commit distinct from the document's own frontmatter<br/>BASELINE-visionflow.md:230"]
+    BASE["BASELINE-visionflow.md:211 carries the subsection;<br/>ADR-2010 and ADR-2011 are pinned to 03db671, a third<br/>commit distinct from the document's own frontmatter<br/>BASELINE-visionflow.md:234"]
     SRC --> BASE
 
     SIB["EXTERNAL: the mechanics belong to the substrates, not here —<br/>agentbox ADR-2087, VisionClaw ADR-2110, forum ADR-2011.<br/>Canon names them and grades their code, it does not redraw them<br/>ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md:41<br/>see AB-NN, VC-NN, NF-NN for the implementations"]:::ext
@@ -393,8 +393,8 @@ flowchart TB
     REC --> P5["P5 — custody is stated honestly: the root chain is LEVEL 1<br/>with one signer we operate and is CUSTODIAL; the k-of-n<br/>federation is rung 2 of the hardening path, not reached<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:84-87"]:::prop
     REC --> P6["P6 — no regulatory claim moves; canon may not be cited<br/>as relief for any cell of the ADR-124 matrix<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:91"]:::prop
 
-    P2 --> C1["the claims P2 withdraws were corrected on the published page<br/>on 2026-10-02 (owner decision Q12): the page now says no<br/>Lightning or NWC rail is built and the pill reads<br/>'testnet research only'<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:169<br/>website/static/index.html:612 and website/static/index.html:1107"]:::retire
-    P1 --> C2["the did:nostr payment-account claim gets a named instrument<br/>for the first time — ./README.md:142 and ./README.md:256<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:45-46"]:::prop
+    P2 --> C1["the claims P2 withdraws were corrected on the published page<br/>on 2026-10-02 (owner decision Q12): the page now says no<br/>Lightning or NWC rail is built and the pill reads<br/>'testnet research only'<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:169<br/>website/static/index.html:630 and website/static/index.html:1125"]:::retire
+    P1 --> C2["the did:nostr payment-account claim gets a named instrument<br/>for the first time — the README row for sidestr-rs, ./README.md:31<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:45-46"]:::prop
 
     P4 --> REG["the registry owns the ALLOCATION TABLE; semantics stay with<br/>the originating record — event-kind-registry.md:8<br/>this ratification criterion is now MET: the sidestr 0.0.5 rows,<br/>the teller rows and 38420 are written, with the §2.5 collision<br/>check finding no collision and nothing new in 38400-38499 —<br/>event-kind-registry.md:135,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:153"]:::tbl
 
@@ -404,18 +404,18 @@ flowchart TB
 
     QUAL["Source qualification 2026-10-01 — sidestr-rs matches spec fe689e9,<br/>seven crates published, oracle CI green; pools, markets, EVM<br/>and Hitch exist in source; sidestr-evm unpublished; agentbox<br/>still produces sidestr:dreamlab with upstream JavaScript and no<br/>overlay is activated — ADR-2012-sidestr-settlement-is-ecosystem-canon.md:113-128<br/>this promotes implementation only, none to partial<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:129-130"]:::tbl
     REC --> QUAL
-    BASEL["the BASELINE mirrors it as its own subsection<br/>and keeps ADR-2012 at proposed / partial / inactive<br/>BASELINE-visionflow.md:138-151"]:::tbl
+    BASEL["the BASELINE mirrors it as its own subsection<br/>and keeps ADR-2012 at proposed / partial / inactive<br/>BASELINE-visionflow.md:142-155"]:::tbl
     QUAL --> BASEL
 
     VER["Ratification evidence is PARTIAL but narrowed: the registry criterion<br/>is met (see REG) and the site's Lightning/NWC claims are withdrawn<br/>(see C1, PR #15, commit 273a934), yet the compatibility matrix still<br/>carries no settlement row — event-kind-registry.md:135,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:159-160,<br/>decision proposed and activation inactive throughout<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7"]:::retire
     REC --> VER
 ```
 
-**Tension (ADR-2012 vs the shipped site) — RESOLVED 2026-10-02:** ADR-2012 withdraws the Lightning and NWC rail claims as unbuilt (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:51`), and as of owner decision Q12 the deployed page says the same: no Lightning or NWC rail is built, with the status pill reading "testnet research only" (`website/static/index.html:612`, `website/static/index.html:1107`; disposition at `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:169`). The record itself stays `proposed / partial / inactive` (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7`).
+**Tension (ADR-2012 vs the shipped site) — RESOLVED 2026-10-02:** ADR-2012 withdraws the Lightning and NWC rail claims as unbuilt (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:51`), and as of owner decision Q12 the deployed page says the same: no Lightning or NWC rail is built, with the status pill reading "testnet research only" (`website/static/index.html:630`, `website/static/index.html:1125`; disposition at `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:169`). The record itself stays `proposed / partial / inactive` (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7`).
 
-**Drift (ADR-2012 context vs HEAD):** the record's context still points at line 597 and lines 1015 to 1016 of the site page for the withdrawn claims, and at README lines 134 and 248 for the payment-account rows (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:28-33`); the site sentences have since been rewritten in place — the withdrawal text sits at `website/static/index.html:612` and the corrected pill at `website/static/index.html:1107` — and the README sentences sit at `./README.md:142` and `./README.md:256`.
+**Drift (ADR-2012 context vs HEAD):** the record's context still points at line 597 and lines 1015 to 1016 of the site page for the withdrawn claims, and at README lines 134 and 248 for the payment-account rows (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:28-33`); the site sentences have since been rewritten in place — the withdrawal text sits at `website/static/index.html:630` and the corrected pill at `website/static/index.html:1125` — and the README was rewritten to 164 lines, so the README text that record names no longer exists at those lines: the sidestr-rs row now sits at `./README.md:31`.
 
-The site tile, README and roster agree on eight published sidestr-rs crates since `26df6c9` (`./README.md:120`, `website/static/index.html:1197`, estate register ER-3); BASELINE and ADR-2012 keep seven as the count at the 2026-10-01 parity release they record (`docs/BASELINE-visionflow.md:142`, `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:118`).
+The site tile and roster agree on eight published sidestr-rs crates since `26df6c9` (`website/static/index.html:1197`, estate register ER-3); the README no longer states a crate count (`./README.md:31`), and BASELINE and ADR-2012 keep seven as the count at the 2026-10-01 parity release they record (`docs/BASELINE-visionflow.md:146`, `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:118`).
 
 ## VF-01.15 ADR-2013 sovereign corpus — four disagreeing doors become one vault, one parser, one gate
 ```mermaid
@@ -455,4 +455,6 @@ flowchart TB
 
 **Open:** the record's own `review_trigger` names "the first divergence between Loom's, VisionClaw's and vault build's class counts" (`docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md:12`) as a forcing event, but nothing in this canon repo currently polls the three counts to detect one.
 
-**Tension (ADR-2013 D3 vs BASELINE alignment note):** ADR-2013 says `VisionClaw/crates/vault` is the only implementation that parses, reasons over or builds the corpus (`docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md:52`), while the baseline's 2026-10-12 note records Ontomark as the producer of the shared build and VisionClaw as its consumer with its own publish build job retired behind gates (`docs/BASELINE-visionflow.md:51`); ADR-2013 has not been amended.
+**Tension (ADR-2013 D3 vs BASELINE alignment note):** ADR-2013 says `VisionClaw/crates/vault` is the only implementation that parses, reasons over or builds the corpus (`docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md:52`), while the baseline's 2026-10-12 note records Ontomark as the producer of the shared build and VisionClaw as its consumer with its own publish build job retired behind gates (`docs/BASELINE-visionflow.md:53`); ADR-2013 has not been amended.
+
+**Since the last stamp:** the ledger gained ADR-2018 (parity claims name their comparator, commit and row count), ADR-2019 (forge and mirror run in shipped pods, inert until configured, superseding ADR-2018's default-off clause) and ADR-2020 (Pele renders every estate diagram); BASELINE records the first two in one section (`docs/BASELINE-visionflow.md:381-392`) and the third in its render-gate entries (`docs/BASELINE-visionflow.md:126-134`, `docs/BASELINE-visionflow.md:262-267`). ADR-2018 and ADR-2019 are accepted, partial and inactive.

@@ -4,7 +4,7 @@ title: Client feature directories — API and WebSocket surface
 area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2041, ADR-2115, ADR-2006, ADR-2074, ADR-2077]
+adrs: [ADR-2041, ADR-2115, ADR-2006, ADR-2074, ADR-2077, ADR-2142]
 sources:
   - ../project/docs/explanation/control-center.md
   - ../project/client/src/features/settings/config/settings.ts
@@ -18,7 +18,6 @@ sources:
   - ../project/client/src/api/layoutApi.ts
   - ../project/crates/visionclaw-domain/src/config/app_settings.rs
   - ../project/src/bin/generate_types.rs
-  - ../project/client/src/types/generated/settings.ts
   - ../project/client/scripts/emit-settings-manifest.ts
   - ../project/client/src/features/control-center/registry/settings-manifest.json
   - ../project/client/src/features/ontology/services/jss/contextLoader.ts
@@ -87,6 +86,10 @@ sources:
   - ../project/client/src/services/SolidPodService.ts
   - ../project/client/src/features/visualisation/components/CommandInput.tsx
   - ../project/client/src/features/visualisation/components/EmbeddingCloudLayer.tsx
+  - ../project/client/src/services/jev/jevClient.ts
+  - ../project/client/src/services/jev/commandFlow.ts
+  - ../project/client/src/features/bots/agentDemo.ts
+  - ../project/client/src/features/graph/components/GraphCanvas.tsx
   - ../project/client/src/features/visualisation/components/TransientBeamsLayer.tsx
   - ../project/client/src/features/visualisation/hooks/useTransientBeams.ts
   - ../project/client/src/store/transientBeamStore.ts
@@ -101,7 +104,7 @@ sources:
   - ../project/client/src/features/design-system/components/SearchInput.tsx
   - ../project/client/src/features/ontology/components/OntologyContribution.tsx
   - ../project/src/services/broker_events.rs
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
 ---
 ## VC-34.1 settings — field edit to server PUT
 ```mermaid
@@ -113,7 +116,7 @@ sequenceDiagram
     participant Store as useSettingsStore.updateSettings<br/>client/src/store/settingsStore.ts
     participant ASM as autoSaveManager<br/>client/src/store/autoSaveManager.ts:52
     participant LA as layoutApi.setMode<br/>client/src/api/layoutApi.ts
-    participant EP as settingsApi endpoints<br/>client/src/api/settings/endpoints.ts:364
+    participant EP as settingsApi endpoints<br/>client/src/api/settings/endpoints.ts:332
     participant SRV as Rust settings handlers
 
     U->>SS: drag slider
@@ -124,7 +127,8 @@ sequenceDiagram
     USF->>ASM: queueChange(path, next) - explicit second queue, verbatim legacy redundancy
     alt path in LAYOUT_SETTING_PATHS (qualityGates.layoutMode or visualisation.graphs.knowledge.physics.layoutAlgorithm)
         USF->>LA: setMode(next, 800)
-        LA->>SRV: POST layout mode change
+        LA->>LA: toEngineLayoutMode(mode) -- quality-gate names (dag-topdown, type-clustering) become engine names (hierarchical, forceDirected)<br/>client/src/api/layoutApi.ts:80
+        LA->>SRV: POST /api/layout/mode with the engine name, client/src/api/layoutApi.ts:97
     end
     ASM->>ASM: scheduleFlush - clearTimeout then setTimeout 500ms DEBOUNCE_DELAY
     Note right of ASM: INVARIANT - CLIENT_ONLY_PATHS (auth.nostr.connected, auth.nostr.publicKey) never leave the browser
@@ -154,12 +158,12 @@ sequenceDiagram
 ```mermaid
 flowchart TD
     RustStruct["AppFullSettings struct<br/>crates/visionclaw-domain/src/config/app_settings.rs:79"] -->|cargo run --bin generate_types| Gen["generate_typescript_interfaces()<br/>src/bin/generate_types.rs:56"]
-    Gen -->|convert_to_camel_case| Out["client/src/types/generated/settings.ts"]
+    Gen -->|convert_to_camel_case| Out["client/src/types/generated/settings.ts<br/>build output written at src/bin/generate_types.rs:18, gitignored (.gitignore:151), not in the repository at this stamp"]
     Note1["settingsUIDefinition.ts and unifiedSettingsConfig.ts no longer exist. The chain is<br/>registry/settingsRegistry.ts + registry/manifest.ts (settingsRegistry.ts:6 names the old<br/>file only inside a zero-drift-test description). NOT doc drift - docs/explanation/<br/>control-center.md:88,110,296 already describes unifiedSettingsConfig.ts as deleted. It was<br/>the swarm brief that was stale, not the governing docs. Verified 2026-09-05"]
     Groups["registry/groups/*.ts<br/>motion, look, labels, quality, atmosphere, immersion, intelligence, system, agents, decisions, provenance"] --> ManifestTs["GROUP_DATA<br/>client/src/features/control-center/registry/manifest.ts:23"]
     ManifestTs --> Registry["settingsRegistry.ts:30 REGISTRY - icons attached"]
     ManifestTs -->|npm run gen:manifest, ts-node| Emit["client/scripts/emit-settings-manifest.ts:18 buildManifest()"]
-    Emit --> ManifestJson["registry/settings-manifest.json - 224 fields, 11 groups"]
+    Emit --> ManifestJson["registry/settings-manifest.json - 268 fields, 11 groups"]
     ManifestJson -->|consumed by| QA["browser-automation coverage phase: assert every testid present+interactive"]
     ADR["ADR-2041 renamed logseq to knowledge, superseded by ADR-2115<br/>which retires the server-side logseq alias entirely -<br/>touches settings.ts, app_settings.rs, generate_types.rs output"] -.-> RustStruct
     ADR -.-> Out
@@ -281,6 +285,7 @@ flowchart TD
     CC --> Reveal["useRevealSetting<br/>hooks/useRevealSetting.ts"]
     CC -->|SpaceDriver| SPD["SpaceDriverService - see VC-37 for device wire protocol"]
     Note1["AgentOpsSurface.tsx and StatusSurface/StatusFlyout mount alongside SettingsPanel under ControlCenter's tab state - see useControlCenterUI.ts"]
+    Note2["AgentOpsSurface hosts the shared agent-demo toggle: useAgentDemo polls GET /agents/demo (4 s) and POSTs {running} to start or stop it, so the state shown is the server's and a headset-started demo reads as running here (agentDemo.ts:56, :73, AgentOpsSurface.tsx:55)"]
 ```
 ## VC-34.7 control-center — ACSP governance case queue (ADR-2006)
 ```mermaid
@@ -452,7 +457,7 @@ sequenceDiagram
     participant USS as useSemanticService<br/>client/src/features/analytics/hooks/useSemanticService.ts:85
     participant AS as useAnalyticsStore<br/>client/src/features/analytics/store/analyticsStore.ts:268
     participant UAC as unifiedApiClient
-    participant WSBin as handleGraphUpdate<br/>client/src/store/websocket/binaryProtocol.ts:266
+    participant WSBin as handleGraphUpdate<br/>client/src/store/websocket/binaryProtocol.ts:261
     participant NAS as nodeAnalyticsStore<br/>client/src/features/analytics/store/nodeAnalyticsStore.ts:35
     participant Gem as GemNodes / ClusterHulls<br/>client/src/features/graph/components/
 
@@ -500,7 +505,7 @@ sequenceDiagram
     autonumber
     participant U as User
     participant CP as CommandPalette.tsx<br/>client/src/features/command-palette/components/CommandPalette.tsx
-    participant UCP as useCommandPalette<br/>client/src/features/command-palette/hooks/useCommandPalette.ts:9
+    participant UCP as useCommandPalette<br/>client/src/features/command-palette/hooks/useCommandPalette.ts:10
     participant Reg as CommandRegistry<br/>client/src/features/command-palette/CommandRegistry.ts:6
     participant Def as defaultCommands.ts<br/>client/src/features/command-palette/defaultCommands.ts
     participant Help as helpRegistry / HelpProvider<br/>client/src/features/help/HelpRegistry.ts:3
@@ -509,6 +514,10 @@ sequenceDiagram
 
     U->>CP: Ctrl+K opens palette, types query
     CP->>UCP: filter Reg.getCommands() by query/category
+    opt Jev palette-search enabled (off by default, fail-open)
+        UCP->>UCP: after a 350 ms debounce, jevRankPalette(query, enabled commands)<br/>client/src/features/command-palette/hooks/useCommandPalette.ts:47-60
+        UCP-->>CP: suggestedCommands appended AFTER the lexical results under "Suggested (semantic)", never reordering them<br/>client/src/services/jev/jevClient.ts:156, :182
+    end
     U->>CP: select command
     CP->>Reg: command.handler() execute
     alt id nav.help
@@ -631,7 +640,11 @@ sequenceDiagram
         UAC->>SRV: HTTP POST
         CI->>CI: window.dispatchEvent visionclaw:status with injected count
     else no deterministic keyword match
-        CI->>CI: dispatchToSettingsLLM(command)
+        opt Jev command flow enabled (off by default)
+            CI->>CI: planJevCommand(cmd, registry fields) -- a patch or intent suggestion held for the user's decision, null on flag off, error, timeout or low confidence<br/>client/src/features/visualisation/components/CommandInput.tsx:703, client/src/services/jev/commandFlow.ts:43
+            CI->>U: Apply, Run, Ask the settings assistant instead, or Dismiss -- Apply writes through the existing settings store, Jev itself writes nothing<br/>client/src/features/visualisation/components/CommandInput.tsx:749
+        end
+        CI->>CI: dispatchToSettingsLLM(command) when no review is held
         CI->>UAC: POST /bots/settings-command {command, settingsContext}
         Note right of CI: agent applies changes back through /api/settings/* -<br/>see VC-34.1 for that write path
     end
@@ -643,23 +656,27 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant ECL as EmbeddingCloudLayer.tsx<br/>client/src/features/visualisation/components/EmbeddingCloudLayer.tsx
+    participant MCS as useMemoryCloudStore<br/>client/src/features/visualisation/memoryCloud/memoryCloudInstance.ts
     participant WSStore as useWebSocketStore
     participant Store as transientBeamStore<br/>client/src/store/transientBeamStore.ts
     participant TBH as useTransientBeams<br/>client/src/features/visualisation/hooks/useTransientBeams.ts:24
     participant TBL as TransientBeamsLayer<br/>client/src/features/visualisation/components/TransientBeamsLayer.tsx:72
 
-    ECL->>ECL: enabled flag check - lazy, JSON never bundled
-    ECL->>ECL: fetch VITE_EMBEDDING_CLOUD_URL or default /embedding-cloud.json<br/>EmbeddingCloudLayer.tsx:132
-    Note right of ECL: about 8MB file lives in public/, AbortController on unmount
-    ECL->>ECL: slice to maxPoints, build keyIndexMap and nsIndexMap
-    WSStore->>ECL: on('memoryFlash', event) - key/namespace lookup into index maps
-    ECL->>ECL: semanticBurstColor - flashes matched point(s)
+    ECL->>MCS: reads snapshot, status, query run and response (selectors)<br/>EmbeddingCloudLayer.tsx:133
+    Note right of MCS: points are a stratified PCA-projected sample from GET /api/memory-cloud, loaded by the memory explorer store.<br/>The static /embedding-cloud.json is retired.<br/>EmbeddingCloudLayer.tsx:4
+    ECL->>ECL: enabled flag check, frame the cloud on the graph (cloudFrame.ts) and slice to maxPoints
+    WSStore->>ECL: on('memoryFlash', event)<br/>EmbeddingCloudLayer.tsx:333
+    ECL->>ECL: resolveFlashTargets -- the flashed key, else a few rows of its namespace, else counted as unmatched for the explorer HUD
+    ECL->>MCS: recordFlash(match)<br/>EmbeddingCloudLayer.tsx:337
+    ECL->>ECL: spawnBurst with semanticBurstColor at each matched point
+    Note over ECL,MCS: while a query route is shown the cloud stops rotating and off-route points dim.<br/>The explorer panel is mounted beside the canvas only while the cloud is on (GraphCanvas.tsx:526)
     Note over Store,TBH: 0x23 AGENT_ACTION frame decoded in binaryProtocol.ts<br/>pushes into transientBeamStore - see VC-32 for the frame layout
     TBH->>Store: read beams, pruneExpired()
     TBL->>TBH: beams, prune() called every R3F frame
     TBL->>TBL: beamRadius prop default 0.35 - matches AgentVisualSettings.beamRadius default (VC-34.1 schema)
     Note over ECL,TBL: node/edge render layers themselves are VC-31 -<br/>this diagram covers only these two features' own data intake
 ```
+
 ## VC-34.21 voice — push-to-talk agent binding (graph selection to governed dispatch)
 ```mermaid
 sequenceDiagram

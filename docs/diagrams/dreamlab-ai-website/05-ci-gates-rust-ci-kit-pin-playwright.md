@@ -21,9 +21,10 @@ sources:
   - ../dreamlab-ai-website/scripts/lib/pin-parity.mjs
   - ../dreamlab-ai-website/scripts/__tests__/pin-parity.test.mjs
   - ../dreamlab-ai-website/scripts/__tests__/dream-kit-pin-guard.test.mjs
+  - ../dreamlab-ai-website/scripts/__tests__/deploy-subset-of-ci.test.mjs
   - ../dreamlab-ai-website/scripts/__tests__/helpers/fixture-repo.mjs
   - ../dreamlab-ai-website/CLAUDE.md
-verified_commit: 2e358bb6c47dad3130bbfea8a73278cfbea1157c
+verified_commit: 3afa374f5957027213471f2429c7ba26996b0744
 ---
 
 ## DW-05.1 `ci.yml` — the ten-job PR/push gate and its aggregator
@@ -45,7 +46,7 @@ flowchart TB
 - `ci.yml:14-37` (push) and its mirror `ci.yml:40-62` (pull_request) deliberately enumerate `.github/workflows/**` and `scripts/**` as trigger paths, not just the three `KIT_REF` pin sites: pin-check sweeps ALL workflow files for tag-pinned actions, so any workflow edit can break it — narrower path filters previously let `kit-pin-guard.yml` carry an unpinned `actions/checkout@v4` without re-running the gate that rejects it (2026-09-06 incident, `ci.yml:26-30` comment).
 - `rust-clippy` here is `-D warnings` (blocking, `ci.yml:169-186`) — unlike `rust-ci.yml`'s clippy job against the kit, which is explicitly advisory (DW-05.2).
 - Playwright/E2E specs (`playwright.config.ts`, `tests/forum-smoke.spec.ts`) are deliberately NOT wired into `ci.yml`, `test-and-lint.yml` or any gate job in this tree — `CLAUDE.md:63-64` documents `npx playwright test` as a manual command requiring a running deployment; `forum-smoke.spec.ts:404-410` is the only spec asserting workers return scoped CORS, cited by `BASELINE-architecture.md:100`.
-- `set-worker-secrets.yml` (`workflow_dispatch` only, `set-worker-secrets.yml:12-13`) is a one-shot operator push of four secrets (`NATIVE_POD_URL`, `NATIVE_POD_ADMIN_KEY`, `PRF_SERVER_SECRET`, `ADMIN_PUBKEYS`) to the `dreamlab-auth-api` CF Worker via the CF Workers Secrets API — the pipeline never generates these values, and the `PUT` is idempotent so the workflow is safe to re-run (`set-worker-secrets.yml:3-10`); all four are validated at deploy time by `workers-deploy.yml`'s "Validate required auth-worker secrets are set" step (`workers-deploy.yml:287`).
+- `set-worker-secrets.yml` (`workflow_dispatch` only, `set-worker-secrets.yml:12-13`) is a one-shot operator push of secrets via the CF Workers Secrets API: `NATIVE_POD_URL`, `NATIVE_POD_ADMIN_KEY`, `PRF_SERVER_SECRET` and `ADMIN_PUBKEYS` to `dreamlab-auth-api` (`set-worker-secrets.yml:3-10`), and, in a second job, `VAPID_PRIVATE_KEY` to `dreamlab-nostr-relay` for content-free Web Push (`set-worker-secrets.yml:108-133`); the pipeline never generates these values and the `PUT` is idempotent. The auth-worker four are validated at deploy time by `workers-deploy.yml`'s "Validate required auth-worker secrets are set" step (`workers-deploy.yml:287`).
 - `docs-update.yml` is the one workflow with `contents: write` in this tree: a Sunday 22:00 UTC cron (`docs-update.yml:4-6`) that only ever proposes changes — `update-timestamps` opens a PR on `docs/auto-update-timestamps` rather than committing to `main` (`docs-update.yml:59-72`), and a second `check-outdated` job flags docs with `last_updated` >90 days old into a deduplicated rolling issue rather than spamming new ones (`docs-update.yml:126-128` names prior duplicate issues #35/#37/#39/#40 as the reason).
 
 ## DW-05.2 `rust-ci.yml` — manual-only gate against the upstream kit
@@ -58,7 +59,7 @@ flowchart LR
     CLONE --> TW["test-wasm: cargo test --target wasm32-unknown-unknown<br/>-p nostr-bbs-core --no-run<br/>rust-ci.yml:118"]
     CLONE --> CWC["check-wasm-client: cargo check<br/>-p nostr-bbs-forum-client, wasm32 target<br/>rust-ci.yml:142"]
 ```
-- `rust-ci.yml:4-6` states the division of labour explicitly: "Triggered by workflow_dispatch (manual) since kit source lives in a separate repo. The test-and-lint.yml workflow covers forum-config/ on every push/PR automatically" — `forum-config/` gets automatic gating (DW-05.3); the kit itself only gets this manual, advisory-clippy check. **Drift:** "on every push/PR" is no longer literal: `test-and-lint.yml` has no `push` trigger (`test-and-lint.yml:20-21,23-30`), so it runs on pull requests (`test-and-lint.yml:29-30`) and, for main, only as the `workflow_call` gate inside `deploy.yml` and `workers-deploy.yml` (`deploy.yml:127-130`), whose own path filters decide whether it runs at all.
+- `rust-ci.yml:4-6` states the division of labour explicitly: "Triggered by workflow_dispatch (manual) since kit source lives in a separate repo. The test-and-lint.yml workflow covers forum-config/ on every push/PR automatically" — `forum-config/` gets automatic gating (DW-05.3); the kit itself only gets this manual, advisory-clippy check. **Drift:** "on every push/PR" is no longer literal: `test-and-lint.yml` has no `push` trigger (`test-and-lint.yml:20-21,23-30`), so it runs on pull requests (`test-and-lint.yml:29-30`) and, for main, only as the `workflow_call` gate inside `deploy.yml` and `workers-deploy.yml` (`deploy.yml:134-137`), whose own path filters decide whether it runs at all.
 
 ## DW-05.3 `test-and-lint.yml` — the reusable pre-deploy gate, fixed 2026-09-05
 ```mermaid
@@ -76,8 +77,8 @@ sequenceDiagram
     CALLER->>CALLER: needs.gate.outputs.passed == 'true'<br/>required in addition to needs:[gate]
 ```
 - INVARIANT: `test-and-lint.yml:1-17` documents two closed defects (ADR-2002/2003 closeout, 2026-09-05): (1) it previously ran no unit tests at all — Vitest lived only in the separate `ci.yml`, which `deploy.yml` does not depend on, so a red suite never blocked a deploy; (2) the final step wrote `passed=true` unconditionally under `if: always()`, so the output was true even when an earlier step had failed.
-- `deploy.yml:141-143` and `workers-deploy.yml:64-66` (the `provision-kv` job; the deploy job repeats it at `workers-deploy.yml:110`) both check `needs.gate.outputs.passed == 'true'` explicitly, not merely `needs: [gate]` — the comment notes this is deliberate: requiring the gate's own verdict means a future change that makes a gate step non-blocking cannot quietly re-open the publication path.
-- DOC-DRIFT: `docs/BASELINE-architecture.md:187` (estate closeout, dated 2026-09-04) claims "CI has a Vitest/pin/admin aggregator, while deployment uses a separate reusable gate without Vitest" — that description predates the fix `test-and-lint.yml`'s own header documents as landing 2026-09-05 (one day later); as of this verified commit, `test-and-lint.yml` DOES run Vitest (`id: vitest`, `test-and-lint.yml:88-91`) and its `passed` output is a real aggregation, not a constant.
+- `deploy.yml:147-149` and `workers-deploy.yml:64-66` (the `provision-kv` job; the deploy job repeats it at `workers-deploy.yml:110`) both check `needs.gate.outputs.passed == 'true'` explicitly, not merely `needs: [gate]` — the comment notes this is deliberate: requiring the gate's own verdict means a future change that makes a gate step non-blocking cannot quietly re-open the publication path.
+- DOC-DRIFT: `docs/BASELINE-architecture.md:191` (estate closeout, dated 2026-09-04) claims "CI has a Vitest/pin/admin aggregator, while deployment uses a separate reusable gate without Vitest" — that description predates the fix `test-and-lint.yml`'s own header documents as landing 2026-09-05 (one day later); as of this verified commit, `test-and-lint.yml` DOES run Vitest (`id: vitest`, `test-and-lint.yml:88-91`) and its `passed` output is a real aggregation, not a constant.
 
 ## DW-05.4 `kit-pin-guard.yml` — pin-parity as its own gate
 ```mermaid
@@ -102,19 +103,19 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant REC as kit-compatibility-record<br/>docs/architecture/kit-compatibility-record.md:31
-    participant PP as pin-parity tests<br/>scripts/__tests__/pin-parity.test.mjs:22
+    participant PP as pin-parity tests<br/>scripts/__tests__/pin-parity.test.mjs:23
     participant FX as makeFixtureRepo<br/>scripts/__tests__/helpers/fixture-repo.mjs:43
-    participant CK as checkKitPins<br/>scripts/lib/pin-parity.mjs:147
-    PP->>REC: read the record at REPO_ROOT, scripts/__tests__/pin-parity.test.mjs:22
+    participant CK as checkKitPins<br/>scripts/lib/pin-parity.mjs:165
+    PP->>REC: read the record at REPO_ROOT, scripts/__tests__/pin-parity.test.mjs:23
     REC-->>PP: CANONICAL_KIT_VERSION and the four RESOLVED checksum lines
-    PP->>PP: LIVE_VERSION, LIVE_CORE_CHECKSUM, LIVE_MESH_CHECKSUM, scripts/__tests__/pin-parity.test.mjs:23-25
-    PP->>FX: copy the live tree, corrupt one derived fact, scripts/__tests__/pin-parity.test.mjs:119-125
+    PP->>PP: LIVE_VERSION, LIVE_CORE_CHECKSUM, LIVE_MESH_CHECKSUM, scripts/__tests__/pin-parity.test.mjs:24-26
+    PP->>FX: copy the live tree, corrupt one derived fact, scripts/__tests__/pin-parity.test.mjs:138-146
     FX-->>PP: fixture root, scripts/__tests__/helpers/fixture-repo.mjs:54
-    PP->>CK: check the fixture, scripts/lib/pin-parity.mjs:147
+    PP->>CK: check the fixture, scripts/lib/pin-parity.mjs:165
     CK-->>PP: not ok, an error naming the corrupted fact
-    Note over PP,FX: INVARIANT: no fixture hard-codes a kit version or<br/>checksum, so a kit bump cannot make a drift test<br/>stop failing, scripts/__tests__/pin-parity.test.mjs:22
+    Note over PP,FX: INVARIANT: no fixture hard-codes a kit version or<br/>checksum, so a kit bump cannot make a drift test<br/>stop failing, scripts/__tests__/pin-parity.test.mjs:23
 ```
-- Since this topic's previous stamp `checkKitPins` also counts `[[package]]` blocks per kit crate (`countKitPackageBlocks`, `scripts/lib/pin-parity.mjs:112`; the error `is resolved N times`, `scripts/lib/pin-parity.mjs:242-247`), because `parseLockfileResolved` keeps only the last block per name (`scripts/lib/pin-parity.mjs:84`) and a stale transitive requirement can resolve a second, older beta beside the pin; a fixture appends a `beta.8` block and expects drift (`scripts/__tests__/pin-parity.test.mjs:221-229`).
+- Since this topic's previous stamp `checkKitPins` also counts `[[package]]` blocks per kit crate (`countKitPackageBlocks`, `scripts/lib/pin-parity.mjs:112`; the error `is resolved N times`, `scripts/lib/pin-parity.mjs:259-267`), because `parseLockfileResolved` keeps only the last block per name (`scripts/lib/pin-parity.mjs:84`) and a stale transitive requirement can resolve a second, older beta beside the pin; a fixture appends a `beta.8` block and expects drift (`scripts/__tests__/pin-parity.test.mjs:241-250`). The record side has the same twin: `countRecordResolvedLines` (`scripts/lib/pin-parity.mjs:149`) makes `checkKitPins` reject a record that carries two `RESOLVED` lines for one crate, because `parseRecord` keeps only the last (`scripts/lib/pin-parity.mjs:324-338`; fixture `scripts/__tests__/pin-parity.test.mjs:272-288`). `scripts/__tests__/deploy-subset-of-ci.test.mjs:1-8` adds a static guard that every `deploy.yml` path filter is covered by a `ci.yml` filter.
 - The wrapper suite derives the same two facts independently (`scripts/__tests__/dream-kit-pin-guard.test.mjs:23-24`) and drives them through `scripts/dream-kit-pin-guard.sh`, so the thin wrapper and the gate it delegates to are both exercised against the live record rather than against a snapshot of it.
 - **Debt:** `scripts/dream-kit-pin-guard.sh:9-18` records the cost already paid for the previous shape — a verbatim shell transcription of the evaluator reported `PIN-DRIFT-RECORD-VER` against a correctly pinned repository once the manifest moved to exact `=` pins, and never opened `forum-config/Cargo.lock` at all.
 - **Invariant:** the guard prints `PIN-PARITY-OK` or `PIN-DRIFT` and always exits 0 (`scripts/dream-kit-pin-guard.sh:20-22`); enforcement lives in `kit-pin-guard.yml`, so changing the exit code here silently disarms the gate.

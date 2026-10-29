@@ -28,7 +28,7 @@ sources:
   - docs/adr/ADR-2009-webgl-mesh-deep-is-sidecar-only.md
   - ./README.md
   - package.json
-verified_commit: 4159e085a73dac3e9d52fb1bc7e476350bf369c1
+verified_commit: 1d7183a73c1eae4996a7006067d5047308fab7a5
 ---
 
 ## VF-04.1 dream.config.json — the whole contract this repo offers the engine
@@ -48,7 +48,7 @@ flowchart LR
     C --> OUT["ledgerPath docs/dream-cycle/LEDGER.md,<br/>branchPrefix dream/, labels dream-cycle and marketing-site,<br/>autoMerge FALSE<br/>dream.config.json:76 and dream.config.json:82"]:::cfg
     C --> MISC["competitors empty, adrConvention 4-digit<br/>dream.config.json:66 and dream.config.json:67"]:::cfg
 
-    ENG["EXTERNAL: the dream ENGINE is not in this repo. DreamLab's<br/>dream-engine, a tracking fork of ruvnet/dream-machine, runs the<br/>night and consumes this file — see AB-23 for the engine, its<br/>gates and its acceptance path. ./README.md:136"]
+    ENG["EXTERNAL: the dream ENGINE is not in this repo. DreamLab's<br/>dream-engine, now a separate Rust repository extracted from the earlier fork<br/>(the fork is archived as dream-machine), runs the night and consumes this file —<br/>see AB-23 and DE-01 for the engine, its gates and its acceptance path. ./README.md:114 and ./README.md:139"]
     C -.->|"read by"| ENG
 ```
 
@@ -86,7 +86,7 @@ stateDiagram-v2
       DOC-DRIFT: ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:44
       still calls estate-health "a fifth rotation slot".
       ADR-2009 removed webgl-mesh, so it is one of four —
-      as BASELINE-visionflow.md:192 correctly records.
+      as BASELINE-visionflow.md:196 correctly records.
     end note
 ```
 
@@ -130,13 +130,13 @@ flowchart LR
     E1 --> E1P["prints page count and byte total, then BUILD-OK<br/>dream-build-check.sh:9 and dream-build-check.sh:10"]:::pass
     E1 --> E1F["otherwise BUILD-FAIL and exit 1 — dream-build-check.sh:12 and dream-build-check.sh:13<br/>RESOLVED 2026-10-12 (4159e08): the exit status used to be 0 either way"]:::fail
 
-    E2["dream-link-check.sh<br/>four ref families: href/src attrs, meta content media URLs,<br/>in-page anchors (since the 10-05 ACCEPT) and — since the 10-08 ACCEPT — same-origin<br/>URLs inside JSON-LD blocks<br/>dream-link-check.sh:9, :11, :17 and :23"]
-    E2 --> E2P["internal-refs-checked N, missing 0, anchors-checked N,<br/>dangling 0, then LINK-INTEGRITY-OK<br/>dream-link-check.sh:99 and dream-link-check.sh:102"]:::pass
-    E2 --> E2F["any missing ref prints MISSING, or a dangling anchor prints<br/>DANGLING-ANCHOR, then LINK-INTEGRITY-FAIL and exit 1 (RESOLVED 2026-10-12, 4159e08)<br/>dream-link-check.sh:64, dream-link-check.sh:84 and dream-link-check.sh:104-105"]:::fail
-    E2 --> E2X["no dist/ prints NO-DIST and still exits 0 with NO sentinel<br/>dream-link-check.sh:36"]:::odd
+    E2["dream-link-check.sh<br/>five ref families: href/src attrs, meta content media URLs,<br/>in-page anchors (since the 10-05 ACCEPT), same-origin URLs inside JSON-LD blocks<br/>(since the 10-08 ACCEPT) and — since operator decision 2026-10-09 — CNAME to page-host agreement:<br/>canonical, og:url and JSON-LD url must carry the CNAME host, social-card images must be same-site<br/>dream-link-check.sh:9, dream-link-check.sh:11, dream-link-check.sh:17, dream-link-check.sh:23 and dream-link-check.sh:31"]
+    E2 --> E2P["internal-refs-checked N, missing 0, anchors-checked N,<br/>dangling 0, then LINK-INTEGRITY-OK<br/>dream-link-check.sh:149 and dream-link-check.sh:153"]:::pass
+    E2 --> E2F["any missing ref prints MISSING, or a dangling anchor prints<br/>DANGLING-ANCHOR, then LINK-INTEGRITY-FAIL and exit 1 (RESOLVED 2026-10-12, 4159e08)<br/>dream-link-check.sh:64, dream-link-check.sh:91 and dream-link-check.sh:155-156"]:::fail
+    E2 --> E2X["no dist/ prints NO-DIST and still exits 0 with NO sentinel<br/>dream-link-check.sh:43"]:::odd
 
     E3["dream-meta-tags-scan.sh<br/>counts title, description, canonical, viewport as REQUIRED;<br/>og, twitter and robots counted but optional<br/>dream-meta-tags-scan.sh:24"]
-    E3 --> E3P["required-missing 0, then META-SCAN-OK<br/>dream-meta-tags-scan.sh:33"]:::pass
+    E3 --> E3P["required-missing 0, then META-SCAN-OK<br/>dream-meta-tags-scan.sh:35"]:::pass
     E3 --> E3F["MISSING-REQUIRED per tag, then META-SCAN-FAIL<br/>dream-meta-tags-scan.sh:19"]:::fail
 
     E4["dream-structured-data-scan.sh<br/>parses every application/ld+json block with node<br/>dream-structured-data-scan.sh:15"]
@@ -153,7 +153,7 @@ flowchart LR
     E6 --> E6F["ESTATE-HEALTH-RED or ESTATE-HEALTH-STALE, exit 1<br/>estate-health.mjs:991 and estate-health.mjs:998"]:::fail
 ```
 
-**Drift (resolved 2026-10-12, `4159e08`):** this diagram recorded the build and link evaluators as exiting 0 on failure (`exit status is 0 either way`); `scripts/dream-build-check.sh:12-13` and `scripts/dream-link-check.sh:104-105` now print the FAIL marker and exit 1, and the script headers state that the printed marker remains the verdict the deploy gate and the dream engine read (`scripts/dream-build-check.sh:5-6`, `scripts/dream-link-check.sh:3-7`, engine side in AB-23). `deploy.yml` discards the code with an or-true and keeps the marker grep (`.github/workflows/deploy.yml:92`, `.github/workflows/deploy.yml:94`, `.github/workflows/deploy.yml:102`, `.github/workflows/deploy.yml:104`), and `tests/gates/dream-evaluator-exit.test.sh:36-65` pins marker and code together. The meta-tags and structured-data scans are unchanged and still exit 0 after printing their FAIL marker (`scripts/dream-meta-tags-scan.sh:9`, `scripts/dream-structured-data-scan.sh:9`).
+**Drift (resolved 2026-10-12, `4159e08`):** this diagram recorded the build and link evaluators as exiting 0 on failure (`exit status is 0 either way`); `scripts/dream-build-check.sh:12-13` and `scripts/dream-link-check.sh:155-156` now print the FAIL marker and exit 1, and the script headers state that the printed marker remains the verdict the deploy gate and the dream engine read (`scripts/dream-build-check.sh:5-6`, `scripts/dream-link-check.sh:3-7`, engine side in AB-23). `deploy.yml` discards the code with an or-true and keeps the marker grep (`.github/workflows/deploy.yml:92`, `.github/workflows/deploy.yml:94`, `.github/workflows/deploy.yml:102`, `.github/workflows/deploy.yml:104`), and `tests/gates/dream-evaluator-exit.test.sh:36-65` pins marker and code together. The meta-tags and structured-data scans are unchanged and still exit 0 after printing their FAIL marker (`scripts/dream-meta-tags-scan.sh:9`, `scripts/dream-structured-data-scan.sh:9`).
 
 ## VF-04.5 A night end to end — probe, build, evaluate, ledger, branch, human gate
 ```mermaid
@@ -178,7 +178,7 @@ sequenceDiagram
     alt a change is proposed
         ENG->>BR: "branch named with prefix dream/ — dream.config.json:77"
         ENG->>H: "open a DRAFT pull request, labels dream-cycle and marketing-site<br/>dream.config.json:78"
-        Note over ENG,H: "INVARIANT: autoMerge is false — dream.config.json:82<br/>evaluation is not promotion — an agent proposes, a human signs<br/>./README.md:136"
+        Note over ENG,H: "INVARIANT: autoMerge is false — dream.config.json:82<br/>evaluation is not promotion — an accepted experiment is not a deployment<br/>./README.md:114"
         H-->>BR: "merge, or refuse"
     else no change earned
         ENG->>LED: "the row stands alone, no branch, no PR"
@@ -218,9 +218,10 @@ flowchart TB
 
     L["docs/dream-cycle/LEDGER.md — LEDGER.md:3"]
 
-    L --> A["ACCEPT nights (20): 08-17 x2, 08-29, 08-31, 09-01, 09-02,<br/>09-03, 09-04, 09-05, 09-10 seo-and-meta robots.txt via<br/>PR #3 — LEDGER.md:25 — then seven in a row, 09-30 to 10-06,<br/>then 10-08, 10-10 and 10-11 — LEDGER.md:40,42,43"]:::acc
+    L --> A["ACCEPT nights (24): 08-17 x2, 08-29, 08-31, 09-01, 09-02,<br/>09-03, 09-04, 09-05, 09-10 seo-and-meta robots.txt via<br/>PR #3 — LEDGER.md:25 — then seven in a row, 09-30 to 10-06,<br/>then 10-08, 10-10 and 10-11 — LEDGER.md:40,42,43 — and since the earlier stamp 10-13 (family 5 of the link gate, PR #21),<br/>10-14, 10-15 and 10-18 — LEDGER.md:44-47"]:::acc
     L --> I["INCONCLUSIVE nights (11): 08-16 content-integrity; three<br/>webgl-mesh nights 08-30, 09-06, 09-07; then six VETOED nights<br/>09-08, 09-09, 09-11, 09-13, 09-27, 09-29; and 10-07 estate-health<br/>(three red agentbox workflows, the collector source, lines 500 to 997 at the night, not shown to it)<br/>LEDGER.md:19,23,24,26,28,29,31,39"]:::inc
     L --> B["BLOCKED-ENV nights (3): 09-12 and 09-28, both<br/>content-integrity, both VETOED — LEDGER.md:27,30 — and 10-09<br/>build-pipeline, VETOED when CNAME-versus-page-host drift failed the link gate<br/>LEDGER.md:41"]:::blk
+    L --> R["REJECT nights (4), a verdict the ledger had not used before: 10-20 content-integrity, 10-21 build-pipeline,<br/>10-23 estate-health and 10-24 content-integrity, every one VETOED<br/>LEDGER.md:48-51"]:::bad
     L --> O["OPERATOR rows (5) — human audits, deliberately NOT counted<br/>toward the dry streak that parks a repo"]:::op
 
     O --> O1["2026-08-28 — evaluators converted to checked-in scripts after<br/>the annexe ssh dispatch mangled nested double quotes<br/>LEDGER.md:8"]:::op
@@ -277,7 +278,7 @@ stateDiagram-v2
     LedgerOnly --> [*]
     note right of Draft
       The judgment-broker boundary wired into development:
-      evaluation is not promotion. ./README.md:136
+      evaluation is not promotion. ./README.md:114
       DIVERGENCE: nothing in this repo enforces the draft-PR
       shape — the branch prefix, the labels and autoMerge
       false are declarations the external engine honours —
@@ -322,3 +323,5 @@ flowchart LR
 **Debt (ledger rows reach main by hand):** the engine writes each night's row to the working tree and never commits it; the 09-27 to 09-30 rows reached main only in a human commit (`f3d54a0`) and the 10-01 and 10-02 rows likewise in `e52dba7` (`docs/dream-cycle/LEDGER.md:29-34`); the 10-03 to 10-06 rows landed with their own ACCEPT PR merges, but only because each PR carried its row (`docs/dream-cycle/LEDGER.md:35-38`). The ledger the next night reads is therefore whatever an operator last committed, and the 09-14 to 09-26 silence cannot be told apart from rows that were written and lost.
 
 **Drift (2026-10-15, dream-engine extraction):** the engine named in the diagrams above as a tracking fork of ruvnet/dream-machine is superseded. The Rust engine is split into the permissive repository DreamLab-AI/dream-engine (public, five crates at 0.1.0 on crates.io, checked 2026-10-16) and the agentbox adapter (AB-23, PR 28 merged as aa9b094c3, image rebuild pending), and the TypeScript fork is renamed DreamLab-AI/dream-machine and archived. This topic is stamped before the move and its citations remain true at its stamp; the current map is DE-01.
+
+**Debt:** the ledger has no row for 10-12, 10-16, 10-17, 10-19 or 10-22, and the four newest rows are all REJECT after an unbroken run of four ACCEPTs from 10-13 to 10-18 (`docs/dream-cycle/LEDGER.md:44-51`); no mechanism in the ledger records why a night is absent.

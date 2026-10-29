@@ -26,7 +26,7 @@ sources:
   - ../project/crates/visionclaw-tri-layout/src/lib.rs
   - ../project/src/handlers/socket_flow_handler/session_relay.rs
   - ../project/src/handlers/socket_flow_handler/message_routing.rs
-verified_commit: {visionclaw: a053adcef72f3262f57a4b32d902475a1bdc9048}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
 ---
 
 ## For developers
@@ -50,7 +50,7 @@ The honest limits are in the register below: the headset has not yet been used t
 ```mermaid
 flowchart TB
     subgraph gd["GDScript owners on the scene-tree thread"]
-        GS["_on_graph_text routes by message type<br/>xr-client/scripts/graph_scene.gd:2761"]
+        GS["_on_graph_text routes by message type<br/>xr-client/scripts/graph_scene.gd:3029"]
         LAYER["MemoryCloudLayer owns the cloud, the frame and the route objects<br/>xr-client/scripts/memory_cloud_layer.gd:132"]
         SEARCH["MemorySearch owns the query object and one HTTP request in flight<br/>xr-client/scripts/memory_search.gd:58"]
         BEATGD["BeatPulse script wraps the gdext BeatPulse and pings every 2 s<br/>xr-client/scripts/beat_pulse.gd:32"]
@@ -58,7 +58,7 @@ flowchart TB
     subgraph cls["gdext adapters, RefCounted, no_init, created through create()"]
         MC["MemoryCloud<br/>xr-client/rust/src/memory_cloud.rs:883"]
         CF["CloudFrame<br/>xr-client/rust/src/cloud_frame.rs:276"]
-        MR["MemoryRoute<br/>xr-client/rust/src/memory_route.rs:1566"]
+        MR["MemoryRoute<br/>xr-client/rust/src/memory_route.rs:1575"]
         MQ["MemoryQuery<br/>xr-client/rust/src/memory_query.rs:466"]
         BP["BeatPulse<br/>xr-client/rust/src/pulse.rs:41"]
         FC["MemoryFlashCodec, static parse<br/>xr-client/rust/src/pulse.rs:208"]
@@ -66,9 +66,9 @@ flowchart TB
     subgraph core["Plain Rust cores, headless-testable, no locks"]
         CS["CloudState: snapshot, index maps, colours, drawn set<br/>xr-client/rust/src/memory_cloud.rs:767"]
         PG["PlacementGlide: bounds and glide<br/>xr-client/rust/src/cloud_frame.rs:193"]
-        RG["RouteGate and ActiveRoute: ordering, sampling, clock<br/>xr-client/rust/src/memory_route.rs:588 xr-client/rust/src/memory_route.rs:1399"]
+        RG["RouteGate and ActiveRoute: ordering, sampling, clock<br/>xr-client/rust/src/memory_route.rs:588 xr-client/rust/src/memory_route.rs:1408"]
         QA["parse_query_response and sidecar_route<br/>xr-client/rust/src/memory_query.rs:218 xr-client/rust/src/memory_query.rs:261"]
-        BS["BeatSync and MicBeat: arbitration and mic window<br/>xr-client/rust/src/beat.rs:371 xr-client/rust/src/beat.rs:829"]
+        BS["BeatSync and MicBeat: arbitration and mic window<br/>xr-client/rust/src/beat.rs:397 xr-client/rust/src/beat.rs:854"]
         SE["semantic: burst profile, hue shift, beam shape<br/>xr-client/rust/src/semantic.rs:91"]
     end
     WORKER["mic tempo worker, the only extra thread, one per analysis<br/>result returns over mpsc, detached<br/>xr-client/rust/src/pulse.rs:142 xr-client/rust/src/pulse.rs:141"]
@@ -265,7 +265,7 @@ flowchart TB
     end
     subgraph graph["graph side"]
         G1["graph_bounds_for folds every node into its own graph frame first<br/>so the separated triangle does not inflate the radius<br/>xr-client/rust/src/cloud_frame.rs:166 xr-client/rust/src/cloud_frame.rs:171"]
-        G2["BinaryProtocolClient.graph_robust_bounds reads it from the render store, GDScript samples it once a second<br/>xr-client/rust/src/binary_protocol.rs:1908 xr-client/rust/src/render_store.rs:2035 xr-client/rust/src/cloud_frame.rs:49"]
+        G2["BinaryProtocolClient.graph_robust_bounds reads it from the render store, GDScript samples it once a second<br/>xr-client/rust/src/binary_protocol.rs:1936 xr-client/rust/src/render_store.rs:2122 xr-client/rust/src/cloud_frame.rs:49"]
     end
     subgraph place["cloud_placement"]
         P1["with both bounds: scale is MEMORY_BODY_SCALE 10 times k over 5 times graph radius over cloud radius<br/>base is the graph centre<br/>xr-client/rust/src/cloud_frame.rs:146"]
@@ -338,25 +338,25 @@ classDiagram
 
 **What it shows.** What the headset accepts from the desktop's relayed frame and what it makes of it. An empty `path` is the clear signal; a bad `sidecar` entry is dropped, a bad `path` entry rejects the whole frame. **Why it is this way.** The relay and the headset parser share one set of limits, but they differ at the edges: the relay rejects a negative `seq` (src/handlers/socket_flow_handler/session_relay.rs:195) and a non-array `sidecar` (src/handlers/socket_flow_handler/session_relay.rs:188) while accepting `null`; the client defaults a bad `seq` to 0 (xr-client/rust/src/memory_route.rs:554) and rejects any non-array `sidecar`, `null` included, as a JSON error (xr-client/rust/src/memory_route.rs:325).
 
-**Drift:** `docs/XR-client.md` describes the frame as `{type, snapshotId, seq, sentAt, path[], sidecar[], query}` (docs/XR-client.md:441) while the code reads two further fields, `sidecarTotal` and `sidecarAgree` (xr-client/rust/src/memory_route.rs:209).
+**Drift:** `docs/XR-client.md` describes the frame as `{type, snapshotId, seq, sentAt, path[], sidecar[], query}` (docs/XR-client.md:443) while the code reads two further fields, `sidecarTotal` and `sidecarAgree` (xr-client/rust/src/memory_route.rs:209).
 
 ## VC-38.8 RouteGate - ordering, reload and the five verdicts
 
 ```mermaid
 flowchart TB
-    IN["RouteFrame offered with loaded snapshot id and row count<br/>xr-client/rust/src/memory_route.rs:603"]
+    IN["RouteFrame offered with loaded snapshot id and row count<br/>xr-client/rust/src/memory_route.rs:606"]
     Q1{"strictly newer than the last applied by sentAt then seq?"}
-    ST["Stale<br/>xr-client/rust/src/memory_route.rs:610"]
+    ST["Stale<br/>xr-client/rust/src/memory_route.rs:613"]
     Q2{"path and hit points both empty?"}
-    CL["Clear, last recorded, pending dropped<br/>xr-client/rust/src/memory_route.rs:615"]
+    CL["Clear, last recorded, pending dropped<br/>xr-client/rust/src/memory_route.rs:621"]
     Q3{"names the loaded snapshot?"}
     Q4{"already reloaded for this id?"}
-    DR1["Drop<br/>xr-client/rust/src/memory_route.rs:619"]
-    RL["Reload, frame held as pending, id remembered<br/>xr-client/rust/src/memory_route.rs:623"]
+    DR1["Drop<br/>xr-client/rust/src/memory_route.rs:625"]
+    RL["Reload, frame held as pending, id remembered<br/>xr-client/rust/src/memory_route.rs:629"]
     Q5{"fewer than 2 anchors, a non-finite point or a path row outside the snapshot?"}
-    DR2["Drop<br/>xr-client/rust/src/memory_route.rs:627"]
-    AP["Apply, last recorded, pending dropped<br/>xr-client/rust/src/memory_route.rs:632"]
-    AR["after_reload re-offers the pending frame once the cloud has reloaded<br/>a second mismatch drops it<br/>xr-client/rust/src/memory_route.rs:637"]
+    DR2["Drop<br/>xr-client/rust/src/memory_route.rs:633"]
+    AP["Apply, last recorded, pending dropped<br/>xr-client/rust/src/memory_route.rs:641"]
+    AR["after_reload re-offers the pending frame once the cloud has reloaded<br/>a second mismatch drops it<br/>xr-client/rust/src/memory_route.rs:646"]
     IN --> Q1
     Q1 -->|no| ST
     Q1 -->|yes| Q2
@@ -374,9 +374,9 @@ flowchart TB
 
 **What it shows.** The whole decision, in the order the code takes it. `last` moves only on a Clear or an Apply, never on a Drop, Reload or Stale, so a bad frame cannot lock out a good one with the same stamp. **Why it is this way.** Ordering is `(sentAt, seq)` so a desktop page reload, which restarts `seq` at 0 with a later `sentAt`, is accepted while a re-delivered older frame is not (xr-client/rust/src/memory_route.rs:585). The Reload verdict hands the cloud one chance to catch up with a snapshot the desktop already holds.
 
-**Invariant:** `RouteFrame.path` rows are range-checked against the loaded row count before an Apply (xr-client/rust/src/memory_route.rs:627), hit points are checked only for finiteness.
+**Invariant:** `RouteFrame.path` rows are range-checked against the loaded row count before an Apply (xr-client/rust/src/memory_route.rs:633), hit points are checked only for finiteness.
 
-At this revision `reloaded_for` is set at the first Reload and never cleared, not on Apply and not on Clear (xr-client/rust/src/memory_route.rs:621), so a second mismatch for an id once reloaded for is dropped instead of reloaded. VisionClaw `6ca5ff4b2` (2026-10-18, estate register ER-26) clears it on Apply and on Clear and keeps the drop for the re-offer after a failed reload.
+`reloaded_for` is set at the first Reload and cleared on Apply and on Clear (xr-client/rust/src/memory_route.rs:620, xr-client/rust/src/memory_route.rs:640), so a later mismatch is a new episode and reloads again, while a second mismatch for the same id inside one episode is still dropped instead of reloading in a loop (VisionClaw `6ca5ff4b2`, 2026-10-18, estate register ER-26).
 
 **Open:** `sent_at` is Unix milliseconds on both paths, the relay's `sentAt` passed through unrebased and the headset's own `Time.get_unix_time_from_system()` (xr-client/scripts/memory_cloud_layer.gd:491), so a headset clock ahead of the desktop's makes desktop frames `Stale` until the desktop catches up and a clock behind does the reverse; nothing states the unit or bounds the skew.
 
@@ -385,22 +385,22 @@ At this revision `reloaded_for` is set at the first Reload and never cleared, no
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GS as _on_graph_text<br/>xr-client/scripts/graph_scene.gd:2761
+    participant GS as _on_graph_text<br/>xr-client/scripts/graph_scene.gd:3029
     participant L as apply_route_json<br/>xr-client/scripts/memory_cloud_layer.gd:473
-    participant MR as offer_json<br/>xr-client/rust/src/memory_route.rs:1655
-    participant G as RouteGate offer<br/>xr-client/rust/src/memory_route.rs:603
-    participant AR as ActiveRoute set<br/>xr-client/rust/src/memory_route.rs:1446
-    participant T as tick<br/>xr-client/rust/src/memory_route.rs:1821
+    participant MR as offer_json<br/>xr-client/rust/src/memory_route.rs:1664
+    participant G as RouteGate offer<br/>xr-client/rust/src/memory_route.rs:606
+    participant AR as ActiveRoute set<br/>xr-client/rust/src/memory_route.rs:1455
+    participant T as tick<br/>xr-client/rust/src/memory_route.rs:1830
 
-    GS->>L: memoryRoute frame, the layer gates it xr-client/scripts/graph_scene.gd:2781
+    GS->>L: memoryRoute frame, the layer gates it xr-client/scripts/graph_scene.gd:3049
     L->>MR: offer_json(json, loaded snapshot id, positions) xr-client/scripts/memory_cloud_layer.gd:476
     MR->>MR: parse_route, a failure returns error and sets last_error xr-client/rust/src/memory_route.rs:516
     MR->>G: offer(frame, loaded, rows)
     G-->>MR: Apply Clear Stale Reload or Drop
-    MR->>AR: on Apply, set(frame, positions) xr-client/rust/src/memory_route.rs:2002
-    AR->>AR: sample_frame, restart the trace and cue clocks, unless it is a repeat of the same relayed route xr-client/rust/src/memory_route.rs:1450
+    MR->>AR: on Apply, set(frame, positions) xr-client/rust/src/memory_route.rs:2011
+    AR->>AR: sample_frame, restart the trace and cue clocks, unless it is a repeat of the same relayed route xr-client/rust/src/memory_route.rs:1459
     AR-->>MR: true for a new route, false for a refresh
-    MR-->>L: verdict string apply, refresh, clear, stale, reload or drop xr-client/rust/src/memory_route.rs:1999
+    MR-->>L: verdict string apply, refresh, clear, stale, reload or drop xr-client/rust/src/memory_route.rs:2008
     alt apply
         L->>L: build the ArrayMesh from mesh_arrays, set_keep(keep_rows), tick(0), emit route_changed xr-client/scripts/memory_cloud_layer.gd:569
     else refresh
@@ -410,29 +410,29 @@ sequenceDiagram
     end
     loop every frame while the route is active
         L->>T: tick(delta, glow, beat phase, beat pulse, reduced motion) xr-client/scripts/memory_cloud_layer.gd:630
-        T-->>L: head_u, comet_u, tail_u, glow, path_t, answer, walk, walk window, walk width, walk glow, cue xr-client/rust/src/memory_route.rs:1843
+        T-->>L: head_u, comet_u, tail_u, glow, path_t, answer, walk, walk window, walk width, walk glow, cue xr-client/rust/src/memory_route.rs:1852
         L->>L: bead_buffer and ring_buffer written to two MultiMeshes xr-client/scripts/memory_cloud_layer.gd:640
     end
 ```
 
 **What it shows.** The text frame's whole life: gate, sample, mesh once, then two small buffers and a handful of shader parameters per frame. Geometry is built once per route; the animation is shader parameters plus instance buffers, never a rebuilt mesh. **Why it is this way.** Glow is additive geometry only, no post-process (XR-client Invariant 2, xr-client/rust/src/memory_route.rs:20), and the mesh stores each vertex's route parameter so the shader can reveal the trace without a per-frame rebuild (xr-client/rust/src/memory_route.rs:14).
 
-**Drift:** the doc comment on `tick` lists the Dictionary as "head_u, tail_u, glow, path_t, answer, comet (bool)" (xr-client/rust/src/memory_route.rs:1819) while the code sets `comet_u` as a float and four `walk_*` keys plus `cue` (xr-client/rust/src/memory_route.rs:1843).
+**Drift:** the doc comment on `tick` lists the Dictionary as "head_u, tail_u, glow, path_t, answer, comet (bool)" (xr-client/rust/src/memory_route.rs:1828) while the code sets `comet_u` as a float and four `walk_*` keys plus `cue` (xr-client/rust/src/memory_route.rs:1852).
 
-**Invariant:** the headset draws the four line layers of the tube at 0.1 of the desktop thickness and brightness and the comet tail at the walk factors 1.0 and 0.5, a named divergence from the desktop (operator decision of 2026-10-08) applied on top of the desktop-look mesh and pinned by a drift test on the desktop constants (xr-client/rust/src/memory_route.rs:74, xr-client/rust/src/memory_route.rs:866, xr-client/rust/src/memory_route.rs:885).
+**Invariant:** the headset draws the four line layers of the tube at 0.1 of the desktop thickness and brightness and the comet tail at the walk factors 1.0 and 0.5, a named divergence from the desktop (operator decision of 2026-10-08) applied on top of the desktop-look mesh and pinned by a drift test on the desktop constants (xr-client/rust/src/memory_route.rs:74, xr-client/rust/src/memory_route.rs:875, xr-client/rust/src/memory_route.rs:894).
 
 ## VC-38.10 Route animation - what animate computes from elapsed time
 
 ```mermaid
 flowchart TB
-    EL["el seconds since the route arrived, advanced by dt clamped to 0..0.1 s<br/>xr-client/rust/src/memory_route.rs:1527"]
+    EL["el seconds since the route arrived, advanced by dt clamped to 0..0.1 s<br/>xr-client/rust/src/memory_route.rs:1536"]
     RM{"reduced motion?"}
-    R1["path_t 1, no comet, no pulse, no beat, walk 0<br/>xr-client/rust/src/memory_route.rs:1062 xr-client/rust/src/memory_route.rs:1058"]
-    T1["tracing: path_t is el over 2.8 s, head is eased in-out times the last sample, comet at the head<br/>xr-client/rust/src/memory_route.rs:51 xr-client/rust/src/memory_route.rs:1065"]
-    T2["converged: comet loops every COMET_LOOP_S at size 0.7, answer ring appears, pulse runs<br/>from the beat phase when locked, else every 0.9 s<br/>xr-client/rust/src/memory_route.rs:1078 xr-client/rust/src/memory_route.rs:1082 xr-client/rust/src/memory_route.rs:54"]
-    W1["walk: 1 while tracing, then decays to 0 over 0.8 s after PATH_DUR<br/>xr-client/rust/src/memory_route.rs:1093 xr-client/rust/src/memory_route.rs:92"]
-    G1["glow times 1 plus 0.2 times the beat pulse when a beat is locked<br/>xr-client/rust/src/memory_route.rs:1069"]
-    CU["framing cue, a separate clock: lives 4.5 s, alpha is the lesser of a 0.25 s fade-in and a 1 s fade-out<br/>reduced motion keeps the fade and drops the march and the growth<br/>xr-client/rust/src/memory_route.rs:1125 xr-client/rust/src/memory_route.rs:185"]
+    R1["path_t 1, no comet, no pulse, no beat, walk 0<br/>xr-client/rust/src/memory_route.rs:1071 xr-client/rust/src/memory_route.rs:1067"]
+    T1["tracing: path_t is el over 2.8 s, head is eased in-out times the last sample, comet at the head<br/>xr-client/rust/src/memory_route.rs:51 xr-client/rust/src/memory_route.rs:1074"]
+    T2["converged: comet loops every COMET_LOOP_S at size 0.7, answer ring appears, pulse runs<br/>from the beat phase when locked, else every 0.9 s<br/>xr-client/rust/src/memory_route.rs:1087 xr-client/rust/src/memory_route.rs:1091 xr-client/rust/src/memory_route.rs:54"]
+    W1["walk: 1 while tracing, then decays to 0 over 0.8 s after PATH_DUR<br/>xr-client/rust/src/memory_route.rs:1102 xr-client/rust/src/memory_route.rs:92"]
+    G1["glow times 1 plus 0.2 times the beat pulse when a beat is locked<br/>xr-client/rust/src/memory_route.rs:1078"]
+    CU["framing cue, a separate clock: lives 4.5 s, alpha is the lesser of a 0.25 s fade-in and a 1 s fade-out<br/>reduced motion keeps the fade and drops the march and the growth<br/>xr-client/rust/src/memory_route.rs:1134 xr-client/rust/src/memory_route.rs:185"]
     EL --> RM
     RM -->|yes| R1
     RM -->|no| T1 --> T2
@@ -440,11 +440,11 @@ flowchart TB
     T2 --> W1
     T1 --> G1
     EL --> CU
-    INV["INVARIANT: no RNG, no wall clock, no thread in the animation, a function of dt, glow, the beat inputs and reduced motion only<br/>xr-client/rust/src/memory_route.rs:1050 xr-client/rust/src/memory_route.rs:1821"]
+    INV["INVARIANT: no RNG, no wall clock, no thread in the animation, a function of dt, glow, the beat inputs and reduced motion only<br/>xr-client/rust/src/memory_route.rs:1059 xr-client/rust/src/memory_route.rs:1830"]
     G1 --> INV
 ```
 
-**What it shows.** Every animated quantity of the route and the clock it hangs on. A new route restarts both clocks; a repeat of the same relayed route does not, so the trace is not replayed every time the desktop re-sends for late joiners. **Why it is this way.** Reduced motion shows the converged route with no moving part at all (ADR-2107, xr-client/rust/src/memory_route.rs:1048), which is also the default in the route object, the beat script and the layer (xr-client/rust/src/memory_route.rs:1587, xr-client/scripts/beat_pulse.gd:43, xr-client/scripts/memory_cloud_layer.gd:72).
+**What it shows.** Every animated quantity of the route and the clock it hangs on. A new route restarts both clocks; a repeat of the same relayed route does not, so the trace is not replayed every time the desktop re-sends for late joiners. **Why it is this way.** Reduced motion shows the converged route with no moving part at all (ADR-2107, xr-client/rust/src/memory_route.rs:1057), which is also the default in the route object, the beat script and the layer (xr-client/rust/src/memory_route.rs:1596, xr-client/scripts/beat_pulse.gd:43, xr-client/scripts/memory_cloud_layer.gd:72).
 
 ## VC-38.11 Route geometry and the triangle budget
 
@@ -456,25 +456,25 @@ classDiagram
         per vertex centre in VERTEX, ring direction in NORMAL
         route parameter in UV x, layer radius in UV2 x
         one ArrayMesh surface, 13 slot array, unused slots nil
-        def : xr-client/rust/src/memory_route.rs:801 xr-client/rust/src/memory_route.rs:136 xr-client/rust/src/memory_route.rs:229
+        def : xr-client/rust/src/memory_route.rs:810 xr-client/rust/src/memory_route.rs:136 xr-client/rust/src/memory_route.rs:229
     }
     class RouteSamples {
         pts knots answer
         quadratic Bezier bowed out of the cloud, 16 samples per hop at most
         a 12-hop route keeps 10, total at most ROUTE_RING_CAP 121
-        def : xr-client/rust/src/memory_route.rs:688 xr-client/rust/src/memory_route.rs:142
+        def : xr-client/rust/src/memory_route.rs:697 xr-client/rust/src/memory_route.rs:142
     }
     class InstanceBuffers {
         STRIDE 16 floats, 3x4 transform then rgba
         beads 2 per knot plus 2 plus 12 guide dots
         rings 3 plus sidecar marks plus ghosts
-        def : xr-client/rust/src/memory_route.rs:153 xr-client/rust/src/memory_route.rs:967 xr-client/rust/src/memory_route.rs:973
+        def : xr-client/rust/src/memory_route.rs:153 xr-client/rust/src/memory_route.rs:976 xr-client/rust/src/memory_route.rs:982
     }
     class Budget {
         tube triangles 5 times samples minus 1 times 6 times 2
         beads one triangle each, rings two
         ring_cap_for_budget picks the largest cap that fits, else one sample per hop
-        def : xr-client/rust/src/memory_route.rs:960 xr-client/rust/src/memory_route.rs:1005
+        def : xr-client/rust/src/memory_route.rs:969 xr-client/rust/src/memory_route.rs:1014
     }
     class RenderPriority {
         route 10, held 15, overlay 20, compile-time ordered
@@ -489,30 +489,30 @@ classDiagram
 
 **What it shows.** What a route costs and how it is held under the frame budget. The frame-budget allocator computes `route_ring_cap` (xr-client/rust/src/frame_budget.rs:171), the layer passes it to `set_ring_cap` (xr-client/scripts/memory_cloud_layer.gd:933) and the route resamples and rebuilds its mesh when the cap changes. **Why it is this way.** Beads, halos and the comet are one-triangle camera-facing discs, the cloud sprite's shape, so a route stays cheap in stereo (xr-client/rust/src/memory_route.rs:146); the budget closure is `frame_budget`'s (xr-client/rust/src/frame_budget.rs:5).
 
-**Debt:** `route_worst_triangles` is public with no caller outside tests (xr-client/rust/src/memory_route.rs:1015); the two `_desktop_look` functions are not dead, they are the production base layers wrapped by `build_route_mesh` and `bead_buffer` (xr-client/rust/src/memory_route.rs:867, xr-client/rust/src/memory_route.rs:1216).
+**Debt:** `route_worst_triangles` is public with no caller outside tests (xr-client/rust/src/memory_route.rs:1024); the two `_desktop_look` functions are not dead, they are the production base layers wrapped by `build_route_mesh` and `bead_buffer` (xr-client/rust/src/memory_route.rs:876, xr-client/rust/src/memory_route.rs:1225).
 ## VC-38.12 Headset query - from the Memory Search page to a drawn route
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant MS as MemorySearch _run<br/>xr-client/scripts/memory_search.gd:178
+    participant MS as MemorySearch _run<br/>xr-client/scripts/memory_search.gd:183
     participant MQ as MemoryQuery adapter<br/>xr-client/rust/src/memory_query.rs:466
     participant SV as server /api/memory-cloud/query
     participant L as MemoryCloudLayer<br/>xr-client/scripts/memory_cloud_layer.gd:488
-    participant MR as MemoryRoute offer_query_response<br/>xr-client/rust/src/memory_route.rs:1599
+    participant MR as MemoryRoute offer_query_response<br/>xr-client/rust/src/memory_route.rs:1608
 
     MS->>MQ: request_body(text, k 50, namespace) xr-client/rust/src/memory_query.rs:540
     MQ-->>MS: JSON body or empty, trimmed, k clamped 1 to 50, text 1 to 2000 characters xr-client/rust/src/memory_query.rs:313
-    MS->>SV: POST with the NIP-98 header, 15 s timeout, one request in flight xr-client/scripts/memory_search.gd:206
+    MS->>SV: POST with the NIP-98 header, 15 s timeout, one request in flight xr-client/scripts/memory_search.gd:211
     SV-->>MS: snapshotId, embedModel, query text and position, sidecar results, method, tookMs
     MS->>MQ: ingest_response(body) xr-client/rust/src/memory_query.rs:559
     MQ-->>MS: caption and at most 8 hit rows with rank, key, namespace, score, row or minus one, position xr-client/rust/src/memory_query.rs:53
-    MS->>L: apply_query_response(body) xr-client/scripts/memory_search.gd:228
+    MS->>L: apply_query_response(body) xr-client/scripts/memory_search.gd:233
     L->>MR: offer_query_response(body, loaded id, positions, now in Unix ms) xr-client/scripts/memory_cloud_layer.gd:492
-    MR->>MR: parse_query_response a second time, then local_seq plus 1 xr-client/rust/src/memory_route.rs:1613
+    MR->>MR: parse_query_response a second time, then local_seq plus 1 xr-client/rust/src/memory_route.rs:1622
     MR->>MR: sidecar_route builds a RouteFrame with source SidecarTopK xr-client/rust/src/memory_query.rs:261
-    MR->>MR: the same RouteGate and apply_decision as a relayed frame xr-client/rust/src/memory_route.rs:1616
-    Note over MR: sent_at is the headset's own wall clock, so a later desktop relay replaces it only while the two clocks agree, sentAt is not rebased<br/>xr-client/rust/src/memory_route.rs:1596
+    MR->>MR: the same RouteGate and apply_decision as a relayed frame xr-client/rust/src/memory_route.rs:1625
+    Note over MR: sent_at is the headset's own wall clock, so a later desktop relay replaces it only while the two clocks agree, sentAt is not rebased<br/>xr-client/rust/src/memory_route.rs:1605
 ```
 
 **What it shows.** The headset's own search. The same JSON is parsed twice on purpose, once for the HUD list and once for the route, so neither depends on the other's state. **Why it is this way.** The headset never runs HNSW: the sidecar answers, and what is drawn is "query point to sidecar top-k in rank order", captioned as such so it is never passed off as a search traversal (xr-client/rust/src/memory_query.rs:19), ADR-2136.
@@ -555,45 +555,45 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GS as _on_graph_text<br/>xr-client/scripts/graph_scene.gd:2761
+    participant GS as _on_graph_text<br/>xr-client/scripts/graph_scene.gd:3029
     participant BG as BeatPulse script on_text<br/>xr-client/scripts/beat_pulse.gd:95
     participant BP as BeatPulse handle_text<br/>xr-client/rust/src/pulse.rs:65
-    participant BS as BeatSync and ClockOffset<br/>xr-client/rust/src/beat.rs:371
+    participant BS as BeatSync and ClockOffset<br/>xr-client/rust/src/beat.rs:397
     participant SV as server relay
 
     BG->>BP: make_ping every 2 s xr-client/scripts/beat_pulse.gd:32
     BP-->>BG: ping JSON stamped with local epoch ms xr-client/rust/src/beat.rs:265
-    BG->>SV: send_text(ping) on the graph socket xr-client/rust/src/binary_protocol.rs:1168
+    BG->>SV: send_text(ping) on the graph socket xr-client/rust/src/binary_protocol.rs:1174
     SV-->>GS: pong echoing the timestamp with serverTime
-    GS->>BG: _beat.on_text(json, type) after the settings router xr-client/scripts/graph_scene.gd:2771
+    GS->>BG: _beat.on_text(json, type) after the settings router xr-client/scripts/graph_scene.gd:3039
     BG->>BP: handle_text(json) for beatClock and pong only xr-client/scripts/beat_pulse.gd:99
     alt beatClock frame
-        BP->>BS: parse_beat_clock_frame then on_remote(frame, now) xr-client/rust/src/beat.rs:236 xr-client/rust/src/beat.rs:407
+        BP->>BS: parse_beat_clock_frame then on_remote(frame, now) xr-client/rust/src/beat.rs:236 xr-client/rust/src/beat.rs:433
         Note over BS: bpm 40 to 220, phaseAt at least 0, confidence 0 to 1, source off, file, tap or spotify, mic is refused<br/>xr-client/rust/src/beat.rs:245 xr-client/rust/src/beat.rs:33
-        BS->>BS: first frame with serverTime and no ping offset seeds a provisional offset, rtt 0 xr-client/rust/src/beat.rs:410
+        BS->>BS: first frame with serverTime and no offset calls seed_provisional, a one-way estimate kept OUT of the sample window, no rtt xr-client/rust/src/beat.rs:435, xr-client/rust/src/beat.rs:333
     else pong frame
-        BP->>BS: parse_pong then offset.add_sample(sent, server, now) xr-client/rust/src/beat.rs:274 xr-client/rust/src/beat.rs:303
-        Note over BS: rtt must be finite, non-negative and at most 2000 ms<br/>offset is the sample with the smallest rtt of the last 8, server minus the trip midpoint<br/>xr-client/rust/src/beat.rs:308 xr-client/rust/src/beat.rs:320
+        BP->>BS: parse_pong then offset.add_sample(sent, server, now), which also clears any provisional seed xr-client/rust/src/beat.rs:274 xr-client/rust/src/beat.rs:308
+        Note over BS: rtt must be finite, non-negative and at most 2000 ms<br/>offset is the sample with the smallest rtt of the last 8, server minus the trip midpoint<br/>xr-client/rust/src/beat.rs:313 xr-client/rust/src/beat.rs:326
     end
     BP-->>BG: the frame type consumed, or an empty string so the scene routes it on
 ```
 
-**What it shows.** Two text frames are consumed by the beat module and the rest fall through. The offset estimator is the NTP minimum-delay filter: the least-delayed of the last eight round trips alone sets the clock. **Why it is this way.** ADR-2134 relays the desktop explorer's beat clock to the same user's sessions at up to 4 Hz (src/handlers/socket_flow_handler/message_routing.rs:94); the headset keeps its own offset because its wall clock and the server's differ.
+**What it shows.** Two text frames are consumed by the beat module and the rest fall through. The offset estimator is the NTP minimum-delay filter: the least-delayed of the last eight round trips alone sets the clock. **Why it is this way.** ADR-2134 relays the desktop explorer's beat clock to the same user's sessions at up to 4 Hz (src/handlers/socket_flow_handler/message_routing.rs:64); the headset keeps its own offset because its wall clock and the server's differ.
 
-At this revision the provisional seed from the first relayed frame carries `rtt 0`, and the minimum-rtt filter prefers it to every real ping sample until eight more pongs push it out of the window, so for roughly sixteen seconds `rtt_ms` reads 0 and the offset carries the one-way downlink bias (xr-client/rust/src/beat.rs:410, xr-client/rust/src/beat.rs:311). The comment at xr-client/rust/src/beat.rs:406 records the bias, not the persistence. VisionClaw `6ca5ff4b2` (estate register ER-26) keeps the seed out of the sample window as a separate provisional offset that the first real round trip discards, with `rtt_ms` unset until then.
+The provisional seed from the first relayed frame is a separate one-way offset, not a window sample: `seed_provisional` is refused once any round trip has landed, the first real pong discards it, and `rtt_ms` stays unset until then (xr-client/rust/src/beat.rs:333, xr-client/rust/src/beat.rs:348). Stored in the window with `rtt 0` it would have won the minimum-delay filter over every real ping for eight pongs, roughly sixteen seconds (VisionClaw `6ca5ff4b2`, estate register ER-26).
 
 ## VC-38.15 BeatSync arbitration - which clock drives the pulse
 
 ```mermaid
 flowchart TB
-    ST["active(local_ms) picks one clock and converts its phase to local time<br/>xr-client/rust/src/beat.rs:479"]
+    ST["active(local_ms) picks one clock and converts its phase to local time<br/>xr-client/rust/src/beat.rs:504"]
     M{"mic listening and locked?"}
-    MIC["Mic clock, phase already local<br/>xr-client/rust/src/beat.rs:482"]
+    MIC["Mic clock, phase already local<br/>xr-client/rust/src/beat.rs:507"]
     T{"a tap clock exists and the last tap is not older than the last change of the relayed clock?"}
-    TAP["Tap clock<br/>xr-client/rust/src/beat.rs:485"]
+    TAP["Tap clock<br/>xr-client/rust/src/beat.rs:510"]
     R{"relayed clock fresh: source not off and received within 6500 ms?"}
-    REM["Remote clock, phase minus the ping offset when one exists and phaseAt is positive<br/>xr-client/rust/src/beat.rs:473 xr-client/rust/src/beat.rs:342 xr-client/rust/src/beat.rs:492"]
-    TL["last tap clock, even stale<br/>xr-client/rust/src/beat.rs:503"]
+    REM["Remote clock, phase minus the ping offset when one exists and phaseAt is positive<br/>xr-client/rust/src/beat.rs:498 xr-client/rust/src/beat.rs:368 xr-client/rust/src/beat.rs:517"]
+    TL["last tap clock, even stale<br/>xr-client/rust/src/beat.rs:528"]
     NONE["None, OFF_BEAT, pulse 0"]
     ST --> M
     M -->|yes| MIC
@@ -608,7 +608,7 @@ flowchart TB
     TAP --> OUT
     REM --> OUT
     TL --> OUT
-    RED["pulse_intensity is exactly 0 under reduced motion<br/>xr-client/rust/src/beat.rs:518"]
+    RED["pulse_intensity is exactly 0 under reduced motion<br/>xr-client/rust/src/beat.rs:543"]
     OUT --> RED
 ```
 
@@ -616,7 +616,7 @@ flowchart TB
 
 **Invariant:** a tap sequence resets after 2 500 ms, keeps nine timestamps, yields no tempo under three taps, and clamps the reading to 40..220 bpm (xr-client/rust/src/beat.rs:74, xr-client/rust/src/beat.rs:75, xr-client/rust/src/beat.rs:76).
 
-**Open:** on the first one or two taps ever, the tap clock falls back to the default 120 bpm at confidence 0 (xr-client/rust/src/beat.rs:441); after an earlier reading it keeps that bpm and confidence with the phase reset (xr-client/rust/src/beat.rs:446), and a tap clock keeps winning arbitration until the desktop's clock changes; nothing records whether that is intended.
+**Open:** on the first one or two taps ever, the tap clock falls back to the default 120 bpm at confidence 0 (xr-client/rust/src/beat.rs:466); after an earlier reading it keeps that bpm and confidence with the phase reset (xr-client/rust/src/beat.rs:471), and a tap clock keeps winning arbitration until the desktop's clock changes; nothing records whether that is intended.
 
 ## VC-38.16 Mic tempo state - off, listening, searching, locked
 
@@ -636,7 +636,7 @@ stateDiagram-v2
     end note
 ```
 
-**What it shows.** The four states the HUD can report for the opt-in mic; `Locked` needs two agreeing confident estimates and lapses eight seconds after the last confirmation. **Why it is this way.** A single confident estimate could be a coincidence in a noisy room, so the lock requires the previous estimate to agree (xr-client/rust/src/beat.rs:795, xr-client/rust/src/beat.rs:950).
+**What it shows.** The four states the HUD can report for the opt-in mic; `Locked` needs two agreeing confident estimates and lapses eight seconds after the last confirmation. **Why it is this way.** A single confident estimate could be a coincidence in a noisy room, so the lock requires the previous estimate to agree (xr-client/rust/src/beat.rs:820, xr-client/rust/src/beat.rs:975).
 
 ## VC-38.17 Mic analysis path - window, worker thread, lock
 
@@ -645,28 +645,28 @@ sequenceDiagram
     autonumber
     participant GD as beat_pulse.gd _process<br/>xr-client/scripts/beat_pulse.gd:238
     participant BP as BeatPulse process<br/>xr-client/rust/src/pulse.rs:130
-    participant MB as MicBeat<br/>xr-client/rust/src/beat.rs:829
+    participant MB as MicBeat<br/>xr-client/rust/src/beat.rs:854
     participant W as worker thread<br/>xr-client/rust/src/pulse.rs:142
 
     GD->>BP: push_mic_frames(stereo frames, mix_rate) xr-client/rust/src/pulse.rs:115
     BP->>MB: mono is half of left plus right, push(mono, rate, now) xr-client/rust/src/pulse.rs:122
-    MB->>MB: box-decimate to about 11025 Hz, rolling window of 8 s, in memory only xr-client/rust/src/beat.rs:797 xr-client/rust/src/beat.rs:533
+    MB->>MB: box-decimate to about 11025 Hz, rolling window of 8 s, in memory only xr-client/rust/src/beat.rs:822 xr-client/rust/src/beat.rs:558
     GD->>BP: process() every frame xr-client/scripts/beat_pulse.gd:250
     BP->>BP: collect a finished analysis with try_recv, apply_estimate xr-client/rust/src/pulse.rs:133
     alt nothing pending and the window holds 4 s and 2 s have passed
-        BP->>MB: take_snapshot xr-client/rust/src/beat.rs:932
+        BP->>MB: take_snapshot xr-client/rust/src/beat.rs:957
         BP->>W: spawn, move the samples in xr-client/rust/src/pulse.rs:141
-        W-->>BP: analyse_window result over mpsc, detached, a dropped receiver fails the send silently xr-client/rust/src/beat.rs:1008 xr-client/rust/src/pulse.rs:143
+        W-->>BP: analyse_window result over mpsc, detached, a dropped receiver fails the send silently xr-client/rust/src/beat.rs:1033 xr-client/rust/src/pulse.rs:143
     end
     BP->>MB: lock(now), then sync.set_mic_clock xr-client/rust/src/pulse.rs:148
-    Note over MB,W: onset envelope of 256-sample frames hopping 128, positive flux, local-mean removal<br/>then autocorrelation with a log-normal prior at 118 bpm, comb fit and phase refinement<br/>70 to 180 bpm xr-client/rust/src/beat.rs:548 xr-client/rust/src/beat.rs:640 xr-client/rust/src/beat.rs:770
+    Note over MB,W: onset envelope of 256-sample frames hopping 128, positive flux, local-mean removal<br/>then autocorrelation with a log-normal prior at 118 bpm, comb fit and phase refinement<br/>70 to 180 bpm xr-client/rust/src/beat.rs:573 xr-client/rust/src/beat.rs:665 xr-client/rust/src/beat.rs:795
 ```
 
-**What it shows.** The privacy-relevant half of the beat (the state machine is VC-38.16). Samples live in one rolling window of at most eight seconds and one analysis snapshot; turning the mic off clears the window, the accumulator, the estimate and the lock at once (xr-client/rust/src/beat.rs:871), and drops the pending receiver (xr-client/rust/src/pulse.rs:104). **Why it is this way.** Mic samples exist only in memory and are never written or sent (`xr-client/rust/src/pulse.rs:12-13`); analysis runs off the main thread because the autocorrelation search is the one expensive step.
+**What it shows.** The privacy-relevant half of the beat (the state machine is VC-38.16). Samples live in one rolling window of at most eight seconds and one analysis snapshot; turning the mic off clears the window, the accumulator, the estimate and the lock at once (xr-client/rust/src/beat.rs:896), and drops the pending receiver (xr-client/rust/src/pulse.rs:104). **Why it is this way.** Mic samples exist only in memory and are never written or sent (`xr-client/rust/src/pulse.rs:12-13`); analysis runs off the main thread because the autocorrelation search is the one expensive step.
 
-**Invariant:** `MicBeat::push` is a no-op when disabled, empty, or given a NaN or non-positive rate (xr-client/rust/src/beat.rs:896).
+**Invariant:** `MicBeat::push` is a no-op when disabled, empty, or given a NaN or non-positive rate (xr-client/rust/src/beat.rs:921).
 
-**Debt:** the worker is detached with no handle and no cancellation, so a disabled mic costs one finished analysis before its result is discarded (xr-client/rust/src/pulse.rs:142); `decimate` is public with only test callers while `push` re-implements it inline (xr-client/rust/src/beat.rs:775, xr-client/rust/src/beat.rs:908); `last_pong_ms` is written and never read (xr-client/rust/src/pulse.rs:74).
+**Debt:** the worker is detached with no handle and no cancellation, so a disabled mic costs one finished analysis before its result is discarded (xr-client/rust/src/pulse.rs:142); `decimate` is public with only test callers while `push` re-implements it inline (xr-client/rust/src/beat.rs:800, xr-client/rust/src/beat.rs:933); `last_pong_ms` is written and never read (xr-client/rust/src/pulse.rs:74).
 ## VC-38.18 memory_flash - from a text frame to a burst on the right point
 
 ```mermaid
@@ -675,7 +675,7 @@ sequenceDiagram
     participant BG as BeatPulse script on_memory_flash<br/>xr-client/scripts/beat_pulse.gd:107
     participant FC as MemoryFlashCodec parse<br/>xr-client/rust/src/pulse.rs:218
     participant SM as semantic parse_memory_flash<br/>xr-client/rust/src/semantic.rs:358
-    participant BC as BinaryProtocolClient<br/>xr-client/rust/src/binary_protocol.rs:1468
+    participant BC as BinaryProtocolClient<br/>xr-client/rust/src/binary_protocol.rs:1494
     participant CL as MemoryCloudLayer<br/>xr-client/scripts/memory_cloud_layer.gd:430
     participant MB as MemoryBursts<br/>xr-client/scripts/memory_bursts.gd:121
 
@@ -728,7 +728,7 @@ flowchart TB
         B4["Link r 1.3 to 1.3, 12"]
         B5["Transform r 0.9 to 0.9, 16"]
     end
-    BEAM["beam_custom_rgb: code is the action type or 6 for unknown, then the two radii<br/>INSTANCE_CUSTOM alpha stays the agent status so the stride stays 16<br/>xr-client/rust/src/semantic.rs:314 consumed xr-client/rust/src/render_store.rs:1950"]
+    BEAM["beam_custom_rgb: code is the action type or 6 for unknown, then the two radii<br/>INSTANCE_CUSTOM alpha stays the agent status so the stride stays 16<br/>xr-client/rust/src/semantic.rs:314 consumed xr-client/rust/src/render_store.rs:2037"]
     verbs --> SRC --> HUE --> COL
     beams --> BEAM
     N1["Unknown shape falls back to Query, unknown colour to white<br/>xr-client/rust/src/semantic.rs:300 xr-client/rust/src/semantic.rs:249"]

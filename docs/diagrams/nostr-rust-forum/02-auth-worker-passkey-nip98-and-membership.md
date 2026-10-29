@@ -25,9 +25,10 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/pod.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/http.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/zone_approval.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/rationale_check.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/lib.rs
-verified_commit: 66ca8d8c0b7d1471503f916c513089846aba27c3
+verified_commit: 8a5cf817e81b20e2b761899eab753768c0cb4988
 ---
 
 ## NF-02.1 Request entry — bootstrap, rate limit, body pre-read, dispatch
@@ -36,28 +37,28 @@ verified_commit: 66ca8d8c0b7d1471503f916c513089846aba27c3
 sequenceDiagram
     autonumber
     participant C as Client
-    participant F as fetch<br/>nostr-bbs-auth-worker/src/lib.rs:143
-    participant H as handle_request<br/>nostr-bbs-auth-worker/src/lib.rs:157
+    participant F as fetch<br/>nostr-bbs-auth-worker/src/lib.rs:144
+    participant H as handle_request<br/>nostr-bbs-auth-worker/src/lib.rs:158
     participant S as schema::ensure_schema<br/>nostr-bbs-auth-worker/src/schema.rs:19
-    participant RL as rate-limit + replay schema<br/>nostr-bbs-auth-worker/src/lib.rs:174
-    participant R as route<br/>nostr-bbs-auth-worker/src/lib.rs:224
+    participant RL as rate-limit + replay schema<br/>nostr-bbs-auth-worker/src/lib.rs:175
+    participant R as route<br/>nostr-bbs-auth-worker/src/lib.rs:225
 
     C->>F: HTTP request
     F->>H: handle_request (all errors caught by the wrapper)
-    H->>S: idempotent D1 bootstrap on every cold start nostr-bbs-auth-worker/src/lib.rs:162
-    H->>RL: ensure_replay_schema then check_rate_limit 20 req / 60 s per IP nostr-bbs-auth-worker/src/lib.rs:174
+    H->>S: idempotent D1 bootstrap at the top of every request, no isolate latch nostr-bbs-auth-worker/src/lib.rs:163
+    H->>RL: ensure_replay_schema then check_rate_limit 20 req / 60 s per IP nostr-bbs-auth-worker/src/lib.rs:175
     alt over budget
-        RL-->>C: 429 Too many requests nostr-bbs-auth-worker/src/lib.rs:175
+        RL-->>C: 429 Too many requests nostr-bbs-auth-worker/src/lib.rs:176
     end
-    H->>H: Options preflight returns 204 + CORS nostr-bbs-auth-worker/src/lib.rs:169
-    H->>H: origin = the ACTUAL request URL, not EXPECTED_ORIGIN nostr-bbs-auth-worker/src/lib.rs:190
-    H->>H: body bytes read BEFORE routing for NIP-98 payload hashing nostr-bbs-auth-worker/src/lib.rs:194
+    H->>H: Options preflight returns 204 + CORS nostr-bbs-auth-worker/src/lib.rs:170
+    H->>H: origin = the ACTUAL request URL, not EXPECTED_ORIGIN nostr-bbs-auth-worker/src/lib.rs:191
+    H->>H: body bytes read BEFORE routing for NIP-98 payload hashing nostr-bbs-auth-worker/src/lib.rs:195
     H->>R: route(path, method, body_bytes, origin)
     R-->>H: Response
     H-->>C: with_cors(resp)
 
-    Note over F: INVARIANT: no error ever leaks to the workers-rs framework - a leaked Debug string is not valid JSON. Unhandled errors become a 500 JSON body nostr-bbs-auth-worker/src/lib.rs:151
-    Note over H: The origin is THREADED through the route functions rather than stored in a thread_local (P2-06) nostr-bbs-auth-worker/src/lib.rs:190
+    Note over F: INVARIANT: no error ever leaks to the workers-rs framework - a leaked Debug string is not valid JSON. Unhandled errors become a 500 JSON body nostr-bbs-auth-worker/src/lib.rs:152
+    Note over H: The origin is THREADED through the route functions rather than stored in a thread_local (P2-06) nostr-bbs-auth-worker/src/lib.rs:191
 ```
 
 ## NF-02.2 Route table — public, sprint-API and legacy tiers
@@ -65,41 +66,48 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph pub["Public - no auth"]
-        DID["GET /.well-known/did/nostr/{pk}.json<br/>nostr-bbs-auth-worker/src/lib.rs:233 to did::handle_did_document nostr-bbs-auth-worker/src/did.rs:23<br/>rendering delegates to nostr_bbs_core::did, canonical Multikey doc carries no alsoKnownAs did.rs:8,89,90<br/>the route holds only the D1 identifier, so publicKeyMultibase is the fe70102 even-y form, did-nostr#145 did.rs:18"]
-        HEALTH["GET /health nostr-bbs-auth-worker/src/lib.rs:240"]
-        REGO["POST /auth/register/options nostr-bbs-auth-worker/src/lib.rs:253"]
-        REGV["POST /auth/register/verify nostr-bbs-auth-worker/src/lib.rs:258"]
-        LOGO["POST /auth/login/options nostr-bbs-auth-worker/src/lib.rs:264"]
-        LOGV["POST /auth/login/verify nostr-bbs-auth-worker/src/lib.rs:269"]
-        LOOKUP["POST /auth/lookup nostr-bbs-auth-worker/src/lib.rs:274"]
-        UCHECK["GET /api/username/check nostr-bbs-auth-worker/src/lib.rs:605"]
-        URESOLVE["GET /api/username/resolve nostr-bbs-auth-worker/src/lib.rs:610<br/>resolve D1 is the trust root, federated pod probe only on miss in Federated mode username.rs:844,829,812"]
-        IPREV["GET /api/invites/{code} preview nostr-bbs-auth-worker/src/lib.rs:442"]
+        DID["GET /.well-known/did/nostr/{pk}.json<br/>nostr-bbs-auth-worker/src/lib.rs:234 to did::handle_did_document nostr-bbs-auth-worker/src/did.rs:23<br/>rendering delegates to nostr_bbs_core::did, canonical Multikey doc carries no alsoKnownAs did.rs:8,89,90<br/>the route holds only the D1 identifier, so publicKeyMultibase is the fe70102 even-y form, did-nostr#145 did.rs:18"]
+        HEALTH["GET /health nostr-bbs-auth-worker/src/lib.rs:241"]
+        REGO["POST /auth/register/options nostr-bbs-auth-worker/src/lib.rs:254"]
+        REGV["POST /auth/register/verify nostr-bbs-auth-worker/src/lib.rs:259"]
+        LOGO["POST /auth/login/options nostr-bbs-auth-worker/src/lib.rs:265"]
+        LOGV["POST /auth/login/verify nostr-bbs-auth-worker/src/lib.rs:270"]
+        LOOKUP["POST /auth/lookup nostr-bbs-auth-worker/src/lib.rs:275"]
+        UCHECK["GET /api/username/check nostr-bbs-auth-worker/src/lib.rs:622"]
+        URESOLVE["GET /api/username/resolve nostr-bbs-auth-worker/src/lib.rs:627<br/>resolve D1 is the trust root, federated pod probe only on miss in Federated mode username.rs:844,829,812"]
+        IPREV["GET /api/invites/{code} preview nostr-bbs-auth-worker/src/lib.rs:443"]
     end
     subgraph sprint["route_sprint_api - each handler does its own NIP-98 + gate"]
-        MOD["mod: ban mute warn unban unmute nostr-bbs-auth-worker/src/lib.rs:375 | report nostr-bbs-auth-worker/src/lib.rs:383 | actions nostr-bbs-auth-worker/src/lib.rs:387 | reports nostr-bbs-auth-worker/src/lib.rs:391 | reports/{id}/action nostr-bbs-auth-worker/src/lib.rs:396"]
-        WOT["wot: status nostr-bbs-auth-worker/src/lib.rs:413 | set-referente nostr-bbs-auth-worker/src/lib.rs:417 | refresh nostr-bbs-auth-worker/src/lib.rs:421 | override add/remove nostr-bbs-auth-worker/src/lib.rs:425"]
-        INV["invites: create nostr-bbs-auth-worker/src/lib.rs:433 | mine nostr-bbs-auth-worker/src/lib.rs:437 | revoke + redeem nostr-bbs-auth-worker/src/lib.rs:442"]
-        WEL["welcome: config nostr-bbs-auth-worker/src/lib.rs:471 | configure nostr-bbs-auth-worker/src/lib.rs:475 | set-bot-key nostr-bbs-auth-worker/src/lib.rs:479 | test nostr-bbs-auth-worker/src/lib.rs:483<br/>set-bot-key nsec is sealed with ChaCha20-Poly1305 under WELCOME_MASTER_KEY crypto.rs:77,97"]
-        ADM["admins: list nostr-bbs-auth-worker/src/lib.rs:489 | add nostr-bbs-auth-worker/src/lib.rs:493 | remove nostr-bbs-auth-worker/src/lib.rs:497 | delete-member nostr-bbs-auth-worker/src/lib.rs:503"]
-        GOV["governance: agents nostr-bbs-auth-worker/src/lib.rs:509 register nostr-bbs-auth-worker/src/lib.rs:513 provision nostr-bbs-auth-worker/src/lib.rs:518 revoke nostr-bbs-auth-worker/src/lib.rs:523 | cases nostr-bbs-auth-worker/src/lib.rs:528 :532 | decisions nostr-bbs-auth-worker/src/lib.rs:538 | roles grant nostr-bbs-auth-worker/src/lib.rs:542 revoke nostr-bbs-auth-worker/src/lib.rs:546 list nostr-bbs-auth-worker/src/lib.rs:571 | receipt application nostr-bbs-auth-worker/src/lib.rs:551 | reviewers nostr-bbs-auth-worker/src/lib.rs:567"]
-        DEV["devices: list nostr-bbs-auth-worker/src/lib.rs:579 | register nostr-bbs-auth-worker/src/lib.rs:583 | revoke nostr-bbs-auth-worker/src/lib.rs:587"]
-        NAME["username: claim nostr-bbs-auth-worker/src/lib.rs:614 | release nostr-bbs-auth-worker/src/lib.rs:618 | profile/real-name nostr-bbs-auth-worker/src/lib.rs:625 :629 | admin/registrations nostr-bbs-auth-worker/src/lib.rs:634, dismiss nostr-bbs-auth-worker/src/lib.rs:639"]
-        NIP1984["GET /api/moderation/reports nostr-bbs-auth-worker/src/lib.rs:593"]
-        NPOD["POST /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:599"]
+        MOD["mod: ban mute warn unban unmute nostr-bbs-auth-worker/src/lib.rs:376 | report nostr-bbs-auth-worker/src/lib.rs:384 | actions nostr-bbs-auth-worker/src/lib.rs:388 | reports nostr-bbs-auth-worker/src/lib.rs:392 | reports/{id}/action nostr-bbs-auth-worker/src/lib.rs:397"]
+        WOT["wot: status nostr-bbs-auth-worker/src/lib.rs:414 | set-referente nostr-bbs-auth-worker/src/lib.rs:418 | refresh nostr-bbs-auth-worker/src/lib.rs:422 | override add/remove nostr-bbs-auth-worker/src/lib.rs:426"]
+        INV["invites: create nostr-bbs-auth-worker/src/lib.rs:434 | mine nostr-bbs-auth-worker/src/lib.rs:438 | revoke + redeem nostr-bbs-auth-worker/src/lib.rs:443"]
+        WEL["welcome: config nostr-bbs-auth-worker/src/lib.rs:472 | configure nostr-bbs-auth-worker/src/lib.rs:476 | set-bot-key nostr-bbs-auth-worker/src/lib.rs:480 | test nostr-bbs-auth-worker/src/lib.rs:484<br/>set-bot-key nsec is sealed with ChaCha20-Poly1305 under WELCOME_MASTER_KEY crypto.rs:77,97"]
+        ADM["admins: list nostr-bbs-auth-worker/src/lib.rs:490 | add nostr-bbs-auth-worker/src/lib.rs:494 | remove nostr-bbs-auth-worker/src/lib.rs:498 | delete-member nostr-bbs-auth-worker/src/lib.rs:504"]
+        GOV["governance: agents nostr-bbs-auth-worker/src/lib.rs:510 register nostr-bbs-auth-worker/src/lib.rs:514 provision nostr-bbs-auth-worker/src/lib.rs:519 revoke nostr-bbs-auth-worker/src/lib.rs:524 | cases nostr-bbs-auth-worker/src/lib.rs:529 :533 | decisions nostr-bbs-auth-worker/src/lib.rs:555 | roles grant nostr-bbs-auth-worker/src/lib.rs:559 revoke nostr-bbs-auth-worker/src/lib.rs:563 list nostr-bbs-auth-worker/src/lib.rs:588 | receipt application nostr-bbs-auth-worker/src/lib.rs:568 | reviewers nostr-bbs-auth-worker/src/lib.rs:584 | OPT-IN POST cases/{id}/rationale-check, routed only while JEV_RATIONALE_CHECK is on nostr-bbs-auth-worker/src/lib.rs:542, handler nostr-bbs-auth-worker/src/rationale_check.rs:253"]
+        DEV["devices: list nostr-bbs-auth-worker/src/lib.rs:596 | register nostr-bbs-auth-worker/src/lib.rs:600 | revoke nostr-bbs-auth-worker/src/lib.rs:604"]
+        NAME["username: claim nostr-bbs-auth-worker/src/lib.rs:631 | release nostr-bbs-auth-worker/src/lib.rs:635 | profile/real-name nostr-bbs-auth-worker/src/lib.rs:642 :646 | admin/registrations nostr-bbs-auth-worker/src/lib.rs:651, dismiss nostr-bbs-auth-worker/src/lib.rs:656"]
+        NIP1984["GET /api/moderation/reports nostr-bbs-auth-worker/src/lib.rs:610"]
+        NPOD["POST /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:616"]
     end
     subgraph legacy["Legacy /api/ tier - central NIP-98 verify"]
-        PROF["GET /api/profile nostr-bbs-auth-worker/src/lib.rs:333 to pod::handle_profile nostr-bbs-auth-worker/src/pod.rs:9"]
+        PROF["GET /api/profile nostr-bbs-auth-worker/src/lib.rs:334 to pod::handle_profile nostr-bbs-auth-worker/src/pod.rs:9"]
     end
 
-    ENTRY["route nostr-bbs-auth-worker/src/lib.rs:224"] --> pub
-    ENTRY --> sprint
-    ENTRY -->|"falls through when route_sprint_api returns None nostr-bbs-auth-worker/src/lib.rs:287"| legacy
-    legacy -->|"no match"| NF["404 Not found nostr-bbs-auth-worker/src/lib.rs:348"]
+    DID ~~~ HEALTH ~~~ REGO ~~~ REGV ~~~ LOGO ~~~ LOGV ~~~ LOOKUP ~~~ UCHECK ~~~ URESOLVE ~~~ IPREV
+    MOD ~~~ WOT ~~~ INV ~~~ WEL ~~~ ADM ~~~ GOV ~~~ DEV ~~~ NAME ~~~ NIP1984 ~~~ NPOD
 
-    N1["Sprint handlers are dispatched BEFORE the legacy verify branch because they run their own<br/>require_admin / require_authed gates nostr-bbs-auth-worker/src/lib.rs:279-287"]
-    N2["ANOMALY O11 confirmed live: /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:599 requires NATIVE_POD_URL and the<br/>NATIVE_POD_ADMIN_KEY secret; both are placeholders in the template nostr-bbs-auth-worker/wrangler.toml:52"]
+    ENTRY["route nostr-bbs-auth-worker/src/lib.rs:225"] --> pub
+    ENTRY --> sprint
+    ENTRY -->|"falls through when route_sprint_api returns None nostr-bbs-auth-worker/src/lib.rs:288"| legacy
+    legacy -->|"no match"| NF["404 Not found nostr-bbs-auth-worker/src/lib.rs:349"]
+
+    N1["Sprint handlers are dispatched BEFORE the legacy verify branch because they run their own<br/>require_admin / require_authed gates nostr-bbs-auth-worker/src/lib.rs:280-288"]
+    N2["ANOMALY O11 confirmed live: /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:616 requires NATIVE_POD_URL and the<br/>NATIVE_POD_ADMIN_KEY secret; both are placeholders in the template nostr-bbs-auth-worker/wrangler.toml:57"]
 ```
+
+**Invariant:** `SESSIONS` (the rate limiter's `rl:{ip}:{bucket}` keys) and `KV` (the admin pubkey cache) bind the same KV namespace id, so the admin cache key must never start with `rl:` (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/admins.rs:372`, `../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml:22-25`).
+
+**Open:** the rationale-check route and its flag `JEV_RATIONALE_CHECK` are default off and bound in no committed wrangler template (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/rationale_check.rs:36`); the check is advisory and local-backend only, so what a deployment actually enables is not recorded in this repository.
 
 ## NF-02.3 Passkey registration — the full verify chain
 
@@ -185,7 +193,7 @@ sequenceDiagram
     RLC-->>H: Nip98Token { pubkey, .. }
 
     Note over A: INVARIANT: every worker binds its replay store to the SAME database (nostr-bbs-auth) so cross-worker replay is detected nostr-bbs-auth-worker/src/auth.rs:9-11 - see NF-08.4
-    Note over H: canonical_url composes the ACTUAL origin with the path so a workers.dev token verifies against a custom-domain deployment nostr-bbs-auth-worker/src/lib.rs:312
+    Note over H: canonical_url composes the ACTUAL origin with the path so a workers.dev token verifies against a custom-domain deployment nostr-bbs-auth-worker/src/lib.rs:313
     Note over RLC: EXTERNAL: agentbox terminates NIP-98 at its own proxy with an independent single-use cache - see AB-10
 ```
 
@@ -204,7 +212,7 @@ flowchart LR
     RA --> ADMINONLY
     RU --> AUTHED
 
-    N1["INVARIANT device ownership: the owner is ALWAYS the NIP-98 author, never a body field -<br/>no owner leaks through devices.rs:641, gate note nostr-bbs-auth-worker/src/lib.rs:576-578"]
+    N1["INVARIANT device ownership: the owner is ALWAYS the NIP-98 author, never a body field -<br/>no owner leaks through devices.rs:641, gate note nostr-bbs-auth-worker/src/lib.rs:593-595"]
     N2["wot status is admin-gated (wot.rs:128) even though it reads as a self-status endpoint -<br/>a member cannot query their own WoT standing through this API"]
     N3["EXTERNAL: the same admin identity is enforced independently at relay ingress - see NF-03 and NF-08.7"]
 ```

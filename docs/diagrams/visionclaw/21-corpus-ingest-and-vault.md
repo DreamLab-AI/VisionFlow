@@ -9,6 +9,8 @@ adrs: [ADR-2014, ADR-2040, ADR-2070, ADR-2112, ADR-2113, ADR-2114]
 sources:
   - ../project/crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs
   - ../project/src/services/github_sync_service.rs
+  - ../project/src/services/jev_ingest.rs
+  - ../project/docs/VAULT-corpus-format.md
   - ../project/src/services/github/content_enhanced.rs
   - ../project/src/services/corpus_source/mod.rs
   - ../project/src/services/corpus_source/github.rs
@@ -24,7 +26,7 @@ sources:
   - ../project/crates/visionclaw-domain/src/vault/link.rs
   - ../project/crates/visionclaw-domain/src/models/node.rs
   - ../project/scripts/pre-commit-validate.sh
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
 ---
 
 ## VC-21.1 Corpus sync entry points and the CorpusSource ingest path
@@ -34,58 +36,60 @@ verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
 sequenceDiagram
     autonumber
     participant Admin as admin_sync_handler::trigger_sync<br/>src/handlers/admin_sync_handler.rs:66
-    participant Boot as boot sync task<br/>src/app_state.rs:614
+    participant Boot as boot sync task<br/>src/app_state.rs:585
     participant Bin as sync_corpus.rs::main<br/>src/bin/sync_corpus.rs:25
-    participant Svc as GitHubSyncService::sync_graphs_with<br/>src/services/github_sync_service.rs:254
+    participant Svc as GitHubSyncService::sync_graphs_with<br/>src/services/github_sync_service.rs:253
     participant Src as CorpusSource::list_pages<br/>src/services/corpus_source/mod.rs:106
-    participant SHA as filter_changed_files<br/>src/services/github_sync_service.rs:1928
-    participant Batch as process_batch_incremental<br/>src/services/github_sync_service.rs:1454
-    participant File as process_fetched_file<br/>src/services/github_sync_service.rs:1636
-    participant KG as kg_repo (Oxigraph)<br/>src/services/github_sync_service.rs:1568
+    participant SHA as filter_changed_files<br/>src/services/github_sync_service.rs:1970
+    participant Batch as process_batch_incremental<br/>src/services/github_sync_service.rs:1475
+    participant File as process_fetched_file<br/>src/services/github_sync_service.rs:1655
+    participant KG as kg_repo (Oxigraph)<br/>src/services/github_sync_service.rs:1587
 
     Admin->>Svc: sync_graphs_with(force_full) - POST /api/admin/sync
     Boot->>Svc: sync_graphs() - spawned at server boot
     Bin->>Svc: sync_graphs() - sync_corpus binary
-    Note over Bin: CORPUS_SOURCE=local or github selects LocalDirectorySource / GitHubSource - sync_corpus.rs:56-64
+    Note over Bin: CORPUS_SOURCE=local or github selects LocalDirectorySource /<br/>GitHubSource - sync_corpus.rs:56-64
     Svc->>Src: list_pages()
-    Note over Src: GitHubSource delegates to the Trees API with a Contents API fallback (corpus_source/github.rs:60)<br/>LocalDirectorySource walks base_paths on disk (corpus_source/local.rs:207)
-    Note over Src: listing excludes /bak/ /.recycle/ /journals/ /.obsidian/ /.trash/ (ADR-2040 D6) - content_enhanced.rs:127-131 (files) :245-249 (dirs)<br/>identity decode folds legacy Namespace___Title and %2F/%2f percent-encoding to / - vault::page_name_from_path vault/mod.rs:361-368<br/>Path authority: VAULT_ROOT is the single root (agentbox vault manifest, see AB-05)
-    Svc->>Svc: VaultIndex::from_identities(files) - full listing, github_sync_service.rs:297
-    Note over Svc: INVARIANT: index built before the change-marker filter, or an incremental sync mints phantom stubs for unchanged pages
+    Note over Src: GitHubSource delegates to the Trees API with a Contents API fallback<br/>(corpus_source/github.rs:60)<br/>LocalDirectorySource walks base_paths on disk, default<br/>knowledge,working with no pages/ folder (corpus_source/local.rs:213,<br/>local.rs:21)
+    Note over Src: GitHub listing excludes /bak/ /.recycle/ /journals/ /.obsidian/<br/>/.trash/ (ADR-2040 D6) - content_enhanced.rs:127-131 (files) :245-249<br/>(dirs)<br/>the local walk skips SKIP_DIRS: templates bases assets journals _misc<br/>bak and every dot-folder - local.rs:31-42, :140<br/>Path authority: VAULT_ROOT is the single root (agentbox vault<br/>manifest, see AB-05)
+    Svc->>Svc: keep only listed files that resolve to a V1 identity:<br/>page_name_from_repo_path is Some - github_sync_service.rs:290-308<br/>under a configured base and outside VAULT_FURNITURE_DIRS or a<br/>dot-folder - vault/mod.rs:334-391
+    Note over Svc: identity = path under the base without .md, nested folders kept,<br/>legacy Namespace___Title and %2F/%2f folded to / -<br/>vault::page_name_from_path vault/mod.rs:416
+    Svc->>Svc: VaultIndex::from_identities(files) - full filtered listing,<br/>github_sync_service.rs:320
+    Note over Svc: INVARIANT: index built before the change-marker filter, or an<br/>incremental sync mints phantom stubs for unchanged pages
     alt FORCE_FULL_SYNC=1/true env, or ?force_full=true query
         Note over Svc: bypasses the SHA1 filter entirely
         Svc->>Svc: files_to_process = files.clone()
     else incremental
-        Svc->>SHA: filter_changed_files(files)
+        Svc->>SHA: filter_changed_files(files) - call :383
         SHA-->>Svc: files whose change_marker differs from stored metadata
     end
     opt force_full_sync
         Svc->>KG: clear_graph()
     end
-    loop chunks(BATCH_SIZE=50) - github_sync_service.rs:60
+    loop chunks(BATCH_SIZE=50) - const at github_sync_service.rs:60, chunks at :418
         Svc->>Batch: process_batch_incremental(batch, deferred_edges, scope)
-        loop PARALLEL_FETCHES=8 concurrent - :1470
+        loop PARALLEL_FETCHES=8 concurrent - :1491
             Batch->>Src: fetch_page(file)
         end
         Batch->>File: process_fetched_file(file, content, scope)
-        File->>File: page_parser::parse_page(content, path) - src/services/page_parser.rs:66
+        File->>File: page_parser::parse_page(content, path, base_paths) -<br/>src/services/page_parser.rs:73, Err when the path is not a page under<br/>the bases
         alt Ok(Some(parsed)) - under knowledge/ AND frontmatter type is Class or Property or Individual
-            File->>File: page_is_kg_included(content) - the same gate as the plain path, :2108
-            Note over File: DRIFT: ADR-2014's "formal data ingests unconditionally, bypasses the publish gate" no longer holds post-ADR-2114 - both paths share one gate
-            File->>File: build_node_from_entity + enrich_node_from_frontmatter - :134,2155
+            File->>File: page_is_kg_included(content) - the same gate as the plain path, :2114
+            Note over File: DRIFT: ADR-2014's "formal data ingests unconditionally, bypasses the<br/>publish gate" no longer holds post-ADR-2114 - both paths share one<br/>gate
+            File->>File: build_node_from_entity + enrich_node_from_frontmatter - :134,2165
         else Ok(None) - plain vault page
-            File->>File: process_plain_vault_file(file, content, scope) - :1832
-            Note over File: see VC-21.2 for the inclusion gate applied here
+            File->>File: process_plain_vault_file(file, content, scope) - :1870, identity_of<br/>None skips with a warn - :1893
+            Note over File: see VC-21.2 for the inclusion gate applied here<br/>opt-in Jev draft suggestion for an admitted page with no type, never<br/>read back, off unless VISIONCLAW_JEV_INGEST_SUGGEST=1 -<br/>github_sync_service.rs:1671-1685, jev_ingest.rs:26
         else Err(invalid frontmatter YAML)
             File->>File: skip (warn log, fail-closed)
         end
-        Batch->>KG: batch_add_nodes(real_nodes) / batch_add_nodes_if_absent(stub_nodes) - :1568,1579
-        Batch->>KG: batch_add_edges(immediate_edges) - :1602 same-batch endpoints only
+        Batch->>KG: batch_add_nodes(real_nodes) / batch_add_nodes_if_absent(stub_nodes) -<br/>:1587,1598
+        Batch->>KG: batch_add_edges(immediate_edges) - :1621 same-batch endpoints only
     end
-    Svc->>Svc: deferred_edges partition: resolvable vs dangling - :455
+    Svc->>Svc: deferred_edges partition: resolvable vs dangling - :476
     Svc->>KG: batch_add_edges(resolvable)
-    Note over Svc,KG: DIVERGENCE: dangling wikilinks mint no stub - they fold into wikilink_count weight plus co-citation springs (FANOUT_NODE_THRESHOLD, default 3)
-    Svc->>Svc: update_file_metadata(all_files_to_process) - :1965
+    Note over Svc,KG: DIVERGENCE: dangling wikilinks mint no stub - they fold into<br/>wikilink_count weight plus co-citation springs (FANOUT_NODE_THRESHOLD,<br/>default 3)
+    Svc->>Svc: update_file_metadata(all_files_to_process) - call :649, defn :2006
     Svc-->>Admin: SyncStatistics{total_files,kg_files_processed,total_nodes,total_edges,errors}
 ```
 
@@ -95,8 +99,8 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Caller as process_fetched_file / process_plain_vault_file<br/>src/services/github_sync_service.rs:1636,1832
-    participant Gate as page_is_kg_included<br/>src/services/github_sync_service.rs:2108
+    participant Caller as process_fetched_file / process_plain_vault_file<br/>src/services/github_sync_service.rs:1655,1870
+    participant Gate as page_is_kg_included<br/>src/services/github_sync_service.rs:2114
     participant Vault as vault::parse<br/>crates/visionclaw-domain/src/vault/mod.rs:278
     participant PM as PageMeta::is_kg_included<br/>crates/visionclaw-domain/src/vault/mod.rs:162
 
@@ -120,17 +124,21 @@ sequenceDiagram
     else Gate returns true
         Caller-->>Caller: node ingested - page, linked_page or ontology-typed per VC-21.3
     end
-    Note over Gate: RESOLVED ADR-2070: the VAULT readers table now cites github_sync_service.rs:2108 for this fn
+    Note over Gate: the governing VAULT doc carries no line citation for this fn at this stamp, ADR-2070 records its location (github_sync_service.rs:2114)
     Note over Caller: DRIFT: ADR-2014's ontology bypass is superseded post-ADR-2114 - an ontology-declaring page (VC-21.1) is gated here too, not exempted
 ```
+
+**Drift:** `docs/VAULT-corpus-format.md:236-238` (V4) says every `knowledge/` page with valid frontmatter is a KG node with "no `owl-class` bypass and no OR", while the gate the sync runs is still the disjunction `self.public || self.owl_class.is_some()` (`crates/visionclaw-domain/src/vault/mod.rs:162-163`, reached through `src/services/github_sync_service.rs:2114`).
+
+**Drift:** `docs/VAULT-corpus-format.md:244` says `working/` is never ingested into the governed graph, while the local source's default base paths are `knowledge,working` (`src/services/corpus_source/local.rs:21`) and the sync keeps a working page as its own node unless a knowledge page owns the same id (`src/services/github_sync_service.rs:2156`).
 
 ## VC-21.3 Node-type derivation: file to page / linked_page / ontology-typed
 
 <!-- 2026-09-29: the JSON-LD Page/Class fence entry is gone (ADR-2112/2113); ontology classification now reads frontmatter `type: Class|Property|Individual` under knowledge/ via page_parser::parse_page. The downstream classify/population-type path (knowledge_graph_parser.rs, graph_state_actor.rs, node.rs, vault/link.rs) is unchanged and its citations still land on the same lines -->
 ```mermaid
 flowchart TD
-    F["markdown file (post source fetch)"] --> PP{"page_parser::parse_page<br/>src/services/page_parser.rs:66"}
-    PP -->|Ok Some - knowledge/ path AND type is Class/Property/Individual| GATE1{"page_is_kg_included?<br/>github_sync_service.rs:2108"}
+    F["markdown file (post source fetch)"] --> PP{"page_parser::parse_page<br/>src/services/page_parser.rs:73"}
+    PP -->|Ok Some - knowledge/ path AND type is Class/Property/Individual| GATE1{"page_is_kg_included?<br/>github_sync_service.rs:2114"}
     GATE1 -->|true| PN["build_node_from_entity<br/>github_sync_service.rs:134<br/>metadata ontology_type=Class/Property/Individual"]
     GATE1 -->|false| SKIP1["page skipped - see VC-21.2"]
     PP -->|Ok None - plain vault page| KP["KnowledgeGraphParser::create_page_node<br/>knowledge_graph_parser.rs:145"]
@@ -138,13 +146,13 @@ flowchart TD
     OC -->|yes| ON["node_type = ontology_node<br/>owl_class_iri set<br/>knowledge_graph_parser.rs:198"]
     OC -->|no| PG["node_type = page<br/>metadata public=true"]
     KP --> WL["outbound [[wikilink]] targets"]
-    WL --> VR{"VaultContext::resolve target<br/>crates/visionclaw-domain/src/vault/link.rs:215"}
+    WL --> VR{"VaultContext::resolve target<br/>crates/visionclaw-domain/src/vault/link.rs:222"}
     VR -->|exact identity match, target has slash| RES1["resolves to real page identity"]
     VR -->|bare target, exactly one basename match| RES2["resolves to that page's full identity"]
     VR -->|bare target, several matches| RES3["same-folder wins, else first in sorted path order"]
     VR -->|no match anywhere| STUB["linked_page stub id"]
     STUB -.->|DIVERGENCE| DROP["dropped at ingest - stub nodes never materialise, fold into wikilink_count plus co-citation weight instead"]
-    PN --> CLS["GraphStateActor::classify_node<br/>src/actors/graph_state_actor.rs:242"]
+    PN --> CLS["GraphStateActor::classify_node<br/>src/actors/graph_state_actor.rs:259"]
     ON --> CLS
     PG --> CLS
     CLS --> POP["Node::population_type()<br/>crates/visionclaw-domain/src/models/node.rs:271"]
@@ -162,8 +170,8 @@ flowchart TD
 sequenceDiagram
     autonumber
     participant Main as validate_md.rs::main<br/>src/bin/validate_md.rs:27
-    participant V as Validator::new<br/>crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs:239
-    participant VF as Validator::validate_markdown_file<br/>crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs:249
+    participant V as Validator::new<br/>crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs:233
+    participant VF as Validator::validate_markdown_file<br/>crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs:243
 
     Main->>Main: args = env::args().skip(1)
     alt args empty
@@ -208,18 +216,18 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Y as frontmatter scalar<br/>crates/visionclaw-domain/src/vault/mod.rs:413
-    participant CM as is_class_marker<br/>crates/visionclaw-domain/src/vault/mod.rs:469
+    participant Y as frontmatter scalar<br/>crates/visionclaw-domain/src/vault/mod.rs:555
+    participant CM as is_class_marker<br/>crates/visionclaw-domain/src/vault/mod.rs:523
     participant PM as PageMeta<br/>crates/visionclaw-domain/src/vault/mod.rs:49
     participant G as is_kg_included<br/>crates/visionclaw-domain/src/vault/mod.rs:162
-    Y->>CM: candidate value for owl-class or owl:class (vault/mod.rs:413-417)
-    CM->>CM: trim, reject any whitespace or control character (vault/mod.rs:469)
-    alt absolute IRI beginning http:// https:// or urn:
-        CM-->>PM: accepted, meta.owl_class = Some(v) (vault/mod.rs:415,501)
+    Y->>CM: candidate value for owl-class or owl:class (vault/mod.rs:468-472, yaml_class_marker :555)
+    CM->>CM: trim, reject any whitespace or control character (vault/mod.rs:525)
+    alt absolute IRI beginning http:// https:// or urn:nid:nss
+        CM-->>PM: accepted, meta.owl_class = Some(v) (vault/mod.rs:470, :567-568)
     else CURIE prefix:local - prefix starts with a letter then letters digits _ - . and local non-empty
-        CM-->>PM: accepted, meta.owl_class = Some(v) (vault/mod.rs:415,501)
+        CM-->>PM: accepted, meta.owl_class = Some(v) (vault/mod.rs:470, :567-568)
     else bare word with no colon, or a coerced YAML boolean or number
-        CM-->>PM: rejected, meta.owl_class_rejected = Some(v) retained verbatim (vault/mod.rs:416,501)
+        CM-->>PM: rejected, meta.owl_class_rejected = Some(v) retained verbatim (vault/mod.rs:471, :569-570)
     end
     PM->>G: is_kg_included()
     alt public true or owl_class is Some
@@ -228,6 +236,6 @@ sequenceDiagram
         G-->>PM: false - fail-closed, a rejected marker does NOT open the gate (vault/mod.rs:160-163)
     end
     Note over CM,G: INVARIANT the class marker is a policy, not any scalar that renders to a non-empty string -<br/>owl_class_rejected keeps the offending value so an author can be told why (vault/mod.rs:57-64)
-    Note over CM: RESOLVED ADR-2070 the VAULT Inclusion closeout qualification records this as closed -<br/>is_class_marker (vault/mod.rs:469) enforces an absolute IRI or prefix:local CURIE grammar and rejects into<br/>owl_class_rejected (vault/mod.rs:57-64), so owl-class true and owl-class 42 shut the gate
+    Note over CM: RESOLVED ADR-2070 the VAULT Inclusion closeout qualification records this as closed -<br/>is_class_marker (vault/mod.rs:523) enforces an absolute IRI or prefix:local CURIE grammar and rejects into<br/>owl_class_rejected (vault/mod.rs:57-64), so owl-class true and owl-class 42 shut the gate
     Note over G: DIVERGENCE that same closeout also records that an explicit public false plus a class marker<br/>remains included by policy - is_kg_included is an OR, so a valid owl-class overrides public false (vault/mod.rs:162-163)
 ```

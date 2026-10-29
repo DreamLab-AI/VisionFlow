@@ -6,7 +6,7 @@ governing:
   - ../project/docs/PROTOCOL-registry.md
   - ../project/docs/GPU-wire-abi.md
   - ../project/agentbox/docs/PROTOCOL-registry.md
-adrs: [agentbox:ADR-2085, agentbox:ADR-2086, agentbox:ADR-2061, visionclaw:ADR-2020, visionclaw:ADR-2083, visionclaw:ADR-2084, visionclaw:ADR-2085, visionclaw:ADR-2088, visionclaw:ADR-2089, visionclaw:ADR-2090, visionclaw:ADR-2091]
+adrs: [agentbox:ADR-2042, visionclaw:ADR-2142, agentbox:ADR-2085, agentbox:ADR-2086, agentbox:ADR-2061, visionclaw:ADR-2020, visionclaw:ADR-2083, visionclaw:ADR-2084, visionclaw:ADR-2085, visionclaw:ADR-2088, visionclaw:ADR-2089, visionclaw:ADR-2090, visionclaw:ADR-2091]
 sources:
   - ../project/agentbox/management-api/utils/agent-event-publisher.js
   - ../project/agentbox/management-api/lib/agent-event-auth.js
@@ -18,6 +18,8 @@ sources:
   - ../project/src/agent_events/provenance.rs
   - ../project/src/agent_events/mod.rs
   - ../project/src/actors/agent_beam_actor.rs
+  - ../project/src/actors/agent_demo_director.rs
+  - ../project/src/handlers/api_handler/agents_demo.rs
   - ../project/src/actors/client_coordinator_actor.rs
   - ../project/src/utils/binary_protocol.rs
   - ../project/src/utils/unified_gpu_compute/construction.rs
@@ -44,7 +46,7 @@ sources:
   - ../project/agentbox/docs/PROTOCOL-registry.md
   - ../project/agentbox/schema/federation-kinds.json
   - ../project/docs/explanation/visionflow-coordination-platform.md
-verified_commit: {visionclaw: 4f43455036717302073a15ab5006a6fa05fd13b0, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9}
 ---
 ## ES-02.1 Producer — POST /v1/agent-events/emit, NIP-98 gate, local publish
 ```mermaid
@@ -52,7 +54,7 @@ sequenceDiagram
     autonumber
     participant CF as claude-flow hook<br/>agentbox/management-api/routes/agent-events.js:567
     participant RT as agentEventsRoutes<br/>agentbox/management-api/routes/agent-events.js:20
-    participant AUTH as verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:108
+    participant AUTH as verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:135
     participant PUB as agentEventPublisher<br/>agentbox/management-api/utils/agent-event-publisher.js:347
     participant WS as wsConnections<br/>agentbox/management-api/routes/agent-events.js:24
 
@@ -64,7 +66,9 @@ sequenceDiagram
         AUTH-->>RT: {ok:true, did:null}
     else policy=nip98, header present, verifyNip98 valid
         AUTH-->>RT: {ok:true, did:"did:nostr:<pubkey>"}
-    else policy=nip98, header missing
+    else policy=nip98, no Nostr header, X-Agentbox-Pubkey is 64 lowercase hex AND the TCP peer is loopback (or listed in AGENTBOX_PROXY_PEERS)
+        AUTH-->>RT: {ok:true, did:"did:nostr:<header pubkey>"} (agent-event-auth.js:184-186)
+    else policy=nip98, no Nostr header and no trusted proxy header
         AUTH-->>RT: {ok:false, status:401, error:"NIP-98 Authorization header required"}
         RT-->>CF: 401 {success:false, error, ...taxonomy.tagFailure}
     else policy=nip98, verify throws/invalid
@@ -75,7 +79,7 @@ sequenceDiagram
         RT-->>CF: 500 {success:false, error}
     end
     opt claimed source_urn present
-        RT->>RT: reconcileSourceUrn(claimed, verifiedDid)<br/>agentbox/management-api/lib/agent-event-auth.js:169
+        RT->>RT: reconcileSourceUrn(claimed, verifiedDid)<br/>agentbox/management-api/lib/agent-event-auth.js:196
         alt claimed != verified did
             RT-->>CF: 403 FM-1.2 identity-attribution failure
         end
@@ -92,9 +96,9 @@ sequenceDiagram
     end
 ```
 
-**Drift (resolved 2026-10-12, agentbox main b9e0ea9a8):** the `did` that `verifyAgentEventRequest` hands to `reconcileSourceUrn` comes from a signature on path 1 and from the proxy-stamped `X-Agentbox-Pubkey` on path 2 (`agentbox/management-api/lib/agent-event-auth.js:157-160`). At the stamp the header was trusted from any TCP peer, so a `MANAGEMENT_API_KEY` holder on the docker network could emit events under another `did:nostr` that VisionClaw then ingested as attributed (`agentbox/management-api/lib/agent-event-auth.js:31-39`). On agentbox `main` it counts only from a loopback peer.
+**Drift (resolved at this stamp):** the `did` that `verifyAgentEventRequest` hands to `reconcileSourceUrn` comes from a signature on path 1 and from the proxy-stamped `X-Agentbox-Pubkey` on path 2 (`agentbox/management-api/lib/agent-event-auth.js:176,184-186`). At the earlier stamp (3f05ae9e7) the header was trusted from any TCP peer, so a `MANAGEMENT_API_KEY` holder on the docker network could emit events under another `did:nostr` that VisionClaw then ingested as attributed. At this stamp `proxyVerifiedPubkey` returns null unless `peerIsProxy` holds, that is the socket's remote address is loopback or one of `AGENTBOX_PROXY_PEERS`, and a request with no socket information fails closed (`agentbox/management-api/lib/agent-event-auth.js:98-106,117`).
 
-**Debt:** a process inside the agentbox container can still stamp any pubkey over loopback (TODO-unified X-1), so attribution on the session and break-glass hop is bounded by the same-UID boundary (`agentbox/management-api/lib/agent-event-auth.js:157-160`).
+**Debt:** a process inside the agentbox container can still stamp any pubkey over loopback (TODO-unified X-1), so attribution on the session and break-glass hop is bounded by the same-UID boundary (`agentbox/management-api/lib/agent-event-auth.js:36-39`).
 
 ## ES-02.2 Cross-container forward — agentbox WS subscriber to VisionClaw ingest, auth + envelope validation
 ```mermaid
@@ -203,7 +207,8 @@ sequenceDiagram
     participant HUB as AGENT_EVENT_HUB<br/>src/agent_events/hub.rs:24
     participant BA as AgentBeamActor<br/>src/actors/agent_beam_actor.rs:182
     participant BC as BeamCoalescer<br/>src/actors/agent_beam_actor.rs:119
-    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:562
+    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:617
+    participant DEMO as AgentDemoDirector<br/>src/actors/agent_demo_director.rs:386
 
     BA->>HUB: agent_events::hub::subscribe()<br/>src/actors/agent_beam_actor.rs:199
     loop forwarding task, empty backlog blocks on rx.recv()
@@ -240,12 +245,15 @@ sequenceDiagram
     else backlog empty
         BC-->>BA: None
     end
-    CC->>CC: client_manager.read().broadcast_to_all(frame)<br/>src/actors/client_coordinator_actor.rs:1534-1561
-    CC->>CC: settle_broadcast_result(&broadcast_result, "agent-action frame") (ADR-031 item 5)<br/>src/actors/client_coordinator_actor.rs:1549, fn :630
-    opt closed or congested clients
-        CC->>CC: closed clients are evicted via manager.unregister_client(id) :641-647 - congested clients only skip this frame and are tracked by record_congestion :639 and evict_stalled :640
+    opt shared agents demo running (ADR-2142, POST /api/agents/demo, src/handlers/api_handler/agents_demo.rs:30)
+        DEMO->>CC: every 250 ms tick: coordinator.do_send(BroadcastAgentActionFrame(encode_agent_actions(events))), reserved ids 0x8000D001 to 0x8000D006, never enters the hub<br/>src/actors/agent_demo_director.rs:394,433-436
     end
-    Note over CC: Changed by d90064950 (fix(ws), after the previous stamp) - the inline slow-client eviction loop right after broadcast_to_all became settle_broadcast_result,<br/>which evicts closed clients at once, only skips a frame for a congested one, and calls evict_stalled on every broadcast (src/actors/client_coordinator_actor.rs:630-649, evict_stalled :329)<br/>to unregister a client that has stayed congested for its stall timeout
+    CC->>CC: client_manager.read().broadcast_to_all(frame)<br/>src/actors/client_coordinator_actor.rs:1232-1244
+    CC->>CC: settle_broadcast_result(&broadcast_result, "agent-action frame") (ADR-031 item 5)<br/>src/actors/client_coordinator_actor.rs:1247, fn :672
+    opt closed or congested clients
+        CC->>CC: closed clients are evicted via manager.unregister_client(id) :683-688 - congested clients only skip this frame and are tracked by record_congestion :681 and evict_stalled :682
+    end
+    Note over CC: Changed by d90064950 (fix(ws), after the previous stamp) - the inline slow-client eviction loop right after broadcast_to_all became settle_broadcast_result,<br/>which evicts closed clients at once, only skips a frame for a congested one, and calls evict_stalled on every broadcast (src/actors/client_coordinator_actor.rs:672-691, evict_stalled :336)<br/>to unregister a client that has stayed congested for its stall timeout
     Note over BC: INVARIANT: past MAX_PENDING_ACTIONS=256 the OLDEST buffered action is evicted and<br/>dropped_total incremented - never a silent drop-and-spam
 ```
 
@@ -286,16 +294,16 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant WS as processBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:462
+    participant WS as processBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:450
     participant DEC as decodeAgentActions<br/>client/src/services/binaryProtocol
-    participant DISP as dispatchAgentActions<br/>client/src/store/websocket/binaryProtocol.ts:445
+    participant DISP as dispatchAgentActions<br/>client/src/store/websocket/binaryProtocol.ts:433
     participant STORE as transientBeamStore<br/>client/src/store/transientBeamStore.ts:64
     participant LAYER as TransientBeamsLayer<br/>client/src/features/visualisation/components/TransientBeamsLayer.tsx:1
 
     WS->>WS: firstByte = DataView(data).getUint8(0)
     alt firstByte == MessageType.AGENT_ACTION (0x23)
-        WS->>WS: handleAgentActionTagged(data): decodeAgentActions(data.slice(1)) if byteLength>=18<br/>client/src/store/websocket/binaryProtocol.ts:438-443
-        Note over WS: RESOLVED ADR-2099 (2026-09-05): the 0x23 frame is a bare [tag][count]... layout, never the<br/>6-byte framed header. The unreachable handleAgentAction parseHeader branch is DELETED, not kept<br/>as a fallback - parseHeader reads type from offset 0, the same byte line 479 consumes before<br/>returning. Tests assert extractPayload is never reached for 0x23 - binaryProtocolAgentAction.test.ts
+        WS->>WS: handleAgentActionTagged(data): decodeAgentActions(data.slice(1)) if byteLength>=18<br/>client/src/store/websocket/binaryProtocol.ts:426-430
+        Note over WS: RESOLVED ADR-2099 (2026-09-05): the 0x23 frame is a bare [tag][count]... layout, never the<br/>6-byte framed header. The unreachable handleAgentAction parseHeader branch is DELETED, not kept<br/>as a fallback - parseHeader reads type from offset 0, the same byte line 470 consumes before<br/>returning. Tests assert extractPayload is never reached for 0x23 - binaryProtocolAgentAction.test.ts
     else firstByte in {PROTOCOL_V3, PROTOCOL_V5}
         WS->>WS: handleLegacyBinaryData(data)
     else any other lead byte
@@ -309,7 +317,7 @@ sequenceDiagram
     STORE->>STORE: pushBeams: clampDuration (MIN_BEAM_DURATION_MS=400, DEFAULT=1500), FIFO cap MAX_TRANSIENT_BEAMS=256<br/>client/src/store/transientBeamStore.ts:57-61,25
     LAYER->>STORE: useTransientBeams() reads beams, calls pruneExpired() every frame
     LAYER->>LAYER: render coloured cylinder agent-node -> KG-node, opacity fade-in/hold/fade-out over durationMs, shape by action_type
-    Note over LAYER: DIVERGENCE: render is a beam coloured cylinder only, no attractive gluon edge is wired.<br/>archived draft ADR docs/archive/adr/ADR-059-bidirectional-agent-channel-server.md rationale<br/>only specified a class_charge-modulation gluon, retracted because class_charge is bulk<br/>ontology-clustering metadata uploaded whole-array at construction<br/>src/utils/unified_gpu_compute/construction.rs:63,342 memory.rs:84 upload_class_metadata<br/>execution.rs:913 with no per-node update path
+    Note over LAYER: DIVERGENCE: render is a beam coloured cylinder only, no attractive gluon edge is wired.<br/>archived draft ADR docs/archive/adr/ADR-059-bidirectional-agent-channel-server.md rationale<br/>only specified a class_charge-modulation gluon, retracted because class_charge is bulk<br/>ontology-clustering metadata uploaded whole-array at construction<br/>src/utils/unified_gpu_compute/construction.rs:63,350 memory.rs:84 upload_class_metadata<br/>execution.rs:948 with no per-node update path
     Note over LAYER: DIVERGENCE: the transient-attractive-edge gluon is still DEFERRED and only the beam ships today. DOC-DRIFT: the rationale block this note used to cite<br/>(agent_beam_actor.rs gluon_deferral_note, four reasons including no incremental CSR insert) was deleted by 4a3452c91, so only the comment at agent_beam_actor.rs:292<br/>and the module docs (ingest.rs:11, mod.rs:13) assert the deferral. Still true in code: no UpsertTransientEdge message exists in src/, and edges reach the GPU<br/>as a wholesale packed CSR upload (memory.rs:204 upload_edges_csr, :750 initialize_graph, reallocation :435 resize_buffers)
 ```
 
@@ -351,7 +359,7 @@ sequenceDiagram
         MGR->>DOCKER: health_manager.check_service_now("mcp-relay")
     end
     Note over MGR: INVARIANT: RetryableError classifies DockerCommandFailed/HealthCheckFailed/Timeout as<br/>retryable, ContainerNotFound as terminal
-    Note over MGR: RESOLVED ADR-2090 — the /ws/mcp-relay upgrade (mcp_relay_handler.rs, route<br/>src/main.rs:1099) and /multi-mcp/ws (multi_mcp_websocket_handler.rs) previously accepted<br/>ANY non-empty string as a credential: neither referenced NostrService at all, and the sole<br/>gate was .is_empty(), so ?token=x opened the socket. Both now resolve the token through<br/>NostrService::get_session and fail closed on absent token, absent service, or a token that<br/>names no live unexpired session. Found by vc-core, fixed here as owner. see ADR-2044
+    Note over MGR: RESOLVED ADR-2090 — the /ws/mcp-relay upgrade (mcp_relay_handler.rs, route<br/>src/main.rs:1115) and /multi-mcp/ws (multi_mcp_websocket_handler.rs) previously accepted<br/>ANY non-empty string as a credential: neither referenced NostrService at all, and the sole<br/>gate was .is_empty(), so ?token=x opened the socket. Both now resolve the token through<br/>NostrService::get_session and fail closed on absent token, absent service, or a token that<br/>names no live unexpired session. Found by vc-core, fixed here as owner. see ADR-2044
     Note over MGR: RESOLVED ADR-2090 amendment / ADR-2058 — the ?token= query carrier is now<br/>DEV-ONLY on both sockets: compiled out of release behind cfg(any(debug_assertions,<br/>feature="dev-auth")), with a SECURITY warning on the dev arm and a SECURITY rejection<br/>warning on the release arm. The Authorization header is the only release carrier, so the<br/>bearer stops reaching access logs, proxy logs and Referer. Clients that cannot set headers<br/>use the post-connect NIP-98 authenticate envelope (kind 27235). Both cfg arms type-checked
     Note over MGR: RESOLVED ADR-2091 — the /multi-mcp scope also served two REST routes that<br/>returned FICTION: GET /status (get_mcp_server_status) emitted a hardcoded server list<br/>claiming claude-flow is_connected:true with agent_count:4, never querying anything, and<br/>POST /refresh (refresh_mcp_discovery) reported "Discovery refresh initiated" while doing<br/>nothing. Both took _app_state unused. Both REMOVED with their registrations — zero callers<br/>in src/, client/ or xr-client/. Real state lives in multi_mcp_agent_discovery.rs (ES-02.9)
     end
@@ -400,25 +408,25 @@ sequenceDiagram
             BC->>BC: clear stored agents (agents_lock.clear())
         end
     end
-    Note over TCP: RESOLVED ADR-2084: ingest.rs no longer calls this deprecated. It is documented as legacy<br/>but LOAD-BEARING - the sole source of agent state snapshots (query_agent_list), constructed at<br/>app_state.rs:1195 with a boot poll, no replacement built. ADR-2084 stages the WS cutover with an<br/>acceptance test rather than implying one already exists
+    Note over TCP: RESOLVED ADR-2084: ingest.rs no longer calls this deprecated. It is documented as legacy<br/>but LOAD-BEARING - the sole source of agent state snapshots (query_agent_list), constructed at<br/>app_state.rs:1164 with a boot poll at :1170-1175, no replacement built. ADR-2084 stages the WS cutover with an<br/>acceptance test rather than implying one already exists
 ```
 
 ## ES-02.9 LEGACY — multi-MCP agent discovery, concurrent fan-out poll, run only while a /multi-mcp/ws socket is attached
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CALLER as sync_running<br/>src/services/multi_mcp_agent_discovery.rs:174
+    participant CALLER as sync_running<br/>src/services/multi_mcp_agent_discovery.rs:184
     participant DISC as MultiMcpAgentDiscovery<br/>src/services/multi_mcp_agent_discovery.rs:101
-    participant CF as claude-flow server<br/>CLAUDE_FLOW_HOST default localhost, MCP_TCP_PORT default 9500
+    participant CF as claude-flow server<br/>host from claude_flow_host src/services/multi_mcp_agent_discovery.rs:143-147, MCP_TCP_PORT default 9500 :221-224
     participant RS as ruv-swarm server<br/>RUV_SWARM_PORT default 9501, enabled only when set
-    participant DAA as DAA server<br/>src/services/multi_mcp_agent_discovery.rs:244-248, enabled only when set
+    participant DAA as DAA server<br/>src/services/multi_mcp_agent_discovery.rs:254-259, enabled only when set
 
-    Note over CALLER,DISC: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - this diagram used to open with an unnamed start_discovery caller because nothing constructed the service.<br/>AppState::new now builds it and initialises the default servers (src/app_state.rs:1197-1200), and each /multi-mcp/ws socket attaches and calls sync_running (VC-05.13)
-    CALLER->>DISC: attach() then sync_running() which calls start_discovery()<br/>src/services/multi_mcp_agent_discovery.rs:160, :174-183, :288
+    Note over CALLER,DISC: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - this diagram used to open with an unnamed start_discovery caller because nothing constructed the service.<br/>AppState::new now builds it and initialises the default servers (src/app_state.rs:1166-1168), and each /multi-mcp/ws socket attaches and calls sync_running (VC-05.13)
+    CALLER->>DISC: attach() then sync_running() which calls start_discovery()<br/>src/services/multi_mcp_agent_discovery.rs:170-172, :184-193, :298
     alt discovery_running already true
-        DISC-->>CALLER: warn Discovery already running, return<br/>src/services/multi_mcp_agent_discovery.rs:290-293
+        DISC-->>CALLER: warn Discovery already running, return<br/>src/services/multi_mcp_agent_discovery.rs:300-303
     end
-    loop while discovery_running and this loop's own epoch is current :317, sleep derived per ADR-2083 by<br/>select_discovery_interval_ms :46, called at src/services/multi_mcp_agent_discovery.rs:323
+    loop while discovery_running and this loop's own epoch is current :327, sleep derived per ADR-2083 by<br/>select_discovery_interval_ms :46, called at src/services/multi_mcp_agent_discovery.rs:333
         par concurrent per enabled server (futures::future::join_all)
             DISC->>CF: discover_claude_flow_agents(config)
             CF-->>DISC: Ok((server_info, agents, topology)) or Err
@@ -430,15 +438,15 @@ sequenceDiagram
             DAA-->>DISC: Ok(...) or Err
         end
         alt server discovery Ok
-            DISC->>DISC: insert into discovered_agents/server_statuses/topology_data, stats.successful_discoveries+=1 :357,<br/>average_discovery_time_ms rolling avg src/services/multi_mcp_agent_discovery.rs:359-361
+            DISC->>DISC: insert into discovered_agents/server_statuses/topology_data, stats.successful_discoveries+=1 :367,<br/>average_discovery_time_ms rolling avg src/services/multi_mcp_agent_discovery.rs:369-371
         else server discovery Err
-            DISC->>DISC: stats.failed_discoveries+=1 :373, server_info.is_connected=false :394,<br/>entry inserted when absent so a first-cycle failure is visible src/services/multi_mcp_agent_discovery.rs:382-393
+            DISC->>DISC: stats.failed_discoveries+=1 :383, server_info.is_connected=false :403,<br/>entry inserted when absent so a first-cycle failure is visible src/services/multi_mcp_agent_discovery.rs:386-402
         end
     end
-    Note over DISC: RESOLVED ADR-2083: discovery_interval_ms is now READ. select_discovery_interval_ms<br/>(:46) takes the MINIMUM across ENABLED servers so each is polled at least as often as it<br/>asked, floored at MIN_DISCOVERY_INTERVAL_MS 250 so a misconfigured 0 cannot busy-poll, with<br/>DEFAULT_DISCOVERY_INTERVAL_MS 5000 when no server is enabled. The hardcoded 1000ms sleep is<br/>gone - the loop now sleeps sleep_ms (:323 derived, :416-419 applied). Routed from vc-knowledge
+    Note over DISC: RESOLVED ADR-2083: discovery_interval_ms is now READ. select_discovery_interval_ms<br/>(:46) takes the MINIMUM across ENABLED servers so each is polled at least as often as it<br/>asked, floored at MIN_DISCOVERY_INTERVAL_MS 250 so a misconfigured 0 cannot busy-poll, with<br/>DEFAULT_DISCOVERY_INTERVAL_MS 5000 when no server is enabled. The hardcoded 1000ms sleep is<br/>gone - the loop now sleeps sleep_ms (:333 derived, :425-428 applied). Routed from vc-knowledge
     rect rgb(255,235,235)
-    Note over DISC: OPEN: ruv-swarm and daa are enabled only when RUV_SWARM_HOST or RUV_SWARM_PORT, DAA_HOST or DAA_PORT is non-empty (src/services/multi_mcp_agent_discovery.rs:232, :249).<br/>They have no confirmed endpoint in this estate, and nothing was observed against a live claude-flow hub
-    Note over DISC: RESOLVED 2026-10-12 (project 9f98e3787): discovery now resolves the claude-flow host as BotsClient does (CLAUDE_FLOW_HOST, then MCP_HOST, then multi-agent-container), so both pollers target the same host on port 9500. At the stamped revision the discovery fallback was localhost (multi_mcp_agent_discovery.rs:210) against bots_client.rs:120-122.
+    Note over DISC: OPEN: ruv-swarm and daa are enabled only when RUV_SWARM_HOST or RUV_SWARM_PORT, DAA_HOST or DAA_PORT is non-empty (src/services/multi_mcp_agent_discovery.rs:242, :259).<br/>They have no confirmed endpoint in this estate, and nothing was observed against a live claude-flow hub
+    Note over DISC: RESOLVED at this stamp: discovery resolves the claude-flow host as BotsClient does (CLAUDE_FLOW_HOST, then MCP_HOST, then multi-agent-container, see multi_mcp_agent_discovery.rs:143-147 and :220), so both pollers target the same host on port 9500 (bots_client.rs:119-126). At the earlier stamp the discovery fallback was localhost.
     end
 ```
 

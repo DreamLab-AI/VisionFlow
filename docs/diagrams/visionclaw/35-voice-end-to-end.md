@@ -5,11 +5,13 @@ area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/docs/IDENTITY-authority-chain.md
-adrs: [ADR-2002, ADR-2039, ADR-2075]
+adrs: [ADR-2002, ADR-2039, ADR-2075, ADR-2151]
 sources:
   - ../project/agentbox/docker-compose.yml
   - ../project/agentbox/docker-compose.speech.yml
   - ../project/agentbox/voice/compose.web.yml
+  - ../project/agentbox/agentbox.toml
+  - ../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md
   - ../project/docker-compose.unified.yml
   - ../project/src/handlers/socket_flow_handler/http_handler.rs
   - ../project/client/src/services/PushToTalkService.ts
@@ -23,6 +25,7 @@ sources:
   - ../project/client/src/hooks/useVoiceInteraction.ts
   - ../project/client/src/services/WebSocketRegistry.ts
   - ../project/src/handlers/speech_socket_handler.rs
+  - ../project/src/services/jev_voice.rs
   - ../project/src/services/speech_service.rs
   - ../project/src/services/audio_router.rs
   - ../project/src/services/voice_intent_client.rs
@@ -37,7 +40,7 @@ sources:
   - ../project/xr-client/rust/src/webrtc_audio.rs
   - ../project/client/src/services/WebSocketEventBus.ts
   - ../project/src/actors/elevation_actor.rs
-verified_commit: {visionclaw: 3b5dbdd58430afcd22764e05fa81bed8c26d6ab9, agentbox: cc67198cec478adc0aefa0f4a68fb8a631fcee83, unmute: c49982eb3aeaf76633dfe4155fa3b8dcb5b3d962}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9, unmute: e348e567c7020d40020412024f7aa03c38a3bc3e}
 ---
 
 ## VC-35.1 Push-to-talk state machine and the agent DID binding
@@ -187,7 +190,7 @@ sequenceDiagram
     participant VW as VoiceWebSocketService.connect<br/>client/src/services/VoiceWebSocketService.ts:70
     participant REG as WebSocketRegistry<br/>client/src/services/WebSocketRegistry.ts
     participant BUS as WebSocketEventBus<br/>client/src/services/WebSocketEventBus.ts
-    participant SV as speech_socket_handler<br/>src/handlers/speech_socket_handler.rs:984
+    participant SV as speech_socket_handler<br/>src/handlers/speech_socket_handler.rs:997
     participant SS as SpeechSocket actor<br/>src/handlers/speech_socket_handler.rs:89
     participant AO as AudioOutputService<br/>client/src/services/AudioOutputService.ts:15
 
@@ -196,13 +199,13 @@ sequenceDiagram
     VW->>SV: WebSocket upgrade (no header, no query token)
     rect rgb(238, 244, 252)
         SV->>SV: derive connection_url from scheme, host and path_and_query
-        Note over SV: speech_socket_handler.rs:998. The HTTP-equivalent URL the<br/>client must sign as the NIP-98 u tag now comes from the shared helper<br/>nip98_request_url(&req) - same derivation the graph socket uses at<br/>socket_flow_handler/http_handler.rs:431
+        Note over SV: speech_socket_handler.rs:1011. The HTTP-equivalent URL the<br/>client must sign as the NIP-98 u tag now comes from the shared helper<br/>nip98_request_url(&req) - same derivation the graph socket uses at<br/>socket_flow_handler/http_handler.rs:427
         SV->>SS: SpeechSocket::new(id, app_state, None, connection_url, dev_bypass_ok)
-        Note over SV,SS: speech_socket_handler.rs:992. dev_bypass_ok is<br/>dev_bypass_permitted(&req) behind cfg(debug_assertions or dev-auth),<br/>false in release. pubkey starts None
+        Note over SV,SS: speech_socket_handler.rs:1005. dev_bypass_ok is<br/>dev_bypass_permitted(&req) behind cfg(debug_assertions or dev-auth),<br/>false in release. pubkey starts None
         SV-->>VW: 101 Switching Protocols
         Note over SV,VW: RESOLVED ADR-2075: NO credential is checked at upgrade. The old<br/>path accepted any non-empty Bearer value OR ?token= query parameter<br/>without verifying either, and browsers cannot set WebSocket headers,<br/>so the browser client (which sent neither) was 401d outright. Query<br/>token auth is removed. The socket opens anonymous and useless
     end
-    SS->>SS: ctx.run_later(AUTH_DEADLINE) speech_socket_handler.rs:473
+    SS->>SS: ctx.run_later(AUTH_DEADLINE) speech_socket_handler.rs:486
     Note over SS: AUTH_DEADLINE = 30s speech_socket_handler.rs:22. A socket still<br/>unauthenticated at the deadline is sent an error and ctx.stop() - an<br/>unauthenticated peer cannot hold an audio broadcast subscription open
     VW->>REG: register('voice', url, socket)
     Note over VW,REG: REGISTRY_NAME = 'voice' VoiceWebSocketService.ts:14, :88
@@ -258,9 +261,9 @@ sequenceDiagram
     end
 ```
 
-## VC-35.6 STT — Whisper and Turbo Whisper backends
+## VC-35.6 STT — Whisper and OpenAI backends (Turbo Whisper retired)
 
-At this revision `ProcessAudioChunkForUser`, `TextToSpeechForUser`, `TextToSpeechSpatial` and the `TurboWhisper` provider are declared with no sender. VisionClaw `cefd9d1d7` (2026-10-18, estate register ER-24) deleted all four.
+`ProcessAudioChunkForUser`, `TextToSpeechForUser`, `TextToSpeechSpatial`, `AgentSpatialInfo` and the `TurboWhisper` provider and its `TurboWhisperSettings` were deleted (VisionClaw `cefd9d1d7`, 2026-10-18, estate register ER-24) and are gone at this stamp: `STTProvider` is `Whisper | OpenAI` and `SpeechCommand` has no user-scoped or spatial variants (`src/types/speech.rs:70-90`).
 
 ```mermaid
 sequenceDiagram
@@ -269,28 +272,20 @@ sequenceDiagram
     participant SP as SpeechService<br/>src/services/speech_service.rs:32
     participant CFG as AppFullSettings whisper<br/>src/bin/generate_types.rs:453
     participant WH as whisper-webui-backend
-    participant TW as turbo-whisper streaming
     participant AR as AudioRouter<br/>src/services/audio_router.rs:62
 
     SS->>SP: SpeechCommand::ProcessAudioChunk(bytes)
-    Note over SS,SP: or ProcessAudioChunkForUser(bytes, user_id) for<br/>user-scoped routing. src/types/speech.rs:93-95
     SP->>SP: read stt_provider RwLock
-    Note over SP: STTProvider = Whisper | TurboWhisper | OpenAI<br/>src/types/speech.rs:72-77
+    Note over SP: STTProvider = Whisper | OpenAI<br/>src/types/speech.rs:70-73
     alt STTProvider::Whisper
         SP->>CFG: config.api_url
         alt unset
             CFG-->>SP: default "http://whisper-webui-backend:8000"
-            Note right of CFG: src/services/speech_service.rs:488, :494
+            Note right of CFG: src/services/speech_service.rs:482, :488
         end
         SP->>WH: POST {api_url}/v1/audio/transcriptions
-        Note over SP,WH: url built at speech_service.rs:498, posted at :560
+        Note over SP,WH: url built at speech_service.rs:492, posted at :554
         WH-->>SP: transcript text
-    else STTProvider::TurboWhisper
-        SP->>TW: ws://turbo-whisper:8000/v1/audio/transcriptions
-        Note over SP,TW: streaming endpoint default crates/visionclaw-domain/src/config/services.rs:192-194<br/>REST fallback http://turbo-whisper:8000/v1/audio/transcriptions :195-197<br/>model default Systran/faster-whisper-large-v3 :198-200.<br/>MOVED 2026-09-05: was src/config/services.rs, now the visionclaw-domain crate
-        loop streaming partials
-            TW-->>SP: partial transcript
-        end
     else STTProvider::OpenAI
         SP->>SP: OpenAI transcription path
     end
@@ -299,7 +294,7 @@ sequenceDiagram
     AR-->>SS: transcription broadcast
     SS-->>SS: emit VoiceMessage {type 'transcription'} to the client
     Note over SS: DIVERGENCE Whisper-WebUI is a BROKEN SYMLINK in this tree<br/>(Whisper-WebUI to /mnt/mldata/githubs/Whisper-WebUI, target absent),<br/>so the STT container source is not checked out here. Only the<br/>client-side URL contract above is verifiable from this repo.
-    Note over SS,SP: A separate control frame drives streaming STT — client<br/>{"type":"stt","action":"start"|..., "language", "model"} deserializes<br/>to STTActionRequest speech_socket_handler.rs:43-46, matched at :663-666 —<br/>action "start" builds TranscriptionOptions{language,model,stream:true}<br/>and calls speech_service.start_transcription. Client sends it via<br/>startAudioStreaming(options) VoiceWebSocketService.ts:309 - distinct<br/>from the binary ProcessAudioChunk path above.
+    Note over SS,SP: A separate control frame drives streaming STT — client<br/>{"type":"stt","action":"start"|..., "language", "model"} deserializes<br/>to STTActionRequest speech_socket_handler.rs:43-46, matched at :676-679 —<br/>action "start" builds TranscriptionOptions{language,model,stream:true}<br/>and calls speech_service.start_transcription. Client sends it via<br/>startAudioStreaming(options) VoiceWebSocketService.ts:309 - distinct<br/>from the binary ProcessAudioChunk path above.
 ```
 
 ## VC-35.7 Governed voice path — clarification gate then signed kind-31402 to /v1/voice-intent
@@ -307,7 +302,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SS as SpeechSocket voice_command match arm<br/>src/handlers/speech_socket_handler.rs:771
+    participant SS as SpeechSocket voice_command match arm<br/>src/handlers/speech_socket_handler.rs:784
     participant GATE as ClarificationGate.evaluate/merge<br/>src/services/voice_clarification (app_state.clarification_gate)
     participant PGV as process_governed_voice<br/>speech_socket_handler.rs:368
     participant PVI as process_voice_intent<br/>speech_socket_handler.rs:316
@@ -316,19 +311,23 @@ sequenceDiagram
     participant KO as PocketTts TTS
 
     SS->>SS: parse VoiceCommandRequest {text, sessionId, respondViaVoice, actorDid, confidence}<br/>speech_socket_handler.rs:51
-    alt actor_did present and canonical (is_canonical_did)<br/>speech_socket_handler.rs:782, :783
-        Note over SS,PGV: COM-15 / D6 (the ack is now PocketTts, ab5724422): a bound command ALWAYS takes this governed path<br/>(signed 31402 to /v1/voice-intent to a PocketTts ack), never the settings<br/>assistant - falsification clause 2. speech_socket_handler.rs:779, :785
-        SS->>PGV: process_governed_voice(app_state,session_key,text,actor_did,confidence)<br/>speech_socket_handler.rs:797, :801
+    alt actor_did present and canonical (is_canonical_did)<br/>speech_socket_handler.rs:795, :796
+        Note over SS,PGV: COM-15 / D6 (the ack is now PocketTts, ab5724422): a bound command ALWAYS takes this governed path<br/>(signed 31402 to /v1/voice-intent to a PocketTts ack), never the settings<br/>assistant - falsification clause 2. speech_socket_handler.rs:792, :798
+        SS->>PGV: process_governed_voice(app_state,session_key,text,actor_did,confidence)<br/>speech_socket_handler.rs:810, :814
         PGV->>PGV: take_pending_clarification(session_key)<br/>speech_socket_handler.rs:384 - a repair turn if one is pending, else fresh
-        PGV->>GATE: pending some ? merge(pending,transcript,confidence) : evaluate(transcript,confidence)<br/>speech_socket_handler.rs:397, :398
+        opt Jev option (off by default, fail-open) -- VC-35-S1-01
+            PGV->>PGV: reply_abandons_pending(jev, pending, transcript) -- on a repair turn Jev may judge the reply abandons the pending request, which is then evaluated fresh instead of merged<br/>src/services/jev_voice.rs:68, speech_socket_handler.rs:393-399
+        end
+        PGV->>GATE: pending some ? merge(pending,transcript,confidence) : evaluate(transcript,confidence)<br/>speech_socket_handler.rs:410, :411
+        PGV->>PGV: tighten(jev, outcome) -- after the gate Jev may only HOLD a dispatch it judges unclear and can never release a held utterance<br/>src/services/jev_voice.rs:99, speech_socket_handler.rs:404
         alt GateOutcome::Clarify {prompt, pending}
-            PGV->>PGV: set_pending_clarification(session_key, pending)<br/>speech_socket_handler.rs:400, :408
-            PGV->>KO: speak the clarification prompt over the PocketTts path<br/>speech_socket_handler.rs:415 - NOT dispatched
-            Note right of PGV: PRD-023 WP-10. Absent confidence is NOT a block - the intent<br/>gate still applies, it is just not gated on missing telemetry.<br/>speech_socket_handler.rs:62 (doc), CANARY_V3_REPAIR fire :421
+            PGV->>PGV: set_pending_clarification(session_key, pending)<br/>speech_socket_handler.rs:413, :421
+            PGV->>KO: speak the clarification prompt over the PocketTts path<br/>speech_socket_handler.rs:428 - NOT dispatched
+            Note right of PGV: PRD-023 WP-10. Absent confidence is NOT a block - the intent<br/>gate still applies, it is just not gated on missing telemetry.<br/>speech_socket_handler.rs:62 (doc), CANARY_V3_REPAIR fire :434
             PGV-->>SS: GovernedVoiceResult::Clarified{prompt,slot}
-            SS-->>SS: emit voice_clarification, isFinal=false<br/>speech_socket_handler.rs:822, :830
+            SS-->>SS: emit voice_clarification, isFinal=false<br/>speech_socket_handler.rs:835, :843
         else GateOutcome::Dispatch {transcript}
-            PGV->>PVI: process_voice_intent(app_state,transcript,actor_did)<br/>speech_socket_handler.rs:442, :444
+            PGV->>PVI: process_voice_intent(app_state,transcript,actor_did)<br/>speech_socket_handler.rs:455, :457
             PVI->>VC: client.dispatch(&transcript,&actor_did,200)<br/>speech_socket_handler.rs:319, :327
             alt no VoiceIntentClient configured
                 PVI-->>PGV: Err "governed voice loop unconfigured"<br/>speech_socket_handler.rs:316
@@ -341,17 +340,17 @@ sequenceDiagram
                     PVI->>PVI: CANARY_COM15_PTT observed-fire evidence<br/>speech_socket_handler.rs:344
                     PVI-->>PGV: Ok(ack)
                     PGV-->>SS: GovernedVoiceResult::Dispatched(ack)
-                    SS-->>SS: emit voice_response, isFinal=true, governed=true<br/>speech_socket_handler.rs:806, :808
+                    SS-->>SS: emit voice_response, isFinal=true, governed=true<br/>speech_socket_handler.rs:819, :821
                 else rejected or transport failure
                     AB-->>VC: VoiceIntentError::Rejected | Http
                     VC-->>PVI: Err(e)
                     PVI-->>PGV: Err(e.to_string())
-                    PGV-->>SS: Err(e) - "governed voice dispatch failed"<br/>speech_socket_handler.rs:845, :853 - NEVER re-routed to the<br/>settings assistant on a bound command
+                    PGV-->>SS: Err(e) - "governed voice dispatch failed"<br/>speech_socket_handler.rs:858, :866 - NEVER re-routed to the<br/>settings assistant on a bound command
                 end
             end
         end
     else no actor_did (unbound)
-        SS->>SS: is_swarm_command? handle_swarm_voice_command<br/>speech_socket_handler.rs:450, :453, :861, :862<br/>else the ungoverned global settings assistant path at :855
+        SS->>SS: is_swarm_command? handle_swarm_voice_command<br/>speech_socket_handler.rs:463, :466, :874, :875<br/>else the ungoverned global settings assistant path at :868
         Note right of SS: VoiceCommand::parse(text,session_id) src/actors/voice_commands.rs:13,116<br/>maps free text to SwarmIntent (SpawnAgent|QueryStatus|ExecuteTask|<br/>UpdateGraph|ListAgents|StopAgent|Help, enum at voice_commands.rs:43).<br/>VoicePreamble::generate(intent) prefixes the LLM reply with a<br/>per-intent voice hint (e.g. SpawnAgent to "Confirm agent creation.")<br/>before this ungoverned path speaks, voice_commands.rs:90-104
     end
     Note over VC,AB: EXTERNAL: endpoint resolution (AGENTBOX_VOICE_INTENT_URL else<br/>AGENTBOX_MANAGEMENT_URL+VOICE_INTENT_PATH), the panel signing key resolved<br/>by acsp key_file load_panel_secret (voice_intent_client.rs:154-163, was<br/>the ACSP_PANEL_NOSTR_PRIVKEY env var), and 31402 signing identical to the<br/>broker path all live in VoiceIntentClient - encapsulated behind<br/>client.dispatch() instead of being inlined here.
@@ -371,7 +370,7 @@ sequenceDiagram
     participant AO as AudioOutputService<br/>client/src/services/AudioOutputService.ts:15
 
     SS->>SP: SpeechCommand TextToSpeech with text and SpeechOptions
-    Note over SS,SP: SpeechOptions voice, speed, stream src/types/speech.rs:99.<br/>TextToSpeechForUser routes audio to one user only src/types/speech.rs:84
+    Note over SS,SP: SpeechOptions voice, speed, stream src/types/speech.rs:91.<br/>The user-scoped TextToSpeechForUser and spatial variants are deleted, SpeechCommand has only TextToSpeech(String, SpeechOptions) src/types/speech.rs:77-88
     SS->>PC: read settings.pocket_tts
     Note over PC: default_voice "alba", default_speed 1.0, stream true<br/>speech_socket_handler.rs:284, :287, :290.<br/>PocketTtsSettings api_url, default_voice, default_format,<br/>default_speed, timeout, stream<br/>crates/visionclaw-domain/src/config/services.rs:78,<br/>generated client type src/bin/generate_types.rs:442
     SP->>SP: abort the in-flight tts_task, then read tts_provider<br/>src/services/speech_service.rs:288, :292
@@ -499,6 +498,8 @@ flowchart TB
     U2 -.-> UNPIN
     UNPIN["DEBT: voice-stack/unmute is a NESTED checkout that the VisionClaw repo<br/>does not track, so a citation into it can only be pinned through its own<br/>revision. This topic carries an unmute key in verified_commit for exactly<br/>that reason, and its working tree is dirty: read the declared revision,<br/>never the files on disk.<br/>unmute/docker-compose.yml:3"]
     legacy --> SEP
+    VL["TENSION: ADR-2151 (VoiceLink, voice at the client edge over the ssh attach chain) is decision_status proposed, activation inactive and implementation none,<br/>agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:4-6, while the live manifest has the [voicelink] slot enabled = true, agentbox/agentbox.toml:2225.<br/>It is a per-connection voice-paned process, not part of Track A or the VisionClaw voice loop"]
+    SEP -.-> VL
     SEP["SEPARATE SUBSYSTEM: this is the agentbox tmux voice plane (Track A),<br/>not the VisionClaw graph voice loop of VC-35.1 to VC-35.11. Its LLM is<br/>the tab0-bridge reached as KYUTAI_LLM_URL, its STT is the Kyutai<br/>service, and its TTS is now the SAME pocket-tts VisionClaw uses.<br/>agentbox/voice/compose.web.yml:45, :44. see AB-06 for the console boundary"]
     owned --> CONV
     CONV["DRIFT CLOSED 2026-09-13 (ab5724422): the two tracks used to run<br/>different synthesisers - Kokoro for the VisionClaw visualiser and<br/>Kyutai TTS for the web stack. One pocket-tts service now serves both,<br/>and voice-stack/unmute-override.yml was deleted with the split.<br/>voice-stack/README.md:3, :8"]
@@ -516,8 +517,8 @@ sequenceDiagram
     participant U as Operator presses push-to-talk
     participant VW as VoiceWebSocketService.setPtt<br/>client/src/services/VoiceWebSocketService.ts:272
     participant AO as AudioOutputService.stop<br/>client/src/services/AudioOutputService.ts:148
-    participant SS as SpeechSocket message dispatch<br/>src/handlers/speech_socket_handler.rs:590
-    participant SP as SpeechService.stop_speech<br/>src/services/speech_service.rs:963
+    participant SS as SpeechSocket message dispatch<br/>src/handlers/speech_socket_handler.rs:603
+    participant SP as SpeechService.stop_speech<br/>src/services/speech_service.rs:933
     participant CMD as SpeechCommand StopSpeech arm<br/>src/services/speech_service.rs:264
 
     U->>VW: setPtt(true, actorDid)
@@ -525,7 +526,7 @@ sequenceDiagram
     AO->>AO: stop and disconnect every scheduled PCM source, reset pcmNextTime<br/>client/src/services/AudioOutputService.ts:150, :152
     VW->>VW: pcmRemainder reset to empty<br/>client/src/services/VoiceWebSocketService.ts:276
     VW->>SS: {"type":"cancel_tts"}
-    SS->>SP: stop_speech() spawned on the actor context<br/>src/handlers/speech_socket_handler.rs:626
+    SS->>SP: stop_speech() spawned on the actor context<br/>src/handlers/speech_socket_handler.rs:639
     SP->>CMD: SpeechCommand StopSpeech
     CMD->>CMD: tts_task.abort then await<br/>src/services/speech_service.rs:265
     Note over CMD: INVARIANT the abort is awaited, so the aborted task cannot still be<br/>writing chunks when the next TextToSpeech starts. The same abort runs<br/>on Close and at the head of TextToSpeech.<br/>src/services/speech_service.rs:270, :288
@@ -540,19 +541,19 @@ sequenceDiagram
     autonumber
     participant VW as VoiceWebSocketService.connect<br/>client/src/services/VoiceWebSocketService.ts:70
     participant REG as WebSocketRegistry
-    participant SS as SpeechSocket actor<br/>src/handlers/speech_socket_handler.rs:474
+    participant SS as SpeechSocket actor<br/>src/handlers/speech_socket_handler.rs:487
 
     VW->>SS: new WebSocket(url)
-    SS->>SS: started - spawn heartbeat and auth-deadline timers<br/>speech_socket_handler.rs:474, :477
+    SS->>SS: started - spawn heartbeat and auth-deadline timers<br/>speech_socket_handler.rs:487, :490
     Note over SS: HEARTBEAT_INTERVAL=5s, CLIENT_TIMEOUT=10s, AUTH_DEADLINE=30s<br/>speech_socket_handler.rs:17, :18, :22
     alt no authenticate frame within AUTH_DEADLINE
         SS-->>VW: error "authentication deadline exceeded"
-        SS->>SS: ctx.stop()<br/>speech_socket_handler.rs:481-494
+        SS->>SS: ctx.stop()<br/>speech_socket_handler.rs:494-507
     else client stops answering pings
         SS->>SS: Instant::now - heartbeat > CLIENT_TIMEOUT<br/>speech_socket_handler.rs:254-257
         SS->>SS: log "heartbeat failed, disconnecting" then ctx.stop()
     else server sends ws::Message::Close
-        SS->>SS: log "Client disconnected", ctx.close, ctx.stop<br/>speech_socket_handler.rs:966-969
+        SS->>SS: log "Client disconnected", ctx.close, ctx.stop<br/>speech_socket_handler.rs:979-982
     end
     SS-->>VW: onclose {code, reason}
     VW->>REG: webSocketRegistry.unregister('voice')<br/>VoiceWebSocketService.ts:101

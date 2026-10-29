@@ -14,6 +14,7 @@ sources:
   - ../project/agentbox/management-api/lib/agent-identity.js
   - ../project/agentbox/agentbox.toml
   - ../project/crates/vault/src/main.rs
+  - ../project/AGENTS.md
   - docs/estate-review/2026-09-07-imported-adr-scope.md
   - docs/estate-review/2026-09-07-visionclaw-audit.md
   - docs/estate-review/2026-09-07-federation-audit.md
@@ -27,7 +28,7 @@ sources:
   - docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md
   - docs/BASELINE-visionflow.md
   - ./README.md
-verified_commit: {visionflow: da57b49a28974dd9bff5b5358369eef94a439273, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, nostr-rust-forum: 72463fbde35ac4c68539b1f65a08ff03b9941201}
+verified_commit: {visionflow: 1d7183a73c1eae4996a7006067d5047308fab7a5, visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9, nostr-rust-forum: 8a5cf817e81b20e2b761899eab753768c0cb4988}
 ---
 
 Source reconciliation: 2026-09-07. These panels follow the current sections of the compatibility matrix and status reconciliation, plus the source audits named in frontmatter. Historical metrics and register cuts remain historical. This review did not certify a live federation, image, hardware session or replica-wide authentication contract.
@@ -48,7 +49,7 @@ flowchart TB
     LOOM["Loom: ontology facade, HTTP only"] -->|configured retrieval| AB
     RV["RuVector: selected core or image"] --> LOOM
     RV -->|MCP and Postgres boundary| AB
-    VAULT["vault CLI, VisionClaw crates/vault<br/>agentbox.toml:1076 cli=true<br/>main.rs:44 enum Command"] --> AB
+    VAULT["vault CLI, VisionClaw crates/vault<br/>agentbox.toml:1140 cli=true<br/>main.rs:49 enum Command"] --> AB
     SCOPE["Arrows identify implemented source seams, not a verified complete mesh"]
     VF -.-> SCOPE
 ```
@@ -142,3 +143,22 @@ flowchart TB
 ```
 
 VisionFlow owns the cross-repository view and evidence vocabulary. Source audits can correct that view, while implementation changes belong to the owning repository. Source hashes bind observations; they do not turn a planned feature or a helper assertion into a running end-to-end system. ADR-2007 was accepted on 2026-10-02, narrowed to exactly this evidence rule (`docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md:24`); the estate closeout roadmap it originally proposed is recorded there as overtaken, not accepted, so this panel states the accepted rule rather than the abandoned coordinating contract.
+
+## VF-08.11 Supporting repositories sit beside the substrates, not inside the mesh
+
+```mermaid
+flowchart TB
+    CS["Codescape: code graph, layout, agent activity, voice collaboration<br/>its own repository, mounted into VisionClaw as the codescape/ submodule<br/>../project/AGENTS.md:15 and docs/architecture/repository-map.md:37"]
+    VCWIRE["VisionClaw coupling is three things only: the published visionclaw-wire crate (crates.io),<br/>the runtime CUDA PTX and the host compose contract<br/>docs/architecture/compatibility-matrix.md:20"]
+    ISO["a build-graph isolation test forbids any other VisionClaw dependency, and the root workspace<br/>may never list Codescape as a member or depend on it by path<br/>../project/AGENTS.md:15"]
+    VT["visiontouch-rs: private haptic study, no runtime coupling to the substrates,<br/>node-grab input into VisionClaw is intended and not built<br/>docs/architecture/compatibility-matrix.md:20 and docs/architecture/repository-map.md:38"]
+    CS --> VCWIRE
+    VCWIRE --> ISO
+    N1["INVARIANT: the agent-activity hook (agentbox ADR-2144) is on a branch, not agentbox main, and the repository map draws it as a dashed edge labelled branch only<br/>docs/architecture/compatibility-matrix.md:20 and docs/architecture/repository-map.md:83"]
+    N2["OPEN: neither supporting repository carries hardware or headset acceptance, so neither is a federated substrate<br/>docs/architecture/compatibility-matrix.md:20"]
+    CS --- N1
+    VT --- N2
+```
+
+**What it shows.** Two repositories admitted since the earlier stamp are drawn at the edge of the dependency picture: Codescape reaches VisionClaw only through a published wire crate, a runtime PTX file and a compose contract, and visiontouch-rs reaches nothing.
+**Why it is this way.** The matrix row says to read neither as a federated substrate; the isolation rule in VisionClaw's agent instructions makes the Codescape boundary a build-graph property rather than a convention.

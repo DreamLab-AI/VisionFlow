@@ -4,69 +4,73 @@ title: Codescape - the separate code-graph section, its crates, wire reuse, voic
 area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
+  - ../project/codescape/docs/BASELINE-codescape.md
   - ../project/docs/PROTOCOL-registry.md
 adrs: [ADR-2143, ADR-2018, ADR-2019, ADR-2024, ADR-2141]
 sources:
   - ../project/docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md
-  - ../project/crates/codescape/Cargo.toml
-  - ../project/crates/codescape/codescape-model/Cargo.toml
-  - ../project/crates/codescape/codescape-ingest/Cargo.toml
-  - ../project/crates/codescape/codescape-layout/Cargo.toml
-  - ../project/crates/codescape/codescape-collab/Cargo.toml
-  - ../project/crates/codescape/codescape-server/Cargo.toml
-  - ../project/crates/visionclaw-gpu/Cargo.toml
-  - ../project/crates/codescape/codescape-model/src/lib.rs
-  - ../project/crates/codescape/codescape-ingest/src/lib.rs
-  - ../project/crates/codescape/codescape-layout/src/lib.rs
-  - ../project/crates/codescape/codescape-collab/src/lib.rs
-  - ../project/crates/codescape/codescape-server/src/lib.rs
-  - ../project/crates/codescape/codescape-model/src/wire.rs
-  - ../project/crates/codescape/codescape-model/src/ids.rs
+  - ../project/codescape/Cargo.toml
+  - ../project/codescape/crates/codescape-model/Cargo.toml
+  - ../project/codescape/crates/codescape-ingest/Cargo.toml
+  - ../project/codescape/crates/codescape-layout/Cargo.toml
+  - ../project/codescape/crates/codescape-collab/Cargo.toml
+  - ../project/codescape/crates/codescape-server/Cargo.toml
+  - ../project/crates/visionclaw-wire/src/lib.rs
+  - ../project/codescape/docs/BASELINE-codescape.md
+  - ../project/codescape/crates/codescape-layout/src/ptx_source.rs
+  - ../project/codescape/crates/codescape-server/tests/isolation.rs
+  - ../project/codescape/crates/codescape-model/src/lib.rs
+  - ../project/codescape/crates/codescape-ingest/src/lib.rs
+  - ../project/codescape/crates/codescape-layout/src/lib.rs
+  - ../project/codescape/crates/codescape-collab/src/lib.rs
+  - ../project/codescape/crates/codescape-server/src/lib.rs
+  - ../project/codescape/crates/codescape-model/src/wire.rs
+  - ../project/codescape/crates/codescape-model/src/ids.rs
   - ../project/crates/visionclaw-protocol/src/wire_fixtures.rs
-  - ../project/crates/codescape/codescape-collab/src/floor.rs
-  - ../project/crates/codescape/codescape-collab/src/grammar.rs
-  - ../project/crates/codescape/codescape-collab/src/llm.rs
-  - ../project/crates/codescape/codescape-server/src/main.rs
-  - ../project/crates/codescape/codescape-server/src/state.rs
-  - ../project/crates/codescape/codescape-server/src/engine.rs
-  - ../project/crates/codescape/codescape-server/src/frames.rs
-  - ../project/crates/codescape/codescape-server/src/wire.rs
-  - ../project/crates/codescape/codescape-server/src/proxy.rs
-  - ../project/crates/codescape/codescape-server/src/config.rs
-  - ../project/crates/codescape/codescape-server/src/auth.rs
-  - ../project/crates/codescape/codescape-server/src/http.rs
-  - ../project/crates/codescape/codescape-server/src/egress.rs
-  - ../project/crates/codescape/codescape-server/src/ingest_api.rs
-  - ../project/crates/codescape/codescape-server/src/ingest_sink.rs
-  - ../project/crates/codescape/codescape-server/src/xr_presence.rs
-  - ../project/crates/codescape/codescape-server/src/routes/mod.rs
-  - ../project/crates/codescape/codescape-server/src/routes/ws.rs
-  - ../project/crates/codescape/codescape-server/src/routes/voice.rs
-  - ../project/crates/codescape/codescape-server/src/voice/asr.rs
-  - ../project/crates/codescape/codescape-server/src/voice/tts.rs
-  - ../project/crates/codescape/codescape-server/src/voice/loom.rs
+  - ../project/codescape/crates/codescape-collab/src/floor.rs
+  - ../project/codescape/crates/codescape-collab/src/grammar.rs
+  - ../project/codescape/crates/codescape-collab/src/llm.rs
+  - ../project/codescape/crates/codescape-server/src/main.rs
+  - ../project/codescape/crates/codescape-server/src/state.rs
+  - ../project/codescape/crates/codescape-server/src/engine.rs
+  - ../project/codescape/crates/codescape-server/src/frames.rs
+  - ../project/codescape/crates/codescape-server/src/wire.rs
+  - ../project/codescape/crates/codescape-server/src/proxy.rs
+  - ../project/codescape/crates/codescape-server/src/config.rs
+  - ../project/codescape/crates/codescape-server/src/auth.rs
+  - ../project/codescape/crates/codescape-server/src/http.rs
+  - ../project/codescape/crates/codescape-server/src/egress.rs
+  - ../project/codescape/crates/codescape-server/src/ingest_api.rs
+  - ../project/codescape/crates/codescape-server/src/ingest_sink.rs
+  - ../project/codescape/crates/codescape-server/src/xr_presence.rs
+  - ../project/codescape/crates/codescape-server/src/routes/mod.rs
+  - ../project/codescape/crates/codescape-server/src/routes/ws.rs
+  - ../project/codescape/crates/codescape-server/src/routes/voice.rs
+  - ../project/codescape/crates/codescape-server/src/voice/asr.rs
+  - ../project/codescape/crates/codescape-server/src/voice/tts.rs
+  - ../project/codescape/crates/codescape-server/src/voice/loom.rs
   - ../project/nginx.dev.conf
   - ../project/docker-compose.unified.yml
-  - ../project/client/src/codescape/src/net/config.ts
+  - ../project/codescape/client/src/net/config.ts
   - ../project/xr-client/scripts/graph_scene.gd
   - ../project/agentbox/config/hooks/activity-sink.cjs
-verified_commit: {visionclaw: 098d3ff98c7c10349ee45e2f08d2417a33f8a5db, agentbox: f5304bc783604207a81292d82848950561cecdce}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9, codescape: 9140a0f875f7976e178d2a9ec021b427afeffd6c}
 ---
 
 Codescape is a separate section: a near-real-time 3D view of a codebase that humans and agents share by voice, with its own Cargo workspace, its own compose service and a tested isolation boundary from the knowledge-work system (ADR-2143). It reuses the frozen V3/V5 position wire so the desktop and Godot clients render it unchanged, and it never mounts the corpus, never reaches RuVector and holds no signing key. The agentbox hook is cited at agentbox `f5304bc78`, the head of branch `feat/codescape-activity-sink` in the worktree `../project/.worktrees/agentbox-codescape`, which agentbox `main` does not yet contain; state on 2026-10-18: `gh repo view DreamLab-AI/codescape` does not resolve, so the standalone repository is not yet created.
 
-## VC-39.1 Crate DAG, licences and the isolation fence
+## VC-39.1 Crate DAG, licences and the isolation fence (Codescape is its own repository since ADR-2143 A5)
 
 ```mermaid
 flowchart TB
-    subgraph WS["crates/codescape, own [workspace] and own Cargo.lock, never a root member<br/>codescape/Cargo.toml:12-20"]
+    subgraph REPO["DreamLab-AI/codescape, a git submodule at codescape/ in VisionClaw, own [workspace] and own Cargo.lock, never a member of another workspace<br/>codescape/Cargo.toml:17-28"]
         direction TB
-        LIC["every member AGPL-3.0-only, publish = false, repository still the VisionClaw monorepo<br/>codescape/Cargo.toml:26 codescape/Cargo.toml:28 codescape/Cargo.toml:29"]
-        M["codescape-model: nodes, interned 26-bit ids, LOD, V3 mapping, I/O-free<br/>codescape-model/src/lib.rs:3-7 deps serde, serde_json, thiserror only codescape-model/Cargo.toml:12-15"]
-        I["codescape-ingest: the only graphicle consumer, no graphicle type crosses its API<br/>codescape-ingest/src/lib.rs:3-9 codescape-ingest/Cargo.toml:14"]
-        L["codescape-layout: CPU Barnes-Hut oracle, cuda feature drives visionclaw-gpu PTX<br/>codescape-layout/src/lib.rs:6-12 codescape-layout/Cargo.toml:14"]
-        C["codescape-collab: actors, heat, floor, grammar, I/O-free<br/>codescape-collab/src/lib.rs:1-5 codescape-collab/Cargo.toml:12-16"]
-        S["codescape-server: actix, every network adapter, the binary<br/>codescape-server/src/lib.rs:1-12 codescape-server/Cargo.toml:25-28"]
+        LIC["licence split: the workspace default is AGPL-3.0-only (codescape-ingest, codescape-layout, codescape-server inherit it),<br/>codescape-model and codescape-collab override it with MIT OR Apache-2.0 and publish = true<br/>codescape/Cargo.toml:34 codescape-model/Cargo.toml:7 codescape-model/Cargo.toml:15 codescape-collab/Cargo.toml:7"]
+        M["codescape-model: nodes, interned 26-bit ids, LOD, V3 mapping, I/O-free<br/>codescape-model/src/lib.rs:1-8 deps serde, serde_json, thiserror and visionclaw-wire codescape-model/Cargo.toml:17-21"]
+        I["codescape-ingest: the only graphicle consumer, no graphicle type crosses its API<br/>codescape-ingest/src/lib.rs:1-9 codescape-ingest/Cargo.toml:14"]
+        L["codescape-layout: CPU Barnes-Hut oracle, cuda feature drives the visionclaw-gpu PTX loaded at run time<br/>codescape-layout/src/lib.rs:1-26 codescape-layout/Cargo.toml:14"]
+        C["codescape-collab: actors, heat, floor, grammar, I/O-free<br/>codescape-collab/src/lib.rs:1-5 codescape-collab/Cargo.toml:17"]
+        S["codescape-server: actix, every network adapter, the binary<br/>codescape-server/src/lib.rs:1-12 codescape-server/Cargo.toml:22-24"]
         I --> M
         L --> M
         C --> M
@@ -75,21 +79,23 @@ flowchart TB
         S --> L
         S --> C
     end
-    G["graphicle, Apache-2.0, git dependency pinned to rev 003f936<br/>codescape/Cargo.toml:40"]
-    PINS["exact pins graphicle forces: smallvec 1.16.1, unicode-normalization 0.1.22<br/>codescape/Cargo.toml:62-63"]
-    GPU["visionclaw-gpu, AGPL-3.0-only, optional path dependency behind cuda<br/>codescape-layout/Cargo.toml:25 visionclaw-gpu/Cargo.toml:5"]
-    FIX["visionclaw-protocol wire fixtures, included by source with a path attribute, no crate dependency<br/>codescape-model/src/wire.rs:17-19"]
+    G["graphicle, Apache-2.0, git dependency pinned to rev 003f936<br/>codescape/Cargo.toml:53"]
+    PINS["exact pins graphicle forces: smallvec 1.16.1, unicode-normalization 0.1.22<br/>codescape/Cargo.toml:75-76"]
+    WIRE["visionclaw-wire 0.1.0 from crates.io, dependency-free, MIT OR Apache-2.0: the frozen V3/V5 record and fixtures<br/>codescape/Cargo.toml:48 visionclaw-wire/src/lib.rs:83 codescape-model/src/wire.rs:17"]
+    PTX["PTX and ptx-build-manifest.txt read at run time from CODESCAPE_PTX_DIR, no link to visionclaw-gpu<br/>codescape-layout/src/ptx_source.rs:1-25"]
     I --> G
     G --- PINS
-    L -.->|"feature cuda"| GPU
-    M -.->|"path attribute include"| FIX
-    WHY["INVARIANT: separate lock because graphicle turns on serde_json arbitrary_precision,<br/>which would unify into every VisionClaw crate in the root workspace<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:26 ADR-2143-codescape-section-separate-workspace-and-port.md:31"]
-    WS --- WHY
-    BAN["INVARIANT I1: no ontology, memory-cloud, vault, Oxigraph, Postgres, RuVector, Solid or<br/>VisionClaw-server crate in the build graph, tested by name only (A2 gap 1)<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:59 ADR-2143-codescape-section-separate-workspace-and-port.md:151"]
-    WS --- BAN
+    M --> WIRE
+    L -.->|"feature cuda, cust only"| PTX
+    WHY["INVARIANT I6: separate lock because graphicle turns on serde_json arbitrary_precision,<br/>which would unify into any crate sharing the resolution<br/>codescape/Cargo.toml:12-16"]
+    REPO --- WHY
+    BAN["INVARIANT I1 and I1a: no ontology, memory-cloud, vault, Oxigraph, Postgres, RuVector, Solid or VisionClaw-server crate in the build graph, and visionclaw-wire is the ONLY visionclaw-* crate, both feature sets<br/>codescape-server/tests/isolation.rs:121 codescape-server/tests/isolation.rs:139"]
+    REPO --- BAN
+    NOGIT["INVARIANT I10 and I11: no git+ source naming the VisionClaw repository, and no permissive crate depends on an AGPL crate<br/>codescape-server/tests/isolation.rs:215 codescape-server/tests/isolation.rs:324"]
+    REPO --- NOGIT
 ```
 
-**What it shows.** Five crates cut by I/O: model, collab and the CPU layout compile with no graphicle, network or GPU; ingest alone sees graphicle; the server alone does network I/O; the only two edges out of the workspace are the optional GPU path dependency and a by-source include of the shared wire fixtures. **Why it is this way.** Cargo unifies features across a workspace, so one lock would change `serde_json::Number` for VisionClaw (ADR-2143 decision 1); graphicle's non-optional neo4rs and redis compile in as dead code, a supply-chain cost recorded rather than removed (ADR-2143-codescape-section-separate-workspace-and-port.md:87).
+**What it shows.** Five crates cut by I/O: model, collab and the CPU layout compile with no graphicle, network or GPU; ingest alone sees graphicle; the server alone does network I/O. The two former edges into the VisionClaw monorepo, the optional `visionclaw-gpu` path dependency and the path-attribute fixture include, are gone: the wire comes from the crates.io crate `visionclaw-wire` and the PTX arrives as a run-time artefact. **Why it is this way.** ADR-2143 A5 extracted the workspace to its own repository so it is reusable outside VisionClaw without a 72 GB git history; the licence split lets the two I/O-free crates be published permissively (`codescape/Cargo.toml:34`).
 
 ## VC-39.2 Runtime topology: compose peer, shared port, clients, hook ingest and voice egress
 
@@ -97,15 +103,15 @@ flowchart TB
 flowchart TB
     subgraph HOST["host"]
         LAN["laptop or headset on the LAN"]
-        LOOP["host loopback, port 4100 published to 127.0.0.1 by default<br/>docker-compose.unified.yml:526"]
+        LOOP["host loopback, port 4100 published to 127.0.0.1 by default<br/>docker-compose.unified.yml:537"]
     end
     subgraph NET["visionclaw_network"]
         subgraph VC["visionclaw_container, mounts /vault, never hosts the Codescape service"]
             NGX["dev nginx port 3001, location ^~ /codescape/, upstream resolved lazily by Docker DNS<br/>nginx.dev.conf:66 nginx.dev.conf:74-77"]
         end
-        subgraph CS["codescape service, profile codescape, source-only read-only repo views<br/>docker-compose.unified.yml:433 docker-compose.unified.yml:488-504 docker-compose.unified.yml:544-545"]
+        subgraph CS["codescape service, profile codescape, runs the standalone submodule mounted read-only at /app/codescape through its own deploy/codescape-entrypoint.sh, plus read-only repo views<br/>docker-compose.unified.yml:433 docker-compose.unified.yml:443 docker-compose.unified.yml:487 docker-compose.unified.yml:499-515 docker-compose.unified.yml:555-556"]
             MAIN["main listener port 4100: REST, /ws/positions, /ws/events, /wss, /ws/voice, /ws/presence<br/>codescape-server/src/routes/mod.rs:403-415"]
-            ING["ingest listener port 4101, only when a token file is configured, never published<br/>codescape-server/src/main.rs:175-189 docker-compose.unified.yml:522"]
+            ING["ingest listener port 4101, only when a token file is configured, never published<br/>codescape-server/src/main.rs:175-189 docker-compose.unified.yml:533"]
             ENG["RepoEngine per repo: ingest thread, layout thread up to 240 Hz, publish every 16 ms<br/>codescape-server/src/engine.rs:32-36 codescape-server/src/engine.rs:713 codescape-server/src/engine.rs:767"]
             MAIN --> ENG
             ING --> ENG
@@ -113,7 +119,7 @@ flowchart TB
         AB["agentbox container: activity-sink hook, fail-open, Bearer token, 1 s budget<br/>activity-sink.cjs:4-23 activity-sink.cjs:276 activity-sink.cjs:306"]
         ASR["nemotron-asr, streaming ASR websocket<br/>codescape-server/src/config.rs:129-134"]
         TTS["pocket-tts<br/>codescape-server/src/config.rs:137-142"]
-        LOOM["Loom door, optional out-of-grammar fallback<br/>docker-compose.unified.yml:461"]
+        LOOM["Loom door, optional out-of-grammar fallback<br/>docker-compose.unified.yml:470"]
     end
     LAN -->|"http port 3001 /codescape/"| NGX
     LAN -.->|"direct, only with CODESCAPE_PUBLISH_ADDR set"| LOOP
@@ -123,8 +129,8 @@ flowchart TB
     ENG -->|"egress allowlist checked per URL<br/>codescape-server/src/egress.rs:77"| ASR
     ENG --> TTS
     ENG -.-> LOOM
-    DESK["desktop client: base from a /codescape first path segment, ?server= override<br/>client/src/codescape/src/net/config.ts:15-18 client/src/codescape/src/net/config.ts:32-57"]
-    XR["Godot XR client: Backend toggle appends /codescape to XR_BACKEND_WS once<br/>xr-client/scripts/graph_scene.gd:75 xr-client/scripts/graph_scene.gd:839-847 xr-client/scripts/graph_scene.gd:1444-1453"]
+    DESK["desktop client: base from a /codescape first path segment, ?server= override<br/>codescape/client/src/net/config.ts:15-18 codescape/client/src/net/config.ts:32-57"]
+    XR["Godot XR client: Backend toggle appends /codescape to XR_BACKEND_WS once<br/>xr-client/scripts/graph_scene.gd:76 xr-client/scripts/graph_scene.gd:909-920 xr-client/scripts/graph_scene.gd:1533-1542"]
     XRN["see VC-40.1 and VC-40.2 - after this stamp (ADR-2143 A6) the XR client gates every server-bound request<br/>on a per-backend capability table and abandons in-flight requests on a switch"]
     DESK --- LAN
     XR --- LAN
@@ -133,7 +139,7 @@ flowchart TB
     CS --- REF
 ```
 
-**What it shows.** Codescape is a network peer of VisionClaw, never a co-tenant: nginx reaches it by service name and answers 502 when it is down, the hook reaches port 4101 only across the compose network, and voice egress goes only to the configured ASR, TTS and Loom URLs plus the P6 voice-intent URL when set (codescape-server/src/config.rs:265-277). **Why it is this way.** `visionclaw_container` mounts `/vault` and carries the RuVector connection string, so running Codescape there would make isolation a convention (ADR-2143-codescape-section-separate-workspace-and-port.md:186-192); `/codescape/` on port 3001 is the owner's dev-only waiver of A2 gap 4 (nginx.dev.conf:63-65).
+**What it shows.** Codescape is a network peer of VisionClaw, never a co-tenant: nginx reaches it by service name and answers 502 when it is down, the hook reaches port 4101 only across the compose network, and voice egress goes only to the configured ASR, TTS and Loom URLs plus the P6 voice-intent URL when set (codescape-server/src/config.rs:265-277). **Why it is this way.** `visionclaw_container` mounts `/vault` and carries the RuVector connection string, so running Codescape there would make isolation a convention (ADR-2143-codescape-section-separate-workspace-and-port.md:187-193); `/codescape/` on port 3001 is the owner's dev-only waiver of A2 gap 4 (nginx.dev.conf:63-65).
 
 ## VC-39.3 One position socket tick: admission, base records, selection, V5, ack
 
@@ -165,8 +171,8 @@ sequenceDiagram
     FS-->>PS: at most 16384 records, the rest deferred to the next tick (codescape-server/src/wire.rs:254-259)
     PS->>PS: seq advance, on_sent, v5_frame(seq, records) (codescape-server/src/frames.rs:147-150)
     PS-->>PL: V5 frame bytes
-    PL->>CL: binary V5, 1 + 8 + 52n bytes (wire_fixtures.rs:162)
-    CL->>PL: 0x34 ack, 21 bytes, cumulative (codescape-model/src/wire.rs:92-95)
+    PL->>CL: binary V5, 1 + 8 + 52n bytes (visionclaw-wire/src/lib.rs:183)
+    CL->>PL: 0x34 ack, 21 bytes, cumulative (codescape-model/src/wire.rs:88-91)
     PL->>AW: on_ack(seq) switches pacing on and drops every frame up to seq (codescape-server/src/wire.rs:176-182)
     Note over PL: XR only, 0x23 agent actions and a topology resend at most every 2 s after deltas (codescape-server/src/routes/ws.rs:37 codescape-server/src/routes/ws.rs:395-401 codescape-server/src/routes/ws.rs:413-418)
 ```
@@ -178,9 +184,9 @@ sequenceDiagram
 ```mermaid
 classDiagram
     class NodeRecord {
-        frozen 52 bytes, little-endian : wire_fixtures.rs:70
-        struct : wire_fixtures.rs:94-104
-        serialiser : wire_fixtures.rs:126
+        frozen 52 bytes, little-endian : visionclaw-wire/src/lib.rs:83
+        struct : visionclaw-wire/src/lib.rs:107-125
+        serialiser : visionclaw-wire/src/lib.rs:147
         u32 wire_id at 0, node id masked to 26 bits
         f32x3 position at 4, velocity at 16
         f32 sssp_distance at 28, i32 sssp_parent at 32
@@ -190,7 +196,7 @@ classDiagram
         f32 centrality at 48
     }
     class CodeNodeMapping {
-        record_for : codescape-model/src/wire.rs:32-50
+        record_for : codescape-model/src/wire.rs:28-46
         wire_id is node.id and NODE_ID_MASK, no flag bits
         cluster_id is the crate or top-level directory
         community_id is the stable-matched Leiden community
@@ -199,9 +205,9 @@ classDiagram
         sssp is BFS hops and parent from the focus
     }
     class ActorMapping {
-        actor_record : codescape-model/src/wire.rs:53-57
+        actor_record : codescape-model/src/wire.rs:49-53
         wire_id carries AGENT_FLAG 0x80000000
-        flag constant : codescape-model/src/wire.rs:29
+        flag constant : codescape-model/src/wire.rs:25
         anomaly fixed by the caller to 1.0
     }
     class IdSpace {
@@ -210,15 +216,15 @@ classDiagram
     }
     class V5Frame {
         opcode 0x05 then u64 sequence then n records
-        builder : wire_fixtures.rs:162
+        builder : visionclaw-wire/src/lib.rs:183
     }
     class AckFrame {
         0x34, u64 seq, u32 nodes, u64 client ts, 21 bytes
-        decode_ack : codescape-model/src/wire.rs:92
+        decode_ack : codescape-model/src/wire.rs:88
     }
     class AgentActionFrame {
         0x23, u16 count, bodies of agent, node, type, ts, duration
-        builder : codescape-model/src/wire.rs:119-131
+        builder : codescape-model/src/wire.rs:115-127
         types Query 0, Update 1, Create 2, Delete 3
     }
     CodeNodeMapping ..> NodeRecord : fills
@@ -228,7 +234,7 @@ classDiagram
     AckFrame ..> V5Frame : acknowledges
 ```
 
-**What it shows.** Codescape claims no tag byte and no flag bit: it re-reads the five semantic slots of the shared record as code-graph meanings and marks actors with the existing agent flag, so both clients decode it with their own parsers. **Why it is this way.** A new wire format would fork three decoders, which ADR-2018 and ADR-2019 exist to prevent (ADR-2143-codescape-section-separate-workspace-and-port.md:100); ids are interned, not hashed, because 100k symbol keys hashed into 26 bits would collide (ADR-2143-codescape-section-separate-workspace-and-port.md:27, ADR-2143-codescape-section-separate-workspace-and-port.md:45).
+**What it shows.** Codescape claims no tag byte and no flag bit: it re-reads the five semantic slots of the shared record as code-graph meanings and marks actors with the existing agent flag, so both clients decode it with their own parsers. **Why it is this way.** A new wire format would fork three decoders, which ADR-2018 and ADR-2019 exist to prevent (ADR-2143-codescape-section-separate-workspace-and-port.md:101); ids are interned, not hashed, because 100k symbol keys hashed into 26 bits would collide (ADR-2143-codescape-section-separate-workspace-and-port.md:27, ADR-2143-codescape-section-separate-workspace-and-port.md:45).
 
 ## VC-39.5 Voice: one floor, ASR, grammar or Loom, executor, spoken answer
 
@@ -304,15 +310,15 @@ flowchart TB
     ORIG --> PFX
     ORIG --> USE
     OFF --> USE
-    COMPOSE["compose sets trust on, narrowed to the VisionClaw service alias, prefix /codescape<br/>docker-compose.unified.yml:464 docker-compose.unified.yml:468-469"]
+    COMPOSE["compose sets trust on, narrowed to the VisionClaw service alias, prefix /codescape<br/>docker-compose.unified.yml:473 docker-compose.unified.yml:477-478"]
     NG["nginx sends Host, X-Forwarded-For appended, Proto, Host, Prefix, hides upstream COOP/COEP/CORP<br/>nginx.dev.conf:81-86 nginx.dev.conf:94-96"]
     COMPOSE -.-> EN
     NG -.-> REQ
 ```
 
-**What it shows.** A sibling container on the compose network that sends the same headers as nginx is treated exactly as trust off, because trust needs both the switch and a matching peer; only the last forwarded-for hop is believed, since the leftmost entries are client-supplied. **Why it is this way.** ADR-2143 A4.4 (ADR-2143-codescape-section-separate-workspace-and-port.md:204-212); the duplicate isolation headers are hidden because two copies parse as `unsafe-none` and defeat cross-origin isolation (nginx.dev.conf:92-93).
+**What it shows.** A sibling container on the compose network that sends the same headers as nginx is treated exactly as trust off, because trust needs both the switch and a matching peer; only the last forwarded-for hop is believed, since the leftmost entries are client-supplied. **Why it is this way.** ADR-2143 A4.4 (ADR-2143-codescape-section-separate-workspace-and-port.md:205-213); the duplicate isolation headers are hidden because two copies parse as `unsafe-none` and defeat cross-origin isolation (nginx.dev.conf:92-93).
 
-## VC-39.7 Register: tensions, debt, drift and open questions at 098d3ff98
+## VC-39.7 Register: tensions, debt, drift and open questions at codescape 9140a0f
 
 ```mermaid
 flowchart TB
@@ -320,38 +326,38 @@ flowchart TB
         direction TB
         R1["OPEN until P6: the main port runs OpenAccess, reported honestly as auth open, while<br/>port 3001 /codescape/ is LAN-published in dev by owner decision<br/>codescape-server/src/auth.rs:120-124 codescape-server/src/routes/mod.rs:69 nginx.dev.conf:63-65"]
         R2["OPEN: /ws/presence shim accepts the Schnorr signature unverified, the claimed DID is only a label,<br/>bounds 64 members per room, 256 rooms<br/>codescape-server/src/xr_presence.rs:20-23 codescape-server/src/xr_presence.rs:65-67"]
-        R3["TENSION: I8a egress allowlist and no-/vault are REJECTED as invariants, compose non-publication<br/>is not an egress boundary, open until P2 ships an egress test<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:82 ADR-2143-codescape-section-separate-workspace-and-port.md:143"]
+        R3["TENSION: I8a egress allowlist and no-/vault are REJECTED as invariants, compose non-publication<br/>is not an egress boundary, open until P2 ships an egress test<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:82 ADR-2143-codescape-section-separate-workspace-and-port.md:144"]
         R1 --- R2 --- R3
     end
     subgraph PERF["DEBT: scale targets"]
         direction TB
-        P1["MISSED: GPU step at 100k nodes 7.8 ms against 5 ms, kernels only 1.7 ms<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:132"]
-        P2["MISSED: cold settle at 100k 13.7 s on GPU against 10 s, CPU 56.6 s, cause host-side work per step<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:133-135"]
-        P3["OPEN: I7a GPU-vs-CPU conformance is an opt-in ignored test, not an invariant, required at P2<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:80 ADR-2143-codescape-section-separate-workspace-and-port.md:139-142"]
+        P1["MISSED: GPU step at 100k nodes 7.8 ms against 5 ms, kernels only 1.7 ms<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:133"]
+        P2["MISSED: cold settle at 100k 13.7 s on GPU against 10 s, CPU 56.6 s, cause host-side work per step<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:134-136"]
+        P3["OPEN: I7a GPU-vs-CPU conformance is an opt-in ignored test, not an invariant, required at P2<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:80 ADR-2143-codescape-section-separate-workspace-and-port.md:140-143"]
         P1 --- P2 --- P3
     end
     subgraph XRG["OPEN: XR"]
         direction TB
-        X1["OPEN: empty agent hover label in the headset, actor ids carry AGENT_FLAG but the headset<br/>names agents from its label table, else a demo role, else agent N<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:113 xr-client/scripts/graph_scene.gd:2601-2609"]
-        X2["DOC-DRIFT: the P4 row says /ws/presence is unimplemented, but the route is registered<br/>and A4.5 adds the shim<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:113 codescape-server/src/routes/mod.rs:415 ADR-2143-codescape-section-separate-workspace-and-port.md:216-217"]
+        X1["OPEN: empty agent hover label in the headset, actor ids carry AGENT_FLAG but the headset<br/>names agents from its label table, else a demo role, else agent N<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:114 xr-client/scripts/graph_scene.gd:2692-2700"]
+        X2["DOC-DRIFT: the P4 row says /ws/presence is unimplemented, but the route is registered<br/>and A4.5 adds the shim<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:114 codescape-server/src/routes/mod.rs:415 ADR-2143-codescape-section-separate-workspace-and-port.md:217-218"]
         X3["OPEN: /wss ignores nodePin, nodeUnpin and nodeDrag and there is no physics write, so the headset greys<br/>those controls (see VC-40.1); whether Codescape should honour drag and pin is undecided"]
         X1 --- X2 --- X3
     end
-    subgraph EXT["OPEN: A5 extraction to DreamLab-AI/codescape, in progress, no A5 amendment at this revision"]
+    subgraph EXT["OPEN: A5 extraction to DreamLab-AI/codescape, done in code, last step open"]
         direction TB
-        E1["BLOCKER: graphicle is a git dependency, crates.io refuses git dependencies<br/>codescape/Cargo.toml:40"]
-        E2["BLOCKER: publish = false and repository names the VisionClaw monorepo<br/>codescape/Cargo.toml:28-29"]
-        E3["BLOCKER: two monorepo edges, the cuda path dependency and the path-attribute fixture include<br/>codescape-layout/Cargo.toml:25 codescape-model/src/wire.rs:18"]
-        E4["EXTERNAL: hook lives only on agentbox branch feat/codescape-activity-sink at f5304bc78<br/>activity-sink.cjs:5"]
+        E1["BLOCKER for crates.io: graphicle is a git dependency and crates.io refuses git dependencies, so codescape-ingest cannot be published until graphicle is<br/>codescape/Cargo.toml:53"]
+        E2["OPEN: the last A5 step is unticked, Decision 1, Decision 7 and I2 are not yet amended and the governing docs are not updated, so the ADR text still describes crates/codescape and the build-compiled PTX<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:282"]
+        E3["DONE: licence split, visionclaw-wire extracted, PTX from CODESCAPE_PTX_DIR, submodule mounted, I10 enforced, three crates published at 0.1.0<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:274-281"]
+        E4["RESOLVED: the activity-sink hook is on agentbox main, now ADR-2146<br/>activity-sink.cjs:5"]
         E1 --- E2 --- E3 --- E4
     end
     subgraph DR["DOC-DRIFT: ADR-2143 text"]
         direction TB
-        D1["says crates/codescape is untracked, it is tracked at 098d3ff98<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:166"]
-        D2["client import allowlist is wider than decision 8 states<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:148"]
-        D3["I7 accepts a hand-authored manifest saying provenance=compiled, I3 and I4 are helper-level tests<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:152-153"]
+        D1["A2 item 6 now says crates/codescape was untracked only at the time of A2 and has since been committed, then moved to the submodule<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:167"]
+        D2["client import allowlist is wider than decision 8 states<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:149"]
+        D3["I7 accepts a hand-authored manifest saying provenance=compiled, I3 and I4 are helper-level tests<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:153-154"]
         D1 --- D2 --- D3
     end
 ```
 
-**What it shows.** Every known gap at the stamp, each anchored to the code or the ADR line that records it; ADR-2143 is `implementation_status: partial` and `activation_status: inactive` (ADR-2143-codescape-section-separate-workspace-and-port.md:6-7), with P0 done and P2 to P6 open (ADR-2143-codescape-section-separate-workspace-and-port.md:231). **Verified.** Citations read at visionclaw `098d3ff98` and agentbox `f5304bc78` on 2026-10-18; the `/codescape/` prod path is untouched and prod's SPA fallback answers 200 there, not 404 (ADR-2143-codescape-section-separate-workspace-and-port.md:195-197).
+**What it shows.** Every known gap at the stamp, each anchored to the code or the ADR line that records it; ADR-2143 is `implementation_status: partial` and `activation_status: inactive` (ADR-2143-codescape-section-separate-workspace-and-port.md:6-7), with P0 done and P2 to P6 open (ADR-2143-codescape-section-separate-workspace-and-port.md:296). **Verified.** Citations read at visionclaw `19417bdff`, agentbox `1da8d2171` and codescape `9140a0f` on 2026-10-29; the `/codescape/` prod path is untouched and prod's SPA fallback answers 200 there, not 404 (ADR-2143-codescape-section-separate-workspace-and-port.md:196-198).

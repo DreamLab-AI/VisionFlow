@@ -37,7 +37,7 @@ sources:
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, solid-pod-rs: 93e2200218fad37927df16a1b7784c93c475670d, nostr-rust-forum: 72463fbde35ac4c68539b1f65a08ff03b9941201}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9, visionflow: 1d7183a73c1eae4996a7006067d5047308fab7a5, solid-pod-rs: a4a86f6da300b529c7855318c24ff5c7b35ec582, nostr-rust-forum: 8a5cf817e81b20e2b761899eab753768c0cb4988}
 ---
 ## ES-03.1 Shared wire envelope: AgentActionNotification (agentbox emit -> VisionClaw ingest)
 ```mermaid
@@ -89,7 +89,7 @@ classDiagram
     AgentActionParams --> AgentActionEnvelope : event
     AgentActionEnvelope --> AgentActionEvent : to_binary_event
     note for AgentActionNotification "src/agent_events/schema.rs:26-30 struct; METHOD const :33;<br/>is_canonical requires jsonrpc 2.0, kind agent_action, version >= 3 at :36-41"
-    note for AgentActionEnvelope "src/agent_events/schema.rs:60-140 mirrors agentbox<br/>management-api/utils/agent-event-publisher.js byte-for-field (ADR-059 par2)<br/>INVARIANT: canonical wire names (token_count/handoff_id/verification) come from agentbox;<br/>serde alias accepts the older draft spelling"
+    note for AgentActionEnvelope "src/agent_events/schema.rs:61-147 mirrors agentbox<br/>management-api/utils/agent-event-publisher.js byte-for-field (ADR-059 par2)<br/>INVARIANT: canonical wire names (token_count/handoff_id/verification) come from agentbox;<br/>serde alias accepts the older draft spelling"
     note for AgentActionEvent "to_binary_event src/agent_events/schema.rs:173 is the identity-blind 0x23 projection:<br/>source_urn/target_urn/pubkey are dropped on purpose, already resolved server-side (ADR-059) :169-172"
 ```
 ## ES-03.2 VisionClaw urn:visionclaw grammar - 7 kinds, no agent kind
@@ -161,6 +161,10 @@ flowchart TD
     end
     MINT --> CA
     MINT --> SLUG
+    POD ~~~ ENVELOPE ~~~ CRED ~~~ MANDATE ~~~ RECEIPT
+    ACTIVITY ~~~ EVENT ~~~ DECISION ~~~ BEAD ~~~ KNOW
+    MCP ~~~ MEMORY ~~~ SKILL ~~~ ADR ~~~ PRD ~~~ DDD
+    THING ~~~ DATASET ~~~ AGENT ~~~ META ~~~ CHAIN
     NORM["_normalisePubkey supplied<br/>uris.js:237-259<br/>accepts hex, did:nostr hex, or npub1 bech32"]
     MINT -- "spec.ownerScope true" --> NORM
     NOTE_KIND["INVARIANT: 21 kinds total, decision added by ADR-048,<br/>knowledge by ADR-2085 and chain by ADR-2098 (uris.js:115).<br/>The KINDS table is frozen at uris.js:88 and every durable<br/>identifier is minted through it.<br/>agentbox/CLAUDE.md Parallel namespace"]
@@ -252,7 +256,7 @@ sequenceDiagram
     RSW->>RSC: content_address(&canon)
     RSC->>RSC: digest = Sha256::digest(canon.as_bytes)
     RSC-->>RSW: sha256-12- + hex::encode(digest[..6])
-    Note over RSW: GOLDEN FIXTURE test entity_urn_matches_uris_js_golden<br/>src/services/provenance_writer.rs:623 (declared at :65) - identical payload gives<br/>urn:agentbox:event:aaa...:sha256-12-8c3913fd05a9 on both sides
+    Note over RSW: GOLDEN FIXTURE test entity_urn_matches_uris_js_golden<br/>src/services/provenance_writer.rs:620-630 (declared at :65) - identical payload gives<br/>urn:agentbox:event:aaa...:sha256-12-8c3913fd05a9 on both sides
     alt payload differs only by agent pubkey in scope
         RSW->>RSW: content_address_is_deterministic_and_agent_independent_in_hash<br/>:637-654 - same local hash, different scope segment
     end
@@ -370,7 +374,7 @@ sequenceDiagram
     participant AA as assertPrivacyFilterApplied<br/>privacy-filter.js:595
     participant Ad as Adapter impl call
     rect rgb(240,240,255)
-    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:267.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
+    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:297.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
     Rt->>WD: instrumentedDispatch(...args)
     WD->>WD: executionId = uris.mint kind event,pubkey,payload
     WD->>PF: privacyWrapped(...args)
@@ -498,6 +502,6 @@ flowchart LR
     GATE["OPEN — the payment_settlement authority class is declared today<br/>and currently GATES NOTHING. The settlement pack is what would<br/>give it work to do.<br/>agentbox/docs/developer/economy-loop.md:270"]
     CHAIN --> GATE
 
-    SKEW["DOC-DRIFT — the version pins skew across the three: the forum<br/>record still reads the host at solid-pod-rs 0.4.0-alpha.15 while the<br/>forum resolves 0.5.0-alpha.7<br/>(ADR-2012-d1-ledger-becomes-a-chain-view.md:28-30), and no gate<br/>compares them — while the VisionClaw checkout has since moved its own<br/>crates.io pin to =0.5.0-alpha.12 (Cargo.toml:224). see ES-01.1"]
+    SKEW["DOC-DRIFT — the version pins skew across the three: the forum<br/>record still reads the host at solid-pod-rs 0.4.0-alpha.15 while the<br/>forum resolves 0.5.0-alpha.7<br/>(ADR-2012-d1-ledger-becomes-a-chain-view.md:28-30), and no gate<br/>compares them — while the VisionClaw checkout has since moved its own<br/>crates.io pin to 0.5.0-alpha.17 (Cargo.toml:245). see ES-01.1"]
     TODAY --> SKEW
 ```

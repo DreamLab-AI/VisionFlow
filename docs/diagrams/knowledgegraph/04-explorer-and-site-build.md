@@ -18,7 +18,7 @@ sources:
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/types/scope.ts
   - ../visionGraph/.github/workflows/publish.yml
   - ../knowledgeGraph/archive/github-workflows/build.yml
-verified_commit: {knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visiongraph: 015ca2c1f2d7289955ebf16b98b6775a57ec0f7b}
+verified_commit: {knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3, visiongraph: 59e7dcc8d05ca447d03c74c819a740b390b93074}
 ---
 
 ## KG-04.1 Explorer topology — MIT viewer over AGPL-built, ODbL-licensed data
@@ -34,7 +34,7 @@ flowchart TB
         NGGEXP["NggExplorer wasm_bindgen class<br/>loadCsr/tick/isFinished/positionsPtr — see VW-*"]
     end
     ROUTER --> GP --> WORKER --> NGGEXP
-    note1["DOC-DRIFT: BASELINE-narrativegoldmine.md:14 and architecture/explorer.md:10<br/>both cite explorer/rust-wasm/src/ngg1.rs as an IN-TREE crate. At this commit<br/>there is no rust-wasm/ directory in explorer/ at all — explorer/modern/package.json:20<br/>fetches '@dreamlab-ai/vowl-wasm' as a GitHub release TARBALL v0.1.1<br/>#40;GitHub release, not npm#41;. The reader now lives in the sibling vowl-wasm repo —<br/>EXTERNAL: see VW-* for the crate itself. DIVERGENCE: the copy that actually SHIPS<br/>to narrativegoldmine.com is a DIFFERENT tree — visionGraph's publishing-tools/<br/>WasmVOWL/modern/package.json:20 pins the SAME package as npm '0.1.2', not this<br/>tarball's v0.1.1 — see KG-04.6 and VG-06"]
+    note1["DOC-DRIFT: BASELINE-narrativegoldmine.md:14 and architecture/explorer.md:10<br/>both cite explorer/rust-wasm/src/ngg1.rs as an IN-TREE crate. At this commit<br/>there is no rust-wasm/ directory in explorer/ at all — explorer/modern/package.json:20<br/>fetches '@dreamlab-ai/vowl-wasm' as a GitHub release TARBALL v0.1.1<br/>#40;GitHub release, not npm#41;. The reader now lives in the sibling vowl-wasm repo —<br/>EXTERNAL: see VW-* for the crate itself. DIVERGENCE: the copy that actually SHIPS<br/>to narrativegoldmine.com is a DIFFERENT tree — visionGraph's publishing-tools/<br/>WasmVOWL/modern/package.json:25 pins the same package as the v0.2.0 release tarball<br/>(WasmVOWL/modern/package.json:25), not this tarball's v0.1.1, and adds<br/>@dreamlab-ai/ontomark-graph (WasmVOWL/modern/package.json:24) — see KG-04.6 and VG-06"]
 ```
 
 ## KG-04.2 NGG1 tier data flow — fetch → parse → worker tick → instanced render
@@ -105,13 +105,14 @@ flowchart TB
         HPKG["explorer/modern/package.json:20<br/>@dreamlab-ai/vowl-wasm — GitHub RELEASE TARBALL<br/>v0.1.1-pkg.tgz"]
     end
     subgraph SHIP["visionGraph/publishing-tools/WasmVOWL/modern — the SHIPPING tree<br/>EXTERNAL: see VG-06"]
-        SPKG["WasmVOWL/modern/package.json:20<br/>@dreamlab-ai/vowl-wasm — npm registry<br/>'0.1.2'"]
+        SPKG["WasmVOWL/modern/package.json:25<br/>@dreamlab-ai/vowl-wasm — GitHub RELEASE TARBALL<br/>v0.2.0-pkg.tgz"]
+        SGRAPH["WasmVOWL/modern/package.json:24<br/>@dreamlab-ai/ontomark-graph 0.1.0 release tarball —<br/>shared graph rendering, replaces the local<br/>r3f / drei / d3-force-3d dependencies"]
     end
     BUILDYML["this repo's build.yml — RETIRED, INERT<br/>archive/github-workflows/build.yml:1<br/>moved out of .github/workflows/ #40;its ontology/ target<br/>had already moved to archive/#41; — never builds explorer/"]
-    PUBYML["visionGraph publish.yml:376<br/>'Build the explorer SPA' step builds THIS SPA — EXTERNAL VG-03.3"]
-    SITE["narrativegoldmine.com<br/>external_repository DreamLab-AI/knowledgeGraph gh-pages<br/>EXTERNAL publish.yml:453"]
+    PUBYML["visionGraph publish.yml:410<br/>'Build the explorer SPA' step builds THIS SPA — EXTERNAL VG-03.3"]
+    SITE["narrativegoldmine.com<br/>external_repository DreamLab-AI/knowledgeGraph gh-pages<br/>EXTERNAL publish.yml:519"]
     HERE -.->|"built by NOTHING in this repo — even the retired workflow is inert"| BUILDYML
     SHIP --> PUBYML --> SITE
-    note1["DOC-DRIFT: KG-04.1 through KG-04.4 document explorer/modern as THE explorer —<br/>accurate for what the source code says, but this copy is never built or<br/>deployed by anything in this repository, and the one workflow that once<br/>tried #40;build.yml#41; is now retired to archive/ — see VG-06 for the<br/>shipping tree's own topic. The two trees have DIVERGED on the one<br/>dependency both pin: HPKG v0.1.1 #40;tarball#41; vs SPKG '0.1.2' #40;npm#41;"]
-    note2["DIVERGED on domains since 2026-10-01: THIS copy's DOMAIN_SLUGS has six<br/>entries, explorer/modern/src/types/scope.ts:73-80 — the shipping tree has<br/>eight, WasmVOWL/modern/src/types/scope.ts:75-84 — see VG-06.5"]
+    note1["DOC-DRIFT: KG-04.1 through KG-04.4 document explorer/modern as THE explorer —<br/>accurate for what the source code says, but this copy is never built or<br/>deployed by anything in this repository, and the one workflow that once<br/>tried #40;build.yml#41; is now retired to archive/ — see VG-06 for the<br/>shipping tree's own topic. The two trees have DIVERGED on the one<br/>dependency both pin: HPKG v0.1.1 vs SPKG v0.2.0, both release tarballs"]
+    note2["DIVERGED on domains since 2026-10-01: THIS copy's DOMAIN_SLUGS has six<br/>entries, explorer/modern/src/types/scope.ts:73-80 — the shipping tree has<br/>nine, WasmVOWL/modern/src/types/scope.ts:76-86 — see VG-06.5"]
 ```

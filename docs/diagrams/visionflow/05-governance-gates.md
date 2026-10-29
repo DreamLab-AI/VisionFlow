@@ -31,6 +31,7 @@ sources:
   - tests/gates/diagram-index.test.cjs
   - tests/gates/augmentation-citations.test.cjs
   - scripts/check-augmentation-citations.cjs
+  - docs/jev-option.md
   - .github/workflows/diagram-index.yml
   - docs/adr/ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md
   - docs/architecture/compatibility-matrix.md
@@ -40,7 +41,7 @@ sources:
   - .github/workflows/adr-index.yml
   - scripts/adr-ratchet.sh
   - tests/gates/estate-health-ci.test.mjs
-verified_commit: 4159e085a73dac3e9d52fb1bc7e476350bf369c1
+verified_commit: 1d7183a73c1eae4996a7006067d5047308fab7a5
 ---
 
 ## VF-05.1 Gate route table — trigger, script, verdict, blocking
@@ -87,23 +88,9 @@ flowchart TB
     MANUAL["operator, by hand — no workflow"] --> SMESH["mesh-smoke-preflight.sh<br/>read-only substrate probe<br/>mesh-smoke-preflight.sh:337"]:::report
     MANUAL --> SREL["generate-release-manifest.sh<br/>exit 3 without a canonical revision set<br/>generate-release-manifest.sh:242"]:::block
 
-    PR --> WDIAG["diagram-index.yml<br/>paths docs/diagrams/**, diagram-index-gen.cjs,<br/>diagram-index.test.cjs, diagram-index.yml<br/>diagram-index.yml:6"]
-    PUSHMAIN --> WDIAG
-    WDIAG --> SDIAG1["structural check --no-source-paths<br/>diagram-index.yml:52"]:::tool
-    WDIAG --> SDIAG2["tests/gates/diagram-index.test.cjs<br/>citations, allowlist, ADR regression<br/>diagram-index.yml:55"]:::tool
-    WDIAG --> SDIAG3["--check-verification — VERIFICATION.md<br/>freshness against declared revisions<br/>diagram-index.yml:61"]:::tool
-    WDIAG --> SDIAG4["COVERAGE.md regenerate-and-diff<br/>diagram-index.yml:63"]:::tool
-    SDIAG1 --> VDIAG1["exit 1 on structure, id or prose errors"]:::block
-    SDIAG2 --> VDIAG2["exit 1 on an unallowlisted unverifiable citation,<br/>a stale allowlist entry, or an ADR regression"]:::block
-    SDIAG3 --> VDIAG3["exit 1 when a re-stamp was not re-resolved<br/>diagram-index.yml:61"]:::block
-    SDIAG4 --> VDIAG4["exit 1 on a stale generated index<br/>diagram-index.yml:67"]:::block
-
-    WDIAG ~~~ WADR["adr-index.yml — triggered by push to main and by pull_request,<br/>paths docs/adr/**,<br/>adr-index-gen.cjs, adr-ratchet.sh, the workflow<br/>adr-index.yml:10 and adr-index.yml:17<br/>three steps: --check at adr-index.yml:44,<br/>adr-ratchet.sh at adr-index.yml:49,<br/>regenerate-and-diff at adr-index.yml:55"]:::tool
-    WADR --> VADR["exit 1 on invalid frontmatter, on a stale index,<br/>or when more ADRs were added undecided than left proposed<br/>adr-ratchet.sh:74, until 2026-10-20 — adr-ratchet.sh:36<br/>see VF-01.8"]:::block
-
     NOTE1["INVARIANT: every count claimed in canon prose has one queryable source;<br/>a second distinct figure for one axis is a failure, not a footnote<br/>BASELINE-visionflow.md:316"]
     NOTE2["DIVERGENCE: mesh-smoke-preflight.sh is wired to NO workflow.<br/>Its output is pasted by hand into mesh-smoke-test.md:84"]
-    NOTE3["HISTORICAL SNAPSHOT: compatibility-matrix.md:96 records the July<br/>harness PASS at target 80%, under a heading now explicitly<br/>marked historical and not rerun — compatibility-matrix.md:80.<br/>Current CI passes --target 50: different run configurations,<br/>not a fresh 80% CI result"]
+    NOTE3["HISTORICAL SNAPSHOT: compatibility-matrix.md:97 records the July<br/>harness PASS at target 80%, under a heading now explicitly<br/>marked historical and not rerun — compatibility-matrix.md:81.<br/>Current CI passes --target 50: different run configurations,<br/>not a fresh 80% CI result"]
 ```
 
 ## VF-05.2 drift-counter — axis truth query and the sibling source pin
@@ -157,9 +144,9 @@ flowchart TB
 
     Q -->|no| FREE["NOT policed. The counter never reads it.<br/>Legitimately distinct subjects survive:<br/>a case study's 350 skills, VisionClaw's<br/>native 7 MCP tools, agentbox's 180+ total<br/>allowlist.json:2"]:::free
 
-    Q -->|"yes, scan mode"| SCAN["skills axis, match=scan<br/>allowlist.json:21"]:::policed
-    SCAN --> SCANR["EVERY occurrence of<br/>pattern in EVERY listed file<br/>must equal the queried truth<br/>allowlist.json:22"]
-    SCANR --> SCANF["files: README.md, docs/ecosystem-map.md,<br/>docs/PRD-website.md, website/static/index.html<br/>allowlist.json:24"]
+    Q -->|"yes, scan mode"| SCAN["skills axis, match=scan<br/>allowlist.json:22"]:::policed
+    SCAN --> SCANR["EVERY occurrence of<br/>pattern in EVERY listed file<br/>must equal the queried truth<br/>allowlist.json:23"]
+    SCANR --> SCANF["files: docs/ecosystem-map.md and docs/PRD-website.md —<br/>README.md and website/static/index.html were retired from the<br/>skills axis on 2026-10-21 because they no longer assert a numeric total<br/>allowlist.json:21 and allowlist.json:25-28"]
     SCANF --> SCANV{"stated == truth?"}
     SCANV -->|no| DRIFT["DRIFT finding, hardFail<br/>drift-counter.mjs:210"]:::fail
     SCANV -->|"file listed but pattern never matched"| NOMATCH["no-match finding — a policed file<br/>that carries no tracked figure FAILS<br/>drift-counter.mjs:213"]:::fail
@@ -178,10 +165,10 @@ flowchart TB
     DENOM -.-> SCAN
     DENOM -.-> SITES
 
-    HOLE["The archived-ADR-002 hole: two sites pointed at a path moved<br/>into docs/archive/, reported file-missing on every run, and that<br/>looked like coverage. Repointed 2026-09-05<br/>allowlist.json:50"]:::fail
+    HOLE["The archived-ADR-002 hole: two sites pointed at a path moved<br/>into docs/archive/, reported file-missing on every run, and that<br/>looked like coverage. Repointed 2026-09-05<br/>allowlist.json:49"]:::fail
     HOLE -.-> FMISS
 
-    DIV["DIVERGENCE: ./README.md:158 renders '7 Ontology MCP Tools' beside<br/>./README.md:165 '12 MCP Ontology Tools'. The sites regex matches only<br/>the second word order, so the adjacency escapes the gate<br/>BASELINE-visionflow.md:250"]
+    DIV["DRIFT: the README site of the tool-count axis was retired on 2026-10-21 (the bridge is retired in current Agentbox),<br/>so the 7-versus-12 adjacency the BASELINE still records at BASELINE-visionflow.md:254-261<br/>can no longer occur in the README; other revision-pinned historical sites stay monitored<br/>allowlist.json:32 and allowlist.json:43-51"]
 ```
 
 ## VF-05.4 drift-counter verdict — per-axis states and the fail-open rule
@@ -232,13 +219,13 @@ stateDiagram-v2
         ontology-classes stays unavailable until VisionClaw
         publishes a script-queryable count — the allowlist records
         the exact switch that turns it on with no code change.
-        allowlist.json:74
+        allowlist.json:73
     end note
 
     note right of Planned
         EXTERNAL: the roster axis is blocked on nostr-rust-forum
         exposing agent_registry as script-queryable — see NF-NN
-        for the forum-side registry. allowlist.json:91
+        for the forum-side registry. allowlist.json:90
     end note
 ```
 
@@ -296,7 +283,7 @@ flowchart TB
     ARGS --> RESOLVE{"--canonical supplied?"}
 
     RESOLVE -->|no| PROBE["probe well-known locations, first of which is<br/>project/docs/specs/fixtures<br/>check-fixture-drift.sh:82"]:::bad
-    PROBE --> STALE["DOC-DRIFT: that path was REMOVED. The corpus moved to<br/>VisionClaw tests/fixtures/ on 2026-06-29, which<br/>the historical Tests/Ops row at compatibility-matrix.md:54 records,<br/>while the script header<br/>at check-fixture-drift.sh:5 still contradicts.<br/>Unqualified runs therefore exit 2, never 0"]:::bad
+    PROBE --> STALE["DOC-DRIFT: that path was REMOVED. The corpus moved to<br/>VisionClaw tests/fixtures/ on 2026-06-29, which<br/>the historical Tests/Ops row at compatibility-matrix.md:55 records,<br/>while the script header<br/>at check-fixture-drift.sh:5 still contradicts.<br/>Unqualified runs therefore exit 2, never 0"]:::bad
     STALE --> EXIT2["ERROR: Canonical fixture directory not found, exit 2<br/>check-fixture-drift.sh:93"]:::bad
 
     RESOLVE -->|yes| DEFREPOS{"any REPO_PATH given?"}
@@ -351,14 +338,14 @@ flowchart LR
     C --> C1["tests/gates/release-manifest.test.sh —<br/>the generator itself is not run in CI<br/>harness-fitness-gates.yml:166"]:::block
     C --> C2["then tests/gates/dream-evaluator-exit.test.sh (4159e08):<br/>dream-build-check.sh and dream-link-check.sh must print<br/>the FAIL marker AND exit 1 on a broken tree<br/>harness-fitness-gates.yml:171"]:::block
 
-    NOTE1["TARGET SCOPE: the script default is 80 (harness-audit.sh:57).<br/>Historical Harness Coverage totals at compatibility-matrix.md:96<br/>record July's PASS at target 80%, while this workflow passes --target 50"]
-    NOTE4["the new step lives in this job, not in run-all.sh: the SUITES<br/>array still lists seven suites and omits it - run-all.sh:18-26"]
+    NOTE1["TARGET SCOPE: the script default is 80 (harness-audit.sh:57).<br/>Historical Harness Coverage totals at compatibility-matrix.md:97<br/>record July's PASS at target 80%, while this workflow passes --target 50"]
+    NOTE4["the same suite now also runs from run-all.sh, which lists nine suites and ends with it<br/>run-all.sh:18-28"]
     NOTE2["INVARIANT: the missing template directory is a skip, not a failure —<br/>job B exits 0 when docs/engineering/templates does not exist"]
 ```
 
 **Drift (resolved 2026-10-12, `4159e08`):** the release-manifest job gained a second step, `tests/gates/dream-evaluator-exit.test.sh` (`.github/workflows/harness-fitness-gates.yml:170-171`), which copies `scripts/dream-build-check.sh` and `scripts/dream-link-check.sh` into a scratch tree and asserts each prints its marker and exits with it (`tests/gates/dream-evaluator-exit.test.sh:36-65`); the evaluators it pins are described in VF-02.7 and VF-04.4.
 
-**Debt:** the workflow's path filter names `tests/gates/**` but neither dream script (`.github/workflows/harness-fitness-gates.yml:5-12`), so an edit to `scripts/dream-build-check.sh` alone does not run the suite that pins its exit code, and `tests/gates/run-all.sh` does not list the suite (`tests/gates/run-all.sh:18-26`).
+**Debt:** the workflow's path filter names `tests/gates/**` but neither dream script (`.github/workflows/harness-fitness-gates.yml:5-12`), so an edit to `scripts/dream-build-check.sh` alone does not run the suite that pins its exit code, while `tests/gates/run-all.sh` now lists it, so the local runner covers it even though the workflow's path filter does not (`tests/gates/run-all.sh:27`).
 
 ## VF-05.8 harness-audit.sh — the three defects the counting rules close
 ```mermaid
@@ -443,16 +430,18 @@ flowchart TB
 
     WHY["A gate nobody tests is a gate nobody knows is broken:<br/>the harness audit scored duplicate pairings 200% PASS,<br/>the drift counter policed two archived files forever, and<br/>a release candidate could assert fixture parity nothing compared<br/>run-all.sh:5"]
 
-    WHY --> RUN["bash tests/gates/run-all.sh — seven suites, one verdict<br/>run-all.sh:18"]
-    RUN --> PRINT["GATE-TESTS-OK or GATE-TESTS-FAIL<br/>run-all.sh:39"]
+    WHY --> RUN["bash tests/gates/run-all.sh — nine suites, one verdict<br/>run-all.sh:18-28"]
+    RUN --> PRINT["GATE-TESTS-OK or GATE-TESTS-FAIL<br/>run-all.sh:41"]
 
     RUN --> S1["drift-counter.test.sh"]:::suite
     RUN --> S2["harness-audit.test.sh"]:::suite
     RUN --> S3["release-manifest.test.sh"]:::suite
     RUN --> S4["website-assets.test.sh"]:::suite
-    RUN --> S5["diagram-index.test.cjs — the .cjs and .mjs suites are run<br/>with node rather than bash, chosen per suite by extension<br/>run-all.sh:32"]:::suite
+    RUN --> S5["diagram-index.test.cjs — the .cjs and .mjs suites are run<br/>with node rather than bash, chosen per suite by extension<br/>run-all.sh:34"]:::suite
     RUN --> S6["augmentation-citations.test.cjs — see VF-05.13<br/>run-all.sh:24"]:::suite
     RUN --> S7["estate-health-ci.test.mjs — imports the collector's pure<br/>CI-state functions and drives the 2026-09-23 knowledgeGraph<br/>false red through them — run-all.sh:25<br/>estate-health-ci.test.mjs:1 — see VF-03.4"]:::suite
+    RUN --> S8["jev-option.test.cjs — the opt-in Jev option must fall back to the pre-change output of each script<br/>run-all.sh:26"]:::suite
+    RUN --> S9["dream-evaluator-exit.test.sh — the dream build and link evaluators print their marker and exit with it<br/>run-all.sh:27"]:::suite
     S7 --> E1["a verdict on an older commit reads none, not red<br/>estate-health-ci.test.mjs:24"]
     E1 --> E2["a red run on HEAD stays red<br/>estate-health-ci.test.mjs:28"]
     E2 --> E3["only documentation carries a verdict to HEAD<br/>estate-health-ci.test.mjs:44"]
@@ -464,9 +453,9 @@ flowchart TB
     S1 --> D1["seeded mismatch at a policed site goes red<br/>drift-counter.test.sh:83"]
     D1 --> D2["a policed file that has MOVED fails, never passes<br/>drift-counter.test.sh:102"]
     D2 --> D3["a policed pattern that no longer matches fails<br/>drift-counter.test.sh:111"]
-    D3 --> D4["a sibling checkout off the pin fails<br/>drift-counter.test.sh:120"]
-    D4 --> D5["allow-pin-drift downgrades that to a warning<br/>drift-counter.test.sh:129"]
-    D5 --> D6["the COMMITTED allowlist passes with no unreadable site<br/>drift-counter.test.sh:137"]
+    D3 --> D4["a sibling checkout off the pin fails, now against a throwaway one-commit repo<br/>standing in for agentbox so it needs no real checkout<br/>drift-counter.test.sh:123 and drift-counter.test.sh:130"]
+    D4 --> D5["allow-pin-drift downgrades that to a warning<br/>drift-counter.test.sh:139"]
+    D5 --> D6["the COMMITTED allowlist passes with no unreadable site — this section alone still needs<br/>the real agentbox checkout and prints a note when DRIFT_AGENTBOX_DIR is unset<br/>drift-counter.test.sh:147 and drift-counter.test.sh:151"]
 
     S2 --> H1["duplicate pairing edges de-duplicated<br/>harness-audit.test.sh:59"]
     H1 --> H2["a fabricated source path is NOT source-backed<br/>harness-audit.test.sh:71"]
@@ -528,32 +517,32 @@ flowchart TB
     classDef ok fill:#e0f2e4,stroke:#2f7a45,color:#222
     classDef local fill:#fff4d6,stroke:#aa8833,color:#222
 
-    CLI["node scripts/check-augmentation-citations.cjs [--root DIR]<br/>default root is the directory ABOVE this repo, where the<br/>sibling checkouts live<br/>check-augmentation-citations.cjs:14"]:::local
+    CLI["node scripts/check-augmentation-citations.cjs [--root DIR]<br/>default root is the directory ABOVE this repo, where the<br/>sibling checkouts live<br/>check-augmentation-citations.cjs:18"]:::local
 
-    CLI --> SEC["locate the 'Augmentation conditions' section<br/>in docs/architecture/compatibility-matrix.md<br/>check-augmentation-citations.cjs:25"]:::parse
-    SEC -->|absent| F0["FAIL 'no Augmentation conditions section', exit 1<br/>check-augmentation-citations.cjs:26"]:::fail
-    SEC --> HDR["find the row beginning 'Condition'<br/>check-augmentation-citations.cjs:30"]:::parse
-    HDR -->|absent| F1["FAIL 'table header missing', exit 1<br/>check-augmentation-citations.cjs:31"]:::fail
+    CLI --> SEC["locate the 'Augmentation conditions' section<br/>in docs/architecture/compatibility-matrix.md<br/>check-augmentation-citations.cjs:31"]:::parse
+    SEC -->|absent| F0["FAIL 'no Augmentation conditions section', exit 1<br/>check-augmentation-citations.cjs:32"]:::fail
+    SEC --> HDR["find the row beginning 'Condition'<br/>check-augmentation-citations.cjs:36"]:::parse
+    HDR -->|absent| F1["FAIL 'table header missing', exit 1<br/>check-augmentation-citations.cjs:37"]:::fail
 
-    HDR --> COLS["every column header must be a KNOWN substrate —<br/>nostr-rust-forum, agentbox, VisionClaw — each mapped to<br/>the checkout directory its citations resolve against<br/>check-augmentation-citations.cjs:15"]:::parse
-    COLS -->|"header not in the map"| F2["FAIL unknown substrate column<br/>check-augmentation-citations.cjs:37"]:::fail
-    COLS -->|"same header twice"| F3["FAIL duplicate substrate column — this is what stops a<br/>column being aliased onto another substrate's evidence<br/>check-augmentation-citations.cjs:38"]:::fail
+    HDR --> COLS["every column header must be a KNOWN substrate —<br/>nostr-rust-forum, agentbox, VisionClaw — each mapped to<br/>the checkout directory its citations resolve against<br/>check-augmentation-citations.cjs:19"]:::parse
+    COLS -->|"header not in the map"| F2["FAIL unknown substrate column<br/>check-augmentation-citations.cjs:43"]:::fail
+    COLS -->|"same header twice"| F3["FAIL duplicate substrate column — this is what stops a<br/>column being aliased onto another substrate's evidence<br/>check-augmentation-citations.cjs:44"]:::fail
 
-    COLS --> ROWS["contiguous rows after the separator;<br/>labels must be exactly C1 to C6, each once<br/>check-augmentation-citations.cjs:16"]:::parse
-    ROWS -->|"a label outside the set"| F4["FAIL row label is not one of C1 to C6 —<br/>an invented C7 cannot smuggle in fabricated citations<br/>check-augmentation-citations.cjs:46"]:::fail
-    ROWS -->|"not exactly six"| F5["FAIL expected 6 condition rows —<br/>deleting a row is as loud as adding one<br/>check-augmentation-citations.cjs:48"]:::fail
+    COLS --> ROWS["contiguous rows after the separator;<br/>labels must be exactly C1 to C6, each once<br/>check-augmentation-citations.cjs:20"]:::parse
+    ROWS -->|"a label outside the set"| F4["FAIL row label is not one of C1 to C6 —<br/>an invented C7 cannot smuggle in fabricated citations<br/>check-augmentation-citations.cjs:52"]:::fail
+    ROWS -->|"not exactly six"| F5["FAIL expected 6 condition rows —<br/>deleting a row is as loud as adding one<br/>check-augmentation-citations.cjs:54"]:::fail
 
-    ROWS --> CELL["per cell: read the status token<br/>absent, partial or measured<br/>check-augmentation-citations.cjs:59"]:::parse
-    CELL -->|"no token"| F6["FAIL no status token<br/>check-augmentation-citations.cjs:59"]:::fail
-    CELL -->|"not absent, no citation"| F7["FAIL a raised status without a citation<br/>check-augmentation-citations.cjs:61"]:::fail
-    CELL --> CITE["each backtick-quoted path:line, ranges and<br/>comma lists included<br/>check-augmentation-citations.cjs:19"]:::parse
+    ROWS --> CELL["per cell: read the status token<br/>absent, partial or measured<br/>check-augmentation-citations.cjs:65"]:::parse
+    CELL -->|"no token"| F6["FAIL no status token<br/>check-augmentation-citations.cjs:65"]:::fail
+    CELL -->|"not absent, no citation"| F7["FAIL a raised status without a citation<br/>check-augmentation-citations.cjs:67"]:::fail
+    CELL --> CITE["each backtick-quoted path:line, ranges and<br/>comma lists included<br/>check-augmentation-citations.cjs:23"]:::parse
 
-    CITE --> E1["elided path containing an ellipsis — FAIL<br/>check-augmentation-citations.cjs:64"]:::fail
-    CITE --> E2["measured must cite code, config, schema, migration<br/>or a receipt by extension — never a document<br/>check-augmentation-citations.cjs:18<br/>check-augmentation-citations.cjs:66"]:::fail
-    CITE --> E3["the path must stat in that substrate's checkout — FAIL missing<br/>check-augmentation-citations.cjs:69"]:::fail
-    CITE --> E4["and be a REGULAR FILE, so a directory citation cannot pass<br/>check-augmentation-citations.cjs:70"]:::fail
-    CITE --> E5["the highest line in the range must exist in the file<br/>check-augmentation-citations.cjs:73"]:::fail
-    CITE --> PASS["counted; exit 0 only when failures is zero<br/>check-augmentation-citations.cjs:78"]:::ok
+    CITE --> E1["elided path containing an ellipsis — FAIL<br/>check-augmentation-citations.cjs:71"]:::fail
+    CITE --> E2["measured must cite code, config, schema, migration<br/>or a receipt by extension — never a document<br/>check-augmentation-citations.cjs:22<br/>check-augmentation-citations.cjs:73"]:::fail
+    CITE --> E3["the path must stat in that substrate's checkout — FAIL missing<br/>check-augmentation-citations.cjs:76"]:::fail
+    CITE --> E4["and be a REGULAR FILE, so a directory citation cannot pass<br/>check-augmentation-citations.cjs:77"]:::fail
+    CITE --> E5["the highest line in the range must exist in the file<br/>check-augmentation-citations.cjs:80"]:::fail
+    CITE --> PASS["counted, summary line, exit 0 only when failures is zero<br/>check-augmentation-citations.cjs:93 and check-augmentation-citations.cjs:115"]:::ok
 
     SUITE["tests/gates/augmentation-citations.test.cjs — ten deliberate<br/>defects driven through the gate, each asserted to exit 1:<br/>missing path :35, elided path :39, measured citing a document :44,<br/>five rows :48, line past EOF :52, duplicate header :56,<br/>unknown header :59, directory citation :63, a C7 row :67,<br/>measured citing an extensionless document :72"]:::ok
     PASS --- SUITE
@@ -572,6 +561,37 @@ flowchart TB
 
 **Debt:** the augmentation-citations gate has no workflow of its own and reaches CI through no path, because `tests/gates/run-all.sh:24` is itself reachable only from `package.json:17`, so the eighteen cited cells of the graded matrix are verified only by a local run.
 
-**Invariant:** the substrate column set is closed — a header outside `SUBSTRATE_DIRS` fails rather than defaulting, so a new substrate cannot be graded until the checker learns where its code lives (`scripts/check-augmentation-citations.cjs:15`, `scripts/check-augmentation-citations.cjs:37`).
+**Invariant:** the substrate column set is closed — a header outside `SUBSTRATE_DIRS` fails rather than defaulting, so a new substrate cannot be graded until the checker learns where its code lives (`scripts/check-augmentation-citations.cjs:19`, `scripts/check-augmentation-citations.cjs:43`).
 
-**Debt (ratchet without a gate test):** `scripts/adr-ratchet.sh` is a blocking step of `adr-index.yml` (`.github/workflows/adr-index.yml:49`) but has no suite under `tests/gates/`, so nothing drives an added-undecided record through it and asserts the step goes red (`tests/gates/run-all.sh:18-26`); its expiry date is likewise a default in the script, not a tested property (`scripts/adr-ratchet.sh:36`).
+**Debt (ratchet without a gate test):** `scripts/adr-ratchet.sh` is a blocking step of `adr-index.yml` (`.github/workflows/adr-index.yml:49`) but has no suite under `tests/gates/`, so nothing drives an added-undecided record through it and asserts the step goes red (`tests/gates/run-all.sh:18-28`); its expiry date is likewise a default in the script, not a tested property (`scripts/adr-ratchet.sh:36`).
+
+## VF-05.14 Gate route table, continued — the diagram index gate and the ADR ledger gate
+```mermaid
+flowchart TB
+    classDef block fill:#ffe0e0,stroke:#aa3333,color:#222
+    classDef tool fill:#e4ecf8,stroke:#33559a,color:#222
+
+    PR["pull_request<br/>path-filtered"]
+    PUSHMAIN["push to main"]
+    PR --> WDIAG["diagram-index.yml<br/>paths docs/diagrams/**, diagram-index-gen.cjs,<br/>diagram-index.test.cjs, diagram-index.yml<br/>diagram-index.yml:6"]
+    PUSHMAIN --> WDIAG
+    WDIAG --> SDIAG1["structural check --no-source-paths<br/>diagram-index.yml:56"]:::tool
+    WDIAG --> SDIAG2["tests/gates/diagram-index.test.cjs<br/>citations, allowlist, ADR regression<br/>diagram-index.yml:59"]:::tool
+    WDIAG --> SDIAG3["--check-verification — VERIFICATION.md<br/>freshness against declared revisions<br/>diagram-index.yml:71"]:::tool
+    WDIAG --> SDIAG5["--render — every block must parse under the vendored Pele and stay within 4500 px, no browser needed<br/>diagram-index.yml:61-65"]:::tool
+    WDIAG --> SDIAG4["COVERAGE.md regenerate-and-diff<br/>diagram-index.yml:73"]:::tool
+    SDIAG1 --> VDIAG1["exit 1 on structure, id or prose errors"]:::block
+    SDIAG2 --> VDIAG2["exit 1 on an unallowlisted unverifiable citation,<br/>a stale allowlist entry, or an ADR regression"]:::block
+    SDIAG3 --> VDIAG3["exit 1 when a re-stamp was not re-resolved<br/>diagram-index.yml:71"]:::block
+    SDIAG5 --> VDIAG5["exit 1 on a Pele parse error or a render wider than 4500 px"]:::block
+    SDIAG4 --> VDIAG4["exit 1 on a stale generated index<br/>diagram-index.yml:77"]:::block
+
+    WDIAG ~~~ WADR["adr-index.yml — triggered by push to main and by pull_request,<br/>paths docs/adr/**,<br/>adr-index-gen.cjs, adr-ratchet.sh, the workflow<br/>adr-index.yml:10 and adr-index.yml:17<br/>three steps: --check at adr-index.yml:44,<br/>adr-ratchet.sh at adr-index.yml:49,<br/>regenerate-and-diff at adr-index.yml:55"]:::tool
+    WADR --> VADR["exit 1 on invalid frontmatter, on a stale index,<br/>or when more ADRs were added undecided than left proposed<br/>adr-ratchet.sh:74, until 2026-10-20 — adr-ratchet.sh:36<br/>see VF-01.8"]:::block
+
+```
+
+**What it shows.** The same route table as VF-05.1 for the two documentation gates that fire on `docs/**` paths: the diagrams-as-code index gate, which now also renders every block with Pele on the hosted runner, and the ADR ledger gate with its ratchet.
+**Why it is this way.** VF-05.1 was split because the single table rendered 4,681 px wide under Pele's layout and the 4,500 px ceiling is enforced (docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:37-38).
+
+**Since the last stamp:** `scripts/check-augmentation-citations.cjs` gained an opt-in advisory pass (`--jev` or `VISIONFLOW_JEV=claim`) that runs after the deterministic gate has printed its summary and can only append `JEV claim` lines for cells a typed-decision model finds unsupported; it never changes a FAIL, the summary line or the exit code, and it is local-only because it sends excerpts of sibling checkouts (`scripts/check-augmentation-citations.cjs:13-16`, `scripts/check-augmentation-citations.cjs:27`, `scripts/check-augmentation-citations.cjs:102-115`, `docs/jev-option.md:5`).

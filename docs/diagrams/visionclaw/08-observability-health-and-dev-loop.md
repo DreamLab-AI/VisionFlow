@@ -5,7 +5,7 @@ area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/docs/SECURITY-profiles.md
-adrs: [ADR-2008, ADR-2026, ADR-2037, ADR-2038, ADR-2049]
+adrs: [ADR-2008, ADR-2026, ADR-2037, ADR-2038, ADR-2049, ADR-2093]
 sources:
   - ../project/docs/BASELINE-architecture.md
   - ../project/src/main.rs
@@ -20,13 +20,17 @@ sources:
   - ../project/scripts/rust-backend-wrapper.sh
   - ../project/Cargo.toml
   - ../project/scripts/lib/build-inputs.sh
+  - ../project/scripts/lib/dev-inputs.sh
+  - ../project/scripts/dev-entrypoint.sh
+  - ../project/src/utils/agent_key.rs
+  - ../project/crates/visionclaw-jev/src/config.rs
   - ../project/supervisord.dev.conf
   - ../project/supervisord.production.conf
   - ../project/Dockerfile.unified
   - ../project/Dockerfile.production
   - ../project/src/config/security_profile.rs
   - ../project/crates/visionclaw-gpu/build.rs
-verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
+verified_commit: 19417bdff5fc22053a8a0cc185797b0311521d10
 ---
 
 ## VC-08.1 Health and readiness — what each probe actually asserts
@@ -55,21 +59,21 @@ sequenceDiagram
     K->>U: GET /api/health
     U-->>K: composed health JSON with a `status` field
     Note over U: this is the endpoint the KG watchdog self-polls — see VC-08.2
-    Note over K,U: registration — root /healthz and /readyz at src/main.rs:1085-1086 (outside /api, so no<br/>RbacGate and no PublicDemoGuard) — a second /api/healthz and /api/readyz pair for back-compat<br/>at src/handlers/consolidated_health_handler.rs:488-489. See VC-01.7
+    Note over K,U: registration — root /healthz and /readyz at src/main.rs:1109-1110 (outside /api, so no<br/>RbacGate and no PublicDemoGuard) — a second /api/healthz and /api/readyz pair for back-compat<br/>at src/handlers/consolidated_health_handler.rs:488-489. See VC-01.7
 ```
 
 ## VC-08.2 KG watchdog — the self-poll that drives kg_backend_up
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main<br/>src/main.rs:1230-1256
+    participant M as main<br/>src/main.rs:1273-1288
     participant W as run_kg_watchdog<br/>src/services/liveness_harness.rs:444
     participant P as probe_once
     participant V as health_verdict<br/>src/services/liveness_harness.rs:505-507
     participant H as LivenessHarness::record_kg_state<br/>src/services/liveness_harness.rs:422
 
     M->>W: tokio::spawn(run_kg_watchdog(harness, self_url, period))
-    Note over M,W: VISIONCLAW_SELF_URL default http 127.0.0.1 port (src/main.rs:1244)<br/>VISIONCLAW_KG_WATCHDOG_SECS default 30 (src/main.rs:1248)
+    Note over M,W: VISIONCLAW_SELF_URL default http 127.0.0.1 port (src/main.rs:1275-1276)<br/>VISIONCLAW_KG_WATCHDOG_SECS default 30 (src/main.rs:1277-1280)
     loop every period (default 30s)
         W->>P: GET {self_url}/api/health
         Note over P: this server IS the KG backend — the watchdog polls itself
@@ -104,7 +108,7 @@ sequenceDiagram
     participant B as boot
     participant LH as LivenessHarness<br/>src/services/liveness_harness.rs:293
     participant DB as SqliteCanaryRepository<br/>src/adapters/sqlite_canary_repository.rs
-    participant API as /api/canary routes<br/>src/handlers/liveness_harness_handler.rs:212
+    participant API as /api/canary routes<br/>src/handlers/liveness_harness_handler.rs:244
 
     B->>LH: LivenessHarness::new(repo) (src/services/liveness_harness.rs:300)
     par seeding by priority band
@@ -116,14 +120,15 @@ sequenceDiagram
     end
     LH->>DB: register(CanaryRegistration)
     Note over LH,DB: each entry is a 4-tuple (id, description, kind, priority) — kind "standing" for the wire probes
-    API->>LH: POST /api/canary/register (:213) → register (liveness_harness_handler.rs:133)
-    API->>LH: POST /api/canary/observe/{canary_id} (:214) → observe
-    API->>LH: GET /api/canary/status (:215)
+    API->>LH: POST /api/canary/register (:245) → register (liveness_harness_handler.rs:100)
+    API->>LH: POST /api/canary/observe/{canary_id} (:246) → observe (:138)
+    API->>LH: GET /api/canary/status (:247) → status (:233), body built by status_body (:209)
     LH->>DB: append fire-log row
     Note over LH: FRESHNESS_WINDOW_MS = 30 * 24 * 60 * 60 * 1000 (:41) — a 30-day staleness horizon
     Note over LH: current_sha() (:278) stamps each observation, from VISIONCLAW_GIT_SHA (:279)
-    Note over API: VISIONCLAW_AGENT_KEY is read by the handler at src/handlers/liveness_harness_handler.rs:36<br/>env register see VC-09.10
-    Note over B: sibling boot-time singleton — AgentTelemetryLogger (src/telemetry/agent_telemetry.rs:20) lives<br/>in a OnceCell (:332), init_telemetry_logger(log_dir, 100) called once from main.rs:274, and every<br/>caller reaches it via src/telemetry/agent_telemetry.rs:349-350 get_telemetry_logger() Option —<br/>client_coordinator_actor.rs, gpu/gpu_manager_actor.rs, gpu/force_compute_actor.rs,<br/>services/mcp_relay_manager.rs and handlers/client_log_handler.rs all silently no-op if it is never initialised
+    Note over API: VISIONCLAW_AGENT_KEY is read by the handler at src/handlers/liveness_harness_handler.rs:39 and checked by<br/>crate::utils::agent_key::check_agent_key (handler :44, src/utils/agent_key.rs:13) — fail closed, subtle::ConstantTimeEq (ADR-2093).<br/>The handler's former local constant_time_eq fold is gone. Env register see VC-09.10
+    Note over API: OPT-IN — when the Jev health-triage item is on (VISIONCLAW_JEV_HEALTH_TRIAGE, crates/visionclaw-jev/src/config.rs:134) and the state<br/>is degraded and Jev answers confidently, status_body (:209) adds a jev_triage field beside the unchanged probe fields.<br/>It is labelled a hypothesis for an operator, never a verdict (jev_health in liveness_harness_handler.rs:173, off by default)
+    Note over B: sibling boot-time singleton — AgentTelemetryLogger (src/telemetry/agent_telemetry.rs:20) lives<br/>in a OnceCell (:303), init_telemetry_logger(log_dir, 100) called once from main.rs:282 (returns early without creating<br/>a sink when TELEMETRY_ENABLED is set to anything but 1 or true, :309-311, telemetry_enabled in agent_telemetry.rs:326), and every<br/>caller reaches it via src/telemetry/agent_telemetry.rs:335-336 get_telemetry_logger() Option —<br/>client_coordinator_actor.rs, gpu/gpu_manager_actor.rs, gpu/force_compute_actor.rs,<br/>services/mcp_relay_manager.rs and handlers/client_log_handler.rs all silently no-op if it is never initialised or telemetry is disabled
     Note over API: GET /api/metrics (handlers/metrics_handler.rs:34) composes uptime + collect_event_bus_metrics<br/>(:63, walks the event-bus middleware list for a registered MetricsMiddleware — empty maps if none is)<br/>plus a circuit_breakers field that is HARDCODED EMPTY (:47-49) — no global breaker registry is wired<br/>into AppState yet, so that part of the response can never be non-empty today
 ```
 
@@ -148,7 +153,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main<br/>src/main.rs:1269-1280
+    participant M as main<br/>src/main.rs:1305-1312
     participant T as CanaryNostrTap::from_env<br/>src/services/canary_nostr_tap.rs:245
     participant R as Nostr relay
     participant E as TapEvent::from_value<br/>src/services/canary_nostr_tap.rs:88
@@ -158,7 +163,7 @@ sequenceDiagram
     alt CANARY_TAP_RELAY_URL is set (canary_nostr_tap.rs:246)
         M->>T: from_env(harness)
         T-->>M: Some(tap)
-        M->>T: tokio::spawn(tap.run()) (main.rs:1276)
+        M->>T: tokio::spawn(tap.run()) (main.rs:1308)
     else unset
         M->>M: log "canary Nostr tap not started"
     end
@@ -186,9 +191,10 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SV as supervisord<br/>supervisord.dev.conf:19-32
+    participant SV as supervisord<br/>supervisord.dev.conf:33-46
     participant WR as rust-backend-wrapper.sh<br/>scripts/rust-backend-wrapper.sh
     participant NV as nvidia-smi
+    participant DI as dev-inputs.sh<br/>scripts/lib/dev-inputs.sh
     participant BI as build-inputs.sh<br/>scripts/lib/build-inputs.sh
     participant CG as cargo
     participant BIN as visionclaw-server
@@ -211,42 +217,45 @@ sequenceDiagram
     WR->>WR: RUST_BINARY = $APP_ROOT/target/dev-runtime/visionclaw-server (scripts/rust-backend-wrapper.sh:39)
     WR->>WR: export CARGO_PROFILE_DEV_RUNTIME_DEBUG_ASSERTIONS=true (scripts/rust-backend-wrapper.sh:45)
     WR->>WR: BUILD_STAMP = $APP_ROOT/target/.visionclaw-dev-runtime-build-stamp (scripts/rust-backend-wrapper.sh:46)
-    Note over WR: INVARIANT (2026-09-07, ADR-2038) — the dev launcher builds profile dev-runtime<br/>(Cargo.toml:303, inherits release but keeps debug-assertions and overflow-checks),<br/>NOT --release. Optimisation without letting a dev-auth artefact present itself as a<br/>production build to the boot-time profile assertion. The assertion override is exported<br/>so the identity is pinned rather than inherited
+    Note over WR: INVARIANT (2026-09-07, ADR-2038) — the dev launcher builds profile dev-runtime<br/>(Cargo.toml:325, inherits release but keeps debug-assertions and overflow-checks),<br/>NOT --release. Optimisation without letting a dev-auth artefact present itself as a<br/>production build to the boot-time profile assertion. The assertion override is exported<br/>so the identity is pinned rather than inherited
     alt SKIP_RUST_REBUILD != true
+        WR->>DI: dev_inputs_install (scripts/rust-backend-wrapper.sh:91)
+        Note over WR,DI: ADR-2008 2026-10-07 amendment — Cargo.toml, Cargo.lock, build.rs and the Vite root files reach /app by COPY<br/>from the read-only /app/.dev-inputs mount that the host publishes and stamps with launch.sh (scripts/lib/dev-inputs.sh:12-17),<br/>never by a single-file bind mount that pins a stale inode after a git operation. A missing or mismatched stamp makes the wrapper<br/>log FATAL and exit 1 (:92-93) rather than build something stale. The stamp's source_sha is logged (:95)
         WR->>BI: needs_rebuild(RUST_BINARY, /app, BUILD_STAMP, BUILD_FEATURES)
         BI-->>WR: 0 build / 1 skip, plus a one-line reason
         alt skip
             WR->>WR: log "Skipping cargo: binary is up to date"
         else build
-            WR->>CG: cargo build --profile dev-runtime --features "$BUILD_FEATURES" (scripts/rust-backend-wrapper.sh:73)
+            WR->>CG: cargo_build, which runs cargo build --locked --profile dev-runtime --features "$BUILD_FEATURES" (scripts/rust-backend-wrapper.sh:111, body :66)
+            Note over WR,CG: the container builds --locked against the host's committed Cargo.lock and never resolves dependencies itself,<br/>a stale lock logs FATAL with the remedy and exits 1 without wiping the target cache (scripts/rust-backend-wrapper.sh:69-73)
             alt success
                 CG-->>WR: ok
                 WR->>BI: write_build_stamp(BUILD_STAMP, BUILD_FEATURES)
             else failure
                 WR->>WR: rm -f BUILD_STAMP — a failed build leaves a stamp describing an environment no binary exists for
-                WR->>CG: cargo clean then retry cargo build --profile dev-runtime --features (scripts/rust-backend-wrapper.sh:82)
+                WR->>CG: cargo clean then retry cargo_build (scripts/rust-backend-wrapper.sh:120)
                 alt retry fails
                     WR-->>SV: log FATAL then exit 1
                 end
             end
         end
     else SKIP_RUST_REBUILD=true
-        WR->>WR: RUST_BINARY=$APP_ROOT/visionclaw-server (scripts/rust-backend-wrapper.sh:93)
+        WR->>WR: RUST_BINARY=$APP_ROOT/visionclaw-server (scripts/rust-backend-wrapper.sh:131)
     end
     alt binary missing
         WR-->>SV: ERROR then exit 1
     end
-    WR->>BIN: exec "${RUST_BINARY}" (scripts/rust-backend-wrapper.sh:102)
-    Note over SV,BIN: sibling programs — nginx (supervisord.dev.conf:8) and vite-dev (:34)<br/>vite env NODE_ENV=development, VITE_DEV_SERVER_PORT=5173, VITE_API_PORT=4000,<br/>VITE_HMR_PORT=24678, VITE_DEV_MODE_AUTH=true
+    WR->>BIN: exec "${RUST_BINARY}" (scripts/rust-backend-wrapper.sh:140)
+    Note over SV,BIN: sibling programs — nginx (supervisord.dev.conf:8), dev-inputs-sync (:19-31, runs dev-inputs.sh --watch, the same<br/>copy-from-.dev-inputs loop, so Vite stays live) and vite-dev (:48). dev-entrypoint.sh runs dev-inputs.sh --once before supervisord starts (scripts/dev-entrypoint.sh:156)<br/>vite env NODE_ENV=development, VITE_DEV_SERVER_PORT=5173, VITE_API_PORT=4000,<br/>VITE_HMR_PORT=24678, VITE_DEV_MODE_AUTH=true
 ```
 
 ## VC-08.10 ADR-2008 build-input inventory — what counts as a build input
 ```mermaid
 flowchart TB
-    NR["needs_rebuild(binary, root, stamp, features)<br/>scripts/lib/build-inputs.sh:120 — rebuild is the SAFE DEFAULT"]
+    NR["needs_rebuild(binary, root, stamp, features)<br/>scripts/lib/build-inputs.sh:122 — rebuild is the SAFE DEFAULT"]
     NR --> C1{"binary file exists?"}
     C1 -->|no| B1["BUILD — 'no binary at PATH'"]
-    C1 -->|yes| C2["latest_build_input_mtime(root) :78"]
+    C1 -->|yes| C2["latest_build_input_mtime(root) :80"]
     C2 --> C3{"latest == 0?"}
     C3 -->|yes| B2["BUILD — 'no build inputs found (refusing to trust the binary)'"]
     C3 -->|no| C4{"bin_mtime <= latest?"}
@@ -256,17 +265,17 @@ flowchart TB
     C5 -->|yes| C6{"stamp == build_env_signature(features)?"}
     C6 -->|no| B5["BUILD — 'build environment changed (was X, now Y)'"]
     C6 -->|yes| SK["SKIP — 'binary is up to date, environment unchanged'"]
-    GLOB["BUILD_INPUT_NAME_GLOBS :42<br/>*.rs (incl. every crate build.rs) · *.cu *.cuh *.ptx<br/>Cargo.toml (root AND crate manifests) · Cargo.lock<br/>rust-toolchain · rust-toolchain.toml · config.toml"]
-    PRUNE["BUILD_INPUT_PRUNE_DIRS :33 — target node_modules .git .venv dist"]
-    ENVV["BUILD_INPUT_ENV_VARS :46 — CUDA_ARCH CUDA_PATH DOCKER_ENV CARGO_BUILD_FEATURES<br/>plus CARGO_PROFILE_DEV_RUNTIME_DEBUG_ASSERTIONS, added 2026-09-07 so a flipped<br/>assertion override invalidates the binary with no file touched<br/>declared rerun-if-env-changed by build.rs and crates/visionclaw-gpu/build.rs"]
+    GLOB["BUILD_INPUT_NAME_GLOBS :44<br/>*.rs (incl. every crate build.rs) · *.cu *.cuh *.ptx<br/>Cargo.toml (root AND crate manifests) · Cargo.lock<br/>rust-toolchain · rust-toolchain.toml · config.toml"]
+    PRUNE["BUILD_INPUT_PRUNE_DIRS :35 — target node_modules .git .venv dist .dev-inputs<br/>(the published copies are installed into /app, so walking the directory would double-count them)"]
+    ENVV["BUILD_INPUT_ENV_VARS :48 — CUDA_ARCH CUDA_PATH DOCKER_ENV CARGO_BUILD_FEATURES<br/>plus CARGO_PROFILE_DEV_RUNTIME_DEBUG_ASSERTIONS, added 2026-09-07 so a flipped<br/>assertion override invalidates the binary with no file touched<br/>declared rerun-if-env-changed by build.rs and crates/visionclaw-gpu/build.rs"]
     C2 --- GLOB
     C2 --- PRUNE
     C6 --- ENVV
-    SIG["build_env_signature :92 renders an UNSET variable explicitly as &lt;unset&gt;<br/>so unset and empty stay distinguishable — this is what makes a GPU swap<br/>(CUDA_ARCH 75 to 89) or a feature-set edit visible with no file touched"]
+    SIG["build_env_signature :94 renders an UNSET variable explicitly as &lt;unset&gt;<br/>so unset and empty stay distinguishable — this is what makes a GPU swap<br/>(CUDA_ARCH 75 to 89) or a feature-set edit visible with no file touched"]
     ENVV --- SIG
     HOLES["the two holes this file closed (:9-13) — the original heuristic globbed only the ROOT<br/>Cargo.toml/Cargo.lock/build.rs so a CRATE manifest edit left a stale binary running,<br/>and globbed *.cu under /app/src only so a crate CUDA kernel edit was missed"]
     GLOB --- HOLES
-    DIV["DIVERGENCE (BASELINE 2026-09-04 development acceptance, BASELINE-architecture.md:314) — ADR-2008 is PARTIAL.<br/>Normal development startup uses this timestamp-gated wrapper, with demonstrated<br/>misses for crate CUDA and manifest edits."]
+    DIV["DIVERGENCE (BASELINE 2026-09-04 development acceptance, BASELINE-architecture.md:354) — ADR-2008 is PARTIAL.<br/>Normal development startup uses this timestamp-gated wrapper, with demonstrated<br/>misses for crate CUDA and manifest edits. The 2026-09-04 text predates the .dev-inputs<br/>publish-and-verify path (VC-08.9), which the doc does not mention."]
     NR --- DIV
 ```
 
@@ -286,7 +295,7 @@ sequenceDiagram
     DU->>DU: cargo build --release --features gpu (Dockerfile.unified:184 and :213)
     DU->>SD: COPY supervisord.dev.conf ./supervisord.dev.conf (Dockerfile.unified:308)
     SD->>WR: program rust-backend runs the wrapper at container start
-    WR->>RT: cargo build --profile dev-runtime --features "gpu,ontology,dev-auth" then exec (scripts/rust-backend-wrapper.sh:73)
+    WR->>RT: cargo build --profile dev-runtime --features "gpu,ontology,dev-auth" then exec (scripts/rust-backend-wrapper.sh:66)
     Note over WR,RT: dev-auth is added at CONTAINER START by the wrapper's BUILD_FEATURES default,<br/>not at image-build time. The image layer itself carries no dev-auth binary.
     Note over WR,RT: INVARIANT (ADR-2037 CI gate, 2026-09-09) — the positive control now greps either<br/>scripts/dev-entrypoint.sh OR scripts/rust-backend-wrapper.sh for dev-auth, because the<br/>rebuild moved into the wrapper and dev-entrypoint.sh no longer names the feature. The gate<br/>also fails if prod-entrypoint.sh or Dockerfile.production ever invokes the wrapper, whose<br/>default BUILD_FEATURES carry dev-auth — scripts/rust-backend-wrapper.sh:42
     end
@@ -298,7 +307,7 @@ sequenceDiagram
     Note over RT: ADR-2037 — with dev-auth absent, every bypass codepath is #[cfg]-stripped.<br/>enforce_release_env_hygiene becomes the real impl (src/main.rs:118) rather than the stub (:169)
     end
     RT->>RT: enforce_release_env_hygiene() at src/main.rs:209 — see VC-09.3
-    RT->>RT: assert_effective_profile_or_exit() at src/main.rs:931 — see VC-09.4
+    RT->>RT: assert_effective_profile_or_exit() at src/main.rs:952 — see VC-09.4
     Note over RT: ADR-2038 — BuildIdentity::current() reports dev_auth true for a dev-auth artefact, which is<br/>itself the finding DevAuthFeatureInArtefact (src/config/security_profile.rs:275). A dev-auth<br/>binary promoted to production refuses to bind at all.
     Note over DU,RT: RESOLVED ADR-2049 — the warm-up stage used to run cargo build --release || true twice,<br/>which shell precedence made unfailable, so a broken lockfile or an uncompilable dependency<br/>produced a green layer. It now gates on cargo fetch --locked (must succeed) and tolerates<br/>only the crate compile, which legitimately fails against the stub build.rs.
 ```
@@ -315,7 +324,7 @@ sequenceDiagram
 
     B->>P: evaluate the effective security profile
     P->>L: info "security profile OK — build=X declared=Y classified=Z findings=N"
-    Note over P,L: EffectiveProfile::summary() src/config/security_profile.rs:393<br/>main logs it with observed_flags at src/main.rs:937-941 — the boot receipt
+    Note over P,L: EffectiveProfile::summary() src/config/security_profile.rs:393<br/>main logs it with observed_flags at src/main.rs:958-962 — the boot receipt
     alt production artefact with findings
         P->>O: eprintln FATAL per finding then "refusing to bind a listener (ADR-2038)" then exit(2)
         Note over P,O: the remediation line names the three options — remove the offending variables,<br/>rebuild without --features dev-auth, or set VISIONCLAW_SECURITY_PROFILE to what this really is

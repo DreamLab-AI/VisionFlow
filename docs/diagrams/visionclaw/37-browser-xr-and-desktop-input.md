@@ -25,7 +25,7 @@ sources:
   - ../project/client/src/services/remoteLogger.ts
   - ../project/client/src/features/graph/contexts/NodePositionContext.tsx
   - ../project/client/src/features/bots/components/BotsVisualization.tsx
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
 ---
 
 ## VC-37.1 Browser XR capability probe — what platformManager actually does
@@ -126,7 +126,7 @@ stateDiagram-v2
         isMobileView tracked separately ApplicationModeContext.tsx:44
         layoutSettings per mode, memoised on mode
         ApplicationModeContext.tsx:19, :27
-        The provider stays mounted at client/src/app/App.tsx:157
+        The provider stays mounted at client/src/app/App.tsx:171
     end note
 ```
 
@@ -324,7 +324,7 @@ flowchart LR
     inputs --> NOTE2
     NOTE2["INVARIANT both spatial inputs mutate the SAME R3F camera and<br/>write nothing into the SharedArrayBuffer. Position data flows<br/>one way - websocket to SAB to renderer (VC-32, VC-31) - so an<br/>input device can never desynchronise graph state."]
     NPC --> NOTE3
-    NOTE3["DEBT: NodePositionContext is named a context but is a module-level<br/>mutable singleton, not a React context. GraphManager publishes the live<br/>buffer on every frame (GraphManager.tsx:431) and the id map on every<br/>node-set change (GraphManager.tsx:75), and the agent overlay reads it<br/>directly. Nothing invalidates a stale reader after a remount.<br/>NodePositionContext.tsx:13"]
+    NOTE3["DEBT: NodePositionContext is named a context but is a module-level<br/>mutable singleton, not a React context. GraphManager publishes the live<br/>buffer on every frame (GraphManager.tsx:452) and the id map on every<br/>node-set change (GraphManager.tsx:78), and the agent overlay reads it<br/>directly. Nothing invalidates a stale reader after a remount.<br/>NodePositionContext.tsx:13"]
 ```
 
 ## VC-37.8 Browser path versus the shipped Godot path
@@ -339,9 +339,11 @@ flowchart TB
         B5["Binary V3/V5 over /wss to SAB<br/>see VC-32"]
     end
     subgraph gd["Godot XR client (xr-client/)"]
-        G1["Godot 4 + gdext, OpenXR<br/>forced gl_compatibility project.godot:48"]
+        G1["Godot 4.6.1 + gdext, OpenXR<br/>forced gl_compatibility project.godot:56"]
+        G1D["DEBT: config/features metadata is still pinned at 4.3 while the verified runtime is 4.6.1,<br/>to be re-pinned in the editor with the Quest renderer decision<br/>project.godot:3-7"]
+        G1 -.-> G1D
         G2["Real stereo submission on SteamVR<br/>ADR-2032"]
-        G3["OpenXR action map, 14 interaction profiles<br/>xr-client/openxr_action_map.tres"]
+        G3["OpenXR action map, 13 interaction profiles<br/>xr-client/openxr_action_map.tres"]
         G4["Hand ray + pinch, head/eye gaze<br/>see VC-36"]
         G5["Same binary V3/V5 wire, decoded in Rust<br/>see VC-36.5"]
     end
@@ -349,7 +351,7 @@ flowchart TB
     G5 --- SHARED
     B2 --> DIV
     G2 --> DIV
-    DIV["RESOLVED ADR-2081: docs/BASELINE-architecture.md:213 describes the<br/>React client as 'consuming the binary WebSocket position stream and the<br/>/api REST surface' - which is now exactly what the code is. The XR-mode<br/>shell and the unimported @react-three/xr dependency are deleted, so no<br/>reader can mistake the browser client for an immersive one. The immersive<br/>client is the Godot app alone. Babylon.js was already removed<br/>(client/vite.config.ts:47)."]
+    DIV["RESOLVED ADR-2081: docs/BASELINE-architecture.md:249 describes the<br/>React client as 'consuming the binary WebSocket position stream and the<br/>/api REST surface' - which is now exactly what the code is. The XR-mode<br/>shell and the unimported @react-three/xr dependency are deleted, so no<br/>reader can mistake the browser client for an immersive one. The immersive<br/>client is the Godot app alone. Babylon.js was already removed<br/>(client/vite.config.ts:47)."]
 ```
 
 ## VC-37.9 SpaceDriver hot-plug — disconnect and reconnect lifecycle

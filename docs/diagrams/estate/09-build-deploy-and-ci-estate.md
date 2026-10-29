@@ -5,7 +5,7 @@ area: estate
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/agentbox/docs/BASELINE-container.md
-adrs: [visionclaw:ADR-2008, visionclaw:ADR-2037, agentbox:ADR-2013, agentbox:ADR-2028, agentbox:ADR-2039, agentbox:ADR-2056, agentbox:ADR-2082, agentbox:ADR-2083, agentbox:ADR-2085, agentbox:ADR-2091, agentbox:ADR-2092, agentbox:ADR-2093, agentbox:ADR-2094, visionclaw:ADR-2086, visionclaw:ADR-2119, agentbox:ADR-2122]
+adrs: [visionclaw:ADR-2147, visionclaw:ADR-2143, visionclaw:ADR-2008, visionclaw:ADR-2037, agentbox:ADR-2013, agentbox:ADR-2028, agentbox:ADR-2039, agentbox:ADR-2056, agentbox:ADR-2082, agentbox:ADR-2083, agentbox:ADR-2085, agentbox:ADR-2091, agentbox:ADR-2092, agentbox:ADR-2093, agentbox:ADR-2094, visionclaw:ADR-2086, visionclaw:ADR-2119, agentbox:ADR-2122]
 sources:
   - ../project/Dockerfile.unified
   - ../project/Dockerfile.production
@@ -68,7 +68,7 @@ sources:
   - ../project/agentbox/services/nostr-pod-bridge/tests/role_isolation.rs
   - ../project/agentbox/scripts/ci/env-secret-inventory.js
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9}
 ---
 ## ES-09.1 The host-vs-container build trap — wrong path vs sanctioned path
 ```mermaid
@@ -96,7 +96,7 @@ flowchart TB
     EDIT ---|"bind mount, always in sync"| HOSTSRC
     LAUNCHTRY -->|"socket-forwarded request"| BUILDREQ:::wrong
     SSHTRY -.->|"refused: no LAN IP path from CC to host shell"| REFUSED(("blocked")):::wrong
-    BUILDREQ -->|"resolves HOST_PROJECT_ROOT-relative<br/>bind-mount paths against ITS OWN (host-side)<br/>cwd/view, not the CC container path"| MISBIND["docker-compose.unified.yml:127-155<br/>bind source path mismatch"]:::wrong
+    BUILDREQ -->|"resolves HOST_PROJECT_ROOT-relative<br/>bind-mount paths against ITS OWN (host-side)<br/>cwd/view, not the CC container path"| MISBIND["docker-compose.unified.yml:148-185<br/>bind source path mismatch"]:::wrong
     MISBIND --> STALE["Running dev container serves the<br/>image-build-time COPY'd source,<br/>NOT the just-edited host file"]:::wrong
     STALE -.->|"the trap: container starts, health check passes,<br/>edits never take effect"| TRAPEND(("silent stale-code failure")):::wrong
 
@@ -135,17 +135,19 @@ sequenceDiagram
     rect rgb(230,235,245)
     Note over T6,DD: container/host process boundary — build MUST cross here, never from CC
     Dev->>T6: tmux send-keys -t 6 ./scripts/launch.sh up dev Enter
+    T6->>T6: sync_dev_inputs publishes Cargo.toml, Cargo.lock, build.rs and the Vite root files<br/>into the gitignored .dev-inputs, stamped with the source commit<br/>scripts/launch.sh:640-651
     T6->>DD: docker compose --profile dev up -d
-    DD->>DD: resolve HOST_PROJECT_ROOT bind mounts<br/>docker-compose.unified.yml:127-171
+    DD->>DD: resolve HOST_PROJECT_ROOT bind mounts, directories only plus the<br/>stamped .dev-inputs (create_host_path false)<br/>docker-compose.unified.yml:148-185
     DD->>DC: recreate container with correct host-side binds
     end
-    DC->>W: supervisord starts program:rust-backend<br/>supervisord.dev.conf:20
-    W->>W: needs_rebuild scripts/rust-backend-wrapper.sh:62
+    DC->>W: supervisord starts program:rust-backend<br/>supervisord.dev.conf:34
+    W->>W: dev_inputs_install, refuse to build unless the stamp verifies<br/>scripts/rust-backend-wrapper.sh:91-95
+    W->>W: needs_rebuild scripts/rust-backend-wrapper.sh:100
     alt source or Cargo manifest changed
-        W->>W: cargo build --profile dev-runtime --features "$BUILD_FEATURES"<br/>scripts/rust-backend-wrapper.sh:73, default gpu,ontology,dev-auth :42
-        W->>W: write_build_stamp scripts/rust-backend-wrapper.sh:75
+        W->>W: cargo build --locked --profile dev-runtime --features "$BUILD_FEATURES"<br/>scripts/rust-backend-wrapper.sh:66, default gpu,ontology,dev-auth :42
+        W->>W: write_build_stamp scripts/rust-backend-wrapper.sh:113
     else stamp up to date
-        W->>W: skip cargo scripts/rust-backend-wrapper.sh:69
+        W->>W: skip cargo scripts/rust-backend-wrapper.sh:107
     end
     W->>DC: exec visionclaw-server
     Dev->>CC: sudo docker exec visionclaw_container curl localhost:4000/api/health
@@ -221,7 +223,7 @@ sequenceDiagram
     Note over C2: re-declares ARG CUDA_ARCH=86 (:109) redundantly,<br/>ENV already inherited from toolchain — both agree
     C2->>C2: nvcc -ptx -arch sm_CUDA_ARCH (:120)
 
-    Note over U,P: DIVERGENCE (ADR-2008 vs ADR-2037): the dev build is now a<br/>NAMED PROFILE rather than release — cargo build --profile<br/>dev-runtime with BUILD_FEATURES defaulting to gpu,ontology,dev-auth<br/>(scripts/rust-backend-wrapper.sh:42,73). The binary still carries<br/>enforce_release_env_hygiene as a no-op stub (src/main.rs:169), so<br/>the ADR-2037 boundary is the CI gate and the profile name, not the<br/>compiler flag
+    Note over U,P: DIVERGENCE (ADR-2008 vs ADR-2037): the dev build is now a<br/>NAMED PROFILE rather than release — cargo build --profile<br/>dev-runtime with BUILD_FEATURES defaulting to gpu,ontology,dev-auth<br/>(scripts/rust-backend-wrapper.sh:42,66). The binary still carries<br/>enforce_release_env_hygiene as a no-op stub (src/main.rs:169), so<br/>the ADR-2037 boundary is the CI gate and the profile name, not the<br/>compiler flag
     Note over U,P: ADR-2037 (proposed, implementation_status none): no CI or<br/>image-build assertion yet verifies a shipped release binary<br/>omits dev-auth — a mis-targeted pipeline could promote the<br/>stubbed-hygiene binary to production undetected
 ```
 
@@ -233,12 +235,14 @@ stateDiagram-v2
     supervisordRoot --> nginx
     supervisordRoot --> rustBackend
     supervisordRoot --> viteDev
+    supervisordRoot --> devInputsSync
 
     nginx: program nginx supervisord.dev.conf:8 autorestart true
-    rustBackend: program rust-backend supervisord.dev.conf:19 command rust-backend-wrapper.sh
-    viteDev: program vite-dev supervisord.dev.conf:34 npm run dev
+    devInputsSync: program dev-inputs-sync supervisord.dev.conf:21 keeps the host root build files current, ADR-2008 supervisord.dev.conf:19-22
+    rustBackend: program rust-backend supervisord.dev.conf:33 command rust-backend-wrapper.sh supervisord.dev.conf:34
+    viteDev: program vite-dev supervisord.dev.conf:48 npm run dev supervisord.dev.conf:49
 
-    rustBackend --> rustBackendRetry: crash, startretries 3 supervisord.dev.conf:23
+    rustBackend --> rustBackendRetry: crash, startretries 3 supervisord.dev.conf:37
     rustBackendRetry --> rustBackend: restart, startsecs 10
     rustBackendRetry --> rustBackendFatal: exceeds startretries
     rustBackendFatal --> [*]
@@ -251,11 +255,11 @@ stateDiagram-v2
 
     note right of rustBackend
         environment RUST_LOG, MCP_TCP_PORT 9500
-        supervisord.dev.conf 32
+        supervisord.dev.conf 46
     end note
     note right of supervisordRoot
         unix_http_server /tmp/supervisor.sock
-        supervisord.dev.conf 47
+        supervisord.dev.conf 60
     end note
 ```
 
@@ -284,7 +288,7 @@ stateDiagram-v2
         binary already compiled, no wrapper script
     end note
     note left of supervisordRootProd
-        cross-estate compare (agentbox flake.nix 3521):
+        cross-estate compare (agentbox flake.nix 2621 and 2682):
         agentbox supervisord also runs as PID1 root,
         but every long-running program declares user devuser
         per-program — this file has no per-program user line
@@ -296,17 +300,18 @@ stateDiagram-v2
 ```mermaid
 flowchart TB
     subgraph PROFILES["docker-compose.unified.yml services block"]
-        DEVSVC["visionclaw<br/>docker-compose.unified.yml:54 target development<br/>profiles development and dev, docker-compose.unified.yml:193-194<br/>ports 3001 and 4000, docker-compose.unified.yml:173-174<br/>source-bind volumes docker-compose.unified.yml:127-171,<br/>docker.sock read-only docker-compose.unified.yml:164"]
-        VAULTMOUNT["ADR-2114 corpus vault mount<br/>agent-workspace:/vault:ro docker-compose.unified.yml:170-171<br/>external named volume multi-agent-docker_workspace<br/>declared docker-compose.unified.yml:390-392"]
-        PRODSVC["visionclaw-production<br/>docker-compose.unified.yml:197<br/>profiles production and prod, docker-compose.unified.yml:266-268<br/>port 3001 only, docker-compose.unified.yml:242<br/>NO source mounts and NO docker.sock, docker-compose.unified.yml:237-239"]
-        CLOUDFLARED["cloudflared<br/>docker-compose.unified.yml:273, image cloudflare/cloudflared at a pinned<br/>digest :276, its OWN profile tunnel docker-compose.unified.yml:292-293 (ADR-2119)<br/>depends_on visionclaw OR visionclaw-production (optional)"]
-        LOOM["loom<br/>docker-compose.unified.yml:316, image loom:rust built outside this repo :318<br/>loom compose profile docker-compose.unified.yml:378-379<br/>host port 8090 to container port 8080 docker-compose.unified.yml:363<br/>hostname loom :319, alias ontology-loom docker-compose.unified.yml:368"]
+        DEVSVC["visionclaw<br/>docker-compose.unified.yml:59 target development, compose-hash label :54<br/>profiles development and dev, docker-compose.unified.yml:222-224<br/>ports 3001 and 4000, docker-compose.unified.yml:204-205<br/>source-bind volumes docker-compose.unified.yml:148-185,<br/>docker.sock read-only docker-compose.unified.yml:194"]
+        VAULTMOUNT["ADR-2114 corpus vault mount<br/>agent-workspace:/vault:ro docker-compose.unified.yml:198-201<br/>external named volume multi-agent-docker_workspace<br/>declared docker-compose.unified.yml:576-578"]
+        PRODSVC["visionclaw-production<br/>docker-compose.unified.yml:227<br/>profiles production and prod, docker-compose.unified.yml:311-313<br/>port 3001 only, docker-compose.unified.yml:285-287<br/>NO source mounts and NO docker.sock, docker-compose.unified.yml:282-284"]
+        CLOUDFLARED["cloudflared<br/>docker-compose.unified.yml:318, image cloudflare/cloudflared at a pinned<br/>digest :321, its OWN profile tunnel docker-compose.unified.yml:337-338 (ADR-2119)<br/>depends_on visionclaw OR visionclaw-production (optional)"]
+        LOOM["loom<br/>docker-compose.unified.yml:361, image loom:rust built outside this repo :363<br/>loom compose profile docker-compose.unified.yml:423-424<br/>host port 8090 to container port 8080 docker-compose.unified.yml:408<br/>hostname loom :364, alias ontology-loom docker-compose.unified.yml:413"]
+        CODESCAPE["codescape (ADR-2143, opt-in profile codescape)<br/>the Codescape submodule built and run as a sidecar on port 4100,<br/>ingest token as a compose secret<br/>docker-compose.unified.yml:433-445, docker-compose.unified.yml:555-556,<br/>docker-compose.unified.yml:564-565"]
     end
     subgraph EXTFILE["docker-compose.cloudflared.yml (standalone)"]
         CFSTANDALONE["cloudflared<br/>joins external visionclaw_network<br/>alias visionclaw-server:3001"]
     end
-    NET["visionclaw_network (external, pre-created)<br/>docker-compose.unified.yml:381-384"]
-    INGRESS["launch.sh up prod reads VISIONCLAW_INGRESS from .env.prod,<br/>lan or tunnel, undeclared means tunnel, scripts/launch.sh:167-180<br/>tunnel activates prod,tunnel, lan activates prod alone :266-271"]
+    NET["visionclaw_network (external, pre-created)<br/>docker-compose.unified.yml:567-570"]
+    INGRESS["launch.sh up prod reads VISIONCLAW_INGRESS from .env.prod,<br/>lan or tunnel, undeclared means tunnel, scripts/launch.sh:177-190<br/>tunnel activates prod,tunnel, lan activates prod alone :296-300;<br/>dev adds the codescape profile only when the sidecar is chosen :270-275"]
     INGRESS -->|"tunnel"| CLOUDFLARED
     INGRESS -->|"prod in both modes"| PRODSVC
 
@@ -315,6 +320,7 @@ flowchart TB
     PRODSVC --> NET
     CLOUDFLARED --> NET
     LOOM --> NET
+    CODESCAPE --> NET
     CFSTANDALONE --> NET
 
     GATE["Deployment constraint: default dev and production<br/>both publish host port 3001, so concurrent activation collides.<br/>Compose profiles do not enforce mutual exclusion."]
@@ -325,15 +331,16 @@ flowchart TB
 ## ES-09.9 nginx route tables — dev vs production upstreams
 ```mermaid
 flowchart LR
-    subgraph DEVNGINX["nginx.dev.conf — listen 3001 nginx.dev.conf:55"]
-        DUPRUST["upstream rust_backend<br/>127.0.0.1:4000 :43-46"]
-        DUPVITE["upstream vite_frontend<br/>127.0.0.1:5173 :48-51"]
-        DAPI["^~ /api/ -> rust_backend :66-67"]
-        DWSS["/wss, /ws/speech, /ws/mcp-relay -> rust_backend :86,106,126"]
-        DSOLID["^~ /solid/, ^~ /pods/ -> rust_backend/api/solid/ :167,193"]
-        DHMR["/vite-hmr, /@vite, /node_modules -> vite_frontend :254,266"]
-        DROOT["/ -> vite_frontend (dev server, no static build) :290"]
-        DXFH["X-Forwarded-Host = http_host, the dialled host:port,<br/>on /api/, /wss and /ws/speech only nginx.dev.conf:70,92,112<br/>/solid/ and /pods/ still send host without port nginx.dev.conf:174,200"]
+    subgraph DEVNGINX["nginx.dev.conf — listen 3001 nginx.dev.conf:56"]
+        DUPRUST["upstream rust_backend<br/>127.0.0.1:4000 :44-47"]
+        DUPVITE["upstream vite_frontend<br/>127.0.0.1:5173 :49-52"]
+        DAPI["^~ /api/ -> rust_backend :108-109"]
+        DWSS["/wss, /ws/speech, /ws/mcp-relay -> rust_backend :128, :148, :168"]
+        DSOLID["^~ /solid/, ^~ /pods/ -> rust_backend/api/solid/ :209, :235"]
+        DHMR["/vite-hmr, /@vite, /node_modules -> vite_frontend :296, :308"]
+        DROOT["/ -> vite_frontend (dev server, no static build) :332"]
+        DCODESCAPE["^~ /codescape/ -> the codescape sidecar on codescape:4100, resolved lazily<br/>through Docker DNS so nginx starts when it is down (ADR-2143 A4)<br/>nginx.dev.conf:59-98"]
+        DXFH["X-Forwarded-Host = http_host, the dialled host:port,<br/>on /api/, /wss and /ws/speech only nginx.dev.conf:112, nginx.dev.conf:134, nginx.dev.conf:154<br/>/solid/ and /pods/ still send host without port nginx.dev.conf:216, nginx.dev.conf:242"]
     end
     subgraph PRODNGINX["nginx.production.conf — listen 3001 :85"]
         PUPRUST["upstream rust_backend<br/>127.0.0.1:4001 max_fails=0 :69-72"]
@@ -357,7 +364,7 @@ flowchart LR
     PHEALTH --> PUPRUST
     DAPI -.-> DXFH
     PAPI -.-> PXFH
-    XFHWHY["2026-10-02 (e7e6b61d8): a NIP-98 u tag signs the URL the client<br/>dialled, port included. nginx Host drops the port, so the backend<br/>rebuilds the URL from X-Forwarded-Proto and X-Forwarded-Host,<br/>auth.rs:153-171"]
+    XFHWHY["2026-10-02 (e7e6b61d8): a NIP-98 u tag signs the URL the client<br/>dialled, port included. nginx Host drops the port, so the backend<br/>rebuilds the URL from X-Forwarded-Proto and X-Forwarded-Host,<br/>auth.rs:170-189"]
     DXFH -.-> XFHWHY
     PXFH -.-> XFHWHY
     XFHOPEN["OPEN: the pod NIP-98 check also rebuilds its URL from<br/>X-Forwarded-Host, solid_proxy_handler.rs:207-222, but the /solid/ and<br/>/pods/ blocks still forward host without the port. Whether a LAN<br/>client signing host:3001 for a pod write is refused is untested."]
@@ -367,7 +374,7 @@ flowchart LR
     DROOT -.-> DIVNOTE
     PSTATIC -.-> DIVNOTE
 
-    PRECED["RESOLVED 2026-10-01 (648c9c442) — in nginx a regex location<br/>outranks a plain prefix, so the asset-extension regex<br/>(nginx.dev.conf:280, nginx.production.conf:271) captured any<br/>/solid/, /pods/ or /api/ path ending in .png or .js and sent it to<br/>Vite or the static root. Every backend prefix now carries ^~,<br/>which makes the prefix match final: nginx.dev.conf:66,167,193<br/>and nginx.production.conf:114,215 (production /solid/ already had it)."]
+    PRECED["RESOLVED 2026-10-01 (648c9c442) — in nginx a regex location<br/>outranks a plain prefix, so the asset-extension regex<br/>(nginx.dev.conf:322, nginx.production.conf:271) captured any<br/>/solid/, /pods/ or /api/ path ending in .png or .js and sent it to<br/>Vite or the static root. Every backend prefix now carries ^~,<br/>which makes the prefix match final: nginx.dev.conf:108, nginx.dev.conf:209, nginx.dev.conf:235<br/>and nginx.production.conf:114,215 (production /solid/ already had it)."]
     DSOLID -.-> PRECED
     PSOLID -.-> PRECED
 ```
@@ -376,16 +383,16 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph FLAKE["agentbox/flake.nix — image composition"]
-        NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate agentbox/flake.nix:450"]
-        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2542, agentbox/flake.nix:2573,<br/>agentbox/flake.nix:2589<br/>program blocks e.g. management-api, bootstrap-seal"]
-        SUPWRITE["writeText supervisord.conf<br/>agentbox/flake.nix:3949-3953"]
+        NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate agentbox/flake.nix:499"]
+        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2620, agentbox/flake.nix:2651,<br/>agentbox/flake.nix:2667<br/>program blocks e.g. management-api, bootstrap-seal"]
+        SUPWRITE["writeText supervisord.conf<br/>agentbox/flake.nix:4028-4032"]
     end
     subgraph TOML["agentbox/agentbox.toml — RUNNING config, not a template"]
         GATEKEY["gate key e.g. interaction_plane.enabled"]
     end
     subgraph MANIFEST["agentbox/management-api/lib/system-manifest.js"]
         CATALOGUE["CATALOGUE entry<br/>system-manifest.js:39<br/>gate, service, apply_class"]
-        APPLYCLASS["APPLY_CLASSES:<br/>live system-manifest.js:27, boot system-manifest.js:28,<br/>rebuild system-manifest.js:29<br/>ADR-039 apply-class taxonomy"]
+        APPLYCLASS["APPLY_CLASSES:<br/>live system-manifest.js:28, boot system-manifest.js:29,<br/>rebuild system-manifest.js:30<br/>ADR-039 apply-class taxonomy"]
     end
 
     GATEKEY -->|"read at eval time"| NIXPKG
@@ -405,8 +412,8 @@ flowchart TB
     REBUILD --> IMAGE["new agentbox image, apply_class rebuild changes take effect"]
 
     subgraph SUBMOD["VisionClaw submodule pointer-bump"]
-        GITMODULES[".gitmodules<br/>submodule agentbox<br/>url github.com/DreamLab-AI/agentbox.git"]
-        SUBSTATUS["git submodule status<br/>+6466e393...393 agentbox<br/>+ prefix: checkout differs from index"]
+        GITMODULES[".gitmodules:1-3<br/>submodule agentbox<br/>url github.com/DreamLab-AI/agentbox.git<br/>.gitmodules:4-6<br/>submodule codescape (ADR-2143 A5, its own repository)<br/>url github.com/DreamLab-AI/codescape"]
+        SUBSTATUS["git submodule status<br/>1da8d2171 agentbox and 9140a0f87 codescape at the stamped gitlinks<br/>a + prefix means the checkout differs from the index"]
         SUBUPDATE["cd agentbox and git checkout NEW_SHA<br/>then git add agentbox (records gitlink)"]
         SUBCOMMIT["git commit records new gitlink SHA<br/>in the VisionClaw superproject tree"]
     end
@@ -482,12 +489,12 @@ sequenceDiagram
     participant GH as push/PR/repository_dispatch<br/>ontology-publish.yml:3-16 corpus-sync
     participant VAL as validate-source job<br/>ontology-publish.yml:44
     participant BLD as build-ontology job<br/>ontology-publish.yml:133
-    participant REL as publish-release job<br/>ontology-publish.yml:233
+    participant REL as publish-release job<br/>ontology-publish.yml:286
     participant SRV as visionclaw-server boot<br/>src/services/ontology_pull.rs
-    participant DEP as deploy-jss job (push path)<br/>ontology-publish.yml:303
-    participant WS as notify-websocket job<br/>ontology-publish.yml:413
-    participant PRP as pr-preview job<br/>ontology-publish.yml:492
-    participant MIS as deploy-target-missing job<br/>ontology-publish.yml:546
+    participant DEP as deploy-jss job (push path)<br/>ontology-publish.yml:356
+    participant WS as notify-websocket job<br/>ontology-publish.yml:466
+    participant PRP as pr-preview job<br/>ontology-publish.yml:545
+    participant MIS as deploy-target-missing job<br/>ontology-publish.yml:599
 
     GH->>VAL: preflight gh repo view on the private ontology source :67-73<br/>ONTOLOGY_SOURCE_TOKEN, falling back to GITHUB_TOKEN :67-68
     alt source unreadable
@@ -499,29 +506,30 @@ sequenceDiagram
     BLD->>BLD: checkout the source into vault-source/ again :148-154,<br/>pinned to validate-source's source_sha :152
     BLD->>BLD: ADR-2113 — cargo build --release --locked -p vault :168<br/>(crates/vault in THIS repo, cached by Cargo.lock hash :156-164)
     BLD->>BLD: ./target/release/vault --repo vault-source build<br/>--vault knowledge --out output/vault :170-173
-    BLD->>BLD: pack-pod-resources.py output/vault output/pod — public-only<br/>TTL, JSON-LD compacted against the vault context, LDP index<br/>manifest, substance floor :188-194
-    BLD->>BLD: re-parse packed resources :196-212, upload<br/>ontology-ttl :217-218 and ontology-jsonld :224-225
-    BLD->>REL: main only, needs validate-source + build-ontology :236
-    REL->>REL: assemble five assets + SHA256SUMS :256-264,<br/>create or move release tag ontology-latest
-    REL->>REL: upload --clobber, verify the public<br/>download path diffs SHA256SUMS :297-300
+    BLD->>BLD: ADR-2147 vault certify writes an oo-cert/1 derivation certificate and<br/>exits 1 if the certified closure stops matching Whelk's :180-189, then a pinned<br/>Lean 4 oo-cert binary re-checks it by digest :191-208, reports and certificate uploaded :210-227
+    BLD->>BLD: pack-pod-resources.py output/vault output/pod — public-only<br/>TTL, JSON-LD compacted against the vault context, LDP index<br/>manifest, substance floor :241-247
+    BLD->>BLD: re-parse packed resources :249-265, upload<br/>ontology-ttl :270-271 and ontology-jsonld :277-278
+    BLD->>REL: main only, needs validate-source + build-ontology :289
+    REL->>REL: assemble five assets + SHA256SUMS :309-317,<br/>create or move release tag ontology-latest
+    REL->>REL: upload --clobber, verify the public<br/>download path diffs SHA256SUMS :350-353
     Note over SRV: ADR-2106 pull model — at boot and every<br/>ONTOLOGY_PULL_INTERVAL_SECS: GET index.jsonld, compare<br/>visionflow:buildSha with the pod's, and if moved GET<br/>SHA256SUMS plus the files, verify every digest, then write<br/>via Storage in order: containers, .acl only if absent,<br/>content, manifest last. Fail-open. see ES-08.11
     SRV->>REL: GET releases/download/ontology-latest/{index.jsonld, SHA256SUMS, ...}
     alt vars.SOLID_POD_URL set (a pod a runner can reach)
-        BLD->>DEP: needs build-ontology, ref main :307
-        DEP->>DEP: backup current pod index for rollback :330
-        DEP->>DEP: PUT visionflow.ttl, context/ontology/index jsonld :348-365, verify :374-390
+        BLD->>DEP: needs build-ontology, ref main :360
+        DEP->>DEP: backup current pod index for rollback :383
+        DEP->>DEP: PUT visionflow.ttl, context/ontology/index jsonld :401-418, verify :427-443
         alt deployment fails
-            DEP->>DEP: rollback to backed-up index :406
+            DEP->>DEP: rollback to backed-up index :459
         end
         DEP->>WS: deployment_status success
-        WS->>WS: POST to SOLID_POD_URL/.notifications :456, PATCH index.jsonld :461
+        WS->>WS: POST to SOLID_POD_URL/.notifications :509, PATCH index.jsonld :514
     else unset (default: the in-process pod is not reachable from a hosted runner)
-        REL->>MIS: ::notice: push deploy skipped, pull model in effect :550-553
+        REL->>MIS: ::notice: push deploy skipped, pull model in effect :603-606
     end
-    GH->>PRP: pull_request only: comment with stats and SHAs :492-516
+    GH->>PRP: pull_request only: comment with stats and SHAs :545-569
     Note over VAL,WS: RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL now<br/>defaults to the loopback /solid scope :36-38 — what the embedded<br/>solid-pod-rs serves in-process (ADR-032 M3). The POST to<br/>/.notifications is annotated a best-effort no-op there:<br/>that path is a GET WebSocket upgrade
     Note over BLD: RESOLVED — ADR-2112/ADR-2113 replaced the Python<br/>pipeline.build converter (0 owl:Class from 380 pages on run<br/>34045488066, itself a fix of two earlier Logseq-only jobs) first<br/>with a vault-owned Python step, now with an IN-REPO Rust build:<br/>cargo build -p vault then ./target/release/vault build against<br/>the checked-out vault-source/, no external converter left to own
-    Note over GH,BLD: DRIFT resolved — the source repo is still checked out (path<br/>renamed logseq-source to vault-source, trigger renamed logseq-sync<br/>to corpus-sync :15-16) but it no longer runs anyone's pipeline in<br/>place: `vault build` reads it via --repo and writes output/vault.<br/>scripts/ontology/pack-pod-resources.py remains this repo's own<br/>script, unchanged, run from the repo root :192. see VG-04.1, KG-05
+    Note over GH,BLD: DRIFT resolved — the source repo is still checked out (path<br/>renamed logseq-source to vault-source, trigger renamed logseq-sync<br/>to corpus-sync :15-16) but it no longer runs anyone's pipeline in<br/>place: `vault build` reads it via --repo and writes output/vault.<br/>scripts/ontology/pack-pod-resources.py remains this repo's own<br/>script, unchanged, run from the repo root :245. see VG-04.1, KG-05
     Note over GH,BLD: 2026-10 (805219679) — a corpus-sync dispatch may name the<br/>source repo :30 and sha :93, and the build job checks out exactly<br/>the sha validate-source detected :152, so a build can no longer<br/>publish a later corpus commit than the one it validated
     Note over SRV,MIS: RESOLVED ADR-2106 (2026-09-06): deploy-jss had never<br/>run and could not from a hosted runner — delivery inverted to a<br/>boot pull from the ontology-latest release. see ES-08.11
 ```
@@ -530,24 +538,26 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GH as push/PR xr-client/**<br/>xr-godot-ci.yml:24-36
+    participant GH as push/PR xr-client/**<br/>xr-godot-ci.yml:25-37
     participant RT as xr-rust-tests job<br/>xr-godot-ci.yml:54 blocking
     participant GUT as gut-headless job<br/>xr-godot-ci.yml:77 blocking
-    participant Q3 as quest3-android job<br/>xr-godot-ci.yml:124 advisory
+    participant Q3 as quest3-android job<br/>xr-godot-ci.yml:131 advisory
 
     GH->>RT: cargo test -p visionclaw-xr-gdext --all-features :73
     RT->>RT: cargo test -p visionclaw-xr-presence :75
     GH->>GUT: cargo build -p visionclaw-xr-gdext (debug cdylib) :89
-    GUT->>GUT: install GL display deps, xvfb and mesa :90-91
-    GUT->>GUT: install Godot 4.3-stable :92-98
-    GUT->>GUT: vendor GUT 9.3.1 pinned tag :99-105
-    GUT->>GUT: godot --headless --editor --import, register GUT classes :110
-    GUT->>GUT: xvfb-run godot gl_compatibility -s gut_cmdln.gd :112-114
-    Note over GUT: the job is still named gut-headless :77 but the suite runs<br/>under a virtual GL display, because the world-space HUD fit<br/>gate needs real GL font metrics :111
-    GH->>Q3: continue-on-error true :127
-    Q3->>Q3: cargo ndk build aarch64-linux-android :151
-    Q3->>Q3: export Quest 3 arm64 APK :167-175
-    Q3->>Q3: APK size gate, fail if greater than 80MB :176-181
+    GUT->>GUT: launch-guard tests, then fail if the library Godot loads is older<br/>than its Rust source :90-93
+    GUT->>GUT: install GL display deps, xvfb and mesa :94-95
+    GUT->>GUT: install Godot 4.6.1-stable, env GODOT_VERSION :50, :96-102
+    GUT->>GUT: check the committed GUT pin is 9.6.1, not a fetched tag :103-107
+    GUT->>GUT: godot --headless --editor --xr-mode off --import, log kept :113
+    GUT->>GUT: xvfb-run godot gl_compatibility -s gut_cmdln.gd, log kept :115-117
+    GUT->>GUT: GUT guard fails on any parse or compile error or a short script count :118-121
+    Note over GUT: the job is still named gut-headless :77 but the suite runs<br/>under a virtual GL display, because the world-space HUD fit<br/>gate needs real GL font metrics :114
+    GH->>Q3: continue-on-error true :134
+    Q3->>Q3: cargo ndk build aarch64-linux-android :158
+    Q3->>Q3: export Quest 3 arm64 APK :174-182
+    Q3->>Q3: APK size gate, fail if greater than 80MB :183-188
     Note over Q3: advisory until first green hosted run,<br/>then promote to blocking (per file header comment)
 ```
 
@@ -568,29 +578,32 @@ sequenceDiagram
     Note over J: DIVERGENCE: implementation_status partial — the<br/>dated closeout says the scanner does not yet cover<br/>every equivalent publish syntax form
     J->>J: check-listeners.test.mjs :82, the tests/security/**<br/>trigger path guards this gate's own unit tests
     J->>J: aoe-launch-never-attaches test (2026-10-01, the aoe pin<br/>past the non-tty attach fix) :85
-    J->>J: check-db-password.sh :88
-    J->>J: check-secret-not-in-env.sh :91
-    J->>J: custody W2 - env-secret-inventory --check and its unit<br/>tests, plus compose-role-env (W10) :98, :103, :105 - see ES-09.24
-    J->>J: RC-X1-01 to RC-X1-07 runtime contracts, the real entrypoint<br/>functions against a scratch root - :112, :114, :116, :118,<br/>:120, :122, :124 - see ES-09.24
-    J->>J: check-single-metrics.js :127
-    J->>J: check-no-npx-latest.sh (ratchet) :130
-    J->>J: lint-skills.sh :133
-    J->>J: deepsec-gate.test.mjs :140
-    J->>J: check-manifest-catalogue.js (ADR-039 gate-path parity) :146
-    J->>J: ruflo-console bake + boot projection test :149
-    J->>J: check-declared-vs-running against the dated runtime snapshot,<br/>plus its unit tests :156, :158
-    J->>J: check-no-logseq-paths.sh :161
+    J->>J: session-launch-contract (ADR-2153, proposed) :87-88, then trust-seed :90-91,<br/>every seed resolves to a launch the pinned CLIs accept and every Claude config<br/>store a session reads is trusted
+    J->>J: check-db-password.sh :94
+    J->>J: check-secret-not-in-env.sh :97
+    J->>J: custody W2 - env-secret-inventory --check and its unit<br/>tests, plus compose-role-env (W10) :104, :109, :111 - see ES-09.24
+    J->>J: RC-X1-01 to RC-X1-07 runtime contracts, the real entrypoint<br/>functions against a scratch root - :118, :120, :122, :124,<br/>:126, :128, :130 - see ES-09.24
+    J->>J: check-single-metrics.js :133
+    J->>J: check-no-npx-latest.sh (ratchet) :136
+    J->>J: lint-skills.sh :139
+    J->>J: deepsec-gate.test.mjs :146
+    J->>J: check-manifest-catalogue.js (ADR-039 gate-path parity) :152
+    J->>J: ruflo-console bake + boot projection test :155
+    J->>J: check-declared-vs-running against the dated runtime snapshot,<br/>plus its unit tests :162, :164
+    J->>J: check-no-logseq-paths.sh :167
     Note over J: ADR-2028: vault.root is the single corpus path<br/>authority, greps for hard-coded workspace/logseq<br/>outside docs/archive and docs/adr exemptions
-    J->>J: federation-fixture-check (ADR-2025) :168
-    J->>J: protocol-registry-lint and its unit tests, kind rows<br/>owned and no collisions (ADR-2105) :173, :175
-    J->>J: adr-index-gen.js docs/adr --check :183
-    J->>J: adr-index-gen.js docs/adr --check-index (ADR-2001) :191
-    J->>J: N-7 render-egress-register.js --check :198 - see ES-09.24
-    J->>J: adr-ratchet self-test :201, then adr-ratchet.sh over the push range :206
+    J->>J: federation-fixture-check (ADR-2025) :174
+    J->>J: protocol-registry-lint and its unit tests, kind rows<br/>owned and no collisions (ADR-2105) :179, :181
+    J->>J: adr-index-gen.js docs/adr --check :189
+    J->>J: adr-index-gen.js docs/adr --check-index (ADR-2001) :197
+    J->>J: N-7 render-egress-register.js --check :204 - see ES-09.24
+    J->>J: adr-ratchet self-test :207, then adr-ratchet.sh over the push range :212
     Note over J: the ratchet script is byte-identical to the host copy<br/>(agentbox/scripts/adr-ratchet.sh:36 carries the same 2026-10-20<br/>end date) so both ledgers run one rule. see ES-09.12
-    J->>J: check-crate-licensing.sh :209
+    J->>J: check-crate-licensing.sh :215
     Note over J: DRIFT resolved — the vault-frontmatter unit test step<br/>(node --test mcp/servers/lib/__tests__/*.test.js) is GONE:<br/>ADR-2107/ADR-2108 deleted the V2 frontmatter writer it gated<br/>along with the ontology write path. `vault validate` is the<br/>successor contract check, run against the corpus not a helper.
 ```
+
+**Open:** the invariants job now runs a `session-launch-contract` step citing ADR-2153, which proposes replacing Agent of Empires with an owned session plane; the record is proposed while the gate already runs on every push (`../project/agentbox/.github/workflows/invariants.yml:87-88`), and the supervisor still runs `aoe serve` (`../project/agentbox/flake.nix:2924`).
 
 ## ES-09.16 agentbox contract-tests.yml — adapter contract suites
 ```mermaid
@@ -669,7 +682,7 @@ flowchart LR
     COMPOSEUP["docker compose --profile dev|production up<br/>docker-compose.unified.yml"]
     CONTAINER["visionclaw_container or visionclaw_prod_container<br/>supervisord manages nginx + rust-backend (+vite-dev in dev)"]
     NGINXROUTE["nginx.dev.conf or nginx.production.conf<br/>route table (ES-09.9)"]
-    HEALTH["/api/health, /readyz<br/>docker-compose.unified.yml:185,259"]
+    HEALTH["/api/health, /readyz<br/>docker-compose.unified.yml:215, docker-compose.unified.yml:304"]
 
     SRC --> CIGATE
     CIGATE --> DOCKERBUILD
@@ -692,47 +705,47 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CB as "cargo build (dev container)"<br/>rust-backend-wrapper.sh:57
+    participant CB as "cargo build (dev container)"<br/>rust-backend-wrapper.sh:83
     participant URI as visionclaw-server src/uri<br/>src/uri/mod.rs:662
     participant FK as federation-kinds artefact<br/>agentbox/schema/federation-kinds.json:2-4
-    participant CMP as dev compose mounts<br/>docker-compose.unified.yml:149
+    participant CMP as dev compose mounts<br/>docker-compose.unified.yml:182
     participant BR as "BC20 bridge (agentbox, JS)"
 
     Note over URI,FK: ADR-2061 — federation-kinds.json is the SINGLE versioned<br/>authority for which urn:agentbox kinds cross the boundary.<br/>cross_from_agentbox derives its closed map from it — the JS bridge<br/>reads the same bytes at load. Neither side transcribes the list.
     URI->>FK: "const FEDERATION_KINDS_JSON = include_str!(\"../../agentbox/schema/federation-kinds.json\")"<br/>src/uri/mod.rs:662
     Note over URI: include_str! is COMPILE time, so the file must exist under /app<br/>or the lib cannot build at all — not a runtime read.
-    CMP->>CB: "bind ${HOST_PROJECT_ROOT}/agentbox/schema -> /app/agentbox/schema:ro"<br/>docker-compose.unified.yml:149
+    CMP->>CB: "bind ${HOST_PROJECT_ROOT}/agentbox/schema -> /app/agentbox/schema:ro"<br/>docker-compose.unified.yml:182
     CB->>URI: compiles, artefact bytes baked into the binary
     FK-->>BR: EXTERNAL — the same file is read at load by the agentbox<br/>management-api bridge. see AB-17 and ES-03.1
-    Note over CMP: INVARIANT — mount schema/ ONLY, never the whole submodule.<br/>agentbox carries 262 files ADR-2008 counts as build inputs, so a<br/>full mount would turn every agentbox bump into a spurious ~12 min<br/>visionclaw rebuild — schema/ is JSON alone and matches no input glob<br/>(docker-compose.unified.yml:140-148)
-    Note over CB: RESOLVED 2026-09 — before this mount the dev image (which carries<br/>no source of its own) failed every build with<br/>the missing federation-kinds.json include<br/>docker-compose.unified.yml:149
+    Note over CMP: INVARIANT — mount schema/ ONLY, never the whole submodule.<br/>agentbox carries 262 files ADR-2008 counts as build inputs, so a<br/>full mount would turn every agentbox bump into a spurious ~12 min<br/>visionclaw rebuild — schema/ is JSON alone and matches no input glob<br/>(docker-compose.unified.yml:173-181)
+    Note over CB: RESOLVED 2026-09 — before this mount the dev image (which carries<br/>no source of its own) failed every build with<br/>the missing federation-kinds.json include<br/>docker-compose.unified.yml:182
 ```
 
 ## ES-09.21 scripts/launch.sh — env-file resolution and the two divergent code paths
 ```mermaid
 flowchart TB
-    START["launch.sh main()<br/>scripts/launch.sh:1242<br/>PROJECT_ROOT = dirname SCRIPT_DIR :15"]
+    START["launch.sh main()<br/>scripts/launch.sh:1555<br/>PROJECT_ROOT = dirname SCRIPT_DIR :15"]
 
     subgraph SANCTIONED["Sanctioned path — up / rebuild dev|prod"]
-        LOADENV["load_env_config<br/>looks for .env.$ENVIRONMENT :183-184"]
-        INGR["prod: resolve_prod_ingress reads VISIONCLAW_INGRESS,<br/>lan or tunnel, anything else exits :190,167-180"]
-        PRODREQ["production: .env.prod REQUIRED<br/>refuses four forbidden dev settings :195-197<br/>demands concrete values :218-219, the tunnel token only<br/>for tunnel, CORS_ALLOWED_ORIGINS for lan :205-209<br/>hard error if absent :232"]
-        DEVFALL["dev: falls back to plain .env :236-241<br/>hard error if neither exists :243"]
-        HPR["HOST_PROJECT_ROOT export :328,:336,:344<br/>— the DinD path translation the schema<br/>mount in ES-09.20 depends on"]
+        LOADENV["load_env_config<br/>looks for .env.$ENVIRONMENT :193-194"]
+        INGR["prod: resolve_prod_ingress reads VISIONCLAW_INGRESS,<br/>lan or tunnel, anything else exits :200, function :177-190"]
+        PRODREQ["production: .env.prod REQUIRED<br/>refuses four forbidden dev settings :205-210<br/>demands concrete values :225-232, the tunnel token only<br/>for tunnel, CORS_ALLOWED_ORIGINS for lan :215-223<br/>hard error if absent :241-244"]
+        DEVFALL["dev: falls back to plain .env :246-251<br/>hard error if neither exists :253-254"]
+        HPR["HOST_PROJECT_ROOT export :360, :368, :376<br/>— the DinD path translation the schema<br/>mount in ES-09.20 depends on"]
     end
 
     subgraph LEGACY["rebuild_agent_container — legacy MAD path"]
-        CD["cd $PROJECT_ROOT/multi-agent-docker :880"]
-        MK[".env absent -> cp env.example .env :884-887<br/>then blocks on an interactive read :890"]
+        CD["cd $PROJECT_ROOT/multi-agent-docker :1021"]
+        MK[".env absent -> cp env.example .env :1026-1029<br/>then blocks on an interactive read :1031"]
     end
 
     START --> LOADENV
     LOADENV --> INGR --> PRODREQ
     LOADENV --> DEVFALL
     LOADENV --> HPR
-    START -->|"launch.sh rebuild-agent, scripts/launch.sh:1305-1308"| CD --> MK
+    START -->|"launch.sh rebuild-agent, scripts/launch.sh:1632-1636"| CD --> MK
 
-    FIX["RESOLVED 2026-09-06 — the auto-create branch tested for a dotted<br/>.env.example that has never existed in the tree, so it always fell<br/>through to the error exit. It now copies env.example, the template<br/>that actually ships (scripts/launch.sh:884-887, env.example)."]
+    FIX["RESOLVED 2026-09-06 — the auto-create branch tested for a dotted<br/>.env.example that has never existed in the tree, so it always fell<br/>through to the error exit. It now copies env.example, the template<br/>that actually ships (scripts/launch.sh:1026-1029, env.example)."]
     DIV["DIVERGENCE — multi-agent-docker/ is not present in this checkout,<br/>so rebuild_agent_container cds into a missing directory before it<br/>reaches the fixed branch. The repaired .env creation is correct but<br/>currently unreachable; the MAD stack is the deprecated predecessor<br/>whose only surviving trace is the mad-workspace volume. see ES-01.4"]
     INV["INVARIANT ADR-2027 — profile selection is env-file driven, and the<br/>production branch fails closed: a missing or dev-contaminated<br/>.env.prod aborts the launch rather than defaulting. see ES-10"]
 
@@ -749,29 +762,29 @@ flowchart TB
     TRIG --> JOB
 
     subgraph SKILLS["Skill-estate gates — required before a rebuild"]
-        S1["lint-skills.sh, the structure gate<br/>agentbox/.github/workflows/invariants.yml:133"]
-        S2["skill-count-check, the SINGLE count authority<br/>agentbox/.github/workflows/invariants.yml:134-135"]
-        S3["gen-routing-table --check, routing-table freshness<br/>generated from frontmatter<br/>agentbox/.github/workflows/invariants.yml:137"]
+        S1["lint-skills.sh, the structure gate<br/>agentbox/.github/workflows/invariants.yml:139"]
+        S2["skill-count-check, the SINGLE count authority<br/>agentbox/.github/workflows/invariants.yml:140-141"]
+        S3["gen-routing-table --check, routing-table freshness<br/>generated from frontmatter<br/>agentbox/.github/workflows/invariants.yml:143"]
     end
     JOB --> SKILLS
 
     subgraph CONTRACT["Contract gates"]
-        C1["research-gates tests, the deep-research quote, citation<br/>and independence contract<br/>agentbox/.github/workflows/invariants.yml:142-143"]
-        C2["check-manifest-catalogue, ADR-039 gate-path parity<br/>agentbox/.github/workflows/invariants.yml:146"]
-        C3["federation-fixture-check, the cross-repo identifier<br/>contract from the agentbox side<br/>agentbox/.github/workflows/invariants.yml:167-168"]
+        C1["research-gates tests, the deep-research quote, citation<br/>and independence contract<br/>agentbox/.github/workflows/invariants.yml:148-149"]
+        C2["check-manifest-catalogue, ADR-039 gate-path parity<br/>agentbox/.github/workflows/invariants.yml:152"]
+        C3["federation-fixture-check, the cross-repo identifier<br/>contract from the agentbox side<br/>agentbox/.github/workflows/invariants.yml:173-174"]
     end
     JOB --> CONTRACT
 
-    DEBT["DEBT the workflow records against itself — skill-count-check was<br/>RED and UNWIRED, and the federation fixture check was governed by<br/>a record but never run by anything, found in a script audit. The<br/>fixture's whole point is that both repositories assert the SAME<br/>table rather than two tables that happen to agree, which an<br/>ungated check cannot deliver.<br/>agentbox/.github/workflows/invariants.yml:134,<br/>agentbox/.github/workflows/invariants.yml:163-166"]
+    DEBT["DEBT the workflow records against itself — skill-count-check was<br/>RED and UNWIRED, and the federation fixture check was governed by<br/>a record but never run by anything, found in a script audit. The<br/>fixture's whole point is that both repositories assert the SAME<br/>table rather than two tables that happen to agree, which an<br/>ungated check cannot deliver.<br/>agentbox/.github/workflows/invariants.yml:140,<br/>agentbox/.github/workflows/invariants.yml:169-172"]
     S2 --> DEBT
     C3 --> DEBT
 
-    CAT["INVARIANT ADR-039 — a new manifest gate must arrive with a<br/>CATALOGUE entry carrying an honest apply class, and the parity<br/>check above is what enforces it. Recent module entries: Claude Code<br/>permissions (ADR-2116) and instruction tiers (ADR-2118) at boot,<br/>claude-cred-sync at rebuild, skill-router-cascade (ADR-2095) and<br/>routing-teacher-labels (ADR-2110, proposed) at boot, vault-cli<br/>(ADR-2107/2108) at rebuild<br/>agentbox/management-api/lib/system-manifest.js:232 and lines 235, 238,<br/>255, 258 and 301 of the same file"]
-    HONEST["2026-10-02 — two entries show the honesty rule working. jev-compaction<br/>moved from boot to REBUILD when factrail landed (ADR-2121), because<br/>the binary and plugin are now gated in flake.nix,<br/>agentbox/management-api/lib/system-manifest.js:244-245. A new sidechain<br/>entry is rebuild-class with three gates,<br/>agentbox/management-api/lib/system-manifest.js:292-293, and stateOf<br/>lets a false parent gate dominate its child gates,<br/>agentbox/management-api/lib/system-manifest.js:364. 2026-10-03: the<br/>role-isolation entry arrives at BOOT, because both supervisor configs<br/>ship in every image, agentbox/management-api/lib/system-manifest.js:94-96"]
+    CAT["INVARIANT ADR-039 — a new manifest gate must arrive with a<br/>CATALOGUE entry carrying an honest apply class, and the parity<br/>check above is what enforces it. Recent module entries: Claude Code<br/>permissions (ADR-2116) and instruction tiers (ADR-2118) and the<br/>collaboration floor (ADR-2144) at boot, claude-cred-sync at<br/>rebuild, skill-router-cascade (ADR-2095) and<br/>routing-teacher-labels (ADR-2110, proposed) at boot, vault-cli<br/>(ADR-2107/2108) at rebuild<br/>agentbox/management-api/lib/system-manifest.js:253, :259, :262, :265, :288, :291, :343"]
+    HONEST["2026-10-02 — two entries show the honesty rule working. jev-compaction<br/>moved from boot to REBUILD when factrail landed (ADR-2121), because<br/>the binary and plugin are now gated in flake.nix,<br/>agentbox/management-api/lib/system-manifest.js:268-269. A new sidechain<br/>entry is rebuild-class with three gates,<br/>agentbox/management-api/lib/system-manifest.js:322-323, and stateOf<br/>lets a false parent gate dominate its child gates,<br/>agentbox/management-api/lib/system-manifest.js:397-398. 2026-10-03: the<br/>role-isolation entry first arrived at BOOT, because both supervisor configs<br/>ship in every image; it is now rebuild-class, because the devuser sudo route is<br/>removed at build, agentbox/management-api/lib/system-manifest.js:97-99"]
     CAT --> HONEST
     C2 --> CAT
 
-    CLASS["Each carries apply_class boot, meaning the entrypoint projects<br/>it and a flip takes effect on the next container restart with no<br/>image rebuild. The three classes are defined at<br/>system-manifest.js:27-29."]
+    CLASS["Each carries apply_class boot, meaning the entrypoint projects<br/>it and a flip takes effect on the next container restart with no<br/>image rebuild. The three classes are defined at<br/>system-manifest.js:28-30."]
     CAT --> CLASS
 ```
 
@@ -818,9 +831,9 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph INV["invariants.yml, every push touching scripts, lib, the entrypoint or the egress policy"]
-        I1["env-secret-inventory --check: every env name the boot path and the<br/>role-secret consumers read sits in exactly one class, names only<br/>agentbox/.github/workflows/invariants.yml:97-98"]
-        I2["its unit tests, compose-role-env W10, then the RC-X1-01..07<br/>runtime contracts - the real entrypoint functions against a<br/>scratch root, no Docker, no root<br/>agentbox/.github/workflows/invariants.yml:102-124"]
-        I3["N-7: the SECURITY-profiles egress table must match egress-policy.json,<br/>and an unmarked gap fails - agentbox/.github/workflows/invariants.yml:197-198"]
+        I1["env-secret-inventory --check: every env name the boot path and the<br/>role-secret consumers read sits in exactly one class, names only<br/>agentbox/.github/workflows/invariants.yml:103-104"]
+        I2["its unit tests, compose-role-env W10, then the RC-X1-01..07<br/>runtime contracts - the real entrypoint functions against a<br/>scratch root, no Docker, no root<br/>agentbox/.github/workflows/invariants.yml:108-130"]
+        I3["N-7: the SECURITY-profiles egress table must match egress-policy.json,<br/>and an unmarked gap fails - agentbox/.github/workflows/invariants.yml:203-204"]
     end
     subgraph MV["manifest-validate.yml, on the role table, config/lib or the entrypoint"]
         M1["the two supervisor configs cannot drift: only role programs' user=<br/>and environment= differ - agentbox/.github/workflows/manifest-validate.yml:133-138"]
@@ -853,7 +866,7 @@ flowchart TB
     NONE --> D["RESIDUAL DEBT: the G-5 dual-admit and the baked-producer bake have<br/>no CI step; everything else custody needs - the port's uid admission,<br/>the role-only reads, PATH and the one-shot Stage B - is now executed<br/>by invariants and the custody job"]
 ```
 
-**Debt (custody tests vs CI), RESOLVED at agentbox 6466e3931 except two suites:** through 2026-10-03 only the env-class inventory, RC-X1-06, the supervisor-drift, delivery and flag-off boot tests, the manifest crate's unit tests and the browsercontainer tests were wired. Now the RC-X1-01..07 runtime contracts run in invariants (`../project/agentbox/.github/workflows/invariants.yml:111-124`), and a `custody` job in contract-tests builds the bridge and runs the identity port's Rust and JS suites plus the rehearsal, failing on skips (`../project/agentbox/.github/workflows/contract-tests.yml:252-274`). The G-5 dual-admit key-split suite (`../project/agentbox/tests/sovereign/g5-key-split.node-test.js:3`) and the baked-producer test (`../project/agentbox/tests/config/sidechain-producer-baked.test.sh:2`) still have no step.
+**Debt (custody tests vs CI), RESOLVED at agentbox 6466e3931 except two suites:** through 2026-10-03 only the env-class inventory, RC-X1-06, the supervisor-drift, delivery and flag-off boot tests, the manifest crate's unit tests and the browsercontainer tests were wired. Now the RC-X1-01..07 runtime contracts run in invariants (`../project/agentbox/.github/workflows/invariants.yml:117-130`), and a `custody` job in contract-tests builds the bridge and runs the identity port's Rust and JS suites plus the rehearsal, failing on skips (`../project/agentbox/.github/workflows/contract-tests.yml:252-274`). The G-5 dual-admit key-split suite (`../project/agentbox/tests/sovereign/g5-key-split.node-test.js:3`) and the baked-producer test (`../project/agentbox/tests/config/sidechain-producer-baked.test.sh:2`) still have no step.
 
-**Drift (invariants.yml comment vs contract-tests.yml), RESOLVED:** the invariants job's env-secret-inventory label used to claim the role-secret loader "runs in contract-tests" with no such step existing — the workflow now records that honestly (`../project/agentbox/.github/workflows/invariants.yml:99-101`), and the step it names is real: contract-tests runs the loader and its consumers (`../project/agentbox/.github/workflows/contract-tests.yml:161-163`).
+**Drift (invariants.yml comment vs contract-tests.yml), RESOLVED:** the invariants job's env-secret-inventory label used to claim the role-secret loader "runs in contract-tests" with no such step existing — the workflow now records that honestly (`../project/agentbox/.github/workflows/invariants.yml:105-107`), and the step it names is real: contract-tests runs the loader and its consumers (`../project/agentbox/.github/workflows/contract-tests.yml:161-163`).
 

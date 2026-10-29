@@ -5,7 +5,7 @@ area: nostr-rust-forum
 governing:
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
-adrs: [ADR-2002, ADR-2003, ADR-2005]
+adrs: [ADR-2002, ADR-2003, ADR-2005, ADR-2023, ADR-2025]
 sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
@@ -37,50 +37,55 @@ sources:
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/sealed.rs
-verified_commit: 66ca8d8c0b7d1471503f916c513089846aba27c3
+  - ../nostr-rust-forum/crates/nostr-bbs-core/src/push.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-core/Cargo.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml
+verified_commit: 8a5cf817e81b20e2b761899eab753768c0cb4988
 ---
 
 ## NF-12.1 Module map — what the workers and clients all link
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph wire["Wire primitives"]
-        EV["event nostr-bbs-core/src/lib.rs:29"]
-        SG["signer nostr-bbs-core/src/lib.rs:40"]
-        TY["types nostr-bbs-core/src/lib.rs:42"]
-        N19["nip19 bech32 nostr-bbs-core/src/lib.rs:35"]
+        EV["event nostr-bbs-core/src/lib.rs:31"]
+        SG["signer nostr-bbs-core/src/lib.rs:43"]
+        TY["types nostr-bbs-core/src/lib.rs:45"]
+        N19["nip19 bech32 nostr-bbs-core/src/lib.rs:37"]
     end
     subgraph crypto["Encryption and auth"]
-        N04["nip04 nostr-bbs-core/src/lib.rs:34"]
-        N44["nip44 nostr-bbs-core/src/lib.rs:36"]
-        GW["gift_wrap NIP-59 nostr-bbs-core/src/lib.rs:30"]
-        N98["nip98 HTTP auth nostr-bbs-core/src/lib.rs:37"]
-        KY["keys nostr-bbs-core/src/lib.rs:32"]
-        SEL["sealed zone-history migration ADR-2017 nostr-bbs-core/src/lib.rs:39 - see NF-12.11"]
+        N04["nip04 nostr-bbs-core/src/lib.rs:36"]
+        N44["nip44 nostr-bbs-core/src/lib.rs:38"]
+        GW["gift_wrap NIP-59 nostr-bbs-core/src/lib.rs:32"]
+        N98["nip98 HTTP auth nostr-bbs-core/src/lib.rs:39"]
+        KY["keys nostr-bbs-core/src/lib.rs:34"]
+        SEL["sealed zone-history migration ADR-2017 nostr-bbs-core/src/lib.rs:42 - see NF-12.11"]
     end
     subgraph domain["Domain kinds"]
-        CAL["calendar NIP-52 nostr-bbs-core/src/lib.rs:27"]
-        DEL["deletion NIP-09 nostr-bbs-core/src/lib.rs:28"]
-        GRP["groups NIP-29 nostr-bbs-core/src/lib.rs:31"]
-        MOD["moderation_events nostr-bbs-core/src/lib.rs:33"]
-        THR["thread NIP-28 nostr-bbs-core/src/lib.rs:41"]
-        GOV["governance nostr-bbs-core/src/lib.rs:50 - see NF-06"]
-        ONT["ontology_governance ACSP profile nostr-bbs-core/src/lib.rs:38 - see NF-06"]
-        KAN["kanban nostr-bbs-core/src/lib.rs:51"]
+        CAL["calendar NIP-52 nostr-bbs-core/src/lib.rs:29"]
+        DEL["deletion NIP-09 nostr-bbs-core/src/lib.rs:30"]
+        GRP["groups NIP-29 nostr-bbs-core/src/lib.rs:33"]
+        MOD["moderation_events nostr-bbs-core/src/lib.rs:35"]
+        THR["thread NIP-28 nostr-bbs-core/src/lib.rs:44"]
+        GOV["governance nostr-bbs-core/src/lib.rs:54 - see NF-06"]
+        ONT["ontology_governance ACSP profile nostr-bbs-core/src/lib.rs:40 - see NF-06"]
+        KAN["kanban nostr-bbs-core/src/lib.rs:55"]
+        PSH["push - Web Push preference wire types shared by relay and client, ADR-2023 nostr-bbs-core/src/lib.rs:41"]
     end
     subgraph glue["Runtime glue"]
-        DID["did nostr-bbs-core/src/lib.rs:48"]
-        COR["cors nostr-bbs-core/src/lib.rs:46"]
-        FG["feature_gate nostr-bbs-core/src/lib.rs:49"]
-        BP["boot_profile nostr-bbs-core/src/lib.rs:45"]
-        D1H["d1_helpers nostr-bbs-core/src/lib.rs:47"]
-        ASH["admin_shared nostr-bbs-core/src/lib.rs:44 - see NF-08.7"]
-        WB["wasm_bridge - wasm32 only nostr-bbs-core/src/lib.rs:53"]
+        DID["did - behind the off-by-default did feature nostr-bbs-core/src/lib.rs:51 nostr-bbs-core/src/lib.rs:52"]
+        COR["cors nostr-bbs-core/src/lib.rs:49"]
+        FG["feature_gate nostr-bbs-core/src/lib.rs:53"]
+        BP["boot_profile nostr-bbs-core/src/lib.rs:48"]
+        D1H["d1_helpers nostr-bbs-core/src/lib.rs:50"]
+        ASH["admin_shared nostr-bbs-core/src/lib.rs:47 - see NF-08.7"]
+        WB["wasm_bridge - wasm32 only nostr-bbs-core/src/lib.rs:57"]
     end
 
     N1["INVARIANT ADR-2002: this layer is what the upstream nostr absorption would REPLACE. Nothing here has<br/>been deleted - the canary gates that, see NF-01.5"]
-    N2["wasm_bridge is compiled ONLY for wasm32 nostr-bbs-core/src/lib.rs:53 and exports NIP-44, subkey<br/>derivation and Schnorr signing to JS - nostr-bbs-core/src/wasm_bridge.rs:20 wasm_bridge.rs:88<br/>wasm_bridge.rs:228. ANOMALY O10 re-verified: no JS consumer exists in this repo."]
+    N2["wasm_bridge is compiled ONLY for wasm32 nostr-bbs-core/src/lib.rs:57 and exports NIP-44, subkey<br/>derivation and Schnorr signing to JS - nostr-bbs-core/src/wasm_bridge.rs:20 wasm_bridge.rs:88<br/>wasm_bridge.rs:228. ANOMALY O10 re-verified: no JS consumer exists in this repo."]
     N3["did wraps solid_pod_rs::did_nostr_types rather than re-encoding nostr-bbs-core/src/did.rs:27 and<br/>re-exports its full-key encoder did.rs:30 - EXTERNAL: the encoder of record is the solid-pod-rs<br/>area (SP-*), see NF-02.2 and ES-04"]
+    N8["INVARIANT: the default build is MIT OR Apache-2.0 end to end; enabling the did feature pulls solid-pod-rs,<br/>which is AGPL-3.0-only, so a build with it on is AGPL as a whole nostr-bbs-core/Cargo.toml:6,<br/>nostr-bbs-core/Cargo.toml:23-28. The pod-worker enables it nostr-bbs-pod-worker/Cargo.toml:29"]
     N7["did:nostr parity model, did-nostr#145: decoding accepts both fe70102 and fe70103 Multikey<br/>prefixes and returns the same x-only key nostr-bbs-core/src/did.rs:109; read as a point a Multikey<br/>keeps its own parity did.rs:121, while a bare identifier denotes the even-y lift did.rs:74.<br/>Every forum route renders from the D1 identifier, so it only ever emits fe70102 did.rs:15"]
     N4["feature_gate is why the two workers cannot disagree on what DEVICE_KEYS_ENABLED means - each reads its<br/>OWN binding nostr-bbs-core/src/feature_gate.rs:42 but shares the PARSE rule<br/>nostr-bbs-core/src/feature_gate.rs:64, so ADR-2004's lockstep requirement holds by construction rather<br/>than by review - see NF-02.7 and NF-08.8"]
     N5["boot_profile's BOOTPROFILE_MODE nostr-bbs-core/src/boot_profile.rs:41 and is_pwa_boot<br/>nostr-bbs-core/src/boot_profile.rs:97 gate the BBS client's zone-bound one-shot PWA boot - see NF-05.11"]
@@ -144,27 +149,31 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant SD as Sender
-    participant RU as rumor kind 14<br/>nostr-bbs-core/src/gift_wrap.rs:185
-    participant SE as seal kind 13<br/>nostr-bbs-core/src/gift_wrap.rs:242
-    participant WR as wrap kind 1059<br/>nostr-bbs-core/src/gift_wrap.rs:293
+    participant RU as rumor kind 14<br/>nostr-bbs-core/src/gift_wrap.rs:217
+    participant SE as seal kind 13<br/>nostr-bbs-core/src/gift_wrap.rs:274
+    participant WR as wrap kind 1059<br/>nostr-bbs-core/src/gift_wrap.rs:325
     participant RC as Recipient
 
-    SD->>RU: create_rumor - UNSIGNED, carries the recipient p tag gift_wrap.rs:204
+    SD->>RU: create_rumor - UNSIGNED, carries the recipient p tag gift_wrap.rs:236
     RU->>SE: seal_rumor - signed by the sender's REAL key, NIP-44 encrypted
-    SE->>WR: wrap_seal - a fresh THROWAWAY keypair gift_wrap.rs:295
-    WR->>WR: NIP-44 encrypt the seal JSON, throwaway sk to recipient pk gift_wrap.rs:314
-    WR->>WR: outer p tag names the recipient gift_wrap.rs:322
+    SE->>WR: wrap_seal - a fresh THROWAWAY keypair gift_wrap.rs:327
+    WR->>WR: NIP-44 encrypt the seal JSON, throwaway sk to recipient pk gift_wrap.rs:346
+    WR->>WR: outer p tag names the recipient gift_wrap.rs:354
     WR-->>RC: kind 1059
-    RC->>RC: unwrap_gift gift_wrap.rs:395
-    RC->>RC: verify the SEAL's Schnorr signature before trusting seal.pubkey gift_wrap.rs:438
-    RC->>RC: rumor.pubkey MUST equal the verified seal.pubkey gift_wrap.rs:460
+    RC->>RC: unwrap_gift gift_wrap.rs:427
+    RC->>RC: verify the OUTER wrap's own id and signature BEFORE any decrypt, ADR-2025 gift_wrap.rs:452
+    RC->>RC: verify the SEAL's Schnorr signature before trusting seal.pubkey gift_wrap.rs:475
+    RC->>RC: rumor.pubkey MUST equal the verified seal.pubkey gift_wrap.rs:497
 
+    Note over RC: INVARIANT every unwrap error is a fixed string, never serde text, because serde quotes the offending value and that would copy decrypted bytes into a log line gift_wrap.rs:189-190. A signed rumor is tolerated rather than refused, since wraps from foreign clients are already stored, and the author binding above is what protects the recipient gift_wrap.rs:204
     Note over WR: The ephemeral author is why relay admission cannot key on the author - it keys on the outer p tag instead, see NF-03.5, and delivery keys on the AUTHENTICATED session, see NF-11.5
-    Note over RC: INVARIANT author binding: the rumor's claimed author must match the signature-verified seal author gift_wrap.rs:396 - without this check a seal could carry any rumor
+    Note over RC: INVARIANT author binding: the rumor's claimed author must match the signature-verified seal author gift_wrap.rs:428 - without this check a seal could carry any rumor
     Note over SE: Kind constants: seal 13 gift_wrap.rs:30, wrap 1059 gift_wrap.rs:33. NIP-44 wire format is version || nonce 32 || ciphertext || mac 32 nostr-bbs-core/src/nip44.rs:11
-    Note over WR: INVARIANT the wrap timestamp is backdated PAST ONLY,<br/>never the future gift_wrap.rs:154. The wrap created_at is<br/>the only timestamp a relay can see, and relays refuse events<br/>dated ahead, so the old symmetric jitter silently dropped<br/>about half of all outbound DMs at admission gift_wrap.rs:144
-    Note over WR: The throwaway secret is held in Zeroizing so it scrubs<br/>on drop and on every early return gift_wrap.rs:303. The previous<br/>copy-then-zeroize left the original binding live, so that<br/>defence-in-depth scrub was a no-op
+    Note over WR: INVARIANT the wrap timestamp is backdated PAST ONLY,<br/>never the future gift_wrap.rs:161. The wrap created_at is<br/>the only timestamp a relay can see, and relays refuse events<br/>dated ahead, so the old symmetric jitter silently dropped<br/>about half of all outbound DMs at admission gift_wrap.rs:151
+    Note over WR: The throwaway secret is held in Zeroizing so it scrubs<br/>on drop and on every early return gift_wrap.rs:335. The previous<br/>copy-then-zeroize left the original binding live, so that<br/>defence-in-depth scrub was a no-op
 ```
+
+**Open:** ADR-2027 (NIP-17 overlay for nostr.chat interop) is accepted but only partly implemented and inactive, and ADR-2028 (NIP-171 key plane for zones, superseding ADR-2026) is proposed with nothing implemented, so none of that DM or zone-key routing is drawn as live here (`../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md:6`, `../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md:6`).
 
 ## NF-12.5 NIP-98 — the ten checks every REST call passes
 
@@ -283,7 +292,7 @@ flowchart TB
     CFG --> TRANS
 
     N1["This is the crate's real value today: the envelope, its DID canonicality rules and its JCS encoding are<br/>a CONTRACT another repo can implement against, independent of whether this repo ships a transport."]
-    N2["The transport half is genuinely absent - see NF-03.13 and NF-09.8. The relay declares the dependency<br/>nostr-bbs-relay-worker/Cargo.toml:26 but its own wiring is allow(dead_code)."]
+    N2["The transport half is genuinely absent - see NF-03.13 and NF-09.8. The relay declares the dependency<br/>nostr-bbs-relay-worker/Cargo.toml:27 but its own wiring is allow(dead_code)."]
     N3["EXTERNAL: agentbox speaks the same gift-wrap envelope shape on its own relay - see AB-13 and ES-03"]
 ```
 
@@ -292,22 +301,22 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SD as gift_wrap_pair_with_signer<br/>nostr-bbs-core/src/gift_wrap.rs:615
-    participant RU as create_rumor<br/>nostr-bbs-core/src/gift_wrap.rs:185
-    participant SR as seal_rumor_with_signer<br/>nostr-bbs-core/src/gift_wrap.rs:526
-    participant WS as wrap_seal<br/>nostr-bbs-core/src/gift_wrap.rs:293
+    participant SD as gift_wrap_pair_with_signer<br/>nostr-bbs-core/src/gift_wrap.rs:657
+    participant RU as create_rumor<br/>nostr-bbs-core/src/gift_wrap.rs:217
+    participant SR as seal_rumor_with_signer<br/>nostr-bbs-core/src/gift_wrap.rs:568
+    participant WS as wrap_seal<br/>nostr-bbs-core/src/gift_wrap.rs:325
     participant RL as relay
 
-    SD->>RU: ONE rumor, shared by both seals gift_wrap.rs:625
-    SD->>SR: seal encrypted to the recipient gift_wrap.rs:628
-    SR->>WS: wrap it under a fresh throwaway key gift_wrap.rs:629
-    SD->>SR: seal encrypted to the SENDER's own pubkey gift_wrap.rs:635
-    SR->>WS: wrap that one under a different throwaway key gift_wrap.rs:636
-    SD-->>RL: publish BOTH kind 1059 events gift_wrap.rs:606
+    SD->>RU: ONE rumor, shared by both seals gift_wrap.rs:667
+    SD->>SR: seal encrypted to the recipient gift_wrap.rs:670
+    SR->>WS: wrap it under a fresh throwaway key gift_wrap.rs:671
+    SD->>SR: seal encrypted to the SENDER's own pubkey gift_wrap.rs:677
+    SR->>WS: wrap that one under a different throwaway key gift_wrap.rs:678
+    SD-->>RL: publish BOTH kind 1059 events gift_wrap.rs:648
 
-    Note over SD: With one wrap everything you send is write-only - encrypted to the recipient, authored by a throwaway key, p-tagged to the recipient alone, so neither an authors nor a p filter ever finds it gift_wrap.rs:589-591
-    Note over SD: INVARIANT one rumor, two seals - calling the single-wrap path twice would mint two rumors with two created_at values and the sender's copy would drift from the recipient's gift_wrap.rs:612-614
-    Note over RL: The two wraps are independent events with distinct ids and distinct throwaway authors, by design, so an observer cannot link them to each other or to the sender gift_wrap.rs:606-608
+    Note over SD: With one wrap everything you send is write-only - encrypted to the recipient, authored by a throwaway key, p-tagged to the recipient alone, so neither an authors nor a p filter ever finds it gift_wrap.rs:631-633
+    Note over SD: INVARIANT one rumor, two seals - calling the single-wrap path twice would mint two rumors with two created_at values and the sender's copy would drift from the recipient's gift_wrap.rs:654-656
+    Note over RL: The two wraps are independent events with distinct ids and distinct throwaway authors, by design, so an observer cannot link them to each other or to the sender gift_wrap.rs:648-650
 ```
 
 ## NF-12.11 Sealed originals — zone-history migration envelope (ADR-2017)

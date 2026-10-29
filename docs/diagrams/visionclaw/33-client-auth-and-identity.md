@@ -34,8 +34,10 @@ sources:
   - ../project/client/src/services/api/UnifiedApiClient.ts
   - ../project/src/services/nostr_service.rs
   - ../project/src/utils/auth.rs
+  - ../project/client/src/services/powerUserStatus.ts
+  - ../project/src/handlers/admin_rbac_handler.rs
   - ../project/src/utils/nip98.rs
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
 ---
 ## VC-33.1 NIP-07 extension login (client-asserted, no server verify round-trip)
 ```mermaid
@@ -100,7 +102,7 @@ sequenceDiagram
     participant C as Component
     participant UAC as UnifiedApiClient<br/>client/src/services/api/UnifiedApiClient.ts:116
     participant AI as authRequestInterceptor<br/>client/src/services/api/authInterceptor.ts:80
-    participant AX as axios.interceptors.request<br/>client/src/api/settings/endpoints.ts:38
+    participant AX as axios.interceptors.request<br/>client/src/api/settings/endpoints.ts:39
     participant NA as NostrAuthService<br/>nostrAuthService.ts:197
     participant EXT as window.nostr or local passkey key
 
@@ -119,10 +121,10 @@ sequenceDiagram
     end
 
     rect rgb(235,235,255)
-    Note over AX,NA: SITE B. Global axios interceptor, installed at module load. Keeps its own URL and<br/>body derivation, then calls the SAME helper endpoints.ts:38-53
+    Note over AX,NA: SITE B. Global axios interceptor, installed at module load. Keeps its own URL and<br/>body derivation, then calls the SAME helper endpoints.ts:39-54
     C->>AX: axios.get or axios.put api-path via settingsApi wrappers
-    AX->>NA: isAuthenticated() endpoints.ts:39
-    AX->>AX: computeAuthHeaders(fullUrl,method,body) endpoints.ts:48 calling authInterceptor.ts:51-78
+    AX->>NA: isAuthenticated() endpoints.ts:40
+    AX->>AX: computeAuthHeaders(fullUrl,method,body) endpoints.ts:49 calling authInterceptor.ts:51-78
     alt isDevMode
         AX->>AX: Authorization Bearer dev-session-token + X-Nostr-Pubkey authInterceptor.ts:62-69
     else authenticated, pubkey known
@@ -165,13 +167,13 @@ sequenceDiagram
     AI->>AI: computeAuthHeaders(fullUrl, method, body) authInterceptor.ts:51
     AI->>AI: Authorization Bearer dev-session-token authInterceptor.ts:64
     AI->>AI: X-Nostr-Pubkey user.pubkey authInterceptor.ts:67-69
-    Note over AI: RESOLVED ADR-2074. The dev-token pair is constructed in ONE place.<br/>The other three HTTP transports call the same helper and add nothing of<br/>their own - endpoints.ts:48, contextLoader.ts:46, ldpClient.ts:105.<br/>An earlier reading called two of them ungated. that was WRONG - all four<br/>always branched on isDevMode. the defect was duplication, now closed
+    Note over AI: RESOLVED ADR-2074. The dev-token pair is constructed in ONE place.<br/>The other three HTTP transports call the same helper and add nothing of<br/>their own - endpoints.ts:49, contextLoader.ts:46, ldpClient.ts:105.<br/>An earlier reading called two of them ungated. that was WRONG - all four<br/>always branched on isDevMode. the defect was duplication, now closed
     par WebSocket auth frames stay separate - browsers cannot set WS headers
-        Note over AI: client/src/api/analyticsApi.ts:450 sends JSON type auth token dev-session-token
+        Note over AI: client/src/api/analyticsApi.ts:476 sends JSON type auth token dev-session-token
     and
         Note over AI: client/src/services/VoiceWebSocketService.ts:144 sends the same shape - ADR-2075, see VC-35.4
     and
-        Note over AI: client/src/store/websocket/connectionManager.ts:379 sends its own - see VC-32.1
+        Note over AI: client/src/store/websocket/connectionManager.ts:334 sends its own - see VC-32.1
     end
     Note over AI: A further reference at<br/>client/src/features/graph/managers/dataManager/restClient.ts:215 is a COMMENT<br/>documenting the pattern, not a call site
     AI->>S: request with Bearer dev-session-token
@@ -183,7 +185,8 @@ sequenceDiagram
         Note over AI: one-shot console.warn. skipAuth is informational only client-side. the<br/>server alone decides ADR-06 section D1 comment authInterceptor.ts:12-25
     end
 
-    Note over NA,S: NON-DEV realm. ADR-2009 legacy session-bearer fallback (UUID minted at<br/>login, plain-equality check against token_expiry) is a SERVER-side acceptance path in<br/>src/utils/auth.rs and src/services/nostr_service.rs:478. No client code in this tree<br/>ever constructs an X-Nostr-Token session header — nostrAuthService.getSessionToken()<br/>always returns null nostrAuthService.ts:435. The browser client's only two realms<br/>actually exercised are NIP-98 (VC-33.2) and the dev-session-token bearer above
+    Note over S: since this stamp verify_access reuses the signer an outer RbacGate or RequireAuth already verified (NIP-98 ids are single-use, a second verification would be a replay) and checks only the level required here, and missing credentials now answer 401, not 403<br/>src/utils/auth.rs:272, :338
+    Note over NA,S: NON-DEV realm. ADR-2009 legacy session-bearer fallback (UUID minted at<br/>login, plain-equality check against token_expiry) is a SERVER-side acceptance path in<br/>src/utils/auth.rs and src/services/nostr_service.rs:500. No client code in this tree<br/>ever constructs an X-Nostr-Token session header — nostrAuthService.getSessionToken()<br/>always returns null nostrAuthService.ts:435. The browser client's only two realms<br/>actually exercised are NIP-98 (VC-33.2) and the dev-session-token bearer above
 ```
 
 ## VC-33.4 Passkey / WebAuthn registration and authentication ceremonies
@@ -275,7 +278,7 @@ sequenceDiagram
     H-->>U: authState cleared useNostrAuth.ts:84-86
 
     Note over NA,SS: NOT cleared by logout(). sessionStorage ephemeral_session_pubkey (dev mode tab<br/>identity, nostrAuthService.ts:323-327) survives — it is only ever read in<br/>isDevMode(), so it has no effect on a normal logged-out session
-    par app-level teardown wired at client/src/app/App.tsx:60,65
+    par app-level teardown wired at client/src/app/App.tsx:74,79
         Note over SPS: App.tsx effect on authenticated=false calls solidPodService.disconnect()
         SPS->>SPS: notifications.disconnect() SolidPodService.ts:426
     end
@@ -287,16 +290,26 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant NA as NostrAuthService<br/>nostrAuthService.ts:404-408
-    participant App as App.tsx effect<br/>client/src/app/App.tsx:43-51
+    participant App as App.tsx effect<br/>client/src/app/App.tsx:44-52
     participant Store as settingsStore coreSlice<br/>client/src/store/settings/coreSlice.ts:176-179
+    participant PUS as fetchPowerUserStatus<br/>client/src/services/powerUserStatus.ts:26
+    participant SRV as RbacGate plus whoami handler<br/>src/handlers/admin_rbac_handler.rs:81
     participant Row as SettingRow<br/>client/src/features/control-center/primitives/SettingRow.tsx:50,64
     participant Ctl as NostrAuthControl<br/>client/src/features/control-center/primitives/NostrAuthControl.tsx:20,56
 
-    NA->>App: AuthState authenticated user.isPowerUser App.tsx:48
-    App->>Store: setUser({isPowerUser, pubkey}) App.tsx:47-50, coreSlice.ts:176-179
-    Note over Store: isPowerUser is a single boolean, always false from<br/>login()/loginWithPasskey() and true only from devLogin()/dev-mode auto-login. NEVER the<br/>four-tier Owner/Admin/Editor/Viewer role — nostrAuthService.ts:407,542,630 vs 332,674
+    NA->>App: AuthState authenticated user.isPowerUser App.tsx:49
+    App->>Store: setUser({isPowerUser, pubkey}) App.tsx:48-51, coreSlice.ts:176-179
+    Note over Store: isPowerUser is a single boolean.<br/>login()/loginWithPasskey() set it false and only<br/>devLogin()/dev-mode auto-login sets true, and outside dev<br/>mode App.tsx then overwrites it from the server whoami<br/>answer. NEVER the<br/>four-tier Owner/Admin/Editor/Viewer role —<br/>nostrAuthService.ts:407,542,630 vs 332,674
+    opt user.isPowerUser false (every non-dev sign-in)
+        App->>PUS: fetchPowerUserStatus(pubkey) -- ER-26, client/src/app/App.tsx:53-65
+        PUS->>SRV: GET /api/admin/rbac/whoami, signed by the shared API<br/>client -- client/src/services/powerUserStatus.ts:28
+        Note over SRV: RbacGate lets any signed-in user read it (AccessLevel<br/>Authenticated), every other method or sub-path stays Admin<br/>src/middleware/rbac_gate.rs:164-166, handler<br/>src/handlers/admin_rbac_handler.rs:81-98
+        SRV-->>PUS: pubkey, role, is_power_user
+        PUS-->>App: boolean, or null on error or when the answer names another<br/>key client/src/services/powerUserStatus.ts:29-38
+        App->>Store: setUser({isPowerUser, pubkey}) only if the store still<br/>holds the same pubkey client/src/app/App.tsx:58-62
+    end
     Store->>Row: isPowerUser via useSettingsStore selector SettingRow.tsx:50
-    Row->>Row: isWritable = !disabled && (!field.isPowerUserOnly || isPowerUser) SettingRow.tsx:64
+    Row->>Row: isWritable = !disabled && (!field.isPowerUserOnly ||<br/>isPowerUser) SettingRow.tsx:64
     alt field.isPowerUserOnly and not isPowerUser
         Row->>Row: render disabled with Lock icon SettingRow.tsx:81
     else writable
@@ -307,12 +320,13 @@ sequenceDiagram
         Ctl->>Ctl: show "Power User - Full access" badge NostrAuthControl.tsx:56-60
     end
 
-    Note over Row,Ctl: DIVERGENCE. this is the ENTIRE client-side gating surface — a binary<br/>power-user flag, not the server's UserRole lattice (Owner greater than Admin greater<br/>than Editor greater than Viewer, docs/BASELINE-architecture.md:218). The client never<br/>fetches its own resolved role. All real enforcement happens server-side per-request in<br/>RbacGate and a rejected write surfaces only as a 401/403 after the fact, not as<br/>pre-emptive UI disablement of non-power-user fields tied to WriteGraph/Admin
-    Note over Row: DOC-DRIFT. docs/BASELINE-architecture.md:222 cites the structural default at<br/>rbac_gate.rs:122-128 - public_reads_enabled is at :126-133 with its doc at :121-125.<br/>DOC-DRIFT. docs/BASELINE-architecture.md:218-228 documents server RBAC<br/>posture only. It makes no claim the client UI reflects role — none of the governing docs<br/>claim client-side role gating exists, matching what was found here
+    Note over Row,Ctl: DIVERGENCE. this is the ENTIRE client-side gating surface<br/>— a binary<br/>power-user flag, not the server's UserRole lattice (Owner<br/>greater than Admin greater<br/>than Editor greater than Viewer,<br/>docs/BASELINE-architecture.md:254). The client reads only<br/>the is_power_user bit of its own whoami answer<br/>(client/src/services/powerUserStatus.ts:35), never the<br/>role. All real enforcement happens server-side per-request<br/>in<br/>RbacGate and a rejected write surfaces only as a 401/403<br/>after the fact, not as<br/>pre-emptive UI disablement of non-power-user fields tied<br/>to WriteGraph/Admin
+    Note over Row: DOC-DRIFT. docs/BASELINE-architecture.md:258 cites the<br/>structural default at<br/>rbac_gate.rs:122-128 - public_reads_enabled is now at<br/>src/middleware/rbac_gate.rs:135-141 with its doc at<br/>:130-134, pushed down by the routed_path helper added<br/>above it.<br/>DOC-DRIFT. docs/BASELINE-architecture.md:254-264 documents<br/>server RBAC<br/>posture only. It makes no claim the client UI reflects<br/>role — none of the governing docs<br/>claim client-side role gating exists, matching what was<br/>found here
 
-    Note over Row,Ctl: server posture (not client-enforced). structural default<br/>RBAC_PUBLIC_READS=false src/middleware/rbac_gate.rs:126-132 unwrap_or(false), but<br/>docker-compose.unified.yml:106 sets RBAC_PUBLIC_READS=1 in the dev/unified compose<br/>service. An unassigned authenticated pubkey resolves to Editor via<br/>UserRole::default_authenticated() src/models/rbac.rs:68-70,<br/>src/services/role_store.rs:188,196-198 — see docs/BASELINE-architecture.md:220-226
-    Note over Row,Ctl: DOC-DRIFT: docs/BASELINE-architecture.md:222 still cites<br/>docker-compose.unified.yml:93 for RBAC_PUBLIC_READS=1 and :94 for<br/>RBAC_ALLOW_OWNERLESS=1. The block has since moved twice - ADR-2108 to :99/:100,<br/>then ADR-2114's corpus-source env additions to :106/:107 - the citations were<br/>never re-anchored. The posture is unchanged, the citations are not.<br/>docker-compose.unified.yml:106, :107
-    Note over Row,Ctl: DIVERGENCE. compose ships public reads open and<br/>unassigned-pubkey-is-Editor by default, while the Rust struct-level default is<br/>fail-closed (no public reads) — two different postures depending whether you read the<br/>binary default or the shipped compose env
+    Note over Row,Ctl: server posture (not client-enforced). structural default<br/>RBAC_PUBLIC_READS=false src/middleware/rbac_gate.rs:141<br/>unwrap_or(false), but<br/>docker-compose.unified.yml:111 sets RBAC_PUBLIC_READS=1 in<br/>the dev/unified compose<br/>service. An unassigned authenticated pubkey resolves to<br/>Editor via<br/>UserRole::default_authenticated()<br/>src/models/rbac.rs:68-70,<br/>src/services/role_store.rs:188,196-198 — see<br/>docs/BASELINE-architecture.md:256-262
+    Note over SRV: INVARIANT the gate classifies routed_path(req), which is<br/>req.match_info().as_str(), the percent-decoded path the<br/>router matches, not the raw req.path(). Classifying the<br/>raw path let /api/%73ettings route to the settings<br/>handlers under the graph-write level and /api/%61dmin skip<br/>the Admin rule (ER, 2026-10-18 security review).<br/>src/middleware/rbac_gate.rs:69-71, :262
+    Note over Row,Ctl: DOC-DRIFT: docs/BASELINE-architecture.md:258 still cites<br/>docker-compose.unified.yml:93 for RBAC_PUBLIC_READS=1 and<br/>:94 for<br/>RBAC_ALLOW_OWNERLESS=1. The block has since moved<br/>repeatedly - ADR-2108 to :99/:100,<br/>ADR-2114's corpus-source env additions to :106/:107, and<br/>further additions above it to :111/:112 at this stamp -<br/>the citations were<br/>never re-anchored. The posture is unchanged, the citations<br/>are not.<br/>docker-compose.unified.yml:111, :112
+    Note over Row,Ctl: DIVERGENCE. compose ships public reads open and<br/>unassigned-pubkey-is-Editor by default, while the Rust<br/>struct-level default is<br/>fail-closed (no public reads) — two different postures<br/>depending whether you read the<br/>binary default or the shipped compose env
 ```
 
 ## VC-33.8 Solid login boundary — OIDC-shaped WebID, session restore
@@ -375,7 +389,7 @@ classDiagram
         +string literal Bearer dev-session-token
         storage not stored, recomputed per-request from isDevMode
         lifetime request-scoped, no expiry field
-        definedAt authInterceptor.ts:62-69 (ONE literal, ADR-2074);<br/>endpoints.ts:48 and ldpClient.ts:105 delegate there
+        definedAt authInterceptor.ts:62-69 (ONE literal, ADR-2074);<br/>endpoints.ts:49 and ldpClient.ts:105 delegate there
     }
     class Nip98EventToken {
         +string base64 signed kind 27235 event
@@ -401,7 +415,7 @@ classDiagram
         +UUID minted at login, plain-equality check vs token_expiry
         storage NEVER constructed by this client
         lifetime N per ADR-2009 server accepts it but no client code path exists
-        definedAt ADR-2009 verified_paths list, nostr_service.rs:478
+        definedAt ADR-2009 verified_paths list, nostr_service.rs:500
     }
 
     SimpleNostrUser --> LocalPrivateKeyMaterial : signs with when passkey path chosen

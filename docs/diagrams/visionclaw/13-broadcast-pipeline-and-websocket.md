@@ -5,16 +5,14 @@ area: visionclaw
 governing:
   - ../project/docs/PROTOCOL-registry.md
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2003, ADR-2018, ADR-2009, ADR-2002]
+adrs: [ADR-2003, ADR-2018, ADR-2009, ADR-2002, ADR-2139, ADR-2141]
 sources:
-  - ../project/src/gpu/broadcast_optimizer.rs
-  - ../project/src/gpu/backpressure.rs
   - ../project/src/actors/gpu/force_compute_actor.rs
+  - ../project/src/actors/position_stream.rs
   - ../project/src/actors/graph_service_supervisor.rs
   - ../project/src/actors/physics_orchestrator_actor.rs
   - ../project/src/actors/client_coordinator_actor.rs
   - ../project/src/actors/graph_state_actor.rs
-  - ../project/src/actors/messages/graph_messages.rs
   - ../project/src/handlers/socket_flow_handler/mod.rs
   - ../project/src/handlers/socket_flow_handler/http_handler.rs
   - ../project/src/handlers/socket_flow_handler/types.rs
@@ -26,92 +24,72 @@ sources:
   - ../project/src/handlers/socket_flow_handler/binary_protocol.rs
   - ../project/src/utils/nip98.rs
   - ../project/src/utils/socket_flow_constants.rs
-  - ../project/src/utils/binary_protocol.rs
-  - ../project/src/gpu/mod.rs
   - ../project/client/src/store/websocket/binaryFrameDispatcher.ts
   - ../project/client/src/store/websocket/binaryProtocol.ts
   - ../project/client/src/features/graph/managers/graphDataManager.ts
   - ../project/client/src/features/graph/managers/dataManager/wsClient.ts
   - ../project/client/src/features/graph/managers/graphWorkerProxy.ts
   - ../project/client/src/features/graph/workers/graph.worker.ts
-  - ../project/client/src/services/BinaryWebSocketProtocol.ts
   - ../project/src/handlers/socket_flow_handler/actor_messages.rs
   - ../project/src/utils/auth.rs
   - ../project/nginx.production.conf
   - ../project/docs/PROTOCOL-registry.md
+  - ../project/docs/BASELINE-architecture.md
   - ../project/crates/visionclaw-domain/src/config/system.rs
   - ../project/crates/visionclaw-domain/src/types/physics_config.rs
-verified_commit: 06ce9fe75497ec73985b6d684ba6e94b9be5f4a5
+  - ../project/src/settings/api/settings_routes.rs
+  - ../project/docs/adr/ADR-2141-positions-are-streamed-per-client-until-acknowledged.md
+verified_commit: 19417bdff5fc22053a8a0cc185797b0311521d10
 ---
 
-## VC-13.3 GPU broadcast frame end to end
+## VC-13.3 Position stream end to end: GPU step to per-client chunk
 ```mermaid
 sequenceDiagram
     autonumber
-    participant FC as ForceComputeActor<br/>src/actors/gpu/force_compute_actor.rs:76
-    participant BO as BroadcastOptimizer<br/>src/gpu/broadcast_optimizer.rs:205
-    participant BP as NetworkBackpressure<br/>src/gpu/backpressure.rs:213
+    participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs:36
+    participant FC as ForceComputeActor<br/>src/actors/gpu/force_compute_actor.rs:77
     participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:421
-    participant GSA as GraphStateActor<br/>src/actors/graph_state_actor.rs:66
-    participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs:37
-    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:562
-    participant WS as SocketFlowServer<br/>src/handlers/socket_flow_handler/types.rs:25
+    participant GSA as GraphStateActor<br/>src/actors/graph_state_actor.rs:67
+    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:617
+    participant WS as SocketFlowServer<br/>src/handlers/socket_flow_handler/types.rs:22
 
     rect rgb(225,228,245)
-    Note over FC: one broadcast decision per ComputeForces step (handler at<br/>src/actors/gpu/force_compute_actor.rs:1713), the orchestrator drives the cadence<br/>at 16ms in Continuous mode, src/actors/physics_orchestrator_actor.rs:282
-    alt frame is bad (NaN/Inf, coordinate beyond MAX_COORD, speed beyond 1000, or KE beyond 1e9)<br/>src/actors/gpu/force_compute_actor.rs:2106
-        FC->>BP: try_acquire() then re-broadcast last-known-good positions<br/>src/actors/gpu/force_compute_actor.rs:2124-2146
-        Note right of FC: MAX_CONSECUTIVE_BAD_FRAMES=5 trips the circuit breaker<br/>src/actors/gpu/force_compute_actor.rs:54,2150
+    PO->>FC: ComputeForces each physics step, 16ms target in Continuous mode, 0ms in FastSettle<br/>src/actors/physics_orchestrator_actor.rs:259-272,571-574
+    Note over FC: one GPU step per ComputeForces, nothing in this actor paces, throttles or caps a broadcast<br/>src/actors/gpu/force_compute_actor.rs:1746,2262-2264
+    alt frame is bad (NaN/Inf, coordinate beyond MAX_COORD, speed beyond 1000, or KE beyond 1e9)<br/>src/actors/gpu/force_compute_actor.rs:2121-2151
+        FC->>GSS: UpdateNodePositions with the last-known-good layout, display-projected the same way<br/>src/actors/gpu/force_compute_actor.rs:2166-2189
+        Note right of FC: MAX_CONSECUTIVE_BAD_FRAMES=5 trips the circuit breaker and halts stepping<br/>src/actors/gpu/force_compute_actor.rs:55,2192-2201
     else healthy frame
-        Note over FC: snapshot last_good_positions, then project_display (ADR-2135) rewrites the<br/>broadcast buffer for DISPLAY ONLY and the physics buffer is restored afterwards<br/>src/actors/gpu/force_compute_actor.rs:2198,2335-2340
-        Note over FC: branch order is force_full_broadcast, suppress_intermediate_broadcasts,<br/>else continuous, this diagram is the continuous branch, see VC-13.4 for the other two<br/>src/actors/gpu/force_compute_actor.rs:2218,2249,2254
-        FC->>BO: process_frame(position_velocity_buffer, node_id_buffer)<br/>src/actors/gpu/force_compute_actor.rs:2258
-        Note right of BO: BROADCAST-001: FULL SNAPSHOT ONLY, no delta filter exists<br/>visible_indices are visibility-culled only (culling off by default) and<br/>the caller ignores them and sends every finite node<br/>src/gpu/broadcast_optimizer.rs:7-11,235-259
-        alt rate-limit slot is due (default 8 Hz, DEFAULT_BROADCAST_FPS)<br/>crates/visionclaw-domain/src/types/physics_config.rs:23
-            Note right of BO: slots are phase-locked to the previous slot, not to the frame that took it<br/>so the long-run rate equals target_fps<br/>src/gpu/broadcast_optimizer.rs:56-72,46-52
-            BO-->>FC: (should_broadcast=true, indices)
-            FC->>BP: backpressure.try_acquire()<br/>src/actors/gpu/force_compute_actor.rs:2261
-            alt token available (max_tokens=100, cost=1, refill 30 per second)<br/>src/gpu/backpressure.rs:67-70
-                BP-->>FC: Some(sequence_id)<br/>src/gpu/backpressure.rs:262
-                Note over FC: skip any node whose position is not finite<br/>src/actors/gpu/force_compute_actor.rs:2266
-                FC->>GSS: UpdateNodePositions{positions, correlation_id}<br/>src/actors/messages/graph_messages.rs:58
-                Note right of FC: last_full_broadcast_iteration = iteration_count<br/>src/actors/gpu/force_compute_actor.rs:2282-2287
-                GSS->>GSA: do_send(UpdateNodePositions clone)<br/>src/actors/graph_service_supervisor.rs:2030
-                GSA-->>GSA: mutate graph_data.nodes in-place<br/>src/actors/graph_state_actor.rs:865
-                Note right of GSA: the one-shot snapshot path (subscribe_position_updates)<br/>returns this GPU-computed layout, see VC-13.6
-                GSS->>PO: do_send(UpdateNodePositions)<br/>src/actors/graph_service_supervisor.rs:2041
-                PO->>PO: throttle to 60fps (16ms gate), a no-op at 8 Hz input<br/>src/actors/physics_orchestrator_actor.rs:1122-1125
-                opt user is dragging this node
-                    PO->>PO: override with pinned (x,y,z), vel=0<br/>src/actors/physics_orchestrator_actor.rs:1133-1142
-                end
-                PO->>CC: do_send(BroadcastPositions{positions})<br/>src/actors/physics_orchestrator_actor.rs:1158
-                CC->>CC: broadcast_sequence += 1 before the broadcast so it rides in the frame<br/>src/actors/client_coordinator_actor.rs:1570-1571
-                CC->>CC: broadcast_with_filter(positions, node_type_arrays, seq, analytics)<br/>src/actors/client_coordinator_actor.rs:1585-1591
-                CC->>CC: serialize_positions builds V5 frame (0x05 tag, u64 seq LE, V3 52B per node)<br/>src/actors/client_coordinator_actor.rs:492-498
-                loop for each registered client, no subscribe gate<br/>src/actors/client_coordinator_actor.rs:431
-                    alt client.filter.enabled == false (default per-client node filter)
-                        CC->>WS: try_send(SendToClientBinary(unfiltered_binary clone))<br/>src/actors/client_coordinator_actor.rs:432-434,454-455
-                    else client has an active node-id filter
-                        CC->>CC: filter positions by filtered_node_ids, skip the client when none remain<br/>src/actors/client_coordinator_actor.rs:437-444
-                        CC->>WS: try_send(SendToClientBinary(filtered_binary))<br/>src/actors/client_coordinator_actor.rs:445-455
-                    end
-                end
-                Note over CC,WS: INVARIANT visibility filter default is fail-closed (ON)<br/>ADR-2003 — this per-client node-id filter is a<br/>SEPARATE mechanism from the pubkey visibility<br/>drop-set filter, which gates the one-shot snapshot (fetch_nodes, see VC-13.6)<br/>and initial state sync, not this ClientCoordinatorActor broadcast<br/>src/handlers/socket_flow_handler/position_updates.rs:15-24
-                Note over CC,WS: a full mailbox (SendError Full) only SKIPS that one frame and the client stays<br/>registered, SendError Closed reports it for eviction. A client congested for its whole stall<br/>timeout (the heartbeat timeout) is evicted and its transport shut, other clients are never blocked<br/>src/actors/client_coordinator_actor.rs:231-243,315-356,630-648,src/handlers/socket_flow_handler/types.rs:498-499
-                WS->>WS: ctx.binary(payload) over the WebSocket<br/>src/handlers/socket_flow_handler/actor_messages.rs:93-98
-            else backpressure exhausted
-                BP-->>FC: None
-                FC->>BP: backpressure.record_skip()<br/>src/actors/gpu/force_compute_actor.rs:2289
-                Note right of BP: congestion tracked, warn every<br/>log_interval_frames=60 skipped frames<br/>src/gpu/backpressure.rs:73,286-316
+        Note over FC: snapshot last_good_positions, then project_display (ADR-2135) rewrites the<br/>broadcast buffer for DISPLAY ONLY, pinned nodes are shown at their pin<br/>src/actors/gpu/force_compute_actor.rs:2224-2249
+        FC->>FC: complete_snapshot, one entry per node in node order, a non-finite row is omitted and logged as a physics fault<br/>src/actors/gpu/force_compute_actor.rs:2265-2271,4091-4116
+        FC->>GSS: do_send UpdateNodePositions{positions, correlation_id}, every finite node, every step<br/>src/actors/gpu/force_compute_actor.rs:2272-2277
+        Note right of FC: the physics buffer is restored from last_good_positions so the integrator never sees the projection<br/>src/actors/gpu/force_compute_actor.rs:2279-2291
+        GSS->>CC: do_send PublishPositions{positions} built from the same set<br/>src/actors/graph_service_supervisor.rs:607-625
+        GSS->>GSA: do_send UpdateNodePositions, the same message<br/>src/actors/graph_service_supervisor.rs:626-628
+        GSA-->>GSA: mutate graph_data.nodes in place, so REST and the connect-time topology read GPU positions<br/>src/actors/graph_state_actor.rs:905-918
+        CC->>CC: update_position_cache replaces the cached position of each node, then pump(None)<br/>src/actors/client_coordinator_actor.rs:1315-1322,843-873
+        Note over CC: nothing is sent until the visibility policy has loaded, the node classification arrives<br/>from GraphStateActor through push_node_type_arrays and UpdateNodeTypeArrays<br/>src/actors/client_coordinator_actor.rs:405-413,1355-1362,src/actors/graph_service_supervisor.rs:1537-1550
+        loop for each registered client, no subscribe gate<br/>src/actors/client_coordinator_actor.rs:414-418
+            CC->>CC: pump_one: skip while a chunk is in flight and inside its effective timeout<br/>src/actors/client_coordinator_actor.rs:454
+            CC->>CC: entitlement, compute_private_opaque_ids for this pubkey, once per distinct identity per pump<br/>src/actors/client_coordinator_actor.rs:460-471
+            CC->>CC: ClientStream.plan picks the nodes this client has not acknowledged, see VC-13.4<br/>src/actors/client_coordinator_actor.rs:496-503
+            alt nothing to send, the client is current
+                Note right of CC: no frame at all, an idle graph costs a current client nothing<br/>src/actors/client_coordinator_actor.rs:501-503
+            else a chunk is due
+                CC->>CC: broadcast_sequence takes the next number, serialize_positions builds a V5 frame (0x05, u64 seq LE, V3 52B per node)<br/>src/actors/client_coordinator_actor.rs:508-509,532-563
+                CC->>WS: try_send SendToClientBinary(chunk), one frame per client, each built for that client<br/>src/actors/client_coordinator_actor.rs:511,225-243
+                CC->>CC: record_sent only when the mailbox took the frame, otherwise the same nodes are planned again<br/>src/actors/client_coordinator_actor.rs:510-520
+                WS->>WS: ctx.binary(payload) over the WebSocket<br/>src/handlers/socket_flow_handler/actor_messages.rs:37-43
             end
-        else rate-limited (slot not yet due)
-            BO-->>FC: (should_broadcast=false, [])
-            Note right of FC: see VC-13.4 for the 300-iteration periodic full broadcast
         end
+        Note over CC,WS: INVARIANT the per-client entitlement drop-set is applied to every chunk, the private-node rule of ADR-2003<br/>is no longer a separate mechanism from the broadcast, and fails closed until the policy has loaded<br/>src/actors/client_coordinator_actor.rs:405-413,460-472,src/handlers/socket_flow_handler/position_updates.rs:13-15
+        Note over CC,WS: a full mailbox (SendError Full) only SKIPS that frame and the client stays registered, SendError Closed<br/>reports it for eviction. A client congested for its whole stall timeout (the heartbeat timeout) is evicted<br/>and its transport shut, other clients are never blocked<br/>src/actors/client_coordinator_actor.rs:232-242,322-362,672-691,src/handlers/socket_flow_handler/types.rs:389-391
+        CC->>CC: broadcast_count and bytes_sent count the chunks and bytes actually handed to mailboxes<br/>src/actors/client_coordinator_actor.rs:871-873
     end
     end
-    Note over WS,BP: tokens come back two ways. The bucket refills with time (enable_time_refill) and each<br/>client BroadcastAck is relayed ClientBroadcastAck, PositionBroadcastAck, backpressure.acknowledge()<br/>src/handlers/socket_flow_handler/binary_protocol.rs:50-70<br/>src/actors/client_coordinator_actor.rs:1830-1840<br/>src/actors/gpu/force_compute_actor.rs:4181-4192
-    Note over CC: DRIFT the bytes_sent statistic assumes 48 bytes per node plus 9 header bytes while the<br/>frame it just built is 52 bytes per node, so the counter undercounts by about 8 percent<br/>src/actors/client_coordinator_actor.rs:1597-1598,src/utils/binary_protocol.rs:72-82
+    Note over PO: DRIFT the orchestrator comment still routes positions through BroadcastPositions, which ADR-2141 removed,<br/>the live path is UpdateNodePositions then PublishPositions<br/>src/actors/physics_orchestrator_actor.rs:562-566
+    Note over PO,CC: DRIFT docs/BASELINE-architecture.md draws the position path as ForceComputeActor, PhysicsOrchestratorActor, ClientCoordinatorActor<br/>and says ForceComputeActor drives the periodic full-position broadcast, in the code the orchestrator only sends ComputeForces and takes no part in<br/>delivery, ForceComputeActor publishes every step through GraphServiceSupervisor and the coordinator paces each client<br/>docs/BASELINE-architecture.md:139-142,215-216,221-222,314-315,src/actors/graph_service_supervisor.rs:607-628,src/actors/client_coordinator_actor.rs:1315-1322
+    Note over WS,CC: acknowledgements close the loop, see VC-13.4 and VC-14.10
 ```
 
 ## VC-13.1 WS connect, upgrade and authentication
@@ -119,87 +97,88 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant HH as socket_flow_handler<br/>src/handlers/socket_flow_handler/http_handler.rs:53
-    participant NS as NostrService get_session<br/>src/handlers/socket_flow_handler/http_handler.rs:226
+    participant HH as socket_flow_handler<br/>src/handlers/socket_flow_handler/http_handler.rs:49
+    participant NS as NostrService get_session<br/>src/handlers/socket_flow_handler/http_handler.rs:222
     participant N98 as nip98::validate_nip98_token<br/>src/utils/nip98.rs:428
-    participant WSS as SocketFlowServer actor<br/>src/handlers/socket_flow_handler/types.rs:489
+    participant WSS as SocketFlowServer actor<br/>src/handlers/socket_flow_handler/types.rs:380
     participant FA as filter_auth::handle_authenticate<br/>src/handlers/socket_flow_handler/filter_auth.rs:10
 
     rect rgb(225,228,245)
     Note over C,HH: process boundary — HTTP/WS upgrade at /wss
     C->>HH: GET /wss (Upgrade: websocket)
-    HH->>HH: WEBSOCKET_RATE_LIMITER.is_allowed(client_ip)<br/>src/handlers/socket_flow_handler/http_handler.rs:60
+    HH->>HH: WEBSOCKET_RATE_LIMITER.is_allowed(client_ip)<br/>src/handlers/socket_flow_handler/http_handler.rs:56
     alt rate limited
-        HH-->>C: 429 create_rate_limit_response<br/>src/handlers/socket_flow_handler/http_handler.rs:62
+        HH-->>C: 429 create_rate_limit_response<br/>src/handlers/socket_flow_handler/http_handler.rs:58
     else Origin header check
-        HH->>HH: validate Origin against CORS_ALLOWED_ORIGINS or same-host<br/>src/handlers/socket_flow_handler/http_handler.rs:71-115
+        HH->>HH: validate Origin against CORS_ALLOWED_ORIGINS or same-host<br/>src/handlers/socket_flow_handler/http_handler.rs:67-111
         alt Origin invalid and not same-host
-            HH-->>C: 403 Forbidden<br/>src/handlers/socket_flow_handler/http_handler.rs:122
+            HH-->>C: 403 Forbidden<br/>src/handlers/socket_flow_handler/http_handler.rs:118-121
         else Origin missing (release build)
-            HH-->>C: 400 Origin header required<br/>src/handlers/socket_flow_handler/http_handler.rs:142-144
+            HH-->>C: 400 Origin header required<br/>src/handlers/socket_flow_handler/http_handler.rs:138-140
         else Origin OK
-            HH->>HH: read Sec-WebSocket-Protocol, nip98::websocket_auth_header takes the single nostr. subprotocol<br/>src/handlers/socket_flow_handler/http_handler.rs:150-158
+            HH->>HH: read Sec-WebSocket-Protocol, nip98::websocket_auth_header takes the single nostr. subprotocol<br/>src/handlers/socket_flow_handler/http_handler.rs:146-154
             Note right of HH: browsers cannot set Authorization on a WebSocket upgrade, so the signed NIP-98 event rides as an<br/>unpadded URL-safe nostr.TOKEN subprotocol and only the neutral visionclaw protocol is echoed<br/>src/utils/nip98.rs:636-655,src/handlers/socket_flow_handler/http_handler.rs:10
             opt signed subprotocol present
-                HH->>NS: verify_nip98_auth(header, signed_upgrade_url, GET) single-use<br/>src/handlers/socket_flow_handler/http_handler.rs:160-165
+                HH->>NS: verify_nip98_auth(header, signed_upgrade_url, GET) single-use<br/>src/handlers/socket_flow_handler/http_handler.rs:156-161
                 alt NostrService absent, or invalid or replayed
-                    HH-->>C: 401 Invalid or replayed WebSocket signature<br/>src/handlers/socket_flow_handler/http_handler.rs:162-170
+                    HH-->>C: 401 Invalid or replayed WebSocket signature<br/>src/handlers/socket_flow_handler/http_handler.rs:158-167
                 else verified
-                    HH->>HH: signed_user = Some(user)<br/>src/handlers/socket_flow_handler/http_handler.rs:166
+                    HH->>HH: signed_user = Some(user)<br/>src/handlers/socket_flow_handler/http_handler.rs:162
                 end
             end
-            Note right of HH: DRIFT the upgrade-time URL is rebuilt by signed_upgrade_url from connection_info<br/>alone while the post-connect authenticate frame uses nip98_request_url, whose docs claim to be the<br/>one reconstruction for every NIP-98 entry point, so the two agree only while connection_info<br/>and the X-Forwarded-Proto and X-Forwarded-Host headers agree<br/>src/handlers/socket_flow_handler/http_handler.rs:42-50,src/utils/auth.rs:159-189
+            Note right of HH: RESOLVED (estate register ER-25) the upgrade-time URL is now signed_upgrade_url, which delegates to nip98_request_url,<br/>the same single reconstruction the post-connect authenticate frame uses, a test pins them equal when a proxy sends both<br/>Forwarded and X-Forwarded-* headers<br/>src/handlers/socket_flow_handler/http_handler.rs:40-46,503-519,src/utils/auth.rs:159-189
             opt no signed user, so the Authorization Bearer token is the carrier
-                HH->>HH: read Authorization Bearer token<br/>src/handlers/socket_flow_handler/http_handler.rs:182-188
-                Note right of HH: RESOLVED ADR-2058 the ?token= query-string fallback is compiled<br/>in only for dev builds (http_handler.rs:191-206), release builds<br/>log and ignore it (http_handler.rs:208-218) and use the header alone
+                HH->>HH: read Authorization Bearer token<br/>src/handlers/socket_flow_handler/http_handler.rs:178-184
+                Note right of HH: RESOLVED ADR-2058 the ?token= query-string fallback is compiled<br/>in only for dev builds (http_handler.rs:187-202), release builds<br/>log and ignore it (http_handler.rs:204-214) and use the header alone
                 alt token present
-                    HH->>NS: nostr_service.get_session(token)<br/>src/handlers/socket_flow_handler/http_handler.rs:226
+                    HH->>NS: nostr_service.get_session(token)<br/>src/handlers/socket_flow_handler/http_handler.rs:222
                     alt session valid
                         NS-->>HH: Some(session)
-                        HH->>HH: signed_user = session, so the header-token client is attributed like the signed one<br/>src/handlers/socket_flow_handler/http_handler.rs:257-266
+                        HH->>HH: signed_user = session, so the header-token client is attributed like the signed one<br/>src/handlers/socket_flow_handler/http_handler.rs:258-262
                         Note right of HH: RESOLVED 0d636fd0e (S-7f, verified in VC-03.2) the validated session used to be checked and then dropped<br/>so a header-session client reached the pubkey and is_power_user assignment below as anonymous.<br/>Authorization is therefore NOT the only carrier, the signed subprotocol is the browser path
                     else session invalid
                         NS-->>HH: None
                         alt release build (or dev without ALLOW_INSECURE_DEFAULTS)
-                            HH-->>C: 401 Invalid or expired authentication token<br/>src/handlers/socket_flow_handler/http_handler.rs:254-255
+                            HH-->>C: 401 Invalid or expired authentication token<br/>src/handlers/socket_flow_handler/http_handler.rs:250-251
                         else dev build with ALLOW_INSECURE_DEFAULTS=1
-                            Note right of HH: dev-only bypass, compile-gated out of release, connection stays anonymous<br/>src/handlers/socket_flow_handler/http_handler.rs:228-235
+                            Note right of HH: dev-only bypass, compile-gated out of release, connection stays anonymous<br/>src/handlers/socket_flow_handler/http_handler.rs:226-231
                         end
                     end
                     opt NostrService absent
-                        HH-->>C: 401 Authentication service unavailable (dev builds allow it only with ALLOW_INSECURE_DEFAULTS)<br/>src/handlers/socket_flow_handler/http_handler.rs:269-296
+                        HH-->>C: 401 Authentication service unavailable (dev builds allow it only with ALLOW_INSECURE_DEFAULTS)<br/>src/handlers/socket_flow_handler/http_handler.rs:265-292
                     end
                 else no token at all
                     alt release build
-                        HH-->>C: 401 Authentication required<br/>src/handlers/socket_flow_handler/http_handler.rs:321-326
+                        HH-->>C: 401 Authentication required<br/>src/handlers/socket_flow_handler/http_handler.rs:321-322
                     else dev build with ALLOW_INSECURE_DEFAULTS=1
-                        Note right of HH: unauthenticated WS permitted, dev only<br/>src/handlers/socket_flow_handler/http_handler.rs:312-316
+                        Note right of HH: unauthenticated WS permitted, dev only<br/>src/handlers/socket_flow_handler/http_handler.rs:308-312
                     end
                 end
             end
-            HH->>WSS: ws_server = SocketFlowServer::new(...)<br/>src/handlers/socket_flow_handler/http_handler.rs:388
-            HH->>WSS: per-connection heartbeat timings from system.websocket, and a closer for the raw TCP socket<br/>src/handlers/socket_flow_handler/http_handler.rs:394-413
-            HH->>WSS: signed user, if any, sets pubkey and is_power_user (signed subprotocol and header session alike)<br/>src/handlers/socket_flow_handler/http_handler.rs:416-419
-            HH->>WSS: connection_url = nip98_request_url(req) for the post-connect authenticate frame<br/>src/handlers/socket_flow_handler/http_handler.rs:431
+            HH->>WSS: ws_server = SocketFlowServer::new(...)<br/>src/handlers/socket_flow_handler/http_handler.rs:384
+            HH->>WSS: per-connection heartbeat timings from system.websocket, and a closer for the raw TCP socket<br/>src/handlers/socket_flow_handler/http_handler.rs:390-409
+            HH->>WSS: signed user, if any, sets pubkey and is_power_user (signed subprotocol and header session alike)<br/>src/handlers/socket_flow_handler/http_handler.rs:412-415
+            HH->>WSS: connection_url = nip98_request_url(req) for the post-connect authenticate frame<br/>src/handlers/socket_flow_handler/http_handler.rs:427
             Note over HH: INVARIANT: X-Forwarded-Proto and X-Forwarded-Host win over connection_info in nip98_request_url,<br/>and nginx forwards X-Forwarded-Host $http_host for /wss so the dialled port survives<br/>src/utils/auth.rs:170-188,nginx.production.conf:248
-            opt ?token= present a second time (dev builds only, src/handlers/socket_flow_handler/http_handler.rs:375-383)
-                HH->>NS: nostr_service.get_session(token_from_qs)<br/>src/handlers/socket_flow_handler/http_handler.rs:436
+            opt ?token= present a second time (dev builds only, src/handlers/socket_flow_handler/http_handler.rs:371-379)
+                HH->>NS: nostr_service.get_session(token_from_qs)<br/>src/handlers/socket_flow_handler/http_handler.rs:432
                 NS-->>HH: user with pubkey, is_power_user
-                HH->>WSS: ws_server.pubkey = Some(user.pubkey)<br/>src/handlers/socket_flow_handler/http_handler.rs:437-438
-                Note right of HH: DEBT redundant since 0d636fd0e, the first extraction already routes a dev query token<br/>through get_session into signed_user, see VC-03.2<br/>src/handlers/socket_flow_handler/http_handler.rs:191-206,266
+                HH->>WSS: ws_server.pubkey = Some(user.pubkey)<br/>src/handlers/socket_flow_handler/http_handler.rs:433-434
+                Note right of HH: DEBT redundant since 0d636fd0e, the first extraction already routes a dev query token<br/>through get_session into signed_user, see VC-03.2<br/>src/handlers/socket_flow_handler/http_handler.rs:187-202,262
             end
-            HH->>C: 101 Switching Protocols (WsResponseBuilder, PUBLIC_WS_PROTOCOLS echoed)<br/>src/handlers/socket_flow_handler/http_handler.rs:451-454
-            WSS->>WSS: started registers anonymous ClientRecipients with the coordinator<br/>src/handlers/socket_flow_handler/types.rs:502-516
-            WSS->>WSS: SetClientId forwards an upgrade-time pubkey to the coordinator as AuthenticateClient<br/>src/handlers/socket_flow_handler/actor_messages.rs:17-33
-            Note right of WSS: before this forward the coordinator held a session authenticated at the upgrade as anonymous<br/>so the same-user relay and per-user filters missed it until an authenticate frame arrived<br/>src/handlers/socket_flow_handler/actor_messages.rs:20-24
-            WSS->>WSS: ping timer from the heartbeat settings, then send_full_state_sync and connection_established<br/>src/handlers/socket_flow_handler/types.rs:543-583
+            Note over HH: DRIFT the registry's /wss row says NIP-98 Bearer or a ?token= query with the handler at http_handler.rs:139-150 and the Origin<br/>requirement at :130, the query token is dev-build only, the Bearer path is 178-184 and the Origin rejections are 118-121 and 138-140<br/>docs/PROTOCOL-registry.md:231,src/handlers/socket_flow_handler/http_handler.rs:118-121,138-140,178-214
+            HH->>C: 101 Switching Protocols (WsResponseBuilder, PUBLIC_WS_PROTOCOLS echoed)<br/>src/handlers/socket_flow_handler/http_handler.rs:447-450
+            WSS->>WSS: started registers anonymous ClientRecipients with the coordinator, which gives the session a fresh position stream, see VC-13.6<br/>src/handlers/socket_flow_handler/types.rs:393-407,src/actors/client_coordinator_actor.rs:1108-1110
+            WSS->>WSS: SetClientId forwards an upgrade-time pubkey to the coordinator as AuthenticateClient<br/>src/handlers/socket_flow_handler/actor_messages.rs:14-30
+            Note right of WSS: before this forward the coordinator held a session authenticated at the upgrade as anonymous<br/>so the same-user relay and per-user filters missed it until an authenticate frame arrived<br/>src/handlers/socket_flow_handler/actor_messages.rs:17-21
+            WSS->>WSS: ping timer from the heartbeat settings, then send_full_state_sync (JSON topology only, no positions) and connection_established<br/>src/handlers/socket_flow_handler/types.rs:434-479
         end
     end
     end
 
     rect rgb(225,245,230)
     Note over C,WSS: post-connect NIP-98 "authenticate" message (kind 27235, ADR-2009 primary realm)
-    C->>WSS: text message type=authenticate, event=base64 kind-27235 event<br/>src/handlers/socket_flow_handler/message_routing.rs:64-66
+    C->>WSS: text message type=authenticate, event=base64 kind-27235 event<br/>src/handlers/socket_flow_handler/message_routing.rs:34-36
     WSS->>FA: handle_authenticate(act, msg, ctx)<br/>src/handlers/socket_flow_handler/filter_auth.rs:10
     alt VISIONCLAW_DEV_MODE full bypass (dev builds only)
         FA-->>C: authenticate_success (DEV_MODE_PUBKEY, power_user)<br/>src/handlers/socket_flow_handler/filter_auth.rs:26-59
@@ -212,7 +191,7 @@ sequenceDiagram
         alt validation and single-use claim succeed
             N98-->>FA: Ok(user)
             FA-->>C: authenticate_success{pubkey, is_power_user}<br/>src/handlers/socket_flow_handler/filter_auth.rs:104-112
-            FA->>WSS: AuthenticateClient to the coordinator, bump_sync_generation, then send_full_state_sync re-push filtered by new pubkey<br/>src/handlers/socket_flow_handler/filter_auth.rs:92-123
+            FA->>WSS: AuthenticateClient to the coordinator, bump_sync_generation, then send_full_state_sync re-push of the topology filtered by the new pubkey, positions follow from the stream<br/>src/handlers/socket_flow_handler/filter_auth.rs:92-123
         else signature/URL/method/freshness/replay fails
             N98-->>FA: Err(e)
             FA-->>C: error NIP-98 WebSocket authentication failed<br/>src/handlers/socket_flow_handler/filter_auth.rs:124-132
@@ -223,187 +202,155 @@ sequenceDiagram
     end
 ```
 
-## VC-13.7 Client decode: binary frame to SharedArrayBuffer
+## VC-13.7 Client decode: ordered chunk to SharedArrayBuffer and acknowledgement
 ```mermaid
 sequenceDiagram
     autonumber
-    participant WS as WebSocket.onmessage<br/>client/src/store/websocket/binaryFrameDispatcher.ts:97
-    participant BFD as BinaryFrameDispatcher<br/>client/src/store/websocket/binaryFrameDispatcher.ts:43
-    participant BP as processBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:462
+    participant WS as WebSocket.onmessage<br/>client/src/store/websocket/binaryFrameDispatcher.ts:101
+    participant BFD as BinaryFrameDispatcher<br/>client/src/store/websocket/binaryFrameDispatcher.ts:47
+    participant BP as processBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:450
     participant GDM as graphDataManager<br/>client/src/features/graph/managers/graphDataManager.ts:497
     participant WSC as handleBinaryFrame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:19
-    participant GWP as graphWorkerProxy<br/>client/src/features/graph/managers/graphWorkerProxy.ts:205
-    participant WRK as graph.worker.ts<br/>client/src/features/graph/workers/graph.worker.ts:213
+    participant GWP as graphWorkerProxy<br/>client/src/features/graph/managers/graphWorkerProxy.ts:212
+    participant WRK as graph.worker.ts<br/>client/src/features/graph/workers/graph.worker.ts:214
 
     rect rgb(222,236,250)
-    WS->>WS: validateBinaryData — lead byte in {3,5,AGENT_ACTION}<br/>client/src/store/websocket/binaryProtocol.ts:187-208
-    WS->>BFD: dispatcher.handle(buffer)<br/>client/src/store/websocket/binaryFrameDispatcher.ts:51
-    alt frame already in flight
-        BFD->>BFD: pendingLatest = buffer (newest-wins, drop older)<br/>client/src/store/websocket/binaryFrameDispatcher.ts:52-60
-    else no frame in flight
-        BFD->>BP: processBinaryData(buffer, get, set)<br/>client/src/store/websocket/binaryFrameDispatcher.ts:64
-        BP->>BP: read lead byte, V3/V5 routes to the legacy path (V2 is no longer accepted, ADR-2057)<br/>client/src/store/websocket/binaryProtocol.ts:473-479
-        BP->>BP: parseBinaryFrameData(data)<br/>client/src/store/websocket/binaryProtocol.ts:370
-        opt full V3/V5 frame
-            BP->>BP: nodeAnalyticsStore.ingest(parsedNodes)<br/>client/src/store/websocket/binaryProtocol.ts:381-385
-        end
-        BP->>GDM: graphDataManager.updateNodePositions(data)<br/>client/src/store/websocket/binaryProtocol.ts:407
-        GDM->>WSC: handleBinaryFrame(positionData, lastUpdateTime, onUpdateTime)<br/>client/src/features/graph/managers/graphDataManager.ts:500-504
-        alt within 16ms of last update (~60fps throttle)
-            WSC-->>GDM: drop frame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:27
-        else
-            WSC->>GWP: processBinaryFrame(frame: Uint8Array)<br/>client/src/features/graph/managers/dataManager/wsClient.ts:45-46
-            alt frame already in flight (single-flight, D2)
-                GWP->>GWP: pendingLatest = frame (newest-wins)<br/>client/src/features/graph/managers/graphWorkerProxy.ts:210-217
-            else dispatch now
-                GWP->>GWP: transfer(frame.buffer) — zero-copy neuter<br/>client/src/features/graph/managers/graphWorkerProxy.ts:248
-                alt SAB mode (SharedArrayBuffer available, cross-origin isolated)<br/>client/src/features/graph/managers/graphWorkerProxy.ts:170-186
-                    GWP->>WRK: workerApi.processBinaryFrame(transferable)<br/>client/src/features/graph/managers/graphWorkerProxy.ts:253
-                    WRK->>WRK: parse the frame and write the node updates into targetPositions, not currentPositions<br/>client/src/features/graph/workers/graph.worker.ts:261-301
-                    WRK->>WRK: with tweening on, ensureTweenLoop interpolates currentPositions toward the targets at 16ms<br/>client/src/features/graph/workers/graph.worker.ts:319-321,334-362
-                    WRK->>WRK: syncToSharedBuffer on every tween tick writes positionView (the SharedArrayBuffer)<br/>client/src/features/graph/workers/graph.worker.ts:225-226,354
-                    Note right of WRK: with tweening disabled the frame snaps currentPositions to the targets and syncs at once<br/>client/src/features/graph/workers/graph.worker.ts:314-318
-                    Note right of WRK: SAB write complete — renderer reads<br/>positionView directly, no return value needed<br/>client/src/features/graph/workers/graph.worker.ts:204-217
-                else Comlink transfer mode (SAB unavailable)
-                    WRK-->>GWP: transferred ArrayBuffer of stride-3 positions<br/>client/src/features/graph/workers/graph.worker.ts:218-222
-                    GWP->>GWP: lastTransferredView = new Float32Array(returned)<br/>client/src/features/graph/managers/graphWorkerProxy.ts:262-264
-                end
-            end
+    WS->>WS: validateBinaryData, lead byte in {3,5,AGENT_ACTION}<br/>client/src/store/websocket/binaryProtocol.ts:192-199
+    WS->>BFD: dispatcher.handle(buffer)<br/>client/src/store/websocket/binaryFrameDispatcher.ts:157
+    Note over BFD: a chunk is NOT a snapshot a newer frame could replace, so frames queue in arrival<br/>order and none is coalesced,<br/>one is processed at a time across the Comlink await, a backstop of 256 queued frames<br/>drops the oldest, which the server<br/>rebuilds after its ack timeout<br/>client/src/store/websocket/binaryFrameDispatcher.ts:1-10,27-28,55-81
+    BFD->>BP: processBinaryData(buffer, get, set)<br/>client/src/store/websocket/binaryFrameDispatcher.ts:60
+    BP->>BP: read lead byte, V3 and V5 route to handleLegacyBinaryData (V2 is no longer accepted,<br/>ADR-2057)<br/>client/src/store/websocket/binaryProtocol.ts:460-467
+    BP->>BP: parseBinaryFrameData(data), every frame carries absolute positions, there is no delta<br/>frame type (VC-14.6)<br/>client/src/store/websocket/binaryProtocol.ts:351-362
+    BP->>BP: nodeAnalyticsStore.ingest(parsedNodes) for V3 and V5 frames<br/>client/src/store/websocket/binaryProtocol.ts:369-372
+    BP->>GDM: await graphDataManager.updateNodePositions(data)<br/>client/src/store/websocket/binaryProtocol.ts:392-393
+    GDM->>GDM: every 120th frame, sample for node ids the topology does not hold and refetch<br/>topology on a 30s cooldown<br/>client/src/features/graph/managers/graphDataManager.ts:515-540
+    GDM->>WSC: handleBinaryFrame(positionData, lastUpdateTime, onUpdateTime)<br/>client/src/features/graph/managers/graphDataManager.ts:500-504
+    alt within 16ms of the last accepted frame
+        WSC-->>GDM: returns normally, the frame is dropped and never reaches the worker<br/>client/src/features/graph/managers/dataManager/wsClient.ts:26-28
+    else
+        WSC->>GWP: processBinaryFrame(frame: Uint8Array)<br/>client/src/features/graph/managers/dataManager/wsClient.ts:42-43
+        GWP->>GWP: queue the frame in arrival order, none replaced, a 256-frame backstop rejects the<br/>oldest<br/>client/src/features/graph/managers/graphWorkerProxy.ts:217-224
+        GWP->>GWP: _drain dispatches one at a time and yields a microtask between frames<br/>client/src/features/graph/managers/graphWorkerProxy.ts:228-248
+        GWP->>GWP: transfer(frame.buffer), zero-copy neuter<br/>client/src/features/graph/managers/graphWorkerProxy.ts:255
+        alt SAB mode (SharedArrayBuffer available, cross-origin isolated)<br/>client/src/features/graph/managers/graphWorkerProxy.ts:176-192
+            GWP->>WRK: workerApi.processBinaryFrame(transferable)<br/>client/src/features/graph/managers/graphWorkerProxy.ts:257-262
+            WRK->>WRK: parse the chunk and write its node updates into targetPositions, not<br/>currentPositions, a frame before setGraphData is queued<br/>client/src/features/graph/workers/graph.worker.ts:263-301
+            WRK->>WRK: with tweening on, ensureTweenLoop interpolates currentPositions toward the targets at<br/>16ms<br/>client/src/features/graph/workers/graph.worker.ts:319-321,334-362
+            WRK->>WRK: syncToSharedBuffer on every tween tick writes positionView (the SharedArrayBuffer)<br/>client/src/features/graph/workers/graph.worker.ts:226-228,354
+            Note right of WRK: with tweening disabled the chunk snaps currentPositions to the targets and syncs at<br/>once<br/>client/src/features/graph/workers/graph.worker.ts:314-318
+            Note right of WRK: SAB write complete, the renderer reads positionView directly, no return value needed<br/>client/src/features/graph/workers/graph.worker.ts:214-218
+        else Comlink transfer mode (SAB unavailable)
+            WRK-->>GWP: transferred ArrayBuffer of stride-3 positions<br/>client/src/features/graph/workers/graph.worker.ts:219-223
+            GWP->>GWP: lastTransferredView = new Float32Array(returned)<br/>client/src/features/graph/managers/graphWorkerProxy.ts:266-271
         end
     end
+    BP->>BP: updateNodePositions resolved, so acknowledge THIS chunk by the sequence it carried, a<br/>thrown error returns without an ack<br/>client/src/store/websocket/binaryProtocol.ts:392-408
+    Note over BP,WSC: TENSION ADR-2141 decision 5 acknowledges a chunk only after it is applied, but the<br/>16ms gate above returns normally,<br/>so a chunk that arrived inside the window is dropped, never reaches the worker, and<br/>is still acknowledged, the server then<br/>records those nodes as held by this client and does not resend them until they move<br/>past the threshold<br/>docs/adr/ADR-2141-positions-are-streamed-per-client-until-acknowledged.md:32,client/src/features/graph/managers/dataManager/wsClient.ts:26-28,client/src/store/websocket/binaryProtocol.ts:392-408
     end
     Note over WRK: render side beyond SAB see VC-31/VC-32
 ```
 
-## VC-13.4 Full-snapshot escape hatches: ResetPositions, ForceFullBroadcast and the 300-iteration periodic send
+## VC-13.4 Per-client chunk lifecycle: plan, in flight, acknowledge, time out
 ```mermaid
 sequenceDiagram
     autonumber
-    participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs:37
-    participant FC as ForceComputeActor<br/>src/actors/gpu/force_compute_actor.rs:76
-    participant BO as BroadcastOptimizer<br/>src/gpu/broadcast_optimizer.rs:205
-    participant BP as NetworkBackpressure<br/>src/gpu/backpressure.rs:213
-    participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:421
+    participant TRG as pump triggers<br/>src/actors/client_coordinator_actor.rs:843
+    participant CC as ClientManager pump_one<br/>src/actors/client_coordinator_actor.rs:442
+    participant CS as ClientStream<br/>src/actors/position_stream.rs:79
+    participant WS as SocketFlowServer
+    participant CL as Client
 
     rect rgb(225,228,245)
-    Note over PO,FC: two things can ask for a full snapshot outside the rate limiter
-    PO->>FC: ForceFullBroadcast when FastSettle converges or hits its cap<br/>src/actors/physics_orchestrator_actor.rs:1888-1889,1924-1925
-    FC->>BO: mark_broadcast() so the limiter waits a full interval after the snapshot<br/>src/actors/gpu/force_compute_actor.rs:2923
-    FC->>FC: read GPU positions and velocities with NO physics step, project_display, skip non-finite rows<br/>src/actors/gpu/force_compute_actor.rs:2980-3030
-    FC->>GSS: UpdateNodePositions ALL nodes (IMMEDIATE full broadcast, takes no backpressure token)<br/>src/actors/gpu/force_compute_actor.rs:3025-3028
-    Note over FC: ResetPositions re-randomises the layout on a sphere, re-uploads it, reheats and sets<br/>force_full_broadcast=true for the next healthy frame<br/>src/actors/gpu/force_compute_actor.rs:3724,3798-3801
-    alt actor.force_full_broadcast is true<br/>src/actors/gpu/force_compute_actor.rs:2218
-        FC->>FC: force_full_broadcast=false, suppress_intermediate_broadcasts=false<br/>src/actors/gpu/force_compute_actor.rs:2220-2221
-        FC->>BP: backpressure.try_acquire()<br/>src/actors/gpu/force_compute_actor.rs:2223
-        FC->>BO: broadcast_optimizer.mark_broadcast()<br/>src/actors/gpu/force_compute_actor.rs:2224
-        FC->>GSS: UpdateNodePositions ALL finite nodes (final converged positions)<br/>src/actors/gpu/force_compute_actor.rs:2225-2247
-        Note right of FC: FINAL full broadcast logged every time<br/>src/actors/gpu/force_compute_actor.rs:2240-2243
-    else actor.suppress_intermediate_broadcasts is true<br/>src/actors/gpu/force_compute_actor.rs:2249
-        FC->>BO: process_frame — advances the rate-limit timer only, no send<br/>src/actors/gpu/force_compute_actor.rs:2252
-        Note right of FC: DEBT this branch is unreachable, nothing ever sets the flag to true<br/>(declaration, initialiser and four resets only)<br/>src/actors/gpu/force_compute_actor.rs:111,273,2221,2869,2921,3800
-    else continuous mode, normal rate-limited path
-        FC->>BO: process_frame(position_velocity_buffer, node_id_buffer)<br/>src/actors/gpu/force_compute_actor.rs:2258
-        alt should_broadcast true and backpressure token acquired
-            FC->>GSS: UpdateNodePositions (rate-limited full snapshot)<br/>src/actors/gpu/force_compute_actor.rs:2261-2285
-            FC->>FC: last_full_broadcast_iteration = iteration_count<br/>src/actors/gpu/force_compute_actor.rs:2287
-        else should_broadcast false (rate-limited this tick)
-            alt iteration_count minus last_full_broadcast_iteration is at least 300<br/>src/actors/gpu/force_compute_actor.rs:2291
-                Note right of FC: periodic full broadcast for late-connecting<br/>clients — N=300 iterations, independent of the<br/>8 Hz rate limiter above<br/>src/actors/gpu/force_compute_actor.rs:2291-2325
-                FC->>BP: backpressure.try_acquire()<br/>src/actors/gpu/force_compute_actor.rs:2293
-                FC->>GSS: UpdateNodePositions ALL nodes (periodic full)<br/>src/actors/gpu/force_compute_actor.rs:2315-2318
-                FC->>FC: last_full_broadcast_iteration = iteration_count<br/>src/actors/gpu/force_compute_actor.rs:2321
-                FC->>BO: broadcast_optimizer.mark_broadcast()<br/>src/actors/gpu/force_compute_actor.rs:2323
-            else below 300 iterations since last full broadcast
-                Note right of FC: no broadcast this tick — waits for either<br/>the 8 Hz gate or the 300-iteration escape hatch
-            end
-        end
+    Note over TRG: five triggers call pump, new positions (PublishPositions), a client's acknowledgement (that client only),<br/>RegisterClient (the new client only), ConfigureStream, and a 50ms safety tick for a timed-out chunk or a visible set that just changed<br/>src/actors/client_coordinator_actor.rs:1315-1322,1365-1396,1108-1110,1326-1342,1004-1006
+    TRG->>CC: pump_all or pump_client
+    CC->>CS: is_waiting(now, ack_timeout), true while the newest chunk is inside its effective timeout<br/>src/actors/position_stream.rs:104-109
+    alt a chunk is in flight and not timed out
+        CS-->>CC: waiting, build nothing for this client
+    else free to send
+        CC->>CS: retain_nodes, forget what left the graph or the client's entitlement<br/>src/actors/position_stream.rs:244-246,src/actors/client_coordinator_actor.rs:494-496
+        CC->>CS: plan(cache, visible, analytics_key, settings)<br/>src/actors/position_stream.rs:125-182
+        Note right of CS: a node is a candidate when never acknowledged (infinite displacement), or its distance from the<br/>ACKNOWLEDGED position exceeds streamMoveThreshold, or only its analytics key differs (displacement 0)<br/>src/actors/position_stream.rs:137-159
+        Note right of CS: more candidates than streamChunkNodes, a quarter of the chunk goes to the longest-waiting<br/>(FAIR_SHARE_DIVISOR=4), the rest to the largest movers, then sorted by displacement<br/>src/actors/position_stream.rs:66,162-181
+        CS-->>CC: ids, empty when the client already holds the latest positions
+        CC->>WS: V5 chunk with the next sequence, try_send<br/>src/actors/client_coordinator_actor.rs:508-511
+        CC->>CS: record_sent(seq, now, positions): a still-unacknowledged earlier chunk counts one more consecutive timeout<br/>src/actors/position_stream.rs:185-216
+        Note right of CS: the last IN_FLIGHT_HISTORY=8 chunks stay on the list so a slow client still makes progress<br/>src/actors/position_stream.rs:64,195-197
     end
-    Note over FC,GSS: DIVERGENCE this mechanism sends ALL nodes on every<br/>emission (BROADCAST-001 full-snapshot design) — there is<br/>no delta/diff path to re-synchronise, unlike the historical<br/>delta-filter design implied by older docs<br/>src/gpu/broadcast_optimizer.rs:7-11
-    Note over FC,BO: reset_broadcast_timer (next frame broadcasts at once) is for parameter changes and new clients,<br/>mark_broadcast is for a snapshot just sent, the two were conflated before<br/>src/gpu/broadcast_optimizer.rs:330-346
+    WS->>CL: binary frame
+    CL->>CL: apply the chunk, then send [0x34][u64 seq][u32 nodes][u64 ms], see VC-14.10
+    CL->>WS: acknowledgement frame
+    WS->>CC: ClientBroadcastAck{sequence_id, client_id}<br/>src/handlers/socket_flow_handler/binary_protocol.rs:67-86
+    CC->>CS: acknowledge(seq)<br/>src/actors/client_coordinator_actor.rs:523-525
+    alt seq is on the in-flight list
+        CS->>CS: commit that chunk's nodes as held, never move a node to older state, drop older in-flight chunks, reset the timeout backoff<br/>src/actors/position_stream.rs:225-240
+        CC->>CC: pump(Some(client_id)), the next chunk is built at once, so delivery runs at the client's own round trip<br/>src/actors/client_coordinator_actor.rs:1384-1392
+    else unknown or aged-out sequence
+        CC->>CC: trace_stale_ack, changes nothing<br/>src/actors/client_coordinator_actor.rs:1393-1403
+    end
+    Note over CS: no acknowledgement within effective_timeout = ack_timeout times 2 to the consecutive timeouts, capped at 8x,<br/>so the safety tick rebuilds a fresh chunk from current state under a new sequence, a never-acknowledging client costs a bounded trickle<br/>src/actors/position_stream.rs:68,99-102,src/actors/client_coordinator_actor.rs:1004-1006
+    Note over CC,CS: INVARIANT absolute positions, no deltas, a chunk is always rebuilt from current state and never resent as old bytes, ADR-2139 and ADR-2141<br/>docs/PROTOCOL-registry.md:284
+    Note over CC: stored settings physics.streamChunkNodes, streamMoveThreshold and streamAckTimeoutMs default to 2500, 0.05 and 500 ms,<br/>loaded from the saved physics row at start and re-applied by the physics PUT<br/>crates/visionclaw-domain/src/types/physics_config.rs:24,37,46,src/actors/client_coordinator_actor.rs:985-1000,src/settings/api/settings_routes.rs:472
+    Note over CC,WS: TENSION ADR-2141 decision 6 says clients drop no chunk, the web dispatcher bounds its queue at 256 frames and discards the oldest,<br/>which is safe only because the server rebuilds an unacknowledged chunk after the timeout<br/>docs/adr/ADR-2141-positions-are-streamed-per-client-until-acknowledged.md:33,client/src/store/websocket/binaryFrameDispatcher.ts:27-28,71-77
     end
 ```
 
-## VC-13.2 Subscribe to position updates, and drag/pin control messages
+## VC-13.2 Drag and pin control messages: the GPU is the only physics
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as Client
     participant WSS as SocketFlowServer<br/>src/handlers/socket_flow_handler/message_routing.rs:16
-    participant PU as position_updates handlers<br/>src/handlers/socket_flow_handler/position_updates.rs:596
+    participant PU as position_updates handlers<br/>src/handlers/socket_flow_handler/position_updates.rs:188
     participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:421
-    participant GPU as GpuComputeActor
-    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:562
+    participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs:36
+    participant GPU as ForceComputeActor<br/>src/actors/gpu/force_compute_actor.rs:3009
+    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:617
 
-    rect rgb(222,236,250)
-    C->>WSS: text subscribe_position_updates {binary, nodeTypes}, interval is ignored
-    WSS->>PU: handle_subscribe_position_updates(act, msg, ctx)<br/>src/handlers/socket_flow_handler/message_routing.rs:50-52,src/handlers/socket_flow_handler/position_updates.rs:596
-    Note over PU: ONE-SHOT, a subscribe returns one full snapshot now for a client that joins while physics is settled.<br/>The continuous stream is the ClientCoordinatorActor push at physics.broadcastFps (VC-13.3)<br/>so there is no per-socket polling loop and no subscribe gate on the push<br/>src/handlers/socket_flow_handler/position_updates.rs:601-607
-    alt subscribed within 2s of the last accepted subscribe
-        PU-->>C: ignored, no reply (per-session guard)<br/>src/handlers/socket_flow_handler/position_updates.rs:616-621
-    else accepted
-        PU->>PU: last_position_subscribe = now, position_sub_generation += 1<br/>src/handlers/socket_flow_handler/position_updates.rs:622,626-627
-        PU->>PU: parse optional nodeTypes filter into subscribed_node_types<br/>src/handlers/socket_flow_handler/position_updates.rs:638-652
-        PU-->>C: subscription_confirmed{mode push, binary}<br/>src/handlers/socket_flow_handler/position_updates.rs:657-666
-        PU->>PU: fetch_nodes(app_state, settings_addr)<br/>src/handlers/socket_flow_handler/position_updates.rs:669
-        alt act.position_sub_generation != my_generation
-            Note right of PU: a newer subscribe superseded this fetch — drop the result<br/>src/handlers/socket_flow_handler/position_updates.rs:674-676
-        else current generation
-            opt subscribed_node_types non-empty
-                PU->>PU: nodes.retain by node type flag bits<br/>src/handlers/socket_flow_handler/position_updates.rs:681-695
-            end
-            opt PUBKEY_VISIBILITY_FILTER on and visibility non-empty
-                PU->>PU: compute_private_opaque_ids + apply_drop_set<br/>fail-closed for anon pubkey<br/>src/handlers/socket_flow_handler/position_updates.rs:704-715 (ADR-2003)
-            end
-            Note right of PU: DRIFT the comment above that branch says the filter is Default OFF, the truth table<br/>returns ON for an absent variable, so the comment is stale and the code is right<br/>src/handlers/socket_flow_handler/position_updates.rs:697-703,32-40
-            PU->>PU: encode_node_data_extended_with_sssp, full-state frame, no delta<br/>src/handlers/socket_flow_handler/position_updates.rs:717-730
-            PU->>C: ctx.binary(binary_data)<br/>src/handlers/socket_flow_handler/position_updates.rs:756
-        end
-    end
-    end
-
+    Note over C,WSS: there is NO position request or subscribe message, every registered session is streamed by the coordinator<br/>and acknowledges chunks, the subscribe_position_updates handler and its fetch_nodes snapshot were removed (ADR-2141)<br/>src/handlers/socket_flow_handler/message_routing.rs:13-14
     rect rgb(250,228,228)
-    Note over C,GPU: process boundary — drag/pin handlers ALL require an authenticated pubkey (VULN-01)
-    C->>WSS: text nodeDragStart {nodeId, x, y, z}
-    WSS->>PU: handle_node_drag_start(act, msg, ctx)<br/>src/handlers/socket_flow_handler/position_updates.rs:873
+    Note over C,GPU: process boundary, drag and pin handlers ALL require an authenticated pubkey (VULN-01)
+    C->>WSS: text nodeDragStart {nodeId, position}
+    WSS->>PU: handle_node_drag_start(act, msg, ctx)<br/>src/handlers/socket_flow_handler/message_routing.rs:52-54
     alt act.pubkey.is_none()
-        PU-->>C: rejected — unauthenticated, dropped silently<br/>src/handlers/socket_flow_handler/position_updates.rs:879-882
+        PU-->>C: dropped silently, unauthenticated<br/>src/handlers/socket_flow_handler/position_updates.rs:194-197
     else authenticated
-        alt dragged_nodes.len() at least MAX_DRAGGED_NODES_PER_CLIENT (5)<br/>src/handlers/socket_flow_handler/position_updates.rs:86,930-938
-            PU-->>C: rejected — too many simultaneous drags, dropped silently
+        PU->>PU: nodeId must fit u32, position must be finite and within 10000 on every axis (VULN-03, VULN-05)<br/>src/handlers/socket_flow_handler/position_updates.rs:26-37,233-243
+        alt dragged_nodes.len() at least MAX_DRAGGED_NODES_PER_CLIENT (5)<br/>src/handlers/socket_flow_handler/position_updates.rs:19,245-252
+            PU-->>C: rejected, too many simultaneous drags, dropped silently
         else under the cap
-            PU->>GSS: NodeInteractionMessage Dragged (resume physics if auto-paused)<br/>src/handlers/socket_flow_handler/position_updates.rs:954-961
-            PU->>GSS: UpdateNodePositions pinned_data, velocity=0<br/>src/handlers/socket_flow_handler/position_updates.rs:964-977
-            PU->>GPU: PinNodePositions{pins:[(node_id,[x,y,z])], reheat:true}<br/>src/handlers/socket_flow_handler/position_updates.rs:982-988
-            PU-->>C: nodeDragStartAck<br/>src/handlers/socket_flow_handler/position_updates.rs:995-1002
-            PU->>PU: start drag timeout checker<br/>src/handlers/socket_flow_handler/position_updates.rs:1007-1012
+            PU->>GSS: NodeInteractionMessage Dragged, resumes physics if auto-paused<br/>src/handlers/socket_flow_handler/position_updates.rs:270-276
+            GSS->>PO: forwarded, a grab clears the FastSettle latch and re-kicks the pipeline<br/>src/actors/physics_orchestrator_actor.rs:1161-1197
+            PU->>GPU: PinNodePositions{pins:[(node_id,[x,y,z])], reheat:true}<br/>src/handlers/socket_flow_handler/position_updates.rs:281-288
+            PU-->>C: nodeDragStartAck<br/>src/handlers/socket_flow_handler/position_updates.rs:294-301
+            PU->>PU: start drag timeout checker<br/>src/handlers/socket_flow_handler/position_updates.rs:303-311
         end
     end
-    C->>WSS: text nodeDragUpdate {nodeId, x, y, z}
-    WSS->>PU: handle_node_drag_update(act, msg, ctx)<br/>src/handlers/socket_flow_handler/position_updates.rs:1024
+    C->>WSS: text nodeDragUpdate {nodeId, position}
+    WSS->>PU: handle_node_drag_update(act, msg, ctx)<br/>src/handlers/socket_flow_handler/message_routing.rs:58-60
     alt act.pubkey.is_none()
-        PU-->>C: rejected — unauthenticated<br/>src/handlers/socket_flow_handler/position_updates.rs:1030-1033
-    else within MIN_DRAG_INTERVAL_MS=16 rate cap<br/>src/handlers/socket_flow_handler/position_updates.rs:89,1049-1054
+        PU-->>C: rejected, unauthenticated<br/>src/handlers/socket_flow_handler/position_updates.rs:329-332
+    else within MIN_DRAG_INTERVAL_MS=16 of this node's last update<br/>src/handlers/socket_flow_handler/position_updates.rs:22,349-353
         PU-->>C: ignored (rate limited)
     else accepted update
-        PU->>GSS: UpdateNodePositions moved node, velocity=0<br/>src/handlers/socket_flow_handler/position_updates.rs:1128-1131
-        PU->>GPU: PinNodePositions updated pin, reheat:false<br/>src/handlers/socket_flow_handler/position_updates.rs:1138-1142
-        PU->>GSS: up to 10 SimulationStep within DRAG_SETTLE_BUDGET_MS=50ms<br/>src/handlers/socket_flow_handler/position_updates.rs:83,1148-1165
-        PU->>CC: BroadcastNodePositions, every graph node encoded with encode_node_data_with_live_analytics<br/>src/handlers/socket_flow_handler/position_updates.rs:1175-1211
-        Note right of PU: TENSION the drag and drag-end broadcasts encode the whole graph with default class ids and<br/>reach every client through broadcast_to_all, so neither the pubkey drop-set of the snapshot path<br/>nor the pre-flagged type bits of fetch_nodes apply to these frames, ADR-2003 is not honoured here<br/>src/handlers/socket_flow_handler/position_updates.rs:1204-1211,src/utils/binary_protocol.rs:580-586,src/actors/client_coordinator_actor.rs:1475
+        PU->>GPU: PinNodePositions{updated pin, reheat:false}, the ONLY effect of a drag update<br/>src/handlers/socket_flow_handler/position_updates.rs:418-427
+        Note right of GPU: the pin is a display-space position, the node is shown exactly where the hand holds it<br/>and the neighbours spring around it on the next step, show_pinned_at_pin<br/>src/actors/gpu/force_compute_actor.rs:553-566,2249
+        GPU->>CC: the moved layout reaches every client through the ordinary entitled chunk stream, see VC-13.3<br/>src/actors/gpu/force_compute_actor.rs:2272-2277
+        Note right of PU: RESOLVED the old drag path ran CPU SimulationStep calls on the graph-state copy and broadcast the whole graph to every<br/>session with default class ids, which bypassed the pubkey drop-set of ADR-2003. It is deleted, drags go through the GPU stream only<br/>src/handlers/socket_flow_handler/position_updates.rs:411-417
+        Note right of PU: DRIFT the comment says the other users see the stream broadcast at the interaction rate, ADR-2141 removed<br/>that rate, a grab is simply a pin whose neighbours move past the threshold and are streamed as fast as each client acknowledges<br/>src/handlers/socket_flow_handler/position_updates.rs:413-414,docs/adr/ADR-2141-positions-are-streamed-per-client-until-acknowledged.md:36
     end
     C->>WSS: text nodeDragEnd {nodeId}
-    WSS->>PU: handle_node_drag_end(act, msg, ctx)<br/>src/handlers/socket_flow_handler/position_updates.rs:1230
-    PU->>GSS: NodeInteractionMessage Released, then one final settle and broadcast, the node STAYS pinned<br/>src/handlers/socket_flow_handler/position_updates.rs:1261-1284,1288-1308,1352-1354
-    PU-->>C: nodeDragEndAck<br/>src/handlers/socket_flow_handler/position_updates.rs:1362-1369
+    WSS->>PU: handle_node_drag_end(act, msg, ctx)<br/>src/handlers/socket_flow_handler/message_routing.rs:55-57
+    PU->>GSS: NodeInteractionMessage Released, no CPU settle and no side-channel broadcast, the node STAYS pinned on the GPU<br/>src/handlers/socket_flow_handler/position_updates.rs:479-492
+    PU-->>C: nodeDragEndAck<br/>src/handlers/socket_flow_handler/position_updates.rs:496-504
     C->>WSS: text nodeUnpin {nodeId}
-    WSS->>PU: handle_node_unpin(act, msg, ctx)<br/>src/handlers/socket_flow_handler/position_updates.rs:1381
+    WSS->>PU: handle_node_unpin(act, msg, ctx)<br/>src/handlers/socket_flow_handler/message_routing.rs:61-63
     alt act.pubkey.is_none()
-        PU-->>C: rejected — unauthenticated<br/>src/handlers/socket_flow_handler/position_updates.rs:1387-1390
+        PU-->>C: rejected, unauthenticated<br/>src/handlers/socket_flow_handler/position_updates.rs:522-525
     else authenticated
-        PU->>GPU: PinNodePositions{unpin:[node_id], reheat:true}<br/>src/handlers/socket_flow_handler/position_updates.rs:1417-1424
-        PU-->>C: nodeUnpinAck<br/>src/handlers/socket_flow_handler/position_updates.rs:1429-1436
+        PU->>GPU: PinNodePositions{unpin:[node_id], reheat:true}<br/>src/handlers/socket_flow_handler/position_updates.rs:551-561
+        PU-->>C: nodeUnpinAck<br/>src/handlers/socket_flow_handler/position_updates.rs:564-571
     end
-    Note over PU,GPU: a stalled drag releases its pin without a reheat after drag_timeout_ms, the failure path does not<br/>route through nodeDragEnd, which would leave a stale anchor<br/>src/handlers/socket_flow_handler/position_updates.rs:1459-1481
+    Note over PU,GPU: a stalled drag releases its pin without a reheat after drag_timeout_ms, the failure path does not<br/>route through nodeDragEnd, which would leave a stale anchor<br/>src/handlers/socket_flow_handler/position_updates.rs:594-619
     end
 ```
 
@@ -415,12 +362,12 @@ sequenceDiagram
     participant WSS as handle_text_message<br/>src/handlers/socket_flow_handler/message_routing.rs:16
     participant SR as session_relay handle_relay<br/>src/handlers/socket_flow_handler/session_relay.rs:331
     participant TH as RelayThrottle<br/>src/handlers/socket_flow_handler/session_relay.rs:263
-    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:1915
-    participant CM as ClientManager relay_text_to_pubkey<br/>src/actors/client_coordinator_actor.rs:521
-    participant SIB as sibling session actor<br/>src/handlers/socket_flow_handler/actor_messages.rs:122
+    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:1450
+    participant CM as ClientManager relay_text_to_pubkey<br/>src/actors/client_coordinator_actor.rs:584
+    participant SIB as sibling session actor<br/>src/handlers/socket_flow_handler/actor_messages.rs:66
 
     rect rgb(222,236,250)
-    C->>WSS: text beatClock or memoryRoute (ADR-2134)<br/>src/handlers/socket_flow_handler/message_routing.rs:94-98
+    C->>WSS: text beatClock or memoryRoute (ADR-2134)<br/>src/handlers/socket_flow_handler/message_routing.rs:64-68
     WSS->>SR: handle_relay(kind, text.len(), msg, ctx)<br/>src/handlers/socket_flow_handler/session_relay.rs:331-337
     alt act.pubkey is none
         SR-->>C: one error frame per session, every later frame dropped silently<br/>src/handlers/socket_flow_handler/session_relay.rs:338-347
@@ -437,49 +384,44 @@ sequenceDiagram
             else Coalesced
                 Note right of TH: replaces the pending frame, a flush is already scheduled<br/>src/handlers/socket_flow_handler/session_relay.rs:280-282
             end
-            CC->>CM: relay_text_to_pubkey(pubkey, exclude, message)<br/>src/actors/client_coordinator_actor.rs:1918-1922
-            loop each client whose ClientState.pubkey equals the sender and id is not the sender<br/>src/actors/client_coordinator_actor.rs:531-534
-                CM->>SIB: try_send(SendToClientText(message))<br/>src/actors/client_coordinator_actor.rs:535-542
-                SIB->>SIB: ctx.text(msg.0)<br/>src/handlers/socket_flow_handler/actor_messages.rs:122-127
+            CC->>CM: relay_text_to_pubkey(pubkey, exclude, message)<br/>src/actors/client_coordinator_actor.rs:1453-1457
+            loop each client whose ClientState.pubkey equals the sender and id is not the sender<br/>src/actors/client_coordinator_actor.rs:594-597
+                CM->>SIB: try_send(SendToClientText(message))<br/>src/actors/client_coordinator_actor.rs:598-605
+                SIB->>SIB: ctx.text(msg.0)<br/>src/handlers/socket_flow_handler/actor_messages.rs:66-71
             end
         end
     end
-    Note over CM: INVARIANT the match is on the coordinator's ClientState.pubkey, which only AuthenticateClient sets,<br/>so SetClientId forwarding an upgrade-time pubkey (VC-13.1) is what lets a header or subprotocol<br/>session receive a relayed frame without sending an authenticate message first<br/>src/actors/client_coordinator_actor.rs:1944-1947,src/handlers/socket_flow_handler/actor_messages.rs:25-33
+    Note over CM: INVARIANT the match is on the coordinator's ClientState.pubkey, which only AuthenticateClient sets,<br/>so SetClientId forwarding an upgrade-time pubkey (VC-13.1) is what lets a header or subprotocol<br/>session receive a relayed frame without sending an authenticate message first<br/>src/actors/client_coordinator_actor.rs:1479-1482,src/handlers/socket_flow_handler/actor_messages.rs:22-30
     end
 ```
 
-## VC-13.6 One-shot snapshot — GetGraphData to binary encode
+## VC-13.6 Connect-time sync: topology over JSON, positions from the stream
 ```mermaid
 sequenceDiagram
     autonumber
-    participant PU as fetch_nodes<br/>src/handlers/socket_flow_handler/position_updates.rs:112
+    participant WSS as SocketFlowServer started<br/>src/handlers/socket_flow_handler/types.rs:383
+    participant SYNC as send_full_state_sync<br/>src/handlers/socket_flow_handler/types.rs:158
     participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:421
-    participant GSA as GraphStateActor<br/>src/actors/graph_state_actor.rs:66
-    participant BIN as binary_protocol::encode_node_data_extended_with_sssp<br/>src/utils/binary_protocol.rs:426
+    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:617
 
     rect rgb(225,228,245)
-    Note over PU: invoked from handle_subscribe_position_updates, see VC-13.2 — this is the one-shot<br/>snapshot a subscribe returns, independent of the ClientCoordinatorActor push<br/>path in VC-13.3
-    PU->>GSS: send(GetGraphData)<br/>src/handlers/socket_flow_handler/position_updates.rs:120
-    GSS->>GSA: forward GetGraphData<br/>src/actors/graph_service_supervisor.rs:1483-1494
-    GSA-->>GSS: shared GraphData snapshot, GPU-computed positions<br/>updated by VC-13.3's UpdateNodePositions forward<br/>src/actors/graph_state_actor.rs:942
-    GSS-->>PU: shared GraphData snapshot
-    alt graph_data.nodes is empty
-        PU-->>PU: return None (transient) — the subscribe sends nothing this time<br/>src/handlers/socket_flow_handler/position_updates.rs:135-139,757-762
-    else nodes present
-        PU->>GSS: send(GetNodeTypeArrays)<br/>src/handlers/socket_flow_handler/position_updates.rs:144
-        GSS-->>PU: NodeTypeArrays (agent/knowledge/ontology id sets)
-        loop for each graph node<br/>src/handlers/socket_flow_handler/position_updates.rs:185
-            PU->>PU: flag compact_id with agent/knowledge/ontology bit<br/>src/handlers/socket_flow_handler/position_updates.rs:189-201
-            opt PUBKEY_VISIBILITY_FILTER on (default)<br/>src/handlers/socket_flow_handler/position_updates.rs:177
-                PU->>PU: push NodeVisibility{wire_id, is_public, owner_pubkey}<br/>src/handlers/socket_flow_handler/position_updates.rs:202-204
-            end
-        end
-        Note right of PU: INVARIANT visibility filter default is fail-closed (ON)<br/>ADR-2003 — absent env means filtered, anon caller<br/>sees public-only nodes<br/>src/handlers/socket_flow_handler/position_updates.rs:17-40
-        PU-->>PU: Some((nodes, detailed_debug, visibility))<br/>src/handlers/socket_flow_handler/position_updates.rs:214
-    end
-    PU->>BIN: encode_node_data_extended_with_sssp(nodes, default class ids, analytics)<br/>src/handlers/socket_flow_handler/position_updates.rs:724-730
-    BIN-->>PU: V3 binary frame (WIRE_V3_ITEM_SIZE=52 bytes per node)<br/>src/utils/binary_protocol.rs:72-82,90-93 (ADR-2018)
-    Note right of BIN: DOC-DRIFT docs/PROTOCOL-registry.md now cites the redundant 52-byte<br/>unit-test assertions at binary_protocol.rs lines 1077 and 1174, HEAD has them at<br/>lines 1095 and 1191, the const lock it cites at line 93 is right<br/>docs/PROTOCOL-registry.md:88-92,src/utils/binary_protocol.rs:1095,1191
+    WSS->>CC: RegisterClient{recipients} with the stall timeout taken from the heartbeat timeout<br/>src/handlers/socket_flow_handler/types.rs:389-407
+    CC->>CC: register_client gives the session a fresh ClientStream, nothing acknowledged<br/>src/actors/client_coordinator_actor.rs:282-300,1080
+    CC->>CC: pump(Some(client_id)), every entitled node is a candidate, so the initial position sync is chunks through the ordinary path<br/>src/actors/client_coordinator_actor.rs:1108-1110
+    Note right of CC: there is no connect-time position frame, the 3,000-node quality-top-N binary frame the old sync sent is deleted<br/>src/handlers/socket_flow_handler/types.rs:156-158
+    WSS->>SYNC: self.send_full_state_sync(ctx), then connection_established{protocol supported 3 and 5}<br/>src/handlers/socket_flow_handler/types.rs:462-479
+    SYNC->>SYNC: bump the sync generation, a newer sync supersedes an older one<br/>src/handlers/socket_flow_handler/types.rs:174-178
+    SYNC->>GSS: send GetGraphData, then GetSettings<br/>src/handlers/socket_flow_handler/types.rs:180-189
+    GSS-->>SYNC: shared GraphData snapshot, GPU-computed positions<br/>src/actors/graph_service_supervisor.rs:1485-1500
+    SYNC->>WSS: GenGatedText state_sync{nodes_count, edges_count, settings version}<br/>src/handlers/socket_flow_handler/types.rs:190-223
+    SYNC->>SYNC: initial_node_limit from settings, default 3000, top-N by quality score<br/>src/handlers/socket_flow_handler/types.rs:237-244,279-296
+    SYNC->>SYNC: drop private nodes not owned by this pubkey, anonymous sees public-only, fail-closed<br/>src/handlers/socket_flow_handler/types.rs:257-273
+    SYNC->>WSS: GenGatedInitialGraphLoad{nodes, edges both inside the cap}, JSON, positions inside are advisory<br/>src/handlers/socket_flow_handler/types.rs:338-345
+    WSS->>WSS: ctx.text(json), a superseded generation is dropped at the socket write<br/>src/handlers/socket_flow_handler/actor_messages.rs:121-130
+    CC->>WSS: V5 chunks follow the acknowledgements, see VC-13.4<br/>src/actors/client_coordinator_actor.rs:1384-1392
+    Note over WSS,CC: a client that asks again gets the JSON topology only, at most once per 30 seconds per connection<br/>src/handlers/socket_flow_handler/position_updates.rs:45-80,src/handlers/socket_flow_handler/message_routing.rs:31-33
+    Note over SYNC,CC: after an authenticate frame the sync is re-pushed for the new identity, and AuthenticateClient sets the coordinator's pubkey,<br/>so the next pump recomputes the drop-set and sends the newly entitled nodes as never-acknowledged candidates<br/>src/handlers/socket_flow_handler/filter_auth.rs:92-123,src/actors/client_coordinator_actor.rs:1479-1482,1004-1006
+    Note over SYNC,CC: OPEN the stream carries every entitled node while the JSON initial load stops at initialNodeLimit, so a client sees position<br/>records for ids its topology does not hold, the web client counts them and refetches topology on a 30 second cooldown<br/>src/handlers/socket_flow_handler/types.rs:295-296,client/src/features/graph/managers/graphDataManager.ts:515-540
     end
 ```
 
@@ -487,24 +429,24 @@ sequenceDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> Connecting
-    Connecting --> Rejected: rate limit, origin, signature or token check fails<br/>src/handlers/socket_flow_handler/http_handler.rs:60-63,117-126,142-144,168-170,254-256,325-326
-    Connecting --> Connected: 101 Switching Protocols<br/>src/handlers/socket_flow_handler/http_handler.rs:451-454
+    Connecting --> Rejected: rate limit, origin, signature or token check fails<br/>src/handlers/socket_flow_handler/http_handler.rs:56-59,113-122,138-140,163-167,250-252,321-322
+    Connecting --> Connected: 101 Switching Protocols<br/>src/handlers/socket_flow_handler/http_handler.rs:447-450
     Rejected --> [*]
 
-    Connected --> Authenticated: release builds always, the upgrade carried a signed subprotocol or a validated header session so pubkey is set before the actor starts<br/>src/handlers/socket_flow_handler/http_handler.rs:416-419
-    Connected --> Anonymous: dev or dev-auth builds only, ALLOW_INSECURE_DEFAULTS with no valid credential, public-only view<br/>src/handlers/socket_flow_handler/http_handler.rs:228-235,312-316
+    Connected --> Authenticated: release builds always, the upgrade carried a signed subprotocol or a validated header session so pubkey is set before the actor starts<br/>src/handlers/socket_flow_handler/http_handler.rs:412-415
+    Connected --> Anonymous: dev or dev-auth builds only, ALLOW_INSECURE_DEFAULTS with no valid credential, public-only view<br/>src/handlers/socket_flow_handler/http_handler.rs:226-231,308-312
     Anonymous --> Authenticated: authenticate message<br/>NIP-98 kind-27235 or legacy token/pubkey<br/>src/handlers/socket_flow_handler/filter_auth.rs:10 (ADR-2009)
 
-    Authenticated --> Dragging: nodeDragStart requires pubkey<br/>src/handlers/socket_flow_handler/position_updates.rs:879-882
-    Dragging --> Authenticated: nodeDragEnd leaves the node pinned, nodeUnpin or a drag timeout releases it<br/>src/handlers/socket_flow_handler/position_updates.rs:1278-1284,1417-1424,1471-1481
+    Authenticated --> Dragging: nodeDragStart requires pubkey<br/>src/handlers/socket_flow_handler/position_updates.rs:194-197
+    Dragging --> Authenticated: nodeDragEnd leaves the node pinned, nodeUnpin or a drag timeout releases it<br/>src/handlers/socket_flow_handler/position_updates.rs:479-483,551-561,600-619
 
-    Connected --> Streaming: started registers the client with the coordinator, every registered client receives the push, no subscribe needed<br/>src/handlers/socket_flow_handler/types.rs:502-516,src/actors/client_coordinator_actor.rs:431
-    Streaming --> Congested: ClientCoordinatorActor try_send hits SendError Full<br/>on the client mailbox, only that frame is skipped<br/>src/actors/client_coordinator_actor.rs:237-239
-    Congested --> Streaming: mailbox drains, the next broadcast_with_filter try_send succeeds<br/>src/actors/client_coordinator_actor.rs:315-321
-    Congested --> Closed: congested for the whole stall timeout, evicted and the socket shut from outside<br/>src/actors/client_coordinator_actor.rs:329-351
+    Connected --> Streaming: started registers the client with the coordinator, every registered client receives the push, no subscribe needed<br/>src/handlers/socket_flow_handler/types.rs:393-407,src/actors/client_coordinator_actor.rs:414-418
+    Streaming --> Congested: ClientCoordinatorActor try_send hits SendError Full<br/>on the client mailbox, only that chunk is skipped<br/>src/actors/client_coordinator_actor.rs:232-239
+    Congested --> Streaming: mailbox drains, the next pump_one try_send succeeds and the clock is cleared<br/>src/actors/client_coordinator_actor.rs:322-333
+    Congested --> Closed: congested for the whole stall timeout, evicted and the socket shut from outside<br/>src/actors/client_coordinator_actor.rs:336-362
 
-    Streaming --> Closed: WS Close frame, or no inbound frame for heartbeatTimeout (server ping every heartbeatInterval)<br/>src/handlers/socket_flow_handler/mod.rs:35,52-56,src/handlers/socket_flow_handler/types.rs:543-568
-    Streaming --> Closed: SendError Closed, client evicted<br/>src/actors/client_coordinator_actor.rs:240-242,641-647
+    Streaming --> Closed: WS Close frame, or no inbound frame for heartbeatTimeout (server ping every heartbeatInterval)<br/>src/handlers/socket_flow_handler/mod.rs:34,51-55,src/handlers/socket_flow_handler/types.rs:434-460
+    Streaming --> Closed: SendError Closed, client evicted<br/>src/actors/client_coordinator_actor.rs:238-242,682-690
     Closed --> [*]
 
     note right of Streaming
@@ -516,10 +458,10 @@ stateDiagram-v2
         src/handlers/socket_flow_handler/heartbeat.rs:35-39,79-90
         RESOLVED the old DIVERGENCE (CLIENT_TIMEOUT unused, last_activity never checked) is gone,
         the constants were deleted and the heartbeat module owns the timeout
-        src/utils/socket_flow_constants.rs:7-9
+        src/utils/socket_flow_constants.rs:7-10
         RESOLVED ADR-2054 PushDirective mechanism removed, zero senders
         tree-wide, send_pong and get_pending_directives were never called
         on the live ping/pong path
-        src/handlers/socket_flow_handler/actor_messages.rs:262-265
+        src/handlers/socket_flow_handler/actor_messages.rs:174-177
     end note
 ```

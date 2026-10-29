@@ -5,7 +5,7 @@ area: agentbox
 governing:
   - ../project/agentbox/docs/INGRESS-identity.md
   - ../project/agentbox/docs/SECURITY-profiles.md
-adrs: [ADR-2002, ADR-2009, ADR-2010, ADR-2011, ADR-2013, ADR-2047, ADR-2080]
+adrs: [ADR-2002, ADR-2009, ADR-2010, ADR-2011, ADR-2013, ADR-2047, ADR-2080, ADR-2153]
 sources:
   - ../project/agentbox/docs/INGRESS-identity.md
   - ../project/agentbox/agentbox.toml
@@ -26,11 +26,12 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2010-bearer-gated-behind-nip98.md
   - ../project/agentbox/docs/adr/ADR-2011-hex-canonical-identity.md
   - ../project/agentbox/docs/adr/ADR-2013-loopback-publish-except-9096.md
+  - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/docker-compose.voice.yml
   - ../project/agentbox/voice/console/Caddyfile
   - ../project/agentbox/management-api/lib/agent-event-auth.js
   - ../project/agentbox/management-api/lib/action-plane.js
-verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
+verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
 ---
 
 ## AB-10.1 Door inventory and port topology
@@ -39,22 +40,22 @@ verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
 flowchart TB
     LAN["LAN client"]
     P9096["nip98-proxy<br/>agentbox/config/nip98-proxy/proxy.mjs:1206<br/>listen 0.0.0.0:9096"]
-    AOE9095["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2846<br/>127.0.0.1:9095"]
+    AOE9095["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2924<br/>127.0.0.1:9095"]
     MGMT9090["management-api<br/>agentbox/management-api/server.js:1457,:48<br/>HOST 0.0.0.0 PORT 9090 in-container"]
-    RELAY7777["nostr-rs-relay<br/>agentbox/flake.nix:1862,:1826<br/>binds relayCfg.bind, default 127.0.0.1:7777"]
+    RELAY7777["nostr-rs-relay<br/>agentbox/flake.nix:1924,:1888<br/>binds relayCfg.bind, default 127.0.0.1:7777"]
     VOICE8444["voice cockpit Caddy origin<br/>docker-compose.voice.yml:39<br/>0.0.0.0:8444"]
 
     LAN -->|"9096:9096 SANCTIONED agentbox/scripts/ci/check-ports-loopback.mjs:94,:74-91 ADR-2013"| P9096
     P9096 -->|"default route, Authorization UNCONDITIONALLY replaced with daemon token agentbox/config/nip98-proxy/proxy.mjs:1037-1045"| AOE9095
     P9096 -->|"prefix /mgmt/ NIP98_PROXY_MGMT_UPSTREAM agentbox/config/nip98-proxy/proxy.mjs:443-449"| MGMT9090
-    LAN -.->|"127.0.0.1:9090:9090 host publish agentbox/flake.nix:3477 not LAN-reachable"| MGMT9090
+    LAN -.->|"127.0.0.1:9090:9090 host publish agentbox/flake.nix:3555 not LAN-reachable"| MGMT9090
     LAN -->|"8443/8444 SANCTIONED docker-compose.voice.yml:39 agentbox/scripts/ci/check-ports-loopback.mjs:95-96"| VOICE8444
     VOICE8444 -->|"slash lo and slash docs ONLY - direct to management-api voice/console/Caddyfile:82-87"| MGMT9090
     VOICE8444 -->|"slash aoe, slash approvals, slash mgmt, slash dream, slash feed, slash bridge, slash nip07 - Authorization forwarded to the NIP-98 door voice/console/Caddyfile:54-75,:90-111"| P9096
 
 N1["RESOLVED ADR-2047: not a breach - a decided, enumerated exposure. The LAN surface is TEN<br/>sanctioned publishes across five compose files, matched on the normalised host_ip/published/<br/>target/protocol tuple: 9096 sovereign ingress, voice 8443 and 8444, browsercontainer 5903<br/>8931 9222-to-9223, gui-tools 5905 9876 9877, xr-runtime 5904 - each cited at<br/>agentbox/scripts/ci/check-ports-loopback.mjs:93-104. 9096 is the sole IDENTITY ingress to the<br/>AoE plane; the others carry their own auth. The old framing understated the count as well."]
-N2["RESOLVED ADR-2047: the stale --auth none bullet is gone. flake.nix:3473 reads<br/>aoe serve, --auth token is NEVER published, matching the live supervisor command at<br/>flake.nix:2846, and INGRESS-identity now records the bullet as Resolved rather than<br/>open. The doc body's drifted verifyIdentity anchor (a stale 410-450 range) is<br/>corrected to proxy.mjs:662."]
-N6["INVARIANT ADR-2013: sovereign_mesh.relay.expose does NOT open a LAN door. When true it adds<br/>ONE publish and that publish is loopback-pinned - 127.0.0.1:port:port at<br/>agentbox/flake.nix:3482-3483 - so the relay never reaches the SANCTIONED LAN list at<br/>check-ports-loopback.mjs:93-104. Default is expose=false, agentbox.toml:148."]
+N2["RESOLVED ADR-2047: the stale --auth none bullet is gone. flake.nix:3551 reads<br/>aoe serve, --auth token is NEVER published, matching the live supervisor command at<br/>flake.nix:2924, and INGRESS-identity now records the bullet as Resolved rather than<br/>open. The doc body's drifted verifyIdentity anchor (a stale 410-450 range) is<br/>corrected to proxy.mjs:662."]
+N6["INVARIANT ADR-2013: sovereign_mesh.relay.expose does NOT open a LAN door. When true it adds<br/>ONE publish and that publish is loopback-pinned - 127.0.0.1:port:port at<br/>agentbox/flake.nix:3560-3561 - so the relay never reaches the SANCTIONED LAN list at<br/>check-ports-loopback.mjs:93-104. Default is expose=false, agentbox.toml:148."]
 N3["INVARIANT ADR-2009: aoe serve binds 127.0.0.1 plus --behind-proxy - nip98-proxy is the sole<br/>IDENTITY ingress to port 9095, nothing else may open that port<br/>agentbox/config/nip98-proxy/README.md:40-50"]
 N4["RESOLVED ADR-2047: the compose-exposure qualification is superseded in the governing doc.<br/>The line-walker bypass is fixed - check-ports-loopback.sh is a wrapper that execs<br/>check-ports-loopback.mjs, a strict YAML reader for the compose subset, and anything outside that<br/>subset is REJECTED with file and line, never skipped. ADR-2013 stays partial for the DEPLOYMENT<br/>half only: overlay order, interpolation, external files and active-listener evidence.<br/>Receipt: agentbox/docs/estate-closeout/2026-09-05/adr-2013-ports-gate.json."]
 N5["INVARIANT ADR-2013: the wrapper FAILS LOUDLY when the .mjs gate is missing - a copy of the<br/>wrapper without its gate exits 3 with an explicit message rather than looking like a pass<br/>agentbox/scripts/ci/check-ports-loopback.sh:38-42"]
@@ -286,7 +287,7 @@ sequenceDiagram
     participant RT as routeFor<br/>agentbox/config/nip98-proxy/proxy.mjs:462
     participant TOK as readAoeToken<br/>agentbox/config/nip98-proxy/proxy.mjs:311
     participant FS as serve.url state file<br/>~/.config/agent-of-empires/serve.url
-    participant AOE as aoe serve --auth token<br/>agentbox/flake.nix:2846 127.0.0.1:9095
+    participant AOE as aoe serve --auth token<br/>agentbox/flake.nix:2924 127.0.0.1:9095
 
     BR->>PX: GET /api/sessions (or dashboard asset) proxy.mjs:947
     PX->>PX: buffer request body, size-capped MAX_BODY_BYTES 25MiB proxy.mjs:954,:1079-1083
@@ -315,6 +316,8 @@ sequenceDiagram
         end
     end
 ```
+
+**Open:** ADR-2153 proposes removing Agent of Empires, the `:9095` listener and this proxy's default upstream to it, narrowing `:9096` to `/mgmt/*` and its other named routes, but it is proposed with implementation none and activation inactive (`agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`), and the ADR itself says AoE stays as it is until the daemon lands (`agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:64`); until a decision is accepted the AoE edges drawn in AB-10.6 and AB-10.11 remain the live path, and the governing doc carries the same proposed note beside Invariant 1 (`agentbox/docs/INGRESS-identity.md:260-261`).
 
 ## AB-10.7 /mgmt/* router door — bearer_env gated behind NIP-98
 
@@ -359,7 +362,7 @@ AUTH-->>MAPI: allow, nip98 accepted<br/>agentbox/management-api/middleware/auth.
         MAPI-->>PX: response
         PX-->>BR: relay status and body proxy.mjs:1058-1060
     end
-Note over MAPI,AUTH: the AUTH GATE never reads X-Agentbox-Pubkey - createAuthMiddleware<br/>re-verifies Authorization itself on every request<br/>agentbox/management-api/middleware/auth.js:164-199. Two consumers BEHIND the gate do<br/>trust the stamp under ADR-2042 (on agentbox main b9e0ea9a8 only from a loopback peer) - see AB-10.14
+Note over MAPI,AUTH: the AUTH GATE never reads X-Agentbox-Pubkey - createAuthMiddleware<br/>re-verifies Authorization itself on every request<br/>agentbox/management-api/middleware/auth.js:164-199. Two consumers BEHIND the gate do<br/>trust the stamp under ADR-2042 (only from a loopback peer, peerIsProxy) - see AB-10.14
 ```
 
 ## AB-10.8 NIP-07 browser session handshake
@@ -460,7 +463,7 @@ sequenceDiagram
     participant BR2 as Browser via port 9096
     participant PX2 as proxy /mgmt/ route<br/>agentbox/config/nip98-proxy/proxy.mjs:443
 
-    Note over DC,MAPI: port 9090 is published to the host only as 127.0.0.1:9090:9090 agentbox/flake.nix:3406 - DC must already be container-internal or on the loopback publish
+    Note over DC,MAPI: port 9090 is published to the host only as 127.0.0.1:9090:9090 agentbox/flake.nix:3555 - DC must already be container-internal or on the loopback publish
     DC->>MAPI: request with its OWN Authorization Bearer API_KEY or Nostr header, no X-Agentbox-Pubkey
     MAPI->>AUTH: authMiddleware verifies bearer or nip98 directly agentbox/management-api/server.js:223-231
     AUTH-->>MAPI: allow or 401
@@ -478,27 +481,28 @@ Note over MAPI,AUTH: the only difference at the GATE is WHO ADDS the pubkey head
 sequenceDiagram
     autonumber
     participant OP as Operator, /spawn command
-    participant GW as aoeRequest<br/>agentbox/config/nostr-gateway/gateway.cjs:433
-    participant TOKFN as readAoeToken<br/>agentbox/config/nostr-gateway/gateway.cjs:129
+    participant GW as aoeRequest<br/>agentbox/config/nostr-gateway/gateway.cjs:453
+    participant TOKFN as readAoeToken<br/>agentbox/config/nostr-gateway/gateway.cjs:142
     participant FS2 as serve.url<br/>AGENTBOX_AOE_TOKEN_FILE override, default ~/.config/agent-of-empires/serve.url
-    participant AOE2 as aoe serve on port 9095<br/>agentbox/flake.nix:2796
+    participant AOE2 as aoe serve on port 9095<br/>agentbox/flake.nix:2924
 
-    OP->>GW: /spawn dir agent text - aoeCreateSession(repoPath, tool, title) agentbox/config/nostr-gateway/gateway.cjs:321-325,:454-455
-    GW->>GW: POST /api/sessions?wait=ready via aoeRequest gateway.cjs:454-455
-    GW->>TOKFN: readAoeToken() gateway.cjs:437
-    TOKFN->>FS2: statSync then readFileSync then statSync, torn-read retry once gateway.cjs:132-140
+    OP->>GW: /spawn dir agent text - aoeCreateSession(repoPath, tool, title) agentbox/config/nostr-gateway/gateway.cjs:474,522
+    GW->>GW: POST /api/sessions?wait=ready via aoeRequest gateway.cjs:475
+    GW->>TOKFN: readAoeToken() gateway.cjs:457
+    TOKFN->>FS2: statSync then readFileSync then statSync, torn-read retry once gateway.cjs:143-159
     alt file missing or unreadable, and no last-good cache
         TOKFN-->>GW: null
-        GW-->>OP: throw AoE token unavailable (N-05 fail-closed) - not sending unauthenticated request gateway.cjs:438
-        Note over GW,TOKFN: ADR-2002 defence-in-depth - this is a SECOND independent enforcement point beyond the nip98-proxy, duplicated verbatim per the KEEP IN SYNC comment gateway.cjs:119-125
+        GW-->>OP: throw AoE token unavailable (N-05 fail-closed) - not sending unauthenticated request gateway.cjs:458
+        Note over GW,TOKFN: ADR-2002 defence-in-depth - this is a SECOND independent enforcement point beyond the nip98-proxy, duplicated verbatim per the KEEP IN SYNC comment gateway.cjs:132-138
     else token cached or freshly read
         TOKFN-->>GW: token, last-good cache, NEVER caches null on a transient error
-        GW->>AOE2: POST /api/sessions, Authorization Bearer tok gateway.cjs:439-446
+        GW->>AOE2: POST /api/sessions, Authorization Bearer tok gateway.cjs:459-466
         AOE2-->>GW: 200/201, session id and status
     end
-    Note over GW: on any AoE failure the caller falls back to a plain tmux new-window, per the ADR-042/044 D5 comment gateway.cjs:107-111
-    Note over GW: before any command runs, handleWrap drops NIP-17 self-DM copies whose p tag<br/>names another identity and poker-coach table traffic, gateway.cjs:727-739 -<br/>and the operator key is read only through hooks/lib/operator-key.cjs, file-only<br/>under role_isolation (gateway.cjs:82,186)
-    Note over TOKFN: readAoeToken is DUPLICATED VERBATIM (modulo fs accessor) across four runtime<br/>consumers of port 9095, namely proxy.mjs, gateway.cjs, tab0-bridge/server.mjs and<br/>aoe-seed-sessions.mjs, KEEP IN SYNC comment at aoe-seed-sessions.mjs:494-497.<br/>aoe-seed-sessions.mjs is the 4th consumer: entrypoint-unified.sh Stage B fires it<br/>fire-and-forget (config/entrypoint-unified.sh:1865), it fails closed the same way<br/>(aoe-seed-sessions.mjs:504-517,:528-530) and also seeds the ADR-2080 router slug's<br/>session via WRAPPER_SLUGS.router.file (aoe-seed-sessions.mjs:110-114) - full table at AB-02.20,<br/>the run-as-script guard fix that makes it execute in the baked image at AB-02.19
+    Note over GW: on any AoE failure the caller falls back to a plain tmux new-window, per the ADR-042/044 D5 comment gateway.cjs:120-123,531-535
+    Note over GW: that tmux fallback types text with send-keys -l and now schedules the Enter 1500 ms later with setTimeout,<br/>because Codex reads text and Enter in one burst as a paste, doSpawnTmux then sendKeys, gateway.cjs:289-294,544
+    Note over GW: before any command runs, handleWrap drops NIP-17 self-DM copies whose p tag<br/>names another identity and poker-coach table traffic, gateway.cjs:724,744-745 -<br/>and the operator key is read only through hooks/lib/operator-key.cjs, file-only<br/>under role_isolation (gateway.cjs:82,186)
+    Note over TOKFN: readAoeToken is DUPLICATED VERBATIM (modulo fs accessor) across four runtime<br/>consumers of port 9095, namely proxy.mjs, gateway.cjs, tab0-bridge/server.mjs and<br/>aoe-seed-sessions.mjs, KEEP IN SYNC comment at aoe-seed-sessions.mjs:512-515.<br/>aoe-seed-sessions.mjs is the 4th consumer: entrypoint-unified.sh Stage B fires it<br/>fire-and-forget (config/entrypoint-unified.sh:1950), it fails closed the same way<br/>(aoe-seed-sessions.mjs:522-535,:546-548) and also seeds the ADR-2080 router slug's<br/>session via WRAPPER_SLUGS.router.file (aoe-seed-sessions.mjs:110-114) - full table at AB-02.20,<br/>the run-as-script guard fix that makes it execute in the baked image at AB-02.19
 ```
 
 ## AB-10.12 selftest.mjs assertion families
@@ -554,8 +558,8 @@ sequenceDiagram
     participant CL as Caller
     participant PX as nip98-proxy<br/>agentbox/config/nip98-proxy/proxy.mjs:958
     participant GATE as createAuthMiddleware<br/>agentbox/management-api/middleware/auth.js:164
-    participant AEA as verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:108
-    participant APL as resolveAgentDid<br/>agentbox/management-api/lib/action-plane.js:221
+    participant AEA as verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:135
+    participant APL as resolveAgentDid<br/>agentbox/management-api/lib/action-plane.js:222
 
     CL->>PX: request carrying its own x-agentbox-pubkey
     PX->>PX: inbound copy DROPPED, then re-injected from the AUTHENTICATED identity proxy.mjs:994-995,:996-997
@@ -565,22 +569,22 @@ sequenceDiagram
     Note over GATE: INVARIANT the gate never reads x-agentbox-pubkey - it re-verifies the credential itself auth.js:164-199
     GATE->>AEA: POST /v1/agent-events/emit reaches the route past the gate
     alt Authorization starts with Nostr
-        AEA->>AEA: verify the signature against this request, a bad signature is NEVER rescued by the header agent-event-auth.js:118-148
+        AEA->>AEA: verify the signature against this request, a bad signature is NEVER rescued by the header agent-event-auth.js:145-175
     else no Nostr header - NIP-07 session or break-glass hop
-        AEA->>AEA: ADR-2042 path 2, trust x-agentbox-pubkey when it is 64 lowercase hex agent-event-auth.js:90-96,:157-160
+        AEA->>AEA: ADR-2042 path 2, trust x-agentbox-pubkey when the TCP peer is the proxy and it is 64 lowercase hex agent-event-auth.js:116-122,:184-187
         Note over AEA: DOC-DRIFT AB-10.7 and AB-10.10 previously asserted management-api has ZERO<br/>references to X-Agentbox-Pubkey. False - this is the ONLY identity carrier on that hop,<br/>because the proxy replaced Authorization with the route bearer
     end
     GATE->>APL: any action-plane dispatch past the gate
-    APL->>APL: DID priority request.auth.pubkey, then x-agentbox-pubkey, then AGENTBOX_AGENT_DID, then null action-plane.js:221-231
-    Note over AEA,APL: DRIFT (resolved 2026-10-12, agentbox main b9e0ea9a8) - at the stamp path 2 trusted the stamp from any TCP peer<br/>so a MANAGEMENT_API_KEY holder on the docker network could forge it, server.js binds 0.0.0.0 agent-event-auth.js:31-39.<br/>On main both consumers now go through proxyVerifiedPubkey, honoured only from a loopback peer (peerIsProxy)
-    Note over AEA,APL: DEBT residual - a process INSIDE the container can still connect over loopback and forge the stamp, the same-UID boundary (TODO-unified X-1)<br/>AGENTBOX_PROXY_PEERS replaces the loopback default for a proxy that connects from elsewhere
-    Note over AEA: policy gate AGENTBOX_AGENT_EVENT_AUTH, default nip98 since ADR-2044, off is<br/>explicitly selectable and returns did null agent-event-auth.js:112-115
+    APL->>APL: DID priority request.auth.pubkey, then x-agentbox-pubkey, then AGENTBOX_AGENT_DID, then null action-plane.js:222-233
+    Note over AEA,APL: INVARIANT both consumers go through proxyVerifiedPubkey, which returns null unless peerIsProxy holds,<br/>so the stamp counts only from a loopback peer or AGENTBOX_PROXY_PEERS, and a request with no socket fails closed<br/>agent-event-auth.js:98-105,117 and action-plane.js:229
+    Note over AEA,APL: DEBT residual - a process INSIDE the container can still connect over loopback and forge the stamp, the same-UID boundary (TODO-unified X-1)<br/>a MANAGEMENT_API_KEY holder on the docker network reaches the 0.0.0.0 bind but its peer is not loopback, agent-event-auth.js:34-39
+    Note over AEA: policy gate AGENTBOX_AGENT_EVENT_AUTH, default nip98 since ADR-2044, off is<br/>explicitly selectable and returns did null agent-event-auth.js:139-142
 ```
 
 The governing doc states Invariant 2 as "X-Agentbox-Pubkey always proxy-injected,
 never trusted inbound" — true at the ingress, and the two ADR-2042 consumers above
 are the deliberate, documented exception on the far side of the gate.
 
-**Drift (resolved 2026-10-12, agentbox main b9e0ea9a8):** the diagram above is drawn at the stamped lineage, where path 2 and `resolveAgentDid` read the header from any TCP peer once the general gate had passed (`agentbox/management-api/lib/agent-event-auth.js:157-160`, `agentbox/management-api/lib/action-plane.js:221-231`) and `server.js` binds `0.0.0.0` (`agentbox/management-api/server.js:49`), so a `MANAGEMENT_API_KEY` holder on the docker network could forge any `did:nostr`. Agentbox `main` commit b9e0ea9a8 (S-3) adds `peerIsProxy` and an exported `proxyVerifiedPubkey` in `agent-event-auth.js`: the header counts only when `request.raw.socket.remoteAddress` is loopback (`127.0.0.1`, `::1`, `::ffff:127.0.0.1`) or an exact address in `AGENTBOX_PROXY_PEERS`, and a request with no socket information fails closed. `action-plane.js` `resolveAgentDid` now calls the same helper, so the two consumers cannot disagree. ADR-2042 gained an "Update 2026-10-12" section. The stamped lineage does not contain the commit, so the lines above still describe it.
+**Invariant:** the stamp counts only when `request.raw.socket.remoteAddress` is loopback (`127.0.0.1`, `::1`, `::ffff:127.0.0.1`) or an exact address in `AGENTBOX_PROXY_PEERS`, and a request with no socket information fails closed; `server.js` binds `0.0.0.0`, so a `MANAGEMENT_API_KEY` holder on the docker network reaches the port but cannot forge any `did:nostr` (`agentbox/management-api/lib/agent-event-auth.js:98-105`, `agentbox/management-api/lib/agent-event-auth.js:117`, `agentbox/management-api/server.js:49`). `resolveAgentDid` calls the same exported helper, so the two ADR-2042 consumers share one rule (`agentbox/management-api/lib/action-plane.js:229`).
 
-**Debt:** the loopback test authenticates the network position, not the process: anything inside the container can open its own loopback connection and forge the stamp (the same-UID boundary, TODO-unified X-1), and the unconditional trust it replaces is still what the stamped lineage ships (`agentbox/management-api/lib/agent-event-auth.js:157-160`).
+**Debt:** the loopback test authenticates the network position, not the process: anything inside the container can open its own loopback connection and forge the stamp (the same-UID boundary, TODO-unified X-1), (`agentbox/management-api/lib/agent-event-auth.js:37-39`).

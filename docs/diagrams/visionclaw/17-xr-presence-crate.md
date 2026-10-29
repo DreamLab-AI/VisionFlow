@@ -13,7 +13,7 @@ sources:
   - ../project/crates/visionclaw-xr-presence/src/validate.rs
   - ../project/src/handlers/presence_handler.rs
   - ../project/src/actors/presence_actor.rs
-verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
+verified_commit: 19417bdff5fc22053a8a0cc185797b0311521d10
 ---
 
 ## VC-17.1 Presence session handshake and authentication
@@ -174,3 +174,5 @@ classDiagram
     note for PresenceSession "Crate is transport-agnostic (visionclaw-xr-presence/src/lib.rs:9-10): no transport assumed, Actix/tokio-tungstenite/godot signal each inject the ports::Broadcaster and ports::IdentityVerifier traits"
     note for PresenceActor "Same crate is the single source of truth for the 0x43 wire format and is consumed by both this server (lib.rs:5-6) and the Godot client at xr-client/rust/ (lib.rs:6-7)"
 ```
+
+**Open:** the XR client gained a Codescape backend mode (ADR-2143 A6) in which the same presence socket targets a Codescape server that "serves the graph stream, presence, voice" itself (`docs/XR-client.md:955`), so the `PresenceSession` and `PresenceActor` above are the VisionClaw backend only. No topic maps Codescape's presence endpoint against this crate's 0x43 wire.

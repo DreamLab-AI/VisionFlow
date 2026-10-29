@@ -13,17 +13,21 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/provision.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/ssrf.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/cors.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/src/security/dotfile.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/init.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/api.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/guard.rs
+  - ../solid-pod-rs/crates/solid-pod-rs-git/src/push_guard.rs
+  - ../solid-pod-rs/crates/solid-pod-rs-git/src/hardened.rs
+  - ../solid-pod-rs/crates/solid-pod-rs-server/src/cli/invite_store.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/config.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/identity.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/auth.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/metrics.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/webid.rs
-verified_commit: d64131b
+verified_commit: a4a86f6da300b529c7855318c24ff5c7b35ec582
 ---
 
 ## SP-06.1 The Storage seam and its two shipped backends
@@ -76,8 +80,12 @@ flowchart TD
 
     N["The check is on parsed PATH COMPONENTS, not on a substring — a percent-encoded<br/>or oddly-spelled '..' still parses to Component::ParentDir."]
     COMP -.-> N
-    N2["Belt and braces: PathTraversalGuard rejects at the middleware layer too<br/>(solid-pod-rs-server/src/lib.rs:3012, path_is_traversal :3063), and<br/>DotfileGuard filters dotfiles (solid-pod-rs-server/src/lib.rs:3330). See SP-02.8."]
+    N2["Belt and braces: PathTraversalGuard rejects at the middleware layer too<br/>(solid-pod-rs-server/src/lib.rs:3430, path_is_traversal solid-pod-rs-server/src/lib.rs:3481), and<br/>DotfileGuard filters dotfiles (solid-pod-rs-server/src/lib.rs:3757). See SP-02.8."]
     ERR -.-> N2
+    N3["The server also holds ONE canonical spelling: canonical_pod_path percent-decodes once, rejects . and .. segments,<br/>backslash and NUL, and both the permission check and the storage call use its output.<br/>solid-pod-rs-server/src/lib.rs:850"]
+    N4["The dotfile filter folds case, so doc.ACL and a long-s x.meta.json variant are refused as guarded names<br/>on case-insensitive filesystems.<br/>solid-pod-rs/src/security/dotfile.rs:306"]
+    OK -.-> N3
+    COMP -.-> N4
 ```
 
 ## SP-06.3 Capability-confined filesystem access
@@ -126,18 +134,18 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant H as LDP write handler
-    participant RQ as reserve_quota_for_size<br/>solid-pod-rs-server/src/lib.rs:2354
+    participant RQ as reserve_quota_for_size<br/>solid-pod-rs-server/src/lib.rs:2652
     participant Q as FsQuotaStore<br/>solid-pod-rs/src/quota/mod.rs:105
     participant S as Storage
-    participant FQ as finish_quota_reservation<br/>solid-pod-rs-server/src/lib.rs:2382
+    participant FQ as finish_quota_reservation<br/>solid-pod-rs-server/src/lib.rs:2680
 
-    H->>RQ: pod_name_from_path plus the body size<br/>solid-pod-rs-server/src/lib.rs:2347
+    H->>RQ: pod_name_from_path plus the body size<br/>solid-pod-rs-server/src/lib.rs:2645
     RQ->>Q: reserve(pod, delta_bytes)<br/>solid-pod-rs/src/quota/mod.rs:272
     alt over quota
         Q-->>RQ: QuotaExceeded<br/>solid-pod-rs/src/quota/mod.rs:55
         RQ-->>H: the write never starts
     end
-    Q-->>RQ: QuotaReservation<br/>solid-pod-rs-server/src/lib.rs:2341
+    Q-->>RQ: QuotaReservation<br/>solid-pod-rs-server/src/lib.rs:2640
     H->>S: perform the write
     H->>FQ: settle the reservation with the write outcome
     alt write failed
@@ -176,18 +184,24 @@ flowchart TD
 sequenceDiagram
     autonumber
     participant C as POST /.pods or /_admin/provision/{pubkey}
-    participant G as provisioning_gate<br/>solid-pod-rs-server/src/lib.rs:2431
-    participant L as PodCreateLimiter::check<br/>solid-pod-rs-server/src/lib.rs:465
-    participant PN as provision_named_pod<br/>solid-pod-rs-server/src/lib.rs:2471
+    participant G as provisioning_gate<br/>solid-pod-rs-server/src/lib.rs:2729
+    participant IV as FileInviteStore::consume<br/>solid-pod-rs-server/src/cli/invite_store.rs:315
+    participant L as PodCreateLimiter::check<br/>solid-pod-rs-server/src/lib.rs:555
+    participant PN as provision_named_pod<br/>solid-pod-rs-server/src/lib.rs:2806
     participant P as provision_pod<br/>solid-pod-rs/src/provision.rs:207
     participant H as GitInitHook::try_init_repo<br/>solid-pod-rs/src/provision.rs:340
     participant S as Storage
 
-    C->>G: registration closed unless open_registration or the admin PSK
-    G-->>C: 403 when neither applies
-    C->>L: one POST /.pods per IP per day<br/>solid-pod-rs-server/src/lib.rs:466
-    L-->>C: 429-shaped refusal with the remaining seconds
-    C->>PN: valid_pod_name check<br/>solid-pod-rs-server/src/lib.rs:2328
+    C->>G: pod name, optional x-pod-admin-key and x-invite-token
+    G->>G: valid_pod_name check, else 400<br/>solid-pod-rs-server/src/lib.rs:2734
+    G-->>C: 403 when registration is closed and there is neither the admin PSK nor an invite<br/>solid-pod-rs-server/src/lib.rs:2757
+    C->>L: one POST /.pods per IP per day<br/>solid-pod-rs-server/src/lib.rs:555
+    L-->>C: 429-shaped refusal with the remaining seconds<br/>solid-pod-rs-server/src/lib.rs:2763
+    opt registration closed and an invite supplied
+        G->>IV: consume the token, recorded before the pod exists<br/>solid-pod-rs-server/src/lib.rs:2786
+        IV-->>G: Granted, or 403 expired, used or invalid
+    end
+    C->>PN: provision the named pod
     PN->>P: ProvisionPlan<br/>solid-pod-rs/src/provision.rs:39
     P->>S: WebID profile, type indexes and their ACLs<br/>solid-pod-rs/src/provision.rs:119
     P->>S: build_public_type_index_acl<br/>solid-pod-rs/src/provision.rs:151
@@ -213,7 +227,7 @@ flowchart TD
     M["SecurityMetrics::record_ssrf_block<br/>solid-pod-rs/src/metrics.rs:63"]
     USE1["OIDC config and JWKS fetching — see SP-05.10"]
     USE2["did:nostr WebID resolution — see SP-05.13"]
-    USE3["GET /proxy — validate_proxy_target then build_pinned_proxy_client<br/>solid-pod-rs-server/src/lib.rs:2783"]
+    USE3["GET /proxy — validate_proxy_target then build_pinned_proxy_client<br/>solid-pod-rs-server/src/lib.rs:3201"]
     USE4["ActivityPub actor-key resolution and delivery — see SP-08"]
 
     P --> ENV
@@ -226,9 +240,9 @@ flowchart TD
     RC --> USE3
     RC --> USE4
 
-    N["INVARIANT: the check RESOLVES the host and the caller then PINS the client to<br/>that IP (solid-pod-rs-server/src/lib.rs:2839), so a DNS rebind between the check<br/>and the request cannot redirect the fetch."]
+    N["INVARIANT: the check RESOLVES the host and the caller then PINS the client to<br/>that IP (solid-pod-rs-server/src/lib.rs:3257), so a DNS rebind between the check<br/>and the request cannot redirect the fetch."]
     RC -.-> N
-    N2["The proxy also strips hop-by-hop and identity-bearing response headers<br/>solid-pod-rs-server/src/lib.rs:2961"]
+    N2["The proxy also strips hop-by-hop and identity-bearing response headers<br/>solid-pod-rs-server/src/lib.rs:3379"]
     USE3 -.-> N2
 ```
 
@@ -236,17 +250,17 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    ENV["CorsPolicy::from_env<br/>solid-pod-rs/src/security/cors.rs:95"]
-    PF["preflight_headers(origin, method, headers)<br/>solid-pod-rs/src/security/cors.rs:163"]
-    RF["response_headers(origin)<br/>solid-pod-rs/src/security/cors.rs:209"]
-    EO["echo_origin<br/>solid-pod-rs/src/security/cors.rs:236"]
-    WC{"AllowedOrigins::Wildcard?<br/>solid-pod-rs/src/security/cors.rs:238"}
+    ENV["CorsPolicy::from_env<br/>solid-pod-rs/src/security/cors.rs:98"]
+    PF["preflight_headers(origin, method, headers)<br/>solid-pod-rs/src/security/cors.rs:166"]
+    RF["response_headers(origin)<br/>solid-pod-rs/src/security/cors.rs:212"]
+    EO["echo_origin<br/>solid-pod-rs/src/security/cors.rs:239"]
+    WC{"AllowedOrigins::Wildcard?<br/>solid-pod-rs/src/security/cors.rs:241"}
     CRED{"allow_credentials?"}
-    ECHO["echo the concrete request Origin<br/>solid-pod-rs/src/security/cors.rs:240"]
+    ECHO["echo the concrete request Origin<br/>solid-pod-rs/src/security/cors.rs:243"]
     STAR["emit literal *"]
-    EX{"AllowedOrigins::Exact(set)<br/>contains origin?<br/>solid-pod-rs/src/security/cors.rs:249"}
+    EX{"AllowedOrigins::Exact(set)<br/>contains origin?<br/>solid-pod-rs/src/security/cors.rs:252"}
     NONE["None -> caller drops all CORS headers"]
-    VARY["Vary: Origin plus Access-Control-Allow-Credentials<br/>solid-pod-rs/src/security/cors.rs:174"]
+    VARY["Vary: Origin plus Access-Control-Allow-Credentials<br/>solid-pod-rs/src/security/cors.rs:177"]
 
     ENV --> PF
     ENV --> RF
@@ -262,7 +276,7 @@ flowchart TD
 
     N["INVARIANT: Access-Control-Allow-Origin: * is invalid with credentials per the<br/>Fetch spec, so wildcard+credentials degrades to echoing the concrete Origin<br/>and always sends Vary: Origin, never *."]
     CRED -.-> N
-    N2["The server's CorsHeaders middleware (solid-pod-rs-server/src/lib.rs:3087) is the<br/>JSS-compatible caller: an empty allowed_origins list means every Origin is<br/>echoed back — a local-dev default, not a production one. See SP-02.3."]
+    N2["The server's CorsHeaders middleware (solid-pod-rs-server/src/lib.rs:3505) is the<br/>JSS-compatible caller: an empty allowed_origins list means every Origin is<br/>echoed back — a local-dev default, not a production one. See SP-02.3."]
     ENV -.-> N2
 ```
 
@@ -271,9 +285,9 @@ flowchart TD
 ```mermaid
 stateDiagram-v2
     [*] --> Provisioned: provision_pod writes the pod tree
-    Provisioned --> Initialised: GitAutoInit.init_repo_at<br/>solid-pod-rs-git/src/init.rs:101
+    Provisioned --> Initialised: GitAutoInit.init_repo_at<br/>solid-pod-rs-git/src/init.rs:100
     Provisioned --> Plain: no git feature, or the hook failed
-    Initialised --> Configured: apply_write_config<br/>solid-pod-rs-git/src/config.rs:71
+    Initialised --> Configured: apply_write_config<br/>solid-pod-rs-git/src/config.rs:69
     Configured --> Identified: write_agent_identity<br/>solid-pod-rs-git/src/identity.rs:103
     Identified --> Marked: every LDP write commits — see SP-07
     Marked --> Marked: git-mark per PUT / POST / PATCH
@@ -281,9 +295,9 @@ stateDiagram-v2
 
     note right of Initialised
       GitAutoInit.with_branch names the initial branch
-      solid-pod-rs-git/src/init.rs:77
+      solid-pod-rs-git/src/init.rs:76
       find_git_dir locates an existing repo instead of re-initialising
-      solid-pod-rs-git/src/config.rs:37
+      solid-pod-rs-git/src/config.rs:35
     end note
     note right of Identified
       AGENT_DID_FILE agent.did.json (solid-pod-rs-git/src/identity.rs:50) and the
@@ -308,35 +322,42 @@ stateDiagram-v2
     end note
 ```
 
-## SP-06.12 Git smart-HTTP — the WAC-gated CGI bridge
+## SP-06.12 Git smart-HTTP — the WAC-gated CGI bridge, clone and fetch only
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as git client
-    participant H as handle_git<br/>solid-pod-rs-server/src/lib.rs:4245
+    participant H as handle_git<br/>solid-pod-rs-server/src/lib.rs:4703
     participant A as BasicNostrExtractor::authorise<br/>solid-pod-rs-git/src/auth.rs:115
-    participant W as enforce_write_ctx / enforce_read_ctx
-    participant S as GitHttpService::handle<br/>solid-pod-rs-git/src/service.rs:263
-    participant CGI as git-http-backend<br/>solid-pod-rs-git/src/service.rs:39
+    participant W as enforce_read_ctx
+    participant S as GitHttpService::handle<br/>solid-pod-rs-git/src/service.rs:283
+    participant CGI as git-http-backend<br/>solid-pod-rs-git/src/service.rs:40
 
-    C->>H: GET info/refs, or POST git-receive-pack
-    H->>H: pod name is the first path segment — repo_root = data_root/{pod}<br/>solid-pod-rs-server/src/lib.rs:4265
+    C->>H: GET info/refs, or POST git-upload-pack or git-receive-pack
+    H->>H: pod name is the first path segment — repo_root = data_root/{pod}<br/>solid-pod-rs-server/src/lib.rs:4727
     alt data_root unset
-        H-->>C: 501 git requires fs-backend storage<br/>solid-pod-rs-server/src/lib.rs:4258
+        H-->>C: 501 git requires fs-backend storage<br/>solid-pod-rs-server/src/lib.rs:4721
+    end
+    alt request is a write (git-receive-pack or its info/refs discovery)
+        H-->>C: 403 git push is not served, before any credential is read<br/>solid-pod-rs-server/src/lib.rs:4754
     end
     H->>A: resolve did:nostr from the Basic nostr: or Nostr credential
-    A-->>H: a pubkey, or anonymous on any failure<br/>solid-pod-rs-server/src/lib.rs:4306
-    H->>H: is_write decides the mode<br/>solid-pod-rs-git/src/service.rs:127
-    H->>W: enforce against the POD-ROOT container ACL<br/>solid-pod-rs-server/src/lib.rs:4313
+    A-->>H: a pubkey, or anonymous on any failure<br/>solid-pod-rs-server/src/lib.rs:4775
+    H->>H: is_write separates push from clone and fetch<br/>solid-pod-rs-git/src/service.rs:128
+    H->>W: enforce Read against the POD-ROOT container ACL<br/>solid-pod-rs-server/src/lib.rs:4784
     W-->>H: 401 on a private pod so the client retries with credentials
     H->>S: GitRequest
-    S->>CGI: spawn_cgi with bounded stdin/stdout reads<br/>solid-pod-rs-git/src/service.rs:354
+    S->>CGI: spawn_cgi with bounded stdin/stdout reads<br/>solid-pod-rs-git/src/service.rs:389
     CGI-->>S: raw CGI output
-    S->>S: parse_cgi_output<br/>solid-pod-rs-git/src/service.rs:498
-    S-->>C: GitResponse plus GIT_CORS_HEADERS<br/>solid-pod-rs-git/src/service.rs:188
+    S->>S: parse_cgi_output<br/>solid-pod-rs-git/src/service.rs:539
+    S-->>C: GitResponse plus GIT_CORS_HEADERS<br/>solid-pod-rs-git/src/service.rs:189
 
-    Note over H: Before this gate git requests went straight to the CGI: a private pod's<br/>history was anonymously clonable and pushes were anonymous.
+    Note over H: Before this gate git requests went straight to the CGI: a private pod's<br/>history was anonymously clonable and pushes were anonymous. Pushes are now<br/>refused outright (estate register ER-28, owner decision 2026-10-18,<br/>solid-pod-rs-server/src/lib.rs:5342).
     Note over S: path_safe (solid-pod-rs-git/src/guard.rs:68) and extract_repo_slug<br/>(solid-pod-rs-git/src/guard.rs:18) keep the CGI's repo argument inside repo_root.
-    Note over A: A separate owner-only `_git` control-panel REST surface (status/log/diff/<br/>stage/unstage/commit/branches/create-branch/discard) is gated by<br/>require_pod_owner_with_body — caller pubkey MUST equal the pod pubkey<br/>(solid-pod-rs-server/src/lib.rs:3665). INVARIANT: that gate is an identity<br/>equality check, not a WAC evaluation — history rewriting and discard are not<br/>delegable to a Control holder, unlike this smart-HTTP surface. validate_path<br/>(solid-pod-rs-git/src/api.rs:161) constrains every caller-supplied path before<br/>it reaches the git argv, parse_status_output (api.rs:192) parses porcelain<br/>rather than free text, and resolve_commit (api.rs:374) backs the _prov commit<br/>lookup — see SP-07.6.
+    Note over A: A separate owner-only `_git` control-panel REST surface (status/log/diff/<br/>stage/unstage/commit/branches/create-branch/discard) is gated by<br/>require_pod_owner_with_body — caller pubkey MUST equal the pod pubkey<br/>(solid-pod-rs-server/src/lib.rs:4125). INVARIANT: that gate is an identity<br/>equality check, not a WAC evaluation — history rewriting and discard are not<br/>delegable to a Control holder, unlike this smart-HTTP surface. validate_path<br/>(solid-pod-rs-git/src/api.rs:160) constrains every caller-supplied path before<br/>it reaches the git argv, parse_status_output (api.rs:191) parses porcelain<br/>rather than free text, and resolve_commit (api.rs:373) backs the _prov commit<br/>lookup — see SP-07.6.
 ```
+
+**Debt:** the pre-receive path guard (`solid-pod-rs-git/src/push_guard.rs:1`) and `GitHttpService::with_push_guard` (`solid-pod-rs-git/src/service.rs:254`) ship in the git crate, but `handle_git` refuses every push before the service runs (`solid-pod-rs-server/src/lib.rs:4754`), so the server installs no guard and the code is unreachable from it.
+
+**Invariant:** every production `git` spawn goes through the hardened constructors: repo hooks, fsmonitor and ambient config are neutralised (`solid-pod-rs-git/src/hardened.rs:44`), and the CGI also runs with `core.symlinks=false` (`solid-pod-rs-git/src/service.rs:421`).

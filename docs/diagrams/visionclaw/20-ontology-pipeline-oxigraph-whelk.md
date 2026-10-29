@@ -48,7 +48,7 @@ sources:
   - ../project/src/actors/gpu/physics_supervisor.rs
   - ../project/src/settings/models.rs
   - ../project/tests/integration/pipeline_test.rs
-verified_commit: {visionclaw: e2d4e2cc131454db236b175226ab809014b6a88d, ontomark: eb1d5a469f07b33b4f7e9a5da1009170cb2c36ea}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, ontomark: 07f4c1ce6ac9e7d5c1c2169b4672ca73c54e5efa}
 ---
 
 ## VC-20.1 load_ontology bin - CorpusSource-backed corpus loader
@@ -56,20 +56,20 @@ verified_commit: {visionclaw: e2d4e2cc131454db236b175226ab809014b6a88d, ontomark
 sequenceDiagram
     autonumber
     participant Bin as main<br/>src/bin/load_ontology.rs:46
-    participant Src as CorpusSource LocalDirectorySource<br/>src/services/corpus_source/local.rs:194
-    participant Parser as parse_page project_ontology<br/>src/services/page_parser.rs:66
+    participant Src as CorpusSource LocalDirectorySource<br/>src/services/corpus_source/local.rs:200
+    participant Parser as parse_page project_ontology<br/>src/services/page_parser.rs:73
     participant Repo as OxigraphOntologyRepository<br/>crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:1664
     participant Extr as OwlExtractorService<br/>src/services/owl_extractor_service.rs:52
 
-    Bin->>Src: LocalDirectorySource::new(cli_root, base_paths) or from_env() (lines 55-56, defn local.rs:54,68)
+    Bin->>Src: LocalDirectorySource::new(cli_root, base_paths) or from_env() (lines 55-56, defn local.rs:60,74)
     Bin->>Src: list_pages() (line 70)
     Src-->>Bin: Vec of CorpusPage
     loop each page
         Bin->>Bin: source.fetch_page(page) (line 85)
-        Bin->>Parser: parse_page(content, path) (line 93, defn 66)
+        Bin->>Parser: parse_page(content, path) (line 93, defn 73)
         Bin->>Bin: visionclaw_domain::vault::parse(content).is_kg_included() gate (line 96, see VC-21)
     end
-    Bin->>Parser: project_ontology(ontology_pages, vocabulary) (line 108, defn 163)
+    Bin->>Parser: project_ontology(ontology_pages, vocabulary) (line 108, defn 170)
     Parser-->>Bin: OntologyProjection classes axioms
     Bin->>Repo: persist -> save_ontology(classes, [], axioms) (line 115, persist defn 192, save_ontology defn 1664)
     Repo->>Repo: single atomic INSERT DATA into GRAPH_ONTOLOGY, no per-item ASK dedup (lines 1675-1686)
@@ -139,22 +139,22 @@ erDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Sync as GitHubSyncService::run_post_sync_reasoning<br/>src/services/github_sync_service.rs:1183
+    participant Sync as GitHubSyncService::run_post_sync_reasoning<br/>src/services/github_sync_service.rs:1205
     participant Repo as OxigraphOntologyRepository<br/>crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:2360
     participant Engine as WhelkInferenceEngine<br/>crates/visionclaw-adapters/src/whelk_inference_engine.rs:360
     participant Whelk as whelk-rs reasoner::assert<br/>crates/visionclaw-adapters/src/whelk_inference_engine.rs:440
 
-    Sync->>Repo: get_classes() (line 1188, defn 2360)
-    Sync->>Repo: get_axioms() (line 1193)
-    Sync->>Sync: axioms.extend(ngm_property_hierarchy_axioms()) (line 1202)
-    Sync->>Engine: load_ontology(classes, axioms) (line 1218, defn line 362)
+    Sync->>Repo: get_classes() (line 1210, defn 2360)
+    Sync->>Repo: get_axioms() (line 1215)
+    Sync->>Sync: axioms.extend(ngm_property_hierarchy_axioms()) (line 1224)
+    Sync->>Engine: load_ontology(classes, axioms) (line 1240, defn line 362)
     Engine->>Engine: compute_ontology_checksum(ontology) (line 382)
     alt checksum unchanged since last load
         Engine-->>Sync: reuse cached_subsumptions (line 395-396)
     else checksum changed
         Engine-->>Sync: cached_subsumptions cleared, fresh reasoning required (line 391-393)
     end
-    Sync->>Engine: infer() (line 1223, defn line 412)
+    Sync->>Engine: infer() (line 1245, defn line 412)
     alt cached_subsumptions present (line 421)
         Engine-->>Sync: cached InferenceResults, whelk-rs not invoked (line 422-434)
     else no cache
@@ -164,60 +164,60 @@ sequenceDiagram
         Engine-->>Sync: InferenceResults inferred_axioms inference_time_ms (line 461-466)
     end
     Note over Engine: DOC-DRIFT - module doc claims complete EL reasoning (whelk_inference_engine.rs:5) but infer() lines 412-467 has no tokio timeout or axiom-count cap
-    Sync->>Repo: store_inference_results(results) (line 1233, defn line 2507)
+    Sync->>Repo: store_inference_results(results) (line 1255, defn line 2507)
     Repo->>Repo: DELETE-WHERE GRAPH_ONTOLOGY_INFERRED then atomic INSERT DATA, one SPARQL Update (ADR-2004 D9, ADR-099 D3, lines 2601-2606)
-    Note over Sync: RESOLVED a6de5a421 - the former DIVERGENCE (OntologyReasoningService::infer_axioms ran CustomReasoner, not Whelk)<br/>is gone: that service, its test helper and both of its test files were deleted, the type having been constructed only by<br/>its own test helper. Production reasoning in this cycle is WhelkInferenceEngine only - the engine GitHubSyncService<br/>builds at github_sync_service.rs:226 and drives at github_sync_service.rs:1218 and :1223
+    Note over Sync: RESOLVED a6de5a421 - the former DIVERGENCE (OntologyReasoningService::infer_axioms ran CustomReasoner, not Whelk)<br/>is gone: that service, its test helper and both of its test files were deleted, the type having been constructed only by<br/>its own test helper. Production reasoning in this cycle is WhelkInferenceEngine only - the engine GitHubSyncService<br/>builds at github_sync_service.rs:226 and drives at github_sync_service.rs:1240 and :1245
 ```
 
-**Drift (resolved a6de5a421):** this diagram recorded a second reasoner, `OntologyReasoningService`, that ran `CustomReasoner` beside Whelk and was never constructed outside its own tests; `a6de5a421` deleted the service, its test helper, `tests/ontology_reasoning_integration_test.rs` and `tests/unit/ontology_reasoning_test.rs`, so the only reasoner driven from the sync cycle is the `WhelkInferenceEngine` that `GitHubSyncService` owns (`src/services/github_sync_service.rs:226`, `src/services/github_sync_service.rs:1218`, `src/services/github_sync_service.rs:1223`).
+**Drift (resolved a6de5a421):** this diagram recorded a second reasoner, `OntologyReasoningService`, that ran `CustomReasoner` beside Whelk and was never constructed outside its own tests; `a6de5a421` deleted the service, its test helper, `tests/ontology_reasoning_integration_test.rs` and `tests/unit/ontology_reasoning_test.rs`, so the only reasoner driven from the sync cycle is the `WhelkInferenceEngine` that `GitHubSyncService` owns (`src/services/github_sync_service.rs:226`, `src/services/github_sync_service.rs:1240`, `src/services/github_sync_service.rs:1245`).
 
 **Debt:** `CustomReasoner` survives in a second place, `OntologyPipelineService::trigger_reasoning` (`src/services/ontology_pipeline_service.rs:244`), reached only through `on_ontology_modified` (`src/services/ontology_pipeline_service.rs:157`), and a search of `src/` and `crates/` at the stamped commit finds no caller of that method outside `tests/integration/pipeline_test.rs:94`; PATH B in VC-20.4 therefore hangs off an entry point the running server never invokes.
 
-**Drift (doc comment vs callers):** the doc comment on `on_ontology_modified` says it is called automatically by `GitHubSyncService` (`src/services/ontology_pipeline_service.rs:150`), while the sync cycle in this diagram calls the Whelk engine and `select_inferred_edges_for_sync` directly (`src/services/github_sync_service.rs:1272`).
+**Drift (doc comment vs callers):** the doc comment on `on_ontology_modified` says it is called automatically by `GitHubSyncService` (`src/services/ontology_pipeline_service.rs:150`), while the sync cycle in this diagram calls the Whelk engine and `select_inferred_edges_for_sync` directly (`src/services/github_sync_service.rs:1294`).
 
 ## VC-20.4 inferred-edge materialisation and class-summary index
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Sync as GitHubSyncService::run_post_sync_reasoning<br/>src/services/github_sync_service.rs:1183
-    participant Sel as GitHubSyncService::select_inferred_edges_for_sync<br/>src/services/github_sync_service.rs:1104
+    participant Sync as GitHubSyncService::run_post_sync_reasoning<br/>src/services/github_sync_service.rs:1205
+    participant Sel as GitHubSyncService::select_inferred_edges_for_sync<br/>src/services/github_sync_service.rs:1126
     participant Mat as inferred_edge_materialiser<br/>src/services/inferred_edge_materialiser.rs:127
-    participant KG as KnowledgeGraphRepository::batch_add_edges<br/>src/services/github_sync_service.rs:1287
+    participant KG as KnowledgeGraphRepository::batch_add_edges<br/>src/services/github_sync_service.rs:1309
     participant Pipeline as OntologyPipelineService::materialise_inferred_edges_from_axioms<br/>src/services/ontology_pipeline_service.rs:476
     participant Idx as ontology_class_index::maybe_refresh_after_sync<br/>src/services/ontology_class_index.rs:468
 
     rect rgb(235,235,255)
-    Note over Sync,KG: PATH A - pure selection function, called unconditionally after Whelk infer
-    Sync->>Sync: load_graph then mat::asserted_pairs(g.edges) both directions (lines 1245 1265, asserted_pairs defn line 79)
-    Sync->>Sel: select_inferred_edges_for_sync(inferred_axioms, resolver.resolve, asserted) (line 1272, defn line 1104)
-    Sel->>Mat: is_materialisable_subclass_pair drops self, owl#Nothing child, owl#Thing parent (line 1114, defn line 169)
-    Sel->>Mat: immediate_parents_from_subclass_pairs reduces transitive ancestors to immediate parents (line 1123, defn line 181)
+    Note over Sync,KG: PATH A - pure selection function, called unconditionally<br/>after Whelk infer
+    Sync->>Sync: load_graph then mat::asserted_pairs(g.edges) both<br/>directions (lines 1267 1287, asserted_pairs defn line 79)
+    Sync->>Sel: select_inferred_edges_for_sync(inferred_axioms,<br/>resolver.resolve, asserted) (line 1294, defn line 1126)
+    Sel->>Mat: is_materialisable_subclass_pair drops self, owl#Nothing<br/>child, owl#Thing parent (line 1136, defn line 169)
+    Sel->>Mat: immediate_parents_from_subclass_pairs reduces transitive<br/>ancestors to immediate parents (line 1145, defn line 181)
     loop each immediate (child_iri, parent_iri) pair
-        Sel->>Sel: resolve(child_iri) resolve(parent_iri), unresolved_endpoints += 1 per miss (lines 1132-1146)
+        Sel->>Sel: resolve(child_iri) resolve(parent_iri),<br/>unresolved_endpoints += 1 per miss (lines 1154-1168)
     end
-    Sel->>Mat: select_inferred_edges drops self-loops, asserted pairs, caps per child at 8 (line 1152, defn line 127)
-    Sel->>Mat: build_inferred_edge tags edge_type hierarchical, owl-property rdfs:subClassOf, metadata inferred=true (line 1160, defn line 68)
-    Sel-->>Sync: InferredEdgeSelection edges considered_axioms immediate_pairs unresolved_endpoints
-    Sync->>KG: batch_add_edges(inferred_edges) (line 1287)
-    Note over Sync,Sel: RESOLVED ADR-2071 - select_inferred_edges_for_sync is now the SHARED pure function (docstring<br/>line 1091-1103): the per-child cap of 8, asserted-pair suppression and the transitive-to-immediate<br/>reduction apply identically to PATH B, so the two paths cannot drift. Every edge carries<br/>metadata inferred=true, so edge_is_inferred classifies sync-produced edges onto the inferred channel.
+    Sel->>Mat: select_inferred_edges drops self-loops, asserted pairs,<br/>caps per child at 8 (line 1174, defn line 127)
+    Sel->>Mat: build_inferred_edge tags edge_type hierarchical,<br/>owl-property rdfs:subClassOf, metadata inferred=true (line<br/>1182, defn line 68)
+    Sel-->>Sync: InferredEdgeSelection edges considered_axioms<br/>immediate_pairs unresolved_endpoints
+    Sync->>KG: batch_add_edges(inferred_edges) (line 1309)
+    Note over Sync,Sel: RESOLVED ADR-2071 - select_inferred_edges_for_sync is now<br/>the SHARED pure function (docstring<br/>line 1113-1125): the per-child cap of 8, asserted-pair<br/>suppression and the transitive-to-immediate<br/>reduction apply identically to PATH B, so the two paths<br/>cannot drift. Every edge carries<br/>metadata inferred=true, so edge_is_inferred classifies<br/>sync-produced edges onto the inferred channel.
     end
     rect rgb(255,245,225)
     Note over Pipeline,Mat: PATH B - OntologyPipelineService, gated OFF by default
     opt config.materialise_inferred_edges is true (default false, ontology_pipeline_service.rs:63)
-        Pipeline->>Mat: immediate_inferred_parents(child_to_ancestors) (line 506, defn line 98)
+        Pipeline->>Mat: immediate_inferred_parents(child_to_ancestors) (line 506,<br/>defn line 98)
         Pipeline->>Pipeline: resolve_nodes via get_nodes_by_owl_class_iri (lines 512-525)
         Pipeline->>Pipeline: graph_repo.load_graph() current asserted edges (line 531)
-        Pipeline->>Mat: materialise(candidates, current.edges, cfg) (line 538, defn line 202)
-        Mat->>Mat: select_inferred_edges drops self-loops, asserted pairs, caps per child at max_inferred_parents_per_child=8 (lines 127-153, DEFAULT_MAX_INFERRED_PARENTS_PER_CHILD line 37)
+        Pipeline->>Mat: materialise(candidates, current.edges, cfg) (line 538,<br/>defn line 202)
+        Mat->>Mat: select_inferred_edges drops self-loops, asserted pairs,<br/>caps per child at max_inferred_parents_per_child=8 (lines<br/>127-153, DEFAULT_MAX_INFERRED_PARENTS_PER_CHILD line 37)
         Pipeline->>Pipeline: graph_repo.batch_add_edges(edges) (line 544)
     end
-    Note over Pipeline: SemanticPhysicsConfig (ontology_pipeline_service.rs:27) defaults: constraint_strength 1.0,<br/>use_gpu_constraints true, materialise_inferred_edges false (lines 61-63). RESOLVED ADR-2068 - the repo-root<br/>ontology_physics.toml was read by no Rust code and has been deleted — the live toggle is the<br/>Settings.ontology_physics bool (src/settings/models.rs:58), gating POST /api/ontology-physics/enable|disable<br/>(api_handler/ontology_physics/mod.rs:107,387) which drives OntologyConstraintActor - see VC-04.7, VC-11.5
+    Note over Pipeline: SemanticPhysicsConfig (ontology_pipeline_service.rs:27)<br/>defaults: constraint_strength 1.0,<br/>use_gpu_constraints true, materialise_inferred_edges false<br/>(lines 61-63). RESOLVED ADR-2068 - the repo-root<br/>ontology_physics.toml was read by no Rust code and has<br/>been deleted — the live toggle is the<br/>Settings.ontology_physics bool<br/>(src/settings/models.rs:58), gating POST<br/>/api/ontology-physics/enable|disable<br/>(api_handler/ontology_physics/mod.rs:107,387) which drives<br/>OntologyConstraintActor - see VC-04.7, VC-11.5
     end
-    Sync->>Idx: maybe_refresh_after_sync(classes) (github_sync_service.rs:641, sync_graphs_with, defn line 468)
+    Sync->>Idx: maybe_refresh_after_sync(classes)<br/>(github_sync_service.rs:663, sync_graphs_with, defn line<br/>468)
     alt ONTOLOGY_CLASS_INDEX_ENABLED unset (default, ontology_class_index.rs:75)
         Idx-->>Sync: skip refresh (line 474)
     else enabled
-        Idx->>Idx: refresh_class_index condense_class RuVector memory_store namespace ontology-classes (line 495, defn 378, DEFAULT_NAMESPACE line 33)
+        Idx->>Idx: refresh_class_index condense_class RuVector memory_store<br/>namespace ontology-classes (line 495, defn 378,<br/>DEFAULT_NAMESPACE line 33)
     end
 ```
 
@@ -261,7 +261,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Client
-    participant Rbac as RbacGate on /api scope<br/>project/src/main.rs:1121
+    participant Rbac as RbacGate on /api scope<br/>project/src/main.rs:1137
     participant OntScope as /api/ontology scope<br/>src/handlers/api_handler/ontology/mod.rs:1642
     participant DerivedScope as /api/ontology/derived scope<br/>src/handlers/ontology_derived_handler.rs:185
     participant CountScope as /api/ontology/class-count scope<br/>src/handlers/ontology_class_count_handler.rs:76
@@ -327,7 +327,7 @@ classDiagram
     note for ValidateOntology "fields ontology_id, graph_data, mode, job_id<br/>(ontology_messages.rs:37-46), rtype Result of ValidationReport<br/>or String. owl_validator (src/services/owl_validator.rs:2) is a<br/>shim: pub use visionclaw_ontology::services::owl_validator::*<br/>(ADR-090 Phase A4), mirrored by src/inference/mod.rs:2 and<br/>src/reasoning/mod.rs:2 into the same crate.<br/>RESOLVED ADR-2065 - the orphaned second definition<br/>src/services/owl_validator_stubs.rs (a CPU-only<br/>ValidationConfig/PropertyGraph/RdfTriple/ConstraintSummary/<br/>ValidationReport set, no mod declaration or use anywhere,<br/>never compiled) has been deleted; owl_validator is now the<br/>single validation definition."
     note for ApplyInferences "fields rdf_triples, max_depth<br/>(ontology_messages.rs:52-55)"
     note for TriggerReasoning "fields ontology_id i64, source String<br/>(ontology_actor.rs:904-907), handler forwards to ReasoningActor<br/>per comment lines 918-920 which no longer exists"
-    note for ApplyMaterializedAxioms "fields axioms, graph_data<br/>(ontology_messages.rs:76-79); NOT handled by OntologyActor -<br/>routed GPUManagerActor gpu_manager_actor.rs 651 to<br/>PhysicsSupervisor physics_supervisor.rs 794 to<br/>OntologyConstraintActor ontology_constraint_actor.rs 445"
+    note for ApplyMaterializedAxioms "fields axioms, graph_data<br/>(ontology_messages.rs:76-79); NOT handled by OntologyActor -<br/>routed GPUManagerActor gpu_manager_actor.rs 651 to<br/>PhysicsSupervisor physics_supervisor.rs 747 to<br/>OntologyConstraintActor ontology_constraint_actor.rs 445"
     note for OntologyActor "RESOLVED - ProcessOntologyData and<br/>LogseqPage no longer exist in ontology_messages.rs; page<br/>ingest now runs through parse_page/project_ontology over the<br/>vault-core frontmatter model, see VC-20.1/VC-21"
 ```
 
@@ -363,7 +363,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CLI as vault certify<br/>crates/vault/src/main.rs:494
+    participant CLI as vault certify<br/>crates/vault/src/main.rs:515
     participant G as build_graph_attributed<br/>crates/vault/src/build/turtle.rs:216
     participant AD as certificate::certify (adapter)<br/>crates/vault/src/certificate.rs:45
     participant CR as rdfs-certificate crate (crates.io 0.1.0)<br/>../ontomark/crates/rdfs-certificate/src/lib.rs:432
@@ -375,17 +375,17 @@ sequenceDiagram
     AD->>AD: spell() — every Subject/Term as an N-Triples string crates/vault/src/certificate.rs:21
     AD->>CR: certify(triples) — the same engine ontomark build --certificate-out runs<br/>../ontomark/crates/ontomark-compile/src/certificate.rs:51, build/mod.rs:695
     loop until the worklist is empty
-        CR->>CR: insert() indexes and queues a new fact; a derived one is ONE step lib.rs:249<br/>consequences_of() — rdfs2/3/5/7/9/11 in both premise positions lib.rs:287; run_to_fixpoint lib.rs:411
+        CR->>CR: insert() indexes and queues a new fact, a derived one is ONE step lib.rs:249<br/>consequences_of() — rdfs2/3/5/7/9/11 in both premise positions lib.rs:287, run_to_fixpoint lib.rs:411
         Note over CR: rule TAB conclusion TAB premise1 TAB premise2 — premises are asserted or EARLIER lines<br/>pinned at lib.rs:879 (ordering) and lib.rs:910 (premise order per rule)
     end
     CR-->>CLI: Certificate (asserted, steps)
     CLI->>CR: write(out, generation) — asserted.tsv, derivations.tsv, asserted.sha256, scope.tsv lib.rs:585<br/>push_line refuses any field carrying a separator lib.rs:790
     CLI->>W: reason(&graph).inferred
     CLI->>CR: named_subclass_closure() lib.rs:515
-    Note over CLI,W: INVARIANT whelk_parity: certified named closure == Whelk's, exit 1 otherwise<br/>crates/vault/src/main.rs:527. Structural today: the emitter puts restrictions only on the<br/>superclass side, so every named entailment is rdfs11. Pinned at crates/vault/src/certificate.rs:92;<br/>ontomark enforces the same parity as a build refusal, build/mod.rs:101
+    Note over CLI,W: INVARIANT whelk_parity: certified named closure == Whelk's, exit 1 otherwise<br/>crates/vault/src/main.rs:548. Structural today: the emitter puts restrictions only on the<br/>superclass side, so every named entailment is rdfs11. Pinned at crates/vault/src/certificate.rs:92,<br/>ontomark enforces the same parity as a build refusal, build/mod.rs:101
     CLI->>OO: oo-cert asserted.tsv derivations.tsv (reviewer / CI, OO_CERT_BIN)
     OO-->>CLI: {"ok":true,"theorem":"OOCert.certificate_sound"} or exit 1 naming the first bad line and rule
-    Note over OO: Measured 2026-10-20 on visionGraph 1ec5774ad: 351,421 asserted, 731,141 derivations,<br/>certify 1.2 s, oo-cert 9.5 s accept; a forged line refused. tests/certificate_oo_cert.rs:72, :91
+    Note over OO: Measured 2026-10-20 on visionGraph 1ec5774ad: 351,421 asserted, 731,141 derivations,<br/>certify 1.2 s, oo-cert 9.5 s accept, a forged line refused. tests/certificate_oo_cert.rs:72, :91
 ```
 
 ## VC-20.15 vault propose — the consequence delta on the PatchProposal (ADR-2147)
@@ -393,11 +393,11 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant P as vault propose<br/>crates/vault/src/main.rs:236
+    participant P as vault propose<br/>crates/vault/src/main.rs:250
     participant B as build_with_certificates<br/>crates/vault/src/propose.rs:524
     participant A as Assessment::of (base, then patched)<br/>crates/vault/src/propose.rs:118
     participant D as consequence_delta<br/>../ontomark/crates/rdfs-certificate/src/lib.rs:630
-    participant PP as PatchProposal.consequences<br/>crates/vault-core/src/proposal.rs:157
+    participant PP as PatchProposal.consequences<br/>crates/vault-core/src/proposal.rs:155
     participant F as forum 31402
 
     P->>B: build_with_certificates(vault, corpus, vocab, generation, options)
@@ -411,7 +411,7 @@ sequenceDiagram
         B->>B: Built::write_certificates — base/, proposed/, consequences.json propose.rs:502
     end
     B-->>P: Built { proposal, base, proposed } propose.rs:486
-    P->>F: the proposal JSON is the 31402 content, consequences included; the certificate files stay on disk, the digest travels
-    Note over PP,F: INVARIANT (VAULT-corpus-format 12): the delta is shown to the signer and never blocks;<br/>WHELK_INCONSISTENT stays the only reasoning blocker (ADR-2125). Measured: one rdfs:domain on<br/>vc:requires = 206,476 new consequences; AI Operator is-a Robotics = 6; a dry run on the live corpus 11.8 s
-    Note over P: SHACL side-finding of the same spike: ontology-class.shacl.ttl:21 now sh:nodeKind sh:Literal;<br/>the evaluator types @language as rdf:langString shacl.rs:749 and enforces sh:Literal shacl.rs:305, :767
+    P->>F: the proposal JSON is the 31402 content, consequences included, the certificate files stay on disk, the digest travels
+    Note over PP,F: INVARIANT (VAULT-corpus-format 12): the delta is shown to the signer and never blocks,<br/>WHELK_INCONSISTENT stays the only reasoning blocker (ADR-2125). Measured: one rdfs:domain on<br/>vc:requires = 206,476 new consequences, AI Operator is-a Robotics = 6, a dry run on the live corpus 11.8 s
+    Note over P: SHACL side-finding of the same spike: ontology-class.shacl.ttl:21 now sh:nodeKind sh:Literal,<br/>the evaluator types @language as rdf:langString shacl.rs:749 and enforces sh:Literal shacl.rs:305, :767
 ```

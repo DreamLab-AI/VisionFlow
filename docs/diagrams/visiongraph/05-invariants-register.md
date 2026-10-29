@@ -12,8 +12,10 @@ sources:
   - ../visionGraph/docs/adr/ADR-VG-002-generation-and-consumer-identity.md
   - ../visionGraph/CLAUDE.md
   - ../visionGraph/README.md
+  - ../visionGraph/vault.toml
+  - ../visionGraph/.github/workflows/publish.yml
   - ../visionGraph/docs/adr/ADR-VG-003-obsidian-only-authoring.md
-verified_commit: {visiongraph: bc4845c34a59b07ca004c40f3857caddb5f1489c, visionclaw: 3b5dbdd58430afcd22764e05fa81bed8c26d6ab9}
+verified_commit: {visiongraph: 59e7dcc8d05ca447d03c74c819a740b390b93074, visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
 ---
 
 ## VG-05.1 Live invariants — what actually holds today
@@ -22,11 +24,11 @@ verified_commit: {visiongraph: bc4845c34a59b07ca004c40f3857caddb5f1489c, visionc
 flowchart TB
     I1["1 · the KG inclusion gate is typed public: true OR a governed<br/>owl-class — PageMeta::is_kg_included, vault/mod.rs:162-163;<br/>the site publisher reads public alone — CLAUDE.md:10-11"]
     I2["2 · NO frontmatter means private — the gate<br/>fails CLOSED, not open"]
-    I3["3 · Page identity is the vault-relative path under<br/>pages/ WITHOUT .md, / as namespace separator"]
+    I3["3 · Page identity is the vault-relative path WITHOUT .md,<br/>/ as namespace separator, pages sit at the vault root<br/>(the pages/ folder was removed 2026-10-16) — CLAUDE.md:13-14"]
     I4["4 · Journals #40;YYYY-MM-DD.md#41; are excluded<br/>from graph ingest"]
-    I5["5 · knowledge/assets is a SYMLINK to<br/>../working/assets — never replace it<br/>#40;961 MB stored once, shared#41;"]
+    I5["5 · the asset store is the repo-level assets/, stored once;<br/>working/assets is a symlink to it, knowledge/assets is a real<br/>synced subset — CLAUDE.md:15, vault.toml:52-68"]
     I6["6 · VAULT_ROOT is the single path authority —<br/>no consumer hard-codes a corpus path"]
-    I7["7 · agents NEVER push this repo — a push<br/>deploys to narrativegoldmine.com #40;CLAUDE.md:23-26#41;"]
+    I7["7 · agents NEVER push this repo — a push to main<br/>deploys to narrativegoldmine.com #40;CLAUDE.md:16#41;"]
     note1["Sources: README.md 'vault contract' + 'How consumers bind to it';<br/>CLAUDE.md 'Vault contract' + 'Agents never push this repo'"]
 ```
 
@@ -93,3 +95,5 @@ flowchart TB
 **What it shows:** what the 2026-09-07 execution update claimed to close in the Python publishers, and what it explicitly left open.
 **Why it is this way:** the panel is kept as the record of that update, not as current behaviour. The Python publisher it describes was retired (ADR-VG-003), and the contract now opens with a banner saying its dated implementation descriptions "are not current operating instructions" and that `/notes/` now serves current public Obsidian pages (`PUBLICATION-contract.md:3-8`).
 **Drift:** the body still states in the present tense that both publishers use `public_projection.py` (`PUBLICATION-contract.md:39`) and that the frozen notes SPA "is preserved and receives only a scoped mobile compatibility stylesheet" (`PUBLICATION-contract.md:41`). The banner covers both, but the scoped stylesheet `publishing-tools/notes-mobile.css` was deleted in the 2026-10-01 commit, and the inline text was not amended.
+
+**Since the last stamp:** invariants 3, 5 and 7 were restated against the tree. Pages moved to the vault root on 2026-10-16 and the asset store became the repo-level `assets/` on 2026-10-17 (`CLAUDE.md:13-15`, `vault.toml:52-68`); an earlier text of this panel still described a `pages/` folder and a `knowledge/assets` symlink. The gate section of `CLAUDE.md` now names the released `ontomark` CLI as the gate runner and says it is pinned by `publish.yml` (`CLAUDE.md:20-23`). **Drift:** `CLAUDE.md:23` says that pin is currently `v0.5.0`, while `publish.yml:49` pins `v0.6.0`; the ADR-VG-003 text this panel cites still names the Rust `vault` CLI as the only parser (`docs/adr/ADR-VG-003-obsidian-only-authoring.md:16-18`).

@@ -18,7 +18,7 @@ sources:
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
   - ../project/agentbox/docs/adr/ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
-verified_commit: {sidestr-rs: dc8e1ca83d947fba396712b3b577a4e593b4d2d5, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987}
+verified_commit: {sidestr-rs: 1249e34def303fbb4b9f8380de684c0719a9c75f, visionflow: 1d7183a73c1eae4996a7006067d5047308fab7a5, agentbox: 1da8d21719a27394f190866223b88533b52d87f9}
 ---
 
 ## For developers

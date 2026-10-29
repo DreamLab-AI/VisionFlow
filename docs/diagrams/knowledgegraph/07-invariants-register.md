@@ -12,7 +12,7 @@ sources:
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/visibility.py
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/manifest.py
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/release_gate.py
-verified_commit: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e
+verified_commit: 1edcfc93de90ccff564073ef82cb198c422f75e3
 ---
 
 ## KG-07.1 The 11 baseline invariants
@@ -30,8 +30,10 @@ flowchart TB
     I9["9 · No public artefact contains a private identifier —<br/>visibility.py at every output, release gate re-scans"]
     I10["10 · Count and identity move together — EXPECTED_CLASSES<br/>and class-identity.txt agree, same commit"]
     I11["11 · Every export carries a generation manifest — source rev,<br/>generation id, counts, SHA-256 per artefact"]
-    note1["BASELINE-narrativegoldmine.md:182-214 — numbered 1-11 verbatim"]
+    note1["BASELINE-narrativegoldmine.md:186-219 — numbered 1-11 verbatim"]
 ```
+
+**Drift:** the baseline now opens with a "Publication boundary update (21 October 2026)" calling itself a historical baseline of the pre-archive tree whose invariants "do not assert that the archived workflow remains active" (`../knowledgeGraph/docs/BASELINE-narrativegoldmine.md:29`), while its own Invariants section still states them as present-tense rules (`../knowledgeGraph/docs/BASELINE-narrativegoldmine.md:186-219`); the README names this checkout the publication target and historical archive, with the pipeline under `archive/logseq-era-2026-09-22/` (`../knowledgeGraph/README.md:13`, `../knowledgeGraph/README.md:64`).
 
 ## KG-07.2 Estate closeout, now archived — four 2026-09-04 qualifications, closed 2026-09-05, pipeline retired 2026-09-22
 
@@ -46,7 +48,7 @@ stateDiagram-v2
     StrictFlags --> Closed: non-boolean/absent flag is now an ERROR
     InferenceVis --> Closed: per-format fixture tests
     ImmutableExport --> Closed: CI re-verified every export
-    Closed --> Archived: 2026-09-22 — pipeline/ moved to<br/>archive/logseq-era-2026-09-22/, README.md:14
+    Closed --> Archived: 2026-09-22 — pipeline/ moved to<br/>archive/logseq-era-2026-09-22/, README.md:64
     Archived --> [*]
     note right of Closed: DIVERGENCE #40;was open, now moot#41; equal counts cannot prove<br/>equal identities or intended visibility — release_gate.py<br/>check_identity #40;line 127#41; was the mitigation, never a closure
     note right of Archived: see KG-01.1 for the visionGraph/Quartz successor —<br/>this diagram is now historical record, not live build

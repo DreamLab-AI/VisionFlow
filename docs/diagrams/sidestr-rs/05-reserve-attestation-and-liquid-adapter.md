@@ -12,7 +12,7 @@ sources:
   - ../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md
   - ../project/agentbox/docs/adr/ADR-2117-private-owner-usd-unit-bridged-through-rgb-into-sidestr.md
   - ../project/docs/TODO-unified.md
-verified_commit: {sidestr-rs: dc8e1ca83d947fba396712b3b577a4e593b4d2d5, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987}
+verified_commit: {sidestr-rs: 1249e34def303fbb4b9f8380de684c0719a9c75f, visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9}
 ---
 
 ## For developers

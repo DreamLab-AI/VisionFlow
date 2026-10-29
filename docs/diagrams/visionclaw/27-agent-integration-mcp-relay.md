@@ -5,7 +5,7 @@ area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/docs/IDENTIFIER-taxonomy.md
-adrs: [ADR-2025, ADR-2058, ADR-2090, ADR-2091, ADR-2094]
+adrs: [ADR-2025, ADR-2058, ADR-2090, ADR-2091, ADR-2094, ADR-2142]
 sources:
   - ../project/src/services/bots_client.rs
   - ../project/src/actors/graph_service_supervisor.rs
@@ -28,8 +28,10 @@ sources:
   - ../project/src/agent_events/hub.rs
   - ../project/src/agent_events/schema.rs
   - ../project/src/agent_events/provenance.rs
+  - ../project/src/actors/agent_demo_director.rs
+  - ../project/src/handlers/api_handler/agents_demo.rs
   - ../project/src/main.rs
-verified_commit: {visionclaw: 4f43455036717302073a15ab5006a6fa05fd13b0}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
 ---
 
 ## VC-27.1 BotsClient — legacy `:9500` MCP-TCP poller (superseded path)
@@ -122,7 +124,7 @@ sequenceDiagram
     participant A as MCPRelayActor<br/>mcp_relay_handler.rs:39, Actor impl :200
     participant O as Orchestrator WS<br/>ORCHESTRATOR_WS_URL default ws://multi-agent-container:3002/ws (:77-78)
 
-    Client->>H: GET /ws/mcp-relay (upgrade) - main.rs:1099
+    Client->>H: GET /ws/mcp-relay (upgrade) - main.rs:1115
     H->>H: header_token = Authorization Bearer - :475-480 (the ?token= carrier is dev-only :482-494, a release build drops it :496-505)
     alt no token
         H-->>Client: 401 "Authentication required" via the unauthorised closure - :459-467, :507-510
@@ -167,40 +169,40 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Sync as sync_running<br/>src/services/multi_mcp_agent_discovery.rs:174
+    participant Sync as sync_running<br/>src/services/multi_mcp_agent_discovery.rs:184
     participant D as MultiMcpAgentDiscovery<br/>multi_mcp_agent_discovery.rs:101
-    participant CF as claude-flow server<br/>host=CLAUDE_FLOW_HOST (default localhost) port=MCP_TCP_PORT default 9500 (:210-214)
-    participant RS as ruv-swarm server<br/>host=RUV_SWARM_HOST port=RUV_SWARM_PORT default 9501 (:227-231)
-    participant DAA as daa server<br/>host=DAA_HOST port=DAA_PORT default 9502 (:244-248)
+    participant CF as claude-flow server<br/>host=claude_flow_host(): CLAUDE_FLOW_HOST, then MCP_HOST, then multi-agent-container (:144-148, :220) port=MCP_TCP_PORT default 9500 (:221-224)
+    participant RS as ruv-swarm server<br/>host=RUV_SWARM_HOST port=RUV_SWARM_PORT default 9501 (:237-241)
+    participant DAA as daa server<br/>host=DAA_HOST port=DAA_PORT default 9502 (:254-258)
 
-    Note over Sync,D: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - this diagram used to show start_discovery() driven by an unnamed Caller, because nothing constructed the service.<br/>AppState::new now builds it and runs initialize_default_servers (src/app_state.rs:1197-1200), and every /multi-mcp/ws socket attaches and calls sync_running (VC-05.13)
-    Sync->>D: initialize_default_servers() once at boot - :202-260 (called at src/app_state.rs:1200)
-    D->>D: insert claude-flow :205-220 (enabled :215), ruv-swarm :222-237 (enabled only if env_configured :232), daa :239-254 (enabled only if env_configured :249) - env_configured :134-137
-    Sync->>D: attach() :160 and detach() :165 move the subscriber count synchronously, sync_running :174-183 starts or stops the loop to match
-    D->>D: start_discovery :288 - epoch bumped :297, wake notified :298, so a quick restart leaves one loop
-    loop while running and this loop's epoch is current (tokio::spawn multi_mcp_agent_discovery.rs:314-425, condition :317)
-        par concurrent per enabled server (multi_mcp_agent_discovery.rs:326-401)
-            D->>CF: discover_server_agents :443 -> discover_claude_flow_agents - :463, :473-559
-            CF-->>D: query_server_info / query_agent_list / query_swarm_status - :503,524,547
-            D->>RS: discover_ruv_swarm_agents - :464, :561-652
-            RS-->>D: same three-call pattern, server_type=RuvSwarm - :591,617,640
-            D->>DAA: discover_daa_agents - :465, :654-741
-            DAA-->>D: same pattern, server_type=Daa - :684,709,729
+    Note over Sync,D: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - this diagram used to show start_discovery() driven by an unnamed Caller, because nothing constructed the service.<br/>AppState::new now builds it and runs initialize_default_servers (src/app_state.rs:1166-1168), and every /multi-mcp/ws socket attaches and calls sync_running (VC-05.13)
+    Sync->>D: initialize_default_servers() once at boot - :212-270 (called at src/app_state.rs:1168)
+    D->>D: insert claude-flow :215-230 (enabled :225), ruv-swarm :232-247 (enabled only if env_configured :242), daa :249-264 (enabled only if env_configured :259) - env_configured :134-137
+    Sync->>D: attach() :170 and detach() :175 move the subscriber count synchronously, sync_running :184-193 starts or stops the loop to match
+    D->>D: start_discovery :298 - epoch bumped :307, wake notified :308, so a quick restart leaves one loop
+    loop while running and this loop's epoch is current (tokio::spawn multi_mcp_agent_discovery.rs:324-434, condition :327)
+        par concurrent per enabled server (multi_mcp_agent_discovery.rs:336-410)
+            D->>CF: discover_server_agents :452 -> discover_claude_flow_agents - :472, :482-568
+            CF-->>D: query_server_info / query_agent_list / query_swarm_status - :512,533,556
+            D->>RS: discover_ruv_swarm_agents - :473, :570-661
+            RS-->>D: same three-call pattern, server_type=RuvSwarm - :600,626,649
+            D->>DAA: discover_daa_agents - :474, :663-750
+            DAA-->>D: same pattern, server_type=Daa - :693,718,738
         end
         alt discover_server_agents Ok
-            D->>D: insert server_info/agents/topology, successful_discoveries+=1 - :338-368
+            D->>D: insert server_info/agents/topology, successful_discoveries+=1 - :348-378
         else Err (connect/timeout)
-            D->>D: failed_discoveries+=1, is_connected=false, entry inserted if absent so a first-cycle failure is visible - :369-397
+            D->>D: failed_discoveries+=1, is_connected=false, entry inserted if absent so a first-cycle failure is visible - :379-406
         end
-        D->>D: cycles += 1 :404, epoch recheck :408, then select between sleep(sleep_ms) and wake - :416-419
+        D->>D: cycles += 1 :413, epoch recheck :417, then select between sleep(sleep_ms) and wake - :425-428
     end
-    D->>D: stop_discovery :428-441 - running=false, epoch bumped :432, caches cleared :437-439
-    Note over D,CF: RESOLVED ADR-2083 (estate) - WIRED, not removed: the per-server values are deliberate, so the<br/>loop now sleeps the minimum interval across ENABLED servers (select_discovery_interval_ms :46, called :323), with a named<br/>MIN_DISCOVERY_INTERVAL_MS floor so a misconfigured 0 cannot spin it, and a named fallback when no server is<br/>enabled. The flat 1000ms sleep is gone (:416-419).
-    Note over CF,DAA: supported_tools fallback differs per server when query_server_info fails:<br/>claude-flow=[agent_list,swarm_status,server_info] (multi_mcp_agent_discovery.rs:514-518),<br/>ruv-swarm (:605) and daa (:698) each have their own equivalent fallback list in their own discover_*_agents function
+    D->>D: stop_discovery :437-450 - running=false, epoch bumped :441, caches cleared :446-448
+    Note over D,CF: RESOLVED ADR-2083 (estate) - WIRED, not removed: the per-server values are deliberate, so the<br/>loop now sleeps the minimum interval across ENABLED servers (select_discovery_interval_ms :46, called :333), with a named<br/>MIN_DISCOVERY_INTERVAL_MS floor so a misconfigured 0 cannot spin it, and a named fallback when no server is<br/>enabled. The flat 1000ms sleep is gone (:425-428).
+    Note over CF,DAA: supported_tools fallback differs per server when query_server_info fails:<br/>claude-flow=[agent_list,swarm_status,server_info] (multi_mcp_agent_discovery.rs:523-527),<br/>ruv-swarm (:614) and daa (:707) each have their own equivalent fallback list in their own discover_*_agents function
     rect rgb(255,235,235)
-    Note over D,DAA: OPEN: ruv-swarm and daa have no confirmed endpoint in this estate and stay disabled unless RUV_SWARM_* or DAA_* are set (:232, :249).<br/>None of this was observed against a live claude-flow hub
-    Note over D,DAA: RESOLVED 2026-10-12 (project 9f98e3787): discovery now resolves the claude-flow host as BotsClient does (CLAUDE_FLOW_HOST, then MCP_HOST, then multi-agent-container), so both pollers target the same host on port 9500. At the stamped revision the discovery fallback was localhost (multi_mcp_agent_discovery.rs:210) against bots_client.rs:120-122.
-    Note over D,DAA: DEBT: DiscoveryStats total_discoveries :91, total_agents_discovered :94, servers_online :97 and servers_offline :98 are declared but never written<br/>by this loop, which updates only successful_discoveries :357, failed_discoveries :373 and last_discovery_time :358
+    Note over D,DAA: OPEN: ruv-swarm and daa have no confirmed endpoint in this estate and stay disabled unless RUV_SWARM_* or DAA_* are set (:242, :259).<br/>None of this was observed against a live claude-flow hub
+    Note over D,DAA: RESOLVED 2026-10-12 (project 9f98e3787): discovery now resolves the claude-flow host as BotsClient does (CLAUDE_FLOW_HOST, then MCP_HOST, then multi-agent-container), so both pollers target the same host on port 9500. The host is resolved by claude_flow_host (multi_mcp_agent_discovery.rs:144-148, used at :220) in the same order as bots_client.rs:120-122, so the old localhost fallback is gone.
+    Note over D,DAA: DEBT: DiscoveryStats total_discoveries :91, total_agents_discovered :94, servers_online :97 and servers_offline :98 are declared but never written<br/>by this loop, which updates only successful_discoveries :367, failed_discoveries :383 and last_discovery_time :368<br/>The WS frame no longer reads those stored fields: build_discovery_frame derives total_discoveries as successful+failed, total_agents_discovered as agents.len() and servers_online/offline from the frame's own server list (multi_mcp_websocket_handler.rs:393-402)
     end
 ```
 
@@ -210,18 +212,19 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Client as WS client
-    participant H as multi_mcp_visualization_ws()<br/>src/handlers/multi_mcp_websocket_handler.rs:771
-    participant Ws as MultiMcpVisualizationWs<br/>multi_mcp_websocket_handler.rs:408 (Actor::started)
+    participant H as multi_mcp_visualization_ws()<br/>src/handlers/multi_mcp_websocket_handler.rs:776
+    participant Ws as MultiMcpVisualizationWs<br/>multi_mcp_websocket_handler.rs:410 (Actor::started)
     participant DS as MultiMcpAgentDiscovery<br/>src/services/multi_mcp_agent_discovery.rs:101
 
-    Client->>H: GET /multi-mcp/ws (upgrade) - configure_multi_mcp_routes :862-873
-    H->>H: require Authorization Bearer and a live session or 401 - :778-853
-    H->>Ws: ws::start(MultiMcpVisualizationWs::new(app_state.multi_mcp_discovery.clone())) - :855-859
-    Ws->>Ws: started() - start_heartbeat :411, discovery.attach() :417, spawn sync_running :419, start_health_monitor :420 (ADR-2094), start_position_updates :433 - :408-433
-    Ws->>DS: attach() moves the subscriber count, sync_running starts the poll loop - multi_mcp_agent_discovery.rs:160, :174-183 (VC-27.4)
-    Ws->>Ws: run_interval 1s - cycle_count() above last_frame_cycle triggers send_discovery_data - :425-431
-    Ws->>Ws: run_interval 60s recovery-if-idle-300s + circuit stats log - :435-457
-    Note over Ws: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - started() used to register MONITORED_SERVICES health endpoints and call send_discovery_data(ctx) on connect.<br/>Both are gone: the localhost port 8080+i registration no longer exists and nothing is sent at connect, because an empty cache would read as no agents (comment :422-424)
+    Client->>H: GET /multi-mcp/ws (upgrade) - configure_multi_mcp_routes :867-878
+    H->>H: require Authorization Bearer and a live session or 401 - :783-858
+    H->>Ws: ws::start(MultiMcpVisualizationWs::new(app_state.multi_mcp_discovery.clone())) - :860-864
+    Ws->>Ws: started() - start_heartbeat :413, discovery.attach() :419, spawn sync_running :421, start_health_monitor :422 (ADR-2094), start_position_updates :439 - :410-439
+    Note over Ws: started() snapshots discovery.cycle_count() into last_frame_cycle (multi_mcp_websocket_handler.rs:426), so only a cycle that completes after this socket attached can produce a frame -<br/>a stale or empty cache is never replayed as the first frame
+    Ws->>DS: attach() moves the subscriber count, sync_running starts the poll loop - multi_mcp_agent_discovery.rs:170, :184-193 (VC-27.4)
+    Ws->>Ws: run_interval 1s - cycle_count() above last_frame_cycle triggers send_discovery_data - :431-437
+    Ws->>Ws: run_interval 60s recovery-if-idle-300s + circuit stats log - :441-463
+    Note over Ws: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - started() used to register MONITORED_SERVICES health endpoints and call send_discovery_data(ctx) on connect.<br/>Both are gone: the localhost port 8080+i registration no longer exists and nothing is sent at connect, because an empty cache would read as no agents (comment :428-430)
     loop position updates (PerformanceMode: HighFreq=16ms/Normal=100ms/Low=1000ms, OnDemand=none) - multi_mcp_websocket_handler.rs:107-116, :146-155
         Ws->>Ws: do_send(RequestAgentUpdate)
     end
@@ -233,8 +236,8 @@ sequenceDiagram
         end
     end
     Client->>Ws: Text "ping" (plain)
-    Ws-->>Client: "pong" - :481-484
-    Client->>Ws: Text JSON {action, data} - ClientRequest :612-615
+    Ws-->>Client: "pong" - :486-489
+    Client->>Ws: Text JSON {action, data} - ClientRequest :617-620
     alt action == configure
         Ws->>Ws: handle_client_config(ClientConfig{subscription_filters,performance_mode}) - :311-333
     else action == request_discovery
@@ -243,30 +246,30 @@ sequenceDiagram
         alt cached verdict or fresh get_server_statuses() says no server connected
             Ws-->>Client: {type:error, message:"No connected MCP servers"} - :257-264, :282-290
         else at least one connected
-            Ws-->>Client: {type:discovery_data, servers, agents, topology, stats} filtered by SubscriptionFilters - build_discovery_frame :357-403
+            Ws-->>Client: {type:discovery_data, servers, agents, topology, stats} filtered by SubscriptionFilters - build_discovery_frame :357-405
         end
     else action == request_agents
-        Ws->>Ws: reads CircuitBreaker stats then do_send(RequestAgentUpdate) in both arms - :502-538
+        Ws->>Ws: reads CircuitBreaker stats then do_send(RequestAgentUpdate) in both arms - :507-543
     else action == request_performance
         alt has_healthy_services() true
-            Ws->>Ws: do_send(RequestPerformanceUpdate) - :554
+            Ws->>Ws: do_send(RequestPerformanceUpdate) - :559
         else degraded
-            Ws-->>Client: cached "performance_data" status=degraded - :541-552
+            Ws-->>Client: cached "performance_data" status=degraded - :546-557
         end
     else action == request_topology
-        Ws->>Ws: do_send(RequestTopologyUpdate{swarm_id}) - :557-567
+        Ws->>Ws: do_send(RequestTopologyUpdate{swarm_id}) - :562-572
     else unknown action
-        Ws-->>Client: send_error_response("Unknown action: ...") - :568-574
+        Ws-->>Client: send_error_response("Unknown action: ...") - :573-579
     end
     Client->>Ws: ws::Message::Close
-    Ws->>Ws: log final circuit-breaker stats, ctx.close(reason) - :581-598
-    Ws->>DS: stopped() - detach() :463, spawn sync_running :465, the loop stops when the last socket leaves and its caches are cleared (multi_mcp_agent_discovery.rs:428-441)
+    Ws->>Ws: log final circuit-breaker stats, ctx.close(reason) - :586-603
+    Ws->>DS: stopped() - detach() :468, spawn sync_running :470, the loop stops when the last socket leaves and its caches are cleared (multi_mcp_agent_discovery.rs:437-450)
     Note over Ws: RESOLVED ADR-2094 (2026-09-05): has_healthy_services (:226) is a pure atomic read of a cached verdict<br/>one monitor task started at connection init publishes it and stops when the client drops (start_health_monitor :180) - no per-call spawn
     Note over Ws: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - the monitor used to probe localhost port 8080+i through a HealthCheckManager, services that were not the ones discovery polls.<br/>It now folds the discovery service's own per-server is_connected (get_server_statuses :202, fold_service_health :208), one task per connection as before
-    Note over H,Ws: RESOLVED ADR-2091 (supersedes an earlier DOC-DRIFT finding that they merely returned<br/>fiction): GET /multi-mcp/status and POST /multi-mcp/refresh are DELETED, not just hardcoded -<br/>configure_multi_mcp_routes only registers /ws now (:862-873). /status served a hardcoded<br/>two-server JSON literal (claude-flow is_connected:true agent_count:4, never queried) and<br/>/refresh echoed "initiated"
+    Note over H,Ws: RESOLVED ADR-2091 (supersedes an earlier DOC-DRIFT finding that they merely returned<br/>fiction): GET /multi-mcp/status and POST /multi-mcp/refresh are DELETED, not just hardcoded -<br/>configure_multi_mcp_routes only registers /ws now (:867-878). /status served a hardcoded<br/>two-server JSON literal (claude-flow is_connected:true agent_count:4, never queried) and<br/>/refresh echoed "initiated"
     rect rgb(255,235,235)
-    Note over Ws,DS: DEBT: request_agents, request_performance and request_topology never reach the discovery service - the RequestAgentUpdate, RequestPerformanceUpdate and<br/>RequestTopologyUpdate handlers only log at debug (multi_mcp_websocket_handler.rs:664-666, :689-694, :700-705). The ADR-2091 addendum names the request_agents circuit-breaker path as a simulation left unchanged
-    Note over Ws,DS: OPEN: no client in client/src or xr-client consumes the discovery_data frame, so its shape is provisional and defined only by build_discovery_frame (multi_mcp_websocket_handler.rs:357-403).<br/>Nothing was observed against a live hub, and ruv-swarm and daa have no confirmed endpoint (VC-27.4)
+    Note over Ws,DS: DEBT: request_agents, request_performance and request_topology never reach the discovery service - the RequestAgentUpdate, RequestPerformanceUpdate and<br/>RequestTopologyUpdate handlers only log at debug (multi_mcp_websocket_handler.rs:669-671, :694-699, :705-710). The ADR-2091 addendum names the request_agents circuit-breaker path as a simulation left unchanged
+    Note over Ws,DS: OPEN: no client in client/src or xr-client consumes the discovery_data frame, so its shape is provisional and defined only by build_discovery_frame (multi_mcp_websocket_handler.rs:357-405).<br/>Nothing was observed against a live hub, and ruv-swarm and daa have no confirmed endpoint (VC-27.4)
     end
 ```
 
@@ -524,3 +527,41 @@ sequenceDiagram
     Note over Ws,Hub: RESOLVED ADR-2084: ingest.rs module doc (ingest.rs:14-19) once carried stale framing about<br/>this socket relationship to the legacy port-9500 bots_client snapshot path (VC-27.1) - the doc now correctly<br/>states that path is untouched by design (state snapshots, polled every 2s) while this socket carries the<br/>disjoint agent_action payload - no replacement for the port-9500 path exists yet
     Note over Prov: SECURITY: ProvenanceStatus::Attributed means a well-formed pubkey was asserted,<br/>NOT that a signature was verified - the wire carries no sig field (provenance.rs:29-38)
 ```
+
+## VC-27.14 AgentDemoDirector — one server-side synthetic producer (ADR-2142)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as web or XR client
+    participant H as set_demo<br/>src/handlers/api_handler/agents_demo.rs:30
+    participant D as AgentDemoDirector<br/>src/actors/agent_demo_director.rs:386
+    participant G as GraphStateActor
+    participant CC as ClientCoordinatorActor
+    participant HUB as agent event hub and KPI tap
+
+    C->>H: POST /api/agents/demo {running: true} - authenticated, route agents_demo.rs:51-57
+    H->>D: StartAgentDemo - agents_demo.rs:36
+    D->>G: GetGraphData - agent_demo_director.rs:469
+    G-->>D: graph, reduced by demo_graph_from to public non-agent nodes - agent_demo_director.rs:496-519
+    alt no usable node
+        D-->>H: Err - the graph has no nodes the demo agents can work on - agent_demo_director.rs:477-479
+        H-->>C: 409 Conflict - agents_demo.rs:38
+    else director built
+        D-->>H: DemoStatus running with the six reserved agent ids - agent_demo_director.rs:409-414
+        H-->>C: 200 - agents_demo.rs:37
+    end
+    loop every 250 ms TICK while a director exists - agent_demo_director.rs:394, :427
+        D->>D: DemoDirector.tick advances stagger, work, follow-an-edge and rest per agent - agent_demo_director.rs:212, :432
+        D->>CC: BroadcastAgentActionFrame of the encoded 0x23 action events - agent_demo_director.rs:434-435
+    end
+    Note over D,HUB: INVARIANT: the demo never enters the agent event hub - a synthetic event there would be persisted by the KPI tap.<br/>Frames go to the client coordinator only, the same door real agent actions leave through<br/>src/actors/agent_demo_director.rs:3-6
+    Note over D: the six agents carry reserved ids 0x80000000 | 0xD001..0xD006 and nothing in a frame says demo, so provenance lives in code alone<br/>src/actors/agent_demo_director.rs:35, :47, :205-207
+    C->>H: POST /api/agents/demo {running: false} - agents_demo.rs:43
+    H->>D: StopAgentDemo drops the director, frames stop and clients' evidence expiry retires the agents - agent_demo_director.rs:451-454
+    Note over C,H: GET /api/agents/demo takes no AuthenticatedUser extractor at handler level and returns the director's state, so either client's button reflects a demo the other started<br/>src/handlers/api_handler/agents_demo.rs:20-27
+```
+
+**What it shows:** the shared agents demo as a server-side producer of agent-action frames that is started and stopped through one authenticated endpoint and fans out through the client coordinator, bypassing the agent-event hub that VC-27.13 describes.
+
+**Why it is this way:** ADR-2142 (2026-10-14) replaced two client-side demo producers, each feeding only its own screen, with one director both clients control; it stays out of the hub so synthetic events never reach durable records. The decision is accepted and implemented, with activation staged.

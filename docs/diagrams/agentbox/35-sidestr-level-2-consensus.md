@@ -12,14 +12,15 @@ sources:
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
   - ../project/agentbox/docs/INGRESS-identity.md
   - ../project/agentbox/docs/PROTOCOL-registry.md
-verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
+  - ../sidestr-rs/sidestr-round/Cargo.toml
+verified_commit: {agentbox: 1da8d21719a27394f190866223b88533b52d87f9, sidestr-rs: 1249e34def303fbb4b9f8380de684c0719a9c75f}
 ---
 
 ## For developers
 
 Nothing here is built. A consultant review on 2026-09-22 (GPT-6 Astra through the Codex consultant tier, see AB-15.12 for that path) took ADR-2101's k-of-n federation apart and returned a different shape, which the record then adopted (`ADR-2101-federation-topology-and-key-separation.md:133-136`). The change that matters most: a threshold signature is not a consensus protocol, so `q` and `k` are two numbers, and the block a federation signs is not the block it finalises.
 
-**Drift (this topic vs sidestr-rs):** "nothing here is built" held at `ec60a8f14`; since then `sidestr-round` (0.1.x, now 0.2.0) has shipped upstream's availability-tolerant round (not the reviewed BFT shape) and, with the other crates, moved to `DreamLab-AI/sidestr-rs` under ADR-2112. Not re-stamped here; see SR-01.6.
+**Drift (this topic vs sidestr-rs):** "nothing here is built" held at `ec60a8f14`; since then `sidestr-round` (0.1.x, now 0.5.0, `../sidestr-rs/sidestr-round/Cargo.toml:3`) has shipped upstream's availability-tolerant round (not the reviewed BFT shape) and, with the other crates, moved to `DreamLab-AI/sidestr-rs` under ADR-2112. Not re-stamped here; see SR-01.6.
 
 **Drift (this topic vs ADR-2101's federation stage, 2026-10-02):** the owner decision R5c rewrote the federation stage this topic reviews — each client now runs its OWN root nested under `sidestr:dreamlab` for pegs only, and a co-signed k-of-n root shared between operators is explicitly REJECTED (`ADR-2101-federation-topology-and-key-separation.md:219-226`). The consultant-review amendments below still govern any root that runs k-of-n — ours across our own instances, or a client's across theirs — but no longer describe a root shared between operators (`ADR-2101-federation-topology-and-key-separation.md:226`).
 

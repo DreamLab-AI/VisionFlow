@@ -9,6 +9,7 @@ sources:
   - ../project/agentbox/mcp/servers/ruvector-mcp.cjs
   - ../project/agentbox/mcp/servers/lib/memory-tools.js
   - ../project/agentbox/mcp/servers/lib/memory-hybrid.js
+  - ../project/agentbox/mcp/servers/lib/memory-jev-rerank.js
   - ../project/agentbox/mcp/servers/lib/memory-health.js
   - ../project/agentbox/mcp/servers/lib/memory-metadata.js
   - ../project/agentbox/mcp/servers/lib/embedding-identity.js
@@ -24,7 +25,7 @@ sources:
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/docs/reference/claude-context/ruvector-memory-state.md
-verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
+verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
 ---
 
 ## AB-20.1 Server boot — fail-closed on Postgres, advisory on Xinference
@@ -37,40 +38,40 @@ sequenceDiagram
     participant PG as ruvector-postgres<br/>RUVECTOR_PG_CONNINFO
     participant XI as Xinference bge-small-en-v1.5<br/>XINFERENCE_URL
     participant EI as verifyEmbeddingIdentity<br/>agentbox/mcp/servers/lib/embedding-identity.js
-    participant MT as createMemoryTools<br/>agentbox/mcp/servers/ruvector-mcp.cjs:205
+    participant MT as createMemoryTools<br/>agentbox/mcp/servers/ruvector-mcp.cjs:206
 
     SUP->>SRV: start
-    Note over SUP,SRV: REGISTRATION has two routes, both written at boot: the entrypoint writes $WORKSPACE/.mcp.json<br/>(config/entrypoint-unified.sh:1464), found only by walking up from the cwd, and then<br/>`agentbox-manifest mcp-mirror-server` copies the final claude-flow entry into the user-level<br/>~/.claude/.claude.json (config/entrypoint-unified.sh:3100, services/agentbox-manifest/src/mcp.rs:143)<br/>so a session started outside the workspace, for example in $HOME, still loads memory
-    SRV->>PG: SELECT 1 (mcp/servers/ruvector-mcp.cjs:155)
+    Note over SUP,SRV: REGISTRATION has two routes, both written at boot: the entrypoint writes $WORKSPACE/.mcp.json<br/>(config/entrypoint-unified.sh:1549), found only by walking up from the cwd, and then<br/>`agentbox-manifest mcp-mirror-server` copies the final claude-flow entry into the user-level<br/>~/.claude/.claude.json (config/entrypoint-unified.sh:3398, services/agentbox-manifest/src/mcp.rs:143)<br/>so a session started outside the workspace, for example in $HOME, still loads memory
+    SRV->>PG: SELECT 1 (mcp/servers/ruvector-mcp.cjs:156)
     alt unreachable
         PG--xSRV: error
-        SRV-->>SUP: [FATAL] cannot reach ruvector-postgres then process.exit(1) (mcp/servers/ruvector-mcp.cjs:158-159)
+        SRV-->>SUP: [FATAL] cannot reach ruvector-postgres then process.exit(1) (mcp/servers/ruvector-mcp.cjs:159-160)
         Note over SRV: INVARIANT ADR-2014: FAIL-CLOSED. There is NO sql.js fallback — the server replaces<br/>`claude-flow mcp start` precisely so memory routes to ruvector-postgres instead of the<br/>bundled sql.js store (mcp/servers/ruvector-mcp.cjs:6-7)
     else connected
         PG-->>SRV: ok
-        SRV->>XI: getEmbedding("startup probe") (mcp/servers/ruvector-mcp.cjs:162)
+        SRV->>XI: getEmbedding("startup probe") (mcp/servers/ruvector-mcp.cjs:163)
         alt unavailable
             XI--xSRV: error
-            SRV->>SRV: log WARN — search will use ILIKE fallback, and ADR-2014 fail-closed will REJECT stores<br/>until it returns (mcp/servers/ruvector-mcp.cjs:166)
+            SRV->>SRV: log WARN — search will use ILIKE fallback, and ADR-2014 fail-closed will REJECT stores<br/>until it returns (mcp/servers/ruvector-mcp.cjs:167)
             Note over SRV: set RUVECTOR_EMBED_REPAIR=true to accept repairable PENDING writes instead
         else connected
             XI-->>SRV: 384-dim vector
-            SRV->>EI: verifyEmbeddingIdentity(getEmbedding) (mcp/servers/ruvector-mcp.cjs:178)
-            Note over EI: ADR-2019 closeout — DIMENSION AGREEMENT IS NOT COMPATIBILITY. Probe the live transport,<br/>compute the effective identity fingerprint, compare with the checked-in pin (mcp/servers/ruvector-mcp.cjs:169-174)
+            SRV->>EI: verifyEmbeddingIdentity(getEmbedding) (mcp/servers/ruvector-mcp.cjs:179)
+            Note over EI: ADR-2019 closeout — DIMENSION AGREEMENT IS NOT COMPATIBILITY. Probe the live transport,<br/>compute the effective identity fingerprint, compare with the checked-in pin (mcp/servers/ruvector-mcp.cjs:170-175)
             alt verdict not ok
                 EI-->>SRV: incompatible same-dimension swap
-                SRV-->>SUP: [FATAL] then process.exit(1) (mcp/servers/ruvector-mcp.cjs:181-182)
+                SRV-->>SUP: [FATAL] then process.exit(1) (mcp/servers/ruvector-mcp.cjs:182-183)
                 Note over EI: continuing would write vectors into a corpus whose GEOMETRY they do not share, producing<br/>confidently wrong recall with NO error anywhere
             else unpinned or override
-                EI-->>SRV: advisory WARN — we refuse a KNOWN-bad identity, we do not invent a pin (mcp/servers/ruvector-mcp.cjs:184-185)
+                EI-->>SRV: advisory WARN — we refuse a KNOWN-bad identity, we do not invent a pin (mcp/servers/ruvector-mcp.cjs:185-186)
             else matches the pin
                 EI-->>SRV: INFO fingerprint matches
             end
         end
     end
-    SRV->>MT: createMemoryTools({backend: 'external-pg', deps: {pool, getEmbedding, xinfEnsure,<br/>vecToSql, entryId, ...}}) (mcp/servers/ruvector-mcp.cjs:205-206)
-    Note over MT: the ADR-015 mandated external-pg path — this server injects its pool, embedding<br/>transport, notifier and helpers so the extracted logic behaves byte-for-byte as before<br/>(mcp/servers/ruvector-mcp.cjs:201-203)
-    Note over SRV: serverInfo is name "claude-flow" (mcp/servers/ruvector-mcp.cjs:685) — the server impersonates the claude-flow MCP<br/>identity so tool names stay byte-identical
+    SRV->>MT: createMemoryTools({backend: 'external-pg', deps: {pool, getEmbedding, xinfEnsure,<br/>vecToSql, entryId, ...}}) (mcp/servers/ruvector-mcp.cjs:206-207)
+    Note over MT: the ADR-015 mandated external-pg path — this server injects its pool, embedding<br/>transport, notifier and helpers so the extracted logic behaves byte-for-byte as before<br/>(mcp/servers/ruvector-mcp.cjs:202-204)
+    Note over SRV: serverInfo is name "claude-flow" (mcp/servers/ruvector-mcp.cjs:690) — the server impersonates the claude-flow MCP<br/>identity so tool names stay byte-identical
 ```
 
 ## AB-20.2 memory_store — the write path
@@ -79,9 +80,9 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant AG as Agent
-    participant SRV as ruvector-mcp memory_store<br/>agentbox/mcp/servers/ruvector-mcp.cjs:253
-    participant MS as memStore<br/>agentbox/mcp/servers/lib/memory-tools.js:248
-    participant PROT as checkProtectedNamespace<br/>agentbox/mcp/servers/lib/memory-tools.js:214
+    participant SRV as ruvector-mcp memory_store<br/>agentbox/mcp/servers/ruvector-mcp.cjs:258
+    participant MS as memStore<br/>agentbox/mcp/servers/lib/memory-tools.js:249
+    participant PROT as checkProtectedNamespace<br/>agentbox/mcp/servers/lib/memory-tools.js:215
     participant XI as Xinference bge-small-en-v1.5 384-dim
     participant MD as memory-metadata<br/>agentbox/mcp/servers/lib/memory-metadata.js
     participant PG as memory_entries + HNSW
@@ -91,34 +92,34 @@ sequenceDiagram
     SRV->>MS: memStore(key, value, namespace, options)
     MS->>PROT: checkProtectedNamespace(namespace)
     alt namespace is protected and RUVECTOR_ADMIN_WRITE is not "true"
-        PROT-->>AG: write-protected (IR2 mandate-at-grant) storage none (:217)
-        Note over PROT: RUVECTOR_PROTECTED_NAMESPACES default governance-precedents — prevents agents<br/>injecting synthetic records into governance-critical stores, e.g. precedent namespace<br/>poisoning via memory_store (:199-203). Boot also appends ruvnet-kb — see AB-20.3
+        PROT-->>AG: write-protected (IR2 mandate-at-grant) storage none (:218)
+        Note over PROT: RUVECTOR_PROTECTED_NAMESPACES default governance-precedents — prevents agents<br/>injecting synthetic records into governance-critical stores, e.g. precedent namespace<br/>poisoning via memory_store (:200-204). Boot also appends ruvnet-kb — see AB-20.3
     else allowed
-        MS->>MS: id = entryId(namespace, key) (:252)
+        MS->>MS: id = entryId(namespace, key) (:253)
         MS->>XI: embed the value
         alt embedding succeeds
             XI-->>MS: 384-dim vector
-            MS->>MS: embeddingClause = $6::ruvector(384) (:266)
+            MS->>MS: embeddingClause = $6::ruvector(384) (:267)
         else embedding fails or xinference unavailable
             XI--xMS: error
-            MS->>MS: embedFailure set (:269-273)
+            MS->>MS: embedFailure set (:270-274)
             alt RUVECTOR_EMBED_REPAIR not true — the DEFAULT
-                MS-->>AG: REJECTED reason embedding-unavailable, remedy "restore the embedding service, or set<br/>RUVECTOR_EMBED_REPAIR=true" (:279-293)
-                Note over MS: INVARIANT ADR-2014 FAIL-CLOSED: the store no longer degrades silently. Nothing is<br/>written — NO UNSEARCHABLE ROW is created (:276-278)
+                MS-->>AG: REJECTED reason embedding-unavailable, remedy "restore the embedding service, or set<br/>RUVECTOR_EMBED_REPAIR=true" (:280-294)
+                Note over MS: INVARIANT ADR-2014 FAIL-CLOSED: the store no longer degrades silently. Nothing is<br/>written — NO UNSEARCHABLE ROW is created (:277-279)
             else repair mode on
-                MS->>MS: metadata.embedding_state = 'pending' plus embedding_pending_since / _reason (:317-319)
+                MS->>MS: metadata.embedding_state = 'pending' plus embedding_pending_since / _reason (:318-320)
                 Note over MS: an explicit, REPAIRABLE pending write — recoverable later by memory_repair_embeddings
             end
         end
-        MS->>MD: type the metadata when the gate is on — importance, tags, memory_type (:302-306)
+        MS->>MD: type the metadata when the gate is on — importance, tags, memory_type (:303-307)
         MS->>PG: INSERT ... ON CONFLICT DO UPDATE
-        Note over MS,PG: the ON CONFLICT clause assigns EXCLUDED.embedding rather than<br/>COALESCE(EXCLUDED.embedding, memory_entries.embedding), so the stored vector always<br/>tracks the stored value (:329, :336)
-        MS->>MD: metadata.embedding_state = 'embedded' (:313)
+        Note over MS,PG: the ON CONFLICT clause assigns EXCLUDED.embedding rather than<br/>COALESCE(EXCLUDED.embedding, memory_entries.embedding), so the stored vector always<br/>tracks the stored value (:330, :337)
+        MS->>MD: metadata.embedding_state = 'embedded' (:314)
         MS->>NOT: notifyMemoryFlash
         MS-->>AG: success
     end
-    Note over XI: INVARIANT: bge-small embeds only the first EMBED_PREFIX_CHARS (2000) of a value<br/>(memory-tools.js:57,:257) — THE TAIL IS INVISIBLE TO SEARCH. Keep values under ~2,000<br/>chars, front-load the searchable facts, split long detail into linked entries.<br/>Retrieve-by-key still returns the whole value
-    Note over MS: RESOLVED ADR-2051: LEARNING-memory Invariant 1 states the enforced rule — embedding<br/>failure REJECTS the write by default (ADR-2014 fail-closed, memory-tools.js:276-293),<br/>with RUVECTOR_EMBED_REPAIR=true the only route to an explicit repairable pending row.
+    Note over XI: INVARIANT: bge-small embeds only the first EMBED_PREFIX_CHARS (2000) of a value<br/>(memory-tools.js:57,:258) — THE TAIL IS INVISIBLE TO SEARCH. Keep values under ~2,000<br/>chars, front-load the searchable facts, split long detail into linked entries.<br/>Retrieve-by-key still returns the whole value
+    Note over MS: RESOLVED ADR-2051: LEARNING-memory Invariant 1 states the enforced rule — embedding<br/>failure REJECTS the write by default (ADR-2014 fail-closed, memory-tools.js:277-294),<br/>with RUVECTOR_EMBED_REPAIR=true the only route to an explicit repairable pending row.
 ```
 
 ## AB-20.3 memory_search — vector ANN, wildcard namespace exclusion, output shaping and the degraded fallback
@@ -127,42 +128,44 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant AG as Agent
-    participant SRV as ruvector-mcp shapedSearch<br/>agentbox/mcp/servers/ruvector-mcp.cjs:241
-    participant MS as memSearch<br/>agentbox/mcp/servers/lib/memory-tools.js:476
+    participant SRV as ruvector-mcp shapedSearch<br/>agentbox/mcp/servers/ruvector-mcp.cjs:242
+    participant MS as memSearch<br/>agentbox/mcp/servers/lib/memory-tools.js:477
     participant XI as Xinference
     participant PG as memory_entries HNSW
     participant SH as shapeSearchResponse<br/>agentbox/mcp/servers/lib/memory-tools.js:154
 
     AG->>SRV: memory_search(query, namespace, limit, min_score, full, snippet_chars, sourceType)
-    SRV->>MS: memSearch(query, namespace, resolveSearchLimit(limit), sourceType) (ruvector-mcp.cjs:242-246)
-    MS->>MS: excluded = namespace=="*" ? wildcardExcludedNamespaces() : [] (memory-tools.js:479)
-    Note over MS: namespace "*" now EXCLUDES the protected namespaces (default governance-precedents, plus<br/>ruvnet-kb appended at boot) — they supplied 68% of prior wildcard hits, crowding out<br/>the operator's own memory (memory-tools.js:207-212). Naming one explicitly still searches it.
+    SRV->>MS: memSearch(query, namespace, jevPool, sourceType), jevPool is resolveSearchLimit(limit) unless the Jev option widens it (ruvector-mcp.cjs:243,248-249, memory-jev-rerank.js:69)
+    MS->>MS: excluded = namespace=="*" ? wildcardExcludedNamespaces() : [] (memory-tools.js:480)
+    Note over MS: namespace "*" now EXCLUDES the protected namespaces (default governance-precedents, plus<br/>ruvnet-kb appended at boot) — they supplied 68% of prior wildcard hits, crowding out<br/>the operator's own memory (memory-tools.js:208-213). Naming one explicitly still searches it.
     MS->>XI: embed the query
     alt embedding available
         XI-->>MS: 384-dim query vector
         alt namespace is "*" and excluded is non-empty
-            MS->>PG: AND NOT (namespace = ANY($excluded)) over a MATERIALIZED exact-rank scan (memory-tools.js:516)
+            MS->>PG: AND NOT (namespace = ANY($excluded)) over a MATERIALIZED exact-rank scan (memory-tools.js:517)
             Note over MS,PG: the raw HNSW scan post-filters its candidate set, so a WHERE on it returns almost<br/>nothing when the protected corpus dominates (0 of 120 candidates, measured) — the<br/>exclusion rides the same MATERIALIZED btree-then-rank branch as a named namespace
         else namespace scoped
-            MS->>PG: AND namespace = $n (memory-tools.js:510)
+            MS->>PG: AND namespace = $n (memory-tools.js:511)
         else namespace "*" with no exclusions configured
-            MS->>PG: no namespace clause — GLOBAL CROSS-NAMESPACE search (memory-tools.js:527-543)
+            MS->>PG: no namespace clause — GLOBAL CROSS-NAMESPACE search (memory-tools.js:528-544)
         end
-        PG->>PG: ORDER BY embedding <=> $1::ruvector(384) (memory-tools.js:536, :542)
-        Note over PG: score = 1.0 - (embedding <=> query) — cosine distance operator on the RuVector HNSW<br/>access method (memory-tools.js:534, :539)
+        PG->>PG: ORDER BY embedding <=> $1::ruvector(384) (memory-tools.js:537, :543)
+        Note over PG: score = 1.0 - (embedding <=> query) — cosine distance operator on the RuVector HNSW<br/>access method (memory-tools.js:535, :540)
         PG-->>MS: top-k rows, expired rows excluded by NOT_EXPIRED (memory-tools.js:70)
-        MS-->>SRV: {results, excluded_namespaces?} (memory-tools.js:646)
+        MS-->>SRV: {results, excluded_namespaces?} (memory-tools.js:647)
     else vector search unavailable or failed
-        MS->>MS: log WARN "DEGRADED: falling back to ILIKE text search" (memory-tools.js:653)
-        MS->>PG: WHERE (namespace = $1 OR $1='*') AND NOT (namespace = ANY($excluded)) AND (key ILIKE $2<br/>OR value::text ILIKE $2) (memory-tools.js:655-663)
-        PG-->>MS: literal matches only, score flat 0.5, degraded true (memory-tools.js:670)
+        MS->>MS: log WARN "DEGRADED: falling back to ILIKE text search" (memory-tools.js:654)
+        MS->>PG: WHERE (namespace = $1 OR $1='*') AND NOT (namespace = ANY($excluded)) AND (key ILIKE $2<br/>OR value::text ILIKE $2) (memory-tools.js:656-664)
+        PG-->>MS: literal matches only, score flat 0.5, degraded true (memory-tools.js:671)
         Note over MS: still DEGRADED, NOT NORMAL — and still respects the wildcard exclusion
     end
     MS-->>SRV: raw ranked/degraded response
-    SRV->>SH: shapeSearchResponse(res, {full, minScore, snippetChars, limit})
-    SH->>SH: sort best-first unless _attention already ordered it (memory-tools.js:163-166)
-    SH->>SH: drop rows below min_score (default 0.55, RUVECTOR_SEARCH_MIN_SCORE) — not applied to<br/>the degraded ILIKE flat score (memory-tools.js:168-173)
-    SH->>SH: cap to snippet_chars (default 300, RUVECTOR_SEARCH_SNIPPET_CHARS) unless full:true<br/>(memory-tools.js:176-184)
+    SRV->>SRV: memoryJevRerank.rerank(query, raw), off unless AGENTBOX_JEV_MEMORY_RERANK=1 (ruvector-mcp.cjs:250, memory-jev-rerank.js:100-102)
+    Note over SRV: Jev option: a LOCAL judge reorders the shortlist the cosine search already returned, `score` stays the cosine<br/>and the input comes back untouched on a flag-off, a degraded result, fewer than two rows, a transport error<br/>or a best relevance below AGENTBOX_JEV_MEMORY_MIN_RELEVANCE, default 0.5 (memory-jev-rerank.js:20-25,105-106,119)
+    SRV->>SH: shapeSearchResponse(res, {full, minScore, snippetChars, limit}) (ruvector-mcp.cjs:251)
+    SH->>SH: sort best-first unless _attention or the Jev option _reranked already ordered it (memory-tools.js:163-167)
+    SH->>SH: drop rows below min_score (default 0.55, RUVECTOR_SEARCH_MIN_SCORE) — not applied to<br/>the degraded ILIKE flat score (memory-tools.js:169-174)
+    SH->>SH: cap to snippet_chars (default 300, RUVECTOR_SEARCH_SNIPPET_CHARS) unless full:true<br/>(memory-tools.js:177-185)
     Note over SH: replaces the removed headroom smartCrush compressor (PRD-016/ADR-034) — smartCrush<br/>silently dropped relevant hits on 64/66 audited searches and its `<<ccr:hash>>` markers<br/>were never expandable. shapeSearchResponse is pure and bounded instead (memory-tools.js:87-98)
     SH-->>AG: {results, count, min_score, snippet_chars, below_min_score?, hint?}
     Note over AG: the whole value is one memory_retrieve {key, namespace} away, or search again with full:true
@@ -178,21 +181,23 @@ sequenceDiagram
     participant MT as memory-tools<br/>agentbox/mcp/servers/lib/memory-tools.js
     participant PG as memory_entries
 
-    alt memory_retrieve (declared mcp/servers/ruvector-mcp.cjs:267)
+    alt memory_retrieve (declared mcp/servers/ruvector-mcp.cjs:272)
         AG->>SRV: memory_retrieve(key, namespace)
-        SRV->>MT: memRetrieve(key, namespace) (mcp/servers/lib/memory-tools.js:448)
-        MT->>PG: SELECT key, value, source_type WHERE namespace = $1 AND key = $2 AND NOT_EXPIRED ORDER<br/>BY updated_at DESC LIMIT 1 (mcp/servers/lib/memory-tools.js:451-453)
+        SRV->>MT: memRetrieve(key, namespace) (mcp/servers/lib/memory-tools.js:449)
+        MT->>PG: SELECT key, value, source_type WHERE namespace = $1 AND key = $2 AND NOT_EXPIRED ORDER<br/>BY updated_at DESC LIMIT 1 (mcp/servers/lib/memory-tools.js:452-454)
         PG-->>AG: the newest non-expired row for that exact key
         Note over MT: retrieve-by-key is EXACT, not semantic — it returns the WHOLE value, so it is unaffected<br/>by shapeSearchResponse's snippet cap (see AB-20.3) and by the 2000-char embed prefix
-    else memory_list (declared mcp/servers/ruvector-mcp.cjs:279)
+    else memory_list (declared mcp/servers/ruvector-mcp.cjs:284)
         AG->>SRV: memory_list(namespace, limit)
-        SRV->>MT: memList(namespace, limit) (mcp/servers/lib/memory-tools.js:461)
-        MT->>PG: SELECT key, value, source_type WHERE namespace = $1 AND NOT_EXPIRED ORDER BY created_at<br/>DESC LIMIT $2 (mcp/servers/lib/memory-tools.js:464-466)
+        SRV->>MT: memList(namespace, limit) (mcp/servers/lib/memory-tools.js:462)
+        MT->>PG: SELECT key, value, source_type WHERE namespace = $1 AND NOT_EXPIRED ORDER BY created_at<br/>DESC LIMIT $2 (mcp/servers/lib/memory-tools.js:465-467)
         PG-->>AG: newest-first page, default limit 100
         Note over MT: memList takes a LITERAL namespace — unlike memSearch it has no "*" global branch and<br/>no wildcard namespace exclusion (see AB-20.3)
     end
-    Note over SRV: the same server also registers the non-memory claude-flow surface — swarm_init mcp/servers/ruvector-mcp.cjs:318,<br/>agent_spawn mcp/servers/ruvector-mcp.cjs:323, task_orchestrate mcp/servers/ruvector-mcp.cjs:328, swarm_status mcp/servers/ruvector-mcp.cjs:333, neural_patterns mcp/servers/ruvector-mcp.cjs:338,<br/>coordination_sync mcp/servers/ruvector-mcp.cjs:357, load_balance mcp/servers/ruvector-mcp.cjs:362, performance_report mcp/servers/ruvector-mcp.cjs:367, bottleneck_analyze<br/>mcp/servers/ruvector-mcp.cjs:372, github_repo_analyze mcp/servers/ruvector-mcp.cjs:377, github_pr_manage mcp/servers/ruvector-mcp.cjs:382, workflow_create mcp/servers/ruvector-mcp.cjs:387,<br/>workflow_execute mcp/servers/ruvector-mcp.cjs:392, parallel_execute mcp/servers/ruvector-mcp.cjs:397, sparc_mode mcp/servers/ruvector-mcp.cjs:402<br/>ADR-2082 can replace these stubs with the real ruflo implementations at tools/list, narrowed to swarm,agent — see AB-20.13
+    Note over SRV: the same server also registers the non-memory claude-flow surface — swarm_init mcp/servers/ruvector-mcp.cjs:323,<br/>agent_spawn mcp/servers/ruvector-mcp.cjs:328, task_orchestrate mcp/servers/ruvector-mcp.cjs:333, swarm_status mcp/servers/ruvector-mcp.cjs:338, neural_patterns mcp/servers/ruvector-mcp.cjs:343,<br/>coordination_sync mcp/servers/ruvector-mcp.cjs:362, load_balance mcp/servers/ruvector-mcp.cjs:367, performance_report mcp/servers/ruvector-mcp.cjs:372, bottleneck_analyze<br/>mcp/servers/ruvector-mcp.cjs:377, github_repo_analyze mcp/servers/ruvector-mcp.cjs:382, github_pr_manage mcp/servers/ruvector-mcp.cjs:387, workflow_create mcp/servers/ruvector-mcp.cjs:392,<br/>workflow_execute mcp/servers/ruvector-mcp.cjs:397, parallel_execute mcp/servers/ruvector-mcp.cjs:402, sparc_mode mcp/servers/ruvector-mcp.cjs:407<br/>ADR-2082 can replace these stubs with the real ruflo implementations at tools/list, narrowed to swarm,agent — see AB-20.13
 ```
+
+**Invariant:** a row whose `metadata.expires_at` is not a valid timestamp is neither hidden nor swept: the visibility predicate treats it as not expired and the sweep predicate as never expired, because `pg_input_is_valid` guards the cast after the prefix test (`../project/agentbox/mcp/servers/lib/memory-metadata.js:44`, `../project/agentbox/mcp/servers/lib/memory-metadata.js:61`). A value such as `2026-99-99T00` passes the prefix check, and before this guard one such row failed every read and the sweep that should delete it threw too (`../project/agentbox/mcp/servers/lib/memory-metadata.js:32-36`).
 
 ## AB-20.5 memory_hybrid_search
 
@@ -200,7 +205,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant AG as Agent
-    participant SRV as ruvector-mcp memory_hybrid_search<br/>agentbox/mcp/servers/ruvector-mcp.cjs:446
+    participant SRV as ruvector-mcp memory_hybrid_search<br/>agentbox/mcp/servers/ruvector-mcp.cjs:451
     participant HY as createHybridTools<br/>agentbox/mcp/servers/lib/memory-hybrid.js
     participant XI as Xinference
     participant PG as memory_entries
@@ -232,19 +237,19 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant AG as Agent
-    participant SRV as ruvector-mcp memory_orient<br/>agentbox/mcp/servers/ruvector-mcp.cjs:464
+    participant SRV as ruvector-mcp memory_orient<br/>agentbox/mcp/servers/ruvector-mcp.cjs:469
     participant G as ruvector-gates<br/>agentbox/mcp/servers/lib/ruvector-gates.js
     participant OR as memOrient
     participant PG as memory_entries
     participant AGG as memory-learning-aggregates
 
     AG->>SRV: memory_orient {task, namespace, semantic_limit, aggregate_limit, episodic_limit}
-    Note over SRV: defaults namespace "default", semantic_limit 8, aggregate_limit 10, episodic_limit 10<br/>(mcp/servers/ruvector-mcp.cjs:470-473)
+    Note over SRV: defaults namespace "default", semantic_limit 8, aggregate_limit 10, episodic_limit 10<br/>(mcp/servers/ruvector-mcp.cjs:475-478)
     SRV->>G: gates.memoryOrient()
     alt gate off
-        G-->>AG: unknownTool — the tool is not merely disabled, it is INVISIBLE (mcp/servers/ruvector-mcp.cjs:584)
+        G-->>AG: unknownTool — the tool is not merely disabled, it is INVISIBLE (mcp/servers/ruvector-mcp.cjs:589)
     else gate on
-        SRV->>OR: memOrient(task, namespace, {semanticLimit, aggregateLimit, episodicLimit}) (mcp/servers/ruvector-mcp.cjs:585-587)
+        SRV->>OR: memOrient(task, namespace, {semanticLimit, aggregateLimit, episodicLimit}) (mcp/servers/ruvector-mcp.cjs:590-592)
         par
             OR->>PG: top-k SEMANTIC memories for the task
         and
@@ -265,35 +270,35 @@ sequenceDiagram
     autonumber
     participant OP as Operator or scheduler
     participant SRV as ruvector-mcp<br/>agentbox/mcp/servers/ruvector-mcp.cjs
-    participant SW as memSweepEpisodic<br/>agentbox/mcp/servers/lib/memory-tools.js:695
-    participant RP as memRepairEmbeddings<br/>agentbox/mcp/servers/lib/memory-tools.js:360
+    participant SW as memSweepEpisodic<br/>agentbox/mcp/servers/lib/memory-tools.js:696
+    participant RP as memRepairEmbeddings<br/>agentbox/mcp/servers/lib/memory-tools.js:361
     participant XI as Xinference
     participant PG as memory_entries
 
-    alt memory_sweep_episodic (declared mcp/servers/ruvector-mcp.cjs:499)
+    alt memory_sweep_episodic (declared mcp/servers/ruvector-mcp.cjs:504)
         OP->>SRV: memory_sweep_episodic(namespace, {types})
         SRV->>SW: memSweepEpisodic(namespace, opts)
         alt pg unavailable
-            SW-->>OP: pg unavailable (:696)
+            SW-->>OP: pg unavailable (:697)
         else namespace protected and not admin
-            SW-->>OP: write-protected, swept 0 (:698-700)
+            SW-->>OP: write-protected, swept 0 (:699-701)
         else types contains an unknown memory_type
-            SW-->>OP: error naming the valid set from VALID_TYPES (:701-710)
+            SW-->>OP: error naming the valid set from VALID_TYPES (:702-710)
             Note over SW: the type filter is validated against VALID_TYPES BEFORE any delete — an unknown type<br/>never silently sweeps everything
         else valid
-            SW->>PG: delete expired rows matching the type and protected-namespace clauses (:723-728)
+            SW->>PG: delete expired rows matching the type and protected-namespace clauses (:724-729)
             PG-->>OP: swept count
             Note over PG: INDEX LAW consequence — a bulk delete degrades the HNSW graph silently. See AB-20.10
         end
-    else memory_repair_embeddings (declared mcp/servers/ruvector-mcp.cjs:431)
+    else memory_repair_embeddings (declared mcp/servers/ruvector-mcp.cjs:436)
         OP->>SRV: memory_repair_embeddings(namespace)
         SRV->>RP: memRepairEmbeddings(opts)
-        RP->>RP: namespace "*" collapses to null = all namespaces (:362)
-        RP->>PG: SELECT count(*) WHERE embedding IS NULL (:369-374)
+        RP->>RP: namespace "*" collapses to null = all namespaces (:363)
+        RP->>PG: SELECT count(*) WHERE embedding IS NULL (:370-375)
         alt none pending
-            RP-->>OP: pending 0, repaired 0 (:378-383)
+            RP-->>OP: pending 0, repaired 0 (:379-384)
         else pending rows
-            RP->>PG: SELECT id, namespace, key, value WHERE embedding IS NULL ORDER BY updated_at ASC<br/>(:396-400)
+            RP->>PG: SELECT id, namespace, key, value WHERE embedding IS NULL ORDER BY updated_at ASC<br/>(:397-401)
             loop each pending row
                 RP->>XI: embed the value
                 RP->>PG: UPDATE the embedding
@@ -311,7 +316,7 @@ sequenceDiagram
 flowchart TB
     subgraph ok["THE ONLY SANCTIONED PATH"]
         A["Agent"] --> B["mcp__claude-flow__memory_* MCP tools"]
-        B --> C["createMemoryTools backend external-pg<br/>agentbox/mcp/servers/lib/memory-tools.js:228"]
+        B --> C["createMemoryTools backend external-pg<br/>agentbox/mcp/servers/lib/memory-tools.js:229"]
         C --> D["Xinference bge-small-en-v1.5 384-dim"]
         D --> E["INSERT with a real ruvector(384) vector"]
         E --> F["row is VISIBLE to HNSW search"]
@@ -328,7 +333,7 @@ flowchart TB
     subgraph notes["Invariants and drift"]
         direction TB
         N1["INVARIANT ADR-2014 / DDD-016 I03: memory is written and read ONLY through the<br/>mcp__claude-flow__memory_* tools. Every learning component honours this — aggregates and<br/>cursors upsert through the governed memStore path, never raw SQL (see AB-21)"]
-        N2["The governed server FAILS CLOSED on an unreachable Postgres (process.exit(1),<br/>ruvector-mcp.cjs:158-159) and there is NO sql.js fallback — so the CLI path is not a<br/>degraded mode of the same store, it is a DIFFERENT and broken store"]
+        N2["The governed server FAILS CLOSED on an unreachable Postgres (process.exit(1),<br/>ruvector-mcp.cjs:159-160) and there is NO sql.js fallback — so the CLI path is not a<br/>degraded mode of the same store, it is a DIFFERENT and broken store"]
         N3["Recovery from a NULL-embedding row is memory_repair_embeddings (see AB-20.7). Recovery<br/>from a degraded HNSW graph is a NON-CONCURRENT rebuild (see AB-20.10)"]
         N1 ~~~ N2 ~~~ N3
     end
@@ -395,7 +400,7 @@ stateDiagram-v2
     Degraded --> Rebuilding : SERIAL, non-concurrent rebuild; max_parallel_maintenance_workers=0
     note right of Rebuilding
         Takes about 5 minutes. This is the ONLY sanctioned recovery. It is now one command,
-        ./agentbox.sh ruvector reindex --yes (ADR-2133, agentbox.sh:104): serial build beside the
+        ./agentbox.sh ruvector reindex --yes (ADR-2133, agentbox.sh:105): serial build beside the
         live index, one-transaction swap, recall measured before and after.
     end note
     Rebuilding --> Verifying : rebuild complete
@@ -421,7 +426,7 @@ sequenceDiagram
     participant TR as judged trajectories<br/>see AB-21
     participant SONA as ruvector_sona_learn scope agentbox_memory
     participant BIN as "@ruvector/sona@0.1.5 NAPI binary"
-    participant SH as sona_health<br/>agentbox/mcp/servers/ruvector-mcp.cjs:491
+    participant SH as sona_health<br/>agentbox/mcp/servers/ruvector-mcp.cjs:496
 
     SW->>G: read sona_learn / sona_apply
     alt both OFF — the shipped state
@@ -432,7 +437,7 @@ sequenceDiagram
         SW->>SONA: learn under a FIXED 384-dim scope
         SONA->>BIN: forward
         BIN-->>SONA: status "learned"
-        Note over SW: the feeder counts fed on status learned alone ruvector-sona-feeder.mjs:515-516, which is acceptance by learn and NOT proof of accumulation<br/>agentbox main c274ae233 (S-7c) adds engine_accumulating to SonaRunCompleted, from buffered plus stored in the stats read after the batch (null when unreadable)
+        Note over SW: the feeder counts fed on status learned alone (ruvector-sona-feeder.mjs:527-528), which is acceptance by learn and NOT proof of accumulation<br/>it also reports engine_accumulating, from buffered plus stored in the stats read after the batch, null when unreadable (ruvector-sona-feeder.mjs:342-345,568)
         Note over BIN: DIVERGENCE D1: the prebuilt binary HARDCODES embedding_dim = 256. A 384-dim learn<br/>returns status "learned" but ACCUMULATES NOTHING — verified live. Both gates stay off<br/>until a 384-dim-capable binary ships (agentbox.toml sona keys)
     end
     SH-->>SH: surfaces the SONA verdict for an operator
@@ -442,7 +447,7 @@ sequenceDiagram
     Note over BIN: DIVERGENCE D2: agentbox.toml justifies the feed_retrieval flip with "78 aggregates >=20<br/>samples (2026-08-31)" while<br/>agentbox/docs/reference/claude-context/ruvector-memory-state.md records 12 from the<br/>2026-07-21 sweep. The toml is the running config and the more recent number
 ```
 
-**Drift (resolved 2026-10-12, agentbox main c274ae233):** at the stamp the feeder reported only `fed`, the count of `ruvector_sona_learn` calls that returned `status:"learned"` (`agentbox/scripts/ruvector-sona-feeder.mjs:515-516`), and printed it as "N fed" (`agentbox/scripts/ruvector-sona-feeder.mjs:628`). That figure is not proof the engine kept anything: the 256-dim surface answers `learned` for a 384-dim learn it buffers nowhere (header note, `agentbox/scripts/ruvector-sona-feeder.mjs:55-56`). Agentbox `main` commit c274ae233 keeps `fed` (it drives the cursor and the event contract) and adds `engineAccumulating`, true only when `trajectories_buffered + patterns_stored` is above zero in the post-batch stats and null when they could not be read. `SonaRunCompleted` carries it as `engine_accumulating`, and the human lines now read "N accepted by learn, M failed, engine accumulating: yes/no/unknown". A high `fed` beside `engine accumulating: no` therefore means the D1 binary kept nothing.
+**Drift (resolved at this stamp):** the previous stamp's feeder reported only `fed`, the count of `ruvector_sona_learn` calls that returned `status:"learned"` (`agentbox/scripts/ruvector-sona-feeder.mjs:527-528`). That figure is not proof the engine kept anything: the 256-dim surface answers `learned` for a 384-dim learn it buffers nowhere (header note, `agentbox/scripts/ruvector-sona-feeder.mjs:55-56`). At this stamp `fed` still drives the cursor and the event contract, and `engineAccumulating` is added, true only when `trajectories_buffered + patterns_stored` is above zero in the post-batch stats and null when they could not be read (`agentbox/scripts/ruvector-sona-feeder.mjs:342-345`). `SonaRunCompleted` carries it as `engine_accumulating` (`agentbox/scripts/ruvector-sona-feeder.mjs:568`), and the human line now reads "N accepted by learn, M failed, engine accumulating: yes/no/unknown" (`agentbox/scripts/ruvector-sona-feeder.mjs:647`). A high `fed` beside `engine accumulating: no` therefore means the D1 binary kept nothing.
 
 **Open:** once a 384-dim-capable binary ships, is `engine_accumulating` true or the recall harness the reading that flips the SONA gates, given the reseed guard still treats `buffered + stored == 0` as the steady state of a healthy 384-dim scope (`agentbox/scripts/ruvector-sona-feeder.mjs:55-60`)?
 
@@ -490,7 +495,7 @@ erDiagram
     trajectory_steps ||--o{ memory_entries : "aggregated into ns memory-learning-aggregates"
 ```
 
-## AB-20.13 ADR-2082 — orchestration forwarded to a filtered ruflo child, memory never
+## AB-20.13 ADR-2082 — one pinned Ruflo capability, orchestration forwarded to a filtered child, memory never
 
 ```mermaid
 sequenceDiagram
@@ -502,7 +507,7 @@ sequenceDiagram
     participant CH as ruflo mcp start child
     participant PG as ruvector-postgres
 
-    Note over G: gate is projected at boot from the manifest, agentbox.toml:455<br/>into RUVECTOR_ORCHESTRATION_PROXY by entrypoint-unified.sh:1563<br/>apply class boot, management-api/lib/system-manifest.js:227
+    Note over G: gate is projected at boot from the manifest, agentbox.toml:455<br/>into RUVECTOR_ORCHESTRATION_PROXY by entrypoint-unified.sh:1648<br/>apply class boot, management-api/lib/system-manifest.js:248
     SRV->>G: orchestrationProxy()
     alt gate off
         G-->>SRV: false, orchestration stays null
@@ -513,13 +518,13 @@ sequenceDiagram
         AG->>SRV: tools/list
         SRV->>OP: advertise(TOOLS) (mcp/servers/lib/orchestration-proxy.js:354)
         OP->>CH: lazy spawn, CLAUDE_FLOW_MCP_TOOLS = categories from RUVECTOR_ORCHESTRATION_TOOLS<br/>(mcp/servers/lib/orchestration-proxy.js:224,:289)
-        Note over CH: running config narrowed 2026-09-25 — orchestration_tools = swarm,agent only<br/>(agentbox.toml:456), task and coordination dropped as unused (~185 tok/tool). Only<br/>swarm_init / agent_spawn forward, task_orchestrate / coordination_sync stay honest stubs
+        Note over CH: running config narrowed 2026-09-25 to swarm,agent, then widened by the 2026-10-26 ADR amendment:<br/>orchestration_tools = swarm,agent,rure (agentbox.toml:456), task and coordination stay dropped (~185 tok/tool).<br/>swarm_init / agent_spawn and the eight ruRE static-analysis tools forward, task_orchestrate / coordination_sync<br/>stay honest stubs. The ADR calls the ruRE widening source-verified and STAGED (ADR-2082-orchestration-proxy-behind-governed-memory-server.md:32-33)
         CH-->>OP: its tools/list
         OP->>OP: drop every denied name before merging (mcp/servers/lib/orchestration-proxy.js:125)
         Note over OP: INVARIANT ADR-2014 — DENIED_PREFIXES memory_, agentdb_, embeddings_,<br/>hooks_, agentic_flow_, ruvllm_, agenticow_ are enforced on the PROXY side<br/>whatever filter the child honours, so ruflo SQLite memory is unreachable<br/>through this server (mcp/servers/lib/orchestration-proxy.js:43)
         OP-->>SRV: merged list, legacy v2 names kept as shimmed aliases (mcp/servers/lib/orchestration-proxy.js:162)
         AG->>SRV: tools/call swarm_init
-        SRV->>OP: handles(name) then call(name, args) (mcp/servers/ruvector-mcp.cjs:647-649)
+        SRV->>OP: handles(name) then call(name, args) (mcp/servers/ruvector-mcp.cjs:652-654)
         OP->>CH: forwarded tools/call with the shimmed target and arguments
         alt child answers
             CH-->>OP: content blocks, unwrapped to the upstream payload
@@ -531,10 +536,18 @@ sequenceDiagram
     end
     AG->>SRV: memory_store / memory_search
     SRV->>PG: always ruvector-postgres, never the child
-    Note over SRV,PG: INVARIANT — memory_* is never forwarded. The decision is recorded in<br/>docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:55-58<br/>and the manifest note repeats it at agentbox.toml:455
-    Note over SRV,PG: DOC-DRIFT: the ADR's own Decision prose still says the category default is<br/>"swarm,agent,task,coordination" (ADR-2082-orchestration-proxy-behind-governed-memory-server.md:51),<br/>but its own 2026-09-29 re-verification entry and agentbox.toml:456 agree the running<br/>config is "swarm,agent" — CODE (and the ADR's own audit trail) is authoritative
-    Note over SRV: DEBT — the close handler drains in-flight requests for up to 30 s because a slow<br/>first tools/list can outlive stdin (mcp/servers/ruvector-mcp.cjs:736-765)
+    Note over SRV,PG: INVARIANT — memory_* is never forwarded. The decision is recorded in<br/>docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:97-100<br/>and the manifest note repeats it at agentbox.toml:455
+    Note over SRV,PG: DOC-DRIFT: the ADR's Decision prose says the category default is "swarm,agent,task,coordination"<br/>(ADR-2082-orchestration-proxy-behind-governed-memory-server.md:93, still the code default, orchestration-proxy.js:46) and its<br/>"Deployment narrowed" paragraph says the running manifest sets "swarm,agent" (ADR-2082-orchestration-proxy-behind-governed-memory-server.md:167),<br/>but agentbox.toml:456 now reads "swarm,agent,rure" — CODE is authoritative
+    Note over SRV: DEBT — the close handler drains in-flight requests for up to 30 s because a slow<br/>first tools/list can outlive stdin (mcp/servers/ruvector-mcp.cjs:741-770)
 ```
+
+**What it shows.** The governed server is the only registered MCP entry; the orchestration families it forwards come from one lazily spawned, allowlisted Ruflo child, and the proxy drops every `memory_*` and sibling prefix before merging the child's list, whatever the child honours.
+
+**Why it is this way.** ADR-2082 was amended on 2026-10-23 to treat Ruflo as one pinned capability projected differently per host (`../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:35-41`), and on 2026-10-26 to add the `rure` category to the same child rather than register a second server (`../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:20-27`).
+
+**Tension (ADR-2082 vs manifest):** the ADR is `activation_status: staged` and says an image build and a live tool-list/call check are required before claiming activation (`../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:7`, `../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:32-33`), while the running manifest already lists `rure` in `orchestration_tools` (`../project/agentbox/agentbox.toml:456`).
+
+**Invariant:** the ruRE widening does not touch the deny list; `DENIED_PREFIXES` is enforced on the proxy side whatever categories the child is given (`../project/agentbox/mcp/servers/lib/orchestration-proxy.js:43`).
 
 ## Audit qualification — 2026-09-07
 

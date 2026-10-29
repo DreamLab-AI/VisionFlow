@@ -21,36 +21,38 @@ sources:
   - ../project/src/bin/generate_types.rs
   - ../project/src/app_state.rs
   - ../project/src/main.rs
-  - ../project/client/src/types/generated/settings.ts
   - ../project/src/handlers/nostr_handler.rs
   - ../project/src/middleware/rbac_gate.rs
   - ../project/crates/visionclaw-domain/src/config/graph_type.rs
-verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
+  - ../project/src/handlers/settings_handler/validation.rs
+  - ../project/src/handlers/settings_handler/write_handlers.rs
+  - ../project/src/handlers/constraints_handler.rs
+verified_commit: 19417bdff5fc22053a8a0cc185797b0311521d10
 ---
 
 ## VC-06.1 Settings route surface and the actor behind it
 ```mermaid
 flowchart TB
-    S["web::scope('/settings') + RateLimit::per_minute(60)<br/>src/main.rs:1111-1114"]
-    S --> CFG["settings::api::configure_routes<br/>src/settings/api/settings_routes.rs:1736"]
-    CFG --> P["GET|PUT physics settings_routes.rs:1739-1740<br/>POST physics/reset-layout :1741"]
-    CFG --> C["GET|PUT constraints settings_routes.rs:1742-1743"]
-    CFG --> R["GET|PUT rendering settings_routes.rs:1744-1745"]
-    CFG --> NF["GET|PUT node-filter settings_routes.rs:1746-1747"]
-    CFG --> QG["GET|PUT quality-gates settings_routes.rs:1748-1749"]
-    CFG --> V["GET|PUT visual settings_routes.rs:1750-1751"]
-    CFG --> AL["GET all settings_routes.rs:1752"]
-    CFG --> PR["POST|GET profiles settings_routes.rs:1753-1754<br/>GET|DELETE profiles/{id} :1755-1756"]
-    CFG --> U["nested scope /user<br/>GET|PUT /filter settings_routes.rs:1760-1762"]
-    ACT["state.settings_addr : Addr of OptimizedSettingsActor<br/>src/app_state.rs:353, started src/app_state.rs:1156"]
-    REPO["settings_repo : web::Data of Arc of SqliteSettingsRepository<br/>injected src/main.rs:1053"]
+    S["web::scope('/settings') + RateLimit::per_minute(60)<br/>src/main.rs:1143-1145"]
+    S --> CFG["settings::api::configure_routes<br/>src/settings/api/settings_routes.rs:1749"]
+    CFG --> P["GET|PUT physics settings_routes.rs:1752-1753<br/>POST physics/reset-layout :1754"]
+    CFG --> C["GET|PUT constraints settings_routes.rs:1755-1756"]
+    CFG --> R["GET|PUT rendering settings_routes.rs:1757-1758"]
+    CFG --> NF["GET|PUT node-filter settings_routes.rs:1759-1760"]
+    CFG --> QG["GET|PUT quality-gates settings_routes.rs:1761-1762"]
+    CFG --> V["GET|PUT visual settings_routes.rs:1763-1764"]
+    CFG --> AL["GET all settings_routes.rs:1765"]
+    CFG --> PR["POST|GET profiles settings_routes.rs:1766-1767<br/>GET|DELETE profiles/{id} :1768-1769"]
+    CFG --> U["nested scope /user<br/>GET|PUT /filter settings_routes.rs:1773-1775"]
+    ACT["state.settings_addr : Addr of OptimizedSettingsActor<br/>src/app_state.rs:326, started src/app_state.rs:1099"]
+    REPO["settings_repo : web::Data of Arc of SqliteSettingsRepository<br/>injected src/main.rs:1083"]
     P --> ACT
     P --> REPO
-    N1["INVARIANT — /api/settings writes require the WriteSettings capability at the RbacGate<br/>src/main.rs:1099-1105. Request-time gate behaviour see VC-03.6"]
+    N1["INVARIANT — /api/settings writes require the WriteSettings capability at the RbacGate<br/>src/main.rs:1131-1137. Request-time gate behaviour see VC-03.6"]
     S --- N1
-    N2["DIVERGENCE — the settings hot-reload watcher is DISABLED, src/app_state.rs:1167-1170<br/>reason recorded in code: it was causing database deadlocks"]
+    N2["DIVERGENCE — the settings hot-reload watcher is DISABLED, src/app_state.rs:1110-1113<br/>reason recorded in code: it was causing database deadlocks"]
     ACT --- N2
-    N3["OptimizedSettingsActor's wider message surface beyond the round trip shown here — ReloadSettings<br/>(optimized_settings_actor.rs:1186) is the dormant hot-reload handler N2's disabled watcher would<br/>have driven; GetSettingByPath/GetSettingsByPaths/SetSettingsByPaths (optimized_settings_actor.rs:816,<br/>:847, :906) give granular per-path read/write alongside the full-snapshot GetSettings/UpdateSettings<br/>used above; WarmCacheMessage (optimized_settings_actor.rs:765) and GetPerformanceMetrics/ClearCaches<br/>(optimized_settings_actor.rs:1158, :1173) handle cache warm-up and introspection"]
+    N3["OptimizedSettingsActor's wider message surface beyond the round trip shown here — ReloadSettings<br/>(optimized_settings_actor.rs:1182) is the dormant hot-reload handler N2's disabled watcher would<br/>have driven; GetSettingByPath/GetSettingsByPaths/SetSettingsByPaths (optimized_settings_actor.rs:812,<br/>:843, :902) give granular per-path read/write alongside the full-snapshot GetSettings/UpdateSettings<br/>used above; WarmCacheMessage (optimized_settings_actor.rs:761) and GetPerformanceMetrics/ClearCaches<br/>(optimized_settings_actor.rs:1154, :1169) handle cache warm-up and introspection"]
     ACT --- N3
 ```
 
@@ -60,17 +62,17 @@ sequenceDiagram
     autonumber
     participant CL as client
     participant RG as RbacGate<br/>src/middleware/rbac_gate.rs
-    participant H as update_physics_settings<br/>src/settings/api/settings_routes.rs:497-501
+    participant H as update_physics_settings<br/>src/settings/api/settings_routes.rs:512-516
     participant AU as AuthenticatedUser<br/>src/settings/auth_extractor.rs
-    participant SA as OptimizedSettingsActor<br/>src/actors/optimized_settings_actor.rs:778
-    participant VA as validate_physics_settings<br/>src/settings/api/settings_routes.rs
+    participant SA as OptimizedSettingsActor<br/>src/actors/optimized_settings_actor.rs:774
+    participant VA as validate_physics_settings and validate_for_gpu<br/>src/settings/api/settings_routes.rs:135, :126
 
     CL->>RG: PUT /api/settings/physics
     Note over RG: WriteSettings capability required — see VC-03.6
     RG->>H: forward
-    H->>AU: extract AuthenticatedUser (auth.pubkey logged at :507-510)
+    H->>AU: extract AuthenticatedUser (auth.pubkey logged at :522-525)
     H->>SA: send(GetSettings)
-    Note over H,SA: single GetSettings call — a full snapshot is fetched ONCE to avoid a TOCTOU race<br/>comment src/settings/api/settings_routes.rs:512
+    Note over H,SA: single GetSettings call — a full snapshot is fetched ONCE to avoid a TOCTOU race<br/>comment src/settings/api/settings_routes.rs:527
     alt Ok(Ok(settings))
         SA-->>H: AppFullSettings
     else Ok(Err(e))
@@ -78,16 +80,21 @@ sequenceDiagram
     else Err(mailbox)
         SA-->>H: 500 "Actor communication error"
     end
-    H->>H: current = full_settings.visualisation.graphs.knowledge.physics (:530)
+    H->>H: current = full_settings.visualisation.graphs.knowledge.physics (:545)
     Note over H: RESOLVED ADR-2041 by ADR-2115 — `knowledge` is the only accepted graph-type<br/>segment — the one-release `logseq` alias has expired and is now rejected everywhere<br/>(crates/visionclaw-domain/src/config/graph_type.rs:1-5). See VC-09.15
-    H->>H: normalize_physics_keys(patch) — snake_case and legacy aliases to canonical camelCase (:537-539)
-    H->>H: merge patch onto the snapshot then serde_json::from_value::<PhysicsSettings>
+    H->>H: merge_physics_patch(current, patch) (:548, defined :1283-1299)
+    Note over H: normalize_physics_keys maps snake_case and legacy aliases to canonical camelCase (:1297), then deep_merge_json<br/>merges NESTED objects recursively (:1295-1298), so one nested slider patch no longer resets its sibling<br/>fields, and a nested typo is a 400 rather than a silent no-op. A non-object body leaves the snapshot's physics unchanged (:550)
     alt merge fails
-        H-->>CL: 400 "Invalid settings value"
+        H-->>CL: 400 "Invalid settings value" (:551-555)
     end
-    H->>VA: validate_physics_settings(&new_physics) (:557)
+    H->>VA: validate_physics_settings(&new_physics) (:560)
     alt validation fails
         VA-->>CL: 400 "Validation failed: ..."
+    end
+    H->>VA: validate_for_gpu(&new_physics) (:569)
+    Note over H,VA: runs SimulationParams::validate BEFORE anything is persisted (doc :121-125) — the route-level check is<br/>narrower (it never looked at ssspAlpha), so without this a value could pass, be stored, then be refused by the GPU actor<br/>while the response was still 200
+    alt GPU validation fails
+        VA-->>CL: 400 "Validation failed: GPU rejected these values: ..." (:571-573)
     end
     Note over H,VA: continues in VC-06.3
 ```
@@ -96,23 +103,24 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant H as update_physics_settings<br/>src/settings/api/settings_routes.rs:497-501
-    participant SA as OptimizedSettingsActor<br/>src/actors/optimized_settings_actor.rs:805
+    participant H as update_physics_settings<br/>src/settings/api/settings_routes.rs:512-516
+    participant SA as OptimizedSettingsActor<br/>src/actors/optimized_settings_actor.rs:801
     participant GPU as GPUComputeActor<br/>via state.get_gpu_compute_addr()
     participant GM as GPUManagerActor<br/>state.gpu_manager_addr
+    participant CC as ClientCoordinatorActor<br/>state.client_manager_addr
     participant GS as GraphServiceSupervisor<br/>state.graph_service_addr
-    participant DB as SqliteSettingsRepository<br/>src/adapters/sqlite_settings_repository.rs:415
+    participant DB as SqliteSettingsRepository<br/>src/adapters/sqlite_settings_repository.rs:409
 
-    H->>H: full_settings.visualisation.graphs.knowledge.physics = new_physics (:565)
+    H->>H: full_settings.visualisation.graphs.knowledge.physics = new_physics (:577)
     H->>SA: send(UpdateSettings { settings: full_settings })
     alt Ok(Ok(()))
-        H->>H: SimulationParams::from(&new_physics) (:577-578)
+        H->>H: SimulationParams::from(&new_physics) (:589-590)
         rect rgb(236,236,244)
         Note over H,GM: GPU propagation with a startup fallback
         alt state.get_gpu_compute_addr() is Some
             H->>GPU: send(UpdateSimulationParams { params })
         else direct address not yet cached
-            Note over H,GM: fallback window is roughly the first 6s of startup while the async init task completes (:593-595)
+            Note over H,GM: fallback window is roughly the first 6s of startup while the async init task completes (:605-607)
             alt state.gpu_manager_addr is Some
                 H->>GM: send(UpdateSimulationParams) — routed
             else
@@ -121,56 +129,60 @@ sequenceDiagram
         end
         opt GPUComputeActor address available
             H->>GPU: do_send(UpdateClusteringParams { algorithm, resolution, iterations })
-            Note over H,GPU: community-detector params cannot ride in the 172-byte repr-C SimParams<br/>so they are dispatched separately — this is what makes the Physics tab controls live (:610-621)
+            Note over H,GPU: community-detector params cannot ride in the 172-byte repr-C SimParams<br/>so they are dispatched separately — this is what makes the Physics tab controls live (:622-635)
         end
+        H->>CC: do_send(stream_settings_message(&new_physics)) — ConfigureStream with chunk_nodes, move_threshold, ack_timeout_ms (:636-640, built :472)
+        Note over H,CC: the three stream settings are not SimParams fields either, they go straight to the client coordinator<br/>that builds each client's chunks. If no GPUComputeActor address is cached, clustering parameters wait for its next boot push (:633-634)
         end
         H->>GS: send(UpdateSimulationParams)
-        H->>GS: send(ForceResumePhysics { reason: "Physics settings updated via API" }) (:633-638)
-        Note over GS: without ForceResumePhysics a converged system stays paused and the change is invisible (settings_routes.rs:630-631)
-        H->>DB: set_setting("physics", SettingValue::Json(...), Some("Physics simulation settings")) (:648-654)
+        H->>GS: send(ForceResumePhysics { reason: "Physics settings updated via API" }) (:652-657)
+        Note over GS: without ForceResumePhysics a converged system stays paused and the change is invisible (settings_routes.rs:649-650)
+        H->>DB: set_setting("physics", SettingValue::Json(...), Some("Physics simulation settings")) (:667-673)
         alt persist fails
             DB-->>H: warn only — the response still succeeds
         end
-        H->>H: broadcast_settings_change(&state, "physics", &auth.pubkey) (:670, ADR-2047)
-        H-->>H: 200 with the new PhysicsSettings JSON (:672)
+        H->>H: broadcast_settings_change(&state, "physics", &auth.pubkey) (:689, ADR-2047)
+        H-->>H: 200 with the new PhysicsSettings JSON (:691)
     else Ok(Err(e))
         SA-->>H: 500 "Failed to update physics settings"
     else Err(mailbox)
         SA-->>H: 500 "Actor communication error"
     end
-    Note over H,DB: RESOLVED ADR-2047 (was DIVERGENCE) — physics now DOES broadcast to other<br/>sessions via broadcast_settings_change (:670, added "was the one that never announced<br/>itself"). Rendering (:866) also calls broadcast_settings_change — node-filter uses a<br/>separate raw client_manager_addr.do_send(BroadcastMessage) instead (:1000-1001), same effect. See VC-06.4
+    Note over H,DB: RESOLVED ADR-2047 (was DIVERGENCE) — physics now DOES broadcast to other<br/>sessions via broadcast_settings_change (:689, added "was the one that never announced<br/>itself"). Rendering (:885) also calls broadcast_settings_change — node-filter uses a<br/>separate raw client_manager_addr.do_send(BroadcastMessage) instead (:1019-1020), same effect. See VC-06.4
 ```
 
 ## VC-06.4 Broadcast asymmetry — which settings reach other sessions
 ```mermaid
 sequenceDiagram
     autonumber
-    participant H1 as update_rendering_settings<br/>src/settings/api/settings_routes.rs:833
-    participant H2 as update_node_filter_settings<br/>src/settings/api/settings_routes.rs:934
-    participant H3 as update_physics_settings<br/>src/settings/api/settings_routes.rs:501
-    participant BC as broadcast_settings_change<br/>src/settings/api/settings_routes.rs:443-459
+    participant H1 as update_rendering_settings<br/>src/settings/api/settings_routes.rs:852
+    participant H2 as update_node_filter_settings<br/>src/settings/api/settings_routes.rs:953
+    participant H3 as update_physics_settings<br/>src/settings/api/settings_routes.rs:516
+    participant H4 as reset_layout<br/>src/settings/api/settings_routes.rs:1644
+    participant BC as broadcast_settings_change<br/>src/settings/api/settings_routes.rs:448-462
     participant CC as ClientCoordinatorActor<br/>state.client_manager_addr
     participant B as other browser sessions
 
-    H1->>BC: broadcast_settings_change(state, "rendering", pubkey) (:866)
-    H3->>BC: broadcast_settings_change(state, "physics", pubkey) (:670)
-    BC->>CC: do_send(BroadcastMessage { message }) (:452-454) — category-only payload, no settings echoed
+    H1->>BC: broadcast_settings_change(state, "rendering", pubkey) (:885)
+    H3->>BC: broadcast_settings_change(state, "physics", pubkey) (:689)
+    H4->>BC: broadcast_settings_change(state, "physics", "reset-layout") (:1726) — a layout reset now tells other sessions too, their sliders no longer keep the pre-reset values
+    BC->>CC: do_send(BroadcastMessage { message }) (:457-459) — category-only payload, no settings echoed
     CC->>B: WS frame — other sessions converge
-    H2->>CC: do_send(BroadcastMessage { message }) (:1000-1001) — OWN inline call, bypasses broadcast_settings_change
-    Note over H2,CC: payload built at :983-997, fuller than BC's — echoes the actual settings fields,<br/>not just category. Comment "Propagate node filter changes..." at :980-982
+    H2->>CC: do_send(BroadcastMessage { message }) (:1019-1020) — OWN inline call, bypasses broadcast_settings_change
+    Note over H2,CC: payload built at :1002-1016, fuller than BC's — echoes the actual settings fields,<br/>not just category. Comment "Propagate node filter changes..." at :999-1001
     CC->>B: WS frame
-    Note over H1,B: RESOLVED ADR-2047 — physics and rendering now BOTH emit through the single<br/>broadcast_settings_change emitter (:443-459), physics was the one that "never announced<br/>itself" until this change. node-filter keeps its own richer, separate broadcast. RESOLVED<br/>ADR-2080 (vc-clients) — the client now CONSUMES settingsUpdated: nodeFilter applies its<br/>payload directly, other categories re-read via getSectionPaths/getSettingsByPaths,<br/>write-echo and stale timestamps are dropped. Before both, the server emitted<br/>settingsUpdated while the client validator knew only settings_update, so every broadcast<br/>fell through to Unknown message type. Still silent by choice: constraints, quality-gates,<br/>visual, profiles.
+    Note over H1,B: RESOLVED ADR-2047 — physics (PUT and reset-layout) and rendering now ALL emit through the single<br/>broadcast_settings_change emitter (:448-462), physics was the one that "never announced<br/>itself" until this change. node-filter keeps its own richer, separate broadcast. RESOLVED<br/>ADR-2080 (vc-clients) — the client now CONSUMES settingsUpdated: nodeFilter applies its<br/>payload directly, other categories re-read via getSectionPaths/getSettingsByPaths,<br/>write-echo and stale timestamps are dropped. Before both, the server emitted<br/>settingsUpdated while the client validator knew only settings_update, so every broadcast<br/>fell through to Unknown message type. Still silent by choice: constraints, quality-gates,<br/>visual, profiles.
 ```
 
 ## VC-06.6 ProtectedSettingsActor — API keys, client tokens and user records
 ```mermaid
 sequenceDiagram
     autonumber
-    participant H as nostr_handler api-keys routes<br/>src/handlers/nostr_handler.rs:58-59
-    participant PS as ProtectedSettingsActor<br/>src/app_state.rs:1201, Addr src/app_state.rs:354
+    participant H as nostr_handler api-keys routes<br/>src/handlers/nostr_handler.rs:60-63
+    participant PS as ProtectedSettingsActor<br/>src/app_state.rs:1144, Addr src/app_state.rs:327
     participant ST as ProtectedSettings store
 
-    Note over PS: started with ProtectedSettings::default() — src/app_state.rs:1201
+    Note over PS: started with ProtectedSettings::default() — src/app_state.rs:1144
     H->>PS: GetApiKeys (handler src/actors/protected_settings_actor.rs:33)
     PS->>ST: read
     H->>PS: UpdateUserApiKeys (protected_settings_actor.rs:81)
@@ -198,46 +210,47 @@ sequenceDiagram
     autonumber
     participant A as caller<br/>route or OptimizedSettingsActor
     participant P as SettingsRepository trait<br/>src/ports/settings_repository.rs:8
-    participant AD as SqliteSettingsRepository<br/>src/adapters/sqlite_settings_repository.rs:378
+    participant AD as SqliteSettingsRepository<br/>src/adapters/sqlite_settings_repository.rs:372
     participant DB as SQLite via tokio_rusqlite
 
     Note over P: ADR-090 A6 slice 3 — src/ports/settings_repository.rs is a 14-line SHIM.<br/>The canonical trait lives in visionclaw_domain::ports::settings_repository. See VC-07.
     A->>P: get_setting(key)
-    P->>AD: impl SettingsRepository for SqliteSettingsRepository (sqlite_settings_repository.rs:378)
-    AD->>DB: SELECT (:382)
-    AD->>AD: decode_setting_value (:156) — JSON text to SettingValue
+    P->>AD: impl SettingsRepository for SqliteSettingsRepository (sqlite_settings_repository.rs:372)
+    AD->>DB: SELECT (:386)
+    AD->>AD: decode_setting_value (:150) — JSON text to SettingValue
     alt row absent
         AD-->>A: Ok(None)
     else decode error
-        AD-->>A: map_json_err (:151) to SettingsRepositoryError
+        AD-->>A: map_json_err (:145) to SettingsRepositoryError
     end
     A->>P: set_setting(key, value, description)
-    P->>AD: set_setting (sqlite_settings_repository.rs:415)
-    AD->>AD: encode_setting_value (:161), current_owner_pubkey() (:128)
+    P->>AD: set_setting (sqlite_settings_repository.rs:409)
+    AD->>AD: encode_setting_value (:155), current_owner_pubkey() (:128)
     AD->>DB: UPSERT
     par other trait methods
-        A->>AD: delete_setting (:451)
+        A->>AD: delete_setting (:445)
     and
-        A->>AD: has_setting (:472)
+        A->>AD: has_setting (:466)
     and
-        A->>AD: get_settings_batch (:493)
+        A->>AD: get_settings_batch (:487)
     and
-        A->>AD: set_settings_batch (:578)
+        A->>AD: set_settings_batch (:572)
     and
-        A->>AD: list_settings(prefix) (:616)
+        A->>AD: list_settings(prefix) (:610)
     end
-    Note over AD: flatten_json (:171) / unflatten_pairs (:194) / insert_at_path (:202)<br/>store settings as flat dotted key rows and rebuild the nested JSON on read
-    Note over AD,DB: adapter-only surface beyond the port — open (:247), from_connection (:261), connection (:267),<br/>get_file_sha1s (:276), upsert_file_sha1s (:295), get_sync_config (:323), set_sync_config (:344),<br/>clear_sync_metadata (:365). The corpus-sync SHA1 ledger shares this database. See VC-21.
-    Note over AD,DB: errors are normalised by map_db_err (:140) and map_rusqlite_err (:146)
+    Note over AD: flatten_json (:165) / unflatten_pairs (:188) / insert_at_path (:196)<br/>store settings as flat dotted key rows and rebuild the nested JSON on read
+    Note over AD,DB: adapter-only surface beyond the port — open (:241), from_connection (:255), connection (:261),<br/>get_file_sha1s (:270), upsert_file_sha1s (:289), get_sync_config (:317), set_sync_config (:338),<br/>clear_sync_metadata (:359). The corpus-sync SHA1 ledger shares this database. See VC-21.
+    Note over AD,DB: errors are normalised by map_db_err (:140) and map_json_err (:145), the former map_rusqlite_err helper no longer exists
 ```
 
 ## VC-06.8 Validation and field-mapping helpers
 ```mermaid
 flowchart TB
     IN["incoming settings JSON"]
-    IN --> N1["normalize_physics_keys<br/>src/settings/api/settings_routes.rs:70<br/>snake_case and legacy names to canonical camelCase, call site :539"]
-    N1 --> V1["validate_physics_settings<br/>src/settings/api/settings_routes.rs:117 (call site :557)"]
-    V1 --> OUT["PhysicsSettings"]
+    IN --> N1["normalize_physics_keys<br/>src/settings/api/settings_routes.rs:71<br/>snake_case and legacy names to canonical camelCase, call site inside merge_physics_patch :1297"]
+    N1 --> V1["validate_physics_settings<br/>src/settings/api/settings_routes.rs:135 (call site :560)"]
+    V1 --> G1["validate_for_gpu<br/>src/settings/api/settings_routes.rs:126 (call site :569)<br/>SimulationParams::validate before persistence"]
+    G1 --> OUT["PhysicsSettings"]
     subgraph FIX["src/handlers/settings_validation_fix.rs"]
         F1["validate_physics_settings_complete(&Value) settings_validation_fix.rs:5"]
         F2["validate_constraint(&Value) settings_validation_fix.rs:67"]
@@ -254,7 +267,7 @@ flowchart TB
     end
     V1 -.-> DOM
     FIX -.-> IN
-    NOTE["the two families are parallel — settings_routes.rs carries its own normalise/validate pair<br/>while settings_validation_fix.rs holds a second, more complete set. Confirm which the<br/>live PUT path calls before relying on either."]
+    NOTE["the two families are parallel — settings_routes.rs carries its own normalise/validate pair<br/>(plus validate_for_gpu) and the live PUT /api/settings/physics path calls those only.<br/>settings_validation_fix.rs is imported by other handlers: settings_handler/validation.rs:7,<br/>settings_handler/write_handlers.rs:12 and constraints_handler.rs:9"]
     FIX --- NOTE
 ```
 
@@ -272,5 +285,6 @@ sequenceDiagram
     Note over B,F: output_path is the literal "client/src/types/generated/settings.ts" (:18)<br/>the parent directory is created if absent (:19-21)
     B->>F: fs::metadata(output_path) then log the byte size (:34)
     Note over D,F: RESOLVED ADR-2041 by ADR-2115 — the generated types emit `knowledge` only,<br/>`logseq` is gone. path_accessible_impls now matches `knowledge` alone, no alias arm<br/>(src/config/path_accessible_impls.rs:159 and :183). Full alias lifecycle see VC-09.15
+    Note over F: DRIFT — the output file is gitignored (.gitignore:151 `generated`) and absent from the tree at this stamp,<br/>while project AGENTS.md (Code conventions, Type generation) says generate_types updates client/src/types/.<br/>The file exists only after a local run
     Note over B: server-side YAML is snake_case, the JSON and TS surface is camelCase —<br/>the serde alias behaviour is asserted at boot, src/main.rs:306-322
 ```

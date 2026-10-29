@@ -49,7 +49,7 @@ sources:
   - ../project/agentbox/management-api/routes/sessions-boundary.js
   - ../project/agentbox/management-api/routes/tasks.js
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
-verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
+verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
 ---
 
 ## AB-03.1 server.js boot part 1 — Fastify construction, hooks, static route registers
@@ -253,7 +253,7 @@ sequenceDiagram
     end
 
     rect rgb(255,240,230)
-    Note over RA: preHandler form, plus an in-handler equivalent in routes/approvals.js:132-149
+    Note over RA: preHandler form, plus an in-handler equivalent in routes/approvals.js:139-156
     C->>RA: preHandler(request, reply)
     alt auth.mode is bearer or pubkey missing
         RA-->>C: 403 forbidden_not_approver — bearer can never approve<br/>lib/authz.js:213-217
@@ -294,7 +294,7 @@ flowchart TD
         D1["GET /v1/uri/:urn<br/>routes/uri-resolver.js:49"] --> HD1["400 malformed / 200+307 resolvable / 404 unknown —<br/>see AB-11.15 for the full alt-chain; 410 Gone is documented<br/>but WITHDRAWN, never emitted (ADR-2049) routes/uri-resolver.js:12-25"]
         D2["GET /v1/uri<br/>routes/uri-resolver.js:161"] --> HD2["resolver capability listing"]
     end
-    Note1["DOC-DRIFT: the governing doc carries an EMPTY verified_commit<br/>(BASELINE-container.md:6), so nothing states the revision its route<br/>citations were read at. Every route line above was re-derived<br/>from the symbol at 6466e393"]
+    Note1["DOC-DRIFT: the governing doc carries an EMPTY verified_commit<br/>(BASELINE-container.md:6), so nothing states the revision its route<br/>citations were read at. Every route line above was re-checked<br/>against the symbol at 1da8d2171"]
 ```
 
 ## AB-03.7 route table (b) — tasks, beads, projects
@@ -332,10 +332,10 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph memory["routes/memory.js — 503 when adapters.pods off, guard privacy-filter"]
-        M1["POST /v1/memory<br/>memory.js:109<br/>guard middleware/privacy-filter.js:649 wrapWithPrivacyFilter"] --> MH1["write to Solid pod memory"]
-        M2["GET /v1/memory/:key<br/>memory.js:196"] --> MH2["read memory entry"]
-        M3["POST /v1/memory/search<br/>memory.js:229"] --> MH3["search memory"]
-        M4["GET /v1/memory<br/>memory.js:267"] --> MH4["list memory keys"]
+        M1["POST /v1/memory<br/>memory.js:126<br/>guard middleware/privacy-filter.js:649 wrapWithPrivacyFilter"] --> MH1["write to Solid pod memory"]
+        M2["GET /v1/memory/:key<br/>memory.js:213"] --> MH2["read memory entry"]
+        M3["POST /v1/memory/search<br/>memory.js:246"] --> MH3["search memory<br/>over 2 results: optional Jev ranking before headroom, off by default,<br/>_rankMemoryResults memory.js:274, falls back to the same array"]
+        M4["GET /v1/memory<br/>memory.js:288"] --> MH4["list memory keys"]
     end
     subgraph kg["routes/kg-elevation.js — self-gates on sovereign_mesh.kg_elevation"]
         K1["POST /v1/kg-elevation/scan<br/>kg-elevation.js:77<br/>guard verifyAgentEventRequest kg-elevation.js:114"] --> KH1["scan personal KG via memory adapter<br/>ADR-2116 gateElevation before federation — see AB-03.18<br/>emit LINK beams + ontology-propose descriptor"]
@@ -368,20 +368,24 @@ flowchart TD
         E8["GET /v1/agent-events/status<br/>agent-events.js:640"] --> EH8["forwarder status"]
     end
     subgraph au["routes/admin-users.js — mounted only if sovereign_mesh.multi_user.enabled"]
-        AU1["POST /admin/users/provision<br/>admin-users.js:137"] --> AUH1["501 stub — see PRD-007 (server.js:1113)"]
-        AU2["POST /admin/users/:pubkey/git-init<br/>admin-users.js:195"] --> AUH2["501 stub"]
-        AU3["POST /admin/users/:pubkey/suspend<br/>admin-users.js:229"] --> AUH3["501 stub"]
-        AU4["POST /admin/users/:pubkey/archive<br/>admin-users.js:245"] --> AUH4["501 stub"]
+        AU1["POST /admin/users/provision<br/>admin-users.js:138"] --> AUH1["501 stub — see PRD-007 (server.js:1113)"]
+        AU2["POST /admin/users/:pubkey/git-init<br/>admin-users.js:196"] --> AUH2["501 stub"]
+        AU3["POST /admin/users/:pubkey/suspend<br/>admin-users.js:230"] --> AUH3["501 stub"]
+        AU4["POST /admin/users/:pubkey/archive<br/>admin-users.js:246"] --> AUH4["501 stub"]
     end
     subgraph ap["routes/approvals.js — ADR-043 D4.7"]
-        AP1["GET /v1/approvals<br/>approvals.js:51"] --> APH1["authorityConsumer.listPending or wired false"]
-        AP2["POST /v1/approvals/:id/decide<br/>approvals.js:92<br/>guard nip98-only + isApprover approvals.js:132-149"] --> APH2["sign+publish kind-31403 — see AB-03.5"]
+        AP1["GET /v1/approvals<br/>approvals.js:55"] --> APH1["authorityConsumer.listPending or wired false<br/>then annotateApprovals, advisory review_aid, Jev option off by default<br/>approvals.js:94"]
+        AP2["POST /v1/approvals/:id/decide<br/>approvals.js:99<br/>guard nip98-only + isApprover approvals.js:139-156"] --> APH2["sign+publish kind-31403 — see AB-03.5"]
     end
     subgraph md["routes/mandate.js — ADR-043 D4.5, guard requireOperator"]
         MD1["POST /v1/mandate<br/>mandate.js:310<br/>guard requireOperator mandate.js:311"] --> MDH1["create scoped WAC mandate"]
         MD2["POST /v1/mandate/revoke<br/>mandate.js:388<br/>guard requireOperator mandate.js:389"] --> MDH2["revoke mandate"]
         MD3["GET /v1/mandate<br/>mandate.js:436<br/>guard requireOperator mandate.js:437"] --> MDH3["list mandates"]
     end
+    sb ~~~ ae
+    ae ~~~ au
+    au ~~~ ap
+    ap ~~~ md
 ```
 
 ## AB-03.10 route table (e1) — payments, llm-marketplace, dream, comfyui
@@ -419,6 +423,9 @@ flowchart TD
         CF5["DELETE /v1/comfyui/workflow/:workflowId<br/>comfyui.js:251"] --> CFH5["cancel workflow"]
         CF6["GET /v1/comfyui/stream<br/>comfyui.js:319<br/>websocket true"] --> CFH6["WS progress stream"]
     end
+    pay ~~~ llm
+    llm ~~~ dream
+    dream ~~~ comfy
 ```
 
 ## AB-03.11 route table (e2) — voice-intent, broker-bridge, git-bridge, pod-git
@@ -426,15 +433,15 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph vi["routes/voice-intent.js — WS7, mandate-gated"]
-        VI1["POST /v1/voice-intent<br/>voice-intent.js:82"] --> VIH1["transcript to agent intent<br/>dispatch signed 31402 or 503 when signer unavailable (server.js:978-980)"]
+        VI1["POST /v1/voice-intent<br/>voice-intent.js:85"] --> VIH1["transcript to agent intent<br/>optional Jev interpret after the speaker, mandate and target checks, off by default,<br/>422 clarification-needed holds a doubted intent (voice-intent.js:227-229)<br/>dispatch signed 31402 or 503 when signer unavailable (server.js:978-980)"]
     end
     subgraph bb["routes/broker-bridge.js — G6"]
         BB1["GET /api/broker/bridge/inbox<br/>broker-bridge.js:316"] --> BBH1["enrichment review inbox"]
         BB2["GET /api/broker/bridge/cases/:id<br/>broker-bridge.js:394"] --> BBH2["case detail"]
-        BB3["POST /api/broker/bridge/cases/:id/decide<br/>broker-bridge.js:435<br/>guard signed-31403 broker-bridge.js:501"] --> BBH3["operation-bound signed approval<br/>durable received claim before mutation<br/>applied receipt requires committed upstream acknowledgement"]
-        BBH3 --> BBH3B["receipt ladder mirrored to the forum<br/>mirrorReceipt broker-bridge.js:274<br/>consumer-received before the mutation broker-bridge.js:548<br/>then applied or not-applied broker-bridge.js:607<br/>INVARIANT: an unknown outcome posts NOTHING, broker-bridge.js:583"]
-        BB4["GET /api/broker/bridge/events<br/>broker-bridge.js:834"] --> BBH4["event feed"]
-        BB5["GET /api/broker/bridge/cases/:id/history<br/>broker-bridge.js:907"] --> BBH5["case history"]
+        BB3["POST /api/broker/bridge/cases/:id/decide<br/>broker-bridge.js:435<br/>guard signed-31403 broker-bridge.js:509<br/>optional effective_tier forwarded in the payload broker-bridge.js:461,497"] --> BBH3["operation-bound signed approval<br/>durable received claim before mutation<br/>applied receipt requires committed upstream acknowledgement"]
+        BBH3 --> BBH3B["receipt ladder mirrored to the forum<br/>mirrorReceipt broker-bridge.js:274<br/>consumer-received before the mutation broker-bridge.js:556<br/>then applied or not-applied broker-bridge.js:615<br/>INVARIANT: an unknown outcome posts NOTHING, broker-bridge.js:591"]
+        BB4["GET /api/broker/bridge/events<br/>broker-bridge.js:842"] --> BBH4["event feed"]
+        BB5["GET /api/broker/bridge/cases/:id/history<br/>broker-bridge.js:915"] --> BBH5["case history"]
     end
     subgraph gb["routes/git-bridge.js — G5, BC20"]
         GB1["POST /v1/git/clone<br/>git-bridge.js:275"] --> GBH1["clone remote"]
@@ -561,7 +568,7 @@ sequenceDiagram
             M-->>Caller: throw UntraceableModelRequest (strict) or degraded model.requested (compatibility)<br/>lib/execution-journal.js:75-84
         end
     end
-    Note over J: CORRECTED 2026-10-02 — the journal is live: lib/action-plane.js:168 constructs ExecutionJournal<br/>(tasks.js dispatchTaskSpawn rides that plane), and since ADR-2071 Phase 1 routes/exec-record.js:128<br/>appends through the same singleton, so the management API stays the only chain writer
+    Note over J: CORRECTED 2026-10-02 — the journal is live: lib/action-plane.js:169 constructs ExecutionJournal<br/>(tasks.js dispatchTaskSpawn rides that plane), and since ADR-2071 Phase 1 routes/exec-record.js:128<br/>appends through the same singleton, so the management API stays the only chain writer
 ```
 
 ## AB-03.15 end-to-end authenticated write — nip98-proxy through audit-chain

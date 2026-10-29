@@ -21,7 +21,7 @@ sources:
   - ../project/xr-client/tests/unit/test_hud_tabs.gd
   - ../project/xr-client/tests/unit/test_graph_parity.gd
   - ../project/xr-client/tests/unit/test_backend_switch.gd
-verified_commit: {visionclaw: b2bdb6e726d98a34ef90dfdb46d61c4b861c770f}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
 ---
 
 ## VC-40.1 One capability table gates every server-bound request and greys the matching controls
@@ -75,22 +75,22 @@ sequenceDiagram
     participant HUD as Session tab Backend button<br/>xr-client/scripts/hud.gd:1611
     participant GS as GraphScene._switch_backend<br/>xr-client/scripts/graph_scene.gd:909
     participant AB as _abandon_backend_requests<br/>xr-client/scripts/graph_scene.gd:877
-    participant PAR as GraphParity<br/>xr-client/scripts/graph_parity.gd:493
+    participant GPA as GraphParity<br/>xr-client/scripts/graph_parity.gd:493
     participant SYNC as _sync_hud_backend<br/>xr-client/scripts/graph_scene.gd:835
     participant MEM as MemoryCloud / MemorySearch<br/>xr-client/scripts/memory_search.gd:63
     HUD->>GS: control_pressed backend:codescape
     GS->>GS: same mode: return (:909)
     GS->>AB: cancel every HTTPRequest: physics, fold, cycles, query, exec, relations, expand, observe, demo (:877)
-    AB->>AB: clear _physics_pending and _physics_staged, fold, cycles, query, exec, demo pending; the once-per-session canary latch stays
+    AB->>AB: clear _physics_pending and _physics_staged, fold, cycles, query, exec, demo pending, the once-per-session canary latch stays
     AB->>AB: drop the applied fold plan, the cycle overlay and the query-result planes, all bound to the old epoch ids
     AB->>AB: send_node_unpin for every pinned id while the old socket is open, then clear the set
-    AB->>PAR: on_backend_switched: cancel physics, settlement and demo polls, want physics again (:493)
+    AB->>GPA: on_backend_switched: cancel physics, settlement and demo polls, want physics again (:493)
     GS->>GS: re-point /wss and /ws/presence at the new base, reset backoff, connect
     GS->>SYNC: refresh _caps, push mode and capabilities to the HUD (:835)
     SYNC->>MEM: configure(_http_base) and set_http_base, fold the cloud away where its route is absent (:848 :853)
-    GS->>PAR: apply_backend_palette: Codescape mode 2, VisionClaw mode 0 (xr-client/scripts/graph_parity.gd:507)
+    GS->>GPA: apply_backend_palette: Codescape mode 2, VisionClaw mode 0 (xr-client/scripts/graph_parity.gd:507)
     Note over GS: Before A6 a physics PUT still in flight at the switch committed its staged values into the new session,<br/>and memory search kept posting to the boot-time origin<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:316-326
-    Note over PAR: GUT test_backend_switch_drops_polls_and_rereads_physics<br/>xr-client/tests/unit/test_graph_parity.gd:252
+    Note over GPA: GUT test_backend_switch_drops_polls_and_rereads_physics<br/>xr-client/tests/unit/test_graph_parity.gd:252
     Note over AB: GUT test_switch_clears_applied_fold_pins_and_pending_state<br/>xr-client/tests/unit/test_backend_switch.gd:17 ADR-2143-codescape-section-separate-workspace-and-port.md:346
 ```
 

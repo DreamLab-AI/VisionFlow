@@ -5,7 +5,7 @@ area: visionclaw
 governing:
   - ../project/docs/PROTOCOL-registry.md
   - ../project/docs/GPU-wire-abi.md
-adrs: [ADR-2007, ADR-2009, ADR-2059]
+adrs: [ADR-2007, ADR-2009, ADR-2059, ADR-2138, ADR-2140]
 sources:
   - ../project/src/handlers/api_handler/analytics/mod.rs
   - ../project/src/handlers/api_handler/analytics/feature_flags_handlers.rs
@@ -22,44 +22,49 @@ sources:
   - ../project/src/actors/gpu/force_compute_actor.rs
   - ../project/src/actors/gpu/stress_majorization_actor.rs
   - ../project/src/models/simulation_params.rs
-verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
+  - ../project/src/handlers/api_handler/analytics/cycles_handlers.rs
+  - ../project/src/layout/scc.rs
+  - ../project/docs/adr/ADR-2138-directed-cycles-are-a-server-analysis-with-one-adjacency.md
+  - ../project/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md
+verified_commit: 19417bdff5fc22053a8a0cc185797b0311521d10
 ---
 
 ## VC-18.1 /analytics scope — auth wrapper and route table
 
 ```mermaid
-flowchart TD
-    SCOPE["web::scope(/analytics)<br/>analytics/mod.rs:169"]
-    W1["wrap RequireAuth::authenticated().mutations_only()<br/>analytics/mod.rs:170"]
-    WS["web::resource(/ws) wrap RequireAuth::authenticated()<br/>analytics/mod.rs:269-273"]
+flowchart LR
+    SCOPE["web::scope(/analytics)<br/>analytics/mod.rs:170"]
+    W1["wrap RequireAuth::authenticated().mutations_only()<br/>analytics/mod.rs:171"]
+    WS["web::resource(/ws) wrap RequireAuth::authenticated()<br/>analytics/mod.rs:271-275"]
 
     subgraph POSTS["Authenticated mutations - POST"]
-        P1["/params :172 update_analytics_params"]
-        P2["/constraints :173 update_constraints"]
-        P3["/focus :174 set_focus"]
-        P4["/kernel-mode :175 set_kernel_mode"]
-        P5["/feature-flags :204 update_feature_flags"]
-        P6["/stress-majorization/trigger :188"]
-        P7["/stress-majorization/reset-safety :192"]
-        P8["/stress-majorization/params :196"]
-        P9["/stress-majorization/configure :200"]
+        P1["/params :173 update_analytics_params"]
+        P2["/constraints :174 update_constraints"]
+        P3["/focus :175 set_focus"]
+        P4["/kernel-mode :176 set_kernel_mode"]
+        P5["/feature-flags :205 update_feature_flags"]
+        P6["/stress-majorization/trigger :189"]
+        P7["/stress-majorization/reset-safety :193"]
+        P8["/stress-majorization/params :197"]
+        P9["/stress-majorization/configure :201"]
         P10["clustering + community + anomaly + sssp + pagerank + pathfinding<br/>see VC-15"]
     end
     subgraph GETS["Public read-only telemetry - GET"]
-        G1["/params :238 get_analytics_params"]
-        G2["/constraints :239 get_constraints"]
-        G3["/stats :240 get_performance_stats"]
-        G4["/gpu-metrics :241 get_gpu_metrics"]
-        G5["/gpu-status :242 get_gpu_status"]
-        G6["/gpu-features :243 get_gpu_features"]
-        G7["/insights :251 get_ai_insights"]
-        G8["/insights/realtime :252 get_realtime_insights"]
-        G9["/dashboard-status :262 get_dashboard_status"]
-        G10["/health-check :263 get_health_check"]
-        G11["/feature-flags :264 get_feature_flags"]
-        G12["/stress-majorization/stats :255"]
-        G13["/stress-majorization/config :259"]
-        G14["/sssp/status :253 get_sssp_status"]
+        G1["/params :239 get_analytics_params"]
+        G2["/constraints :240 get_constraints"]
+        G3["/stats :241 get_performance_stats"]
+        G4["/gpu-metrics :242 get_gpu_metrics"]
+        G5["/gpu-status :243 get_gpu_status"]
+        G6["/gpu-features :244 get_gpu_features"]
+        G7["/insights :252 get_ai_insights"]
+        G8["/insights/realtime :253 get_realtime_insights"]
+        G9["/dashboard-status :264 get_dashboard_status"]
+        G10["/health-check :265 get_health_check"]
+        G11["/feature-flags :266 get_feature_flags"]
+        G12["/stress-majorization/stats :257"]
+        G13["/stress-majorization/config :261"]
+        G14["/sssp/status :254 get_sssp_status"]
+        G15["/cycles :255 cycles_handlers::get_cycles, see VC-18.10"]
     end
 
     SCOPE --> W1
@@ -83,14 +88,14 @@ sequenceDiagram
     participant C as Client
     participant FH as feature_flags_handlers<br/>src/handlers/api_handler/analytics/feature_flags_handlers.rs:9
     participant ST as FEATURE_FLAGS static<br/>analytics/state.rs:15
-    participant SS as sssp_handlers<br/>analytics/sssp_handlers.rs:109
-    participant ON as ontology check_feature_enabled<br/>api_handler/ontology/mod.rs:332
+    participant SS as sssp_handlers<br/>analytics/sssp_handlers.rs:153
+    participant ON as ontology check_feature_enabled<br/>api_handler/ontology/mod.rs:329
 
-    C->>FH: GET /analytics/feature-flags (route reg analytics/mod.rs:264)
+    C->>FH: GET /analytics/feature-flags (route reg analytics/mod.rs:266)
     FH->>ST: FEATURE_FLAGS.lock().await :10
     ST-->>FH: FeatureFlags struct - TWO bools after ADR-2059 (was nine)
     FH-->>C: flags plus a description map covering only the surviving two
-    C->>FH: POST /analytics/feature-flags (route reg analytics/mod.rs:204)
+    C->>FH: POST /analytics/feature-flags (route reg analytics/mod.rs:205)
     Note over FH: requires AuthenticatedUser extractor :23 on top of the scope wrap
     FH->>ST: FEATURE_FLAGS.lock().await :28 then *flags = request.into_inner() :29
     Note over FH: WHOLESALE REPLACE - no field merge, a partial POST silently resets omitted flags to the body's values
@@ -98,11 +103,12 @@ sequenceDiagram
 
     rect rgb(250,228,228)
         Note over ST,ON: What the flags actually do - the reason seven were removed
-        ON->>ST: if !flags.ontology_validation :335
+        ON->>ST: if !flags.ontology_validation :332
         Note over ON: ontology_validation is the ONLY flag read as a real GATE - it short-circuits ontology validation with an ErrorResponse
-        SS->>ST: flags.sssp_integration written :46 and :94, read for display :109
+        SS->>ST: flags.sssp_integration written :90 and :138, read for display :153
         Note over SS: sssp_integration is written by /sssp/toggle and echoed by /sssp/status - it gates nothing
     end
+    Note over SS: toggle_sssp no longer starts from SimulationParams::new(), it sends sssp_patched(live_params(), enabled, alpha) which changes only the SSSP fields over the persisted physics settings (sssp_handlers.rs:15, :79, :254) - it still does not write the toggle back to the store
     Note over ST: RESOLVED ADR-2059 - the seven flags that gated nothing are REMOVED from the struct, the Default and the description map. Only ontology_validation (a real gate) and sssp_integration (display-only, documented as such) remain
     Note over ST: OPEN ADR-2059 - FEATURE_FLAGS remains process-global, unpersisted and shared across all users, and update does a wholesale replace. Deliberately unchanged and routed to vc-knowledge, who owns the one reading side
 ```
@@ -126,7 +132,7 @@ sequenceDiagram
 
     C->>PH: POST /analytics/params :172
     PH->>GPU: send(UpdateVisualAnalyticsParams{...}) :63
-    Note over GPU: handled by ForceComputeActor at force_compute_actor.rs:3650
+    Note over GPU: handled by ForceComputeActor at force_compute_actor.rs:3313
 
     C->>PH: GET /analytics/constraints :239
     PH->>GPU: send(GetConstraints) :112
@@ -144,7 +150,7 @@ sequenceDiagram
     C->>PH: POST /analytics/kernel-mode :175
     PH->>PH: set_kernel_mode :357
     PH->>GPU: send(SetComputeMode{mode: compute_mode}) :383
-    Note over GPU: handled by ForceComputeActor at force_compute_actor.rs:3231
+    Note over GPU: handled by ForceComputeActor at force_compute_actor.rs:2841
     alt gpu addr is None
         Note over PH: every branch above degrades to an error response rather than panicking - get_gpu_compute_addr() returns Option
     end
@@ -160,9 +166,9 @@ sequenceDiagram
     participant TEL as analytics_telemetry<br/>src/actors/gpu/analytics_telemetry.rs
     participant GPU as GPU compute addr
 
-    C->>PF: GET /analytics/stats (route reg analytics/mod.rs:240)
+    C->>PF: GET /analytics/stats (route reg analytics/mod.rs:241)
     PF->>PF: get_performance_stats :55
-    C->>PF: GET /analytics/gpu-metrics (route reg analytics/mod.rs:241)
+    C->>PF: GET /analytics/gpu-metrics (route reg analytics/mod.rs:242)
     PF->>PF: get_gpu_metrics :149
     PF->>TEL: analytics_telemetry::snapshot() and total_cpu_fallbacks()
     Note over TEL: per-kernel GPU-vs-fallback counters are PROCESS-GLOBAL, recorded by the GPU analytics actors via analytics_telemetry::record_execution
@@ -177,9 +183,9 @@ sequenceDiagram
     else no GPU
         PF-->>C: degraded response, still carrying analytics_execution
     end
-    C->>PF: GET /analytics/gpu-status (route reg analytics/mod.rs:242)
+    C->>PF: GET /analytics/gpu-status (route reg analytics/mod.rs:243)
     PF->>PF: get_gpu_status :197
-    C->>PF: GET /analytics/gpu-features (route reg analytics/mod.rs:243)
+    C->>PF: GET /analytics/gpu-features (route reg analytics/mod.rs:244)
     PF->>PF: get_gpu_features :281
     Note over TEL: INVARIANT a non-zero total_cpu_fallbacks means the zero-fallback intent has been violated this process lifetime - it is the observable signal for the trust gap in VC-15.13
 ```
@@ -192,29 +198,29 @@ sequenceDiagram
     participant C as Client
     participant SH as stress_handlers<br/>src/handlers/api_handler/analytics/stress_handlers.rs:12
     participant GPU as GPU compute addr
-    participant SMA as StressMajorizationActor<br/>src/actors/gpu/stress_majorization_actor.rs:315
+    participant SMA as StressMajorizationActor<br/>src/actors/gpu/stress_majorization_actor.rs:311
 
-    C->>SH: POST /stress-majorization/trigger (route reg analytics/mod.rs:188)
+    C->>SH: POST /stress-majorization/trigger (route reg analytics/mod.rs:189)
     SH->>GPU: send(TriggerStressMajorization) :17
-    GPU->>SMA: TriggerStressMajorization :315
+    GPU->>SMA: TriggerStressMajorization :311
     alt no GPU context
         Note over SMA: Err "GPU not available for stress majorization" :95 - hard failure, no CPU path (see VC-11.7)
     end
-    C->>SH: GET /stress-majorization/stats (route reg analytics/mod.rs:255)
+    C->>SH: GET /stress-majorization/stats (route reg analytics/mod.rs:257)
     SH->>GPU: send(GetStressMajorizationStats) :43
-    C->>SH: POST /stress-majorization/reset-safety (route reg analytics/mod.rs:192)
+    C->>SH: POST /stress-majorization/reset-safety (route reg analytics/mod.rs:193)
     SH->>GPU: send(ResetStressMajorizationSafety) :70
-    GPU->>SMA: ResetStressMajorizationSafety :334
-    C->>SH: POST /stress-majorization/params (route reg analytics/mod.rs:196)
+    GPU->>SMA: ResetStressMajorizationSafety :330
+    C->>SH: POST /stress-majorization/params (route reg analytics/mod.rs:197)
     SH->>SH: build UpdateStressMajorizationParams :98
     SH->>GPU: send(msg) :102
-    GPU->>SMA: UpdateStressMajorizationParams :347
-    C->>SH: POST /stress-majorization/configure (route reg analytics/mod.rs:200)
+    GPU->>SMA: UpdateStressMajorizationParams :343
+    C->>SH: POST /stress-majorization/configure (route reg analytics/mod.rs:201)
     SH->>GPU: send(config.into_inner()) :131
-    GPU->>SMA: ConfigureStressMajorization :410
-    C->>SH: GET /stress-majorization/config (route reg analytics/mod.rs:259)
+    GPU->>SMA: ConfigureStressMajorization :406
+    C->>SH: GET /stress-majorization/config (route reg analytics/mod.rs:261)
     SH->>GPU: send(GetStressMajorizationConfig) :158
-    GPU->>SMA: GetStressMajorizationConfig :475
+    GPU->>SMA: GetStressMajorizationConfig :471
     Note over SH,SMA: All six handlers guard on get_gpu_compute_addr() being Some and return an error response otherwise
     Note over SMA: ADR-2060 bit5 ENABLE_STRESS_MAJORIZATION is RESERVED, declared but never set - stress majorization is CPU-side per project/src/models/simulation_params.rs:77 and is not a GPU force channel
 ```
@@ -230,22 +236,22 @@ sequenceDiagram
     participant ST as CLUSTERING_TASKS and ANOMALY_STATE<br/>analytics/state.rs
     participant GPU as GPU compute addr
 
-    C->>IH: GET /analytics/insights (route reg analytics/mod.rs:251)
+    C->>IH: GET /analytics/insights (route reg analytics/mod.rs:252)
     IH->>GS: send(GetGraphData) :15
     IH->>ST: CLUSTERING_TASKS.lock() :20 and ANOMALY_STATE.lock() :21
     IH-->>C: derived AI insights
-    C->>IH: GET /analytics/insights/realtime (route reg analytics/mod.rs:252)
+    C->>IH: GET /analytics/insights/realtime (route reg analytics/mod.rs:253)
     IH->>GS: send(GetGraphData) :140
     IH->>ST: CLUSTERING_TASKS.lock() :151 and ANOMALY_STATE.lock() :152
-    opt gpu addr present :201
+    opt gpu addr present :202
         IH->>GPU: send(GetPhysicsStats) :203
     end
-    C->>IH: GET /analytics/dashboard-status (route reg analytics/mod.rs:262)
+    C->>IH: GET /analytics/dashboard-status (route reg analytics/mod.rs:264)
     IH->>IH: gpu_available = get_gpu_compute_addr().is_some() :232
     IH->>ST: CLUSTERING_TASKS.lock() :233 and ANOMALY_STATE.lock() :234
-    C->>IH: GET /analytics/health-check (route reg analytics/mod.rs:263)
+    C->>IH: GET /analytics/health-check (route reg analytics/mod.rs:265)
     IH-->>C: health summary
-    Note over ST: ANOMALY_STATE is the AGENT-HEALTH heuristic fed by MCP telemetry via /anomaly/toggle - it is NOT node_analytics.anomaly, which comes from the GPU LOF kernel (analytics/mod.rs:182-184)
+    Note over ST: ANOMALY_STATE is the AGENT-HEALTH heuristic fed by MCP telemetry via /anomaly/toggle - it is NOT node_analytics.anomaly, which comes from the GPU LOF kernel (analytics/mod.rs:183-185)
     Note over IH,ST: All four insights endpoints are pure reads over graph data plus process-global state - none dispatch a GPU kernel
 ```
 
@@ -255,23 +261,23 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as RequireAuth::authenticated()<br/>analytics/mod.rs:270
-    participant WSH as gpu_analytics_websocket<br/>analytics/websocket_integration.rs:503
+    participant RT as RequireAuth::authenticated()<br/>analytics/mod.rs:272
+    participant WSH as gpu_analytics_websocket<br/>analytics/websocket_integration.rs:501
     participant A as GpuAnalyticsWebSocket actor<br/>websocket_integration.rs:95
 
     C->>RT: GET /analytics/ws upgrade
     alt not authenticated
         Note over RT: rejected before the upgrade - the stream is auth-gated even though it is read-only
     else authenticated
-        RT->>WSH: gpu_analytics_websocket (websocket_integration.rs:503)
-        WSH->>A: ws::start(GpuAnalyticsWebSocket::new(app_state)) :562
-        A->>A: Actor::started :385
-        A->>C: message_type "connected" with clientId and a capabilities map :391-400
+        RT->>WSH: gpu_analytics_websocket (websocket_integration.rs:501)
+        WSH->>A: ws::start(GpuAnalyticsWebSocket::new(app_state)) :560
+        A->>A: Actor::started :384
+        A->>C: message_type "connected" with clientId and a capabilities map :390-399
         Note over A: capabilities advertise gpuMetrics, clusteringProgress, anomalyAlerts, insightsUpdates, realTimeUpdates
         loop every clamped interval
-            A->>A: ctx.run_interval(interval) :365
+            A->>A: ctx.run_interval(interval) :364
             A->>C: send_gpu_metrics / send_clustering_progress / send_anomaly_alerts / send_insights_update
-            alt heartbeat older than 60s :367
+            alt heartbeat older than 60s :366
                 Note over A: client considered dead and the session is dropped
             end
         end
@@ -286,19 +292,19 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant A as GpuAnalyticsWebSocket StreamHandler<br/>websocket_integration.rs:421
+    participant A as GpuAnalyticsWebSocket StreamHandler<br/>websocket_integration.rs:420
 
     C->>A: ws::Message::Text
-    A->>A: heartbeat = Instant::now() :425
-    alt JSON parses as AnalyticsWebSocketMessage :427
+    A->>A: heartbeat = Instant::now() :424
+    alt JSON parses as AnalyticsWebSocketMessage :426
         alt message_type == "updateSubscriptions"
-            A->>A: parse SubscriptionPreferences :436
-            A->>A: clamp update_interval_ms to MIN 100 and MAX 60000 :438-441
-            A->>C: "subscriptionsUpdated" echoing the clamped prefs :447-454
+            A->>A: parse SubscriptionPreferences :435
+            A->>A: clamp update_interval_ms to MIN 100 and MAX 60000 :435-437
+            A->>C: "subscriptionsUpdated" echoing the clamped prefs :445-452
         else message_type == "requestImmediateUpdate"
-            A->>C: send_gpu_metrics + send_clustering_progress + send_anomaly_alerts + send_insights_update :457-460
+            A->>C: send_gpu_metrics + send_clustering_progress + send_anomaly_alerts + send_insights_update :455-458
         else message_type == "ping"
-            A->>C: "pong" with a server timestamp :463-470
+            A->>C: "pong" with a server timestamp :461-468
         else unknown type
             Note over A: logged and ignored - no error frame is returned to the client
         end
@@ -320,9 +326,9 @@ classDiagram
         +seven_inert_flags_REMOVED_ADR_2059()
     }
     class ANOMALY_STATE {
-        +static_Lazy_Arc_Mutex state_rs_L14
+        +static_Lazy_Arc_Mutex state_rs_L12
         +agent_health_heuristic_from_MCP_telemetry()
-        +written_by_anomaly_toggle mod_L184
+        +written_by_anomaly_toggle mod_L185
         +NOT_node_analytics_anomaly()
     }
     class CLUSTERING_TASKS {
@@ -335,7 +341,7 @@ classDiagram
         +record_execution()
         +process_global_per_kernel_counters()
     }
-    FEATURE_FLAGS --> ANOMALY_STATE : both re-exported at mod_rs_L42
+    FEATURE_FLAGS --> ANOMALY_STATE : both re-exported at mod_rs_L43
     CLUSTERING_TASKS --> ANOMALY_STATE : read together by insights
 
     note for FEATURE_FLAGS "ADR-2059: only ontology_validation gates - the inert seven are removed"
@@ -343,3 +349,34 @@ classDiagram
     note for ANOMALY_STATE "Agent-health heuristic, distinct from the GPU LOF anomaly score on the wire"
     note for AnalyticsTelemetry "Non-zero total_cpu_fallbacks violates the zero-fallback intent"
 ```
+
+## VC-18.10 GET /analytics/cycles — directed-cycle report on the CPU
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant RT as Route<br/>analytics/mod.rs:255
+    participant CY as get_cycles<br/>analytics/cycles_handlers.rs:60
+    participant GS as GraphServiceSupervisor (graph_service_addr)
+    participant SC as cycle_report<br/>src/layout/scc.rs:69
+
+    C->>RT: GET /analytics/cycles?edgeType=subsumption|all|type
+    Note over RT: a GET, so the scope's mutations_only wrap leaves it public like /api/graph/data
+    RT->>CY: get_cycles(CyclesQuery)
+    CY->>GS: send(GetGraphData) :64
+    alt graph unavailable or mailbox error
+        CY-->>C: error_json Graph unavailable :68 and :72
+    else graph returned
+        CY->>CY: select_edges(&graph.edges, edgeType) :48, default keeps only Edge::asserts_subsumption edges :52
+        CY->>SC: cycle_report(node_ids, edges) :81
+        SC->>SC: directed_adjacency then tarjan SCCs, cyclic nodes sorted, multi-node components largest first
+        CY-->>C: 200 CyclesResponse nodeCount, edgeCount, edgeFilter, cyclicNodeIds, components
+    end
+    Note over CY: CPU-only and recomputed per request, no GPU kernel and no cache, so desktop, XR and agents all read one answer
+    Note over CY: the default edge set is the same predicate the GPU DAG ranker uses (see VC-16.8), but the ranker does not call layout::scc
+```
+
+**Tension (ADR-2138 vs code):** ADR-2138 is `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive` (`docs/adr/ADR-2138-directed-cycles-are-a-server-analysis-with-one-adjacency.md:5-7`), yet `GET /analytics/cycles` is registered and served (`src/handlers/api_handler/analytics/mod.rs:255`, `src/handlers/api_handler/analytics/cycles_handlers.rs:60`).
+
+**Debt:** `toggle_sssp` patches the live GPU parameters but does not write the toggle back to the settings store, as ADR-2140 records (`docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md:42`, `src/handlers/api_handler/analytics/sssp_handlers.rs:79`).

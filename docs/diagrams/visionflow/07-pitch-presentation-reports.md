@@ -30,7 +30,7 @@ sources:
   - docs/estate-review/evidence/adr-inventory.json
   - docs/BASELINE-visionflow.md
   - docs/architecture/compatibility-matrix.md
-verified_commit: dceb64f4a9164eed59122cd43b2f5b0913940ce4
+verified_commit: 1d7183a73c1eae4996a7006067d5047308fab7a5
 ---
 
 ## VF-07.1 Artefact map — what produces each output and where it lands
@@ -68,12 +68,12 @@ flowchart LR
 
     RM -->|"generate-release-manifest.sh<br/>generate-release-manifest.sh:249"| O10["stdout — docs/releases/*.json by redirection<br/>releases/README.md:8"]:::auto
 
-    B1 --> NOP["NO pipeline. Two long-form root documents, 249 lines each,<br/>differing in content. Nothing builds, validates or publishes them;<br/>they are referenced once, as content the two real surfaces publish<br/>BASELINE-visionflow.md:78"]:::content
+    B1 --> NOP["NO pipeline. Two long-form root documents, 249 lines each,<br/>differing in content. Nothing builds, validates or publishes them;<br/>they are referenced once, as content the two real surfaces publish<br/>BASELINE-visionflow.md:80"]:::content
     B2 --> NOP
 
     ORPH["texput.log at the repo root — evidence of a real XeTeX run on<br/>2026-07-08 that ABORTED because main.tex is not at the root.<br/>Same date as dist/arxiv-2026-07-08.tar.gz<br/>texput.log:1"]:::content
 
-    NOTE["DOC-DRIFT: pdf-reports/ holds byte-identical copies of the two pitch/ PDFs.<br/>No script produces them and no doc explains the duplication; ./README.md:15<br/>links the pdf-reports/ copies while ./README.md:240 points at pitch/"]
+    NOTE["DOC-DRIFT: pdf-reports/ holds byte-identical copies of the two pitch/ PDFs.<br/>No script produces them and no doc explains the duplication; the<br/>rewritten README links only the pdf-reports/ copy of the ecosystem pitch, ./README.md:17,<br/>and links no pitch/ path, so the one-pager copy is no longer linked from it"]
 ```
 
 ## VF-07.2 generate-release-manifest.sh — building the sixteen-repository roster
@@ -443,7 +443,7 @@ flowchart TB
     classDef content fill:#f0f0f0,stroke:#888,color:#222
     classDef surface fill:#e0f2e4,stroke:#2f7a45,color:#222
 
-    BASE["BASELINE-visionflow.md: the repo has exactly TWO concrete surfaces —<br/>a static marketing website and the governance canon under docs/.<br/>Everything else is content that those two surfaces publish<br/>BASELINE-visionflow.md:76"]
+    BASE["BASELINE-visionflow.md: the repo has exactly TWO concrete surfaces —<br/>a static marketing website and the governance canon under docs/.<br/>Everything else is content that those two surfaces publish<br/>BASELINE-visionflow.md:78"]
 
     BASE --> C1["the-bubble-is-the-architecture.md<br/>249 lines, long-form essay with numbered citations"]:::content
     BASE --> C2["the-bubble-is-the-architecture-v3.md<br/>249 lines, a revised edition with different content —<br/>its method note records how the revision was checked<br/>the-bubble-is-the-architecture-v3.md:117"]:::content
@@ -463,6 +463,6 @@ flowchart TB
     XREF["Cross-references rather than duplication: the report's mermaid figures<br/>and their render gate are VF-06; the release manifest is VF-07.2 to VF-07.6;<br/>the compatibility posture those documents cite is VF-08"]
 ```
 
-**Drift (matrix relabelled, release prose not):** the compatibility matrix's harness-coverage and gap-close tables were relabelled historical and explicitly not rerun (`docs/architecture/compatibility-matrix.md:80`, `docs/architecture/compatibility-matrix.md:111`), while the release surface still reads as a live obligation (`docs/releases/README.md:3`) and the only committed candidate is the 2026-05-22 cut (`docs/releases/candidate-2026-05-22.json:2`).
+**Drift (matrix relabelled, release prose not):** the compatibility matrix's harness-coverage and gap-close tables were relabelled historical and explicitly not rerun (`docs/architecture/compatibility-matrix.md:81`, `docs/architecture/compatibility-matrix.md:112`), while the release surface still reads as a live obligation (`docs/releases/README.md:3`) and the only committed candidate is the 2026-05-22 cut (`docs/releases/candidate-2026-05-22.json:2`).
 
 **Debt (unverifiable citation):** `texput.log` is gitignored at `.gitignore:50`, so it exists in no commit and the five citations into it are read from the working tree whatever revision this topic declares; that is inherent to cataloguing a stray build artefact, and it is why the aborted-run evidence cannot be re-checked from history alone.

@@ -20,7 +20,7 @@ sources:
   - ../visiontouch-rs/.github/workflows/ci.yml
   - ../visiontouch-rs/docs/adr/ADR-0005-build-with-quality-retrofit.md
   - ../visiontouch-rs/AGENTS.md
-verified_commit: 77898bc42b29d5928b4eae00040ef0c26c3cd0a3
+verified_commit: 7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d
 ---
 
 ## For developers

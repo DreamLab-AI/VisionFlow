@@ -7,6 +7,7 @@ governing:
 adrs: [ADR-2004, ADR-2005, ADR-2016]
 sources:
   - ../project/docs/BASELINE-architecture.md
+  - ../project/AGENTS.md
   - ../project/src/lib.rs
   - ../project/src/ports/mod.rs
   - ../project/src/ports/settings_repository.rs
@@ -59,7 +60,7 @@ sources:
   - ../project/src/services/corpus_source/mod.rs
   - ../project/src/services/corpus_source/local.rs
   - ../project/src/services/corpus_source/github.rs
-verified_commit: af3dff3f25300cf12bceda5650688ec223270eca
+verified_commit: 19417bdff5fc22053a8a0cc185797b0311521d10
 ---
 
 ## VC-07.1 The hexagon — ports, adapters and where each canonical type lives
@@ -102,7 +103,7 @@ flowchart TB
     ADAPT --- N1
     N2["src/repositories/mod.rs is documentation only — all legacy Neo4j and SQL repositories<br/>were removed. Canonical adapters named there are OxigraphOntologyRepository,<br/>OxigraphGraphRepository, SqliteSettingsRepository (ADR-2004)."]
     ADAPT --- N2
-    N3["Workspace — crates/graph-cognition-extract is on disk but EMPTY and NOT a workspace<br/>member (orphan directory, Cargo.toml). solid-pod-rs is a crates.io VERSION pin, not a<br/>git rev — the former rev=main resolution error no longer applies."]
+    N3["Workspace — the orphan crates/graph-cognition-extract directory has been removed<br/>(docs/BASELINE-architecture.md:116) and is absent from the tree. solid-pod-rs is a crates.io<br/>version requirement, not a git rev (Cargo.toml:245) — the former rev=main resolution error no longer applies.<br/>The workspace now also lists visionclaw-wire, memory-cloud, tri-layout and jev (Cargo.toml:6,16-18).<br/>Codescape is a separate repository mounted as the codescape/ submodule, never a root member (AGENTS.md:15, ADR-2143 A5)"]
     XCRATE --- N3
     N4["DOC-DRIFT — the adapters module doc src/adapters/mod.rs:8-15 lists seven modules as<br/>still in webxr, resolved in Phase A3; they are still there at this commit, so Phase A3<br/>has not landed. The dev build feature set is gpu,ontology,dev-auth — see VC-08."]
     ADAPT --- N4
@@ -124,8 +125,8 @@ sequenceDiagram
     SH->>CR: pub use visionclaw_ontology::validation::* (src/validation/mod.rs:2)
     Note over SH: 2 lines total, ADR-090 Phase A4
     C->>SH: use crate::config::*
-    SH->>CR: pub use visionclaw_domain::config::{graph_type, validation, visualisation, system, xr, services}<br/>plus AppFullSettings, DeveloperConfig, FeatureFlags, UserPreferences (src/config/mod.rs:21-56)
-    Note over SH: 70 lines, ADR-090 Phase A6 slice 3. Six sibling .rs files are orphaned — see VC-09.2
+    SH->>CR: pub use visionclaw_domain::config::{graph_type, validation, visualisation, system, xr, services}<br/>plus AppFullSettings, DeveloperConfig, FeatureFlags, UserPreferences (src/config/mod.rs:21-52)
+    Note over SH: 69 lines, ADR-090 Phase A6 slice 3. Six sibling .rs files are orphaned — see VC-09.2
     C->>SH: use crate::adapters::{messages, oxigraph_ontology_repository, whelk_inference_engine}
     SH->>CR: pub use visionclaw_adapters::* (src/adapters/mod.rs:22-35)
     Note over SH: ADR-090 Phase A1+
@@ -133,8 +134,8 @@ sequenceDiagram
     SH->>CR: pub use visionclaw_domain::ports::* (src/ports/mod.rs:26-45)
     Note over SH: module-path aliases kept so legacy call sites keep resolving
     Note over C,CR: project/src/lib.rs:51-59 re-exports ClientCoordinatorActor, MetadataActor,<br/>OptimizedSettingsActor, AppState, UserSettings from the root crate itself, plus ADR-090<br/>compatibility aliases MetadataStore, ProtectedSettings, SimulationParams from<br/>visionclaw_domain::models — preserving the old visionclaw_server:: API for external callers
-    Note over C,CR: DIVERGENCE (BASELINE-architecture.md:93) — actor extraction incomplete, 23 src/actors/*.rs<br/>vs 11 in crates/visionclaw-actors. The live tree runs from src/. See VC-02.
-    Note over C,CR: DIVERGENCE (BASELINE 2026-09-04 crate and supervision closeout, BASELINE-architecture.md:308) — ADR-2005<br/>remains partial. The workspace adds converter and integration-test members to the census.
+    Note over C,CR: DIVERGENCE (BASELINE-architecture.md:120) — actor extraction incomplete, 25 src/actors/*.rs<br/>vs 11 in crates/visionclaw-actors. The live tree runs from src/. See VC-02.
+    Note over C,CR: DIVERGENCE (BASELINE 2026-09-04 crate and supervision closeout, BASELINE-architecture.md:348) — ADR-2005<br/>remains partial. The workspace adds converter and integration-test members to the census.
 ```
 
 ## VC-07.5 CQRS application layer — settings and knowledge-graph domains
@@ -266,24 +267,24 @@ sequenceDiagram
     participant EX as execute_in_thread<br/>src/handlers/utils.rs
     participant QH as LoadAllSettingsHandler<br/>src/application/settings
     participant PT as SettingsRepository port
-    participant AD as SqliteSettingsRepository<br/>src/adapters/sqlite_settings_repository.rs:378
+    participant AD as SqliteSettingsRepository<br/>src/adapters/sqlite_settings_repository.rs:372
 
     CL->>H: GET /api/config
-    H->>QH: LoadAllSettingsHandler::new(state.settings_repository.clone()) (src/handlers/api_handler/mod.rs:42)
-    Note over H,QH: state.settings_repository is Arc<dyn SettingsRepository> — src/app_state.rs:314
-    H->>EX: execute_in_thread(move || handler.handle(LoadAllSettings)) (api_handler/mod.rs:44)
+    H->>QH: LoadAllSettingsHandler::new(state.settings_repository.clone()) (src/handlers/api_handler/mod.rs:43)
+    Note over H,QH: state.settings_repository is Arc<dyn SettingsRepository> — src/app_state.rs:287
+    H->>EX: execute_in_thread(move || handler.handle(LoadAllSettings)) (api_handler/mod.rs:45, error boxed with map_err(Box::new))
     Note over EX: hexser QueryHandler trait — the direct dispatch path, no CQRS bus
     EX->>QH: handle(LoadAllSettings)
     QH->>PT: port call
     PT->>AD: SQLite read
     alt Ok(Ok(Some(settings)))
-        AD-->>H: 200 with version, features{ragflow, perplexity, openai, kokoro, whisper},<br/>websocket{minUpdateRate, maxUpdateRate, motionThreshold, motionDamping},<br/>rendering{ambientLightIntensity, enableAmbientOcclusion, backgroundColor},<br/>xr{enabled, roomScale, spaceType} (api_handler/mod.rs:47-71)
+        AD-->>H: 200 with version, features{ragflow, perplexity, openai, pocketTts, whisper},<br/>websocket{minUpdateRate, maxUpdateRate, motionThreshold, motionDamping},<br/>rendering{ambientLightIntensity, enableAmbientOcclusion, backgroundColor},<br/>xr{enabled, roomScale, spaceType} (api_handler/mod.rs:48-67)
     else Ok(Ok(None))
-        AD-->>H: warn "No settings found, using defaults" then AppFullSettings::default() (api_handler/mod.rs:73-78)
+        AD-->>H: warn "No settings found, using defaults" then AppFullSettings::default() (api_handler/mod.rs:68-73)
     end
     Note over H,AD: comment src/application/mod.rs:71 — application services were removed,<br/>handlers use actors directly via CQRS or direct messaging. There is no dispatcher bus.
     Note over EX: INVARIANT — every sync hexser handler enters a nested block_on, so calling one<br/>straight from an actix worker panics with the nested-runtime error Cannot start a runtime from within a runtime.<br/>execute_in_thread (spawn_blocking) is what makes the sync handler safe, and its Ok(Ok)/Ok(Err)/Err<br/>triple is the shape every call site must match — src/handlers/utils.rs
-    Note over EX: DEBT — get_owl_property and add_owl_property were the LAST two bare sync calls<br/>and were only dispatched off the worker on 2026-09-16 in ad8b83ad4, and the earlier hierarchy<br/>endpoint had the same defect fixed on 2026-08-10. Nothing in the type system prevents the<br/>next bare call — ontology_handler.rs:424, ontology_handler.rs:489, regression module<br/>ontology_handler.rs:1054 pins the bare call as the panic it is
+    Note over EX: DEBT — get_owl_property and add_owl_property were the LAST two bare sync calls<br/>and were only dispatched off the worker on 2026-09-16 in ad8b83ad4, and the earlier hierarchy<br/>endpoint had the same defect fixed on 2026-08-10. Nothing in the type system prevents the<br/>next bare call — ontology_handler.rs:441-445, ontology_handler.rs:512-516, regression module<br/>ontology_handler.rs:1107 pins the bare call as the panic it is
 ```
 
 ## VC-07.8 Storage-agnostic domain kernel — src/domain/broker
@@ -328,8 +329,8 @@ sequenceDiagram
     H->>AD: persist StoredDecision / EnrichmentProposal
     H->>AC: emit ACSP event
     Note over AC: stateless producer — there is no BrokerActor
-    Note over H,AC: DIVERGENCE (BASELINE-architecture.md:253) — BrokerActor was never merged. main uses a stateless<br/>ACSP producer plus a cherry-picked storage-agnostic domain broker kernel (~936 LOC).<br/>Measured here: broker_case.rs 490 + broker_decision.rs 437 = 927 lines, 1071 including<br/>mod.rs and precedent_registry.rs — consistent with the doc's ~936.
-    Note over H,AC: DIVERGENCE (BASELINE ACSP workflow closeout 2026-09-04, BASELINE-architecture.md:306) — the retained kernel's<br/>presence does not prove integration into the elevation actor or the inbox DTO.<br/>Current source review does not certify a complete human-approval journey. See VC-05.
+    Note over H,AC: DIVERGENCE (BASELINE-architecture.md:291) — BrokerActor was never merged. main uses a stateless<br/>ACSP producer plus a cherry-picked storage-agnostic domain broker kernel (~936 LOC).<br/>Measured here: broker_case.rs 490 + broker_decision.rs 437 = 927 lines, 1071 including<br/>mod.rs and precedent_registry.rs — consistent with the doc's ~936.
+    Note over H,AC: DIVERGENCE (BASELINE ACSP workflow closeout 2026-09-04, BASELINE-architecture.md:346) — the retained kernel's<br/>presence does not prove integration into the elevation actor or the inbox DTO.<br/>Current source review does not certify a complete human-approval journey. See VC-05.
     Note over K,AD: ADR-2016 provenance append-only applies to the decision record — see VC-22
 ```
 
@@ -362,13 +363,13 @@ flowchart TB
 ```mermaid
 flowchart TB
     T["trait CorpusSource — src/services/corpus_source/mod.rs:96<br/>describe, base_paths, list_pages, list_pages_under, fetch_page,<br/>vocabulary (default Ok(None))"]
-    T --> L["LocalDirectorySource — src/services/corpus_source/local.rs:42,194<br/>walks VAULT_ROOT (src/services/corpus_source/local.rs:14), default source"]
+    T --> L["LocalDirectorySource — src/services/corpus_source/local.rs:48,200<br/>walks VAULT_ROOT (src/services/corpus_source/local.rs:14), default source"]
     T --> G["GitHubSource — src/services/corpus_source/github.rs:15,47<br/>wraps EnhancedContentAPI, pre-existing remote pull"]
     B["source_from_env_with_github — src/services/corpus_source/mod.rs:157<br/>selects by corpus_source_kind() (src/services/corpus_source/mod.rs:193)<br/>over CORPUS_SOURCE, defaulting to local when VAULT_ROOT is set"]
     B --> T
-    AS["AppState::new — src/app_state.rs:577-580<br/>corpus_source = source_from_env_with_github(enhanced_content_api)<br/>GitHubSyncService::new(corpus_source, ...)"]
+    AS["AppState::new — src/app_state.rs:557-560<br/>corpus_source = source_from_env_with_github(enhanced_content_api)<br/>GitHubSyncService::new(corpus_source, ...)"]
     B --> AS
-    N1["INVARIANT — change_marker differs by source: SHA1 blob hash for<br/>GitHub (src/services/corpus_source/github.rs:40), mtime:size on disk for local<br/>(src/services/corpus_source/local.rs:139)<br/>— equal markers across two listings mean unchanged"]
+    N1["INVARIANT — change_marker differs by source: SHA1 blob hash for<br/>GitHub (src/services/corpus_source/github.rs:40), mtime:size on disk for local<br/>(src/services/corpus_source/local.rs:145)<br/>— equal markers across two listings mean unchanged"]
     L --- N1
     G --- N1
     N2["GitHubSyncService::new took EnhancedContentAPI directly before<br/>ADR-2114; the port now sits between it and the sync pipeline so<br/>parse -> dual graph -> Whelk reasoning runs unchanged over either source"]

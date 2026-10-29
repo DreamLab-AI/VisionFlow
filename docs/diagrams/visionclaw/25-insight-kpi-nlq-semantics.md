@@ -15,6 +15,7 @@ sources:
   - ../project/src/services/briefing_service.rs
   - ../project/src/handlers/briefing_handler.rs
   - ../project/src/services/natural_language_query_service.rs
+  - ../project/src/services/jev_nlq.rs
   - ../project/src/handlers/natural_language_query_handler.rs
   - ../project/src/services/perplexity_service.rs
   - ../project/src/services/semantic_analyzer.rs
@@ -37,8 +38,11 @@ sources:
   - ../project/src/services/management_api_client.rs
   - ../project/src/services/nostr_bead_publisher.rs
   - ../project/src/services/ontology_enrichment_service.rs
+  - ../project/src/main.rs
+  - ../project/src/test_helpers.rs
+  - ../project/src/adapters/actix_semantic_adapter.rs
   - ../project/src/services/schema_service.rs
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
 ---
 
 ## VC-25.1 Insight loop trace assembly (REC-10, compute-on-read)
@@ -48,15 +52,15 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant H as insight_loop_handler<br/>src/handlers/insight_loop_handler.rs:53
-    participant R as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs:841
+    participant R as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs:853
     participant L as insight_loop::summarise<br/>src/services/insight_loop.rs:209
     participant B as insight_loop::build_trace<br/>src/services/insight_loop.rs:103
     participant LH as LivenessHarness<br/>src/services/liveness_harness.rs
 
     Note over H,B: DIVERGENCE: no tokio::time::interval scheduler exists for this loop -<br/>every stage is computed fresh on each GET (compute-on-read), not a periodic job
     C->>H: GET /api/insight-loop/trace?limit=
-    H->>R: loop_traces(limit) - SELECT p JOIN d ON MAX(decided_at_ms)<br/>src/adapters/sqlite_enrichment_repository.rs:841-858
-    R-->>H: Vec~LoopTraceRow~<br/>src/adapters/sqlite_enrichment_repository.rs:276
+    H->>R: loop_traces(limit) - SELECT p JOIN d ON MAX(decided_at_ms)<br/>src/adapters/sqlite_enrichment_repository.rs:853-870
+    R-->>H: Vec~LoopTraceRow~<br/>src/adapters/sqlite_enrichment_repository.rs:288
     H->>L: summarise(rows)
     loop for each LoopTraceRow in rows
         L->>B: build_trace(row)
@@ -92,14 +96,14 @@ sequenceDiagram
     participant Cfg as configure_routes<br/>src/handlers/insight_loop_handler.rs:89
     participant T as traces<br/>src/handlers/insight_loop_handler.rs:53
     participant TC as trace_by_case<br/>src/handlers/insight_loop_handler.rs:68
-    participant R as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs:876
+    participant R as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs:888
 
     Note over Cfg: scope /insight-loop mounted under /api - src/handlers/insight_loop_handler.rs:89-94
     C->>T: GET /insight-loop/trace?limit=N
     Note right of T: limit.clamp(1, MAX_LIMIT=1000), default DEFAULT_LIMIT=100<br/>src/handlers/insight_loop_handler.rs:25-26,54
     T-->>C: 200 InsightLoopSummary
     C->>TC: GET /insight-loop/trace/{case_id}
-    TC->>R: loop_trace_for(case_id)<br/>src/adapters/sqlite_enrichment_repository.rs:876
+    TC->>R: loop_trace_for(case_id)<br/>src/adapters/sqlite_enrichment_repository.rs:888
     alt Ok(Some(row))
         R-->>TC: LoopTraceRow
         TC-->>C: 200 InsightLoopTrace
@@ -125,9 +129,9 @@ sequenceDiagram
     C->>K: compute_and_persist()
     K->>KR: count_agent_events_since(window_start) - kpi_agent_events<br/>src/adapters/sqlite_kpi_repository.rs:404
     KR-->>K: agent_volume
-    K->>ER: decisions_since(window_start) - enrichment_decisions<br/>src/adapters/sqlite_enrichment_repository.rs:716
+    K->>ER: decisions_since(window_start) - enrichment_decisions<br/>src/adapters/sqlite_enrichment_repository.rs:728
     ER-->>K: decisions (outcome, activity_urn)
-    K->>ER: decided_cases_since(window_start)<br/>src/adapters/sqlite_enrichment_repository.rs:749
+    K->>ER: decided_cases_since(window_start)<br/>src/adapters/sqlite_enrichment_repository.rs:761
     ER-->>K: decided-case rows (case, outcome, decided_by)
     K->>K: augmentation_ratio(agent_volume, escalation_volume)<br/>src/services/kpi_compute.rs:82, called at :423
     alt escalation_volume == 0
@@ -234,16 +238,17 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant H as natural_language_query_handler<br/>src/handlers/natural_language_query_handler.rs:90
-    participant S as NaturalLanguageQueryService<br/>src/services/natural_language_query_service.rs:32
+    participant S as NaturalLanguageQueryService<br/>src/services/natural_language_query_service.rs:36
     participant SC as SchemaService<br/>src/services/schema_service.rs
     participant P as PerplexityService::chat_completion<br/>src/services/perplexity_service.rs:77
 
     Note over S,P: config-driven, not an env flag - api_url/api_key/model read from<br/>AppFullSettings.perplexity at call time (src/services/perplexity_service.rs:103-113)
     C->>H: POST /nl-query/translate {query, suggestAlternatives}
-    H->>S: translate_to_sparql(query) or suggest_queries(query)<br/>src/services/natural_language_query_service.rs:54,78
+    H->>S: translate_to_sparql(query) or suggest_queries(query)<br/>src/services/natural_language_query_service.rs:72,101
+    Note over S: Jev option, opt-in and off unless VISIONCLAW_JEV is set (src/main.rs:517-522): translate_to_sparql first calls try_jev_plan,<br/>an enumerated read-only template chosen by Jev with a code-extracted entity, accepted only above<br/>VISIONCLAW_JEV_AUTO_MIN_CONFIDENCE and re-checked by validate_read_only_sparql, else the generative route below runs unchanged<br/>src/services/natural_language_query_service.rs:65,76-78 src/services/jev_nlq.rs:148,209. suggest_queries has no Jev path (:101)
     S->>SC: get_llm_context() - schema for the prompt
     SC-->>S: schema_context
-    S->>S: get_system_prompt() then build_translation_prompt(query, schema_context)<br/>src/services/natural_language_query_service.rs:140,202
+    S->>S: get_system_prompt() then build_translation_prompt(query, schema_context)<br/>src/services/natural_language_query_service.rs:163,225
     Note over S: RESOLVED ADR-2063 - the prompt now describes the real Oxigraph named graphs and vocabulary<br/>and asks for read-only SPARQL. It previously claimed to be a SPARQL generator while instructing and<br/>validating for Cypher GraphNode/EDGE labels, so every generated query was unrunnable against the store.
     S->>P: chat_completion([(system,...), (user, prompt)])
     alt perplexity_config missing (api_url/api_key/model None)
@@ -252,13 +257,13 @@ sequenceDiagram
         H-->>C: 200 {error: "Translation failed", message}
     else config present
         P-->>S: response text
-        S->>S: extract_sparql_block(response) - find fenced sparql block or fallback fence<br/>src/services/natural_language_query_service.rs:277
+        S->>S: extract_sparql_block(response) - find fenced sparql block or fallback fence<br/>src/services/natural_language_query_service.rs:300
         alt no fenced block found
             S-->>H: Err - no SPARQL query found in response
             H-->>C: 200 {error: "Translation failed", message}
         else block found
-            S->>S: validate_sparql(sparql) - delegates to the shared read-only validator<br/>src/services/natural_language_query_service.rs:106
-            S->>S: validate_read_only_sparql - SELECT/ASK/CONSTRUCT/DESCRIBE only<br/>src/handlers/ontology_handler.rs:769
+            S->>S: validate_sparql(sparql) - delegates to the shared read-only validator<br/>src/services/natural_language_query_service.rs:129
+            S->>S: validate_read_only_sparql - SELECT/ASK/CONSTRUCT/DESCRIBE only<br/>src/handlers/ontology_handler.rs:820
             alt mutating form (INSERT/DELETE/DROP/CLEAR/LOAD)
                 S-->>H: Err - rejected, not a read-only query
                 H-->>C: 200 {error: "Translation failed", message}
@@ -277,7 +282,7 @@ sequenceDiagram
     alt rejected by the read-only validator
         H-->>C: 200 {error: "Invalid SPARQL", message}
     else valid
-        S->>P: chat_completion - explain prompt<br/>src/services/natural_language_query_service.rs:111
+        S->>P: chat_completion - explain prompt<br/>src/services/natural_language_query_service.rs:134
         H-->>C: 200 {sparql, explanation}
     end
     C->>H: GET /nl-query/examples
@@ -291,55 +296,55 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Caller as GraphServiceSupervisor / handler
-    participant A as SemanticProcessorActor<br/>src/actors/semantic_processor_actor.rs:173
+    participant A as SemanticProcessorActor<br/>src/actors/semantic_processor_actor.rs:171
 
-    Note over A: Actor started/stopped log config.enable_ai_features and final stats<br/>src/actors/semantic_processor_actor.rs:1374-1388
+    Note over A: since af3dff3f2 the actor has a production owner: main registers a SemanticService over ActixSemanticAdapter for /api/semantic/*, and the adapter starts this actor on its first initialize (estate register ER-25)<br/>src/main.rs:860-870 src/adapters/actix_semantic_adapter.rs:95-103
+    Note over A: Actor started/stopped log config.enable_ai_features and final stats<br/>src/actors/semantic_processor_actor.rs:1355-1370
 
-    Caller->>A: UpdateConstraints{constraint_data}<br/>src/actors/messages/physics_messages.rs:298
-    A-->>Caller: Result<(),String> via handle_constraint_update<br/>src/actors/semantic_processor_actor.rs:1394-1401
+    Caller->>A: UpdateConstraints{constraint_data}<br/>src/actors/messages/physics_messages.rs:292
+    A-->>Caller: Result<(),String> via handle_constraint_update<br/>src/actors/semantic_processor_actor.rs:1375-1382
 
-    Caller->>A: GetConstraints<br/>src/actors/messages/physics_messages.rs:282
-    A-->>Caller: ConstraintSet clone<br/>src/actors/semantic_processor_actor.rs:1403-1412
+    Caller->>A: GetConstraints<br/>src/actors/messages/physics_messages.rs:276
+    A-->>Caller: ConstraintSet clone<br/>src/actors/semantic_processor_actor.rs:1384-1393
 
-    Caller->>A: TriggerStressMajorization<br/>src/actors/messages/physics_messages.rs:327
-    A->>A: web::block(stress optimisation) on thread pool<br/>src/actors/semantic_processor_actor.rs:1415
+    Caller->>A: TriggerStressMajorization<br/>src/actors/messages/physics_messages.rs:321
+    A->>A: web::block(stress optimisation) on thread pool<br/>src/actors/semantic_processor_actor.rs:1396
     alt thread pool Ok(Ok(()))
         A-->>Caller: Ok(())
     else Ok(Err(e)) or thread pool error
         A-->>Caller: Err(e) / "Thread pool error"
     end
 
-    Caller->>A: RegenerateSemanticConstraints<br/>src/actors/messages/physics_messages.rs:347
-    A->>A: deactivate semantic_similarity/semantic_clustering/importance_based/topic_based groups<br/>src/actors/semantic_processor_actor.rs:1451-1459
+    Caller->>A: RegenerateSemanticConstraints<br/>src/actors/messages/physics_messages.rs:341
+    A->>A: deactivate semantic_similarity/semantic_clustering/importance_based/topic_based groups<br/>src/actors/semantic_processor_actor.rs:1432-1440
     A->>A: web::block(generate_semantic_constraints_blocking)
     A-->>Caller: ResponseFuture<Result<(),String>>
 
-    Caller->>A: UpdateAdvancedParams{params}<br/>src/actors/messages/physics_messages.rs:270
-    A->>A: rebuild StressMajorizationSolver::from_advanced_params, relationship_threshold = weight*0.1<br/>src/actors/semantic_processor_actor.rs:1501-1523
+    Note over A: REMOVED since af3dff3f2: no Handler for UpdateAdvancedParams remains - the message left physics_messages.rs and the actor<br/>dropped its advanced_params, relationship_threshold and constraint_cache fields, so the solver is no longer rebuilt from AdvancedParams<br/>src/actors/semantic_processor_actor.rs:31-34 (import list)
 
-    Caller->>A: SetGraphData{graph_data}<br/>src/actors/semantic_processor_actor.rs:1524
-    Caller->>A: ProcessMetadata{metadata_id, metadata}<br/>src/actors/semantic_processor_actor.rs:1539
-    A->>A: web::block(process_metadata_blocking)<br/>src/actors/semantic_processor_actor.rs:1544-1567
+    Caller->>A: SetGraphData{graph_data}<br/>src/actors/semantic_processor_actor.rs:1484
+    Caller->>A: ProcessMetadata{metadata_id, metadata}<br/>src/actors/semantic_processor_actor.rs:1499
+    A->>A: web::block(process_metadata_blocking)<br/>src/actors/semantic_processor_actor.rs:1504-1524
 
-    Caller->>A: GetSemanticStats<br/>src/actors/semantic_processor_actor.rs:1573
+    Caller->>A: GetSemanticStats<br/>src/actors/semantic_processor_actor.rs:1533
     A-->>Caller: SemanticStats clone
 
-    Caller->>A: UpdateSemanticConfig{config}<br/>src/actors/semantic_processor_actor.rs:1585
+    Caller->>A: UpdateSemanticConfig{config}<br/>src/actors/semantic_processor_actor.rs:1545
     A-->>Caller: () via update_config
 
     Caller->>A: ComputeShortestPaths{source_node_id}<br/>src/actors/messages/analytics_messages.rs:148
     alt gpu_analyzer is None
-        A-->>Caller: Err("GPU analyzer not available")<br/>src/actors/semantic_processor_actor.rs:1608-1610
+        A-->>Caller: Err("GPU analyzer not available")<br/>src/actors/semantic_processor_actor.rs:1568-1571
     else gpu_analyzer present
-        A->>A: gpu_analyzer.initialize(graph) then compute_shortest_paths(source_node_id)<br/>src/actors/semantic_processor_actor.rs:1617-1624
+        A->>A: gpu_analyzer.initialize(graph) then compute_shortest_paths(source_node_id)<br/>src/actors/semantic_processor_actor.rs:1577-1585
         A-->>Caller: Ok(PathfindingResult) / Err("Pathfinding failed")
     end
 
     Caller->>A: ComputeAllPairsShortestPaths<br/>crates/visionclaw-actors/src/messages/analytics_messages.rs:166
     alt gpu_analyzer is None
-        A-->>Caller: Err("GPU analyzer not available")<br/>src/actors/semantic_processor_actor.rs:1656-1658
+        A-->>Caller: Err("GPU analyzer not available")<br/>src/actors/semantic_processor_actor.rs:1616-1619
     else present
-        A->>A: compute_all_pairs_shortest_paths() - GPU landmark approximation<br/>src/actors/semantic_processor_actor.rs:1665-1672
+        A->>A: compute_all_pairs_shortest_paths() - GPU landmark approximation<br/>src/actors/semantic_processor_actor.rs:1625-1632
         A-->>Caller: Ok(HashMap<(u32,u32),Vec~u32~>) / Err("APSP failed")
     end
 ```
@@ -353,9 +358,9 @@ otherwise unchanged. `SemanticAnalyzer` is a separate, unrelated caller shown fo
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SPA as SemanticProcessorActor::process_metadata_blocking<br/>src/actors/semantic_processor_actor.rs:260
+    participant SPA as SemanticProcessorActor::process_metadata_blocking<br/>src/actors/semantic_processor_actor.rs:246
     participant SA as SemanticAnalyzer::analyze_metadata<br/>src/services/semantic_analyzer.rs:261
-    participant GS as GitHubSyncService::relation_edges<br/>src/services/github_sync_service.rs:1765
+    participant GS as GitHubSyncService::relation_edges<br/>src/services/github_sync_service.rs:1803
     participant REG as SemanticTypeRegistry<br/>src/services/semantic_type_registry.rs:90
 
     SPA->>SA: analyze_metadata(metadata)
@@ -369,8 +374,8 @@ sequenceDiagram
     end
     Note over SA: compute_similarity weights: topic 0.4 + domain 0.2 + file_type 0.1 + depth 0.1 + temporal 0.1 + importance 0.1<br/>src/services/semantic_analyzer.rs:545-580
 
-    Note over GS: one typed edge per vocab.relations key whose ParsedPage frontmatter has<br/>a wikilink target — an unmapped edge-type predicate is skipped, not defaulted<br/>src/services/github_sync_service.rs:1775-1785
-    GS->>REG: get_or_register_id(edge_type)<br/>src/services/semantic_type_registry.rs:652,src/services/github_sync_service.rs:1786
+    Note over GS: one typed edge per vocab.relations key whose ParsedPage frontmatter has<br/>a wikilink target — an unmapped edge-type predicate is skipped, not defaulted<br/>src/services/github_sync_service.rs:1813-1823
+    GS->>REG: get_or_register_id(edge_type)<br/>src/services/semantic_type_registry.rs:652,src/services/github_sync_service.rs:1824
     REG->>REG: get_id(uri) - read_uri_map lookup<br/>src/services/semantic_type_registry.rs:646-648
     alt uri already registered
         REG-->>GS: existing id
@@ -379,8 +384,8 @@ sequenceDiagram
         REG->>REG: register_internal(uri, config) - assign next_id, push uri/config<br/>src/services/semantic_type_registry.rs:612
         REG-->>GS: new id
     end
-    GS->>REG: get_config(reg_id) - strength*2.0 normalised to spring weight<br/>src/services/semantic_type_registry.rs:662,src/services/github_sync_service.rs:1788-1789
-    Note over REG: version() = next_id atomic counter, used for hot-reload detection<br/>src/services/semantic_type_registry.rs:706
+    GS->>REG: get_config(reg_id) - strength*2.0 normalised to spring weight<br/>src/services/semantic_type_registry.rs:662,src/services/github_sync_service.rs:1826-1827
+    Note over REG: version() = next_id atomic counter, used for hot-reload detection<br/>src/services/semantic_type_registry.rs:703
 ```
 
 ## VC-25.10 edge_classifier classification rules
@@ -401,9 +406,12 @@ flowchart TD
     Pairs -->|match| ReturnFallback["return Some(mapped property_iri)"]
     Pairs -->|no match| ReturnNone["return None - no classification"]
     Fallback -->|no| ReturnNone
-    ReturnMatch --> Caller["ontology_enrichment_service::enrich_edges<br/>src/services/ontology_enrichment_service.rs:127"]
+    ReturnMatch --> Caller["ontology_enrichment_service::enrich_edges<br/>src/services/ontology_enrichment_service.rs:138"]
     ReturnFallback --> Caller
-    ReturnNone --> Caller
+    ReturnNone --> Jev["opt-in Jev gap-fill only for a None result: accepted above VISIONCLAW_JEV_AUTO_MIN_CONFIDENCE and the domain/range gate,<br/>else property_iri stays None - src/services/ontology_enrichment_service.rs:146-163"]
+    Jev --> Caller
+    Debt["DEBT: OntologyEnrichmentService has no production constructor - only test_helpers builds it and with_jev is called by tests alone,<br/>so enrich_edges and the Jev gap-fill do not run in the server - src/test_helpers.rs:266-270, src/services/ontology_enrichment_service.rs:36"]
+    Caller -.- Debt
 ```
 
 ## VC-25.12 MetadataActor message handling
@@ -414,10 +422,10 @@ sequenceDiagram
     participant Caller as AppState / handler
     participant MA as MetadataActor<br/>src/actors/metadata_actor.rs:23
 
-    Note over MA: replaces Arc<RwLock<MetadataStore>> - started at src/app_state.rs:808 (BASELINE-architecture.md "Actor system topology")
-    Caller->>MA: GetMetadata<br/>crates/visionclaw-actors/src/messages/graph_messages.rs:212
+    Note over MA: replaces Arc<RwLock<MetadataStore>> - started at src/app_state.rs:777 (BASELINE-architecture.md "Actor system topology")
+    Caller->>MA: GetMetadata<br/>crates/visionclaw-actors/src/messages/graph_messages.rs:221
     MA-->>Caller: Ok(MetadataStore clone)<br/>src/actors/metadata_actor.rs:58-64
-    Caller->>MA: UpdateMetadata{metadata}<br/>crates/visionclaw-actors/src/messages/graph_messages.rs:216
+    Caller->>MA: UpdateMetadata{metadata}<br/>crates/visionclaw-actors/src/messages/graph_messages.rs:225
     MA->>MA: update_metadata(new_metadata) - self.metadata = new_metadata<br/>src/actors/metadata_actor.rs:36-39,66-73
     MA-->>Caller: Ok(())
     Note right of MA: RESOLVED ADR-2097 (2026-09-05): RefreshMetadata and refresh_metadata are deleted - the message had no senders<br/>and the actor holds no source. metadata.json is owned by FileService, which pushes rebuilt stores in via UpdateMetadata
@@ -429,28 +437,29 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Boot as AppState::new (startup)
-    participant FS as FileService::load_graph_from_files<br/>src/services/file_service.rs:1147
+    participant FS as FileService::load_graph_from_files<br/>src/services/file_service.rs:1089
     participant Repo as KnowledgeGraphRepository (Oxigraph)<br/>src/ports/knowledge_graph_repository.rs
     participant GSS as GraphSerializationService::export_graph<br/>src/services/graph_serialization.rs:29
 
     Boot->>FS: load_graph_from_files(graph_repo)
-    FS->>Repo: load_graph() - idempotency guard (ADR-2004, not in docs/adr/ ledger)<br/>src/services/file_service.rs:1153
+    FS->>Repo: load_graph() - idempotency guard (ADR-2004, not in docs/adr/ ledger)<br/>src/services/file_service.rs:1095
     alt existing.nodes not empty
         Repo-->>FS: existing graph populated
-        FS-->>Boot: Ok(()) - skip local-file seed, GitHub sync is authoritative<br/>src/services/file_service.rs:1154-1160
+        FS-->>Boot: Ok(()) - skip local-file seed, GitHub sync is authoritative<br/>src/services/file_service.rs:1096-1102
     else store empty or query failed
-        FS->>FS: load_or_create_metadata()<br/>src/services/file_service.rs:1173
+        FS->>FS: load_or_create_metadata()<br/>src/services/file_service.rs:1115
         alt metadata.is_empty()
-            FS-->>Boot: Ok(()) - warn "no data to load", nothing seeded<br/>src/services/file_service.rs:1174-1176
+            FS-->>Boot: Ok(()) - warn "no data to load", nothing seeded<br/>src/services/file_service.rs:1116-1118
         else metadata present
-            FS->>FS: Phase 1 - build AppNode per file, classify ontology_node vs page via owl_class_iri<br/>src/services/file_service.rs:1181-1233
-            FS->>FS: Phase 2 - wikilink regex extracts AppEdge set, dedup via seen_edges<br/>src/services/file_service.rs:1238-1249
-            FS->>Repo: save_graph(&graph_data)<br/>src/services/file_service.rs:1271
+            FS->>FS: Phase 1 - build AppNode per file, classify ontology_node vs page via owl_class_iri<br/>src/services/file_service.rs:1123-1175
+            FS->>FS: Phase 2 - wikilink regex extracts AppEdge set, dedup via seen_edges<br/>src/services/file_service.rs:1180-1191
+            FS->>Repo: save_graph(&graph_data)<br/>src/services/file_service.rs:1213
             FS-->>Boot: Ok(())
         end
     end
 
-    Note over FS: RESOLVED ADR-2065: src/services/empty_graph_check.rs (check_empty_graph) had zero call sites<br/>and has been deleted - the only live empty-graph guard is the idempotency check at file_service.rs:1153
+    Note over FS: the legacy GitHub-to-markdown mirror initialize_local_storage now returns LocalStorageSync and is skipped outright for a local corpus (ADR-2114)<br/>src/services/file_service.rs:301-316
+    Note over FS: RESOLVED ADR-2065: src/services/empty_graph_check.rs (check_empty_graph) had zero call sites<br/>and has been deleted - the only live empty-graph guard is the idempotency check at file_service.rs:1095
 
     Note over GSS: distinct empty-graph handling path - export_graph has no explicit empty check,<br/>writes whatever GraphData it is given (src/services/graph_serialization.rs:29-79)
     Boot->>GSS: export_graph(graph, request)

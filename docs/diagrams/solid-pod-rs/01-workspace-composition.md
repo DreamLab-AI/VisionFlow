@@ -26,7 +26,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/examples/webhook_receiver.rs
   - ../solid-pod-rs/crates/solid-pod-rs/examples/wac_admin.rs
   - ../solid-pod-rs/crates/solid-pod-rs/examples/oidc_client.rs
-verified_commit: d64131b
+verified_commit: a4a86f6da300b529c7855318c24ff5c7b35ec582
 ---
 
 ## SP-01.1 Eight workspace members and the library-first split
@@ -85,20 +85,21 @@ classDiagram
         multitenant  solid-pod-rs/src/lib.rs:148
         payments  solid-pod-rs/src/lib.rs:149
         provenance  solid-pod-rs/src/lib.rs:150
-        security  solid-pod-rs/src/lib.rs:151
-        trading  solid-pod-rs/src/lib.rs:152
-        wac  solid-pod-rs/src/lib.rs:153
-        webid  solid-pod-rs/src/lib.rs:154
+        rdf_input  solid-pod-rs/src/lib.rs:151
+        security  solid-pod-rs/src/lib.rs:152
+        trading  solid-pod-rs/src/lib.rs:153
+        wac  solid-pod-rs/src/lib.rs:154
+        webid  solid-pod-rs/src/lib.rs:155
     }
     class FeatureGated {
-        did_nostr_types  solid-pod-rs/src/lib.rs:165
-        notifications  solid-pod-rs/src/lib.rs:176
-        provision  solid-pod-rs/src/lib.rs:178
-        quota  solid-pod-rs/src/lib.rs:180
-        storage  solid-pod-rs/src/lib.rs:182
-        oidc  solid-pod-rs/src/lib.rs:185
-        export  solid-pod-rs/src/lib.rs:201
-        handlers  solid-pod-rs/src/lib.rs:208
+        did_nostr_types  solid-pod-rs/src/lib.rs:166
+        notifications  solid-pod-rs/src/lib.rs:177
+        provision  solid-pod-rs/src/lib.rs:179
+        quota  solid-pod-rs/src/lib.rs:181
+        storage  solid-pod-rs/src/lib.rs:183
+        oidc  solid-pod-rs/src/lib.rs:186
+        export  solid-pod-rs/src/lib.rs:202
+        handlers  solid-pod-rs/src/lib.rs:209
     }
     AlwaysCompiled <.. FeatureGated
     note for AlwaysCompiled "The always-compiled half is pure logic plus the crypto and protocol primitives,\nwhich is what makes the core wasm/edge surface in SP-01.4 possible: storage,\nnotifications, provision, quota and oidc — everything that needs I/O or a\nruntime — sit behind a feature. blocktrail (new in 0.5.0-alpha.12) is always compiled for the shared\nBlocktrail type and TXO URIs, but its walk and per-link verification sit behind mrc20\n(solid-pod-rs/src/blocktrail.rs:896)."
@@ -108,11 +109,11 @@ classDiagram
 
 ```mermaid
 flowchart TD
-    CORE_F["feature core = std + js-sys + did-nostr-types<br/>crates/solid-pod-rs/Cargo.toml:116"]
-    STD["feature std<br/>crates/solid-pod-rs/Cargo.toml:117"]
-    TOKIO["feature tokio-runtime = tokio + tungstenite + futures-util<br/>crates/solid-pod-rs/Cargo.toml:127"]
-    FSB["fs-backend = tokio-runtime + notify + cap-std<br/>crates/solid-pod-rs/Cargo.toml:129"]
-    MEMB["memory-backend = tokio-runtime<br/>crates/solid-pod-rs/Cargo.toml:130"]
+    CORE_F["feature core = std + js-sys + did-nostr-types<br/>crates/solid-pod-rs/Cargo.toml:121"]
+    STD["feature std<br/>crates/solid-pod-rs/Cargo.toml:122"]
+    TOKIO["feature tokio-runtime = tokio + tungstenite + futures-util<br/>crates/solid-pod-rs/Cargo.toml:132"]
+    FSB["fs-backend = tokio-runtime + notify + cap-std<br/>crates/solid-pod-rs/Cargo.toml:134"]
+    MEMB["memory-backend = tokio-runtime<br/>crates/solid-pod-rs/Cargo.toml:135"]
 
     CORE_F --> STD
     CORE_F -. "excludes" .-> TOKIO
@@ -125,7 +126,7 @@ flowchart TD
     E2["INVARIANT: classify_policy_read is runtime-free so the edge tier can adopt it<br/>solid-pod-rs/src/wac/resolver.rs:265"]
     CORE_F -.-> E2
 
-    E3["Since alpha.10 core carries k256 through did-nostr-types, pure Rust and<br/>wasm32-safe, for the did:nostr full-point encoder and point validation<br/>crates/solid-pod-rs/Cargo.toml:203"]
+    E3["Since alpha.10 core carries k256 through did-nostr-types, pure Rust and<br/>wasm32-safe, for the did:nostr full-point encoder and point validation<br/>crates/solid-pod-rs/Cargo.toml:208"]
     CORE_F -.-> E3
 ```
 
@@ -133,15 +134,15 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    NIP98S["nip98-schnorr = k256<br/>crates/solid-pod-rs/Cargo.toml:132"]
-    NIP98R["nip98-replay = lru + tokio-runtime<br/>crates/solid-pod-rs/Cargo.toml:139"]
-    LWS["lws-cid = k256<br/>crates/solid-pod-rs/Cargo.toml:144"]
-    LWSP["lws-cid-p256<br/>crates/solid-pod-rs/Cargo.toml:145"]
-    LWSE["lws-cid-eddsa<br/>crates/solid-pod-rs/Cargo.toml:146"]
-    LWSF["lws-cid-full<br/>crates/solid-pod-rs/Cargo.toml:147"]
-    OIDCF["oidc = openidconnect + jsonwebtoken + reqwest<br/>crates/solid-pod-rs/Cargo.toml:131"]
-    DPOPR["dpop-replay-cache = oidc + lru<br/>crates/solid-pod-rs/Cargo.toml:172"]
-    DPOPT["dpop-symmetric-test (TEST ONLY)<br/>crates/solid-pod-rs/Cargo.toml:178"]
+    NIP98S["nip98-schnorr = k256<br/>crates/solid-pod-rs/Cargo.toml:137"]
+    NIP98R["nip98-replay = lru + tokio-runtime<br/>crates/solid-pod-rs/Cargo.toml:144"]
+    LWS["lws-cid = k256<br/>crates/solid-pod-rs/Cargo.toml:149"]
+    LWSP["lws-cid-p256<br/>crates/solid-pod-rs/Cargo.toml:150"]
+    LWSE["lws-cid-eddsa<br/>crates/solid-pod-rs/Cargo.toml:151"]
+    LWSF["lws-cid-full<br/>crates/solid-pod-rs/Cargo.toml:152"]
+    OIDCF["oidc = openidconnect + jsonwebtoken + reqwest<br/>crates/solid-pod-rs/Cargo.toml:136"]
+    DPOPR["dpop-replay-cache = oidc + lru<br/>crates/solid-pod-rs/Cargo.toml:177"]
+    DPOPT["dpop-symmetric-test (TEST ONLY)<br/>crates/solid-pod-rs/Cargo.toml:183"]
 
     LWS --> LWSP
     LWS --> LWSE
@@ -151,7 +152,7 @@ flowchart LR
 
     G1["INVARIANT: without nip98-schnorr the verifier is a fail-CLOSED stub,<br/>never a structural-only accept<br/>solid-pod-rs/src/auth/nip98.rs:376"]
     NIP98S -.-> G1
-    G2["DIVERGENCE: dpop-symmetric-test compiles the HS256 oct arm; a symmetric DPoP alg<br/>is an RFC 9449 alg-confusion vector production must reject<br/>crates/solid-pod-rs/Cargo.toml:170"]
+    G2["DIVERGENCE: dpop-symmetric-test compiles the HS256 oct arm; a symmetric DPoP alg<br/>is an RFC 9449 alg-confusion vector production must reject<br/>crates/solid-pod-rs/Cargo.toml:179"]
     DPOPT -.-> G2
 ```
 
@@ -159,17 +160,17 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    JSS["jss-v04 (parent flag, no-op alone)<br/>crates/solid-pod-rs/Cargo.toml:155"]
-    SP["security-primitives<br/>crates/solid-pod-rs/Cargo.toml:159"]
-    LEG["legacy-notifications (solid-0.1 WS adapter)<br/>crates/solid-pod-rs/Cargo.toml:164"]
-    ORG["acl-origin (WAC acl:origin gate)<br/>crates/solid-pod-rs/Cargo.toml:168"]
-    CFGL["config-loader = serde_yaml + toml<br/>crates/solid-pod-rs/Cargo.toml:187"]
-    WHS["webhook-signing = ed25519-dalek + httpdate<br/>crates/solid-pod-rs/Cargo.toml:191"]
-    RL["rate-limit = lru + parking_lot<br/>crates/solid-pod-rs/Cargo.toml:217"]
-    QU["quota = jss-v04 + config-loader<br/>crates/solid-pod-rs/Cargo.toml:225"]
-    DNT["did-nostr-types = k256, full-point Multikey<br/>crates/solid-pod-rs/Cargo.toml:203"]
-    MR["mrc20 = dep:bitcoin — BIP-341 taproot and BIP-340 signing<br/>moved to rust-bitcoin 0.32 in alpha.11 (ADR-2008); links<br/>libsecp256k1 (C), so wasm32 mrc20 needs a C toolchain<br/>crates/solid-pod-rs/Cargo.toml:210"]
-    DN["did-nostr<br/>crates/solid-pod-rs/Cargo.toml:211"]
+    JSS["jss-v04 (parent flag, no-op alone)<br/>crates/solid-pod-rs/Cargo.toml:160"]
+    SP["security-primitives<br/>crates/solid-pod-rs/Cargo.toml:164"]
+    LEG["legacy-notifications (solid-0.1 WS adapter)<br/>crates/solid-pod-rs/Cargo.toml:169"]
+    ORG["acl-origin (WAC acl:origin gate)<br/>crates/solid-pod-rs/Cargo.toml:173"]
+    CFGL["config-loader = serde_norway + toml<br/>crates/solid-pod-rs/Cargo.toml:192"]
+    WHS["webhook-signing = ed25519-dalek + httpdate<br/>crates/solid-pod-rs/Cargo.toml:196"]
+    RL["rate-limit = lru + parking_lot<br/>crates/solid-pod-rs/Cargo.toml:222"]
+    QU["quota = jss-v04 + config-loader<br/>crates/solid-pod-rs/Cargo.toml:230"]
+    DNT["did-nostr-types = k256, full-point Multikey<br/>crates/solid-pod-rs/Cargo.toml:208"]
+    MR["mrc20 = dep:bitcoin — BIP-341 taproot and BIP-340 signing<br/>moved to rust-bitcoin 0.32 in alpha.11 (ADR-2008); links<br/>libsecp256k1 (C), so wasm32 mrc20 needs a C toolchain<br/>crates/solid-pod-rs/Cargo.toml:215"]
+    DN["did-nostr<br/>crates/solid-pod-rs/Cargo.toml:216"]
 
     JSS --> SP
     JSS --> LEG
@@ -190,13 +191,13 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    LIBD["core lib default = std, fs-backend,<br/>memory-backend, tokio-runtime, notifications<br/>crates/solid-pod-rs/Cargo.toml:107"]
-    SRVD["server default = [] (EMPTY)<br/>crates/solid-pod-rs-server/Cargo.toml:123"]
+    LIBD["core lib default = std, fs-backend,<br/>memory-backend, tokio-runtime, notifications<br/>crates/solid-pod-rs/Cargo.toml:112"]
+    SRVD["server default = [] (EMPTY)<br/>crates/solid-pod-rs-server/Cargo.toml:127"]
 
     LIBD --> R1["a default library build has FS + memory storage,<br/>the tokio runtime and the notifications stack"]
     SRVD --> R2["a default server build has NO tls, NO git, NO forge,<br/>NO quota, NO did-nostr, NO export, NO nip05"]
 
-    D1["INVARIANT (ADR-2004): the empty server default means git_mark_write compiles to<br/>the no-op shim, so a default build records ZERO provenance marks<br/>solid-pod-rs-server/src/lib.rs:3650"]
+    D1["INVARIANT (ADR-2004): the empty server default means git_mark_write compiles to<br/>the no-op shim, so a default build records ZERO provenance marks<br/>solid-pod-rs-server/src/lib.rs:4110"]
     SRVD -.-> D1
 ```
 
@@ -204,28 +205,35 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    TLS["tls = rustls + actix-web/rustls-0_23<br/>crates/solid-pod-rs-server/Cargo.toml:126"]
-    RLP["rate-limit -> solid-pod-rs/rate-limit<br/>crates/solid-pod-rs-server/Cargo.toml:129"]
-    QUP["quota -> solid-pod-rs/quota<br/>crates/solid-pod-rs-server/Cargo.toml:130"]
-    DNP["did-nostr -> solid-pod-rs/did-nostr<br/>crates/solid-pod-rs-server/Cargo.toml:131"]
-    SPP["security-primitives<br/>crates/solid-pod-rs-server/Cargo.toml:132"]
-    PK["provision-keys (library surface only)<br/>crates/solid-pod-rs-server/Cargo.toml:140"]
-    N05["nip05-endpoint<br/>crates/solid-pod-rs-server/Cargo.toml:144"]
-    EXJ["export-jsonld<br/>crates/solid-pod-rs-server/Cargo.toml:145"]
-    GITF["git = solid-pod-rs-git + solid-pod-rs/git-auto-init<br/>crates/solid-pod-rs-server/Cargo.toml:150"]
-    FRG["forge = solid-pod-rs-forge + git<br/>crates/solid-pod-rs-server/Cargo.toml:155"]
-    FA["forge-anchoring = forge + forge/anchoring + mrc20<br/>crates/solid-pod-rs-server/Cargo.toml:156"]
-    FAN["forge-announce = forge + forge/announce<br/>crates/solid-pod-rs-server/Cargo.toml:157"]
-    INS["install = solid-pod-rs/nip98-schnorr<br/>crates/solid-pod-rs-server/Cargo.toml:163"]
+    TLS["tls = rustls + actix-web/rustls-0_23<br/>crates/solid-pod-rs-server/Cargo.toml:136"]
+    RLP["rate-limit -> solid-pod-rs/rate-limit<br/>crates/solid-pod-rs-server/Cargo.toml:139"]
+    QUP["quota -> solid-pod-rs/quota<br/>crates/solid-pod-rs-server/Cargo.toml:140"]
+    DNP["did-nostr -> solid-pod-rs/did-nostr<br/>crates/solid-pod-rs-server/Cargo.toml:141"]
+    SPP["security-primitives<br/>crates/solid-pod-rs-server/Cargo.toml:142"]
+    PK["provision-keys (library surface only)<br/>crates/solid-pod-rs-server/Cargo.toml:150"]
+    N05["nip05-endpoint<br/>crates/solid-pod-rs-server/Cargo.toml:154"]
+    EXJ["export-jsonld<br/>crates/solid-pod-rs-server/Cargo.toml:155"]
+    GITF["git = solid-pod-rs-git + solid-pod-rs/git-auto-init<br/>crates/solid-pod-rs-server/Cargo.toml:160"]
+    FRG["forge = solid-pod-rs-forge + git<br/>crates/solid-pod-rs-server/Cargo.toml:165"]
+    FA["forge-anchoring = forge + forge/anchoring + mrc20<br/>crates/solid-pod-rs-server/Cargo.toml:166"]
+    FAN["forge-announce = forge + forge/announce<br/>crates/solid-pod-rs-server/Cargo.toml:167"]
+    FMI["forge-mirror = forge + forge/mirror — started at boot only when FORGE_MIRROR_RELAYS and FORGE_MIRROR_FOLLOW name something<br/>crates/solid-pod-rs-server/Cargo.toml:170"]
+    FFU["forge-full = forge + anchoring + announce + mirror, for builds that run the forge (ADR-2010)<br/>crates/solid-pod-rs-server/Cargo.toml:172"]
+    APF["activitypub = solid-pod-rs-activitypub, default-off<br/>crates/solid-pod-rs-server/Cargo.toml:130"]
+    INS["install = solid-pod-rs/nip98-schnorr<br/>crates/solid-pod-rs-server/Cargo.toml:178"]
 
     GITF --> FRG
     FRG --> FA
     FRG --> FAN
+    FRG --> FMI
+    FA --> FFU
+    FAN --> FFU
+    FMI --> FFU
 
-    K1["INVARIANT: provision-keys mints an nsec, so no HTTP route exposes it —<br/>it stays a library surface by design<br/>crates/solid-pod-rs-server/Cargo.toml:140"]
+    K1["INVARIANT: provision-keys mints an nsec, so no HTTP route exposes it —<br/>it stays a library surface by design<br/>crates/solid-pod-rs-server/Cargo.toml:150"]
     PK -.-> K1
-    K2["DOC-DRIFT: README calls the forge 'Phases 0-3 shipped';<br/>Phases 4-7 exist only as the anchoring/announce scaffolds above"]
-    FA -.-> K2
+    K2["The cargo defaults do not change: a library user who depends on the forge crate still gets<br/>nothing optional. Only consumers that build with forge-full ship the forge and mirror<br/>(ADR-2010, accepted, implementation partial, activation inactive).<br/>crates/solid-pod-rs-server/Cargo.toml:172"]
+    FFU -.-> K2
 ```
 
 ## SP-01.9 Sibling crate feature surfaces
@@ -233,9 +241,10 @@ flowchart TD
 ```mermaid
 classDiagram
     class forge {
-        +default = []  crates/solid-pod-rs-forge/Cargo.toml:48
-        +anchoring = solid-pod-rs/mrc20 + k256  crates/solid-pod-rs-forge/Cargo.toml:50
-        +announce = solid-pod-rs-nostr + k256  crates/solid-pod-rs-forge/Cargo.toml:53
+        +default = []  crates/solid-pod-rs-forge/Cargo.toml:55
+        +anchoring = solid-pod-rs/mrc20 + k256  crates/solid-pod-rs-forge/Cargo.toml:57
+        +announce = solid-pod-rs-nostr + k256 + relay publisher  crates/solid-pod-rs-forge/Cargo.toml:61
+        +mirror = solid-pod-rs-nostr + k256 + relay sockets (kind-30618 follow)  crates/solid-pod-rs-forge/Cargo.toml:65
     }
     class git {
         +default = []  crates/solid-pod-rs-git/Cargo.toml:47
@@ -334,15 +343,15 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    D1["[[example]] embed_in_actix<br/>crates/solid-pod-rs/Cargo.toml:326"]
-    D2["custom_storage<br/>crates/solid-pod-rs/Cargo.toml:330"]
-    D3["nip98_client<br/>crates/solid-pod-rs/Cargo.toml:334"]
-    D4["notifications_consumer<br/>crates/solid-pod-rs/Cargo.toml:338"]
-    D5["webhook_receiver<br/>crates/solid-pod-rs/Cargo.toml:342"]
-    D6["wac_admin<br/>crates/solid-pod-rs/Cargo.toml:346"]
-    D7["oidc_client, required-features = oidc<br/>crates/solid-pod-rs/Cargo.toml:350"]
-    C1["cargo check -p solid-pod-rs --examples<br/>crates/solid-pod-rs/docs/examples-index.md:34"]
-    C2["cargo check --examples --features oidc<br/>crates/solid-pod-rs/docs/examples-index.md:35"]
+    D1["[[example]] embed_in_actix<br/>crates/solid-pod-rs/Cargo.toml:331"]
+    D2["custom_storage<br/>crates/solid-pod-rs/Cargo.toml:335"]
+    D3["nip98_client<br/>crates/solid-pod-rs/Cargo.toml:339"]
+    D4["notifications_consumer<br/>crates/solid-pod-rs/Cargo.toml:343"]
+    D5["webhook_receiver<br/>crates/solid-pod-rs/Cargo.toml:347"]
+    D6["wac_admin<br/>crates/solid-pod-rs/Cargo.toml:351"]
+    D7["oidc_client, required-features = oidc<br/>crates/solid-pod-rs/Cargo.toml:355"]
+    C1["cargo check -p solid-pod-rs --examples<br/>crates/solid-pod-rs/docs/examples-index.md:35"]
+    C2["cargo check --examples --features oidc<br/>crates/solid-pod-rs/docs/examples-index.md:36"]
 
     D1 --> C1
     D2 --> C1
@@ -352,10 +361,10 @@ flowchart LR
     D6 --> C1
     D7 --> C2
 
-    N["Without the oidc feature, oidc_client compiles to a stub that prints a hint and<br/>exits — it stays registered so the NAME remains discoverable.<br/>crates/solid-pod-rs/docs/examples-index.md:38"]
+    N["Without the oidc feature, oidc_client compiles to a stub that prints a hint and<br/>exits — it stays registered so the NAME remains discoverable.<br/>crates/solid-pod-rs/docs/examples-index.md:39"]
     D7 -.-> N
-    N2["DOC-DRIFT: examples-index.md documents an eighth example, 'standalone', as<br/>'the quickest way to see a working pod'<br/>(crates/solid-pod-rs/docs/examples-index.md:12). No standalone.rs exists and no<br/>[[example]] declares it — the Cargo manifest has exactly the seven above. A<br/>reader following the index hits cargo error: no example target named standalone."]
+    N2["INVARIANT: examples-index.md states there is no standalone example, the quickest working<br/>pod being the solid-pod-rs-server binary, and the manifest declares exactly the seven above.<br/>crates/solid-pod-rs/docs/examples-index.md:10"]
     C1 -.-> N2
-    N3["DIVERGENCE: neither cargo check line is a CI job — SP-09.10 shows the matrix<br/>never builds --examples, so this gate is documentation an author must run by<br/>hand. That is how the missing standalone.rs survived."]
+    N3["DIVERGENCE: neither cargo check line is a CI job — SP-09.10 shows the matrix<br/>never builds --examples, so this gate is documentation an author must run by<br/>hand."]
     C1 -.-> N3
 ```

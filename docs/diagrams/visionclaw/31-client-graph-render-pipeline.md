@@ -2,10 +2,10 @@
 id: VC-31
 title: R3F/Three.js graph render pipeline and WASM scene effects
 area: visionclaw
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
 governing:
   - ../project/docs/BASELINE-architecture.md
-adrs: []
+adrs: [ADR-2135, ADR-2142]
 sources:
   - ../project/client/src/app/MainLayout.tsx
   - ../project/client/src/features/graph/components/GraphCanvas.tsx
@@ -24,6 +24,9 @@ sources:
   - ../project/client/src/features/graph/components/NodeContextMenu.tsx
   - ../project/client/src/features/graph/components/NodeDetailPanel.tsx
   - ../project/client/src/features/graph/hooks/useEdgeBufferComputation.ts
+  - ../project/client/src/features/graph/hooks/edgeBufferPlan.ts
+  - ../project/client/src/features/graph/utils/agentNudge.ts
+  - ../project/client/src/features/visualisation/components/VirtualAgentMarkers.tsx
   - ../project/client/src/features/graph/utils/nodeScaling.ts
   - ../project/client/src/features/graph/hooks/useFpsMonitor.ts
   - ../project/client/src/features/graph/managers/graphWorkerProxy.ts
@@ -61,30 +64,32 @@ sources:
 ```mermaid
 flowchart LR
     ML["MainLayoutContent<br/>client/src/app/MainLayout.tsx:18"] -->|mounts| GCW["GraphCanvasWrapper<br/>components/GraphCanvasWrapper.tsx:134"]
-    GCW -->|CanvasErrorBoundary wraps| GC["GraphCanvas<br/>components/GraphCanvas.tsx:275"]
-    GC -->|"gl=createGemRenderer"| CANVAS["R3F Canvas<br/>components/GraphCanvas.tsx:361"]
-    CANVAS --> CAS["CameraAspectSync<br/>GraphCanvas.tsx:159"]
-    CANVAS --> EEC["EnsureEventsConnected<br/>GraphCanvas.tsx:203"]
+    GCW -->|CanvasErrorBoundary wraps| GC["GraphCanvas<br/>components/GraphCanvas.tsx:277"]
+    GC -->|"gl=createGemRenderer"| CANVAS["R3F Canvas<br/>components/GraphCanvas.tsx:363"]
+    CANVAS --> CAS["CameraAspectSync<br/>GraphCanvas.tsx:161"]
+    CANVAS --> EEC["EnsureEventsConnected<br/>GraphCanvas.tsx:205"]
     CANVAS --> PP["PerfProbe (DEV only, lazy)<br/>components/PerfProbe.tsx:385"]
     CANVAS --> ENV["Environment plus Lightformer, auto policy skips on software renderer"]
     CANVAS --> WSE["WasmSceneEffects<br/>visualisation/components/WasmSceneEffects.tsx:628"]
-    CANVAS --> ECL["EmbeddingCloudLayer<br/>visualisation/components/EmbeddingCloudLayer.tsx:92"]
-    CANVAS -->|"canvasReady and nodeCount above 0"| GM["GraphManager<br/>components/GraphManager.tsx:41"]
-    GM --> GN["GemNodes x3 populations<br/>components/GemNodes.tsx:157"]
-    GM --> GE["GlassEdges x2 (main + highlight)<br/>components/GlassEdges.tsx:180"]
+    CANVAS --> ECL["EmbeddingCloudLayer<br/>visualisation/components/EmbeddingCloudLayer.tsx:123"]
+    CANVAS -->|"canvasReady and nodeCount above 0"| GM["GraphManager<br/>components/GraphManager.tsx:44"]
+    GM --> GN["GemNodes x3 populations<br/>components/GemNodes.tsx:164"]
+    GM --> GE["GlassEdges x2 (main + highlight)<br/>components/GlassEdges.tsx:202"]
     GM --> IE["InferredEdges<br/>components/InferredEdges.tsx:36"]
     GM --> KR["KnowledgeRings<br/>components/KnowledgeRings.tsx:32"]
     GM --> CH["ClusterHulls<br/>components/ClusterHulls.tsx:210"]
+    GM --> VAM["VirtualAgentMarkers (shared-demo agents that are not graph nodes)<br/>visualisation/components/VirtualAgentMarkers.tsx:36"]
     GM --> TBL["TransientBeamsLayer<br/>visualisation/components/TransientBeamsLayer.tsx:69"]
     GM --> IL["InstancedLabels<br/>components/InstancedLabels.tsx:285"]
     CANVAS --> OC["OrbitControls (makeDefault)"]
     CANVAS --> GPP["GemPostProcessing<br/>client/src/rendering/GemPostProcessing.tsx"]
     GC --> LMI["LayoutModeIndicator (HTML overlay)"]
+    GC -->|"embeddingCloudEnabled"| MEP["MemoryExplorerPanel (HTML overlay)<br/>components/GraphCanvas.tsx:526"]
     GC -->|"provenance.enableTimeline"| TS["TimelineScrubber<br/>components/TimelineScrubber.tsx:75"]
     ML --> NDP["NodeDetailPanel (HTML overlay)<br/>components/NodeDetailPanel.tsx:56"]
     ML --> NCM["NodeContextMenu (HTML overlay)<br/>components/NodeContextMenu.tsx:41"]
     GM -.->|"visionclaw:node-contextmenu CustomEvent"| NCM
-    Note1["Note: no GraphViewport.tsx exists in this repo -- retired, per<br/>GraphCanvas.tsx:467 comment. NodeDetailPanel/NodeContextMenu are siblings of<br/>GraphCanvasWrapper in MainLayout, not children of GraphManager."]
+    Note1["Note: no GraphViewport.tsx exists in this repo -- retired, per<br/>GraphCanvas.tsx:469 comment. NodeDetailPanel/NodeContextMenu are siblings of<br/>GraphCanvasWrapper in MainLayout, not children of GraphManager."]
 ```
 
 ## VC-31.2 GraphManager per-frame hot loop (priority -2)
@@ -92,12 +97,12 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant R3F as R3F render loop
-    participant GM as GraphManager.useFrame priority -2<br/>GraphManager.tsx:365
-    participant WP as graphWorkerProxy.getPositionsSync<br/>graphWorkerProxy.ts:294
+    participant GM as GraphManager.useFrame priority -2<br/>GraphManager.tsx:386
+    participant WP as graphWorkerProxy.getPositionsSync<br/>graphWorkerProxy.ts:301
     participant SEL as useGraphSelection fly-to state<br/>useGraphSelection.ts:67, resolveNodeWorldPosition cameraFocus.ts:68
-    participant EBC as useEdgeBufferComputation.useFrame priority -2<br/>useEdgeBufferComputation.ts:73
+    participant EBC as useEdgeBufferComputation.useFrame priority -2<br/>useEdgeBufferComputation.ts:86
     participant NS as computeNodeScale<br/>nodeScaling.ts:36
-    participant GE as GlassEdgesHandle<br/>GlassEdges.tsx:454-542
+    participant GE as GlassEdgesHandle<br/>GlassEdges.tsx:474-562
 
     rect rgb(232,238,250)
     Note over GM: INVARIANT both useFrame hooks register at priority -2, order among same-priority callbacks is registration order (React effect order)
@@ -124,7 +129,7 @@ sequenceDiagram
             GM-->>R3F: return (wait for non-zero positions)
         end
         GM->>GM: nodePositionsRef.current = positions
-        GM->>GM: setSharedNodePositions(positions) publishes the live SAB view<br/>GraphManager.tsx:431, id map at :75
+        GM->>GM: setSharedNodePositions(positions) publishes the live SAB view<br/>GraphManager.tsx:452, id map at :78
         Note over GM: 2026-09-11: the SAB view and the node-id-to-index map are published<br/>to a module-level singleton so the agent overlay reads the same live<br/>buffer without a React context. See VC-37.7 for the debt that carries.<br/>client/src/features/graph/contexts/NodePositionContext.tsx:8
         opt transitionRef.current.active (layout mode change)
             GM->>GM: eased progress = easeInOutQuad(rawProgress)
@@ -151,28 +156,23 @@ sequenceDiagram
     alt positions null or positions.length < nodes.length*3
         EBC-->>R3F: return
     else sufficient
-        loop for each edge in graphData.edges
-            alt source or target not in visibleNodeIds (renderedNodeIds)
-                EBC->>EBC: skip edge (pruned endpoint)
-            else both endpoints rendered
-                EBC->>NS: computeNodeScale(sourceNode) * nodeSize
-                NS-->>EBC: srcR
-                EBC->>NS: computeNodeScale(targetNode) * nodeSize
-                NS-->>EBC: tgtR
-                EBC->>EBC: srcOff = srcPos + dir*srcR, tgtOff = tgtPos - dir*tgtR (surface-to-surface)
-                alt distance(srcOff,tgtOff) > 0.1
-                    EBC->>EBC: write 6 floats to edgeBuffer, RGB to edgeColors, weight to edgeWeights
-                end
-            end
+        Note over EBC: the position-invariant work lives in a memoised plan, rebuilt only when topology, filters or scaling inputs change<br/>useEdgeBufferComputation.ts:66, edgeBufferPlan.ts:67
+        EBC->>EBC: EdgeFrameGate.shouldSkip(frame) -- same plan, handles, selection and a matching position snapshot<br/>edgeBufferPlan.ts:298, useEdgeBufferComputation.ts:108
+        alt nothing that feeds the edge buffers changed (settled steady state)
+            EBC-->>R3F: return, the meshes already hold this output
+        else something changed
+            EBC->>EBC: fillEdgeFrame(plan, positions, dragIdx, dragPos, buffers) -- per planned edge, surface-to-surface offset from cached radii<br/>edgeBufferPlan.ts:171, useEdgeBufferComputation.ts:115
+            EBC->>NS: computeNodeScale runs at most once per distinct endpoint, inside buildEdgePlan
+            NS-->>EBC: radius cached in the plan
         end
         opt selectedNodeId set
-            EBC->>EBC: rebuild highlightBuffer for edges touching selectedNodeId (threshold 0.2)
-            EBC->>GE: highlightEdgeFlowRef.updatePoints(hlBuf, hlIdx)
+            EBC->>EBC: fillHighlightFrame -- edges touching the selected node (threshold 0.2)<br/>edgeBufferPlan.ts:212
+            EBC->>GE: highlightEdgeFlowRef.updatePoints(buffers.highlight, hlIdx)
         end
-        EBC->>GE: edgeFlowRef.updateWidths(edgeWeights, count) — BEFORE updatePoints
-        EBC->>GE: edgeFlowRef.updatePoints(newEdgePoints, edgePointIdx)
-        opt edgeColorIdx > 0
-            EBC->>GE: edgeFlowRef.updateColors(edgeColors, edgeCountWithColor)
+        EBC->>GE: edgeFlowRef.updateWidths(buffers.weights, emitted) — BEFORE updatePoints
+        EBC->>GE: edgeFlowRef.updatePoints(buffers.points, emitted*6)
+        opt emitted > 0
+            EBC->>GE: edgeFlowRef.updateColors(buffers.colors, emitted)
         end
     end
     end
@@ -241,17 +241,17 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CALLER as useEdgeBufferComputation<br/>useEdgeBufferComputation.ts:73
-    participant GE as GlassEdges<br/>GlassEdges.tsx:180
+    participant CALLER as useEdgeBufferComputation<br/>useEdgeBufferComputation.ts:86
+    participant GE as GlassEdges<br/>GlassEdges.tsx:202
     participant GEOM as createGlassEdgeGeometry<br/>GlassEdgeMaterial.ts:195
-    participant CIM as computeInstanceMatrices<br/>GlassEdges.tsx:104
+    participant CIM as computeInstanceMatrices<br/>GlassEdges.tsx:126
     participant MESH as THREE.InstancedMesh
 
-    Note over GEOM: CylinderGeometry(radius, radius, height=1, radialSegments=4,<br/>heightSegments=1, openEnded=true). Default radius 0.03, overridden by settings.baseWidth<br/>(edgeRadius, GlassEdges.tsx:209)
+    Note over GEOM: CylinderGeometry(radius, radius, height=1, radialSegments=4,<br/>heightSegments=1, openEnded=true). Default radius 0.03, overridden by settings.baseWidth<br/>(edgeRadius, GlassEdges.tsx:231)
     Note over GE: EDGE_INITIAL=1024 capacity, DEFAULT_EDGE_CEILING=65536, grows x2 on<br/>overflow up to settings.visualisation.rendering.maxEdgesCeiling (ADR-04 D1/D3/D4)
 
     rect rgb(234,238,250)
-    Note over GE,MESH: Mount -- initial allocation (GlassEdges.tsx:280-319)
+    Note over GE,MESH: Mount -- initial allocation (GlassEdges.tsx:302-341)
     GE->>GEOM: allocateMesh(EDGE_INITIAL, edgeRadius, colorOverride, opacity)
     GEOM-->>GE: InstancedMesh(capacity=1024) plus white instanceColor buffer
     opt points.length >= 6 at mount
@@ -276,7 +276,7 @@ sequenceDiagram
     end
     CALLER->>GE: updatePoints(newPts, count)
     GE->>GE: imperativeActiveRef = true (prop-driven progressive reveal now disabled permanently)
-    GE->>GE: ensureCapacity(edgeCount) -- reallocate x2 up to ceiling, else clamp and<br/>console.info/warn
+    GE->>GE: ensureCapacity(edgeCount) -- reallocate x2 up to ceiling, else clamp and<br/>log the overflow once per episode (OverflowReporter.shouldReport, GlassEdges.tsx:73, :406)
     GE->>CIM: computeInstanceMatrices(mesh, newPts, capacity, undefined, len, radiusFactors)
     loop for i in 0..renderCount
         CIM->>CIM: midpoint = (src+tgt)*0.5
@@ -297,8 +297,8 @@ sequenceDiagram
     end
 
     rect rgb(252,234,236)
-    Note over GE: DIVERGENCE (historical, fixed): prior updatePoints dedup used a hash of<br/>only 3 values (len, points[0], points[len-1]) -- GraphManager.tsx comment and this<br/>file's comment (GlassEdges.tsx:451-453) confirm this froze edges when those 3 sampled<br/>values were stable but interior points moved. Fix: always recompute matrices, no hash<br/>gate.
-    Note over GE: own useFrame (no priority arg, default 0): emissive pulse only (sin wave),<br/>plus progressive reveal ramp while NOT imperativeActiveRef (GlassEdges.tsx:547-568)
+    Note over GE: DIVERGENCE (historical, fixed): prior updatePoints dedup used a hash of<br/>only 3 values (len, points[0], points[len-1]) -- GraphManager.tsx comment and this<br/>file's comment (GlassEdges.tsx:471-473) confirm this froze edges when those 3 sampled<br/>values were stable but interior points moved. Fix: always recompute matrices, no hash<br/>gate.
+    Note over GE: own useFrame (no priority arg, default 0): emissive pulse only (sin wave),<br/>plus progressive reveal ramp while NOT imperativeActiveRef (GlassEdges.tsx:567-588)
     end
 ```
 
@@ -306,7 +306,7 @@ sequenceDiagram
 ```mermaid
 classDiagram
     class GemNodes {
-        GemNodes.tsx:157 GemNodesInner
+        GemNodes.tsx:164 GemNodesInner
         dominant knowledge_graph ontology or agent decides geometry plus material at mesh creation
         capacity = nextPowerOf2 max nodes.length 4096
     }
@@ -542,14 +542,14 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant WS as handleAgentActionTagged<br/>store/websocket/binaryProtocol.ts:437
+    participant WS as handleAgentActionTagged<br/>store/websocket/binaryProtocol.ts:425
     participant STORE as transientBeamStore.pushBeams<br/>transientBeamStore.ts:67
     participant LAYER as TransientBeamsLayer<br/>TransientBeamsLayer.tsx:69
     participant HOOK as useTransientBeams<br/>useTransientBeams.ts:24
     participant MESH as TransientBeamMesh.updateBeam useFrame<br/>TransientBeamsLayer.tsx:166
     participant ENC as semanticEncoding agentActionColorHex/Shape<br/>semanticEncoding.ts:126,131
 
-    Note over WS: 0x23 wire frame is a bare type tag, not a V4 header colon separated fields<br/>count:u16 then repeated len:u16 plus event bytes (store/websocket/binaryProtocol.ts:430, decoded at :438, :440). See VC-30<br/>for the surrounding websocket store and worker plumbing.
+    Note over WS: 0x23 wire frame is a bare type tag, not a V4 header colon separated fields<br/>count:u16 then repeated len:u16 plus event bytes (store/websocket/binaryProtocol.ts:418, decoded at :426, :428). See VC-30<br/>for the surrounding websocket store and worker plumbing.
     WS->>STORE: pushTransientBeams(actions) exported non-React entry point<br/>(transientBeamStore.ts:115)
     STORE->>STORE: pushBeams -- clampDuration(durationMs) floor MIN_BEAM_DURATION_MS=400,<br/>default DEFAULT_BEAM_DURATION_MS=1500
     STORE->>STORE: beams.concat(incoming), FIFO trim to MAX_TRANSIENT_BEAMS=256 (oldest<br/>evicted first)
@@ -599,7 +599,7 @@ sequenceDiagram
     participant PP as PerfProbe.useFrame priority -10000<br/>PerfProbe.tsx:404
     participant CTRL as PerfController singleton<br/>PerfProbe.tsx:48, window.__perf
 
-    R3F->>FPS: frame(state, delta) -- mounted inside GraphManager, GraphManager.tsx:132
+    R3F->>FPS: frame(state, delta) -- mounted inside GraphManager, GraphManager.tsx:135
     alt qualityGates.autoAdjust is false
         FPS->>FPS: reset internal tracking (samples, degradeLevel) but leave visual settings alone
     else autoAdjust enabled
@@ -649,8 +649,8 @@ sequenceDiagram
     participant WS as 0x23 agent-action dispatch<br/>see VC-32.11
     participant TB as useTransientBeamStore
     participant AWT as agentWorkTargets.ingest<br/>client/src/features/bots/agentWorkTargets.ts:53
-    participant GN as GemNodesInner transform loop<br/>client/src/features/graph/components/GemNodes.tsx:157
-    participant BUF as agentOffsetsRef Float32Array<br/>client/src/features/graph/components/GemNodes.tsx:199
+    participant GN as GemNodesInner transform loop<br/>client/src/features/graph/components/GemNodes.tsx:164
+    participant BUF as agentOffsetsRef Float32Array<br/>client/src/features/graph/components/GemNodes.tsx:206
     participant MESH as InstancedMesh agent population
 
     WS->>TB: pushTransientBeams(actions)
@@ -659,15 +659,18 @@ sequenceDiagram
     loop every frame, per visible agent instance
         GN->>AWT: getAgentWork(nodeId)<br/>client/src/features/bots/agentWorkTargets.ts:77
         alt state working and the target is in the index map
-            GN->>BUF: offset moves toward the target by AGENT_NUDGE_SPEED 0.03 of the remaining gap<br/>client/src/features/graph/components/GemNodes.tsx:113, :983
-        else state done
-            GN->>BUF: offset drifts outward from the sampled graph centre at AGENT_DRIFT_SPEED 0.005<br/>client/src/features/graph/components/GemNodes.tsx:114, :995
+            GN->>BUF: stepAgentOffset moves the offset toward the target by AGENT_NUDGE_SPEED 0.03 of the remaining gap<br/>client/src/features/graph/utils/agentNudge.ts:30, :19
+        else state done and layout merged
+            GN->>BUF: offset drifts outward from the sampled graph centre at AGENT_DRIFT_SPEED 0.005<br/>client/src/features/graph/utils/agentNudge.ts:30, :21
+        else state done or idle and layout separated (ADR-2135)
+            GN->>BUF: offset relaxes toward zero by AGENT_RELAX_SPEED 0.03, handing the agent back to its server position plus activity drift<br/>client/src/features/graph/utils/agentNudge.ts:23, client/src/features/graph/components/GemNodes.tsx:968
         end
-        GN->>MESH: position plus offset written to the transform buffer<br/>client/src/features/graph/components/GemNodes.tsx:1000
+        GN->>MESH: position plus offset written to the transform buffer<br/>client/src/features/graph/components/GemNodes.tsx:1023
     end
-    GN->>MESH: activity channel = AGENT_DONE_ACTIVITY 0.05 when done<br/>client/src/features/graph/components/GemNodes.tsx:1079, agentWorkTargets.ts:88
+    GN->>MESH: activity channel = AGENT_DONE_ACTIVITY 0.05 when done<br/>client/src/features/graph/components/GemNodes.tsx:1102, agentWorkTargets.ts:88
     Note over MESH: The capsule material reads that channel: activity at or below 0.1 is<br/>the done flag and fades base alpha to 0.3, which is why the material<br/>became transparent.<br/>client/src/rendering/materials/AgentCapsuleMaterial.ts:44, :165
-    Note over GN,MESH: INVARIANT the nudge is VISUAL ONLY. It is an offset applied when writing<br/>the transform, never a write back into the shared position buffer, so<br/>physics and the wire remain the single source of position. A dragged<br/>instance skips the nudge entirely.<br/>client/src/features/graph/components/GemNodes.tsx:975
-    Note over BUF: DEBT: the offset array is grow-only and indexed by VISIBLE instance<br/>index, not node id, so a change in the visible set re-uses another<br/>agent's accumulated offset for one or more frames.<br/>client/src/features/graph/components/GemNodes.tsx:942, :946
+    Note over GN,BUF: agentOffsetsEnabled() false zeroes the offset, drawing the agent exactly at the server position<br/>client/src/features/graph/components/GemNodes.tsx:1016
+    Note over GN,MESH: INVARIANT the nudge is VISUAL ONLY. It is an offset applied when writing<br/>the transform, never a write back into the shared position buffer, so<br/>physics and the wire remain the single source of position. A dragged<br/>instance skips the nudge entirely.<br/>client/src/features/graph/components/GemNodes.tsx:996
+    Note over BUF: DEBT: the offset array is grow-only and indexed by VISIBLE instance<br/>index, not node id, so a change in the visible set re-uses another<br/>agent's accumulated offset for one or more frames.<br/>client/src/features/graph/components/GemNodes.tsx:960, :964
     Note over GN: This is the desktop counterpart of the XR choreography, which owns a<br/>real pose rather than an offset. see VC-36.22
 ```

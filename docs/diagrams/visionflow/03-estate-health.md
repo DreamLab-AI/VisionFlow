@@ -23,7 +23,8 @@ sources:
   - tests/gates/estate-health-ci.test.mjs
   - tests/gates/run-all.sh
   - ./README.md
-verified_commit: 26df6c9dc96f896b0d8f0d012471a54738d53b3c
+  - docs/jev-option.md
+verified_commit: 1d7183a73c1eae4996a7006067d5047308fab7a5
 ---
 
 ## VF-03.1 The roster — the only place the estate is enumerated
@@ -77,10 +78,10 @@ sequenceDiagram
     CRON->>JOB: "cron plus workflow_dispatch, permissions contents:write, actions:write<br/>estate-health.yml:58"
     JOB->>JOB: "checkout with persist-credentials true — estate-health.yml:74"
     JOB->>COL: "GITHUB_TOKEN plus optional ESTATE_READ_TOKEN — estate-health.yml:97"
-    COL->>GH: "roster repos, surfaces and registries, at most 4 requests in flight<br/>estate-health.mjs:896"
+    COL->>GH: "roster repos, surfaces and registries, at most 4 requests in flight<br/>estate-health.mjs:902"
     GH-->>COL: "per-field answers, or a degraded field plus a note"
-    COL->>SNAP: "write the whole snapshot — estate-health.mjs:913"
-    COL-->>JOB: "summary line plus ESTATE-HEALTH-COLLECTED — estate-health.mjs:922"
+    COL->>SNAP: "write the whole snapshot — estate-health.mjs:919"
+    COL-->>JOB: "summary line plus ESTATE-HEALTH-COLLECTED — estate-health.mjs:928"
     JOB->>COL: "check, REPORTED only — estate-health.yml:105"
     COL-->>JOB: "verdict grepped into the step summary — estate-health.yml:107"
     Note over JOB: "INVARIANT: the job never fails on RED. Failing would abort<br/>before the commit, so the one night the estate breaks would be<br/>the night no snapshot is published — estate-health.yml:21"
@@ -102,19 +103,19 @@ flowchart LR
     classDef apicall fill:#e4ecf8,stroke:#3a5a8a,color:#111
     classDef deg fill:#f9f0d5,stroke:#8a7020,color:#111
 
-    E["one roster entry"] --> ACC["resolveRepoAccess — primary token first,<br/>retry with ESTATE_READ_TOKEN on 404 or 403<br/>estate-health.mjs:306 and :311"]:::apicall
-    ACC -->|"neither token can see it"| UNREAD["readable false, ci.state unknown, null counts,<br/>a note explaining which tokens were tried<br/>estate-health.mjs:512"]:::deg
-    ACC -->|"repo object resolved"| PAR["five calls issued together — estate-health.mjs:526"]
+    E["one roster entry"] --> ACC["resolveRepoAccess — primary token first,<br/>retry with ESTATE_READ_TOKEN on 404 or 403<br/>estate-health.mjs:312 and estate-health.mjs:317"]:::apicall
+    ACC -->|"neither token can see it"| UNREAD["readable false, ci.state unknown, null counts,<br/>a note explaining which tokens were tried<br/>estate-health.mjs:518"]:::deg
+    ACC -->|"repo object resolved"| PAR["five calls issued together — estate-health.mjs:532"]
 
-    PAR --> C1["collectHead — tip commit of the default branch:<br/>sha, short, date, first line of the message, url<br/>estate-health.mjs:582"]:::apicall
-    PAR --> C2["collectCi — one UNFILTERED /actions/runs page of 100,<br/>matched to the default branch on head_branch client-side,<br/>because the API branch filter lagged by a fortnight<br/>estate-health.mjs:601, :603, :608 — judgement call 8, estate-health.mjs:93"]:::apicall
-    PAR --> C3["openPrCount — one /pulls page with state open and per_page 1, so the<br/>rel=last page number IS the count<br/>estate-health.mjs:462 and :473"]:::apicall
-    PAR --> C4["collectRelease — latest release; a 404 simply means<br/>there is none and is not recorded as an error<br/>estate-health.mjs:646"]:::apicall
-    PAR --> C5["collectPages — html_url, status, build_type;<br/>status null for a workflow-built site is 'not reported',<br/>never 'errored' — estate-health.mjs:674"]:::apicall
+    PAR --> C1["collectHead — tip commit of the default branch:<br/>sha, short, date, first line of the message, url<br/>estate-health.mjs:588"]:::apicall
+    PAR --> C2["collectCi — one UNFILTERED /actions/runs page of 100,<br/>matched to the default branch on head_branch client-side,<br/>because the API branch filter lagged by a fortnight<br/>estate-health.mjs:607 and estate-health.mjs:609, filtered at estate-health.mjs:379 — judgement call 8, estate-health.mjs:93"]:::apicall
+    PAR --> C3["openPrCount — one /pulls page with state open and per_page 1, so the<br/>rel=last page number IS the count<br/>estate-health.mjs:468 and estate-health.mjs:479"]:::apicall
+    PAR --> C4["collectRelease — latest release; a 404 simply means<br/>there is none and is not recorded as an error<br/>estate-health.mjs:652"]:::apicall
+    PAR --> C5["collectPages — html_url, status, build_type;<br/>status null for a workflow-built site is 'not reported',<br/>never 'errored' — estate-health.mjs:680"]:::apicall
 
-    C3 --> ISSUES["open_issues derived: open_issues_count counts issues AND<br/>PRs, so the difference is the issue count, clamped at zero<br/>estate-health.mjs:560"]:::apicall
+    C3 --> ISSUES["open_issues derived: open_issues_count counts issues AND<br/>PRs, so the difference is the issue count, clamped at zero<br/>estate-health.mjs:566"]:::apicall
 
-    SELF["The observer effect: the collector's own in-progress run is<br/>excluded BY RUN ID, never by workflow name, so a genuinely<br/>failed previous nightly still counts red<br/>estate-health.mjs:180 and :356; the exclusion is itself<br/>recorded as a note — estate-health.mjs:616"]:::deg
+    SELF["The observer effect: the collector's own in-progress run is<br/>excluded BY RUN ID, never by workflow name, so a genuinely<br/>failed previous nightly still counts red<br/>estate-health.mjs:186 and estate-health.mjs:362; the exclusion is itself<br/>recorded as a note — estate-health.mjs:622"]:::deg
     C2 --- SELF
 ```
 
@@ -123,31 +124,31 @@ flowchart LR
 stateDiagram-v2
     direction TB
     [*] --> Filter
-    state "one unfiltered /actions/runs page, kept where head_branch is the default branch — runsOnBranch, estate-health.mjs:372" as Filter
-    Filter --> Group : keep only push, schedule, workflow_dispatch — estate-health.mjs:165
+    state "one unfiltered /actions/runs page, kept where head_branch is the default branch — runsOnBranch, estate-health.mjs:378" as Filter
+    Filter --> Group : keep only push, schedule, workflow_dispatch — estate-health.mjs:171
     Filter --> Dropped : a pull_request run reports a proposal, not the branch
-    state "latest run per workflow_id, newest by created_at, tie-broken by run_number — estate-health.mjs:351" as Group
+    state "latest run per workflow_id, newest by created_at, tie-broken by run_number — estate-health.mjs:357" as Group
     Group --> Fold
-    state "ciStateFrom — estate-health.mjs:412" as Fold
+    state "ciStateFrom — estate-health.mjs:418" as Fold
     Fold --> AtHead : red, amber or green
     Fold --> NoneState : no qualifying runs at all
-    state "ciStateAtHead — is any latest run on the tip commit — estate-health.mjs:436" as AtHead
+    state "ciStateAtHead — is any latest run on the tip commit — estate-health.mjs:442" as AtHead
     AtHead --> Kept : at least one latest run is on HEAD, the whole fold stands
     AtHead --> Older : every latest run is on an older commit
-    state "docsOnlySince — compare each base with HEAD, at most three bases — estate-health.mjs:632" as Older
-    Older --> Carried : every changed path is md, mdx or under docs/ — estate-health.mjs:376
+    state "docsOnlySince — compare each base with HEAD, at most three bases — estate-health.mjs:638" as Older
+    Older --> Carried : every changed path is md, mdx or under docs/ — estate-health.mjs:382
     Older --> NoneState : any other file, a truncated list, or more than three bases
     state "the fold stands — red dominates, one failing workflow makes the repository red" as Kept
-    state "the older verdict is carried, ci.carried_from lists the commits — estate-health.mjs:545" as Carried
-    state "none, with a note naming the older commits — estate-health.mjs:548" as NoneState
-    NoneState --> Exempt : the roster entry declares ci_by_design — estate-health.mjs:553
-    state "exempt, rendered 'no CI by design' — estate-health.mjs:554" as Exempt
+    state "the older verdict is carried, ci.carried_from lists the commits — estate-health.mjs:551" as Carried
+    state "none, with a note naming the older commits — estate-health.mjs:554" as NoneState
+    NoneState --> Exempt : the roster entry declares ci_by_design — estate-health.mjs:559
+    state "exempt, rendered 'no CI by design' — estate-health.mjs:560" as Exempt
     state "excluded before grouping, so it can never mask a real result" as Dropped
     note right of Fold
       startup_failure counts RED: a workflow that
-      could not start did not pass — estate-health.mjs:160
+      could not start did not pass — estate-health.mjs:166
       An unrecognised future conclusion counts AMBER,
-      never green — estate-health.mjs:162
+      never green — estate-health.mjs:168
     end note
     note right of AtHead
       The rule is per repository, not per workflow:
@@ -163,7 +164,7 @@ stateDiagram-v2
 
 **Invariant:** the HEAD rule cannot hide a real failure — a red run on the tip commit still reads red, and that is pinned by the gate suite rather than by prose (`tests/gates/estate-health-ci.test.mjs:27-28`, wired at `tests/gates/run-all.sh:25`).
 
-**Debt (one page of runs):** since judgement call 8 the collector reads one unfiltered page of 100 runs across every branch and filters client-side (`scripts/estate-health.mjs:603`, `scripts/estate-health.mjs:608`); a repository whose pull-request and feature-branch runs fill that page pushes its default-branch runs off it, and the row then reads none rather than its real state.
+**Debt (one page of runs):** since judgement call 8 the collector reads one unfiltered page of 100 runs across every branch and filters client-side (`scripts/estate-health.mjs:609`, `scripts/estate-health.mjs:614`); a repository whose pull-request and feature-branch runs fill that page pushes its default-branch runs off it, and the row then reads none rather than its real state.
 
 ## VF-03.5 Degradation discipline — the snapshot says what it does not know
 ```mermaid
@@ -175,7 +176,7 @@ flowchart TB
     R2["RULE — the snapshot says what it does not know. Unreadable is<br/>readable false plus ci.state unknown plus null counts,<br/>never an optimistic zero — estate-health.mjs:37"]:::rule
     R3["RULE — deterministic ordering. Repos, surfaces and registries<br/>in roster order, CI runs sorted by workflow name, so the<br/>nightly commit is a real diff, not reordering noise<br/>estate-health.mjs:42"]:::rule
 
-    MECH["request() never throws: a transport failure, timeout or abort<br/>returns ok false, status null and an error string<br/>estate-health.mjs:244 and :262"]:::rule
+    MECH["request() never throws: a transport failure, timeout or abort<br/>returns ok false, status null and an error string<br/>estate-health.mjs:250 and :262"]:::rule
     R1 --> MECH
     NOTOK["no log line interpolates a token — estate-health.mjs:66"]:::rule
 
@@ -183,7 +184,7 @@ flowchart TB
     R2 --> HOLE
     TRAP["TRAP recorded in the workflow itself: a maintainer's full-scope<br/>local PAT reads visionGraph WITHOUT the fallback, so a readable<br/>row in a locally produced snapshot is NOT evidence that the CI<br/>path works — estate-health.yml:92"]:::bad
     HOLE --> TRAP
-    LIVE["Confirmed at this commit: summary.unreadable is 1 and<br/>summary.repos is 17 — estate-health.json:16 and estate-health.json:10"]:::bad
+    LIVE["Confirmed at this commit: summary.unreadable is 1 and<br/>summary.repos is 18 — estate-health.json:16 and estate-health.json:10"]:::bad
     HOLE --> LIVE
 ```
 
@@ -192,15 +193,15 @@ flowchart TB
 stateDiagram-v2
     direction TB
     [*] --> Load
-    state "check() — reads CHECK_PATH, no network, no token — estate-health.mjs:936" as Load
-    Load --> Stale1 : file missing — estate-health.mjs:937
+    state "async check() — reads CHECK_PATH, no network, no token — estate-health.mjs:942" as Load
+    Load --> Stale1 : file missing — estate-health.mjs:943
     Load --> Stale2 : unparseable JSON
-    Load --> Stale3 : schema is not visionflow.estate-health/1 — estate-health.mjs:950
+    Load --> Stale3 : schema is not visionflow.estate-health/1 — estate-health.mjs:956
     Load --> Scan
-    state "walk repos, then surfaces — estate-health.mjs:959" as Scan
+    state "walk repos, then surfaces — estate-health.mjs:967" as Scan
     Scan --> RedRepo : ci.state red — print one RED line per bad run
-    Scan --> AmberRepo : ci.state amber, or readable false — estate-health.mjs:969
-    Scan --> DownSurface : a surface with ok false — estate-health.mjs:974
+    Scan --> AmberRepo : ci.state amber, or readable false — estate-health.mjs:978
+    Scan --> DownSurface : a surface with ok false — estate-health.mjs:984
     RedRepo --> Verdict
     AmberRepo --> Verdict
     DownSurface --> Verdict
@@ -208,9 +209,9 @@ stateDiagram-v2
     Verdict --> RED : any red repo OR any unreachable surface — exit 1
     Verdict --> STALE : otherwise, generated_at older than 36 h — exit 1
     Verdict --> OK : otherwise — exit 0
-    state "ESTATE-HEALTH-RED — estate-health.mjs:995" as RED
-    state "ESTATE-HEALTH-STALE — estate-health.mjs:1001" as STALE
-    state "ESTATE-HEALTH-OK — estate-health.mjs:1005" as OK
+    state "ESTATE-HEALTH-RED — estate-health.mjs:1008" as RED
+    state "ESTATE-HEALTH-STALE — estate-health.mjs:1014" as STALE
+    state "ESTATE-HEALTH-OK — estate-health.mjs:1018" as OK
     state "ESTATE-HEALTH-STALE" as Stale1
     state "ESTATE-HEALTH-STALE" as Stale2
     state "ESTATE-HEALTH-STALE" as Stale3
@@ -220,9 +221,12 @@ stateDiagram-v2
       bury the defect — estate-health.mjs:85
       AMBER prints a line but does NOT change the verdict.
       On every path an INFO line reports the snapshot age against the
-      limit, without changing precedence or exit code — estate-health.mjs:980-992
+      limit, without changing precedence or exit code — estate-health.mjs:991-1003
+      Lines are collected in a buffer and printed immediately before the sentinel;
+      an opt-in advisory block may add JEV lines to it but never changes the
+      verdict or the exit code — estate-health.mjs:964 and estate-health.mjs:1005
       Freshness window: --max-age-hours, default 36
-      estate-health.mjs:206
+      estate-health.mjs:212
     end note
 ```
 
@@ -232,19 +236,19 @@ flowchart TB
     classDef ok fill:#e6f0dc,stroke:#4a7a2a,color:#111
     classDef warn fill:#f9f0d5,stroke:#8a7020,color:#111
 
-    S["probeSurface — estate-health.mjs:702"]
+    S["probeSurface — estate-health.mjs:708"]
     S --> H["HEAD first: a reachability probe should not pull an<br/>ontology down the wire"]:::ok
-    H -->|"405, 501 or 403"| G["retried with GET — a method restriction is not an outage<br/>estate-health.mjs:715"]:::warn
-    S --> J["roster entries with parse json use GET outright and the<br/>body is summarised for classes, pages, nodes, edges<br/>estate-health.mjs:743"]:::ok
+    H -->|"405, 501 or 403"| G["retried with GET — a method restriction is not an outage<br/>estate-health.mjs:721"]:::warn
+    S --> J["roster entries with parse json use GET outright and the<br/>body is summarised for classes, pages, nodes, edges<br/>estate-health.mjs:749"]:::ok
     S --> CT["a wrong content-type is NOTED but does not mark the surface<br/>down; served-but-mislabelled is a lesser defect than<br/>unreachable, and conflating them makes the page cry wolf"]:::warn
     S --> DOWN["an unreachable surface DOES count towards ESTATE-HEALTH-RED:<br/>a dead published surface deserves to become a hypothesis"]:::warn
 
-    R["collectRegistry — estate-health.mjs:761"]
-    R --> CR["crates.io: max_version is read and never falls back to<br/>max_stable_version, which is null for a crate that has only<br/>shipped pre-releases such as nostr-bbs-core<br/>estate-health.mjs:782"]:::ok
-    R --> NP["npm: dist-tags.latest, timestamped from the time map<br/>estate-health.mjs:809"]:::ok
-    R --> UA["crates.io REQUIRES a User-Agent, so one identifying this<br/>collector is sent to every host — estate-health.mjs:142"]:::ok
+    R["collectRegistry — estate-health.mjs:767"]
+    R --> CR["crates.io: max_version is read and never falls back to<br/>max_stable_version, which is null for a crate that has only<br/>shipped pre-releases such as nostr-bbs-core<br/>estate-health.mjs:788"]:::ok
+    R --> NP["npm: dist-tags.latest, timestamped from the time map<br/>estate-health.mjs:815"]:::ok
+    R --> UA["crates.io REQUIRES a User-Agent, so one identifying this<br/>collector is sent to every host — estate-health.mjs:148"]:::ok
 
-    OKDEF["a surface's ok field is STATUS ONLY: res.status in the 2xx range,<br/>regardless of content-type or body — estate-health.mjs:732"]:::ok
+    OKDEF["a surface's ok field is STATUS ONLY: res.status in the 2xx range,<br/>regardless of content-type or body — estate-health.mjs:738"]:::ok
     S --> OKDEF
 ```
 
@@ -258,7 +262,7 @@ sequenceDiagram
     participant F as "data/estate-health.json in the artefact"
 
     V->>P: "open www.visionflow.info and scroll to the estate section"
-    Note over P: "section id estate — index.html:1132<br/>the lead copy states the file is a committed snapshot,<br/>not a live query — index.html:1136"
+    Note over P: "section id estate — index.html:1155<br/>the lead copy states the file is a committed snapshot,<br/>not a live query — index.html:1159"
     P->>M: "DOMContentLoaded calls initEstateHealth — main.js:919"
     M->>F: "fetch('data/estate-health.json', cache no-cache) — main.js:838"
     alt fetch ok
@@ -274,33 +278,35 @@ sequenceDiagram
     Note over P,F: "The file is a REQUIRED entry in website/assets.manifest.json,<br/>so a missing snapshot fails the asset gate — assets.manifest.json:13"
 ```
 
-## VF-03.11 The snapshot as it stands — 9 of 17 green, 3 red, 2 exempt by design
+## VF-03.11 The snapshot as it stands — 10 of 18 green, 4 red, 1 none, 2 exempt by design
 ```mermaid
 flowchart TB
     classDef red fill:#f7dede,stroke:#a33333,color:#111
     classDef green fill:#e6f0dc,stroke:#4a7a2a,color:#111
     classDef amb fill:#f9f0d5,stroke:#8a7020,color:#111
 
-    SNAP["schema visionflow.estate-health/1, generated 2026-10-17T07:04Z<br/>collected by the nightly run at revision 40b3f2f<br/>estate-health.json:2, estate-health.json:3 and estate-health.json:5"]
+    SNAP["schema visionflow.estate-health/1, generated 2026-10-28T08:46Z<br/>collected by the nightly run at revision 52136a5<br/>estate-health.json:2, estate-health.json:3 and estate-health.json:5"]
 
-    SNAP --> SUM["summary — 17 repos: 9 green, 3 red, 0 amber,<br/>2 none, 2 exempt, 1 unreadable, 6 open PRs,<br/>6 of 6 surfaces reachable<br/>estate-health.json:10 through estate-health.json:19"]
+    SNAP --> SUM["summary — 18 repos: 10 green, 4 red, 0 amber,<br/>1 none, 2 exempt, 1 unreadable, 18 open PRs,<br/>6 of 6 surfaces reachable<br/>estate-health.json:10 through estate-health.json:19"]
 
-    SUM --> R3["RED — solid-pod-rs (CI failed), ontomark (ci failed) and<br/>ontomark-obsidian (Plugin checks failed)<br/>estate-health.json:250, estate-health.json:531 and estate-health.json:570"]:::red
-    SUM --> N1["NONE — VisionClaw and agentbox. No run sits on HEAD, so the older<br/>verdicts are reported none: VisionClaw's were green, agentbox's red<br/>(Contract tests and Security Invariants failed on older commits)<br/>estate-health.json:116, estate-health.json:150, estate-health.json:171 and estate-health.json:229 — estate-health.mjs:436"]:::amb
-    SUM --> E1["EXEMPT — knowledgeGraph. Its last Build and verify run failed on<br/>an older commit, so the HEAD rule reports none and ci_by_design<br/>turns that into exempt; both notes are kept<br/>estate-health.json:454, estate-health.json:474 and estate-health.json:475"]:::amb
-    SUM --> E2["EXEMPT — WasmVOWL, no workflows by design<br/>estate-health.json:609 and estate-health.json:617"]:::amb
-    SUM --> U1["UNREADABLE — jjohare/visionGraph, the one known hole<br/>see VF-03.5 — estate-health.json:628"]:::amb
-    SUM --> G1["GREEN — VisionFlow itself, nostr-rust-forum, dreamlab-ai-website,<br/>loom, sidestr-rs, vowl-wasm, prose-sanitiser, diagram-ir,<br/>dream-engine"]:::green
+    SUM --> R4["RED — agentbox (Security Invariants and TUI helper tests failed), solid-pod-rs (CI failed),<br/>nostr-rust-forum (Security Audit failed) and dreamlab-ai-website (Set CF Worker secrets failed)<br/>estate-health.json:171, estate-health.json:262, estate-health.json:311 and estate-health.json:364"]:::red
+    SUM --> N1["NONE — VisionClaw. No run sits on HEAD e9362b7, so its older green verdicts are reported none<br/>estate-health.json:116 and estate-health.json:150 — estate-health.mjs:442"]:::amb
+    SUM --> E1["EXEMPT — knowledgeGraph. Its last Build and verify run failed on<br/>an older commit, so the HEAD rule reports none and ci_by_design<br/>turns that into exempt; both notes are kept<br/>estate-health.json:473 and estate-health.json:493-494"]:::amb
+    SUM --> E2["EXEMPT — WasmVOWL, no workflows by design<br/>estate-health.json:628 and estate-health.json:636"]:::amb
+    SUM --> U1["UNREADABLE — jjohare/visionGraph, the one known hole<br/>see VF-03.5 — estate-health.json:647"]:::amb
+    SUM --> G1["GREEN — VisionFlow itself, loom, sidestr-rs, ontomark, ontomark-obsidian,<br/>vowl-wasm, prose-sanitiser, diagram-ir, dream-engine and visiontouch-rs"]:::green
 
-    VERD["The offline check therefore returns ESTATE-HEALTH-RED:<br/>any red repo is enough, and the verdict beats staleness<br/>estate-health.mjs:995 — see VF-03.6. check() has no branch for<br/>exempt, so an exempt row prints nothing and moves no verdict<br/>estate-health.mjs:960 and estate-health.mjs:969"]:::red
+    VERD["The offline check therefore returns ESTATE-HEALTH-RED:<br/>any red repo is enough, and the verdict beats staleness<br/>estate-health.mjs:1008 — see VF-03.6. check() has no branch for<br/>exempt, so an exempt row prints nothing and moves no verdict<br/>estate-health.mjs:968 and estate-health.mjs:978"]:::red
     SUM --> VERD
 
     INV["INVARIANT: the collector reports GitHub's own conclusion for the<br/>latest run per workflow and asserts nothing about whether that<br/>conclusion is correct<br/>ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:104"]
     VERD -.-> INV
 ```
 
-**Debt:** since the 2026-09-23 snapshot knowledgeGraph moved from red to exempt by rule rather than by a passing run and dreamlab-ai-website turned green; since 2026-10-06 VisionClaw and agentbox moved from red to none because their failing runs are on older commits (the HEAD rule), not because a run passed; no mechanism records why a row flips, so any trend is only visible by reading committed snapshots in sequence (`website/static/data/estate-health.json:11`).
+**Debt:** since the 2026-09-23 snapshot knowledgeGraph moved from red to exempt by rule rather than by a passing run; since 2026-10-06 VisionClaw moved from red to none because its failing runs are on an older commit (the HEAD rule), not because a run passed, while agentbox, nostr-rust-forum and dreamlab-ai-website have since turned red on a HEAD run; no mechanism records why a row flips, so any trend is only visible by reading committed snapshots in sequence (`website/static/data/estate-health.json:11`).
 
-**Debt (registry roster vs canon) — RESOLVED 2026-10-03, re-opened and RESOLVED again 2026-10-18:** the 10-03 dream ACCEPT (PR #13, merged as `c1e1498`) brought the roster to the seven sidestr crates canon then named; `webledgers-teller` was published later and went unprobed until `26df6c9` added it, with canon updated to eight in the same commit (`./README.md:120`, `scripts/estate-health/roster.json:73-80`, estate register ER-3).
+**Debt (registry roster vs canon) — RESOLVED 2026-10-03, re-opened and RESOLVED again 2026-10-18:** the 10-03 dream ACCEPT (PR #13, merged as `c1e1498`) brought the roster to the seven sidestr crates canon then named; `webledgers-teller` was published later and went unprobed until `26df6c9` added it, with canon updated to eight in the same commit (`scripts/estate-health/roster.json:73-80`, estate register ER-3); the rewritten README no longer states a crate count (`./README.md:31`).
 
 **Drift (2026-10-15, dream-engine extraction):** the roster row for `dream-engine` (`provenance: imported`, a fork of ruvnet/dream-machine) is stamped before the extraction. The slug now names the new Rust repository and the fork is renamed dream-machine and archived (checked 2026-10-16). The row has not been changed, because the release manifest and its gate assert two imported rows, see DE-01.
+
+**Since the last stamp:** `check` now builds its output in a buffer and prints it directly before the sentinel line, so a Jev advisory block, off by default and never able to change the verdict or exit code, can add `JEV priority` and `JEV triage` lines for the failed observations (`scripts/estate-health.mjs:964`, `scripts/estate-health.mjs:1005`, `scripts/estate-health.mjs:1035`, `docs/jev-option.md:5`). `collect` never calls it.

@@ -12,6 +12,7 @@ sources:
   - ../project/agentbox/scripts/ruvector-aggregate-sweep.mjs
   - ../project/agentbox/scripts/ruvector-pattern-distill.mjs
   - ../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js
+  - ../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js
   - ../project/agentbox/mcp/servers/lib/memory-hybrid.js
   - ../project/agentbox/mcp/servers/lib/memory-tools.js
   - ../project/agentbox/mcp/servers/lib/ruvector-gates.js
@@ -21,7 +22,7 @@ sources:
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/config/hooks/nostr-live-mirror.cjs
   - ../project/agentbox/mcp/servers/ruvector-mcp.cjs
-verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
+verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
 ---
 
 ## AB-21.1 Capture — transcript-driven grading
@@ -58,19 +59,19 @@ sequenceDiagram
             HK->>U: redact(use.command)
             alt redaction returns null
                 U-->>HK: null
-                HK->>HK: log "redaction failed — skipping step (fail-closed, I10)" then continue (:346)
+                HK->>HK: log "redaction failed — skipping step (fail-closed, I10)" then continue (:362)
                 Note over U: INVARIANT I10 PRIVACY FAIL-CLOSED — an un-redactable command is SKIPPED, never persisted<br/>raw. REDACTORS conservatively over-redact URI creds, *KEY/TOKEN/SECRET assignments,<br/>bearer tokens, 40+-char base64 and 32+-char hex runs
             else redacted
                 U-->>HK: redacted string
             end
             HK->>U: commandPattern(command)
             U-->>HK: low-cardinality "<verb>[ <sub>] [args:N flags:N markers]" — NO raw args, NO secrets
-            HK->>HK: durationMs from transcript timestamps (:348-350)
+            HK->>HK: durationMs from transcript timestamps (:364-366)
             Note over HK: null when either timestamp is unparseable OR t1 < t0. A ZERO duration (both rounding to<br/>the same ms) is a VALID 0 — the step is pushed regardless of durationMs
             opt graded FAILURE with stderr
-                HK->>U: redact(stderr) then slice(0, 400) as failureHint (:356-359)
+                HK->>U: redact(stderr) then slice(0, 400) as failureHint (:372-375)
                 HK->>FT: MAST classifier, fail-open to 'unmapped'
-                Note over HK,FT: the hint is used IN-MEMORY ONLY for tagging and is NEVER persisted to the step result —<br/>I10: the durable result carries the redacted command, not stderr (:352-355)
+                Note over HK,FT: the hint is used IN-MEMORY ONLY for tagging and is NEVER persisted to the step result —<br/>I10: the durable result carries the redacted command, not stderr (:368-371)
             end
         end
     end
@@ -83,26 +84,26 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant HK as trajectory-recorder.cjs<br/>agentbox/config/hooks/trajectory-recorder.cjs
-    participant PROBE as hasDurationColumn<br/>agentbox/config/hooks/trajectory-recorder.cjs:276
+    participant PROBE as hasDurationColumn<br/>agentbox/config/hooks/trajectory-recorder.cjs:292
     participant PG as ruvector-postgres
     participant U as trajectory-util.cjs
     participant EV as agent-events
 
-    HK->>PG: INSERT INTO trajectories (id, task, agent, status, started_at, metadata) VALUES<br/>($1,$2,$3,'recording',CURRENT_TIMESTAMP,$4::jsonb) ON CONFLICT (id) DO NOTHING<br/>(config/hooks/trajectory-recorder.cjs:441-444)
-    Note over HK,PG: task is "claude-code-session:<first 12 of session>", agent is AGENTBOX_AGENT or<br/>'claude-code'. metadata carries session, owner_did, trajectory_urn, handoff_id<br/>(config/hooks/trajectory-recorder.cjs:433-439)
+    HK->>PG: INSERT INTO trajectories (id, task, agent, status, started_at, metadata) VALUES<br/>($1,$2,$3,'recording',CURRENT_TIMESTAMP,$4::jsonb) ON CONFLICT (id) DO NOTHING<br/>(config/hooks/trajectory-recorder.cjs:458-461)
+    Note over HK,PG: task is "claude-code-session:<first 12 of session>", agent is AGENTBOX_AGENT or<br/>'claude-code'. metadata carries session, owner_did, trajectory_urn, handoff_id<br/>(config/hooks/trajectory-recorder.cjs:450-456)
     HK->>PROBE: hasDurationColumn(client)
     alt cached verdict exists
-        PROBE-->>HK: cached boolean (config/hooks/trajectory-recorder.cjs:277)
+        PROBE-->>HK: cached boolean (config/hooks/trajectory-recorder.cjs:293)
     else first call
-        PROBE->>PG: SELECT 1 FROM information_schema.columns WHERE table_name='trajectory_steps' AND<br/>column_name='duration_ms' LIMIT 1 (config/hooks/trajectory-recorder.cjs:279-282)
+        PROBE->>PG: SELECT 1 FROM information_schema.columns WHERE table_name='trajectory_steps' AND<br/>column_name='duration_ms' LIMIT 1 (config/hooks/trajectory-recorder.cjs:295-298)
         PG-->>PROBE: rowCount
-        PROBE->>PROBE: cache the verdict, catch to false (config/hooks/trajectory-recorder.cjs:283-284)
+        PROBE->>PROBE: cache the verdict, catch to false (config/hooks/trajectory-recorder.cjs:299-300)
     end
     loop each graded step
-        HK->>HK: stepId = "<trajectoryId>:step-<sha12(toolUseId)>" (config/hooks/trajectory-recorder.cjs:452)
+        HK->>HK: stepId = "<trajectoryId>:step-<sha12(toolUseId)>" (config/hooks/trajectory-recorder.cjs:469)
         Note over HK: DETERMINISTIC, content-addressed step ids make repeated Stop firings IDEMPOTENT (config/hooks/trajectory-recorder.cjs:19-20)
         HK->>PG: parameterised INSERT INTO trajectory_steps — duration_ms written ONLY when the column<br/>exists
-        Note over HK,PG: result JSON carries outcome success|failure, signal, the REDACTED command, an optional<br/>MAST failure_mode on failures, and the CTC fields token_count / duration_ms
+        Note over HK,PG: result JSON carries outcome success|failure, signal, the REDACTED command, an optional<br/>MAST failure_mode on failures, a failure_jev object only when the Jev option judged an unmapped failure<br/>(config/hooks/trajectory-recorder.cjs:478-481), and the CTC fields token_count / duration_ms
         opt CTC emit
             HK->>U: ctcEmitBodyFromStep — tokenCountOf(usage) sums the WHOLE assistant turn's token burden,<br/>handoffIdFrom resolves the chain-correlation id
             HK->>EV: best-effort emit
@@ -144,6 +145,7 @@ classDiagram
         +String signal
         +String command
         +String failure_mode
+        +Object failure_jev
         +Number token_count
         +Number duration_ms
     }
@@ -152,7 +154,7 @@ classDiagram
     trajectory_steps --> StepResult : result
     note for trajectory_steps "id is the PK, content-addressed as trajId-step-sha12(toolUseId) so re-fires are<br/>idempotent. trajectory_id is the FK. action is the durable low-cardinality<br/>commandPattern — verb, optional subcommand, then args:N flags:N markers — carrying NO<br/>raw args and NO secrets, and it is the grouping key the sweep aggregates on. quality is<br/>1.0 clean success, 0.85 success with stderr noise, 0.0 failure. duration_ms is nullable,<br/>may legitimately be 0, and is written only when the column probe finds it"
     note for trajectories "id is the PK. task is claude-code-session then the first 12 chars of the session id.<br/>agent is AGENTBOX_AGENT or claude-code. status is 'recording' at insert. started_at is<br/>CURRENT_TIMESTAMP"
-    note for StepResult "outcome is success or failure. command is the REDACTED command, never raw. failure_mode<br/>is the MAST tag, fail-open to 'unmapped'. token_count and duration_ms are the CTC<br/>fields. stderr is NEVER persisted here — the redacted stderr hint exists in-memory only,<br/>capped at 400 chars, purely so the MAST classifier can tag failure_mode (I10)"
+    note for StepResult "outcome is success or failure. command is the REDACTED command, never raw. failure_mode<br/>is the MAST tag, fail-open to 'unmapped' and refined only by the opt-in Jev judge, which then adds failure_jev (config/hooks/trajectory-recorder.cjs:121-129,478-481). token_count and duration_ms are the CTC<br/>fields. stderr is NEVER persisted here — the redacted stderr hint exists in-memory only,<br/>capped at 400 chars, purely so the MAST classifier can tag failure_mode (I10)"
 ```
 
 ## AB-21.4 Judge — the aggregate sweep
@@ -160,7 +162,7 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2313
+    participant SUP as supervisord<br/>agentbox/flake.nix:2391
     participant SW as ruvector-aggregate-sweep.mjs<br/>agentbox/scripts/ruvector-aggregate-sweep.mjs:1
     participant G as gates
     participant MT as governed memStore/memRetrieve<br/>agentbox/mcp/servers/lib/memory-tools.js
@@ -183,30 +185,36 @@ sequenceDiagram
             loop each action pattern
                 AE->>AE: weight_i = 0.5 ^ (age_days_i / RUVECTOR_RECENCY_HALF_LIFE_DAYS) (mcp/servers/lib/aggregate-effectiveness.js:16)
                 Note over AE: recency_half_life_days default 14 (agentbox/agentbox.toml:479). Successes are steps with<br/>quality >= 0.5
-                AE->>AE: wilsonLower(effSucc, effTotal, Z) with Z = 1.96 (mcp/servers/lib/aggregate-effectiveness.js:47, mcp/servers/lib/aggregate-effectiveness.js:71, mcp/servers/lib/aggregate-effectiveness.js:332)
-                Note over AE: the stored bound uses trajectory independence deflation of the recency-weighted sample.<br/>aggregate-effectiveness.js:309-317 scales effective successes and count equally.<br/>The uncorrected bound remains a separate diagnostic at aggregate-effectiveness.js:331
+                AE->>AE: wilsonLower(effSucc, effTotal, Z) with Z = 1.96 (mcp/servers/lib/aggregate-effectiveness.js:49, mcp/servers/lib/aggregate-effectiveness.js:73, mcp/servers/lib/aggregate-effectiveness.js:334)
+                Note over AE: the stored bound uses trajectory independence deflation of the recency-weighted sample.<br/>aggregate-effectiveness.js:311-319 scales effective successes and count equally.<br/>The uncorrected bound remains a separate diagnostic at aggregate-effectiveness.js:333
                 alt raw n < aggregate_min_samples 20 (agentbox/agentbox.toml:478)
                     AE->>AE: SKIP
                     Note over AE: INVARIANT I06 / ADR-2016 — the sample floor gates on the RAW OBSERVATION COUNT, not the<br/>recency-weighted effective size
                 else survives the floor
-                    AE->>MT: memStore through the GOVERNED path (mcp/servers/lib/aggregate-effectiveness.js:24, mcp/servers/lib/aggregate-effectiveness.js:473)
-                    Note over AE,AGG: key effectiveness-sha256-12-<hash(pattern)> (mcp/servers/lib/aggregate-effectiveness.js:86), namespace memory-learning-aggregates<br/>(mcp/servers/lib/aggregate-effectiveness.js:45), typed metadata {importance: wilson, tags: ['action:<pattern>'], memory_type:<br/>'semantic'} (mcp/servers/lib/aggregate-effectiveness.js:28-29, runtime mcp/servers/lib/aggregate-effectiveness.js:474-476)
-                    Note over AE: the tags and importance are LOAD-BEARING — feed_retrieval keys on metadata.tags and<br/>feed_routing surfaces importance — so the typed-metadata gate is FORCED ON for this<br/>process (mcp/servers/lib/aggregate-effectiveness.js:400-406)
+                    AE->>AE: eligible rows pass trajectoryJev.annotateRows, off unless AGENTBOX_JEV_TRAJECTORY_CLASSIFY=1 (mcp/servers/lib/aggregate-effectiveness.js:428-430, mcp/servers/lib/trajectory-pattern-jev.js:134-137)
+                    Note over AE: the Jev option only ATTACHES a semantic object, an action class and a coherence score, to a row<br/>that was already eligible, capped at AGENTBOX_JEV_TRAJECTORY_MAX_PATTERNS 40 per sweep<br/>(mcp/servers/lib/trajectory-pattern-jev.js:140,145), and the stored value spreads it in<br/>(mcp/servers/lib/aggregate-effectiveness.js:473, mcp/servers/lib/trajectory-pattern-jev.js:156-158)
+                    AE->>MT: memStore through the GOVERNED path (mcp/servers/lib/aggregate-effectiveness.js:24, mcp/servers/lib/aggregate-effectiveness.js:478)
+                    Note over AE,AGG: key effectiveness-sha256-12-<hash(pattern)> (mcp/servers/lib/aggregate-effectiveness.js:88), namespace memory-learning-aggregates<br/>(mcp/servers/lib/aggregate-effectiveness.js:47), typed metadata {importance: wilson, tags: ['action:<pattern>'], memory_type:<br/>'semantic'} (mcp/servers/lib/aggregate-effectiveness.js:28-29, runtime mcp/servers/lib/aggregate-effectiveness.js:479-481)
+                    Note over AE: the tags and importance are LOAD-BEARING — feed_retrieval keys on metadata.tags and<br/>feed_routing surfaces importance — so the typed-metadata gate is FORCED ON for this<br/>process (mcp/servers/lib/aggregate-effectiveness.js:402-408)
                     MT->>AGG: upsert
                 end
             end
             SW->>MT: writeCursor {cursor_after: hwmTs, stepsProcessed, aggregatesWritten, urn} (:307-309)
         end
     end
-    Note over AE: embeddings are 384-dim and a dimension mismatch is a hard reject — "dimension mismatch:<br/>got N, expected 384" (mcp/servers/lib/aggregate-effectiveness.js:118-119). See AB-20
+    Note over AE: embeddings are 384-dim and a dimension mismatch is a hard reject — "dimension mismatch:<br/>got N, expected 384" (mcp/servers/lib/aggregate-effectiveness.js:120-121). See AB-20
 ```
+
+**Invariant:** the Jev option never regroups, re-keys, re-grades or drops a pattern: it returns the same array when the flag is off or no local endpoint is declared, and a row it could not classify comes back as the very same object (`../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:137-139`, `../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:148-149`).
+
+**Open:** the Jev pattern annotation states that the recorder's own taint handling was not verified for it and leaves the safe default to an operator flag, `AGENTBOX_JEV_TRAJECTORY_LOCAL_ONLY` (`../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:30-33`); nothing in the record says which setting a deployment should use.
 
 ## AB-21.5 Distil — patterns table
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2344
+    participant SUP as supervisord<br/>agentbox/flake.nix:2422
     participant DS as ruvector-pattern-distill.mjs<br/>agentbox/scripts/ruvector-pattern-distill.mjs:1
     participant G as gates
     participant PG as trajectory_steps
@@ -407,8 +415,8 @@ flowchart LR
     subgraph proc["Self-gating processes"]
         direction TB
         H["trajectory-recorder.cjs<br/>Stop hook"]
-        A["ruvector-aggregate-sweep.mjs<br/>agentbox/flake.nix:2313"]
-        D["ruvector-pattern-distill.mjs<br/>agentbox/flake.nix:2344"]
+        A["ruvector-aggregate-sweep.mjs<br/>agentbox/flake.nix:2391"]
+        D["ruvector-pattern-distill.mjs<br/>agentbox/flake.nix:2422"]
         HY["memory-hybrid re-rank"]
     end
     M --> E1

@@ -3,7 +3,7 @@ id: SP-08
 title: Federation and outward surfaces — ActivityPub, NIP-01 relay, Solid Notifications, the forge, MCP
 area: solid-pod-rs
 governing: [../solid-pod-rs/README.md, ../solid-pod-rs/crates/solid-pod-rs/docs/explanation/ecosystem-integration.md]
-adrs: [ADR-2005, ADR-2006]
+adrs: [ADR-2005, ADR-2006, ADR-2009, ADR-2010]
 sources:
   - ../solid-pod-rs/crates/solid-pod-rs-activitypub/src/actor.rs
   - ../solid-pod-rs/crates/solid-pod-rs-activitypub/src/inbox.rs
@@ -33,12 +33,22 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-forge/src/html/views.rs
   - ../solid-pod-rs/crates/solid-pod-rs-forge/src/request.rs
   - ../solid-pod-rs/crates/solid-pod-rs-forge/src/config.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md
+  - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md
+  - ../solid-pod-rs/crates/solid-pod-rs-server/src/main.rs
+  - ../project/agentbox/lib/solid-pod-rs.nix
+  - ../solid-pod-rs/crates/solid-pod-rs-server/Cargo.toml
+  - ../solid-pod-rs/crates/solid-pod-rs-forge/Cargo.toml
+  - ../solid-pod-rs/crates/solid-pod-rs-forge/README.md
+  - ../solid-pod-rs/crates/solid-pod-rs-forge/src/web_edit.rs
+  - ../solid-pod-rs/crates/solid-pod-rs-forge/src/mirror.rs
+  - ../solid-pod-rs/crates/solid-pod-rs-forge/src/publish.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/mcp/mod.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/mcp/tools.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/mcp/skills.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/handlers/legacy_notifications.rs
-verified_commit: d64131b
+verified_commit: {solid-pod-rs: a4a86f6da300b529c7855318c24ff5c7b35ec582, agentbox: 1da8d21719a27394f190866223b88533b52d87f9}
 ---
 
 ## SP-08.1 Solid Notifications 0.2 — the three channels
@@ -62,7 +72,7 @@ flowchart TD
 
     N["InMemoryNotifications caps subscriptions at DEFAULT_MAX_SUBSCRIPTIONS 10 000<br/>(solid-pod-rs/src/notifications/mod.rs:125) — an unbounded subscription table is<br/>a memory-exhaustion vector on a public pod."]
     SUB -.-> N
-    N2["The Updates-via response header advertises the WebSocket endpoint on every LDP<br/>response (solid-pod-rs-server/src/lib.rs:1126) — see SP-03.11."]
+    N2["The Updates-via response header advertises the WebSocket endpoint on every LDP<br/>response (solid-pod-rs-server/src/lib.rs:1359) — see SP-03.11."]
     WS -.-> N2
 ```
 
@@ -278,11 +288,11 @@ stateDiagram-v2
 sequenceDiagram
     autonumber
     participant C as Client
-    participant SRV as handle_forge<br/>solid-pod-rs-server/src/lib.rs:4448
-    participant F as ForgeService::handle<br/>solid-pod-rs-forge/src/lib.rs:219
+    participant SRV as handle_forge<br/>solid-pod-rs-server/src/lib.rs:5059
+    participant F as ForgeService::handle<br/>solid-pod-rs-forge/src/lib.rs:336
     participant A as resolve_agent<br/>solid-pod-rs-forge/src/auth.rs:29
-    participant R as parse_route<br/>solid-pod-rs-forge/src/router.rs:172
-    participant H as the matching h_* handler<br/>solid-pod-rs-forge/src/lib.rs:261
+    participant R as parse_route<br/>solid-pod-rs-forge/src/router.rs:398
+    participant H as the matching h_* handler<br/>solid-pod-rs-forge/src/lib.rs:435
 
     C->>SRV: any method under /forge
     SRV->>F: ForgeRequest<br/>solid-pod-rs-forge/src/request.rs:23
@@ -291,7 +301,7 @@ sequenceDiagram
     A->>A: 2. pod session, injected by the server<br/>solid-pod-rs-forge/src/auth.rs:50
     A->>A: 3. NIP-98, body-bound when a body exists<br/>solid-pod-rs-forge/src/auth.rs:58
     A-->>F: ForgeAgent<br/>solid-pod-rs-forge/src/ownership.rs:16
-    F->>R: strip_prefix then parse<br/>solid-pod-rs-forge/src/router.rs:151
+    F->>R: strip_prefix then parse<br/>solid-pod-rs-forge/src/router.rs:377
     R-->>F: Route<br/>solid-pod-rs-forge/src/router.rs:12
     F->>H: dispatch
     H-->>C: ForgeResponse<br/>solid-pod-rs-forge/src/request.rs:85
@@ -304,13 +314,13 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    KEY["load_or_create_token_key — 32 bytes under the plugin dir<br/>solid-pod-rs-forge/src/lib.rs:97"]
+    KEY["load_or_create_token_key — 32 bytes under the plugin dir<br/>solid-pod-rs-forge/src/lib.rs:138"]
     MINT["token::mint(key, agent, iat, ttl)<br/>solid-pod-rs-forge/src/token.rs:66"]
     VER["token::verify(key, token, now)<br/>solid-pod-rs-forge/src/token.rs:87"]
     MAC["mac_tag — HMAC over the payload<br/>solid-pod-rs-forge/src/token.rs:126"]
     V1["TOKEN_VERSION 1, the f1. prefix<br/>solid-pod-rs-forge/src/token.rs:25"]
     ERR["TokenError<br/>solid-pod-rs-forge/src/token.rs:45"]
-    API["POST /api/token — Route::ApiToken<br/>solid-pod-rs-forge/src/lib.rs:303"]
+    API["POST /api/token — Route::ApiToken<br/>solid-pod-rs-forge/src/lib.rs:494"]
 
     KEY --> MINT --> MAC
     V1 --> MINT
@@ -342,11 +352,11 @@ classDiagram
     }
     class Names {
         +valid_name_segment  solid-pod-rs-forge/src/ownership.rs:101
-        +strip_git_suffix  solid-pod-rs-forge/src/router.rs:299
+        +strip_git_suffix  solid-pod-rs-forge/src/router.rs:595
     }
     class ForgeConfig {
-        +normalized_prefix  solid-pod-rs-forge/src/config.rs:61
-        +chain_allowed  solid-pod-rs-forge/src/config.rs:73
+        +normalized_prefix  solid-pod-rs-forge/src/config.rs:180
+        +chain_allowed  solid-pod-rs-forge/src/config.rs:192
     }
     ForgeAgent ..> OwnerKind
     OwnerKind ..> Names
@@ -358,18 +368,18 @@ classDiagram
 
 ```mermaid
 flowchart TD
-    BR["repo::browse — git plumbing<br/>solid-pod-rs-forge/src/repo/browse.rs:50"]
-    VR["valid_rev<br/>solid-pod-rs-forge/src/repo/browse.rs:104"]
-    VP["valid_repo_path<br/>solid-pod-rs-forge/src/repo/browse.rs:118"]
-    LT["list_tree -> parse_ls_tree<br/>solid-pod-rs-forge/src/repo/browse.rs:161"]
-    RB["read_blob<br/>solid-pod-rs-forge/src/repo/browse.rs:222"]
-    CL["commit_log / commit_patch<br/>solid-pod-rs-forge/src/repo/browse.rs:258"]
+    BR["repo::browse — git plumbing<br/>solid-pod-rs-forge/src/repo/browse.rs:49"]
+    VR["valid_rev<br/>solid-pod-rs-forge/src/repo/browse.rs:103"]
+    VP["valid_repo_path<br/>solid-pod-rs-forge/src/repo/browse.rs:117"]
+    LT["list_tree -> parse_ls_tree<br/>solid-pod-rs-forge/src/repo/browse.rs:160"]
+    RB["read_blob<br/>solid-pod-rs-forge/src/repo/browse.rs:221"]
+    CL["commit_log / commit_patch<br/>solid-pod-rs-forge/src/repo/browse.rs:257"]
     SP["SpineStore trait, FsSpineStore<br/>solid-pod-rs-forge/src/spine/mod.rs:24"]
     AW["spine atomic_write<br/>solid-pod-rs-forge/src/spine/mod.rs:115"]
-    IX["IssueIndex allocate / by_state / set_state<br/>solid-pod-rs-forge/src/spine/issues.rs:101"]
-    LD["load_issue_index / save_issue_index<br/>solid-pod-rs-forge/src/spine/issues.rs:137"]
+    IX["IssueIndex allocate / by_state / set_state<br/>solid-pod-rs-forge/src/spine/issues.rs:106"]
+    LD["load_issue_index / save_issue_index<br/>solid-pod-rs-forge/src/spine/issues.rs:142"]
     TP["ThreadPointer<br/>solid-pod-rs-forge/src/spine/issues.rs:44"]
-    RT["render_thread — resolve bodies from pods or the hosted store<br/>solid-pod-rs-forge/src/bodies.rs:165"]
+    RT["render_thread — resolve bodies from pods or the hosted store<br/>solid-pod-rs-forge/src/bodies.rs:189"]
     HS["HostedStore for podless authors<br/>solid-pod-rs-forge/src/hosted.rs:23"]
     VIEW["html::views — the rendered pages<br/>solid-pod-rs-forge/src/html/views.rs:10"]
 
@@ -399,10 +409,10 @@ flowchart TD
 sequenceDiagram
     autonumber
     participant A as agent
-    participant H as handle_mcp<br/>solid-pod-rs-server/src/mcp/mod.rs:160
+    participant H as handle_mcp<br/>solid-pod-rs-server/src/mcp/mod.rs:159
     participant D as dispatch<br/>solid-pod-rs-server/src/mcp/mod.rs:97
-    participant T as call_tool<br/>solid-pod-rs-server/src/mcp/tools.rs:828
-    participant W as wac_check<br/>solid-pod-rs-server/src/mcp/tools.rs:83
+    participant T as call_tool<br/>solid-pod-rs-server/src/mcp/tools.rs:1105
+    participant W as wac_check<br/>solid-pod-rs-server/src/mcp/tools.rs:105
     participant S as Storage
 
     A->>H: POST /mcp with a JSON-RPC message
@@ -425,44 +435,102 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     subgraph RES["Resource tools"]
-        LR2["list_resources<br/>solid-pod-rs-server/src/mcp/tools.rs:139"]
-        RR["read_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:175"]
-        WR["write_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:204"]
-        CR["create_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:231"]
-        DR["delete_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:278"]
-        HR["head_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:295"]
+        LR2["list_resources<br/>solid-pod-rs-server/src/mcp/tools.rs:185"]
+        RR["read_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:367"]
+        WR["write_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:400"]
+        CR["create_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:437"]
+        DR["delete_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:500"]
+        HR["head_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:527"]
     end
     subgraph ACL["ACL tools"]
-        RA["read_acl<br/>solid-pod-rs-server/src/mcp/tools.rs:479"]
-        WA["write_acl with its own lockout guard<br/>solid-pod-rs-server/src/mcp/tools.rs:583"]
-        BA["build_acl_jsonld<br/>solid-pod-rs-server/src/mcp/tools.rs:524"]
+        RA["read_acl<br/>solid-pod-rs-server/src/mcp/tools.rs:722"]
+        WA["write_acl with its own lockout guard<br/>solid-pod-rs-server/src/mcp/tools.rs:830"]
+        BA["build_acl_jsonld<br/>solid-pod-rs-server/src/mcp/tools.rs:771"]
     end
     subgraph SK["Skill and doc tools"]
-        LS["list_skills<br/>solid-pod-rs-server/src/mcp/tools.rs:319"]
-        GS["get_skill<br/>solid-pod-rs-server/src/mcp/tools.rs:339"]
-        PS["get_pod_skill<br/>solid-pod-rs-server/src/mcp/tools.rs:361"]
-        LD["list_docs / read_docs from the embedded DOCS_DIR<br/>solid-pod-rs-server/src/mcp/tools.rs:396"]
-        PI["pod_info<br/>solid-pod-rs-server/src/mcp/tools.rs:428"]
+        LS["list_skills<br/>solid-pod-rs-server/src/mcp/tools.rs:555"]
+        GS["get_skill<br/>solid-pod-rs-server/src/mcp/tools.rs:575"]
+        PS["get_pod_skill<br/>solid-pod-rs-server/src/mcp/tools.rs:603"]
+        LD["list_docs / read_docs from the embedded DOCS_DIR<br/>solid-pod-rs-server/src/mcp/tools.rs:639"]
+        PI["pod_info<br/>solid-pod-rs-server/src/mcp/tools.rs:671"]
+    end
+    subgraph JV["Jev tool, feature jev only"]
+        PO["propose_operation — proposes, never executes<br/>solid-pod-rs-server/src/mcp/tools.rs:289"]
+        JR["jev_rerank of list_resources<br/>solid-pod-rs-server/src/mcp/tools.rs:262"]
     end
     subgraph FED["Federation tool"]
-        CRP["call_remote_pod<br/>solid-pod-rs-server/src/mcp/tools.rs:677"]
-        FG["federation_gate_path<br/>solid-pod-rs-server/src/mcp/tools.rs:669"]
-        FA["is_forwardable_auth_header allowlist<br/>solid-pod-rs-server/src/mcp/tools.rs:45"]
+        CRP["call_remote_pod<br/>solid-pod-rs-server/src/mcp/tools.rs:950"]
+        FG["federation_gate_path<br/>solid-pod-rs-server/src/mcp/tools.rs:925"]
+        FA["is_forwardable_auth_header allowlist<br/>solid-pod-rs-server/src/mcp/tools.rs:47"]
     end
-    SUB["handle_subscribe — SSE change stream<br/>solid-pod-rs-server/src/mcp/tools.rs:944"]
+    SUB["handle_subscribe — SSE change stream<br/>solid-pod-rs-server/src/mcp/tools.rs:1245"]
 
     RES --> SUB
     ACL --> SUB
     FED --> FG
     FED --> FA
 
-    N["INVARIANT: call_remote_pod forwards only an ALLOWLISTED set of auth headers<br/>(case-insensitively) so an agent cannot smuggle an arbitrary credential through<br/>the pod — pinned by two tests<br/>(solid-pod-rs-server/src/mcp/tools.rs:1015 and :1024)."]
+    N["INVARIANT: call_remote_pod forwards only an ALLOWLISTED set of auth headers<br/>(case-insensitively) so an agent cannot smuggle an arbitrary credential through<br/>the pod — pinned by two tests<br/>(solid-pod-rs-server/src/mcp/tools.rs:1340 and :1349)."]
     FA -.-> N
-    N2["path_matches_scope (solid-pod-rs-server/src/mcp/tools.rs:920) bounds an SSE<br/>subscription to the scope the agent asked for; sse_event (:931) frames it."]
+    N2["path_matches_scope (solid-pod-rs-server/src/mcp/tools.rs:1221) bounds an SSE<br/>subscription to the scope the agent asked for; sse_event (:1232) frames it."]
     SUB -.-> N2
-    N3["Skills are discovered from CONVENTIONAL pod paths<br/>(solid-pod-rs-server/src/mcp/skills.rs:24), so a pod publishes agent<br/>instructions as ordinary WAC-governed resources rather than as server config.<br/>discover_skills (:109) and read_skill (:152) are the two entry points."]
+    N3["Skills are discovered from CONVENTIONAL pod paths<br/>(solid-pod-rs-server/src/mcp/skills.rs:18, with :19 and :20 for apps and bots), so a pod publishes agent<br/>instructions as ordinary WAC-governed resources rather than as server config.<br/>discover_skills (:109) and read_skill (:152) are the two entry points."]
     SK -.-> N3
+    N4["propose_operation is listed and dispatched only when the jev feature is built<br/>(solid-pod-rs-server/Cargo.toml:184) AND the process env enables it<br/>(solid-pod-rs-server/src/mcp/tools.rs:1123). It checks WAC read on the container,<br/>drops unreadable children before any Jev call, and proposes an LDP operation<br/>without executing it. jev_rerank only ever sees children the caller may read."]
+    JV -.-> N4
 ```
+
+## SP-08.18 The forge has outgrown the request-dispatch picture
+
+```mermaid
+flowchart TD
+    R["Route enum — the first reading plus the routes below<br/>solid-pod-rs-forge/src/router.rs:12"]
+    subgraph ALWAYS["Compiled without a feature"]
+        FK["ApiFork<br/>solid-pod-rs-forge/src/router.rs:193"]
+        CP["ApiCompare<br/>solid-pod-rs-forge/src/router.rs:200"]
+        PL["ApiPulls<br/>solid-pod-rs-forge/src/router.rs:209"]
+        XL["Xlogin — vendored login widget<br/>solid-pod-rs-forge/src/router.rs:237"]
+        ED["ApiEdit — commit one file over HTTP<br/>solid-pod-rs-forge/src/router.rs:279"]
+        PV["ApiPreview<br/>solid-pod-rs-forge/src/router.rs:287"]
+        RS["RepoSearch<br/>solid-pod-rs-forge/src/router.rs:255"]
+    end
+    subgraph ANN["Feature announce"]
+        NO["ApiNostr — kind 30617 and 30618 for a repo<br/>solid-pod-rs-forge/src/router.rs:169"]
+        AN["ApiAnnounce — owner-triggered relay publish<br/>solid-pod-rs-forge/src/router.rs:177"]
+        PUB["publish_event, ws and wss relays only<br/>solid-pod-rs-forge/src/publish.rs:298"]
+    end
+    subgraph MIR["Feature mirror, off unless configured"]
+        AM["ApiMirror<br/>solid-pod-rs-forge/src/router.rs:150"]
+        PM["plan_mirror — pull only when the followed key's state changes<br/>solid-pod-rs-forge/src/mirror.rs:621"]
+    end
+    subgraph ANC["Feature anchoring"]
+        BT["BlocktrailsJson<br/>solid-pod-rs-forge/src/router.rs:101"]
+        TR["trail module<br/>solid-pod-rs-forge/src/lib.rs:88"]
+    end
+
+    R --> ALWAYS
+    R --> ANN
+    R --> MIR
+    R --> ANC
+    NO --> PUB
+    AN --> PUB
+    AM --> PM
+
+    N["INVARIANT: with open_edit false (the default) an edit needs an owner credential;<br/>with it true no authorisation check runs at all and any caller may edit any repo,<br/>so the service logs a warning when it is on<br/>(default false at solid-pod-rs-forge/src/config.rs:131, warning at solid-pod-rs-forge/src/lib.rs:217, gate at solid-pod-rs-forge/src/web_edit.rs:226)."]
+    ED -.-> N
+    N2["The module gates are in solid-pod-rs-forge/src/lib.rs:66 to :72 and the feature<br/>declarations in solid-pod-rs-forge/Cargo.toml:57, :61 and :65. SP-08.10 to SP-08.13<br/>describe the first reading of the dispatch, ownership, token and browse paths,<br/>which still hold; they no longer enumerate every route."]
+    R -.-> N2
+```
+
+**What it shows.** The forge's route table now includes fork, compare, pull-request, search, web-edit and preview routes that compile unconditionally, plus NIP-34 announcement (feature `announce`), relay mirroring (feature `mirror`) and repo-held blocktrails (feature `anchoring`). The browse and issue paths drawn in SP-08.10 to SP-08.13 are unchanged in kind.
+
+**Why it is this way.** Each optional tier is a feature gate so a plain forge adds neither relay sockets nor the Bitcoin stack. The README states announcement publication is opt-in: with no `announce_relays` nothing is sent (`../solid-pod-rs/crates/solid-pod-rs-forge/README.md:24-33`).
+
+**Drift (ADR-2009 vs code):** ADR-2009 says the mirror is default off and "nothing in `solid-pod-rs-server` starts it" (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md:33`); the server now calls `start_forge` at boot when built with `forge` (`../solid-pod-rs/crates/solid-pod-rs-server/src/main.rs:459-460`) and reads `FORGE_MIRROR_RELAYS` (`../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4967`). ADR-2010 supersedes the default-off clause and defines "on" as compiled in and started at boot, acting on nothing until relays and follow entries are configured (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:30`).
+
+**Tension (ADR-2010 vs agentbox):** ADR-2010 records `activation_status: inactive` because "no consumer builds it" (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:7`), while agentbox's pin lists `forge-full` among the features it enables (`../project/agentbox/lib/solid-pod-rs.nix:18`).
+
+**Open:** the forge README (`../solid-pod-rs/crates/solid-pod-rs-forge/README.md:33`) records the web-edit tier as "not included" for announce triggering, while `ApiEdit` is routed (`solid-pod-rs-forge/src/router.rs:279`); nothing states whether an edit announces.
 
 ## SP-08.16 Estate consumers of these surfaces
 

@@ -1,10 +1,10 @@
 ---
 id: VF-06
-title: Diagram tooling — the report render gate and this tree's own generator
+title: Diagram tooling — the report render gate and this tree's own generator, both rendering with Pele
 area: visionflow
 governing:
   - docs/BASELINE-visionflow.md
-adrs: [ADR-2004]
+adrs: [ADR-2004, ADR-2020]
 sources:
   - scripts/capture-diagram-source-snapshot.cjs
   - scripts/check-diagram-render-sources.py
@@ -14,10 +14,11 @@ sources:
   - .github/workflows/diagram-index.yml
   - .github/workflows/deploy.yml
   - scripts/diagram-render/render.mjs
-  - scripts/diagram-render/lib/cdp.mjs
   - scripts/diagram-render/lib/preprocess.mjs
   - scripts/diagram-render/package.json
-  - scripts/diagram-render/vendor/mermaid.min.js
+  - scripts/lib/pele-static.cjs
+  - scripts/vendor/pele/VERSION
+  - scripts/vendor/pele/pele.js
   - scripts/check-diagram-text.js
   - scripts/check-cdp-sidecar.mjs
   - scripts/diagram-index-gen.cjs
@@ -26,9 +27,12 @@ sources:
   - docs/diagrams/README.md
   - docs/diagrams/citation-allowlist.json
   - docs/adr/ADR-2004-diagram-baseline-vendored-render-gate.md
+  - docs/adr/ADR-2020-pele-renders-every-estate-diagram.md
+  - scripts/lib/jev.cjs
+  - docs/jev-option.md
   - docs/BASELINE-visionflow.md
   - docs/site-verification.md
-verified_commit: 4159e085a73dac3e9d52fb1bc7e476350bf369c1
+verified_commit: 1d7183a73c1eae4996a7006067d5047308fab7a5
 ---
 
 ## VF-06.1 Two diagram pipelines, one repository — what each owns
@@ -42,7 +46,7 @@ flowchart TB
         direction TB
         AS["presentation/report/diagrams/*.mmd<br/>ten dark-theme authored sources"]:::pipeA
         APRE["preprocess.mjs — strip theme directive<br/>and dark palette<br/>preprocess.mjs:19"]:::pipeA
-        AREN["render.mjs — vendored mermaid.min.js<br/>driven over raw CDP in a real Chrome<br/>render.mjs:127"]:::pipeA
+        AREN["render.mjs — vendored Pele, sha256-checked, in-process,<br/>no browser; output flattened to static SVG with a baked<br/>white background and text fill<br/>render.mjs:31-61"]:::pipeA
         ABASE["presentation/report/diagrams/rendered/*.svg<br/>COMMITTED baseline — the authority"]:::pipeA
         ACHK["check-diagram-text.js — browserless<br/>visibility and label probe<br/>check-diagram-text.js:160"]:::pipeA
         ADIFF["check-diagram-text.js --diff —<br/>visible-word set comparison<br/>check-diagram-text.js:123"]:::pipeA
@@ -55,12 +59,12 @@ flowchart TB
     subgraph B["Pipeline B — this diagrams-as-code tree"]
         direction TB
         BS["docs/diagrams/AREA/NN-*.md<br/>frontmatter plus fenced mermaid blocks"]:::pipeB
-        BGEN["diagram-index-gen.cjs main IIFE — walk, parse,<br/>validate, optionally render and index<br/>diagram-index-gen.cjs:790"]:::pipeB
-        BALLOW["citation-allowlist.json — loadAllowlist waives the revision<br/>requirement for one named citation, never the line checks<br/>diagram-index-gen.cjs:381"]:::pipeB
-        BVER["a whole-tree --cite-check run writes VERIFICATION.md — verified,<br/>unverified, unresolvable and allowlisted counts, plus a<br/>declared-revisions anchor; an --only run never does<br/>writeVerificationReport diagram-index-gen.cjs:442<br/>guard diagram-index-gen.cjs:832"]:::pipeB
-        BCHKV["--check-verification (hosted CI) — refuses a VERIFICATION.md<br/>written against revisions the tree no longer declares<br/>diagram-index-gen.cjs:837"]:::pipeB
-        BREND["docs/diagrams/rendered/ via mmdc,<br/>gitignored and regenerable<br/>outDir at diagram-index-gen.cjs:693"]:::pipeB
-        BIDX["docs/diagrams/README.md index block<br/>plus COVERAGE.md inverted indexes<br/>writeIndexes at diagram-index-gen.cjs:717, COVERAGE.md written :786"]:::pipeB
+        BGEN["diagram-index-gen.cjs main IIFE — walk, parse,<br/>validate, optionally render and index<br/>diagram-index-gen.cjs:839"]:::pipeB
+        BALLOW["citation-allowlist.json — loadAllowlist waives the revision<br/>requirement for one named citation, never the line checks<br/>loadAllowlist diagram-index-gen.cjs:387"]:::pipeB
+        BVER["a whole-tree --cite-check run writes VERIFICATION.md — verified,<br/>unverified, unresolvable and allowlisted counts, plus a<br/>declared-revisions anchor; an --only run never does<br/>writeVerificationReport diagram-index-gen.cjs:448<br/>guard diagram-index-gen.cjs:881"]:::pipeB
+        BCHKV["--check-verification (hosted CI) — refuses a VERIFICATION.md<br/>written against revisions the tree no longer declares<br/>diagram-index-gen.cjs:887"]:::pipeB
+        BREND["docs/diagrams/rendered/ via the same Pele build,<br/>widths measured on its layout, gitignored and regenerable<br/>renderOne diagram-index-gen.cjs:676, renderAll diagram-index-gen.cjs:688"]:::pipeB
+        BIDX["docs/diagrams/README.md index block<br/>plus COVERAGE.md inverted indexes<br/>writeIndexes at diagram-index-gen.cjs:712, COVERAGE.md written diagram-index-gen.cjs:781"]:::pipeB
         BS --> BGEN
         BGEN -->|"--cite-check"| BALLOW --> BVER
         BVER -.->|"CI freshness gate"| BCHKV
@@ -68,8 +72,8 @@ flowchart TB
         BGEN -->|"no --check, no --only"| BIDX
     end
 
-    WA["diagram-render.yml — PR-triggered on<br/>presentation/report/diagrams/**<br/>diagram-render.yml:18"] --> A
-    WB["diagram-index.yml — push and PR on<br/>docs/diagrams/**<br/>diagram-index.yml:7"] --> B
+    WA["diagram-render.yml — PR-triggered on<br/>presentation/report/diagrams/** and the vendored Pele<br/>diagram-render.yml:17-24"] --> A
+    WB["diagram-index.yml — push and PR on<br/>docs/diagrams/**, the generator and the Pele files<br/>diagram-index.yml:3-20"] --> B
     WD["deploy.yml — BLOCKING publication gate runs<br/>the browser-free baseline probe only<br/>deploy.yml:128"] --> ACHK
 
     subgraph O["Neither pipeline — unwired scripts"]
@@ -77,116 +81,95 @@ flowchart TB
         OG["generate-diagram-art.sh<br/>Gemini image generation, needs an API key<br/>generate-diagram-art.sh:5"]:::orphan
     end
 
-    NOTE1["INVARIANT: the COMMITTED baseline is the authority, not a CI render.<br/>A green build never depends on a browser matching byte for byte<br/>ADR-2004-diagram-baseline-vendored-render-gate.md:30"]
+    NOTE1["INVARIANT: the COMMITTED baseline is the authority, not a CI render.<br/>A green build never depends on a browser matching byte for byte<br/>ADR-2004-diagram-baseline-vendored-render-gate.md:30, kept by docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:39-40"]
     NOTE2["INVARIANT: this very file was validated by pipeline B —<br/>diagram-index-gen.cjs docs/diagrams --check --cite-check --only visionflow/<br/>diagrams/README.md:79"]
-    NOTE3["DIVERGENCE: the two pipelines share no code. Pipeline A vendors mermaid 11.16.0<br/>and drives Chrome; pipeline B shells out to the Nix-installed mmdc"]
+    PELE["scripts/lib/pele-static.cjs — the one shared renderer: loadPele checks the vendored<br/>pele.js against the sha256 in VERSION before import, renderStatic flattens every CSS variable<br/>pele-static.cjs:26-32 and pele-static.cjs:55"]:::pipeA
+    AREN --> PELE
+    BREND --> PELE
+    NOTE3["INVARIANT: both pipelines now render with the same pinned Pele 1.12.0 (ADR-2020) and share<br/>pele-static.cjs, so a diagram that parses in one parses in the other; they share no other code<br/>scripts/vendor/pele/VERSION:1 and docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:28-33"]
+    NOTE4["OPEN: ADR-2020 is accepted and live but implementation_status partial — agentbox, the<br/>lesson pages, the Quartz notes site and the sealmap and dream-engine generators are follow-on surfaces<br/>docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:7 and docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:52-54"]
+    NOTE5["DRIFT: the generator renders with Pele but the tooling block of docs/diagrams/README.md still reads parse every block with mmdc<br/>docs/diagrams/README.md:79"]
 ```
 
-## VF-06.2 diagram-render.yml — three stages, baseline first
+## VF-06.2 diagram-render.yml — two stages, baseline first, no browser
 ```mermaid
 sequenceDiagram
     autonumber
     participant GH as "diagram-render.yml job render-gate"
     participant CHK as "check-diagram-text.js"
-    participant NPM as "npm install -g pinned toolchain"
-    participant RES as "step chrome — resolve a Chrome binary"
     participant REN as "render.mjs"
 
-    Note over GH: triggers only on presentation/report/diagrams/**,<br/>scripts/diagram-render/**, check-diagram-text.js and this workflow<br/>diagram-render.yml:18
+    Note over GH: triggers only on presentation/report/diagrams/**, scripts/diagram-render/**,<br/>scripts/vendor/pele/**, pele-static.cjs, check-diagram-text.js and this workflow<br/>diagram-render.yml:16-25
 
     rect rgb(228, 240, 232)
     Note over GH,CHK: STAGE 1 — the AUTHORITATIVE guard. No browser, fully deterministic
-    GH->>CHK: node check-diagram-text.js presentation/report/diagrams/rendered<br/>diagram-render.yml:47
+    GH->>CHK: node check-diagram-text.js presentation/report/diagrams/rendered<br/>diagram-render.yml:42-43
     CHK-->>GH: exit 1 unless every committed SVG has visible text and its key labels
     end
 
-    rect rgb(232, 238, 250)
-    Note over GH,RES: STAGE 2 — provision a browser, NOT a renderer
-    GH->>NPM: install mermaid-cli 11.16.0 and puppeteer 23.11.1<br/>diagram-render.yml:34
-    Note over NPM: the mermaid-cli version is pinned to match the bundled mermaid in<br/>scripts/diagram-render/vendor/mermaid.min.js — two edits kept in lockstep
-    NPM-->>RES: puppeteer downloads a chromium into PUPPETEER_CACHE_DIR
-    RES->>RES: find a chrome binary in that cache, else fall back to<br/>google-chrome or chromium on PATH<br/>diagram-render.yml:61
-    RES-->>GH: no Chrome or Chromium binary found is an error, exit 1<br/>diagram-render.yml:66
-    end
-
     rect rgb(250, 244, 228)
-    Note over GH,REN: STAGE 3 — re-render from source, then diff. Secondary, not truth
-    GH->>GH: copy the committed baseline aside into RUNNER_TEMP/baseline<br/>diagram-render.yml:80
-    GH->>REN: DIAGRAM_CHROME_BIN set, node render.mjs<br/>diagram-render.yml:81
+    Note over GH,REN: STAGE 2 — re-render from source with the vendored Pele, then diff. Secondary, not truth
+    GH->>GH: copy the committed baseline aside into RUNNER_TEMP/baseline<br/>diagram-render.yml:50-51
+    GH->>REN: node render.mjs, in-process, no Chrome to provision<br/>diagram-render.yml:52
     REN-->>GH: rendered/*.svg overwritten in place
-    GH->>CHK: re-run the visibility probe on the fresh output<br/>diagram-render.yml:82
-    GH->>CHK: --diff RUNNER_TEMP/baseline against rendered<br/>diagram-render.yml:83
+    GH->>CHK: re-run the visibility probe on the fresh output<br/>diagram-render.yml:53
+    GH->>CHK: --diff RUNNER_TEMP/baseline against rendered<br/>diagram-render.yml:54
     CHK-->>GH: exit 1 on any visible-word drift — this is what catches an<br/>edited .mmd whose baseline was never regenerated
-    GH->>GH: git diff --stat over rendered/ is INFORMATIONAL only —<br/>sub-pixel font metrics differ across environments<br/>diagram-render.yml:85
+    GH->>GH: git diff --stat over rendered/ is INFORMATIONAL only<br/>diagram-render.yml:55-56
     end
 
-    Note over GH: DIVERGENCE: this workflow has never run hosted. The three stages were<br/>executed by hand against the sidecar Chrome, so cross-environment byte<br/>parity remains untested<br/>ADR-2004-diagram-baseline-vendored-render-gate.md:107
+    Note over GH: INVARIANT: the stage that installed pinned mermaid-cli and puppeteer and resolved a Chrome binary<br/>is gone, so the workflow can run on a plain hosted runner with Node 22<br/>diagram-render.yml:36-39
+    Note over GH: INVARIANT: the committed baseline was re-rendered with Pele in the same change that replaced the engine,<br/>and ADR-2020 records that its text-diff against the previous Mermaid baseline reported identical visible words for all ten diagrams<br/>docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:39-40 and docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:57-60
 ```
 
-## VF-06.3 render.mjs — how a browser is obtained
+## VF-06.3 render.mjs — how Pele is obtained and verified
 ```mermaid
 flowchart TB
     classDef ci fill:#e4ecf8,stroke:#33559a,color:#222
-    classDef local fill:#e0f2e4,stroke:#2f7a45,color:#222
     classDef fail fill:#ffe0e0,stroke:#aa3333,color:#222
 
-    START["resolveConnection<br/>render.mjs:97"] --> Q1{"DIAGRAM_CHROME_BIN set?"}
+    START["main — list the .mmd sources, create rendered/<br/>render.mjs:31-34"]:::ci --> LOAD["peleStatic.loadPele — import the vendored build<br/>render.mjs:35"]:::ci
+    LOAD --> PIN["read the sha256 line from scripts/vendor/pele/VERSION<br/>pele-static.cjs:29"]:::ci
+    PIN --> NOPIN["VERSION carries no sha256 line — throw<br/>pele-static.cjs:30"]:::fail
+    PIN --> HASH["hash pele.js and compare<br/>pele-static.cjs:31"]:::ci
+    HASH --> MISMATCH["vendored pele.js sha256 does not match VERSION — throw<br/>pele-static.cjs:32"]:::fail
+    HASH --> IMPORT["import the file by URL, once per process<br/>pele-static.cjs:26"]:::ci
+    IMPORT --> RENDER["renderStatic with responsive false and autoDirection false<br/>so a width belongs to the diagram, not a viewport<br/>pele-static.cjs:21 and pele-static.cjs:55"]:::ci
 
-    Q1 -->|yes| LAUNCH["launchLocalChrome spawns headless=new, no-sandbox,<br/>disable-gpu, remote-debugging-port=0, temp user-data-dir<br/>cdp.mjs:54"]:::ci
-    LAUNCH --> PORT["poll DevToolsActivePort in that directory,<br/>20s deadline; the first line is the port<br/>cdp.mjs:64"]:::ci
-    PORT --> TO["Chrome did not expose a DevTools port within 20s<br/>cdp.mjs:83"]:::fail
-    PORT --> EP
-
-    Q1 -->|no| CANDS["candidate list: DIAGRAM_CDP_URL first, then<br/>BROWSER_CDP_HOST and BROWSER_CDP_PORT,<br/>defaulting to browsercontainer 9223<br/>render.mjs:105"]:::local
-    CANDS --> EP["browserEndpointFrom does GET /json/version<br/>under an 8s AbortController timeout<br/>cdp.mjs:30"]
-    EP --> REWRITE["rewrite the webSocketDebuggerUrl host back to the reachable one:<br/>Chrome's DevTools HTTP endpoint rejects a hostname Host header,<br/>so the sidecar name is DNS-resolved to an IP first<br/>cdp.mjs:22"]
-    REWRITE --> OPEN["CdpConnection.open uses node's built-in global WebSocket,<br/>so the gate carries NO npm runtime dependency<br/>cdp.mjs:92"]
-    OPEN --> PAGE["newPage — Target.createTarget, attachToTarget flatten,<br/>Page.enable, Runtime.enable<br/>cdp.mjs:122"]
-
-    CANDS --> ALLFAIL["No reachable browser, listing everything tried<br/>render.mjs:116"]:::fail
-
-    PAGE --> LOADM["inject the vendored bundle as a Runtime.evaluate source<br/>string, then assert typeof mermaid<br/>render.mjs:134"]
-    LOADM --> MISSING["a missing vendored bundle throws before any work<br/>render.mjs:120"]:::fail
-
-    NOTE["INVARIANT: no CDN and no npm renderer. vendor/mermaid.min.js is the<br/>engine; mermaid-cli exists in CI only to produce a Chrome binary<br/>diagram-render/package.json:4"]
-    NOTE2["EXTERNAL: browsercontainer 9223 is the shared browser sidecar; the same<br/>host-header rewrite lives in check-cdp-sidecar.mjs:20 and the site<br/>verification contract in docs/site-verification.md"]
+    NOTE["INVARIANT: no CDN, no npm renderer, no browser and no CDP client. The engine is the committed pele.js,<br/>pinned by npm integrity and sha256 in VERSION; npm pele 1.0.0 is an unrelated 2020 package and is never accepted<br/>scripts/vendor/pele/VERSION:3-5 and docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:30-33"]
+    NOTE2["DRIFT: scripts/check-cdp-sidecar.mjs and docs/site-verification.md still describe a raw CDP connection to the shared browser sidecar<br/>for site checks, which is now unrelated to diagram rendering and is not touched by ADR-2020<br/>scripts/check-cdp-sidecar.mjs:20"]
 ```
 
-## VF-06.4 render.mjs — in-page render, baked background and baked text fill
+## VF-06.4 render.mjs — static flatten, baked background and baked text fill
 ```mermaid
 sequenceDiagram
     autonumber
     participant N as "render.mjs in node"
     participant P as "preprocess.mjs"
-    participant B as "page — window.__renderDiagram<br/>render.mjs:26"
-    participant M as "vendored mermaid 11.16.0"
+    participant S as "pele-static.cjs"
     participant FS as "presentation/report/diagrams/rendered/"
 
     loop each .mmd in sorted order
-        N->>P: preprocessSource on the raw source<br/>render.mjs:143
+        N->>P: preprocessSource on the raw source<br/>render.mjs:40
         P-->>N: light-theme-safe definition
-        N->>B: Runtime.evaluate window.__renderDiagram, awaitPromise true
-        B->>M: mermaid.initialize theme default, deterministicIds,<br/>securityLevel loose<br/>render.mjs:29
-        Note over B,M: TOP-LEVEL htmlLabels false is what actually forces SVG text nodes —<br/>the flowchart-scoped key alone is ignored by mermaid<br/>render.mjs:37
-        M-->>B: svg string
-        B->>B: append into an off-screen holder at left minus 99999px<br/>so getComputedStyle resolves real values<br/>render.mjs:46
-        B->>B: insert a full-size white rect as the FIRST child —<br/>the transparent-background trap that let dark text vanish<br/>render.mjs:52
-        loop each text or tspan with non-empty content
-            B->>B: read the computed fill and write it back as an attribute<br/>render.mjs:65
-            B->>B: carry fill-opacity through only when below 1<br/>render.mjs:67
-            B->>B: count as visible unless r, g and b are all at least 240<br/>render.mjs:71
-        end
-        B-->>N: JSON carrying svg plus total and visible counts<br/>render.mjs:78
-        N->>FS: write rendered NAME.svg with an XML prolog<br/>render.mjs:150
+        N->>S: renderStatic with a white background and a per-diagram id prefix<br/>render.mjs:42-45
+        S->>S: pele.render with the gate options, then flatten<br/>pele-static.cjs:56-57
+        S->>S: replace each var of a Pele custom property by the default Pele declares for it,<br/>inside tag markup only so diagram text reading var is left alone<br/>pele-static.cjs:40-41
+        S->>S: resolve the root-local aliases over four passes, throw if any variable survives<br/>pele-static.cjs:42-49
+        S->>S: insert a full-size white rect as the FIRST child —<br/>the transparent-background trap that let dark text vanish<br/>pele-static.cjs:50
+        S-->>N: svg, width, height and diagram type
+        N->>N: give every text element without a fill the print fill 1f1f1f<br/>render.mjs:24-29
+        N->>FS: write rendered NAME.svg with an XML prolog<br/>render.mjs:48
     end
 
     alt any diagram threw
-        N-->>N: log FAILED per file, then exit 1<br/>render.mjs:162
+        N-->>N: log FAILED per file with the Pele code, line and snippet, then exit 1<br/>render.mjs:51-59
     else all rendered
-        N-->>N: report the number of diagrams rendered<br/>render.mjs:166
+        N-->>N: report the number of diagrams rendered<br/>render.mjs:60
     end
 
-    Note over N,FS: INVARIANT: the browser-computed fill is BAKED into the file so the<br/>standalone checker reads the visible colour with no browser at all<br/>render.mjs:57
+    Note over N,FS: INVARIANT: the fill is BAKED into the file so the standalone checker reads the visible colour<br/>with no browser and no stylesheet, as the earlier gate did with browser-computed colours<br/>render.mjs:3-9
+    Note over S: DIVERGENCE: the earlier text said TOP-LEVEL htmlLabels false forced SVG text nodes and measured<br/>visible counts in a page. Neither step exists now, so visible-text evidence rests on the baked fill and check-diagram-text.js<br/>render.mjs:26-29
 ```
 
 ## VF-06.5 preprocess.mjs — dark-to-light transform and label-word extraction
@@ -202,7 +185,7 @@ flowchart TB
     T2 --> T3["drop b and i emphasis tags: the non-HTML label<br/>renderer would print them verbatim<br/>preprocess.mjs:26"]:::strip
     T3 --> T4["keep the line-break tag — mermaid splits on it<br/>preprocess.mjs:16"]:::keep
     T4 --> T5["collapse runs of three or more newlines the strips left, then trim<br/>preprocess.mjs:28"]
-    T5 --> OUT["definition rendered with mermaid's LIGHT default theme,<br/>so all text resolves to a dark print-safe fill"]:::keep
+    T5 --> OUT["definition rendered by Pele, whose default text colour is the<br/>dark print-safe 1f1f1f the flatten step bakes in"]:::keep
 
     RAW --> W1["extractLabelWords reads the ORIGINAL source, not the transform<br/>preprocess.mjs:38"]
     W1 --> W2["fragments: every quoted string and every bracketed label<br/>preprocess.mjs:40"]
@@ -289,9 +272,9 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant CLI as main IIFE<br/>diagram-index-gen.cjs:790
-    participant W as walk<br/>diagram-index-gen.cjs:112
-    participant P as parseTopic<br/>diagram-index-gen.cjs:190
-    participant F as parseFrontmatter<br/>diagram-index-gen.cjs:141
+    participant W as walk<br/>diagram-index-gen.cjs:115
+    participant P as parseTopic<br/>diagram-index-gen.cjs:193
+    participant F as parseFrontmatter<br/>diagram-index-gen.cjs:144
     CLI->>W: traverse topics excluding generated and archived trees
     loop each topic
         CLI->>P: parse topic, collect errors
@@ -307,19 +290,19 @@ sequenceDiagram
 ## VF-06.9 Citation refusal, the allowlist waiver, and structural failures
 ```mermaid
 flowchart TB
-    I["Topic input"] --> P["Structural parse and duplicate checks<br/>diagram-index-gen.cjs:190"]
+    I["Topic input"] --> P["Structural parse and duplicate checks<br/>diagram-index-gen.cjs:193"]
     P --> ERR["Accumulated errors"]
-    I --> C["Citation and symbol diagnostics<br/>citeCheck diagram-index-gen.cjs:490<br/>symbolCheck diagram-index-gen.cjs:618"]
-    C --> WAIVE{"allowMatch against<br/>citation-allowlist.json?<br/>diagram-index-gen.cjs:402"}
+    I --> C["Citation and symbol diagnostics<br/>citeCheck diagram-index-gen.cjs:496<br/>symbolCheck diagram-index-gen.cjs:624"]
+    C --> WAIVE{"allowMatch against<br/>citation-allowlist.json?<br/>diagram-index-gen.cjs:408"}
     WAIVE -->|yes| NOTE["counted allowlisted, printed with its reason;<br/>never folded into verified or into warnings<br/>diagram-index-gen.cjs:511"]
     WAIVE -->|no| STRICT{"strict-citations?"}
     STRICT -->|yes| ERR
     STRICT -->|no| WARN["Advisory warnings remain visible,<br/>per-citation reason tracked: unverified,<br/>unresolvable or allowlisted<br/>diagram-index-gen.cjs:423"]
-    C --> VER["a --cite-check run without --only writes VERIFICATION.md,<br/>whatever the verdict, strict or not; an --only run<br/>leaves the whole-tree report untouched<br/>diagram-index-gen.cjs:817 and diagram-index-gen.cjs:832"]
-    I --> R["Optional render and width checks<br/>diagram-index-gen.cjs:860"]
+    C --> VER["a --cite-check run without --only writes VERIFICATION.md,<br/>whatever the verdict, strict or not; an --only run<br/>leaves the whole-tree report untouched<br/>diagram-index-gen.cjs:489 and diagram-index-gen.cjs:881"]
+    I --> R["Optional render and width checks<br/>diagram-index-gen.cjs:910-913"]
     R --> ERR
-    ERR --> FAIL["Exit 1 when errors exist<br/>diagram-index-gen.cjs:865"]
-    MODE["Strict citations reject no-source-paths<br/>diagram-index-gen.cjs:106"] --> STRICT
+    ERR --> FAIL["Exit 1 when errors exist<br/>diagram-index-gen.cjs:915-918"]
+    MODE["Strict citations reject no-source-paths<br/>diagram-index-gen.cjs:109"] --> STRICT
     LIMIT["A strict pass establishes citation hygiene;<br/>semantic and deployment evidence remain separate.<br/>An allowlist entry that matches nothing is stale<br/>and fails the run rather than broadening silently<br/>diagram-index-gen.cjs:606"]
     WARN --> LIMIT
     NOTE --> LIMIT
@@ -328,48 +311,51 @@ flowchart TB
 ## VF-06.10 Citation resolution: dual paths, allowlist exemptions, inference limits
 ```mermaid
 flowchart TB
-    A["Mermaid source"] --> SCAN["Dotted path plus line/range scan<br/>CITE_RE diagram-index-gen.cjs:284"]
-    SCAN --> MATCH["Exact sources: entry wins; otherwise the unique<br/>suffix match; zero or >1 hits is unresolvable/ambiguous<br/>diagram-index-gen.cjs:518"]
-    MATCH --> EXIST["existsForTopic — worktree first, else<br/>git cat-file -e &lt;sha&gt;:&lt;path&gt; at the topic's<br/>declared revision for that repo<br/>diagram-index-gen.cjs:172"]
-    MATCH --> MODE["revisionLines chooses source bytes<br/>diagram-index-gen.cjs:344"]
-    MODE --> PIN["declared revision: git show &lt;sha&gt;:&lt;path&gt;<br/>— 'verified at revision'<br/>diagram-index-gen.cjs:358"]
-    MODE --> WT["no repo mapping, no sha for repo, or a failed<br/>git show — falls back to the working tree,<br/>each reason tracked separately<br/>— 'unverified (working-tree fallback)'<br/>diagram-index-gen.cjs:348"]
+    A["Mermaid source"] --> SCAN["Dotted path plus line/range scan<br/>CITE_RE diagram-index-gen.cjs:287"]
+    SCAN --> MATCH["Exact sources: entry wins; otherwise the unique<br/>suffix match; zero or >1 hits is unresolvable/ambiguous<br/>diagram-index-gen.cjs:522-528"]
+    MATCH --> EXIST["existsForTopic — worktree first, else<br/>git cat-file -e &lt;sha&gt;:&lt;path&gt; at the topic's<br/>declared revision for that repo<br/>diagram-index-gen.cjs:175-185"]
+    MATCH --> MODE["revisionLines chooses source bytes<br/>diagram-index-gen.cjs:350"]
+    MODE --> PIN["declared revision: git show &lt;sha&gt;:&lt;path&gt;<br/>— 'verified at revision'<br/>diagram-index-gen.cjs:364"]
+    MODE --> WT["no repo mapping, no sha for repo, or a failed<br/>git show — falls back to the working tree,<br/>each reason tracked separately<br/>— 'unverified (working-tree fallback)'<br/>diagram-index-gen.cjs:344-349"]
     MODE --> WTFLAG["--worktree-citations: current working tree only,<br/>by explicit flag, not fallback"]
-    PIN --> READ["Check line bounds and anchors<br/>diagram-index-gen.cjs:541"]
-    WT --> WAIVE{"allowMatch in citation-allowlist.json?<br/>diagram-index-gen.cjs:402"}
-    WAIVE -->|yes| ALLOWED["counted allowlisted, never verified;<br/>line checks still run against it<br/>diagram-index-gen.cjs:531"]
-    WAIVE -->|no| UNVER["counted unverified, reason recorded<br/>diagram-index-gen.cjs:533"]
+    PIN --> READ["Check line bounds and anchors<br/>diagram-index-gen.cjs:548"]
+    WT --> WAIVE{"allowMatch in citation-allowlist.json?<br/>diagram-index-gen.cjs:408"}
+    WAIVE -->|yes| ALLOWED["counted allowlisted, never verified;<br/>line checks still run against it<br/>diagram-index-gen.cjs:511-518"]
+    WAIVE -->|no| UNVER["counted unverified, reason recorded<br/>diagram-index-gen.cjs:541"]
     ALLOWED --> READ
     UNVER --> READ
     WTFLAG --> READ
-    A --> BARE["Bare-line context from explicit citations and participant bindings<br/>diagram-index-gen.cjs:565"]
+    A --> BARE["Bare-line context from explicit citations and participant bindings<br/>diagram-index-gen.cjs:596-598"]
     BARE --> READ
     A --> SYMBOL["Function-labelled participant checked against a unique definition<br/>symbolCheck diagram-index-gen.cjs:618"]
     READ --> DIAG["Diagnostic: ambiguous, missing, unreadable, out of bounds or empty anchor"]
     SYMBOL --> DIAG
-    DIAG --> EXIT["Strict mode adds diagnostics to errors<br/>diagram-index-gen.cjs:835"]
+    DIAG --> EXIT["Strict mode adds diagnostics to errors<br/>diagram-index-gen.cjs:884"]
     LIMIT["Context inference and brace counting are heuristics.<br/>A real source line can still support the wrong claim.<br/>An allowlist waiver is of the revision requirement<br/>alone, never of whether the cited line is right."] --> EXIT
 ```
 
 ## VF-06.11 Render invocation and width boundary
 ```mermaid
 sequenceDiagram
-    participant G as renderAll<br/>diagram-index-gen.cjs:689
-    participant R as renderOne<br/>diagram-index-gen.cjs:664
-    participant M as mmdc
+    participant G as renderAll<br/>diagram-index-gen.cjs:688
+    participant R as renderOne<br/>diagram-index-gen.cjs:676
+    participant M as Pele via renderStatic
     participant O as rendered topic directory
-    G->>G: queue blocks with bounded worker concurrency
+    G->>G: load Pele once, then walk every block in order
     G->>R: render current block
     R->>O: write exact Mermaid input
-    R->>M: spawn renderer with input and SVG paths
-    alt successful process
-        M-->>R: SVG output
-        R->>R: reject viewBox width above 4500px
-    else render failure
-        M-->>R: captured failure details
+    R->>M: renderStatic of the block source
+    alt Pele throws
+        M-->>R: PeleError with code, line and snippet
+        R-->>G: diagnostic naming the topic, diagram and md line
+    else successful render
+        M-->>R: flattened SVG and its width
+        R->>O: write the SVG
+        R->>R: reject a width above 4500px, with advice to wrap Notes or split<br/>diagram-index-gen.cjs:685
     end
     R-->>G: success or diagnostic
     Note over G,O: Exact-source comparison and execution logs are distinct evidence.<br/>A cached SVG by itself is not proof of a fresh successful render.
+    Note over G,M: TENSION: widths come from Pele's own Node text-width table and are not comparable with the earlier mmdc numbers,<br/>so a block that passed the old 4500px ceiling may fail now. The refresh found 17 corpus blocks over the ceiling and 4 with a bare semicolon<br/>diagram-index-gen.cjs:670-674 and docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:60-63
 ```
 
 ## VF-06.12 diagram-index.yml — four steps, and what a hosted runner cannot see
@@ -382,17 +368,17 @@ sequenceDiagram
     participant RM as "docs/diagrams/README.md"
     participant CV as "docs/diagrams/COVERAGE.md"
 
-    Note over CI: "push to main and pull_request, path-filtered to docs/diagrams/**,<br/>the generator, the gate test and the workflow itself<br/>diagram-index.yml:6"
+    Note over CI: "push to main and pull_request, path-filtered to docs/diagrams/**,<br/>the generator, the gate test and the workflow itself<br/>diagram-index.yml:3-20"
 
     rect rgb(232, 238, 250)
     Note over CI,G: "STEP 1 — structural check, sibling paths tolerated"
-    CI->>G: "diagram-index-gen.cjs docs/diagrams --check --no-source-paths<br/>diagram-index.yml:52"
+    CI->>G: "diagram-index-gen.cjs docs/diagrams --check --no-source-paths<br/>diagram-index.yml:55-56"
     Note over G: "frontmatter shape, unique ids, heading and block structure,<br/>prose limits. sources: path existence is WAIVED"
     end
 
     rect rgb(228, 240, 232)
     Note over CI,T: "STEP 2 — prove the gate can still fail"
-    CI->>T: "node tests/gates/diagram-index.test.cjs<br/>diagram-index.yml:55"
+    CI->>T: "node tests/gates/diagram-index.test.cjs<br/>diagram-index.yml:58-59"
     T->>T: "three fixture topics carrying the SAME ADR number in three areas<br/>diagram-index.test.cjs:10"
     T-->>CI: "coverage must key them visionflow:ADR-2002, agentbox:ADR-2002,<br/>estate-unresolved:ADR-2002 and must NOT collapse them<br/>diagram-index.test.cjs:19"
     T->>T: "a past-EOF citation: advisory under --cite-check,<br/>exit 1 under --strict-citations<br/>diagram-index.test.cjs:29"
@@ -402,18 +388,24 @@ sequenceDiagram
     T-->>CI: "a waiver that matches nothing fails the run rather than<br/>broadening silently<br/>diagram-index.test.cjs:95"
     end
 
+    rect rgb(232, 245, 245)
+    Note over CI,G: "STEP 2b — every block must parse and stay under 4500px"
+    CI->>G: "diagram-index-gen.cjs docs/diagrams --check --no-source-paths --render<br/>diagram-index.yml:61-65"
+    Note over G: "Pele renders in-process, so the hosted runner needs neither a browser nor a sibling checkout.<br/>A diagram that does not parse cannot reach main — the corpus render gate had never run hosted before this step"
+    end
+
     rect rgb(245, 232, 250)
     Note over CI,CV: "STEP 3 — the local strict-citations run must be fresh"
-    CI->>CV: "diagram-index-gen.cjs docs/diagrams --check --no-source-paths<br/>--check-verification<br/>diagram-index.yml:61"
-    Note over CV: "recomputes declaredRevisions from frontmatter alone (no source<br/>access) and refuses VERIFICATION.md if its declared-revisions<br/>anchor no longer matches — also checks citation-allowlist.json<br/>is well formed and names real topics<br/>diagram-index-gen.cjs:837"
+    CI->>CV: "diagram-index-gen.cjs docs/diagrams --check --no-source-paths<br/>--check-verification<br/>diagram-index.yml:70-71"
+    Note over CV: "recomputes declaredRevisions from frontmatter alone (no source<br/>access) and refuses VERIFICATION.md if its declared-revisions<br/>anchor no longer matches — also checks citation-allowlist.json<br/>is well formed and names real topics<br/>diagram-index-gen.cjs:887"
     end
 
     rect rgb(250, 244, 228)
     Note over CI,CV: "STEP 4 — the index must already be in sync"
-    CI->>CV: "copy COVERAGE.md aside, then regenerate<br/>diagram-index.yml:65"
+    CI->>CV: "copy COVERAGE.md aside, then regenerate<br/>diagram-index.yml:73-76"
     G->>RM: "emit topic tables and the regeneration command"
-    G->>CV: "qualify ADR identities by repository<br/>diagram-index-gen.cjs:754"
-    CI->>CI: "diff the copy against the regenerated file, and a mismatch<br/>raises a workflow error saying COVERAGE.md is stale, exit 1<br/>diagram-index.yml:67"
+    G->>CV: "qualify ADR identities by repository<br/>diagram-index-gen.cjs:769"
+    CI->>CI: "diff the copy against the regenerated file, and a mismatch<br/>raises a workflow error saying COVERAGE.md is stale, exit 1<br/>diagram-index.yml:77"
     end
 
     Note over CI,CV: "INVARIANT: sources: reach sixteen repositories at forty-one declared<br/>revisions, two of them unfetchable here (a private repo, a local-only<br/>clone), so --no-source-paths is the only runnable form on this runner.<br/>Verification stays LOCAL — this runner gates its FRESHNESS instead<br/>diagram-index.yml:30"
@@ -497,4 +489,23 @@ flowchart TB
     E1 -.-> DIV
 ```
 
-**Invariant (--only leaves VERIFICATION.md alone; Debt resolved at VisionFlow 54e1d02):** `--only` filters the topic set before anything else (`scripts/diagram-index-gen.cjs:794`) and suppresses the README and COVERAGE writes (`scripts/diagram-index-gen.cjs:870`); since 54e1d02 the cite-check block also skips `writeVerificationReport` under `--only` (`scripts/diagram-index-gen.cjs:832`), so a per-topic `--cite-check --only` run no longer overwrites the committed VERIFICATION.md with one topic's counts and a subset declared-revisions anchor (`scripts/diagram-index-gen.cjs:442`). Only a whole-tree run writes it, and `--check-verification` (`scripts/diagram-index-gen.cjs:837`) judges that.
+**Invariant (--only leaves VERIFICATION.md alone; Debt resolved at VisionFlow 54e1d02):** `--only` filters the topic set before anything else (`scripts/diagram-index-gen.cjs:843`) and suppresses the README and COVERAGE writes (`scripts/diagram-index-gen.cjs:920`); since 54e1d02 the cite-check block also skips `writeVerificationReport` under `--only` (`scripts/diagram-index-gen.cjs:832`), so a per-topic `--cite-check --only` run no longer overwrites the committed VERIFICATION.md with one topic's counts and a subset declared-revisions anchor (`scripts/diagram-index-gen.cjs:442`). Only a whole-tree run writes it, and `--check-verification` (`scripts/diagram-index-gen.cjs:837`) judges that.
+
+## VF-06.15 The opt-in Jev advisory step — a typed-decision review that never gates
+```mermaid
+flowchart TB
+    FLAG["--jev, --jev=diagram, --jev-report PATH, --jev-max N parsed beside the other flags;<br/>VISIONFLOW_JEV enables the same from the environment, the CLI value wins<br/>scripts/diagram-index-gen.cjs:104-106 and scripts/lib/jev.cjs:51-58"]
+    OFF["flag off, or no endpoint, or a local-only consumer refused:<br/>the generator prints what it printed before and exits the same<br/>scripts/lib/jev.cjs:13-15"]
+    RUN["jevDiagramReview runs AFTER every deterministic check, for at most 5 diagrams by default<br/>scripts/diagram-index-gen.cjs:810-812 and scripts/diagram-index-gen.cjs:886"]
+    ASK["per diagram: the Mermaid source plus bounded excerpts of the cited source lines<br/>sent as a typed question set, data class local-only<br/>scripts/diagram-index-gen.cjs:819-823"]
+    OUT["a contradicted verdict is printed to stderr as JEV-ADVISORY with its path:line anchors,<br/>optionally written to a JSON report; nothing reaches an index, VERIFICATION.md or verified_commit<br/>scripts/diagram-index-gen.cjs:829-834"]
+    FLAG --> RUN --> ASK --> OUT
+    FLAG -.-> OFF
+    N1["INVARIANT: authority stays in code — Jev only asks and validates, writes nothing and approves nothing,<br/>and every fallback must behave exactly as before Jev existed<br/>scripts/lib/jev.cjs:7-18"]
+    N2["OPEN: every item in the option is a proposed research candidate with no measured uplift,<br/>and the confidence floor of 0.5 is explicitly unfitted<br/>docs/jev-option.md:5 and scripts/lib/jev.cjs:41-42"]
+    OUT --- N1
+    ASK --- N2
+```
+
+**What it shows.** Since the earlier stamp the generator can ask a typed-decision model whether a diagram contradicts the source lines it cites, as an advisory line after all the deterministic gates have already passed or failed.
+**Why it is this way.** The checks that decide the exit code, citation resolution, render and width, stay deterministic; the option adds a second opinion that can flag a claim for human review before a restamp, and cannot change a verdict (docs/jev-option.md:3-5, scripts/diagram-index-gen.cjs:785-790).

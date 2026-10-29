@@ -17,7 +17,7 @@ sources:
   - ../project/agentbox/config/sidechain/README.md
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
   - ../project/docs/TODO-unified.md
-verified_commit: {sidestr-rs: f77856dd18a4b6348445463456c4865de5285e9a, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12, visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987}
+verified_commit: {sidestr-rs: 1249e34def303fbb4b9f8380de684c0719a9c75f, visionflow: 1d7183a73c1eae4996a7006067d5047308fab7a5, visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9}
 ---
 
 ## For developers
@@ -56,7 +56,7 @@ flowchart LR
     WS --> private
 ```
 
-**What it shows.** The root manifest names eleven members and explicitly keeps EVM and the reserve components unpublished (`../sidestr-rs/Cargo.toml:30`, `../sidestr-rs/Cargo.toml:38`); the teller is a pure, publishable member (`../sidestr-rs/Cargo.toml:42`). The README's crate table listed seven published crates and no teller row until 2026-10-18 (`f77856dd`); it now carries the `webledgers-teller` row (`../sidestr-rs/README.md:42`), so the README, the manifest (eleven members, eight `publish = true`, `../sidestr-rs/Cargo.toml:43`) and this topic agree (estate register ER-3).
+**What it shows.** The root manifest names eleven members and explicitly keeps EVM and the reserve components unpublished (`../sidestr-rs/Cargo.toml:30`, `../sidestr-rs/Cargo.toml:38`); the teller is a pure, publishable member (`../sidestr-rs/Cargo.toml:42`). The README's crate table listed seven published crates and no teller row until 2026-10-18 (`f77856dd`); it now carries the `webledgers-teller` row (`../sidestr-rs/README.md:77`), so the README, the manifest (eleven members, eight `publish = true`, `../sidestr-rs/Cargo.toml:43`) and this topic agree (estate register ER-3).
 
 **Why it is this way.** Optional execution and origin adapters can evolve without pulling their dependency trees into every validator. The local crate-boundary decision records this separation (`../sidestr-rs/docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md:27`).
 
@@ -113,7 +113,7 @@ flowchart LR
     RS["sidestr-rs libraries"] -. "validated components;<br/>native producer not deployed" .-> AB
 ```
 
-**What it shows.** Agentbox supervises the producer, mirror and faucet, but the producer runs the upstream JavaScript engine baked at the upstream pins (`../project/agentbox/config/sidechain/README.md:111`, `../project/agentbox/config/sidechain/README.md:117`). A second chain, `sidestr:dreamlab-txbt4`, was sealed on 2 October beside a BLAKE2b testnet4 parent (`../project/agentbox/config/sidechain/README.md:11`). The sealed `sidestr:dreamlab` is level 1, and its document reaches `containmentDigest` without a `rules` field (`../project/agentbox/config/sidechain/dreamlab/chain.json:5`, `../project/agentbox/config/sidechain/dreamlab/chain.json:28`).
+**What it shows.** Agentbox supervises the producer, mirror and faucet, but the producer runs the upstream JavaScript engine baked at the upstream pins (`../project/agentbox/config/sidechain/README.md:111`, `../project/agentbox/config/sidechain/README.md:117`). A second chain, `sidestr:dreamlab-txbt4`, was sealed on 2 October beside a BLAKE2b testnet4 parent (`../project/agentbox/config/sidechain/README.md:11`). The baked spec pin now includes upstream PR #32, so an append or index-write failure latches `SIDING_PERSISTENCE_FAILED` and the producer exits before advertising or extending an unsaved tip, while `patches/peg-script.patch` keeps single-signer peg announcements (`../project/agentbox/config/sidechain/README.md:150-153`, `../project/agentbox/config/sidechain/README.md:162-165`). The sealed `sidestr:dreamlab` is level 1, and its document reaches `containmentDigest` without a `rules` field (`../project/agentbox/config/sidechain/dreamlab/chain.json:5`, `../project/agentbox/config/sidechain/dreamlab/chain.json:28`).
 
 **Why it is this way.** The Rust workspace is currently a validated library component. No Rust producer is deployed on either chain; adoption stays under the estate board's open row (`../project/docs/TODO-unified.md:101`).
 

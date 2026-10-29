@@ -16,7 +16,7 @@ sources:
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/schema/agentbox.toml.schema.json
   - ../project/agentbox/agentbox.toml
-verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
+verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
 ---
 
 ## For developers
@@ -25,7 +25,7 @@ On 2026-09-22 the estate stopped proposing a settlement chain and sealed one: `s
 
 **Drift (this topic vs ADR-2112):** the crates this topic points to in AB-33 moved to `DreamLab-AI/sidestr-rs` on 2026-09-23 (ADR-2112); the sealed chain document and its tests stay in agentbox `config/sidechain/`. See SR-01.
 
-**Drift (this topic vs the directory it catalogues):** `sidestr:dreamlab` is no longer the only seal — `sidestr:dreamlab-txbt4` beside BLAKE2b testnet4 was sealed 2026-10-02 and its table says `enabled = true` (`config/sidechain/README.md:11`, `../project/agentbox/agentbox.toml:1835-1836`), but the parent `[sidechain].enabled` now ships `false`, paused after an ENOSPC block-persistence failure, and dominates both tables, so neither producer is baked at this revision (`../project/agentbox/agentbox.toml:1818-1820`, `../project/agentbox/agentbox.toml:1831-1832`); the genesis test now runs one pass per committed document, so it covers both chains. Neither chain is anchored: no producer writes checkpoints into its parent (`config/sidechain/README.md:13-18`).
+**Drift (this topic vs the directory it catalogues):** `sidestr:dreamlab` is no longer the only seal — `sidestr:dreamlab-txbt4` beside BLAKE2b testnet4 was sealed 2026-10-02 and its table says `enabled = true` (`config/sidechain/README.md:11`, `../project/agentbox/agentbox.toml:1909-1910`), and the parent `[sidechain].enabled`, which dominates both tables, now ships `true` after the validated prefixes were recovered following an ENOSPC block-persistence failure (`../project/agentbox/agentbox.toml:1893-1894`, `../project/agentbox/agentbox.toml:1905-1906`), so both producers are baked at this revision; the genesis test now runs one pass per committed document, so it covers both chains. Neither chain is anchored: no producer writes checkpoints into its parent (`config/sidechain/README.md:13-18`).
 
 ## For the business
 
@@ -74,25 +74,29 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph committed["Committed by upstream's buildGenesis"]
+        direction TB
         C1["the chain id, as the coinbase marker<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:206"]
-        C2["the pegs - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:207"]
-        C3["genesisTime - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:207"]
-        C4["the signer's witness - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:207"]
+        C2["the pegs<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:207"]
+        C3["genesisTime<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:207"]
+        C4["the signer's witness<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:207"]
+        C1 ~~~ C2 ~~~ C3 ~~~ C4
     end
     subgraph notcommitted["NOT committed, although the record said they were"]
-        N1["parent - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:207-208"]
-        N2["comment, signers - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:207"]
-        N3["every containment field - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:208"]
+        direction TB
+        N1["parent<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:207-208"]
+        N2["comment, signers<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:207"]
+        N3["every containment field<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:208"]
+        N1 ~~~ N2 ~~~ N3
     end
     subgraph pin["The pin that would close it"]
-        PIN["a coinbase pin: record carrying containmentDigest<br/>is UNBUILT - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:210-211"]
-        UP["building it changes genesis construction, so it is an<br/>UPSTREAM proposal, never a local overlay - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:212-214"]
+        PIN["a coinbase pin: record carrying containmentDigest<br/>is UNBUILT<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:210-211"]
+        UP["building it changes genesis construction, so it is an<br/>UPSTREAM proposal, never a local overlay<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:212-214"]
         PIN --> UP
     end
     committed --> BIND["Until the pin exists, the binding of parent and containment is the<br/>committed document plus its genesisHash<br/>sidechain/README.md:77"]
     notcommitted --> BIND
     BIND --> pin
-    notcommitted --> TEN["TENSION: ADR-2103 D3 says parent and containment are<br/>bound on-seal. They are not. The record now says so in<br/>its own amendment - ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:208"]
+    notcommitted --> TEN["TENSION: ADR-2103 D3 says parent and containment are<br/>bound on-seal. They are not. The record now says so in<br/>its own amendment<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:208"]
 ```
 
 
@@ -171,11 +175,11 @@ flowchart TB
         D1["the chain minted and replayed cold by the engine<br/>sovereign-settlement.md:336"]
         D2["block 0's header hashed independently to the document<br/>sovereign-settlement.md:336"]
         D3["the testnet4 peg wallet funded with 0.001 tBTC<br/>sovereign-settlement.md:336"]
-        D4["the interim producer live, announcing to five relays; paused in the manifest since<br/>see AB-34.1, agentbox.toml:1820"]
+        D4["the interim producer live, announcing to five relays; enabled in the manifest after prefix recovery<br/>see AB-34.1, agentbox.toml:1893-1894"]
         D5["2026-09-30: producer, Git mirror and DREAM faucet supervised<br/>behind [sidechain] - sovereign-settlement.md:337, see AB-34"]
     end
     subgraph missing["Not yet, named by the same row"]
-        M1["a native sidestr-node - the supervised producer is still<br/>upstream's JS engine - config/sidechain/README.md:173"]
+        M1["a native sidestr-node - the supervised producer is still<br/>upstream's JS engine - config/sidechain/README.md:190-194"]
         M2["the mirror on loopback port 9097 behind the nip98 proxy"]
         M3["the chain and asset URN kinds"]
         M4["the kind-38420 account binding"]
@@ -184,8 +188,8 @@ flowchart TB
     end
     subgraph gate["The manifest block, half landed"]
         G1["schema/agentbox.toml.schema.json sets<br/>additionalProperties false at the top level<br/>schema/agentbox.toml.schema.json:7"]
-        G2["a sidechain entry now exists for the interim supervision keys only:<br/>enabled, announce_mirror, mirror, mirror_checkout, faucet, faucet_key_file<br/>schema/agentbox.toml.schema.json:3456-3497"]
-        G3["it is closed too, additionalProperties false, so D1's parent and<br/>header_profile still cannot be written and the sealed document stays<br/>the only source of the parent - schema/agentbox.toml.schema.json:3458"]
+        G2["a sidechain entry now exists for the interim supervision keys:<br/>enabled, announce_mirror, mirror, mirror_checkout, faucet, faucet_key_file,<br/>faucet_units, faucet_sats, plus a named dreamlab-txbt4 table<br/>schema/agentbox.toml.schema.json:3729-3849"]
+        G3["it is closed too, additionalProperties false, and names no header_profile; the<br/>per-chain table repeats the sealed parent only so the runner can refuse a<br/>disagreement - schema/agentbox.toml.schema.json:3731, :3778"]
         G1 --> G2 --> G3
     end
     done --> STATUS["implementation_status partial: the seal exists and is<br/>verifiable, D1, D3's pin and boot check, D4's CI receipt<br/>check and the faucet compile-out are not built<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:228-231"]
@@ -194,8 +198,10 @@ flowchart TB
 ```
 
 
-**Drift (ADR-2103 vs the schema):** the record's first-seal snapshot says `schema/agentbox.toml.schema.json` has no `sidechain` entry (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:215-217`); since `d0fa1b80b` it has one, for the interim supervision keys only (`../project/agentbox/schema/agentbox.toml.schema.json:3456-3497`). The conclusion still holds for D1, because the new entry is closed and names no `parent` or `header_profile` (`../project/agentbox/schema/agentbox.toml.schema.json:3458`). Its `mirror_checkout` description still says "A GitHub Pages checkout" although the mirror is now a plain Git checkout (`../project/agentbox/schema/agentbox.toml.schema.json:3475`, `../project/agentbox/agentbox.toml:1822`).
+**Drift (ADR-2103 vs the schema):** the record's first-seal snapshot says `schema/agentbox.toml.schema.json` has no `sidechain` entry (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:215-217`); since `d0fa1b80b` it has one, for the interim supervision keys, `faucet_units` and `faucet_sats`, and a named `dreamlab-txbt4` table (`../project/agentbox/schema/agentbox.toml.schema.json:3729-3849`). The conclusion still holds for D1: the entry is closed (`../project/agentbox/schema/agentbox.toml.schema.json:3731`), it names no `header_profile`, and the only `parent` it carries is the per-chain table's repeat of the sealed document's value, an enum of `txbt4` that exists so the runner can refuse a disagreement (`../project/agentbox/schema/agentbox.toml.schema.json:3778`). Its `mirror_checkout` description still says "A GitHub Pages checkout" although the mirror is now a plain Git checkout (`../project/agentbox/schema/agentbox.toml.schema.json:3748`, `../project/agentbox/agentbox.toml:1822`).
 
-**Debt:** the specified `[sidechain]` gate, with its catalogue entry, apply class and supervised program set (`../project/agentbox/docs/BASELINE-container.md:314`, `../project/agentbox/docs/BASELINE-container.md:369`), is still not expressible: what landed is an interim block of six supervision keys, and the specified keys (parent, header profile, signer and bridge children) wait on a schema change (`../project/agentbox/schema/agentbox.toml.schema.json:3458`). See AB-05.13 for where it would appear in the gate catalogue.
+**Drift (config/sidechain/README.md vs the manifest):** the README says the `[sidechain.dreamlab-txbt4]` table ships `enabled = false` (`../project/agentbox/config/sidechain/README.md:188`) and the manifest comment above it says "Off until the lead starts it" (`../project/agentbox/agentbox.toml:1906`), but the table itself ships `enabled = true`, live since 2026-10-03 (`../project/agentbox/agentbox.toml:1910`).
+
+**Debt:** the specified `[sidechain]` gate, with its catalogue entry, apply class and supervised program set (`../project/agentbox/docs/BASELINE-container.md:344`, `../project/agentbox/docs/BASELINE-container.md:386-391`), is still not expressible: what landed is an interim block of eight supervision keys and a per-chain table, and the specified keys (header profile, signer and bridge children) wait on a schema change (`../project/agentbox/schema/agentbox.toml.schema.json:3731`). See AB-05.13 for where it would appear in the gate catalogue.
 
 **Open:** PRD-024's question 9 is answered — the first seal is `tbtc4` with stock headers, sealed 2026-09-22 (`../project/agentbox/docs/proposals/sovereign-settlement.md:486-491`) — but questions 8, 13, 14 and 15 remain, question 19 (the next chain's parent, beside `txbt4`) was added on 2026-09-30 (`../project/agentbox/docs/proposals/sovereign-settlement.md:527`), and each changes what gets built (`../project/agentbox/docs/proposals/sovereign-settlement.md:495`).

@@ -33,36 +33,36 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
   - ../nostr-rust-forum/Cargo.toml
-verified_commit: 66ca8d8c0b7d1471503f916c513089846aba27c3
+verified_commit: 8a5cf817e81b20e2b761899eab753768c0cb4988
 ---
 
 ## NF-04.1 Route surface
 
 ```mermaid
 flowchart TB
-    F["fetch nostr-bbs-pod-worker/src/lib.rs:422"]
-    OPT["Options preflight lib.rs:427"]
-    HEALTH["/health lib.rs:437"]
+    F["fetch nostr-bbs-pod-worker/src/lib.rs:463"]
+    OPT["Options preflight lib.rs:468"]
+    HEALTH["/health lib.rs:478"]
     subgraph disc["Discovery documents"]
-        WF["/.well-known/webfinger lib.rs:472"]
-        SOL["/.well-known/solid lib.rs:495"]
-        N05["/.well-known/nostr.json lib.rs:506"]
-        DID["/.well-known/did/nostr/{pk} lib.rs:562"]
-        WL["/.well-known/webledgers/webledgers.json lib.rs:583"]
+        WF["/.well-known/webfinger lib.rs:513"]
+        SOL["/.well-known/solid lib.rs:536"]
+        N05["/.well-known/nostr.json lib.rs:547"]
+        DID["/.well-known/did/nostr/{pk} lib.rs:603"]
+        WL["/.well-known/webledgers/webledgers.json lib.rs:624"]
     end
-    PODS["POST /.pods - authenticated provisioning alias lib.rs:594"]
-    PAY["/pay/ routes - HTTP 402 Web Ledgers lib.rs:652 lib.rs:689"]
-    GITG["_git request guard lib.rs:743"]
-    LDP["/pods/{pubkey}/... LDP resource verbs<br/>parsed at lib.rs:94<br/>GET/HEAD lib.rs:991 PUT lib.rs:1217 POST lib.rs:1293<br/>PATCH lib.rs:1429 DELETE lib.rs:1521"]
+    PODS["POST /.pods - authenticated provisioning alias lib.rs:635"]
+    PAY["/pay/ routes - HTTP 402 Web Ledgers lib.rs:693 lib.rs:730"]
+    GITG["_git request guard lib.rs:784"]
+    LDP["/pods/{pubkey}/... LDP resource verbs<br/>parsed at lib.rs:94<br/>GET/HEAD lib.rs:1045 PUT lib.rs:1271 POST lib.rs:1347<br/>PATCH lib.rs:1483 DELETE lib.rs:1575"]
     PROV["/.provision lib.rs:124 and /.deprovision lib.rs:129"]
 
     F --> OPT --> HEALTH
     F --> disc
     F --> PODS & PAY & GITG & LDP & PROV
 
-    N1["CORS uses the canonical POD_CORS_HEADERS constant from core so the DPoP, Updates-Via, WAC and<br/>payment headers cannot drift per worker nostr-bbs-pod-worker/src/lib.rs:170, constant<br/>nostr-bbs-core/src/cors.rs:46"]
-    N2["Every LDP response advertises resource-sidecar notification discovery via Updates-Via<br/>nostr-bbs-pod-worker/src/lib.rs:277"]
-    N3["A 401 emits a JSS-compatible Solid challenge - WWW-Authenticate with DPoP and Bearer realms<br/>nostr-bbs-pod-worker/src/lib.rs:348"]
+    N1["CORS uses the canonical POD_CORS_HEADERS constant from core so the DPoP, Updates-Via, WAC and<br/>payment headers cannot drift per worker nostr-bbs-pod-worker/src/lib.rs:178, constant<br/>nostr-bbs-core/src/cors.rs:46"]
+    N2["Every LDP response advertises resource-sidecar notification discovery via Updates-Via<br/>nostr-bbs-pod-worker/src/lib.rs:304"]
+    N3["A 401 emits a JSS-compatible Solid challenge - WWW-Authenticate with DPoP and Bearer realms<br/>nostr-bbs-pod-worker/src/lib.rs:389"]
 ```
 
 ## NF-04.2 A resource request, end to end
@@ -71,7 +71,7 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant C as Client
-    participant W as pod-worker fetch<br/>nostr-bbs-pod-worker/src/lib.rs:422
+    participant W as pod-worker fetch<br/>nostr-bbs-pod-worker/src/lib.rs:463
     participant A as NIP-98 verify<br/>nostr-bbs-pod-worker/src/auth.rs:13
     participant ACL as find_effective_acl<br/>nostr-bbs-pod-worker/src/acl.rs:285
     participant R2 as PODS bucket
@@ -79,27 +79,31 @@ sequenceDiagram
 
     C->>W: METHOD /pods/{pubkey}/{path}
     W->>W: parse owner + resource path lib.rs:94
-    W->>W: git request guard lib.rs:743
-    W->>A: Authorization: Nostr <base64 event> lib.rs:766
-    W->>W: required_mode = coerce_required_mode_for_acl lib.rs:966
-    W->>ACL: resolve the effective ACL lib.rs:967
+    W->>W: git request guard lib.rs:784
+    W->>A: Authorization: Nostr <base64 event> lib.rs:812
+    W->>W: required_mode = coerce_required_mode_for_acl lib.rs:1015
+    W->>ACL: resolve the effective ACL lib.rs:1016
     ACL->>R2: sidecar walk, most specific first acl.rs:295
     ACL->>ACL: KV miss-fallback only acl.rs:311
     W->>W: evaluate_access against the resolved doc acl.rs:56
     alt GET or HEAD
-        W->>W: content negotiation lib.rs:1062, preconditions lib.rs:1081
+        W->>W: content negotiation lib.rs:1116, preconditions lib.rs:1135
     else PUT
-        W->>Q: atomic check_and_reserve_d1 lib.rs:1258
-        W->>W: notify_change subscribers lib.rs:1279
+        W->>Q: atomic check_and_reserve_d1 lib.rs:1312
+        W->>W: notify_change subscribers lib.rs:1333
     else POST or PATCH
-        W->>Q: reservation_account then check_and_reserve_with_limit_d1 lib.rs:1315 lib.rs:1320
+        W->>Q: reservation_account then check_and_reserve_with_limit_d1 lib.rs:1369 lib.rs:1374
     end
     W-->>C: response with the WAC allow header
 
     Note over W: The quota reservation is ATOMIC in D1 - reserve-then-write, so a concurrent PUT cannot both pass a stale check nostr-bbs-pod-worker/src/quota.rs:110
-    Note over W: Teardown releases the owner's quota best-effort - a stale quota row must not fail the deprovision nostr-bbs-pod-worker/src/lib.rs:922
+    Note over W: Teardown releases the owner's quota best-effort - a stale quota row must not fail the deprovision nostr-bbs-pod-worker/src/lib.rs:971
     Note over A: Replay protection shares the auth-worker's D1 through REPLAY_DB nostr-bbs-pod-worker/wrangler.toml:25 - see NF-02.5 and NF-08.4
 ```
+
+**Invariant:** a resource whose stored `Content-Type` is an active document type (HTML, XHTML, SVG or any `+xml` type, compared case-insensitively and without parameters) is served with `Content-Security-Policy: default-src 'none'; sandbox`, so stored markup cannot run script on the pod origin (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs:207`, `../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs:220`); the earlier rule matched `text/html` only.
+
+A NIP-98 token that fails verification is still treated as anonymous, but the 401 body now carries a `reason` naming the failure class (for example URL mismatch or payload hash mismatch) with token and URLs stripped (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs:144`, `../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs:370`, `../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs:1029`).
 
 ## NF-04.3 The sidecar escalation guard — ADR-2009
 
@@ -211,7 +215,7 @@ classDiagram
 
     note for Contexts "JSON-LD contexts are compiled INTO the worker<br/>with include_str! rather than fetched - a Worker<br/>cannot depend on an outbound context fetch at<br/>request time contexts.rs:15"
     note for Quota "Two quota backends coexist - the D1 path is<br/>authoritative and atomic quota.rs:110 while a<br/>legacy KV path survives quota.rs:216, the same<br/>R2-authoritative / KV-legacy shape as the ACL resolver"
-    note for Patch "apply_patches is the PATCH verb's whole<br/>surface patch.rs:15, reached from lib.rs:1422"
+    note for Patch "apply_patches is the PATCH verb's whole<br/>surface patch.rs:15, reached from lib.rs:1510"
 ```
 
 ## NF-04.8 Discovery, identity and the git boundary
@@ -227,7 +231,7 @@ flowchart LR
 
     N1["INVARIANT: .git paths are FORBIDDEN, not merely unimplemented - the two outcomes are distinct<br/>responses nostr-bbs-pod-worker/src/git.rs:58 versus nostr-bbs-pod-worker/src/git.rs:76. The CF-Workers<br/>tier is non-git BY DESIGN; the git-capable pod is the agentbox native tier."]
     N2["EXTERNAL: the forum client's git control panel talks to the NATIVE server's /_git/* REST API, never<br/>to this worker - see NF-05.10 and the solid-pod-rs area (SP-*)"]
-    N3["This worker serves a pod-resident /.well-known/nostr.json nostr-bbs-pod-worker/src/lib.rs:506, while<br/>the AUTH worker owns the central NIP-05 registry - see NF-02.2"]
+    N3["This worker serves a pod-resident /.well-known/nostr.json nostr-bbs-pod-worker/src/lib.rs:547, while<br/>the AUTH worker owns the central NIP-05 registry - see NF-02.2"]
 ```
 
 ## NF-04.9 HTTP 402 payments
@@ -243,7 +247,7 @@ sequenceDiagram
 
     W->>W: PAY_ENABLED and PAY_COST_SATS from env nostr-bbs-pod-worker/wrangler.toml:31 wrangler.toml:32
     C->>W: request a paid resource
-    W->>PAY: /pay/ route dispatch nostr-bbs-pod-worker/src/lib.rs:689
+    W->>PAY: /pay/ route dispatch nostr-bbs-pod-worker/src/lib.rs:730
     PAY->>D1: ensure_payment_schema over pay_ledger SCHEMA payments.rs:45 pay_ledger.rs:130
     PAY->>CH: deposit credits a TXO only via qualifying_output - it must pay the pod's<br/>deposit address, keyed with its chain pay_ledger.rs:564 pay_ledger.rs:618
     PAY->>PAY: .address derives the frozen deposit address deposit_address.rs:120 pay_ledger.rs:802
@@ -264,7 +268,7 @@ flowchart TB
     F2["solid-pod-rs/nip05-endpoint nostr-bbs-pod-worker/Cargo.toml:24"]
     F3["solid-pod-rs/export-jsonld nostr-bbs-pod-worker/Cargo.toml:25"]
     EXPORT["export.rs is a bare re-export of solid_pod_rs::export<br/>nostr-bbs-pod-worker/src/export.rs:19"]
-    STATE["Off by default: the workspace dep enables only the core feature<br/>nostr-rust-forum/Cargo.toml:181, pulled bare by the worker nostr-bbs-pod-worker/Cargo.toml:56<br/>the trio is opt-in only nostr-bbs-pod-worker/Cargo.toml:22"]
+    STATE["Off by default: the workspace dep enables only the core feature<br/>nostr-rust-forum/Cargo.toml:185, pulled bare by the worker nostr-bbs-pod-worker/Cargo.toml:56<br/>the trio is opt-in only nostr-bbs-pod-worker/Cargo.toml:22"]
 
     FEAT --> F1 & F2 & F3
     FEAT -.-> EXPORT
@@ -275,6 +279,8 @@ flowchart TB
     N3["The kit groups the three upstream features under ONE forum-facing alias so an operator flips a single<br/>switch rather than three docs/consumer-surface-map.md:52"]
     N4["Property tests cover the WAC document handling this whole topic rests on<br/>nostr-bbs-pod-worker/tests/wac_proptests.rs:1"]
 ```
+
+**Tension (ADR-2012 vs Cargo.toml):** ADR-2012 decision 4 speaks of "the exact pin at `Cargo.toml:155`" bumped in lockstep with the host, while the workspace dependency is now a caret range, `0.5.0-alpha.14`, recorded as an owner decision to stop an exact pin forcing a core republish on every solid-pod-rs release (`../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md:76-80`, `../nostr-rust-forum/Cargo.toml:181-185`). The pod-worker now also enables the `did` feature on `nostr-bbs-core` (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml:29`).
 
 ## NF-04.11 The journalled D1 ledger today, and the chain view ADR-2012 is moving to
 

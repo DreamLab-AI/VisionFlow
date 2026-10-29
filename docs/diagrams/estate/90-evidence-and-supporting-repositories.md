@@ -5,7 +5,7 @@ area: estate
 governing:
   - docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md
   - docs/architecture/repository-map.md
-adrs: [visionflow:ADR-2004, visionflow:ADR-2006, visionflow:ADR-2007, dream-machine:ADR-0003, dream-machine:ADR-0005, dream-machine:ADR-0006, dream-machine:ADR-0007, WasmVOWL:ADR-001]
+adrs: [visionflow:ADR-2020, visionflow:ADR-2004, visionflow:ADR-2006, visionflow:ADR-2007, dream-machine:ADR-0003, dream-machine:ADR-0005, dream-machine:ADR-0006, dream-machine:ADR-0007, WasmVOWL:ADR-001]
 sources:
   - scripts/estate-health/roster.json
   - scripts/estate-doc-audit.py
@@ -17,22 +17,24 @@ sources:
   - ../dream-machine/dream.config.json
   - ../project/agentbox/services/dream-engine/src/engine.rs
   - ../dream-engine/crates/dream-core/src/readiness.rs
+  - ../dream-engine/Cargo.toml
+  - ../project/agentbox/services/dream-engine/Cargo.toml
   - ../WasmVOWL/modern/src/hooks/useWasmSimulation.ts
   - ../WasmVOWL/modern/package-lock.json
   - docs/estate-review/evidence/execution-2026-09-07/wasmvowl-schema-probe.log
   - ../prose-sanitiser/Cargo.toml
   - ../diagram-ir/Cargo.toml
   - ../loom/Cargo.toml
-  - ../RuView/rust-port/wifi-densepose-rs/crates/wifi-densepose-sensing-server/src/main.rs
+  - ../RuView/v2/crates/wifi-densepose-sensing-server/src/main.rs
   - docs/estate-review/2026-09-07-estate-audit.md
-verified_commit: {visionflow: da57b49a28974dd9bff5b5358369eef94a439273, agentbox: 8b8497bc295a46ff58fac0dbc4eed5c5b8bdb1d6, dream-engine: 5578a24146080703acf7696f72005f71d83c6171, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, RuView: b48ab7dada5002414ec18d36a5d652e0f1bd4a67, loom: d01dffcdda572216a480353870be350c795d2825, dream-machine: 6426583e72b10b731ac0a1630f62fbeb2ae0f5b5, prose-sanitiser: 5548922aaf499d37f0d0440db0735992ce07f003, diagram-ir: eed5ebde490830fc143a744e299c2ec0ed8b0028}
+verified_commit: {visionflow: 1d7183a73c1eae4996a7006067d5047308fab7a5, agentbox: 1da8d21719a27394f190866223b88533b52d87f9, dream-engine: 61581d36efdd374416ae2f664c0f1a7b23c9c843, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, RuView: 3686bc770f77eb6161d5379861dcd09d7d9a1e4b, loom: 2fad3e085c3807a1effbf724d4f31fc6ea05a0f9, dream-machine: b77093e564ef689923fb523b0e0b18d2bb4a21a4, prose-sanitiser: 94a49aae5865c1755359a6a7fec68d46f9156559, diagram-ir: 15cba163da7086a3ebbb5a059c8a8d0ab4ba9706}
 ---
 
 ## ES-90.1 Three scopes — health roster, source review and workspace neighbours
 ```mermaid
 flowchart TB
-    R["Declared health roster: 15 repositories<br/>scripts/estate-health/roster.json:5-19"] --> P["Ten primary diagram directories:<br/>VisionFlow, VisionClaw, Agentbox, pod, forum,<br/>website, knowledgeGraph, visionGraph, vowl-wasm,<br/>sidestr-rs, rostered at roster.json:13"]
-    R --> S["Also on roster: Loom, Dream Engine (the row still names the<br/>archived TypeScript fork, see DE-01), WasmVOWL,<br/>prose-sanitiser, diagram-ir"]
+    R["Declared health roster: 18 repositories<br/>scripts/estate-health/roster.json:5-22"] --> P["Primary diagram directories include:<br/>VisionFlow, VisionClaw, Agentbox, pod, forum,<br/>website, knowledgeGraph, visionGraph, vowl-wasm,<br/>sidestr-rs (roster.json:13), ontomark (roster.json:14),<br/>visiontouch-rs (roster.json:22), Dream Engine (roster.json:21)"]
+    R --> S["Also on roster: Loom, ontomark-obsidian, WasmVOWL,<br/>prose-sanitiser, diagram-ir. The Dream Engine row still<br/>describes a fork of ruvnet/dream-machine, roster.json:21<br/>(see DE-01)"]
     C["Git census and ADR candidate discovery<br/>scripts/estate-doc-audit.py"] --> R
     C --> D["Consumed or historical extension:<br/>RuVector, RuView, archived Logseq"]
     C --> N["Other checkouts: inventory only,<br/>no estate adoption from directory proximity"]
@@ -47,29 +49,30 @@ sequenceDiagram
     participant C as compile prompt<br/>compile/src/index.ts:268-270
     participant A as agent session
     participant D as verify-entrypoint<br/>cli/src/index.ts:323
-    participant E as darwin evaluator<br/>scripts/darwin-entrypoint.sh:155
+    participant E as darwin evaluator<br/>scripts/darwin-entrypoint.sh:197
     participant B as checkDarwinBounds<br/>darwinBounds.ts:104
     participant R as Agentbox Rust service<br/>services/dream-engine/src/engine.rs
     C-->>A: parent-then-candidate evaluation rule and the<br/>promotion gate, compile/src/index.ts:248-249
     A->>E: the configured darwin evaluator, dream.config.json:55
-    E->>E: refuse exit 64 unless darwin is exact-pinned, sandboxed<br/>mock or agent, and the ruvllm mutator names its Loom door,<br/>scripts/darwin-entrypoint.sh:46-93
-    E->>D: verify-entrypoint darwin --passthrough, scripts/darwin-entrypoint.sh:155
+    E->>E: refuse exit 64 unless the head is exactly npx plus one exact pin, no<br/>dash argument precedes it and no tracked flag repeats, the sandbox is mock<br/>or agent, and the ruvllm mutator names its Loom door,<br/>scripts/darwin-entrypoint.sh:57-135
+    E->>D: verify-entrypoint darwin --passthrough, scripts/darwin-entrypoint.sh:197
     D->>D: run darwin, echo its output under --passthrough, classify liveness,<br/>cli/src/index.ts:347-355
     opt live Darwin output
         D->>B: parse rows, pass promotedLineages zero,<br/>cli/src/index.ts:369-383
         B-->>D: violations against 3 generations, 5 candidates,<br/>1 lineage, darwinBounds.ts:61-66, and score uniformity<br/>with realMutation count, darwinBounds.ts:190-197
         D-->>E: exit 3 on a bound breach, an unparsable leaderboard,<br/>or uniform scores with zero real shim edits, cli/src/index.ts:405-412
     end
-    E-->>A: exit status IS the evaluator outcome, so a breach is a<br/>FAILED required evaluator, scripts/darwin-entrypoint.sh:26-36,157
-    Note over E,R: CHANGED 2026-10-06 (ADR-0006, ADR-0007) — with --mutator ruvllm the<br/>mutator is routed through a loopback Loom shim that outlasts darwin's<br/>30 s fetch abort, scripts/darwin-entrypoint.sh:115-142, and a uniform<br/>leaderboard then fails only when the shim counted zero real model edits
+    E-->>A: exit status IS the evaluator outcome, so a breach is a<br/>FAILED required evaluator, scripts/darwin-entrypoint.sh:26-37,199
+    Note over E,R: CHANGED 2026-10-06 (ADR-0006, ADR-0007) — with --mutator ruvllm the<br/>mutator is routed through a loopback Loom shim that outlasts darwin's<br/>30 s fetch abort, scripts/darwin-entrypoint.sh:157-184, and a uniform<br/>leaderboard then fails only when the shim counted zero real model edits
+    Note over E: CHANGED 2026-10-08 (ADR-0008, named in the script only) — the command head<br/>must be exactly npx plus the pin, every dash argument before the pin is refused<br/>and a repeated sandbox, mutator or URL flag is refused,<br/>scripts/darwin-entrypoint.sh:56-100,113-122
     Note over D,B: CHANGED 2026-10-02 (ADR-0005) — the check was a hand-run diagnostic<br/>and is now the darwin evaluator itself, and the bound rose from four<br/>candidates per generation to five to match darwin 0.10.2's five-surface<br/>map, darwinBounds.ts:63-64. Promotion count is still unobserved: the leaderboard<br/>has no promotion line, so zero is passed explicitly, cli/src/index.ts:369-374
     Note over E,R: EXTERNAL: enforcement still depends on the annexe runner honouring a<br/>failed required evaluator. This repo makes the failure, it does not veto the night
     Note over A,R: EXTERNAL: the Rust judgement and loop moved to DreamLab-AI/dream-engine<br/>(DE-01, public with five crates at 0.1.0) and the estate adapter is AB-23.<br/>Toolkit tests do not identify the loaded Nix binary or prove a nightly run
 ```
 
-**Drift:** the toolkit this diagram traces is no longer the estate's dream engine. The previous TypeScript fork is renamed DreamLab-AI/dream-machine and archived, and the slug DreamLab-AI/dream-engine now belongs to the Rust repository that holds the extracted judgement and loop crates (mapped in DE-01, public at 5578a24 with five crates at 0.1.0 on crates.io; the adapter side is agentbox PR 28, merged as aa9b094c3, with the image rebuild pending). The Darwin path drawn above is not carried into it: the Rust core keeps only a readiness refusal for a darwin entrypoint run without a sandbox flag, a safety check that appends a problem to the admission report and mutates nothing (`../dream-engine/crates/dream-core/src/readiness.rs:228-232`). The estate adapter is AB-23.
+**Drift:** the toolkit this diagram traces is no longer the estate's dream engine. The previous TypeScript fork is renamed DreamLab-AI/dream-machine and archived, and the slug DreamLab-AI/dream-engine now belongs to the Rust repository that holds the extracted judgement and loop crates (mapped in DE-01; its workspace declares dream-core and dream-cli at 0.4.0, `../dream-engine/Cargo.toml:11`, with dream-gate at 0.3.0, `../dream-engine/crates/dream-gate/Cargo.toml:3`; the agentbox adapter pins `dream-core =0.4.0` and `dream-gate =0.3.0`, `../project/agentbox/services/dream-engine/Cargo.toml:26-27`). The Darwin path drawn above is not carried into it: the Rust core keeps only a readiness refusal for a darwin entrypoint run without a sandbox flag, a safety check that appends a problem to the admission report and mutates nothing (`../dream-engine/crates/dream-core/src/readiness.rs:228-232`). The estate adapter is AB-23.
 
-**Open:** the dream-machine stamp above (`6426583`) is the last revision the toolkit paths were read at, and nothing in this topic re-verifies them after the archive.
+**Drift:** `darwin-entrypoint.sh` cites ADR-0008 for the exact `npx <pin>` head rule (`../dream-machine/scripts/darwin-entrypoint.sh:36,113`) while the archived repository's decision records stop at ADR-0007 (`../dream-machine/docs/adrs/ADR-0007-darwin-mutator-loom-shim.md:1`); the toolkit paths above were re-read at `b77093e`, where only the entrypoint script among them had changed since `6426583`.
 
 ## ES-90.3 WasmVOWL demo is a separate consumer from the published engine
 ```mermaid
@@ -93,7 +96,7 @@ flowchart TB
     PS["prose-sanitiser workspace<br/>prose-sanitiser/Cargo.toml:18 members<br/>core, unicode, UK, slop, media, CLI, server"] --> PT["Tool capability, not proof every publisher invokes it"]
     DI["diagram-ir Cargo.toml<br/>diagram extraction and self-check binaries"] --> PT
     L["Loom Cargo.toml<br/>sibling RuVector core path dependency"] --> INPUT["Declared dependency input must match<br/>the reproducible build and served generation"]
-    RV["RuView sensing server<br/>main.rs:2675"] --> SIM["No hardware detected can select simulation"]
+    RV["RuView sensing server, now under v2/crates<br/>plan_source main.rs:5415"] --> SIM["auto with no real source serves simulated data and keeps the<br/>UDP receiver bound until the first real frame, main.rs:5441-5450;<br/>explicit simulated binds no UDP, main.rs:5454-5459"]
     SIM --> BOUND["INVARIANT: simulation output is not hardware sensing evidence"]
     PT --> BOUND
     INPUT --> BOUND
@@ -102,21 +105,23 @@ flowchart TB
 ## ES-90.5 Evidence types do not imply one another
 ```mermaid
 flowchart TB
-    F["Source paths and ADR metadata"] --> G["Structural/index gate: writeIndexes<br/>diagram-index-gen.cjs:717"]
-    F --> C["Citation diagnostics; strict mode refuses warnings<br/>citeCheck, diagram-index-gen.cjs:490"]
-    F --> SYM["Symbol-anchor check: warns when a cited line<br/>falls outside the labelled function's body<br/>symbolCheck, diagram-index-gen.cjs:618"]
-    F --> R["Optional Mermaid rendering: renderAll<br/>diagram-index-gen.cjs:689"]
+    F["Source paths and ADR metadata"] --> G["Structural/index gate: writeIndexes<br/>diagram-index-gen.cjs:712"]
+    F --> C["Citation diagnostics; strict mode refuses warnings<br/>citeCheck, diagram-index-gen.cjs:496"]
+    F --> SYM["Symbol-anchor check: warns when a cited line<br/>falls outside the labelled function's body<br/>symbolCheck, diagram-index-gen.cjs:624"]
+    F --> JEV["Opt-in advisory semantic review (--jev), off by default,<br/>stderr only, never changes an exit code or an index<br/>jevDiagramReview, diagram-index-gen.cjs:810"]
+    F --> R["Optional Mermaid rendering with pinned Pele, no browser: renderAll<br/>diagram-index-gen.cjs:688"]
     F --> S["Semantic source review with file hashes<br/>scripts/estate-doc-audit.py"]
     G --> DOC["Documentation evidence"]
     C --> DOC
     SYM --> DOC
     R --> DOC
+    JEV -.->|"a pointer for a human reviewer, not evidence"| DOC
     S --> DOC
-    ALLOW["citation-allowlist.json waives a citation<br/>that exists in no commit, with a reason;<br/>a stale entry fails the run<br/>loadAllowlist, diagram-index-gen.cjs:381"] --> DOC
-    VER["VERIFICATION.md: declared-revisions anchor,<br/>records what actually resolved at HEAD<br/>writeVerificationReport, diagram-index-gen.cjs:442"] --> DOC
+    ALLOW["citation-allowlist.json waives a citation<br/>that exists in no commit, with a reason;<br/>a stale entry fails the run<br/>loadAllowlist, diagram-index-gen.cjs:387"] --> DOC
+    VER["VERIFICATION.md: declared-revisions anchor,<br/>records what actually resolved at HEAD<br/>writeVerificationReport, diagram-index-gen.cjs:448"] --> DOC
     TEST["Named local test and raw result"] --> LOCAL["Only the exercised contract"]
     RUN["Loaded binary, effective config,<br/>identity and cross-service receipt"] --> ACCEPT["Only the observed system journey"]
     DOC -.->|"does not establish"| ACCEPT
     LOCAL -.->|"does not establish"| ACCEPT
-    NOTE["INVARIANT: default citations may read declared revisions;<br/>worktree-citations explicitly checks current source.<br/>Neither mode proves behaviour or deployment.<br/>revisionLines, diagram-index-gen.cjs:344,347"] --> DOC
+    NOTE["INVARIANT: default citations may read declared revisions;<br/>worktree-citations explicitly checks current source.<br/>Neither mode proves behaviour or deployment.<br/>revisionLines, diagram-index-gen.cjs:350,353"] --> DOC
 ```

@@ -14,6 +14,8 @@ sources:
   - website/static/index.html
   - website/static/js/main.js
   - website/static/js/mesh-webgl.js
+  - website/static/js/contact.js
+  - website/static/js/nostr-contact.js
   - website/static/css/styles.css
   - website/static/data/estate-health.json
   - scripts/website-assets.mjs
@@ -40,7 +42,7 @@ sources:
   - docs/adr/ADR-2003-pages-artifact-deploy.md
   - docs/architecture/compatibility-matrix.md
   - ./README.md
-verified_commit: 4159e085a73dac3e9d52fb1bc7e476350bf369c1
+verified_commit: 1d7183a73c1eae4996a7006067d5047308fab7a5
 ---
 
 ## VF-02.1 The copy-only build — every step of website/build.sh
@@ -75,10 +77,11 @@ flowchart LR
     classDef ext fill:#f6efd8,stroke:#8a7020,color:#111
 
     subgraph STATIC["website/static/ — hand-written source"]
-        IDX["index.html — one page, ~106 KB<br/>one module entry at index.html:1253<br/>one local stylesheet at index.html:28"]:::src
+        IDX["index.html — one page, ~112 KB<br/>one module entry at index.html:1300<br/>one local stylesheet at index.html:29"]:::src
         CSS["css/styles.css — the sole stylesheet"]:::src
         MAIN["js/main.js — sole ES module entrypoint<br/>DOMContentLoaded wiring at main.js:908"]:::src
         MESH["js/mesh-webgl.js — hand-written WebGL2 ES module<br/>initMesh returns null without WebGL2<br/>mesh-webgl.js:15"]:::src
+        CONTACTF["js/contact.js — contact form mounted by index.html, js/nostr-contact.js — a 57 KB vendored minified transport,<br/>rebuilt in dreamlab-ai-website and committed here, not compiled here<br/>nostr-contact.js:1-2"]:::src
         DATA["data/estate-health.json — committed nightly snapshot<br/>estate-health.json:2 schema visionflow.estate-health/1<br/>see VF-03"]:::src
         MEDIA["img/showcase/*.webp and video/*.mp4"]:::src
     end
@@ -92,7 +95,7 @@ flowchart LR
     ASSETS["repo assets/diagrams, assets/generated,<br/>assets/heroes, assets/screenshots<br/>staged by the manifest, not by static/*"]:::src
     ASSETS ==>|"website-assets.mjs stage"| DIST
 
-    FONTS["EXTERNAL fetch: Google Fonts only<br/>Inter and JetBrains Mono, index.html:27<br/>preconnect at index.html:25"]:::ext
+    FONTS["EXTERNAL fetch: Google Fonts only<br/>Inter and JetBrains Mono, index.html:28<br/>preconnect at index.html:26"]:::ext
     IDX -.-> FONTS
 
     NEG["ABSENT BY DECISION: no Cargo.toml, no rs, no wasm,<br/>no bundler, no framework, no CDN CSS<br/>ADR-2002-static-copy-only-website.md:53"]
@@ -108,9 +111,9 @@ flowchart TB
 
     M["website/assets.manifest.json<br/>manifest_version 1, site_root static, output dist<br/>assets.manifest.json:4"]
 
-    M --> REQ["required — 15 entries<br/>assets.manifest.json:6<br/>index.html, CNAME, robots.txt, css/styles.css, js/main.js,<br/>js/mesh-webgl.js, data/estate-health.json,<br/>img/og-card.png, five showcase webp, two mp4"]:::req
-    M --> DER["derived — required destinations sourced from OUTSIDE static/<br/>assets.manifest.json:59 img/og-card.png<br/>from ../assets/screenshots/visionflow-final.png"]:::der
-    M --> OPT["optional — four directory groups<br/>repo-diagrams, repo-generated, repo-heroes, repo-screenshots<br/>assets.manifest.json:23"]:::opt
+    M --> REQ["required — 17 entries<br/>assets.manifest.json:6<br/>index.html, CNAME, robots.txt, css/styles.css, js/main.js,<br/>js/mesh-webgl.js, js/contact.js, js/nostr-contact.js, data/estate-health.json,<br/>img/og-card.png, five showcase webp, two mp4"]:::req
+    M --> DER["derived — required destinations sourced from OUTSIDE static/<br/>assets.manifest.json:61 img/og-card.png<br/>from ../assets/screenshots/visionflow-final.png"]:::der
+    M --> OPT["optional — four directory groups<br/>repo-diagrams, repo-generated, repo-heroes, repo-screenshots<br/>assets.manifest.json:25"]:::opt
 
     REQ -->|"absent or zero bytes in dist/"| F1["verify exits 1, naming the file and its 'why'<br/>website-assets.mjs:250"]:::req
     DER -->|"source file missing"| F2["stage exits 1 — a derived entry backs a REQUIRED dest<br/>website-assets.mjs:129"]:::der
@@ -119,10 +122,12 @@ flowchart TB
     HIST["The defect this closes: build.sh staged repo images with<br/>cp -r ... 2 dev null or true, so every optional copy could<br/>fail while the build still printed BUILD-COMPLETE<br/>website-assets.mjs:9"]
     M -.-> HIST
 
-    LINK["data/estate-health.json is REQUIRED specifically because<br/>the estate section links it by href, so the link-integrity<br/>gate must resolve it in dist/ — assets.manifest.json:13"]:::req
+    LINK["data/estate-health.json is REQUIRED specifically because<br/>the estate section links it by href, so the link-integrity<br/>gate must resolve it in dist/ — assets.manifest.json:15"]:::req
     REQ -.-> LINK
     ROBOTS["robots.txt is REQUIRED since dream PR 11 (2026-10-01 night):<br/>it reaches dist/ only through the wholesale static/* copy,<br/>so without the entry a copy regression would publish<br/>the site with no crawler policy — assets.manifest.json:9"]:::req
     REQ -.-> ROBOTS
+    CONTACT["js/contact.js and js/nostr-contact.js are REQUIRED since the contact form landed: the form gift-wraps the message (NIP-17)<br/>in the browser and publishes it to the DreamLab relay, nothing is stored by this site, and the vendored transport<br/>loads only on first submit — assets.manifest.json:13-14, contact.js:5-6, contact.js:112"]:::req
+    REQ -.-> CONTACT
 ```
 
 ## VF-02.4 website-assets.mjs — stage, verify, and the receipt handoff
@@ -210,7 +215,7 @@ flowchart TB
     G5 --> G6["BLOCKING 6 committed diagram baseline text visibility<br/>node scripts/check-diagram-text.js — deploy.yml:129"]:::block
     G6 --> G7["REPORTED 7 self-description drift counter<br/>blocks only when the agentbox checkout landed<br/>deploy.yml:138"]:::report
 
-    HEAD["what gates 4 and 5 now see in the head — dream PRs 12 to 16:<br/>a robots meta, index.html:9 (PR 16), og:site_name, index.html:11,<br/>og:image width and height 1280 x 720, index.html:16-17, an<br/>Organization block that carries legalName DreamLab AI Consulting<br/>Ltd, index.html:34, and a second JSON-LD block typed WebSite,<br/>index.html:40-46, which now links the Organization by @id (index.html:32, :43),<br/>plus og:locale en_GB, index.html:19"]
+    HEAD["what gates 4 and 5 now see in the head — dream PRs 12 to 16:<br/>a robots meta, index.html:9 (PR 16), og:site_name, index.html:11,<br/>og:image width and height 1280 x 720, index.html:16-17, an<br/>Organization block that carries legalName DreamLab AI Consulting<br/>Ltd, index.html:35, and a second JSON-LD block typed WebSite,<br/>index.html:41-47, which now links the Organization by @id (index.html:33, :43),<br/>plus og:locale en_GB, index.html:19"]
     G5 -.-> HEAD
     G7 --> REC["write gate verdicts and the published block into the receipt<br/>deploy.yml:151"]:::ok
     REC --> UPR["upload-artifact website-build-receipt — deploy.yml:176"]:::ok
@@ -230,9 +235,9 @@ sequenceDiagram
     participant SH as "bash"
 
     W->>S: "capture stdout of bash scripts/dream-link-check.sh, an or-true keeps set -e from aborting before the echo<br/>deploy.yml:102"
-    S->>SH: "cd website/dist, or echo NO-DIST and exit 0<br/>dream-link-check.sh:36"
-    Note over S: "RESOLVED 2026-10-12 (4159e08): the evaluators used to exit 0 even on failure.<br/>Both now print the marker AND exit 1 on failure, so the verdict holds when the<br/>script runs on its own - dream-link-check.sh:104-105, dream-build-check.sh:12-13"
-    S-->>W: "stdout ends LINK-INTEGRITY-OK or LINK-INTEGRITY-FAIL<br/>since the 10-05 ACCEPT the gate also reports anchors-checked<br/>and dangling, and a dangling anchor fails it - dream-link-check.sh:99-100"
+    S->>SH: "cd website/dist, or echo NO-DIST and exit 0<br/>dream-link-check.sh:43"
+    Note over S: "RESOLVED 2026-10-12 (4159e08): the evaluators used to exit 0 even on failure.<br/>Both now print the marker AND exit 1 on failure, so the verdict holds when the<br/>script runs on its own - dream-link-check.sh:155-156, dream-build-check.sh:12-13"
+    S-->>W: "stdout ends LINK-INTEGRITY-OK or LINK-INTEGRITY-FAIL<br/>since the 10-05 ACCEPT the gate also reports anchors-checked<br/>and dangling, and a dangling anchor fails it - dream-link-check.sh:149-150"
     W->>W: "grep -q for the OK sentinel, else exit 1"
     Note over W: deploy.yml:104
     alt sentinel absent
@@ -243,9 +248,9 @@ sequenceDiagram
     Note over W,S: "INVARIANT: the marker, not the exit code, is what the workflow reads - the or-true<br/>discards the code and the grep decides. Without the grep the first five gates<br/>would be decorative - ADR-2003-pages-artifact-deploy.md:85"
 ```
 
-**Drift (resolved 2026-10-12, `4159e08`):** this topic recorded that the dream evaluators exit 0 on failure, so that the annexe would read a failure as a finding rather than an infrastructure fault; `scripts/dream-build-check.sh:12-13` now prints `BUILD-FAIL` and exits 1, and `scripts/dream-link-check.sh:104-105` prints `LINK-INTEGRITY-FAIL` and exits 1, while the header comment (`scripts/dream-build-check.sh:5-6`) states that the printed marker stays the verdict the deploy gate and the dream engine read (the engine side is catalogued in AB-23). `tests/gates/dream-evaluator-exit.test.sh:36-65` drives both scripts through a scratch tree and asserts marker and exit code together, and `.github/workflows/harness-fitness-gates.yml:170-171` runs it (see VF-05.7).
+**Drift (resolved 2026-10-12, `4159e08`):** this topic recorded that the dream evaluators exit 0 on failure, so that the annexe would read a failure as a finding rather than an infrastructure fault; `scripts/dream-build-check.sh:12-13` now prints `BUILD-FAIL` and exits 1, and `scripts/dream-link-check.sh:155-156` prints `LINK-INTEGRITY-FAIL` and exits 1, while the header comment (`scripts/dream-build-check.sh:5-6`) states that the printed marker stays the verdict the deploy gate and the dream engine read (the engine side is catalogued in AB-23). `tests/gates/dream-evaluator-exit.test.sh:36-65` drives both scripts through a scratch tree and asserts marker and exit code together, and `.github/workflows/harness-fitness-gates.yml:170-171` runs it (see VF-05.7).
 
-**Debt:** the no-`dist/` path still prints `NO-DIST` and exits 0 with no marker (`scripts/dream-link-check.sh:36`), and the exit-code test exercises only the marker paths (`tests/gates/dream-evaluator-exit.test.sh:48-65`).
+**Debt:** the no-`dist/` path still prints `NO-DIST` and exits 0 with no marker (`scripts/dream-link-check.sh:43`), and the exit-code test exercises only the marker paths (`tests/gates/dream-evaluator-exit.test.sh:48-65`).
 
 ## VF-02.8 The drift counter's two modes — reported vs enforced
 ```mermaid
@@ -288,7 +293,7 @@ flowchart LR
     S3 --> S4["npm run check:sidecar<br/>node scripts/check-cdp-sidecar.mjs — package.json:8"]:::needs
     S4 --> S5["npm run test:site<br/>playwright test — package.json:14"]:::needs
 
-    S3 --> SUITES["seven suites, each driving a deliberate defect through its<br/>gate and asserting the gate goes red — harness-audit,<br/>drift-counter, release-manifest, website-assets, since<br/>2026-09-14 diagram-index and augmentation-citations, and since<br/>2026-09-23 estate-health-ci, which drives the collector's<br/>CI-state-at-HEAD rule (see VF-03.4) — run-all.sh:18, run-all.sh:25<br/>.cjs and .mjs suites run under node — run-all.sh:32<br/>sentinel GATE-TESTS-OK at run-all.sh:39"]:::step
+    S3 --> SUITES["seven suites, each driving a deliberate defect through its<br/>gate and asserting the gate goes red — harness-audit,<br/>drift-counter, release-manifest, website-assets, since<br/>2026-09-14 diagram-index and augmentation-citations, and since<br/>2026-09-23 estate-health-ci, which drives the collector's<br/>CI-state-at-HEAD rule (see VF-03.4) — run-all.sh:18, run-all.sh:25<br/>.cjs and .mjs suites run under node — run-all.sh:34<br/>sentinel GATE-TESTS-OK at run-all.sh:41"]:::step
 
     SIDE["EXTERNAL, not in this repo: the browsercontainer Chrome sidecar<br/>in-network port 9223, from the host port 9222<br/>check-cdp-sidecar.mjs:15, probes /json/version at :31<br/>see ES-01 for the sidecar's place in the estate"]:::needs
     S4 --- SIDE
@@ -385,10 +390,10 @@ stateDiagram-v2
 
 **Invariant (supply chain):** every third-party action in the publication workflow is pinned to a commit sha rather than a moving tag, so a compromised `@v4` cannot enter the artefact (`.github/workflows/deploy.yml:52`, `.github/workflows/deploy.yml:55`).
 
-**Drift (page copy vs the graded table):** the deployed page dates the augmentation grade to 14 September 2026 and links that anchor (`website/static/index.html:561`), while the section it links is now headed *graded 2026-09-15* (`docs/architecture/compatibility-matrix.md:23`).
+**Drift (page copy vs the graded table):** the deployed page dates the augmentation grade to 14 September 2026 and links that anchor (`website/static/index.html:580`), while the section it links is now headed *graded 2026-09-15* (`docs/architecture/compatibility-matrix.md:24`).
 
 **Debt (reveal threshold):** `initScrollReveal` was moved from a 10 percent intersection threshold to zero because a tall section may never occupy a tenth of its own area in the viewport (`website/static/js/main.js:41`); nothing in the site tests asserts that a long section still reveals.
 
 **Debt (unverifiable citation):** `website/build-receipt.json` is gitignored at `website/.gitignore:8`, so it exists in no commit and the four citations into it are read from the working tree whatever revision this topic declares; the numbers they carry are true of one local build, not of a revision.
 
-**Invariant (site and README agree on CUDA counts; Drift resolved at VisionFlow 54e1d02):** the page states 83 CUDA kernels in 10 `.cu` files and 6,302 lines (`website/static/index.html:282`, `website/static/index.html:1070`), which matches VisionClaw at `7d3ea2edb` (10 tracked `.cu` files, 6,302 lines, 83 `__global__` definitions); since 54e1d02 the repository README states the same figures (`./README.md:51`, `./README.md:254`). The drift counter still carries no CUDA axis, so the agreement holds by review, not by a gate.
+**Invariant (site states CUDA counts, README no longer does):** the page states 83 CUDA kernels in 10 `.cu` files and 6,302 lines (`website/static/index.html:296`, `website/static/index.html:1089`), which matches VisionClaw at `7d3ea2edb` (10 tracked `.cu` files, 6,302 lines, 83 `__global__` definitions); the repository README, which stated the same figures between 54e1d02 and the rewrite that cut it to 164 lines, no longer carries any CUDA count: its GPU, XR and haptics row says only that product-specific source and evidence links exist (`./README.md:130`). The drift counter still carries no CUDA axis, so the page's figures rest on review, not on a gate.

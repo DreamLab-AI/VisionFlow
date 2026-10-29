@@ -5,7 +5,7 @@ area: dreamlab-ai-website
 governing:
   - ../dreamlab-ai-website/docs/BASELINE-architecture.md
   - ../dreamlab-ai-website/docs/IDENTITY-zones.md
-adrs: [ADR-2001, ADR-2002, ADR-2003, ADR-2004, ADR-2005, ADR-2006, ADR-2007, ADR-2008]
+adrs: [ADR-2001, ADR-2002, ADR-2003, ADR-2004, ADR-2005, ADR-2006, ADR-2007, ADR-2008, ADR-2011]
 sources:
   - ../dreamlab-ai-website/CLAUDE.md
   - ../dreamlab-ai-website/README.md
@@ -13,6 +13,10 @@ sources:
   - ../dreamlab-ai-website/docs/IDENTITY-zones.md
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
   - ../dreamlab-ai-website/.github/workflows/rust-ci.yml
+  - ../dreamlab-ai-website/package.json
+  - ../dreamlab-ai-website/scripts/check-claims.mjs
+  - ../dreamlab-ai-website/scripts/lib/claims.mjs
+  - ../dreamlab-ai-website/docs/claims-register.json
   - ../dreamlab-ai-website/.github/workflows/workers-deploy.yml
   - ../dreamlab-ai-website/scripts/generate-workshop-list.mjs
   - ../dreamlab-ai-website/scripts/generate-testimonials.mjs
@@ -23,7 +27,7 @@ sources:
   - ../dreamlab-ai-website/docs/api/NOSTR_RELAY.md
   - ../dreamlab-ai-website/docs/api/SEARCH_API.md
   - ../dreamlab-ai-website/docs/api/MODERATION_API.md
-verified_commit: 2e358bb6c47dad3130bbfea8a73278cfbea1157c
+verified_commit: 3afa374f5957027213471f2429c7ba26996b0744
 ---
 
 ## DW-06.1 Pre-build content pipeline — two generators, run before every dev/build
@@ -63,7 +67,7 @@ flowchart TB
     ALPHA --> MANIFEST
 ```
 - The workshop id itself is reformatted for display: `workshop-01-foo` becomes `01 - Foo` via a regex that splits the leading number from the rest and title-cases each word (`generate-workshop-list.mjs:40-46`).
-- Manifests are now written in a second pass: every workshop's manifest is queued first (`generate-workshop-list.mjs:86-90`), then lessons whose title duplicates another lesson's, or repeats their own workshop's title, gain a `pageTitle` (`generate-workshop-list.mjs:98-110`) before the write (`generate-workshop-list.mjs:112`). The ordering rules above are unchanged. Content correctness is also checked by `scripts/lib/content-generators.mjs`, which re-derives counts from the generators' inputs (`scripts/lib/content-generators.mjs:7-11`), because both JSON artefacts are committed yet rebuilt by `prebuild`.
+- Manifests are now written in a second pass: every workshop's manifest is queued first (`generate-workshop-list.mjs:86-90`), then lessons whose title duplicates another lesson's, or repeats their own workshop's title, gain a `pageTitle` (`generate-workshop-list.mjs:98-110`) before the write (`generate-workshop-list.mjs:112`). The ordering rules above are unchanged. Content correctness is also checked by `scripts/lib/content-generators.mjs`, which re-derives counts from the generators' inputs (`scripts/lib/content-generators.mjs:7-11`), because both JSON artefacts are committed yet rebuilt by `prebuild`; it also now fails when a workshop's `path` is not `/workshops/<id>` (`scripts/lib/content-generators.mjs:88-99`), since prerender and the discovery check both re-read that field.
 
 ## DW-06.5 API and security documentation inventory
 ```mermaid
@@ -88,24 +92,25 @@ flowchart TB
 ## DW-06.6 Invariants register — consolidated from both governing docs
 ```mermaid
 flowchart TB
-    I1["1. KIT_REF + Cargo pin lockstep<br/>BASELINE-architecture.md:161-164 — see DW-01.5"]
-    I2["2. Privileged deploy downloads nothing unverified<br/>BASELINE-architecture.md:165-167 — see DW-01.6"]
-    I3["3. window.__ENV__ vs Vite build vars, validate every endpoint<br/>BASELINE-architecture.md:168-170"]
-    I4["4. GitHub Pages is origin of record until DNS re-cut<br/>BASELINE-architecture.md:171-173 — see DW-01.3"]
-    I5["5. Identity stays raw 64-hex pubkey, no silent DID move<br/>IDENTITY-zones.md:161-163 — see DW-04.1"]
-    I6["6. Zone required_cohorts stays dual-accept<br/>IDENTITY-zones.md:164-165 — see DW-03.1"]
-    I7["7. BREACHED at HEAD: doc says only zone3 is encrypted<br/>IDENTITY-zones.md:166-167, but dreamlab.toml has zone2/3/4<br/>encrypted=true (dreamlab.toml:123,137,148); the toml's own<br/>[encryption] gate + zone4.agent_keys cite 'ADR-2016'<br/>(dreamlab.toml:34,149) but no ADR-2016-*.md exists in<br/>docs/adr/ at HEAD — the record was never written<br/>see DW-03.1"]
-    I8["8. Talk-to-AI reply relays subset of of agent publish fan-out<br/>IDENTITY-zones.md:168-169 — see DW-04.3"]
-    I9["9. Admin/Jarvis pubkeys + ZONE_CONFIG hand-mirrored, rotation touches every mirror<br/>IDENTITY-zones.md:170-172 — see DW-03.3/DW-03.5"]
+    I1["1. KIT_REF + Cargo pin lockstep<br/>BASELINE-architecture.md:163-166 — see DW-01.5"]
+    I2["2. Privileged deploy downloads nothing unverified<br/>BASELINE-architecture.md:167-169 — see DW-01.6"]
+    I3["3. window.__ENV__ vs Vite build vars, validate every endpoint<br/>BASELINE-architecture.md:170-172"]
+    I4["4. GitHub Pages is origin of record until DNS re-cut<br/>BASELINE-architecture.md:173-175 — see DW-01.3"]
+    I5["5. Identity stays raw 64-hex pubkey, no silent DID move<br/>IDENTITY-zones.md:175-177 — see DW-04.1"]
+    I6["6. Zone required_cohorts stays dual-accept<br/>IDENTITY-zones.md:178-179 — see DW-03.1"]
+    I7["7. BREACHED at HEAD: doc says only zone3 is encrypted<br/>IDENTITY-zones.md:180-181, but dreamlab.toml has zone2/3/4<br/>encrypted=true (dreamlab.toml:123,137,148); the toml's own<br/>[encryption] gate + zone4.agent_keys cite 'ADR-2016'<br/>(dreamlab.toml:34,149) but no ADR-2016-*.md exists in<br/>docs/adr/ at HEAD — the record was never written<br/>see DW-03.1"]
+    I8["8. Talk-to-AI reply relays subset of of agent publish fan-out<br/>IDENTITY-zones.md:182-183 — see DW-04.3"]
+    I9["9. Admin/Jarvis pubkeys + ZONE_CONFIG hand-mirrored, rotation touches every mirror<br/>IDENTITY-zones.md:184-186 — see DW-03.3/DW-03.5"]
+    I10["10. website-info holds no cohort, never agent, no admin or zone key;<br/>monitor key and [[ingress]] entries equal across mirrors<br/>IDENTITY-zones.md:187-191 — see DW-04.9"]
 ```
-- These nine invariants are the compliance surface for this area: any change touching them requires a governing-doc update plus a thin ADR under `docs/adr/`, per each doc's own Change-process section — the pack itself is a **thin ledger** amending `BASELINE-architecture.md` / `IDENTITY-zones.md` (the living docs are normative); the pre-2026-08-31 legacy corpus (numbered 013+) is frozen under `docs/archive/adr/` as evidence, not authority (`CLAUDE.md:21-23`). Its ADR-2xxx numbering overlaps VisionFlow/agentbox's own ADR-2xxx space by design — each area's ids are area-scoped, resolved by directory, not globally unique across repos.
+- These ten invariants are the compliance surface for this area: any change touching them requires a governing-doc update plus a thin ADR under `docs/adr/`, per each doc's own Change-process section — the pack itself is a **thin ledger** amending `BASELINE-architecture.md` / `IDENTITY-zones.md` (the living docs are normative); the pre-2026-08-31 legacy corpus (numbered 013+) is frozen under `docs/archive/adr/` as evidence, not authority (`CLAUDE.md:21-23`). Its ADR-2xxx numbering overlaps VisionFlow/agentbox's own ADR-2xxx space by design — each area's ids are area-scoped, resolved by directory, not globally unique across repos.
 
 ## DW-06.7 Known divergences / DOC-DRIFT register — this area's open items
 ```mermaid
 flowchart TB
-    D1["README: two SPAs vs three shipped clients<br/>see DW-01.2"]
-    D2["README: Cloudflare-edge vs GitHub Pages origin<br/>see DW-01.3"]
-    D3["forum-config/README.md pin note stale: git rev vs crates.io version<br/>BASELINE-architecture.md:148-150"]
+    D1["BASELINE divergence: README said two SPAs, now says three<br/>README.md:54, CLAUDE.md:14 still dual-SPA, see DW-01.2"]
+    D2["BASELINE divergence: Cloudflare-edge vs GitHub Pages origin<br/>README now says one GitHub Pages origin, README.md:43, see DW-01.3"]
+    D3["forum-config/README.md pin note stale: git rev vs crates.io version<br/>BASELINE-architecture.md:150-152"]
     D4["Branded worker custom domains undeployed, workers.dev is shipped reality<br/>see DW-01.3"]
     D5["dreamlab.toml README: 'Friends' zone does not exist<br/>see DW-03.1"]
     D6["DID/Multikey convergence is documentation-only<br/>see DW-04.1"]
@@ -116,28 +121,27 @@ flowchart TB
 ## DW-06.9 Known divergences / DOC-DRIFT register — continued (D9-D15)
 ```mermaid
 flowchart TB
-    D9["BASELINE-architecture.md itself cites a stale KIT_REF and crate version<br/>see DW-01.5"]
+    D9["BASELINE-architecture.md cites a stale KIT_REF (BASELINE-architecture.md:117) and a beta.9 crate version (BASELINE-architecture.md:152)<br/>see DW-01.5"]
     D10["branding.rs dead code contradicts live dreamlab.toml branding values<br/>see DW-03.8/DW-03.1"]
     D11["BASELINE-architecture.md estate-closeout note predates the 2026-09-05 gate fix<br/>see DW-05.3"]
-    D12["README.md itself cites a stale kit pin<br/>dreamlab-ai-website/README.md:263 vs rust-ci.yml:20,<br/>workers-deploy.yml:44 — see DW-06.8"]
+    D12["README.md names kit source 631c09f in prose<br/>dreamlab-ai-website/README.md:65 vs rust-ci.yml:20,<br/>workers-deploy.yml:44 — see DW-06.8"]
     D13["RESOLVED 2026-10-07: root-level seed scripts with a hardcoded key<br/>deleted by 3baf2fa4, historical — see DW-07.2"]
-    D14["README's semantic-search claim (Workers AI bge-small-en-v1.5/R2) has no<br/>in-repo build path; this repo's embeddings/ tooling targets an unrelated<br/>RuVector Postgres + all-MiniLM-L6-v2 pipeline — see DW-07.4"]
+    D14["embeddings/ tooling targets RuVector Postgres + all-MiniLM-L6-v2,<br/>unrelated to the search worker; the README claim was removed — see DW-07.4"]
     D15["IDENTITY-zones.md I7 breached: zone2/zone4 now encrypted=true too<br/>(dreamlab.toml:123,148), master gate [encryption].enabled added<br/>(dreamlab.toml:34) citing an uncommitted ADR-2016 — DW-03.1/DW-04.1<br/>still state 'only zone3 encrypted', not yet re-verified against this<br/>see DW-06.6 I7"]
 ```
-- D9 and D11 are findings from this diagram-authoring pass, not pre-existing entries in either governing doc's own Known-divergences section — both are consequences of the governing docs' `verified_commit: d852f61` being older than this repo's HEAD at this topic's stamp (`2e358bb6`) and the estate-closeout note's own explicit 2026-09-04 dating.
+- D9 and D11 are findings from this diagram-authoring pass, not pre-existing entries in either governing doc's own Known-divergences section — both are consequences of the governing docs' `verified_commit: d852f61` being older than this repo's HEAD at this topic's stamp (`3afa374f`) and the estate-closeout note's own explicit 2026-09-04 dating.
 - D12/D13/D14 are Wave 2 findings, closing the material gaps the estate audit (`reports/audit-web.md`) identified for this area; D15 is a Wave 3 finding — see DW-06.6/DW-06.6 for the full evidence.
 
-## DW-06.8 README feature claims — confirmed, kit-external, or drifted
+## DW-06.8 README feature claims — checked against a claims register, not a feature list
 ```mermaid
 flowchart TB
-    F1["Passkey-first auth, WebAuthn PRF<br/>dreamlab-ai-website/README.md:199"] -->|kit-implemented, EXTERNAL| KIT["nostr-rust-forum kit, see NF-*"]
-    F2["Four-zone access control<br/>dreamlab-ai-website/README.md:200"] -->|"CONFIRMED — this repo authors it"| DW03["dreamlab.toml [[zones]], see DW-03.1"]
-    F3["Tiered NIP-52 calendar<br/>dreamlab-ai-website/README.md:201"] -->|kit-implemented, EXTERNAL| KIT
-    F4["Display names everywhere<br/>dreamlab-ai-website/README.md:202"] -->|kit-implemented, EXTERNAL| KIT
-    F5["Semantic search, Workers AI bge-small-en-v1.5/R2<br/>dreamlab-ai-website/README.md:203"] -->|"DRIFTED — see DW-07.4"| DRIFT["feature is kit-implemented (search-worker AI binding,<br/>DW-03.10); this repo's own embeddings/ tooling is unrelated"]
-    F6["End-to-end encrypted DMs, NIP-59/NIP-44<br/>dreamlab-ai-website/README.md:204"] -->|kit-implemented, EXTERNAL| KIT
-    F7["Agent Control Surface /governance, kinds 31400-31405<br/>dreamlab-ai-website/README.md:205"] -->|"CONFIRMED — this repo authors agent_pubkeys"| DW03B["dreamlab.toml [governance], see DW-01.8"]
-    F8["Solid pods with LDP compliance<br/>dreamlab-ai-website/README.md:206"] -->|kit-implemented, EXTERNAL| KIT
-    F9["Federation-ready, WebFinger/NIP-05<br/>dreamlab-ai-website/README.md:207"] -->|"PARTIALLY CONFIRMED — federated_kinds authored,<br/>transport designed not shipped, see DW-04.5"| DW04["dreamlab.toml [mesh], see DW-03"]
+    CLI["npm run check:claims, package.json:31<br/>advisory, always exits 0, scripts/check-claims.mjs:2-3,33"] --> EXTRACT["extractClaims: list items of five or more words<br/>outside code fences, scripts/lib/claims.mjs:28-45"]
+    README["README.md list items, default input<br/>scripts/check-claims.mjs:19"] --> EXTRACT
+    EXTRACT --> CLASS["classifyDeterministic: first register match wins,<br/>else unclassified, scripts/lib/claims.mjs:48-56"]
+    REG["docs/claims-register.json<br/>3 feature notes, 2 claims, docs/claims-register.json:3-31"] --> CLASS
+    CLASS --> REPORT["formatReport lists only stale and unsupported<br/>scripts/lib/claims.mjs:135-142"]
+    CLASS -.->|"DREAMLAB_JEV=1 and feature notes present"| JEV["advisory notes, never a verdict<br/>scripts/lib/claims.mjs:89-131"]
 ```
-- Of the nine README feature bullets (`dreamlab-ai-website/README.md:199-207`), only two (four-zone access control, Agent Control Surface pubkey roster) are things THIS repo's own config directly implements and this diagram tree can verify from `forum-config/`; the rest are upstream-kit behaviour (cloned at `KIT_REF`, not vendored) that this repo cannot confirm or deny from its own source — the auditor's "unconfirmed, unflagged" characterisation is accurate for six of the nine, and one (semantic search) is actively misleading about which pipeline in THIS repo relates to it (DW-07.4).
+- The earlier nine-bullet README feature list this diagram once classified is gone with the README rewrite; the register is seeded only with README claims that cite a concrete in-repo `file:line` (web push in the operator overlay, declared recipients and an inbox-watch path), so uncited README claims report `unclassified` by design (`docs/claims-register.json:2`).
+- **Tension:** the README says there is "no register file in this commit" and that every claim reports `unclassified` until one exists (`README.md:125`), while `docs/claims-register.json` is committed with two claims and three feature notes (`docs/claims-register.json:3-31`) and `checkClaims` skips Jev only when no feature notes exist (`scripts/lib/claims.mjs:98-101`).
+- **Drift:** `README.md:65` still states the workflows pin kit source `631c09f…`, while all three pin sites carry `ebcfaa2c600f61a69ca4e84befc55a2f7518df4a` (`.github/workflows/rust-ci.yml:20`, `.github/workflows/workers-deploy.yml:44`).

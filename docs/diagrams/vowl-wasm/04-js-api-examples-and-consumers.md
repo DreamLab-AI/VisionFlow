@@ -4,14 +4,19 @@ title: JS API surface, examples and downstream consumers
 area: vowl-wasm
 governing:
   - ../vowl-wasm/README.md
-adrs: []
+  - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
+adrs: [vowl-wasm:ADR-001]
 sources:
   - ../vowl-wasm/src/bindings/mod.rs
   - ../vowl-wasm/src/bindings/explorer.rs
+  - ../vowl-wasm/src/bindings/ngg.rs
+  - ../vowl-wasm/README.md
+  - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
+  - ../vowl-wasm/tests/ngg1_wasm.test.mjs
   - ../vowl-wasm/src/interaction/mod.rs
   - ../vowl-wasm/.github/workflows/ci.yml
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts
-verified_commit: {vowl-wasm: 65e2d1e784bf5eb04b3cbc122d36d6926d889c22, visiongraph: ac6274f9f5e12375f92086ccb9adba50c965ecf9}
+verified_commit: {vowl-wasm: 89d1a0a32eec16e79a7fa507eaa6f8fcb92e4f0b, visiongraph: 59e7dcc8d05ca447d03c74c819a740b390b93074}
 ---
 
 ## VW-04.1 `WebVowl` — the frozen 0.1.0 JS surface
@@ -19,72 +24,75 @@ verified_commit: {vowl-wasm: 65e2d1e784bf5eb04b3cbc122d36d6926d889c22, visiongra
 classDiagram
     class WebVowl {
         <<wasm_bindgen>>
-        +new() src/bindings/mod.rs:46
-        +loadOntology(json) src/bindings/mod.rs:57
-        +initSimulation() src/bindings/mod.rs:161
-        +runSimulation(n) src/bindings/mod.rs:176
-        +tick() src/bindings/mod.rs:191
-        +isFinished() bool src/bindings/mod.rs:206
-        +getAlpha() f64 src/bindings/mod.rs:212
-        +setCenter(x,y) src/bindings/mod.rs:218
-        +setLinkDistance(d) src/bindings/mod.rs:224
-        +setChargeStrength(s) src/bindings/mod.rs:230
-        +getNodeCount() usize src/bindings/mod.rs:266
-        +getEdgeCount() usize src/bindings/mod.rs:272
-        +getNodeIds() Vec~String~ src/bindings/mod.rs:289
-        +getNodePositions() Vec~f32~ src/bindings/mod.rs:336
-        +writePositionsInto(buf) usize src/bindings/mod.rs:376
-        +getStatistics() src/bindings/mod.rs:440
-        +getMetadata() src/bindings/mod.rs:410
+        +new() src/bindings/mod.rs:45
+        +loadOntology(json) src/bindings/mod.rs:56
+        +initSimulation() src/bindings/mod.rs:76
+        +runSimulation(n) src/bindings/mod.rs:91
+        +tick() src/bindings/mod.rs:106
+        +isFinished() bool src/bindings/mod.rs:121
+        +getAlpha() f64 src/bindings/mod.rs:127
+        +setCenter(x,y) src/bindings/mod.rs:140
+        +setLinkDistance(d) src/bindings/mod.rs:146
+        +setChargeStrength(s) src/bindings/mod.rs:152
+        +reheat(alpha) src/bindings/mod.rs:134
+        +getNodeCount() usize src/bindings/mod.rs:188
+        +getEdgeCount() usize src/bindings/mod.rs:194
+        +getNodeIds() Vec~String~ src/bindings/mod.rs:211
+        +getNodePositions() Vec~f32~ src/bindings/mod.rs:258
+        +writePositionsInto(buf) usize src/bindings/mod.rs:298
+        +getStatistics() src/bindings/mod.rs:362
+        +getMetadata() src/bindings/mod.rs:332
         +pinNode/unpinNode/isPinned/resetPins/getPinnedCount
         +filterByDegree/toggleDatatypes/toggleSetOperators/resetVisibility/filterHierarchy
     }
 ```
-- INVARIANT (README.md:132-135): this is the frozen 0.1.0 surface — names/signatures do not change without a major bump; 0.1.x only adds (`getNodeIds`/`getNodePositions`/`writePositionsInto` arrived in 0.1.1, per src/lib.rs crate doc).
-- `getNodeIds()`/`getNodePositions()` pair is index-stable: ticking, pinning, filtering and folding never reorder or remove nodes (src/bindings/mod.rs:288-334 doc comments), so JS zips `ids[i] <-> xy[2i], xy[2i+1]` once per load.
+- INVARIANT (README.md:148-149): this is the frozen 0.1.0 surface — names/signatures do not change without a major bump; later releases only add (`getNodeIds`/`getNodePositions`/`writePositionsInto` arrived in 0.1.1, per src/lib.rs crate doc, and `reheat` is now on the binding, src/bindings/mod.rs:131-136).
+- `getNodeIds()`/`getNodePositions()` pair is index-stable: ticking, pinning, filtering and folding never reorder or remove nodes (src/bindings/mod.rs:210-256 doc comments), so JS zips `ids[i] <-> xy[2i], xy[2i+1]` once per load.
 
 ## VW-04.2 `writePositionsInto` vs `getNodePositions` — allocation trade-off
 ```mermaid
 flowchart LR
-    subgraph Alloc["getNodePositions() — src/bindings/mod.rs:336"]
+    subgraph Alloc["getNodePositions() — src/bindings/mod.rs:258"]
         A1["new Vec::with_capacity(n*2)<br/>per call"] --> A2["returned Vec<f32> →<br/>wasm-bindgen copies out"]
     end
-    subgraph NoAlloc["writePositionsInto(buf) — src/bindings/mod.rs:376"]
-        B1["reuse caller-owned buffer<br/>writes min(out.len(), n*2)"] --> B2["returns count written<br/>src/bindings/mod.rs:395-407"]
+    subgraph NoAlloc["writePositionsInto(buf) — src/bindings/mod.rs:298"]
+        B1["reuse caller-owned buffer<br/>writes min(out.len(), n*2)"] --> B2["returns count written<br/>src/bindings/mod.rs:303-312"]
     end
     subgraph ZeroCopy["NggExplorer.positionsPtr()/positionsLen() — src/bindings/explorer.rs:82,89"]
         C1["raw pointer into<br/>wasm.memory.buffer"] --> C2["JS Float32Array view,<br/>no copy at all — needs ngg1 tier"]
     end
 ```
-- The doc comment is explicit: `writePositionsInto` saves the per-frame *allocation* over `getNodePositions`, not the copy — `NggExplorer::positions_ptr` is the only genuinely copy-free path, and it requires the `ngg1` binary-tier format (src/bindings/mod.rs:369-374).
+- The doc comment is explicit: `writePositionsInto` saves the per-frame *allocation* over `getNodePositions`, not the copy — `NggExplorer::positions_ptr` is the only genuinely copy-free path, and it requires the `ngg1` binary-tier format (src/bindings/mod.rs:291-296).
 
 ## VW-04.3 `checkNodeClick` — ray/sphere hit testing (feature `interaction`)
 ```mermaid
 sequenceDiagram
     autonumber
     participant JS as JS: checkNodeClick(origin, dir)
-    participant WV as WebVowl::check_node_click<br/>src/bindings/mod.rs:480
+    participant WV as WebVowl::check_node_click<br/>src/bindings/mod.rs:402
     participant R as interaction::Ray::new<br/>src/interaction/mod.rs:35
     participant F as find_closest_node_hit<br/>src/interaction/mod.rs:167
     JS->>WV: ray_origin[3], ray_direction[3]
-    WV->>WV: validate len == 3 each, else console.warn + None<br/>src/bindings/mod.rs:485-491
+    WV->>WV: validate len == 3 each, else console.warn + None<br/>src/bindings/mod.rs:407-413
     WV->>R: Ray::new(origin, direction)
-    WV->>WV: build NodeHitTest per node,<br/>radius=20.0 fixed<br/>src/bindings/mod.rs:501-513
+    WV->>WV: build NodeHitTest per node,<br/>radius=20.0 fixed<br/>src/bindings/mod.rs:423-435
     WV->>F: find_closest_node_hit(&ray, &nodes)
     F->>F: ray_sphere_intersection per candidate<br/>src/interaction/mod.rs:99
     F-->>WV: Option<(id, distance)>
     WV-->>JS: Option<String> node id, or null
 ```
-- The 20.0 hit-test radius is a fixed constant in the binding, not read from per-node visual size (src/bindings/mod.rs:503-504 comment: "In a real implementation, this could be configurable or per-node").
+- The 20.0 hit-test radius is a fixed constant in the binding, not read from per-node visual size (src/bindings/mod.rs:425-426 comment: "In a real implementation, this could be configurable or per-node").
 
 ## VW-04.5 Bundle contents contract, verified in CI
 ```mermaid
 flowchart LR
-    BUILD["wasm-pack build --target web --release<br/>--scope dreamlab-ai --features ngg1,interaction<br/>.github/workflows/ci.yml job wasm-pack"] --> FILES["pkg/vowl_wasm.js<br/>pkg/vowl_wasm.d.ts<br/>pkg/vowl_wasm_bg.wasm<br/>pkg/package.json"]
+    BUILD["wasm-pack build --target web --release<br/>--scope dreamlab-ai --features ngg1,interaction<br/>.github/workflows/ci.yml:176-204"] --> FILES["pkg/vowl_wasm.js<br/>pkg/vowl_wasm.d.ts<br/>pkg/vowl_wasm_bg.wasm<br/>pkg/package.json"]
     FILES --> CHECK1["name == @dreamlab-ai/vowl-wasm<br/>version == Cargo.toml version<br/>ci.yml Verify bundle contents step"]
-    FILES --> CHECK2["d.ts must export:<br/>NggExplorer, positionsPtr, positionsLen,<br/>loadCsr, getMetadata, getNodePositions,<br/>writePositionsInto, getNodeIds"]
+    FILES --> CHECK2["d.ts must export:<br/>NggExplorer, positionsPtr, positionsLen,<br/>loadCsr, getMetadata, getNodePositions,<br/>writePositionsInto, getNodeIds<br/>ci.yml:224-228"]
+    FILES --> CHECK3["bundle gate: ontomark_ngg1_migration test with VOWL_BUNDLE_GATE=1<br/>real wasm module, size budget, exact frozen JS API<br/>ci.yml:233-239"]
+    FILES --> CHECK4["node --test tests/ngg1_wasm.test.mjs<br/>golden tier decodes and re-encodes byte for byte through WASM<br/>ci.yml:241-242"]
 ```
-- INVARIANT: CI fails the build if any of those seven zero-copy-path symbols vanish from `pkg/vowl_wasm.d.ts` — "the explorer breaks at runtime rather than at build" (ci.yml Verify-bundle-contents step comment).
+- INVARIANT: CI fails the build if any of those eight zero-copy-path symbols vanish from `pkg/vowl_wasm.d.ts` — "the explorer breaks at runtime rather than at build" (.github/workflows/ci.yml:222-223).
 
 ## VW-04.6 EXTERNAL: visionGraph's `physics.worker.ts` drives `NggExplorer`
 ```mermaid
@@ -112,3 +120,21 @@ flowchart TB
     FC --> USE2
 ```
 - Both entry points share the same pure functions; the WASM binding adds only input validation and `NodeHitTest` construction from `VowlGraph` (VW-04.3), so a change to hit-test geometry is exercised by the native bench before it ever reaches JS.
+
+## VW-04.8 `ngg1` browser bindings — owned decode and encode beside the zero-copy explorer
+```mermaid
+flowchart LR
+    BYTES["Uint8Array tier"] -->|"decodeNgg1(bytes)"| DEC["NggGraph::from_bytes, then validated owned snapshot<br/>src/bindings/ngg.rs:119-121 and src/bindings/ngg.rs:35"]
+    DEC --> GET["accessors return copies: ids, positions, domains, categories,<br/>flags, degrees, labels, iris, rowPtr, colIdx, edgeType<br/>src/bindings/ngg.rs:57-112"]
+    FIELDS["typed arrays plus string arrays"] -->|"encodeNgg1(...)"| ENC["encode_parts through ontomark's NGG1 writer,<br/>mismatched arrays and invalid CSR throw an NGG1 string<br/>src/bindings/ngg.rs:182-200"]
+    CONST["ngg1Constants()"] --> OWN["flags, sentinels and edge codes read from the ontomark owner<br/>src/bindings/ngg.rs:236-244"]
+    DEC -. "layout continues in a worker, no per-frame metadata" .-> EXP["NggExplorer: loadCsr, tick, positionsPtr, setParam, setTheta, reheat<br/>src/bindings/explorer.rs:40-118"]
+    GATE["feature ngg1 gates both modules<br/>src/bindings/mod.rs:3-9"] --- DEC
+    N1["INVARIANT: numeric domain and category ids come from the producer, the type maps them to no estate taxonomy<br/>src/bindings/ngg.rs:13-16"]
+    N2["OPEN: the TypeScript reader consolidation and the Obsidian plugin are tracked by their own steps and are not claimed by ADR-001<br/>docs/adr/ADR-001-shared-ontology-rendering-contract.md:89-93"]
+    DEC --- N1
+    EXP --- N2
+```
+
+**What it shows.** Version 0.2.0 adds an owned, copying way to read and write NGG1 tiers in the browser, next to the existing zero-copy explorer: the codec is ontomark's, the binding only wraps it, and a worker keeps laying out through `NggExplorer` without serialising metadata per frame (src/bindings/ngg.rs:1-6, README.md:216-233).
+**Why it is this way.** ADR-001 wants one owner per graph format, so `vowl-wasm` delegates every binary read and write to ontomark and keeps only the browser surface, with a JavaScript test that round-trips the golden fixture through the built wasm (docs/adr/ADR-001-shared-ontology-rendering-contract.md:26, tests/ngg1_wasm.test.mjs:1-3).

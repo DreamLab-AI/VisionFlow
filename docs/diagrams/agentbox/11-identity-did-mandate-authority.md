@@ -34,7 +34,7 @@ sources:
   - ../project/agentbox/mcp/servers/nostr-bridge.js
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/lib/bc20-provenance-bridge.js
-verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
+verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
 ---
 
 ## AB-11.1 Identity, URN and mandate type model
@@ -133,7 +133,7 @@ sequenceDiagram
     AI->>AI: xOnly = deriveXonly(privHex)
     alt xOnly falsy or not HEX64
         AI-->>CALLER: return null
-        Note over AI,CALLER: DIVERGENCE INGRESS-identity: caller then keeps did:nostr:local — a degraded boot yields a non-sovereign identity. see AB-11.3
+        Note over AI,CALLER: the CLI exits non-zero and the entrypoint aborts boot (entrypoint-unified.sh:1443), no placeholder identity survives. see AB-11.3
     else derived
         critical persist so the DID survives a restart
             AI->>FS: mkdirSync(dirname, recursive) then writeFileSync(privHex, mode 0o600) then chmodSync 0o600 (agent-identity.js:164-166)
@@ -172,12 +172,15 @@ sequenceDiagram
             LM-->>CLI: {did, pubkey, multikey, persisted true, keyPath}
             CLI-->>EP: stdout export AGENTBOX_AGENT_DID / AGENTBOX_AGENT_PUBKEY / AGENTBOX_AGENT_DID_MULTIKEY<br/>agent-identity.js:225-229
             CLI-->>EP: stderr agent-identity: minted or loaded the did (persisted=true, keyfile=path)<br/>agent-identity.js:230-233
-            EP->>SHELL: eval the export lines
+            EP->>EP: parse AGENTBOX_AGENT_DID with sed and require the exact expected three export lines, never eval (entrypoint-unified.sh:1446-1453)
+            EP->>SHELL: export AGENTBOX_AGENT_DID, AGENTBOX_AGENT_PUBKEY, AGENTBOX_AGENT_DID_MULTIKEY (entrypoint-unified.sh:1453-1461)
             CLI-->>EP: exit 0 agent-identity.js:234
         end
     end
-    Note over EP,SHELL: RESOLVED ADR-2044 (2026-09-05, was DIVERGENCE) — the CLI's own fail-open<br/>path is GONE: a failed mint OR a mint that could not persist its key now exits<br/>non-zero with NO export lines, agent-identity.js:31-46. config/entrypoint-unified.sh's<br/>`${AGENTBOX_AGENT_DID:-did:nostr:local}` shell fallback is UNCHANGED and still<br/>runs unconditionally on that non-zero exit (`\|\| true`, out of scope for this module,<br/>agent-identity.js:41-46) — the boot-level placeholder-DID gap named in<br/>INGRESS-identity.md remains, only the library's OWN silent tolerance of it is closed.<br/>see AB-11.13
+    Note over EP,SHELL: RESOLVED ADR-2044 (2026-09-05, was DIVERGENCE) - the CLI's own fail-open<br/>path is GONE: a failed mint OR a mint that could not persist its key now exits<br/>non-zero with NO export lines, agent-identity.js:31-46. The entrypoint now treats that as<br/>FATAL too: no mint runtime, a failed mint, or output that is not exactly the three<br/>expected export lines aborts boot with exit 1 (entrypoint-unified.sh:1439-1450), so no<br/>did:nostr:local placeholder is exported. see AB-11.13
 ```
+
+**Drift (INGRESS-identity vs entrypoint):** `docs/INGRESS-identity.md` still names a `did:nostr:local` placeholder fallback that lets a degraded boot produce a non-sovereign identity (`agentbox/docs/INGRESS-identity.md:242-243`), and the `agent-identity.js` header says the entrypoint's `${AGENTBOX_AGENT_DID:-did:nostr:local}` fallback runs unconditionally (`agentbox/management-api/lib/agent-identity.js:41-46`), while the entrypoint aborts boot on a failed or inconsistent mint (`agentbox/config/entrypoint-unified.sh:1443-1450`).
 
 ## AB-11.4 URN kind table — scope, content addressing and resolvable surface
 
@@ -562,45 +565,45 @@ sequenceDiagram
     autonumber
     participant CALLER as any caller
     participant RT as POST /v1/agent-events/emit<br/>agentbox/management-api/routes/agent-events.js
-    participant AEA as verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:108
+    participant AEA as verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:135
     participant ENV as AGENTBOX_AGENT_EVENT_AUTH
     participant NB as NostrBridge.verifyNip98<br/>agentbox/mcp/servers/nostr-bridge.js
-    participant PVP as proxyVerifiedPubkey<br/>agent-event-auth.js:90
-    participant RSU as reconcileSourceUrn<br/>agentbox/management-api/lib/agent-event-auth.js:169
+    participant PVP as proxyVerifiedPubkey<br/>agent-event-auth.js:116
+    participant RSU as reconcileSourceUrn<br/>agentbox/management-api/lib/agent-event-auth.js:196
 
     CALLER->>RT: POST /v1/agent-events/emit {source_urn, ...}
     RT->>AEA: verifyAgentEventRequest(request, deps)
     AEA->>ENV: resolvePolicy(env) (agent-event-auth.js:73-74)
     alt policy 'off' (explicit opt-in only)
-        AEA-->>RT: {ok true, did null, pubkey null} agent-event-auth.js:112
+        AEA-->>RT: {ok true, did null, pubkey null} agent-event-auth.js:139
 Note over AEA,RT: RESOLVED ADR-2044 (was DIVERGENCE) — DEFAULT_POLICY flipped from off to<br/>nip98 (agent-event-auth.js:66), off is now an explicit dev-only opt-in via the env<br/>var, not the shipped default. The agentbox.toml setting agent_event_auth = nip98<br/>already matched this default, so no manifest-driven deployment behaviour changed<br/>— only a boot that never set the env var now gets the hardened behaviour (agent-event-auth.js:56-65)
     else policy neither off nor nip98
-        AEA-->>RT: {ok false, status 500, error "unknown AGENTBOX_AGENT_EVENT_AUTH policy"} agent-event-auth.js:113-114
+        AEA-->>RT: {ok false, status 500, error "unknown AGENTBOX_AGENT_EVENT_AUTH policy"} agent-event-auth.js:140-141
     else policy 'nip98' (default, ADR-2042/2044)
-        AEA->>AEA: authHeaderOf(request) — headers.authorization or headers.Authorization<br/>agent-event-auth.js:117-118
+        AEA->>AEA: authHeaderOf(request) — headers.authorization or headers.Authorization<br/>agent-event-auth.js:144-145
         alt Authorization starts with 'Nostr ' — path 1, direct signature
-            AEA->>AEA: pathOnly = request.url.split('?')[0] agent-event-auth.js:138
+            AEA->>AEA: pathOnly = request.url.split('?')[0] agent-event-auth.js:165
             Note over AEA,NB: the originator strips the query string from the signed u tag, so the comparison is path-only — verifyNip98 accepts urlTag.endsWith(url). see AB-10.4
-            AEA->>NB: verifyNip98(authHeader, 'POST', pathOnly) agent-event-auth.js:142
+            AEA->>NB: verifyNip98(authHeader, 'POST', pathOnly) agent-event-auth.js:169
             alt verify throws
                 NB-->>AEA: exception
-                AEA-->>RT: {ok false, status 401, error "NIP-98 verification failed: <msg>"} agent-event-auth.js:143-145
+                AEA-->>RT: {ok false, status 401, error "NIP-98 verification failed: <msg>"} agent-event-auth.js:170-172
             else result.valid false
                 NB-->>AEA: {valid false, error}
-                AEA-->>RT: {ok false, status 401, error} agent-event-auth.js:146-148
+                AEA-->>RT: {ok false, status 401, error} agent-event-auth.js:173-175
             else valid
                 NB-->>AEA: {valid true, pubkey}
-                AEA-->>RT: {ok true, did "did:nostr:<pubkey>", pubkey} agent-event-auth.js:149
+                AEA-->>RT: {ok true, did "did:nostr:<pubkey>", pubkey} agent-event-auth.js:176
             end
         else no Nostr-prefixed header — path 2, ADR-2042 proxy-injected identity
-            AEA->>PVP: proxyVerifiedPubkey(request) — X-Agentbox-Pubkey,<br/>must be exactly 64 lowercase hex or is rejected (agent-event-auth.js:90-96,157)
+            AEA->>PVP: proxyVerifiedPubkey(request, env) — null unless peerIsProxy(request, env), then X-Agentbox-Pubkey,<br/>must be exactly 64 lowercase hex or is rejected (agent-event-auth.js:116-122,184)
             alt header present and well-formed
                 PVP-->>AEA: pubkey
-                AEA-->>RT: {ok true, did "did:nostr:<pubkey>", pubkey} agent-event-auth.js:158-159
-                Note over AEA,PVP: this path trusts the SOLE identity ingress at port 9096 (nip98-proxy) to have<br/>already verified the caller and stripped/re-injected the header — see AB-10.3.<br/>DRIFT (resolved 2026-10-12, agentbox main b9e0ea9a8): at the stamp a holder of MANAGEMENT_API_KEY<br/>on the docker network could forge this header (agent-event-auth.js:31-39), on main proxyVerifiedPubkey<br/>returns null unless peerIsProxy holds, i.e. the TCP peer is loopback or listed in AGENTBOX_PROXY_PEERS
+                AEA-->>RT: {ok true, did "did:nostr:<pubkey>", pubkey} agent-event-auth.js:185-186
+                Note over AEA,PVP: this path trusts the SOLE identity ingress at port 9096 (nip98-proxy) to have<br/>already verified the caller and stripped/re-injected the header, see AB-10.3.<br/>INVARIANT: the header counts only from a loopback TCP peer, peerIsProxy accepts 127.0.0.1, ::1,<br/>::ffff:127.0.0.1 or AGENTBOX_PROXY_PEERS and fails closed with no socket (agent-event-auth.js:98-105)
             else header absent or malformed
                 PVP-->>AEA: null
-                AEA-->>RT: {ok false, status 401, error "NIP-98 Authorization header required"} agent-event-auth.js:162
+                AEA-->>RT: {ok false, status 401, error "NIP-98 Authorization header required"} agent-event-auth.js:189
             end
         end
     end
@@ -616,9 +619,9 @@ Note over AEA,RT: RESOLVED ADR-2044 (was DIVERGENCE) — DEFAULT_POLICY flipped 
     end
 ```
 
-**Drift (resolved 2026-10-12, agentbox main b9e0ea9a8):** the path-2 branch above is drawn as stamped, where `proxyVerifiedPubkey` read the header from any peer (`agentbox/management-api/lib/agent-event-auth.js:90-96`) and the stated residual was cross-container forgery by a `MANAGEMENT_API_KEY` holder (`agentbox/management-api/lib/agent-event-auth.js:31-39`, `agentbox/management-api/server.js:49`). On agentbox `main` the function takes `(request, env)`, returns null unless the new `peerIsProxy` holds, and is exported so `action-plane.js` `resolveAgentDid` shares it; a request with no socket information is refused (fail closed). A forged header from a non-loopback peer now falls through to the 401 "NIP-98 Authorization header required" branch.
+**Invariant:** `proxyVerifiedPubkey(request, env)` returns null unless `peerIsProxy` holds, so a cross-container caller holding `MANAGEMENT_API_KEY` that reaches the `0.0.0.0` bind (`agentbox/management-api/server.js:49`) cannot assert a `did:nostr` through the header; a request with no socket information is refused (`agentbox/management-api/lib/agent-event-auth.js:98-105`, `agentbox/management-api/lib/agent-event-auth.js:117`). The function is exported and `action-plane.js` `resolveAgentDid` shares it (`agentbox/management-api/lib/agent-event-auth.js:208`, `agentbox/management-api/lib/action-plane.js:229`).
 
-**Debt:** a process inside the container reaches management-api over loopback and so passes `peerIsProxy`; the path-2 identity is therefore as strong as the same-UID boundary (TODO-unified X-1), not as strong as the signature path 1 verifies (`agentbox/management-api/lib/agent-event-auth.js:157-160`).
+**Debt:** a process inside the container reaches management-api over loopback and so passes `peerIsProxy`; the path-2 identity is therefore as strong as the same-UID boundary (TODO-unified X-1), not as strong as the signature path 1 verifies (`agentbox/management-api/lib/agent-event-auth.js:37-39`).
 
 ## AB-11.15 URI resolution surface — /v1/uri and .well-known
 
@@ -675,7 +678,7 @@ sequenceDiagram
 
     rect rgb(240,255,240)
     Note over BOOT,KF: IMPLEMENTED — what the code actually does
-    BOOT->>AI: mint or load the per-profile agent key<br/>ADR-2044 (2026-09-05): the CLI now exits non-zero on mint or persist failure<br/>instead of tolerating did:nostr:local — see AB-11.3
+    BOOT->>AI: mint or load the per-profile agent key<br/>ADR-2044 (2026-09-05): the CLI now exits non-zero on mint or persist failure<br/>and the entrypoint aborts boot (entrypoint-unified.sh:1439-1450) instead of tolerating did:nostr:local — see AB-11.3
     AI->>KF: writeFileSync mode 0o600 then chmodSync 0o600 (agent-identity.js:164-166)
     KF-->>AI: readable only by this uid
     BOOT->>BR: load bridge identity from AGENTBOX_BRIDGE_SK_FILE, legacy environment fallback remains

@@ -15,6 +15,11 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/oidc/replay.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
+  - ../solid-pod-rs/crates/solid-pod-rs-server/src/scheme.rs
+  - ../solid-pod-rs/crates/solid-pod-rs-server/src/cross_identity.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2003-solid-oidc-01-defer-lws10.md
+  - ../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md
+  - ../solid-pod-rs/crates/solid-pod-rs-server/Cargo.toml
   - ../solid-pod-rs/crates/solid-pod-rs-nostr/src/resolver.rs
   - ../solid-pod-rs/crates/solid-pod-rs-didkey/src/did.rs
   - ../solid-pod-rs/crates/solid-pod-rs-didkey/src/pubkey.rs
@@ -37,7 +42,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/auth.rs
   - ../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/rate_limit.rs
-verified_commit: d64131b
+verified_commit: a4a86f6da300b529c7855318c24ff5c7b35ec582
 ---
 
 ## SP-05.1 Two auth paths, one AuthContext
@@ -45,28 +50,32 @@ verified_commit: d64131b
 ```mermaid
 flowchart TD
     REQ["inbound request"]
-    EX["extract_pubkey_with_body<br/>solid-pod-rs-server/src/lib.rs:513"]
-    BEAR{"Authorization starts with 'Bearer '?<br/>solid-pod-rs-server/src/lib.rs:521"}
-    DEV["verify_dev_bearer — HMAC dev token<br/>solid-pod-rs-server/src/lib.rs:573"]
-    N98["nip98::verify_at over the reconstructed URL<br/>solid-pod-rs-server/src/lib.rs:542"]
-    REPLAY["NIP98_REPLAY.check_and_record<br/>solid-pod-rs-server/src/lib.rs:547"]
+    EX["extract_pubkey_with_body<br/>solid-pod-rs-server/src/lib.rs:603"]
+    BEAR{"Authorization starts with 'Bearer '?<br/>solid-pod-rs-server/src/lib.rs:611"}
+    DEV["verify_dev_bearer — HMAC dev token, compiled only with the dev-bearer feature<br/>solid-pod-rs-server/src/lib.rs:684"]
+    PROD["production build: every Bearer header is anonymous<br/>solid-pod-rs-server/src/lib.rs:617"]
+    N98["nip98::verify_at over the reconstructed URL<br/>solid-pod-rs-server/src/lib.rs:636"]
+    REPLAY["NIP98_REPLAY.check_and_record<br/>solid-pod-rs-server/src/lib.rs:641"]
     PK["Some(pubkey)"]
     ANON["None — treated as anonymous, WAC then denies"]
-    AGENT["agent_uri: did:nostr prefix, or a WebID URL passed through<br/>solid-pod-rs-server/src/lib.rs:563"]
+    AGENT["agent_uri: did:nostr prefix, or a WebID URL passed through<br/>solid-pod-rs-server/src/lib.rs:657"]
 
     REQ --> EX --> BEAR
-    BEAR -- yes --> DEV
+    BEAR -- "yes, dev-bearer build" --> DEV
+    BEAR -- "yes, default build" --> PROD --> ANON
     BEAR -- no --> N98 --> REPLAY
     REPLAY -- fresh --> PK
     REPLAY -- replayed --> ANON
     DEV --> PK
-    DEV -- "TOKEN_SECRET shorter than 32 bytes" --> ANON
+    DEV -- "TOKEN_SECRET under 32 bytes, wrong aud, or lifetime over 24 h" --> ANON
     N98 -- verification failed --> ANON
     PK --> AGENT
 
-    N1["The signed URL is reconstructed from actix connection_info, honouring<br/>X-Forwarded-Proto — hardcoding http:// would break every TLS-fronted pod.<br/>solid-pod-rs-server/src/lib.rs:536"]
+    N1["The signed URL comes from scheme::request_url: the configured public origin or the plain<br/>Host header, with X-Forwarded-Proto honoured only from a trusted proxy.<br/>solid-pod-rs-server/src/lib.rs:631 and solid-pod-rs-server/src/scheme.rs:240"]
     N98 -.-> N1
-    N2["INVARIANT: a rejected replay returns None, i.e. anonymous — it never becomes<br/>an error path the caller can distinguish from 'no credential'.<br/>solid-pod-rs-server/src/lib.rs:555"]
+    N4["INVARIANT: the dev bearer needs aud solid-pod-rs-dev-bearer and a lifetime of at most 24 h,<br/>and is off unless the cargo feature is set.<br/>solid-pod-rs-server/src/lib.rs:722 and solid-pod-rs-server/Cargo.toml:133"]
+    DEV -.-> N4
+    N2["INVARIANT: a rejected replay returns None, i.e. anonymous — it never becomes<br/>an error path the caller can distinguish from 'no credential'.<br/>solid-pod-rs-server/src/lib.rs:651"]
     REPLAY -.-> N2
     N3["EXTERNAL: agentbox mints a did:nostr per agent at spawn and signs pod writes<br/>with it; the same principal string reaches WAC here. See AB-11 and ES-04."]
     AGENT -.-> N3
@@ -212,28 +221,34 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    VT["verify_access_token<br/>solid-pod-rs/src/oidc/mod.rs:741"]
-    ASYM["ES256 / RS256 / EdDSA against a JWK set<br/>solid-pod-rs/src/oidc/mod.rs:763"]
-    SYMR["symmetric key with an asymmetric alg is REJECTED<br/>solid-pod-rs/src/oidc/mod.rs:792"]
-    OTHER["any other alg rejected with an explicit message<br/>solid-pod-rs/src/oidc/mod.rs:803"]
-    AUD["validate_aud = false<br/>solid-pod-rs/src/oidc/mod.rs:812"]
-    WID["extract_webid — webid claim, else url-shaped sub<br/>solid-pod-rs/src/oidc/mod.rs:864"]
-    HS["verify_access_token_hs256 — separate entry point<br/>solid-pod-rs/src/oidc/mod.rs:851"]
-    INTRO["IntrospectionResponse::from_verified, RFC 7662<br/>solid-pod-rs/src/oidc/mod.rs:902"]
+    VT["verify_access_token, a wrapper over verify_access_token_with_policy<br/>solid-pod-rs/src/oidc/mod.rs:741"]
+    VTP["verify_access_token_with_policy, takes an AccessTokenPolicy<br/>solid-pod-rs/src/oidc/mod.rs:836"]
+    KID["kid-selected JWK must match the header alg family (jwk_matches_alg)<br/>solid-pod-rs/src/oidc/mod.rs:870"]
+    BIND["verify_webid_issuer_binding — caller-invoked, profile must declare iss<br/>solid-pod-rs/src/oidc/mod.rs:984"]
+    ASYM["ES256 / RS256 / EdDSA against a JWK set<br/>solid-pod-rs/src/oidc/mod.rs:859"]
+    SYMR["symmetric key with an asymmetric alg is REJECTED<br/>solid-pod-rs/src/oidc/mod.rs:890"]
+    OTHER["any other alg rejected with an explicit message<br/>solid-pod-rs/src/oidc/mod.rs:901"]
+    AUD["aud checked against policy.expected_audience, default aud solid<br/>solid-pod-rs/src/oidc/mod.rs:921"]
+    WID["extract_webid — webid claim, else url-shaped sub<br/>solid-pod-rs/src/oidc/mod.rs:1013"]
+    HS["verify_access_token_hs256 — separate entry point<br/>solid-pod-rs/src/oidc/mod.rs:1000"]
+    INTRO["IntrospectionResponse::from_verified, RFC 7662<br/>solid-pod-rs/src/oidc/mod.rs:1051"]
     DISC["discovery_for(issuer)<br/>solid-pod-rs/src/oidc/mod.rs:156"]
     ADV["dpop_signing_alg_values_supported = ES256, RS256<br/>solid-pod-rs/src/oidc/mod.rs:184"]
     IDT["id_token_signing_alg_values_supported = RS256, ES256<br/>solid-pod-rs/src/oidc/mod.rs:186"]
 
-    VT --> ASYM --> AUD --> WID --> INTRO
-    VT --> SYMR
-    VT --> OTHER
+    VT --> VTP --> ASYM --> KID --> AUD --> WID --> INTRO
+    VTP --> SYMR
+    VTP --> OTHER
+    WID -.-> BIND
     VT -.-> HS
     DISC --> ADV
     DISC --> IDT
     ADV -. "mismatch" .-> ASYM
 
-    D1["DIVERGENCE (ADR-2003): aud is NOT validated — only the claim's PRESENCE is<br/>enforced, since SolidOidcClaims::aud has no serde default<br/>(solid-pod-rs/src/oidc/mod.rs:670). A token minted for another audience<br/>verifies here; a deployment needing audience restriction must enforce it above<br/>this API."]
+    D1["DRIFT: ADR-2003 says aud is not validated at all (solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2003-solid-oidc-01-defer-lws10.md:111)<br/>and so does the baseline (solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md:212); the code now requires aud to be, or contain,<br/>'solid' unless an AccessTokenPolicy names another audience (solid-pod-rs/src/oidc/mod.rs:921)."]
+    D1b["DIVERGENCE: the issuer binding is a separate call. verify_access_token does not check that the<br/>webid profile lists iss as solid:oidcIssuer (solid-pod-rs/src/oidc/mod.rs:833),<br/>so without verify_webid_issuer_binding an unrelated IdP can assert any WebID."]
     AUD -.-> D1
+    WID -.-> D1b
     D2["DIVERGENCE (ADR-2003): extract_webid reads only the top-level webid claim and<br/>a URL-shaped sub. There is NO cnf.webid branch, so the LWS10 C.1 delta is<br/>unshipped. CnfClaim exists (solid-pod-rs/src/oidc/mod.rs:685) but is not<br/>consulted here."]
     WID -.-> D2
     D3["DIVERGENCE (baseline invariant 6, ADR-2003): discovery advertises only ES256<br/>and RS256, yet the verifier also dispatches EdDSA — discovery must match the<br/>crypto path. This is Solid-OIDC 0.1, not LWS10: no lws_supported,<br/>authorization_response_iss_parameter_supported or client_registration_types_supported."]
@@ -265,7 +280,7 @@ sequenceDiagram
         P->>I: fetch_jwks<br/>solid-pod-rs/src/oidc/jwks.rs:294
     end
     V->>V: verify_access_token_cached<br/>solid-pod-rs/src/oidc/jwks.rs:420
-    Note over V: DEFAULT_CACHE_TTL 900 s (solid-pod-rs/src/oidc/jwks.rs:52) —<br/>SHORT_CACHE_TTL 300 s (solid-pod-rs/src/oidc/jwks.rs:438).
+    Note over V: DEFAULT_CACHE_TTL 900 s (solid-pod-rs/src/oidc/jwks.rs:52) —<br/>SHORT_CACHE_TTL 300 s (solid-pod-rs/src/oidc/jwks.rs:458).
     Note over P: The client is pinned to the resolved IP so a DNS rebind between the<br/>SSRF check and the request cannot redirect the fetch. See SP-06.9.
 ```
 
@@ -276,7 +291,7 @@ flowchart TD
     PK["NostrPubkey — 32-byte x-only identifier, no parity<br/>solid-pod-rs/src/did_nostr_types.rs:68"]
     URI["did_nostr_uri<br/>solid-pod-rs/src/did_nostr_types.rs:152"]
     WKP["well_known_path<br/>solid-pod-rs/src/did_nostr_types.rs:158"]
-    RT["handle_well_known_did_nostr — the served endpoint<br/>solid-pod-rs-server/src/lib.rs:2092"]
+    RT["handle_well_known_did_nostr — the served endpoint<br/>solid-pod-rs-server/src/lib.rs:2394"]
     VT["verify_webid_tag<br/>solid-pod-rs/src/did_nostr_types.rs:612"]
     WD["webid_declares_pubkey<br/>solid-pod-rs/src/did_nostr_types.rs:674"]
 
@@ -531,3 +546,35 @@ sequenceDiagram
     Note over U: The current password is re-verified even though the caller is already<br/>authenticated — a stolen session must not be enough to change the password.
     Note over P: The server exposes POST /account/password/change (SP-02.9) — this is the IdP<br/>library function behind it.
 ```
+
+## SP-05.22 Cross-identity — a did:nostr caller presenting as its WebID too
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant G as enforce_write_ctx / enforce_read_inner<br/>solid-pod-rs-server/src/lib.rs:1021
+    participant LI as linked_identities<br/>solid-pod-rs-server/src/cross_identity.rs:114
+    participant R as PodCrossIdentity::linked_web_id<br/>solid-pod-rs-server/src/cross_identity.rs:92
+    participant L as local profile card<br/>solid-pod-rs-server/src/cross_identity.rs:77
+    participant D as remote DidNostrResolver (feature did-nostr)<br/>solid-pod-rs-server/src/cross_identity.rs:100
+    participant GI as grant_for_identities<br/>solid-pod-rs-server/src/lib.rs:1102
+
+    G->>LI: agent_uri from the verified NIP-98 pubkey
+    LI->>R: pubkey as 64 lowercase hex, else no link
+    R->>L: read /profile/card, compare the owner's nostr:pubkey
+    L-->>R: WebID card#me when the owner key matches
+    opt no local link, operator configured origins
+        R->>D: resolve each origin, alsoKnownAs plus back-link
+        D-->>R: WebID or nothing
+    end
+    R-->>LI: Some(webid) only for a bidirectionally verified link
+    LI-->>G: linked WebIDs, never the agent itself, http or https only
+    G->>GI: primary first, then each linked identity
+    Note over GI: The ACL is evaluated once per identity, so acl:agent naming either the<br/>did:nostr or the WebID matches (solid-pod-rs-server/src/lib.rs:1102).
+```
+
+**What it shows:** after NIP-98 succeeds, the server asks a resolver whether the pubkey is bound to a WebID and, if so, the caller presents as both.
+
+**Why it is this way:** JSS replaces the did:nostr agent with the WebID; keeping both is a deliberate superset (`solid-pod-rs-server/src/cross_identity.rs:8`), and a one-way link is never accepted (`solid-pod-rs-server/src/cross_identity.rs:6`).
+
+**Invariant:** `linked_web_id` returns a WebID only when the link is bidirectional, either through the pod's own profile card or through a remote origin with a back-link check (`solid-pod-rs-server/src/cross_identity.rs:92`).

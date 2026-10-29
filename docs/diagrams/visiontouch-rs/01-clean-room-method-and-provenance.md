@@ -17,7 +17,7 @@ sources:
   - ../visiontouch-rs/docs/research/overload-and-calibration.md
   - ../visiontouch-rs/scripts/quality-gate.sh
   - ../visiontouch-rs/.gitignore
-verified_commit: 77898bc42b29d5928b4eae00040ef0c26c3cd0a3
+verified_commit: 7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d
 ---
 
 ## For developers
@@ -36,7 +36,7 @@ flowchart TB
     OWN["OWNER<br/>inspection of the owned unit<br/>docs/clean-room/PROVENANCE.md:17"]
     OBS["OBSERVE<br/>passive capture while original software drives the unit<br/>docs/clean-room/PROVENANCE.md:18"]
     BLK["BLACKBOX<br/>inputs to original software or hardware, outputs recorded<br/>docs/clean-room/PROVENANCE.md:19"]
-    DES["DESIGN<br/>our own derivation, used on 9 rows but absent from the class table<br/>docs/adr/ADR-0001-observation-first-clean-room.md:34"]
+    DES["DESIGN<br/>our own derivation, used on 24 rows but absent from the class table<br/>docs/adr/ADR-0001-observation-first-clean-room.md:34"]
     DEC["DECOMPILE<br/>interoperability only, needs a D-entry<br/>docs/clean-room/PROVENANCE.md:20"]
     ROW["P-NNNN provenance row<br/>docs/clean-room/POLICY.md:7"]
     SPEC["docs/spec paragraph in our own words<br/>docs/clean-room/POLICY.md:6"]

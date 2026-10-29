@@ -15,6 +15,7 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/src/handlers/solid_proxy_handler.rs
   - ../project/src/utils/nip98.rs
+  - ../project/src/services/nostr_service.rs
   - ../project/client/src/services/SolidPodService.ts
   - ../project/client/src/services/solidPod/ldpClient.ts
   - ../project/client/src/services/solidPod/agentMemory.ts
@@ -34,33 +35,33 @@ sources:
   - ../project/client/src/features/solid/components/PodSettings.tsx
   - ../project/client/src/features/solid/components/ResourceEditor.tsx
   - ../project/src/handlers/image_gen_handler.rs
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
 ---
 
 ## VC-26.1 Deployment topology — embedded pod vs feature-off stub
 ```mermaid
 flowchart TB
     subgraph cargo["Cargo.toml"]
-        DEFAULT["default = [gpu, ontology, persistence-oxigraph, solid-pod-embed]<br/>Cargo.toml:256"]
-        FEAT["solid-pod-embed feature<br/>Cargo.toml:285-287<br/>deps: solid-pod-rs, -nostr, -idp, -server"]
+        DEFAULT["default = [gpu, ontology, persistence-oxigraph, solid-pod-embed]<br/>Cargo.toml:278"]
+        FEAT["solid-pod-embed feature<br/>Cargo.toml:307-309<br/>deps: solid-pod-rs, -nostr, -idp, -server"]
     end
     DEFAULT --> FEAT
     FEAT -->|"cfg(feature = solid-pod-embed)"| ON["ON: embedded solid-pod-rs"]
     FEAT -->|"cfg(not(feature = solid-pod-embed))"| OFF["OFF: stub build"]
 
     subgraph onpath["main.rs — feature ON"]
-        INIT["init_solid_state().await<br/>main.rs:881"]
-        APPDATA["app.app_data(solid_state.clone())<br/>main.rs:1063"]
-        CFG["configure_solid_routes<br/>main.rs:1173"]
+        INIT["init_solid_state().await<br/>main.rs:910"]
+        APPDATA["app.app_data(solid_state.clone())<br/>main.rs:1095"]
+        CFG["configure_solid_routes<br/>main.rs:1206"]
         FS["FsBackend::new(SOLID_DATA_ROOT)<br/>solid_proxy_handler.rs:141,151"]
-        ROUTES["Full /solid scope: health, .notifications,<br/>pods*, LDP CRUD, DID<br/>solid_proxy_handler.rs:1770-1804"]
+        ROUTES["Full /solid scope: health, .notifications,<br/>pods*, LDP CRUD, DID<br/>solid_proxy_handler.rs:1773-1807"]
         INIT --> FS
         INIT --> APPDATA --> CFG --> ROUTES
     end
 
     subgraph offpath["main.rs — feature OFF"]
-        NOINIT["solid_state app_data block compiled out<br/>main.rs:880 and :1062"]
-        STUBCFG["configure_routes (feature-off twin)<br/>solid_proxy_handler.rs:1818-1822"]
+        NOINIT["solid_state app_data block compiled out<br/>main.rs:909 and :1094"]
+        STUBCFG["configure_routes (feature-off twin)<br/>solid_proxy_handler.rs:1821-1824"]
         STUBROUTES["RESOLVED ADR-2067 — registers nothing at all<br/>/solid/*, /.well-known/did.json and /did/* all 404<br/>in a feature-off build (was: a full table of 503 stubs)"]
         NOINIT --> STUBCFG --> STUBROUTES
     end
@@ -75,10 +76,10 @@ flowchart TB
     Note2["RESOLVED ADR-2068: the vendored JavaScriptSolidServer/ tree (63 MB) has been deleted. It was a third-party upstream project superseded by the embedded Rust solid-pod-rs, with no import, path or compose reference anywhere; its only mention was a doc-comment URL at src/utils/nip98.rs:5, left intact. Removed rather than archived - docs/archive/ is for our own superseded documents, and the upstream is recoverable from its own public repo."]
     Legacy -.-> Note2
 
-    Note3["RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL's default in ontology-publish.yml and env.example<br/>was http://jss:3030 / http://visionclaw-jss:3030 - both DNS-dead JSS-sidecar names, a leftover<br/>from before ADR-032 M3 embedded solid-pod-rs. Both now default to http://localhost:4000/solid,<br/>the SYSTEM_NETWORK_PORT (default 4000, main.rs:841) this diagram's own INIT/APPDATA/CFG path<br/>actually serves. The /.notifications POST the workflow still sends is a documented no-op there -<br/>the embedded pod's /.notifications is a GET WebSocket upgrade (see VC-26.9), not a POST trigger."]
+    Note3["RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL's default in ontology-publish.yml and env.example<br/>was http://jss:3030 / http://visionclaw-jss:3030 - both DNS-dead JSS-sidecar names, a leftover<br/>from before ADR-032 M3 embedded solid-pod-rs. Both now default to http://localhost:4000/solid,<br/>the SYSTEM_NETWORK_PORT (default 4000, main.rs:872) this diagram's own INIT/APPDATA/CFG path<br/>actually serves. The /.notifications POST the workflow still sends is a documented no-op there -<br/>the embedded pod's /.notifications is a GET WebSocket upgrade (see VC-26.9), not a POST trigger."]
     ON -.-> Note3
 
-    Note4["PROPOSED, not live (ADR-2111, decision_status proposed, implementation_status none,<br/>still at HEAD): this repo already depends on the PUBLISHED solid-pod-rs crate -<br/>now pinned =0.5.0-alpha.12 in lockstep with nostr-rust-forum (b73ec8c),<br/>Cargo.toml:224, which adds the mrc20 feature whose blocktrails walker<br/>src/web_contract verifies trails with. ADR-2111's own review trigger - the<br/>solid-pod-rs post-port version landing - has now FIRED; what remains proposed is<br/>deleting the extraction/solid-pod-rs mirror and the payment-store rework. The<br/>embedded-pod path shown above is unchanged.<br/>docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:7-8"]
+    Note4["PROPOSED, not live (ADR-2111, decision_status proposed, implementation_status none,<br/>still at HEAD): this repo already depends on the PUBLISHED solid-pod-rs crate -<br/>now resolved from the caret range 0.5.0-alpha.17 (no longer an exact = pin - ER-35 owner decision 2026-10-18,<br/>Cargo.toml:135-137) for all four solid-pod-rs crates, Cargo.toml:245-248, which adds the mrc20 feature whose blocktrails walker<br/>src/web_contract verifies trails with. ADR-2111's own review trigger - the<br/>solid-pod-rs post-port version landing - has now FIRED; what remains proposed is<br/>deleting the extraction/solid-pod-rs mirror and the payment-store rework. The<br/>embedded-pod path shown above is unchanged.<br/>docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:7-8"]
     FEAT -.-> Note4
 ```
 
@@ -118,7 +119,7 @@ sequenceDiagram
     end
 
     rect rgb(250,225,225)
-    Note over C,H: DOC-DRIFT (fixed in this pass): this rect used to show a 503 stub<br/>handler. RESOLVED ADR-2067 removed it - configure_routes' feature-off twin<br/>(solid_proxy_handler.rs:1818) registers NO /solid routes at all, so a<br/>feature-off build 404s (Actix's own not-found), never dispatching to handle_solid_proxy.
+    Note over C,H: DOC-DRIFT (fixed in this pass): this rect used to show a 503 stub<br/>handler. RESOLVED ADR-2067 removed it - configure_routes' feature-off twin<br/>(solid_proxy_handler.rs:1821) registers NO /solid routes at all, so a<br/>feature-off build 404s (Actix's own not-found), never dispatching to handle_solid_proxy.
     C->>H: METHOD /solid/{tail} (feature OFF)
     H-->>C: 404 (no route registered - see VC-26.1)
     end
@@ -145,7 +146,8 @@ sequenceDiagram
         L->>L: logger.warn - request sent WITHOUT auth headers<br/>ldpClient.ts:110-114
     end
     L->>B: fetch(url, {credentials: include})
-    B->>B: get_user_from_request - NIP-98 or Bearer session<br/>solid_proxy_handler.rs:1392-1444
+    B->>B: get_user_from_request - NIP-98 first, else the legacy Bearer session<br/>solid_proxy_handler.rs:1392-1447
+    Note over B: the Bearer fallback calls NostrService.get_session, which returns None for every token unless<br/>VISIONCLAW_LEGACY_SESSIONS is 1 or true (read once at construction, default off, ADR-2009 amendment)<br/>so by default only a NIP-98 Authorization: Nostr header authenticates here<br/>solid_proxy_handler.rs:1442 nostr_service.rs:115,175,611-614
     B->>B: ensure_pod_exists(npub, pubkey, pod_base_url)<br/>solid_proxy_handler.rs:1148
     alt pod already exists
         B-->>L: 200 {pod_url, webid, created:false, structure}
@@ -488,7 +490,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main.rs (solid-pod-embed)<br/>main.rs:888
+    participant M as main.rs (solid-pod-embed)<br/>main.rs:909
     participant SB as spawn_boot_pull<br/>ontology_pull.rs:389
     participant PO as pull_once<br/>ontology_pull.rs:295
     participant GH as GitHub release<br/>ontology-latest (DEFAULT_RELEASE_URL, ontology_pull.rs:42)

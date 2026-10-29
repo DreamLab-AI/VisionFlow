@@ -6,7 +6,7 @@ governing:
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/docs/DATA-authority-erasure.md
   - ../project/agentbox/docs/INGRESS-identity.md
-adrs: [solid-pod-rs:ADR-2008, nostr-rust-forum:ADR-2012, agentbox:ADR-2096, agentbox:ADR-2099, agentbox:ADR-2102, visionclaw:ADR-2111, visionclaw:ADR-2015, visionclaw:ADR-2016, visionclaw:ADR-2017, visionclaw:ADR-2064, visionclaw:ADR-2068, visionclaw:ADR-2106, agentbox:ADR-2064]
+adrs: [solid-pod-rs:ADR-2008, agentbox:ADR-2145, visionflow:ADR-2019, nostr-rust-forum:ADR-2012, agentbox:ADR-2096, agentbox:ADR-2099, agentbox:ADR-2102, visionclaw:ADR-2111, visionclaw:ADR-2015, visionclaw:ADR-2016, visionclaw:ADR-2017, visionclaw:ADR-2064, visionclaw:ADR-2068, visionclaw:ADR-2106, agentbox:ADR-2064]
 sources:
   - ../project/Cargo.toml
   - ../project/src/handlers/solid_proxy_handler.rs
@@ -19,6 +19,10 @@ sources:
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/docker-compose.solid-pods.yml
   - ../project/agentbox/docs/user/solid-pod.md
+  - ../project/agentbox/lib/solid-pod-rs.nix
+  - ../project/agentbox/docs/BASELINE-container.md
+  - ../project/agentbox/docs/adr/ADR-2145-the-solid-pod-forge-and-mirror-are-compiled-in-and-inert-until-named.md
+  - docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md
   - ../project/agentbox/docs/user/multi-user-pods.md
   - ../project/agentbox/management-api/lib/pod-signer.js
   - ../project/agentbox/management-api/lib/elevation-publisher.js
@@ -37,24 +41,24 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../project/agentbox/docs/adr/ADR-2099-the-chain-is-the-ledger-of-record.md
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
-verified_commit: {visionclaw: af3dff3f25300cf12bceda5650688ec223270eca, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, solid-pod-rs: 93e2200218fad37927df16a1b7784c93c475670d, nostr-rust-forum: 72463fbde35ac4c68539b1f65a08ff03b9941201}
+verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9, solid-pod-rs: a4a86f6da300b529c7855318c24ff5c7b35ec582, nostr-rust-forum: 8a5cf817e81b20e2b761899eab753768c0cb4988}
 ---
 ## ES-08.1 Four coexisting Solid-pod deployments — topology contrast
 
 ```mermaid
 flowchart TB
     subgraph VC["VisionClaw process — single binary"]
-        FLAG{{"cargo feature #quot;solid-pod-embed#quot;<br/>in default at Cargo.toml:256, declared :287 (default ON)"}}
+        FLAG{{"cargo feature #quot;solid-pod-embed#quot;<br/>in default at Cargo.toml:278, declared at Cargo.toml:309 (default ON)"}}
         EMB["solid_proxy_handler.rs<br/>handle_solid_proxy:311"]
-        STUB["no routes registered at all<br/>configure_routes twin, solid_proxy_handler.rs:1818-1820"]
+        STUB["no routes registered at all<br/>configure_routes twin, solid_proxy_handler.rs:1820-1824"]
         FLAG -->|"feature ON"| EMB
         FLAG -->|"feature OFF"| STUB
     end
 
     subgraph AB["agentbox container — supervised service"]
-        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2601"]
-        SRV["solid-pod-rs-server  port 8484<br/>agentbox/agentbox.toml:522-523"]
-        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2618"]
+        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2679"]
+        SRV["solid-pod-rs-server  port 8484<br/>agentbox/agentbox.toml:539-540"]
+        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2696"]
         SUP -->|"exec solidPodRsLauncher"| SRV
         HTTPS -->|"TLS terminate to  port 8484"| SRV
     end
@@ -71,7 +75,7 @@ flowchart TB
     MGMT["management-api adapters/pods/local-solid-rs.js<br/>DEFAULT_BASE is loopback port 8484"] -->|"HTTP LDP"| SRV
     CLIENTB["client SolidPodService.ts<br/>SOLID_POD_BASE_URL=/solid"] -->|"proxied #quot;/solid/*#quot;"| EMB
 
-    NOTE1["DIVERGENCE: docker-compose.solid-pods.yml is only the Cloudflare<br/>Tunnel sidecar for THIS SAME port 8484 server (deployment 2) - solid-pod.md:253-255.<br/>It is not a separate multi-user pods deployment. Multi-user pods<br/>(agentbox/docs/user/multi-user-pods.md) is a design scaffold, defaults<br/>off, targets this same server via admin-users.js - see ES-08.5"]
+    NOTE1["DIVERGENCE: docker-compose.solid-pods.yml is only the Cloudflare<br/>Tunnel sidecar for THIS SAME port 8484 server (deployment 2) - docker-compose.solid-pods.yml:1-7.<br/>It is not a separate multi-user pods deployment. Multi-user pods<br/>(agentbox/docs/user/multi-user-pods.md) is a design scaffold, defaults<br/>off, targets this same server via admin-users.js - see ES-08.5"]
     NOTE2["DIVERGENCE: sources-of-truth conflict (legacy) - Pod claims<br/>write-master for some agent state while Oxigraph, GitHub public::true<br/>and RuVector claim primacy elsewhere per docs/DATA-authority-erasure.md<br/>Known divergences and open items; legacy prose unreconciled, not authority"]
     NOTE3["_solid-http-base.js:11-12 — this base class was renamed from<br/>local-jss.js after the Python/JSS stub was retired 2026-04-25;<br/>wire contract is protocol-level Solid, not JSS-specific"]
 ```
@@ -174,7 +178,7 @@ sequenceDiagram
     participant WAC as evaluate_access<br/>solid_pod_rs::wac (imported line 55)
     participant FS as FsBackend storage
 
-    C->>H: GET /solid/{tail:.*} solid_proxy_handler.rs:1792
+    C->>H: GET /solid/{tail:.*} solid_proxy_handler.rs:1795
     H->>AUTH: authenticate_request(req) line 325
     AUTH->>AUTH: extract_user_identity, parse NIP-98 Authorization header
     alt NIP-98 present and valid
@@ -205,7 +209,7 @@ sequenceDiagram
         H-->>C: 403 WAC denies access_mode access to path lines 358-364
     end
 
-    Note over H: RESOLVED ADR-2067 — the cfg(not(solid-pod-embed)) 503 stub twins are GONE<br/>(solid_proxy_handler.rs:1807-1817). With the feature off,<br/>configure_routes registers NO /solid routes at all (:1818-1820), so an<br/>unfeatured build 404s at the router rather than 503ing in a handler. see ES-08.1
+    Note over H: RESOLVED ADR-2067 — the cfg(not(solid-pod-embed)) 503 stub twins are GONE<br/>(solid_proxy_handler.rs:1810-1819). With the feature off,<br/>configure_routes registers NO /solid routes at all (:1820-1824), so an<br/>unfeatured build 404s at the router rather than 503ing in a handler. see ES-08.1
     Note over ACL,FS: WAC resource-specific ACL, containers use dir slash dot acl,<br/>non-containers use resource dot acl WAC spec section 4.1, falls back to<br/>parent-container acl then root acl, solid_proxy_handler.rs:891-931
 ```
 
@@ -247,8 +251,8 @@ sequenceDiagram
         R-->>CL: 201, PodStructure, created=true
     end
 
-    Note over AU: Separate agentbox-side path (management-api), same solid-pod-rs<br/>server, different call: AU calls POST /_admin/provision/pubkey on<br/>solid-pod-rs-server, PSK-gated by SOLID_ADMIN_KEY admin-users.js:28-35
-    Note over AU: DOC-DRIFT: agentbox/docs/user/multi-user-pods.md says these<br/>lifecycle endpoints return 501 Not Implemented in the scaffold release.<br/>Code lands POST /admin/users/provision fully admin-users.js:137-186,<br/>201 with pod_url/web_id/git_url. Only suspend line 229-242 and<br/>archive line 245-258 still return 501, per code, not per the doc claim
+    Note over AU: Separate agentbox-side path (management-api), same solid-pod-rs<br/>server, different call: AU calls POST /_admin/provision/pubkey on<br/>solid-pod-rs-server, PSK-gated by SOLID_ADMIN_KEY admin-users.js:29-32
+    Note over AU: DOC-DRIFT: agentbox/docs/user/multi-user-pods.md says these<br/>lifecycle endpoints return 501 Not Implemented in the scaffold release.<br/>Code lands POST /admin/users/provision fully admin-users.js:138-194,<br/>201 with pod_url/web_id/git_url. Only suspend line 230-244 and<br/>archive line 246-260 still return 501, per code, not per the doc claim
     Note over AU: sovereign_mesh.multi_user defaults off agentbox.toml comment<br/>block near line 32, git auto_init true wires a git repo per pod<br/>ensurePodGit admin-users.js when GIT_POD_ENABLED not false
 ```
 
@@ -303,7 +307,7 @@ sequenceDiagram
 
     Note over H: Non-destructive PATCH is LANDED at the embedded VisionClaw path,<br/>not an open item: N3 Patch and SPARQL-Update apply against a parsed<br/>RDF graph rather than a whole-resource overwrite<br/>solid_proxy_handler.rs:44-48,797-798
     Note over C,FS: JSON Patch dialect is accepted by patch_dialect_from_mime<br/>but rejected for existing RDF resources line 799-805, only usable<br/>via apply_patch_to_absent on a not-yet-existing resource
-    Note over H: agentbox/docs/user/solid-pod.md:41 PATCH dialects table<br/>N3 Patch, SPARQL-Update, JSON Patch matches this handler's dialect set
+    Note over H: agentbox/docs/user/solid-pod.md:56 PATCH dialects table<br/>N3 Patch, SPARQL-Update, JSON Patch matches this handler's dialect set
 ```
 
 ## ES-08.7 Client pod resource model
@@ -445,7 +449,7 @@ flowchart LR
     JSS -.->|"retired from the agentbox runtime 2026-04-25,<br/>then DELETED from the repo by ADR-2068"| RUST
 
     NOTE1["_solid-http-base.js:11-12, this client base class was<br/>previously named local-jss.js after the legacy JSS stub,<br/>retired 2026-04-25, renamed since the wire contract is<br/>protocol-level Solid not JSS-specific"]
-    NOTE2["agentbox/docs/user/solid-pod.md:58-60, the 2026-04-25<br/>cleanup removed the Python local-jss stub entirely,<br/>either local-solid-rs, external, or off - no second<br/>pod implementation ships in agentbox"]
+    NOTE2["agentbox/docs/user/solid-pod.md:73-75, the 2026-04-25<br/>cleanup removed the Python local-jss stub entirely,<br/>either local-solid-rs, external, or off - no second<br/>pod implementation ships in agentbox"]
     NOTE3["RESOLVED ADR-2068 (vc-knowledge, 2026-09-05) — the directory is<br/>GONE from the working tree, not archived. It was a vendored copy of a<br/>third-party project, wired into no supervised process in either repo,<br/>and superseded by solid-pod-rs on both deployment paths. This diagram<br/>is retained as the record of what was removed and why."]
 ```
 
@@ -453,7 +457,7 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as "server boot (solid-pod-embed)"<br/>src/main.rs:896
+    participant M as "server boot (solid-pod-embed)"<br/>src/main.rs:917
     participant SP as spawn_boot_pull<br/>src/services/ontology_pull.rs:389
     participant CFG as OntologyPullConfig::from_env<br/>src/services/ontology_pull.rs:80
     participant P1 as pull_once<br/>src/services/ontology_pull.rs:295
@@ -515,3 +519,27 @@ flowchart TB
     THREE["DIVERGENCE — this is one of THREE unsynced did:nostr-keyed sats<br/>ledgers, and the pod's is the one the chain-view work starts<br/>from. agentbox/docs/proposals/sovereign-settlement.md:61. see ES-03.12"]
     CRYPTO --> THREE
 ```
+
+## ES-08.13 Forge and mirror in the native pod — compiled in, inert until named (ADR-2145)
+
+```mermaid
+flowchart TB
+    PIN["native pod built from a pinned source revision,<br/>forge-full unless the forge block sets enable false<br/>agentbox/flake.nix:1563, agentbox/lib/solid-pod-rs.nix:54"]
+    SRV["solid-pod-rs-server under supervisord, port 8484<br/>--public-base-url from SOLID_POD_PUBLIC_URL, --trust-proxy by default<br/>agentbox/flake.nix:1643-1644"]
+    FORGE["git forge under /forge, NIP-34 publisher,<br/>forge-held anchoring, kind-30618 mirror — started at boot<br/>agentbox/agentbox.toml:604-608"]
+    OFF["defaults: open_edit false, allow_mainnet false, private_repos false,<br/>mirror_follow empty, announce_relays empty<br/>agentbox/agentbox.toml:610-623"]
+    ENV["extra relays and follow entries belong in the root .env,<br/>not the tracked manifest<br/>agentbox/agentbox.toml:624-626"]
+    PIN --> SRV --> FORGE
+    FORGE --> OFF
+    ENV -.->|"names what the mirror follows"| FORGE
+    NOANCHOR["INVARIANT: the forge never broadcasts or spends<br/>agentbox/agentbox.toml:609"]
+    FORGE --> NOANCHOR
+```
+
+**What it shows:** the native pod of ES-08.1 deployment 2 now carries a git forge and a kind-30618 mirror that start with the server and do nothing external until the owner names relays and follow entries.
+
+**Why it is this way:** VisionFlow ADR-2019 decided that shipped pods run the forge and mirror with open edit, mainnet and any follow list opt-in, and agentbox ADR-2145 compiled it in behind the manifest block rather than a separate service.
+
+**Tension (agentbox ADR-2145 vs BASELINE-container):** the ADR records `activation_status: live` (`../project/agentbox/docs/adr/ADR-2145-the-solid-pod-forge-and-mirror-are-compiled-in-and-inert-until-named.md:7`), while the baseline still says the forge and mirror are "Staged until the image is rebuilt" (`../project/agentbox/docs/BASELINE-container.md:243-244`); VisionFlow's own record for the same decision is `activation_status: inactive` (`docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:7`).
+
+**Drift:** agentbox's pod guide says the image pins `solid-pod-rs` 0.5.0-alpha.13 (`../project/agentbox/docs/user/solid-pod.md:37`) while the Nix derivation pins v0.5.0-alpha.17 (`../project/agentbox/lib/solid-pod-rs.nix:54`), and VisionClaw's embedded dependency is `0.5.0-alpha.17` (`../project/Cargo.toml:245`), so the three deployments on this page now share one release the guide does not name.

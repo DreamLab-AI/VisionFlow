@@ -19,7 +19,7 @@ sources:
   - ../project/agentbox/management-api/routes/kg-elevation.js
   - ../project/agentbox/management-api/lib/ontology-propose.js
   - ../project/agentbox/management-api/lib/elevation-stage.js
-verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
+verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
 ---
 
 ## AB-17.1 The agent-event wire envelope — single canonical builder
@@ -89,8 +89,8 @@ sequenceDiagram
     autonumber
     participant C as caller
     participant RT as emit route<br/>agentbox/management-api/routes/agent-events.js:313
-    participant AEA as verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:108
-    participant RSU as reconcileSourceUrn<br/>agentbox/management-api/lib/agent-event-auth.js:169
+    participant AEA as verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:135
+    participant RSU as reconcileSourceUrn<br/>agentbox/management-api/lib/agent-event-auth.js:196
     participant PUB as emitAgentAction<br/>agentbox/management-api/utils/agent-event-publisher.js:50
     participant TAX as failure-taxonomy classify<br/>agentbox/management-api/lib/failure-taxonomy.js
     participant BUF as eventBuffer ring (cap 1000)
@@ -98,7 +98,7 @@ sequenceDiagram
 
     C->>RT: POST /v1/agent-events/emit {source_agent_id, action_type, source_urn?, target_urn?, ...}
     RT->>AEA: verifyAgentEventRequest(request) (agent-events.js:365)
-    Note over AEA: DRIFT (resolved 2026-10-12, agentbox main b9e0ea9a8): the proxy-stamped<br/>X-Agentbox-Pubkey branch now needs a loopback TCP peer, at the stamp<br/>any MANAGEMENT_API_KEY holder on the docker network could assert it, see AB-11.14
+    Note over AEA: INVARIANT: the proxy-stamped X-Agentbox-Pubkey branch counts only from a loopback TCP peer, peerIsProxy at<br/>agent-event-auth.js:98-105, checked first in proxyVerifiedPubkey at agent-event-auth.js:117, called at<br/>agent-event-auth.js:184, see AB-11.14
     alt auth.ok false
         AEA-->>RT: {ok false, status, error}
         RT-->>C: reply.code(auth.status) {success false, error, ...tag} (agent-events.js:371)
@@ -123,7 +123,7 @@ sequenceDiagram
         PUB->>TAX: taxonomy.classify(ctx)
         TAX-->>PUB: failure_mode
         PUB->>PUB: mirror the SAME tag into metadata.failure_mode
-        Note over PUB,TAX: agent-event-publisher.js comment — "keep the mirror consistent with the canonical field so a consumer that reads either location sees the SAME tag (the disagreement is the bug)"
+        Note over PUB,TAX: agent-event-publisher.js comment — "keep the mirror consistent with the canonical field so a consumer that<br/>reads either location sees the SAME tag (the disagreement is the bug)"
     end
     rect rgb(255,248,235)
     Note over PUB: ENVIRONMENT FALLBACK — attribution by default
@@ -134,17 +134,17 @@ sequenceDiagram
         PUB->>PUB: pubkey = AGENTBOX_DID or null
     end
     end
-    Note over PUB: DOC-DRIFT — ADR-2044 flipped the module default to 'nip98' (agent-event-auth.js:66) — 'off' is now an explicit dev-only opt-in, not the default.<br/>DIVERGENCE — when AGENTBOX_AGENT_EVENT_AUTH='off' is explicitly selected, this env fallback still stamps the CONTAINER identity<br/>on an event any caller could have raised. Attribution is then plausible, not provable. see AB-11.14
+    Note over PUB: DOC-DRIFT — ADR-2044 flipped the module default to 'nip98' (agent-event-auth.js:66) — 'off' is now an explicit<br/>dev-only opt-in, not the default.<br/>DIVERGENCE — when AGENTBOX_AGENT_EVENT_AUTH='off' is explicitly selected, this env fallback still stamps the<br/>CONTAINER identity<br/>on an event any caller could have raised. Attribution is then plausible, not provable. see AB-11.14
     PUB->>BUF: eventBuffer.push then shift() past 1000
     PUB->>WS: notify every subscriber via createMcpNotification. see AB-17.1
     RT-->>C: 2xx
-    Note over RT,BUF: ADR-2026 — GET /v1/agent-events?id=<ref> for a BARE NUMERIC id stays process-local (resolved only against the in-memory ring, never the durable archive, because ids restart at 1 per process)<br/>a non-numeric urn reference additionally falls back to the durable agent-event-archive before returning 404 (agent-events.js:216-251). Route table for the whole surface: AB-03.9.
-    Note over RT,AEA: POST /v1/agent-events/batch verifies auth ONCE for the whole batch (agent-events.js:469) but reruns reconcileSourceUrn PER ITEM inside the loop (agent-events.js:481), so a mixed batch cannot smuggle one mis-attributed event past a single header check.
+    Note over RT,BUF: ADR-2026 — GET /v1/agent-events?id=<ref> for a BARE NUMERIC id stays process-local (resolved only against the<br/>in-memory ring, never the durable archive, because ids restart at 1 per process)<br/>a non-numeric urn reference additionally falls back to the durable agent-event-archive before returning 404<br/>(agent-events.js:216-251). Route table for the whole surface: AB-03.9.
+    Note over RT,AEA: POST /v1/agent-events/batch verifies auth ONCE for the whole batch (agent-events.js:469) but reruns<br/>reconcileSourceUrn PER ITEM inside the loop (agent-events.js:481), so a mixed batch cannot smuggle one<br/>mis-attributed event past a single header check.
 ```
 
-**Drift (resolved 2026-10-12, agentbox main b9e0ea9a8):** "source_urn becomes provable" holds for the signature path unconditionally, but for the NIP-07 session and break-glass hop it rested on the proxy-stamped header, which at the stamp any `MANAGEMENT_API_KEY` holder on the docker network could forge (`agentbox/management-api/lib/agent-event-auth.js:31-39`, `agentbox/management-api/lib/agent-event-auth.js:157-160`). On agentbox `main` the header is honoured only from a loopback peer (`peerIsProxy`, `AGENTBOX_PROXY_PEERS` overrides), so `reconcileSourceUrn` now reconciles against an identity a cross-container caller cannot assert.
+**Invariant:** the proxy-stamped `X-Agentbox-Pubkey` is read only when the TCP peer is the proxy: `proxyVerifiedPubkey` returns null unless `peerIsProxy` holds, which accepts `127.0.0.1`, `::1` and `::ffff:127.0.0.1` or the exact addresses in `AGENTBOX_PROXY_PEERS`, and refuses a request with no socket information (`agentbox/management-api/lib/agent-event-auth.js:98-105`, `agentbox/management-api/lib/agent-event-auth.js:117`). A `MANAGEMENT_API_KEY` holder on the docker network reaches the port because `server.js` binds `0.0.0.0`, but its forged header is ignored, so `reconcileSourceUrn` reconciles against an identity a cross-container caller cannot assert (`agentbox/management-api/lib/agent-event-auth.js:34-39`, `agentbox/management-api/lib/agent-event-auth.js:184-187`).
 
-**Debt:** a process inside the container can still forge it over loopback (the same-UID boundary, TODO-unified X-1), so under path 2 provenance is bounded by that boundary (`agentbox/management-api/lib/agent-event-auth.js:157-160`).
+**Debt:** a process inside the container can still forge it over loopback (the same-UID boundary, TODO-unified X-1), so under path 2 provenance is bounded by that boundary (`agentbox/management-api/lib/agent-event-auth.js:37-39`).
 
 ## AB-17.4 BC20 kind map — the closed cross-namespace contract
 

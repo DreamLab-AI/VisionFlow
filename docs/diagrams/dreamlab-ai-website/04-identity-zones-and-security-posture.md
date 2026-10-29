@@ -4,7 +4,7 @@ title: Identity, zones and security posture
 area: dreamlab-ai-website
 governing:
   - ../dreamlab-ai-website/docs/IDENTITY-zones.md
-adrs: [ADR-2006, ADR-2007, ADR-2008]
+adrs: [ADR-2006, ADR-2007, ADR-2008, ADR-2011]
 sources:
   - ../dreamlab-ai-website/docs/IDENTITY-zones.md
   - ../dreamlab-ai-website/docs/security/SECURITY_OVERVIEW.md
@@ -12,44 +12,51 @@ sources:
   - ../dreamlab-ai-website/src/lib/nostr.ts
   - ../dreamlab-ai-website/src/components/AIChatFab.tsx
   - ../dreamlab-ai-website/forum-config/deploy/search-worker.wrangler.toml
-verified_commit: 2e358bb6c47dad3130bbfea8a73278cfbea1157c
+  - ../dreamlab-ai-website/docs/adr/ADR-2011-website-information-identity.md
+  - ../dreamlab-ai-website/.github/workflows/deploy.yml
+  - ../dreamlab-ai-website/scripts/lib/website-info.mjs
+  - ../dreamlab-ai-website/scripts/seed/provision-website-info.mjs
+  - ../dreamlab-ai-website/forum-config/dreamlab.toml
+verified_commit: 3afa374f5957027213471f2429c7ba26996b0744
 ---
 
 ## DW-04.1 Identity is raw-hex Schnorr, not a DID document
 ```mermaid
 flowchart TB
     KEY["64-hex secp256k1 pubkey<br/>the only identity shape in the shipped surface"] --> GEN["getPublicKey(sk)<br/>src/lib/nostr.ts:98"]
-    KEY --> AUTH["finalizeEvent({kind: KIND_NIP42_AUTH})<br/>src/lib/nostr.ts:31, 279-281, 636-638, 785-787"]
+    KEY --> AUTH["finalizeEvent({kind: KIND_NIP42_AUTH})<br/>src/lib/nostr.ts:31, 279-281, 684-686, 849-851"]
     AUTH --> CHALLENGE["NIP-42 relay-challenge AUTH events<br/>kind 22242, NOT NIP-98"]
     NEG["grep -c 'NIP-98' src/lib/nostr.ts -> 0"] -.-> CHALLENGE
     KEY --> METHODS["auth methods offered by the upstream kit:<br/>WebAuthn PRF passkeys, NIP-07 extension, raw private key"]
     METHODS --> KEY
 ```
-- INVARIANT (`IDENTITY-zones.md:161-163`): identity in the shipped surface is the raw 64-hex secp256k1 pubkey; any move to emit or require a Multikey/DID document is a code change and a new ADR, not a docs edit.
+- INVARIANT (`IDENTITY-zones.md:175-177`): identity in the shipped surface is the raw 64-hex secp256k1 pubkey; any move to emit or require a Multikey/DID document is a code change and a new ADR, not a docs edit.
 - DOC-DRIFT within this repo's OWN docs: `docs/security/AUTHENTICATION.md` (`## NIP-98 HTTP Authentication`, line 200) documents NIP-98 as the upstream kit auth-worker's HTTP-API scheme (passkey/session auth to REST endpoints) — a genuinely different protocol from the NIP-42 relay-challenge flow this repo's own `src/lib/nostr.ts` implements for DM transport. `IDENTITY-zones.md:34-35`'s claim that "the string NIP-98 appears nowhere in nostr.ts" is true and specific to that one file; it does not mean NIP-98 is absent from the deployed system.
-- DIVERGENCE: legacy ADR-027's `did:nostr`/Multikey document form is docs-only — `fe70102` is not a commit hash, it is the Multikey encoding prefix itself (base16-multibase `f` + secp256k1-pub multicodec varint `e701` + compressed-point `02`, `IDENTITY-zones.md:46-49`); the two commits that landed it (`d62ab40`, `8d942d7`) touched only docs and JSON-LD, and the binding spec they cite (`ADR-125-did-nostr-multikey-convergence.md`) does not exist in this repo — it is kit-owned. ADR-027 is archived as "Deferred — kit-owned" (`IDENTITY-zones.md:56`); treat any claim that this repo emits `did:nostr` Multikey documents as false until a code path produces one (`IDENTITY-zones.md:148-150`).
+- DIVERGENCE: legacy ADR-027's `did:nostr`/Multikey document form is docs-only — `fe70102` is not a commit hash, it is the Multikey encoding prefix itself (base16-multibase `f` + secp256k1-pub multicodec varint `e701` + compressed-point `02`, `IDENTITY-zones.md:46-49`); the two commits that landed it (`d62ab40`, `8d942d7`) touched only docs and JSON-LD, and the binding spec they cite (`ADR-125-did-nostr-multikey-convergence.md`) does not exist in this repo — it is kit-owned. ADR-027 is archived as "Deferred — kit-owned" (`IDENTITY-zones.md:56`); treat any claim that this repo emits `did:nostr` Multikey documents as false until a code path produces one (`IDENTITY-zones.md:162-164`).
 
 ## DW-04.3 Talk-to-AI — client-side Nostr DM, not an HTTP chat endpoint
 ```mermaid
 sequenceDiagram
     autonumber
     participant U as visitor (browser)
-    participant FAB as AIChatFab<br/>src/components/AIChatFab.tsx:443 sendQuestion
-    participant DM as DmSession<br/>src/lib/nostr.ts:452
+    participant FAB as AIChatFab<br/>src/components/AIChatFab.tsx:445 sendQuestion
+    participant DM as DmSession<br/>src/lib/nostr.ts:486
     participant W as nip17.wrapEvent<br/>src/lib/nostr.ts:196
     participant R as VITE_RELAY_URL<br/>publishGiftWrap, src/lib/nostr.ts:225
     participant OPEN as open relays<br/>VITE_REPLY_RELAYS: relay.damus.io, relay.primal.net
     U->>FAB: submits question
-    FAB->>FAB: encodeQuestion({requestId, question, tier, identityHint: pubkey})<br/>AIChatFab.tsx:428-434
-    Note right of FAB: identityHint is EXPLICITLY UNVERIFIED —<br/>no proof of possession, DM rides the ephemeral<br/>session key (AIChatFab.tsx:429-430 comment)
-    FAB->>DM: session.sendQuestion(payload, JARVIS_PUBKEY)<br/>AIChatFab.tsx:443
+    FAB->>FAB: encodeQuestion({requestId, question, tier, identityHint: pubkey})<br/>AIChatFab.tsx:435-441
+    Note right of FAB: identityHint is EXPLICITLY UNVERIFIED —<br/>no proof of possession, DM rides the ephemeral<br/>session key (AIChatFab.tsx:431-432 comment)
+    FAB->>DM: session.sendQuestion(payload, JARVIS_PUBKEY)<br/>AIChatFab.tsx:445
     DM->>W: wrap kind-14 rumor to VITE_JARVIS_PUBKEY<br/>src/lib/nostr.ts:137,196
     W->>R: publish kind-1059 gift wrap<br/>resolves on relay OK-true only, never rejects
     Note right of R: primary relay's whitelist gate rejects<br/>kind-1059 addressed to the ephemeral session key
+    R-->>DM: OK-true for the question
+    DM->>R: publishMonitorCopy: second wrap to VITE_MONITOR_PUBKEY,<br/>best-effort, only after OK-true<br/>src/lib/nostr.ts:352, 729-741
     OPEN--)FAB: reply readable only from open relays<br/>the agent (junkiejarvis) also publishes to
 ```
-- INVARIANT (`IDENTITY-zones.md:168-169`): the Talk-to-AI reply-relay set must remain a subset of the agent's own publish fan-out, or replies are never seen.
-- `AIChatFab.tsx`'s own closeout comment flags what is NOT yet built: "the DM transport carries no protocol-level correlation" for request/reply matching — a late answer to a timed-out question can otherwise read as the answer to whatever was asked most recently (`ChatMessage.lateForQuestion`, `AIChatFab.tsx:9-19`); the estate closeout note (`IDENTITY-zones.md:189`) calls this out explicitly: "Preserve sender verification while adding request/reply correlation and verifying real agent fan-out."
+- INVARIANT (`IDENTITY-zones.md:182-183`): the Talk-to-AI reply-relay set must remain a subset of the agent's own publish fan-out, or replies are never seen.
+- `AIChatFab.tsx`'s own closeout comment flags what is NOT yet built: "the DM transport carries no protocol-level correlation" for request/reply matching — a late answer to a timed-out question can otherwise read as the answer to whatever was asked most recently (`ChatMessage.lateForQuestion`, `AIChatFab.tsx:9-19`); the estate closeout note (`IDENTITY-zones.md:208`) calls this out explicitly: "Preserve sender verification while adding request/reply correlation and verifying real agent fan-out."
 
 ## DW-04.4 NIP-42 AUTH — lazy challenge-response on publish
 ```mermaid
@@ -103,3 +110,16 @@ flowchart TB
     SSRF["Preview-worker SSRF guard: http/https only,<br/>RFC1918/loopback/link-local/169.254.169.254 blocked,<br/>hex/int IP obfuscation blocked, 3-hop redirect cap,<br/>1MB response cap, 5s timeout<br/>SECURITY_OVERVIEW.md:233"]
 ```
 - Source: `docs/security/SECURITY_OVERVIEW.md` Relay/Auth-worker/Pod-worker Limits tables (`:197-231`) and SSRF Protection section (`:233`) — these limits are enforced in the upstream kit's worker source (cloned at `KIT_REF`, not vendored in this repo), so this diagram documents the operator-visible contract rather than code this repo owns.
+
+## DW-04.9 The website-info identity — labelled, never privileged (ADR-2011)
+```mermaid
+flowchart TB
+    KEY["monitor key 4ed429aa...aad7<br/>VITE_MONITOR_PUBKEY, .github/workflows/deploy.yml:80"] --> COPY["receives every contact, signup and chat copy<br/>publishMonitorCopy, src/lib/nostr.ts:352"]
+    KEY --> ROSTER["[[agents]] website-info with cohorts = []<br/>forum-config/dreamlab.toml:407-412"]
+    KEY --> INGRESS["[[ingress]] role copy, admitted with no whitelist row<br/>forum-config/dreamlab.toml:435-440"]
+    KEY --> REG["agent_registry row via register, not provision<br/>scripts/seed/provision-website-info.mjs:102"]
+    REG --> GUARD["privilegeProblem refuses any cohort or admin right<br/>scripts/lib/website-info.mjs:100-109"]
+```
+- ADR-2011 decides the key is named but unprivileged because the `agent` cohort would receive the zone4 key (`docs/adr/ADR-2011-website-information-identity.md:35-37`); the relay reads only wraps addressed to the viewer, which is why a co-recipient copy exists rather than a second look at the admin's (`src/lib/nostr.ts:342-347`).
+- **Open:** the registry's `registered_by` is the agentbox operator key that signs the registration while the roster says `operator-jjohare`; ADR-2011 leaves that gap open until the kit exports config to the registry (`docs/adr/ADR-2011-website-information-identity.md:56-57`).
+- **Debt:** the registry row and the whitelist row are both lost on `POST /api/admin/reset-db`, and only the nightly watch reports it (`docs/adr/ADR-2011-website-information-identity.md:58`, `scripts/seed/provision-website-info.mjs:19-20`).

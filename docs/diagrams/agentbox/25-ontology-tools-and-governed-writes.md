@@ -10,6 +10,7 @@ sources:
   - ../project/agentbox/scripts/ontology-condense-scheduler.mjs
   - ../project/agentbox/scripts/ontology-condense-refresh.sh
   - ../project/agentbox/config/hooks/ontology-monitor.cjs
+  - ../project/agentbox/config/hooks/lib/ontology-proposal-jev.cjs
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/flake.nix
   - ../project/agentbox/ontology/decision-layer.ttl
@@ -19,7 +20,7 @@ sources:
   - ../project/agentbox/services/agentbox-ops/src/voyager/mod.rs
   - ../project/agentbox/management-api/lib/uris.js
   - ../project/agentbox/management-api/lib/ontology-apply.js
-verified_commit: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987
+verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
 ---
 
 Note: `ontology-bridge.js`, `ontology-propose.js`, `ontology-local.cjs`, `ontology-authoring-authority.js`
@@ -39,24 +40,24 @@ sequenceDiagram
     participant OUT as condense output
     participant REF as ontology-condense-refresh.sh<br/>agentbox/scripts/ontology-condense-refresh.sh:105
     participant IDX as ontology-index-build.js
-    participant LLM as Loom facade<br/>agentbox/agentbox.toml:1029 — see AB-24
+    participant LLM as Loom facade<br/>agentbox/agentbox.toml:1093 — see AB-24
     participant RV as RuVector ns ontology-classes<br/>see AB-20
 
-    Note over SCH: supervised as [program:ontology-condense-scheduler] (agentbox/flake.nix:2362) — launched<br/>unconditionally, exits fast when its gate is off
-    loop tick — schedule_interval_mins 60, jittered plus or minus 20 percent (agentbox.toml:1042)
+    Note over SCH: supervised as [program:ontology-condense-scheduler] (agentbox/flake.nix:2440) — launched<br/>unconditionally, exits fast when its gate is off
+    loop tick — schedule_interval_mins 60, jittered plus or minus 20 percent (agentbox.toml:1106)
         SCH->>GATE: require BOTH ONTOLOGY_CONDENSE_ENABLED and ONTOLOGY_CONDENSE_SCHEDULE
         alt either off
             SCH-->>SCH: no-op — byte-identical-when-off until an operator opts in and the container reboots
         else both on
             SCH->>CORP: newest page mtime
             SCH->>OUT: last condense output mtime
-            alt corpus newer OR output missing OR older than schedule_max_age_hours 24 (agentbox.toml:1043)
+            alt corpus newer OR output missing OR older than schedule_max_age_hours 24 (agentbox.toml:1107)
                 SCH->>REF: exec the refresh
                 Note over REF: flock-serialised (ontology-condense-refresh.sh:57-59) — SKIPS if a refresh already holds<br/>the lock. Stages overwrite/resume deterministically, so the scheduler is idempotent
                 REF->>IDX: parse the corpus into classes (ontology-condense-refresh.sh:105,111)
-                loop each KG class, max_concurrency 2 (agentbox.toml:1032)
+                loop each KG class, max_concurrency 2 (agentbox.toml:1096)
                     REF->>LLM: POST /v1/chat/completions — one retrieval sentence + a synonym list<br/>(ontology-condense-refresh.sh:108)
-                    Note over LLM: model qwen3.8-27B style openai (agentbox.toml:1030-1031). The model runs BEHIND the Loom<br/>facade so it is swappable with zero change here
+                    Note over LLM: model qwen3.8-27B style openai (agentbox.toml:1094-1095). The model runs BEHIND the Loom<br/>facade so it is swappable with zero change here
                 end
                 REF->>OUT: PUSH Class-Summary cache
                 REF->>RV: condensed store ns ontology-classes
@@ -76,9 +77,10 @@ sequenceDiagram
     autonumber
     participant CC as Claude Code SessionEnd
     participant MON as ontology-monitor.cjs<br/>agentbox/config/hooks/ontology-monitor.cjs:1
-    participant CHILD as detached child<br/>ontology-monitor.cjs:250
+    participant CHILD as detached child<br/>ontology-monitor.cjs:258
     participant LOC as local ontology route<br/>VisionClaw-free
     participant ZAI as Z.AI GLM worker
+    participant JEV as Jev proposal verifier<br/>optional, off by default
     participant JSONL as ontology-proposals.jsonl<br/>AGENTBOX_STATE
     participant RELAY as forum broker gate<br/>Nostr relay
     participant H as Human approver
@@ -88,20 +90,25 @@ sequenceDiagram
     alt AGENTBOX_ONTOLOGY_MONITOR not 1, then no Z.AI key, then publish mode missing<br/>MANAGEMENT_API_KEY/NOSTR_RELAYS
         MON-->>CC: silent no-op — fail-open on any miss (:78-80)
     else all gates pass
-        alt AGENTBOX_ONTOLOGY_MONITOR_FOREGROUND not set (:237-239)
-            MON->>CHILD: spawn detached, own session, unref'd,<br/>stdin payload carried via env (:250-256)
-            MON-->>CC: exit at once — SessionEnd never waits on the review (:266)
+        alt AGENTBOX_ONTOLOGY_MONITOR_FOREGROUND not set (:245-247)
+            MON->>CHILD: spawn detached, own session, unref'd,<br/>stdin payload carried via env (:258-264)
+            MON-->>CC: exit at once — SessionEnd never waits on the review (:274)
             CHILD->>CHILD: gather the session's concept-bearing work
             CHILD->>LOC: match ontology concepts via the local route
             CHILD->>ZAI: ONE review call
             ZAI-->>CHILD: proposals where the corpus looks stale, wrong or missing
-            CHILD->>CHILD: drop proposals already in the seen-ledger (fingerprint dedup, :278-282)
+            CHILD->>CHILD: drop proposals already in the seen-ledger (fingerprint dedup, :287-289)
+            opt AGENTBOX_JEV_ONTOLOGY_PROPOSALS=1 (off by default)
+                CHILD->>JEV: ontology-proposal-jev.cjs verify — one request, every fresh proposal (ontology-proposal-jev.cjs:145)
+                JEV-->>CHILD: advisory verdicts to ontology-proposals-jev.jsonl, never inside the signed 31402 (ontology-monitor.cjs:296-299)
+                Note over CHILD,JEV: a proposal is held back into the local review queue only if<br/>AGENTBOX_JEV_PROPOSAL_HOLD_BELOW is set in 0 to 0.5 and supported is below it (ontology-proposal-jev.cjs:175-186).<br/>Jev unavailable means the proposals pass through unchanged (ontology-monitor.cjs:298)
+            end
             loop each fresh proposal
                 CHILD->>CHILD: build an ACSP ActionRequest kind 31402
                 alt AGENTBOX_ONTOLOGY_MONITOR_MODE = dryrun (the DEFAULT)
-                    CHILD->>JSONL: append — NO relay egress (:198-206)
+                    CHILD->>JSONL: append — NO relay egress (:195-204)
                 else mode = publish
-                    CHILD->>RELAY: publish the signed 31402 live (:208-233)
+                    CHILD->>RELAY: publish the signed 31402 live (:213-241)
                     RELAY->>H: forum approval
                     H-->>RELAY: kind 31403 approval — see AB-14
                 end

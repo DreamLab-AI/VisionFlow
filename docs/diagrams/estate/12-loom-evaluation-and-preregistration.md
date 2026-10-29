@@ -5,24 +5,27 @@ area: estate
 governing:
   - ../loom/docs/design/LOOM-POSITIONING.md
   - ../loom/docs/design/PRD-025-ontology-loom-and-connector-platform.md
-adrs: [loom:ADR-138, loom:ADR-139, loom:PRD-025, loom:PRD-028, agentbox:ADR-2023, agentbox:ADR-2084, agentbox:ADR-2095]
+adrs: [loom:ADR-138, loom:ADR-139, loom:ADR-140, loom:PRD-025, loom:PRD-028, agentbox:ADR-2023, agentbox:ADR-2084, agentbox:ADR-2095]
 sources:
   - ../loom/docs/design/PRD-028-does-loom-earn-its-complexity.md
   - ../loom/docs/design/PRD-025-ontology-loom-and-connector-platform.md
   - ../loom/docs/design/ADR-138-confidence-surfacing-contract.md
   - ../loom/docs/design/ADR-139-per-request-scaffold-opt-out.md
   - ../loom/docs/design/LOOM-POSITIONING.md
+  - ../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md
   - ../project/agentbox/skills/email-search/SKILL.md
-verified_commit: {loom: 37a320ce3f15787a1ee10fac0faae043ab1ac12e, agentbox: 3f05ae9e7ae13d103ad8d9fe06baed991fedb987, visionflow: 62d16e02fe3bdd5551e4433b2d42552ec93adb12}
+verified_commit: {loom: 2fad3e085c3807a1effbf724d4f31fc6ea05a0f9, agentbox: 1da8d21719a27394f190866223b88533b52d87f9, visionflow: 1d7183a73c1eae4996a7006067d5047308fab7a5}
 ---
 
 ## For developers
 
 PRD-028 is a preregistration, not a result. It fixes, in advance, what the Loom would have to
 show to keep its structured serving path, and the conditions under which it would be judged not
-to earn its complexity. Read the records before you read a benchmark number: the only measured
+to earn its complexity. Read the records before you read a benchmark number: the only powered measured
 verdicts the estate holds are the three in PRD-025 §3.1, and the later addendum re-centres what
-the headline figure means. The study itself has not been run, but Phase 0 is no longer empty:
+the headline figure means. One further directional result exists: a 40-question pilot run on
+2026-10-13 under loom ADR-140, which its own note says is not PRD-028's powered design
+(`../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md:640`); it is drawn in ES-12.8. The study itself has not been run, but Phase 0 is no longer empty:
 a 2026-10-02 disposition on the PRD records the visionGraph strata inventoried with
 reproducible counts, the pilot floor NOT met from that source, and the remaining inventory
 (owner-gated estate operational records) still to do
@@ -243,3 +246,27 @@ flowchart TB
     CAVEAT["DOC-DRIFT the record flags against itself — privateness alone does<br/>not prove absence from training, and poor closed-book performance<br/>does not prove absence either.<br/>PRD-028-does-loom-earn-its-complexity.md:45"]
     CLAIM --> CAVEAT
 ```
+
+## ES-12.8 The ADR-140 P1 pilot — a directional result outside the preregistered design
+
+```mermaid
+flowchart TB
+    PLAN["ADR-140 phase P1 'measure': arms 3 and 4 on the pilot corpus,<br/>to start only after the planning cycle exits<br/>../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md:449,628"]
+    DEC["2026-10-13 operator decision: run it now as a small directional pilot,<br/>no rationale asserted<br/>../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md:638"]
+    RUN["40 questions, arm 3 against arm 4 through the one door,<br/>preregistered in bench/p1-pilot/PREREGISTRATION.md<br/>../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md:640"]
+    COST["cost: arm 4 uses 4 to 7 times arm 3's tokens on lookup and cross,<br/>about twice on path<br/>../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md:640"]
+    QUAL["quality: lookup tied 0.93 vs 0.94, cross tied at a 1.00 ceiling,<br/>path 0.90 vs 0.50 for arm 4, clustered CI plus 0.06 to plus 0.67<br/>pooled plus 0.11, CI includes zero<br/>../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md:640"]
+    CAVEAT["caveats: gold derived from the tool under test, arm 3 truncated<br/>on 6 of 10 path answers, not PRD-028's powered design,<br/>status stays Proposed<br/>../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md:640"]
+    PLAN --> DEC --> RUN
+    RUN --> COST
+    RUN --> QUAL
+    QUAL --> CAVEAT
+```
+
+**What it shows:** the only post-PRD-025 measurement the Loom repository holds. It compares static scaffold injection (arm 3) with the same corpus and gate exposed on the agentic plane (arm 4), which differ only in serving regime (`../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md:283-287`), and it records cost and quality separately.
+
+**Why it is this way:** the pilot rule says measurement waits for the planning cycle to exit, and the operator chose to run a small pilot early; the note keeps the result directional by stating the intervals and the two caveats instead of a verdict.
+
+**Tension (PRD-025 vs ADR-140):** PRD-025 §3 measured agentic tool traversal at 0.65 recall, below static injection, and concluded "feed, do not send traversing" (`../loom/docs/design/PRD-025-ontology-loom-and-connector-platform.md:189`); the ADR-140 pilot finds the agentic-plane arm tied on lookup and ahead on path questions at several times the token cost, on a different corpus and question set (`../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md:640`).
+
+**Tension (ADR-140 vs PRD-028):** ADR-140 calls its comparison "PRD-028 arms 3 and 4" (`../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md:628`) and numbers its own four arms 1 to 4 (`../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md:283-285`), while PRD-028 defines lettered arms A to E, none of them an agent-plane arm (`../loom/docs/design/PRD-028-does-loom-earn-its-complexity.md:149-155`).

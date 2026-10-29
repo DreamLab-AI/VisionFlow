@@ -19,7 +19,7 @@ sources:
   - ../project/client/src/features/graph/services/interactionModes/vrArMode.ts
   - ../project/xr-client/rust/src/selection.rs
   - ../project/src/handlers/socket_flow_handler/message_routing.rs
-verified_commit: {visiontouch-rs: 77898bc42b29d5928b4eae00040ef0c26c3cd0a3, visionflow: 1e3bdd074f43400cb51200b20d5f41ea711af47d, visionclaw: 458b0ded5da35b968ebd7ad056eba8bc06da38a5}
+verified_commit: {visiontouch-rs: 7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d, visionflow: 1d7183a73c1eae4996a7006067d5047308fab7a5, visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
 ---
 
 ## For developers
@@ -34,10 +34,10 @@ The lab wants a physical stylus that can pick up and drag nodes in the VisionCla
 
 ```mermaid
 flowchart TB
-    HR["visiontouch-rs, private lab evaluation, no economic use<br/>docs/architecture/repository-map.md:36"]
+    HR["visiontouch-rs, private lab evaluation, no economic use<br/>docs/architecture/repository-map.md:38"]
     A6["repository ADR-0006: accepted, complete, live<br/>../visiontouch-rs/docs/adr/ADR-0006-estate-membership-lab-evaluation.md:5-7"]
     A17["canon ADR-2017: accepted, none, inactive<br/>docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md:5-6"]
-    MAP["canon repository map, dependency sketch node HR<br/>docs/architecture/repository-map.md:52"]
+    MAP["canon repository map, dependency sketch node VT<br/>docs/architecture/repository-map.md:54"]
     VC["VisionClaw graph: future consumer only<br/>docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md:28"]
     OUT["outputs: an academic paper, later a pose and button input<br/>docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md:22"]
     HR --> A6
