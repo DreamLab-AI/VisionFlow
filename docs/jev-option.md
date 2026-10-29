@@ -1,6 +1,6 @@
 # Jev option
 
-An opt-in, **advisory** step that asks a typed-decision model (TypeSafe System One: Choice / Score / Noul over `POST /v1/systemone`) a bounded question beside four existing deterministic checks. **It is off by default.** With the flag off, or with Jev unavailable for any reason, every script prints exactly what it printed before and exits with the same code (asserted against the pre-change scripts in `tests/gates/jev-option.test.cjs`).
+An opt-in, **advisory** step that asks a typed-decision model (TypeSafe System One: Choice / Score / Noul over `POST /v1/systemone`) a bounded question beside four existing deterministic checks. **The library defaults off; the Agentbox estate deployment enables all four through `[system_one.consumers].visionflow_advisories`.** With the flag off, or with Jev unavailable for any reason, every script prints exactly what it printed before and exits with the same code (asserted against the pre-change scripts in `tests/gates/jev-option.test.cjs`).
 
 Status of every item: *proposed research candidate; no measured uplift.* The tests prove wiring and fallback, not value.
 
@@ -13,7 +13,7 @@ Status of every item: *proposed research candidate; no measured uplift.* The tes
 | VF-03-S1-01 health priority | `scripts/estate-health.mjs check` | `--jev[=health]` | public | One Score per failed/unreadable observation; `JEV priority N ...` lines before the verdict sentinel. |
 | ES-09-S1-01 failure triage | `scripts/estate-health.mjs check` | `--jev[=triage]` | public | One Choice per failed CI run (`source-build / stale-bind-path / pin-or-schema / dependency / gpu-xr / runtime-evidence-gap / insufficient`); `JEV triage ...` lines before the sentinel. |
 
-`VISIONFLOW_JEV` enables the same items from the environment: `1`/`all`, or a comma list (`diagram,claim,health,triage`). `--jev` on the command line wins. The dream-cycle entrypoint (`node scripts/estate-health.mjs check`) passes no flag, so a dream night stays offline as long as `VISIONFLOW_JEV` is unset in the annexe environment (it holds no tokens either, so an enabled run would fall back).
+`VISIONFLOW_JEV` enables the same items from the environment: `1`/`all`, or a comma list (`diagram,claim,health,triage`). `--jev` on the command line wins. Agentbox projects `VISIONFLOW_JEV=all` and an explicit sovereign endpoint into service and shell environments at boot. This covers local diagram/claim checks and health/triage CLIs without changing their library defaults. Hosted CI and the isolated dream annexe do not inherit Agentbox environment: an unset flag there still makes no call. The annexe remains token-free.
 
 **Authority stays in code.** The CI-colour rule, HEAD verdict, `unknown`/`red`/`green`/exempt rules, citation resolution, syntax/render gates, ADR checks and the sentinel line are untouched and run first. Jev output cannot change a pass/fail result, write an index, restamp a topic, or edit the snapshot. `collect` never calls Jev.
 
@@ -40,9 +40,9 @@ Any of: flag off, no endpoint, local-only refused, transport error, timeout (har
 
 Question-set versions: `vf-01-s1-01/claim-check/v1`, `vf-06-s1-01/diagram-review/v1`, `vf-03-s1-01/health-priority/v1`, `es-09-s1-01/failure-triage/v1`.
 
-## Not wired: VF-04-S1-01 (dream hypotheses vs repo disciplines)
+## Host-owned: VF-04-S1-01 (dream hypotheses vs repo disciplines)
 
-VisionFlow owns the disciplines (`dream.config.json` `extraDisciplines`) but nothing in this repository receives a hypothesis: hypotheses are generated and judged inside the dream engine, outside this tree, and the annexe that runs a night holds no tokens. A screening script here would have no caller, which this repo already records as a defect class (VF-06.13). It needs a host hook in dream-engine.
+VisionFlow owns the disciplines (`dream.config.json` `extraDisciplines`) but nothing in this repository receives a hypothesis: hypotheses are generated and judged inside the dream engine, outside this tree, and the annexe that runs a night holds no tokens. A screening script here would have no caller, which this repo already records as a defect class (VF-06.13). That host hook now exists: Agentbox `services/dream-engine/src/jev_triage.rs` screens hypotheses and the repository’s declared `extraDisciplines` before candidate evaluation, enabled by `[dream_machine].jev_triage`. It runs in the host process, not by injecting tokens into the annexe.
 
 ## Tests
 
