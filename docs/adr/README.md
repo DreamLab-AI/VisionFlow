@@ -26,14 +26,14 @@ precisely because it drifted from the code; see
 
 The [estate status/evidence contract](../architecture/adr-status-contract.md) defines the independent decision, implementation and activation axes and distinguishes lineage from supersession (2026-09-07).
 
-_19 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
+_20 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
 
 | ID | Title | Date | Decision | Impl | Activation | Supersedes | Superseded by | Owner | Repo |
 |----|-------|------|----------|------|------------|------------|---------------|-------|------|
 | [ADR-2001](ADR-2001-corpus-consolidation.md) | Consolidate the ADR corpus into a living baseline plus a thin ledger | 2026-08-31 | accepted | complete | live | — | — | DreamLab AI maintainers | visionflow |
 | [ADR-2002](ADR-2002-static-copy-only-website.md) | Ship the website as a copy-only static build — no compiler, bundler, or WASM | 2026-08-31 | accepted | complete | live | — | — | jjohare | visionflow |
 | [ADR-2003](ADR-2003-pages-artifact-deploy.md) | Deploy the website via the GitHub Pages artifact/deploy actions, never a gh-pages branch | 2026-08-31 | accepted | complete | live | — | — | jjohare | visionflow |
-| [ADR-2004](ADR-2004-diagram-baseline-vendored-render-gate.md) | Gate diagrams on a committed light-theme baseline rendered by a vendored Mermaid; re-render only to detect drift | 2026-08-31 | accepted | complete | live | — | — | jjohare | visionflow |
+| [ADR-2004](ADR-2004-diagram-baseline-vendored-render-gate.md) | Gate diagrams on a committed light-theme baseline rendered by a vendored Mermaid; re-render only to detect drift | 2026-08-31 | superseded | complete | live | — | ADR-2020 | jjohare | visionflow |
 | [ADR-2005](ADR-2005-drift-counter-allowlist-substrate-sourced.md) | Police canon self-description counts with an allowlist-anchored, substrate-sourced, fail-open drift counter | 2026-08-31 | accepted | complete | live | — | — | jjohare | visionflow |
 | [ADR-2006](ADR-2006-canon-owns-crossrepo-view-not-implementation.md) | VisionFlow is canon-only — it owns the cross-repo view and evidence-bounded maturity, never substrate implementation truth | 2026-08-31 | accepted | complete | live | — | — | jjohare | visionflow |
 | [ADR-2007](ADR-2007-estate-closeout-evidence-roadmap.md) | Bind estate closeout to decision lineage and system evidence | 2026-09-04 | accepted | partial | live | — | — | estate architecture maintainers | visionflow |
@@ -49,3 +49,4 @@ _19 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
 | [ADR-2017](ADR-2017-haptic-input-device-is-a-supporting-study.md) | Admit visiontouch-rs as a private proof-of-principle haptic input study, with node grab in VisionClaw as a future integration | 2026-10-17 | accepted | none | inactive | — | — | jjohare | visionflow |
 | [ADR-2018](ADR-2018-parity-claims-name-their-comparator.md) | A parity claim names its comparator; the JSS plugins forge is a separate comparator, and solid-pod-rs forge features reach consumers only through a release | 2026-10-19 | accepted | partial | inactive | — | — | jjohare | visionflow |
 | [ADR-2019](ADR-2019-forge-and-mirror-on-in-shipped-pods.md) | The solid-pod-rs forge and mirror are on in shipped pods; open edit, mainnet and any follow list stay opt-in | 2026-10-20 | accepted | partial | inactive | — | — | jjohare | visionflow |
+| [ADR-2020](ADR-2020-pele-renders-every-estate-diagram.md) | Render every estate diagram with a pinned Pele; Mermaid stays the source syntax | 2026-10-29 | accepted | partial | live | ADR-2004 | — | jjohare | visionflow |

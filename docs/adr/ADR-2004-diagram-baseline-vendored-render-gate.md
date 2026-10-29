@@ -2,11 +2,11 @@
 id: ADR-2004
 title: Gate diagrams on a committed light-theme baseline rendered by a vendored Mermaid; re-render only to detect drift
 date: 2026-08-31
-decision_status: accepted
+decision_status: superseded
 implementation_status: complete
 activation_status: live
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-2020]
 verified_commit: cf535f8
 owner: jjohare
 review_trigger: any change to the diagram render engine, the text-fill probe, or the rendered/ baseline contract
