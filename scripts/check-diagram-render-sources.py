@@ -42,7 +42,7 @@ for topic in sorted(args.root.glob('*/*.md')):
         else:
             buffer.append(line)
 failures = [r for r in records if not r['ok']]
-result = {'method': 'Exact current Mermaid input bytes compared to mmdc input; SVG presence/width/hash recorded. Successful render execution is separately evidenced by command logs. This does not establish semantic correctness.', 'diagrams': len(records), 'passing': len(records)-len(failures), 'failing': len(failures), 'records': records}
+result = {'method': 'Exact current Mermaid input bytes compared to the Pele render input; SVG presence/width/hash recorded. Successful render execution is separately evidenced by command logs. This does not establish semantic correctness.', 'diagrams': len(records), 'passing': len(records)-len(failures), 'failing': len(failures), 'records': records}
 if args.report:
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(result, indent=2) + '\n')

@@ -123,8 +123,8 @@ jobs:
             || { echo "::error::structured data on the built page does not parse"; exit 1; }
 
       # ── BLOCKING gate 6: committed diagram baseline still has visible text
-      # The browser-free authoritative guard from the RES-b render gate; the
-      # re-render half needs Chrome and stays in diagram-render.yml.
+      # The authoritative guard from the RES-b render gate; the re-render half
+      # (Pele, no browser) runs in diagram-render.yml on changes to the sources.
       - name: Gate — diagram baseline (text visibility)
         run: node scripts/check-diagram-text.js presentation/report/diagrams/rendered
 

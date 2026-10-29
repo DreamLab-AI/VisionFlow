@@ -33,11 +33,12 @@
  *               allowlist is well formed and names real topics. This is how a hosted
  *               runner, which cannot resolve cross-repository revisions at all, gates the
  *               freshness of the local --strict-citations run. See docs/diagrams/README.md.
- *   --render    additionally render every mermaid block through `mmdc` (the
- *               Mermaid CLI) into <dir>/rendered/<file>/<id>.svg; any parse
- *               error fails the run and is reported as file:block-id:line, and
- *               any render wider than 4500px fails as illegible.
- *   --jobs N    render concurrency (default 6).
+ *   --render    additionally render every mermaid block with Pele (the
+ *               sha256-pinned build in scripts/vendor/pele, in-process, no
+ *               browser) into <dir>/rendered/<file>/<id>.svg; any parse error
+ *               fails the run and is reported as file:block-id with the Mermaid
+ *               line, and any render wider than 4500px fails as illegible.
+ *   --jobs N    accepted for compatibility; Pele renders synchronously.
  *   --only S    restrict to files whose relative path contains S.
  *   --no-source-paths  skip the sources:/governing: existence checks (hosted CI has no
  *               sibling checkouts); --cite-check is meaningless with it.
@@ -72,7 +73,6 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { spawn } = require('child_process');
 
 const AREAS = new Set(['visionflow', 'visionclaw', 'agentbox', 'solid-pod-rs', 'nostr-rust-forum', 'dreamlab-ai-website', 'vowl-wasm', 'knowledgegraph', 'visiongraph', 'sidestr-rs', 'ontomark', 'dream-engine', 'visiontouch-rs', 'estate']);
 const SKIP_DIRS = new Set(['hero', 'archive', 'rendered', 'src', 'upgraded', 'regen-2026-06-14', 'triptych-src', '.claude-flow', 'node_modules']);
@@ -667,50 +667,39 @@ function symbolCheck(topics) {
 }
 
 // ---------------------------------------------------------------- render
-function renderOne(topic, d, outDir) {
-  return new Promise((resolve) => {
-    const mmd = path.join(outDir, `${d.id}.mmd`);
-    const svg = path.join(outDir, `${d.id}.svg`);
-    fs.writeFileSync(mmd, d.src + '\n');
-    const child = spawn('mmdc', ['-i', mmd, '-o', svg, '-q'], { stdio: ['ignore', 'pipe', 'pipe'] });
-    let err = '';
-    child.stderr.on('data', (c) => { err += c.toString(); });
-    child.stdout.on('data', (c) => { err += c.toString(); });
-    child.on('close', (code) => {
-      if (code === 0) {
-        try {
-          const svgText = fs.readFileSync(svg, 'utf8');
-          const vb = svgText.match(/viewBox="[\d.\-]+ [\d.\-]+ ([\d.]+) ([\d.]+)"/);
-          const w = vb ? Math.round(+vb[1]) : 0;
-          if (w > MAX_WIDTH) return resolve(`${topic.rel}:${d.id} (md line ${d.line}) — rendered ${w}px wide (max ${MAX_WIDTH}); wrap long Notes with <br/>, cap them at ~90 chars, or split the diagram`);
-        } catch (e) { /* ignore census failure */ }
-        return resolve(null);
-      }
-      const m = err.match(/Parse error on line (\d+):[\s\S]*?\n([\s\S]*?)(?:\n\s+at |$)/);
-      const detail = m ? `mermaid line ${m[1]}: ${m[2].split('\n').slice(0, 3).join(' | ')}` : err.split('\n').filter((l) => l.trim() && !/^\s+at /.test(l)).slice(0, 3).join(' | ');
-      resolve(`${topic.rel}:${d.id} (md line ${d.line}) — ${detail}`);
-    });
-  });
+// Pele (scripts/vendor/pele, sha256-pinned) renders in-process: no browser, no
+// mmdc, no Puppeteer. Widths are measured on Pele's own layout with its Node
+// text-width table, so they are not comparable with numbers from the earlier
+// mmdc/Chromium renders. The SVG written to rendered/ is flattened to concrete
+// colours so it stays legible outside a page that defines --pele-* variables.
+const peleStatic = require('./lib/pele-static.cjs');
+function renderOne(pele, topic, d, outDir) {
+  fs.writeFileSync(path.join(outDir, `${d.id}.mmd`), d.src + '\n');
+  let r;
+  try {
+    r = peleStatic.renderStatic(pele, d.src);
+  } catch (e) {
+    return `${topic.rel}:${d.id} (md line ${d.line}) — ${peleStatic.describeError(e)}`;
+  }
+  fs.writeFileSync(path.join(outDir, `${d.id}.svg`), r.svg);
+  if (r.width > MAX_WIDTH) return `${topic.rel}:${d.id} (md line ${d.line}) — rendered ${r.width}px wide (max ${MAX_WIDTH}); wrap long Notes with <br/>, cap them at ~90 chars, or split the diagram`;
+  return null;
 }
 async function renderAll(topics) {
-  const jobs = [];
+  const pele = await peleStatic.loadPele();
+  const errors = [];
+  let count = 0;
   for (const t of topics) {
     CURRENT_TOPIC = t;
     const outDir = path.join(root, 'rendered', t.rel.replace(/\.md$/, ''));
     fs.mkdirSync(outDir, { recursive: true });
-    for (const d of t.diagrams) jobs.push(() => renderOne(t, d, outDir));
-  }
-  const errors = [];
-  let next = 0;
-  async function worker() {
-    while (next < jobs.length) {
-      const j = jobs[next++];
-      const e = await j();
+    for (const d of t.diagrams) {
+      count++;
+      const e = renderOne(pele, t, d, outDir);
       if (e) errors.push(e);
     }
   }
-  await Promise.all(Array.from({ length: Math.min(flags.jobs, jobs.length) }, worker));
-  return { errors, count: jobs.length };
+  return { errors, count };
 }
 
 // ---------------------------------------------------------------- indexes
@@ -920,7 +909,7 @@ async function jevDiagramReview(topics, deps = {}) {
   }
   if (flags.render) {
     const { errors: rerr, count } = await renderAll(topics);
-    console.log(`rendered ${count - rerr.length}/${count} diagrams via mmdc`);
+    console.log(`rendered ${count - rerr.length}/${count} diagrams via pele`);
     errors.push(...rerr);
   }
   if (errors.length) {

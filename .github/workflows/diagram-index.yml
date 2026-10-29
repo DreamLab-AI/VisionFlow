@@ -6,12 +6,16 @@ on:
     paths:
       - 'docs/diagrams/**'
       - 'scripts/diagram-index-gen.cjs'
+      - 'scripts/lib/pele-static.cjs'
+      - 'scripts/vendor/pele/**'
       - 'tests/gates/diagram-index.test.cjs'
       - '.github/workflows/diagram-index.yml'
   pull_request:
     paths:
       - 'docs/diagrams/**'
       - 'scripts/diagram-index-gen.cjs'
+      - 'scripts/lib/pele-static.cjs'
+      - 'scripts/vendor/pele/**'
       - 'tests/gates/diagram-index.test.cjs'
       - '.github/workflows/diagram-index.yml'
 
@@ -53,6 +57,12 @@ jobs:
 
       - name: Citation refusal, allowlist and ADR namespace regression
         run: node tests/gates/diagram-index.test.cjs
+
+      # Every block must parse and stay within the 4500px legibility ceiling.
+      # Pele (sha256-pinned in scripts/vendor/pele) renders in-process, so the
+      # hosted runner needs no browser and no sibling checkout to run this.
+      - name: Render gate (Pele, no browser)
+        run: node scripts/diagram-index-gen.cjs docs/diagrams --check --no-source-paths --render
 
       # Asserts the local --strict-citations run was actually done against the
       # revisions the tree declares now, and that citation-allowlist.json is well

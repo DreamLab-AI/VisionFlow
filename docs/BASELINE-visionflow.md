@@ -1,7 +1,7 @@
 ---
 title: VisionFlow Baseline — What This Repo Is and Runs Today
 doc_id: VF-BASELINE
-version: 0.5.3
+version: 0.5.4
 status: draft-for-ratification
 verified_commit: 4a8d4b5
 sources:
@@ -15,6 +15,8 @@ sources:
   - .github/workflows/drift-counter.yml
   - .github/workflows/estate-health.yml
   - scripts/diagram-render/render.mjs
+  - scripts/lib/pele-static.cjs
+  - scripts/vendor/pele/VERSION
   - scripts/drift-counter/drift-counter.mjs
   - scripts/estate-health.mjs
   - scripts/generate-release-manifest.sh
@@ -124,10 +126,12 @@ running CI gates:
   (`drift-counter.yml:32,64`), anchored to `scripts/drift-counter/allowlist.json`.
   It fails CI when a prose count in the canon disagrees with its queried source.
 - **Diagram-render gate (RES-b)** — `.github/workflows/diagram-render.yml` renders
-  `presentation/report/diagrams/*.mmd` with a **vendored** Mermaid engine
-  (`scripts/diagram-render/render.mjs`; `scripts/diagram-render/vendor/mermaid.min.js`
-  11.16.0) and asserts rendered text carries a visible fill via
-  `scripts/check-diagram-text.js` (`diagram-render.yml:19,32,47,74`).
+  `presentation/report/diagrams/*.mmd` with **Pele**, sha256-pinned in
+  `scripts/vendor/pele` and run in-process with no browser
+  (`scripts/diagram-render/render.mjs` via `scripts/lib/pele-static.cjs`), and asserts
+  rendered text carries a visible fill via `scripts/check-diagram-text.js` (ADR-2020).
+  The diagrams-as-code corpus gate (`diagram-index.yml`) renders every corpus block
+  with the same engine and fails on a parse error or a render wider than 4500 px.
 - **Fixture / copyright / harness gates** — `fixture-drift.yml`,
   `copyright-guard.yml`, `harness-fitness-gates.yml`.
 
@@ -257,14 +261,10 @@ Decisions of record:
   the allowlist should disambiguate or annotate them.
 - **The diagram-render gate is built under a different design than ADR-005 D3
   specified.** ADR-005 D3 called for `scripts/render-diagrams.sh` wrapping a pinned
-  `mmdc`/puppeteer/chromium. What shipped is `scripts/diagram-render/render.mjs`,
-  which itself depends on **neither** `mmdc` nor puppeteer — it renders a **vendored
-  `mermaid.min.js`** and drives a Chrome binary over raw CDP (`scripts/diagram-render/lib/cdp.mjs`).
-  The CI gate around it (`.github/workflows/diagram-render.yml`) still `npm install`s
-  `@mermaid-js/mermaid-cli` and `puppeteer`, but only to provision that Chrome binary
-  (puppeteer's resolved chromium) for `render.mjs` to attach to — not to render. Plus
-  the text-fill probe `check-diagram-text.js`. The intent (reproducible render +
-  invisible-text probe + baseline) is honoured; the named artefact in the ADR does not exist.
+  `mmdc`/puppeteer/chromium. ADR-2004 replaced that with a vendored `mermaid.min.js`
+  driven in Chrome over raw CDP, and ADR-2020 replaced the engine again with Pele,
+  which needs no browser at all. The intent (reproducible render + invisible-text
+  probe + committed baseline) is unchanged; the artefact ADR-005 D3 named never existed.
 - **Dual ADR numbering hazard.** `docs/engineering/` carries its own
   `ADR-004-harness-engineering-framework.md` and `ADR-005-mandate-at-grant-governance.md`,
   colliding by number with the archived canon ADR-004/005. ADR-005's numbering note
