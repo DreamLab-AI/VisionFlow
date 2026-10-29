@@ -4,7 +4,7 @@ title: External services — outbound integrations
 area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2066, ADR-2115]
+adrs: [ADR-2066, ADR-2115, ADR-2148]
 sources:
   - ../project/crates/visionclaw-domain/src/types/speech.rs
   - ../project/src/services/ragflow_service.rs
@@ -18,11 +18,14 @@ sources:
   - ../project/src/app_state.rs
   - ../project/src/config/feature_access.rs
   - ../project/docs/reference/configuration.md
+  - ../project/docker-compose.unified.yml
+  - ../project/docs/BASELINE-architecture.md
+  - ../project/docs/adr/ADR-2148-enable-local-typed-decisions.md
   - ../project/docs/how-to/agent-orchestration.md
   - ../project/src/main.rs
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md
-verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9}
+verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, agentbox: 0b0f7918961e629280faf86f88227535abf514b5}
 ---
 ## VC-28.1 ragflow_service — outbound RAGFlow agent API
 ```mermaid
@@ -371,7 +374,7 @@ sequenceDiagram
     Note over SS: DRIFT CLOSED 2026-09-13 (ab5724422): TTSProvider is now a ONE-variant<br/>enum, PocketTts. The OpenAI branch and its api.openai.com call are deleted<br/>and Kokoro is gone, so this boundary no longer reaches any paid TTS API.<br/>visionclaw-domain/src/types/speech.rs:66, default at speech_service.rs:74
     Note over SS: DRIFT: the note above is true of TTS only. STTProvider declares Whisper and OpenAI (the unimplemented TurboWhisper variant<br/>and its two warnings were deleted after af3dff3f2) and the default is Whisper, but SetSTTProvider(OpenAI) is live: ProcessAudioChunk then POSTs<br/>the audio to https://api.openai.com/v1/audio/transcriptions when settings.openai holds an API key, so a third-party speech edge exists on demand.<br/>visionclaw-domain/src/types/speech.rs:71-74, speech_service.rs:75, :689-699, :722
     Note over SS: TextToSpeechForUser, TextToSpeechSpatial, ProcessAudioChunkForUser and AgentSpatialInfo were logged no-ops with no sender and are deleted<br/>(VisionClaw cefd9d1d7 under ER-24), so SpeechCommand carries no user-scoped or spatial entry point.<br/>visionclaw-domain/src/types/speech.rs:77-87
-    Note over SS: TENSION (ADR-2151 vs manifest): the agentbox VoiceLink edge voice slot runs voice on the operator's client and reaches the container over an ssh stdio<br/>voice-paned process, never through SpeechService. ADR-2151 is decision_status proposed with implementation_status none and activation inactive,<br/>yet the manifest sets [voicelink] enabled = true. agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7, agentbox/agentbox.toml:2220-2225
+    Note over SS: TENSION (ADR-2151 vs manifest): the agentbox VoiceLink edge voice slot runs voice on the operator's client and reaches the container over an ssh stdio<br/>voice-paned process, never through SpeechService. ADR-2151 is decision_status proposed with implementation_status none and activation inactive,<br/>yet the manifest sets [voicelink] enabled = true. agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7, agentbox/agentbox.toml:2218-2223
 ```
 ## VC-28.9 consolidated external-dependency map
 ```mermaid
@@ -403,9 +406,9 @@ flowchart LR
     SS -->|"TTS - degraded: audio chunk skipped, chat continues"| PT
     SS -->|"STT - degraded: transcription dropped"| WHI
     SS -->|"voice-command relay - degraded: spoken error reply"| MCPS
-    JV["Jev hub (opt-in)<br/>12 decision items, every one off by default<br/>docs/reference/configuration.md:411-413"]
-    JEP["System One endpoint, first match wins:<br/>VISIONCLAW_JEV_ENDPOINT, else agentbox loopback proxy, else api.typesafe.ai with TYPESAFE_API_KEY, else none<br/>docs/reference/configuration.md:434-439"]
-    JV -->|"POST /v1/systemone - degraded: every fallback returns to the deterministic path, no egress when nothing is set<br/>docs/reference/configuration.md:453-457"| JEP
+    JV["Jev hub (opt-in)<br/>12 decision items: library default off, but the supplied Compose environment sets VISIONCLAW_JEV=1 for every item<br/>docs/reference/configuration.md:411-413, docker-compose.unified.yml:5-14<br/>OPEN: opt-in is recorded but activation is staged until the host deployment is recreated - docs/BASELINE-architecture.md:42-50, docs/adr/ADR-2148-enable-local-typed-decisions.md:7"]
+    JEP["System One endpoint, first match wins:<br/>VISIONCLAW_JEV_ENDPOINT (Compose supplies the local systemone:8097 facade, model laya-typed-decisions, VISIONCLAW_JEV_LOCAL=1), else agentbox loopback proxy, else api.typesafe.ai with TYPESAFE_API_KEY, else none<br/>docs/reference/configuration.md:454-459, docker-compose.unified.yml:9-11"]
+    JV -->|"POST /v1/systemone - degraded: every fallback returns to the deterministic path, no egress when nothing is set<br/>docs/reference/configuration.md:477"| JEP
 
     N1["RESOLVED ADR-2066 (2026-09-05) — the QuicTransportServer node and its<br/>unreachable XR QUIC 0-RTT client edge were removed from this map with the<br/>code itself. See VC-04.28 for the postcard wire types that survived."]
     SS --- N1

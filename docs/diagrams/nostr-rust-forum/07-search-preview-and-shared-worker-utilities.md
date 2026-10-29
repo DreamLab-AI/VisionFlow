@@ -27,7 +27,7 @@ sources:
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/ascii_img.rs
-verified_commit: 8a5cf817e81b20e2b761899eab753768c0cb4988
+verified_commit: eb5f2323e6d72240ecb7c456181b7a674f1842f4
 ---
 
 ## NF-07.1 search-worker — routes and gates
@@ -50,7 +50,7 @@ flowchart TB
     RT --> NF404
     CRON --> WARM["load_store only - keeps the R2 connection warm<br/>nostr-bbs-search-worker/src/lib.rs:1004"]
 
-    N1["DOC-DRIFT: the cron trigger nostr-bbs-search-worker/wrangler.toml:36 runs every five minutes but<br/>REINDEXES NOTHING - the handler's whole body is a load_store touch. There is no reindex or rebuild<br/>path anywhere in lib.rs or store.rs reachable from the schedule."]
+    N1["DOC-DRIFT: the cron trigger nostr-bbs-search-worker/wrangler.toml:44 runs every five minutes but<br/>REINDEXES NOTHING - the handler's whole body is a load_store touch. There is no reindex or rebuild<br/>path anywhere in lib.rs or store.rs reachable from the schedule."]
     N2["/ingest is the only mutating route and it is admin-gated<br/>nostr-bbs-search-worker/src/lib.rs:716 via require_nip98_admin nostr-bbs-search-worker/src/auth.rs:63"]
 ```
 
@@ -61,7 +61,7 @@ flowchart LR
     VAR["ADMIN_PUBKEYS_VAR<br/>nostr-bbs-core/src/admin_shared.rs:91"]
     READ["search-worker reads it as its ONLY admin source<br/>nostr-bbs-search-worker/src/auth.rs:54"]
     CHK["is_admin nostr-bbs-search-worker/src/auth.rs:52<br/>enforced at ingest nostr-bbs-search-worker/src/auth.rs:86"]
-    TPL["nostr-bbs-search-worker/wrangler.toml:33 ships a REAL 64-hex pubkey"]
+    TPL["nostr-bbs-search-worker/wrangler.toml:41 ships a REAL 64-hex pubkey"]
     WHY["No D1 binding for members/whitelist in this worker<br/>nostr-bbs-search-worker/src/auth.rs:8"]
 
     VAR --> READ --> CHK
@@ -70,7 +70,7 @@ flowchart LR
 
     N1["INVARIANT: the parse rule is shared through nostr_bbs_core so the comma / whitespace / npub-or-hex<br/>semantics cannot drift between the three workers - see NF-08.7"]
     N2["This worker is the ONLY wrangler template that declares ADMIN_PUBKEYS, yet the auth and relay<br/>workers both read it - the deployment gap is written up in NF-08.7 N4"]
-    N3["It is also the only template shipping a non-placeholder value where every other template ships<br/>example.com or a zeroed key nostr-bbs-search-worker/wrangler.toml:33"]
+    N3["It is also the only template shipping a non-placeholder value where every other template ships<br/>example.com or a zeroed key nostr-bbs-search-worker/wrangler.toml:41"]
 ```
 
 ## NF-07.3 Semantic search — embeddings and the RVF store
@@ -111,7 +111,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    RVF["RVF object in R2<br/>bucket VECTORS nostr-bbs-search-worker/wrangler.toml:15<br/>key RVF_STORE_KEY nostr-bbs-search-worker/wrangler.toml:32 read at nostr-bbs-search-worker/src/lib.rs:297"]
+    RVF["RVF object in R2<br/>bucket VECTORS nostr-bbs-search-worker/wrangler.toml:15<br/>key RVF_STORE_KEY nostr-bbs-search-worker/wrangler.toml:40 read at nostr-bbs-search-worker/src/lib.rs:297"]
     SEGV["Segment 0 Vec - packed label + vector<br/>nostr-bbs-search-worker/src/store.rs:7"]
     SEGM["Segment 1 Meta - JSON format/dim/count/metric<br/>nostr-bbs-search-worker/src/store.rs:8 written store.rs:97"]
     SER["to_rvf_bytes nostr-bbs-search-worker/src/store.rs:88"]
@@ -231,7 +231,7 @@ classDiagram
     note for Ascii "The image feature pulls PURE-Rust decoders only,<br/>default-features off, so the wasm32 build stays<br/>lean nostr-rust-forum/Cargo.toml:197-200. The BBS client never converts<br/>client-side - it fetches a pre-rendered fragment<br/>from the preview worker nostr-bbs-bbs-client/src/ascii_img.rs:203"
 ```
 
-## NF-07.9 The opt-in Jev rerank — off by default, can only permute what search already shows
+## NF-07.9 The opt-in Jev rerank — on in the shipped manifest, can only permute what search already shows
 
 ```mermaid
 flowchart TB
@@ -260,6 +260,6 @@ flowchart TB
 
 **What it shows.** The one optional step added to `POST /search`: when `JEV_SEARCH_RERANK` is on, the first ten already-visible hits are re-ordered by a remote typed-decision (Jev) score, and the response gains a `jev` object; any failure returns the pre-change list byte-for-byte.
 
-**Why it is this way.** The option is declared in `docs/jev-option.md` rather than an ADR: every Jev item is "off by default" with nothing leaving the Worker, and falls back on any failure (`../nostr-rust-forum/docs/jev-option.md:4`). No search `wrangler.toml` variable sets the flag, so the shipped state is off (`../nostr-rust-forum/crates/nostr-bbs-search-worker/src/lib.rs:585`). With the flag on, the query text and up to ten public snippets leave the Worker (`../nostr-rust-forum/docs/jev-option.md:35`).
+**Why it is this way.** The option is declared in `docs/jev-option.md` rather than an ADR: the library is off when its flag is absent and every item falls back on any failure (`../nostr-rust-forum/docs/jev-option.md:4-5`). Since eb5f232 the search `wrangler.toml` sets `JEV_SEARCH_RERANK = "1"` with the cloud endpoint, so the shipped manifest is ON and needs a `SUBQ_API_KEY` Worker secret (`../nostr-rust-forum/crates/nostr-bbs-search-worker/wrangler.toml:32-36`); the flag reader is `../nostr-rust-forum/crates/nostr-bbs-search-worker/src/lib.rs:585`. With the flag on, the query text and up to ten public snippets leave the Worker (`../nostr-rust-forum/docs/jev-option.md:35`).
 
 **Open:** nothing records any measured uplift from the rerank, and its confidence floor is an unfitted default (`../nostr-rust-forum/docs/jev-option.md:11`, `../nostr-rust-forum/crates/nostr-bbs-search-worker/src/rerank.rs:27`).

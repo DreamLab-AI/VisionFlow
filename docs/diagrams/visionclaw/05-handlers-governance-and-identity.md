@@ -54,7 +54,9 @@ sources:
   - ../project/src/services/nostr_bead_publisher.rs
   - ../project/src/handlers/ontology_handler.rs
   - ../project/docs/BASELINE-architecture.md
-verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9}
+  - ../project/docker-compose.unified.yml
+  - ../project/crates/visionclaw-jev/src/config.rs
+verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, agentbox: 0b0f7918961e629280faf86f88227535abf514b5}
 ---
 
 ## VC-05.1 `admin_rbac_handler` — whoami / list / assign / revoke (ADR-2010)
@@ -437,7 +439,7 @@ sequenceDiagram
         H->>ST: store::all()
         ST-->>H: Vec~EnrichmentProposal~
         H->>H: assemble_inbox (broker_inbox_handler.rs:193) projects each into BrokerCase{id,category:"knowledge_enrichment",status,metadata}
-        opt VISIONCLAW_JEV_PROPOSAL_TRIAGE=1 (opt-in Jev option, off by default)
+        opt VISIONCLAW_JEV_PROPOSAL_TRIAGE=1 (Jev option: library default off, but the Compose master flag docker-compose.unified.yml:8 turns it on, ADR-2148, staged)
             H->>H: pending and claimed cases may gain an advisory jev annotation and be reordered by triage priority within annotated slots (broker_inbox_handler.rs:193-215, jev field broker_inbox_handler.rs:78)
         end
         Note over H: INVARIANT: the Jev triage is advisory, decide routes and signed decisions never read it, broker_inbox_handler.rs:78
@@ -783,10 +785,10 @@ sequenceDiagram
     Note over D,DB: DIVERGENCE — the agentbox/operator/git-bridge REST path (VC-05.7) writes<br/>decision_event_id:None every time, since it never carries a signed 31403 event
     BI->>DB: store::all() / store::get(id) — reads the SAME table both producers wrote to
     BI-->>BI: projects EITHER kind of row into the SAME BrokerCase shape, indistinguishable to the bridge
-    Note over V,BI: DIVERGENCE (ADR-2006 closeout, docs/BASELINE-architecture.md:346) —<br/>"the retained domain kernel's presence does not prove integration into the elevation<br/>actor or inbox DTO. Current source review does not certify a complete human-approval journey."<br/>Verified precisely: the two producers only converge at the SQLite table, no handler route<br/>calls into either actor, and case authority/failure/restart receipts are not modelled here
+    Note over V,BI: DIVERGENCE (ADR-2006 closeout, docs/BASELINE-architecture.md:357) —<br/>"the retained domain kernel's presence does not prove integration into the elevation<br/>actor or inbox DTO. Current source review does not certify a complete human-approval journey."<br/>Verified precisely: the two producers only converge at the SQLite table, no handler route<br/>calls into either actor, and case authority/failure/restart receipts are not modelled here
 ```
 
-## VC-05.18 `src/domain/broker/` verification — BrokerActor never merged (BASELINE-architecture.md:291)
+## VC-05.18 `src/domain/broker/` verification — BrokerActor never merged (BASELINE-architecture.md:302)
 ```mermaid
 flowchart TB
     KERNEL["src/domain/broker/ — storage-agnostic kernel (ADR-130 Decision 2)<br/>broker/mod.rs:1-43, broker_case.rs 490L, broker_decision.rs 437L, precedent_registry.rs 101L"]
@@ -800,9 +802,9 @@ flowchart TB
     ABSENT["src/actors/broker_actor.rs — VERIFIED ABSENT<br/>grep -r finds no file, no Neo4j adapter under src/adapters/ (listed: sqlite_*, oxigraph_*, actix_*)"]
     KERNEL -.->|"used by derive_kernel_decision (VC-05.7)"| CALLER["enrichment_proposals_handler::apply_decision"]
     KERNEL -.->|"used by decision_record (VC-05.17)"| CALLER2["elevation_actor.rs"]
-    N1["DIVERGENCE (docs/BASELINE-architecture.md:291) — BrokerActor never merged, main uses<br/>a stateless ACSP producer + this cherry-picked storage-agnostic domain broker kernel.<br/>Confirmed against source: broker/mod.rs:11-18 states the crashbug BrokerActor + its Neo4j<br/>transport were deliberately left behind"]
+    N1["DIVERGENCE (docs/BASELINE-architecture.md:302) — BrokerActor never merged, main uses<br/>a stateless ACSP producer + this cherry-picked storage-agnostic domain broker kernel.<br/>Confirmed against source: broker/mod.rs:11-18 states the crashbug BrokerActor + its Neo4j<br/>transport were deliberately left behind"]
     ABSENT --- N1
     ACSP --- N1
-    N2["DOC-DRIFT — BASELINE-architecture.md:292 sizes the kernel at ~936 LOC, but the four files<br/>measure 1,071 lines today (490 + 437 + 101 + 43). ADR-2006 Verification (accepted) otherwise<br/>matches: src/services/acsp/mod.rs documents the producer, src/domain/broker/ holds the four<br/>listed files, broker_actor.rs and the neo4j adapters are absent"]
+    N2["DOC-DRIFT — BASELINE-architecture.md:303 sizes the kernel at ~936 LOC, but the four files<br/>measure 1,071 lines today (490 + 437 + 101 + 43). ADR-2006 Verification (accepted) otherwise<br/>matches: src/services/acsp/mod.rs documents the producer, src/domain/broker/ holds the four<br/>listed files, broker_actor.rs and the neo4j adapters are absent"]
     KERNEL --- N2
 ```

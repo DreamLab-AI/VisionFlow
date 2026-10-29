@@ -35,7 +35,7 @@ sources:
   - ../project/client/src/features/solid/components/PodSettings.tsx
   - ../project/client/src/features/solid/components/ResourceEditor.tsx
   - ../project/src/handlers/image_gen_handler.rs
-verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
+verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c}
 ---
 
 ## VC-26.1 Deployment topology — embedded pod vs feature-off stub

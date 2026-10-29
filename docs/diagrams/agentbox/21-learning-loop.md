@@ -20,9 +20,12 @@ sources:
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/flake.nix
   - ../project/agentbox/agentbox.sh
+  - ../project/agentbox/config/entrypoint-unified.sh
+  - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
+  - ../project/agentbox/config/hooks/lib/jev-option.cjs
   - ../project/agentbox/config/hooks/nostr-live-mirror.cjs
   - ../project/agentbox/mcp/servers/ruvector-mcp.cjs
-verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
+verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
 ---
 
 ## AB-21.1 Capture — transcript-driven grading
@@ -162,7 +165,7 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2391
+    participant SUP as supervisord<br/>agentbox/flake.nix:2392
     participant SW as ruvector-aggregate-sweep.mjs<br/>agentbox/scripts/ruvector-aggregate-sweep.mjs:1
     participant G as gates
     participant MT as governed memStore/memRetrieve<br/>agentbox/mcp/servers/lib/memory-tools.js
@@ -191,7 +194,7 @@ sequenceDiagram
                     AE->>AE: SKIP
                     Note over AE: INVARIANT I06 / ADR-2016 — the sample floor gates on the RAW OBSERVATION COUNT, not the<br/>recency-weighted effective size
                 else survives the floor
-                    AE->>AE: eligible rows pass trajectoryJev.annotateRows, off unless AGENTBOX_JEV_TRAJECTORY_CLASSIFY=1 (mcp/servers/lib/aggregate-effectiveness.js:428-430, mcp/servers/lib/trajectory-pattern-jev.js:134-137)
+                    AE->>AE: eligible rows pass trajectoryJev.annotateRows, off unless AGENTBOX_JEV_TRAJECTORY_CLASSIFY=1,<br/>which the manifest now projects from consumers.trajectory_classify = true (source, ADR-2155 staged),<br/>with LOCAL_ONLY set so it uses the LAN laya route (jev-option.cjs:72-77, system_one.rs:420, :480)<br/>(agentbox.toml:908, entrypoint-unified.sh:1259-1263, mcp/servers/lib/aggregate-effectiveness.js:428-430, mcp/servers/lib/trajectory-pattern-jev.js:134-137)
                     Note over AE: the Jev option only ATTACHES a semantic object, an action class and a coherence score, to a row<br/>that was already eligible, capped at AGENTBOX_JEV_TRAJECTORY_MAX_PATTERNS 40 per sweep<br/>(mcp/servers/lib/trajectory-pattern-jev.js:140,145), and the stored value spreads it in<br/>(mcp/servers/lib/aggregate-effectiveness.js:473, mcp/servers/lib/trajectory-pattern-jev.js:156-158)
                     AE->>MT: memStore through the GOVERNED path (mcp/servers/lib/aggregate-effectiveness.js:24, mcp/servers/lib/aggregate-effectiveness.js:478)
                     Note over AE,AGG: key effectiveness-sha256-12-<hash(pattern)> (mcp/servers/lib/aggregate-effectiveness.js:88), namespace memory-learning-aggregates<br/>(mcp/servers/lib/aggregate-effectiveness.js:47), typed metadata {importance: wilson, tags: ['action:<pattern>'], memory_type:<br/>'semantic'} (mcp/servers/lib/aggregate-effectiveness.js:28-29, runtime mcp/servers/lib/aggregate-effectiveness.js:479-481)
@@ -214,7 +217,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2422
+    participant SUP as supervisord<br/>agentbox/flake.nix:2423
     participant DS as ruvector-pattern-distill.mjs<br/>agentbox/scripts/ruvector-pattern-distill.mjs:1
     participant G as gates
     participant PG as trajectory_steps
@@ -415,8 +418,8 @@ flowchart LR
     subgraph proc["Self-gating processes"]
         direction TB
         H["trajectory-recorder.cjs<br/>Stop hook"]
-        A["ruvector-aggregate-sweep.mjs<br/>agentbox/flake.nix:2391"]
-        D["ruvector-pattern-distill.mjs<br/>agentbox/flake.nix:2422"]
+        A["ruvector-aggregate-sweep.mjs<br/>agentbox/flake.nix:2392"]
+        D["ruvector-pattern-distill.mjs<br/>agentbox/flake.nix:2423"]
         HY["memory-hybrid re-rank"]
     end
     M --> E1

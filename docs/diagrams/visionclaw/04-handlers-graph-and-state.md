@@ -52,7 +52,7 @@ sources:
   - ../project/src/utils/binary_protocol.rs
   - ../project/src/utils/validation/sanitization.rs
   - ../project/src/handlers/fastwebsockets_handler.rs
-verified_commit: 19417bdff5fc22053a8a0cc185797b0311521d10
+verified_commit: e74bcddc772d47a45b1971156a2bab540eaa027c
 ---
 
 ## VC-04.1 api_handler graph — read path (data, paginated, positions, fold, relations, expand, pattern)

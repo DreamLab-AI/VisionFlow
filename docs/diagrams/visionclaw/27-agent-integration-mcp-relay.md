@@ -31,7 +31,7 @@ sources:
   - ../project/src/actors/agent_demo_director.rs
   - ../project/src/handlers/api_handler/agents_demo.rs
   - ../project/src/main.rs
-verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
+verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c}
 ---
 
 ## VC-27.1 BotsClient — legacy `:9500` MCP-TCP poller (superseded path)

@@ -28,7 +28,7 @@ sources:
   - ../project/crates/visionclaw-actors/src/supervisor.rs
   - ../project/tests/orchestration_improvements_test.rs
   - ../project/src/actors/mod.rs
-verified_commit: 19417bdff5fc22053a8a0cc185797b0311521d10
+verified_commit: e74bcddc772d47a45b1971156a2bab540eaa027c
 ---
 
 ## VC-02.1 Supervision-tree topology — AppState::new boot order
@@ -431,10 +431,10 @@ sequenceDiagram
     GSS->>CC: PublishPositions via publish_positions (:607)
     CC->>CC: update_position_cache then pump, each client streamed its next chunk until acknowledged (client_coordinator_actor.rs:1315-1323)
     Note over PO,CC: INVARIANT (ADR-2141) — PhysicsOrchestratorActor has no UpdateNodePositions handler and<br/>no client_coordinator_addr: the position path is GPU to ForceComputeActor to GraphServiceSupervisor<br/>to ClientCoordinatorActor to WebSocket (physics_orchestrator_actor.rs:563-566)
-    Note over GSS,CC: DRIFT: docs/BASELINE-architecture.md:314-316 still routes the position broadcast<br/>through PhysicsOrchestratorActor, and its :141-143 reads the same way
+    Note over GSS,CC: DRIFT: docs/BASELINE-architecture.md:325-327 still routes the position broadcast<br/>through PhysicsOrchestratorActor, and its :152-154 reads the same way
 ```
 
-**Drift (BASELINE-architecture.md vs code):** `docs/BASELINE-architecture.md:314-316` and `:141-143` name `PhysicsOrchestratorActor` as the hop between `ForceComputeActor` and `ClientCoordinatorActor`; `src/actors/graph_service_supervisor.rs:2047-2053` sends `UpdateNodePositions` straight to the coordinator and the orchestrator has no handler for it (`src/actors/physics_orchestrator_actor.rs:563-566`).
+**Drift (BASELINE-architecture.md vs code):** `docs/BASELINE-architecture.md:325-327` and `:152-154` name `PhysicsOrchestratorActor` as the hop between `ForceComputeActor` and `ClientCoordinatorActor`; `src/actors/graph_service_supervisor.rs:2047-2053` sends `UpdateNodePositions` straight to the coordinator and the orchestrator has no handler for it (`src/actors/physics_orchestrator_actor.rs:563-566`).
 
 ## VC-02.15 SemanticProcessorActor and OptimizedSettingsActor — message surfaces
 ```mermaid

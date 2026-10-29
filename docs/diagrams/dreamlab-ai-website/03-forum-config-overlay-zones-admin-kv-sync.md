@@ -21,12 +21,13 @@ sources:
   - ../dreamlab-ai-website/forum-config/tests/ingress_mirror.rs
   - ../dreamlab-ai-website/.github/workflows/set-worker-secrets.yml
   - ../dreamlab-ai-website/forum-config/deploy/auth-worker.wrangler.toml
+  - ../dreamlab-ai-website/forum-config/deploy/SYSTEM-ONE.md
   - ../dreamlab-ai-website/forum-config/deploy/pod-worker.wrangler.toml
   - ../dreamlab-ai-website/forum-config/deploy/relay-worker.wrangler.toml
   - ../dreamlab-ai-website/forum-config/deploy/search-worker.wrangler.toml
   - ../dreamlab-ai-website/forum-config/deploy/preview-worker.wrangler.toml
   - ../dreamlab-ai-website/forum-config/deploy/migrations/001_init.sql
-verified_commit: 3afa374f5957027213471f2429c7ba26996b0744
+verified_commit: 07cf8642bddb44df2388a5d1e9d2074923ab6ac0
 ---
 
 ## DW-03.1 The four-zone model plus the encryption master gate
@@ -127,14 +128,14 @@ flowchart TB
     T["forum-config/dreamlab.toml<br/>authored source"] --> M4
     subgraph M4["pod-base-url — 4 sites"]
         direction LR
-        P1["[pod].base_url<br/>dreamlab.toml:21"] --- P2["deploy.yml VITE_POD_API_URL<br/>deploy.yml:59"] --- P3["pod wrangler [vars].POD_BASE_URL<br/>pod-worker.wrangler.toml:52"] --- P4["auth wrangler [vars].POD_BASE_URL<br/>auth-worker.wrangler.toml:75"]
+        P1["[pod].base_url<br/>dreamlab.toml:21"] --- P2["deploy.yml VITE_POD_API_URL<br/>deploy.yml:59"] --- P3["pod wrangler [vars].POD_BASE_URL<br/>pod-worker.wrangler.toml:52"] --- P4["auth wrangler [vars].POD_BASE_URL<br/>auth-worker.wrangler.toml:83"]
     end
     T --> M5["client-admin-pubkey — 2 sites<br/>deploy.yml:73 VITE_ADMIN_PUBKEY must be a MEMBER of<br/>[admin].static_pubkeys, dreamlab.toml:39,41"]
-    T --> M6["relay-url — 3 sites<br/>[relay].url dreamlab.toml:27, deploy.yml:57 VITE_RELAY_URL,<br/>relay wrangler [vars].RELAY_URL relay-worker.wrangler.toml:21"]
+    T --> M6["relay-url — 3 sites<br/>[relay].url dreamlab.toml:27, deploy.yml:57 VITE_RELAY_URL,<br/>relay wrangler [vars].RELAY_URL relay-worker.wrangler.toml:29"]
     T --> M7
     subgraph M7["encryption-enabled — 3 sites (ADR-2016)"]
         direction LR
-        E1["[encryption].enabled<br/>dreamlab.toml:33,37"] --- E2["deploy.yml env.ENCRYPTION_ENABLED<br/>deploy.yml:106"] --- E3["relay wrangler [vars].ENCRYPTION_ENABLED<br/>relay-worker.wrangler.toml:16"]
+        E1["[encryption].enabled<br/>dreamlab.toml:33,37"] --- E2["deploy.yml env.ENCRYPTION_ENABLED<br/>deploy.yml:106"] --- E3["relay wrangler [vars].ENCRYPTION_ENABLED<br/>relay-worker.wrangler.toml:24"]
     end
 ```
 - Seven mirror groups total across DW-03.5/DW-03.6 — this is the actual shape of the brief's "known three-way manual sync anomaly": not three locations but seven independently-tracked governed data points, each with its own site count. `encryption-enabled` is the newest of the enumerated seven, added alongside `[encryption].enabled` (see DW-03.1).
@@ -166,9 +167,11 @@ flowchart TB
     SECRETS["PRF_SERVER_SECRET, ADMIN_PUBKEYS<br/>REQUIRED_AUTH_SECRETS, deploy_config.rs:73-79"] --> CHECK["validate_required_secrets(configured)<br/>deploy_config.rs:232-253"]
     CHECK -->|missing| FAIL2["DeployConfigError::MissingSecret"]
     FAIL2 --> DEPLOYSTEP["workers-deploy.yml 'Validate required auth-worker secrets are set'<br/>fails the deploy job, not just a request"]
+    SUBQ["SUBQ_API_KEY: job set-system-one-secrets pushes the GH secret to dreamlab-search-api and dreamlab-nostr-relay, failing when it is empty<br/>.github/workflows/set-worker-secrets.yml:135-151"] --> SUBQCHK["workers-deploy.yml 'Validate public System One credential', search and relay only: fails the deploy when the Worker secret name is absent<br/>.github/workflows/workers-deploy.yml:287-297"]
+    OPTIN["OPEN: the overlay is configured to opt in JEV_TRIAGE, JEV_SEARCH_RERANK and JEV_RATIONALE_CHECK, with a 5-minute relay cron for the triage sweep, effective only on the next Worker deployment, and the auth worker has no endpoint so its route reports unavailable<br/>forum-config/deploy/SYSTEM-ONE.md:3-4, forum-config/deploy/relay-worker.wrangler.toml:16, forum-config/deploy/search-worker.wrangler.toml:33, forum-config/deploy/auth-worker.wrangler.toml:61, forum-config/deploy/relay-worker.wrangler.toml:99-100"]
 ```
 - The `provision-kv` pre-job in `workers-deploy.yml` (`workers-deploy.yml:60`) resolves or creates a SINGLE shared `dreamlab-admin-kv` namespace before the per-worker matrix runs, specifically so the auth-worker's `ADMIN_KV` (read/write) and pod-worker's `ADMIN_KV_RO` (read-only) bind the same namespace — a per-worker title would split it and silently drop bans/mutes.
-- `NATIVE_POD_ADMIN_KEY`/`NATIVE_POD_URL` are OPTIONAL secrets (`workers-deploy.yml:298-304`): absent, `/api/native-pod/provision` 503s "native pod not configured" rather than crashing — the deploy step warns but does not block on these two.
+- `NATIVE_POD_ADMIN_KEY`/`NATIVE_POD_URL` are OPTIONAL secrets (`workers-deploy.yml:312-318`): absent, `/api/native-pod/provision` 503s "native pod not configured" rather than crashing — the deploy step warns but does not block on these two.
 
 ## DW-03.9 Per-worker wrangler bindings (1/2) — auth-worker and pod-worker
 ```mermaid
@@ -181,7 +184,7 @@ flowchart TB
         A_ADMIN["KV ADMIN_KV — placeholder id<br/>:40-41, see DW-03.8"]
         A_KV["KV KV<br/>:50-51"]
         A_R2["R2 PODS: dreamlab-pods<br/>:54-56"]
-        A_ZONE["[vars] ZONE_CONFIG — auto-approval mirror<br/>:58,69, see DW-03.5"]
+        A_ZONE["[vars] ZONE_CONFIG — auto-approval mirror<br/>:58,77, see DW-03.5"]
     end
     subgraph PODW["pod-worker: dreamlab-pod-api<br/>pod-worker.wrangler.toml:6"]
         P_R2["R2 PODS: dreamlab-pods (shared)<br/>:13-15"]
@@ -200,17 +203,17 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph RELAYW["relay-worker: dreamlab-nostr-relay<br/>relay-worker.wrangler.toml:6"]
-        R_DB["D1 DB: dreamlab-relay (canonical)<br/>:66-69"]
-        R_DO["Durable Object RELAY: NostrRelayDO<br/>:72-74, new_sqlite_classes :76-78"]
-        R_RDB["D1 REPLAY_DB: dreamlab-auth (shared)<br/>:85-88"]
-        R_VARS["[vars] ENCRYPTION_ENABLED :14,16 + RELAY_URL :18,21 + ZONE_CONFIG :30,33<br/>+ ADMIN_PUBKEYS :35,41 + INGRESS_RECIPIENTS :43,47<br/>+ PUSH_ENABLED/VAPID_* :49-57 — server enforcement, see DW-03.5/03.6"]
+        R_DB["D1 DB: dreamlab-relay (canonical)<br/>:74-77"]
+        R_DO["Durable Object RELAY: NostrRelayDO<br/>:80-82, new_sqlite_classes :84-86"]
+        R_RDB["D1 REPLAY_DB: dreamlab-auth (shared)<br/>:93-96"]
+        R_VARS["[vars] JEV_TRIAGE and SubQ endpoint :15-20 + ENCRYPTION_ENABLED :22,24 + RELAY_URL :26,29 + ZONE_CONFIG :38,41<br/>+ ADMIN_PUBKEYS :43,49 + INGRESS_RECIPIENTS :51,55<br/>+ PUSH_ENABLED/VAPID_* :57-65; five-minute cron :98-100 — server enforcement, see DW-03.5/03.6"]
     end
     subgraph SEARCHW["search-worker: dreamlab-search-api<br/>search-worker.wrangler.toml:3"]
         S_AI["Workers AI binding AI<br/>:11-12"]
         S_R2["R2 VECTORS: dreamlab-vectors<br/>:14-16"]
         S_KV["KV SEARCH_CONFIG<br/>:18-19"]
         S_RDB["D1 REPLAY_DB: dreamlab-auth (shared)<br/>:25-27"]
-        S_ADMIN["[vars] ADMIN_PUBKEYS<br/>:30,38, own copy — see DW-03.5 mirror set"]
+        S_ADMIN["[vars] ADMIN_PUBKEYS<br/>:30,46, own copy (JEV_SEARCH_RERANK and SubQ endpoint :32-37) — see DW-03.5 mirror set"]
     end
     subgraph PREVIEWW["preview-worker: dreamlab-link-preview<br/>preview-worker.wrangler.toml:3"]
         PR_KV["KV RATE_LIMIT<br/>:13-14"]

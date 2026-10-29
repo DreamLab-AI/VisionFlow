@@ -24,7 +24,7 @@ sources:
   - ../visionGraph/.github/workflows/publish.yml
   - ../project/.github/workflows/ontology-publish.yml
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: 07f4c1ce6ac9e7d5c1c2169b4672ca73c54e5efa, visiongraph: 59e7dcc8d05ca447d03c74c819a740b390b93074, visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, visionflow: 1d7183a73c1eae4996a7006067d5047308fab7a5}
+verified_commit: {ontomark: 07f4c1ce6ac9e7d5c1c2169b4672ca73c54e5efa, visiongraph: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e, visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, visionflow: 124512b8f5e8c33c247065c58901dcfdc18988a2}
 ---
 
 ## OM-05.1 Command tree — ten verbs, repair and migrate, three global flags, and which vault each one reads

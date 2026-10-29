@@ -24,7 +24,7 @@ sources:
   - tests/gates/run-all.sh
   - ./README.md
   - docs/jev-option.md
-verified_commit: 1d7183a73c1eae4996a7006067d5047308fab7a5
+verified_commit: 124512b8f5e8c33c247065c58901dcfdc18988a2
 ---
 
 ## VF-03.1 The roster — the only place the estate is enumerated
@@ -278,23 +278,24 @@ sequenceDiagram
     Note over P,F: "The file is a REQUIRED entry in website/assets.manifest.json,<br/>so a missing snapshot fails the asset gate — assets.manifest.json:13"
 ```
 
-## VF-03.11 The snapshot as it stands — 10 of 18 green, 4 red, 1 none, 2 exempt by design
+## VF-03.11 The snapshot as it stands — 9 of 18 green, 2 red, 2 amber, 2 none, 2 exempt by design
 ```mermaid
 flowchart TB
     classDef red fill:#f7dede,stroke:#a33333,color:#111
     classDef green fill:#e6f0dc,stroke:#4a7a2a,color:#111
     classDef amb fill:#f9f0d5,stroke:#8a7020,color:#111
 
-    SNAP["schema visionflow.estate-health/1, generated 2026-10-28T08:46Z<br/>collected by the nightly run at revision 52136a5<br/>estate-health.json:2, estate-health.json:3 and estate-health.json:5"]
+    SNAP["schema visionflow.estate-health/1, generated 2026-10-29T08:42Z<br/>collected by the nightly run at revision 68bdf86<br/>estate-health.json:2, estate-health.json:3 and estate-health.json:5"]
 
-    SNAP --> SUM["summary — 18 repos: 10 green, 4 red, 0 amber,<br/>1 none, 2 exempt, 1 unreadable, 18 open PRs,<br/>6 of 6 surfaces reachable<br/>estate-health.json:10 through estate-health.json:19"]
+    SNAP --> SUM["summary — 18 repos: 9 green, 2 red, 2 amber,<br/>2 none, 2 exempt, 1 unreadable, 14 open PRs,<br/>6 of 6 surfaces reachable<br/>estate-health.json:10 through estate-health.json:19"]
 
-    SUM --> R4["RED — agentbox (Security Invariants and TUI helper tests failed), solid-pod-rs (CI failed),<br/>nostr-rust-forum (Security Audit failed) and dreamlab-ai-website (Set CF Worker secrets failed)<br/>estate-health.json:171, estate-health.json:262, estate-health.json:311 and estate-health.json:364"]:::red
-    SUM --> N1["NONE — VisionClaw. No run sits on HEAD e9362b7, so its older green verdicts are reported none<br/>estate-health.json:116 and estate-health.json:150 — estate-health.mjs:442"]:::amb
-    SUM --> E1["EXEMPT — knowledgeGraph. Its last Build and verify run failed on<br/>an older commit, so the HEAD rule reports none and ci_by_design<br/>turns that into exempt; both notes are kept<br/>estate-health.json:473 and estate-health.json:493-494"]:::amb
-    SUM --> E2["EXEMPT — WasmVOWL, no workflows by design<br/>estate-health.json:628 and estate-health.json:636"]:::amb
-    SUM --> U1["UNREADABLE — jjohare/visionGraph, the one known hole<br/>see VF-03.5 — estate-health.json:647"]:::amb
-    SUM --> G1["GREEN — VisionFlow itself, loom, sidestr-rs, ontomark, ontomark-obsidian,<br/>vowl-wasm, prose-sanitiser, diagram-ir, dream-engine and visiontouch-rs"]:::green
+    SUM --> R4["RED — nostr-rust-forum (CI and Security Audit failed) and prose-sanitiser (CI failed)<br/>estate-health.json:313, estate-health.json:324, estate-health.json:331 and estate-health.json:714"]:::red
+    SUM --> A1["AMBER — dreamlab-ai-website (CI in progress, Pages deploy pending) and sidestr-rs (ci in progress): runs not yet concluded, so neither is green nor red<br/>estate-health.json:366 and estate-health.json:510"]:::amb
+    SUM --> N1["NONE — VisionClaw (no run on HEAD 19417bd) and solid-pod-rs (no run on HEAD 5537184, its older runs red), so their older verdicts are reported none<br/>estate-health.json:116, estate-health.json:150, estate-health.json:262 and estate-health.json:292 — estate-health.mjs:442"]:::amb
+    SUM --> E1["EXEMPT — knowledgeGraph. Its last Build and verify run failed on<br/>an older commit, so the HEAD rule reports none and ci_by_design<br/>turns that into exempt; both notes are kept<br/>estate-health.json:468 and estate-health.json:488-489"]:::amb
+    SUM --> E2["EXEMPT — WasmVOWL, no workflows by design<br/>estate-health.json:623 and estate-health.json:631"]:::amb
+    SUM --> U1["UNREADABLE — jjohare/visionGraph, the one known hole<br/>see VF-03.5 — estate-health.json:646"]:::amb
+    SUM --> G1["GREEN — VisionFlow itself, agentbox, loom, ontomark, ontomark-obsidian,<br/>vowl-wasm, diagram-ir, dream-engine and visiontouch-rs"]:::green
 
     VERD["The offline check therefore returns ESTATE-HEALTH-RED:<br/>any red repo is enough, and the verdict beats staleness<br/>estate-health.mjs:1008 — see VF-03.6. check() has no branch for<br/>exempt, so an exempt row prints nothing and moves no verdict<br/>estate-health.mjs:968 and estate-health.mjs:978"]:::red
     SUM --> VERD
@@ -303,10 +304,10 @@ flowchart TB
     VERD -.-> INV
 ```
 
-**Debt:** since the 2026-09-23 snapshot knowledgeGraph moved from red to exempt by rule rather than by a passing run; since 2026-10-06 VisionClaw moved from red to none because its failing runs are on an older commit (the HEAD rule), not because a run passed, while agentbox, nostr-rust-forum and dreamlab-ai-website have since turned red on a HEAD run; no mechanism records why a row flips, so any trend is only visible by reading committed snapshots in sequence (`website/static/data/estate-health.json:11`).
+**Debt:** since the 2026-09-23 snapshot knowledgeGraph moved from red to exempt by rule rather than by a passing run; since 2026-10-06 VisionClaw moved from red to none because its failing runs are on an older commit (the HEAD rule), not because a run passed, while in this snapshot agentbox is green again, solid-pod-rs reads none because its tip commit has no run and its older runs were red, nostr-rust-forum is still red on a HEAD run and prose-sanitiser has newly turned red; no mechanism records why a row flips, so any trend is only visible by reading committed snapshots in sequence (`website/static/data/estate-health.json:11`).
 
 **Debt (registry roster vs canon) — RESOLVED 2026-10-03, re-opened and RESOLVED again 2026-10-18:** the 10-03 dream ACCEPT (PR #13, merged as `c1e1498`) brought the roster to the seven sidestr crates canon then named; `webledgers-teller` was published later and went unprobed until `26df6c9` added it, with canon updated to eight in the same commit (`scripts/estate-health/roster.json:73-80`, estate register ER-3); the rewritten README no longer states a crate count (`./README.md:31`).
 
 **Drift (2026-10-15, dream-engine extraction):** the roster row for `dream-engine` (`provenance: imported`, a fork of ruvnet/dream-machine) is stamped before the extraction. The slug now names the new Rust repository and the fork is renamed dream-machine and archived (checked 2026-10-16). The row has not been changed, because the release manifest and its gate assert two imported rows, see DE-01.
 
-**Since the last stamp:** `check` now builds its output in a buffer and prints it directly before the sentinel line, so a Jev advisory block, off by default and never able to change the verdict or exit code, can add `JEV priority` and `JEV triage` lines for the failed observations (`scripts/estate-health.mjs:964`, `scripts/estate-health.mjs:1005`, `scripts/estate-health.mjs:1035`, `docs/jev-option.md:5`). `collect` never calls it.
+**Since the last stamp:** `check` now builds its output in a buffer and prints it directly before the sentinel line, so a Jev advisory block, never able to change the verdict or exit code, can add `JEV priority` and `JEV triage` lines for the failed observations (`scripts/estate-health.mjs:964`, `scripts/estate-health.mjs:1005`, `scripts/estate-health.mjs:1035`, `docs/jev-option.md:5`). The library default is off but agentbox now projects `VISIONFLOW_JEV=all` into its shells, while hosted CI and the dream annexe do not inherit it (`docs/jev-option.md:3` and `docs/jev-option.md:16`). `collect` never calls it.

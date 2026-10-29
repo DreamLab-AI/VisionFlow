@@ -20,7 +20,7 @@ sources:
   - ../knowledgeGraph/explorer/modern/src/site/mesh.ts
   - ../knowledgeGraph/explorer/modern/src/types/scope.ts
   - ../knowledgeGraph/explorer/modern/src/site/domains.ts
-verified_commit: {visiongraph: 59e7dcc8d05ca447d03c74c819a740b390b93074, knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3}
+verified_commit: {visiongraph: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e, knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3}
 ---
 
 ## VG-06.1 Two copies of one codebase — 39 of 108 shared files now differ

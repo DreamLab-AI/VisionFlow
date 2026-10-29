@@ -32,7 +32,7 @@ sources:
   - docs/jev-option.md
   - docs/BASELINE-visionflow.md
   - docs/site-verification.md
-verified_commit: 1d7183a73c1eae4996a7006067d5047308fab7a5
+verified_commit: 124512b8f5e8c33c247065c58901dcfdc18988a2
 ---
 
 ## VF-06.1 Two diagram pipelines, one repository — what each owns
@@ -489,7 +489,7 @@ flowchart TB
     E1 -.-> DIV
 ```
 
-**Invariant (--only leaves VERIFICATION.md alone; Debt resolved at VisionFlow 54e1d02):** `--only` filters the topic set before anything else (`scripts/diagram-index-gen.cjs:843`) and suppresses the README and COVERAGE writes (`scripts/diagram-index-gen.cjs:920`); since 54e1d02 the cite-check block also skips `writeVerificationReport` under `--only` (`scripts/diagram-index-gen.cjs:832`), so a per-topic `--cite-check --only` run no longer overwrites the committed VERIFICATION.md with one topic's counts and a subset declared-revisions anchor (`scripts/diagram-index-gen.cjs:442`). Only a whole-tree run writes it, and `--check-verification` (`scripts/diagram-index-gen.cjs:837`) judges that.
+**Invariant (--only leaves VERIFICATION.md alone; Debt resolved at VisionFlow 54e1d02):** `--only` filters the topic set before anything else (`scripts/diagram-index-gen.cjs:843`) and suppresses the README and COVERAGE writes (`scripts/diagram-index-gen.cjs:920`); since 54e1d02 the cite-check block also skips `writeVerificationReport` under `--only` (`scripts/diagram-index-gen.cjs:832`), so a per-topic `--cite-check --only` run no longer overwrites the committed VERIFICATION.md with one topic's counts and a subset declared-revisions anchor (`scripts/diagram-index-gen.cjs:442`). Only a whole-tree run writes it, and `--check-verification` (`scripts/diagram-index-gen.cjs:887`) judges that.
 
 ## VF-06.15 The opt-in Jev advisory step — a typed-decision review that never gates
 ```mermaid
@@ -508,4 +508,4 @@ flowchart TB
 ```
 
 **What it shows.** Since the earlier stamp the generator can ask a typed-decision model whether a diagram contradicts the source lines it cites, as an advisory line after all the deterministic gates have already passed or failed.
-**Why it is this way.** The checks that decide the exit code, citation resolution, render and width, stay deterministic; the option adds a second opinion that can flag a claim for human review before a restamp, and cannot change a verdict (docs/jev-option.md:3-5, scripts/diagram-index-gen.cjs:785-790).
+**Why it is this way.** The checks that decide the exit code, citation resolution, render and width, stay deterministic; the option adds a second opinion that can flag a claim for human review before a restamp, and cannot change a verdict (docs/jev-option.md:3-5, scripts/diagram-index-gen.cjs:785-790). The library default is off, but agentbox now projects `VISIONFLOW_JEV=all` into its service and shell environments, so a local gate run asks the model while hosted CI and the dream annexe still make no call (docs/jev-option.md:16).

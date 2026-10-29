@@ -21,7 +21,7 @@ sources:
   - ../project/xr-client/tests/unit/test_hud_tabs.gd
   - ../project/xr-client/tests/unit/test_graph_parity.gd
   - ../project/xr-client/tests/unit/test_backend_switch.gd
-verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
+verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c}
 ---
 
 ## VC-40.1 One capability table gates every server-bound request and greys the matching controls

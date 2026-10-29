@@ -83,7 +83,7 @@ sources:
   - ../project/src/handlers/memory_cloud_handler.rs
   - ../project/src/handlers/speech_socket_handler.rs
   - ../project/docs/adr/ADR-2036-defensive-openxr-boot.md
-verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
+verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c}
 ---
 
 ## VC-36.1 Boot — OpenXR init, capability probe, deferred scene swap (ADR-2036)
@@ -187,7 +187,7 @@ flowchart TB
     D1["OPEN by design: project.godot:16 declares Godot 4.3 / Forward Mobile.<br/>The only build that has ever rendered on a headset is 4.6.1-stable on<br/>Compatibility. The file header now says so in text (project.godot:3-6) and<br/>leaves the array alone: config/features is EDITOR-MANAGED metadata, and its<br/>renderer tag is the Quest renderer decision (audit WP0, Invariant 1), so a hand<br/>edit would pre-empt it. docs/XR-client.md:783 and README:15-18 say the same.<br/>Header corrected 2026-10-07, assessed 2026-09-05 at ADR-2079 scope review"]
     AUD["[audio] driver/enable_input = true<br/>project.godot:22 - the engine may open an input device;<br/>capture itself is opt-in per session, docs/XR-client.md:886"]
     RM -. "unexercised" .-> D2
-    D2["DIVERGENCE: the .mobile override targets the Quest 3 APK,<br/>which is UNBUILT - no Android NDK is provisioned.<br/>90fps was measured only on VIVE Pro + dual RTX 6000.<br/>docs/BASELINE-architecture.md:245-246"]
+    D2["DIVERGENCE: the .mobile override targets the Quest 3 APK,<br/>which is UNBUILT - no Android NDK is provisioned.<br/>90fps was measured only on VIVE Pro + dual RTX 6000.<br/>docs/BASELINE-architecture.md:258-259"]
     RM -. "TENSION" .-> D3
     D3["TENSION: project.godot:2 header still calls the Quest 3 APK the ship<br/>target, while xr-client/scripts/graph_scene.gd:26-27 reworded Quest 3<br/>standalone as a PLANNED target and names the Vive/SteamVR rig as the<br/>currently deployed one. project.godot:2, graph_scene.gd:26-27"]
 ```
@@ -207,7 +207,7 @@ sequenceDiagram
     Note over GS: XR_BACKEND_WS default ws://localhost:4000<br/>GRAPH_STREAM_PATH="/wss" graph_scene.gd:73<br/>PRESENCE_PATH="/ws/presence" graph_scene.gd:74
     GS->>GS: _env_or("XR_BACKEND_WS", DEFAULT_BACKEND_WS).rstrip("/")
     GS->>CT: connect_to_server(base+"/wss", base+"/ws/presence", XR_ROOM_URN, XR_DISPLAY_NAME, XR_NOSTR_SECRET)
-    Note over GS,CT: RESOLVED ADR-2076: no token argument. with_token, the token<br/>parameters of spawn_graph_stream / graph_pump / connect_to_url,<br/>and XR_GRAPH_TOKEN are deleted. Query-token auth is gone from<br/>this client - NIP-98 is the only graph-socket credential. Also RESOLVED<br/>ADR-2058 (2026-09-05, see VC-32.1): the server's own ?token= query fallback is<br/>now compiled out of release entirely and survives only dev-auth-gated with a<br/>SECURITY: warning - BASELINE-architecture.md's "Known divergences" bullet<br/>(:265) recording it as still-open was not updated when ADR-2058 landed.
+    Note over GS,CT: RESOLVED ADR-2076: no token argument. with_token, the token<br/>parameters of spawn_graph_stream / graph_pump / connect_to_url,<br/>and XR_GRAPH_TOKEN are deleted. Query-token auth is gone from<br/>this client - NIP-98 is the only graph-socket credential. Also RESOLVED<br/>ADR-2058 (2026-09-05, see VC-32.1): the server's own ?token= query fallback is<br/>now compiled out of release entirely and survives only dev-auth-gated with a<br/>SECURITY: warning - BASELINE-architecture.md's "Known divergences" bullet<br/>(:295-296) recording it as still-open was not updated when ADR-2058 landed.
     CT->>BP: connect_to_url(url, nostr_secret_hex) binary_protocol.rs:1055
     BP->>TR: spawn_graph_stream(url, nostr_secret_hex, inbox)
     TR->>SV: connect_async_with_config(url, ws_config(), false)
@@ -778,7 +778,7 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant HP as HP-Desktop headset client<br/>godot --path xr-client
-    participant CO as dev service environment<br/>docker-compose.unified.yml:95
+    participant CO as dev service environment<br/>docker-compose.unified.yml:105
     participant MN as main (dev banner)<br/>project/src/main.rs:294
     participant RH as enforce_release_env_hygiene<br/>project/src/main.rs:118
     participant AU as verify_access<br/>src/utils/auth.rs:191
@@ -786,12 +786,12 @@ sequenceDiagram
     participant SV as VisionClaw handlers
 
     rect rgb(240, 232, 210)
-        Note over CO: VISIONCLAW_DEV_MODE: "${VISIONCLAW_DEV_MODE:-1}"<br/>docker-compose.unified.yml:95 - DEV SERVICE ONLY.<br/>ADR-2108 flipped the default from :-0 to :-1 on 2026-09-08, so<br/>launch.sh up dev boots an ARMED backend and the operator opts OUT<br/>with VISIONCLAW_DEV_MODE=0. Still not in the *common-environment<br/>anchor and not in the production service, so the default never<br/>reaches a release deploy. docker-compose.unified.yml:88-91
+        Note over CO: VISIONCLAW_DEV_MODE: "${VISIONCLAW_DEV_MODE:-1}"<br/>docker-compose.unified.yml:105 - DEV SERVICE ONLY.<br/>ADR-2108 flipped the default from :-0 to :-1 on 2026-09-08, so<br/>launch.sh up dev boots an ARMED backend and the operator opts OUT<br/>with VISIONCLAW_DEV_MODE=0. Still not in the *common-environment<br/>anchor and not in the production service, so the default never<br/>reaches a release deploy. docker-compose.unified.yml:98-101
     end
     CO->>RH: process env, release build
     alt the var is merely PRESENT
         RH-->>RH: REFUSE TO BOOT, exit code 2 (ADR-06 D11) project/src/main.rs:136 project/src/main.rs:161
-        Note right of RH: project/src/main.rs:109 - a release binary physically cannot<br/>honour SETTINGS_AUTH_BYPASS / VISIONCLAW_DEV_MODE.<br/>Caveat: both services load env_file .env, so the var must<br/>never sit in a .env shared with prod - sharper now that the<br/>compose default supplies it unasked.<br/>docker-compose.unified.yml:92-94
+        Note right of RH: project/src/main.rs:109 - a release binary physically cannot<br/>honour SETTINGS_AUTH_BYPASS / VISIONCLAW_DEV_MODE.<br/>Caveat: both services load env_file .env, so the var must<br/>never sit in a .env shared with prod - sharper now that the<br/>compose default supplies it unasked.<br/>docker-compose.unified.yml:102-104
     end
     CO->>MN: process env, dev or dev-auth build (the hygiene hook is an empty stub here, project/src/main.rs:169)
     MN->>AU: dev_full_bypass_active() src/utils/auth.rs:116

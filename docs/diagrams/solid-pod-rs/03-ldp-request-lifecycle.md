@@ -9,7 +9,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/mashlib.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/mod.rs
-verified_commit: a4a86f6da300b529c7855318c24ff5c7b35ec582
+verified_commit: 9bde3be7fa123479fabb5c4cc9056e19ab0dcadd
 ---
 
 ## SP-03.1 GET — the full read path
@@ -49,7 +49,7 @@ sequenceDiagram
     end
     G-->>C: 200 with Link, WAC-Allow, Updates-via, ETag
     Note over G: A storage NotFound becomes a bare 404<br/>solid-pod-rs-server/src/lib.rs:1653
-    Note over G: OPTIONS (handle_options, solid-pod-rs-server/src/lib.rs:2303, via<br/>ldp::options_for_conneg, solid-pod-rs/src/ldp.rs:1805) runs NO WAC check — it<br/>advertises capability, not content. Its Accept-Patch dialect list is fixed<br/>at solid-pod-rs/src/ldp.rs:1797, and the container Accept-Post adds text/n3 only when<br/>conneg is on (accept_post_for, solid-pod-rs/src/ldp.rs:102).
+    Note over G: OPTIONS (handle_options, solid-pod-rs-server/src/lib.rs:2303, via<br/>ldp::options_for_conneg, solid-pod-rs/src/ldp.rs:1806) runs NO WAC check — it<br/>advertises capability, not content. Its Accept-Patch dialect list is fixed<br/>at solid-pod-rs/src/ldp.rs:1798, and the container Accept-Post adds text/n3 only when<br/>conneg is on (accept_post_for, solid-pod-rs/src/ldp.rs:102).
 ```
 
 ## SP-03.2 Container GET — three representations
@@ -73,7 +73,7 @@ flowchart TD
     MASH -- yes --> MHTML --> DONE
     MASH -- no --> JSONLD --> DONE
 
-    N["container_representation is a blanket-impl trait method over any Storage:<br/>list(path) then render_container<br/>solid-pod-rs/src/ldp.rs:2277"]
+    N["container_representation is a blanket-impl trait method over any Storage:<br/>list(path) then render_container<br/>solid-pod-rs/src/ldp.rs:2278"]
     REP -.-> N
     N2["should_serve keys on Accept plus Sec-Fetch-Dest plus the stored content type<br/>solid-pod-rs/src/mashlib.rs:122"]
     MASH -.-> N2
@@ -126,13 +126,13 @@ sequenceDiagram
     participant C as Client
     participant P as handle_post<br/>solid-pod-rs-server/src/lib.rs:1816
     participant W as enforce_write_ctx<br/>solid-pod-rs-server/src/lib.rs:977
-    participant SL as ldp::resolve_slug<br/>solid-pod-rs/src/ldp.rs:178
+    participant SL as ldp::resolve_slug<br/>solid-pod-rs/src/ldp.rs:179
     participant MU as mint_unique_target<br/>solid-pod-rs-server/src/lib.rs:1793
     participant S as Storage
 
     C->>P: POST to a container with a Slug header
     P->>W: acl:Append on the CONTAINER<br/>solid-pod-rs-server/src/lib.rs:1829
-    P->>SL: join the Slug, capped at MAX_SLUG_BYTES<br/>solid-pod-rs/src/ldp.rs:167
+    P->>SL: validate then join the Slug: at most MAX_SLUG_BYTES (solid-pod-rs/src/ldp.rs:167), no slash, dot-dot, NUL or bare dot, else 400<br/>solid-pod-rs/src/ldp.rs:194
     SL-->>P: target path
     alt target resolves to an acl or meta sidecar
         P->>W: RE-ENFORCE Write on the target, which elevates to Control<br/>solid-pod-rs-server/src/lib.rs:1857
@@ -156,16 +156,16 @@ flowchart TD
     CONT{"is_container?"}
     C405["405 cannot PATCH a container<br/>solid-pod-rs-server/src/lib.rs:1912"]
     AUTH["enforce_write_ctx with AccessMode Write, never Append<br/>solid-pod-rs-server/src/lib.rs:1921"]
-    DIAL{"ldp::patch_dialect_from_mime<br/>solid-pod-rs/src/ldp.rs:2195"}
+    DIAL{"ldp::patch_dialect_from_mime<br/>solid-pod-rs/src/ldp.rs:2196"}
     U415["415 unsupported patch dialect<br/>solid-pod-rs-server/src/lib.rs:1938"]
     UTF{"body is UTF-8?"}
     B400["400 patch body is not valid UTF-8<br/>solid-pod-rs-server/src/lib.rs:1944"]
     EX{"resource exists?"}
     SEED["seed_graph_from_patch_target<br/>solid-pod-rs-server/src/lib.rs:2182"]
-    N3["apply_n3_patch<br/>solid-pod-rs/src/ldp.rs:1148"]
-    SPQ["apply_sparql_patch<br/>solid-pod-rs/src/ldp.rs:1275"]
-    JP["apply_json_patch, RFC 6902<br/>solid-pod-rs/src/ldp.rs:1999"]
-    ABS["apply_patch_to_absent then create<br/>solid-pod-rs/src/ldp.rs:2245"]
+    N3["apply_n3_patch<br/>solid-pod-rs/src/ldp.rs:1149"]
+    SPQ["apply_sparql_patch<br/>solid-pod-rs/src/ldp.rs:1276"]
+    JP["apply_json_patch, RFC 6902<br/>solid-pod-rs/src/ldp.rs:2000"]
+    ABS["apply_patch_to_absent then create<br/>solid-pod-rs/src/ldp.rs:2246"]
     SER["graph_to_turtle delegates to to_ntriples<br/>solid-pod-rs-server/src/lib.rs:2081"]
     GUARD["F7 lockout guard on the post-patch ACL<br/>solid-pod-rs-server/src/lib.rs:1756"]
     OUT["204 No Content, or 201 on create, plus X-Provenance"]
@@ -200,7 +200,7 @@ sequenceDiagram
     participant P as handle_patch<br/>solid-pod-rs-server/src/lib.rs:1905
     participant S as Storage
     participant SG as seed_graph_from_patch_target<br/>solid-pod-rs-server/src/lib.rs:2182
-    participant AP as ldp::apply_n3_patch<br/>solid-pod-rs/src/ldp.rs:1148
+    participant AP as ldp::apply_n3_patch<br/>solid-pod-rs/src/ldp.rs:1149
 
     P->>S: get(path)
     S-->>P: the current stored body
@@ -280,10 +280,10 @@ flowchart LR
     ACC["Accept header"]
     BEST["best_explicit_rdf_format — highest-q EXPLICIT format<br/>solid-pod-rs-server/src/lib.rs:2091"]
     NEG["rdf_content_negotiate<br/>solid-pod-rs-server/src/lib.rs:2139"]
-    FMT["ldp::RdfFormat::from_mime<br/>solid-pod-rs/src/ldp.rs:309"]
-    NT["Graph::parse_ntriples<br/>solid-pod-rs/src/ldp.rs:816"]
-    OUT1["to_ntriples<br/>solid-pod-rs/src/ldp.rs:717"]
-    OUT2["to_jsonld<br/>solid-pod-rs/src/ldp.rs:737"]
+    FMT["ldp::RdfFormat::from_mime<br/>solid-pod-rs/src/ldp.rs:310"]
+    NT["Graph::parse_ntriples<br/>solid-pod-rs/src/ldp.rs:817"]
+    OUT1["to_ntriples<br/>solid-pod-rs/src/ldp.rs:718"]
+    OUT2["to_jsonld<br/>solid-pod-rs/src/ldp.rs:738"]
     VERB["fall through to the stored bytes verbatim<br/>solid-pod-rs-server/src/lib.rs:1635"]
 
     ACC --> BEST --> NEG --> FMT
@@ -330,9 +330,9 @@ stateDiagram-v2
     Classify --> Public: an anonymous caller WOULD have been granted<br/>and no sidecar elevation happened
 
     Private --> VaryAuth: append Vary Authorization<br/>solid-pod-rs-server/src/lib.rs:1409
-    VaryAuth --> NoStore: Cache-Control private no-store<br/>solid-pod-rs/src/ldp.rs:1948
-    Public --> MediaType: cache_control_for(content_type)<br/>solid-pod-rs/src/ldp.rs:1934
-    MediaType --> RdfPolicy: RDF gets private no-cache must-revalidate<br/>solid-pod-rs/src/ldp.rs:1894
+    VaryAuth --> NoStore: Cache-Control private no-store<br/>solid-pod-rs/src/ldp.rs:1949
+    Public --> MediaType: cache_control_for(content_type)<br/>solid-pod-rs/src/ldp.rs:1935
+    MediaType --> RdfPolicy: RDF gets private no-cache must-revalidate<br/>solid-pod-rs/src/ldp.rs:1895
     MediaType --> NoHeader: a public binary gets no Cache-Control
 
     NoStore --> [*]
@@ -341,7 +341,7 @@ stateDiagram-v2
 
     note right of Classify
       cache_control_for_response(content_type, audience)
-      solid-pod-rs/src/ldp.rs:1980. Audience is decided by re-evaluating
+      solid-pod-rs/src/ldp.rs:1981. Audience is decided by re-evaluating
       the already-resolved ACL with no principal — pure, no extra I/O.
       A sidecar read is never classified Public.
     end note

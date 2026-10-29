@@ -17,6 +17,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0007_ontology_governance.sql
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/governance_api.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/rationale_check.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs
@@ -34,7 +35,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md
   - ../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md
-verified_commit: {nostr-rust-forum: 8a5cf817e81b20e2b761899eab753768c0cb4988, dreamlab-ai-website: 3afa374f5957027213471f2429c7ba26996b0744}
+verified_commit: {nostr-rust-forum: eb5f2323e6d72240ecb7c456181b7a674f1842f4, dreamlab-ai-website: 07cf8642bddb44df2388a5d1e9d2074923ab6ac0}
 ---
 
 ## NF-06.1 The six kinds and their publishers
@@ -305,7 +306,7 @@ flowchart TB
     MERGE["merge is TIGHTENING ONLY - the result is never looser than the panel<br/>nostr-bbs-core/src/governance.rs:451, over the optional pair<br/>nostr-bbs-core/src/governance.rs:463"]
     TIER["effective_tier - total and pure over four inputs<br/>nostr-bbs-core/src/governance.rs:515"]
     DECL["the agent's own risk_tier is TELEMETRY from here on - it can raise<br/>the tier and never lower it below the properties' floor<br/>nostr-bbs-core/src/governance.rs:508-509"]
-    DEF["an entirely unlabelled request folds to the relay's advertised<br/>ESCALATION_DEFAULT_TIER nostr-bbs-core/src/governance.rs:525,<br/>nostr-bbs-relay-worker/wrangler.toml:53"]
+    DEF["an entirely unlabelled request folds to the relay's advertised<br/>ESCALATION_DEFAULT_TIER nostr-bbs-core/src/governance.rs:525,<br/>nostr-bbs-relay-worker/wrangler.toml:61"]
     STORE["stored on broker_cases.effective_tier at projection<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2790,<br/>read back nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2827"]
 
     PANEL --> MERGE
@@ -357,7 +358,7 @@ flowchart TB
     SUP["is_member_suppressed_effective - a view filter over the EFFECTIVE tier<br/>nostr-bbs-core/src/governance.rs:541"]
     ONLY["only a case the member surface would otherwise HIDE is worth sampling<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:386"]
     CAL["is_calibration_sample - HMAC-SHA256 over the request id<br/>nostr-bbs-core/src/governance.rs:595"]
-    KEY["ENV_CALIBRATION_SELECTION_KEY is a SECRET, never a plaintext var<br/>nostr-bbs-core/src/governance.rs:560, nostr-bbs-relay-worker/wrangler.toml:56-59"]
+    KEY["ENV_CALIBRATION_SELECTION_KEY is a SECRET, never a plaintext var<br/>nostr-bbs-core/src/governance.rs:560, nostr-bbs-relay-worker/wrangler.toml:64-67"]
     RATE["rate declared on the panel, default 0.1<br/>nostr-bbs-core/src/governance.rs:122 nostr-bbs-core/src/governance.rs:368"]
     PROBE["a probe tag is honoured ONLY from the panel's registered probe agent<br/>nostr-bbs-core/src/governance.rs:695, dropped from anyone else<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:401-402"]
     BLIND["probe blinding: the tag is filtered at the tag-WRITING trigger<br/>nostr-bbs-relay-worker/src/lib.rs:698, mirrored into the live schema path<br/>nostr-bbs-relay-worker/src/lib.rs:1063"]
@@ -367,8 +368,8 @@ flowchart TB
     RATE --> CAL
     PROBE --> BLIND
 
-    N1["INVARIANT the selection is KEYED. The request id is the 31402 d tag the agent chooses freely, so an<br/>unkeyed digest would let it grind ids until one is never sampled - opting itself out of oversight<br/>nostr-bbs-relay-worker/wrangler.toml:61-64"]
-    N2["INVARIANT unset key still samples - silently disabling oversight is treated as the worse failure,<br/>and the relay logs a warning on every projection nostr-bbs-relay-worker/wrangler.toml:68-71"]
+    N1["INVARIANT the selection is KEYED. The request id is the 31402 d tag the agent chooses freely, so an<br/>unkeyed digest would let it grind ids until one is never sampled - opting itself out of oversight<br/>nostr-bbs-relay-worker/wrangler.toml:69-72"]
+    N2["INVARIANT unset key still samples - silently disabling oversight is treated as the worse failure,<br/>and the relay logs a warning on every projection nostr-bbs-relay-worker/wrangler.toml:76-79"]
     N3["The blinding lives in the tag-writing trigger, not a watcher, because SQLite does not fire a trigger<br/>from inside another trigger without recursive_triggers, which is set nowhere here - the watcher was<br/>read as enforcement and was inert nostr-bbs-relay-worker/src/lib.rs:684-690"]
     N4["DIVERGENCE: what the relay enforces is NARROWER than DDD invariant 7. The tag remains on the raw<br/>signed 31402 served over REQ, because removing it would break the signature both clients verify<br/>strictly - blindness on the rendered surface is the CLIENT's responsibility<br/>nostr-bbs-core/src/governance.rs:357-364"]
     N5["The last purge statement is the one the original migration failed to mirror into the live path, so a<br/>deployed relay kept every probe row it had already indexed nostr-bbs-relay-worker/src/lib.rs:711"]
@@ -457,7 +458,7 @@ flowchart TB
     BIN["the binary reads the signing key from a named variable and never prints it<br/>nostr-bbs-governance-probe/src/main.rs:10-11"]
     LIVE["ADR-2011 activation live: run 20261002t132144z passed 11 of 11 on the edge<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:187"]
     REC["ADR-2010 activation staged on the same run - the refusal path is live, the commit path is not<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:7, docs/adr/ADR-2010-durable-governance-outcome-receipts.md:153"]
-    PIN["the edge kit pin is now ebcfaa2, a descendant of the correlation fix a5b809e<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:30"]
+    PIN["the edge kit pin is now 8a5cf81, a descendant of ebcfaa2 and so of the correlation fix a5b809e<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:30"]
 
     SUITE --> OWN --> TABLE --> NOTRUN
     SUITE --> BIN
@@ -468,7 +469,7 @@ flowchart TB
     N2["OPEN: no human has yet decided a high-tier case; the owner's first such 31403 at projection-committed<br/>is what closes ADR-2010 docs/adr/ADR-2010-durable-governance-outcome-receipts.md:157"]
     N3["RESOLVED 13cbe6c: ADR-2010 now records the correlation fix as on the edge, pinned through 341c5d2<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:155"]
     N4["Probe cases persist as open broker_cases rows after withdrawal, identifiable by subject_kind m4-probe<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:198"]
-    N5["RESOLVED at dreamlab 3afa374: the kit record pins ebcfaa2 in both its SHA column and<br/>CANONICAL_KIT_SHA, its branch column reads main at ebcfaa2, and its narrative rows carry the<br/>image-upload, byline and notification changes of PR 76 after the ontology Promote/Demote gating<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:26"]
+    N5["DRIFT at dreamlab 07cf8642: the kit record pins 8a5cf81 in both its SHA column and<br/>CANONICAL_KIT_SHA, but its branch column still reads main at ebcfaa2 and its narrative rows stop at the<br/>ebcfaa2 changes; the Jev Worker consumers arrive only in the one added paragraph<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:26, :38"]
 ```
 
 ## NF-06.19 The Jev rationale check — an opt-in advisory beside the decision card
@@ -486,7 +487,7 @@ flowchart TB
     ADV -.->|"shown next to the card, nothing else"| GATE
 
     N1["INVARIANT the rubric is the estate-shared ES-05 governance-evidence-quality v1 set, vendored and pinned by sha256 so drift breaks a test<br/>nostr-bbs-auth-worker/src/rationale_check.rs:42"]
-    N2["Status: a proposed research candidate with no measured uplift and every flag off by default (docs/jev-option.md), so no governed path above depends on it"]
+    N2["Status: a proposed research candidate with no measured uplift; the library defaults off but the checked-in auth manifest sets JEV_RATIONALE_CHECK=1 and declares no local endpoint, so the route answers unavailable nostr-bbs-auth-worker/wrangler.toml:53-58; no governed path above depends on it"]
 ```
 
 **Open:** the option is named NF-06-S1-01 in the Jev option record and is documented as a proposed research candidate (`nostr-bbs-auth-worker/src/rationale_check.rs:1`), so whether a reviewer's draft rationale should ever be shaped by a model answer is a decision the record leaves unmade.

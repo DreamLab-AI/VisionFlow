@@ -27,7 +27,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/metrics.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/webid.rs
-verified_commit: a4a86f6da300b529c7855318c24ff5c7b35ec582
+verified_commit: 9bde3be7fa123479fabb5c4cc9056e19ab0dcadd
 ---
 
 ## SP-06.1 The Storage seam and its two shipped backends
@@ -162,9 +162,9 @@ flowchart TD
     RES["PodResolver trait<br/>solid-pod-rs/src/multitenant.rs:38"]
     PR["PathResolver — host ignored<br/>solid-pod-rs/src/multitenant.rs:49"]
     SR["SubdomainResolver<br/>solid-pod-rs/src/multitenant.rs:68"]
-    SP["strip_port<br/>solid-pod-rs/src/multitenant.rs:174"]
-    FL["is_file_like_label — pass a label like index.html straight through<br/>solid-pod-rs/src/multitenant.rs:149"]
-    SD["scrub_dotdot — ITERATIVE, loops until stable<br/>solid-pod-rs/src/multitenant.rs:184"]
+    SP["strip_port<br/>solid-pod-rs/src/multitenant.rs:189"]
+    FL["is_file_like_label — pass a label like index.html straight through<br/>solid-pod-rs/src/multitenant.rs:164"]
+    SD["scrub_dotdot — ITERATIVE, loops until stable<br/>solid-pod-rs/src/multitenant.rs:199"]
     OUT["ResolvedPath<br/>solid-pod-rs/src/multitenant.rs:28"]
 
     RES --> PR --> OUT
@@ -172,9 +172,9 @@ flowchart TD
     SR --> FL
     SR --> SD --> OUT
 
-    N["INVARIANT: scrub_dotdot must stay ITERATIVE. A single pass leaves the '....//'<br/>bypass — the outer removal re-forms a '..' from the fragments the inner pass left<br/>behind. Pinned by scrub_dotdot_iterative_defeats_bypass<br/>solid-pod-rs/src/multitenant.rs:223"]
+    N["INVARIANT: scrub_dotdot must stay ITERATIVE. A single pass leaves the '....//'<br/>bypass — the outer removal re-forms a '..' from the fragments the inner pass left<br/>behind. Pinned by scrub_dotdot_iterative_defeats_bypass<br/>solid-pod-rs/src/multitenant.rs:245"]
     SD -.-> N
-    N2["A second, explicit guard rejects any surviving '..' before the label is used as<br/>a pod name<br/>solid-pod-rs/src/multitenant.rs:118"]
+    N2["A second, explicit guard rejects any surviving '..' before the label is used as<br/>a pod name<br/>solid-pod-rs/src/multitenant.rs:133"]
     SD -.-> N2
 ```
 

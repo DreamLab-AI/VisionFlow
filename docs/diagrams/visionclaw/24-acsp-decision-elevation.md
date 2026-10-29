@@ -4,7 +4,7 @@ title: ACSP — governed decision/elevation pipeline
 area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2006, ADR-2093, ADR-2101, ADR-2110]
+adrs: [ADR-2006, ADR-2093, ADR-2101, ADR-2110, ADR-2148]
 sources:
   - ../project/src/actors/elevation_actor.rs
   - ../project/src/services/kpi_compute.rs
@@ -26,6 +26,9 @@ sources:
   - ../project/src/utils/agent_key.rs
   - ../project/src/handlers/broker_inbox_handler.rs
   - ../project/docs/reference/configuration.md
+  - ../project/docker-compose.unified.yml
+  - ../project/docs/BASELINE-architecture.md
+  - ../project/docs/adr/ADR-2148-enable-local-typed-decisions.md
   - ../project/crates/visionclaw-jev/src/proposal_triage.rs
   - ../project/client/src/features/control-center/governance/brokerCaseQueue.ts
   - ../project/src/web_contract/ledger.rs
@@ -36,7 +39,7 @@ sources:
   - ../project/src/app_state.rs
   - ../project/src/services/ontology_mutation_service.rs
   - ../project/src/services/voice_intent_client.rs
-verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9}
+verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, agentbox: 0b0f7918961e629280faf86f88227535abf514b5}
 ---
 
 ## VC-24.1 Enrichment-proposal lifecycle (real status values)
@@ -427,7 +430,7 @@ sequenceDiagram
     BR->>H: GET /api/broker/inbox - scope wrapped in RequireAuth::power_user, service credential accepted<br/>broker_inbox_handler.rs:248-252
     H->>ST: store::all - up to 500 proposals via repo.list, the bridge filters category and status itself<br/>broker_inbox_handler.rs:221 handlers/enrichment_proposals_handler.rs:742-753
     H->>TR: assemble_inbox(proposals, jev_triage())<br/>broker_inbox_handler.rs:222
-    alt Jev unconfigured, item off or no endpoint (jev_triage resolves to None once via OnceLock)
+    alt Jev unconfigured, item off or no endpoint - library default off, Compose sets VISIONCLAW_JEV=1 at docker-compose.unified.yml:8 (jev_triage resolves to None once via OnceLock)
         TR-->>H: plain projection, same cases, same order, no jev key<br/>broker_inbox_handler.rs:156-168, :195-198
     else triage state present
         TR->>JV: triage_queue over facts for pending or claimed cases only<br/>broker_inbox_handler.rs:172-173, :199-200
@@ -436,6 +439,6 @@ sequenceDiagram
     end
     H-->>BR: 200 {cases, total} - total is the unfiltered proposal count<br/>broker_inbox_handler.rs:210, :224
     Note over JV,H: INVARIANT: Jev annotates and orders only - it never approves, rejects or promotes, and the decide route (VC-24.3), signed decisions and receipts are untouched.<br/>crates/visionclaw-jev/src/proposal_triage.rs:8-10
-    Note over TR,JV: OPEN: the proposal text sent to Jev is private, so PROPOSAL_TRIAGE is local-only and refuses the proxy and public endpoints unless the endpoint is declared local<br/>docs/reference/configuration.md:441
+    Note over TR,JV: OPEN: the proposal text sent to Jev is private, so PROPOSAL_TRIAGE is local-only and refuses the proxy and public endpoints unless the endpoint is declared local<br/>docs/reference/configuration.md:461 - the supplied Compose environment declares it local and<br/>turns the master flag on, so triage runs there once recreated (activation staged)<br/>docker-compose.unified.yml:8, :9, :11, docs/BASELINE-architecture.md:49-50
     Note over H,ST: DEBT: total is proposals.len() after store::all, which is capped at ALL_LIMIT 500 rows newest-updated first, so total is not the table size once more than 500 proposals exist<br/>handlers/enrichment_proposals_handler.rs:738-745, handlers/broker_inbox_handler.rs:194
 ```

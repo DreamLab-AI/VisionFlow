@@ -61,7 +61,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/screens.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/theme.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/category.rs
-verified_commit: 8a5cf817e81b20e2b761899eab753768c0cb4988
+verified_commit: eb5f2323e6d72240ecb7c456181b7a674f1842f4
 ---
 
 ## NF-05.1 Forum client boot and the FORUM_BASE discipline
@@ -557,11 +557,11 @@ flowchart TB
     OUT -.-> SUB
 
     N1["INVARIANT: the push carries no message text, author or channel; the service worker fetches generic counters<br/>nostr-bbs-forum-client/sw.js:241, ADR-2023 decision 1 and 2"]
-    N2["OPEN: ADR-2023 is accepted and complete but activation is staged - the relay ships PUSH_ENABLED false<br/>nostr-bbs-relay-worker/wrangler.toml:78 - see NF-08.8"]
+    N2["OPEN: ADR-2023 is accepted and complete but activation is staged - the relay ships PUSH_ENABLED false<br/>nostr-bbs-relay-worker/wrangler.toml:86 - see NF-08.8"]
 ```
 
 **What it shows.** How the browser side of ADR-2023 works: the client asks the relay whether push is on, subscribes the device with a signed request, and from then on an empty push wakes the service worker, which drains content-free counters. Where server push is off, Tier 0 raises generic system notifications from the page.
 
 **Why it is this way.** Push payloads transit Google, Apple and Mozilla, and the nsec lives in `localStorage` where a service worker cannot read it, so ADR-2023 chose payload-less push with a bearer-token drain instead of RFC 8291 encryption (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:21`, `../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:25`).
 
-**Open:** ADR-2023 records `activation_status: staged` (no live Cloudflare deploy, push-service round trip or iOS device run was verified), and the shipped relay template leaves `PUSH_ENABLED = "false"` (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:6`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml:78`).
+**Open:** ADR-2023 records `activation_status: staged` (no live Cloudflare deploy, push-service round trip or iOS device run was verified), and the shipped relay template leaves `PUSH_ENABLED = "false"` (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:6`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml:86`).

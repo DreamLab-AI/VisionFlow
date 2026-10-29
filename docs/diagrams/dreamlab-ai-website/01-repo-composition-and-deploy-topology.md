@@ -18,7 +18,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
   - ../dreamlab-ai-website/forum-config/src/workers.rs
   - ../dreamlab-ai-website/src/App.tsx
-verified_commit: 3afa374f5957027213471f2429c7ba26996b0744
+verified_commit: 07cf8642bddb44df2388a5d1e9d2074923ab6ac0
 ---
 
 ## DW-01.1 Repo composition — thin operator overlay, not a protocol owner
@@ -65,7 +65,7 @@ flowchart TB
 ## DW-01.5 The dual-pin rule — four locations that must move together
 ```mermaid
 flowchart TB
-    A["1. KIT_REF<br/>.github/workflows/deploy.yml:130"] --- SHA["ebcfaa2c600f61a69ca4e84befc55a2f7518df4a"]
+    A["1. KIT_REF<br/>.github/workflows/deploy.yml:130"] --- SHA["8a5cf817e81b20e2b761899eab753768c0cb4988"]
     B["2. KIT_REF<br/>.github/workflows/workers-deploy.yml:44"] --- SHA
     C["3. KIT_REF<br/>.github/workflows/rust-ci.yml:20"] --- SHA
     D["4. rev pin, resolved version<br/>forum-config/Cargo.toml:50-53"] --- VER["1.0.0-beta.16"]
@@ -73,10 +73,10 @@ flowchart TB
     VER -.->|"CANONICAL_KIT_VERSION"| REC2["kit-compatibility-record.md:31"]
 ```
 - `workers-deploy.yml` fires on `forum-config/Cargo.lock` and `KIT_REF` changes precisely so a kit re-pin never ships a new client against old workers — the client/worker skew that "wiped the forum on 2026-06-15" (BASELINE-architecture.md:121-124).
-- **Drift:** `BASELINE-architecture.md:117` records `KIT_REF = ea7d95e7ca70833217ab543fee91b8344304a32d` ("the kit commit that released 1.0.0-beta.16") while the live pins (`deploy.yml:130`, `workers-deploy.yml:44`, `rust-ci.yml:20`, `kit-compatibility-record.md:30`) are `ebcfaa2c600f61a69ca4e84befc55a2f7518df4a`, a different commit whose compatibility-record row is "`main` at ebcfaa2" with the change set listed there (`kit-compatibility-record.md:26`), at the same crate version `1.0.0-beta.16` (`forum-config/Cargo.toml:50-53`, `kit-compatibility-record.md:31`). The governing doc's crate-version line (`BASELINE-architecture.md:110`) is current at `=1.0.0-beta.16`; only its SHA is a repin behind. All four pin sites and the compatibility record agree with each other.
-- The README has been rewritten since the previous stamp: the "Live pin `2d693ed2…` (beta.6)" sentence that this topic recorded as a third, older value no longer exists, and `README.md` carries no kit pin at all, so the earlier README pin drift is closed at the source.
+- **Drift:** `BASELINE-architecture.md:117` records `KIT_REF = ea7d95e7ca70833217ab543fee91b8344304a32d` ("the kit commit that released 1.0.0-beta.16") while the live pins (`deploy.yml:130`, `workers-deploy.yml:44`, `rust-ci.yml:20`, `kit-compatibility-record.md:30`) are `8a5cf817e81b20e2b761899eab753768c0cb4988`, a different commit whose compatibility-record row still reads "`main` at ebcfaa2" in its branch column, with the ebcfaa2 change set listed there and one added paragraph on the Jev Worker consumers (`kit-compatibility-record.md:26`, `kit-compatibility-record.md:38`), at the same crate version `1.0.0-beta.16` (`forum-config/Cargo.toml:50-53`, `kit-compatibility-record.md:31`). The governing doc's crate-version line (`BASELINE-architecture.md:110`) is current at `=1.0.0-beta.16`; only its SHA is a repin behind. All four pin sites and the compatibility record agree with each other.
+- The README's pin sentence now reads kit source `8a5cf81…` and says it includes the Jev Worker consumers (`README.md:65`), so it agrees with the three pin sites; the older "Live pin `2d693ed2…` (beta.6)" sentence and the later `631c09f…` value are both gone.
 - The pin-site comments do not restate release notes or the kit version: `rust-ci.yml:18-19`, `deploy.yml:126-129` and `workers-deploy.yml:41-43` defer provenance to the compatibility record, which pin-parity checks against the exact SHA, and `deploy.yml:129` records that the prose rots on every repin.
-- **Drift:** the deployment row's SHA column and the machine-readable field agree at `ebcfaa2c` with a "Kit branch/tag at pin" column reading "`main` at ebcfaa2" and notes describing the change set (`kit-compatibility-record.md:26,30`). The History table, however, still marks `931898a` (tag `v1.0.0-beta.10`) as "Current (canonical — matches `CANONICAL_KIT_SHA` above and the `KIT_REF` pins)" (`kit-compatibility-record.md:347`), six releases behind. pin-parity compares only the SHA, so this does not fail the gate.
+- **Drift:** the deployment row's SHA column and the machine-readable field agree at `8a5cf817` with a "Kit branch/tag at pin" column still reading "`main` at ebcfaa2" and notes describing the ebcfaa2 change set only (`kit-compatibility-record.md:26,30`). The History table, however, still marks `931898a` (tag `v1.0.0-beta.10`) as "Current (canonical — matches `CANONICAL_KIT_SHA` above and the `KIT_REF` pins)" (`kit-compatibility-record.md:354`), six releases behind. pin-parity compares only the SHA, so this does not fail the gate.
 - INVARIANT: the machine-readable pin lives in exactly one place the gate reads — `CANONICAL_KIT_SHA` / `CANONICAL_KIT_VERSION` in `kit-compatibility-record.md:30-31` — and every other site is compared against it, which is why the surrounding comments can rot without the gate noticing.
 
 ## DW-01.6 Deploy job sequence — clone kit, build three frontends, merge, inject, deploy
@@ -104,7 +104,7 @@ sequenceDiagram
 - Supply-chain hardening: every tool the deploy job downloads (Trunk, binaryen/`wasm-opt`, Tailwind CLI) is pinned to an exact version **and** SHA256-verified before use, because this job carries the Cloudflare API token (BASELINE-architecture.md:128-130, `deploy.yml:41-48`).
 - The injected payload has grown since ADR-2015/ADR-2016 shipped: `SIDESTR_WALLET:'on'` (deploy.yml:90) gates the testnet4 wallet nav/tip UI, `SIDESTR_CHAINS_JSON` (deploy.yml:95) lists the two sidestr chains (kit ADR-2021), `ENCRYPTION_ENABLED:'true'` (deploy.yml:106) is the zone E2EE master switch, `ZONE_CONFIG_JSON` (deploy.yml:107) marks zones 2-4 `encrypted:true` with zone4 carrying `agent_keys:true`, and `POKER:'on'` + `POKER_CONFIG_JSON` (deploy.yml:101-102) gate and parameterise the poker table — see DW-03/DW-04 for the zone model and encryption detail this step only injects.
 
-- The React build gained one more public input, `VITE_MONITOR_PUBKEY` (`deploy.yml:80`, passed to the React build at `deploy.yml:187`): the nightly inbox-watch co-recipient to whom every contact, signup and chat message is also wrapped, because the relay serves a kind-1059 wrap only to its addressee (`deploy.yml:75-79`); ADR-2011 names that key the `website-info` identity (DW-04). It is another hand-synced mirror (DW-03). `workers-deploy.yml` now retries its post-deploy `/health` probe three times because a worker's Durable Object is cold straight after a deploy (`workers-deploy.yml:353-356`).
+- The React build gained one more public input, `VITE_MONITOR_PUBKEY` (`deploy.yml:80`, passed to the React build at `deploy.yml:187`): the nightly inbox-watch co-recipient to whom every contact, signup and chat message is also wrapped, because the relay serves a kind-1059 wrap only to its addressee (`deploy.yml:75-79`); ADR-2011 names that key the `website-info` identity (DW-04). It is another hand-synced mirror (DW-03). `workers-deploy.yml` now retries its post-deploy `/health` probe three times because a worker's Durable Object is cold straight after a deploy (`workers-deploy.yml:367-370`).
 ## DW-01.7 SPA deep-link 404 shim — load-bearing, not incidental
 ```mermaid
 stateDiagram-v2

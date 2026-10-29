@@ -18,7 +18,7 @@ sources:
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/types/scope.ts
   - ../visionGraph/.github/workflows/publish.yml
   - ../knowledgeGraph/archive/github-workflows/build.yml
-verified_commit: {knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3, visiongraph: 59e7dcc8d05ca447d03c74c819a740b390b93074}
+verified_commit: {knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3, visiongraph: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e}
 ---
 
 ## KG-04.1 Explorer topology — MIT viewer over AGPL-built, ODbL-licensed data

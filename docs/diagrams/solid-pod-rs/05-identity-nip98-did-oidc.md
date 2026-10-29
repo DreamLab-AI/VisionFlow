@@ -42,7 +42,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/auth.rs
   - ../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/rate_limit.rs
-verified_commit: a4a86f6da300b529c7855318c24ff5c7b35ec582
+verified_commit: 9bde3be7fa123479fabb5c4cc9056e19ab0dcadd
 ---
 
 ## SP-05.1 Two auth paths, one AuthContext
@@ -347,8 +347,8 @@ sequenceDiagram
     R->>SS: DefaultSsrfCheck before any fetch<br/>solid-pod-rs-nostr/src/resolver.rs:54
     R->>W: fetch the profile
     W-->>R: HTML or JSON-LD
-    R->>R: extract_json_ld_island<br/>solid-pod-rs-nostr/src/resolver.rs:390
-    R->>R: scan_json_for_did_nostr / scan_text_for_did_nostr<br/>solid-pod-rs-nostr/src/resolver.rs:302
+    R->>R: extract_json_ld_island<br/>solid-pod-rs-nostr/src/resolver.rs:400
+    R->>R: scan_json_for_did_nostr (solid-pod-rs-nostr/src/resolver.rs:302) / scan_text_for_did_nostr, which now binds a 64-hex id only when the run ends there<br/>solid-pod-rs-nostr/src/resolver.rs:382
     R-->>A: NostrPubkey
 
     A->>R: resolve_nostr_to_webid(pubkey)<br/>solid-pod-rs-nostr/src/resolver.rs:181
@@ -523,7 +523,7 @@ sequenceDiagram
     autonumber
     participant C as authenticated user
     participant P as change_password<br/>solid-pod-rs-idp/src/password_change.rs:75
-    participant L as RateLimiter<br/>solid-pod-rs/src/security/rate_limit.rs:112
+    participant L as RateLimiter<br/>solid-pod-rs/src/security/rate_limit.rs:143
     participant U as UserStore<br/>solid-pod-rs-idp/src/user_store.rs:70
     participant A as Argon2
 

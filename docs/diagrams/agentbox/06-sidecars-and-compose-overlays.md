@@ -4,7 +4,7 @@ title: Compose overlays, sidecar topology and the loopback-publish invariant
 area: agentbox
 governing:
   - ../project/agentbox/docs/BASELINE-container.md
-adrs: [ADR-2013, ADR-2003, ADR-2040, ADR-2094, ADR-2118, ADR-2122, ADR-2140, ADR-2149, ADR-2152]
+adrs: [ADR-2013, ADR-2003, ADR-2040, ADR-2094, ADR-2118, ADR-2122, ADR-2140, ADR-2149, ADR-2152, ADR-2154]
 sources:
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/xr-runtime/Dockerfile
@@ -21,6 +21,7 @@ sources:
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md
   - ../project/agentbox/docs/adr/ADR-2152-render-mermaid-in-browsercontainer.md
+  - ../project/agentbox/docs/adr/ADR-2154-pele-renders-mermaid-in-the-image.md
   - ../project/agentbox/docker-compose.speech-ming.yml
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
   - ../project/agentbox/scripts/ci/check-ports-loopback.sh
@@ -40,7 +41,7 @@ sources:
   - ../project/agentbox/config/custody/g5-key-split.json
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/config/entrypoint-unified.sh
-verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
+verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
 ---
 
 ## AB-06.1 Compose overlay topology on visionclaw_network
@@ -82,7 +83,7 @@ flowchart TB
     OM --- NET
     AND --- NET
     CF --- NET
-    RET["RETIRED: the connected-node overlay (HP) no longer exists, ADR-2140 retired the HP agentbox;<br/>docs/BASELINE-container.md:232 records that the ADR-2118 migration therefore has no second target"]
+    RET["RETIRED: the connected-node overlay (HP) no longer exists, ADR-2140 retired the HP agentbox;<br/>docs/BASELINE-container.md:234 records that the ADR-2118 migration therefore has no second target"]
     BASE -.-> RET
 ```
 
@@ -130,31 +131,21 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant A as agent in agentbox
-    participant S as browsercontainer/server.js<br/>request router server.js:228
+    participant S as browsercontainer/server.js<br/>request router server.js:146
     participant CH as headless Chrome
-    participant V as gui-tools-exchange volume
 
-    alt OPTIONS preflight (server.js:235)
+    alt OPTIONS preflight (server.js:153)
         A->>S: OPTIONS any path
         S-->>A: CORS headers
     end
-    alt GET /health (server.js:241)
+    alt GET /health (server.js:159)
         A->>S: GET port 8931 /health
         S-->>A: status ok, transport sse, sessions N, chrome true, cdp 127.0.0.1:9222
     end
-    alt POST /render-mermaid (server.js:271)
-        A->>V: write mermaid source
-        A->>S: POST port 8931 /render-mermaid
-        Note over S: body over 1.2 MB is refused 413 (server.js:277), definition over 1 MB<br/>and width or height outside 1 to 6000 are refused (server.js:145-164)
-        S->>CH: render via mmdc with width, height, background and config options
-        CH-->>S: SVG or PNG
-        S->>V: write result
-        S-->>A: rendered artefact, protocolVersion 2 (server.js:213)
-    end
-    alt GET /sse (server.js:301)
+    alt GET /sse (server.js:189)
         A->>S: GET port 8931 /sse — MCP SSE stream opens
         S-->>A: event stream (registered as the browser-gpu MCP server)
-        A->>S: POST /messages (server.js:324) — JSON-RPC tool calls
+        A->>S: POST /messages (server.js:212) — JSON-RPC tool calls
         S->>CH: drive via CDP
         CH-->>S: result
         S-->>A: tool result
@@ -162,13 +153,13 @@ sequenceDiagram
     Note over S,CH: raw CDP is also reachable — published 9222 on the host mapping to container 9223 (docker-compose.browsercontainer.yml:53, SANCTIONED at check-ports-loopback.mjs:99)
     Note over S: VNC port 5903 for eyes-on debugging (docker-compose.browsercontainer.yml:48)
     Note over A,S: GPU reservation and NVIDIA device request in the deploy block (docker-compose.browsercontainer.yml:33-45)
-    Note over A,V: extra_hosts host.docker.internal maps to host-gateway (docker-compose.browsercontainer.yml:57-58)
+    Note over A,S: extra_hosts host.docker.internal maps to host-gateway (docker-compose.browsercontainer.yml:57-58)
 ```
 
-**What it shows.** The sidecar's HTTP router: CORS preflight, `/health`, the Mermaid render endpoint, and the MCP SSE transport with its `/messages` POST. Since the previous stamp `/render-mermaid` validates its options (1 MB definition cap, 1.2 MB body cap, width and height from 1 to 6000, background and config) and answers with `protocolVersion: 2`.
-**Why it is this way.** Agentbox no longer needs its own Chromium to draw diagrams, so the sidecar owns the renderer and the exchange volume carries the result (`ADR-2152`).
+**What it shows.** The sidecar's HTTP router: CORS preflight, `/health`, and the MCP SSE transport with its `/messages` POST. The `/render-mermaid` endpoint, the `mmdc` install and `puppeteer-mermaid.json` were removed from the sidecar (`../project/agentbox/browsercontainer/Dockerfile`, `../project/agentbox/browsercontainer/server.js:146`); Mermaid now renders in the Agentbox image.
+**Why it is this way.** The exchange volume stays for agentbox and gui-tools hand-offs only (`../project/agentbox/docker-compose.browsercontainer.yml:60-61`), so the sidecar no longer carries a Mermaid renderer or its Chromium flags.
 
-**Open:** ADR-2152 (Mermaid renders in browsercontainer) is `decision_status: proposed`, `implementation_status: partial`, `activation_status: staged`; the sidecar endpoint it relies on is live in code (`../project/agentbox/browsercontainer/server.js:271`) but the record's own verification names an uncommitted tree and no activation claim (`../project/agentbox/docs/adr/ADR-2152-render-mermaid-in-browsercontainer.md:1-10`).
+**Drift:** ADR-2152 (render in browsercontainer) reads `decision_status: superseded` yet still `implementation_status: partial`, `activation_status: staged` (`../project/agentbox/docs/adr/ADR-2152-render-mermaid-in-browsercontainer.md:1-10`), although the endpoint it describes is deleted; ADR-2154 (pinned Pele in the image) is `accepted`, `partial`, `staged` (`../project/agentbox/docs/adr/ADR-2154-pele-renders-mermaid-in-the-image.md:1-10`), see AB-01.1.
 
 ## AB-06.5 gui-tools-service — the FHS GPU presentation sidecar
 ```mermaid
@@ -229,7 +220,7 @@ flowchart LR
 flowchart TB
     subgraph LANP["LAN-reachable — every one on the ADR-2013 SANCTIONED list"]
         P1["agentbox 9096:9096 — NIP-98 sovereign ingress<br/>docker-compose.yml:47"]
-        P2["voice-console 0.0.0.0:8443 and 0.0.0.0:8444 Caddy origin<br/>docker-compose.voice.yml:38-39"]
+        P2["voice-console 0.0.0.0:8443 and 0.0.0.0:8444 Caddy origin<br/>docker-compose.voice.yml:40-41"]
         P3["browsercontainer 0.0.0.0:5903 VNC, 0.0.0.0:8931 MCP SSE,<br/>0.0.0.0:9222 to 9223 CDP — docker-compose.browsercontainer.yml:48-53"]
         P4["gui-tools-service 0.0.0.0:5905 VNC, 0.0.0.0:9876 Blender,<br/>0.0.0.0:9877 QGIS — docker-compose.gui-tools.yml:46-50"]
         P5["xr-runtime 0.0.0.0:5904 VNC — docker-compose.xr-runtime.yml:64"]
@@ -245,7 +236,7 @@ flowchart TB
     end
     Q3 -.-> AND["android comment: this is an authenticated Google session,<br/>never expose it on 0.0.0.0, prefer docker exec (docker-compose.android.yml:37-38)"]
     Q2 -.-> OM["openmed refuses to serve until the operator sets<br/>OPENMED_LICENSE_ACKNOWLEDGED, _ONNX_RUNTIME_PRESENT and<br/>_GOVERNANCE_ACKNOWLEDGED — all default false (docker-compose.openmed.yml:19-21)"]
-    Q1 -.-> CSR["RESOLVED ADR-2040 (implementation_status: partial): code-server<br/>([program:code-server]) runs --auth password, credential minted at boot<br/>into /home/devuser/.local/share/code-server/config.yaml (0600),<br/>flake.nix:2857. jupyter-lab's empty token was DELETED in favour of a<br/>minted JUPYTER_TOKEN. Listener-side CI gate is still open work."]
+    Q1 -.-> CSR["RESOLVED ADR-2040 (implementation_status: partial): code-server<br/>([program:code-server]) runs --auth password, credential minted at boot<br/>into /home/devuser/.local/share/code-server/config.yaml (0600),<br/>flake.nix:2858. jupyter-lab's empty token was DELETED in favour of a<br/>minted JUPYTER_TOKEN. Listener-side CI gate is still open work."]
     R1 -.-> PGN["ADR-015 — mandatory memory sidecar, health-gated;<br/>the memory adapter fails closed with no fallback store"]
 ```
 
@@ -337,9 +328,9 @@ flowchart TB
     DEBRIS --> RSYNC["rsync host ~/.claude into the volume, excluding<br/>CLAUDE.md and .credentials.json, then rewrite<br/>plugins/*.json host paths to /home/devuser/.claude<br/>agentbox.sh:1854-1864"]
     RSYNC --> DONE["volume seeded — run preflight then up or rebuild<br/>agentbox.sh:1865-1867"]
     DONE --> DEC
-    AB2["agentbox container"] --> SYNC["[program:claude-cred-sync]<br/>agentbox-manifest cred-sync, interval 2s<br/>flake.nix:3288-3294"]
-    SYNC --> MERGE["per-token merge between /home/devuser/.claude/.credentials.json<br/>and /var/lib/agentbox/host-claude/.credentials.json,<br/>later expiresAt wins — agentbox-manifest cred-sync, flake.nix:3289"]
-    MERGE -.-> ABSENT["exits 0 and stays stopped when the host bind is absent<br/>(deployments that don't share auth) — flake.nix:3294"]
+    AB2["agentbox container"] --> SYNC["[program:claude-cred-sync]<br/>agentbox-manifest cred-sync, interval 2s<br/>flake.nix:3266-3272"]
+    SYNC --> MERGE["per-token merge between /home/devuser/.claude/.credentials.json<br/>and /var/lib/agentbox/host-claude/.credentials.json,<br/>later expiresAt wins — agentbox-manifest cred-sync, flake.nix:3267"]
+    MERGE -.-> ABSENT["exits 0 and stays stopped when the host bind is absent<br/>(deployments that don't share auth) — flake.nix:3272"]
     MERGE -.-> INV["INVARIANT — the container reads settings, hooks and agents<br/>ONLY from the volume; the host bind exists solely for<br/>credential convergence, not configuration<br/>management-api/lib/system-manifest.js:247-249"]
 ```
 
@@ -368,7 +359,7 @@ flowchart TB
     VOL[("named volume browsercontainer-profile, fixed name<br/>docker-compose.browsercontainer.yml:64, :75-76<br/>holds Podkey's encrypted vault - never down -v")]
     PIN --> F1 --> D1 --> D2 --> D3 --> L1 --> L2
     L1 --> L3 --> VOL
-    VOL -.-> OPEN1["OPEN: the vault is meant to hold K_browser, not the house key,<br/>but k_browser's pubkey is still null, g5-key-split.json:16-19, and the<br/>nip98-proxy roster still admits the house key for it, agentbox.toml:1982"]
+    VOL -.-> OPEN1["OPEN: the vault is meant to hold K_browser, not the house key,<br/>but k_browser's pubkey is still null, g5-key-split.json:16-19, and the<br/>nip98-proxy roster still admits the house key for it, agentbox.toml:2093"]
     PIN -.-> OPEN2["OPEN (RESOLVED 2026-10-12, agentbox 8fad68285): the earlier pin's CI artefact was due to expire on 2026-12-24.<br/>The pin now names run 38386898958 and expires 2027-01-11 (podkey.pin:11), and podkey CI has workflow_dispatch so the next re-pin needs no upstream commit"]
 ```
 
@@ -377,7 +368,7 @@ flowchart TB
 
 **Invariant:** the browsercontainer image is never built with an unverified Podkey: the zip copied into the build is checked against the pinned sha256 before a single entry is extracted, and a mismatch refuses the build (`../project/agentbox/browsercontainer/scripts/fetch-podkey.sh:150-151`, `../project/agentbox/browsercontainer/scripts/fetch-podkey.sh:95-101`).
 
-**Open:** `K_browser` is not admitted anywhere yet. Its pubkey is null in the split register (`../project/agentbox/config/custody/g5-key-split.json:16-20`), and the LAN door's roster still names the house key as the browsercontainer vault's identity (`../project/agentbox/agentbox.toml:1982`). Until the owner mints it and the dual-admit step lands, the sidecar's flows still authenticate as the house key.
+**Open:** `K_browser` is not admitted anywhere yet. Its pubkey is null in the split register (`../project/agentbox/config/custody/g5-key-split.json:16-20`), and the LAN door's roster still names the house key as the browsercontainer vault's identity (`../project/agentbox/agentbox.toml:2093`). Until the owner mints it and the dual-admit step lands, the sidecar's flows still authenticate as the house key.
 
 ## AB-06.13 The host Docker socket and the /run/secrets mount: what compose can and cannot narrow (custody W0, W1)
 ```mermaid

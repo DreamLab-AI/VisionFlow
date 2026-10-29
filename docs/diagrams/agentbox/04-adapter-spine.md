@@ -40,7 +40,7 @@ sources:
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/routes/linked-objects.js
   - ../project/agentbox/management-api/routes/sessions-boundary.js
-verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
+verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
 ---
 
 ## AB-04.1 resolveAdapters — slot to implementation resolution
@@ -289,8 +289,8 @@ sequenceDiagram
     SV->>SV: app.decorate('adapterReadiness', readiness) (server.js:1359)
     Note over LC,T: DEFAULT_CONNECT_TIMEOUT_MS = 10000 — lifecycle.js:70
     Note over LC: Manifest override [adapters] connect_timeout_ms scalar or per-slot map — lifecycle.js:106-107, non-positive values ignored (lifecycle.js:124)
-    Note over SV,LC: INVARIANT: ONE deadline PER SLOT, never one aggregate budget —<br/>adapters/lifecycle.js:217, wired from server.js:1343-1344. Aggregate wall-clock is<br/>bounded by the slowest single slot, not by a race that abandons work in flight<br/>(lifecycle.js:31-35). The old "10 s TOTAL budget" DOC-DRIFT is gone from<br/>BASELINE-container.md — grep finds no server.js line-1222 reference at this commit.<br/>DOC-DRIFT resolved — BASELINE-container.md:115 documents the spine and<br/>connectAdapters is called at server.js:1343-1344.
-    Note over SV,LC: RESOLVED ADR-2035: BASELINE-container.md:115 now documents the<br/>per-slot deadline (lifecycle.js:217, :70, :106-107). The code was<br/>already correct — only the doc changed.
+    Note over SV,LC: INVARIANT: ONE deadline PER SLOT, never one aggregate budget —<br/>adapters/lifecycle.js:217, wired from server.js:1343-1344. Aggregate wall-clock is<br/>bounded by the slowest single slot, not by a race that abandons work in flight<br/>(lifecycle.js:31-35). The old "10 s TOTAL budget" DOC-DRIFT is gone from<br/>BASELINE-container.md — grep finds no server.js line-1222 reference at this commit.<br/>DOC-DRIFT resolved — BASELINE-container.md:117 documents the spine and<br/>connectAdapters is called at server.js:1343-1344.
+    Note over SV,LC: RESOLVED ADR-2035: BASELINE-container.md:117 now documents the<br/>per-slot deadline (lifecycle.js:217, :70, :106-107). The code was<br/>already correct — only the doc changed.
     Note over CO,T: Timeout is a CONNECT FAILURE identical in consequence to an explicit rejection — lifecycle.js:32-33
 ```
 

@@ -35,7 +35,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/admins.rs
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
-verified_commit: 8a5cf817e81b20e2b761899eab753768c0cb4988
+verified_commit: eb5f2323e6d72240ecb7c456181b7a674f1842f4
 ---
 
 ## NF-08.1 forum.toml — the single source of access truth and its projection
@@ -46,7 +46,7 @@ flowchart TB
     TOML2["forum.toml continued<br/>forum.example.toml:96 branding<br/>forum.example.toml:125 zones (4 example blocks)<br/>forum.example.toml:189 trust :196 invites :203 moderation<br/>forum.example.toml:181 [[ingress]] commented example, ADR-2022<br/>forum.example.toml:217 mesh :243 ratelimit :250 features"]
     TOML3["forum.toml continued<br/>forum.example.toml:264 nip05 :272 native_pod :284 provision<br/>forum.example.toml:294 export :304 git :315 governance<br/>forum.example.toml:330 payments :334 payments.token<br/>forum.example.toml:345 calendar :354 poker :377 custody"]
     ZC["ZONE_CONFIG JSON (zones serialised)"]
-    RELAYENV["relay-worker env<br/>nostr-bbs-relay-worker/wrangler.toml:18"]
+    RELAYENV["relay-worker env<br/>nostr-bbs-relay-worker/wrangler.toml:26"]
     CLIENTENV["client window.__ENV__.ZONE_CONFIG"]
     GATE["relay gate - the real access boundary<br/>nostr-bbs-relay-worker/src/zone_config.rs:84"]
     TILES["client renders tiles from the same JSON"]
@@ -127,7 +127,7 @@ sequenceDiagram
 flowchart TB
     subgraph d1["D1 databases"]
         AUTHDB["nostr-bbs-auth<br/>auth-worker DB nostr-bbs-auth-worker/wrangler.toml:9"]
-        RELDB["nostr-bbs-relay<br/>relay-worker DB nostr-bbs-relay-worker/wrangler.toml:91"]
+        RELDB["nostr-bbs-relay<br/>relay-worker DB nostr-bbs-relay-worker/wrangler.toml:99"]
     end
     subgraph kv["KV namespaces"]
         SESS["SESSIONS nostr-bbs-auth-worker/wrangler.toml:27"]
@@ -141,7 +141,7 @@ flowchart TB
         VECS["nostr-bbs-vectors nostr-bbs-search-worker/wrangler.toml:15"]
     end
     subgraph do["Durable Object"]
-        RELAYDO["RELAY class NostrRelayDO<br/>nostr-bbs-relay-worker/wrangler.toml:107 sqlite class :112"]
+        RELAYDO["RELAY class NostrRelayDO<br/>nostr-bbs-relay-worker/wrangler.toml:115 sqlite class :120"]
     end
 
     AUTHW["auth-worker"] --> AUTHDB
@@ -151,7 +151,7 @@ flowchart TB
     AUTHW -->|"POD_META backwards-compat reads nostr-bbs-auth-worker/wrangler.toml:34"| PODMETA
     AUTHW -->|"PODS nostr-bbs-auth-worker/wrangler.toml:47"| PODS
     RELAYW["relay-worker"] --> RELDB
-    RELAYW -->|"REPLAY_DB points at nostr-bbs-auth nostr-bbs-relay-worker/wrangler.toml:102"| AUTHDB
+    RELAYW -->|"REPLAY_DB points at nostr-bbs-auth nostr-bbs-relay-worker/wrangler.toml:110"| AUTHDB
     RELAYW --> RELAYDO
     PODW["pod-worker"] --> PODS
     PODW --> PODMETA
@@ -161,7 +161,7 @@ flowchart TB
     SEARCHW -->|"REPLAY_DB nostr-bbs-search-worker/wrangler.toml:25"| AUTHDB
     PREVW["preview-worker"] --> RL
 
-    N1["INVARIANT: NIP-98 replay lives in ONE database - every worker binds REPLAY_DB (or DB) to<br/>nostr-bbs-auth so cross-worker replay is detected nostr-bbs-relay-worker/wrangler.toml:96-103"]
+    N1["INVARIANT: NIP-98 replay lives in ONE database - every worker binds REPLAY_DB (or DB) to<br/>nostr-bbs-auth so cross-worker replay is detected nostr-bbs-relay-worker/wrangler.toml:104-111"]
     N2["ANOMALY O11 now DOCUMENTED, not removed: KV and SESSIONS are still the SAME physical namespace id<br/>nostr-bbs-auth-worker/wrangler.toml:28 and :44; the template says the key prefixes are disjoint<br/>nostr-bbs-auth-worker/wrangler.toml:22-25 and a unit test pins the admin cache key outside the rl: prefix<br/>nostr-bbs-auth-worker/src/admins.rs:372"]
     N3["The auth-worker RELAY_DB database_id is a ZERO placeholder that every deployment must override<br/>nostr-bbs-auth-worker/wrangler.toml:20 - shipped unusable on purpose"]
     N4["PROPOSED, NOT BUILT: ADR-2012 demotes the pod-worker payment D1 from ledger to a height-stamped<br/>derived view over the sidestr chain, with a staleness bound that is an error<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:5-6 ADR-2012-d1-ledger-becomes-a-chain-view.md:37-41.<br/>Nothing in this store map changes until it is built - see NF-04.11"]
@@ -261,23 +261,23 @@ flowchart TB
     N3["CLOSED at 66ca8d8: the relay used to query members in its OWN D1 where no migration or bootstrap creates<br/>that table, so the branch failed on every call and the error was swallowed. The query is removed, and relay<br/>authority is ADMIN_PUBKEYS union whitelist.is_admin only nostr-bbs-relay-worker/src/auth.rs:185 nostr-bbs-relay-worker/src/auth.rs:194"]
     N3B["DRIFT: the doc comment on query_is_admin still names members - its Task #7 paragraph says the relay<br/>whitelist/members tables may carry no is_admin row, below a paragraph saying the relay no longer queries it<br/>nostr-bbs-relay-worker/src/auth.rs:174 nostr-bbs-relay-worker/src/auth.rs:164"]
     N3C["INVARIANT: the two workers differ by design - the auth worker unions three sources, the relay two,<br/>because members lives only in the auth D1 nostr-bbs-auth-worker/src/admin.rs:90 nostr-bbs-relay-worker/src/auth.rs:194"]
-    N4["DOC-DRIFT: ADMIN_PUBKEYS is DECLARED in exactly one wrangler template - the search worker,<br/>nostr-bbs-search-worker/wrangler.toml:33 - yet is read by the auth worker (admin.rs:71) and the relay<br/>(auth.rs:185). The relay template asserts the opposite: there is no ADMIN_PUBKEYS reader in src/<br/>nostr-bbs-relay-worker/wrangler.toml:10-13. SETUP.md:147-151 never lists it either."]
-    N5["Consequence of N4: a by-the-book deployment has NO static admin bootstrap on relay or auth,<br/>and the search worker ships a REAL non-placeholder pubkey as its default admin<br/>nostr-bbs-search-worker/wrangler.toml:33 - the only non-generic value in any template."]
+    N4["DOC-DRIFT: ADMIN_PUBKEYS is DECLARED in exactly one wrangler template - the search worker,<br/>nostr-bbs-search-worker/wrangler.toml:41 - yet is read by the auth worker (admin.rs:71) and the relay<br/>(auth.rs:185). The relay template asserts the opposite: there is no ADMIN_PUBKEYS reader in src/<br/>nostr-bbs-relay-worker/wrangler.toml:18-21. SETUP.md:147-151 never lists it either."]
+    N5["Consequence of N4: a by-the-book deployment has NO static admin bootstrap on relay or auth,<br/>and the search worker ships a REAL non-placeholder pubkey as its default admin<br/>nostr-bbs-search-worker/wrangler.toml:41 - the only non-generic value in any template."]
 ```
 
 ## NF-08.8 Cross-worker feature gates that must be set in lockstep
 
 ```mermaid
 flowchart LR
-    DKA["auth-worker DEVICE_KEYS_ENABLED=false<br/>nostr-bbs-auth-worker/wrangler.toml:60"]
-    DKR["relay-worker DEVICE_KEYS_ENABLED=false<br/>nostr-bbs-relay-worker/wrangler.toml:21"]
+    DKA["auth-worker DEVICE_KEYS_ENABLED=false<br/>nostr-bbs-auth-worker/wrangler.toml:68"]
+    DKR["relay-worker DEVICE_KEYS_ENABLED=false<br/>nostr-bbs-relay-worker/wrangler.toml:29"]
     DKC["client window.__ENV__ third setting<br/>SETUP.md:171-174"]
     GATEFN["auth gate reads its OWN binding<br/>nostr-bbs-auth-worker/src/devices.rs:100"]
     SHARED["shared parse rule only<br/>nostr-bbs-core feature_gate"]
-    AM["AUTH_MODE=nip42 default<br/>nostr-bbs-relay-worker/wrangler.toml:31"]
-    MESH["MESH_MODE=standalone<br/>nostr-bbs-relay-worker/wrangler.toml:85"]
-    ESC["ESCALATION_DEFAULT_TIER=medium<br/>nostr-bbs-relay-worker/wrangler.toml:53"]
-    CAL["CALIBRATION_SELECTION_KEY - a SECRET, deliberately NOT a plaintext var<br/>nostr-bbs-relay-worker/wrangler.toml:56-59"]
+    AM["AUTH_MODE=nip42 default<br/>nostr-bbs-relay-worker/wrangler.toml:39"]
+    MESH["MESH_MODE=standalone<br/>nostr-bbs-relay-worker/wrangler.toml:93"]
+    ESC["ESCALATION_DEFAULT_TIER=medium<br/>nostr-bbs-relay-worker/wrangler.toml:61"]
+    CAL["CALIBRATION_SELECTION_KEY - a SECRET, deliberately NOT a plaintext var<br/>nostr-bbs-relay-worker/wrangler.toml:64-67"]
 
     DKA --> GATEFN --> SHARED
     DKR --> SHARED
@@ -285,12 +285,13 @@ flowchart LR
 
     N1["INVARIANT ADR-2004: each worker reads its own binding and decides ALONE - no cross-worker call.<br/>Only the parse rule is shared, so the two cannot drift on what true means<br/>nostr-bbs-auth-worker/src/devices.rs:100-107"]
     N2["INVARIANT: enables on the EXACT string true; unset, empty or anything else is off<br/>nostr-bbs-auth-worker/src/devices.rs:112, asserted nostr-bbs-auth-worker/src/devices.rs:974"]
-    N3["AUTH_MODE: anything other than allowlist resolves to the secure nip42 default<br/>nostr-bbs-relay-worker/wrangler.toml:29-31 - see NF-03"]
-    N4["ESCALATION_DEFAULT_TIER is a declared SCAFFOLD - the authoritative risk-tier schema is owned by<br/>agentbox, EXTERNAL: see AB-14 and AB-15; an unrecognised tier folds to medium<br/>nostr-bbs-relay-worker/wrangler.toml:46-53"]
-    N5["INVARIANT: calibration sampling is HMAC over a key the agent cannot read. The request id is the<br/>31402 d tag, which the agent chooses, so the key secrecy is the only thing stopping it grinding tags<br/>until it finds one sampling never selects nostr-bbs-relay-worker/wrangler.toml:61-66 - see NF-12"]
-    N6["Unset, the relay STILL samples and logs a warning on every projection - silently disabling<br/>oversight is treated as the worse failure nostr-bbs-relay-worker/wrangler.toml:68-71"]
-    PUSH["relay-worker PUSH_ENABLED=false, ADR-2023 content-free Web Push, off by default<br/>nostr-bbs-relay-worker/wrangler.toml:78 with VAPID_PUBLIC_KEY nostr-bbs-relay-worker/wrangler.toml:79 and PUSH_MAX_FANOUT nostr-bbs-relay-worker/wrangler.toml:82"]
-    RURL["RELAY_URL is blank by default, and required in nip42 mode: blank logs a console error on every AUTH<br/>nostr-bbs-relay-worker/wrangler.toml:40-43"]
+    N3["AUTH_MODE: anything other than allowlist resolves to the secure nip42 default<br/>nostr-bbs-relay-worker/wrangler.toml:37-39 - see NF-03"]
+    N4["ESCALATION_DEFAULT_TIER is a declared SCAFFOLD - the authoritative risk-tier schema is owned by<br/>agentbox, EXTERNAL: see AB-14 and AB-15; an unrecognised tier folds to medium<br/>nostr-bbs-relay-worker/wrangler.toml:54-61"]
+    N5["INVARIANT: calibration sampling is HMAC over a key the agent cannot read. The request id is the<br/>31402 d tag, which the agent chooses, so the key secrecy is the only thing stopping it grinding tags<br/>until it finds one sampling never selects nostr-bbs-relay-worker/wrangler.toml:69-74 - see NF-12"]
+    N6["Unset, the relay STILL samples and logs a warning on every projection - silently disabling<br/>oversight is treated as the worse failure nostr-bbs-relay-worker/wrangler.toml:76-79"]
+    PUSH["relay-worker PUSH_ENABLED=false, ADR-2023 content-free Web Push, off by default<br/>nostr-bbs-relay-worker/wrangler.toml:86 with VAPID_PUBLIC_KEY nostr-bbs-relay-worker/wrangler.toml:87 and PUSH_MAX_FANOUT nostr-bbs-relay-worker/wrangler.toml:90"]
+    RURL["RELAY_URL is blank by default, and required in nip42 mode: blank logs a console error on every AUTH<br/>nostr-bbs-relay-worker/wrangler.toml:48-51"]
+    N8["All three templates now ship System One advisory flags ON (relay JEV_TRIAGE=1 nostr-bbs-relay-worker/wrangler.toml:11, search JEV_SEARCH_RERANK=1 nostr-bbs-search-worker/wrangler.toml:32, auth JEV_RATIONALE_CHECK=1 nostr-bbs-auth-worker/wrangler.toml:53) pointing at the cloud endpoint nostr-bbs-relay-worker/wrangler.toml:12; SUBQ_API_KEY is a Worker secret named at :14 and never a plaintext var, and the auth worker declares no endpoint at all (nostr-bbs-auth-worker/wrangler.toml:54-58)"]
     N7["A second lockstep gate, ENCRYPTION_ENABLED, follows the same own-binding pattern across relay<br/>and clients but is undeclared in every wrangler.toml - see NF-08.2"]
 ```
 

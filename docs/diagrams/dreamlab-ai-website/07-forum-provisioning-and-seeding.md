@@ -30,7 +30,7 @@ sources:
   - ../dreamlab-ai-website/.gitignore
   - ../dreamlab-ai-website/README.md
   - ../dreamlab-ai-website/forum-config/deploy/search-worker.wrangler.toml
-verified_commit: 3afa374f5957027213471f2429c7ba26996b0744
+verified_commit: 07cf8642bddb44df2388a5d1e9d2074923ab6ac0
 ---
 
 ## DW-07.2 Root-level seeders — deleted 2026-10-07 (historical)
@@ -70,7 +70,7 @@ flowchart LR
     PG["postgres-embedding-sync.ts"] --> RUVECTOR["RuVector Postgres — agentbox memory store<br/>EXTERNAL, unrelated repo concern"]
     RVFTEST["tests/rvf-validation/test-rvf-dreamlab.mjs:1-9<br/>'matching DreamLab's all-MiniLM-L6-v2 model output'"] --> RVFLIB["@ruvector/rvf Node SDK, local tmp files<br/>not Workers AI, not R2"]
 ```
-- Nothing in `scripts/embeddings/*` or `tests/rvf-validation/*` builds the site's search index: `batch-embedding-sync.ts` and `mcp-embedding-sync.ts` sync **RuVector Postgres memory entries** via the **claude-flow MCP** toolchain (agentbox's own memory system), and the two `tests/rvf-validation/*` suites validate the `@ruvector/rvf` Node SDK against a **384-dim `all-MiniLM-L6-v2`** model over local JSON/tmp files, a different model and store from the search worker's Workers AI binding (`forum-config/deploy/search-worker.wrangler.toml:11-12`). The earlier README claim of `bge-small-en-v1.5` over R2 (a feature bullet in the README at the previous stamp) is gone: the rewritten README makes no semantic-search claim, so that divergence is closed at its source, while the build and index path stays upstream-kit code this repo does not vendor.
+- Nothing in `scripts/embeddings/*` or `tests/rvf-validation/*` builds the site's search index: `batch-embedding-sync.ts` and `mcp-embedding-sync.ts` sync **RuVector Postgres memory entries** via the **claude-flow MCP** toolchain (agentbox's own memory system), and the two `tests/rvf-validation/*` suites validate the `@ruvector/rvf` Node SDK against a **384-dim `all-MiniLM-L6-v2`** model over local JSON/tmp files, a different model and store from the search worker's Workers AI binding (`forum-config/deploy/search-worker.wrangler.toml:11-12`), which now also carries an advisory Jev rerank switched on by `JEV_SEARCH_RERANK` (`forum-config/deploy/search-worker.wrangler.toml:33`; errors retain the existing result). The earlier README claim of `bge-small-en-v1.5` over R2 (a feature bullet in the README at the previous stamp) is gone: the rewritten README makes no semantic-search claim, so that divergence is closed at its source, while the build and index path stays upstream-kit code this repo does not vendor.
 - This resolves the audit's "index-build path has no home" gap: the path exists upstream, and the tooling in this repo is a separate concern that happens to share the word "embedding".
 
 ## DW-07.5 Nightly Cloudflare-to-NAS backup

@@ -33,7 +33,7 @@ sources:
   - ../project/agentbox/lib/solid-pod-rs.nix
   - ../project/agentbox/management-api/routes/payments.js
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
-verified_commit: {solid-pod-rs: a4a86f6da300b529c7855318c24ff5c7b35ec582, agentbox: 1da8d21719a27394f190866223b88533b52d87f9, visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, nostr-rust-forum: 8a5cf817e81b20e2b761899eab753768c0cb4988}
+verified_commit: {solid-pod-rs: 9bde3be7fa123479fabb5c4cc9056e19ab0dcadd, agentbox: 0b0f7918961e629280faf86f88227535abf514b5, visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, nostr-rust-forum: eb5f2323e6d72240ecb7c456181b7a674f1842f4}
 ---
 
 ## SP-09.2 The CI jobs and the required-check aggregator
@@ -197,7 +197,7 @@ flowchart TD
     REL --> REL10
     DRIFT --> REL
 
-    AB["EXTERNAL: agentbox builds a PINNED solid-pod-rs-server binary through Nix for<br/>the native pod tier — that Nix pin is now v0.5.0-alpha.17 (rev 55bfec1, 2026-10-20),<br/>with forge-full compiled in (../project/agentbox/lib/solid-pod-rs.nix:54-57 and :18).<br/>It equals this topic's verified alpha.17 workspace version. See AB-08, AB-06 and ES-08."]
+    AB["EXTERNAL: agentbox builds a PINNED solid-pod-rs-server binary through Nix for<br/>the native pod tier — that Nix pin is still version 0.5.0-alpha.17 but its rev is now 45c73aa, alpha.17 plus the bounded Jev server integration,<br/>no longer the tag commit 55bfec1 (../project/agentbox/lib/solid-pod-rs.nix:54-57 and :18, forge-full compiled in).<br/>It is an ancestor of this topic's verified head, whose workspace version is the same alpha.17. See AB-08, AB-06 and ES-08."]
     VC["EXTERNAL: VisionClaw requires solid-pod-rs, -nostr, -idp and -server at 0.5.0-alpha.17,<br/>optional, superseding the former 0.4.0-alpha.15 pin<br/>(../project/Cargo.toml:224-225 and :245-248). See VC-26."]
     NF["EXTERNAL: nostr-rust-forum requires solid-pod-rs 0.5.0-alpha.14 as a CARET range,<br/>default-features = false, features = core (../nostr-rust-forum/Cargo.toml:185); the<br/>exact pin was dropped by owner decision 2026-10-18 (:182-184).<br/>See the nostr-rust-forum area."]
     DW["EXTERNAL: dreamlab-ai-website has no direct dependency; it inherits whatever<br/>the forum kit pins. See the dreamlab-ai-website area."]
@@ -307,7 +307,7 @@ flowchart TD
     CAP{"len > SPARQL_UPDATE_MAX_BYTES?<br/>crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:16"}
     ASSERT["ASSERT the library returns Err, never panics<br/>crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:20"]
     PARSE["exercise the spargebra parser below the cap<br/>crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:26"]
-    LIM["SPARQL_UPDATE_MAX_BYTES = 1 MiB<br/>solid-pod-rs/src/ldp.rs:1269"]
+    LIM["SPARQL_UPDATE_MAX_BYTES = 1 MiB<br/>solid-pod-rs/src/ldp.rs:1270"]
 
     IN --> UTF
     UTF -- no --> SKIP

@@ -30,7 +30,7 @@ sources:
   - docs/estate-review/evidence/adr-inventory.json
   - docs/BASELINE-visionflow.md
   - docs/architecture/compatibility-matrix.md
-verified_commit: 1d7183a73c1eae4996a7006067d5047308fab7a5
+verified_commit: 124512b8f5e8c33c247065c58901dcfdc18988a2
 ---
 
 ## VF-07.1 Artefact map — what produces each output and where it lands

@@ -4,13 +4,16 @@ title: Server boot, AppState construction and the full route table
 area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2004, ADR-2005, ADR-2007, ADR-2008, ADR-2026, ADR-2037, ADR-2038, ADR-2045, ADR-2053, ADR-2091, ADR-2142]
+adrs: [ADR-2004, ADR-2005, ADR-2007, ADR-2008, ADR-2026, ADR-2037, ADR-2038, ADR-2045, ADR-2053, ADR-2091, ADR-2142, ADR-2148]
 sources:
   - ../project/src/main.rs
   - ../project/src/app_state.rs
   - ../project/src/handlers/mod.rs
   - ../project/src/handlers/memory_cloud_handler.rs
   - ../project/src/handlers/jev_handler.rs
+  - ../project/docker-compose.unified.yml
+  - ../project/docs/BASELINE-architecture.md
+  - ../project/docs/adr/ADR-2148-enable-local-typed-decisions.md
   - ../project/src/handlers/consolidated_health_handler.rs
   - ../project/src/handlers/api_handler/mod.rs
   - ../project/src/handlers/api_handler/graph/mod.rs
@@ -69,7 +72,7 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/Cargo.toml
   - ../project/src/adapters/mod.rs
-verified_commit: 19417bdff5fc22053a8a0cc185797b0311521d10
+verified_commit: e74bcddc772d47a45b1971156a2bab540eaa027c
 ---
 
 ## VC-01.1 main() phase 1 — hygiene, logging, settings, stores
@@ -134,7 +137,7 @@ sequenceDiagram
     M->>CS: source_from_env_with_github(enhanced_content_api) (src/main.rs:483)
     Note over CS: ADR-2114 — the CorpusSource port replaces a direct GitHub read. corpus_source_kind()<br/>(src/services/corpus_source/mod.rs:193) resolves CORPUS_SOURCE=local|github, default Local when<br/>VAULT_ROOT is set and non-empty (src/services/corpus_source/mod.rs:223), else GitHub.<br/>Local walks VAULT_ROOT on disk (LocalDirectorySource::from_env, local.rs:74) — a misconfigured<br/>local source logs an error and falls back to GitHubSource rather than failing boot<br/>(src/services/corpus_source/mod.rs:157-171).
     M->>CS: FileService::initialize_local_storage(settings, corpus_source_kind()) — Synced, or SkippedLocalCorpus when the corpus is local so no GitHub markdown mirror is pulled (src/main.rs:608-628)
-    M->>SV: NaturalLanguageQueryService.with_jev(jev_client) — Jev typed-decision client, opt-in and off unless VISIONCLAW_JEV=1 (src/main.rs:517-522)
+    M->>SV: NaturalLanguageQueryService.with_jev(jev_client) — Jev typed-decision client, opt-in: the library default is off, the shared Compose environment sets VISIONCLAW_JEV default 1 for dev and production (docker-compose.unified.yml:8), activation staged until the container is recreated (ADR-2148 activation_status staged, docs/BASELINE-architecture.md:49-50) (src/main.rs:517-522)
     M->>SY: GithubSyncService::new(corpus_source, ...) (src/main.rs:486) — corpus ingest over CorpusSource, see VC-21
     RS->>RS: bootstrap_owner_from_env — RBAC_OWNER_PUBKEY_ENV (src/services/role_store.rs:643)
     alt no Owner assigned and RBAC_ALLOW_OWNERLESS unset
@@ -236,7 +239,7 @@ flowchart TB
         S14["physics_service"]
         S15["presence_handler_state (PRD-008)"]
         S17["semantic_service (Arc~SemanticService~) — src/main.rs:864-872, app_data :1088<br/>never registered before, so every /api/semantic/* handler 500d at the extractor (ER-25)"]
-        S18["jev_client (visionclaw_jev hub) — src/main.rs:518, app_data :1075<br/>opt-in, off unless VISIONCLAW_JEV=1"]
+        S18["jev_client (visionclaw_jev hub) — src/main.rs:518, app_data :1075<br/>opt-in: library default off, Compose default VISIONCLAW_JEV=1 (docker-compose.unified.yml:8, local façade :9)"]
         S16["memory_cloud_data (MemoryCloudService, shared snapshot cache) — src/main.rs:1091"]
     end
     subgraph FEAT["feature solid-pod-embed — src/main.rs:1094-1105"]
@@ -426,7 +429,7 @@ flowchart LR
     S --> PF["configure_pathfinding_routes<br/>scope /pathfinding — src/handlers/semantic_pathfinding_handler.rs:147<br/>POST /semantic-path, /query-traversal, /chunk-traversal"]
     S --> SM["configure_semantic_routes<br/>scope /semantic — src/handlers/semantic_handler.rs:291<br/>POST /communities, /centrality, /shortest-path, generate-constraints, /cache/invalidate<br/>GET /statistics"]
     S --> IN["REMOVED ADR-2066 — configure_inference_routes<br/>the /api/inference scope was deleted, comment block at src/main.rs:1178-1182<br/>every handler extracted an InferenceService that was never<br/>registered as app data, so each route 500'd at the extractor<br/>live reasoning path is GitHubSyncService::run_post_sync_reasoning"]
-    S --> JV["configure_jev_routes<br/>scope /jev — src/handlers/jev_handler.rs:91<br/>GET /status, POST /command, POST /palette — authenticated, bounded and fail-open:<br/>any failure answers 200 used:false, and with VISIONCLAW_JEV off the routes answer used:false without a request<br/>registered at src/main.rs:1175"]
+    S --> JV["configure_jev_routes<br/>scope /jev — src/handlers/jev_handler.rs:114<br/>GET /status, POST /command, POST /palette, POST /edge (review-only, authority none, writes nothing: src/handlers/jev_handler.rs:64-73, route :118) — authenticated, bounded and fail-open:<br/>any failure answers 200 used:false, and with VISIONCLAW_JEV off the routes answer used:false without a request (the Compose deployment opts in)<br/>registered at src/main.rs:1175"]
     S --> HE["consolidated_health_handler::configure_routes<br/>scope /health — src/handlers/consolidated_health_handler.rs:474<br/>GET '', /physics — scope /mcp POST /start, GET /logs<br/>plus a second /healthz and /readyz at :488-489"]
     S --> ME["metrics_handler::configure_routes<br/>GET /api/metrics — src/handlers/metrics_handler.rs:92"]
     S --> MM["configure_multi_mcp_routes<br/>scope /multi-mcp — src/handlers/multi_mcp_websocket_handler.rs:867<br/>GET /ws only (the /status and /refresh stubs were deleted under ADR-2091)<br/>the upgrade hands the socket AppState.multi_mcp_discovery (src/handlers/multi_mcp_websocket_handler.rs:861)"]

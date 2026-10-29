@@ -16,7 +16,7 @@ sources:
   - ../vowl-wasm/src/interaction/mod.rs
   - ../vowl-wasm/.github/workflows/ci.yml
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts
-verified_commit: {vowl-wasm: 89d1a0a32eec16e79a7fa507eaa6f8fcb92e4f0b, visiongraph: 59e7dcc8d05ca447d03c74c819a740b390b93074}
+verified_commit: {vowl-wasm: 89d1a0a32eec16e79a7fa507eaa6f8fcb92e4f0b, visiongraph: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e}
 ---
 
 ## VW-04.1 `WebVowl` — the frozen 0.1.0 JS surface

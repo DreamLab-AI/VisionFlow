@@ -1,6 +1,6 @@
 ---
 id: AB-29
-title: Metaharness router console — phase 0 under the AoE session plane
+title: Metaharness router console — phase 0 on the agentbox-sessions plane
 area: agentbox
 governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
@@ -12,7 +12,10 @@ sources:
   - ../project/agentbox/config/model-router/README.md
   - ../project/agentbox/config/harness-wrappers/router.sh
   - ../project/agentbox/scripts/model-router-fetch.sh
-  - ../project/agentbox/scripts/aoe-seed-sessions.mjs
+  - ../project/agentbox/services/agentbox-sessions/src/contract.rs
+  - ../project/agentbox/services/agentbox-sessions/src/plane.rs
+  - ../project/agentbox/services/agentbox-sessions/src/tmux.rs
+  - ../project/agentbox/config/session-plane/launch.json
   - ../project/agentbox/flake.nix
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/config/entrypoint-unified.sh
@@ -22,7 +25,7 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/tui_sections.rs
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md
-verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
+verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
 ---
 
 ## AB-29.1 Composition — what is baked, and why the npm tarball lacks it
@@ -40,11 +43,11 @@ flowchart TB
         FILES["17 files total, each {dest,url,sha256,size}<br/>artefacts.json:20"]
     end
     subgraph readers["Two readers of the ONE manifest"]
-        NIX["flake.nix modelRouterArtefacts<br/>flake.nix:195 — fetchurl per file, sha256-pinned"]
+        NIX["flake.nix modelRouterArtefacts<br/>flake.nix:185 — fetchurl per file, sha256-pinned"]
         FETCH["scripts/model-router-fetch.sh<br/>reads m.files, sha256sum-verifies, curl -fL, refuses hash mismatch"]
     end
     subgraph outputs["Two possible artefact locations"]
-        BAKED["/opt/agentbox/model-router<br/>flake.nix:2244-2245 — rebuild class, byte-identical-when-off"]
+        BAKED["/opt/agentbox/model-router<br/>flake.nix:2245-2246 — rebuild class, byte-identical-when-off"]
         FALLBACK["$WORKSPACE/.agentbox/model-router<br/>pre-rebuild fallback"]
     end
     T1 --> ART
@@ -66,10 +69,10 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant TOML as agentbox.toml<br/>[model_routing.neural]<br/>agentbox.toml:1709-1719
-    participant EP as entrypoint-unified.sh<br/>config/entrypoint-unified.sh:2311
+    participant TOML as agentbox.toml<br/>[model_routing.neural]<br/>agentbox.toml:1733-1743
+    participant EP as entrypoint-unified.sh<br/>config/entrypoint-unified.sh:2308
     participant DISK as /opt/agentbox/model-router<br/>or $WORKSPACE/.agentbox/model-router
-    participant ENV as runtime-env file<br/>config/entrypoint-unified.sh:3814
+    participant ENV as runtime-env file<br/>config/entrypoint-unified.sh:3811
 
     EP->>TOML: _ab_toml_bool model_routing.neural enabled
     alt enabled = false
@@ -78,35 +81,38 @@ sequenceDiagram
         EP->>TOML: read assets_dir, provider, quality_bar, cost_ceiling_usd_per_mtok, privacy_tier, trajectory
         EP->>DISK: test -f $_MRN_DIR/seed-router.krr.json
         alt baked dir missing the artefact
-            EP->>DISK: fall back to $WORKSPACE/.agentbox/model-router<br/>config/entrypoint-unified.sh:2314-2316
+            EP->>DISK: fall back to $WORKSPACE/.agentbox/model-router<br/>config/entrypoint-unified.sh:2311-2313
         end
-        EP->>ENV: export AGENTBOX_MODEL_ROUTER_ENABLED=1, _DIR, _PROVIDER,<br/>_QUALITY_BAR, _COST_CEILING_USD_PER_MTOK, _PRIVACY_TIER,<br/>_TRAJECTORY, _STATE_DIR<br/>config/entrypoint-unified.sh:2323-2330
-        EP->>EP: echo readiness line naming artefact dir + provider + bar<br/>config/entrypoint-unified.sh:2332
+        EP->>ENV: export AGENTBOX_MODEL_ROUTER_ENABLED=1, _DIR, _PROVIDER,<br/>_QUALITY_BAR, _COST_CEILING_USD_PER_MTOK, _PRIVACY_TIER,<br/>_TRAJECTORY, _STATE_DIR<br/>config/entrypoint-unified.sh:2320-2327
+        EP->>EP: echo readiness line naming artefact dir + provider + bar<br/>config/entrypoint-unified.sh:2329
     end
     Note over EP,ENV: DELIBERATELY NOT exported: CLAUDE_FLOW_ROUTER_* — the console sets those<br/>in its own process only (ADR-2080 D3), so this boot path can never re-route<br/>other ruflo work to an external provider
 ```
 
-## AB-29.3 Seed → wrapper → console sequence — a task typed in the AoE `router` session
+## AB-29.3 Seed → wrapper → console sequence — a task typed in the agentbox-sessions `router` session
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SEEDER as aoe-seed-sessions.mjs<br/>scripts/aoe-seed-sessions.mjs:110-114
-    participant CFG as ~/.config/agent-of-empires/config.toml<br/>custom_agents.router
-    participant AOE as AoE session `router` (tmux window 8)
+    participant PLANE as session plane reconciler<br/>services/agentbox-sessions/src/plane.rs:200
+    participant CON as launch contract<br/>services/agentbox-sessions/src/contract.rs:68
+    participant LJ as launch.json wrapper template<br/>config/session-plane/launch.json:13
+    participant TMUX as tmux session `abs_router`<br/>services/agentbox-sessions/src/tmux.rs:27
     participant WRAP as router.sh<br/>config/harness-wrappers/router.sh:24
     participant CONS as console.mjs<br/>config/model-router/console.mjs
 
-    SEEDER->>SEEDER: WRAPPER_SLUGS.router = {file: 'router.sh', detectAs: null}<br/>scripts/aoe-seed-sessions.mjs:113
-    SEEDER->>CFG: customAgents.router = path.join(WRAPPER_DIR, 'router.sh')<br/>scripts/aoe-seed-sessions.mjs:367-368 (no detectAs alias — router is its own program)
-    AOE->>WRAP: exec router.sh (session seed for slug=router, agentbox.toml:2182-2186)
+    PLANE->>CON: plan_for(seed) resolves the [[interaction_plane.session_seeds]] entry slug=router, tool=custom:router<br/>(agentbox.toml:2182-2186, plane.rs:200-201)
+    CON->>CON: harness-wrappers/router.sh exists AND tool == custom:router, so kind = wrapper<br/>contract.rs:69-71, and a wrapper never receives a model (contract.rs:85)
+    CON->>LJ: wrapper template argv = [{wrapper}], so the launch is router.sh itself<br/>launch.json:13-15
+    PLANE->>TMUX: Plan.name = session_name(slug) = abs_router, owned by the plane<br/>plane.rs:220, tmux.rs:27-28
+    TMUX->>WRAP: exec router.sh (env-scrubbed by plan_for, argv from the template)
     WRAP->>WRAP: _die if console missing, node absent, or ruflo not resolvable<br/>router.sh:47,51,52
     WRAP->>WRAP: locate artefacts: $AGENTBOX_MODEL_ROUTER_DIR else<br/>/opt/agentbox/model-router else $WORKSPACE/.agentbox/model-router<br/>router.sh:58-64
     alt no seed-router.krr.json found anywhere
-        WRAP-->>AOE: _die "run ./agentbox.sh model-router fetch"<br/>router.sh:65-68
+        WRAP-->>TMUX: _die "run ./agentbox.sh model-router fetch"<br/>router.sh:65-68
     end
     alt provider=openrouter AND OPENROUTER_API_KEY empty AND egress on
-        WRAP-->>AOE: _die "OPENROUTER_API_KEY is empty" — no silent fallback to another billing key<br/>router.sh:69-75
+        WRAP-->>TMUX: _die "OPENROUTER_API_KEY is empty" — no silent fallback to another billing key<br/>router.sh:69-75
     end
     WRAP->>WRAP: export AGENTBOX_PROFILE, AGENTBOX_MODEL_ROUTER_PRIVACY_TIER="public" (pinned, not inherited)<br/>router.sh:79
     WRAP->>CONS: exec node console.mjs "$@"<br/>router.sh:84
@@ -114,13 +120,13 @@ sequenceDiagram
     CONS->>CONS: EGRESS_OFF (AGENTBOX_EGRESS=0) forces DRY=true<br/>console.mjs:99-102
     CONS->>CONS: resolveAssetsDir() verifies all 8 REQUIRED files exist<br/>console.mjs:128-141
     CONS->>CONS: loadEmbedder() — MiniLM q8 pipeline, offline (allowRemoteModels=false)<br/>console.mjs:174-183
-    CONS-->>AOE: banner — artefacts dir, corpus provenance, provider, quality bar<br/>console.mjs:199
+    CONS-->>TMUX: banner — artefacts dir, corpus provenance, provider, quality bar<br/>console.mjs:199
     Note over WRAP,CONS: HARD-FAIL WRAPPER SEMANTICS: every precondition failure is a loud _die with a<br/>fix instruction, never a silent no-op or a fallback to a different billing key
 ```
 
-**Open:** ADR-2153 proposes replacing Agent of Empires with an owned tmux-backed session plane in which the `router` console becomes an ordinary seed with its public-only scope unchanged, but its status is `proposed`, `implementation_status: none`, `activation_status: inactive`, and it states AoE stays as it is until the daemon lands, so the AoE seeding drawn above is the live path (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:62-64`).
+**Drift:** the Agent of Empires seeder this topic first drew (`scripts/aoe-seed-sessions.mjs`, `custom_agents.router`) is deleted, yet the wrapper header still says AoE registers and execs it (`../project/agentbox/config/harness-wrappers/router.sh:5-6`), as does the flake comment (`../project/agentbox/flake.nix:2244`) and the `agentbox.toml` seed comment "resolved by the seeder's WRAPPER_SLUGS" (`../project/agentbox/agentbox.toml:2184`).
 
-**Tension (ADR-2079 vs ADR-2153):** the record this topic is titled after, ADR-2079 (AoE as the dispatch plane), is now `decision_status: superseded` by ADR-2153 (`../project/agentbox/docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md:5-9`), while the superseding ADR is still `proposed` with nothing implemented, so the dispatch-plane framing in AB-29.5 cites a superseded record and its replacement is not yet in force.
+**Tension (ADR-2079 vs ADR-2153):** ADR-2079, the AoE dispatch-plane record, is `superseded` by ADR-2153 (`../project/agentbox/docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md:5-9`), which is now `accepted`, `implementation_status: partial`, `activation_status: live` and makes the router an ordinary seed (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:75`), but its acceptance round trip excludes `router`, so only the clean launch above is evidenced, not a routed task (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:65`).
 
 ## AB-29.4 Routing decision flow — embed, KRR predict, availability preflight, execute
 
@@ -228,7 +234,7 @@ stateDiagram-v2
     note right of Refused
         Manifest schema also constrains this at the config layer:
         privacy_tier accepts only "public" (ADR-2080 Decision §4,
-        agentbox.toml:1717 comment "the ONLY accepted value")
+        agentbox.toml:1741 comment "the ONLY accepted value")
     end note
     note right of NormalRun
         ADR-2079 §4: privacy tier is the FIRST routing axis, before cost.
@@ -330,6 +336,6 @@ sequenceDiagram
     Note over RET: every cost is AGENT-LEVEL, the whole agentic loop per run, which is why<br/>per-token list price is a poor proxy for per-task cost<br/>(retort-benchmarks.json:8)
 ```
 
-**Invariant:** the Retort file changes only which tier is chosen; the quality bar, the cost ceiling and the privacy tier stay manifest values projected through `AGENTBOX_MODEL_ROUTER_*` (`../project/agentbox/agentbox.toml:1712`, `../project/agentbox/agentbox.toml:1716`, `../project/agentbox/agentbox.toml:1717`).
+**Invariant:** the Retort file changes only which tier is chosen; the quality bar, the cost ceiling and the privacy tier stay manifest values projected through `AGENTBOX_MODEL_ROUTER_*` (`../project/agentbox/agentbox.toml:1736`, `../project/agentbox/agentbox.toml:1740`, `../project/agentbox/agentbox.toml:1741`).
 
-**Open:** the manifest now carries Retort's measured guidance as a comment on `quality_bar` (`../project/agentbox/agentbox.toml:1713-1715`) while the shipped default stays 0.50 (`../project/agentbox/agentbox.toml:1712`); nothing records whether the 0.25 to 0.35 band that comment recommends for routine work has been run against this estate's own corpus.
+**Open:** the manifest now carries Retort's measured guidance as a comment on `quality_bar` (`../project/agentbox/agentbox.toml:1737-1739`) while the shipped default stays 0.50 (`../project/agentbox/agentbox.toml:1736`); nothing records whether the 0.25 to 0.35 band that comment recommends for routine work has been run against this estate's own corpus.

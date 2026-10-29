@@ -26,7 +26,7 @@ sources:
   - ../project/src/layout/scc.rs
   - ../project/docs/adr/ADR-2138-directed-cycles-are-a-server-analysis-with-one-adjacency.md
   - ../project/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md
-verified_commit: 19417bdff5fc22053a8a0cc185797b0311521d10
+verified_commit: e74bcddc772d47a45b1971156a2bab540eaa027c
 ---
 
 ## VC-18.1 /analytics scope — auth wrapper and route table

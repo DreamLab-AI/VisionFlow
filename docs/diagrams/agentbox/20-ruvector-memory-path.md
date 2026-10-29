@@ -18,6 +18,8 @@ sources:
   - ../project/agentbox/management-api/lib/system-manifest.js
   - ../project/agentbox/config/entrypoint-unified.sh
   - ../project/agentbox/services/agentbox-manifest/src/mcp.rs
+  - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
+  - ../project/agentbox/config/hooks/lib/jev-option.cjs
   - ../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md
   - ../project/agentbox/scripts/ruvector-recall-harness.mjs
   - ../project/agentbox/scripts/ruvector-sona-feeder.mjs
@@ -25,7 +27,7 @@ sources:
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/docs/reference/claude-context/ruvector-memory-state.md
-verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
+verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
 ---
 
 ## AB-20.1 Server boot — fail-closed on Postgres, advisory on Xinference
@@ -41,7 +43,7 @@ sequenceDiagram
     participant MT as createMemoryTools<br/>agentbox/mcp/servers/ruvector-mcp.cjs:206
 
     SUP->>SRV: start
-    Note over SUP,SRV: REGISTRATION has two routes, both written at boot: the entrypoint writes $WORKSPACE/.mcp.json<br/>(config/entrypoint-unified.sh:1549), found only by walking up from the cwd, and then<br/>`agentbox-manifest mcp-mirror-server` copies the final claude-flow entry into the user-level<br/>~/.claude/.claude.json (config/entrypoint-unified.sh:3398, services/agentbox-manifest/src/mcp.rs:143)<br/>so a session started outside the workspace, for example in $HOME, still loads memory
+    Note over SUP,SRV: REGISTRATION has two routes, both written at boot: the entrypoint writes $WORKSPACE/.mcp.json<br/>(config/entrypoint-unified.sh:1527), found only by walking up from the cwd, and then<br/>`agentbox-manifest mcp-mirror-server` copies the final claude-flow entry into the user-level<br/>~/.claude/.claude.json (config/entrypoint-unified.sh:3395, services/agentbox-manifest/src/mcp.rs:143)<br/>so a session started outside the workspace, for example in $HOME, still loads memory
     SRV->>PG: SELECT 1 (mcp/servers/ruvector-mcp.cjs:156)
     alt unreachable
         PG--xSRV: error
@@ -160,7 +162,7 @@ sequenceDiagram
         Note over MS: still DEGRADED, NOT NORMAL — and still respects the wildcard exclusion
     end
     MS-->>SRV: raw ranked/degraded response
-    SRV->>SRV: memoryJevRerank.rerank(query, raw), off unless AGENTBOX_JEV_MEMORY_RERANK=1 (ruvector-mcp.cjs:250, memory-jev-rerank.js:100-102)
+    SRV->>SRV: memoryJevRerank.rerank(query, raw), off unless AGENTBOX_JEV_MEMORY_RERANK=1,<br/>which the manifest now projects from consumers.memory_rerank = true (source, ADR-2155 staged),<br/>and a local-only judge uses the LAN laya route, never typesafe (jev-option.cjs:72-77)<br/>(ruvector-mcp.cjs:250, memory-jev-rerank.js:100-102, agentbox.toml:907, system_one.rs:413, entrypoint-unified.sh:1259-1263)
     Note over SRV: Jev option: a LOCAL judge reorders the shortlist the cosine search already returned, `score` stays the cosine<br/>and the input comes back untouched on a flag-off, a degraded result, fewer than two rows, a transport error<br/>or a best relevance below AGENTBOX_JEV_MEMORY_MIN_RELEVANCE, default 0.5 (memory-jev-rerank.js:20-25,105-106,119)
     SRV->>SH: shapeSearchResponse(res, {full, minScore, snippetChars, limit}) (ruvector-mcp.cjs:251)
     SH->>SH: sort best-first unless _attention or the Jev option _reranked already ordered it (memory-tools.js:163-167)
@@ -507,7 +509,7 @@ sequenceDiagram
     participant CH as ruflo mcp start child
     participant PG as ruvector-postgres
 
-    Note over G: gate is projected at boot from the manifest, agentbox.toml:455<br/>into RUVECTOR_ORCHESTRATION_PROXY by entrypoint-unified.sh:1648<br/>apply class boot, management-api/lib/system-manifest.js:248
+    Note over G: gate is projected at boot from the manifest, agentbox.toml:455<br/>into RUVECTOR_ORCHESTRATION_PROXY by entrypoint-unified.sh:1626<br/>apply class boot, management-api/lib/system-manifest.js:248
     SRV->>G: orchestrationProxy()
     alt gate off
         G-->>SRV: false, orchestration stays null
@@ -518,7 +520,7 @@ sequenceDiagram
         AG->>SRV: tools/list
         SRV->>OP: advertise(TOOLS) (mcp/servers/lib/orchestration-proxy.js:354)
         OP->>CH: lazy spawn, CLAUDE_FLOW_MCP_TOOLS = categories from RUVECTOR_ORCHESTRATION_TOOLS<br/>(mcp/servers/lib/orchestration-proxy.js:224,:289)
-        Note over CH: running config narrowed 2026-09-25 to swarm,agent, then widened by the 2026-10-26 ADR amendment:<br/>orchestration_tools = swarm,agent,rure (agentbox.toml:456), task and coordination stay dropped (~185 tok/tool).<br/>swarm_init / agent_spawn and the eight ruRE static-analysis tools forward, task_orchestrate / coordination_sync<br/>stay honest stubs. The ADR calls the ruRE widening source-verified and STAGED (ADR-2082-orchestration-proxy-behind-governed-memory-server.md:32-33)
+        Note over CH: running config narrowed 2026-09-25 to swarm,agent, then widened by the 2026-10-26 ADR amendment:<br/>orchestration_tools = swarm,agent,rure (agentbox.toml:456), task and coordination stay dropped (~185 tok/tool).<br/>swarm_init / agent_spawn and the eight ruRE static-analysis tools forward, task_orchestrate / coordination_sync<br/>stay honest stubs. The ADR calls the ruRE widening source-verified and STAGED (ADR-2082-orchestration-proxy-behind-governed-memory-server.md:45-46)
         CH-->>OP: its tools/list
         OP->>OP: drop every denied name before merging (mcp/servers/lib/orchestration-proxy.js:125)
         Note over OP: INVARIANT ADR-2014 — DENIED_PREFIXES memory_, agentdb_, embeddings_,<br/>hooks_, agentic_flow_, ruvllm_, agenticow_ are enforced on the PROXY side<br/>whatever filter the child honours, so ruflo SQLite memory is unreachable<br/>through this server (mcp/servers/lib/orchestration-proxy.js:43)
@@ -536,16 +538,16 @@ sequenceDiagram
     end
     AG->>SRV: memory_store / memory_search
     SRV->>PG: always ruvector-postgres, never the child
-    Note over SRV,PG: INVARIANT — memory_* is never forwarded. The decision is recorded in<br/>docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:97-100<br/>and the manifest note repeats it at agentbox.toml:455
-    Note over SRV,PG: DOC-DRIFT: the ADR's Decision prose says the category default is "swarm,agent,task,coordination"<br/>(ADR-2082-orchestration-proxy-behind-governed-memory-server.md:93, still the code default, orchestration-proxy.js:46) and its<br/>"Deployment narrowed" paragraph says the running manifest sets "swarm,agent" (ADR-2082-orchestration-proxy-behind-governed-memory-server.md:167),<br/>but agentbox.toml:456 now reads "swarm,agent,rure" — CODE is authoritative
+    Note over SRV,PG: INVARIANT — memory_* is never forwarded. The decision is recorded in<br/>docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:110-113<br/>and the manifest note repeats it at agentbox.toml:455
+    Note over SRV,PG: DOC-DRIFT: the ADR's Decision prose says the category default is "swarm,agent,task,coordination"<br/>(ADR-2082-orchestration-proxy-behind-governed-memory-server.md:106, still the code default, orchestration-proxy.js:46) and its<br/>"Deployment narrowed" paragraph says the running manifest sets "swarm,agent" (ADR-2082-orchestration-proxy-behind-governed-memory-server.md:180),<br/>but agentbox.toml:456 now reads "swarm,agent,rure" — CODE is authoritative
     Note over SRV: DEBT — the close handler drains in-flight requests for up to 30 s because a slow<br/>first tools/list can outlive stdin (mcp/servers/ruvector-mcp.cjs:741-770)
 ```
 
 **What it shows.** The governed server is the only registered MCP entry; the orchestration families it forwards come from one lazily spawned, allowlisted Ruflo child, and the proxy drops every `memory_*` and sibling prefix before merging the child's list, whatever the child honours.
 
-**Why it is this way.** ADR-2082 was amended on 2026-10-23 to treat Ruflo as one pinned capability projected differently per host (`../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:35-41`), and on 2026-10-26 to add the `rure` category to the same child rather than register a second server (`../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:20-27`).
+**Why it is this way.** ADR-2082 was amended on 2026-10-23 to treat Ruflo as one pinned capability projected differently per host (`../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:48-54`), and on 2026-10-26 to add the `rure` category to the same child rather than register a second server (`../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:33-40`).
 
-**Tension (ADR-2082 vs manifest):** the ADR is `activation_status: staged` and says an image build and a live tool-list/call check are required before claiming activation (`../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:7`, `../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:32-33`), while the running manifest already lists `rure` in `orchestration_tools` (`../project/agentbox/agentbox.toml:456`).
+**Tension (ADR-2082 vs manifest):** the ADR is `activation_status: staged` and says an image build and a live tool-list/call check are required before claiming activation (`../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:7`, `../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:45-46`), while the running manifest already lists `rure` in `orchestration_tools` (`../project/agentbox/agentbox.toml:456`).
 
 **Invariant:** the ruRE widening does not touch the deny list; `DENIED_PREFIXES` is enforced on the proxy side whatever categories the child is given (`../project/agentbox/mcp/servers/lib/orchestration-proxy.js:43`).
 

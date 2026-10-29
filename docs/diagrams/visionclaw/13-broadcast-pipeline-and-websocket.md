@@ -39,7 +39,7 @@ sources:
   - ../project/crates/visionclaw-domain/src/types/physics_config.rs
   - ../project/src/settings/api/settings_routes.rs
   - ../project/docs/adr/ADR-2141-positions-are-streamed-per-client-until-acknowledged.md
-verified_commit: 19417bdff5fc22053a8a0cc185797b0311521d10
+verified_commit: e74bcddc772d47a45b1971156a2bab540eaa027c
 ---
 
 ## VC-13.3 Position stream end to end: GPU step to per-client chunk
@@ -88,7 +88,7 @@ sequenceDiagram
     end
     end
     Note over PO: DRIFT the orchestrator comment still routes positions through BroadcastPositions, which ADR-2141 removed,<br/>the live path is UpdateNodePositions then PublishPositions<br/>src/actors/physics_orchestrator_actor.rs:562-566
-    Note over PO,CC: DRIFT docs/BASELINE-architecture.md draws the position path as ForceComputeActor, PhysicsOrchestratorActor, ClientCoordinatorActor<br/>and says ForceComputeActor drives the periodic full-position broadcast, in the code the orchestrator only sends ComputeForces and takes no part in<br/>delivery, ForceComputeActor publishes every step through GraphServiceSupervisor and the coordinator paces each client<br/>docs/BASELINE-architecture.md:139-142,215-216,221-222,314-315,src/actors/graph_service_supervisor.rs:607-628,src/actors/client_coordinator_actor.rs:1315-1322
+    Note over PO,CC: DRIFT docs/BASELINE-architecture.md draws the position path as ForceComputeActor, PhysicsOrchestratorActor, ClientCoordinatorActor<br/>and says ForceComputeActor drives the periodic full-position broadcast, in the code the orchestrator only sends ComputeForces and takes no part in<br/>delivery, ForceComputeActor publishes every step through GraphServiceSupervisor and the coordinator paces each client<br/>docs/BASELINE-architecture.md:150-153,226-227,232-233,325-326,src/actors/graph_service_supervisor.rs:607-628,src/actors/client_coordinator_actor.rs:1315-1322
     Note over WS,CC: acknowledgements close the loop, see VC-13.4 and VC-14.10
 ```
 

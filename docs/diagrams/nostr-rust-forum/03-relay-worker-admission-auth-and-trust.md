@@ -22,7 +22,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/push_fanout.rs
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml
-verified_commit: 8a5cf817e81b20e2b761899eab753768c0cb4988
+verified_commit: eb5f2323e6d72240ecb7c456181b7a674f1842f4
 ---
 
 ## NF-03.1 Worker entry — three doors into the relay
@@ -35,7 +35,7 @@ flowchart TB
     WS["Upgrade: websocket to Durable Object RELAY<br/>nostr-bbs-relay-worker/src/lib.rs:228"]
     N11["Accept application/nostr+json to NIP-11 relay info<br/>nostr-bbs-relay-worker/src/lib.rs:237"]
     RT["route dispatches the HTTP admin/REST route table<br/>nostr-bbs-relay-worker/src/lib.rs:253 lib.rs:286"]
-    CRON["scheduled every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:1146<br/>nostr-bbs-relay-worker/wrangler.toml:115"]
+    CRON["scheduled every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:1146<br/>nostr-bbs-relay-worker/wrangler.toml:123"]
 
     REQ --> F --> BOOT
     BOOT --> WS
@@ -67,7 +67,7 @@ sequenceDiagram
     EV-->>DO: AuthVerdict::Ok(pubkey) nip42.rs:216
 
     Note over EV: A MISSING session challenge can never match, so it rejects - there is no unchallenged path nip42.rs:191-196
-    Note over EV: own_relay_url unset or blank SKIPS the relay-tag check only. This fails OPEN on the defence-in-depth check and never on the challenge or signature, so the gate can roll out before RELAY_URL is configured nip42.rs:168-172 - RELAY_URL ships blank nostr-bbs-relay-worker/wrangler.toml:43, and handle_auth now logs a console error on every AUTH while it is blank nip42.rs:230 nip_handlers.rs:2054
+    Note over EV: own_relay_url unset or blank SKIPS the relay-tag check only. This fails OPEN on the defence-in-depth check and never on the challenge or signature, so the gate can roll out before RELAY_URL is configured nip42.rs:168-172 - RELAY_URL ships blank nostr-bbs-relay-worker/wrangler.toml:51, and handle_auth now logs a console error on every AUTH while it is blank nip42.rs:230 nip_handlers.rs:2054
     Note over EV: canonical_relay_url absorbs scheme, case and a trailing slash but keeps host identity nip42.rs:144, asserted nip42.rs:332-343
 ```
 
@@ -94,7 +94,7 @@ stateDiagram-v2
         README.md:130 now agrees with the code: NIP-42 relay admission is "Implemented;
         example worker selects AUTH_MODE=nip42". The earlier "scaffolded" ledger row is gone.
         nip42 IS the default (nip42.rs:115), the template ships AUTH_MODE = "nip42"
-        (nostr-bbs-relay-worker/wrangler.toml:31), and every EVENT passes write_auth_ok
+        (nostr-bbs-relay-worker/wrangler.toml:39), and every EVENT passes write_auth_ok
         (nip_handlers.rs:1102) before any other check. A denial AFTER a completed AUTH is
         "restricted:", while legacy allowlist mode keeps "blocked:" (nip42.rs:282)
     end note
@@ -321,7 +321,7 @@ sequenceDiagram
 
     H->>P: ADR-2023 content-free Web Push wake-up, last, only for kinds 40 / 42 / 1059 and not for a repeat submission nip_handlers.rs:1549 nip_handlers.rs:1655
 
-    Note over P: ADR-2023 is staged: PUSH_ENABLED ships "false" nostr-bbs-relay-worker/wrangler.toml:78, and push_fanout returns at once unless push is enabled push_fanout.rs:48. Candidates are read-gated through the same authorize_event as live delivery push_fanout.rs:94
+    Note over P: ADR-2023 is staged: PUSH_ENABLED ships "false" nostr-bbs-relay-worker/wrangler.toml:86, and push_fanout returns at once unless push is enabled push_fanout.rs:48. Candidates are read-gated through the same authorize_event as live delivery push_fanout.rs:94
     Note over H: ADR-2010: the relay OK certified STORAGE ONLY.<br/>If the decision did not reach projection-committed the response is accepted<br/>but NOT applied, and the relay says so rather than letting its OK stand as<br/>the last word nip_handlers.rs:1630-1642
     Note over A: DRIFT resolved: the read path (NF-03.14) also flushes through this<br/>same ledger via note_read_activity, so a promotion check now runs at most once<br/>per pubkey per coalescing window across BOTH writes and reads<br/>nip_handlers.rs:2228 nip_handlers.rs:2246-2248
     Note over M: A moderation mirror is only respected when the signer is an admin ON THIS RELAY - a lifted ban must also stop being enforced nip_handlers.rs:1588
@@ -379,10 +379,10 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    MODE["MESH_MODE = standalone<br/>nostr-bbs-relay-worker/wrangler.toml:85"]
-    PEERS["MESH_PEER_RELAYS empty<br/>nostr-bbs-relay-worker/wrangler.toml:86"]
-    KINDS["MESH_FEDERATED_KINDS - 14 kinds incl. 31400-31405<br/>nostr-bbs-relay-worker/wrangler.toml:87"]
-    DIDS["MESH_ALLOWED_REMOTE_DIDS empty<br/>nostr-bbs-relay-worker/wrangler.toml:88"]
+    MODE["MESH_MODE = standalone<br/>nostr-bbs-relay-worker/wrangler.toml:93"]
+    PEERS["MESH_PEER_RELAYS empty<br/>nostr-bbs-relay-worker/wrangler.toml:94"]
+    KINDS["MESH_FEDERATED_KINDS - 14 kinds incl. 31400-31405<br/>nostr-bbs-relay-worker/wrangler.toml:95"]
+    DIDS["MESH_ALLOWED_REMOTE_DIDS empty<br/>nostr-bbs-relay-worker/wrangler.toml:96"]
     GATE["is_mesh_peer AND NOT is_federated_kind_allowed to blocked<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1176"]
 
     MODE & PEERS & KINDS & DIDS --> GATE

@@ -37,7 +37,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/ssrf.rs
   - ../solid-pod-rs/.github/workflows/ci.yml
   - ../solid-pod-rs/scripts/parity-check.sh
-verified_commit: a4a86f6da300b529c7855318c24ff5c7b35ec582
+verified_commit: 9bde3be7fa123479fabb5c4cc9056e19ab0dcadd
 ---
 
 ## SP-10.1 The seven baseline invariants and where each lives in code
@@ -46,12 +46,12 @@ verified_commit: a4a86f6da300b529c7855318c24ff5c7b35ec582
 flowchart TD
     I1["1. NIP-98 is SINGLE-SOURCED — one verifier, siblings delegate<br/>solid-pod-rs/src/auth/nip98.rs:116"]
     I2["2. Replay protection keeps BOTH layers — freshness window and a<br/>single-use claim — and never evicts an unexpired entry<br/>solid-pod-rs/src/auth/replay.rs:275"]
-    I3["3. Pod-label '..' scrubbing stays ITERATIVE<br/>solid-pod-rs/src/multitenant.rs:184"]
+    I3["3. Pod-label '..' scrubbing stays ITERATIVE<br/>solid-pod-rs/src/multitenant.rs:199"]
     I4["4. ACL parsing stays SIZE-CAPPED at the parse boundary<br/>solid-pod-rs/src/wac/parser.rs:40"]
     I4b["4b. ONLY an absent policy inherits<br/>solid-pod-rs/src/wac/resolver.rs:153"]
     I5["5. Provenance never changes a write's HTTP status —<br/>but the failure is no longer swallowed<br/>solid-pod-rs/src/provenance.rs:514"]
     I6["6. Discovery metadata must MATCH the crypto path<br/>solid-pod-rs/src/oidc/mod.rs:184"]
-    I7["7. A private response is never advertised as publicly cacheable<br/>solid-pod-rs/src/ldp.rs:1948"]
+    I7["7. A private response is never advertised as publicly cacheable<br/>solid-pod-rs/src/ldp.rs:1949"]
 
     I1 --> SUR["the compliance surface"]
     I2 --> SUR
@@ -322,7 +322,7 @@ flowchart TD
     C2["re-read invariants 4 and 4b; confirm Invalid and Unavailable still deny<br/>solid-pod-rs/src/wac/resolver.rs:143"]
     C3["re-read invariant 5; confirm the status is unchanged AND the receipt still<br/>reaches the caller<br/>solid-pod-rs-server/src/lib.rs:1383"]
     C4["re-read invariant 6; discovery and the verifier move TOGETHER<br/>solid-pod-rs/src/oidc/mod.rs:184"]
-    C5["re-read invariant 3; confirm scrub_dotdot is still a loop<br/>solid-pod-rs/src/multitenant.rs:184"]
+    C5["re-read invariant 3; confirm scrub_dotdot is still a loop<br/>solid-pod-rs/src/multitenant.rs:199"]
     C6["update the pin matrix and check whether the edge consumer can still compile<br/>the core surface — SP-09.7"]
     BL["update BASELINE-solid-pod-rs.md in the SAME commit, bump its version, and<br/>re-record its verified_commit"]
 

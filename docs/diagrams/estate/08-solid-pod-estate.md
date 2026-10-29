@@ -20,6 +20,8 @@ sources:
   - ../project/agentbox/docker-compose.solid-pods.yml
   - ../project/agentbox/docs/user/solid-pod.md
   - ../project/agentbox/lib/solid-pod-rs.nix
+  - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
+  - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/docs/adr/ADR-2145-the-solid-pod-forge-and-mirror-are-compiled-in-and-inert-until-named.md
   - docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md
@@ -41,7 +43,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../project/agentbox/docs/adr/ADR-2099-the-chain-is-the-ledger-of-record.md
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
-verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9, solid-pod-rs: a4a86f6da300b529c7855318c24ff5c7b35ec582, nostr-rust-forum: 8a5cf817e81b20e2b761899eab753768c0cb4988}
+verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, agentbox: 0b0f7918961e629280faf86f88227535abf514b5, solid-pod-rs: 9bde3be7fa123479fabb5c4cc9056e19ab0dcadd, nostr-rust-forum: eb5f2323e6d72240ecb7c456181b7a674f1842f4, visionflow: 124512b8f5e8c33c247065c58901dcfdc18988a2}
 ---
 ## ES-08.1 Four coexisting Solid-pod deployments — topology contrast
 
@@ -56,9 +58,9 @@ flowchart TB
     end
 
     subgraph AB["agentbox container — supervised service"]
-        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2679"]
+        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2680"]
         SRV["solid-pod-rs-server  port 8484<br/>agentbox/agentbox.toml:539-540"]
-        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2696"]
+        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2697"]
         SUP -->|"exec solidPodRsLauncher"| SRV
         HTTPS -->|"TLS terminate to  port 8484"| SRV
     end
@@ -391,7 +393,7 @@ classDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> STOPPED
-    STOPPED --> STARTING : autostart true, flake.nix 2550-2560
+    STOPPED --> STARTING : autostart true, flake.nix 2685
     STARTING --> RUNNING : solidPodRsLauncher exec succeeds
     STARTING --> BACKOFF : exec fails within startsecs
     BACKOFF --> STARTING : autorestart true, retry
@@ -402,8 +404,8 @@ stateDiagram-v2
     STOPPING --> STOPPED
     FATAL --> [*]
 
-    note right of STARTING : priority 30, user devuser<br/>environment SOLID_POD_PUBLIC_URL, SOLID_ADMIN_KEY<br/>AGENTBOX_REQUIRED_FOR_READINESS true, flake.nix 2550-2560
-    note right of RUNNING : https-bridge TLS-terminates to this port when<br/>sovereignCfg.https_bridge true, flake.nix 2567-2577
+    note right of STARTING : priority 30, user devuser<br/>environment SOLID_POD_PUBLIC_URL, SOLID_ADMIN_KEY<br/>AGENTBOX_REQUIRED_FOR_READINESS true, flake.nix 2684-2687
+    note right of RUNNING : https-bridge TLS-terminates to this port when<br/>sovereignCfg.https_bridge true, flake.nix 2695-2706
     note right of FATAL : DIVERGENCE, no point-in-time backup for the pod<br/>store, scripts backup-sqlite.sh covers SQLite only<br/>docs/DATA-authority-erasure.md Known divergences,<br/>no cross-store consistent restore, no declared RPO or RTO
 ```
 
@@ -524,13 +526,15 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    PIN["native pod built from a pinned source revision,<br/>forge-full unless the forge block sets enable false<br/>agentbox/flake.nix:1563, agentbox/lib/solid-pod-rs.nix:54"]
-    SRV["solid-pod-rs-server under supervisord, port 8484<br/>--public-base-url from SOLID_POD_PUBLIC_URL, --trust-proxy by default<br/>agentbox/flake.nix:1643-1644"]
+    PIN["native pod built from a pinned source revision,<br/>forge-full unless the forge block sets enable false<br/>agentbox/flake.nix:1547, agentbox/lib/solid-pod-rs.nix:54"]
+    SRV["solid-pod-rs-server under supervisord, port 8484<br/>--public-base-url from SOLID_POD_PUBLIC_URL, --trust-proxy by default<br/>agentbox/flake.nix:1627-1628"]
     FORGE["git forge under /forge, NIP-34 publisher,<br/>forge-held anchoring, kind-30618 mirror — started at boot<br/>agentbox/agentbox.toml:604-608"]
     OFF["defaults: open_edit false, allow_mainnet false, private_repos false,<br/>mirror_follow empty, announce_relays empty<br/>agentbox/agentbox.toml:610-623"]
+    JEV["System One consumer solid_pod_advisories = true: adds the jev Cargo feature and exports SOLID_POD_JEV=1 only with a local backend;<br/>the server reranks the forge's already-authorised repo and issue listings, falling back to the forge's own bytes<br/>agentbox/agentbox.toml:918, agentbox/flake.nix:1538, agentbox/services/agentbox-manifest/src/system_one.rs:487, solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:5130"]
     ENV["extra relays and follow entries belong in the root .env,<br/>not the tracked manifest<br/>agentbox/agentbox.toml:624-626"]
     PIN --> SRV --> FORGE
     FORGE --> OFF
+    SRV -.->|"jev feature, local-only"| JEV
     ENV -.->|"names what the mirror follows"| FORGE
     NOANCHOR["INVARIANT: the forge never broadcasts or spends<br/>agentbox/agentbox.toml:609"]
     FORGE --> NOANCHOR
@@ -540,6 +544,6 @@ flowchart TB
 
 **Why it is this way:** VisionFlow ADR-2019 decided that shipped pods run the forge and mirror with open edit, mainnet and any follow list opt-in, and agentbox ADR-2145 compiled it in behind the manifest block rather than a separate service.
 
-**Tension (agentbox ADR-2145 vs BASELINE-container):** the ADR records `activation_status: live` (`../project/agentbox/docs/adr/ADR-2145-the-solid-pod-forge-and-mirror-are-compiled-in-and-inert-until-named.md:7`), while the baseline still says the forge and mirror are "Staged until the image is rebuilt" (`../project/agentbox/docs/BASELINE-container.md:243-244`); VisionFlow's own record for the same decision is `activation_status: inactive` (`docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:7`).
+**Tension (agentbox ADR-2145 vs BASELINE-container):** the ADR records `activation_status: live` (`../project/agentbox/docs/adr/ADR-2145-the-solid-pod-forge-and-mirror-are-compiled-in-and-inert-until-named.md:7`), while the baseline still says the forge and mirror are "Staged until the image is rebuilt" (`../project/agentbox/docs/BASELINE-container.md:245-246`); VisionFlow's own record for the same decision is `activation_status: inactive` (`docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:7`).
 
-**Drift:** agentbox's pod guide says the image pins `solid-pod-rs` 0.5.0-alpha.13 (`../project/agentbox/docs/user/solid-pod.md:37`) while the Nix derivation pins v0.5.0-alpha.17 (`../project/agentbox/lib/solid-pod-rs.nix:54`), and VisionClaw's embedded dependency is `0.5.0-alpha.17` (`../project/Cargo.toml:245`), so the three deployments on this page now share one release the guide does not name.
+**Drift:** agentbox's pod guide says the image pins `solid-pod-rs` 0.5.0-alpha.13 (`../project/agentbox/docs/user/solid-pod.md:37`) while the Nix derivation pins v0.5.0-alpha.17 at the Jev-integration revision 45c73aa8, ahead of the tag (`../project/agentbox/lib/solid-pod-rs.nix:54`, `:57`), and VisionClaw's embedded dependency is `0.5.0-alpha.17` (`../project/Cargo.toml:245`), so the three deployments on this page now share one release the guide does not name.

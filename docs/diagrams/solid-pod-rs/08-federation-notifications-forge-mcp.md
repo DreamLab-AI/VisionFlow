@@ -48,7 +48,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/mcp/skills.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/handlers/legacy_notifications.rs
-verified_commit: {solid-pod-rs: a4a86f6da300b529c7855318c24ff5c7b35ec582, agentbox: 1da8d21719a27394f190866223b88533b52d87f9}
+verified_commit: {solid-pod-rs: 9bde3be7fa123479fabb5c4cc9056e19ab0dcadd, agentbox: 0b0f7918961e629280faf86f88227535abf514b5}
 ---
 
 ## SP-08.1 Solid Notifications 0.2 — the three channels

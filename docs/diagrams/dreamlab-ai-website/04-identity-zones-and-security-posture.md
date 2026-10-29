@@ -12,12 +12,14 @@ sources:
   - ../dreamlab-ai-website/src/lib/nostr.ts
   - ../dreamlab-ai-website/src/components/AIChatFab.tsx
   - ../dreamlab-ai-website/forum-config/deploy/search-worker.wrangler.toml
+  - ../dreamlab-ai-website/forum-config/deploy/relay-worker.wrangler.toml
+  - ../dreamlab-ai-website/forum-config/deploy/SYSTEM-ONE.md
   - ../dreamlab-ai-website/docs/adr/ADR-2011-website-information-identity.md
   - ../dreamlab-ai-website/.github/workflows/deploy.yml
   - ../dreamlab-ai-website/scripts/lib/website-info.mjs
   - ../dreamlab-ai-website/scripts/seed/provision-website-info.mjs
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
-verified_commit: 3afa374f5957027213471f2429c7ba26996b0744
+verified_commit: 07cf8642bddb44df2388a5d1e9d2074923ab6ac0
 ---
 
 ## DW-04.1 Identity is raw-hex Schnorr, not a DID document
@@ -86,6 +88,7 @@ flowchart TB
     SURFACE["kind-1059 admission:<br/>anonymous ephemeral authors, recipient-gated only<br/>SECURITY_OVERVIEW.md:276,278"] --> T1["Spam/DoS<br/>mitigation: 10 events/s/IP relay limit only —<br/>no PoW/CAPTCHA/per-recipient throttle;<br/>kind 1059 bypasses content moderation<br/>SECURITY_OVERVIEW.md:282"]
     SURFACE --> T2["PII in DM content<br/>mitigation: NIP-44 E2E encryption;<br/>erasure is operator-side D1 purge only —<br/>self-service NIP-09 deletion is cryptographically<br/>impossible (author key is a discarded throwaway)<br/>SECURITY_OVERVIEW.md:283"]
     SURFACE --> T3["LLM-cost abuse via junkiejarvis<br/>mitigation: serialised sends (one in-flight/session),<br/>client-side throttle, ops kill-switch JUNKIEJARVIS_ENABLED=0<br/>SECURITY_OVERVIEW.md:284"]
+    SURFACE -.-> T4["OPEN: third-party egress configured by the overlay, not in the threat table above: the search and relay Workers are set to call the SubQ endpoint with a SUBQ_API_KEY Worker secret, never a plaintext var; it takes effect only on the next Worker deployment, which no source here records as done<br/>forum-config/deploy/search-worker.wrangler.toml:33-37, forum-config/deploy/relay-worker.wrangler.toml:16-20, forum-config/deploy/SYSTEM-ONE.md:3-4"]
 ```
 - Admission rule: the first `["p", ...]` tag pubkey must be whitelisted while the ephemeral author is deliberately unchecked; publishing an EVENT requires no NIP-42 AUTH, but reading kind-1059 DOES require it, with the filter's `#p` force-rewritten to the authed pubkey — a session can only ever read its own inbox (`SECURITY_OVERVIEW.md` Anonymous Website Ingress section).
 - Federation posture: single relay today; kind 1059 is already in `dreamlab.toml [mesh].federated_kinds` (see DW-03), so this surface is "federation-ready by construction" though the mesh transport itself is designed, not shipped.
@@ -98,7 +101,7 @@ flowchart TB
     L3["3. Promotion: /api/whitelist/set-admin<br/>last-admin demotion is blocked<br/>SECURITY_OVERVIEW.md:270"] --> RESOLVE
     RESOLVE --> BOOT["first-user-is-admin bootstrap<br/>GET /api/setup-status reports needsSetup<br/>when no is_admin=1 row exists<br/>SECURITY_OVERVIEW.md:259"]
 ```
-- Known gap: the search-worker honours only its own `ADMIN_PUBKEYS` `[vars]` value — D1-promoted admins are not visible to it (`SECURITY_OVERVIEW.md:272`, "see the forum-flow cartography Gap 2"); its own separate copy is `search-worker.wrangler.toml:38` (see DW-03.10).
+- Known gap: the search-worker honours only its own `ADMIN_PUBKEYS` `[vars]` value — D1-promoted admins are not visible to it (`SECURITY_OVERVIEW.md:272`, "see the forum-flow cartography Gap 2"); its own separate copy is `search-worker.wrangler.toml:46` (see DW-03.10).
 - `workers-deploy.yml` blocks the auth-worker deploy if the `ADMIN_PUBKEYS` secret is unset (cross-reference DW-03.7's `validate_required_secrets` gate).
 
 ## DW-04.8 Rate/size limits relevant to the identity surface

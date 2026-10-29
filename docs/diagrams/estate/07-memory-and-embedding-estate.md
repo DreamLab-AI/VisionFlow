@@ -22,7 +22,8 @@ sources:
   - ../project/src/handlers/memory_cloud_handler.rs
   - ../project/docs/adr/ADR-2133-live-memory-cloud-serves-a-stratified-sidecar-snapshot.md
   - ../project/agentbox/docs/LEARNING-memory.md
-verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9}
+  - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
+verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, agentbox: 0b0f7918961e629280faf86f88227535abf514b5}
 ---
 ## ES-07.1 Every RuVector client and the one shared embedder
 ```mermaid
@@ -126,7 +127,7 @@ sequenceDiagram
         P->>H: HNSW top-k
         H-->>P: candidates
         P-->>M: ranked rows
-        opt AGENTBOX_JEV_MEMORY_RERANK=1 (Jev option, off by default)
+        opt AGENTBOX_JEV_MEMORY_RERANK=1 (Jev option, off in the code, the manifest sets memory_rerank = true at agentbox.toml:907 and system_one.rs:413 exports it, staged until rebuild, ADR-2155)
             M->>M: a LOCAL judge reorders the already access-permitted shortlist, score stays the cosine, every miss returns the rows unchanged<br/>ruvector-mcp.cjs:246-250
         end
         M-->>A: semantic results (~100ms typical)
@@ -178,7 +179,7 @@ flowchart TB
     D1["DIVERGENCE D1 — SONA is INERT. The prebuilt<br/>@ruvector/sona@0.1.5 NAPI binary hardcodes<br/>embedding_dim = 256, so 384-dim learns return<br/>status:learned but accumulate NOTHING (verified live).<br/>The feeder's fed count is that status:learned count, not proof of accumulation<br/>(this stamp adds engine_accumulating beside it, ruvector-sona-feeder.mjs:568).<br/>Both gates stay off until a 384-dim-capable binary."]
     D1B["attention_rerank is OFF BY MEASUREMENT, not caution —<br/>on an L2-normalised corpus the attention blend is a<br/>mathematical identity (max diff 4e-7)."]
     D2["DIVERGENCE D2 — aggregate-count drift. agentbox.toml:480<br/>cites 78 aggregates >=20 samples (2026-08-31); the<br/>reference doc records 12 from the 2026-07-21 sweep.<br/>The toml is the running config and the newer number."]
-    D4["DOC-DRIFT D4 — the README no longer carries the learning-loop row that<br/>listed feed_retrieval and feed_routing as open gates (agentbox/README.md:85 is<br/>its only memory row), but the governing LEARNING-memory.md still tells the<br/>reader to update the README learning-loop table (LEARNING-memory.md:252-255). The running<br/>manifest has feed_retrieval = true since 2026-08-31 (agentbox.toml:480)<br/>and only feed_routing is still false (agentbox.toml:481)."]
+    D4["DOC-DRIFT D4 — the README no longer carries the learning-loop row that<br/>listed feed_retrieval and feed_routing as open gates (agentbox/README.md:85 is<br/>its only memory row), but the governing LEARNING-memory.md still tells the<br/>reader to update the README learning-loop table (LEARNING-memory.md:253-256). The running<br/>manifest has feed_retrieval = true since 2026-08-31 (agentbox.toml:480)<br/>and only feed_routing is still false (agentbox.toml:481)."]
     D5["DIVERGENCE D5 — pod-sync deletion has NO reverse<br/>tombstone. deleteAgentMemory() in the Pod does not revoke<br/>the RuVector-held agent memory: the embedding row persists<br/>and stays semantically searchable. Largest erasure hole.<br/>No point-in-time RuVector backup exists, so there is no<br/>cross-store consistent restore, RPO or RTO."]
 
     F1 --> G1
@@ -192,7 +193,7 @@ flowchart TB
 
 **Drift (resolved at this stamp):** the feeder's `fed` counts calls whose result was `status:"learned"` (`agentbox/scripts/ruvector-sona-feeder.mjs:527-528`), which D1 shows the 256-dim binary also returns for a 384-dim learn it keeps nowhere, so `fed` was never evidence of accumulation. This stamp adds `engine_accumulating` to the `SonaRunCompleted` event, derived from the post-batch `trajectories_buffered + patterns_stored` and null when the stats are unreadable (`agentbox/scripts/ruvector-sona-feeder.mjs:337-341,568`), and rewords the human lines to "accepted by learn ... engine accumulating: yes/no/unknown" (`agentbox/scripts/ruvector-sona-feeder.mjs:647`). `fed` is kept for the cursor and the event contract. Both SONA gates stay off, so the loop's shipped state is unchanged.
 
-**Drift:** the governing LEARNING-memory.md D4 says the README learning-loop table lags the toml (`agentbox/docs/LEARNING-memory.md:252-255`), but the README at this stamp has no such row (`agentbox/README.md:85`).
+**Drift:** the governing LEARNING-memory.md D4 says the README learning-loop table lags the toml (`agentbox/docs/LEARNING-memory.md:253-256`), but the README at this stamp has no such row (`agentbox/README.md:85`).
 
 ## Audit qualification — 2026-09-07
 

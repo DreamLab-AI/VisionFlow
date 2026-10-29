@@ -26,7 +26,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/examples/webhook_receiver.rs
   - ../solid-pod-rs/crates/solid-pod-rs/examples/wac_admin.rs
   - ../solid-pod-rs/crates/solid-pod-rs/examples/oidc_client.rs
-verified_commit: a4a86f6da300b529c7855318c24ff5c7b35ec582
+verified_commit: 9bde3be7fa123479fabb5c4cc9056e19ab0dcadd
 ---
 
 ## SP-01.1 Eight workspace members and the library-first split

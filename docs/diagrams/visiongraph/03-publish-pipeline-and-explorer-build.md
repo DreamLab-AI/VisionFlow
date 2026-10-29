@@ -12,7 +12,7 @@ sources:
   - ../visionGraph/publishing-tools/WasmVOWL/modern/package.json
   - ../visionGraph/docs/adr/ADR-VG-004-space-and-earth-domains.md
   - ../visionGraph/docs/adr/ADR-VG-008-supply-chains-and-logistics-domain.md
-verified_commit: 59e7dcc8d05ca447d03c74c819a740b390b93074
+verified_commit: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e
 ---
 
 ## VG-03.1 publish.yml — checkout to deploy, one job, three producers into one site

@@ -31,53 +31,64 @@ sources:
   - ../project/agentbox/management-api/lib/zone-keys.js
   - ../project/agentbox/management-api/lib/voice-intent-jev.js
   - ../project/agentbox/management-api/lib/approval-review-jev.js
-  - ../project/agentbox/scripts/aoe-seed-sessions.mjs
+  - ../project/agentbox/config/session-plane/client.cjs
+  - ../project/agentbox/scripts/session-control.cjs
+  - ../project/agentbox/services/agentbox-sessions/src/api.rs
+  - ../project/agentbox/services/agentbox-sessions/src/plane.rs
+  - ../project/agentbox/services/agentbox-sessions/src/reconcile.rs
+  - ../project/agentbox/services/agentbox-sessions/src/status.rs
+  - ../project/agentbox/services/agentbox-sessions/src/pick.rs
+  - ../project/agentbox/services/agentbox-sessions/src/tmux.rs
+  - ../project/agentbox/services/agentbox-sessions/src/trust.rs
+  - ../project/agentbox/services/agentbox-sessions/src/worktree.rs
+  - ../project/agentbox/services/agentbox-sessions/README.md
   - ../project/agentbox/config/hooks/trust-seed.cjs
+  - ../project/agentbox/config/tmux-autostart.sh
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md
-verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
+verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
 ---
 
 ## AB-12.2 Bridge boot — reconcile, listen, coordinator resolve
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Sup as Supervisor<br/>agentbox/flake.nix:2975
+    participant Sup as Supervisor<br/>agentbox/flake.nix:2953
     participant Dep as deploy.sh<br/>agentbox/config/tab0-bridge/deploy.sh:1
-    participant Node as server.mjs<br/>agentbox/config/tab0-bridge/server.mjs:45
-    participant AoEd as AoE daemon port 9095
+    participant Node as server.mjs<br/>agentbox/config/tab0-bridge/server.mjs:35
+    participant Sock as agentbox-sessions socket<br/>agentbox/config/session-plane/client.cjs:4
 
-    Sup->>Dep: bash deploy.sh reconcile, one supervisor command line (flake.nix:2976)
+    Sup->>Dep: bash deploy.sh reconcile, one supervisor command line (flake.nix:2954)
     Dep->>Dep: copy server.mjs, turn-sink.cjs, start.sh, package.json via md5 compare (deploy.sh:27-35)
     opt node_modules/ws missing
         Dep->>Dep: npm install --omit=dev (deploy.sh:37-39)
     end
     Dep-->>Sup: exit 0, reconcile-only mode, no launch (deploy.sh:44-46)
-    Sup->>Node: exec node server.mjs, foreground, autorestart, same command line (flake.nix:2976)
-    Node->>Node: read BRIDGE_PORT, default 8971 (server.mjs:45)
-    Node->>Node: read BRIDGE_TMUX_SESSION, default agentbox (server.mjs:47)
-    Node->>Node: read BRIDGE_TOKEN, default empty string (server.mjs:49)
-    Node->>Node: read BRIDGE_BIND, default 0.0.0.0 (server.mjs:55)
-    Node->>Node: BIND_IS_LOOPBACK check, 127.0.0.1, ::1, localhost (server.mjs:56)
+    Sup->>Node: exec node server.mjs, foreground, autorestart, same command line (flake.nix:2954)
+    Node->>Node: read BRIDGE_PORT, default 8971 (server.mjs:35)
+    Node->>Node: read BRIDGE_TMUX_SESSION, default agentbox (server.mjs:37)
+    Node->>Node: read BRIDGE_TOKEN, default empty string (server.mjs:39)
+    Node->>Node: read BRIDGE_BIND, default 0.0.0.0 (server.mjs:45)
+    Node->>Node: BIND_IS_LOOPBACK check, 127.0.0.1, ::1, localhost (server.mjs:46)
     alt TOKEN empty and BIND not loopback
-        Node->>Node: console.error, refusing to start (server.mjs:60-65)
+        Node->>Node: console.error, refusing to start (server.mjs:50-55)
         Node->>Node: process.exit(1)
-        Note over Node: INVARIANT — a non-loopback bind with no BRIDGE_TOKEN is refused at startup, server.mjs:60-66
+        Note over Node: INVARIANT — a non-loopback bind with no BRIDGE_TOKEN is refused at startup, server.mjs:50-56
     end
-    Node->>Node: delete CHILD_ENV.ANTHROPIC_API_KEY, empty key poisons OAuth chain (server.mjs:123-126)
-    Node->>Node: set CHILD_ENV.MAX_THINKING_TOKENS 0 and CLAUDE_CODE_DISABLE_CLAUDE_MDS 1 for lean headless turns, read BRIDGE_EFFORT default low (server.mjs:131-133)
-    Node->>Node: http.createServer, WebSocketServer path /feed (server.mjs:739,824-828)
-    Node->>Node: server.listen(PORT, BIND) (server.mjs:837)
-    Node->>AoEd: GET /api/sessions?state=live, resolveCoordinatorSession (server.mjs:223-225)
-    alt AoE reachable and title matches tab0
-        AoEd-->>Node: 200, session list
-        Node->>Node: pin aoeSessionId for process lifetime (server.mjs:234, ADR-044 D2)
-    else AoE unreachable or no match
-        AoEd-->>Node: error or no match
-        Node->>Node: aoeSessionId stays null, fall back to tmux (server.mjs:238-241)
+    Node->>Node: delete CHILD_ENV.ANTHROPIC_API_KEY, empty key poisons OAuth chain (server.mjs:65-68)
+    Node->>Node: set CHILD_ENV.MAX_THINKING_TOKENS 0 and CLAUDE_CODE_DISABLE_CLAUDE_MDS 1 for lean headless turns, read BRIDGE_EFFORT default low (server.mjs:73-75)
+    Node->>Node: http.createServer, WebSocketServer path /feed (server.mjs:587,669-673)
+    Node->>Node: server.listen(PORT, BIND) (server.mjs:682)
+    Node->>Sock: op list over the unix socket, resolveCoordinatorSession (server.mjs:127-131, client.cjs:4-24)
+    alt socket answers and a session with slug tab0 is present
+        Sock-->>Node: ok true, sessions array (plane.rs:385-388)
+        Node->>Node: coordinatorReady = true, no session id is pinned any more (server.mjs:130)
+    else socket unreachable, refused, or tab0 absent
+        Sock-->>Node: error or no match
+        Node->>Node: coordinatorReady = false (server.mjs:131), sends still try the socket then fall back to tmux (server.mjs:150-157)
     end
-    loop every 30000 ms while aoeSessionId is null
-        Node->>AoEd: GET /api/sessions?state=live, re-resolve (server.mjs:847)
+    loop every 30000 ms while coordinatorReady is false
+        Node->>Sock: op list, re-probe (server.mjs:692)
     end
 ```
 
@@ -86,34 +97,34 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant B as tab0-bridge<br/>server.mjs:739
+    participant B as tab0-bridge<br/>server.mjs:587
 
-    C->>B: HTTP request, any path (server.mjs:739-741)
+    C->>B: HTTP request, any path (server.mjs:587-589)
     alt path is /health
-        B-->>C: 200, ok true, no auth check (server.mjs:743-746)
+        B-->>C: 200, ok true, no auth check (server.mjs:591-594)
     else path requires auth
-        B->>B: authorised(req) (server.mjs:725)
+        B->>B: authorised(req) (server.mjs:573)
         alt TOKEN is empty
-            B->>B: return true, open gate, loopback dev only (server.mjs:726)
+            B->>B: return true, open gate, loopback dev only (server.mjs:574)
         else Authorization header equals Bearer TOKEN
-            B->>B: return true (server.mjs:728)
+            B->>B: return true (server.mjs:576)
         else Authorization starts with Nostr, verifyNip98Credential succeeds
-            B->>B: return true, see AB-10.3 for NIP-98 verify internals (server.mjs:729,703-723)
+            B->>B: return true, see AB-10.3 for NIP-98 verify internals (server.mjs:577,551-571)
         else query token equals TOKEN
-            B->>B: return true (server.mjs:732)
+            B->>B: return true (server.mjs:580)
         else query auth verifies as a Nostr credential
-            B->>B: return true (server.mjs:733-734)
+            B->>B: return true (server.mjs:581-582)
         else none of the above
-            B->>B: return false (server.mjs:736)
+            B->>B: return false (server.mjs:584)
         end
         alt authorised false
-            B-->>C: 401, error unauthorised (server.mjs:749)
+            B-->>C: 401, error unauthorised (server.mjs:597)
         else authorised true
-            B->>B: dispatch to route table (server.mjs:750-810)
+            B->>B: dispatch to route table (server.mjs:598-655)
         end
     end
-Note over B: INVARIANT — every surface except /health requires the bearer when BRIDGE_TOKEN is<br/>set, including /v1/chat/completions, /v1/models, /feed, /tab0/send, /nostr/*, /turns, /tabs*,<br/>/aoe/sessions — ADR-044 finding 1, server.mjs:640-655
-Note over B: the /feed WebSocket upgrade reuses this identical gate — verifyClient(info) calls<br/>authorised(info.req) (server.mjs:824-828) — but browser WS clients cannot set an Authorization<br/>header, so ?token= or ?auth= is the only carrier there (server.mjs:644,651) — on accept the<br/>connection handler sends a snapshot of the last 50 turns (server.mjs:833-835)
+Note over B: INVARIANT — every surface except /health requires the bearer when BRIDGE_TOKEN is<br/>set, including /v1/chat/completions, /v1/models, /feed, /tab0/send, /nostr/*, /turns, /tabs*,<br/>/sessions — ADR-044 finding 1, server.mjs:488-503
+Note over B: the /feed WebSocket upgrade reuses this identical gate — verifyClient(info) calls<br/>authorised(info.req) (server.mjs:669-673) — but browser WS clients cannot set an Authorization<br/>header, so ?token= or ?auth= is the only carrier there (server.mjs:492,499) — on accept the<br/>connection handler sends a snapshot of the last 50 turns (server.mjs:678-680)
 ```
 
 ## AB-12.5 Inject into tmux window 0 — sendToTab0
@@ -121,74 +132,67 @@ Note over B: the /feed WebSocket upgrade reuses this identical gate — verifyCl
 sequenceDiagram
     autonumber
     participant Cl as Client
-    participant B as tab0-bridge<br/>server.mjs:773, POST /tab0/send
-    participant S as sendToTab0()<br/>server.mjs:273
-    participant A as aoeSend()<br/>server.mjs:249
-    participant AoEd as AoE daemon port 9095
+    participant B as tab0-bridge<br/>server.mjs:621, POST /tab0/send
+    participant S as sendToTab0()<br/>server.mjs:145
+    participant A as sessionSend()<br/>server.mjs:133
+    participant Sock as agentbox-sessions socket<br/>api.rs:67
     participant T as tmux CLI
 
-    Cl->>B: POST /tab0/send, body text, source (server.mjs:773-776)
-    B->>S: sendToTab0(text, source) (server.mjs:774)
-    S->>S: clean = strip control chars, trim (server.mjs:274)
+    Cl->>B: POST /tab0/send, body text, source (server.mjs:621-623)
+    B->>S: sendToTab0(text, source) (server.mjs:623)
+    S->>S: clean = strip control chars, trim (server.mjs:146)
     alt clean is empty
-        S-->>B: throw Error, empty text (server.mjs:275)
+        S-->>B: throw Error, empty text (server.mjs:147)
     end
-    S->>A: aoeSend(clean) (server.mjs:278)
-    A->>A: aoeSessionId unset, resolveCoordinatorSession() (server.mjs:250-252)
-    A->>AoEd: POST /api/sessions/:id/send, Authorization Bearer aoe-token, body message clean (server.mjs:254)
-    alt AoE responds 200
-        AoEd-->>A: 200
-    else AoE responds 404, session drift
-        AoEd-->>A: 404
-        A->>A: aoeSessionId = null, re-resolve once (server.mjs:255-257)
-        A->>AoEd: retry POST /api/sessions/:id/send (server.mjs:259)
-    else AoE unreachable or non-200
-        AoEd-->>A: transport error or non-200 (server.mjs:261)
+    S->>A: sessionSend(clean) (server.mjs:150)
+    A->>Sock: client.call op send, slug COORDINATOR default tab0, text (server.mjs:134, client.cjs:4-11)
+    Sock->>Sock: socket_peercred then ACL check, uid 1000 or 961 only (api.rs:70-76)
+    alt slug is the external coordinator
+        Sock->>T: send-keys -l text, sleep the send pause, send-keys Enter, then mark busy (plane.rs:398-401, tmux.rs:224-228)
+        Sock-->>A: ok true (api.rs:103)
+    else socket refused, unreachable or timed out
+        Sock-->>A: error or transport failure (client.cjs:9,:18,:22)
         A-->>S: throw Error
     end
-    alt aoeSend succeeded
-        S->>S: via = aoe (server.mjs:276)
-    else aoeSend threw
-        S->>S: via = tmux, console.error, AoE unreachable falling back (server.mjs:279-284)
-        S->>T: tmux send-keys -t agentbox:0 -l clean (server.mjs:285)
-        S->>S: await 1500 ms so the Enter is not read as part of a paste (server.mjs:286-288)
-        S->>T: tmux send-keys -t agentbox:0 Enter (server.mjs:289)
-        Note over S: FAIL-OPEN — degrade to the legacy tmux send-keys path, races AoE input accounting, ADR-044 D3 (server.mjs:279-284)<br/>the fallback now pauses 1500 ms between the text and the Enter because a TUI such as Codex reads a text+Enter burst as a paste and keeps the Enter as a newline (server.mjs:286-288)<br/>nostr-gateway sendKeys does the same with a scheduled, non-blocking Enter (config/nostr-gateway/gateway.cjs:289-295)
+    alt sessionSend succeeded
+        S->>S: via = session-plane (server.mjs:148)
+    else sessionSend threw
+        S->>S: via = tmux, console.error, session plane unreachable falling back (server.mjs:155-156)
+        S->>T: tmux send-keys -t agentbox:0 -l clean (server.mjs:157)
+        S->>S: await 1500 ms so the Enter is not read as part of a paste (server.mjs:160)
+        S->>T: tmux send-keys -t agentbox:0 Enter (server.mjs:161)
+        Note over S: FAIL-OPEN — degrade to the legacy tmux send-keys path, ADR-044 D3 (server.mjs:152-156)<br/>the daemon does the same keystrokes itself for the coordinator, with its own 400 ms default pause, and never refuses a dead pane for it (plane.rs:398-401, services/agentbox-sessions/README.md:45)<br/>nostr-gateway sendKeys keeps a scheduled, non-blocking Enter after 1500 ms (config/nostr-gateway/gateway.cjs:254-256)
     end
-    S->>S: pushTurn(voice-inject or nostr-inject, clean, via) (server.mjs:291)
+    S->>S: pushTurn(voice-inject or nostr-inject, clean, via) (server.mjs:163)
     S-->>B: return clean text
-    B-->>Cl: 200, ok true, sent clean (server.mjs:775)
+    B-->>Cl: 200, ok true, sent clean (server.mjs:623)
 ```
 
-## AB-12.6 AoE coordinator session resolution and drift retry
+## AB-12.6 Coordinator readiness probe and the 30 s retry
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Ti as 30s interval<br/>server.mjs:847
-    participant R as resolveCoordinatorSession()<br/>server.mjs:223
-    participant AoEd as AoE daemon port 9095
+    participant Ti as 30s interval<br/>server.mjs:692
+    participant R as resolveCoordinatorSession()<br/>server.mjs:127
+    participant Cl as client.call<br/>config/session-plane/client.cjs:4
+    participant Sock as dispatch<br/>services/agentbox-sessions/src/api.rs:83
 
-    Ti->>R: invoke when aoeSessionId is null (server.mjs:847)
-    R->>AoEd: GET /api/sessions?state=live (server.mjs:225)
-    alt status not 200
-        AoEd-->>R: non-200
-        R-->>Ti: return null (server.mjs:226)
-    else status 200
-        AoEd-->>R: 200, sessions array or wrapped data (server.mjs:211-215)
-        R->>R: want = AOE_COORDINATOR_TITLE lowercased, default tab0 (server.mjs:117,227)
-        R->>R: match session whose title, slug or name equals or includes want (server.mjs:228-231)
-        alt match found with id or session_id
-            R->>R: aoeSessionId = String(id), pin for process lifetime (server.mjs:234, ADR-044 D2)
-            R-->>Ti: return aoeSessionId
-        else no match
-            R-->>Ti: return null (server.mjs:238)
-        end
+    Ti->>R: invoke only while coordinatorReady is false (server.mjs:692)
+    R->>Cl: call op list (server.mjs:129)
+    Cl->>Sock: one JSON line, one JSON reply, 12 s timeout (client.cjs:4-11,:15-19)
+    alt reply not ok, transport error or timeout
+        Sock-->>Cl: ok false, uid not authorised, or no socket (api.rs:74-76, client.cjs:9,:18,:22)
+        Cl-->>R: throws
+        R->>R: catch, coordinatorReady = false (server.mjs:131)
+    else ok true
+        Sock-->>Cl: sessions including the external coordinator, present is tmux target_alive (plane.rs:385-388)
+        Cl-->>R: reply
+        R->>R: coordinatorReady = a session with slug COORDINATOR is present (server.mjs:130)
     end
-    alt any error thrown, fetch abort, connection refused
-        R-->>Ti: catch, return null, AoE not up yet (server.mjs:239-240)
-    end
-Note over R: INVARIANT — tab0-bridge targets exactly ONE pinned coordinator session<br/>(server.mjs:111-117). POST /tab0/send carries no per-request session id, so an<br/>arbitrary-session inject surface does not exist here — contrast the AoE daemon's own<br/>multi-session API reached via the proxy, see AB-10.x
+Note over R: INVARIANT — tab0-bridge targets exactly ONE coordinator slug (server.mjs:62,134). POST /tab0/send<br/>carries no per-request session id, so an arbitrary-session inject surface does not exist here — contrast<br/>the socket's own send, which accepts any slug but only from uid 1000 or 961 (plane.rs:396-404, api.rs:74-76)
 ```
+
+**Debt:** `coordinatorReady` is set false only inside the probe and the probe stops once it is true (`config/tab0-bridge/server.mjs:131,:692`), so after the daemon dies the voice prompt keeps telling the controller to run `session-control.cjs`, which has no tmux fallback (`config/tab0-bridge/server.mjs:257-263`, `scripts/session-control.cjs:9-15`); the comments at `server.mjs:684-691` still describe a pinned session id and a 404 re-resolve that no longer exist.
 
 ## AB-12.7 Unmute voice loop through tab0-bridge
 ```mermaid
@@ -198,37 +202,37 @@ sequenceDiagram
     participant Cad as Caddy port 8444<br/>voice/console/Caddyfile
     participant UFE as Unmute frontend port 3000
     participant UBE as Unmute backend port 80
-    participant B as tab0-bridge<br/>server.mjs:753, POST /v1/chat/completions
-    participant Cc as claude -p child<br/>server.mjs:301
+    participant B as tab0-bridge<br/>server.mjs:601, POST /v1/chat/completions
+    participant Cc as claude -p child<br/>server.mjs:173
 
     rect rgb(255,240,240)
     Note over Mic,UBE: trust boundary — LAN door 1, port 8444 published 0.0.0.0
-    Note over Mic,Cad: TENSION resolved in the manifest's own terms — [voice].enabled is now TRUE<br/>(agentbox.toml:2209), descriptive sidecar state for /v1/system. The gate stays apply-class<br/>sidecar, so the voice compose overlay still has its own lifecycle and `agentbox up`<br/>never consults the flag (docker-compose.voice.yml:1) - the manifest describes the<br/>surface, the overlay governs it
+    Note over Mic,Cad: TENSION resolved in the manifest's own terms — [voice].enabled is now TRUE<br/>(agentbox.toml:2207), descriptive sidecar state for /v1/system. The gate stays apply-class<br/>sidecar, so the voice compose overlay still has its own lifecycle and `agentbox up`<br/>never consults the flag (docker-compose.voice.yml:1) - the manifest describes the<br/>surface, the overlay governs it
     Mic->>Cad: HTTPS, mic audio via /embed and /api/* (Caddyfile handle /embed*, handle_path /api/*)
     Cad->>UFE: reverse_proxy frontend:3000 (Caddyfile handle /embed*)
     Cad->>UBE: reverse_proxy backend:80, /v1/realtime (Caddyfile handle_path /api/*)
     end
-    UBE->>B: POST /v1/chat/completions, Authorization Bearer BRIDGE_TOKEN aka KYUTAI_LLM_API_KEY, stream true (server.mjs:753-756, voice/README.md:88)
+    UBE->>B: POST /v1/chat/completions, Authorization Bearer BRIDGE_TOKEN aka KYUTAI_LLM_API_KEY, stream true (server.mjs:601-604, voice/README.md:93)
     B->>B: authorised(req), global gate, see AB-12.3
     alt userText equals the silence marker or is empty
-        B-->>UBE: SSE, empty content, finish_reason stop, no LLM call (server.mjs:515-528)
+        B-->>UBE: SSE, empty content, finish_reason stop, no LLM call (server.mjs:363-376)
     else userText has content
-        B->>B: pushTurn(voice-user, text) (server.mjs:533)
-        B->>B: metaSystemPrompt(), recent turns, tmux windows, AoE-or-tmux job instructions (server.mjs:379-447)
-        B->>B: metaAllowedTools(), Bash allowlist, tmux and AOE_CURL patterns (server.mjs:455-475)
-        B->>Cc: spawn claude -p --model haiku --effort BRIDGE_EFFORT --strict-mcp-config<br/>--mcp-config empty --settings disableAllHooks --disable-slash-commands --tools Bash?, stream-json (server.mjs:308-321)
+        B->>B: pushTurn(voice-user, text) (server.mjs:381)
+        B->>B: metaSystemPrompt(), recent turns, tmux windows, session-plane-or-tmux job instructions, branch on coordinatorReady (server.mjs:251-273)
+        B->>B: metaAllowedTools(), Bash allowlist, tmux and session-control.cjs list and send patterns (server.mjs:313-322)
+        B->>Cc: spawn claude -p --model haiku --effort BRIDGE_EFFORT --strict-mcp-config<br/>--mcp-config empty --settings disableAllHooks --disable-slash-commands --tools Bash?, stream-json (server.mjs:180-193)
         loop stream_event, content_block_delta, text_delta
-            Cc-->>B: partial text chunk (server.mjs:335-342)
-            B-->>UBE: SSE data chunk, delta content (server.mjs:540,557)
+            Cc-->>B: partial text chunk (server.mjs:207-214)
+            B-->>UBE: SSE data chunk, delta content (server.mjs:388,405)
         end
-        Cc-->>B: result event, final text or exit code (server.mjs:344-358)
-        B->>B: pushTurn(voice-reply, full text) (server.mjs:566)
-        B-->>UBE: SSE data DONE (server.mjs:570)
+        Cc-->>B: result event, final text or exit code (server.mjs:216-230)
+        B->>B: pushTurn(voice-reply, full text) (server.mjs:414)
+        B-->>UBE: SSE data DONE (server.mjs:418)
     end
     UBE-->>UFE: synthesised speech, TTS
-Note over B: DIVERGENCE — port 8444 and port 8443 are published 0.0.0.0 by<br/>docker-compose.voice.yml:38-39, while only port 9096 is the ADR-045 D2 sanctioned NIP-98-gated LAN<br/>door covered by the loopback CI gate. The Unmute voice loop itself reaches tab0-bridge only<br/>over the internal visionclaw_network hostname agentbox:8971, which is never host-published<br/>(docker-compose.yml:33,153-155)
-Note over Cad,B: RESOLVED ADR-2047 — voice/README.md now routes /feed and /bridge/* to<br/>agentbox:9096 in both its route table and its ASCII map, naming the ADR-069 server-side<br/>BRIDGE_TOKEN credential exchange (voice/README.md:26,117-118). The remaining 8971 reference<br/>above is correct — it is this Unmute backend calling the bridge container-to-container, not a<br/>browser path through Caddy (voice/README.md:37)
-Note over Cc: lean headless surface (measured 2.1.280/haiku: 38.4k-token/9.3s prefix → 6.8k/2.7s<br/>with MCP, hooks, skills and CLAUDE.md stripped) — CHILD_ENV.MAX_THINKING_TOKENS=0 and<br/>CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 set once at boot, see AB-12.2 (server.mjs:131-133)
+Note over B: DIVERGENCE — port 8444 and port 8443 are published 0.0.0.0 by<br/>docker-compose.voice.yml:40-41, while only port 9096 is the ADR-045 D2 sanctioned NIP-98-gated LAN<br/>door covered by the loopback CI gate. The Unmute voice loop itself reaches tab0-bridge only<br/>over the internal visionclaw_network hostname agentbox:8971, which is never host-published<br/>(docker-compose.yml:33,153-155)
+Note over Cad,B: RESOLVED ADR-2047 — voice/README.md now routes /feed and /bridge/* to<br/>agentbox:9096 in both its route table and its ASCII map, naming the ADR-069 server-side<br/>BRIDGE_TOKEN credential exchange (voice/README.md:31,122-123). The remaining 8971 reference<br/>above is correct — it is this Unmute backend calling the bridge container-to-container, not a<br/>browser path through Caddy (voice/README.md:42)
+Note over Cc: lean headless surface (measured 2.1.280/haiku: 38.4k-token/9.3s prefix → 6.8k/2.7s<br/>with MCP, hooks, skills and CLAUDE.md stripped) — CHILD_ENV.MAX_THINKING_TOKENS=0 and<br/>CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 set once at boot, see AB-12.2 (server.mjs:73-75)
 ```
 
 ## AB-12.8 mgmt-api voice-intent — mandate-gated ACSP dispatch
@@ -306,14 +310,14 @@ sequenceDiagram
     autonumber
     participant Op as Operator, port 8444 cockpit
     participant Cad as Caddy port 8444
-    participant Pr as nip98-proxy port 9096<br/>see AB-10.x
+    participant Pr as nip98-proxy port 9096<br/>see AB-10.1
     participant M as management-api<br/>routes/approvals.js:55
     participant Az as lib/authz.js<br/>isApprover
     participant Cs as authority consumer<br/>signAndPublishDecision
 
-Op->>Cad: GET /approvals/*, NIP-98 kind-27235 via window.nostr, or<br/>break-glass bearer (Caddyfile handle /approvals/*,<br/>voice/README.md:96-103)
+Op->>Cad: GET /approvals/*, NIP-98 kind-27235 via window.nostr, or<br/>break-glass bearer (Caddyfile handle /approvals/*,<br/>voice/README.md:101-108)
 Cad->>Pr: reverse_proxy agentbox:9096, Authorization forwarded<br/>(Caddyfile handle /approvals/*)
-    Pr->>Pr: verify NIP-98 or session cookie, see AB-10.3, AB-10.6
+    Pr->>Pr: verify NIP-98 or session cookie, see AB-10.3, AB-10.8
 Pr->>M: GET /v1/approvals, strip prefix, route table<br/>(routes/approvals.js:55)
     alt authority consumer not wired
 M-->>Op: 200, approvals empty, wired false, note<br/>(routes/approvals.js:88-90)
@@ -352,39 +356,33 @@ Note over M: INVARIANT — the decision record is ALWAYS a Schnorr-signed<br/>ki
 Note over M,Cs: see AB-14.x for the governance approvals pipeline<br/>internals, signAndPublishDecision and the authority gate itself — not<br/>drawn here
 ```
 
-## AB-12.10 AoE session board — cockpit proxy path and the bridge's own passthrough
+## AB-12.10 Session list — the bridge's /sessions passthrough and the retired cockpit board
 ```mermaid
 sequenceDiagram
     autonumber
     participant Op as Operator console
     participant Cad as Caddy port 8444
-    participant Pr as nip98-proxy port 9096
-    participant AoEd as AoE daemon port 9095
-    participant B as tab0-bridge<br/>server.mjs:795
+    participant B as tab0-bridge<br/>server.mjs:643
+    participant Cl as client.call<br/>config/session-plane/client.cjs:4
+    participant Sock as Plane.status<br/>services/agentbox-sessions/src/plane.rs:358
 
     rect rgb(235,245,255)
-    Note over Op,AoEd: Part 1 — cockpit session board via the sole NIP-98 ingress, see AB-10.x for proxy verification internals
-    Op->>Cad: GET /aoe/*, NIP-98 or nip07 session cookie (Caddyfile handle_path /aoe/*)
-    Cad->>Pr: reverse_proxy agentbox:9096, Authorization forwarded
-    Pr->>Pr: verifyNip98 or session cookie, X-Agentbox-Pubkey injected, see AB-10.3, AB-10.7
-    Pr->>AoEd: forward, Authorization Bearer daemon token replaces browser credential, see AB-10.9 (proxy.mjs:1037-1045)
-    AoEd-->>Pr: session list json
-    Pr-->>Cad: response
-    Cad-->>Op: session list rendered
+    Note over Op,Cad: Part 1 — RETIRED. The cockpit session board rode GET /aoe/* through the NIP-98 proxy to the AoE daemon, see AB-10.6
+    Op->>Cad: GET /aoe/*, the console has no such handle now (voice/console/Caddyfile:107-110)
+    Cad-->>Op: static console site, no session board (voice/console/Caddyfile:107-110)
     end
     rect rgb(255,245,235)
-    Note over B,AoEd: Part 2 — tab0-bridge's own passthrough, used by the voice console feed, independent of the proxy path
-    Op->>B: GET /aoe/sessions, Bearer BRIDGE_TOKEN or NIP-98, see AB-12.3 (server.mjs:795)
-    B->>AoEd: aoeRequest GET /api/sessions?state=live, Authorization Bearer aoe-token from serve.url (server.mjs:799, 92-109)
-    alt AoE responds non-200
-        AoEd-->>B: non-200
-        B-->>Op: 502, error aoe unavailable, status (server.mjs:800)
+    Note over B,Sock: Part 2 — tab0-bridge's own passthrough, behind the global gate, independent of any proxy path
+    Op->>B: GET /sessions, Bearer BRIDGE_TOKEN or NIP-98, see AB-12.3 (server.mjs:643)
+    B->>Cl: call op list (server.mjs:645)
+    Cl->>Sock: one JSON line on the socket, peer uid checked first (client.cjs:4-11, api.rs:70-76)
+    Sock-->>Cl: seeds, api-created sessions, then the external coordinator, sorted by slug (plane.rs:358-390)
+    alt socket unreachable or refuses
+        Cl-->>B: throws
+        B-->>Op: 502, error session plane unreachable, detail (server.mjs:647-648)
     end
-    alt AoE unreachable, transport error
-        B-->>Op: 502, error aoe unreachable, detail (server.mjs:802-803)
-    end
-    AoEd-->>B: 200, session list
-    B-->>Op: 200, sessions array, coordinator aoeSessionId (server.mjs:801)
+    Cl-->>B: reply with sessions
+    B-->>Op: 200, sessions array, coordinator slug (server.mjs:646)
     end
 ```
 
@@ -452,8 +450,8 @@ sequenceDiagram
     autonumber
     participant Cc as Claude Code hook, Stop or UserPromptSubmit
     participant Sk as turn-sink.cjs<br/>agentbox/config/tab0-bridge/turn-sink.cjs:1
-    participant B as tab0-bridge<br/>server.mjs:757, POST /hook/turn
-    participant Su as summarise()<br/>server.mjs:362
+    participant B as tab0-bridge<br/>server.mjs:605, POST /hook/turn
+    participant Su as summarise()<br/>server.mjs:234
     participant Fe as WebSocket /feed clients
 
     Cc->>Sk: hook invocation, argv[2] equals Stop or UserPromptSubmit, JSON on stdin (turn-sink.cjs:10,37-40)
@@ -470,14 +468,14 @@ sequenceDiagram
         Sk-->>Cc: finish, no post (turn-sink.cjs:53)
     end
     Sk->>B: POST /hook/turn, body event, text sliced to 20000 chars, timeout 1500 ms (turn-sink.cjs:55-60)
-    B->>B: pushTurn(kind, text), kind from event name (server.mjs:757-761)
-    B->>Fe: broadcast, type turn (server.mjs:154,158)
+    B->>B: pushTurn(kind, text), kind from event name (server.mjs:605-609)
+    B->>Fe: broadcast, type turn (server.mjs:96,100)
     alt kind is assistant and text length over 350 chars
-        B->>Su: summarise(turn.text, kind), claude -p, one to three sentences (server.mjs:362-375,763)
+        B->>Su: summarise(turn.text, kind), claude -p, one to three sentences (server.mjs:234-247,611)
         Su-->>B: summary text, or null on error, fail open
-        B->>Fe: broadcast, type turn-update, turn with summary (server.mjs:764)
+        B->>Fe: broadcast, type turn-update, turn with summary (server.mjs:612)
     end
-    B-->>Sk: 200, ok true, id turn.id (server.mjs:767)
+    B-->>Sk: 200, ok true, id turn.id (server.mjs:615)
     Sk-->>Cc: Stop prints ok true json, UserPromptSubmit prints nothing, stdout would inject into context (turn-sink.cjs:2-3,12-15)
     Note over Sk: fail-open by design, any error still exits 0, 3000 ms safety timeout, unref'd (turn-sink.cjs:65)
     Note over B,Fe: boundary — the mobile bridge digests this same turn feed into a kind-30840 summary event, see AB-13.5, not drawn here
@@ -488,70 +486,88 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Cl as Client
-    participant B as tab0-bridge<br/>server.mjs:739
+    participant B as tab0-bridge<br/>server.mjs:587
     participant T as tmux CLI
     participant Nf as ~/.claude/nostr-inbox files
     participant Sc as nostr-send.cjs
 
     Note over Cl,B: family of read-only and outbound surfaces sharing the global auth gate, see AB-12.3 — one sequence covers all members
-    Cl->>B: GET /turns?n=50 (server.mjs:769-772)
-    B-->>Cl: turns array, sliced to n, capped at MAX_TURNS 300 (server.mjs:770-771,57)
-    Cl->>B: GET /tabs (server.mjs:792-793)
-    B->>T: tmux list-windows -t agentbox -F index name active (server.mjs:170-176)
+    Cl->>B: GET /turns?n=50 (server.mjs:617-620)
+    B-->>Cl: turns array, sliced to n, capped at MAX_TURNS 300 (server.mjs:618-619,47)
+    Cl->>B: GET /tabs (server.mjs:640-641)
+    B->>T: tmux list-windows -t agentbox -F index name active (server.mjs:112-118)
     T-->>B: window list
     B-->>Cl: tabs array
-    Cl->>B: GET /tabs/:n?lines=60 (server.mjs:806-809)
-    B->>T: tmux capture-pane -p -t agentbox:n -S -lines, capped at 200 (server.mjs:178-181,808)
+    Cl->>B: GET /tabs/:n?lines=60 (server.mjs:651-654)
+    B->>T: tmux capture-pane -p -t agentbox:n -S -lines, capped at 200 (server.mjs:120-123,653)
     T-->>B: pane text, trailing whitespace stripped
     B-->>Cl: index, output
-    Cl->>B: GET /nostr/status (server.mjs:777-778)
-    B->>Nf: read gateway.lock pid, check pidAlive, check mirror-key.txt exists (server.mjs:588-600)
+    Cl->>B: GET /nostr/status (server.mjs:625-626)
+    B->>Nf: read gateway.lock pid, check pidAlive, check mirror-key.txt exists (server.mjs:436-448)
     B-->>Cl: gateway armed, stale-lock or off, mirrorKey bool, sendReady bool
-    Cl->>B: GET /nostr/events?n=20 (server.mjs:780-783)
-    B->>Nf: read commands.jsonl, tail n lines, capped at 100 (server.mjs:602-609,781)
+    Cl->>B: GET /nostr/events?n=20 (server.mjs:628-631)
+    B->>Nf: read commands.jsonl, tail n lines, capped at 100 (server.mjs:450-457,629)
     B-->>Cl: events array
-    Cl->>B: POST /nostr/send, body text (server.mjs:784-791)
+    Cl->>B: POST /nostr/send, body text (server.mjs:632-639)
     alt text empty after trim and slice 3500
-        B-->>Cl: 400, error empty text (server.mjs:787)
+        B-->>Cl: 400, error empty text (server.mjs:635)
     end
-    B->>Sc: spawn node nostr-send.cjs text, 12000 ms kill timer (server.mjs:613-622)
+    B->>Sc: spawn node nostr-send.cjs text, 12000 ms kill timer (server.mjs:461-470)
     Sc-->>B: exit code 0, success, or non-zero
-    B->>B: pushTurn(nostr-out, clean) when ok (server.mjs:789)
+    B->>B: pushTurn(nostr-out, clean) when ok (server.mjs:637)
     B-->>Cl: ok boolean
-    Note over Sc: nostr-send.cjs is fail-open, exit 0 even on delivery failure — ok true means handed to the relay path, not delivered (server.mjs:611-612)
+    Note over Sc: nostr-send.cjs is fail-open, exit 0 even on delivery failure — ok true means handed to the relay path, not delivered (server.mjs:459-460)
 ```
 
-## AB-12.15 Session creation today and the proposed session plane
+## AB-12.15 Session plane — reconcile, ownership and the paths that reach it
 ```mermaid
 flowchart TB
-    subgraph LIVE["Live at the verified commit"]
-        SEED["aoe-seed-sessions.mjs<br/>reads interaction_plane session_seeds<br/>scripts/aoe-seed-sessions.mjs:5,829-835"]
-        SKIP["title already exists, log and skip<br/>DEBT: never reconciled, so a manifest change<br/>never reaches a live session<br/>scripts/aoe-seed-sessions.mjs:830-832"]
-        AOE["AoE daemon port 9095<br/>behind nip98-proxy port 9096"]
-        TB["tab0-bridge sendToTab0<br/>aoeSend first, tmux send-keys fallback<br/>config/tab0-bridge/server.mjs:273-293"]
-        GW["nostr-gateway sendKeys<br/>text now, Enter scheduled 1500 ms later<br/>config/nostr-gateway/gateway.cjs:292-295"]
-        TS["trust-seed.cjs<br/>root claude.json plus each profile that already has<br/>profiles slug .claude .claude.json<br/>config/hooks/trust-seed.cjs:78-86"]
+    subgraph DECL["Declared state"]
+        MAN["agentbox.toml session_seeds, 7 seeds, plus the external tab0 coordinator<br/>agentbox.toml:2141,:2188-2193"]
     end
-    subgraph PROP["PROPOSED, not live: ADR-2153 decision proposed, implementation none, inactive"]
-        PL["services/agentbox-sessions daemon<br/>unix socket, no TCP listener<br/>docs/adr/ADR-2153-session-plane-replaces-aoe.md:32,40-42"]
-        RC["reconcile seeds at boot and on a timer,<br/>recreate dead or drifted panes<br/>docs/adr/ADR-2153-session-plane-replaces-aoe.md:34-37"]
+    subgraph DAEMON["agentbox-sessions daemon, supervised as devuser"]
+        REC["reconcile_once: plan each seed, decide, start<br/>services/agentbox-sessions/src/plane.rs:292-337"]
+        DEC["decide: Create, Recreate on drift, dead or trust prompt, Keep,<br/>Hold on conflict, dirty worktree, sign-in blocker or backoff<br/>services/agentbox-sessions/src/reconcile.rs:65-92"]
+        DIRTY["dirty gate: git status porcelain, ignored build output excluded<br/>services/agentbox-sessions/src/worktree.rs:29-30"]
+        BACK["backoff: three restarts per hour per slug, in memory<br/>services/agentbox-sessions/src/reconcile.rs:17-18,:88-90"]
+        TRUST["folder trust seeded before launch<br/>services/agentbox-sessions/src/plane.rs:270"]
+        OWN["ownership marker abs_ prefix and @agentbox-sessions=1<br/>services/agentbox-sessions/src/tmux.rs:20-21"]
+        STAT["status: dead, blocked, busy, idle from pane_dead, blocker patterns and hooks<br/>services/agentbox-sessions/src/status.rs:53-73"]
+        SOCK["unix socket 0660, SO_PEERCRED ACL<br/>services/agentbox-sessions/src/api.rs:67-80"]
     end
-    SEED --> SKIP
-    SEED -->|create session| AOE
-    TB -->|aoeSend| AOE
-    GW -->|tmux| TMUX["tmux server, window per session"]
-    TB -.->|fallback| TMUX
-    TS -.->|writes folder trust| STORES["claude.json stores, root and per profile"]
-    PL -.->|would replace| AOE
-    PL --> RC
-    TB -.->|would move to the socket| PL
-    GW -.->|would move to the socket| PL
-```
-**What it shows.** How a session comes to exist and how text reaches it today: the seeder creates AoE sessions from the manifest seeds and never touches one that already exists, tab0-bridge and the nostr-gateway inject text through AoE or tmux, and trust-seed writes folder trust into the root store and into each wrapper profile store that already exists. The dashed lower box is ADR-2153, which proposes replacing AoE; it is drawn as a proposal only.
-**Why it is this way.** The seeder was written as a create-only boot step (PRD-021 WS2, `scripts/aoe-seed-sessions.mjs:3-5`); ADR-2153 records the cost of that on 2026-10-28 and proposes an owned daemon that reconciles (`docs/adr/ADR-2153-session-plane-replaces-aoe.md:25,34-37`).
+    TMUX["tmux server, one abs_ session per seed"]
+    PICK["tab 8 picker, switch-client on its own client only<br/>config/tmux-autostart.sh:382-385<br/>services/agentbox-sessions/src/pick.rs:20-27,:71"]
+    OPS["socket ops: list, send, create, close, mark<br/>services/agentbox-sessions/src/api.rs:89-98"]
+    STORES["claude.json stores, root and per profile, and codex config"]
+    TB["tab0-bridge sessionSend<br/>config/tab0-bridge/server.mjs:133-135"]
+    GW["nostr-gateway sessionCreate<br/>config/nostr-gateway/gateway.cjs:415-421"]
+    FB["tmux send-keys fallback<br/>config/tab0-bridge/server.mjs:155-161"]
+    TS["trust-seed.cjs, boot-time root and profile stores<br/>config/hooks/trust-seed.cjs:78-86"]
 
-**Debt:** `scripts/aoe-seed-sessions.mjs:830-832` skips any session whose title already exists ("already exists — skipping (never killed)"), which is why a changed model or command in the manifest never reaches a live session (`docs/adr/ADR-2153-session-plane-replaces-aoe.md:25`).
-**Open:** ADR-2153 is proposed with implementation none and activation inactive (`docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`), so nothing in it has been accepted: the ADR names a review trigger but no acceptance trigger, and until a decision is taken the AoE edges drawn in AB-12.5, AB-12.6 and AB-12.10 remain the live path (`docs/adr/ADR-2153-session-plane-replaces-aoe.md:13`)?
-**Drift:** the seeder header calls the script a boot "reconciler" (`scripts/aoe-seed-sessions.mjs:3,5`) while its loop only creates and skips existing sessions (`scripts/aoe-seed-sessions.mjs:829-832`).
-**Invariant:** trust-seed offers folder trust to a wrapper profile store only when `profiles/<slug>/.claude/.claude.json` already exists, so a profile without that file is never created or trusted by it (`config/hooks/trust-seed.cjs:78-86`).
-**Tension (ADR-2151 vs manifest):** ADR-2151 (its pin commit 11dafbde9 landed after d9477245d held it proposed) records the VoiceLink edge voice slot as proposed, implementation none, inactive (`docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), while the live manifest sets `[voicelink] enabled = true` and `record_events = true` (`agentbox.toml:2225,2232`); that path reaches the container by `voice-paned --stdio` over ssh and bypasses tab0-bridge and the Unmute loop (`agentbox.toml:2215-2219`).
+    MAN --> REC
+    REC --> DEC
+    DEC -->|Create or Recreate| DIRTY
+    DIRTY --> TRUST
+    TRUST --> OWN
+    OWN --> TMUX
+    DEC -.->|restart count| BACK
+    STAT -.->|classify panes| DEC
+    TB -->|op send| SOCK
+    GW -->|op create and send| SOCK
+    SOCK -->|dispatch| OPS
+    OPS --> TMUX
+    SOCK -.->|op reconcile only| REC
+    TB -.->|socket failure| FB
+    FB -.-> TMUX
+    PICK -->|list, then switch own client| TMUX
+    TRUST -.->|writes| STORES
+    TS -.->|also writes| STORES
+```
+**What it shows.** The live session plane at the verified commit: the daemon compares each manifest seed with what tmux runs, recreates a missing, dead, drifted or trust-blocked pane unless the worktree holds work or the slug has restarted three times in the hour, and touches only sessions carrying its own marker. tab0-bridge and the nostr-gateway reach it over the socket, tab 8 runs the picker (`config/tmux-autostart.sh:382-385`), and the bridge keeps a tmux fallback.
+**Why it is this way.** ADR-2153 replaced the create-only AoE seeder after five of ten AoE sessions were found dead on 2026-10-28, and it records the cut-over as live with the implementation still partial (`docs/adr/ADR-2153-session-plane-replaces-aoe.md:33,:6-7`).
+
+**Open:** the acceptance run left antigravity blocked on sign-in and openrouter on a 401, and session-boundary turn events returned HTTP 500 from the beads redactor, so a successful reply is not proof the session epic is bound (`docs/adr/ADR-2153-session-plane-replaces-aoe.md:162-165,:188-191`).
+**Debt:** the restart counter is a process-local map, so a restart of the daemon itself forgets the hour's history and a command that dies on launch gets three fresh attempts (`services/agentbox-sessions/src/reconcile.rs:96-98`).
+**Drift:** the crate comment says `trust-seed.cjs` only ever wrote the root store (`services/agentbox-sessions/src/trust.rs:10-11`), but it enumerates every existing wrapper profile store, which the ADR's later note records (`config/hooks/trust-seed.cjs:78-86`, `docs/adr/ADR-2153-session-plane-replaces-aoe.md:95`).
+**Invariant:** the daemon, like trust-seed, offers folder trust to a wrapper profile store only when `profiles/<slug>/.claude/.claude.json` already exists, so a missing profile file is never created (`services/agentbox-sessions/src/trust.rs:34-43`, `config/hooks/trust-seed.cjs:78-86`).
+**Tension (ADR-2151 vs manifest):** ADR-2151 (its pin commit 11dafbde9 landed after d9477245d held it proposed) records the VoiceLink edge voice slot as proposed, implementation none, inactive (`docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), while the live manifest sets `[voicelink] enabled = true` and `record_events = true` (`agentbox.toml:2223,2230`); that path reaches the container by `voice-paned --stdio` over ssh and bypasses tab0-bridge and the Unmute loop (`agentbox.toml:2215-2219`).

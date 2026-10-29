@@ -28,7 +28,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/rationale_check.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/lib.rs
-verified_commit: 8a5cf817e81b20e2b761899eab753768c0cb4988
+verified_commit: eb5f2323e6d72240ecb7c456181b7a674f1842f4
 ---
 
 ## NF-02.1 Request entry — bootstrap, rate limit, body pre-read, dispatch
@@ -102,12 +102,12 @@ flowchart TB
     legacy -->|"no match"| NF["404 Not found nostr-bbs-auth-worker/src/lib.rs:349"]
 
     N1["Sprint handlers are dispatched BEFORE the legacy verify branch because they run their own<br/>require_admin / require_authed gates nostr-bbs-auth-worker/src/lib.rs:280-288"]
-    N2["ANOMALY O11 confirmed live: /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:616 requires NATIVE_POD_URL and the<br/>NATIVE_POD_ADMIN_KEY secret; both are placeholders in the template nostr-bbs-auth-worker/wrangler.toml:57"]
+    N2["ANOMALY O11 confirmed live: /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:616 requires NATIVE_POD_URL and the<br/>NATIVE_POD_ADMIN_KEY secret; both are placeholders in the template nostr-bbs-auth-worker/wrangler.toml:65"]
 ```
 
 **Invariant:** `SESSIONS` (the rate limiter's `rl:{ip}:{bucket}` keys) and `KV` (the admin pubkey cache) bind the same KV namespace id, so the admin cache key must never start with `rl:` (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/admins.rs:372`, `../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml:22-25`).
 
-**Open:** the rationale-check route and its flag `JEV_RATIONALE_CHECK` are default off and bound in no committed wrangler template (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/rationale_check.rs:36`); the check is advisory and local-backend only, so what a deployment actually enables is not recorded in this repository.
+**Open:** the rationale-check route and its flag `JEV_RATIONALE_CHECK` are off in the library but ON in the committed auth template, `JEV_RATIONALE_CHECK = "1"` (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml:53`; flag name `../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/rationale_check.rs:36`); the check is advisory and local-backend only and the template declares no endpoint (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml:54-58`), so the route reports unavailable until a deployment supplies one.
 
 ## NF-02.3 Passkey registration — the full verify chain
 

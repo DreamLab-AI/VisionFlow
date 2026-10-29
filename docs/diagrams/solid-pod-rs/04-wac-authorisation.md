@@ -17,7 +17,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/origin.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/serializer.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
-verified_commit: a4a86f6da300b529c7855318c24ff5c7b35ec582
+verified_commit: 9bde3be7fa123479fabb5c4cc9056e19ab0dcadd
 ---
 
 ## SP-04.1 The write gate, end to end

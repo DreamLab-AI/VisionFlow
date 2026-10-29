@@ -16,6 +16,9 @@ sources:
   - ../project/agentbox/management-api/lib/action-plane.js
   - ../project/agentbox/management-api/lib/zone-keys.js
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
+  - ../project/agentbox/services/agentbox-sessions/src/api.rs
+  - ../project/agentbox/services/agentbox-sessions/src/boundary.rs
+  - ../project/agentbox/config/custody/session-plane-acl.json
   - ../project/agentbox/mcp/servers/nostr-bridge.js
   - ../project/agentbox/config/hooks/nostr-live-mirror.cjs
   - ../project/agentbox/config/nostr-gateway/gateway.cjs
@@ -30,7 +33,7 @@ sources:
   - ../project/src/settings/auth_extractor.rs
   - ../project/client/src/services/nostrAuthService.ts
   - ../project/agentbox/docs/INGRESS-identity.md
-verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9}
+verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, agentbox: 0b0f7918961e629280faf86f88227535abf514b5}
 ---
 ## ES-04.1 verification mesh — who signs, who verifies whom
 ```mermaid
@@ -47,14 +50,16 @@ flowchart TB
         MAC["ManagementApiClient<br/>src/services/management_api_client.rs:27"]
     end
     subgraph agentbox["agentbox host processes"]
-        PROXY["nip98-proxy  port 9096<br/>agentbox/config/nip98-proxy/proxy.mjs:96"]
+        PROXY["nip98-proxy  port 9096<br/>agentbox/config/nip98-proxy/proxy.mjs:19"]
         NBB["NostrBridge.verifyNip98<br/>agentbox/mcp/servers/nostr-bridge.js:500"]
         PS["pod-signer buildPodNip98<br/>agentbox/management-api/lib/pod-signer.js:70"]
         AGID["agent-identity loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:128"]
         AEA["agent-event-auth verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:135"]
+        GW["nostr-gateway SESSION_CLIENT<br/>agentbox/config/nostr-gateway/gateway.cjs:123"]
+        MGMT["management-api /mgmt/ upstream<br/>agentbox/config/nip98-proxy/proxy.mjs:304"]
     end
-    subgraph aoe["AoE daemon  port 9095<br/>loopback only"]
-        AOE["aoe serve --auth token --behind-proxy<br/>agentbox/flake.nix:2924"]
+    subgraph sessions["agentbox-sessions (ADR-2153)<br/>unix socket only, no TCP listener"]
+        SESS["daemon: socket 0660 in ab-sessions, uid from SO_PEERCRED<br/>checked against the ACL before any request is read<br/>agentbox/services/agentbox-sessions/src/api.rs:74"]
     end
     subgraph solid["EXTERNAL: solid-pod-rs<br/>default-deny pod"]
         POD["Solid pod HTTP endpoint"]
@@ -69,8 +74,9 @@ flowchart TB
     NIV -. "XR presence Schnorr(nonce||ts)<br/>NOT NIP-98" .-> NB
     MAC -- "Authorization: Bearer api_key<br/>management_api_client.rs:305" --> PROXY
     PROXY -- "NIP-98 kind-27235<br/>proxy-verified" --> NBB
-    PROXY -- "X-Agentbox-Pubkey<br/>injected, never trusted inbound" --> AOE
-    PROXY -- "Authorization: Bearer <aoe token><br/>read from serve.url" --> AOE
+    PROXY -- "X-Agentbox-Pubkey<br/>injected, never trusted inbound<br/>proxy.mjs:878" --> MGMT
+    GW -- "op create / send as uid 961 (ab-gateway)<br/>gateway.cjs:420" --> SESS
+    SESS -- "POST /v1/sessions/boundary<br/>boundary.rs:86" --> MGMT
     PS -- "NIP-98 kind-27235<br/>buildNip98Header" --> POD
     AEA -- "NIP-98 kind-27235<br/>AGENTBOX_AGENT_EVENT_AUTH=nip98" --> NBB
     AGID -. "did:nostr:&lt;hex&gt; mint<br/>consumed by" .-> PS
@@ -83,7 +89,7 @@ flowchart TB
 
 **Debt:** the stamp's strength is the same-UID boundary of the agentbox container, because any process inside it reaches management-api over loopback (TODO-unified X-1; `agentbox/management-api/lib/agent-event-auth.js:36-39`).
 
-**Open:** ADR-2153 is proposed (`implementation_status: none`, `activation_status: inactive`) and would replace Agent of Empires with an owned session plane on a 0600 unix socket and no TCP listener, retiring port 9095 and Invariant 1 at cut-over (`agentbox/docs/INGRESS-identity.md:9,260-262`); the AoE daemon, its bearer token and the proxy-injected `X-Agentbox-Pubkey` hop drawn here are the live design (`agentbox/flake.nix:2924`).
+**Drift (resolved at this stamp):** ADR-2153 is live (`decision_status: accepted`, `implementation_status: partial`, `activation_status: live`; `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Agent of Empires, its `:9095` listener, its bearer token and the proxy hop to it are gone; session control is a 0660 `ab-sessions` unix socket authorised by `SO_PEERCRED` against uids 1000 and 961 (`../project/agentbox/services/agentbox-sessions/src/api.rs:74`, `../project/agentbox/config/custody/session-plane-acl.json:8-11`), and `:9096` forwards named routes only (`../project/agentbox/docs/INGRESS-identity.md:64-66,239-242`).
 
 ## ES-04.3 validate_nip98_token — the fixed check order, replay claimed LAST
 ```mermaid
@@ -182,7 +188,7 @@ flowchart TB
     subgraph live["Live signing keys"]
         K1["Bridge identity / unwrap key<br/>AGENTBOX_BRIDGE_SK_FILE, default /run/secrets/nostr.key<br/>legacy environment fallback REMAINS"]
         K2["Shared server publisher identity<br/>relay key list is build-projected"]
-        K3["AoE daemon token<br/>~/.config/agent-of-empires/serve.url, dir chmod 0700<br/>minted at launch, NOT env-settable"]
+        K3["Session-plane socket ACL: no token, no key<br/>authorisation is the peer uid, 1000 devuser and 961 ab-gateway<br/>agentbox/config/custody/session-plane-acl.json:8-11"]
         K4["nip98-proxy session secret<br/>NIP98_PROXY_SESSION_SECRET or per-boot crypto.randomBytes"]
         K5["Session-mirror child key<br/>~/.claude/nostr-mirror/mirror-key.txt<br/>DERIVED, re-derivable, deleted after import"]
     end
@@ -196,15 +202,13 @@ flowchart TB
     K5 -->|"NIP-59 gift wrap, kind 1059"| REL
 
     D1["PARTIALLY RESOLVED (Q15, 2026-10-03) — agentbox.toml:160 now records<br/>the separation: the operator NIP-07 signer signs the 31403 governance<br/>decisions and is NOT visionclaw-server, which signs 31402 under a<br/>different key. The earlier revision of this node cited the roster row<br/>that still marked the governance publisher key-split PENDING (ADR-040 D3)."]
-    D2["DIVERGENCE — NIP98_PROXY_SESSION_SECRET defaults to<br/>crypto.randomBytes (proxy.mjs:245), so NIP-07 sessions do<br/>NOT survive a proxy restart. Intentional, but every restart<br/>forces re-authentication."]
-    D3["DIVERGENCE — a same-uid (devuser) process can still READ the<br/>AoE token file. The token raises the bar but does NOT isolate<br/>same-user peers. Per-process isolation is future work."]
-    D4["DIVERGENCE — deleting the AoE state file alone does NOT<br/>rotate the token, because the proxy holds a last-good cache.<br/>Daemon and proxy must rotate COHERENTLY. see ES-10.10"]
+    D2["DIVERGENCE — NIP98_PROXY_SESSION_SECRET defaults to<br/>crypto.randomBytes (proxy.mjs:167), so NIP-07 sessions do<br/>NOT survive a proxy restart. Intentional, but every restart<br/>forces re-authentication."]
+    D3["DIVERGENCE — the ACL authorises a UID, not a process: any devuser<br/>(uid 1000) process may call the session socket, so same-user peers<br/>are not isolated. Per-process isolation is future work.<br/>session-plane-acl.json:6, api.rs:32"]
     D5["DIVERGENCE — every custodian, deployed location, rotation<br/>cadence and incident-response window in the agentbox custody<br/>register is UNCONFIRMED (proposed governing surface)."]
 
     K2 --> D1
     K4 --> D2
     K3 --> D3
-    K3 --> D4
     live --> D5
     F1 -.-> live
 ```
@@ -251,8 +255,8 @@ sequenceDiagram
     Note over HK: DOC-DRIFT agentbox/docs/SECURITY-profiles.md:11 still asserts the live<br/>hook composes UNREDACTED text —<br/>SECURITY-profiles.md:68-69 and the code<br/>(redactForEgress before compose, nostr-live-mirror.cjs:453) say this<br/>closed 2026-09-05 on both paths. Doc line 11 is stale prose, not code.
 ```
 
-Encrypted forum zones (ADR-2016, INGRESS-identity.md item 10): zone-key grants (rumor kind 21453) and signed NIP-171 epoch tickets (kind 1014, `../project/agentbox/management-api/lib/zone-keys.js:54-56`, `../project/agentbox/docs/INGRESS-identity.md:313-317`), gating and
-admin-relay retry live in AB-12.11 and AB-13.5 (`zone-keys.js`, `../project/agentbox/config/nostr-gateway/gateway.cjs:729`), not here.
+Encrypted forum zones (ADR-2016, INGRESS-identity.md item 10): zone-key grants (rumor kind 21453) and signed NIP-171 epoch tickets (kind 1014, `../project/agentbox/management-api/lib/zone-keys.js:54-56`, `../project/agentbox/docs/INGRESS-identity.md:290-294`), gating and
+admin-relay retry live in AB-12.11 and AB-13.5 (`zone-keys.js`, `../project/agentbox/config/nostr-gateway/gateway.cjs:671`), not here.
 
 The 2026-09-07 source closeout makes opaque session issuance, lookup and refresh
 conditional on `VISIONCLAW_LEGACY_SESSIONS=1/true`, default off. Browser REST signs
@@ -265,26 +269,26 @@ actual proxy/reconnect deployment have migrated. See VC-03.17 and the
 ## ES-04.7 PROPOSED key separation — one identity key, two derived families, a second Multikey
 ```mermaid
 flowchart TB
-    KID["k_id — the sovereign identity key, minted by the identity binary<br/>agentbox/docs/INGRESS-identity.md:468<br/>PROPOSED rule: it never spends and never seals a block"]
+    KID["k_id — the sovereign identity key, minted by the identity binary<br/>agentbox/docs/INGRESS-identity.md:445<br/>PROPOSED rule: it never spends and never seals a block"]
 
-    SPEND["k_spend(chain) = derive_subkey(k_id, sidestr/spend/ chain_id)<br/>used on the wallet path, spends UTXOs on exactly that chain<br/>agentbox/docs/INGRESS-identity.md:469"]
-    SIGN["k_sign(chain) = derive_subkey(k_id, sidestr/sign/ chain_id)<br/>federated instance operators only, seals blocks on that chain<br/>agentbox/docs/INGRESS-identity.md:470"]
+    SPEND["k_spend(chain) = derive_subkey(k_id, sidestr/spend/ chain_id)<br/>used on the wallet path, spends UTXOs on exactly that chain<br/>agentbox/docs/INGRESS-identity.md:446"]
+    SIGN["k_sign(chain) = derive_subkey(k_id, sidestr/sign/ chain_id)<br/>federated instance operators only, seals blocks on that chain<br/>agentbox/docs/INGRESS-identity.md:447"]
 
-    KID -->|"HMAC-SHA256 domain-separated child derivation,<br/>a tool the estate already owns<br/>agentbox/docs/INGRESS-identity.md:463-464"| SPEND
+    KID -->|"HMAC-SHA256 domain-separated child derivation,<br/>a tool the estate already owns<br/>agentbox/docs/INGRESS-identity.md:440-441"| SPEND
     KID -->|"same derivation, different domain string"| SIGN
 
-    BIND["PROPOSED kind 38420 sidestr-account-binding (ADR-2105, band<br/>38400-38499), addressable, d tag is chain id plus did hex,<br/>content is the derived spend pubkey, signed by k_id<br/>agentbox/docs/INGRESS-identity.md:481-483"]
+    BIND["PROPOSED kind 38420 sidestr-account-binding (ADR-2105, band<br/>38400-38499), addressable, d tag is chain id plus did hex,<br/>content is the derived spend pubkey, signed by k_id<br/>agentbox/docs/INGRESS-identity.md:458-460"]
     SPEND --> BIND
 
-    MK["PROPOSED — a SECOND Multikey entry in the DID document for the<br/>per-chain spend key. This AMENDS legacy ADR-033, whose<br/>single-Multikey form is what build_did_document emits today.<br/>agentbox/docs/INGRESS-identity.md:484-486"]
+    MK["PROPOSED — a SECOND Multikey entry in the DID document for the<br/>per-chain spend key. This AMENDS legacy ADR-033, whose<br/>single-Multikey form is what build_did_document emits today.<br/>agentbox/docs/INGRESS-identity.md:461-463"]
     BIND --> MK
 
-    LIVE["LIVE today — one Multikey, publicKeyMultibase is the<br/>MULTIKEY_PREFIX followed by the x-only hex, and the private key<br/>never leaves the function<br/>agentbox/docs/INGRESS-identity.md:162-165"]
+    LIVE["LIVE today — one Multikey, publicKeyMultibase is the<br/>MULTIKEY_PREFIX followed by the x-only hex, and the private key<br/>never leaves the function<br/>agentbox/docs/INGRESS-identity.md:143-147"]
     MK -.->|"amends"| LIVE
 
-    SCOPE["PROPOSED scope note — Invariant 6 is narrowed to IDENTITY<br/>ingress; chain ingress is authenticated by consensus rather than<br/>by the relay allowlist.<br/>agentbox/docs/INGRESS-identity.md:272-273"]
+    SCOPE["PROPOSED scope note — Invariant 6 is narrowed to IDENTITY<br/>ingress; chain ingress is authenticated by consensus rather than<br/>by the relay allowlist.<br/>agentbox/docs/INGRESS-identity.md:249-250"]
     KID --> SCOPE
 
-    INV["INVARIANT — the whole of this diagram sits in a clearly marked<br/>PROPOSED section and the live compliance surface above it is<br/>unchanged apart from that one scope note.<br/>agentbox/docs/INGRESS-identity.md:12,454-457. see ES-03.11"]
+    INV["INVARIANT — the whole of this diagram sits in a clearly marked<br/>PROPOSED section and the live compliance surface above it is<br/>unchanged apart from that one scope note.<br/>agentbox/docs/INGRESS-identity.md:13,431-434. see ES-03.11"]
     SCOPE --> INV
 ```

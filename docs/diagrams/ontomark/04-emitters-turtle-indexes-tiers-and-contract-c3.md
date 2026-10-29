@@ -26,7 +26,7 @@ sources:
   - ../ontomark/crates/ontomark-cli/src/main.rs
   - ../ontomark/docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: 07f4c1ce6ac9e7d5c1c2169b4672ca73c54e5efa, visionflow: 1d7183a73c1eae4996a7006067d5047308fab7a5}
+verified_commit: {ontomark: 07f4c1ce6ac9e7d5c1c2169b4672ca73c54e5efa, visionflow: 124512b8f5e8c33c247065c58901dcfdc18988a2}
 ---
 
 ## OM-04.1 Emitter by emitter — corpus selector, output, C3 artefact
@@ -227,7 +227,7 @@ flowchart TD
     OKCTX -.-> OKCON
 ```
 - **DIVERGENCE:** WebVOWL labels `related-to` as `skos:related` and `part-of` as `vc:isPartOf` from a hardcoded table (`webvowl.rs:30-42`), while Turtle takes each relation IRI from the vocabulary (`turtle.rs:656-673`); the two agree only while the vocabulary does.
-- **INVARIANT:** `iri_to_uri` is deliberately not reused by WebVOWL, which has its own `remap_iri` that passes foreign IRIs through (`webvowl.rs:44-53`); NGG1 imports that function so tiers and WebVOWL share node ids (`graph_tiers.rs:39`).
+- **INVARIANT:** `iri_to_uri` is deliberately not reused by WebVOWL, which has its own `remap_iri` that passes foreign IRIs through (`webvowl.rs:45-53`); NGG1 imports that function so tiers and WebVOWL share node ids (`graph_tiers.rs:39`).
 - **DIVERGENCE:** the OKF concept file carries only `is-a` and relation IRIs plus scalars (`okf.rs:152-165`); it drops provenance, restrictions and disjointness, and `okf::bundle` has the single `public_classes` selector in this file set, the same as scaffold (`indexes.rs:102`).
 
 ## OM-04.7 Duplicated computation — what each emitter recomputes instead of sharing

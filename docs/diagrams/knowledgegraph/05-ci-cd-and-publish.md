@@ -11,7 +11,7 @@ sources:
   - ../knowledgeGraph/archive/github-workflows/build.yml
   - ../visionGraph/.github/workflows/publish.yml
   - docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md
-verified_commit: {knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3, visiongraph: 59e7dcc8d05ca447d03c74c819a740b390b93074, visionflow: 1d7183a73c1eae4996a7006067d5047308fab7a5}
+verified_commit: {knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3, visiongraph: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e, visionflow: 124512b8f5e8c33c247065c58901dcfdc18988a2}
 ---
 
 ## KG-05.3 Publication topology — this repo is a pure published export, visionGraph's publish.yml is the sole builder

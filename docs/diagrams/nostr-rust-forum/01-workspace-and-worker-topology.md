@@ -32,7 +32,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-preview-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-search-worker/wrangler.toml
   - ../nostr-rust-forum/.github/workflows/ci.yml
-verified_commit: 8a5cf817e81b20e2b761899eab753768c0cb4988
+verified_commit: eb5f2323e6d72240ecb7c456181b7a674f1842f4
 ---
 
 ## NF-01.1 Twenty crates in four layers
@@ -127,8 +127,8 @@ flowchart TB
     end
     subgraph cronentry["#[event(scheduled)] handlers"]
         AC["auth-worker scheduled<br/>nostr-bbs-auth-worker/src/lib.rs:873"]
-        RC["relay-worker scheduled - every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:1146<br/>trigger nostr-bbs-relay-worker/wrangler.toml:115"]
-        SC["search-worker cron - every 5 min<br/>nostr-bbs-search-worker/wrangler.toml:36"]
+        RC["relay-worker scheduled - every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:1146<br/>trigger nostr-bbs-relay-worker/wrangler.toml:123"]
+        SC["search-worker cron - every 5 min<br/>nostr-bbs-search-worker/wrangler.toml:44"]
     end
     WSUP["WebSocket upgrade to the Durable Object<br/>nostr-bbs-relay-worker/src/lib.rs:228"]
     NIP11["NIP-11 relay info on Accept application/nostr+json<br/>nostr-bbs-relay-worker/src/lib.rs:237"]

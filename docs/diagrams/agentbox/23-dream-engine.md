@@ -26,6 +26,8 @@ sources:
   - ../project/agentbox/services/dream-engine/src/estate.rs
   - ../project/agentbox/services/dream-engine/src/wanted.rs
   - ../project/agentbox/services/dream-engine/src/jev_triage.rs
+  - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
+  - ../project/agentbox/docs/adr/ADR-2155-system-one-consumer-activation.md
   - ../project/agentbox/services/dream-engine/Cargo.toml
   - ../project/agentbox/dream.config.json
   - ../project/agentbox/agentbox.toml
@@ -78,7 +80,7 @@ sources:
   - ../dream-engine/crates/dream-cli/src/lib.rs
   - ../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md
   - ../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md
-verified_commit: {agentbox: 1da8d21719a27394f190866223b88533b52d87f9, dream-engine: 61581d36efdd374416ae2f664c0f1a7b23c9c843}
+verified_commit: {agentbox: 0b0f7918961e629280faf86f88227535abf514b5, dream-engine: 59a3e215e826aa1e9ebe157d49c1ac504f7f39c9}
 ---
 This topic draws the adapter and the boundary after the 2026-10-15 extraction (agentbox ADR-2141). The judgement and the loop mechanism moved to the permissive repository DreamLab-AI/dream-engine, mapped in DE-01 and in its own corpus at `../dream-engine/docs/diagrams/README.md`, which is not duplicated here. AB-23.9 onward are adapter-owned and re-cited at the new revision.
 
@@ -153,21 +155,21 @@ stateDiagram-v2
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2895
+    participant SUP as supervisord<br/>agentbox/flake.nix:2896
     participant ENG as Engine::run_night<br/>agentbox/services/dream-engine/src/engine.rs:154
     participant GOV as governance<br/>agentbox/services/dream-engine/src/governance.rs:1058
     participant ROS as roster::select<br/>dream-core/src/roster.rs:67
     participant LK as NightLock<br/>dream-core/src/runstate.rs:295
     participant MAN as manifest::freeze<br/>dream-gate/src/manifest.rs:297
-    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2569
+    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2567
     participant LLM as call<br/>agentbox/services/dream-engine/src/llm.rs:49
     participant JUD as judge::judge<br/>agentbox/services/dream-engine/src/judge.rs:36
     participant FG as GhForge::publish_draft<br/>dream-core/src/seams.rs:425
     participant LED as ledger::append_row<br/>dream-core/src/ledger.rs:350
 
     SUP->>ENG: dream-engine --loop --agentbox-toml /etc/agentbox.toml
-    Note over SUP,ENG: autostart=true autorestart=true priority=230 user=devuser (agentbox/flake.nix:2895-2902)
-    alt [dream_machine] enabled = false (agentbox/agentbox.toml:2568)
+    Note over SUP,ENG: autostart=true autorestart=true priority=230 user=devuser (agentbox/flake.nix:2896-2903)
+    alt [dream_machine] enabled = false (agentbox/agentbox.toml:2566)
         ENG-->>SUP: byte-identical-when-off, no supervisor block is generated at all
     else enabled
         loop nightly window, at most one cycle per UTC day (agentbox/services/dream-engine/src/main.rs:284-298)
@@ -179,7 +181,7 @@ sequenceDiagram
             loop each nominated repo (engine.rs:203-232)
                 alt .dream-standby marker present
                     ENG->>ENG: standby{repo, reason marker, streak 0}
-                else dry streak at or above prune_dry_streak 5 (agentbox.toml:2615)
+                else dry streak at or above prune_dry_streak 5 (agentbox.toml:2613)
                     ENG->>ENG: standby{repo, reason dry-streak} from streak::dry_streak_text (engine.rs:473-478)
                     Note over ENG: REJECT and INCONCLUSIVE advance the streak, ACCEPT resets it, BLOCKED-ENV and<br/>HANDOFF leave it (dream-core/src/streak.rs:151-157). RESOLVED 2026-10-15: the old engine reset on REJECT
                 else eligible
@@ -199,7 +201,7 @@ sequenceDiagram
                     ENG->>HP: clone via git archive, run the REQUIRED evaluators on the BASELINE tree
                     ENG->>ENG: tree-read honours the previous night's source requests first, then the slot's path-shaped scan entries (engine.rs:1254, 1266), see AB-23.21
                     ENG->>LLM: call the model with the report prompt
-                    Note over ENG,LLM: RESOLVED ADR-2053: the default reasoning provider is Z.AI (agentbox.toml:2584), a deliberate operator<br/>choice, and nightly repository content leaves the LAN unless llm_provider = loom
+                    Note over ENG,LLM: RESOLVED ADR-2053: the default reasoning provider is Z.AI (agentbox.toml:2582), a deliberate operator<br/>choice, and nightly repository content leaves the LAN unless llm_provider = loom
                     LLM-->>ENG: report text with a VERDICT line and an optional dream-patch
                     opt an ACCEPT is claimed and AGENTBOX_JEV_DREAM_TRIAGE=1 (off by default)
                         ENG->>ENG: jev_triage::consider annotates the hypothesis, and defers the candidate build only below an explicit threshold (engine.rs:1439-1463), see AB-23.22
@@ -231,7 +233,7 @@ sequenceDiagram
 
 **Why it is this way.** Each step that moved into the core is still driven from `engine.rs`, because the composition root is the only place that knows the estate's seams. The judge call replaces the pre-extraction direct call of `gate::decide`, so that capture and verdict cannot diverge. The terminal, persist-before-effect ordering is ADR-2141's restart-safety consequence (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:39`).
 
-**Drift:** `../project/agentbox/docs/GOVERNANCE-capabilities.md:516` (was :496 at the previous stamp) still says ADR-2071 is proposed, not landed, while the journal ships Phase 1 (`../project/agentbox/services/dream-engine/src/journal.rs:1-3`).
+**Drift:** `../project/agentbox/docs/GOVERNANCE-capabilities.md:509` (was :516 at the previous stamp) still says ADR-2071 is proposed, not landed, while the journal ships Phase 1 (`../project/agentbox/services/dream-engine/src/journal.rs:1-3`).
 
 **Tension:** the persist-before-effect order trades a lost publish for never publishing twice. Nothing records the forge or ledger outcome after `Persisted`, so a crash between the journal write and the pull request leaves a night marked finished with no draft (`../dream-engine/crates/dream-core/src/runstate.rs:22-28`, `../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md:34`). Recovery is the operator's `dream-engine reset-night <repo> <date>` (`../project/agentbox/services/dream-engine/src/main.rs:142-144`).
 
@@ -567,9 +569,9 @@ sequenceDiagram
     participant HK as dream-inbox-surface.cjs<br/>agentbox/config/hooks/dream-inbox-surface.cjs:1
     participant INBOX as dream-inbox.json<br/>/home/devuser/workspace/.agentbox/dream-inbox.json
     participant STAMP as dream-inbox.json.surfaced
-    participant EP as entrypoint registration<br/>agentbox/config/entrypoint-unified.sh:2211
+    participant EP as entrypoint registration<br/>agentbox/config/entrypoint-unified.sh:2208
 
-    Note over EP: the entrypoint prefers /opt/agentbox/config/hooks/dream-inbox-surface.cjs and falls back<br/>to the repo path (:2211-2212), then dedupes on the command substring (:2224)
+    Note over EP: the entrypoint prefers /opt/agentbox/config/hooks/dream-inbox-surface.cjs and falls back<br/>to the repo path (:2208-2209), then dedupes on the command substring (:2221)
     U->>CC: submits a prompt
     CC->>HK: UserPromptSubmit with stdin JSON
     alt prompt matches a harness-generated turn (task-notification, agent-message, system-reminder)
@@ -804,10 +806,10 @@ sequenceDiagram
     participant LOOM as call_loom<br/>agentbox/services/dream-engine/src/llm.rs:205
     participant ZAI as call_zai<br/>agentbox/services/dream-engine/src/llm.rs:120
     participant CRATE as loom-client crate<br/>published, see AB-28.11
-    participant F as Loom facade<br/>agentbox/agentbox.toml:2571
+    participant F as Loom facade<br/>agentbox/agentbox.toml:2569
 
     ENG->>CALL: call(cfg, prompt)
-    alt llm_provider = zai - the DEFAULT (agentbox.toml:2584)
+    alt llm_provider = zai - the DEFAULT (agentbox.toml:2582)
         CALL->>ZAI: POST the Anthropic Messages body with x-api-key
         ZAI-->>CALL: text parts joined, or EmptyResponse (llm.rs:168-186)
         Note over CALL,ZAI: exactly ONE retry, 20s apart, and only on a transient fault -<br/>transport, empty body, or an HTTP 5xx including Cloudflare 52x.<br/>is_transient refuses to retry a 4xx (llm.rs:69)
@@ -826,13 +828,13 @@ sequenceDiagram
     Note over CRATE: the hand-rolled client that lived in llm.rs knew ONE of the three facade<br/>traps. Two nights of verdicts in 2026-09 were derived from ontology prose that<br/>never reached a model, and truncation on a reasoning model returns EMPTY content<br/>rather than a short answer - the crate owns a token floor and a doubling retry<br/>the wrapper could not do, because it cannot see finish_reason (llm.rs:191-204)
 ```
 
-**Debt:** `agentbox/agentbox.toml:2584` keeps `llm_provider = "zai"` as the default, so nightly repository content leaves the LAN on every unattended night; the LAN-only Loom path at `../project/agentbox/services/dream-engine/src/llm.rs:205` is opt-in.
+**Debt:** `agentbox/agentbox.toml:2582` keeps `llm_provider = "zai"` as the default, so nightly repository content leaves the LAN on every unattended night; the LAN-only Loom path at `../project/agentbox/services/dream-engine/src/llm.rs:205` is opt-in.
 
 ## AB-23.16 Placeholder resolution and the refusal to dispatch to nowhere
 
 ```mermaid
 flowchart TB
-    TOML["agentbox.toml ships PLACEHOLDERS, not addresses<br/>hp_host CONNECTED_NODE_SSH agentbox.toml:2569<br/>hp_annexe_dir composite agentbox.toml:2570<br/>loom_url LOOM_BASE_URL agentbox.toml:2571"]
+    TOML["agentbox.toml ships PLACEHOLDERS, not addresses<br/>hp_host CONNECTED_NODE_SSH agentbox.toml:2567<br/>hp_annexe_dir composite agentbox.toml:2568<br/>loom_url LOOM_BASE_URL agentbox.toml:2569"]
     TOML --> RP["RuntimeConfig.resolve_placeholders<br/>agentbox/services/dream-engine/src/config.rs:127"]
     RP -->|"whole-value form"| W["resolve_env_placeholder<br/>agentbox/services/dream-engine/src/config.rs:112 - a value that IS a placeholder"]
     RP -->|"composite form"| I["resolve_env_placeholders_infix<br/>agentbox/services/dream-engine/src/config.rs:146 - a value that CONTAINS one"]
@@ -936,7 +938,7 @@ sequenceDiagram
     participant ENG as Engine::cycle_repo_body<br/>agentbox/services/dream-engine/src/engine.rs:532
     participant SWEEP as retention sweep<br/>agentbox/services/dream-engine/src/dispatch.rs:28
     participant AH as dispatch::annexe_health<br/>agentbox/services/dream-engine/src/dispatch.rs:347
-    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2569
+    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2567
     participant RS as runstate::begin<br/>dream-core/src/runstate.rs:511
     participant INBOX as inbox::add<br/>agentbox/services/dream-engine/src/inbox.rs:1
 
@@ -984,7 +986,7 @@ flowchart TB
     PAUSE -->|"yes"| MISS["phase missed, the API stays up<br/>adr-2071-api-down-night.sh:102"]
     PAUSE -->|"no"| STOP["EXIT trap armed, supervisorctl stop management-api<br/>phase stopped, stopped_at written<br/>adr-2071-api-down-night.sh:106-111"]
     PH -->|"none, first tick at or after 01:00"| MISS2["phase missed, reason no-tick-before-window<br/>adr-2071-api-down-night.sh:121-124"]
-    STOP --> NIGHT["the dream window runs with no API:<br/>window_start 1, window_end 5 UTC<br/>agentbox.toml:2599-2600"]
+    STOP --> NIGHT["the dream window runs with no API:<br/>window_start 1, window_end 5 UTC<br/>agentbox.toml:2597-2598"]
     NIGHT --> RS{"phase stopped: which comes first?<br/>adr-2071-api-down-night.sh:129-144"}
     RS -->|"dream-last-night.json dated the night"| R1["reason night-record<br/>adr-2071-api-down-night.sh:137-138"]
     RS -->|"API RUNNING again"| R2["reason interrupted, a container restart<br/>adr-2071-api-down-night.sh:139-140"]
@@ -1019,7 +1021,7 @@ flowchart TB
     subgraph on["[security].role_isolation on"]
         E1["boot writes the key to /run/secrets/ab-identity/JUNKIEJARVIS_PRIVKEY_HEX,<br/>0400, owned by ab-identity uid 960, dir 0500<br/>config/entrypoint-unified.sh:460-461, config/entrypoint-unified.sh:470"]
         E2["exports the _FILE path to every program and unsets the variable<br/>config/entrypoint-unified.sh:462-463"]
-        E3["dream-engine stays devuser - ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:67-68"]
+        E3["dream-engine stays devuser - ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:80-81"]
         E4["the _FILE wins and an unreadable file is an error, never a fallback<br/>relay.rs:70-71, relay.rs:96"]
         E5["the bare variable and the repo .env are refused, a set variable<br/>is reported as ROLE-ISOLATION-LEAK - relay.rs:97-101, relay.rs:89-94"]
         E6["devuser cannot open an ab-identity 0400 file, so load_key warns<br/>agent key unavailable and the round trip is SKIPPED, fail-open<br/>governance.rs:922-926"]
@@ -1031,7 +1033,7 @@ flowchart TB
     subgraph port["The identity port, the intended signer"]
         P1["devuser may ask forum_event for the junkiejarvis key,<br/>kinds 1, 42 and 31923 only - config/custody/identity-port-acl.json:40"]
         P2["31400 to 31405 may NEVER be granted: governance kinds record a<br/>human decision and must not carry a container key<br/>services/nostr-pod-bridge/src/identity_port/acl.rs:65-73"]
-        P3["the dream-engine cutover to the port is owed, W3b<br/>ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:224-225"]
+        P3["the dream-engine cutover to the port is owed, W3b<br/>ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:237-238"]
         P1 --> P2
         P3 --> P2
     end
@@ -1041,7 +1043,7 @@ flowchart TB
 
 **Invariant (under role_isolation):** dream-engine never reads the JunkieJarvis key from its environment or from the repo `.env` on the workspace bind: with the flag on only `JUNKIEJARVIS_PRIVKEY_HEX_FILE` is consulted, and its absence is an error (`../project/agentbox/services/dream-engine/src/relay.rs:95-101`). With the flag off, which is how it ships, the pre-W2 order stands: the bare variable, then the `.env` line (`../project/agentbox/services/dream-engine/src/relay.rs:102-118`), the same loader contract as `scripts/dream-forum-suggestions.mjs`, which reads it through `role-secret.js` (`../project/agentbox/scripts/dream-forum-suggestions.mjs:215-221`, `../project/agentbox/management-api/lib/role-secret.js:120`).
 
-**Tension (identity port ACL vs the forum governance round trip):** the port's loader refuses to grant kinds 31400-31405 to anyone, because a governance event records a human decision and must not carry a container key (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:65-73`). Yet the dream engine publishes the 31400 panel and 31402 cases signed with the JunkieJarvis key (`../project/agentbox/services/dream-engine/src/governance.rs:9-10`), and ADR-2122 still plans to move dream-engine onto the port in W3b (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:224-225`). As written, the port can never sign what AB-23.17 sends.
+**Tension (identity port ACL vs the forum governance round trip):** the port's loader refuses to grant kinds 31400-31405 to anyone, because a governance event records a human decision and must not carry a container key (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:65-73`). Yet the dream engine publishes the 31400 panel and 31402 cases signed with the JunkieJarvis key (`../project/agentbox/services/dream-engine/src/governance.rs:9-10`), and ADR-2122 still plans to move dream-engine onto the port in W3b (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:237-238`). As written, the port can never sign what AB-23.17 sends.
 
 **Open:** under `[security].role_isolation` the forum governance round trip stops without an error. The delivered key file belongs to `ab-identity`, dream-engine runs as devuser, and `load_key` treats the refusal as fail-open and skips (`../project/agentbox/config/entrypoint-unified.sh:460-462`, `../project/agentbox/services/dream-engine/src/governance.rs:920-928`). Nothing at this revision says whether that is the intended state until W3b, or a gap the boot rehearsal must catch.
 
@@ -1081,11 +1083,11 @@ sequenceDiagram
     NEXT->>WNT: settle marks every matching key met (engine.rs:1299, wanted.rs:295)
 ```
 
-**What it shows.** How a file a night could not read goes back to the next night's tree-read instead of to a person. The store is keyed on repository, deep slot and path, and a request is active until it has been inlined once or offered for three nights. **Why it is this way.** On 2026-10-17 nine of fifty-seven open governance cases asked the operator to supply named files, several for the third time, because the planner never saw the previous night's ask; ADR-2143 makes source supply plumbing so the panel shows decisions only (`../project/agentbox/docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md:21-24`). The core half is ADR-DE-008 (`../dream-engine/docs/adr/ADR-DE-008-requested-sources-are-honoured-first.md:6-8`).
+**What it shows.** How a file a night could not read goes back to the next night's tree-read instead of to a person. The store is keyed on repository, deep slot and path, and a request is active until it has been inlined once or offered for three nights. **Why it is this way.** On 2026-10-17 nine of fifty-seven open governance cases asked the operator to supply named files, several for the third time, because the planner never saw the previous night's ask; ADR-2143 makes source supply plumbing so the panel shows decisions only (`../project/agentbox/docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md:22-24`). The core half is ADR-DE-008 (`../dream-engine/docs/adr/ADR-DE-008-requested-sources-are-honoured-first.md:6-8`).
 
 **Invariant:** every operator question is one line in four labelled fields, Decision, Why, If approved, If not, parsed by `decision_fields`, and an If approved that promises a merge, promotion or release is rewritten because approval never merges anything (`../project/agentbox/services/dream-engine/src/inbox.rs:237`, `../project/agentbox/services/dream-engine/src/inbox.rs:288`).
 
-**Tension (ADR-2143 vs the scan offer):** a slot whose `scan` entries are paths offers them after the explicit requests, so on a quiet night they take the reserved half of the read, and ADR-2143 calls that intended (`../project/agentbox/docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md:21`) while the engine appends them for every slot without checking that a request is pending (`../project/agentbox/services/dream-engine/src/engine.rs:1266-1273`).
+**Tension (ADR-2143 vs the scan offer):** a slot whose `scan` entries are paths offers them after the explicit requests, so on a quiet night they take the reserved half of the read, and ADR-2143 calls that intended (`../project/agentbox/docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md:23`) while the engine appends them for every slot without checking that a request is pending (`../project/agentbox/services/dream-engine/src/engine.rs:1266-1273`).
 
 ## AB-23.22 AB-23-S1-01 — the opt-in Jev triage before the candidate build
 
@@ -1093,7 +1095,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant ENG as Engine, step 8b<br/>agentbox/services/dream-engine/src/engine.rs:1439
-    participant JT as jev_triage::consider<br/>agentbox/services/dream-engine/src/jev_triage.rs:488
+    participant JT as jev_triage::consider<br/>agentbox/services/dream-engine/src/jev_triage.rs:497
     participant S1 as System One endpoint, loopback proxy or the vendor
     participant SCR as dream_core::screen<br/>dream-core/src/screen.rs:362
     participant REC as jev-triage.json in the night directory
@@ -1102,12 +1104,12 @@ sequenceDiagram
     ENG->>ENG: only when the report claims ACCEPT (engine.rs:1439)
     ENG->>JT: Config::from_env, report, patch, evaluator names, declared disciplines (engine.rs:1440-1447)
     alt AGENTBOX_JEV_DREAM_TRIAGE not set, no endpoint, or a local-only refusal
-        JT-->>ENG: false, nothing built and nothing sent (jev_triage.rs:147, jev_triage.rs:374)
+        JT-->>ENG: false, nothing built and nothing sent (jev_triage.rs:147, jev_triage.rs:383)
     else enabled
-        JT->>S1: one request, two typed questions: usefulness as a four-level Score, problem_supported as a Noul (jev_triage.rs:310, jev_triage.rs:374)
-        S1-->>JT: signals, or a timeout of 15 seconds, a non-2xx or an unparsable body, each a fallback (jev_triage.rs:72, jev_triage.rs:337)
-        JT->>SCR: a second call, the library screen of the hypothesis against declared_disciplines (jev_triage.rs:422, dream-core/src/screen.rs:91)
-        JT->>REC: annotation only, authority none, written as jev-triage.json (jev_triage.rs:70, jev_triage.rs:488)
+        JT->>S1: one request, two typed questions: usefulness as a four-level Score, problem_supported as a Noul (jev_triage.rs:319, jev_triage.rs:383)<br/>to the keyless LAN local_backend when AGENTBOX_JEV_DREAM_TRIAGE_LOCAL_ONLY is set (jev_triage.rs:151-158),<br/>else the proxy, refused local-only unless declared local (jev_triage.rs:165-167)
+        S1-->>JT: signals, or a timeout of 15 seconds, a non-2xx or an unparsable body, each a fallback (jev_triage.rs:72, jev_triage.rs:346)
+        JT->>SCR: a second call, the library screen of the hypothesis against declared_disciplines (jev_triage.rs:431, dream-core/src/screen.rs:91)
+        JT->>REC: annotation only, authority none, written as jev-triage.json (jev_triage.rs:70, jev_triage.rs:497)
         alt AGENTBOX_JEV_DREAM_TRIAGE_DEFER_BELOW is set in 0 to 0.5 and problem_supported is below it
             JT-->>ENG: true, defer
             ENG->>GATE: the candidate build is skipped, the state stays NotAttempted and the gate vetoes the ACCEPT claim as unproven (engine.rs:1461-1465)
@@ -1116,18 +1118,18 @@ sequenceDiagram
             ENG->>GATE: the build and the gate run exactly as before (engine.rs:1465)
         end
     end
-    Note over GATE: INVARIANT: a high usefulness never means ACCEPT. The signals never reach the gate,<br/>the deferral is the only action and it is inert until a threshold is configured (jev_triage.rs:481)
+    Note over GATE: INVARIANT: a high usefulness never means ACCEPT. The signals never reach the gate,<br/>the deferral is the only action and it is inert until a threshold is configured (jev_triage.rs:490)
 ```
 
 **What it shows.** An optional annotation step between the model's report and the costly candidate build. **Why it is this way.** The candidate evaluation is the expensive part of a night, and a hypothesis that the evidence does not support is cheaper to hold back than to build; but the verdict is advice about where to spend measurement, never about the change, so the deterministic gate, the protected-path guard and the human merge gate decide everything that does run (`../project/agentbox/services/dream-engine/src/jev_triage.rs:1-30`). The screening mechanism itself lives in `dream-core` 0.4.0 (`../dream-engine/crates/dream-core/src/screen.rs:1-30`).
 
-**Open:** the option is off in the manifest (`jev_triage = false`) and is rebuild-class (`../project/agentbox/agentbox.toml:2611`), so no night at this stamp is annotated or deferred by it.
+**Open:** the manifest now sets `jev_triage = true` with `[system_one] enabled = true` and `local_backend = "laya"` (`../project/agentbox/agentbox.toml:2609`, `../project/agentbox/agentbox.toml:890-891`), and projects `AGENTBOX_JEV_DREAM_TRIAGE_LOCAL_ONLY=1` plus the private LAN route before supervisord starts, so triage cannot reach the cloud `typesafe` backend (`../project/agentbox/services/agentbox-manifest/src/system_one.rs:371`, `../project/agentbox/services/agentbox-manifest/src/system_one.rs:480`, `../project/agentbox/config/entrypoint-unified.sh:1259-1263`), and the flake bakes `AGENTBOX_JEV_DREAM_TRIAGE=1` into the dream-engine program only when the System One proxy is on (`../project/agentbox/flake.nix:280-281`); it is rebuild-class and ADR-2155 records the consumer activation as `staged` (`../project/agentbox/docs/adr/ADR-2155-system-one-consumer-activation.md:7`), so no running night is annotated or deferred until an image carrying that manifest is activated.
 
 **Debt:** the module re-implements the System One request body that `crates/system-one/system-one-client` speaks, because the service builds from `services/dream-engine` alone and the client is a workspace path dependency (`../project/agentbox/services/dream-engine/src/jev_triage.rs:44-48`).
 
 ## Audit qualification — 2026-10-29
 
-This topic describes the extraction as source at the stamped revisions. ADR-2141 records `implementation_status: complete` and `activation_status: live`: the operator rebuilt and activated the registry-pinned image on 2026-10-16 and the supervised daemon was RUNNING with no degradation (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:47`). The later pins (0.2.0, 0.3.0, 0.4.0) are source in `Cargo.toml`; the record carries activation evidence for 0.2.0 only (`../project/agentbox/docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md:38`).
+This topic describes the extraction as source at the stamped revisions. ADR-2141 records `implementation_status: complete` and `activation_status: live`: the operator rebuilt and activated the registry-pinned image on 2026-10-16 and the supervised daemon was RUNNING with no degradation (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:47`). The later pins (0.2.0, 0.3.0, 0.4.0) are source in `Cargo.toml`; the record carries activation evidence for 0.2.0 only (`../project/agentbox/docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md:35`).
 
 **Resolved:** the earlier follow-on that `ontomark/dream.config.json` (`"adrConvention": "ADR-OM-NNN"`) would not load under the stricter `dream-gate` validation is closed: the legacy free-form template is accepted and rendered with its prefix from `dream-gate` 0.1.1 (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:35`).
 

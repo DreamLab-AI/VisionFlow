@@ -73,7 +73,7 @@ sources:
   - ../project/src/handlers/api_handler/analytics/clustering_handlers.rs
   - ../project/scripts/launch.sh
   - ../project/src/services/acsp/key_file.rs
-verified_commit: 19417bdff5fc22053a8a0cc185797b0311521d10
+verified_commit: e74bcddc772d47a45b1971156a2bab540eaa027c
 ---
 
 ## VC-09.1 Config load precedence — main() boot order

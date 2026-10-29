@@ -34,7 +34,7 @@ sources:
   - ../project/agentbox/mcp/servers/nostr-bridge.js
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/lib/bc20-provenance-bridge.js
-verified_commit: 1da8d21719a27394f190866223b88533b52d87f9
+verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
 ---
 
 ## AB-11.1 Identity, URN and mandate type model
@@ -133,7 +133,7 @@ sequenceDiagram
     AI->>AI: xOnly = deriveXonly(privHex)
     alt xOnly falsy or not HEX64
         AI-->>CALLER: return null
-        Note over AI,CALLER: the CLI exits non-zero and the entrypoint aborts boot (entrypoint-unified.sh:1443), no placeholder identity survives. see AB-11.3
+        Note over AI,CALLER: the CLI exits non-zero and the entrypoint aborts boot (entrypoint-unified.sh:1422), no placeholder identity survives. see AB-11.3
     else derived
         critical persist so the DID survives a restart
             AI->>FS: mkdirSync(dirname, recursive) then writeFileSync(privHex, mode 0o600) then chmodSync 0o600 (agent-identity.js:164-166)
@@ -172,15 +172,15 @@ sequenceDiagram
             LM-->>CLI: {did, pubkey, multikey, persisted true, keyPath}
             CLI-->>EP: stdout export AGENTBOX_AGENT_DID / AGENTBOX_AGENT_PUBKEY / AGENTBOX_AGENT_DID_MULTIKEY<br/>agent-identity.js:225-229
             CLI-->>EP: stderr agent-identity: minted or loaded the did (persisted=true, keyfile=path)<br/>agent-identity.js:230-233
-            EP->>EP: parse AGENTBOX_AGENT_DID with sed and require the exact expected three export lines, never eval (entrypoint-unified.sh:1446-1453)
-            EP->>SHELL: export AGENTBOX_AGENT_DID, AGENTBOX_AGENT_PUBKEY, AGENTBOX_AGENT_DID_MULTIKEY (entrypoint-unified.sh:1453-1461)
+            EP->>EP: parse AGENTBOX_AGENT_DID with sed and require the exact expected three export lines, never eval (entrypoint-unified.sh:1425-1432)
+            EP->>SHELL: export AGENTBOX_AGENT_DID, AGENTBOX_AGENT_PUBKEY, AGENTBOX_AGENT_DID_MULTIKEY (entrypoint-unified.sh:1432-1440)
             CLI-->>EP: exit 0 agent-identity.js:234
         end
     end
-    Note over EP,SHELL: RESOLVED ADR-2044 (2026-09-05, was DIVERGENCE) - the CLI's own fail-open<br/>path is GONE: a failed mint OR a mint that could not persist its key now exits<br/>non-zero with NO export lines, agent-identity.js:31-46. The entrypoint now treats that as<br/>FATAL too: no mint runtime, a failed mint, or output that is not exactly the three<br/>expected export lines aborts boot with exit 1 (entrypoint-unified.sh:1439-1450), so no<br/>did:nostr:local placeholder is exported. see AB-11.13
+    Note over EP,SHELL: RESOLVED ADR-2044 (2026-09-05, was DIVERGENCE) - the CLI's own fail-open<br/>path is GONE: a failed mint OR a mint that could not persist its key now exits<br/>non-zero with NO export lines, agent-identity.js:31-46. The entrypoint now treats that as<br/>FATAL too: no mint runtime, a failed mint, or output that is not exactly the three<br/>expected export lines aborts boot with exit 1 (entrypoint-unified.sh:1418-1429), so no<br/>did:nostr:local placeholder is exported. see AB-11.13
 ```
 
-**Drift (INGRESS-identity vs entrypoint):** `docs/INGRESS-identity.md` still names a `did:nostr:local` placeholder fallback that lets a degraded boot produce a non-sovereign identity (`agentbox/docs/INGRESS-identity.md:242-243`), and the `agent-identity.js` header says the entrypoint's `${AGENTBOX_AGENT_DID:-did:nostr:local}` fallback runs unconditionally (`agentbox/management-api/lib/agent-identity.js:41-46`), while the entrypoint aborts boot on a failed or inconsistent mint (`agentbox/config/entrypoint-unified.sh:1443-1450`).
+**Drift (INGRESS-identity vs entrypoint):** `docs/INGRESS-identity.md` still names a `did:nostr:local` placeholder fallback that lets a degraded boot produce a non-sovereign identity (`agentbox/docs/INGRESS-identity.md:225-226`), and the `agent-identity.js` header says the entrypoint's `${AGENTBOX_AGENT_DID:-did:nostr:local}` fallback runs unconditionally (`agentbox/management-api/lib/agent-identity.js:41-46`), while the entrypoint aborts boot on a failed or inconsistent mint (`agentbox/config/entrypoint-unified.sh:1422-1429`).
 
 ## AB-11.4 URN kind table — scope, content addressing and resolvable surface
 
@@ -678,15 +678,15 @@ sequenceDiagram
 
     rect rgb(240,255,240)
     Note over BOOT,KF: IMPLEMENTED — what the code actually does
-    BOOT->>AI: mint or load the per-profile agent key<br/>ADR-2044 (2026-09-05): the CLI now exits non-zero on mint or persist failure<br/>and the entrypoint aborts boot (entrypoint-unified.sh:1439-1450) instead of tolerating did:nostr:local — see AB-11.3
+    BOOT->>AI: mint or load the per-profile agent key<br/>ADR-2044 (2026-09-05): the CLI now exits non-zero on mint or persist failure<br/>and the entrypoint aborts boot (entrypoint-unified.sh:1418-1429) instead of tolerating did:nostr:local — see AB-11.3
     AI->>KF: writeFileSync mode 0o600 then chmodSync 0o600 (agent-identity.js:164-166)
     KF-->>AI: readable only by this uid
     BOOT->>BR: load bridge identity from AGENTBOX_BRIDGE_SK_FILE, legacy environment fallback remains
-    BOOT->>PX: RESOLVED ADR-2027 (2026-09-05, partial) — break-glass bearer now checks<br/>breakGlassNotExpired() and breakGlassScopeAllows() before granting, and every<br/>use/refusal is audited by token fingerprint (proxy.mjs:668-707, both bounds<br/>default-OFF and opt-in) — see AB-10.3
+    BOOT->>PX: RESOLVED ADR-2027 (2026-09-05, partial) — break-glass bearer now checks<br/>breakGlassNotExpired() and breakGlassScopeAllows() before granting, and every<br/>use/refusal is audited by token fingerprint (proxy.mjs:529-568, both bounds<br/>default-OFF and opt-in) — see AB-10.3
     end
     rect rgb(255,240,240)
     Note over ADR,PX: STILL PROPOSED AND NOT ACTIVE — the ADR-2027 requirements below have no code behind them
-    ADR-->>PX: restart-invalidation and multi-instance policy for NIP98_PROXY_SESSION_SECRET — today it still defaults to per-boot crypto.randomBytes unless the role-secret loader pins one (proxy.mjs:244-245)
+    ADR-->>PX: restart-invalidation and multi-instance policy for NIP98_PROXY_SESSION_SECRET — today it still defaults to per-boot crypto.randomBytes unless the role-secret loader pins one (proxy.mjs:166-167)
     ADR-->>BR: per-consumer key split — the 31403 governance decisions are signed by the operator's NIP-07 signer, while visionclaw-server signs 31402 under its own key (Q15, 2026-10-03, relay allowlist entry agentbox.toml:159-160 and legacy ADR-040 D3)
     ADR-->>AI: rotation cadence, revocation procedure, named custodian, maximum response window — every row is UNCONFIRMED
     end

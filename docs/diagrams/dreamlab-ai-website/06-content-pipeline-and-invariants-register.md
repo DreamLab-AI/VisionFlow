@@ -27,7 +27,7 @@ sources:
   - ../dreamlab-ai-website/docs/api/NOSTR_RELAY.md
   - ../dreamlab-ai-website/docs/api/SEARCH_API.md
   - ../dreamlab-ai-website/docs/api/MODERATION_API.md
-verified_commit: 3afa374f5957027213471f2429c7ba26996b0744
+verified_commit: 07cf8642bddb44df2388a5d1e9d2074923ab6ac0
 ---
 
 ## DW-06.1 Pre-build content pipeline — two generators, run before every dev/build
@@ -124,7 +124,7 @@ flowchart TB
     D9["BASELINE-architecture.md cites a stale KIT_REF (BASELINE-architecture.md:117) and a beta.9 crate version (BASELINE-architecture.md:152)<br/>see DW-01.5"]
     D10["branding.rs dead code contradicts live dreamlab.toml branding values<br/>see DW-03.8/DW-03.1"]
     D11["BASELINE-architecture.md estate-closeout note predates the 2026-09-05 gate fix<br/>see DW-05.3"]
-    D12["README.md names kit source 631c09f in prose<br/>dreamlab-ai-website/README.md:65 vs rust-ci.yml:20,<br/>workers-deploy.yml:44 — see DW-06.8"]
+    D12["RESOLVED 07cf8642: README.md names kit source 8a5cf81, agreeing with the pins<br/>dreamlab-ai-website/README.md:65 and rust-ci.yml:20,<br/>workers-deploy.yml:44 — see DW-06.8"]
     D13["RESOLVED 2026-10-07: root-level seed scripts with a hardcoded key<br/>deleted by 3baf2fa4, historical — see DW-07.2"]
     D14["embeddings/ tooling targets RuVector Postgres + all-MiniLM-L6-v2,<br/>unrelated to the search worker; the README claim was removed — see DW-07.4"]
     D15["IDENTITY-zones.md I7 breached: zone2/zone4 now encrypted=true too<br/>(dreamlab.toml:123,148), master gate [encryption].enabled added<br/>(dreamlab.toml:34) citing an uncommitted ADR-2016 — DW-03.1/DW-04.1<br/>still state 'only zone3 encrypted', not yet re-verified against this<br/>see DW-06.6 I7"]
@@ -138,10 +138,10 @@ flowchart TB
     CLI["npm run check:claims, package.json:31<br/>advisory, always exits 0, scripts/check-claims.mjs:2-3,33"] --> EXTRACT["extractClaims: list items of five or more words<br/>outside code fences, scripts/lib/claims.mjs:28-45"]
     README["README.md list items, default input<br/>scripts/check-claims.mjs:19"] --> EXTRACT
     EXTRACT --> CLASS["classifyDeterministic: first register match wins,<br/>else unclassified, scripts/lib/claims.mjs:48-56"]
-    REG["docs/claims-register.json<br/>3 feature notes, 2 claims, docs/claims-register.json:3-31"] --> CLASS
+    REG["docs/claims-register.json<br/>3 feature notes, 2 claims, docs/claims-register.json:3-40"] --> CLASS
     CLASS --> REPORT["formatReport lists only stale and unsupported<br/>scripts/lib/claims.mjs:135-142"]
     CLASS -.->|"DREAMLAB_JEV=1 and feature notes present"| JEV["advisory notes, never a verdict<br/>scripts/lib/claims.mjs:89-131"]
 ```
 - The earlier nine-bullet README feature list this diagram once classified is gone with the README rewrite; the register is seeded only with README claims that cite a concrete in-repo `file:line` (web push in the operator overlay, declared recipients and an inbox-watch path), so uncited README claims report `unclassified` by design (`docs/claims-register.json:2`).
-- **Tension:** the README says there is "no register file in this commit" and that every claim reports `unclassified` until one exists (`README.md:125`), while `docs/claims-register.json` is committed with two claims and three feature notes (`docs/claims-register.json:3-31`) and `checkClaims` skips Jev only when no feature notes exist (`scripts/lib/claims.mjs:98-101`).
-- **Drift:** `README.md:65` still states the workflows pin kit source `631c09f…`, while all three pin sites carry `ebcfaa2c600f61a69ca4e84befc55a2f7518df4a` (`.github/workflows/rust-ci.yml:20`, `.github/workflows/workers-deploy.yml:44`).
+- **Tension (closed):** the README no longer says "no register file"; it now says the source-grounded register ships in this repository, that its evidence paths are checked in the test suite, and that the checker runs at the end of `postbuild` (`README.md:125`). `docs/claims-register.json` carries two claims and three feature notes, each now with an `evidence` path (`docs/claims-register.json:3-40`), and `checkClaims` still skips Jev only when no feature notes exist (`scripts/lib/claims.mjs:98-101`).
+- **Drift (closed):** `README.md:65` used to state kit source `631c09f…`; it now states `8a5cf81…`, matching the pin sites that carry `8a5cf817e81b20e2b761899eab753768c0cb4988` (`.github/workflows/rust-ci.yml:20`, `.github/workflows/workers-deploy.yml:44`).

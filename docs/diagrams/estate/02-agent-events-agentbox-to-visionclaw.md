@@ -46,7 +46,7 @@ sources:
   - ../project/agentbox/docs/PROTOCOL-registry.md
   - ../project/agentbox/schema/federation-kinds.json
   - ../project/docs/explanation/visionflow-coordination-platform.md
-verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9}
+verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, agentbox: 0b0f7918961e629280faf86f88227535abf514b5}
 ---
 ## ES-02.1 Producer — POST /v1/agent-events/emit, NIP-98 gate, local publish
 ```mermaid

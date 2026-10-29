@@ -59,7 +59,7 @@ sources:
   - ../project/crates/vault-core/src/frontmatter.rs
   - ../project/crates/vault-core/src/page.rs
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: 07f4c1ce6ac9e7d5c1c2169b4672ca73c54e5efa, visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, visionflow: 1d7183a73c1eae4996a7006067d5047308fab7a5}
+verified_commit: {ontomark: 07f4c1ce6ac9e7d5c1c2169b4672ca73c54e5efa, visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, visionflow: 124512b8f5e8c33c247065c58901dcfdc18988a2}
 ---
 
 ## OM-00.1 Duplicated rules — every copy at 07f4c1c, whether it still diverges, and the one home each collapses into

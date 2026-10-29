@@ -28,7 +28,7 @@ sources:
   - ../project/src/handlers/socket_flow_handler/position_updates.rs
   - ../project/src/handlers/socket_flow_handler/binary_protocol.rs
   - ../project/client/src/features/graph/managers/dataManager/wsClient.ts
-verified_commit: 19417bdff5fc22053a8a0cc185797b0311521d10
+verified_commit: e74bcddc772d47a45b1971156a2bab540eaa027c
 ---
 
 ## VC-14.1 V3 position record — 52 bytes, little-endian

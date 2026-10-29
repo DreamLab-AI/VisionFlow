@@ -60,7 +60,7 @@ sources:
   - ../project/src/services/corpus_source/mod.rs
   - ../project/src/services/corpus_source/local.rs
   - ../project/src/services/corpus_source/github.rs
-verified_commit: 19417bdff5fc22053a8a0cc185797b0311521d10
+verified_commit: e74bcddc772d47a45b1971156a2bab540eaa027c
 ---
 
 ## VC-07.1 The hexagon — ports, adapters and where each canonical type lives
@@ -103,7 +103,7 @@ flowchart TB
     ADAPT --- N1
     N2["src/repositories/mod.rs is documentation only — all legacy Neo4j and SQL repositories<br/>were removed. Canonical adapters named there are OxigraphOntologyRepository,<br/>OxigraphGraphRepository, SqliteSettingsRepository (ADR-2004)."]
     ADAPT --- N2
-    N3["Workspace — the orphan crates/graph-cognition-extract directory has been removed<br/>(docs/BASELINE-architecture.md:116) and is absent from the tree. solid-pod-rs is a crates.io<br/>version requirement, not a git rev (Cargo.toml:245) — the former rev=main resolution error no longer applies.<br/>The workspace now also lists visionclaw-wire, memory-cloud, tri-layout and jev (Cargo.toml:6,16-18).<br/>Codescape is a separate repository mounted as the codescape/ submodule, never a root member (AGENTS.md:15, ADR-2143 A5)"]
+    N3["Workspace — the orphan crates/graph-cognition-extract directory has been removed<br/>(docs/BASELINE-architecture.md:127) and is absent from the tree. solid-pod-rs is a crates.io<br/>version requirement, not a git rev (Cargo.toml:245) — the former rev=main resolution error no longer applies.<br/>The workspace now also lists visionclaw-wire, memory-cloud, tri-layout and jev (Cargo.toml:6,16-18).<br/>Codescape is a separate repository mounted as the codescape/ submodule, never a root member (AGENTS.md:15, ADR-2143 A5)"]
     XCRATE --- N3
     N4["DOC-DRIFT — the adapters module doc src/adapters/mod.rs:8-15 lists seven modules as<br/>still in webxr, resolved in Phase A3; they are still there at this commit, so Phase A3<br/>has not landed. The dev build feature set is gpu,ontology,dev-auth — see VC-08."]
     ADAPT --- N4
@@ -134,8 +134,8 @@ sequenceDiagram
     SH->>CR: pub use visionclaw_domain::ports::* (src/ports/mod.rs:26-45)
     Note over SH: module-path aliases kept so legacy call sites keep resolving
     Note over C,CR: project/src/lib.rs:51-59 re-exports ClientCoordinatorActor, MetadataActor,<br/>OptimizedSettingsActor, AppState, UserSettings from the root crate itself, plus ADR-090<br/>compatibility aliases MetadataStore, ProtectedSettings, SimulationParams from<br/>visionclaw_domain::models — preserving the old visionclaw_server:: API for external callers
-    Note over C,CR: DIVERGENCE (BASELINE-architecture.md:120) — actor extraction incomplete, 25 src/actors/*.rs<br/>vs 11 in crates/visionclaw-actors. The live tree runs from src/. See VC-02.
-    Note over C,CR: DIVERGENCE (BASELINE 2026-09-04 crate and supervision closeout, BASELINE-architecture.md:348) — ADR-2005<br/>remains partial. The workspace adds converter and integration-test members to the census.
+    Note over C,CR: DIVERGENCE (BASELINE-architecture.md:131) — actor extraction incomplete, 25 src/actors/*.rs<br/>vs 11 in crates/visionclaw-actors. The live tree runs from src/. See VC-02.
+    Note over C,CR: DIVERGENCE (BASELINE 2026-09-04 crate and supervision closeout, BASELINE-architecture.md:359) — ADR-2005<br/>remains partial. The workspace adds converter and integration-test members to the census.
 ```
 
 ## VC-07.5 CQRS application layer — settings and knowledge-graph domains
@@ -329,8 +329,8 @@ sequenceDiagram
     H->>AD: persist StoredDecision / EnrichmentProposal
     H->>AC: emit ACSP event
     Note over AC: stateless producer — there is no BrokerActor
-    Note over H,AC: DIVERGENCE (BASELINE-architecture.md:291) — BrokerActor was never merged. main uses a stateless<br/>ACSP producer plus a cherry-picked storage-agnostic domain broker kernel (~936 LOC).<br/>Measured here: broker_case.rs 490 + broker_decision.rs 437 = 927 lines, 1071 including<br/>mod.rs and precedent_registry.rs — consistent with the doc's ~936.
-    Note over H,AC: DIVERGENCE (BASELINE ACSP workflow closeout 2026-09-04, BASELINE-architecture.md:346) — the retained kernel's<br/>presence does not prove integration into the elevation actor or the inbox DTO.<br/>Current source review does not certify a complete human-approval journey. See VC-05.
+    Note over H,AC: DIVERGENCE (BASELINE-architecture.md:302) — BrokerActor was never merged. main uses a stateless<br/>ACSP producer plus a cherry-picked storage-agnostic domain broker kernel (~936 LOC).<br/>Measured here: broker_case.rs 490 + broker_decision.rs 437 = 927 lines, 1071 including<br/>mod.rs and precedent_registry.rs — consistent with the doc's ~936.
+    Note over H,AC: DIVERGENCE (BASELINE ACSP workflow closeout 2026-09-04, BASELINE-architecture.md:357) — the retained kernel's<br/>presence does not prove integration into the elevation actor or the inbox DTO.<br/>Current source review does not certify a complete human-approval journey. See VC-05.
     Note over K,AD: ADR-2016 provenance append-only applies to the decision record — see VC-22
 ```
 

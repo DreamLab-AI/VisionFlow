@@ -12,7 +12,7 @@ sources:
   - ../project/.github/workflows/ontology-publish.yml
   - ../project/docs/adr/ADR-2106-ontology-pull-model-into-the-embedded-pod.md
   - ../project/docs/adr/ADR-2147-inferences-carry-a-re-checkable-certificate-and-proposals-carry-a-consequence-delta.md
-verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, visiongraph: 59e7dcc8d05ca447d03c74c819a740b390b93074}
+verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, visiongraph: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e}
 ---
 
 ## VG-04.1 VisionClaw's ontology-publish.yml — pulls FROM visionGraph, not from knowledgeGraph

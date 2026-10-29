@@ -6,7 +6,7 @@ governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/codescape/docs/BASELINE-codescape.md
   - ../project/docs/PROTOCOL-registry.md
-adrs: [ADR-2143, ADR-2018, ADR-2019, ADR-2024, ADR-2141]
+adrs: [ADR-2143, ADR-2018, ADR-2019, ADR-2024, ADR-2141, ADR-2148]
 sources:
   - ../project/docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md
   - ../project/codescape/Cargo.toml
@@ -49,15 +49,19 @@ sources:
   - ../project/codescape/crates/codescape-server/src/voice/asr.rs
   - ../project/codescape/crates/codescape-server/src/voice/tts.rs
   - ../project/codescape/crates/codescape-server/src/voice/loom.rs
+  - ../project/codescape/crates/codescape-server/src/voice/jev.rs
+  - ../project/codescape/README.md
+  - ../project/docs/BASELINE-architecture.md
+  - ../project/agentbox/docker-compose.system-one.yml
   - ../project/nginx.dev.conf
   - ../project/docker-compose.unified.yml
   - ../project/codescape/client/src/net/config.ts
   - ../project/xr-client/scripts/graph_scene.gd
   - ../project/agentbox/config/hooks/activity-sink.cjs
-verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, agentbox: 1da8d21719a27394f190866223b88533b52d87f9, codescape: 9140a0f875f7976e178d2a9ec021b427afeffd6c}
+verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, agentbox: 0b0f7918961e629280faf86f88227535abf514b5, codescape: c742770ce2a454343d1bba7e1e815c40557cafdf}
 ---
 
-Codescape is a separate section: a near-real-time 3D view of a codebase that humans and agents share by voice, with its own Cargo workspace, its own compose service and a tested isolation boundary from the knowledge-work system (ADR-2143). It reuses the frozen V3/V5 position wire so the desktop and Godot clients render it unchanged, and it never mounts the corpus, never reaches RuVector and holds no signing key. The agentbox hook is cited at agentbox `f5304bc78`, the head of branch `feat/codescape-activity-sink` in the worktree `../project/.worktrees/agentbox-codescape`, which agentbox `main` does not yet contain; state on 2026-10-18: `gh repo view DreamLab-AI/codescape` does not resolve, so the standalone repository is not yet created.
+Codescape is a separate section: a near-real-time 3D view of a codebase that humans and agents share by voice, with its own Cargo workspace, its own compose service and a tested isolation boundary from the knowledge-work system (ADR-2143). It reuses the frozen V3/V5 position wire so the desktop and Godot clients render it unchanged, and it never mounts the corpus, never reaches RuVector and holds no signing key. The agentbox hook is on agentbox `main` (ADR-2146, activity-sink.cjs:5), and the standalone repository now exists: `gh repo view DreamLab-AI/codescape` resolves as a public repository on 2026-10-29. Since the previous stamp the voice path gained an opt-in System One (Jev) pick between grammar and Loom (codescape-server/src/voice/jev.rs:375) and the compose service serves the whole estate as one scene.
 
 ## VC-39.1 Crate DAG, licences and the isolation fence (Codescape is its own repository since ADR-2143 A5)
 
@@ -103,15 +107,15 @@ flowchart TB
 flowchart TB
     subgraph HOST["host"]
         LAN["laptop or headset on the LAN"]
-        LOOP["host loopback, port 4100 published to 127.0.0.1 by default<br/>docker-compose.unified.yml:537"]
+        LOOP["host loopback, port 4100 published to 127.0.0.1 by default<br/>docker-compose.unified.yml:633"]
     end
     subgraph NET["visionclaw_network"]
         subgraph VC["visionclaw_container, mounts /vault, never hosts the Codescape service"]
             NGX["dev nginx port 3001, location ^~ /codescape/, upstream resolved lazily by Docker DNS<br/>nginx.dev.conf:66 nginx.dev.conf:74-77"]
         end
-        subgraph CS["codescape service, profile codescape, runs the standalone submodule mounted read-only at /app/codescape through its own deploy/codescape-entrypoint.sh, plus read-only repo views<br/>docker-compose.unified.yml:433 docker-compose.unified.yml:443 docker-compose.unified.yml:487 docker-compose.unified.yml:499-515 docker-compose.unified.yml:555-556"]
-            MAIN["main listener port 4100: REST, /ws/positions, /ws/events, /wss, /ws/voice, /ws/presence<br/>codescape-server/src/routes/mod.rs:403-415"]
-            ING["ingest listener port 4101, only when a token file is configured, never published<br/>codescape-server/src/main.rs:175-189 docker-compose.unified.yml:533"]
+        subgraph CS["codescape service, profile codescape, runs the standalone submodule mounted read-only at /app/codescape through its own deploy/codescape-entrypoint.sh, plus read-only views of the estate scene and ten member repositories<br/>docker-compose.unified.yml:454 docker-compose.unified.yml:464 docker-compose.unified.yml:520 docker-compose.unified.yml:482 docker-compose.unified.yml:530-611 docker-compose.unified.yml:651-652"]
+            MAIN["main listener port 4100: REST, /ws/positions, /ws/events, /wss, /ws/voice, /ws/presence<br/>codescape-server/src/routes/mod.rs:406-418"]
+            ING["ingest listener port 4101, only when a token file is configured, never published<br/>codescape-server/src/main.rs:175-189 docker-compose.unified.yml:629"]
             ENG["RepoEngine per repo: ingest thread, layout thread up to 240 Hz, publish every 16 ms<br/>codescape-server/src/engine.rs:32-36 codescape-server/src/engine.rs:713 codescape-server/src/engine.rs:767"]
             MAIN --> ENG
             ING --> ENG
@@ -119,7 +123,8 @@ flowchart TB
         AB["agentbox container: activity-sink hook, fail-open, Bearer token, 1 s budget<br/>activity-sink.cjs:4-23 activity-sink.cjs:276 activity-sink.cjs:306"]
         ASR["nemotron-asr, streaming ASR websocket<br/>codescape-server/src/config.rs:129-134"]
         TTS["pocket-tts<br/>codescape-server/src/config.rs:137-142"]
-        LOOM["Loom door, optional out-of-grammar fallback<br/>docker-compose.unified.yml:470"]
+        LOOM["Loom door, optional out-of-grammar fallback<br/>docker-compose.unified.yml:503"]
+        JEV["System One facade systemone:8097, opt-in CODESCAPE_JEV, local-only, endpoint from compose<br/>docker-compose.unified.yml:494-500 voice/jev.rs:156-205; the facade is defined by agentbox docker-compose.system-one.yml:3 and :106"]
     end
     LAN -->|"http port 3001 /codescape/"| NGX
     LAN -.->|"direct, only with CODESCAPE_PUBLISH_ADDR set"| LOOP
@@ -129,6 +134,7 @@ flowchart TB
     ENG -->|"egress allowlist checked per URL<br/>codescape-server/src/egress.rs:77"| ASR
     ENG --> TTS
     ENG -.-> LOOM
+    ENG -.->|"Jev URL joins the allowlist only when enabled and resolved<br/>codescape-server/src/config.rs:281-282"| JEV
     DESK["desktop client: base from a /codescape first path segment, ?server= override<br/>codescape/client/src/net/config.ts:15-18 codescape/client/src/net/config.ts:32-57"]
     XR["Godot XR client: Backend toggle appends /codescape to XR_BACKEND_WS once<br/>xr-client/scripts/graph_scene.gd:76 xr-client/scripts/graph_scene.gd:909-920 xr-client/scripts/graph_scene.gd:1533-1542"]
     XRN["see VC-40.1 and VC-40.2 - after this stamp (ADR-2143 A6) the XR client gates every server-bound request<br/>on a per-backend capability table and abandons in-flight requests on a switch"]
@@ -139,7 +145,7 @@ flowchart TB
     CS --- REF
 ```
 
-**What it shows.** Codescape is a network peer of VisionClaw, never a co-tenant: nginx reaches it by service name and answers 502 when it is down, the hook reaches port 4101 only across the compose network, and voice egress goes only to the configured ASR, TTS and Loom URLs plus the P6 voice-intent URL when set (codescape-server/src/config.rs:265-277). **Why it is this way.** `visionclaw_container` mounts `/vault` and carries the RuVector connection string, so running Codescape there would make isolation a convention (ADR-2143-codescape-section-separate-workspace-and-port.md:187-193); `/codescape/` on port 3001 is the owner's dev-only waiver of A2 gap 4 (nginx.dev.conf:63-65).
+**What it shows.** Codescape is a network peer of VisionClaw, never a co-tenant: nginx reaches it by service name and answers 502 when it is down, the hook reaches port 4101 only across the compose network, and voice egress goes only to the configured ASR, TTS and Loom URLs plus the P6 voice-intent URL and, when enabled, the Jev URL (codescape-server/src/config.rs:265-283); the compose peer now maps the estate scene and ten member repositories read-only, not just VisionClaw and agentbox (docker-compose.unified.yml:482). **Why it is this way.** `visionclaw_container` mounts `/vault` and carries the RuVector connection string, so running Codescape there would make isolation a convention (ADR-2143-codescape-section-separate-workspace-and-port.md:187-193); `/codescape/` on port 3001 is the owner's dev-only waiver of A2 gap 4 (nginx.dev.conf:63-65).
 
 ## VC-39.3 One position socket tick: admission, base records, selection, V5, ack
 
@@ -243,14 +249,15 @@ sequenceDiagram
     autonumber
     participant B as browser, push-to-talk
     participant V as voice_loop<br/>codescape-server/src/routes/voice.rs:192
-    participant F as FloorGate over FloorArbiter<br/>codescape-server/src/state.rs:181
+    participant F as FloorGate over FloorArbiter<br/>codescape-server/src/state.rs:182
     participant A as AsrSession, nemotron<br/>codescape-server/src/voice/asr.rs:256
     participant R as run_command_inner<br/>codescape-server/src/routes/mod.rs:289
     participant G as parse_command<br/>grammar.rs:484
+    participant JV as Jev pick, after_grammar<br/>codescape-server/src/voice/jev.rs:375
     participant LM as Loom ask<br/>codescape-server/src/voice/loom.rs:148
     participant T as pocket-tts speak<br/>codescape-server/src/voice/tts.rs:78
     B->>V: text type start, button down (codescape-server/src/routes/voice.rs:238-245)
-    V->>F: request(actor, conn), delegating to FloorArbiter.request, broadcast floor state (codescape-server/src/state.rs:181 floor.rs:91)
+    V->>F: request(actor, conn), delegating to FloorArbiter.request, broadcast floor state (codescape-server/src/state.rs:182 floor.rs:91)
     F-->>V: Held by this actor arrives on the event subscription (codescape-server/src/routes/voice.rs:298-300)
     V->>A: start, the egress allowlist checks the ASR URL first (codescape-server/src/voice/asr.rs:261)
     B->>V: binary f32 PCM at 24 kHz, buffered as preroll until the floor is held (codescape-server/src/routes/voice.rs:278-290)
@@ -259,24 +266,28 @@ sequenceDiagram
     A-->>V: Final transcript, floor released (codescape-server/src/routes/voice.rs:340-343)
     Note over V: one command at a time per socket, a second is answered busy (codescape-server/src/routes/voice.rs:347-349)
     V->>R: run_command, text cut to 512 characters (codescape-server/src/routes/mod.rs:287)
-    R->>G: parse_command(text) (codescape-server/src/routes/mod.rs:295)
+    R->>G: parse_command(text), wrapped by after_grammar (codescape-server/src/routes/mod.rs:297)
     alt grammar match
         G-->>R: typed Command
+    else no match and Jev enabled and it picks an offered argument-free command
+        R->>JV: NoMatch only, never a grammar hit, empty or invalid<br/>(codescape-server/src/voice/jev.rs:380-385)
+        JV-->>R: typed Command, validated, confidence at or above the threshold<br/>(codescape-server/src/voice/jev.rs:345-354)
+        Note over JV: none, timeout, transport, non-2xx, malformed or low confidence<br/>all fall through to Loom (codescape-server/src/voice/jev.rs:326-351)
     else no match and Loom configured
-        R->>LM: ask with LOOM_SYSTEM and command_schema (codescape-server/src/routes/mod.rs:305)
+        R->>LM: ask with LOOM_SYSTEM and command_schema (codescape-server/src/routes/mod.rs:308)
         LM-->>R: JSON, then command_from_llm validates it (llm.rs:209)
-        Note over R: INVARIANT: a reply that fails validation is spoken as text, never executed (codescape-server/src/routes/mod.rs:317-331)
+        Note over R: INVARIANT: a reply that fails validation is spoken as text, never executed (codescape-server/src/routes/mod.rs:320-334)
     else no match, no Loom
-        R-->>V: error naming the normalised text (codescape-server/src/routes/mod.rs:300-303)
+        R-->>V: error naming the normalised text (codescape-server/src/routes/mod.rs:303-306)
     end
-    R->>R: execute(Command) on a blocking thread (codescape-server/src/routes/mod.rs:348-351)
+    R->>R: execute(Command) on a blocking thread (codescape-server/src/routes/mod.rs:351-354)
     R-->>V: QueryResult and a Focus effect, view and layout burst follow (codescape-server/src/routes/voice.rs:359-366)
     V->>T: speak(answer), to the speaker only (codescape-server/src/routes/voice.rs:372)
     T-->>B: tts_start, s16le chunks, tts_end (codescape-server/src/routes/voice.rs:112-117)
-    Note over F: claim per connection, hold cap 30 s, ticked every second by main (codescape-server/src/state.rs:138 floor.rs:13 codescape-server/src/main.rs:239-250)
+    Note over F: claim per connection, hold cap 30 s, ticked every second by main (codescape-server/src/state.rs:139 floor.rs:13 codescape-server/src/main.rs:239-250)
 ```
 
-**What it shows.** A single floor gates the single-stream ASR, the final transcript goes through the same executor as typed commands, and the Loom is consulted only when the grammar fails. **Why it is this way.** Every action must be a typed `Command` before it runs and LLM output that fails the schema is spoken, never executed; agent dispatch is deferred to a browser-signed kind-31402 relay in P6 because Codescape holds no signing key (ADR-2143-codescape-section-separate-workspace-and-port.md:65).
+**What it shows.** A single floor gates the single-stream ASR, the final transcript goes through the same executor as typed commands, Jev may pick one of ten argument-free commands only when the grammar fails (off by default, README.md:289), and the Loom is consulted only when both miss. **Why it is this way.** Every action must be a typed `Command` before it runs and LLM output that fails the schema is spoken, never executed; agent dispatch is deferred to a browser-signed kind-31402 relay in P6 because Codescape holds no signing key (ADR-2143-codescape-section-separate-workspace-and-port.md:65).
 
 ## VC-39.6 Proxy trust: whose forwarded headers are believed
 
@@ -294,7 +305,7 @@ flowchart TB
     IP["rate-limit key: LAST X-Forwarded-For hop, the one nginx appended<br/>proxy.rs:295-308"]
     ORIG["public origin: explicit --public-origin wins, else proto://forwarded-host plus prefix<br/>proxy.rs:368-375 proxy.rs:313-326"]
     PFX["prefix: a well-formed X-Forwarded-Prefix, else --public-path-prefix<br/>proxy.rs:322-324 proxy.rs:78-95"]
-    USE["NIP-98 URL for /wss and every verify is rebuilt from that origin, never from Host<br/>codescape-server/src/routes/mod.rs:424-427 codescape-server/src/routes/ws.rs:263-266"]
+    USE["NIP-98 URL for /wss and every verify is rebuilt from that origin, never from Host<br/>codescape-server/src/routes/mod.rs:427-430 codescape-server/src/routes/ws.rs:263-266"]
     REQ --> EN
     CFG -.-> EN
     EN -->|no| OFF
@@ -310,7 +321,7 @@ flowchart TB
     ORIG --> PFX
     ORIG --> USE
     OFF --> USE
-    COMPOSE["compose sets trust on, narrowed to the VisionClaw service alias, prefix /codescape<br/>docker-compose.unified.yml:473 docker-compose.unified.yml:477-478"]
+    COMPOSE["compose sets trust on, narrowed to the VisionClaw service alias, prefix /codescape<br/>docker-compose.unified.yml:506 docker-compose.unified.yml:510-511"]
     NG["nginx sends Host, X-Forwarded-For appended, Proto, Host, Prefix, hides upstream COOP/COEP/CORP<br/>nginx.dev.conf:81-86 nginx.dev.conf:94-96"]
     COMPOSE -.-> EN
     NG -.-> REQ
@@ -318,7 +329,7 @@ flowchart TB
 
 **What it shows.** A sibling container on the compose network that sends the same headers as nginx is treated exactly as trust off, because trust needs both the switch and a matching peer; only the last forwarded-for hop is believed, since the leftmost entries are client-supplied. **Why it is this way.** ADR-2143 A4.4 (ADR-2143-codescape-section-separate-workspace-and-port.md:205-213); the duplicate isolation headers are hidden because two copies parse as `unsafe-none` and defeat cross-origin isolation (nginx.dev.conf:92-93).
 
-## VC-39.7 Register: tensions, debt, drift and open questions at codescape 9140a0f
+## VC-39.7 Register: tensions, debt, drift and open questions at codescape c742770
 
 ```mermaid
 flowchart TB
@@ -328,6 +339,12 @@ flowchart TB
         R2["OPEN: /ws/presence shim accepts the Schnorr signature unverified, the claimed DID is only a label,<br/>bounds 64 members per room, 256 rooms<br/>codescape-server/src/xr_presence.rs:20-23 codescape-server/src/xr_presence.rs:65-67"]
         R3["TENSION: I8a egress allowlist and no-/vault are REJECTED as invariants, compose non-publication<br/>is not an egress boundary, open until P2 ships an egress test<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:82 ADR-2143-codescape-section-separate-workspace-and-port.md:144"]
         R1 --- R2 --- R3
+    end
+    subgraph JEVG["OPEN: Jev option and estate scene"]
+        direction TB
+        J1["OPEN: enabled in compose but accepts nothing: the threshold defaults to 1.0 and compose leaves it empty, README states wiring and fallback tests only, no measured uplift, and BASELINE says activation is staged until the host is recreated<br/>codescape-server/src/voice/jev.rs:166-171 docker-compose.unified.yml:499-500 codescape/README.md:296 docs/BASELINE-architecture.md:49-50"]
+        J2["DEBT: the estate mounts default to an absolute host volume path, overridable only by CODESCAPE_ESTATE_ROOT<br/>docker-compose.unified.yml:556"]
+        J1 --- J2
     end
     subgraph PERF["DEBT: scale targets"]
         direction TB
@@ -339,7 +356,7 @@ flowchart TB
     subgraph XRG["OPEN: XR"]
         direction TB
         X1["OPEN: empty agent hover label in the headset, actor ids carry AGENT_FLAG but the headset<br/>names agents from its label table, else a demo role, else agent N<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:114 xr-client/scripts/graph_scene.gd:2692-2700"]
-        X2["DOC-DRIFT: the P4 row says /ws/presence is unimplemented, but the route is registered<br/>and A4.5 adds the shim<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:114 codescape-server/src/routes/mod.rs:415 ADR-2143-codescape-section-separate-workspace-and-port.md:217-218"]
+        X2["DOC-DRIFT: the P4 row says /ws/presence is unimplemented, but the route is registered<br/>and A4.5 adds the shim<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:114 codescape-server/src/routes/mod.rs:418 ADR-2143-codescape-section-separate-workspace-and-port.md:217-218"]
         X3["OPEN: /wss ignores nodePin, nodeUnpin and nodeDrag and there is no physics write, so the headset greys<br/>those controls (see VC-40.1); whether Codescape should honour drag and pin is undecided"]
         X1 --- X2 --- X3
     end
@@ -360,4 +377,4 @@ flowchart TB
     end
 ```
 
-**What it shows.** Every known gap at the stamp, each anchored to the code or the ADR line that records it; ADR-2143 is `implementation_status: partial` and `activation_status: inactive` (ADR-2143-codescape-section-separate-workspace-and-port.md:6-7), with P0 done and P2 to P6 open (ADR-2143-codescape-section-separate-workspace-and-port.md:296). **Verified.** Citations read at visionclaw `19417bdff`, agentbox `1da8d2171` and codescape `9140a0f` on 2026-10-29; the `/codescape/` prod path is untouched and prod's SPA fallback answers 200 there, not 404 (ADR-2143-codescape-section-separate-workspace-and-port.md:196-198).
+**What it shows.** Every known gap at the stamp, each anchored to the code or the ADR line that records it; ADR-2143 is `implementation_status: partial` and `activation_status: inactive` (ADR-2143-codescape-section-separate-workspace-and-port.md:6-7), with P0 done and P2 to P6 open (ADR-2143-codescape-section-separate-workspace-and-port.md:296). **Verified.** Citations read at visionclaw `e74bcddc7`, agentbox `0b0f79189` and codescape `c742770` on 2026-10-29; the `/codescape/` prod path is untouched and prod's SPA fallback answers 200 there, not 404 (ADR-2143-codescape-section-separate-workspace-and-port.md:196-198).

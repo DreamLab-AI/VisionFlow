@@ -41,7 +41,7 @@ sources:
   - .github/workflows/adr-index.yml
   - scripts/adr-ratchet.sh
   - tests/gates/estate-health-ci.test.mjs
-verified_commit: 1d7183a73c1eae4996a7006067d5047308fab7a5
+verified_commit: 124512b8f5e8c33c247065c58901dcfdc18988a2
 ---
 
 ## VF-05.1 Gate route table — trigger, script, verdict, blocking
@@ -418,7 +418,7 @@ flowchart TB
 
     LICN["LICENSES/README.md: repo documents an MPL-2.0 / AGPL-3.0 mix;<br/>until a root licence file is added, repo-local docs and website<br/>assets need explicit maintainer confirmation before reuse outside<br/>the ecosystem — a prose obligation, this gate the only automated one<br/>LICENSES/README.md:3,5"]:::ok
     MNTN["MAINTAINERS.md triage rule: security/protocol issues go to the<br/>OWNING substrate first; cross-repository architecture issues<br/>belong in VisionFlow docs<br/>MAINTAINERS.md:10"]
-    DIVL["DIVERGENCE: README.md:7's badge advertises AGPL-3.0 while no root<br/>LICENSE file exists — the condition LICENSES/README.md:5 makes<br/>reuse-confirmation conditional on is still unmet"]:::block
+    DIVL["RESOLVED: README.md carries no AGPL-3.0 badge and README.md:163<br/>states that this checkout has no root licence grant — matching<br/>LICENSES/README.md:5, whose reuse-confirmation condition (a root licence file) is still unmet"]:::block
     T -.-> LICN
     LICN -.-> DIVL
 ```
@@ -594,4 +594,4 @@ flowchart TB
 **What it shows.** The same route table as VF-05.1 for the two documentation gates that fire on `docs/**` paths: the diagrams-as-code index gate, which now also renders every block with Pele on the hosted runner, and the ADR ledger gate with its ratchet.
 **Why it is this way.** VF-05.1 was split because the single table rendered 4,681 px wide under Pele's layout and the 4,500 px ceiling is enforced (docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:37-38).
 
-**Since the last stamp:** `scripts/check-augmentation-citations.cjs` gained an opt-in advisory pass (`--jev` or `VISIONFLOW_JEV=claim`) that runs after the deterministic gate has printed its summary and can only append `JEV claim` lines for cells a typed-decision model finds unsupported; it never changes a FAIL, the summary line or the exit code, and it is local-only because it sends excerpts of sibling checkouts (`scripts/check-augmentation-citations.cjs:13-16`, `scripts/check-augmentation-citations.cjs:27`, `scripts/check-augmentation-citations.cjs:102-115`, `docs/jev-option.md:5`).
+**Since the last stamp:** `scripts/check-augmentation-citations.cjs` gained an opt-in advisory pass (`--jev` or `VISIONFLOW_JEV=claim`) that runs after the deterministic gate has printed its summary and can only append `JEV claim` lines for cells a typed-decision model finds unsupported; it never changes a FAIL, the summary line or the exit code, and it is local-only because it sends excerpts of sibling checkouts (`scripts/check-augmentation-citations.cjs:13-16`, `scripts/check-augmentation-citations.cjs:27`, `scripts/check-augmentation-citations.cjs:102-115`, `docs/jev-option.md:5`). Agentbox now projects `VISIONFLOW_JEV=all` into service and shell environments at boot (staged until its rebuild, ADR-2155), so the pass runs by default in an estate session, while hosted CI and the dream annexe inherit nothing and still make no call (`docs/jev-option.md:16`).

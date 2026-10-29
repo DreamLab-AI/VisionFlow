@@ -35,7 +35,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/validate.rs
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/ingress.rs
   - ../nostr-rust-forum/README.md
-verified_commit: 8a5cf817e81b20e2b761899eab753768c0cb4988
+verified_commit: eb5f2323e6d72240ecb7c456181b7a674f1842f4
 ---
 
 ## NF-09.1 The CI gate graph

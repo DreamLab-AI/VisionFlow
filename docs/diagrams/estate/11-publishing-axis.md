@@ -21,7 +21,7 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/docs/adr/ADR-2147-inferences-carry-a-re-checkable-certificate-and-proposals-carry-a-consequence-delta.md
   - ../dreamlab-ai-website/forum-config/Cargo.toml
-verified_commit: {dreamlab-ai-website: 3afa374f5957027213471f2429c7ba26996b0744, knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3, visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10, visionflow: 1d7183a73c1eae4996a7006067d5047308fab7a5, visiongraph: 59e7dcc8d05ca447d03c74c819a740b390b93074, vowl-wasm: 89d1a0a32eec16e79a7fa507eaa6f8fcb92e4f0b}
+verified_commit: {dreamlab-ai-website: 07cf8642bddb44df2388a5d1e9d2074923ab6ac0, knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3, visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, visionflow: 124512b8f5e8c33c247065c58901dcfdc18988a2, visiongraph: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e, vowl-wasm: 89d1a0a32eec16e79a7fa507eaa6f8fcb92e4f0b}
 ---
 ## ES-11.1 The publishing axis — six cross-repo edges, each previously drawn from one side only
 ```mermaid
@@ -126,7 +126,7 @@ sequenceDiagram
     participant GUARD as "EXTERNAL: kit-pin-guard.yml"<br/>see DW-02
 
     CI->>NF: git clone the kit, then checkout --detach $KIT_REF<br/>rust-ci.yml:33
-    Note over CI: KIT_REF is a literal 40-char SHA pinned in the workflow<br/>env block, rust-ci.yml:20, with the comment at :18<br/>requiring lockstep with workers-deploy.yml and deploy.yml.<br/>On 2 Oct it moved three times, to forum 49904f4 (6ae4576),<br/>341c5d2 (8ab4ab4) and 13cbe6c (81ec18c), and it has kept<br/>moving with the kit since — this revision pins ebcfaa2 at website 3afa374.<br/>The kit crates are pinned exactly at 1.0.0-beta.16, forum-config/Cargo.toml:50-53
+    Note over CI: KIT_REF is a literal 40-char SHA pinned in the workflow<br/>env block, rust-ci.yml:20, with the comment at :18<br/>requiring lockstep with workers-deploy.yml and deploy.yml.<br/>On 2 Oct it moved three times, to forum 49904f4 (6ae4576),<br/>341c5d2 (8ab4ab4) and 13cbe6c (81ec18c), and it has kept<br/>moving with the kit since — this revision pins 8a5cf81 (the kit's pushed head) at website 07cf864.<br/>The kit crates are pinned exactly at 1.0.0-beta.16, forum-config/Cargo.toml:50-53
     NF-->>CI: the kit tree at exactly that commit
     GUARD->>GUARD: compare the pin across deploy.yml, workers-deploy.yml,<br/>rust-ci.yml, forum-config/Cargo.toml crate versions and the<br/>CANONICAL_ entries in the kit-compatibility record
     alt any of the five disagrees

@@ -26,7 +26,7 @@ sources:
   - ../project/crates/visionclaw-tri-layout/src/lib.rs
   - ../project/src/handlers/socket_flow_handler/session_relay.rs
   - ../project/src/handlers/socket_flow_handler/message_routing.rs
-verified_commit: {visionclaw: 19417bdff5fc22053a8a0cc185797b0311521d10}
+verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c}
 ---
 
 ## For developers
