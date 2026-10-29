@@ -97,6 +97,13 @@ const FB_NAMES = ['flag off', 'flag on, no endpoint', 'transport error', 'timeou
     const r = await call({ retries: 1, fetchImpl: async () => (n++ ? resp(200, good) : resp(429, {}, { 'retry-after': '0' })) });
     assert.deepEqual([r.outcome, n], ['accepted', 2]); });
   await ok('accept path returns validated answers', async () => { const r = await call({ fetchImpl: async () => resp(200, good) }); assert.equal(r.outcome, 'accepted'); assert.equal(r.answers.pick.choice, 'a'); });
+  // System One (Typesafe and the local façade) does not repeat the question's type on each answer.
+  await ok('untagged answers are judged by the question type', async () => {
+    const untagged = { model: 'jev-1.14.0', usage: {}, answers: { pick: { choice: 'a', confidence: 0.9, probabilities: {} }, rate: { score: 1.5, confidence: 0.8, distribution: [] }, yes: { noul: 0.95 } } };
+    const r = await call({ fetchImpl: async () => resp(200, untagged) });
+    assert.equal(r.outcome, 'accepted'); assert.equal(r.answers.pick.choice, 'a');
+    const weak = { ...untagged, answers: { ...untagged.answers, yes: { noul: 0.55 } } };
+    assert.equal((await call({ fetchImpl: async () => resp(200, weak) })).reason, 'low-confidence'); });
   await ok('wire shape: model, state, questions; proxy sends no Authorization; typesafe bearer', async () => {
     const seen = [];
     const f = async (url, init) => { seen.push({ url, init, body: JSON.parse(init.body) }); return resp(200, good); };

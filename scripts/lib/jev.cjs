@@ -93,8 +93,8 @@ function resolveEndpoint(env, dataClass = 'public') {
 }
 
 /** Confidence of one validated answer in [0,1]. Noul has none: distance from 0.5, scaled. */
-function confidenceOf(a) {
-  if (a.type === 'noul') return Math.abs(a.noul - 0.5) * 2;
+function confidenceOf(a, type) {
+  if (type === 'noul') return Math.abs(a.noul - 0.5) * 2;
   return a.confidence;
 }
 
@@ -106,7 +106,8 @@ function validate(body, questions, minConfidence) {
   if (!body || typeof body !== 'object' || !body.answers || typeof body.answers !== 'object') return 'malformed';
   for (const [id, q] of Object.entries(questions)) {
     const a = body.answers[id];
-    if (!a || typeof a !== 'object' || a.type !== q.type) return 'malformed';
+    // System One need not repeat the question's type; an explicit conflicting one is still malformed.
+    if (!a || typeof a !== 'object' || (a.type !== undefined && a.type !== q.type)) return 'malformed';
     if (q.type === 'choice') {
       if (typeof a.choice !== 'string' || !Object.prototype.hasOwnProperty.call(q.criteria, a.choice)) return 'malformed';
       if (typeof a.confidence !== 'number' || !Number.isFinite(a.confidence)) return 'malformed';
@@ -117,8 +118,8 @@ function validate(body, questions, minConfidence) {
       if (typeof a.noul !== 'number' || !Number.isFinite(a.noul) || a.noul < 0 || a.noul > 1) return 'malformed';
     } else return 'malformed';
   }
-  for (const [id] of Object.entries(questions)) {
-    if (confidenceOf(body.answers[id]) < minConfidence) return 'low-confidence';
+  for (const [id, q] of Object.entries(questions)) {
+    if (confidenceOf(body.answers[id], q.type) < minConfidence) return 'low-confidence';
   }
   return null;
 }
