@@ -602,7 +602,7 @@ sequenceDiagram
 flowchart TD
     Tab["SolidTabContent.tsx:6<br/>client/src/features/solid/components/SolidTabContent.tsx"] --> PS["PodSettings.tsx:6"]
     Tab --> PB["PodBrowser.tsx:6"]
-    Tab --> RE["ResourceEditor.tsx:6"]
+    Tab --> RE["ResourceEditor.tsx:134"]
     PS -->|useSolidPod| USP["useSolidPod.ts:32<br/>checkPod, createPod, deletePod, initPod auto-provision"]
     PB -->|useSolidPod + useSolidContainer| USC["useSolidContainer.ts:31<br/>containerPath listing"]
     RE -->|useSolidResource| USR["useSolidResource.ts:30"]
@@ -661,7 +661,7 @@ sequenceDiagram
     participant WSStore as useWebSocketStore
     participant Store as transientBeamStore<br/>client/src/store/transientBeamStore.ts
     participant TBH as useTransientBeams<br/>client/src/features/visualisation/hooks/useTransientBeams.ts:24
-    participant TBL as TransientBeamsLayer<br/>client/src/features/visualisation/components/TransientBeamsLayer.tsx:72
+    participant TBL as TransientBeamsLayer<br/>client/src/features/visualisation/components/TransientBeamsLayer.tsx:69
 
     ECL->>MCS: reads snapshot, status, query run and response (selectors)<br/>EmbeddingCloudLayer.tsx:133
     Note right of MCS: points are a stratified PCA-projected sample from GET /api/memory-cloud, loaded by the memory explorer store.<br/>The static /embedding-cloud.json is retired.<br/>EmbeddingCloudLayer.tsx:4

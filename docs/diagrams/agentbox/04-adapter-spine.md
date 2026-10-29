@@ -421,7 +421,7 @@ sequenceDiagram
     end
     Note over MA,PG: contract version memory 1.0.0 — contract-versions.js:10
     Note over R,PG: sibling read methods search embedded-ruvector.js:98, retrieve :119, del :137, list :149
-    Note over L1: Every one of those methods is wrapped identically by instrumentAdapter index.js:147
+    Note over L1: Every one of those methods is wrapped identically by instrumentAdapter index.js:149
 ```
 
 ## AB-04.10 beads.addDependency and beads.getReady — the 1.1.0 work-DAG pair

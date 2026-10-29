@@ -804,7 +804,7 @@ sequenceDiagram
     participant RC as reconcile-commands.sh<br/>scripts/reconcile-commands.sh:33 SUPERSEDED_BASE
     participant FS as host-mounted config roots
 
-    B->>RS: CLAUDE_SKILLS_DIR ~/.claude/skills, manifest registered-skills.txt (:3728-3733)
+    B->>RS: CLAUDE_SKILLS_DIR ~/.claude/skills, manifest registered-skills.txt (:3723-3726)
     RS->>FS: symlink each registered name to the baked tree (reconcile-skills.sh:63-67)
     B->>RS: second pass for Codex, ~/.codex/skills with codex-registered-skills.txt (:3740-3750)
     B->>PR: SKILL_ROOT_TARGETS workspace and workspace/project (:3759-3764)

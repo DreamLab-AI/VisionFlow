@@ -115,7 +115,7 @@ sequenceDiagram
     end
     Note over SESS,FCA: INVARIANT a dropped connection can never leave a node pinned forever - cleanup is unconditional on stop
     Note over SESS: reheat is FALSE on the cleanup path so a disconnect does not re-energise the layout
-    Note over HU,FCA: check_drag_timeout (:577) is a per-node timeout watchdog, not a bulk sweep - invoked from handle_node_drag_start (:309) and self-reschedules via ctx.run_later (:626) until the node stops timing out or times out and auto-unpins via PinNodePositions (:594-616)
+    Note over HU,FCA: check_drag_timeout (:577) is a per-node timeout watchdog, not a bulk sweep - invoked from handle_node_drag_start (:309) and self-reschedules via ctx.run_later (:623) until the node stops timing out or times out and auto-unpins via PinNodePositions (:594-616)
 ```
 
 ## VC-16.4 Agent beam 0x23 fan-out

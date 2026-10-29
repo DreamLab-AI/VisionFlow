@@ -713,7 +713,7 @@ flowchart TB
     subgraph ON["role_isolation = true: one process holds the keys and signs named operations"]
         direction TB
         PROG["serve-identity runs under ab-identity in the isolated config,<br/>env -i so PID 1's inherited environment never reaches it, flake.nix:2821-2846"]
-        SOCK["socket /run/secrets/ab-identity-port/identity.sock, mode 0660 in group ab-identity-port<br/>services/nostr-pod-bridge/src/identity_port/server.rs:17, config/role-accounts.json:94-102"]
+        SOCK["socket /run/secrets/ab-identity-port/identity.sock, mode 0660 in group ab-identity-port<br/>services/nostr-pod-bridge/src/identity_port/server.rs:17, config/role-accounts.json:130-134"]
         PEER["the peer uid comes from SO_PEERCRED on every connection, never from the socket mode<br/>server.rs:104-111"]
         GATE{"uid in the ACL, op in the closed list, op granted to that uid<br/>services/nostr-pod-bridge/src/identity_port/port.rs:361-379"}
         OPS["closed list: pubkey, nip98, sign_event, forum_event, nip42_auth, mirror_key<br/>services/nostr-pod-bridge/src/identity_port/acl.rs:43-50"]

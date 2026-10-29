@@ -208,7 +208,7 @@ flowchart LR
     SD --> S4["OPENMED_FILE :589<br/>OPENMED_COMPOSE_ARGS :590<br/>cmd_openmed agentbox.sh:2304"]
     SD --> S5["VOICE_FILE :600 plus voice/unmute-override.yml<br/>VOICE_COMPOSE_ARGS assembled inside _voice_compose_args :2383-2387<br/>cmd_voice agentbox.sh:2702"]
     SD --> S6["ANDROID_FILE :622<br/>ANDROID_COMPOSE_ARGS adds --profile android :623<br/>cmd_android agentbox.sh:1236"]
-    S5 --> VH["VOICE_HOST_ROOT default /mnt/mldata/githubs/AR-AI-Knowledge-Graph — :606<br/>compose bind SOURCES resolve on the HOST docker daemon,<br/>so they must be host paths"]
+    S5 --> VH["VOICE_HOST_ROOT default /mnt/mldata/githubs/AR-AI-Knowledge-Graph — :610<br/>compose bind SOURCES resolve on the HOST docker daemon,<br/>so they must be host paths"]
     S6 --> AG["EXPERIMENTAL and GATED OFF — additionally requires<br/>AGENTBOX_ENABLE_ANDROID=1"]
     CA1 --> MGMT["MGMT_PORT 9090 — agentbox.sh:628"]
     S5 -.-> VNOTE["voice-console uses its OWN project name agentbox-voice,<br/>so it is a separate compose project from every other sidecar"]

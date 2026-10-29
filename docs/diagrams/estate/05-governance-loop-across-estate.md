@@ -121,7 +121,7 @@ sequenceDiagram
 
     KE->>EX: extractProposals(entries, opts)
     loop each candidate entry
-        EX->>EX: normaliseEntry — lib/kg-proposal-extractor.js:111
+        EX->>EX: normaliseEntry — lib/kg-proposal-extractor.js:109
         EX->>SC: scoreCandidate(norm)
         SC-->>EX: score
         EX->>BD: buildProposalDescriptor(norm, score, opts)

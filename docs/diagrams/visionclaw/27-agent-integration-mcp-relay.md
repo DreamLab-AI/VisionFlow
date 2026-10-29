@@ -338,10 +338,10 @@ sequenceDiagram
 
     Sup->>AM: started() - is_connected=true, do_send(InitializeActor) - :431-438
     AM->>AM: handle(InitializeActor) - run_later(100ms) poll_agent_statuses + schedule_next_poll - :445-460
-    loop self-rescheduling poll (schedule_next_poll, :412-418)
-        AM->>MAC: tokio::join!(list_tasks(), get_system_status()) - :331-332
+    loop self-rescheduling poll (schedule_next_poll, :464-472)
+        AM->>MAC: tokio::join!(list_tasks(), get_system_status()) - :365-367
         alt tasks_result Ok
-            AM->>AM: task_to_agent_status per active task - :373-377
+            AM->>AM: task_to_agent_status per active task - :411-416
             AM->>AM: do_send(ProcessAgentStatuses{agents,telemetry}) - :379
         else tasks_result Err
             AM->>AM: do_send(RecordPollFailure) - :383
@@ -354,7 +354,7 @@ sequenceDiagram
     end
     AM->>AM: golden-angle spiral position per agent, poll_offset round-robin (ADR-031 item 1) - :593-631
     AM->>AM: decide_bots_graph_emit(count, last_nonempty, consecutive_empty) - call :701-705, fn body :156-197
-    alt roster non-empty (fn :131-137)
+    alt roster non-empty (fn :156-197)
         AM->>GSS: do_send(UpdateBotsGraph{agents}) - :709-716
     else roster empty and consecutive_empty < EMPTY_CONFIRM_THRESHOLD=2 (fn :140-148,159-165)
         AM->>AM: suppress emit - debounce a transient blip - :653-659

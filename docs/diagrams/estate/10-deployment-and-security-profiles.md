@@ -116,7 +116,7 @@ sequenceDiagram
     else env has SETTINGS_AUTH_BYPASS or ALLOW_INSECURE_DEFAULTS or VISIONCLAW_DEV_MODE
         EH-->>M: FATAL exit 2 — project/src/main.rs:161
     else NODE_ENV=development AND DOCKER_ENV both set
-        EH-->>M: FATAL exit — project/src/main.rs:140-146
+        EH-->>M: FATAL exit — project/src/main.rs:148-161
     else clean
         EH-->>M: ok
     end
@@ -137,7 +137,7 @@ sequenceDiagram
         RS-->>M: FATAL PermissionDenied — project/src/main.rs:809-819
     end
     M->>L: bind
-    Note over M,L: RESOLVED — ADR-2038 has LANDED. assert_effective_profile_or_exit is called<br/>at project/src/main.rs:952 BEFORE HttpServer::new and .bind,<br/>exiting 2 on any finding in a non-debug artefact, including release/dev-auth<br/>(security_profile.rs:654). Only a debug build<br/>logs and continues (security_profile.rs:657-661). src/config/security_profile.rs<br/>is tracked and the call site is in HEAD, so the record now reads<br/>decision_status accepted / activation_status live. Boot receipt logged<br/>project/src/main.rs:958-962. see ES-10.7 and VC-09.4
+    Note over M,L: RESOLVED — ADR-2038 has LANDED. assert_effective_profile_or_exit is called<br/>at project/src/main.rs:952 BEFORE HttpServer::new and .bind,<br/>exiting 2 on any finding in a non-debug artefact, including release/dev-auth<br/>(security_profile.rs:654). Only a debug build<br/>logs and continues (security_profile.rs:657-661). src/config/security_profile.rs<br/>is tracked and the call site is in HEAD, so the record now reads<br/>decision_status accepted / activation_status live. Boot receipt logged<br/>project/src/main.rs:952. see ES-10.7 and VC-09.4
 ```
 
 ## ES-10.3 Shipped compose inverts two fail-closed code defaults

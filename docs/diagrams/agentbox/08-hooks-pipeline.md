@@ -510,7 +510,7 @@ flowchart TD
     G4["egressDecision#40;pathId, opts#41; :136-162<br/>global, per-path and redaction-disabled switches"]
     EG --> G1 & G2 & G3 & G4
     H1["contextPayload#40;#41; :22-26 — the ONLY honoured shape:<br/>hookSpecificOutput.hookEventName/.additionalContext"]
-    H2["emitContext#40;#41; :32-44 — resolves true only once the write flushes"]
+    H2["emitContext#40;#41; hook-output.cjs:32-44 — resolves true only once the write flushes"]
     HO --> H1 & H2
     TR["trajectory-recorder.cjs<br/>agentbox/config/hooks/trajectory-recorder.cjs:47<br/>ONLY consumer of trajectory-util.cjs"]
     NM["nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:46<br/>ONLY consumer of egress-policy.cjs"]
@@ -561,7 +561,7 @@ sequenceDiagram
 ```
 
 **What it shows.** A plugin is neither a shell hook in `config/hooks/` nor an MCP server: the engine loads the shim in process, the shim hands every decision to a Rust binary, and nothing in the hooks directory registers either. Since ADR-2121 (2026-10-02) both halves come from one pinned factrail commit baked into the image, and the vendored `jev-compaction` plugin is deleted and actively uninstalled.
-**Why it is this way.** ADR-2093 wanted compaction to drop and truncate tool calls rather than rewrite text, which the `settings.json` hook contract cannot express (`../project/agentbox/config/hooks/README.md:73-78`); ADR-2121 kept that policy and replaced the implementation, because fact rails kept 50 of 50 pre-registered facts where the deleting plugin kept 4 (`../project/agentbox/docs/adr/ADR-2121-factrail-implements-jev-compaction.md:42-45`).
+**Why it is this way.** ADR-2093 wanted compaction to drop and truncate tool calls rather than rewrite text, while the factrail function-hook plugin is a different mechanism from the `settings.json` hooks (`../project/agentbox/config/hooks/README.md:73-78`); ADR-2121 kept that policy and replaced the implementation, because fact rails kept 50 of 50 pre-registered facts where the deleting plugin kept 4 (`../project/agentbox/docs/adr/ADR-2121-factrail-implements-jev-compaction.md:42-45`).
 
 **Drift (resolved 2026-10-02):** `hooks/README.md` listed four plugin events where the plugin registered seven; it now lists all seven for `factrail` (`../project/agentbox/config/hooks/README.md:83`).
 

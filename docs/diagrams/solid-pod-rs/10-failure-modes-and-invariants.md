@@ -254,7 +254,7 @@ flowchart TD
     POD["PodError — the library's error type<br/>solid-pod-rs/src/error.rs:9"]
     TA["to_actix maps it to a status<br/>solid-pod-rs-server/src/lib.rs:573"]
     PF["policy_failure_to_actix — 403 for Invalid, 503 for Unavailable<br/>solid-pod-rs-server/src/lib.rs:2152"]
-    AD["acl_denial — 401 with a WWW-Authenticate challenge, or 403<br/>solid-pod-rs-server/src/lib.rs:1038"]
+    AD["acl_denial — 401 with a WWW-Authenticate challenge, or 403<br/>solid-pod-rs-server/src/lib.rs:1133"]
     PE["PaymentError<br/>solid-pod-rs/src/payments.rs:938"]
     PR["payment_error_response<br/>solid-pod-rs-server/src/handlers/pay.rs:369"]
     LOG["ErrorLoggingMiddleware — log_5xx and format_error_chain<br/>solid-pod-rs-server/src/lib.rs:3706"]

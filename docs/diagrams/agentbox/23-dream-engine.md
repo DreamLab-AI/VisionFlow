@@ -936,7 +936,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant ENG as Engine::cycle_repo_body<br/>agentbox/services/dream-engine/src/engine.rs:532
-    participant SWEEP as retention sweep<br/>agentbox/services/dream-engine/src/dispatch.rs:28
+    participant SWEEP as retention sweep<br/>agentbox/services/dream-engine/src/engine.rs:806-818, agentbox/services/dream-engine/src/dispatch.rs:64
     participant AH as dispatch::annexe_health<br/>agentbox/services/dream-engine/src/dispatch.rs:347
     participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2567
     participant RS as runstate::begin<br/>dream-core/src/runstate.rs:511

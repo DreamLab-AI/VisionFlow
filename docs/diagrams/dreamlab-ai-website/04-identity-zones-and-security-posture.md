@@ -64,7 +64,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant C as publishGiftWrap<br/>src/lib/nostr.ts:225
+    participant C as publishGiftWrap<br/>src/lib/nostr.ts:226
     participant WS as relay WebSocket
     C->>WS: ws.onopen -> sendEvent(): ["EVENT", wrap]<br/>src/lib/nostr.ts:266-273
     WS-->>C: ["OK", ..., false, "auth-required"]  (write gate, PRD-010 G4)

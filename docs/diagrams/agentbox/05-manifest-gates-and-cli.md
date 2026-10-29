@@ -433,7 +433,7 @@ flowchart TB
 
     C5 --> DIV["RESOLVED - the manifest now declares voice on, apply-class sidecar,<br/>so a running console no longer reports state off, agentbox.toml:2207"]
     F10 --> C10["catalogue junkiejarvis, layer surface, gate sovereign_mesh.junkiejarvis,<br/>apply_class boot - system-manifest.js:80-82;<br/>server.js:1449-1450 and the forum-suggestions tenant<br/>both call junkiejarvisEnabled(manifest)"]
-    C4 --> REB["INVARIANT - mcp-hub is rebuild-class because its supervisor<br/>program is composed into the image, so flipping the gate and<br/>restarting does not add it, system-manifest.js:407"]
+    C4 --> REB["INVARIANT - mcp-hub is rebuild-class because its supervisor<br/>program is composed into the image, so flipping the gate and<br/>restarting does not add it, system-manifest.js:421-423"]
 ```
 
 **What it shows.** The thirteen manifest gate families added since 2026-09-06 — System One, Jev compaction (now factrail, ADR-2121) and its cascade/teacher-label addenda, the ADR-2116 permission posture, ADR-2118 instruction tiers and credential sync, the PRD-024 `[sidechain]` gate of 2026-09-30, and, since 2026-10, the ADR-2134 model roles, the ADR-2135 Jev checkpoints and the ADR-2139 System One vendor slot (`[system_one]`, one loopback proxy in front of every typed-decision consumer; the manifest ships it on with backend `typesafe` again since 2026-10-29, `../project/agentbox/agentbox.toml:892`, and nineteen `[system_one.consumers]` switches, `../project/agentbox/agentbox.toml:899-920`) — each traced from its `agentbox.toml` section to its catalogue entry and to the boot step that applies it.
@@ -599,7 +599,7 @@ flowchart TB
     G6 --> C6["catalogue vault-loom-sync, apply_class boot<br/>system-manifest.js:403-405"]
     NOKEY --> C7["catalogue isaac-sim-sidecar, gate null, apply_class live<br/>system-manifest.js:178-180"]
 
-    C1 --> B1["entrypoint projects the floor tier to /etc/claude-code/CLAUDE.md and<br/>registers decline-recorder on Stop and SubagentStop, see AB-05.14<br/>entrypoint-unified.sh:2112-2115"]
+    C1 --> B1["entrypoint projects the floor tier to /etc/claude-code/CLAUDE.md and<br/>registers decline-recorder on Stop and SubagentStop, see AB-05.14<br/>entrypoint-unified.sh:2112-2139, :2985-2998"]
     C2 --> B2["flake.nix bakes voice-paned only when voicelinkOn, linked at<br/>/opt/agentbox/bin/voice-paned - flake.nix:1847-1849, :2128;<br/>entrypoint registers Stop and Notification hooks :2172-2183<br/>and the Codex notify line :873-883"]
     C3 --> B3["entrypoint registers config/hooks/activity-sink.cjs only when enabled<br/>and the url is http or https - entrypoint-unified.sh:2853-2871"]
     C4 --> B4["flake.nix adds forge-full and the --trust-proxy launcher flag<br/>flake.nix:1547, :1628"]

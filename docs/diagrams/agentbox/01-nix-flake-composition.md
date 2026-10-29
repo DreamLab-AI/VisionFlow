@@ -250,7 +250,7 @@ sequenceDiagram
     Note over SKC: see AB-22 for skill-count-check.js internals (skills/*/SKILL.md as the single count source)
 ```
 
-**Tension:** two independent semantic blocks of the same validator emit the code `E080`: the ADR-2138 absolute-path check on `[resources.target_gc]` (`../project/agentbox/scripts/agentbox-config-validate.js:656`) and the eight ADR-2139 `[system_one]` slot checks, now including `local_backend` and boolean `consumers` (`../project/agentbox/scripts/agentbox-config-validate.js:1582`, `:1605`, `:1609`), so the code alone does not identify the failing gate and only the message text does; the ADR-2139 block also documents `E081` and `W076`, while the ADR-2138 block owns `W077` (`../project/agentbox/scripts/agentbox-config-validate.js:666`).
+**Tension:** two independent semantic blocks of the same validator emit the code `E080`: the ADR-2138 absolute-path check on `[resources.target_gc]` (`../project/agentbox/scripts/agentbox-config-validate.js:656`) and the eight ADR-2139 `[system_one]` slot checks, now including `local_backend` and boolean `consumers` (`../project/agentbox/scripts/agentbox-config-validate.js:1582`, `:1605`, `:1609`), so the code alone does not identify the failing gate and only the message text does; the ADR-2139 block also documents `E081` and `W076`, while the ADR-2138 block owns `W077` (`../project/agentbox/scripts/agentbox-config-validate.js:656`).
 
 ## AB-01.5 npm-cli.nix pinned exact-semver closure - ruvector always in package set
 

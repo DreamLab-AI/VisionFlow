@@ -98,7 +98,7 @@ sequenceDiagram
 
     ADP->>PS: buildPodNip98(manifest, opts) pod-signer.js:42
     alt sign_requests off or no stack resolved
-        PS-->>ADP: return null (pod-signer.js:45,50-59)
+        PS-->>ADP: return null (pod-signer.js:73,50-59)
         Note over ADP,BASE: RESOLVED ADR-2064 (2026-09-05): sign_requests now sets requireSigned on the adapter<br/>even when no signer could be built, so a falsy nip98 fails closed instead of going out unsigned
     else sign_requests on
         PS-->>ADP: nip98 fn method,url,body returning string or null

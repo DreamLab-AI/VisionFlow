@@ -33,7 +33,7 @@ verified_commit: e74bcddc772d47a45b1971156a2bab540eaa027c
 
 ```mermaid
 flowchart TD
-    APP["AppState::new<br/>src/app_state.rs:943 starts GPUManagerActor when GPU enabled"]
+    APP["AppState::new<br/>src/app_state.rs:943 starts GPUManagerActor"]
     GM["GPUManagerActor<br/>gpu_manager_actor.rs:57 struct, :146 impl Actor"]
     RS["ResourceSupervisor<br/>resource_supervisor.rs:40 struct, :353 impl Actor"]
     PS["PhysicsSupervisor<br/>physics_supervisor.rs"]

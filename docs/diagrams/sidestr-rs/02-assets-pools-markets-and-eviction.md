@@ -106,4 +106,4 @@ sequenceDiagram
 
 **Why it is this way.** Rule state changes as earlier candidates enter a block. Turning immature locks away at admission means they can be submitted again once their height arrives instead of being evicted from a produced block (`../sidestr-rs/sidestr-core/src/state.rs:631`). Exact-byte eviction prevents one invalid witness form from suppressing a repaired form that shares its txid.
 
-**Open:** assets, pools and markets remain inactive on `sidestr:dreamlab`; its sealed document reaches `containmentDigest` without a `rules` field (`../project/agentbox/config/sidechain/dreamlab/chain.json:5`, `../project/agentbox/config/sidechain/dreamlab/chain.json:28`).
+**Open:** assets, pools and markets remain inactive on `sidestr:dreamlab`; its sealed document reaches `containmentDigest` without a `rules` field (`../project/agentbox/config/sidechain/dreamlab/chain.json:28`).

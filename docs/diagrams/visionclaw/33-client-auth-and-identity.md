@@ -315,7 +315,7 @@ sequenceDiagram
     else writable
         Row->>Row: render editable control
     end
-    Store->>Ctl: isPowerUser via selector NostrAuthControl.tsx:20
+    Store->>Ctl: isPowerUser via selector NostrAuthControl.tsx:21
     alt isPowerUser
         Ctl->>Ctl: show "Power User - Full access" badge NostrAuthControl.tsx:56-60
     end

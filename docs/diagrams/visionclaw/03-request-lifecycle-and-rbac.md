@@ -458,7 +458,7 @@ sequenceDiagram
     participant EF as filter_enabled<br/>crates/visionclaw-domain/src/utils/visibility_filter.rs:38
     participant CC as ClientCoordinator pump_all / pump_one<br/>src/actors/client_coordinator_actor.rs:400 / :442
     participant VF as compute_private_opaque_ids<br/>crates/visionclaw-domain/src/utils/visibility_filter.rs:110
-    participant SY as send_full_state_sync<br/>src/handlers/socket_flow_handler/types.rs:157
+    participant SY as send_full_state_sync<br/>src/handlers/socket_flow_handler/types.rs:158
     participant PU as pubkey_visibility_filter_enabled<br/>src/handlers/socket_flow_handler/position_updates.rs:13
 
     Note over EF: parse_visibility_flag (:26-35) — default ON — only explicit<br/>"0"/"false"/"off"/"no" (case-insensitive, trimmed) disables.<br/>The env is read ONCE via OnceLock and cached for the process lifetime (:38-44),<br/>so toggling PUBKEY_VISIBILITY_FILTER at runtime has NO effect.

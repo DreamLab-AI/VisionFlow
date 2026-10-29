@@ -327,7 +327,7 @@ sequenceDiagram
     participant U as User prompt
     participant CC as Claude Code UserPromptSubmit
     participant HK as analyse<br/>agentbox/config/hooks/ruvnet-brain-ground.cjs:90
-    participant MCP as ruvnet-brain server<br/>agentbox/mcp/ruvnet-brain/server.js:198
+    participant MCP as ruvnet-brain server<br/>agentbox/mcp/ruvnet-brain/server.js:212
     participant KB as ruvnet-kb namespace<br/>see AB-20
 
     U->>CC: prompt text

@@ -214,7 +214,7 @@ sequenceDiagram
     Note over VW,REG: REGISTRY_NAME = 'voice' VoiceWebSocketService.ts:14, :88
     VW->>BUS: emit('connection:open', {name 'voice', url})
     Note over VW: VoiceWebSocketService.ts:88 - see VC-30.5
-    VW->>VW: sendAuthenticate(url) VoiceWebSocketService.ts:90, :132
+    VW->>VW: sendAuthenticate(url) VoiceWebSocketService.ts:91, :133
     alt not nostrAuth.isAuthenticated()
         VW-->>VW: warn "not authenticated - /ws/speech will refuse commands" - BREAK
     else dev mode

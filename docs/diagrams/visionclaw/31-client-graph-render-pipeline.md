@@ -668,7 +668,7 @@ sequenceDiagram
         GN->>MESH: position plus offset written to the transform buffer<br/>client/src/features/graph/components/GemNodes.tsx:1023
     end
     GN->>MESH: activity channel = AGENT_DONE_ACTIVITY 0.05 when done<br/>client/src/features/graph/components/GemNodes.tsx:1102, agentWorkTargets.ts:88
-    Note over MESH: The capsule material reads that channel: activity at or below 0.1 is<br/>the done flag and fades base alpha to 0.3, which is why the material<br/>became transparent.<br/>client/src/rendering/materials/AgentCapsuleMaterial.ts:44, :165
+    Note over MESH: The capsule material reads that channel: activity below 0.1 is<br/>the done flag and fades base alpha to 0.3, which is why the material<br/>became transparent.<br/>client/src/rendering/materials/AgentCapsuleMaterial.ts:44, :165
     Note over GN,BUF: agentOffsetsEnabled() false zeroes the offset, drawing the agent exactly at the server position<br/>client/src/features/graph/components/GemNodes.tsx:1016
     Note over GN,MESH: INVARIANT the nudge is VISUAL ONLY. It is an offset applied when writing<br/>the transform, never a write back into the shared position buffer, so<br/>physics and the wire remain the single source of position. A dragged<br/>instance skips the nudge entirely.<br/>client/src/features/graph/components/GemNodes.tsx:996
     Note over BUF: DEBT: the offset array is grow-only and indexed by VISIBLE instance<br/>index, not node id, so a change in the visible set re-uses another<br/>agent's accumulated offset for one or more frames.<br/>client/src/features/graph/components/GemNodes.tsx:960, :964

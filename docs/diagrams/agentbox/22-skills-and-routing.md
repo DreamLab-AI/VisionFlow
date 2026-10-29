@@ -146,7 +146,7 @@ sequenceDiagram
     opt cfg.labelLog (ADR-2110, PROPOSED, off by default — agentbox.toml:1320)
         HK->>HK: appendLog(cfg,{...r, consumer:'hook', session}) — hashed session id only,<br/>never the prompt text (config/hooks/skill-route.cjs:38-41)
     end
-    Note over HK,J: INVARIANT ADR-2090 — the pick's probability is never a gate. Egress of the routing<br/>prompt is an accepted operator decision for skill routing ONLY<br/>(docs/adr/ADR-2090-skill-routing-prompt-egress.md:1)
+    Note over HK,J: INVARIANT ADR-2090 — the pick's probability is never a gate. Egress of the routing<br/>prompt is an accepted operator decision for skill routing ONLY<br/>(docs/adr/ADR-2090-skill-routing-prompt-egress.md:31-35, docs/adr/ADR-2091-live-skill-router.md:77)
     Note over LIB,TBL: DEBT — router jev is the default at this revision (agentbox.toml:1290), so a turn that<br/>routes at all and misses the cascade leaves the container. The per-project gate is deferred<br/>RESOLVED (backend switched back, 2026-10) — the shipped manifest again selects backend typesafe, the Jev vendor (agentbox.toml:892,922), after a spell on subq (agentbox.toml:930) —<br/>the loopback proxy still overwrites the model and swaps the vendor key (docs/GOVERNANCE-capabilities.md:202)
 ```
 
@@ -264,7 +264,7 @@ stateDiagram-v2
     [*] --> Draft
     Draft --> Active: assess() sees a confirmation, unit not stale, no flags<br/>colloquy-core/src/confidence.rs:127-137
     Active --> Stale: assess() staleness period elapsed, no flags<br/>colloquy-core/src/decay.rs, confidence.rs:132-133
-    Stale --> Active: assess() a fresh confirmation lands, no flags<br/>colloquy-core/src/confidence.rs:96,132
+    Stale --> Active: assess() a fresh confirmation lands, no flags<br/>colloquy-core/src/confidence.rs:96,128-137
     Active --> Disputed: assess() sees any flag<br/>colloquy-core/src/confidence.rs:130-131
     Stale --> Disputed: assess() sees any flag<br/>colloquy-core/src/confidence.rs:130-131
     Disputed --> Retired: signed decision only, not via Ledger.apply<br/>colloquy-core/src/confidence.rs:157-174
@@ -458,7 +458,7 @@ sequenceDiagram
         else branch fails or is cancelled — hold must still be released
             TSC->>CAP: tree-search-cap settle --run RUN_ID --reservation res-id --actual 0.00 --failed<br/>(algorithm.md:67)
         end
-        CAP->>LED: settle_at(...) — release hold, charge actual (cost_cap/mod.rs:434-444)
+        CAP->>LED: settle_at(...) — release hold, charge actual (cost_cap/mod.rs:444-482)
     end
     TSC->>TSC: score by assertion-pass count, select highest, tie-break shortest code<br/>(algorithm.md:16-18)
     TSC-->>U: chosen candidate + audit trajectory JSONL for ExpeL distillation (algorithm.md:27-28)

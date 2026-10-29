@@ -159,7 +159,7 @@ flowchart TB
     URL["candidate URL"]
     P0["unparseable to BLOCK ssrf.rs:294"]
     P1["scheme allowlist http/https only ssrf.rs:300"]
-    P2["embedded credentials user:pass@ blocked ssrf.rs:305"]
+    P2["embedded credentials user:pass@ blocked ssrf.rs:306-308"]
     P3["ports other than 80 and 443 blocked ssrf.rs:311"]
     P4["egress allowlist when configured ssrf.rs:323"]
     P5["mDNS .local blocked ssrf.rs:331"]

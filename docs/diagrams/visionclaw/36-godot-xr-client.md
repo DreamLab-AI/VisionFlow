@@ -711,7 +711,7 @@ classDiagram
         distance-bucket LOD
     }
     class SpatialVoiceRouter {
-        base RefCounted : webrtc_audio.rs:141
+        base RefCounted : webrtc_audio.rs:140
         SpatialVoiceRouterCore:39
         ListenerTransform:26 VoiceTrackState:33
     }
@@ -832,7 +832,7 @@ sequenceDiagram
     participant SVR as SteamVR + OpenXR runtime
     participant GD as godot --path xr-client
     participant CT as cargo test -p visionclaw-xr-gdext
-    participant PR as xr-perf-regression<br/>xr-client/rust/perf-regression/src/main.rs:32
+    participant PR as xr-perf-regression<br/>xr-client/rust/perf-regression/src/main.rs:216
 
     Note over OP,HP: The verified path onto a headset is NOT the APK - it is the<br/>Compatibility renderer on native X11 driving SteamVR.<br/>docs/XR-client.md 'Deploy ceremony'
     OP->>HP: ssh (25G rail 10.10.10.0/30)

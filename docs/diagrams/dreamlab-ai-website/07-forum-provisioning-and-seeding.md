@@ -104,7 +104,7 @@ flowchart TB
     CRON["supercronic, 07:15 UTC, flock + timeout 300<br/>scripts/seo-watch/crontab:17"] --> HEALTH["1. health: whitelist or ingress row for admin, jarvis, monitor,<br/>registry row, deployed bundle carries all three pubkeys<br/>scripts/inbox-watch/run.mjs:288-295"]
     HEALTH --> PROBE["2. probe: labelled wrap to the monitor only, read back<br/>scripts/inbox-watch/run.mjs:297-303"]
     PROBE --> INBOX["3. inbox: wraps for the last 3 days, seal signature and author verified, deduped<br/>scripts/inbox-watch/run.mjs:163,187"]
-    INBOX --> ALERT["4. one NIP-17 digest DM to the operator, only if new mail or a problem<br/>scripts/inbox-watch/run.mjs:365-375"]
+    INBOX --> ALERT["4. one NIP-17 digest DM to the operator, only if new mail or a problem<br/>scripts/inbox-watch/run.mjs:349-375"]
 ```
 - It exists because the relay rewrites every kind-1059 read to the viewer's own `#p`, so the admin inbox is unreadable to anyone else; each submission is therefore also wrapped to the monitor key (`scripts/inbox-watch/run.mjs:4-11`, DW-04.9). The digest is written to the operator and, when the DM never reached the relay, state is deliberately not persisted so the same messages surface again next run (`scripts/inbox-watch/run.mjs:376-380`).
 - It judges channel health with `ingressProblem` and `disclosureProblem` from `scripts/lib/website-info.mjs` (`scripts/inbox-watch/run.mjs:35`), so a `reset-db` that drops the whitelist or registry row is reported the next morning, not by a visitor (`docs/adr/ADR-2011-website-information-identity.md:58`).

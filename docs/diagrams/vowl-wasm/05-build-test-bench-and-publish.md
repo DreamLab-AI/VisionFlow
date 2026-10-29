@@ -93,7 +93,7 @@ sequenceDiagram
 ```
 - INVARIANT: `id-token: write` mints a short-lived OIDC credential; no long-lived npm token is stored anywhere — the npmjs.com trusted-publisher entry names this repo + workflow file (release.yml:14-21).
 - The exact tarball attached to the GitHub release is what `npm publish` ships — "the two artefacts are byte-identical" (release.yml:161-163 comment before the publish step) — so a release asset download and the npm-installed package are provably the same bytes.
-- A re-run against an existing tag (`workflow_dispatch` with `tag` input, release.yml:7-12) is safe: publish is skipped, not failed, when that version is already on the registry.
+- A re-run against an existing tag (`workflow_dispatch` with `tag` input, release.yml:7-12) stops at the immutable-asset check (release.yml:86-90) once the tarball is attached, although the publish step skips a version already on the registry (release.yml:163-171).
 - Since the earlier stamp the release also installs wasm-pack 0.15.0 from a checksum-verified release tarball and builds on rustc 1.99.0 (release.yml:38, release.yml:45-54).
 
 ## VW-05.4 Benches — what each measures

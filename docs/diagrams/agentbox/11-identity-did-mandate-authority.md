@@ -174,7 +174,7 @@ sequenceDiagram
             CLI-->>EP: stderr agent-identity: minted or loaded the did (persisted=true, keyfile=path)<br/>agent-identity.js:230-233
             EP->>EP: parse AGENTBOX_AGENT_DID with sed and require the exact expected three export lines, never eval (entrypoint-unified.sh:1425-1432)
             EP->>SHELL: export AGENTBOX_AGENT_DID, AGENTBOX_AGENT_PUBKEY, AGENTBOX_AGENT_DID_MULTIKEY (entrypoint-unified.sh:1432-1440)
-            CLI-->>EP: exit 0 agent-identity.js:234
+            CLI-->>EP: exit 0 agent-identity.js:331
         end
     end
     Note over EP,SHELL: RESOLVED ADR-2044 (2026-09-05, was DIVERGENCE) - the CLI's own fail-open<br/>path is GONE: a failed mint OR a mint that could not persist its key now exits<br/>non-zero with NO export lines, agent-identity.js:31-46. The entrypoint now treats that as<br/>FATAL too: no mint runtime, a failed mint, or output that is not exactly the three<br/>expected export lines aborts boot with exit 1 (entrypoint-unified.sh:1418-1429), so no<br/>did:nostr:local placeholder is exported. see AB-11.13

@@ -533,7 +533,7 @@ flowchart TB
         TRUST["folder trust seeded before launch<br/>services/agentbox-sessions/src/plane.rs:270"]
         OWN["ownership marker abs_ prefix and @agentbox-sessions=1<br/>services/agentbox-sessions/src/tmux.rs:20-21"]
         STAT["status: dead, blocked, busy, idle from pane_dead, blocker patterns and hooks<br/>services/agentbox-sessions/src/status.rs:53-73"]
-        SOCK["unix socket 0660, SO_PEERCRED ACL<br/>services/agentbox-sessions/src/api.rs:67-80"]
+        SOCK["unix socket 0660, SO_PEERCRED ACL<br/>services/agentbox-sessions/src/api.rs:45-49, :70-76"]
     end
     TMUX["tmux server, one abs_ session per seed"]
     PICK["tab 8 picker, switch-client on its own client only<br/>config/tmux-autostart.sh:382-385<br/>services/agentbox-sessions/src/pick.rs:20-27,:71"]

@@ -146,7 +146,7 @@ sequenceDiagram
     WA-->>PK: credential + PRF output
     PK->>PK: extract PRF from creation auth/webauthn.rs:123
     PK->>PK: derive_from_prf(prf, prfSalt) auth/passkey.rs:153
-    PK->>AW: POST /auth/register/verify auth/passkey.rs:169
+    PK->>AW: POST /auth/register/verify auth/passkey.rs:173-174
     U->>AS: log in
     AS->>PK: authenticate_passkey auth/mod.rs:328
     PK->>AW: POST /auth/login/options auth/passkey.rs:237
