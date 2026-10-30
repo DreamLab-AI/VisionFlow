@@ -72,16 +72,22 @@ function cliFlag(argv) {
  */
 function resolveEndpoint(env, dataClass = 'public') {
   const base = { 'Content-Type': 'application/json' };
-  if (env.VISIONFLOW_JEV_ENDPOINT) {
+  const local = env.AGENTBOX_SYSTEM_ONE_BACKEND_LOCAL === '1';
+  const proxyUrl = env.AGENTBOX_SYSTEM_ONE_ENDPOINT || env.AGENTBOX_SKILL_ROUTE_API;
+  const proxyModel = env.AGENTBOX_SYSTEM_ONE_MODEL || env.AGENTBOX_SKILL_ROUTE_MODEL;
+  const proxy = env.AGENTBOX_SYSTEM_ONE_PROXY === '1' && proxyUrl && proxyModel;
+  // Agentbox projects its private local route as the explicit endpoint, marked
+  // VISIONFLOW_JEV_LOCAL=1. That route is for local-only data; a public question
+  // goes to the proxy, which serves the selected backend. An endpoint named by
+  // hand (no LOCAL mark) always wins.
+  const projectedLocal = env.VISIONFLOW_JEV_LOCAL === '1';
+  if (env.VISIONFLOW_JEV_ENDPOINT && !(projectedLocal && dataClass === 'public' && proxy)) {
     const headers = { ...base };
     const keyEnv = env.VISIONFLOW_JEV_KEY_ENV;
     if (keyEnv && env[keyEnv]) headers.Authorization = `Bearer ${env[keyEnv]}`;
     return { url: env.VISIONFLOW_JEV_ENDPOINT, model: env.VISIONFLOW_JEV_MODEL || DEFAULT_MODEL, headers };
   }
-  const local = env.AGENTBOX_SYSTEM_ONE_BACKEND_LOCAL === '1';
-  const proxyUrl = env.AGENTBOX_SYSTEM_ONE_ENDPOINT || env.AGENTBOX_SKILL_ROUTE_API;
-  const proxyModel = env.AGENTBOX_SYSTEM_ONE_MODEL || env.AGENTBOX_SKILL_ROUTE_MODEL;
-  if (env.AGENTBOX_SYSTEM_ONE_PROXY === '1' && proxyUrl && proxyModel) {
+  if (proxy) {
     if (dataClass === 'local-only' && !local) return { reason: 'local-only-refused' };
     return { url: proxyUrl, model: proxyModel, headers: base };
   }

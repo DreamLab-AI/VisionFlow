@@ -42,27 +42,57 @@ function claimCheck(claims) {
   };
 }
 
-/** VF-06-S1-01: is one diagram consistent with the source it cites? Noul + Choice. */
-function diagramReview(diagram) {
-  return {
-    version: 'vf-06-s1-01/diagram-review/v1',
-    state: { diagram_id: diagram.id, diagram_source: diagram.source, cited_excerpts: diagram.excerpts },
-    questions: {
-      supported: {
-        type: 'noul',
-        instructions: 'Every relationship, ordering or control-flow claim made by `diagram_source` that carries a path:line citation is stated by the matching entry of `cited_excerpts`. Answer yes only if you found no claim the excerpts fail to support.',
+/**
+ * VF-06-S1-02: does each cited line range hold what its diagram label says?
+ * One atomic Noul per citation, all asked against one shared state. Calibrated
+ * 2026-10-29 on 1,048 labelled citations (97 wrong) against TypeSafe jev-1.14.0:
+ * held-out AUC 0.86; flagging at p_defect >= 0.9 caught 16/50 wrong citations
+ * with 7 false alarms in 465. The wording below IS that calibration: bump the
+ * version and re-measure before changing it. (VF-06-S1-01 asked one question
+ * per whole diagram and measured no signal: 82% "uncheckable".)
+ */
+const CITATION_BATCH = 24;
+const CITATION_FLAG_AT = 0.9;
+const CITATION_LINE_CHARS = 220;
+function citationCheck(items) {
+  const state = { items: {} }, questions = {}, ids = [];
+  items.forEach((it, i) => {
+    const id = `q${i}`;
+    ids.push(id);
+    state.items[id] = {
+      claim: String(it.claim).replace(/<br\/?>/g, ' ').replace(/\s+/g, ' ').trim(),
+      cited_file: String(it.file).split('/').pop(),
+      cited_lines: it.lines.map((l) => `${l.n}: ${String(l.t).slice(0, CITATION_LINE_CHARS)}`).join('\n'),
+    };
+    questions[id] = {
+      type: 'noul',
+      instructions: `\`state.items.${id}.claim\` is a label from an architecture diagram that cites lines of source code. \`state.items.${id}.cited_lines\` are exactly those lines. Do the cited lines themselves contain the code, configuration or text that the label attributes to them?`,
+      criteria: {
+        true: 'The named symbol, value, call or statement the label describes appears in the cited lines, and they do not contradict the label.',
+        false: 'The cited lines are about something else, only near the described thing, blank or comment-only, or they contradict the label.',
       },
-      verdict: {
-        type: 'choice',
-        instructions: 'Compare the labelled relationships and control flow in `diagram_source` with the source excerpts in `cited_excerpts`. Choose "supported" if the excerpts back the diagram, "contradicted" if at least one cited claim is the opposite of, or inconsistent with, what the excerpt shows, and "uncheckable" if the excerpts are too short or unrelated to judge. Do not use outside knowledge.',
-        criteria: {
-          supported: 'The cited excerpts back every cited relationship in the diagram.',
-          contradicted: 'At least one cited relationship or control-flow step is inconsistent with its excerpt.',
-          uncheckable: 'The excerpts are missing, unrelated or too short to judge the diagram.',
-        },
-      },
-    },
-  };
+    };
+  });
+  return { version: 'vf-06-s1-02/citation-check/v1', state, questions, ids };
+}
+function citationBatches(items, size = CITATION_BATCH) {
+  const out = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
+/** The flag threshold was fitted on this model family only; another model's noul is reported, never flagged. */
+const CITATION_CALIBRATED = /^jev-/;
+/** Every answered citation with p_defect = 1 - noul, and whether it crosses the flag. */
+function citationFlags(answers, items, flagAt = CITATION_FLAG_AT, model = 'jev-latest') {
+  const calibrated = CITATION_CALIBRATED.test(String(model));
+  const out = [];
+  items.forEach((it, i) => {
+    const a = answers && answers[`q${i}`];
+    if (!a || typeof a.noul !== 'number') return;
+    const p = 1 - a.noul;
+    out.push({ ...it, p_defect: p, calibrated, flagged: calibrated && p >= flagAt });
+  });
+  return out;
 }
 
 const IMPACT_LEVELS = [
@@ -126,4 +156,4 @@ function excerpt(lines, a, b) {
   return lines.slice(start - 1, end).map((t, k) => `${start + k}: ${t.slice(0, 240)}`).join('\n');
 }
 
-module.exports = { claimCheck, diagramReview, healthPriority, failureTriage, excerpt, IMPACT_LEVELS, TRIAGE_CATEGORIES };
+module.exports = { claimCheck, citationCheck, citationBatches, citationFlags, CITATION_BATCH, CITATION_FLAG_AT, healthPriority, failureTriage, excerpt, IMPACT_LEVELS, TRIAGE_CATEGORIES };

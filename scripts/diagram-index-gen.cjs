@@ -422,6 +422,10 @@ function allowMatch(topic, diagramId, cited, src, line) {
 
 // Reset per citeCheck run; surfaced on the summary line and in COVERAGE.md.
 let CITE_STATS = null;
+// Citations the gate resolved, kept for the Jev option (VF-06-S1-02): the same
+// file, lines and diagram line the gate judged, so Jev reviews exactly what passed.
+const CITE_RESOLVED = [];
+let CITE_LINE = '';
 // Allowlisted citations: reported, never failed. Kept apart from `warnings` so
 // that --strict-citations, which turns every warning into an error, cannot turn
 // a waiver into one.
@@ -528,6 +532,11 @@ function citeCheck(topics) {
         if (hits.length > 1) { if (waive(null)) return; CITE_STATS.unresolvable++; bumpTopic(t, 'unresolvable'); warnings.push(`${t.rel}:${d.id} — ${cited}:${a} is ambiguous: matches ${hits.length} sources: entries`); return; }
         const src = hits[0];
         const { lines, resolution } = linesOf(src);
+        if (lines && jevWanted()) {
+          const lo = Number(a), hi = Number(b || a), cl = [];
+          for (let i = lo; i <= hi && i <= lines.length; i++) cl.push({ n: i, t: lines[i - 1] || '' });
+          CITE_RESOLVED.push({ topic: t.rel, where: d.id, claim: CITE_LINE.trim().slice(0, 400), cite: `${src}:${a}${b ? '-' + b : ''}`, file: src, lines: cl });
+        }
         if (!lines) { if (waive(src)) return; CITE_STATS.unresolvable++; bumpTopic(t, 'unresolvable'); warnings.push(`${t.rel}:${d.id} — ${src} could not be read`); return; }
         // Judged against working-tree bytes rather than the declared revision:
         // the line checks below still run, but this citation is NOT verified.
@@ -580,6 +589,7 @@ function citeCheck(topics) {
       // the most recent path cited earlier in the diagram (document order).
       let lastPath = null;
       for (const rawLine of text.split('\n')) {
+        CITE_LINE = rawLine;
         // `:987,1053,1060` cites three lines; expand so every number is checked.
         const line = rawLine.replace(/:(\d+)((?:,\s*\d+)+)/g, (m0, a, rest) => ':' + a + rest.replace(/,\s*(\d+)/g, ' :$1'));
         const paths = [];
@@ -781,57 +791,44 @@ function writeIndexes(topics) {
   fs.writeFileSync(path.join(root, 'COVERAGE.md'), out.join('\n') + '\n');
 }
 
-// ── The Jev option (VF-06-S1-01): advisory semantic diagram-to-source review ──
-// OFF by default (`--jev` / VISIONFLOW_JEV=diagram). It runs AFTER every
-// deterministic check, on stderr only (or --jev-report PATH), and can never
-// add an error, change an exit code, write an index, touch VERIFICATION.md or
-// restamp verified_commit: a finding is a pointer for a human reviewer, with
-// path:line anchors. Excerpts of sibling-repo source leave the process, so this
-// consumer is local-only (needs a declared-local endpoint). See docs/jev-option.md.
+// ── The Jev option (VF-06-S1-02): advisory per-citation review ──
+// OFF by default (`--jev` / VISIONFLOW_JEV=diagram) and needs --cite-check: it
+// asks one question per citation the gate resolved, in batches of 24, and runs
+// AFTER every deterministic check, on stderr only (or --jev-report PATH). It can
+// never add an error, change an exit code, write an index, touch VERIFICATION.md
+// or restamp verified_commit: a flag is a pointer for a human reviewer. The cited
+// lines go to the public (cloud) endpoint; the corpus code is not private. See
+// docs/jev-option.md.
 const jev = require('./lib/jev.cjs');
 const jevQ = require('./lib/jev-questions.cjs');
-function jevDiagramInputs(t, d) {
-  const excerpts = [];
-  const re = new RegExp(CITE_RE.source, 'g');
-  const sources = (t.fm.sources || []).map((s) => s.split(':')[0]);
-  for (const m of d.src.replace(/\\n/g, '\n').matchAll(re)) {
-    if (/^\d+(\.\d+)+$/.test(m[1])) continue;
-    const exact = sources.filter((sp) => sp === m[1] || sp === './' + m[1]);
-    const hits = exact.length ? exact : sources.filter((sp) => sp.endsWith('/' + m[1]));
-    if (hits.length !== 1) continue;
-    const { lines } = revisionLines(t, hits[0]);
-    const text = lines && jevQ.excerpt(lines, Number(m[2]), m[3] ? Number(m[3]) : undefined);
-    if (text && !excerpts.some((e) => e.ref === `${hits[0]}:${m[2]}${m[3] ? '-' + m[3] : ''}`)) {
-      excerpts.push({ ref: `${hits[0]}:${m[2]}${m[3] ? '-' + m[3] : ''}`, text });
-    }
-  }
-  return excerpts.slice(0, 8);
-}
-async function jevDiagramReview(topics, deps = {}) {
-  if (!jev.enabled('diagram', { env: process.env, cli: flags.jev })) return;
-  const max = flags.jevMax || 5;
+function jevWanted() { return jev.enabled('diagram', { env: process.env, cli: flags.jev }); }
+async function jevCitationReview(deps = {}) {
+  if (!jevWanted()) return;
+  if (!flags.cite) { console.error('jev: citation review needs --cite-check (it reviews the citations the gate resolved)'); return; }
+  const maxRequests = flags.jevMax || 5;
+  const flagAt = Number(process.env.VISIONFLOW_JEV_FLAG_AT) || jevQ.CITATION_FLAG_AT;
+  const batches = jevQ.citationBatches(CITE_RESOLVED).slice(0, maxRequests);
+  const asked = batches.reduce((n, b) => n + b.length, 0);
+  if (asked < CITE_RESOLVED.length) console.error(`jev: reviewing ${asked} of ${CITE_RESOLVED.length} citations (raise with --jev-max N requests of ${jevQ.CITATION_BATCH})`);
   const report = [];
-  let asked = 0;
-  for (const t of topics) {
-    CURRENT_TOPIC = t;
-    for (const d of t.diagrams) {
-      if (asked >= max) break;
-      const excerpts = jevDiagramInputs(t, d);
-      if (!excerpts.length) continue;
-      asked++;
-      const q = jevQ.diagramReview({ id: `${t.fm.id}/${d.id}`, source: d.src.slice(0, 6000), excerpts });
-      const r = await jev.decide({ ...q, dataClass: 'local-only', env: process.env, ...deps });
-      if (r.outcome !== 'accepted') continue;
-      const verdict = r.answers.verdict;
-      const rec = { topic: t.rel, diagram: d.id, verdict: verdict.choice, confidence: verdict.confidence, p_supported: r.answers.supported.noul, anchors: excerpts.map((e) => e.ref), question_set: q.version };
-      report.push(rec);
-      if (verdict.choice === 'contradicted') {
-        console.error(`JEV-ADVISORY ${t.rel}:${d.id} contradicted conf=${verdict.confidence.toFixed(2)} anchors=${rec.anchors.join(',')} (needs human review before any restamp)`);
-      }
+  let uncalibratedNoted = false;
+  for (const items of batches) {
+    const q = jevQ.citationCheck(items);
+    // Any noul is useful here: the flag is the threshold, so no per-answer confidence floor.
+    const r = await jev.decide({ ...q, dataClass: 'public', minConfidence: 0, env: process.env, ...deps });
+    if (r.outcome !== 'accepted') continue;
+    const flags = jevQ.citationFlags(r.answers, items, flagAt, r.model);
+    if (flags.length && !flags[0].calibrated && !uncalibratedNoted) {
+      uncalibratedNoted = true;
+      console.error(`jev: ${r.model} is not the model the ${flagAt} flag was fitted on; citations are reported, not flagged`);
+    }
+    for (const f of flags) {
+      report.push({ topic: f.topic, diagram: f.where, cite: f.cite, p_defect: Number(f.p_defect.toFixed(3)), calibrated: f.calibrated, flagged: f.flagged, question_set: q.version, model: r.model });
+      if (f.flagged) console.error(`JEV-ADVISORY ${f.topic}:${f.where} ${f.cite} p_defect=${f.p_defect.toFixed(2)} (cited lines may not hold this label; check by hand)`);
     }
   }
   if (flags.jevReport && report.length) {
-    try { fs.writeFileSync(flags.jevReport, JSON.stringify({ advisory: true, results: report }, null, 2) + '\n'); } catch { /* report is best-effort */ }
+    try { fs.writeFileSync(flags.jevReport, JSON.stringify({ advisory: true, flag_at: flagAt, results: report }, null, 2) + '\n'); } catch { /* report is best-effort */ }
   }
 }
 
@@ -883,7 +880,7 @@ async function jevDiagramReview(topics, deps = {}) {
     for (const x of w) console.warn(`  ! ${x}`);
     if (flags.strictCitations) errors.push(...w.map(x => `citation: ${x}`));
   }
-  await jevDiagramReview(topics).catch(() => {});
+  await jevCitationReview().catch(() => {});
   if (flags.checkVerification) {
     // The runner cannot resolve cross-repository revisions, so it cannot repeat
     // the citation check. What it CAN do is refuse a VERIFICATION.md written

@@ -63,6 +63,14 @@ const FB_NAMES = ['flag off', 'flag on, no endpoint', 'transport error', 'timeou
     const e3 = jev.resolveEndpoint({ TYPESAFE_API_KEY: 't' });
     assert.deepEqual([e3.url, e3.model, e3.headers.Authorization], [jev.DEFAULT_API, 'jev-latest', 'Bearer t']);
     assert.equal(jev.resolveEndpoint({ AGENTBOX_SYSTEM_ONE_PROXY: '1', AGENTBOX_SYSTEM_ONE_ENDPOINT: 'http://p' }).reason, 'no-endpoint'); });
+  await ok('an agentbox-projected local route serves local-only questions; public ones go to the proxy', () => {
+    const PX = { AGENTBOX_SYSTEM_ONE_PROXY: '1', AGENTBOX_SYSTEM_ONE_ENDPOINT: 'http://p', AGENTBOX_SYSTEM_ONE_MODEL: 'pm' };
+    const LOCAL = { VISIONFLOW_JEV_ENDPOINT: 'http://laya', VISIONFLOW_JEV_MODEL: 'lm', VISIONFLOW_JEV_LOCAL: '1' };
+    assert.deepEqual([jev.resolveEndpoint({ ...PX, ...LOCAL }, 'public').url, jev.resolveEndpoint({ ...PX, ...LOCAL }, 'public').model], ['http://p', 'pm']);
+    assert.equal(jev.resolveEndpoint({ ...PX, ...LOCAL }, 'local-only').url, 'http://laya');
+    assert.equal(jev.resolveEndpoint(LOCAL, 'public').url, 'http://laya', 'no proxy: the local route still serves');
+    const manual = { ...PX, VISIONFLOW_JEV_ENDPOINT: 'http://mine' };
+    assert.equal(jev.resolveEndpoint(manual, 'public').url, 'http://mine', 'an endpoint named by hand always wins'); });
   await ok('proxy aliases: AGENTBOX_SKILL_ROUTE_API / _MODEL accepted, primary names win, no Authorization', () => {
     const a = jev.resolveEndpoint({ AGENTBOX_SYSTEM_ONE_PROXY: '1', AGENTBOX_SKILL_ROUTE_API: 'http://alias', AGENTBOX_SKILL_ROUTE_MODEL: 'am', TYPESAFE_API_KEY: 't' });
     assert.deepEqual([a.url, a.model, 'Authorization' in a.headers], ['http://alias', 'am', false]);
@@ -120,13 +128,16 @@ const FB_NAMES = ['flag off', 'flag on, no endpoint', 'transport error', 'timeou
 
   // question-set wire shape: Choice criteria = map, Score criteria = ordered list, Noul none required
   await ok('question sets: choice criteria map, score criteria list, versions, instructions carry meaning', () => {
-    const sets = [Q.claimCheck([{ key: 'C1/x', text: 't', status: 'partial', excerpts: [{ ref: 'a:1', text: '1: x' }] }]), Q.diagramReview({ id: 'T/D', source: 'flowchart', excerpts: [] }),
+    const sets = [Q.claimCheck([{ key: 'C1/x', text: 't', status: 'partial', excerpts: [{ ref: 'a:1', text: '1: x' }] }]), Q.citationCheck([{ claim: 'A --> B', file: 'x/a.rs', lines: [{ n: 1, t: 'fn a()' }] }]),
       Q.healthPriority([{ kind: 'ci', repo: 'r', workflow: 'w', outcome: 'failure' }]), Q.failureTriage([{ kind: 'ci', repo: 'r', workflow: 'w', outcome: 'failure' }])];
     for (const s of sets) { assert.match(s.version, /\/v\d+$/); for (const q of Object.values(s.questions)) {
       assert.ok(q.instructions.length > 80); if (q.type === 'choice') assert.ok(q.criteria && !Array.isArray(q.criteria) && Object.keys(q.criteria).length >= 3);
       if (q.type === 'score') assert.ok(Array.isArray(q.criteria) && q.criteria.length >= 2); } }
     assert.ok('insufficient' in Q.failureTriage([{}]).questions.triage_0.criteria); assert.ok('insufficient' in Q.claimCheck([{ key: 'k', excerpts: [] }]).questions.claim_0.criteria);
-    assert.deepEqual(Object.keys(Q.diagramReview({ id: 'x', source: '', excerpts: [] }).questions), ['supported', 'verdict']); });
+    assert.ok(!('diagramReview' in Q), 'the whole-diagram question measured no signal and is retired'); });
+
+  // VF-06-S1-02: one atomic Noul per citation. The wording is pinned because the
+  // 0.9 flag thres…[2489 chars]
 
   // ── B/C. estate-health check (VF-03, ES-09) ─────────────────────────────
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jev-vf-'));
@@ -230,17 +241,30 @@ const FB_NAMES = ['flag off', 'flag on, no endpoint', 'transport error', 'timeou
     sh(EH, ['check', '--file', snap, '--max-age-hours', '1000'], env); sh(AC, ['--root', estate], env); sh(DG, [t, '--check', '--cite-check'], env);
     assert.ok(!fs.existsSync(lf)); });
 
-  await ok('VF-06 accept: stderr advisory with path:line anchors + report; stdout, exit and indexes untouched; Noul+Choice wire shape', () => {
+  await ok('VF-06 accept: one Noul per resolved citation; flagged ones on stderr + report; stdout, exit and indexes untouched', () => {
     const a = mkTree('dg-acc-off'); const b = mkTree('dg-acc-on'); fs.rmSync(logf, { force: true });
     const off = sh(DG, [a.root, '--check', '--cite-check']); const reportPath = path.join(tmp, 'dg-report.json');
-    const raw = spawnSync(process.execPath, ['--require', MOCK, DG, b.root, '--check', '--cite-check', '--jev', '--jev-report', reportPath], { encoding: 'utf8', env: { PATH: process.env.PATH, ...ENV, AGENTBOX_SYSTEM_ONE_BACKEND_LOCAL: '1', JEV_MOCK: 'accept', JEV_MOCK_LOG: logf, VISIONFLOW_JEV_FOO: '' } });
+    const raw = spawnSync(process.execPath, ['--require', MOCK, DG, b.root, '--check', '--cite-check', '--jev', '--jev-report', reportPath], { encoding: 'utf8', env: { PATH: process.env.PATH, ...ENV, JEV_MOCK: 'accept', JEV_MOCK_LOG: logf } });
     assert.equal(raw.status, off.status); assert.equal(raw.stdout.split(b.root).join(a.root), off.stdout);
-    assert.match(raw.stderr, /JEV-ADVISORY .*01-fixture\.md:VF-01\.1 contradicted conf=0\.90 anchors=fixture\.js:1,fixture\.js:2 \(needs human review before any restamp\)/);
+    assert.match(raw.stderr, /JEV-ADVISORY .*01-fixture\.md:VF-01\.1 fixture\.js:1 p_defect=0\.90 \(cited lines may not hold this label; check by hand\)/);
+    assert.match(raw.stderr, /JEV-ADVISORY .*01-fixture\.md:VF-01\.1 fixture\.js:2 p_defect=0\.90/);
     assert.deepEqual(tree(b.root), tree(a.root), 'no index/VERIFICATION/frontmatter change');
-    const rep = JSON.parse(fs.readFileSync(reportPath, 'utf8')); assert.equal(rep.advisory, true); assert.equal(rep.results[0].verdict, 'contradicted');
-    const req = JSON.parse(fs.readFileSync(logf, 'utf8').trim().split('\n')[0]);
-    assert.equal(req.body.questions.supported.type, 'noul'); assert.equal(req.body.questions.verdict.type, 'choice'); assert.ok('uncheckable' in req.body.questions.verdict.criteria);
-    assert.equal(req.body.state.cited_excerpts.length, 2); assert.match(req.body.state.cited_excerpts[0].text, /route/); });
+    const rep = JSON.parse(fs.readFileSync(reportPath, 'utf8')); assert.equal(rep.advisory, true); assert.equal(rep.flag_at, 0.9);
+    assert.deepEqual(rep.results.map((x) => [x.cite, x.flagged]), [['fixture.js:1', true], ['fixture.js:2', true]]);
+    const reqs = fs.readFileSync(logf, 'utf8').trim().split('\n'); assert.equal(reqs.length, 1, 'both citations in one batched request');
+    const req = JSON.parse(reqs[0]); assert.deepEqual(Object.keys(req.body.questions), ['q0', 'q1']);
+    assert.equal(req.body.questions.q0.type, 'noul'); assert.deepEqual(Object.keys(req.body.questions.q0.criteria), ['true', 'false']);
+    assert.equal(req.body.state.items.q0.cited_lines, '1: function route(x) {'); assert.match(req.body.state.items.q1.cited_lines, /^2: .*drop\(\)/);
+    assert.match(req.body.state.items.q0.claim, /route fixture\.js:1/); });
+  await ok('VF-06: the 0.9 flag applies only to the model family it was calibrated on', () => {
+    const items = [{ cite: 'a.rs:1' }];
+    assert.equal(Q.citationFlags({ q0: { noul: 0.05 } }, items, 0.9, 'jev-1.14.0')[0].flagged, true);
+    const other = Q.citationFlags({ q0: { noul: 0.05 } }, items, 0.9, 'laya-typed-decisions')[0];
+    assert.deepEqual([other.flagged, other.calibrated, Number(other.p_defect.toFixed(2))], [false, false, 0.95]); });
+  await ok('VF-06: --jev without --cite-check asks nothing and says why', () => {
+    const t = mkTree('dg-nocite'); fs.rmSync(logf, { force: true });
+    const raw = spawnSync(process.execPath, ['--require', MOCK, DG, t.root, '--check', '--jev'], { encoding: 'utf8', env: { PATH: process.env.PATH, ...ENV, JEV_MOCK: 'accept', JEV_MOCK_LOG: logf } });
+    assert.equal(raw.status, 0); assert.ok(!fs.existsSync(logf), 'no request'); assert.match(raw.stderr, /needs --cite-check/); });
 
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log(`\n${passed} passed${process.exitCode ? ', FAILURES above' : ''}`);

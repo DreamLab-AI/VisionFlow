@@ -242,7 +242,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    DISC["Vocabulary::discover — walk up for ontology/vocabulary.yaml<br/>input/vocabulary.rs:491-485"]
+    DISC["Vocabulary::discover — walk up for ontology/vocabulary.yaml<br/>input/vocabulary.rs:491-506"]
     CLIUSE["only caller of discover: ontomark-cli resolve_repo<br/>ontomark-cli/src/main.rs:479"]
     GENERIC["no vocabulary.yaml above the start dir → Vocabulary::generic, estate_shape false — no types, relations or scalars (ADR-OM-008)<br/>ontomark-cli/src/main.rs:492-502, input/vocabulary.rs:469-471"]
     LOADV["Vocabulary::load — read file, wrap error with path<br/>input/vocabulary.rs:478-485"]
