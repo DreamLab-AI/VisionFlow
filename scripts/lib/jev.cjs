@@ -205,7 +205,15 @@ async function decide(o) {
   }
 }
 
+/**
+ * A consumer's data class from its own opt-in flag: 'local-only' only when
+ * env[flag] is '1', else 'public' (the shared proxy, i.e. the selected backend).
+ * Agentbox ADR-2139 amendment, 2026-10-30: nothing is local-only by default.
+ */
+function dataClassFor(env, flag) {
+  return env && env[flag] === '1' ? 'local-only' : 'public';
+}
+
 module.exports = {
   decide, enabled, cliFlag, resolveEndpoint, validate, confidenceOf,
-  DEFAULT_API, DEFAULT_MODEL, DEFAULT_DEADLINE_MS, DEFAULT_MIN_CONFIDENCE, ITEMS,
-};
+  DEFAULT_API, DEFAULT_MODEL, DEFAULT_DEADLINE_MS, DEFAULT_MIN_CONFIDENCE, ITEMS, dataClassFor };

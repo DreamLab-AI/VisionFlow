@@ -9,7 +9,7 @@ Status of every item: *proposed research candidate; no measured uplift.* The tes
 | Item | Seam | Flag | Data class | Jev adds |
 |---|---|---|---|---|
 | VF-06-S1-02 citation vs source | `scripts/diagram-index-gen.cjs` | `--jev[=diagram]` with `--cite-check` (+ `--jev-report PATH`, `--jev-max N` requests of 24 citations, default 5) | public | One Noul per citation the gate resolved: do the cited lines hold what the diagram label says? A citation whose defect probability (`1 - noul`) is at least 0.9 (`VISIONFLOW_JEV_FLAG_AT`) prints to **stderr** as `JEV-ADVISORY topic:diagram file:line p_defect=…`; the JSON report lists every answered citation. Never changes an exit code, an index or a stamp. |
-| VF-01-S1-01 claim vs evidence | `scripts/check-augmentation-citations.cjs` | `--jev[=claim]` | local-only | One Choice per non-`absent` matrix cell (`supported / overstated / contradicted / insufficient`); non-supported verdicts print as `JEV claim ...` **after** the gate's summary line. No status is changed. |
+| VF-01-S1-01 claim vs evidence | `scripts/check-augmentation-citations.cjs` | `--jev[=claim]` | public (`VISIONFLOW_JEV_CLAIMS_LOCAL_ONLY=1` pins it local-only) | One Choice per non-`absent` matrix cell (`supported / overstated / contradicted / insufficient`); non-supported verdicts print as `JEV claim ...` **after** the gate's summary line. No status is changed. |
 | VF-03-S1-01 health priority | `scripts/estate-health.mjs check` | `--jev[=health]` | public | One Score per failed/unreadable observation; `JEV priority N ...` lines before the verdict sentinel. |
 | ES-09-S1-01 failure triage | `scripts/estate-health.mjs check` | `--jev[=triage]` | public | One Choice per failed CI run (`source-build / stale-bind-path / pin-or-schema / dependency / gpu-xr / runtime-evidence-gap / insufficient`); `JEV triage ...` lines before the sentinel. |
 
@@ -25,7 +25,7 @@ Nothing, unless the flag is on **and** an endpoint resolves. Then one HTTPS `POS
 - VF-01: the matrix cell text and bounded excerpts of the cited sibling-repo files.
 - VF-03/ES-09: repository names, workflow names and outcomes (up to 12 items). These are already published in `website/static/data/estate-health.json`; **no URLs, logs or failed-step text are sent** (the snapshot carries none, so triage evidence is thin by construction).
 
-VF-01 reads source from sibling checkouts, so it is **local-only**: it refuses the agentbox proxy and the TypeSafe cloud endpoint unless the endpoint is declared local (`AGENTBOX_SYSTEM_ONE_BACKEND_LOCAL=1`), or you name an explicit endpoint yourself with `VISIONFLOW_JEV_ENDPOINT`. VF-06 is **public** since S1-02 (operator decision, 2026-10-29: the estate code it quotes is not private), because its 0.9 flag was calibrated on the TypeSafe cloud model and would not carry over to a local one.
+VF-01 reads source from sibling checkouts. It takes the shared proxy (the selected backend) by default; `VISIONFLOW_JEV_CLAIMS_LOCAL_ONLY=1` makes it **local-only**, refusing the agentbox proxy and the TypeSafe cloud endpoint unless the endpoint is declared local (`AGENTBOX_SYSTEM_ONE_BACKEND_LOCAL=1` or an explicit `VISIONFLOW_JEV_ENDPOINT`). Agentbox ADR-2139 amendment, 2026-10-30: nothing is local-only by default. VF-06 is **public** since S1-02 (operator decision, 2026-10-29: the estate code it quotes is not private), because its 0.9 flag was calibrated on the TypeSafe cloud model and would not carry over to a local one.
 
 Endpoint resolution (first match wins; `scripts/lib/jev.cjs`):
 

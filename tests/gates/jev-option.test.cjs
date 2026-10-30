@@ -80,6 +80,14 @@ const FB_NAMES = ['flag off', 'flag on, no endpoint', 'transport error', 'timeou
     assert.deepEqual([w.url, w.model], ['http://p', 'pm']);
     assert.equal(jev.resolveEndpoint({ AGENTBOX_SKILL_ROUTE_API: 'http://alias', AGENTBOX_SKILL_ROUTE_MODEL: 'am' }).reason, 'no-endpoint', 'alias needs PROXY=1');
     assert.equal(jev.resolveEndpoint({ AGENTBOX_SYSTEM_ONE_PROXY: '1', AGENTBOX_SKILL_ROUTE_API: 'http://alias', AGENTBOX_SKILL_ROUTE_MODEL: 'am' }, 'local-only').reason, 'local-only-refused'); });
+  await ok('dataClassFor: local-only only when the consumer flag is 1 (ADR-2139 amendment, 2026-10-30)', () => {
+    assert.equal(jev.dataClassFor({}, 'VISIONFLOW_JEV_CLAIMS_LOCAL_ONLY'), 'public');
+    assert.equal(jev.dataClassFor({ VISIONFLOW_JEV_CLAIMS_LOCAL_ONLY: '0' }, 'VISIONFLOW_JEV_CLAIMS_LOCAL_ONLY'), 'public');
+    assert.equal(jev.dataClassFor({ VISIONFLOW_JEV_CLAIMS_LOCAL_ONLY: '1' }, 'VISIONFLOW_JEV_CLAIMS_LOCAL_ONLY'), 'local-only');
+    const PX = { AGENTBOX_SYSTEM_ONE_PROXY: '1', AGENTBOX_SYSTEM_ONE_ENDPOINT: 'http://p/v1/systemone', AGENTBOX_SYSTEM_ONE_MODEL: 'pm', AGENTBOX_SYSTEM_ONE_BACKEND_LOCAL: '0' };
+    assert.equal(jev.resolveEndpoint(PX, jev.dataClassFor(PX, 'VISIONFLOW_JEV_CLAIMS_LOCAL_ONLY')).url, 'http://p/v1/systemone');
+    const pinned = { ...PX, VISIONFLOW_JEV_CLAIMS_LOCAL_ONLY: '1' };
+    assert.equal(jev.resolveEndpoint(pinned, jev.dataClassFor(pinned, 'VISIONFLOW_JEV_CLAIMS_LOCAL_ONLY')).reason, 'local-only-refused'); });
   await ok('local-only refuses proxy and typesafe unless declared local', () => {
     const proxy = { AGENTBOX_SYSTEM_ONE_PROXY: '1', AGENTBOX_SYSTEM_ONE_ENDPOINT: 'http://p', AGENTBOX_SYSTEM_ONE_MODEL: 'pm' };
     assert.equal(jev.resolveEndpoint(proxy, 'local-only').reason, 'local-only-refused');
@@ -207,7 +215,7 @@ const FB_NAMES = ['flag off', 'flag on, no endpoint', 'transport error', 'timeou
       FALLBACKS.forEach((env, i) => ok(`augmentation gate == pre-change (${root === estate ? 'passing' : 'failing'} estate): ${FB_NAMES[i]}`, () => assert.deepEqual(sh(AC, ['--root', root], { ...env, AGENTBOX_SYSTEM_ONE_BACKEND_LOCAL: '1' }), ref)));
     }
   }
-  await ok('VF-01 accept: JEV claim annotation after the summary; gate exit unchanged; local-only refuses typesafe', () => {
+  await ok('VF-01 accept: JEV claim annotation after the summary; gate exit unchanged; pinned local-only refuses typesafe, unpinned uses it', () => {
     fs.rmSync(logf, { force: true });
     const base = sh(AC, ['--root', estate]);
     const r = sh(AC, ['--root', estate, '--jev'], { ...ENV, JEV_MOCK: 'accept', JEV_MOCK_LOG: logf });
@@ -216,8 +224,10 @@ const FB_NAMES = ['flag off', 'flag on, no endpoint', 'transport error', 'timeou
     const req = JSON.parse(fs.readFileSync(logf, 'utf8').trim().split('\n')[0]); const c0 = req.body.state.claims.claim_0;
     assert.ok(c0.cited_excerpts[0].ref.includes(':') && c0.cited_excerpts[0].text.length > 0 && c0.assigned_status);
     fs.rmSync(logf, { force: true });
-    const priv = sh(AC, ['--root', estate, '--jev'], { TYPESAFE_API_KEY: 'k', JEV_MOCK: 'accept', JEV_MOCK_LOG: logf });
-    assert.deepEqual(priv, base); assert.ok(!fs.existsSync(logf), 'no request when local-only is not satisfied'); });
+    const priv = sh(AC, ['--root', estate, '--jev'], { TYPESAFE_API_KEY: 'k', VISIONFLOW_JEV_CLAIMS_LOCAL_ONLY: '1', JEV_MOCK: 'accept', JEV_MOCK_LOG: logf });
+    assert.deepEqual(priv, base); assert.ok(!fs.existsSync(logf), 'no request when pinned local-only is not satisfied');
+    const pub = sh(AC, ['--root', estate, '--jev'], { TYPESAFE_API_KEY: 'k', JEV_MOCK: 'accept', JEV_MOCK_LOG: logf });
+    assert.equal(pub.status, 0); assert.ok(fs.existsSync(logf), 'unpinned: the TypeSafe step is used'); });
   await ok('VF-01: a failing gate stays failing (exit 1, same FAIL lines) when Jev says everything is supported', () => {
     const r = sh(AC, ['--root', path.join(tmp, 'no-such-estate'), '--jev'], { ...ENV, JEV_MOCK: 'accept' }); assert.equal(r.status, 1); });
 

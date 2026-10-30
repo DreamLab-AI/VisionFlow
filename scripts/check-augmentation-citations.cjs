@@ -95,14 +95,15 @@ console.log(`${checked} citations checked across ${body.length} rows × ${cols.l
 /**
  * The Jev pass: runs only when asked for, after the deterministic gate has
  * printed its verdict, and can only append `JEV` lines. Excerpts of sibling
- * checkouts leave the process, so this consumer is local-only: it needs a
- * declared-local endpoint (AGENTBOX_SYSTEM_ONE_BACKEND_LOCAL=1 or an explicit
- * VISIONFLOW_JEV_ENDPOINT). Any fallback prints nothing more.
+ * checkouts leave the process. It takes the shared proxy (the selected backend)
+ * unless VISIONFLOW_JEV_CLAIMS_LOCAL_ONLY=1 pins it to a declared-local endpoint
+ * (AGENTBOX_SYSTEM_ONE_BACKEND_LOCAL=1 or an explicit VISIONFLOW_JEV_ENDPOINT).
+ * Any fallback prints nothing more.
  */
 async function jevPass(deps = {}) {
   if (!wantJev || !jevCells.length) return;
   const q = jevQ.claimCheck(jevCells);
-  const r = await jev.decide({ ...q, dataClass: 'local-only', env: process.env, ...deps });
+  const r = await jev.decide({ ...q, dataClass: jev.dataClassFor(process.env, 'VISIONFLOW_JEV_CLAIMS_LOCAL_ONLY'), env: process.env, ...deps });
   if (r.outcome !== 'accepted') return;
   for (const { id, key } of q.ids) {
     const a = r.answers[id];
