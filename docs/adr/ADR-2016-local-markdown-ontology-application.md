@@ -11,7 +11,7 @@ depends_on: [ADR-2014, ADR-2015]
 verified_commit: 813a759
 verified_paths: []
 owner: jjohare
-review_trigger: plugin capability, target support, model integration or persistence change
+review_trigger: plugin capability, target support, model integration or persistence change; activation event — the ontomark-obsidian plugin is released for installation outside the test vault
 repo: visionflow
 domain: BASELINE-visionflow.md
 ---

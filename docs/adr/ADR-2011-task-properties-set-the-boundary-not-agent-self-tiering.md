@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 verified_commit: 03db67106e8d5aab6e6a992095107f14df3fc886
 owner: jjohare
-review_trigger: nostr-bbs-core publishing TaskProperties, or agentbox authority_class gaining a third class
+review_trigger: nostr-bbs-core publishing TaskProperties, or agentbox authority_class gaining a third class; activation event — the live forum relay NIP-11 `nostr_bbs.escalation_defaults.status` leaves `scaffolded`, or a read-only probe shows `effective_tier` enforced on the deployed relay
 repo: visionflow
 domain: BASELINE-visionflow.md
 lineage: applies ADR-2010's lens to the one field that today decides escalation; builds on agentbox authority_class (zero-tolerance | recoverable) as the reversibility seed and on the forum's advertised-but-unenforced ESCALATION_DEFAULT_* (wrangler.toml:48-49).

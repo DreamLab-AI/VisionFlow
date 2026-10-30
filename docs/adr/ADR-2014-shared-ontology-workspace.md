@@ -11,7 +11,7 @@ depends_on: [ADR-2013]
 verified_commit: 813a759
 verified_paths: []
 owner: jjohare
-review_trigger: workspace creation, package ownership, licence or consumer contract change
+review_trigger: workspace creation, package ownership, licence or consumer contract change; activation event — a consumer (Loom, VisionClaw or agentbox) builds from the published ontomark crates in a deployed artefact and the inventoried duplicate implementations are removed
 repo: visionflow
 domain: BASELINE-visionflow.md
 ---

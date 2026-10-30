@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 verified_commit: 03db67106e8d5aab6e6a992095107f14df3fc886
 owner: jjohare
-review_trigger: any substrate row in the augmentation-conditions matrix changing status, or a second longitudinal measurement cycle completing (first is 2026-12-14)
+review_trigger: any substrate row in the augmentation-conditions matrix changing status, or a second longitudinal measurement cycle completing (first is 2026-12-14); activation event — the live forum relay NIP-11 `nostr_bbs.escalation_defaults.status` leaves `scaffolded` and a read-only probe shows a high or critical case resolving only by a human 31403
 repo: visionflow
 domain: BASELINE-visionflow.md
 lineage: extends ADR-2006 (canon owns the cross-repo view) by giving the view a rubric; complements the judgment-broker PRD/DDD, which define the loop this ADR grades.

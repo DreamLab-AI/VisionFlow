@@ -4,13 +4,13 @@ title: The solid-pod-rs forge and mirror are on in shipped pods; open edit, main
 date: 2026-10-20
 decision_status: accepted
 implementation_status: partial
-activation_status: inactive
+activation_status: live
 supersedes: []
 superseded_by: []
-verified_commit: 4027542
+verified_commit: 7d55032
 verified_paths: []
 owner: jjohare
-review_trigger: solid-pod-rs publishes a release carrying `forge-full`; agentbox or VisionClaw builds it; the owner changes the open-edit, mainnet or follow-list defaults; JSS plugins/forge changes its contract
+review_trigger: the shipped agentbox pod sets FORGE_MIRROR_FOLLOW so the kind-30618 mirror starts (completes this record); VisionClaw gains a `/forge` adapter; the owner changes the open-edit, mainnet or follow-list defaults; JSS plugins/forge changes its contract
 repo: visionflow
 domain: BASELINE-visionflow.md
 lineage: "Amends ADR-2018 decision bullet 4 (forge and mirror default-off in every consumer). Companion to solid-pod-rs ADR-2010 (the implementation record) and consumer ADRs in agentbox and VisionClaw."
@@ -36,3 +36,12 @@ lineage: "Amends ADR-2018 decision bullet 4 (forge and mirror default-off in eve
 
 ## Verification
 Status is partial and inactive: nothing is released or built by a consumer yet. Established against base `4027542` (VisionFlow) and solid-pod-rs `8dd5dc1` by `scripts/parity-check.sh` (264 rows) and solid-pod-rs ADR-2010, which carries the test and review evidence.
+
+## Close-out 2026-10-30
+
+`activation_status` inactive → live for the forge; `implementation_status` stays partial because the kind-30618 mirror does not start in the shipped pod. Evidence executed today:
+
+- Release: crates.io `solid-pod-rs-server` 0.5.0-alpha.18 (published 2026-10-29) lists the `forge-full`, `forge-mirror` and `forge-announce` features. Agentbox pins solid-pod-rs `76ab7aab` (tag `v0.5.0-alpha.18`) in `lib/solid-pod-rs.nix:38,54` and adds `forge-full` by default in `flake.nix` (`solidPodRsExtraFeatures`, `(solidPodRsCfg.forge or {}).enable or true`).
+- Runtime: the running agentbox pod is `/nix/store/…-solid-pod-rs-server-0.5.0-alpha.18/bin/solid-pod-rs-server`. `/var/log/solid-pod.log` records `forge: started` at 2026-10-30T14:22:46Z, and `GET http://127.0.0.1:8484/forge` answers 200 with the forge page.
+- Opt-in defaults hold: the pod's environment carries `FORGE_OPEN_EDIT=0`, `FORGE_ALLOW_MAINNET=0` and `FORGE_PRIVATE_REPOS=0`, with chain `txbt4`. Announce emission is logged `DISABLED (set announce_relays to opt in)`.
+- Gap: `FORGE_MIRROR_FOLLOW` is empty in the pod environment. solid-pod-rs `crates/solid-pod-rs-server/src/lib.rs:4965-4981` (`mirror_config`) returns `None` without a follow list, and `:5022-5027` starts the mirror only on `Some`. `grep -c "mirror on kind-30618" /var/log/solid-pod.log` returns 0. The Decision's shipped follow list (the operator's own key) is therefore not wired, so the mirror is compiled in but not started. Closing this is an agentbox change (populate the follow list in the pod launcher), not a VisionFlow one.

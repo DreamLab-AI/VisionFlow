@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 verified_commit: fd6162b4bcd47758e647d18ecd74a9e01abbe3e1
 owner: jjohare
-review_trigger: any proposal to reintroduce a second corpus parser, a second build or an MCP server for the corpus inside the estate; GitHub sync re-enablement for VisionClaw ingest; a vocabulary.yaml major version; the first divergence between Loom's, VisionClaw's and vault build's class counts
+review_trigger: any proposal to reintroduce a second corpus parser, a second build or an MCP server for the corpus inside the estate; GitHub sync re-enablement for VisionClaw ingest; a vocabulary.yaml major version; the first divergence between Loom's, VisionClaw's and vault build's class counts; activation event — Loom `/health`, VisionClaw `/api/ontology/classes` and `vault build --stats` report the same class count at a named commit
 repo: visionflow
 domain: BASELINE-visionflow.md
 lineage: "Canon entry for PRD-sovereign-corpus (docs/PRD-sovereign-corpus.md, accepted 2026-09-22, owner decisions Q1 to Q14). Carries no implementation; it records the ecosystem-level decision that VisionClaw ADR-2112 to ADR-2116, agentbox ADR-2109 to ADR-2108, nostr-rust-forum ADR-2013 and Loom ADR-141 implement. Seams frozen in docs/engineering/sovereign-corpus-contracts.md."
