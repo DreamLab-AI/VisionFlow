@@ -51,7 +51,7 @@ sources:
   - ../project/agentbox/docker-compose.voice.yml
   - ../project/agentbox/docker-compose.speech.yml
   - ../project/agentbox/scripts/qgis_mcp_standalone.py
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-27.1 ComfyUI — builtin loopback gate vs external sidecar integration
@@ -67,7 +67,7 @@ sequenceDiagram
     participant Ext as comfyui:8188<br/>visionclaw_network sidecar
 
     Agent->>Skill: generate_image(prompt) via stdio MCP<br/>agentbox/mcp/mcp.json:137
-    Note over Skill: class default localhost:8188 (skills/comfyui/mcp-server/server.js:11) but the entry point<br/>defaults COMFYUI_URL to http://comfyui:8188, the sidecar (skills/comfyui/mcp-server/server.js:176), and mcp.json says the image sets it (mcp/mcp.json:148)
+    Note over Skill: class default localhost:8188 (skills/comfyui/mcp-server/server.js:11) but the entry point<br/>defaults COMFYUI_URL to http://comfyui:8188, the sidecar (skills/comfyui/mcp-server/server.js:203), and mcp.json says the image sets it (mcp/mcp.json:148)
 
     alt skills.media.comfyui_builtin = true (agentbox.toml:372)
         Skill->>Builtin: POST /prompt (loopback 127.0.0.1:8188)

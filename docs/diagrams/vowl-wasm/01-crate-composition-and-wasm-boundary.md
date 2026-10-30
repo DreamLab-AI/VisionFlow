@@ -23,7 +23,7 @@ sources:
   - ../vowl-wasm/src/layout/simulation.rs
   - ../vowl-wasm/README.md
   - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
-verified_commit: 89d1a0a32eec16e79a7fa507eaa6f8fcb92e4f0b
+verified_commit: 28af4365a68d9aacfd7c04f63299cc96ad717ce3
 ---
 
 ## VW-01.1 Top-level module tree
@@ -50,7 +50,7 @@ flowchart LR
     subgraph Always["always compiled, default = []"]
         CORE["OWL/JSON parsing, graph model,<br/>force layout, pinning, statistics<br/>Cargo.toml:58-61"]
     end
-    NGG1F["ngg1<br/>Cargo.toml:67 dep:ontomark-ngg1 at Cargo.toml:46"] --> NGGMOD["src/ngg1.rs re-export + NggExplorer<br/>bindings/explorer.rs:17 + NggGraph, decodeNgg1, encodeNgg1<br/>bindings/ngg.rs:17-18"]
+    NGG1F["ngg1<br/>Cargo.toml:67 dep:ontomark-ngg1 at Cargo.toml:46"] --> NGGMOD["src/ngg1.rs re-export + NggExplorer<br/>bindings/explorer.rs:18 + NggGraph, decodeNgg1, encodeNgg1<br/>bindings/ngg.rs:17-18"]
     INTF["interaction<br/>Cargo.toml:75"] --> INTMOD["interaction module<br/>+ checkNodeClick binding"]
     DBGF["debug-serde<br/>Cargo.toml:79"] --> DBGMOD["WebVowl.getGraphData()<br/>bindings/mod.rs:176"]
     PARF["parallel<br/>Cargo.toml:84 dep:rayon, native only"] --> PARMOD["ontology loading data-parallelism"]
@@ -111,17 +111,17 @@ flowchart TB
         WV3["getGraphData() behind debug-serde"]
         WV4["pinning, filtering, statistics"]
     end
-    subgraph NggExplorer["NggExplorer - narrow, allocation-free, src/bindings/explorer.rs:17, feature ngg1"]
+    subgraph NggExplorer["NggExplorer - narrow, allocation-free, src/bindings/explorer.rs:18, feature ngg1"]
         NG1["loadCsr(bytes) via ngg1::Ngg1 parse"]
         NG2["tick() drives layout::csr_sim::CsrSimulation"]
         NG3["positionsPtr/positionsLen<br/>zero-copy Float32Array over wasm.memory.buffer"]
-        NG4["setTheta and reheat, Barnes-Hut opening angle and re-heat of a settled scope<br/>src/bindings/explorer.rs:111-118"]
+        NG4["setTheta, pinNode, unpinNode and reheat: Barnes-Hut opening angle, drag pinning of a node and re-heat of a settled scope<br/>src/bindings/explorer.rs:112-137"]
         NG5["decodeNgg1, encodeNgg1, ngg1Constants: owned snapshots through the ontomark codec<br/>src/bindings/ngg.rs:119 and src/bindings/ngg.rs:182 and src/bindings/ngg.rs:240"]
     end
     Worker["Rendering worker, JS"] -->|"per-frame, no per-frame alloc"| NggExplorer
     MainThread["Main-thread consumer, JS"] -->|"structured JSON in/out"| WebVowl
 ```
-- INVARIANT: `NggExplorer` never allocates across the WASM boundary per frame — only the position pointer crosses (src/bindings/explorer.rs:9).
+- INVARIANT: `NggExplorer` never allocates across the WASM boundary per frame — only the position pointer crosses (src/bindings/explorer.rs:10).
 
 ## VW-01.8 `DebugFlags` — opt-in console tracing
 ```mermaid

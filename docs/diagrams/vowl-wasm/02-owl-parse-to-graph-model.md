@@ -19,7 +19,7 @@ sources:
   - ../vowl-wasm/src/bindings/mod.rs
   - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
   - ../vowl-wasm/README.md
-verified_commit: 89d1a0a32eec16e79a7fa507eaa6f8fcb92e4f0b
+verified_commit: 28af4365a68d9aacfd7c04f63299cc96ad717ce3
 ---
 
 ## VW-02.1 `loadOntology()` — JSON string to `VowlGraph`

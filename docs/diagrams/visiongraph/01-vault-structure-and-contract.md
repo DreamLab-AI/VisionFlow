@@ -32,7 +32,7 @@ sources:
   - ../visionGraph/working/bases/podcast-evidence.base
   - ../visionGraph/working/bases/public.base
   - ../visionGraph/working/bases/review-before-publish.base
-verified_commit: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e
+verified_commit: 7b0875f2c26b9e69dc5c97e9c88166acc14c47dc
 ---
 
 ## VG-01.1 Repo composition — two vaults, a corpus manifest, Quartz replaces the deleted pipeline

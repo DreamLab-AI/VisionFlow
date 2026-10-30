@@ -86,6 +86,10 @@ sources:
 verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce}
 ---
 
+## For developers
+
+**Drift (STALE at 2026-10-30 pins):** unverified against visionclaw 8692b12ba: the XR spatial-volume merge 772039bd1 (ADR-2158, ADR-2159, ADR-2164) rewrote xr-client/scripts/graph_scene.gd (two BackendConnections in `_build_connections`, per-volume picking, point/pick/follow/grab/front UX, xr_prefs), and changed xr-client/rust/src/binary_protocol.rs, render_store.rs (pack slots), transport.rs, frame_budget.rs, frame_budget_pass.gd, hud.gd and docs/XR-client.md; its graph-socket, polling, edge-multimesh and identity diagrams were not re-read against that code.
+
 ## VC-36.1 Boot — OpenXR init, capability probe, deferred scene swap (ADR-2036)
 
 ```mermaid

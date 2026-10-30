@@ -12,7 +12,7 @@ sources:
   - ../project/.github/workflows/ontology-publish.yml
   - ../project/docs/adr/ADR-2106-ontology-pull-model-into-the-embedded-pod.md
   - ../project/docs/adr/ADR-2147-inferences-carry-a-re-checkable-certificate-and-proposals-carry-a-consequence-delta.md
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, visiongraph: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, visiongraph: 7b0875f2c26b9e69dc5c97e9c88166acc14c47dc}
 ---
 
 ## VG-04.1 VisionClaw's ontology-publish.yml — pulls FROM visionGraph, not from knowledgeGraph
@@ -44,7 +44,7 @@ sequenceDiagram
 **What it shows:** since 2026-10-01 the site publisher pushes a `corpus-sync` dispatch to VisionClaw after every successful deploy (`publish.yml:525-531`), and VisionClaw's ontology workflow checks out exactly the visionGraph revision named in the payload, then pins its build job to the sha the validate job resolved (`ontology-publish.yml:89-95`, `ontology-publish.yml:148-154`). Before this, a dispatch-free run built whatever `main` was at the time.
 **Why it is this way:** ADR-2106's 2026-10-02 re-verification records the change as tightening "the provenance of what the pod pulls without changing who moves it": delivery stays pull-model (`ADR-2106-ontology-pull-model-into-the-embedded-pod.md:152-154`).
 **Tension:** the dispatch pins the corpus revision but not the converter, and the two converters are no longer the same program. visionGraph's publisher runs the released `ontomark` CLI pinned by tag and sha256 (`publish.yml:48-51`), while VisionClaw's job still builds `vault` from its own default-branch checkout (`ontology-publish.yml:145-146`, `ontology-publish.yml:167-168`), so the site and the pod release can be produced by different producers from the same source sha. An earlier stamp recorded two `vault` revisions that might differ; a comment in visionGraph's workflow says ontomark reproduces the vault verbs, flags and outputs byte for byte against a parity corpus (`publish.yml:91-97`), which this topic cannot re-check.
-**Tension:** both pipelines now certify the graph they publish and re-check it with the same pinned `oo-cert` v2.0.1 digest, but through different engines (`ontomark build --certificate-out` in visionGraph, `vault certify` in VisionClaw), and ADR-2147 is recorded `activation_status: staged` while the publish job already runs the steps (`publish.yml:158-163`, `publish.yml:210-227`, `ontology-publish.yml:176-208`, `docs/adr/ADR-2147-inferences-carry-a-re-checkable-certificate-and-proposals-carry-a-consequence-delta.md:7`).
+**Tension:** both pipelines now certify the graph they publish and re-check it with the same pinned `oo-cert` v2.0.1 digest, but through different engines (`ontomark build --certificate-out` in visionGraph, `vault certify` in VisionClaw), and ADR-2147 is recorded `activation_status: staged` while the publish job already runs the steps (`publish.yml:158-163`, `publish.yml:210-227`, `ontology-publish.yml:176-208`, `docs/adr/ADR-2147-inferences-carry-a-re-checkable-certificate-and-proposals-carry-a-consequence-delta.md:7`). The record's `review_trigger` now names the activation event, the `vault certify` step exiting 0 on a published generation, which moves it from staged to live (`docs/adr/ADR-2147-inferences-carry-a-re-checkable-certificate-and-proposals-carry-a-consequence-delta.md:13`).
 
 ## VG-04.3 Three distinct identities — source, distribution, deployed artefact
 

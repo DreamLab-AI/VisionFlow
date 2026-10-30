@@ -16,7 +16,7 @@ sources:
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/schema/agentbox.toml.schema.json
   - ../project/agentbox/agentbox.toml
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## For developers

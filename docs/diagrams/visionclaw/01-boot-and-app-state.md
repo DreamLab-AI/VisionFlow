@@ -72,7 +72,7 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/Cargo.toml
   - ../project/src/adapters/mod.rs
-verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
+verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
 ---
 
 ## VC-01.1 main() phase 1 — hygiene, logging, settings, stores
@@ -137,7 +137,7 @@ sequenceDiagram
     M->>CS: source_from_env_with_github(enhanced_content_api) (src/main.rs:483)
     Note over CS: ADR-2114 — the CorpusSource port replaces a direct GitHub read. corpus_source_kind()<br/>(src/services/corpus_source/mod.rs:193) resolves CORPUS_SOURCE=local|github, default Local when<br/>VAULT_ROOT is set and non-empty (src/services/corpus_source/mod.rs:223), else GitHub.<br/>Local walks VAULT_ROOT on disk (LocalDirectorySource::from_env, local.rs:74) — a misconfigured<br/>local source logs an error and falls back to GitHubSource rather than failing boot<br/>(src/services/corpus_source/mod.rs:157-171).
     M->>CS: FileService::initialize_local_storage(settings, corpus_source_kind()) — Synced, or SkippedLocalCorpus when the corpus is local so no GitHub markdown mirror is pulled (src/main.rs:608-628)
-    M->>SV: NaturalLanguageQueryService.with_jev(jev_client) — Jev typed-decision client, opt-in: the library default is off,<br/>the shared Compose environment sets VISIONCLAW_JEV default 1 for dev and production (docker-compose.unified.yml:21)<br/>and routes it through the shared agentbox proxy by default (x-system-one-environment, docker-compose.unified.yml:7-11,<br/>VISIONCLAW_JEV_ALLOW_CLOUD default 1 at :22). CONFIGURED: effective when the new agentbox image is activated<br/>and the container recreated (ADR-2148 activation_status staged, docs/BASELINE-architecture.md:50-51) (src/main.rs:517-522)
+    M->>SV: NaturalLanguageQueryService.with_jev(jev_client) — Jev typed-decision client, opt-in: the library default is off,<br/>the shared Compose environment sets VISIONCLAW_JEV default 1 for dev and production (docker-compose.unified.yml:21)<br/>and routes it through the shared agentbox proxy by default (x-system-one-environment, docker-compose.unified.yml:7-11,<br/>VISIONCLAW_JEV_ALLOW_CLOUD default 1 at :22). CONFIGURED: effective when the new agentbox image is activated<br/>and the container recreated (VisionClaw ADR-2148 accepted / complete / live, ADR-2148-enable-local-typed-decisions.md:5-7, matching docs/BASELINE-architecture.md:50-52) (src/main.rs:517-522)
     M->>SY: GithubSyncService::new(corpus_source, ...) (src/main.rs:486) — corpus ingest over CorpusSource, see VC-21
     RS->>RS: bootstrap_owner_from_env — RBAC_OWNER_PUBKEY_ENV (src/services/role_store.rs:643)
     alt no Owner assigned and RBAC_ALLOW_OWNERLESS unset
@@ -167,6 +167,8 @@ sequenceDiagram
     Note over PR: ADR-2038 boot-time profile assertion — runs BEFORE bind. Detail see VC-09.4
     PR-->>M: EffectiveProfile logged as summary + observed_flags (src/main.rs:958-961)
 ```
+
+**Tension (VisionClaw ADR-2148 vs BASELINE), RESOLVED at 8692b12ba:** the ADR frontmatter records activation live (ADR-2148-enable-local-typed-decisions.md:7) after the 2026-10-30 host dev deployment, and docs/BASELINE-architecture.md:50-52 now says the same: live since the 2026-10-30 host recreate, dev profile, cloud path enabled. The baseline was the stale side; its own exit condition (the recreate) had been met.
 
 ## VC-01.3 HttpServer worker factory and middleware stack order
 ```mermaid

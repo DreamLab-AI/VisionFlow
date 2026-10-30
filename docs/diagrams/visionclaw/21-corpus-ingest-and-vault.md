@@ -26,7 +26,7 @@ sources:
   - ../project/crates/visionclaw-domain/src/vault/link.rs
   - ../project/crates/visionclaw-domain/src/models/node.rs
   - ../project/scripts/pre-commit-validate.sh
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
 ---
 
 ## VC-21.1 Corpus sync entry points and the CorpusSource ingest path

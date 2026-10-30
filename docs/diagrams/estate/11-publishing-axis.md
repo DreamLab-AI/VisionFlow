@@ -21,7 +21,7 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/docs/adr/ADR-2147-inferences-carry-a-re-checkable-certificate-and-proposals-carry-a-consequence-delta.md
   - ../dreamlab-ai-website/forum-config/Cargo.toml
-verified_commit: {dreamlab-ai-website: 4935b6c4a394633569b2c8b38d5c0c272da3b0fb, knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3, visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, visionflow: ff15faf83d82fef7f23d96da381c8ab78d0206b0, visiongraph: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e, vowl-wasm: 89d1a0a32eec16e79a7fa507eaa6f8fcb92e4f0b}
+verified_commit: {dreamlab-ai-website: a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98, knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, visiongraph: 7b0875f2c26b9e69dc5c97e9c88166acc14c47dc, vowl-wasm: 28af4365a68d9aacfd7c04f63299cc96ad717ce3}
 ---
 ## ES-11.1 The publishing axis — six cross-repo edges, each previously drawn from one side only
 ```mermaid
@@ -41,7 +41,7 @@ flowchart TB
         LOOM["Ontology Loom grounding<br/>see ES-06.1"]
     end
     subgraph PINS["Version pins that can drift"]
-        VW["EXTERNAL: vowl-wasm 0.2.0<br/>vowl-wasm/Cargo.toml:5. see VW-01"]
+        VW["EXTERNAL: vowl-wasm 0.2.2<br/>vowl-wasm/Cargo.toml:5. see VW-01"]
         NF["EXTERNAL: nostr-rust-forum kit<br/>see NF-01"]
         DW["EXTERNAL: dreamlab-ai-website<br/>KIT_REF rust-ci.yml:20. see DW-01"]
     end
@@ -97,19 +97,19 @@ sequenceDiagram
 ## ES-11.3 Edge 12 - two VOWL explorers, two divergent bundle pins
 ```mermaid
 flowchart LR
-    CRATE["EXTERNAL: vowl-wasm<br/>version 0.2.0, vowl-wasm/Cargo.toml:5<br/>see VW-01"]
+    CRATE["EXTERNAL: vowl-wasm<br/>version 0.2.2, vowl-wasm/Cargo.toml:5<br/>see VW-01"]
 
     subgraph KGE["EXTERNAL: knowledgeGraph explorer - see KG-04"]
         KGP["@dreamlab-ai/vowl-wasm pinned to a<br/>RELEASE TARBALL URL for v0.1.1<br/>explorer/modern/package.json:20"]
     end
     subgraph VGE["EXTERNAL: visionGraph WasmVOWL - see VG-03"]
-        VGP["@dreamlab-ai/vowl-wasm pinned to a<br/>RELEASE TARBALL URL for v0.2.0<br/>WasmVOWL/modern/package.json:25"]
+        VGP["@dreamlab-ai/vowl-wasm pinned to a<br/>RELEASE TARBALL URL for v0.2.2<br/>WasmVOWL/modern/package.json:25"]
     end
 
     CRATE -->|"published as a GitHub release asset"| KGP
     CRATE -->|"published as a GitHub release asset"| VGP
 
-    D1["DOC-DRIFT - the two consumers are a MINOR version apart, though<br/>both now fetch a release tarball over HTTPS. knowledgeGraph<br/>stays on the frozen v0.1.1 tarball; visionGraph moved to v0.2.0.<br/>A vowl-wasm release therefore reaches one explorer and not the<br/>other. The only version-named check is visionGraph's own<br/>0.2.0 notice file, publish.yml:470, not a comparison of the two."]
+    D1["DOC-DRIFT - the two consumers are a MINOR version apart, though<br/>both now fetch a release tarball over HTTPS. knowledgeGraph<br/>stays on the frozen v0.1.1 tarball; visionGraph moved to v0.2.2.<br/>A vowl-wasm release therefore reaches one explorer and not the<br/>other. The only version-named check is visionGraph's own<br/>0.2.2 notice file, publish.yml:470, not a comparison of the two."]
     D2["DIVERGENCE - the roster carries BOTH vowl-wasm and WasmVOWL<br/>as separate first-party repositories (roster.json:16,18), and<br/>registers @dreamlab-ai/vowl-wasm on npm alongside the<br/>crates.io crate (roster.json:60,81). Neither explorer resolves<br/>from the npm copy at this revision, both pin release tarballs<br/>of the same bundle; the crate is what estate health<br/>actually measures. see VF-03.1"]
 
     KGP --> D1
@@ -126,7 +126,7 @@ sequenceDiagram
     participant GUARD as "EXTERNAL: kit-pin-guard.yml"<br/>see DW-02
 
     CI->>NF: git clone the kit, then checkout --detach $KIT_REF<br/>rust-ci.yml:33
-    Note over CI: KIT_REF is a literal 40-char SHA pinned in the workflow<br/>env block, rust-ci.yml:20, with the comment at :18<br/>requiring lockstep with workers-deploy.yml and deploy.yml.<br/>On 2 Oct it moved three times, to forum 49904f4 (6ae4576),<br/>341c5d2 (8ab4ab4) and 13cbe6c (81ec18c), and it has kept<br/>moving with the kit since — this revision pins 9c36b60 (the kit's pushed head) at website 4935b6c.<br/>The kit crates are pinned exactly at 1.0.0-beta.16, forum-config/Cargo.toml:50-53
+    Note over CI: KIT_REF is a literal 40-char SHA pinned in the workflow<br/>env block, rust-ci.yml:20, with the comment at :18<br/>requiring lockstep with workers-deploy.yml and deploy.yml.<br/>On 2 Oct it moved three times, to forum 49904f4 (6ae4576),<br/>341c5d2 (8ab4ab4) and 13cbe6c (81ec18c), and it has kept<br/>moving with the kit since — this revision pins 9c36b60 at website a67cb2a. Forum main (1b27f79) has moved past that kit, and forum production still runs kit 9c36b60.<br/>The kit crates are pinned exactly at 1.0.0-beta.16, forum-config/Cargo.toml:50-53
     NF-->>CI: the kit tree at exactly that commit
     GUARD->>GUARD: compare the pin across deploy.yml, workers-deploy.yml,<br/>rust-ci.yml, forum-config/Cargo.toml crate versions and the<br/>CANONICAL_ entries in the kit-compatibility record
     alt any of the five disagrees

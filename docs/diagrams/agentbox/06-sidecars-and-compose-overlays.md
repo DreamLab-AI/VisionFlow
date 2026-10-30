@@ -43,7 +43,7 @@ sources:
   - ../project/agentbox/config/entrypoint-unified.sh
   - ../project/agentbox/crates/system-one/system-one-proxy/src/server.rs
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-06.1 Compose overlay topology on visionclaw_network

@@ -51,7 +51,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/config/custody/session-plane-acl.json
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
 ---
 ## ES-10.1 Three named profiles — exact flag set per profile vs the fail-closed code default
 ```mermaid
@@ -361,7 +361,7 @@ flowchart TB
     D5 --> D6
 ```
 
-**Resolved:** ADR-2153 is accepted and live (implementation `partial`): Agent of Empires, the `port 9095` listener and `aoe-serve` are removed and the `port 9096` door keeps named operator routes only; the `aoe-profiles` volume is deliberately retained, mounted but unused, for recovery (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `:44`, `:123`; `../project/agentbox/flake.nix:3868`).
+**Resolved:** ADR-2153 is accepted and live (implementation `partial`): Agent of Empires, the `port 9095` listener and `aoe-serve` are removed and the `port 9096` door keeps named operator routes only; the `aoe-profiles` volume is deliberately retained, mounted but unused, for recovery (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `:51`, `:130`; `../project/agentbox/flake.nix:3868`).
 
 ## ES-10.10 agentbox credential custody register — roles and open acceptance evidence
 ```mermaid
@@ -423,13 +423,13 @@ flowchart TB
 
 **What it shows.** The agentbox half of the estate's custody posture after step 1. The flag-independent change is that devuser leaves group root. The flag-dependent changes are per-role accounts and the end of devuser's raw Docker socket, replaced by a read-only proxy. The prompt egress register is the companion catalogue of what can leave the container and on what authority.
 
-**Why it is this way.** The custody design found three bypasses that voided any in-container boundary: host Docker access, root running devuser-influenced code, and secrets in PID 1's environment. Group-root membership was baked into the image, so its removal is unconditional. The rest ships behind `[security].role_isolation`, off by default and rebuild-class since ER-9 (the privilege change is baked, `../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:616`), until the owner's boot rehearsal (agentbox AB-36).
+**Why it is this way.** The custody design found three bypasses that voided any in-container boundary: host Docker access, root running devuser-influenced code, and secrets in PID 1's environment. Group-root membership was baked into the image, so its removal is unconditional. The rest ships behind `[security].role_isolation`, off by default and rebuild-class since ER-9 (the privilege change is baked, `../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:623`), until the owner's boot rehearsal (agentbox AB-36).
 
 **Invariant:** devuser is not a member of group root in any image built at this revision, flag on or off (`../project/agentbox/flake.nix:4039-4044`).
 
 **Open:** under `role_isolation` the entrypoint stops widening the Docker socket but cannot narrow it: the socket is the host's inode and earlier boots left it `o+rw`, so the boot records `degraded:docker-socket` and a host-side `chmod` is owed (`../project/agentbox/config/entrypoint-unified.sh:605-621`, `../project/agentbox/docker-compose.override.yml:115-117`).
 
-**Drift (egress register vs role isolation):** the `nostr-gateway` row states that the operator key is in the process environment (`../project/agentbox/config/egress-policy.json:447`); that holds only with the flag off, since under the flag the gateway takes the key from a role-secret file it does not hold (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:244-245`).
+**Drift (egress register vs role isolation):** the `nostr-gateway` row states that the operator key is in the process environment (`../project/agentbox/config/egress-policy.json:447`); that holds only with the flag off, since under the flag the gateway takes the key from a role-secret file it does not hold (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:251-252`).
 
 ## Custody audit qualification — 2026-09-07
 

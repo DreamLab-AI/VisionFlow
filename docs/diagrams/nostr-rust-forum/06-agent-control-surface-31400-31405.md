@@ -35,7 +35,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md
   - ../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md
-verified_commit: {nostr-rust-forum: 9c36b6032640c89879ae52fe25da99493979a0b6, dreamlab-ai-website: 4935b6c4a394633569b2c8b38d5c0c272da3b0fb}
+verified_commit: {nostr-rust-forum: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed, dreamlab-ai-website: a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98}
 ---
 
 ## NF-06.1 The six kinds and their publishers
@@ -477,10 +477,10 @@ flowchart TB
 ```mermaid
 flowchart TB
     FLAG["route exists only while JEV_RATIONALE_CHECK is on; flag_on is false when the variable is absent<br/>nostr-bbs-auth-worker/src/rationale_check.rs:53, route nostr-bbs-auth-worker/src/lib.rs:542"]
-    ROUTE["POST /api/governance/cases/ID/rationale-check, NIP-98 authenticated<br/>nostr-bbs-auth-worker/src/rationale_check.rs:255 nostr-bbs-auth-worker/src/rationale_check.rs:267"]
-    ROW["reads the case row: title, subject, summary, effective tier, task properties<br/>nostr-bbs-auth-worker/src/rationale_check.rs:277"]
-    LOCAL["resolve with local_only read from JEV_RATIONALE_CHECK_LOCAL_ONLY, default off: the proxy or TypeSafe may answer; set to 1 the vendor endpoint is refused and only a declared-local backend is used<br/>nostr-bbs-auth-worker/src/rationale_check.rs:38 nostr-bbs-auth-worker/src/rationale_check.rs:301"]
-    ADV["answer is an advisory annotation, authority none, or an unavailable body carrying one reason token<br/>nostr-bbs-auth-worker/src/rationale_check.rs:210 nostr-bbs-auth-worker/src/rationale_check.rs:228"]
+    ROUTE["POST /api/governance/cases/ID/rationale-check, NIP-98 authenticated<br/>nostr-bbs-auth-worker/src/rationale_check.rs:257 nostr-bbs-auth-worker/src/rationale_check.rs:269"]
+    ROW["reads the case row: title, subject, summary, effective tier, task properties<br/>nostr-bbs-auth-worker/src/rationale_check.rs:279"]
+    LOCAL["resolve with local_only read from JEV_RATIONALE_CHECK_LOCAL_ONLY, default off: the proxy or TypeSafe may answer; set to 1 the vendor endpoint is refused and only a declared-local backend is used<br/>nostr-bbs-auth-worker/src/rationale_check.rs:38 nostr-bbs-auth-worker/src/rationale_check.rs:303"]
+    ADV["answer is an advisory annotation, authority none, or an unavailable body carrying one reason token<br/>nostr-bbs-auth-worker/src/rationale_check.rs:212 nostr-bbs-auth-worker/src/rationale_check.rs:230"]
     GATE["rationale_required and rationale_satisfied, tier, 31403 signing and probes never read it<br/>nostr-bbs-auth-worker/src/rationale_check.rs:4-5"]
 
     FLAG --> ROUTE --> ROW --> LOCAL --> ADV

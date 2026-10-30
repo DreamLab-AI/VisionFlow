@@ -24,7 +24,7 @@ sources:
   - ../dreamlab-ai-website/scripts/__tests__/deploy-subset-of-ci.test.mjs
   - ../dreamlab-ai-website/scripts/__tests__/helpers/fixture-repo.mjs
   - ../dreamlab-ai-website/CLAUDE.md
-verified_commit: 4935b6c4a394633569b2c8b38d5c0c272da3b0fb
+verified_commit: a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98
 ---
 
 ## DW-05.1 `ci.yml` — the ten-job PR/push gate and its aggregator

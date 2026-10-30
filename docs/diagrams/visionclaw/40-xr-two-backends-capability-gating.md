@@ -24,6 +24,10 @@ sources:
 verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce}
 ---
 
+## For developers
+
+**Drift (STALE at 2026-10-30 pins):** unverified against visionclaw 8692b12ba: xr-client/scripts/graph_scene.gd no longer has `_switch_backend`, `_abandon_backend_requests` or `_gate`; the Backend toggle was replaced by two always-open BackendConnections (xr-client/scripts/backend_connection.gd, `gate` at :162), so VC-40.1 and VC-40.2 describe a switch that no longer exists. xr-client/scripts/hud.gd, backend_caps.gd, tests/unit/test_backend_switch.gd and docs/XR-client.md also changed.
+
 ## VC-40.1 One capability table gates every server-bound request and greys the matching controls
 
 ```mermaid

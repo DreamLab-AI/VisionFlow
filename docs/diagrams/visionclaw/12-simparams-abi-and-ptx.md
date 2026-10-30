@@ -26,7 +26,7 @@ sources:
   - ../project/src/gpu/mod.rs
   - ../project/src/physics/mod.rs
   - ../project/docs/adr/ADR-2054-remove-dead-gpu-and-analytics-code.md
-verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
+verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
 ---
 ## VC-12.1 SimParams full 212-byte repr(C) layout
 ```mermaid

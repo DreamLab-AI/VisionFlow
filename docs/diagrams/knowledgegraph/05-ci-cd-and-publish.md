@@ -11,7 +11,7 @@ sources:
   - ../knowledgeGraph/archive/github-workflows/build.yml
   - ../visionGraph/.github/workflows/publish.yml
   - docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md
-verified_commit: {knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3, visiongraph: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e, visionflow: ff15faf83d82fef7f23d96da381c8ab78d0206b0}
+verified_commit: {knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3, visiongraph: 7b0875f2c26b9e69dc5c97e9c88166acc14c47dc, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012}
 ---
 
 ## KG-05.3 Publication topology — this repo is a pure published export, visionGraph's publish.yml is the sole builder
@@ -37,7 +37,7 @@ sequenceDiagram
     Note over THIS: this repo's own build.yml (Python pipeline, ontology/pages) is<br/>ARCHIVED and inert under archive/github-workflows/build.yml —<br/>retired because ontology/ itself moved to archive/ first<br/>(knowledgeGraph/README.md:58)
 ```
 - **DIVERGENCE:** the governing doc (`build-and-gates.md:1-3`) still describes `build.yml` as this repo's active "reproducible half" running six gates; the workflow it names has been moved to `archive/github-workflows/` and no longer runs — the doc has not been updated to match the retirement.
-- **Tension (ADR-2013 vs publish.yml):** ADR-2013 names `VisionClaw/crates/vault` as the only implementation that parses, reasons over or builds the corpus (`docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md:52-53`), while the sole producer in the workflow is now the released `ontomark` CLI, which replaced the `vault` build with the same verbs and outputs (`../visionGraph/.github/workflows/publish.yml:91-97`); the ADR is `accepted`, `partial`, `staged` and its review trigger names a second build.
+- **Tension (ADR-2013 vs publish.yml):** ADR-2013 names `VisionClaw/crates/vault` as the only implementation that parses, reasons over or builds the corpus (`docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md:52-53`), while the sole producer in the workflow is now the released `ontomark` CLI, which replaced the `vault` build with the same verbs and outputs (`../visionGraph/.github/workflows/publish.yml:91-97`); the ADR is `accepted`, `partial`, `staged` (`docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md:5-7`) and its review trigger names a second build and, since 2026-10-30, an activation event: Loom `/health`, VisionClaw `/api/ontology/classes` and `vault build --stats` reporting the same class count at a named commit (`docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md:12`).
 
 ## KG-05.5 Sovereignty transition — from active builder to published export
 

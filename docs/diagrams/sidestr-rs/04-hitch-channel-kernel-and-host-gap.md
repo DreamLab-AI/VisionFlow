@@ -24,7 +24,7 @@ sources:
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
   - ../project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md
   - ../project/docs/TODO-unified.md
-verified_commit: {sidestr-rs: d8ace3aad2f23eb1d11bd72af4ab0b74d599f618, visionflow: ff15faf83d82fef7f23d96da381c8ab78d0206b0, visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce}
+verified_commit: {sidestr-rs: d8ace3aad2f23eb1d11bd72af4ab0b74d599f618, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
 ---
 
 ## For developers
@@ -132,4 +132,4 @@ flowchart LR
 
 **Why it is this way.** Keeping side effects outside the protocol state machine makes the kernel testable against Hitch's JavaScript transaction and wire oracles, which CI pins separately at `62f8e39` (`../sidestr-rs/.github/workflows/ci.yml:20`, `../sidestr-rs/.github/workflows/ci.yml:22`, `../sidestr-rs/.github/workflows/ci.yml:126`). Every message kind, `reject` included, passes Hitch's own validator, and Hitch's peer and adversarial suites run in Rust (`../sidestr-rs/sidestr-hitch/tests/wire_oracle.rs:185`, `../sidestr-rs/sidestr-hitch/tests/peer_scenarios.rs:1`, `../sidestr-rs/sidestr-hitch/tests/adversarial_scenarios.rs:1`). **Tension (Hitch vs port):** a point off the curve is refused at deserialisation and dropped without a `reject`, where Hitch replies with a reject at the proof-of-possession check; the port records this as a deliberate, tested departure (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:63`).
 
-**Open:** no estate host supplies the complete service boundary, which 0.2.0 widened by the scheduler and chain-lookup duties. VisionClaw ADR-2111 remains proposed, unimplemented and inactive (`../project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:95`), and the board leaves Hitch adoption under N-10 (`../project/docs/TODO-unified.md:101`, `../project/docs/TODO-unified.md:114`).
+**Open:** no estate host supplies the complete service boundary, which 0.2.0 widened by the scheduler and chain-lookup duties. VisionClaw ADR-2111 remains proposed, unimplemented and inactive (`../project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:95`), and the board leaves Hitch adoption under N-10 (`../project/docs/TODO-unified.md:103`, `../project/docs/TODO-unified.md:116`).

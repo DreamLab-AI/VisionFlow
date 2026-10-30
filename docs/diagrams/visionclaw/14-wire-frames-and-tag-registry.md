@@ -28,7 +28,7 @@ sources:
   - ../project/src/handlers/socket_flow_handler/position_updates.rs
   - ../project/src/handlers/socket_flow_handler/binary_protocol.rs
   - ../project/client/src/features/graph/managers/dataManager/wsClient.ts
-verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
+verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
 ---
 
 ## VC-14.1 V3 position record — 52 bytes, little-endian
@@ -115,7 +115,7 @@ flowchart TD
         T34["0x34 BroadcastAck client to server, 21 bytes with no generic header, one per applied position chunk (ADR-2141)<br/>MessageType::BroadcastAck :1788, decode_message arm :1853"]
         T02["0x02 VoiceData :1782"]
         T03c["0x03 ControlFrame in MessageType :1784"]
-        T04["0x04 RETIRED V4 delta frame, reserved and never reused<br/>no encoder exists, every decoder refuses it (ADR-2139)<br/>docs/PROTOCOL-registry.md:57"]
+        T04["0x04 RETIRED V4 delta frame, reserved and never reused<br/>no encoder exists, every decoder refuses it (ADR-2139)<br/>docs/PROTOCOL-registry.md:58"]
     end
     subgraph PRESENCE["/ws/presence socket - tag space A sibling"]
         T43["0x43 OPCODE_AVATAR_POSE<br/>crates/visionclaw-xr-presence/src/wire.rs:9"]
@@ -133,7 +133,7 @@ flowchart TD
     N5["OPEN: the settings binary protocol is still not fully enumerated in the registry - unchanged by the 2026-09-05 remediation"]
     N6["RESOLVED ADR-2060: the legacy 48B/28B ADR figures are marked retired in the governing docs - the wire is 52B, now compile-time locked"]
     N7["RESOLVED ADR-2139: tag 0x04 (V4 delta) is now an explicit RETIRED row in the registry, so nothing can be allocated over it"]
-    N8["INVARIANT ADR-2143: Codescape is recorded as a second, independent producer of the frozen 0x03, 0x05, 0x23 and 0x34 contract (its encoders exist, serving on port 4100 is phased) and allocates no tag byte and no flag bit, so this registry stays the only allocator - docs/PROTOCOL-registry.md:190-197"]
+    N8["INVARIANT ADR-2143: Codescape is recorded as a second, independent producer of the frozen 0x03, 0x05, 0x23 and 0x34 contract (its encoders exist, serving on port 4100 is phased) and allocates no tag byte and no flag bit, so this registry stays the only allocator - docs/PROTOCOL-registry.md:191-197"]
     T05 -.- N2
     T03 -.- N3
     T05 -.- N4
@@ -222,7 +222,7 @@ sequenceDiagram
     participant FCA as ClientCoordinatorActor serialize_positions<br/>src/actors/client_coordinator_actor.rs:532
     participant ENC as encode_node_data_extended_with_sssp<br/>src/utils/binary_protocol.rs:426
     participant WS as WebSocket /wss
-    participant RS as XR Rust decoder<br/>xr-client/rust/src/binary_protocol.rs:458
+    participant RS as XR Rust decoder<br/>xr-client/rust/src/binary_protocol.rs:595
     participant TS as Web TS decoder<br/>client/src/types/binaryProtocol.ts:328
 
     FCA->>ENC: the coordinator pump encodes each client's chunk, node tuples plus the NodeClassIds<br/>sets, src/actors/client_coordinator_actor.rs:540-554
@@ -235,16 +235,16 @@ sequenceDiagram
     ENC->>WS: [tag][records...]
     par XR Rust client
         WS->>RS: bytes
-        RS->>RS: decode_position_frame_with_sequence :458
-        alt lead byte == PROTOCOL_V5 (0x05) :473
-            RS->>RS: need = HEADER_BYTES + V5_SEQ_BYTES :474 then read u64 seq :481-483
+        RS->>RS: decode_position_frame_with_sequence :595
+        alt lead byte == PROTOCOL_V5 (0x05) rust/src/binary_protocol.rs:610
+            RS->>RS: need = HEADER_BYTES + V5_SEQ_BYTES :611 then read u64 seq :618-620
         end
-        RS->>RS: mask each id with NODE_ID_MASK :759
+        RS->>RS: mask each id with NODE_ID_MASK :896
         Note over RS: constants PROTOCOL_V5 :29, V5_SEQ_BYTES 8 :30, NODE_RECORD_BYTES 52 :32, NODE_ID_MASK :41
     and Web TS client
         WS->>TS: bytes
         TS->>TS: parseBinaryNodeData dispatch on lead byte :174-215
-        alt lead byte == PROTOCOL_V5 (0x05) :199-202
+        alt lead byte == PROTOCOL_V5 (0x05) types/binaryProtocol.ts:199-202
             TS->>TS: parseV5Nodes :328 - reject if byteLength < 9 :330, read u64 seq LE :335-337, decode body from offset 9 :340
             TS->>TS: surface broadcastSequence :368 - handleLegacyBinaryData acknowledges that sequence<br/>after applying the chunk store/websocket/binaryProtocol.ts:406-408
         else lead byte == 0x02 (V2)
@@ -282,10 +282,10 @@ classDiagram
         +V5_SEQ_BYTES_8 L30
         +NODE_RECORD_BYTES_52 L32
         +NODE_ID_MASK L41
-        +decode_position_frame() L446
-        +decode_position_frame_with_sequence() L458
-        +encode_broadcast_ack() L515
-        +admit_and_ack() L701
+        +decode_position_frame() L583
+        +decode_position_frame_with_sequence() L595
+        +encode_broadcast_ack() L652
+        +admit_and_ack() L838
     }
     class WebTsDecoder {
         +path_client_src_services_binaryProtocol()
@@ -413,7 +413,7 @@ sequenceDiagram
     participant SRV as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:617
     participant WS as WebSocket /wss
     participant WEB as Web client<br/>client/src/store/websocket/binaryProtocol.ts:351
-    participant XR as XR Rust client<br/>xr-client/rust/src/binary_protocol.rs:701
+    participant XR as XR Rust client<br/>xr-client/rust/src/binary_protocol.rs:838
     participant HDL as SocketFlowServer binary handler<br/>src/handlers/socket_flow_handler/binary_protocol.rs:30
 
     SRV->>WS: V5 chunk [0x05][u64 seq][52 B per node], seq is the chunk's own number<br/>src/actors/client_coordinator_actor.rs:532-563
@@ -424,8 +424,8 @@ sequenceDiagram
         WEB->>WS: createBroadcastAck builds [0x34][u64 seq][u32 nodes][u64 timestamp_ms], 21 bytes, no 6-byte header<br/>client/src/services/BinaryWebSocketProtocol.ts:245-255
     and XR client
         WS->>XR: chunk bytes
-        XR->>XR: freshness gate admits the frame, only Accept and AcceptResync name a sequence<br/>xr-client/rust/src/binary_protocol.rs:528-533
-        XR->>WS: encode_broadcast_ack after the records are applied, a stale or duplicate frame is not acknowledged<br/>xr-client/rust/src/binary_protocol.rs:515-522,701-712
+        XR->>XR: freshness gate admits the frame, only Accept and AcceptResync name a sequence<br/>xr-client/rust/src/binary_protocol.rs:665-670
+        XR->>WS: encode_broadcast_ack after the records are applied, a stale or duplicate frame is not acknowledged<br/>xr-client/rust/src/binary_protocol.rs:652-659,838-849
     end
     WS->>HDL: binary frame
     HDL->>HDL: is_stream_ack, the first byte 0x34, is exempt from the per-IP message rate limiter<br/>src/handlers/socket_flow_handler/binary_protocol.rs:10-12,22-24,35

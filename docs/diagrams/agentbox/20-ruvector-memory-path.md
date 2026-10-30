@@ -27,7 +27,7 @@ sources:
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/docs/reference/claude-context/ruvector-memory-state.md
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-20.1 Server boot — fail-closed on Postgres, advisory on Xinference
@@ -520,7 +520,7 @@ sequenceDiagram
         AG->>SRV: tools/list
         SRV->>OP: advertise(TOOLS) (mcp/servers/lib/orchestration-proxy.js:354)
         OP->>CH: lazy spawn, CLAUDE_FLOW_MCP_TOOLS = categories from RUVECTOR_ORCHESTRATION_TOOLS<br/>(mcp/servers/lib/orchestration-proxy.js:224,:289)
-        Note over CH: running config narrowed 2026-09-25 to swarm,agent, then widened by the 2026-10-26 ADR amendment:<br/>orchestration_tools = swarm,agent,rure (agentbox.toml:456), task and coordination stay dropped (~185 tok/tool).<br/>swarm_init / agent_spawn and the eight ruRE static-analysis tools forward, task_orchestrate / coordination_sync<br/>stay honest stubs. The ADR calls the ruRE widening source-verified and STAGED (ADR-2082-orchestration-proxy-behind-governed-memory-server.md:45-46)
+        Note over CH: running config narrowed 2026-09-25 to swarm,agent, then widened by the 2026-10-26 ADR amendment:<br/>orchestration_tools = swarm,agent,rure (agentbox.toml:456), task and coordination stay dropped (~185 tok/tool).<br/>swarm_init / agent_spawn and the eight ruRE static-analysis tools forward, task_orchestrate / coordination_sync<br/>stay honest stubs. The ADR body still calls the ruRE widening source-verified and STAGED (ADR-2082-orchestration-proxy-behind-governed-memory-server.md:45-46), but its close-out of 2026-10-30 records activation staged to live after a tools/list on the running image returned 56 tools including the rure set (ADR-2082-orchestration-proxy-behind-governed-memory-server.md:267-269)
         CH-->>OP: its tools/list
         OP->>OP: drop every denied name before merging (mcp/servers/lib/orchestration-proxy.js:125)
         Note over OP: INVARIANT ADR-2014 — DENIED_PREFIXES memory_, agentdb_, embeddings_,<br/>hooks_, agentic_flow_, ruvllm_, agenticow_ are enforced on the PROXY side<br/>whatever filter the child honours, so ruflo SQLite memory is unreachable<br/>through this server (mcp/servers/lib/orchestration-proxy.js:43)
@@ -547,7 +547,7 @@ sequenceDiagram
 
 **Why it is this way.** ADR-2082 was amended on 2026-10-23 to treat Ruflo as one pinned capability projected differently per host (`../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:48-54`), and on 2026-10-26 to add the `rure` category to the same child rather than register a second server (`../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:33-40`).
 
-**Tension (ADR-2082 vs manifest):** the ADR is `activation_status: staged` and says an image build and a live tool-list/call check are required before claiming activation (`../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:7`, `../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:45-46`), while the running manifest already lists `rure` in `orchestration_tools` (`../project/agentbox/agentbox.toml:456`).
+**Tension (ADR-2082 vs manifest) - RESOLVED 2026-10-30:** the ADR was `activation_status: staged` and required an image build and a live tool-list/call check before claiming activation (`../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:45-46`) while the running manifest already listed `rure` in `orchestration_tools` (`../project/agentbox/agentbox.toml:456`). The ADR is now `accepted` / `complete` / `live` (`../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:5-7`): the close-out ran `initialize` then `tools/list` against the baked server and got 56 tools, the projected `agent_*`, `swarm_*` and eight `rure_*` tools among them and no forwarded `memory_*` tool (`../project/agentbox/docs/adr/ADR-2082-orchestration-proxy-behind-governed-memory-server.md:267-269`). The proxy's denial of a forwarded `memory_*` call was not re-exercised.
 
 **Invariant:** the ruRE widening does not touch the deny list; `DENIED_PREFIXES` is enforced on the proxy side whatever categories the child is given (`../project/agentbox/mcp/servers/lib/orchestration-proxy.js:43`).
 

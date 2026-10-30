@@ -48,7 +48,7 @@ sources:
   - ../project/src/actors/gpu/physics_supervisor.rs
   - ../project/src/settings/models.rs
   - ../project/tests/integration/pipeline_test.rs
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, ontomark: 13af42340448022d4d43ac349a8bb5f3ae6d1d47}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, ontomark: 560e50c1a35bb9486b9f43ebf074b816c1e01349}
 ---
 
 ## VC-20.1 load_ontology bin - CorpusSource-backed corpus loader
@@ -355,7 +355,7 @@ sequenceDiagram
     Note over H: The four-arm match is uniform across every sibling in this file -<br/>join error is distinguished from handler error. ontology_handler.rs:448-465
     H-->>CL: 200 property, 404 not found, or 500
     Note over H,QH: get_owl_property and add_owl_property were the LAST two bare<br/>calls in this file, closed 2026-09-16 (ad8b83ad4). The same defect was<br/>fixed for one endpoint on 2026-08-10 and for add_axiom at<br/>ontology_handler.rs:632.
-    Note over QH: Regression cover: owl_property_handlers_round_trip_off_the_async_worker<br/>ontology_handler.rs:1132, and the bare call pinned as the panic it is at<br/>ontology_handler.rs:1167. DEBT: the wrapping is load-bearing only while<br/>the CQRS handlers stay sync - the test module says to delete it if they<br/>become async-direct. ontology_handler.rs:1107
+    Note over QH: Regression cover: owl_property_handlers_round_trip_off_the_async_worker<br/>ontology_handler.rs:1133, and the bare call pinned as the panic it is at<br/>ontology_handler.rs:1168. DEBT: the wrapping is load-bearing only while<br/>the CQRS handlers stay sync - the test module says to delete it if they<br/>become async-direct. ontology_handler.rs:1108
 ```
 
 ## VC-20.14 vault certify — the derivation certificate, the shared crate and the Whelk-parity invariant (ADR-2147, ontomark ADR-OM-009)

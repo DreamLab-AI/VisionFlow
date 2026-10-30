@@ -73,7 +73,7 @@ sources:
   - ../project/agentbox/management-api/lib/governance-evidence-rubric.js
   - ../project/agentbox/scripts/dream-forum-suggestions.mjs
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-14.1 Governance plane — surfaces that reach the decision point vs surfaces that miss it
@@ -530,6 +530,7 @@ sequenceDiagram
 ADR-2108 deleted the agentbox-local ontology write path (`ontology-local.cjs`, `ontology-authoring-authority.js`); the
 governed door is now `vault propose`/`vault edit --expect`, argv built by `lib/ontology-propose.js` and carried in the
 31402 as `propose_command`/`propose_iri` instead of the retired HTTP `propose_request` descriptor.
+**Drift (2026-10-30 close-out):** the code still builds and spawns `vault edit` for the decision end, but the baked `vault 0.1.0` no longer carries `find`, `retrieve`, `tree`, `edit`, `create` or `apply`, which moved to the `ontomark` CLI (`../project/agentbox/docs/adr/ADR-2108-ontology-bridge-retired-vault-baked-by-nix.md:238`). `vault propose`, the verb this section draws, is not in that list.
 
 ```mermaid
 sequenceDiagram
@@ -730,7 +731,7 @@ flowchart TB
     GATE -.-> INV1["INVARIANT: kinds 27235, 22242, 31401, 31403-31405 and 38414 can never be granted to sign_event or forum_event.<br/>31400 and 31402 are grantable only on forum_event, only to a key declared agent_governance, which may not<br/>share a grant, take another operation or be the mirror_root (ER-6, ADR-2122). The ACL loader refuses a file<br/>that tries, so a container key never signs a human decision or a graduation,<br/>services/nostr-pod-bridge/src/identity_port/acl.rs:71-73,84,209-210,287-308"]
     REC -.-> INV2["INVARIANT: nothing is signed off the record. An admitted request whose receipt line<br/>cannot be written is answered as a refusal, port.rs:320-326"]
     DEV -.-> WIRE["pods NIP-98 is the one wired client: the flag forces the port, then<br/>nostr-pod-bridge sign-request nip98 over the socket, management-api/lib/pod-signer.js:132-136,<br/>pod-signer.js:152-170, services/nostr-pod-bridge/src/main.rs:81"]
-    WIRE -.-> OPEN1["OPEN: sign_event, forum_event and nip42_auth have no client at this revision. JunkieJarvis,<br/>forum suggestions, colloquy publish and the gateway still read ab-identity key files<br/>that devuser cannot open under the flag, so they fail closed until the W3b cutover,<br/>docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:237-238"]
+    WIRE -.-> OPEN1["OPEN: sign_event, forum_event and nip42_auth have no client at this revision. JunkieJarvis,<br/>forum suggestions, colloquy publish and the gateway still read ab-identity key files<br/>that devuser cannot open under the flag, so they fail closed until the W3b cutover,<br/>docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:244-245"]
 ```
 
 **What it shows.** Flag off, nothing changes: `serve-identity` exits at once and every governance-adjacent signer reads its own key as before. Flag on, `nostr-pod-bridge serve-identity` is the only holder of the core and JunkieJarvis keys. It authorises each connection by the kernel's peer uid, admits only a closed set of operations per uid, writes a receipt for every admit and refusal, and refuses outright any ACL that would let a container key sign a human governance decision or a graduation; only a separately marked agent-governance key may be granted the panel and case kinds.
@@ -739,8 +740,8 @@ flowchart TB
 
 **Invariant (under role_isolation):** the human-decision governance kinds 31401 and 31403-31405 and the graduation kind 38414 cannot be signed by any container process through the port, because no ACL that grants them loads; the agent-authored panel and case kinds 31400 and 31402 load only as a `forum_event` grant to a key marked `agent_governance` (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:71-73`, `../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:84`, `../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:304-307`). With the flag off the port does not run (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/mod.rs:92-96`) and this says nothing about the env-key signers.
 
-**Open:** under the flag the JunkieJarvis agent reads its key through role-secret and gets nothing it can open (`../project/agentbox/management-api/lib/junkiejarvis-agent.js:92-99`), so forum replies and governance-panel posts signed as JunkieJarvis stop until the W3b consumer cutover lands (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:237-238`); the port's `forum_event` grant (`../project/agentbox/config/custody/identity-port-acl.json:40`) has no caller yet.
+**Open:** under the flag the JunkieJarvis agent reads its key through role-secret and gets nothing it can open (`../project/agentbox/management-api/lib/junkiejarvis-agent.js:92-99`), so forum replies and governance-panel posts signed as JunkieJarvis stop until the W3b consumer cutover lands (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:244-245`); the port's `forum_event` grant (`../project/agentbox/config/custody/identity-port-acl.json:40`) has no caller yet.
 
-**Open:** ADR-2122 ER-6 chose an agent-governance signer so dream-engine can publish panels and cases through the port, but the shipped ACL grants no such key because the key does not exist yet, and dream-engine still reads its own key file (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:636`, `../project/agentbox/config/custody/identity-port-acl.json:40`).
+**Open:** ADR-2122 ER-6 chose an agent-governance signer so dream-engine can publish panels and cases through the port, but the shipped ACL grants no such key because the key does not exist yet, and dream-engine still reads its own key file (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:643`, `../project/agentbox/config/custody/identity-port-acl.json:40`).
 
 **Drift (identity-port-acl.json vs acl.rs):** the shipped ACL's own note still says kinds 31400-31405 cannot be granted (`../project/agentbox/config/custody/identity-port-acl.json:13`), while the loader now admits 31400 and 31402 to an `agent_governance` key on `forum_event` (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:84`, `../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:304-307`).

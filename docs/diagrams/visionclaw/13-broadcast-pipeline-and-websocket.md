@@ -39,7 +39,7 @@ sources:
   - ../project/crates/visionclaw-domain/src/types/physics_config.rs
   - ../project/src/settings/api/settings_routes.rs
   - ../project/docs/adr/ADR-2141-positions-are-streamed-per-client-until-acknowledged.md
-verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
+verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
 ---
 
 ## VC-13.3 Position stream end to end: GPU step to per-client chunk
@@ -88,7 +88,7 @@ sequenceDiagram
     end
     end
     Note over PO: DRIFT the orchestrator comment still routes positions through BroadcastPositions, which ADR-2141 removed,<br/>the live path is UpdateNodePositions then PublishPositions<br/>src/actors/physics_orchestrator_actor.rs:562-566
-    Note over PO,CC: DRIFT docs/BASELINE-architecture.md draws the position path as ForceComputeActor, PhysicsOrchestratorActor, ClientCoordinatorActor<br/>and says ForceComputeActor drives the periodic full-position broadcast, in the code the orchestrator only sends ComputeForces and takes no part in<br/>delivery, ForceComputeActor publishes every step through GraphServiceSupervisor and the coordinator paces each client<br/>docs/BASELINE-architecture.md:151-154,227-228,233-234,326-327,src/actors/graph_service_supervisor.rs:607-628,src/actors/client_coordinator_actor.rs:1315-1322
+    Note over PO,CC: DRIFT docs/BASELINE-architecture.md draws the position path as ForceComputeActor, PhysicsOrchestratorActor, ClientCoordinatorActor<br/>and says ForceComputeActor drives the periodic full-position broadcast, in the code the orchestrator only sends ComputeForces and takes no part in<br/>delivery, ForceComputeActor publishes every step through GraphServiceSupervisor and the coordinator paces each client<br/>docs/BASELINE-architecture.md:152-155,227-228,233-234,326-327,src/actors/graph_service_supervisor.rs:607-628,src/actors/client_coordinator_actor.rs:1315-1322
     Note over WS,CC: acknowledgements close the loop, see VC-13.4 and VC-14.10
 ```
 
@@ -166,7 +166,7 @@ sequenceDiagram
                 HH->>WSS: ws_server.pubkey = Some(user.pubkey)<br/>src/handlers/socket_flow_handler/http_handler.rs:433-434
                 Note right of HH: DEBT redundant since 0d636fd0e, the first extraction already routes a dev query token<br/>through get_session into signed_user, see VC-03.2<br/>src/handlers/socket_flow_handler/http_handler.rs:187-202,262
             end
-            Note over HH: DRIFT the registry's /wss row says NIP-98 Bearer or a ?token= query with the handler at http_handler.rs:139-150 and the Origin<br/>requirement at :130, the query token is dev-build only, the Bearer path is 178-184 and the Origin rejections are 118-121 and 138-140<br/>docs/PROTOCOL-registry.md:231,src/handlers/socket_flow_handler/http_handler.rs:118-121,138-140,178-214
+            Note over HH: DRIFT the registry's /wss row says NIP-98 Bearer or a ?token= query with the handler at http_handler.rs:139-150 and the Origin<br/>requirement at :130, the query token is dev-build only, the Bearer path is 178-184 and the Origin rejections are 118-121 and 138-140<br/>docs/PROTOCOL-registry.md:233,src/handlers/socket_flow_handler/http_handler.rs:118-121,138-140,178-214
             HH->>C: 101 Switching Protocols (WsResponseBuilder, PUBLIC_WS_PROTOCOLS echoed)<br/>src/handlers/socket_flow_handler/http_handler.rs:447-450
             WSS->>WSS: started registers anonymous ClientRecipients with the coordinator, which gives the session a fresh position stream, see VC-13.6<br/>src/handlers/socket_flow_handler/types.rs:393-407,src/actors/client_coordinator_actor.rs:1108-1110
             WSS->>WSS: SetClientId forwards an upgrade-time pubkey to the coordinator as AuthenticateClient<br/>src/handlers/socket_flow_handler/actor_messages.rs:14-30
@@ -288,7 +288,7 @@ sequenceDiagram
         CC->>CC: trace_stale_ack, changes nothing<br/>src/actors/client_coordinator_actor.rs:1393-1403
     end
     Note over CS: no acknowledgement within effective_timeout = ack_timeout times 2 to the consecutive timeouts, capped at 8x,<br/>so the safety tick rebuilds a fresh chunk from current state under a new sequence, a never-acknowledging client costs a bounded trickle<br/>src/actors/position_stream.rs:68,99-102,src/actors/client_coordinator_actor.rs:1004-1006
-    Note over CC,CS: INVARIANT absolute positions, no deltas, a chunk is always rebuilt from current state and never resent as old bytes, ADR-2139 and ADR-2141<br/>docs/PROTOCOL-registry.md:284
+    Note over CC,CS: INVARIANT absolute positions, no deltas, a chunk is always rebuilt from current state and never resent as old bytes, ADR-2139 and ADR-2141<br/>docs/PROTOCOL-registry.md:286
     Note over CC: stored settings physics.streamChunkNodes, streamMoveThreshold and streamAckTimeoutMs default to 2500, 0.05 and 500 ms,<br/>loaded from the saved physics row at start and re-applied by the physics PUT<br/>crates/visionclaw-domain/src/types/physics_config.rs:24,37,46,src/actors/client_coordinator_actor.rs:985-1000,src/settings/api/settings_routes.rs:472
     Note over CC,WS: TENSION ADR-2141 decision 6 says clients drop no chunk, the web dispatcher bounds its queue at 256 frames and discards the oldest,<br/>which is safe only because the server rebuilds an unacknowledged chunk after the timeout<br/>docs/adr/ADR-2141-positions-are-streamed-per-client-until-acknowledged.md:33,client/src/store/websocket/binaryFrameDispatcher.ts:27-28,71-77
     end

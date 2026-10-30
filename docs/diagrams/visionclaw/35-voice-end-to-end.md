@@ -43,7 +43,7 @@ sources:
   - ../project/xr-client/rust/src/webrtc_audio.rs
   - ../project/client/src/services/WebSocketEventBus.ts
   - ../project/src/actors/elevation_actor.rs
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc, unmute: e348e567c7020d40020412024f7aa03c38a3bc3e}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625, unmute: e348e567c7020d40020412024f7aa03c38a3bc3e}
 ---
 
 ## VC-35.1 Push-to-talk state machine and the agent DID binding
@@ -322,7 +322,7 @@ sequenceDiagram
             PGV->>PGV: reply_abandons_pending(jev, pending, transcript) -- on a repair turn Jev may judge the reply abandons the pending request, which is then evaluated fresh instead of merged<br/>src/services/jev_voice.rs:68, speech_socket_handler.rs:393-399
         end
         PGV->>GATE: pending some ? merge(pending,transcript,confidence) : evaluate(transcript,confidence)<br/>speech_socket_handler.rs:410, :411
-        PGV->>PGV: tighten(jev, outcome) -- after the gate Jev may only HOLD a dispatch it judges unclear and can never release a held utterance<br/>OPEN: the outcome-changing threshold is unset in Compose (docker-compose.unified.yml:25),<br/>which accepts nothing automatically, so neither Jev call alters a turn yet,<br/>and activation is staged until the new agentbox image is active and the service recreated (docs/BASELINE-architecture.md:50-51)<br/>docs/reference/configuration.md:475<br/>src/services/jev_voice.rs:99, speech_socket_handler.rs:404
+        PGV->>PGV: tighten(jev, outcome) -- after the gate Jev may only HOLD a dispatch it judges unclear and can never release a held utterance<br/>OPEN: the outcome-changing threshold is unset in Compose (docker-compose.unified.yml:25),<br/>which accepts nothing automatically, so neither Jev call alters a turn yet,<br/>and activation is live (VisionClaw ADR-2148 accepted / complete / live, docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7, matching docs/BASELINE-architecture.md:50-52)<br/>docs/reference/configuration.md:475<br/>src/services/jev_voice.rs:99, speech_socket_handler.rs:404
         alt GateOutcome::Clarify {prompt, pending}
             PGV->>PGV: set_pending_clarification(session_key, pending)<br/>speech_socket_handler.rs:413, :421
             PGV->>KO: speak the clarification prompt over the PocketTts path<br/>speech_socket_handler.rs:428 - NOT dispatched

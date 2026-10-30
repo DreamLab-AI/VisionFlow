@@ -30,7 +30,7 @@ sources:
   - ../project/agentbox/mcp/servers/lib/ontology-local.js
   - ../project/agentbox/management-api/lib/headroom-evidence.js
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-26.1 headroom — lazy native load and slot gating

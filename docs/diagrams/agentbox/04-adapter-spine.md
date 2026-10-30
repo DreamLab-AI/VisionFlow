@@ -40,7 +40,7 @@ sources:
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/routes/linked-objects.js
   - ../project/agentbox/management-api/routes/sessions-boundary.js
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-04.1 resolveAdapters — slot to implementation resolution

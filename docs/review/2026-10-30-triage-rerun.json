@@ -1,0 +1,278 @@
+{
+  "ts": "2026-10-30T20:01:37.024Z",
+  "model": "glm-5.3",
+  "max_tokens": 32000,
+  "baseline": "each topic's verified_commit at VisionFlow origin/main",
+  "pins": {
+    "RuView": "5728b90949e60e3f908d996997d453147c1794e0",
+    "VisionFlow": "4d361b58ce2b3ee17e1570361eaf78270b630012",
+    "WasmVOWL": "51a1484301901e817757c4cce17b1fece371652a",
+    "diagram-ir": "15cba163da7086a3ebbb5a059c8a8d0ab4ba9706",
+    "dream-engine": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+    "dream-machine": "b77093e564ef689923fb523b0e0b18d2bb4a21a4",
+    "dreamlab-ai-website": "a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98",
+    "knowledgeGraph": "1edcfc93de90ccff564073ef82cb198c422f75e3",
+    "loom": "5ad860863b588c0cdb2290e31c69e39d82755aeb",
+    "nostr-rust-forum": "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed",
+    "ontomark": "560e50c1a35bb9486b9f43ebf074b816c1e01349",
+    "project": "7c953a40b6ed793a6dca1d5a7e99533ef3a6691f",
+    "agentbox": "6500582dfae23bf8a38a6942916d208154e43625",
+    "codescape": "e3b76f63e801c6a8460110b93e88a0b420e9b0b4",
+    "unmute": "e348e567c7020d40020412024f7aa03c38a3bc3e",
+    "prose-sanitiser": "b261f65466b12bef2fd7c4957cee463cbe06190f",
+    "sidestr-rs": "d8ace3aad2f23eb1d11bd72af4ab0b74d599f618",
+    "solid-pod-rs": "09ec90f26aa573731460292d0e80343914cb43d9",
+    "visionGraph": "7b0875f2c26b9e69dc5c97e9c88166acc14c47dc",
+    "visiontouch-rs": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+    "vowl-wasm": "28af4365a68d9aacfd7c04f63299cc96ad717ce3"
+  },
+  "tokens": {
+    "input": 314450,
+    "output": 71271
+  },
+  "topics": 36,
+  "results": [
+    {
+      "topic": "agentbox/01-nix-flake-composition.md",
+      "yes": false,
+      "reason": "The diffs only expand ADR-2154's `verified_commit` to its full hash and reword ADR-2155's `review_trigger`; neither alters the statuses the topic cites (ADR-2154 accepted/partial/staged, ADR-2155 accepted/complete/staged at lines 5-7) or the staged-vs-enabled tension the topic records.",
+      "output_tokens": 1875,
+      "glm": true
+    },
+    {
+      "topic": "agentbox/04-adapter-spine.md",
+      "yes": false,
+      "reason": "no cited source changed between the topic stamp and origin/main",
+      "glm": false
+    },
+    {
+      "topic": "agentbox/05-manifest-gates-and-cli.md",
+      "yes": true,
+      "reason": "AB-05.17 repeatedly asserts ADR-2146 is \"proposed\" (in the G3 node, the \"Why it is this way\" paragraph grouping it with ADR-2149, and the \"Open\" question citing ADR-2146-activity-sink-hook.md:5), but the ADR's 2026-10-30 close-out changed `decision_status: proposed → accepted` (implementation complete, activation still inactive, gate still off), so those status claims are now false and the open question is answered by the close-out itself.",
+      "output_tokens": 1735,
+      "glm": true
+    },
+    {
+      "topic": "agentbox/07-daemons-reapers-cron-backups.md",
+      "yes": false,
+      "reason": "The change to cred_sync.rs is a pure rustfmt reformatting (line breaks in the same expressions) with zero behavioral change, so every AB-07.11 claim — the host-bind gate exiting Ok(()), the interval loop, sync_once skipping torn files, the merge expiresAt/mtime precedence, and the atomic 0600 write-back — still tells the truth about the code (only mechanical line-number drift, with :29 for merge still exact and semantics pinned by verified_commit).",
+      "output_tokens": 4742,
+      "glm": true
+    },
+    {
+      "topic": "agentbox/09-mcp-servers-catalogue.md",
+      "yes": false,
+      "reason": "The mcp.rs change is formatting-only (rustfmt line-wrapping in mirror_server and its tests); the mcp-mirror-server behavior cited in AB-09.7 and the mcp.rs:143 reference are unaffected.",
+      "output_tokens": 854,
+      "glm": true
+    },
+    {
+      "topic": "agentbox/10-ingress-nip98-proxy-and-aoe.md",
+      "yes": false,
+      "reason": "The only changed source is ADR-2153 itself, and the edit is a bookkeeping close-out (updated `verified_commit`/`review_trigger` plus re-verification notes) whose runtime checks — `aoe` not found, zero listeners on :9095, `sessions.sock` as `devuser ab-sessions` 0660, status still `accepted / partial / live` — confirm rather than contradict AB-10's claims that the AoE door is retired, session control is a unix socket with no TCP port, and verification still precedes routing; no code file the topic anchors (proxy.mjs, api.rs, plane.rs, flake.nix, gateway.cjs, etc.) changed, and the topic never quotes the ADR's `verified_commit` or `review_trigger`.",
+      "output_tokens": 2175,
+      "glm": true
+    },
+    {
+      "topic": "agentbox/13-nostr-relay-gateway-bridge-mirror.md",
+      "yes": false,
+      "reason": "no cited source changed between the topic stamp and origin/main",
+      "glm": false
+    },
+    {
+      "topic": "agentbox/14-governance-journal-actions-approvals.md",
+      "yes": true,
+      "reason": "AB-14.13 claims the governed ontology door is `vault propose`/`vault edit --expect`, but ADR-2108's new close-out (implementation complete / activation live at e786197cc) records that the shipped vault 0.1.0 no longer has the `edit` verb (moved to the `ontomark` CLI), and ADR-2087's updated review_trigger additionally shows the activation check now exits 1 (B4 deny not journalled, B5/C2 audit chain failing) rather than the staged exit-2 state AB-14.15 describes as the only blocker.",
+      "output_tokens": 3859,
+      "glm": true
+    },
+    {
+      "topic": "agentbox/15-capability-gating-spend-consultants.md",
+      "yes": true,
+      "reason": "AB-15.13's drift note says ADR-2033's implementation_status stays partial \"only because no host nix build of the runtime image digest/--diff receipt exists yet,\" but the ADR's 2026-10-30 close-out records activation_status staged→live with deepsec 2.3.10 baked into the running image and a real --diff receipt (result BLOCK), so partial now rests on the missing --full pass and labelled-PR CI run instead.",
+      "output_tokens": 1286,
+      "glm": true
+    },
+    {
+      "topic": "agentbox/16-secrets-custody-seccomp-profiles.md",
+      "yes": false,
+      "reason": "The only source changes are rustfmt reformatting of `role_accounts.rs` (identical strings, no logic change) and an ADR-2122 re-verification note that explicitly states \"existing claims and activation status are unchanged,\" so every substantive claim in AB-16 — including the `atrest`/`atrestdir` derivation from the role table and the ADR-2122 citations — still holds even though a few line anchors shifted.",
+      "output_tokens": 2918,
+      "glm": true
+    },
+    {
+      "topic": "agentbox/20-ruvector-memory-path.md",
+      "yes": true,
+      "reason": "AB-20.13's \"Tension (ADR-2082 vs manifest)\" section claims the ADR is `activation_status: staged` pending an image build and live tool-list/call check, but the ADR now reads `activation_status: live` with a 2026-10-30 close-out recording the executed 56-tool `tools/list` verification (including agent_*/rure_* forwarding with no `memory_*`), so that tension and the \"STAGED\" characterization are no longer true (the mcp.rs change is formatting-only and harmless).",
+      "output_tokens": 778,
+      "glm": true
+    },
+    {
+      "topic": "agentbox/22-skills-and-routing.md",
+      "yes": false,
+      "reason": "The changes are activation close-out receipts (ADR-2083 and ADR-2091 staged→live, plus an ADR-2092 review-trigger tweak) that confirm the behavior this topic already describes — the router, manifests, 131-skill lint estate, and cited line references (e.g. ADR-2091:38, :77) are unchanged, so no claim in the topic is contradicted.",
+      "output_tokens": 2606,
+      "glm": true
+    },
+    {
+      "topic": "agentbox/23-dream-engine.md",
+      "yes": false,
+      "reason": "The only changes are metadata in three cited ADRs — ADR-2081's and ADR-2155's `review_trigger` wording and ADR-2122's verified_commit bump with a re-verification note that explicitly states existing claims are unchanged — and none of them alters any mechanism, status, or claim the topic draws from those records (pipefail, annexe depth, ledger-cell provenance, role accounts, system-one activation).",
+      "output_tokens": 3342,
+      "glm": true
+    },
+    {
+      "topic": "agentbox/24-loom-facade.md",
+      "yes": false,
+      "reason": "The ADR-2153 change is a re-verification/close-out note that explicitly confirms the status axes the topic cites (accepted / partial / live, loom-raw hosted by agentbox-sessions, aoe-seed-sessions.mjs gone), so the topic's claims remain true.",
+      "output_tokens": 1832,
+      "glm": true
+    },
+    {
+      "topic": "agentbox/25-ontology-tools-and-governed-writes.md",
+      "yes": false,
+      "reason": "no cited source changed between the topic stamp and origin/main",
+      "glm": false
+    },
+    {
+      "topic": "agentbox/26-headroom-beads-spawn-brain.md",
+      "yes": false,
+      "reason": "no cited source changed between the topic stamp and origin/main",
+      "glm": false
+    },
+    {
+      "topic": "agentbox/29-metaharness-router-console.md",
+      "yes": false,
+      "reason": "The ADR-2153 change is a re-verification/close-out append that leaves the topic's cited facts intact — the ADR still supersedes ADR-2079, remains accepted/partial/live, still lists `router` as an ordinary (idle) seed, and still evidences no routed-task round trip for `router` (the close-out explicitly notes the OpenRouter round trip was not sent).",
+      "output_tokens": 2033,
+      "glm": true
+    },
+    {
+      "topic": "agentbox/30-supporting-services-secret-backup-setup-https-bridge.md",
+      "yes": false,
+      "reason": "no cited source changed between the topic stamp and origin/main",
+      "glm": false
+    },
+    {
+      "topic": "agentbox/31-sovereign-settlement.md",
+      "yes": false,
+      "reason": "The new PROTOCOL-registry appendix (ADR-2162 data-space federation, explicitly proposed/not implemented and stated to leave \"the rows above unchanged\") and ADR-2105's re-verification note (which confirms the kind allocations are unchanged and the record's status is not altered) are orthogonal to AB-31's claims about the 38400-38499 settlement band, the chain/asset URN kinds, and the PRD-024 design's proposed status, all of which remain true at the cited registry lines.",
+      "output_tokens": 2730,
+      "glm": true
+    },
+    {
+      "topic": "agentbox/32-sidechain-root-seal.md",
+      "yes": false,
+      "reason": "no cited source changed between the topic stamp and origin/main",
+      "glm": false
+    },
+    {
+      "topic": "agentbox/34-sidestr-interim-producer-and-mirror.md",
+      "yes": false,
+      "reason": "The cited-source changes are semantically null — `role_accounts.rs` differs only by rustfmt reformatting (ADR-2122's new re-verification note confirms \"existing claims and activation status are unchanged\"), and the PROTOCOL-registry.md addition is a PROPOSED, not-implemented mesh/dataspace section that explicitly states \"The rows above are unchanged\" — so every claim this topic makes about the producer, mirror, faucet, role isolation, and the sidestr kind plane still holds.",
+      "output_tokens": 3413,
+      "glm": true
+    },
+    {
+      "topic": "agentbox/36-role-isolation-and-identity-port.md",
+      "yes": false,
+      "reason": "The only change to `role_accounts.rs` is rustfmt-style line re-wrapping with no behavioral change, and ADR-2122's added re-verification note explicitly records that existing claims and activation status are unchanged, so every substantive claim in the topic (validation rules, isolate transform, plan rows, invariants, activation status) still holds.",
+      "output_tokens": 2768,
+      "glm": true
+    },
+    {
+      "topic": "dream-engine/01-crates-licence-boundary-and-estate-status.md",
+      "yes": false,
+      "reason": "no cited source changed between the topic stamp and origin/main",
+      "glm": false
+    },
+    {
+      "topic": "estate/01-estate-topology.md",
+      "yes": true,
+      "reason": "ES-01.8 presents PROTOCOL-registry's pending amendments as only the PRD-024 chain-plane kinds, but the cited document now also carries a new clearly-marked PROPOSED section (ADR-2162 data-space federation) that further amends the kind/URN table with a `dataspace` row and sketches a mesh-service topology (pinned peers, `/run/agentbox/mesh-peers.json` consumed by VisionClaw, node federation keys) that the topic's account of the governing surface omits.",
+      "output_tokens": 3061,
+      "glm": true
+    },
+    {
+      "topic": "estate/03-cross-repo-federation-contract.md",
+      "yes": false,
+      "reason": "no cited source changed between the topic stamp and origin/main",
+      "glm": false
+    },
+    {
+      "topic": "estate/04-identity-mesh-did-nostr.md",
+      "yes": false,
+      "reason": "The ADR-2153 update is a re-verification/close-out that explicitly keeps `decision_status: accepted / implementation_status: partial / activation_status: live` and re-confirms the very claims this topic cites (no `aoe` binary, no `:9095` listener, 0660 `ab-sessions` socket), so the topic's drift note and status citations remain accurate.",
+      "output_tokens": 1707,
+      "glm": true
+    },
+    {
+      "topic": "estate/05-governance-loop-across-estate.md",
+      "yes": true,
+      "reason": "ES-05.14 states the agentbox ADR-2087 activation check \"exits 2 on the rebuilt image\" with the record staged, but the ADR's updated review_trigger now records that on 2026-10-30 the check exits 1 with B4 (deny not journalled once) and B5/C2 (audit chain does not verify) failing, contradicting the topic's account of that record's activation state.",
+      "output_tokens": 1907,
+      "glm": true
+    },
+    {
+      "topic": "estate/06-loom-and-email-privacy-path.md",
+      "yes": false,
+      "reason": "The edits to ADR-2080 and ADR-2153 only add review_trigger/verified_commit updates and re-verification/close-out notes that explicitly keep ADR-2153 `accepted / partial / live` and confirm the `router` seed running on the owned session plane, so the topic's claims — ADR-2153 live with the router console as an ordinary session seed, and ADR-2080 keeping its scope rules and AoE-era title — remain accurate.",
+      "output_tokens": 7441,
+      "glm": true
+    },
+    {
+      "topic": "estate/10-deployment-and-security-profiles.md",
+      "yes": false,
+      "reason": "The only changes to the cited ADRs are re-verification addenda — ADR-2122 states its claims and activation status are unchanged, and ADR-2153's close-out explicitly confirms \"no axis change\" with status still accepted/partial/live, `aoe`/port 9095 gone, the ab-sessions 0660 socket running, and the `aoe-profiles` volume retained by design — all of which corroborate rather than contradict the topic's ES-10.8, ES-10.10 and ES-10.12 claims.",
+      "output_tokens": 2646,
+      "glm": true
+    },
+    {
+      "topic": "nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md",
+      "yes": false,
+      "reason": "no cited source changed between the topic stamp and origin/main",
+      "glm": false
+    },
+    {
+      "topic": "nostr-rust-forum/04-pod-worker-ldp-wac-and-delegation.md",
+      "yes": true,
+      "reason": "The topic's \"Tension (ADR-2012 vs Cargo.toml)\" note asserts the workspace `solid-pod-rs` dependency is `0.5.0-alpha.14` at `Cargo.toml:181-185`, but the change bumps it to `0.5.0-alpha.18` (and `nostr-bbs-core` to `1.0.0-beta.19`, with the k256 0.13→0.14 API migration in `keys.rs` also shifting the cited `keys.rs:251-265` range), so the explicitly recorded version claim is now stale.",
+      "output_tokens": 1300,
+      "glm": true
+    },
+    {
+      "topic": "nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
+      "yes": false,
+      "reason": "The edits merely adapt `SigningKey::from_bytes` call sites (in `auth/mod.rs`'s `sign_event` and `gift_wrap.rs`'s seal/wrap helpers and tests) to a changed k256 API via `.into()`, with identical semantics and no line-number shifts, so every behavioral claim and citation in NF-05.3, NF-05.4 and NF-05.9 about key custody, signing, and gift-wrap pairing remains true.",
+      "output_tokens": 1001,
+      "glm": true
+    },
+    {
+      "topic": "nostr-rust-forum/06-agent-control-surface-31400-31405.md",
+      "yes": false,
+      "reason": "The diff only marks `canonical_json` in rationale_check.rs as `#[cfg(test)]` (the topic never claims the worker uses it, and its new comment confirms the worker hashes the vendored rubric bytes, matching NF-06.19 N1) and swaps `SigningKey::from_bytes(privkey)` for `(privkey).into()` in kanban.rs as a line-count-neutral API adaptation, so no behavioral claim in NF-06 is invalidated.",
+      "output_tokens": 2024,
+      "glm": true
+    },
+    {
+      "topic": "nostr-rust-forum/09-ci-deploy-canary-and-validation.md",
+      "yes": false,
+      "reason": "The diff only bumps dependency versions (k256/p256 0.14, solid-pod-rs alpha.18, nostr-bbs-core beta.19 — none of which NF-09 pins or quotes, and all still crates.io pins so the allow-git-empty invariant holds), mechanically adapts keys.rs to the k256-0.14 `from_bytes` signature without touching the known-answer vector or derive_subkey contract, and appends new NIP-29/federation sections to BASELINE that leave the cited no-toolchain-pin decision and every CI-gate, deploy, benchmark, canary, e2e and setup-skill claim of this topic intact.",
+      "output_tokens": 9554,
+      "glm": true
+    },
+    {
+      "topic": "visiongraph/01-vault-structure-and-contract.md",
+      "yes": false,
+      "reason": "The only change bumps the third-party notice filenames asserted in publish.yml's notices check (vowl-wasm 0.2.0→0.2.2, ontomark-graph 0.1.0→0.2.0) at lines ~468–474, which the topic never cites, and none of its cited publish.yml references (triggers 24–30, pipeline note 91–93, ontomark build 98–117/165, domain gates 309–313, corpus-sync 525–531, v0.6.0 pin at line 49) are touched or shifted by the equal-length line replacement.",
+      "output_tokens": 1684,
+      "glm": true
+    },
+    {
+      "topic": "visiongraph/05-invariants-register.md",
+      "yes": false,
+      "reason": "no cited source changed between the topic stamp and origin/main",
+      "glm": false
+    }
+  ]
+}

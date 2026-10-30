@@ -24,7 +24,7 @@ sources:
   - ../project/agentbox/docs/LEARNING-memory.md
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
   - ../project/agentbox/mcp/servers/lib/memory-jev-rerank.js
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
 ---
 ## ES-07.1 Every RuVector client and the one shared embedder
 ```mermaid
@@ -37,7 +37,7 @@ flowchart TB
         SONA["ruvector-sona-feeder.mjs"]
         HARNESS["ruvector-recall-harness.mjs"]
         VCMF["VisionClaw memory_flash_handler<br/>src/handlers/memory_flash_handler.rs:50<br/>OBSERVER ONLY — broadcasts access events, optional agentId relayed"]
-        MCL["VisionClaw memory cloud (ADR-2133), READ-ONLY<br/>src/services/memory_cloud_service.rs:6-13<br/>session option default_transaction_read_only=on, :58"]
+        MCL["VisionClaw memory cloud (ADR-2133, accepted / complete / live<br/>since the 2026-10-30 close-out, ADR-2133-live-memory-cloud-serves-a-stratified-sidecar-snapshot.md:5-7), READ-ONLY<br/>src/services/memory_cloud_service.rs:6-13<br/>session option default_transaction_read_only=on, :58"]
         AMA["agent_monitor_actor.rs:558-564<br/>narrates RuVector Memory Specialist activity"]
     end
     subgraph store["ruvector-postgres"]

@@ -51,7 +51,7 @@ sources:
   - ../project/src/handlers/socket_flow_handler/types.rs
   - ../project/src/handlers/socket_flow_handler/message_routing.rs
   - ../project/src/handlers/socket_flow_handler/position_updates.rs
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
 ---
 ## VC-32.1 Connect: signed-subprotocol upgrade, dev-mode authenticate message
 ```mermaid
@@ -107,7 +107,7 @@ sequenceDiagram
     C->>C: notifyConnectionStatusHandlers(true) index.ts:193
     C->>C: startHeartbeat(get) index.ts:194
     C->>C: processMessageQueue(get,set) index.ts:195
-    Note over S: DRIFT: PROTOCOL-registry.md:304-307 says the Authorization header is now the only accepted carrier in a release build.<br/>http_handler.rs:151-169 also accepts the signed Sec-WebSocket-Protocol NIP-98 subprotocol, and that is the carrier this client<br/>uses in every non-dev build (index.ts:165-169). ADR-2058 removed only the ?token= query fallback, which is compiled out of release<br/>(http_handler.rs:186-214). BASELINE-architecture.md:296 still lists the query token as an open divergence, written before ADR-2058 landed.
+    Note over S: DRIFT: PROTOCOL-registry.md:306-309 says the Authorization header is now the only accepted carrier in a release build.<br/>http_handler.rs:151-169 also accepts the signed Sec-WebSocket-Protocol NIP-98 subprotocol, and that is the carrier this client<br/>uses in every non-dev build (index.ts:165-169). ADR-2058 removed only the ?token= query fallback, which is compiled out of release<br/>(http_handler.rs:186-214). BASELINE-architecture.md:297 still lists the query token as an open divergence, written before ADR-2058 landed.
     Note over S: RESOLVED 0d636fd0e (S-7f, accounted for in VC-03.2): a validated Authorization-header session is now carried into signed_user<br/>(http_handler.rs:258-262), so pubkey and is_power_user are set for a header-token client exactly as for the signed-subprotocol client<br/>(http_handler.rs:412-415). Before it the session was checked then dropped and that client stayed anonymous
     Note over AH: DEBT: the NIP-98 authenticate event branch of sendAuthOnConnect (connectionManager.ts:338-348) is unreachable from its only caller.<br/>index.ts:185 calls it only when signedUpgrade is false, which is exactly when isDevMode() is true, so the dev branch (connectionManager.ts:330)<br/>always wins. The server still handles authenticate (message_routing.rs:34-36), the client just no longer sends the event form
     Note over S: INVARIANT: the credential subprotocol is never echoed back, only PUBLIC_WS_PROTOCOLS (http_handler.rs:8, http_handler.rs:447-450)
@@ -283,10 +283,10 @@ classDiagram
     }
     V5Envelope --> V3NodeRecord : wraps
     V4DeltaFrame_RETIRED --> DeltaItem : contained
-    note for V3NodeRecord "CROSS-CHECK OK. client/src/types/binaryProtocol.ts:84-94 offsets match<br/>xr-client/rust/src/binary_protocol.rs:8-11,756-777 exactly: id, pos, vel,<br/>sssp_distance, sssp_parent, cluster_id, anomaly, community_id, centrality. Godot<br/>NODE_RECORD_BYTES=52 (:32) equals client BINARY_NODE_SIZE_V3=52<br/>(types/binaryProtocol.ts:79). No DIVERGENCE."
+    note for V3NodeRecord "CROSS-CHECK OK. client/src/types/binaryProtocol.ts:84-94 offsets match<br/>xr-client/rust/src/binary_protocol.rs:8-11,893-915 exactly: id, pos, vel,<br/>sssp_distance, sssp_parent, cluster_id, anomaly, community_id, centrality. Godot<br/>NODE_RECORD_BYTES=52 (:32) equals client BINARY_NODE_SIZE_V3=52<br/>(types/binaryProtocol.ts:79). No DIVERGENCE."
     note for V2NodeRecord "Declined, not live. The server answers a 0x02 lead byte with Err (src/utils/binary_protocol.rs:610),<br/>its 36-byte stride constant is deleted, and the client declares no 36-byte stride at all (ADR-2057,<br/>types/binaryProtocol.ts:76-79). The shape is kept here only to show what the 52-byte V3 record replaced."
     note for V5Envelope "types/binaryProtocol.ts:328-349 parseV5Nodes reads seqLow at offset1 and seqHigh<br/>at offset5, reconstructs a V3 buffer at offset9. Matches Godot PROTOCOL_V5=0x05<br/>and V5_SEQ_BYTES=8, docs/PROTOCOL-registry.md 0x05 row<br/>(xr-client/rust/src/binary_protocol.rs:29-30)."
-    note for V4DeltaFrame_RETIRED "RETIRED (ADR-2139, ADR-2141). No encoder exists on the server and every decoder refuses the tag: the web parser logs a<br/>decline and applies nothing (client/src/types/binaryProtocol.ts:190-198), the registry keeps 0x04 reserved, never to be reused<br/>(docs/PROTOCOL-registry.md:57). Every position frame is an absolute chunk, so there is nothing to add offsets to.<br/>PROTOCOL_V4 now means only the retired delta tag (client/src/services/binaryProtocol/frameTypes.ts:37)."
+    note for V4DeltaFrame_RETIRED "RETIRED (ADR-2139, ADR-2141). No encoder exists on the server and every decoder refuses the tag: the web parser logs a<br/>decline and applies nothing (client/src/types/binaryProtocol.ts:190-198), the registry keeps 0x04 reserved, never to be reused<br/>(docs/PROTOCOL-registry.md:58). Every position frame is an absolute chunk, so there is nothing to add offsets to.<br/>PROTOCOL_V4 now means only the retired delta tag (client/src/services/binaryProtocol/frameTypes.ts:37)."
 ```
 ## VC-32.6 Wire node-id: type flag bits over the 26-bit id
 ```mermaid
@@ -304,8 +304,8 @@ classDiagram
       ONTOLOGY_PROPERTY_FLAG 0x10000000
     }
     WireNodeId --> OntologySubtype : bits26to28 when ontology
-    note for WireNodeId "INVARIANT, no DIVERGENCE. Client client/src/types/binaryProtocol.ts:96-107, Godot<br/>decoder xr-client/rust/src/binary_protocol.rs:41-47, and<br/>docs/IDENTIFIER-taxonomy.md:124-129 all agree exactly on mask and flag hex values.<br/>getActualNodeId(nodeId) is nodeId AND NODE_ID_MASK<br/>(types/binaryProtocol.ts:133-135)."
-    note for WireNodeId "docs/IDENTIFIER-taxonomy.md:131-141: ids are sequential u32 from a NEXT_NODE_ID<br/>atomic counter. Every encoder branch, the untyped one included, routes through<br/>enforce_wire_id_bounds (src/utils/binary_protocol.rs:185-206): debug_assert fails fast in<br/>development (:186-193) but release does NOT truncate silently. remap_wire_id masks the id into<br/>26 bits and an error! log names the class and both ids (:194-204, ADR-2024). The masked id<br/>still aliases another node, so an over-range id is loud, not harmless."
+    note for WireNodeId "INVARIANT, no DIVERGENCE. Client client/src/types/binaryProtocol.ts:96-107, Godot<br/>decoder xr-client/rust/src/binary_protocol.rs:41-47, and<br/>docs/IDENTIFIER-taxonomy.md:125-130 all agree exactly on mask and flag hex values.<br/>getActualNodeId(nodeId) is nodeId AND NODE_ID_MASK<br/>(types/binaryProtocol.ts:133-135)."
+    note for WireNodeId "docs/IDENTIFIER-taxonomy.md:132-142: ids are sequential u32 from a NEXT_NODE_ID<br/>atomic counter. Every encoder branch, the untyped one included, routes through<br/>enforce_wire_id_bounds (src/utils/binary_protocol.rs:185-206): debug_assert fails fast in<br/>development (:186-193) but release does NOT truncate silently. remap_wire_id masks the id into<br/>26 bits and an error! log names the class and both ids (:194-204, ADR-2024). The masked id<br/>still aliases another node, so an over-range id is loud, not harmless."
     note for WireNodeId "INVARIANT (2026-09-08, 6c47b9833): an id that ALREADY carries a recognised<br/>class pattern is forwarded unchanged by the encoder's last branch, because<br/>position_updates.rs and actor_messages.rs stamp the flag themselves and pass<br/>empty class sets. Running the 26-bit bound check on a stamped id panicked<br/>every broadcast in debug builds - each XR client saw a 2 s connection-reset<br/>loop - and would have stripped the class flag in release<br/>(src/utils/binary_protocol.rs:475-484). Only a high bit that is NOT a class<br/>pattern is still an overflow, handled by the untyped branch (src/utils/binary_protocol.rs:490)."
 ```
 ## VC-32.7 getNodeType(): flag precedence decision order

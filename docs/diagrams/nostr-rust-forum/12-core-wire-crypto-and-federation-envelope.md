@@ -40,7 +40,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/push.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml
-verified_commit: 9c36b6032640c89879ae52fe25da99493979a0b6
+verified_commit: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed
 ---
 
 ## NF-12.1 Module map — what the workers and clients all link
@@ -111,12 +111,12 @@ sequenceDiagram
     S->>S: BIP-340 Schnorr sign nostr-bbs-core/src/event.rs:141
     S-->>R: NostrEvent nostr-bbs-core/src/event.rs:50
     R->>V: on admission
-    V->>V: rebuild the id and compare, then Schnorr verify nostr-bbs-core/src/event.rs:210 nostr-bbs-core/src/event.rs:237
+    V->>V: rebuild the id and compare, then Schnorr verify nostr-bbs-core/src/event.rs:210 nostr-bbs-core/src/event.rs:241
 
     Note over V: The single verification the WHOLE estate leans on. The relay calls it before any side effect (NF-03.4 step 4)
     Note over V: NIP-42 AUTH calls it (NF-03.2), and the forum client re-runs it on every inbound event rather than trusting the relay (NF-05.5)
     Note over S: sign_event_deterministic nostr-bbs-core/src/event.rs:160 exists for test vectors
-    Note over S: sign_event_upstream nostr-bbs-core/src/event.rs:315 is the absorption seam onto the upstream nostr crate
+    Note over S: sign_event_upstream nostr-bbs-core/src/event.rs:319 is the absorption seam onto the upstream nostr crate
     Note over U: The Signer trait nostr-bbs-core/src/signer.rs:78 lets a NIP-07 extension, a passkey key or a pasted nsec share one call site - see NF-05.4
 ```
 
@@ -125,21 +125,21 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph prf["derive_from_prf - passkey root"]
-        P1["HKDF-SHA256, salt = per-identity derivation salt<br/>nostr-bbs-core/src/keys.rs:197"]
-        P2["info = HKDF_INFO || counter, 32-byte OKM<br/>nostr-bbs-core/src/keys.rs:202 constant keys.rs:15"]
-        P3["counter loop 0..=255 searching for a valid scalar<br/>nostr-bbs-core/src/keys.rs:201"]
+        P1["HKDF-SHA256, salt = per-identity derivation salt<br/>nostr-bbs-core/src/keys.rs:198"]
+        P2["info = HKDF_INFO || counter, 32-byte OKM<br/>nostr-bbs-core/src/keys.rs:203 constant keys.rs:15"]
+        P3["counter loop 0..=255 searching for a valid scalar<br/>nostr-bbs-core/src/keys.rs:202"]
     end
     subgraph sub["derive_subkey - purpose-scoped child"]
-        S1["ONE raw HMAC-SHA-256, keyed by the root's 32 secret bytes<br/>nostr-bbs-core/src/keys.rs:253"]
-        S2["message is the UTF-8 tag - no Extract/Expand<br/>nostr-bbs-core/src/keys.rs:255"]
-        S3["exactly crypto.createHmac sha256 root update tag digest<br/>nostr-bbs-core/src/keys.rs:229"]
+        S1["ONE raw HMAC-SHA-256, keyed by the root's 32 secret bytes<br/>nostr-bbs-core/src/keys.rs:254"]
+        S2["message is the UTF-8 tag - no Extract/Expand<br/>nostr-bbs-core/src/keys.rs:256"]
+        S3["exactly crypto.createHmac sha256 root update tag digest<br/>nostr-bbs-core/src/keys.rs:230"]
     end
-    KAT["known-answer JS-parity vector<br/>nostr-bbs-core/src/keys.rs:478, digest keys.rs:483<br/>shared fixture nostr-bbs-core/tests/identity_subkey_vectors.rs:30"]
+    KAT["known-answer JS-parity vector<br/>nostr-bbs-core/src/keys.rs:479, digest keys.rs:484<br/>shared fixture nostr-bbs-core/tests/identity_subkey_vectors.rs:30"]
 
     sub --> KAT
 
-    N1["INVARIANT: these are DIFFERENT constructions and must never be substituted - the doc says so at the<br/>definition site nostr-bbs-core/src/keys.rs:224"]
-    N2["INVARIANT: a derived subkey is RECOVERABLE FROM THE ROOT by anyone holding the root<br/>nostr-bbs-core/src/keys.rs:240. It provides DOMAIN SEPARATION, not compromise isolation<br/>nostr-bbs-core/src/keys.rs:242 - rotation of the root is the only boundary."]
+    N1["INVARIANT: these are DIFFERENT constructions and must never be substituted - the doc says so at the<br/>definition site nostr-bbs-core/src/keys.rs:225"]
+    N2["INVARIANT: a derived subkey is RECOVERABLE FROM THE ROOT by anyone holding the root<br/>nostr-bbs-core/src/keys.rs:241. It provides DOMAIN SEPARATION, not compromise isolation<br/>nostr-bbs-core/src/keys.rs:243 - rotation of the root is the only boundary."]
     N3["INVARIANT ADR-2003: the HMAC construction is a byte-for-byte cross-stack contract with agentbox's JS<br/>mirror derivation. Both halves read ONE versioned fixture, so they cannot drift - see NF-09.3.<br/>EXTERNAL: see AB-11 and ES-04"]
 ```
 

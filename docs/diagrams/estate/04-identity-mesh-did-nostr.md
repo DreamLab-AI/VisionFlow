@@ -33,7 +33,7 @@ sources:
   - ../project/src/settings/auth_extractor.rs
   - ../project/client/src/services/nostrAuthService.ts
   - ../project/agentbox/docs/INGRESS-identity.md
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
 ---
 ## ES-04.1 verification mesh — who signs, who verifies whom
 ```mermaid
@@ -89,7 +89,9 @@ flowchart TB
 
 **Debt:** the stamp's strength is the same-UID boundary of the agentbox container, because any process inside it reaches management-api over loopback (TODO-unified X-1; `agentbox/management-api/lib/agent-event-auth.js:36-39`).
 
-**Drift (resolved at this stamp):** ADR-2153 is live (`decision_status: accepted`, `implementation_status: partial`, `activation_status: live`; `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Agent of Empires, its `:9095` listener, its bearer token and the proxy hop to it are gone; session control is a 0660 `ab-sessions` unix socket authorised by `SO_PEERCRED` against uids 1000 and 961 (`../project/agentbox/services/agentbox-sessions/src/api.rs:74`, `../project/agentbox/config/custody/session-plane-acl.json:8-11`), and `:9096` forwards named routes only (`../project/agentbox/docs/INGRESS-identity.md:64-66,239-242`).
+**Drift (resolved at this stamp):** ADR-2153 is live (`decision_status: accepted`, `implementation_status: partial`, `activation_status: live`; `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Agent of Empires, its `:9095` listener, its bearer token and the proxy hop to it are gone; session control is a 0660 `ab-sessions` unix socket authorised by `SO_PEERCRED` against uids 1000 and 961 (`../project/agentbox/services/agentbox-sessions/src/api.rs:74`, `../project/agentbox/config/custody/session-plane-acl.json:8-11`), and `:9096` forwards named routes only (`../project/agentbox/docs/INGRESS-identity.md:64-66,239-242`). The 2026-10-30 close-out re-checks the running image and leaves the axes unchanged: `command -v aoe` finds nothing and nothing listens on `:9095` (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:219`); `partial` stays because the all-seed acceptance gap remains open (`:222`).
+
+**Open (PROPOSED 2026-10-30, not implemented):** VisionClaw's identity-authority record now carries a Proposed room-admission section (ADR-2157, ADR-2160, ADR-2161): a `RoomAdmission` port after the presence handshake, fed by the home relay's signed NIP-29 39002 member list, and a single agentbox-held node federation key that VisionClaw never holds (`docs/IDENTITY-authority-chain.md`, section "Proposed"). Today the handshake alone admits a DID to any room, and the diagrams here describe only that shipped path.
 
 ## ES-04.3 validate_nip98_token — the fixed check order, replay claimed LAST
 ```mermaid

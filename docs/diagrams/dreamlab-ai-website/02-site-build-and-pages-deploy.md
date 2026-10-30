@@ -20,7 +20,7 @@ sources:
   - ../dreamlab-ai-website/scripts/check-discovery.mjs
   - ../dreamlab-ai-website/scripts/check-claims.mjs
   - ../dreamlab-ai-website/docs/archive/adr/043-ai-search-visibility-aeo.md
-verified_commit: 4935b6c4a394633569b2c8b38d5c0c272da3b0fb
+verified_commit: a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98
 ---
 
 ## DW-02.1 Route table — lazy-loaded, code-split

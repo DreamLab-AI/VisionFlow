@@ -60,7 +60,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2091-live-skill-router.md
   - ../project/agentbox/docs/adr/ADR-2092-govern-the-agent-and-command-registries.md
   - ../project/agentbox/docs/adr/ADR-2150-video-production-skill.md
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-22.1 Skill discovery and JIT load at a turn
@@ -423,7 +423,7 @@ flowchart TB
 ```
 
 AB-22.11 retired: it depicted `ensureFrontmatter()` in `mcp/servers/lib/vault-frontmatter.js`, deleted at this
-revision (ADR-2107/ADR-2108). Vault mutation is now the `vault propose` / `vault edit --expect` CLI door; see
+revision (ADR-2107/ADR-2108). Vault mutation is now the `vault propose` / `vault edit --expect` CLI door in code, although the baked `vault 0.1.0` no longer carries `edit` (it moved to the `ontomark` CLI, `../project/agentbox/docs/adr/ADR-2108-ontology-bridge-retired-vault-baked-by-nix.md:238`); see
 AB-05 (`docs/diagrams/agentbox/05-manifest-gates-and-cli.md`, AB-05.4) for the current `[vault]` path authority
 and CLI gate.
 

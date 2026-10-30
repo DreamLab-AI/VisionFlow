@@ -48,7 +48,7 @@ sources:
   - ../project/agentbox/scripts/dream-machine-nightly.mjs
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
-verified_commit: {agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc, visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, loom: 5ad860863b588c0cdb2290e31c69e39d82755aeb}
+verified_commit: {agentbox: 6500582dfae23bf8a38a6942916d208154e43625, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, loom: 5ad860863b588c0cdb2290e31c69e39d82755aeb}
 ---
 
 ## AB-24.1 Two deployments of one facade contract — topology

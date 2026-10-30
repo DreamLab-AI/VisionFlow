@@ -50,7 +50,7 @@ sources:
   - ../project/agentbox/flake.nix
   - ../project/agentbox/config/harness-wrappers/router.sh
   - ../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-15.1 Gate lattice — manifest to package set to supervisor to runtime trace
@@ -170,14 +170,14 @@ sequenceDiagram
     autonumber
     participant TOML as agentbox.toml<br/>agentbox/agentbox.toml:2519
     participant Entry as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:3321-3322
-    participant MB as agentbox-manifest bin<br/>agentbox/services/agentbox-manifest/src/main.rs:511
+    participant MB as agentbox-manifest bin<br/>agentbox/services/agentbox-manifest/src/main.rs:519
     participant Sup as supervisord<br/>dream-engine program
     participant API as management-api<br/>routes/system.js:44
     participant SM as system-manifest.js<br/>CATALOGUE + buildSystemView<br/>management-api/lib/system-manifest.js:494
 
     Note over Entry: boot — Phase reconciles every restart
     Entry->>MB: agentbox-manifest toml-string --manifest /etc/agentbox.toml --path consultants.antigravity.model
-    MB->>TOML: tomlval::parse_file_lenient(&manifest)<br/>tomlval.rs:56 get()
+    MB->>TOML: tomlval::parse_file_lenient(&manifest)<br/>tomlval.rs:58 get()
     alt value present and is string
         MB-->>Entry: prints the model string, exit 0
     else missing, non-string, unparseable manifest
@@ -564,7 +564,7 @@ sequenceDiagram
     autonumber
     participant PreBoot as Pre-boot environment
     participant Entry as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:3321-3322
-    participant MB as agentbox-manifest toml-string<br/>services/agentbox-manifest/src/main.rs:511
+    participant MB as agentbox-manifest toml-string<br/>services/agentbox-manifest/src/main.rs:519
     participant TOML as agentbox.toml<br/>[consultants.antigravity]<br/>agentbox.toml:1659-1663
     participant Reg as skills/mcp.json registry default
     participant Srv as antigravity server.js<br/>mcp/consultants/antigravity/server.js:20
@@ -711,7 +711,7 @@ Gate->>Gate: bucket findings by severity, blocking = severity index<br/>#60;#61;
             end
         end
     end
-Note over Gate: DOC-DRIFT ADR-2033: nodeModulesHash was resolved at flake.nix<br/>#40;stripDevDeps=true, no longer a placeholder#41; — implementation_status stays<br/>partial only because no host nix build of the runtime image digest/--diff<br/>receipt exists yet #40;ADR-2033 Verification, 2026-09-05#41;
+Note over Gate: DOC-DRIFT ADR-2033: nodeModulesHash was resolved at flake.nix<br/>#40;stripDevDeps=true, no longer a placeholder#41; — activation_status is now<br/>live: the rebuild landed and a real --diff receipt exists #40;result BLOCK, deepsec 2.3.10#41;.<br/>implementation_status stays partial because a --full pass and the labelled-PR CI run<br/>remain unexecuted #40;ADR-2033-deepsec-security-gate.md:441-446#41;
 ```
 
 ## AB-15.14 ADR-2080 — the metaharness router console gate (new since verified_commit)
@@ -747,7 +747,7 @@ flowchart TD
 
 
 
-**Open:** ADR-2153 is now `accepted`, `implementation_status: partial`, `activation_status: live` and supersedes ADR-2079, so the router console is an ordinary session-plane seed (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `../project/agentbox/agentbox.toml:2185-2187`); its acceptance round trip excludes `router`, so the wrapper's hard-fail path is exercised by launch only, not by a routed task (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:65`).
+**Open:** ADR-2153 is now `accepted`, `implementation_status: partial`, `activation_status: live` and supersedes ADR-2079, so the router console is an ordinary session-plane seed (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `../project/agentbox/agentbox.toml:2185-2187`); its acceptance round trip excludes `router`, so the wrapper's hard-fail path is exercised by launch only, not by a routed task (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:72`).
 
 **Drift (spend gating vs the wallet that now exists):** the capability lattice above gates LLM spend and HTTP 402 settlement, and a second spend surface has since been published — `sidestr-wallet` consults a `SpendPolicy` before every signature and ships only a permissive implementation, leaving the authority gate (ADR-2100) to the caller, which nothing in this topic yet supplies (see AB-33.7). The level-2 review that reshaped the federation design was itself run through the consultant tier drawn at AB-15.12 (see AB-35).
 

@@ -105,7 +105,7 @@ sources:
   - ../project/client/src/features/ontology/components/OntologyContribution.tsx
   - ../project/src/services/broker_events.rs
   - ../project/docker-compose.unified.yml
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
 ---
 ## VC-34.1 settings — field edit to server PUT
 ```mermaid

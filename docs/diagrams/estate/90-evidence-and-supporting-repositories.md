@@ -27,7 +27,7 @@ sources:
   - ../loom/Cargo.toml
   - ../RuView/v2/crates/wifi-densepose-sensing-server/src/main.rs
   - docs/estate-review/2026-09-07-estate-audit.md
-verified_commit: {visionflow: ff15faf83d82fef7f23d96da381c8ab78d0206b0, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc, dream-engine: 59a3e215e826aa1e9ebe157d49c1ac504f7f39c9, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, RuView: 5728b90949e60e3f908d996997d453147c1794e0, loom: 5ad860863b588c0cdb2290e31c69e39d82755aeb, dream-machine: b77093e564ef689923fb523b0e0b18d2bb4a21a4, prose-sanitiser: b261f65466b12bef2fd7c4957cee463cbe06190f, diagram-ir: 15cba163da7086a3ebbb5a059c8a8d0ab4ba9706}
+verified_commit: {visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, agentbox: 6500582dfae23bf8a38a6942916d208154e43625, dream-engine: 59a3e215e826aa1e9ebe157d49c1ac504f7f39c9, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, RuView: 5728b90949e60e3f908d996997d453147c1794e0, loom: 5ad860863b588c0cdb2290e31c69e39d82755aeb, dream-machine: b77093e564ef689923fb523b0e0b18d2bb4a21a4, prose-sanitiser: b261f65466b12bef2fd7c4957cee463cbe06190f, diagram-ir: 15cba163da7086a3ebbb5a059c8a8d0ab4ba9706}
 ---
 
 ## ES-90.1 Three scopes — health roster, source review and workspace neighbours

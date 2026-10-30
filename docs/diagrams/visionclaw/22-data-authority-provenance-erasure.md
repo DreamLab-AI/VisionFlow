@@ -42,7 +42,7 @@ sources:
   - ../project/src/app_state.rs
   - ../project/src/actors/graph_state_actor.rs
   - ../project/src/services/ontology_mutation_service.rs
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
 ---
 
 ## VC-22.1 Write-master per data class
@@ -78,14 +78,14 @@ flowchart LR
     DerivedWB["Derived write-back only<br/>append_derived_quads:733"] --> SummaryGraph["GRAPH_ONTOLOGY_SUMMARY<br/>oxigraph_ontology_repository.rs:63"]
     DerivedWB --> ObservedGraph["GRAPH_ONTOLOGY_OBSERVED<br/>oxigraph_ontology_repository.rs:64"]
 
-    DivLegacy["DIVERGENCE: legacy ADRs assign primacy to Oxigraph 132 / Pod 050-052 / GitHub 051 / RuVector 030 / provenance 033-034-124-128<br/>code resolves as this matrix, legacy prose not reconciled<br/>docs/DATA-authority-erasure.md:97"]
+    DivLegacy["DIVERGENCE: legacy ADRs assign primacy to Oxigraph 132 / Pod 050-052 / GitHub 051 / RuVector 030 / provenance 033-034-124-128<br/>code resolves as this matrix, legacy prose not reconciled<br/>docs/DATA-authority-erasure.md:98"]
     AssertGraph -.-> DivLegacy
     RuVector -.-> DivLegacy
 
-    DivCreds["PROPOSED ADR-2104: execute the SOPS rollout or formally withdraw ADR-109 - plaintext .env is documented as the interim state either way<br/>a 43MB scripts/sops binary dated 2026-05-09 is present and gitignored, but no .sops.yaml, secrets.enc.yaml or sops-env.sh exists<br/>docs/DATA-authority-erasure.md:112"]
+    DivCreds["PROPOSED ADR-2104: execute the SOPS rollout or formally withdraw ADR-109 - plaintext .env is documented as the interim state either way<br/>a 43MB scripts/sops binary dated 2026-05-09 is present and gitignored, but no .sops.yaml, secrets.enc.yaml or sops-env.sh exists<br/>docs/DATA-authority-erasure.md:113"]
     DotEnv -.-> DivCreds
 
-    DivWorkspace["OPEN: which row of this matrix moves, and when, if ADR-2137 (proposed, implementation none, activation inactive) makes<br/>Oxigraph and the other query stores optional rebuildable projections of authored Markdown?<br/>docs/DATA-authority-erasure.md:215"]
+    DivWorkspace["OPEN: which row of this matrix moves, and when, if ADR-2137 (proposed, implementation none, activation inactive) makes<br/>Oxigraph and the other query stores optional rebuildable projections of authored Markdown?<br/>docs/DATA-authority-erasure.md:242"]
     AssertGraph -.-> DivWorkspace
 ```
 
@@ -313,7 +313,7 @@ sequenceDiagram
     end
     MEM-->>UI: boolean deleted-or-absent
     rect rgb(255, 230, 230)
-        Note over MEM,POD: DIVERGENCE: no reverse tombstone to RuVector - embedding row persists and stays searchable (docs/DATA-authority-erasure.md:87)
+        Note over MEM,POD: DIVERGENCE: no reverse tombstone to RuVector - embedding row persists and stays searchable (docs/DATA-authority-erasure.md:88)
         Note over MEM: this Pod-side delete never calls mcp__claude-flow__memory_delete or any RuVector endpoint - RuVector is<br/>external Postgres reached only via MCP, no delete-propagation hook exists in this path
         Note over MEM: DRIFT: the server now also holds a direct read-only RuVector client (tokio-postgres from RUVECTOR_PG_CONNINFO, crate visionclaw-memory-cloud),<br/>so MCP-only access holds for writes and deletes but no longer for reads, and the embedding row this path leaves behind has a second consumer Cargo.toml:143-145
     end
@@ -374,7 +374,7 @@ sequenceDiagram
         SYNC->>KG: batch_add_nodes ingest corpus pages (github_sync_service.rs:1587)
         SYNC->>AG: save_ontology_graph atomic CLEAR GRAPH assert then INSERT DATA (github_sync_service.rs:1026)
     end
-    Note over SYNC,AG: authoritative store (the CorpusSource, ADR-2114) commits first via sync run - the Oxigraph projection is regenerated, never hand-edited (docs/DATA-authority-erasure.md:62)
+    Note over SYNC,AG: authoritative store (the CorpusSource, ADR-2114) commits first via sync run - the Oxigraph projection is regenerated, never hand-edited (docs/DATA-authority-erasure.md:63)
 
     critical decision fan-out (enrichment_proposals_handler.rs:561-594)
         APD->>SQ: record_decision INSERT+UPDATE one transaction (sqlite_enrichment_repository.rs:608-680)

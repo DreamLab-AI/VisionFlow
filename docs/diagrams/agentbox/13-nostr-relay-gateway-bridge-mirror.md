@@ -38,7 +38,7 @@ sources:
   - ../project/agentbox/config/session-plane/client.cjs
   - ../project/agentbox/config/custody/session-plane-acl.json
   - ../project/agentbox/services/agentbox-sessions/src/api.rs
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-13.1 Nostr topology — relay, gateway, pod bridge, mirror, mesh

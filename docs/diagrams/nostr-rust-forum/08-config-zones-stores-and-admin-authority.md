@@ -35,7 +35,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/admins.rs
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
-verified_commit: 9c36b6032640c89879ae52fe25da99493979a0b6
+verified_commit: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed
 ---
 
 ## NF-08.1 forum.toml — the single source of access truth and its projection

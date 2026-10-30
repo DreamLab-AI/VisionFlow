@@ -24,7 +24,7 @@ sources:
   - tests/gates/run-all.sh
   - ./README.md
   - docs/jev-option.md
-verified_commit: ff15faf83d82fef7f23d96da381c8ab78d0206b0
+verified_commit: 4d361b58ce2b3ee17e1570361eaf78270b630012
 ---
 
 ## VF-03.1 The roster — the only place the estate is enumerated
@@ -262,7 +262,7 @@ sequenceDiagram
     participant F as "data/estate-health.json in the artefact"
 
     V->>P: "open www.visionflow.info and scroll to the estate section"
-    Note over P: "section id estate — index.html:1155<br/>the lead copy states the file is a committed snapshot,<br/>not a live query — index.html:1159"
+    Note over P: "section id estate — index.html:1156<br/>the lead copy states the file is a committed snapshot,<br/>not a live query — index.html:1160"
     P->>M: "DOMContentLoaded calls initEstateHealth — main.js:919"
     M->>F: "fetch('data/estate-health.json', cache no-cache) — main.js:838"
     alt fetch ok

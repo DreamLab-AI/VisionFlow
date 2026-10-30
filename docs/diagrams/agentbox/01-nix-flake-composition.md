@@ -31,7 +31,7 @@ sources:
   - ../project/agentbox/lib/pele.nix
   - ../project/agentbox/docs/adr/ADR-2155-system-one-consumer-activation.md
   - ../project/agentbox/docs/adr/ADR-2154-pele-renders-mermaid-in-the-image.md
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-01.1 agentbox.toml gates to flake.nix conditionals to package set and supervisord text

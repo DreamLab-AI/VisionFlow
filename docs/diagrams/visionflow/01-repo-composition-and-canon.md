@@ -58,7 +58,7 @@ sources:
   - docs/engineering/README.md
   - docs/engineering/ADR-004-harness-engineering-framework.md
   - docs/engineering/ADR-005-mandate-at-grant-governance.md
-verified_commit: ff15faf83d82fef7f23d96da381c8ab78d0206b0
+verified_commit: 4d361b58ce2b3ee17e1570361eaf78270b630012
 ---
 
 ## VF-01.2 Document taxonomy — which class a file belongs to, and who owns its truth
@@ -453,8 +453,8 @@ flowchart TB
 
 **Invariant:** the estate gains a single answer to "how many classes are there" only if Loom `/health`, VisionClaw `/api/ontology/classes` and `vault build --stats` report the same count at a named commit — a divergence is a defect, not a rounding difference (`docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md:72-75`, `docs/BASELINE-visionflow.md:335-336`).
 
-**Open:** the record's own `review_trigger` names "the first divergence between Loom's, VisionClaw's and vault build's class counts" (`docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md:12`) as a forcing event, but nothing in this canon repo currently polls the three counts to detect one.
+**Open:** the record's own `review_trigger` names "the first divergence between Loom's, VisionClaw's and vault build's class counts" (`docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md:12`) as a forcing event, but nothing in this canon repo currently polls the three counts to detect one. Since 2026-10-30 the same trigger also names the activation event, Loom `/health`, VisionClaw `/api/ontology/classes` and `vault build --stats` reporting the same class count at a named commit, so ADR-2013 stays `staged` until someone runs that comparison.
 
 **Tension (ADR-2013 D3 vs BASELINE alignment note):** ADR-2013 says `VisionClaw/crates/vault` is the only implementation that parses, reasons over or builds the corpus (`docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md:52`), while the baseline's 2026-10-12 note records Ontomark as the producer of the shared build and VisionClaw as its consumer with its own publish build job retired behind gates (`docs/BASELINE-visionflow.md:53`); ADR-2013 has not been amended.
 
-**Since the last stamp:** the ledger gained ADR-2018 (parity claims name their comparator, commit and row count), ADR-2019 (forge and mirror run in shipped pods, inert until configured, superseding ADR-2018's default-off clause) and ADR-2020 (Pele renders every estate diagram); BASELINE records the first two in one section (`docs/BASELINE-visionflow.md:381-392`) and the third in its render-gate entries (`docs/BASELINE-visionflow.md:126-134`, `docs/BASELINE-visionflow.md:262-267`). ADR-2018 and ADR-2019 are accepted, partial and inactive.
+**Since the last stamp:** the ledger gained ADR-2018 (parity claims name their comparator, commit and row count), ADR-2019 (forge and mirror run in shipped pods, inert until configured, superseding ADR-2018's default-off clause) and ADR-2020 (Pele renders every estate diagram); BASELINE records the first two in one section (`docs/BASELINE-visionflow.md:381-392`) and the third in its render-gate entries (`docs/BASELINE-visionflow.md:126-134`, `docs/BASELINE-visionflow.md:262-267`). ADR-2018 is accepted / partial / inactive (`docs/adr/README.md:50`). ADR-2019 moved on 2026-10-30 from inactive to live and is now accepted / partial / live (`docs/adr/README.md:51`, `docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:5-7`): the forge runs in the shipped pod, and it stays partial because the kind-30618 mirror does not start while the follow list is empty.

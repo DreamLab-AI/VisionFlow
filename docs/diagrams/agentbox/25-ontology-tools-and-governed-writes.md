@@ -21,7 +21,7 @@ sources:
   - ../project/agentbox/services/agentbox-ops/src/voyager/mod.rs
   - ../project/agentbox/management-api/lib/uris.js
   - ../project/agentbox/management-api/lib/ontology-apply.js
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 Note: `ontology-bridge.js`, `ontology-propose.js`, `ontology-local.cjs`, `ontology-authoring-authority.js`

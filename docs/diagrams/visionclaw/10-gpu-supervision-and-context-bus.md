@@ -26,7 +26,7 @@ sources:
   - ../project/src/actors/gpu/connected_components_actor.rs
   - ../project/src/actors/physics_orchestrator_actor.rs
   - ../project/src/app_state.rs
-verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
+verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
 ---
 
 ## VC-10.1 GPU supervision tree

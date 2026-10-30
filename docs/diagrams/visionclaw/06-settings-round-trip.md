@@ -27,7 +27,7 @@ sources:
   - ../project/src/handlers/settings_handler/validation.rs
   - ../project/src/handlers/settings_handler/write_handlers.rs
   - ../project/src/handlers/constraints_handler.rs
-verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
+verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
 ---
 
 ## VC-06.1 Settings route surface and the actor behind it

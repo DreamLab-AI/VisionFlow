@@ -26,7 +26,7 @@ sources:
   - ../ontomark/crates/ontomark-cli/src/main.rs
   - ../ontomark/docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: 13af42340448022d4d43ac349a8bb5f3ae6d1d47, visionflow: ff15faf83d82fef7f23d96da381c8ab78d0206b0}
+verified_commit: {ontomark: 560e50c1a35bb9486b9f43ebf074b816c1e01349, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012}
 ---
 
 ## OM-04.1 Emitter by emitter — corpus selector, output, C3 artefact

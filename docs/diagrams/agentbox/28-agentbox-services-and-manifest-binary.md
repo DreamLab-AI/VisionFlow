@@ -64,7 +64,7 @@ sources:
   - ../project/agentbox/services/agentbox-mcp/src/web_summary/fetch.rs
   - ../project/agentbox/services/agentbox-mcp/src/web_summary/youtube.rs
   - ../project/agentbox/services/skill-tools/src/docs_alignment/mermaid.rs
-verified_commit: {agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc, visionflow: ff15faf83d82fef7f23d96da381c8ab78d0206b0}
+verified_commit: {agentbox: 6500582dfae23bf8a38a6942916d208154e43625, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012}
 ---
 
 ## AB-28.1 agentbox-manifest — the boot-time projection surface
@@ -78,7 +78,7 @@ flowchart TB
             C2["mcp-reconcile-aqe --file --provider<br/>agentbox-manifest/src/main.rs:104-110"]
             C3["mcp-protect-namespace --file --server --namespace<br/>agentbox-manifest/src/main.rs:112-119"]
             C4["mcp-deregister-fork --file<br/>agentbox-manifest/src/main.rs:121-124"]
-            C24["mcp-mirror-server --from --to --name claude-flow<br/>agentbox-manifest/src/main.rs:93-102 · src/mcp.rs:143-166<br/>copies one .mcp.json entry into ~/.claude/.claude.json"]
+            C24["mcp-mirror-server --from --to --name claude-flow<br/>agentbox-manifest/src/main.rs:93-102 · src/mcp.rs:143-170<br/>copies one .mcp.json entry into ~/.claude/.claude.json"]
             C18["mcp-hub-project --file --state --out --hub-url --bind<br/>agentbox-manifest/src/main.rs:63-84, lifts stdio servers<br/>behind the loopback hub, --disable restores them"]
         end
         subgraph plug["Plugins — src/plugins.rs"]
@@ -88,28 +88,28 @@ flowchart TB
         subgraph proj["Config projection"]
             C7["nip98-config --manifest --out<br/>agentbox-manifest/src/main.rs:147-152 · src/proxy.rs"]
             C8["model-routing-project --manifest --workspace --dry-run<br/>agentbox-manifest/src/main.rs:154-161 · src/routing.rs"]
-            C9["provision-stacks<br/>agentbox-manifest/src/main.rs:163 · src/stacks.rs:360<br/>per profile: decline-recorder hook (ADR-2144, stacks.rs:302), activity-sink hooks<br/>(ADR-2146, stacks.rs:95), voicelink event-spool hooks (ADR-2151, stacks.rs:311-320)"]
-            C19["sso-project --manifest --format<br/>agentbox-manifest/src/main.rs:243-249, ADR-2094. Disabled<br/>prints NOTHING and exits 0, so the cloud path is byte-identical"]
-            C25["system-one-project --manifest --format --existing --switch<br/>agentbox-manifest/src/main.rs:250-265, ADR-2139. Disabled prints NOTHING<br/>and exits 0, a refused --switch exits 1. Exclusive with sso-project (E081,<br/>entrypoint-unified.sh:2667)"]
+            C9["provision-stacks<br/>agentbox-manifest/src/main.rs:163 · src/stacks.rs:363<br/>per profile: decline-recorder hook (ADR-2144, stacks.rs:302), activity-sink hooks<br/>(ADR-2146, stacks.rs:95), voicelink event-spool hooks (ADR-2151, stacks.rs:311-323)"]
+            C19["sso-project --manifest --format<br/>agentbox-manifest/src/main.rs:246-252, ADR-2094. Disabled<br/>prints NOTHING and exits 0, so the cloud path is byte-identical"]
+            C25["system-one-project --manifest --format --existing --switch<br/>agentbox-manifest/src/main.rs:253-268, ADR-2139. Disabled prints NOTHING<br/>and exits 0, a refused --switch exits 1. Exclusive with sso-project (E081,<br/>entrypoint-unified.sh:2667)"]
         end
         subgraph recon["Boot reconciliation — settings, instructions, credentials"]
             C20["hooks-reconcile --settings --registry --dry-run<br/>agentbox-manifest/src/main.rs:168-175 · src/hooks.rs<br/>prunes vendor scaffolding, fixes owned hooks' timeouts to<br/>SECONDS, never adds a hook"]
-            C21["instructions-project --layers --global-out --no-global --managed-out --no-managed<br/>--workspace-out --workspace-claude-out --check<br/>agentbox-manifest/src/main.rs:182-205 · src/instructions.rs:141<br/>ADR-2118/ADR-2111 — repo is authoritative, live edits overwritten<br/>ADR-2144 — the floor tier goes to the managed policy path, src/instructions.rs:151-169"]
-            C22["cred-sync --container --host --interval-secs --once<br/>agentbox-manifest/src/main.rs:209-218 · src/cred_sync.rs<br/>ADR-2118 — merges OAuth credentials, later expiresAt wins"]
-            C23["permissions-project --manifest --settings --dry-run<br/>agentbox-manifest/src/main.rs:223-231 · src/permissions.rs<br/>ADR-2116 — [claude_code] mode + deny rules, hand-added deny kept<br/>ADR-2134 — model, effort and advisor roles (permissions.rs:114, 219), skipped for<br/>gateway profiles (permissions.rs:255)"]
-            C26["role-accounts ACTION<br/>agentbox-manifest/src/main.rs:280-286 · ADR-2122 — validate role-accounts.json,<br/>print passwd/group lines, derive the isolated supervisor config"]
+            C21["instructions-project --layers --global-out --no-global --managed-out --no-managed<br/>--workspace-out --workspace-claude-out --check<br/>agentbox-manifest/src/main.rs:182-205 · src/instructions.rs:141<br/>ADR-2118/ADR-2111 — repo is authoritative, live edits overwritten<br/>ADR-2144 — the floor tier goes to the managed policy path, src/instructions.rs:151-178"]
+            C22["cred-sync --container --host --interval-secs --once<br/>agentbox-manifest/src/main.rs:209-221 · src/cred_sync.rs<br/>ADR-2118 — merges OAuth credentials, later expiresAt wins"]
+            C23["permissions-project --manifest --settings --dry-run<br/>agentbox-manifest/src/main.rs:226-234 · src/permissions.rs<br/>ADR-2116 — [claude_code] mode + deny rules, hand-added deny kept<br/>ADR-2134 — model, effort and advisor roles (permissions.rs:121, 264), skipped for<br/>gateway profiles (permissions.rs:307)"]
+            C26["role-accounts ACTION<br/>agentbox-manifest/src/main.rs:283-289 · ADR-2122 — validate role-accounts.json,<br/>print passwd/group lines, derive the isolated supervisor config"]
         end
         subgraph tui["TUI round-trip"]
-            C10["tui-read config state<br/>agentbox-manifest/src/main.rs:233 · src/tui_read.rs"]
-            C11["tui-write state output existing<br/>agentbox-manifest/src/main.rs:235-239 · src/tui_write.rs"]
-            C12["state-get file key<br/>agentbox-manifest/src/main.rs:290"]
-            C13["state-set file key value<br/>agentbox-manifest/src/main.rs:292-296"]
-            C14["state-set-bool file key value<br/>agentbox-manifest/src/main.rs:298-302"]
+            C10["tui-read config state<br/>agentbox-manifest/src/main.rs:236 · src/tui_read.rs"]
+            C11["tui-write state output existing<br/>agentbox-manifest/src/main.rs:238-242 · src/tui_write.rs"]
+            C12["state-get file key<br/>agentbox-manifest/src/main.rs:293"]
+            C13["state-set file key value<br/>agentbox-manifest/src/main.rs:295-299"]
+            C14["state-set-bool file key value<br/>agentbox-manifest/src/main.rs:301-305"]
         end
         subgraph read["Manifest readers — src/tomlval.rs"]
-            C15["toml-bool --manifest --path<br/>agentbox-manifest/src/main.rs:267-272 · prints 1 or 0, ALWAYS exits 0"]
-            C16["toml-string --manifest --path<br/>agentbox-manifest/src/main.rs:274-279 · prints a string or empty, ALWAYS exits 0"]
-            C17["embedding-dim<br/>agentbox-manifest/src/main.rs:288 · reads an OpenAI-shaped response on stdin"]
+            C15["toml-bool --manifest --path<br/>agentbox-manifest/src/main.rs:270-275 · prints 1 or 0, ALWAYS exits 0"]
+            C16["toml-string --manifest --path<br/>agentbox-manifest/src/main.rs:277-282 · prints a string or empty, ALWAYS exits 0"]
+            C17["embedding-dim<br/>agentbox-manifest/src/main.rs:291 · reads an OpenAI-shaped response on stdin"]
         end
     end
     mcpg ~~~ plug ~~~ proj ~~~ recon ~~~ tui ~~~ read
@@ -125,9 +125,9 @@ flowchart TB
     end
 ```
 
-**Open:** ADR-2146 (the activity-sink hook that `provision-stacks` registers per profile) is recorded `proposed` with `implementation_status: complete` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2146-activity-sink-hook.md:5-7`), and the manifest ships the gate off (`../project/agentbox/agentbox.toml:529`); it is registered only when `[integrations.activity_sink]` is enabled.
+**Open:** ADR-2146 (the activity-sink hook that `provision-stacks` registers per profile) is recorded `accepted` with `implementation_status: complete` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2146-activity-sink-hook.md:5-7`), and the manifest ships the gate off (`../project/agentbox/agentbox.toml:529`); it is registered only when `[integrations.activity_sink]` is enabled.
 
-**Tension (ADR-2151 vs manifest):** ADR-2151 records `proposed`, `implementation_status: none`, `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), yet `provision-stacks` writes the voicelink Stop and Notification recorder hooks into every profile whenever `[voicelink].record_events` is true, and the manifest sets it true (`../project/agentbox/services/agentbox-manifest/src/stacks.rs:311-320`, `../project/agentbox/agentbox.toml:2233`).
+**Tension (ADR-2151 vs manifest):** ADR-2151 records `proposed`, `implementation_status: none`, `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), yet `provision-stacks` writes the voicelink Stop and Notification recorder hooks into every profile whenever `[voicelink].record_events` is true, and the manifest sets it true (`../project/agentbox/services/agentbox-manifest/src/stacks.rs:311-323`, `../project/agentbox/agentbox.toml:2233`).
 
 ## AB-28.2 Boot projection sequence
 
@@ -143,8 +143,8 @@ sequenceDiagram
     participant AQE as .agentic-qe/llm-config.json
     participant PROF as WORKSPACE/profiles
 
-    Note over BIN: main() calls restore_default_sigpipe() FIRST (agentbox-manifest/src/main.rs:360-361)
-    Note over BIN: Rust installs SIG_IGN for SIGPIPE at startup, which turns a closed downstream pipe into<br/>a PANIC-WITH-BACKTRACE on the next println!. The entrypoint pipes this binary into sed<br/>and consumes plugin-list through command substitution, and a backtrace in the boot log<br/>would be both alarming and useless (agentbox-manifest/src/main.rs:347-358)
+    Note over BIN: main() calls restore_default_sigpipe() FIRST (agentbox-manifest/src/main.rs:363-364)
+    Note over BIN: Rust installs SIG_IGN for SIGPIPE at startup, which turns a closed downstream pipe into<br/>a PANIC-WITH-BACKTRACE on the next println!. The entrypoint pipes this binary into sed<br/>and consumes plugin-list through command substitution, and a backtrace in the boot log<br/>would be both alarming and useless (agentbox-manifest/src/main.rs:350-361)
     EP->>BIN: toml-bool --manifest /etc/agentbox.toml --path <dotted.gate>
     BIN->>TOML: read
     BIN-->>EP: "1" or "0", exit 0 always
@@ -171,18 +171,18 @@ sequenceDiagram
         Note over BIN: --message is printed ONLY when the plugin was actually added (agentbox-manifest/src/main.rs:133). --now<br/>freezes the installedAt/lastUpdated stamp and is TEST-ONLY and hidden — without it the<br/>value is the wall clock, which no golden could pin (agentbox-manifest/src/main.rs:136-138)
     end
     EP->>BIN: permissions-project --manifest /etc/agentbox.toml --settings <root+profiles><br/>entrypoint-unified.sh:1841-1846
-    BIN-->>EP: [claude_code] mode + deny rules reconciled into every settings.json (ADR-2116,<br/>agentbox-manifest/src/main.rs:223-231 · src/permissions.rs) — hand-added deny rules kept. Model, effort and<br/>advisor roles (ADR-2134) are applied too, except to gateway profiles (src/permissions.rs:219, src/permissions.rs:255)
+    BIN-->>EP: [claude_code] mode + deny rules reconciled into every settings.json (ADR-2116,<br/>agentbox-manifest/src/main.rs:226-234 · src/permissions.rs) — hand-added deny rules kept. Model, effort and<br/>advisor roles (ADR-2134) are applied too, except to gateway profiles (src/permissions.rs:264, src/permissions.rs:307)
     EP->>BIN: system-one-project --manifest --format json, shell, plugin-config (only when [system_one].enabled, else sso-project)<br/>entrypoint-unified.sh:2671-2675
-    BIN-->>EP: ADR-2139 vendor-slot projection, written atomically to system-one.json for the proxy (agentbox-manifest/src/main.rs:250-265 · entrypoint-unified.sh:2671-2678).<br/>The shell form also carries per-consumer opt-ins (AGENTBOX_JEV_*, plus estate advisories for visionflow, website, solid-pod, vault rank and ontomark) and the keyless LAN private route, taken only by consumers named in [system_one].local_only (empty): the 13 in-container consumers export *_LOCAL_ONLY=0 (src/system_one.rs:522-536,564-577),<br/>while each estate advisory (visionflow, website, solid-pod, vault rank, ontomark) exports its flag 1, an EMPTY _ENDPOINT/_MODEL, _LOCAL=0 and _ALLOW_CLOUD=1 so it dials the shared proxy, no laya endpoint (src/system_one.rs:578-603, :604-625, whole fn :391-626, called at :662).<br/>It admits a docker-network bind only with network = true (0.0.0.0 or RFC 1918, src/system_one.rs:113,158-169) and still hands in-container consumers 127.0.0.1 (src/system_one.rs:92-100).<br/>The shell form is eval'd a SECOND time BEFORE supervisord (entrypoint-unified.sh:1260-1263) so the management API, MCP and cron<br/>inherit it (source, configured: live at the next image activation, ADR-2155 staged)
+    BIN-->>EP: ADR-2139 vendor-slot projection, written atomically to system-one.json for the proxy (agentbox-manifest/src/main.rs:253-268 · entrypoint-unified.sh:2671-2678).<br/>The shell form also carries per-consumer opt-ins (AGENTBOX_JEV_*, plus estate advisories for visionflow, website, solid-pod, vault rank and ontomark) and the keyless LAN private route, taken only by consumers named in [system_one].local_only (empty): the 13 in-container consumers export *_LOCAL_ONLY=0 (src/system_one.rs:522-536,564-577),<br/>while each estate advisory (visionflow, website, solid-pod, vault rank, ontomark) exports its flag 1, an EMPTY _ENDPOINT/_MODEL, _LOCAL=0 and _ALLOW_CLOUD=1 so it dials the shared proxy, no laya endpoint (src/system_one.rs:578-603, :604-625, whole fn :391-626, called at :662).<br/>It admits a docker-network bind only with network = true (0.0.0.0 or RFC 1918, src/system_one.rs:113,158-169) and still hands in-container consumers 127.0.0.1 (src/system_one.rs:92-100).<br/>The shell form is eval'd a SECOND time BEFORE supervisord (entrypoint-unified.sh:1260-1263) so the management API, MCP and cron<br/>inherit it (source, configured: live at the next image activation, ADR-2155 staged)
     EP->>BIN: hooks-reconcile --settings <file> --registry registered-hooks.txt<br/>entrypoint-unified.sh:2955-2961
     BIN-->>EP: prune/keep/own applied, owned hooks' timeouts fixed to SECONDS (agentbox-manifest/src/main.rs:168-175<br/>· src/hooks.rs) — never adds a hook
     EP->>BIN: instructions-project --layers /etc/agentbox/instructions --global-out --managed-out<br/>(or --no-managed when [claude_code].floor is off) --workspace-out --workspace-claude-out<br/>entrypoint-unified.sh:2987-2998
     BIN-->>EP: floor (to /etc/claude-code/CLAUDE.md, falling back into the global tier if unwritable, ADR-2144),<br/>global, workspace and workspace-claude tiers composed from tracked + local layers and<br/>written, repo authoritative (ADR-2118/2111, agentbox-manifest/src/main.rs:182-205 · src/instructions.rs)
     EP->>BIN: mcp-mirror-server --from .mcp.json --to ~/.claude/.claude.json --name claude-flow<br/>entrypoint-unified.sh:3395-3396
-    BIN->>UCJ: after the hub projection, copy ONLY mcpServers.claude-flow so RuVector memory loads from any cwd (agentbox-manifest/src/main.rs:93-102 · src/mcp.rs:143-166)
-    Note over BIN,UCJ: rewritten only when the entry differs, mode 0600 because it carries the conninfo. A missing<br/>source entry is a no-op and an unparseable destination is left untouched (src/mcp.rs:143-166)
-    Note over EP,BIN: cred-sync runs as its own long-lived supervised program, not a one-shot boot call<br/>(agentbox-manifest/src/main.rs:209-218 · src/cred_sync.rs, ADR-2118) — merges OAuth credentials<br/>between the container volume and the host bind, later expiresAt wins
-    Note over EP,BIN: every failure path prints to stderr and returns ExitCode::FAILURE (agentbox-manifest/src/main.rs:364-367)
+    BIN->>UCJ: after the hub projection, copy ONLY mcpServers.claude-flow so RuVector memory loads from any cwd (agentbox-manifest/src/main.rs:93-102 · src/mcp.rs:143-170)
+    Note over BIN,UCJ: rewritten only when the entry differs, mode 0600 because it carries the conninfo. A missing<br/>source entry is a no-op and an unparseable destination is left untouched (src/mcp.rs:143-170)
+    Note over EP,BIN: cred-sync runs as its own long-lived supervised program, not a one-shot boot call<br/>(agentbox-manifest/src/main.rs:209-221 · src/cred_sync.rs, ADR-2118) — merges OAuth credentials<br/>between the container volume and the host bind, later expiresAt wins
+    Note over EP,BIN: every failure path prints to stderr and returns ExitCode::FAILURE (agentbox-manifest/src/main.rs:367-370)
 ```
 
 ## AB-28.3 Consultant model projection (ADR-2031)
@@ -218,7 +218,7 @@ sequenceDiagram
     participant OP as Operator TUI
     participant RD as tui-read<br/>agentbox/services/agentbox-manifest/src/tui_read.rs
     participant STATE as flat TUI state JSON
-    participant GET as state-get / state-set / state-set-bool<br/>agentbox/services/agentbox-manifest/src/main.rs:290-302
+    participant GET as state-get / state-set / state-set-bool<br/>agentbox/services/agentbox-manifest/src/main.rs:293-305
     participant WR as tui-write<br/>agentbox/services/agentbox-manifest/src/tui_write.rs
     participant TOML as canonical agentbox.toml
 

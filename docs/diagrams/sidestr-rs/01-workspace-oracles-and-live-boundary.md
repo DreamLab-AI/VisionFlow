@@ -17,7 +17,7 @@ sources:
   - ../project/agentbox/config/sidechain/README.md
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
   - ../project/docs/TODO-unified.md
-verified_commit: {sidestr-rs: d8ace3aad2f23eb1d11bd72af4ab0b74d599f618, visionflow: ff15faf83d82fef7f23d96da381c8ab78d0206b0, visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc}
+verified_commit: {sidestr-rs: d8ace3aad2f23eb1d11bd72af4ab0b74d599f618, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
 ---
 
 ## For developers
@@ -95,7 +95,7 @@ stateDiagram-v2
 
 **What it shows.** VisionFlow records source implementation as partial while keeping the ecosystem decision proposed and activation inactive (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:115`, `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:130`).
 
-**Why it is this way.** A library can be correct and published without any estate service importing it or any chain activating its rules. The master board closes source parity in N-9 and keeps estate adoption open in N-10 (`../project/docs/TODO-unified.md:100`, `../project/docs/TODO-unified.md:101`). Two releases after that closure, `sidestr-wallet` 0.5.1 (BIP 21 with the Reef oracle) and `sidestr-hitch` 0.2.0, are recorded as an annotation on the closed N-9 row, with adoption left under N-10 (`../project/docs/TODO-unified.md:114`).
+**Why it is this way.** A library can be correct and published without any estate service importing it or any chain activating its rules. The master board closes source parity in N-9 and keeps estate adoption open in N-10 (`../project/docs/TODO-unified.md:102`, `../project/docs/TODO-unified.md:103`). Two releases after that closure, `sidestr-wallet` 0.5.1 (BIP 21 with the Reef oracle) and `sidestr-hitch` 0.2.0, are recorded as an annotation on the closed N-9 row, with adoption left under N-10 (`../project/docs/TODO-unified.md:116`).
 
 **Invariant:** source evidence may promote implementation status; it cannot promote activation status.
 
@@ -115,6 +115,6 @@ flowchart LR
 
 **What it shows.** Agentbox supervises the producer, mirror and faucet, but the producer runs the upstream JavaScript engine baked at the upstream pins (`../project/agentbox/config/sidechain/README.md:111`, `../project/agentbox/config/sidechain/README.md:117`). A second chain, `sidestr:dreamlab-txbt4`, was sealed on 2 October beside a BLAKE2b testnet4 parent (`../project/agentbox/config/sidechain/README.md:11`). The baked spec pin now includes upstream PR #32, so an append or index-write failure latches `SIDING_PERSISTENCE_FAILED` and the producer exits before advertising or extending an unsaved tip, while `patches/peg-script.patch` keeps single-signer peg announcements (`../project/agentbox/config/sidechain/README.md:150-153`, `../project/agentbox/config/sidechain/README.md:162-165`). The sealed `sidestr:dreamlab` is level 1, and its document reaches `containmentDigest` without a `rules` field (`../project/agentbox/config/sidechain/dreamlab/chain.json:5`, `../project/agentbox/config/sidechain/dreamlab/chain.json:28`).
 
-**Why it is this way.** The Rust workspace is currently a validated library component. No Rust producer is deployed on either chain; adoption stays under the estate board's open row (`../project/docs/TODO-unified.md:101`).
+**Why it is this way.** The Rust workspace is currently a validated library component. No Rust producer is deployed on either chain; adoption stays under the estate board's open row (`../project/docs/TODO-unified.md:103`).
 
 **Open:** deploy and prove a native producer before describing the Rust engine as the running estate chain.

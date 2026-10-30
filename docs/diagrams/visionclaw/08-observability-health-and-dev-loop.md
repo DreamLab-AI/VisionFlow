@@ -31,7 +31,7 @@ sources:
   - ../project/src/config/security_profile.rs
   - ../project/crates/visionclaw-gpu/build.rs
   - ../project/docker-compose.unified.yml
-verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
+verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
 ---
 
 ## VC-08.1 Health and readiness — what each probe actually asserts
@@ -218,7 +218,7 @@ sequenceDiagram
     WR->>WR: RUST_BINARY = $APP_ROOT/target/dev-runtime/visionclaw-server (scripts/rust-backend-wrapper.sh:39)
     WR->>WR: export CARGO_PROFILE_DEV_RUNTIME_DEBUG_ASSERTIONS=true (scripts/rust-backend-wrapper.sh:45)
     WR->>WR: BUILD_STAMP = $APP_ROOT/target/.visionclaw-dev-runtime-build-stamp (scripts/rust-backend-wrapper.sh:46)
-    Note over WR: INVARIANT (2026-09-07, ADR-2038) — the dev launcher builds profile dev-runtime<br/>(Cargo.toml:325, inherits release but keeps debug-assertions and overflow-checks),<br/>NOT --release. Optimisation without letting a dev-auth artefact present itself as a<br/>production build to the boot-time profile assertion. The assertion override is exported<br/>so the identity is pinned rather than inherited
+    Note over WR: INVARIANT (2026-09-07, ADR-2038) — the dev launcher builds profile dev-runtime<br/>(Cargo.toml:328-331, inherits release but keeps debug-assertions and overflow-checks, ADR-2156 also sets lto off, codegen-units 256 and incremental, Cargo.toml:332-334),<br/>NOT --release. Optimisation without letting a dev-auth artefact present itself as a<br/>production build to the boot-time profile assertion. The assertion override is exported<br/>so the identity is pinned rather than inherited
     alt SKIP_RUST_REBUILD != true
         WR->>DI: dev_inputs_install (scripts/rust-backend-wrapper.sh:91)
         Note over WR,DI: ADR-2008 2026-10-07 amendment — Cargo.toml, Cargo.lock, build.rs and the Vite root files reach /app by COPY<br/>from the read-only /app/.dev-inputs mount that the host publishes and stamps with launch.sh (scripts/lib/dev-inputs.sh:12-17),<br/>never by a single-file bind mount that pins a stale inode after a git operation. A missing or mismatched stamp makes the wrapper<br/>log FATAL and exit 1 (:92-93) rather than build something stale. The stamp's source_sha is logged (:95)
@@ -234,19 +234,19 @@ sequenceDiagram
                 WR->>BI: write_build_stamp(BUILD_STAMP, BUILD_FEATURES)
             else failure
                 WR->>WR: rm -f BUILD_STAMP — a failed build leaves a stamp describing an environment no binary exists for
-                WR->>CG: cargo clean then retry cargo_build (scripts/rust-backend-wrapper.sh:120)
+                WR->>CG: cargo clean --profile dev-runtime -p visionclaw-server (root package only, never a full cargo clean, ADR-2156, scripts/rust-backend-wrapper.sh:119-124) then retry cargo_build (:125)
                 alt retry fails
                     WR-->>SV: log FATAL then exit 1
                 end
             end
         end
     else SKIP_RUST_REBUILD=true
-        WR->>WR: RUST_BINARY=$APP_ROOT/visionclaw-server (scripts/rust-backend-wrapper.sh:131)
+        WR->>WR: RUST_BINARY=$APP_ROOT/visionclaw-server (scripts/rust-backend-wrapper.sh:136)
     end
     alt binary missing
         WR-->>SV: ERROR then exit 1
     end
-    WR->>BIN: exec "${RUST_BINARY}" (scripts/rust-backend-wrapper.sh:140)
+    WR->>BIN: exec "${RUST_BINARY}" (scripts/rust-backend-wrapper.sh:145)
     Note over SV,BIN: sibling programs — nginx (supervisord.dev.conf:8), dev-inputs-sync (:19-31, runs dev-inputs.sh --watch, the same<br/>copy-from-.dev-inputs loop, so Vite stays live) and vite-dev (:48). dev-entrypoint.sh runs dev-inputs.sh --once before supervisord starts (scripts/dev-entrypoint.sh:156)<br/>vite env NODE_ENV=development, VITE_DEV_SERVER_PORT=5173, VITE_API_PORT=4000,<br/>VITE_HMR_PORT=24678, VITE_DEV_MODE_AUTH=true
 ```
 
@@ -276,7 +276,7 @@ flowchart TB
     ENVV --- SIG
     HOLES["the two holes this file closed (:9-13) — the original heuristic globbed only the ROOT<br/>Cargo.toml/Cargo.lock/build.rs so a CRATE manifest edit left a stale binary running,<br/>and globbed *.cu under /app/src only so a crate CUDA kernel edit was missed"]
     GLOB --- HOLES
-    DIV["DIVERGENCE (BASELINE 2026-09-04 development acceptance, BASELINE-architecture.md:366) — ADR-2008 is PARTIAL.<br/>Normal development startup uses this timestamp-gated wrapper, with demonstrated<br/>misses for crate CUDA and manifest edits. The 2026-09-04 text predates the .dev-inputs<br/>publish-and-verify path (VC-08.9), which the doc does not mention."]
+    DIV["DIVERGENCE (BASELINE 2026-09-04 development acceptance, BASELINE-architecture.md:367) — ADR-2008 is PARTIAL.<br/>Normal development startup uses this timestamp-gated wrapper, with demonstrated<br/>misses for crate CUDA and manifest edits. The 2026-09-04 text predates the .dev-inputs<br/>publish-and-verify path (VC-08.9), which the doc does not mention."]
     NR --- DIV
 ```
 

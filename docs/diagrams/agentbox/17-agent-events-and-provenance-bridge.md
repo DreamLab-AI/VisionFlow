@@ -19,7 +19,7 @@ sources:
   - ../project/agentbox/management-api/routes/kg-elevation.js
   - ../project/agentbox/management-api/lib/ontology-propose.js
   - ../project/agentbox/management-api/lib/elevation-stage.js
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-17.1 The agent-event wire envelope — single canonical builder

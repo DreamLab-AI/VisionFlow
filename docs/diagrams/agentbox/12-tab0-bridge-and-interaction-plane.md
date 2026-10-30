@@ -46,7 +46,7 @@ sources:
   - ../project/agentbox/config/tmux-autostart.sh
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-12.2 Bridge boot — reconcile, listen, coordinator resolve
@@ -564,10 +564,10 @@ flowchart TB
     TS -.->|also writes| STORES
 ```
 **What it shows.** The live session plane at the verified commit: the daemon compares each manifest seed with what tmux runs, recreates a missing, dead, drifted or trust-blocked pane unless the worktree holds work or the slug has restarted three times in the hour, and touches only sessions carrying its own marker. tab0-bridge and the nostr-gateway reach it over the socket, tab 8 runs the picker (`config/tmux-autostart.sh:382-385`), and the bridge keeps a tmux fallback.
-**Why it is this way.** ADR-2153 replaced the create-only AoE seeder after five of ten AoE sessions were found dead on 2026-10-28, and it records the cut-over as live with the implementation still partial (`docs/adr/ADR-2153-session-plane-replaces-aoe.md:33,:6-7`).
+**Why it is this way.** ADR-2153 replaced the create-only AoE seeder after five of ten AoE sessions were found dead on 2026-10-28, and it records the cut-over as live with the implementation still partial (`docs/adr/ADR-2153-session-plane-replaces-aoe.md:40,:6-7`).
 
-**Open:** the acceptance run left antigravity blocked on sign-in and openrouter on a 401, and session-boundary turn events returned HTTP 500 from the beads redactor, so a successful reply is not proof the session epic is bound (`docs/adr/ADR-2153-session-plane-replaces-aoe.md:162-165,:188-191`).
+**Open:** the acceptance run left antigravity blocked on sign-in and openrouter on a 401, and session-boundary turn events returned HTTP 500 from the beads redactor, so a successful reply is not proof the session epic is bound (`docs/adr/ADR-2153-session-plane-replaces-aoe.md:169-172,:195-198`).
 **Debt:** the restart counter is a process-local map, so a restart of the daemon itself forgets the hour's history and a command that dies on launch gets three fresh attempts (`services/agentbox-sessions/src/reconcile.rs:96-98`).
-**Drift:** the crate comment says `trust-seed.cjs` only ever wrote the root store (`services/agentbox-sessions/src/trust.rs:10-11`), but it enumerates every existing wrapper profile store, which the ADR's later note records (`config/hooks/trust-seed.cjs:78-86`, `docs/adr/ADR-2153-session-plane-replaces-aoe.md:95`).
+**Drift:** the crate comment says `trust-seed.cjs` only ever wrote the root store (`services/agentbox-sessions/src/trust.rs:10-11`), but it enumerates every existing wrapper profile store, which the ADR's later note records (`config/hooks/trust-seed.cjs:78-86`, `docs/adr/ADR-2153-session-plane-replaces-aoe.md:102`).
 **Invariant:** the daemon, like trust-seed, offers folder trust to a wrapper profile store only when `profiles/<slug>/.claude/.claude.json` already exists, so a missing profile file is never created (`services/agentbox-sessions/src/trust.rs:34-43`, `config/hooks/trust-seed.cjs:78-86`).
 **Tension (ADR-2151 vs manifest):** ADR-2151 (its pin commit 11dafbde9 landed after d9477245d held it proposed) records the VoiceLink edge voice slot as proposed, implementation none, inactive (`docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), while the live manifest sets `[voicelink] enabled = true` and `record_events = true` (`agentbox.toml:2226,2233`); that path reaches the container by `voice-paned --stdio` over ssh and bypasses tab0-bridge and the Unmute loop (`agentbox.toml:2218-2222`).

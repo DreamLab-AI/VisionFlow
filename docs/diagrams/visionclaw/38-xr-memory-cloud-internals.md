@@ -26,7 +26,7 @@ sources:
   - ../project/crates/visionclaw-tri-layout/src/lib.rs
   - ../project/src/handlers/socket_flow_handler/session_relay.rs
   - ../project/src/handlers/socket_flow_handler/message_routing.rs
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
 ---
 
 ## For developers
@@ -50,7 +50,7 @@ The honest limits are in the register below: the headset has not yet been used t
 ```mermaid
 flowchart TB
     subgraph gd["GDScript owners on the scene-tree thread"]
-        GS["_on_graph_text routes by message type<br/>xr-client/scripts/graph_scene.gd:3029"]
+        GS["_on_graph_text routes by message type<br/>xr-client/scripts/graph_scene.gd:3724"]
         LAYER["MemoryCloudLayer owns the cloud, the frame and the route objects<br/>xr-client/scripts/memory_cloud_layer.gd:132"]
         SEARCH["MemorySearch owns the query object and one HTTP request in flight<br/>xr-client/scripts/memory_search.gd:58"]
         BEATGD["BeatPulse script wraps the gdext BeatPulse and pings every 2 s<br/>xr-client/scripts/beat_pulse.gd:32"]
@@ -265,7 +265,7 @@ flowchart TB
     end
     subgraph graph["graph side"]
         G1["graph_bounds_for folds every node into its own graph frame first<br/>so the separated triangle does not inflate the radius<br/>xr-client/rust/src/cloud_frame.rs:166 xr-client/rust/src/cloud_frame.rs:171"]
-        G2["BinaryProtocolClient.graph_robust_bounds reads it from the render store, GDScript samples it once a second<br/>xr-client/rust/src/binary_protocol.rs:1936 xr-client/rust/src/render_store.rs:2122 xr-client/rust/src/cloud_frame.rs:49"]
+        G2["BinaryProtocolClient.graph_robust_bounds reads it from the render store, GDScript samples it once a second<br/>xr-client/rust/src/binary_protocol.rs:2135 xr-client/rust/src/render_store.rs:2219 xr-client/rust/src/cloud_frame.rs:49"]
     end
     subgraph place["cloud_placement"]
         P1["with both bounds: scale is MEMORY_BODY_SCALE 10 times k over 5 times graph radius over cloud radius<br/>base is the graph centre<br/>xr-client/rust/src/cloud_frame.rs:146"]
@@ -338,7 +338,7 @@ classDiagram
 
 **What it shows.** What the headset accepts from the desktop's relayed frame and what it makes of it. An empty `path` is the clear signal; a bad `sidecar` entry is dropped, a bad `path` entry rejects the whole frame. **Why it is this way.** The relay and the headset parser share one set of limits, but they differ at the edges: the relay rejects a negative `seq` (src/handlers/socket_flow_handler/session_relay.rs:195) and a non-array `sidecar` (src/handlers/socket_flow_handler/session_relay.rs:188) while accepting `null`; the client defaults a bad `seq` to 0 (xr-client/rust/src/memory_route.rs:554) and rejects any non-array `sidecar`, `null` included, as a JSON error (xr-client/rust/src/memory_route.rs:325).
 
-**Drift:** `docs/XR-client.md` describes the frame as `{type, snapshotId, seq, sentAt, path[], sidecar[], query}` (docs/XR-client.md:443) while the code reads two further fields, `sidecarTotal` and `sidecarAgree` (xr-client/rust/src/memory_route.rs:209).
+**Drift:** `docs/XR-client.md` describes the frame as `{type, snapshotId, seq, sentAt, path[], sidecar[], query}` (docs/XR-client.md:482) while the code reads two further fields, `sidecarTotal` and `sidecarAgree` (xr-client/rust/src/memory_route.rs:209).
 
 ## VC-38.8 RouteGate - ordering, reload and the five verdicts
 
@@ -385,14 +385,14 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GS as _on_graph_text<br/>xr-client/scripts/graph_scene.gd:3029
+    participant GS as _on_graph_text<br/>xr-client/scripts/graph_scene.gd:3724
     participant L as apply_route_json<br/>xr-client/scripts/memory_cloud_layer.gd:473
     participant MR as offer_json<br/>xr-client/rust/src/memory_route.rs:1664
     participant G as RouteGate offer<br/>xr-client/rust/src/memory_route.rs:606
     participant AR as ActiveRoute set<br/>xr-client/rust/src/memory_route.rs:1455
     participant T as tick<br/>xr-client/rust/src/memory_route.rs:1830
 
-    GS->>L: memoryRoute frame, the layer gates it xr-client/scripts/graph_scene.gd:3049
+    GS->>L: memoryRoute frame, the layer gates it xr-client/scripts/graph_scene.gd:3744
     L->>MR: offer_json(json, loaded snapshot id, positions) xr-client/scripts/memory_cloud_layer.gd:476
     MR->>MR: parse_route, a failure returns error and sets last_error xr-client/rust/src/memory_route.rs:516
     MR->>G: offer(frame, loaded, rows)
@@ -555,7 +555,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GS as _on_graph_text<br/>xr-client/scripts/graph_scene.gd:3029
+    participant GS as _on_graph_text<br/>xr-client/scripts/graph_scene.gd:3724
     participant BG as BeatPulse script on_text<br/>xr-client/scripts/beat_pulse.gd:95
     participant BP as BeatPulse handle_text<br/>xr-client/rust/src/pulse.rs:65
     participant BS as BeatSync and ClockOffset<br/>xr-client/rust/src/beat.rs:397
@@ -563,9 +563,9 @@ sequenceDiagram
 
     BG->>BP: make_ping every 2 s xr-client/scripts/beat_pulse.gd:32
     BP-->>BG: ping JSON stamped with local epoch ms xr-client/rust/src/beat.rs:265
-    BG->>SV: send_text(ping) on the graph socket xr-client/rust/src/binary_protocol.rs:1174
+    BG->>SV: send_text(ping) on the graph socket xr-client/rust/src/binary_protocol.rs:1344
     SV-->>GS: pong echoing the timestamp with serverTime
-    GS->>BG: _beat.on_text(json, type) after the settings router xr-client/scripts/graph_scene.gd:3039
+    GS->>BG: _beat.on_text(json, type) after the settings router xr-client/scripts/graph_scene.gd:3734
     BG->>BP: handle_text(json) for beatClock and pong only xr-client/scripts/beat_pulse.gd:99
     alt beatClock frame
         BP->>BS: parse_beat_clock_frame then on_remote(frame, now) xr-client/rust/src/beat.rs:236 xr-client/rust/src/beat.rs:433
@@ -675,7 +675,7 @@ sequenceDiagram
     participant BG as BeatPulse script on_memory_flash<br/>xr-client/scripts/beat_pulse.gd:107
     participant FC as MemoryFlashCodec parse<br/>xr-client/rust/src/pulse.rs:218
     participant SM as semantic parse_memory_flash<br/>xr-client/rust/src/semantic.rs:358
-    participant BC as BinaryProtocolClient<br/>xr-client/rust/src/binary_protocol.rs:1494
+    participant BC as BinaryProtocolClient<br/>xr-client/rust/src/binary_protocol.rs:1664
     participant CL as MemoryCloudLayer<br/>xr-client/scripts/memory_cloud_layer.gd:430
     participant MB as MemoryBursts<br/>xr-client/scripts/memory_bursts.gd:121
 
@@ -728,7 +728,7 @@ flowchart TB
         B4["Link r 1.3 to 1.3, 12"]
         B5["Transform r 0.9 to 0.9, 16"]
     end
-    BEAM["beam_custom_rgb: code is the action type or 6 for unknown, then the two radii<br/>INSTANCE_CUSTOM alpha stays the agent status so the stride stays 16<br/>xr-client/rust/src/semantic.rs:314 consumed xr-client/rust/src/render_store.rs:2037"]
+    BEAM["beam_custom_rgb: code is the action type or 6 for unknown, then the two radii<br/>INSTANCE_CUSTOM alpha stays the agent status so the stride stays 16<br/>xr-client/rust/src/semantic.rs:314 consumed xr-client/rust/src/render_store.rs:2109"]
     verbs --> SRC --> HUE --> COL
     beams --> BEAM
     N1["Unknown shape falls back to Query, unknown colour to white<br/>xr-client/rust/src/semantic.rs:300 xr-client/rust/src/semantic.rs:249"]

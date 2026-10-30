@@ -37,7 +37,7 @@ sources:
   - ../project/agentbox/voice/console/Caddyfile
   - ../project/agentbox/management-api/lib/agent-event-auth.js
   - ../project/agentbox/management-api/lib/action-plane.js
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-10.1 Door inventory and port topology

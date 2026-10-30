@@ -37,7 +37,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/ssrf.rs
   - ../solid-pod-rs/.github/workflows/ci.yml
   - ../solid-pod-rs/scripts/parity-check.sh
-verified_commit: 76ab7aab3e882f32508b2461b3f51e4c09bdcfa1
+verified_commit: 09ec90f26aa573731460292d0e80343914cb43d9
 ---
 
 ## SP-10.1 The seven baseline invariants and where each lives in code

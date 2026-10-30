@@ -20,7 +20,7 @@ sources:
   - ../dreamlab-ai-website/scripts/lib/website-info.mjs
   - ../dreamlab-ai-website/scripts/seed/provision-website-info.mjs
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
-verified_commit: 4935b6c4a394633569b2c8b38d5c0c272da3b0fb
+verified_commit: a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98
 ---
 
 ## DW-04.1 Identity is raw-hex Schnorr, not a DID document

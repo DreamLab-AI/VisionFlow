@@ -29,7 +29,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md
   - ../project/agentbox/docs/adr/ADR-2084-one-published-loom-client-for-every-facade-caller.md
   - ../project/agentbox/lib/explainer-tools.nix
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc, loom: 5ad860863b588c0cdb2290e31c69e39d82755aeb}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625, loom: 5ad860863b588c0cdb2290e31c69e39d82755aeb}
 ---
 ## ES-06.1 Topology — the gateway holds a façade, never a model port
 ```mermaid
@@ -235,7 +235,7 @@ flowchart TB
 
 **Tension:** loom ADR-140 is `Status: Proposed` (`../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md:3`), yet its P0 is in service: the façade routes `/mcp` (`../loom/crates/loom-facade/src/routes/mod.rs:65`) and the note records that agentbox's `ontology-augment` grounds through it, with P1 onward not started (`../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md:632-634`).
 
-**Open:** the Jev option inside the façade is a proposed research candidate with no measured uplift; the code default is off (`LOOM_JEV=1` to enable, `../loom/docs/jev-option.md:3-6`) but the unified compose arms it (`../project/docker-compose.unified.yml:391-397`) and, since 2026-10-30, lets it reach the cloud-backed agentbox proxy instead of the laya façade (`LOOM_JEV_ALLOW_CLOUD` default 1, `:395`), although the façade's own header still justifies local-only by private corpus content (`../loom/crates/loom-facade/src/jev.rs:30-34`); CONFIGURED, taking effect when the new agentbox image is activated and the loom service is recreated (`../project/docs/BASELINE-architecture.md:42-52`).
+**Open:** the Jev option inside the façade is a proposed research candidate with no measured uplift; the code default is off (`LOOM_JEV=1` to enable, `../loom/docs/jev-option.md:3-6`) but the unified compose arms it (`../project/docker-compose.unified.yml:391-397`) and, since 2026-10-30, lets it reach the cloud-backed agentbox proxy instead of the laya façade (`LOOM_JEV_ALLOW_CLOUD` default 1, `:395`), although the façade's own header still justifies local-only by private corpus content (`../loom/crates/loom-facade/src/jev.rs:30-34`); CONFIGURED, taking effect when the new agentbox image is activated and the loom service is recreated (`../project/docs/BASELINE-architecture.md:42-53`).
 
 ## ES-06.7 The black-hole hang — health green, every reasoning call stalls
 ```mermaid
@@ -380,7 +380,9 @@ flowchart TB
     ENV --> DEG
 ```
 
-**Resolved:** ADR-2153 is live, so the router console of plane 2 is an ordinary `[[interaction_plane.session_seeds]]` entry (`slug = "router"`, `../project/agentbox/agentbox.toml:2186`) on the owned session plane, not an Agent of Empires session; ADR-2080 (`../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md`) keeps its scope rules and its AoE-era title (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `:75`).
+**Resolved:** ADR-2153 is live, so the router console of plane 2 is an ordinary `[[interaction_plane.session_seeds]]` entry (`slug = "router"`, `../project/agentbox/agentbox.toml:2186`) on the owned session plane, not an Agent of Empires session; ADR-2080 (`../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md`) keeps its scope rules and its AoE-era title (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `:82`).
+
+**Tension (ADR-2080 acceptance item 3, recorded 2026-10-30):** the public-only invariant above holds for the console, which exits on any other tier, but the router wrapper pins the tier to `public` before it starts the console, so setting `AGENTBOX_MODEL_ROUTER_PRIVACY_TIER=private` cannot make the wrapper exit non-zero as the acceptance text asks (`../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md:129-132`). The record's `review_trigger` says items 1, 2 and 4 passed on the running image on 2026-10-30 and leaves item 3 to an owner ruling, so ADR-2080 stays `accepted` / `partial` / `staged` (`../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md:5-7,13`).
 
 ## ES-06.11 One published loom-client — every facade caller, one place that knows the traps
 ```mermaid

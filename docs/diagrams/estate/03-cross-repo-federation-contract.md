@@ -37,7 +37,7 @@ sources:
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc, visionflow: ff15faf83d82fef7f23d96da381c8ab78d0206b0, solid-pod-rs: 76ab7aab3e882f32508b2461b3f51e4c09bdcfa1, nostr-rust-forum: 9c36b6032640c89879ae52fe25da99493979a0b6}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, solid-pod-rs: 09ec90f26aa573731460292d0e80343914cb43d9, nostr-rust-forum: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed}
 ---
 ## ES-03.1 Shared wire envelope: AgentActionNotification (agentbox emit -> VisionClaw ingest)
 ```mermaid
@@ -437,10 +437,12 @@ flowchart TD
     NOTE1["PARTIAL CONVERGENCE: the shared federation-kinds.json governs operational URN crossings<br/>and both translators have typed refusal paths. RDF urn:ngm and semantic display<br/>identities remain separate seams; the historical visionclaw:owner form is not emitted.<br/>Distinct grammars alone are not evidence of a broken join; test each boundary."]
     NOTE2["DIVERGENCE docs/BASELINE-architecture.md par235 - identifier grammars unreconciled, DID doc ADR-074-D2prime vs ADR-125 conflict"]
     NOTE3["DELIBERATE REFUSAL: memory needs an explicit ontology elevation target;<br/>unknown kinds are refused. Preserve the raw identifier and refusal reason.<br/>This is a bounded translation contract, not proof that every identifier resolves."]
+    NOTE4["PROPOSED 2026-10-30, not implemented: ADR-2157 adds a space-bound room form<br/>urn:visionclaw:room:nip29-hex (IDENTIFIER-taxonomy.md, Proposed section, room table) and ADR-2161 a dataspace<br/>URN plus a federation dataspace kind that amends this closed map (IDENTIFIER-taxonomy.md, data-space URN table).<br/>Today the only live room grammar is room plus sha256-12."]
     G4 -.-> NOTE1
     G2 -.-> NOTE1
     G5 -.-> NOTE2
     G1 -.-> NOTE3
+    G1 -.-> NOTE4
 ```
 
 

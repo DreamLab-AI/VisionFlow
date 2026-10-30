@@ -17,7 +17,7 @@ sources:
   - ../vowl-wasm/src/bindings/mod.rs
   - ../vowl-wasm/src/bindings/explorer.rs
   - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
-verified_commit: 89d1a0a32eec16e79a7fa507eaa6f8fcb92e4f0b
+verified_commit: 28af4365a68d9aacfd7c04f63299cc96ad717ce3
 ---
 
 ## VW-03.1 `ForceSimulation` one tick — `LayoutAlgorithm` impl
@@ -92,46 +92,48 @@ flowchart LR
 ## VW-03.5 `CsrSimulation::tick` — deterministic worker physics, Barnes-Hut by default
 ```mermaid
 flowchart TB
-    T["tick()<br/>src/layout/csr_sim.rs:366"] --> FIN{"finished or n==0?"}
-    FIN -->|yes| RET["return, no-op<br/>src/layout/csr_sim.rs:367-369"]
-    FIN -->|no| REP["repulsion_forces dispatches on config.repulsion,<br/>default BarnesHut theta 0.9<br/>src/layout/csr_sim.rs:375 and src/layout/csr_sim.rs:429-433 and src/layout/csr_sim.rs:91"]
-    REP -->|"BarnesHut(theta)"| BH["one QuadTree::build per tick, one stack walk per node,<br/>a cell collapses to its centre of charge when width² &lt; theta² · d²<br/>and the node is outside it<br/>src/layout/csr_sim.rs:473-535 and src/layout/csr_sim.rs:518"]
-    REP -->|"Exact, theta &lt;= 0"| EX["O(n²) Coulomb over every unordered pair once<br/>src/layout/csr_sim.rs:437-471"]
+    T["tick()<br/>src/layout/csr_sim.rs:381"] --> FIN{"finished or n==0?"}
+    FIN -->|yes| RET["return, no-op<br/>src/layout/csr_sim.rs:382-384"]
+    FIN -->|no| REP["repulsion_forces dispatches on config.repulsion,<br/>default BarnesHut theta 0.9<br/>src/layout/csr_sim.rs:390 and src/layout/csr_sim.rs:461-466 and src/layout/csr_sim.rs:91"]
+    REP -->|"BarnesHut(theta)"| BH["one QuadTree::build per tick, one stack walk per node,<br/>a cell collapses to its centre of charge when width² &lt; theta² · d²<br/>and the node is outside it; both magnitudes use d².max(soft2) at src/layout/csr_sim.rs:539 and src/layout/csr_sim.rs:554<br/>src/layout/csr_sim.rs:506-568 and src/layout/csr_sim.rs:552"]
+    REP -->|"Exact, theta &lt;= 0"| EX["O(n²) Coulomb over every unordered pair once, magnitude charge / d².max(soft2)<br/>src/layout/csr_sim.rs:469-503 and src/layout/csr_sim.rs:494"]
     BH --> COIN{"d² < 1e-6 (coincident)?"}
     EX --> COIN
-    COIN -->|yes| NUDGE["index-derived sin/cos perturbation, same pair rule on both paths<br/>src/layout/csr_sim.rs:108 and src/layout/csr_sim.rs:447-452"]
+    COIN -->|yes| NUDGE["index-derived sin/cos perturbation, same pair rule on both paths<br/>src/layout/csr_sim.rs:116 and src/layout/csr_sim.rs:480-485"]
     COIN -->|no| SPRING
-    NUDGE --> SPRING["springs: Hooke toward link_distance<br/>over edge_a/edge_b/edge_type<br/>src/layout/csr_sim.rs:377-397"]
-    SPRING --> INTEG["centre gravity + symplectic-Euler<br/>integration with damping, per node<br/>src/layout/csr_sim.rs:399-418"]
-    INTEG --> DECAY["alpha *= 1 - alpha_decay<br/>src/layout/csr_sim.rs:420"]
+    NUDGE --> SPRING["springs: Hooke toward link_distance<br/>over edge_a/edge_b/edge_type<br/>src/layout/csr_sim.rs:392-412"]
+    SPRING --> INTEG["centre gravity + symplectic-Euler<br/>integration with damping, per node; a pinned node is skipped (src/layout/csr_sim.rs:421-423)<br/>and speed is clamped to MAX_STEP_FACTOR times link_distance (src/layout/csr_sim.rs:433-438)<br/>src/layout/csr_sim.rs:414-443"]
+    INTEG --> DECAY["alpha *= 1 - alpha_decay<br/>src/layout/csr_sim.rs:445"]
     DECAY --> FLOOR{"alpha < alpha_min?"}
-    FLOOR -->|yes| LATCH["alpha = alpha_min; finished = true<br/>src/layout/csr_sim.rs:421-424"]
+    FLOOR -->|yes| LATCH["alpha = alpha_min; finished = true<br/>src/layout/csr_sim.rs:446-449"]
     FLOOR -->|no| DONE["tick complete, positions updated in place"]
-    N1["DEBT: ForceSimulation and CsrSimulation each carry their own Barnes-Hut quadtree, a node-reference tree in quadtree.rs and an arena tree over the flat position buffer in csr_sim.rs, so a fix to one does not reach the other<br/>src/layout/quadtree.rs:126 and src/layout/csr_sim.rs:152-161"]
+    N1["DEBT: ForceSimulation and CsrSimulation each carry their own Barnes-Hut quadtree, a node-reference tree in quadtree.rs and an arena tree over the flat position buffer in csr_sim.rs, so a fix to one does not reach the other<br/>src/layout/quadtree.rs:126 and src/layout/csr_sim.rs:160-169"]
     REP --- N1
 ```
-- Since ER-20 `CsrSimulation` is no longer always O(n²): the module doc now states Barnes-Hut is the default and `Repulsion::Exact`, `set_theta(0.0)` or `set_param("theta", 0.0)` select the exact loop, which runs unchanged for comparison (src/layout/csr_sim.rs:9-17, src/layout/csr_sim.rs:605, src/layout/csr_sim.rs:633). The default `SimConfig` is still described as tuned for a scoped tier of at most 1,500 nodes (src/layout/csr_sim.rs:82).
-- `finished` is a latched `bool` (src/layout/csr_sim.rs:245,538) set once the alpha floor is hit — `tick()` after that point is a guaranteed no-op, not merely a small-alpha update.
+- Since ER-20 `CsrSimulation` is no longer always O(n²): the module doc now states Barnes-Hut is the default and `Repulsion::Exact`, `set_theta(0.0)` or `set_param("theta", 0.0)` select the exact loop, which runs unchanged for comparison (src/layout/csr_sim.rs:9-17, src/layout/csr_sim.rs:639, src/layout/csr_sim.rs:701). The default `SimConfig` is still described as tuned for a scoped tier of at most 1,500 nodes (src/layout/csr_sim.rs:82).
+- `finished` is a latched `bool` (src/layout/csr_sim.rs:257,448) set once the alpha floor is hit — `tick()` after that point is a guaranteed no-op, not merely a small-alpha update.
+- Two guards bound a tick since the 0.2.2 pin. Repulsion is softened: below a radius of `SOFTENING_FRACTION` (0.25) times `link_distance` the magnitude is held at its value at that radius (`softening_sq`, src/layout/csr_sim.rs:454-457, constants src/layout/csr_sim.rs:105-107), so a near-coincident seed pair is not flung thousands of units in one tick; and each node's per-tick displacement is capped at `MAX_STEP_FACTOR` (2.0) times `link_distance` (src/layout/csr_sim.rs:419, src/layout/csr_sim.rs:433-438). The test `near_coincident_seeds_stay_in_bounds` pins both for the exact and the Barnes-Hut path (src/layout/csr_sim.rs:988).
+- Drag pinning: `pin(i, x, y)` writes the position, zeroes the velocity and sets `pinned[i]`; a pinned node still exerts forces but is skipped at integration (src/layout/csr_sim.rs:421-423, src/layout/csr_sim.rs:655-666). It returns `false`, changing nothing, for an index outside the scope or a non-finite coordinate. `unpin` and `is_pinned` follow (src/layout/csr_sim.rs:669-682), `NggExplorer` exposes them as `pinNode` and `unpinNode` (src/bindings/explorer.rs:121-131), and every load clears the pins (src/layout/csr_sim.rs:334, src/layout/csr_sim.rs:371). `pin` does not reheat, so a caller pairs it with `reheat` (src/layout/csr_sim.rs:686).
 
 ## VW-03.6 NGG1 tier load — bytes to seeded simulation
 ```mermaid
 sequenceDiagram
     autonumber
     participant JS as JS worker: loadCsr(bytes)
-    participant NX as NggExplorer::load_csr<br/>src/bindings/explorer.rs:40
-    participant CS as CsrSimulation::load_csr<br/>src/layout/csr_sim.rs:344
+    participant NX as NggExplorer::load_csr<br/>src/bindings/explorer.rs:41
+    participant CS as CsrSimulation::load_csr<br/>src/layout/csr_sim.rs:358
     participant N1 as ngg1::Ngg1 parser, re-exported from ontomark-ngg1<br/>src/ngg1.rs:5
     JS->>NX: loadCsr(bytes: &[u8])
     NX->>CS: self.sim.load_csr(bytes)
-    CS->>N1: Ngg1::parse(bytes), the codec is the ontomark-ngg1 crate<br/>src/layout/csr_sim.rs:345 and src/ngg1.rs:5
+    CS->>N1: Ngg1::parse(bytes), the codec is the ontomark-ngg1 crate<br/>src/layout/csr_sim.rs:359 and src/ngg1.rs:5
     N1-->>CS: Ngg1<'_> view (borrowed, no realloc)
-    CS->>CS: load(&g): seed positions, build CSR springs<br/>src/layout/csr_sim.rs:353
+    CS->>CS: load(&g): seed positions, build CSR springs<br/>src/layout/csr_sim.rs:367
     CS-->>NX: Result<(), Ngg1Error>
-    NX-->>JS: Result<(), JsValue> (mapped via to_string)<br/>src/bindings/explorer.rs:42-44
+    NX-->>JS: Result<(), JsValue> (mapped via to_string)<br/>src/bindings/explorer.rs:43-45
 ```
 - The reader is no longer in this repository: `src/ngg1.rs` is one `pub use ontomark_ngg1::*;` so the `vowl_wasm::ngg1` path and every public name keep working (src/ngg1.rs:1-5), and the crate depends on `ontomark-ngg1` 0.1.0 from crates.io behind the `ngg1` feature (Cargo.toml:45-46, Cargo.toml:67). Header size, node stride, field offsets and the specification are therefore owned by ontomark, not by `vowl-wasm` (docs/adr/ADR-001-shared-ontology-rendering-contract.md:26).
 - **Open:** the byte layout this diagram used to cite (32-byte header, 24-byte node record, `N_DEGREE` at offset 20) cannot be re-read from this repository at 89d1a0a; it is not confirmed here and the VW-03 stamp makes no claim about it.
-- `CsrSimulation::load_csr` maps a parse failure to `Ngg1Error` and `NggExplorer::load_csr` maps that to a string for JS (src/layout/csr_sim.rs:344, src/bindings/explorer.rs:40-44).
+- `CsrSimulation::load_csr` maps a parse failure to `Ngg1Error` and `NggExplorer::load_csr` maps that to a string for JS (src/layout/csr_sim.rs:358, src/bindings/explorer.rs:41-45).
 
 ## VW-03.7 Alpha annealing — shared shape, two independent implementations
 ```mermaid
@@ -139,7 +141,7 @@ stateDiagram-v2
     [*] --> Running: alpha = config.alpha (1.0)
     Running --> Running: tick() decays alpha *= (1 - alpha_decay)
     Running --> Finished: alpha < alpha_min
-    Finished --> Running: reheat(alpha), both engines<br/>src/layout/csr_sim.rs:618 and src/layout/simulation.rs:71 / set_param("reheat") src/layout/csr_sim.rs:634
+    Finished --> Running: reheat(alpha), both engines<br/>src/layout/csr_sim.rs:686 and src/layout/simulation.rs:71 / set_param("reheat") src/layout/csr_sim.rs:702
     note right of Finished
       ForceSimulation.is_finished() recomputes
       from alpha every call, so its reheat only raises alpha
@@ -149,10 +151,10 @@ stateDiagram-v2
       CsrSimulation does not implement LayoutAlgorithm<br/>
       (trait alpha() f64, src/layout/mod.rs:30) — it exposes<br/>
       its own f32 alpha() over flat Vec~f32~ CSR buffers,<br/>
-      not a VowlGraph (src/layout/csr_sim.rs:544).
+      not a VowlGraph (src/layout/csr_sim.rs:578).
     end note
 ```
-- Both engines can now be re-annealed from JS: `ForceSimulation::reheat` clamps alpha to `(0, 1]` and ignores a non-finite or non-positive value (src/layout/simulation.rs:71-75), `CsrSimulation::reheat` raises alpha to at least `alpha_min` and clears `finished` (src/layout/csr_sim.rs:618-621); the `WebVowl` binding exposes `reheat` (src/bindings/mod.rs:133-136) and `NggExplorer` exposes `reheat` and `setTheta` (src/bindings/explorer.rs:111-118). This closes the earlier gap where a settled `WebVowl` graph could only restart through a fresh `initSimulation()`.
+- Both engines can now be re-annealed from JS: `ForceSimulation::reheat` clamps alpha to `(0, 1]` and ignores a non-finite or non-positive value (src/layout/simulation.rs:71-75), `CsrSimulation::reheat` raises alpha to at least `alpha_min` and clears `finished` (src/layout/csr_sim.rs:686-689); the `WebVowl` binding exposes `reheat` (src/bindings/mod.rs:133-136) and `NggExplorer` exposes `reheat` and `setTheta` (src/bindings/explorer.rs:112-137). This closes the earlier gap where a settled `WebVowl` graph could only restart through a fresh `initSimulation()`.
 - `ForceSimulation` implements `LayoutAlgorithm` (src/layout/mod.rs:17); `CsrSimulation` deliberately does not — the two engines share a design (annealing, Hooke springs, Coulomb repulsion) but not a common Rust interface.
 
 ## VW-03.9 Seeding — `ForceSimulation::initialize` vs `CsrSimulation::load`
@@ -166,11 +168,11 @@ flowchart TB
         FI4 --> FI5
         FI5 --> FI6["alpha = config.alpha; iteration = 0<br/>src/layout/simulation.rs:270-271"]
     end
-    subgraph CS["CsrSimulation::load_csr → load<br/>src/layout/csr_sim.rs:344,353"]
-        CI1["Ngg1::parse(bytes)<br/>src/layout/csr_sim.rs:345"] --> CI2["positions = g.seed_positions()<br/>src/layout/csr_sim.rs:355"]
-        CI2 --> CI3["velocities = zeroed Vec, len n*2<br/>src/layout/csr_sim.rs:356"]
-        CI3 --> CI4["edge_a/edge_b/edge_type from g.edges()<br/>src/layout/csr_sim.rs:357-360"]
-        CI4 --> CI5["alpha = config.alpha;<br/>finished = (n == 0)<br/>src/layout/csr_sim.rs:361-362"]
+    subgraph CS["CsrSimulation::load_csr → load<br/>src/layout/csr_sim.rs:358,367"]
+        CI1["Ngg1::parse(bytes)<br/>src/layout/csr_sim.rs:359"] --> CI2["positions = g.seed_positions()<br/>src/layout/csr_sim.rs:369"]
+        CI2 --> CI3["velocities = zeroed Vec, len n*2; pinned = all false<br/>src/layout/csr_sim.rs:370-371"]
+        CI3 --> CI4["edge_a/edge_b/edge_type from g.edges()<br/>src/layout/csr_sim.rs:372-375"]
+        CI4 --> CI5["alpha = config.alpha;<br/>finished = (n == 0)<br/>src/layout/csr_sim.rs:376-377"]
     end
 ```
 - `ForceSimulation` seeds a fresh circular layout unless a caller opted into `preserve_seeded_positions`; `CsrSimulation` always takes its seed positions straight from the NGG1 tier's own `seed_positions()` — there is no circular-seed path on the CSR side.
@@ -188,4 +190,4 @@ flowchart TB
     CSR --> TUNE["SimConfig: charge 2000, link_distance 60,<br/>damping 0.6, center_gravity 0.02<br/>src/layout/csr_sim.rs:84-95"]
 ```
 - `large_graph()`'s doc comment (src/layout/mod.rs:118-121) records it was tuned empirically on a 1,155-node ontology and deliberately over-spreads a small graph, which is why it is a named preset rather than the default; Barnes-Hut engagement above `n > 50` is detailed in VW-03.2.
-- `CsrSimulation` has no size-tiered preset — its `SimConfig::default()` is the only configuration, commented as tuned for the scoped tier of at most 1,500 nodes (src/layout/csr_sim.rs:82-95); its repulsion strategy is the one field a caller can switch at run time (src/layout/csr_sim.rs:70-71, src/layout/csr_sim.rs:605-611).
+- `CsrSimulation` has no size-tiered preset — its `SimConfig::default()` is the only configuration, commented as tuned for the scoped tier of at most 1,500 nodes (src/layout/csr_sim.rs:82-95); its repulsion strategy is the one field a caller can switch at run time (src/layout/csr_sim.rs:70-71, src/layout/csr_sim.rs:637-645).

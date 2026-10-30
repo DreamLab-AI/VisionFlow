@@ -25,7 +25,7 @@ sources:
   - ../project/agentbox/config/hooks/lib/jev-option.cjs
   - ../project/agentbox/config/hooks/nostr-live-mirror.cjs
   - ../project/agentbox/mcp/servers/ruvector-mcp.cjs
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-21.1 Capture — transcript-driven grading

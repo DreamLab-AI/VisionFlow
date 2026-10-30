@@ -20,7 +20,7 @@ sources:
   - ../project/agentbox/scripts/ruvector-pattern-distill.mjs
   - ../project/agentbox/aisp/cli.js
   - ../project/agentbox/services/agentbox-manifest/src/cred_sync.rs
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-07.1 Supervised process classes by lifecycle shape
@@ -406,15 +406,15 @@ flowchart TD
     DEB --> RSYNC["rsync live state into the volume<br/>excludes CLAUDE.md (projected) and .credentials.json (seeded at boot)<br/>agentbox.sh:1854-1864"]
 
     SUP["supervisord PID 1"] --> CS["[program:claude-cred-sync]<br/>flake.nix:3266 — agentbox-manifest cred-sync<br/>--interval-secs 2, autorestart=unexpected, exitcodes=0"]
-    CS --> RUN["cred_sync::run(container, host, interval, once)<br/>services/agentbox-manifest/src/cred_sync.rs:118"]
-    RUN --> GATE{"host bind parent dir exists?<br/>cred_sync.rs:119"}
-    GATE -->|no| EXIT0["print no host credential bind — exit Ok(()) with nothing synced<br/>cred_sync.rs:120-121, so supervisor autorestart=unexpected leaves it STOPPED"]
-    GATE -->|yes| LOOP["loop: sync_once(container, host) then sleep interval<br/>cred_sync.rs:131-134"]
-    LOOP --> SO["sync_once<br/>cred_sync.rs:91"]
-    SO --> TORN{"either file exists but fails to parse?<br/>cred_sync.rs:94"}
-    TORN -->|yes| WAIT["mid-write or damaged — skip this tick, Ok(0)<br/>cred_sync.rs:95"]
-    TORN -->|no| MERGE["merge(a, b, a_mtime >= b_mtime)<br/>cred_sync.rs:29 and :98 — per-token, later expiresAt wins recursively"]
-    MERGE --> WRITE["write back only the side whose value changed<br/>cred_sync.rs:104-109"]
+    CS --> RUN["cred_sync::run(container, host, interval, once)<br/>services/agentbox-manifest/src/cred_sync.rs:136"]
+    RUN --> GATE{"host bind parent dir exists?<br/>cred_sync.rs:137"}
+    GATE -->|no| EXIT0["print no host credential bind — exit Ok(()) with nothing synced<br/>cred_sync.rs:138-142, so supervisor autorestart=unexpected leaves it STOPPED"]
+    GATE -->|yes| LOOP["loop: sync_once(container, host) then sleep interval<br/>cred_sync.rs:152-155"]
+    LOOP --> SO["sync_once<br/>cred_sync.rs:109"]
+    SO --> TORN{"either file exists but fails to parse?<br/>cred_sync.rs:112"}
+    TORN -->|yes| WAIT["mid-write or damaged — skip this tick, Ok(0)<br/>cred_sync.rs:113"]
+    TORN -->|no| MERGE["merge(a, b, a_mtime >= b_mtime)<br/>cred_sync.rs:29 and :116 — per-token, later expiresAt wins recursively"]
+    MERGE --> WRITE["write back only the side whose value changed<br/>cred_sync.rs:122-127"]
     WRITE --> LOOP
 
     MIG -.-> NOTE1["target_volume=agentbox-claude-home, source_dir=HOME/.claude by default<br/>agentbox.sh:1773-1774 — the host's ~/.claude stays intact and read-only here,<br/>only its .credentials.json is shared back at /var/lib/agentbox/host-claude"]

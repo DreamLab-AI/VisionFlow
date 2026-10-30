@@ -52,7 +52,7 @@ sources:
   - ../project/src/utils/binary_protocol.rs
   - ../project/src/utils/validation/sanitization.rs
   - ../project/src/handlers/fastwebsockets_handler.rs
-verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
+verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
 ---
 
 ## VC-04.1 api_handler graph — read path (data, paginated, positions, fold, relations, expand, pattern)
@@ -422,7 +422,7 @@ sequenceDiagram
     participant C as Client
     participant SM as send_message<br/>src/handlers/ragflow_handler.rs:52
     participant CS as create_session<br/>ragflow_handler.rs:139
-    participant RS as RAGFlowService<br/>src/services/ragflow_service.rs:101
+    participant RS as RAGFlowService<br/>src/services/ragflow_service.rs:102
     participant TTS as speech_service.text_to_speech<br/>state.speech_service
 
     C->>CS: POST /api/ragflow/session {userId}
@@ -439,8 +439,8 @@ sequenceDiagram
     rect rgb(225,225,245)
     Note over RS: PROCESS BOUNDARY — external HTTP call, credentials from env
     SM->>RS: send_message(session_id, question, false, None, stream.unwrap_or(true))
-    RS->>RS: RAGFlowService::new reads RAGFLOW_API_KEY, RAGFLOW_API_BASE_URL and RAGFLOW_AGENT_ID through config_from (ragflow_service.rs:114-141),<br/>every request then carries Authorization Bearer (ragflow_service.rs:171)
-    Note over RS: an absent or blank key is RAGFlowError::NotConfigured (ragflow_service.rs:121) and boot logs a warning, so state.ragflow_service stays None and the 503 branches above fire (main.rs:431).<br/>A key without base URL or agent id is a ParseError (ragflow_service.rs:123-129)
+    RS->>RS: RAGFlowService::new reads RAGFLOW_API_KEY, RAGFLOW_API_BASE_URL and RAGFLOW_AGENT_ID through config_from (ragflow_service.rs:115-142),<br/>every request then carries Authorization Bearer (ragflow_service.rs:172)
+    Note over RS: an absent or blank key is RAGFlowError::NotConfigured (ragflow_service.rs:122) and boot logs a warning, so state.ragflow_service stays None and the 503 branches above fire (main.rs:431).<br/>A key without base URL or agent id is a ParseError (ragflow_service.rs:124-130)
     end
     alt Ok(response_stream)
         opt enable_tts

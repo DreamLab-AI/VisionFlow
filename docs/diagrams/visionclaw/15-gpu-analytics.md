@@ -41,7 +41,7 @@ sources:
   - ../project/src/main.rs
   - ../project/src/handlers/api_handler/analytics/params_handlers.rs
   - ../project/src/handlers/api_handler/analytics/types.rs
-verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
+verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
 ---
 
 ## VC-15.1 POST /analytics/clustering/run — spectral/kmeans/louvain/default dispatch with CPU fallback

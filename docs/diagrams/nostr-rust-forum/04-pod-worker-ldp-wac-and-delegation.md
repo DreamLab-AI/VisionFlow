@@ -33,7 +33,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
   - ../nostr-rust-forum/Cargo.toml
-verified_commit: 9c36b6032640c89879ae52fe25da99493979a0b6
+verified_commit: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed
 ---
 
 ## NF-04.1 Route surface
@@ -280,7 +280,7 @@ flowchart TB
     N4["Property tests cover the WAC document handling this whole topic rests on<br/>nostr-bbs-pod-worker/tests/wac_proptests.rs:1"]
 ```
 
-**Tension (ADR-2012 vs Cargo.toml):** ADR-2012 decision 4 speaks of "the exact pin at `Cargo.toml:155`" bumped in lockstep with the host, while the workspace dependency is now a caret range, `0.5.0-alpha.14`, recorded as an owner decision to stop an exact pin forcing a core republish on every solid-pod-rs release (`../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md:76-80`, `../nostr-rust-forum/Cargo.toml:181-185`). The pod-worker now also enables the `did` feature on `nostr-bbs-core` (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml:29`).
+**Tension (ADR-2012 vs Cargo.toml):** ADR-2012 decision 4 speaks of "the exact pin at `Cargo.toml:155`" bumped in lockstep with the host, while the workspace dependency is now a caret range, `0.5.0-alpha.18`, recorded as an owner decision to stop an exact pin forcing a core republish on every solid-pod-rs release (`../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md:76-80`, `../nostr-rust-forum/Cargo.toml:181-185`). The pod-worker now also enables the `did` feature on `nostr-bbs-core` (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml:29`).
 
 ## NF-04.11 The journalled D1 ledger today, and the chain view ADR-2012 is moving to
 
@@ -311,5 +311,5 @@ flowchart TB
 
     N1["INVARIANT ADR-2012 D6 (structural): tests/pay_credit_guard.rs scans every workspace source<br/>that can reach the shared D1 and fails unless the only balance-raising statement is<br/>SQL_APPLY_CREDIT - no statement sets or adds balance_sats from a bound parameter<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:109-117"]
     N2["DRIFT the amendment withdraws: the routes were triaged as dormant, but production sets<br/>PAY_ENABLED true - the three evidence-free value paths named in the amendment are the<br/>defect this journal closes ADR-2012-d1-ledger-becomes-a-chain-view.md:35-44"]
-    N3["EXTERNAL: ADR-2012 D5 freezes derive_subkey and its JS-parity vector as a Published Language<br/>for the settlement domain nostr-bbs-core/src/keys.rs:251-265, ADR-2012-d1-ledger-becomes-a-chain-view.md:81-89"]
+    N3["EXTERNAL: ADR-2012 D5 freezes derive_subkey and its JS-parity vector as a Published Language<br/>for the settlement domain nostr-bbs-core/src/keys.rs:252-266, ADR-2012-d1-ledger-becomes-a-chain-view.md:81-89"]
 ```

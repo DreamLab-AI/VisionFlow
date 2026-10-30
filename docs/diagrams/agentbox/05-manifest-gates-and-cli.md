@@ -45,7 +45,7 @@ sources:
   - ../project/agentbox/management-api/lib/junkiejarvis-clarify.js
   - ../project/agentbox/services/agentbox-manifest/tests/golden/live-agentbox.toml
   - ../project/agentbox/scripts/experiments/exp-b8-label-log.cjs
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-05.1 GET /v1/system — catalogue plus live introspection
@@ -423,7 +423,7 @@ flowchart TB
     F11 --> C11["NEW catalogue claude-code-model-roles, gate claude_code.advisor_model,<br/>off_values off, apply_class boot - system-manifest.js:256-258"]
     F12 --> C12["NEW catalogue jev-checkpoints, apply_class rebuild<br/>system-manifest.js:271-273"]
     F13 --> C13["NEW catalogue system-one-proxy, service system-one-proxy, apply_class boot (system-manifest.js:274-276),<br/>and system-one-network, gate system_one.network, apply_class boot (system-manifest.js:277-279)"]
-    C11 --> B11["permissions-project writes model, effortLevel and advisorModel into settings<br/>every boot, skipping gateway profiles<br/>services/agentbox-manifest/src/main.rs:223"]
+    C11 --> B11["permissions-project writes model, effortLevel and advisorModel into settings<br/>every boot, skipping gateway profiles<br/>services/agentbox-manifest/src/main.rs:226"]
     C12 --> B12["the entrypoint installs jev-checkpoints@agentbox with the manifest as userConfig<br/>entrypoint-unified.sh:3168, :3036"]
     C13 --> B13["system-one-project writes /run/agentbox/system-one.json and projects the proxy URL<br/>entrypoint-unified.sh:2670-2683, see AB-02.3"]
     F14 --> C14["NEW catalogue system-one-consumer-* x19, requires system_one.enabled, boot class<br/>except solid-pod-advisories, ontomark-suggestions and vault-rank, rebuild<br/>system-manifest.js:288-344"]
@@ -466,8 +466,8 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant EP as entrypoint-unified.sh:2985-3007
-    participant AM as agentbox-manifest instructions-project<br/>main.rs:454-471
-    participant IR as instructions::run<br/>instructions.rs:141-199
+    participant AM as agentbox-manifest instructions-project<br/>main.rs:457-473
+    participant IR as instructions::run<br/>instructions.rs:141-222
     participant COMP as compose/composed<br/>instructions.rs:71-74
     participant FS as target files
 
@@ -479,10 +479,10 @@ sequenceDiagram
         IR->>COMP: composed(layers, floor) — floor.md + local/floor.md
         IR->>FS: project floor to the managed policy path (instructions.rs:152)
         alt managed write fails and not check
-            IR->>IR: floor_fallback = composed floor, printed loudly (instructions.rs:160-162)
+            IR->>IR: floor_fallback = composed floor, printed loudly (instructions.rs:169-171)
         end
     end
-    loop for tier in global, workspace, workspace.claude (instructions.rs:171-176)
+    loop for tier in global, workspace, workspace.claude (instructions.rs:180-190)
         IR->>COMP: composed(layers, tier) — read <tier>.md + local/<tier>.md
         COMP-->>IR: header (:35-40) plus tracked and local text joined, or None if both absent
         alt workspace.claude
@@ -503,40 +503,40 @@ sequenceDiagram
 **What it shows.** How the instruction tiers that sit above every repository get from `config/instructions/` layers (tracked public, gitignored `local/` estate) to the files every agent reads, on every single boot. Since ADR-2144 there are four tiers: the floor goes to Claude Code's managed policy path `/etc/claude-code/CLAUDE.md` (loaded by every session and subagent, `claudeMdExcludes` cannot drop it), and only if that write fails is it prepended to the global tier. Codex has no managed path, so the entrypoint appends the managed file, then the global and workspace files, to its `AGENTS.md`.
 **Why it is this way.** ADR-2118: the files used to be hand-kept on a host bind and a Docker volume with no history and no review; composing them from the repo makes the global/workspace tiers a reviewable, versioned product surface instead of drift-prone container state. ADR-2144 (accepted, live) adds the floor tier so custom subagents that start without the user and project notes still meet it, and ties it to the `decline-recorder` hook under the same `[claude_code].floor` gate (`../project/agentbox/config/entrypoint-unified.sh:2112`, `../project/agentbox/management-api/lib/system-manifest.js:262`).
 
-**Invariant:** an unwritable managed path never drops the floor: the projector falls back into the global tier (`../project/agentbox/services/agentbox-manifest/src/instructions.rs:160-163`).
+**Invariant:** an unwritable managed path never drops the floor: the projector falls back into the global tier (`../project/agentbox/services/agentbox-manifest/src/instructions.rs:169-172`).
 
 ## AB-05.15 Claude OAuth credential sync (ADR-2118) — converging container and host `.credentials.json`
 ```mermaid
 sequenceDiagram
     autonumber
     participant SV as supervisord<br/>[program:claude-cred-sync]<br/>flake.nix:3266-3279
-    participant CLI as agentbox-manifest cred-sync<br/>main.rs:472-481
-    participant RUN as cred_sync::run<br/>cred_sync.rs:118-131
-    participant SYNC as sync_once<br/>cred_sync.rs:91-108
-    participant MERGE as merge<br/>cred_sync.rs:29-59
+    participant CLI as agentbox-manifest cred-sync<br/>main.rs:475-484
+    participant RUN as cred_sync::run<br/>cred_sync.rs:136-152
+    participant SYNC as sync_once<br/>cred_sync.rs:109-129
+    participant MERGE as merge<br/>cred_sync.rs:29-62
     participant CV as container ~/.claude/.credentials.json
     participant HV as host-claude bind<br/>/var/lib/agentbox/host-claude/.credentials.json
 
     SV->>CLI: exec agentbox-manifest cred-sync --container CV --host HV --interval-secs 2
     CLI->>RUN: run(container, host, interval=2s, once=false)
-    RUN->>RUN: host bind directory absent? log and exit 0 — nothing to sync (cred_sync.rs:119-122)
-    loop every interval (cred_sync.rs:131-135)
+    RUN->>RUN: host bind directory absent? log and exit 0 — nothing to sync (cred_sync.rs:137-143)
+    loop every interval (cred_sync.rs:152-156)
         RUN->>SYNC: sync_once(container, host)
-        SYNC->>CV: load — mtime, parsed JSON or None (:66-69)
-        SYNC->>HV: load — mtime, parsed JSON or None (:66-69)
+        SYNC->>CV: load — mtime, parsed JSON or None (:70-80)
+        SYNC->>HV: load — mtime, parsed JSON or None (:70-80)
         alt either side exists but fails to parse (mid-write)
-            SYNC-->>RUN: skip this tick, Ok(0) (:94-96)
+            SYNC-->>RUN: skip this tick, Ok(0) (:112-114)
         else both present
             SYNC->>MERGE: merge(container_val, host_val, container.mtime >= host.mtime)
-            MERGE->>MERGE: a token record (has numeric expiresAt)? later expiresAt wins whole (:32-33)
-            MERGE->>MERGE: else merge object keys recursively, so an MCP login on one side<br/>is never lost to a Claude refresh on the other (:35-47)
+            MERGE->>MERGE: a token record (has numeric expiresAt)? later expiresAt wins whole (:32-37)
+            MERGE->>MERGE: else merge object keys recursively, so an MCP login on one side<br/>is never lost to a Claude refresh on the other (:39-51)
             MERGE-->>SYNC: merged document
         end
-        SYNC->>SYNC: for each side whose value != merged: atomic temp-file + rename write (:104-109)
+        SYNC->>SYNC: for each side whose value != merged: atomic temp-file + rename write (:122-127)
         SYNC-->>RUN: count of files rewritten
-        RUN-->>SV: log reconciled (n) or nothing when 0 (cred_sync.rs:123-127, invoked at :133)
+        RUN-->>SV: log reconciled (n) or nothing when 0 (cred_sync.rs:144-148, invoked at :154)
     end
-    Note over MERGE: INVARIANT — a rotating OAuth refresh token invalidates the OTHER side's refresh<br/>token, so both copies must converge fast — polling every 2s is deliberately cheap against<br/>token lifetimes of hours (cred_sync.rs:113-115)
+    Note over MERGE: INVARIANT — a rotating OAuth refresh token invalidates the OTHER side's refresh<br/>token, so both copies must converge fast — polling every 2s is deliberately cheap against<br/>token lifetimes of hours (cred_sync.rs:131-133)
     Note over SV,HV: claude-code-permissions and claude-cred-sync are siblings of the same ADR-2118 boot<br/>sweep but independent gates — see AB-05.13 F6/F8
 ```
 
@@ -550,10 +550,10 @@ flowchart TB
     SCH["schema security.role_isolation boolean, default false<br/>agentbox.toml.schema.json:2206-2209"]
     CATE["catalogue role-isolation, gate security.role_isolation, apply_class rebuild (was boot, ADR-2122 ER-9)<br/>system-manifest.js:97-99"]
     TBL["config/role-accounts.json schema agentbox.role-accounts/1<br/>role-accounts.json:3-4 uid_range 960-979, :5-7 gid 965 reserved"]
-    subgraph CLI["agentbox-manifest role-accounts (main.rs:283, dispatch main.rs:521-539)"]
-        CHK["check: load and validate, exit 1 listing every rule<br/>role_accounts.rs:297 validate, dispatched main.rs:522"]
-        PW["passwd and group lines<br/>role_accounts.rs:573, :590"]
-        ISO["isolate: today's supervisord.conf to the roles config<br/>and the delivery plan, role_accounts.rs:817, :1045"]
+    subgraph CLI["agentbox-manifest role-accounts (main.rs:286, dispatch main.rs:529-546)"]
+        CHK["check: load and validate, exit 1 listing every rule<br/>role_accounts.rs:297 validate, dispatched main.rs:531"]
+        PW["passwd and group lines<br/>role_accounts.rs:607, :624"]
+        ISO["isolate: today's supervisord.conf to the roles config<br/>and the delivery plan, role_accounts.rs:865, :1093"]
     end
     subgraph BUILD["flake.nix image build, every image, both modes"]
         B1["/etc/supervisord.roles.conf and /etc/agentbox/role-secrets.tsv<br/>flake.nix:4017"]
@@ -575,7 +575,7 @@ flowchart TB
 
 **Tension (catalogue vs manifest comment):** the catalogue classes `role-isolation` as `rebuild` (`../project/agentbox/management-api/lib/system-manifest.js:97-99`) while the comment above the key still says "Boot-class: the image ships both supervisor configs; restart to apply" (`../project/agentbox/agentbox.toml:2499`).
 
-**Invariant:** the isolated supervisor config is a pure function of today's rendered config and the role table, so no role program can exist in one config and not the other (`../project/agentbox/flake.nix:4017`, `../project/agentbox/services/agentbox-manifest/src/role_accounts.rs:817`).
+**Invariant:** the isolated supervisor config is a pure function of today's rendered config and the role table, so no role program can exist in one config and not the other (`../project/agentbox/flake.nix:4017`, `../project/agentbox/services/agentbox-manifest/src/role_accounts.rs:865`).
 
 **Drift (manifest comment vs this revision):** the comment above `role_isolation` says the identity port and the custody migration (W2-W4) are not in the image yet, so role programs fail closed under the flag (`../project/agentbox/agentbox.toml:2499-2505`). At this revision `[program:serve-identity]` is baked (`../project/agentbox/flake.nix:2821`) and the W2 capture and scrub run before `exec supervisord` (`../project/agentbox/config/entrypoint-unified.sh:497`, `../project/agentbox/config/entrypoint-unified.sh:1285`). The comment also adds a new condition the old text did not have: until the W3b consumer cutover lands, JunkieJarvis, the mirror hook and dream-engine cannot sign under the flag. The advice to leave the flag off until the rehearsal passes still holds. The stated reason is stale.
 
@@ -585,7 +585,7 @@ flowchart TB
     TOML["agentbox.toml"]
     TOML --> G1["[claude_code] floor = true<br/>agentbox.toml:740, ADR-2144 accepted and live"]
     TOML --> G2["[voicelink] enabled = true, record_events = true<br/>agentbox.toml:2226, :2233, ADR-2151 proposed, none, inactive"]
-    TOML --> G3["[integrations.activity_sink] enabled = false<br/>agentbox.toml:529, ADR-2146 proposed, complete, inactive"]
+    TOML --> G3["[integrations.activity_sink] enabled = false<br/>agentbox.toml:529, ADR-2146 accepted, complete, inactive"]
     TOML --> G4["[integrations.solid_pod_rs] trust_proxy = true and .forge enable = true<br/>agentbox.toml:553, :608, ADR-2145 accepted and live"]
     TOML --> G5["[skills.spatial_and_3d] blender_local = false<br/>agentbox.toml:635, sidecar-first Blender"]
     TOML --> G6["[vault] loom_sync = full<br/>agentbox.toml:1184, ADR-2140 accepted and live"]
@@ -608,11 +608,11 @@ flowchart TB
 ```
 
 **What it shows.** The gate families that arrived between the previous stamp and this one, from manifest key through catalogue entry and apply class to the code that consumes it. Ten entries joined the catalogue (one surface, nine modules), taking it to 102 (`../project/agentbox/management-api/lib/system-manifest.js:39`, `:379`). The apply class follows where the gate is consumed: the voicelink binary is baked at image composition, so `voicelink` is rebuild-class, while the hook registration that feeds its event spool is reconciled every boot.
-**Why it is this way.** ADR-039's honesty rule again: each entry carries the class of its consumer. ADR-2144 (accepted, live) and ADR-2145 (accepted, live) are drawn as live. ADR-2146 and ADR-2149 are proposed, so the activity sink is drawn off (its manifest key is false) and the Isaac sidecar is shown only as an opt-in CLI path with no manifest gate.
+**Why it is this way.** ADR-039's honesty rule again: each entry carries the class of its consumer. ADR-2144 (accepted, live) and ADR-2145 (accepted, live) are drawn as live. ADR-2146 is accepted but inactive and ADR-2149 is proposed, so the activity sink is drawn off (its manifest key is false) and the Isaac sidecar is shown only as an opt-in CLI path with no manifest gate.
 
 **Tension (ADR-2151 vs manifest):** ADR-2151 is `proposed`, implementation `none`, activation `inactive` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5`), while the live manifest sets `[voicelink].enabled = true` and `record_events = true` (`../project/agentbox/agentbox.toml:2226`, `:2235`), so the image bakes voice-paned and boot registers its hooks (`../project/agentbox/flake.nix:1847`, `../project/agentbox/config/entrypoint-unified.sh:2168`).
 
-**Open:** ADR-2146 is proposed and inactive, so is the activity sink meant to stay off until the endpoint exists? The manifest ships `enabled = false` with an empty `url` (`../project/agentbox/docs/adr/ADR-2146-activity-sink-hook.md:5`, `../project/agentbox/agentbox.toml:529`).
+**Open (status moved 2026-10-30):** ADR-2146 is now `decision_status: accepted` with `implementation_status: complete` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2146-activity-sink-hook.md:5-7`); the decision question is closed, but is the activity sink meant to stay off until a consumer sets the endpoint? The manifest ships `enabled = false` with an empty `url` (`../project/agentbox/agentbox.toml:529`).
 
 **Open:** ADR-2149 (Isaac Sim) is proposed and staged, yet the catalogue already carries an ungated `live` entry for it (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:5`, `../project/agentbox/management-api/lib/system-manifest.js:178`).
 

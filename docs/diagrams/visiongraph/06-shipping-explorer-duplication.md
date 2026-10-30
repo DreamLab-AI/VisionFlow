@@ -20,7 +20,7 @@ sources:
   - ../knowledgeGraph/explorer/modern/src/site/mesh.ts
   - ../knowledgeGraph/explorer/modern/src/types/scope.ts
   - ../knowledgeGraph/explorer/modern/src/site/domains.ts
-verified_commit: {visiongraph: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e, knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3}
+verified_commit: {visiongraph: 7b0875f2c26b9e69dc5c97e9c88166acc14c47dc, knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3}
 ---
 
 ## VG-06.1 Two copies of one codebase — 39 of 108 shared files now differ
@@ -49,12 +49,12 @@ flowchart TB
 flowchart TB
     SHIPCM["publishing-tools/WasmVOWL/CLAUDE.md:27-28 —<br/>'The physics engine is NOT in this repo... consumed here as a pinned,<br/>integrity-locked dependency'"]
     SIBCM["knowledgeGraph/explorer/CLAUDE.md:27-28 — the same sentence"]
-    SHIPPKG["shipping WasmVOWL/modern/package.json:25 — @dreamlab-ai/vowl-wasm from the<br/>v0.2.0 release tarball, plus @dreamlab-ai/ontomark-graph at WasmVOWL/modern/package.json:24"]
+    SHIPPKG["shipping WasmVOWL/modern/package.json:25 — @dreamlab-ai/vowl-wasm from the<br/>v0.2.2 release tarball, plus @dreamlab-ai/ontomark-graph at WasmVOWL/modern/package.json:24"]
     SIBPKG["sibling explorer/modern/package.json:20 — the v0.1.1 release tarball,<br/>no ontomark-graph dependency"]
     SHIPCM --> SHIPPKG
     SIBCM --> SIBPKG
     note1["RESOLVED: the earlier stamp recorded 12 references to a rust-wasm/ directory<br/>in the shipping tree's CLAUDE.md and a fix that had landed only in the sibling.<br/>Both files now carry the corrected paragraph at the same lines, and the shipping<br/>copy has no rust-wasm reference left"]
-    note2["DRIFT: the two copies consume different releases of the engine, 0.2.0 shipping<br/>against 0.1.1 sibling, so the sibling cannot be dropped in without the<br/>owned decode and encode bindings that 0.2.0 adds #40;see VW-04.8#41;"]
+    note2["DRIFT: the two copies consume different releases of the engine, 0.2.2 shipping<br/>against 0.1.1 sibling, so the sibling cannot be dropped in without the<br/>owned decode and encode bindings that 0.2.0 adds #40;see VW-04.8#41;"]
 ```
 
 ## VG-06.3 CAPABILITIES.md — still measures a Python pipeline publish.yml no longer runs at all

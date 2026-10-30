@@ -74,7 +74,7 @@ sources:
   - ../project/src/handlers/api_handler/analytics/clustering_handlers.rs
   - ../project/scripts/launch.sh
   - ../project/src/services/acsp/key_file.rs
-verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
+verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
 ---
 
 ## VC-09.1 Config load precedence — main() boot order
@@ -213,7 +213,7 @@ sequenceDiagram
     V->>V: 2. NODE_ENV=development + DOCKER_ENV → DevelopmentNodeEnvInContainer
     V->>V: 3. argv --allow-skip-auth → AllowSkipAuthArgv
     V->>V: 4. build carries dev-auth → DevAuthFeatureInArtefact (ADR-2037)
-    Note over M,BI: INVARIANT (2026-09-07) — the dev launcher builds profile dev-runtime, which inherits<br/>release but keeps debug-assertions and overflow-checks (Cargo.toml:323-326), and exports<br/>CARGO_PROFILE_DEV_RUNTIME_DEBUG_ASSERTIONS=true (scripts/rust-backend-wrapper.sh:45). That is<br/>what keeps BuildIdentity::current() reporting a DEBUG artefact for a dev-auth binary, so this<br/>assertion warns and continues instead of refusing to bind. See VC-08.9.
+    Note over M,BI: INVARIANT (2026-09-07) — the dev launcher builds profile dev-runtime, which inherits<br/>release but keeps debug-assertions and overflow-checks (Cargo.toml:328-331, ADR-2156 also sets lto off, codegen-units 256 and incremental, :332-334), and exports<br/>CARGO_PROFILE_DEV_RUNTIME_DEBUG_ASSERTIONS=true (scripts/rust-backend-wrapper.sh:45). That is<br/>what keeps BuildIdentity::current() reporting a DEBUG artefact for a dev-auth binary, so this<br/>assertion warns and continues instead of refusing to bind. See VC-08.9.
     V->>V: 5. report_mode_requested(env) (src/config/security_profile.rs:525)
     alt public_reads_enabled_in(env) AND NOT visibility_filter_enabled_in(env)
         V->>V: 5b. findings.push(FullDisclosureFlagPair) — ADR-2043
@@ -501,7 +501,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph EXT["external inference and RAG"]
-        X1["RAGFLOW_API_KEY ragflow_service.rs:139 · RAGFLOW_API_BASE_URL ragflow_service.rs:140<br/>RAGFLOW_AGENT_ID ragflow_service.rs:141 — optional: no key is NotConfigured,<br/>a key without the other two is a ParseError (config_from ragflow_service.rs:114-133)"] --> X2["COMFYUI_URL src/handlers/image_gen_handler.rs:38<br/>IMAGE_GEN_MODEL src/handlers/image_gen_handler.rs:82 — minimax-h3 default,<br/>flux2 or flux-2 opt-in :74-79; COMFYUI_SALAD_URL deleted in b39b1a626"] --> X3["PRIMARY_PROVIDER<br/>src/actors/voice_interface_actor.rs:161<br/>src/handlers/bots_handler.rs:308 :412 :545 :728"]
+        X1["RAGFLOW_API_KEY ragflow_service.rs:140 · RAGFLOW_API_BASE_URL ragflow_service.rs:141<br/>RAGFLOW_AGENT_ID ragflow_service.rs:142 — optional: no key is NotConfigured,<br/>a key without the other two is a ParseError (config_from ragflow_service.rs:115-134)"] --> X2["COMFYUI_URL src/handlers/image_gen_handler.rs:38<br/>IMAGE_GEN_MODEL src/handlers/image_gen_handler.rs:82 — minimax-h3 default,<br/>flux2 or flux-2 opt-in :74-79; COMFYUI_SALAD_URL deleted in b39b1a626"] --> X3["PRIMARY_PROVIDER<br/>src/actors/voice_interface_actor.rs:161<br/>src/handlers/bots_handler.rs:308 :412 :545 :728"]
     end
     subgraph PAY["HTTP 402 payment — feature solid-pod-embed"]
         P1["PAY_ENABLED<br/>src/handlers/pay_handler.rs:96 and :881<br/>routes inert until true"] --> P2["PAY_COST_SATS :99 :957 · PAY_INFERENCE_COST_SATS :107<br/>PAY_IMAGE_GEN_COST_SATS :111 · PAY_ANALYTICS_COST_SATS :115<br/>all in src/handlers/pay_handler.rs"] --> P3["PAY_LEDGER_DIR<br/>src/handlers/pay_handler.rs:103 and :958"]

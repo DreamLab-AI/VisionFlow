@@ -21,7 +21,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/conditions.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/api.rs
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
-verified_commit: 76ab7aab3e882f32508b2461b3f51e4c09bdcfa1
+verified_commit: 09ec90f26aa573731460292d0e80343914cb43d9
 ---
 
 ## SP-07.1 The two provenance tiers

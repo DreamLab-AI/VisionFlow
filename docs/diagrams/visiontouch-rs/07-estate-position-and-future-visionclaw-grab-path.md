@@ -19,7 +19,7 @@ sources:
   - ../project/client/src/features/graph/services/interactionModes/vrArMode.ts
   - ../project/xr-client/rust/src/selection.rs
   - ../project/src/handlers/socket_flow_handler/message_routing.rs
-verified_commit: {visiontouch-rs: 7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d, visionflow: ff15faf83d82fef7f23d96da381c8ab78d0206b0, visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce}
+verified_commit: {visiontouch-rs: 7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
 ---
 
 ## For developers

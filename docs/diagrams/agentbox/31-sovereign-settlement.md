@@ -30,7 +30,7 @@ sources:
   - ../project/agentbox/management-api/lib/uris.js
   - ../project/agentbox/services/nostr-pod-bridge/src/contract.rs
   - ../project/agentbox/docs/adr/ADR-2105-agentbox-kind-bands-and-the-colloquy-move.md
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## For developers
@@ -248,7 +248,7 @@ flowchart TB
 
 **Open:** the kind allocation is recorded but not fixture-backed, so nothing yet proves a decoder round-trips an upstream event (`../project/agentbox/docs/PROTOCOL-registry.md:186-189`).
 
-**Drift:** the account binding and the five domain events moved from a claimed-free `38106`-`38201` range (which overlapped the ADR-009 agent-response reservation) to the clean `38400`-`38499` band, and gained five concrete kind numbers where the design had left the domain events as a range (`../project/agentbox/docs/adr/ADR-2105-agentbox-kind-bands-and-the-colloquy-move.md:63-68, ADR-2105-agentbox-kind-bands-and-the-colloquy-move.md:89-91`).
+**Drift:** the account binding and the five domain events moved from a claimed-free `38106`-`38201` range (which overlapped the ADR-009 agent-response reservation) to the clean `38400`-`38499` band, and gained five concrete kind numbers where the design had left the domain events as a range (`../project/agentbox/docs/adr/ADR-2105-agentbox-kind-bands-and-the-colloquy-move.md:69-74, ADR-2105-agentbox-kind-bands-and-the-colloquy-move.md:95-97`).
 
 ## AB-31.9 PROPOSED - the five phases, and the one that touches real value
 

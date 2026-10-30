@@ -16,7 +16,7 @@ sources:
   - ../vowl-wasm/src/interaction/mod.rs
   - ../vowl-wasm/.github/workflows/ci.yml
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts
-verified_commit: {vowl-wasm: 89d1a0a32eec16e79a7fa507eaa6f8fcb92e4f0b, visiongraph: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e}
+verified_commit: {vowl-wasm: 28af4365a68d9aacfd7c04f63299cc96ad717ce3, visiongraph: 7b0875f2c26b9e69dc5c97e9c88166acc14c47dc}
 ---
 
 ## VW-04.1 `WebVowl` — the frozen 0.1.0 JS surface
@@ -58,7 +58,7 @@ flowchart LR
     subgraph NoAlloc["writePositionsInto(buf) — src/bindings/mod.rs:298"]
         B1["reuse caller-owned buffer<br/>writes min(out.len(), n*2)"] --> B2["returns count written<br/>src/bindings/mod.rs:303-312"]
     end
-    subgraph ZeroCopy["NggExplorer.positionsPtr()/positionsLen() — src/bindings/explorer.rs:82,89"]
+    subgraph ZeroCopy["NggExplorer.positionsPtr()/positionsLen() — src/bindings/explorer.rs:84,90"]
         C1["raw pointer into<br/>wasm.memory.buffer"] --> C2["JS Float32Array view,<br/>no copy at all — needs ngg1 tier"]
     end
 ```
@@ -98,17 +98,19 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     autonumber
-    participant W as physics.worker.ts<br/>visionGraph publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts:38 interface WasmPhysics
+    participant W as physics.worker.ts<br/>visionGraph publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts:39 interface WasmPhysics
     participant PKG as "@dreamlab-ai/vowl-wasm" npm package<br/>(published pkg/, see VW-04.5, VW-05.3)
-    participant WA as NggExplorer<br/>src/bindings/explorer.rs:17
+    participant WA as NggExplorer<br/>src/bindings/explorer.rs:18
     Note over W: EXTERNAL — visionGraph repo, area VG-* (authored concurrently)
     W->>PKG: import init, default glue<br/>await init() → InitOutput.memory
     W->>WA: loadCsr(bytes) / tick() / isFinished() / getAlpha()
     W->>WA: positionsPtr() / positionsLen()
     W->>W: new Float32Array(wasm.memory.buffer, ptr, len)<br/>SharedArrayBuffer or transferable double-buffer
     W->>WA: setParam(key, val) [optional live tuning]
+    W->>WA: pinNode(index, x, y) / unpinNode(index) / reheat(alpha) [optional, drag pinning]<br/>publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts:51-53
 ```
-- The worker resolves exported names "permissively (snake_case per Rust, with camelCase fallbacks)" (physics.worker.ts:33-35 comment) — it does not assume `wasm-bindgen`'s `js_name` renaming is exhaustive, a defensive stance against this crate's binding surface.
+- The worker resolves exported names "permissively (snake_case per Rust, with camelCase fallbacks)" (physics.worker.ts:33-37 comment) — it does not assume `wasm-bindgen`'s `js_name` renaming is exhaustive, a defensive stance against this crate's binding surface.
+- Drag pinning is optional on the worker side: `pinNode`, `unpinNode` and `reheat` are bound with `optionalMethod` (physics.worker.ts:126-128) and the message handlers return silently when the loaded package lacks them. The package supplies them from 0.2.2 (the worker's own comment says `vowl-wasm ≥ 0.2.2`, physics.worker.ts:50); a pin that succeeds wakes the layout to `DRAG_ALPHA` 0.3 and an unpin to `RELEASE_ALPHA` 0.1 (physics.worker.ts:212-225, physics.worker.ts:309-321).
 - Cross-repo dependency direction: visionGraph depends on the *published* `@dreamlab-ai/vowl-wasm` npm bundle (pinned in its `package.json`/`package-lock.json`, per VisionFlow estate map), never on this crate's source — see VW-05.3 for the publish path that produces that bundle.
 
 ## VW-04.7 `interaction` module — always-native benches vs the WASM binding
@@ -128,7 +130,7 @@ flowchart LR
     DEC --> GET["accessors return copies: ids, positions, domains, categories,<br/>flags, degrees, labels, iris, rowPtr, colIdx, edgeType<br/>src/bindings/ngg.rs:57-112"]
     FIELDS["typed arrays plus string arrays"] -->|"encodeNgg1(...)"| ENC["encode_parts through ontomark's NGG1 writer,<br/>mismatched arrays and invalid CSR throw an NGG1 string<br/>src/bindings/ngg.rs:182-200"]
     CONST["ngg1Constants()"] --> OWN["flags, sentinels and edge codes read from the ontomark owner<br/>src/bindings/ngg.rs:236-244"]
-    DEC -. "layout continues in a worker, no per-frame metadata" .-> EXP["NggExplorer: loadCsr, tick, positionsPtr, setParam, setTheta, reheat<br/>src/bindings/explorer.rs:40-118"]
+    DEC -. "layout continues in a worker, no per-frame metadata" .-> EXP["NggExplorer: loadCsr, tick, positionsPtr, setParam, setTheta, pinNode, unpinNode, reheat<br/>src/bindings/explorer.rs:41-137"]
     GATE["feature ngg1 gates both modules<br/>src/bindings/mod.rs:3-9"] --- DEC
     N1["INVARIANT: numeric domain and category ids come from the producer, the type maps them to no estate taxonomy<br/>src/bindings/ngg.rs:13-16"]
     N2["OPEN: the TypeScript reader consolidation and the Obsidian plugin are tracked by their own steps and are not claimed by ADR-001<br/>docs/adr/ADR-001-shared-ontology-rendering-contract.md:89-93"]

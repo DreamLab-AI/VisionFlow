@@ -56,7 +56,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/onboarding_modal.rs
   - ../nostr-rust-forum/.github/workflows/audit.yml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs
-verified_commit: {nostr-rust-forum: 9c36b6032640c89879ae52fe25da99493979a0b6}
+verified_commit: {nostr-rust-forum: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed}
 ---
 
 ## NF-10.1 The compliance surface — BASELINE-architecture invariants
@@ -68,7 +68,7 @@ flowchart LR
     I3["3 channel counts are derived, never accumulated<br/>count_for nostr-bbs-forum-client/src/stores/channels.rs:159 | dedup on insert channels.rs:444 - see NF-05.6"]
     I4["4 .acl and .meta sidecar access coerces to Control<br/>nostr-bbs-pod-worker/src/acl.rs:85 | shared policy nostr-bbs-pod-worker/src/acl.rs:34 - see NF-04.3"]
     I5["5 gift-wraps are recipient-whitelist-gated, never author-gated<br/>gift_wrap_recipient nip_handlers.rs:138 | admission nip_handlers.rs:1140 - see NF-03.5"]
-    I6["6 TENSION: BASELINE invariant 6 says solid-pod-rs stays an EXACT pin docs/BASELINE-architecture.md:192,<br/>the manifest now declares a caret range under ER-35 nostr-rust-forum/Cargo.toml:185 - see NF-01.4"]
+    I6["6 TENSION: BASELINE invariant 6 says solid-pod-rs stays an EXACT pin docs/BASELINE-architecture.md:200,<br/>the manifest now declares a caret range under ER-35 nostr-rust-forum/Cargo.toml:185 - see NF-01.4"]
 
     I1 --> I2 --> I3
     I4 --> I5 --> I6
@@ -81,12 +81,12 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    K1["1 derive_subkey is a byte-for-byte cross-stack contract with agentbox's JS mirror derivation<br/>raw HMAC, not HKDF nostr-bbs-core/src/keys.rs:253 | vector nostr-bbs-core/src/keys.rs:478 | digest keys.rs:483 - see NF-09.3"]
-    K2["2 derive_from_prf and derive_subkey are DISTINCT and never substitutable<br/>HKDF path nostr-bbs-core/src/keys.rs:197 | contrast documented nostr-bbs-core/src/keys.rs:224"]
+    K1["1 derive_subkey is a byte-for-byte cross-stack contract with agentbox's JS mirror derivation<br/>raw HMAC, not HKDF nostr-bbs-core/src/keys.rs:254 | vector nostr-bbs-core/src/keys.rs:479 | digest keys.rs:484 - see NF-09.3"]
+    K2["2 derive_from_prf and derive_subkey are DISTINCT and never substitutable<br/>HKDF path nostr-bbs-core/src/keys.rs:198 | contrast documented nostr-bbs-core/src/keys.rs:225"]
     K3["3 DEVICE_KEYS_ENABLED enables only on the exact string true, checked in both workers<br/>auth gate nostr-bbs-auth-worker/src/devices.rs:112 | asserted nostr-bbs-auth-worker/src/devices.rs:974 - see NF-02.7"]
     K4["4 gift-wrap admission keys on the recipient p tag, never the ephemeral author<br/>nip_handlers.rs:138 - see NF-03.5"]
     K5["5 TL3 is never auto-demoted; demotion stays time-driven on cron, never inline on admission<br/>nostr-bbs-relay-worker/src/trust.rs:334 - see NF-03.8"]
-    K6["6 a derived subkey is ROOT-RECOVERABLE - domain separation, not compromise isolation<br/>nostr-bbs-core/src/keys.rs:240"]
+    K6["6 a derived subkey is ROOT-RECOVERABLE - domain separation, not compromise isolation<br/>nostr-bbs-core/src/keys.rs:241"]
 
     K1 --> K2 --> K3
     K4 --> K5 --> K6

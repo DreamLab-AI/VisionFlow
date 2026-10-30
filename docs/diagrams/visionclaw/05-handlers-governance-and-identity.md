@@ -56,7 +56,7 @@ sources:
   - ../project/docs/BASELINE-architecture.md
   - ../project/docker-compose.unified.yml
   - ../project/crates/visionclaw-jev/src/config.rs
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
 ---
 
 ## VC-05.1 `admin_rbac_handler` — whoami / list / assign / revoke (ADR-2010)
@@ -429,7 +429,7 @@ sequenceDiagram
     participant ST as enrichment_proposals_handler::store<br/>same durable store as WS-9, no second store
 
     Note over SC: doc comment :243-247 — "Mounted as a dedicated web::scope(broker) so the<br/>privileged RequireAuth::power_user() middleware wraps exactly these read routes<br/>and nothing else, mirroring the isolated privileged scope at ontology_handler.rs lines 913-918"
-    Note over SC: DOC-DRIFT — that cross-reference is itself stale: WS-0 removed ontology_handler.rs<br/>own web::scope entirely (ontology_handler.rs:1094-1104), re-using its handlers from the single<br/>canonical scope in api_handler::ontology::config instead, see VC-20. No isolated privileged<br/>scope exists there any more — /broker is the odd one out now, not a mirror of it.
+    Note over SC: DOC-DRIFT — that cross-reference is itself stale: WS-0 removed ontology_handler.rs<br/>own web::scope entirely (ontology_handler.rs:1095-1105), re-using its handlers from the single<br/>canonical scope in api_handler::ontology::config instead, see VC-20. No isolated privileged<br/>scope exists there any more — /broker is the odd one out now, not a mirror of it.
     C->>SC: GET /api/broker/inbox (X-Agent-Key or power-user session)
     SC->>SC: RequireAuth::power_user()
     alt not power user
@@ -439,7 +439,7 @@ sequenceDiagram
         H->>ST: store::all()
         ST-->>H: Vec~EnrichmentProposal~
         H->>H: assemble_inbox (broker_inbox_handler.rs:193) projects each into BrokerCase{id,category:"knowledge_enrichment",status,metadata}
-        opt VISIONCLAW_JEV_PROPOSAL_TRIAGE=1 (Jev option: library default off, but the Compose master flag docker-compose.unified.yml:21 turns it on and ALLOW_CLOUD=1 at :22 lets this local-only item take the shared agentbox proxy, ADR-2148, staged - see VC-24.13)
+        opt VISIONCLAW_JEV_PROPOSAL_TRIAGE=1 (Jev option: library default off, but the Compose master flag docker-compose.unified.yml:21 turns it on and ALLOW_CLOUD=1 at :22 lets this local-only item take the shared agentbox proxy, VisionClaw ADR-2148, accepted / complete / live - see VC-24.13)
             H->>H: pending and claimed cases may gain an advisory jev annotation and be reordered by triage priority within annotated slots (broker_inbox_handler.rs:193-215, jev field broker_inbox_handler.rs:78)
         end
         Note over H: INVARIANT: the Jev triage is advisory, decide routes and signed decisions never read it, broker_inbox_handler.rs:78
@@ -785,7 +785,7 @@ sequenceDiagram
     Note over D,DB: DIVERGENCE — the agentbox/operator/git-bridge REST path (VC-05.7) writes<br/>decision_event_id:None every time, since it never carries a signed 31403 event
     BI->>DB: store::all() / store::get(id) — reads the SAME table both producers wrote to
     BI-->>BI: projects EITHER kind of row into the SAME BrokerCase shape, indistinguishable to the bridge
-    Note over V,BI: DIVERGENCE (ADR-2006 closeout, docs/BASELINE-architecture.md:358) —<br/>"the retained domain kernel's presence does not prove integration into the elevation<br/>actor or inbox DTO. Current source review does not certify a complete human-approval journey."<br/>Verified precisely: the two producers only converge at the SQLite table, no handler route<br/>calls into either actor, and case authority/failure/restart receipts are not modelled here
+    Note over V,BI: DIVERGENCE (ADR-2006 closeout, docs/BASELINE-architecture.md:359) —<br/>"the retained domain kernel's presence does not prove integration into the elevation<br/>actor or inbox DTO. Current source review does not certify a complete human-approval journey."<br/>Verified precisely: the two producers only converge at the SQLite table, no handler route<br/>calls into either actor, and case authority/failure/restart receipts are not modelled here
 ```
 
 ## VC-05.18 `src/domain/broker/` verification — BrokerActor never merged (BASELINE-architecture.md:303)
@@ -802,9 +802,9 @@ flowchart TB
     ABSENT["src/actors/broker_actor.rs — VERIFIED ABSENT<br/>grep -r finds no file, no Neo4j adapter under src/adapters/ (listed: sqlite_*, oxigraph_*, actix_*)"]
     KERNEL -.->|"used by derive_kernel_decision (VC-05.7)"| CALLER["enrichment_proposals_handler::apply_decision"]
     KERNEL -.->|"used by decision_record (VC-05.17)"| CALLER2["elevation_actor.rs"]
-    N1["DIVERGENCE (docs/BASELINE-architecture.md:303) — BrokerActor never merged, main uses<br/>a stateless ACSP producer + this cherry-picked storage-agnostic domain broker kernel.<br/>Confirmed against source: broker/mod.rs:11-18 states the crashbug BrokerActor + its Neo4j<br/>transport were deliberately left behind"]
+    N1["DIVERGENCE (docs/BASELINE-architecture.md:304) — BrokerActor never merged, main uses<br/>a stateless ACSP producer + this cherry-picked storage-agnostic domain broker kernel.<br/>Confirmed against source: broker/mod.rs:11-18 states the crashbug BrokerActor + its Neo4j<br/>transport were deliberately left behind"]
     ABSENT --- N1
     ACSP --- N1
-    N2["DOC-DRIFT — BASELINE-architecture.md:304 sizes the kernel at ~936 LOC, but the four files<br/>measure 1,071 lines today (490 + 437 + 101 + 43). ADR-2006 Verification (accepted) otherwise<br/>matches: src/services/acsp/mod.rs documents the producer, src/domain/broker/ holds the four<br/>listed files, broker_actor.rs and the neo4j adapters are absent"]
+    N2["DOC-DRIFT — BASELINE-architecture.md:305 sizes the kernel at ~936 LOC, but the four files<br/>measure 1,071 lines today (490 + 437 + 101 + 43). ADR-2006 Verification (accepted) otherwise<br/>matches: src/services/acsp/mod.rs documents the producer, src/domain/broker/ holds the four<br/>listed files, broker_actor.rs and the neo4j adapters are absent"]
     KERNEL --- N2
 ```

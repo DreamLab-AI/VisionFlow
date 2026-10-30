@@ -33,7 +33,7 @@ sources:
   - docs/jev-option.md
   - docs/BASELINE-visionflow.md
   - docs/site-verification.md
-verified_commit: ff15faf83d82fef7f23d96da381c8ab78d0206b0
+verified_commit: 4d361b58ce2b3ee17e1570361eaf78270b630012
 ---
 
 ## VF-06.1 Two diagram pipelines, one repository — what each owns

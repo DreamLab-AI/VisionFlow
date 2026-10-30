@@ -35,7 +35,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/validate.rs
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/ingress.rs
   - ../nostr-rust-forum/README.md
-verified_commit: 9c36b6032640c89879ae52fe25da99493979a0b6
+verified_commit: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed
 ---
 
 ## NF-09.1 The CI gate graph
@@ -63,7 +63,7 @@ flowchart TB
     N3["The wasm32 job installs libc6-dev-i386 so the secp256k1-sys cross-compile succeeds<br/>.github/workflows/ci.yml:185 - which is why it can check the WHOLE workspace, not the three crates<br/>workspace.metadata.ci.wasm-check-packages names nostr-rust-forum/Cargo.toml:72. See NF-01.2."]
     N4["ci-pass iterates every job result and fails the aggregate unless all succeeded<br/>.github/workflows/ci.yml:329"]
     N6["The drift job needs no Rust toolchain, checks out agentbox read-only into _agentbox so the JS derivation is pinned to the real call sites<br/>.github/workflows/ci.yml:281-284, and runs only when its scripts or fixtures change - the push and PR path filters name them<br/>.github/workflows/ci.yml:33-35 .github/workflows/ci.yml:272-273"]
-    N5["INVARIANT: no toolchain pin, by owner decision 2026-10-02 R8 - the forum floats on stable rust-toolchain.toml:2<br/>under -D warnings so every release is taken the day it ships BASELINE-architecture.md:244-246. Recovery when a new<br/>lint fires on code we do not own: a scoped per-item allow(clippy::lint) naming the cause, as rustc 1.99 needed on<br/>every async_trait trait - nostr-bbs-mesh/src/transport.rs:236 transport.rs:249 nostr-bbs-setup-skill/src/lib.rs:71<br/>nostr-bbs-relay-worker/src/mesh.rs:141 - never a crate-wide allow, never a pin"]
+    N5["INVARIANT: no toolchain pin, by owner decision 2026-10-02 R8 - the forum floats on stable rust-toolchain.toml:2<br/>under -D warnings so every release is taken the day it ships BASELINE-architecture.md:252-254. Recovery when a new<br/>lint fires on code we do not own: a scoped per-item allow(clippy::lint) naming the cause, as rustc 1.99 needed on<br/>every async_trait trait - nostr-bbs-mesh/src/transport.rs:236 transport.rs:249 nostr-bbs-setup-skill/src/lib.rs:71<br/>nostr-bbs-relay-worker/src/mesh.rs:141 - never a crate-wide allow, never a pin"]
     CLIP -.- N5
     DG -.- N6
 ```
@@ -105,7 +105,7 @@ flowchart TB
     SYNC["sync-fixtures.sh:4 - ADR-082 D5: clone VisionClaw, copy tests/fixtures, write a CHECKSUM"]
     VAL["validate-forum-config.sh:7 - run the kit's own nostr-bbs-config validator binary"]
 
-    N1["INVARIANT ADR-2003: derive_subkey is a BYTE-FOR-BYTE cross-stack contract with agentbox's JS<br/>mirror derivation. The Rust half is the known-answer vector nostr-bbs-core/src/keys.rs:478 with the<br/>expected digest at nostr-bbs-core/src/keys.rs:483; the JS half is identity-vector-parity.mjs. Both read<br/>ONE fixture, so they cannot drift. EXTERNAL: see AB-11 and ES-04."]
+    N1["INVARIANT ADR-2003: derive_subkey is a BYTE-FOR-BYTE cross-stack contract with agentbox's JS<br/>mirror derivation. The Rust half is the known-answer vector nostr-bbs-core/src/keys.rs:479 with the<br/>expected digest at nostr-bbs-core/src/keys.rs:484; the JS half is identity-vector-parity.mjs. Both read<br/>ONE fixture, so they cannot drift. EXTERNAL: see AB-11 and ES-04."]
     N2["Both anti-drift-lint.sh and identity-vector-parity.mjs are now wired into CI by the drift-gates job<br/>.github/workflows/ci.yml:293 .github/workflows/ci.yml:296, but outside the required ci-pass set .github/workflows/ci.yml:306-314.<br/>validate-forum-config.sh runs inside the required test job .github/workflows/ci.yml:121"]
     N3["Fixtures come FROM VisionClaw, so a fixture-suite change there is an unversioned input here -<br/>EXTERNAL: see the VisionClaw area (VC-*)"]
 ```

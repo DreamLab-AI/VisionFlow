@@ -42,7 +42,7 @@ sources:
   - ../project/src/test_helpers.rs
   - ../project/src/adapters/actix_semantic_adapter.rs
   - ../project/src/services/schema_service.rs
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
 ---
 
 ## VC-25.1 Insight loop trace assembly (REC-10, compute-on-read)

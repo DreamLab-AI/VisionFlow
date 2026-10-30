@@ -12,7 +12,7 @@ sources:
   - ../visionGraph/publishing-tools/WasmVOWL/modern/package.json
   - ../visionGraph/docs/adr/ADR-VG-004-space-and-earth-domains.md
   - ../visionGraph/docs/adr/ADR-VG-008-supply-chains-and-logistics-domain.md
-verified_commit: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e
+verified_commit: 7b0875f2c26b9e69dc5c97e9c88166acc14c47dc
 ---
 
 ## VG-03.1 publish.yml — checkout to deploy, one job, three producers into one site
@@ -68,7 +68,7 @@ sequenceDiagram
     Note over JOB: copies the SPA shell only, not dist slash api or<br/>dist slash data — ontomark-built artefacts in www stay<br/>authoritative — publish.yml:430-442
     JOB->>WWW: also writes an at slash explorer redirect stub<br/>for the address that briefly served the app — publish.yml:444-451
 ```
-- The explorer now consumes vowl-wasm from the 0.2.0 GitHub release tarball rather than from an npm version range (`publishing-tools/WasmVOWL/modern/package.json:25`), and the job stages five explorer routes as copies of the SPA shell, compared by hash, plus the vowl-wasm, ontomark-graph and JavaScript runtime notices (`publish.yml:453-479`).
+- The explorer now consumes vowl-wasm from the 0.2.2 GitHub release tarball rather than from an npm version range (`publishing-tools/WasmVOWL/modern/package.json:25`), and the job stages five explorer routes as copies of the SPA shell, compared by hash, plus the vowl-wasm, ontomark-graph and JavaScript runtime notices (`publish.yml:453-479`).
 
 ## VG-03.5 ontomark build — the sole producer of machine artefacts and Quartz content staging
 

@@ -27,7 +27,7 @@ sources:
   - ../dreamlab-ai-website/docs/api/NOSTR_RELAY.md
   - ../dreamlab-ai-website/docs/api/SEARCH_API.md
   - ../dreamlab-ai-website/docs/api/MODERATION_API.md
-verified_commit: 4935b6c4a394633569b2c8b38d5c0c272da3b0fb
+verified_commit: a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98
 ---
 
 ## DW-06.1 Pre-build content pipeline — two generators, run before every dev/build

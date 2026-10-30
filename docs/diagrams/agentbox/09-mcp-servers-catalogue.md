@@ -29,7 +29,7 @@ sources:
   - ../project/agentbox/flake.nix
   - ../project/agentbox/docs/adr/ADR-2085-colloquy-knowledge-units-on-the-forum.md
   - ../project/agentbox/docs/adr/ADR-2086-confirmation-weight-follows-authorising-principals.md
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-09.1 Registry ownership classes — what the projector may touch

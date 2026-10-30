@@ -51,7 +51,7 @@ sources:
   - ../project/agentbox/config/registered-commands.txt
   - ../project/agentbox/docs/adr/ADR-2104-direct-control-over-mcp.md
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 ## AB-02.1 boot phases 1-3 — vault resolution, directories, sovereign identity
 ```mermaid
@@ -127,7 +127,7 @@ sequenceDiagram
     participant B as [program:bootstrap] Stage B<br/>entrypoint-unified.sh:1300
 
     E-->>E: echo "[4/8] Provisioning agent stacks..." (:957)
-    E->>AM: agentbox-manifest provision-stacks (:958), which adds the session-state hooks to each profile when the session plane is on (stacks.rs:324)
+    E->>AM: agentbox-manifest provision-stacks (:958), which adds the session-state hooks to each profile when the session plane is on (stacks.rs:327)
     E->>FS: chown -R 1000:1000 WORKSPACE/profiles (:967)
     E-->>E: echo "[5/8] Validating runtime closure..." (:974)
     E->>FS: bash validate-artifacts.sh (:975)
@@ -526,16 +526,16 @@ sequenceDiagram
     participant WRAP as harness wrapper<br/>config/harness-wrappers/zai.sh|openrouter.sh
 
     E->>AM: agentbox-manifest provision-stacks, runs as root Phase 4 (entrypoint-unified.sh:958)
-    loop for each stack in STACKS_JSON (stacks.rs:371-372)
+    loop for each stack in STACKS_JSON (stacks.rs:374-375)
         AM->>FS: build_profile writes root=WORKSPACE/profiles/STACK (stacks.rs:188-189)
         AM->>FS: symlink profiles/STACK/projects and /workspace (stacks.rs:199-200)
         AM->>FS: write .env with AGENT_STACK=STACK (stacks.rs:191-201)
         opt Claude-hosted profile
             AM->>FS: hooks start from learning_hooks (stacks.rs:290), then add the decline-recorder entries on Stop, SubagentStop and UserPromptSubmit when the floor gate is on (stacks.rs:293-308, ADR-2144)
-            AM->>FS: add voice-paned record on Stop and Notification when voicelink record_events is on (stacks.rs:311-323, ADR-2151)
-            AM->>FS: add session-state.cjs on UserPromptSubmit, Stop and Notification when the session plane is on (stacks.rs:324-334, ADR-2153)
-            AM->>FS: add the activity-sink hooks when [integrations.activity_sink] is usable (stacks.rs:335-337, ADR-2146)
-            AM->>FS: write .claude/settings.json with the assembled hooks (stacks.rs:339-357)
+            AM->>FS: add voice-paned record on Stop and Notification when voicelink record_events is on (stacks.rs:311-326, ADR-2151)
+            AM->>FS: add session-state.cjs on UserPromptSubmit, Stop and Notification when the session plane is on (stacks.rs:327-337, ADR-2153)
+            AM->>FS: add the activity-sink hooks when [integrations.activity_sink] is usable (stacks.rs:338-340, ADR-2146)
+            AM->>FS: write .claude/settings.json with the assembled hooks (stacks.rs:342-360)
         end
     end
     Note over E: chown -R 1000:1000 WORKSPACE/profiles after provision-stacks (entrypoint-unified.sh:967)
@@ -722,7 +722,7 @@ sequenceDiagram
 
 **Invariant:** ownership is a marker, not a name: only sessions carrying `@agentbox-sessions=1` are ever recreated, so `agentbox:0` (tab0), a leftover `aoe_*` session and operator sessions are never touched, and a worktree seed holding work in progress is held rather than recreated (`../project/agentbox/services/agentbox-sessions/src/tmux.rs:21`, `../project/agentbox/services/agentbox-sessions/src/reconcile.rs:67-69`, `../project/agentbox/services/agentbox-sessions/src/reconcile.rs:82-86`).
 **Invariant:** trust seeding moved into the daemon: `trust::seed` writes the root store, every wrapper-profile store that already exists and the Codex config (`../project/agentbox/services/agentbox-sessions/src/trust.rs:34-39`, `../project/agentbox/services/agentbox-sessions/src/trust.rs:102`), while `trust-seed.cjs` still writes only the root store and an existing profile store (`config/hooks/trust-seed.cjs:78-86`, `config/hooks/trust-seed.cjs:91-95`).
-**Open:** ADR-2153 reads `accepted`, `partial`, `live` (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`) and calls its cutover "implementation evidence, not a cold-boot acceptance claim" (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:144`); the unused `aoe-profiles` volume stays mounted for recovery (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:145-148`).
+**Open:** ADR-2153 reads `accepted`, `partial`, `live` (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`) and calls its cutover "implementation evidence, not a cold-boot acceptance claim" (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:151`); the unused `aoe-profiles` volume stays mounted for recovery (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:152-155`).
 
 ## AB-02.19 session-provision.mjs run-as-script guard — realpath fix carried over from the AoE seeder
 ```mermaid

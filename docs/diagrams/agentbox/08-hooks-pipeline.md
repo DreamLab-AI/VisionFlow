@@ -43,7 +43,7 @@ sources:
   - ../project/agentbox/lib/factrail.nix
   - ../project/agentbox/scripts/factrail-store-migrate.mjs
   - ../project/agentbox/docs/adr/ADR-2121-factrail-implements-jev-compaction.md
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 Registration ground truth (2026-09-29): `~/.claude/settings.json` is boot-generated and never tracked, so AB-08.1–AB-08.7
@@ -117,11 +117,11 @@ flowchart TB
 flowchart TB
     subgraph PP["workspace/profiles/#60;stack#62;/.claude/settings.json"]
     direction TB
-    P0["build_profile starts from learning_hooks#40;env, gates#41; stacks.rs:290, fn at :34,<br/>then appends floor, voicelink, session-plane (:324-334) and activity-sink entries :293-337, writes hooks at :350<br/>see AB-08.16 for those four gated additions"]
+    P0["build_profile starts from learning_hooks#40;env, gates#41; stacks.rs:290, fn at :34,<br/>then appends floor, voicelink, session-plane (:327-337) and activity-sink entries :293-340, writes hooks at :353<br/>see AB-08.16 for those four gated additions"]
     P1["every learning_hooks entry is node ADAPTER action #124;#124; true<br/>stacks.rs:38, timeouts are SECONDS :29-30"]
     P2["PreToolUse stacks.rs:69<br/>Bash → pre-command t=5 :70<br/>Write#124;Edit#124;MultiEdit → pre-edit t=5 :71"]
     P3["PostToolUse :73<br/>Write#124;Edit#124;MultiEdit → post-edit t=10 :74<br/>Bash → post-command t=5 :75"]
-    P4["SessionStart → session-restore t=15 :77<br/>NO UserPromptSubmit entry: the per-profile route hook<br/>is RETIRED, comment stacks.rs:31-33, test :527-528"]
+    P4["SessionStart → session-restore t=15 :77<br/>NO UserPromptSubmit entry: the per-profile route hook<br/>is RETIRED, comment stacks.rs:31-33, test :530-531"]
     P5["SessionEnd :78 = session-end t=10 :43<br/>+ nostr summary hook when mobile_bridge, DETACHED via setsid :44-56<br/>+ ontology-monitor when ontology_monitor, also DETACHED t=10 :58-65"]
     P0 --> P1 --> P2 --> P3 --> P4 --> P5
     end
@@ -134,7 +134,7 @@ flowchart TB
     end
     subgraph INV["invariants and divergences"]
     direction TB
-    I1["INVARIANT: claude-flow-hook-adapter.cjs is wired ONLY per-profile<br/>through learning_hooks stacks.rs:290 into the file written at :350 — never into the root settings.json"]
+    I1["INVARIANT: claude-flow-hook-adapter.cjs is wired ONLY per-profile<br/>through learning_hooks stacks.rs:290 into the file written at :353 — never into the root settings.json"]
     I2["INVARIANT ADR-2068: the root ontology gap is closed —<br/>entrypoint-unified.sh:1770 registers and :1779-1783 retracts,<br/>so the off state leaves no trace"]
     I3["INVARIANT: a new hook is not wired by dropping a file in config/hooks/ —<br/>register it in the site that owns its session class<br/>hooks/README.md:99-102"]
     I1 --> I2 --> I3
@@ -154,7 +154,7 @@ sequenceDiagram
     participant SR as main<br/>agentbox/config/hooks/skill-route.cjs:29
     participant M as Model context
 
-    Note over U,M: root registrations: entrypoint-unified.sh:1705 mirror, :1910 turn-sink,<br/>:2210 dream-inbox, :2624 brain-ground, :2749 skill-route — five on this one event, plus the gated decline-recorder, session-state :1952 (ADR-2153) and activity-sink (AB-08.16).<br/>INVARIANT: stacks.rs learning_hooks registers no per-profile UserPromptSubmit route hook<br/>(stacks.rs:31-33, test :527-528) and only those gated additions add one — skill-route.cjs is the sole per-turn router (ADR-2091)
+    Note over U,M: root registrations: entrypoint-unified.sh:1705 mirror, :1910 turn-sink,<br/>:2210 dream-inbox, :2624 brain-ground, :2749 skill-route — five on this one event, plus the gated decline-recorder, session-state :1952 (ADR-2153) and activity-sink (AB-08.16).<br/>INVARIANT: stacks.rs learning_hooks registers no per-profile UserPromptSubmit route hook<br/>(stacks.rs:31-33, test :530-531) and only those gated additions add one — skill-route.cjs is the sole per-turn router (ADR-2091)
     U->>NM: node HOOK UserPromptSubmit, timeout 8 seconds<br/>entrypoint-unified.sh:1710
     NM->>NM: bodyForEvent#40;#41; checks mirroredEvents#40;#41; first, returns null if not listed<br/>nostr-live-mirror.cjs:290-291
     NM-->>U: DEFAULT: null body on UserPromptSubmit, egress skipped — only Stop is<br/>mirrored by default, DEFAULT_MIRROR_EVENTS :277, widen via AGENTBOX_LIVE_MIRROR_EVENTS :278-282, see AB-13.9
@@ -588,9 +588,9 @@ flowchart TB
     subgraph PROF["per-profile stack: stacks.rs build_profile rewrites the whole profile settings.json"]
     direction TB
     P1["floor entries appended when gates.floor<br/>stacks.rs:293-308, WORKSPACE inlined by sh_quote :82-84"]
-    P2["voicelink entries appended when gates.voicelink_record<br/>stacks.rs:311-323, constants :180-185"]
-    P4["session-state entries appended when gates.session_plane, timeout 3, no WORKSPACE inlined<br/>stacks.rs:324-334"]
-    P3["add_activity_sink_hooks when gates.activity_sink is Some<br/>stacks.rs:95-138, call :335-337, profile name becomes the actor label :99-104"]
+    P2["voicelink entries appended when gates.voicelink_record<br/>stacks.rs:311-326, constants :179-185"]
+    P4["session-state entries appended when gates.session_plane, timeout 3, no WORKSPACE inlined<br/>stacks.rs:327-337"]
+    P3["add_activity_sink_hooks when gates.activity_sink is Some<br/>stacks.rs:95-138, call :338-340, profile name becomes the actor label :99-104"]
     end
     subgraph GATE["gate derivation, stacks_env.rs"]
     direction TB
@@ -611,7 +611,7 @@ flowchart TB
     NOTE1["INVARIANT: decline-recorder never blocks a turn, it exits 0 with nothing on stdout<br/>decline-recorder.cjs:42-44"]
     NOTE2["INVARIANT: activity-sink prints nothing on stdout, exits 0 always, under a hard deadline<br/>activity-sink.cjs:43-45, :327"]
     NOTE3["TENSION: ADR-2151 is decision_status proposed, implementation none, activation inactive<br/>ADR-2151-voicelink-edge-voice.md:5-7, yet voicelink enabled = true registers hooks on every boot<br/>agentbox.toml:2226"]
-    NOTE4["OPEN: ADR-2146 is decision_status proposed with implementation complete, activation inactive<br/>ADR-2146-activity-sink-hook.md:5-7, and the shipped manifest leaves the gate off agentbox.toml:529"]
+    NOTE4["OPEN: ADR-2146 is decision_status accepted (was proposed) with implementation complete, activation inactive<br/>ADR-2146-activity-sink-hook.md:5-7, and the shipped manifest leaves the gate off agentbox.toml:529"]
     ROOT --> NOTE1
     PROF --> NOTE2
     ROOT --> NOTE3
@@ -624,7 +624,7 @@ flowchart TB
 
 **Tension (ADR-2151 vs manifest):** ADR-2151 is `decision_status: proposed`, `implementation_status: none` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`) while `[voicelink] enabled = true` and `record_events = true` register the recorder hooks on every boot (`../project/agentbox/agentbox.toml:2226`, `../project/agentbox/agentbox.toml:2233`).
 
-**Open:** ADR-2146 is `decision_status: proposed` with `implementation_status: complete` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2146-activity-sink-hook.md:5-7`); is the sink meant to ship enabled anywhere, given the manifest leaves it off with an empty `url` (`../project/agentbox/agentbox.toml:529`)?
+**Open (status moved 2026-10-30):** ADR-2146 is now `decision_status: accepted` with `implementation_status: complete` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2146-activity-sink-hook.md:5-7`), so only activation remains open; is the sink meant to ship enabled anywhere, given the manifest leaves it off with an empty `url` (`../project/agentbox/agentbox.toml:529`)?
 
 **Debt:** each of the four registrations exists as two hand-kept implementations, entrypoint JavaScript and `stacks.rs`, and the entrypoint comment names the Rust file as the "per-profile twin" (`../project/agentbox/config/entrypoint-unified.sh:2159-2167`).
 

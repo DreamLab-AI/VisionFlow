@@ -42,7 +42,7 @@ sources:
   - ../project/src/actors/client_filter.rs
   - ../project/src/uri/mod.rs
   - ../project/src/config/security_profile.rs
-verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
+verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
 ---
 
 ## VC-03.1 REST request end-to-end — nginx to handler, real middleware order

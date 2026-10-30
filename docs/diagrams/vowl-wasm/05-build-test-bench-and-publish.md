@@ -19,7 +19,7 @@ sources:
   - ../vowl-wasm/docs/release-inventory.json
   - ../vowl-wasm/docs/UPSTREAMS.md
   - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
-verified_commit: 89d1a0a32eec16e79a7fa507eaa6f8fcb92e4f0b
+verified_commit: 28af4365a68d9aacfd7c04f63299cc96ad717ce3
 ---
 
 ## VW-05.1 CI — job graph on push/PR/weekly cron
@@ -142,4 +142,4 @@ flowchart TB
 ```
 
 **What it shows.** A private Rust tool binds the crate version, tag, features, compilers and every source file to a reviewed inventory, and the release workflow runs it before building and again when packaging, so a browser tarball cannot ship stale licence notices.
-**Why it is this way.** The frozen 0.2.0 tarball carried only the project and WebVOWL licences; full third-party notices were added as a separate public asset rather than by overwriting an immutable release (docs/UPSTREAMS.md:3, tools/release-inventory/README.md:18-22).
+**Why it is this way.** Full third-party notices ship as a separate public asset per release rather than by overwriting an immutable tarball, and existing frozen assets stay tied to their original source and digest (docs/UPSTREAMS.md:3, tools/release-inventory/README.md:18-22). The inventory now binds the 0.2.2 release: tag `v0.2.2`, layout source `567d661b3f5614080fc2c8897ab6091af40feefc`, with a Cargo closure identical to 0.2.0 so only this crate's own version changed (docs/UPSTREAMS.md:3, docs/release-inventory.json:2-3). The earlier statement that the 0.2.0 tarball carried only the project and WebVOWL licences is not restated at this pin and is not confirmed here.

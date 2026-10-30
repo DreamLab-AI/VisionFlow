@@ -19,7 +19,7 @@ sources:
   - ../project/agentbox/services/secret-backup/src/main.rs
   - ../project/agentbox/docs/archive/adr/ADR-024-setup-dashboard.md
   - ../project/agentbox/docs/BASELINE-container.md
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-30.2 setup/server — compiled binary or nothing (legacy-ADR-024 D1 superseded in the launcher)

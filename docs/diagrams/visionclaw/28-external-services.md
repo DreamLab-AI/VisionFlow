@@ -28,22 +28,22 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
   - ../project/crates/visionclaw-jev/src/config.rs
   - ../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
 ---
 ## VC-28.1 ragflow_service — outbound RAGFlow agent API
 ```mermaid
 sequenceDiagram
     autonumber
     participant H as ragflow_handler
-    participant RS as RAGFlowService<br/>src/services/ragflow_service.rs:101
+    participant RS as RAGFlowService<br/>src/services/ragflow_service.rs:102
     participant ENV as env
     participant RF as RAGFlow API<br/>base_url/api/v1/agents
 
-    H->>RS: RAGFlowService::new(settings)<br/>src/services/ragflow_service.rs:135
-    RS->>ENV: config_from(env RAGFLOW_API_KEY, RAGFLOW_API_BASE_URL, RAGFLOW_AGENT_ID):138-142
-    alt key absent, empty or blank (config_from :119-121)
+    H->>RS: RAGFlowService::new(settings)<br/>src/services/ragflow_service.rs:136
+    RS->>ENV: config_from(env RAGFLOW_API_KEY, RAGFLOW_API_BASE_URL, RAGFLOW_AGENT_ID):139-143
+    alt key absent, empty or blank (config_from :120-122)
         RS-->>H: Err RAGFlowError::NotConfigured - the chat service is optional, startup logs one WARN<br/>and leaves ragflow_service None
-    else key set but base URL or agent id blank (:122-131)
+    else key set but base URL or agent id blank (:123-132)
         RS-->>H: Err RAGFlowError::ParseError - startup logs an error and leaves ragflow_service None
     else all present
         RS-->>H: Ok(RAGFlowService{client,api_key,base_url,agent_id})
@@ -51,39 +51,39 @@ sequenceDiagram
 
     rect rgb(225,230,250)
     Note over RS,RF: trust boundary - outbound HTTPS to configured RAGFLOW_API_BASE_URL
-    H->>RS: create_session(user_id) - :158
-    RS->>RF: POST {base_url}/api/v1/agents/{agent_id}/sessions?user_id=.. - :170<br/>header Authorization Bearer api_key
-    alt status is_success - :180
+    H->>RS: create_session(user_id) - :159
+    RS->>RF: POST {base_url}/api/v1/agents/{agent_id}/sessions?user_id=.. - :171<br/>header Authorization Bearer api_key
+    alt status is_success - :181
         RF-->>RS: 200 {data:{id}}
-        RS-->>H: Ok(session_id) via result[data][id] - :184
-    else non-2xx - :193
+        RS-->>H: Ok(session_id) via result[data][id] - :185
+    else non-2xx - :194
         RF-->>RS: status + body
-        RS-->>H: Err StatusError(status,body) - :199
-    else JSON missing data.id - :186
-        RS-->>H: Err ParseError(Failed to parse session ID) - :188
+        RS-->>H: Err StatusError(status,body) - :200
+    else JSON missing data.id - :187
+        RS-->>H: Err ParseError(Failed to parse session ID) - :189
     end
     end
 
     rect rgb(225,230,250)
-    H->>RS: send_chat_message(session_id,message,stream_preference) - :343
-    RS->>RF: POST {base_url}/api/v1/agents/{agent_id}/completions - :367<br/>CompletionRequest{question,stream,session_id,sync_dsl:false}
-    alt !status.is_success - :377
+    H->>RS: send_chat_message(session_id,message,stream_preference) - :344
+    RS->>RF: POST {base_url}/api/v1/agents/{agent_id}/completions - :368<br/>CompletionRequest{question,stream,session_id,sync_dsl:false}
+    alt !status.is_success - :378
         RF-->>RS: status + body
-        RS-->>H: Err StatusError - :383
-    else stream_preference=false - :386
+        RS-->>H: Err StatusError - :384
+    else stream_preference=false - :387
         RF-->>RS: 200 {data:{answer,session_id}}
-        alt data.answer present - :396-400
-            RS-->>H: Ok(ChatResponse::Buffered{answer,session_id}) - :414
-        else data.answer missing - :401-404
-            RS-->>H: Err ParseError Answer not found in non-streamed RAGFlow response - :402-404
+        alt data.answer present - :397-401
+            RS-->>H: Ok(ChatResponse::Buffered{answer,session_id}) - :415
+        else data.answer missing - :402-405
+            RS-->>H: Err ParseError Answer not found in non-streamed RAGFlow response - :403-405
         end
-        Note right of RS: DOC-CORRECTED 2026-09-05: the missing-answer ParseError branch is now drawn<br/>code at ragflow_service.rs:396-405 was already correct - the diagram omitted it
-    else stream_preference=true - :419
+        Note right of RS: DOC-CORRECTED 2026-09-05: the missing-answer ParseError branch is now drawn<br/>code at ragflow_service.rs:397-406 was already correct - the diagram omitted it
+    else stream_preference=true - :420
         RF-->>RS: SSE bytes_stream "data: {...}"
-        loop each SSE line - :427
-            RS->>RS: parse JSON, extract data.answer chunk - :446-456
+        loop each SSE line - :428
+            RS->>RS: parse JSON, extract data.answer chunk - :447-457
         end
-        RS-->>H: Ok(ChatResponse::Streaming(byte_stream)) - :480
+        RS-->>H: Ok(ChatResponse::Streaming(byte_stream)) - :481
     end
     end
     Note over H,RS: startup maps NotConfigured to one WARN and any other error to an error log, both leaving ragflow_service None - src/main.rs:431-444
@@ -383,7 +383,7 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     subgraph app["visionclaw_container"]
-        RS["RAGFlowService<br/>ragflow_service.rs:101"]
+        RS["RAGFlowService<br/>ragflow_service.rs:102"]
         PS["PerplexityService<br/>perplexity_service.rs:35"]
         IG["image_gen_handler<br/>submit_image_job:628"]
         AG["image_gen_handler<br/>agent_submit_image_job:732"]
@@ -409,7 +409,7 @@ flowchart LR
     SS -->|"TTS - degraded: audio chunk skipped, chat continues"| PT
     SS -->|"STT - degraded: transcription dropped"| WHI
     SS -->|"voice-command relay - degraded: spoken error reply"| MCPS
-    JV["Jev hub (opt-in)<br/>12 decision items: library default off, but the supplied Compose environment sets VISIONCLAW_JEV=1 for every item<br/>docs/reference/configuration.md:411-413, docker-compose.unified.yml:21<br/>OPEN: CONFIGURED, not live - takes effect when the new agentbox image is activated and the container is recreated (ADR-2148 staged)<br/>docs/BASELINE-architecture.md:42-51, docs/adr/ADR-2148-enable-local-typed-decisions.md:7"]
+    JV["Jev hub (opt-in)<br/>12 decision items: library default off, but the supplied Compose environment sets VISIONCLAW_JEV=1 for every item<br/>docs/reference/configuration.md:411-413, docker-compose.unified.yml:21<br/>RESOLVED 2026-10-30 (activation): configured and live - VisionClaw ADR-2148 is accepted / complete / live after the agentbox rebuild and the host recreate (close-out docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91); docs/BASELINE-architecture.md:50-52 agrees<br/> docs/adr/ADR-2148-enable-local-typed-decisions.md:7"]
     JEP["System One endpoint, first match wins:<br/>VISIONCLAW_JEV_ENDPOINT (an override only: Compose supplies none and the laya systemone:8097 pins are gone), else the agentbox proxy<br/>agentbox:8094, model jev-latest, BACKEND_LOCAL=0 (docker-compose.unified.yml:7-11), else api.typesafe.ai with TYPESAFE_API_KEY, else none<br/>docs/reference/configuration.md:461-466, crates/visionclaw-jev/src/config.rs:308-357<br/>the four local-only items (memory rerank, patch rank, ingest suggest, proposal triage) take the proxy because ALLOW_CLOUD=1 (docker-compose.unified.yml:22, crates/visionclaw-jev/src/config.rs:303-305, :326)<br/>DOC-DRIFT: configuration.md:464 still calls the proxy loopback, while compose reaches it over visionclaw_network (docs/reference/configuration.md:418-421)"]
     AB["agentbox System One proxy - holds the vendor key, no Authorization sent by consumers<br/>bind 0.0.0.0:8094 with network = true: private docker networks only, never published, agentbox.toml:893-894<br/>refuses any request with an Origin header or a non-JSON content type, system-one-proxy/src/server.rs:151-170<br/>backend = typesafe (cloud), laya stays the opt-in local_backend, local_only = [], agentbox.toml:891-895"]
     TS["api.typesafe.ai - the selected cloud backend<br/>agentbox's own consumers listed in [system_one].local_only are routed to laya or switched off, never sent here (services/agentbox-manifest/src/system_one.rs:518-562)<br/>a VisionClaw item stays local only with ALLOW_CLOUD=0, JEV_LOCAL=1 and a local endpoint (docs/reference/configuration.md:423-426)"]

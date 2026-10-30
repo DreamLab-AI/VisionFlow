@@ -70,7 +70,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/docker-compose.system-one.yml
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
 ---
 ## ES-09.1 The host-vs-container build trap — wrong path vs sanctioned path
 ```mermaid
@@ -151,6 +151,7 @@ sequenceDiagram
     else stamp up to date
         W->>W: skip cargo scripts/rust-backend-wrapper.sh:107
     end
+    Note over W: ADR-2156 (2026-10-29) - a failed build is retried after cleaning the root<br/>package only, never a full cargo clean, so compiled dependencies survive,<br/>scripts/rust-backend-wrapper.sh:119-124. The dev-runtime profile also drops<br/>cross-crate LTO, so the dev loop is no longer a single-core fat-LTO link.<br/>build.rs declares .git/HEAD only when it exists, build.rs:38-39
     W->>DC: exec visionclaw-server
     Dev->>CC: sudo docker exec visionclaw_container curl localhost:4000/api/health
     CC->>DC: docker exec (socket path, no bind resolution — safe from CC)
@@ -308,7 +309,7 @@ flowchart TB
         CLOUDFLARED["cloudflared<br/>docker-compose.unified.yml:339, image cloudflare/cloudflared at a pinned<br/>digest :342, its OWN profile tunnel docker-compose.unified.yml:358-359 (ADR-2119)<br/>depends_on visionclaw OR visionclaw-production (optional)"]
         LOOM["loom<br/>docker-compose.unified.yml:382, image loom:rust built outside this repo :384<br/>loom compose profile docker-compose.unified.yml:453-454<br/>host port 8090 to container port 8080 docker-compose.unified.yml:438<br/>hostname loom :385, alias ontology-loom docker-compose.unified.yml:443"]
         CODESCAPE["codescape (ADR-2143, opt-in profile codescape)<br/>the Codescape submodule built and run as a sidecar on port 4100,<br/>ingest token as a compose secret<br/>docker-compose.unified.yml:463-476, docker-compose.unified.yml:659-660,<br/>docker-compose.unified.yml:668-669"]
-        SYS1["System One (ADR-2148, amended 2026-10-30): the x-system-one-environment anchor, docker-compose.unified.yml:2-11,<br/>is merged into the VisionClaw common environment :14,22, loom :387-395 and codescape :475,505. All three<br/>reach the agentbox proxy agentbox:8094 with JEV_ALLOW_CLOUD default 1, not the laya facade systemone:8097<br/>(still an opt-in local backend, agentbox docker-compose.system-one.yml:3 and :106). Thresholds stay unset,<br/>so enablement accepts nothing autonomously. CONFIGURED: effective when the new agentbox image is activated<br/>and these services are recreated"]
+        SYS1["System One (VisionClaw ADR-2148, accepted / complete / live, close-out of ADR-2148-enable-local-typed-decisions, amended 2026-10-30): the x-system-one-environment anchor, docker-compose.unified.yml:2-11,<br/>is merged into the VisionClaw common environment :14,22, loom :387-395 and codescape :475,505. All three<br/>reach the agentbox proxy agentbox:8094 with JEV_ALLOW_CLOUD default 1, not the laya facade systemone:8097<br/>(still an opt-in local backend, agentbox docker-compose.system-one.yml:3 and :106). Thresholds stay unset,<br/>so enablement accepts nothing autonomously. LIVE: both activation conditions (the agentbox rebuild and the host recreate)<br/>happened on 2026-10-30, per the ADR-2148 close-out"]
     end
     subgraph EXTFILE["docker-compose.cloudflared.yml (standalone)"]
         CFSTANDALONE["cloudflared<br/>joins external visionclaw_network<br/>alias visionclaw-server:3001"]
@@ -416,7 +417,7 @@ flowchart TB
 
     subgraph SUBMOD["VisionClaw submodule pointer-bump"]
         GITMODULES[".gitmodules:1-3<br/>submodule agentbox<br/>url github.com/DreamLab-AI/agentbox.git<br/>.gitmodules:4-6<br/>submodule codescape (ADR-2143 A5, its own repository)<br/>url github.com/DreamLab-AI/codescape"]
-        SUBSTATUS["git submodule status<br/>7208f7e0d agentbox and c742770ce codescape at the stamped gitlinks<br/>a + prefix means the checkout differs from the index"]
+        SUBSTATUS["git submodule status<br/>e786197cc agentbox and e3b76f63e codescape at the stamped gitlinks<br/>a + prefix means the checkout differs from the index"]
         SUBUPDATE["cd agentbox and git checkout NEW_SHA<br/>then git add agentbox (records gitlink)"]
         SUBCOMMIT["git commit records new gitlink SHA<br/>in the VisionClaw superproject tree"]
     end

@@ -49,7 +49,7 @@ sources:
   - ../project/agentbox/management-api/routes/sessions-boundary.js
   - ../project/agentbox/management-api/routes/tasks.js
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
-verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
+verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
 ## AB-03.1 server.js boot part 1 — Fastify construction, hooks, static route registers

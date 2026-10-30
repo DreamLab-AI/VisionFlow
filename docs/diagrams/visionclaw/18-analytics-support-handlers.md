@@ -26,7 +26,7 @@ sources:
   - ../project/src/layout/scc.rs
   - ../project/docs/adr/ADR-2138-directed-cycles-are-a-server-analysis-with-one-adjacency.md
   - ../project/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md
-verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
+verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
 ---
 
 ## VC-18.1 /analytics scope — auth wrapper and route table
@@ -377,6 +377,6 @@ sequenceDiagram
     Note over CY: the default edge set is the same predicate the GPU DAG ranker uses (see VC-16.8), but the ranker does not call layout::scc
 ```
 
-**Tension (ADR-2138 vs code):** ADR-2138 is `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive` (`docs/adr/ADR-2138-directed-cycles-are-a-server-analysis-with-one-adjacency.md:5-7`), yet `GET /analytics/cycles` is registered and served (`src/handlers/api_handler/analytics/mod.rs:255`, `src/handlers/api_handler/analytics/cycles_handlers.rs:60`).
+**Tension (ADR-2138 vs code), RESOLVED at 7c953a40b:** ADR-2138 was `proposed` / `none` / `inactive` while `GET /analytics/cycles` was already registered and served. At the pin its frontmatter is `decision_status: proposed`, `implementation_status: complete`, `activation_status: staged` (`docs/adr/ADR-2138-directed-cycles-are-a-server-analysis-with-one-adjacency.md:5-7`), so the ledger now agrees with the code (`src/handlers/api_handler/analytics/mod.rs:255`, `src/handlers/api_handler/analytics/cycles_handlers.rs:60`). What remains open is ownership and activation: the decision is still `proposed` because the record reserves acceptance to the owner, and activation stays `staged` until the XR Shapes tab is first run on a headset against a live graph (its `review_trigger`, `docs/adr/ADR-2138-directed-cycles-are-a-server-analysis-with-one-adjacency.md:13`).
 
 **Debt:** `toggle_sssp` patches the live GPU parameters but does not write the toggle back to the settings store, as ADR-2140 records (`docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md:42`, `src/handlers/api_handler/analytics/sssp_handlers.rs:79`).

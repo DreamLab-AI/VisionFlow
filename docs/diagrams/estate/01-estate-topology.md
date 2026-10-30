@@ -54,7 +54,7 @@ sources:
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
   - ../project/agentbox/config/entrypoint-unified.sh
   - scripts/estate-health/roster.json
-verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc, visionflow: ff15faf83d82fef7f23d96da381c8ab78d0206b0}
+verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012}
 ---
 ## ES-01.1 Substrate map — the VisionClaw checkout's neighbourhood, not the whole estate
 ```mermaid
@@ -66,7 +66,7 @@ flowchart TB
     end
     VC -->|"embeds as submodule<br/>path=agentbox, .gitmodules:1-3<br/>no branch key — the pin is a bare gitlink"| AB
     VC -->|"second submodule, own repository and own Cargo workspace<br/>path=codescape, .gitmodules:4-6"| CS
-    AB -.->|"VisionClaw pushed-head gitlink: 7208f7e, equal to the agentbox stamp<br/>git ls-tree of the pushed head, agentbox<br/>codescape gitlink: c742770"| ABPIN["submodule pin"]
+    AB -.->|"VisionClaw pushed-head gitlink: e786197cc, an ancestor of the agentbox stamp 6500582df<br/>(only docs/ differs between them)<br/>git ls-tree of the pushed head, agentbox<br/>codescape gitlink: e3b76f63e"| ABPIN["submodule pin"]
 
     subgraph CRATE["Embedded as a Cargo dependency, not a checkout"]
         SPR["solid-pod-rs 0.5.0-alpha.17<br/>crates.io version, Cargo.toml:245<br/>feature solid-pod-embed (ADR-032 M3)"]
@@ -346,6 +346,9 @@ flowchart TB
     PRD -->|"three domain-separated keys, kind 38420,<br/>a second Multikey in the DID document<br/>INGRESS-identity.md:13"| IG
     PRD -->|"every settlement passes payment_settlement,<br/>durable budget, fail-closed, anchor-not-seal<br/>GOVERNANCE-capabilities.md:19"| GC
     PRD -.->|"the kind table gains the chain-plane kinds"| PR
+
+    FED["PROPOSED 2026-10-30 — ADR-2162 data-space federation section<br/>(VisionClaw ADR-2161): [mesh] sole reader, pinned peers,<br/>a node federation key and the dataspace URN crossing, not live<br/>agentbox/docs/PROTOCOL-registry.md:245"]
+    FED -.->|"a second proposed section; the rows above it are unchanged,<br/>agentbox/docs/PROTOCOL-registry.md:247"| PR
 
     RET["RETIRED — Lightning-first is superseded. x402 and l402<br/>classify but stay payable false permanently, and Lightning<br/>may return only as a bridge on-ramp<br/>agentbox/docs/developer/economy-loop.md:143"]
     PRD --> RET

@@ -24,7 +24,7 @@ sources:
   - ../project/docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md
   - ../project/crates/visionclaw-domain/src/models/edge.rs
   - ../project/src/services/inferred_edge_materialiser.rs
-verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
+verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
 ---
 
 ## VC-16.1 Node drag start — pin acquisition

@@ -32,7 +32,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-preview-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-search-worker/wrangler.toml
   - ../nostr-rust-forum/.github/workflows/ci.yml
-verified_commit: 9c36b6032640c89879ae52fe25da99493979a0b6
+verified_commit: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed
 ---
 
 ## NF-01.1 Twenty crates in four layers
@@ -88,8 +88,8 @@ flowchart TB
     MESH -.->|"README.md:60 dotted, configured peer routing<br/>relay-worker depends on it nostr-bbs-relay-worker/Cargo.toml:27"| RELAY
 
     N1["resolver 2, edition 2021, rust-version 1.85 nostr-rust-forum/Cargo.toml:2 nostr-rust-forum/Cargo.toml:67"]
-    N2["DIVERGENCE: the kit publishes on one beta channel but its path-dep versions are not one set - core beta.18<br/>nostr-rust-forum/Cargo.toml:188, config, mesh, rate-limit and jev beta.16 nostr-rust-forum/Cargo.toml:189-192,<br/>poker beta.15 nostr-rust-forum/Cargo.toml:194, ascii still beta.10 nostr-rust-forum/Cargo.toml:193;<br/>core declares beta.18 crates/nostr-bbs-core/Cargo.toml:3 and ascii beta.10 crates/nostr-bbs-ascii/Cargo.toml:3"]
-    N3["DOC-DRIFT ADR-2007 / BASELINE known-divergence: the Cargo.toml comment above the path deps still<br/>says published to crates.io as 1.0.0-beta.3 while the tree is on beta.18 nostr-rust-forum/Cargo.toml:187"]
+    N2["DIVERGENCE: the kit publishes on one beta channel but its path-dep versions are not one set - core beta.19<br/>nostr-rust-forum/Cargo.toml:188, config, mesh, rate-limit and jev beta.16 nostr-rust-forum/Cargo.toml:189-192,<br/>poker beta.15 nostr-rust-forum/Cargo.toml:194, ascii still beta.10 nostr-rust-forum/Cargo.toml:193;<br/>core declares beta.19 crates/nostr-bbs-core/Cargo.toml:3 and ascii beta.10 crates/nostr-bbs-ascii/Cargo.toml:3"]
+    N3["DOC-DRIFT ADR-2007 / BASELINE known-divergence: the Cargo.toml comment above the path deps still<br/>says published to crates.io as 1.0.0-beta.3 while the tree is on beta.19 nostr-rust-forum/Cargo.toml:187"]
     N4["nostr-bbs-zone-migrate is library-plus-native-binary only, so it still passes the wasm32 workspace<br/>check nostr-rust-forum/Cargo.toml:49-51; seals plaintext channel history into sealed-original<br/>envelopes, verifies, then purges the plaintext crates/nostr-bbs-zone-migrate/Cargo.toml:5"]
 ```
 
@@ -157,12 +157,13 @@ classDiagram
         nostr 0.44.7 nip04 nip44 nip59 nip98 : nostr-rust-forum/Cargo.toml:85
         worker 0.8 : nostr-rust-forum/Cargo.toml:98
         leptos 0.7 csr : nostr-rust-forum/Cargo.toml:88
-        k256 0.13.4 schnorr ecdh : nostr-rust-forum/Cargo.toml:104
+        k256 0.14.0 schnorr ecdh : nostr-rust-forum/Cargo.toml:104
+        p256 0.14.0 ecdsa : nostr-rust-forum/Cargo.toml:105
         passkey-types 0.3 : nostr-rust-forum/Cargo.toml:101
         comrak 0.38 : nostr-rust-forum/Cargo.toml:136
         image 0.24 pure-Rust decoders only : nostr-rust-forum/Cargo.toml:200
         rusqlite 0.37 bundled, test-only for the shared whitelist SQL : nostr-rust-forum/Cargo.toml:78
-        solid-pod-rs caret 0.5.0-alpha.14 core : nostr-rust-forum/Cargo.toml:185
+        solid-pod-rs caret 0.5.0-alpha.18 core : nostr-rust-forum/Cargo.toml:185
     }
     class SolidPodRs {
         wac : pod-worker acl
@@ -172,9 +173,11 @@ classDiagram
     }
     Workspace --> SolidPodRs
 
-    note for Workspace "TENSION ADR-2007 vs Cargo.toml: ADR-2007 and BASELINE invariant 6 say solid-pod-rs stays an EXACT (=) pin docs/adr/ADR-2007-kit-exact-pin-beta-channel.md:30, docs/BASELINE-architecture.md:192, but the manifest now declares a caret range under estate register ER-35 nostr-rust-forum/Cargo.toml:181-185; Cargo.lock still fixes what a build resolves"
+    note for Workspace "TENSION ADR-2007 vs Cargo.toml: ADR-2007 and BASELINE invariant 6 say solid-pod-rs stays an EXACT (=) pin docs/adr/ADR-2007-kit-exact-pin-beta-channel.md:30, docs/BASELINE-architecture.md:200, but the manifest now declares a caret range under estate register ER-35 nostr-rust-forum/Cargo.toml:181-185; Cargo.lock still fixes what a build resolves"
     note for SolidPodRs "EXTERNAL: the consumer surface is enumerated in docs/consumer-surface-map.md:14 - see the solid-pod-rs area (SP-*) and NF-04"
 ```
+
+**Drift:** the RUSTSEC-2026-0387 dependency bump is fixed on main (`1b27f79`): k256 and p256 are `0.14.0` (`../nostr-rust-forum/Cargo.toml:104-105`), solid-pod-rs is `0.5.0-alpha.18` (`../nostr-rust-forum/Cargo.toml:185`) and nostr-bbs-core is `1.0.0-beta.19` (`../nostr-rust-forum/Cargo.toml:188`), with `Cargo.lock` resolving crypto-bigint `0.7.10` and k256 `0.14.0`. Production is not fixed: the edge still runs kit `9c36b60`, which resolves crypto-bigint `0.5.5` and k256 `0.13.4`. The 0.14 line also needs a wasm32-only `getrandom` 0.4 dependency with the `wasm_js` feature (`../nostr-rust-forum/crates/nostr-bbs-core/Cargo.toml:60`).
 
 ## NF-01.5 Upstream `nostr` absorption — canary-first, nothing deleted
 
