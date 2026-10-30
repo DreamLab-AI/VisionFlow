@@ -1,5 +1,7 @@
 # Roadmap
 
+**2026-10-30 landing (latest):** ranked remaining work and drift-checked rows are in the [master TODO § Landing 2026-10-30](../../project/docs/TODO-unified.md#landing-2026-10-30); every parked ADR and blocker, with its reopen trigger, is in the [park register](registers/park-2026-10-30.md). Entries below are history.
+
 **2026-09-07 source-audit update:** See the [closeout sprint](estate-review/closeout/2026-09-07-sprint.md) for dependency order and acceptance; the VisionClaw master TODO remains the row-level board. New source evidence corrects several historical premises without declaring complete-system acceptance.
 
 
