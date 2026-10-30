@@ -1,0 +1,3577 @@
+{
+  "collected_at_utc": "2026-10-21T13:05:33.941788+00:00",
+  "scope": "14 website-listed/directly linked VisionFlow repos; PHP excluded at user request",
+  "repositories": [
+    {
+      "name": "VisionFlow",
+      "full_name": "DreamLab-AI/VisionFlow",
+      "default_branch": "main",
+      "head": "ac7a0e3558a92e85118ff91eecaf2006ffaa8527",
+      "actions_permissions": {
+        "enabled": true,
+        "allowed_actions": "all",
+        "sha_pinning_required": false
+      },
+      "branch_protected": false,
+      "rulesets": [],
+      "pages": {
+        "status": null,
+        "html_url": "https://www.visionflow.info/",
+        "source": {
+          "branch": "main",
+          "path": "/"
+        },
+        "build_type": "workflow",
+        "https_enforced": true
+      },
+      "workflows": [
+        {
+          "name": "Deploy to GitHub Pages",
+          "id": 280415967,
+          "state": "active",
+          "path": ".github/workflows/deploy.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39595267873,
+              "name": "Deploy to GitHub Pages",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "ac7a0e3558a92e85118ff91eecaf2006ffaa8527",
+              "event": "push",
+              "created_at": "2026-10-21T11:53:02Z",
+              "updated_at": "2026-10-21T11:53:39Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39595267873"
+            },
+            {
+              "id": 39595085897,
+              "name": "Deploy to GitHub Pages",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "909bd92b142d630f0cd62e9a14917154d31007a9",
+              "event": "push",
+              "created_at": "2026-10-21T11:51:36Z",
+              "updated_at": "2026-10-21T11:52:13Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39595085897"
+            },
+            {
+              "id": 39564939054,
+              "name": "Deploy to GitHub Pages",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "5b472ab817e9fd50dcaae073bf9314a3f0bc1aa8",
+              "event": "workflow_dispatch",
+              "created_at": "2026-10-21T07:51:23Z",
+              "updated_at": "2026-10-21T07:52:03Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39564939054"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/VisionFlow/blob/ac7a0e3558a92e85118ff91eecaf2006ffaa8527/.github/workflows/deploy.yml"
+        },
+        {
+          "name": "Fixture Drift Check",
+          "id": 281686134,
+          "state": "active",
+          "path": ".github/workflows/fixture-drift.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 34118988149,
+              "name": "Fixture Drift Check",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "2f2ca762e689ff9588955afd0a16276366f571d8",
+              "event": "push",
+              "created_at": "2026-09-07T11:54:05Z",
+              "updated_at": "2026-09-07T11:54:24Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34118988149"
+            },
+            {
+              "id": 34029408337,
+              "name": "Fixture Drift Check",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "a9be8ba3a3aeb2609d0901c27b63722374213514",
+              "event": "push",
+              "created_at": "2026-09-06T11:09:06Z",
+              "updated_at": "2026-09-06T11:09:23Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/34029408337"
+            },
+            {
+              "id": 26299230908,
+              "name": "Fixture Drift Check",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "3f07dc58c63c1007f1726ef0a5b092e5c0260ccf",
+              "event": "push",
+              "created_at": "2026-05-22T16:20:21Z",
+              "updated_at": "2026-05-22T16:20:30Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/26299230908"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/VisionFlow/blob/ac7a0e3558a92e85118ff91eecaf2006ffaa8527/.github/workflows/fixture-drift.yml"
+        },
+        {
+          "name": "Harness Fitness Gates",
+          "id": 309230396,
+          "state": "active",
+          "path": ".github/workflows/harness-fitness-gates.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39350039044,
+              "name": "Harness Fitness Gates",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "0454319ab8ed2f1df5755b78693205d98445161e",
+              "event": "push",
+              "created_at": "2026-10-20T00:50:43Z",
+              "updated_at": "2026-10-20T00:51:10Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39350039044"
+            },
+            {
+              "id": 39298442541,
+              "name": "Harness Fitness Gates",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "402754255718faa2371fb5d96780cef61b35e860",
+              "event": "push",
+              "created_at": "2026-10-19T17:56:56Z",
+              "updated_at": "2026-10-19T17:57:33Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39298442541"
+            },
+            {
+              "id": 39237044252,
+              "name": "Harness Fitness Gates",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "587ea80c619493bb73a5874f5283a456e41d2304",
+              "event": "push",
+              "created_at": "2026-10-19T10:22:52Z",
+              "updated_at": "2026-10-19T10:23:22Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39237044252"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/VisionFlow/blob/ac7a0e3558a92e85118ff91eecaf2006ffaa8527/.github/workflows/harness-fitness-gates.yml"
+        },
+        {
+          "name": "Diagram render gate (RES-b)",
+          "id": 309538655,
+          "state": "active",
+          "path": ".github/workflows/diagram-render.yml",
+          "latest_default_branch_runs": [],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/VisionFlow/blob/ac7a0e3558a92e85118ff91eecaf2006ffaa8527/.github/workflows/diagram-render.yml"
+        },
+        {
+          "name": "Self-description drift gate (RES-d)",
+          "id": 309538657,
+          "state": "active",
+          "path": ".github/workflows/drift-counter.yml",
+          "latest_default_branch_runs": [],
+          "latest_all_branch_runs": [
+            {
+              "id": 38867971830,
+              "name": "Self-description drift gate (RES-d)",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "docs/dream-engine-extraction",
+              "head_sha": "5e92587c2a24b253862cb8a78a64b00992ec4c9f",
+              "event": "pull_request",
+              "created_at": "2026-10-16T07:33:27Z",
+              "updated_at": "2026-10-16T07:33:45Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38867971830"
+            },
+            {
+              "id": 38867070403,
+              "name": "Self-description drift gate (RES-d)",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "docs/dream-engine-extraction",
+              "head_sha": "9b4b25cb4693c33704d698a3de332e5e2ef4e10d",
+              "event": "pull_request",
+              "created_at": "2026-10-16T07:25:00Z",
+              "updated_at": "2026-10-16T07:25:19Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38867070403"
+            },
+            {
+              "id": 38332281392,
+              "name": "Self-description drift gate (RES-d)",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "dream/build-pipeline-2026-10-13",
+              "head_sha": "7bb8f782663b9a91f7cbe484bccb989d581dd697",
+              "event": "pull_request",
+              "created_at": "2026-10-13T01:28:17Z",
+              "updated_at": "2026-10-13T01:28:36Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/38332281392"
+            }
+          ],
+          "source_url": "https://github.com/DreamLab-AI/VisionFlow/blob/ac7a0e3558a92e85118ff91eecaf2006ffaa8527/.github/workflows/drift-counter.yml"
+        },
+        {
+          "name": "Copyright Source Guard",
+          "id": 310759730,
+          "state": "active",
+          "path": ".github/workflows/copyright-guard.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39595268031,
+              "name": "Copyright Source Guard",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "ac7a0e3558a92e85118ff91eecaf2006ffaa8527",
+              "event": "push",
+              "created_at": "2026-10-21T11:53:02Z",
+              "updated_at": "2026-10-21T11:53:15Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39595268031"
+            },
+            {
+              "id": 39595085997,
+              "name": "Copyright Source Guard",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "909bd92b142d630f0cd62e9a14917154d31007a9",
+              "event": "push",
+              "created_at": "2026-10-21T11:51:36Z",
+              "updated_at": "2026-10-21T11:51:57Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39595085997"
+            },
+            {
+              "id": 39450108386,
+              "name": "Copyright Source Guard",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "0ce39c0ccd5aeaecf17fc21095006043580a664b",
+              "event": "push",
+              "created_at": "2026-10-20T15:37:20Z",
+              "updated_at": "2026-10-20T15:37:34Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39450108386"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/VisionFlow/blob/ac7a0e3558a92e85118ff91eecaf2006ffaa8527/.github/workflows/copyright-guard.yml"
+        },
+        {
+          "name": "ADR frontmatter gate",
+          "id": 346658399,
+          "state": "active",
+          "path": ".github/workflows/adr-index.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39350039265,
+              "name": "ADR frontmatter gate",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "0454319ab8ed2f1df5755b78693205d98445161e",
+              "event": "push",
+              "created_at": "2026-10-20T00:50:43Z",
+              "updated_at": "2026-10-20T00:51:02Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39350039265"
+            },
+            {
+              "id": 39298442537,
+              "name": "ADR frontmatter gate",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "402754255718faa2371fb5d96780cef61b35e860",
+              "event": "push",
+              "created_at": "2026-10-19T17:56:56Z",
+              "updated_at": "2026-10-19T17:57:23Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39298442537"
+            },
+            {
+              "id": 39029507390,
+              "name": "ADR frontmatter gate",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "fee91ebcdfba0e553e6a3f2cc705e2c6924cc052",
+              "event": "push",
+              "created_at": "2026-10-17T11:39:02Z",
+              "updated_at": "2026-10-17T11:39:18Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39029507390"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/VisionFlow/blob/ac7a0e3558a92e85118ff91eecaf2006ffaa8527/.github/workflows/adr-index.yml"
+        },
+        {
+          "name": "Nightly estate health",
+          "id": 351760807,
+          "state": "active",
+          "path": ".github/workflows/estate-health.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39564883739,
+              "name": "Nightly estate health",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "0ce39c0ccd5aeaecf17fc21095006043580a664b",
+              "event": "schedule",
+              "created_at": "2026-10-21T07:50:55Z",
+              "updated_at": "2026-10-21T07:51:27Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39564883739"
+            },
+            {
+              "id": 39388804984,
+              "name": "Nightly estate health",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "0454319ab8ed2f1df5755b78693205d98445161e",
+              "event": "schedule",
+              "created_at": "2026-10-20T07:47:00Z",
+              "updated_at": "2026-10-20T07:47:41Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39388804984"
+            },
+            {
+              "id": 39219364071,
+              "name": "Nightly estate health",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "fbcfe0063dc697e42bb5fb9f47bb615b6b086d93",
+              "event": "schedule",
+              "created_at": "2026-10-19T07:57:21Z",
+              "updated_at": "2026-10-19T07:57:47Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39219364071"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/VisionFlow/blob/ac7a0e3558a92e85118ff91eecaf2006ffaa8527/.github/workflows/estate-health.yml"
+        },
+        {
+          "name": "Diagrams-as-code index gate",
+          "id": 352179114,
+          "state": "active",
+          "path": ".github/workflows/diagram-index.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39450108355,
+              "name": "Diagrams-as-code index gate",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "0ce39c0ccd5aeaecf17fc21095006043580a664b",
+              "event": "push",
+              "created_at": "2026-10-20T15:37:20Z",
+              "updated_at": "2026-10-20T15:37:36Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39450108355"
+            },
+            {
+              "id": 39444558572,
+              "name": "Diagrams-as-code index gate",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "af3d8eadb8ea94941147eea4f690ff52ba8b13a9",
+              "event": "push",
+              "created_at": "2026-10-20T15:01:15Z",
+              "updated_at": "2026-10-20T15:01:32Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39444558572"
+            },
+            {
+              "id": 39234169734,
+              "name": "Diagrams-as-code index gate",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "a9f6ed6185db27e0c9006453bb2e1516594a72f6",
+              "event": "push",
+              "created_at": "2026-10-19T09:59:35Z",
+              "updated_at": "2026-10-19T09:59:59Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39234169734"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/VisionFlow/blob/ac7a0e3558a92e85118ff91eecaf2006ffaa8527/.github/workflows/diagram-index.yml"
+        }
+      ],
+      "deployments": [
+        {
+          "environment": "github-pages",
+          "created_at": "2026-10-21T11:53:27Z",
+          "ref": "main",
+          "sha": "ac7a0e3558a92e85118ff91eecaf2006ffaa8527",
+          "state": "success",
+          "environment_url": "https://www.visionflow.info/",
+          "log_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/39595267873/job/119206058868"
+        }
+      ],
+      "releases": []
+    },
+    {
+      "name": "VisionClaw",
+      "full_name": "DreamLab-AI/VisionClaw",
+      "default_branch": "main",
+      "head": "d84d0e29ae1a7fc7f91beb689f4d871f2aca35b2",
+      "actions_permissions": {
+        "enabled": true,
+        "allowed_actions": "all",
+        "sha_pinning_required": false
+      },
+      "branch_protected": false,
+      "rulesets": [],
+      "pages": {
+        "status": null,
+        "html_url": "https://dreamlab-ai.github.io/VisionClaw/",
+        "source": {
+          "branch": "main",
+          "path": "/"
+        },
+        "build_type": "workflow",
+        "https_enforced": true
+      },
+      "workflows": [
+        {
+          "name": "CI",
+          "id": 113685553,
+          "state": "active",
+          "path": ".github/workflows/ci.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 37822615957,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "52851ce4f6d943d440cfa762927157176a1effbf",
+              "event": "push",
+              "created_at": "2026-10-08T18:13:30Z",
+              "updated_at": "2026-10-08T18:17:30Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/37822615957"
+            },
+            {
+              "id": 37822597936,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "cancelled",
+              "head_branch": "main",
+              "head_sha": "51829b2ecefcd8f72cf71e7d0fd7c1cf20bcdd53",
+              "event": "push",
+              "created_at": "2026-10-08T18:13:22Z",
+              "updated_at": "2026-10-08T18:13:32Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/37822597936"
+            },
+            {
+              "id": 37822105638,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "cancelled",
+              "head_branch": "main",
+              "head_sha": "b06ef5779443fb22d450a73f99efccb9a94f9d7f",
+              "event": "push",
+              "created_at": "2026-10-08T18:09:30Z",
+              "updated_at": "2026-10-08T18:13:41Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/37822105638"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/VisionClaw/blob/d84d0e29ae1a7fc7f91beb689f4d871f2aca35b2/.github/workflows/ci.yml"
+        },
+        {
+          "name": "Documentation Quality CI",
+          "id": 217445213,
+          "state": "active",
+          "path": ".github/workflows/docs-ci.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 37822105608,
+              "name": "Documentation Quality CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "b06ef5779443fb22d450a73f99efccb9a94f9d7f",
+              "event": "push",
+              "created_at": "2026-10-08T18:09:30Z",
+              "updated_at": "2026-10-08T18:13:05Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/37822105608"
+            },
+            {
+              "id": 37806368480,
+              "name": "Documentation Quality CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "7804863e39ce8f8044c95928e19bfe1a4eaf2a4e",
+              "event": "push",
+              "created_at": "2026-10-08T16:07:53Z",
+              "updated_at": "2026-10-08T16:11:30Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/37806368480"
+            },
+            {
+              "id": 37806335328,
+              "name": "Documentation Quality CI",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "4bd6cc49bd5f0c818200e9419a7d0d409a722db5",
+              "event": "push",
+              "created_at": "2026-10-08T16:07:38Z",
+              "updated_at": "2026-10-08T16:10:45Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/37806335328"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/VisionClaw/blob/d84d0e29ae1a7fc7f91beb689f4d871f2aca35b2/.github/workflows/docs-ci.yml"
+        },
+        {
+          "name": "Ontology Federation CI/CD",
+          "id": 219918546,
+          "state": "active",
+          "path": ".github/workflows/ontology-publish.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 36990473612,
+              "name": "Ontology Federation CI/CD",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "0402a1701344d4fcb50cf1592feba180931d3b25",
+              "event": "repository_dispatch",
+              "created_at": "2026-10-02T09:33:34Z",
+              "updated_at": "2026-10-02T09:38:41Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/36990473612"
+            },
+            {
+              "id": 36925533532,
+              "name": "Ontology Federation CI/CD",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "7b633060820cb50a6772fdf3b5035c292ea92854",
+              "event": "repository_dispatch",
+              "created_at": "2026-10-01T20:59:06Z",
+              "updated_at": "2026-10-01T21:03:20Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/36925533532"
+            },
+            {
+              "id": 36922325084,
+              "name": "Ontology Federation CI/CD",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "7b633060820cb50a6772fdf3b5035c292ea92854",
+              "event": "repository_dispatch",
+              "created_at": "2026-10-01T20:32:30Z",
+              "updated_at": "2026-10-01T20:36:39Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/36922325084"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/VisionClaw/blob/d84d0e29ae1a7fc7f91beb689f4d871f2aca35b2/.github/workflows/ontology-publish.yml"
+        },
+        {
+          "name": "Dependency Graph",
+          "id": 267699644,
+          "state": "active",
+          "path": "dynamic/dependabot/update-graph",
+          "latest_default_branch_runs": [
+            {
+              "id": 33743255188,
+              "name": "Graph Update: pip in /scripts/link-generation, /tests/integration #1554835717",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "3f71c79e2a46864334a4bc4c839743bab9712b5a",
+              "event": "dynamic",
+              "created_at": "2026-09-03T10:14:46Z",
+              "updated_at": "2026-09-03T10:15:29Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/33743255188"
+            },
+            {
+              "id": 26246787864,
+              "name": "Graph Update: pip in /multi-agent-docker/skills/cuda, /multi-agent-docker/skills/docs-alignment, /multi-agent-docker/skills/docs-alignment/scripts, /multi-agent-docker/skills/echoloop, /multi-agent-docker/skills/imagemagick/mcp-server, /multi-agent-docker/skills/ontology-core, /multi-agent-docker/skills/ontology-enrich, /multi-agent-docker/skills/qgis/mcp-server, /multi-agent-docker/skills/toprank, /multi-agent-docker/skills/web-summary/mcp-server #1378396354",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "e9bd77193cb9fa527471911c150c0bdc32f71254",
+              "event": "dynamic",
+              "created_at": "2026-05-21T18:57:55Z",
+              "updated_at": "2026-05-21T18:58:51Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/26246787864"
+            },
+            {
+              "id": 25971944064,
+              "name": "Graph Update: pip in /.venv/lib/python3.12/site-packages/numpy/_core/tests/examples/cython, /.venv/lib/python3.12/site-packages/numpy/_core/tests/examples/limited_api, /multi-agent-docker/skills/cuda, /multi-agent-docker/skills/docs-alignment, /multi-agent-docker/skills/docs-alignment/scripts, /multi-agent-docker/skills/echoloop, /multi-agent-docker/skills/imagemagick/mcp-server, /multi-agent-docker/skills/ontology-core, /multi-agent-docker/skills/ontology-enrich, /multi-agent-docker/skills/qgis/mcp-serv...",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "7471e81191b7d77a6099c2f307eeeedc33a5780c",
+              "event": "dynamic",
+              "created_at": "2026-05-16T20:20:39Z",
+              "updated_at": "2026-05-16T20:21:12Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/25971944064"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": null
+        },
+        {
+          "name": "XR Godot CI",
+          "id": 270226479,
+          "state": "active",
+          "path": ".github/workflows/xr-godot-ci.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 37822105994,
+              "name": "XR Godot CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "b06ef5779443fb22d450a73f99efccb9a94f9d7f",
+              "event": "push",
+              "created_at": "2026-10-08T18:09:30Z",
+              "updated_at": "2026-10-08T18:14:14Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/37822105994"
+            },
+            {
+              "id": 37792352167,
+              "name": "XR Godot CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "c7288300aae12965f064a395b46bec96c63548ee",
+              "event": "push",
+              "created_at": "2026-10-08T14:25:34Z",
+              "updated_at": "2026-10-08T14:31:11Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/37792352167"
+            },
+            {
+              "id": 37789348950,
+              "name": "XR Godot CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "9492f49de85ae769ca57cd7551da24fb80cbd5b4",
+              "event": "push",
+              "created_at": "2026-10-08T14:03:31Z",
+              "updated_at": "2026-10-08T14:09:09Z",
+              "html_url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/37789348950"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/VisionClaw/blob/d84d0e29ae1a7fc7f91beb689f4d871f2aca35b2/.github/workflows/xr-godot-ci.yml"
+        }
+      ],
+      "deployments": [
+        {
+          "environment": "production",
+          "created_at": "2026-09-06T16:25:15Z",
+          "ref": "main",
+          "sha": "416546ddfb544b6d0dab48f083d886fbef6f89a6",
+          "state": "failure",
+          "environment_url": "",
+          "log_url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/34045274894/job/101519389493"
+        },
+        {
+          "environment": "github-pages",
+          "created_at": "2026-01-02T19:18:15Z",
+          "ref": "main",
+          "sha": "fae122a4ec74351e0b167eb4f76e5c1a95428757",
+          "state": "failure",
+          "environment_url": "",
+          "log_url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/20664943133/job/59335206482"
+        }
+      ],
+      "releases": [
+        {
+          "tag": "ontology-latest",
+          "published_at": "2026-09-06T17:09:24Z",
+          "url": "https://github.com/DreamLab-AI/VisionClaw/releases/tag/ontology-latest",
+          "assets": [
+            {
+              "name": "context.jsonld",
+              "size": 6888
+            },
+            {
+              "name": "index.jsonld",
+              "size": 1131
+            },
+            {
+              "name": "ontology.jsonld",
+              "size": 16001986
+            },
+            {
+              "name": "SHA256SUMS",
+              "size": 411
+            },
+            {
+              "name": "visionflow.stats.json",
+              "size": 143
+            },
+            {
+              "name": "visionflow.ttl",
+              "size": 18221790
+            }
+          ]
+        }
+      ],
+      "ci_gap": {
+        "base": "52851ce4f6d943d440cfa762927157176a1effbf",
+        "head": "d84d0e29ae1a7fc7f91beb689f4d871f2aca35b2",
+        "status": "ahead",
+        "ahead_by": 179,
+        "total_commits": 179
+      }
+    },
+    {
+      "name": "agentbox",
+      "full_name": "DreamLab-AI/agentbox",
+      "default_branch": "main",
+      "head": "f9eb13b85ab4167612e847136a83048f0e92885d",
+      "actions_permissions": {
+        "enabled": true,
+        "allowed_actions": "all",
+        "sha_pinning_required": false
+      },
+      "branch_protected": false,
+      "rulesets": [],
+      "pages": null,
+      "workflows": [
+        {
+          "name": "Contract tests",
+          "id": 265457567,
+          "state": "active",
+          "path": ".github/workflows/contract-tests.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 37827204915,
+              "name": "Contract tests",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "27dbeeffaa4cc10bfc1d8f667c3af74ad1ef411e",
+              "event": "push",
+              "created_at": "2026-10-08T18:49:08Z",
+              "updated_at": "2026-10-08T18:50:44Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37827204915"
+            },
+            {
+              "id": 37821717802,
+              "name": "Contract tests",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "b0e8f2632de1b7a9533cad07572c02e84a1e34aa",
+              "event": "push",
+              "created_at": "2026-10-08T18:06:25Z",
+              "updated_at": "2026-10-08T18:08:12Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37821717802"
+            },
+            {
+              "id": 37601809548,
+              "name": "Contract tests",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "d556ef76fe40e591f45150c2a3018ea182aaffed",
+              "event": "push",
+              "created_at": "2026-10-07T09:36:44Z",
+              "updated_at": "2026-10-07T09:38:06Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37601809548"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/agentbox/blob/f9eb13b85ab4167612e847136a83048f0e92885d/.github/workflows/contract-tests.yml"
+        },
+        {
+          "name": "Secret Scan",
+          "id": 265457568,
+          "state": "active",
+          "path": ".github/workflows/secret-scan.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 37827204933,
+              "name": "Secret Scan",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "27dbeeffaa4cc10bfc1d8f667c3af74ad1ef411e",
+              "event": "push",
+              "created_at": "2026-10-08T18:49:08Z",
+              "updated_at": "2026-10-08T18:49:56Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37827204933"
+            },
+            {
+              "id": 37822611541,
+              "name": "Secret Scan",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "f2b4749ab24690a1fc628bc374547f8565b87daa",
+              "event": "push",
+              "created_at": "2026-10-08T18:13:28Z",
+              "updated_at": "2026-10-08T18:14:37Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37822611541"
+            },
+            {
+              "id": 37821717661,
+              "name": "Secret Scan",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "b0e8f2632de1b7a9533cad07572c02e84a1e34aa",
+              "event": "push",
+              "created_at": "2026-10-08T18:06:25Z",
+              "updated_at": "2026-10-08T18:07:13Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37821717661"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/agentbox/blob/f9eb13b85ab4167612e847136a83048f0e92885d/.github/workflows/secret-scan.yml"
+        },
+        {
+          "name": "Build and publish multi-arch image",
+          "id": 265667257,
+          "state": "active",
+          "path": ".github/workflows/build-multi-arch.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 26251007178,
+              "name": "Build and publish multi-arch image",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "c181d887433dbea8c5aef2aa415a6beb1730eda4",
+              "event": "push",
+              "created_at": "2026-05-21T20:23:18Z",
+              "updated_at": "2026-05-21T20:23:36Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/26251007178"
+            },
+            {
+              "id": 26246787935,
+              "name": "Build and publish multi-arch image",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "2607d28cdb6a2de46f39663649098ac549f8d574",
+              "event": "push",
+              "created_at": "2026-05-21T18:57:55Z",
+              "updated_at": "2026-05-21T18:58:13Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/26246787935"
+            },
+            {
+              "id": 26244786536,
+              "name": "Build and publish multi-arch image",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "eec8e833ab6a30150334b5f4fb70887fe5feaa6f",
+              "event": "push",
+              "created_at": "2026-05-21T18:18:34Z",
+              "updated_at": "2026-05-21T18:20:03Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/26244786536"
+            }
+          ],
+          "latest_all_branch_runs": [
+            {
+              "id": 26251007178,
+              "name": "Build and publish multi-arch image",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "c181d887433dbea8c5aef2aa415a6beb1730eda4",
+              "event": "push",
+              "created_at": "2026-05-21T20:23:18Z",
+              "updated_at": "2026-05-21T20:23:36Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/26251007178"
+            },
+            {
+              "id": 26246787935,
+              "name": "Build and publish multi-arch image",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "2607d28cdb6a2de46f39663649098ac549f8d574",
+              "event": "push",
+              "created_at": "2026-05-21T18:57:55Z",
+              "updated_at": "2026-05-21T18:58:13Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/26246787935"
+            },
+            {
+              "id": 26244786536,
+              "name": "Build and publish multi-arch image",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "eec8e833ab6a30150334b5f4fb70887fe5feaa6f",
+              "event": "push",
+              "created_at": "2026-05-21T18:18:34Z",
+              "updated_at": "2026-05-21T18:20:03Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/26244786536"
+            }
+          ],
+          "source_url": "https://github.com/DreamLab-AI/agentbox/blob/f9eb13b85ab4167612e847136a83048f0e92885d/.github/workflows/build-multi-arch.yml"
+        },
+        {
+          "name": "Nix flake check",
+          "id": 265667259,
+          "state": "active",
+          "path": ".github/workflows/flake-check.yml",
+          "latest_default_branch_runs": [],
+          "latest_all_branch_runs": [
+            {
+              "id": 37152123063,
+              "name": "Nix flake check",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "ruflo-memory-governed",
+              "head_sha": "211403364ce5addd2c2aaae7989422a05a16b9ad",
+              "event": "pull_request",
+              "created_at": "2026-10-03T20:36:05Z",
+              "updated_at": "2026-10-03T20:38:28Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37152123063"
+            },
+            {
+              "id": 37150242418,
+              "name": "Nix flake check",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "ruflo-memory-governed",
+              "head_sha": "2b2b0e0ffcd504aad714f8cd6cb911ba28f1957d",
+              "event": "pull_request",
+              "created_at": "2026-10-03T20:04:59Z",
+              "updated_at": "2026-10-03T20:07:26Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37150242418"
+            },
+            {
+              "id": 37149923431,
+              "name": "Nix flake check",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "ruflo-memory-governed",
+              "head_sha": "bf48a3ce1b43d54840bfa243d7f98cd44532caad",
+              "event": "pull_request",
+              "created_at": "2026-10-03T20:00:00Z",
+              "updated_at": "2026-10-03T20:02:28Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37149923431"
+            }
+          ],
+          "source_url": "https://github.com/DreamLab-AI/agentbox/blob/f9eb13b85ab4167612e847136a83048f0e92885d/.github/workflows/flake-check.yml"
+        },
+        {
+          "name": "nix-flake-update",
+          "id": 265682166,
+          "state": "active",
+          "path": ".github/workflows/nix-flake-update.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 37321594181,
+              "name": "nix-flake-update",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "25b4c7f57a8d2aaf176f7cb27f9f5397e48cdfaf",
+              "event": "schedule",
+              "created_at": "2026-10-05T14:03:10Z",
+              "updated_at": "2026-10-05T14:05:09Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37321594181"
+            },
+            {
+              "id": 36738132538,
+              "name": "nix-flake-update",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "34455a2fbccfdf1168046fa69ec3ff7595758757",
+              "event": "workflow_dispatch",
+              "created_at": "2026-09-30T15:37:18Z",
+              "updated_at": "2026-09-30T15:39:17Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/36738132538"
+            },
+            {
+              "id": 36427872017,
+              "name": "nix-flake-update",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "c118b64d18bce414b36f46086284d64b41d02f29",
+              "event": "schedule",
+              "created_at": "2026-09-28T13:20:05Z",
+              "updated_at": "2026-09-28T13:21:50Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/36427872017"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/agentbox/blob/f9eb13b85ab4167612e847136a83048f0e92885d/.github/workflows/nix-flake-update.yml"
+        },
+        {
+          "name": "TUI helper tests",
+          "id": 265687681,
+          "state": "active",
+          "path": ".github/workflows/tui-tests.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 37122113430,
+              "name": "TUI helper tests",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "8f55d9a435a1abdf6a2c77d362ba1379a8f2520f",
+              "event": "push",
+              "created_at": "2026-10-03T12:12:23Z",
+              "updated_at": "2026-10-03T12:12:57Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37122113430"
+            },
+            {
+              "id": 37120842838,
+              "name": "TUI helper tests",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "0110b5460654ec3cf0a43326124fca8389128e94",
+              "event": "push",
+              "created_at": "2026-10-03T11:48:49Z",
+              "updated_at": "2026-10-03T11:49:17Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37120842838"
+            },
+            {
+              "id": 37061894513,
+              "name": "TUI helper tests",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "d23d05b4b5206c3f8c5167c23251b5f6f3d06bd1",
+              "event": "push",
+              "created_at": "2026-10-02T20:38:37Z",
+              "updated_at": "2026-10-02T20:39:16Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37061894513"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/agentbox/blob/f9eb13b85ab4167612e847136a83048f0e92885d/.github/workflows/tui-tests.yml"
+        },
+        {
+          "name": "CI",
+          "id": 266022942,
+          "state": "active",
+          "path": ".github/workflows/ci.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 37827204989,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "27dbeeffaa4cc10bfc1d8f667c3af74ad1ef411e",
+              "event": "push",
+              "created_at": "2026-10-08T18:49:08Z",
+              "updated_at": "2026-10-08T18:50:34Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37827204989"
+            },
+            {
+              "id": 37822611385,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "f2b4749ab24690a1fc628bc374547f8565b87daa",
+              "event": "push",
+              "created_at": "2026-10-08T18:13:28Z",
+              "updated_at": "2026-10-08T18:14:53Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37822611385"
+            },
+            {
+              "id": 37821717780,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "b0e8f2632de1b7a9533cad07572c02e84a1e34aa",
+              "event": "push",
+              "created_at": "2026-10-08T18:06:25Z",
+              "updated_at": "2026-10-08T18:07:32Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37821717780"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/agentbox/blob/f9eb13b85ab4167612e847136a83048f0e92885d/.github/workflows/ci.yml"
+        },
+        {
+          "name": "Image scan and SBOM",
+          "id": 266022944,
+          "state": "active",
+          "path": ".github/workflows/image-scan.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 26251024061,
+              "name": "Image scan and SBOM",
+              "status": "completed",
+              "conclusion": "skipped",
+              "head_branch": "main",
+              "head_sha": "c181d887433dbea8c5aef2aa415a6beb1730eda4",
+              "event": "workflow_run",
+              "created_at": "2026-05-21T20:23:38Z",
+              "updated_at": "2026-05-21T20:23:39Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/26251024061"
+            },
+            {
+              "id": 26246806824,
+              "name": "Image scan and SBOM",
+              "status": "completed",
+              "conclusion": "skipped",
+              "head_branch": "main",
+              "head_sha": "2607d28cdb6a2de46f39663649098ac549f8d574",
+              "event": "workflow_run",
+              "created_at": "2026-05-21T18:58:17Z",
+              "updated_at": "2026-05-21T18:58:18Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/26246806824"
+            },
+            {
+              "id": 26244862061,
+              "name": "Image scan and SBOM",
+              "status": "completed",
+              "conclusion": "skipped",
+              "head_branch": "main",
+              "head_sha": "eec8e833ab6a30150334b5f4fb70887fe5feaa6f",
+              "event": "workflow_run",
+              "created_at": "2026-05-21T18:20:06Z",
+              "updated_at": "2026-05-21T18:20:07Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/26244862061"
+            }
+          ],
+          "latest_all_branch_runs": [
+            {
+              "id": 26251024061,
+              "name": "Image scan and SBOM",
+              "status": "completed",
+              "conclusion": "skipped",
+              "head_branch": "main",
+              "head_sha": "c181d887433dbea8c5aef2aa415a6beb1730eda4",
+              "event": "workflow_run",
+              "created_at": "2026-05-21T20:23:38Z",
+              "updated_at": "2026-05-21T20:23:39Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/26251024061"
+            },
+            {
+              "id": 26246806824,
+              "name": "Image scan and SBOM",
+              "status": "completed",
+              "conclusion": "skipped",
+              "head_branch": "main",
+              "head_sha": "2607d28cdb6a2de46f39663649098ac549f8d574",
+              "event": "workflow_run",
+              "created_at": "2026-05-21T18:58:17Z",
+              "updated_at": "2026-05-21T18:58:18Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/26246806824"
+            },
+            {
+              "id": 26244862061,
+              "name": "Image scan and SBOM",
+              "status": "completed",
+              "conclusion": "skipped",
+              "head_branch": "main",
+              "head_sha": "eec8e833ab6a30150334b5f4fb70887fe5feaa6f",
+              "event": "workflow_run",
+              "created_at": "2026-05-21T18:20:06Z",
+              "updated_at": "2026-05-21T18:20:07Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/26244862061"
+            }
+          ],
+          "source_url": "https://github.com/DreamLab-AI/agentbox/blob/f9eb13b85ab4167612e847136a83048f0e92885d/.github/workflows/image-scan.yml"
+        },
+        {
+          "name": "Manifest validate",
+          "id": 266022945,
+          "state": "active",
+          "path": ".github/workflows/manifest-validate.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 37827204956,
+              "name": "Manifest validate",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "27dbeeffaa4cc10bfc1d8f667c3af74ad1ef411e",
+              "event": "push",
+              "created_at": "2026-10-08T18:49:08Z",
+              "updated_at": "2026-10-08T18:50:06Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37827204956"
+            },
+            {
+              "id": 37821717709,
+              "name": "Manifest validate",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "b0e8f2632de1b7a9533cad07572c02e84a1e34aa",
+              "event": "push",
+              "created_at": "2026-10-08T18:06:25Z",
+              "updated_at": "2026-10-08T18:07:10Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37821717709"
+            },
+            {
+              "id": 37601809576,
+              "name": "Manifest validate",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "d556ef76fe40e591f45150c2a3018ea182aaffed",
+              "event": "push",
+              "created_at": "2026-10-07T09:36:44Z",
+              "updated_at": "2026-10-07T09:37:38Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37601809576"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/agentbox/blob/f9eb13b85ab4167612e847136a83048f0e92885d/.github/workflows/manifest-validate.yml"
+        },
+        {
+          "name": "Release",
+          "id": 266022947,
+          "state": "active",
+          "path": ".github/workflows/release.yml",
+          "latest_default_branch_runs": [],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/agentbox/blob/f9eb13b85ab4167612e847136a83048f0e92885d/.github/workflows/release.yml"
+        },
+        {
+          "name": "ShellCheck",
+          "id": 266022949,
+          "state": "active",
+          "path": ".github/workflows/shellcheck.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 37827204909,
+              "name": "ShellCheck",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "27dbeeffaa4cc10bfc1d8f667c3af74ad1ef411e",
+              "event": "push",
+              "created_at": "2026-10-08T18:49:08Z",
+              "updated_at": "2026-10-08T18:49:44Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37827204909"
+            },
+            {
+              "id": 37821718090,
+              "name": "ShellCheck",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "b0e8f2632de1b7a9533cad07572c02e84a1e34aa",
+              "event": "push",
+              "created_at": "2026-10-08T18:06:26Z",
+              "updated_at": "2026-10-08T18:07:00Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37821718090"
+            },
+            {
+              "id": 37601809536,
+              "name": "ShellCheck",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "d556ef76fe40e591f45150c2a3018ea182aaffed",
+              "event": "push",
+              "created_at": "2026-10-07T09:36:44Z",
+              "updated_at": "2026-10-07T09:37:15Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37601809536"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/agentbox/blob/f9eb13b85ab4167612e847136a83048f0e92885d/.github/workflows/shellcheck.yml"
+        },
+        {
+          "name": "Security Invariants",
+          "id": 293842895,
+          "state": "active",
+          "path": ".github/workflows/invariants.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 37827204900,
+              "name": "Security Invariants",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "27dbeeffaa4cc10bfc1d8f667c3af74ad1ef411e",
+              "event": "push",
+              "created_at": "2026-10-08T18:49:08Z",
+              "updated_at": "2026-10-08T18:49:50Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37827204900"
+            },
+            {
+              "id": 37822611334,
+              "name": "Security Invariants",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "f2b4749ab24690a1fc628bc374547f8565b87daa",
+              "event": "push",
+              "created_at": "2026-10-08T18:13:28Z",
+              "updated_at": "2026-10-08T18:14:48Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37822611334"
+            },
+            {
+              "id": 37821717931,
+              "name": "Security Invariants",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "b0e8f2632de1b7a9533cad07572c02e84a1e34aa",
+              "event": "push",
+              "created_at": "2026-10-08T18:06:26Z",
+              "updated_at": "2026-10-08T18:10:51Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37821717931"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/agentbox/blob/f9eb13b85ab4167612e847136a83048f0e92885d/.github/workflows/invariants.yml"
+        },
+        {
+          "name": "deepsec security gate",
+          "id": 351154107,
+          "state": "active",
+          "path": ".github/workflows/deepsec.yml",
+          "latest_default_branch_runs": [],
+          "latest_all_branch_runs": [
+            {
+              "id": 37152123065,
+              "name": "deepsec security gate",
+              "status": "completed",
+              "conclusion": "skipped",
+              "head_branch": "ruflo-memory-governed",
+              "head_sha": "211403364ce5addd2c2aaae7989422a05a16b9ad",
+              "event": "pull_request",
+              "created_at": "2026-10-03T20:36:05Z",
+              "updated_at": "2026-10-03T20:36:06Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37152123065"
+            },
+            {
+              "id": 37150242481,
+              "name": "deepsec security gate",
+              "status": "completed",
+              "conclusion": "skipped",
+              "head_branch": "ruflo-memory-governed",
+              "head_sha": "2b2b0e0ffcd504aad714f8cd6cb911ba28f1957d",
+              "event": "pull_request",
+              "created_at": "2026-10-03T20:04:59Z",
+              "updated_at": "2026-10-03T20:05:00Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37150242481"
+            },
+            {
+              "id": 37149923335,
+              "name": "deepsec security gate",
+              "status": "completed",
+              "conclusion": "skipped",
+              "head_branch": "ruflo-memory-governed",
+              "head_sha": "bf48a3ce1b43d54840bfa243d7f98cd44532caad",
+              "event": "pull_request",
+              "created_at": "2026-10-03T20:00:00Z",
+              "updated_at": "2026-10-03T20:00:01Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37149923335"
+            }
+          ],
+          "source_url": "https://github.com/DreamLab-AI/agentbox/blob/f9eb13b85ab4167612e847136a83048f0e92885d/.github/workflows/deepsec.yml"
+        },
+        {
+          "name": "Browsercontainer",
+          "id": 373831145,
+          "state": "active",
+          "path": ".github/workflows/browsercontainer.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 37485213827,
+              "name": "Browsercontainer",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "c49339d0e7f2a1dcecbb0868d9f6b526f91ae5ed",
+              "event": "push",
+              "created_at": "2026-10-06T15:10:47Z",
+              "updated_at": "2026-10-06T15:11:21Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37485213827"
+            },
+            {
+              "id": 37120842839,
+              "name": "Browsercontainer",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "0110b5460654ec3cf0a43326124fca8389128e94",
+              "event": "push",
+              "created_at": "2026-10-03T11:48:49Z",
+              "updated_at": "2026-10-03T11:49:15Z",
+              "html_url": "https://github.com/DreamLab-AI/agentbox/actions/runs/37120842839"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/agentbox/blob/f9eb13b85ab4167612e847136a83048f0e92885d/.github/workflows/browsercontainer.yml"
+        },
+        {
+          "name": "Security VEX contracts",
+          "id": 381583699,
+          "state": "active",
+          "path": ".github/workflows/security-vex.yml",
+          "latest_default_branch_runs": [],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/agentbox/blob/f9eb13b85ab4167612e847136a83048f0e92885d/.github/workflows/security-vex.yml"
+        }
+      ],
+      "deployments": [],
+      "releases": [],
+      "ci_gap": {
+        "base": "27dbeeffaa4cc10bfc1d8f667c3af74ad1ef411e",
+        "head": "f9eb13b85ab4167612e847136a83048f0e92885d",
+        "status": "ahead",
+        "ahead_by": 168,
+        "total_commits": 168
+      }
+    },
+    {
+      "name": "solid-pod-rs",
+      "full_name": "DreamLab-AI/solid-pod-rs",
+      "default_branch": "main",
+      "head": "7b5c781a4d8b89d59d0b96bca7211ccb984fbf68",
+      "actions_permissions": {
+        "enabled": true,
+        "allowed_actions": "all",
+        "sha_pinning_required": false
+      },
+      "branch_protected": false,
+      "rulesets": [],
+      "pages": null,
+      "workflows": [
+        {
+          "name": "CI",
+          "id": 263437602,
+          "state": "active",
+          "path": ".github/workflows/ci.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39349489580,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "55bfec1f6d8127f4437ebaea82ff73de4475fcf7",
+              "event": "push",
+              "created_at": "2026-10-20T00:45:07Z",
+              "updated_at": "2026-10-20T01:12:05Z",
+              "html_url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/39349489580"
+            },
+            {
+              "id": 39306375081,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "b2a3a54187efb1df33c49fed577906b510a2e96e",
+              "event": "push",
+              "created_at": "2026-10-19T18:53:50Z",
+              "updated_at": "2026-10-19T19:26:57Z",
+              "html_url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/39306375081"
+            },
+            {
+              "id": 39298435318,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "03c235a158fff33bede56c03e67e5a5dae0cd01a",
+              "event": "push",
+              "created_at": "2026-10-19T17:56:53Z",
+              "updated_at": "2026-10-19T18:25:55Z",
+              "html_url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/39298435318"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/solid-pod-rs/blob/7b5c781a4d8b89d59d0b96bca7211ccb984fbf68/.github/workflows/ci.yml"
+        },
+        {
+          "name": "Release",
+          "id": 263477953,
+          "state": "active",
+          "path": ".github/workflows/release.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39308658410,
+              "name": "Release",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "b2a3a54187efb1df33c49fed577906b510a2e96e",
+              "event": "workflow_dispatch",
+              "created_at": "2026-10-19T19:09:54Z",
+              "updated_at": "2026-10-19T19:11:45Z",
+              "html_url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/39308658410"
+            },
+            {
+              "id": 32358543220,
+              "name": "Release",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "db96c3ced4ba9c0edf6175885acbb16f6f90bfef",
+              "event": "workflow_dispatch",
+              "created_at": "2026-08-20T10:21:33Z",
+              "updated_at": "2026-08-20T10:24:47Z",
+              "html_url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/32358543220"
+            },
+            {
+              "id": 29648738978,
+              "name": "Release",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "a7100231e202b0d1f6e9938b1c6e1064bf7175c1",
+              "event": "workflow_dispatch",
+              "created_at": "2026-07-18T14:48:21Z",
+              "updated_at": "2026-07-18T14:51:16Z",
+              "html_url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/29648738978"
+            }
+          ],
+          "latest_all_branch_runs": [
+            {
+              "id": 39349488339,
+              "name": "Release",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "v0.5.0-alpha.17",
+              "head_sha": "55bfec1f6d8127f4437ebaea82ff73de4475fcf7",
+              "event": "push",
+              "created_at": "2026-10-20T00:45:06Z",
+              "updated_at": "2026-10-20T00:47:05Z",
+              "html_url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/39349488339"
+            },
+            {
+              "id": 39308658410,
+              "name": "Release",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "b2a3a54187efb1df33c49fed577906b510a2e96e",
+              "event": "workflow_dispatch",
+              "created_at": "2026-10-19T19:09:54Z",
+              "updated_at": "2026-10-19T19:11:45Z",
+              "html_url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/39308658410"
+            },
+            {
+              "id": 39306375808,
+              "name": "Release",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "v0.5.0-alpha.16",
+              "head_sha": "b2a3a54187efb1df33c49fed577906b510a2e96e",
+              "event": "push",
+              "created_at": "2026-10-19T18:53:50Z",
+              "updated_at": "2026-10-19T18:56:26Z",
+              "html_url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/39306375808"
+            }
+          ],
+          "source_url": "https://github.com/DreamLab-AI/solid-pod-rs/blob/7b5c781a4d8b89d59d0b96bca7211ccb984fbf68/.github/workflows/release.yml"
+        },
+        {
+          "name": "Dependabot Updates",
+          "id": 263478044,
+          "state": "active",
+          "path": "dynamic/dependabot/dependabot-updates",
+          "latest_default_branch_runs": [
+            {
+              "id": 30241818053,
+              "name": "cargo in /crates/solid-pod-rs - Update #1485513659",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "22d7512e5240dd39e1cc73779032105d1f3cb43f",
+              "event": "dynamic",
+              "created_at": "2026-07-27T06:09:23Z",
+              "updated_at": "2026-07-27T06:10:05Z",
+              "html_url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/30241818053"
+            },
+            {
+              "id": 30241816976,
+              "name": "github_actions in /crates/solid-pod-rs - Update #1485513478",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "22d7512e5240dd39e1cc73779032105d1f3cb43f",
+              "event": "dynamic",
+              "created_at": "2026-07-27T06:09:22Z",
+              "updated_at": "2026-07-27T06:09:45Z",
+              "html_url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/30241816976"
+            },
+            {
+              "id": 29720888575,
+              "name": "github_actions in /crates/solid-pod-rs - Update #1467395388",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "065d9c6650c123960f25839c4553d84c889d81d3",
+              "event": "dynamic",
+              "created_at": "2026-07-20T06:10:12Z",
+              "updated_at": "2026-07-20T06:10:50Z",
+              "html_url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/29720888575"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": null
+        },
+        {
+          "name": "ADR ledger",
+          "id": 371322444,
+          "state": "active",
+          "path": ".github/workflows/adr.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39349489563,
+              "name": "ADR ledger",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "55bfec1f6d8127f4437ebaea82ff73de4475fcf7",
+              "event": "push",
+              "created_at": "2026-10-20T00:45:07Z",
+              "updated_at": "2026-10-20T00:45:16Z",
+              "html_url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/39349489563"
+            },
+            {
+              "id": 39298435150,
+              "name": "ADR ledger",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "03c235a158fff33bede56c03e67e5a5dae0cd01a",
+              "event": "push",
+              "created_at": "2026-10-19T17:56:52Z",
+              "updated_at": "2026-10-19T17:57:02Z",
+              "html_url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/39298435150"
+            },
+            {
+              "id": 39298416215,
+              "name": "ADR ledger",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "4e97893603e4ca9c37da7869af71d955d64d10d3",
+              "event": "push",
+              "created_at": "2026-10-19T17:56:44Z",
+              "updated_at": "2026-10-19T17:56:56Z",
+              "html_url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/39298416215"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/solid-pod-rs/blob/7b5c781a4d8b89d59d0b96bca7211ccb984fbf68/.github/workflows/adr.yml"
+        }
+      ],
+      "deployments": [
+        {
+          "environment": "crates-io-publish",
+          "created_at": "2026-10-20T00:46:29Z",
+          "ref": "v0.5.0-alpha.17",
+          "sha": "55bfec1f6d8127f4437ebaea82ff73de4475fcf7",
+          "state": "success",
+          "environment_url": "https://crates.io/crates/solid-pod-rs",
+          "log_url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/39349488339/job/118390475701"
+        }
+      ],
+      "releases": [
+        {
+          "tag": "v0.5.0-alpha.17",
+          "published_at": "2026-10-20T00:47:01Z",
+          "url": "https://github.com/DreamLab-AI/solid-pod-rs/releases/tag/v0.5.0-alpha.17",
+          "assets": []
+        },
+        {
+          "tag": "v0.5.0-alpha.16",
+          "published_at": "2026-10-19T19:11:41Z",
+          "url": "https://github.com/DreamLab-AI/solid-pod-rs/releases/tag/v0.5.0-alpha.16",
+          "assets": []
+        },
+        {
+          "tag": "v0.5.0-alpha.15",
+          "published_at": "2026-10-19T07:50:42Z",
+          "url": "https://github.com/DreamLab-AI/solid-pod-rs/releases/tag/v0.5.0-alpha.15",
+          "assets": []
+        },
+        {
+          "tag": "v0.5.0-alpha.14",
+          "published_at": "2026-10-18T19:21:40Z",
+          "url": "https://github.com/DreamLab-AI/solid-pod-rs/releases/tag/v0.5.0-alpha.14",
+          "assets": []
+        },
+        {
+          "tag": "v0.5.0-alpha.13",
+          "published_at": "2026-10-14T21:07:17Z",
+          "url": "https://github.com/DreamLab-AI/solid-pod-rs/releases/tag/v0.5.0-alpha.13",
+          "assets": []
+        }
+      ]
+    },
+    {
+      "name": "nostr-rust-forum",
+      "full_name": "DreamLab-AI/nostr-rust-forum",
+      "default_branch": "main",
+      "head": "7eaecc3152942793cbc09fc9a2b243ec2e5f8c4c",
+      "actions_permissions": {
+        "enabled": true,
+        "allowed_actions": "all",
+        "sha_pinning_required": false
+      },
+      "branch_protected": false,
+      "rulesets": [],
+      "pages": {
+        "status": null,
+        "html_url": "https://dreamlab-ai.github.io/nostr-rust-forum/",
+        "source": {
+          "branch": "main",
+          "path": "/"
+        },
+        "build_type": "workflow",
+        "https_enforced": true
+      },
+      "workflows": [
+        {
+          "name": "Security Audit",
+          "id": 273744981,
+          "state": "active",
+          "path": ".github/workflows/audit.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39406403937,
+              "name": "Security Audit",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "7ccfcf2086e4b5cb8955d39dab06460fc4116668",
+              "event": "push",
+              "created_at": "2026-10-20T10:13:27Z",
+              "updated_at": "2026-10-20T10:13:56Z",
+              "html_url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/39406403937"
+            },
+            {
+              "id": 39330373327,
+              "name": "Security Audit",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "fb9ef3066bee5d821303165c0bc67d5e9801d6d1",
+              "event": "push",
+              "created_at": "2026-10-19T21:48:36Z",
+              "updated_at": "2026-10-19T21:49:08Z",
+              "html_url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/39330373327"
+            },
+            {
+              "id": 39258034746,
+              "name": "Security Audit",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "d46d2be9ace1e508d806e99449049abf0a568875",
+              "event": "schedule",
+              "created_at": "2026-10-19T13:11:24Z",
+              "updated_at": "2026-10-19T13:11:53Z",
+              "html_url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/39258034746"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/nostr-rust-forum/blob/7eaecc3152942793cbc09fc9a2b243ec2e5f8c4c/.github/workflows/audit.yml"
+        },
+        {
+          "name": "CI",
+          "id": 273744982,
+          "state": "active",
+          "path": ".github/workflows/ci.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39406403969,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "7ccfcf2086e4b5cb8955d39dab06460fc4116668",
+              "event": "push",
+              "created_at": "2026-10-20T10:13:27Z",
+              "updated_at": "2026-10-20T10:17:58Z",
+              "html_url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/39406403969"
+            },
+            {
+              "id": 39389839021,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "dfab37266fec84e00b3f9cab5720ec49038a5778",
+              "event": "push",
+              "created_at": "2026-10-20T07:56:05Z",
+              "updated_at": "2026-10-20T07:58:39Z",
+              "html_url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/39389839021"
+            },
+            {
+              "id": 39330373382,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "fb9ef3066bee5d821303165c0bc67d5e9801d6d1",
+              "event": "push",
+              "created_at": "2026-10-19T21:48:36Z",
+              "updated_at": "2026-10-19T21:51:24Z",
+              "html_url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/39330373382"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/nostr-rust-forum/blob/7eaecc3152942793cbc09fc9a2b243ec2e5f8c4c/.github/workflows/ci.yml"
+        },
+        {
+          "name": "ADR ledger",
+          "id": 371322388,
+          "state": "active",
+          "path": ".github/workflows/adr.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39485906137,
+              "name": "ADR ledger",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "7096903336d3daa349b02328c7c92c6a79823f86",
+              "event": "push",
+              "created_at": "2026-10-20T19:43:41Z",
+              "updated_at": "2026-10-20T19:43:50Z",
+              "html_url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/39485906137"
+            },
+            {
+              "id": 39406612160,
+              "name": "ADR ledger",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "445461821b1aee01c9e6f465519587453de43330",
+              "event": "push",
+              "created_at": "2026-10-20T10:15:12Z",
+              "updated_at": "2026-10-20T10:15:21Z",
+              "html_url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/39406612160"
+            },
+            {
+              "id": 39406404025,
+              "name": "ADR ledger",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "7ccfcf2086e4b5cb8955d39dab06460fc4116668",
+              "event": "push",
+              "created_at": "2026-10-20T10:13:27Z",
+              "updated_at": "2026-10-20T10:13:39Z",
+              "html_url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/39406404025"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/nostr-rust-forum/blob/7eaecc3152942793cbc09fc9a2b243ec2e5f8c4c/.github/workflows/adr.yml"
+        }
+      ],
+      "deployments": [
+        {
+          "environment": "github-pages",
+          "created_at": "2026-01-05T19:13:51Z",
+          "ref": "main",
+          "sha": "43ddbf17533dfeadc9871951b36f9cd3c1b36788",
+          "state": "success",
+          "environment_url": "https://jjohare.github.io/nostr-BBS/",
+          "log_url": "https://github.com/jjohare/nostr-BBS/actions/runs/20726349983/job/59502866265"
+        }
+      ],
+      "releases": []
+    },
+    {
+      "name": "dreamlab-ai-website",
+      "full_name": "DreamLab-AI/dreamlab-ai-website",
+      "default_branch": "main",
+      "head": "af70144a3908c79687c4e2f8da6baf961fe58900",
+      "actions_permissions": {
+        "enabled": true,
+        "allowed_actions": "all",
+        "sha_pinning_required": false
+      },
+      "branch_protected": false,
+      "rulesets": [],
+      "pages": {
+        "status": "built",
+        "html_url": "https://dreamlab-ai.com/",
+        "source": {
+          "branch": "gh-pages",
+          "path": "/"
+        },
+        "build_type": "legacy",
+        "https_enforced": true
+      },
+      "workflows": [
+        {
+          "name": "Deploy to GitHub Pages",
+          "id": 171858115,
+          "state": "active",
+          "path": ".github/workflows/deploy.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39333887790,
+              "name": "Deploy to GitHub Pages",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "bca989c5eb0bcf237d533ac3723aa6974a45507c",
+              "event": "push",
+              "created_at": "2026-10-19T22:17:31Z",
+              "updated_at": "2026-10-19T22:28:00Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39333887790"
+            },
+            {
+              "id": 39332774662,
+              "name": "Deploy to GitHub Pages",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "ab4dcb9a71a08f1eb819a0cc573077fd094932f8",
+              "event": "push",
+              "created_at": "2026-10-19T22:08:12Z",
+              "updated_at": "2026-10-19T22:09:54Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39332774662"
+            },
+            {
+              "id": 39330503929,
+              "name": "Deploy to GitHub Pages",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "32897f5b1452301ce1fd222859620c53ece088c7",
+              "event": "push",
+              "created_at": "2026-10-19T21:49:41Z",
+              "updated_at": "2026-10-19T22:05:24Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39330503929"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/blob/af70144a3908c79687c4e2f8da6baf961fe58900/.github/workflows/deploy.yml"
+        },
+        {
+          "name": "pages-build-deployment",
+          "id": 171878385,
+          "state": "active",
+          "path": "dynamic/pages/pages-build-deployment",
+          "latest_default_branch_runs": [],
+          "latest_all_branch_runs": [
+            {
+              "id": 39335136720,
+              "name": "pages build and deployment",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "gh-pages",
+              "head_sha": "e8572e59533abffc25842176c9b2e23ff56db457",
+              "event": "dynamic",
+              "created_at": "2026-10-19T22:27:58Z",
+              "updated_at": "2026-10-19T22:28:41Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39335136720"
+            },
+            {
+              "id": 39332400694,
+              "name": "pages build and deployment",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "gh-pages",
+              "head_sha": "aa63d2dbeced20ce598ef8d317c0239653df664d",
+              "event": "dynamic",
+              "created_at": "2026-10-19T22:05:08Z",
+              "updated_at": "2026-10-19T22:05:53Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39332400694"
+            },
+            {
+              "id": 39154690956,
+              "name": "pages build and deployment",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "gh-pages",
+              "head_sha": "6bce2b4a2784fd23e0bc563e929b2b44a80ae602",
+              "event": "dynamic",
+              "created_at": "2026-10-18T18:33:24Z",
+              "updated_at": "2026-10-18T18:34:33Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39154690956"
+            }
+          ],
+          "source_url": null
+        },
+        {
+          "name": "Documentation Auto-Update",
+          "id": 226865014,
+          "state": "active",
+          "path": ".github/workflows/docs-update.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39178887043,
+              "name": "Documentation Auto-Update",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "cf2ee9aeeecf0a297a722e19dab1a53811221db6",
+              "event": "schedule",
+              "created_at": "2026-10-19T00:01:12Z",
+              "updated_at": "2026-10-19T00:01:36Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39178887043"
+            },
+            {
+              "id": 38190548313,
+              "name": "Documentation Auto-Update",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "55e87e17cd3ce060d0c8e4503dea8dcfb65f31db",
+              "event": "schedule",
+              "created_at": "2026-10-12T01:05:46Z",
+              "updated_at": "2026-10-12T01:06:04Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/38190548313"
+            },
+            {
+              "id": 37248154276,
+              "name": "Documentation Auto-Update",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "16e6cbb3cc6aeb19bbba739449697652c1e1491f",
+              "event": "schedule",
+              "created_at": "2026-10-05T00:36:07Z",
+              "updated_at": "2026-10-05T00:36:25Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/37248154276"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/blob/af70144a3908c79687c4e2f8da6baf961fe58900/.github/workflows/docs-update.yml"
+        },
+        {
+          "name": "Deploy Cloudflare Workers",
+          "id": 240127298,
+          "state": "active",
+          "path": ".github/workflows/workers-deploy.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39333974868,
+              "name": "Deploy Cloudflare Workers",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "bca989c5eb0bcf237d533ac3723aa6974a45507c",
+              "event": "workflow_dispatch",
+              "created_at": "2026-10-19T22:18:16Z",
+              "updated_at": "2026-10-19T22:22:31Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39333974868"
+            },
+            {
+              "id": 39332774580,
+              "name": "Deploy Cloudflare Workers",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "ab4dcb9a71a08f1eb819a0cc573077fd094932f8",
+              "event": "push",
+              "created_at": "2026-10-19T22:08:12Z",
+              "updated_at": "2026-10-19T22:10:22Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39332774580"
+            },
+            {
+              "id": 39330503875,
+              "name": "Deploy Cloudflare Workers",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "32897f5b1452301ce1fd222859620c53ece088c7",
+              "event": "push",
+              "created_at": "2026-10-19T21:49:41Z",
+              "updated_at": "2026-10-19T21:54:34Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39330503875"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/blob/af70144a3908c79687c4e2f8da6baf961fe58900/.github/workflows/workers-deploy.yml"
+        },
+        {
+          "name": "Rust CI",
+          "id": 243254847,
+          "state": "active",
+          "path": ".github/workflows/rust-ci.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 32354920875,
+              "name": "Rust CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "4baa5ce2ed3b8e3c109d510f91d01aed548a7b2f",
+              "event": "workflow_dispatch",
+              "created_at": "2026-08-20T09:38:36Z",
+              "updated_at": "2026-08-20T09:41:31Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/32354920875"
+            },
+            {
+              "id": 32354377613,
+              "name": "Rust CI",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "9e43281131e04e247f3334137129b4600b6dcfdf",
+              "event": "workflow_dispatch",
+              "created_at": "2026-08-20T09:32:12Z",
+              "updated_at": "2026-08-20T09:35:16Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/32354377613"
+            },
+            {
+              "id": 25552545699,
+              "name": "Rust CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "23ef5b7da5e2d4af337ce875876c6035eaf4a0e0",
+              "event": "push",
+              "created_at": "2026-05-08T11:15:08Z",
+              "updated_at": "2026-05-08T11:17:32Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/25552545699"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/blob/af70144a3908c79687c4e2f8da6baf961fe58900/.github/workflows/rust-ci.yml"
+        },
+        {
+          "name": "Test and Lint (Reusable)",
+          "id": 272279536,
+          "state": "active",
+          "path": ".github/workflows/test-and-lint.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 37821687730,
+              "name": "Test and Lint (Reusable)",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "bb6812ece3ec8f3cdb41110ea5ef5d086e6bcf28",
+              "event": "push",
+              "created_at": "2026-10-08T18:06:11Z",
+              "updated_at": "2026-10-08T18:09:51Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/37821687730"
+            },
+            {
+              "id": 37760249858,
+              "name": "Test and Lint (Reusable)",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "5578425a7b111aafd475201737a6eb94dbf5d416",
+              "event": "push",
+              "created_at": "2026-10-08T09:57:39Z",
+              "updated_at": "2026-10-08T09:58:57Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/37760249858"
+            },
+            {
+              "id": 37615016684,
+              "name": "Test and Lint (Reusable)",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "3baf2fa446def0b62a3c53bbd81cc949d1f5b3d1",
+              "event": "push",
+              "created_at": "2026-10-07T11:34:42Z",
+              "updated_at": "2026-10-07T11:36:00Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/37615016684"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/blob/af70144a3908c79687c4e2f8da6baf961fe58900/.github/workflows/test-and-lint.yml"
+        },
+        {
+          "name": "CI",
+          "id": 274737914,
+          "state": "active",
+          "path": ".github/workflows/ci.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39333887800,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "bca989c5eb0bcf237d533ac3723aa6974a45507c",
+              "event": "push",
+              "created_at": "2026-10-19T22:17:31Z",
+              "updated_at": "2026-10-19T22:18:50Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39333887800"
+            },
+            {
+              "id": 39332774624,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "ab4dcb9a71a08f1eb819a0cc573077fd094932f8",
+              "event": "push",
+              "created_at": "2026-10-19T22:08:12Z",
+              "updated_at": "2026-10-19T22:09:23Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39332774624"
+            },
+            {
+              "id": 39330503946,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "32897f5b1452301ce1fd222859620c53ece088c7",
+              "event": "push",
+              "created_at": "2026-10-19T21:49:41Z",
+              "updated_at": "2026-10-19T21:51:01Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39330503946"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/blob/af70144a3908c79687c4e2f8da6baf961fe58900/.github/workflows/ci.yml"
+        },
+        {
+          "name": "Set CF Worker secrets (native pod mesh)",
+          "id": 278378793,
+          "state": "active",
+          "path": ".github/workflows/set-worker-secrets.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39330521739,
+              "name": "Set CF Worker secrets (native pod mesh)",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "32897f5b1452301ce1fd222859620c53ece088c7",
+              "event": "workflow_dispatch",
+              "created_at": "2026-10-19T21:49:49Z",
+              "updated_at": "2026-10-19T21:49:57Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39330521739"
+            },
+            {
+              "id": 28977230707,
+              "name": "Set CF Worker secrets (native pod mesh)",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "f1e3c8ed5fac4f19ab9959b845cc1aee6f1d1be6",
+              "event": "workflow_dispatch",
+              "created_at": "2026-07-08T21:32:26Z",
+              "updated_at": "2026-07-08T21:32:34Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/28977230707"
+            },
+            {
+              "id": 28977186068,
+              "name": "Set CF Worker secrets (native pod mesh)",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "f1e3c8ed5fac4f19ab9959b845cc1aee6f1d1be6",
+              "event": "workflow_dispatch",
+              "created_at": "2026-07-08T21:31:42Z",
+              "updated_at": "2026-07-08T21:31:49Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/28977186068"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/blob/af70144a3908c79687c4e2f8da6baf961fe58900/.github/workflows/set-worker-secrets.yml"
+        },
+        {
+          "name": "kit-pin-guard",
+          "id": 348014885,
+          "state": "active",
+          "path": ".github/workflows/kit-pin-guard.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39594898076,
+              "name": "kit-pin-guard",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "af70144a3908c79687c4e2f8da6baf961fe58900",
+              "event": "push",
+              "created_at": "2026-10-21T11:50:06Z",
+              "updated_at": "2026-10-21T11:50:21Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39594898076"
+            },
+            {
+              "id": 39333887826,
+              "name": "kit-pin-guard",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "bca989c5eb0bcf237d533ac3723aa6974a45507c",
+              "event": "push",
+              "created_at": "2026-10-19T22:17:31Z",
+              "updated_at": "2026-10-19T22:17:47Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39333887826"
+            },
+            {
+              "id": 39332774736,
+              "name": "kit-pin-guard",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "ab4dcb9a71a08f1eb819a0cc573077fd094932f8",
+              "event": "push",
+              "created_at": "2026-10-19T22:08:12Z",
+              "updated_at": "2026-10-19T22:08:31Z",
+              "html_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39332774736"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/blob/af70144a3908c79687c4e2f8da6baf961fe58900/.github/workflows/kit-pin-guard.yml"
+        }
+      ],
+      "deployments": [
+        {
+          "environment": "github-pages",
+          "created_at": "2026-10-19T22:28:21Z",
+          "ref": "gh-pages",
+          "sha": "e8572e59533abffc25842176c9b2e23ff56db457",
+          "state": "success",
+          "environment_url": "https://dreamlab-ai.com/",
+          "log_url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/39335136720/job/118342758900"
+        }
+      ],
+      "releases": []
+    },
+    {
+      "name": "loom",
+      "full_name": "DreamLab-AI/loom",
+      "default_branch": "main",
+      "head": "3487ceed5e2040eddc3eaa478d383e84094513c6",
+      "actions_permissions": {
+        "enabled": true,
+        "allowed_actions": "all",
+        "sha_pinning_required": false
+      },
+      "branch_protected": false,
+      "rulesets": [],
+      "pages": null,
+      "workflows": [
+        {
+          "name": "Rust contracts",
+          "id": 352279743,
+          "state": "active",
+          "path": ".github/workflows/rust-contracts.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39594896685,
+              "name": "Rust contracts",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "3487ceed5e2040eddc3eaa478d383e84094513c6",
+              "event": "push",
+              "created_at": "2026-10-21T11:50:06Z",
+              "updated_at": "2026-10-21T11:57:46Z",
+              "html_url": "https://github.com/DreamLab-AI/loom/actions/runs/39594896685"
+            },
+            {
+              "id": 38413750173,
+              "name": "Rust contracts",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "e2e42736abe9bbaff7643f3faa23495c114958ca",
+              "event": "push",
+              "created_at": "2026-10-13T14:29:07Z",
+              "updated_at": "2026-10-13T14:37:21Z",
+              "html_url": "https://github.com/DreamLab-AI/loom/actions/runs/38413750173"
+            },
+            {
+              "id": 38394860847,
+              "name": "Rust contracts",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "0683a6b47b928cdadf820c05bfe5dc6c5cdc3eb2",
+              "event": "push",
+              "created_at": "2026-10-13T12:06:17Z",
+              "updated_at": "2026-10-13T12:13:43Z",
+              "html_url": "https://github.com/DreamLab-AI/loom/actions/runs/38394860847"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/loom/blob/3487ceed5e2040eddc3eaa478d383e84094513c6/.github/workflows/rust-contracts.yml"
+        }
+      ],
+      "deployments": [],
+      "releases": []
+    },
+    {
+      "name": "knowledgeGraph",
+      "full_name": "DreamLab-AI/knowledgeGraph",
+      "default_branch": "main",
+      "head": "1edcfc93de90ccff564073ef82cb198c422f75e3",
+      "actions_permissions": {
+        "enabled": true,
+        "allowed_actions": "all",
+        "sha_pinning_required": false
+      },
+      "branch_protected": false,
+      "rulesets": [],
+      "pages": {
+        "status": "built",
+        "html_url": "https://narrativegoldmine.com/",
+        "source": {
+          "branch": "gh-pages",
+          "path": "/"
+        },
+        "build_type": "legacy",
+        "https_enforced": true
+      },
+      "workflows": [
+        {
+          "name": "pages-build-deployment",
+          "id": 207526378,
+          "state": "active",
+          "path": "dynamic/pages/pages-build-deployment",
+          "latest_default_branch_runs": [
+            {
+              "id": 19410364546,
+              "name": "pages build and deployment",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "fc6844dc0c705cde35c5a1f9bc5daf19452953c7",
+              "event": "dynamic",
+              "created_at": "2025-11-16T18:47:43Z",
+              "updated_at": "2025-11-16T18:48:25Z",
+              "html_url": "https://github.com/DreamLab-AI/knowledgeGraph/actions/runs/19410364546"
+            }
+          ],
+          "latest_all_branch_runs": [
+            {
+              "id": 39455199421,
+              "name": "pages build and deployment",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "gh-pages",
+              "head_sha": "3a4838211be5fe20678f06375b91100711ba7a89",
+              "event": "dynamic",
+              "created_at": "2026-10-20T16:11:15Z",
+              "updated_at": "2026-10-20T16:13:15Z",
+              "html_url": "https://github.com/DreamLab-AI/knowledgeGraph/actions/runs/39455199421"
+            },
+            {
+              "id": 39162822607,
+              "name": "pages build and deployment",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "gh-pages",
+              "head_sha": "eaf1c1c618013baef5f6a0dc5666d9ec25c6eb86",
+              "event": "dynamic",
+              "created_at": "2026-10-18T20:20:01Z",
+              "updated_at": "2026-10-18T20:21:33Z",
+              "html_url": "https://github.com/DreamLab-AI/knowledgeGraph/actions/runs/39162822607"
+            },
+            {
+              "id": 39024410257,
+              "name": "pages build and deployment",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "gh-pages",
+              "head_sha": "0fa5720faea8f9eb3b18fd16942f3029c8299c18",
+              "event": "dynamic",
+              "created_at": "2026-10-17T10:18:41Z",
+              "updated_at": "2026-10-17T10:20:06Z",
+              "html_url": "https://github.com/DreamLab-AI/knowledgeGraph/actions/runs/39024410257"
+            }
+          ],
+          "source_url": null
+        }
+      ],
+      "deployments": [
+        {
+          "environment": "github-pages",
+          "created_at": "2026-10-20T16:12:20Z",
+          "ref": "gh-pages",
+          "sha": "3a4838211be5fe20678f06375b91100711ba7a89",
+          "state": "success",
+          "environment_url": "https://narrativegoldmine.com/",
+          "log_url": "https://github.com/DreamLab-AI/knowledgeGraph/actions/runs/39455199421/job/118740675224"
+        }
+      ],
+      "releases": []
+    },
+    {
+      "name": "sidestr-rs",
+      "full_name": "DreamLab-AI/sidestr-rs",
+      "default_branch": "main",
+      "head": "1249e34def303fbb4b9f8380de684c0719a9c75f",
+      "actions_permissions": {
+        "enabled": true,
+        "allowed_actions": "all",
+        "sha_pinning_required": false
+      },
+      "branch_protected": false,
+      "rulesets": [],
+      "pages": null,
+      "workflows": [
+        {
+          "name": "ci",
+          "id": 365317689,
+          "state": "active",
+          "path": ".github/workflows/ci.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39594897561,
+              "name": "ci",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "1249e34def303fbb4b9f8380de684c0719a9c75f",
+              "event": "push",
+              "created_at": "2026-10-21T11:50:06Z",
+              "updated_at": "2026-10-21T11:58:00Z",
+              "html_url": "https://github.com/DreamLab-AI/sidestr-rs/actions/runs/39594897561"
+            },
+            {
+              "id": 39153528005,
+              "name": "ci",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "f77856dd18a4b6348445463456c4865de5285e9a",
+              "event": "push",
+              "created_at": "2026-10-18T18:18:04Z",
+              "updated_at": "2026-10-18T18:28:16Z",
+              "html_url": "https://github.com/DreamLab-AI/sidestr-rs/actions/runs/39153528005"
+            },
+            {
+              "id": 38159433164,
+              "name": "ci",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "dc8e1ca83d947fba396712b3b577a4e593b4d2d5",
+              "event": "push",
+              "created_at": "2026-10-11T17:23:22Z",
+              "updated_at": "2026-10-11T17:33:25Z",
+              "html_url": "https://github.com/DreamLab-AI/sidestr-rs/actions/runs/38159433164"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/sidestr-rs/blob/1249e34def303fbb4b9f8380de684c0719a9c75f/.github/workflows/ci.yml"
+        }
+      ],
+      "deployments": [],
+      "releases": []
+    },
+    {
+      "name": "ontomark",
+      "full_name": "DreamLab-AI/ontomark",
+      "default_branch": "main",
+      "head": "3e909e52b8ddd20effa832666677798fda644cfc",
+      "actions_permissions": {
+        "enabled": true,
+        "allowed_actions": "all",
+        "sha_pinning_required": false
+      },
+      "branch_protected": false,
+      "rulesets": [],
+      "pages": null,
+      "workflows": [
+        {
+          "name": "ci",
+          "id": 381446500,
+          "state": "active",
+          "path": ".github/workflows/ci.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39594898073,
+              "name": "ci",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "3e909e52b8ddd20effa832666677798fda644cfc",
+              "event": "push",
+              "created_at": "2026-10-21T11:50:06Z",
+              "updated_at": "2026-10-21T11:53:39Z",
+              "html_url": "https://github.com/DreamLab-AI/ontomark/actions/runs/39594898073"
+            },
+            {
+              "id": 39449140918,
+              "name": "ci",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "eb1d5a469f07b33b4f7e9a5da1009170cb2c36ea",
+              "event": "push",
+              "created_at": "2026-10-20T15:31:04Z",
+              "updated_at": "2026-10-20T15:34:09Z",
+              "html_url": "https://github.com/DreamLab-AI/ontomark/actions/runs/39449140918"
+            },
+            {
+              "id": 39243707754,
+              "name": "ci",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "00aa143bd9d36a593c547c9d1a09b59a760c8cd0",
+              "event": "push",
+              "created_at": "2026-10-19T11:18:37Z",
+              "updated_at": "2026-10-19T11:21:47Z",
+              "html_url": "https://github.com/DreamLab-AI/ontomark/actions/runs/39243707754"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/ontomark/blob/3e909e52b8ddd20effa832666677798fda644cfc/.github/workflows/ci.yml"
+        }
+      ],
+      "deployments": [],
+      "releases": [
+        {
+          "tag": "v0.6.0",
+          "published_at": "2026-10-20T15:31:43Z",
+          "url": "https://github.com/DreamLab-AI/ontomark/releases/tag/v0.6.0",
+          "assets": [
+            {
+              "name": "LICENSE-APACHE",
+              "size": 11358
+            },
+            {
+              "name": "LICENSE-MIT",
+              "size": 1023
+            },
+            {
+              "name": "NOTICE",
+              "size": 1309
+            },
+            {
+              "name": "ontomark-engine-0.6.0.tar.gz",
+              "size": 3226073
+            },
+            {
+              "name": "ontomark-engine-0.6.0.tar.gz.sha256",
+              "size": 95
+            },
+            {
+              "name": "ontomark-x86_64-unknown-linux-gnu",
+              "size": 7413328
+            },
+            {
+              "name": "ontomark-x86_64-unknown-linux-gnu.sha256",
+              "size": 100
+            },
+            {
+              "name": "THIRD-PARTY-NOTICES.md",
+              "size": 584954
+            },
+            {
+              "name": "UPSTREAMS.md",
+              "size": 40265
+            }
+          ]
+        },
+        {
+          "tag": "v0.5.0",
+          "published_at": "2026-10-18T18:41:37Z",
+          "url": "https://github.com/DreamLab-AI/ontomark/releases/tag/v0.5.0",
+          "assets": [
+            {
+              "name": "LICENSE-APACHE",
+              "size": 11358
+            },
+            {
+              "name": "LICENSE-MIT",
+              "size": 1023
+            },
+            {
+              "name": "NOTICE",
+              "size": 1309
+            },
+            {
+              "name": "ontomark-engine-0.5.0.tar.gz",
+              "size": 3226008
+            },
+            {
+              "name": "ontomark-engine-0.5.0.tar.gz.sha256",
+              "size": 95
+            },
+            {
+              "name": "ontomark-x86_64-unknown-linux-gnu",
+              "size": 7360528
+            },
+            {
+              "name": "ontomark-x86_64-unknown-linux-gnu.sha256",
+              "size": 100
+            },
+            {
+              "name": "THIRD-PARTY-NOTICES.md",
+              "size": 584305
+            },
+            {
+              "name": "UPSTREAMS.md",
+              "size": 40265
+            }
+          ]
+        },
+        {
+          "tag": "v0.4.0",
+          "published_at": "2026-10-17T09:43:10Z",
+          "url": "https://github.com/DreamLab-AI/ontomark/releases/tag/v0.4.0",
+          "assets": [
+            {
+              "name": "LICENSE-APACHE",
+              "size": 11358
+            },
+            {
+              "name": "LICENSE-MIT",
+              "size": 1023
+            },
+            {
+              "name": "NOTICE",
+              "size": 1309
+            },
+            {
+              "name": "ontomark-engine-0.4.0.tar.gz",
+              "size": 3225434
+            },
+            {
+              "name": "ontomark-engine-0.4.0.tar.gz.sha256",
+              "size": 95
+            },
+            {
+              "name": "ontomark-x86_64-unknown-linux-gnu",
+              "size": 7356312
+            },
+            {
+              "name": "ontomark-x86_64-unknown-linux-gnu.sha256",
+              "size": 100
+            },
+            {
+              "name": "THIRD-PARTY-NOTICES.md",
+              "size": 584305
+            },
+            {
+              "name": "UPSTREAMS.md",
+              "size": 40265
+            }
+          ]
+        },
+        {
+          "tag": "v0.3.0",
+          "published_at": "2026-10-16T13:42:32Z",
+          "url": "https://github.com/DreamLab-AI/ontomark/releases/tag/v0.3.0",
+          "assets": [
+            {
+              "name": "LICENSE-APACHE",
+              "size": 11358
+            },
+            {
+              "name": "LICENSE-MIT",
+              "size": 1023
+            },
+            {
+              "name": "NOTICE",
+              "size": 1309
+            },
+            {
+              "name": "ontomark-engine-0.3.0.tar.gz",
+              "size": 3226105
+            },
+            {
+              "name": "ontomark-engine-0.3.0.tar.gz.sha256",
+              "size": 95
+            },
+            {
+              "name": "ontomark-x86_64-unknown-linux-gnu",
+              "size": 7324936
+            },
+            {
+              "name": "ontomark-x86_64-unknown-linux-gnu.sha256",
+              "size": 100
+            },
+            {
+              "name": "THIRD-PARTY-NOTICES.md",
+              "size": 584305
+            },
+            {
+              "name": "UPSTREAMS.md",
+              "size": 40269
+            }
+          ]
+        },
+        {
+          "tag": "v0.2.2",
+          "published_at": "2026-10-13T10:43:39Z",
+          "url": "https://github.com/DreamLab-AI/ontomark/releases/tag/v0.2.2",
+          "assets": [
+            {
+              "name": "ontomark-engine-0.2.2.tar.gz",
+              "size": 3226909
+            },
+            {
+              "name": "ontomark-engine-0.2.2.tar.gz.sha256",
+              "size": 95
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ontomark-obsidian",
+      "full_name": "DreamLab-AI/ontomark-obsidian",
+      "default_branch": "main",
+      "head": "7af6a92f0e4166c0e4b80e72f0b3a3ebf14cdebb",
+      "actions_permissions": {
+        "enabled": true,
+        "allowed_actions": "all",
+        "sha_pinning_required": false
+      },
+      "branch_protected": false,
+      "rulesets": [],
+      "pages": null,
+      "workflows": [
+        {
+          "name": "Plugin checks",
+          "id": 381556337,
+          "state": "active",
+          "path": ".github/workflows/ci.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39594897119,
+              "name": "Plugin checks",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "7af6a92f0e4166c0e4b80e72f0b3a3ebf14cdebb",
+              "event": "push",
+              "created_at": "2026-10-21T11:50:06Z",
+              "updated_at": "2026-10-21T11:50:25Z",
+              "html_url": "https://github.com/DreamLab-AI/ontomark-obsidian/actions/runs/39594897119"
+            },
+            {
+              "id": 39022249711,
+              "name": "Plugin checks",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "53af1cff3b2d552401ac606b172cf7fb6a368ad2",
+              "event": "push",
+              "created_at": "2026-10-17T09:44:05Z",
+              "updated_at": "2026-10-17T09:44:19Z",
+              "html_url": "https://github.com/DreamLab-AI/ontomark-obsidian/actions/runs/39022249711"
+            },
+            {
+              "id": 39020344963,
+              "name": "Plugin checks",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "8830665bc195faf78ec468ef3fb01bb1d6feae1e",
+              "event": "push",
+              "created_at": "2026-10-17T09:14:08Z",
+              "updated_at": "2026-10-17T09:14:28Z",
+              "html_url": "https://github.com/DreamLab-AI/ontomark-obsidian/actions/runs/39020344963"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/ontomark-obsidian/blob/7af6a92f0e4166c0e4b80e72f0b3a3ebf14cdebb/.github/workflows/ci.yml"
+        },
+        {
+          "name": "Plugin release",
+          "id": 381556338,
+          "state": "active",
+          "path": ".github/workflows/release.yml",
+          "latest_default_branch_runs": [],
+          "latest_all_branch_runs": [
+            {
+              "id": 39022251141,
+              "name": "Plugin release",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "0.3.6",
+              "head_sha": "53af1cff3b2d552401ac606b172cf7fb6a368ad2",
+              "event": "push",
+              "created_at": "2026-10-17T09:44:07Z",
+              "updated_at": "2026-10-17T09:44:22Z",
+              "html_url": "https://github.com/DreamLab-AI/ontomark-obsidian/actions/runs/39022251141"
+            },
+            {
+              "id": 39020346072,
+              "name": "Plugin release",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "0.3.5",
+              "head_sha": "8830665bc195faf78ec468ef3fb01bb1d6feae1e",
+              "event": "push",
+              "created_at": "2026-10-17T09:14:10Z",
+              "updated_at": "2026-10-17T09:14:29Z",
+              "html_url": "https://github.com/DreamLab-AI/ontomark-obsidian/actions/runs/39020346072"
+            },
+            {
+              "id": 38910153895,
+              "name": "Plugin release",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "0.3.4",
+              "head_sha": "fd83471f871c6afa46b76f0ab970e7c84180f4e7",
+              "event": "push",
+              "created_at": "2026-10-16T13:44:10Z",
+              "updated_at": "2026-10-16T13:44:32Z",
+              "html_url": "https://github.com/DreamLab-AI/ontomark-obsidian/actions/runs/38910153895"
+            }
+          ],
+          "source_url": "https://github.com/DreamLab-AI/ontomark-obsidian/blob/7af6a92f0e4166c0e4b80e72f0b3a3ebf14cdebb/.github/workflows/release.yml"
+        }
+      ],
+      "deployments": [],
+      "releases": [
+        {
+          "tag": "0.3.6",
+          "published_at": "2026-10-17T09:44:10Z",
+          "url": "https://github.com/DreamLab-AI/ontomark-obsidian/releases/tag/0.3.6",
+          "assets": [
+            {
+              "name": "main.js",
+              "size": 3942989
+            },
+            {
+              "name": "manifest.json",
+              "size": 401
+            },
+            {
+              "name": "ontomark-obsidian-0.3.6.zip",
+              "size": 1562379
+            },
+            {
+              "name": "styles.css",
+              "size": 3919
+            }
+          ]
+        },
+        {
+          "tag": "0.3.5",
+          "published_at": "2026-10-17T09:14:13Z",
+          "url": "https://github.com/DreamLab-AI/ontomark-obsidian/releases/tag/0.3.5",
+          "assets": [
+            {
+              "name": "main.js",
+              "size": 3942977
+            },
+            {
+              "name": "manifest.json",
+              "size": 401
+            },
+            {
+              "name": "ontomark-obsidian-0.3.5.zip",
+              "size": 1563081
+            },
+            {
+              "name": "styles.css",
+              "size": 3919
+            }
+          ]
+        },
+        {
+          "tag": "0.3.4",
+          "published_at": "2026-10-16T13:44:14Z",
+          "url": "https://github.com/DreamLab-AI/ontomark-obsidian/releases/tag/0.3.4",
+          "assets": [
+            {
+              "name": "main.js",
+              "size": 3940132
+            },
+            {
+              "name": "manifest.json",
+              "size": 401
+            },
+            {
+              "name": "ontomark-obsidian-0.3.4.zip",
+              "size": 1562065
+            },
+            {
+              "name": "styles.css",
+              "size": 3919
+            }
+          ]
+        },
+        {
+          "tag": "0.3.3",
+          "published_at": "2026-10-13T10:57:00Z",
+          "url": "https://github.com/DreamLab-AI/ontomark-obsidian/releases/tag/0.3.3",
+          "assets": [
+            {
+              "name": "main.js",
+              "size": 3940144
+            },
+            {
+              "name": "manifest.json",
+              "size": 401
+            },
+            {
+              "name": "ontomark-obsidian-0.3.3.zip",
+              "size": 1561414
+            },
+            {
+              "name": "styles.css",
+              "size": 3919
+            }
+          ]
+        },
+        {
+          "tag": "0.3.2",
+          "published_at": "2026-10-13T10:36:09Z",
+          "url": "https://github.com/DreamLab-AI/ontomark-obsidian/releases/tag/0.3.2",
+          "assets": [
+            {
+              "name": "main.js",
+              "size": 3940164
+            },
+            {
+              "name": "manifest.json",
+              "size": 401
+            },
+            {
+              "name": "ontomark-obsidian-0.3.2.zip",
+              "size": 1561697
+            },
+            {
+              "name": "styles.css",
+              "size": 3854
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dream-engine",
+      "full_name": "DreamLab-AI/dream-engine",
+      "default_branch": "main",
+      "head": "8079c081a5ee5a5a25a6064efc5f115a50b731c0",
+      "actions_permissions": {
+        "enabled": true,
+        "allowed_actions": "all",
+        "sha_pinning_required": false
+      },
+      "branch_protected": true,
+      "rulesets": [],
+      "pages": null,
+      "workflows": [
+        {
+          "name": "ci",
+          "id": 386059571,
+          "state": "active",
+          "path": ".github/workflows/ci.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39594896650,
+              "name": "ci",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "8079c081a5ee5a5a25a6064efc5f115a50b731c0",
+              "event": "push",
+              "created_at": "2026-10-21T11:50:06Z",
+              "updated_at": "2026-10-21T11:50:38Z",
+              "html_url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/39594896650"
+            },
+            {
+              "id": 39234290111,
+              "name": "ci",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "ee46e75d9beedd521c5ffde52731d3eb0804e1e1",
+              "event": "push",
+              "created_at": "2026-10-19T10:00:31Z",
+              "updated_at": "2026-10-19T10:01:07Z",
+              "html_url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/39234290111"
+            },
+            {
+              "id": 39022752691,
+              "name": "ci",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "5efc94790dfcfeaa7d665499e914458c9f2a8378",
+              "event": "push",
+              "created_at": "2026-10-17T09:52:15Z",
+              "updated_at": "2026-10-17T09:52:50Z",
+              "html_url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/39022752691"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/dream-engine/blob/8079c081a5ee5a5a25a6064efc5f115a50b731c0/.github/workflows/ci.yml"
+        },
+        {
+          "name": "Dependabot Updates",
+          "id": 386059677,
+          "state": "active",
+          "path": "dynamic/dependabot/dependabot-updates",
+          "latest_default_branch_runs": [
+            {
+              "id": 39022821304,
+              "name": "cargo in / for quick-xml - Update #1632825156",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "5efc94790dfcfeaa7d665499e914458c9f2a8378",
+              "event": "dynamic",
+              "created_at": "2026-10-17T09:53:23Z",
+              "updated_at": "2026-10-17T09:53:58Z",
+              "html_url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/39022821304"
+            },
+            {
+              "id": 39022724913,
+              "name": "cargo in / for quick-xml - Update #1632822455",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "8b59c048829e808bdb7a72f000bc80260b1c69e4",
+              "event": "dynamic",
+              "created_at": "2026-10-17T09:51:47Z",
+              "updated_at": "2026-10-17T09:52:19Z",
+              "html_url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/39022724913"
+            },
+            {
+              "id": 38885096610,
+              "name": "cargo in / for quick-xml - Update #1631237667",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "124f08f6384e3260f912e34b7f75d8514ee13796",
+              "event": "dynamic",
+              "created_at": "2026-10-16T10:07:14Z",
+              "updated_at": "2026-10-16T10:07:54Z",
+              "html_url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/38885096610"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": null
+        }
+      ],
+      "deployments": [],
+      "releases": []
+    },
+    {
+      "name": "visiontouch-rs",
+      "full_name": "DreamLab-AI/visiontouch-rs",
+      "default_branch": "main",
+      "head": "08c6f1bb688a9daf8cfbe89488557a2878cf86cf",
+      "actions_permissions": {
+        "enabled": true,
+        "allowed_actions": "all",
+        "sha_pinning_required": false
+      },
+      "branch_protected": false,
+      "rulesets": {
+        "message": "Upgrade to GitHub Pro or make this repository public to enable this feature.",
+        "documentation_url": "https://docs.github.com/rest/repos/rules#get-all-repository-rulesets",
+        "status": "403"
+      },
+      "pages": null,
+      "workflows": [
+        {
+          "name": "CI",
+          "id": 387559606,
+          "state": "active",
+          "path": ".github/workflows/ci.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39595196249,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "failure",
+              "head_branch": "main",
+              "head_sha": "08c6f1bb688a9daf8cfbe89488557a2878cf86cf",
+              "event": "push",
+              "created_at": "2026-10-21T11:52:27Z",
+              "updated_at": "2026-10-21T11:53:07Z",
+              "html_url": "https://github.com/DreamLab-AI/visiontouch-rs/actions/runs/39595196249"
+            },
+            {
+              "id": 39237065538,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "6402fbe1e5fb45c0397eba95d95db5f0e65702fe",
+              "event": "push",
+              "created_at": "2026-10-19T10:23:03Z",
+              "updated_at": "2026-10-19T10:24:22Z",
+              "html_url": "https://github.com/DreamLab-AI/visiontouch-rs/actions/runs/39237065538"
+            },
+            {
+              "id": 39034420280,
+              "name": "CI",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "72e094d530d187e10abe06b42dcf50c4cee56c2f",
+              "event": "push",
+              "created_at": "2026-10-17T12:54:53Z",
+              "updated_at": "2026-10-17T12:55:59Z",
+              "html_url": "https://github.com/DreamLab-AI/visiontouch-rs/actions/runs/39034420280"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/visiontouch-rs/blob/08c6f1bb688a9daf8cfbe89488557a2878cf86cf/.github/workflows/ci.yml"
+        }
+      ],
+      "deployments": [],
+      "releases": []
+    },
+    {
+      "name": "codescape",
+      "full_name": "DreamLab-AI/codescape",
+      "default_branch": "main",
+      "head": "259347806982a85d0d64c2c7949d9a238acdd01f",
+      "actions_permissions": {
+        "enabled": true,
+        "allowed_actions": "all",
+        "sha_pinning_required": false
+      },
+      "branch_protected": false,
+      "rulesets": [],
+      "pages": null,
+      "workflows": [
+        {
+          "name": "ci",
+          "id": 388580278,
+          "state": "active",
+          "path": ".github/workflows/ci.yml",
+          "latest_default_branch_runs": [
+            {
+              "id": 39594897566,
+              "name": "ci",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "259347806982a85d0d64c2c7949d9a238acdd01f",
+              "event": "push",
+              "created_at": "2026-10-21T11:50:06Z",
+              "updated_at": "2026-10-21T11:53:07Z",
+              "html_url": "https://github.com/DreamLab-AI/codescape/actions/runs/39594897566"
+            },
+            {
+              "id": 39266950936,
+              "name": "ci",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "e300451cfdca8bd2368d64d75d9de177ff4a5125",
+              "event": "push",
+              "created_at": "2026-10-19T14:13:04Z",
+              "updated_at": "2026-10-19T14:16:25Z",
+              "html_url": "https://github.com/DreamLab-AI/codescape/actions/runs/39266950936"
+            },
+            {
+              "id": 39236995270,
+              "name": "ci",
+              "status": "completed",
+              "conclusion": "success",
+              "head_branch": "main",
+              "head_sha": "cb250b4ff80781fc121d1ca7e5abda0234a8bad0",
+              "event": "push",
+              "created_at": "2026-10-19T10:22:28Z",
+              "updated_at": "2026-10-19T10:26:53Z",
+              "html_url": "https://github.com/DreamLab-AI/codescape/actions/runs/39236995270"
+            }
+          ],
+          "latest_all_branch_runs": [],
+          "source_url": "https://github.com/DreamLab-AI/codescape/blob/259347806982a85d0d64c2c7949d9a238acdd01f/.github/workflows/ci.yml"
+        }
+      ],
+      "deployments": [],
+      "releases": []
+    }
+  ],
+  "failed_jobs": [
+    {
+      "repo": "DreamLab-AI/dreamlab-ai-website",
+      "run": 39330521739,
+      "name": "Set CF Worker secrets (native pod mesh)",
+      "failed": [
+        {
+          "name": "Push secrets to dreamlab-auth-api",
+          "conclusion": "failure",
+          "steps": [
+            "Set PRF_SERVER_SECRET on auth worker"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "DreamLab-AI/agentbox",
+      "run": 37827204900,
+      "name": "Security Invariants",
+      "failed": [
+        {
+          "name": "invariants",
+          "conclusion": "failure",
+          "steps": [
+            "check-manifest-catalogue (ADR-039 gate-path parity)"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "DreamLab-AI/agentbox",
+      "run": 37827204915,
+      "name": "Contract tests",
+      "failed": [
+        {
+          "name": "Custody \u2014 identity port and activation rehearsal",
+          "conclusion": "failure",
+          "steps": [
+            "Role-isolation rehearsal decides correctly (custody W6a/W10)"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "DreamLab-AI/agentbox",
+      "run": 26251007178,
+      "name": "Build and publish multi-arch image",
+      "failed": [
+        {
+          "name": "Build arm64",
+          "conclusion": "failure",
+          "steps": [
+            "Preflight \u2014 validate manifest and E021 audit gate"
+          ]
+        },
+        {
+          "name": "Build amd64",
+          "conclusion": "failure",
+          "steps": [
+            "Preflight \u2014 validate manifest and E021 audit gate"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "DreamLab-AI/VisionFlow",
+      "run": 39450108355,
+      "name": "Diagrams-as-code index gate",
+      "failed": [
+        {
+          "name": "Validate frontmatter, ids, block structure and the generated index",
+          "conclusion": "failure",
+          "steps": [
+            "Verification report is fresh, allowlist is well formed"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "DreamLab-AI/solid-pod-rs",
+      "run": 39349489580,
+      "name": "CI",
+      "failed": [
+        {
+          "name": "coverage (tarpaulin)",
+          "conclusion": "failure",
+          "steps": [
+            "Run tarpaulin (all-features)"
+          ]
+        },
+        {
+          "name": "CI required",
+          "conclusion": "failure",
+          "steps": [
+            "Verify dependent jobs succeeded"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "DreamLab-AI/solid-pod-rs",
+      "run": 30241818053,
+      "name": "cargo in /crates/solid-pod-rs - Update #1485513659",
+      "failed": [
+        {
+          "name": "Dependabot",
+          "conclusion": "failure",
+          "steps": [
+            "Run Dependabot"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "DreamLab-AI/visiontouch-rs",
+      "run": 39595196249,
+      "name": "CI",
+      "failed": [
+        {
+          "name": "quality-gate",
+          "conclusion": "failure",
+          "steps": [
+            "Quality gate"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "DreamLab-AI/ontomark-obsidian",
+      "run": 39594897119,
+      "name": "Plugin checks",
+      "failed": [
+        {
+          "name": "plugin",
+          "conclusion": "failure",
+          "steps": [
+            "Run npm run build && npm test && npm run test:wasm && npm run check:bundle"
+          ]
+        }
+      ]
+    },
+    {
+      "repo": "DreamLab-AI/knowledgeGraph",
+      "run": 35833155218,
+      "name": "Build and verify",
+      "failed": [
+        {
+          "name": "Pipeline build and gates",
+          "conclusion": "failure",
+          "steps": [
+            "Secret scan (corpus must contain no credential-shaped strings)"
+          ]
+        }
+      ]
+    }
+  ],
+  "surface_probes": [
+    {
+      "url": "https://www.visionflow.info/",
+      "http_status": "206",
+      "effective_url": "https://www.visionflow.info/",
+      "content_type": "text/html; charset=utf-8",
+      "curl_exit": 0,
+      "error": ""
+    },
+    {
+      "url": "https://narrativegoldmine.com/",
+      "http_status": "206",
+      "effective_url": "https://narrativegoldmine.com/",
+      "content_type": "text/html; charset=utf-8",
+      "curl_exit": 0,
+      "error": ""
+    },
+    {
+      "url": "https://narrativegoldmine.com/ns/v2.jsonld",
+      "http_status": "206",
+      "effective_url": "https://narrativegoldmine.com/ns/v2.jsonld",
+      "content_type": "application/ld+json",
+      "curl_exit": 0,
+      "error": ""
+    },
+    {
+      "url": "https://narrativegoldmine.com/data/graph/stats.json",
+      "http_status": "206",
+      "effective_url": "https://narrativegoldmine.com/data/graph/stats.json",
+      "content_type": "application/json; charset=utf-8",
+      "curl_exit": 0,
+      "error": ""
+    },
+    {
+      "url": "https://www.dreamlab-ai.com/",
+      "http_status": "206",
+      "effective_url": "https://dreamlab-ai.com/",
+      "content_type": "text/html; charset=utf-8",
+      "curl_exit": 0,
+      "error": ""
+    },
+    {
+      "url": "https://github.com/DreamLab-AI/VisionClaw/releases/download/ontology-latest/index.jsonld",
+      "http_status": "206",
+      "effective_url": "https://release-assets.githubusercontent.com/github-production-release-asset/828856646/4399d9be-c2c8-4d62-b46a-d454632bc1b8",
+      "content_type": "application/octet-stream",
+      "curl_exit": 0,
+      "error": ""
+    },
+    {
+      "url": "https://dreamlab-auth-api.solitary-paper-764d.workers.dev/health",
+      "http_status": "200",
+      "effective_url": "https://dreamlab-auth-api.solitary-paper-764d.workers.dev/health",
+      "content_type": "",
+      "curl_exit": 0,
+      "error": ""
+    },
+    {
+      "url": "https://dreamlab-nostr-relay.solitary-paper-764d.workers.dev/health",
+      "http_status": "200",
+      "effective_url": "https://dreamlab-nostr-relay.solitary-paper-764d.workers.dev/health",
+      "content_type": "application/json",
+      "curl_exit": 0,
+      "error": ""
+    },
+    {
+      "url": "https://dreamlab-pod-api.solitary-paper-764d.workers.dev/health",
+      "http_status": "200",
+      "effective_url": "https://dreamlab-pod-api.solitary-paper-764d.workers.dev/health",
+      "content_type": "application/json",
+      "curl_exit": 0,
+      "error": ""
+    },
+    {
+      "url": "https://dreamlab-search-api.solitary-paper-764d.workers.dev/health",
+      "http_status": "200",
+      "effective_url": "https://dreamlab-search-api.solitary-paper-764d.workers.dev/health",
+      "content_type": "application/json",
+      "curl_exit": 0,
+      "error": ""
+    },
+    {
+      "url": "https://dreamlab-link-preview.solitary-paper-764d.workers.dev/health",
+      "http_status": "200",
+      "effective_url": "https://dreamlab-link-preview.solitary-paper-764d.workers.dev/health",
+      "content_type": "application/json",
+      "curl_exit": 0,
+      "error": ""
+    },
+    {
+      "url": "https://dreamlab-ai.pages.dev/",
+      "http_status": "000",
+      "effective_url": "https://dreamlab-ai.pages.dev/",
+      "content_type": "",
+      "curl_exit": 6,
+      "error": "curl: (6) Could not resolve host: dreamlab-ai.pages.dev"
+    },
+    {
+      "url": "https://thedreamlab.uk/",
+      "http_status": "000",
+      "effective_url": "https://thedreamlab.uk/",
+      "content_type": "",
+      "curl_exit": 6,
+      "error": "curl: (6) Could not resolve host: thedreamlab.uk"
+    }
+  ],
+  "extra_findings": {
+    "plugin_release": {
+      "run": 39022251141,
+      "tag": "0.3.6",
+      "conclusion": "failure",
+      "failed_step": "WASM parity gate; publication step not reached",
+      "github_release_assets_present": true
+    },
+    "agentbox_catalogue_local_recheck": {
+      "command": "node scripts/ci/check-manifest-catalogue.js",
+      "head": "f9eb13b85ab4167612e847136a83048f0e92885d",
+      "exit": 0,
+      "result": "all 95 catalogue gate paths resolve; historical catalogue failure not reproduced"
+    },
+    "dreamlab_optional_targets": {
+      "run": 39333887790,
+      "mirror": "skipped: DREAMLAB_UK_TOKEN unavailable",
+      "cloudflare_pages": "skipped: CLOUDFLARE_PAGES_ENABLED condition false"
+    },
+    "limitations": [
+      "GitHub recent-run pages and per-workflow queries; no exhaustive historic-run or external CI-provider audit",
+      "Branch-filter API may lag; unfiltered latest100 run pages and head-sha queries also inspected for missing CI",
+      "Read-only HTTP probes establish reachability, not authenticated user journeys or deployed source equivalence",
+      "No workflows dispatched, deployments changed, secrets rotated, or branch policies modified",
+      "Retired workflow failures and default-branch exclusions do not establish live outages"
+    ]
+  }
+}
