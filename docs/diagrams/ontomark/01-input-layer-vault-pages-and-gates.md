@@ -36,7 +36,7 @@ sources:
   - ../ontomark/crates/ontomark-compile/src/build/indexes.rs
   - ../ontomark/crates/ontomark-compile/src/build/turtle.rs
   - ../ontomark/crates/ontomark-compile/tests/probe_consistency.rs
-verified_commit: 07f4c1ce6ac9e7d5c1c2169b4672ca73c54e5efa
+verified_commit: 13af42340448022d4d43ac349a8bb5f3ae6d1d47
 ---
 
 ## OM-01.1 Vault root to Vault — pages, journals, skips

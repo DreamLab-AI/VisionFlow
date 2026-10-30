@@ -78,7 +78,7 @@ sources:
   - ../project/client/src/features/control-center/primitives/NostrAuthControl.tsx
   - ../project/client/src/features/control-center/status/StatusFlyout.tsx
   - ../project/client/src/services/nostrAuthService.ts
-verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c}
+verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce}
 ---
 ## VC-30.1 Provider nesting and top-level render states
 ```mermaid

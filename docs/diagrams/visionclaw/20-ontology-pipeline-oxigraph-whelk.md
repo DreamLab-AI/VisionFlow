@@ -48,7 +48,7 @@ sources:
   - ../project/src/actors/gpu/physics_supervisor.rs
   - ../project/src/settings/models.rs
   - ../project/tests/integration/pipeline_test.rs
-verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, ontomark: 07f4c1ce6ac9e7d5c1c2169b4672ca73c54e5efa}
+verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, ontomark: 13af42340448022d4d43ac349a8bb5f3ae6d1d47}
 ---
 
 ## VC-20.1 load_ontology bin - CorpusSource-backed corpus loader

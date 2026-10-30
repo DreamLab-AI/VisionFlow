@@ -20,7 +20,7 @@ sources:
   - ../project/agentbox/scripts/ruvector-pattern-distill.mjs
   - ../project/agentbox/aisp/cli.js
   - ../project/agentbox/services/agentbox-manifest/src/cred_sync.rs
-verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
+verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
 ---
 
 ## AB-07.1 Supervised process classes by lifecycle shape
@@ -43,7 +43,7 @@ flowchart TD
     A2 -.-> M1
     A3 -.-> M2["ontology condensation internals belong to AB-25"]
     A4 -.-> M3["dream-engine internals belong to AB-23"]
-    A5 -.-> M4["sweeper internals: roots, exclude and max_age_days come from the baked manifest, agentbox.toml:1615"]
+    A5 -.-> M4["sweeper internals: roots, exclude and max_age_days come from the baked manifest, agentbox.toml:1618"]
     B3 -.-> N3["same shape as forum-backup-cron: crontab, job and config live in the mounted website repo, so only the stanza is baked"]
     B1 -.-> N1["log caps stdout and stderr maxbytes 5MB — flake.nix:2994-2995"]
     B2 -.-> N2["crontab and script live in the MOUNTED website repo, so schedule and behaviour<br/>are editable WITHOUT an image rebuild — only the supervisor stanza is baked (flake.nix:3077-3078)"]

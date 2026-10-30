@@ -15,7 +15,7 @@ sources:
   - ../visionGraph/vault.toml
   - ../visionGraph/.github/workflows/publish.yml
   - ../visionGraph/docs/adr/ADR-VG-003-obsidian-only-authoring.md
-verified_commit: {visiongraph: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e, visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c}
+verified_commit: {visiongraph: fd5269a55e52b8b1d1e9d7d59cb5f0c7835a5a2e, visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce}
 ---
 
 ## VG-05.1 Live invariants — what actually holds today

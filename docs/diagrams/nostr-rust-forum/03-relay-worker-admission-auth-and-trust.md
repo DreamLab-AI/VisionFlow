@@ -22,7 +22,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/push_fanout.rs
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml
-verified_commit: eb5f2323e6d72240ecb7c456181b7a674f1842f4
+verified_commit: 9c36b6032640c89879ae52fe25da99493979a0b6
 ---
 
 ## NF-03.1 Worker entry — three doors into the relay

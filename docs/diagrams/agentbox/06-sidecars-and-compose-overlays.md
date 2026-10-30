@@ -41,7 +41,9 @@ sources:
   - ../project/agentbox/config/custody/g5-key-split.json
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/config/entrypoint-unified.sh
-verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
+  - ../project/agentbox/crates/system-one/system-one-proxy/src/server.rs
+  - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
+verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
 ---
 
 ## AB-06.1 Compose overlay topology on visionclaw_network
@@ -92,7 +94,7 @@ flowchart TB
 flowchart TD
     CI[".github/workflows/invariants.yml"] --> W["scripts/ci/check-ports-loopback.sh<br/>stable entry point, resolves the gate<br/>relative to itself and FAILS LOUDLY if missing (check-ports-loopback.sh:29-30)"]
     W --> G["scripts/ci/check-ports-loopback.mjs<br/>real YAML reader"]
-    G --> WALK["walk the WHOLE tree of every docker-compose*.yml<br/>at the repo root glob, not only services/*/ports (check-ports-loopback.mjs:1067-1072)"]
+    G --> WALK["walk the WHOLE tree of every docker-compose*.yml<br/>at the repo root glob, not only services/*/ports (check-ports-loopback.mjs:1073-1078)"]
     WALK --> NORM["normalise every spelling to one tuple —<br/>long-form host_ip/published/target and<br/>short 0.0.0.0:8080:80 judge identically (:31-32)"]
     NORM --> J{"host_ip is 127.0.0.1?<br/>LOOPBACK const :106"}
     J -->|yes| PASS["pass"]
@@ -104,6 +106,7 @@ flowchart TD
     S --> L3["docker-compose.browsercontainer.yml 5903, 8931, 9222 to 9223 on 0.0.0.0 — :97-99"]
     S --> L4["docker-compose.gui-tools.yml 5905, 9876, 9877 on 0.0.0.0 — :100-102"]
     S --> L5["docker-compose.xr-runtime.yml 5904 on 0.0.0.0 — :103"]
+    G --> LST["second rule, supervised listeners in flake.nix: a program binding a non-loopback address needs LISTENER_SANCTIONED (check-ports-loopback.mjs:726),<br/>system-one-proxy is sanctioned for 0.0.0.0:8094 when [system_one].network = true, docker networks only, never published (check-ports-loopback.mjs:745)"]
     G --> ALSO["also fails on env interpolation in a port value,<br/>and treats an unsanctioned IPv6 [::] bind as a public door (:36 and :39-40)"]
     G -.-> LIM["DIVERGENCE — the gate's own stated limit (:44): it does NOT resolve<br/>overlay order or --env-file interpolation, so a pass proves the compose files<br/>DECLARE no unsanctioned door, not that no unsanctioned door is OPEN"]
     NORM -.-> HIST["ADR-2013 replaced an awk line-walker after the estate review reproduced a<br/>structural bypass — a public port written as a nested service-flow or JSON-flow<br/>mapping passed a gate that only armed on a line beginning with ports: (:11 of the .mjs)"]
@@ -294,7 +297,7 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     CLI["agentbox.sh systemone<br/>cmd_systemone agentbox.sh:2450<br/>SYSTEMONE_FILE agentbox.sh:591"] --> SUB["subcommands up :2478, down :2509, logs :2514,<br/>status :2517, health :2520, models :2546,<br/>eval :2550, rebuild :2660"]
-    CLI --> VEND["NEW ADR-2139 backend :2589, proxy :2653 - no compose: they act on the<br/>loopback vendor-slot proxy inside the agentbox container; from the host<br/>they re-exec through docker exec on the mounted checkout (agentbox.sh:2455-2474)"]
+    CLI --> VEND["NEW ADR-2139 backend :2589, proxy :2653 - no compose: they act on the<br/>vendor-slot proxy inside the agentbox container (loopback for in-container consumers; 0.0.0.0:8094 on the<br/>private docker networks when network = true, agentbox.toml:893-894); from the host<br/>they re-exec through docker exec on the mounted checkout (agentbox.sh:2455-2474)"]
     SUB --> COMPOSE["docker-compose.system-one.yml"]
 
     COMPOSE --> FACADE["service systemone<br/>build laya-engine + system-one crate context<br/>image agentbox/system-one:latest<br/>docker-compose.system-one.yml:14-26"]
@@ -309,6 +312,7 @@ flowchart TB
     SPEECH --> TTS["pocket-tts, host loopback port 8898<br/>docker-compose.speech.yml:43-44"]
 
     PUB --> INV["INVARIANT - both new overlays publish on 127.0.0.1 only,<br/>so the ADR-2013 sanctioned-LAN list is unchanged,<br/>docker-compose.system-one.yml:110"]
+    VEND --> PNET["the proxy port is never published. CONFIGURED, live once the new agentbox image is activated and the host services are recreated:<br/>containers on visionclaw_network dial agentbox:8094, in-container consumers still dial 127.0.0.1 (system_one.rs:92-103),<br/>and a browser-shaped POST, one carrying Origin or a non-JSON content type, gets 403 before any upstream call (server.rs:151-170)"]
 ```
 
 **What it shows.** The two compose overlays that joined the estate since this topic was last stamped: the ADR-2094 System One façade with its optional engine profile, and the shared speech pair the voice console depends on.
@@ -359,7 +363,7 @@ flowchart TB
     VOL[("named volume browsercontainer-profile, fixed name<br/>docker-compose.browsercontainer.yml:64, :75-76<br/>holds Podkey's encrypted vault - never down -v")]
     PIN --> F1 --> D1 --> D2 --> D3 --> L1 --> L2
     L1 --> L3 --> VOL
-    VOL -.-> OPEN1["OPEN: the vault is meant to hold K_browser, not the house key,<br/>but k_browser's pubkey is still null, g5-key-split.json:16-19, and the<br/>nip98-proxy roster still admits the house key for it, agentbox.toml:2093"]
+    VOL -.-> OPEN1["OPEN: the vault is meant to hold K_browser, not the house key,<br/>but k_browser's pubkey is still null, g5-key-split.json:16-19, and the<br/>nip98-proxy roster still admits the house key for it, agentbox.toml:2096"]
     PIN -.-> OPEN2["OPEN (RESOLVED 2026-10-12, agentbox 8fad68285): the earlier pin's CI artefact was due to expire on 2026-12-24.<br/>The pin now names run 38386898958 and expires 2027-01-11 (podkey.pin:11), and podkey CI has workflow_dispatch so the next re-pin needs no upstream commit"]
 ```
 
@@ -368,7 +372,7 @@ flowchart TB
 
 **Invariant:** the browsercontainer image is never built with an unverified Podkey: the zip copied into the build is checked against the pinned sha256 before a single entry is extracted, and a mismatch refuses the build (`../project/agentbox/browsercontainer/scripts/fetch-podkey.sh:150-151`, `../project/agentbox/browsercontainer/scripts/fetch-podkey.sh:95-101`).
 
-**Open:** `K_browser` is not admitted anywhere yet. Its pubkey is null in the split register (`../project/agentbox/config/custody/g5-key-split.json:16-20`), and the LAN door's roster still names the house key as the browsercontainer vault's identity (`../project/agentbox/agentbox.toml:2093`). Until the owner mints it and the dual-admit step lands, the sidecar's flows still authenticate as the house key.
+**Open:** `K_browser` is not admitted anywhere yet. Its pubkey is null in the split register (`../project/agentbox/config/custody/g5-key-split.json:16-20`), and the LAN door's roster still names the house key as the browsercontainer vault's identity (`../project/agentbox/agentbox.toml:2096`). Until the owner mints it and the dual-admit step lands, the sidecar's flows still authenticate as the house key.
 
 ## AB-06.13 The host Docker socket and the /run/secrets mount: what compose can and cannot narrow (custody W0, W1)
 ```mermaid

@@ -43,7 +43,7 @@ sources:
   - ../project/agentbox/lib/factrail.nix
   - ../project/agentbox/scripts/factrail-store-migrate.mjs
   - ../project/agentbox/docs/adr/ADR-2121-factrail-implements-jev-compaction.md
-verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
+verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
 ---
 
 Registration ground truth (2026-09-29): `~/.claude/settings.json` is boot-generated and never tracked, so AB-08.1–AB-08.7
@@ -100,7 +100,7 @@ flowchart TB
     X1["entrypoint-unified.sh:1902 tab0-bridge turn-sink.cjs deployed path<br/>:1910 events UserPromptSubmit and Stop, :1913 timeout 5 seconds"]
     X2["entrypoint-unified.sh:2208 dream-inbox-surface.cjs, live-checkout fallback :2209<br/>gate DREAM_INBOX_HOOK :2210, UserPromptSubmit timeout 5 seconds :2224"]
     X3["entrypoint-unified.sh:2623 ruvnet-brain-ground.cjs<br/>gate RUVNET_BRAIN_GROUNDING_HOOK :2624, timeout 5 seconds :2637"]
-    X4["gate source agentbox.toml:1075 grounding_hook = true"]
+    X4["gate source agentbox.toml:1078 grounding_hook = true"]
     X1 --> X2 --> X3 --> X4
     end
     subgraph SHM["hook shim reconcile — ADR-2034 §1"]
@@ -171,7 +171,7 @@ sequenceDiagram
         SR->>SR: lib.route#40;prompt, cfg#41;: one Choice over every routable skill<br/>hooks/skill-route.cjs:37 via lib/skill-route.cjs
         SR->>SR: candidates also take claude.ai synced skills as anthropic-skills:name and enabled<br/>plugins' skills as plugin:skill, the Skill tool's own names (lib/skill-route.cjs:293, lib/skill-route.cjs:312),<br/>read best-effort, off with AGENTBOX_SKILL_ROUTE_CLAUDE_DIR=0 (lib/skill-route.cjs:397)
         SR-->>M: emitContext#40;lib.formatContext#40;r, cfg#41;#41; via lib/hook-output.cjs, or nothing<br/>hooks/skill-route.cjs:42
-        Note over SR: ADR-2139 behind the loopback proxy the hook sends no Authorization and the no-key skip is waived (lib/skill-route.cjs:405, :576, :621, :644-646),<br/>the flag rides the inlined command as AGENTBOX_SYSTEM_ONE_PROXY=1 (entrypoint-unified.sh:2760, :2776), cost uses the proxy's x-system-one-usd-per-mtok-in header (lib/skill-route.cjs:670-673)
+        Note over SR: ADR-2139 behind the proxy, which this container dials on loopback (it also listens on the docker networks once network = true is live), the hook sends no Authorization and the no-key skip is waived (lib/skill-route.cjs:405, :576, :621, :644-646),<br/>the flag rides the inlined command as AGENTBOX_SYSTEM_ONE_PROXY=1 (entrypoint-unified.sh:2760, :2776), cost uses the proxy's x-system-one-usd-per-mtok-in header (lib/skill-route.cjs:670-673)
         Note over SR: INVARIANT fail-open - any error, timeout, 429/529 or a none pick<br/>returns without injection, hooks/skill-route.cjs:20 and hooks/skill-route.cjs:45
     and
         U->>DI: node HOOK #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:2224
@@ -465,7 +465,7 @@ sequenceDiagram
             TR->>UT: gradeResult#40;is_error,stderr,interrupted#41; -#62; success/failure + quality score (:356)
         end
         TR->>UT: Jev option, off unless AGENTBOX_JEV_FAILURE_TAXONOMY=1: jevFailureTags pre-pass refines only failures the taxonomy left unmapped, before any database connection (:121-129, call :438)
-        Note over TR: lib/failure-jev.cjs bounds the pre-pass to AGENTBOX_JEV_FAILURE_MAX_CALLS requests, default 3, under one deadline hard-capped at 4000 ms (lib/failure-jev.cjs:23-25)<br/>a miss keeps the base tag, and failure_jev is written to the step result only when the judge answered (trajectory-recorder.cjs:478-481)
+        Note over TR: lib/failure-jev.cjs bounds the pre-pass to AGENTBOX_JEV_FAILURE_MAX_CALLS requests, default 3, under one deadline hard-capped at 4000 ms (lib/failure-jev.cjs:24-26)<br/>and, once the new image is activated (configured 2026-10-30), takes the proxy and TypeSafe unless AGENTBOX_JEV_FAILURE_LOCAL_ONLY=1, off by default (lib/failure-jev.cjs:13-16, :109), a miss keeps the base tag, and failure_jev is written to the step result only when the judge answered (trajectory-recorder.cjs:478-481)
         alt pg module unavailable
             TR-->>CC: log, watermark NOT advanced, lines retried next Stop #40;ADR-2015 closeout, :429#41;
         else
@@ -602,15 +602,15 @@ flowchart TB
     subgraph MAN["agentbox.toml as shipped"]
     direction TB
     M1["claude_code floor = true, agentbox.toml:740"]
-    M2["voicelink enabled = true agentbox.toml:2223, record_events = true :2230"]
-    M4["interaction_plane enabled = true, agentbox.toml:2079"]
+    M2["voicelink enabled = true agentbox.toml:2226, record_events = true :2233"]
+    M4["interaction_plane enabled = true, agentbox.toml:2082"]
     M3["integrations.activity_sink enabled = false, url empty, agentbox.toml:529"]
     end
     MAN --> GATE --> PROF
     GATE --> ROOT
     NOTE1["INVARIANT: decline-recorder never blocks a turn, it exits 0 with nothing on stdout<br/>decline-recorder.cjs:42-44"]
     NOTE2["INVARIANT: activity-sink prints nothing on stdout, exits 0 always, under a hard deadline<br/>activity-sink.cjs:43-45, :327"]
-    NOTE3["TENSION: ADR-2151 is decision_status proposed, implementation none, activation inactive<br/>ADR-2151-voicelink-edge-voice.md:5-7, yet voicelink enabled = true registers hooks on every boot<br/>agentbox.toml:2223"]
+    NOTE3["TENSION: ADR-2151 is decision_status proposed, implementation none, activation inactive<br/>ADR-2151-voicelink-edge-voice.md:5-7, yet voicelink enabled = true registers hooks on every boot<br/>agentbox.toml:2226"]
     NOTE4["OPEN: ADR-2146 is decision_status proposed with implementation complete, activation inactive<br/>ADR-2146-activity-sink-hook.md:5-7, and the shipped manifest leaves the gate off agentbox.toml:529"]
     ROOT --> NOTE1
     PROF --> NOTE2
@@ -622,7 +622,7 @@ flowchart TB
 
 **Why it is this way.** Isolated profiles replace `CLAUDE_CONFIG_DIR`, so root settings are not inherited and the floor's recording promise has to be repeated per profile (`../project/agentbox/services/agentbox-manifest/src/stacks.rs:291-292`); the profile file is rewritten whole on every projection, which is why a stale command self-heals there without a reconcile step (`../project/agentbox/services/agentbox-manifest/src/stacks.rs:309-310`). The token value of the activity sink is never written into `settings.json`, only the file path or the environment variable name (`../project/agentbox/config/entrypoint-unified.sh:2858-2859`).
 
-**Tension (ADR-2151 vs manifest):** ADR-2151 is `decision_status: proposed`, `implementation_status: none` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`) while `[voicelink] enabled = true` and `record_events = true` register the recorder hooks on every boot (`../project/agentbox/agentbox.toml:2223`, `../project/agentbox/agentbox.toml:2230`).
+**Tension (ADR-2151 vs manifest):** ADR-2151 is `decision_status: proposed`, `implementation_status: none` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`) while `[voicelink] enabled = true` and `record_events = true` register the recorder hooks on every boot (`../project/agentbox/agentbox.toml:2226`, `../project/agentbox/agentbox.toml:2233`).
 
 **Open:** ADR-2146 is `decision_status: proposed` with `implementation_status: complete` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2146-activity-sink-hook.md:5-7`); is the sink meant to ship enabled anywhere, given the manifest leaves it off with an empty `url` (`../project/agentbox/agentbox.toml:529`)?
 

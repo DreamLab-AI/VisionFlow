@@ -70,7 +70,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/docker-compose.system-one.yml
-verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, agentbox: 0b0f7918961e629280faf86f88227535abf514b5}
+verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc}
 ---
 ## ES-09.1 The host-vs-container build trap — wrong path vs sanctioned path
 ```mermaid
@@ -98,7 +98,7 @@ flowchart TB
     EDIT ---|"bind mount, always in sync"| HOSTSRC
     LAUNCHTRY -->|"socket-forwarded request"| BUILDREQ:::wrong
     SSHTRY -.->|"refused: no LAN IP path from CC to host shell"| REFUSED(("blocked")):::wrong
-    BUILDREQ -->|"resolves HOST_PROJECT_ROOT-relative<br/>bind-mount paths against ITS OWN (host-side)<br/>cwd/view, not the CC container path"| MISBIND["docker-compose.unified.yml:158-195<br/>bind source path mismatch"]:::wrong
+    BUILDREQ -->|"resolves HOST_PROJECT_ROOT-relative<br/>bind-mount paths against ITS OWN (host-side)<br/>cwd/view, not the CC container path"| MISBIND["docker-compose.unified.yml:169-206<br/>bind source path mismatch"]:::wrong
     MISBIND --> STALE["Running dev container serves the<br/>image-build-time COPY'd source,<br/>NOT the just-edited host file"]:::wrong
     STALE -.->|"the trap: container starts, health check passes,<br/>edits never take effect"| TRAPEND(("silent stale-code failure")):::wrong
 
@@ -129,7 +129,7 @@ sequenceDiagram
     participant CC as ClaudeCodeContainer<br/>bind:/home/devuser/workspace/project
     participant T6 as HostShellTmux6
     participant DD as HostDockerd
-    participant DC as visionclaw_container<br/>docker-compose.unified.yml:58
+    participant DC as visionclaw_container<br/>docker-compose.unified.yml:69
     participant W as rust-backend-wrapper.sh
 
     Dev->>CC: edit src/main.rs
@@ -139,7 +139,7 @@ sequenceDiagram
     Dev->>T6: tmux send-keys -t 6 ./scripts/launch.sh up dev Enter
     T6->>T6: sync_dev_inputs publishes Cargo.toml, Cargo.lock, build.rs and the Vite root files<br/>into the gitignored .dev-inputs, stamped with the source commit<br/>scripts/launch.sh:640-651
     T6->>DD: docker compose --profile dev up -d
-    DD->>DD: resolve HOST_PROJECT_ROOT bind mounts, directories only plus the<br/>stamped .dev-inputs (create_host_path false)<br/>docker-compose.unified.yml:158-195
+    DD->>DD: resolve HOST_PROJECT_ROOT bind mounts, directories only plus the<br/>stamped .dev-inputs (create_host_path false)<br/>docker-compose.unified.yml:169-206
     DD->>DC: recreate container with correct host-side binds
     end
     DC->>W: supervisord starts program:rust-backend<br/>supervisord.dev.conf:34
@@ -302,18 +302,18 @@ stateDiagram-v2
 ```mermaid
 flowchart TB
     subgraph PROFILES["docker-compose.unified.yml services block"]
-        DEVSVC["visionclaw<br/>docker-compose.unified.yml:69 target development, compose-hash label :64<br/>profiles development and dev, docker-compose.unified.yml:232-234<br/>ports 3001 and 4000, docker-compose.unified.yml:214-215<br/>source-bind volumes docker-compose.unified.yml:158-195,<br/>docker.sock read-only docker-compose.unified.yml:204"]
-        VAULTMOUNT["ADR-2114 corpus vault mount<br/>agent-workspace:/vault:ro docker-compose.unified.yml:208-211<br/>external named volume multi-agent-docker_workspace<br/>declared docker-compose.unified.yml:672-674"]
-        PRODSVC["visionclaw-production<br/>docker-compose.unified.yml:237<br/>profiles production and prod, docker-compose.unified.yml:321-323<br/>port 3001 only, docker-compose.unified.yml:295-297<br/>NO source mounts and NO docker.sock, docker-compose.unified.yml:292-294"]
-        CLOUDFLARED["cloudflared<br/>docker-compose.unified.yml:328, image cloudflare/cloudflared at a pinned<br/>digest :331, its OWN profile tunnel docker-compose.unified.yml:347-348 (ADR-2119)<br/>depends_on visionclaw OR visionclaw-production (optional)"]
-        LOOM["loom<br/>docker-compose.unified.yml:371, image loom:rust built outside this repo :373<br/>loom compose profile docker-compose.unified.yml:444-445<br/>host port 8090 to container port 8080 docker-compose.unified.yml:429<br/>hostname loom :374, alias ontology-loom docker-compose.unified.yml:434"]
-        CODESCAPE["codescape (ADR-2143, opt-in profile codescape)<br/>the Codescape submodule built and run as a sidecar on port 4100,<br/>ingest token as a compose secret<br/>docker-compose.unified.yml:454-466, docker-compose.unified.yml:651-652,<br/>docker-compose.unified.yml:660-661"]
-        SYS1["System One rollout (ADR-2148): VisionClaw env on dev and production via the shared anchor<br/>docker-compose.unified.yml:5-14, loom LOOM_JEV docker-compose.unified.yml:378-388,<br/>codescape CODESCAPE_JEV docker-compose.unified.yml:493-500, all pointed at the local facade<br/>systemone:8097 which agentbox docker-compose.system-one.yml:3 and :106 defines, not this file.<br/>Automatic thresholds are left unset, so enablement accepts nothing autonomously"]
+        DEVSVC["visionclaw<br/>docker-compose.unified.yml:80 target development, compose-hash label :75<br/>profiles development and dev, docker-compose.unified.yml:243-245<br/>ports 3001 and 4000, docker-compose.unified.yml:225-226<br/>source-bind volumes docker-compose.unified.yml:169-206,<br/>docker.sock read-only docker-compose.unified.yml:215"]
+        VAULTMOUNT["ADR-2114 corpus vault mount<br/>agent-workspace:/vault:ro docker-compose.unified.yml:219-222<br/>external named volume multi-agent-docker_workspace<br/>declared docker-compose.unified.yml:680-682"]
+        PRODSVC["visionclaw-production<br/>docker-compose.unified.yml:248<br/>profiles production and prod, docker-compose.unified.yml:332-334<br/>port 3001 only, docker-compose.unified.yml:306-308<br/>NO source mounts and NO docker.sock, docker-compose.unified.yml:303-305"]
+        CLOUDFLARED["cloudflared<br/>docker-compose.unified.yml:339, image cloudflare/cloudflared at a pinned<br/>digest :342, its OWN profile tunnel docker-compose.unified.yml:358-359 (ADR-2119)<br/>depends_on visionclaw OR visionclaw-production (optional)"]
+        LOOM["loom<br/>docker-compose.unified.yml:382, image loom:rust built outside this repo :384<br/>loom compose profile docker-compose.unified.yml:453-454<br/>host port 8090 to container port 8080 docker-compose.unified.yml:438<br/>hostname loom :385, alias ontology-loom docker-compose.unified.yml:443"]
+        CODESCAPE["codescape (ADR-2143, opt-in profile codescape)<br/>the Codescape submodule built and run as a sidecar on port 4100,<br/>ingest token as a compose secret<br/>docker-compose.unified.yml:463-476, docker-compose.unified.yml:659-660,<br/>docker-compose.unified.yml:668-669"]
+        SYS1["System One (ADR-2148, amended 2026-10-30): the x-system-one-environment anchor, docker-compose.unified.yml:2-11,<br/>is merged into the VisionClaw common environment :14,22, loom :387-395 and codescape :475,505. All three<br/>reach the agentbox proxy agentbox:8094 with JEV_ALLOW_CLOUD default 1, not the laya facade systemone:8097<br/>(still an opt-in local backend, agentbox docker-compose.system-one.yml:3 and :106). Thresholds stay unset,<br/>so enablement accepts nothing autonomously. CONFIGURED: effective when the new agentbox image is activated<br/>and these services are recreated"]
     end
     subgraph EXTFILE["docker-compose.cloudflared.yml (standalone)"]
         CFSTANDALONE["cloudflared<br/>joins external visionclaw_network<br/>alias visionclaw-server:3001"]
     end
-    NET["visionclaw_network (external, pre-created)<br/>docker-compose.unified.yml:663-666"]
+    NET["visionclaw_network (external, pre-created)<br/>docker-compose.unified.yml:671-674"]
     INGRESS["launch.sh up prod reads VISIONCLAW_INGRESS from .env.prod,<br/>lan or tunnel, undeclared means tunnel, scripts/launch.sh:177-190<br/>tunnel activates prod,tunnel, lan activates prod alone :296-300;<br/>dev adds the codescape profile only when the sidecar is chosen :270-275"]
     INGRESS -->|"tunnel"| CLOUDFLARED
     INGRESS -->|"prod in both modes"| PRODSVC
@@ -391,7 +391,7 @@ flowchart TB
         SUPWRITE["writeText supervisord.conf<br/>agentbox/flake.nix:4006-4010"]
     end
     subgraph TOML["agentbox/agentbox.toml — RUNNING config, not a template"]
-        GATEKEY["gate key e.g. interaction_plane.enabled, now rebuild-class (ADR-2153)<br/>agentbox.toml:2078-2079"]
+        GATEKEY["gate key e.g. interaction_plane.enabled, now rebuild-class (ADR-2153)<br/>agentbox.toml:2081-2082"]
     end
     subgraph MANIFEST["agentbox/management-api/lib/system-manifest.js"]
         CATALOGUE["CATALOGUE entry<br/>system-manifest.js:39<br/>gate, service, apply_class"]
@@ -416,7 +416,7 @@ flowchart TB
 
     subgraph SUBMOD["VisionClaw submodule pointer-bump"]
         GITMODULES[".gitmodules:1-3<br/>submodule agentbox<br/>url github.com/DreamLab-AI/agentbox.git<br/>.gitmodules:4-6<br/>submodule codescape (ADR-2143 A5, its own repository)<br/>url github.com/DreamLab-AI/codescape"]
-        SUBSTATUS["git submodule status<br/>0b0f79189 agentbox and c742770ce codescape at the stamped gitlinks<br/>a + prefix means the checkout differs from the index"]
+        SUBSTATUS["git submodule status<br/>7208f7e0d agentbox and c742770ce codescape at the stamped gitlinks<br/>a + prefix means the checkout differs from the index"]
         SUBUPDATE["cd agentbox and git checkout NEW_SHA<br/>then git add agentbox (records gitlink)"]
         SUBCOMMIT["git commit records new gitlink SHA<br/>in the VisionClaw superproject tree"]
     end
@@ -685,7 +685,7 @@ flowchart LR
     COMPOSEUP["docker compose --profile dev|production up<br/>docker-compose.unified.yml"]
     CONTAINER["visionclaw_container or visionclaw_prod_container<br/>supervisord manages nginx + rust-backend (+vite-dev in dev)"]
     NGINXROUTE["nginx.dev.conf or nginx.production.conf<br/>route table (ES-09.9)"]
-    HEALTH["/api/health, /readyz<br/>docker-compose.unified.yml:225, docker-compose.unified.yml:314"]
+    HEALTH["/api/health, /readyz<br/>docker-compose.unified.yml:236, docker-compose.unified.yml:325"]
 
     SRC --> CIGATE
     CIGATE --> DOCKERBUILD
@@ -711,17 +711,17 @@ sequenceDiagram
     participant CB as "cargo build (dev container)"<br/>rust-backend-wrapper.sh:83
     participant URI as visionclaw-server src/uri<br/>src/uri/mod.rs:662
     participant FK as federation-kinds artefact<br/>agentbox/schema/federation-kinds.json:2-4
-    participant CMP as dev compose mounts<br/>docker-compose.unified.yml:192
+    participant CMP as dev compose mounts<br/>docker-compose.unified.yml:203
     participant BR as "BC20 bridge (agentbox, JS)"
 
     Note over URI,FK: ADR-2061 — federation-kinds.json is the SINGLE versioned<br/>authority for which urn:agentbox kinds cross the boundary.<br/>cross_from_agentbox derives its closed map from it — the JS bridge<br/>reads the same bytes at load. Neither side transcribes the list.
     URI->>FK: "const FEDERATION_KINDS_JSON = include_str!(\"../../agentbox/schema/federation-kinds.json\")"<br/>src/uri/mod.rs:662
     Note over URI: include_str! is COMPILE time, so the file must exist under /app<br/>or the lib cannot build at all — not a runtime read.
-    CMP->>CB: "bind ${HOST_PROJECT_ROOT}/agentbox/schema -> /app/agentbox/schema:ro"<br/>docker-compose.unified.yml:192
+    CMP->>CB: "bind ${HOST_PROJECT_ROOT}/agentbox/schema -> /app/agentbox/schema:ro"<br/>docker-compose.unified.yml:203
     CB->>URI: compiles, artefact bytes baked into the binary
     FK-->>BR: EXTERNAL — the same file is read at load by the agentbox<br/>management-api bridge. see AB-17 and ES-03.1
-    Note over CMP: INVARIANT — mount schema/ ONLY, never the whole submodule.<br/>agentbox carries 262 files ADR-2008 counts as build inputs, so a<br/>full mount would turn every agentbox bump into a spurious ~12 min<br/>visionclaw rebuild — schema/ is JSON alone and matches no input glob<br/>(docker-compose.unified.yml:183-191)
-    Note over CB: RESOLVED 2026-09 — before this mount the dev image (which carries<br/>no source of its own) failed every build with<br/>the missing federation-kinds.json include<br/>docker-compose.unified.yml:192
+    Note over CMP: INVARIANT — mount schema/ ONLY, never the whole submodule.<br/>agentbox carries 262 files ADR-2008 counts as build inputs, so a<br/>full mount would turn every agentbox bump into a spurious ~12 min<br/>visionclaw rebuild — schema/ is JSON alone and matches no input glob<br/>(docker-compose.unified.yml:194-202)
+    Note over CB: RESOLVED 2026-09 — before this mount the dev image (which carries<br/>no source of its own) failed every build with<br/>the missing federation-kinds.json include<br/>docker-compose.unified.yml:203
 ```
 
 ## ES-09.21 scripts/launch.sh — env-file resolution and the two divergent code paths
@@ -782,8 +782,8 @@ flowchart TB
     S2 --> DEBT
     C3 --> DEBT
 
-    CAT["INVARIANT ADR-039 — a new manifest gate must arrive with a<br/>CATALOGUE entry carrying an honest apply class, and the parity<br/>check above is what enforces it. Recent module entries: Claude Code<br/>permissions (ADR-2116) and instruction tiers (ADR-2118) and the<br/>collaboration floor (ADR-2144) at boot, claude-cred-sync at<br/>rebuild, skill-router-cascade (ADR-2095) and<br/>routing-teacher-labels (ADR-2110, proposed) at boot, vault-cli<br/>(ADR-2107/2108) at rebuild<br/>agentbox/management-api/lib/system-manifest.js:253, :259, :262, :265, :345, :348, :400"]
-    HONEST["2026-10-02 — two entries show the honesty rule working. jev-compaction<br/>moved from boot to REBUILD when factrail landed (ADR-2121), because<br/>the binary and plugin are now gated in flake.nix,<br/>agentbox/management-api/lib/system-manifest.js:268-269. A new sidechain<br/>entry is rebuild-class with three gates,<br/>agentbox/management-api/lib/system-manifest.js:379-380, and stateOf<br/>lets a false parent gate dominate its child gates,<br/>agentbox/management-api/lib/system-manifest.js:454-455. 2026-10-29: interaction-plane moved from boot to REBUILD with ADR-2153,<br/>agentbox/management-api/lib/system-manifest.js:74-76, and nineteen System One consumer entries arrived,<br/>sixteen boot and three rebuild (solid pod, ontomark, vault rank), agentbox/management-api/lib/system-manifest.js:285-341. 2026-10-03: the<br/>role-isolation entry first arrived at BOOT, because both supervisor configs<br/>ship in every image; it is now rebuild-class, because the devuser sudo route is<br/>removed at build, agentbox/management-api/lib/system-manifest.js:97-99"]
+    CAT["INVARIANT ADR-039 — a new manifest gate must arrive with a<br/>CATALOGUE entry carrying an honest apply class, and the parity<br/>check above is what enforces it. Recent module entries: Claude Code<br/>permissions (ADR-2116) and instruction tiers (ADR-2118) and the<br/>collaboration floor (ADR-2144) at boot, claude-cred-sync at<br/>rebuild, skill-router-cascade (ADR-2095) and<br/>routing-teacher-labels (ADR-2110, proposed) at boot, vault-cli<br/>(ADR-2107/2108) at rebuild<br/>agentbox/management-api/lib/system-manifest.js:253, :259, :262, :265, :348, :351, :403"]
+    HONEST["2026-10-02 — two entries show the honesty rule working. jev-compaction<br/>moved from boot to REBUILD when factrail landed (ADR-2121), because<br/>the binary and plugin are now gated in flake.nix,<br/>agentbox/management-api/lib/system-manifest.js:268-269. A new sidechain<br/>entry is rebuild-class with three gates,<br/>agentbox/management-api/lib/system-manifest.js:382-383, and stateOf<br/>lets a false parent gate dominate its child gates,<br/>agentbox/management-api/lib/system-manifest.js:457-458. 2026-10-29: interaction-plane moved from boot to REBUILD with ADR-2153,<br/>agentbox/management-api/lib/system-manifest.js:74-76, and nineteen System One consumer entries arrived,<br/>sixteen boot and three rebuild (solid pod, ontomark, vault rank), agentbox/management-api/lib/system-manifest.js:288-344. 2026-10-30: system-one-network arrived at BOOT,<br/>agentbox/management-api/lib/system-manifest.js:277-279. 2026-10-03: the<br/>role-isolation entry first arrived at BOOT, because both supervisor configs<br/>ship in every image; it is now rebuild-class, because the devuser sudo route is<br/>removed at build, agentbox/management-api/lib/system-manifest.js:97-99"]
     CAT --> HONEST
     C2 --> CAT
 
@@ -844,9 +844,11 @@ flowchart TB
         M3["with role_isolation off the boot is today's<br/>agentbox/.github/workflows/manifest-validate.yml:151-152"]
     end
     subgraph TUI["tui-tests.yml, on services/agentbox-manifest and services/agentbox-sessions"]
-        T1["cargo test agentbox-manifest, which carries the role_accounts unit tests<br/>agentbox/.github/workflows/tui-tests.yml:66"]
-        T2["NEW with ADR-2153: clippy and cargo test agentbox-sessions on a private tmux server,<br/>then the Node/Rust launch-contract parity<br/>agentbox/.github/workflows/tui-tests.yml:93-110"]
+        T1["cargo test agentbox-manifest, which carries the role_accounts unit tests<br/>agentbox/.github/workflows/tui-tests.yml:71"]
+        T2["NEW with ADR-2153: clippy and cargo test agentbox-sessions on a private tmux server,<br/>then the Node/Rust launch-contract parity<br/>agentbox/.github/workflows/tui-tests.yml:98-115"]
+        T3["NEW 2026-10-30: the tab0-bridge follows the session plane, readiness against a fake daemon on a unix socket<br/>agentbox/.github/workflows/tui-tests.yml:117-139"]
         T1 --> T2
+        T2 --> T3
     end
     subgraph CT["contract-tests.yml custody job, NEW 2026-10 for ADR-2122"]
         C1["cargo test nostr-pod-bridge: the identity port's transport, SO_PEERCRED<br/>ACL and receipts, and the Rust role-isolation readers<br/>agentbox/.github/workflows/contract-tests.yml:252-254"]

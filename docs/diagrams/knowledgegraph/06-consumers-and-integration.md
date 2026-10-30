@@ -11,7 +11,7 @@ sources:
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/ontocast_import.py
   - ../knowledgeGraph/README.md
   - docs/architecture/licensing.md
-verified_commit: {knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3, visionflow: 124512b8f5e8c33c247065c58901dcfdc18988a2}
+verified_commit: {knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3, visionflow: ff15faf83d82fef7f23d96da381c8ab78d0206b0}
 ---
 
 ## KG-06.1 Sibling repository map — what actually depends on what

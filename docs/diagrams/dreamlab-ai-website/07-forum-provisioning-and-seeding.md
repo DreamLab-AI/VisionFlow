@@ -30,7 +30,9 @@ sources:
   - ../dreamlab-ai-website/.gitignore
   - ../dreamlab-ai-website/README.md
   - ../dreamlab-ai-website/forum-config/deploy/search-worker.wrangler.toml
-verified_commit: 07cf8642bddb44df2388a5d1e9d2074923ab6ac0
+  - ../dreamlab-ai-website/forum-config/deploy/SYSTEM-ONE.md
+  - ../dreamlab-ai-website/scripts/lib/enquiry-topic.mjs
+verified_commit: 4935b6c4a394633569b2c8b38d5c0c272da3b0fb
 ---
 
 ## DW-07.2 Root-level seeders — deleted 2026-10-07 (historical)
@@ -70,7 +72,7 @@ flowchart LR
     PG["postgres-embedding-sync.ts"] --> RUVECTOR["RuVector Postgres — agentbox memory store<br/>EXTERNAL, unrelated repo concern"]
     RVFTEST["tests/rvf-validation/test-rvf-dreamlab.mjs:1-9<br/>'matching DreamLab's all-MiniLM-L6-v2 model output'"] --> RVFLIB["@ruvector/rvf Node SDK, local tmp files<br/>not Workers AI, not R2"]
 ```
-- Nothing in `scripts/embeddings/*` or `tests/rvf-validation/*` builds the site's search index: `batch-embedding-sync.ts` and `mcp-embedding-sync.ts` sync **RuVector Postgres memory entries** via the **claude-flow MCP** toolchain (agentbox's own memory system), and the two `tests/rvf-validation/*` suites validate the `@ruvector/rvf` Node SDK against a **384-dim `all-MiniLM-L6-v2`** model over local JSON/tmp files, a different model and store from the search worker's Workers AI binding (`forum-config/deploy/search-worker.wrangler.toml:11-12`), which now also carries an advisory Jev rerank switched on by `JEV_SEARCH_RERANK` (`forum-config/deploy/search-worker.wrangler.toml:33`; errors retain the existing result). The earlier README claim of `bge-small-en-v1.5` over R2 (a feature bullet in the README at the previous stamp) is gone: the rewritten README makes no semantic-search claim, so that divergence is closed at its source, while the build and index path stays upstream-kit code this repo does not vendor.
+- Nothing in `scripts/embeddings/*` or `tests/rvf-validation/*` builds the site's search index: `batch-embedding-sync.ts` and `mcp-embedding-sync.ts` sync **RuVector Postgres memory entries** via the **claude-flow MCP** toolchain (agentbox's own memory system), and the two `tests/rvf-validation/*` suites validate the `@ruvector/rvf` Node SDK against a **384-dim `all-MiniLM-L6-v2`** model over local JSON/tmp files, a different model and store from the search worker's Workers AI binding (`forum-config/deploy/search-worker.wrangler.toml:11-12`), which also carries an advisory Jev rerank switched on by `JEV_SEARCH_RERANK` (`forum-config/deploy/search-worker.wrangler.toml:33`; errors retain the existing result). Since the 2026-10-30 repin it is routed to TypeSafe `jev-latest` with the `TYPESAFE_API_KEY` Worker secret (`search-worker.wrangler.toml:34-36`, not SubQ and not local-only, because the kit's per-consumer local-only switch is off by default, `SYSTEM-ONE.md:13-16`); a Worker deployment, not an Agentbox rebuild, carries it (`SYSTEM-ONE.md:3-5`), and the 2026-10-30 Workers deploy succeeded (run 41028875471). The earlier README claim of `bge-small-en-v1.5` over R2 (a feature bullet in the README at the previous stamp) is gone: the rewritten README makes no semantic-search claim, so that divergence is closed at its source, while the build and index path stays upstream-kit code this repo does not vendor.
 - This resolves the audit's "index-build path has no home" gap: the path exists upstream, and the tooling in this repo is a separate concern that happens to share the word "embedding".
 
 ## DW-07.5 Nightly Cloudflare-to-NAS backup
@@ -104,7 +106,7 @@ flowchart TB
     CRON["supercronic, 07:15 UTC, flock + timeout 300<br/>scripts/seo-watch/crontab:17"] --> HEALTH["1. health: whitelist or ingress row for admin, jarvis, monitor,<br/>registry row, deployed bundle carries all three pubkeys<br/>scripts/inbox-watch/run.mjs:288-295"]
     HEALTH --> PROBE["2. probe: labelled wrap to the monitor only, read back<br/>scripts/inbox-watch/run.mjs:297-303"]
     PROBE --> INBOX["3. inbox: wraps for the last 3 days, seal signature and author verified, deduped<br/>scripts/inbox-watch/run.mjs:163,187"]
-    INBOX --> ALERT["4. one NIP-17 digest DM to the operator, only if new mail or a problem<br/>scripts/inbox-watch/run.mjs:349-375"]
+    INBOX --> ALERT["4. one NIP-17 digest DM to the operator, only if new mail or a problem, enquiries topic-tagged by Jev first<br/>scripts/inbox-watch/run.mjs:349-375"]
 ```
-- It exists because the relay rewrites every kind-1059 read to the viewer's own `#p`, so the admin inbox is unreadable to anyone else; each submission is therefore also wrapped to the monitor key (`scripts/inbox-watch/run.mjs:4-11`, DW-04.9). The digest is written to the operator and, when the DM never reached the relay, state is deliberately not persisted so the same messages surface again next run (`scripts/inbox-watch/run.mjs:376-380`).
+- It exists because the relay rewrites every kind-1059 read to the viewer's own `#p`, so the admin inbox is unreadable to anyone else; each submission is therefore also wrapped to the monitor key (`scripts/inbox-watch/run.mjs:4-11`, DW-04.9). The digest is written to the operator and, when the DM never reached the relay, state is deliberately not persisted so the same messages surface again next run (`scripts/inbox-watch/run.mjs:376-380`). When `DREAMLAB_JEV=1` (default off) fresh enquiries also get an advisory Jev topic tag (`scripts/inbox-watch/run.mjs:354-356`), which since 2026-10-30 may reach TypeSafe and is local-only only when `DREAMLAB_JEV_TOPIC_LOCAL_ONLY=1` (`scripts/lib/enquiry-topic.mjs:27-32`, `scripts/lib/enquiry-topic.mjs:86`).
 - It judges channel health with `ingressProblem` and `disclosureProblem` from `scripts/lib/website-info.mjs` (`scripts/inbox-watch/run.mjs:35`), so a `reset-db` that drops the whitelist or registry row is reported the next morning, not by a visitor (`docs/adr/ADR-2011-website-information-identity.md:58`).

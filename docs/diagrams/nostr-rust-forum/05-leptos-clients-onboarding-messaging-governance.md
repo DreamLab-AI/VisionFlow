@@ -61,7 +61,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/screens.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/theme.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/category.rs
-verified_commit: eb5f2323e6d72240ecb7c456181b7a674f1842f4
+verified_commit: 9c36b6032640c89879ae52fe25da99493979a0b6
 ---
 
 ## NF-05.1 Forum client boot and the FORUM_BASE discipline

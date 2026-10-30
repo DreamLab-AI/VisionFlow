@@ -27,31 +27,31 @@ sources:
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/ascii_img.rs
-verified_commit: eb5f2323e6d72240ecb7c456181b7a674f1842f4
+verified_commit: 9c36b6032640c89879ae52fe25da99493979a0b6
 ---
 
 ## NF-07.1 search-worker — routes and gates
 
 ```mermaid
 flowchart TB
-    F["fetch<br/>nostr-bbs-search-worker/src/lib.rs:913"]
-    OPT["Options preflight nostr-bbs-search-worker/src/lib.rs:917"]
-    RL["rate limit 100 req / 60 s per IP, bucket in SEARCH_CONFIG KV<br/>nostr-bbs-search-worker/src/lib.rs:925"]
-    RT["route nostr-bbs-search-worker/src/lib.rs:968"]
-    H["GET /health, /status, / nostr-bbs-search-worker/src/lib.rs:972"]
-    S["POST /search nostr-bbs-search-worker/src/lib.rs:977"]
-    E["POST /embed nostr-bbs-search-worker/src/lib.rs:982"]
-    I["POST /ingest - NIP-98 admin only nostr-bbs-search-worker/src/lib.rs:987"]
-    NF404["404 nostr-bbs-search-worker/src/lib.rs:991"]
-    CRON["scheduled nostr-bbs-search-worker/src/lib.rs:1002"]
+    F["fetch<br/>nostr-bbs-search-worker/src/lib.rs:917"]
+    OPT["Options preflight nostr-bbs-search-worker/src/lib.rs:921"]
+    RL["rate limit 100 req / 60 s per IP, bucket in SEARCH_CONFIG KV<br/>nostr-bbs-search-worker/src/lib.rs:929"]
+    RT["route nostr-bbs-search-worker/src/lib.rs:972"]
+    H["GET /health, /status, / nostr-bbs-search-worker/src/lib.rs:976"]
+    S["POST /search nostr-bbs-search-worker/src/lib.rs:981"]
+    E["POST /embed nostr-bbs-search-worker/src/lib.rs:986"]
+    I["POST /ingest - NIP-98 admin only nostr-bbs-search-worker/src/lib.rs:991"]
+    NF404["404 nostr-bbs-search-worker/src/lib.rs:995"]
+    CRON["scheduled nostr-bbs-search-worker/src/lib.rs:1006"]
 
     F --> OPT --> RL --> RT
     RT --> H & S & E & I
     RT --> NF404
-    CRON --> WARM["load_store only - keeps the R2 connection warm<br/>nostr-bbs-search-worker/src/lib.rs:1004"]
+    CRON --> WARM["load_store only - keeps the R2 connection warm<br/>nostr-bbs-search-worker/src/lib.rs:1008"]
 
     N1["DOC-DRIFT: the cron trigger nostr-bbs-search-worker/wrangler.toml:44 runs every five minutes but<br/>REINDEXES NOTHING - the handler's whole body is a load_store touch. There is no reindex or rebuild<br/>path anywhere in lib.rs or store.rs reachable from the schedule."]
-    N2["/ingest is the only mutating route and it is admin-gated<br/>nostr-bbs-search-worker/src/lib.rs:716 via require_nip98_admin nostr-bbs-search-worker/src/auth.rs:63"]
+    N2["/ingest is the only mutating route and it is admin-gated<br/>nostr-bbs-search-worker/src/lib.rs:720 via require_nip98_admin nostr-bbs-search-worker/src/auth.rs:63"]
 ```
 
 ## NF-07.2 The third admin authority — static-only, and the only real key in a template
@@ -126,7 +126,7 @@ flowchart TB
     N1["The deserialiser parses ONLY the Vec segment nostr-bbs-search-worker/src/store.rs:185 - the mapping<br/>the Meta segment documents is actually read back from KV, so the two stores must be written together"]
     N2["INVARIANT: visibility is fail-closed and deliberately left that way - only a label in publicLabels<br/>is anonymously visible nostr-bbs-search-worker/src/lib.rs:127 nostr-bbs-search-worker/src/lib.rs:128,<br/>and the fix for an empty result set is the ingest caller declaring public true, never a relaxation here"]
     N3["README.md:81 now says only that search uses the configured worker, embedding and storage stack; the<br/>384-dim L2-normalised cosine k-NN over an RVF store is stated nowhere in the README and is established<br/>by the code, see NF-07.3. DRIFT: the older README row claiming it is gone nostr-rust-forum/README.md:81"]
-    N4["An all-private ingest batch is now REFUSED with a 400 before anything is written, because such a<br/>batch indexes content no search can ever return nostr-bbs-search-worker/src/lib.rs:205<br/>nostr-bbs-search-worker/src/lib.rs:783. A caller retracting vectors opts in with allowPrivate<br/>nostr-bbs-search-worker/src/lib.rs:254"]
+    N4["An all-private ingest batch is now REFUSED with a 400 before anything is written, because such a<br/>batch indexes content no search can ever return nostr-bbs-search-worker/src/lib.rs:205<br/>nostr-bbs-search-worker/src/lib.rs:787. A caller retracting vectors opts in with allowPrivate<br/>nostr-bbs-search-worker/src/lib.rs:254"]
 ```
 
 ## NF-07.5 preview-worker — routes, caching and origin policy
@@ -226,7 +226,7 @@ classDiagram
     RateLimit --> SearchWorker
     RateLimit --> PreviewWorker
 
-    note for RateLimit "Each worker calls check_rate_limit with its OWN<br/>KV binding and its own budget - auth 20/60s on<br/>SESSIONS nostr-bbs-auth-worker/src/lib.rs:175, search<br/>100/60s on SEARCH_CONFIG nostr-bbs-search-worker/src/lib.rs:925,<br/>preview 30/60s on RATE_LIMIT nostr-bbs-preview-worker/src/lib.rs:519"
+    note for RateLimit "Each worker calls check_rate_limit with its OWN<br/>KV binding and its own budget - auth 20/60s on<br/>SESSIONS nostr-bbs-auth-worker/src/lib.rs:175, search<br/>100/60s on SEARCH_CONFIG nostr-bbs-search-worker/src/lib.rs:929,<br/>preview 30/60s on RATE_LIMIT nostr-bbs-preview-worker/src/lib.rs:519"
     note for Replay "INVARIANT one shared replay database - the search<br/>worker binds REPLAY_DB nostr-bbs-search-worker/src/auth.rs:31<br/>and delegates to the shared verifier<br/>nostr-bbs-search-worker/src/auth.rs:40 exactly as the auth<br/>worker does. See NF-02.5 and NF-08.4"
     note for Ascii "The image feature pulls PURE-Rust decoders only,<br/>default-features off, so the wasm32 build stays<br/>lean nostr-rust-forum/Cargo.toml:197-200. The BBS client never converts<br/>client-side - it fetches a pre-rendered fragment<br/>from the preview worker nostr-bbs-bbs-client/src/ascii_img.rs:203"
 ```
@@ -235,19 +235,20 @@ classDiagram
 
 ```mermaid
 flowchart TB
-    FLAG["JEV_SEARCH_RERANK must be 1 or true; unset means off<br/>nostr-bbs-search-worker/src/lib.rs:585, flag name nostr-bbs-search-worker/src/rerank.rs:20"]
+    FLAG["JEV_SEARCH_RERANK must be 1 or true; unset means off<br/>nostr-bbs-search-worker/src/lib.rs:589, flag name nostr-bbs-search-worker/src/rerank.rs:20"]
     VIS["visible_top_k filters then truncates to k - the rerank input<br/>nostr-bbs-search-worker/src/lib.rs:507"]
     GATE["match on query and jev_enabled - off yields the pre-change list and body<br/>nostr-bbs-search-worker/src/lib.rs:511"]
-    KEEP["rerank_or_keep - any Fallback returns the input untouched<br/>nostr-bbs-search-worker/src/lib.rs:592"]
-    SNIP["public snippets loaded from SEARCH_CONFIG KV key store_key:snippets<br/>nostr-bbs-search-worker/src/lib.rs:639"]
-    RR["rerank scores the head only - HEAD_CAP 10<br/>nostr-bbs-search-worker/src/rerank.rs:79, cap nostr-bbs-search-worker/src/rerank.rs:22"]
-    LOW["below the confidence floor, default 0.5, falls back<br/>nostr-bbs-search-worker/src/rerank.rs:90, default nostr-bbs-search-worker/src/rerank.rs:27"]
-    ORD["apply_order permutes the head, the tail keeps cosine order<br/>nostr-bbs-search-worker/src/rerank.rs:143"]
-    ING["ingest persists a snippet only when the flag is on AND the entry is public<br/>nostr-bbs-search-worker/src/lib.rs:795, nostr-bbs-search-worker/src/lib.rs:821"]
+    KEEP["rerank_or_keep - any Fallback returns the input untouched<br/>nostr-bbs-search-worker/src/lib.rs:596"]
+    SNIP["public snippets loaded from SEARCH_CONFIG KV key store_key:snippets<br/>nostr-bbs-search-worker/src/lib.rs:643"]
+    RR["rerank scores the head only - HEAD_CAP 10<br/>nostr-bbs-search-worker/src/rerank.rs:81, cap nostr-bbs-search-worker/src/rerank.rs:24"]
+    LOW["below the confidence floor, default 0.5, falls back<br/>nostr-bbs-search-worker/src/rerank.rs:92, default nostr-bbs-search-worker/src/rerank.rs:29"]
+    ORD["apply_order permutes the head, the tail keeps cosine order<br/>nostr-bbs-search-worker/src/rerank.rs:145"]
+    LOC["endpoint resolution takes local_only from JEV_SEARCH_RERANK_LOCAL_ONLY, default off, so the proxy or TypeSafe may answer<br/>nostr-bbs-search-worker/src/lib.rs:518, switch name nostr-bbs-search-worker/src/rerank.rs:22"]
+    ING["ingest persists a snippet only when the flag is on AND the entry is public<br/>nostr-bbs-search-worker/src/lib.rs:799, nostr-bbs-search-worker/src/lib.rs:825"]
 
     VIS --> GATE
     FLAG --> GATE
-    GATE -->|"flag on"| KEEP
+    GATE -->|"flag on"| LOC --> KEEP
     SNIP --> KEEP
     KEEP --> RR
     RR --> LOW
@@ -260,6 +261,6 @@ flowchart TB
 
 **What it shows.** The one optional step added to `POST /search`: when `JEV_SEARCH_RERANK` is on, the first ten already-visible hits are re-ordered by a remote typed-decision (Jev) score, and the response gains a `jev` object; any failure returns the pre-change list byte-for-byte.
 
-**Why it is this way.** The option is declared in `docs/jev-option.md` rather than an ADR: the library is off when its flag is absent and every item falls back on any failure (`../nostr-rust-forum/docs/jev-option.md:4-5`). Since eb5f232 the search `wrangler.toml` sets `JEV_SEARCH_RERANK = "1"` with the cloud endpoint, so the shipped manifest is ON and needs a `SUBQ_API_KEY` Worker secret (`../nostr-rust-forum/crates/nostr-bbs-search-worker/wrangler.toml:32-36`); the flag reader is `../nostr-rust-forum/crates/nostr-bbs-search-worker/src/lib.rs:585`. With the flag on, the query text and up to ten public snippets leave the Worker (`../nostr-rust-forum/docs/jev-option.md:35`).
+**Why it is this way.** The option is declared in `docs/jev-option.md` rather than an ADR: the library is off when its flag is absent and every item falls back on any failure (`../nostr-rust-forum/docs/jev-option.md:4-5`). Since eb5f232 the search `wrangler.toml` sets `JEV_SEARCH_RERANK = "1"`, and since 9c36b60 it points at TypeSafe `jev-latest` with a `TYPESAFE_API_KEY` Worker secret rather than SubQ (`../nostr-rust-forum/crates/nostr-bbs-search-worker/wrangler.toml:32-36`); locality is the per-consumer switch `JEV_SEARCH_RERANK_LOCAL_ONLY`, off by default, so the shipped manifest is ON and cloud-allowed (`../nostr-rust-forum/docs/jev-option.md:27-32`); the flag reader is `../nostr-rust-forum/crates/nostr-bbs-search-worker/src/lib.rs:589`. With the flag on, the query text and up to ten public snippets leave the Worker (`../nostr-rust-forum/docs/jev-option.md:38`).
 
-**Open:** nothing records any measured uplift from the rerank, and its confidence floor is an unfitted default (`../nostr-rust-forum/docs/jev-option.md:11`, `../nostr-rust-forum/crates/nostr-bbs-search-worker/src/rerank.rs:27`).
+**Open:** nothing records any measured uplift from the rerank, and its confidence floor is an unfitted default (`../nostr-rust-forum/docs/jev-option.md:11`, `../nostr-rust-forum/crates/nostr-bbs-search-worker/src/rerank.rs:29`).

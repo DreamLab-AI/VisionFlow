@@ -6,7 +6,7 @@ governing:
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/docs/DATA-authority-erasure.md
   - ../project/agentbox/docs/INGRESS-identity.md
-adrs: [solid-pod-rs:ADR-2008, agentbox:ADR-2145, visionflow:ADR-2019, nostr-rust-forum:ADR-2012, agentbox:ADR-2096, agentbox:ADR-2099, agentbox:ADR-2102, visionclaw:ADR-2111, visionclaw:ADR-2015, visionclaw:ADR-2016, visionclaw:ADR-2017, visionclaw:ADR-2064, visionclaw:ADR-2068, visionclaw:ADR-2106, agentbox:ADR-2064]
+adrs: [agentbox:ADR-2139, solid-pod-rs:ADR-2008, agentbox:ADR-2145, visionflow:ADR-2019, nostr-rust-forum:ADR-2012, agentbox:ADR-2096, agentbox:ADR-2099, agentbox:ADR-2102, visionclaw:ADR-2111, visionclaw:ADR-2015, visionclaw:ADR-2016, visionclaw:ADR-2017, visionclaw:ADR-2064, visionclaw:ADR-2068, visionclaw:ADR-2106, agentbox:ADR-2064]
 sources:
   - ../project/Cargo.toml
   - ../project/src/handlers/solid_proxy_handler.rs
@@ -20,6 +20,7 @@ sources:
   - ../project/agentbox/docker-compose.solid-pods.yml
   - ../project/agentbox/docs/user/solid-pod.md
   - ../project/agentbox/lib/solid-pod-rs.nix
+  - ../solid-pod-rs/crates/solid-pod-rs-server/src/jev.rs
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../project/agentbox/docs/BASELINE-container.md
@@ -43,7 +44,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../project/agentbox/docs/adr/ADR-2099-the-chain-is-the-ledger-of-record.md
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
-verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, agentbox: 0b0f7918961e629280faf86f88227535abf514b5, solid-pod-rs: 9bde3be7fa123479fabb5c4cc9056e19ab0dcadd, nostr-rust-forum: eb5f2323e6d72240ecb7c456181b7a674f1842f4, visionflow: 124512b8f5e8c33c247065c58901dcfdc18988a2}
+verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc, solid-pod-rs: 76ab7aab3e882f32508b2461b3f51e4c09bdcfa1, nostr-rust-forum: 9c36b6032640c89879ae52fe25da99493979a0b6, visionflow: ff15faf83d82fef7f23d96da381c8ab78d0206b0}
 ---
 ## ES-08.1 Four coexisting Solid-pod deployments — topology contrast
 
@@ -526,15 +527,15 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    PIN["native pod built from a pinned source revision,<br/>forge-full unless the forge block sets enable false<br/>agentbox/flake.nix:1547, agentbox/lib/solid-pod-rs.nix:54"]
+    PIN["native pod built from a pinned source revision,<br/>forge-full unless the forge block sets enable false<br/>agentbox/flake.nix:1547, agentbox/lib/solid-pod-rs.nix:54,58"]
     SRV["solid-pod-rs-server under supervisord, port 8484<br/>--public-base-url from SOLID_POD_PUBLIC_URL, --trust-proxy by default<br/>agentbox/flake.nix:1627-1628"]
     FORGE["git forge under /forge, NIP-34 publisher,<br/>forge-held anchoring, kind-30618 mirror — started at boot<br/>agentbox/agentbox.toml:604-608"]
     OFF["defaults: open_edit false, allow_mainnet false, private_repos false,<br/>mirror_follow empty, announce_relays empty<br/>agentbox/agentbox.toml:610-623"]
-    JEV["System One consumer solid_pod_advisories = true: adds the jev Cargo feature and exports SOLID_POD_JEV=1 only with a local backend;<br/>the server reranks the forge's already-authorised repo and issue listings, falling back to the forge's own bytes<br/>agentbox/agentbox.toml:918, agentbox/flake.nix:1538, agentbox/services/agentbox-manifest/src/system_one.rs:487, solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:5130"]
+    JEV["System One consumer solid_pod_advisories = true: adds the jev Cargo feature and exports SOLID_POD_JEV=1 with SOLID_POD_JEV_ALLOW_CLOUD=1 unless [system_one].local_only names it;<br/>the server reranks the forge's already-authorised repo and issue listings through the proxy, falling back to the forge's own bytes<br/>agentbox/agentbox.toml:921, agentbox/flake.nix:1538, agentbox/services/agentbox-manifest/src/system_one.rs:578-602, solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:5130, solid-pod-rs/crates/solid-pod-rs-server/src/jev.rs:153-181"]
     ENV["extra relays and follow entries belong in the root .env,<br/>not the tracked manifest<br/>agentbox/agentbox.toml:624-626"]
     PIN --> SRV --> FORGE
     FORGE --> OFF
-    SRV -.->|"jev feature, local-only"| JEV
+    SRV -.->|"jev feature, local-only unless ALLOW_CLOUD=1"| JEV
     ENV -.->|"names what the mirror follows"| FORGE
     NOANCHOR["INVARIANT: the forge never broadcasts or spends<br/>agentbox/agentbox.toml:609"]
     FORGE --> NOANCHOR
@@ -546,4 +547,4 @@ flowchart TB
 
 **Tension (agentbox ADR-2145 vs BASELINE-container):** the ADR records `activation_status: live` (`../project/agentbox/docs/adr/ADR-2145-the-solid-pod-forge-and-mirror-are-compiled-in-and-inert-until-named.md:7`), while the baseline still says the forge and mirror are "Staged until the image is rebuilt" (`../project/agentbox/docs/BASELINE-container.md:245-246`); VisionFlow's own record for the same decision is `activation_status: inactive` (`docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:7`).
 
-**Drift:** agentbox's pod guide says the image pins `solid-pod-rs` 0.5.0-alpha.13 (`../project/agentbox/docs/user/solid-pod.md:37`) while the Nix derivation pins v0.5.0-alpha.17 at the Jev-integration revision 45c73aa8, ahead of the tag (`../project/agentbox/lib/solid-pod-rs.nix:54`, `:57`), and VisionClaw's embedded dependency is `0.5.0-alpha.17` (`../project/Cargo.toml:245`), so the three deployments on this page now share one release the guide does not name.
+**Drift:** agentbox's pod guide says the image pins `solid-pod-rs` 0.5.0-alpha.13 (`../project/agentbox/docs/user/solid-pod.md:37`) while the Nix derivation pins the 0.5.0-alpha.18 workspace at revision 76ab7aab, which adds `SOLID_POD_JEV_ALLOW_CLOUD` (`../project/agentbox/lib/solid-pod-rs.nix:54`, `:56-58`), and VisionClaw's embedded dependency is still `0.5.0-alpha.17` (`../project/Cargo.toml:245`), so the deployments on this page no longer share one release and the guide names a third; the cloud opt-in is configured and takes effect when the new agentbox image is activated, although the server's own header still calls pod metadata private and local-only by default (`../solid-pod-rs/crates/solid-pod-rs-server/src/jev.rs:24-33`).

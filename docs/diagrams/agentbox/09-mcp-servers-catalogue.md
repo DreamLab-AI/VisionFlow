@@ -29,7 +29,7 @@ sources:
   - ../project/agentbox/flake.nix
   - ../project/agentbox/docs/adr/ADR-2085-colloquy-knowledge-units-on-the-forum.md
   - ../project/agentbox/docs/adr/ADR-2086-confirmation-weight-follows-authorising-principals.md
-verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
+verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
 ---
 
 ## AB-09.1 Registry ownership classes — what the projector may touch
@@ -179,7 +179,7 @@ flowchart TB
     subgraph KB["corpus and memory"]
         I["ruvnet-brain mcp/ruvnet-brain/server.js:213 v0.2.0"] --> IT["search_ruvnet :220, ruvnet_brain_status :236 —<br/>status also surfaces release provenance :195-204:<br/>archive digest, signature present/verified, receipt digest, shipped runtime"]
         J["ruvector-mcp.cjs — 26 tools = 20 base ruvector-mcp.cjs:256<br/>+ 6 pushed only when their gate is on :435-519<br/>ADVERTISED_TOOLS set built from the final list :539"] --> JT["memory_store, memory_search, memory_retrieve, memory_list, memory_usage,<br/>memory_health, memory_orient, memory_hybrid_search, memory_sweep_episodic,<br/>memory_repair_embeddings, swarm_init, swarm_status, agent_spawn,<br/>task_orchestrate, coordination_sync, load_balance, parallel_execute,<br/>neural_patterns, sona_health, sparc_mode, performance_report,<br/>bottleneck_analyze, workflow_create, workflow_execute,<br/>github_pr_manage, github_repo_analyze"]
-        J -.-> JS["shapedSearch(query, namespace, sourceType) wraps memory_search —<br/>bounds output via min_score / snippet_chars; internal callers (hybrid,<br/>orient) still call memSearch directly for whole values (:240-241).<br/>Since this stamp it first widens the pool and passes it through memory-jev-rerank,<br/>an optional local judge, off in code unless AGENTBOX_JEV_MEMORY_RERANK=1 (:246-250), opted in by [system_one.consumers].memory_rerank (agentbox.toml:907) and staged until a rebuild (agentbox.toml:900)"]
+        J -.-> JS["shapedSearch(query, namespace, sourceType) wraps memory_search —<br/>bounds output via min_score / snippet_chars; internal callers (hybrid,<br/>orient) still call memSearch directly for whole values (:240-241).<br/>Since this stamp it first widens the pool and passes it through memory-jev-rerank,<br/>an optional Jev judge, local-only only when AGENTBOX_JEV_MEMORY_LOCAL_ONLY=1, off in code unless AGENTBOX_JEV_MEMORY_RERANK=1 (:246-250), opted in by [system_one.consumers].memory_rerank (agentbox.toml:910) and staged until a rebuild (agentbox.toml:903)"]
     end
     J -.-> RVO["ADR-2082 — with the gate on, the stub orchestration half of this list is<br/>replaced at tools/list by a filtered ruflo child limited to the categories<br/>swarm, agent and rure (agentbox.toml:456); memory_* is denied on the<br/>proxy side (mcp/servers/lib/orchestration-proxy.js:43). see AB-20.13"]
     J -.-> RVB["memory boundary — the retrieval geometry, embedding pipeline and<br/>recall gate belong to AB-20. ruvector-mcp.cjs fails CLOSED with no<br/>sql.js fallback, so the ruvector-postgres sidecar is mandatory"]
@@ -250,7 +250,7 @@ stateDiagram-v2
         START. ADR-2063 as amended by ADR-2104.
     end note
     note right of Fatal
-        DEBT: eight servers are hub-routed (agentbox.toml:1597-1600,
+        DEBT: eight servers are hub-routed (agentbox.toml:1600-1603,
         down from nine at ADR-2104) and all refuse connections
         while this program is down, so supervisorctl status
         agentbox-mcp-hub is the first check.

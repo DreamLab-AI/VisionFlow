@@ -66,6 +66,7 @@ sources:
   - ../project/src/utils/advanced_logging.rs
   - ../project/src/telemetry/agent_telemetry.rs
   - ../project/crates/visionclaw-jev/src/config.rs
+  - ../project/docker-compose.unified.yml
   - ../project/crates/visionclaw-jev/src/lib.rs
   - ../project/src/utils/gpu_diagnostics.rs
   - ../project/src/utils/unified_gpu_compute/execution.rs
@@ -73,7 +74,7 @@ sources:
   - ../project/src/handlers/api_handler/analytics/clustering_handlers.rs
   - ../project/scripts/launch.sh
   - ../project/src/services/acsp/key_file.rs
-verified_commit: e74bcddc772d47a45b1971156a2bab540eaa027c
+verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
 ---
 
 ## VC-09.1 Config load precedence — main() boot order
@@ -573,10 +574,10 @@ flowchart TB
         J1["VISIONCLAW_JEV master flag<br/>crates/visionclaw-jev/src/config.rs:217<br/>turns on every item not explicitly set to 0 (crates/visionclaw-jev/src/lib.rs:9-10)"] --> J2["VISIONCLAW_JEV_ITEM flag per item<br/>crates/visionclaw-jev/src/config.rs:130-141<br/>MEMORY_RERANK, PATCH_RANK, INGEST_SUGGEST, PROPOSAL_TRIAGE, HEALTH_TRIAGE,<br/>SETTINGS_PATCH, ACTION_CLASS, COMMAND_INTENT, PALETTE_SEARCH, EDGE_MEANING,<br/>NLQ_PLAN, VOICE_INTENT"]
     end
     subgraph EP["endpoint resolution — first match wins"]
-        E1["VISIONCLAW_JEV_ENDPOINT with MODEL<br/>key read from the variable NAMED by VISIONCLAW_JEV_KEY_ENV<br/>crates/visionclaw-jev/src/config.rs:308-320"] --> E2["AGENTBOX_SYSTEM_ONE_PROXY=1<br/>with AGENTBOX_SYSTEM_ONE_ENDPOINT and AGENTBOX_SYSTEM_ONE_MODEL<br/>crates/visionclaw-jev/src/config.rs:330-334"] --> E3["TYPESAFE_API_KEY<br/>public TypeSafe API, only if the key is set<br/>crates/visionclaw-jev/src/config.rs:347"]
+        E1["VISIONCLAW_JEV_ENDPOINT with MODEL<br/>key read from the variable NAMED by VISIONCLAW_JEV_KEY_ENV<br/>crates/visionclaw-jev/src/config.rs:308-320"] --> E2["AGENTBOX_SYSTEM_ONE_PROXY=1<br/>with AGENTBOX_SYSTEM_ONE_ENDPOINT and AGENTBOX_SYSTEM_ONE_MODEL<br/>crates/visionclaw-jev/src/config.rs:330-334<br/>Compose supplies agentbox:8094 and jev-latest here (docker-compose.unified.yml:7-11), no JEV_ENDPOINT"] --> E3["TYPESAFE_API_KEY<br/>public TypeSafe API, only if the key is set<br/>crates/visionclaw-jev/src/config.rs:347"]
     end
     subgraph LIM["limits and locality"]
-        L1["VISIONCLAW_JEV_MIN_CONFIDENCE :239 · VISIONCLAW_JEV_AUTO_MIN_CONFIDENCE :246<br/>VISIONCLAW_JEV_TIMEOUT_MS :265<br/>all crates/visionclaw-jev/src/config.rs"] --> L2["AGENTBOX_SYSTEM_ONE_BACKEND_LOCAL or VISIONCLAW_JEV_LOCAL declare a local backend,<br/>VISIONCLAW_JEV_ALLOW_CLOUD accepts a non-local one for local-only items<br/>crates/visionclaw-jev/src/config.rs:303-305"]
+        L1["VISIONCLAW_JEV_MIN_CONFIDENCE crates/visionclaw-jev/src/config.rs:239<br/>VISIONCLAW_JEV_AUTO_MIN_CONFIDENCE crates/visionclaw-jev/src/config.rs:246<br/>VISIONCLAW_JEV_TIMEOUT_MS crates/visionclaw-jev/src/config.rs:265"] --> L2["AGENTBOX_SYSTEM_ONE_BACKEND_LOCAL or VISIONCLAW_JEV_LOCAL declare a local backend,<br/>VISIONCLAW_JEV_ALLOW_CLOUD accepts a non-local one for local-only items<br/>crates/visionclaw-jev/src/config.rs:303-305<br/>Compose defaults VISIONCLAW_JEV=1 and ALLOW_CLOUD=1, BACKEND_LOCAL=0 (docker-compose.unified.yml:21-22, :11),<br/>CONFIGURED: the four local-only items take the route of the backend agentbox selects (docker-compose.unified.yml:3-5) once the new image is active and the service recreated"]
     end
     ON --> EP --> LIM
     N["INVARIANT — with the flag off no request is built and nothing leaves the process, every failure maps to a Fallback<br/>and the caller keeps its existing result (crates/visionclaw-jev/src/lib.rs:9-18). Consumer in this area: the degraded-state<br/>triage on GET /api/canary/status, see VC-08.3. Per-item threshold variables (HEALTH, INGEST, PATCH, RERANK, TRIAGE) are read beside each item module, not listed here"]

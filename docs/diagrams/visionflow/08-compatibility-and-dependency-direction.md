@@ -28,7 +28,7 @@ sources:
   - docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md
   - docs/BASELINE-visionflow.md
   - ./README.md
-verified_commit: {visionflow: 124512b8f5e8c33c247065c58901dcfdc18988a2, visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, agentbox: 0b0f7918961e629280faf86f88227535abf514b5, nostr-rust-forum: eb5f2323e6d72240ecb7c456181b7a674f1842f4}
+verified_commit: {visionflow: ff15faf83d82fef7f23d96da381c8ab78d0206b0, visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc, nostr-rust-forum: 9c36b6032640c89879ae52fe25da99493979a0b6}
 ---
 
 Source reconciliation: 2026-09-07. These panels follow the current sections of the compatibility matrix and status reconciliation, plus the source audits named in frontmatter. Historical metrics and register cuts remain historical. This review did not certify a live federation, image, hardware session or replica-wide authentication contract.
@@ -49,7 +49,7 @@ flowchart TB
     LOOM["Loom: ontology facade, HTTP only"] -->|configured retrieval| AB
     RV["RuVector: selected core or image"] --> LOOM
     RV -->|MCP and Postgres boundary| AB
-    VAULT["vault CLI, VisionClaw crates/vault<br/>agentbox.toml:1164 cli=true<br/>main.rs:49 enum Command"] --> AB
+    VAULT["vault CLI, VisionClaw crates/vault<br/>agentbox.toml:1167 cli=true<br/>main.rs:49 enum Command"] --> AB
     SCOPE["Arrows identify implemented source seams, not a verified complete mesh"]
     VF -.-> SCOPE
 ```

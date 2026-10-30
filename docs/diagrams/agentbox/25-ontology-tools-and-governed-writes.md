@@ -21,7 +21,7 @@ sources:
   - ../project/agentbox/services/agentbox-ops/src/voyager/mod.rs
   - ../project/agentbox/management-api/lib/uris.js
   - ../project/agentbox/management-api/lib/ontology-apply.js
-verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
+verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
 ---
 
 Note: `ontology-bridge.js`, `ontology-propose.js`, `ontology-local.cjs`, `ontology-authoring-authority.js`
@@ -41,24 +41,24 @@ sequenceDiagram
     participant OUT as condense output
     participant REF as ontology-condense-refresh.sh<br/>agentbox/scripts/ontology-condense-refresh.sh:105
     participant IDX as ontology-index-build.js
-    participant LLM as Loom facade<br/>agentbox/agentbox.toml:1117 — see AB-24
+    participant LLM as Loom facade<br/>agentbox/agentbox.toml:1120 — see AB-24
     participant RV as RuVector ns ontology-classes<br/>see AB-20
 
     Note over SCH: supervised as [program:ontology-condense-scheduler] (agentbox/flake.nix:2441) — launched<br/>unconditionally, exits fast when its gate is off
-    loop tick — schedule_interval_mins 60, jittered plus or minus 20 percent (agentbox.toml:1130)
+    loop tick — schedule_interval_mins 60, jittered plus or minus 20 percent (agentbox.toml:1133)
         SCH->>GATE: require BOTH ONTOLOGY_CONDENSE_ENABLED and ONTOLOGY_CONDENSE_SCHEDULE
         alt either off
             SCH-->>SCH: no-op — byte-identical-when-off until an operator opts in and the container reboots
         else both on
             SCH->>CORP: newest page mtime
             SCH->>OUT: last condense output mtime
-            alt corpus newer OR output missing OR older than schedule_max_age_hours 24 (agentbox.toml:1131)
+            alt corpus newer OR output missing OR older than schedule_max_age_hours 24 (agentbox.toml:1134)
                 SCH->>REF: exec the refresh
                 Note over REF: flock-serialised (ontology-condense-refresh.sh:57-59) — SKIPS if a refresh already holds<br/>the lock. Stages overwrite/resume deterministically, so the scheduler is idempotent
                 REF->>IDX: parse the corpus into classes (ontology-condense-refresh.sh:105,111)
-                loop each KG class, max_concurrency 2 (agentbox.toml:1120)
+                loop each KG class, max_concurrency 2 (agentbox.toml:1123)
                     REF->>LLM: POST /v1/chat/completions — one retrieval sentence + a synonym list<br/>(ontology-condense-refresh.sh:108)
-                    Note over LLM: model qwen3.8-27B style openai (agentbox.toml:1118-1119). The model runs BEHIND the Loom<br/>facade so it is swappable with zero change here
+                    Note over LLM: model qwen3.8-27B style openai (agentbox.toml:1121-1122). The model runs BEHIND the Loom<br/>facade so it is swappable with zero change here
                 end
                 REF->>OUT: PUSH Class-Summary cache
                 REF->>RV: condensed store ns ontology-classes
@@ -81,7 +81,7 @@ sequenceDiagram
     participant CHILD as detached child<br/>ontology-monitor.cjs:258
     participant LOC as local ontology route<br/>VisionClaw-free
     participant ZAI as Z.AI GLM worker
-    participant JEV as Jev proposal verifier<br/>optional, opted in by system_one.consumers.ontology_proposals (agentbox.toml:913), staged
+    participant JEV as Jev proposal verifier<br/>optional, opted in by system_one.consumers.ontology_proposals (agentbox.toml:916), staged
     participant JSONL as ontology-proposals.jsonl<br/>AGENTBOX_STATE
     participant RELAY as forum broker gate<br/>Nostr relay
     participant H as Human approver
@@ -99,7 +99,7 @@ sequenceDiagram
             CHILD->>ZAI: ONE review call
             ZAI-->>CHILD: proposals where the corpus looks stale, wrong or missing
             CHILD->>CHILD: drop proposals already in the seen-ledger (fingerprint dedup, :287-289)
-            opt AGENTBOX_JEV_ONTOLOGY_PROPOSALS=1 (off in code, staged until a rebuild, projected LOCAL_ONLY system_one.rs:474-483 and read at ontology-proposal-jev.cjs:153)
+            opt AGENTBOX_JEV_ONTOLOGY_PROPOSALS=1 (off in code, configured and staged until a rebuild: the projector exports PROPOSALS_LOCAL_ONLY=0 unless listed in [system_one].local_only, system_one.rs:533,564-577, so the proxy and TypeSafe are allowed, while a tainted transcript still forces local, ontology-proposal-jev.cjs:152-153)
                 CHILD->>JEV: ontology-proposal-jev.cjs verify — one request, every fresh proposal (ontology-proposal-jev.cjs:145)
                 JEV-->>CHILD: advisory verdicts to ontology-proposals-jev.jsonl, never inside the signed 31402 (ontology-monitor.cjs:296-299)
                 Note over CHILD,JEV: a proposal is held back into the local review queue only if<br/>AGENTBOX_JEV_PROPOSAL_HOLD_BELOW is set in 0 to 0.5 and supported is below it (ontology-proposal-jev.cjs:175-186).<br/>Jev unavailable means the proposals pass through unchanged (ontology-monitor.cjs:298)

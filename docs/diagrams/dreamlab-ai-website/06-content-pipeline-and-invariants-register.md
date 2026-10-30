@@ -27,7 +27,7 @@ sources:
   - ../dreamlab-ai-website/docs/api/NOSTR_RELAY.md
   - ../dreamlab-ai-website/docs/api/SEARCH_API.md
   - ../dreamlab-ai-website/docs/api/MODERATION_API.md
-verified_commit: 07cf8642bddb44df2388a5d1e9d2074923ab6ac0
+verified_commit: 4935b6c4a394633569b2c8b38d5c0c272da3b0fb
 ---
 
 ## DW-06.1 Pre-build content pipeline — two generators, run before every dev/build
@@ -124,13 +124,13 @@ flowchart TB
     D9["BASELINE-architecture.md cites a stale KIT_REF (BASELINE-architecture.md:117) and a beta.9 crate version (BASELINE-architecture.md:152)<br/>see DW-01.5"]
     D10["branding.rs dead code contradicts live dreamlab.toml branding values<br/>see DW-03.8/DW-03.1"]
     D11["BASELINE-architecture.md estate-closeout note predates the 2026-09-05 gate fix<br/>see DW-05.3"]
-    D12["RESOLVED 07cf8642: README.md names kit source 8a5cf81, agreeing with the pins<br/>dreamlab-ai-website/README.md:65 and rust-ci.yml:20,<br/>workers-deploy.yml:44 — see DW-06.8"]
+    D12["REOPENED: README.md:65 names kit source 8a5cf81, one repin behind the pins<br/>at 9c36b60 (rust-ci.yml:20, workers-deploy.yml:44) — see DW-06.8"]
     D13["RESOLVED 2026-10-07: root-level seed scripts with a hardcoded key<br/>deleted by 3baf2fa4, historical — see DW-07.2"]
     D14["embeddings/ tooling targets RuVector Postgres + all-MiniLM-L6-v2,<br/>unrelated to the search worker; the README claim was removed — see DW-07.4"]
     D15["IDENTITY-zones.md I7 breached: zone2/zone4 now encrypted=true too<br/>(dreamlab.toml:123,148), master gate [encryption].enabled added<br/>(dreamlab.toml:34) citing an uncommitted ADR-2016 — DW-03.1/DW-04.1<br/>still state 'only zone3 encrypted', not yet re-verified against this<br/>see DW-06.6 I7"]
 ```
 - D9 and D11 are findings from this diagram-authoring pass, not pre-existing entries in either governing doc's own Known-divergences section — both are consequences of the governing docs' `verified_commit: d852f61` being older than this repo's HEAD at this topic's stamp (`3afa374f`) and the estate-closeout note's own explicit 2026-09-04 dating.
-- D12/D13/D14 are Wave 2 findings, closing the material gaps the estate audit (`reports/audit-web.md`) identified for this area; D15 is a Wave 3 finding — see DW-06.6/DW-06.6 for the full evidence.
+- D12/D13/D14 are Wave 2 findings, closing the material gaps the estate audit (`reports/audit-web.md`) identified for this area (D12 reopened at the 2026-10-30 repin); D15 is a Wave 3 finding — see DW-06.6/DW-06.6 for the full evidence.
 
 ## DW-06.8 README feature claims — checked against a claims register, not a feature list
 ```mermaid
@@ -144,4 +144,4 @@ flowchart TB
 ```
 - The earlier nine-bullet README feature list this diagram once classified is gone with the README rewrite; the register is seeded only with README claims that cite a concrete in-repo `file:line` (web push in the operator overlay, declared recipients and an inbox-watch path), so uncited README claims report `unclassified` by design (`docs/claims-register.json:2`).
 - **Tension (closed):** the README no longer says "no register file"; it now says the source-grounded register ships in this repository, that its evidence paths are checked in the test suite, and that the checker runs at the end of `postbuild` (`README.md:125`). `docs/claims-register.json` carries two claims and three feature notes, each now with an `evidence` path (`docs/claims-register.json:3-40`), and `checkClaims` still skips Jev only when no feature notes exist (`scripts/lib/claims.mjs:98-101`).
-- **Drift (closed):** `README.md:65` used to state kit source `631c09f…`; it now states `8a5cf81…`, matching the pin sites that carry `8a5cf817e81b20e2b761899eab753768c0cb4988` (`.github/workflows/rust-ci.yml:20`, `.github/workflows/workers-deploy.yml:44`).
+- **Drift (reopened):** `README.md:65` stopped stating kit source `631c09f…` and stated `8a5cf81…`, but the pin sites now carry `9c36b6032640c89879ae52fe25da99493979a0b6` (`.github/workflows/rust-ci.yml:20`, `.github/workflows/workers-deploy.yml:44`), so the README sentence is one repin stale again.

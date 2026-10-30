@@ -42,7 +42,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/auth.rs
   - ../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/rate_limit.rs
-verified_commit: 9bde3be7fa123479fabb5c4cc9056e19ab0dcadd
+verified_commit: 76ab7aab3e882f32508b2461b3f51e4c09bdcfa1
 ---
 
 ## SP-05.1 Two auth paths, one AuthContext
@@ -424,7 +424,7 @@ sequenceDiagram
     participant CS as ClientStore::find<br/>solid-pod-rs-idp/src/registration.rs:211
     participant SS as SessionStore<br/>solid-pod-rs-idp/src/session.rs:95
     participant T as issue_access_token<br/>solid-pod-rs-idp/src/tokens.rs:88
-    participant J as Jwks<br/>solid-pod-rs-idp/src/jwks.rs:194
+    participant J as Jwks<br/>solid-pod-rs-idp/src/jwks.rs:192
 
     U->>P: authorize(AuthorizeRequest)<br/>solid-pod-rs-idp/src/provider.rs:152
     P->>CS: resolve the client document
@@ -433,7 +433,7 @@ sequenceDiagram
     U->>P: token(TokenRequest)<br/>solid-pod-rs-idp/src/provider.rs:226
     P->>SS: take_code — single use<br/>solid-pod-rs-idp/src/session.rs:185
     P->>P: pkce_s256 verifier check<br/>solid-pod-rs-idp/src/provider.rs:362
-    P->>J: active_key, ES256<br/>solid-pod-rs-idp/src/jwks.rs:232
+    P->>J: active_key, ES256<br/>solid-pod-rs-idp/src/jwks.rs:230
     P->>T: mint the DPoP-bound access token
     T-->>P: AccessToken with a cnf jkt claim<br/>solid-pod-rs-idp/src/tokens.rs:56
     P-->>U: TokenResponse<br/>solid-pod-rs-idp/src/provider.rs:448
@@ -446,10 +446,10 @@ sequenceDiagram
 ```mermaid
 flowchart TD
     GEN["SigningKey::generate_es256<br/>solid-pod-rs-idp/src/jwks.rs:89"]
-    PEM["SigningKey::from_pem<br/>solid-pod-rs-idp/src/jwks.rs:139"]
-    ROT["Jwks::rotate<br/>solid-pod-rs-idp/src/jwks.rs:238"]
-    PRUNE["prune_expired against the retention window<br/>solid-pod-rs-idp/src/jwks.rs:255"]
-    PUB["public_document — the JWKS endpoint body<br/>solid-pod-rs-idp/src/jwks.rs:266"]
+    PEM["SigningKey::from_pem<br/>solid-pod-rs-idp/src/jwks.rs:137"]
+    ROT["Jwks::rotate<br/>solid-pod-rs-idp/src/jwks.rs:236"]
+    PRUNE["prune_expired against the retention window<br/>solid-pod-rs-idp/src/jwks.rs:253"]
+    PUB["public_document — the JWKS endpoint body<br/>solid-pod-rs-idp/src/jwks.rs:264"]
     DISC["build_discovery<br/>solid-pod-rs-idp/src/discovery.rs:72"]
     ROUTER["axum router — discovery, jwks, registration,<br/>credentials, password change, account delete<br/>solid-pod-rs-idp/src/axum_binder.rs:92"]
 
@@ -457,7 +457,7 @@ flowchart TD
     PEM --> ROT
     DISC --> ROUTER
 
-    N["with_retention (solid-pod-rs-idp/src/jwks.rs:226) keeps a rotated key<br/>publishable long enough for tokens signed under it to expire — pruning it<br/>immediately would invalidate live tokens."]
+    N["with_retention (solid-pod-rs-idp/src/jwks.rs:224) keeps a rotated key<br/>publishable long enough for tokens signed under it to expire — pruning it<br/>immediately would invalidate live tokens."]
     PRUNE -.-> N
     N2["The axum binder is behind the default-off axum-binder feature (SP-01.9), so a<br/>consumer on a different framework wires Provider into its own router instead."]
     ROUTER -.-> N2
@@ -500,19 +500,20 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant OP as Operator or library caller
-    participant PV as provision_pod_keys<br/>solid-pod-rs-idp/src/key_provisioning.rs:323
-    participant B32 as bech32_encode<br/>solid-pod-rs-idp/src/key_provisioning.rs:162
-    participant ACL as build_owner_only_acl<br/>solid-pod-rs-idp/src/key_provisioning.rs:187
+    participant PV as provision_pod_keys<br/>solid-pod-rs-idp/src/key_provisioning.rs:322
+    participant B32 as bech32_encode<br/>solid-pod-rs-idp/src/key_provisioning.rs:161
+    participant ACL as build_owner_only_acl<br/>solid-pod-rs-idp/src/key_provisioning.rs:186
     participant S as pod Storage
 
     OP->>PV: provision keys for a pod
+    PV->>PV: Schnorr keypair from the plan seed, else Generate::generate<br/>solid-pod-rs-idp/src/key_provisioning.rs:328-330
     PV->>B32: encode the secret key as an nsec
-    PV->>S: write the private key document<br/>solid-pod-rs-idp/src/key_provisioning.rs:45
+    PV->>S: write the private key document<br/>solid-pod-rs-idp/src/key_provisioning.rs:44
     PV->>ACL: build an owner-only ACL for it
-    PV->>S: write the sidecar<br/>solid-pod-rs-idp/src/key_provisioning.rs:48
-    PV->>PV: patch_webid_with_nostr_pubkey<br/>solid-pod-rs-idp/src/key_provisioning.rs:254
-    PV->>S: update the profile card<br/>solid-pod-rs-idp/src/key_provisioning.rs:52
-    PV-->>OP: KeyProvisioningOutcome<br/>solid-pod-rs-idp/src/key_provisioning.rs:68
+    PV->>S: write the sidecar<br/>solid-pod-rs-idp/src/key_provisioning.rs:47
+    PV->>PV: patch_webid_with_nostr_pubkey<br/>solid-pod-rs-idp/src/key_provisioning.rs:253
+    PV->>S: update the profile card<br/>solid-pod-rs-idp/src/key_provisioning.rs:51
+    PV-->>OP: KeyProvisioningOutcome<br/>solid-pod-rs-idp/src/key_provisioning.rs:67
     Note over PV: INVARIANT: no HTTP route mints keys. Returning a freshly generated nsec over<br/>HTTP is an owner-signoff decision, so this stays a library surface behind the<br/>default-off provision-keys feature — see SP-01.8.
 ```
 

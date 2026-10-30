@@ -31,7 +31,7 @@ sources:
   - ../project/agentbox/lib/pele.nix
   - ../project/agentbox/docs/adr/ADR-2155-system-one-consumer-activation.md
   - ../project/agentbox/docs/adr/ADR-2154-pele-renders-mermaid-in-the-image.md
-verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
+verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
 ---
 
 ## AB-01.1 agentbox.toml gates to flake.nix conditionals to package set and supervisord text
@@ -96,9 +96,9 @@ flowchart TB
     SUPTEXT --- note1
 ```
 
-**Tension (ADR-2151 vs manifest):** ADR-2151 is `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive` (`docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), yet `[voicelink] enabled = true` (`agentbox.toml:2223`) makes `voicelinkOn` bake `voice-paned` into the package set and `/opt/agentbox/bin` (`flake.nix:1847-1849`, `flake.nix:2128`).
+**Tension (ADR-2151 vs manifest):** ADR-2151 is `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive` (`docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), yet `[voicelink] enabled = true` (`agentbox.toml:2226`) makes `voicelinkOn` bake `voice-paned` into the package set and `/opt/agentbox/bin` (`flake.nix:1847-1849`, `flake.nix:2128`).
 **Invariant:** the voicelink gate is the one rebuild-class gate that adds a package and a catalogue entry (`management-api/lib/system-manifest.js:184`) but no supervisor block, by design: `voice-paned` runs per ssh connection (`management-api/lib/system-manifest.js:186`).
-**Open:** ADR-2154 (accepted, partial, staged; supersedes ADR-2152 and its browsercontainer `mmdc` shim) puts the pinned Pele renderer and an `mmdc` compatibility shim into the package set when `docsCfg.mermaid` is on (`flake.nix:688`, `flake.nix:767`, `lib/pele.nix:61`, `lib/pele.nix:67`); the record's activation status is still staged. ADR-2155 (`accepted`, `complete`, `staged`, `../project/agentbox/docs/adr/ADR-2155-system-one-consumer-activation.md:5-7`) likewise records the System One consumer activation as staged while `[system_one.consumers]` already sets all nineteen true, three of them rebuild-class (`../project/agentbox/agentbox.toml:899-920`).
+**Open:** ADR-2154 (accepted, partial, staged; supersedes ADR-2152 and its browsercontainer `mmdc` shim) puts the pinned Pele renderer and an `mmdc` compatibility shim into the package set when `docsCfg.mermaid` is on (`flake.nix:688`, `flake.nix:767`, `lib/pele.nix:61`, `lib/pele.nix:67`); the record's activation status is still staged. ADR-2155 (`accepted`, `complete`, `staged`, `../project/agentbox/docs/adr/ADR-2155-system-one-consumer-activation.md:5-7`) likewise records the System One consumer activation as staged while `[system_one.consumers]` already sets all nineteen true, three of them rebuild-class (`../project/agentbox/agentbox.toml:902-923`).
 
 ## AB-01.2 apply_class taxonomy - live, boot, rebuild
 
@@ -132,13 +132,13 @@ stateDiagram-v2
         entries browser-sidecar 172, gui-tools-sidecar 175, voice-console 181, memory-hygiene 210
     end note
     note right of boot
-        entries management-api 41, terminal 44, setup-wizard 47, vault root/pages/format 394, memory-learning 207
-        newer boot entries claude-code-permissions 253, instruction-tiers 259,<br/>sovereign-system-one 277, skill-router 342, skill-router-cascade 345, routing-teacher-labels 348,<br/>sixteen boot system-one-consumer-* entries from failure-taxonomy 285 (requires system_one.enabled)
-        stateOf counts off and none as off, plus a per-entry off_values set, system-manifest.js lines 472-475
+        entries management-api 41, terminal 44, setup-wizard 47, vault root/pages/format 397, memory-learning 207
+        newer boot entries claude-code-permissions 253, instruction-tiers 259,<br/>sovereign-system-one 280, system-one-network 277 (2026-10-30), skill-router 345, skill-router-cascade 348, routing-teacher-labels 351,<br/>sixteen boot system-one-consumer-* entries from failure-taxonomy 288 (requires system_one.enabled)
+        stateOf counts off and none as off, plus a per-entry off_values set, system-manifest.js lines 475-478
     end note
     note right of rebuild
-        entries code-server 50, jupyter 53, desktop 56, comfyui 59, interaction-plane 74 and agentbox-sessions-binary 124 (ADR-2153, interaction-plane was boot), vault-tui 397
-        newer rebuild entries claude-cred-sync 265, jev-compaction 268 (boot until ADR-2121), sidechain 379,<br/>vault-cli 400, mcp-hub 421, hook-shim 424, teammate-gc 427,<br/>consumers solid-pod-advisories 333, ontomark-suggestions 336, vault-rank 339 (build Jev into the package)<br/>voicelink 184 is also rebuild-class (ADR-2151) but adds no supervisor block
+        entries code-server 50, jupyter 53, desktop 56, comfyui 59, interaction-plane 74 and agentbox-sessions-binary 124 (ADR-2153, interaction-plane was boot), vault-tui 400
+        newer rebuild entries claude-cred-sync 265, jev-compaction 268 (boot until ADR-2121), sidechain 382,<br/>vault-cli 403, mcp-hub 424, hook-shim 427, teammate-gc 430,<br/>consumers solid-pod-advisories 336, ontomark-suggestions 339, vault-rank 342 (build Jev into the package)<br/>voicelink 184 is also rebuild-class (ADR-2151) but adds no supervisor block
         DOES NOT reconcile on restart, needs full Nix re-evaluation via agentbox.sh rebuild
     end note
 
@@ -232,25 +232,25 @@ sequenceDiagram
     end
     JS->>SEM: run E0xx/W0xx rule families<br/>adapters, providers, nostr relay, privacy filter, linked-data
     SEM-->>JS: errors[] and warnings[] arrays populated
-    JS->>SKC: checkSkillCount repoRoot<br/>E-SKILL1, ADR-037 D8, agentbox-config-validate.js:1843-1844
+    JS->>SKC: checkSkillCount repoRoot<br/>E-SKILL1, ADR-037 D8, agentbox-config-validate.js:1849-1850
     alt skills/*/SKILL.md count diverges from a README/SKILL-DIRECTORY claim
-        SKC-->>JS: divergences[] -> push E016-sibling E-SKILL1 per drift<br/>agentbox-config-validate.js:1845-1850
+        SKC-->>JS: divergences[] -> push E016-sibling E-SKILL1 per drift<br/>agentbox-config-validate.js:1851-1856
     else checkSkillCount throws (e.g. skills/ absent)
-        JS->>JS: push W067, RES-d gate skipped this pass<br/>agentbox-config-validate.js:1851-1856
+        JS->>JS: push W067, RES-d gate skipped this pass<br/>agentbox-config-validate.js:1857-1862
     end
-    JS->>JS: emit every warning to stderr<br/>agentbox-config-validate.js:1862-1864
+    JS->>JS: emit every warning to stderr<br/>agentbox-config-validate.js:1868-1870
     alt errors.length == 0
-        JS-->>OP: stdout "agentbox manifest valid" + advisory count, exit 0<br/>agentbox-config-validate.js:1866-1869
+        JS-->>OP: stdout "agentbox manifest valid" + advisory count, exit 0<br/>agentbox-config-validate.js:1872-1875
     else errors present
-        JS->>JS: emit every error to stderr<br/>agentbox-config-validate.js:1871-1873
-        JS-->>OP: exit 1<br/>agentbox-config-validate.js:1874
+        JS->>JS: emit every error to stderr<br/>agentbox-config-validate.js:1877-1879
+        JS-->>OP: exit 1<br/>agentbox-config-validate.js:1880
     end
 
     Note over JS,SEM: DIVERGENCE - static-schema stage is advisory for W0xx dead-policy warnings,<br/>only E016/E-SKILL1 schema/RES-d violations and other E-code semantic rules hard-fail<br/>see agentbox-config-validate.js line 4 comment and lines 1862-1874 exit logic
     Note over SKC: see AB-22 for skill-count-check.js internals (skills/*/SKILL.md as the single count source)
 ```
 
-**Tension:** two independent semantic blocks of the same validator emit the code `E080`: the ADR-2138 absolute-path check on `[resources.target_gc]` (`../project/agentbox/scripts/agentbox-config-validate.js:656`) and the eight ADR-2139 `[system_one]` slot checks, now including `local_backend` and boolean `consumers` (`../project/agentbox/scripts/agentbox-config-validate.js:1582`, `:1605`, `:1609`), so the code alone does not identify the failing gate and only the message text does; the ADR-2139 block also documents `E081` and `W076`, while the ADR-2138 block owns `W077` (`../project/agentbox/scripts/agentbox-config-validate.js:656`).
+**Tension:** two independent semantic blocks of the same validator emit the code `E080`: the ADR-2138 absolute-path check on `[resources.target_gc]` (`../project/agentbox/scripts/agentbox-config-validate.js:656`) and the eight ADR-2139 `[system_one]` slot checks, now including `local_backend`, the bind check that admits a private address only with `network = true` (2026-10-30) and boolean `consumers` (`../project/agentbox/scripts/agentbox-config-validate.js:1582`, `:1589`, `:1611`, `:1615`), so the code alone does not identify the failing gate and only the message text does; the ADR-2139 block also documents `E081` and `W076`, while the ADR-2138 block owns `W077` (`../project/agentbox/scripts/agentbox-config-validate.js:656`).
 
 ## AB-01.5 npm-cli.nix pinned exact-semver closure - ruvector always in package set
 
@@ -371,7 +371,7 @@ classDiagram
     AgentboxToml "1" --> "1" FederationSection
 
     note for GpuSection "backend enum: none, ollama-rocm, ollama-cuda, local-cuda - agentbox.toml.schema.json:108-117"
-    note for VaultSection "required: root - agentbox.toml.schema.json:226-228. format enum obsidian ONLY (logseq-legacy withdrawn 2026-09-22, corpus migration complete) - agentbox.toml.schema.json:253-260. tui enum rune, none, default none - agentbox.toml.schema.json:275-283, ADR-2029. cli bool default true - agentbox.toml.schema.json:284-304, ADR-2107/ADR-2108"
+    note for VaultSection "required: root - agentbox.toml.schema.json:226-228. format enum obsidian ONLY (logseq-legacy withdrawn 2026-09-22, corpus migration complete) - agentbox.toml.schema.json:253-260. tui enum rune, none, default none - agentbox.toml.schema.json:275-283, ADR-2029. cli bool default true - agentbox.toml.schema.json:284-308, ADR-2107/ADR-2108"
     note for AdaptersSection "each value resolves to local-star, external, or off per slot - agentbox/CLAUDE.md adapter contract"
 ```
 
@@ -426,7 +426,7 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    TOMLVAULT["[vault] in agentbox.toml<br/>agentbox.toml:1149<br/>tui = rune (:1157), cli = true (:1164)"] --> VAULTCFG["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:916"]
+    TOMLVAULT["[vault] in agentbox.toml<br/>agentbox.toml:1152<br/>tui = rune (:1160), cli = true (:1167)"] --> VAULTCFG["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:916"]
 
     VAULTCFG --> TUIVAL["vaultTui = vaultCfg.tui or none<br/>flake.nix:917"]
     TUIVAL --> RUNEACTIVE["runeActive = vaultTui == rune<br/>flake.nix:918"]
@@ -448,31 +448,31 @@ flowchart TB
     subgraph MANIFEST["system-manifest.js CATALOGUE - management-api/lib/system-manifest.js"]
         VAULTENTRY["id vault<br/>gate vault.format, apply_class boot<br/>line 394-396"]
         VAULTTUIENTRY["id vault-tui<br/>gate vault.tui, apply_class rebuild<br/>line 397-399"]
-        VAULTCLIENTRY["id vault-cli<br/>gate vault.cli, apply_class rebuild<br/>line 400-402<br/>ADR-2107/ADR-2108, the one door to the corpus"]
+        VAULTCLIENTRY["id vault-cli<br/>gate vault.cli, apply_class rebuild<br/>line 403-405<br/>ADR-2107/ADR-2108, the one door to the corpus"]
     end
 
     TOMLVAULT -.->|"vault.format read at boot"| VAULTENTRY
     TOMLVAULT -.->|"vault.tui read at rebuild"| VAULTTUIENTRY
     TOMLVAULT -.->|"vault.cli read at rebuild"| VAULTCLIENTRY
 
-    STATEOF["stateOf function<br/>system-manifest.js:450-463<br/>a false parent gate now dominates child gates (:454-455)"]
+    STATEOF["stateOf function<br/>system-manifest.js:453-466<br/>a false parent gate now dominates child gates (:457-458)"]
     VAULTTUIENTRY --> STATEOF
-    STATEOF --> MODESTRING["off and none count as off, plus a per-entry off_values set<br/>skill-router declares table as its off value<br/>system-manifest.js:472-475, entry at system-manifest.js:342"]
+    STATEOF --> MODESTRING["off and none count as off, plus a per-entry off_values set<br/>skill-router declares table as its off value<br/>system-manifest.js:475-478, entry at system-manifest.js:345"]
 
-    NOTE1["DOC-DRIFT - the code comment at system-manifest.js:387-393 still says the<br/>split is into TWO catalogue entries (ADR-2020), but [vault] now has THREE:<br/>root/pages/format are boot-class, tui and cli are both rebuild-class but gate<br/>different binaries (Rune TUI vs the vault CLI door)"]
+    NOTE1["DOC-DRIFT - the code comment at system-manifest.js:390-396 still says the<br/>split is into TWO catalogue entries (ADR-2020), but [vault] now has THREE:<br/>root/pages/format are boot-class, tui and cli are both rebuild-class but gate<br/>different binaries (Rune TUI vs the vault CLI door)"]
     VAULTTUIENTRY --- NOTE1
 
     NOTE2["DIVERGENCE - vault-tui and vault-cli are REBUILD-class, flipping either key and<br/>restarting the container is NOT sufficient - the Rune binary or the vault CLI is<br/>absent from the package set until agentbox.sh rebuild runs"]
     STATEOF --- NOTE2
 
-    NOTE3["INVARIANT ADR-2107/ADR-2108 - cli defaults to true whenever root is set (opt-OUT),<br/>unlike tui which defaults to none (opt-IN); agents reach the corpus through<br/>/opt/agentbox/bin/vault and the Loom over HTTP since ontology-bridge was retired,<br/>agentbox.toml.schema.json:284-304"]
+    NOTE3["INVARIANT ADR-2107/ADR-2108 - cli defaults to true whenever root is set (opt-OUT),<br/>unlike tui which defaults to none (opt-IN); agents reach the corpus through<br/>/opt/agentbox/bin/vault and the Loom over HTTP since ontology-bridge was retired,<br/>agentbox.toml.schema.json:284-308"]
     VAULTCLIENTRY --- NOTE3
 ```
 
 ## AB-01.11 ADR-2080 model_routing.neural gate - pinned artefacts baked into the image (rebuild-class)
 ```mermaid
 flowchart TB
-    TOML2["[model_routing.neural] in agentbox.toml<br/>agentbox.toml:1733-1743<br/>enabled/provider/quality_bar/cost_ceiling_usd_per_mtok/privacy_tier/trajectory/assets_dir"] --> CFG2["agentboxConfig<br/>flake.nix:176"]
+    TOML2["[model_routing.neural] in agentbox.toml<br/>agentbox.toml:1736-1746<br/>enabled/provider/quality_bar/cost_ceiling_usd_per_mtok/privacy_tier/trajectory/assets_dir"] --> CFG2["agentboxConfig<br/>flake.nix:176"]
     CFG2 --> MRNCFG["modelRoutingNeuralCfg = (agentboxConfig.model_routing or {}).neural or {}<br/>flake.nix:184"]
     ARTJSON["config/model-router/artefacts.json<br/>hash-pinned files[] list"] --> MRNFETCH["modelRouterArtefacts = builtins.fromJSON ...<br/>flake.nix:185"]
     MRNFETCH --> MRNASSETS["modelRouterAssets = pkgs.runCommand ...<br/>per-file pkgs.fetchurl url+sha256, copied to $out/dest<br/>flake.nix:186-194"]
@@ -489,7 +489,7 @@ flowchart TB
     TOML2 -.->|"enabled read at rebuild"| MRNENTRY
 
     subgraph SCHEMA2["schema/agentbox.toml.schema.json"]
-        NEURALSCHEMA["model_routing.properties.neural<br/>additionalProperties false<br/>agentbox.toml.schema.json:1604-1606"]
+        NEURALSCHEMA["model_routing.properties.neural<br/>additionalProperties false<br/>agentbox.toml.schema.json:1612-1614"]
     end
     TOML2 -.-> NEURALSCHEMA
 

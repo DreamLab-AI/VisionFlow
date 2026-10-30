@@ -27,7 +27,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/metrics.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/webid.rs
-verified_commit: 9bde3be7fa123479fabb5c4cc9056e19ab0dcadd
+verified_commit: 76ab7aab3e882f32508b2461b3f51e4c09bdcfa1
 ---
 
 ## SP-06.1 The Storage seam and its two shipped backends

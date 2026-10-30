@@ -22,7 +22,7 @@ sources:
   - ../ontomark/crates/ontomark-compile/src/profile.rs
   - ../ontomark/docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: 07f4c1ce6ac9e7d5c1c2169b4672ca73c54e5efa, VisionFlow: 124512b8f5e8c33c247065c58901dcfdc18988a2}
+verified_commit: {ontomark: 13af42340448022d4d43ac349a8bb5f3ae6d1d47, VisionFlow: ff15faf83d82fef7f23d96da381c8ab78d0206b0}
 ---
 
 ## OM-03.1 build::run_with — Options to promoted bundle, in the order the code runs

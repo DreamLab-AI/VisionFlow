@@ -50,19 +50,19 @@ sources:
   - ../project/agentbox/flake.nix
   - ../project/agentbox/config/harness-wrappers/router.sh
   - ../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md
-verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
+verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
 ---
 
 ## AB-15.1 Gate lattice — manifest to package set to supervisor to runtime trace
 ```mermaid
 flowchart TD
     subgraph M["agentbox.toml — declared gates"]
-        M1["[skills.tree_search_coder]<br/>agentbox.toml:1080"]
-        M2["[toolchains].deepsec<br/>agentbox.toml:2241"]
-        M3["[security.deepsec]<br/>agentbox.toml:2516"]
-        M4["[dream_machine]<br/>agentbox.toml:2565"]
-        M5["[payments]<br/>agentbox.toml:1875"]
-        M6["[consultants.*]<br/>agentbox.toml:1645-1684"]
+        M1["[skills.tree_search_coder]<br/>agentbox.toml:1083"]
+        M2["[toolchains].deepsec<br/>agentbox.toml:2244"]
+        M3["[security.deepsec]<br/>agentbox.toml:2519"]
+        M4["[dream_machine]<br/>agentbox.toml:2568"]
+        M5["[payments]<br/>agentbox.toml:1878"]
+        M6["[consultants.*]<br/>agentbox.toml:1648-1687"]
         M7["[claude_code].permission_mode<br/>+ permission_deny (ADR-2116)"]
         M8["[vault].cli (ADR-2107/2108)"]
     end
@@ -75,7 +75,7 @@ flowchart TD
         S2["management-api program"]
     end
     subgraph C["CATALOGUE entries<br/>management-api/lib/system-manifest.js:39"]
-        C1["tree-search-coder<br/>apply_class rebuild<br/>:409"]
+        C1["tree-search-coder<br/>apply_class rebuild<br/>:412"]
         C2["deepsec<br/>gates toolchains.deepsec + security.deepsec.enabled<br/>apply_class rebuild<br/>:94"]
         C3["dream-machine<br/>apply_class boot<br/>:166"]
         C4["payments<br/>apply_class boot<br/>:217"]
@@ -83,9 +83,9 @@ flowchart TD
         C6["claude-code-permissions<br/>apply_class boot<br/>:253"]
         C7["instruction-tiers<br/>gate null, apply_class boot<br/>:259"]
         C8["claude-cred-sync<br/>apply_class rebuild<br/>:265"]
-        C9["vault-cli<br/>apply_class rebuild<br/>:400"]
+        C9["vault-cli<br/>apply_class rebuild<br/>:403"]
     end
-    R["runtime trace<br/>GET /v1/system stateOf()<br/>system-manifest.js:450"]
+    R["runtime trace<br/>GET /v1/system stateOf()<br/>system-manifest.js:453"]
 
     M1 -->|"rebuild"| C1
     M2 -->|"rebuild — bakes npm closure"| N1
@@ -168,12 +168,12 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant TOML as agentbox.toml<br/>agentbox/agentbox.toml:2516
+    participant TOML as agentbox.toml<br/>agentbox/agentbox.toml:2519
     participant Entry as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:3321-3322
     participant MB as agentbox-manifest bin<br/>agentbox/services/agentbox-manifest/src/main.rs:511
     participant Sup as supervisord<br/>dream-engine program
     participant API as management-api<br/>routes/system.js:44
-    participant SM as system-manifest.js<br/>CATALOGUE + buildSystemView<br/>management-api/lib/system-manifest.js:491
+    participant SM as system-manifest.js<br/>CATALOGUE + buildSystemView<br/>management-api/lib/system-manifest.js:494
 
     Note over Entry: boot — Phase reconciles every restart
     Entry->>MB: agentbox-manifest toml-string --manifest /etc/agentbox.toml --path consultants.antigravity.model
@@ -192,8 +192,8 @@ sequenceDiagram
     Note over API: live — every GET /v1/system request
     API->>SM: buildSystemView(manifest, adapters)
     loop for each CATALOGUE entry
-        SM->>SM: resolveGate(manifest, entry.gate) -- tomlval-equivalent dotted lookup<br/>system-manifest.js:436
-        SM->>SM: stateOf(manifest, entry) -- on #124; off #124; available<br/>system-manifest.js:450
+        SM->>SM: resolveGate(manifest, entry.gate) -- tomlval-equivalent dotted lookup<br/>system-manifest.js:439
+        SM->>SM: stateOf(manifest, entry) -- on #124; off #124; available<br/>system-manifest.js:453
     end
     SM-->>API: apply_classes, core, surfaces, modules, counts
     API-->>API: reply.send #40;generated_at, ...view, execution#41;
@@ -236,8 +236,8 @@ stateDiagram-v2
 sequenceDiagram
     autonumber
     participant Op as Operator
-    participant Val as agentbox-config-validate.js<br/>agentbox/scripts/agentbox-config-validate.js:1657
-    participant TOML as agentbox.toml<br/>[skills.tree_search_coder]<br/>agentbox.toml:1080-1087
+    participant Val as agentbox-config-validate.js<br/>agentbox/scripts/agentbox-config-validate.js:1663
+    participant TOML as agentbox.toml<br/>[skills.tree_search_coder]<br/>agentbox.toml:1083-1090
     participant Skill as tree-search-coder SKILL.md<br/>agentbox/skills/tree-search-coder/SKILL.md:78
     participant CLI as tree-search-cap<br/>src/bin/tree-search-cap.rs:1
     participant Lim as Limiter<br/>cost_cap/mod.rs:330,336
@@ -290,7 +290,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Agent as Agentbox consumer<br/>[payments.consumer]<br/>agentbox.toml:1894
+    participant Agent as Agentbox consumer<br/>[payments.consumer]<br/>agentbox.toml:1897
     participant Merchant as External merchant endpoint
     participant Classify as pay402.classify()<br/>lib/pay402.js:165
     participant Pay as /v1/pay/* routes<br/>routes/payments.js:147-655
@@ -311,7 +311,7 @@ sequenceDiagram
     end
 
     rect rgb(220,240,220)
-    Note over Agent,Pod: payable path — [payments.consumer].enabled required (agentbox.toml:1895)
+    Note over Agent,Pod: payable path — [payments.consumer].enabled required (agentbox.toml:1898)
     Agent->>Pay: POST /v1/pay/estimate {endpoint, units}
     Pay-->>Agent: 200 estimated_sats, hold_sats = ceil(estimated*HOLD_BUFFER_RATIO)
     Agent->>Pay: GET /v1/pay/balance (NIP-98 auth)
@@ -330,9 +330,9 @@ sequenceDiagram
         Merchant-->>Agent: 200 OK — settled
     end
     end
-    Note over Agent,Pay: DEBT — the authority classification table names payment_settlement<br/>zero-tolerance as an irreversible above-threshold sats spend (agentbox.toml:1402),<br/>but no production path passes that actionClass to the gate. The only call sites<br/>are tests/sovereign/authority.test.js:129 and :248, and routes/payments.js never<br/>reaches management-api/lib/authority.js:226. see AB-14.11
+    Note over Agent,Pay: DEBT — the authority classification table names payment_settlement<br/>zero-tolerance as an irreversible above-threshold sats spend (agentbox.toml:1405),<br/>but no production path passes that actionClass to the gate. The only call sites<br/>are tests/sovereign/authority.test.js:129 and :248, and routes/payments.js never<br/>reaches management-api/lib/authority.js:226. see AB-14.11
     Note over Agent,Pay: DEBT — spend is accounted in three stores that never reconcile:<br/>the flock-guarded cost_cap ledger file (services/agentbox-ops/src/cost_cap/ledger.rs:75),<br/>the pod-held sats balance behind GET /v1/pay/balance (management-api/routes/payments.js:205),<br/>and the marketplace token_budget carried on a grant (management-api/lib/llm-marketplace.js:85).<br/>No surface sums them, so no single number answers what this container has spent
-    Note over Agent: DIVERGENCE: #91;payments.consumer#93;.enabled = false by default #40;agentbox.toml:1895#41;,<br/>#91;payments.broadcast#93;.enabled = false and well_known = false #40;agentbox.toml:1904-1905#41; — see AB-11.15
+    Note over Agent: DIVERGENCE: #91;payments.consumer#93;.enabled = false by default #40;agentbox.toml:1898#41;,<br/>#91;payments.broadcast#93;.enabled = false and well_known = false #40;agentbox.toml:1907-1908#41; — see AB-11.15
 ```
 
 ## AB-15.7 routes/payments.js — GET info, GET balance, POST deposit
@@ -565,7 +565,7 @@ sequenceDiagram
     participant PreBoot as Pre-boot environment
     participant Entry as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:3321-3322
     participant MB as agentbox-manifest toml-string<br/>services/agentbox-manifest/src/main.rs:511
-    participant TOML as agentbox.toml<br/>[consultants.antigravity]<br/>agentbox.toml:1656-1660
+    participant TOML as agentbox.toml<br/>[consultants.antigravity]<br/>agentbox.toml:1659-1663
     participant Reg as skills/mcp.json registry default
     participant Srv as antigravity server.js<br/>mcp/consultants/antigravity/server.js:20
 
@@ -664,7 +664,7 @@ sequenceDiagram
     autonumber
     participant Op as build-with-quality caller
     participant Gate as deepsec-gate.sh<br/>skills/build-with-quality/scripts/deepsec-gate.sh:1
-    participant TOML as [security.deepsec]<br/>agentbox.toml:2516-2528
+    participant TOML as [security.deepsec]<br/>agentbox.toml:2519-2531
     participant CLI as deepsec CLI<br/>#40;vercel-labs/deepsec, baked by toolchains.deepsec#41;
     participant Local as claude #124; codex CLI<br/>#40;operator's own login#41;
     participant Loom as Loom façade<br/>http://loom:8080/v1<br/>LAN-only
@@ -717,8 +717,8 @@ Note over Gate: DOC-DRIFT ADR-2033: nodeModulesHash was resolved at flake.nix<br
 ## AB-15.14 ADR-2080 — the metaharness router console gate (new since verified_commit)
 ```mermaid
 flowchart TD
-    T["[model_routing.neural]<br/>agentbox.toml:1733-1743<br/>enabled, provider, quality_bar,<br/>cost_ceiling_usd_per_mtok, privacy_tier=public,<br/>trajectory, assets_dir"]
-    SEED["[[interaction_plane.session_seeds]]<br/>slug=router, tool=custom:router<br/>agentbox.toml:2182-2184"]
+    T["[model_routing.neural]<br/>agentbox.toml:1736-1746<br/>enabled, provider, quality_bar,<br/>cost_ceiling_usd_per_mtok, privacy_tier=public,<br/>trajectory, assets_dir"]
+    SEED["[[interaction_plane.session_seeds]]<br/>slug=router, tool=custom:router<br/>agentbox.toml:2185-2187"]
     CAT["CATALOGUE id: model-routing-neural<br/>gate model_routing.neural.enabled<br/>apply_class rebuild<br/>system-manifest.js:118"]
     NIX["flake.nix modelRoutingNeuralCfg<br/>+ modelRouterAssets fetchurl closure<br/>flake.nix:184-186"]
     BAKE["flake.nix bake block -- gate off ⇒<br/>nothing copied, byte-identical-when-off<br/>flake.nix:2242-2249"]
@@ -747,11 +747,11 @@ flowchart TD
 
 
 
-**Open:** ADR-2153 is now `accepted`, `implementation_status: partial`, `activation_status: live` and supersedes ADR-2079, so the router console is an ordinary session-plane seed (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `../project/agentbox/agentbox.toml:2182-2184`); its acceptance round trip excludes `router`, so the wrapper's hard-fail path is exercised by launch only, not by a routed task (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:65`).
+**Open:** ADR-2153 is now `accepted`, `implementation_status: partial`, `activation_status: live` and supersedes ADR-2079, so the router console is an ordinary session-plane seed (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `../project/agentbox/agentbox.toml:2185-2187`); its acceptance round trip excludes `router`, so the wrapper's hard-fail path is exercised by launch only, not by a routed task (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:65`).
 
 **Drift (spend gating vs the wallet that now exists):** the capability lattice above gates LLM spend and HTTP 402 settlement, and a second spend surface has since been published — `sidestr-wallet` consults a `SpendPolicy` before every signature and ships only a permissive implementation, leaving the authority gate (ADR-2100) to the caller, which nothing in this topic yet supplies (see AB-33.7). The level-2 review that reshaped the federation design was itself run through the consultant tier drawn at AB-15.12 (see AB-35).
 
-**Drift (manifest comment vs pin):** the `[toolchains].deepsec` comment still names `vercel-labs/deepsec@2.3.9` (`../project/agentbox/agentbox.toml:2241`) while the flake's exact pin moved to `2.3.10` on 2026-10-01 (`../project/agentbox/flake.nix:731`); ADR-2033 was re-verified against the new pin, the manifest comment was not.
+**Drift (manifest comment vs pin):** the `[toolchains].deepsec` comment still names `vercel-labs/deepsec@2.3.9` (`../project/agentbox/agentbox.toml:2244`) while the flake's exact pin moved to `2.3.10` on 2026-10-01 (`../project/agentbox/flake.nix:731`); ADR-2033 was re-verified against the new pin, the manifest comment was not.
 
 ## AB-15.15 consult_advice — an advisory, flag-gated route suggestion on every consultant server
 ```mermaid
@@ -760,7 +760,7 @@ sequenceDiagram
     participant Caller as Coordinator
     participant Base as BaseConsultant<br/>consultant-base.js:207
     participant Adv as consult-advice.js<br/>assess :140
-    participant Jev as Jev endpoint<br/>keyless local backend when local-only, else System One proxy or api.typesafe.ai
+    participant Jev as Jev endpoint<br/>System One proxy by default, keyless local backend when consult_advice is in local_only
 
     Caller->>Base: tools/list
     alt advisoryEnabled() false (AGENTBOX_JEV_CONSULT_ADVICE unset or 0, consult-advice.js:42,183)
@@ -772,7 +772,7 @@ sequenceDiagram
     Base->>Adv: assess (consultant-base.js:388)
     Adv->>Adv: flag-off, malformed and no-adapter all return ok false without a request (consult-advice.js:147-149)
     Adv->>Jev: one typed question, 4000 ms deadline, no retry (consult-advice.js:49,156)
-    Note over Adv,Jev: localOnly follows AGENTBOX_JEV_CONSULT_LOCAL_ONLY (consult-advice.js:151)<br/>the boot projection exports it as 1 whenever system_one is enabled (system_one.rs:474-483), so the route stays on the keyless local backend
+    Note over Adv,Jev: localOnly follows AGENTBOX_JEV_CONSULT_LOCAL_ONLY (consult-advice.js:151)<br/>the boot projection exports it as 0 unless consult_advice is listed in [system_one].local_only, empty by default (system_one.rs:522-577), so by default, once the new image is live, the route takes the System One proxy and listing it pins the keyless local backend
     alt Jev unavailable, malformed or below min confidence
         Adv-->>Base: ok false, reason (consult-advice.js:166)
         Base-->>Caller: advice null, fallback_reason
@@ -786,4 +786,4 @@ sequenceDiagram
 **What it shows.** An opt-in fourth tool on every consultant MCP server. It is not listed unless its flag is set; when set it asks a Jev endpoint whether the coordinator should consult at all, and returns a typed suggestion that the coordinator is free to ignore.
 **Why it is this way.** Whether to call a consultant was the one decision no gate or hook covered, and spend caps stay deterministic code, so the model only advises (`../project/agentbox/mcp/consultants/shared/consult-advice.js:20`).
 
-**Open:** the flag is now projected by `[system_one.consumers].consult_advice` (`../project/agentbox/agentbox.toml:906`, `../project/agentbox/services/agentbox-manifest/src/system_one.rs:406-411`) but SECURITY-profiles records the route as STAGED for rebuild, local-only, with no measured uplift claimed, so until the candidate image boots the flag stays unset (`../project/agentbox/docs/SECURITY-profiles.md:96`).
+**Open:** the flag is now projected by `[system_one.consumers].consult_advice` (`../project/agentbox/agentbox.toml:909`, `../project/agentbox/services/agentbox-manifest/src/system_one.rs:437-442`) but SECURITY-profiles records the route as STAGED for rebuild, local-only, with no measured uplift claimed (`../project/agentbox/docs/SECURITY-profiles.md:96`), which the 2026-10-30 amendment no longer makes true because `local_only` is empty; until the candidate image boots the flag stays unset, and then consult advice takes the proxy (`../project/agentbox/services/agentbox-manifest/src/system_one.rs:522-577`).

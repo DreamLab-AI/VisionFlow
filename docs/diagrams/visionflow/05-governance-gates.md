@@ -41,7 +41,7 @@ sources:
   - .github/workflows/adr-index.yml
   - scripts/adr-ratchet.sh
   - tests/gates/estate-health-ci.test.mjs
-verified_commit: 124512b8f5e8c33c247065c58901dcfdc18988a2
+verified_commit: ff15faf83d82fef7f23d96da381c8ab78d0206b0
 ---
 
 ## VF-05.1 Gate route table — trigger, script, verdict, blocking
@@ -542,7 +542,7 @@ flowchart TB
     CITE --> E3["the path must stat in that substrate's checkout — FAIL missing<br/>check-augmentation-citations.cjs:76"]:::fail
     CITE --> E4["and be a REGULAR FILE, so a directory citation cannot pass<br/>check-augmentation-citations.cjs:77"]:::fail
     CITE --> E5["the highest line in the range must exist in the file<br/>check-augmentation-citations.cjs:80"]:::fail
-    CITE --> PASS["counted, summary line, exit 0 only when failures is zero<br/>check-augmentation-citations.cjs:93 and check-augmentation-citations.cjs:115"]:::ok
+    CITE --> PASS["counted, summary line, exit 0 only when failures is zero<br/>check-augmentation-citations.cjs:93 and check-augmentation-citations.cjs:116"]:::ok
 
     SUITE["tests/gates/augmentation-citations.test.cjs — ten deliberate<br/>defects driven through the gate, each asserted to exit 1:<br/>missing path :35, elided path :39, measured citing a document :44,<br/>five rows :48, line past EOF :52, duplicate header :56,<br/>unknown header :59, directory citation :63, a C7 row :67,<br/>measured citing an extensionless document :72"]:::ok
     PASS --- SUITE
@@ -594,4 +594,4 @@ flowchart TB
 **What it shows.** The same route table as VF-05.1 for the two documentation gates that fire on `docs/**` paths: the diagrams-as-code index gate, which now also renders every block with Pele on the hosted runner, and the ADR ledger gate with its ratchet.
 **Why it is this way.** VF-05.1 was split because the single table rendered 4,681 px wide under Pele's layout and the 4,500 px ceiling is enforced (docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:37-38).
 
-**Since the last stamp:** `scripts/check-augmentation-citations.cjs` gained an opt-in advisory pass (`--jev` or `VISIONFLOW_JEV=claim`) that runs after the deterministic gate has printed its summary and can only append `JEV claim` lines for cells a typed-decision model finds unsupported; it never changes a FAIL, the summary line or the exit code, and it is local-only because it sends excerpts of sibling checkouts (`scripts/check-augmentation-citations.cjs:13-16`, `scripts/check-augmentation-citations.cjs:27`, `scripts/check-augmentation-citations.cjs:102-115`, `docs/jev-option.md:12`). Agentbox now projects `VISIONFLOW_JEV=all` into service and shell environments at boot (staged until its rebuild, ADR-2155), so the pass runs by default in an estate session, while hosted CI and the dream annexe inherit nothing and still make no call (`docs/jev-option.md:16`).
+**Since the last stamp:** `scripts/check-augmentation-citations.cjs` gained an opt-in advisory pass (`--jev` or `VISIONFLOW_JEV=claim`) that runs after the deterministic gate has printed its summary and can only append `JEV claim` lines for cells a typed-decision model finds unsupported; it never changes a FAIL, the summary line or the exit code, and, since the 2026-10-30 System One unification, it is no longer local-only by default: it sends excerpts of sibling checkouts to the shared proxy's selected backend (TypeSafe) unless `VISIONFLOW_JEV_CLAIMS_LOCAL_ONLY=1` pins it local (`scripts/check-augmentation-citations.cjs:13-16`, `scripts/check-augmentation-citations.cjs:27`, `scripts/check-augmentation-citations.cjs:96-106`, `docs/jev-option.md:12`). LIVE NOW in the script; agentbox projects `VISIONFLOW_JEV=all` into service and shell environments at boot (configured, taking effect when the new agentbox image is activated, ADR-2155), while hosted CI and the dream annexe inherit nothing and still make no call (`docs/jev-option.md:16`).

@@ -27,7 +27,7 @@ sources:
   - ../loom/Cargo.toml
   - ../RuView/v2/crates/wifi-densepose-sensing-server/src/main.rs
   - docs/estate-review/2026-09-07-estate-audit.md
-verified_commit: {visionflow: 124512b8f5e8c33c247065c58901dcfdc18988a2, agentbox: 0b0f7918961e629280faf86f88227535abf514b5, dream-engine: 59a3e215e826aa1e9ebe157d49c1ac504f7f39c9, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, RuView: 5728b90949e60e3f908d996997d453147c1794e0, loom: 2fad3e085c3807a1effbf724d4f31fc6ea05a0f9, dream-machine: b77093e564ef689923fb523b0e0b18d2bb4a21a4, prose-sanitiser: ccaca2d3510cda89b555cfe75adab35984b8f7f9, diagram-ir: 15cba163da7086a3ebbb5a059c8a8d0ab4ba9706}
+verified_commit: {visionflow: ff15faf83d82fef7f23d96da381c8ab78d0206b0, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc, dream-engine: 59a3e215e826aa1e9ebe157d49c1ac504f7f39c9, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, RuView: 5728b90949e60e3f908d996997d453147c1794e0, loom: 5ad860863b588c0cdb2290e31c69e39d82755aeb, dream-machine: b77093e564ef689923fb523b0e0b18d2bb4a21a4, prose-sanitiser: b261f65466b12bef2fd7c4957cee463cbe06190f, diagram-ir: 15cba163da7086a3ebbb5a059c8a8d0ab4ba9706}
 ---
 
 ## ES-90.1 Three scopes — health roster, source review and workspace neighbours
@@ -105,11 +105,11 @@ flowchart TB
 ## ES-90.5 Evidence types do not imply one another
 ```mermaid
 flowchart TB
-    F["Source paths and ADR metadata"] --> G["Structural/index gate: writeIndexes<br/>diagram-index-gen.cjs:712"]
-    F --> C["Citation diagnostics; strict mode refuses warnings<br/>citeCheck, diagram-index-gen.cjs:496"]
-    F --> SYM["Symbol-anchor check: warns when a cited line<br/>falls outside the labelled function's body<br/>symbolCheck, diagram-index-gen.cjs:624"]
-    F --> JEV["Opt-in advisory semantic review (--jev), off by default,<br/>stderr only, never changes an exit code or an index<br/>jevDiagramReview, diagram-index-gen.cjs:810"]
-    F --> R["Optional Mermaid rendering with pinned Pele, no browser: renderAll<br/>diagram-index-gen.cjs:688"]
+    F["Source paths and ADR metadata"] --> G["Structural/index gate: writeIndexes<br/>diagram-index-gen.cjs:722"]
+    F --> C["Citation diagnostics; strict mode refuses warnings<br/>citeCheck, diagram-index-gen.cjs:500"]
+    F --> SYM["Symbol-anchor check: warns when a cited line<br/>falls outside the labelled function's body<br/>symbolCheck, diagram-index-gen.cjs:634"]
+    F --> JEV["Opt-in advisory per-citation review (--jev with --cite-check), off by default,<br/>stderr only, never changes an exit code or an index; one Noul per resolved citation,<br/>flagged only for jev-* models at p_defect 0.9 or more<br/>jevCitationReview, diagram-index-gen.cjs:805"]
+    F --> R["Optional Mermaid rendering with pinned Pele, no browser: renderAll<br/>diagram-index-gen.cjs:698"]
     F --> S["Semantic source review with file hashes<br/>scripts/estate-doc-audit.py"]
     G --> DOC["Documentation evidence"]
     C --> DOC
@@ -118,7 +118,7 @@ flowchart TB
     JEV -.->|"a pointer for a human reviewer, not evidence"| DOC
     S --> DOC
     ALLOW["citation-allowlist.json waives a citation<br/>that exists in no commit, with a reason;<br/>a stale entry fails the run<br/>loadAllowlist, diagram-index-gen.cjs:387"] --> DOC
-    VER["VERIFICATION.md: declared-revisions anchor,<br/>records what actually resolved at HEAD<br/>writeVerificationReport, diagram-index-gen.cjs:448"] --> DOC
+    VER["VERIFICATION.md: declared-revisions anchor,<br/>records what actually resolved at HEAD<br/>writeVerificationReport, diagram-index-gen.cjs:452"] --> DOC
     TEST["Named local test and raw result"] --> LOCAL["Only the exercised contract"]
     RUN["Loaded binary, effective config,<br/>identity and cross-service receipt"] --> ACCEPT["Only the observed system journey"]
     DOC -.->|"does not establish"| ACCEPT

@@ -51,7 +51,7 @@ sources:
   - ../project/agentbox/docker-compose.voice.yml
   - ../project/agentbox/docker-compose.speech.yml
   - ../project/agentbox/scripts/qgis_mcp_standalone.py
-verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
+verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
 ---
 
 ## AB-27.1 ComfyUI — builtin loopback gate vs external sidecar integration
@@ -216,7 +216,7 @@ sequenceDiagram
     participant CS as code-server<br/>agentbox/flake.nix:2850
     participant Entry as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:1013
 
-    alt toolchains.code_server = true (agentbox.toml:2247)
+    alt toolchains.code_server = true (agentbox.toml:2250)
         Entry->>Entry: mint/adopt CODE_SERVER_PASSWORD, write --config file 0600 devuser-owned<br/>(entrypoint-unified.sh:1013-1044)
         Sup->>CS: code-server --bind-addr 0.0.0.0:8080 --auth password<br/>--config .../config.yaml (flake.nix:2858)
         Note right of CS: DOC-DRIFT (fixed by ADR-2040): binds 0.0.0.0:8080 (still not 127.0.0.1 — the<br/>docker-compose loopback publish only constrains host->container, not bridge->container<br/>on visionclaw_network) but --auth none is GONE, replaced by a minted password
@@ -242,7 +242,7 @@ sequenceDiagram
     participant Unmute as Kyutai Unmute backend<br/>voice-stack/unmute (external, not vendored)
 
     Op->>CLI: ./agentbox.sh voice up
-    Note over CLI: [voice] agentbox.toml:2206 enabled=true (flipped 2026-10-02 after the<br/>console ran 5 days while the gate said false) — comment still says "sidecar state,<br/>its own lifecycle, not agentbox up" — system-manifest.js:182 catalogues<br/>gate 'voice' apply_class 'live' (id voice-console)
+    Note over CLI: [voice] agentbox.toml:2209 enabled=true (flipped 2026-10-02 after the<br/>console ran 5 days while the gate said false) — comment still says "sidecar state,<br/>its own lifecycle, not agentbox up" — system-manifest.js:182 catalogues<br/>gate 'voice' apply_class 'live' (id voice-console)
     CLI->>Certs: gen self-signed TLS if absent (agentbox.sh:2355-2376)
     CLI->>Speech: up --wait (agentbox.sh:2723): shared Nemotron ASR + Pocket TTS<br/>(system-manifest.js:183 "follow the core AgentBox lifecycle")
     Note over Speech: NOT gated by BRIDGE_TOKEN — brought up before the check below
@@ -261,7 +261,7 @@ sequenceDiagram
     Note over Caddy: if the Unmute clone is absent, console still starts —<br/>/embed and /api 502 until the speech stack is present (voice/README.md)
 ```
 
-**Tension (ADR-2151 vs manifest):** ADR-2151 records edge voice as `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), while the live manifest sets `[voicelink] enabled = true` and `record_events = true` (`../project/agentbox/agentbox.toml:2223`, `../project/agentbox/agentbox.toml:2230`); it is a separate path from the cockpit drawn here and is mapped in AB-12.
+**Tension (ADR-2151 vs manifest):** ADR-2151 records edge voice as `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), while the live manifest sets `[voicelink] enabled = true` and `record_events = true` (`../project/agentbox/agentbox.toml:2226`, `../project/agentbox/agentbox.toml:2233`); it is a separate path from the cockpit drawn here and is mapped in AB-12.
 
 ## AB-27.8 openmed clinical-PHI sidecar — triple fail-closed prerequisite gate
 
@@ -276,14 +276,14 @@ sequenceDiagram
     participant Server as helix pipeline server<br/>OPENMED_SERVER_ENTRY (operator-provisioned)
 
     Op->>CLI: ./agentbox.sh openmed up
-    Note over CLI: [privacy_filter.openmed] agentbox.toml:1814 enabled=false (default)<br/>no system-manifest.js catalogue id — only the generic 'privacy-filter'<br/>entry (:220-222) mentions openmed as "compose-managed, separately fail-closed gated"
+    Note over CLI: [privacy_filter.openmed] agentbox.toml:1817 enabled=false (default)<br/>no system-manifest.js catalogue id — only the generic 'privacy-filter'<br/>entry (:241-243) mentions openmed as "compose-managed, separately fail-closed gated"
     CLI->>Compose: docker compose up -d --build (agentbox.sh:2313)
     Compose->>Entry: container starts, OPENMED_* env from [privacy_filter.openmed]
     Entry->>Prereq: bash prereq-check.sh
     alt all three of license_acknowledged, governance_acknowledged, onnx_runtime_present = true<br/>AND model_artifact exists AND sha256 matches artifact_lock_sha256
         Prereq-->>Entry: "prerequisites satisfied" (prereq-check.sh:40)
         Entry->>Server: exec node ${OPENMED_SERVER_ENTRY:-/opt/openmed/server/index.js}
-        Server-->>Op: clinical redaction routes (per [privacy_filter.openmed.policy] agentbox.toml:1827:<br/>pods=strict, memory=strict, inbound=soft, outbound=soft)
+        Server-->>Op: clinical redaction routes (per [privacy_filter.openmed.policy] agentbox.toml:1830:<br/>pods=strict, memory=strict, inbound=soft, outbound=soft)
     else any prerequisite false (documented default — all three false)
         Prereq--xEntry: fail() exit 1, e.g. "license_acknowledged is false" (prereq-check.sh:19-20)
         Note over Entry: SERVER path is unreachable with default gates (entrypoint.sh comment, :12-13)
@@ -310,7 +310,7 @@ sequenceDiagram
         Nix3dgs--xFlake: DIVERGENCE: throw at eval — lichtfeldRev is the placeholder<br/>"0000...0" (3dgs-stack.nix:85-97): "gaussian_splatting cannot be enabled"
         Note over Toml: E006 validator (scripts/agentbox-config-validate.js:222-227)<br/>additionally requires gpu.backend="local-cuda"
     else gaussian_splatting = false (documented default, agentbox.toml:636)
-        Note over Flake: gauss3dPackages = [] (flake.nix:771 lib.optionals)<br/>apply_class rebuild (system-manifest.js:413, id gaussian-splatting)
+        Note over Flake: gauss3dPackages = [] (flake.nix:771 lib.optionals)<br/>apply_class rebuild (system-manifest.js:416, id gaussian-splatting)
     end
     Note over Bridge,LFS: DIVERGENCE — the actually-used lichtfeld-studio skill is<br/>completely independent of this gate: Claude spawns lichtfeld_mcp_bridge.py<br/>(stdio) which HTTP-POSTs JSON-RPC to a manually built<br/>/home/devuser/workspace/gaussians/LichtFeld-Studio/build/LichtFeld-Studio<br/>at localhost port 45677 — never baked by lib/3dgs-stack.nix, never gated by this toml key
     Op->>Bridge: tools/lfs-mcp.sh call training.get_state
@@ -466,7 +466,7 @@ classDiagram
     CatalogueEntry <|-- privacy_filter
     CatalogueEntry <|-- podcast_ingest
 
-    note for CatalogueEntry "system-manifest.js:27-30 ApplyClass semantics,<br/>50-61 code-server/jupyter/desktop/comfyui,<br/>133-145 qgis-mcp/blender-mcp/blender-local/imagemagick-mcp/ffmpeg,<br/>175-183 gui-tools-sidecar/isaac-sim-sidecar/voice-console, 241-243 privacy-filter,<br/>313-315 podcast-ingest (RESOLVED ADR-2057 gap 1, new entry —<br/>see AB-22 for harness-bridge :364 and colloquy :367, the ADR-2057<br/>gap 2/gap 4 entries, out of this topic's scope),<br/>355-357 gaussian-splatting"
+    note for CatalogueEntry "system-manifest.js:27-30 ApplyClass semantics,<br/>50-61 code-server/jupyter/desktop/comfyui,<br/>133-145 qgis-mcp/blender-mcp/blender-local/imagemagick-mcp/ffmpeg,<br/>175-183 gui-tools-sidecar/isaac-sim-sidecar/voice-console, 241-243 privacy-filter,<br/>373-375 podcast-ingest (RESOLVED ADR-2057 gap 1, new entry —<br/>see AB-22 for harness-bridge :367 and colloquy :370, the ADR-2057<br/>gap 2/gap 4 entries, out of this topic's scope),<br/>415-417 gaussian-splatting"
 ```
 
 ## AB-27.12 gui-tools sidecar GPU path — vglrun/nixGL, shared and unshared
@@ -482,7 +482,7 @@ sequenceDiagram
     participant BLaunch as launch-blender.sh:18-22
     participant QLaunch as launch-qgis.sh:15
 
-    Note over Nix,Wrap: ADR-2006 — gpu.backend == "local-cuda" (agentbox.toml:1564)<br/>gpuActive gate flake.nix:443 — wrapGpuBin appends host driver dirs to<br/>LD_LIBRARY_PATH with --suffix (gpu-wrap.nix:56-63), CUDA-only, no GLX/Vulkan surface
+    Note over Nix,Wrap: ADR-2006 — gpu.backend == "local-cuda" (agentbox.toml:1567)<br/>gpuActive gate flake.nix:443 — wrapGpuBin appends host driver dirs to<br/>LD_LIBRARY_PATH with --suffix (gpu-wrap.nix:56-63), CUDA-only, no GLX/Vulkan surface
     Nix->>Wrap: wrapGpuBin pkgs.qgis ["qgis"] (flake.nix:1470)
     Nix->>Wrap: wrapGpuBin pkgs.blender ["blender"] only if blender_local (flake.nix:1476-1480)<br/>agentbox.toml:635 sets blender_local = false, so not baked here
     Note over Wrap: DIVERGENCE — these two nixGL-wrapped derivations exist in the<br/>main image's package set (Blender only when blender_local, ADR-2142) but are NEVER what serves blender-mcp/qgis-mcp:<br/>both MCP servers proxy to the separate gui-tools-service sidecar instead<br/>(flake.nix:2348-2352 comment: 'nix-built QGIS in agentbox-main cannot reach<br/>the nvidia driver libs ... the same constraint as Blender')

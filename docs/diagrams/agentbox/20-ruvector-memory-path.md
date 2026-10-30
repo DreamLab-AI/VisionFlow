@@ -27,7 +27,7 @@ sources:
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/docs/reference/claude-context/ruvector-memory-state.md
-verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
+verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
 ---
 
 ## AB-20.1 Server boot — fail-closed on Postgres, advisory on Xinference
@@ -162,8 +162,8 @@ sequenceDiagram
         Note over MS: still DEGRADED, NOT NORMAL — and still respects the wildcard exclusion
     end
     MS-->>SRV: raw ranked/degraded response
-    SRV->>SRV: memoryJevRerank.rerank(query, raw), off unless AGENTBOX_JEV_MEMORY_RERANK=1,<br/>which the manifest now projects from consumers.memory_rerank = true (source, ADR-2155 staged),<br/>and a local-only judge uses the LAN laya route, never typesafe (jev-option.cjs:72-77)<br/>(ruvector-mcp.cjs:250, memory-jev-rerank.js:100-102, agentbox.toml:907, system_one.rs:413, entrypoint-unified.sh:1259-1263)
-    Note over SRV: Jev option: a LOCAL judge reorders the shortlist the cosine search already returned, `score` stays the cosine<br/>and the input comes back untouched on a flag-off, a degraded result, fewer than two rows, a transport error<br/>or a best relevance below AGENTBOX_JEV_MEMORY_MIN_RELEVANCE, default 0.5 (memory-jev-rerank.js:20-25,105-106,119)
+    SRV->>SRV: memoryJevRerank.rerank(query, raw), off unless AGENTBOX_JEV_MEMORY_RERANK=1,<br/>which the manifest now projects from consumers.memory_rerank = true (source, ADR-2155 staged),<br/>the judge takes the proxy, i.e. TypeSafe, unless AGENTBOX_JEV_MEMORY_LOCAL_ONLY=1,<br/>default 0 (memory-jev-rerank.js:16-18,107), which pins it to the LAN laya route (jev-option.cjs:72-77),<br/>projected 0 unless memory_rerank is in [system_one].local_only, live once the new image is activated<br/>(ruvector-mcp.cjs:250, memory-jev-rerank.js:100-102, agentbox.toml:910, system_one.rs:444, :522-577, entrypoint-unified.sh:1259-1263)
+    Note over SRV: Jev option: a Jev judge, local only on request, reorders the shortlist the cosine search already returned, `score` stays the cosine<br/>and the input comes back untouched on a flag-off, a degraded result, fewer than two rows, a transport error<br/>or a best relevance below AGENTBOX_JEV_MEMORY_MIN_RELEVANCE, default 0.5 (memory-jev-rerank.js:20-25,105-106,119)
     SRV->>SH: shapeSearchResponse(res, {full, minScore, snippetChars, limit}) (ruvector-mcp.cjs:251)
     SH->>SH: sort best-first unless _attention or the Jev option _reranked already ordered it (memory-tools.js:163-167)
     SH->>SH: drop rows below min_score (default 0.55, RUVECTOR_SEARCH_MIN_SCORE) — not applied to<br/>the degraded ILIKE flat score (memory-tools.js:169-174)

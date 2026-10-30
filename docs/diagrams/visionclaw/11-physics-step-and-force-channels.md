@@ -29,7 +29,7 @@ sources:
   - ../project/src/handlers/constraints_handler.rs
   - ../project/src/actors/gpu/gpu_resource_actor.rs
   - ../project/crates/vault-core/src/domains.rs
-verified_commit: e74bcddc772d47a45b1971156a2bab540eaa027c
+verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
 ---
 
 ## VC-11.1 Physics tick — phase 1, params and flag word

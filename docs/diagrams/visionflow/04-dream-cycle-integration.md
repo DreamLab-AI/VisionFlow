@@ -28,7 +28,7 @@ sources:
   - docs/adr/ADR-2009-webgl-mesh-deep-is-sidecar-only.md
   - ./README.md
   - package.json
-verified_commit: 124512b8f5e8c33c247065c58901dcfdc18988a2
+verified_commit: ff15faf83d82fef7f23d96da381c8ab78d0206b0
 ---
 
 ## VF-04.1 dream.config.json — the whole contract this repo offers the engine

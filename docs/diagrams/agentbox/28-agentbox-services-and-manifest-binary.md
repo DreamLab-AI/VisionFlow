@@ -64,7 +64,7 @@ sources:
   - ../project/agentbox/services/agentbox-mcp/src/web_summary/fetch.rs
   - ../project/agentbox/services/agentbox-mcp/src/web_summary/youtube.rs
   - ../project/agentbox/services/skill-tools/src/docs_alignment/mermaid.rs
-verified_commit: {agentbox: 0b0f7918961e629280faf86f88227535abf514b5, visionflow: 124512b8f5e8c33c247065c58901dcfdc18988a2}
+verified_commit: {agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc, visionflow: ff15faf83d82fef7f23d96da381c8ab78d0206b0}
 ---
 
 ## AB-28.1 agentbox-manifest — the boot-time projection surface
@@ -127,7 +127,7 @@ flowchart TB
 
 **Open:** ADR-2146 (the activity-sink hook that `provision-stacks` registers per profile) is recorded `proposed` with `implementation_status: complete` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2146-activity-sink-hook.md:5-7`), and the manifest ships the gate off (`../project/agentbox/agentbox.toml:529`); it is registered only when `[integrations.activity_sink]` is enabled.
 
-**Tension (ADR-2151 vs manifest):** ADR-2151 records `proposed`, `implementation_status: none`, `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), yet `provision-stacks` writes the voicelink Stop and Notification recorder hooks into every profile whenever `[voicelink].record_events` is true, and the manifest sets it true (`../project/agentbox/services/agentbox-manifest/src/stacks.rs:311-320`, `../project/agentbox/agentbox.toml:2230`).
+**Tension (ADR-2151 vs manifest):** ADR-2151 records `proposed`, `implementation_status: none`, `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), yet `provision-stacks` writes the voicelink Stop and Notification recorder hooks into every profile whenever `[voicelink].record_events` is true, and the manifest sets it true (`../project/agentbox/services/agentbox-manifest/src/stacks.rs:311-320`, `../project/agentbox/agentbox.toml:2233`).
 
 ## AB-28.2 Boot projection sequence
 
@@ -173,7 +173,7 @@ sequenceDiagram
     EP->>BIN: permissions-project --manifest /etc/agentbox.toml --settings <root+profiles><br/>entrypoint-unified.sh:1841-1846
     BIN-->>EP: [claude_code] mode + deny rules reconciled into every settings.json (ADR-2116,<br/>agentbox-manifest/src/main.rs:223-231 · src/permissions.rs) — hand-added deny rules kept. Model, effort and<br/>advisor roles (ADR-2134) are applied too, except to gateway profiles (src/permissions.rs:219, src/permissions.rs:255)
     EP->>BIN: system-one-project --manifest --format json, shell, plugin-config (only when [system_one].enabled, else sso-project)<br/>entrypoint-unified.sh:2671-2675
-    BIN-->>EP: ADR-2139 vendor-slot projection, written atomically to system-one.json for the proxy (agentbox-manifest/src/main.rs:250-265 · entrypoint-unified.sh:2671-2678).<br/>The shell form also carries per-consumer opt-ins (AGENTBOX_JEV_*, plus estate advisories for visionflow, website, solid-pod, vault rank and ontomark) and a keyless-LAN-only private route (src/system_one.rs:360-523, called at :559), and is eval'd a SECOND time<br/>BEFORE supervisord (entrypoint-unified.sh:1260-1263) so the management API, MCP and cron<br/>inherit it (source, ADR-2155 activation staged)
+    BIN-->>EP: ADR-2139 vendor-slot projection, written atomically to system-one.json for the proxy (agentbox-manifest/src/main.rs:250-265 · entrypoint-unified.sh:2671-2678).<br/>The shell form also carries per-consumer opt-ins (AGENTBOX_JEV_*, plus estate advisories for visionflow, website, solid-pod, vault rank and ontomark) and the keyless LAN private route, taken only by consumers named in [system_one].local_only (empty): the 13 in-container consumers export *_LOCAL_ONLY=0 (src/system_one.rs:522-536,564-577),<br/>while each estate advisory (visionflow, website, solid-pod, vault rank, ontomark) exports its flag 1, an EMPTY _ENDPOINT/_MODEL, _LOCAL=0 and _ALLOW_CLOUD=1 so it dials the shared proxy, no laya endpoint (src/system_one.rs:578-603, :604-625, whole fn :391-626, called at :662).<br/>It admits a docker-network bind only with network = true (0.0.0.0 or RFC 1918, src/system_one.rs:113,158-169) and still hands in-container consumers 127.0.0.1 (src/system_one.rs:92-100).<br/>The shell form is eval'd a SECOND time BEFORE supervisord (entrypoint-unified.sh:1260-1263) so the management API, MCP and cron<br/>inherit it (source, configured: live at the next image activation, ADR-2155 staged)
     EP->>BIN: hooks-reconcile --settings <file> --registry registered-hooks.txt<br/>entrypoint-unified.sh:2955-2961
     BIN-->>EP: prune/keep/own applied, owned hooks' timeouts fixed to SECONDS (agentbox-manifest/src/main.rs:168-175<br/>· src/hooks.rs) — never adds a hook
     EP->>BIN: instructions-project --layers /etc/agentbox/instructions --global-out --managed-out<br/>(or --no-managed when [claude_code].floor is off) --workspace-out --workspace-claude-out<br/>entrypoint-unified.sh:2987-2998
@@ -192,7 +192,7 @@ sequenceDiagram
     autonumber
     participant EP as entrypoint-unified.sh
     participant BIN as agentbox-manifest toml-string<br/>agentbox/services/agentbox-manifest/src/tomlval.rs
-    participant TOML as agentbox.toml [consultants.*]<br/>agentbox/agentbox.toml:1629
+    participant TOML as agentbox.toml [consultants.*]<br/>agentbox/agentbox.toml:1632
     participant ENV as consultant environment
     participant TUI as TUI save path
 
@@ -205,7 +205,7 @@ sequenceDiagram
     end
     TUI->>TOML: an operator saves the TUI
     Note over TUI,TOML: INVARIANT ADR-2031: a TUI save NEVER resets an operator's model
-    Note over TOML: consultant sections: agentbox.toml:1650 codex, agentbox.toml:1656 antigravity,<br/>agentbox.toml:1662 zai, agentbox.toml:1669 perplexity, agentbox.toml:1674 deepseek
+    Note over TOML: consultant sections: agentbox.toml:1653 codex, agentbox.toml:1659 antigravity,<br/>agentbox.toml:1665 zai, agentbox.toml:1672 perplexity, agentbox.toml:1677 deepseek
     Note over TOML: INVARIANT ADR-2031: cost figures are DATED API-EQUIVALENT ESTIMATES or null, NEVER a<br/>stale constant
     Note over BIN: INVARIANT: consultant models come FROM THE MANIFEST — agentbox-manifest toml-string is<br/>the single projection path
 ```
@@ -301,7 +301,7 @@ flowchart LR
     end
     subgraph rust["Rust MCP binaries"]
         R1["agentbox-mcp imagemagick, web-summary, gemini-url-context<br/>see AB-28.6"]
-        R2["colloquy-mcp: query, propose, confirm, flag, reflect, status<br/>agentbox/crates/colloquy/colloquy-mcp/src/server.rs:29<br/>gate skills.colloquy agentbox.toml:1328, tier agentbox.toml:1335"]
+        R2["colloquy-mcp: query, propose, confirm, flag, reflect, status<br/>agentbox/crates/colloquy/colloquy-mcp/src/server.rs:29<br/>gate skills.colloquy agentbox.toml:1331, tier agentbox.toml:1338"]
     end
     subgraph proj["Projection — see AB-09 and AB-22.10"]
         P1["agentbox/mcp/mcp.json — the fleet declaration"]
@@ -439,11 +439,11 @@ flowchart TB
     end
     P6 --> verbs
     subgraph gates["Manifest gates - agentbox.toml [skills.colloquy]"]
-        M1["enabled agentbox.toml:1328 - gates the MCP REGISTRATION only,<br/>the binary is always baked, exactly as the bridge it supersedes was"]
-        M2["tier agentbox.toml:1335 - shared by default: the agents in one container<br/>are one operator's, and a private tier-1 store would lose every learning<br/>at the end of the session"]
-        M3["namespace agentbox.toml:1341 - its OWN namespace, never patterns"]
-        M4["principal agentbox.toml:1348 - empty derives it from the Nostr operator"]
-        M5["reflect_candidates agentbox.toml:1355 - a Stop hook registered at<br/>config/entrypoint-unified.sh:2001 that writes CANDIDATES, never units"]
+        M1["enabled agentbox.toml:1331 - gates the MCP REGISTRATION only,<br/>the binary is always baked, exactly as the bridge it supersedes was"]
+        M2["tier agentbox.toml:1338 - shared by default: the agents in one container<br/>are one operator's, and a private tier-1 store would lose every learning<br/>at the end of the session"]
+        M3["namespace agentbox.toml:1344 - its OWN namespace, never patterns"]
+        M4["principal agentbox.toml:1351 - empty derives it from the Nostr operator"]
+        M5["reflect_candidates agentbox.toml:1358 - a Stop hook registered at<br/>config/entrypoint-unified.sh:2001 that writes CANDIDATES, never units"]
         M1 ~~~ M2 ~~~ M3 ~~~ M4 ~~~ M5
     end
     P6 --> gates
@@ -451,9 +451,9 @@ flowchart TB
 
 **Debt (corpus vs repo):** this topic listed the deleted `mcp/servers/precedent-bridge.js` in its own `sources:` until this pass, so every citation into it was an unresolvable warning and the file-existence check was failing the whole tree; the successor is `../project/agentbox/crates/colloquy/colloquy-mcp/src/server.rs:29`.
 
-**Invariant:** mixing colloquy units into the `patterns` namespace would move the frozen recall band, so the shared tier gets its own (`../project/agentbox/agentbox.toml:1338-1341`).
+**Invariant:** mixing colloquy units into the `patterns` namespace would move the frozen recall band, so the shared tier gets its own (`../project/agentbox/agentbox.toml:1341-1344`).
 
-**Invariant:** an agent that authorises itself defeats principal collapse, so the principal must never equal the agent's own member id and the binary exits rather than start that way (`../project/agentbox/agentbox.toml:1345-1348`).
+**Invariant:** an agent that authorises itself defeats principal collapse, so the principal must never equal the agent's own member id and the binary exits rather than start that way (`../project/agentbox/agentbox.toml:1348-1351`).
 
 ## AB-28.13 ADR-2084 - the facade client the service crates share
 

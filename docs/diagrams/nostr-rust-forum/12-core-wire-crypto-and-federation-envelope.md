@@ -40,7 +40,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/push.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml
-verified_commit: eb5f2323e6d72240ecb7c456181b7a674f1842f4
+verified_commit: 9c36b6032640c89879ae52fe25da99493979a0b6
 ---
 
 ## NF-12.1 Module map — what the workers and clients all link

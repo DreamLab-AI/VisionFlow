@@ -73,7 +73,7 @@ sources:
   - ../project/agentbox/management-api/lib/governance-evidence-rubric.js
   - ../project/agentbox/scripts/dream-forum-suggestions.mjs
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
-verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
+verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
 ---
 
 ## AB-14.1 Governance plane — surfaces that reach the decision point vs surfaces that miss it
@@ -83,8 +83,8 @@ flowchart TB
     subgraph SURF["Agent-initiated side-effect surfaces GOVERNANCE-capabilities.md:60-77"]
         DTC["Direct tool call<br/>MCP fleet mcp/mcp.json"]
         CMS["Code-mode sub-call<br/>codeact / code-interpreter agentbox.toml:665,681"]
-        ACISHELL["ACI shell<br/>test allowlist agentbox.toml:1044<br/>raw Bash still reachable outside it"]
-        CONSULT["Consultant / subagent action<br/>tree-search-coder agentbox.toml:1080"]
+        ACISHELL["ACI shell<br/>test allowlist agentbox.toml:1047<br/>raw Bash still reachable outside it"]
+        CONSULT["Consultant / subagent action<br/>tree-search-coder agentbox.toml:1083"]
         DREAM["Background job dream-engine<br/>01:00-05:00 UTC unattended"]
         BEADS["Background job beads work-DAG<br/>spawn_child mcp/mcp.json:219"]
         ALTHARNESS["Alternate harness path<br/>non-Claude harness"]
@@ -96,7 +96,7 @@ flowchart TB
     ACTPLANE(["action-plane.js getActionPlane<br/>lazy singleton, ADR-2041, see AB-14.14"])
     COSTGATE["costGate middleware<br/>middleware/cost-gate.js, see AB-15.x"]
     ACSPGATE["ACSP authority gate<br/>authority.js:226 buildAuthorityGate.guard, see AB-11.10"]
-    AXIOMGUARD["direct_axiom_load=false guard agentbox.toml:1097<br/>ADR-2108 supersedes ADR-2022, see AB-25"]
+    AXIOMGUARD["direct_axiom_load=false guard agentbox.toml:1100<br/>ADR-2108 supersedes ADR-2022, see AB-25"]
     EXEC(["side effect executes"])
 
     DTC -.->|"designed target, never instantiated for this surface"| PIPE
@@ -116,9 +116,9 @@ flowchart TB
     AXIOMGUARD --> EXEC
 
     DRIFT["DOC-DRIFT GOVERNANCE-capabilities.md:93-94 claims a repo-wide search of src/, services/, mcp/ for SessionEvent / execution-journal code returns nothing<br/>execution-journal.js:85 class ExecutionJournal and agent-action-pipeline.js:58 class AgentActionPipeline fully implement legacy-ADR-057/059 D1-D5<br/>under management-api/lib/, a path outside the doc's stated search scope"]
-    DIVERGE1["DIVERGENCE (NARROWED by ADR-2041) TOP OPEN RISK GOVERNANCE-capabilities.md:335-338 named 'no single policy decision point' with zero production instantiations<br/>action-plane.js now builds a real ExecutionJournal + AgentActionPipeline singleton and POST /v1/tasks calls dispatchTaskSpawn — one surface is now wired, journalled and capability-tokened<br/>the dream engine now RECORDS each side effect into the same journal through POST /v1/exec/record (ADR-2071, activation live, decision still proposed) but nothing there approves or denies<br/>every OTHER surface above (direct tool call, code-mode, ACI shell, consultant, dream, beads, alt harness) still reaches EXEC with no interceptor — the gap is narrower, not closed, see AB-14.14"]
-    DRIFT2["DOC-DRIFT the capability-surface list cites agentbox.toml line numbers that have moved and keep moving —<br/>GOVERNANCE-capabilities.md:65 says aci_shell is at agentbox.toml line 582 (it is agentbox.toml:1038),<br/>GOVERNANCE-capabilities.md:68-69 says code_interpreter line 539 and codeact line 554 (they are agentbox.toml:665 and agentbox.toml:681),<br/>GOVERNANCE-capabilities.md:72 says the test allowlist is line 585 (it is agentbox.toml:1044), GOVERNANCE-capabilities.md:76 says tree_search_coder line 624 (it is agentbox.toml:1080),<br/>GOVERNANCE-capabilities.md:66-67 says spawn_child is at mcp.json line 197 (it is mcp/mcp.json:219)"]
-    DIVERGE7["DIVERGENCE GOVERNANCE-capabilities.md:360-361 skill lint is advisory, not a runtime capability gate<br/>lint-skills.sh gates estate hygiene only; an enabled skill with clean frontmatter is trusted at runtime with no further check"]
+    DIVERGE1["DIVERGENCE (NARROWED by ADR-2041) TOP OPEN RISK GOVERNANCE-capabilities.md:339-342 named 'no single policy decision point' with zero production instantiations<br/>action-plane.js now builds a real ExecutionJournal + AgentActionPipeline singleton and POST /v1/tasks calls dispatchTaskSpawn — one surface is now wired, journalled and capability-tokened<br/>the dream engine now RECORDS each side effect into the same journal through POST /v1/exec/record (ADR-2071, activation live, decision still proposed) but nothing there approves or denies<br/>every OTHER surface above (direct tool call, code-mode, ACI shell, consultant, dream, beads, alt harness) still reaches EXEC with no interceptor — the gap is narrower, not closed, see AB-14.14"]
+    DRIFT2["DOC-DRIFT the capability-surface list cites agentbox.toml line numbers that have moved and keep moving —<br/>GOVERNANCE-capabilities.md:65 says aci_shell is at agentbox.toml line 582 (it is agentbox.toml:1041),<br/>GOVERNANCE-capabilities.md:68-69 says code_interpreter line 539 and codeact line 554 (they are agentbox.toml:665 and agentbox.toml:681),<br/>GOVERNANCE-capabilities.md:72 says the test allowlist is line 585 (it is agentbox.toml:1047), GOVERNANCE-capabilities.md:76 says tree_search_coder line 624 (it is agentbox.toml:1083),<br/>GOVERNANCE-capabilities.md:66-67 says spawn_child is at mcp.json line 197 (it is mcp/mcp.json:219)"]
+    DIVERGE7["DIVERGENCE GOVERNANCE-capabilities.md:364-365 skill lint is advisory, not a runtime capability gate<br/>lint-skills.sh gates estate hygiene only; an enabled skill with clean frontmatter is trusted at runtime with no further check"]
 ```
 
 ## AB-14.2 Action lifecycle — intent through policy, approval, execution, receipt, journal
@@ -275,7 +275,7 @@ sequenceDiagram
         FA-->>C: 200 {approvals:[], count:0, wired:false, note} :89
     else consumer wired
         FA->>AJ: annotateApprovals(c.listPending()) :94, the Jev option
-        AJ-->>FA: the same array unless AGENTBOX_JEV_APPROVAL_REVIEW is on (opted in by system_one.consumers.approval_review, agentbox.toml:905, staged until a rebuild) and a local endpoint answers
+        AJ-->>FA: the same array unless AGENTBOX_JEV_APPROVAL_REVIEW is on (opted in by system_one.consumers.approval_review, agentbox.toml:908, staged until a rebuild) and an endpoint answers, the proxy unless AGENTBOX_JEV_APPROVAL_LOCAL_ONLY=1 (approval-review-jev.js:20-24,127)
         FA-->>C: 200 {approvals, count, wired:true} :87-88,95
     end
     Note over FA,AJ: INVARIANT: the review_aid is advisory, annotate never reorders or hides a request<br/>and the decide route below never consults it, approval-review-jev.js:120-134
@@ -483,7 +483,7 @@ sequenceDiagram
         Note over GB,RC: the PROV-O activity carries prov:wasAssociatedWith = the human did:nostr<br/>(management-api/lib/governance-manual-continue.js:178)
     end
     Note over GB,RP: this diagram REPLACES the precedent match, promote and retire sequence.<br/>precedent-service.js and precedent-bridge.js were deleted at commit 70d017a3b<br/>and colloquy took the ground — see AB-22.7 and AB-09.5
-    Note over TP,GATE: DEBT — the classification table names payment_settlement zero-tolerance<br/>(agentbox.toml:1402) but no production path passes that actionClass. The only<br/>call sites are tests, and management-api/lib/authority.js:226 never sees it. see AB-15
+    Note over TP,GATE: DEBT — the classification table names payment_settlement zero-tolerance<br/>(agentbox.toml:1405) but no production path passes that actionClass. The only<br/>call sites are tests, and management-api/lib/authority.js:226 never sees it. see AB-15
 ```
 
 ## AB-14.12 project-tracker.js publish path and /v1/projects
@@ -565,7 +565,7 @@ sequenceDiagram
     alt publish throws
         EP-->>KGE: {published:false, reason: err.message} :224-230, federation is additive
     else published
-        opt AGENTBOX_JEV_GOVERNANCE_RUBRIC is on (off in code, opted in by system_one.consumers.governance_rubric, agentbox.toml:915, staged until a rebuild, projected LOCAL_ONLY system_one.rs:474-483)
+        opt AGENTBOX_JEV_GOVERNANCE_RUBRIC is on (off in code, opted in by system_one.consumers.governance_rubric, agentbox.toml:918, staged until a rebuild, projected GOVERNANCE_RUBRIC_LOCAL_ONLY=0 unless the consumer is in [system_one].local_only, system_one.rs:522-577)
             EP->>RUB: assess(unsigned, {env}) :218, after the card is built and signed
             RUB-->>EP: advisory signal, authority 'none', governance-evidence-rubric.js:135
             EP->>RUB: recordSignal(signal, event_id, env) :220, sidecar file, then result.evidence_signal :221

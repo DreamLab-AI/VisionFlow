@@ -42,7 +42,7 @@ sources:
   - ../project/src/app_state.rs
   - ../project/src/actors/graph_state_actor.rs
   - ../project/src/services/ontology_mutation_service.rs
-verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, agentbox: 0b0f7918961e629280faf86f88227535abf514b5}
+verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc}
 ---
 
 ## VC-22.1 Write-master per data class
@@ -395,7 +395,7 @@ sequenceDiagram
     participant BOOT as main.rs RBAC bootstrap<br/>src/main.rs:774
     participant RS as RoleStore.effective_role<br/>src/services/role_store.rs:359
 
-    Note over BOOT: RBAC_PUBLIC_READS is fail-closed in code - .unwrap_or(false)<br/>(rbac_gate.rs:135-141) - and set on only by compose<br/>(docker-compose.unified.yml:121)
+    Note over BOOT: RBAC_PUBLIC_READS is fail-closed in code - .unwrap_or(false)<br/>(rbac_gate.rs:135-141) - and set on only by compose<br/>(docker-compose.unified.yml:132)
     BOOT->>BOOT: RBAC_ALLOW_OWNERLESS env check (main.rs:797, const at role_store.rs:33)
     alt no Owner assigned AND RBAC_ALLOW_OWNERLESS=1 (main.rs:797, :802)
         BOOT->>BOOT: warn, run owner-less, only POWER_USER_PUBKEYS to Admin fallback applies
@@ -422,7 +422,7 @@ sequenceDiagram
         end
     end
     rect rgb(255, 230, 230)
-    Note over BOOT,RS: CORRECTED ADR-2070 (raised by estate ADR-2087) - the CODE fails closed:<br/>public_reads_enabled() ends .unwrap_or(false) (rbac_gate.rs:135-141) and<br/>main.rs:809-818 refuses to<br/>start owner-less unless RBAC_ALLOW_OWNERLESS is set. The shipped compose inverts<br/>both<br/>(docker-compose.unified.yml:121, :122, with the :-1 default), so an unassigned<br/>pubkey resolves to Editor<br/>(role_store.rs:359). The open posture is ADR-2027's deliberate demo default and<br/>stays.
+    Note over BOOT,RS: CORRECTED ADR-2070 (raised by estate ADR-2087) - the CODE fails closed:<br/>public_reads_enabled() ends .unwrap_or(false) (rbac_gate.rs:135-141) and<br/>main.rs:809-818 refuses to<br/>start owner-less unless RBAC_ALLOW_OWNERLESS is set. The shipped compose inverts<br/>both<br/>(docker-compose.unified.yml:132, :133, with the :-1 default), so an unassigned<br/>pubkey resolves to Editor<br/>(role_store.rs:359). The open posture is ADR-2027's deliberate demo default and<br/>stays.
     end
 ```
 

@@ -53,12 +53,13 @@ sources:
   - ../project/codescape/README.md
   - ../project/docs/BASELINE-architecture.md
   - ../project/agentbox/docker-compose.system-one.yml
+  - ../project/agentbox/agentbox.toml
   - ../project/nginx.dev.conf
   - ../project/docker-compose.unified.yml
   - ../project/codescape/client/src/net/config.ts
   - ../project/xr-client/scripts/graph_scene.gd
   - ../project/agentbox/config/hooks/activity-sink.cjs
-verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, agentbox: 0b0f7918961e629280faf86f88227535abf514b5, codescape: c742770ce2a454343d1bba7e1e815c40557cafdf}
+verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc, codescape: c742770ce2a454343d1bba7e1e815c40557cafdf}
 ---
 
 Codescape is a separate section: a near-real-time 3D view of a codebase that humans and agents share by voice, with its own Cargo workspace, its own compose service and a tested isolation boundary from the knowledge-work system (ADR-2143). It reuses the frozen V3/V5 position wire so the desktop and Godot clients render it unchanged, and it never mounts the corpus, never reaches RuVector and holds no signing key. The agentbox hook is on agentbox `main` (ADR-2146, activity-sink.cjs:5), and the standalone repository now exists: `gh repo view DreamLab-AI/codescape` resolves as a public repository on 2026-10-29. Since the previous stamp the voice path gained an opt-in System One (Jev) pick between grammar and Loom (codescape-server/src/voice/jev.rs:375) and the compose service serves the whole estate as one scene.
@@ -107,15 +108,15 @@ flowchart TB
 flowchart TB
     subgraph HOST["host"]
         LAN["laptop or headset on the LAN"]
-        LOOP["host loopback, port 4100 published to 127.0.0.1 by default<br/>docker-compose.unified.yml:633"]
+        LOOP["host loopback, port 4100 published to 127.0.0.1 by default<br/>docker-compose.unified.yml:641"]
     end
     subgraph NET["visionclaw_network"]
         subgraph VC["visionclaw_container, mounts /vault, never hosts the Codescape service"]
             NGX["dev nginx port 3001, location ^~ /codescape/, upstream resolved lazily by Docker DNS<br/>nginx.dev.conf:66 nginx.dev.conf:74-77"]
         end
-        subgraph CS["codescape service, profile codescape, runs the standalone submodule mounted read-only at /app/codescape through its own deploy/codescape-entrypoint.sh, plus read-only views of the estate scene and ten member repositories<br/>docker-compose.unified.yml:454 docker-compose.unified.yml:464 docker-compose.unified.yml:520 docker-compose.unified.yml:482 docker-compose.unified.yml:530-611 docker-compose.unified.yml:651-652"]
+        subgraph CS["codescape service, profile codescape, runs the standalone submodule mounted read-only at /app/codescape through its own deploy/codescape-entrypoint.sh, plus read-only views of the estate scene and ten member repositories<br/>docker-compose.unified.yml:463 docker-compose.unified.yml:473 docker-compose.unified.yml:528 docker-compose.unified.yml:492 docker-compose.unified.yml:538-619 docker-compose.unified.yml:659-660"]
             MAIN["main listener port 4100: REST, /ws/positions, /ws/events, /wss, /ws/voice, /ws/presence<br/>codescape-server/src/routes/mod.rs:406-418"]
-            ING["ingest listener port 4101, only when a token file is configured, never published<br/>codescape-server/src/main.rs:175-189 docker-compose.unified.yml:629"]
+            ING["ingest listener port 4101, only when a token file is configured, never published<br/>codescape-server/src/main.rs:175-189 docker-compose.unified.yml:637"]
             ENG["RepoEngine per repo: ingest thread, layout thread up to 240 Hz, publish every 16 ms<br/>codescape-server/src/engine.rs:32-36 codescape-server/src/engine.rs:713 codescape-server/src/engine.rs:767"]
             MAIN --> ENG
             ING --> ENG
@@ -123,8 +124,8 @@ flowchart TB
         AB["agentbox container: activity-sink hook, fail-open, Bearer token, 1 s budget<br/>activity-sink.cjs:4-23 activity-sink.cjs:276 activity-sink.cjs:306"]
         ASR["nemotron-asr, streaming ASR websocket<br/>codescape-server/src/config.rs:129-134"]
         TTS["pocket-tts<br/>codescape-server/src/config.rs:137-142"]
-        LOOM["Loom door, optional out-of-grammar fallback<br/>docker-compose.unified.yml:503"]
-        JEV["System One facade systemone:8097, opt-in CODESCAPE_JEV, local-only, endpoint from compose<br/>docker-compose.unified.yml:494-500 voice/jev.rs:156-205; the facade is defined by agentbox docker-compose.system-one.yml:3 and :106"]
+        LOOM["Loom door, optional out-of-grammar fallback<br/>docker-compose.unified.yml:511"]
+        JEV["System One through the shared agentbox proxy agentbox:8094, never published, opt-in CODESCAPE_JEV=1, local-only in code until ALLOW_CLOUD=1, which compose now sets<br/>the laya systemone:8097 pins are gone, so the selected backend (typesafe, agentbox.toml:892) is the route. CONFIGURED: effective once the new agentbox image is active and codescape recreated<br/>docker-compose.unified.yml:7-11 docker-compose.unified.yml:504-508 voice/jev.rs:156-205<br/>the laya facade stays only as the opt-in local backend, agentbox docker-compose.system-one.yml:3 and :106"]
     end
     LAN -->|"http port 3001 /codescape/"| NGX
     LAN -.->|"direct, only with CODESCAPE_PUBLISH_ADDR set"| LOOP
@@ -145,7 +146,7 @@ flowchart TB
     CS --- REF
 ```
 
-**What it shows.** Codescape is a network peer of VisionClaw, never a co-tenant: nginx reaches it by service name and answers 502 when it is down, the hook reaches port 4101 only across the compose network, and voice egress goes only to the configured ASR, TTS and Loom URLs plus the P6 voice-intent URL and, when enabled, the Jev URL (codescape-server/src/config.rs:265-283); the compose peer now maps the estate scene and ten member repositories read-only, not just VisionClaw and agentbox (docker-compose.unified.yml:482). **Why it is this way.** `visionclaw_container` mounts `/vault` and carries the RuVector connection string, so running Codescape there would make isolation a convention (ADR-2143-codescape-section-separate-workspace-and-port.md:187-193); `/codescape/` on port 3001 is the owner's dev-only waiver of A2 gap 4 (nginx.dev.conf:63-65).
+**What it shows.** Codescape is a network peer of VisionClaw, never a co-tenant: nginx reaches it by service name and answers 502 when it is down, the hook reaches port 4101 only across the compose network, and voice egress goes only to the configured ASR, TTS and Loom URLs plus the P6 voice-intent URL and, when enabled, the Jev URL (codescape-server/src/config.rs:265-283); the compose peer now maps the estate scene and ten member repositories read-only, not just VisionClaw and agentbox (docker-compose.unified.yml:492). **Why it is this way.** `visionclaw_container` mounts `/vault` and carries the RuVector connection string, so running Codescape there would make isolation a convention (ADR-2143-codescape-section-separate-workspace-and-port.md:187-193); `/codescape/` on port 3001 is the owner's dev-only waiver of A2 gap 4 (nginx.dev.conf:63-65).
 
 ## VC-39.3 One position socket tick: admission, base records, selection, V5, ack
 
@@ -321,7 +322,7 @@ flowchart TB
     ORIG --> PFX
     ORIG --> USE
     OFF --> USE
-    COMPOSE["compose sets trust on, narrowed to the VisionClaw service alias, prefix /codescape<br/>docker-compose.unified.yml:506 docker-compose.unified.yml:510-511"]
+    COMPOSE["compose sets trust on, narrowed to the VisionClaw service alias, prefix /codescape<br/>docker-compose.unified.yml:514 docker-compose.unified.yml:518-519"]
     NG["nginx sends Host, X-Forwarded-For appended, Proto, Host, Prefix, hides upstream COOP/COEP/CORP<br/>nginx.dev.conf:81-86 nginx.dev.conf:94-96"]
     COMPOSE -.-> EN
     NG -.-> REQ
@@ -342,8 +343,8 @@ flowchart TB
     end
     subgraph JEVG["OPEN: Jev option and estate scene"]
         direction TB
-        J1["OPEN: enabled in compose but accepts nothing: the threshold defaults to 1.0 and compose leaves it empty, README states wiring and fallback tests only, no measured uplift, and BASELINE says activation is staged until the host is recreated<br/>codescape-server/src/voice/jev.rs:166-171 docker-compose.unified.yml:499-500 codescape/README.md:296 docs/BASELINE-architecture.md:49-50"]
-        J2["DEBT: the estate mounts default to an absolute host volume path, overridable only by CODESCAPE_ESTATE_ROOT<br/>docker-compose.unified.yml:556"]
+        J1["OPEN: enabled in compose but accepts nothing: the threshold defaults to 1.0 and compose leaves it empty, README states wiring and fallback tests only, no measured uplift, and BASELINE says activation is staged until the new agentbox image is active and the host recreated; ALLOW_CLOUD=1 sends the utterance via the proxy to the selected backend (agentbox.toml:892)<br/>codescape-server/src/voice/jev.rs:166-171 docker-compose.unified.yml:505 docker-compose.unified.yml:507-508 codescape/README.md:296 docs/BASELINE-architecture.md:50-51"]
+        J2["DEBT: the estate mounts default to an absolute host volume path, overridable only by CODESCAPE_ESTATE_ROOT<br/>docker-compose.unified.yml:564"]
         J1 --- J2
     end
     subgraph PERF["DEBT: scale targets"]

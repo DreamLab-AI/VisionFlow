@@ -23,7 +23,8 @@ sources:
   - ../project/docs/adr/ADR-2133-live-memory-cloud-serves-a-stratified-sidecar-snapshot.md
   - ../project/agentbox/docs/LEARNING-memory.md
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
-verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, agentbox: 0b0f7918961e629280faf86f88227535abf514b5}
+  - ../project/agentbox/mcp/servers/lib/memory-jev-rerank.js
+verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc}
 ---
 ## ES-07.1 Every RuVector client and the one shared embedder
 ```mermaid
@@ -127,8 +128,8 @@ sequenceDiagram
         P->>H: HNSW top-k
         H-->>P: candidates
         P-->>M: ranked rows
-        opt AGENTBOX_JEV_MEMORY_RERANK=1 (Jev option, off in the code, the manifest sets memory_rerank = true at agentbox.toml:907 and system_one.rs:413 exports it, staged until rebuild, ADR-2155)
-            M->>M: a LOCAL judge reorders the already access-permitted shortlist, score stays the cosine, every miss returns the rows unchanged<br/>ruvector-mcp.cjs:246-250
+        opt AGENTBOX_JEV_MEMORY_RERANK=1 (Jev option, off in the code, the manifest sets memory_rerank = true at agentbox.toml:910 and system_one.rs:444 exports it, staged until the new agentbox image is activated, ADR-2155)
+            M->>M: the selected System One backend (TypeSafe by default, proxy agentbox:8094) reorders the already access-permitted shortlist, score stays the cosine, every miss returns the rows unchanged<br/>ruvector-mcp.cjs:246-250, local-only only when AGENTBOX_JEV_MEMORY_LOCAL_ONLY=1 (default 0), memory-jev-rerank.js:16-18,107
         end
         M-->>A: semantic results (~100ms typical)
     else embedder down
@@ -144,6 +145,8 @@ sequenceDiagram
     end
     Note over A,H: namespace "*" performs a global cross-namespace search.<br/>AVOID memory_hybrid_search on large namespaces — it<br/>materialises the whole namespace (~72s on ruvnet-kb).
 ```
+
+**Drift:** the call site still describes the reranker as a LOCAL judge (`../project/agentbox/mcp/servers/ruvector-mcp.cjs:246-247`), but local-only is now an opt-in (`AGENTBOX_JEV_MEMORY_LOCAL_ONLY`, default 0), so once the new image is activated the query and capped value snippets of the shortlist go to the selected backend, cloud TypeSafe by default (`../project/agentbox/mcp/servers/lib/memory-jev-rerank.js:16-18,107`); `[system_one].local_only` is empty (`../project/agentbox/agentbox.toml:895`).
 
 ## ES-07.7 Recall gate — the band that must hold before and after any retrieval change
 ```mermaid

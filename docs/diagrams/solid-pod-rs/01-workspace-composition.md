@@ -26,7 +26,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/examples/webhook_receiver.rs
   - ../solid-pod-rs/crates/solid-pod-rs/examples/wac_admin.rs
   - ../solid-pod-rs/crates/solid-pod-rs/examples/oidc_client.rs
-verified_commit: 9bde3be7fa123479fabb5c4cc9056e19ab0dcadd
+verified_commit: 76ab7aab3e882f32508b2461b3f51e4c09bdcfa1
 ---
 
 ## SP-01.1 Eight workspace members and the library-first split
@@ -126,7 +126,7 @@ flowchart TD
     E2["INVARIANT: classify_policy_read is runtime-free so the edge tier can adopt it<br/>solid-pod-rs/src/wac/resolver.rs:265"]
     CORE_F -.-> E2
 
-    E3["Since alpha.10 core carries k256 through did-nostr-types, pure Rust and<br/>wasm32-safe, for the did:nostr full-point encoder and point validation<br/>crates/solid-pod-rs/Cargo.toml:208"]
+    E3["Since alpha.10 core carries k256 through did-nostr-types, pure Rust and<br/>wasm32-safe, for the did:nostr full-point encoder and point validation; since alpha.18 it sits on the<br/>RustCrypto 0.14 line (k256 0.14, crates/solid-pod-rs/Cargo.toml:73), whose getrandom 0.4 needs wasm_js on wasm32<br/>crates/solid-pod-rs/Cargo.toml:290, did-nostr-types crates/solid-pod-rs/Cargo.toml:208"]
     CORE_F -.-> E3
 ```
 
@@ -291,13 +291,15 @@ classDiagram
 ```mermaid
 flowchart LR
     ADV["[advisories] yanked = deny<br/>../solid-pod-rs/deny.toml:37"]
-    LIC["[licenses] allow-list<br/>../solid-pod-rs/deny.toml:66"]
-    BANS["[bans] wildcards = deny<br/>../solid-pod-rs/deny.toml:117"]
-    MULTI["multiple-versions = warn<br/>../solid-pod-rs/deny.toml:116"]
-    SRC["[sources] unknown-registry = deny<br/>../solid-pod-rs/deny.toml:141"]
-    GITS["unknown-git = deny, allow-git = []<br/>../solid-pod-rs/deny.toml:142"]
-    REG["allow-registry = crates.io only<br/>../solid-pod-rs/deny.toml:143"]
+    LIC["[licenses] allow-list<br/>../solid-pod-rs/deny.toml:73"]
+    BANS["[bans] wildcards = deny<br/>../solid-pod-rs/deny.toml:124"]
+    MULTI["multiple-versions = warn<br/>../solid-pod-rs/deny.toml:123"]
+    SRC["[sources] unknown-registry = deny<br/>../solid-pod-rs/deny.toml:148"]
+    GITS["unknown-git = deny, allow-git = []<br/>../solid-pod-rs/deny.toml:149"]
+    REG["allow-registry = crates.io only<br/>../solid-pod-rs/deny.toml:150"]
 
+    DEBT["DEBT: the advisory ignore list gained RUSTSEC-2026-0387 on 2026-10-29: crypto-bigint 0.5.5 survives only via openidconnect to p256 0.13, so the oidc feature is exposed and unassessed until openidconnect moves to the 0.14 line<br/>../solid-pod-rs/deny.toml:57-63"]
+    ADV -.-> DEBT
     ADV --> OUT["cargo-deny CI job — see SP-09.4"]
     LIC --> OUT
     BANS --> OUT
@@ -308,7 +310,7 @@ flowchart LR
 
     N["INVARIANT: allow-git is empty — every dependency resolves from the crates.io<br/>index, so a git-patched dependency cannot enter a release build."]
     GITS -.-> N
-    X["EXCEPTION: the licences gate carries one scoped exception — hex_lit (a dep of<br/>rust-bitcoin per ADR-2008) is allowed under MITNFA, MIT plus a<br/>no-false-attribution clause, crate-scoped not workspace-wide.<br/>../solid-pod-rs/deny.toml:102"]
+    X["EXCEPTION: the licences gate carries one scoped exception — hex_lit (a dep of<br/>rust-bitcoin per ADR-2008) is allowed under MITNFA, MIT plus a<br/>no-false-attribution clause, crate-scoped not workspace-wide.<br/>../solid-pod-rs/deny.toml:109"]
     LIC -.-> X
 ```
 
@@ -343,13 +345,13 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    D1["[[example]] embed_in_actix<br/>crates/solid-pod-rs/Cargo.toml:331"]
-    D2["custom_storage<br/>crates/solid-pod-rs/Cargo.toml:335"]
-    D3["nip98_client<br/>crates/solid-pod-rs/Cargo.toml:339"]
-    D4["notifications_consumer<br/>crates/solid-pod-rs/Cargo.toml:343"]
-    D5["webhook_receiver<br/>crates/solid-pod-rs/Cargo.toml:347"]
-    D6["wac_admin<br/>crates/solid-pod-rs/Cargo.toml:351"]
-    D7["oidc_client, required-features = oidc<br/>crates/solid-pod-rs/Cargo.toml:355"]
+    D1["[[example]] embed_in_actix<br/>crates/solid-pod-rs/Cargo.toml:334"]
+    D2["custom_storage<br/>crates/solid-pod-rs/Cargo.toml:338"]
+    D3["nip98_client<br/>crates/solid-pod-rs/Cargo.toml:342"]
+    D4["notifications_consumer<br/>crates/solid-pod-rs/Cargo.toml:346"]
+    D5["webhook_receiver<br/>crates/solid-pod-rs/Cargo.toml:350"]
+    D6["wac_admin<br/>crates/solid-pod-rs/Cargo.toml:354"]
+    D7["oidc_client, required-features = oidc<br/>crates/solid-pod-rs/Cargo.toml:358"]
     C1["cargo check -p solid-pod-rs --examples<br/>crates/solid-pod-rs/docs/examples-index.md:35"]
     C2["cargo check --examples --features oidc<br/>crates/solid-pod-rs/docs/examples-index.md:36"]
 

@@ -35,7 +35,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md
   - ../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md
-verified_commit: {nostr-rust-forum: eb5f2323e6d72240ecb7c456181b7a674f1842f4, dreamlab-ai-website: 07cf8642bddb44df2388a5d1e9d2074923ab6ac0}
+verified_commit: {nostr-rust-forum: 9c36b6032640c89879ae52fe25da99493979a0b6, dreamlab-ai-website: 4935b6c4a394633569b2c8b38d5c0c272da3b0fb}
 ---
 
 ## NF-06.1 The six kinds and their publishers
@@ -458,7 +458,7 @@ flowchart TB
     BIN["the binary reads the signing key from a named variable and never prints it<br/>nostr-bbs-governance-probe/src/main.rs:10-11"]
     LIVE["ADR-2011 activation live: run 20261002t132144z passed 11 of 11 on the edge<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:187"]
     REC["ADR-2010 activation staged on the same run - the refusal path is live, the commit path is not<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:7, docs/adr/ADR-2010-durable-governance-outcome-receipts.md:153"]
-    PIN["the edge kit pin is now 8a5cf81, a descendant of ebcfaa2 and so of the correlation fix a5b809e<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:30"]
+    PIN["the edge kit pin is now 9c36b60, a descendant of 8a5cf81 and ebcfaa2 and so of the correlation fix a5b809e<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:30"]
 
     SUITE --> OWN --> TABLE --> NOTRUN
     SUITE --> BIN
@@ -469,25 +469,25 @@ flowchart TB
     N2["OPEN: no human has yet decided a high-tier case; the owner's first such 31403 at projection-committed<br/>is what closes ADR-2010 docs/adr/ADR-2010-durable-governance-outcome-receipts.md:157"]
     N3["RESOLVED 13cbe6c: ADR-2010 now records the correlation fix as on the edge, pinned through 341c5d2<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:155"]
     N4["Probe cases persist as open broker_cases rows after withdrawal, identifiable by subject_kind m4-probe<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:198"]
-    N5["DRIFT at dreamlab 07cf8642: the kit record pins 8a5cf81 in both its SHA column and<br/>CANONICAL_KIT_SHA, but its branch column still reads main at ebcfaa2 and its narrative rows stop at the<br/>ebcfaa2 changes; the Jev Worker consumers arrive only in the one added paragraph<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:26, :38"]
+    N5["RESOLVED at dreamlab 4935b6c: the kit record now pins 9c36b60 in its SHA column and CANONICAL_KIT_SHA and its branch column reads main at 9c36b60;<br/>the added paragraph describes the env-driven Jev local-only switches the pin brings<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:26, :38"]
 ```
 
 ## NF-06.19 The Jev rationale check — an opt-in advisory beside the decision card
 
 ```mermaid
 flowchart TB
-    FLAG["route exists only while JEV_RATIONALE_CHECK is on; flag_on is false when the variable is absent<br/>nostr-bbs-auth-worker/src/rationale_check.rs:51, route nostr-bbs-auth-worker/src/lib.rs:542"]
-    ROUTE["POST /api/governance/cases/ID/rationale-check, NIP-98 authenticated<br/>nostr-bbs-auth-worker/src/rationale_check.rs:253 nostr-bbs-auth-worker/src/rationale_check.rs:265"]
-    ROW["reads the case row: title, subject, summary, effective tier, task properties<br/>nostr-bbs-auth-worker/src/rationale_check.rs:275"]
-    LOCAL["resolve with local_only = true: the vendor endpoint is refused, only a declared-local backend is used<br/>nostr-bbs-auth-worker/src/rationale_check.rs:297"]
-    ADV["answer is an advisory annotation, authority none, or an unavailable body carrying one reason token<br/>nostr-bbs-auth-worker/src/rationale_check.rs:208 nostr-bbs-auth-worker/src/rationale_check.rs:226"]
+    FLAG["route exists only while JEV_RATIONALE_CHECK is on; flag_on is false when the variable is absent<br/>nostr-bbs-auth-worker/src/rationale_check.rs:53, route nostr-bbs-auth-worker/src/lib.rs:542"]
+    ROUTE["POST /api/governance/cases/ID/rationale-check, NIP-98 authenticated<br/>nostr-bbs-auth-worker/src/rationale_check.rs:255 nostr-bbs-auth-worker/src/rationale_check.rs:267"]
+    ROW["reads the case row: title, subject, summary, effective tier, task properties<br/>nostr-bbs-auth-worker/src/rationale_check.rs:277"]
+    LOCAL["resolve with local_only read from JEV_RATIONALE_CHECK_LOCAL_ONLY, default off: the proxy or TypeSafe may answer; set to 1 the vendor endpoint is refused and only a declared-local backend is used<br/>nostr-bbs-auth-worker/src/rationale_check.rs:38 nostr-bbs-auth-worker/src/rationale_check.rs:301"]
+    ADV["answer is an advisory annotation, authority none, or an unavailable body carrying one reason token<br/>nostr-bbs-auth-worker/src/rationale_check.rs:210 nostr-bbs-auth-worker/src/rationale_check.rs:228"]
     GATE["rationale_required and rationale_satisfied, tier, 31403 signing and probes never read it<br/>nostr-bbs-auth-worker/src/rationale_check.rs:4-5"]
 
     FLAG --> ROUTE --> ROW --> LOCAL --> ADV
     ADV -.->|"shown next to the card, nothing else"| GATE
 
-    N1["INVARIANT the rubric is the estate-shared ES-05 governance-evidence-quality v1 set, vendored and pinned by sha256 so drift breaks a test<br/>nostr-bbs-auth-worker/src/rationale_check.rs:42"]
-    N2["Status: a proposed research candidate with no measured uplift; the library defaults off but the checked-in auth manifest sets JEV_RATIONALE_CHECK=1 and declares no local endpoint, so the route answers unavailable nostr-bbs-auth-worker/wrangler.toml:53-58; no governed path above depends on it"]
+    N1["INVARIANT the rubric is the estate-shared ES-05 governance-evidence-quality v1 set, vendored and pinned by sha256 so drift breaks a test<br/>nostr-bbs-auth-worker/src/rationale_check.rs:44"]
+    N2["Status: a proposed research candidate with no measured uplift; the library defaults off but the checked-in auth manifest sets JEV_RATIONALE_CHECK=1 and, since the 2026-10-30 pin, leaves locality to the operator switch (off by default), so the route reaches TypeSafe with TYPESAFE_API_KEY (the website overlay deployed Workers from this pin in its run 41028875471, with no receipt for the auth Worker's secret) and answers unavailable only when the switch is 1 without a sovereign endpoint nostr-bbs-auth-worker/wrangler.toml:53-58; no governed path above depends on it"]
 ```
 
 **Open:** the option is named NF-06-S1-01 in the Jev option record and is documented as a proposed research candidate (`nostr-bbs-auth-worker/src/rationale_check.rs:1`), so whether a reviewer's draft rationale should ever be shaped by a model answer is a decision the record leaves unmade.

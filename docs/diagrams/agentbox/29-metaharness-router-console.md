@@ -25,7 +25,7 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/tui_sections.rs
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md
-verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
+verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
 ---
 
 ## AB-29.1 Composition — what is baked, and why the npm tarball lacks it
@@ -69,7 +69,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant TOML as agentbox.toml<br/>[model_routing.neural]<br/>agentbox.toml:1733-1743
+    participant TOML as agentbox.toml<br/>[model_routing.neural]<br/>agentbox.toml:1736-1746
     participant EP as entrypoint-unified.sh<br/>config/entrypoint-unified.sh:2308
     participant DISK as /opt/agentbox/model-router<br/>or $WORKSPACE/.agentbox/model-router
     participant ENV as runtime-env file<br/>config/entrypoint-unified.sh:3811
@@ -101,7 +101,7 @@ sequenceDiagram
     participant WRAP as router.sh<br/>config/harness-wrappers/router.sh:24
     participant CONS as console.mjs<br/>config/model-router/console.mjs
 
-    PLANE->>CON: plan_for(seed) resolves the [[interaction_plane.session_seeds]] entry slug=router, tool=custom:router<br/>(agentbox.toml:2182-2186, plane.rs:200-201)
+    PLANE->>CON: plan_for(seed) resolves the [[interaction_plane.session_seeds]] entry slug=router, tool=custom:router<br/>(agentbox.toml:2185-2189, plane.rs:200-201)
     CON->>CON: harness-wrappers/router.sh exists AND tool == custom:router, so kind = wrapper<br/>contract.rs:69-71, and a wrapper never receives a model (contract.rs:85)
     CON->>LJ: wrapper template argv = [{wrapper}], so the launch is router.sh itself<br/>launch.json:13-15
     PLANE->>TMUX: Plan.name = session_name(slug) = abs_router, owned by the plane<br/>plane.rs:220, tmux.rs:27-28
@@ -124,7 +124,7 @@ sequenceDiagram
     Note over WRAP,CONS: HARD-FAIL WRAPPER SEMANTICS: every precondition failure is a loud _die with a<br/>fix instruction, never a silent no-op or a fallback to a different billing key
 ```
 
-**Drift:** the Agent of Empires seeder this topic first drew (`scripts/aoe-seed-sessions.mjs`, `custom_agents.router`) is deleted, yet the wrapper header still says AoE registers and execs it (`../project/agentbox/config/harness-wrappers/router.sh:5-6`), as does the flake comment (`../project/agentbox/flake.nix:2244`) and the `agentbox.toml` seed comment "resolved by the seeder's WRAPPER_SLUGS" (`../project/agentbox/agentbox.toml:2184`).
+**Drift:** the Agent of Empires seeder this topic first drew (`scripts/aoe-seed-sessions.mjs`, `custom_agents.router`) is deleted, yet the wrapper header still says AoE registers and execs it (`../project/agentbox/config/harness-wrappers/router.sh:5-6`), as does the flake comment (`../project/agentbox/flake.nix:2244`) and the `agentbox.toml` seed comment "resolved by the seeder's WRAPPER_SLUGS" (`../project/agentbox/agentbox.toml:2187`).
 
 **Tension (ADR-2079 vs ADR-2153):** ADR-2079, the AoE dispatch-plane record, is `superseded` by ADR-2153 (`../project/agentbox/docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md:5-9`), which is now `accepted`, `implementation_status: partial`, `activation_status: live` and makes the router an ordinary seed (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:75`), but its acceptance round trip excludes `router`, so only the clean launch above is evidenced, not a routed task (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:65`).
 
@@ -234,7 +234,7 @@ stateDiagram-v2
     note right of Refused
         Manifest schema also constrains this at the config layer:
         privacy_tier accepts only "public" (ADR-2080 Decision §4,
-        agentbox.toml:1741 comment "the ONLY accepted value")
+        agentbox.toml:1744 comment "the ONLY accepted value")
     end note
     note right of NormalRun
         ADR-2079 §4: privacy tier is the FIRST routing axis, before cost.
@@ -336,6 +336,6 @@ sequenceDiagram
     Note over RET: every cost is AGENT-LEVEL, the whole agentic loop per run, which is why<br/>per-token list price is a poor proxy for per-task cost<br/>(retort-benchmarks.json:8)
 ```
 
-**Invariant:** the Retort file changes only which tier is chosen; the quality bar, the cost ceiling and the privacy tier stay manifest values projected through `AGENTBOX_MODEL_ROUTER_*` (`../project/agentbox/agentbox.toml:1736`, `../project/agentbox/agentbox.toml:1740`, `../project/agentbox/agentbox.toml:1741`).
+**Invariant:** the Retort file changes only which tier is chosen; the quality bar, the cost ceiling and the privacy tier stay manifest values projected through `AGENTBOX_MODEL_ROUTER_*` (`../project/agentbox/agentbox.toml:1739`, `../project/agentbox/agentbox.toml:1743`, `../project/agentbox/agentbox.toml:1744`).
 
-**Open:** the manifest now carries Retort's measured guidance as a comment on `quality_bar` (`../project/agentbox/agentbox.toml:1737-1739`) while the shipped default stays 0.50 (`../project/agentbox/agentbox.toml:1736`); nothing records whether the 0.25 to 0.35 band that comment recommends for routine work has been run against this estate's own corpus.
+**Open:** the manifest now carries Retort's measured guidance as a comment on `quality_bar` (`../project/agentbox/agentbox.toml:1740-1742`) while the shipped default stays 0.50 (`../project/agentbox/agentbox.toml:1739`); nothing records whether the 0.25 to 0.35 band that comment recommends for routine work has been run against this estate's own corpus.

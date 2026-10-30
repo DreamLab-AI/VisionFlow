@@ -24,8 +24,11 @@ sources:
   - ../project/docs/how-to/agent-orchestration.md
   - ../project/src/main.rs
   - ../project/agentbox/agentbox.toml
+  - ../project/agentbox/crates/system-one/system-one-proxy/src/server.rs
+  - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
+  - ../project/crates/visionclaw-jev/src/config.rs
   - ../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md
-verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c, agentbox: 0b0f7918961e629280faf86f88227535abf514b5}
+verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce, agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc}
 ---
 ## VC-28.1 ragflow_service — outbound RAGFlow agent API
 ```mermaid
@@ -326,7 +329,7 @@ sequenceDiagram
     end
     end
     Note over GH,API: every request carries Authorization Bearer token + Accept<br/>application/vnd.github+json + User-Agent VisionClaw-OntologyAgent/1.0 - headers() :251-268
-    Note over GH,ENV: token via github_token_from_env(), config.rs:27-28 -<br/>PRIVATE_REPO_GITHUB_PAT only, config.rs:23 - legacy LOGSEQ_PRIVATE_REPO_GITHUB fallback deleted (ADR-2115)
+    Note over GH,ENV: token via github_token_from_env(), github/config.rs:27-28 -<br/>PRIVATE_REPO_GITHUB_PAT only, github/config.rs:23 - legacy LOGSEQ_PRIVATE_REPO_GITHUB fallback deleted (ADR-2115)
 ```
 ## VC-28.7 speech_service — outbound boundary only (see VC-35 for full pipeline)
 ```mermaid
@@ -374,7 +377,7 @@ sequenceDiagram
     Note over SS: DRIFT CLOSED 2026-09-13 (ab5724422): TTSProvider is now a ONE-variant<br/>enum, PocketTts. The OpenAI branch and its api.openai.com call are deleted<br/>and Kokoro is gone, so this boundary no longer reaches any paid TTS API.<br/>visionclaw-domain/src/types/speech.rs:66, default at speech_service.rs:74
     Note over SS: DRIFT: the note above is true of TTS only. STTProvider declares Whisper and OpenAI (the unimplemented TurboWhisper variant<br/>and its two warnings were deleted after af3dff3f2) and the default is Whisper, but SetSTTProvider(OpenAI) is live: ProcessAudioChunk then POSTs<br/>the audio to https://api.openai.com/v1/audio/transcriptions when settings.openai holds an API key, so a third-party speech edge exists on demand.<br/>visionclaw-domain/src/types/speech.rs:71-74, speech_service.rs:75, :689-699, :722
     Note over SS: TextToSpeechForUser, TextToSpeechSpatial, ProcessAudioChunkForUser and AgentSpatialInfo were logged no-ops with no sender and are deleted<br/>(VisionClaw cefd9d1d7 under ER-24), so SpeechCommand carries no user-scoped or spatial entry point.<br/>visionclaw-domain/src/types/speech.rs:77-87
-    Note over SS: TENSION (ADR-2151 vs manifest): the agentbox VoiceLink edge voice slot runs voice on the operator's client and reaches the container over an ssh stdio<br/>voice-paned process, never through SpeechService. ADR-2151 is decision_status proposed with implementation_status none and activation inactive,<br/>yet the manifest sets [voicelink] enabled = true. agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7, agentbox/agentbox.toml:2218-2223
+    Note over SS: TENSION (ADR-2151 vs manifest): the agentbox VoiceLink edge voice slot runs voice on the operator's client and reaches the container over an ssh stdio<br/>voice-paned process, never through SpeechService. ADR-2151 is decision_status proposed with implementation_status none and activation inactive,<br/>yet the manifest sets [voicelink] enabled = true. agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7, agentbox/agentbox.toml:2221-2226
 ```
 ## VC-28.9 consolidated external-dependency map
 ```mermaid
@@ -406,9 +409,13 @@ flowchart LR
     SS -->|"TTS - degraded: audio chunk skipped, chat continues"| PT
     SS -->|"STT - degraded: transcription dropped"| WHI
     SS -->|"voice-command relay - degraded: spoken error reply"| MCPS
-    JV["Jev hub (opt-in)<br/>12 decision items: library default off, but the supplied Compose environment sets VISIONCLAW_JEV=1 for every item<br/>docs/reference/configuration.md:411-413, docker-compose.unified.yml:5-14<br/>OPEN: opt-in is recorded but activation is staged until the host deployment is recreated - docs/BASELINE-architecture.md:42-50, docs/adr/ADR-2148-enable-local-typed-decisions.md:7"]
-    JEP["System One endpoint, first match wins:<br/>VISIONCLAW_JEV_ENDPOINT (Compose supplies the local systemone:8097 facade, model laya-typed-decisions, VISIONCLAW_JEV_LOCAL=1), else agentbox loopback proxy, else api.typesafe.ai with TYPESAFE_API_KEY, else none<br/>docs/reference/configuration.md:454-459, docker-compose.unified.yml:9-11"]
-    JV -->|"POST /v1/systemone - degraded: every fallback returns to the deterministic path, no egress when nothing is set<br/>docs/reference/configuration.md:477"| JEP
+    JV["Jev hub (opt-in)<br/>12 decision items: library default off, but the supplied Compose environment sets VISIONCLAW_JEV=1 for every item<br/>docs/reference/configuration.md:411-413, docker-compose.unified.yml:21<br/>OPEN: CONFIGURED, not live - takes effect when the new agentbox image is activated and the container is recreated (ADR-2148 staged)<br/>docs/BASELINE-architecture.md:42-51, docs/adr/ADR-2148-enable-local-typed-decisions.md:7"]
+    JEP["System One endpoint, first match wins:<br/>VISIONCLAW_JEV_ENDPOINT (an override only: Compose supplies none and the laya systemone:8097 pins are gone), else the agentbox proxy<br/>agentbox:8094, model jev-latest, BACKEND_LOCAL=0 (docker-compose.unified.yml:7-11), else api.typesafe.ai with TYPESAFE_API_KEY, else none<br/>docs/reference/configuration.md:461-466, crates/visionclaw-jev/src/config.rs:308-357<br/>the four local-only items (memory rerank, patch rank, ingest suggest, proposal triage) take the proxy because ALLOW_CLOUD=1 (docker-compose.unified.yml:22, crates/visionclaw-jev/src/config.rs:303-305, :326)<br/>DOC-DRIFT: configuration.md:464 still calls the proxy loopback, while compose reaches it over visionclaw_network (docs/reference/configuration.md:418-421)"]
+    AB["agentbox System One proxy - holds the vendor key, no Authorization sent by consumers<br/>bind 0.0.0.0:8094 with network = true: private docker networks only, never published, agentbox.toml:893-894<br/>refuses any request with an Origin header or a non-JSON content type, system-one-proxy/src/server.rs:151-170<br/>backend = typesafe (cloud), laya stays the opt-in local_backend, local_only = [], agentbox.toml:891-895"]
+    TS["api.typesafe.ai - the selected cloud backend<br/>agentbox's own consumers listed in [system_one].local_only are routed to laya or switched off, never sent here (services/agentbox-manifest/src/system_one.rs:518-562)<br/>a VisionClaw item stays local only with ALLOW_CLOUD=0, JEV_LOCAL=1 and a local endpoint (docs/reference/configuration.md:423-426)"]
+    JV -->|"POST /v1/systemone - degraded: every fallback returns to the deterministic path, no egress when nothing is set<br/>docs/reference/configuration.md:484"| JEP
+    JEP -->|"agentbox:8094 over visionclaw_network"| AB
+    AB -->|"forward to the selected backend"| TS
 
     N1["RESOLVED ADR-2066 (2026-09-05) — the QuicTransportServer node and its<br/>unreachable XR QUIC 0-RTT client edge were removed from this map with the<br/>code itself. See VC-04.28 for the postcard wire types that survived."]
     SS --- N1
@@ -418,5 +425,5 @@ flowchart LR
     classDef fatal fill:#5a1e1e,stroke:#c0392b,color:#fff
     classDef degraded fill:#4a3a10,stroke:#d4a017,color:#fff
     class GHA,CFU fatal
-    class RF,PX,SOL,PT,WHI,MCPS,JEP degraded
+    class RF,PX,SOL,PT,WHI,MCPS,JEP,AB,TS degraded
 ```

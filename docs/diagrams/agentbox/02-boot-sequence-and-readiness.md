@@ -51,7 +51,7 @@ sources:
   - ../project/agentbox/config/registered-commands.txt
   - ../project/agentbox/docs/adr/ADR-2104-direct-control-over-mcp.md
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
-verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
+verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
 ---
 ## AB-02.1 boot phases 1-3 — vault resolution, directories, sovereign identity
 ```mermaid
@@ -318,12 +318,12 @@ flowchart TB
     COMFY["program:comfyui-builtin<br/>flake.nix:2874<br/>gate media.comfyui_builtin, bind 127.0.0.1:8188<br/>user=devuser priority=220"]
     OPF["program:opf-router<br/>flake.nix:2759<br/>gate privacyFilterEnabled, OPF_PORT default 9092<br/>user=devuser priority=240"]
     DREAM["program:dream-engine<br/>flake.nix:2896<br/>gate dreamEngineEnabled (:1761), LOOM_URL default 192.168.2.132:8084/v1<br/>user=devuser priority=230"]
-    SIDEP["program:sidestr-producer<br/>flake.nix:3105<br/>gate sidechain.enabled (:321), shipped true (agentbox.toml:1918, re-enabled on recovered validated prefixes after the ENOSPC failure, :1917) so the producer block is emitted; runs the baked upstream, refuses on a pin mismatch<br/>user=devuser, ab-sidestr-dreamlab under role_isolation priority=260 startretries=5"]
+    SIDEP["program:sidestr-producer<br/>flake.nix:3105<br/>gate sidechain.enabled (:321), shipped true (agentbox.toml:1921, re-enabled on recovered validated prefixes after the ENOSPC failure, :1920) so the producer block is emitted; runs the baked upstream, refuses on a pin mismatch<br/>user=devuser, ab-sidestr-dreamlab under role_isolation priority=260 startretries=5"]
     SIDEM["program:sidestr-mirror<br/>flake.nix:3123<br/>gate sidechain.mirror, only with enabled (:322)<br/>user=devuser priority=261"]
     SIDEF["program:sidestr-faucet<br/>flake.nix:3140<br/>gate sidechain.faucet, only with enabled (:323)<br/>user=devuser, ab-faucet-dreamlab under role_isolation priority=262"]
     CODES["program:code-server<br/>flake.nix:2850<br/>gate toolchains.code_server, bind 0.0.0.0:8080 — RESOLVED ADR-2040,<br/>auth password with a boot-minted credential (see AB-07.9), not auth none<br/>user=devuser priority=50"]
 
-    SO1["program:system-one-proxy (ADR-2139)<br/>flake.nix:3035<br/>gate system_one.enabled (:314), loopback typed-decision proxy,<br/>reads only /run/agentbox/system-one.json, vendor keys from env<br/>user=devuser priority=60 autorestart=unexpected"]
+    SO1["program:system-one-proxy (ADR-2139)<br/>flake.nix:3035<br/>gate system_one.enabled (:314), typed-decision proxy (loopback; configured 0.0.0.0:8094 on the docker networks when system_one.network, agentbox.toml:893-894, live with the next image),<br/>reads only /run/agentbox/system-one.json, vendor keys from env<br/>user=devuser priority=60 autorestart=unexpected"]
     SEO["program:seo-watch-cron<br/>flake.nix:3062<br/>gate seo_watch.enabled (:308), supercronic over the website repo crontab<br/>user=devuser priority=250"]
     TGC["program:target-gc (ADR-2138)<br/>flake.nix:3354<br/>gate resources.target_gc.enabled (:243), idle Cargo target sweeper<br/>user=devuser priority=246"]
     OPF -.->|"privacy filter mode gate"| DREAM
@@ -756,8 +756,8 @@ flowchart TB
     RO -.-> NOTE2["router is its own program (config/harness-wrappers/router.sh)<br/>EXTERNAL: the router.sh console itself and its wiring are owned by AB-29"]
 ```
 
-- `Contract::kind` resolves each `[[interaction_plane.session_seeds]]` slug that has a `config/harness-wrappers/<slug>.sh` and a `claude` or `custom:<slug>` tool to the `wrapper` template (`../project/agentbox/services/agentbox-sessions/src/contract.rs:68-72`), so the `router` seed (`tool = "custom:router"`, `../project/agentbox/agentbox.toml:2184`) launches exactly like `openrouter` and `zai`.
-- **Drift:** two comments still describe the deleted seeder: `agentbox.toml` says `custom:router` is "resolved by the seeder's WRAPPER_SLUGS" (`../project/agentbox/agentbox.toml:2184`) and `router.sh` says it is "registered as the AoE custom_agents.router entry" (`../project/agentbox/config/harness-wrappers/router.sh:5-6`); see AB-01.11, AB-05.11 for the `[model_routing.neural]` gate that bakes `router.sh`'s artefact directory.
+- `Contract::kind` resolves each `[[interaction_plane.session_seeds]]` slug that has a `config/harness-wrappers/<slug>.sh` and a `claude` or `custom:<slug>` tool to the `wrapper` template (`../project/agentbox/services/agentbox-sessions/src/contract.rs:68-72`), so the `router` seed (`tool = "custom:router"`, `../project/agentbox/agentbox.toml:2187`) launches exactly like `openrouter` and `zai`.
+- **Drift:** two comments still describe the deleted seeder: `agentbox.toml` says `custom:router` is "resolved by the seeder's WRAPPER_SLUGS" (`../project/agentbox/agentbox.toml:2187`) and `router.sh` says it is "registered as the AoE custom_agents.router entry" (`../project/agentbox/config/harness-wrappers/router.sh:5-6`); see AB-01.11, AB-05.11 for the `[model_routing.neural]` gate that bakes `router.sh`'s artefact directory.
 
 ## AB-02.22 bootstrap.done now means the promised projections exist (ADR-2104)
 ```mermaid

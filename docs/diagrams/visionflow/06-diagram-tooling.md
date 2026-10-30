@@ -29,10 +29,11 @@ sources:
   - docs/adr/ADR-2004-diagram-baseline-vendored-render-gate.md
   - docs/adr/ADR-2020-pele-renders-every-estate-diagram.md
   - scripts/lib/jev.cjs
+  - scripts/lib/jev-questions.cjs
   - docs/jev-option.md
   - docs/BASELINE-visionflow.md
   - docs/site-verification.md
-verified_commit: 124512b8f5e8c33c247065c58901dcfdc18988a2
+verified_commit: ff15faf83d82fef7f23d96da381c8ab78d0206b0
 ---
 
 ## VF-06.1 Two diagram pipelines, one repository — what each owns
@@ -59,12 +60,12 @@ flowchart TB
     subgraph B["Pipeline B — this diagrams-as-code tree"]
         direction TB
         BS["docs/diagrams/AREA/NN-*.md<br/>frontmatter plus fenced mermaid blocks"]:::pipeB
-        BGEN["diagram-index-gen.cjs main IIFE — walk, parse,<br/>validate, optionally render and index<br/>diagram-index-gen.cjs:839"]:::pipeB
+        BGEN["diagram-index-gen.cjs main IIFE — walk, parse,<br/>validate, optionally render and index<br/>diagram-index-gen.cjs:836"]:::pipeB
         BALLOW["citation-allowlist.json — loadAllowlist waives the revision<br/>requirement for one named citation, never the line checks<br/>loadAllowlist diagram-index-gen.cjs:387"]:::pipeB
-        BVER["a whole-tree --cite-check run writes VERIFICATION.md — verified,<br/>unverified, unresolvable and allowlisted counts, plus a<br/>declared-revisions anchor; an --only run never does<br/>writeVerificationReport diagram-index-gen.cjs:448<br/>guard diagram-index-gen.cjs:881"]:::pipeB
-        BCHKV["--check-verification (hosted CI) — refuses a VERIFICATION.md<br/>written against revisions the tree no longer declares<br/>diagram-index-gen.cjs:887"]:::pipeB
-        BREND["docs/diagrams/rendered/ via the same Pele build,<br/>widths measured on its layout, gitignored and regenerable<br/>renderOne diagram-index-gen.cjs:676, renderAll diagram-index-gen.cjs:688"]:::pipeB
-        BIDX["docs/diagrams/README.md index block<br/>plus COVERAGE.md inverted indexes<br/>writeIndexes at diagram-index-gen.cjs:712, COVERAGE.md written diagram-index-gen.cjs:781"]:::pipeB
+        BVER["a whole-tree --cite-check run writes VERIFICATION.md — verified,<br/>unverified, unresolvable and allowlisted counts, plus a<br/>declared-revisions anchor; an --only run never does<br/>writeVerificationReport diagram-index-gen.cjs:452<br/>guard diagram-index-gen.cjs:878"]:::pipeB
+        BCHKV["--check-verification (hosted CI) — refuses a VERIFICATION.md<br/>written against revisions the tree no longer declares<br/>diagram-index-gen.cjs:884"]:::pipeB
+        BREND["docs/diagrams/rendered/ via the same Pele build,<br/>widths measured on its layout, gitignored and regenerable<br/>renderOne diagram-index-gen.cjs:686, renderAll diagram-index-gen.cjs:698"]:::pipeB
+        BIDX["docs/diagrams/README.md index block<br/>plus COVERAGE.md inverted indexes<br/>writeIndexes at diagram-index-gen.cjs:722, COVERAGE.md written diagram-index-gen.cjs:791"]:::pipeB
         BS --> BGEN
         BGEN -->|"--cite-check"| BALLOW --> BVER
         BVER -.->|"CI freshness gate"| BCHKV
@@ -271,7 +272,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CLI as main IIFE<br/>diagram-index-gen.cjs:790
+    participant CLI as main IIFE<br/>diagram-index-gen.cjs:836
     participant W as walk<br/>diagram-index-gen.cjs:115
     participant P as parseTopic<br/>diagram-index-gen.cjs:193
     participant F as parseFrontmatter<br/>diagram-index-gen.cjs:144
@@ -292,18 +293,18 @@ sequenceDiagram
 flowchart TB
     I["Topic input"] --> P["Structural parse and duplicate checks<br/>diagram-index-gen.cjs:193"]
     P --> ERR["Accumulated errors"]
-    I --> C["Citation and symbol diagnostics<br/>citeCheck diagram-index-gen.cjs:496<br/>symbolCheck diagram-index-gen.cjs:624"]
+    I --> C["Citation and symbol diagnostics<br/>citeCheck diagram-index-gen.cjs:500<br/>symbolCheck diagram-index-gen.cjs:634"]
     C --> WAIVE{"allowMatch against<br/>citation-allowlist.json?<br/>diagram-index-gen.cjs:408"}
-    WAIVE -->|yes| NOTE["counted allowlisted, printed with its reason;<br/>never folded into verified or into warnings<br/>diagram-index-gen.cjs:511"]
+    WAIVE -->|yes| NOTE["counted allowlisted, printed with its reason;<br/>never folded into verified or into warnings<br/>diagram-index-gen.cjs:515"]
     WAIVE -->|no| STRICT{"strict-citations?"}
     STRICT -->|yes| ERR
     STRICT -->|no| WARN["Advisory warnings remain visible,<br/>per-citation reason tracked: unverified,<br/>unresolvable or allowlisted<br/>diagram-index-gen.cjs:423"]
-    C --> VER["a --cite-check run without --only writes VERIFICATION.md,<br/>whatever the verdict, strict or not; an --only run<br/>leaves the whole-tree report untouched<br/>diagram-index-gen.cjs:489 and diagram-index-gen.cjs:881"]
-    I --> R["Optional render and width checks<br/>diagram-index-gen.cjs:910-913"]
+    C --> VER["a --cite-check run without --only writes VERIFICATION.md,<br/>whatever the verdict, strict or not; an --only run<br/>leaves the whole-tree report untouched<br/>diagram-index-gen.cjs:493 and diagram-index-gen.cjs:878"]
+    I --> R["Optional render and width checks<br/>diagram-index-gen.cjs:907-910"]
     R --> ERR
-    ERR --> FAIL["Exit 1 when errors exist<br/>diagram-index-gen.cjs:915-918"]
+    ERR --> FAIL["Exit 1 when errors exist<br/>diagram-index-gen.cjs:912-915"]
     MODE["Strict citations reject no-source-paths<br/>diagram-index-gen.cjs:109"] --> STRICT
-    LIMIT["A strict pass establishes citation hygiene;<br/>semantic and deployment evidence remain separate.<br/>An allowlist entry that matches nothing is stale<br/>and fails the run rather than broadening silently<br/>diagram-index-gen.cjs:606"]
+    LIMIT["A strict pass establishes citation hygiene;<br/>semantic and deployment evidence remain separate.<br/>An allowlist entry that matches nothing is stale<br/>and fails the run rather than broadening silently<br/>diagram-index-gen.cjs:616"]
     WARN --> LIMIT
     NOTE --> LIMIT
 ```
@@ -312,33 +313,33 @@ flowchart TB
 ```mermaid
 flowchart TB
     A["Mermaid source"] --> SCAN["Dotted path plus line/range scan<br/>CITE_RE diagram-index-gen.cjs:287"]
-    SCAN --> MATCH["Exact sources: entry wins; otherwise the unique<br/>suffix match; zero or >1 hits is unresolvable/ambiguous<br/>diagram-index-gen.cjs:522-528"]
+    SCAN --> MATCH["Exact sources: entry wins; otherwise the unique<br/>suffix match; zero or >1 hits is unresolvable/ambiguous<br/>diagram-index-gen.cjs:526-532"]
     MATCH --> EXIST["existsForTopic — worktree first, else<br/>git cat-file -e &lt;sha&gt;:&lt;path&gt; at the topic's<br/>declared revision for that repo<br/>diagram-index-gen.cjs:175-185"]
     MATCH --> MODE["revisionLines chooses source bytes<br/>diagram-index-gen.cjs:350"]
     MODE --> PIN["declared revision: git show &lt;sha&gt;:&lt;path&gt;<br/>— 'verified at revision'<br/>diagram-index-gen.cjs:364"]
     MODE --> WT["no repo mapping, no sha for repo, or a failed<br/>git show — falls back to the working tree,<br/>each reason tracked separately<br/>— 'unverified (working-tree fallback)'<br/>diagram-index-gen.cjs:344-349"]
     MODE --> WTFLAG["--worktree-citations: current working tree only,<br/>by explicit flag, not fallback"]
-    PIN --> READ["Check line bounds and anchors<br/>diagram-index-gen.cjs:548"]
+    PIN --> READ["Check line bounds and anchors<br/>diagram-index-gen.cjs:557"]
     WT --> WAIVE{"allowMatch in citation-allowlist.json?<br/>diagram-index-gen.cjs:408"}
-    WAIVE -->|yes| ALLOWED["counted allowlisted, never verified;<br/>line checks still run against it<br/>diagram-index-gen.cjs:511-518"]
-    WAIVE -->|no| UNVER["counted unverified, reason recorded<br/>diagram-index-gen.cjs:541"]
+    WAIVE -->|yes| ALLOWED["counted allowlisted, never verified;<br/>line checks still run against it<br/>diagram-index-gen.cjs:515-522"]
+    WAIVE -->|no| UNVER["counted unverified, reason recorded<br/>diagram-index-gen.cjs:550"]
     ALLOWED --> READ
     UNVER --> READ
     WTFLAG --> READ
-    A --> BARE["Bare-line context from explicit citations and participant bindings<br/>diagram-index-gen.cjs:596-598"]
+    A --> BARE["Bare-line context from explicit citations and participant bindings<br/>diagram-index-gen.cjs:606-608"]
     BARE --> READ
-    A --> SYMBOL["Function-labelled participant checked against a unique definition<br/>symbolCheck diagram-index-gen.cjs:618"]
+    A --> SYMBOL["Function-labelled participant checked against a unique definition<br/>symbolCheck diagram-index-gen.cjs:628"]
     READ --> DIAG["Diagnostic: ambiguous, missing, unreadable, out of bounds or empty anchor"]
     SYMBOL --> DIAG
-    DIAG --> EXIT["Strict mode adds diagnostics to errors<br/>diagram-index-gen.cjs:884"]
+    DIAG --> EXIT["Strict mode adds diagnostics to errors<br/>diagram-index-gen.cjs:881"]
     LIMIT["Context inference and brace counting are heuristics.<br/>A real source line can still support the wrong claim.<br/>An allowlist waiver is of the revision requirement<br/>alone, never of whether the cited line is right."] --> EXIT
 ```
 
 ## VF-06.11 Render invocation and width boundary
 ```mermaid
 sequenceDiagram
-    participant G as renderAll<br/>diagram-index-gen.cjs:688
-    participant R as renderOne<br/>diagram-index-gen.cjs:676
+    participant G as renderAll<br/>diagram-index-gen.cjs:698
+    participant R as renderOne<br/>diagram-index-gen.cjs:686
     participant M as Pele via renderStatic
     participant O as rendered topic directory
     G->>G: load Pele once, then walk every block in order
@@ -351,11 +352,11 @@ sequenceDiagram
     else successful render
         M-->>R: flattened SVG and its width
         R->>O: write the SVG
-        R->>R: reject a width above 4500px, with advice to wrap Notes or split<br/>diagram-index-gen.cjs:685
+        R->>R: reject a width above 4500px, with advice to wrap Notes or split<br/>diagram-index-gen.cjs:695
     end
     R-->>G: success or diagnostic
     Note over G,O: Exact-source comparison and execution logs are distinct evidence.<br/>A cached SVG by itself is not proof of a fresh successful render.
-    Note over G,M: TENSION: widths come from Pele's own Node text-width table and are not comparable with the earlier mmdc numbers,<br/>so a block that passed the old 4500px ceiling may fail now. The refresh found 17 corpus blocks over the ceiling and 4 with a bare semicolon<br/>diagram-index-gen.cjs:670-674 and docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:60-63
+    Note over G,M: TENSION: widths come from Pele's own Node text-width table and are not comparable with the earlier mmdc numbers,<br/>so a block that passed the old 4500px ceiling may fail now. The refresh found 17 corpus blocks over the ceiling and 4 with a bare semicolon<br/>diagram-index-gen.cjs:680-684 and docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:60-63
 ```
 
 ## VF-06.12 diagram-index.yml — four steps, and what a hosted runner cannot see
@@ -363,7 +364,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant CI as "diagram-index.yml job index"
-    participant G as writeIndexes<br/>diagram-index-gen.cjs:717
+    participant G as writeIndexes<br/>diagram-index-gen.cjs:727
     participant T as "tests/gates/diagram-index.test.cjs"
     participant RM as "docs/diagrams/README.md"
     participant CV as "docs/diagrams/COVERAGE.md"
@@ -397,14 +398,14 @@ sequenceDiagram
     rect rgb(245, 232, 250)
     Note over CI,CV: "STEP 3 — the local strict-citations run must be fresh"
     CI->>CV: "diagram-index-gen.cjs docs/diagrams --check --no-source-paths<br/>--check-verification<br/>diagram-index.yml:70-71"
-    Note over CV: "recomputes declaredRevisions from frontmatter alone (no source<br/>access) and refuses VERIFICATION.md if its declared-revisions<br/>anchor no longer matches — also checks citation-allowlist.json<br/>is well formed and names real topics<br/>diagram-index-gen.cjs:887"
+    Note over CV: "recomputes declaredRevisions from frontmatter alone (no source<br/>access) and refuses VERIFICATION.md if its declared-revisions<br/>anchor no longer matches — also checks citation-allowlist.json<br/>is well formed and names real topics<br/>diagram-index-gen.cjs:884"
     end
 
     rect rgb(250, 244, 228)
     Note over CI,CV: "STEP 4 — the index must already be in sync"
     CI->>CV: "copy COVERAGE.md aside, then regenerate<br/>diagram-index.yml:73-76"
     G->>RM: "emit topic tables and the regeneration command"
-    G->>CV: "qualify ADR identities by repository<br/>diagram-index-gen.cjs:769"
+    G->>CV: "qualify ADR identities by repository<br/>diagram-index-gen.cjs:779"
     CI->>CI: "diff the copy against the regenerated file, and a mismatch<br/>raises a workflow error saying COVERAGE.md is stale, exit 1<br/>diagram-index.yml:77"
     end
 
@@ -489,23 +490,23 @@ flowchart TB
     E1 -.-> DIV
 ```
 
-**Invariant (--only leaves VERIFICATION.md alone; Debt resolved at VisionFlow 54e1d02):** `--only` filters the topic set before anything else (`scripts/diagram-index-gen.cjs:843`) and suppresses the README and COVERAGE writes (`scripts/diagram-index-gen.cjs:920`); since 54e1d02 the cite-check block also skips `writeVerificationReport` under `--only` (`scripts/diagram-index-gen.cjs:832`), so a per-topic `--cite-check --only` run no longer overwrites the committed VERIFICATION.md with one topic's counts and a subset declared-revisions anchor (`scripts/diagram-index-gen.cjs:442`). Only a whole-tree run writes it, and `--check-verification` (`scripts/diagram-index-gen.cjs:887`) judges that.
+**Invariant (--only leaves VERIFICATION.md alone; Debt resolved at VisionFlow 54e1d02):** `--only` filters the topic set before anything else (`scripts/diagram-index-gen.cjs:840`) and suppresses the README and COVERAGE writes (`scripts/diagram-index-gen.cjs:917`); since 54e1d02 the cite-check block also skips `writeVerificationReport` under `--only` (`scripts/diagram-index-gen.cjs:878`), so a per-topic `--cite-check --only` run no longer overwrites the committed VERIFICATION.md with one topic's counts and a subset declared-revisions anchor (`scripts/diagram-index-gen.cjs:446`). Only a whole-tree run writes it, and `--check-verification` (`scripts/diagram-index-gen.cjs:884`) judges that.
 
 ## VF-06.15 The opt-in Jev advisory step — a typed-decision review that never gates
 ```mermaid
 flowchart TB
     FLAG["--jev, --jev=diagram, --jev-report PATH, --jev-max N parsed beside the other flags;<br/>VISIONFLOW_JEV enables the same from the environment, the CLI value wins<br/>scripts/diagram-index-gen.cjs:104-106 and scripts/lib/jev.cjs:51-58"]
-    OFF["flag off, or no endpoint, or a local-only consumer refused:<br/>the generator prints what it printed before and exits the same<br/>scripts/lib/jev.cjs:13-15"]
-    RUN["jevDiagramReview runs AFTER every deterministic check, for at most 5 diagrams by default<br/>scripts/diagram-index-gen.cjs:810-812 and scripts/diagram-index-gen.cjs:886"]
-    ASK["per diagram: the Mermaid source plus bounded excerpts of the cited source lines<br/>sent as a typed question set, data class local-only<br/>scripts/diagram-index-gen.cjs:819-823"]
-    OUT["a contradicted verdict is printed to stderr as JEV-ADVISORY with its path:line anchors,<br/>optionally written to a JSON report; nothing reaches an index, VERIFICATION.md or verified_commit<br/>scripts/diagram-index-gen.cjs:829-834"]
+    OFF["flag off, no endpoint, or no --cite-check:<br/>the generator prints what it printed before and exits the same<br/>scripts/lib/jev.cjs:13-15, scripts/diagram-index-gen.cjs:806-807"]
+    RUN["jevCitationReview runs AFTER every deterministic check, for at most 5 requests of 24 citations by default<br/>scripts/diagram-index-gen.cjs:805-812 and scripts/diagram-index-gen.cjs:883"]
+    ASK["per request: one Noul per citation the gate resolved, the diagram line that carries it<br/>plus the cited lines, sent as a typed question set, data class public, no confidence floor<br/>scripts/diagram-index-gen.cjs:815-818"]
+    OUT["a citation with p_defect 0.9 or more is printed to stderr as JEV-ADVISORY, and only for jev-* models;<br/>every answer goes to the optional JSON report; nothing reaches an index, VERIFICATION.md or verified_commit<br/>scripts/diagram-index-gen.cjs:820-832 and scripts/lib/jev-questions.cjs:83-96"]
     FLAG --> RUN --> ASK --> OUT
     FLAG -.-> OFF
     N1["INVARIANT: authority stays in code — Jev only asks and validates, writes nothing and approves nothing,<br/>and every fallback must behave exactly as before Jev existed<br/>scripts/lib/jev.cjs:7-18"]
-    N2["OPEN: every item in the option is a proposed research candidate with no measured uplift,<br/>and the confidence floor of 0.5 is explicitly unfitted<br/>docs/jev-option.md:5 and scripts/lib/jev.cjs:41-42"]
+    N2["OPEN: every item in the option is a proposed research candidate with no measured uplift;<br/>the 0.9 flag is fitted on one model family and the default confidence floor of 0.5 is unfitted<br/>docs/jev-option.md:5, scripts/lib/jev-questions.cjs:54-55 and scripts/lib/jev.cjs:41-42"]
     OUT --- N1
     ASK --- N2
 ```
 
-**What it shows.** Since the earlier stamp the generator can ask a typed-decision model whether a diagram contradicts the source lines it cites, as an advisory line after all the deterministic gates have already passed or failed.
-**Why it is this way.** The checks that decide the exit code, citation resolution, render and width, stay deterministic; the option adds a second opinion that can flag a claim for human review before a restamp, and cannot change a verdict (docs/jev-option.md:3-5, scripts/diagram-index-gen.cjs:785-790). The library default is off, but agentbox now projects `VISIONFLOW_JEV=all` into its service and shell environments, so a local gate run asks the model while hosted CI and the dream annexe still make no call (docs/jev-option.md:16).
+**What it shows.** The generator can ask a typed-decision model, one question per resolved citation, whether the cited lines hold what the diagram label says, as an advisory line after all the deterministic gates have already passed or failed.
+**Why it is this way.** The checks that decide the exit code, citation resolution, render and width, stay deterministic; the option adds a second opinion that can flag a claim for human review before a restamp, and cannot change a verdict (docs/jev-option.md:3-5, scripts/diagram-index-gen.cjs:794-801). Since the 2026-10-29 operator decision (VF-06-S1-02) the review is public data, not local-only, because the corpus code is not private and its 0.9 flag was fitted on the cloud model; this is LIVE NOW in the script. The library default is off, and agentbox projects `VISIONFLOW_JEV=all` into its service and shell environments (configured, taking effect when the new agentbox image is activated), so a local gate run asks the model while hosted CI and the dream annexe still make no call (docs/jev-option.md:11, docs/jev-option.md:16).

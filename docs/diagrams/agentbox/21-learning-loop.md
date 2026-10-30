@@ -25,7 +25,7 @@ sources:
   - ../project/agentbox/config/hooks/lib/jev-option.cjs
   - ../project/agentbox/config/hooks/nostr-live-mirror.cjs
   - ../project/agentbox/mcp/servers/ruvector-mcp.cjs
-verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
+verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
 ---
 
 ## AB-21.1 Capture — transcript-driven grading
@@ -194,7 +194,7 @@ sequenceDiagram
                     AE->>AE: SKIP
                     Note over AE: INVARIANT I06 / ADR-2016 — the sample floor gates on the RAW OBSERVATION COUNT, not the<br/>recency-weighted effective size
                 else survives the floor
-                    AE->>AE: eligible rows pass trajectoryJev.annotateRows, off unless AGENTBOX_JEV_TRAJECTORY_CLASSIFY=1,<br/>which the manifest now projects from consumers.trajectory_classify = true (source, ADR-2155 staged),<br/>with LOCAL_ONLY set so it uses the LAN laya route (jev-option.cjs:72-77, system_one.rs:420, :480)<br/>(agentbox.toml:908, entrypoint-unified.sh:1259-1263, mcp/servers/lib/aggregate-effectiveness.js:428-430, mcp/servers/lib/trajectory-pattern-jev.js:134-137)
+                    AE->>AE: eligible rows pass trajectoryJev.annotateRows, off unless AGENTBOX_JEV_TRAJECTORY_CLASSIFY=1,<br/>which the manifest projects from consumers.trajectory_classify = true (configured, takes effect at the next image activation, ADR-2155 staged),<br/>with TRAJECTORY_LOCAL_ONLY projected 0 unless it is listed in [system_one].local_only (empty), so by default it takes the proxy and TypeSafe (jev-option.cjs:72-77, system_one.rs:451, :530, :564-577)<br/>(agentbox.toml:911, entrypoint-unified.sh:1259-1263, mcp/servers/lib/aggregate-effectiveness.js:428-430, mcp/servers/lib/trajectory-pattern-jev.js:134-137)
                     Note over AE: the Jev option only ATTACHES a semantic object, an action class and a coherence score, to a row<br/>that was already eligible, capped at AGENTBOX_JEV_TRAJECTORY_MAX_PATTERNS 40 per sweep<br/>(mcp/servers/lib/trajectory-pattern-jev.js:140,145), and the stored value spreads it in<br/>(mcp/servers/lib/aggregate-effectiveness.js:473, mcp/servers/lib/trajectory-pattern-jev.js:156-158)
                     AE->>MT: memStore through the GOVERNED path (mcp/servers/lib/aggregate-effectiveness.js:24, mcp/servers/lib/aggregate-effectiveness.js:478)
                     Note over AE,AGG: key effectiveness-sha256-12-<hash(pattern)> (mcp/servers/lib/aggregate-effectiveness.js:88), namespace memory-learning-aggregates<br/>(mcp/servers/lib/aggregate-effectiveness.js:47), typed metadata {importance: wilson, tags: ['action:<pattern>'], memory_type:<br/>'semantic'} (mcp/servers/lib/aggregate-effectiveness.js:28-29, runtime mcp/servers/lib/aggregate-effectiveness.js:479-481)
@@ -208,9 +208,9 @@ sequenceDiagram
     Note over AE: embeddings are 384-dim and a dimension mismatch is a hard reject — "dimension mismatch:<br/>got N, expected 384" (mcp/servers/lib/aggregate-effectiveness.js:120-121). See AB-20
 ```
 
-**Invariant:** the Jev option never regroups, re-keys, re-grades or drops a pattern: it returns the same array when the flag is off or no local endpoint is declared, and a row it could not classify comes back as the very same object (`../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:137-139`, `../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:148-149`).
+**Invariant:** the Jev option never regroups, re-keys, re-grades or drops a pattern: it returns the same array when the flag is off or no endpoint resolves, and a row it could not classify comes back as the very same object (`../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:137-139`, `../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:148-149`).
 
-**Open:** the Jev pattern annotation states that the recorder's own taint handling was not verified for it and leaves the safe default to an operator flag, `AGENTBOX_JEV_TRAJECTORY_LOCAL_ONLY` (`../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:30-33`); nothing in the record says which setting a deployment should use.
+**Resolved:** the Jev pattern annotation stated that the recorder's own taint handling was not verified for it and left the safe default to an operator flag, `AGENTBOX_JEV_TRAJECTORY_LOCAL_ONLY` (`../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:30-33`, `:138`); since 2026-10-30 (ADR-2139 amendment) the manifest projects it 0 unless `trajectory_classify` is in `[system_one].local_only`, empty by default (`../project/agentbox/services/agentbox-manifest/src/system_one.rs:564-577`).
 
 ## AB-21.5 Distil — patterns table
 

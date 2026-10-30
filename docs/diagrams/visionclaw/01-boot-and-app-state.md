@@ -72,7 +72,7 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/Cargo.toml
   - ../project/src/adapters/mod.rs
-verified_commit: e74bcddc772d47a45b1971156a2bab540eaa027c
+verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
 ---
 
 ## VC-01.1 main() phase 1 — hygiene, logging, settings, stores
@@ -137,7 +137,7 @@ sequenceDiagram
     M->>CS: source_from_env_with_github(enhanced_content_api) (src/main.rs:483)
     Note over CS: ADR-2114 — the CorpusSource port replaces a direct GitHub read. corpus_source_kind()<br/>(src/services/corpus_source/mod.rs:193) resolves CORPUS_SOURCE=local|github, default Local when<br/>VAULT_ROOT is set and non-empty (src/services/corpus_source/mod.rs:223), else GitHub.<br/>Local walks VAULT_ROOT on disk (LocalDirectorySource::from_env, local.rs:74) — a misconfigured<br/>local source logs an error and falls back to GitHubSource rather than failing boot<br/>(src/services/corpus_source/mod.rs:157-171).
     M->>CS: FileService::initialize_local_storage(settings, corpus_source_kind()) — Synced, or SkippedLocalCorpus when the corpus is local so no GitHub markdown mirror is pulled (src/main.rs:608-628)
-    M->>SV: NaturalLanguageQueryService.with_jev(jev_client) — Jev typed-decision client, opt-in: the library default is off, the shared Compose environment sets VISIONCLAW_JEV default 1 for dev and production (docker-compose.unified.yml:8), activation staged until the container is recreated (ADR-2148 activation_status staged, docs/BASELINE-architecture.md:49-50) (src/main.rs:517-522)
+    M->>SV: NaturalLanguageQueryService.with_jev(jev_client) — Jev typed-decision client, opt-in: the library default is off,<br/>the shared Compose environment sets VISIONCLAW_JEV default 1 for dev and production (docker-compose.unified.yml:21)<br/>and routes it through the shared agentbox proxy by default (x-system-one-environment, docker-compose.unified.yml:7-11,<br/>VISIONCLAW_JEV_ALLOW_CLOUD default 1 at :22). CONFIGURED: effective when the new agentbox image is activated<br/>and the container recreated (ADR-2148 activation_status staged, docs/BASELINE-architecture.md:50-51) (src/main.rs:517-522)
     M->>SY: GithubSyncService::new(corpus_source, ...) (src/main.rs:486) — corpus ingest over CorpusSource, see VC-21
     RS->>RS: bootstrap_owner_from_env — RBAC_OWNER_PUBKEY_ENV (src/services/role_store.rs:643)
     alt no Owner assigned and RBAC_ALLOW_OWNERLESS unset
@@ -239,7 +239,7 @@ flowchart TB
         S14["physics_service"]
         S15["presence_handler_state (PRD-008)"]
         S17["semantic_service (Arc~SemanticService~) — src/main.rs:864-872, app_data :1088<br/>never registered before, so every /api/semantic/* handler 500d at the extractor (ER-25)"]
-        S18["jev_client (visionclaw_jev hub) — src/main.rs:518, app_data :1075<br/>opt-in: library default off, Compose default VISIONCLAW_JEV=1 (docker-compose.unified.yml:8, local façade :9)"]
+        S18["jev_client (visionclaw_jev hub) — src/main.rs:518, app_data :1075<br/>opt-in: library default off, Compose default VISIONCLAW_JEV=1 (docker-compose.unified.yml:21), endpoint agentbox:8094 via the shared block (:7-11), ALLOW_CLOUD default 1 (:22)"]
         S16["memory_cloud_data (MemoryCloudService, shared snapshot cache) — src/main.rs:1091"]
     end
     subgraph FEAT["feature solid-pod-embed — src/main.rs:1094-1105"]

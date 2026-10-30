@@ -37,7 +37,7 @@ sources:
   - ../project/agentbox/voice/console/Caddyfile
   - ../project/agentbox/management-api/lib/agent-event-auth.js
   - ../project/agentbox/management-api/lib/action-plane.js
-verified_commit: 0b0f7918961e629280faf86f88227535abf514b5
+verified_commit: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc
 ---
 
 ## AB-10.1 Door inventory and port topology
@@ -47,16 +47,16 @@ flowchart TB
     LAN["LAN client"]
     P9096["nip98-proxy<br/>agentbox/config/nip98-proxy/proxy.mjs:1045<br/>listen 0.0.0.0:9096"]
     MGMT9090["management-api<br/>agentbox/management-api/server.js:49,:1502<br/>HOST 0.0.0.0 PORT 9090 in-container"]
-    BRIDGE8971["tab0-bridge<br/>agentbox/agentbox.toml:2106<br/>127.0.0.1:8971"]
-    IDE["code-server 8080 and jupyter 8888<br/>agentbox/agentbox.toml:2128,:2133"]
+    BRIDGE8971["tab0-bridge<br/>agentbox/agentbox.toml:2109<br/>127.0.0.1:8971"]
+    IDE["code-server 8080 and jupyter 8888<br/>agentbox/agentbox.toml:2131,:2136"]
     SOCK["agentbox-sessions socket<br/>agentbox/services/agentbox-sessions/src/api.rs:29<br/>unix 0660, no TCP port"]
     RELAY7777["nostr-rs-relay<br/>agentbox/flake.nix:1923-1924<br/>binds relayCfg.bind, default 127.0.0.1:7777"]
     VOICE8444["voice cockpit Caddy origin<br/>docker-compose.voice.yml:41<br/>0.0.0.0:8444"]
 
     LAN -->|"9096:9096 SANCTIONED agentbox/scripts/ci/check-ports-loopback.mjs:94,:74-91 ADR-2013"| P9096
-    P9096 -->|"prefix mgmt, approvals, dream - bearer_env MANAGEMENT_API_KEY agentbox/agentbox.toml:2099-2118"| MGMT9090
-    P9096 -->|"prefix bridge and feed - bearer_env BRIDGE_TOKEN agentbox/agentbox.toml:2104-2124"| BRIDGE8971
-    P9096 -->|"prefix code and jupyter - preserve_host agentbox/agentbox.toml:2126-2135"| IDE
+    P9096 -->|"prefix mgmt, approvals, dream - bearer_env MANAGEMENT_API_KEY agentbox/agentbox.toml:2102-2121"| MGMT9090
+    P9096 -->|"prefix bridge and feed - bearer_env BRIDGE_TOKEN agentbox/agentbox.toml:2107-2127"| BRIDGE8971
+    P9096 -->|"prefix code and jupyter - preserve_host agentbox/agentbox.toml:2129-2138"| IDE
     P9096 -.->|"no prefix matches - routeFor returns null, 404 after auth, no upstream contact agentbox/config/nip98-proxy/proxy.mjs:846-851"| P9096
     LAN -.->|"127.0.0.1:9090:9090 host publish agentbox/flake.nix:3533 not LAN-reachable"| MGMT9090
     LAN -->|"8443/8444 SANCTIONED docker-compose.voice.yml:41 agentbox/scripts/ci/check-ports-loopback.mjs:95-96"| VOICE8444

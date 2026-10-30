@@ -13,7 +13,7 @@ sources:
   - ../project/agentbox/docs/INGRESS-identity.md
   - ../project/agentbox/docs/PROTOCOL-registry.md
   - ../sidestr-rs/sidestr-round/Cargo.toml
-verified_commit: {agentbox: 0b0f7918961e629280faf86f88227535abf514b5, sidestr-rs: d8ace3aad2f23eb1d11bd72af4ab0b74d599f618}
+verified_commit: {agentbox: 7208f7e0d749b44efcfe24bd503c567c9ff8f9bc, sidestr-rs: d8ace3aad2f23eb1d11bd72af4ab0b74d599f618}
 ---
 
 ## For developers

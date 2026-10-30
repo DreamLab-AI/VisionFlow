@@ -13,7 +13,7 @@ sources:
   - ../project/crates/visionclaw-xr-presence/src/validate.rs
   - ../project/src/handlers/presence_handler.rs
   - ../project/src/actors/presence_actor.rs
-verified_commit: e74bcddc772d47a45b1971156a2bab540eaa027c
+verified_commit: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce
 ---
 
 ## VC-17.1 Presence session handshake and authentication

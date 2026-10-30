@@ -56,7 +56,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/onboarding_modal.rs
   - ../nostr-rust-forum/.github/workflows/audit.yml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs
-verified_commit: {nostr-rust-forum: eb5f2323e6d72240ecb7c456181b7a674f1842f4}
+verified_commit: {nostr-rust-forum: 9c36b6032640c89879ae52fe25da99493979a0b6}
 ---
 
 ## NF-10.1 The compliance surface — BASELINE-architecture invariants
@@ -107,7 +107,7 @@ flowchart TB
     subgraph live["Confirmed STILL LIVE"]
         O2["O2 NIP-29 group metadata 39000-39002 accepted from admin CLIENTS rather than relay-key-signed.<br/>Acknowledged TODO nip_handlers.rs:1300, admin gate nip_handlers.rs:1307. Spec drift. See NF-03.4 step 11."]
         O11a["O11 KV and SESSIONS bind the SAME physical namespace id - nostr-bbs-auth-worker/wrangler.toml:28 and nostr-bbs-auth-worker/wrangler.toml:44.<br/>Now documented as deliberate, with disjoint key prefixes, and guarded by a unit test nostr-bbs-auth-worker/wrangler.toml:22<br/>nostr-bbs-auth-worker/src/admins.rs:372. See NF-08.4 and NF-02.2."]
-        O11b["O11 /api/native-pod/provision has no in-repo caller and placeholder vars -<br/>route nostr-bbs-auth-worker/src/lib.rs:616, NATIVE_POD_URL nostr-bbs-auth-worker/wrangler.toml:65. See NF-02.2."]
+        O11b["O11 /api/native-pod/provision has no in-repo caller and placeholder vars -<br/>route nostr-bbs-auth-worker/src/lib.rs:616, NATIVE_POD_URL nostr-bbs-auth-worker/wrangler.toml:66. See NF-02.2."]
         O8a["O8 qr_svg is defined TWICE with no shared helper -<br/>recovery_sheet.rs:66 and utils/devices.rs:236. See NF-05.4."]
         O8b["O8 a per-page kind-0 subscription still duplicates the app-root ProfileCache subscription -<br/>root sub app.rs:751, page sub settings.rs:457. It is now closed on unmount settings.rs:479 and generation-guarded;<br/>the 5 s timer only flags a slow relay and the subscription stays open settings.rs:488-496. See NF-05.6."]
     end
@@ -134,7 +134,7 @@ flowchart TB
     DD3["nostr-bbs-relay-worker/wrangler.toml:18 asserts there is no ADMIN_PUBKEYS reader in src/.<br/>nostr-bbs-relay-worker/src/auth.rs:185 reads it, and so does nostr-bbs-auth-worker/src/admin.rs:71.<br/>Only nostr-bbs-search-worker/wrangler.toml:41 declares the var. See NF-08.7."]
     DD4["nostr-rust-forum/Cargo.toml:72 workspace.metadata.ci.wasm-check-packages names three crates (config, preview-worker, jev) and is read by NOTHING -<br/>the wasm job checks the whole workspace .github/workflows/ci.yml:188. Inert metadata. See NF-01.2."]
     DD5["nostr-bbs-upstream-canary/src/lib.rs:10 names a five-NIP build matrix but only three smokes exist<br/>nostr-bbs-upstream-canary/src/lib.rs:35 nostr-bbs-upstream-canary/src/lib.rs:56 nostr-bbs-upstream-canary/src/lib.rs:89 - nip04, nip59 and nip98 are unexercised. The same doc calls the crate<br/>nostr-upstream-canary nostr-bbs-upstream-canary/src/lib.rs:14 while the package is nostr-bbs-upstream-canary. See NF-01.5."]
-    DD6["The search-worker cron runs every five minutes and reindexes NOTHING - the handler body is a<br/>load_store warm touch nostr-bbs-search-worker/src/lib.rs:1004. See NF-07.1."]
+    DD6["The search-worker cron runs every five minutes and reindexes NOTHING - the handler body is a<br/>load_store warm touch nostr-bbs-search-worker/src/lib.rs:1008. See NF-07.1."]
     DD7["CLOSED in part: KIND_GOVERNANCE_AUDIT_LOG, which was numerically the SAME kind as KIND_PANEL_RETIRED, is deleted and a regression test<br/>keeps the six kinds pairwise distinct nostr-bbs-core/src/governance.rs:2079, KIND_PANEL_RETIRED stays nostr-bbs-core/src/governance.rs:32.<br/>Still open: only three of the six documented ACS types have Rust structs nostr-bbs-core/src/governance.rs:102 nostr-bbs-core/src/governance.rs:1109 nostr-bbs-core/src/governance.rs:1135.<br/>See NF-06.1 and NF-06.2."]
     DD8["docs/consumer-surface-map.md:21 lists the git panel as calling /.well-known/apps; the client fetches<br/>/apps/manifest.json and no .well-known path exists in that crate. See NF-05.10."]
 ```
@@ -146,7 +146,7 @@ flowchart TB
     S1["The relay events table was created only by a SETUP.md copy-paste - CLOSED in two steps. 1a26e51: whitelist got its first DDL, migration 0008_whitelist.sql:30,<br/>run first by ensure_schema nostr-bbs-relay-worker/src/lib.rs:841 before the ALTER list nostr-bbs-relay-worker/src/lib.rs:890. 66ca8d8: migration 0009_events.sql:23 creates events<br/>and ensure_schema creates it first, nostr-bbs-relay-worker/src/lib.rs:823, so SETUP.md now points at the migration SETUP.md:100 instead of carrying the DDL.<br/>Residual: the auth schema is still pasted SQL SETUP.md:75. See NF-08.6."]
     S2["ADMIN_PUBKEYS is read by auth and relay but declared in neither template and named in no SETUP step<br/>SETUP.md:147. A by-the-book deployment has no static admin bootstrap. See NF-08.7."]
     S3["The preview worker's SSRF guard is denylist-only without PREVIEW_ALLOWED_HOSTS, which the template<br/>never sets nostr-bbs-preview-worker/wrangler.toml:13. The code says so itself - the Workers runtime exposes no<br/>resolve-then-pin primitive nostr-bbs-preview-worker/src/ssrf.rs:13 - and there is no wall-clock timeout.<br/>See NF-07.6."]
-    S4["DEVICE_KEYS_ENABLED ships false in BOTH templates nostr-bbs-auth-worker/wrangler.toml:68<br/>nostr-bbs-relay-worker/wrangler.toml:29, so the whole ADR-099/100 device story is dormant by default and<br/>revocation has no effect at AUTH. See NF-02.7."]
+    S4["DEVICE_KEYS_ENABLED ships false in BOTH templates nostr-bbs-auth-worker/wrangler.toml:69<br/>nostr-bbs-relay-worker/wrangler.toml:29, so the whole ADR-099/100 device story is dormant by default and<br/>revocation has no effect at AUTH. See NF-02.7."]
     S5["MESH_ALLOWED_REMOTE_DIDS ships empty nostr-bbs-relay-worker/wrangler.toml:96, so the federated-kind gate at<br/>nip_handlers.rs:3590 is inert. Standalone is the only supported mode. See NF-03.13."]
     S6["The drift-gates CI job now runs both anti-drift-lint.sh and identity-vector-parity.mjs .github/workflows/ci.yml:293 .github/workflows/ci.yml:296,<br/>but it is not in the required ci-pass needs .github/workflows/ci.yml:306-314, so the ADR-2003 cross-stack parity proof runs on change<br/>without gating merges. See NF-09.1 and NF-09.3."]
     S7["The ADR-2019 member wallet view of BLAKE2b testnet4 coins ships dark: with BLAKE_TESTNET_API unset or not https,<br/>api_base is None and the page makes no request to any BLAKE backend<br/>nostr-bbs-forum-client/src/wallet/parent.rs:13-14 nostr-bbs-forum-client/src/wallet/parent.rs:36-43.<br/>It is read-only by construction - nothing is signed and no coin moves nostr-bbs-forum-client/src/wallet/parent.rs:8-10"]

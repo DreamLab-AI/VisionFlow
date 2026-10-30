@@ -18,7 +18,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
   - ../dreamlab-ai-website/forum-config/src/workers.rs
   - ../dreamlab-ai-website/src/App.tsx
-verified_commit: 07cf8642bddb44df2388a5d1e9d2074923ab6ac0
+verified_commit: 4935b6c4a394633569b2c8b38d5c0c272da3b0fb
 ---
 
 ## DW-01.1 Repo composition — thin operator overlay, not a protocol owner
@@ -65,7 +65,7 @@ flowchart TB
 ## DW-01.5 The dual-pin rule — four locations that must move together
 ```mermaid
 flowchart TB
-    A["1. KIT_REF<br/>.github/workflows/deploy.yml:130"] --- SHA["8a5cf817e81b20e2b761899eab753768c0cb4988"]
+    A["1. KIT_REF<br/>.github/workflows/deploy.yml:130"] --- SHA["9c36b6032640c89879ae52fe25da99493979a0b6"]
     B["2. KIT_REF<br/>.github/workflows/workers-deploy.yml:44"] --- SHA
     C["3. KIT_REF<br/>.github/workflows/rust-ci.yml:20"] --- SHA
     D["4. rev pin, resolved version<br/>forum-config/Cargo.toml:50-53"] --- VER["1.0.0-beta.16"]
@@ -73,10 +73,10 @@ flowchart TB
     VER -.->|"CANONICAL_KIT_VERSION"| REC2["kit-compatibility-record.md:31"]
 ```
 - `workers-deploy.yml` fires on `forum-config/Cargo.lock` and `KIT_REF` changes precisely so a kit re-pin never ships a new client against old workers — the client/worker skew that "wiped the forum on 2026-06-15" (BASELINE-architecture.md:121-124).
-- **Drift:** `BASELINE-architecture.md:117` records `KIT_REF = ea7d95e7ca70833217ab543fee91b8344304a32d` ("the kit commit that released 1.0.0-beta.16") while the live pins (`deploy.yml:130`, `workers-deploy.yml:44`, `rust-ci.yml:20`, `kit-compatibility-record.md:30`) are `8a5cf817e81b20e2b761899eab753768c0cb4988`, a different commit whose compatibility-record row still reads "`main` at ebcfaa2" in its branch column, with the ebcfaa2 change set listed there and one added paragraph on the Jev Worker consumers (`kit-compatibility-record.md:26`, `kit-compatibility-record.md:38`), at the same crate version `1.0.0-beta.16` (`forum-config/Cargo.toml:50-53`, `kit-compatibility-record.md:31`). The governing doc's crate-version line (`BASELINE-architecture.md:110`) is current at `=1.0.0-beta.16`; only its SHA is a repin behind. All four pin sites and the compatibility record agree with each other.
-- The README's pin sentence now reads kit source `8a5cf81…` and says it includes the Jev Worker consumers (`README.md:65`), so it agrees with the three pin sites; the older "Live pin `2d693ed2…` (beta.6)" sentence and the later `631c09f…` value are both gone.
+- **Drift:** `BASELINE-architecture.md:117` records `KIT_REF = ea7d95e7ca70833217ab543fee91b8344304a32d` ("the kit commit that released 1.0.0-beta.16") while the live pins (`deploy.yml:130`, `workers-deploy.yml:44`, `rust-ci.yml:20`, `kit-compatibility-record.md:30`) are now `9c36b6032640c89879ae52fe25da99493979a0b6` (repinned 2026-10-30 from `8a5cf81`), a different commit that moved the row's branch column to "`main` at 9c36b60" with the Jev local-only change set listed first (`kit-compatibility-record.md:26`, `kit-compatibility-record.md:38`), at the same crate version `1.0.0-beta.16` (`forum-config/Cargo.toml:50-53`, `kit-compatibility-record.md:31`). The governing doc's crate-version line (`BASELINE-architecture.md:110`) is current at `=1.0.0-beta.16`; only its SHA is a repin behind. All four pin sites and the compatibility record agree with each other.
+- **Drift:** the README's pin sentence still reads kit source `8a5cf81…` (`README.md:65`) one repin behind the three pin sites; the older "Live pin `2d693ed2…` (beta.6)" and `631c09f…` sentences are gone.
 - The pin-site comments do not restate release notes or the kit version: `rust-ci.yml:18-19`, `deploy.yml:126-129` and `workers-deploy.yml:41-43` defer provenance to the compatibility record, which pin-parity checks against the exact SHA, and `deploy.yml:129` records that the prose rots on every repin.
-- **Drift:** the deployment row's SHA column and the machine-readable field agree at `8a5cf817` with a "Kit branch/tag at pin" column still reading "`main` at ebcfaa2" and notes describing the ebcfaa2 change set only (`kit-compatibility-record.md:26,30`). The History table, however, still marks `931898a` (tag `v1.0.0-beta.10`) as "Current (canonical — matches `CANONICAL_KIT_SHA` above and the `KIT_REF` pins)" (`kit-compatibility-record.md:354`), six releases behind. pin-parity compares only the SHA, so this does not fail the gate.
+- **Drift:** the deployment row's SHA column and the machine-readable field now agree at `9c36b60` (`kit-compatibility-record.md:26,30`). The History table, however, still marks `931898a` (tag `v1.0.0-beta.10`) as "Current (canonical — matches `CANONICAL_KIT_SHA` above and the `KIT_REF` pins)" (`kit-compatibility-record.md:355`), six releases behind. pin-parity compares only the SHA, so this does not fail the gate.
 - INVARIANT: the machine-readable pin lives in exactly one place the gate reads — `CANONICAL_KIT_SHA` / `CANONICAL_KIT_VERSION` in `kit-compatibility-record.md:30-31` — and every other site is compared against it, which is why the surrounding comments can rot without the gate noticing.
 
 ## DW-01.6 Deploy job sequence — clone kit, build three frontends, merge, inject, deploy

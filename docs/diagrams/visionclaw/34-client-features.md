@@ -105,7 +105,7 @@ sources:
   - ../project/client/src/features/ontology/components/OntologyContribution.tsx
   - ../project/src/services/broker_events.rs
   - ../project/docker-compose.unified.yml
-verified_commit: {visionclaw: e74bcddc772d47a45b1971156a2bab540eaa027c}
+verified_commit: {visionclaw: e4ba5eb35ee6715cfd7f2daf1cd9af05e8a18cce}
 ---
 ## VC-34.1 settings — field edit to server PUT
 ```mermaid
@@ -515,7 +515,7 @@ sequenceDiagram
 
     U->>CP: Ctrl+K opens palette, types query
     CP->>UCP: filter Reg.getCommands() by query/category
-    opt Jev palette-search enabled (server-driven, jevClient.ts:122-124, on under Compose via docker-compose.unified.yml:8, fail-open)
+    opt Jev palette-search enabled (server-driven, jevClient.ts:122-124, on under Compose via docker-compose.unified.yml:21, the server routes it through the shared agentbox proxy :7-11 by default, fail-open)
         UCP->>UCP: after a 350 ms debounce, jevRankPalette(query, enabled commands)<br/>client/src/features/command-palette/hooks/useCommandPalette.ts:47-60
         UCP-->>CP: suggestedCommands appended AFTER the lexical results under "Suggested (semantic)", never reordering them<br/>client/src/services/jev/jevClient.ts:156, :182
     end
@@ -641,7 +641,7 @@ sequenceDiagram
         UAC->>SRV: HTTP POST
         CI->>CI: window.dispatchEvent visionclaw:status with injected count
     else no deterministic keyword match
-        opt Jev command flow enabled (server-driven, jevClient.ts:122-124, on under Compose via docker-compose.unified.yml:8)
+        opt Jev command flow enabled (server-driven, jevClient.ts:122-124, on under Compose via docker-compose.unified.yml:21, server-side route is the shared agentbox proxy :7-11)
             CI->>CI: planJevCommand(cmd, registry fields) -- a patch or intent suggestion held for the user's decision, null on flag off, error, timeout or low confidence<br/>client/src/features/visualisation/components/CommandInput.tsx:703, client/src/services/jev/commandFlow.ts:43
             CI->>U: Apply, Run, Ask the settings assistant instead, or Dismiss -- Apply writes through the existing settings store, Jev itself writes nothing<br/>client/src/features/visualisation/components/CommandInput.tsx:749
         end
