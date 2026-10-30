@@ -26,6 +26,7 @@ Back to the [top-level README](../README.md) for the ecosystem overview, quickst
 | [Release Manifests](releases/README.md) | Machine-readable manifest process for coordinated ecosystem releases |
 | [Licensing](architecture/licensing.md) | Licence boundaries across the ecosystem |
 | [Roadmap](roadmap.md) | Phased roadmap from docs honesty to mesh proof and operations |
+| [Business roadmap](business/roadmap-2026-11-to-2028-04.md) | 18-month DreamLab roadmap (Nov 2026 – Apr 2028): closed-loop operations, offer and assurance (ADR-2021, proposed) |
 | [Judgment Broker PRD](PRD-judgment-broker.md) | Distributed decision loop between agents and humans across the Nostr relay mesh |
 | [Judgment Broker ADR-003](archive/adr/ADR-003-judgment-broker-distributed-architecture.md) _(archived)_ | Architecture decision: broker is distributed by design across 4 substrates |
 | [Judgment Broker DDD](DDD-judgment-broker-context.md) | Bounded context for the distributed decision loop |

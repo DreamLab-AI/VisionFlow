@@ -26,7 +26,7 @@ precisely because it drifted from the code; see
 
 The [estate status/evidence contract](../architecture/adr-status-contract.md) defines the independent decision, implementation and activation axes and distinguishes lineage from supersession (2026-09-07).
 
-_20 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
+_21 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
 
 | ID | Title | Date | Decision | Impl | Activation | Supersedes | Superseded by | Owner | Repo |
 |----|-------|------|----------|------|------------|------------|---------------|-------|------|
@@ -50,3 +50,4 @@ _20 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
 | [ADR-2018](ADR-2018-parity-claims-name-their-comparator.md) | A parity claim names its comparator; the JSS plugins forge is a separate comparator, and solid-pod-rs forge features reach consumers only through a release | 2026-10-19 | accepted | partial | inactive | — | — | jjohare | visionflow |
 | [ADR-2019](ADR-2019-forge-and-mirror-on-in-shipped-pods.md) | The solid-pod-rs forge and mirror are on in shipped pods; open edit, mainnet and any follow list stay opt-in | 2026-10-20 | accepted | partial | live | — | — | jjohare | visionflow |
 | [ADR-2020](ADR-2020-pele-renders-every-estate-diagram.md) | Render every estate diagram with a pinned Pele; Mermaid stays the source syntax | 2026-10-29 | accepted | partial | live | ADR-2004 | — | jjohare | visionflow |
+| [ADR-2021](ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md) | DreamLab runs closed-loop agent fleets on VisionFlow, first on its own estate and then as an operated service on client hardware, with hard human gates for every regulated action | 2026-10-30 | proposed | none | inactive | — | — | jjohare | visionflow |

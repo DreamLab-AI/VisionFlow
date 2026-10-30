@@ -390,6 +390,17 @@ supersedes ADR-2018's default-off clause: shipped agentbox pods run the forge an
 mirror, inert until configured, while open edit, mainnet and any external follow list
 stay opt-in. Both records are accepted, partial and inactive.
 
+## Proposed closed-loop operations and 18-month roadmap (2026-10-30)
+
+[ADR-2021](adr/ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md) proposes that
+DreamLab close the agent loop on its own estate first (wake-on-signal, area-owning sessions, a
+decision corpus, then a citing judge), then sell an operated, governed agent fleet on client
+hardware, with every regulated action behind a hard human gate per ADR-2011. The roadmap of
+record is [`business/roadmap-2026-11-to-2028-04.md`](business/roadmap-2026-11-to-2028-04.md).
+Its headline metric is signal-to-action latency. The record is proposed, unimplemented and
+inactive and changes none of the invariants above; implementations belong to agentbox and
+nostr-rust-forum (ADR-2006).
+
 ## Proposed estate closeout extension (2026-09-04)
 
 [ADR-2007](adr/ADR-2007-estate-closeout-evidence-roadmap.md) proposes an
