@@ -142,16 +142,16 @@
     <div class="container reveal" data-num="02">
       <span class="section-tag">Short version</span>
       <h2>Seven questions, answered once</h2>
-      <p class="section-lead">Everything below expands on these. If you read nothing else, read this.</p>
+      <p class="section-lead">Everything below expands on these questions. If you read nothing else, read this.</p>
 
       <div class="q-grid">
         <div class="q-card">
           <h3><span class="q-n">01</span>What is this?</h3>
-          <p>Six open-source substrates that turn an organisation&rsquo;s knowledge into a governed, queryable, visible asset. One identity, <code>did:nostr</code>, runs through all of them: the same key signs a request, holds a pod, approves a decision and gets paid.</p>
+          <p>Six open-source substrates turn an organisation's knowledge into a governed, queryable, visible asset. One identity, <code>did:nostr</code>, runs through all of them. The same key signs the request, holds the pod, approves the decision, and gets paid.</p>
         </div>
         <div class="q-card">
           <h3><span class="q-n">02</span>What can you do with it?</h3>
-          <p>Ask a formal ontology a question from inside any agent turn. Watch a graph of many thousands of nodes settle live under GPU physics. Review what agents propose and sign it into canon with your own key. Stand inside the same graph with colleagues, in a CAVE today and on a Quest 3 as the native client lands.</p>
+          <p>Query the formal ontology from inside an agent turn. Watch a graph of many thousands of nodes settle live under GPU physics. Review what agents propose, and sign it into canon with your own key. Stand inside the same graph with colleagues. In a CAVE today. On a Quest 3 as the native client lands.</p>
         </div>
         <div class="q-card">
           <h3><span class="q-n">03</span>Why was it built?</h3>
@@ -159,7 +159,7 @@
         </div>
         <div class="q-card">
           <h3><span class="q-n">04</span>What problems does it solve?</h3>
-          <p>Ungoverned writes to shared knowledge, provenance nobody can query, a runtime with no declared capabilities or spend limits, and knowledge that lives in documents nobody reads twice.</p>
+          <p>Shared knowledge edited without governance. Provenance that no one can query. Agent runtimes without declared capabilities or spend limits. Knowledge that lives in documents no one rereads.</p>
         </div>
         <div class="q-card">
           <h3><span class="q-n">05</span>One end-to-end example?</h3>
@@ -167,11 +167,11 @@
         </div>
         <div class="q-card">
           <h3><span class="q-n">06</span>Where else does it apply?</h3>
-          <p>Regulated research corpora, engineering handover, executive intelligence over a living knowledge base, and immersive teaching of complex domains. <a href="#cases">Three worked scenarios.</a></p>
+          <p>Regulated research corpora, engineering handover, executive intelligence over a living knowledge base and immersive teaching of complex domains. <a href="#cases">Three worked scenarios.</a></p>
         </div>
         <div class="q-card">
           <h3><span class="q-n">07</span>How do I run it?</h3>
-          <p>Docker Compose brings up the knowledge engine and a Nix-built container brings up the agent runtime, on your own GPU hardware. Repository and component licences differ; consult each project’s licence and notices. <a href="#repos">The repository map.</a></p>
+          <p>The knowledge engine runs in Docker Compose, the agent runtime in a Nix-built container, on your own GPU hardware. Repository and component licences vary. Check the licence and notices of each project. <a href="#repos">The repository map.</a></p>
         </div>
         <div class="q-card">
           <h3><span class="q-n">+</span>Who is behind it?</h3>
@@ -185,24 +185,24 @@
   <section id="problem" class="section">
     <div class="container reveal" data-num="03">
       <span class="section-tag">Problem</span>
-      <h2>Hard problems share a common shape</h2>
-      <p class="section-lead">Climate modelling, drug discovery, organisational transformation, creative production at scale. These problems all require diverse intelligence collaborating across trust boundaries, at scales where centralised coordination breaks down.</p>
+      <h2>Common structure of hard problems</h2>
+      <p class="section-lead">Climate modelling, drug discovery, organisational transformation, creative production at scale. Problems like these require diverse intelligence to collaborate across trust boundaries, at scales where centralised coordination breaks down.</p>
 
       <div class="problem-grid">
         <div class="glass-card">
           <div class="card-icon" style="color: var(--crimson)">&#x2716;</div>
           <h3>Centralised AI</h3>
-          <p>Scales tokens but not trust. One vendor, one failure mode, one billing relationship.</p>
+          <p>Tokens scale, but trust does not. One vendor. One failure mode. One billing relationship.</p>
         </div>
         <div class="glass-card">
           <div class="card-icon" style="color: var(--crimson)">&#x2716;</div>
           <h3>Agent Frameworks</h3>
-          <p>Scale tasks but not governance. Fast and broken is still broken.</p>
+          <p>Scaling tasks without scaling governance produces fast and broken systems, and fast and broken is still broken.</p>
         </div>
         <div class="glass-card">
           <div class="card-icon" style="color: var(--crimson)">&#x2716;</div>
           <h3>Knowledge Tools</h3>
-          <p>Scale information but not reasoning. More data doesn&rsquo;t mean better decisions.</p>
+          <p>Scaling information isn’t scaling reasoning. More data won’t result in better decisions.</p>
         </div>
         <div class="glass-card">
           <div class="card-icon" style="color: var(--crimson)">&#x2716;</div>
@@ -222,7 +222,7 @@
     <div class="container reveal">
       <span class="section-tag">Evolution Line</span>
       <h2>From LLM to Coordination Harness</h2>
-      <p class="section-lead">The AI industry has moved through a clear progression. Each stage solves the previous stage&rsquo;s limitation and reveals a new one. The newest turn is a return of symbolic structure: agent loops are unbounded by construction, and the industry is converging on formal semantics (ontologies shared across the mesh, rather than wired into each agent) as the way to bound them.</p>
+      <p class="section-lead">The AI industry has gone through a clear progression. Each stage solved the last one’s limitation, and exposed a new one. The latest turn: a return of symbolic structure. Agent loops are unbounded by construction. The industry is converging on formal semantics to bound them: ontologies shared across the mesh, not wired into each agent.</p>
 
       <p class="section-lead" style="margin-top:1rem">Three layers, kept distinct. The <strong>ontology</strong> is the formal vocabulary: the classes, typed properties and rules that define what can be said. The published corpus at narrativegoldmine.com is that ontology in readable form: pure TBox, every page a class, zero individuals by design. The <strong>knowledge graph</strong> is the ontology populated with live instances at runtime: VisionClaw&rsquo;s running graph, agents&rsquo; working graphs, the personal graphs written into Solid pods. And the <strong>grounding layer</strong>, the Ontology Loom, serves the checked graph into a model&rsquo;s context at query time, so answers restate verified facts rather than guesses. Holding it honest is a machine check at two points: the pipeline&rsquo;s EL-profile reasoner gates the published closure at build, and a Whelk EL++ reasoner classifies the shared runtime graph and rejects contradictions before they enter it. When these pages say &ldquo;reasoned&rdquo;, they mean machine-checked, not an LLM thinking hard.</p>
 
@@ -293,12 +293,12 @@
           </div>
           <ul>
             <li>OWL 2 EL formal reasoning (Whelk-rs) + SHACL shapes loaded into Oxigraph, gating writes as a dual-mode enforcing gate</li>
-            <li>83 CUDA kernels (10 .cu files, 6,302 LOC) running the semantic physics on the GPU</li>
-            <li>Oxigraph triple store + W3C SPARQL; PROV-O provenance reified as queryable RDF triples on the governed write path</li>
+            <li>GPU graph physics engine with 83 CUDA kernels (10 .cu files, 6,302 LOC) running the semantic physics on the GPU.</li>
+            <li>Oxigraph triple store, W3C SPARQL. PROV-O provenance is reified as queryable RDF triples on the governed write path.</li>
             <li>IS-Envelope spec owner + governed knowledge graph gating</li>
-            <li>6 native MCP ontology tools</li>
+            <li>6 native MCP ontology tools.</li>
             <li>Force-directed graphs of many thousands of nodes, laid out live on the GPU</li>
-            <li>Embodied agent loop: agent actions render as live <code>0x23</code> beams over <code>/wss/agent-events</code></li>
+            <li>Embodied agent loop. Agent actions are rendered as live <code>0x23</code> beams over <code>/wss/agent-events</code>.</li>
           </ul>
           <a href="https://github.com/DreamLab-AI/VisionClaw" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
         </div>
@@ -311,13 +311,13 @@
           </div>
           <ul>
             <li>Governance event relay + broker bridge to VisionClaw</li>
-            <li>Manifest-registered agent skills</li>
+            <li>Manifest-registered skills for agents</li>
             <li>Published crates: prose-sanitiser, diagram-ir (extracted clean-room Rust workspaces)</li>
-            <li>Ontology access through the baked <code>vault</code> CLI and <code>loom-client</code> (the old ontology bridge is retired)</li>
-            <li>Browser-based setup wizard (zero dependencies)</li>
-            <li>BIP-340 sovereign identity at bootstrap</li>
+            <li>Ontology access through the baked <code>vault</code> CLI and the <code>loom-client</code> (replaces the retired ontology bridge)</li>
+            <li>Browser setup wizard with zero dependencies.</li>
+            <li>BIP-340 sovereign identity at bootstrap.</li>
             <li>Private Email MCP Gateway: local-model email intelligence, privacy-sanitised by default; raw access only via an owner-key-gated capability</li>
-            <li>Emits agent-action signals to VisionClaw; pod writes under revocable WAC mandates</li>
+            <li>Emits agent-action signals to VisionClaw. Writes to the pod under revocable WAC mandates.</li>
           </ul>
           <a href="https://github.com/DreamLab-AI/agentbox" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
         </div>
@@ -331,7 +331,7 @@
           <ul>
             <li>Rust port of JSS (~96% strict parity, 207-row tracker)</li>
             <li>DID:Nostr + WAC + Web Ledgers</li>
-            <li>NIP-98 Schnorr (fail-closed, compile-guarded) + Solid-OIDC + WebAuthn</li>
+            <li>NIP-98 Schnorr (fail-closed, compile-guarded), Solid-OIDC, WebAuthn.</li>
             <li>HTTP 402 micropayments (MRC20, did:nostr-keyed)</li>
             <li>Block-trails: Bitcoin taproot-anchored, tamper-evident provenance</li>
             <li>Git-marks: every pod write is a commit</li>
@@ -347,11 +347,11 @@
             <span class="substrate-role">Governance UI + Relay Kit</span>
           </div>
           <ul>
-            <li>Judgment Broker decision surface (2,100-line governance model)</li>
+            <li>Judgment Broker decision surface (2,100-line governance model).</li>
             <li>Agent Control Surface Protocol (kinds 31400-31405)</li>
             <li>Leptos WASM client (20 pages, 60+ components)</li>
-            <li>19 crates, passkey-first auth, 5 CF Workers</li>
-            <li>NIP-42 challenge/response at the relay; federated NIP-05 resolution and cross-org mesh routing across sovereign nodes</li>
+            <li>19 crates, 5 CF workers, passkey-first auth.</li>
+            <li>NIP-42 challenge/response at the relay, federated NIP-05 identity resolution, cross-organisation mesh routing across sovereign nodes.</li>
           </ul>
           <a href="https://github.com/DreamLab-AI/nostr-rust-forum" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
         </div>
@@ -365,9 +365,9 @@
           <ul>
             <li>React SPA + Leptos WASM forum</li>
             <li>Cloudflare Workers edge compute</li>
-            <li>Production at dreamlab-ai.com</li>
+            <li>Production deployment at dreamlab-ai.com.</li>
             <li>Operator overlay configuration</li>
-            <li>Consumes the forum kit as git-pinned library crates</li>
+            <li>Consumes the forum kit as git-pinned library crates.</li>
           </ul>
           <a href="https://github.com/DreamLab-AI/dreamlab-ai-website" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
         </div>
@@ -379,13 +379,13 @@
             <span class="substrate-role">Grounding &amp; Serving Node</span>
           </div>
           <ul>
-            <li>Model-swappable, OpenAI-compatible fa&ccedil;ade: the model is a URL (Qwen3.8-27B today), swapped behind the fa&ccedil;ade with no consumer change</li>
-            <li>Static ontology scaffold lifts grounded recall roughly 3&times; (a near-random baseline to graph parity), and the gain reproduces across every model behind the fa&ccedil;ade; prose adds nothing</li>
-            <li>In-process native oxigraph (Rust) read-truth store: 286,500-triple reasoned closure, read-only SPARQL + node search</li>
+            <li>Model-swappable, OpenAI-compatible grounding façade. The model is a URL (Qwen3.8-27B today), swappable behind the façade without changing consumers.</li>
+            <li>Static ontology scaffold lifts grounded recall ~3× (near-random → graph parity), generalising across all models behind the façade. Prose adds no value.</li>
+            <li>In-process native oxigraph (Rust) read-truth store: 286,500-triple reasoned closure, read-only SPARQL and node search.</li>
             <li>Confidence-aware selective injection (live): strong match &rarr; full budget, weak &rarr; scaled, off-topic &rarr; gated: avoids context interference</li>
             <li>Reasoning-model safe: server-side <code>max_tokens</code> floor so a model never truncates to empty</li>
-            <li>Agentbox &ldquo;one brain&rdquo; retrieval resolves through the Loom, live</li>
-            <li>Governed elevation live: workingGraph &rarr; ontology via ACSP <code>31402</code> propose &rarr; admin <code>31403</code></li>
+            <li>Agentbox “one brain” retrieval now runs through the Loom, live.</li>
+            <li>Governed elevation is live: the working graph proposes into the ontology via ACSP <code>31402</code>, approved by admin via <code>31403</code>.</li>
           </ul>
           <a href="https://github.com/DreamLab-AI/loom" target="_blank" rel="noopener" class="substrate-link">View Repo &rarr;</a>
         </div>
@@ -416,7 +416,7 @@
     <div class="container reveal" data-num="05">
       <span class="section-tag">Verifiable by Construction</span>
       <h2>Guarantees that hold at runtime</h2>
-      <p class="section-lead">Coordination is only worth trusting when its guarantees survive production. These are the parts that are hardest to fake and easiest to hand-wave past, and in VisionFlow they run in the live path.</p>
+      <p class="section-lead">Coordination promises are only as good as their guarantees in production. These are the parts that are hardest to fake and easiest to hand-wave past. In VisionFlow these run in the live path.</p>
 
       <div class="ledger-grid">
         <div class="ledger-card">
@@ -425,7 +425,7 @@
         </div>
         <div class="ledger-card">
           <h3>Provenance you can query</h3>
-          <p class="ledger-trans">Every governed write reifies as PROV-O triples. Who claimed what, and when, is a SPARQL query answered straight from the graph.</p>
+          <p class="ledger-trans">All governed writes reify as PROV-O triples in the graph. Who asserted what, and when, is a SPARQL query away.</p>
         </div>
         <div class="ledger-card">
           <h3>The relay authenticates</h3>
@@ -437,11 +437,11 @@
         </div>
         <div class="ledger-card">
           <h3>The elevation loop closes</h3>
-          <p class="ledger-trans">A concept an agent proposes passes the Whelk consistency gate when a human approves it, then goes out as a pull request. Personal insight reaches the shared ontology through one governed door; when the pull request merges, the actor publishes the closing <code>ConceptElevated</code> event (kind 31404) and marks the case elevated. It needs a GitHub token configured to poll the merge.</p>
+          <p class="ledger-trans">The Whelk consistency gate runs as a precondition for elevation. An agent-proposed concept passes the gate when a human approves it, and is then proposed as a pull request. Personal insight reaches the shared ontology through a single, governed door. When the pull request merges, the actor publishes the closing <code>ConceptElevated</code> event (kind 31404) and marks the case elevated. A GitHub token must be configured to poll the merge.</p>
         </div>
         <div class="ledger-card">
           <h3>Action carries force</h3>
-          <p class="ledger-trans">Agent activity is drawn on the graph as it happens: each action becomes a beam from the agent to the concept it touched. An attractive force that would also pull related concepts together is designed but not built yet.</p>
+          <p class="ledger-trans">Agent activity streams onto the graph as it happens: each action is drawn as a beam from the agent to the concept it acted on. An attractive force that pulls related concepts together is designed but not implemented.</p>
         </div>
       </div>
 
@@ -475,11 +475,11 @@
           <circle class="f-pulse" r="4" fill="var(--bright-gold)" style="offset-path: path('M110 124 V242 H740 L740 160')"/>
         </svg>
       </div>
-      <p class="figcap">Read pervasive, write governed. Agents may always ask; nothing asserts truth without a reasoner pass and a signed human decision.</p>
+      <p class="figcap">Read is pervasive, write is governed. Agents can always ask, but nothing is asserted as true without a reasoner pass and a signed human decision.</p>
 
 
       <h3 class="sub-head" id="migration">From note to canon, in six stages</h3>
-      <p class="section-lead fig-lead">Knowledge lives in two tiers. Vault pages hold working notes; OWL classes hold canon. When a note matters enough it migrates, and every migration walks the same six stages of VisionClaw&rsquo;s insight-migration loop.</p>
+      <p class="section-lead fig-lead">Knowledge lives in two places. Vault pages are working notes. OWL classes are canon. Notes that matter get promoted via the six stages of VisionClaw’s insight migration loop.</p>
       <div class="fig-wrap">
         <svg class="fig" viewBox="0 0 900 236" role="img" aria-label="Six-stage timeline from a written note to a live ontology class: authoring, detection, review, approval, merge, physics, with a dashed return arrow labelled new notes observe the canon.">
           <defs>
@@ -532,12 +532,12 @@
         <div class="glass-card immersive-card">
           <img src="img/showcase/octave-lab.webp" alt="Researcher in stereoscopic CAVE exploring a 3D knowledge graph with node and edge structures projected at room scale" loading="lazy" decoding="async" />
           <h3>Stereoscopic Data Exploration</h3>
-          <p>Nodes are physical objects you can reach into. Relationships become spatial structures you navigate by walking. The Octave Lab proved that embodied graph exploration surfaces patterns invisible on flat screens.</p>
+          <p>Nodes are physical objects you can reach into. Relationships are spatial structures you navigate by walking. Octave Lab proved embodied graph exploration reveals patterns flat screens hide.</p>
         </div>
         <div class="glass-card immersive-card">
           <img src="img/showcase/hand-interaction.webp" alt="Hand tracking and drone interaction in immersive projected environment" loading="lazy" decoding="async" />
           <h3>Embodied Interaction</h3>
-          <p>Hand tracking, drone teleoperation, and physical controllers. You manipulate data the same way you manipulate physical objects.</p>
+          <p>Hand tracking, drone teleoperation and physical controllers. Manipulate data like you would physical objects.</p>
         </div>
         <div class="glass-card immersive-card">
           <img src="img/showcase/photogrammetry-env.webp" alt="Two people standing in a photogrammetry-reconstructed landscape projected across walls and floor" loading="lazy" decoding="async" />
@@ -556,7 +556,7 @@
       </div>
 
       <h3 id="video-overview" style="margin-top:3rem;font-size:1.6rem;color:var(--gold)">The coordination bottleneck, in ninety seconds</h3>
-      <p class="section-lead">Why coordinated AI reasoning, not raw intelligence, is the limiting factor in high-stakes domains.</p>
+      <p class="section-lead">The bottleneck in high-stakes domains is not raw AI intelligence, it’s the coordination of AI reasoning.</p>
       <div class="video-wrap video-wrap-featured">
         <video controls preload="metadata"
                aria-label="VisionFlow: The Coordination Bottleneck"
@@ -576,7 +576,7 @@
     <div class="container reveal" data-num="07">
       <span class="section-tag">Judgment Broker</span>
       <h2>Human-in-the-loop governance that accelerates, not blocks</h2>
-      <p class="section-lead">The Judgment Broker is an emergent property of agents, humans, a knowledge graph, and a relay mesh coordinating through shared cryptographic identity. No single repository owns the broker. Agents publish through Agentbox, humans decide through the forum, knowledge is gated through VisionClaw, provenance is anchored in sovereign pods.</p>
+      <p class="section-lead">The Judgment Broker is not a component in any single repository. It is an emergent property of agents, humans, a knowledge graph and a relay mesh, coordinating through shared cryptographic identity. Agents publish through Agentbox. Humans decide through the forum. Knowledge is gated through VisionClaw. Provenance is anchored in sovereign pods.</p>
       <p class="section-lead">The loop is graded, not asserted. The canon audits it against the six augmentation conditions of arXiv 2609.12482 (durable net value, meaningful human control, accountability and recovery, deepening learning, career pathways, job purpose). As of 14 September 2026 the estate is <em>partial</em> on control and recovery and <em>absent</em> on the three longitudinal conditions; the row-by-row grade, cited to code, is in the <a href="https://github.com/DreamLab-AI/VisionFlow/blob/main/docs/architecture/compatibility-matrix.md#augmentation-conditions--graded-2026-09-14-adr-2010">compatibility matrix</a>.</p>
 
       <div class="broker-flow">
@@ -589,13 +589,13 @@
         <div class="broker-step">
           <div class="broker-num">2</div>
           <h3>Forum Renders <span class="broker-substrate">nostr-rust-forum</span></h3>
-          <p>kind 31402 ActionRequest: the forum&rsquo;s 2,100-line governance model renders the request and routes it to the right human</p>
+          <p>The agent publishes a kind 31402 ActionRequest. The forum’s 2,100-line governance model renders it and routes it to the right human.</p>
         </div>
         <div class="broker-arrow">&rarr;</div>
         <div class="broker-step">
           <div class="broker-num">3</div>
           <h3>Human Decides <span class="broker-substrate">NIP-98 signed</span></h3>
-          <p>kind 31403 ActionResponse: cryptographically signed approve/reject/amend/delegate. The decision is an immutable Nostr event</p>
+          <p>Kind 31403 ActionResponse carries the cryptographically signed approve/reject/amend/delegate decision as an immutable Nostr event.</p>
         </div>
         <div class="broker-arrow">&rarr;</div>
         <div class="broker-step">
@@ -625,10 +625,10 @@
       </div>
 
       <h3 style="margin-top:3rem;font-size:1.6rem;color:var(--gold)">Provenance and value travel the same rails</h3>
-      <p class="section-lead">Once every actor is a <code>did:nostr</code> identity and every write is anchored, <strong>value and trust</strong> travel the same rails as the mesh&rsquo;s messages: no EVM, no bridge, no custodian.</p>
+      <p class="section-lead">With every actor as a <code>did:nostr</code> identity and every write anchored, <strong>value and trust move over the same rails</strong> as the mesh’s messages. No EVM. No bridge. No custodian.</p>
       <div class="identity-callout">
         <code>agent &rarr; pod &rarr; 402 settle &rarr; anchor &rarr; did:nostr</code>
-        <p>The same <code>did:nostr</code> key that is a WAC principal, a relay identity and a provenance author is also a payment account, so an agent can earn, spend and sign across the mesh as one actor. The unit of account is the <strong>satoshi</strong>: a Web Ledger in sats, HTTP 402 gating, an order book and a constant-product exchange, all routed through one ledger path with replay protection. No Lightning or NWC rail is built: L402 and x402 challenges are recognised by the same 402 grammar but are not payable, and Lightning may return only as an optional on-ramp into a chain. The estate runs its own Bitcoin node, mainnet and testnet4, for anchoring. The same taproot core mints <strong>MRC20 tokens</strong> on Bitcoin, inherited from JSS; DREAM, the operator&rsquo;s internal token at ten per sat, is configured across the runtime and the edge and has been minted experimentally on testnet. The same key is also a <strong>sidechain wallet</strong>: <a href="https://github.com/DreamLab-AI/sidestr-rs" target="_blank" rel="noopener">sidestr-rs</a>, a Rust port of Melvin Carvalho&rsquo;s sidestr sidechains, and on 2026-09-23 two agents pegged 50,000 test sats into the estate&rsquo;s <code>sidestr:dreamlab</code> chain beside Bitcoin testnet4, traded three times over Nostr and pegged back out, paid on testnet4; testnet only, no real funds. The estate&rsquo;s sidestr chain is a valueless research chain, sealed on Bitcoin testnet4 (<code>tbtc4</code>) with one supervised block producer; real value is parked until its gates are built. Private digital objects and contracts stay in the owner&rsquo;s pod and inherit <strong>Bitcoin&rsquo;s security model</strong> through taproot-anchored commitments, on testnet4 by default and mainnet by explicit operator choice.</p>
+        <p>The same <code>did:nostr</code> key that is a WAC principal, a relay identity and a provenance author is also a payment account: an agent can earn, spend and sign across the mesh as one actor. The unit of account is the <strong>satoshi</strong>. A Web Ledger in sats, HTTP 402 gating, an order book and a constant-product exchange are all routed through one ledger path, with replay protection. No Lightning or NWC rail is built: L402 and x402 challenges are recognised by the same 402 grammar but are not payable, and Lightning may return only as an optional on-ramp into a chain. The estate runs its own Bitcoin node, mainnet and testnet4, for anchoring. The same taproot core mints <strong>MRC20 tokens</strong> on Bitcoin, inherited from JSS. DREAM, the operator’s internal token at ten per sat, is configured across the runtime and the edge and has been minted experimentally on testnet. The same key is also a <strong>sidechain wallet</strong>: <a href="https://github.com/DreamLab-AI/sidestr-rs" target="_blank" rel="noopener">sidestr-rs</a>, a Rust port of Melvin Carvalho’s sidestr sidechains. On 2026-09-23 two agents pegged 50,000 test sats into the estate’s <code>sidestr:dreamlab</code> chain beside Bitcoin testnet4, traded three times over Nostr and pegged back out, paying on testnet4. Testnet only, no real funds. The estate’s sidestr chain is a valueless research chain, sealed on Bitcoin testnet4 (<code>tbtc4</code>) with one supervised block producer; real value is parked until its gates are built. Private digital objects and contracts stay in the owner’s pod and inherit <strong>Bitcoin’s security model</strong> through taproot-anchored commitments, on testnet4 by default and mainnet by explicit operator choice.</p>
       </div>
 
       <h3 class="sub-head">The web-contract trust ladder</h3>
@@ -661,7 +661,7 @@
       <div class="econ-grid">
         <div class="glass-card econ-card">
           <h3>Cost of Not Coordinating</h3>
-          <p>A team running uncoordinated AI agents spends <strong>much of its token budget</strong> on context rediscovery, duplicate reasoning, and contradictory outputs. Each agent session starts cold with no shared ontology, no provenance, no memory of what other agents concluded.</p>
+          <p>Teams running uncoordinated AI agents spend <strong>much of their token budget on context rediscovery</strong>, duplicate reasoning, and contradictory outputs. Every agent session begins cold: no shared ontology, no provenance, no memory of what other agents concluded.</p>
           <div class="econ-metric">
             <span class="metric-value">5-8x</span>
             <span class="metric-label">token waste from uncoordinated agent sprawl</span>
@@ -688,7 +688,7 @@
 
         <div class="glass-card econ-card">
           <h3>Governance Dividend</h3>
-          <p>Every governance decision that flows through the Judgment Broker is an immutable, auditable event. In regulated industries (pharma, finance, defence), the cost of reconstructing decision provenance after the fact dwarfs the cost of generating it by construction.</p>
+          <p>Every governance decision that passes through the Judgment Broker is an immutable, auditable event. In regulated industries (pharma, finance, defence), reconstructing decision provenance after-the-fact is vastly more expensive than generating it by construction.</p>
           <div class="econ-metric">
             <span class="metric-value">90%</span>
             <span class="metric-label">reduction in audit reconstruction cost</span>
@@ -702,7 +702,7 @@
         <div class="formula">
           <code>ROI = (V &times; coordination_multiplier &times; governance_dividend) / (token_cost &times; N)</code>
         </div>
-        <p>Without coordination, agents compete, duplicate, and contradict. Each additional agent adds noise faster than signal. With VisionFlow, each agent amplifies the mesh. Shared semantics compound. Provenance eliminates re-validation. Governance catches expensive mistakes early.</p>
+        <p>Agents without coordination compete, duplicate work, and contradict each other. Each additional agent adds more noise than signal. With VisionFlow, each agent amplifies the mesh. Shared semantics compound. Provenance eliminates re-validation. Governance catches expensive mistakes early.</p>
         <p><strong>The break-even point is typically reached at 3 agents working on any problem valued above $50K.</strong> Beyond that, every additional coordinated agent produces net positive value because the ontology, the identity spine, and the governance plane are shared infrastructure, not per-agent costs.</p>
       </div>
     </div>
@@ -712,15 +712,15 @@
   <section id="sidechains" class="section section-dark">
     <div class="container reveal" data-num="09">
       <span class="section-tag">Early ideas &middot; Sidechains</span>
-      <h2>What a sidechain wallet could do for an agent</h2>
-      <p class="section-lead">Every agent&rsquo;s <code>did:nostr</code> key is already a wallet on the estate&rsquo;s own sidechain, <a href="https://github.com/DreamLab-AI/sidestr-rs" target="_blank" rel="noopener">sidestr-rs</a>, a Rust port of Melvin Carvalho&rsquo;s <a href="https://github.com/sidestr/spec" target="_blank" rel="noopener">sidestr</a>. These are early suggestions for what that makes possible, each marked with how far along it is.</p>
+      <h2>What a sidechain wallet might do for an agent</h2>
+      <p class="section-lead">Every agent already holds a <code>did:nostr</code> key that is also a wallet on the estate’s own sidechain: <a href="https://github.com/DreamLab-AI/sidestr-rs" target="_blank" rel="noopener">sidestr-rs</a>, a Rust port of Melvin Carvalho’s <a href="https://github.com/sidestr/spec" target="_blank" rel="noopener">sidestr</a>. The following are early suggestions for what this enables, each marked with how far along it is.</p>
 
       <div class="sc-carousel" role="region" aria-roledescription="carousel" aria-label="Sidechain ideas">
         <div class="sc-track" tabindex="0">
           <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="1 of 9: Workshop demonstrator">
             <span class="sc-badge sc-live">Live on testnet</span>
             <h3>Workshop demonstrator</h3>
-            <p>Everyone in the room gets an agent with a testnet wallet, and the agents pay each other live on the chain while you watch. It is the loop the estate ran on 23 September: a peg-in, three trades between two agents, and a peg-out paid back on Bitcoin testnet4.</p>
+            <p>Everyone in the room gets an agent with a testnet wallet. Agents pay each other live on the chain while you watch. This is the loop the estate ran on 23 September: peg-in, three trades between two agents, peg-out paid back on Bitcoin testnet4.</p>
             <p class="sc-basis">Builds on: sidestr-rs &middot; sidestr:dreamlab</p>
           </article>
           <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="2 of 9: Allowances with hard ceilings">
@@ -732,8 +732,8 @@
           <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="3 of 9: Pay-per-call between agents">
             <span class="sc-badge sc-decided">Decided, not built</span>
             <h3>Pay-per-call between agents</h3>
-            <p>One agent pays another for a Loom query, a consultant call or a GPU render. The estate&rsquo;s HTTP 402 gate gains a sidechain payment scheme, and the payment itself is the receipt.</p>
-            <p class="sc-basis">Builds on: agentbox ADR-2099</p>
+            <p>An agent pays another agent for a Loom query, a consultant call, or a GPU render. The estate’s HTTP 402 gate gains a sidechain payment scheme. The payment is the receipt.</p>
+            <p class="sc-basis">Building on agentbox ADR-2099</p>
           </article>
           <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="4 of 9: Tamper-evident audit anchors">
             <span class="sc-badge sc-near">Parts built</span>
@@ -744,13 +744,13 @@
           <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="5 of 9: One ledger instead of three">
             <span class="sc-badge sc-decided">Decided, not built</span>
             <h3>One ledger instead of three</h3>
-            <p>Today three payment ledgers keep separate books. With the chain as the ledger of record, each becomes a view over the same history.</p>
+            <p>Today’s three payment ledgers keep separate books. With the chain as the ledger of record, each is just a view over the same history.</p>
             <p class="sc-basis">Builds on: agentbox ADR-2099</p>
           </article>
           <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="6 of 9: Bounties and escrow">
             <span class="sc-badge sc-idea">Idea</span>
             <h3>Bounties and escrow</h3>
-            <p>A forum or dream-machine task carries a bounty that the agent who completes it can claim, released when k of n reviewers co-sign.</p>
+            <p>Tasks in the forum or dream-machine can come with a bounty that the agent that completes it can claim when k of n reviewers co-sign its result.</p>
             <p class="sc-basis">Builds on: sidestr-round co-signing</p>
           </article>
           <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="7 of 9: Refundable stakes on proposals">
@@ -788,7 +788,7 @@
     <div class="container reveal" data-num="10">
       <span class="section-tag">Grounding &amp; Serving Node</span>
       <h2>The Ontology Loom: measured grounding behind a model-swappable fa&ccedil;ade</h2>
-      <p>The <a href="https://github.com/DreamLab-AI/loom" target="_blank" rel="noopener" style="color:var(--gold)">Ontology Loom</a> selects corpus material for model context and reports its serving generation and policy. Its measured grounding results concern identified datasets, models and prompts. The input-exposure control shows why high recall alone does not establish reasoning beyond facts already shown to a model, nor its absence. Read the <a href="https://github.com/DreamLab-AI/loom/blob/main/docs/research/README.md" target="_blank" rel="noopener" style="color:var(--gold)">current research index</a> for the manuscript, controls and limits. No content-specificity or universal model-performance claim follows from the older headline score. Corpus consistency checks and answer-quality evaluation are separate.</p>
+      <p>The <a href="https://github.com/DreamLab-AI/loom" target="_blank" rel="noopener" style="color:var(--gold)">Ontology Loom</a> selects corpus material for model context and reports the generation and policy under which that material was served. The measured grounding results apply to the identified datasets, models and prompts used in that evaluation. The input-exposure control demonstrates why high recall alone does not establish reasoning beyond facts already shown to a model, or the absence of it. See the <a href="https://github.com/DreamLab-AI/loom/blob/main/docs/research/README.md" target="_blank" rel="noopener" style="color:var(--gold)">current research index</a> for the manuscript, controls and limits. No content-specificity or universal model-performance claim follows from the older headline score. Corpus consistency checks and answer-quality evaluation are separate.</p>
 
       <p class="section-lead" style="margin-top:1.5rem">A held-out graph-derived benchmark (objective gold, bootstrapped intervals) on the current model, <strong>Qwen3.8-27B</strong>, across four grounding modes:</p>
 
@@ -828,7 +828,7 @@
         </div>
         <div class="glass-card gap-card">
           <h3>Governed elevation, end to end</h3>
-          <p>New knowledge reaches the ontology through one governed door: an agent distils a note, grounds it against the Loom, and proposes an enrichment as an ACSP <code>31402</code> request; a human admin approves with <code>31403</code>; only then does it publish. The first elevation ran this way: proposed, approved, and live in the served generation the same day.</p>
+          <p>New knowledge enters the ontology through a single governed channel. An agent distils a note, grounds it against the Loom, and proposes an enrichment as an ACSP <code>31402</code> request. A human admin approves with <code>31403</code>. Only then does it publish. The first elevation went through this door, proposed, approved, and live in the served generation the same day.</p>
         </div>
       </div>
 
@@ -848,7 +848,7 @@
         <div class="case-card">
           <div class="case-icon">&#x1F30D;</div>
           <h3>Climate Modelling Consortium</h3>
-          <p>Three universities, two government agencies, one NGO. Each institution runs its own VisionClaw with domain-specific ontologies. OWL 2 EL reasoning ensures &ldquo;sea surface temperature anomaly&rdquo; means the same thing across all ontologies. Data stays in sovereign pods; cross-institutional findings surface through the Judgment Broker.</p>
+          <p>Three universities, two government agencies, one NGO. Each institution runs their own VisionClaw instance with domain-specific ontologies. OWL 2 EL reasoning guarantees that “sea surface temperature anomaly” means the same thing in all ontologies. Data stays in sovereign pods. Cross-institutional findings surface through the Judgment Broker.</p>
           <div class="case-why"><strong>Why competitors can&rsquo;t:</strong> No other platform combines formal ontology alignment, cryptographic data sovereignty, and human-in-the-loop governance.</div>
         </div>
 
@@ -862,7 +862,7 @@
         <div class="case-card">
           <div class="case-icon">&#x1F3AC;</div>
           <h3>Creative Production at Scale</h3>
-          <p>12-episode series, five time zones. Production ontology maps episodes to scenes to shots to assets. VFX agents track pipeline stages. When a VFX shot depends on an unapproved 3D asset, the OWL 2 constraint propagates through the graph and the GPU physics engine makes the blocked dependency visually obvious.</p>
+          <p>A 12-episode series, produced across five time zones. The production ontology maps episodes to scenes to shots to assets. Agents track VFX shots through their pipeline stages. When a VFX shot depends on an unapproved 3D asset, the OWL 2 constraint propagates through the graph and the GPU physics engine renders that blocked dependency obvious.</p>
           <div class="case-why"><strong>Why competitors can&rsquo;t:</strong> No other platform uses formal reasoning to propagate production constraints through a visual knowledge graph.</div>
         </div>
       </div>
@@ -882,7 +882,7 @@
   <section id="competitive" class="section">
     <div class="container reveal" data-num="12">
       <span class="section-tag">Landscape &middot; 2026</span>
-      <h2>The frontier moved to coordination guarantees</h2>
+      <h2>The frontier shifted to coordination guarantees</h2>
       <p class="section-lead">Through 2025&ndash;2026 the industry standardised how agents talk: Anthropic&rsquo;s MCP and Google&rsquo;s A2A, now both stewarded by the Linux Foundation&rsquo;s Agentic AI Foundation. &ldquo;Having agents&rdquo; is table stakes. The real question is coordination: who each actor cryptographically <em>is</em>, who owns the data, how decisions are governed and audited, whether reasoning is formally grounded or merely generated, and whether organisations federate without a central authority. On those axes the field thins fast.</p>
 
       <div class="competitive-table-wrap" tabindex="0" aria-label="Competitive landscape matrix">
@@ -946,13 +946,13 @@
   <section id="scaling" class="section section-dark">
     <div class="container reveal" data-num="13">
       <span class="section-tag">Scaling Model</span>
-      <h2>Three axes, one architecture</h2>
+      <h2>Scaling along three axes with one architecture</h2>
 
       <div class="scale-grid">
         <div class="scale-card">
           <div class="scale-tier">Single Operator</div>
           <h3>Token-Efficient</h3>
-          <p>One Agentbox, standalone mode. Local SQLite beads, local Solid pod, local events. registered skills, privacy filter active.</p>
+          <p>One Agentbox, standalone mode. Local SQLite beads, local Solid pod, local events. Registered skills, privacy filter active.</p>
           <div class="scale-cost">One API key. One container. Minutes to deploy.</div>
         </div>
         <div class="scale-card scale-card-mid">
@@ -964,7 +964,7 @@
         <div class="scale-card">
           <div class="scale-tier">Enterprise</div>
           <h3>Federated Intelligence</h3>
-          <p>Sovereign agentbox instances on the Nostr relay mesh. Cross-org relay federation routes IS-Envelopes across nodes with NIP-42 challenge/response and peer discovery. Each node is independently hardened, and trust rides on did:nostr rather than network topology.</p>
+          <p>Agentbox sovereign instances federate across the Nostr relay mesh, with cross-organisation relay federation routing IS-Envelopes across nodes using NIP-42 challenge/response authentication and peer discovery. Each node is independently hardened; trust is established through did:nostr identities, not network topology.</p>
           <div class="scale-cost">Horizontal. Add nodes. Each node owns its data.</div>
         </div>
       </div>
@@ -976,7 +976,7 @@
     <div class="container reveal" data-num="14">
       <span class="section-tag">Three doors</span>
       <h2>One system, explained for your seat</h2>
-      <p class="section-lead">Pick the description that matches how you will meet it.</p>
+      <p class="section-lead">Choose the description that matches how you will come to it.</p>
 
       <div class="doors">
         <div class="door-tabs" role="tablist" aria-label="Choose your audience">
@@ -988,7 +988,7 @@
         <div class="door-panel" role="tabpanel" id="panel-users" aria-labelledby="tab-users">
           <div class="door-block">
             <h3>Your day with VisionFlow</h3>
-            <p>You work in three places: your notes, the live graph, and a review inbox. You write notes the way you always have. The system watches for the ones that matter, and when one crosses the line it appears in your inbox as a plain diff: the note, the class it would become, and the evidence.</p>
+            <p>You work in three places: your notes, the live graph, and a review inbox. You write notes the way you always have. The system watches for the ones that matter. When one crosses the line, it appears in your inbox as a plain diff: the note, the class it would become, and the evidence.</p>
           </div>
           <div class="door-block">
             <h3>What happens when you ask for something</h3>
@@ -1011,7 +1011,7 @@
         <div class="door-panel" role="tabpanel" id="panel-devs" aria-labelledby="tab-devs" hidden>
           <div class="door-block">
             <h3>What you are looking at</h3>
-            <p class="door-dev">Six substrates with one concern each. <code>VisionClaw</code> is a Rust server with a CUDA physics path, an Oxigraph and Whelk knowledge pipeline, a React client and a Godot XR client in progress. <code>agentbox</code> is a Nix-built container runtime that supervises agents, tools and sidecars. <code>solid-pod-rs</code> is consumed as a pinned crate, never as a checkout. The forum, the branded edge deployment and the Loom are peers on the relay mesh; this repository is the canon over all of them.</p>
+            <p class="door-dev">Six substrates, one concern each: <code>VisionClaw</code> is a Rust server (CUDA physics path, Oxigraph/Whelk knowledge pipeline, React client, Godot XR client in progress), <code>agentbox</code> is a Nix-built container runtime supervising agents/tools/sidecars, <code>solid-pod-rs</code> is consumed as a pinned crate (never as a checkout), and the forum, the branded edge deployment, and the Loom are peers on the relay mesh. This repository is the canon over all of them.</p>
           </div>
           <div class="door-block">
             <h3>Runtime topology, in four facts</h3>
@@ -1026,7 +1026,7 @@
             <h3>Where to start reading</h3>
             <ul class="door-dev">
               <li><strong>Start with the diagrams.</strong> More than seventy sequence and flow diagrams in VisionClaw, each participant carrying a <code>path:line</code> citation and each file naming a verified commit. Paths, Mermaid and citations are linted in CI.</li>
-              <li><strong>Then the design record.</strong> Decisions live in ADRs, and the house rule is that a record is amended by dated addenda, never rewritten. A decision&rsquo;s history is part of the decision.</li>
+              <li><strong>Then the design record.</strong> All decisions are captured in ADRs (Architecture Decision Records), with a house rule that decisions are amended by dated addenda, never rewritten. The history of a decision is part of the decision.</li>
               <li><strong>Then one trace to internalise.</strong> Follow a single agent action from the runtime, over a signed event, into the engine, and out as a rendered beam. Once you can narrate that path, the rest of the estate is variations on it.</li>
             </ul>
           </div>
@@ -1073,7 +1073,7 @@
   <section id="status" class="section section-dark">
     <div class="container reveal" data-num="15">
       <span class="section-tag">Built, in progress, deferred</span>
-      <h2>What ships today, plainly</h2>
+      <h2>What ships today, and what does not</h2>
       <p class="section-lead">A page like this is worth reading only if it also says what does not exist yet. Here is the shape of the estate as the engineering record states it, verified against source on 6 September 2026, with maturity words from the ADR-002 ladder.</p>
 
       <div class="status-wrap" tabindex="0" role="region" aria-label="Estate status table">
@@ -1148,7 +1148,7 @@
           </tbody>
         </table>
       </div>
-      <p class="figcap">Source: the 2026-09-06 post-sprint closeout table and the README status ladder in <a href="https://github.com/DreamLab-AI/VisionFlow/tree/main/docs/estate-closeout" target="_blank" rel="noopener">docs/estate-closeout</a>. A maturity claim above the tier its evidence supports is a governance defect here, not a footnote.</p>
+      <p class="figcap">Source: 2026-09-06 post-sprint closeout table and README status ladder at <a href="https://github.com/DreamLab-AI/VisionFlow/tree/main/docs/estate-closeout" target="_blank" rel="noopener">docs/estate-closeout</a>. Claiming maturity above the tier your evidence supports is a governance defect here, not a footnote.</p>
     </div>
   </section>
 
@@ -1157,13 +1157,13 @@
     <div class="container reveal" data-num="16">
       <span class="section-tag">Nightly estate check</span>
       <h2>Every repository, every night</h2>
-      <p class="section-lead">CI on the default branch, open pull requests, the latest release, the last commit, public surface reachability and published registry versions, collected for every repository in the estate by <a href="https://github.com/DreamLab-AI/VisionFlow/blob/main/.github/workflows/estate-health.yml" target="_blank" rel="noopener">a workflow that runs at 02:30 UTC</a> and committed as data. What you read below is that committed snapshot, deployed through the same publication gates as this page — not a live query made while you scroll. The dream cycle reads the same file at 03:00, so a repository shown red here becomes a hypothesis the next night.</p>
+      <p class="section-lead">Health checks for every repository in the estate: CI status on the default branch, open pull requests, latest release, last commit, public surface reachability and published registry versions, collected by <a href="https://github.com/DreamLab-AI/VisionFlow/blob/main/.github/workflows/estate-health.yml" target="_blank" rel="noopener">a workflow that runs at 02:30 UTC</a> and committed as data. What you are reading is that committed snapshot, deployed through the same publication gates as this page, rather than a live query made while you scroll through it. The dream cycle reads the same file at 03:00. A repository that is red here becomes a hypothesis the next night.</p>
 
       <div id="estate-body">
-        <p class="estate-note">Loading the nightly snapshot… or read <a href="data/estate-health.json">data/estate-health.json</a></p>
+        <p class="estate-note">Loading the nightly snapshot… (or read <a href="data/estate-health.json">data/estate-health.json</a>).</p>
       </div>
 
-      <p class="figcap">Source: <a href="data/estate-health.json">data/estate-health.json</a>, collected by <a href="https://github.com/DreamLab-AI/VisionFlow/blob/main/.github/workflows/estate-health.yml" target="_blank" rel="noopener">.github/workflows/estate-health.yml</a>. A repository shown red here is a defect in the estate, not in the page.</p>
+      <p class="figcap">From <a href="data/estate-health.json">data/estate-health.json</a>, gathered by <a href="https://github.com/DreamLab-AI/VisionFlow/blob/main/.github/workflows/estate-health.yml" target="_blank" rel="noopener">.github/workflows/estate-health.yml</a>. If a repo is red on this page, the problem is with the estate, not the page.</p>
     </div>
   </section>
 
@@ -1275,6 +1275,7 @@
             <p>Applications and libraries: component-specific terms</p>
             <p>Corpus: ODbL-1.0 &middot; Pipeline: AGPL-3.0 &middot; Explorer: MIT</p>
             <p class="footer-fine">VisionClaw MPL 2.0 relicense proposed, not operative.</p>
+            <p class="footer-fine">Page copy drafted with <a href="https://huggingface.co/HemmingwayAI/Hemmingway-1.5" target="_blank" rel="noopener">Hemmingway-1.5</a> (CC BY-NC 4.0), checked by people.</p>
           </div>
         </div>
       </div>
