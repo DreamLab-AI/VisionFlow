@@ -1,0 +1,15 @@
+{
+  "kind": "triage",
+  "ts": "2026-10-30T20:01:37.024Z",
+  "model": "glm-5.3",
+  "max_tokens": 32000,
+  "topics": 36,
+  "glm_calls": 26,
+  "findings": 7,
+  "empty": 0,
+  "tokens": {
+    "input": 314450,
+    "output": 71271
+  },
+  "note": "manual rerun of 2026-10-29 GLM-failed topics; not written to review-ledger.jsonl per lead"
+}
