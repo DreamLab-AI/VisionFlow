@@ -7,7 +7,7 @@ implementation_status: complete
 activation_status: live
 supersedes: [ADR-2004]
 superseded_by: []
-verified_commit: f85e6be
+verified_commit: 7923766
 owner: jjohare
 review_trigger: a Pele release we adopt, a diagram the Mermaid 11 renderer accepts and Pele rejects, or any surface (site, CI gate, agent tool) added that renders Mermaid
 repo: visionflow
