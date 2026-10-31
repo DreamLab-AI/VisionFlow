@@ -3,11 +3,11 @@ id: ADR-2007
 title: Bind estate closeout to decision lineage and system evidence
 date: 2026-09-04
 decision_status: accepted
-implementation_status: complete
+implementation_status: partial
 activation_status: live
 supersedes: []
 superseded_by: []
-verified_commit: f85e6be
+verified_commit: f85e6bedc72d5564eba03ad8cda3816edc3f2a21
 owner: estate architecture maintainers
 review_trigger: completion of ADR inventory review or a change to the estate roster
 repo: visionflow
@@ -116,9 +116,9 @@ Owner decision 2026-10-02, Q8: accepted, narrowed to its evidence rule. The acce
 
 ## Close-out 2026-10-31
 
-The gap named in the acceptance annex is closed: evidence class and acceptance boundary are now gated, not review-only.
+The machine half of the evidence rule is built in VisionFlow only, so `implementation_status` stays `partial`: the Decision is the estate rule, and the other four ledger repos do not yet have these gates.
 
-- **Gate.** `scripts/adr-index-gen.cjs` validates `evidence_class` (one or more of `source`, `test`, `ci`, `deployment`, `runtime`, joined by `+`) and `acceptance_boundary` (non-empty text). Both are **required on records dated on or after 2026-10-31** and validated whenever present. Earlier records are frozen history: none was backfilled with an invented class. This record carries both, filled from its own annexes. `TEMPLATE.md` carries the keys, and `docs/architecture/adr-status-contract.md` states the rule.
-- **Evidence.** `bash tests/gates/adr-evidence-field.test.sh` runs seven cases (pre-cut-over record passes without the fields, post-cut-over without them fails, missing boundary fails, unknown class fails, joined classes pass, an invalid class on an old record still fails) and is registered in `tests/gates/run-all.sh`. `node scripts/adr-index-gen.cjs docs/adr --check` reports `ok: 21 ADR(s) valid`.
-- **Boundary.** The gate checks presence and enum membership, not whether the named evidence is true; truth stays a review matter. Run locally only. `activation_status: live` is unchanged (the existing `adr-index.yml` job runs `--check`); the other four ledger repos carry their own copies of the generator and do not yet have this gate.
-- `verified_commit` moves to `f85e6be`.
+- **Gate.** `scripts/adr-index-gen.cjs` validates `evidence_class` (one or more of `source`, `test`, `ci`, `deployment`, `runtime`, joined by `+`) and `acceptance_boundary` (non-empty text). Both are **required on records dated on or after 2026-10-31** and validated whenever present; that date gate is a backstop and binds nothing yet (the newest record is dated 2026-10-30). The binding gate is the transition check in `scripts/adr-ratchet.sh` (run by `adr-index.yml`): over BASE..HEAD, any record whose `implementation_status` becomes `complete` or whose `activation_status` becomes `live` must carry both fields, however old the record. Earlier records are frozen history: none was backfilled with an invented class. This record carries both, filled from its own annexes. `TEMPLATE.md` carries the keys, and `docs/architecture/adr-status-contract.md` states the rule.
+- **Evidence.** `bash tests/gates/adr-ratchet-evidence.test.sh` runs six cases for the transition gate (closure without fields fails, with both passes, activation to `live` without fields fails, empty boundary fails, an unrelated edit and an already-closed record pass), and `bash tests/gates/adr-evidence-field.test.sh` runs seven cases for the date backstop (pre-cut-over record passes without the fields, post-cut-over without them fails, missing boundary fails, unknown class fails, joined classes pass, an invalid class on an old record still fails) and is registered in `tests/gates/run-all.sh`. `node scripts/adr-index-gen.cjs docs/adr --check` reports `ok: 21 ADR(s) valid`.
+- **Boundary.** The gate checks presence and enum membership, not whether the named evidence is true; truth stays a review matter. Run locally only. `activation_status: live` is unchanged (the existing `adr-index.yml` job runs `--check`); the other four ledger repos carry their own copies of the generator and ratchet and do not have these gates. Closing ADR-2007 to `complete` needs them ported, or an owner decision that narrows the rule to VisionFlow (the owner's call).
+- `verified_commit` moves to `f85e6bedc72d5564eba03ad8cda3816edc3f2a21`.
