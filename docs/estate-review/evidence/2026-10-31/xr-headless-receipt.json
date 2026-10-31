@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-31",
+  "host": "authorised HP host",
+  "engine": "4.6.1.stable.official.14d19694e",
+  "fixture": "/tmp/visionflow-xr-audit.v1YmRrWY",
+  "isolation": "Copied production scripts, fake data, private XDG_DATA_HOME; no live XR project or services",
+  "project_godot": "config_version=5\n[application]\nconfig/name=\"VisionFlow isolated audit\"\n[rendering]\nrenderer/rendering_method=\"gl_compatibility\"\n",
+  "commands": [
+    "XDG_DATA_HOME=\"$fixture/data\" godot --headless --path \"$fixture\" --script res://xr-layer-probe.gd",
+    "XDG_DATA_HOME=\"$fixture/data\" timeout 60 godot --headless --path \"$fixture\" --editor --import --quit",
+    "XDG_DATA_HOME=\"$fixture/data\" timeout 60 godot --headless --path \"$fixture\" --script addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit -glog=1",
+    "bash tests/gut_guard.sh xr-gut-suite-plain.txt xr-gut-import-plain.txt"
+  ],
+  "final_exit_codes": {
+    "probe": 0,
+    "import": 0,
+    "gut": 0,
+    "guard": 0
+  },
+  "gut": {
+    "scripts": 5,
+    "tests": 76,
+    "assertions": 1345,
+    "teardown_warnings": true
+  },
+  "hashes": "xr-headless-source-hashes.txt",
+  "note": "Full gdext wrapper, live transport, native hardware and headset performance were not exercised.",
+  "temporary_remote_fixture_removed": true
+}

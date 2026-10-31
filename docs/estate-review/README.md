@@ -102,6 +102,8 @@ Codescape presence and XR: [membership replacement, queue loss and concurrent co
 
 Return to the [documentation index](../README.md). The [book](../../presentation/report/main.tex) records the wider argument and its history; the [baseline](../BASELINE-visionflow.md), [gap register](../registers/gap-register-v1.2.md) and [closeout](../closeout/final-design.md) provide earlier assessments to investigate, rather than substitute for current evidence.
 
+XR volumes and concept links: [annotation provenance, fit cadence and highlight budgets](2026-10-31-xr-volumes-and-code-links.md), with section dispositions for ADR-2158 and ADR-2164, isolated Godot evidence and a Sourcegraph comparison.
+
 ## Coverage ledger
 
 “Inspected” below means the named material was read. It does not imply that a repository builds or its service works. Capability maturity must be assessed per path; a single maturity label for an entire repository would conceal important differences.

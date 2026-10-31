@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_165 topic files, 1548 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_167 topic files, 1554 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -230,6 +230,8 @@ _165 topic files, 1548 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VC-42 | [Codescape command policy and retained runtime artefacts](visionclaw/42-codescape-command-policy-and-runtime-artefacts.md) | 4 | flowchart | [BASELINE-codescape.md](../../../codescape/docs/BASELINE-codescape.md), [ADR-0001-extraction-from-visionclaw.md](../../../codescape/docs/adr/ADR-0001-extraction-from-visionclaw.md) | ADR-0001, ADR-2148 |
 | VC-43 | [Codescape presence admission, replacement and queue loss](visionclaw/43-codescape-presence-lifecycle.md) | 3 | flowchart, sequenceDiagram | [BASELINE-codescape.md](../../../codescape/docs/BASELINE-codescape.md), [ADR-2143-codescape-section-separate-workspace-and-port.md](../../../project/docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md) | ADR-2143, ADR-2159 |
 | VC-44 | [Concurrent XR content connections and separate room presence](visionclaw/44-xr-concurrent-backend-connections.md) | 3 | flowchart | [ADR-2159-the-xr-client-holds-one-backend-connection-per-content-source.md](../../../project/docs/adr/ADR-2159-the-xr-client-holds-one-backend-connection-per-content-source.md) | ADR-2143, ADR-2159 |
+| VC-45 | [Code annotations, runtime concept joins and missing provenance](visionclaw/45-code-to-concept-link-evidence.md) | 3 | flowchart | [ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md](../../../project/docs/adr/ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md) | ADR-2143, ADR-2159, ADR-2164 |
+| VC-46 | [Spatial volume fit cadence, link highlights and native fallback](visionclaw/46-spatial-volume-fit-and-link-budget.md) | 3 | flowchart | [ADR-2158-xr-content-is-presented-in-spatial-volumes-emulated-until-the-runtime-provides-them.md](../../../project/docs/adr/ADR-2158-xr-content-is-presented-in-spatial-volumes-emulated-until-the-runtime-provides-them.md), [ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md](../../../project/docs/adr/ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md) | ADR-2158, ADR-2164 |
 
 ### agentbox
 

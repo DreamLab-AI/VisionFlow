@@ -1,0 +1,208 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[   0% ] first_scan_filesystem | Started Project initialization (5 steps)
+[   0% ] first_scan_filesystem | Scanning file structure...
+[  16% ] first_scan_filesystem | Loading global class names...
+[  33% ] first_scan_filesystem | Verifying GDExtensions...
+[  50% ] first_scan_filesystem | Creating autoload scripts...
+[  66% ] first_scan_filesystem | Initializing plugins...
+[  83% ] first_scan_filesystem | Starting file scan...
+[ DONE ] first_scan_filesystem
+
+[   0% ] update_scripts_classes | Started Registering global classes... (100 steps)
+[   0% ] update_scripts_classes |
+[   0% ] update_scripts_classes |
+[   1% ] update_scripts_classes |
+[   2% ] update_scripts_classes |
+[   3% ] update_scripts_classes |
+[   4% ] update_scripts_classes |
+[   5% ] update_scripts_classes |
+[   6% ] update_scripts_classes |
+[   7% ] update_scripts_classes |
+[   8% ] update_scripts_classes |
+[   9% ] update_scripts_classes |
+[  10% ] update_scripts_classes |
+[  11% ] update_scripts_classes |
+[  12% ] update_scripts_classes |
+[  13% ] update_scripts_classes |
+[  14% ] update_scripts_classes |
+[  15% ] update_scripts_classes |
+[  16% ] update_scripts_classes |
+[  17% ] update_scripts_classes |
+[  18% ] update_scripts_classes |
+[  19% ] update_scripts_classes |
+[  20% ] update_scripts_classes |
+[  21% ] update_scripts_classes |
+[  22% ] update_scripts_classes |
+[  23% ] update_scripts_classes |
+[  24% ] update_scripts_classes |
+[  25% ] update_scripts_classes |
+[  26% ] update_scripts_classes |
+[  27% ] update_scripts_classes |
+[  28% ] update_scripts_classes |
+[  29% ] update_scripts_classes |
+[  30% ] update_scripts_classes |
+[  31% ] update_scripts_classes |
+[  32% ] update_scripts_classes |
+[  33% ] update_scripts_classes |
+[  34% ] update_scripts_classes |
+[  35% ] update_scripts_classes |
+[  36% ] update_scripts_classes |
+[  37% ] update_scripts_classes |
+[  38% ] update_scripts_classes | GutErrorTracker
+[  39% ] update_scripts_classes |
+[  40% ] update_scripts_classes |
+[  41% ] update_scripts_classes | GutMain
+[  42% ] update_scripts_classes |
+[  43% ] update_scripts_classes |
+[  44% ] update_scripts_classes |
+[  45% ] update_scripts_classes |
+[  46% ] update_scripts_classes |
+[  47% ] update_scripts_classes |
+[  48% ] update_scripts_classes |
+[  49% ] update_scripts_classes |
+[  50% ] update_scripts_classes | GutTrackedError
+[  51% ] update_scripts_classes |
+[  52% ] update_scripts_classes | GutHookScript
+[  53% ] update_scripts_classes |
+[  54% ] update_scripts_classes | GutInputFactory
+[  55% ] update_scripts_classes | GutInputSender
+[  56% ] update_scripts_classes |
+[  57% ] update_scripts_classes |
+[  58% ] update_scripts_classes |
+[  59% ] update_scripts_classes |
+[  60% ] update_scripts_classes |
+[  61% ] update_scripts_classes |
+[  62% ] update_scripts_classes |
+[  63% ] update_scripts_classes |
+[  64% ] update_scripts_classes |
+[  65% ] update_scripts_classes |
+[  66% ] update_scripts_classes |
+[  67% ] update_scripts_classes |
+[  68% ] update_scripts_classes |
+[  69% ] update_scripts_classes |
+[  70% ] update_scripts_classes | GutStringUtils
+[  71% ] update_scripts_classes |
+[  72% ] update_scripts_classes |
+[  73% ] update_scripts_classes |
+[  74% ] update_scripts_classes |
+[  75% ] update_scripts_classes | GutTest
+[  76% ] update_scripts_classes |
+[  77% ] update_scripts_classes |
+[  78% ] update_scripts_classes |
+[  79% ] update_scripts_classes |
+[  80% ] update_scripts_classes | GutUtils
+[  81% ] update_scripts_classes |
+[  82% ] update_scripts_classes |
+[  83% ] update_scripts_classes |
+[  84% ] update_scripts_classes |
+[  85% ] update_scripts_classes |
+[  86% ] update_scripts_classes |
+[  87% ] update_scripts_classes |
+[  88% ] update_scripts_classes |
+[  89% ] update_scripts_classes |
+[  90% ] update_scripts_classes |
+[  91% ] update_scripts_classes |
+[  92% ] update_scripts_classes |
+[  93% ] update_scripts_classes |
+[  94% ] update_scripts_classes |
+[  95% ] update_scripts_classes |
+[  96% ] update_scripts_classes |
+[  97% ] update_scripts_classes |
+[  98% ] update_scripts_classes |
+[ DONE ] update_scripts_classes
+
+[   0% ] _update_scan_actions | Started Scanning actions... (26 steps)
+[   0% ] _update_scan_actions | AnonymousPro-Bold.ttf
+[   3% ] _update_scan_actions | AnonymousPro-BoldItalic.ttf
+[   7% ] _update_scan_actions | AnonymousPro-Italic.ttf
+[  11% ] _update_scan_actions | AnonymousPro-Regular.ttf
+[  14% ] _update_scan_actions | CourierPrime-Bold.ttf
+[  18% ] _update_scan_actions | CourierPrime-BoldItalic.ttf
+[  22% ] _update_scan_actions | CourierPrime-Italic.ttf
+[  25% ] _update_scan_actions | CourierPrime-Regular.ttf
+[  29% ] _update_scan_actions | LobsterTwo-Bold.ttf
+[  33% ] _update_scan_actions | LobsterTwo-BoldItalic.ttf
+[  37% ] _update_scan_actions | LobsterTwo-Italic.ttf
+[  40% ] _update_scan_actions | LobsterTwo-Regular.ttf
+[  44% ] _update_scan_actions | arrow.png
+[  48% ] _update_scan_actions | play.png
+[  51% ] _update_scan_actions | eyey.png
+[  55% ] _update_scan_actions | Folder.svg
+[  59% ] _update_scan_actions | green.png
+[  62% ] _update_scan_actions | GutIconV2_base.png
+[  66% ] _update_scan_actions | GutIconV2_no_shine.png
+[  70% ] _update_scan_actions | HSplitContainer.svg
+[  74% ] _update_scan_actions | red.png
+[  77% ] _update_scan_actions | Script.svg
+[  81% ] _update_scan_actions | VSplitContainer.svg
+[  85% ] _update_scan_actions | yellow.png
+[  88% ] _update_scan_actions | icon.png
+[  92% ] _update_scan_actions | source_code_pro.fnt
+[ DONE ] _update_scan_actions
+
+[   0% ] reimport | Started (Re)Importing Assets (26 steps)
+[   0% ] reimport | Preparing files to reimport...
+[   3% ] reimport | Preparing files to reimport...
+[   7% ] reimport | Preparing files to reimport...
+[  11% ] reimport | Preparing files to reimport...
+[  14% ] reimport | Preparing files to reimport...
+[  18% ] reimport | Preparing files to reimport...
+[  22% ] reimport | Preparing files to reimport...
+[  25% ] reimport | Preparing files to reimport...
+[  29% ] reimport | Preparing files to reimport...
+[  33% ] reimport | Preparing files to reimport...
+[  37% ] reimport | Preparing files to reimport...
+[  40% ] reimport | Preparing files to reimport...
+[  44% ] reimport | Preparing files to reimport...
+[  48% ] reimport | Preparing files to reimport...
+[  51% ] reimport | Preparing files to reimport...
+[  55% ] reimport | Preparing files to reimport...
+[  59% ] reimport | Preparing files to reimport...
+[  62% ] reimport | Preparing files to reimport...
+[  66% ] reimport | Preparing files to reimport...
+[  70% ] reimport | Preparing files to reimport...
+[  74% ] reimport | Preparing files to reimport...
+[  77% ] reimport | Preparing files to reimport...
+[  81% ] reimport | Preparing files to reimport...
+[  85% ] reimport | Preparing files to reimport...
+[  88% ] reimport | Preparing files to reimport...
+[  92% ] reimport | Preparing files to reimport...
+[   0% ] reimport | Executing pre-reimport operations...
+[   0% ] reimport | source_code_pro.fnt
+[   3% ] reimport | source_code_pro.fnt
+[   7% ] reimport | LobsterTwo-Regular.ttf
+[  11% ] reimport | LobsterTwo-Italic.ttf
+[  14% ] reimport | LobsterTwo-BoldItalic.ttf
+[  18% ] reimport | LobsterTwo-Bold.ttf
+[  22% ] reimport | CourierPrime-Regular.ttf
+[  25% ] reimport | AnonymousPro-Bold.ttf
+[  29% ] reimport | AnonymousPro-BoldItalic.ttf
+[  33% ] reimport | AnonymousPro-Italic.ttf
+[  37% ] reimport | CourierPrime-Italic.ttf
+[  40% ] reimport | CourierPrime-BoldItalic.ttf
+[  44% ] reimport | CourierPrime-Bold.ttf
+[  48% ] reimport | source_code_pro.fnt
+[  51% ] reimport | LobsterTwo-Regular.ttf
+[  55% ] reimport | LobsterTwo-Italic.ttf
+[  59% ] reimport | LobsterTwo-BoldItalic.ttf
+[  62% ] reimport | LobsterTwo-Bold.ttf
+[  66% ] reimport | CourierPrime-Regular.ttf
+[  70% ] reimport | AnonymousPro-Bold.ttf
+[  74% ] reimport | AnonymousPro-BoldItalic.ttf
+[  77% ] reimport | AnonymousPro-Italic.ttf
+[  81% ] reimport | CourierPrime-Italic.ttf
+[  85% ] reimport | CourierPrime-BoldItalic.ttf
+[  88% ] reimport | CourierPrime-Bold.ttf
+[  92% ] reimport | AnonymousPro-Regular.ttf
+[  96% ] reimport | Finalizing Asset Import...
+[ DONE ] reimport
+
+[   0% ] reimport | Started (Re)Importing Assets (26 steps)
+[   0% ] reimport | Executing post-reimport operations...
+[ DONE ] reimport
+
+[   0% ] loading_editor_layout | Started Loading editor (5 steps)
+[   0% ] loading_editor_layout | Loading editor layout...
+[  16% ] loading_editor_layout | Loading docks...
+[ DONE ] loading_editor_layout

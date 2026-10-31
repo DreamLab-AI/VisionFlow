@@ -1,0 +1,166 @@
+{
+  "visionclaw": {
+    "root": "/home/devuser/workspace/project",
+    "head": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+    "files": [
+      {
+        "path": "docs/adr/ADR-2158-xr-content-is-presented-in-spatial-volumes-emulated-until-the-runtime-provides-them.md",
+        "sha256": "24756eb317a4c45512a38657007dc6643d3894f3ff3dca3f356da1a5feaa5410",
+        "matches_head": true
+      },
+      {
+        "path": "docs/adr/ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md",
+        "sha256": "9de4974c531a5e6dc4b458dffcc33674473374f1696d1cc599189ca25d67dc48",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/graph_scene.gd",
+        "sha256": "58b95160c2e8bd19c93dca329522f0539481509b98452af6b9a4e96b2986fec6",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/link_layer.gd",
+        "sha256": "e22376b6073589b022fdea52b247ee3e5e5b39251c1ad8fb44b9e1809551a0c2",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/spatial_volume.gd",
+        "sha256": "784ee4b5e7804514bbc4dbf061cfd865130200248fa1122857346b561250f059",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/emulated_volume.gd",
+        "sha256": "7b4058761a0103c7d541fca7c5313bb3cf82101257b0647c0b7af4676ac28cee",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/volume_arrangement.gd",
+        "sha256": "37f34fd321a7d0e70fb11d92a1b86c509a6c893dcde97f8969a9a4ab0dd76fab",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/native_container_shim.gd",
+        "sha256": "2668076e78b3e683ce68d329dfdf8f5fd5a5a7988e956cb243d28750c33457ba",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/xr_prefs.gd",
+        "sha256": "d3f452be58813533c7b496be213a539760410c8782ccc26c86c9fa0c452aa3dd",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/connection_volume_source.gd",
+        "sha256": "e11c2d04c9d91f0e3d382e07bb04a5d20f3acd89092277f13e8875e4abec0511",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/rust/src/link_index.rs",
+        "sha256": "d83c78950c69e8cde10cf62f5d0f8debfdad6ee3174b444e60824959bc278920",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/rust/src/binary_protocol.rs",
+        "sha256": "f5e48c53c33e08187b5c197ae38e7ea2fe1e4cf7590a68e47767b7bad17bc936",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/tests/unit/test_link_layer.gd",
+        "sha256": "22812ffaa81ed35b847cf5a800c03dc64f00cebcb14f22137ecb102c4193dab8",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/tests/unit/test_link_layer_highlight.gd",
+        "sha256": "bb411f964815ecb37dfc8491fe4087000821f450af03f144bf682da79509898f",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/tests/unit/test_spatial_volume.gd",
+        "sha256": "0d2fd23c7b2d1b175b16de190faccff78febb6e5de1dab96cc298c9caae929f3",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/tests/unit/test_volume_arrangement.gd",
+        "sha256": "b8b7746c4ab849b56a10389ed879ec5b5f5816dd1ace83dc707a224b65a703b5",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/tests/unit/test_native_container_shim.gd",
+        "sha256": "d6a26dd20d15dc4ebfed62ae4c381603e23cb9c641aec5607f4226ed10d5d446",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/materials/frame_ribbon.gdshader",
+        "sha256": "91d8844d60e5211771835ab1cdee855c31f32f4921367fa019019f5ee26f75f9",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scenes/EmulatedVolume.tscn",
+        "sha256": "d3bfd699a429c2ccbf3da5d25c9826c5446c015cea53fe84204b8cb54b23349e",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/tests/fixtures/fixture_content_source.gd",
+        "sha256": "657d4fde043852c07b40afa2cc419f20176d2bd4462a89fa1913c1ee973630d1",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/tests/fixtures/fake_spatial_container_ext.gd",
+        "sha256": "c5eab31557ded79ceb342697158b859942375d6295b3ca8ac66753209ce970bb",
+        "matches_head": true
+      }
+    ]
+  },
+  "codescape": {
+    "root": "/home/devuser/workspace/codescape",
+    "head": "58108c0357bd0dbf6588f8b6adf6e044f4c04556",
+    "files": [
+      {
+        "path": "crates/codescape-ingest/src/annotations.rs",
+        "sha256": "96c932082e4c20b499112a0260275b054709b053e5069d42248cc2dee46f2a74",
+        "matches_head": true
+      },
+      {
+        "path": "crates/codescape-server/src/xr.rs",
+        "sha256": "02a04ad9a3a8e1f997b1c63a3ffaab550809d49bf0cd93d7f654742ab1925a1e",
+        "matches_head": true
+      },
+      {
+        "path": "crates/codescape-server/src/engine.rs",
+        "sha256": "33ad539d17e75c924784cf1cb27060d4be0a291351d6101d1f3c978c1f57b3d7",
+        "matches_head": true
+      },
+      {
+        "path": "crates/codescape-server/src/routes/mod.rs",
+        "sha256": "c07e3706902d736768159c7525df521e34bb8a3998acf69bec0db901b7a1cca7",
+        "matches_head": true
+      }
+    ]
+  },
+  "consumed_codescape": {
+    "root": "/home/devuser/workspace/project/codescape",
+    "head": "e3b76f63e801c6a8460110b93e88a0b420e9b0b4",
+    "files": [
+      {
+        "path": "crates/codescape-ingest/src/annotations.rs",
+        "sha256": "96c932082e4c20b499112a0260275b054709b053e5069d42248cc2dee46f2a74",
+        "matches_head": true
+      },
+      {
+        "path": "crates/codescape-server/src/xr.rs",
+        "sha256": "02a04ad9a3a8e1f997b1c63a3ffaab550809d49bf0cd93d7f654742ab1925a1e",
+        "matches_head": true
+      },
+      {
+        "path": "crates/codescape-server/src/engine.rs",
+        "sha256": "33ad539d17e75c924784cf1cb27060d4be0a291351d6101d1f3c978c1f57b3d7",
+        "matches_head": true
+      },
+      {
+        "path": "crates/codescape-server/src/routes/mod.rs",
+        "sha256": "c07e3706902d736768159c7525df521e34bb8a3998acf69bec0db901b7a1cca7",
+        "matches_head": true
+      }
+    ]
+  },
+  "headless_copied_sources_match": true
+}

@@ -1,0 +1,1122 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+---  GUT  ---
+[1m[INFO]:  [0musing [/tmp/visionflow-xr-audit.v1YmRrWY/data/godot/app_userdata/VisionFlow isolated audit] for temporary output.
+Godot version:  4.6.1
+GUT version:  9.6.1
+SCRIPT ERROR: Parse Error: Preload file "res://materials/frame_ribbon.gdshader" does not exist.
+          at: GDScript::reload (res://scripts/emulated_volume.gd:236)
+          GDScript backtrace (most recent call first):
+              [0] load_script_using_custom_warnings (res://addons/gut/warnings_manager.gd:173)
+              [1] _parse_script (res://addons/gut/test_collector.gd:76)
+              [2] add_script (res://addons/gut/test_collector.gd:128)
+              [3] add_script (res://addons/gut/gut.gd:1070)
+              [4] add_directory (res://addons/gut/gut.gd:1093)
+              [5] _apply_options (res://addons/gut/gut_config.gd:136)
+              [6] apply_options (res://addons/gut/gut_config.gd:207)
+              [7] run_tests (res://addons/gut/gui/GutRunner.gd:192)
+              [8] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [9] main (res://addons/gut/cli/gut_cli.gd:297)
+              [10] _init (res://addons/gut/gut_cmdln.gd:39)
+ERROR: Failed to load script "res://scripts/emulated_volume.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+   GDScript backtrace (most recent call first):
+       [0] load_script_using_custom_warnings (res://addons/gut/warnings_manager.gd:173)
+       [1] _parse_script (res://addons/gut/test_collector.gd:76)
+       [2] add_script (res://addons/gut/test_collector.gd:128)
+       [3] add_script (res://addons/gut/gut.gd:1070)
+       [4] add_directory (res://addons/gut/gut.gd:1093)
+       [5] _apply_options (res://addons/gut/gut_config.gd:136)
+       [6] apply_options (res://addons/gut/gut_config.gd:207)
+       [7] run_tests (res://addons/gut/gui/GutRunner.gd:192)
+       [8] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+       [9] main (res://addons/gut/cli/gut_cli.gd:297)
+       [10] _init (res://addons/gut/gut_cmdln.gd:39)
+[4m
+
+res://tests/unit/test_link_layer.gd
+[0m* test_off_by_default_costs_nothing
+* test_one_multimesh_with_a_16_float_stride_and_12_triangles
+* test_enabled_layer_draws_each_record_between_its_endpoints
+* test_switching_off_empties_in_the_same_frame
+* test_cap_512_with_overflow_count_in_kind_order
+* test_drop_connection_empties_its_records_at_once
+* test_reconnect_drops_the_old_generation_before_drawing
+* test_closed_codescape_connection_draws_nothing_without_error
+* test_hidden_volume_hides_its_links_without_counting_them
+* test_endpoints_refresh_at_10_hz
+* test_external_unresolved_is_reported
+[1m11/11 passed.
+[0m[4m
+
+res://tests/unit/test_link_layer_highlight.gd
+[0m* test_drawn_segments_are_world_space_in_draw_order
+* test_drawn_segments_follow_the_layer_transform_and_empty_when_off
+* test_hidden_volume_link_is_not_a_segment
+* test_highlight_draws_brighter_thicker_and_rings_the_ends
+* test_clearing_the_highlight_restores_the_plain_draw
+* test_highlight_keys_round_trip_and_string_conns_match
+* test_highlight_while_off_draws_nothing_and_applies_on_enable
+* test_counterparts_are_the_far_ends_deduplicated
+* test_counterparts_include_hidden_volumes_but_not_stale_generations
+* test_drop_connection_clears_segments_and_rings
+[1m10/10 passed.
+[0m[4m
+
+res://tests/unit/test_native_container_shim.gd
+[0m* test_real_headless_engine_gives_setting_off
+* test_each_reason_in_order
+* test_engine_version_gate
+* test_extension_without_is_enabled_counts_as_disabled
+* test_real_engine_with_flags_forced
+* test_native_active_at_start_fits_through_fit_scale
+* test_refit_never_compounds
+* test_activation_within_timeout
+* test_activation_timeout_falls_back
+* test_closed_falls_back_once_and_restores
+* test_timeout_then_closed_emits_once
+* test_container_lost_without_closed_falls_back
+* test_immersive_and_infinite_restore_one_to_one
+* test_degenerate_bounds_keep_current_fit
+* test_master_signal_names_connect
+* test_android_guide_signal_names_connect
+* test_start_on_emulated_decision_is_inert
+* test_fit_unavailable_falls_back
+* test_default_fit_resolves_spatial_volume
+* test_real_fit_scale_from_spatial_volume
+* test_enum_tables
+* test_notice_only_in_debug_builds
+* test_fake_matches_real_class_when_present
+[1m23/23 passed.
+[0m[4m
+
+res://tests/unit/test_spatial_volume.gd
+[0m* test_fit_scale_isotropic
+* test_fit_scale_anisotropic_checks_each_axis
+* test_fit_scale_ignores_axes_below_min_extent
+* test_fit_scale_all_axes_below_min_extent_is_one
+* test_scene_builds_its_children_before_add_child
+SCRIPT ERROR: Invalid access to property or key 'content' on a base object of type 'Node3D'.
+          at: test_scene_builds_its_children_before_add_child (res://tests/unit/test_spatial_volume.gd:82)
+          GDScript backtrace (most recent call first):
+              [0] test_scene_builds_its_children_before_add_child (res://tests/unit/test_spatial_volume.gd:82)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid access to property or key 'content' on a base object of type 'Node3D'.
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#84909492322>] + 3[0m
+* test_new_without_scene_builds_children_too
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_new_without_scene_builds_children_too (res://tests/unit/test_spatial_volume.gd:100)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid call. Nonexistent function 'new' in base 'GDScript'.
+      at line -1
+          GDScript backtrace (most recent call first):
+              [0] test_new_without_scene_builds_children_too (res://tests/unit/test_spatial_volume.gd:100)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+* test_e7_every_point_inside_after_fit
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _volume (res://tests/unit/test_spatial_volume.gd:51)
+          GDScript backtrace (most recent call first):
+              [0] _volume (res://tests/unit/test_spatial_volume.gd:51)
+              [1] test_e7_every_point_inside_after_fit (res://tests/unit/test_spatial_volume.gd:108)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+      at line -1
+SCRIPT ERROR: Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at: test_e7_every_point_inside_after_fit (res://tests/unit/test_spatial_volume.gd:110)
+          GDScript backtrace (most recent call first):
+              [0] test_e7_every_point_inside_after_fit (res://tests/unit/test_spatial_volume.gd:110)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#85211482228>] + 3[0m
+* test_e7_resize_every_frame_never_outside_more_than_one_frame
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _volume (res://tests/unit/test_spatial_volume.gd:51)
+          GDScript backtrace (most recent call first):
+              [0] _volume (res://tests/unit/test_spatial_volume.gd:51)
+              [1] test_e7_resize_every_frame_never_outside_more_than_one_frame (res://tests/unit/test_spatial_volume.gd:128)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mSCRIPT ERROR: Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at: test_e7_resize_every_frame_never_outside_more_than_one_frame (res://tests/unit/test_spatial_volume.gd:130)
+          GDScript backtrace (most recent call first):
+              [0] test_e7_resize_every_frame_never_outside_more_than_one_frame (res://tests/unit/test_spatial_volume.gd:130)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+Unexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#85496694915>] + 3[0m
+* test_growth_eases_and_converges
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _volume (res://tests/unit/test_spatial_volume.gd:51)
+          GDScript backtrace (most recent call first):
+              [0] _volume (res://tests/unit/test_spatial_volume.gd:51)
+              [1] test_growth_eases_and_converges (res://tests/unit/test_spatial_volume.gd:151)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at: test_growth_eases_and_converges (res://tests/unit/test_spatial_volume.gd:153)
+          GDScript backtrace (most recent call first):
+              [0] test_growth_eases_and_converges (res://tests/unit/test_spatial_volume.gd:153)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#85781907602>] + 3[0m
+* test_shrink_snaps_inside
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _volume (res://tests/unit/test_spatial_volume.gd:51)
+          GDScript backtrace (most recent call first):
+              [0] _volume (res://tests/unit/test_spatial_volume.gd:51)
+              [1] test_shrink_snaps_inside (res://tests/unit/test_spatial_volume.gd:170)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at: test_shrink_snaps_inside (res://tests/unit/test_spatial_volume.gd:172)
+          GDScript backtrace (most recent call first):
+              [0] test_shrink_snaps_inside (res://tests/unit/test_spatial_volume.gd:172)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutR[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+unner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#86067120289>] + 3[0m
+* test_immersive_is_one_to_one
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _volume (res://tests/unit/test_spatial_volume.gd:51)
+          GDScript backtrace (most recent call first):
+              [0] _volume (res://tests/unit/test_spatial_volume.gd:51)
+              [1] test_immersive_is_one_to_one (res://tests/unit/test_spatial_volume.gd:181)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at: test_immersive_is_one_to_one (res://tests/unit/test_spatial_volume.gd:183)
+          GDScript backtrace (most recent call first):
+              [0] test_immersive_is_one_to_one (res://tests/unit/test_spatial_volume.gd:183)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/[31m    [Failed]:  [0mGutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+Unexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#86352332976>] + 3[0m
+* test_request_bounds_granted_clamped_denied
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _volume (res://tests/unit/test_spatial_volume.gd:51)
+          GDScript backtrace (most recent call first):
+              [0] _volume (res://tests/unit/test_spatial_volume.gd:51)
+              [1] test_request_bounds_granted_clamped_denied (res://tests/unit/test_spatial_volume.gd:201)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_signal_list' in base 'Nil'.
+          at: watch_signals (res://addons/gut/signal_watcher.gd:123)
+          GDScript backtrace (most recent call first):
+              [0] watch_signals (res://addons/gut/signal_watcher.gd:123)
+              [1] watch_signals (res://addons/gut/test.gd:535)
+              [2] test_request_bounds_granted_clamped_denied (res://tests/unit/test_spatial_volume.gd:202)
+              [3] _run_test (res://addons/gut/gut.gd:622)
+              [4] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [5] test_scripts (res://addons/gut/gut.gd:1047)
+              [6] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [7] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [8] main (res://addons/gut/cli/gut_cli.gd:297)
+              [9] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'request_bounds' in base 'Nil'.
+          at: test_request_bounds_granted_clamped_denied (res://tests/unit/test_spatial_volume.gd:203)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'get_signal_list' in base 'Nil'.
+    [3] <engine-2>Invalid call. Nonexistent function 'request_bounds' in base 'Nil'.
+          GDScript backtrace (most recent call first):
+              [0] test_request_bounds_granted_clamped_denied (res://tests/unit/test_spatial_volume.gd:203)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#86637545663>] + 3[0m
+* test_closed_stops_ticking_and_denies
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _volume (res://tests/unit/test_spatial_volume.gd:51)
+          GDScript backtrace (most recent call first):
+              [0] _volume (res://tests/unit/test_spatial_volume.gd:51)
+              [1] test_closed_stops_ticking_and_denies (res://tests/unit/test_spatial_volume.gd:223)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at: test_closed_stops_ticking_and_denies (res://tests/unit/test_spatial_volume.gd:225)
+          GDScript backtrace (most recent call first):
+              [0] test_closed_stops_ticking_and_denies (res://tests/unit/test_spatial_volume.gd:225)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#86939535569>] + 3[0m
+* test_undo_yaw_is_applied_before_measuring
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _volume (res://tests/unit/test_spatial_volume.gd:51)
+          GDScript backtrace (most recent call first):
+              [0] _volume (res://tests/unit/test_spatial_volume.gd:51)
+              [1] test_undo_yaw_is_applied_before_measuring (res://tests/unit/test_spatial_volume.gd:249)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at: test_undo_yaw_is_applied_before_measuring (res://tests/unit/test_spatial_volume.gd:251)
+          GDScript backtrace (most recent call first):
+              [0] test_undo_yaw_is_applied_before_measuring (res://tests/unit/test_spatial_volume.gd:251)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#87224748256>] + 3[0m
+* test_grabbed_node_is_excluded_from_the_fit
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _volume (res://tests/unit/test_spatial_volume.gd:51)
+          GDScript backtrace (most recent call first):
+              [0] _volume (res://tests/unit/test_spatial_volume.gd:51)
+              [1] test_grabbed_node_is_excluded_from_the_fit (res://tests/unit/test_spatial_volume.gd:268)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at: test_grabbed_node_is_excluded_from_the_fit (res://tests/unit/test_spatial_volume.gd:270)
+          GDScript backtrace (most recent call first):
+              [0] test_grabbed_node_is_excluded_from_the_fit (res://tests/unit/test_spatial_volume.gd:270)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#87509960943>] + 3[0m
+* test_source_recomputed_on_cadence
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _volume (res://tests/unit/test_spatial_volume.gd:51)
+          GDScript backtrace (most recent call first):
+              [0] _volume (res://tests/unit/test_spatial_volume.gd:51)
+              [1] test_source_recomputed_on_cadence (res://tests/unit/test_spatial_volume.gd:279)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at: test_source_recomputed_on_cadence (res://tests/unit/test_spatial_volume.gd:281)
+          GDScript backtrace (most recent call first):
+              [0] test_source_recomputed_on_cadence (res://tests/unit/test_spatial_volume.gd:281)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#87778396414>] + 3[0m
+* test_manual_latch_holds_until_bounds_change
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _volume (res://tests/unit/test_spatial_volume.gd:51)
+          GDScript backtrace (most recent call first):
+              [0] _volume (res://tests/unit/test_spatial_volume.gd:51)
+              [1] test_manual_latch_holds_until_bounds_change (res://tests/unit/test_spatial_volume.gd:294)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at: test_manual_latch_holds_until_bounds_change (res://tests/unit/test_spatial_volume.gd:296)
+          GDScript backtrace (most recent call first):
+              [0] test_manual_latch_holds_until_bounds_change (res://tests/unit/test_spatial_volume.gd:296)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#88046831885>] + 3[0m
+* test_resize_handle_drives_runtime_bounds
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _volume (res://tests/unit/test_spatial_volume.gd:51)
+          GDScript backtrace (most recent call first):
+              [0] _volume (res://tests/unit/test_spatial_volume.gd:51)
+              [1] test_resize_handle_drives_runtime_bounds (res://tests/unit/test_spatial_volume.gd:311)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid access to property or key 'global_transform' on a base object of type 'Nil'.
+          at: test_resize_handle_drives_runtime_bounds (res://tests/unit/test_spatial_volume.gd:314)
+          GDScript backtrace (most recent call first):
+              [0] test_resize_handle_drives_runtime_bounds (res://tests/unit/test_spatial_volume.gd:314)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid access to property or key 'global_transform' on a base object of type 'Nil'.
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#88332044572>] + 3[0m
+* test_visible_focus_selection_signals
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _volume (res://tests/unit/test_spatial_volume.gd:51)
+          GDScript backtrace (most recent call first):
+              [0] _volume (res://tests/unit/test_spatial_volume.gd:51)
+              [1] test_visible_focus_selection_signals (res://tests/unit/test_spatial_volume.gd:339)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at: test_visible_focus_selection_signals (res://tests/unit/test_spatial_volume.gd:341)
+          GDScript backtrace (most recent call first):
+              [0] test_visible_focus_selection_signals (res://tests/unit/test_spatial_volume.gd:341)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#88600480043>] + 3[0m
+* test_fixture_mount_unmount_leaves_no_orphans
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _volume (res://tests/unit/test_spatial_volume.gd:51)
+          GDScript backtrace (most recent call first):
+              [0] _volume (res://tests/unit/test_spatial_volume.gd:51)
+              [1] test_fixture_mount_unmount_leaves_no_orphans (res://tests/unit/test_spatial_volume.gd:366)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at: test_fixture_mount_unmount_leaves_no_orphans (res://tests/unit/test_spatial_volume.gd:369)
+          GDScript backtrace (most recent call first):
+              [0] test_fixture_mount_unmount_leaves_no_orphans (res://tests/unit/test_spatial_volume.gd:369)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#88885692730>] + 3[0m
+[33m60 orphans[0m
+[1m4/20 passed.
+[0m[4m
+
+res://tests/unit/test_volume_arrangement.gd
+[0m* test_ring_placement
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+          GDScript backtrace (most recent call first):
+              [0] _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+              [1] test_ring_placement (res://tests/unit/test_volume_arrangement.gd:21)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'volume' in base 'Nil'.
+          at: test_ring_placement (res://tests/unit/test_volume_arrangement.gd:24)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'volume' in base 'Nil'.
+          GDScript backtrace (most recent call first):
+              [0] test_ring_placement (res://tests/unit/test_volume_arrangement.gd:24)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#89506449754>] + 3[0m
+* test_user_move_overrides_until_reset
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+          GDScript backtrace (most recent call first):
+              [0] _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+              [1] test_user_move_overrides_until_reset (res://tests/unit/test_volume_arrangement.gd:40)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'volume' in base 'Nil'.
+          at: test_user_move_overrides_until_reset (res://tests/unit/test_volume_arrangement.gd:41)
+          GDScript backtrace (most recent call first):
+              [0] test_user_move_overrides_until_reset (res://tests/unit/test_volume_arrangement.gd:41)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'volume' in base 'Nil'.
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#89774885225>] + 3[0m
+* test_arrangement_aabb
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'volumes' in base 'Nil'.
+          GDScript backtrace (most recent call first):
+              [0] _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+              [1] test_arrangement_aabb (res://tests/unit/test_volume_arrangement.gd:56)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'volumes' in base 'Nil'.
+          at: test_arrangement_aabb (res://tests/unit/test_volume_arrangement.gd:59)
+          GDScript backtrace (most recent call first):
+              [0] test_arrangement_aabb (res://tests/unit/test_volume_arrangement.gd:59)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#90043320696>] + 3[0m
+* test_native_fit_is_idempotent
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+          GDScript backtrace (most recent call first):
+              [0] _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+              [1] test_native_fit_is_idempotent (res://tests/unit/test_volume_arrangement.gd:81)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'arrangement_aabb' in base 'Nil'.
+      at line -1
+SCRIPT ERROR: Invalid call. Nonexistent function 'arrangement_aabb' in base 'Nil'.
+          at: test_native_fit_is_idempotent (res://tests/unit/test_volume_arrangement.gd:83)
+          GDScript backtrace (most recent call first):
+              [0] test_native_fit_is_idempotent (res://tests/unit/test_volume_arrangement.gd:83)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#90311756167>] + 3[0m
+* test_world_points_follow_the_arrangement_scale
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+          GDScript backtrace (most recent call first):
+              [0] _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+              [1] test_world_points_follow_the_arrangement_scale (res://tests/unit/test_volume_arrangement.gd:97)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'volume' in base 'Nil'.
+          at: test_world_points_follow_the_arrangement_scale (res://tests/unit/test_volume_arrangement.gd:98)
+          GDScript backtrace (most recent call first):
+              [0] test_world_points_follow_the_arrangement_scale (res://tests/unit/test_volume_arrangement.gd:98)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'volume' in base 'Nil'.
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#90580191638>] + 3[0m
+* test_bring_to_front_swaps_slots_and_eases
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'volume' in base 'Nil'.
+          GDScript backtrace (most recent call first):
+              [0] _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+              [1] test_bring_to_front_swaps_slots_and_eases (res://tests/unit/test_volume_arrangement.gd:114)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'volume' in base 'Nil'.
+          at: test_bring_to_front_swaps_slots_and_eases (res://tests/unit/test_volume_arrangement.gd:115)
+          GDScript backtrace (most recent call first):
+              [0] test_bring_to_front_swaps_slots_and_eases (res://tests/unit/test_volume_arrangement.gd:115)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#90848627109>] + 3[0m
+* test_bring_to_front_never_compounds_scale
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+          GDScript backtrace (most recent call first):
+              [0] _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+              [1] test_bring_to_front_never_compounds_scale (res://tests/unit/test_volume_arrangement.gd:138)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'set_arrangement_scale' in base 'Nil'.
+          at: test_bring_to_front_never_compounds_scale (res://tests/unit/test_volume_arrangement.gd:139)
+          GDScript backtrace (most recent call first):
+              [0] test_bring_to_front_never_compounds_scale (res://tests/unit/test_volume_arrangement.gd:139)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'set_arrangement_scale' in base 'Nil'.
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#91117062580>] + 3[0m
+* test_bring_to_front_noop_and_snap
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'bring_to_front' in base 'Nil'.
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+          GDScript backtrace (most recent call first):
+              [0] _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+              [1] test_bring_to_front_noop_and_snap (res://tests/unit/test_volume_arrangement.gd:158)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'bring_to_front' in base 'Nil'.
+          at: test_bring_to_front_noop_and_snap (res://tests/unit/test_volume_arrangement.gd:159)
+          GDScript backtrace (most recent call first):
+              [0] test_bring_to_front_noop_and_snap (res://tests/unit/test_volume_arrangement.gd:159)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#91385498051>] + 3[0m
+* test_moved_box_and_front
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'set_arrangement_scale' in base 'Nil'.
+          GDScript backtrace (most recent call first):
+              [0] _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+              [1] test_moved_box_and_front (res://tests/unit/test_volume_arrangement.gd:168)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'set_arrangement_scale' in base 'Nil'.
+          at: test_moved_box_and_front (res://tests/unit/test_volume_arrangement.gd:169)
+          GDScript backtrace (most recent call first):
+              [0] test_moved_box_and_front (res://tests/unit/test_volume_arrangement.gd:169)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#91653933522>] + 3[0m
+* test_move_cancels_ease
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+          GDScript backtrace (most recent call first):
+              [0] _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+              [1] test_move_cancels_ease (res://tests/unit/test_volume_arrangement.gd:191)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'bring_to_front' in base 'Nil'.
+          at: test_move_cancels_ease (res://tests/unit/test_volume_arrangement.gd:192)
+          GDScript backtrace (most recent call first):
+              [0] test_move_cancels_ease (res://tests/unit/test_volume_arrangement.gd:192)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'bring_to_front' in base 'Nil'.
+      at line -1
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#91922368993>] + 3[0m
+* test_reset_restores_slots_and_bounds
+SCRIPT ERROR: Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+          at: _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+          GDScript backtrace (most recent call first):
+              [0] _arrangement (res://tests/unit/test_volume_arrangement.gd:14)
+              [1] test_reset_restores_slots_and_bounds (res://tests/unit/test_volume_arrangement.gd:202)
+              [2] _run_test (res://addons/gut/gut.gd:622)
+              [3] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [4] test_scripts (res://addons/gut/gut.gd:1047)
+              [5] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [6] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [7] main (res://addons/gut/cli/gut_cli.gd:297)
+              [8] _init (res://addons/gut/gut_cmdln.gd:39)
+SCRIPT ERROR: Invalid call. Nonexistent function 'bring_to_front' in base 'Nil'.
+          at: test_reset_restores_slots_and_bounds (res://tests/unit/test_volume_arrangement.gd:203)
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'bring_to_front' in base 'Nil'.
+      at line -1
+          GDScript backtrace (most recent call first):
+              [0] test_reset_restores_slots_and_bounds (res://tests/unit/test_volume_arrangement.gd:203)
+              [1] _run_test (res://addons/gut/gut.gd:622)
+              [2] _test_the_scripts (res://addons/gut/gut.gd:835)
+              [3] test_scripts (res://addons/gut/gut.gd:1047)
+              [4] run_tests (res://addons/gut/gui/GutRunner.gd:198)
+              [5] _run_tests (res://addons/gut/cli/gut_cli.gd:239)
+              [6] main (res://addons/gut/cli/gut_cli.gd:297)
+              [7] _init (res://addons/gut/gut_cmdln.gd:39)
+[33m    4 Orphans[0m
+[33m        * [EmulatedVolume:<Node3D#92190804464>] + 3[0m
+* test_ease_transform_endpoints
+[33m44 orphans[0m
+[1m1/12 passed.
+[0m
+
+
+
+[33m==============================================[0m
+[33m= 104 Orphans[0m
+[33m==============================================[0m
+test_spatial_volume.gd
+    - test_scene_builds_its_children_before_add_child
+[33m        * [EmulatedVolume:<Node3D#84909492322>] + 3[0m
+    - test_e7_every_point_inside_after_fit
+[33m        * [EmulatedVolume:<Node3D#85211482228>] + 3[0m
+    - test_e7_resize_every_frame_never_outside_more_than_one_frame
+[33m        * [EmulatedVolume:<Node3D#85496694915>] + 3[0m
+    - test_growth_eases_and_converges
+[33m        * [EmulatedVolume:<Node3D#85781907602>] + 3[0m
+    - test_shrink_snaps_inside
+[33m        * [EmulatedVolume:<Node3D#86067120289>] + 3[0m
+    - test_immersive_is_one_to_one
+[33m        * [EmulatedVolume:<Node3D#86352332976>] + 3[0m
+    - test_request_bounds_granted_clamped_denied
+[33m        * [EmulatedVolume:<Node3D#86637545663>] + 3[0m
+    - test_closed_stops_ticking_and_denies
+[33m        * [EmulatedVolume:<Node3D#86939535569>] + 3[0m
+    - test_undo_yaw_is_applied_before_measuring
+[33m        * [EmulatedVolume:<Node3D#87224748256>] + 3[0m
+    - test_grabbed_node_is_excluded_from_the_fit
+[33m        * [EmulatedVolume:<Node3D#87509960943>] + 3[0m
+    - test_source_recomputed_on_cadence
+[33m        * [EmulatedVolume:<Node3D#87778396414>] + 3[0m
+    - test_manual_latch_holds_until_bounds_change
+[33m        * [EmulatedVolume:<Node3D#88046831885>] + 3[0m
+    - test_resize_handle_drives_runtime_bounds
+[33m        * [EmulatedVolume:<Node3D#88332044572>] + 3[0m
+    - test_visible_focus_selection_signals
+[33m        * [EmulatedVolume:<Node3D#88600480043>] + 3[0m
+    - test_fixture_mount_unmount_leaves_no_orphans
+[33m        * [EmulatedVolume:<Node3D#88885692730>] + 3[0m
+test_volume_arrangement.gd
+    - test_ring_placement
+[33m        * [EmulatedVolume:<Node3D#89506449754>] + 3[0m
+    - test_user_move_overrides_until_reset
+[33m        * [EmulatedVolume:<Node3D#89774885225>] + 3[0m
+    - test_arrangement_aabb
+[33m        * [EmulatedVolume:<Node3D#90043320696>] + 3[0m
+    - test_native_fit_is_idempotent
+[33m        * [EmulatedVolume:<Node3D#90311756167>] + 3[0m
+    - test_world_points_follow_the_arrangement_scale
+[33m        * [EmulatedVolume:<Node3D#90580191638>] + 3[0m
+    - test_bring_to_front_swaps_slots_and_eases
+[33m        * [EmulatedVolume:<Node3D#90848627109>] + 3[0m
+    - test_bring_to_front_never_compounds_scale
+[33m        * [EmulatedVolume:<Node3D#91117062580>] + 3[0m
+    - test_bring_to_front_noop_and_snap
+[33m        * [EmulatedVolume:<Node3D#91385498051>] + 3[0m
+    - test_moved_box_and_front
+[33m        * [EmulatedVolume:<Node3D#91653933522>] + 3[0m
+    - test_move_cancels_ease
+[33m        * [EmulatedVolume:<Node3D#91922368993>] + 3[0m
+    - test_reset_restores_slots_and_bounds
+[33m        * [EmulatedVolume:<Node3D#92190804464>] + 3[0m
+
+
+[33m==============================================
+[0m[33m= Run Summary
+[0m[33m==============================================
+[0m[4m
+res://tests/unit/test_spatial_volume.gd
+[0m- test_scene_builds_its_children_before_add_child
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid access to property or key 'content' on a base object of type 'Node3D'.
+          at line -1
+- test_new_without_scene_builds_children_too
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at line -1
+- test_e7_every_point_inside_after_fit
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at line -1
+- test_e7_resize_every_frame_never_outside_more_than_one_frame
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at line -1
+- test_growth_eases_and_converges
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at line -1
+- test_shrink_snaps_inside
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at line -1
+- test_immersive_is_one_to_one
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at line -1
+- test_request_bounds_granted_clamped_denied
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'get_signal_list' in base 'Nil'.
+    [3] <engine-2>Invalid call. Nonexistent function 'request_bounds' in base 'Nil'.
+          at line -1
+- test_closed_stops_ticking_and_denies
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at line -1
+- test_undo_yaw_is_applied_before_measuring
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at line -1
+- test_grabbed_node_is_excluded_from_the_fit
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at line -1
+- test_source_recomputed_on_cadence
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at line -1
+- test_manual_latch_holds_until_bounds_change
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at line -1
+- test_resize_handle_drives_runtime_bounds
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid access to property or key 'global_transform' on a base object of type 'Nil'.
+          at line -1
+- test_visible_focus_selection_signals
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at line -1
+- test_fixture_mount_unmount_leaves_no_orphans
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'attach' in base 'Nil'.
+          at line -1
+[4m
+res://tests/unit/test_volume_arrangement.gd
+[0m- test_ring_placement
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'volume' in base 'Nil'.
+          at line -1
+- test_user_move_overrides_until_reset
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'volume' in base 'Nil'.
+          at line -1
+- test_arrangement_aabb
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'volumes' in base 'Nil'.
+          at line -1
+- test_native_fit_is_idempotent
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'arrangement_aabb' in base 'Nil'.
+          at line -1
+- test_world_points_follow_the_arrangement_scale
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'volume' in base 'Nil'.
+          at line -1
+- test_bring_to_front_swaps_slots_and_eases
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'volume' in base 'Nil'.
+          at line -1
+- test_bring_to_front_never_compounds_scale
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'set_arrangement_scale' in base 'Nil'.
+          at line -1
+- test_bring_to_front_noop_and_snap
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'bring_to_front' in base 'Nil'.
+          at line -1
+- test_moved_box_and_front
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'set_arrangement_scale' in base 'Nil'.
+          at line -1
+- test_move_cancels_ease
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'bring_to_front' in base 'Nil'.
+          at line -1
+- test_reset_restores_slots_and_bounds
+[31m    [Failed]:  [0mUnexpected Errors:
+    [1] <engine-2>Invalid assignment of property or key 'volume_id' with value of type 'StringName' on a base object of type 'Node3D'.
+    [2] <engine-2>Invalid call. Nonexistent function 'bring_to_front' in base 'Nil'.
+          at line -1
+
+Totals
+------
+Scripts               5
+Tests                76
+Passing Tests        49
+Failing Tests        27
+Asserts           257/284
+Orphans             104
+Time              0.435s
+
+
+[31m---- 27 failing tests ----
+[0m
+ERROR: 26 RID allocations of type 'N17RendererSceneCull8InstanceE' were leaked at exit.
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+     at: cleanup (core/object/object.cpp:2641)

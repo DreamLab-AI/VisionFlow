@@ -19,6 +19,8 @@ verified_commit: {visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7}
 
 This is the current source arrangement replacing [VC-40's historical exclusive switch](40-xr-two-backends-capability-gating.md). The [audit](../../estate-review/2026-10-31-codescape-presence-and-xr.md) distinguishes Rust transport evidence, inspected GDScript and unmeasured headset acceptance.
 
+The subsequent [headless volume/link audit](46-spatial-volume-fit-and-link-budget.md) qualifies fit cadence and highlight budgets with executed Godot fixtures; transport and headset acceptance remain separate.
+
 ## For the business
 
 Knowledge, ontology and code can be fed by concurrent connections. Source separation and capability guards are implemented; their presence alone does not establish the three-volume headset frame-rate target.

@@ -1,0 +1,129 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+---  GUT  ---
+[1m[INFO]:  [0musing [/tmp/visionflow-xr-audit.v1YmRrWY/data/godot/app_userdata/VisionFlow isolated audit] for temporary output.
+Godot version:  4.6.1
+GUT version:  9.6.1
+[4m
+
+res://tests/unit/test_link_layer.gd
+[0m* test_off_by_default_costs_nothing
+* test_one_multimesh_with_a_16_float_stride_and_12_triangles
+* test_enabled_layer_draws_each_record_between_its_endpoints
+* test_switching_off_empties_in_the_same_frame
+* test_cap_512_with_overflow_count_in_kind_order
+* test_drop_connection_empties_its_records_at_once
+* test_reconnect_drops_the_old_generation_before_drawing
+* test_closed_codescape_connection_draws_nothing_without_error
+* test_hidden_volume_hides_its_links_without_counting_them
+* test_endpoints_refresh_at_10_hz
+* test_external_unresolved_is_reported
+[1m11/11 passed.
+[0m[4m
+
+res://tests/unit/test_link_layer_highlight.gd
+[0m* test_drawn_segments_are_world_space_in_draw_order
+* test_drawn_segments_follow_the_layer_transform_and_empty_when_off
+* test_hidden_volume_link_is_not_a_segment
+* test_highlight_draws_brighter_thicker_and_rings_the_ends
+* test_clearing_the_highlight_restores_the_plain_draw
+* test_highlight_keys_round_trip_and_string_conns_match
+* test_highlight_while_off_draws_nothing_and_applies_on_enable
+* test_counterparts_are_the_far_ends_deduplicated
+* test_counterparts_include_hidden_volumes_but_not_stale_generations
+* test_drop_connection_clears_segments_and_rings
+[1m10/10 passed.
+[0m[4m
+
+res://tests/unit/test_native_container_shim.gd
+[0m* test_real_headless_engine_gives_setting_off
+* test_each_reason_in_order
+* test_engine_version_gate
+* test_extension_without_is_enabled_counts_as_disabled
+* test_real_engine_with_flags_forced
+* test_native_active_at_start_fits_through_fit_scale
+* test_refit_never_compounds
+* test_activation_within_timeout
+* test_activation_timeout_falls_back
+* test_closed_falls_back_once_and_restores
+* test_timeout_then_closed_emits_once
+* test_container_lost_without_closed_falls_back
+* test_immersive_and_infinite_restore_one_to_one
+* test_degenerate_bounds_keep_current_fit
+* test_master_signal_names_connect
+* test_android_guide_signal_names_connect
+* test_start_on_emulated_decision_is_inert
+* test_fit_unavailable_falls_back
+* test_default_fit_resolves_spatial_volume
+* test_real_fit_scale_from_spatial_volume
+* test_enum_tables
+* test_notice_only_in_debug_builds
+* test_fake_matches_real_class_when_present
+[1m23/23 passed.
+[0m[4m
+
+res://tests/unit/test_spatial_volume.gd
+[0m* test_fit_scale_isotropic
+* test_fit_scale_anisotropic_checks_each_axis
+* test_fit_scale_ignores_axes_below_min_extent
+* test_fit_scale_all_axes_below_min_extent_is_one
+* test_scene_builds_its_children_before_add_child
+* test_new_without_scene_builds_children_too
+* test_e7_every_point_inside_after_fit
+* test_e7_resize_every_frame_never_outside_more_than_one_frame
+* test_growth_eases_and_converges
+* test_shrink_snaps_inside
+* test_immersive_is_one_to_one
+* test_request_bounds_granted_clamped_denied
+* test_closed_stops_ticking_and_denies
+* test_undo_yaw_is_applied_before_measuring
+* test_grabbed_node_is_excluded_from_the_fit
+* test_source_recomputed_on_cadence
+* test_manual_latch_holds_until_bounds_change
+* test_resize_handle_drives_runtime_bounds
+* test_visible_focus_selection_signals
+* test_fixture_mount_unmount_leaves_no_orphans
+[1m20/20 passed.
+[0m[4m
+
+res://tests/unit/test_volume_arrangement.gd
+[0m* test_ring_placement
+* test_user_move_overrides_until_reset
+* test_arrangement_aabb
+* test_native_fit_is_idempotent
+* test_world_points_follow_the_arrangement_scale
+* test_bring_to_front_swaps_slots_and_eases
+* test_bring_to_front_never_compounds_scale
+* test_bring_to_front_noop_and_snap
+* test_moved_box_and_front
+* test_move_cancels_ease
+* test_reset_restores_slots_and_bounds
+* test_ease_transform_endpoints
+[1m12/12 passed.
+[0m
+
+
+
+[33m==============================================
+[0m[33m= Run Summary
+[0m[33m==============================================
+[0m
+Totals
+------
+Scripts               5
+Tests                76
+Passing Tests        76
+Asserts            1345
+Time              0.504s
+
+
+[32m---- All tests passed! ----
+[0m
+ERROR: 2 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+     at: cleanup (core/object/object.cpp:2641)
+ERROR: 68 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:810)
+ERROR: Pages in use exist at exit in PagedAllocator: N7Variant5Pools12BucketMediumE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:169)

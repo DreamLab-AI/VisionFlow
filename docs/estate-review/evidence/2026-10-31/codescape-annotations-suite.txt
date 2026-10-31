@@ -1,0 +1,16 @@
+   Compiling codescape-ingest v0.1.0 (/home/devuser/workspace/codescape/crates/codescape-ingest)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.96s
+     Running unittests src/lib.rs (target/debug/deps/codescape_ingest-dffecf25daf0ab93)
+
+running 9 tests
+test annotations::tests::binding_prefers_the_documented_symbol_then_the_innermost_container ... ok
+test annotations::tests::block_geometry_skips_attributes_and_stops_at_blank_lines ... ok
+test annotations::tests::every_comment_leader_is_accepted ... ok
+test annotations::tests::iri_shape_is_checked_and_nothing_else ... ok
+test annotations::tests::malformed_bare_trailing_and_ninth_iris_are_ignored ... ok
+test annotations::tests::refs_are_sorted_deduplicated_and_capped ... ok
+test annotations::tests::rebind_follows_moved_spans_without_rereading ... ok
+test annotations::tests::binds_against_graphicle_spans ... ok
+test annotations::tests::table_rolls_up_to_the_file_and_never_to_directories_or_containers ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 27 filtered out; finished in 0.07s

@@ -1,0 +1,53 @@
+{
+  "cases": [
+    {
+      "case": "plain_links_fit_budget",
+      "instances": 512,
+      "triangles": 6144
+    },
+    {
+      "case": "single_highlight_exceeds_instance_and_triangle_contract",
+      "draw_calls": 1,
+      "instances": 1025,
+      "markers": 513,
+      "overflow": 0,
+      "triangles": 12300
+    },
+    {
+      "case": "off_disconnect_keeps_zero_geometry",
+      "instances": 0,
+      "reported_triangles": 0,
+      "visible": false
+    },
+    {
+      "case": "generation_change_purges_records",
+      "records": 0
+    },
+    {
+      "case": "anisotropic_and_zero_extent_fit_controls"
+    },
+    {
+      "case": "growing_live_extent_outside_until_refit",
+      "outside_ticks": 4,
+      "ticks_checked": 5
+    },
+    {
+      "case": "explicit_resize_refits_immediately"
+    },
+    {
+      "case": "build_preferences_are_separate"
+    }
+  ],
+  "engine": {
+    "build": "official",
+    "hash": "14d19694e0c88a3f9e82d899a0400f27a24c176e",
+    "hex": 263681,
+    "major": 4,
+    "minor": 6,
+    "patch": 1,
+    "status": "stable",
+    "string": "4.6.1-stable (official)",
+    "timestamp": 0
+  },
+  "failed_assertions": 0
+}

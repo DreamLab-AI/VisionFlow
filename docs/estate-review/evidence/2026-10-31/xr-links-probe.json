@@ -1,0 +1,58 @@
+{
+  "scope": "production Codescape library and verbatim pure XR module; no gdext wrapper or live server",
+  "cases": [
+    {
+      "case": "raw_string_example_becomes_annotation_and_links",
+      "classification": "counterexample",
+      "fixture": "pub const EXAMPLE: &str = r#\"\n// @ontology urn:ngm:class:bm25\n\"#;\n",
+      "annotation_line": 2,
+      "links": 2
+    },
+    {
+      "case": "snapshot_repository_and_revision_absent_from_link_provenance",
+      "classification": "contract_gap",
+      "snapshot_repo": "audit-repo",
+      "snapshot_revision": 23,
+      "provenance": {
+        "via": "codescape-annotation",
+        "repo": "",
+        "path": "fixture.rs",
+        "line": 2,
+        "revision": null,
+        "generations": [
+          2,
+          7
+        ]
+      }
+    },
+    {
+      "case": "real_comment_and_multiple_targets",
+      "classification": "passing_control"
+    },
+    {
+      "case": "bare_inline_and_malformed_annotations_refused",
+      "classification": "passing_control"
+    },
+    {
+      "case": "producer_cap_is_invisible_to_join_unresolved_count",
+      "classification": "documented_limit_with_observability_gap",
+      "bound_annotations": 33,
+      "stream_annotations": 32,
+      "joined": 32,
+      "unresolved": 0
+    },
+    {
+      "case": "annotation_removal_clears_stream_refs",
+      "classification": "passing_control"
+    },
+    {
+      "case": "symbol_wins_rollup_dedup",
+      "classification": "passing_control"
+    },
+    {
+      "case": "missing_targets_count_unresolved",
+      "classification": "passing_control"
+    }
+  ],
+  "raw_string_fixture_compiles_as_rust": true
+}

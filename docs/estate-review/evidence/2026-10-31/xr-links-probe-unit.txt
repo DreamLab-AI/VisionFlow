@@ -1,0 +1,12 @@
+running 9 tests
+test tests::real_data_join ... ignored, needs captured frames in LINK_INDEX_CS / LINK_INDEX_VC
+test tests::class_codes_map_to_volumes ... ok
+test tests::parse_ontology_refs_skips_malformed_tokens ... ok
+test tests::one_iri_on_two_nodes_gives_two_records ... ok
+test tests::extract_iris_reads_three_keys_and_dedups ... ok
+test tests::join_yields_exact_records_and_counts_unresolved ... ok
+test tests::frames_build_both_tables ... ok
+test tests::symbol_beats_file_whatever_the_order ... ok
+test tests::records_serialise_in_the_d5_shape ... ok
+
+test result: ok. 8 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
