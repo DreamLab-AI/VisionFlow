@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_158 topic files, 1526 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_159 topic files, 1529 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -361,6 +361,7 @@ _158 topic files, 1526 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | OM-04 | [Artefact emitters — Turtle, reasoner, indexes, NGG1 tiers, WebVOWL, OKF, against contract C3](ontomark/04-emitters-turtle-indexes-tiers-and-contract-c3.md) | 7 | flowchart | [sovereign-corpus-contracts.md](../../docs/engineering/sovereign-corpus-contracts.md) | ADR-OM-001, ADR-OM-004, ADR-OM-009, ADR-2124, ADR-2128 |
 | OM-05 | [ontomark CLI — commands, vault selector, layouts, exit codes and consumers](ontomark/05-cli-commands-vault-selector-and-exit-codes.md) | 6 | flowchart | [sovereign-corpus-contracts.md](../../docs/engineering/sovereign-corpus-contracts.md) | ADR-OM-001, ADR-OM-005, ADR-OM-007, ADR-OM-008, ADR-OM-009, ADR-2137, ADR-2147 |
 | OM-06 | [Machine scope, the records emitter and the ingest plan/accept contract](ontomark/06-machine-scope-and-ingest-contract.md) | 5 | flowchart, sequenceDiagram | [sovereign-corpus-contracts.md](../../docs/engineering/sovereign-corpus-contracts.md) | ADR-OM-003, ADR-OM-005, ADR-OM-008, ADR-2136, ADR-2137 |
+| OM-07 | [Governed creation and amendment — proposal, file and receipt identity](ontomark/07-governed-create-and-amend.md) | 3 | flowchart | [ADR-2109-governance-decisions-apply-through-vault-edit.md](../../../project/agentbox/docs/adr/ADR-2109-governance-decisions-apply-through-vault-edit.md) | ADR-2109, ADR-OM-007 |
 
 ### dream-engine
 

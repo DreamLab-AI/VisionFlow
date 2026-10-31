@@ -26,7 +26,7 @@ verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 
 Note: `ontology-bridge.js`, `ontology-propose.js`, `ontology-local.cjs`, `ontology-authoring-authority.js`
 and `vault-frontmatter.js` — the whole MCP-tool authoring-authority surface this topic previously covered
-(AB-25.1–.6, .10) — are deleted. The governed write door is now `vault edit --expect`, reached from a signed
+(AB-25.1–.6, .10) — are deleted. At this topic's historical revision, the corpus verbs still used the `vault` binary. Current create/amend guards are mapped in [OM-07](../ontomark/07-governed-create-and-amend.md). The governed write door is reached from a signed
 kind-31403 forum decision through `applyOntologyDecision` (`management-api/lib/ontology-apply.js`); see
 **AB-04.13** for the full sequence and **AB-14** for the 31402/31403 forum round-trip that precedes it.
 
@@ -206,7 +206,7 @@ flowchart TB
         ELGUARD["EL-SAFETY GUARD: asserts NO triple in the graph uses<br/>owl:inverseOf / owl:FunctionalProperty / owl:InverseFunctionalProperty<br/>ontology/test_decision_layer.py:9-11"]
     end
     subgraph runtime["Runtime governance-write path (ADR-2109) — see AB-04.13"]
-        APPLY["applyOntologyDecision — signed 31403 → vault edit --expect,<br/>then a pathspec-limited commit and push of that ONE page<br/>(commit failure recorded, never thrown)<br/>management-api/lib/ontology-apply.js:365,821"]
+        APPLY["Historical vault corpus dispatch; current split in OM-07<br/>pathspec-limited commit, then ordinary branch push<br/>(commit failure recorded, never thrown)<br/>management-api/lib/ontology-apply.js:365,821"]
         URIS["management-api/lib/uris.js — the ONE URN minter for<br/>all 21 kinds, incl. decision (agentbox/CLAUDE.md URI/URN scheme)"]
     end
     TTL --> PYTEST
@@ -221,3 +221,5 @@ flowchart TB
         N1 ~~~ N2
     end
 ```
+
+**Tension (publication scope, 2026-10-31):** A pathspec-limited commit does not constrain the later branch push to that commit. A second writer after the ahead-count check was [reproduced with real local Git](../../estate-review/2026-10-31-corpus-consumer.md#commit-and-attestation-boundaries). This qualifies AB-25.12; other panels retain their historical source stamp.

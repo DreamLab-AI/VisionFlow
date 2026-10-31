@@ -1,0 +1,35 @@
+   Compiling ontomark-parse v0.1.3 (/home/devuser/workspace/ontomark/crates/ontomark-parse)
+   Compiling ontomark-reason v0.1.2 (/home/devuser/workspace/ontomark/crates/ontomark-reason)
+   Compiling rdfs-certificate v0.1.0 (/home/devuser/workspace/ontomark/crates/rdfs-certificate)
+   Compiling ontomark-source v0.1.0 (/home/devuser/workspace/ontomark/crates/ontomark-source)
+   Compiling ontomark-model v0.1.2 (/home/devuser/workspace/ontomark/crates/ontomark-model)
+   Compiling ontomark-compile v0.6.1 (/home/devuser/workspace/ontomark/crates/ontomark-compile)
+   Compiling ontomark-ingest v0.2.0 (/home/devuser/workspace/ontomark/crates/ontomark-ingest)
+   Compiling ontomark-jev v0.7.0 (/home/devuser/workspace/ontomark/crates/ontomark-jev)
+   Compiling ontomark-profile-estate v0.7.0 (/home/devuser/workspace/ontomark/profiles/estate)
+   Compiling ontomark v0.7.0 (/home/devuser/workspace/ontomark/crates/ontomark-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.47s
+     Running tests/apply_cli.rs (target/debug/deps/apply_cli-c3578941d90136c4)
+
+running 10 tests
+test a_tampered_proposal_is_a_digest_mismatch ... ok
+test a_page_holding_another_iri_is_an_iri_mismatch ... ok
+test an_absent_page_is_no_page ... ok
+test a_creation_is_not_amend ... ok
+test a_malformed_file_and_a_bad_set_are_refused_by_code ... ok
+test a_result_failing_validation_is_invalid ... ok
+test an_undeclared_or_wrong_blast_radius_is_refused ... ok
+test a_page_changed_around_the_hunk_is_stale ... ok
+test an_approved_amendment_is_applied_once_with_its_verification ... ok
+test the_signed_event_itself_is_accepted_as_the_proposal ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.27s
+
+     Running tests/create_cli.rs (target/debug/deps/create_cli-8557860261a79038)
+
+running 2 tests
+test create_refuses_an_invalid_page_or_an_undeclared_radius_with_exit_2 ... ok
+test create_a_page_exactly_once ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+

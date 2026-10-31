@@ -162,3 +162,5 @@ Input comparison at VisionFlow `64ef3af`; [method and limits](2026-10-31-diagram
 | [VW-03](../diagrams/vowl-wasm/03-force-layout-lifecycle.md) | 0 | 11 | 0 |
 | [VW-04](../diagrams/vowl-wasm/04-js-api-examples-and-consumers.md) | 0 | 9 | 0 |
 | [VW-05](../diagrams/vowl-wasm/05-build-test-bench-and-publish.md) | 0 | 13 | 0 |
+
+Post-snapshot addition: [OM-07](../diagrams/ontomark/07-governed-create-and-amend.md) maps current create/amend consumer boundaries. [Assessment](2026-10-31-proposal-application.md). The historical table above remains the 158-topic input comparison, not an updated census.

@@ -1,0 +1,23 @@
+{
+  "agentbox": {
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "files": {
+      "management-api/lib/ontology-apply.js": "db46a136f6cee0906ebba591a01f0418e141b3dbb7b6d8d5a1317f2849dca054",
+      "management-api/lib/ontology-propose.js": "44bb3f96b224d5963adaa382c92a89ac1254cf71f3a808d566744a5a6600dae7",
+      "management-api/adapters/orchestrator/local-process-manager.js": "de1ab5a3233635a5e22719ad0a936dcd68fa373869511eee6c9162accf1c9d7d",
+      "docs/adr/ADR-2109-governance-decisions-apply-through-vault-edit.md": "2c21a280eedc7be9873bcb081c0a2f7f9d76381203bd61ffd255cb29f0bb63fe"
+    }
+  },
+  "ontomark": {
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "files": {
+      "crates/ontomark-compile/src/write/apply.rs": "d49807e7ad66fb0878e3825bc5f8aeeed8d95d4714f159d68e2eba33bd910279",
+      "crates/ontomark-compile/src/write/create.rs": "ef12ad67469d2897e218c8fb2644c83f13deca643662231e92b4ac67bf1dda50",
+      "crates/ontomark-compile/src/write/proposal.rs": "fc3db600491360daa16398f152d02c9633c2bec08c64b823f08070cb32d3a536",
+      "crates/ontomark-compile/src/input/page.rs": "12730315dd242aa32e50a88e9681730f64689eca244fb6343169d540052133d1",
+      "crates/ontomark-cli/tests/apply_cli.rs": "6bdcaafae3c694a9570c034e08a4ce1cee1a90aac3a7fe75e99124ad0100e6ee",
+      "crates/ontomark-cli/tests/create_cli.rs": "8d1bb1ed9899bdbc138939ca56f9eb3daee3bd1522da787c0ad2201dd9f132ae",
+      "docs/adr/ADR-OM-007-vault-root-is-the-content-root.md": "35619bfa78de4d20c459a03727a7955839abaab01212cfac682540e829a4f542"
+    }
+  }
+}

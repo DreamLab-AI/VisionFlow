@@ -1,0 +1,426 @@
+{
+  "method": "Real production adapter and installed CLI, temporary minimal estate vaults. Git and attestation intercepted; no signature or relay-admission test.",
+  "version": "ontomark 0.7.0",
+  "results": [
+    {
+      "name": "create baseline",
+      "decisionDigest": "sha256:426ba4cf821b09f9d1ca88b5cf9665f2421e2ce04ea0b4d9e7d896875cc5ef56",
+      "proposalDigest": "sha256:426ba4cf821b09f9d1ca88b5cf9665f2421e2ce04ea0b4d9e7d896875cc5ef56",
+      "result": {
+        "applied": true,
+        "created": true,
+        "page": "A",
+        "outcome": "promote",
+        "attested": true,
+        "attestError": null,
+        "committed": false,
+        "commit": null,
+        "pushed": false,
+        "pushError": null,
+        "commitError": "Git deliberately intercepted"
+      },
+      "calls": [
+        {
+          "verb": "create",
+          "exit": 0,
+          "stdout": "{\n  \"created\": true,\n  \"page\": \"A\",\n  \"iri\": \"urn:ngm:class:a\",\n  \"path\": \"knowledge/A.md\",\n  \"docs\": 1,\n  \"blocks\": 2,\n  \"changes\": {\n    \"status\": [\n      \"draft\",\n      \"stable\"\n    ],\n    \"verified\": [\n      null,\n      \"- by: human:fixture\\n  at: 2026-10-31T00:00:00Z\"\n    ]\n  },\n  \"dry_run\": false\n}\n",
+          "stderr": ""
+        }
+      ],
+      "ledger": [
+        {
+          "case_id": "426ba4cf821b09f9d1ca88b5cf9665f2421e2ce04ea0b4d9e7d896875cc5ef56",
+          "digest": "sha256:426ba4cf821b09f9d1ca88b5cf9665f2421e2ce04ea0b4d9e7d896875cc5ef56",
+          "outcome": "promote",
+          "signer": "human:fixture",
+          "at": "2026-10-31T00:00:00Z"
+        }
+      ],
+      "git": [
+        [
+          "rev-parse",
+          "--show-toplevel"
+        ]
+      ],
+      "files": {
+        "A.md": "---\ntype: Class\ntitle: A\npublic: true\nresource: urn:ngm:class:a\nstatus: stable\nverified:\n- by: human:fixture\n  at: 2026-10-31T00:00:00Z\n---\nfirst body line\nsecond body line\n"
+      }
+    },
+    {
+      "name": "create incorrect proposal digest",
+      "decisionDigest": "sha256:426ba4cf821b09f9d1ca88b5cf9665f2421e2ce04ea0b4d9e7d896875cc5ef56",
+      "proposalDigest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "result": {
+        "applied": true,
+        "created": true,
+        "page": "A",
+        "outcome": "promote",
+        "attested": true,
+        "attestError": null,
+        "committed": false,
+        "commit": null,
+        "pushed": false,
+        "pushError": null,
+        "commitError": "Git deliberately intercepted"
+      },
+      "calls": [
+        {
+          "verb": "create",
+          "exit": 0,
+          "stdout": "{\n  \"created\": true,\n  \"page\": \"A\",\n  \"iri\": \"urn:ngm:class:a\",\n  \"path\": \"knowledge/A.md\",\n  \"docs\": 1,\n  \"blocks\": 2,\n  \"changes\": {\n    \"status\": [\n      \"draft\",\n      \"stable\"\n    ],\n    \"verified\": [\n      null,\n      \"- by: human:fixture\\n  at: 2026-10-31T00:00:00Z\"\n    ]\n  },\n  \"dry_run\": false\n}\n",
+          "stderr": ""
+        }
+      ],
+      "ledger": [
+        {
+          "case_id": "426ba4cf821b09f9d1ca88b5cf9665f2421e2ce04ea0b4d9e7d896875cc5ef56",
+          "digest": "sha256:426ba4cf821b09f9d1ca88b5cf9665f2421e2ce04ea0b4d9e7d896875cc5ef56",
+          "outcome": "promote",
+          "signer": "human:fixture",
+          "at": "2026-10-31T00:00:00Z"
+        }
+      ],
+      "git": [
+        [
+          "rev-parse",
+          "--show-toplevel"
+        ]
+      ],
+      "files": {
+        "A.md": "---\ntype: Class\ntitle: A\npublic: true\nresource: urn:ngm:class:a\nstatus: stable\nverified:\n- by: human:fixture\n  at: 2026-10-31T00:00:00Z\n---\nfirst body line\nsecond body line\n"
+      }
+    },
+    {
+      "name": "create title differs from proposal page",
+      "decisionDigest": "sha256:98817462fa6258a124c044e0f6c9ca898c321f6b602d759a51427a84d2fca273",
+      "proposalDigest": "sha256:98817462fa6258a124c044e0f6c9ca898c321f6b602d759a51427a84d2fca273",
+      "result": {
+        "applied": true,
+        "created": true,
+        "page": "A",
+        "outcome": "promote",
+        "attested": true,
+        "attestError": null,
+        "committed": false,
+        "commit": null,
+        "pushed": false,
+        "pushError": null,
+        "commitError": "Git deliberately intercepted"
+      },
+      "calls": [
+        {
+          "verb": "create",
+          "exit": 0,
+          "stdout": "{\n  \"created\": true,\n  \"page\": \"B\",\n  \"iri\": \"urn:ngm:class:a\",\n  \"path\": \"knowledge/B.md\",\n  \"docs\": 1,\n  \"blocks\": 2,\n  \"changes\": {\n    \"status\": [\n      \"draft\",\n      \"stable\"\n    ],\n    \"verified\": [\n      null,\n      \"- by: human:fixture\\n  at: 2026-10-31T00:00:00Z\"\n    ]\n  },\n  \"dry_run\": false\n}\n",
+          "stderr": ""
+        }
+      ],
+      "ledger": [
+        {
+          "case_id": "98817462fa6258a124c044e0f6c9ca898c321f6b602d759a51427a84d2fca273",
+          "digest": "sha256:98817462fa6258a124c044e0f6c9ca898c321f6b602d759a51427a84d2fca273",
+          "outcome": "promote",
+          "signer": "human:fixture",
+          "at": "2026-10-31T00:00:00Z"
+        }
+      ],
+      "git": [
+        [
+          "rev-parse",
+          "--show-toplevel"
+        ]
+      ],
+      "files": {
+        "B.md": "---\ntype: Class\ntitle: B\npublic: true\nresource: urn:ngm:class:a\nstatus: stable\nverified:\n- by: human:fixture\n  at: 2026-10-31T00:00:00Z\n---\nfirst body line\nsecond body line\n"
+      }
+    },
+    {
+      "name": "amend baseline with expired metadata",
+      "decisionDigest": "sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+      "proposalDigest": "sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+      "result": {
+        "applied": true,
+        "amended": true,
+        "page": "A",
+        "path": "knowledge/A.md",
+        "digest": "sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+        "outcome": "promote",
+        "attested": true,
+        "attestError": null,
+        "committed": false,
+        "commit": null,
+        "pushed": false,
+        "pushError": null,
+        "commitError": "Git deliberately intercepted"
+      },
+      "calls": [
+        {
+          "verb": "create",
+          "exit": 0,
+          "stdout": "{\n  \"created\": true,\n  \"page\": \"A\",\n  \"iri\": \"urn:ngm:class:a\",\n  \"path\": \"knowledge/A.md\",\n  \"docs\": 1,\n  \"blocks\": 0,\n  \"changes\": {},\n  \"dry_run\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "verb": "apply",
+          "exit": 0,
+          "stdout": "{\n  \"applied\": true,\n  \"page\": \"A\",\n  \"path\": \"knowledge/A.md\",\n  \"digest\": \"sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6\"\n}\n",
+          "stderr": ""
+        }
+      ],
+      "ledger": [
+        {
+          "case_id": "3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+          "digest": "sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+          "outcome": "promote",
+          "signer": "human:fixture",
+          "at": "2026-10-31T00:00:00Z"
+        }
+      ],
+      "git": [
+        [
+          "rev-parse",
+          "--show-toplevel"
+        ]
+      ],
+      "files": {
+        "A.md": "---\ntype: Class\ntitle: A\npublic: true\nresource: urn:ngm:class:a\nstatus: draft\nverified:\n- by: human:fixture\n  at: 2026-10-31T00:00:00Z\n---\napproved first line\nsecond body line\n"
+      }
+    },
+    {
+      "name": "amend incorrect proposal digest",
+      "decisionDigest": "sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+      "proposalDigest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "error": {
+        "code": "DIGEST_MISMATCH",
+        "message": "ontology-apply: ontomark apply refused A: DIGEST_MISMATCH — refused: the proposal states digest sha256:0000000000000000000000000000000000000000000000000000000000000000 but its fields hash to sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6"
+      },
+      "calls": [
+        {
+          "verb": "create",
+          "exit": 0,
+          "stdout": "{\n  \"created\": true,\n  \"page\": \"A\",\n  \"iri\": \"urn:ngm:class:a\",\n  \"path\": \"knowledge/A.md\",\n  \"docs\": 1,\n  \"blocks\": 0,\n  \"changes\": {},\n  \"dry_run\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "verb": "apply",
+          "exit": 2,
+          "stdout": "{\n  \"applied\": false,\n  \"code\": \"DIGEST_MISMATCH\",\n  \"message\": \"refused: the proposal states digest sha256:0000000000000000000000000000000000000000000000000000000000000000 but its fields hash to sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6\",\n  \"blockers\": []\n}\n",
+          "stderr": "ontomark: refused: the proposal states digest sha256:0000000000000000000000000000000000000000000000000000000000000000 but its fields hash to sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6\n"
+        }
+      ],
+      "ledger": [],
+      "git": [],
+      "files": {
+        "A.md": "---\ntype: Class\ntitle: A\npublic: true\nresource: urn:ngm:class:a\nstatus: draft\n---\nfirst body line\nsecond body line\n"
+      }
+    },
+    {
+      "name": "amend decision digest differs from valid proposal",
+      "decisionDigest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "proposalDigest": "sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+      "result": {
+        "applied": true,
+        "amended": true,
+        "page": "A",
+        "path": "knowledge/A.md",
+        "digest": "sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+        "outcome": "promote",
+        "attested": true,
+        "attestError": null,
+        "committed": false,
+        "commit": null,
+        "pushed": false,
+        "pushError": null,
+        "commitError": "Git deliberately intercepted"
+      },
+      "calls": [
+        {
+          "verb": "create",
+          "exit": 0,
+          "stdout": "{\n  \"created\": true,\n  \"page\": \"A\",\n  \"iri\": \"urn:ngm:class:a\",\n  \"path\": \"knowledge/A.md\",\n  \"docs\": 1,\n  \"blocks\": 0,\n  \"changes\": {},\n  \"dry_run\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "verb": "apply",
+          "exit": 0,
+          "stdout": "{\n  \"applied\": true,\n  \"page\": \"A\",\n  \"path\": \"knowledge/A.md\",\n  \"digest\": \"sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6\"\n}\n",
+          "stderr": ""
+        }
+      ],
+      "ledger": [
+        {
+          "case_id": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "outcome": "promote",
+          "signer": "human:fixture",
+          "at": "2026-10-31T00:00:00Z"
+        }
+      ],
+      "git": [
+        [
+          "rev-parse",
+          "--show-toplevel"
+        ]
+      ],
+      "files": {
+        "A.md": "---\ntype: Class\ntitle: A\npublic: true\nresource: urn:ngm:class:a\nstatus: draft\nverified:\n- by: human:fixture\n  at: 2026-10-31T00:00:00Z\n---\napproved first line\nsecond body line\n"
+      }
+    },
+    {
+      "name": "amend unrelated body drift outside hunk",
+      "decisionDigest": "sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+      "proposalDigest": "sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+      "result": {
+        "applied": true,
+        "amended": true,
+        "page": "A",
+        "path": "knowledge/A.md",
+        "digest": "sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+        "outcome": "promote",
+        "attested": true,
+        "attestError": null,
+        "committed": false,
+        "commit": null,
+        "pushed": false,
+        "pushError": null,
+        "commitError": "Git deliberately intercepted"
+      },
+      "calls": [
+        {
+          "verb": "create",
+          "exit": 0,
+          "stdout": "{\n  \"created\": true,\n  \"page\": \"A\",\n  \"iri\": \"urn:ngm:class:a\",\n  \"path\": \"knowledge/A.md\",\n  \"docs\": 1,\n  \"blocks\": 0,\n  \"changes\": {},\n  \"dry_run\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "verb": "apply",
+          "exit": 0,
+          "stdout": "{\n  \"applied\": true,\n  \"page\": \"A\",\n  \"path\": \"knowledge/A.md\",\n  \"digest\": \"sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6\"\n}\n",
+          "stderr": ""
+        }
+      ],
+      "ledger": [
+        {
+          "case_id": "3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+          "digest": "sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+          "outcome": "promote",
+          "signer": "human:fixture",
+          "at": "2026-10-31T00:00:00Z"
+        }
+      ],
+      "git": [
+        [
+          "rev-parse",
+          "--show-toplevel"
+        ]
+      ],
+      "files": {
+        "A.md": "---\ntype: Class\ntitle: A\npublic: true\nresource: urn:ngm:class:a\nstatus: draft\nverified:\n- by: human:fixture\n  at: 2026-10-31T00:00:00Z\n---\napproved first line\nother writer second line\n"
+      }
+    },
+    {
+      "name": "amend drift inside hunk",
+      "decisionDigest": "sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+      "proposalDigest": "sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+      "error": {
+        "code": "STALE",
+        "message": "ontology-apply: ontomark apply refused A: STALE — refused: page `A` has changed since the proposal: hunk 1, line 8: expected \"first body line\\n\", found \"other writer first line\\n\""
+      },
+      "calls": [
+        {
+          "verb": "create",
+          "exit": 0,
+          "stdout": "{\n  \"created\": true,\n  \"page\": \"A\",\n  \"iri\": \"urn:ngm:class:a\",\n  \"path\": \"knowledge/A.md\",\n  \"docs\": 1,\n  \"blocks\": 0,\n  \"changes\": {},\n  \"dry_run\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "verb": "apply",
+          "exit": 2,
+          "stdout": "{\n  \"applied\": false,\n  \"code\": \"STALE\",\n  \"message\": \"refused: page `A` has changed since the proposal: hunk 1, line 8: expected \\\"first body line\\\\n\\\", found \\\"other writer first line\\\\n\\\"\",\n  \"blockers\": []\n}\n",
+          "stderr": "ontomark: refused: page `A` has changed since the proposal: hunk 1, line 8: expected \"first body line\\n\", found \"other writer first line\\n\"\n"
+        }
+      ],
+      "ledger": [],
+      "git": [],
+      "files": {
+        "A.md": "---\ntype: Class\ntitle: A\npublic: true\nresource: urn:ngm:class:a\nstatus: draft\n---\nother writer first line\nsecond body line\n"
+      }
+    },
+    {
+      "name": "promote branch request tag matches decision but proposal digest differs",
+      "decisionDigest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "proposalDigest": "sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+      "result": {
+        "applied": true,
+        "amended": true,
+        "page": "A",
+        "path": "knowledge/A.md",
+        "digest": "sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+        "outcome": "promote",
+        "attested": true,
+        "attestError": null,
+        "committed": false,
+        "commit": null,
+        "pushed": false,
+        "pushError": null,
+        "commitError": "Git deliberately intercepted"
+      },
+      "calls": [
+        {
+          "verb": "create",
+          "exit": 0,
+          "stdout": "{\n  \"created\": true,\n  \"page\": \"A\",\n  \"iri\": \"urn:ngm:class:a\",\n  \"path\": \"knowledge/A.md\",\n  \"docs\": 1,\n  \"blocks\": 0,\n  \"changes\": {},\n  \"dry_run\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "verb": "apply",
+          "exit": 0,
+          "stdout": "{\n  \"applied\": true,\n  \"page\": \"A\",\n  \"path\": \"knowledge/A.md\",\n  \"digest\": \"sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6\"\n}\n",
+          "stderr": ""
+        }
+      ],
+      "ledger": [
+        {
+          "case_id": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "outcome": "promote",
+          "signer": "human:npub1zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zygse4sl3h",
+          "at": "2026-10-31T00:00:00.000Z"
+        }
+      ],
+      "git": [
+        [
+          "rev-parse",
+          "--show-toplevel"
+        ]
+      ],
+      "files": {
+        "A.md": "---\ntype: Class\ntitle: A\npublic: true\nresource: urn:ngm:class:a\nstatus: draft\nverified:\n- by: human:npub1zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zygse4sl3h\n  at: 2026-10-31T00:00:00.000Z\n---\napproved first line\nsecond body line\n"
+      }
+    },
+    {
+      "name": "approve branch refuses the same digest discrepancy",
+      "decisionDigest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "proposalDigest": "sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6",
+      "result": {
+        "applied": false,
+        "refused": true,
+        "via": "approve",
+        "error": "ontology-apply: proposal digest sha256:3ca4fd9b5a9fa2a25fa52eee54ffaf6e78e051e30927a71c5ef4d0b2e2826ad6 is not the approved case ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      "calls": [
+        {
+          "verb": "create",
+          "exit": 0,
+          "stdout": "{\n  \"created\": true,\n  \"page\": \"A\",\n  \"iri\": \"urn:ngm:class:a\",\n  \"path\": \"knowledge/A.md\",\n  \"docs\": 1,\n  \"blocks\": 0,\n  \"changes\": {},\n  \"dry_run\": false\n}\n",
+          "stderr": ""
+        }
+      ],
+      "ledger": [],
+      "git": [],
+      "files": {
+        "A.md": "---\ntype: Class\ntitle: A\npublic: true\nresource: urn:ngm:class:a\nstatus: draft\n---\nfirst body line\nsecond body line\n"
+      }
+    }
+  ]
+}

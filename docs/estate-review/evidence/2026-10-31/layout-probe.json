@@ -1,0 +1,6 @@
+{
+  "method": "Temporary plain vault; former pages folder and root/nested furniture; real installed CLI",
+  "exit": 0,
+  "stdout": "[\n  {\n    \"id\": \"nested/templates/Nested\",\n    \"title\": \"Layout Probe\",\n    \"score\": 1.0\n  },\n  {\n    \"id\": \"pages/Legacy\",\n    \"title\": \"Layout Probe\",\n    \"score\": 1.0\n  }\n]\n",
+  "stderr": ""
+}

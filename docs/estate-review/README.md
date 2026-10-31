@@ -25,6 +25,8 @@ Release boundary: [canonical fixture identity, consumer parity and release-statu
 
 Corpus consumer: [CLI migration, decision guards and writeback evidence](2026-10-31-corpus-consumer.md).
 
+Proposal application: [create/amend identity, hunk guards and ADR assessments](2026-10-31-proposal-application.md).
+
 ## Reading order
 
 | Document | Question it answers |
