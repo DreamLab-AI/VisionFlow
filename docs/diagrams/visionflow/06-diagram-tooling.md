@@ -451,7 +451,7 @@ flowchart TB
     N2 ~~~ N3
 ```
 
-The companion `scripts/capture-diagram-source-snapshot.cjs` runs the strict current-worktree check between two source-hash captures and refuses to publish a snapshot if the input bytes changed. Its directory entries are markers rather than recursive attestations, and it excludes RuView source reads. Semantic audit and render execution remain separate evidence.
+The companion `scripts/capture-diagram-source-snapshot.cjs` runs the strict current-worktree check between two source-hash captures and refuses to publish a snapshot if the input bytes changed. Its directory entries are markers rather than recursive attestations, and it excludes RuView source reads. Semantic audit and render execution remain separate evidence. Files listed only under `governing:` are not hashed: the collector iterates `meta.sources` at `scripts/capture-diagram-source-snapshot.cjs:25`. A governing-document-only edit can therefore leave the captured source map unchanged. This source is unchanged between the declared revision and 4025263.
 
 ## VF-06.14 check-diagram-render-sources.py — render-input byte parity, and what it refuses to claim
 ```mermaid
@@ -480,10 +480,10 @@ flowchart TB
     REP["--report writes source_sha256, svg_sha256, width and the<br/>per-diagram verdict, alongside a method string that states<br/>the limit in the artefact itself<br/>check-diagram-render-sources.py:45"]:::ok
     E0 --> REP
 
-    SIB["sibling instrument: capture-diagram-source-snapshot.cjs hashes every<br/>topic and every declared source BEFORE and AFTER a passing strict<br/>worktree check, and refuses to publish if the bytes moved between<br/>capture-diagram-source-snapshot.cjs:48"]:::ok
+    SIB["sibling instrument: capture-diagram-source-snapshot.cjs hashes every<br/>topic and included sources entries BEFORE and AFTER a passing strict<br/>worktree check, and refuses to publish if the bytes moved between<br/>capture-diagram-source-snapshot.cjs:48"]:::ok
     REP --- SIB
 
-    LIM["INVARIANT: neither instrument makes a semantic claim. Byte parity<br/>between a topic block and its render input says the SVG came from<br/>this text, never that the text is true<br/>check-diagram-render-sources.py:45"]
+    LIM["INVARIANT: neither instrument makes a semantic claim. Byte parity<br/>between a topic block and its render input does not prove SVG provenance<br/>or that the diagram claims are true<br/>check-diagram-render-sources.py:45"]
     REP -.-> LIM
 
     DIV["DIVERGENCE: this checker is wired to no workflow and no npm script.<br/>It reads docs/diagrams/rendered/, which is gitignored and regenerable,<br/>so on a fresh checkout every diagram reports render_input_matches false"]:::fail
@@ -510,3 +510,10 @@ flowchart TB
 
 **What it shows.** The generator can ask a typed-decision model, one question per resolved citation, whether the cited lines hold what the diagram label says, as an advisory line after all the deterministic gates have already passed or failed.
 **Why it is this way.** The checks that decide the exit code, citation resolution, render and width, stay deterministic; the option adds a second opinion that can flag a claim for human review before a restamp, and cannot change a verdict (docs/jev-option.md:3-5, scripts/diagram-index-gen.cjs:794-801). Since the 2026-10-29 operator decision (VF-06-S1-02) the review is public data, not local-only, because the corpus code is not private and its 0.9 flag was fitted on the cloud model; this is LIVE NOW in the script. The library default is off, and agentbox projects `VISIONFLOW_JEV=all` into its service and shell environments (configured, taking effect when the new agentbox image is activated), so a local gate run asks the model while hosted CI and the dream annexe still make no call (docs/jev-option.md:11, docs/jev-option.md:16).
+
+
+## Dated audit correction — 2026-10-31
+
+**Drift (VF-06.1 NOTE4):** The diagram above describes ADR-2020 at its declared revision. At VisionFlow `4025263`, ADR-2020's “Close-out 2026-10-31” records local pin agreement on seven surfaces and 1,526 corpus renders. Its boundary explicitly leaves running-image/browser activation unverified. The earlier “follow-on surfaces” wording must not be read as current implementation status. This correction does not restamp the remaining diagrams or independently reproduce that ADR's test receipts.
+
+**Debt (snapshot completeness):** `capture-diagram-source-snapshot.cjs:25` enumerates only `sources`, and lines 27–29 exclude RuView. The before/after equality at line 48 establishes stability only for included files and directory markers; it cannot certify the entire estate or governing-document stability. Include governing paths in a future collector repair and test a change to a governing-only file. Product tooling was not changed by this audit.
