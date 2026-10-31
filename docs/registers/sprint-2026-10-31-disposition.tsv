@@ -1,0 +1,173 @@
+repo	adr	status	disposition	trigger
+VisionClaw	ADR-2001	accepted/partial/staged	OUT: Owner ratification / ruling (rule 1)	Owner decides whether the 300-file trigger means a corpus prune or a raised threshold; or the legacy archive census completes
+VisionClaw	ADR-2005	accepted/partial/live	IN: W1	Actor moved into crates/visionclaw-actors, or a dependency-direction check added to CI
+VisionClaw	ADR-2006	accepted/partial/live	OUT: Larger than a sprint (scope)	Second ACSP consumer, an event-envelope change, or a live approval/relay/PR receipt
+VisionClaw	ADR-2007	accepted/partial/live	OUT: Whole-ADR acceptance larger than a sprint or on the live production path (scope + rule 3)	A supervisor crash/restart test or observed device-loss recovery in a running backend
+VisionClaw	ADR-2008	accepted/partial/live	OUT: Live-system receipts (rule 2)	Host-side launch.sh up dev receipt capturing binary identity and a forced compile failure
+VisionClaw	ADR-2010	accepted/partial/live	IN: W4	Multi-user-locked deployment, or an HTTP-level concurrent role-mutation test
+VisionClaw	ADR-2012	accepted/partial/live	OUT: Residential receipts (rules 2+3)	CY-C fresh-host receipt binding image digest + feature closure (shared with ADR-2037/2038)
+VisionClaw	ADR-2013	accepted/none/inactive	OUT: Second operator (rule 1)	A second operator, or an enterprise deployment requiring OIDC/SAML
+VisionClaw	ADR-2016	accepted/partial/live	OUT: Erasure / next cycle (rule 1)	Erasure pair reopens (first item of next cycle), or a right-to-erasure request
+VisionClaw	ADR-2017	accepted/partial/live	OUT: Erasure / next cycle (rule 1)	A restore drill, or ADR-2103 decided
+VisionClaw	ADR-2020	accepted/complete/staged	OUT: Headset / device (rule 5)	Running server and XR client exchange 0x44 end to end — now named in review_trigger
+VisionClaw	ADR-2021	accepted/partial/live	IN: W1	Migration of github_sync_service minting to the typed constructors, or a decision to retire urn:ngm:*
+VisionClaw	ADR-2027	accepted/partial/live	OUT: Owner ruling or owner-held credential (rule 1)	Owner sets a default profile in compose (e.g. for the CY-C prod bring-up)
+VisionClaw	ADR-2029	accepted/partial/live	IN: W2	Array-backed force-term refactor, or a GPU-tick test observing ENABLE_CONSTRAINTS effect on positions
+VisionClaw	ADR-2030	accepted/partial/live	IN: W2	Host driver supporting a newer PTX ISA, or a runtime PTX identity check
+VisionClaw	ADR-2033	accepted/partial/live	OUT: Headset session (rule 5)	Headset acceptance session (shared with ADR-2107)
+VisionClaw	ADR-2034	accepted/partial/live	OUT: Headset session (rule 5)	Headset acceptance session
+VisionClaw	ADR-2037	proposed/partial/staged	OUT: Residential receipts (rules 2+3)	CY-C fresh-host prod-profile bring-up receipt (Trust residential 3-5 Nov is the natural moment)
+VisionClaw	ADR-2038	accepted/partial/live	OUT: Residential receipts (rules 2+3)	CY-C receipt (with ADR-2037), or owner decision on the production default profile
+VisionClaw	ADR-2039	proposed/complete/inactive	OUT: Headset session (rule 5)	Owner confirms a headset View 3D/Flat press on the dev rig, then ratifies
+VisionClaw	ADR-2043	accepted/complete/staged	OUT: Residential receipts (rules 2+3)	First production-artefact boot (CY-C on the Trust host) — now named in review_trigger
+VisionClaw	ADR-2049	accepted/complete/staged	OUT: Residential receipts (rules 2+3)	First successful host docker build of Dockerfile.production — now named in review_trigger
+VisionClaw	ADR-2061	accepted/complete/staged	OUT: Live-system receipts (rule 2)	Running backend's analytics output checked against the CPU oracle — now named in review_trigger
+VisionClaw	ADR-2071	accepted/complete/staged	OUT: Live-system receipts (rule 2)	Live-corpus GitHub sync with recorded counts — now named in review_trigger
+VisionClaw	ADR-2084	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	Decision to build notifications/agent_state WS payload (existing review_trigger)
+VisionClaw	ADR-2085	accepted/complete/staged	OUT: Live-system receipts (rule 2)	First authenticated BriefingService::submit_brief against a live agentbox (existing review_trigger)
+VisionClaw	ADR-2101	accepted/complete/staged	OUT: Live-system receipts (rule 2)	First live elevation case over the relay surviving a real restart — now named in review_trigger
+VisionClaw	ADR-2102	proposed/none/inactive	OUT: Erasure / next cycle (rule 1)	Next cycle start, first real user, or unencrypted personal data found at rest
+VisionClaw	ADR-2103	proposed/none/inactive	OUT: Owner ruling or owner-held credential (rule 1)	Oxigraph data-loss incident, restore drill, or owner sets RPO/RTO
+VisionClaw	ADR-2104	proposed/none/inactive	OUT: Owner ruling or owner-held credential (rule 1)	Owner A/B decision, or agentbox ADR-2027 custody landing
+VisionClaw	ADR-2106	accepted/partial/live	OUT: Whole-ADR acceptance larger than a sprint or on the live production path (scope + rule 3)	All multi-resource readers pin the generation (or owner rules the unpinned straddle acceptable), plus a durability fix for the post-rename window
+VisionClaw	ADR-2107	accepted/partial/staged	OUT: Headset session (rule 5)	Headset acceptance (existing review_trigger)
+VisionClaw	ADR-2108	proposed/complete/staged	OUT: Headset session (rule 5)	Owner confirms headset write on the dev rig, then ratifies with ADR-2039
+VisionClaw	ADR-2110	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	Existing review_trigger
+VisionClaw	ADR-2111	proposed/none/inactive	OUT: Owner ruling or owner-held credential (rule 1)	Owner un-parks sidestr/PRD-024 (already owner-parked)
+VisionClaw	ADR-2112	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	review_trigger activation clause
+VisionClaw	ADR-2113	accepted/partial/staged	OUT: Larger than a sprint (scope)	WS-F end-to-end run
+VisionClaw	ADR-2119	accepted/complete/staged	OUT: Residential receipts (rules 2+3)	First prod-profile start on the Trust DGX Spark, 3–5 Nov
+VisionClaw	ADR-2124	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	first defines-as key accepted (existing trigger)
+VisionClaw	ADR-2125	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	disjoint-with entering vocabulary.yaml (existing trigger)
+VisionClaw	ADR-2126	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	green ontology-publish.yml run (new activation clause)
+VisionClaw	ADR-2127	accepted/partial/staged	IN: W4	generator extended to ontology-agent types, or ADR-2125 disjointness producing the first entailed_false
+VisionClaw	ADR-2128	accepted/partial/staged	OUT: Needs a live deployment or deployed consumer (rule 2)	first consumer pinning a versionIRI (agentbox ADR-2129) or first scoped domain/range
+VisionClaw	ADR-2135	accepted/complete/staged	OUT: Live-system receipts (rule 2)	operator confirms triangle live
+VisionClaw	ADR-2136	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	owner names activation, or a headset session routes from query.position
+VisionClaw	ADR-2137	proposed/none/inactive	OUT: Larger than a sprint (scope)	shared workspace extraction / consumer migration
+VisionClaw	ADR-2139	accepted/complete/staged	OUT: Owner ratification / ruling (rule 1)	owner chooses: restate kept rules in ADR-2141 then mark 2139 superseded, or keep accepted
+VisionClaw	ADR-2140	accepted/partial/staged	IN: W3	layout-mode schema move into physics.*
+VisionClaw	ADR-2141	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	new activation clause
+VisionClaw	ADR-2142	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	new activation clause
+VisionClaw	ADR-2143	accepted/partial/inactive	IN: W5	P2 gate output committed
+VisionClaw	ADR-2147	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	ontology-publish.yml certify step exit 0 (new activation clause)
+VisionClaw	ADR-2157	proposed/none/inactive	OUT: Owner ruling or owner-held credential (rule 1)	owner decision; first code minting nip29- URN
+VisionClaw	ADR-2158	accepted/none/inactive	OUT: Headset / device (rule 5)	E3 headset session
+VisionClaw	ADR-2159	accepted/none/inactive	OUT: Headset / device (rule 5)	two-client preflight / E3
+VisionClaw	ADR-2160	proposed/none/inactive	OUT: Owner ruling or owner-held credential (rule 1)	operator lifts voice deferral
+VisionClaw	ADR-2161	proposed/none/inactive	OUT: Second operator (rule 1)	second operator joins
+VisionClaw	ADR-2164	accepted/none/inactive	OUT: Headset / device (rule 5)	E3 headset session
+VisionClaw	ADR-2165	accepted/partial/staged	OUT: Headset / device (rule 5)	operator wears HMD for both-eyes re-test
+agentbox	ADR-2001	accepted/partial/staged	OUT: Owner ruling or owner-held credential (rule 1)	legacy archive referenced by a new decision, or corpus >300 files (existing)
+agentbox	ADR-2004	accepted/partial/live	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	durable-state integration not fitting the five slots (existing)
+agentbox	ADR-2008	accepted/partial/live	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	managed MCP server with failing gate in .mcp.json (existing)
+agentbox	ADR-2012	accepted/partial/live	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	ingress_policy change or key-split landing (existing)
+agentbox	ADR-2013	accepted/partial/live	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	new SANCTIONED entry or compose overlay (existing)
+agentbox	ADR-2014	accepted/partial/live	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	new memory backend or learning component bypassing memStore (existing)
+agentbox	ADR-2015	accepted/partial/live	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	Bash tool_response carrying exit code, or redaction set change (existing)
+agentbox	ADR-2017	accepted/partial/live	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	feed_routing flipped on, or memory_learning gate change (existing)
+agentbox	ADR-2019	accepted/none/inactive	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	SONA with configurable 384 dim, or dimension migration planned (existing)
+agentbox	ADR-2020	accepted/partial/live	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	new optional gate, tree-search posture change (existing); ADR-2077 receipt
+agentbox	ADR-2021	accepted/partial/live	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	banned-string/threshold change (existing)
+agentbox	ADR-2023	accepted/partial/live	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	model swap behind Loom, ADR-051 MCP server (existing)
+agentbox	ADR-2024	accepted/partial/live	OUT: Live-system receipts (rule 2)	first nightly composed-path receipt; recall band/window change (existing)
+agentbox	ADR-2025	proposed/partial/inactive	OUT: Federation (rule 1)	second operator (owner)
+agentbox	ADR-2026	proposed/partial/inactive	OUT: Boot, auth, isolation (rule 3)	Track C fresh-host run
+agentbox	ADR-2027	proposed/none/inactive	OUT: Boot, auth, isolation (rule 3)	before any real-value spend (ADR-2103 P21)
+agentbox	ADR-2030	accepted/partial/live	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	first crates.io publication of a services crate (existing)
+agentbox	ADR-2031	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	review_trigger amended with the receipt
+agentbox	ADR-2032	accepted/partial/staged	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	review_trigger amended
+agentbox	ADR-2034	accepted/partial/staged	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	review_trigger amended
+agentbox	ADR-2040	accepted/partial/staged	OUT: Boot, auth, isolation (rule 3)	review_trigger amended
+agentbox	ADR-2041	accepted/partial/live	IN: W8	one-line server.js change by ab-runtime
+agentbox	ADR-2042	accepted/partial/live	OUT: Owner ratification / ruling (rule 1)	S-3 / X-1
+agentbox	ADR-2059	proposed/none/inactive	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	next reasoner black-hole stall
+agentbox	ADR-2060	proposed/none/inactive	OUT: Erasure / next cycle (rule 1)	next cycle
+agentbox	ADR-2064	accepted/complete/staged	OUT: Erasure / next cycle (rule 1)	ADR-2078 activation
+agentbox	ADR-2066	accepted/partial/inactive	IN: W8	ADR-2078
+agentbox	ADR-2073	proposed/none/inactive	OUT: Measurement programmes (rule 1)	PRD-028 pilot
+agentbox	ADR-2075	proposed/partial/inactive	OUT: Measurement programmes (rule 1)	coordinated Loom bundle rebuild
+agentbox	ADR-2076	proposed/none/inactive	OUT: Measurement programmes (rule 1)	PRD-028 pilot
+agentbox	ADR-2077	proposed/none/inactive	OUT: Image rebuild (rule 4)	X-4 rehearsal
+agentbox	ADR-2078	accepted/complete/staged	OUT: Erasure / next cycle (rule 1)	next cycle
+agentbox	ADR-2080	accepted/partial/staged	OUT: Owner ratification / ruling (rule 1)	owner ruling on item 3 wording → then complete/live
+agentbox	ADR-2081	accepted/complete/staged	OUT: Live-system receipts (rule 2)	review_trigger amended: first nightly receipt
+agentbox	ADR-2085	proposed/partial/inactive	OUT: Owner ratification / ruling (rule 1)	CY-B7
+agentbox	ADR-2086	proposed/complete/staged	OUT: Owner ratification / ruling (rule 1)	ADR-2085 acceptance
+agentbox	ADR-2087	accepted/complete/staged	OUT: Live-system receipts (rule 2)	review_trigger amended: check exits 0
+agentbox	ADR-2153	accepted/partial/live	OUT: Owner ruling or owner-held credential (rule 1)	Antigravity signed in + OpenRouter round trip passes; aoe-profiles mount migration
+agentbox	ADR-2109	accepted/partial/staged	IN: W6	re-point the four spawns to ontomark (or repin vault) + E2E_REAL_VAULT=1 run
+agentbox	ADR-2107	accepted/partial/staged	IN: W6	curator agent + AGENTS.md re-pointed to ontomark verbs; then complete with the ADR's prescribed verified_paths
+agentbox	ADR-2090	accepted/none/inactive	IN: W7	first project whose content must not reach the judge
+agentbox	ADR-2092	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	a reconcile audit of the running home matching the registry
+agentbox	ADR-2093	accepted/complete/staged	OUT: Live-system receipts (rule 2)	soak report
+agentbox	ADR-2121	accepted/complete/staged	OUT: Live-system receipts (rule 2)	end of post-rebuild residency soak
+agentbox	ADR-2135	accepted/complete/staged	OUT: Live-system receipts (rule 2)	first soak report
+agentbox	ADR-2094	accepted/partial/inactive	OUT: Measurement programmes (rule 1)	first measured accuracy/latency run
+agentbox	ADR-2095	accepted/partial/staged	OUT: Measurement programmes (rule 1)	fourth engine on the routing corpus
+agentbox	ADR-2105	accepted/partial/staged	IN: W8	ADR-2061 fixture rows reconciled
+agentbox	ADR-2118	accepted/partial/live	OUT: Owner ruling or owner-held credential (rule 1)	any of the three deferrals landing
+agentbox	ADR-2138	accepted/partial/staged	OUT: Owner ratification / ruling (rule 1)	operator decision on project/
+agentbox	ADR-2139	accepted/partial/staged	IN: W7	state_budget_tokens implemented, or Decision 5 amended
+agentbox	ADR-2154	accepted/partial/staged	OUT: Image rebuild (rule 4)	browsercontainer rebuilt without mermaid-cli
+agentbox	ADR-2130	accepted/none/inactive	IN: W8	sealmap skill landing with the four routes
+agentbox	ADR-2131	accepted/complete/staged	OUT: Live-system receipts (rule 2)	valid Gemini key + first real audit ledger line
+agentbox	ADR-2133	accepted/complete/staged	OUT: Live-system receipts (rule 2)	operator runs reader-role/hba-harden
+agentbox	ADR-2134	accepted/complete/staged	OUT: Live-system receipts (rule 2)	settings.json model==sonnet observed immediately after a boot
+agentbox	ADR-2137	accepted/complete/staged	OUT: Live-system receipts (rule 2)	host bundle carrying Grype reports + a release with matching scan artefacts
+agentbox	ADR-2114	accepted/complete/staged	OUT: Live-system receipts (rule 2)	first live night
+agentbox	ADR-2115	accepted/complete/staged	OUT: Live-system receipts (rule 2)	JunkieJarvis in agent_registry + first night publishes cases
+agentbox	ADR-2129	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	agent decision traced to empty Loom/vault result, or VisionClaw ADR-2127/2128 landing
+agentbox	ADR-2155	accepted/complete/staged	OUT: Live-system receipts (rule 2)	system-one-activation acceptance run
+agentbox	ADR-2097	accepted/complete/staged	OUT: sidestr / PRD-024 (rule 1)	owner reopens sidestr
+agentbox	ADR-2096 ADR-2098 ADR-2099 ADR-2100 ADR-2102 ADR-2103 ADR-2117	proposed	OUT: sidestr / PRD-024 (rule 1)	owner reopens sidestr/PRD-024
+agentbox	ADR-2101 ADR-2162	proposed/none/inactive	OUT: sidestr / PRD-024 (rule 1)	second operator joins
+agentbox	ADR-2122	proposed/partial/inactive	OUT: Boot, auth, isolation (rule 3)	role-isolation rehearsal passes on a rebuilt image + owner go
+agentbox	ADR-2104	proposed/partial/staged	OUT: Owner ratification / ruling (rule 1)	inventory amended, then owner accepts on the CY-A1 exit test
+agentbox	ADR-2151	proposed/none/inactive	OUT: Needs a live deployment or deployed consumer (rule 2)	voicelink e2e link test passes, then 3a (accept/partial)
+agentbox	ADR-2149 ADR-2150 ADR-2163	proposed/partial/staged	OUT: Owner ratification / ruling (rule 1)	owner acceptance or first pinned-image smoke (2149)
+agentbox	ADR-2136	proposed/partial/inactive	OUT: Owner ratification / ruling (rule 1)	owner go on repin
+nostr-rust-forum	ADR-2002	accepted/partial/staged	OUT: Whole-ADR acceptance larger than a sprint or on the live production path (scope + rule 3)	Canary records a verdict with target/toolchain/lock/KAT receipts (existing trigger).
+nostr-rust-forum	ADR-2010	proposed/partial/staged	OUT: Owner ratification / ruling (rule 1)	Owner's live high-tier 31403 recorded; then accept. Not accepted from a desk.
+nostr-rust-forum	ADR-2011	accepted/partial/live	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	Existing trigger: probe-blindness scheme surviving raw-event inspection, admin-flag change, or failing M4 run.
+nostr-rust-forum	ADR-2012	proposed/partial/inactive	OUT: sidestr / PRD-024 (rule 1)	Owner unparks sidestr. Note: solid-pod-rs 0.5.0-alpha.18 published 2026-10-29 — check whether that is the 'post-port version' clause of the trigger.
+nostr-rust-forum	ADR-2013	accepted/partial/staged	IN: W6	E2E green in stub and E2E_REAL_VAULT=1 modes; operator publishes the ontology-governance 31400.
+nostr-rust-forum	ADR-2014	proposed/partial/staged	OUT: Larger than a sprint (scope)	Start of next cycle, or a residential deployment hitting a cohort/pending defect.
+nostr-rust-forum	ADR-2015	accepted/complete/staged	OUT: sidestr / PRD-024 (rule 1)	Owner unparks sidestr; a live wallet chain read recorded from the production origin.
+nostr-rust-forum	ADR-2019	accepted/complete/staged	OUT: sidestr / PRD-024 (rule 1)	Existing trigger: operator-run backend answering from the forum origin.
+nostr-rust-forum	ADR-2020	accepted/complete/staged	OUT: sidestr / PRD-024 (rule 1)	A house seat running against the production relay with a recorded hand.
+nostr-rust-forum	ADR-2021	accepted/complete/staged	OUT: sidestr / PRD-024 (rule 1)	Existing trigger (BLAKES7 issue landing; poker protocol 2).
+nostr-rust-forum	ADR-2023	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	Operator sets VAPID_* and records a device push round trip (now in review_trigger).
+nostr-rust-forum	ADR-2027	accepted/partial/inactive	OUT: Larger than a sprint (scope)	feat/upgrade-phase-0-1 merged; then operator enables RECIPIENT_KEYS_ENABLED.
+nostr-rust-forum	ADR-2028	proposed/none/inactive	OUT: Owner ratification / ruling (rule 1)	Owner decides on the branch merge / ADR acceptance.
+nostr-rust-forum	ADR-2029	proposed/none/inactive	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	First operator asking for a room-profile deployment (existing trigger).
+nostr-rust-forum	ADR-2030	proposed/none/inactive	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	Commit adding a NIP-29 engine crate (existing trigger).
+nostr-rust-forum	ADR-2031	proposed/none/inactive	OUT: Federation (rule 1)	A second operator / node for an existing group.
+nostr-rust-forum	ADR-2032	proposed/none/inactive	OUT: Waits on a named external trigger; nothing to build until it fires (trigger)	Commit parsing a space descriptor or emitting 30312/10312 (existing trigger).
+codescape	ADR-0001 follow-on	accepted/complete/live	IN: W5	phase evidence committed under docs/evidence/<phase>/
+visionGraph	ADR-VG-001	proposed/partial/inactive	OUT: Federation (rule 1)	owner decision on consumer publication policy; tied to the owner-parked federation work (until a second operator exists)
+visionGraph	ADR-VG-002	proposed/partial/inactive	OUT: Federation (rule 1)	VG-001 decided; federation unparked
+visionGraph	ADR-VG-003	accepted/source-complete/partial	OUT: Image rebuild (rule 4)	agentbox image rebuild with baked vault and skills verified free of retired tooling
+visionGraph	ADR-VG-005	accepted/complete/staged	OUT: Owner-held content (rule 1)	source notices shipped in the public artefacts
+visionGraph	ADR-VG-006	accepted/complete/staged	OUT: Owner-held content (rule 1)	review recorded against the served projection
+visionGraph	ADR-VG-007	accepted/partial/partial	IN: W9	collision lint wired into publish.yml and a migration census/dry-run receipt
+visiontouch-rs	ADR-0003	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	committed OWNER force-verification record (existing review_trigger already names it)
+sidestr-rs	ADR-0002	accepted/complete/inactive	OUT: sidestr / PRD-024 (rule 1)	Hitch channel receipt on sidestr:dreamlab (review_trigger already names activation); owner-parked with sidestr/PRD-024
+sidestr-rs	ADR-0003	accepted/complete/inactive	OUT: sidestr / PRD-024 (rule 1)	bridge rule consumes the attestation or Liquid reserve funded under agentbox ADR-2117 gates; owner-parked with sidestr/PRD-024
+solid-pod-rs	ADR-2006	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	a second tier implements/consumes ReplayStore or a multi-replica deployment relies on replay protection
+solid-pod-rs	ADR-2008	proposed/partial/staged	OUT: sidestr / PRD-024 (rule 1)	owner ratifies D1-D3; D4/D5 with agentbox ADR-2099 when sidestr/PRD-024 unparks
+solid-pod-rs	ADR-2009/ADR-2010 activation	accepted/complete/staged	OUT: Federation (rule 1)	agentbox sets a valid FORGE_MIRROR_FOLLOW entry and solid-pod-rs-server is observed holding a mirror relay session
+VisionFlow	ADR-2007	accepted/partial/live	IN: W9	adr-index-gen (or the status contract) gains a gated evidence-class/acceptance-boundary field, or the owner declares review-only enforcement sufficient
+VisionFlow	ADR-2010	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	NIP-11 escalation_defaults.status leaves 'scaffolded' and a read-only probe shows a high/critical case resolving only by a human 31403
+VisionFlow	ADR-2011	accepted/complete/staged	OUT: implementation already complete; only activation waits on a live event (rule 2)	NIP-11 status leaves 'scaffolded', or a read-only probe shows effective_tier enforced (no publishing to the production relay)
+VisionFlow	ADR-2012	proposed/partial/inactive	OUT: Owner ruling or owner-held credential (rule 1)	owner reopens sidestr/PRD-024 (existing review_trigger)
+VisionFlow	ADR-2013	accepted/partial/staged	OUT: Needs a live deployment or deployed consumer (rule 2)	the three counts are equal at a named commit (now in review_trigger)
+VisionFlow	ADR-2014	accepted/partial/staged	OUT: Needs a live deployment or deployed consumer (rule 2)	a consumer builds from the published ontomark crates in a deployed artefact and the duplicates are removed (now in review_trigger)
+VisionFlow	ADR-2015	proposed/none/inactive	OUT: Owner ratification / ruling (rule 1)	the owner accepts the typed-model decision (the code exists; see concerns)
+VisionFlow	ADR-2016	accepted/partial/staged	OUT: Owner ruling or owner-held credential (rule 1)	plugin released for install outside the test vault (now in review_trigger)
+VisionFlow	ADR-2017	accepted/none/inactive	OUT: Owner ruling or owner-held credential (rule 1)	existing trigger: intent to publish or distribute, or start of the VisionClaw integration
+VisionFlow	ADR-2018	accepted/partial/inactive	OUT: Owner ratification / ruling (rule 1)	the owner rules whether a Nix git-tag pin satisfies 'through a release'; then re-grade to complete/live
+VisionFlow	ADR-2019 (mirror)	accepted/partial/live	OUT: Federation (rule 1)	agentbox populates FORGE_MIRROR_FOLLOW with the operator key and the log shows 'forge: mirror on kind-30618 started'
+VisionFlow	ADR-2020	accepted/partial/live	IN: W9	those four surfaces show the same pin, or a Pele bump
+dreamlab-ai-website	ADR-2005	accepted/partial/live	OUT: Owner-held content (rule 1)	the PRF_SERVER_SECRET blocker is resolved and set-secrets goes green, a rotation is exercised, or the generator ships
+dreamlab-ai-website	PR #83 dream/operator-overlay-2026-10-30 (draft)	draft, all 13 checks green on 481ec0f7	OUT: Owner-held content (rule 1)	owner marks it ready; recommend rebase-free squash merge if adopted
