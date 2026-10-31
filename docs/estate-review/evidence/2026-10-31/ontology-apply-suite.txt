@@ -1,0 +1,412 @@
+TAP version 13
+# Subtest: promote runs ontomark edit with status=stable, an appended human attestation and a blast-radius guard
+ok 1 - promote runs ontomark edit with status=stable, an appended human attestation and a blast-radius guard
+  ---
+  duration_ms: 32.972896
+  type: 'test'
+  ...
+# Subtest: demote sets status=deprecated and appends no attestation
+ok 2 - demote sets status=deprecated and appends no attestation
+  ---
+  duration_ms: 16.663184
+  type: 'test'
+  ...
+# Subtest: the blast-radius guard is never omitted and never widened
+ok 3 - the blast-radius guard is never omitted and never widened
+  ---
+  duration_ms: 26.971407
+  type: 'test'
+  ...
+# Subtest: expectFor counts distinct keys, treating key= and key+= as one key
+ok 4 - expectFor counts distinct keys, treating key= and key+= as one key
+  ---
+  duration_ms: 0.603705
+  type: 'test'
+  ...
+# Subtest: the IRI is resolved by re-slugifying candidates, not by trusting the search rank
+ok 5 - the IRI is resolved by re-slugifying candidates, not by trusting the search rank
+  ---
+  duration_ms: 3.848591
+  type: 'test'
+  ...
+# Subtest: two pages claiming one IRI stop the write rather than picking one
+ok 6 - two pages claiming one IRI stop the write rather than picking one
+  ---
+  duration_ms: 6.04741
+  type: 'test'
+  ...
+# Subtest: an IRI no page answers to stops the write
+ok 7 - an IRI no page answers to stops the write
+  ---
+  duration_ms: 4.436965
+  type: 'test'
+  ...
+# Subtest: a page hint that does not answer to its own IRI is refused
+ok 8 - a page hint that does not answer to its own IRI is refused
+  ---
+  duration_ms: 1.408234
+  type: 'test'
+  ...
+# Subtest: slugging matches contract C1
+ok 9 - slugging matches contract C1
+  ---
+  duration_ms: 0.327117
+  type: 'test'
+  ...
+# Subtest: the Loom ledger receives the case id, digest, outcome, signer and instant
+ok 10 - the Loom ledger receives the case id, digest, outcome, signer and instant
+  ---
+  duration_ms: 14.322358
+  type: 'test'
+  ...
+# Subtest: a 404 from the not-yet-deployed attest route does not undo the write
+ok 11 - a 404 from the not-yet-deployed attest route does not undo the write
+  ---
+  duration_ms: 11.787957
+  type: 'test'
+  ...
+# Subtest: an unreachable Loom does not undo the write either
+ok 12 - an unreachable Loom does not undo the write either
+  ---
+  duration_ms: 10.376489
+  type: 'test'
+  ...
+# Subtest: a decision with no iri is refused before any vault call
+ok 13 - a decision with no iri is refused before any vault call
+  ---
+  duration_ms: 1.136059
+  type: 'test'
+  ...
+# Subtest: a non-ontology outcome is refused
+ok 14 - a non-ontology outcome is refused
+  ---
+  duration_ms: 0.95787
+  type: 'test'
+  ...
+# Subtest: an ontomark edit that refuses its guard fails the apply and writes nothing further
+ok 15 - an ontomark edit that refuses its guard fails the apply and writes nothing further
+  ---
+  duration_ms: 9.053027
+  type: 'test'
+  ...
+# Subtest: handleGovernanceDecision applies a promote and reports the page it wrote
+ok 16 - handleGovernanceDecision applies a promote and reports the page it wrote
+  ---
+  duration_ms: 88.985354
+  type: 'test'
+  ...
+# Subtest: handleGovernanceDecision leaves a plain approve alone
+ok 17 - handleGovernanceDecision leaves a plain approve alone
+  ---
+  duration_ms: 2.363454
+  type: 'test'
+  ...
+# Subtest: a failing apply records the failure instead of losing the signed decision
+ok 18 - a failing apply records the failure instead of losing the signed decision
+  ---
+  duration_ms: 7.42351
+  type: 'test'
+  ...
+# Subtest: resolveVaultRepo: VAULT_REPO wins when it holds the marker
+ok 19 - resolveVaultRepo: VAULT_REPO wins when it holds the marker
+  ---
+  duration_ms: 0.69716
+  type: 'test'
+  ...
+# Subtest: resolveVaultRepo: a set-but-wrong VAULT_REPO is an error, not a fall-through to VAULT_ROOT
+ok 20 - resolveVaultRepo: a set-but-wrong VAULT_REPO is an error, not a fall-through to VAULT_ROOT
+  ---
+  duration_ms: 1.064785
+  type: 'test'
+  ...
+# Subtest: resolveVaultRepo: VAULT_ROOT ending in knowledge/ or working/ resolves to its parent
+ok 21 - resolveVaultRepo: VAULT_ROOT ending in knowledge/ or working/ resolves to its parent
+  ---
+  duration_ms: 0.67434
+  type: 'test'
+  ...
+# Subtest: resolveVaultRepo: VAULT_ROOT that IS the repo is used as-is
+ok 22 - resolveVaultRepo: VAULT_ROOT that IS the repo is used as-is
+  ---
+  duration_ms: 0.63287
+  type: 'test'
+  ...
+# Subtest: resolveVaultRepo: a VAULT_ROOT whose derived repo has no marker fails closed
+ok 23 - resolveVaultRepo: a VAULT_ROOT whose derived repo has no marker fails closed
+  ---
+  duration_ms: 0.899064
+  type: 'test'
+  ...
+# Subtest: resolveVaultRepo: neither variable set fails closed
+ok 24 - resolveVaultRepo: neither variable set fails closed
+  ---
+  duration_ms: 0.198675
+  type: 'test'
+  ...
+# Subtest: an unresolvable repo spawns nothing and writes nothing
+ok 25 - an unresolvable repo spawns nothing and writes nothing
+  ---
+  duration_ms: 1.87996
+  type: 'test'
+  ...
+# Subtest: the resolved repo is prepended as --repo on every real invocation
+ok 26 - the resolved repo is prepended as --repo on every real invocation
+  ---
+  duration_ms: 15.469359
+  type: 'test'
+  ...
+# Subtest: vaultEnv passes the vault signing variables only when set, and nothing else
+ok 27 - vaultEnv passes the vault signing variables only when set, and nothing else
+  ---
+  duration_ms: 0.692167
+  type: 'test'
+  ...
+# Subtest: promoting an already-stable page is a re-attestation: one verified appended, blocks=1
+ok 28 - promoting an already-stable page is a re-attestation: one verified appended, blocks=1
+  ---
+  duration_ms: 18.965763
+  type: 'test'
+  ...
+# Subtest: demoting an already-deprecated page writes nothing but is still ledgered
+ok 29 - demoting an already-deprecated page writes nothing but is still ledgered
+  ---
+  duration_ms: 5.941051
+  type: 'test'
+  ...
+# Subtest: --expect is derived from the keys that change, for every current status
+ok 30 - --expect is derived from the keys that change, for every current status
+  ---
+  duration_ms: 0.292138
+  type: 'test'
+  ...
+# Subtest: readPageStatus reads the frontmatter scalar and refuses ids that escape the pages dir
+ok 31 - readPageStatus reads the frontmatter scalar and refuses ids that escape the pages dir
+  ---
+  duration_ms: 1.378859
+  type: 'test'
+  ...
+# Subtest: the ledger digest is canonical sha256:<hex>, whatever form the 31403 carried
+ok 32 - the ledger digest is canonical sha256:<hex>, whatever form the 31403 carried
+  ---
+  duration_ms: 12.777883
+  type: 'test'
+  ...
+# Subtest: pageFromCreateDiff reconstructs the added page byte for byte
+ok 33 - pageFromCreateDiff reconstructs the added page byte for byte
+  ---
+  duration_ms: 0.534939
+  type: 'test'
+  ...
+# Subtest: pageFromCreateDiff refuses anything that is not a pure addition
+ok 34 - pageFromCreateDiff refuses anything that is not a pure addition
+  ---
+  duration_ms: 0.394794
+  type: 'test'
+  ...
+# Subtest: Promote of a create proposal: ONE ontomark create of the signed diff's page, stamped in the same write, then the ledger
+ok 35 - Promote of a create proposal: ONE ontomark create of the signed diff's page, stamped in the same write, then the ledger
+  ---
+  duration_ms: 18.916572
+  type: 'test'
+  ...
+# Subtest: the page already existing (exit 2, a race) is applied:false reason exists, and NOT ledgered
+ok 36 - the page already existing (exit 2, a race) is applied:false reason exists, and NOT ledgered
+  ---
+  duration_ms: 8.175556
+  type: 'test'
+  ...
+# Subtest: page_sha256, when the proposal carries it, must be the hash of the signed diff's page
+ok 37 - page_sha256, when the proposal carries it, must be the hash of the signed diff's page
+  ---
+  duration_ms: 17.22368
+  type: 'test'
+  ...
+# Subtest: a create diff that is not a pure addition is refused before the vault is spawned
+ok 38 - a create diff that is not a pure addition is refused before the vault is spawned
+  ---
+  duration_ms: 1.465061
+  type: 'test'
+  ...
+# Subtest: create proposals refuse what they cannot do safely — and spawn nothing
+ok 39 - create proposals refuse what they cannot do safely — and spawn nothing
+  ---
+  duration_ms: 2.336552
+  type: 'test'
+  ...
+# Subtest: every non-EXISTS refusal (exit 2) throws with its code and blockers, and is not ledgered
+ok 40 - every non-EXISTS refusal (exit 2) throws with its code and blockers, and is not ledgered
+  ---
+  duration_ms: 3.959802
+  type: 'test'
+  ...
+# Subtest: the attestation is ONE argv element holding a YAML flow MAPPING (by/at), not a string
+ok 41 - the attestation is ONE argv element holding a YAML flow MAPPING (by/at), not a string
+  ---
+  duration_ms: 32.951583
+  type: 'test'
+  ...
+# Subtest: any other ontomark create failure rejects with no ledger entry
+ok 42 - any other ontomark create failure rejects with no ledger entry
+  ---
+  duration_ms: 8.304532
+  type: 'test'
+  ...
+# Subtest: an absent or amend kind keeps today's edit path
+ok 43 - an absent or amend kind keeps today's edit path
+  ---
+  duration_ms: 23.071622
+  type: 'test'
+  ...
+# Subtest: proposalFromRequest reads the PatchProposal from a stored 31402
+ok 44 - proposalFromRequest reads the PatchProposal from a stored 31402
+  ---
+  duration_ms: 0.314245
+  type: 'test'
+  ...
+# Subtest: the adapter applies a create only when the stored 31402 is the SAME case as the 31403
+ok 45 - the adapter applies a create only when the stored 31402 is the SAME case as the 31403
+  ---
+  duration_ms: 12.916183
+  type: 'test'
+  ...
+# Subtest: an empty roster refuses every corpus write, records it, and spawns nothing
+ok 46 - an empty roster refuses every corpus write, records it, and spawns nothing
+  ---
+  duration_ms: 2.088433
+  type: 'test'
+  ...
+# Subtest: a signer off the roster is refused; demote included
+ok 47 - a signer off the roster is refused; demote included
+  ---
+  duration_ms: 2.98916
+  type: 'test'
+  ...
+# Subtest: a decision signed by this box's own identity is refused even when that key is on the roster
+ok 48 - a decision signed by this box's own identity is refused even when that key is on the roster
+  ---
+  duration_ms: 2.946395
+  type: 'test'
+  ...
+# Subtest: the request must be the same case AND about the signed iri; a promote with no findable request is refused
+ok 49 - the request must be the same case AND about the signed iri; a promote with no findable request is refused
+  ---
+  duration_ms: 16.353308
+  type: 'test'
+  ...
+# Subtest: the caller's request fetcher is used when the pod holds no stored copy
+ok 50 - the caller's request fetcher is used when the pod holds no stored copy
+  ---
+  duration_ms: 14.538452
+  type: 'test'
+  ...
+# Subtest: Promote of an amend proposal: ONE ontomark apply of the staged proposal, attestation in the same write, then the ledger
+ok 51 - Promote of an amend proposal: ONE ontomark apply of the staged proposal, attestation in the same write, then the ledger
+  ---
+  duration_ms: 16.234832
+  type: 'test'
+  ...
+# Subtest: an ABSENT kind with a diff is an amendment (the vault's serde default)
+ok 52 - an ABSENT kind with a diff is an amendment (the vault's serde default)
+  ---
+  duration_ms: 14.006934
+  type: 'test'
+  ...
+# Subtest: every ontomark apply refusal (exit 2) throws with its code and blockers, and is not ledgered
+ok 53 - every ontomark apply refusal (exit 2) throws with its code and blockers, and is not ledgered
+  ---
+  duration_ms: 2.604024
+  type: 'test'
+  ...
+# Subtest: a refusal reported on a zero exit is still a refusal
+ok 54 - a refusal reported on a zero exit is still a refusal
+  ---
+  duration_ms: 8.948871
+  type: 'test'
+  ...
+# Subtest: amend proposals refuse what they cannot do safely — and spawn nothing
+ok 55 - amend proposals refuse what they cannot do safely — and spawn nothing
+  ---
+  duration_ms: 1.610214
+  type: 'test'
+  ...
+# Subtest: Demote of an amend proposal keeps the status edit
+ok 56 - Demote of an amend proposal keeps the status edit
+  ---
+  duration_ms: 11.725105
+  type: 'test'
+  ...
+# Subtest: a successful write commits exactly that one page, pathspec-limited, with the governance trailers, then pushes
+ok 57 - a successful write commits exactly that one page, pathspec-limited, with the governance trailers, then pushes
+  ---
+  duration_ms: 10.020717
+  type: 'test'
+  ...
+# Subtest: a push failure is recorded, not thrown: the page stays applied and committed
+ok 58 - a push failure is recorded, not thrown: the page stays applied and committed
+  ---
+  duration_ms: 9.298735
+  type: 'test'
+  ...
+# Subtest: no upstream: committed, not pushed, and that is not an error
+ok 59 - no upstream: committed, not pushed, and that is not an error
+  ---
+  duration_ms: 7.398998
+  type: 'test'
+  ...
+# Subtest: a repository that is not its own git top level is never committed into
+ok 60 - a repository that is not its own git top level is never committed into
+  ---
+  duration_ms: 10.236315
+  type: 'test'
+  ...
+# Subtest: the edit and create paths commit too; a no-op demote commits nothing
+ok 61 - the edit and create paths commit too; a no-op demote commits nothing
+  ---
+  duration_ms: 23.719941
+  type: 'test'
+  ...
+# Subtest: against a real git repository, other sessions' dirty and staged files are neither committed nor unstaged
+ok 62 - against a real git repository, other sessions' dirty and staged files are neither committed nor unstaged
+  ---
+  duration_ms: 165.932145
+  type: 'test'
+  ...
+# Subtest: an approve of an ontology amend runs ontomark apply with the request's IRI
+ok 63 - an approve of an ontology amend runs ontomark apply with the request's IRI
+  ---
+  duration_ms: 15.424728
+  type: 'test'
+  ...
+# Subtest: an approve outside the ontology panel, or of a non-amend, is not a corpus write
+ok 64 - an approve outside the ontology panel, or of a non-amend, is not a corpus write
+  ---
+  duration_ms: 3.696066
+  type: 'test'
+  ...
+# Subtest: an approve whose proposal digest is not the case refuses; off-roster approves refuse
+ok 65 - an approve whose proposal digest is not the case refuses; off-roster approves refuse
+  ---
+  duration_ms: 3.415167
+  type: 'test'
+  ...
+# Subtest: the push is held when other sessions' commits are also ahead of the upstream
+ok 66 - the push is held when other sessions' commits are also ahead of the upstream
+  ---
+  duration_ms: 7.809355
+  type: 'test'
+  ...
+# Subtest: the attest route is off the bare Loom door, never under /v1
+ok 67 - the attest route is off the bare Loom door, never under /v1
+  ---
+  duration_ms: 0.301562
+  type: 'test'
+  ...
+1..67
+# tests 67
+# suites 0
+# pass 67
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 888.717927

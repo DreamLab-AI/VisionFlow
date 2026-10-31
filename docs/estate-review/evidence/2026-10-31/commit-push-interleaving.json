@@ -1,0 +1,14 @@
+{
+  "method": "Production commitPage; real local Git; deterministic writer inserted after ahead count. No network or live corpus.",
+  "observedAhead": 1,
+  "result": {
+    "committed": true,
+    "commit": "05c80703e8140d3eb2bf42ab3ea073ac47ef14ca",
+    "pushed": true,
+    "pushError": null
+  },
+  "injectedCommit": "24e64bda7e641fa54c57247d742a9299ab1f7f19",
+  "remoteHead": "24e64bda7e641fa54c57247d742a9299ab1f7f19",
+  "unrelatedFileOnRemote": "other writer content\n",
+  "reproduced": true
+}

@@ -13,6 +13,10 @@ sources:
   - ../project/src/domain/broker/mod.rs
   - ../project/agentbox/management-api/lib/agent-identity.js
   - ../project/agentbox/agentbox.toml
+  - ../project/agentbox/flake.nix
+  - ../project/agentbox/lib/ontomark.nix
+  - ../project/agentbox/management-api/lib/ontology-apply.js
+  - scripts/diagram-index-gen.cjs
   - ../project/crates/vault/src/main.rs
   - ../project/AGENTS.md
   - docs/estate-review/2026-09-07-imported-adr-scope.md
@@ -28,7 +32,7 @@ sources:
   - docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md
   - docs/BASELINE-visionflow.md
   - ./README.md
-verified_commit: {visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625, nostr-rust-forum: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed}
+verified_commit: {visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf, nostr-rust-forum: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed}
 ---
 
 Source reconciliation: 2026-09-07. These panels follow the current sections of the compatibility matrix and status reconciliation, plus the source audits named in frontmatter. Historical metrics and register cuts remain historical. This review did not certify a live federation, image, hardware session or replica-wide authentication contract.
@@ -49,14 +53,17 @@ flowchart TB
     LOOM["Loom: ontology facade, HTTP only"] -->|configured retrieval| AB
     RV["RuVector: selected core or image"] --> LOOM
     RV -->|MCP and Postgres boundary| AB
-    VAULT["vault CLI, VisionClaw crates/vault<br/>agentbox.toml:1167 cli=true<br/>main.rs:49 enum Command"] --> AB
+    CLI["Ontomark corpus operations, pin 0.7.0<br/>lib/ontomark.nix:44<br/>ontology-apply.js:157"] --> AB
+    VAULT["vault governance transport: propose and panel<br/>ontology-apply.js:153"] --> AB
+    GATE["Both packages share vaultCliActive<br/>flake.nix:942 and flake.nix:960"] --> CLI
+    GATE --> VAULT
     SCOPE["Arrows identify implemented source seams, not a verified complete mesh"]
     VF -.-> SCOPE
 ```
 
-**INVARIANT: no MCP inside the estate for the corpus (BASELINE-visionflow.md:341, Invariant 9 since the sidestr invariant was inserted as 6).** Agentbox retired `ontology-bridge.js` (deleted; see AB-25); agents and the Loom reach the corpus only through the `vault` binary over Bash and the Loom's HTTP surface, never a registered MCP server.
+**Current Agentbox corpus dispatch, 2026-10-31:** `binFor` routes `propose` and `panel` through `vault`, and other corpus verbs through `ontomark` (`../project/agentbox/management-api/lib/ontology-apply.js:153`). Both are selected under the same Nix gate (`../project/agentbox/flake.nix:942`, `../project/agentbox/flake.nix:960`). The old vault-only statement did not describe the migrated consumer. This source trace is not a universal absence claim about every estate MCP adapter.
 
-**INVARIANT: `verified_commit` is a `{repo: sha}` map, not one sha, for any topic whose `sources:` span more than one repo (`compatibility-matrix.md:8`).** A repository present in `sources:` but missing from that map resolves its citations against the working tree without complaint — a silent source-identity gap, not a verified stamp.
+**INVARIANT: `verified_commit` is a `{repo: sha}` map, not one sha, for any topic whose `sources:` span more than one repo (`compatibility-matrix.md:8`).** A missing repository pin can fall back to working-tree bytes, but the current checker reports that as unverified (`scripts/diagram-index-gen.cjs:548`) and strict mode rejects warnings (`scripts/diagram-index-gen.cjs:881`). Such a fallback must not be presented as revision-backed verification.
 
 Evidence: `repository-map.md`, the Agentbox audit and imported-scope review. This interaction view is not an exhaustive repository count.
 
@@ -162,3 +169,6 @@ flowchart TB
 
 **What it shows.** Two repositories admitted since the earlier stamp are drawn at the edge of the dependency picture: Codescape reaches VisionClaw only through a published wire crate, a runtime PTX file and a compose contract, and visiontouch-rs reaches nothing.
 **Why it is this way.** The matrix row says to read neither as a federated substrate; the isolation rule in VisionClaw's agent instructions makes the Codescape boundary a build-graph property rather than a convention.
+
+
+**Review boundary, 2026-10-31:** Only the Agentbox corpus-dispatch slice and the checker-fallback wording were refreshed here. The Agentbox revision now names the inspected `9dfc27b16`; other repository pins remain historical. The current session exposes Ontomark 0.7.0 and vault 0.1.0, recorded with binary hashes in the [consumer audit](../../estate-review/2026-10-31-corpus-consumer.md). No full mesh or universal deployment claim follows from those local versions.

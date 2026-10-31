@@ -1,0 +1,4 @@
+parsed 1 topic files, 7 mermaid diagrams
+cite-check: 0 warning(s)
+citations: 22 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+rendered 7/7 diagrams via pele

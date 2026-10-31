@@ -1,0 +1,44 @@
+{
+  "method": "Two independent temporary generic-vault fixtures; same one-field edit after different page bodies. Tests blast-radius scope, not a signed end-to-end governance journey.",
+  "binaries": {
+    "ontomark": {
+      "path": "/nix/store/1ddhqph3qpip99nmh2082dbzz6j60saw-ontomark-0.7.0/bin/ontomark",
+      "version": "ontomark 0.7.0",
+      "sha256": "ee54ef3cdbb98ad04c0daa160ddf6e033653e5989fbe09e9fcb716ede899b80a"
+    },
+    "vault": {
+      "path": "/nix/store/83ilg82h5ar8vvnqqzysamvxc08iycxq-vault-0.1.0/bin/vault",
+      "version": "vault 0.1.0",
+      "sha256": "2cbfd79b972b67898cc523afe088523f1a01be08dfee41734d1a53eb19c57a20"
+    }
+  },
+  "results": [
+    {
+      "body_before": "reviewed text",
+      "exit": 0,
+      "stdout": "{\n  \"page\": \"A\",\n  \"docs\": 1,\n  \"blocks\": 1,\n  \"changes\": {\n    \"status\": [\n      \"draft\",\n      \"stable\"\n    ]\n  }\n}\n",
+      "stderr": "",
+      "text_after": "---\ntype: class\nstatus: stable\n---\nreviewed text\n"
+    },
+    {
+      "body_before": "replacement text after review",
+      "exit": 0,
+      "stdout": "{\n  \"page\": \"A\",\n  \"docs\": 1,\n  \"blocks\": 1,\n  \"changes\": {\n    \"status\": [\n      \"draft\",\n      \"stable\"\n    ]\n  }\n}\n",
+      "stderr": "",
+      "text_after": "---\ntype: class\nstatus: stable\n---\nreplacement text after review\n"
+    }
+  ],
+  "source": {
+    "repository": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "files": {
+      "docs/adr/ADR-2136-pin-the-shared-ontology-toolchain.md": "3257df2a8fb2ea0c87e897d64309e1aca529449efc02acf2bc83249189bf7df1",
+      "flake.nix": "71f7e45f6089843882273e1b29fd5ef361ae8ecc03e24ab38507c78921139c29",
+      "agentbox.toml": "c9c7016e6649c118f69ccbbab8d25e35e26c1dc3f449dab61b5ea2493b61203d",
+      "lib/ontomark.nix": "39b24512eb3ee059a7148e6f95cd5645b45931fa8a89f19fdec1ab66bf9889cb",
+      "management-api/lib/ontology-apply.js": "db46a136f6cee0906ebba591a01f0418e141b3dbb7b6d8d5a1317f2849dca054",
+      "management-api/adapters/orchestrator/local-process-manager.js": "de1ab5a3233635a5e22719ad0a936dcd68fa373869511eee6c9162accf1c9d7d",
+      "management-api/tests/ontology-apply.test.js": "8d8369fb30215755be84aa8dc0039fde5e2258b9ac323d63864978901422727c"
+    }
+  }
+}

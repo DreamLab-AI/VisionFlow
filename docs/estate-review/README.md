@@ -23,6 +23,8 @@ Whole-corpus continuation: [input drift and estate-health counterexamples](2026-
 
 Release boundary: [canonical fixture identity, consumer parity and release-status audit](2026-10-31-release-evidence.md).
 
+Corpus consumer: [CLI migration, decision guards and writeback evidence](2026-10-31-corpus-consumer.md).
+
 ## Reading order
 
 | Document | Question it answers |
