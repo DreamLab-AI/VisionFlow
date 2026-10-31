@@ -21,6 +21,8 @@ The [plugin decision and lifecycle audit](2026-10-31-obsidian-decisions.md) comp
 
 Whole-corpus continuation: [input drift and estate-health counterexamples](2026-10-31-diagram-drift-and-health.md), with the [158-topic review queue](2026-10-31-diagram-review-queue.md).
 
+Release boundary: [canonical fixture identity, consumer parity and release-status audit](2026-10-31-release-evidence.md).
+
 ## Reading order
 
 | Document | Question it answers |

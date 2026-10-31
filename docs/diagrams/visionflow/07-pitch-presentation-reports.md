@@ -130,13 +130,13 @@ flowchart TB
     REV -->|"fails"| E3["ERROR: canonical revision does not resolve to a commit, exit 3.<br/>Plain rev-parse would echo any well-formed 40-hex string back<br/>unverified, recording a nonexistent commit as canonical<br/>generate-release-manifest.sh:182"]:::refuse
     REV -->|"resolves"| DIR{"corpus directory exists?"}
     DIR -->|no| E4["ERROR: canonical corpus directory not found, exit 3<br/>generate-release-manifest.sh:187"]:::refuse
-    DIR -->|yes| DIG["digest: sha256 over the SORTED sha256-plus-filename lines<br/>of the corpus, so two manifests agree if and only if they<br/>qualified against byte-identical fixtures<br/>generate-release-manifest.sh:195"]
+    DIR -->|yes| DIG["digest: sha256 over SORTED hashes of top-level working-tree JSON<br/>The resolved commit is recorded but its tree is not read<br/>Nested JSON is omitted from this digest<br/>generate-release-manifest.sh:195"]
     DIG --> CNT{"any *.json fixtures?"}
     CNT -->|no| E5["ERROR: corpus contains no *.json fixtures, exit 3<br/>generate-release-manifest.sh:198"]:::refuse
-    CNT -->|yes| CMP["run check-fixture-drift.sh against the corpus when it is<br/>executable here; verdict is match, drift, or not-run<br/>generate-release-manifest.sh:206"]
+    CNT -->|yes| CMP["run check-fixture-drift.sh against the corpus when it is<br/>executable here; verdict is match, drift, or not-run<br/>Missing consumer fixtures do not fail the comparator<br/>generate-release-manifest.sh:206 and check-fixture-drift.sh:257"]
     CMP --> OUT["fixtures.status = compared, with canonical repo, resolved<br/>revision, dir, corpus_sha256 and fixture_count<br/>generate-release-manifest.sh:214"]:::ok
 
-    NOTE["INVARIANT: the release qualification CLAIMS fixture parity, so the<br/>generator will not manufacture one. Version 1 asserted parity in prose —<br/>run npm run verify plus substrate-specific CI — with no evidence at all<br/>generate-release-manifest.sh:20"]
+    NOTE["LIMIT: supplying a resolvable canonical spec permits output.<br/>The requested candidate or released label does not require match,<br/>complete consumers or clean checkouts<br/>generate-release-manifest.sh:223 and generate-release-manifest.sh:255"]
 
     NOTE2["DIVERGENCE: consumers is always an empty array. The comparison is run<br/>for a verdict but its per-repository detail is never recorded, so a<br/>compared manifest names WHICH corpus but not WHICH consumers matched<br/>generate-release-manifest.sh:205"]
 
@@ -466,3 +466,6 @@ flowchart TB
 **Drift (matrix relabelled, release prose not):** the compatibility matrix's harness-coverage and gap-close tables were relabelled historical and explicitly not rerun (`docs/architecture/compatibility-matrix.md:81`, `docs/architecture/compatibility-matrix.md:112`), while the release surface still reads as a live obligation (`docs/releases/README.md:3`) and the only committed candidate is the 2026-05-22 cut (`docs/releases/candidate-2026-05-22.json:2`).
 
 **Debt (unverifiable citation):** `texput.log` is gitignored at `.gitignore:50`, so it exists in no commit and the five citations into it are read from the working tree whatever revision this topic declares; that is inherent to cataloguing a stray build artefact, and it is why the aborted-run evidence cannot be re-checked from history alone.
+
+
+**Debt (canonical revision does not bind fixture bytes, 2026-10-31):** The generator verifies that the commit exists, then hashes the current directory rather than that commit's tree (`scripts/generate-release-manifest.sh:179`, `scripts/generate-release-manifest.sh:194`). A temporary-repository probe emitted the same canonical revision with different corpus hashes after an uncommitted edit. A second probe returned `released`/`match` with zero matched and two missing consumer fixtures, because only checksum mismatches fail the comparator (`scripts/check-fixture-drift.sh:257`). The [release-evidence audit](../../estate-review/2026-10-31-release-evidence.md) records inputs, limits and acceptance obligations. Both scripts are unchanged from this topic's declared revision; the remaining panels have not been restamped.

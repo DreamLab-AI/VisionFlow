@@ -1,0 +1,82 @@
+generate-release-manifest.sh regression tests
+=============================================
+
+[1] the roster covers all inventoried repositories
+  ok   generator exits 0 for a local draft
+  ok   roster size matches the ADR inventory
+  ok   manifest_version is 2
+  ok   current release roster contains sixteen repositories
+  ok   inventory contains the same sixteen identities
+  ok   inventory identities are unique
+  ok   repository names are unique
+  ok   repository paths are unique
+  ok   ontomark appears exactly once at its workspace path
+  ok   ontomark names its public producer repository
+  ok   ontomark inventory URL agrees with the generator
+  ok   ontomark-obsidian appears exactly once at its workspace path
+  ok   ontomark-obsidian names its public producer repository
+  ok   ontomark-obsidian inventory URL agrees with the generator
+  ok   every inventoried path is present
+
+[2] every repository declares its provenance
+  ok   no repository lacks a valid provenance flag
+  ok   first-party repository count includes the two Ontomark producers
+  ok   imported repositories are flagged
+  ok   upstream repositories are flagged
+  ok   every upstream repository names its upstream
+
+[3] a local draft with no canonical revision set says so
+  ok   fixtures.status is not-compared
+  ok   no canonical block is fabricated
+  ok   the gap is stated in the artefact
+
+[4] a candidate without a canonical revision set is refused
+  ok   exit code is 3
+  ok   the refusal names the missing input
+
+[4b] --require-fixtures refuses even a local draft
+  ok   exit code is 3
+
+[4c] a released manifest without a canonical revision set is refused
+  ok   exit code is 3
+
+[5] a canonical revision set that does not resolve is refused
+  ok   unknown revision exits 3
+  ok   unknown repository exits 3
+  ok   missing corpus directory exits 3
+  ok   malformed spec exits 3
+
+[6] a valid canonical revision set produces a comparison record
+  ok   generator exits 0
+  ok   fixtures.status is compared
+  ok   HEAD is resolved to a concrete commit
+  ok   a corpus digest is recorded
+  ok   the fixture count is non-zero
+  ok   verdict is one of match/drift/not-run (drift)
+
+[7] the generated manifest validates against the committed schema
+  ok   roster meets schema minItems (16)
+  ok   schema pins manifest_version 2
+  ok   schema requires the fixtures block
+  ok   every head is a 40-char sha
+
+[8] new producer entries survive missing checkouts and resolve present ones
+  ok   an empty workspace still produces a draft
+  ok   both absent Ontomark producers are recorded, not omitted
+  ok   the synthetic producer workspace generates successfully
+  ok   ontomark records the resolved checkout commit
+  ok   ontomark is recorded as present
+  ok   ontomark-obsidian records the resolved checkout commit
+  ok   ontomark-obsidian is recorded as present
+  ok   a clean core checkout stays clean
+  ok   plugin untracked work is recorded as dirty
+  ok   the core is usable as an explicitly named canonical fixture producer
+  ok   canonical fixture revision resolves to the core commit
+  ok   canonical fixture count is observed
+  ok   schema roster minimum equals current inventory size
+  ok   schema roster minimum includes both new producers
+  ok   schema permits the public producer URL
+
+=============================================
+passed: 56   failed: 0
+RELEASE-MANIFEST-TESTS-OK

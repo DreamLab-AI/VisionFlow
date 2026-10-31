@@ -1,0 +1,74 @@
+{
+  "source_head": "de1fd1109265a1193ce27da2a53e31327d0f63bf",
+  "method": "Synthetic temporary Git repository and consumer only. WORKSPACE environment and --workspace both set to temporary directory. No real release or repository modified.",
+  "source_hashes": {
+    "scripts/generate-release-manifest.sh": "79bef869085e4dfb5dd1ee02b6e89dc03166909003346bf1f75fd9804bca8e89",
+    "scripts/check-fixture-drift.sh": "cb9140b974ec4d905232c2fc7c3ca5f637c5c8509f9172d7c030999a81ae3d22",
+    "docs/releases/ecosystem-release.schema.json": "c8642fcb46d81391a2ee4ffd16a16ca8187987045f717e03bf599c1ae25816f5"
+  },
+  "results": [
+    {
+      "case": "committed canonical, consumer missing canonical file",
+      "exit": 0,
+      "status": "released",
+      "fixtures": {
+        "status": "compared",
+        "canonical": {
+          "repo": "ontomark",
+          "revision": "1274f42cb0f4900fca1b2261aa463aeec678a0ce",
+          "dir": "fixtures",
+          "corpus_sha256": "4bca59c9d2bff956ec433eb4ad37eefefb9a15114bccf39036b68b56b9cad3cc",
+          "fixture_count": 1
+        },
+        "verdict": "match",
+        "consumers": []
+      },
+      "missing_repos": 15,
+      "stderr": ""
+    },
+    {
+      "case": "canonical modified after named commit",
+      "exit": 0,
+      "status": "released",
+      "fixtures": {
+        "status": "compared",
+        "canonical": {
+          "repo": "ontomark",
+          "revision": "1274f42cb0f4900fca1b2261aa463aeec678a0ce",
+          "dir": "fixtures",
+          "corpus_sha256": "9c1d91b34a6dadbdb1f1285e82e01b10353449910932335692fbb2f57bf1ebd9",
+          "fixture_count": 1
+        },
+        "verdict": "match",
+        "consumers": []
+      },
+      "missing_repos": 15,
+      "stderr": ""
+    },
+    {
+      "case": "nested canonical added",
+      "exit": 0,
+      "status": "released",
+      "fixtures": {
+        "status": "compared",
+        "canonical": {
+          "repo": "ontomark",
+          "revision": "1274f42cb0f4900fca1b2261aa463aeec678a0ce",
+          "dir": "fixtures",
+          "corpus_sha256": "9c1d91b34a6dadbdb1f1285e82e01b10353449910932335692fbb2f57bf1ebd9",
+          "fixture_count": 1
+        },
+        "verdict": "match",
+        "consumers": []
+      },
+      "missing_repos": 15,
+      "stderr": ""
+    },
+    {
+      "case": "direct missing-fixture comparator",
+      "exit": 0,
+      "stdout": "\nFixture Drift Summary\n  Canonical source:  /home/devuser/workspace/.tmp/vf-release-audit-3xu6wdx3/ontomark/fixtures\n  Canonical files:   2\n  Repos checked:     1\n  Total matched:     0\n  Total drifted:     0\n  Total missing:     2\n  Total extra:       0\n",
+      "stderr": ""
+    }
+  ]
+}
