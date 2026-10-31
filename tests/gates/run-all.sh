@@ -26,6 +26,7 @@ SUITES=(
   "jev-option.test.cjs"
   "dream-evaluator-exit.test.sh"
   "adr-evidence-field.test.sh"
+  "pele-pin.test.sh"
 )
 
 FAILED=()
