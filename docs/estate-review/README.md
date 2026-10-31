@@ -33,6 +33,8 @@ External-source ingest: [proposal bundles, completion signals, evidence and repl
 
 Proposal construction: [declared levels, consequence identity and grouped-consumer limits](2026-10-31-proposal-construction.md).
 
+Product comparison: [governed knowledge alternatives and a user evaluation protocol](2026-10-31-governed-knowledge-comparison.md), covering Graphiti, Cognee, TrustGraph and TopQuadrant with ten prospective acceptance cases.
+
 ## Reading order
 
 | Document | Question it answers |

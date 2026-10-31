@@ -47,6 +47,8 @@ A credible initial audience is teams with recurring, reviewable knowledge change
 
 ## Verification and remaining work
 
+The [governed knowledge comparison](2026-10-31-governed-knowledge-comparison.md) extends this market review with Graphiti, Cognee, TrustGraph and TopQuadrant. It connects the later local counterexamples to a ten-case pilot protocol; those comparative cases have not been executed.
+
 The snapshot collector was read in full. Its file has no diff from VF-06's declared `4d361b58` through `4025263`, so the bounded source finding applies at both revisions. The collector was not executed and no product code was changed.
 
 VF-06's fifteen diagrams passed the local Pele render and structural check after the wording correction:

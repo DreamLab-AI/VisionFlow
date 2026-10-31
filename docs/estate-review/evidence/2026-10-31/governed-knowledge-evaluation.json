@@ -1,0 +1,557 @@
+{
+  "schema_version": 1,
+  "title": "Governed knowledge evaluation specification",
+  "date": "2026-10-31",
+  "status": "not_run",
+  "report": "../../2026-10-31-governed-knowledge-comparison.md",
+  "scope": "Prospective comparative pilot. Prior local counterexamples are linked separately and are not results of this protocol. No candidate adapters or services were executed.",
+  "evidence_paths_relative_to": "this file",
+  "candidates": [
+    {
+      "id": "visionflow",
+      "role": "whole correction journey",
+      "version_status": "pin before execution"
+    },
+    {
+      "id": "graphiti",
+      "role": "temporal graph component",
+      "version_status": "pin before execution; v4 documentation consulted"
+    },
+    {
+      "id": "cognee",
+      "role": "ingestion and retrieval lifecycle",
+      "version_status": "pin before execution"
+    },
+    {
+      "id": "trustgraph",
+      "role": "ontology-guided extraction and explanation",
+      "version_status": "pin before execution"
+    },
+    {
+      "id": "topquadrant",
+      "role": "human knowledge-change workflow",
+      "version_status": "pin before execution"
+    },
+    {
+      "id": "git_document_search",
+      "role": "manual correction and review baseline",
+      "version_status": "record tools and versions before execution"
+    }
+  ],
+  "sources": [
+    {
+      "id": "graphiti-overview",
+      "url": "https://help.getzep.com/graphiti/getting-started/welcome",
+      "accessed_on": "2026-10-31",
+      "evidence_kind": "primary_documentation",
+      "runtime_verified": false
+    },
+    {
+      "id": "graphiti-types",
+      "url": "https://help.getzep.com/graphiti/core-concepts/custom-entity-and-edge-types/",
+      "accessed_on": "2026-10-31",
+      "evidence_kind": "primary_documentation",
+      "runtime_verified": false
+    },
+    {
+      "id": "graphiti-servers",
+      "url": "https://github.com/getzep/graphiti#reference-mcp-and-rest-servers",
+      "accessed_on": "2026-10-31",
+      "evidence_kind": "primary_documentation",
+      "runtime_verified": false
+    },
+    {
+      "id": "cognee-api",
+      "url": "https://docs.cognee.ai/api-reference/introduction",
+      "accessed_on": "2026-10-31",
+      "evidence_kind": "primary_documentation",
+      "runtime_verified": false
+    },
+    {
+      "id": "trustgraph-retrieval",
+      "url": "https://docs.trustgraph.ai/architecture/retrieval.html",
+      "accessed_on": "2026-10-31",
+      "evidence_kind": "primary_documentation",
+      "runtime_verified": false
+    },
+    {
+      "id": "trustgraph-explanation",
+      "url": "https://docs.trustgraph.ai/guides/building/explainable-ai.html",
+      "accessed_on": "2026-10-31",
+      "evidence_kind": "primary_documentation",
+      "runtime_verified": false
+    },
+    {
+      "id": "topquadrant-workflow",
+      "url": "https://docs.topquadrant.com/latest/user_guide/workflows/index.html",
+      "accessed_on": "2026-10-31",
+      "evidence_kind": "primary_documentation",
+      "runtime_verified": false
+    },
+    {
+      "id": "topquadrant-editing",
+      "url": "https://docs.topquadrant.com/latest/quick_start_guides/edg_reference_data_management/index.html",
+      "accessed_on": "2026-10-31",
+      "evidence_kind": "primary_documentation",
+      "runtime_verified": false
+    }
+  ],
+  "fixture_policy": {
+    "isolation": "Disposable synthetic corpus, test identities and local services. Never mutate a live corpus or send private source material to a comparison service.",
+    "materialisation": "Convert the supplied semantic fixture into each candidate's supported input format. Preserve original text and identifiers; record every conversion and adapter change.",
+    "independence": "Reset state between cases unless the procedure explicitly requires a sequence. Use a controlled clock for deadline cases and a recorded, deterministic source/model response for control tests.",
+    "temporal_precedence": "For the temporal fixture, a later effective date supersedes an earlier assertion from the same named source. This explicit fixture rule is not a general conflict-resolution policy.",
+    "retention": "Export requests, reviewed bytes, signatures or equivalent approval records, before/after state, logs and query results. Record hashes and actual deployed version/configuration.",
+    "capability_declaration": "Before running cases, declare native, adapted or unsupported per candidate/case. Unsupported is reported as coverage, never silently omitted or converted into a pass.",
+    "human_assessment": "Prepare held-out answer keys before seeing candidate answers; blind and independently score where practical. Record disagreements. Counterbalance task order.",
+    "repetition": "Control cases are deterministic. For model and human trials, predeclare repetition count, seeds where available, participant count and success thresholds before results; all remain unset until a pilot is designed."
+  },
+  "fixtures": {
+    "documents": [
+      {
+        "id": "negation",
+        "text": "The Quantum Widget does not require Gamma."
+      },
+      {
+        "id": "positive",
+        "text": "The Quantum Widget requires Gamma."
+      },
+      {
+        "id": "conditional",
+        "text": "The Quantum Widget requires Gamma only when mode is experimental."
+      },
+      {
+        "id": "attribution",
+        "text": "An unverified draft says that the Quantum Widget requires Gamma. The engineering team has not accepted this claim."
+      },
+      {
+        "id": "version-old",
+        "source": "engineering-notice",
+        "effective_at": "2026-01-01T00:00:00Z",
+        "text": "Effective 1 January 2026, the Quantum Widget requires Gamma."
+      },
+      {
+        "id": "version-new",
+        "source": "engineering-notice",
+        "effective_at": "2026-02-01T00:00:00Z",
+        "text": "Effective 1 February 2026, the Quantum Widget no longer requires Gamma. This replaces the 1 January notice."
+      },
+      {
+        "id": "relation-one",
+        "text": "Alpha is maintained by Team Delta."
+      },
+      {
+        "id": "relation-two",
+        "text": "Team Delta uses Checklist Epsilon for release review."
+      },
+      {
+        "id": "restricted",
+        "text": "The restricted test phrase is copper-orchid-47."
+      }
+    ],
+    "entities": [
+      {
+        "id": "urn:pilot:alpha",
+        "label": "Alpha",
+        "description": "Original Alpha description."
+      },
+      {
+        "id": "urn:pilot:beta",
+        "label": "Beta",
+        "description": "Original Beta description."
+      },
+      {
+        "id": "urn:pilot:gamma",
+        "label": "Gamma",
+        "description": "Original Gamma description."
+      }
+    ],
+    "test_principals": [
+      "author",
+      "reviewer",
+      "reader",
+      "unauthorised-reader"
+    ],
+    "approval": {
+      "created_at": "2026-03-01T00:00:00Z",
+      "expires_at": "2026-03-02T00:00:00Z",
+      "attempt_at": "2026-03-03T00:00:00Z"
+    }
+  },
+  "measurements": {
+    "primary": "Total active human minutes across all correction attempts divided by correctly completed durable corrections; undefined if zero succeed. Report completion fraction alongside it.",
+    "separate": [
+      "answer correctness",
+      "source entailment",
+      "false acceptance count",
+      "unsupported case count",
+      "author minutes",
+      "reviewer minutes",
+      "operator minutes",
+      "one-off integration minutes",
+      "elapsed seconds",
+      "model and embedding tokens",
+      "actual billed cost or unknown",
+      "retained bytes",
+      "duplicate durable effects",
+      "pending decisions lost"
+    ],
+    "required_run_fields": [
+      "candidate version",
+      "deployment/configuration hash",
+      "adapter changes",
+      "corpus hashes",
+      "model/embedding identifiers",
+      "prompts",
+      "context/call budgets",
+      "case id",
+      "trial id",
+      "clock",
+      "capability declaration",
+      "outcome",
+      "evidence paths",
+      "observed measures"
+    ],
+    "outcome_values": [
+      "pass",
+      "fail",
+      "unsupported",
+      "inconclusive"
+    ],
+    "hard_failure_rule": "For supported control cases: unauthorised mutation, accepted expired approval, lost pending work or partial group reported complete prevents acceptance of that correction journey.",
+    "unset_before_pilot": [
+      "quality threshold",
+      "latency threshold",
+      "human-effort improvement threshold",
+      "trial count",
+      "participant count"
+    ]
+  },
+  "cases": [
+    {
+      "id": "GK01",
+      "job": "Check whether evidence supports an extracted relation",
+      "requires": [
+        "extraction or sourced answering"
+      ],
+      "fixture_ids": [
+        "negation",
+        "positive",
+        "conditional",
+        "attribution"
+      ],
+      "procedure": [
+        "Process each document independently.",
+        "Ask whether the Quantum Widget requires Gamma, without adding the answer to the prompt.",
+        "Inspect both the proposed relation and its cited passage."
+      ],
+      "expected": [
+        "Negation must not support an unconditional positive requires relation.",
+        "Positive control may support that relation.",
+        "Conditional and attributed statements retain their qualifications; attribution does not become an accepted team fact."
+      ],
+      "retain": [
+        "raw model output",
+        "accepted assertions",
+        "source spans",
+        "reviewer entailment scores"
+      ],
+      "prior_local_evidence": [
+        "../../2026-10-31-external-source-ingest.md"
+      ],
+      "related_source_ids": [
+        "trustgraph-explanation"
+      ],
+      "execution_status": "not_run"
+    },
+    {
+      "id": "GK02",
+      "job": "Answer current and historical questions after a correction",
+      "requires": [
+        "temporal facts or an explicit version-history adapter"
+      ],
+      "fixture_ids": [
+        "version-old",
+        "version-new"
+      ],
+      "procedure": [
+        "Ingest the old notice, then the new notice.",
+        "Query the requirement as of 15 January and 15 February 2026.",
+        "Inspect whether both source versions remain identifiable."
+      ],
+      "expected": [
+        "January answer requires Gamma; February answer does not.",
+        "Answers identify the applicable source version and date.",
+        "Lack of historical querying is declared unsupported rather than guessed."
+      ],
+      "retain": [
+        "ingest order",
+        "effective dates",
+        "source versions",
+        "both answers"
+      ],
+      "prior_local_evidence": [],
+      "related_source_ids": [
+        "graphiti-overview"
+      ],
+      "execution_status": "not_run"
+    },
+    {
+      "id": "GK03",
+      "job": "Refuse an expired approval at mutation",
+      "requires": [
+        "approval-governed mutation"
+      ],
+      "fixture_ids": [],
+      "procedure": [
+        "Create an otherwise valid Alpha description amendment using the approval fixture dates.",
+        "Obtain a valid test approval, advance the clock to attempt_at, then invoke the actual mutation boundary.",
+        "Repeat with an unexpired control and a rejected request."
+      ],
+      "expected": [
+        "Expired and rejected requests produce no corpus mutation or successful-apply receipt.",
+        "Unexpired approved control changes the intended bytes once.",
+        "The UI and mutation outcomes are distinguishable from a transport acknowledgement."
+      ],
+      "retain": [
+        "signed request or equivalent",
+        "approval",
+        "clock",
+        "before/after hashes",
+        "receipt"
+      ],
+      "prior_local_evidence": [
+        "../../2026-10-31-governance-ingress.md"
+      ],
+      "related_source_ids": [
+        "topquadrant-workflow"
+      ],
+      "execution_status": "not_run"
+    },
+    {
+      "id": "GK04",
+      "job": "Recover a pending decision after restart",
+      "requires": [
+        "durable approval delivery"
+      ],
+      "fixture_ids": [],
+      "procedure": [
+        "Admit two valid decisions changing Alpha and Beta respectively.",
+        "Let the first finish while holding the second before mutation.",
+        "Persist the normal checkpoint, terminate and restart the service, then redeliver both decisions.",
+        "Observe outcomes through the documented recovery deadline."
+      ],
+      "expected": [
+        "Both approved effects eventually exist exactly once logically.",
+        "Completed work is not duplicated; pending work is not suppressed as completed.",
+        "Retained approval evidence can be reverified or retrieved from an authoritative store."
+      ],
+      "retain": [
+        "checkpoint",
+        "termination point",
+        "delivery log",
+        "before/after hashes",
+        "receipts",
+        "recovery deadline"
+      ],
+      "prior_local_evidence": [
+        "../../2026-10-31-governance-ingress.md"
+      ],
+      "related_source_ids": [],
+      "execution_status": "not_run"
+    },
+    {
+      "id": "GK05",
+      "job": "Preserve stable identity during amendment",
+      "requires": [
+        "stable concept identity"
+      ],
+      "fixture_ids": [],
+      "procedure": [
+        "Propose changing Alpha's identifier from urn:pilot:alpha to urn:pilot:replacement through an ordinary description amendment.",
+        "Exercise preparation and the actual writer with an otherwise valid test approval.",
+        "Run a description-only amendment as a positive control."
+      ],
+      "expected": [
+        "Ordinary amendment refuses identifier replacement without changing the original entity.",
+        "A separately declared migration workflow may be evaluated separately, with incoming references accounted for.",
+        "Description-only amendment retains identity."
+      ],
+      "retain": [
+        "proposal",
+        "validation findings",
+        "before/after entity identifiers",
+        "incoming references"
+      ],
+      "prior_local_evidence": [
+        "../../2026-10-31-proposal-construction.md"
+      ],
+      "related_source_ids": [],
+      "execution_status": "not_run"
+    },
+    {
+      "id": "GK06",
+      "job": "Review and apply one grouped correction",
+      "requires": [
+        "grouped change workflow"
+      ],
+      "fixture_ids": [],
+      "procedure": [
+        "Prepare one proposal changing the descriptions of Alpha, Beta and Gamma.",
+        "Obtain one approval for the group.",
+        "Inject failure after the first durable write if the implementation has such a boundary; restart and inspect visibility and final state."
+      ],
+      "expected": [
+        "A supported group has one coherent all-or-nothing visible outcome and recoverable receipt.",
+        "Partial completion is never reported as full success.",
+        "Unsupported groups are identified before inviting review and recorded as unsupported, not pass."
+      ],
+      "retain": [
+        "exact group reviewed",
+        "approval",
+        "failure point or transaction-boundary evidence",
+        "visible intermediate state",
+        "final state",
+        "receipt"
+      ],
+      "prior_local_evidence": [
+        "../../2026-10-31-proposal-construction.md"
+      ],
+      "related_source_ids": [
+        "topquadrant-workflow"
+      ],
+      "execution_status": "not_run"
+    },
+    {
+      "id": "GK07",
+      "job": "Revoke access and remove source-derived content",
+      "requires": [
+        "dataset access control",
+        "source deletion"
+      ],
+      "fixture_ids": [
+        "restricted"
+      ],
+      "procedure": [
+        "Give reader access to the restricted fixture and confirm a baseline query returns it.",
+        "Revoke access and repeat source, graph and answer queries with the same identity and a fresh session.",
+        "Using an authorised principal, delete the source; repeat retrieval as an otherwise authorised reader and inspect derived stores after the declared propagation deadline."
+      ],
+      "expected": [
+        "Revoked identity cannot retrieve the restricted fact through any tested service surface.",
+        "Deleted content is absent from active retrieval and derived answers after the declared deadline.",
+        "Any retained audit history has an explicit retention and access policy; already downloaded copies are outside service revocation."
+      ],
+      "retain": [
+        "permission changes",
+        "query identities",
+        "source/graph/answer responses",
+        "deletion receipt",
+        "propagation deadline",
+        "retention policy"
+      ],
+      "prior_local_evidence": [],
+      "related_source_ids": [
+        "cognee-api",
+        "graphiti-servers"
+      ],
+      "execution_status": "not_run"
+    },
+    {
+      "id": "GK08",
+      "job": "Keep reviewed evidence stable across reruns",
+      "requires": [
+        "proposal preparation"
+      ],
+      "fixture_ids": [
+        "positive"
+      ],
+      "procedure": [
+        "Use a controlled model endpoint A that returns the positive relation and retain the complete bundle.",
+        "Repeat with endpoint B returning no assertions, holding source, target and model name constant.",
+        "Remove only the fixture response cache, then rerun with a zero-call budget."
+      ],
+      "expected": [
+        "The first reviewed bundle remains retrievable with its original bytes.",
+        "Different contents or assessment context are distinguishable by immutable evidence identity.",
+        "Budget refusal is explicit and does not destroy a prior complete artefact."
+      ],
+      "retain": [
+        "all bundle identities and bytes",
+        "endpoint configuration",
+        "cache state",
+        "budget outcome"
+      ],
+      "prior_local_evidence": [
+        "../../2026-10-31-external-source-ingest.md"
+      ],
+      "related_source_ids": [],
+      "execution_status": "not_run"
+    },
+    {
+      "id": "GK09",
+      "job": "Answer a multi-hop question and abstain when evidence is absent",
+      "requires": [
+        "sourced answering"
+      ],
+      "fixture_ids": [
+        "relation-one",
+        "relation-two"
+      ],
+      "procedure": [
+        "Ask which checklist Alpha's maintainer uses for release review.",
+        "Ask for Alpha's annual maintenance cost, which is absent from the corpus.",
+        "Inspect every asserted relationship and supporting source."
+      ],
+      "expected": [
+        "Checklist Epsilon is supported by both supplied relationships.",
+        "The cost answer states that evidence is absent, without inventing a number or citation."
+      ],
+      "retain": [
+        "answers",
+        "retrieved context",
+        "citations",
+        "answer-key scores"
+      ],
+      "prior_local_evidence": [],
+      "related_source_ids": [
+        "trustgraph-retrieval"
+      ],
+      "execution_status": "not_run"
+    },
+    {
+      "id": "GK10",
+      "job": "Complete a useful correction and reconstruct the result",
+      "requires": [
+        "whole correction journey"
+      ],
+      "fixture_ids": [
+        "version-old",
+        "version-new"
+      ],
+      "procedure": [
+        "A participant finds the outdated requirement, proposes a correction and has a second participant review it.",
+        "Apply, restart and retrieve the corrected answer.",
+        "Export the corpus and decision evidence, then reconstruct them in an isolated environment using the declared export/import procedure.",
+        "Repeat comparable tasks with the manual Git/document-search baseline, counterbalancing order."
+      ],
+      "expected": [
+        "The corrected answer and precise reviewed change remain connected after restart and reconstruction.",
+        "Record all author, reviewer and operator effort, including failed attempts and setup.",
+        "Missing reconstruction support is declared unsupported; no portability claim follows from export alone."
+      ],
+      "retain": [
+        "timings",
+        "interventions",
+        "approved bytes",
+        "durable receipt",
+        "retrieval result",
+        "export manifest",
+        "reconstruction log"
+      ],
+      "prior_local_evidence": [],
+      "related_source_ids": [],
+      "execution_status": "not_run"
+    }
+  ]
+}
