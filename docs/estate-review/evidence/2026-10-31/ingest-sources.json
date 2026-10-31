@@ -1,0 +1,31 @@
+{
+  "ontomark": {
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "files": {
+      "docs/adr/ADR-OM-010-external-source-ingest-lands-as-proposals.md": "860356a8f5d58c983de7a6b45abef49ba51599be6360458b10f2e5c555343616",
+      "crates/ontomark-cli/src/ingest_cmd.rs": "f75eede323e66dde1a6665e6da00a518323cef21f2ffc432e099bc932157c9bb",
+      "crates/ontomark-cli/src/ingest_profile.rs": "bee7160f1462464064be3f5d6259cee57f27ad7529cef8b2fb216a573f03a477",
+      "crates/ontomark-cli/tests/ingest_cli.rs": "f35d7b4bc01bc9ac36a18de10e14821037ad06a2cafd0026bc57d7199db8c7b2",
+      "crates/ontomark-source/src/lib.rs": "c92b505dde092ce73693831da806e7c0e48ca2ae6efc9bd704667acfc9293fa6",
+      "crates/ontomark-source/src/local.rs": "43dc3b278de8d2a5e2c5f2471209ba54774c64670990710499756a69b5607ec2",
+      "crates/ontomark-source/src/url.rs": "382761450ade2fbc7f41a3f6b0c0d175ffb6d8b878d733c59dd0ffe6550c72bc",
+      "crates/ontomark-source/src/ledger.rs": "2d30911b4ba5fa12f3551f1aeee6143980f8a995098367e114024ef110494ca5",
+      "crates/ontomark-source/src/render.rs": "b0b1e33d5dd636229b9800f4bbf0593e14f850e2c9492501d7a0070e6d670282",
+      "crates/ontomark-ingest/src/accept.rs": "6b7eacd44972aaf0d61eea624a80e8f29df38ca10e921634cf7fd6e96ec33eaf",
+      "crates/ontomark-ingest/src/similarity.rs": "74af955591d66f20ea32248bb2cd9a3cda24b0a16cdfdf8425d6c32a9efc9cf0",
+      "crates/ontomark-ingest/src/lib.rs": "75df650666b110035231d37ded4cbe1475ee6aebdfd65dc551e6af3917977844",
+      "crates/ontomark-ingest/tests/source.rs": "03d1743c8815eef639cfbbd65b64a6fb5b5d8801a80e6af18afd9cd4ccaadfaf",
+      "crates/ontomark-jev/src/config.rs": "5cf05410651355f344f8d4c4fddf4441807e3566ece3dae89d4e4f975719ccae"
+    }
+  },
+  "binaries": [
+    {
+      "path": "/home/devuser/workspace/ontomark/target/debug/ontomark",
+      "sha256": "810adbda70878e9317c4422fb6ca05bbba8c7810c8a1a4aadb13125c9d6d3fad"
+    },
+    {
+      "path": "/nix/store/83ilg82h5ar8vvnqqzysamvxc08iycxq-vault-0.1.0/bin/vault",
+      "sha256": "2cbfd79b972b67898cc523afe088523f1a01be08dfee41734d1a53eb19c57a20"
+    }
+  ]
+}

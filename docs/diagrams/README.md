@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_160 topic files, 1531 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_161 topic files, 1534 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -362,6 +362,7 @@ _160 topic files, 1531 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | OM-05 | [ontomark CLI — commands, vault selector, layouts, exit codes and consumers](ontomark/05-cli-commands-vault-selector-and-exit-codes.md) | 6 | flowchart | [sovereign-corpus-contracts.md](../../docs/engineering/sovereign-corpus-contracts.md) | ADR-OM-001, ADR-OM-005, ADR-OM-007, ADR-OM-008, ADR-OM-009, ADR-2137, ADR-2147 |
 | OM-06 | [Machine scope, the records emitter and the ingest plan/accept contract](ontomark/06-machine-scope-and-ingest-contract.md) | 5 | flowchart, sequenceDiagram | [sovereign-corpus-contracts.md](../../docs/engineering/sovereign-corpus-contracts.md) | ADR-OM-003, ADR-OM-005, ADR-OM-008, ADR-2136, ADR-2137 |
 | OM-07 | [Governed creation and amendment — proposal, file and receipt identity](ontomark/07-governed-create-and-amend.md) | 3 | flowchart | [ADR-2109-governance-decisions-apply-through-vault-edit.md](../../../project/agentbox/docs/adr/ADR-2109-governance-decisions-apply-through-vault-edit.md) | ADR-2109, ADR-OM-007 |
+| OM-08 | [External-source ingest — acquisition, acceptance and bundle identity](ontomark/08-external-source-ingest.md) | 3 | flowchart | [ADR-OM-010-external-source-ingest-lands-as-proposals.md](../../../ontomark/docs/adr/ADR-OM-010-external-source-ingest-lands-as-proposals.md) | ADR-OM-010 |
 
 ### dream-engine
 

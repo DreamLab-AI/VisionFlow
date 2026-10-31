@@ -1,0 +1,141 @@
+{
+  "binary": "/home/devuser/workspace/ontomark/target/debug/ontomark",
+  "malformed_reply": {
+    "first": {
+      "request_id": "ea58349975fa54a9",
+      "complete": true,
+      "budget_exhausted": false,
+      "model_calls": 1,
+      "cache_hits": 0,
+      "pages": [],
+      "source_changes": [
+        "new"
+      ]
+    },
+    "second": {
+      "request_id": "ea58349975fa54a9",
+      "complete": true,
+      "budget_exhausted": false,
+      "model_calls": 1,
+      "cache_hits": 0,
+      "pages": [],
+      "source_changes": [
+        "unchanged"
+      ]
+    },
+    "dropped_chunks": [
+      0
+    ],
+    "ledger_entries": 1
+  },
+  "endpoint_identity": {
+    "valid_endpoint": {
+      "request_id": "ea58349975fa54a9",
+      "complete": true,
+      "budget_exhausted": false,
+      "model_calls": 1,
+      "cache_hits": 0,
+      "pages": [
+        "Quantum Widget"
+      ],
+      "source_changes": [
+        "new"
+      ]
+    },
+    "empty_endpoint": {
+      "request_id": "ea58349975fa54a9",
+      "complete": true,
+      "budget_exhausted": false,
+      "model_calls": 1,
+      "cache_hits": 0,
+      "pages": [],
+      "source_changes": [
+        "parser_changed"
+      ]
+    },
+    "same_request_id": true,
+    "previous_manifest_removed": true
+  },
+  "budget_replacement": {
+    "cached": {
+      "request_id": "ea58349975fa54a9",
+      "complete": true,
+      "budget_exhausted": false,
+      "model_calls": 0,
+      "cache_hits": 1,
+      "pages": [
+        "Quantum Widget"
+      ],
+      "source_changes": [
+        "parser_changed"
+      ]
+    },
+    "without_cache": {
+      "request_id": "ea58349975fa54a9",
+      "complete": false,
+      "budget_exhausted": true,
+      "model_calls": 0,
+      "cache_hits": 0,
+      "pages": [],
+      "source_changes": [
+        "unchanged"
+      ]
+    },
+    "previous_manifest_removed": true
+  },
+  "removed_source": {
+    "reported_source_count": 1,
+    "ledger_entries_after_removal": 2,
+    "complete": true
+  },
+  "negated_relation": {
+    "summary": {
+      "request_id": "50ced7f02208e9d7",
+      "complete": true,
+      "budget_exhausted": false,
+      "model_calls": 1,
+      "cache_hits": 0,
+      "pages": [
+        "Quantum Widget"
+      ],
+      "source_changes": [
+        "new"
+      ]
+    },
+    "accepted": [
+      {
+        "key": "requires",
+        "predicate": "https://narrativegoldmine.com/ns/v1#requires",
+        "written": "[[Gamma]]",
+        "grounded": "urn:ngm:class:gamma",
+        "tier": "exact",
+        "datatype": null,
+        "evidence": [
+          {
+            "chunk": 0,
+            "span": {
+              "start": 11,
+              "end": 53
+            },
+            "utf16": {
+              "start": 11,
+              "end": 53
+            },
+            "quote": "The Quantum Widget does not require Gamma.",
+            "source": {
+              "id": "file:/home/devuser/workspace/.tmp/ontomark-ingest-audit-1915023/sources/a.md",
+              "version": "3307056608d03cb829d35f1a1f8d3be1f18fc26d5eb4b56eec4366bbaf5572d7"
+            }
+          }
+        ],
+        "confidence": 0.5,
+        "method": "inferred"
+      }
+    ]
+  },
+  "plan_only_source_requests": [
+    "HEAD",
+    "GET"
+  ],
+  "target_unchanged": true
+}

@@ -27,7 +27,9 @@ sources:
 verified_commit: {ontomark: 560e50c1a35bb9486b9f43ebf074b816c1e01349, visiongraph: 7b0875f2c26b9e69dc5c97e9c88166acc14c47dc, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012}
 ---
 
-## OM-05.1 Command tree — ten verbs, repair and migrate, three global flags, and which vault each one reads
+This command inventory describes its declared historical pins. The later external-source `ingest` verb is mapped at its own current pin in [OM-08](08-external-source-ingest.md); this topic is not a complete inventory of the current CLI.
+
+## OM-05.1 Historical command tree — ten verbs, repair and migrate, three global flags, and which vault each one reads
 
 ```mermaid
 flowchart TD

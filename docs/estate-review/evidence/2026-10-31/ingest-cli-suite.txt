@@ -1,0 +1,17 @@
+    Blocking waiting for file lock on build directory
+   Compiling ontomark v0.7.0 (/home/devuser/workspace/ontomark/crates/ontomark-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.69s
+     Running tests/ingest_cli.rs (target/debug/deps/ingest_cli-2582a34dce034fb4)
+
+running 9 tests
+test values_extend_what_the_page_holds_and_a_repeat_is_not_proposed_twice ... ok
+test discover_finds_exact_mentions_in_order_and_honours_the_cap ... ok
+test a_cloud_endpoint_is_refused_without_the_opt_in ... ok
+test bad_requests_exit_two ... ok
+test the_budget_stops_cleanly_and_records_what_was_skipped ... ok
+test a_changed_source_replans_only_that_source ... ok
+test an_unchanged_rerun_makes_no_model_call ... ok
+test bundle_validates_and_quotes_sit_at_their_spans ... ok
+test vault_propose_dry_run_accepts_the_manifest ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s

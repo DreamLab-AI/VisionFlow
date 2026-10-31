@@ -1,0 +1,174 @@
+   Compiling regex-syntax v0.8.11
+   Compiling clap_builder v4.6.7
+   Compiling serde_json v1.0.154
+   Compiling zerocopy-derive v0.8.62
+   Compiling serde v1.0.229
+   Compiling string_cache v0.9.0
+   Compiling ontomark-parse v0.1.3 (/home/devuser/workspace/ontomark/crates/ontomark-parse)
+   Compiling web_atoms v0.2.6
+   Compiling tinytemplate v1.2.1
+   Compiling regex-automata v0.4.18
+   Compiling zerocopy v0.8.62
+   Compiling markup5ever v0.38.0
+   Compiling xml5ever v0.38.0
+   Compiling html5ever v0.38.0
+   Compiling clap v4.6.7
+   Compiling ontomark-model v0.1.2 (/home/devuser/workspace/ontomark/crates/ontomark-model)
+   Compiling markup5ever_rcdom v0.38.0+unofficial
+   Compiling htmd v0.5.6
+   Compiling regex v1.13.1
+   Compiling ontomark-source v0.1.0 (/home/devuser/workspace/ontomark/crates/ontomark-source)
+   Compiling ontomark-ingest v0.2.0 (/home/devuser/workspace/ontomark/crates/ontomark-ingest)
+   Compiling half v2.7.1
+   Compiling ciborium-ll v0.2.2
+   Compiling ciborium v0.2.2
+   Compiling criterion v0.5.1
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.67s
+     Running unittests src/lib.rs (target/debug/deps/ontomark_ingest-22ff55558a0543c4)
+
+running 37 tests
+test accept::tests::kinds_expected_per_form ... ok
+test accept::tests::literals_are_written_typed ... ok
+test accept::tests::locate_exact_collapsed_and_case ... ok
+test accept::tests::locate_handles_multibyte ... ok
+test accept::tests::literals_repair_or_refuse ... ok
+test accept::tests::locate_never_swallows_trailing_whitespace ... ok
+test accept::tests::thousands_are_stripped_only_when_grouped ... ok
+test chunk::tests::empty_body_has_no_chunks ... ok
+test chunk::tests::deterministic ... ok
+test chunk::tests::bare_heading_opens_the_following_section ... ok
+test chunk::tests::fence_aware_split_is_deterministic_and_counts_characters ... ok
+test chunk::tests::fence_longer_than_limit_is_one_oversize_chunk ... ok
+test chunk::tests::fenced_code_hashes_are_not_headings ... ok
+test chunk::tests::headings_cut_and_nest ... ok
+test chunk::tests::short_fence_straddling_a_cut_is_kept_whole ... ok
+test chunk::tests::short_note_is_one_chunk ... ok
+test chunk::tests::oversize_splits_at_paragraphs_then_lines_then_chars ... ok
+test chunk::tests::tilde_lines_inside_a_backtick_fence_do_not_close_it ... ok
+test chunk::tests::text_chunks_like_a_body_and_reads_no_frontmatter ... ok
+test chunk::tests::short_sections_merge_up_to_min ... ok
+test contract::tests::forms_are_offered_only_where_they_can_be_asserted ... ok
+test chunk::tests::trailing_bare_heading_is_kept ... ok
+test chunk::tests::unterminated_fence_runs_to_end_of_text ... ok
+test normalize::tests::camel_split_matches_snake ... ok
+test normalize::tests::tokens_shed_edge_punctuation_only ... ok
+test normalize::tests::diacritics_case_and_separators_fold ... ok
+test normalize::tests::only_nonspacing_marks_are_dropped ... ok
+test similarity::tests::alias_tiers_fire_in_order ... ok
+test similarity::tests::dotted_numbers_stay_whole_tokens ... ok
+test similarity::tests::jaccard_edges ... ok
+test similarity::tests::initials_alias_and_distinctness ... ok
+test similarity::tests::exact_and_shared_label_stay_unguarded ... ok
+test similarity::tests::sequence_ratio_matches_difflib_fixtures ... ok
+test similarity::tests::quick_bound_never_undercuts_the_ratio ... ok
+test similarity::tests::names_differing_only_in_words_are_unchanged ... ok
+test similarity::tests::the_guard_is_not_what_stops_the_controls ... ok
+test similarity::tests::digit_guard_refuses_numeric_siblings_at_every_fuzzy_tier ... ok
+
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/ingest.rs (target/debug/deps/ingest-c85dd8158b54636a)
+
+running 12 tests
+test request_integrity_is_checked ... ok
+test conflicting_single_values_are_refused_not_overwritten ... ok
+test null_keys_extend_and_competing_single_values_are_withheld ... ok
+test ambiguous_note_names_get_path_links_and_a_rerun_adds_nothing ... ok
+test vocabulary_grounding_is_inspectable ... ok
+test plan_describes_keys_chunks_and_revision ... ok
+test tampered_requests_are_refused ... ok
+test lexical_tiers_ground_initials_and_refuse_distinguishing_marks ... ok
+test plan_refuses_non_entities_and_keyless_profiles ... ok
+test evidence_must_mention_the_value ... ok
+test values_from_two_chunks_merge_their_evidence ... ok
+test recorded_response_yields_one_patch_and_named_refusals ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/judge.rs (target/debug/deps/judge-af4a6b4d519d5164)
+
+running 10 tests
+test questions_put_the_chunk_and_candidates_in_order ... ok
+test a_value_already_in_the_note_is_not_suggested_again ... ok
+test selector_narrows_a_group_and_accept_still_validates ... ok
+test suggester_unavailable_returns_nothing ... ok
+test suggestions_are_validated_against_keys_and_vocabulary ... ok
+test claims_carry_the_located_quote_not_the_models_text ... ok
+test a_judge_cannot_unlock_a_value_the_plain_run_withheld ... ok
+test confident_unsupported_is_withheld_and_the_patch_is_rebuilt_by_accept ... ok
+test selector_unavailable_keeps_every_candidate ... ok
+test judge_unavailable_in_every_way_equals_plain_accept ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/source.rs (target/debug/deps/source-740249d9ffc9037d)
+
+running 7 tests
+test withhold_categories_are_the_serde_tags ... ok
+test a_note_only_ingest_serialises_without_the_new_fields ... ok
+test evidence_is_found_in_the_source_and_the_patch_lands_on_the_target ... ok
+test a_source_that_disagrees_is_withheld_not_written ... ok
+test literals_are_counted_apart_from_names ... ok
+test source_and_note_requests_cannot_be_crossed ... ok
+test numeric_siblings_do_not_ground_to_each_other ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/ontomark_source-9b5ebf85c2400402)
+
+running 24 tests
+test ledger::tests::precheck_skips_only_with_a_real_marker_and_same_profile ... ok
+test ledger::tests::removed_follow_observed_in_id_order ... ok
+test ledger::tests::rename_free_touch_is_not_a_reread ... ok
+test ledger::tests::every_class_with_a_fetch ... ok
+test ledger::tests::without_a_fetch_nothing_is_guessed ... ok
+test local::tests::missing_root_is_an_error ... ok
+test render::tests::content_type_parameters_are_ignored ... ok
+test render::tests::invalid_utf8_is_refused ... ok
+test ledger::tests::json_roundtrip_via_files ... ok
+test render::tests::markdown_normalises_bom_and_newlines_only ... ok
+test render::tests::sha256_known_vector ... ok
+test local::tests::lists_sorted_and_skips_hidden_and_other_types ... ok
+test url::tests::unsafe_urls_are_refused_before_any_request ... ok
+test local::tests::locator_outside_root_is_refused ... ok
+test local::tests::pdf_is_refused_by_name ... ok
+test local::tests::marker_changes_when_file_is_rewritten ... ok
+test url::tests::head_failure_gives_an_empty_marker ... ok
+test render::tests::html_headings_entities_and_chrome ... ok
+test local::tests::single_file_root_is_listed_even_if_unsupported ... ok
+test local::tests::fetch_renders_and_versions ... ok
+test local::tests::size_limit_applies ... ok
+test local::tests::include_filters_by_extension ... ok
+test url::tests::lists_etag_and_fetches_html_as_markdown ... ok
+test url::tests::markdown_and_unsupported_and_limits ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests ontomark_ingest
+
+running 13 tests
+test crates/ontomark-ingest/src/accept.rs - accept::WithholdReason::category (line 259) ... ok
+test crates/ontomark-ingest/src/normalize.rs - normalize::normalize_text (line 19) ... ok
+test crates/ontomark-ingest/src/normalize.rs - normalize::normalize_label (line 51) ... ok
+test crates/ontomark-ingest/src/judge.rs - judge (line 28) ... ok
+test crates/ontomark-ingest/src/similarity.rs - similarity::sequence_ratio (line 84) ... ok
+test crates/ontomark-ingest/src/accept.rs - accept::Counts (line 213) ... ok
+test crates/ontomark-ingest/src/normalize.rs - normalize::label_tokens (line 83) ... ok
+test crates/ontomark-ingest/src/contract.rs - contract::SourceText (line 58) ... ok
+test crates/ontomark-ingest/src/contract.rs - contract::SourceRef (line 29) ... ok
+test crates/ontomark-ingest/src/chunk.rs - chunk::chunk_text (line 74) ... ok
+test crates/ontomark-ingest/src/chunk.rs - chunk::chunk_document (line 48) ... ok
+test crates/ontomark-ingest/src/lib.rs - (line 30) ... ok
+test crates/ontomark-ingest/src/lib.rs - (line 75) ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.70s
+
+   Doc-tests ontomark_source
+
+running 4 tests
+test crates/ontomark-source/src/url.rs - url::Url (line 26) ... ok
+test crates/ontomark-source/src/lib.rs - (line 30) ... ok
+test crates/ontomark-source/src/local.rs - local::LocalFiles (line 24) ... ok
+test crates/ontomark-source/src/render.rs - render::version_of (line 51) ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.43s
