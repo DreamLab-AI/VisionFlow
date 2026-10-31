@@ -7,7 +7,7 @@ implementation_status: partial
 activation_status: live
 supersedes: [ADR-2004]
 superseded_by: []
-verified_commit: 1b0dd42
+verified_commit: f85e6be
 owner: jjohare
 review_trigger: a Pele release we adopt, a diagram the Mermaid 11 renderer accepts and Pele rejects, or any surface (site, CI gate, agent tool) added that renders Mermaid
 repo: visionflow
@@ -61,3 +61,20 @@ all 10. `node scripts/diagram-index-gen.cjs docs/diagrams --check --no-source-pa
 rendered 1,473 of 1,494 corpus diagrams in about 2 s. The 21 failures are 4 blocks with a bare `;` in
 sequence text, which Mermaid 11 rejects too, and 17 renders wider than 4500 px. Both sets are fixed
 in the corpus refresh on the same branch; until then `diagram-index.yml` is red by design.
+
+## Verification — 2026-10-31
+
+Read-only check of the pin across sibling checkouts, via the new `scripts/check-pele-pin.cjs` (`--workspace /home/devuser/workspace --strict`, exit 0):
+
+```
+reference pin: pele 1.12.0 (VisionFlow scripts/vendor/pele/VERSION)
+ok    VisionFlow scripts/vendor/pele/VERSION
+ok    agentbox lib/pele.nix
+ok    website package.json + lockfile
+ok    sealmap docs/diagrams/tools/vendor/pele/VERSION
+ok    dream-engine docs/diagrams/tools/vendor/pele/VERSION
+```
+
+Version, npm integrity and the `dist/pele.js` sha256 agree on all five, and each vendored `pele.js` hashes to the pinned value. A one-surface drift (dream-engine at 1.13.0) was confirmed to exit 1. The sealmap CI job `mermaid` renders through the vendored Pele (`tools/validate-mermaid.mjs`).
+
+Still open, so `implementation_status` stays `partial`: the Quartz research-notes site (`visionGraph/quartz`) has no Pele pin; it renders Mermaid client-side through its own `mermaid.inline.ts`. The checker is not yet wired into a CI workflow, and agentbox's browser sidecar and skills were not re-audited here. Boundary: local source check, no hosted run.

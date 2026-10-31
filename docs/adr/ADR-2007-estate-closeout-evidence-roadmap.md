@@ -3,14 +3,16 @@ id: ADR-2007
 title: Bind estate closeout to decision lineage and system evidence
 date: 2026-09-04
 decision_status: accepted
-implementation_status: partial
+implementation_status: complete
 activation_status: live
 supersedes: []
 superseded_by: []
-verified_commit: 8c5acc2efa1af7994288aba2e38a88cf8afaf2f9
+verified_commit: f85e6be
 owner: estate architecture maintainers
 review_trigger: completion of ADR inventory review or a change to the estate roster
 repo: visionflow
+evidence_class: source+test
+acceptance_boundary: local run of adr-index-gen --check and tests/gates/adr-evidence-field.test.sh; no hosted CI run observed for the new gate
 ---
 
 # ADR-2007 — Bind estate closeout to decision lineage and system evidence
@@ -111,3 +113,12 @@ Owner decision 2026-10-02, Q8: accepted, narrowed to its evidence rule. The acce
 - **`activation_status: live`.** That half runs on every push and pull request through `.github/workflows/adr-index.yml` (index check and ratchet), in this repo and the other ledger repos (CY-A4).
 - **`verified_commit`** moves to `8c5acc2efa1af7994288aba2e38a88cf8afaf2f9`, the VisionFlow `main` this acceptance was checked against.
 - **Diagram citations:** VF-01 cites `:7` (activation axis) and `:24` (the Decision paragraph). Both lines keep their roles; the frontmatter and Decision were edited in place, and this annex was appended. VF-01 resolves those citations at its stamped revision, so its "proposed/partial/staged" wording describes that revision until the topic is next re-verified.
+
+## Close-out 2026-10-31
+
+The gap named in the acceptance annex is closed: evidence class and acceptance boundary are now gated, not review-only.
+
+- **Gate.** `scripts/adr-index-gen.cjs` validates `evidence_class` (one or more of `source`, `test`, `ci`, `deployment`, `runtime`, joined by `+`) and `acceptance_boundary` (non-empty text). Both are **required on records dated on or after 2026-10-31** and validated whenever present. Earlier records are frozen history: none was backfilled with an invented class. This record carries both, filled from its own annexes. `TEMPLATE.md` carries the keys, and `docs/architecture/adr-status-contract.md` states the rule.
+- **Evidence.** `bash tests/gates/adr-evidence-field.test.sh` runs seven cases (pre-cut-over record passes without the fields, post-cut-over without them fails, missing boundary fails, unknown class fails, joined classes pass, an invalid class on an old record still fails) and is registered in `tests/gates/run-all.sh`. `node scripts/adr-index-gen.cjs docs/adr --check` reports `ok: 21 ADR(s) valid`.
+- **Boundary.** The gate checks presence and enum membership, not whether the named evidence is true; truth stays a review matter. Run locally only. `activation_status: live` is unchanged (the existing `adr-index.yml` job runs `--check`); the other four ledger repos carry their own copies of the generator and do not yet have this gate.
+- `verified_commit` moves to `f85e6be`.
