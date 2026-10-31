@@ -1,0 +1,27 @@
+{
+  "repo": "ontomark-obsidian",
+  "head": "272259edcda1fbc2fc5856ffa633f1a9a01a670b",
+  "source_hashes": {
+    "src/api.ts": "ac8ba786690002f63ab75b85d21a75b46685a98ad137765b6d805fee2c100e28",
+    "src/main.ts": "65d84827c74a69ea831b640edb9eaad613fa11f20bb4d99bc834f8ebefd2117d",
+    "src/excludes.ts": "0520394a8fb87258b327b4ea5513553642f09a656cb65b1865d16084f3dbb95c",
+    "src/settings.ts": "308e84a06fb19e179ca0042e187beafad80b40f17ae2a3a805f1682317543dab",
+    "test/excludes.test.ts": "a2b1d515f565e0502aa03534f608c1860513cf61d486f2a63417a5b56368fd30",
+    "docs/adr/ADR-OBS-005-excluded-folders.md": "e0e3e47b9119cf95297e0424e4b23f455e5f59f69548dd18c4fcbf817369d13b"
+  },
+  "unit_tests": {
+    "command": "./node_modules/.bin/vitest run test/excludes.test.ts test/api.test.ts",
+    "exit": 0,
+    "files_passed": 1,
+    "tests_passed": 14,
+    "limit": "test/api.test.ts is absent; only excludes.test.ts ran"
+  },
+  "adversarial_probe": {
+    "method": "Bundle actual src/api.ts with esbuild to temporary ESM. Fake vault.process applies callback atomically; fake client.upsert throws. Call applyPatch with old base text, new text, confirmed true. No actual vault changed.",
+    "result": {
+      "file_text": "new",
+      "rejected": "injected index failure"
+    },
+    "limit": "isolated API counterexample, not Obsidian UI/runtime acceptance"
+  }
+}
