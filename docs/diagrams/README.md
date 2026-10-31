@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_162 topic files, 1538 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_163 topic files, 1542 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -227,6 +227,7 @@ _162 topic files, 1538 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VC-39 | [Codescape - the separate code-graph section, its crates, wire reuse, voice and proxy trust](visionclaw/39-codescape.md) | 7 | flowchart, sequenceDiagram, classDiagram | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md), [BASELINE-codescape.md](../../../project/codescape/docs/BASELINE-codescape.md), [PROTOCOL-registry.md](../../../project/docs/PROTOCOL-registry.md) | ADR-2143, ADR-2018, ADR-2019, ADR-2024, ADR-2141, ADR-2148 |
 | VC-40 | [XR client on two backends - the capability table, the request gate, the switch and the Codescape palette (ADR-2143 A6)](visionclaw/40-xr-two-backends-capability-gating.md) | 3 | flowchart, sequenceDiagram | [XR-client.md](../../../project/docs/XR-client.md), [ADR-2143-codescape-section-separate-workspace-and-port.md](../../../project/docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md) | ADR-2143, ADR-2134, ADR-2108 |
 | VC-41 | [Proposal construction — levels, consequence identity and grouped consumers](visionclaw/41-proposal-construction-and-consumer-scope.md) | 4 | flowchart | [VAULT-corpus-format.md](../../../project/docs/VAULT-corpus-format.md), [ADR-2116-ontology-proposals-are-forum-action-requests-not-prs.md](../../../project/docs/adr/ADR-2116-ontology-proposals-are-forum-action-requests-not-prs.md), [ADR-2147-inferences-carry-a-re-checkable-certificate-and-proposals-carry-a-consequence-delta.md](../../../project/docs/adr/ADR-2147-inferences-carry-a-re-checkable-certificate-and-proposals-carry-a-consequence-delta.md) | ADR-2116, ADR-2147 |
+| VC-42 | [Codescape command policy and retained runtime artefacts](visionclaw/42-codescape-command-policy-and-runtime-artefacts.md) | 4 | flowchart | [BASELINE-codescape.md](../../../codescape/docs/BASELINE-codescape.md), [ADR-0001-extraction-from-visionclaw.md](../../../codescape/docs/adr/ADR-0001-extraction-from-visionclaw.md) | ADR-0001, ADR-2148 |
 
 ### agentbox
 

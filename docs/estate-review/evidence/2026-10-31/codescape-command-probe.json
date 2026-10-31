@@ -1,0 +1,86 @@
+{
+  "scope": "synthetic configuration, scripted replies, loopback HTTP and extracted startup function; no command execution, live provider or GPU load",
+  "cases": [
+    {
+      "case": "explicit_remote_without_cloud_permission",
+      "resolved": "https://remote.example.invalid/v1/systemone",
+      "allowlisted": true,
+      "contacted": false
+    },
+    {
+      "case": "implicit_proxy_without_local_or_cloud_permission",
+      "refused": true
+    },
+    {
+      "case": "flag_off",
+      "refused": true
+    },
+    {
+      "case": "default_threshold_099",
+      "result": "Err(NoMatch { normalised: \"make the picture bigger somehow\" })",
+      "transport_calls": 1
+    },
+    {
+      "case": "default_threshold_100",
+      "result": "Ok(ZoomIn)",
+      "transport_calls": 1
+    },
+    {
+      "case": "out_of_range",
+      "result": "Err(NoMatch { normalised: \"make the picture bigger somehow\" })",
+      "transport_calls": 1
+    },
+    {
+      "case": "none_at_certainty",
+      "result": "Err(NoMatch { normalised: \"make the picture bigger somehow\" })",
+      "transport_calls": 1
+    },
+    {
+      "case": "unknown_command",
+      "result": "Err(NoMatch { normalised: \"make the picture bigger somehow\" })",
+      "transport_calls": 1
+    },
+    {
+      "case": "grammar_hit_bypasses_model",
+      "checked_with_all_five_replies": true
+    },
+    {
+      "case": "real_loopback_transport_default_threshold",
+      "result": "Ok(ZoomIn)",
+      "request": {
+        "model": "jev-latest",
+        "state": {
+          "utterance": "make the picture bigger somehow"
+        },
+        "questions": {
+          "command": {
+            "type": "choice",
+            "instructions": "Which view command does the `utterance` ask for? Choose none unless one of the listed commands is exactly what was asked.",
+            "criteria": {
+              "back": "Go back to the previous focus.",
+              "help": "List what can be said.",
+              "hide_tests": "Hide test files and test symbols.",
+              "live": "Return to the live view.",
+              "none": "None of the other choices: the utterance asks for something else, names a target, or is not a view command.",
+              "overview": "Frame the whole graph.",
+              "replay": "Replay the recorded timeline.",
+              "show_all": "Clear every filter and show the whole graph again.",
+              "stop_following": "Stop following an actor.",
+              "zoom_in": "Move the camera closer.",
+              "zoom_out": "Move the camera away."
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": "missing_gpu_source_retains_cached_ptx",
+      "function": "verbatim build_ptx from supplied source",
+      "exit": 0,
+      "diagnostic": "visionclaw-gpu sources not mounted; CUDA engine will fall back to CPU",
+      "cached_pair_still_validates": true,
+      "gpu_loaded": false,
+      "fixture_is_compiler_output": false
+    }
+  ]
+}

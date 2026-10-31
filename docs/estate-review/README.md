@@ -35,6 +35,8 @@ Proposal construction: [declared levels, consequence identity and grouped-consum
 
 Product comparison: [governed knowledge alternatives and a user evaluation protocol](2026-10-31-governed-knowledge-comparison.md), covering Graphiti, Cognee, TrustGraph and TopQuadrant with ten prospective acceptance cases.
 
+Codescape continuation: [extraction, command policy and retained runtime artefacts](2026-10-31-codescape-boundaries.md), including the local decision pack, consumed revision comparison and executable boundary probes.
+
 ## Reading order
 
 | Document | Question it answers |

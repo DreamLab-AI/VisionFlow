@@ -1,0 +1,15 @@
+   Compiling codescape-server v0.1.0 (/home/devuser/workspace/codescape/crates/codescape-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 44.22s
+     Running tests/isolation.rs (target/debug/deps/isolation-e897e0566f8a6c5b)
+
+running 8 tests
+test the_visionclaw_repo_matcher_catches_known_urls ... ok
+test server_refuses_to_boot_with_a_ruvector_connection_string ... ok
+test cuda_feature_graph_contains_no_knowledge_work_crates ... ok
+test the_check_itself_catches_an_injected_dependency ... ok
+test build_graph_contains_no_knowledge_work_crates ... ok
+test no_permissive_crate_depends_on_an_agpl_crate ... ok
+test no_dependency_comes_from_the_visionclaw_repository ... ok
+test visionclaw_wire_is_the_only_visionclaw_crate ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.37s

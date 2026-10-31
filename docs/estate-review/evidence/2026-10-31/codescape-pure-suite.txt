@@ -1,0 +1,113 @@
+   Compiling codescape-collab v0.1.0 (/home/devuser/workspace/codescape/crates/codescape-collab)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.14s
+     Running unittests src/lib.rs (target/debug/deps/codescape_collab-7b9ecc89a0959b0d)
+
+running 39 tests
+test actors::tests::heat_decay_numbers ... ok
+test actors::tests::recent_focus_and_staleness ... ok
+test actors::tests::heat_clamps_at_one ... ok
+test actors::tests::upsert_refreshes_without_rewinding ... ok
+test actors::tests::stale_actor_heat_is_below_floor_before_eviction ... ok
+test floor::tests::busy_with_empty_queue_then_free ... ok
+test floor::tests::busy_demotes_holder_and_blocks_promotion ... ok
+test actors::tests::remove_drops_actor_and_history_but_not_others ... ok
+test floor::tests::expiry_is_applied_lazily_by_request ... ok
+test floor::tests::fifo_sequence ... ok
+test floor::tests::hold_cap_expiry_promotes_and_restarts_clock ... ok
+test floor::tests::non_holder_release_dequeues ... ok
+test fuzzy::tests::edge_cases ... ok
+test fuzzy::tests::graph_service_ranking_order ... ok
+test grammar::tests::depth_suffixes ... ok
+test fuzzy::tests::spoken_form_matches_identifier ... ok
+test heat::tests::accumulation_clamps_and_out_of_order_decays_forward ... ok
+test grammar::tests::validate_messages ... ok
+test heat::tests::half_life_is_exact ... ok
+test heat::tests::snapshot_and_prune_drop_cold_nodes ... ok
+test grammar::tests::normalisation_cases ... ok
+test grammar::tests::rejects_out_of_range ... ok
+test llm::tests::wire_shapes ... ok
+test actors::tests::prune_keeps_registry_bounded ... ok
+test paths::tests::empty_target_relativises_and_root_rules_work ... ok
+test paths::tests::parse_and_rewrite_cases ... ok
+test paths::tests::parse_errors_and_replacement ... ok
+test paths::tests::longest_prefix_wins_regardless_of_order ... ok
+test paths::tests::resolve_prefers_longest_suffix_and_dedupes ... ok
+test timeline::tests::heat_at_replays_decay ... ok
+test timeline::tests::window_is_inclusive ... ok
+test timeline::tests::ring_evicts_oldest_and_sorts_late_arrivals ... ok
+test llm::tests::schema_tags_match_serde ... ok
+test llm::tests::every_variant_conforms_and_round_trips ... ok
+test llm::tests::rejects_bad_replies ... ok
+test llm::tests::llm_never_panics_on_junk ... ok
+test grammar::tests::never_panics_on_grammar_soup ... ok
+test grammar::tests::never_panics_on_any_string ... ok
+test llm::tests::llm_round_trips_every_variant ... ok
+
+test result: ok. 39 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.70s
+
+     Running tests/grammar_golden.rs (target/debug/deps/grammar_golden-68371aeccef56e18)
+
+running 4 tests
+test every_command_variant_is_reachable_by_voice ... ok
+test non_commands ... ok
+test golden_commands_pass_the_llm_gate ... ok
+test golden_table ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (target/debug/deps/codescape_model-0de899ef821eb613)
+
+running 22 tests
+test community::tests::permuted_labels_are_restored ... ok
+test community::tests::unassigned_zero_passes_through ... ok
+test community::tests::a_split_keeps_the_bigger_half_and_mints_a_label_for_the_rest ... ok
+test events::tests::events_are_tagged_snake_case_json ... ok
+test graph::tests::kinds_and_relations_round_trip_strings ... ok
+test delta::tests::diff_then_apply_reproduces_after ... ok
+test graph::tests::validate_catches_broken_graphs ... ok
+test ids::tests::exhaustion_is_an_error_not_a_wrap ... ok
+test ids::tests::hostile_count_is_refused_before_allocation ... ok
+test ids::tests::ids_are_monotonic_and_stable ... ok
+test ids::tests::next_epoch_forgets_everything ... ok
+test ids::tests::rejects_garbage ... ok
+test ids::tests::serde_round_trip_restores_the_index ... ok
+test lod::tests::aggregate_positions_take_centroids ... ok
+test lod::tests::tiers_are_built_and_clusters_propagate ... ok
+test lod::tests::top_dir_handles_edges ... ok
+test wire::tests::ack_round_trips_and_matches_fixture_shape ... ok
+test wire::tests::actors_carry_the_agent_flag ... ok
+test wire::tests::agent_action_frame_shape ... ok
+test wire::tests::code_records_never_carry_flag_bits ... ok
+test wire::tests::record_matches_frozen_fixture_bytes ... ok
+test ids::tests::round_trips_through_bytes ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests codescape_collab
+
+running 15 tests
+test crates/codescape-collab/src/paths.rs - paths::resolve_paths (line 150) ... ok
+test crates/codescape-collab/src/llm.rs - llm::command_schema (line 105) ... ok
+test crates/codescape-collab/src/grammar.rs - grammar::parse_command (line 477) ... ok
+test crates/codescape-collab/src/heat.rs - heat::intensity (line 21) ... ok
+test crates/codescape-collab/src/grammar.rs - grammar::normalise_spoken (line 336) ... ok
+test crates/codescape-collab/src/lib.rs - ReadmeDoctests (line 80) ... ok
+test crates/codescape-collab/src/fuzzy.rs - fuzzy::split_identifier (line 24) ... ok
+test crates/codescape-collab/src/heat.rs - heat::decay_factor (line 41) ... ok
+test crates/codescape-collab/src/llm.rs - llm::command_from_llm (line 202) ... ok
+test crates/codescape-collab/src/lib.rs - (line 29) ... ok
+test crates/codescape-collab/src/floor.rs - floor::FloorArbiter (line 34) ... ok
+test crates/codescape-collab/src/grammar.rs - grammar::Command::validate (line 203) ... ok
+test crates/codescape-collab/src/timeline.rs - timeline::TimelineLog (line 36) ... ok
+test crates/codescape-collab/src/paths.rs - paths::PathMap (line 32) ... ok
+test crates/codescape-collab/src/fuzzy.rs - fuzzy::fuzzy_rank (line 72) ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.05s
+
+   Doc-tests codescape_model
+
+running 2 tests
+test crates/codescape-model/src/lib.rs - ReadmeDoctests (line 115) ... ok
+test crates/codescape-model/src/lib.rs - (line 26) ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s

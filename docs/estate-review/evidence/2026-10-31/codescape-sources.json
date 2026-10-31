@@ -1,0 +1,153 @@
+{
+  "date": "2026-10-31",
+  "standalone_head": "58108c0357bd0dbf6588f8b6adf6e044f4c04556",
+  "consumed_head": "e3b76f63e801c6a8460110b93e88a0b420e9b0b4",
+  "host_head": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+  "host_gitlink": "160000 commit e3b76f63e801c6a8460110b93e88a0b420e9b0b4\tcodescape",
+  "standalone_status": "",
+  "consumed_status": "",
+  "sources": [
+    {
+      "path": "Cargo.toml",
+      "standalone_sha256": "9cc66c558f1e9e454388a97a9d34cbe8bc15fffe97dc9be738ae5560041524d9",
+      "consumed_sha256": "9cc66c558f1e9e454388a97a9d34cbe8bc15fffe97dc9be738ae5560041524d9"
+    },
+    {
+      "path": "Cargo.lock",
+      "standalone_sha256": "5d26946461577a69ab2cfa972344ea1a24de476b9ec36021126577503b6d9424",
+      "consumed_sha256": "5d26946461577a69ab2cfa972344ea1a24de476b9ec36021126577503b6d9424"
+    },
+    {
+      "path": "docs/BASELINE-codescape.md",
+      "standalone_sha256": "ef4036f6904d99c7fced7a7d7227286927695a1a8665991bd7c2f5f68240975e",
+      "consumed_sha256": "ef4036f6904d99c7fced7a7d7227286927695a1a8665991bd7c2f5f68240975e"
+    },
+    {
+      "path": "docs/adr/ADR-0001-extraction-from-visionclaw.md",
+      "standalone_sha256": "136cf0200772c3fe0ad59251a7d261e026421deaa1543eba3beb44e14f74fea0",
+      "consumed_sha256": "26caf2ea72a3ffbb5d578b94d56a529470e84d780b8b19cf5b55ded2cbbed055"
+    },
+    {
+      "path": "docs/adr/README.md",
+      "standalone_sha256": "e94759bd8c493b23c63df382356e4a1ab3d765e92b8ba61b8dab5a535b6a7a41",
+      "consumed_sha256": "415fdacdaede35d4d95d127162c9a7f57177c878f0ca1e684df9f023d504ca9d"
+    },
+    {
+      "path": "docs/adr/PREAMBLE.md",
+      "standalone_sha256": "6357f8746c4cf54e4fc249221df98c22d959aad88936001e665ccb02126ce12b",
+      "consumed_sha256": "6357f8746c4cf54e4fc249221df98c22d959aad88936001e665ccb02126ce12b"
+    },
+    {
+      "path": "docs/adr/TEMPLATE.md",
+      "standalone_sha256": "a4fd44181217c33204da7450c3c1f858af622b0e06596f2ce1ebab81d3526fb5",
+      "consumed_sha256": "a4fd44181217c33204da7450c3c1f858af622b0e06596f2ce1ebab81d3526fb5"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "standalone_sha256": "3cd649c0e6e919ae1206e6f890c232fd84150f7c299b031b54f528e2791e6c70",
+      "consumed_sha256": "3cd649c0e6e919ae1206e6f890c232fd84150f7c299b031b54f528e2791e6c70"
+    },
+    {
+      "path": "deploy/README.md",
+      "standalone_sha256": "79edf2cf31e1925723ccd97826a38836ef819f40e9cf82ff2e5ea251822d5164",
+      "consumed_sha256": "79edf2cf31e1925723ccd97826a38836ef819f40e9cf82ff2e5ea251822d5164"
+    },
+    {
+      "path": "deploy/codescape-entrypoint.sh",
+      "standalone_sha256": "8e92435611cf93f7e6af2366b54572fc4b79ae23f0dac184b0ec7b5d8edb75b9",
+      "consumed_sha256": "8e92435611cf93f7e6af2366b54572fc4b79ae23f0dac184b0ec7b5d8edb75b9"
+    },
+    {
+      "path": "crates/codescape-server/tests/isolation.rs",
+      "standalone_sha256": "3e18dceb858b03f10de03970ed284eae5944dd451e876cf215be5487512e8431",
+      "consumed_sha256": "3e18dceb858b03f10de03970ed284eae5944dd451e876cf215be5487512e8431"
+    },
+    {
+      "path": "crates/codescape-server/src/config.rs",
+      "standalone_sha256": "c4b51f8b18275d4f8f1646e41792f231e536a7540d20dc8379d917c8453287f5",
+      "consumed_sha256": "c4b51f8b18275d4f8f1646e41792f231e536a7540d20dc8379d917c8453287f5"
+    },
+    {
+      "path": "crates/codescape-server/src/egress.rs",
+      "standalone_sha256": "a7c9bc138b9f7e06157e65672d95bdf4c87723f44e33a30ca9015e000d1be7ad",
+      "consumed_sha256": "a7c9bc138b9f7e06157e65672d95bdf4c87723f44e33a30ca9015e000d1be7ad"
+    },
+    {
+      "path": "crates/codescape-server/src/voice/jev.rs",
+      "standalone_sha256": "51f3879095adf15ebaa7a9007347bce0415c78bbe291415fa4ae385be9b7895c",
+      "consumed_sha256": "171d2b729c96eb10821d4048c3c7cb7fd7f8fa8e4e17447f5161d213bf6213b3"
+    },
+    {
+      "path": "crates/codescape-server/src/routes/mod.rs",
+      "standalone_sha256": "c07e3706902d736768159c7525df521e34bb8a3998acf69bec0db901b7a1cca7",
+      "consumed_sha256": "c07e3706902d736768159c7525df521e34bb8a3998acf69bec0db901b7a1cca7"
+    },
+    {
+      "path": "crates/codescape-layout/src/ptx_source.rs",
+      "standalone_sha256": "cff2581898ad0c8719fd1a7809d6071cf97fef4d829f59e8b36b844600e17ce1",
+      "consumed_sha256": "cff2581898ad0c8719fd1a7809d6071cf97fef4d829f59e8b36b844600e17ce1"
+    },
+    {
+      "path": "crates/codescape-layout/src/cuda.rs",
+      "standalone_sha256": "05d451d2ffb25558ffff799b5e400dba1736b976d2600c46dca697883bf561b5",
+      "consumed_sha256": "05d451d2ffb25558ffff799b5e400dba1736b976d2600c46dca697883bf561b5"
+    },
+    {
+      "path": "crates/codescape-layout/src/lib.rs",
+      "standalone_sha256": "a18ec9eaa2098b1ef15189350616a5356f7745e444037a568ad530d2073edb7b",
+      "consumed_sha256": "a18ec9eaa2098b1ef15189350616a5356f7745e444037a568ad530d2073edb7b"
+    }
+  ],
+  "changed_paths": [
+    ".gitignore",
+    "crates/codescape-server/src/voice/jev.rs",
+    "docs/adr/ADR-0001-extraction-from-visionclaw.md",
+    "docs/adr/README.md",
+    "docs/evidence/P0/gate.txt",
+    "docs/evidence/P1/gate-client.txt",
+    "docs/evidence/P1/gate-rust.txt",
+    "docs/evidence/P2/gpu-conformance.txt",
+    "docs/evidence/P2/ptx-abi-egress.txt",
+    "docs/evidence/README.md"
+  ],
+  "jev_rustfmt_normalised_sha256": "51f3879095adf15ebaa7a9007347bce0415c78bbe291415fa4ae385be9b7895c",
+  "jev_normalised_bytes_equal": true,
+  "historical_jev_pin": "13e056d9aa90d6f1b4aaf3b72d69a8cb29446ad1",
+  "historical_jev_equals_consumed": true,
+  "commands": [
+    [
+      "cargo build --offline --locked -p codescape-server --lib --message-format=json",
+      0
+    ],
+    [
+      "cargo test --offline --locked -p codescape-server --lib",
+      0
+    ],
+    [
+      "cargo test --offline --locked -p codescape-server --test isolation",
+      0
+    ],
+    [
+      "cargo test --offline --locked -p codescape-model -p codescape-collab",
+      0
+    ]
+  ],
+  "tests": {
+    "passed": 189,
+    "ignored": 1,
+    "ignored_reason": "network ASR/TTS round-trip"
+  },
+  "probe_cases": 11,
+  "host_sources": [
+    {
+      "path": "docker-compose.unified.yml",
+      "sha256": "54805ba50f340f447baf281bae5c655e4eaf501cf9812577cb843d477566f618",
+      "differs_from_head": false
+    },
+    {
+      "path": "docs/adr/ADR-2148-enable-local-typed-decisions.md",
+      "sha256": "f12d23c293319f8296b8ab50db4eeec0314c2f7d90bb7cfe7f94ba2082812ce5",
+      "differs_from_head": false
+    }
+  ]
+}

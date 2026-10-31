@@ -127,7 +127,7 @@ flowchart TB
         ASR["nemotron-asr, streaming ASR websocket<br/>codescape-server/src/config.rs:129-134"]
         TTS["pocket-tts<br/>codescape-server/src/config.rs:137-142"]
         LOOM["Loom door, optional out-of-grammar fallback<br/>docker-compose.unified.yml:511"]
-        JEV["System One through the shared agentbox proxy agentbox:8094, never published, opt-in CODESCAPE_JEV=1, local-only in code until ALLOW_CLOUD=1, which compose now sets<br/>the laya systemone:8097 pins are gone, so the selected backend (typesafe, agentbox.toml:892) is the route. CONFIGURED: effective once the new agentbox image is active and codescape recreated<br/>docker-compose.unified.yml:7-11 docker-compose.unified.yml:504-508 voice/jev.rs:156-205<br/>the laya facade stays only as the opt-in local backend, agentbox docker-compose.system-one.yml:3 and :106"]
+        JEV["System One through the shared agentbox proxy agentbox:8094, never published, opt-in CODESCAPE_JEV=1, proxy/API fallback requires local or cloud permission, which compose now grants, but an explicit endpoint returns before that check<br/>the laya systemone:8097 pins are gone, so the selected backend (typesafe, agentbox.toml:892) is the route. CONFIGURED: effective once the new agentbox image is active and codescape recreated<br/>docker-compose.unified.yml:7-11 docker-compose.unified.yml:504-508 voice/jev.rs:156-205<br/>the laya facade stays only as the opt-in local backend, agentbox docker-compose.system-one.yml:3 and :106"]
     end
     LAN -->|"http port 3001 /codescape/"| NGX
     LAN -.->|"direct, only with CODESCAPE_PUBLISH_ADDR set"| LOOP
@@ -345,7 +345,7 @@ flowchart TB
     end
     subgraph JEVG["OPEN: Jev option and estate scene"]
         direction TB
-        J1["OPEN: enabled in compose but accepts nothing: the threshold defaults to 1.0 and compose leaves it empty, README states wiring and fallback tests only, no measured uplift, and VisionClaw ADR-2148 is accepted / complete / live after the agentbox rebuild and host recreate (docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7, matching the VisionClaw baseline), ALLOW_CLOUD=1 sends the utterance via the proxy to the selected backend (agentbox.toml:892)<br/>codescape-server/src/voice/jev.rs:166-171 docker-compose.unified.yml:505 docker-compose.unified.yml:507-508 codescape/README.md:296 docs/BASELINE-architecture.md:50-51"]
+        J1["TENSION: enabled in compose with threshold 1.0, which accepts a valid offered command at confidence exactly 1.0, compose leaves it empty, README states wiring and fallback tests only, no measured uplift, and VisionClaw ADR-2148 is accepted / complete / live after the agentbox rebuild and host recreate (docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7, matching the VisionClaw baseline), ALLOW_CLOUD=1 sends the utterance via the proxy to the selected backend (agentbox.toml:892)<br/>codescape-server/src/voice/jev.rs:166-171 codescape-server/src/voice/jev.rs:349-354 docker-compose.unified.yml:505 docker-compose.unified.yml:507-508 codescape/README.md:296 docs/BASELINE-architecture.md:50-51"]
         J2["DEBT: the estate mounts default to an absolute host volume path, overridable only by CODESCAPE_ESTATE_ROOT<br/>docker-compose.unified.yml:564"]
         J1 --- J2
     end
@@ -381,3 +381,5 @@ flowchart TB
 ```
 
 **What it shows.** Every known gap at the stamp, each anchored to the code or the ADR line that records it; ADR-2143 is `implementation_status: partial` and `activation_status: inactive` (ADR-2143-codescape-section-separate-workspace-and-port.md:6-7), with P0 done and P2 to P6 open (ADR-2143-codescape-section-separate-workspace-and-port.md:296). **Verified.** Citations read at visionclaw `e74bcddc7`, agentbox `0b0f79189` and codescape `c742770` on 2026-10-29; the `/codescape/` prod path is untouched and prod's SPA fallback answers 200 there, not 404 (ADR-2143-codescape-section-separate-workspace-and-port.md:196-198).
+
+**Drift (31 October audit):** The historical source already returned explicit endpoints before the locality gate and accepted confidence exactly one. Those policy labels are corrected here; [VC-42](42-codescape-command-policy-and-runtime-artefacts.md) and the [dated audit](../../estate-review/2026-10-31-codescape-boundaries.md) record current probes. Unrelated mechanisms retain this topic's historical pins.
