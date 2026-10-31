@@ -3,16 +3,16 @@ id: ADR-2007
 title: Bind estate closeout to decision lineage and system evidence
 date: 2026-09-04
 decision_status: accepted
-implementation_status: partial
+implementation_status: complete
 activation_status: live
 supersedes: []
 superseded_by: []
-verified_commit: f85e6bedc72d5564eba03ad8cda3816edc3f2a21
+verified_commit: 493e683237c941e3ed858315d2e571279fba496a
 owner: estate architecture maintainers
 review_trigger: completion of ADR inventory review or a change to the estate roster
 repo: visionflow
 evidence_class: source+test
-acceptance_boundary: local run of adr-index-gen --check and tests/gates/adr-evidence-field.test.sh; no hosted CI run observed for the new gate
+acceptance_boundary: local runs in all five ledger repos (VisionFlow, VisionClaw, agentbox, nostr-rust-forum, solid-pod-rs) of the evidence and evidence_class tests, adr-index-gen --check and the ratchet; nothing pushed, so no hosted CI run of the new gates observed; the gate checks field presence and enum membership, not the truth of the named evidence
 ---
 
 # ADR-2007 — Bind estate closeout to decision lineage and system evidence
@@ -122,3 +122,18 @@ The machine half of the evidence rule is built in VisionFlow only, so `implement
 - **Evidence.** `bash tests/gates/adr-ratchet-evidence.test.sh` runs six cases for the transition gate (closure without fields fails, with both passes, activation to `live` without fields fails, empty boundary fails, an unrelated edit and an already-closed record pass), and `bash tests/gates/adr-evidence-field.test.sh` runs seven cases for the date backstop (pre-cut-over record passes without the fields, post-cut-over without them fails, missing boundary fails, unknown class fails, joined classes pass, an invalid class on an old record still fails) and is registered in `tests/gates/run-all.sh`. `node scripts/adr-index-gen.cjs docs/adr --check` reports `ok: 21 ADR(s) valid`.
 - **Boundary.** The gate checks presence and enum membership, not whether the named evidence is true; truth stays a review matter. Run locally only. `activation_status: live` is unchanged (the existing `adr-index.yml` job runs `--check`); the other four ledger repos carry their own copies of the generator and ratchet and do not have these gates. Closing ADR-2007 to `complete` needs them ported, or an owner decision that narrows the rule to VisionFlow (the owner's call).
 - `verified_commit` moves to `f85e6bedc72d5564eba03ad8cda3816edc3f2a21`.
+
+## Close-out 2026-10-31 (wave 2): gate in all five ledgers
+
+The machine half of the evidence rule now runs in every ledger repo the record's CY-A4 list names, so `implementation_status` moves to `complete`. `activation_status` stays `live` for the pre-existing `--check`; the new gates are activated only when each repo's merge reaches its hosted CI.
+
+- **Ported (wave 2, W10; reviewed by Opus R9, fixed by F8).** The transition check in each repo's ratchet, the `evidence_class`/`acceptance_boundary` validation in each generator, an eight-case evidence test and a four-case `evidence_class` value test, registered in each repo's CI. Local `main` merge commits:
+  - VisionClaw `b84ac5ddb26c425e57b941674f9ff3b2781509f5`
+  - agentbox `9dfc27b16e82e9786535a55e790710493dd51fdf`
+  - nostr-rust-forum `c39f41f104b114d6a3fa29013daaf6fa58b45080`
+  - solid-pod-rs `83cdda68bc5834f7e5520637bf6e1224efc6f095`
+- **VisionFlow.** The ratchet's `awk … exit` killed `git show` with SIGPIPE on records over 64 KiB under `pipefail` (a false red on VisionClaw's and agentbox's real ranges). Fixed and regression-tested in `89385c6ebaabd2f17450dd89f41e23ace0660f74`: the large-record cases exit 141 on the old ratchet and pass on the new.
+- **Backfills.** The seven closures this sprint took to `complete` (agentbox 2041, 2090, 2105, 2107, 2109, 2139; forum 2013) now carry both fields, `source+test`, with boundaries naming the revision their tests ran at. No older record was backfilled with an invented class.
+- **agentbox CI masking.** `check-declared-vs-running` had failed on `user-cron` since the 2026-10-31 15:28 push, so hosted `invariants` runs skipped every ADR step after it. The runtime fixture now lists `user-cron`; the step exits 0.
+- **Evidence (local).** All five: evidence test 8/8, `evidence_class` test 4/4 (the `vibes` and `source+` cases fail on the pre-W10 generators), `adr-index-gen --check` ok, ratchet OK. agentbox's ratchet over the whole sprint range `2a36c42d8..HEAD` reports `ADR-RATCHET-OK`.
+- **Boundary.** Nothing is pushed, so no hosted run of the new gates has been seen. visionGraph, ontomark and knowledgeGraph run only the pinned checker and are outside the five-repo list; whether they should carry the gate is an owner decision. `verified_commit` is VisionFlow `main` at `493e683` before this annex.
