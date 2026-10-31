@@ -1,0 +1,56 @@
+{
+  "head": "272259edcda1fbc2fc5856ffa633f1a9a01a670b",
+  "method": "Source trace and temporary esbuild bundles of real host modules; stub Obsidian element and API with actual GenerationGuard; no runtime/network or release certification. ADR-OBS-003 has existing uncommitted clarification.",
+  "source_sha256": {
+    "src/sparql-block.ts": "8754ca2f86d1e18d5af6f8cba0624194cc815e8fc6336498efe1a6784d5d4c8f",
+    "src/sparql-rewrite.ts": "8e0f23443af9d1dbd88b4e47f4754418e19f449c0dfb7df14d55015a2000368e",
+    "src/guard.ts": "9c047e5c42abe1d34c8e7633676b0d860de63996c54f5463f57ae3cfa48c9892",
+    "src/main.ts": "65d84827c74a69ea831b640edb9eaad613fa11f20bb4d99bc834f8ebefd2117d",
+    "src/api.ts": "ac8ba786690002f63ab75b85d21a75b46685a98ad137765b6d805fee2c100e28",
+    "src/client.ts": "edbcbe7bd4c443cf9a56d7ae25569c53c7cbecd24147cf1283c8bd0d49bd427f",
+    "src/ingest-transport.ts": "4a406862164e70ff2321ea004ab666ab29bcd813e7789461386bc73019d8fcd4",
+    "src/views/graph-view.ts": "6864098a39f36b9442e2b9da33f22bfd01210d0f3c2f144f425180eb036534ae",
+    "scripts/check-bundle.mjs": "86d25b88ff7760faf3d1b75843a136dddd0cffb2dca8499ef5d2655220dbd27c",
+    "scripts/build-wasm.mjs": "831feb4c08f47bc28875c47ff2700f29e5f0149921bc987e6ded41942bc5c9a0",
+    "scripts/package-release.mjs": "209e98228cd3678e09cffd2c578be79aa063f9a4521f4a581d430d65ac721e0b",
+    "engine.json": "7feadc525b98cb864a2b22c0ab342e8d149b258f7045bf66f0ca7666da0a2b7e",
+    "manifest.json": "6b1c83402a79ee65a8f0e64907d8198fcb149ed0baf0a102fd68681cb90305b2",
+    "package.json": "8e8a3f42e7bec7b4650741e80851c8c7b642c64640bd13a833351f879a9b8a3e",
+    "test/e2e/offline.e2e.cjs": "6f49456e57fd5612680ebc8f2cee39d772131688563fdf844e016a47bd274a93"
+  },
+  "unit_suite": {
+    "command": "./node_modules/.bin/vitest run",
+    "exit": 0,
+    "files": 6,
+    "tests": 66
+  },
+  "probes": [
+    {
+      "trigger": "two simultaneous blocks same.md",
+      "first": "error: superseded",
+      "second": {
+        "form": "ask",
+        "boolean": true
+      }
+    },
+    {
+      "trigger": "plugin API replaced",
+      "old_subscribers": 2,
+      "new_subscribers": 0
+    },
+    {
+      "trigger": "unload before pending query returns",
+      "writes_after_unload": [
+        "true"
+      ]
+    },
+    {
+      "input": "SELECT ?__THIS__ WHERE { ?__THIS__ ?p ?o }",
+      "rewritten": "SELECT ?<urn:note> WHERE { ?<urn:note> ?p ?o }"
+    },
+    {
+      "input": "ASK {}\n# dataset: inferred",
+      "dataset": "inferred"
+    }
+  ]
+}

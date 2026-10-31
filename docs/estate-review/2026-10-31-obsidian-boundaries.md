@@ -43,4 +43,4 @@ Observed result: `{"file_text":"new","rejected":"injected index failure"}`. The 
 
 The command `vitest run test/excludes.test.ts test/api.test.ts` exited 0 with one file and fourteen tests passed. There is no `test/api.test.ts` in this checkout: Vitest accepted the selection while running only the exclusion file. Therefore this is not an API-suite pass. The separately executed injected-failure probe supplies the bounded API evidence. No browser, model endpoint, real Obsidian instance or full plugin build ran.
 
-Other four plugin ADRs remain in the [section review queue](2026-10-31-scope-and-coverage.md). This pass does not certify plugin security, all ingest/network paths, or engine correctness.
+The other four plugin ADRs now have [source-qualified section assessments](2026-10-31-obsidian-decisions.md). This pass does not certify plugin security, all ingest/network paths, or engine correctness.

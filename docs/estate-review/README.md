@@ -17,6 +17,8 @@ Current continuation: [31 October market comparison and audit evidence gaps](202
 
 Current coverage: [31 October checkout, ADR and diagram census](2026-10-31-scope-and-coverage.md), including [Obsidian exclusion and write-recovery findings](2026-10-31-obsidian-boundaries.md).
 
+The [plugin decision and lifecycle audit](2026-10-31-obsidian-decisions.md) completes the five-file plugin ADR reading pass, with explicit runtime limits and reproduced lifecycle defects.
+
 ## Reading order
 
 | Document | Question it answers |

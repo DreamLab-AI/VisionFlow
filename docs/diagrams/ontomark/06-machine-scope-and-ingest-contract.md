@@ -152,8 +152,8 @@ sequenceDiagram
     ING-->>ENG: Candidates patch, accepted with evidence spans, withheld<br/>with a reason, diagnostics<br/>(ontomark-ingest/src/accept.rs:170-182,<br/>ontomark-ingest/src/accept.rs:537-545)
     ENG->>ENG: apply the patch once more to give the preview shape of propose_patch: base_text, new_text, new_digest, diff, edits (ontomark-wasm/src/engine.rs:774-790)
     ENG-->>HOST: path, candidates, preview, or preview null when nothing<br/>was accepted (ontomark-wasm/src/engine.rs:777-778,<br/>ontomark-wasm/src/engine.rs:793)
-    HOST->>HOST: the user reviews the diff - only the host writes the file, and only if the file still hashes to the planned digest
-    HOST->>ENG: upsert generation g+1 with the written text - the model and every cache are rebuilt (ontomark-wasm/src/engine.rs:304-314, ontomark-wasm/src/engine.rs:410-416)
+    HOST->>HOST: host owns review and guarded persistence - the engine only returns new text<br/>(ontomark-wasm/src/engine.rs:14-15)
+    HOST->>ENG: after a host write, upsert generation g+1 with the written text<br/>the model and every cache are rebuilt (ontomark-wasm/src/engine.rs:304-314, ontomark-wasm/src/engine.rs:410-416)
     Note over ENG: INVARIANT: model faults are data, not errors: only a bad<br/>request is an IngestError with a stable wire code<br/>(ontomark-ingest/src/error.rs:9-58,<br/>ontomark-wasm/src/engine.rs:799-810)
     Note over ING: INVARIANT: the opt-in Jev hooks (FactJudge,<br/>CandidateSelector, FieldSuggester) are host-supplied and<br/>monotone, a judge can only withhold what accept already<br/>allowed, and NoJudge makes accept_judged equal accept<br/>(ontomark-ingest/src/judge.rs:13-26,<br/>ontomark-ingest/src/judge.rs:341)
     Note over ING: INVARIANT: starting provenance is fixed, confidence 0.5<br/>and method inferred - ingest never raises it, a reviewer<br/>does (ontomark-ingest/src/accept.rs:18-23)
@@ -194,3 +194,6 @@ flowchart TB
 - DIVERGENCE: the phrase "AB-P6 verb split" appears in no document at these revisions; the entry records what the sources do say: the scope flag (`DEPRECATION.md:468`), ADR-2136's matching `build --scope machine` wording (`ADR-2136-pin-the-shared-ontology-toolchain.md:84`) and the CLI-versus-adapter verb division (`ADR-2136-pin-the-shared-ontology-toolchain.md:80`).
 - STATUS (ADR-2136, 2026-10-30): the record is `proposed` / `partial` / `inactive` (`ADR-2136-pin-the-shared-ontology-toolchain.md:5-7`). Its close-out found the released `ontomark` 0.6.0 baked into the running image beside `vault`, but not Decision 1's repin of the `vault` source, so the `build --scope machine` wording above is still a decision and not an implemented repin (`ADR-2136-pin-the-shared-ontology-toolchain.md:97-102`).
 - INVARIANT: of the three rows, AB-P6 is decided (the scope flag) and the Loom tolerance is verified (C3 corrected at VisionFlow HEAD); only the NGG1 collapse stays open, pending a format bump.
+
+
+**Open (host persistence and index recovery, audited 2026-10-31):** OM-06.4 establishes an engine preview and a separate index update, not an atomic file-write/index transaction. The Obsidian host compares the complete base text, rather than rehashing the file, and a later index failure can reject after persistence. See the [plugin boundary review](../../estate-review/2026-10-31-obsidian-boundaries.md). This clarification uses the engine ownership statement at the existing declared revision; it does not restamp the remaining machine-scope diagrams.
