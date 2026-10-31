@@ -3,14 +3,16 @@ id: ADR-2020
 title: Render every estate diagram with a pinned Pele; Mermaid stays the source syntax
 date: 2026-10-29
 decision_status: accepted
-implementation_status: partial
+implementation_status: complete
 activation_status: live
 supersedes: [ADR-2004]
 superseded_by: []
-verified_commit: 1b0dd42
+verified_commit: 7923766f18bc6723d0b13091d50961f4f9316f30
 owner: jjohare
 review_trigger: a Pele release we adopt, a diagram the Mermaid 11 renderer accepts and Pele rejects, or any surface (site, CI gate, agent tool) added that renders Mermaid
 repo: visionflow
+evidence_class: source+test
+acceptance_boundary: local only; read-only check of sibling checkouts plus a local corpus and RES-b render at the verified commit; no hosted CI run and no running-image inspection. Activation live is carried from the prior annex, not re-proven here
 ---
 
 # ADR-2020 — Render every estate diagram with a pinned Pele; Mermaid stays the source syntax
@@ -61,3 +63,25 @@ all 10. `node scripts/diagram-index-gen.cjs docs/diagrams --check --no-source-pa
 rendered 1,473 of 1,494 corpus diagrams in about 2 s. The 21 failures are 4 blocks with a bare `;` in
 sequence text, which Mermaid 11 rejects too, and 17 renders wider than 4500 px. Both sets are fixed
 in the corpus refresh on the same branch; until then `diagram-index.yml` is red by design.
+
+## Close-out 2026-10-31
+
+Read-only check of the pin across sibling checkouts with the new `scripts/check-pele-pin.cjs` (`--workspace /home/devuser/workspace --strict`, exit 0):
+
+```
+reference pin: pele 1.12.0 (VisionFlow scripts/vendor/pele/VERSION)
+ok    VisionFlow scripts/vendor/pele/VERSION
+ok    agentbox lib/pele.nix
+ok    website package.json + lockfile
+ok    sealmap docs/diagrams/tools/vendor/pele/VERSION
+ok    dream-engine docs/diagrams/tools/vendor/pele/VERSION
+ok    agentbox skills/diagrams-as-code vendored Pele
+ok    visionGraph quartz static/pele (dist/esm)
+ok: Pele pin agrees on 7 of 7 surfaces
+```
+
+Version, npm integrity and the `dist/pele.js` sha256 agree wherever a surface carries them; each vendored `pele.js` hashes to the pinned value, and the Quartz `dist/esm` copy matches its `SHA256SUMS`, and that sums file is itself pinned by `esm_sums_sha256` in `scripts/vendor/pele/VERSION` (the esm build has no single `pele.js`, so version and integrity are compared as well). The checker also requires exactly one `static/pele/<version>/` directory equal to the reference and reads `PELE_VERSION` from `mermaid.inline.ts`, so a bumped Quartz fails rather than reading as not checked out. The npm integrity is compared as a string and not against the tarball bytes. The follow-ons the park row left unverified resolve as follows: the Quartz research-notes site loads `static/pele/1.12.0/lazy.js` from its own origin (`mermaid.inline.ts`, no CDN); sealmap's CI job `mermaid` and the dream-engine and sealmap corpus generators both call the vendored `pele-static.cjs` (`diagram-index-gen.cjs:674`, `:689`), not `mmdc`. `tests/gates/pele-pin.test.sh` (registered in `run-all.sh`) proves the checker passes on agreement, fails on a version drift and on a tampered `pele.js`, fails under `--strict` when a sibling is absent, and, on synthetic fixtures, fails on `pele.nix` and lockfile drift, a tampered or regenerated-sums Quartz chunk, a missing `SHA256SUMS`, and a wrong or doubled Quartz version directory or `mermaid.inline.ts` version.
+
+The record's own verification was re-run at this commit: `node scripts/diagram-index-gen.cjs docs/diagrams --check --no-source-paths --render` reports `rendered 1526/1526 diagrams via pele` (the 21 failures noted above were fixed in the corpus refresh), and `node scripts/diagram-render/render.mjs` rendered all 10 report diagrams, `check-diagram-text.js` passed 10 of 10, with no change to the committed RES-b baseline.
+
+Boundary: source and local-run evidence only. The checker is not wired into a hosted workflow, agentbox's running image and its browser sidecar were not re-inspected (the browsercontainer build carries no mermaid-cli in source; it takes effect at its next rebuild), and a default run from outside the workspace skips absent siblings and says how many. A Pele bump must change all seven surfaces together.

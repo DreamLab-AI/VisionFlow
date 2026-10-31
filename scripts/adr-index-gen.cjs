@@ -15,6 +15,10 @@
  *   1  one or more validation errors (README not written)
  *   2  usage / IO error
  *
+ * Gated field (ADR-2007): `evidence_class` ({source,test,ci,deployment,runtime},
+ * joined by '+') and `acceptance_boundary` are required on records dated on
+ * or after EVIDENCE_CUTOVER; earlier records are validated only if they carry them.
+ *
  * The generated README.md is a build artefact — never hand-edit it.
  */
 
@@ -26,6 +30,14 @@ const REQUIRED_FIELDS = [
   'activation_status', 'supersedes', 'superseded_by', 'verified_commit',
   'owner', 'review_trigger', 'repo',
 ];
+
+// ADR-2007 evidence rule: a record names its evidence class and acceptance
+// boundary. Gated from a cut-over, not retroactively: records dated on or
+// after EVIDENCE_CUTOVER must carry both fields; older records are frozen
+// history and are never backfilled with invented classes. When present on any
+// record, the values are still validated.
+const EVIDENCE_CUTOVER = '2026-10-31';
+const EVIDENCE_CLASSES = ['source', 'test', 'ci', 'deployment', 'runtime'];
 
 const ENUMS = {
   decision_status: ['proposed', 'accepted', 'rejected', 'superseded'],
@@ -120,6 +132,22 @@ function main() {
       for (const [field, allowed] of Object.entries(ENUMS)) {
         if (field in fm && fm[field] !== '' && !allowed.includes(fm[field])) {
           fail(`${rel}: '${field}' = '${fm[field]}' not in {${allowed.join(', ')}}`); errors++;
+        }
+      }
+    }
+    if (!isTemplate) {
+      const gated = /^\d{4}-\d{2}-\d{2}$/.test(String(fm.date || '')) && fm.date >= EVIDENCE_CUTOVER;
+      for (const field of ['evidence_class', 'acceptance_boundary']) {
+        const present = field in fm && String(fm[field]).trim() !== '';
+        if (gated && !present) {
+          fail(`${rel}: '${field}' is required for records dated on or after ${EVIDENCE_CUTOVER} (ADR-2007)`); errors++;
+        }
+      }
+      if ('evidence_class' in fm && fm.evidence_class !== '') {
+        const classes = String(fm.evidence_class).split('+').map(c => c.trim());
+        const bad = classes.filter(c => !EVIDENCE_CLASSES.includes(c));
+        if (bad.length) {
+          fail(`${rel}: 'evidence_class' = '${fm.evidence_class}' has '${bad.join(', ')}' not in {${EVIDENCE_CLASSES.join(', ')}} (join several with '+')`); errors++;
         }
       }
     }
