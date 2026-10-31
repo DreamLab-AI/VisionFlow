@@ -1,0 +1,16 @@
+{
+  "scripts/space_portals.gd": "c3a62f7e79035fec803e649a0df1509b3d3f2c9b95d12946a2fdb7694868d6c1",
+  "scripts/volume_arrangement.gd": "37f34fd321a7d0e70fb11d92a1b86c509a6c893dcde97f8969a9a4ab0dd76fab",
+  "scripts/spatial_volume.gd": "784ee4b5e7804514bbc4dbf061cfd865130200248fa1122857346b561250f059",
+  "scripts/emulated_volume.gd": "7b4058761a0103c7d541fca7c5313bb3cf82101257b0647c0b7af4676ac28cee",
+  "scripts/frame_picker.gd": "99db758fec079c5cd957d3ac1b49134479e3a826a86f0bb03087a256fdbfbd8e",
+  "scripts/backend_caps.gd": "de334b8f0423d5dedaad529f5bfad4ee76c2f0f55270d5e24583a6efdb960eb4",
+  "scripts/xr_prefs.gd": "d3f452be58813533c7b496be213a539760410c8782ccc26c86c9fa0c452aa3dd",
+  "scenes/EmulatedVolume.tscn": "d3bfd699a429c2ccbf3da5d25c9826c5446c015cea53fe84204b8cb54b23349e",
+  "materials/portal_membrane.gdshader": "3e12d63a61d7046f27eead9cb37d4738b177d0120ec4f85448b671f3bad06e93",
+  "materials/frame_ribbon.gdshader": "91d8844d60e5211771835ab1cdee855c31f32f4921367fa019019f5ee26f75f9",
+  "tests/fixtures/fixture_content_source.gd": "657d4fde043852c07b40afa2cc419f20176d2bd4462a89fa1913c1ee973630d1",
+  "tests/gut_guard.sh": "5edcdc650b27ab5bd65d2fe5dcd34af57c4ae1234dee5a4b467dbf9fc2f0ba92",
+  "tests/unit/test_space_portals.gd": "fbe0c4d3a03d400376f4de4c19d2f2346dc1f8ebb2a6556e23f0aa4fda464ecf",
+  "portal-boundary-probe.gd": "4fab622754d80d280df41c7bc6a0a80cdb1ab8fe099f2dfecd2b77d14355e69b"
+}

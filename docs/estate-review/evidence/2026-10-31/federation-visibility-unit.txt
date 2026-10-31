@@ -1,0 +1,22 @@
+
+running 18 tests
+test flag_tests::parse_visibility_flag_defaults_on_and_honours_opt_out ... ok
+test tests::all_public_yields_empty_drop_set ... ok
+test tests::a_public_to_private_transition_takes_effect_on_the_next_snapshot ... ok
+test tests::an_empty_drop_set_is_a_no_op ... ok
+test tests::an_edge_survives_only_when_both_endpoints_do ... ok
+test tests::an_owner_change_moves_visibility ... ok
+test tests::an_unowned_private_node_is_invisible_to_every_caller ... ok
+test tests::anonymous_caller_is_fail_closed_public_only ... ok
+test tests::anonymous_caller_sees_only_public_nodes ... ok
+test tests::drop_set_ids_absent_from_pairs_are_ignored ... ok
+test tests::empty_drop_set_is_passthrough_untouched ... ok
+test tests::flag_on_drops_private_ids_for_non_owner ... ok
+test tests::non_owner_sees_public_plus_only_their_own ... ok
+test tests::no_caller_ever_sees_another_callers_private_node ... ok
+test tests::owner_sees_own_private_nodes ... ok
+test tests::owner_sees_public_plus_their_own_private_nodes ... ok
+test tests::reauthentication_changes_the_drop_set_with_no_retained_state ... ok
+test tests::the_drop_set_applies_to_any_payload_type ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

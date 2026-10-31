@@ -1,0 +1,184 @@
+{
+  "visionclaw": {
+    "root": "/home/devuser/workspace/project",
+    "head": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+    "files": [
+      {
+        "path": "docs/adr/ADR-2161-a-node-publishes-data-spaces-that-peer-nodes-render-as-linked-volumes.md",
+        "sha256": "c77769bb7b236d8370f5e15b7045d27a8a22657813bd43112e44bf436b73c05d",
+        "matches_head": true
+      },
+      {
+        "path": "docs/adr/ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md",
+        "sha256": "7e45c9c83eaf253c5670c8866396592d1268b22ff5de96a4a63d4ba06168adbe",
+        "matches_head": true
+      },
+      {
+        "path": "docs/IDENTITY-authority-chain.md",
+        "sha256": "9f6c8352f8f199897ea71995ef40879144e477786d10a9646fe1b94c71a670a0",
+        "matches_head": true
+      },
+      {
+        "path": "docs/IDENTIFIER-taxonomy.md",
+        "sha256": "d8ca3dffd60dd2d489436d486d33074407b272e2402dab5da6d29c3ab3b75b8e",
+        "matches_head": true
+      },
+      {
+        "path": "docs/PROTOCOL-registry.md",
+        "sha256": "92604f0bd358b15fb7242f003e41e08b5604dc6c0a73342493614fcf124b1981",
+        "matches_head": true
+      },
+      {
+        "path": "docs/DATA-authority-erasure.md",
+        "sha256": "b6f5d7882572e7f56a49cf5c336e229b2dad6c9a41ebc70298253f0dc8ef6406",
+        "matches_head": true
+      },
+      {
+        "path": "docs/XR-client.md",
+        "sha256": "73e8041be36381a3b4a49f48d673b080232783679d57cded3186638b0dc26f72",
+        "matches_head": true
+      },
+      {
+        "path": "docs/SECURITY-profiles.md",
+        "sha256": "bcaf884ef2ba5f5b1bb8f0e3f9d83e76816eba9917d603f6ff7882920d3f182d",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/space_portals.gd",
+        "sha256": "c3a62f7e79035fec803e649a0df1509b3d3f2c9b95d12946a2fdb7694868d6c1",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/volume_arrangement.gd",
+        "sha256": "37f34fd321a7d0e70fb11d92a1b86c509a6c893dcde97f8969a9a4ab0dd76fab",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/spatial_volume.gd",
+        "sha256": "784ee4b5e7804514bbc4dbf061cfd865130200248fa1122857346b561250f059",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/emulated_volume.gd",
+        "sha256": "7b4058761a0103c7d541fca7c5313bb3cf82101257b0647c0b7af4676ac28cee",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/frame_picker.gd",
+        "sha256": "99db758fec079c5cd957d3ac1b49134479e3a826a86f0bb03087a256fdbfbd8e",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/backend_caps.gd",
+        "sha256": "de334b8f0423d5dedaad529f5bfad4ee76c2f0f55270d5e24583a6efdb960eb4",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/xr_prefs.gd",
+        "sha256": "d3f452be58813533c7b496be213a539760410c8782ccc26c86c9fa0c452aa3dd",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scenes/EmulatedVolume.tscn",
+        "sha256": "d3bfd699a429c2ccbf3da5d25c9826c5446c015cea53fe84204b8cb54b23349e",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/materials/portal_membrane.gdshader",
+        "sha256": "3e12d63a61d7046f27eead9cb37d4738b177d0120ec4f85448b671f3bad06e93",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/materials/frame_ribbon.gdshader",
+        "sha256": "91d8844d60e5211771835ab1cdee855c31f32f4921367fa019019f5ee26f75f9",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/tests/fixtures/fixture_content_source.gd",
+        "sha256": "657d4fde043852c07b40afa2cc419f20176d2bd4462a89fa1913c1ee973630d1",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/tests/gut_guard.sh",
+        "sha256": "5edcdc650b27ab5bd65d2fe5dcd34af57c4ae1234dee5a4b467dbf9fc2f0ba92",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/tests/unit/test_space_portals.gd",
+        "sha256": "5348024ea2054bd5ada154abce7b0a94e2e03d72d187d34e0d463b36e0711f21",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/graph_scene.gd",
+        "sha256": "58b95160c2e8bd19c93dca329522f0539481509b98452af6b9a4e96b2986fec6",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/frame_budget_pass.gd",
+        "sha256": "4c6d2423a44c84eea65957214508722ec9bde70a2e3543360adf503d48c97a6f",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/backend_connection.gd",
+        "sha256": "e59cce6ee517a016937ebfb8c852e9062e2630adef022c5d915419f27ed850d3",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/rust/src/transport.rs",
+        "sha256": "b098922e21f448ad56afff5a06a5fdda502696c11a2305362eaac78b8fa7a16b",
+        "matches_head": true
+      },
+      {
+        "path": "src/uri/mod.rs",
+        "sha256": "8e431360b3864c1a24685abd3675036dc766c61e6fec591b2da4842ed0589ce4",
+        "matches_head": true
+      },
+      {
+        "path": "src/handlers/socket_flow_handler/http_handler.rs",
+        "sha256": "22b2e36c7dc76de15464434775f41e690aba88942b970e2a60856670f77bf017",
+        "matches_head": true
+      },
+      {
+        "path": "src/handlers/socket_flow_handler/types.rs",
+        "sha256": "878eb4e2ce0c4727cafdbbeca6742c63bf920cdc49d04a53db29e911842057fa",
+        "matches_head": true
+      },
+      {
+        "path": "src/handlers/socket_flow_handler/position_updates.rs",
+        "sha256": "2a748d2957ca502d6dd1194ced33c967c9a215dc00e4338e46efc26895eaf6ee",
+        "matches_head": true
+      },
+      {
+        "path": "crates/visionclaw-domain/src/utils/visibility_filter.rs",
+        "sha256": "9506f5c07e6a04fc3396e848599ae8a907b1d9a2f34ad73eaff3236fa3f62d91",
+        "matches_head": true
+      }
+    ]
+  },
+  "agentbox": {
+    "root": "/home/devuser/workspace/project/agentbox",
+    "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "files": [
+      {
+        "path": "schema/federation-kinds.json",
+        "sha256": "beb954700b8d3e9b8e67275a883c74f8d7ccff01219c937f89c1ec4b5425886c",
+        "matches_head": true
+      },
+      {
+        "path": "management-api/lib/bc20-provenance-bridge.js",
+        "sha256": "63097cb2741e8f74bb32c8b1dadb237ecf86b93e94c51a57f6446ef5371614d5",
+        "matches_head": true
+      },
+      {
+        "path": "management-api/lib/uris.js",
+        "sha256": "ce4ed70f91ddd83118040eec796dee40e7269abe3992e7138b9006a3b006d904",
+        "matches_head": true
+      },
+      {
+        "path": "management-api/routes/uri-resolver.js",
+        "sha256": "7a62ccbd570dabb49eea91dfbc1936c68430813714c5d8cb5c9090b562488c0b",
+        "matches_head": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+---  GUT  ---
+[1m[INFO]:  [0musing [/tmp/visionflow-portal-audit.bi8kpLfP/data/godot/app_userdata/VisionFlow portal audit] for temporary output.
+Godot version:  4.6.1
+GUT version:  9.6.1
+[4m
+
+res://tests/unit/test_space_portals.gd
+[0m* test_enter_makes_the_room
+* test_resize_grip_is_refused_on_the_room
+* test_leave_restores_the_ring_exactly
+* test_swap_makes_the_old_room_a_portal
+* test_entering_the_entered_volume_is_a_no_op
+* test_bring_to_front_is_refused_while_entered
+* test_sat_helper_agrees_with_obvious_cases
+* test_portal_ring_never_meets_the_room
+* test_swap_keeps_the_invariant
+* test_arrangement_scale_does_not_shrink_the_room
+* test_floor_is_the_origin_height_not_zero
+* test_rays_from_inside_the_room_pick_portals_not_the_room
+* test_e7_holds_for_the_room
+* test_refused_when_native_is_active
+* test_refused_when_the_target_is_closed
+* test_refused_when_the_target_is_hidden
+* test_refused_when_the_target_is_offline
+* test_refused_for_an_unknown_volume_and_mid_transition
+* test_refused_enter_while_inside_leaves_the_space_untouched
+* test_room_going_away_ends_the_space
+* test_walkthrough_is_off_by_default_and_pref_round_trips
+* test_walkthrough_does_nothing_when_disabled
+* test_walkthrough_needs_a_dwell
+* test_walkthrough_rearms_only_after_leaving_every_portal
+* test_reduced_motion_dims_then_snaps_with_no_visible_motion
+* test_eased_motion_stays_inside_the_budget_and_never_scales_the_arrangement
+* test_an_arrangement_with_a_two_hand_transform_takes_the_dim_path
+* test_membranes_are_one_multimesh_one_draw_call
+* test_membrane_motion_uniform_follows_reduced_motion
+* test_membrane_shader_stays_off_the_screen_and_depth_textures
+* test_budget_weights
+* test_room_loss_ends_the_space_through_the_dim
+* test_room_loss_during_the_enter_dim_still_ends_in_the_dark
+* test_room_loss_during_the_dim_back_restarts_from_the_current_alpha
+* test_hiding_or_showing_a_portal_relayouts_through_the_dim
+* test_a_second_portal_change_during_the_relayout_dim_is_not_lost
+* test_eased_relayout_when_motion_is_allowed
+* test_leave_and_swap_always_go_through_the_dim_even_with_motion_allowed
+* test_mid_front_ease_enter_and_leave_restore_the_new_slots
+* test_walkthrough_enter_uses_the_floor
+* test_portals_never_meet_each_other_at_the_maximum_count
+[1m41/41 passed.
+[0m
+
+
+
+[33m==============================================
+[0m[33m= Run Summary
+[0m[33m==============================================
+[0m
+Totals
+------
+Scripts               1
+Tests                41
+Passing Tests        41
+Asserts           19288
+Time              0.657s
+
+
+[32m---- All tests passed! ----
+[0m

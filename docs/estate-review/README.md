@@ -137,3 +137,5 @@ Historical follow-through: [surviving decision obligations](historical-decision-
 The [agentbox historical map](closeout/agentbox-history.md) adds 72 archived decision routes to the [section-level reconciliation](historical-decision-reconciliation.md#agentbox-routing-and-compound-obligations).
 
 
+
+The [portal and federation pass](2026-10-31-portals-and-federation.md) adds section dispositions for ADR-2166 and ADR-2161, scaled interaction probes, a release-handshake trace and explicit proposed-feature gaps. It does not establish headset or cross-node acceptance.

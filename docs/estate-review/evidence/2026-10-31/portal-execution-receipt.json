@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-31",
+  "engine": "4.6.1.stable.official.14d19694e",
+  "fixture": "/tmp/visionflow-portal-audit.bi8kpLfP",
+  "project_godot": "config_version=5\n[application]\nconfig/name=\"VisionFlow portal audit\"\n[rendering]\nrenderer/rendering_method=\"gl_compatibility\"\n",
+  "commands": [
+    "XDG_DATA_HOME=\"$fixture/data\" timeout 60 godot --headless --editor --import --quit",
+    "XDG_DATA_HOME=\"$fixture/data\" timeout 60 godot --headless --path . --script addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit -glog=1",
+    "XDG_DATA_HOME=\"$fixture/data\" timeout 30 godot --headless --path . --script res://portal-boundary-probe.gd",
+    "bash tests/gut_guard.sh portal-gut-suite-plain.txt portal-import-plain.txt"
+  ],
+  "exit_codes": {
+    "import": 0,
+    "gut": 0,
+    "probe": 0,
+    "guard": 0
+  },
+  "retained_tests": 41,
+  "excluded_scene_tests": 7,
+  "assertions": 19288,
+  "audit_cases": 7,
+  "retained_bodies_byte_identical": true,
+  "isolation": "private data directory; no gdext, live services, shader renderer or headset",
+  "temporary_remote_fixture_removed": true
+}

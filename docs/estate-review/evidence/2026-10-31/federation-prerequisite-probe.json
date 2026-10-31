@@ -1,0 +1,32 @@
+{
+  "cases": [
+    {
+      "case": "dataspace_crossing_not_implemented",
+      "converted": null,
+      "drops": [
+        "unmapped kind 'dataspace'"
+      ]
+    },
+    {
+      "case": "existing_bead_crossing_control",
+      "converted": "urn:visionclaw:bead:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:sha256-12-123456abcdef"
+    },
+    {
+      "case": "dataspace_resolver_not_implemented",
+      "status": 404,
+      "payload": {
+        "error": "unknown-kind",
+        "kind": "dataspace",
+        "urn": "urn:agentbox:dataspace:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:audit-space"
+      }
+    },
+    {
+      "case": "resolver_contract_advertises_no_dataspace_or_410",
+      "contract": {
+        "uniqueness": "always — every emit produces a stable, deterministic URI",
+        "resolvability": "best-effort — resolver returns 307 when known, 404 when unknown or retracted"
+      },
+      "dataspace_in_grammar": false
+    }
+  ]
+}

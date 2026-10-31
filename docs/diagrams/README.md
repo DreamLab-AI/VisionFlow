@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_167 topic files, 1554 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_169 topic files, 1560 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -232,6 +232,8 @@ _167 topic files, 1554 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VC-44 | [Concurrent XR content connections and separate room presence](visionclaw/44-xr-concurrent-backend-connections.md) | 3 | flowchart | [ADR-2159-the-xr-client-holds-one-backend-connection-per-content-source.md](../../../project/docs/adr/ADR-2159-the-xr-client-holds-one-backend-connection-per-content-source.md) | ADR-2143, ADR-2159 |
 | VC-45 | [Code annotations, runtime concept joins and missing provenance](visionclaw/45-code-to-concept-link-evidence.md) | 3 | flowchart | [ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md](../../../project/docs/adr/ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md) | ADR-2143, ADR-2159, ADR-2164 |
 | VC-46 | [Spatial volume fit cadence, link highlights and native fallback](visionclaw/46-spatial-volume-fit-and-link-budget.md) | 3 | flowchart | [ADR-2158-xr-content-is-presented-in-spatial-volumes-emulated-until-the-runtime-provides-them.md](../../../project/docs/adr/ADR-2158-xr-content-is-presented-in-spatial-volumes-emulated-until-the-runtime-provides-them.md), [ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md](../../../project/docs/adr/ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md) | ADR-2158, ADR-2164 |
+| VC-47 | [Portal entry, comfort transitions and scaled walk-through](visionclaw/47-portal-entry-and-scaled-walkthrough.md) | 3 | flowchart | [ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md](../../../project/docs/adr/ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md) | ADR-2158, ADR-2166 |
+| VC-48 | [Proposed data-space federation and current release connection gates](visionclaw/48-dataspace-federation-prerequisites.md) | 3 | flowchart | [ADR-2161-a-node-publishes-data-spaces-that-peer-nodes-render-as-linked-volumes.md](../../../project/docs/adr/ADR-2161-a-node-publishes-data-spaces-that-peer-nodes-render-as-linked-volumes.md) | ADR-2021, ADR-2159, ADR-2161, ADR-2162 |
 
 ### agentbox
 

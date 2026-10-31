@@ -1,0 +1,30 @@
+[
+  {
+    "query": "dataspace|federated_read|federated-read|link_notice|dataspace_announce",
+    "roots": [
+      "src",
+      "crates",
+      "xr-client/scripts",
+      "xr-client/rust/src"
+    ],
+    "exit_code": 0,
+    "matches": [
+      "xr-client/scripts/link_layer.gd:9:## knowledge \u2194 ontology `bridge`, later `dataspace`) is drawn here, in world",
+      "xr-client/scripts/link_layer.gd:48:const KIND_ORDER := [\"annotates\", \"bridge\", \"dataspace\"]",
+      "xr-client/scripts/link_layer.gd:52:\t\"dataspace\": Color(0.9, 0.4, 1.0),"
+    ],
+    "scope": "Source search only; not a running-service inventory."
+  },
+  {
+    "query": "v1/uri",
+    "roots": [
+      "src",
+      "crates"
+    ],
+    "exit_code": 0,
+    "matches": [
+      "src/services/decision_service.rs:27://! Rust minter here MUST byte-match that grammar so `/v1/uri/<urn>` resolution"
+    ],
+    "scope": "Source search only; not a running-service inventory."
+  }
+]

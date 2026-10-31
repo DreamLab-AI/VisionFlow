@@ -19,6 +19,8 @@ verified_commit: {visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7}
 
 The [headless audit](../../estate-review/2026-10-31-xr-volumes-and-code-links.md) runs unchanged production scripts on Godot 4.6.1 with isolated fixtures. It tests geometry/state behaviour without a headset, live streams or a native spatial container.
 
+The subsequent [portal review](47-portal-entry-and-scaled-walkthrough.md) covers entered-room transitions, scale-dependent walk-through re-arming and membrane accounting; entered rooms inherit the fit boundary shown here.
+
 ## For the business
 
 The multi-volume interface is implemented, but its budget and containment promises need narrower wording or repairs. Highlight markers add geometry beyond the link cap, and a newly expanded graph extent can remain outside its fitted box for several ticks.

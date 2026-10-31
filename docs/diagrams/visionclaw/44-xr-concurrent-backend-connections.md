@@ -21,6 +21,8 @@ This is the current source arrangement replacing [VC-40's historical exclusive s
 
 The subsequent [headless volume/link audit](46-spatial-volume-fit-and-link-budget.md) qualifies fit cadence and highlight budgets with executed Godot fixtures; transport and headset acceptance remain separate.
 
+The [federation prerequisite review](48-dataspace-federation-prerequisites.md) traces why the current native transport does not satisfy release upgrade gates and why concurrent local sources do not establish dataspace permissions.
+
 ## For the business
 
 Knowledge, ontology and code can be fed by concurrent connections. Source separation and capability guards are implemented; their presence alone does not establish the three-volume headset frame-rate target.
