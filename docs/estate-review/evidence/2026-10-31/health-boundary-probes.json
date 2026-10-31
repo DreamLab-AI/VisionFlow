@@ -1,0 +1,35 @@
+[
+  {
+    "case": "empty",
+    "fixture": {
+      "schema": "visionflow.estate-health/1",
+      "generated_at": "2026-10-31T22:11:57.024023+00:00"
+    },
+    "exit": 0,
+    "stdout": "INFO snapshot age 0.0 h (limit 36 h) generated_at 2026-10-31T22:11:57.024023+00:00\nESTATE-HEALTH-OK\n",
+    "stderr": ""
+  },
+  {
+    "case": "future",
+    "fixture": {
+      "schema": "visionflow.estate-health/1",
+      "generated_at": "2099-01-01T00:00:00Z",
+      "repos": [],
+      "surfaces": []
+    },
+    "exit": 0,
+    "stdout": "INFO snapshot age -632617.8 h (limit 36 h) generated_at 2099-01-01T00:00:00Z\nESTATE-HEALTH-OK\n",
+    "stderr": ""
+  },
+  {
+    "case": "wrong-array",
+    "fixture": {
+      "schema": "visionflow.estate-health/1",
+      "generated_at": "2026-10-31T22:11:57.024036+00:00",
+      "repos": {}
+    },
+    "exit": 1,
+    "stdout": "",
+    "stderr": "file:///home/devuser/workspace/VisionFlow/scripts/estate-health.mjs:967\n  for (const repo of snap.repos ?? []) {\n                          ^\n\nTypeError: object is not iterable (cannot read property Symbol(Symbol.iterator))\n    at check (file:///home/devuser/workspace/VisionFlow/scripts/estate-health.mjs:967:27)\n    at file:///home/devuser/workspace/VisionFlow/scripts/estate-health.mjs:1071:77\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v22.23.3\n"
+  }
+]

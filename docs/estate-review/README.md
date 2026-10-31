@@ -19,6 +19,8 @@ Current coverage: [31 October checkout, ADR and diagram census](2026-10-31-scope
 
 The [plugin decision and lifecycle audit](2026-10-31-obsidian-decisions.md) completes the five-file plugin ADR reading pass, with explicit runtime limits and reproduced lifecycle defects.
 
+Whole-corpus continuation: [input drift and estate-health counterexamples](2026-10-31-diagram-drift-and-health.md), with the [158-topic review queue](2026-10-31-diagram-review-queue.md).
+
 ## Reading order
 
 | Document | Question it answers |

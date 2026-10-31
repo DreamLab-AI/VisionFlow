@@ -46,7 +46,7 @@ flowchart LR
     REPOS --> P7["DreamLab-AI/loom — Ontology Loom grounding facade<br/>EXTERNAL: no diagram area in this tree — roster.json:11"]:::fp
     REPOS --> P8["DreamLab-AI/knowledgeGraph — published corpus mirror<br/>ci_by_design: a publish target whose only workflow is the<br/>Pages build — EXTERNAL: area knowledgegraph, KG-nn — roster.json:12"]:::fp
     REPOS --> P15["DreamLab-AI/sidestr-rs — sidechain crates, added 2026-09-23<br/>EXTERNAL: area sidestr-rs, SR-nn — roster.json:13"]:::fp
-    REPOS --> P16["DreamLab-AI/ontomark — Obsidian-vault ontology toolchain, crates<br/>EXTERNAL: no diagram area in this tree — roster.json:14"]:::fp
+    REPOS --> P16["DreamLab-AI/ontomark — Obsidian-vault ontology toolchain, crates<br/>EXTERNAL: area ontomark, OM-00..OM-06 — roster.json:14"]:::fp
     REPOS --> P17["DreamLab-AI/ontomark-obsidian — Obsidian plugin for ontomark<br/>EXTERNAL: no diagram area in this tree — roster.json:15"]:::fp
     REPOS --> P9["DreamLab-AI/WasmVOWL — demo shell, default branch master<br/>ci_by_design: frozen, no workflows<br/>EXTERNAL: no diagram area; distinct from vowl-wasm — roster.json:16"]:::fp
     REPOS --> P10["jjohare/visionGraph — the vault, PRIVATE and cross-owner<br/>EXTERNAL: area visiongraph, VG-nn — roster.json:17"]:::priv
@@ -54,7 +54,7 @@ flowchart LR
     REPOS --> P12["DreamLab-AI/prose-sanitiser — published crate — roster.json:19"]:::fp
     REPOS --> P13["DreamLab-AI/diagram-ir — published crate — roster.json:20"]:::fp
     REPOS --> P14["DreamLab-AI/dream-engine — provenance IMPORTED,<br/>fork of ruvnet/dream-machine — roster.json:21<br/>EXTERNAL: the dream engine itself, see AB-23"]:::imp
-    REPOS --> P15["DreamLab-AI/visiontouch-rs — haptic input device study,<br/>private proof of principle, admitted by ADR-2017 — roster.json:22"]:::fp
+    REPOS --> P18["DreamLab-AI/visiontouch-rs — haptic input device study,<br/>private proof of principle, admitted by ADR-2017 — roster.json:22"]:::fp
 
     R --> SURF["surfaces — 6 probes — roster.json:24<br/>www.visionflow.info, narrativegoldmine.com,<br/>its /ns/v2.jsonld and /data/graph/stats.json,<br/>www.dreamlab-ai.com, and the VisionClaw<br/>ontology-latest/index.jsonld release asset"]
     R --> REG["registries — 22 entries — roster.json:59<br/>crates.io: vowl-wasm, prose-sanitiser, diagram-ir,<br/>solid-pod-rs, solid-pod-rs-server, nostr-bbs-core — roster.json:60-65,<br/>the six ontomark-family crates (parse, model, reason, compile,<br/>ingest, ngg1) and whelk-el — roster.json:66-72,<br/>and all eight sidestr-rs crates: header, core, nostr, wallet,<br/>round, hitch, agent, webledgers-teller — roster.json:73-80<br/>npm: @dreamlab-ai/vowl-wasm — roster.json:81"]
@@ -193,7 +193,7 @@ flowchart TB
 stateDiagram-v2
     direction TB
     [*] --> Load
-    state "async check() — reads CHECK_PATH, no network, no token — estate-health.mjs:942" as Load
+    state "async check() — reads CHECK_PATH, optional Jev advisory — estate-health.mjs:942" as Load
     Load --> Stale1 : file missing — estate-health.mjs:943
     Load --> Stale2 : unparseable JSON
     Load --> Stale3 : schema is not visionflow.estate-health/1 — estate-health.mjs:956
@@ -207,7 +207,7 @@ stateDiagram-v2
     DownSurface --> Verdict
     state "verdict" as Verdict
     Verdict --> RED : any red repo OR any unreachable surface — exit 1
-    Verdict --> STALE : otherwise, generated_at older than 36 h — exit 1
+    Verdict --> STALE : otherwise, invalid age or older than 36 h — exit 1
     Verdict --> OK : otherwise — exit 0
     state "ESTATE-HEALTH-RED — estate-health.mjs:1008" as RED
     state "ESTATE-HEALTH-STALE — estate-health.mjs:1014" as STALE
@@ -220,8 +220,11 @@ stateDiagram-v2
       still shows a failure, and reporting staleness would
       bury the defect — estate-health.mjs:85
       AMBER prints a line but does NOT change the verdict.
-      On every path an INFO line reports the snapshot age against the
-      limit, without changing precedence or exit code — estate-health.mjs:991-1003
+      After a valid schema, finite age prints INFO against the limit
+      Missing files, bad JSON or schema return earlier — estate-health.mjs:943-961
+      Optional Jev runs before the verdict — estate-health.mjs:1005
+      Missing arrays scan as empty, future dates pass the age test
+      estate-health.mjs:967 and estate-health.mjs:1012
       Lines are collected in a buffer and printed immediately before the sentinel;
       an opt-in advisory block may add JEV lines to it but never changes the
       verdict or the exit code — estate-health.mjs:964 and estate-health.mjs:1005
@@ -311,3 +314,6 @@ flowchart TB
 **Drift (2026-10-15, dream-engine extraction):** the roster row for `dream-engine` (`provenance: imported`, a fork of ruvnet/dream-machine) is stamped before the extraction. The slug now names the new Rust repository and the fork is renamed dream-machine and archived (checked 2026-10-16). The row has not been changed, because the release manifest and its gate assert two imported rows, see DE-01.
 
 **Since the last stamp:** `check` now builds its output in a buffer and prints it directly before the sentinel line, so a Jev advisory block, never able to change the verdict or exit code, can add `JEV priority` and `JEV triage` lines for the failed observations (`scripts/estate-health.mjs:964`, `scripts/estate-health.mjs:1005`, `scripts/estate-health.mjs:1035`, `docs/jev-option.md:13-14`). The library default is off but agentbox projects `VISIONFLOW_JEV=all` into its shells, where these two items are public data and, since the 2026-10-30 System One unification, take the shared proxy's selected backend (TypeSafe by default) once the new agentbox image is activated, while hosted CI and the dream annexe do not inherit it (`docs/jev-option.md:3`, `docs/jev-option.md:13-14` and `docs/jev-option.md:16`). `collect` never calls it.
+
+
+**Debt (snapshot shape and clock bounds, reproduced 2026-10-31):** A schema tag and current timestamp without any repository/surface arrays returns `ESTATE-HEALTH-OK`; a 2099 timestamp also returns OK. A non-array `repos` object throws instead of returning a classified verdict. These follow from the optional empty-array scans and one-sided age test at `scripts/estate-health.mjs:967`, `scripts/estate-health.mjs:984` and `scripts/estate-health.mjs:1012`. The source is unchanged from this topic's declared revision. See the [estate-health adversarial review](../../estate-review/2026-10-31-diagram-drift-and-health.md). The literal verdict is not proof that the full roster was measured.
