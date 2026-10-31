@@ -25,6 +25,7 @@ SUITES=(
   "estate-health-ci.test.mjs"
   "jev-option.test.cjs"
   "dream-evaluator-exit.test.sh"
+  "adr-evidence-field.test.sh"
 )
 
 FAILED=()
