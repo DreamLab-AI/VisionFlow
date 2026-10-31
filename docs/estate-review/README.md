@@ -31,6 +31,8 @@ Governance delivery: [signed ingress, expiry and restart-recovery findings](2026
 
 External-source ingest: [proposal bundles, completion signals, evidence and replay boundaries](2026-10-31-external-source-ingest.md).
 
+Proposal construction: [declared levels, consequence identity and grouped-consumer limits](2026-10-31-proposal-construction.md).
+
 ## Reading order
 
 | Document | Question it answers |

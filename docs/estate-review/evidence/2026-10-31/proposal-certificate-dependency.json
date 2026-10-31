@@ -1,0 +1,7 @@
+{
+  "version": "0.1.0",
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "manifest_path": "/home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdfs-certificate-0.1.0/Cargo.toml",
+  "consumedSourceSha256": "8d7dece4ba68ba8317af791b5cfa8f89dbc4fe6d5ad3b01b96914ba8dad39e58",
+  "workspaceSourceSha256": "8d7dece4ba68ba8317af791b5cfa8f89dbc4fe6d5ad3b01b96914ba8dad39e58"
+}

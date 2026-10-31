@@ -1,0 +1,676 @@
+{
+  "binary": "/home/devuser/workspace/project/target/debug/vault",
+  "fixture_target_unchanged_by_propose": true,
+  "grouped_amend": {
+    "event": {
+      "content": "{\"level\":\"content\",\"kind\":\"amend\",\"iri\":\"urn:ngm:proposal:three-page-judgement\",\"page\":\"urn:ngm:proposal:three-page-judgement\",\"hypothesis\":\"Synthetic audit fixture\",\"diff\":\"--- a/Alpha\\n+++ b/Alpha\\n@@ -4,5 +4,6 @@\\n public: true\\n resource: urn:ngm:class:alpha\\n status: stable\\n+quality: 0.5\\n ---\\n About Alpha.\\n--- a/Beta\\n+++ b/Beta\\n@@ -4,5 +4,6 @@\\n public: true\\n resource: urn:ngm:class:beta\\n status: stable\\n+quality: 0.5\\n ---\\n About Beta.\\n--- a/Gamma\\n+++ b/Gamma\\n@@ -4,5 +4,6 @@\\n public: true\\n resource: urn:ngm:class:gamma\\n status: stable\\n+quality: 0.5\\n ---\\n About Gamma.\\n\",\"digest\":\"sha256:eebab1ec7470cfeaa603fbd7de4080b48371d4f90d12ed6b7d5a63571e7fca1f\",\"blockers\":[],\"preexisting\":[],\"proposer\":\"process:vault/1.0\",\"generation\":\"visionGraph@a7f37758650bb8e64fad548c72147cb5444c0ee3\",\"stale_after\":\"2026-11-14T22:55:26.887907099Z\",\"pages\":[\"Alpha\",\"Beta\",\"Gamma\"],\"consequences\":{\"rule_table\":\"rdfs\",\"verdict\":\"not_conservative_under_rule_table\",\"new_consequences\":4,\"lost_consequences\":4,\"new_by_predicate\":{\"qualityScore\":3,\"versionIRI\":1},\"new_examples\":[\"<https://narrativegoldmine.com/class/alpha> <https://narrativegoldmine.com/ns/v1#qualityScore> \\\"0.5\\\"^^<http://www.w3.org/2001/XMLSchema#float>\",\"<https://narrativegoldmine.com/class/beta> <https://narrativegoldmine.com/ns/v1#qualityScore> \\\"0.5\\\"^^<http://www.w3.org/2001/XMLSchema#float>\",\"<https://narrativegoldmine.com/class/gamma> <https://narrativegoldmine.com/ns/v1#qualityScore> \\\"0.5\\\"^^<http://www.w3.org/2001/XMLSchema#float>\",\"<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-3b07854d5dcb>\"],\"lost_examples\":[\"<https://narrativegoldmine.com/class/alpha> <https://narrativegoldmine.com/ns/v1#qualityScore> \\\"0.0\\\"^^<http://www.w3.org/2001/XMLSchema#float>\",\"<https://narrativegoldmine.com/class/beta> <https://narrativegoldmine.com/ns/v1#qualityScore> \\\"0.0\\\"^^<http://www.w3.org/2001/XMLSchema#float>\",\"<https://narrativegoldmine.com/class/gamma> <https://narrativegoldmine.com/ns/v1#qualityScore> \\\"0.0\\\"^^<http://www.w3.org/2001/XMLSchema#float>\",\"<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-c71c69d92d01>\"],\"not_compared_blank_node_bearing\":0,\"base_derivations\":0,\"proposal_derivations\":0,\"proposal_asserted_sha256\":\"aed9aaa4345ac51d236ffac662c525f2a5fd19e71910aa3b29ecbb6398f6e894\"}}",
+      "created_at": 1793487326,
+      "id": "eb38910e18218283ca157bccbe6b8152524ba03c7a4d59b94f04dd97e3a1c2d9",
+      "kind": 31402,
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "sig": "b362899917d1bf335cfb6c0bda7690aec3d7d3fc44e103bb48cb49893e753fddd4212929cd6136c42568860eca6b80cdfd44a701d5e51a4396d30bd553c9089d",
+      "tags": [
+        [
+          "d",
+          "eebab1ec7470cfeaa603fbd7de4080b48371d4f90d12ed6b7d5a63571e7fca1f"
+        ],
+        [
+          "context_url",
+          "urn:ngm:proposal:three-page-judgement"
+        ],
+        [
+          "level",
+          "content"
+        ],
+        [
+          "panel",
+          "ontology-governance"
+        ],
+        [
+          "generation",
+          "visionGraph@a7f37758650bb8e64fad548c72147cb5444c0ee3"
+        ],
+        [
+          "expiration",
+          "1794696926"
+        ],
+        [
+          "pages",
+          "3"
+        ],
+        [
+          "tp-verifiability",
+          "inspectable"
+        ],
+        [
+          "tp-reversibility",
+          "reversible"
+        ],
+        [
+          "tp-stakes",
+          "bounded"
+        ]
+      ]
+    },
+    "proposal": {
+      "blockers": [],
+      "consequences": {
+        "base_derivations": 0,
+        "lost_consequences": 4,
+        "lost_examples": [
+          "<https://narrativegoldmine.com/class/alpha> <https://narrativegoldmine.com/ns/v1#qualityScore> \"0.0\"^^<http://www.w3.org/2001/XMLSchema#float>",
+          "<https://narrativegoldmine.com/class/beta> <https://narrativegoldmine.com/ns/v1#qualityScore> \"0.0\"^^<http://www.w3.org/2001/XMLSchema#float>",
+          "<https://narrativegoldmine.com/class/gamma> <https://narrativegoldmine.com/ns/v1#qualityScore> \"0.0\"^^<http://www.w3.org/2001/XMLSchema#float>",
+          "<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-c71c69d92d01>"
+        ],
+        "new_by_predicate": {
+          "qualityScore": 3,
+          "versionIRI": 1
+        },
+        "new_consequences": 4,
+        "new_examples": [
+          "<https://narrativegoldmine.com/class/alpha> <https://narrativegoldmine.com/ns/v1#qualityScore> \"0.5\"^^<http://www.w3.org/2001/XMLSchema#float>",
+          "<https://narrativegoldmine.com/class/beta> <https://narrativegoldmine.com/ns/v1#qualityScore> \"0.5\"^^<http://www.w3.org/2001/XMLSchema#float>",
+          "<https://narrativegoldmine.com/class/gamma> <https://narrativegoldmine.com/ns/v1#qualityScore> \"0.5\"^^<http://www.w3.org/2001/XMLSchema#float>",
+          "<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-3b07854d5dcb>"
+        ],
+        "not_compared_blank_node_bearing": 0,
+        "proposal_asserted_sha256": "aed9aaa4345ac51d236ffac662c525f2a5fd19e71910aa3b29ecbb6398f6e894",
+        "proposal_derivations": 0,
+        "rule_table": "rdfs",
+        "verdict": "not_conservative_under_rule_table"
+      },
+      "diff": "--- a/Alpha\n+++ b/Alpha\n@@ -4,5 +4,6 @@\n public: true\n resource: urn:ngm:class:alpha\n status: stable\n+quality: 0.5\n ---\n About Alpha.\n--- a/Beta\n+++ b/Beta\n@@ -4,5 +4,6 @@\n public: true\n resource: urn:ngm:class:beta\n status: stable\n+quality: 0.5\n ---\n About Beta.\n--- a/Gamma\n+++ b/Gamma\n@@ -4,5 +4,6 @@\n public: true\n resource: urn:ngm:class:gamma\n status: stable\n+quality: 0.5\n ---\n About Gamma.\n",
+      "digest": "sha256:eebab1ec7470cfeaa603fbd7de4080b48371d4f90d12ed6b7d5a63571e7fca1f",
+      "generation": "visionGraph@a7f37758650bb8e64fad548c72147cb5444c0ee3",
+      "hypothesis": "Synthetic audit fixture",
+      "iri": "urn:ngm:proposal:three-page-judgement",
+      "kind": "amend",
+      "level": "content",
+      "page": "urn:ngm:proposal:three-page-judgement",
+      "pages": [
+        "Alpha",
+        "Beta",
+        "Gamma"
+      ],
+      "preexisting": [],
+      "proposer": "process:vault/1.0",
+      "stale_after": "2026-11-14T22:55:26.887907099Z"
+    }
+  },
+  "mixed_grouped_create": {
+    "event": {
+      "content": "{\"level\":\"content\",\"kind\":\"create\",\"iri\":\"urn:ngm:proposal:mixed-creation-and-amendment\",\"page\":\"urn:ngm:proposal:mixed-creation-and-amendment\",\"hypothesis\":\"Synthetic audit fixture\",\"diff\":\"--- a/Alpha\\n+++ b/Alpha\\n@@ -4,5 +4,6 @@\\n public: true\\n resource: urn:ngm:class:alpha\\n status: stable\\n+quality: 0.5\\n ---\\n About Alpha.\\n--- a/Beta\\n+++ b/Beta\\n@@ -4,5 +4,6 @@\\n public: true\\n resource: urn:ngm:class:beta\\n status: stable\\n+quality: 0.5\\n ---\\n About Beta.\\n--- /dev/null\\n+++ b/Epsilon\\n@@ -0,0 +1,9 @@\\n+---\\n+type: Class\\n+title: Epsilon\\n+public: true\\n+resource: urn:ngm:class:epsilon\\n+status: stable\\n+quality: 0.5\\n+---\\n+About Epsilon.\\n--- a/Gamma\\n+++ b/Gamma\\n@@ -4,5 +4,6 @@\\n public: true\\n resource: urn:ngm:class:gamma\\n status: stable\\n+quality: 0.5\\n ---\\n About Gamma.\\n\",\"digest\":\"sha256:a43888a7b3493b2cf99f7869f7fecac27cedf9dbcc90736d7dde45075a47cf58\",\"blockers\":[],\"preexisting\":[],\"proposer\":\"process:vault/1.0\",\"generation\":\"visionGraph@a7f37758650bb8e64fad548c72147cb5444c0ee3\",\"stale_after\":\"2026-11-14T22:55:26.907794989Z\",\"pages\":[\"Alpha\",\"Beta\",\"Epsilon\",\"Gamma\"],\"consequences\":{\"rule_table\":\"rdfs\",\"verdict\":\"not_conservative_under_rule_table\",\"new_consequences\":11,\"lost_consequences\":4,\"new_by_predicate\":{\"comment\":1,\"hasMaturity\":1,\"label\":1,\"qualityScore\":4,\"slug\":1,\"sourceDomain\":1,\"type\":1,\"versionIRI\":1},\"new_examples\":[\"<https://narrativegoldmine.com/class/alpha> <https://narrativegoldmine.com/ns/v1#qualityScore> \\\"0.5\\\"^^<http://www.w3.org/2001/XMLSchema#float>\",\"<https://narrativegoldmine.com/class/beta> <https://narrativegoldmine.com/ns/v1#qualityScore> \\\"0.5\\\"^^<http://www.w3.org/2001/XMLSchema#float>\",\"<https://narrativegoldmine.com/class/epsilon> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class>\",\"<https://narrativegoldmine.com/class/epsilon> <http://www.w3.org/2000/01/rdf-schema#comment> \\\"About Epsilon.\\\"@en\",\"<https://narrativegoldmine.com/class/epsilon> <http://www.w3.org/2000/01/rdf-schema#label> \\\"Epsilon\\\"@en\",\"<https://narrativegoldmine.com/class/epsilon> <https://narrativegoldmine.com/ns/v1#hasMaturity> <https://narrativegoldmine.com/individual/maturity-draft>\",\"<https://narrativegoldmine.com/class/epsilon> <https://narrativegoldmine.com/ns/v1#qualityScore> \\\"0.5\\\"^^<http://www.w3.org/2001/XMLSchema#float>\",\"<https://narrativegoldmine.com/class/epsilon> <https://narrativegoldmine.com/ns/v1#slug> \\\"epsilon\\\"\"],\"lost_examples\":[\"<https://narrativegoldmine.com/class/alpha> <https://narrativegoldmine.com/ns/v1#qualityScore> \\\"0.0\\\"^^<http://www.w3.org/2001/XMLSchema#float>\",\"<https://narrativegoldmine.com/class/beta> <https://narrativegoldmine.com/ns/v1#qualityScore> \\\"0.0\\\"^^<http://www.w3.org/2001/XMLSchema#float>\",\"<https://narrativegoldmine.com/class/gamma> <https://narrativegoldmine.com/ns/v1#qualityScore> \\\"0.0\\\"^^<http://www.w3.org/2001/XMLSchema#float>\",\"<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-c71c69d92d01>\"],\"not_compared_blank_node_bearing\":0,\"base_derivations\":0,\"proposal_derivations\":0,\"proposal_asserted_sha256\":\"d4b496fa3917d27f8f43cd6bc6f6b46006388827270db66608e1afb199578474\"}}",
+      "created_at": 1793487326,
+      "id": "1e06269f5970c14570492bb682e5308856be5c31882dab962bae193a55b24f69",
+      "kind": 31402,
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "sig": "2f37f5adc181dc367f6f9fe467b97d39f737bf45fac28125f8874dd051592893bc3433c61cd534a212830f89dd15945bcd7f1d0acf01264f8add4188f26688b0",
+      "tags": [
+        [
+          "d",
+          "a43888a7b3493b2cf99f7869f7fecac27cedf9dbcc90736d7dde45075a47cf58"
+        ],
+        [
+          "context_url",
+          "urn:ngm:proposal:mixed-creation-and-amendment"
+        ],
+        [
+          "level",
+          "content"
+        ],
+        [
+          "panel",
+          "ontology-governance"
+        ],
+        [
+          "generation",
+          "visionGraph@a7f37758650bb8e64fad548c72147cb5444c0ee3"
+        ],
+        [
+          "expiration",
+          "1794696926"
+        ],
+        [
+          "pages",
+          "4"
+        ],
+        [
+          "tp-verifiability",
+          "inspectable"
+        ],
+        [
+          "tp-reversibility",
+          "reversible"
+        ],
+        [
+          "tp-stakes",
+          "bounded"
+        ]
+      ]
+    },
+    "proposal": {
+      "blockers": [],
+      "consequences": {
+        "base_derivations": 0,
+        "lost_consequences": 4,
+        "lost_examples": [
+          "<https://narrativegoldmine.com/class/alpha> <https://narrativegoldmine.com/ns/v1#qualityScore> \"0.0\"^^<http://www.w3.org/2001/XMLSchema#float>",
+          "<https://narrativegoldmine.com/class/beta> <https://narrativegoldmine.com/ns/v1#qualityScore> \"0.0\"^^<http://www.w3.org/2001/XMLSchema#float>",
+          "<https://narrativegoldmine.com/class/gamma> <https://narrativegoldmine.com/ns/v1#qualityScore> \"0.0\"^^<http://www.w3.org/2001/XMLSchema#float>",
+          "<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-c71c69d92d01>"
+        ],
+        "new_by_predicate": {
+          "comment": 1,
+          "hasMaturity": 1,
+          "label": 1,
+          "qualityScore": 4,
+          "slug": 1,
+          "sourceDomain": 1,
+          "type": 1,
+          "versionIRI": 1
+        },
+        "new_consequences": 11,
+        "new_examples": [
+          "<https://narrativegoldmine.com/class/alpha> <https://narrativegoldmine.com/ns/v1#qualityScore> \"0.5\"^^<http://www.w3.org/2001/XMLSchema#float>",
+          "<https://narrativegoldmine.com/class/beta> <https://narrativegoldmine.com/ns/v1#qualityScore> \"0.5\"^^<http://www.w3.org/2001/XMLSchema#float>",
+          "<https://narrativegoldmine.com/class/epsilon> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class>",
+          "<https://narrativegoldmine.com/class/epsilon> <http://www.w3.org/2000/01/rdf-schema#comment> \"About Epsilon.\"@en",
+          "<https://narrativegoldmine.com/class/epsilon> <http://www.w3.org/2000/01/rdf-schema#label> \"Epsilon\"@en",
+          "<https://narrativegoldmine.com/class/epsilon> <https://narrativegoldmine.com/ns/v1#hasMaturity> <https://narrativegoldmine.com/individual/maturity-draft>",
+          "<https://narrativegoldmine.com/class/epsilon> <https://narrativegoldmine.com/ns/v1#qualityScore> \"0.5\"^^<http://www.w3.org/2001/XMLSchema#float>",
+          "<https://narrativegoldmine.com/class/epsilon> <https://narrativegoldmine.com/ns/v1#slug> \"epsilon\""
+        ],
+        "not_compared_blank_node_bearing": 0,
+        "proposal_asserted_sha256": "d4b496fa3917d27f8f43cd6bc6f6b46006388827270db66608e1afb199578474",
+        "proposal_derivations": 0,
+        "rule_table": "rdfs",
+        "verdict": "not_conservative_under_rule_table"
+      },
+      "diff": "--- a/Alpha\n+++ b/Alpha\n@@ -4,5 +4,6 @@\n public: true\n resource: urn:ngm:class:alpha\n status: stable\n+quality: 0.5\n ---\n About Alpha.\n--- a/Beta\n+++ b/Beta\n@@ -4,5 +4,6 @@\n public: true\n resource: urn:ngm:class:beta\n status: stable\n+quality: 0.5\n ---\n About Beta.\n--- /dev/null\n+++ b/Epsilon\n@@ -0,0 +1,9 @@\n+---\n+type: Class\n+title: Epsilon\n+public: true\n+resource: urn:ngm:class:epsilon\n+status: stable\n+quality: 0.5\n+---\n+About Epsilon.\n--- a/Gamma\n+++ b/Gamma\n@@ -4,5 +4,6 @@\n public: true\n resource: urn:ngm:class:gamma\n status: stable\n+quality: 0.5\n ---\n About Gamma.\n",
+      "digest": "sha256:a43888a7b3493b2cf99f7869f7fecac27cedf9dbcc90736d7dde45075a47cf58",
+      "generation": "visionGraph@a7f37758650bb8e64fad548c72147cb5444c0ee3",
+      "hypothesis": "Synthetic audit fixture",
+      "iri": "urn:ngm:proposal:mixed-creation-and-amendment",
+      "kind": "create",
+      "level": "content",
+      "page": "urn:ngm:proposal:mixed-creation-and-amendment",
+      "pages": [
+        "Alpha",
+        "Beta",
+        "Epsilon",
+        "Gamma"
+      ],
+      "preexisting": [],
+      "proposer": "process:vault/1.0",
+      "stale_after": "2026-11-14T22:55:26.907794989Z"
+    }
+  },
+  "preexisting_validation": {
+    "event": {
+      "content": "{\"level\":\"content\",\"kind\":\"amend\",\"iri\":\"urn:ngm:class:alpha\",\"page\":\"Alpha\",\"hypothesis\":\"Synthetic audit fixture\",\"diff\":\"--- a/Alpha\\n+++ b/Alpha\\n@@ -3,5 +3,7 @@\\n title: Alpha\\n public: true\\n resource: urn:ngm:class:alpha\\n+is-a:\\n+- '[[Gamma]]'\\n ---\\n About Alpha.\\n\",\"digest\":\"sha256:f584c004f2285270c75e8c23b865edac719c52b752d774afe7a378109ecd9b5c\",\"blockers\":[],\"preexisting\":[{\"code\":\"MISSING_REQUIRED\",\"detail\":\"`type: Class` requires `status`\"},{\"code\":\"MISSING_STATUS\",\"detail\":\"every knowledge page needs a `status`\"}],\"proposer\":\"process:vault/1.0\",\"generation\":\"visionGraph@f2d8edaa4e1e96f46848c928c8c22d9fccb8669a\",\"stale_after\":\"2026-11-14T22:55:26.827484168Z\",\"pages\":[\"Alpha\"],\"consequences\":{\"rule_table\":\"rdfs\",\"verdict\":\"not_conservative_under_rule_table\",\"new_consequences\":2,\"lost_consequences\":1,\"new_by_predicate\":{\"subClassOf\":1,\"versionIRI\":1},\"new_examples\":[\"<https://narrativegoldmine.com/class/alpha> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://narrativegoldmine.com/class/gamma>\",\"<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-18e5bcacf530>\"],\"lost_examples\":[\"<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-c71c69d92d01>\"],\"not_compared_blank_node_bearing\":0,\"base_derivations\":0,\"proposal_derivations\":0,\"proposal_asserted_sha256\":\"c26fff7c58e724045d1addcaa9e16869aa192dc46504ae7ebb0d2d2bc21000e7\"}}",
+      "created_at": 1793487326,
+      "id": "e0d9e7a329c381544ed5897cda555611e1a13d27d0a218d5eb6e33bf401f371c",
+      "kind": 31402,
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "sig": "6d399d133c442334a959623c78054d9df4e6269feb76e6eadc70aaa203a64032f877c0e1c1b5035c0ea322ac2c00225908a28ede92ae6db456c667a38c66b437",
+      "tags": [
+        [
+          "d",
+          "f584c004f2285270c75e8c23b865edac719c52b752d774afe7a378109ecd9b5c"
+        ],
+        [
+          "context_url",
+          "urn:ngm:class:alpha"
+        ],
+        [
+          "level",
+          "content"
+        ],
+        [
+          "panel",
+          "ontology-governance"
+        ],
+        [
+          "generation",
+          "visionGraph@f2d8edaa4e1e96f46848c928c8c22d9fccb8669a"
+        ],
+        [
+          "expiration",
+          "1794696926"
+        ],
+        [
+          "tp-verifiability",
+          "inspectable"
+        ],
+        [
+          "tp-reversibility",
+          "reversible"
+        ],
+        [
+          "tp-stakes",
+          "bounded"
+        ]
+      ]
+    },
+    "proposal": {
+      "blockers": [],
+      "consequences": {
+        "base_derivations": 0,
+        "lost_consequences": 1,
+        "lost_examples": [
+          "<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-c71c69d92d01>"
+        ],
+        "new_by_predicate": {
+          "subClassOf": 1,
+          "versionIRI": 1
+        },
+        "new_consequences": 2,
+        "new_examples": [
+          "<https://narrativegoldmine.com/class/alpha> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://narrativegoldmine.com/class/gamma>",
+          "<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-18e5bcacf530>"
+        ],
+        "not_compared_blank_node_bearing": 0,
+        "proposal_asserted_sha256": "c26fff7c58e724045d1addcaa9e16869aa192dc46504ae7ebb0d2d2bc21000e7",
+        "proposal_derivations": 0,
+        "rule_table": "rdfs",
+        "verdict": "not_conservative_under_rule_table"
+      },
+      "diff": "--- a/Alpha\n+++ b/Alpha\n@@ -3,5 +3,7 @@\n title: Alpha\n public: true\n resource: urn:ngm:class:alpha\n+is-a:\n+- '[[Gamma]]'\n ---\n About Alpha.\n",
+      "digest": "sha256:f584c004f2285270c75e8c23b865edac719c52b752d774afe7a378109ecd9b5c",
+      "generation": "visionGraph@f2d8edaa4e1e96f46848c928c8c22d9fccb8669a",
+      "hypothesis": "Synthetic audit fixture",
+      "iri": "urn:ngm:class:alpha",
+      "kind": "amend",
+      "level": "content",
+      "page": "Alpha",
+      "pages": [
+        "Alpha"
+      ],
+      "preexisting": [
+        {
+          "code": "MISSING_REQUIRED",
+          "detail": "`type: Class` requires `status`"
+        },
+        {
+          "code": "MISSING_STATUS",
+          "detail": "every knowledge page needs a `status`"
+        }
+      ],
+      "proposer": "process:vault/1.0",
+      "stale_after": "2026-11-14T22:55:26.827484168Z"
+    }
+  },
+  "resource_apply": {
+    "page_after": "---\ntype: Class\ntitle: Alpha\npublic: true\nresource: urn:ngm:class:replacement\nstatus: stable\n---\nAbout Alpha.\n",
+    "result": {
+      "applied": true,
+      "digest": "sha256:72c30ad16590b9caaffa42873c2a146ad74a4e0308fc465fcdda3155d6dd2434",
+      "page": "Alpha",
+      "path": "knowledge/Alpha.md"
+    }
+  },
+  "resource_change": {
+    "event": {
+      "content": "{\"level\":\"content\",\"kind\":\"amend\",\"iri\":\"urn:ngm:class:alpha\",\"page\":\"Alpha\",\"hypothesis\":\"Synthetic audit fixture\",\"diff\":\"--- a/Alpha\\n+++ b/Alpha\\n@@ -2,7 +2,7 @@\\n type: Class\\n title: Alpha\\n public: true\\n-resource: urn:ngm:class:alpha\\n+resource: urn:ngm:class:replacement\\n status: stable\\n ---\\n About Alpha.\\n\",\"digest\":\"sha256:72c30ad16590b9caaffa42873c2a146ad74a4e0308fc465fcdda3155d6dd2434\",\"blockers\":[],\"preexisting\":[],\"proposer\":\"process:vault/1.0\",\"generation\":\"visionGraph@a7f37758650bb8e64fad548c72147cb5444c0ee3\",\"stale_after\":\"2026-11-14T22:55:26.866982185Z\",\"pages\":[\"Alpha\"],\"consequences\":{\"rule_table\":\"rdfs\",\"verdict\":\"not_conservative_under_rule_table\",\"new_consequences\":8,\"lost_consequences\":8,\"new_by_predicate\":{\"comment\":1,\"hasMaturity\":1,\"label\":1,\"qualityScore\":1,\"slug\":1,\"sourceDomain\":1,\"type\":1,\"versionIRI\":1},\"new_examples\":[\"<https://narrativegoldmine.com/class/replacement> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class>\",\"<https://narrativegoldmine.com/class/replacement> <http://www.w3.org/2000/01/rdf-schema#comment> \\\"About Alpha.\\\"@en\",\"<https://narrativegoldmine.com/class/replacement> <http://www.w3.org/2000/01/rdf-schema#label> \\\"Alpha\\\"@en\",\"<https://narrativegoldmine.com/class/replacement> <https://narrativegoldmine.com/ns/v1#hasMaturity> <https://narrativegoldmine.com/individual/maturity-draft>\",\"<https://narrativegoldmine.com/class/replacement> <https://narrativegoldmine.com/ns/v1#qualityScore> \\\"0.0\\\"^^<http://www.w3.org/2001/XMLSchema#float>\",\"<https://narrativegoldmine.com/class/replacement> <https://narrativegoldmine.com/ns/v1#slug> \\\"alpha\\\"\",\"<https://narrativegoldmine.com/class/replacement> <https://narrativegoldmine.com/ns/v1#sourceDomain> \\\"\\\"\",\"<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-fd470115ebe1>\"],\"lost_examples\":[\"<https://narrativegoldmine.com/class/alpha> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class>\",\"<https://narrativegoldmine.com/class/alpha> <http://www.w3.org/2000/01/rdf-schema#comment> \\\"About Alpha.\\\"@en\",\"<https://narrativegoldmine.com/class/alpha> <http://www.w3.org/2000/01/rdf-schema#label> \\\"Alpha\\\"@en\",\"<https://narrativegoldmine.com/class/alpha> <https://narrativegoldmine.com/ns/v1#hasMaturity> <https://narrativegoldmine.com/individual/maturity-draft>\",\"<https://narrativegoldmine.com/class/alpha> <https://narrativegoldmine.com/ns/v1#qualityScore> \\\"0.0\\\"^^<http://www.w3.org/2001/XMLSchema#float>\",\"<https://narrativegoldmine.com/class/alpha> <https://narrativegoldmine.com/ns/v1#slug> \\\"alpha\\\"\",\"<https://narrativegoldmine.com/class/alpha> <https://narrativegoldmine.com/ns/v1#sourceDomain> \\\"\\\"\",\"<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-c71c69d92d01>\"],\"not_compared_blank_node_bearing\":0,\"base_derivations\":0,\"proposal_derivations\":0,\"proposal_asserted_sha256\":\"138bc20fe6538249e4a931de48ef618576623648d79e0d920279448837f54fea\"}}",
+      "created_at": 1793487326,
+      "id": "bbe9c73f51a02f7258cfc869c455f528fd03a0640b46553c59cb9aeeec90059f",
+      "kind": 31402,
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "sig": "009df38fe9d51e278db162c125f5694ae58bda089d1dfad7026197572c28100717569b38f1b5547e8e6f29729184af54c4578ef4a7421cf2f495ddbeb2109752",
+      "tags": [
+        [
+          "d",
+          "72c30ad16590b9caaffa42873c2a146ad74a4e0308fc465fcdda3155d6dd2434"
+        ],
+        [
+          "context_url",
+          "urn:ngm:class:alpha"
+        ],
+        [
+          "level",
+          "content"
+        ],
+        [
+          "panel",
+          "ontology-governance"
+        ],
+        [
+          "generation",
+          "visionGraph@a7f37758650bb8e64fad548c72147cb5444c0ee3"
+        ],
+        [
+          "expiration",
+          "1794696926"
+        ],
+        [
+          "tp-verifiability",
+          "inspectable"
+        ],
+        [
+          "tp-reversibility",
+          "reversible"
+        ],
+        [
+          "tp-stakes",
+          "bounded"
+        ]
+      ]
+    },
+    "proposal": {
+      "blockers": [],
+      "consequences": {
+        "base_derivations": 0,
+        "lost_consequences": 8,
+        "lost_examples": [
+          "<https://narrativegoldmine.com/class/alpha> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class>",
+          "<https://narrativegoldmine.com/class/alpha> <http://www.w3.org/2000/01/rdf-schema#comment> \"About Alpha.\"@en",
+          "<https://narrativegoldmine.com/class/alpha> <http://www.w3.org/2000/01/rdf-schema#label> \"Alpha\"@en",
+          "<https://narrativegoldmine.com/class/alpha> <https://narrativegoldmine.com/ns/v1#hasMaturity> <https://narrativegoldmine.com/individual/maturity-draft>",
+          "<https://narrativegoldmine.com/class/alpha> <https://narrativegoldmine.com/ns/v1#qualityScore> \"0.0\"^^<http://www.w3.org/2001/XMLSchema#float>",
+          "<https://narrativegoldmine.com/class/alpha> <https://narrativegoldmine.com/ns/v1#slug> \"alpha\"",
+          "<https://narrativegoldmine.com/class/alpha> <https://narrativegoldmine.com/ns/v1#sourceDomain> \"\"",
+          "<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-c71c69d92d01>"
+        ],
+        "new_by_predicate": {
+          "comment": 1,
+          "hasMaturity": 1,
+          "label": 1,
+          "qualityScore": 1,
+          "slug": 1,
+          "sourceDomain": 1,
+          "type": 1,
+          "versionIRI": 1
+        },
+        "new_consequences": 8,
+        "new_examples": [
+          "<https://narrativegoldmine.com/class/replacement> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class>",
+          "<https://narrativegoldmine.com/class/replacement> <http://www.w3.org/2000/01/rdf-schema#comment> \"About Alpha.\"@en",
+          "<https://narrativegoldmine.com/class/replacement> <http://www.w3.org/2000/01/rdf-schema#label> \"Alpha\"@en",
+          "<https://narrativegoldmine.com/class/replacement> <https://narrativegoldmine.com/ns/v1#hasMaturity> <https://narrativegoldmine.com/individual/maturity-draft>",
+          "<https://narrativegoldmine.com/class/replacement> <https://narrativegoldmine.com/ns/v1#qualityScore> \"0.0\"^^<http://www.w3.org/2001/XMLSchema#float>",
+          "<https://narrativegoldmine.com/class/replacement> <https://narrativegoldmine.com/ns/v1#slug> \"alpha\"",
+          "<https://narrativegoldmine.com/class/replacement> <https://narrativegoldmine.com/ns/v1#sourceDomain> \"\"",
+          "<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-fd470115ebe1>"
+        ],
+        "not_compared_blank_node_bearing": 0,
+        "proposal_asserted_sha256": "138bc20fe6538249e4a931de48ef618576623648d79e0d920279448837f54fea",
+        "proposal_derivations": 0,
+        "rule_table": "rdfs",
+        "verdict": "not_conservative_under_rule_table"
+      },
+      "diff": "--- a/Alpha\n+++ b/Alpha\n@@ -2,7 +2,7 @@\n type: Class\n title: Alpha\n public: true\n-resource: urn:ngm:class:alpha\n+resource: urn:ngm:class:replacement\n status: stable\n ---\n About Alpha.\n",
+      "digest": "sha256:72c30ad16590b9caaffa42873c2a146ad74a4e0308fc465fcdda3155d6dd2434",
+      "generation": "visionGraph@a7f37758650bb8e64fad548c72147cb5444c0ee3",
+      "hypothesis": "Synthetic audit fixture",
+      "iri": "urn:ngm:class:alpha",
+      "kind": "amend",
+      "level": "content",
+      "page": "Alpha",
+      "pages": [
+        "Alpha"
+      ],
+      "preexisting": [],
+      "proposer": "process:vault/1.0",
+      "stale_after": "2026-11-14T22:55:26.866982185Z"
+    }
+  },
+  "restriction_filler_change": {
+    "event": {
+      "content": "{\"level\":\"content\",\"kind\":\"amend\",\"iri\":\"urn:ngm:class:alpha\",\"page\":\"Alpha\",\"hypothesis\":\"Synthetic audit fixture\",\"diff\":\"--- a/Alpha\\n+++ b/Alpha\\n@@ -5,6 +5,6 @@\\n resource: urn:ngm:class:alpha\\n status: stable\\n defines-as:\\n-- requires: '[[Gamma]]'\\n+- requires: '[[Beta]]'\\n ---\\n About Alpha.\\n\",\"digest\":\"sha256:dbf438adb7a95f5d7b9e6815f76c947f88e68e04f66f0e395206d2e2315e659a\",\"blockers\":[],\"preexisting\":[],\"proposer\":\"process:vault/1.0\",\"generation\":\"visionGraph@f1fe9c38f5a753c93e0e52f34f2eefa03480fe33\",\"stale_after\":\"2026-11-14T22:55:26.793000837Z\",\"pages\":[\"Alpha\"],\"consequences\":{\"rule_table\":\"rdfs\",\"verdict\":\"not_conservative_under_rule_table\",\"new_consequences\":1,\"lost_consequences\":1,\"new_by_predicate\":{\"versionIRI\":1},\"new_examples\":[\"<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-c543a1100fe1>\"],\"lost_examples\":[\"<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-d1b24fc730bd>\"],\"not_compared_blank_node_bearing\":4,\"base_derivations\":0,\"proposal_derivations\":0,\"proposal_asserted_sha256\":\"6f5d7edc6cc42030dc54676c21daa656b4bbe547b078cb31a3e900ac236d208d\"}}",
+      "created_at": 1793487326,
+      "id": "77ab0e205038397900bfd3643701b5664f094056af0bb85864dc67f46c6e454a",
+      "kind": 31402,
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "sig": "a30f29dd3da027c254cac7f5073e1527219bee080252f7ff8f089d3472125997c9bfd3ab332b9a0dfd57c65baec469a59f4bc3e08371430d21c77fa777fcc1ec",
+      "tags": [
+        [
+          "d",
+          "dbf438adb7a95f5d7b9e6815f76c947f88e68e04f66f0e395206d2e2315e659a"
+        ],
+        [
+          "context_url",
+          "urn:ngm:class:alpha"
+        ],
+        [
+          "level",
+          "content"
+        ],
+        [
+          "panel",
+          "ontology-governance"
+        ],
+        [
+          "generation",
+          "visionGraph@f1fe9c38f5a753c93e0e52f34f2eefa03480fe33"
+        ],
+        [
+          "expiration",
+          "1794696926"
+        ],
+        [
+          "tp-verifiability",
+          "inspectable"
+        ],
+        [
+          "tp-reversibility",
+          "reversible"
+        ],
+        [
+          "tp-stakes",
+          "bounded"
+        ]
+      ]
+    },
+    "proposal": {
+      "blockers": [],
+      "consequences": {
+        "base_derivations": 0,
+        "lost_consequences": 1,
+        "lost_examples": [
+          "<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-d1b24fc730bd>"
+        ],
+        "new_by_predicate": {
+          "versionIRI": 1
+        },
+        "new_consequences": 1,
+        "new_examples": [
+          "<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-c543a1100fe1>"
+        ],
+        "not_compared_blank_node_bearing": 4,
+        "proposal_asserted_sha256": "6f5d7edc6cc42030dc54676c21daa656b4bbe547b078cb31a3e900ac236d208d",
+        "proposal_derivations": 0,
+        "rule_table": "rdfs",
+        "verdict": "not_conservative_under_rule_table"
+      },
+      "diff": "--- a/Alpha\n+++ b/Alpha\n@@ -5,6 +5,6 @@\n resource: urn:ngm:class:alpha\n status: stable\n defines-as:\n-- requires: '[[Gamma]]'\n+- requires: '[[Beta]]'\n ---\n About Alpha.\n",
+      "digest": "sha256:dbf438adb7a95f5d7b9e6815f76c947f88e68e04f66f0e395206d2e2315e659a",
+      "generation": "visionGraph@f1fe9c38f5a753c93e0e52f34f2eefa03480fe33",
+      "hypothesis": "Synthetic audit fixture",
+      "iri": "urn:ngm:class:alpha",
+      "kind": "amend",
+      "level": "content",
+      "page": "Alpha",
+      "pages": [
+        "Alpha"
+      ],
+      "preexisting": [],
+      "proposer": "process:vault/1.0",
+      "stale_after": "2026-11-14T22:55:26.793000837Z"
+    }
+  },
+  "same_patch_new_context": {
+    "event": {
+      "content": "{\"level\":\"content\",\"kind\":\"amend\",\"iri\":\"urn:ngm:class:alpha\",\"page\":\"Alpha\",\"hypothesis\":\"Synthetic audit fixture\",\"diff\":\"--- a/Alpha\\n+++ b/Alpha\\n@@ -4,5 +4,7 @@\\n public: true\\n resource: urn:ngm:class:alpha\\n status: stable\\n+is-a:\\n+- '[[Gamma]]'\\n ---\\n About Alpha.\\n\",\"digest\":\"sha256:e30e2a1190e95567309f40cff9e288237d6faba432183526fe6766c6c33dfc1a\",\"blockers\":[],\"preexisting\":[],\"proposer\":\"process:vault/1.0\",\"generation\":\"visionGraph@efbf8bb39a8b7090fc0d8db64eb9d56010a55063\",\"stale_after\":\"2026-11-14T22:55:26.761550357Z\",\"pages\":[\"Alpha\"],\"consequences\":{\"rule_table\":\"rdfs\",\"verdict\":\"not_conservative_under_rule_table\",\"new_consequences\":3,\"lost_consequences\":1,\"new_by_predicate\":{\"subClassOf\":2,\"versionIRI\":1},\"new_examples\":[\"<https://narrativegoldmine.com/class/alpha> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://narrativegoldmine.com/class/beta>\",\"<https://narrativegoldmine.com/class/alpha> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://narrativegoldmine.com/class/gamma>\",\"<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-404fdbc558e4>\"],\"lost_examples\":[\"<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-320e936bb6ef>\"],\"not_compared_blank_node_bearing\":0,\"base_derivations\":0,\"proposal_derivations\":1,\"proposal_asserted_sha256\":\"7c860d436176ae332f46f044c66fba9419d747c91428e26cc1213cbdf8ac6f84\"}}",
+      "created_at": 1793487326,
+      "id": "ed78c0e9f6d3e9531d50e624b7c411f0998c69f744b63fbd19510b82b1818d32",
+      "kind": 31402,
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "sig": "276184a4176096f60d4cc98e906051e5b02b8e3702a84a3290624f80a17b8d9325b3babecbef95c8d189f0a60010844623fa1097f3a9b807ef6d153a4725eda7",
+      "tags": [
+        [
+          "d",
+          "e30e2a1190e95567309f40cff9e288237d6faba432183526fe6766c6c33dfc1a"
+        ],
+        [
+          "context_url",
+          "urn:ngm:class:alpha"
+        ],
+        [
+          "level",
+          "content"
+        ],
+        [
+          "panel",
+          "ontology-governance"
+        ],
+        [
+          "generation",
+          "visionGraph@efbf8bb39a8b7090fc0d8db64eb9d56010a55063"
+        ],
+        [
+          "expiration",
+          "1794696926"
+        ],
+        [
+          "tp-verifiability",
+          "inspectable"
+        ],
+        [
+          "tp-reversibility",
+          "reversible"
+        ],
+        [
+          "tp-stakes",
+          "bounded"
+        ]
+      ]
+    },
+    "proposal": {
+      "blockers": [],
+      "consequences": {
+        "base_derivations": 0,
+        "lost_consequences": 1,
+        "lost_examples": [
+          "<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-320e936bb6ef>"
+        ],
+        "new_by_predicate": {
+          "subClassOf": 2,
+          "versionIRI": 1
+        },
+        "new_consequences": 3,
+        "new_examples": [
+          "<https://narrativegoldmine.com/class/alpha> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://narrativegoldmine.com/class/beta>",
+          "<https://narrativegoldmine.com/class/alpha> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://narrativegoldmine.com/class/gamma>",
+          "<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-404fdbc558e4>"
+        ],
+        "not_compared_blank_node_bearing": 0,
+        "proposal_asserted_sha256": "7c860d436176ae332f46f044c66fba9419d747c91428e26cc1213cbdf8ac6f84",
+        "proposal_derivations": 1,
+        "rule_table": "rdfs",
+        "verdict": "not_conservative_under_rule_table"
+      },
+      "diff": "--- a/Alpha\n+++ b/Alpha\n@@ -4,5 +4,7 @@\n public: true\n resource: urn:ngm:class:alpha\n status: stable\n+is-a:\n+- '[[Gamma]]'\n ---\n About Alpha.\n",
+      "digest": "sha256:e30e2a1190e95567309f40cff9e288237d6faba432183526fe6766c6c33dfc1a",
+      "generation": "visionGraph@efbf8bb39a8b7090fc0d8db64eb9d56010a55063",
+      "hypothesis": "Synthetic audit fixture",
+      "iri": "urn:ngm:class:alpha",
+      "kind": "amend",
+      "level": "content",
+      "page": "Alpha",
+      "pages": [
+        "Alpha"
+      ],
+      "preexisting": [],
+      "proposer": "process:vault/1.0",
+      "stale_after": "2026-11-14T22:55:26.761550357Z"
+    }
+  },
+  "single_default_level": {
+    "event": {
+      "content": "{\"level\":\"content\",\"kind\":\"amend\",\"iri\":\"urn:ngm:class:alpha\",\"page\":\"Alpha\",\"hypothesis\":\"Synthetic audit fixture\",\"diff\":\"--- a/Alpha\\n+++ b/Alpha\\n@@ -4,5 +4,7 @@\\n public: true\\n resource: urn:ngm:class:alpha\\n status: stable\\n+is-a:\\n+- '[[Gamma]]'\\n ---\\n About Alpha.\\n\",\"digest\":\"sha256:e30e2a1190e95567309f40cff9e288237d6faba432183526fe6766c6c33dfc1a\",\"blockers\":[],\"preexisting\":[],\"proposer\":\"process:vault/1.0\",\"generation\":\"visionGraph@47466cae0c9756bf5b54cbf246f83e45491427b4\",\"stale_after\":\"2026-11-14T22:55:26.730705899Z\",\"pages\":[\"Alpha\"],\"consequences\":{\"rule_table\":\"rdfs\",\"verdict\":\"not_conservative_under_rule_table\",\"new_consequences\":2,\"lost_consequences\":1,\"new_by_predicate\":{\"subClassOf\":1,\"versionIRI\":1},\"new_examples\":[\"<https://narrativegoldmine.com/class/alpha> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://narrativegoldmine.com/class/gamma>\",\"<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-18e5bcacf530>\"],\"lost_examples\":[\"<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-c71c69d92d01>\"],\"not_compared_blank_node_bearing\":0,\"base_derivations\":0,\"proposal_derivations\":0,\"proposal_asserted_sha256\":\"c26fff7c58e724045d1addcaa9e16869aa192dc46504ae7ebb0d2d2bc21000e7\"}}",
+      "created_at": 1793487326,
+      "id": "c03a761cd4a17a242fb895e37176ed231c698148208b4b421bee17a3a5c79941",
+      "kind": 31402,
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "sig": "74d41857038256432930e321a9da18a6a652b8cb9b94ad634f7e474689b28f8958e5c323083397cc1c2421d2e4cad964cd1703a2dfbd9971df887bd1497139e4",
+      "tags": [
+        [
+          "d",
+          "e30e2a1190e95567309f40cff9e288237d6faba432183526fe6766c6c33dfc1a"
+        ],
+        [
+          "context_url",
+          "urn:ngm:class:alpha"
+        ],
+        [
+          "level",
+          "content"
+        ],
+        [
+          "panel",
+          "ontology-governance"
+        ],
+        [
+          "generation",
+          "visionGraph@47466cae0c9756bf5b54cbf246f83e45491427b4"
+        ],
+        [
+          "expiration",
+          "1794696926"
+        ],
+        [
+          "tp-verifiability",
+          "inspectable"
+        ],
+        [
+          "tp-reversibility",
+          "reversible"
+        ],
+        [
+          "tp-stakes",
+          "bounded"
+        ]
+      ]
+    },
+    "proposal": {
+      "blockers": [],
+      "consequences": {
+        "base_derivations": 0,
+        "lost_consequences": 1,
+        "lost_examples": [
+          "<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-c71c69d92d01>"
+        ],
+        "new_by_predicate": {
+          "subClassOf": 1,
+          "versionIRI": 1
+        },
+        "new_consequences": 2,
+        "new_examples": [
+          "<https://narrativegoldmine.com/class/alpha> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://narrativegoldmine.com/class/gamma>",
+          "<https://narrativegoldmine.com/ontology> <http://www.w3.org/2002/07/owl#versionIRI> <https://narrativegoldmine.com/ontology/sha256-12-18e5bcacf530>"
+        ],
+        "not_compared_blank_node_bearing": 0,
+        "proposal_asserted_sha256": "c26fff7c58e724045d1addcaa9e16869aa192dc46504ae7ebb0d2d2bc21000e7",
+        "proposal_derivations": 0,
+        "rule_table": "rdfs",
+        "verdict": "not_conservative_under_rule_table"
+      },
+      "diff": "--- a/Alpha\n+++ b/Alpha\n@@ -4,5 +4,7 @@\n public: true\n resource: urn:ngm:class:alpha\n status: stable\n+is-a:\n+- '[[Gamma]]'\n ---\n About Alpha.\n",
+      "digest": "sha256:e30e2a1190e95567309f40cff9e288237d6faba432183526fe6766c6c33dfc1a",
+      "generation": "visionGraph@47466cae0c9756bf5b54cbf246f83e45491427b4",
+      "hypothesis": "Synthetic audit fixture",
+      "iri": "urn:ngm:class:alpha",
+      "kind": "amend",
+      "level": "content",
+      "page": "Alpha",
+      "pages": [
+        "Alpha"
+      ],
+      "preexisting": [],
+      "proposer": "process:vault/1.0",
+      "stale_after": "2026-11-14T22:55:26.730705899Z"
+    }
+  },
+  "writer": "/home/devuser/workspace/ontomark/target/debug/ontomark"
+}

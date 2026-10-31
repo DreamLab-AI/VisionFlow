@@ -1,0 +1,53 @@
+{
+  "project": {
+    "revision": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+    "files": {
+      "docs/VAULT-corpus-format.md": "8370ea8e99e8e05e9d1677c1bc16e94cfab8295d5960d31a21e29a01b9e9d89e",
+      "docs/adr/ADR-2116-ontology-proposals-are-forum-action-requests-not-prs.md": "7c581e18a53035b7e7c566c1e86abb240b8932b6668896a4dadecb115297a0de",
+      "docs/adr/ADR-2147-inferences-carry-a-re-checkable-certificate-and-proposals-carry-a-consequence-delta.md": "8a5d9f58ac417f01d3d4353a9361405000779232257ba29835c668636d6a196e",
+      "crates/vault/src/propose.rs": "36473e1e6b45517753cffd31c3f5427c50af507dfebc9d25d41fbe38f90e43b0",
+      "crates/vault/src/main.rs": "65cbf9d71a73758c235cedca37a5c59b499b82ef1cf35402c55be2797b956b7b",
+      "crates/vault/src/nostr.rs": "718a3d7be5842aa246e51224dd7d090a5990b240e0f27732ba2a797b2a9bf130",
+      "crates/vault/src/build/turtle.rs": "f6f415ffac49e137a9b35ed902561ff1711e8d88cf47e771a6703242ed9cf286",
+      "crates/vault/src/certificate.rs": "69bad5b0d5cbefa279bf8f48d689b3d6998ff67170581634683040d412789aca",
+      "crates/vault-core/src/proposal.rs": "9c672d5f97c041ab1848fd3519f8bf85ee14b5c9ffd2a2cebcdae9c22945086b",
+      "crates/vault/tests/propose_cli.rs": "6999f11cadca1e30051f3187ca8187f421222dd9f6934596b6f98b8dbdfc7cd1",
+      "crates/vault/tests/certificate_oo_cert.rs": "107814e96095d790e2806402d5a5562fba5ac6ba56dee3015e3a44358deaaa39",
+      "src/handlers/ontology_agent_handler.rs": "8b0853a3f1527ab9d9448907a2b523f52cebc398433984bb99975e7ae88e7066",
+      "tests/rec1_route_guard.rs": "5649f91c10dcd90e9aa567303d816df5992e07324b5ff91a9a83befd22ade293",
+      ".github/workflows/ontology-publish.yml": "2875442b286cbac757bb8c98692cf7bf89b7911eabce82e5d0792bdfb599ab38",
+      "client/src/features/ontology/components/OntologyProposalList.tsx": "4977b28f20cf75be0445237597db35404fd4f5799f0eb74fa86daa00fbb1c9a0",
+      "client/src/features/ontology/hooks/useOntologyStore.ts": "13a38941e9a4bf5cf4734552ebd4241f8df9b327b7e4a7f7465e980616ccb462"
+    }
+  },
+  "project/agentbox": {
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "files": {
+      "management-api/lib/ontology-apply.js": "db46a136f6cee0906ebba591a01f0418e141b3dbb7b6d8d5a1317f2849dca054"
+    }
+  },
+  "nostr-rust-forum": {
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "files": {
+      "crates/nostr-bbs-forum-client/src/stores/panel_registry.rs": "9d02cbf774751d1d98ea226c54dd349fe64a3d61ca574d3c89d9b1ccb717c3e2",
+      "crates/nostr-bbs-forum-client/src/pages/governance.rs": "32c1a592de20f92e98be36595520423cb25954430d3daf90a2c1d54a90383c25"
+    }
+  },
+  "ontomark": {
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "files": {
+      "crates/rdfs-certificate/src/lib.rs": "8d7dece4ba68ba8317af791b5cfa8f89dbc4fe6d5ad3b01b96914ba8dad39e58",
+      "crates/ontomark-compile/src/write/apply.rs": "d49807e7ad66fb0878e3825bc5f8aeeed8d95d4714f159d68e2eba33bd910279"
+    }
+  },
+  "binaries": [
+    {
+      "path": "/home/devuser/workspace/project/target/debug/vault",
+      "sha256": "d0070d6a36d8ad9f0703aee284bae3b1c3e8f2d85624a71ffba719d621419fc1"
+    },
+    {
+      "path": "/home/devuser/workspace/ontomark/target/debug/ontomark",
+      "sha256": "810adbda70878e9317c4422fb6ca05bbba8c7810c8a1a4aadb13125c9d6d3fad"
+    }
+  ]
+}

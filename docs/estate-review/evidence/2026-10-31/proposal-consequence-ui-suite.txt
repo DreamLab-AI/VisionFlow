@@ -1,0 +1,9 @@
+
+ RUN  v4.0.18 /home/devuser/workspace/project/client
+
+ ✓ src/features/ontology/components/__tests__/summariseConsequences.test.ts (3 tests) 31ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  22:50:15
+   Duration  3.49s (transform 1.28s, setup 201ms, import 2.07s, tests 31ms, environment 578ms)

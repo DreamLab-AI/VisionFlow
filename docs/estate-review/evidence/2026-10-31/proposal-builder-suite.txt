@@ -1,0 +1,113 @@
+    Blocking waiting for file lock on build directory
+   Compiling serde_core v1.0.228
+   Compiling subtle v2.6.1
+   Compiling bitflags v2.13.0
+   Compiling ring v0.17.14
+   Compiling secp256k1-sys v0.10.1
+   Compiling regex-automata v0.4.9
+   Compiling either v1.15.0
+   Compiling similar v2.7.0
+   Compiling tokio v1.47.1
+   Compiling tracing v0.1.41
+   Compiling futures-util v0.3.31
+   Compiling digest v0.11.3
+   Compiling oxrdf v0.2.4
+   Compiling digest v0.10.7
+   Compiling ff v0.13.1
+   Compiling sec1 v0.7.3
+   Compiling crypto-bigint v0.5.5
+   Compiling universal-hash v0.5.1
+   Compiling openssl v0.10.73
+   Compiling rustix v1.0.8
+   Compiling sha2 v0.11.0
+   Compiling poly1305 v0.8.0
+   Compiling rayon v1.11.0
+   Compiling itertools v0.10.5
+   Compiling group v0.13.0
+   Compiling hmac v0.12.1
+   Compiling sha2 v0.10.9
+   Compiling signature v2.2.0
+   Compiling sha1 v0.10.6
+   Compiling hkdf v0.12.4
+   Compiling rfc6979 v0.4.0
+   Compiling chacha20poly1305 v0.10.1
+   Compiling spargebra v0.3.5
+   Compiling oxttl v0.1.8
+   Compiling elliptic-curve v0.13.8
+   Compiling ecdsa v0.16.9
+   Compiling tempfile v3.20.0
+   Compiling k256 v0.13.4
+   Compiling regex v1.11.2
+   Compiling serde v1.0.228
+   Compiling deranged v0.5.8
+   Compiling env_logger v0.10.2
+   Compiling indexmap v2.10.0
+   Compiling url v2.5.4
+   Compiling uuid v1.18.0
+   Compiling chrono v0.4.42
+   Compiling bitcoin_hashes v0.14.101
+   Compiling serde_urlencoded v0.7.1
+   Compiling rdfs-certificate v0.1.0
+   Compiling native-tls v0.2.14
+   Compiling tungstenite v0.21.0
+   Compiling serde_json v1.0.149
+   Compiling curie v0.1.4
+   Compiling serde_yaml v0.9.34+deprecated
+   Compiling time v0.3.47
+   Compiling solid-pod-rs v0.5.0-alpha.17
+   Compiling rustls v0.23.31
+   Compiling tokio-util v0.7.16
+   Compiling tokio-native-tls v0.3.1
+   Compiling tower v0.5.2
+   Compiling vault-core v0.1.0 (/home/devuser/workspace/project/crates/vault-core)
+   Compiling tower-http v0.6.6
+   Compiling h2 v0.4.12
+   Compiling rustls-webpki v0.103.4
+   Compiling secp256k1 v0.29.1
+   Compiling nostr v0.44.8
+   Compiling hyper v1.7.0
+   Compiling hyper-util v0.1.16
+   Compiling hyper-tls v0.6.0
+   Compiling ureq v2.12.1
+   Compiling reqwest v0.12.23
+   Compiling horned-owl v1.2.0
+   Compiling visionclaw-jev v0.1.0 (/home/devuser/workspace/project/crates/visionclaw-jev)
+   Compiling nostr-bbs-core v1.0.0-beta.17
+   Compiling whelk v0.1.0 (https://github.com/jjohare/whelk-rs?rev=79a1ee21789add5a66faa0ec1a830c32dba9b539#79a1ee21)
+   Compiling vault v0.1.0 (/home/devuser/workspace/project/crates/vault)
+    Finished `test` profile [optimized + debuginfo] target(s) in 46.36s
+     Running unittests src/lib.rs (target/debug/deps/vault-cc9b5a642ace621f)
+
+running 30 tests
+test propose::tests::a_preexisting_unsatisfiable_class_the_change_does_not_touch_is_silent ... ok
+test propose::tests::a_preexisting_unsatisfiable_class_the_change_touches_is_reported_not_blamed ... ok
+test propose::tests::a_content_proposal_without_a_diff_file_is_an_error ... ok
+test propose::tests::a_reasoner_refusal_is_a_named_blocker_not_a_panic ... ok
+test propose::tests::an_unknown_subject_is_an_error ... ok
+test propose::tests::an_unsatisfiable_class_the_change_introduces_blocks_wherever_it_is ... ok
+test propose::tests::the_subject_resolves_by_id_title_or_iri ... ok
+test propose::tests::a_manifest_naming_an_unknown_page_is_refused ... ok
+test propose::tests::a_proposal_that_changes_nothing_is_an_error ... ok
+test propose::tests::a_staged_page_naming_neither_subject_nor_itself_is_an_error ... ok
+test propose::tests::a_demotion_needs_no_diff_file ... ok
+test propose::tests::the_expiry_is_fourteen_days_out ... ok
+test propose::tests::a_clean_change_has_no_blockers ... ok
+test propose::tests::a_validation_error_the_change_introduces_blocks_it ... ok
+test propose::tests::a_validation_error_that_already_existed_does_not_block ... ok
+test propose::tests::an_amendment_is_kind_amend_with_its_old_digest ... ok
+test propose::tests::a_creation_taking_an_existing_iri_is_blocked_not_an_amendment ... ok
+test propose::tests::one_blocked_page_blocks_the_whole_grouped_proposal ... ok
+test propose::tests::a_cycle_the_change_introduces_blocks_it ... ok
+test propose::tests::a_cycle_that_already_existed_is_preexisting_not_a_blocker ... ok
+test propose::tests::an_unparseable_proposed_page_blocks ... ok
+test propose::tests::builds_a_postable_content_proposal ... ok
+test propose::tests::a_grouped_proposal_hashes_differently_from_the_single_page_one ... ok
+test propose::tests::an_invalid_created_page_is_blocked ... ok
+test propose::tests::a_page_absent_from_the_vault_is_a_creation ... ok
+test propose::tests::a_manifest_entry_declaring_its_title_is_a_creation ... ok
+test propose::tests::a_creation_taking_an_existing_slug_or_filename_is_blocked ... ok
+test propose::tests::a_manifest_directory_becomes_one_grouped_proposal ... ok
+test propose::tests::a_new_key_makes_a_creation_schema_level ... ok
+test propose::tests::a_two_hundred_page_grouped_proposal_is_fast ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 310 filtered out; finished in 0.45s

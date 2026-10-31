@@ -1,0 +1,9 @@
+    Blocking waiting for file lock on build directory
+    Finished `test` profile [optimized + debuginfo] target(s) in 39.10s
+     Running unittests src/lib.rs (target/debug/deps/vault-cc9b5a642ace621f)
+
+running 2 tests
+test certificate::tests::spelling_escapes_literals_and_keeps_blank_nodes ... ok
+test certificate::tests::whelk_and_the_certificate_agree_on_the_named_closure ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 338 filtered out; finished in 0.00s

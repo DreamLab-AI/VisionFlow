@@ -1,0 +1,25 @@
+[
+  {
+    "name": "grouped_amend",
+    "kind": "amend",
+    "pages": [
+      "Alpha",
+      "Beta",
+      "Gamma"
+    ],
+    "error": "ontology-apply: amend proposal page \"urn:ngm:proposal:three-page-judgement\" does not answer to urn:ngm:proposal:three-page-judgement",
+    "externalCalls": 0
+  },
+  {
+    "name": "mixed_grouped_create",
+    "kind": "create",
+    "pages": [
+      "Alpha",
+      "Beta",
+      "Epsilon",
+      "Gamma"
+    ],
+    "error": "ontology-apply: create proposal page \"urn:ngm:proposal:mixed-creation-and-amendment\" does not answer to urn:ngm:proposal:mixed-creation-and-amendment",
+    "externalCalls": 0
+  }
+]

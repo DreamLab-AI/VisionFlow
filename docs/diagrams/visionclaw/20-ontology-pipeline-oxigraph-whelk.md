@@ -390,6 +390,8 @@ sequenceDiagram
 
 ## VC-20.15 vault propose — the consequence delta on the PatchProposal (ADR-2147)
 
+Current construction and consumer limits are assessed in [VC-41](41-proposal-construction-and-consumer-scope.md), including version metadata in consequence counts and grouped proposals that cannot reach application. This sequence retains its historical source pins.
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -412,6 +414,6 @@ sequenceDiagram
     end
     B-->>P: Built { proposal, base, proposed } propose.rs:486
     P->>F: the proposal JSON is the 31402 content, consequences included, the certificate files stay on disk, the digest travels
-    Note over PP,F: INVARIANT (VAULT-corpus-format 12): the delta is shown to the signer and never blocks,<br/>WHELK_INCONSISTENT stays the only reasoning blocker (ADR-2125). Measured: one rdfs:domain on<br/>vc:requires = 206,476 new consequences, AI Operator is-a Robotics = 6, a dry run on the live corpus 11.8 s
+    Note over PP,F: The delta is advisory and never blocks. Newly unsatisfiable classes and reasoner-cap refusal block<br/>via propose.rs:199,205. Historical ADR-2147 measurements: one rdfs:domain on<br/>vc:requires = 206,476 new consequences, AI Operator is-a Robotics = 6, corpus dry-run 11.8 s
     Note over P: SHACL side-finding of the same spike: ontology-class.shacl.ttl:21 now sh:nodeKind sh:Literal,<br/>the evaluator types @language as rdf:langString shacl.rs:749 and enforces sh:Literal shacl.rs:305, :767
 ```
