@@ -412,13 +412,13 @@ sequenceDiagram
     PB->>DB: stale_after copied onto the case at projection<br/>migrations/0007_ontology_governance.sql:16
 
     loop scheduled Worker cron nostr-bbs-relay-worker/src/lib.rs:1224
-        CRON->>DB: SELECT id, stale_after WHERE state='pending' AND stale_after IS NOT NULL<br/>cron.rs:762-765
+        CRON->>DB: SELECT id, stale_after WHERE state IN open / under_review / reopened<br/>AND stale_after IS NOT NULL AND stale_after is before now<br/>cron.rs:762-765
         CRON->>OG: is_expired(stale_after, now) ontology_governance.rs:265
         CRON->>DB: INSERT case_side_receipts (closed without a decision) cron.rs:794-802
         CRON->>DB: UPDATE broker_cases SET state=Closed cron.rs:834
     end
 
-    Note over DB: INVARIANT ADR-2013: additive and nullable - a case that is not an ontology proposal has no<br/>stale_after and is invisible to the sweep migrations/0007_ontology_governance.sql:1-6
+    Note over DB: Expiry is nullable, extraction is gated by a level tag, not panel identity<br/>nip_handlers.rs:412-417, migrations/0007_ontology_governance.sql:16
     Note over CRON: The sweep closes a case to CaseState::Closed nostr-bbs-core/src/governance.rs:1346 -<br/>closed WITHOUT a decision, never a silent Approve or Reject cron.rs:731
     Note over DB: The index is partial on stale_after IS NOT NULL so the sweep's scan carries only ontology<br/>cases, never every case the forum has opened migrations/0007_ontology_governance.sql:19-22
 ```
@@ -491,3 +491,5 @@ flowchart TB
 ```
 
 **Open:** the option is named NF-06-S1-01 in the Jev option record and is documented as a proposed research candidate (`nostr-bbs-auth-worker/src/rationale_check.rs:1`), so whether a reviewer's draft rationale should ever be shaped by a model answer is a decision the record leaves unmade.
+
+**Tension (expiry and delivery, 2026-10-31):** NF-06.16 now names the actual SQL states at its existing revision. Closing a case does not retract a decision already stored and broadcast. [ES-13](../estate/13-governance-delivery-and-expiry.md) maps the current consumer boundary, and the [ingress audit](../../estate-review/2026-10-31-governance-ingress.md) records signed local probes and parser defects. Other panels retain their historical source pins.

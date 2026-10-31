@@ -1,0 +1,10 @@
+jest-haste-map: Haste module naming collision: tab0-bridge
+  The following files share their name; please adjust your hasteImpl:
+    * <rootDir>/config/tab0-bridge/package.json
+    * <rootDir>/workspace/tab0-bridge/package.json
+
+Test Suites: 1 passed, 1 total
+Tests:       14 passed, 14 total
+Snapshots:   0 total
+Time:        0.58 s
+Ran all test suites.

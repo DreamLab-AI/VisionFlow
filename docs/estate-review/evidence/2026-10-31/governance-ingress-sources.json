@@ -1,0 +1,25 @@
+{
+  "agentbox": {
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "files": {
+      "mcp/nostr-bridge/relay-consumer.js": "eee2a983e92f5f5e1d1b9bde4a67a355c44a6ebedaedcfb84337229242132c8c",
+      "management-api/adapters/orchestrator/local-process-manager.js": "de1ab5a3233635a5e22719ad0a936dcd68fa373869511eee6c9162accf1c9d7d",
+      "tests/sovereign/relay-consumer-forum-governance.test.js": "3d87a18e0b67f15ceefd3e9dd560e7271fb1f3c7a089b04433091197a0b6f940"
+    }
+  },
+  "nostr-rust-forum": {
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "files": {
+      "docs/adr/ADR-2013-ontology-governance-panel-promote-demote-expiry.md": "36919877874e22d00ffefeb2076dd0e295ccc7263f0ad98b6b49443d03a3466a",
+      "crates/nostr-bbs-core/src/ontology_governance.rs": "f2bf5aae893459e366aa03bcc772c427941e7016112d5faa52ad8c63523e1ab2",
+      "crates/nostr-bbs-core/src/governance.rs": "7b4d30a09a44dcde8387693d0b76b355c2dcc98deabae9b163484e9a06f3bcdd",
+      "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs": "52c7bd80243276f6f4109f1dc4180b485352141aac70d68fab626d5e1f6c0afd",
+      "crates/nostr-bbs-relay-worker/src/relay_do/storage.rs": "4048b61f9bd43bc24eb36af6edb3e84a5207e1b01bbecf0639b0a224a9440351",
+      "crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs": "30313bcb254a7a2bc95339f4406adebdd325b1a7b080f8d5a59ee4a7bbbd4473",
+      "crates/nostr-bbs-relay-worker/src/cron.rs": "a923463729dee9df1827f6279a27a9092e4c93ee608c6b330d28795f9f773cd0",
+      "crates/nostr-bbs-forum-client/src/pages/governance.rs": "32c1a592de20f92e98be36595520423cb25954430d3daf90a2c1d54a90383c25",
+      "crates/nostr-bbs-forum-client/src/stores/panel_registry.rs": "9d02cbf774751d1d98ea226c54dd349fe64a3d61ca574d3c89d9b1ccb717c3e2",
+      "crates/nostr-bbs-forum-client/src/utils/governance_view.rs": "f396e842e9a2fb555381965dd7f3a024c38e1bd43c2c61ad4921915154f5ff32"
+    }
+  }
+}

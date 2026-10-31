@@ -1,0 +1,41 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.18s
+     Running unittests src/lib.rs (target/debug/deps/nostr_bbs_relay_worker-4e24e725587f94f0)
+
+running 34 tests
+test relay_do::receipts::application_stage_wire_tests::a_not_applied_receipt_is_not_applied ... ok
+test relay_do::receipts::application_stage_wire_tests::an_applied_receipt_serialises_its_provenance ... ok
+test relay_do::receipts::application_stage_wire_tests::an_unreported_receipt_carries_null_provenance ... ok
+test relay_do::receipts::tests::a_marked_request_wins_and_other_markers_are_never_the_request ... ok
+test relay_do::receipts::tests::an_uncorrelated_event_mints_no_receipt ... ok
+test relay_do::receipts::tests::a_supersession_plan_for_another_target_is_uncorrelated ... ok
+test relay_do::receipts::tests::a_receipt_that_cannot_be_written_is_reported_not_swallowed ... ok
+test relay_do::receipts::tests::an_appeal_commits_through_the_stage_machine_and_redelivery_is_ignored ... ok
+test relay_do::receipts::tests::correlation_binds_the_full_event_id_not_a_truncation ... ok
+test relay_do::receipts::tests::correlation_captures_request_and_supersession_links ... ok
+test relay_do::receipts::tests::an_unmarked_response_now_commits_its_projection ... ok
+test relay_do::receipts::tests::only_a_committed_projection_counts_as_applied ... ok
+test relay_do::receipts::tests::first_delivery_commits_and_records_the_stage ... ok
+test relay_do::receipts::tests::mismatched_signed_correlation_cannot_apply_a_plan ... ok
+test relay_do::receipts::tests::projection_failure_leaves_a_retryable_receipt_and_no_partial_write ... ok
+test relay_do::receipts::tests::redelivery_after_a_failed_projection_reconciles_exactly_once ... ok
+test relay_do::receipts::tests::stage_ordering_never_regresses ... ok
+test relay_do::receipts::tests::replaying_a_committed_event_does_not_duplicate_the_mutation ... ok
+test relay_do::receipts::tests::repeated_projection_failures_never_apply_the_mutation ... ok
+test relay_do::receipts::tests::stages_round_trip_through_their_wire_form ... ok
+test relay_do::receipts::tests::supersedable_states_match_the_batch_sql ... ok
+test relay_do::receipts::tests::supersession_redelivery_is_duplicate_ignored ... ok
+test relay_do::receipts::tests::supersession_commits_through_the_stage_machine_without_a_request_id ... ok
+test relay_do::receipts::tests::wire_form_carries_the_full_correlation_set ... ok
+test relay_do::receipts::tests::supersession_correlation_uses_supersedes_tag_not_request ... ok
+test relay_do::receipts::tests::the_forum_clients_unmarked_request_tag_correlates ... ok
+test relay_do::receipts::tests::wire_form_distinguishes_a_failed_write_from_a_denial ... ok
+test relay_do::receipts::tests::supersession_batch_needs_a_receipt_awaiting_projection ... ok
+test relay_do::receipts::tests::supersession_batch_writes_nothing_when_case_moved ... ok
+test relay_do::receipts::tests::supersession_batch_commits_from_a_reopened_case ... ok
+test relay_do::receipts::tests::supersession_batch_refuses_an_already_superseded_target ... ok
+test relay_do::receipts::tests::supersession_batch_commits_all_four_together ... ok
+test relay_do::receipts::tests::supersession_batch_refuses_an_open_case_even_if_the_snapshot_says_so ... ok
+test relay_do::receipts::tests::supersession_batch_refuses_a_decision_from_another_case ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 454 filtered out; finished in 0.01s
+

@@ -27,6 +27,8 @@ Corpus consumer: [CLI migration, decision guards and writeback evidence](2026-10
 
 Proposal application: [create/amend identity, hunk guards and ADR assessments](2026-10-31-proposal-application.md).
 
+Governance delivery: [signed ingress, expiry and restart-recovery findings](2026-10-31-governance-ingress.md).
+
 ## Reading order
 
 | Document | Question it answers |

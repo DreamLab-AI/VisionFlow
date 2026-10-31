@@ -164,3 +164,5 @@ Input comparison at VisionFlow `64ef3af`; [method and limits](2026-10-31-diagram
 | [VW-05](../diagrams/vowl-wasm/05-build-test-bench-and-publish.md) | 0 | 13 | 0 |
 
 Post-snapshot addition: [OM-07](../diagrams/ontomark/07-governed-create-and-amend.md) maps current create/amend consumer boundaries. [Assessment](2026-10-31-proposal-application.md). The historical table above remains the 158-topic input comparison, not an updated census.
+
+Post-snapshot addition: [ES-13](../diagrams/estate/13-governance-delivery-and-expiry.md) records current delivery/expiry/restart boundaries. [Audit](2026-10-31-governance-ingress.md). NF-06.16 SQL wording is corrected; other historical NF-06 panels remain separately queued.

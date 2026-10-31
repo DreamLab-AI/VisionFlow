@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_159 topic files, 1529 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_160 topic files, 1531 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -398,6 +398,7 @@ _159 topic files, 1529 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | ES-10 | [Deployment and security profiles across the estate](estate/10-deployment-and-security-profiles.md) | 11 | flowchart, sequenceDiagram, stateDiagram-v2 | [SECURITY-profiles.md](../../../project/docs/SECURITY-profiles.md), [SECURITY-profiles.md](../../../project/agentbox/docs/SECURITY-profiles.md), [INGRESS-identity.md](../../../project/agentbox/docs/INGRESS-identity.md), [IDENTITY-authority-chain.md](../../../project/docs/IDENTITY-authority-chain.md) | agentbox:ADR-2139, agentbox:ADR-2098, agentbox:ADR-2101, agentbox:ADR-2122, agentbox:ADR-2153, visionclaw:ADR-2003, visionclaw:ADR-2010, visionclaw:ADR-2012, agentbox:ADR-2012, agentbox:ADR-2013, visionclaw:ADR-2026, visionclaw:ADR-2027, agentbox:ADR-2027, visionclaw:ADR-2037, visionclaw:ADR-2038, visionclaw:ADR-2039, agentbox:ADR-2062, visionclaw:ADR-2086, visionclaw:ADR-2087, visionclaw:ADR-2119 |
 | ES-11 | [Publishing axis — corpus, bundle and kit edges the other estate topics do not own](estate/11-publishing-axis.md) | 5 | flowchart, sequenceDiagram | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md), [repository-map.md](../../docs/architecture/repository-map.md) | visionclaw:ADR-2147 |
 | ES-12 | [The Loom evaluation and its preregistration](estate/12-loom-evaluation-and-preregistration.md) | 8 | flowchart, stateDiagram-v2, sequenceDiagram | [LOOM-POSITIONING.md](../../../loom/docs/design/LOOM-POSITIONING.md), [PRD-025-ontology-loom-and-connector-platform.md](../../../loom/docs/design/PRD-025-ontology-loom-and-connector-platform.md) | loom:ADR-138, loom:ADR-139, loom:ADR-140, loom:PRD-025, loom:PRD-028, agentbox:ADR-2023, agentbox:ADR-2084, agentbox:ADR-2095 |
+| ES-13 | [Governance delivery — expiry, projection and restart checkpoints](estate/13-governance-delivery-and-expiry.md) | 2 | flowchart, sequenceDiagram | [ADR-2013-ontology-governance-panel-promote-demote-expiry.md](../../../nostr-rust-forum/docs/adr/ADR-2013-ontology-governance-panel-promote-demote-expiry.md) | ADR-2013, ADR-2109 |
 | ES-90 | [Supporting repositories, evidence boundaries and closeout admission](estate/90-evidence-and-supporting-repositories.md) | 5 | flowchart, sequenceDiagram | [ADR-2007-estate-closeout-evidence-roadmap.md](../../docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md), [repository-map.md](../../docs/architecture/repository-map.md) | visionflow:ADR-2020, visionflow:ADR-2004, visionflow:ADR-2006, visionflow:ADR-2007, dream-machine:ADR-0003, dream-machine:ADR-0005, dream-machine:ADR-0006, dream-machine:ADR-0007, WasmVOWL:ADR-001 |
 <!-- END GENERATED DIAGRAM INDEX -->
 

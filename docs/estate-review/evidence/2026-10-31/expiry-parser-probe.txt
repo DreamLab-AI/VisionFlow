@@ -1,0 +1,3 @@
+input="2026-10-31T00:00:00Z" result=Ok(Some(1793404800))
+input="2026-10-31T00:00:0éZ" result=Err(Any { .. })
+input="2026-10-31T00:00:00+-1:00" result=Ok(Some(1793408400))

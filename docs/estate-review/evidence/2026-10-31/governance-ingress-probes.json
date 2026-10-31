@@ -1,0 +1,140 @@
+{
+  "method": "Real signature verification, roster, request-by-id verification, orchestrator and installed CLI. Recording relay bridge, Git refusal and attestation recorder. No live relay, D1 projection or UI.",
+  "results": [
+    {
+      "name": "digest-mismatch",
+      "signaturesValid": true,
+      "decisionTag": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "proposalDigest": "sha256:5c7cb5ac6a2fc47fa49c6028eaafcc17cbf23a7e218a9adb159de966111a76b4",
+      "expiredAt": "2000-01-01T00:00:00Z",
+      "ontology": {
+        "applied": true,
+        "amended": true,
+        "page": "A",
+        "path": "knowledge/A.md",
+        "digest": "sha256:5c7cb5ac6a2fc47fa49c6028eaafcc17cbf23a7e218a9adb159de966111a76b4",
+        "outcome": "promote",
+        "attested": true,
+        "attestError": null,
+        "committed": false,
+        "commit": null,
+        "pushed": false,
+        "pushError": null,
+        "commitError": "Git intercepted"
+      },
+      "ledger": [
+        {
+          "case_id": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "outcome": "promote",
+          "signer": "human:npub1nzwqkakt2cuhrlwfhme3asrvx4s0xfyadm57tkpu2a39t9hqtahs7fsn89",
+          "at": "2026-10-31T22:37:34.000Z"
+        }
+      ],
+      "files": {
+        "A.md": "---\ntype: Class\ntitle: A\npublic: true\nresource: urn:ngm:class:a\nstatus: draft\nverified:\n- by: human:npub1nzwqkakt2cuhrlwfhme3asrvx4s0xfyadm57tkpu2a39t9hqtahs7fsn89\n  at: 2026-10-31T22:37:34.000Z\n---\napproved body\n"
+      },
+      "calls": [
+        {
+          "verb": "create",
+          "exit": 0
+        },
+        {
+          "verb": "apply",
+          "exit": 0
+        }
+      ]
+    },
+    {
+      "name": "expired-proposal",
+      "signaturesValid": true,
+      "decisionTag": "5c7cb5ac6a2fc47fa49c6028eaafcc17cbf23a7e218a9adb159de966111a76b4",
+      "proposalDigest": "sha256:5c7cb5ac6a2fc47fa49c6028eaafcc17cbf23a7e218a9adb159de966111a76b4",
+      "expiredAt": "2000-01-01T00:00:00Z",
+      "ontology": {
+        "applied": true,
+        "amended": true,
+        "page": "A",
+        "path": "knowledge/A.md",
+        "digest": "sha256:5c7cb5ac6a2fc47fa49c6028eaafcc17cbf23a7e218a9adb159de966111a76b4",
+        "outcome": "promote",
+        "attested": true,
+        "attestError": null,
+        "committed": false,
+        "commit": null,
+        "pushed": false,
+        "pushError": null,
+        "commitError": "Git intercepted"
+      },
+      "ledger": [
+        {
+          "case_id": "5c7cb5ac6a2fc47fa49c6028eaafcc17cbf23a7e218a9adb159de966111a76b4",
+          "digest": "sha256:5c7cb5ac6a2fc47fa49c6028eaafcc17cbf23a7e218a9adb159de966111a76b4",
+          "outcome": "promote",
+          "signer": "human:npub1nzwqkakt2cuhrlwfhme3asrvx4s0xfyadm57tkpu2a39t9hqtahs7fsn89",
+          "at": "2026-10-31T22:37:34.000Z"
+        }
+      ],
+      "files": {
+        "A.md": "---\ntype: Class\ntitle: A\npublic: true\nresource: urn:ngm:class:a\nstatus: draft\nverified:\n- by: human:npub1nzwqkakt2cuhrlwfhme3asrvx4s0xfyadm57tkpu2a39t9hqtahs7fsn89\n  at: 2026-10-31T22:37:34.000Z\n---\napproved body\n"
+      },
+      "calls": [
+        {
+          "verb": "create",
+          "exit": 0
+        },
+        {
+          "verb": "apply",
+          "exit": 0
+        }
+      ]
+    },
+    {
+      "name": "create-title-mismatch",
+      "signaturesValid": true,
+      "decisionTag": "b22cbda3121e889327b62aa664f6e93a3c303afec04e490a7e0c636466fb95aa",
+      "proposalDigest": "sha256:b22cbda3121e889327b62aa664f6e93a3c303afec04e490a7e0c636466fb95aa",
+      "expiredAt": "2000-01-01T00:00:00Z",
+      "ontology": {
+        "applied": true,
+        "created": true,
+        "page": "A",
+        "outcome": "promote",
+        "attested": true,
+        "attestError": null,
+        "committed": false,
+        "commit": null,
+        "pushed": false,
+        "pushError": null,
+        "commitError": "Git intercepted"
+      },
+      "ledger": [
+        {
+          "case_id": "b22cbda3121e889327b62aa664f6e93a3c303afec04e490a7e0c636466fb95aa",
+          "digest": "sha256:b22cbda3121e889327b62aa664f6e93a3c303afec04e490a7e0c636466fb95aa",
+          "outcome": "promote",
+          "signer": "human:npub1nzwqkakt2cuhrlwfhme3asrvx4s0xfyadm57tkpu2a39t9hqtahs7fsn89",
+          "at": "2026-10-31T22:37:34.000Z"
+        }
+      ],
+      "files": {
+        "B.md": "---\ntype: Class\ntitle: B\npublic: true\nresource: urn:ngm:class:a\nstatus: stable\nverified:\n- by: human:npub1nzwqkakt2cuhrlwfhme3asrvx4s0xfyadm57tkpu2a39t9hqtahs7fsn89\n  at: 2026-10-31T22:37:34.000Z\n---\noriginal body\n"
+      },
+      "calls": [
+        {
+          "verb": "create",
+          "exit": 0
+        }
+      ]
+    }
+  ],
+  "queuedReplay": {
+    "method": "Snapshot while second handler is blocked; new consumer restores exactly that persisted state. No process was killed.",
+    "completedAtSnapshot": [
+      0
+    ],
+    "secondWasPersistedSeen": true,
+    "replayedAfterRestore": 0,
+    "rejectedDuplicate": 1
+  }
+}
