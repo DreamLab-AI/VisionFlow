@@ -1,0 +1,82 @@
+{
+  "command": "cargo test --offline --locked --test two_clients -- --nocapture",
+  "cwd": "/home/devuser/workspace/project/xr-client/rust",
+  "result": "not_completed",
+  "reason": "Stopped audit-owned process group after linker workers remained blocked in balance_dirty_pages_ratelimited; no test assertion result obtained.",
+  "io_pressure": "some avg10=93.32 avg60=93.61 avg300=93.00 total=7330238423\nfull avg10=85.88 avg60=87.14 avg300=86.75 total=5326312791\n",
+  "cargo_pid": 2200541,
+  "process_group": 2200488,
+  "signal": "SIGINT",
+  "old_cached_test_binary_used": false,
+  "linker_threads": [
+    {
+      "tid": "2257130",
+      "wait_channel": "futex_wait"
+    },
+    {
+      "tid": "2257143",
+      "wait_channel": "balance_dirty_pages_ratelimited_flags.cold"
+    },
+    {
+      "tid": "2257144",
+      "wait_channel": "balance_dirty_pages_ratelimited_flags.cold"
+    },
+    {
+      "tid": "2257146",
+      "wait_channel": "balance_dirty_pages_ratelimited_flags.cold"
+    },
+    {
+      "tid": "2257148",
+      "wait_channel": "balance_dirty_pages_ratelimited_flags.cold"
+    },
+    {
+      "tid": "2257149",
+      "wait_channel": "balance_dirty_pages_ratelimited_flags.cold"
+    },
+    {
+      "tid": "2257150",
+      "wait_channel": "balance_dirty_pages_ratelimited_flags.cold"
+    },
+    {
+      "tid": "2257151",
+      "wait_channel": "balance_dirty_pages_ratelimited_flags.cold"
+    },
+    {
+      "tid": "2257152",
+      "wait_channel": "folio_wait_bit_common"
+    },
+    {
+      "tid": "2257153",
+      "wait_channel": "balance_dirty_pages_ratelimited_flags.cold"
+    },
+    {
+      "tid": "2257154",
+      "wait_channel": "balance_dirty_pages_ratelimited_flags.cold"
+    },
+    {
+      "tid": "2257156",
+      "wait_channel": "balance_dirty_pages_ratelimited_flags.cold"
+    },
+    {
+      "tid": "2257157",
+      "wait_channel": "balance_dirty_pages_ratelimited_flags.cold"
+    },
+    {
+      "tid": "2257159",
+      "wait_channel": "balance_dirty_pages_ratelimited_flags.cold"
+    },
+    {
+      "tid": "2257160",
+      "wait_channel": "balance_dirty_pages_ratelimited_flags.cold"
+    },
+    {
+      "tid": "2257161",
+      "wait_channel": "balance_dirty_pages_ratelimited_flags.cold"
+    },
+    {
+      "tid": "2257162",
+      "wait_channel": "balance_dirty_pages_ratelimited_flags.cold"
+    }
+  ],
+  "shell_exit_code": 130
+}

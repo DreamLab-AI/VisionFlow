@@ -1,0 +1,63 @@
+{
+  "scope": "production library, synthetic fixtures; no live socket or model",
+  "cases": [
+    {
+      "case": "replaced_member_still_relays",
+      "classification": "counterexample",
+      "old_id": 2,
+      "new_id": 3,
+      "recipients": 2,
+      "roster_members": 2
+    },
+    {
+      "case": "old_drop_preserves_replacement",
+      "classification": "passing_control"
+    },
+    {
+      "case": "other_avatar_and_room_refused",
+      "classification": "passing_control"
+    },
+    {
+      "case": "full_queue_loses_join_then_receives_unknown_id",
+      "classification": "counterexample",
+      "queue_size": 64,
+      "new_id": 3,
+      "join_announcements_received": 0,
+      "rate_limited_fill_span_ms": 3780
+    },
+    {
+      "case": "full_queue_loses_leave",
+      "classification": "counterexample"
+    },
+    {
+      "case": "full_queue_loses_close_but_receiver_eventually_closes",
+      "classification": "counterexample",
+      "stale_relay_recipients": 2,
+      "permanent_socket_claim": false
+    },
+    {
+      "case": "pose_rate_limit_and_reset",
+      "classification": "passing_control"
+    },
+    {
+      "case": "required_auth_refuses_start_open_mode_has_no_principal",
+      "classification": "passing_control"
+    },
+    {
+      "case": "ingest_token_refuses_missing_and_wrong",
+      "classification": "passing_control"
+    },
+    {
+      "case": "proxy_off_and_peer_allowlist_enforced_last_xff_selected",
+      "classification": "passing_control"
+    },
+    {
+      "case": "enabled_proxy_without_peers_trusts_any_peer",
+      "classification": "documented_configuration_boundary"
+    },
+    {
+      "case": "origin_filter_allows_native_clients_and_refuses_foreign_browser_origin",
+      "classification": "passing_control"
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "standalone": {
+    "root": "/home/devuser/workspace/codescape",
+    "head": "58108c0357bd0dbf6588f8b6adf6e044f4c04556",
+    "files": [
+      {
+        "path": "crates/codescape-server/src/auth.rs",
+        "sha256": "dfebc91681dbd80143e20a09089da1cd34ac776e3d2619b0a66d6b5e30956475",
+        "matches_head": true
+      },
+      {
+        "path": "crates/codescape-server/src/proxy.rs",
+        "sha256": "b772490574f9aee53f40e1e9de2df52488431aaf9f1164157b039c8fd4765d5e",
+        "matches_head": true
+      },
+      {
+        "path": "crates/codescape-server/src/origin.rs",
+        "sha256": "627bb5b43e302a4ce33c953895042063df60784879dee0d3ba0d320ae1306764",
+        "matches_head": true
+      },
+      {
+        "path": "crates/codescape-server/src/routes/ws.rs",
+        "sha256": "5b49a5c88f1ceac4581ca0f269282f0031f67824ddfe110fceeeb9e9faa61b22",
+        "matches_head": true
+      },
+      {
+        "path": "crates/codescape-server/src/routes/presence.rs",
+        "sha256": "85ae9c8b2a7b34e6296c195a2e8f120621e9f9068e59ea9f0b20f4038198fb3a",
+        "matches_head": true
+      },
+      {
+        "path": "crates/codescape-server/src/xr_presence.rs",
+        "sha256": "357a19749b8cbf68c6f9441b5ef6e7bfab685b1d56bfcb23c79bee790aadf0bf",
+        "matches_head": true
+      },
+      {
+        "path": "docs/BASELINE-codescape.md",
+        "sha256": "ef4036f6904d99c7fced7a7d7227286927695a1a8665991bd7c2f5f68240975e",
+        "matches_head": true
+      }
+    ]
+  },
+  "consumed": {
+    "root": "/home/devuser/workspace/project/codescape",
+    "head": "e3b76f63e801c6a8460110b93e88a0b420e9b0b4",
+    "files": [
+      {
+        "path": "crates/codescape-server/src/auth.rs",
+        "sha256": "dfebc91681dbd80143e20a09089da1cd34ac776e3d2619b0a66d6b5e30956475",
+        "matches_head": true
+      },
+      {
+        "path": "crates/codescape-server/src/proxy.rs",
+        "sha256": "b772490574f9aee53f40e1e9de2df52488431aaf9f1164157b039c8fd4765d5e",
+        "matches_head": true
+      },
+      {
+        "path": "crates/codescape-server/src/origin.rs",
+        "sha256": "627bb5b43e302a4ce33c953895042063df60784879dee0d3ba0d320ae1306764",
+        "matches_head": true
+      },
+      {
+        "path": "crates/codescape-server/src/routes/ws.rs",
+        "sha256": "5b49a5c88f1ceac4581ca0f269282f0031f67824ddfe110fceeeb9e9faa61b22",
+        "matches_head": true
+      },
+      {
+        "path": "crates/codescape-server/src/routes/presence.rs",
+        "sha256": "85ae9c8b2a7b34e6296c195a2e8f120621e9f9068e59ea9f0b20f4038198fb3a",
+        "matches_head": true
+      },
+      {
+        "path": "crates/codescape-server/src/xr_presence.rs",
+        "sha256": "357a19749b8cbf68c6f9441b5ef6e7bfab685b1d56bfcb23c79bee790aadf0bf",
+        "matches_head": true
+      },
+      {
+        "path": "docs/BASELINE-codescape.md",
+        "sha256": "ef4036f6904d99c7fced7a7d7227286927695a1a8665991bd7c2f5f68240975e",
+        "matches_head": true
+      }
+    ]
+  },
+  "visionclaw": {
+    "root": "/home/devuser/workspace/project",
+    "head": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+    "files": [
+      {
+        "path": "docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md",
+        "sha256": "c4924fc6404df8e83308b9aeb5f2951e44d76832dc075b42cf57aa6a866d04f7",
+        "matches_head": true
+      },
+      {
+        "path": "docs/adr/ADR-2159-the-xr-client-holds-one-backend-connection-per-content-source.md",
+        "sha256": "5654dbb59c873779be653cd04622c515b6bba66e2d73f31867fcca1c8dfae1a2",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/backend_connection.gd",
+        "sha256": "e59cce6ee517a016937ebfb8c852e9062e2630adef022c5d915419f27ed850d3",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/backend_caps.gd",
+        "sha256": "de334b8f0423d5dedaad529f5bfad4ee76c2f0f55270d5e24583a6efdb960eb4",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/graph_scene.gd",
+        "sha256": "58b95160c2e8bd19c93dca329522f0539481509b98452af6b9a4e96b2986fec6",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/scripts/frame_budget_pass.gd",
+        "sha256": "4c6d2423a44c84eea65957214508722ec9bde70a2e3543360adf503d48c97a6f",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/rust/src/presence.rs",
+        "sha256": "72482f9bbdf1e87b8ed2449fae966bc91e635794e0db03879abffd8a25724d18",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/rust/tests/two_clients.rs",
+        "sha256": "0316624540a5ef3018336934d80530db73468404a70a9b1a8b68bb40c083528b",
+        "matches_head": true
+      },
+      {
+        "path": "xr-client/tests/unit/test_backend_switch.gd",
+        "sha256": "991af381ba4978cb2c27c0d727017defdedbe8f068cfe7934e82e748365557c9",
+        "matches_head": true
+      },
+      {
+        "path": "nginx.dev.conf",
+        "sha256": "73eec921da8a18164f0cd1bd2449d68abbccc6cb25094ae05117c005cb33ccb1",
+        "matches_head": true
+      },
+      {
+        "path": "docker-compose.unified.yml",
+        "sha256": "54805ba50f340f447baf281bae5c655e4eaf501cf9812577cb843d477566f618",
+        "matches_head": true
+      }
+    ]
+  },
+  "godot_available_on_path": false
+}

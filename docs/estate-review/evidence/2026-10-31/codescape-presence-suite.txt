@@ -1,0 +1,59 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.29s
+     Running unittests src/lib.rs (target/debug/deps/codescape_server-768cad80d50a334f)
+
+running 9 tests
+test xr_presence::tests::hostile_pose_frames_are_refused ... ok
+test xr_presence::tests::pose_rate_is_twenty_per_second ... ok
+test xr_presence::tests::room_hash_matches_the_client_fnv ... ok
+test xr_presence::tests::disconnect_sends_avatar_left_and_empties_the_room ... ok
+test xr_presence::tests::open_auth_tolerates_missing_and_malformed_fields ... ok
+test xr_presence::tests::handshake_golden_against_the_client_wire ... ok
+test xr_presence::tests::two_members_see_each_other_and_poses_relay ... ok
+test xr_presence::tests::rejoin_replaces_the_stale_member ... ok
+test xr_presence::tests::rooms_and_queues_are_bounded ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 91 filtered out; finished in 0.01s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.30s
+     Running unittests src/lib.rs (target/debug/deps/codescape_server-768cad80d50a334f)
+
+running 12 tests
+test proxy::tests::explicit_public_origin_always_wins ... ok
+test proxy::tests::prefixes_normalise ... ok
+test proxy::tests::localhost_resolves_to_loopback_and_is_trusted ... ok
+test proxy::tests::forwarded_prefix_wins_over_the_flag_only_when_trusted ... ok
+test proxy::tests::trust_off_ignores_every_forwarded_header ... ok
+test proxy::tests::last_forwarded_for_hop_wins_over_a_client_supplied_chain ... ok
+test proxy::tests::trust_on_falls_back_for_direct_requests ... ok
+test proxy::tests::trust_from_narrows_to_listed_peers ... ok
+test proxy::tests::trust_on_rejects_malformed_forwarded_values ... ok
+test proxy::tests::trusted_peer_entries_parse ... ok
+test proxy::tests::trust_on_uses_the_forwarded_host_proto_and_prefix ... ok
+test proxy::tests::unresolvable_hostname_trusts_no_peer ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 88 filtered out; finished in 0.01s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.30s
+     Running unittests src/lib.rs (target/debug/deps/codescape_server-768cad80d50a334f)
+
+running 5 tests
+test origin::tests::missing_origin_is_a_native_client ... ok
+test origin::tests::malformed_patterns_are_rejected ... ok
+test origin::tests::same_origin_and_loopback_are_allowed_by_default ... ok
+test origin::tests::cross_site_origins_are_refused ... ok
+test origin::tests::configured_list_replaces_loopback_defaults ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 95 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.30s
+     Running unittests src/lib.rs (target/debug/deps/codescape_server-768cad80d50a334f)
+
+running 6 tests
+test auth::tests::require_auth_refuses_until_p6 ... ok
+test auth::tests::rate_limiter_refills ... ok
+test auth::tests::token_compare ... ok
+test auth::tests::alloc_limiter_caps_per_address_per_window ... ok
+test auth::tests::ip_buckets_allow_the_burst_then_the_rate ... ok
+test auth::tests::token_fails_closed ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 94 filtered out; finished in 0.00s

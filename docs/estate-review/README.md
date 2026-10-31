@@ -37,6 +37,8 @@ Product comparison: [governed knowledge alternatives and a user evaluation proto
 
 Codescape continuation: [extraction, command policy and retained runtime artefacts](2026-10-31-codescape-boundaries.md), including the local decision pack, consumed revision comparison and executable boundary probes.
 
+Codescape presence and XR: [membership replacement, queue loss and concurrent connections](2026-10-31-codescape-presence-and-xr.md), with section dispositions for inherited ADR-2143 and ADR-2159.
+
 ## Reading order
 
 | Document | Question it answers |

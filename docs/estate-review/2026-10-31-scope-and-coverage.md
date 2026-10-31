@@ -67,3 +67,5 @@ Use the per-record hashes and heading lines to record source-backed dispositions
 The first newly covered plugin section is [the exclusion and write-recovery review](2026-10-31-obsidian-boundaries.md). The [market comparison](2026-10-31-market-and-audit-gaps.md) remains a bounded product analysis. Completion still requires all material repository paths, ADR dispositions and diagram claims to be assessed.
 
 The [Codescape continuation](2026-10-31-codescape-boundaries.md) classifies its four ADR-like files as one operative decision plus an index, preamble and template. It assesses ADR-0001 section by section and compares standalone and consumed source. This does not close the inherited VisionClaw ADR-2143 obligations or the full Codescape runtime review.
+
+The [presence and concurrent-XR pass](2026-10-31-codescape-presence-and-xr.md) subsequently assesses ADR-2143 and ADR-2159 section by section, reproduces two presence lifecycle defects and records the limits of transport versus engine/headset evidence. This is bounded semantic coverage, not closure of their deployment obligations or of the estate queue.

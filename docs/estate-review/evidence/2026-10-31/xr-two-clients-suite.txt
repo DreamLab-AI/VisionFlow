@@ -1,0 +1,2 @@
+   Compiling visionclaw-xr-presence v0.2.1 (/home/devuser/workspace/project/crates/visionclaw-xr-presence)
+   Compiling visionclaw-xr-gdext v0.2.1 (/home/devuser/workspace/project/xr-client/rust)
