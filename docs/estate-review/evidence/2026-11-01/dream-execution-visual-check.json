@@ -1,0 +1,38 @@
+[
+  {
+    "panel": "AB-23.1",
+    "svg_sha256": "2f6f410d47f2ebfba0815f4a4bce99d5e9804b00413a9e17ebfcf0d40dab1c96",
+    "preview_sha256": "933d4a147047388d963ea817f01edce405128e2ba416d531dd29bc50ce0356f3",
+    "inspection": "Rendered labels and branches visually inspected; readable at full size. Source citations manually checked separately."
+  },
+  {
+    "panel": "AB-23.4",
+    "svg_sha256": "750d1f5592e40b1572aeca67cbc2f62895b886c339b16502375aa0875a2c94fd",
+    "preview_sha256": "2b1a936521606d053e7d1751ece2bd3d63c422546bd9a6c298df9b14610fcfba",
+    "inspection": "Rendered labels and branches visually inspected; readable at full size. Source citations manually checked separately."
+  },
+  {
+    "panel": "AB-23.5",
+    "svg_sha256": "a5e1ee787603d6d5efeeebe07e17c8aa5ab5dfc4aafe8b143ae040c4e2ae6849",
+    "preview_sha256": "377dcfcfbbadcb7689b32e83d98b6c7c26d69ad0c6b62a3eff90242497683665",
+    "inspection": "Rendered labels and branches visually inspected; readable at full size. Source citations manually checked separately."
+  },
+  {
+    "panel": "AB-23.8",
+    "svg_sha256": "f586d937003d4f4e12c4f28dba635344468a7664cf46811c0351b2d2e164a965",
+    "preview_sha256": "04b7c8b18872a85a7c165acfb991b70f906b8f3b495c115cc027542e6927a795",
+    "inspection": "Rendered labels and branches visually inspected; readable at full size. Source citations manually checked separately."
+  },
+  {
+    "panel": "AB-23.18",
+    "svg_sha256": "790784bee9149af736f13f872eabf63510bd58ac429ca8fd741b2331fca5a2b9",
+    "preview_sha256": "173c6ee06b7d60068fce470b62ae2db84c3c01977b1a218d39173705238ee454",
+    "inspection": "Rendered labels and branches visually inspected; readable at full size. Source citations manually checked separately."
+  },
+  {
+    "panel": "AB-23.22",
+    "svg_sha256": "257794446640a06ecc0f1a8d6594c595076806f5e9d4684975d37926bc0d1616",
+    "preview_sha256": "991828d112eb1a852d9b0f4c8fd17ec9e4cf596aacfedb1544e4971dee568d9f",
+    "inspection": "Rendered labels and branches visually inspected; readable at full size. Source citations manually checked separately."
+  }
+]

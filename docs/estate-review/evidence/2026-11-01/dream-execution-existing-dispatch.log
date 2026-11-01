@@ -1,0 +1,13 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_engine-289969c465f16849)
+
+running 6 tests
+test dispatch::tests::annexe_probe_writes_before_it_measures ... ok
+test dispatch::tests::annexe_subpath_mirrors_real_depth_under_the_workspace ... ok
+test dispatch::tests::evaluators_with_quotes_survive_a_fish_login_shell ... ok
+test dispatch::tests::parse_avail_kb_reads_the_marker_line_only ... ok
+test dispatch::tests::shell_quote_handles_spaces_and_single_quotes ... ok
+test dispatch::tests::the_remote_command_has_nothing_for_fish_to_misparse ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 183 filtered out; finished in 0.78s
+

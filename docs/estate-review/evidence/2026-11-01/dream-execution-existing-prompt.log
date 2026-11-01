@@ -1,0 +1,19 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_engine-289969c465f16849)
+
+running 12 tests
+test prompt::tests::human_review_policy_when_no_auto_merge ... ok
+test prompt::tests::prompt_asks_for_a_dream_patch_block ... ok
+test prompt::tests::prompt_assigns_side_effects_to_the_engine ... ok
+test prompt::tests::prompt_contains_evaluator ... ok
+test prompt::tests::prompt_contains_repo_and_deep ... ok
+test prompt::tests::prompt_contains_verdict_instructions ... ok
+test prompt::tests::prompt_forbids_accept_without_patch ... ok
+test prompt::tests::prompt_forbids_opaque_findings ... ok
+test prompt::tests::prompt_is_deterministic ... ok
+test prompt::tests::proposed_ledger_row_parses_as_a_ledger_row ... ok
+test prompt::tests::the_prompt_matches_the_pre_extraction_golden ... ok
+test prompt::tests::the_template_is_valid ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 177 filtered out; finished in 0.00s
+

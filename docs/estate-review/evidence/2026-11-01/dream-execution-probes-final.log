@@ -1,0 +1,30 @@
+   Compiling dream-engine v0.1.0 (/home/devuser/workspace/wt/VisionFlow-dream-execution/.audit-adapter/services/dream-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.06s
+     Running tests/audit_execution.rs (.audit-target/debug/deps/audit_execution-8c2df1276067e3ff)
+
+running 12 tests
+test defer_survives_receipt_write_failure ... defer=true although jev-triage.json cannot be written
+ok
+test deletion_and_rename_can_have_empty_change_surface ... deletion and pure rename are absent from triage change_surface
+ok
+test disabled_triage_makes_no_calls ... ok
+test fallback_leaves_prior_deferred_receipt ... fallback proceeds while prior receipt still says deferred=true
+ok
+test health_probe_writes_then_checks_capacity ... actual probe writes/removes file; 12 GiB accepted at floor10, rejected at13; failed df rejected
+ok
+test health_refuses_unwritable_target_even_when_capacity_would_pass ... ok
+test receipt_names_disciplines_not_sent_to_screen ... discipline annotation names 20 rules although screen received 16
+ok
+test repair_excerpt_bypasses_filename_denylist ... apply-repair received canary from credentials.txt; normal source policy would withhold it; no network
+ok
+test repair_excerpt_bypasses_key_material_withholding ... apply-repair received canary from ordinary.txt; normal source policy would withhold it; no network
+ok
+test report_limit_does_not_bound_total_triage_request ... report clipped to 4000 chars; evaluator catalogue retains 20000-char entry
+ok
+test retention_sweep_masks_find_failure ... failed find becomes exit0 with empty stderr through exact retention template
+ok
+test retention_sweep_removes_old_parent_with_fresh_active_child ... exact retention template deletes old parent despite fresh child; no live-job check
+ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+

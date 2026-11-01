@@ -1,0 +1,16 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_engine-289969c465f16849)
+
+running 9 tests
+test candidate_flow::tests::a_binary_deletion_is_refused_before_any_git_command ... ok
+test candidate_flow::tests::a_declined_repair_leaves_a_did_not_apply_state_with_the_reason ... ok
+test candidate_flow::tests::a_good_patch_is_applied_and_the_required_evaluators_rerun_on_it ... ok
+test candidate_flow::tests::a_protected_patch_never_reaches_git_an_evaluator_or_the_model ... ok
+test candidate_flow::tests::a_repaired_patch_that_touches_a_protected_path_is_protected ... ok
+test candidate_flow::tests::an_unappliable_patch_gets_exactly_one_recorded_repair ... ok
+test candidate_flow::tests::the_candidate_trees_config_digest_is_what_the_gate_compares ... ok
+test candidate_flow::tests::the_judged_patch_is_the_one_the_final_state_came_from ... ok
+test candidate_flow::tests::the_repair_pass_keys_on_the_typed_error ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 180 filtered out; finished in 0.90s
+

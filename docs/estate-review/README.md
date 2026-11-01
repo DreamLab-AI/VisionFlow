@@ -13,6 +13,8 @@ This review examines the VisionFlow estate as an organisational proposition, a s
 
 The source audit does not declare all optional features, upstream research or six end-to-end system journeys complete. Those implementation and acceptance obligations remain on the [master TODO](../../../project/docs/TODO-unified.md).
 
+Execution boundaries: [candidate repair egress, triage evidence and annexe retention](2026-11-01-dream-execution-and-triage.md). This completes source assessment of AB-23’s original panels; its findings and the wider audit remain open.
+
 Forum decisions: [dream governance, signing, withdrawal and digest audit](2026-11-01-dream-governance-and-delivery.md).
 
 Journal delivery: [ADR-2071, local counters, API-down recovery and acceptance evidence](2026-11-01-dream-journal-and-api-down.md).

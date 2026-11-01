@@ -1,0 +1,226 @@
+[
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/dream-engine/src/engine.rs",
+    "sha256": "c15b31074c173b6409744daa87f1a1f0367d6e917b514e20dab25b006cf2af06",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/dream-engine/src/candidate_flow.rs",
+    "sha256": "2be2e22e4003a2a7619a938c6dd3294f63bcb849f8d8e227711cbfd244873bea",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/dream-engine/src/dispatch.rs",
+    "sha256": "b1bfb1f56f73339840b404c570335938996a424b05192f33e16c48a62829012a",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/dream-engine/src/jev_triage.rs",
+    "sha256": "78907ae677486ef7dda4be4d19ac2a3a3b228e0daa601e804c7bed58194a3256",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/dream-engine/src/digest.rs",
+    "sha256": "bbac8d4472c9fbc5412aa55618c7485358c2309385119959d6eba67016d46943",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/dream-engine/src/judge.rs",
+    "sha256": "520432607474ca4ae7ea5594b9e50a0d2e9fecad41c99ed57124da9b0bc97c7f",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/dream-engine/src/policy.rs",
+    "sha256": "f977367133c3950f80e3239248b401bf3dcce27d39df74c6a1daf611aa05de80",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/dream-engine/src/prompt.rs",
+    "sha256": "1a7cf1de2c4456d463a6ab542fe6898daf6ef74fe08e1f544564cc9818047aaa",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/dream-engine/src/runner.rs",
+    "sha256": "fb17c83b2adce1302acd111215ffb952f998e80fd5854ef4fcd9ca3b5b6c604d",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/dream-engine/src/estate.rs",
+    "sha256": "0c3a45d122f9b0e431c9b5fa754e1b52ee96b5438f04bed16d3c578a8876b1d8",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-manifest/src/system_one.rs",
+    "sha256": "1b26b98909bb78d3e261244b57b31d361cbecdb61617c846dc91d4cfc5d78735",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": false
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "agentbox.toml",
+    "sha256": "c9c7016e6649c118f69ccbbab8d25e35e26c1dc3f449dab61b5ea2493b61203d",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": false
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "dream.config.json",
+    "sha256": "5ecff5ca067f13b793038ec3ad1ae520c6158b6467536e9b3e9381112ca3fee1",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "flake.nix",
+    "sha256": "71f7e45f6089843882273e1b29fd5ef361ae8ecc03e24ab38507c78921139c29",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": false
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "docs/adr/ADR-2114-dream-candidate-diffs-against-engine-read-source.md",
+    "sha256": "acf9e364153027410acb4619e1252af74cdcf95119b1e84b66489e1ae521d272",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "docs/adr/ADR-2155-system-one-consumer-activation.md",
+    "sha256": "6acbc4eee9d208d1ba86e32146e8fe379de430c2bd13cc4c186d8722e6ec2ed8",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": false
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "docs/GOVERNANCE-capabilities.md",
+    "sha256": "a7594700bc0cf610482320e42af5f867d6a928e91b8a70b1a03c75588ac4bbd1",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": false
+  },
+  {
+    "repo": "/home/devuser/workspace/dream-engine",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "path": "crates/dream-core/src/candidate.rs",
+    "sha256": "ce7fc3c350fd8cdbe5a72a5c8a06d089ac689ab3ef345fabf5ab7e279990f39a",
+    "topic_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/dream-engine",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "path": "crates/dream-core/src/screen.rs",
+    "sha256": "7cccc6846da2b60f70fec02b7090f0bedae814d7ba1419ee8f88f79e9b86c190",
+    "topic_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/dream-engine",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "path": "crates/dream-core/src/runstate.rs",
+    "sha256": "049a78cb7d81ef3a2d441617a18bb5bd8352d934f5c46cc958f62402f07b054a",
+    "topic_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/dream-engine",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "path": "crates/dream-core/src/source.rs",
+    "sha256": "8e76bda907615103552574f067cf4a8fbeea8c29cf4d7733ad2c6d13b0061476",
+    "topic_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/dream-engine",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "path": "crates/dream-core/src/persist.rs",
+    "sha256": "7040715fc23654bf385cd8da94be834ce13ad708461176435d232c0b37bbbbef",
+    "topic_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/dream-engine",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "path": "crates/dream-gate/src/gate.rs",
+    "sha256": "3e246709730bdb8370363feb6333bc84dada20fb046e14d9a224615fb4cc1b5d",
+    "topic_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/dream-engine",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "path": "crates/dream-gate/src/guard.rs",
+    "sha256": "f63cd7134eae9e62ab285f614ea7bfd3f9f8b93bcc1f597d29f9203a9facbbea",
+    "topic_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/dream-engine",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "path": "crates/dream-gate/src/verdict.rs",
+    "sha256": "cef8da6ae95fcf447a180394240d86fbc48f69ee70918b25c036882234e8c6a8",
+    "topic_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/dream-engine/src/llm.rs",
+    "sha256": "ba736cbcc08798cb8141696a076f61b1d62daddaa1425d63831e2c1772c74dc5",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/dream-engine/src/records.rs",
+    "sha256": "1afe0a58a2b4b3e48aefa1791b5694ae10499b9306e39c1ad8b2a64ad143b2b6",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": true
+  },
+  {
+    "repo": "/home/devuser/workspace/project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/dream-engine/src/prompt/nightly.tmpl",
+    "sha256": "ccccb464fa055ce1636f540a6930035326dd1cc3252a5599bb9b651b6d2754bc",
+    "topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "identical_to_topic_pin": true
+  }
+]

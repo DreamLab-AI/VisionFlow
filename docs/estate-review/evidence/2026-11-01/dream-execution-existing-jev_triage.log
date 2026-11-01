@@ -1,0 +1,29 @@
+   Compiling dream-engine v0.1.0 (/home/devuser/workspace/wt/VisionFlow-dream-execution/.audit-adapter/services/dream-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.00s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_engine-289969c465f16849)
+
+running 21 tests
+test jev_triage::tests::a_failed_screen_keeps_the_record_and_marks_the_fallback ... ok
+test jev_triage::tests::accepts_the_skill_route_names_the_entrypoint_also_exports ... ok
+test jev_triage::tests::an_uncertain_answer_does_not_defer_even_with_the_highest_allowed_threshold ... ok
+test jev_triage::tests::annotation_is_written_but_never_defers_without_a_threshold ... ok
+test jev_triage::tests::change_surface_dedupes_and_skips_dev_null ... ok
+test jev_triage::tests::defer_threshold_defaults_to_never_and_rejects_nonsense ... ok
+test jev_triage::tests::defers_only_below_an_explicit_threshold_and_only_on_the_support_signal ... ok
+test jev_triage::tests::endpoint_order_proxy_then_typesafe_then_none ... ok
+test jev_triage::tests::every_fallback_returns_false_and_leaves_the_night_directory_untouched ... ok
+test jev_triage::tests::fixture_extra_disciplines_reach_the_screen_request ... ok
+test jev_triage::tests::flag_off_sends_nothing_and_does_not_defer ... ok
+test jev_triage::tests::library_verdict_is_recorded_and_a_violation_never_defers ... ok
+test jev_triage::tests::local_only_refuses_undeclared_endpoints ... ok
+test jev_triage::tests::local_request_no_longer_asks_violation_nouls ... ok
+test jev_triage::tests::off_unless_explicitly_opted_in ... ok
+test jev_triage::tests::one_hypothesis_is_never_ordered_or_deferred_by_screen_candidates ... ok
+test jev_triage::tests::only_paths_of_the_patch_are_sent_not_its_content ... ok
+test jev_triage::tests::request_has_a_score_with_an_ordered_list_and_a_noul ... ok
+test jev_triage::tests::screen_is_skipped_when_the_option_is_off_or_triage_fell_back ... ok
+test jev_triage::tests::the_proxy_route_sends_no_authorization_and_the_cloud_route_sends_the_bearer ... ok
+test jev_triage::tests::typed_decision_transport_does_not_follow_redirects ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 168 filtered out; finished in 0.12s
+

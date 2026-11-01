@@ -831,14 +831,14 @@ Revision labels are author declarations. This index checks structure and referen
 | [AB-22.12 tree-search-coder — execution-gated branching with enforced spend cap](agentbox/22-skills-and-routing.md#ab-2212-tree-search-coder-execution-gated-branching-with-enforced-spend-cap) | sequenceDiagram | AB-22 |
 | [AB-22.13 [skills.*] manifest gate table, plus [claude_code] (ADR-2020/ADR-2116, catalogue parity closed)](agentbox/22-skills-and-routing.md#ab-2213-skills-manifest-gate-table-plus-claudecode-adr-2020adr-2116-catalogue-parity-closed) | flowchart | AB-22 |
 | [AB-22.14 Generated discovery — the table nobody hand-edits (ADR-2083)](agentbox/22-skills-and-routing.md#ab-2214-generated-discovery-the-table-nobody-hand-edits-adr-2083) | flowchart | AB-22 |
-| [AB-23.1 One repo-night — run phases](agentbox/23-dream-engine.md#ab-231-one-repo-night-run-phases) | stateDiagram-v2 | AB-23 |
+| [AB-23.1 Repo-night phases and early exits](agentbox/23-dream-engine.md#ab-231-repo-night-phases-and-early-exits) | flowchart | AB-23 |
 | [AB-23.2 Scheduling, admission and finished-night boundaries](agentbox/23-dream-engine.md#ab-232-scheduling-admission-and-finished-night-boundaries) | flowchart | AB-23 |
 | [AB-23.3 Module map and the licence boundary](agentbox/23-dream-engine.md#ab-233-module-map-and-the-licence-boundary) | flowchart | AB-23 |
-| [AB-23.4 The guard ordering and the deterministic gate](agentbox/23-dream-engine.md#ab-234-the-guard-ordering-and-the-deterministic-gate) | sequenceDiagram | AB-23 |
-| [AB-23.5 Candidate re-evaluation on an isolated worktree](agentbox/23-dream-engine.md#ab-235-candidate-re-evaluation-on-an-isolated-worktree) | sequenceDiagram | AB-23 |
+| [AB-23.4 Guard ordering and the gate's evidence boundary](agentbox/23-dream-engine.md#ab-234-guard-ordering-and-the-gates-evidence-boundary) | flowchart | AB-23 |
+| [AB-23.5 Candidate worktree, relocation and apply repair](agentbox/23-dream-engine.md#ab-235-candidate-worktree-relocation-and-apply-repair) | sequenceDiagram | AB-23 |
 | [AB-23.6 Persistence and the human merge gate](agentbox/23-dream-engine.md#ab-236-persistence-and-the-human-merge-gate) | flowchart | AB-23 |
 | [AB-23.7 Run journal — restart, resume, abandonment and the finished-night rule](agentbox/23-dream-engine.md#ab-237-run-journal-restart-resume-abandonment-and-the-finished-night-rule) | flowchart | AB-23 |
-| [AB-23.8 Core types](agentbox/23-dream-engine.md#ab-238-core-types) | classDiagram | AB-23 |
+| [AB-23.8 Core types](agentbox/23-dream-engine.md#ab-238-core-types) | flowchart | AB-23 |
 | [AB-23.9 Reminder counts local open items, not confirmed forum cases](agentbox/23-dream-engine.md#ab-239-reminder-counts-local-open-items-not-confirmed-forum-cases) | flowchart | AB-23 |
 | [AB-23.10 Control and reporting surfaces](agentbox/23-dream-engine.md#ab-2310-control-and-reporting-surfaces) | flowchart | AB-23 |
 | [AB-23.11 Annexe depth preserves layout, not immutable input identity](agentbox/23-dream-engine.md#ab-2311-annexe-depth-preserves-layout-not-immutable-input-identity) | flowchart | AB-23 |
@@ -848,11 +848,11 @@ Revision labels are author declarations. This index checks structure and referen
 | [AB-23.15 Provider selection, retries and cross-provider fallback](agentbox/23-dream-engine.md#ab-2315-provider-selection-retries-and-cross-provider-fallback) | flowchart | AB-23 |
 | [AB-23.16 Placeholder and dispatch guards have limited coverage](agentbox/23-dream-engine.md#ab-2316-placeholder-and-dispatch-guards-have-limited-coverage) | flowchart | AB-23 |
 | [AB-23.17 Forum decisions — local application and delivery boundaries](agentbox/23-dream-engine.md#ab-2317-forum-decisions-local-application-and-delivery-boundaries) | flowchart | AB-23 |
-| [AB-23.18 Annexe preflight — the write-then-measure health probe](agentbox/23-dream-engine.md#ab-2318-annexe-preflight-the-write-then-measure-health-probe) | sequenceDiagram | AB-23 |
+| [AB-23.18 Annexe health and retention limits](agentbox/23-dream-engine.md#ab-2318-annexe-health-and-retention-limits) | flowchart | AB-23 |
 | [AB-23.19 ADR-2071 clause (c) — historical acceptance and retained tick](agentbox/23-dream-engine.md#ab-2319-adr-2071-clause-c-historical-acceptance-and-retained-tick) | flowchart | AB-23 |
 | [AB-23.20 Signing keys — current loader and the unfinished port cutover](agentbox/23-dream-engine.md#ab-2320-signing-keys-current-loader-and-the-unfinished-port-cutover) | flowchart | AB-23 |
 | [AB-23.21 ADR-2143 — source supply is plumbing, not a decision](agentbox/23-dream-engine.md#ab-2321-adr-2143-source-supply-is-plumbing-not-a-decision) | flowchart | AB-23 |
-| [AB-23.22 AB-23-S1-01 — the opt-in Jev triage before the candidate build](agentbox/23-dream-engine.md#ab-2322-ab-23-s1-01-the-opt-in-jev-triage-before-the-candidate-build) | sequenceDiagram | AB-23 |
+| [AB-23.22 Optional triage can defer without a durable receipt](agentbox/23-dream-engine.md#ab-2322-optional-triage-can-defer-without-a-durable-receipt) | flowchart | AB-23 |
 | [AB-23.23 Journal delivery — local counters and remote evidence](agentbox/23-dream-engine.md#ab-2323-journal-delivery-local-counters-and-remote-evidence) | flowchart | AB-23 |
 | [AB-23.24 Digest — evidence limits and encryption configuration](agentbox/23-dream-engine.md#ab-2324-digest-evidence-limits-and-encryption-configuration) | flowchart | AB-23 |
 | [AB-24.1 Two deployments of one facade contract — topology](agentbox/24-loom-facade.md#ab-241-two-deployments-of-one-facade-contract-topology) | flowchart | AB-24 |

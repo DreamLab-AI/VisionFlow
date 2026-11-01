@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_engine-289969c465f16849)
+
+running 2 tests
+test engine::min_free_tests::a_valid_override_wins_including_zero ... ok
+test engine::min_free_tests::unset_empty_and_garbage_keep_the_production_default ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 187 filtered out; finished in 0.00s
+

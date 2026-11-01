@@ -98,69 +98,41 @@ This topic draws the adapter and the boundary after the 2026-10-15 extraction (a
 
 State at this stamp: the adapter pins `dream-core =0.4.0` and `dream-gate =0.3.0` from the registry (`../project/agentbox/services/dream-engine/Cargo.toml:26-27`), and the extraction is live: ADR-2141 is `accepted`, `complete`, `live`, with the operator's rebuild activated on 2026-10-16 and later releases adopted since (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:6-8`). Three adapter-owned changes since the first stamp are drawn here: source supply as plumbing (AB-23.21, ADR-2143), the opt-in Jev triage before the candidate build (AB-23.22, AB-23-S1-01) and the formatter step inside the core's candidate run (AB-23.4, ADR-DE-009). The crates.io versions are recorded in DE-01.
 
-## AB-23.1 One repo-night — run phases
+## AB-23.1 Repo-night phases and early exits
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Locked
-    note right of Locked
-        NightLock::acquire_within 250 ms (agentbox/services/dream-engine/src/engine.rs:563),
-        a dry run takes no lock. The lock is held until the night returns.
-        A held lock skips the night with EngineError::NightLocked (engine.rs:567).
-    end note
-    Locked --> Skipped : lock held by another engine
-    Locked --> Admission : lock taken
-    Admission --> Handoff : readiness refuses
-    note right of Admission
-        readiness::assess (dream-core/src/readiness.rs:187) runs BEFORE any clone, build or
-        model call. Refusals are the Unusable variants (readiness.rs:23), the HANDOFF row
-        is written by persist_handoff (agentbox/services/dream-engine/src/records.rs:282).
-    end note
-    Admission --> FinishedCheck : admitted
-    FinishedCheck --> Skipped : night already Persisted or Complete
-    note right of FinishedCheck
-        finished_night (dream-core/src/runstate.rs:401) is asked by night directory, not by run id,
-        BEFORE any manifest, model call, commit or forge request (engine.rs:641).
-        An unreadable journal is BLOCKED-ENV, never a fresh start (engine.rs:642-647).
-    end note
-    FinishedCheck --> Initialised : begin (engine.rs:867)
-    note right of Initialised
-        Before begin, the engine builds the manifest (engine.rs:700), the night's one protected
-        policy (engine.rs:743), freezes the manifest (engine.rs:763) and probes the annexe
-        (engine.rs:823). An unhealthy annexe is BLOCKED-ENV and costs no attempt.
-    end note
-    Initialised --> Abandoned : attempt budget exhausted
-    Initialised --> ManifestFrozen
-    ManifestFrozen --> BaselineEvaluated
-    BaselineEvaluated --> ModelCalled
-    ModelCalled --> CandidateEvaluated
-    note right of CandidateEvaluated
-        candidate_flow runs every patch through dream_core::candidate::run, which refuses,
-        then guards, then builds the worktree, then evaluates (dream-core/src/candidate.rs:469).
-    end note
-    CandidateEvaluated --> Gated
-    Gated --> Persisted
-    note right of Persisted
-        runstate::persist (dream-core/src/runstate.rs:615) is entered BEFORE the forge
-        request and the ledger commit (agentbox/services/dream-engine/src/engine.rs:1710),
-        accepted or not. A crash after this point can lose a publish, never repeat one.
-    end note
-    Persisted --> Complete
-    Complete --> [*]
-    Abandoned --> [*]
-    Handoff --> [*]
-    Skipped --> [*]
-    note right of Abandoned
-        Phase::Abandoned (dream-core/src/runstate.rs:76) is terminal and never silently retried,
-        the operator is alerted (agentbox/services/dream-engine/src/engine.rs:890).
-    end note
+flowchart TB
+    CFG["Load config and select slot<br/>engine.rs:549"] --> LOCK{"Dry run or per-night lock acquired?<br/>engine.rs:560"}
+    LOCK -->|held or IO error| STOP["Return error; no repo-night execution<br/>engine.rs:567"]
+    LOCK -->|yes| READY{"Readiness admitted?<br/>engine.rs:576"}
+    READY -->|no| HAND["HANDOFF; writes report and ledger unless dry run<br/>engine.rs:596"]
+    READY -->|yes| PROMPT["Compile prompt and carry-over<br/>engine.rs:609"]
+    PROMPT --> DRY{"Dry run?<br/>engine.rs:623"}
+    DRY -->|yes| END["Return without dispatch<br/>engine.rs:625"]
+    DRY -->|no| FIN{"finished_night by repo, date and night directory<br/>engine.rs:641"}
+    FIN -->|Persisted or Complete| SKIP["Return stored outcome; no publication reconciliation<br/>engine.rs:655"]
+    FIN -->|unreadable| BLOCK["BLOCKED-ENV result<br/>engine.rs:644"]
+    FIN -->|unfinished| MAN["Resolve baseline, policy and frozen manifest<br/>engine.rs:700,743,763"]
+    MAN --> HEALTH{"Sweep then annexe health<br/>engine.rs:806,823"}
+    HEALTH -->|unhealthy| NOATT["BLOCKED-ENV before attempt count<br/>engine.rs:850"]
+    HEALTH -->|healthy| BEGIN{"begin: fresh, resumed, terminal or error<br/>engine.rs:867"}
+    BEGIN -->|terminal| SKIP
+    BEGIN -->|journal error| BLOCK
+    BEGIN -->|abandoned| ABANDON["Alert and BLOCKED-ENV record<br/>engine.rs:890"]
+    BEGIN -->|fresh or resumed| BASE["Dispatch, checkout probe and baseline evaluation<br/>engine.rs:954,979,1097"]
+    BASE -->|harness fault| EARLY["Persist blocked result and best-effort Complete<br/>engine.rs:1135"]
+    BASE -->|usable| MODEL["Source, model, repair and optional triage<br/>engine.rs:1275,1317,1410,1439"]
+    MODEL --> CAND["Optional candidate run; mark CandidateEvaluated even if skipped<br/>engine.rs:1465,1522"]
+    CAND --> GATE["Judge then best-effort Gated<br/>engine.rs:1601"]
+    GATE --> PERSIST{"Persisted journal write succeeds?<br/>engine.rs:1710"}
+    PERSIST -->|no| PFAIL["BLOCKED-ENV persistence error<br/>engine.rs:1712"]
+    PERSIST -->|yes| EFFECT["Draft branch handling and ledger tail<br/>engine.rs:1733"]
+    EFFECT --> COMPLETE["Best-effort Complete<br/>engine.rs:1932"]
 ```
 
-**What it shows.** The states one repo-night can pass through, now including the per-night lock that comes first and the `Persisted` phase that sits between the gate and `Complete`. Every night that reaches the gate passes through `Persisted`, whatever the verdict, because the journal write at `engine.rs:1710` precedes the accepted-or-not match.
+This is the control-flow overview; phase names record progress, not proof that every named action ran. Config loading precedes the lock, admission precedes the finished-night check, and several intermediate phase writes ignore errors (`../project/agentbox/services/dream-engine/src/engine.rs:934,1097,1378,1522,1601`). AB-23.7 covers recovery in detail.
 
-**Why it is this way.** ADR-2141 and the core repository's ADR-DE-007 (`../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md:21`) make the night, not the run id, the unit of "finished": the run id folds in the baseline commit, which the engine's own ledger commit moves.
-
-**Open:** admission (`../project/agentbox/services/dream-engine/src/engine.rs:576`) runs before the finished-night check (`../project/agentbox/services/dream-engine/src/engine.rs:641`), and a refusal writes a HANDOFF ledger row (`../project/agentbox/services/dream-engine/src/records.rs:282`). A night that already finished, whose evaluator configuration was then edited into an unusable state, would therefore be re-judged at admission rather than skipped. The record does not say whether that ordering is intended.
+The [controls probe](../../estate-review/2026-11-01-dream-adapter-controls-and-egress.md) reproduced a completed night gaining a HANDOFF row and an overwritten report after its evaluator config became unusable. `Persisted` suppresses a repeat after a process crash; it neither confirms a draft was delivered nor supplies a power-loss transaction. Those limits are assessed in the [recovery](../../estate-review/2026-11-01-dream-recovery-and-source-supply.md) and [forge](../../estate-review/2026-11-01-dream-forge-and-seam-contracts.md) reviews.
 
 ## AB-23.2 Scheduling, admission and finished-night boundaries
 
@@ -218,94 +190,67 @@ flowchart TB
 
 **Drift (activation evidence):** ADR-2141 records activation on 16 October and a later 0.3.0 re-verification (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:47`, `../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:55`). Current source pins core 0.4.0 (`../project/agentbox/services/dream-engine/Cargo.toml:26`); those historical records do not establish its current running image. The local tests in the dated audit use fixture services.
 
-## AB-23.4 The guard ordering and the deterministic gate
+## AB-23.4 Guard ordering and the gate's evidence boundary
+
+```mermaid
+flowchart TB
+    FLOW["attempt_judged enters candidate::run<br/>candidate_flow.rs:128"] --> BIN{"Binary deletion?<br/>candidate.rs:481"}
+    BIN -->|yes| REF["Refused; no apply<br/>candidate.rs:483"]
+    BIN -->|no| GUARD{"Protected-path and diff guard<br/>candidate.rs:489"}
+    GUARD -->|refused| PRO["Protected or Refused state<br/>candidate.rs:490"]
+    GUARD -->|allowed| PRE["Prepare worktree; recheck normalised patch<br/>candidate.rs:494,503"]
+    PRE --> FMT["Configured fixer on control plane; record formatting outcome<br/>candidate.rs:527"]
+    FMT --> RUN["Optional relocation and build; required evaluators<br/>candidate.rs:528,546,551"]
+    RUN --> STATE["Applied state, actual patch, tree and receipts<br/>candidate.rs:553"]
+    REF --> JUDGE
+    PRO --> JUDGE
+    STATE --> JUDGE["Adapter replay capture with baseline policy<br/>judge.rs:36"]
+    JUDGE --> G["Gate: verify receipt identity; recheck applied patch on ACCEPT<br/>gate.rs:197,420"]
+    G --> CTX["If supplied: config digest and per-test vetoes<br/>gate.rs:471,486"]
+    CTX --> RESULT["ACCEPT claim plus no vetoes accepts<br/>gate.rs:489"]
+```
+
+Both the pre-apply guard and the pure gate recheck are present. The gate trusts caller-supplied receipt outcomes and candidate state; it is not an execution attestation. The adapter obtains a candidate config digest through an Option-returning helper, so a missing digest skips that comparison (`../project/agentbox/services/dream-engine/src/candidate_flow.rs:307`; `../dream-engine/crates/dream-gate/src/gate.rs:471`). Required evaluator failures veto an otherwise eligible ACCEPT; unreadable or absent evidence has its own classification.
+
+Formatting is not a confinement boundary: a valid spaced Rust path attribute caused rustfmt to modify an external temporary file in the [candidate probe](../../estate-review/2026-11-01-dream-candidate-and-evidence.md). The same review reproduced an evaluator changing tracked files after the candidate tree was recorded. The repository's own config names no fixer at this stamp, but another nominated repository can enable one (`../project/agentbox/dream.config.json:43`; `../dream-engine/crates/dream-core/src/candidate.rs:527`).
+
+## AB-23.5 Candidate worktree, relocation and apply repair
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:1499
-    participant CF as candidate_flow<br/>agentbox/services/dream-engine/src/candidate_flow.rs:100
-    participant RUN as candidate::run<br/>dream-core/src/candidate.rs:469
-    participant GRD as guard::check<br/>dream-gate/src/guard.rs:1168
-    participant J as judge::judge<br/>agentbox/services/dream-engine/src/judge.rs:36
-    participant G as gate::decide<br/>dream-gate/src/gate.rs:381
-
-    ENG->>CF: attempt_judged(flow, patch, journal)
-    CF->>RUN: run(input, runner, relocate), the only route to git
-    RUN->>RUN: deletes_binary(patch) refused before any git command (candidate.rs:481)
-    RUN->>GRD: guard::check(patch, policy), BEFORE any worktree, build or evaluator (candidate.rs:489)
-    alt protected path or an unparseable diff
-        GRD-->>RUN: GuardViolation
-        RUN-->>CF: CandidateState::Protected (REJECT) or Refused (INCONCLUSIVE), nothing ran
-    else clean
-        RUN->>RUN: prepare, the worktree is built and the patch applied (candidate.rs:494)
-        Note over RUN: prepare re-checks the NORMALISED text it actually applies (dream-core/src/candidate.rs:503)
-        opt a required evaluator names a fixer (ADR-DE-009)
-            RUN->>RUN: format_candidate re-guards the patch, runs the fixer on the candidate's own touched files and commits the result as a second commit before the tree is hashed (candidate.rs:527)
+    participant CF as candidate_flow<br/>candidate_flow.rs:177
+    participant RUN as candidate::run<br/>candidate.rs:469
+    participant PRE as prepare and format<br/>candidate.rs:494,527
+    participant EV as runner and relocation<br/>candidate.rs:528
+    participant SRC as apply_repair<br/>candidate_flow.rs:206
+    CF->>RUN: guarded attempt at the dispatched base
+    RUN->>PRE: apply strategies and normalisation, then configured fixer
+    alt prepared successfully
+        PRE-->>RUN: worktree, applied patch and tree hash
+        RUN->>EV: relocate if configured, optional build, required evaluators
+        EV-->>RUN: results, or provisioning failure
+        RUN-->>CF: Attempt with prepared tree and receipts when available
+    else PatchDidNotApply with no prepared tree
+        RUN-->>CF: typed apply error
+        CF->>CF: load apply-repair.json only if failed-patch digest matches
+        opt no matching receipt
+            CF->>SRC: report, git error, failed patch and baseline excerpt
+            Note over CF,SRC: Excerpt bypasses source filename and key-material withholding.<br/>source.rs:1327
+            SRC-->>CF: correction, decline, absent diff or error
+            CF->>CF: best-effort receipt write
         end
-        RUN->>RUN: required evaluators re-run on the candidate tree
-        RUN-->>CF: Attempt with state Applied, receipts and the tree
+        opt usable correction without binary deletion
+            CF->>RUN: second guarded attempt
+            RUN-->>CF: correction's own state and receipts
+        end
     end
-    CF-->>ENG: the Attempt, and the patch text that was judged
-    ENG->>J: judge(night_dir, NightInputs incl. candidate config digest)
-    J->>G: replay::capture then gate::decide(manifest, strict, candidate, receipts, ctx)
-    G->>GRD: guard::check AGAIN on an applied candidate's patch (dream-gate/src/gate.rs:420)
-    alt the second check fails
-        G->>G: tree not trusted, receipts not graded, Veto patch-guard (gate.rs:421-422)
-    end
-    alt tree trusted and ACCEPT claimed
-        G->>G: candidate config digest must equal the manifest's, else Veto config-digest, harness class (gate.rs:471-481)
-    end
-    G-->>J: accepted only if ACCEPT was claimed, the patch applied and EVERY required evaluator Passed
-    Note over G: harness-class vetoes give BLOCKED-ENV, evidence-class REJECT, unproven-only INCONCLUSIVE.<br/>A refused patch skips the receipt step entirely, so a guard veto cannot be diluted into BLOCKED-ENV (gate.rs:496-501)
+    CF-->>CF: return Attempt and the original or corrected patch text
+    Note over PRE,EV: Worktree separation does not confine<br/>formatter or evaluator writes.<br/>Build results stay separate<br/>from evaluator receipts.
 ```
 
-**What it shows.** Where the protected-path guard sits: once inside `candidate::run` before anything is applied, and once more inside `gate::decide`, which re-derives the touched paths from the patch text rather than trusting the caller. The config-digest check binds the environment the candidate was evaluated in to the one the manifest froze.
+The baseline revision is passed into the candidate worktree, which protects against ordinary HEAD movement. However, the failing-hunk excerpt goes straight from `read_blob` to the repair prompt without the source-stage denylist or key-material withholding (`../dream-engine/crates/dream-core/src/source.rs:1320-1336`). The execution review reproduces this with harmless canaries and a capturing model stub. Apply repair is keyed to the failed patch, not to a complete baseline/prompt identity, and its receipt write is best effort (`../project/agentbox/services/dream-engine/src/candidate_flow.rs:186-215`). A missing receipt after a crash can therefore permit another repair request; the code does not establish exactly one external call across all failures.
 
-**Why it is this way.** The old engine had no guard before apply (ADR-2141, Context). Making `candidate_flow` the only caller of `candidate::run` means the apply-repair pass is guarded too, because its corrected diff re-enters `run` (`../project/agentbox/services/dream-engine/src/candidate_flow.rs:5-9`). The second check is defence in depth, owned by the core (GAT-01).
-
-**Open:** the formatter step is inert at this stamp, because it runs only when a required evaluator names a `fixer` and no evaluator in the repository's own `dream.config.json` does (`../dream-engine/crates/dream-core/src/candidate.rs:527`, `../project/agentbox/dream.config.json:43`); `judge.rs` asserts the adapter itself holds no `rustfmt` or `cargo fmt`, so the mechanism stays in the core (`../project/agentbox/services/dream-engine/src/judge.rs:303`).
-
-**Invariant:** no path in the adapter builds a gate context without the night's one policy, and no path calls `gate::decide` directly (`../project/agentbox/services/dream-engine/src/judge.rs:11-12`, `../project/agentbox/services/dream-engine/src/policy.rs:5-9`).
-
-**Invariant:** evaluator failure vetoes acceptance, and an ACCEPT with no applied candidate is unproven, not a harness fault (`../dream-engine/crates/dream-gate/src/gate.rs:461`, see AB-23.13).
-
-## AB-23.5 Candidate re-evaluation on an isolated worktree
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant CF as candidate_flow::run_once<br/>agentbox/services/dream-engine/src/candidate_flow.rs:100
-    participant RUN as candidate::run<br/>dream-core/src/candidate.rs:469
-    participant PRE as candidate::prepare<br/>dream-core/src/candidate.rs:301
-    participant BW as persist::build_branch_worktree<br/>dream-core/src/persist.rs:131
-    participant SRC as source::apply_repair<br/>dream-core/src/source.rs:1371
-    participant EV as candidate::evaluate<br/>dream-core/src/candidate.rs:343
-
-    CF->>RUN: run(input, runner, relocate)
-    RUN->>PRE: prepare(repo, branch, patch, msg, base, policy)
-    Note over PRE,BW: ADR-2114: the base is the DISPATCHED baseline revision, not always HEAD, so the diff lands on exactly<br/>the tree the model was shown even if the operator commits while the night runs
-    PRE->>BW: build_branch_worktree, as-written strategies first (persist.rs:86), then a normalised retry (dream-gate/src/patch.rs:73)
-    alt the diff does not land
-        BW-->>RUN: PatchDidNotApply with git's stderr
-        RUN-->>CF: Attempt{state DidNotApply, error PatchDidNotApply}
-        CF->>SRC: ONE apply-repair call per night, keyed on the same failed patch digest (candidate_flow.rs:186-206)
-        SRC-->>CF: a corrected patch, or nothing
-        CF->>RUN: run again with the corrected diff, so it is GUARDED AGAIN (candidate_flow.rs:5-9)
-    else lands
-        BW-->>PRE: worktree, applied_via
-        PRE-->>RUN: PreparedCandidate with the tree hash
-        RUN->>EV: evaluate(runner, work_dir, required)
-        EV-->>RUN: one receipt per required evaluator
-    end
-    RUN-->>CF: Attempt
-    Note over RUN: INVARIANT: the operator's working tree is NEVER touched, the worktree is a separate checkout at the base<br/>revision (dream-core/src/candidate.rs:7)
-    Note over CF: the receipt apply-repair.json is reused on restart ONLY for the same failed patch (candidate_flow.rs:186-190)
-```
-
-**What it shows.** The adapter side of the candidate step and the core calls beneath it. The apply strategies, the normalisation rule that never edits a plus or minus line, and the typed `AttemptError` are all in the core and are drawn in NIT-01 and GAT-01 there.
-
-**Why it is this way.** ADR-2114 (candidate diffs are written against engine-read source) fixed the base revision, and ADR-2141 collapsed the engine's four separate call sites into `candidate::run` so that the guard cannot be skipped.
+The formatter runs locally before relocation. A successful worktree build does not establish the identity of a remote extracted tree or protect the operator's filesystem from subprocess effects. The [candidate](../../estate-review/2026-11-01-dream-candidate-and-evidence.md) and [annexe](../../estate-review/2026-11-01-dream-annexe-and-receipts.md) probes qualify those guarantees. Full ADR-2114 dispositions are in the [execution review](../../estate-review/2026-11-01-dream-execution-and-triage.md).
 
 ## AB-23.6 Persistence and the human merge gate
 
@@ -362,91 +307,29 @@ flowchart TB
 ## AB-23.8 Core types
 
 ```mermaid
-classDiagram
-    class RunState {
-        +String run_id
-        +String night_id
-        +Phase phase
-        +u32 attempts
-        +u32 max_attempts
-        +Option~String~ verdict
-    }
-    class Phase {
-        <<enum>>
-        Initialised
-        ManifestFrozen
-        BaselineEvaluated
-        ModelCalled
-        CandidateEvaluated
-        Gated
-        Persisted
-        Complete
-        Abandoned
-    }
-    class Resume {
-        <<enum>>
-        Fresh
-        Resumed
-        AlreadyComplete
-        Abandoned
-        +should_run() bool
-    }
-    class NightLock {
-        +acquire(dir)
-        +acquire_within(dir, wait)
-    }
-    class CandidateState {
-        <<enum>>
-        NoPatch
-        NotAttempted
-        Applied
-        Protected
-        Refused
-        DidNotApply
-    }
-    class GateDecision {
-        +bool accepted
-        +String verdict
-        +String model_verdict
-        +Vec~Veto~ vetoes
-        +verdict_enum() Verdict
-    }
-    class VetoClass {
-        <<enum>>
-        Harness
-        Evidence
-        Unproven
-    }
-    class Verdict {
-        <<enum>>
-        Accept
-        Reject
-        Inconclusive
-        BlockedEnv
-        Handoff
-    }
-    class NightHealth {
-        +String date
-        +Vec~Outcome~ outcomes
-        +Vec~String~ nominated
-        +Vec~Standby~ standby
-        +Vec~String~ deferred
-        +Vec~JournalStats~ journal
-        +Vec~SweepRecord~ sweep
-    }
-    RunState --> Phase
-    Resume --> RunState
-    GateDecision --> VetoClass
-    GateDecision ..> Verdict : verdict_enum
-    note for Phase "dream-core/src/runstate.rs:56, Persisted is entered before the forge request"
-    note for CandidateState "dream-gate/src/gate.rs:255, Protected and Refused are the guard outcomes"
-    note for VetoClass "dream-gate/src/gate.rs:42, Harness = could not gather evidence,<br/>Evidence = gathered and against, Unproven = nothing to test"
-    note for NightHealth "agentbox/services/dream-engine/src/digest.rs:74, the ADAPTER's own record<br/>written to dream-last-night.json (engine.rs:336)"
+flowchart TB
+    RS["RunState: identity, phase, attempts, budget,<br/>timestamps, prior phase, last error and verdict<br/>runstate.rs:99"]
+    PH["Phase<br/>Initialised, ManifestFrozen, BaselineEvaluated,<br/>ModelCalled, CandidateEvaluated, Gated,<br/>Persisted, Complete, Abandoned<br/>runstate.rs:56"]
+    RES["Resume carries RunState<br/>Fresh, Resumed, AlreadyComplete, Abandoned<br/>runstate.rs:131"]
+    LOCK["NightLock<br/>acquire and acquire_within<br/>runstate.rs:261,295"]
+    CS["CandidateState: non-exhaustive<br/>Applied carries tree_hash and patch<br/>Protected carries paths<br/>Refused and DidNotApply carry detail<br/>NoPatch and NotAttempted have no payload<br/>gate.rs:255"]
+    GD["GateDecision<br/>accepted, verdict, model_verdict,<br/>vetoes, required_outcomes, summary<br/>gate.rs:90"]
+    VC["VetoClass<br/>Harness, Evidence, Unproven<br/>gate.rs:42"]
+    V["Verdict<br/>Accept, Reject, Inconclusive,<br/>BlockedEnv, Handoff<br/>verdict.rs:16"]
+    NH["Adapter NightHealth<br/>date, outcomes, nominated, standby,<br/>deferred, optional digest, journal, sweep<br/>digest.rs:74"]
+    RES --> RS
+    RS --> PH
+    CS -->|input| GD
+    GD --> VC
+    GD -->|verdict_enum| V
+    LOCK -.->|held around repo-night| RS
+    NH -.->|reporting only| V
 ```
 
-**What it shows.** The types that cross the boundary. `Phase`, `Resume` and `NightLock` live in `dream-core`, the gate types in `dream-gate`, and `NightHealth` is the adapter's.
 
-**Why it is this way.** The `Unusable` readiness variants and `ExperimentManifest` are omitted here: they are drawn in the core corpus. The `Persisted` phase and `NightLock` are new since the previous stamp, and `CandidateState` gained `Protected` for a guard refusal.
+This graph shows selected record fields, phase/resume variants, lock methods, gate result and night-health fields. `CandidateState` is non-exhaustive and its payloads are abbreviated. `NotAttempted` also represents optional triage deferral, and `CandidateEvaluated` can be written when no evaluator ran (`../project/agentbox/services/dream-engine/src/engine.rs:1465,1522`). A type name does not establish execution or delivery.
+
+`NightHealth.digest` is an optional status string. Health records are adapter reporting inputs; they do not attest that ledger rows, publication or all journal calls succeeded. AB-23.23 and AB-23.24 show those evidence boundaries (`../project/agentbox/services/dream-engine/src/digest.rs:86`).
 
 ## AB-23.9 Reminder counts local open items, not confirmed forum cases
 
@@ -643,47 +526,27 @@ flowchart TB
 **Delivery.** An accepted deletion is a request acknowledgement, not proof of remote removal, local persistence or live card removal. The relay deletes rows but ignores database errors; the current panel subscription excludes kind 5 and its registry ignores it. Those cross-repository source findings are recorded separately in the audit, without a live UI claim.
 **Compatibility.** Shared wire types reduce duplication but do not prevent version drift: the adapter consumes core beta.16 while the inspected forum checkout is beta.19. Missing keys, transport failures and local write errors remain fail-open; a zero-count report is not proof that no work was pending.
 
-## AB-23.18 Annexe preflight — the write-then-measure health probe
+## AB-23.18 Annexe health and retention limits
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant ENG as Engine::cycle_repo_body<br/>agentbox/services/dream-engine/src/engine.rs:532
-    participant SWEEP as retention sweep<br/>agentbox/services/dream-engine/src/engine.rs:806-818, agentbox/services/dream-engine/src/dispatch.rs:64
-    participant AH as dispatch::annexe_health<br/>agentbox/services/dream-engine/src/dispatch.rs:347
-    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2570
-    participant RS as runstate::begin<br/>dream-core/src/runstate.rs:511
-    participant INBOX as inbox::add<br/>agentbox/services/dream-engine/src/inbox.rs:1
-
-    Note over ENG: runs AFTER manifest::freeze but BEFORE the run journal counts an attempt,<br/>an unhealthy node costs the night, never the experiment's retry budget (engine.rs:793-797)
-    ENG->>SWEEP: ssh, find night dirs older than 3 days under hp_annexe_dir, rm -rf (engine.rs:806-818)
-    alt sweep fails
-        SWEEP-->>ENG: warn only, fail-open (engine.rs:819-821)
-    end
-    ENG->>AH: annexe_health(hp_host, hp_annexe_dir, min_free_gib_from DREAM_ANNEXE_MIN_FREE_GIB, default ANNEXE_MIN_FREE_GIB 10) (engine.rs:823-827, engine.rs:2293, dispatch.rs:319)
-    AH->>HP: ssh, annexe_probe_cmd: mkdir -p, printf ok to a probe file, rm -f the probe file,<br/>then df -Pk (dispatch.rs:327-332)
-    Note over AH,HP: the WRITE is the real test. On a fully allocated btrfs volume df still reports<br/>tens of GiB free while every file create fails ENOSPC (metadata chunks exhausted,<br/>2026-09-26), free space alone would have passed a broken annexe
-    HP-->>AH: AVAIL-KB=N line
-    AH->>AH: parse_avail_kb(out) (dispatch.rs:336-340)
-    alt no AVAIL-KB figure printed
-        AH-->>ENG: Err, probe printed no free-space figure (dispatch.rs:348-349)
-    else parsed
-        AH->>AH: gib = kb / (1024*1024)
-        alt gib below min_free_gib
-            AH-->>ENG: Err, annexe dir has gib GiB free, below the floor (dispatch.rs:351-355)
-        else healthy
-            AH-->>ENG: Ok(gib)
-        end
-    end
-    alt annexe unhealthy
-        ENG->>INBOX: add("alert", repo, night_id, date, "did not start: annexe unhealthy") (engine.rs:836-848)
-        ENG->>ENG: persist_blocked_env(...), BLOCKED-ENV, no attempt counted (engine.rs:850-864)
-    else healthy
-        ENG->>RS: begin(dir, ...), the journal now counts this attempt, see AB-23.7
-    end
+flowchart TB
+    MAN["Manifest frozen; attempt not yet counted<br/>engine.rs:763"] --> SWEEP["SSH retention: find date-like dirs by parent mtime, then rm<br/>engine.rs:806-810"]
+    SWEEP --> MASK["Shell ends with true; find and deletion errors hidden<br/>engine.rs:809"]
+    MASK --> SSH["annexe_health via synchronous SSH<br/>engine.rs:823; dispatch.rs:347"]
+    SSH --> WRITE{"mkdir, write probe, remove probe succeed?<br/>dispatch.rs:327-332"}
+    WRITE -->|no| FAIL["Health error<br/>dispatch.rs:348"]
+    WRITE -->|yes| DF["df -Pk emits AVAIL-KB<br/>dispatch.rs:331"]
+    DF --> PARSE{"Parse KiB and floor to GiB<br/>dispatch.rs:336,351"}
+    PARSE -->|missing or below floor| FAIL
+    PARSE -->|sufficient| BEGIN["begin counts attempt<br/>engine.rs:867"]
+    FAIL --> REC["Alert plus BLOCKED-ENV record; no attempt count<br/>engine.rs:836,850"]
+    BEGIN --> CLONE["Clone then check directory exists and is non-empty<br/>engine.rs:954,979"]
+    CLONE --> RETRY["One reprovision attempt if checkout probe fails<br/>engine.rs:993"]
 ```
 
-**Invariant:** the annexe probe writes and deletes a file before it trusts `df`'s free-space figure, so a metadata-exhausted btrfs volume that still reports free capacity is still caught (`../project/agentbox/services/dream-engine/src/dispatch.rs:327-332`).
+The write test catches failures that a free-space figure alone misses; local fixtures exercise the actual public health function through a substitute SSH executable. The minimum defaults to 10 GiB; an explicit zero disables the capacity floor, not the write test (`../project/agentbox/services/dream-engine/src/engine.rs:2293`). Health checks are observations at that moment, not reservations of space or proof of checkout identity.
+
+The exact retention command deleted a disposable old parent directory containing a freshly written child. It checks neither active jobs nor night locks, and a failing find command still returned success with no stderr. This is fixture evidence, not a claim that a live run was deleted. SSH has a 10-second connection timeout but no overall command deadline (`../project/agentbox/services/dream-engine/src/dispatch.rs:39-60`); a connected hung sweep or probe can therefore hold up later serial work. See the [execution review](../../estate-review/2026-11-01-dream-execution-and-triage.md).
 
 ## AB-23.19 ADR-2071 clause (c) — historical acceptance and retained tick
 
@@ -783,47 +646,34 @@ flowchart TB
 
 **Tension (expiry and evidence):** source receipt writes and settlement writes are best effort, and the shared request store has no transaction around read-modify-write (`../project/agentbox/services/dream-engine/src/engine.rs:1295`, `../project/agentbox/services/dream-engine/src/wanted.rs:91`). Current source does not establish three distinct nights, exact range delivery or one lifetime loop alert per request.
 
-## AB-23.22 AB-23-S1-01 — the opt-in Jev triage before the candidate build
+## AB-23.22 Optional triage can defer without a durable receipt
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant ENG as Engine, step 8b<br/>agentbox/services/dream-engine/src/engine.rs:1439
-    participant JT as jev_triage::consider<br/>agentbox/services/dream-engine/src/jev_triage.rs:497
-    participant S1 as System One endpoint, the proxy on 127.0.0.1:8094 or the vendor
-    participant SCR as dream_core::screen<br/>dream-core/src/screen.rs:362
-    participant REC as jev-triage.json in the night directory
-    participant GATE as candidate build and the deterministic gate
-
-    ENG->>ENG: only when the report claims ACCEPT (engine.rs:1439)
-    ENG->>JT: Config::from_env, report, patch, evaluator names, declared disciplines (engine.rs:1440-1447)
-    alt AGENTBOX_JEV_DREAM_TRIAGE not set, no endpoint, or a local-only refusal
-        JT-->>ENG: false, nothing built and nothing sent (jev_triage.rs:147, jev_triage.rs:383)
-    else enabled
-        JT->>S1: one request, two typed questions: usefulness as a four-level Score, problem_supported as a Noul (jev_triage.rs:319, jev_triage.rs:383)<br/>to the keyless LAN local_backend only when AGENTBOX_JEV_DREAM_TRIAGE_LOCAL_ONLY is set (jev_triage.rs:151-158),<br/>else the proxy and its selected backend, refused only when local-only is set and the backend is not declared local (jev_triage.rs:165-167)
-        S1-->>JT: signals, or a timeout of 15 seconds, a non-2xx or an unparsable body, each a fallback (jev_triage.rs:72, jev_triage.rs:346)
-        JT->>SCR: a second call, the library screen of the hypothesis against declared_disciplines (jev_triage.rs:431, dream-core/src/screen.rs:91)
-        JT->>REC: annotation only, authority none, written as jev-triage.json (jev_triage.rs:70, jev_triage.rs:497)
-        alt AGENTBOX_JEV_DREAM_TRIAGE_DEFER_BELOW is set in 0 to 0.5 and problem_supported is below it
-            JT-->>ENG: true, defer
-            ENG->>GATE: the candidate build is skipped, the state stays NotAttempted and the gate vetoes the ACCEPT claim as unproven (engine.rs:1461-1465)
-        else the default, no threshold
-            JT-->>ENG: false
-            ENG->>GATE: the build and the gate run exactly as before (engine.rs:1465)
-        end
-    end
-    Note over GATE: INVARIANT: a high usefulness never means ACCEPT. The signals never reach the gate,<br/>the deferral is the only action and it is inert until a threshold is configured (jev_triage.rs:490)
+flowchart TB
+    CLAIM{"Report claims ACCEPT and triage enabled?<br/>engine.rs:1439-1441"}
+    CLAIM -->|no| BUILD["Proceed to ordinary candidate handling<br/>engine.rs:1465"]
+    CLAIM -->|yes| ROUTE{"Endpoint available under configured locality?<br/>jev_triage.rs:147-187"}
+    ROUTE -->|no| BUILD
+    ROUTE -->|yes| ASK["First request: report head, path hints and evaluator names<br/>jev_triage.rs:319"]
+    ASK --> SIGNAL{"Valid typed usefulness and support values?<br/>jev_triage.rs:346"}
+    SIGNAL -->|fallback| BUILD
+    SIGNAL -->|yes| DEFER["Compute defer from support and explicit threshold<br/>jev_triage.rs:490"]
+    DEFER --> SCREEN["Second request: library discipline screen, capped inputs<br/>jev_triage.rs:521; screen.rs:222"]
+    SCREEN --> RECORD["Write annotation or screen-fallback record<br/>jev_triage.rs:521-549"]
+    RECORD --> CHECK{"Defer computed true?<br/>jev_triage.rs:557"}
+    CHECK -->|no| BUILD
+    CHECK -->|yes| SKIP["Skip build even if annotation write failed<br/>engine.rs:1465"]
+    SKIP --> GATE["NotAttempted: ACCEPT stays unproven<br/>gate.rs:445"]
+    RECORD -.-> AUTH["Each HTTP call has 15-second timeout and no redirects<br/>jev_triage.rs:274-278"]
 ```
 
-**What it shows.** An optional annotation step between the model's report and the costly candidate build. **Why it is this way.** The candidate evaluation is the expensive part of a night, and a hypothesis that the evidence does not support is cheaper to hold back than to build; but the verdict is advice about where to spend measurement, never about the change, so the deterministic gate, the protected-path guard and the human merge gate decide everything that does run (`../project/agentbox/services/dream-engine/src/jev_triage.rs:1-30`). The screening mechanism itself lives in `dream-core` 0.4.0 (`../dream-engine/crates/dream-core/src/screen.rs:1-30`).
+Default threshold is unset, so valid signals annotate without deferral. A configured threshold must lie in 0 to 0.5. Neither usefulness nor the discipline score can approve a candidate. The two requests are sequential; the first failing means the second is not sent. An initial fallback writes nothing and leaves any prior annotation in place (`../project/agentbox/services/dream-engine/src/jev_triage.rs:505-511`).
 
-**Resolved (configured, not live):** the manifest sets `jev_triage = true` with `[system_one] enabled = true` (`../project/agentbox/agentbox.toml:2612`, `../project/agentbox/agentbox.toml:890`), and the projector now exports `AGENTBOX_JEV_DREAM_TRIAGE_LOCAL_ONLY=0` unless `dream_triage` is named in `[system_one].local_only`, which is empty (`../project/agentbox/services/agentbox-manifest/src/system_one.rs:535`, `../project/agentbox/services/agentbox-manifest/src/system_one.rs:564-577`, `../project/agentbox/agentbox.toml:895`), so triage takes the proxy and the selected `typesafe` backend, with the private LAN route still projected for the opt-in (`../project/agentbox/services/agentbox-manifest/src/system_one.rs:402`, `../project/agentbox/config/entrypoint-unified.sh:1259-1263`); the flake bakes `AGENTBOX_JEV_DREAM_TRIAGE=1` into the dream-engine program only when the System One proxy is on (`../project/agentbox/flake.nix:280-281`). All of this is configured, not live: it is rebuild-class and ADR-2155 records the consumer activation as `staged` (`../project/agentbox/docs/adr/ADR-2155-system-one-consumer-activation.md:7`), so no running night is annotated or deferred until an image carrying that manifest is activated.
-
-**Debt:** the module re-implements the System One request body that `crates/system-one/system-one-client` speaks, because the service builds from `services/dream-engine` alone and the client is a workspace path dependency (`../project/agentbox/services/dream-engine/src/jev_triage.rs:44-48`).
+The first request clips the report to 4,000 characters but does not cap the complete request. Its path hints omit deletions and pure renames. The second request retains at most 16 disciplines, while the saved annotation lists the full input set (`../project/agentbox/services/dream-engine/src/jev_triage.rs:305,319,527`; `../dream-engine/crates/dream-core/src/screen.rs:230`). These signals cannot replace evaluator evidence. The [execution review](../../estate-review/2026-11-01-dream-execution-and-triage.md) records transport-free probes, current configuration and the limits of ADR-2155's staged activation record. A staged record does not prove that no other running image has the feature.
 
 ## Audit qualification — 2026-10-29
 
-1 November continuation: AB-23.7 and AB-23.21 were reassessed against matching current source and updated for recovery and source-supply limits. Later forge/seam and migration passes also reassessed AB-23.6 and AB-23.3. The controls pass reassessed AB-23.2, AB-23.10, AB-23.15 and AB-23.16. The receipt/depth pass reassessed AB-23.11 to AB-23.14. Ten other panels remain separately queued; rendering this topic does not close their semantic review.
+1 November continuation: AB-23.7 and AB-23.21 were reassessed against matching current source and updated for recovery and source-supply limits. Later forge/seam and migration passes also reassessed AB-23.6 and AB-23.3. The controls pass reassessed AB-23.2, AB-23.10, AB-23.15 and AB-23.16. The receipt/depth pass reassessed AB-23.11 to AB-23.14. The execution/triage pass subsequently assessed the six remaining original panels (1, 4, 5, 8, 18 and 22). All 22 original panels and additions 23–24 now have a source assessment across the linked passes; open findings, the separate nested engine corpus and the wider estate audit remain outstanding.
 
 This topic describes the extraction as source at the stamped revisions. ADR-2141 records `implementation_status: complete` and `activation_status: live`: the operator rebuilt and activated the registry-pinned image on 2026-10-16 and the supervised daemon was RUNNING with no degradation (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:47`). The later pins (0.2.0, 0.3.0, 0.4.0) are source in `Cargo.toml`; the record carries activation evidence for 0.2.0 only (`../project/agentbox/docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md:35`).
 
