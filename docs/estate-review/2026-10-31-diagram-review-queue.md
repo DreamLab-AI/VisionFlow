@@ -1,5 +1,7 @@
 # Diagram semantic-review queue — 31 October 2026
 
+1 November admission continuation: [VG-07 maps the previously uncovered importer](2026-11-01-visiongraph-source-admission.md), with ADR-VG-005/006 section assessments. Three visionGraph ADRs and existing VG-03/04/05/06 topics remain queued; new coverage does not close them.
+
 1 November visionGraph continuation: [all six VG-01 panels assessed](2026-11-01-visiongraph-vault-and-domain-contracts.md), with ADR-VG-003/004/008 section dispositions and thirteen gate probes. Other visionGraph topics, five remaining decisions and runtime acceptance remain queued.
 
 1 November inventory continuation: [knowledgeGraph decision inventory and live receipt](2026-11-01-knowledgegraph-inventory-and-live-receipt.md) accounts for all five current topics (sixteen panels after one addition), all four operative ADRs and both frozen ADR-named content pages. The historical archive inventory is now assessed. Six sampled public artefacts match; one served context contradicts the root manifest. Full runtime acceptance and implementation findings remain open.

@@ -1,5 +1,7 @@
 ---
 
+VisionGraph source-admission continuation: [five new VG-07 panels, two ADR section assessments, 23 importer probes and 39 current competency assertions](2026-11-01-visiongraph-source-admission.md). Source-policy binding, semantic checks, partial staging and reproducible builds remain open.
+
 VisionGraph vault/domain continuation: [six VG-01 panels, three ADR section assessments and thirteen boundary probes](2026-11-01-visiongraph-vault-and-domain-contracts.md). Domain-tier integrity, category identity, Bases validation and publication-policy findings remain open.
 
 KnowledgeGraph inventory and public-site continuation: [decision classification, validator probes and a live manifest mismatch](2026-11-01-knowledgegraph-inventory-and-live-receipt.md). All five knowledgeGraph topics and four operative ADRs are accounted for, with implementation and full runtime acceptance still open.

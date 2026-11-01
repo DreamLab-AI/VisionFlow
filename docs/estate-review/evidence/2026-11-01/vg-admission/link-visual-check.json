@@ -1,0 +1,16 @@
+{
+  "visual_panels": [
+    "VG-07.1",
+    "VG-07.2",
+    "VG-07.3",
+    "VG-07.4",
+    "VG-07.5"
+  ],
+  "visual_result": "readable, no clipped labels or overlapping nodes observed",
+  "source_hash_checks": {
+    "visionGraph": 1243,
+    "vault_core": 20,
+    "knowledge_markdown": 9610
+  },
+  "replayed_distinct_named_classes": 419
+}

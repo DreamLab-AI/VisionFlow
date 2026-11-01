@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_180 topic files, 1599 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_181 topic files, 1604 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -354,6 +354,7 @@ _180 topic files, 1599 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VG-04 | [Downstream contracts — VisionClaw's pull model, and knowledgeGraph as deploy target](visiongraph/04-downstream-contracts.md) | 2 | sequenceDiagram, flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) | ADR-VG-002, visionclaw:ADR-2147 |
 | VG-05 | [Invariants register — vault contract facts vs the proposed, inactive closeout ADRs](visiongraph/05-invariants-register.md) | 4 | flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) | ADR-VG-001, ADR-VG-002 |
 | VG-06 | [publishing-tools/WasmVOWL — the tree that actually ships, and how it has drifted from its sibling](visiongraph/06-shipping-explorer-duplication.md) | 5 | flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) |  |
+| VG-07 | [Reviewed source admission, header staging and importer limits](visiongraph/07-reviewed-source-admission-and-header-import.md) | 5 | flowchart | [ADR-VG-005-licensed-source-admission.md](../../../visionGraph/docs/adr/ADR-VG-005-licensed-source-admission.md), [ADR-VG-006-ontology-to-obsidian.md](../../../visionGraph/docs/adr/ADR-VG-006-ontology-to-obsidian.md) | ADR-VG-005, ADR-VG-006 |
 
 ### sidestr-rs
 

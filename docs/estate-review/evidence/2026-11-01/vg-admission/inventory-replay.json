@@ -1,0 +1,107 @@
+[
+  {
+    "inventory": "intake/parsed/realmAstroBody.json",
+    "hash_matches": true,
+    "quad_count_matches": true,
+    "class_identities_match": true,
+    "class_count": 11
+  },
+  {
+    "inventory": "intake/parsed/reprSpaceReferenceSystem.json",
+    "hash_matches": true,
+    "quad_count_matches": true,
+    "class_identities_match": true,
+    "class_count": 4
+  },
+  {
+    "inventory": "intake/parsed/realmHydro.json",
+    "hash_matches": true,
+    "quad_count_matches": true,
+    "class_identities_match": true,
+    "class_count": 35
+  },
+  {
+    "inventory": "intake/parsed/reprDataProduct.json",
+    "hash_matches": true,
+    "quad_count_matches": true,
+    "class_identities_match": true,
+    "class_count": 29
+  },
+  {
+    "inventory": "intake/parsed/realmAtmo.json",
+    "hash_matches": true,
+    "quad_count_matches": true,
+    "class_identities_match": true,
+    "class_count": 16
+  },
+  {
+    "inventory": "intake/parsed/stateDataProcessing.json",
+    "hash_matches": true,
+    "quad_count_matches": true,
+    "class_identities_match": true,
+    "class_count": 33
+  },
+  {
+    "inventory": "intake/parsed/reprSpaceCoordinate.json",
+    "hash_matches": true,
+    "quad_count_matches": true,
+    "class_identities_match": true,
+    "class_count": 10
+  },
+  {
+    "inventory": "intake/parsed/realmCryo.json",
+    "hash_matches": true,
+    "quad_count_matches": true,
+    "class_identities_match": true,
+    "class_count": 32
+  },
+  {
+    "inventory": "intake/parsed/realmAstroHelio.json",
+    "hash_matches": true,
+    "quad_count_matches": true,
+    "class_identities_match": true,
+    "class_count": 14
+  },
+  {
+    "inventory": "intake/parsed/reprDataServiceGeospatial.json",
+    "hash_matches": true,
+    "quad_count_matches": true,
+    "class_identities_match": true,
+    "class_count": 20
+  },
+  {
+    "inventory": "intake/parsed/reprDataServiceValidation.json",
+    "hash_matches": true,
+    "quad_count_matches": true,
+    "class_identities_match": true,
+    "class_count": 21
+  },
+  {
+    "inventory": "intake/parsed/slso.json",
+    "hash_matches": true,
+    "quad_count_matches": true,
+    "class_identities_match": true,
+    "class_count": 112
+  },
+  {
+    "inventory": "intake/parsed/realmAstroStar.json",
+    "hash_matches": true,
+    "quad_count_matches": true,
+    "class_identities_match": true,
+    "class_count": 11
+  },
+  {
+    "inventory": "intake/parsed/matrInstrument.json",
+    "hash_matches": true,
+    "quad_count_matches": true,
+    "class_identities_match": true,
+    "class_count": 25
+  },
+  {
+    "inventory": "intake/parsed/reprDataServiceAnalysis.json",
+    "hash_matches": true,
+    "quad_count_matches": true,
+    "class_identities_match": true,
+    "class_count": 46
+  }
+]

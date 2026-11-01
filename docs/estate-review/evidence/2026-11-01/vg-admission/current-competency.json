@@ -1,0 +1,447 @@
+{
+  "case_count": 10,
+  "failures": 0,
+  "evaluation": "actual headers; only is-a is transitive",
+  "results": [
+    {
+      "id": "CQ-01",
+      "checks": [
+        {
+          "edge": {
+            "source": "Spaceborne Lidar",
+            "predicate": "is-a",
+            "target": "Earth Observation Instrument"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Earth Observation Instrument",
+            "predicate": "related-to",
+            "target": "Remote Sensing Platform"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Earth Observation Instrument",
+            "predicate": "is-a",
+            "target": "Satellite Remote Sensing"
+          },
+          "expected": false,
+          "found": false,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Ground-based Remote Sensing",
+            "predicate": "is-a",
+            "target": "Satellite Remote Sensing"
+          },
+          "expected": false,
+          "found": false,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "CQ-02",
+      "checks": [
+        {
+          "edge": {
+            "source": "Satellite Remote Sensing",
+            "predicate": "is-a",
+            "target": "Remote Sensing"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Earth Observation Processing",
+            "predicate": "related-to",
+            "target": "Earth Observation Data Product"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Earth Observation Data Product",
+            "predicate": "is-a",
+            "target": "Earth Observation Instrument"
+          },
+          "expected": false,
+          "found": false,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "CQ-03",
+      "checks": [
+        {
+          "edge": {
+            "source": "Sensor Intercalibration",
+            "predicate": "related-to",
+            "target": "Radiometric Calibration"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Sensor Intercalibration",
+            "predicate": "related-to",
+            "target": "Measurement Uncertainty"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Measurement Uncertainty",
+            "predicate": "is-a",
+            "target": "Earth Observation Instrument"
+          },
+          "expected": false,
+          "found": false,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "CQ-04",
+      "checks": [
+        {
+          "edge": {
+            "source": "Earth Observation Sensor Fusion",
+            "predicate": "is-a",
+            "target": "Sensor Fusion"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Spacecraft Navigation Filter",
+            "predicate": "related-to",
+            "target": "Kalman Filter"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Earth Observation Sensor Fusion",
+            "predicate": "requires",
+            "target": "Artificial Intelligence"
+          },
+          "expected": false,
+          "found": false,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Spacecraft Navigation Filter",
+            "predicate": "requires",
+            "target": "Kalman Filter"
+          },
+          "expected": false,
+          "found": false,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "CQ-05",
+      "checks": [
+        {
+          "edge": {
+            "source": "Spaceflight Experiment",
+            "predicate": "related-to",
+            "target": "Microgravity"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Spaceflight Experiment",
+            "predicate": "related-to",
+            "target": "Space Radiation"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Spaceflight Experiment",
+            "predicate": "related-to",
+            "target": "Ground Control Experiment"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Ground Control Experiment",
+            "predicate": "is-a",
+            "target": "Spaceflight Experiment"
+          },
+          "expected": false,
+          "found": false,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Microgravity",
+            "predicate": "is-a",
+            "target": "Space Radiation"
+          },
+          "expected": false,
+          "found": false,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "CQ-06",
+      "checks": [
+        {
+          "edge": {
+            "source": "Earth Observation Data Assimilation",
+            "predicate": "bridges-to",
+            "target": "Digital Twin"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Earth Observation Data Product",
+            "predicate": "related-to",
+            "target": "Observation Provenance"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Earth Observation Data Product",
+            "predicate": "related-to",
+            "target": "Processing Lineage"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Earth Observation Data Product",
+            "predicate": "is-a",
+            "target": "Digital Twin"
+          },
+          "expected": false,
+          "found": false,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "CQ-07",
+      "checks": [
+        {
+          "edge": {
+            "source": "Planetary Rover",
+            "predicate": "is-a",
+            "target": "Spacecraft"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Planetary Rover",
+            "predicate": "is-a",
+            "target": "Robot"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Spacecraft Payload",
+            "predicate": "is-a",
+            "target": "Spacecraft"
+          },
+          "expected": false,
+          "found": false,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Spacecraft Attitude",
+            "predicate": "is-a",
+            "target": "Spacecraft Subsystem"
+          },
+          "expected": false,
+          "found": false,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "CQ-08",
+      "checks": [
+        {
+          "edge": {
+            "source": "Spacecraft Communications",
+            "predicate": "bridges-to",
+            "target": "Satellite Communication"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Earth Observation Sensor Fusion",
+            "predicate": "is-a",
+            "target": "Sensor Fusion"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Remote Sensing Image Segmentation",
+            "predicate": "bridges-to",
+            "target": "Computer Vision"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Spacecraft Communications",
+            "predicate": "requires",
+            "target": "Blockchain"
+          },
+          "expected": false,
+          "found": false,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "CQ-09",
+      "checks": [
+        {
+          "edge": {
+            "source": "Delay-tolerant Space Networking",
+            "predicate": "bridges-to",
+            "target": "Communication Protocol"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Delay-tolerant Space Networking",
+            "predicate": "uses",
+            "target": "Store-and-forward Communication"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Spacecraft Communications",
+            "predicate": "requires",
+            "target": "Optical Space Communication"
+          },
+          "expected": false,
+          "found": false,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "CQ-10",
+      "checks": [
+        {
+          "edge": {
+            "source": "Global Navigation Satellite System",
+            "predicate": "related-to",
+            "target": "Inertial Measurement Unit"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "GNSS Receiver",
+            "predicate": "bridges-to",
+            "target": "Digital Signal Processing"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Satellite Navigation Solution",
+            "predicate": "bridges-to",
+            "target": "Navigation"
+          },
+          "expected": true,
+          "found": true,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Global Navigation Satellite System",
+            "predicate": "same-as",
+            "target": "Navigation"
+          },
+          "expected": false,
+          "found": false,
+          "passed": true
+        },
+        {
+          "edge": {
+            "source": "Precise Point Positioning",
+            "predicate": "requires",
+            "target": "Differential GNSS"
+          },
+          "expected": false,
+          "found": false,
+          "passed": true
+        }
+      ]
+    }
+  ]
+}

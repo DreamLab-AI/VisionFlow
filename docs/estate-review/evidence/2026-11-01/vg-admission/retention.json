@@ -1,0 +1,266 @@
+{
+  "retained_root": "/tmp/vf-vg-admission-artifacts",
+  "artifacts": [
+    {
+      "path": "Cargo.lock.committed",
+      "bytes": 20529,
+      "sha256": "58367a9b99ae583b1b31302ded70d5aca6e1d6d6a5c7436ba2c4aa086e66f7f6"
+    },
+    {
+      "path": "Cargo.lock.resolved",
+      "bytes": 22270,
+      "sha256": "30dd843261a5757964264ce9a18bebf719242948b3c05cfe019be7c235c115dd"
+    },
+    {
+      "path": "VG-07.1.mmd",
+      "bytes": 865,
+      "sha256": "7f37ae0956cb1c14d09047e1c807451691e842e200fa8bbbbed04795a8cba899"
+    },
+    {
+      "path": "VG-07.1.png",
+      "bytes": 85936,
+      "sha256": "1b5191f7b7e66cce036c6b86770ca76cb9fb63e6fab951375d0cddde8033daa2"
+    },
+    {
+      "path": "VG-07.1.svg",
+      "bytes": 4004,
+      "sha256": "4e70ff149891c8560840239f20c01002ab8e9eb18d851838db73c7831ef1ddf1"
+    },
+    {
+      "path": "VG-07.2.mmd",
+      "bytes": 937,
+      "sha256": "cdff6ce7496ec27ee3031f52c01fe984eafadacf4822bc5957458530aec8ecde"
+    },
+    {
+      "path": "VG-07.2.png",
+      "bytes": 94184,
+      "sha256": "3882838cac409b790cc764a3cbc3ec1fb6876a384b67d34ae1324071d390ce0f"
+    },
+    {
+      "path": "VG-07.2.svg",
+      "bytes": 4005,
+      "sha256": "2acb65e145be6c0581c69603c23bf8d36fa805fb9b4a0e54e5a4e40a50b88d5b"
+    },
+    {
+      "path": "VG-07.3.mmd",
+      "bytes": 814,
+      "sha256": "80057a4ea3f8afc302f6ff06ad8260e1e420066f7d069a6e134f9f488f9df6c8"
+    },
+    {
+      "path": "VG-07.3.png",
+      "bytes": 89269,
+      "sha256": "17c23be4c9adf9c9c14c4c737c8ab236788b22c831b1fae38f8cd076ad388e9f"
+    },
+    {
+      "path": "VG-07.3.svg",
+      "bytes": 4436,
+      "sha256": "ed64b3046fd6288817cf26a245880e6da01d1ee758c7f767c4ae2651dfff5f3c"
+    },
+    {
+      "path": "VG-07.4.mmd",
+      "bytes": 1149,
+      "sha256": "b33e75bba03779c8abe81d2f71d5ec0dd41ccb09028045cb10b91ec281137f22"
+    },
+    {
+      "path": "VG-07.4.png",
+      "bytes": 113082,
+      "sha256": "15498362b5b0cdb2142c322654867ba25e4f3d78eaf9825dda97497a92a719a7"
+    },
+    {
+      "path": "VG-07.4.svg",
+      "bytes": 4295,
+      "sha256": "5e3987322b7c638b833341d69365d752f24156467f004c1f87fece0cf997e2e7"
+    },
+    {
+      "path": "VG-07.5.mmd",
+      "bytes": 877,
+      "sha256": "8eb6e7d4de3165201de2e6fbe3637453f5a3f0bdcabe21e4665651cf1f821627"
+    },
+    {
+      "path": "VG-07.5.png",
+      "bytes": 92989,
+      "sha256": "91dae0d58d2059ea175b615ceef984059f553a0bb6aa5ecbb6d1299deac0eb87"
+    },
+    {
+      "path": "VG-07.5.svg",
+      "bytes": 3347,
+      "sha256": "b488fa147fc67e2f6a6e6ca76fafe5722bb3229d196556fa00dc8ec81ac69675"
+    },
+    {
+      "path": "build-receipt.json",
+      "bytes": 4363,
+      "sha256": "fae85100258804d3344673265a4fcc88781ea92f6e2c4a137bd27b48f3460711"
+    },
+    {
+      "path": "cargo-build.log",
+      "bytes": 178,
+      "sha256": "8806dff2521d2d9a0fdf172e18c94b31545df03d196e319f1a83308baebd292d"
+    },
+    {
+      "path": "cargo-locked.log",
+      "bytes": 264,
+      "sha256": "0c1b71e9a7dd7a549ad57725391c11c03918ec4661b5cb940deb351cf174e1eb"
+    },
+    {
+      "path": "cargo-test-exec.log",
+      "bytes": 1963,
+      "sha256": "5d570c9579c447d9878abfdabe1238772da56be492f5ff433633bd5ce99fcc02"
+    },
+    {
+      "path": "cargo-test-final.log",
+      "bytes": 3507,
+      "sha256": "88a406bc91e3b2e35b3118e2092c7c7c56a06bc87f7eebe526a70b4aafab86cd"
+    },
+    {
+      "path": "cargo-test.log",
+      "bytes": 2283,
+      "sha256": "a73534ca35588e2f0e8607fa1290a98cd9b17444114a30b824f465918ea63821"
+    },
+    {
+      "path": "corpus-gate.log",
+      "bytes": 2411,
+      "sha256": "643b5059a3eaadd4df4f4612b996cc875aa4333013b515ea68d946c5a96df5b6"
+    },
+    {
+      "path": "current-competency.json",
+      "bytes": 11019,
+      "sha256": "6fd79c7e957e608a5f2a385e2e2f39472f865b301161426e23ed7e660c47254a"
+    },
+    {
+      "path": "current-competency.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dependency-sources.json",
+      "bytes": 3005,
+      "sha256": "45ab316de065b016f0b9f15bbe6d7446aeaade6601421cea4a8feb21b3e52315"
+    },
+    {
+      "path": "diagram-gate.log",
+      "bytes": 229,
+      "sha256": "cee4110996f027c872f021b5b769d77d51b5b597e1af1f58a0a1c6bea1b83de0"
+    },
+    {
+      "path": "freshness.log",
+      "bytes": 155,
+      "sha256": "6c4bef7a50f753277ef526c9c459b0c37eb59ad0459d95d6818727393c6a7ed7"
+    },
+    {
+      "path": "initial-state.json",
+      "bytes": 1054,
+      "sha256": "8d551722e52bd38b26b715830de4c45ecdb04e4d998d83b4e7edbefbc4404a19"
+    },
+    {
+      "path": "inventory-00.json",
+      "bytes": 6723,
+      "sha256": "53179a74bb02361e88f1867feee03cf4e21b5d35d0c25867751d81b83ee24d3c"
+    },
+    {
+      "path": "inventory-01.json",
+      "bytes": 3065,
+      "sha256": "b4dfbb3d1e977049097b31abdd8d78d21d8819fdbdb43840c5604be25c2602d5"
+    },
+    {
+      "path": "inventory-02.json",
+      "bytes": 20785,
+      "sha256": "42ab7eb5a7536ba11df4be90d02b5a069960ac8da591a64335063f29a1ea0afb"
+    },
+    {
+      "path": "inventory-03.json",
+      "bytes": 16536,
+      "sha256": "689bcb35ea40619b7614ffc03555987a6e92076d737c860bb4e798a66287bae5"
+    },
+    {
+      "path": "inventory-04.json",
+      "bytes": 10592,
+      "sha256": "da0d5828910335711eb0f8650bec1299bc9e6294006281d2a29187c869899299"
+    },
+    {
+      "path": "inventory-05.json",
+      "bytes": 20804,
+      "sha256": "9e0f3d69f87b2b5fe5c35bd4a9b41760bf68a32cfbf3d2f007afd2561ffdfb84"
+    },
+    {
+      "path": "inventory-06.json",
+      "bytes": 6186,
+      "sha256": "a05ce48fb84c8e772011a695dc05dcb069295c8eb816834cda8e4d231ade48f7"
+    },
+    {
+      "path": "inventory-07.json",
+      "bytes": 34739,
+      "sha256": "51ee4100b038e76a712a2ab7eed4a2ae7a4dbe7eaaf96bab4ecc9d7795022dda"
+    },
+    {
+      "path": "inventory-08.json",
+      "bytes": 9223,
+      "sha256": "8c9f17700dbe290bc42bf68fbd30484598bd969064efca90ca80e59f41c7dbdc"
+    },
+    {
+      "path": "inventory-09.json",
+      "bytes": 13216,
+      "sha256": "2b85ac458b9b2d28cf4ae7bed33975c8ddb59513d4fd8baa41c0bcb7100422ff"
+    },
+    {
+      "path": "inventory-10.json",
+      "bytes": 13324,
+      "sha256": "42a7cb6293b98f1f4121c3579cac682c76ff515719702139b6ccbfdbdbcda946"
+    },
+    {
+      "path": "inventory-11.json",
+      "bytes": 82923,
+      "sha256": "b175b41b4e2b39669bcd375ab9959ae002009c2a3d65667a4a068a0a7056edc1"
+    },
+    {
+      "path": "inventory-12.json",
+      "bytes": 7359,
+      "sha256": "eef8bb75e874afaa9174cb3e07c376aa13f4aa755a3e65de06a782de0485446f"
+    },
+    {
+      "path": "inventory-13.json",
+      "bytes": 13992,
+      "sha256": "5aab37270c1febe60e7f4d5a5a88f8c34dc4f390365fbb4e4964c5334bd5afbc"
+    },
+    {
+      "path": "inventory-14.json",
+      "bytes": 27343,
+      "sha256": "cf6d34dacbd32d8cff522d0061a4b0133a565f4f2b48869c40c45d1c6d96a9c4"
+    },
+    {
+      "path": "inventory-replay.json",
+      "bytes": 2716,
+      "sha256": "60bb1807f2ff456adb19423c25a965ce8006dd85328fa861345c876d6df55206"
+    },
+    {
+      "path": "knowledge-sources.json",
+      "bytes": 1392018,
+      "sha256": "7e0e83848490f6e8290995c4326c710ae78651048cc32d9796fca68ffdac3041"
+    },
+    {
+      "path": "owned-links.json",
+      "bytes": 2024,
+      "sha256": "4f48c9a626ac0b74239c62fdf5fe1be75ca508030c4990c7da095208fa3cb163"
+    },
+    {
+      "path": "probes.json",
+      "bytes": 37662,
+      "sha256": "a215c3c6d86a529d98943e8afb1634051effc498399ef3eeb4a2d932aa33a39f"
+    },
+    {
+      "path": "source-census.json",
+      "bytes": 7760,
+      "sha256": "9e226528c89d4e2356e8fdea1a0690863118b3a5c0e38551d17521fc862da52c"
+    },
+    {
+      "path": "sources.json",
+      "bytes": 253795,
+      "sha256": "00f67ec3713443620b567093827fd5b7eb474aaa124ea22becd2e9baadf99df8"
+    },
+    {
+      "path": "texput.log",
+      "bytes": 714,
+      "sha256": "0de8dad445a514ae3bc13874d2a354c230d5395982c23ea702c3e573c3d9d304"
+    }
+  ],
+  "raw_sources": "sources.json, dependency-sources.json and knowledge-sources.json enumerate verified exported source files; source and project directories are retained locally"
+}

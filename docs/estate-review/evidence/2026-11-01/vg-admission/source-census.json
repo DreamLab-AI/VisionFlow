@@ -1,0 +1,154 @@
+{
+  "inventory_files": [
+    {
+      "inventory": "intake/parsed/realmAstroBody.json",
+      "file": "planning/space-science-and-geo-sensing/intake/sweet/src/realmAstroBody.ttl",
+      "actual_sha256": "720178213758be938fe403842b95e708ed01dee6ef018e92f62c31caf3c0f195",
+      "inventory_sha256": "720178213758be938fe403842b95e708ed01dee6ef018e92f62c31caf3c0f195",
+      "accounting_sha256": "720178213758be938fe403842b95e708ed01dee6ef018e92f62c31caf3c0f195",
+      "matches": true,
+      "class_count": 11
+    },
+    {
+      "inventory": "intake/parsed/reprSpaceReferenceSystem.json",
+      "file": "planning/space-science-and-geo-sensing/intake/sweet/src/reprSpaceReferenceSystem.ttl",
+      "actual_sha256": "a3b1b6ec8b89552252e286c587ddc044e63fa54ee58669870c778419803e787b",
+      "inventory_sha256": "a3b1b6ec8b89552252e286c587ddc044e63fa54ee58669870c778419803e787b",
+      "accounting_sha256": "a3b1b6ec8b89552252e286c587ddc044e63fa54ee58669870c778419803e787b",
+      "matches": true,
+      "class_count": 4
+    },
+    {
+      "inventory": "intake/parsed/realmHydro.json",
+      "file": "planning/space-science-and-geo-sensing/intake/sweet/src/realmHydro.ttl",
+      "actual_sha256": "12eec2ea1abefa64c6e8d360f1cf71969dc7c488f6ff0c75a67251c464063c35",
+      "inventory_sha256": "12eec2ea1abefa64c6e8d360f1cf71969dc7c488f6ff0c75a67251c464063c35",
+      "accounting_sha256": "12eec2ea1abefa64c6e8d360f1cf71969dc7c488f6ff0c75a67251c464063c35",
+      "matches": true,
+      "class_count": 35
+    },
+    {
+      "inventory": "intake/parsed/reprDataProduct.json",
+      "file": "planning/space-science-and-geo-sensing/intake/sweet/src/reprDataProduct.ttl",
+      "actual_sha256": "d63cd0c771a78ee039010666fe0ca95a59202d29fc2b7402972fb5e114f0f213",
+      "inventory_sha256": "d63cd0c771a78ee039010666fe0ca95a59202d29fc2b7402972fb5e114f0f213",
+      "accounting_sha256": "d63cd0c771a78ee039010666fe0ca95a59202d29fc2b7402972fb5e114f0f213",
+      "matches": true,
+      "class_count": 29
+    },
+    {
+      "inventory": "intake/parsed/realmAtmo.json",
+      "file": "planning/space-science-and-geo-sensing/intake/sweet/src/realmAtmo.ttl",
+      "actual_sha256": "c3ed9de6958864c962cb40b8e7f74d7d0dc80f9e0391d8c67bfe33939b3b0a9f",
+      "inventory_sha256": "c3ed9de6958864c962cb40b8e7f74d7d0dc80f9e0391d8c67bfe33939b3b0a9f",
+      "accounting_sha256": "c3ed9de6958864c962cb40b8e7f74d7d0dc80f9e0391d8c67bfe33939b3b0a9f",
+      "matches": true,
+      "class_count": 16
+    },
+    {
+      "inventory": "intake/parsed/stateDataProcessing.json",
+      "file": "planning/space-science-and-geo-sensing/intake/sweet/src/stateDataProcessing.ttl",
+      "actual_sha256": "aeffd04be0a4da44aad5be47d38a226a03f2960459f3e842822346c728abf7bb",
+      "inventory_sha256": "aeffd04be0a4da44aad5be47d38a226a03f2960459f3e842822346c728abf7bb",
+      "accounting_sha256": "aeffd04be0a4da44aad5be47d38a226a03f2960459f3e842822346c728abf7bb",
+      "matches": true,
+      "class_count": 33
+    },
+    {
+      "inventory": "intake/parsed/reprSpaceCoordinate.json",
+      "file": "planning/space-science-and-geo-sensing/intake/sweet/src/reprSpaceCoordinate.ttl",
+      "actual_sha256": "8d5d6bfd983581d355953fc7474b331b6d11d7a6a58dd1ca752a2f919524f6ed",
+      "inventory_sha256": "8d5d6bfd983581d355953fc7474b331b6d11d7a6a58dd1ca752a2f919524f6ed",
+      "accounting_sha256": "8d5d6bfd983581d355953fc7474b331b6d11d7a6a58dd1ca752a2f919524f6ed",
+      "matches": true,
+      "class_count": 10
+    },
+    {
+      "inventory": "intake/parsed/realmCryo.json",
+      "file": "planning/space-science-and-geo-sensing/intake/sweet/src/realmCryo.ttl",
+      "actual_sha256": "80ec997d619572be876887ce65b5bef4935eac01633b7631a746787c0572ce61",
+      "inventory_sha256": "80ec997d619572be876887ce65b5bef4935eac01633b7631a746787c0572ce61",
+      "accounting_sha256": "80ec997d619572be876887ce65b5bef4935eac01633b7631a746787c0572ce61",
+      "matches": true,
+      "class_count": 32
+    },
+    {
+      "inventory": "intake/parsed/realmAstroHelio.json",
+      "file": "planning/space-science-and-geo-sensing/intake/sweet/src/realmAstroHelio.ttl",
+      "actual_sha256": "fc57bc774fd99f5a67e3d918aa60c20be9f7173d89b1f7cf0c52fb03eeffe9f6",
+      "inventory_sha256": "fc57bc774fd99f5a67e3d918aa60c20be9f7173d89b1f7cf0c52fb03eeffe9f6",
+      "accounting_sha256": "fc57bc774fd99f5a67e3d918aa60c20be9f7173d89b1f7cf0c52fb03eeffe9f6",
+      "matches": true,
+      "class_count": 14
+    },
+    {
+      "inventory": "intake/parsed/reprDataServiceGeospatial.json",
+      "file": "planning/space-science-and-geo-sensing/intake/sweet/src/reprDataServiceGeospatial.ttl",
+      "actual_sha256": "8ddb4341fa6e2724413d29479cb475cca8831adf009772556f75f4166d59956c",
+      "inventory_sha256": "8ddb4341fa6e2724413d29479cb475cca8831adf009772556f75f4166d59956c",
+      "accounting_sha256": "8ddb4341fa6e2724413d29479cb475cca8831adf009772556f75f4166d59956c",
+      "matches": true,
+      "class_count": 20
+    },
+    {
+      "inventory": "intake/parsed/reprDataServiceValidation.json",
+      "file": "planning/space-science-and-geo-sensing/intake/sweet/src/reprDataServiceValidation.ttl",
+      "actual_sha256": "f804dac255e036f0eb3d9f47663b5b125afbcb593f15f790d143068724000bb9",
+      "inventory_sha256": "f804dac255e036f0eb3d9f47663b5b125afbcb593f15f790d143068724000bb9",
+      "accounting_sha256": "f804dac255e036f0eb3d9f47663b5b125afbcb593f15f790d143068724000bb9",
+      "matches": true,
+      "class_count": 21
+    },
+    {
+      "inventory": "intake/parsed/slso.json",
+      "file": "planning/space-science-and-geo-sensing/intake/slso/slso-base.owl",
+      "actual_sha256": "a6fa834f1171afaa53841a0e9db97000664e21553240f5b5f5f7863f0001fa9b",
+      "inventory_sha256": "a6fa834f1171afaa53841a0e9db97000664e21553240f5b5f5f7863f0001fa9b",
+      "accounting_sha256": "a6fa834f1171afaa53841a0e9db97000664e21553240f5b5f5f7863f0001fa9b",
+      "matches": true,
+      "class_count": 112
+    },
+    {
+      "inventory": "intake/parsed/realmAstroStar.json",
+      "file": "planning/space-science-and-geo-sensing/intake/sweet/src/realmAstroStar.ttl",
+      "actual_sha256": "ea82fd9a99f89281a80ebc99b30936fce940a836e33d80fcd1192c80c8351895",
+      "inventory_sha256": "ea82fd9a99f89281a80ebc99b30936fce940a836e33d80fcd1192c80c8351895",
+      "accounting_sha256": "ea82fd9a99f89281a80ebc99b30936fce940a836e33d80fcd1192c80c8351895",
+      "matches": true,
+      "class_count": 11
+    },
+    {
+      "inventory": "intake/parsed/matrInstrument.json",
+      "file": "planning/space-science-and-geo-sensing/intake/sweet/src/matrInstrument.ttl",
+      "actual_sha256": "ac3ec0112e5d2a2a2a862d3f94c73a1f91d7f771e5c9b69981bfe78fa7ed6d35",
+      "inventory_sha256": "ac3ec0112e5d2a2a2a862d3f94c73a1f91d7f771e5c9b69981bfe78fa7ed6d35",
+      "accounting_sha256": "ac3ec0112e5d2a2a2a862d3f94c73a1f91d7f771e5c9b69981bfe78fa7ed6d35",
+      "matches": true,
+      "class_count": 25
+    },
+    {
+      "inventory": "intake/parsed/reprDataServiceAnalysis.json",
+      "file": "planning/space-science-and-geo-sensing/intake/sweet/src/reprDataServiceAnalysis.ttl",
+      "actual_sha256": "ee88df3bcd06ab9742228b37893b0ea2ee2bb62ff47bcb2e4aff8d353c35184e",
+      "inventory_sha256": "ee88df3bcd06ab9742228b37893b0ea2ee2bb62ff47bcb2e4aff8d353c35184e",
+      "accounting_sha256": "ee88df3bcd06ab9742228b37893b0ea2ee2bb62ff47bcb2e4aff8d353c35184e",
+      "matches": true,
+      "class_count": 46
+    }
+  ],
+  "all_pins_match": true,
+  "catalogue_pages": 961,
+  "new_pages": 926,
+  "reused_pages": 35,
+  "mappings": 1408,
+  "mapping_dispositions": {
+    "excluded": 148,
+    "create": 1170,
+    "reuse": 67,
+    "alias": 23
+  },
+  "mapping_target_not_catalogue": [],
+  "duplicate_mapping_source_iris": {},
+  "catalogue_public": true,
+  "retained_headers": 914
+}

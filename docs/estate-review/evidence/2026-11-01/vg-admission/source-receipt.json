@@ -1,0 +1,12 @@
+{
+  "source_revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+  "source_files": 1243,
+  "source_manifest_sha256": "00f67ec3713443620b567093827fd5b7eb474aaa124ea22becd2e9baadf99df8",
+  "dependency_revision": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+  "knowledge_markdown_files": 9610,
+  "knowledge_manifest_sha256": "7e0e83848490f6e8290995c4326c710ae78651048cc32d9796fca68ffdac3041",
+  "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+  "committed_lock_sha256": "58367a9b99ae583b1b31302ded70d5aca6e1d6d6a5c7436ba2c4aa086e66f7f6",
+  "resolved_lock_sha256": "30dd843261a5757964264ce9a18bebf719242948b3c05cfe019be7c235c115dd"
+}

@@ -1,0 +1,86 @@
+{
+  "revision": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+  "repo": "project",
+  "files": [
+    {
+      "path": "crates/vault-core/Cargo.toml",
+      "sha256": "9da5985dec4664eea20eb2898edf1b0b2c0a88f6beca9ae111e58fd4dec76c3f"
+    },
+    {
+      "path": "crates/vault-core/LICENSE",
+      "sha256": "a2553752ed447e1147617c1b0bc46775232bbc2c9bf4654516721f9d488191d2"
+    },
+    {
+      "path": "crates/vault-core/README.md",
+      "sha256": "541a9547178adc6549b43e521efa2c9199e78b42e019d9b073e78389b78012be"
+    },
+    {
+      "path": "crates/vault-core/src/code.rs",
+      "sha256": "6190be542174056fd2df0e0c5f5ddab0b7e1bdaaea54e721f386e0d347465e88"
+    },
+    {
+      "path": "crates/vault-core/src/consistency.rs",
+      "sha256": "d451b779b8ed4cba1e40766f555954b4bf010a0ebac4c141366a5358db51db07"
+    },
+    {
+      "path": "crates/vault-core/src/definition.rs",
+      "sha256": "cf92337b32f59e0f57c41cc2fa18e5ca17286d163730b39ea3ca85b7acb8dcd7"
+    },
+    {
+      "path": "crates/vault-core/src/domains.rs",
+      "sha256": "b0dbde6f979db214242e2db12e5d9fe0fbcd8690001d30e16ac86fcdb7792648"
+    },
+    {
+      "path": "crates/vault-core/src/error.rs",
+      "sha256": "268a7492f2628114657f7a60063bc6fbf5d06d20532e19f05685e7586bc2ee94"
+    },
+    {
+      "path": "crates/vault-core/src/frontmatter.rs",
+      "sha256": "565e569fea4dded2b996e5c5a9627c2664360bf31464798c4947ff446d13f6e9"
+    },
+    {
+      "path": "crates/vault-core/src/graph.rs",
+      "sha256": "e2982ccc9a070f51a2c9cb12b41e6fd6cd861121d5cb08b1b80d3e54c050be01"
+    },
+    {
+      "path": "crates/vault-core/src/json.rs",
+      "sha256": "3ed72ae4346cd59308ce8e06a45df2ee72de47f8bfddf45d6f1215ef6ce6a796"
+    },
+    {
+      "path": "crates/vault-core/src/lib.rs",
+      "sha256": "26cc42aa62aec7f70982bea9311c862b574d6bd078a0cdd108ddb66a68f54a03"
+    },
+    {
+      "path": "crates/vault-core/src/okf.rs",
+      "sha256": "e88287759da8fee3ed55a00aa0fe56e28838c6f6782bfc375eab7ebe66add460"
+    },
+    {
+      "path": "crates/vault-core/src/page.rs",
+      "sha256": "e515e2c6cc4cc1fe221fb29a46d7bf023f0415b987dba07b64d1676aacf06f2a"
+    },
+    {
+      "path": "crates/vault-core/src/promotion.rs",
+      "sha256": "ba32fa16892add8a1b96daf561e07fbca90672820f831393e6c783dcb76bb3ad"
+    },
+    {
+      "path": "crates/vault-core/src/proposal.rs",
+      "sha256": "9c672d5f97c041ab1848fd3519f8bf85ee14b5c9ffd2a2cebcdae9c22945086b"
+    },
+    {
+      "path": "crates/vault-core/src/secrets.rs",
+      "sha256": "db2572202a68eac527f1afce4ef2ff46b188f239a84b8688d41a831561216c82"
+    },
+    {
+      "path": "crates/vault-core/src/slug.rs",
+      "sha256": "f4e8f4fb38b0dccd2dfcb60b70c56bf4341b53ecd02605c287e1bce722f4291e"
+    },
+    {
+      "path": "crates/vault-core/src/vocabulary.rs",
+      "sha256": "fd2d6a5371746c95e336944feb15e0f6e3035db3c4bf8f4b56b99c2700aac7cb"
+    },
+    {
+      "path": "crates/vault-core/tests/real_vocabulary.rs",
+      "sha256": "0e944591d23835c3f57300a9ff145d8c961eecac84b243321dafb3d02d8e8652"
+    }
+  ]
+}

@@ -1,0 +1,226 @@
+{
+  "scope": "exact exported importer; current pinned vault-core with isolated regenerated lock; fake vault only for subprocess-boundary cases",
+  "cases": [
+    {
+      "case": "valid-private-header",
+      "returncode": 0,
+      "stdout": "staged 1 new headers; 0 reused pages\n",
+      "stderr": "",
+      "staged_files": [
+        "A.md"
+      ]
+    },
+    {
+      "case": "missing-source-list-refused",
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "Error: A has no source\n\nStack backtrace:\n   0: <anyhow::Error>::msg::<alloc::string::String>\n             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104/src/backtrace.rs:10:14\n   1: visiongraph_space_corpus::header\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:389:5\n   2: visiongraph_space_corpus::stage\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:477:20\n   3: visiongraph_space_corpus::main\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:135:14\n   4: <fn() -> core::result::Result<(), anyhow::Error> as core::ops::function::FnOnce<()>>::call_once\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5\n   5: std::sys::backtrace::__rust_begin_short_backtrace::<fn() -> core::result::Result<(), anyhow::Error>, core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/sys/backtrace.rs:166:18\n   6: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>::{closure#0}\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:206:18\n   7: <&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync as core::ops::function::FnOnce<()>>::call_once\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:287:21\n   8: std::panicking::catch_unwind::do_call::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n   9: std::panicking::catch_unwind::<i32, &dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n  10: std::panic::catch_unwind::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  11: std::rt::lang_start_internal::{closure#0}\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:175:24\n  12: std::panicking::catch_unwind::do_call::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n  13: std::panicking::catch_unwind::<isize, std::rt::lang_start_internal::{closure#0}>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n  14: std::panic::catch_unwind::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  15: std::rt::lang_start_internal\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:171:5\n  16: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:205:5\n  17: main\n  18: __libc_start_call_main\n  19: __libc_start_main_impl\n  20: _start\n",
+      "staged_files": []
+    },
+    {
+      "case": "empty-source-object-accepted",
+      "returncode": 0,
+      "stdout": "staged 1 new headers; 0 reused pages\n",
+      "stderr": "",
+      "staged_files": [
+        "A.md"
+      ]
+    },
+    {
+      "case": "unregistered-source-accepted",
+      "returncode": 0,
+      "stdout": "staged 1 new headers; 0 reused pages\n",
+      "stderr": "",
+      "staged_files": [
+        "A.md"
+      ]
+    },
+    {
+      "case": "unknown-relation-refused",
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "Error: unknown relation unknown-predicate\n\nStack backtrace:\n   0: <anyhow::Error>::msg::<alloc::string::String>\n             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104/src/backtrace.rs:10:14\n   1: anyhow::__private::format_err\n             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104/src/lib.rs:690:13\n   2: visiongraph_space_corpus::validate_catalogue\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:443:13\n   3: visiongraph_space_corpus::stage\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:469:5\n   4: visiongraph_space_corpus::main\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:135:14\n   5: <fn() -> core::result::Result<(), anyhow::Error> as core::ops::function::FnOnce<()>>::call_once\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5\n   6: std::sys::backtrace::__rust_begin_short_backtrace::<fn() -> core::result::Result<(), anyhow::Error>, core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/sys/backtrace.rs:166:18\n   7: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>::{closure#0}\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:206:18\n   8: <&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync as core::ops::function::FnOnce<()>>::call_once\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:287:21\n   9: std::panicking::catch_unwind::do_call::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n  10: std::panicking::catch_unwind::<i32, &dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n  11: std::panic::catch_unwind::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  12: std::rt::lang_start_internal::{closure#0}\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:175:24\n  13: std::panicking::catch_unwind::do_call::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n  14: std::panicking::catch_unwind::<isize, std::rt::lang_start_internal::{closure#0}>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n  15: std::panic::catch_unwind::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  16: std::rt::lang_start_internal\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:171:5\n  17: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:205:5\n  18: main\n  19: __libc_start_call_main\n  20: __libc_start_main_impl\n  21: _start\n",
+      "staged_files": []
+    },
+    {
+      "case": "unresolved-target-refused",
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "Error: A: unresolved is-a target Missing\n\nStack backtrace:\n   0: <anyhow::Error>::msg::<alloc::string::String>\n             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104/src/backtrace.rs:10:14\n   1: visiongraph_space_corpus::validate_catalogue\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:445:17\n   2: visiongraph_space_corpus::stage\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:469:5\n   3: visiongraph_space_corpus::main\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:135:14\n   4: <fn() -> core::result::Result<(), anyhow::Error> as core::ops::function::FnOnce<()>>::call_once\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5\n   5: std::sys::backtrace::__rust_begin_short_backtrace::<fn() -> core::result::Result<(), anyhow::Error>, core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/sys/backtrace.rs:166:18\n   6: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>::{closure#0}\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:206:18\n   7: <&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync as core::ops::function::FnOnce<()>>::call_once\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:287:21\n   8: std::panicking::catch_unwind::do_call::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n   9: std::panicking::catch_unwind::<i32, &dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n  10: std::panic::catch_unwind::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  11: std::rt::lang_start_internal::{closure#0}\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:175:24\n  12: std::panicking::catch_unwind::do_call::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n  13: std::panicking::catch_unwind::<isize, std::rt::lang_start_internal::{closure#0}>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n  14: std::panic::catch_unwind::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  15: std::rt::lang_start_internal\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:171:5\n  16: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:205:5\n  17: main\n  18: __libc_start_call_main\n  19: __libc_start_main_impl\n  20: _start\n",
+      "staged_files": []
+    },
+    {
+      "case": "self-relation-refused",
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "Error: self relation A\n\nStack backtrace:\n   0: <anyhow::Error>::msg::<alloc::string::String>\n             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104/src/backtrace.rs:10:14\n   1: visiongraph_space_corpus::validate_catalogue\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:450:17\n   2: visiongraph_space_corpus::stage\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:469:5\n   3: visiongraph_space_corpus::main\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:135:14\n   4: <fn() -> core::result::Result<(), anyhow::Error> as core::ops::function::FnOnce<()>>::call_once\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5\n   5: std::sys::backtrace::__rust_begin_short_backtrace::<fn() -> core::result::Result<(), anyhow::Error>, core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/sys/backtrace.rs:166:18\n   6: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>::{closure#0}\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:206:18\n   7: <&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync as core::ops::function::FnOnce<()>>::call_once\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:287:21\n   8: std::panicking::catch_unwind::do_call::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n   9: std::panicking::catch_unwind::<i32, &dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n  10: std::panic::catch_unwind::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  11: std::rt::lang_start_internal::{closure#0}\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:175:24\n  12: std::panicking::catch_unwind::do_call::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n  13: std::panicking::catch_unwind::<isize, std::rt::lang_start_internal::{closure#0}>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n  14: std::panic::catch_unwind::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  15: std::rt::lang_start_internal\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:171:5\n  16: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:205:5\n  17: main\n  18: __libc_start_call_main\n  19: __libc_start_main_impl\n  20: _start\n",
+      "staged_files": []
+    },
+    {
+      "case": "two-page-cycle-accepted",
+      "returncode": 0,
+      "stdout": "staged 2 new headers; 0 reused pages\n",
+      "stderr": "",
+      "staged_files": [
+        "A.md",
+        "B.md"
+      ]
+    },
+    {
+      "case": "missing-source-mappings-accepted",
+      "returncode": 0,
+      "stdout": "staged 1 new headers; 0 reused pages\n",
+      "stderr": "",
+      "staged_files": [
+        "A.md"
+      ]
+    },
+    {
+      "case": "dangling-mapping-target-accepted",
+      "returncode": 0,
+      "stdout": "staged 1 new headers; 0 reused pages\n",
+      "stderr": "",
+      "staged_files": [
+        "A.md"
+      ]
+    },
+    {
+      "case": "unresolved-mapping-refused",
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "Error: undecided mapping {\"disposition\":\"unresolved\"}\n\nStack backtrace:\n   0: <anyhow::Error>::msg::<alloc::string::String>\n             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104/src/backtrace.rs:10:14\n   1: visiongraph_space_corpus::validate_catalogue\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:455:9\n   2: visiongraph_space_corpus::stage\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:469:5\n   3: visiongraph_space_corpus::main\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:135:14\n   4: <fn() -> core::result::Result<(), anyhow::Error> as core::ops::function::FnOnce<()>>::call_once\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5\n   5: std::sys::backtrace::__rust_begin_short_backtrace::<fn() -> core::result::Result<(), anyhow::Error>, core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/sys/backtrace.rs:166:18\n   6: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>::{closure#0}\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:206:18\n   7: <&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync as core::ops::function::FnOnce<()>>::call_once\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:287:21\n   8: std::panicking::catch_unwind::do_call::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n   9: std::panicking::catch_unwind::<i32, &dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n  10: std::panic::catch_unwind::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  11: std::rt::lang_start_internal::{closure#0}\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:175:24\n  12: std::panicking::catch_unwind::do_call::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n  13: std::panicking::catch_unwind::<isize, std::rt::lang_start_internal::{closure#0}>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n  14: std::panic::catch_unwind::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  15: std::rt::lang_start_internal\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:171:5\n  16: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:205:5\n  17: main\n  18: __libc_start_call_main\n  19: __libc_start_main_impl\n  20: _start\n",
+      "staged_files": []
+    },
+    {
+      "case": "public-catalogue-stages-public",
+      "returncode": 0,
+      "stdout": "staged 1 new headers; 0 reused pages\n",
+      "stderr": "",
+      "staged_files": [
+        "A.md"
+      ]
+    },
+    {
+      "case": "alias-collision-accepted",
+      "returncode": 0,
+      "stdout": "staged 2 new headers; 0 reused pages\n",
+      "stderr": "",
+      "staged_files": [
+        "A.md",
+        "B.md"
+      ]
+    },
+    {
+      "case": "slug-collision-refused",
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "Error: resource collision Same-Name\n\nStack backtrace:\n   0: <anyhow::Error>::msg::<alloc::string::String>\n             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104/src/backtrace.rs:10:14\n   1: visiongraph_space_corpus::validate_catalogue\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:434:13\n   2: visiongraph_space_corpus::stage\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:469:5\n   3: visiongraph_space_corpus::main\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:135:14\n   4: <fn() -> core::result::Result<(), anyhow::Error> as core::ops::function::FnOnce<()>>::call_once\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5\n   5: std::sys::backtrace::__rust_begin_short_backtrace::<fn() -> core::result::Result<(), anyhow::Error>, core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/sys/backtrace.rs:166:18\n   6: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>::{closure#0}\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:206:18\n   7: <&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync as core::ops::function::FnOnce<()>>::call_once\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:287:21\n   8: std::panicking::catch_unwind::do_call::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n   9: std::panicking::catch_unwind::<i32, &dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n  10: std::panic::catch_unwind::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  11: std::rt::lang_start_internal::{closure#0}\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:175:24\n  12: std::panicking::catch_unwind::do_call::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n  13: std::panicking::catch_unwind::<isize, std::rt::lang_start_internal::{closure#0}>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n  14: std::panic::catch_unwind::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  15: std::rt::lang_start_internal\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:171:5\n  16: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:205:5\n  17: main\n  18: __libc_start_call_main\n  19: __libc_start_main_impl\n  20: _start\n",
+      "staged_files": []
+    },
+    {
+      "case": "late-source-error-leaves-partial-stage",
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "Error: B has no source\n\nStack backtrace:\n   0: <anyhow::Error>::msg::<alloc::string::String>\n             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104/src/backtrace.rs:10:14\n   1: visiongraph_space_corpus::header\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:389:5\n   2: visiongraph_space_corpus::stage\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:477:20\n   3: visiongraph_space_corpus::main\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:135:14\n   4: <fn() -> core::result::Result<(), anyhow::Error> as core::ops::function::FnOnce<()>>::call_once\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5\n   5: std::sys::backtrace::__rust_begin_short_backtrace::<fn() -> core::result::Result<(), anyhow::Error>, core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/sys/backtrace.rs:166:18\n   6: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>::{closure#0}\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:206:18\n   7: <&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync as core::ops::function::FnOnce<()>>::call_once\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:287:21\n   8: std::panicking::catch_unwind::do_call::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n   9: std::panicking::catch_unwind::<i32, &dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n  10: std::panic::catch_unwind::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  11: std::rt::lang_start_internal::{closure#0}\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:175:24\n  12: std::panicking::catch_unwind::do_call::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n  13: std::panicking::catch_unwind::<isize, std::rt::lang_start_internal::{closure#0}>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n  14: std::panic::catch_unwind::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  15: std::rt::lang_start_internal\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:171:5\n  16: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:205:5\n  17: main\n  18: __libc_start_call_main\n  19: __libc_start_main_impl\n  20: _start\n",
+      "staged_files": [
+        "A.md"
+      ]
+    },
+    {
+      "case": "empty-generation-time-accepted",
+      "returncode": 0,
+      "stdout": "staged 1 new headers; 0 reused pages\n",
+      "stderr": "",
+      "staged_files": [
+        "A.md"
+      ]
+    },
+    {
+      "case": "audit-accepts-absent-reused-edge",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "audit": {
+        "catalogue_terms": 1,
+        "created_headers": 0,
+        "reused_identities": 1,
+        "declared_relations_checked": 1,
+        "branches": {
+          "test": 1
+        },
+        "mappings": 0,
+        "all_new_headers_match": true,
+        "all_new_bodies_empty": true,
+        "all_targets_resolve": true
+      }
+    },
+    {
+      "case": "zero-competency-cases-pass",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "case": "inventory-retains-reference-not-restriction-closure",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "inventory": {
+        "file": "/home/devuser/workspace/wt/VisionFlow-vg-admission/.audit-temp/admission-probes-7w82_yz3/inventory/source.ttl",
+        "sha256": "ddf3d2ae5e3b013410224c2260d194ee81f84b8da5e42106dddd16e48b9c42ca",
+        "quad_count": 6,
+        "classes": [
+          {
+            "iri": "urn:A",
+            "labels": [],
+            "named_parents": [],
+            "predicates": {
+              "http://www.w3.org/1999/02/22-rdf-syntax-ns#type": [
+                "<http://www.w3.org/2002/07/owl#Class>"
+              ],
+              "http://www.w3.org/2000/01/rdf-schema#subClassOf": [
+                "_:f48d9c6c4c274827b8ed337381b0cafd"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "case": "apply-forwards-unreviewed-file",
+      "returncode": 0,
+      "stdout": "applying 1 remaining headers of guarded total 1\n1/1 probe\n",
+      "stderr": "",
+      "calls": [
+        [
+          "--repo",
+          "/home/devuser/workspace/wt/VisionFlow-vg-admission/.audit-temp/admission-probes-7w82_yz3/apply/repo",
+          "create",
+          "/home/devuser/workspace/wt/VisionFlow-vg-admission/.audit-temp/admission-probes-7w82_yz3/apply/staged/A.md",
+          "--expect",
+          "docs=1",
+          "--json"
+        ]
+      ]
+    },
+    {
+      "case": "apply-total-mismatch-refused",
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "Error: expected 2 creations, found 1\n\nStack backtrace:\n   0: <anyhow::Error>::msg::<alloc::string::String>\n             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104/src/backtrace.rs:10:14\n   1: visiongraph_space_corpus::apply\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:495:5\n   2: visiongraph_space_corpus::main\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:142:14\n   3: <fn() -> core::result::Result<(), anyhow::Error> as core::ops::function::FnOnce<()>>::call_once\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5\n   4: std::sys::backtrace::__rust_begin_short_backtrace::<fn() -> core::result::Result<(), anyhow::Error>, core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/sys/backtrace.rs:166:18\n   5: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>::{closure#0}\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:206:18\n   6: <&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync as core::ops::function::FnOnce<()>>::call_once\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:287:21\n   7: std::panicking::catch_unwind::do_call::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n   8: std::panicking::catch_unwind::<i32, &dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n   9: std::panic::catch_unwind::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  10: std::rt::lang_start_internal::{closure#0}\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:175:24\n  11: std::panicking::catch_unwind::do_call::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n  12: std::panicking::catch_unwind::<isize, std::rt::lang_start_internal::{closure#0}>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n  13: std::panic::catch_unwind::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  14: std::rt::lang_start_internal\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:171:5\n  15: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:205:5\n  16: main\n  17: __libc_start_call_main\n  18: __libc_start_main_impl\n  19: _start\n"
+    },
+    {
+      "case": "apply-resume-byte-mismatch-refused",
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "Error: resume refuses differing existing page /home/devuser/workspace/wt/VisionFlow-vg-admission/.audit-temp/admission-probes-7w82_yz3/apply/repo/knowledge/A.md\n\nStack backtrace:\n   0: <anyhow::Error>::msg::<alloc::string::String>\n             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104/src/backtrace.rs:10:14\n   1: visiongraph_space_corpus::apply\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:507:17\n   2: visiongraph_space_corpus::main\n             at /tmp/vf-vg-admission-artifacts/source/scripts/space-corpus/src/main.rs:142:14\n   3: <fn() -> core::result::Result<(), anyhow::Error> as core::ops::function::FnOnce<()>>::call_once\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5\n   4: std::sys::backtrace::__rust_begin_short_backtrace::<fn() -> core::result::Result<(), anyhow::Error>, core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/sys/backtrace.rs:166:18\n   5: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>::{closure#0}\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:206:18\n   6: <&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync as core::ops::function::FnOnce<()>>::call_once\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:287:21\n   7: std::panicking::catch_unwind::do_call::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n   8: std::panicking::catch_unwind::<i32, &dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n   9: std::panic::catch_unwind::<&dyn core::ops::function::Fn<(), Output = i32> + core::panic::unwind_safe::RefUnwindSafe + core::marker::Sync, i32>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  10: std::rt::lang_start_internal::{closure#0}\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:175:24\n  11: std::panicking::catch_unwind::do_call::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43\n  12: std::panicking::catch_unwind::<isize, std::rt::lang_start_internal::{closure#0}>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19\n  13: std::panic::catch_unwind::<std::rt::lang_start_internal::{closure#0}, isize>\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14\n  14: std::rt::lang_start_internal\n             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/rt.rs:171:5\n  15: std::rt::lang_start::<core::result::Result<(), anyhow::Error>>\n             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/rt.rs:205:5\n  16: main\n  17: __libc_start_call_main\n  18: __libc_start_main_impl\n  19: _start\n"
+    },
+    {
+      "case": "promote-trusts-zero-exit-without-postread",
+      "returncode": 0,
+      "stdout": "publishing 1 remaining pages of guarded expansion 1\npublished A\n",
+      "stderr": "",
+      "page_still_private": true
+    }
+  ]
+}
