@@ -1,0 +1,7 @@
+parsed 1 topic files, 8 mermaid diagrams
+cite-check: 0 warning(s)
+citations: 221 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+rendered 7/8 diagrams via pele
+
+1 error(s):
+  - ontomark/03-build-run-gates-staging-and-generation.md:OM-03.1 (md line 5) — pele syntax at mermaid line 26: Parse error on line 26: |     RUN->>RUN: certificate files are written directly to certificate_out before consistency; no bundle transaction covers them (mod.rs:715-717) | --------------------------------------------------------------------------------------------------------------------------------------^

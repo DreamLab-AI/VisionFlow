@@ -1,0 +1,109 @@
+{
+  "unicode": [
+    {
+      "file": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
+      "exit": 0,
+      "output": "Length: 20905 chars\nSuspicious: 0\nNote: Layer A only: invisible/format Unicode, smuggled payloads and homoglyphs (edit-based carriers).\nNote: Statistical (token-sampling) watermarks are not detectable here; use Layer B rewrite.\nNote: Inspect kinds: strip, bidi, tag_chars, variation_selector, zwj_family, private_use, reserved_ignorable, noncharacter, space, confusable, other_cf.\nNote: Load-bearing invisibles are preserved by default: emoji glue (ZWJ/VS after an emoji base), script joiners (ZWNJ/ZWJ inside complex scripts), RGI flag tag sequences, same-script fillers/selectors (Mongolian FVS, Khmer inherent vowels, Hangul jamo and blank fillers), visible-layout format controls next to their own script (Egyptian quadrat, Duployan shorthand, musical beam/tie/slur), orthographic Arabic/Syriac Cf marks, and balanced bidi controls in text that contains RTL script. Use --strip-emoji-glue for paranoid mode (strips them all).\nNote: Homoglyphs are judged by UTS #39 skeleton plus mixed-script and Identifier_Status context, not by a hand-written table; see the `confusables` module for the one documented gap.\nNote: No deterministic Layer A (invisible Unicode/format) carriers detected; statistical and pixel-domain marks are out of scope here.\n"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "exit": 0,
+      "output": "Length: 8762 chars\nSuspicious: 0\nNote: Layer A only: invisible/format Unicode, smuggled payloads and homoglyphs (edit-based carriers).\nNote: Statistical (token-sampling) watermarks are not detectable here; use Layer B rewrite.\nNote: Inspect kinds: strip, bidi, tag_chars, variation_selector, zwj_family, private_use, reserved_ignorable, noncharacter, space, confusable, other_cf.\nNote: Load-bearing invisibles are preserved by default: emoji glue (ZWJ/VS after an emoji base), script joiners (ZWNJ/ZWJ inside complex scripts), RGI flag tag sequences, same-script fillers/selectors (Mongolian FVS, Khmer inherent vowels, Hangul jamo and blank fillers), visible-layout format controls next to their own script (Egyptian quadrat, Duployan shorthand, musical beam/tie/slur), orthographic Arabic/Syriac Cf marks, and balanced bidi controls in text that contains RTL script. Use --strip-emoji-glue for paranoid mode (strips them all).\nNote: Homoglyphs are judged by UTS #39 skeleton plus mixed-script and Identifier_Status context, not by a hand-written table; see the `confusables` module for the one documented gap.\nNote: No deterministic Layer A (invisible Unicode/format) carriers detected; statistical and pixel-domain marks are out of scope here.\n"
+    },
+    {
+      "file": "docs/estate-review/evidence/2026-11-01/om-machine/README.md",
+      "exit": 0,
+      "output": "Length: 3146 chars\nSuspicious: 0\nNote: Layer A only: invisible/format Unicode, smuggled payloads and homoglyphs (edit-based carriers).\nNote: Statistical (token-sampling) watermarks are not detectable here; use Layer B rewrite.\nNote: Inspect kinds: strip, bidi, tag_chars, variation_selector, zwj_family, private_use, reserved_ignorable, noncharacter, space, confusable, other_cf.\nNote: Load-bearing invisibles are preserved by default: emoji glue (ZWJ/VS after an emoji base), script joiners (ZWNJ/ZWJ inside complex scripts), RGI flag tag sequences, same-script fillers/selectors (Mongolian FVS, Khmer inherent vowels, Hangul jamo and blank fillers), visible-layout format controls next to their own script (Egyptian quadrat, Duployan shorthand, musical beam/tie/slur), orthographic Arabic/Syriac Cf marks, and balanced bidi controls in text that contains RTL script. Use --strip-emoji-glue for paranoid mode (strips them all).\nNote: Homoglyphs are judged by UTS #39 skeleton plus mixed-script and Identifier_Status context, not by a hand-written table; see the `confusables` module for the one documented gap.\nNote: No deterministic Layer A (invisible Unicode/format) carriers detected; statistical and pixel-domain marks are out of scope here.\n"
+    },
+    {
+      "file": "docs/diagrams/ontomark/11-machine-bundle-identity-and-disclosure.md",
+      "exit": 0,
+      "output": "Length: 5746 chars\nSuspicious: 0\nNote: Layer A only: invisible/format Unicode, smuggled payloads and homoglyphs (edit-based carriers).\nNote: Statistical (token-sampling) watermarks are not detectable here; use Layer B rewrite.\nNote: Inspect kinds: strip, bidi, tag_chars, variation_selector, zwj_family, private_use, reserved_ignorable, noncharacter, space, confusable, other_cf.\nNote: Load-bearing invisibles are preserved by default: emoji glue (ZWJ/VS after an emoji base), script joiners (ZWNJ/ZWJ inside complex scripts), RGI flag tag sequences, same-script fillers/selectors (Mongolian FVS, Khmer inherent vowels, Hangul jamo and blank fillers), visible-layout format controls next to their own script (Egyptian quadrat, Duployan shorthand, musical beam/tie/slur), orthographic Arabic/Syriac Cf marks, and balanced bidi controls in text that contains RTL script. Use --strip-emoji-glue for paranoid mode (strips them all).\nNote: Homoglyphs are judged by UTS #39 skeleton plus mixed-script and Identifier_Status context, not by a hand-written table; see the `confusables` module for the one documented gap.\nNote: No deterministic Layer A (invisible Unicode/format) carriers detected; statistical and pixel-domain marks are out of scope here.\n"
+    },
+    {
+      "file": "docs/diagrams/ontomark/03-build-run-gates-staging-and-generation.md",
+      "exit": 0,
+      "output": "Length: 29903 chars\nSuspicious: 0\nNote: Layer A only: invisible/format Unicode, smuggled payloads and homoglyphs (edit-based carriers).\nNote: Statistical (token-sampling) watermarks are not detectable here; use Layer B rewrite.\nNote: Inspect kinds: strip, bidi, tag_chars, variation_selector, zwj_family, private_use, reserved_ignorable, noncharacter, space, confusable, other_cf.\nNote: Load-bearing invisibles are preserved by default: emoji glue (ZWJ/VS after an emoji base), script joiners (ZWNJ/ZWJ inside complex scripts), RGI flag tag sequences, same-script fillers/selectors (Mongolian FVS, Khmer inherent vowels, Hangul jamo and blank fillers), visible-layout format controls next to their own script (Egyptian quadrat, Duployan shorthand, musical beam/tie/slur), orthographic Arabic/Syriac Cf marks, and balanced bidi controls in text that contains RTL script. Use --strip-emoji-glue for paranoid mode (strips them all).\nNote: Homoglyphs are judged by UTS #39 skeleton plus mixed-script and Identifier_Status context, not by a hand-written table; see the `confusables` module for the one documented gap.\nNote: No deterministic Layer A (invisible Unicode/format) carriers detected; statistical and pixel-domain marks are out of scope here.\n"
+    },
+    {
+      "file": "docs/diagrams/ontomark/06-machine-scope-and-ingest-contract.md",
+      "exit": 0,
+      "output": "Length: 22548 chars\nSuspicious: 0\nNote: Layer A only: invisible/format Unicode, smuggled payloads and homoglyphs (edit-based carriers).\nNote: Statistical (token-sampling) watermarks are not detectable here; use Layer B rewrite.\nNote: Inspect kinds: strip, bidi, tag_chars, variation_selector, zwj_family, private_use, reserved_ignorable, noncharacter, space, confusable, other_cf.\nNote: Load-bearing invisibles are preserved by default: emoji glue (ZWJ/VS after an emoji base), script joiners (ZWNJ/ZWJ inside complex scripts), RGI flag tag sequences, same-script fillers/selectors (Mongolian FVS, Khmer inherent vowels, Hangul jamo and blank fillers), visible-layout format controls next to their own script (Egyptian quadrat, Duployan shorthand, musical beam/tie/slur), orthographic Arabic/Syriac Cf marks, and balanced bidi controls in text that contains RTL script. Use --strip-emoji-glue for paranoid mode (strips them all).\nNote: Homoglyphs are judged by UTS #39 skeleton plus mixed-script and Identifier_Status context, not by a hand-written table; see the `confusables` module for the one documented gap.\nNote: No deterministic Layer A (invisible Unicode/format) carriers detected; statistical and pixel-domain marks are out of scope here.\n"
+    }
+  ],
+  "local_links": [
+    {
+      "file": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
+      "target": "evidence/2026-11-01/om-machine/README.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
+      "target": "evidence/2026-11-01/om-machine/verification.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
+      "target": "2026-11-01-ontomark-reasoning-and-certificates.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
+      "target": "../diagrams/ontomark/11-machine-bundle-identity-and-disclosure.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "scope.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "claims.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "snapshot-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "validation-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../../../scripts/estate-review-ledger/README.md"
+    },
+    {
+      "file": "docs/estate-review/evidence/2026-11-01/om-machine/README.md",
+      "target": "../../../2026-11-01-ontomark-machine-bundle-contract.md"
+    },
+    {
+      "file": "docs/estate-review/evidence/2026-11-01/om-machine/README.md",
+      "target": "verification.json"
+    },
+    {
+      "file": "docs/estate-review/evidence/2026-11-01/om-machine/README.md",
+      "target": "audit_machine.rs"
+    },
+    {
+      "file": "docs/estate-review/evidence/2026-11-01/om-machine/README.md",
+      "target": "slug-collision.json"
+    },
+    {
+      "file": "docs/estate-review/evidence/2026-11-01/om-machine/README.md",
+      "target": "old-pin-diff.patch"
+    },
+    {
+      "file": "docs/diagrams/ontomark/11-machine-bundle-identity-and-disclosure.md",
+      "target": "../../estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+    },
+    {
+      "file": "docs/diagrams/ontomark/03-build-run-gates-staging-and-generation.md",
+      "target": "../../estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+    },
+    {
+      "file": "docs/diagrams/ontomark/06-machine-scope-and-ingest-contract.md",
+      "target": "../../estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+    },
+    {
+      "file": "docs/diagrams/ontomark/06-machine-scope-and-ingest-contract.md",
+      "target": "../../estate-review/2026-10-31-obsidian-boundaries.md"
+    }
+  ],
+  "human_review": "Report read against retained source and test scope; diagram panels inspected visually. No new implementation or deployment claim."
+}

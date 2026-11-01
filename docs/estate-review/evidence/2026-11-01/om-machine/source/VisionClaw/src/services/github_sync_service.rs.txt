@@ -1,0 +1,76 @@
+1: // src/services/github_sync_service.rs
+2: //! Corpus Sync Service (ADR-2114)
+3: //!
+4: //! Synchronises the markdown corpus into Oxigraph. The corpus is read through
+5: //! the [`CorpusSource`] port — a mounted vault directory by default, the GitHub
+6: //! repository when selected — and everything downstream of the listing is
+7: //! source-agnostic: parse -> dual graph -> post-sync Whelk reasoning ->
+8: //! inferred-edge materialisation -> `ReloadGraphFromDatabase`.
+9: //!
+10: //! The type keeps its historical `GitHubSyncService` name; renaming it across
+11: //! its 50-odd call sites is deliberately left out of this change.
+12: //! - Parses every page once through `page_parser::parse_page` (`vault_core`);
+13: //!   frontmatter `public: true` pages become knowledge graph nodes
+14: //! - Pages declaring `type: Class|Property|Individual` under `knowledge/`
+15: //!   become ontology nodes, their vocabulary-declared relations typed edges,
+16: //!   and the assert graph is rebuilt from them for Whelk
+17: //! - Uses the source's change marker to process only changed pages (unless FORCE_FULL_SYNC=1)
+18: //! - Batch processing (50 files) to avoid memory issues with large repositories
+19:
+20: use crate::adapters::oxigraph_ontology_repository::{OxigraphOntologyRepository, GRAPH_ONTOLOGY};
+21: use crate::adapters::whelk_inference_engine::WhelkInferenceEngine;
+22: use crate::adapters::SqliteSettingsRepository;
+23: use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
+24: use crate::services::corpus_source::{CorpusPage, CorpusSource};
+25: use crate::services::decision_elevation::{decision_page_quads_logged, DECISIONS_DIR};
+26: use crate::services::inferred_edge_materialiser as mat;
+27: use crate::services::page_parser::{parse_page, ParsedPage, ONTOLOGY_VAULT_PREFIX};
+28: use crate::services::parsers::KnowledgeGraphParser;
+29: use crate::services::semantic_type_registry::SEMANTIC_TYPE_REGISTRY;
+30: use futures::stream::{FuturesUnordered, StreamExt};
+31: use log::{debug, error, info, warn};
+32: use oxigraph::model::Quad;
+1642:
+1643:     /// Process one pre-fetched file, populating nodes/edges in-place.
+1644:     ///
+1645:     /// The page is parsed once, by [`parse_page`] (`vault_core`). A page that
+1646:     /// declares ontology content — `type: Class|Property|Individual` under
+1647:     /// `knowledge/` — becomes a canonical ontology node here; every other page
+1648:     /// takes the plain markdown/wikilink path. Both paths apply the same §V4
+1649:     /// gate. Identity is the page's §V1 vault identity on both paths, so a
+1650:     /// class and every link into it agree on one node id.
+1651:     // The four `&mut` accumulators are one logical value (the batch being
+1652:     // built) and would read better bundled; that refactor touches every call
+1653:     // site in this file and is deliberately left for its own change.
+1654:     #[allow(clippy::too_many_arguments)]
+1655:     async fn process_fetched_file(
+1656:         &self,
+1657:         file: &CorpusPage,
+1658:         content: &str,
+1659:         nodes: &mut std::collections::HashMap<u32, visionclaw_domain::models::node::Node>,
+1660:         edges: &mut std::collections::HashMap<String, Edge>,
+1661:         public_pages: &mut std::collections::HashSet<String>,
+1662:         stub_ids: &mut std::collections::HashSet<u32>,
+1663:         scope: SyncScope<'_>,
+1664:     ) -> Result<(), String> {
+1665:         debug!("Processing file: {} ({} bytes)", file.name, content.len());
+1666:
+1667:         let parsed = match parse_page(content, &file.path, scope.vault.base_paths()) {
+1668:             Ok(Some(parsed)) => parsed,
+1669:             Ok(None) => {
+1670:                 self.process_plain_vault_file(file, content, nodes, edges, stub_ids, scope);
+1671:                 // VC-21-S1-01: an opt-in draft suggestion for a page the §V4
+1672:                 // gate admitted and that declares no `type`. After the node is
+1673:                 // built and independent of it: the result is never read back.
+1674:                 if let Some(jev) = scope.jev {
+1675:                     if page_is_kg_included(content) {
+1676:                         if let Some(facts) = crate::services::jev_ingest::page_facts(
+1677:                             content,
+1678:                             &file.path,
+1679:                             scope.vocabulary,
+1680:                         ) {
+1681:                             let _ = jev.suggest(&facts).await;
+1682:                         }
+1683:                     }
+1684:                 }
+1685:                 return Ok(());

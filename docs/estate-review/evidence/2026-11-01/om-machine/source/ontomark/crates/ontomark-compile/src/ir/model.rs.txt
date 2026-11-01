@@ -1,0 +1,36 @@
+400:                     .filter(|d| !d.trim().is_empty())
+401:                     .unwrap_or_else(|| page.leading_paragraph()),
+402:                 maturity: fm
+403:                     .text("maturity")
+404:                     .filter(|m| !m.trim().is_empty())
+405:                     .unwrap_or_else(|| "draft".to_owned()),
+406:                 quality: fm.number("quality").unwrap_or(0.0),
+407:                 legacy_term_id: fm.text("legacy-term-id").unwrap_or_default(),
+408:                 generated_by: fm
+409:                     .get("generated")
+410:                     .and_then(crate::input::okf::Stamp::from_yaml)
+411:                     .map(|st| st.by),
+412:                 sub_class_of: links_of(page, IS_A_KEY),
+413:                 instance_of: links_of(page, INSTANCE_OF_KEY),
+414:                 relations,
+415:                 // Curated links resolve **slug-verbatim**, not through the
+416:                 // name index. The backlink graph is keyed on the link's own
+417:                 // IRI tail, and 96 pages have a class slug that differs from
+418:                 // their page slug — resolving through the target page would
+419:                 // silently re-key every backlink list in the bundle.
+420:                 links: page
+421:                     .outbound_links()
+422:                     .into_iter()
+423:                     .map(|w| Ref {
+424:                         iri: format!("{}{}", vocab.namespace, target_slug(&w.target)),
+425:                         label: w.label().to_owned(),
+426:                     })
+427:                     .collect(),
+428:                 body: page.body.clone(),
+429:                 has_ontology: fm.has("resource") || fm.has("type"),
+430:                 defines_as: definition_of(page, vocab, &resolve),
+431:             });
+432:         }
+433:
+434:         disambiguate_public_slugs(&mut records, &declares_slug);
+435:

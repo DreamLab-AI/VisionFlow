@@ -1,0 +1,91 @@
+1: // src/services/corpus_source/local.rs
+2: //! [`CorpusSource`] over a mounted vault directory — the default source
+3: //! (ADR-2114, PRD-sovereign-corpus Q2).
+4:
+5: use async_trait::async_trait;
+6: use log::{debug, info};
+7: use std::path::{Path, PathBuf};
+8:
+9: use vault_core::vocabulary::Vocabulary;
+10:
+11: use super::{CorpusPage, CorpusSource, SourceDescriptor};
+12:
+13: /// Environment variable naming the vault root on disk.
+14: pub const VAULT_ROOT_ENV: &str = "VAULT_ROOT";
+15: /// Environment variable naming the comma-separated ingest base paths,
+16: /// relative to the vault root. Mirrors `GITHUB_BASE_PATHS`.
+17: pub const VAULT_BASE_PATHS_ENV: &str = "VAULT_BASE_PATHS";
+18: /// Base paths used when [`VAULT_BASE_PATHS_ENV`] is unset — the two vault
+19: /// roots of the sovereign corpus. Pages sit at each root (the flat Obsidian
+20: /// layout, owner decision 2026-10-16); the Logseq-era `pages/` folder is gone.
+21: pub const DEFAULT_VAULT_BASE_PATHS: &str = "knowledge,working";
+22: /// The vocabulary's location relative to the vault root (contract C1).
+23: pub const VOCABULARY_PATH: &str = "ontology/vocabulary.yaml";
+24:
+25: /// Directory names never descended into: app config, backups, bins, the
+26: /// Obsidian furniture at a vault root
+27: /// ([`visionclaw_domain::vault::VAULT_FURNITURE_DIRS`]: `templates/`,
+28: /// `bases/`, `assets/`, `journals/`) and the non-content namespaces the vault
+29: /// contract excludes from KG ingest (`docs/VAULT-corpus-format.md` V4,
+30: /// ADR-2040 D6). Any name starting with `.` is skipped as well.
+31: const SKIP_DIRS: &[&str] = &[
+32:     ".obsidian",
+33:     ".trash",
+34:     ".recycle",
+35:     ".git",
+36:     "bak",
+37:     "templates",
+38:     "bases",
+39:     "assets",
+40:     "journals",
+41:     "_misc",
+42: ];
+43:
+44: /// Walks a vault on disk: every `.md` file under each configured base path,
+45: /// keyed on `mtime:size` so an unchanged file is skipped by the incremental
+46: /// filter without reading it.
+47: #[derive(Debug, Clone)]
+48: pub struct LocalDirectorySource {
+49:     /// Absolute (or process-relative) path to the vault root.
+50:     pub root: PathBuf,
+51:     /// Ingest base paths relative to [`Self::root`], in order.
+52:     pub base_paths: Vec<PathBuf>,
+53:     /// The same paths rendered with `/` separators, built once at
+54:     /// construction so [`CorpusSource::base_paths`] can hand out a slice.
+55:     slash_paths: Vec<String>,
+56: }
+57:
+58: impl LocalDirectorySource {
+59:     /// Construct from an explicit root and base paths.
+60:     pub fn new(root: impl Into<PathBuf>, base_paths: Vec<PathBuf>) -> Self {
+61:         let slash_paths = base_paths.iter().map(|p| path_to_slash(p)).collect();
+62:         Self {
+63:             root: root.into(),
+64:             base_paths,
+65:             slash_paths,
+66:         }
+67:     }
+68:
+69:     /// Construct from the environment: `VAULT_ROOT` plus `VAULT_BASE_PATHS`
+70:     /// (default `knowledge,working`).
+71:     ///
+72:     /// Fails when `VAULT_ROOT` is unset or empty — the local source cannot
+73:     /// guess where the vault is mounted.
+74:     pub fn from_env() -> Result<Self, String> {
+75:         let root = std::env::var(VAULT_ROOT_ENV)
+76:             .ok()
+77:             .map(|v| v.trim().to_string())
+78:             .filter(|v| !v.is_empty())
+79:             .ok_or_else(|| {
+80:                 format!(
+81:                     "{} is not set — the local corpus source needs the vault mount point",
+82:                     VAULT_ROOT_ENV
+83:                 )
+84:             })?;
+85:
+86:         Ok(Self::new(root, Self::base_paths_from_env()?))
+87:     }
+88:
+89:     /// The configured ingest base paths, from `VAULT_BASE_PATHS` or the
+90:     /// default dual-source split.
+91:     pub fn base_paths_from_env() -> Result<Vec<PathBuf>, String> {

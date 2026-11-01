@@ -1,0 +1,745 @@
+45: use crate::ir::projection;
+46: use crate::profile::Profile;
+47: use crate::reason;
+48:
+49: /// What to build and where.
+50: #[derive(Debug, Clone)]
+51: pub struct Options {
+52:     /// The vault root, e.g. `<repo>/knowledge`.
+53:     pub vault_root: PathBuf,
+54:     /// The bundle destination.
+55:     pub out: PathBuf,
+56:     /// The repository the generation sha is read from.
+57:     pub repo_root: PathBuf,
+58:     /// Emit `api/markdown/` — the title-form markdown mirror.
+59:     ///
+60:     /// Off by default (decided 2026-09-22): it has no consumer, weighs 124 MB
+61:     /// and the Pages budget is 1 GB.
+62:     pub with_markdown_mirror: bool,
+63:     /// The build instant, `CPython` `isoformat()` shape. `None` reads the
+64:     /// clock; a golden comparison supplies the recorded instant.
+65:     pub generated_at: Option<String>,
+66:     /// The source identity `(commit, dirty)`. `None` asks git.
+67:     pub source: Option<(String, bool)>,
+68:     /// Optional bundle expiry, carried into `.generation.json`.
+69:     pub stale_after: Option<String>,
+70:     /// Write the `publish/` staging to this directory instead of
+71:     /// `<out>/publish`, so the markdown can be promoted separately from the C3
+72:     /// bundle. The credential gate applies either way.
+73:     pub publish_out: Option<PathBuf>,
+74:     /// Also stage `working/`'s `public: true` pages under `publish/`.
+75:     ///
+76:     /// The ontology projections stay `knowledge/`-only regardless: publication
+77:     /// is a per-page decision, OWL membership is not.
+78:     pub with_working_publish: bool,
+79:     /// Redact links to non-public pages in every public surface (EXP-04),
+80:     /// including the machine corpus before closure and Markdown staging.
+81:     ///
+82:     /// `None` takes the profile's `publication.redact_private_links`;
+83:     /// `Some(false)` is the byte-parity switch (`--no-redact-private-links`).
+84:     pub redact_private_links: Option<bool>,
+85:     /// Which consumer the bundle is for. [`Scope::Public`] is today's build;
+86:     /// [`Scope::Machine`] adds `working/`'s public pages as plain records and
+87:     /// writes no `publish/` tree (see [`ScopeConflict`] for what it refuses).
+88:     pub scope: Scope,
+89:     /// Write the RDFS derivation certificate of the published graph into this
+90:     /// directory (`asserted.tsv`, `derivations.tsv`, `asserted.sha256`,
+91:     /// `scope.tsv`, the `oo-cert/1` format), ADR-OM-009. The certified named
+92:     /// closure must equal the classifier's or the build is refused with
+93:     /// [`CertificateParity`]: a generation is never published with a closure
+94:     /// its warrant does not cover. `None` writes nothing and checks nothing.
+95:     pub certificate_out: Option<PathBuf>,
+96: }
+97:
+98: /// The certificate's named closure is not the classifier's (ADR-OM-009).
+99: /// Structural today, so this is the review trigger firing, not a flake.
+100: #[derive(Debug, Clone, PartialEq, Eq)]
+101: pub struct CertificateParity {
+102:     /// Named subsumptions the RDFS certificate derives.
+103:     pub certified: usize,
+104:     /// Named subsumptions the classifier infers.
+105:     pub classifier: usize,
+106: }
+107:
+108: impl std::fmt::Display for CertificateParity {
+109:     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+110:         write!(
+111:             f,
+112:             "the derivation certificate does not cover the classifier's closure: {} certified named subsumptions, {} inferred by the classifier; the build is refused (ADR-OM-009)",
+113:             self.certified, self.classifier
+114:         )
+115:     }
+116: }
+117:
+118: impl std::error::Error for CertificateParity {}
+119:
+120: /// What `--certificate-out` wrote (ADR-OM-009).
+121: #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+122: pub struct CertificateReport {
+123:     /// Where the certificate was written.
+124:     pub dir: PathBuf,
+125:     /// Files, counts and the `asserted.sha256` digest.
+126:     pub summary: crate::certificate::Summary,
+127:     /// Wall time of the fixpoint and the write, milliseconds.
+128:     pub certify_ms: u128,
+129:     /// Named subsumptions the certificate derives.
+130:     pub certified_named_subsumptions: usize,
+131:     /// Named subsumptions the classifier inferred; equal by construction, or
+132:     /// the build would have been refused.
+133:     pub classifier_inferred: usize,
+134:     /// How a reviewer re-checks it.
+135:     pub check_with: String,
+278: /// `working/`), it never writes the Quartz `publish/` tree, and private-link
+279: /// redaction is not optional in it, so each of those is a refusal rather than a
+280: /// quiet override.
+281: #[derive(Debug, Clone, PartialEq, Eq)]
+282: pub struct ScopeConflict {
+283:     /// One line per conflict, in the order they were found.
+284:     pub conflicts: Vec<String>,
+285: }
+286:
+287: impl std::fmt::Display for ScopeConflict {
+288:     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+289:         write!(
+290:             f,
+291:             "SCOPE_CONFLICT: `--scope machine` cannot be built as asked; nothing was written: {}",
+292:             self.conflicts.join("; ")
+293:         )
+294:     }
+295: }
+296:
+297: impl std::error::Error for ScopeConflict {}
+298:
+299: /// Replace `out` with the fully written `stage` directory: `out` is moved
+300: /// aside, `stage` is renamed into its place, and the old tree is removed only
+301: /// once the rename succeeded. On failure the old tree is put back. The window
+302: /// in which `out` does not exist is the gap between two renames, and nothing
+303: /// is ever deleted before the new tree is complete (S2.3).
+304: pub(crate) fn swap_in(stage: &Path, out: &Path) -> std::io::Result<()> {
+305:     let parent = out.parent().unwrap_or(Path::new("."));
+306:     let retired = parent.join(format!(".publication-retired-{}", std::process::id()));
+307:     if retired.exists() {
+308:         std::fs::remove_dir_all(&retired)?;
+309:     }
+310:     if out.exists() {
+311:         std::fs::rename(out, &retired)?;
+312:     }
+313:     match std::fs::rename(stage, out) {
+314:         Ok(()) => {
+315:             if retired.exists() {
+316:                 let _ = std::fs::remove_dir_all(&retired);
+317:             }
+318:             Ok(())
+319:         }
+320:         Err(e) => {
+321:             // Put the previous tree back before surfacing the failure.
+322:             if retired.exists() {
+323:                 let _ = std::fs::rename(&retired, out);
+324:             }
+325:             let _ = std::fs::remove_dir_all(stage);
+326:             Err(e)
+327:         }
+328:     }
+329: }
+330:
+331: /// The claimant named for an artefact the build itself emits, rather than
+332: /// one page.
+333: const BUILD_OWNER: &str = "the build";
+334:
+335: /// Files staged for one bundle, kept in memory so the promotion is atomic.
+336: ///
+337: /// Every path is **write-once**: a second claim on a path is recorded, not
+338: /// applied, and [`Staged::ensure_single_claims`] refuses the build before
+339: /// anything is stamped or promoted. No emitter can overwrite another silently.
+340: struct Staged {
+341:     files: Vec<(String, Vec<u8>)>,
+342:     owners: HashMap<String, String>,
+343:     clashes: Vec<(String, String, String)>,
+344:     /// Artefacts this build wrote somewhere other than `out` (`--publish-out`),
+345:     /// listed in the generation stamp but not promoted with the bundle (S2.5).
+346:     external: Vec<generation::Artifact>,
+347: }
+348:
+349: impl Staged {
+350:     fn new() -> Self {
+351:         Self {
+352:             files: Vec::new(),
+353:             owners: HashMap::new(),
+354:             clashes: Vec::new(),
+355:             external: Vec::new(),
+356:         }
+357:     }
+358:
+359:     /// Record an artefact written outside the bundle, so the stamp lists
+360:     /// everything the build produced.
+361:     fn record_external(&mut self, path: impl Into<String>, content: &[u8]) {
+362:         self.external.push(generation::Artifact::of(path, content));
+363:     }
+364:
+365:     /// Stage a build-level artefact.
+366:     fn add(&mut self, path: impl Into<String>, content: impl Into<Vec<u8>>) {
+367:         self.add_for(path, content, BUILD_OWNER);
+368:     }
+369:
+370:     /// Stage an artefact on behalf of `owner` (a page id, where there is one),
+371:     /// so a clash names both claimants.
+372:     fn add_for(
+373:         &mut self,
+374:         path: impl Into<String>,
+375:         content: impl Into<Vec<u8>>,
+376:         owner: impl Into<String>,
+377:     ) {
+378:         let (path, owner) = (path.into(), owner.into());
+379:         match self.owners.entry(path.clone()) {
+380:             std::collections::hash_map::Entry::Occupied(first) => {
+381:                 self.clashes.push((path, first.get().clone(), owner));
+382:             }
+383:             std::collections::hash_map::Entry::Vacant(slot) => {
+384:                 slot.insert(owner);
+385:                 self.files.push((path, content.into()));
+386:             }
+387:         }
+388:     }
+389:
+390:     /// Refuse the build if any path was claimed twice.
+391:     fn ensure_single_claims(&self) -> Result<(), OutputCollision> {
+392:         if self.clashes.is_empty() {
+393:             Ok(())
+394:         } else {
+395:             Err(OutputCollision {
+396:                 clashes: self.clashes.clone(),
+397:             })
+398:         }
+399:     }
+400:
+401:     fn artifacts(&self) -> Vec<generation::Artifact> {
+402:         self.files
+403:             .iter()
+404:             .map(|(name, content)| generation::Artifact::of(name.clone(), content))
+405:             .chain(self.external.iter().cloned())
+406:             .collect()
+407:     }
+408:
+409:     /// Write into a fresh staging directory beside `out`, then swap it in
+410:     /// ([`swap_in`]): the previous bundle survives any failure.
+411:     fn promote(&self, out: &Path) -> anyhow::Result<()> {
+412:         let parent = out.parent().unwrap_or(Path::new("."));
+413:         std::fs::create_dir_all(parent)
+414:             .with_context(|| format!("creating {}", parent.display()))?;
+415:         let stage = parent.join(format!(".publication-{}", std::process::id()));
+416:         if stage.exists() {
+417:             std::fs::remove_dir_all(&stage)?;
+418:         }
+419:         std::fs::create_dir_all(&stage)?;
+420:
+421:         for (name, content) in &self.files {
+422:             let target = stage.join(name);
+423:             if let Some(dir) = target.parent() {
+424:                 std::fs::create_dir_all(dir)?;
+425:             }
+426:             std::fs::write(&target, content)
+427:                 .with_context(|| format!("writing {}", target.display()))?;
+428:         }
+429:
+430:         swap_in(&stage, out)
+431:             .with_context(|| format!("promoting the bundle into {}", out.display()))?;
+432:         Ok(())
+433:     }
+434: }
+435:
+463:         .collect()
+464: }
+465:
+466: /// The working vault root the layout places under the repository, when it
+467: /// declares one. Nothing is checked on disk here.
+468: fn working_root(options: &Options, profile: &Profile) -> Option<PathBuf> {
+469:     profile
+470:         .layout
+471:         .path_of(&options.repo_root, VaultKind::Working)
+472: }
+473:
+474: /// Refuse the options and repository `--scope machine` cannot build from,
+475: /// naming every conflict rather than the first.
+476: fn ensure_machine_scope(options: &Options, profile: &Profile) -> Result<(), ScopeConflict> {
+477:     let mut conflicts = Vec::new();
+478:     if options.publish_out.is_some() {
+479:         conflicts.push(
+480:             "`--publish-out`: a machine bundle writes no publish/ tree to put anywhere".to_owned(),
+481:         );
+482:     }
+483:     if options.with_working_publish {
+484:         conflicts.push(
+485:             "`--vault working|all`: the machine bundle always reads knowledge/ and working/"
+486:                 .to_owned(),
+487:         );
+488:     }
+489:     if !options
+490:         .redact_private_links
+491:         .unwrap_or(profile.publication.redact_private_links)
+492:     {
+493:         conflicts.push(
+494:             "`--no-redact-private-links` (or a profile with publication.redact_private_links \
+495:              off): the machine bundle is always redacted"
+496:                 .to_owned(),
+497:         );
+498:     }
+499:     if profile.layout.kind_of(&options.vault_root) != VaultKind::Knowledge {
+500:         conflicts.push(format!(
+501:             "the vault root {} is not a knowledge vault",
+502:             options.vault_root.display()
+503:         ));
+504:     }
+505:     if let Err(missing) = profile
+506:         .layout
+507:         .root_of(&options.repo_root, VaultKind::Working)
+508:     {
+509:         conflicts.push(format!(
+510:             "a machine bundle reads both vaults, but there is {missing}"
+511:         ));
+512:     }
+513:     if conflicts.is_empty() {
+514:         Ok(())
+515:     } else {
+516:         Err(ScopeConflict { conflicts })
+517:     }
+518: }
+519:
+520: /// Run the whole build.
+521: ///
+522: /// # Errors
+523: /// The census refusing an input, an identity collision, a validation error
+524: /// (in `working/` too, under [`Scope::Machine`]), a [`ScopeConflict`], a
+525: /// [`reason::ReasoningError`] (a definition the reasoner would not finish
+526: /// on), or any I/O failure while staging or promoting the bundle.
+527: pub fn run(
+528:     options: &Options,
+529:     profile: &Profile,
+530:     vocab: &Vocabulary,
+531:     classifier: &dyn reason::Classifier,
+532: ) -> anyhow::Result<Report> {
+533:     run_with(options, profile, vocab, classifier, None)
+534: }
+535:
+536: /// [`run`], optionally embedding the corpus into
+537: /// `data/ontology-corpus.records.jsonl` (contract C3, `--with-rvdb`) through
+538: /// the host's [`records::Embedder`]. The compile crate never opens a socket:
+539: /// the embedder is the one place the build reaches the network, and only when
+540: /// the host hands one in.
+541: ///
+542: /// # Errors
+543: /// As [`run`], plus the embedder's failure or a vector of the wrong width.
+544: #[allow(clippy::too_many_lines)] // The pipeline, in the order it must run.
+545: pub fn run_with(
+546:     options: &Options,
+547:     profile: &Profile,
+548:     vocab: &Vocabulary,
+549:     classifier: &dyn reason::Classifier,
+550:     embedder: Option<&dyn records::Embedder>,
+551: ) -> anyhow::Result<Report> {
+552:     // The machine bundle's inputs are fixed, so what cannot be honoured is
+553:     // refused before a page is read.
+554:     let machine = options.scope == Scope::Machine;
+555:     if machine {
+556:         ensure_machine_scope(options, profile)?;
+557:     }
+558:
+559:     // One walk of the vault root feeds the census, the load and the held-page
+560:     // identities (OM-00 step 1): three filters over one listing rather than
+561:     // three listings with three filters that drifted apart. The profile's
+562:     // `layout.excluded` names the root folders that are not pages.
+563:     let excluded = profile.layout.excluded_dirs();
+564:     anyhow::ensure!(
+565:         options.vault_root.is_dir(),
+566:         "{} is not a directory",
+567:         options.vault_root.display()
+568:     );
+569:     let walk = walk_pages(&options.vault_root, &excluded)?;
+570:     let census = projection::inspect_walk(&options.vault_root, &walk)?;
+571:     let vault = Vault::load_with_walk(
+572:         &options.vault_root,
+573:         profile.layout.kind_of(&options.vault_root),
+574:         walk,
+575:     )?;
+576:     let aliases = alias_map(&vault);
+577:     let raw = Corpus::build(&vault, vocab);
+578:
+579:     // --- the credential gate, before validation -------------------------------
+580:     //
+581:     // The union of both vaults' `public: true` pages, and the last gate before
+582:     // bytes leave the machine. It runs *before* validation on purpose. A
+583:     // credential on a page selected for publication is a specific, actionable
+584:     // refusal with its own exit code (2), and running it second would let the
+585:     // general "validation rejected N errors" message (exit 1) swallow it — the
+586:     // reader would be told the corpus is invalid rather than that it was about
+587:     // to publish a key. It is also the cheapest check, so failing here skips
+588:     // the reasoner entirely. (The census runs earlier still: it is the input
+589:     // accounting every later step relies on.)
+590:     //
+591:     // The machine bundle reads `working/` as well, and under the same census:
+592:     // a `public` flag that is not a boolean refuses the build there too. Its
+593:     // census is not published (`api/census.json` stays `knowledge/`'s), so the
+594:     // result is dropped once it has passed. Loaded once, here, so the digest
+595:     // lists each of its pages once.
+596:     let working = if machine {
+597:         // `ensure_machine_scope` has already refused a layout without one.
+598:         let root = profile
+599:             .layout
+600:             .root_of(&options.repo_root, VaultKind::Working)?;
+601:         let walk = walk_pages(&root, &excluded)?;
+602:         projection::inspect_walk(&root, &walk)?;
+603:         Some(Vault::load_with_walk(&root, VaultKind::Working, walk)?)
+604:     } else if options.with_working_publish {
+605:         publish::sibling_vault(&options.repo_root, &profile.layout, VaultKind::Working)?
+606:     } else {
+607:         None
+608:     };
+609:     let mut publish_vaults: Vec<&Vault> = vec![&vault];
+610:     publish_vaults.extend(working.as_ref());
+611:
+612:     // EXP-04: links to pages that are not public are named in clear text by the
+613:     // raw-Markdown surfaces. Resolution needs both vaults, so the one not
+614:     // already loaded is read here whether or not its pages are published.
+615:     let redact_links = options
+616:         .redact_private_links
+617:         .unwrap_or(profile.publication.redact_private_links);
+618:     let other_vault = if redact_links && working.is_none() {
+619:         let other = match vault.kind {
+620:             VaultKind::Knowledge => VaultKind::Working,
+621:             VaultKind::Working => VaultKind::Knowledge,
+622:         };
+623:         publish::sibling_vault(&options.repo_root, &profile.layout, other)?
+624:     } else {
+625:         None
+626:     };
+627:     let private_links = redact_links.then(|| {
+628:         let mut all: Vec<&Vault> = vec![&vault];
+629:         all.extend(working.as_ref());
+630:         all.extend(other_vault.as_ref());
+631:         redact::PrivateLinks::new(&all)
+632:     });
+633:     let staging = publish::stage_redacted(&publish_vaults, private_links.as_ref())?;
+634:
+635:     let report = validate::validate(profile, &vault, &raw, vocab);
+636:     anyhow::ensure!(
+637:         report.errors().is_empty(),
+638:         "validation rejected {} error(s); no bundle written. First: {}",
+639:         report.errors().len(),
+640:         report.errors()[0]
+641:     );
+642:
+643:     // `validate` pairs `vault.pages` with the corpus built from it by position,
+644:     // so `working/` is checked on its own, under its own role.
+645:     if machine {
+646:         if let Some(working) = &working {
+647:             let working_report =
+648:                 validate::validate(profile, working, &Corpus::build(working, vocab), vocab);
+649:             anyhow::ensure!(
+650:                 working_report.errors().is_empty(),
+651:                 "validation rejected {} error(s) in working/; no bundle written. First: {}",
+652:                 working_report.errors().len(),
+653:                 working_report.errors()[0]
+654:             );
+655:         }
+656:     }
+657:
+658:     let excluded = projection::excluded_identities_of(&vault);
+659:     let mut merged: Option<Corpus> = None;
+660:     let mut machine_summary = None;
+661:     let (corpus, prose_redactor) =
+662:         if let (true, Some(links), Some(working)) = (machine, &private_links, &working) {
+663:             let projected =
+664:                 projection::project_machine(profile, &vault, working, vocab, &excluded, links)?;
+665:             merged = Some(projected.merged());
+666:             machine_summary = Some(MachineSummary {
+667:                 working_records: projected.plain.len(),
+668:                 yielded: projected.yielded,
+669:             });
+670:             (projected.knowledge, projected.redactor)
+671:         } else if let Some(links) = &private_links {
+672:             projection::project_vault_with_links(profile, &vault, vocab, &excluded, links)?
+673:         } else {
+674:             // Explicit compatibility mode retains the legacy projection bytes.
+675:             projection::project_with_redactor(profile, &raw, &excluded)?
+676:         };
+677:
+678:     let structural = closure::compute(profile, &corpus);
+679:     let backlinks = indexes::backlink_index(&corpus);
+680:     let roster = options
+681:         .vault_root
+682:         .parent()
+683:         .map(attribution::Roster::discover)
+684:         .unwrap_or_default();
+685:     let graph = turtle::build_graph_attributed(profile, &corpus, vocab, true, &roster);
+686:     // ADR-2124: a definition over a transitive hierarchy is refused here,
+687:     // before the reasoner runs, with the named `WHELK_RELEVANT_CAP` error —
+688:     // never a hang. The error is returned unwrapped so the CLI can downcast it.
+689:     let reasoning = reason::reason(&graph, classifier)?;
+690:     // ADR-OM-009: the warrant for the closure, from the very graph that is
+691:     // reasoned and published, before anything is written.
+692:     let certificate = match &options.certificate_out {
+693:         Some(dir) => {
+694:             let started = std::time::Instant::now();
+695:             let cert = crate::certificate::certify(&graph);
+696:             let (certified, classifier_n, same) = crate::certificate::parity(&cert, &reasoning);
+697:             if !same {
+698:                 return Err(CertificateParity {
+699:                     certified,
+700:                     classifier: classifier_n,
+701:                 }
+702:                 .into());
+703:             }
+704:             let generation_label = generation::generation_id(
+705:                 &profile.generation.prefix_for(&options.repo_root),
+706:                 &options.source.as_ref().map_or_else(
+707:                     || generation::git_sha(&options.repo_root),
+708:                     |(c, _)| c.clone(),
+709:                 ),
+710:                 options.source.as_ref().map_or_else(
+711:                     || generation::git_dirty(&options.repo_root, &[&options.vault_root]),
+712:                     |(_, d)| *d,
+713:                 ),
+714:             );
+715:             let summary = cert
+716:                 .write(dir, &generation_label)
+717:                 .with_context(|| format!("writing the certificate to {}", dir.display()))?;
+718:             Some(CertificateReport {
+719:                 dir: dir.clone(),
+720:                 summary,
+721:                 certify_ms: started.elapsed().as_millis(),
+722:                 certified_named_subsumptions: certified,
+723:                 classifier_inferred: classifier_n,
+724:                 check_with: format!(
+725:                     "oo-cert {d}/asserted.tsv {d}/derivations.tsv",
+726:                     d = dir.display()
+727:                 ),
+728:             })
+729:         }
+730:         None => None,
+731:     };
+732:     // ADR-2124 decision 4: the mode is decided by the graph, so say which.
+733:     eprintln!(
+734:         "vault build: whelk restrictions mode {} ({} kept, {} skipped, {} defined class(es))",
+735:         reasoning.mode.as_str(),
+736:         reasoning.restrictions_kept,
+737:         reasoning.restrictions_skipped,
+738:         reasoning.defined_classes
+739:     );
+740:     // ADR-2125 item 4: the zero-unsatisfiable gate. An unsatisfiable class is
+741:     // a broken corpus, never a warning; nothing is written and the root causes
+742:     // (not every class that inherits `owl:Nothing` from them) are named.
+743:     if !reasoning.is_consistent() {
+744:         return Err(Unsatisfiable {
+745:             unsatisfiable: reasoning.unsatisfiable.clone(),
+746:             root_causes: reasoning.root_causes.clone(),
+747:         }
+748:         .into());
+749:     }
+750:     let generated = options.generated_at.clone().unwrap_or_else(now_iso);
+751:     // `today()` in the legacy build: the same instant's date, so one
+752:     // injected clock fixes both.
+753:     let today = generated.get(..10).map_or_else(today, str::to_owned);
+754:
+755:     let class_count = corpus.public_classes().count();
+756:     // What the page API and the search index are built from: in the machine
+757:     // scope the knowledge records plus the plain `working/` ones. Everything
+758:     // ontological (Turtle, reasoner, indexes Loom reads, graph tiers, OKF) is
+759:     // built from `corpus`, so a plain record cannot reach it.
+760:     let listed = merged.as_ref().unwrap_or(&corpus);
+761:     let page_count = listed.records.len();
+762:
+763:     let mut staged = Staged::new();
+764:     // `publish/` either rides inside the bundle or is promoted on its own —
+765:     // the latter only after the write-once check below passes.
+766:     if machine {
+767:         // The credential gate has scanned `working/`'s public pages; the
+768:         // staged Markdown is not part of this bundle.
+769:     } else if options.publish_out.is_none() {
+770:         for file in &staging.files {
+771:             staged.add_for(file.path.clone(), file.content.clone(), file.path.clone());
+772:         }
+773:     } else {
+774:         // Written to `publish_out` below, so not promoted with the bundle, but
+775:         // still produced by this build and therefore still stamped (S2.5).
+776:         for file in &staging.files {
+777:             staged.record_external(file.path.clone(), file.content.as_bytes());
+778:         }
+779:     }
+780:     staged.add("data/ontology.ttl", turtle::serialise(profile, &graph));
+781:     staged.add(
+782:         "data/ontology-inferred.ttl",
+783:         reason::inferred_turtle(profile, &reasoning, &generated),
+784:     );
+785:
+786:     let scaffold = indexes::scaffold_index(&corpus, &structural, &backlinks, &generated);
+787:     staged.add("data/scaffold-index.json", to_compact(&scaffold)?);
+788:     let prose = indexes::prose_index(&corpus, &generated);
+789:     staged.add("data/prose-index.json", to_default_utf8(&prose)?);
+790:
+791:     let search = indexes::search_index(listed, &aliases);
+792:     let search_entries = search.as_array().map_or(0, Vec::len);
+793:     staged.add("api/search-index.json", to_indented(&search)?);
+794:
+795:     // The page documents' backlinks see the plain records too; the scaffold
+796:     // index above does not (D4), so `data/` is the same in both scopes.
+797:     let page_backlinks = merged.as_ref().map(indexes::backlink_index);
+798:     let (documents, domain_index) = page_api::build_attributed(
+799:         listed,
+800:         &structural,
+801:         page_backlinks.as_ref().unwrap_or(&backlinks),
+802:         &roster,
+803:     );
+804:     for doc in &documents {
+805:         staged.add_for(
+806:             format!("api/pages/{}.json", doc.slug),
+807:             to_indented(&doc.value)?,
+808:             doc.page_id.clone(),
+809:         );
+810:     }
+811:     staged.add("api/pages/_domain-index.json", to_indented(&domain_index)?);
+812:     staged.add("api/census.json", to_indented(&census)?);
+813:     staged.add(
+814:         "api/validation-report.json",
+815:         to_indented(&report.summary())?,
+816:     );
+817:     // The context is served from /ns/v2.jsonld; the property IRIs inside it
+818:     // still cite the profile's vocabulary namespace. Every path ships, byte-identical,
+819:     // because consumers exist for each (contract C3). `/api/schema/context.jsonld`
+820:     // is the old site's pinned URL — its five prefixes are a strict subset of
+821:     // this document — and the publish workflow requires it.
+822:     let context = okf::context(profile, vocab);
+823:     let context_json = to_indented(&context)?;
+824:     staged.add("context/v1.jsonld", context_json.clone());
+825:     staged.add("api/schema/context.jsonld", context_json.clone());
+826:     staged.add("ns/v2.jsonld", context_json);
+827:
+828:     // WebVOWL graph — the explorer's build input.
+829:     staged.add(
+830:         "data/ontology.json",
+831:         to_default_ascii(&webvowl::build(profile, &corpus))?,
+832:     );
+833:
+834:     // NGG1 graph tiers — the explorer physics worker reads these from the
+835:     // published site, so the `.bin` layout is byte-frozen.
+836:     let tiers = graph_tiers::emit(profile, &corpus, &today);
+837:     for file in &tiers.files {
+838:         staged.add(format!("data/graph/{}", file.name), file.bytes.clone());
+839:     }
+840:
+925:     let (commit, dirty) = if let Some((commit, dirty)) = &options.source {
+926:         (commit.clone(), *dirty)
+927:     } else {
+928:         let commit = generation::git_sha(&options.repo_root);
+929:         // The paths a build reads: the vault, the vocabulary beside it, and the
+930:         // sibling vault whenever it was loaded (for publication, for machine
+931:         // scope, or for link redaction), so a dirty sibling never stamps a
+932:         // clean generation while `content_digest` covers its bytes.
+933:         let vocabulary_dir = options.repo_root.join("ontology");
+934:         let working_root = working_root(options, profile);
+935:         let mut read_paths: Vec<&Path> =
+936:             vec![options.vault_root.as_path(), vocabulary_dir.as_path()];
+937:         if working.is_some() || other_vault.is_some() {
+938:             read_paths.extend(working_root.as_deref());
+939:         }
+940:         let dirty = generation::git_dirty(&options.repo_root, &read_paths);
+941:         (commit, dirty)
+942:     };
+943:     let prefix = profile.generation.prefix_for(&options.repo_root);
+944:     let generation_id = generation::generation_id(&prefix, &commit, dirty);
+945:     for file in okf::bundle(profile, &corpus, vocab, &generation_id) {
+946:         staged.add(format!("okf/{}", file.path), file.content);
+947:     }
+948:
+949:     if let Some(embedder) = embedder {
+950:         let mut concept_records = records::concept_records(&scaffold, &prose, &generation_id);
+951:         records::embed_all(&mut concept_records, embedder)
+952:             .context("embedding the corpus for --with-rvdb")?;
+953:         staged.add(records::RECORDS_PATH, records::to_jsonl(&concept_records)?);
+954:     }
+955:
+956:     // Write-once: refuse before anything is stamped or promoted.
+957:     staged.ensure_single_claims()?;
+958:
+959:     // Every byte the build read, hashed as it was parsed (S2.2): the pages and
+960:     // journals of every vault it loaded (the knowledge vault, `working/` when
+961:     // its pages are staged, the sibling read for link resolution) and the
+962:     // vocabulary, which fixes the Turtle as surely as the pages do.
+963:     let mut sources: Vec<(String, String)> = Vec::new();
+964:     for v in [Some(&vault), working.as_ref(), other_vault.as_ref()]
+965:         .into_iter()
+966:         .flatten()
+967:     {
+968:         for page in v.all_pages() {
+969:             sources.push((
+970:                 // The role name, not the folder: the digest's paths are an
+971:                 // output contract and stay put when the layout moves.
+972:                 format!("{}/{}", v.kind.role_name(), page.rel_path.to_string_lossy()),
+973:                 page.source_sha256.clone(),
+974:             ));
+975:         }
+976:     }
+977:     sources.push((
+978:         "ontology/vocabulary.yaml".to_owned(),
+979:         hex::encode(<sha2::Sha256 as sha2::Digest>::digest(
+980:             serde_yaml::to_string(vocab).unwrap_or_default().as_bytes(),
+981:         )),
+982:     ));
+983:     let content_digest = generation::content_digest_of_hashes(sources);
+984:     // Pages alone do not fix the Turtle (the vocabulary and the emitter do
+985:     // too), so the ontology carries its own digest — the tail of its
+986:     // `owl:versionIRI` — recorded here beside the page digest (ADR-2128).
+987:     let ontology_digest = turtle::ontology_digest(profile, &graph);
+988:
+989:     let mut gen = generation::generation(
+990:         &prefix,
+991:         commit,
+992:         dirty,
+993:         content_digest,
+994:         ontology_digest,
+995:         generated,
+996:         class_count,
+997:         page_count,
+998:         vocab.version,
+999:         options.stale_after.clone(),
+1000:         staged.artifacts(),
+1001:     );
+1002:     gen.scope = options.scope;
+1003:     // Loom serves `data/` and reads its marker from there, verifying each
+1004:     // artefact relative to that directory; the root marker keeps the whole
+1005:     // bundle's view. Both carry the same identity. A marker cannot list its
+1006:     // own hash, so the rule is: no marker lists itself, and the root marker
+1007:     // lists the data marker (S2.5).
+1008:     let data_marker = to_indented(&gen.scoped("data"))?;
+1009:     let mut artifacts = gen.artifacts.clone();
+1010:     artifacts.push(generation::Artifact::of(
+1011:         "data/.generation.json",
+1012:         data_marker.as_bytes(),
+1013:     ));
+1014:     let root_marker = generation::Generation { artifacts, ..gen };
+1015:     staged.add("data/.generation.json", data_marker);
+1016:     staged.add(".generation.json", to_indented(&root_marker)?);
+1017:     staged.ensure_single_claims()?;
+1018:     staged.promote(&options.out)?;
+1019:     if let Some(dir) = &options.publish_out {
+1020:         publish::write_to(&staging, dir)?;
+1021:     }
+1022:
+1023:     Ok(Report {
+1024:         generation: root_marker,
+1025:         class_count,
+1026:         page_count,
+1027:         triples: graph.len(),
+1028:         inferred_triples: reasoning.inferred.len(),
+1029:         search_entries,
+1030:         graph_nodes: tiers.nodes,
+1031:         graph_edges: tiers.edges,
+1032:         reasoner_mode: reasoning.mode.as_str(),
+1033:         restrictions_kept: reasoning.restrictions_kept,
+1034:         defined_classes: reasoning.defined_classes,
+1035:         unsatisfiable: reasoning.unsatisfiable,
+1036:         // The machine bundle stages no Markdown, so it publishes nothing.
+1037:         published: if machine {
+1038:             std::collections::BTreeMap::new()
+1039:         } else {
+1040:             staging.per_vault
+1041:         },
+1042:         // Both destinations count: with `--publish-out` the markdown is

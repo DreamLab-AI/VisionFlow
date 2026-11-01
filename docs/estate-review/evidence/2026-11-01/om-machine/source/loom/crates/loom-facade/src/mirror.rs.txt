@@ -1,0 +1,98 @@
+260: }
+261:
+262: /// The `ontomark build` marker (C3) as a [`Generation`]. `id` is
+263: /// `visionGraph@<sha>` and is the identity every surface reports; `commit` is
+264: /// the same sha unqualified, kept separately because `corpusSha` admission
+265: /// compares against the bare sha.
+266: fn vault_build_generation(m: &Value, id: String) -> Generation {
+267:     Generation {
+268:         id: GenerationId(id),
+269:         source: GenerationSource::VaultBuild,
+270:         generated_at: str_field(m, "generated_at"),
+271:         commit_sha: str_field(m, "commit"),
+272:         promoted_at: str_field(m, "promoted_at"),
+273:         cluster_span_seconds: None,
+274:         artifacts: parse_artifacts(m),
+275:         verified_single_generation: true,
+276:         class_count: usize_field(m, "class_count"),
+277:         content_digest: str_field(m, "content_digest"),
+278:         page_count: usize_field(m, "page_count"),
+279:         vocabulary_version: m
+280:             .get("vocabulary_version")
+281:             .and_then(Value::as_u64)
+282:             .and_then(|n| u32::try_from(n).ok()),
+283:         stale_after: str_field(m, "stale_after"),
+284:     }
+285: }
+367: /// A commit marker accepted by [`parse_marker_strict`].
+368: #[derive(Debug, Clone, PartialEq, Eq)]
+369: pub struct StrictMarker {
+370:     /// The generation identity (`visionGraph@<sha>` or the legacy ISO stamp).
+371:     pub generation: String,
+372:     /// Every artefact the marker lists, in marker order.
+373:     pub artifacts: Vec<StrictArtifact>,
+374:     /// The marker's declared `content_digest` (C3 only). It identifies the
+375:     /// source corpus, so it is carried and never compared to the artefact digest.
+376:     pub declared_content_digest: Option<String>,
+377: }
+378:
+379: /// Parse a `.generation.json` value in either shape, refusing anything the
+380: /// lenient server-side reader would tolerate.
+381: ///
+382: /// The shape dispatch is the one [`MirrorStore`] uses: a non-empty string `id`
+383: /// means a C3 marker, anything else is read as the legacy mirror marker. What
+384: /// differs is strictness. A C3 marker must carry all of [`C3_REQUIRED`]:
+385: /// non-empty string commit and content digest, unsigned class/page counts and
+386: /// a vocabulary version that fits a `u32`. Its id must equal
+387: /// `visionGraph@<commit>`, and its artefact list needs one unique string `name`
+388: /// per entry. A legacy marker needs a non-empty `generation` and an artefact map.
+389: /// Dirty C3 source state is refused; historical C3 markers that omitted `dirty`
+390: /// retain compatibility, but a present value must be `false`.
+391: ///
+392: /// # Errors
+393: /// A human-readable refusal naming the first rule the marker breaks.
+394: pub fn parse_marker_strict(m: &Value) -> Result<StrictMarker, String> {
+395:     let artifacts = m.get("artifacts");
+396:     if let Some(id) = str_field(m, "id").filter(|id| !id.is_empty()) {
+397:         if !matches!(m.get("dirty"), None | Some(Value::Bool(false))) {
+398:             return Err("dirty or mistyped build state cannot be activated".to_owned());
+399:         }
+400:         let commit = str_field(m, "commit").filter(|s| !s.is_empty());
+401:         let content_digest = str_field(m, "content_digest").filter(|s| !s.is_empty());
+402:         let vocabulary_version = m
+403:             .get("vocabulary_version")
+404:             .and_then(Value::as_u64)
+405:             .and_then(|n| u32::try_from(n).ok());
+406:         let (Some(commit), Some(content_digest), Some(_), Some(_), Some(_)) = (
+407:             commit,
+408:             content_digest,
+409:             usize_field(m, "class_count"),
+410:             usize_field(m, "page_count"),
+411:             vocabulary_version,
+412:         ) else {
+413:             return Err(format!(
+414:                 "ontomark build marker missing or mistyped {}",
+415:                 C3_REQUIRED.join(", ")
+416:             ));
+417:         };
+418:         if id != format!("visionGraph@{commit}") {
+419:             return Err("generation id must be visionGraph@<commit>".to_owned());
+420:         }
+421:         let Some(Value::Array(list)) = artifacts else {
+422:             return Err("ontomark build marker must list artifacts".to_owned());
+423:         };
+424:         let mut specs: Vec<StrictArtifact> = Vec::with_capacity(list.len());
+425:         for spec in list {
+426:             let name = spec
+427:                 .get("name")
+428:                 .and_then(Value::as_str)
+429:                 .filter(|name| !specs.iter().any(|s| s.name == *name))
+430:                 .ok_or("artifact entries need one unique name each")?;
+431:             specs.push(strict_artifact(name, spec));
+432:         }
+433:         return Ok(StrictMarker {
+434:             generation: id,
+435:             artifacts: specs,
+436:             declared_content_digest: Some(content_digest),
+437:         });
+438:     }

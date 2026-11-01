@@ -7,7 +7,7 @@ type: reference
 
 # Estate audit completion ledger
 
-This ledger makes the review backlog explicit. It currently reconciles **84 current ADR assessments and 285 diagram panels** with named reports. The five previously stale Obsidian assessments have been refreshed against current documents and source. These are counted evidence records, not a percentage of the whole audit. Earlier reports still need reconciliation, candidate decisions still need classification, and substantial source review remains.
+This ledger makes the review backlog explicit. It currently reconciles **85 current ADR assessments and 292 diagram panels** with named reports. The five previously stale Obsidian assessments have been refreshed against current documents and source. These are counted evidence records, not a percentage of the whole audit. Earlier reports still need reconciliation, candidate decisions still need classification, and substantial source review remains.
 
 [Scope](scope.json), [review claims](claims.json), the [dated snapshot](snapshot-2026-11-01.json) and [validation](validation-2026-11-01.json) are separate files. The [Rust collector](../../../scripts/estate-review-ledger/README.md) can rebuild the snapshot without scanning unrelated workspace repositories. This replaces the old census's undifferentiated pending list as a working queue; earlier audit findings remain valid to their stated evidence boundaries.
 
@@ -17,18 +17,18 @@ This ledger makes the review backlog explicit. It currently reconciles **84 curr
 | --- | ---: | --- |
 | Explicit checkout targets | 25 | The existing roster/map scope, including separate standalone/consumed Codescape observations |
 | Available checkouts | 24 | Missing RuVector remains visible; it is not silently removed from the denominator |
-| ADR-like candidate files | 1,159 | Includes support, imported copies, history and retained audit evidence |
+| ADR-like candidate files | 1,163 | Includes support, imported copies, history and retained audit evidence |
 | Numbered decision candidates | 1,055 | A naming-based queue, not a count of operative or unique adopted decisions |
-| Parsed heading units | 15,208 | Excludes headings in fenced examples; a heading is not an exhaustive requirement decomposition |
-| ADR assessments reconciled | 84 | Explicit whole-document assessments linked to unchanged source-document and report bytes |
-| Heading units with those assessments | 593 | Inherit the bounded whole-document report; implementation claims still need its evidence |
-| Diagram topics / panels | 201 / 1,713 | Exact panel-ID set matches the existing generated coverage index |
-| Panel assessments reconciled | 285 | Selected panels only; 52 topics have all panels recorded and eight have partial coverage |
+| Parsed heading units | 15,236 | Excludes headings in fenced examples; a heading is not an exhaustive requirement decomposition |
+| ADR assessments reconciled | 85 | Explicit whole-document assessments linked to unchanged source-document and report bytes |
+| Heading units with those assessments | 604 | Inherit the bounded whole-document report; implementation claims still need its evidence |
+| Diagram topics / panels | 202 / 1,716 | Exact panel-ID set matches the existing generated coverage index |
+| Panel assessments reconciled | 292 | Selected panels only; 53 topics have all panels recorded and ten have partial coverage |
 | Stale claim records | 0 | All retained claims match their current source-document and report bytes |
 
-This snapshot retains all 1,129 records from the 31 October census and adds thirty: twenty-five retained audit-source copies and five ADR-named evidence/review or index files discovered by compact identifier matching. Copies are classified separately from decision candidates. The census does not adopt imported decisions merely because they are present, and it does not treat a content page named ADR as an operative policy. Those classifications remain explicit review work.
+This snapshot retains all 1,129 records from the 31 October census and adds thirty-four: twenty-nine retained audit-source copies and five ADR-named evidence/review or index files discovered by compact identifier matching. Copies are classified separately from decision candidates. The census does not adopt imported decisions merely because they are present, and it does not treat a content page named ADR as an operative policy. Those classifications remain explicit review work.
 
-This update assesses Ontomark ADR-OM-004 and ADR-OM-009 section by section, adds four OM-10 panels and reconciles OM-04.3 against current source. OM-04.1 receives a narrow certificate-path correction without whole-panel credit. Two retained ADR copies enter the candidate census without becoming new numbered decisions. All 84 whole-document claims now match. The earlier Obsidian refresh and agentbox session review remain recorded; the industrial show-and-tell package adds no audit credit.
+This update assesses Ontomark ADR-OM-005 section by section, adds three OM-11 panels and reconciles OM-03.1–2 and OM-06.1–2 against current source. Three retained ADR copies and one owner-pointer index enter the candidate census without becoming new numbered decisions. Only ADR-OM-005 receives new whole-document credit; the cross-repository records supply context. All 85 whole-document claims now match. Earlier certificate, Obsidian and agentbox session reviews remain recorded; the industrial show-and-tell package adds no audit credit.
 
 ## What completion must prove
 
@@ -36,8 +36,8 @@ This update assesses Ontomark ADR-OM-004 and ADR-OM-009 section by section, adds
 | --- | --- | --- |
 | Limit work to the linked VisionFlow estate | Explicit repository identity, link/ownership basis, nested-owner handling and unavailable-source record | Scope is enumerated; further dependencies found through in-scope references require a recorded inclusion decision |
 | Check the systems against implementation | Per-repository component and cross-repository contract assessments, exact source revisions, relevant adversarial checks and clearly bounded runtime observations | Many reports exist; whole-system path coverage remains open and cannot be inferred from ADR counts |
-| Inspect and update every diagram | A source-backed disposition for every existing panel, corrections where needed, revision citations and rendering/visual evidence | 285 panel assessments reconciled; 1,428 remain unreconciled, some already reviewed in earlier reports |
-| Examine every ADR section | Classify each candidate; reconcile operative, historical, imported and support obligations; link every material section/requirement to a disposition | 84 current complete-document assessments reconciled; partial/earlier assessments still need explicit mapping |
+| Inspect and update every diagram | A source-backed disposition for every existing panel, corrections where needed, revision citations and rendering/visual evidence | 292 panel assessments reconciled; 1,424 remain unreconciled, some already reviewed in earlier reports |
+| Examine every ADR section | Classify each candidate; reconcile operative, historical, imported and support obligations; link every material section/requirement to a disposition | 85 current complete-document assessments reconciled; partial/earlier assessments still need explicit mapping |
 | Gap analysis, adversarial review and sense checks | Findings with triggers, consequences, evidence strength, counterexamples or bounded non-reproduction, and acceptance criteria | Available throughout dated reports; repo-by-repo completeness and cross-system synthesis remain open |
 | Compare alternatives and develop user utility | Primary-source comparisons tied to product paths, distinct recommendations and measurable user outcomes | Bounded comparisons exist; remaining product areas and final estate positioning still need review |
 
@@ -61,7 +61,7 @@ Counts below come from the dated snapshot. Zero means no qualifying claim entere
 
 | Checkout | Candidate files | Numbered decision candidates | ADR assessments reconciled |
 | --- | ---: | ---: | ---: |
-| VisionFlow | 64 | 30 | 1 |
+| VisionFlow | 68 | 30 | 1 |
 | VisionClaw | 287 | 273 | 10 |
 | agentbox | 239 | 227 | 8 |
 | solid-pod-rs | 19 | 15 | 0 |
@@ -70,7 +70,7 @@ Counts below come from the dated snapshot. Zero means no qualifying claim entere
 | loom | 10 | 8 | 0 |
 | knowledgeGraph | 9 | 6 | 4 |
 | sidestr-rs | 5 | 3 | 0 |
-| ontomark | 12 | 10 | 3 |
+| ontomark | 12 | 10 | 4 |
 | ontomark-obsidian | 6 | 5 | 5 |
 | WasmVOWL | 1 | 1 | 0 |
 | visionGraph | 12 | 10 | 8 |
@@ -95,7 +95,7 @@ Counts below come from the dated snapshot. Zero means no qualifying claim entere
 | estate | 135 | 0 |
 | knowledgegraph | 16 | 16 |
 | nostr-rust-forum | 220 | 100 |
-| ontomark | 57 | 9 |
+| ontomark | 60 | 16 |
 | sidestr-rs | 20 | 0 |
 | solid-pod-rs | 133 | 0 |
 | visionclaw | 467 | 0 |

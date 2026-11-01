@@ -3990,6 +3990,242 @@
       "sha256": "a0eacfd01023104011938cf2bb182a3651143a56581a7d0c9ab29864382a6ac2"
     },
     {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/om-machine/source/VisionClaw/docs/adr/ADR-2137-consume-shared-ontology-workspace.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 17,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-2137 \u2014 Consume shared ontology semantics through explicit native adapters"
+        },
+        {
+          "line": 19,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 25,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 36,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Consequences"
+        },
+        {
+          "line": 40,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Verification"
+        },
+        {
+          "line": 44,
+          "ordinal": 6,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decisions recorded \u2014 2026-10-12"
+        }
+      ],
+      "sha256": "8e2185f044ff9f9f3589af05b107f6e27b57accde2584bd0b88488299269bcf4"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/om-machine/source/agentbox/docs/adr/ADR-2136-pin-the-shared-ontology-toolchain.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 17,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-2136 \u2014 Pin the shared ontology toolchain independently of the host application"
+        },
+        {
+          "line": 19,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 25,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 35,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Consequences"
+        },
+        {
+          "line": 39,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Verification"
+        },
+        {
+          "line": 43,
+          "ordinal": 6,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Producer ownership continuation \u2014 2026-10-11"
+        },
+        {
+          "line": 71,
+          "ordinal": 7,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Estate alignment and the ADR-2108 mapping \u2014 2026-10-12"
+        },
+        {
+          "line": 90,
+          "ordinal": 8,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "The shipped vault could not read the migrated corpus \u2014 2026-10-18"
+        },
+        {
+          "line": 97,
+          "ordinal": 9,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Close-out 2026-10-30"
+        },
+        {
+          "line": 105,
+          "ordinal": 10,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-verification \u2014 2026-10-31 at b65c3d4ed (ontomark 0.6.1 pin)"
+        }
+      ],
+      "sha256": "3257df2a8fb2ea0c87e897d64309e1aca529449efc02acf2bc83249189bf7df1"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/om-machine/source/ontomark/docs/adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 17,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-OM-005: one producer, explicit consumer projections, and the generation loop"
+        },
+        {
+          "line": 25,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decisions (owner, 2026-10-12)"
+        },
+        {
+          "line": 35,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Evidence"
+        },
+        {
+          "line": 37,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Provenance of crates/vault and crates/vault-core (VisionClaw at 3c3f4120)"
+        },
+        {
+          "line": 43,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Dependency licences that shape the split (cargo metadata on VisionClaw)"
+        },
+        {
+          "line": 52,
+          "ordinal": 6,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Force-projection gap check (VisionClaw at 3c3f4120, read-only, 2026-10-12)"
+        },
+        {
+          "line": 72,
+          "ordinal": 7,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Consequences"
+        },
+        {
+          "line": 81,
+          "ordinal": 8,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Deviations and open items"
+        },
+        {
+          "line": 86,
+          "ordinal": 9,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Amendment 2026-10-12 (same day): the OM-00 register"
+        },
+        {
+          "line": 96,
+          "ordinal": 10,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Amendment 2026-10-12 (same day): the machine-scope bundle design, locked"
+        },
+        {
+          "line": 107,
+          "ordinal": 11,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "First real-corpus machine build (12 October 2026, evening)"
+        }
+      ],
+      "sha256": "fc68a04c69546a22b1857f162f3093d5799108ddb872713adfbbdbebf5209620"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/om-machine/source/ontomark/docs/adr/ESTATE-ADRS.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 1,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Estate ADRs that govern this workspace"
+        }
+      ],
+      "sha256": "5563e0ae92df90fe4e09680c67136dcdb5212ed7991deccaf326712866788bab"
+    },
+    {
       "category": "support-or-unclassified",
       "claims": [],
       "path": "archive/visionclaw-docs/audits/2026-04-20-sovereign-mesh-qe-sprint2/05-phase2-and-adr054.md",
@@ -71066,86 +71302,116 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Whole-document section assessment, including both amendments and historical receipt, at 0caae5d. Compiler tests and five probes support bounded findings; consumer migration and live acceptance remain open.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "docs/adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md",
       "repo": "ontomark",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 17,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-OM-005: one producer, explicit consumer projections, and the generation loop"
         },
         {
           "line": 25,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decisions (owner, 2026-10-12)"
         },
         {
           "line": 35,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Evidence"
         },
         {
           "line": 37,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Provenance of crates/vault and crates/vault-core (VisionClaw at 3c3f4120)"
         },
         {
           "line": 43,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Dependency licences that shape the split (cargo metadata on VisionClaw)"
         },
         {
           "line": 52,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Force-projection gap check (VisionClaw at 3c3f4120, read-only, 2026-10-12)"
         },
         {
           "line": 72,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 81,
           "ordinal": 8,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Deviations and open items"
         },
         {
           "line": 86,
           "ordinal": 9,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Amendment 2026-10-12 (same day): the OM-00 register"
         },
         {
           "line": 96,
           "ordinal": 10,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Amendment 2026-10-12 (same day): the machine-scope bundle design, locked"
         },
         {
           "line": 107,
           "ordinal": 11,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded",
           "title": "First real-corpus machine build (12 October 2026, evening)"
         }
       ],
@@ -119896,22 +120162,22 @@
   ],
   "counts": {
     "available_checkouts": 24,
-    "candidate_files": 1159,
-    "numbered_candidates_with_recorded_assessment": 84,
+    "candidate_files": 1163,
+    "numbered_candidates_with_recorded_assessment": 85,
     "numbered_decision_candidates": 1055,
-    "panels": 1713,
-    "panels_with_recorded_assessment": 285,
+    "panels": 1716,
+    "panels_with_recorded_assessment": 292,
     "scope_targets": 25,
     "stale_claim_records": 0,
-    "topics": 201
+    "topics": 202
   },
   "method": "Explicit scope; Git-owned Markdown; parsed headings exclude fenced examples; explicit human review claims require exact source/report hashes. Unreconciled is not unreviewed. Candidate counts are not a complete obligation denominator or overall task percentage.",
   "repositories": [
     {
       "available": true,
-      "candidate_files": 64,
+      "candidate_files": 68,
       "dirty": true,
-      "head": "e4248edc0c3466d44474768c0533588ff0f81bc1",
+      "head": "2b2c19c0f19b2616e3890946aba384ec448aec9b",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -129823,31 +130089,46 @@
       "sha256": "049b0d509299e5ebd91379e46f35bf3828dea724b0e1227eb8b75778e0ce7d4d"
     },
     {
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Selected panels source-reviewed, strict-citation checked, rendered and visually inspected. Old topic pins retained with reviewed runtime diff; no coverage credit for rendered sibling panels.",
+          "coverage": "selected-panels",
+          "panels": [
+            "OM-03.1",
+            "OM-03.2"
+          ],
+          "report": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "panels": [
         {
-          "body_sha256": "bd30e931607476d448f102fbca9e6e67ce79aafec2d3d3db06c81c1582adc6a6",
+          "body_sha256": "f876c038065b150c57bf1037894d7bcffe5270c3c639c32c90ef4224106e4f54",
           "heading": "OM-03.1 build::run_with \u2014 Options to promoted bundle, in the order the code runs",
           "id": "OM-03.1",
           "line": 30,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "7614dca86e94760754e7d437825106ca5dd6a1978b3e8015a62c8b4f7b98f4a1",
+          "body_sha256": "9b718feadc5c846e5d49c0a134fc3c435f353ff0cdd9d5e4c0d11a9ff4a2f3d2",
           "heading": "OM-03.2 What --vault means, and every place a vault is loaded",
           "id": "OM-03.2",
-          "line": 74,
+          "line": 75,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "2fe016c370f6dac55226d36fb29f99eefdab82d70bd3b0bd87da29b68c2795dc",
           "heading": "OM-03.3 Reads of the vault root \u2014 one walk, two file reads per page",
           "id": "OM-03.3",
-          "line": 113,
+          "line": 117,
           "ordinal": 3,
           "reports": [],
           "review": "unreconciled"
@@ -129856,7 +130137,7 @@
           "body_sha256": "a59fc6d8eac075a99110690881a03bb332a9d03eff143d51357396019ab2d2bc",
           "heading": "OM-03.4 Credential gate and publish staging",
           "id": "OM-03.4",
-          "line": 146,
+          "line": 150,
           "ordinal": 4,
           "reports": [],
           "review": "unreconciled"
@@ -129865,7 +130146,7 @@
           "body_sha256": "a8776c21ff40e127116a58667f9441ff273a8a5ee3d202d20a8e911b75ea2f07",
           "heading": "OM-03.5 Staged write-once and the promote",
           "id": "OM-03.5",
-          "line": 183,
+          "line": 187,
           "ordinal": 5,
           "reports": [],
           "review": "unreconciled"
@@ -129874,7 +130155,7 @@
           "body_sha256": "17714945ac85695d8b285f5e557ec36555e011783d49bdb75f6533466d01dfb3",
           "heading": "OM-03.6 Generation identity \u2014 what the stamp is made of",
           "id": "OM-03.6",
-          "line": 222,
+          "line": 226,
           "ordinal": 6,
           "reports": [],
           "review": "unreconciled"
@@ -129883,7 +130164,7 @@
           "body_sha256": "c0f0f660bc7c2b8c8711ee4705abee3997475e65b07571ca688ddacc4b3a8c09",
           "heading": "OM-03.7 Report, and C3 artefact map \u2014 what run() writes versus what C3 lists",
           "id": "OM-03.7",
-          "line": 257,
+          "line": 261,
           "ordinal": 7,
           "reports": [],
           "review": "unreconciled"
@@ -129892,7 +130173,7 @@
           "body_sha256": "579ffbb59a3e275f848964be77e1b7b85c71203f784d78847684636863fcb67a",
           "heading": "OM-03.8 Derivation certificate \u2014 the optional warrant for the published closure (ADR-OM-009)",
           "id": "OM-03.8",
-          "line": 308,
+          "line": 312,
           "ordinal": 8,
           "reports": [],
           "review": "unreconciled"
@@ -129900,8 +130181,8 @@
       ],
       "path": "docs/diagrams/ontomark/03-build-run-gates-staging-and-generation.md",
       "repo": "VisionFlow",
-      "review": "unreconciled",
-      "sha256": "67bd87503125b86db5e856551dac627b72998e6e25d44e952df6d43fb2da8f04"
+      "review": "partial-assessment-recorded",
+      "sha256": "a107cccd91d5cac050a6a367ac5c554d4126c209ff4e456149b631151b82dae6"
     },
     {
       "claims": [
@@ -130051,25 +130332,40 @@
       "sha256": "71755449f83289f87b05d75b73aec69caf4c3cac262e97da8c39f587ebee5e9e"
     },
     {
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Selected panels source-reviewed, strict-citation checked, rendered and visually inspected. Old topic pins retained with reviewed runtime diff; no coverage credit for rendered sibling panels.",
+          "coverage": "selected-panels",
+          "panels": [
+            "OM-06.1",
+            "OM-06.2"
+          ],
+          "report": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "panels": [
         {
-          "body_sha256": "72c11a55bda2004b35c9fa3c40db0fc7050a7ff1505feb2584cefafdd393dd90",
+          "body_sha256": "5155a20b221cef0a47f1189814fe7ed26101d7f30043c1d6a331de867ab23b69",
           "heading": "OM-06.1 build --scope public|machine \u2014 the surface, the refusals and where run_with forks",
           "id": "OM-06.1",
           "line": 41,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "e5efd0d1c71633e74c1c4702357abbb065e2b959cac23afb924c0964a1f174a3",
+          "body_sha256": "e53676941159e1fe443561f7ded5bb9756a59a28b0ab8971996f54534c55d964",
           "heading": "OM-06.2 project_machine \u2014 the union split, the directional twin rule and the plain records",
           "id": "OM-06.2",
           "line": 70,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "e1b9bcd6ec65eb39cc3a248cf40c6e92d0f6c69c8ac405c0889e44ee17298797",
@@ -130101,8 +130397,8 @@
       ],
       "path": "docs/diagrams/ontomark/06-machine-scope-and-ingest-contract.md",
       "repo": "VisionFlow",
-      "review": "unreconciled",
-      "sha256": "78f45ab0a4fe299b804960bb2b0d9f9329e601a0e91f4fb00ac8eef279a7d3ca"
+      "review": "partial-assessment-recorded",
+      "sha256": "8c5dff95cbdee93d0f588cccb30c84d6bf32dd2fc398bfead0613db9da0dd1a4"
     },
     {
       "claims": [],
@@ -130307,6 +130603,60 @@
       "repo": "VisionFlow",
       "review": "assessment-recorded",
       "sha256": "deaa83a64a2caea8b0b6c3a54a4b4634839cbea6d5548f384fe79eebc8ff870e"
+    },
+    {
+      "claims": [
+        {
+          "basis": "Selected panels source-reviewed, strict-citation checked, rendered and visually inspected. Old topic pins retained with reviewed runtime diff; no coverage credit for rendered sibling panels.",
+          "coverage": "selected-panels",
+          "panels": [
+            "OM-11.1",
+            "OM-11.2",
+            "OM-11.3"
+          ],
+          "report": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
+          "state": "assessment-recorded"
+        }
+      ],
+      "panels": [
+        {
+          "body_sha256": "bdf52941b945a96a3568cfdb6aecaed16e412213e476864ede9734848fa5e084",
+          "heading": "OM-11.1 A short folder hash can collide; the publication gate refuses it",
+          "id": "OM-11.1",
+          "line": 27,
+          "ordinal": 1,
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "0c54858d3e5503562bec6e2b26fe3bdad5ef194f39154e907fd7a0d8f1766e55",
+          "heading": "OM-11.2 Knowledge and working records use different private-name marker sets",
+          "id": "OM-11.2",
+          "line": 46,
+          "ordinal": 2,
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "d24170c6b0a06f223c4504a439dd2a4c0934a10ee777cedd6c60bf3f040d6321",
+          "heading": "OM-11.3 Source labels, content digests and output hashes have distinct jobs",
+          "id": "OM-11.3",
+          "line": 65,
+          "ordinal": 3,
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md"
+          ],
+          "review": "assessment-recorded"
+        }
+      ],
+      "path": "docs/diagrams/ontomark/11-machine-bundle-identity-and-disclosure.md",
+      "repo": "VisionFlow",
+      "review": "assessment-recorded",
+      "sha256": "ef3501927703a0ee8f93b1f8ebb2ad5f7d74dafecaf3e60256f8d48d1d1633ef"
     },
     {
       "claims": [],

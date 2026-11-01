@@ -1,0 +1,510 @@
+240:     out.insert(page.slug());
+241:     if let Some(r) = page.frontmatter.text("resource") {
+242:         out.insert(r);
+243:     }
+244:     out.insert(page.title());
+245: }
+246:
+247: /// A page's identity values: its id, slug, page IRI and class IRI.
+248: /// A private record with every identity it shares with a public knowledge page
+249: /// blanked. The shared values are public by right (the knowledge page publishes
+250: /// them), so they must not count as private markers or as collisions; every
+251: /// other identity and the record's names stay private. Public records pass
+252: /// through unchanged: a public twin is decided by the yield rule, not here.
+253: fn strip_shared_public_identity(mut record: ClassRecord, public: &HashSet<String>) -> ClassRecord {
+254:     if record.public {
+255:         return record;
+256:     }
+257:     for field in [
+258:         &mut record.page_id,
+259:         &mut record.slug,
+260:         &mut record.page_iri,
+261:         &mut record.iri,
+262:     ] {
+263:         if public.contains(field.as_str()) {
+264:             field.clear();
+265:         }
+266:     }
+267:     record
+268: }
+269:
+270: fn identity(record: &ClassRecord) -> Vec<String> {
+271:     [
+272:         record.page_id.clone(),
+273:         record.slug.clone(),
+274:         record.page_iri.clone(),
+275:         record.iri.clone(),
+276:     ]
+277:     .into_iter()
+278:     .filter(|v| !v.is_empty())
+279:     .collect()
+280: }
+350:                 // so a longer marker starting later is still found.
+351:                 let step = text[m.start()..].chars().next().map_or(1, char::len_utf8);
+352:                 out.push_str(&text[pos..m.start() + step]);
+353:                 pos = m.start() + step;
+354:             }
+355:         }
+356:         out.push_str(&text[pos.min(text.len())..]);
+357:         out
+358:     }
+359:
+360:     fn is_private_ref(&self, r: &Ref) -> bool {
+361:         self.markers.contains(&r.iri)
+362:     }
+363:
+364:     fn clean_refs(&self, refs: &[Ref]) -> Vec<Ref> {
+365:         refs.iter()
+366:             .filter(|r| !self.is_private_ref(r))
+367:             .map(|r| Ref {
+368:                 iri: self.redact(&r.iri),
+369:                 label: self.redact(&r.label),
+370:             })
+371:             .collect()
+372:     }
+373:
+374:     fn clean_record(&self, r: &ClassRecord) -> ClassRecord {
+375:         let mut relations: IndexMap<&'static str, Vec<Ref>> = IndexMap::new();
+376:         for (key, refs) in &r.relations {
+377:             let cleaned = self.clean_refs(refs);
+378:             if !cleaned.is_empty() {
+379:                 relations.insert(key, cleaned);
+380:             }
+381:         }
+382:         ClassRecord {
+383:             page_id: r.page_id.clone(),
+384:             slug: self.redact(&r.slug),
+385:             title: self.redact(&r.title),
+386:             public: r.public,
+387:             page_iri: self.redact(&r.page_iri),
+388:             iri: self.redact(&r.iri),
+389:             label: self.redact(&r.label),
+390:             entity_type: r.entity_type,
+391:             domain: self.redact(&r.domain),
+392:             definition: self.redact(&r.definition),
+393:             maturity: self.redact(&r.maturity),
+394:             quality: r.quality,
+395:             legacy_term_id: self.redact(&r.legacy_term_id),
+396:             generated_by: r.generated_by.clone(),
+397:             sub_class_of: self.clean_refs(&r.sub_class_of),
+398:             instance_of: self.clean_refs(&r.instance_of),
+399:             relations,
+400:             links: self.clean_refs(&r.links),
+401:             body: self.redact(&r.body),
+402:             has_ontology: r.has_ontology,
+403:             defines_as: self.clean_definition(&r.defines_as),
+404:         }
+405:     }
+406:
+407:     /// A definition naming a private class is withheld **whole** (ADR-2124):
+408:     /// dropping only the private conjunct would weaken the definition and
+409:     /// classify more public classes under it than its author meant.
+410:     fn clean_definition(&self, conjuncts: &[Conjunct]) -> Vec<Conjunct> {
+480:     pub fn redact(&self, text: &str) -> String {
+481:         self.0.redact(text)
+482:     }
+483: }
+484:
+485: /// [`project`], also returning the redactor it used.
+486: ///
+487: /// # Errors
+488: /// [`PublicationBlocked::Collision`] when an identity is claimed by both a
+489: /// public and a private page; [`PublicationBlocked::Redactor`] when the
+490: /// private-marker alternation does not compile.
+491: #[allow(clippy::implicit_hasher)] // The build always uses the default hasher.
+492: pub fn project_with_redactor(
+493:     profile: &Profile,
+494:     corpus: &Corpus,
+495:     extra_private: &HashSet<String>,
+496: ) -> Result<(Corpus, ProseRedactor), PublicationBlocked> {
+497:     let split = Split::checked(&corpus.records, extra_private)?;
+498:     let redactor = split.redactor(profile)?;
+499:     let records: Vec<ClassRecord> = split
+500:         .public
+501:         .iter()
+502:         .map(|r| redactor.clean_record(r))
+503:         .collect();
+504:     Ok((corpus_of(records), ProseRedactor(redactor)))
+505: }
+506:
+507: /// A [`Corpus`] over `records`, with the class-slug index the projection
+508: /// builds: only records that declare an ontology identity are keyed.
+509: fn corpus_of(records: Vec<ClassRecord>) -> Corpus {
+510:     let mut by_class_slug = IndexMap::new();
+511:     for (i, r) in records.iter().enumerate() {
+512:         if r.has_ontology && !r.iri.is_empty() {
+513:             by_class_slug.entry(r.class_slug()).or_insert(i);
+514:         }
+515:     }
+516:     Corpus {
+517:         records,
+518:         by_class_slug,
+519:     }
+520: }
+521:
+522: /// Records divided into the public and the private, once the identity check
+523: /// has passed.
+524: struct Split<'a> {
+525:     public: Vec<&'a ClassRecord>,
+526:     private: Vec<&'a ClassRecord>,
+527:     private_ids: HashSet<String>,
+528: }
+529:
+530: impl<'a> Split<'a> {
+531:     /// Divide `records` and refuse when one identity (page id, slug, page IRI
+532:     /// or class IRI) is claimed on both sides. `extra_private` carries the
+533:     /// identities of held pages, which count as private whatever their flag.
+534:     fn checked(
+535:         records: &'a [ClassRecord],
+536:         extra_private: &HashSet<String>,
+537:     ) -> Result<Self, PublicationBlocked> {
+538:         let (public, private): (Vec<&ClassRecord>, Vec<&ClassRecord>) =
+539:             records.iter().partition(|r| r.public);
+540:
+541:         let public_ids: HashSet<String> = public.iter().flat_map(|r| identity(r)).collect();
+542:         let mut private_ids: HashSet<String> = private.iter().flat_map(|r| identity(r)).collect();
+543:         private_ids.extend(extra_private.iter().cloned());
+544:
+545:         if let Some(clash) = public_ids.intersection(&private_ids).next() {
+546:             return Err(PublicationBlocked::Collision(clash.clone()));
+547:         }
+548:         Ok(Self {
+549:             public,
+550:             private,
+551:             private_ids,
+552:         })
+553:     }
+554:
+555:     /// The marker redactor for this division: every private identity, every
+556:     /// private name no public page also carries, and the published web form of
+557:     /// each private identity.
+558:     fn redactor(&self, profile: &Profile) -> Result<Redactor, PublicationBlocked> {
+559:         let names = |records: &[&ClassRecord]| -> HashSet<String> {
+560:             records
+561:                 .iter()
+562:                 .flat_map(|r| [r.title.clone(), r.label.clone()])
+563:                 .filter(|s| !s.is_empty())
+564:                 .collect()
+565:         };
+566:         let public_names = names(&self.public);
+567:         let private_names = names(&self.private);
+568:
+569:         let mut markers: HashSet<String> = self.private_ids.clone();
+570:         markers.extend(private_names.difference(&public_names).cloned());
+571:         for value in &self.private_ids {
+572:             // A redacted URN must not reappear as a resolvable web IRI.
+573:             if let Some(published) = profile.iris.project(value) {
+574:                 markers.insert(published);
+575:             }
+576:         }
+577:         // An identity that is also a public name must not be redacted out of the
+578:         // public bundle; the collision check already proved no page claims
+579:         // both, so this only strips names that coincide.
+580:         for name in &public_names {
+589: /// closure, including aliases, fragments and targets in the sibling vault.
+590: ///
+591: /// Definitions containing a private conjunct are withheld whole; removing one
+592: /// conjunct would weaken the author's definition. The original corpus is
+593: /// checked first so rewriting cannot conceal an identity collision.
+594: ///
+595: /// # Errors
+596: /// [`PublicationBlocked::Collision`] for conflicting publication identities.
+597: pub fn project_vault_with_links(
+598:     profile: &Profile,
+599:     vault: &Vault,
+600:     vocab: &Vocabulary,
+601:     extra_private: &HashSet<String>,
+602:     links: &crate::build::redact::PrivateLinks,
+603: ) -> Result<(Corpus, ProseRedactor), PublicationBlocked> {
+604:     project(profile, &Corpus::build(vault, vocab), extra_private)?;
+605:     let cleaned = clean_vault(vault, links);
+606:     project_with_redactor(profile, &Corpus::build(&cleaned, vocab), extra_private)
+607: }
+608:
+609: /// `vault` as the public surfaces may see it: held pages forced private, and
+610: /// every public page's curated links, relation targets, `defines-as` and body
+611: /// stripped of whatever `links` resolves to a non-public page. Links resolve
+612: /// from the page's own vault (`vault.kind`), then the other.
+613: fn clean_vault(vault: &Vault, links: &crate::build::redact::PrivateLinks) -> Vault {
+614:     let mut cleaned = vault.clone();
+615:     for page in &mut cleaned.pages {
+616:         if crate::build::publish::held_back(&page.rel_path) {
+617:             page.frontmatter.map.insert("public".into(), false.into());
+618:         }
+619:         if !page.is_public() {
+620:             continue;
+621:         }
+622:         // Pin the curated set, including an empty set: removing `links` would
+623:         // silently switch the record back to a scan of all body wikilinks.
+624:         let public_links: Vec<serde_yaml::Value> = page
+625:             .outbound_links()
+626:             .into_iter()
+627:             .filter(|w| !links.is_private(vault.kind, &w.target))
+628:             .map(|w| serde_yaml::Value::String(w.to_string()))
+629:             .collect();
+630:         page.frontmatter.map.retain(|key, value| {
+631:             if key.as_str() == Some(crate::input::definition::DEFINES_AS_KEY)
+632:                 && links.value_has_private_target(vault.kind, value)
+633:             {
+634:                 return false;
+635:             }
+636:             if let Some(clean) = links.frontmatter_value(vault.kind, value) {
+637:                 *value = clean;
+638:                 true
+639:             } else {
+640:                 false
+641:             }
+642:         });
+643:         page.frontmatter
+644:             .map
+645:             .insert("links".into(), public_links.into());
+646:         page.body = links.body(vault.kind, &page.body, &mut Default::default());
+647:     }
+648:     cleaned
+649: }
+650:
+651: /// `vault` with its held pages forced private and nothing else changed: the
+652: /// raw view the identity check reads, so a page the publish staging holds back
+653: /// is not counted as public.
+654: fn hold_back(vault: &Vault) -> Vault {
+655:     let mut held = vault.clone();
+656:     for page in &mut held.pages {
+657:         if crate::build::publish::held_back(&page.rel_path) {
+658:             page.frontmatter.map.insert("public".into(), false.into());
+659:         }
+660:     }
+661:     held
+662: }
+663:
+664: /// The publish slug of a `working/` page in the machine bundle: `working/`
+665: /// plus the page id with each path segment slugified, subdirectories kept so
+666: /// two `Foo.md` in different folders do not share one.
+667: #[must_use]
+668: pub fn working_slug(page_id: &str) -> String {
+669:     let segments: Vec<String> = page_id.split('/').map(slug_segment).collect();
+670:     format!("working/{}", segments.join("/"))
+671: }
+672:
+673: /// One path segment of a working slug. `slugify` empties a segment with no
+674: /// `[a-z0-9]` in it (CJK, Greek, emoji, punctuation-only folder names), which
+675: /// would collapse `a/東京/Foo` onto `a//foo` and let two records claim one
+676: /// output file. Such a segment keeps a stable, non-empty, filesystem-safe form
+677: /// derived from its bytes instead.
+678: fn slug_segment(raw: &str) -> String {
+679:     let s = slugify(raw);
+680:     if !s.is_empty() {
+681:         return s;
+682:     }
+683:     use sha2::{Digest, Sha256};
+684:     let digest = Sha256::digest(raw.as_bytes());
+685:     format!("x-{}", hex::encode(&digest[..4]))
+686: }
+687:
+688: /// The machine scope's projection: the knowledge projection exactly as the
+689: /// public build makes it, plus `working/`'s public pages as plain records.
+690: #[derive(Debug)]
+691: pub struct MachineProjection {
+692:     /// The knowledge projection, byte for byte what a public build projects.
+693:     /// Every ontology artefact is emitted from it.
+694:     pub knowledge: Corpus,
+695:     /// The redactor of the knowledge projection, for the surfaces that carry
+696:     /// knowledge prose.
+697:     pub redactor: ProseRedactor,
+698:     /// The plain `working/` records, already redacted and renamed.
+699:     pub plain: Vec<ClassRecord>,
+700:     /// Public `working/` pages dropped because a public knowledge page has the
+701:     /// same identity.
+702:     pub yielded: usize,
+703: }
+704:
+705: impl MachineProjection {
+706:     /// The knowledge records followed by the plain ones: the corpus the page
+707:     /// API and the search index are built from.
+708:     #[must_use]
+709:     pub fn merged(&self) -> Corpus {
+710:         let mut records = self.knowledge.records.clone();
+711:         records.extend(self.plain.iter().cloned());
+712:         Corpus {
+713:             records,
+714:             by_class_slug: self.knowledge.by_class_slug.clone(),
+715:         }
+716:     }
+717: }
+718:
+719: /// Project `knowledge` as a public build does and add `working`'s public pages
+720: /// as plain records (`--scope machine`).
+721: ///
+722: /// * The knowledge side is not touched by `working/`: it takes the same
+723: ///   identity check, the same marker set and the same link cleaning as in a
+724: ///   public build, so every ontology artefact keeps its bytes.
+725: /// * The identity check and the marker set cover **both** vaults, on identities
+726: ///   as authored (before the `working/` prefix). The twin rule is directional:
+727: ///   a public working page beside a private page of either vault with the same
+728: ///   identity is a [`PublicationBlocked::Collision`]; a public working page
+729: ///   whose identity a public knowledge page already holds *yields* to it; and a
+730: ///   private working page whose identity a public knowledge page holds is
+731: ///   harmless and yields silently (it is never published and adds no marker).
+732: /// * A working record's links resolve through `links`, the resolver redaction
+733: ///   uses, to the target's published slug.
+734: /// * What survives is renamed under `working/` and stripped of any ontology
+735: ///   identity.
+736: ///
+737: /// # Errors
+738: /// [`PublicationBlocked::Collision`] or [`PublicationBlocked::Redactor`], as
+739: /// [`project_vault_with_links`].
+740: pub fn project_machine(
+741:     profile: &Profile,
+742:     knowledge: &Vault,
+743:     working: &Vault,
+744:     vocab: &Vocabulary,
+745:     extra_private: &HashSet<String>,
+746:     links: &crate::build::redact::PrivateLinks,
+747: ) -> Result<MachineProjection, PublicationBlocked> {
+748:     use crate::input::page::VaultKind;
+749:
+750:     let (knowledge_corpus, redactor) =
+751:         project_vault_with_links(profile, knowledge, vocab, extra_private, links)?;
+752:
+753:     // The union's extra identities: the held pages of both vaults.
+754:     let mut union_extra = extra_private.clone();
+755:     union_extra.extend(excluded_identities_of(working));
+756:
+757:     // Identity check over the authored records, before any rewriting could
+758:     // conceal a clash. The twin rule is directional: a PRIVATE working page
+759:     // whose identity a PUBLIC knowledge page holds is harmless (nothing of it
+760:     // is published) and yields silently; a PUBLIC working page beside a
+761:     // PRIVATE page of either vault would expose the private identity through
+762:     // its own, and is refused.
+763:     let knowledge_raw = Corpus::build(knowledge, vocab).records;
+764:     let public_knowledge: HashSet<String> = knowledge_raw
+765:         .iter()
+766:         .filter(|r| r.public)
+767:         .flat_map(identity)
+768:         .collect();
+769:     let mut raw = knowledge_raw;
+770:     raw.extend(
+771:         Corpus::build(&hold_back(working), vocab)
+772:             .records
+773:             .into_iter()
+774:             .map(|r| strip_shared_public_identity(r, &public_knowledge)),
+775:     );
+776:     Split::checked(&raw, &union_extra)?;
+777:
+778:     let cleaned_knowledge = Corpus::build(&clean_vault(knowledge, links), vocab);
+779:     let cleaned_working = clean_vault(working, links);
+780:     let mut working_corpus = Corpus::build(&cleaned_working, vocab);
+781:
+782:     // A public working page whose identity a public knowledge page already
+783:     // holds yields to it (knowledge wins, as in `VisionClaw`'s merge). Decided
+784:     // here, on identities as authored, so the links below can honour it.
+785:     let knowledge_identities: HashSet<String> = cleaned_knowledge
+786:         .records
+787:         .iter()
+788:         .filter(|r| r.public)
+789:         .flat_map(identity)
+790:         .collect();
+791:     let yields: HashSet<usize> = working_corpus
+792:         .records
+793:         .iter()
+794:         .enumerate()
+795:         .filter(|(_, r)| {
+796:             r.public
+797:                 && identity(r)
+798:                     .iter()
+799:                     .any(|id| knowledge_identities.contains(id))
+800:         })
+801:         .map(|(i, _)| i)
+802:         .collect();
+803:     let yielded_ids: HashSet<String> = yields
+804:         .iter()
+805:         .filter_map(|i| working_corpus.records.get(*i).map(|r| r.page_id.clone()))
+806:         .collect();
+807:
+808:     // A working page's curated links point at the target's published slug:
+809:     // the post-disambiguation slug for a knowledge page, the `working/` slug
+810:     // for a working one. A target that resolves to nothing, or to a page that
+811:     // yielded and so has no record, stays slug-verbatim, as a knowledge page's
+812:     // does.
+813:     for (page, record) in cleaned_working
+814:         .pages
+815:         .iter()
+816:         .zip(&mut working_corpus.records)
+817:     {
+818:         if !record.public {
+819:             continue;
+820:         }
+821:         for (link, target) in page.outbound_links().into_iter().zip(&mut record.links) {
+822:             let slug = match links.resolve_public(VaultKind::Working, &link.target) {
+823:                 Some((VaultKind::Knowledge, i)) => {
+824:                     cleaned_knowledge.records.get(i).map(|r| r.slug.clone())
+825:                 }
+826:                 Some((VaultKind::Working, i)) if !yields.contains(&i) => {
+827:                     working.pages.get(i).map(|p| working_slug(&p.id))
+828:                 }
+829:                 _ => None,
+830:             };
+831:             if let Some(slug) = slug {
+832:                 target.iri = format!("{}{slug}", vocab.namespace);
+833:             }
+834:         }
+835:     }
+836:
+837:     let knowledge_len = cleaned_knowledge.records.len();
+838:     let mut union = cleaned_knowledge.records;
+839:     // A private working twin of a public knowledge page stays in the union: its
+840:     // shared identities are public by right and are removed, but its title,
+841:     // label and any identity of its own remain private, so they become markers
+842:     // and a public working note that names them in prose is masked.
+843:     union.extend(
+844:         working_corpus
+845:             .records
+846:             .into_iter()
+847:             .map(|r| strip_shared_public_identity(r, &knowledge_identities)),
+848:     );
+849:     let split = Split::checked(&union, &union_extra)?;
+850:     let union_redactor = split.redactor(profile)?;
+851:
+852:     // Two plain records may not share one publish slug: `Staged` compares
+853:     // paths as strings and `promote` would write both to one file.
+854:     {
+855:         let mut seen: HashSet<String> = HashSet::new();
+856:         for record in &union[knowledge_len..] {
+857:             if !record.public || yielded_ids.contains(&record.page_id) {
+858:                 continue;
+859:             }
+860:             let slug = working_slug(&record.page_id);
+861:             if !seen.insert(slug.clone()) {
+862:                 return Err(PublicationBlocked::Collision(format!(
+863:                     "working slug `{slug}` is claimed by two public working pages"
+864:                 )));
+865:             }
+866:         }
+867:     }
+868:
+869:     let mut plain = Vec::new();
+870:     for record in &union[knowledge_len..] {
+871:         if !record.public || yielded_ids.contains(&record.page_id) {
+872:             continue;
+873:         }
+874:         let mut record = union_redactor.clean_record(record);
+875:         // D2: the machine-scope page IRI is the page namespace plus the
+876:         // working slug, so it carries no spaces and matches the record's slug.
+877:         record.slug = working_slug(&record.page_id);
+878:         record.page_iri = format!("{}{}", profile.iris.page_namespace, record.slug);
+879:         record.page_id = format!("working/{}", record.page_id);
+880:         record.has_ontology = false;
+881:         record.iri.clear();
+882:         record.entity_type = EntityType::Class;
+883:         plain.push(record);
+884:     }
+885:     let yielded = yields.len();
+886:
+887:     Ok(MachineProjection {
+888:         knowledge: knowledge_corpus,
+889:         redactor,
+890:         plain,
+891:         yielded,
+892:     })
+893: }
+894:
+895: #[cfg(test)]

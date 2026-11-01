@@ -1,14 +1,14 @@
 {
   "date": "2026-11-01",
-  "baseline": "e4248edc0c3466d44474768c0533588ff0f81bc1",
+  "baseline": "2b2c19c0f19b2616e3890946aba384ec448aec9b",
   "panel_id_parity": {
-    "ledger": 1713,
-    "existing_coverage_index": 1713,
+    "ledger": 1716,
+    "existing_coverage_index": 1716,
     "equal": true
   },
   "census_delta": {
     "previous_candidates": 1129,
-    "current_candidates": 1159,
+    "current_candidates": 1163,
     "removed": [],
     "added": [
       {
@@ -130,11 +130,27 @@
       {
         "repo": "VisionFlow",
         "path": "docs/estate-review/evidence/2026-11-01/om-cert/source/docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/om-machine/source/VisionClaw/docs/adr/ADR-2137-consume-shared-ontology-workspace.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/om-machine/source/agentbox/docs/adr/ADR-2136-pin-the-shared-ontology-toolchain.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/om-machine/source/ontomark/docs/adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/om-machine/source/ontomark/docs/adr/ESTATE-ADRS.md"
       }
     ]
   },
-  "heading_units": 15208,
-  "heading_units_with_recorded_assessment": 593,
+  "heading_units": 15236,
+  "heading_units_with_recorded_assessment": 604,
   "native_tests": 9,
   "clippy": "passed -D warnings",
   "limits": "Counters track evidence reconciliation, not audit completion; document/report hashes do not revalidate implementation code or deployed state.",
@@ -164,7 +180,7 @@
       "target": "../../docs/estate-review/completion/claims.json"
     }
   ],
-  "exact_claim_bindings_rechecked": 160,
+  "exact_claim_bindings_rechecked": 164,
   "tool_hashes": {
     "scripts/estate-review-ledger/src/main.rs": "6a13475db77573e460ab9ba8a99b7aa1e7c306ca33c14ea3cf5188b690ce12b3",
     "scripts/estate-review-ledger/Cargo.toml": "8109eeff493be24031c394cce1d81a059ca1612f967e5b032f37bf9e8f1e50d6",
@@ -174,17 +190,19 @@
   "log_format": "Trailing empty lines removed in prose/test receipt files; command content retained.",
   "documentation_checks": {
     "unicode_findings": 0,
-    "report_prose_flags": 3,
-    "prose_disposition": "Manual review retained specific checker subject and correct check/onward usage; see om-cert/prose-final.log.",
+    "report_prose_flags": 0,
+    "prose_disposition": "Full report read for evidence boundaries; final prose scan has no mechanical flags.",
     "scope": [
-      "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+      "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
       "docs/estate-review/completion/README.md",
-      "docs/estate-review/evidence/2026-11-01/om-cert/README.md",
-      "docs/diagrams/ontomark/10-reasoning-and-certificate-boundaries.md"
+      "docs/estate-review/evidence/2026-11-01/om-machine/README.md",
+      "docs/diagrams/ontomark/11-machine-bundle-identity-and-disclosure.md"
     ],
-    "format_check": "git diff --cached --check passed"
+    "format_check": "git diff --cached --check passed",
+    "local_links": 18,
+    "unicode_files": 6
   },
-  "tool_validation_basis": "Nine collector tests and clippy receipts retained from the original ledger batch at 610b57b; unchanged collector source/dependency hashes checked, not rerun. Fresh collection rechecked all 160 claim records with zero stale bindings.",
+  "tool_validation_basis": "Nine collector tests and clippy receipts retained from original ledger batch at 610b57b; unchanged collector source/dependency hashes verified. Fresh collection rechecked all 164 claim records with zero stale bindings.",
   "prior_concurrent_source_refresh": {
     "changed_adrs": 5,
     "stale_claims": 5,
@@ -230,22 +248,30 @@
     "disposition": "Historical stale state; all five reassessed in docs/estate-review/2026-11-01-obsidian-refresh.md. See current snapshot for dispositions."
   },
   "current_batch": {
-    "report": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
-    "new_whole_adrs": 2,
+    "report": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
+    "new_whole_adrs": 1,
     "new_panels": [
-      "OM-04.3",
-      "OM-10.1",
-      "OM-10.2",
-      "OM-10.3",
-      "OM-10.4"
+      "OM-03.1",
+      "OM-03.2",
+      "OM-06.1",
+      "OM-06.2",
+      "OM-11.1",
+      "OM-11.2",
+      "OM-11.3"
     ],
     "current_stale_records": 0,
-    "compiler_library_tests": 504,
-    "certificate_library_tests": 11,
-    "reasoner_integration_tests": 21,
-    "reasoner_doctests": 3,
-    "independent_checker_tests": 2,
-    "adversarial_probes": 9,
-    "limits": "Synthetic source-archive evidence. OM-04.1 narrowly corrected without panel credit; no new production or consumer acceptance."
+    "compiler_integration_tests": 24,
+    "cli_integration_tests": 4,
+    "adversarial_probes": 5,
+    "limits": "Synthetic source-archive evidence. Cross-repository boundary reading gives no whole-ADR credit to consumer records and does not prove production migration."
+  },
+  "corpus_gate": {
+    "topics": 202,
+    "panels": 1716,
+    "verified_citations": 25410,
+    "warnings": 0,
+    "fallback": 0,
+    "allowlisted": 9,
+    "check_verification": "passed"
   }
 }

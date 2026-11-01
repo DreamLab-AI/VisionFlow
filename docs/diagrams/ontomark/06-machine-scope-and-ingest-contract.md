@@ -54,7 +54,7 @@ flowchart TD
     REP["Report.machine carries working_records and yielded; published is empty in machine scope<br/>ontomark-compile/src/build/mod.rs:190-196, ontomark-compile/src/build/mod.rs:1036-1040, ontomark-compile/src/build/mod.rs:1062"]
     ARG --> OPT --> GUARD --> CENSUS --> CRED --> VALW --> FORK
     FORK --> KNOW --> LIST --> BACK --> MARK --> REP
-    SAME["INVARIANT: data/ (bar the markers) and okf/ are byte-identical across scopes, in both directions, and ontology_digest and content_digest are equal, because every ontology artefact reads KNOW and the scaffold backlinks stay knowledge-only<br/>test machine_and_public_builds_share_every_ontology_artefact ontomark-compile/tests/machine_scope.rs:143"]
+    SAME["INVARIANT: data/ (bar the markers) and okf/ are byte-identical across scopes, in both directions, and ontology_digest is equal for identical build parameters; content_digest matches when both load the same vaults; every ontology artefact reads KNOW<br/>test machine_and_public_builds_share_every_ontology_artefact ontomark-compile/tests/machine_scope.rs:143"]
     KNOW -.- SAME
     BACK -.- SAME
     DIFF["INVARIANT: what differs is the markers (scope), api/pages/working/, the search index, page_count, and the absence of publish/<br/>test machine_scope_writes_no_publish_tree_and_stamps_its_scope ontomark-compile/tests/machine_scope.rs:244"]
@@ -62,7 +62,7 @@ flowchart TD
     CLI["CLI contract: machine stamps scope, public writes no scope field, refusals exit 2<br/>ontomark-cli/tests/machine_scope_cli.rs:52, ontomark-cli/tests/machine_scope_cli.rs:70, ontomark-cli/tests/machine_scope_cli.rs:85"]
     ARG -.- CLI
 ```
-- DIVERGENCE: ADR-OM-005 decision 4 named the private mode `--vault all`, which is the public publish's value; the mode shipped as its own flag, so `--vault` keeps its meaning (`ontomark-cli/src/main.rs:192-193`, `DEPRECATION.md:468`).
+- DECISION: ADR-OM-005 decision 4 requires its own private-machine flag; the delivered surface is `--scope machine`, while `--vault all` retains the public publication meaning (`ontomark-cli/src/main.rs:192-193`, `DEPRECATION.md:468`). The provisional recipe at `DEPRECATION.md:470` remains stale.
 - EXTERNAL: the design record is `docs/design/machine-bundle-brief.md:9-13`; the decisions D1-D4 are in the ADR amendment (`ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:79-88`).
 
 ## OM-06.2 project_machine — the union split, the directional twin rule and the plain records
@@ -86,7 +86,7 @@ flowchart TD
     PM --> KP --> UNION --> PUBK --> STRIP --> CHECK1 --> CLEAN --> YIELD --> LINKS --> UREDACT --> SLUGC --> PLAIN --> OUT
     TWIN -.- CHECK1
     TWIN -.- YIELD
-    WS["working_slug = working/ + each path segment slugified, subdirectories kept; a segment slugify empties (CJK, emoji, punctuation) keeps x- + the first 4 bytes of its SHA-256, so two folders never share a file<br/>ir/projection.rs:668-671, ir/projection.rs:678-686"]
+    WS["working_slug = working/ + each path segment slugified, subdirectories kept; a segment slugify empties (CJK, emoji, punctuation) keeps x- + the first 4 bytes of its SHA-256, distinct names can still collide; the working-slug gate refuses duplicates<br/>ir/projection.rs:668-671, ir/projection.rs:678-686"]
     PLAIN -.- WS
     T1["tests: a_public_working_twin_of_a_private_knowledge_page_is_refused :386, a_public_working_twin_of_a_public_knowledge_page_yields :428, a_private_working_twin_of_a_public_knowledge_page_yields_silently :666, a_non_ascii_working_folder_keeps_its_own_slug_segment :711<br/>ontomark-compile/tests/machine_scope.rs:386, ontomark-compile/tests/machine_scope.rs:428, ontomark-compile/tests/machine_scope.rs:666, ontomark-compile/tests/machine_scope.rs:711"]
     TWIN -.- T1
@@ -94,7 +94,7 @@ flowchart TD
     NOTE["INVARIANT: no urn page IRI under working/ reaches a public bundle; machine page IRIs carry no spaces and equal the slug path<br/>ontomark-compile/tests/machine_scope.rs:293, ontomark-compile/tests/machine_scope.rs:696"]
     PLAIN -.- NOTE
 ```
-- INVARIANT: edges from a working record to knowledge are resolved; edges from knowledge to working are not, because knowledge records are never re-resolved (D3), so working links are one-directional in v1.
+- INVARIANT: edges from a working record to knowledge are resolved; edges from knowledge to working are not, because knowledge records are never re-resolved (D3), so working links are one-directional in v1. The [current audit](../../estate-review/2026-11-01-ontomark-machine-bundle-contract.md) reproduces a refused 32-bit slug collision and the separate knowledge/working marker boundaries; sibling panels receive no new coverage.
 - DIVERGENCE: the twin rule was amended after the first real-corpus build found a private working twin of a public knowledge page (`Web3`); the amended text is `docs/design/machine-bundle-brief.md:44-49`.
 
 ## OM-06.3 The records emitter and Loom's promote_vault_build

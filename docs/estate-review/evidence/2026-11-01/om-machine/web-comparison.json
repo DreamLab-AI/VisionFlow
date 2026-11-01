@@ -1,0 +1,18 @@
+{
+  "accessed": "2026-11-01",
+  "sources": [
+    {
+      "url": "https://robot.obolibrary.org/extract",
+      "basis": "Locality-based module extraction and MIREOT hierarchy distinction."
+    },
+    {
+      "url": "https://robot.obolibrary.org/filter",
+      "basis": "Axiom selection with include/exclude, signature and trim controls."
+    },
+    {
+      "url": "https://slsa.dev/spec/v1.2/build-provenance",
+      "basis": "Approved provenance schema separates build definition, parameters/dependencies, run details and subject digests."
+    }
+  ],
+  "limits": "Primary documentation comparison; no competitor execution or market ranking."
+}

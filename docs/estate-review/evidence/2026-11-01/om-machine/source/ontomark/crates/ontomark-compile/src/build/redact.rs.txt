@@ -1,0 +1,139 @@
+117: /// What redaction did in one build.
+118: #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+119: pub struct RedactionReport {
+120:     /// The `publish/` staging, by vault name.
+121:     pub publish: BTreeMap<String, SurfaceRedaction>,
+122:     /// The `api/markdown` mirror (empty when it was not written).
+123:     pub mirror: SurfaceRedaction,
+124: }
+125:
+126: /// A page as the resolver sees it.
+127: #[derive(Debug, Clone)]
+128: struct Entry {
+129:     private: bool,
+130:     id: String,
+131:     title: String,
+132:     slug: String,
+133:     aliases: Vec<String>,
+134: }
+135:
+136: #[derive(Debug)]
+137: struct VaultIndex {
+138:     kind: VaultKind,
+139:     names: NameIndex,
+140:     entries: Vec<Entry>,
+141: }
+142:
+143: /// The outcome of resolving a link target.
+144: #[derive(Debug, Clone, Copy)]
+145: enum Resolution<'a> {
+146:     /// A public page: its vault and its position in [`Vault::pages`].
+147:     Public(VaultKind, usize),
+148:     Private(&'a Entry),
+149:     Unresolved,
+150: }
+151:
+152: /// Resolves link targets to public/private, and rewrites text accordingly.
+153: #[derive(Debug)]
+154: pub struct PrivateLinks {
+155:     vaults: Vec<VaultIndex>,
+156: }
+157:
+158: impl PrivateLinks {
+159:     /// Index every page (and journal) of the given vaults.
+160:     #[must_use]
+161:     pub fn new(vaults: &[&Vault]) -> Self {
+162:         let vaults = vaults
+163:             .iter()
+164:             .map(|vault| {
+165:                 let regular = vault
+166:                     .pages
+167:                     .iter()
+168:                     .map(|p| (p, !p.is_public() || held_back(&p.rel_path)));
+169:                 // Journals are never published: a link to one is a link to a
+170:                 // non-public page. Regular pages come first so they win a clash.
+171:                 let journals = vault.journals.iter().map(|p| (p, true));
+172:                 let all: Vec<(&Page, bool)> = regular.chain(journals).collect();
+173:                 VaultIndex {
+174:                     kind: vault.kind,
+175:                     names: NameIndex::build_iter(all.iter().map(|(p, _)| *p)),
+176:                     entries: all
+177:                         .iter()
+178:                         .map(|(p, private)| Entry {
+179:                             private: *private,
+180:                             id: p.id.clone(),
+181:                             title: p.title(),
+182:                             slug: p.slug(),
+183:                             aliases: p.frontmatter.strings("aliases"),
+184:                         })
+185:                         .collect(),
+186:                 }
+187:             })
+188:             .collect();
+189:         Self { vaults }
+190:     }
+191:
+192:     fn lookup(&self, home: VaultKind, name: &str) -> Resolution<'_> {
+193:         let own = self.vaults.iter().filter(|v| v.kind == home);
+194:         let others = self.vaults.iter().filter(|v| v.kind != home);
+195:         for v in own.chain(others) {
+196:             if let Some(i) = v.names.get(name) {
+197:                 let e = &v.entries[i];
+198:                 return if e.private {
+199:                     Resolution::Private(e)
+200:                 } else {
+201:                     Resolution::Public(v.kind, i)
+202:                 };
+203:             }
+204:         }
+205:         Resolution::Unresolved
+206:     }
+207:
+208:     /// Resolve a wikilink target as written: whole, then without a `#heading`
+209:     /// or `#^block` fragment, then without a `.md` suffix.
+210:     fn resolve(&self, home: VaultKind, target: &str) -> Resolution<'_> {
+211:         let target = target.trim();
+212:         if target.is_empty() {
+213:             return Resolution::Unresolved;
+214:         }
+215:         let whole = self.lookup(home, target);
+216:         if !matches!(whole, Resolution::Unresolved) {
+217:             return whole;
+218:         }
+219:         let base = target.split_once('#').map_or(target, |(b, _)| b).trim();
+220:         if base.is_empty() {
+221:             return Resolution::Unresolved; // `[[#Heading]]` is a link within the page
+222:         }
+223:         let by_base = self.lookup(home, base);
+224:         if !matches!(by_base, Resolution::Unresolved) {
+225:             return by_base;
+226:         }
+227:         base.strip_suffix(".md")
+228:             .map_or(Resolution::Unresolved, |b| self.lookup(home, b.trim()))
+229:     }
+230:
+231:     /// The public page `target` names, as written in a page of the `home`
+232:     /// vault: its vault and its position in that vault's [`Vault::pages`].
+233:     ///
+234:     /// This is the one resolver. Redaction decides on it whether a link is
+235:     /// private, and the machine scope's plain records use it to point their
+236:     /// links at the pages' published slugs, so the two can never disagree about
+237:     /// which page a link means. `None` for a private or unresolved target.
+238:     #[must_use]
+239:     pub(crate) fn resolve_public(
+240:         &self,
+241:         home: VaultKind,
+242:         target: &str,
+243:     ) -> Option<(VaultKind, usize)> {
+244:         match self.resolve(home, target) {
+245:             Resolution::Public(kind, index) => Some((kind, index)),
+246:             Resolution::Private(_) | Resolution::Unresolved => None,
+247:         }
+248:     }
+249:
+250:     /// `true` when `target` resolves to a page that is not public.
+251:     #[must_use]
+252:     pub fn is_private(&self, home: VaultKind, target: &str) -> bool {
+253:         matches!(self.resolve(home, target), Resolution::Private(_))
+254:     }
+255:

@@ -1,0 +1,117 @@
+188: /// [`SecretsFound`] when any page selected for publication carries a
+189: /// credential. Nothing is staged in that case: the caller must not write a
+190: /// partial bundle.
+191: pub fn stage(vaults: &[&Vault]) -> Result<Staging, SecretsFound> {
+192:     stage_redacted(vaults, None)
+193: }
+194:
+195: /// [`stage`], redacting links to non-public pages (EXP-04) when `links` is
+196: /// given. See [`crate::build::redact`] for the rules.
+197: ///
+198: /// # Errors
+199: /// [`SecretsFound`], exactly as [`stage`].
+200: pub fn stage_redacted(
+201:     vaults: &[&Vault],
+202:     links: Option<&PrivateLinks>,
+203: ) -> Result<Staging, SecretsFound> {
+204:     let mut staging = Staging::default();
+205:     if links.is_some() {
+206:         staging.redaction = Some(BTreeMap::new());
+207:     }
+208:     let mut findings: Vec<SecretFinding> = Vec::new();
+209:
+210:     for vault in vaults {
+211:         // The role name is the `per_vault` key: an output contract, not the
+212:         // folder the vault was read from.
+213:         let name = vault.kind.role_name().to_owned();
+214:         let counts = staging.per_vault.entry(name.clone()).or_default();
+215:         // `journals/` is not published: a daily note is working material, and
+216:         // nothing in the estate consumes it. It is still scanned by
+217:         // `vault validate`.
+218:         let tree = tree_dir(vault.kind);
+219:         for page in &vault.pages {
+220:             if held_back(&page.rel_path) {
+221:                 continue;
+222:             }
+223:             counts.considered += 1;
+224:             if !page.is_public() {
+225:                 continue;
+226:             }
+227:             counts.published += 1;
+228:             for finding in secrets::scan(&page.body) {
+229:                 findings.push(SecretFinding {
+230:                     vault: name.clone(),
+231:                     path: page.rel_path.display().to_string(),
+232:                     line: page.body_line + finding.line - 1,
+233:                     kind: finding.kind,
+234:                 });
+235:             }
+236:             // The frontmatter is published too (`render` re-emits it), so it
+237:             // is scanned too (S1.2). It is scanned as rendered, which is what
+238:             // leaves the machine; the line is the rendered block's line, and
+239:             // the block opens on file line 1.
+240:             for finding in secrets::scan(&page.frontmatter.render().unwrap_or_default()) {
+241:                 findings.push(SecretFinding {
+242:                     vault: name.clone(),
+243:                     path: page.rel_path.display().to_string(),
+244:                     line: finding.line,
+245:                     kind: finding.kind,
+246:                 });
+247:             }
+248:             let mut tally = Tally::default();
+249:             let content = render(page, links, vault, &mut tally);
+250:             if let Some(report) = staging.redaction.as_mut() {
+251:                 report.entry(name.clone()).or_default().record(&tally);
+252:             }
+253:             staging.files.push(StagedPage {
+254:                 // `id` is the vault-root-relative path without `.md`, so a
+255:                 // working subdirectory survives into the slug. `tree` is the
+256:                 // published URL contract (`pages/` for knowledge), not the
+257:                 // input layout.
+258:                 path: format!("publish/{tree}/{}.md", page.id),
+259:                 content,
+260:             });
+261:         }
+262:     }
+263:
+264:     if !findings.is_empty() {
+265:         return Err(SecretsFound { findings });
+266:     }
+267:     staging.files.push(StagedPage {
+268:         // The site's home page: `<publish>/index.md` is Quartz slug `index`.
+269:         path: "publish/index.md".to_owned(),
+270:         content: index_page(&staging),
+271:     });
+272:     Ok(staging)
+273: }
+350:         let target = stage.join(rel);
+351:         if let Some(parent) = target.parent() {
+352:             std::fs::create_dir_all(parent)?;
+353:         }
+354:         std::fs::write(&target, &file.content)?;
+355:     }
+356:     crate::build::swap_in(&stage, dir)
+357: }
+358:
+359: /// Load the vault of `kind` where `layout` places it under `repo_root`, when
+360: /// the layout declares one and its directory exists; `None` otherwise. The
+361: /// layout's excluded folders apply, as in every other load.
+362: ///
+363: /// # Errors
+364: /// Any read or parse failure in that vault.
+365: pub fn sibling_vault(
+366:     repo_root: &Path,
+367:     layout: &crate::profile::Layout,
+368:     kind: crate::input::page::VaultKind,
+369: ) -> Result<Option<Vault>, crate::input::error::VaultError> {
+370:     let Some(root) = layout.path_of(repo_root, kind) else {
+371:         return Ok(None);
+372:     };
+373:     if !root.is_dir() {
+374:         return Ok(None);
+375:     }
+376:     Vault::load_excluding(&root, kind, &layout.excluded_dirs()).map(Some)
+377: }
+378:
+379: #[cfg(test)]
+380: mod tests {

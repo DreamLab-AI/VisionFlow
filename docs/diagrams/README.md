@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_201 topic files, 1713 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_202 topic files, 1716 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -399,6 +399,7 @@ _201 topic files, 1713 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | OM-08 | [External-source ingest — acquisition, acceptance and bundle identity](ontomark/08-external-source-ingest.md) | 3 | flowchart | [ADR-OM-010-external-source-ingest-lands-as-proposals.md](../../../ontomark/docs/adr/ADR-OM-010-external-source-ingest-lands-as-proposals.md) | ADR-OM-010 |
 | OM-09 | [Obsidian host — release, indexing, query lifecycle and guarded edits](ontomark/09-obsidian-host-lifecycle.md) | 4 | flowchart | [ADR-OBS-001-shared-graph.md](../../../ontomark-obsidian/docs/adr/ADR-OBS-001-shared-graph.md), [ADR-OBS-002-assisted-ingest-boundary-and-estate-notes.md](../../../ontomark-obsidian/docs/adr/ADR-OBS-002-assisted-ingest-boundary-and-estate-notes.md), [ADR-OBS-003-ingest-action-and-offline-contract.md](../../../ontomark-obsidian/docs/adr/ADR-OBS-003-ingest-action-and-offline-contract.md), [ADR-OBS-004-in-note-sparql-after-dot-triples.md](../../../ontomark-obsidian/docs/adr/ADR-OBS-004-in-note-sparql-after-dot-triples.md), [ADR-OBS-005-excluded-folders.md](../../../ontomark-obsidian/docs/adr/ADR-OBS-005-excluded-folders.md) | ADR-OBS-001, ADR-OBS-002, ADR-OBS-003, ADR-OBS-004, ADR-OBS-005 |
 | OM-10 | [Reasoning refusals and derivation-certificate publication](ontomark/10-reasoning-and-certificate-boundaries.md) | 4 | flowchart | [ADR-OM-004-owl2-el-as-the-local-reasoning-profile.md](../../../ontomark/docs/adr/ADR-OM-004-owl2-el-as-the-local-reasoning-profile.md), [ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md](../../../ontomark/docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md) | ADR-OM-004, ADR-OM-009 |
+| OM-11 | [Machine bundle identity and disclosure boundaries](ontomark/11-machine-bundle-identity-and-disclosure.md) | 3 | flowchart | [ADR-OM-005-estate-alignment-one-producer-explicit-projections.md](../../../ontomark/docs/adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md) | ADR-OM-005 |
 
 ### dream-engine
 

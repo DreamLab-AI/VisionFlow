@@ -1,0 +1,32 @@
+   Compiling ontomark-compile v0.6.1 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-compile)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.25s
+     Running tests/machine_scope.rs (target/debug/deps/machine_scope-714935ac76c5f475)
+
+running 24 tests
+test machine_scope_refuses_a_non_knowledge_root_and_a_missing_working_vault ... ok
+test machine_scope_refuses_a_profile_that_turns_redaction_off ... ok
+test machine_scope_refuses_options_it_cannot_honour ... ok
+test a_string_public_flag_in_working_refuses_the_machine_build ... ok
+test a_credential_in_a_public_working_page_refuses_the_machine_build ... ok
+test a_validation_error_in_working_refuses_the_machine_build ... ok
+test a_private_working_twin_of_a_public_working_page_is_refused ... ok
+test two_working_pages_with_one_slug_are_refused_before_staging ... ok
+test a_public_working_twin_of_a_public_knowledge_page_yields ... ok
+test two_public_working_pages_with_one_file_name_do_not_collide ... ok
+test public_working_text_naming_a_private_working_page_is_masked ... ok
+test the_public_working_note_is_a_plain_record_and_the_private_one_is_nowhere ... ok
+test machine_scope_page_iris_carry_no_spaces_and_equal_the_slug_path ... ok
+test a_dirty_working_tree_is_dirty_in_machine_scope ... ok
+test a_private_working_twin_of_a_public_knowledge_page_yields_silently ... ok
+test links_resolve_to_the_final_record_slugs ... ok
+test a_private_working_twins_title_is_still_masked_in_public_working_prose ... ok
+test a_link_to_a_yielded_twin_points_at_the_knowledge_winner ... ok
+test a_non_ascii_working_folder_keeps_its_own_slug_segment ... ok
+test a_held_back_working_page_is_neither_published_nor_a_collision ... ok
+test a_public_working_twin_of_a_private_knowledge_page_is_refused ... ok
+test machine_and_public_builds_share_every_ontology_artefact ... ok
+test no_working_page_iri_reaches_a_public_bundle ... ok
+test machine_scope_writes_no_publish_tree_and_stamps_its_scope ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.74s
+

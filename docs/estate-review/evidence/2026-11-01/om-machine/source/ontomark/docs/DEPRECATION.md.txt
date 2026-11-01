@@ -1,0 +1,36 @@
+455: - **NGG1**: the reusable codec is `ontomark-ngg1` 0.1.0. Published `vowl-wasm` 0.2.0 exposes the browser compatibility API and preserves physics/layout ownership. visionGraph deletes its independent JavaScript encoder/decoder and uses the immutable GitHub browser bundle because npm trusted-publisher authentication remains unresolved.
+456: - **Graph view**: [ADR-OM-002](adr/ADR-OM-002-shared-graph-and-obsidian-boundary.md) places framework-neutral rendering, traversal and interaction in Ontomark `packages/graph`. Narrative Goldmine’s old node/edge/label renderers are removed; its store, palette, navigation and worker layout remain host-owned. The Obsidian plugin consumes the same released package.
+457: - **Obsidian distribution**: [standalone public repo](https://github.com/DreamLab-AI/ontomark-obsidian), released offline Linux ZIP and real Obsidian 1.14.4 acceptance; mobile remains unsupported.
+458: - **Loom contracts**: main eef1bec consumes shared typed C3 readers and registry compiler 0.1.1. Real contracts, reload/receipt races and linked-worktree build identity pass. The runtime ingestion/first-served activation gate remains partial/inactive.
+459: - **Attribution**: corrected crate versions and complete frozen WASM/native CLI notices are published with source links; see [UPSTREAMS](UPSTREAMS.md). The live publisher also serves the full VOWL, shared renderer and 99-package JavaScript runtime notices, with the exact inventory digest verified. Historical release assets and licence texts are preserved.
+460:
+461: This batch does not close the original removal inventory or declare its 876 baseline residues eliminated. The 690 SKOS-only class declaration rule has synthetic typed-model coverage; applying it to the normative corpus needs a distinct reversible migration and consumer evidence. Other VisionClaw, knowledgeGraph, taxonomy and Agentbox producer replacements retain their recorded acceptance gates.
+462:
+463: ## 13. Alignment: 2026-10-12
+464:
+465: Owner decisions recorded in [ADR-OM-005](adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md); this section carries the inventory consequences.
+466:
+467: - **VisionClaw is a consumer.** Its force superset is an explicit projection over the shared bundle (ADR-2137 §3). The gap check (ADR-OM-005 §Evidence) found the bundle carries every corpus fact the projection reads; what it lacks is VisionClaw-owned (spring weights, class charges, population scales, seeds) or derived presentation. Two duplicate derivations collapse onto the bundle: the inferred closure (VisionClaw's own Whelk run yields a different set; route through `ontomark-reason`, D5) and the domain registry (`vault-core/src/domains.rs` vs `profile.taxonomy.domain_aliases`).
+468: - **VC-60: REPIN → RETIRE (gated).** Gates: (i) a pod-resource producer outside VisionClaw, output byte-equal to `pack-pod-resources.py` for a dated window; (ii) `src/services/ontology_pull.rs:42` repointed; (iii) VisionClaw ADR-2106 re-verified or amended (its `verified_paths` list the workflow, the pack script and the pull module); (iv) the input set below. The job runs until all four pass. New row: **AB-P6** — Agentbox produces the pod-resource pack from the released `ontomark` CLI (`ontomark build --scope machine`; `--vault all` is the public publish's value) and serves it to VisionClaw.
+469: - **OM-00 register reconciled at `8d654d1` (same day).** VisionFlow `docs/diagrams/ontomark/00` found 14 inherited faults in the relocated pipeline; all RECONCILE items are fixed in ontomark. VC-60's `vault build` still ships S1.1, S1.2, S1.5, S2.3 and S3.1 until retirement, which is one more reason the window should be short. The `estate-small` parity receipt now reads: every artefact byte-identical except the two generation markers, compared structurally.
+470: - **Input set.** VisionClaw's live graph ingests `working/pages` (kept, owner decision); the published machine artefacts are `knowledge/` only. Step 10's gate gains: `ontomark build --vault all --private-machine-bundle` (name provisional) emits unredacted TTL/NGG1/`api/*` including `working/`, never published to the site; VisionClaw's node set over that bundle equals its current in-tree parse (plain nodes, no classes from `working/`).
+471: - **Generation identity.** `visionGraph@<sha>` stays the identity; distribution (Agentbox-served or release-tagged, sha256-pinned) is separate. Identifiers need not be stable over time at this stage; a re-mint ships ADR-2137 §4's mapping, diff and rollback artefacts. Loom ADR-141 amended (proposed).
+472: - **Licence facts.** `crates/vault` + `vault-core`: 24 commits, 29,383 lines, 100% owner agent identities; only port marker is own `pipeline/gate.py`. Extraction is a port under the existing grant (§1). `nostr-bbs-core` AGPL-3.0-only (owner jjohare) stays the AGPL transport. `horned-owl` LGPL-3.0: opt-in `whelk-el` feature, off by default; notice added to UPSTREAMS. Rule: dependencies flow permissive → AGPL, never the reverse.
+473: - **Agentbox ADR-2108** ("vault baked by Nix") is the record ADR-2136 overturns; mapped in ADR-2136 today, superseded on acceptance.
+474: - **Snapshots.** The estate ADR copies under `docs/adr/` are replaced by `docs/adr/ESTATE-ADRS.md` (pointer index). §10.1's "ADR copies" rows now mean the sources.
+475: - **Not decided** (left open, see ADR-OM-005): proposal-not-Apply for estate vaults in the plugin; per-edge property IRI in NGG1; dual-licensing `nostr-bbs-core`.
+476:
+477: ## 14. Obsidian-native completion: 2026-10-31
+478:
+479: Owner order (31 October): remove every live Logseq path across the estate (ontomark, ontomark-obsidian, visionGraph, knowledgeGraph, VisionClaw `project/`, Loom, Agentbox) and make `ontomark` the one ontology CLI. Census by four read-only passes the same day; `ontomark repair bodies --check --vault all` on visionGraph `e3cebfcce`: 11,631 pages, 4 failing (`knowledge/AI User`, `knowledge/Player Two Platform Implementation`, `working/2026-10-29`, `working/2026-10-30`).
+480:
+481: **Owner decisions**
+482:
+483: | Topic | Decision |
+484: |---|---|
+485: | Vault content about Logseq (108 dated journals, ~130 subject pages) | Leave in place; rewrite only the style-guide pages that instruct Logseq syntax |
+486: | Superseded ADRs | Keep in place, status marked superseded |
+487: | Other dated records (migration logs, research write-ups, `legacy/`, explorer reports) | Move to each repo's `archive/` |
+488: | `jjohare/logseq` | Archive on GitHub once nothing pins it (census: nothing does; its two gh-pages workflows still target knowledgeGraph) |
+489: | One CLI | `ontomark` for every verb it carries; `vault` shrinks to the AGPL governance transport (`propose`, `panel publish`), per ADR-OM-005 decisions 5–6 |
+490: | VisionClaw `graphs.logseq` localStorage shim | Remove behind a persisted-version bump |

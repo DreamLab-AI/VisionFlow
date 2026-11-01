@@ -1,0 +1,66 @@
+150:         with:
+151:           repository: ${{ env.ONTOLOGY_SOURCE_REPO }}
+152:           ref: ${{ needs.validate-source.outputs.source_sha }}
+153:           path: vault-source
+154:           token: ${{ secrets.ONTOLOGY_SOURCE_TOKEN || secrets.GITHUB_TOKEN }}
+155:
+156:       - name: Cache the Rust build
+157:         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+158:         with:
+159:           path: |
+160:             ~/.cargo/registry/index
+161:             ~/.cargo/registry/cache
+162:             ~/.cargo/git/db
+163:             target
+164:           key: vault-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
+165:           restore-keys: vault-${{ runner.os }}-
+166:
+167:       - name: Build `vault`
+168:         run: cargo build --release --locked -p vault
+169:
+170:       - name: vault build (knowledge vault)
+171:         run: |
+172:           ./target/release/vault --repo vault-source build \
+173:             --vault knowledge \
+174:             --out "$GITHUB_WORKSPACE/output/vault"
+175:
+176:       # ADR-2147. Every inferred subsumption the generation serves gets a
+177:       # derivation certificate (oo-cert/1): asserted.tsv, derivations.tsv with
+178:       # the rule and premises of every step, asserted.sha256, scope.tsv. The
+179:       # command exits 1 if the certified named closure stops matching Whelk's.
+180:       - name: vault certify (derivation certificate, Whelk parity)
+181:         run: |
+182:           mkdir -p output/certificate
+183:           ./target/release/vault --repo vault-source --json certify \
+184:             --out "$GITHUB_WORKSPACE/output/certificate" \
+185:             | tee output/certificate/certify.json
+186:           python3 -c "import json;d=json.load(open('output/certificate/certify.json'));print(f\"derivations {d['certificate']['derivations']}, whelk_parity {d['whelk_parity']}\")"
+187:
+188:       # The checker is independent of the engine on purpose: it is the
+189:       # upstream Lean 4 binary (theorem OOCert.certificate_sound), fetched by
+190:       # tag and verified by digest, never built from this repository.
+191:       - name: Re-check the certificate with oo-cert
+192:         env:
+193:           OO_CERT_TAG: v2.0.1
+194:           OO_CERT_ASSET: oo-cert-x86_64-unknown-linux-gnu
+195:           OO_CERT_SHA256: 68223b4db193783a52bd2810a66ce2ad3a3780f963a5ef84753564c051e3e532
+196:           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+197:         run: |
+198:           mkdir -p "$RUNNER_TEMP/oo"
+199:           gh release download "$OO_CERT_TAG" --repo fabio-rovai/open-ontologies \
+200:             --pattern "$OO_CERT_ASSET" --dir "$RUNNER_TEMP/oo"
+201:           (cd "$RUNNER_TEMP/oo" && echo "$OO_CERT_SHA256  $OO_CERT_ASSET" | sha256sum --check --strict)
+202:           chmod +x "$RUNNER_TEMP/oo/$OO_CERT_ASSET"
+203:           "$RUNNER_TEMP/oo/$OO_CERT_ASSET" \
+204:             output/certificate/asserted.tsv output/certificate/derivations.tsv \
+205:             | tee output/certificate/oo-cert.json
+206:           python3 -c "import json,sys;d=json.load(open('output/certificate/oo-cert.json'));sys.exit(0 if d.get('ok') else 1)"
+207:
+208:       # The digest and the two reports are small and travel with the release;
+209:       # the full certificate (~300 MB) is an artefact a reviewer can pull.
+210:       - name: Upload certificate reports
+211:         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+212:         with:
+213:           name: ontology-certificate-reports
+214:           path: |
+215:             output/certificate/certify.json

@@ -2036,5 +2036,58 @@
       "OM-10.4"
     ],
     "basis": "Four new panels checked against source at 0caae5d, strict citations, Pele rendering and visual inspection. Nine adversarial probes and actual independent-checker execution support the scoped findings."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md",
+    "source_sha256": "fc68a04c69546a22b1857f162f3093d5799108ddb872713adfbbdbebf5209620",
+    "report": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
+    "report_sha256": "2af1b0b4255a5f6b55cf31c0e8700cd958485959c28550ea83adaa75cde84c89",
+    "coverage": "whole-document",
+    "basis": "Whole-document section assessment, including both amendments and historical receipt, at 0caae5d. Compiler tests and five probes support bounded findings; consumer migration and live acceptance remain open."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/03-build-run-gates-staging-and-generation.md",
+    "source_sha256": "a107cccd91d5cac050a6a367ac5c554d4126c209ff4e456149b631151b82dae6",
+    "report": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
+    "report_sha256": "2af1b0b4255a5f6b55cf31c0e8700cd958485959c28550ea83adaa75cde84c89",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-03.1",
+      "OM-03.2"
+    ],
+    "basis": "Selected panels source-reviewed, strict-citation checked, rendered and visually inspected. Old topic pins retained with reviewed runtime diff; no coverage credit for rendered sibling panels."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/06-machine-scope-and-ingest-contract.md",
+    "source_sha256": "8c5dff95cbdee93d0f588cccb30c84d6bf32dd2fc398bfead0613db9da0dd1a4",
+    "report": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
+    "report_sha256": "2af1b0b4255a5f6b55cf31c0e8700cd958485959c28550ea83adaa75cde84c89",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-06.1",
+      "OM-06.2"
+    ],
+    "basis": "Selected panels source-reviewed, strict-citation checked, rendered and visually inspected. Old topic pins retained with reviewed runtime diff; no coverage credit for rendered sibling panels."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/11-machine-bundle-identity-and-disclosure.md",
+    "source_sha256": "ef3501927703a0ee8f93b1f8ebb2ad5f7d74dafecaf3e60256f8d48d1d1633ef",
+    "report": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
+    "report_sha256": "2af1b0b4255a5f6b55cf31c0e8700cd958485959c28550ea83adaa75cde84c89",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-11.1",
+      "OM-11.2",
+      "OM-11.3"
+    ],
+    "basis": "Selected panels source-reviewed, strict-citation checked, rendered and visually inspected. Old topic pins retained with reviewed runtime diff; no coverage credit for rendered sibling panels."
   }
 ]

@@ -1,0 +1,31 @@
+30: use super::ontology_generation::OntologyPublication;
+31: use async_trait::async_trait;
+32: use bytes::Bytes;
+33: use serde_json::Value;
+34: use sha2::{Digest, Sha256};
+35: use solid_pod_rs::error::PodError;
+36: use solid_pod_rs::wac::{AclAuthorization, AclDocument, IdOrIds, IdRef};
+37: use solid_pod_rs::Storage;
+38: use tracing::{info, warn};
+39:
+40: /// Rolling release that `ontology-publish.yml` keeps current on `main`.
+41: pub const DEFAULT_RELEASE_URL: &str =
+42:     "https://github.com/DreamLab-AI/VisionClaw/releases/download/ontology-latest";
+43:
+44: /// Container the client reads (`client/.../jss/contextLoader.ts`) and the
+45: /// workflow's push path PUTs to (`JSS_PUBLIC_PATH`).
+46: pub const POD_CONTAINER: &str = "/public/ontology/";
+47:
+48: const MANIFEST: &str = "index.jsonld";
+49: const SUMS: &str = "SHA256SUMS";
+50:
+51: /// Content files in the release, with the MIME type they are stored under.
+52: /// Order is the write order; the manifest is written separately, last.
+53: const CONTENT_FILES: [(&str, &str); 4] = [
+54:     ("visionflow.ttl", "text/turtle"),
+55:     ("context.jsonld", "application/ld+json"),
+56:     ("ontology.jsonld", "application/ld+json"),
+57:     ("visionflow.stats.json", "application/json"),
+58: ];
+59:
+60: /// Boot-time configuration, read from the environment.

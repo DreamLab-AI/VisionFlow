@@ -1,0 +1,266 @@
+1: //! `.generation.json` — the identity stamp Loom promotes against (decision Q8).
+2: //!
+3: //! A generation is `<prefix>@<local sha>` plus a **content digest**, and the
+4: //! two are not redundant: the sha says which commit the build came from, the
+5: //! digest says what the build actually read. A dirty working tree produces a
+6: //! new digest under an unchanged sha, which is precisely the case a bare commit
+7: //! hash would hide. The prefix is the profile's
+8: //! [`crate::profile::GenerationNaming`]: the repository root's directory name
+9: //! unless pinned (the estate pins `visionGraph`).
+10: //!
+11: //! Two further rules keep the identity honest:
+12: //!
+13: //! * A build from a working tree with uncommitted changes under the vault
+14: //!   paths is `<prefix>@<sha>+dirty` with `dirty: true`, so an
+15: //!   uncommitted build can never masquerade as the commit.
+16: //! * The bundle carries the stamp twice: `<out>/.generation.json` lists every
+17: //!   artefact relative to `<out>`, and `<out>/data/.generation.json` — the
+18: //!   marker Loom reads beside its served index — lists only the `data/`
+19: //!   artefacts, relative to `data/` ([`Generation::scoped`]).
+20:
+21: use std::path::Path;
+22:
+23: use serde::{Deserialize, Serialize};
+24: use sha2::{Digest, Sha256};
+25:
+26: /// One emitted file, with its hash and size.
+27: #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+28: pub struct Artifact {
+29:     /// Path relative to the bundle root, e.g. `data/ontology.ttl`.
+30:     pub name: String,
+31:     /// Lowercase hex SHA-256 of the file's bytes.
+32:     pub sha256: String,
+33:     /// Size in bytes.
+34:     pub bytes: u64,
+35: }
+36:
+37: impl Artifact {
+38:     /// Hash `content` and record it under `name`.
+39:     #[must_use]
+40:     pub fn of(name: impl Into<String>, content: &[u8]) -> Self {
+41:         Self {
+42:             name: name.into(),
+43:             sha256: hex::encode(Sha256::digest(content)),
+44:             bytes: content.len() as u64,
+45:         }
+46:     }
+47: }
+48:
+49: /// Which consumer a bundle is built for (`ontomark build --scope`).
+50: ///
+51: /// [`Scope::Public`] is the publication build: the knowledge projection and
+52: /// the Quartz `publish/` tree. [`Scope::Machine`] is the bundle `VisionClaw`
+53: /// consumes: the same knowledge projection **plus** `working/`'s public pages as
+54: /// plain records, and never `publish/`. The marker spells it in lower case, and
+55: /// a marker that does not name a scope is a public one.
+56: #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+57: #[serde(rename_all = "lowercase")]
+58: pub enum Scope {
+59:     /// The publication build (the default).
+60:     #[default]
+61:     Public,
+62:     /// The machine bundle: knowledge plus `working/`'s public pages as plain
+63:     /// records.
+64:     Machine,
+65: }
+66:
+67: impl Scope {
+68:     /// `true` for [`Scope::Public`]. The marker omits the field for a public
+69:     /// build, so public markers stay byte-identical to those written before the
+70:     /// field existed.
+71:     // `skip_serializing_if` hands the field by reference.
+72:     #[allow(clippy::trivially_copy_pass_by_ref)]
+73:     #[must_use]
+74:     pub fn is_public(&self) -> bool {
+75:         matches!(self, Self::Public)
+76:     }
+77:
+78:     /// The marker and command-line spelling.
+79:     #[must_use]
+80:     pub fn as_str(self) -> &'static str {
+81:         match self {
+82:             Self::Public => "public",
+83:             Self::Machine => "machine",
+84:         }
+85:     }
+86: }
+87:
+88: /// The `.generation.json` document (contract C3).
+89: #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+90: pub struct Generation {
+91:     /// `<prefix>@<sha>`, suffixed `+dirty` for an uncommitted build; see
+92:     /// [`generation_id`].
+93:     pub id: String,
+94:     /// The source commit, or `unknown` outside a git checkout. Always the bare
+95:     /// sha, dirty or not.
+96:     pub commit: String,
+97:     /// `true` when the vault paths had uncommitted changes at build time.
+98:     pub dirty: bool,
+99:     /// SHA-256 over every source page, path-ordered.
+100:     pub content_digest: String,
+101:     /// `sha256-12-<hex>` over the emitted asserted graph, header excluded
+102:     /// (ADR-2128): the tail of `data/ontology.ttl`'s `owl:versionIRI`. Unlike
+103:     /// [`Self::content_digest`] it moves when the vocabulary or the emitter
+104:     /// changes the Turtle under unchanged pages.
+105:     pub ontology_digest: String,
+106:     /// ISO-8601 build instant.
+107:     pub generated_at: String,
+108:     /// Public OWL classes in this build.
+109:     pub class_count: usize,
+110:     /// Public pages in this build; in a [`Scope::Machine`] build this includes
+111:     /// the plain `working/` records.
+112:     pub page_count: usize,
+113:     /// `vocabulary.yaml`'s `version`.
+114:     pub vocabulary_version: u32,
+115:     /// The bundle's own expiry, or `null` when none is configured.
+116:     #[serde(skip_serializing_if = "Option::is_none")]
+117:     pub stale_after: Option<String>,
+118:     /// The scope this bundle was built for. Absent from a public marker, and
+119:     /// absence means public.
+120:     #[serde(default, skip_serializing_if = "Scope::is_public")]
+121:     pub scope: Scope,
+122:     /// Every emitted artefact.
+123:     pub artifacts: Vec<Artifact>,
+124: }
+125:
+126: impl Generation {
+127:     /// The same stamp for the sub-bundle under `prefix` (e.g. `data/`): only
+128:     /// the artefacts beneath it, renamed relative to it. Identity, digest and
+129:     /// counts are unchanged — it is the same generation, seen from inside.
+130:     #[must_use]
+131:     pub fn scoped(&self, prefix: &str) -> Self {
+132:         let prefix = format!("{}/", prefix.trim_end_matches('/'));
+133:         Self {
+134:             artifacts: self
+135:                 .artifacts
+136:                 .iter()
+137:                 .filter_map(|a| {
+138:                     a.name.strip_prefix(&prefix).map(|rest| Artifact {
+139:                         name: rest.to_owned(),
+140:                         sha256: a.sha256.clone(),
+141:                         bytes: a.bytes,
+142:                     })
+143:                 })
+144:                 .collect(),
+145:             ..self.clone()
+146:         }
+147:     }
+148: }
+149:
+150: /// The generation id for `commit` under `prefix`: `<prefix>@<sha>`, plus
+151: /// `+dirty` when the build read uncommitted changes.
+152: ///
+153: /// `prefix` is [`crate::profile::GenerationNaming::prefix_for`] the repository
+154: /// root — `visionGraph` for the estate, the root's directory name otherwise.
+155: ///
+156: /// ```
+157: /// use ontomark_compile::build::generation::generation_id;
+158: ///
+159: /// assert_eq!(generation_id("visionGraph", "ae913f93", false), "visionGraph@ae913f93");
+160: /// assert_eq!(generation_id("notes", "ae913f93", true), "notes@ae913f93+dirty");
+161: /// ```
+162: #[must_use]
+163: pub fn generation_id(prefix: &str, commit: &str, dirty: bool) -> String {
+164:     if dirty {
+165:         format!("{prefix}@{commit}+dirty")
+166:     } else {
+167:         format!("{prefix}@{commit}")
+168:     }
+169: }
+170:
+190:         .filter(|o| o.status.success())
+191:         .is_some_and(|o| !o.stdout.iter().all(u8::is_ascii_whitespace))
+192: }
+193:
+194: /// Read `git rev-parse HEAD` in `repo`, returning `unknown` when it is not a
+195: /// git checkout or git is unavailable.
+196: #[must_use]
+197: pub fn git_sha(repo: impl AsRef<Path>) -> String {
+198:     std::process::Command::new("git")
+199:         .arg("-C")
+200:         .arg(repo.as_ref())
+201:         .args(["rev-parse", "HEAD"])
+202:         .output()
+203:         .ok()
+204:         .filter(|o| o.status.success())
+205:         .and_then(|o| String::from_utf8(o.stdout).ok())
+206:         .map(|s| s.trim().to_owned())
+207:         .filter(|s| !s.is_empty())
+208:         .unwrap_or_else(|| "unknown".to_owned())
+209: }
+210:
+211: /// SHA-256 over `(relative path, file bytes)` pairs, sorted by path.
+212: ///
+213: /// The path is hashed alongside the bytes so a rename changes the digest even
+214: /// when no content does.
+215: #[must_use]
+216: pub fn content_digest(mut entries: Vec<(String, Vec<u8>)>) -> String {
+217:     entries.sort_by(|a, b| a.0.cmp(&b.0));
+218:     let mut h = Sha256::new();
+219:     for (path, bytes) in entries {
+220:         h.update(path.as_bytes());
+221:         h.update(b"\0");
+222:         h.update(&bytes);
+223:         h.update(b"\n");
+224:     }
+225:     hex::encode(h.finalize())
+226: }
+227:
+228: /// [`content_digest`] over `(path, sha256-hex)` pairs: the pages the build
+229: /// parsed, hashed as they were read, so the digest never re-reads a file after
+230: /// parsing it (a time-of-check gap) and never hashes empty bytes on a read
+231: /// error (S2.2). Path-ordered, like [`content_digest`]; the two are different
+232: /// digests of the same inputs and are not interchangeable.
+233: #[must_use]
+234: pub fn content_digest_of_hashes(mut entries: Vec<(String, String)>) -> String {
+235:     entries.sort_by(|a, b| a.0.cmp(&b.0));
+236:     let mut h = Sha256::new();
+237:     for (path, sha) in entries {
+238:         h.update(path.as_bytes());
+239:         h.update(b"\0");
+240:         h.update(sha.as_bytes());
+241:         h.update(b"\n");
+242:     }
+243:     hex::encode(h.finalize())
+244: }
+245:
+246: /// The ADR-2023 content address of `bytes`: `sha256-12-` plus the first 12
+247: /// lowercase hex characters of their SHA-256, byte-identical to the agentbox
+248: /// `sha12()` contract (and to `services::proposal_spine::sha256_12` in the
+249: /// root crate, prefixed).
+250: #[must_use]
+251: pub fn sha256_12(bytes: &[u8]) -> String {
+252:     let full = hex::encode(Sha256::digest(bytes));
+253:     format!("sha256-12-{}", &full[..12])
+254: }
+255:
+256: /// Assemble the generation stamp; `prefix` is the id's text before `@` (see
+257: /// [`generation_id`]).
+258: #[must_use]
+259: #[allow(clippy::too_many_arguments)] // The fields of contract C3.
+260: pub fn generation(
+261:     prefix: &str,
+262:     commit: String,
+263:     dirty: bool,
+264:     content_digest: String,
+265:     ontology_digest: String,
+266:     generated_at: String,
+267:     class_count: usize,
+268:     page_count: usize,
+269:     vocabulary_version: u32,
+270:     stale_after: Option<String>,
+271:     artifacts: Vec<Artifact>,
+272: ) -> Generation {
+273:     Generation {
+274:         id: generation_id(prefix, &commit, dirty),
+275:         commit,
+276:         dirty,
+277:         content_digest,
+278:         ontology_digest,
+279:         generated_at,
+280:         class_count,
+281:         page_count,
+282:         vocabulary_version,
+283:         stale_after,
+284:         scope: Scope::Public,
+285:         artifacts,

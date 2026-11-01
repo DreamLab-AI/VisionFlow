@@ -1,0 +1,101 @@
+497:         Self {
+498:             knowledge: "knowledge".to_owned(),
+499:             working: Some("working".to_owned()),
+500:             excluded: crate::input::page::EXCLUDED_DIRS
+501:                 .iter()
+502:                 .map(|s| (*s).to_owned())
+503:                 .collect(),
+504:         }
+505:     }
+506: }
+507:
+508: impl Layout {
+509:     /// The layout of a plain Obsidian vault: the repository root is the
+510:     /// knowledge vault (`"."`), there is no working vault, and the built-in
+511:     /// furniture folders are excluded. The command line selects this when it
+512:     /// finds no `ontology/vocabulary.yaml` (ADR-OM-008).
+513:     #[must_use]
+514:     pub fn flat() -> Self {
+515:         Self {
+516:             knowledge: ".".to_owned(),
+517:             working: None,
+518:             ..Self::default()
+519:         }
+520:     }
+521:
+522:     /// The excluded folders as the borrowed slice the page walk takes.
+523:     #[must_use]
+524:     pub fn excluded_dirs(&self) -> Vec<&str> {
+525:         self.excluded.iter().map(String::as_str).collect()
+526:     }
+527:
+528:     /// The repository-relative folder of a vault role, as declared: `"."` for
+529:     /// a root vault, `None` when the layout has no vault of that role. A
+530:     /// working folder that is `"."` or the knowledge folder is treated as
+531:     /// absent, because a folder holds one role.
+532:     #[must_use]
+533:     pub fn dir_of(&self, kind: VaultKind) -> Option<&str> {
+534:         match kind {
+535:             VaultKind::Knowledge => Some(self.knowledge.as_str()),
+536:             VaultKind::Working => self
+537:                 .working
+538:                 .as_deref()
+539:                 .filter(|w| !w.is_empty() && *w != "." && *w != self.knowledge),
+540:         }
+541:     }
+542:
+543:     /// Where a vault role sits on disk: `repo_root` joined with
+544:     /// [`Layout::dir_of`], or `repo_root` itself for `"."`. `None` when the
+545:     /// layout has no vault of that role. Pure: nothing is checked on disk.
+546:     #[must_use]
+547:     pub fn path_of(&self, repo_root: &Path, kind: VaultKind) -> Option<PathBuf> {
+548:         let dir = self.dir_of(kind)?;
+549:         Some(if dir == "." {
+550:             repo_root.to_path_buf()
+551:         } else {
+552:             repo_root.join(dir)
+553:         })
+554:     }
+555:
+556:     /// [`Layout::path_of`], refusing with a [`MissingVault`] that names the
+557:     /// layout when the role is undeclared or its folder is not a directory.
+558:     ///
+559:     /// # Errors
+560:     /// [`MissingVault`], whose message is fit to print to a user.
+561:     pub fn root_of(&self, repo_root: &Path, kind: VaultKind) -> Result<PathBuf, MissingVault> {
+562:         let path = self.path_of(repo_root, kind).ok_or_else(|| MissingVault {
+563:             kind,
+564:             declared: None,
+565:             layout: self.describe(),
+566:         })?;
+567:         if path.is_dir() {
+568:             Ok(path)
+569:         } else {
+570:             Err(MissingVault {
+571:                 kind,
+572:                 declared: Some(path),
+573:                 layout: self.describe(),
+574:             })
+575:         }
+576:     }
+577:
+578:     /// The role a vault root plays under this layout: working when its path
+579:     /// ends with the declared working folder, knowledge otherwise. The
+580:     /// knowledge folder can be `"."`, so knowledge is the default, not a
+581:     /// match.
+582:     #[must_use]
+583:     pub fn kind_of(&self, root: &Path) -> VaultKind {
+584:         match self.dir_of(VaultKind::Working) {
+585:             Some(working) if root.ends_with(working) => VaultKind::Working,
+586:             _ => VaultKind::Knowledge,
+587:         }
+588:     }
+589:
+590:     /// The layout in one line, as the refusals quote it:
+591:     /// `` layout: knowledge = "knowledge", working = "working" ``.
+592:     #[must_use]
+593:     pub fn describe(&self) -> String {
+594:         match self.dir_of(VaultKind::Working) {
+595:             Some(w) => format!(
+596:                 "layout: knowledge = {:?}, working = {:?}",
+597:                 self.knowledge, w

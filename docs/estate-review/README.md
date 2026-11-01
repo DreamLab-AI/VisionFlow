@@ -7,7 +7,9 @@ type: explanation
 
 # VisionFlow estate review
 
-[The completion ledger](completion/README.md) now separates scoped inventory, recorded assessments and unreconciled work. Its current reconciliation binds 84 ADR assessments and 285 panels to exact document/report hashes; these counts are not an overall completion percentage.
+[The completion ledger](completion/README.md) now separates scoped inventory, recorded assessments and unreconciled work. Its current reconciliation binds 85 ADR assessments and 292 panels to exact document/report hashes; these counts are not an overall completion percentage.
+
+Ontomark machine bundles: [ADR-OM-005 section assessment, disclosure probes and producer migration gates](2026-11-01-ontomark-machine-bundle-contract.md). Five probes distinguish private-name masking, source identity, effective configuration and guarded slug collisions. Seven panels are assessed; complete consumer migration remains open.
 
 Ontomark reasoning and certificates: [two complete ADR assessments, nine adversarial probes and publication boundaries](2026-11-01-ontomark-reasoning-and-certificates.md). New OM-10 panels separate refusal coverage, parity, proof soundness and publication identity; OM-04.3 is corrected.
 

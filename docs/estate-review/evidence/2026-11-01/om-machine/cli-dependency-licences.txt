@@ -1,0 +1,299 @@
+ontomark v0.7.0 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-cli) MIT OR Apache-2.0
+├── anyhow v1.0.104 MIT OR Apache-2.0
+├── clap v4.6.7 MIT OR Apache-2.0
+│   ├── clap_builder v4.6.7 MIT OR Apache-2.0
+│   │   ├── anstream v1.0.0 MIT OR Apache-2.0
+│   │   │   ├── anstyle v1.0.14 MIT OR Apache-2.0
+│   │   │   ├── anstyle-parse v1.0.0 MIT OR Apache-2.0
+│   │   │   │   └── utf8parse v0.2.2 Apache-2.0 OR MIT
+│   │   │   ├── anstyle-query v1.1.5 MIT OR Apache-2.0
+│   │   │   ├── colorchoice v1.0.5 MIT OR Apache-2.0
+│   │   │   ├── is_terminal_polyfill v1.70.2 MIT OR Apache-2.0
+│   │   │   └── utf8parse v0.2.2 Apache-2.0 OR MIT
+│   │   ├── anstyle v1.0.14 MIT OR Apache-2.0
+│   │   ├── clap_lex v1.1.1 MIT OR Apache-2.0
+│   │   └── strsim v0.11.1 MIT
+│   └── clap_derive v4.6.7 (proc-macro) MIT OR Apache-2.0
+│       ├── heck v0.5.0 MIT OR Apache-2.0
+│       ├── proc-macro2 v1.0.107 MIT OR Apache-2.0
+│       │   └── unicode-ident v1.0.26 (MIT OR Apache-2.0) AND Unicode-3.0
+│       ├── quote v1.0.47 MIT OR Apache-2.0
+│       │   └── proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+│       └── syn v3.0.8 MIT OR Apache-2.0
+│           ├── proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+│           ├── quote v1.0.47 MIT OR Apache-2.0 (*)
+│           └── unicode-ident v1.0.26 (MIT OR Apache-2.0) AND Unicode-3.0
+├── ontomark-compile v0.6.1 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-compile) MIT OR Apache-2.0
+│   ├── anyhow v1.0.104 MIT OR Apache-2.0
+│   ├── hex v0.4.3 MIT OR Apache-2.0
+│   ├── indexmap v2.14.2 Apache-2.0 OR MIT
+│   │   ├── equivalent v1.0.2 Apache-2.0 OR MIT
+│   │   ├── hashbrown v0.17.1 MIT OR Apache-2.0
+│   │   │   └── foldhash v0.2.0 Zlib
+│   │   └── serde_core v1.0.229 MIT OR Apache-2.0
+│   ├── ontomark-ngg1 v0.1.0 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-ngg1) MIT OR Apache-2.0
+│   ├── ontomark-parse v0.1.3 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-parse) MIT OR Apache-2.0
+│   │   ├── indexmap v2.14.2 Apache-2.0 OR MIT (*)
+│   │   ├── serde v1.0.229 MIT OR Apache-2.0
+│   │   │   ├── serde_core v1.0.229 MIT OR Apache-2.0
+│   │   │   └── serde_derive v1.0.229 (proc-macro) MIT OR Apache-2.0
+│   │   │       ├── proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+│   │   │       ├── quote v1.0.47 MIT OR Apache-2.0 (*)
+│   │   │       └── syn v3.0.8 MIT OR Apache-2.0 (*)
+│   │   ├── sha2 v0.11.0 MIT OR Apache-2.0
+│   │   │   ├── cfg-if v1.0.5 MIT OR Apache-2.0
+│   │   │   ├── cpufeatures v0.3.1 MIT OR Apache-2.0
+│   │   │   └── digest v0.11.3 MIT OR Apache-2.0
+│   │   │       ├── block-buffer v0.12.1 MIT OR Apache-2.0
+│   │   │       │   └── hybrid-array v0.4.15 MIT OR Apache-2.0
+│   │   │       │       └── typenum v1.20.1 MIT OR Apache-2.0
+│   │   │       └── crypto-common v0.2.2 MIT OR Apache-2.0
+│   │   │           └── hybrid-array v0.4.15 MIT OR Apache-2.0 (*)
+│   │   ├── thiserror v2.0.21 MIT OR Apache-2.0
+│   │   │   └── thiserror-impl v2.0.21 (proc-macro) MIT OR Apache-2.0
+│   │   │       ├── proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+│   │   │       ├── quote v1.0.47 MIT OR Apache-2.0 (*)
+│   │   │       └── syn v3.0.8 MIT OR Apache-2.0 (*)
+│   │   └── yaml-rust2 v0.13.0 MIT OR Apache-2.0
+│   │       ├── arraydeque v0.5.1 MIT/Apache-2.0
+│   │       └── hashlink v0.12.2 MIT OR Apache-2.0
+│   │           └── hashbrown v0.17.1 MIT OR Apache-2.0 (*)
+│   ├── ontomark-reason v0.1.2 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-reason) MIT OR Apache-2.0
+│   │   ├── serde v1.0.229 MIT OR Apache-2.0 (*)
+│   │   └── whelk-el v0.1.1 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/whelk-el) MIT OR Apache-2.0
+│   │       └── im v15.1.0 MPL-2.0+
+│   │           ├── bitmaps v2.1.0 MPL-2.0+
+│   │           │   └── typenum v1.20.1 MIT OR Apache-2.0
+│   │           ├── rand_core v0.6.4 MIT OR Apache-2.0
+│   │           ├── rand_xoshiro v0.6.0 MIT OR Apache-2.0
+│   │           │   └── rand_core v0.6.4 MIT OR Apache-2.0
+│   │           ├── sized-chunks v0.6.5 MPL-2.0+
+│   │           │   ├── bitmaps v2.1.0 MPL-2.0+ (*)
+│   │           │   └── typenum v1.20.1 MIT OR Apache-2.0
+│   │           └── typenum v1.20.1 MIT OR Apache-2.0
+│   ├── rdfs-certificate v0.1.0 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/rdfs-certificate) MIT OR Apache-2.0
+│   │   ├── serde v1.0.229 MIT OR Apache-2.0 (*)
+│   │   └── sha2 v0.11.0 MIT OR Apache-2.0 (*)
+│   ├── regex v1.13.1 MIT OR Apache-2.0
+│   │   ├── aho-corasick v1.1.5 Unlicense OR MIT
+│   │   │   └── memchr v2.8.3 Unlicense OR MIT
+│   │   ├── memchr v2.8.3 Unlicense OR MIT
+│   │   ├── regex-automata v0.4.18 MIT OR Apache-2.0
+│   │   │   ├── aho-corasick v1.1.5 Unlicense OR MIT (*)
+│   │   │   ├── memchr v2.8.3 Unlicense OR MIT
+│   │   │   └── regex-syntax v0.8.11 MIT OR Apache-2.0
+│   │   └── regex-syntax v0.8.11 MIT OR Apache-2.0
+│   ├── serde v1.0.229 MIT OR Apache-2.0 (*)
+│   ├── serde_json v1.0.154 MIT OR Apache-2.0
+│   │   ├── foldhash v0.2.0 Zlib
+│   │   ├── indexmap v2.14.2 Apache-2.0 OR MIT (*)
+│   │   ├── itoa v1.0.18 MIT OR Apache-2.0
+│   │   ├── memchr v2.8.3 Unlicense OR MIT
+│   │   ├── serde_core v1.0.229 MIT OR Apache-2.0
+│   │   └── zmij v1.0.23 MIT
+│   ├── serde_yaml v0.9.34+deprecated MIT OR Apache-2.0
+│   │   ├── indexmap v2.14.2 Apache-2.0 OR MIT (*)
+│   │   ├── itoa v1.0.18 MIT OR Apache-2.0
+│   │   ├── ryu v1.0.23 Apache-2.0 OR BSL-1.0
+│   │   ├── serde v1.0.229 MIT OR Apache-2.0 (*)
+│   │   └── unsafe-libyaml v0.2.11 MIT
+│   ├── sha2 v0.10.9 MIT OR Apache-2.0
+│   │   ├── cfg-if v1.0.5 MIT OR Apache-2.0
+│   │   ├── cpufeatures v0.2.17 MIT OR Apache-2.0
+│   │   └── digest v0.10.7 MIT OR Apache-2.0
+│   │       ├── block-buffer v0.10.4 MIT OR Apache-2.0
+│   │       │   └── generic-array v0.14.7 MIT
+│   │       │       └── typenum v1.20.1 MIT OR Apache-2.0
+│   │       └── crypto-common v0.1.7 MIT OR Apache-2.0
+│   │           ├── generic-array v0.14.7 MIT (*)
+│   │           └── typenum v1.20.1 MIT OR Apache-2.0
+│   ├── similar v2.7.0 Apache-2.0
+│   ├── thiserror v2.0.21 MIT OR Apache-2.0 (*)
+│   ├── time v0.3.55 MIT OR Apache-2.0
+│   │   ├── deranged v0.5.8 MIT OR Apache-2.0
+│   │   │   └── serde_core v1.0.229 MIT OR Apache-2.0
+│   │   ├── num-conv v0.2.2 MIT OR Apache-2.0
+│   │   ├── powerfmt v0.2.1 MIT OR Apache-2.0
+│   │   ├── serde_core v1.0.229 MIT OR Apache-2.0
+│   │   ├── time-core v0.1.9 MIT OR Apache-2.0
+│   │   └── time-macros v0.2.32 (proc-macro) MIT OR Apache-2.0
+│   │       ├── num-conv v0.2.2 MIT OR Apache-2.0
+│   │       └── time-core v0.1.9 MIT OR Apache-2.0
+│   └── walkdir v2.5.0 Unlicense/MIT
+│       └── same-file v1.0.6 Unlicense/MIT
+├── ontomark-ingest v0.2.0 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-ingest) MIT OR Apache-2.0
+│   ├── indexmap v2.14.2 Apache-2.0 OR MIT (*)
+│   ├── ontomark-model v0.1.2 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-model) MIT OR Apache-2.0
+│   │   ├── indexmap v2.14.2 Apache-2.0 OR MIT (*)
+│   │   ├── ontomark-parse v0.1.3 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-parse) MIT OR Apache-2.0 (*)
+│   │   ├── serde v1.0.229 MIT OR Apache-2.0 (*)
+│   │   └── thiserror v2.0.21 MIT OR Apache-2.0 (*)
+│   ├── ontomark-parse v0.1.3 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-parse) MIT OR Apache-2.0 (*)
+│   ├── serde v1.0.229 MIT OR Apache-2.0 (*)
+│   ├── serde_json v1.0.154 MIT OR Apache-2.0 (*)
+│   ├── strsim v0.11.1 MIT
+│   ├── thiserror v2.0.21 MIT OR Apache-2.0 (*)
+│   ├── unicode-general-category v1.1.0 Apache-2.0
+│   └── unicode-normalization v0.1.25 MIT OR Apache-2.0
+│       └── tinyvec v1.13.3 Zlib OR Apache-2.0 OR MIT
+├── ontomark-jev v0.7.0 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-jev) MIT OR Apache-2.0
+│   ├── ontomark-ingest v0.2.0 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-ingest) MIT OR Apache-2.0 (*)
+│   ├── ontomark-model v0.1.2 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-model) MIT OR Apache-2.0 (*)
+│   ├── serde_json v1.0.154 MIT OR Apache-2.0 (*)
+│   └── ureq v2.12.1 MIT OR Apache-2.0
+│       ├── base64 v0.22.1 MIT OR Apache-2.0
+│       ├── flate2 v1.1.10 MIT OR Apache-2.0
+│       │   ├── crc32fast v1.5.2 MIT OR Apache-2.0
+│       │   │   └── cfg-if v1.0.5 MIT OR Apache-2.0
+│       │   └── miniz_oxide v0.9.1 MIT OR Zlib OR Apache-2.0
+│       │       ├── adler2 v2.0.1 0BSD OR MIT OR Apache-2.0
+│       │       └── simd-adler32 v0.3.10 MIT
+│       ├── log v0.4.34 MIT OR Apache-2.0
+│       ├── once_cell v1.21.4 MIT OR Apache-2.0
+│       ├── rustls v0.23.45 Apache-2.0 OR ISC OR MIT
+│       │   ├── log v0.4.34 MIT OR Apache-2.0
+│       │   ├── once_cell v1.21.4 MIT OR Apache-2.0
+│       │   ├── ring v0.17.14 Apache-2.0 AND ISC
+│       │   │   ├── cfg-if v1.0.5 MIT OR Apache-2.0
+│       │   │   ├── getrandom v0.2.17 MIT OR Apache-2.0
+│       │   │   │   ├── cfg-if v1.0.5 MIT OR Apache-2.0
+│       │   │   │   └── libc v0.2.190 MIT OR Apache-2.0
+│       │   │   └── untrusted v0.9.0 ISC
+│       │   ├── rustls-pki-types v1.15.1 MIT OR Apache-2.0
+│       │   │   └── zeroize v1.9.1 Apache-2.0 OR MIT
+│       │   ├── rustls-webpki v0.103.15 ISC
+│       │   │   ├── ring v0.17.14 Apache-2.0 AND ISC (*)
+│       │   │   ├── rustls-pki-types v1.15.1 MIT OR Apache-2.0 (*)
+│       │   │   └── untrusted v0.9.0 ISC
+│       │   ├── subtle v2.6.1 BSD-3-Clause
+│       │   └── zeroize v1.9.1 Apache-2.0 OR MIT
+│       ├── rustls-pki-types v1.15.1 MIT OR Apache-2.0 (*)
+│       ├── serde v1.0.229 MIT OR Apache-2.0 (*)
+│       ├── serde_json v1.0.154 MIT OR Apache-2.0 (*)
+│       ├── url v2.5.8 MIT OR Apache-2.0
+│       │   ├── form_urlencoded v1.2.2 MIT OR Apache-2.0
+│       │   │   └── percent-encoding v2.3.2 MIT OR Apache-2.0
+│       │   ├── idna v1.1.0 MIT OR Apache-2.0
+│       │   │   ├── idna_adapter v1.2.2 Apache-2.0 OR MIT
+│       │   │   │   ├── icu_normalizer v2.3.0 Unicode-3.0
+│       │   │   │   │   ├── icu_collections v2.3.0 Unicode-3.0
+│       │   │   │   │   │   ├── displaydoc v0.2.7 (proc-macro) MIT OR Apache-2.0
+│       │   │   │   │   │   │   ├── proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   │   ├── quote v1.0.47 MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   │   └── syn v3.0.8 MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   ├── potential_utf v0.1.6 Unicode-3.0
+│       │   │   │   │   │   │   └── zerovec v0.11.8 Unicode-3.0
+│       │   │   │   │   │   │       ├── yoke v0.8.3 Unicode-3.0
+│       │   │   │   │   │   │       │   ├── stable_deref_trait v1.2.1 MIT OR Apache-2.0
+│       │   │   │   │   │   │       │   ├── yoke-derive v0.8.4 (proc-macro) Unicode-3.0
+│       │   │   │   │   │   │       │   │   ├── proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   │       │   │   ├── quote v1.0.47 MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   │       │   │   ├── syn v3.0.8 MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   │       │   │   └── synstructure v0.14.0 MIT
+│       │   │   │   │   │   │       │   │       ├── proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   │       │   │       ├── quote v1.0.47 MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   │       │   │       └── syn v3.0.8 MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   │       │   └── zerofrom v0.1.8 Unicode-3.0
+│       │   │   │   │   │   │       │       └── zerofrom-derive v0.1.8 (proc-macro) Unicode-3.0
+│       │   │   │   │   │   │       │           ├── proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   │       │           ├── quote v1.0.47 MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   │       │           ├── syn v3.0.8 MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   │       │           └── synstructure v0.14.0 MIT (*)
+│       │   │   │   │   │   │       ├── zerofrom v0.1.8 Unicode-3.0 (*)
+│       │   │   │   │   │   │       └── zerovec-derive v0.11.6 (proc-macro) Unicode-3.0
+│       │   │   │   │   │   │           ├── proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   │           ├── quote v1.0.47 MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   │           └── syn v3.0.8 MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   ├── utf8_iter v1.0.4 Apache-2.0 OR MIT
+│       │   │   │   │   │   ├── yoke v0.8.3 Unicode-3.0 (*)
+│       │   │   │   │   │   ├── zerofrom v0.1.8 Unicode-3.0 (*)
+│       │   │   │   │   │   └── zerovec v0.11.8 Unicode-3.0 (*)
+│       │   │   │   │   ├── icu_normalizer_data v2.3.0 Unicode-3.0
+│       │   │   │   │   ├── icu_provider v2.3.1 Unicode-3.0
+│       │   │   │   │   │   ├── displaydoc v0.2.7 (proc-macro) MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   ├── icu_locale_core v2.3.0 Unicode-3.0
+│       │   │   │   │   │   │   ├── displaydoc v0.2.7 (proc-macro) MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   │   ├── litemap v0.8.3 Unicode-3.0
+│       │   │   │   │   │   │   ├── tinystr v0.8.4 Unicode-3.0
+│       │   │   │   │   │   │   │   ├── displaydoc v0.2.7 (proc-macro) MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   │   │   └── zerovec v0.11.8 Unicode-3.0 (*)
+│       │   │   │   │   │   │   ├── writeable v0.6.4 Unicode-3.0
+│       │   │   │   │   │   │   └── zerovec v0.11.8 Unicode-3.0 (*)
+│       │   │   │   │   │   ├── writeable v0.6.4 Unicode-3.0
+│       │   │   │   │   │   ├── yoke v0.8.3 Unicode-3.0 (*)
+│       │   │   │   │   │   ├── zerofrom v0.1.8 Unicode-3.0 (*)
+│       │   │   │   │   │   ├── zerotrie v0.2.5 Unicode-3.0
+│       │   │   │   │   │   │   ├── displaydoc v0.2.7 (proc-macro) MIT OR Apache-2.0 (*)
+│       │   │   │   │   │   │   ├── yoke v0.8.3 Unicode-3.0 (*)
+│       │   │   │   │   │   │   └── zerofrom v0.1.8 Unicode-3.0 (*)
+│       │   │   │   │   │   └── zerovec v0.11.8 Unicode-3.0 (*)
+│       │   │   │   │   ├── smallvec v1.16.3 MIT OR Apache-2.0
+│       │   │   │   │   └── zerovec v0.11.8 Unicode-3.0 (*)
+│       │   │   │   └── icu_properties v2.3.0 Unicode-3.0
+│       │   │   │       ├── displaydoc v0.2.7 (proc-macro) MIT OR Apache-2.0 (*)
+│       │   │   │       ├── icu_collections v2.3.0 Unicode-3.0 (*)
+│       │   │   │       ├── icu_locale_core v2.3.0 Unicode-3.0 (*)
+│       │   │   │       ├── icu_properties_data v2.3.0 Unicode-3.0
+│       │   │   │       ├── icu_provider v2.3.1 Unicode-3.0 (*)
+│       │   │   │       ├── zerotrie v0.2.5 Unicode-3.0 (*)
+│       │   │   │       └── zerovec v0.11.8 Unicode-3.0 (*)
+│       │   │   ├── smallvec v1.16.3 MIT OR Apache-2.0
+│       │   │   └── utf8_iter v1.0.4 Apache-2.0 OR MIT
+│       │   └── percent-encoding v2.3.2 MIT OR Apache-2.0
+│       └── webpki-roots v0.26.11 CDLA-Permissive-2.0
+│           └── webpki-roots v1.0.9 CDLA-Permissive-2.0
+│               └── rustls-pki-types v1.15.1 MIT OR Apache-2.0 (*)
+├── ontomark-model v0.1.2 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-model) MIT OR Apache-2.0 (*)
+├── ontomark-parse v0.1.3 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-parse) MIT OR Apache-2.0 (*)
+├── ontomark-profile-estate v0.7.0 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/profiles/estate) MIT OR Apache-2.0
+│   └── ontomark-compile v0.6.1 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-compile) MIT OR Apache-2.0 (*)
+├── ontomark-source v0.1.0 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-source) MIT OR Apache-2.0
+│   ├── htmd v0.5.6 Apache-2.0
+│   │   ├── html5ever v0.38.0 MIT OR Apache-2.0
+│   │   │   ├── log v0.4.34 MIT OR Apache-2.0
+│   │   │   └── markup5ever v0.38.0 MIT OR Apache-2.0
+│   │   │       ├── log v0.4.34 MIT OR Apache-2.0
+│   │   │       ├── tendril v0.5.1 MIT OR Apache-2.0
+│   │   │       │   └── new_debug_unreachable v1.0.6 MIT
+│   │   │       └── web_atoms v0.2.6 MIT OR Apache-2.0
+│   │   │           ├── phf v0.13.1 MIT
+│   │   │           │   ├── phf_macros v0.13.1 (proc-macro) MIT
+│   │   │           │   │   ├── phf_generator v0.13.1 MIT
+│   │   │           │   │   │   ├── fastrand v2.5.0 Apache-2.0 OR MIT
+│   │   │           │   │   │   └── phf_shared v0.13.1 MIT
+│   │   │           │   │   │       └── siphasher v1.0.4 MIT OR Apache-2.0
+│   │   │           │   │   ├── phf_shared v0.13.1 MIT (*)
+│   │   │           │   │   ├── proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+│   │   │           │   │   ├── quote v1.0.47 MIT OR Apache-2.0 (*)
+│   │   │           │   │   └── syn v2.0.119 MIT OR Apache-2.0
+│   │   │           │   │       ├── proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+│   │   │           │   │       ├── quote v1.0.47 MIT OR Apache-2.0 (*)
+│   │   │           │   │       └── unicode-ident v1.0.26 (MIT OR Apache-2.0) AND Unicode-3.0
+│   │   │           │   └── phf_shared v0.13.1 MIT (*)
+│   │   │           └── string_cache v0.9.0 MIT OR Apache-2.0
+│   │   │               ├── new_debug_unreachable v1.0.6 MIT
+│   │   │               ├── parking_lot v0.12.5 MIT OR Apache-2.0
+│   │   │               │   ├── lock_api v0.4.14 MIT OR Apache-2.0
+│   │   │               │   │   └── scopeguard v1.2.0 MIT OR Apache-2.0
+│   │   │               │   └── parking_lot_core v0.9.12 MIT OR Apache-2.0
+│   │   │               │       ├── cfg-if v1.0.5 MIT OR Apache-2.0
+│   │   │               │       ├── libc v0.2.190 MIT OR Apache-2.0
+│   │   │               │       └── smallvec v1.16.3 MIT OR Apache-2.0
+│   │   │               ├── phf_shared v0.13.1 MIT (*)
+│   │   │               ├── precomputed-hash v0.1.1 MIT
+│   │   │               └── serde v1.0.229 MIT OR Apache-2.0 (*)
+│   │   ├── markup5ever_rcdom v0.38.0+unofficial MIT OR Apache-2.0
+│   │   │   ├── html5ever v0.38.0 MIT OR Apache-2.0 (*)
+│   │   │   ├── markup5ever v0.38.0 MIT OR Apache-2.0 (*)
+│   │   │   ├── tendril v0.5.1 MIT OR Apache-2.0 (*)
+│   │   │   └── xml5ever v0.38.0 MIT OR Apache-2.0
+│   │   │       ├── log v0.4.34 MIT OR Apache-2.0
+│   │   │       └── markup5ever v0.38.0 MIT OR Apache-2.0 (*)
+│   │   └── phf v0.13.1 MIT (*)
+│   ├── serde v1.0.229 MIT OR Apache-2.0 (*)
+│   ├── serde_json v1.0.154 MIT OR Apache-2.0 (*)
+│   ├── sha2 v0.11.0 MIT OR Apache-2.0 (*)
+│   ├── thiserror v2.0.21 MIT OR Apache-2.0 (*)
+│   └── ureq v2.12.1 MIT OR Apache-2.0 (*)
+├── serde_json v1.0.154 MIT OR Apache-2.0 (*)
+└── ureq v2.12.1 MIT OR Apache-2.0 (*)

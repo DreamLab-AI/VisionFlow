@@ -1,0 +1,474 @@
+{
+  "repositories": {
+    "ontomark": {
+      "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+      "dirty_paths": []
+    },
+    "VisionClaw": {
+      "revision": "ecd78b6cb25d6e702e6c2459c209ccdd2c5c6b4b",
+      "dirty_paths": [
+        " M agentbox",
+        "?? GH"
+      ]
+    },
+    "agentbox": {
+      "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "dirty_paths": [
+        "?? docs/planning/"
+      ]
+    },
+    "loom": {
+      "revision": "ba21a689a57dc67dc68ad22e52b058da34a7fb05",
+      "dirty_paths": [
+        "?? .dream-standby"
+      ]
+    },
+    "visionGraph": {
+      "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+      "dirty_paths": [
+        "?? working/journals/2026-10-31.md"
+      ]
+    }
+  },
+  "sources": [
+    {
+      "repo": "ontomark",
+      "path": "docs/adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md",
+      "sha256": "fc68a04c69546a22b1857f162f3093d5799108ddb872713adfbbdbebf5209620",
+      "export": "source/ontomark/docs/adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md",
+      "ranges": null
+    },
+    {
+      "repo": "ontomark",
+      "path": "docs/design/machine-bundle-brief.md",
+      "sha256": "4d12a3c53b51fe7f6bdf4ac713da68408108a7ba3f4074c7c97cd6f585c547cb",
+      "export": "source/ontomark/docs/design/machine-bundle-brief.md",
+      "ranges": null
+    },
+    {
+      "repo": "ontomark",
+      "path": "NOTICE",
+      "sha256": "366478de61a7a8220e21d6ac9cf2f10adf9b9d5d6e50729dbbdb38c8665a4069",
+      "export": "source/ontomark/NOTICE",
+      "ranges": null
+    },
+    {
+      "repo": "ontomark",
+      "path": "crates/whelk-el/Cargo.toml",
+      "sha256": "8df1db773ed4719d769f3fd7fadb5204b5a97a57593a37d6df08843b8cb86ec3",
+      "export": "source/ontomark/crates/whelk-el/Cargo.toml",
+      "ranges": null
+    },
+    {
+      "repo": "ontomark",
+      "path": "docs/DEPRECATION.md",
+      "sha256": "3df5b71c0cdeb4c7bfc09179f868eca77b307694a01b3360f3859fa9adb70cb0",
+      "export": "source/ontomark/docs/DEPRECATION.md.txt",
+      "ranges": [
+        [
+          455,
+          490
+        ]
+      ]
+    },
+    {
+      "repo": "ontomark",
+      "path": "crates/ontomark-compile/src/build/mod.rs",
+      "sha256": "cfc0a84ba4802325de5821e827a949ab206665497e9b23f8ee842ff9019809ea",
+      "export": "source/ontomark/crates/ontomark-compile/src/build/mod.rs.txt",
+      "ranges": [
+        [
+          45,
+          135
+        ],
+        [
+          278,
+          435
+        ],
+        [
+          463,
+          840
+        ],
+        [
+          925,
+          1042
+        ]
+      ]
+    },
+    {
+      "repo": "ontomark",
+      "path": "crates/ontomark-compile/src/ir/projection.rs",
+      "sha256": "9bbff6af778c954bc6d0413030395accf59b61d001abc2094881e598ba2f7437",
+      "export": "source/ontomark/crates/ontomark-compile/src/ir/projection.rs.txt",
+      "ranges": [
+        [
+          240,
+          280
+        ],
+        [
+          350,
+          410
+        ],
+        [
+          480,
+          580
+        ],
+        [
+          589,
+          895
+        ]
+      ]
+    },
+    {
+      "repo": "ontomark",
+      "path": "crates/ontomark-compile/src/build/generation.rs",
+      "sha256": "47972a0f41105ed743e78f8a2ee1a8fb754f744f492208ca49ed68b82d6377e5",
+      "export": "source/ontomark/crates/ontomark-compile/src/build/generation.rs.txt",
+      "ranges": [
+        [
+          1,
+          170
+        ],
+        [
+          190,
+          285
+        ]
+      ]
+    },
+    {
+      "repo": "ontomark",
+      "path": "crates/ontomark-compile/src/build/publish.rs",
+      "sha256": "794d8fefa9e0980f22081ddc4a8d6b3506f2fb92a463829ae098715811bdf967",
+      "export": "source/ontomark/crates/ontomark-compile/src/build/publish.rs.txt",
+      "ranges": [
+        [
+          188,
+          273
+        ],
+        [
+          350,
+          380
+        ]
+      ]
+    },
+    {
+      "repo": "ontomark",
+      "path": "crates/ontomark-compile/src/build/redact.rs",
+      "sha256": "c6f5a6351709bd08086a3acf00df6c90da529f72d363b02cd86f0eafbc0880a4",
+      "export": "source/ontomark/crates/ontomark-compile/src/build/redact.rs.txt",
+      "ranges": [
+        [
+          117,
+          255
+        ]
+      ]
+    },
+    {
+      "repo": "ontomark",
+      "path": "crates/ontomark-compile/src/build/page_api.rs",
+      "sha256": "68e454e47f8f6b04a9b72f0af3aecac02d842a99c18d36f911c6b25dabbfe658",
+      "export": "source/ontomark/crates/ontomark-compile/src/build/page_api.rs.txt",
+      "ranges": [
+        [
+          77,
+          105
+        ]
+      ]
+    },
+    {
+      "repo": "ontomark",
+      "path": "crates/ontomark-compile/src/profile.rs",
+      "sha256": "f7541a90123d73521c120b79c13dbe2a3c0bfdf02e74a90f1ddefdee132fee5e",
+      "export": "source/ontomark/crates/ontomark-compile/src/profile.rs.txt",
+      "ranges": [
+        [
+          497,
+          597
+        ]
+      ]
+    },
+    {
+      "repo": "ontomark",
+      "path": "crates/ontomark-compile/src/ir/model.rs",
+      "sha256": "ed9e8671981859e427be35e08a1ba1c83457fd87a5df0001c9d36539bdddc5a8",
+      "export": "source/ontomark/crates/ontomark-compile/src/ir/model.rs.txt",
+      "ranges": [
+        [
+          400,
+          435
+        ]
+      ]
+    },
+    {
+      "repo": "ontomark",
+      "path": "crates/ontomark-compile/tests/machine_scope.rs",
+      "sha256": "1b04da4873f210739753628f4c8a9d6d8a43d8f5458c413fef40a8741817793a",
+      "export": "source/ontomark/crates/ontomark-compile/tests/machine_scope.rs",
+      "ranges": null
+    },
+    {
+      "repo": "ontomark",
+      "path": "crates/ontomark-cli/tests/machine_scope_cli.rs",
+      "sha256": "dcc42b902086617a3dc2bd8d9177c3de25ffcea5a47626c150e5c27283691083",
+      "export": "source/ontomark/crates/ontomark-cli/tests/machine_scope_cli.rs",
+      "ranges": null
+    },
+    {
+      "repo": "ontomark",
+      "path": "crates/ontomark-cli/src/main.rs",
+      "sha256": "780cff6abf0500ebd4fd74871a43be041afd462ff33d0bd85922afffdb25ad8e",
+      "export": "source/ontomark/crates/ontomark-cli/src/main.rs.txt",
+      "ranges": [
+        [
+          194,
+          224
+        ],
+        [
+          380,
+          425
+        ],
+        [
+          540,
+          566
+        ],
+        [
+          790,
+          889
+        ]
+      ]
+    },
+    {
+      "repo": "ontomark",
+      "path": "crates/ontomark-cli/Cargo.toml",
+      "sha256": "c57cc0fccc326314aa0bbe5a3f6cc2453436581564f41584feed13e99c358533",
+      "export": "source/ontomark/crates/ontomark-cli/Cargo.toml",
+      "ranges": null
+    },
+    {
+      "repo": "VisionClaw",
+      "path": ".github/workflows/ontology-publish.yml",
+      "sha256": "2875442b286cbac757bb8c98692cf7bf89b7911eabce82e5d0792bdfb599ab38",
+      "export": "source/VisionClaw/.github/workflows/ontology-publish.yml.txt",
+      "ranges": [
+        [
+          150,
+          215
+        ]
+      ]
+    },
+    {
+      "repo": "VisionClaw",
+      "path": "src/services/ontology_pull.rs",
+      "sha256": "279e85457359a0ad24a51c03766338bc5de37361cbccbacf7cf82f3e6826a82e",
+      "export": "source/VisionClaw/src/services/ontology_pull.rs.txt",
+      "ranges": [
+        [
+          30,
+          60
+        ]
+      ]
+    },
+    {
+      "repo": "VisionClaw",
+      "path": "src/services/corpus_source/local.rs",
+      "sha256": "a09345d9519486d0f055340fa05834b2045e5088e863f1ed5b016dbcb44a660e",
+      "export": "source/VisionClaw/src/services/corpus_source/local.rs.txt",
+      "ranges": [
+        [
+          1,
+          91
+        ]
+      ]
+    },
+    {
+      "repo": "VisionClaw",
+      "path": "src/services/github_sync_service.rs",
+      "sha256": "70e512fe0df35815d70350706a820b728eaf7d6ec9e56e6656f985403df3993e",
+      "export": "source/VisionClaw/src/services/github_sync_service.rs.txt",
+      "ranges": [
+        [
+          1,
+          32
+        ],
+        [
+          1642,
+          1685
+        ]
+      ]
+    },
+    {
+      "repo": "VisionClaw",
+      "path": "docs/adr/ADR-2137-consume-shared-ontology-workspace.md",
+      "sha256": "8e2185f044ff9f9f3589af05b107f6e27b57accde2584bd0b88488299269bcf4",
+      "export": "source/VisionClaw/docs/adr/ADR-2137-consume-shared-ontology-workspace.md",
+      "ranges": null
+    },
+    {
+      "repo": "agentbox",
+      "path": "lib/ontomark.nix",
+      "sha256": "39b24512eb3ee059a7148e6f95cd5645b45931fa8a89f19fdec1ab66bf9889cb",
+      "export": "source/agentbox/lib/ontomark.nix",
+      "ranges": null
+    },
+    {
+      "repo": "agentbox",
+      "path": "docs/adr/ADR-2136-pin-the-shared-ontology-toolchain.md",
+      "sha256": "3257df2a8fb2ea0c87e897d64309e1aca529449efc02acf2bc83249189bf7df1",
+      "export": "source/agentbox/docs/adr/ADR-2136-pin-the-shared-ontology-toolchain.md",
+      "ranges": null
+    },
+    {
+      "repo": "loom",
+      "path": "crates/loom-facade/src/mirror.rs",
+      "sha256": "a52ec8ed77f340e9c164c0d651cc4b728123b49072b1c4ff3324083f7341abcd",
+      "export": "source/loom/crates/loom-facade/src/mirror.rs.txt",
+      "ranges": [
+        [
+          260,
+          285
+        ],
+        [
+          367,
+          438
+        ]
+      ]
+    },
+    {
+      "repo": "loom",
+      "path": "crates/loom-vector-ruvector/src/artifact.rs",
+      "sha256": "4fa7c5e83fca5b9c1f2ec394628c7f508d84ac68e1593a0364f0879174f8e652",
+      "export": "source/loom/crates/loom-vector-ruvector/src/artifact.rs.txt",
+      "ranges": [
+        [
+          151,
+          202
+        ],
+        [
+          245,
+          261
+        ]
+      ]
+    },
+    {
+      "repo": "visionGraph",
+      "path": ".github/workflows/publish.yml",
+      "sha256": "7508b63c8b591b8f915a1f9651ce0b270160198f72d80bdb2292bedba6e9bd7c",
+      "export": "source/visionGraph/.github/workflows/publish.yml.txt",
+      "ranges": [
+        [
+          40,
+          52
+        ],
+        [
+          147,
+          189
+        ]
+      ]
+    },
+    {
+      "repo": "ontomark",
+      "path": "docs/adr/ESTATE-ADRS.md",
+      "sha256": "5563e0ae92df90fe4e09680c67136dcdb5212ed7991deccaf326712866788bab",
+      "export": "source/ontomark/docs/adr/ESTATE-ADRS.md",
+      "ranges": null
+    }
+  ],
+  "tests": {
+    "machine_scope": 24,
+    "machine_scope_cli": 4,
+    "adversarial": 5
+  },
+  "limits": "Synthetic compiler/CLI fixtures and scoped current source reading. No live corpus, deployment, cross-consumer equality, legal clearance or migration activation claimed.",
+  "old_pin": "560e50c1a35bb9486b9f43ebf074b816c1e01349",
+  "old_pin_identity": {
+    "crates/ontomark-compile/src/build/mod.rs": false,
+    "crates/ontomark-compile/src/ir/projection.rs": true,
+    "crates/ontomark-compile/src/build/generation.rs": true,
+    "crates/ontomark-compile/src/build/publish.rs": true,
+    "crates/ontomark-compile/src/build/redact.rs": true,
+    "crates/ontomark-compile/src/build/page_api.rs": true,
+    "crates/ontomark-compile/src/profile.rs": true,
+    "crates/ontomark-compile/src/ir/model.rs": true,
+    "crates/ontomark-compile/tests/machine_scope.rs": true,
+    "crates/ontomark-cli/tests/machine_scope_cli.rs": true,
+    "crates/ontomark-cli/src/main.rs": false
+  },
+  "source_export_verification": "All retained exports match pinned Git bytes or the stated numbered ranges; inspected files match current working bytes.",
+  "diagram_validation": {
+    "rendered_panels": 16,
+    "verified_citations": 394,
+    "warnings": 0,
+    "fallback": 0,
+    "visually_inspected": [
+      "OM-03.1",
+      "OM-03.2",
+      "OM-06.1",
+      "OM-06.2",
+      "OM-11.1",
+      "OM-11.2",
+      "OM-11.3"
+    ]
+  },
+  "probe_final": "probes-final-clean.log",
+  "corpus_validation": {
+    "topics": 202,
+    "panels": 1716,
+    "verified_citations": 25410,
+    "warnings": 0,
+    "fallback": 0,
+    "allowlisted": 9,
+    "check_verification": "passed"
+  },
+  "evidence_sha256": {
+    "README.md": "cbb54cd5c5e07d6bbc90bea52d1a978b9e6d3fd12a25e738b4d7806bf5ae0349",
+    "audit_machine.rs": "1386f57a87d48abde3e05866f4fec7d80119bb56b059467b61b21e2271260ae2",
+    "cli-dependency-licences.txt": "a3b5bb07a3b52cd19434d8162f5ed1b06f696fa1e0d46abd63f42eef4483f418",
+    "cli-tests-final.log": "073e0c3537d475effedebec3edcb16b3396643d7ae47d3e354671b404b85aad4",
+    "cli-tests.log": "74d96098c4abe44ef8058063cc1bfaf08ab0d832a1c32ead78264f95b0f6f7b4",
+    "corpus-check.log": "31cf0dc7c739be8b603ac8d24aeb4fe8f9a4c09be3130ad244665f4cec34314b",
+    "corpus-final.log": "517e697527d9ea9fc1faad4a941ba1ff35bf3b409ee699b2ba4cab597f4d593f",
+    "documentation-checks.json": "6d4792dcd1be84cb5b4907775ba07d1ad195ded8fcbafb2bf03d22d369fd773d",
+    "machine-tests.log": "4baffc2725c5ea2f48eb99a5941db0f70df974ab5c3cea6c02b2f1e88d706583",
+    "old-pin-diff.patch": "88820a77571b824e6ff069342c0e0531b307140fc5a880ee6533c14649144d96",
+    "probes-final-clean.log": "40ac8f9cf5a84bd6a1f9621c7c8fa99460298364d1c43ca303d30b310105ef0c",
+    "probes-initial.log": "3cb25e98f8873acacf7efe400ddd73ad730591cf1eef8e52b2b1347334ddf4a4",
+    "prose-final.log": "940022e503c197f4ed2ccc8fb3ce90dcb04ef9746c0e1c0c1480030fa0efe35e",
+    "prose.log": "b0bb5ebde39d61af4cacdc6720395ac200b29eb3df6ff2e8f2857b389024bb58",
+    "render-om03-final.log": "64fd0244e42bcde0de79062db584f35844b8d0db32d3b855165960b261ded389",
+    "render-om03.log": "c63a3b7359e72efec2d0b1cdd9af7d0416806349e7a870cffaf2eda044a538e0",
+    "render-om06.log": "3e25e65014e7ed7160946987fb16ca6c6c469fe08139f3096dd2cb8c5bdf89d0",
+    "render-om11-initial.log": "d6f42261b931bd77b1d54fc37d819e86b6f7401619a641a4d6439b0bd947c860",
+    "render-om11.log": "c3257d3bdb38b642d6ae680e4ed03724cbb638ce6c38c5ca904455d6770ebde6",
+    "slug-collision.json": "a8e2e53e60dd86e1efcdef8ca32d726bb8709aa4b6e96af4fb3a519c34158a5a",
+    "source/VisionClaw/.github/workflows/ontology-publish.yml.txt": "e2527657aec47ea9a6769763c1a658d7cb4b4db4729df56bea87178db1f9739e",
+    "source/VisionClaw/docs/adr/ADR-2137-consume-shared-ontology-workspace.md": "8e2185f044ff9f9f3589af05b107f6e27b57accde2584bd0b88488299269bcf4",
+    "source/VisionClaw/src/services/corpus_source/local.rs.txt": "3deafdcd423a2f5172e9c2949eb188b5762dad3181cfaa81651ee424eba4b9d7",
+    "source/VisionClaw/src/services/github_sync_service.rs.txt": "5b8931be21971395947f348533d4116b31329ea15974c9afa76202d6ac9f1c71",
+    "source/VisionClaw/src/services/ontology_pull.rs.txt": "123596b81134d00a752e35c0f58e0a34063648a25ac9dd8fbbb8d63e5eaa513b",
+    "source/agentbox/docs/adr/ADR-2136-pin-the-shared-ontology-toolchain.md": "3257df2a8fb2ea0c87e897d64309e1aca529449efc02acf2bc83249189bf7df1",
+    "source/agentbox/lib/ontomark.nix": "39b24512eb3ee059a7148e6f95cd5645b45931fa8a89f19fdec1ab66bf9889cb",
+    "source/loom/crates/loom-facade/src/mirror.rs.txt": "67469b34660e2ec2395e47854b3b7390f4cd184f64a6c47b37a88bc61f8e4a8f",
+    "source/loom/crates/loom-vector-ruvector/src/artifact.rs.txt": "fc9d5b8efcac1cc7adc4fed959ca1b06f819fa2e5038afdfabd948e51efb8bbd",
+    "source/ontomark/NOTICE": "366478de61a7a8220e21d6ac9cf2f10adf9b9d5d6e50729dbbdb38c8665a4069",
+    "source/ontomark/crates/ontomark-cli/Cargo.toml": "c57cc0fccc326314aa0bbe5a3f6cc2453436581564f41584feed13e99c358533",
+    "source/ontomark/crates/ontomark-cli/src/main.rs.txt": "653d1fbeb915a2cdc3f07ae6c24e7dd2d9c7896f2cc1fc039c43cb2492edddc8",
+    "source/ontomark/crates/ontomark-cli/tests/machine_scope_cli.rs": "dcc42b902086617a3dc2bd8d9177c3de25ffcea5a47626c150e5c27283691083",
+    "source/ontomark/crates/ontomark-compile/src/build/generation.rs.txt": "77c84c0e036da53d6508b77bed6d1b71cd5c969b41ddb4353964fd6899ecfefc",
+    "source/ontomark/crates/ontomark-compile/src/build/mod.rs.txt": "cf7a79dd970d1384dd01c18d449dd2d6d9dbe2bcce7899137000ed74d6801844",
+    "source/ontomark/crates/ontomark-compile/src/build/page_api.rs.txt": "4b61e73c073c0c52c722269539879baa03bcca0477badc2ebee6fc1cdfad31f4",
+    "source/ontomark/crates/ontomark-compile/src/build/publish.rs.txt": "d2a1a8849c4fc30bf3544366c48045e13b02fad4deef5e0c69420fc9c9a98a54",
+    "source/ontomark/crates/ontomark-compile/src/build/redact.rs.txt": "8cfe9ad5d25653b4dfcde10b7e98a43312a7d23970085e60cd2971f0c37c3fe3",
+    "source/ontomark/crates/ontomark-compile/src/ir/model.rs.txt": "0fe450a44fe8fb8fbed613394e4aa241adac4a2e7d055c00adb31b34ad37cf7a",
+    "source/ontomark/crates/ontomark-compile/src/ir/projection.rs.txt": "c41256416b08ccf0e01524f4d8282743c37420449cd2f79dd85aa08ac7158af7",
+    "source/ontomark/crates/ontomark-compile/src/profile.rs.txt": "5c2b0aa74facd2922f78cb491758197e23fbdbd26013c773ffcec64de1dd6a6c",
+    "source/ontomark/crates/ontomark-compile/tests/machine_scope.rs": "1b04da4873f210739753628f4c8a9d6d8a43d8f5458c413fef40a8741817793a",
+    "source/ontomark/crates/whelk-el/Cargo.toml": "8df1db773ed4719d769f3fd7fadb5204b5a97a57593a37d6df08843b8cb86ec3",
+    "source/ontomark/docs/DEPRECATION.md.txt": "c8fd6b90ef1a6ac606290feddedab3b3095c7e228a151613d99247a9954fe846",
+    "source/ontomark/docs/adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md": "fc68a04c69546a22b1857f162f3093d5799108ddb872713adfbbdbebf5209620",
+    "source/ontomark/docs/adr/ESTATE-ADRS.md": "5563e0ae92df90fe4e09680c67136dcdb5212ed7991deccaf326712866788bab",
+    "source/ontomark/docs/design/machine-bundle-brief.md": "4d12a3c53b51fe7f6bdf4ac713da68408108a7ba3f4074c7c97cd6f585c547cb",
+    "source/visionGraph/.github/workflows/publish.yml.txt": "3a3756a3b4a93a177a6db92554af4719c32e83a5e04ed4fc8f5ce59e39cbb8bc",
+    "unicode.log": "96e206884382db0356ec0ac28c7f37c15dac4b5c782731fc59dc592bb38c6e8e",
+    "web-comparison.json": "f9b611cf46f256f314a58382238f68264441367079e604cfab490c839126ca37"
+  }
+}

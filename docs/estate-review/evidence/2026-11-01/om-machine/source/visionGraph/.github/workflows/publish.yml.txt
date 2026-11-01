@@ -1,0 +1,56 @@
+40:
+41: env:
+42:   # The ontomark CLI (DreamLab-AI/ontomark, MIT OR Apache-2.0) is the only
+43:   # producer of the machine artefacts and the content staging tree. It comes from
+44:   # a release, pinned twice: by tag, so a new version is a reviewed change to this
+45:   # file, and by digest, so a replaced or tampered asset fails before it runs.
+46:   # There is no build-from-source fallback: a run that cannot obtain the pinned
+47:   # release fails, because nothing else produces the site's artefacts.
+48:   ONTOMARK_RELEASE_REPO: DreamLab-AI/ontomark
+49:   ONTOMARK_RELEASE_TAG: v0.7.0             # the release tag, e.g. v0.1.0
+50:   ONTOMARK_ASSET: ontomark-x86_64-unknown-linux-gnu
+51:   ONTOMARK_SHA256: 2b814b0423026540db96877b844f13663a787c509cb6632b94980270ef072b4a             # sha256 of ONTOMARK_ASSET at ONTOMARK_RELEASE_TAG
+52:
+147:       - name: ontomark build → artefacts + content staging
+148:         run: |
+149:           command -v ontomark >/dev/null || { echo "::error::ontomark not on PATH"; exit 1; }
+150:           ontomark --version
+151:
+152:           rm -rf site-data quartz/content
+153:           mkdir -p site-data
+154:
+155:           # --out            the machine artefacts (contract C3), published at
+156:           #                  the SITE ROOT beside the explorer.
+157:           # --publish-out    the CONTENT STAGING tree Quartz builds /notes/ from
+158:           #                  (owner decision Q16): knowledge/ union the public
+159:           #                  half of working/, laid out as pages/** and working/**.
+160:           # --with-markdown-mirror  api/markdown/<Title>.md, the explorer's page
+161:           #                  body source (pageService.ts). Required.
+162:           # --vault all is NOT optional. It defaults to `knowledge` (the parser
+163:           # now rejects any other value, but the default stays): "it looks like
+164:           # it did what you asked".
+165:           # Without it this workflow publishes 8,432 pages instead of 8,625 and
+166:           # every gate below stays green, because the staging tree it compares
+167:           # against would be knowledge-only as well.
+168:           # --certificate-out  the RDFS derivation certificate of the very graph
+169:           #                  this build publishes (ontomark ADR-OM-009): every
+170:           #                  inferred triple with its rule and premises, in the
+171:           #                  oo-cert/1 format. The build is REFUSED (exit 2) if
+172:           #                  the certificate does not cover the classifier's
+173:           #                  closure, so no generation ships without its warrant.
+174:           mkdir -p "$RUNNER_TEMP/certificate"
+175:           ontomark build \
+176:             --vault all \
+177:             --out site-data \
+178:             --publish-out quartz/content \
+179:             --with-markdown-mirror \
+180:             --certificate-out "$RUNNER_TEMP/certificate" \
+181:             --stats
+182:
+183:           # Contract C3 places the staging tree at <out>/publish/ when
+184:           # --publish-out is absent. It must never reach the site root: it is
+185:           # raw markdown, including pages the explorer does not index.
+186:           if [ -d site-data/publish ]; then
+187:             rm -rf quartz/content
+188:             mv site-data/publish quartz/content
+189:           fi

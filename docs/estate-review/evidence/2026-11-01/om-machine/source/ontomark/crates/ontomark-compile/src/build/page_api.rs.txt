@@ -1,0 +1,29 @@
+77:     let public: Vec<&ClassRecord> = corpus.public().collect();
+78:     let slug_to_title: HashMap<&str, &str> = public
+79:         .iter()
+80:         .map(|r| (r.slug.as_str(), r.title.as_str()))
+81:         .collect();
+82:
+83:     let mut domain_index: Map<String, Value> = Map::new();
+84:     let mut documents = Vec::with_capacity(public.len());
+85:
+86:     for record in &public {
+87:         let mut entry = Map::new();
+88:         entry.insert("id".into(), json!(record.page_iri));
+89:         entry.insert("title".into(), json!(record.title));
+90:         entry.insert("slug".into(), json!(record.slug));
+91:         entry.insert("public".into(), json!(true));
+92:
+93:         if record.has_ontology {
+94:             entry.insert("classIri".into(), json!(record.iri));
+95:             entry.insert("domain".into(), json!(record.domain));
+96:             if let Some(gen) = record.generated_by.as_ref().and_then(|a| roster.resolve(a)) {
+97:                 entry.insert(
+98:                     "provenance".into(),
+99:                     json!({
+100:                         "wasAttributedTo": gen.did,
+101:                         "label": gen.label,
+102:                         "actor": record.generated_by.as_ref().map(|a| a.as_string()),
+103:                     }),
+104:                 );
+105:             }

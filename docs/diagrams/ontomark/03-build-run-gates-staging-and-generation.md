@@ -53,19 +53,20 @@ sequenceDiagram
     RUN->>RSN: closure::compute, backlink_index, Roster::discover, build_graph_attributed (mod.rs:678-685)
     RUN->>RSN: reason::reason(graph, classifier), ADR-2124 cap error returned unwrapped (mod.rs:689)
     RUN->>RSN: only with Options.certificate_out, certificate::certify over that same graph, then parity against the classifier's named closure, else CertificateParity refuses and nothing is written, ADR-OM-009 (mod.rs:692-731)
+    RUN->>RUN: certificate files are written directly to certificate_out before consistency, no bundle transaction covers them (mod.rs:715-717)
     RUN-->>CLI: not is_consistent returns the typed build::Unsatisfiable, ADR-2125 zero-unsatisfiable gate (mod.rs:743-749)
-    RUN->>STG: add publish files if publish_out is None, else record_external, then every emitter (mod.rs:769-947)
-    RUN->>STG: with an Embedder only, concept_records + embed_all + to_jsonl (mod.rs:949-954)
+    RUN->>STG: add publish files if public and publish_out is None, else record_external, stage base emitters and optional Markdown mirror (mod.rs:766-918)
     RUN->>GEN: git_sha + git_dirty unless Options.source is given (mod.rs:925-942)
     RUN->>STG: okf bundle staged under okf/ using generation_id (mod.rs:943-947)
+    RUN->>STG: with an Embedder only, concept_records + embed_all + to_jsonl (mod.rs:949-954)
     RUN->>STG: ensure_single_claims, write-once check number one (mod.rs:957)
-    RUN->>GEN: content_digest_of_hashes over page source_sha256, ontology_digest, generation(...) over staged.artifacts (mod.rs:963-1001)
+    RUN->>GEN: content_digest_of_hashes over loaded page hashes plus reserialised vocabulary, profile is not in this digest, ontology_digest and generation(...) over staged.artifacts (mod.rs:963-1001)
     RUN->>STG: data marker first, root marker lists it and never itself, check number two (mod.rs:1008-1017)
     RUN->>STG: promote(out) via swap_in, then publish::write_to(publish_out) (mod.rs:1018-1021)
     RUN-->>CLI: Report (mod.rs:1023-1065)
-    Note over CLI: SecretsFound, OutputCollision, ReasoningError, ScopeConflict, Unsatisfiable and CertificateParity exit 2, anything else is an anyhow error (main.rs:837-871)
+    Note over CLI,RUN: SecretsFound, OutputCollision, ReasoningError,<br/>ScopeConflict, Unsatisfiable and CertificateParity exit 2.<br/>Other errors return anyhow (main.rs:837-871)
 ```
-- INVARIANT: nothing touches `out` until `promote` at `build/mod.rs:1018`; every earlier refusal (`mod.rs:633`, `:577`, `:642`) leaves the previous bundle intact.
+- **Tension:** bundle files are staged until `promote` (`build/mod.rs:1018`), but certificate output is written earlier (`mod.rs:715-717`) and can overlap `out`. The [certificate audit](../../estate-review/2026-11-01-ontomark-reasoning-and-certificates.md) reproduces failures that separate the certificate from the surviving bundle.
 - INVARIANT: the credential gate runs after the census, the load and up to two extra vault loads, and before validation (`build/mod.rs:569-633`); its comment now says the census runs earlier still (`mod.rs:588-589`).
 - INVARIANT: an unsatisfiable corpus is the typed `build::Unsatisfiable` (`mod.rs:235`) and exits 2 (`main.rs:861-864`), the same refusal class as the ADR-2124 cap error (`main.rs:849-852`); it was an untyped error at exit 1 before the OM-00 reconcile.
 
@@ -75,19 +76,19 @@ sequenceDiagram
 flowchart TD
     ARG["CLI --vault knowledge or working or all<br/>vault_kinds(args.vault)<br/>ontomark-cli/src/migrate_cmd.rs:72<br/>ontomark-cli/src/main.rs:791"]
     KIND["kind = Working only when the list is exactly Working and scope is not machine, else Knowledge<br/>ontomark-cli/src/main.rs:795-800"]
-    ROOT["Options.vault_root = vault_root(root, profile, kind): the layout's root for the kind, ('.' for a flat vault)<br/>ONE root feeds every machine artefact<br/>ontomark-cli/src/main.rs:805<br/>ontomark-cli/src/main.rs:544-546"]
+    ROOT["Options.vault_root = vault_root(root, profile, kind): the layout's root for the kind, ('.' for a flat vault)<br/>ONE primary root feeds the ontology projection<br/>ontomark-cli/src/main.rs:805<br/>ontomark-cli/src/main.rs:544-546"]
     WIDE["Options.with_working_publish = list contains Working AND kind is Knowledge<br/>ontomark-cli/src/main.rs:802-803"]
     MSC["scope machine: ensure_machine_scope refuses vault working or all, see OM-06.1<br/>build/mod.rs:476<br/>build/mod.rs:483-488"]
     LOAD["walk_pages once with the layout's excluded dirs, then Vault::load_with_walk: kind from profile.layout.kind_of(vault_root)<br/>build/mod.rs:569-575<br/>ontomark-compile/src/profile.rs:583"]
     MACH["Machine artefacts: Corpus raw, validate, project, closure, Turtle, reason,<br/>indexes, page API, graph tiers, okf, markdown mirror<br/>build/mod.rs:577,635,661,678,780"]
     SW["sibling_vault(Working): the layout's path for the kind under repo_root, loaded with the layout's excluded dirs only if that directory exists<br/>build/publish.rs:365-376<br/>build/mod.rs:604-605"]
     PUBV["publish_vaults = vault + working<br/>build/mod.rs:609-610"]
-    STAGE["stage_redacted over publish_vaults: the ONLY consumer of working pages as content<br/>build/mod.rs:633"]
+    STAGE["stage_redacted over publish_vaults: public knowledge/all builds use working content here; machine scope also lists working records, see OM-06.1<br/>build/mod.rs:633"]
     OTHER["other_vault = sibling_vault(opposite kind)<br/>only if redact_links AND working is None<br/>build/mod.rs:618-626"]
     PL["PrivateLinks::new over vault + working + other_vault<br/>link resolution only, nothing is published from other_vault<br/>build/mod.rs:627-632"]
     GITD["git_dirty read_paths: vault_root, repo/ontology, plus the working root whenever working or other_vault was loaded<br/>build/mod.rs:933-940"]
-    N1["INVARIANT: with_working_publish only decides whether working is loaded (build/mod.rs:604),<br/>the dirty paths follow from that load (build/mod.rs:937), never the projections<br/>build/mod.rs:76"]
-    N2["INVARIANT: one loader, sibling_vault, serves the publish load and the redaction load,<br/>and other_vault is read only when working is None, so working is loaded at most once<br/>build/publish.rs:365<br/>build/mod.rs:618"]
+    N1["INVARIANT: public scope loads working for publication when requested (build/mod.rs:604),<br/>machine scope always loads it (build/mod.rs:596),<br/>dirty paths follow the load (build/mod.rs:937)<br/>build/mod.rs:76"]
+    N2["INVARIANT: in public scope, sibling_vault serves the publish and redaction loads,<br/>and other_vault is read only when working is None, so working is loaded at most once<br/>build/publish.rs:365<br/>build/mod.rs:618"]
     N3["DIVERGENCE: sibling_vault never compares its kind with vault.kind, so a library caller with<br/>vault_root = working plus with_working_publish stages the same vault twice<br/>build/publish.rs:365-376"]
     ARG --> KIND --> ROOT --> LOAD --> MACH
     KIND --> WIDE
@@ -99,12 +100,15 @@ flowchart TD
     PL --> STAGE
     WIDE --> GITD
     KIND -.-> MSC
-    MSC -.-> SW
+    MSC --> ML["Machine scope walks and loads working directly<br/>build/mod.rs:596-603"]
+    ML --> PUBV
+    ML --> PL
+    ML --> GITD
     WIDE -.-> N1
     OTHER -.-> N2
     SW -.-> N3
 ```
-- INVARIANT: in the public scope `working/` never enters `corpus`, so OWL membership stays `knowledge/`-only (`ontomark-cli/src/main.rs:786-790`, `build/mod.rs:76-77`); `--vault working` alone makes the WHOLE projection come from `working/` (`main.rs:796-800`).
+- INVARIANT: public `--vault knowledge|all` keeps `working/` out of `corpus`, so OWL membership stays `knowledge/`-only (`ontomark-cli/src/main.rs:786-790`, `build/mod.rs:76-77`); `--vault working` alone makes the WHOLE projection come from `working/` (`main.rs:796-800`).
 - INVARIANT: `Options.repo_root` serves git, the vocabulary directory for dirtiness and, since the layout landed, the placement of every sibling vault (`build/mod.rs:928,933,940`, `build/mod.rs:468-472`, `build/publish.rs:370`), so the old `vault_root.parent()` derivations of the repository are gone from vault loading.
 - **Debt:** the attribution roster is still read from `vault_root.parent()` (`build/mod.rs:680-684`), and a flat layout puts the vault root at `repo_root` itself (`ontomark-compile/src/profile.rs:514-518`, `ontomark-compile/src/profile.rs:549-550`), so for a flat vault the roster is looked up one directory above the repository while the dirtiness check reads `repo_root/ontology` (`build/mod.rs:933`).
 

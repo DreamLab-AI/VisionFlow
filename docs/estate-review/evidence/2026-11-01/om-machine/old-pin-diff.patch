@@ -1,0 +1,30 @@
+diff --git a/crates/ontomark-cli/src/main.rs b/crates/ontomark-cli/src/main.rs
+index d5e0933..38972f6 100644
+--- a/crates/ontomark-cli/src/main.rs
++++ b/crates/ontomark-cli/src/main.rs
+@@ -3 +3,2 @@
+-//! `conflicts`, `repair bodies|fences`; the graph queries `find`, `retrieve`,
++//! `conflicts`, `repair bodies|fences`; `ingest`, external sources to a
++//! `vault propose` bundle that never writes the vault; the graph queries `find`, `retrieve`,
+@@ -38 +39,3 @@
+-//! `apply` whose guards refuse the write) or an invalid argument (an unknown
++//! `apply` whose guards refuse the write; an `ingest` with a non-local model
++//! endpoint and no `ONTOMARK_JEV_ALLOW_CLOUD=1`, an unknown or ambiguous
++//! target, or `--vault working|all`) or an invalid argument (an unknown
+@@ -71,0 +75,2 @@ mod embed;
++mod ingest_cmd;
++mod ingest_profile;
+@@ -131,0 +137,4 @@ enum Command {
++    /// Turn external sources (files, web pages) into a proposal bundle for
++    /// `vault propose`: evidence found by a model, grounded and quoted; nothing
++    /// is written to the vault (ADR-OM-010).
++    Ingest(ingest_cmd::IngestArgs),
+@@ -646,0 +656 @@ fn run() -> anyhow::Result<ExitCode> {
++        Command::Ingest(args) => ingest_cmd::run(args, &root, &vocab, &profile, cli.json),
+diff --git a/crates/ontomark-compile/src/build/mod.rs b/crates/ontomark-compile/src/build/mod.rs
+index 9f44992..0dd5980 100644
+--- a/crates/ontomark-compile/src/build/mod.rs
++++ b/crates/ontomark-compile/src/build/mod.rs
+@@ -1100 +1100 @@ mod tests {
+-            "---\ntype: Class\npublic: true\nresource: urn:ngm:class:knowledge-graph\nstatus: stable\ndomain: infrastructure\ndefinition: A graph.\nmaturity: established\nquality: 0.35\nis-a: [\"[[Root Concept]]\"]\nlinks: [\"[[Root Concept]]\"]\n---\n- ### Current Landscape (2026)\n  - Widely adopted.\n",
++            "---\ntype: Class\npublic: true\nresource: urn:ngm:class:knowledge-graph\nstatus: stable\ndomain: infrastructure\ndefinition: A graph.\nmaturity: established\nquality: 0.35\nis-a: [\"[[Root Concept]]\"]\nlinks: [\"[[Root Concept]]\"]\n---\n### Current Landscape (2026)\n\n- Widely adopted.\n",

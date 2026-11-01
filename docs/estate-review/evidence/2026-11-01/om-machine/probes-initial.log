@@ -1,0 +1,40 @@
+   Compiling ontomark-compile v0.6.1 (/home/devuser/workspace/wt/VisionFlow-om-machine/.audit-ontomark/crates/ontomark-compile)
+warning: unused import: `std::process::Command`
+  --> crates/ontomark-compile/tests/audit_machine.rs:13:5
+   |
+13 | use std::process::Command;
+   |     ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `generation::Generation`
+  --> crates/ontomark-compile/tests/audit_machine.rs:15:37
+   |
+15 | use ontomark_compile::build::{self, generation::Generation, Scope};
+   |                                     ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `ontomark-compile` (test "audit_machine") generated 2 warnings (run `cargo fix --test "audit_machine" -p ontomark-compile` to apply 2 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.50s
+     Running tests/audit_machine.rs (target/debug/deps/audit_machine-1e4a953bc1be2876)
+
+running 5 tests
+AUDIT 32-bit slug collision: 雪三地地百/Foo and 雪五五四三/Foo; correctly refused before publication: public/private identity collision on working slug `working/x-24f80a23/foo` is claimed by two public working pages; resolve in the authoring source
+test audit_non_ascii_slug_collision_is_real_and_refused ... ok
+vault build: whelk restrictions mode skip (0 kept, 12 skipped, 0 defined class(es))
+vault build: whelk restrictions mode skip (0 kept, 12 skipped, 0 defined class(es))
+vault build: whelk restrictions mode skip (0 kept, 12 skipped, 0 defined class(es))
+vault build: whelk restrictions mode skip (0 kept, 12 skipped, 0 defined class(es))
+AUDIT source identity override: unvalidated caller assertion retained; manifest hashes still describe emitted files
+test audit_source_identity_can_be_caller_asserted ... ok
+vault build: whelk restrictions mode skip (0 kept, 12 skipped, 0 defined class(es))
+vault build: whelk restrictions mode skip (0 kept, 12 skipped, 0 defined class(es))
+AUDIT marker boundary: private working title survives in public knowledge title in both scopes; masked in working title; private body canary absent
+test audit_bare_private_working_name_survives_in_knowledge_title ... ok
+AUDIT profile identity: same id/content_digest, changed page IRI; artifact hashes distinguish outputs
+test audit_profile_change_is_not_part_of_content_digest ... ok
+vault build: whelk restrictions mode skip (0 kept, 12 skipped, 0 defined class(es))
+AUDIT vocabulary digest: a new comment changes source bytes but not content_digest or output bytes
+test audit_vocabulary_comment_bytes_do_not_change_content_digest ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.93s
+
