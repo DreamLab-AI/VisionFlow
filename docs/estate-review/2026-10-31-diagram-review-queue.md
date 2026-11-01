@@ -1,5 +1,7 @@
 # Diagram semantic-review queue — 31 October 2026
 
+1 November publication/identity continuation: [all ten VG-03/04/05 panels and ADR-VG-001/002 assessed](2026-11-01-visiongraph-publication-and-identity.md), with eight passing pull/storage tests. The same-build freshness shortcut can skip a changed corpus. ADR-VG-007 and VG-06’s five panels remain in the visionGraph section-review queue; implementation and runtime acceptance remain open. This supersedes the earlier visionGraph coverage counts below.
+
 1 November admission continuation: [VG-07 maps the previously uncovered importer](2026-11-01-visiongraph-source-admission.md), with ADR-VG-005/006 section assessments. Three visionGraph ADRs and existing VG-03/04/05/06 topics remain queued; new coverage does not close them.
 
 1 November visionGraph continuation: [all six VG-01 panels assessed](2026-11-01-visiongraph-vault-and-domain-contracts.md), with ADR-VG-003/004/008 section dispositions and thirteen gate probes. Other visionGraph topics, five remaining decisions and runtime acceptance remain queued.

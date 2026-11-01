@@ -1,0 +1,31 @@
+{
+  "previous_report": "2026-11-01-knowledgegraph-publication-gates.md",
+  "matched_sources": [
+    {
+      "repo": "visionGraph",
+      "path": ".github/workflows/publish.yml",
+      "sha256": "7508b63c8b591b8f915a1f9651ce0b270160198f72d80bdb2292bedba6e9bd7c"
+    },
+    {
+      "repo": "visionGraph",
+      "path": "quartz/scripts/check-secrets.sh",
+      "sha256": "6fb7960fec7562f52bd07e112f7e746d1789fd57670b85326d087b1a805b182b"
+    },
+    {
+      "repo": "visionGraph",
+      "path": "quartz/scripts/check-urls.sh",
+      "sha256": "99bc959489684aa8197d3e84d68e3ab2d03cd501569466bb504cbe6953b4ff17"
+    },
+    {
+      "repo": "ontomark",
+      "path": "crates/ontomark-compile/src/build/mod.rs",
+      "sha256": "cfc0a84ba4802325de5821e827a949ab206665497e9b23f8ee842ff9019809ea"
+    },
+    {
+      "repo": "visionGraph",
+      "path": "scripts/tests/test_publish_cli.py",
+      "sha256": "ad3f2a63a0bbfce072a3b381b6a4dfbbaa02be13b54d90123d2a199a71bec894"
+    }
+  ],
+  "scope": "Earlier 41 publisher tests, 11 gate probes and scanner self-test remain dated results; not re-executed in this batch."
+}

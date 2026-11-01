@@ -1,0 +1,28 @@
+   Compiling vg-publication-audit v0.1.0 (/home/devuser/workspace/wt/VisionFlow-vg-publication/.audit-harness)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.05s
+     Running unittests src/lib.rs (.audit-target/debug/deps/vg_publication_audit-e32fb953077a4c14)
+
+running 4 tests
+test services::ontology_generation::tests::private_aliases_and_symlink_generation_roots_are_rejected ... ok
+test services::ontology_generation::tests::corrupt_pointer_fails_closed_and_acl_stays_separate ... ok
+test services::ontology_generation::tests::every_pre_activation_failure_preserves_prior_generation_after_restart ... ok
+test services::ontology_generation::tests::pinned_bundle_stays_coherent_during_concurrent_activation ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.13s
+
+     Running tests/identity.rs (.audit-target/debug/deps/identity-d4c037317f54da1c)
+
+running 4 tests
+test same_build_changed_source_is_skipped_before_hash_verification ... ok
+test same_build_missing_sums_still_reports_up_to_date ... ok
+test changed_build_corrupt_bytes_refused_and_old_generation_retained ... ok
+test changed_build_and_source_activates_new_generation ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+   Doc-tests vg_publication_audit
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

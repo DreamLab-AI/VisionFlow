@@ -1,6 +1,6 @@
 ---
 id: VG-05
-title: Invariants register — vault contract facts vs the proposed, inactive closeout ADRs
+title: Publication policies and the still-proposed generation acceptance contract
 area: visiongraph
 governing:
   - ../visionGraph/docs/PUBLICATION-contract.md
@@ -10,90 +10,105 @@ sources:
   - ../visionGraph/docs/PUBLICATION-contract.md
   - ../visionGraph/docs/adr/ADR-VG-001-publication-policy-boundaries.md
   - ../visionGraph/docs/adr/ADR-VG-002-generation-and-consumer-identity.md
-  - ../visionGraph/CLAUDE.md
-  - ../visionGraph/README.md
-  - ../visionGraph/vault.toml
   - ../visionGraph/.github/workflows/publish.yml
-  - ../visionGraph/docs/adr/ADR-VG-003-obsidian-only-authoring.md
-verified_commit: {visiongraph: 7b0875f2c26b9e69dc5c97e9c88166acc14c47dc, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
+  - ../ontomark/crates/ontomark-compile/src/input/page.rs
+  - ../ontomark/crates/ontomark-compile/src/build/mod.rs
+  - ../ontomark/crates/ontomark-compile/src/build/generation.rs
+  - ../ontomark/crates/ontomark-compile/src/build/publish.rs
+verified_commit: {visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7, ontomark: 0caae5d4b695cb720942b9b9212017c00a80ad41}
 ---
 
-## VG-05.1 Live invariants — what actually holds today
+## For developers
+
+Keep current consumer policies, compiler evidence and historical acceptance requirements distinct; the [section-by-section ADR assessment](../../estate-review/2026-11-01-visiongraph-publication-and-identity.md) records what these mechanisms do and what remains unproved.
+
+## For the business
+
+A public website, a local graph and a pod can intentionally contain different views, but users need clear policy and freshness information rather than one success label for all of them.
+
+## VG-05.1 Current publication and graph-inclusion policies are distinct
 
 ```mermaid
 flowchart TB
-    I1["1 · the KG inclusion gate is typed public: true OR a governed<br/>owl-class — PageMeta::is_kg_included, vault/mod.rs:162-163;<br/>the site publisher reads public alone — CLAUDE.md:10-11"]
-    I2["2 · NO frontmatter means private — the gate<br/>fails CLOSED, not open"]
-    I3["3 · Page identity is the vault-relative path WITHOUT .md,<br/>/ as namespace separator, pages sit at the vault root<br/>(the pages/ folder was removed 2026-10-16) — CLAUDE.md:13-14"]
-    I4["4 · Journals #40;YYYY-MM-DD.md#41; are excluded<br/>from graph ingest"]
-    I5["5 · the asset store is the repo-level assets/, stored once;<br/>working/assets is a symlink to it, knowledge/assets is a real<br/>synced subset — CLAUDE.md:15, vault.toml:52-68"]
-    I6["6 · VAULT_ROOT is the single path authority —<br/>no consumer hard-codes a corpus path"]
-    I7["7 · agents NEVER push this repo — a push to main<br/>deploys to narrativegoldmine.com #40;CLAUDE.md:16#41;"]
-    note1["Sources: README.md 'vault contract' + 'How consumers bind to it';<br/>CLAUDE.md 'Vault contract' + 'Agents never push this repo'"]
+    PAGE["Ontomark Page.is_public<br/>only YAML boolean true grants publication"]
+    SITE["Site publication staging<br/>public pages from knowledge and working<br/>held paths excluded, selected pages scanned"]
+    PROJECT["Compiler projects before structural closure<br/>private-link policy comes from options/profile"]
+    LOCAL["VisionClaw PageMeta.is_kg_included<br/>public OR a valid owl_class value"]
+    WHY["Different consumer predicates<br/>local inclusion does not grant site publication"]
+    PAGE --> SITE --> PROJECT --> WHY
+    LOCAL --> WHY
+    %% Source: crates/ontomark-compile/src/input/page.rs:269
+    %% Source: crates/ontomark-compile/src/build/publish.rs:200
+    %% Source: crates/ontomark-compile/src/build/mod.rs:615
+    %% Source: crates/ontomark-compile/src/build/mod.rs:658
+    %% Source: crates/ontomark-compile/src/build/mod.rs:678
+    %% Source: crates/visionclaw-domain/src/vault/mod.rs:162
 ```
 
-**What it shows:** the seven contract facts the corpus and its consumers rely on today. Invariant 1 changed on 2026-10-01: the agent rules no longer say a non-empty `owl-class` ingests unconditionally; the gate is the typed `public: true` flag, and only governed ontology types in `knowledge/` reach the ontology projection (`CLAUDE.md:10-11`). Invariant 1 was corrected again on 2026-10-18 (estate register ER-4): the code never changed, `PageMeta::is_kg_included` is `public || owl_class.is_some()` (`vault/mod.rs:162-163`, VC-21.2), and `CLAUDE.md:10-11` now says so (`bc4845c34`).
-**Why it is this way:** ADR-VG-003 made YAML frontmatter and Obsidian Markdown the sole authoring format and the Rust `vault` CLI the only parser (`ADR-VG-003-obsidian-only-authoring.md:16-18`), so the rules were restated in terms of that one parser.
+**What it shows:** exact predicate differences and the compiler's projection order; these source functions replace the older blanket invariant list (`input/page.rs:269`, `vault/mod.rs:162`, `build/mod.rs:678`).
+**Why it is this way:** local structural graph inclusion and public release are different policies; ADR-VG-001 requires those differences and their diagnostics to be intentional and tested (`ADR-VG-001-publication-policy-boundaries.md:32`).
 
-## VG-05.2 Proposed, inactive — ADR-VG-001 and ADR-VG-002 acceptance requirements
+## VG-05.2 Proposed acceptance requirements remain open
 
 ```mermaid
 flowchart TB
-    subgraph VG001["ADR-VG-001 — publication inclusion + inferred visibility<br/>decision_status: proposed · activation_status: inactive<br/>ADR-VG-001-publication-policy-boundaries.md:29, one dense paragraph"]
-        A1["every input: explicit included/excluded/invalid<br/>disposition under a NAMED policy"]
-        A2["require BOOLEAN publication metadata"]
-        A3["expose conflicting inclusion fields"]
-        A4["prevent malformed input disappearing<br/>before validation"]
-        A5["deliberate, TESTED private-ancestor<br/>disclosure policy across API/scaffold/Turtle"]
-    end
-    subgraph VG002["ADR-VG-002 — generation and consumer identity<br/>decision_status: proposed · activation_status: inactive<br/>ADR-VG-002-generation-and-consumer-identity.md:29, one dense paragraph"]
-        B1["ONE release manifest: source/corpus/pipeline/<br/>explorer/dependency/policy identity + output hashes"]
-        B2["demonstrate deletion, equal-count substitution,<br/>namespace moves, interrupted activation, rollback"]
-        B3["verify embedded explorer schema + browser<br/>behaviour INDEPENDENTLY"]
-        B4["preserve pre-split provenance and frozen /notes<br/>WITHOUT presenting as current production"]
-    end
-    note1["Both records: 'this record does not ratify the proposal or certify<br/>a deployment' — ADR-VG-001/002 closeout extension, verbatim"]
+    P1["ADR-VG-001<br/>explicit included, excluded or invalid dispositions<br/>typed flags and intentional consumer policies"]
+    P2["Visibility fixtures across every export<br/>private ancestry, namespaces, held paths<br/>conflicting flags and duplicate identity"]
+    G1["ADR-VG-002<br/>source, corpus, compiler, explorer<br/>dependency and policy identity plus output hashes"]
+    G2["Deletion and equal-count replacement<br/>namespace moves, interrupted activation, rollback<br/>independent browser and consumer acceptance"]
+    STATUS["Both proposed, partial, inactive<br/>not a deployment certification"]
+    P1 --> P2 --> STATUS
+    G1 --> G2 --> STATUS
+    %% Source: docs/adr/ADR-VG-001-publication-policy-boundaries.md:5
+    %% Source: docs/adr/ADR-VG-001-publication-policy-boundaries.md:32
+    %% Source: docs/adr/ADR-VG-001-publication-policy-boundaries.md:36
+    %% Source: docs/adr/ADR-VG-002-generation-and-consumer-identity.md:32
+    %% Source: docs/adr/ADR-VG-002-generation-and-consumer-identity.md:36
 ```
 
-## VG-05.3 What is NOT yet established — the gap between behaviour and contract
+**What it shows:** the proposed end-to-end acceptance boundary, not the status of whether the existing site is online (`ADR-VG-001-publication-policy-boundaries.md:36`).
+**Why it is this way:** the records explicitly preserve incomplete consumer acceptance despite component implementation and historical fixes (`ADR-VG-002-generation-and-consumer-identity.md:36`).
 
-```mermaid
-flowchart LR
-    CURRENT["current behaviour #40;PUBLICATION-contract.md:18#41;:<br/>omitted malformed fences · truthy string flags ·<br/>private-ancestor leakage · asserted/inferred IRI divergence"]
-    NOTESTABLISHED["explicitly NOT established:<br/>'no real private-page disclosure is established' —<br/>these are reproducible BOUNDARY CASES, not incidents"]
-    STALE["'earlier local tests reported 57 passed and one<br/>corpus-size assertion failure' — that dated result is<br/>NOT a fresh census or remote deployment receipt"]
-    REOPEN["review_trigger #40;both ADRs, identical#41;: change to authoring,<br/>publication, inference, consumer or deployment contracts"]
-    CURRENT --> NOTESTABLISHED
-    CURRENT --> STALE
-    NOTESTABLISHED --> REOPEN
-    STALE --> REOPEN
-    note1["DIVERGENCE: this is a PROPOSED closeout contract #40;2026-09-04#41; that<br/>'separates current behaviour from proposed acceptance requirements' —<br/>it does not replace the existing authoring format or claim production<br/>activation #40;PUBLICATION-contract.md:10#41;"]
-```
-
-## VG-05.4 What the 2026-09-07 execution update closed, and what it did not
+## VG-05.3 A compiler generation marker is not the final-site release manifest
 
 ```mermaid
 flowchart TB
-    SHARED["both publishers now share one boundary:<br/>public_projection.py — typed input preflight,<br/>known-private-reference filtering before inference<br/>and before every export stage<br/>PUBLICATION-contract.md:39"]
-    PROJ["projected Markdown replaces the workflow<br/>raw-copy bypass #40;see VG-03, VG-06#41;"]
-    ROLL["staged output promotion uses rename backups<br/>and rollback; a failed rollback RETAINS the<br/>recovery directory and reports build failure"]
-    NOTATOMIC["NOT atomic activation for simultaneous<br/>live readers — stated in the same paragraph"]
-    CSS["mobile: the search input may shrink and the<br/>provenance row may wrap; 375px client area had<br/>502px scroll width before the fix<br/>PUBLICATION-contract.md:45"]
-    NOTSPA["the frozen notes export gets a SCOPED stylesheet<br/>only — not an SPA source rebuild<br/>PUBLICATION-contract.md:41"]
-
-    SHARED --> PROJ --> ROLL --> NOTATOMIC
-    CSS --> NOTSPA
-
-    note1["DIVERGENCE: the execution update repairs source boundaries; it does NOT<br/>move either ADR out of proposed/partial/inactive — both remain pending<br/>their source-to-consumer acceptance conditions #40;PUBLICATION-contract.md:34#41;"]
-    NOTATOMIC -.-> note1
-    note2["INVARIANT: the real-corpus test now asserts the exclusion POLICY rather<br/>than requiring fourteen _misc files, and fixtures still prove an explicitly<br/>public held page never enters the publication walk #40;PUBLICATION-contract.md:39#41;"]
-    PROJ -.-> note2
-    note3["HISTORICAL since 2026-10-01: a banner marks these dated implementation<br/>descriptions as describing a retired Python publisher, not current<br/>operating instructions — PUBLICATION-contract.md:3-8"]
-    SHARED -.-> note3
+    INPUT["Digest source page hashes and vocabulary<br/>track source commit and dirty state"]
+    MARKER["Generation fields include content/ontology digests<br/>counts, vocabulary version, scope and artefact hashes"]
+    TWO["Root marker plus data-scoped marker<br/>root includes data marker, neither includes itself"]
+    SITE["Workflow then overlays static files<br/>compresses selected outputs and adds UI/notices"]
+    GAP["OPEN: final bytes and loaded consumers<br/>need their own generation binding"]
+    INPUT --> MARKER --> TWO --> SITE --> GAP
+    %% Source: crates/ontomark-compile/src/build/mod.rs:968
+    %% Source: crates/ontomark-compile/src/build/mod.rs:977
+    %% Source: crates/ontomark-compile/src/build/generation.rs:90
+    %% Source: crates/ontomark-compile/src/build/mod.rs:1008
+    %% Source: .github/workflows/publish.yml:261
+    %% Source: .github/workflows/publish.yml:358
+    %% Source: .github/workflows/publish.yml:441
+    %% Source: docs/adr/ADR-VG-002-generation-and-consumer-identity.md:32
 ```
 
-**What it shows:** what the 2026-09-07 execution update claimed to close in the Python publishers, and what it explicitly left open.
-**Why it is this way:** the panel is kept as the record of that update, not as current behaviour. The Python publisher it describes was retired (ADR-VG-003), and the contract now opens with a banner saying its dated implementation descriptions "are not current operating instructions" and that `/notes/` now serves current public Obsidian pages (`PUBLICATION-contract.md:3-8`).
-**Drift:** the body still states in the present tense that both publishers use `public_projection.py` (`PUBLICATION-contract.md:39`) and that the frozen notes SPA "is preserved and receives only a scoped mobile compatibility stylesheet" (`PUBLICATION-contract.md:41`). The banner covers both, but the scoped stylesheet `publishing-tools/notes-mobile.css` was deleted in the 2026-10-01 commit, and the inline text was not amended.
+**What it shows:** a real compiler manifest now exists; it lacks the complete final-site and loaded-consumer identity contract proposed by the ADR (`generation.rs:90`, `ADR-VG-002-generation-and-consumer-identity.md:32`).
+**Why it is this way:** compiler emission precedes publication transformations; the earlier public-receipt audit found one static-context hash mismatch at that boundary without establishing malicious alteration (`build/mod.rs:1015`, `publish.yml:261`).
 
-**Since the last stamp:** invariants 3, 5 and 7 were restated against the tree. Pages moved to the vault root on 2026-10-16 and the asset store became the repo-level `assets/` on 2026-10-17 (`CLAUDE.md:13-15`, `vault.toml:52-68`); an earlier text of this panel still described a `pages/` folder and a `knowledge/assets` symlink. The gate section of `CLAUDE.md` now names the released `ontomark` CLI as the gate runner and says it is pinned by `publish.yml` (`CLAUDE.md:20-23`). **Drift:** `CLAUDE.md:23` says that pin is currently `v0.5.0`, while `publish.yml:49` pins `v0.6.0`; the ADR-VG-003 text this panel cites still names the Rust `vault` CLI as the only parser (`docs/adr/ADR-VG-003-obsidian-only-authoring.md:16-18`).
+## VG-05.4 Historical failures, repairs and successor boundaries
+
+```mermaid
+flowchart TB
+    OLD["September synthetic probes<br/>old Python flag and private-ancestor defects"]
+    FIX["September execution qualification<br/>projection before inference and rollback repairs"]
+    RETIRE["October historical banner<br/>Python retired, notes now current Obsidian pages"]
+    NOW["Current workflow invokes released ontomark<br/>old findings require successor-specific evidence"]
+    KEEP["Keep broader acceptance obligations open<br/>historical repair is not live consumer acceptance"]
+    OLD --> FIX --> RETIRE --> NOW --> KEEP
+    %% Source: docs/adr/ADR-VG-002-generation-and-consumer-identity.md:46
+    %% Source: docs/adr/ADR-VG-002-generation-and-consumer-identity.md:54
+    %% Source: docs/PUBLICATION-contract.md:3
+    %% Source: docs/PUBLICATION-contract.md:8
+    %% Source: .github/workflows/publish.yml:48
+    %% Source: docs/adr/ADR-VG-001-publication-policy-boundaries.md:36
+```
+
+**What it shows:** dated succession instead of presenting retired-parser counterexamples as current behaviour; the historical banner's reference to vault also lags the workflow's ontomark pin (`PUBLICATION-contract.md:3`, `publish.yml:48`).
+**Why it is this way:** generation identity cannot certify privacy, and implementation changes do not automatically close the proposed acceptance contract (`ADR-VG-002-generation-and-consumer-identity.md:48`, `ADR-VG-001-publication-policy-boundaries.md:36`).

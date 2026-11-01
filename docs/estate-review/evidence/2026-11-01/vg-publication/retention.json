@@ -1,0 +1,325 @@
+{
+  "root": "/tmp/vf-vg-publication-artifacts",
+  "files": [
+    {
+      "path": "corpus-gate.log",
+      "sha256": "81ac6025e8b2012317cdbe88cbead95e0cf032481b303522a2f755d087892c07"
+    },
+    {
+      "path": "freshness-gate.log",
+      "sha256": "a819752358ac76788d612c3c865aada05b1098bddb9a740ca28bb176937b4af4"
+    },
+    {
+      "path": "harness-executed/Cargo.lock",
+      "sha256": "157af47a4c562d7662f9e568ddfc73cb2cb9b0e3bbdf7b8d529a161a0867e58a"
+    },
+    {
+      "path": "harness-executed/Cargo.toml",
+      "sha256": "8f6a1ea1a3290a4920ee2828b3f0af0be2d7d6fa3cf85646b04c7c098a0e7c39"
+    },
+    {
+      "path": "harness-executed/src/lib.rs",
+      "sha256": "21c550226e3030bf02ca30e53c68296d087954aeee4db6e8bdf78f933ac517d0"
+    },
+    {
+      "path": "harness-executed/src/services/ontology_generation.rs",
+      "sha256": "dd2c7c8ef020e088b9da392089e26d6625f025e825e62aa259e91d47b76aac52"
+    },
+    {
+      "path": "harness-executed/src/services/ontology_pull.rs",
+      "sha256": "b01f82582ec6c1cdd2897aba221f36e31e9f2f1ff6fdb351a0d8cbda9a25ca4f"
+    },
+    {
+      "path": "harness-executed/tests/identity.rs",
+      "sha256": "bb9f9878f11e4ff0f5a5617f9c1db06d31b510fef8133fcb194e06292674132a"
+    },
+    {
+      "path": "ignored-inputs/texput.log",
+      "sha256": "0de8dad445a514ae3bc13874d2a354c230d5395982c23ea702c3e573c3d9d304"
+    },
+    {
+      "path": "ignored-inputs/website/build-receipt.json",
+      "sha256": "fae85100258804d3344673265a4fcc88781ea92f6e2c4a137bd27b48f3460711"
+    },
+    {
+      "path": "initial-state.json",
+      "sha256": "1797464821e351c9f6181f2e391b6a724cad9c58c6a384dd7a46cae9d010fcb7"
+    },
+    {
+      "path": "ontomark/crates/ontomark-compile/src/build/generation.rs",
+      "sha256": "47972a0f41105ed743e78f8a2ee1a8fb754f744f492208ca49ed68b82d6377e5"
+    },
+    {
+      "path": "ontomark/crates/ontomark-compile/src/build/mod.rs",
+      "sha256": "cfc0a84ba4802325de5821e827a949ab206665497e9b23f8ee842ff9019809ea"
+    },
+    {
+      "path": "ontomark/crates/ontomark-compile/src/build/publish.rs",
+      "sha256": "794d8fefa9e0980f22081ddc4a8d6b3506f2fb92a463829ae098715811bdf967"
+    },
+    {
+      "path": "ontomark/crates/ontomark-compile/src/build/redact.rs",
+      "sha256": "c6f5a6351709bd08086a3acf00df6c90da529f72d363b02cd86f0eafbc0880a4"
+    },
+    {
+      "path": "ontomark/crates/ontomark-compile/src/check/gate.rs",
+      "sha256": "d5fe3cd1c7026f5d83830817603820abcca2fb74a91f5833a1d569ccd8cb88bc"
+    },
+    {
+      "path": "ontomark/crates/ontomark-compile/src/input/page.rs",
+      "sha256": "12730315dd242aa32e50a88e9681730f64689eca244fb6343169d540052133d1"
+    },
+    {
+      "path": "owned-links.json",
+      "sha256": "4f48c9a626ac0b74239c62fdf5fe1be75ca508030c4990c7da095208fa3cb163"
+    },
+    {
+      "path": "project/.github/workflows/ontology-publish.yml",
+      "sha256": "2875442b286cbac757bb8c98692cf7bf89b7911eabce82e5d0792bdfb599ab38"
+    },
+    {
+      "path": "project/Cargo.lock",
+      "sha256": "dee7706f16a35d79645774fc72fb74409f518418f05cfa3135914a0c327d0277"
+    },
+    {
+      "path": "project/crates/visionclaw-domain/src/vault/mod.rs",
+      "sha256": "496b44130af43a1d8f6fe3b516c85435073dd2b6a113aa187b79f0d88f7ae99c"
+    },
+    {
+      "path": "project/docs/adr/ADR-2106-ontology-pull-model-into-the-embedded-pod.md",
+      "sha256": "cf4fb6179a5af9b8370ac1faf413d9ae48881f9e3350d36f96b713bbde980976"
+    },
+    {
+      "path": "project/scripts/ontology/pack-pod-resources.py",
+      "sha256": "0b9f9f351b034ef5bc2b0ee17d83ca07874102c3fef28db739f40e0fe1780ec3"
+    },
+    {
+      "path": "project/src/main.rs",
+      "sha256": "ec3ee2d46059a46eebc983f6510d30236efb9bb7fbe05d47d656167b98a56db5"
+    },
+    {
+      "path": "project/src/services/ontology_generation.rs",
+      "sha256": "dd2c7c8ef020e088b9da392089e26d6625f025e825e62aa259e91d47b76aac52"
+    },
+    {
+      "path": "project/src/services/ontology_pull.rs",
+      "sha256": "279e85457359a0ad24a51c03766338bc5de37361cbccbacf7cf82f3e6826a82e"
+    },
+    {
+      "path": "pull-tests-setup.log",
+      "sha256": "2e610dbc6c6b102300e70eb89dfccd7496a68391070ccc636223107de9a00b1d"
+    },
+    {
+      "path": "pull-tests.log",
+      "sha256": "e5d9d6890f655aa2816fdb5f44664809aa5f1ea91c2fb338a2b928aeb6f10ab4"
+    },
+    {
+      "path": "rendered/VG-03.1.mmd",
+      "sha256": "82635865043354eb54c5228404e04a3120b4bbac08d256917f6aae9f735bc486"
+    },
+    {
+      "path": "rendered/VG-03.1.png",
+      "sha256": "f8f0083b6e42a9a1eda144e9b3be1e94c354b52cd9f17f4cb1110fc87858b705"
+    },
+    {
+      "path": "rendered/VG-03.1.svg",
+      "sha256": "49003f15796302222857c288ca2efbc4a42d18534a3e54f50ebce9ff8a3a1a1a"
+    },
+    {
+      "path": "rendered/VG-03.3.mmd",
+      "sha256": "63320c3354f5e3de285311879e8fb07d13d653cd18a3c227611f54f7997ba65a"
+    },
+    {
+      "path": "rendered/VG-03.3.png",
+      "sha256": "c7de891bd4ee49b0aa8278aa500f04de136f69ebba886a67d43e80c7d0fc0a3a"
+    },
+    {
+      "path": "rendered/VG-03.3.svg",
+      "sha256": "e9a9949071825988d3891f462942bac35f997695dd0705b31e76f5361ce2decb"
+    },
+    {
+      "path": "rendered/VG-03.5.mmd",
+      "sha256": "4fd26b272e4046274d449c7ee799a704513cf90b2dc38b4c9596ff35140b8946"
+    },
+    {
+      "path": "rendered/VG-03.5.png",
+      "sha256": "092be75a302a862e217b649df416a276f4a249a373131200665d71858128a448"
+    },
+    {
+      "path": "rendered/VG-03.5.svg",
+      "sha256": "e57eebf0f35ccf6e7dac07e9332515cd41138724503138536a8173dcceff98b8"
+    },
+    {
+      "path": "rendered/VG-03.6.mmd",
+      "sha256": "fb8c3ff37d2fbe9fea04232353facecf6e1f23d05007a88a1e5c7b854d467953"
+    },
+    {
+      "path": "rendered/VG-03.6.png",
+      "sha256": "53b2e85606dfd8c0c76b8d844ac477852bf563a1067ef91261a4c2186606114a"
+    },
+    {
+      "path": "rendered/VG-03.6.svg",
+      "sha256": "d7c646b0552f49c975e212e798fccd52ff625bcf23e65a982f84ff6b8e30bf80"
+    },
+    {
+      "path": "rendered/VG-04.1.mmd",
+      "sha256": "73f6e88a3da84e4875c68ef89c59e1985c4da59309015db05a108cc1609ff737"
+    },
+    {
+      "path": "rendered/VG-04.1.png",
+      "sha256": "e55407998a750ea41251c02789f4a52a9f84e45eee86a659b439d76671ceec3f"
+    },
+    {
+      "path": "rendered/VG-04.1.svg",
+      "sha256": "ce171eb8aaf3979a1782af6a412164c96b427dffb03f45e3be8cfe8ffda0cdd8"
+    },
+    {
+      "path": "rendered/VG-04.3.mmd",
+      "sha256": "0abd3eb4aaf124804e52953141b67fcb711581df0201828ddee211f7e77291b0"
+    },
+    {
+      "path": "rendered/VG-04.3.png",
+      "sha256": "99644d2cdea9c0e4212db8adba7c7cb255b4fd950403bfaee56194067c93384e"
+    },
+    {
+      "path": "rendered/VG-04.3.svg",
+      "sha256": "9b8137cd7233f257f19567e7c871b79acf6eea17d6b6e32af00b850daabf44c7"
+    },
+    {
+      "path": "rendered/VG-05.1.mmd",
+      "sha256": "207668d391baf83b75ff800fa4bfbf2fc4492172e1e859ea10bc3533b1c9c1f9"
+    },
+    {
+      "path": "rendered/VG-05.1.png",
+      "sha256": "6e5581941018d19124c721e948e127692762f56f661704144b7e0062f1987520"
+    },
+    {
+      "path": "rendered/VG-05.1.svg",
+      "sha256": "64313b05e7ad00932af04772129fb1141a5cf715f5413ebc1dec9c78edfe1125"
+    },
+    {
+      "path": "rendered/VG-05.2.mmd",
+      "sha256": "ae973ca4b6387802411242219ad9755326c763e3ad6e3ef44472062eb33ebd3f"
+    },
+    {
+      "path": "rendered/VG-05.2.png",
+      "sha256": "462c1173a3ba729ebb1d286c008fc6db1eb75589025204df23dffcfd519132bc"
+    },
+    {
+      "path": "rendered/VG-05.2.svg",
+      "sha256": "fb7bc1effcdfe4fd5b8f02447063650886119b841b755b095f61048d41a6c7da"
+    },
+    {
+      "path": "rendered/VG-05.3.mmd",
+      "sha256": "3bcaa6e7c961f1aca9538fa20b576269544196ffa0d54cd66ff93dceede6997a"
+    },
+    {
+      "path": "rendered/VG-05.3.png",
+      "sha256": "3b6ee833622b0622b15cad8beb4500f4d7d604984d3dbfa23091353197881963"
+    },
+    {
+      "path": "rendered/VG-05.3.svg",
+      "sha256": "5f486c1ffd212afc1b80c26884970194f29990976ee0713d3f081c30c6195ce2"
+    },
+    {
+      "path": "rendered/VG-05.4.mmd",
+      "sha256": "aa50cb85c4c202feb72018d413fa4a844fb5b42b08b37081c7c39bf40fd18f7b"
+    },
+    {
+      "path": "rendered/VG-05.4.png",
+      "sha256": "0c417d333570d9a5c2c3f86758c2f84fb7c3bd2997404c8a74ea08b6bf7eb872"
+    },
+    {
+      "path": "rendered/VG-05.4.svg",
+      "sha256": "343981f9695a51294df11b01eb792e5c3f88237349f490d5881363498fb91021"
+    },
+    {
+      "path": "sources.json",
+      "sha256": "f9f2b50f3fe4ea6c4351d8b72d0378e7bc2a176ad520b5d2894e12ce8ab3936a"
+    },
+    {
+      "path": "vg03-gate.log",
+      "sha256": "1b355b659f7996d3f6efa750e83f4f04e2ed7ebda7091ca8d3e1d82b111a3ffb"
+    },
+    {
+      "path": "vg04-gate.log",
+      "sha256": "0f9ce7467483de239f95f2160ab8fd42ebbfae798f7ae27082592cb12b482834"
+    },
+    {
+      "path": "vg05-gate.log",
+      "sha256": "b4913ad50a9313853c889960e926f364fb9623fd570be023e97449be75f6087b"
+    },
+    {
+      "path": "visionGraph/.github/workflows/publish.yml",
+      "sha256": "7508b63c8b591b8f915a1f9651ce0b270160198f72d80bdb2292bedba6e9bd7c"
+    },
+    {
+      "path": "visionGraph/CLAUDE.md",
+      "sha256": "bc91a84c24d10dc80e7e08f80d58e0ec0b397a0b0e15784b1b329ba8d016da9e"
+    },
+    {
+      "path": "visionGraph/README.md",
+      "sha256": "9d3de1060a2e93a338a9606076c32a9cbd3366a2fb89ea3d6e7af9d6d661214a"
+    },
+    {
+      "path": "visionGraph/docs/PUBLICATION-contract.md",
+      "sha256": "2c1bbf979bbf37b52e562913ed3191b9d2ce7beebc444e6559d7304c05d0ed17"
+    },
+    {
+      "path": "visionGraph/docs/adr/ADR-VG-001-publication-policy-boundaries.md",
+      "sha256": "61821c4310b5b0a95401fce026980875dab3b286b10233be5e846baad770dce8"
+    },
+    {
+      "path": "visionGraph/docs/adr/ADR-VG-002-generation-and-consumer-identity.md",
+      "sha256": "3a6b91ee83bae8758e48b6ee884dd8b819c5cf372f9632121029b638ed01baf0"
+    },
+    {
+      "path": "visionGraph/docs/adr/ADR-VG-003-obsidian-only-authoring.md",
+      "sha256": "423786ad7bd1ddc7f68360d6abca537725398e4ff5caf0b65ba81b1974a4937f"
+    },
+    {
+      "path": "visionGraph/docs/adr/ADR-VG-007-shared-ontology-workspace-and-profile.md",
+      "sha256": "33c93dbc04ae34210f4dac0a93fa95c4f433740be16977041994a454034ebb8a"
+    },
+    {
+      "path": "visionGraph/publishing-tools/WasmVOWL/modern/package.json",
+      "sha256": "45fdb68c3d8a4a331aab14971c8cee63670679be052fbd218ec4a57ce89f42e3"
+    },
+    {
+      "path": "visionGraph/publishing-tools/WasmVOWL/modern/scripts/check-space-domains.mjs",
+      "sha256": "fdbe24cd10434bd647d150b3b8aa701a69eddb140863937871fe75471b73eb89"
+    },
+    {
+      "path": "visionGraph/publishing-tools/WasmVOWL/modern/scripts/check-supply-chain-domain.mjs",
+      "sha256": "6681419b5fd0da0257fb0a4580b413d7e5ba18717582727a4e42da8d9b5b3180"
+    },
+    {
+      "path": "visionGraph/quartz/scripts/check-secrets.sh",
+      "sha256": "6fb7960fec7562f52bd07e112f7e746d1789fd57670b85326d087b1a805b182b"
+    },
+    {
+      "path": "visionGraph/quartz/scripts/check-urls.sh",
+      "sha256": "99bc959489684aa8197d3e84d68e3ab2d03cd501569466bb504cbe6953b4ff17"
+    },
+    {
+      "path": "visionGraph/scripts/tests/test_explorer_notices.py",
+      "sha256": "259dd275739d64c1d080b5cac769feab4ab9456e71497177a3a5ec7c04fc0ddc"
+    },
+    {
+      "path": "visionGraph/scripts/tests/test_explorer_routes.py",
+      "sha256": "e6a9a15855940d00d230b47ebde9b5a087d8690bf260cdd452361b0e55677503"
+    },
+    {
+      "path": "visionGraph/scripts/tests/test_obsidian_plugins.py",
+      "sha256": "5556659db01fe2337a533241003f8197e7046285668939b592e39b6f623d4af0"
+    },
+    {
+      "path": "visionGraph/scripts/tests/test_publish_cli.py",
+      "sha256": "ad3f2a63a0bbfce072a3b381b6a4dfbbaa02be13b54d90123d2a199a71bec894"
+    },
+    {
+      "path": "visionGraph/vault.toml",
+      "sha256": "32b7bd5d247dbfb9d8543d1e5da57b7570f8f86c4ff91705b50884bb11629050"
+    }
+  ]
+}

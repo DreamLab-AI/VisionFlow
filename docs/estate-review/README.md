@@ -1,4 +1,13 @@
 ---
+title: VisionFlow estate review
+status: in-progress
+date: 2026-09-04
+type: explanation
+---
+
+# VisionFlow estate review
+
+VisionGraph publication continuation: [ten corrected panels, ADR-VG-001/002 section assessments and eight pull/storage tests](2026-11-01-visiongraph-publication-and-identity.md). A corpus-only refresh can be skipped when the consumer build SHA is unchanged. ADR-VG-007, VG-06 and full runtime acceptance remain open.
 
 VisionGraph source-admission continuation: [five new VG-07 panels, two ADR section assessments, 23 importer probes and 39 current competency assertions](2026-11-01-visiongraph-source-admission.md). Source-policy binding, semantic checks, partial staging and reproducible builds remain open.
 
@@ -7,13 +16,6 @@ VisionGraph vault/domain continuation: [six VG-01 panels, three ADR section asse
 KnowledgeGraph inventory and public-site continuation: [decision classification, validator probes and a live manifest mismatch](2026-11-01-knowledgegraph-inventory-and-live-receipt.md). All five knowledgeGraph topics and four operative ADRs are accounted for, with implementation and full runtime acceptance still open.
 
 Consumer and archive continuation: [current distribution routes, licence-path drift and four archived importer probes](2026-11-01-knowledgegraph-consumers-and-archive.md), covering all five KG-01/KG-06 panels.
-title: VisionFlow estate review
-status: in-progress
-date: 2026-09-04
-type: explanation
----
-
-# VisionFlow estate review
 
 This review examines the VisionFlow estate as an organisational proposition, a set of software implementations, and a system whose promises depend on connections between repositories. It asks where the vision is supported by source and execution evidence, where the implementation has moved beyond the written account, and what still prevents the intended experience.
 

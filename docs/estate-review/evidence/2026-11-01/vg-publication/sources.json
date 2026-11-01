@@ -1,0 +1,194 @@
+[
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": ".github/workflows/publish.yml",
+    "sha256": "7508b63c8b591b8f915a1f9651ce0b270160198f72d80bdb2292bedba6e9bd7c"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "CLAUDE.md",
+    "sha256": "bc91a84c24d10dc80e7e08f80d58e0ec0b397a0b0e15784b1b329ba8d016da9e"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "README.md",
+    "sha256": "9d3de1060a2e93a338a9606076c32a9cbd3366a2fb89ea3d6e7af9d6d661214a"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/PUBLICATION-contract.md",
+    "sha256": "2c1bbf979bbf37b52e562913ed3191b9d2ce7beebc444e6559d7304c05d0ed17"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/adr/ADR-VG-001-publication-policy-boundaries.md",
+    "sha256": "61821c4310b5b0a95401fce026980875dab3b286b10233be5e846baad770dce8"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/adr/ADR-VG-002-generation-and-consumer-identity.md",
+    "sha256": "3a6b91ee83bae8758e48b6ee884dd8b819c5cf372f9632121029b638ed01baf0"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/adr/ADR-VG-003-obsidian-only-authoring.md",
+    "sha256": "423786ad7bd1ddc7f68360d6abca537725398e4ff5caf0b65ba81b1974a4937f"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/adr/ADR-VG-007-shared-ontology-workspace-and-profile.md",
+    "sha256": "33c93dbc04ae34210f4dac0a93fa95c4f433740be16977041994a454034ebb8a"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/package.json",
+    "sha256": "45fdb68c3d8a4a331aab14971c8cee63670679be052fbd218ec4a57ce89f42e3"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/scripts/check-space-domains.mjs",
+    "sha256": "fdbe24cd10434bd647d150b3b8aa701a69eddb140863937871fe75471b73eb89"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/scripts/check-supply-chain-domain.mjs",
+    "sha256": "6681419b5fd0da0257fb0a4580b413d7e5ba18717582727a4e42da8d9b5b3180"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "quartz/scripts/check-secrets.sh",
+    "sha256": "6fb7960fec7562f52bd07e112f7e746d1789fd57670b85326d087b1a805b182b"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "quartz/scripts/check-urls.sh",
+    "sha256": "99bc959489684aa8197d3e84d68e3ab2d03cd501569466bb504cbe6953b4ff17"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/tests/test_explorer_notices.py",
+    "sha256": "259dd275739d64c1d080b5cac769feab4ab9456e71497177a3a5ec7c04fc0ddc"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/tests/test_explorer_routes.py",
+    "sha256": "e6a9a15855940d00d230b47ebde9b5a087d8690bf260cdd452361b0e55677503"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/tests/test_obsidian_plugins.py",
+    "sha256": "5556659db01fe2337a533241003f8197e7046285668939b592e39b6f623d4af0"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/tests/test_publish_cli.py",
+    "sha256": "ad3f2a63a0bbfce072a3b381b6a4dfbbaa02be13b54d90123d2a199a71bec894"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "vault.toml",
+    "sha256": "32b7bd5d247dbfb9d8543d1e5da57b7570f8f86c4ff91705b50884bb11629050"
+  },
+  {
+    "repo": "project",
+    "revision": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+    "path": ".github/workflows/ontology-publish.yml",
+    "sha256": "2875442b286cbac757bb8c98692cf7bf89b7911eabce82e5d0792bdfb599ab38"
+  },
+  {
+    "repo": "project",
+    "revision": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+    "path": "Cargo.lock",
+    "sha256": "dee7706f16a35d79645774fc72fb74409f518418f05cfa3135914a0c327d0277"
+  },
+  {
+    "repo": "project",
+    "revision": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+    "path": "crates/visionclaw-domain/src/vault/mod.rs",
+    "sha256": "496b44130af43a1d8f6fe3b516c85435073dd2b6a113aa187b79f0d88f7ae99c"
+  },
+  {
+    "repo": "project",
+    "revision": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+    "path": "docs/adr/ADR-2106-ontology-pull-model-into-the-embedded-pod.md",
+    "sha256": "cf4fb6179a5af9b8370ac1faf413d9ae48881f9e3350d36f96b713bbde980976"
+  },
+  {
+    "repo": "project",
+    "revision": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+    "path": "scripts/ontology/pack-pod-resources.py",
+    "sha256": "0b9f9f351b034ef5bc2b0ee17d83ca07874102c3fef28db739f40e0fe1780ec3"
+  },
+  {
+    "repo": "project",
+    "revision": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+    "path": "src/main.rs",
+    "sha256": "ec3ee2d46059a46eebc983f6510d30236efb9bb7fbe05d47d656167b98a56db5"
+  },
+  {
+    "repo": "project",
+    "revision": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+    "path": "src/services/ontology_generation.rs",
+    "sha256": "dd2c7c8ef020e088b9da392089e26d6625f025e825e62aa259e91d47b76aac52"
+  },
+  {
+    "repo": "project",
+    "revision": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+    "path": "src/services/ontology_pull.rs",
+    "sha256": "279e85457359a0ad24a51c03766338bc5de37361cbccbacf7cf82f3e6826a82e"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "path": "crates/ontomark-compile/src/build/generation.rs",
+    "sha256": "47972a0f41105ed743e78f8a2ee1a8fb754f744f492208ca49ed68b82d6377e5"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "path": "crates/ontomark-compile/src/build/mod.rs",
+    "sha256": "cfc0a84ba4802325de5821e827a949ab206665497e9b23f8ee842ff9019809ea"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "path": "crates/ontomark-compile/src/build/publish.rs",
+    "sha256": "794d8fefa9e0980f22081ddc4a8d6b3506f2fb92a463829ae098715811bdf967"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "path": "crates/ontomark-compile/src/build/redact.rs",
+    "sha256": "c6f5a6351709bd08086a3acf00df6c90da529f72d363b02cd86f0eafbc0880a4"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "path": "crates/ontomark-compile/src/check/gate.rs",
+    "sha256": "d5fe3cd1c7026f5d83830817603820abcca2fb74a91f5833a1d569ccd8cb88bc"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "path": "crates/ontomark-compile/src/input/page.rs",
+    "sha256": "12730315dd242aa32e50a88e9681730f64689eca244fb6343169d540052133d1"
+  }
+]
