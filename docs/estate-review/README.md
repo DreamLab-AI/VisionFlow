@@ -45,6 +45,8 @@ Vowl ingest and release continuation: [JSON semantics, graph statistics and spli
 
 Dream-engine continuation: [candidate confinement and evidence boundaries](2026-11-01-dream-candidate-and-evidence.md), with three section-by-section decision assessments, current DE-01 qualification and new DE-02 diagrams. Other dream-engine decisions and full host acceptance remain open.
 
+Dream-engine recovery continuation: [night recovery and source supply](2026-11-01-dream-recovery-and-source-supply.md), assessing DE-007/008 section by section, AB-23.7/21 and three new DE-03 panels. Process-death recovery is tested; source completion and storage acceptance findings remain open.
+
 ## Reading order
 
 | Document | Question it answers |

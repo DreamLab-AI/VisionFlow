@@ -1,0 +1,166 @@
+{
+  "date": "2026-11-01",
+  "inputs": [
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-core/src/runstate.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "049a78cb7d81ef3a2d441617a18bb5bd8352d934f5c46cc958f62402f07b054a",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-core/src/source.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "8e76bda907615103552574f067cf4a8fbeea8c29cf4d7733ad2c6d13b0061476",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-gate/src/manifest.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "2b17526c057398a286b71b3c169ee54e79001a4222ec466aeaaff3b0f4862a77",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "91315eb0d8b4a07089f237a5d9171c2c565cd83286ed8acaefcf5f91c2f6d726",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true,
+      "headings": [
+        {
+          "line": 13,
+          "text": "# ADR-DE-007 \u2014 A night is identified by its directory, not by the run id"
+        },
+        {
+          "line": 15,
+          "text": "## Context"
+        },
+        {
+          "line": 18,
+          "text": "## Decision"
+        },
+        {
+          "line": 25,
+          "text": "## Consequences"
+        },
+        {
+          "line": 29,
+          "text": "## Hardening (independent audit, 2026-10)"
+        },
+        {
+          "line": 34,
+          "text": "## Known limit: publish outcomes are not reconciled (at-most-once)"
+        }
+      ]
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "docs/adr/ADR-DE-008-requested-sources-are-honoured-first.md",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "078a8e0c8e16146c673ed56791056dab5e0d9a6c1c662ed2f1678c259f57eef9",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true,
+      "headings": [
+        {
+          "line": 13,
+          "text": "# ADR-DE-008 \u2014 Sources the previous night asked for are read first, capped, and never asked of the operator"
+        },
+        {
+          "line": 15,
+          "text": "## Context"
+        },
+        {
+          "line": 18,
+          "text": "## Decision"
+        },
+        {
+          "line": 27,
+          "text": "## Consequences"
+        }
+      ]
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "docs/diagrams/nightly/01-the-nightly-loop-and-run-state.md",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "b939255621ec59b4091540ea37473bab56417c64fd5b20aebbddaf91302349fe",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/project/agentbox",
+      "path": "services/dream-engine/src/engine.rs",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "c15b31074c173b6409744daa87f1a1f0367d6e917b514e20dab25b006cf2af06",
+      "matches_head": true,
+      "existing_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/project/agentbox",
+      "path": "services/dream-engine/src/wanted.rs",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "46e0b65ea27b1fa9510b43d0d3ef209b80326829cc6ccbce318e1fc16d4b7c10",
+      "matches_head": true,
+      "existing_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/project/agentbox",
+      "path": "services/dream-engine/src/inbox.rs",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "2a79d6a6c20fa8916b20feede995df15002dd16906a71638a6372eea3ab3bbd4",
+      "matches_head": true,
+      "existing_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/project/agentbox",
+      "path": "docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "b6fcf424caceddb516965879d3628488a1b1e617695ccdc86d2f514f8dfab7c1",
+      "matches_head": true,
+      "existing_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "matches_existing_pin": true,
+      "headings": [
+        {
+          "line": 17,
+          "text": "# ADR-2143 \u2014 Source supply is plumbing, not a decision; every operator question is four plain-English fields"
+        },
+        {
+          "line": 19,
+          "text": "## Context"
+        },
+        {
+          "line": 22,
+          "text": "## Decision"
+        },
+        {
+          "line": 27,
+          "text": "## Consequences"
+        },
+        {
+          "line": 33,
+          "text": "## Activation evidence (2026-10-17)"
+        },
+        {
+          "line": 37,
+          "text": "## Re-verification \u2014 2026-10-23"
+        }
+      ]
+    }
+  ],
+  "scope": "Selected source/ADR comparison; not a semantic assessment of all declared AB-23 inputs"
+}

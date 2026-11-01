@@ -427,48 +427,27 @@ sequenceDiagram
 ## AB-23.7 Run journal — restart, resume, abandonment and the finished-night rule
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:532
-    participant LK as NightLock<br/>dream-core/src/runstate.rs:295
-    participant RS as runstate<br/>dream-core/src/runstate.rs:511
-    participant F as run-state.json<br/>night directory
-    participant MAN as manifest<br/>dream-gate/src/manifest.rs:258
-
-    ENG->>LK: acquire_within(night_dir, 250 ms), before the first journal read (engine.rs:563)
-    alt held by another engine
-        LK-->>ENG: LockError::Held, the night is skipped (engine.rs:567)
-    else taken
-        ENG->>RS: finished_night(night_dir, repo, date, night_id) (engine.rs:641)
-        RS->>F: load_checked (runstate.rs:337)
-        alt journal unreadable, corrupt or of an unknown schema
-            F-->>RS: JournalError
-            RS-->>ENG: Err, the engine reports BLOCKED-ENV and points at reset-night (engine.rs:642-647)
-        else phase Persisted or Complete for this night
-            RS-->>ENG: Some(state), a Persisted record is finalised to Complete (runstate.rs:415-421)
-            ENG->>ENG: finished_result, no model call, no manifest, no commit, no forge request (engine.rs:649-661)
-        else not finished
-            RS-->>ENG: None
-            ENG->>RS: begin(night_dir, run_id, ...) (engine.rs:867)
-            alt a prior run for this night
-                RS-->>ENG: Resume::Resumed, the attempt is counted
-            else attempt budget exhausted
-                RS-->>ENG: Resume::Abandoned, an operator alert and BLOCKED-ENV (engine.rs:888-912)
-            else first attempt
-                RS-->>ENG: Resume::Fresh
-            end
-        end
-    end
-    ENG->>MAN: run_id(repo, date, deep, baseline, config_digest) (manifest.rs:258)
-    Note over MAN: the run id folds in the baseline HEAD, which the engine's own ledger commit moves, so it cannot recognise<br/>a finished night. The attempt budget belongs to the NIGHT, not the run id (dream-core/src/runstate.rs:497-500)
-    ENG->>RS: advance after each phase, then persist before effects, then complete (engine.rs:934, 1710, 1932)
+flowchart TB
+    LOCK["Acquire night lock<br/>engine.rs:563"] --> CHECK["Check finished night<br/>engine.rs:641"]
+    CHECK -->|"matching terminal journal"| SKIP["Return recorded result<br/>engine.rs:649"]
+    CHECK -->|"damaged journal"| BLOCK["Report journal fault<br/>engine.rs:644"]
+    CHECK -->|"absent, unfinished or wrong night"| FREEZE["Build and freeze manifest<br/>engine.rs:700<br/>engine.rs:763"]
+    FREEZE --> HEALTH["Annexe health before begin<br/>engine.rs:823"]
+    HEALTH --> BEGIN["Begin checks night identity and attempts<br/>runstate.rs:523<br/>runstate.rs:542"]
+    BEGIN -->|"same run, budget remains"| RESUME["Resumed with attempt increment<br/>runstate.rs:549"]
+    BEGIN -->|"new run, budget remains"| FRESH["Fresh with carried attempt count<br/>runstate.rs:560"]
+    BEGIN -->|"wrong night or exhausted"| STOP["Refuse or abandon<br/>runstate.rs:526<br/>runstate.rs:542"]
+    RESUME --> PERSIST["Persist verdict before forge and ledger<br/>engine.rs:1710"]
+    FRESH --> PERSIST
+    PERSIST --> IO["Journal write uses temporary file and rename<br/>manifest.rs:328"]
 ```
 
-**What it shows.** The restart rules after the extraction. A night is identified by its directory, so a restart after its own ledger commit cannot start a second experiment, and a damaged journal is a fault, never a fresh start. An operator reopens a night only with `dream-engine reset-night`.
 
-**Why it is this way.** Before 2026-10-15 the run id was the only identity, and the engine's ledger commit moved HEAD and therefore the run id, so a restart could repeat a publish. ADR-DE-007 is the repair. The adapter changes are the lock and the early skip at `engine.rs:563-661`.
+**What it shows.** The early terminal check precedes manifest freezing, but it returns no result for a journal belonging to another night. `begin` rejects that identity later, after freezing and annexe health. Same-run retries increment the attempt; changed-run retries start at Initialised while carrying the night's count. A persisted verdict stops a restart even if HEAD moved.
 
-**Invariant:** `Persisted` is journalled before the forge request and the ledger commit (`../dream-engine/crates/dream-core/src/runstate.rs:22-23`, `../project/agentbox/services/dream-engine/src/engine.rs:1710`).
+**Why it is this way.** ADR-DE-007 repairs the earlier run-id-only rule. The [1 November recovery audit](../../estate-review/2026-11-01-dream-recovery-and-source-supply.md) verifies lock release and restart decisions after killing a fixture process before and after persistence. These tests cover process death, not power loss or successful publication. The writer does not synchronise file or directory contents (`../dream-engine/crates/dream-gate/src/manifest.rs:328`); the reset helper uses several link/unlink operations with best-effort rollback (`../dream-engine/crates/dream-core/src/runstate.rs:466`).
+
+**Invariant:** the adapter checks the result of `persist` before attempting accepted-candidate publication (`../project/agentbox/services/dream-engine/src/engine.rs:1710`). At-most-once claims depend on the journal surviving, the lock being honoured and no explicit reset; the library does not reconcile forge outcomes.
 
 ## AB-23.8 Core types
 
@@ -1050,44 +1029,23 @@ flowchart TB
 ## AB-23.21 ADR-2143 — source supply is plumbing, not a decision
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant ENG as Engine, step 11b<br/>agentbox/services/dream-engine/src/engine.rs:1648
-    participant WNT as wanted.rs<br/>agentbox/services/dream-engine/src/wanted.rs:231
-    participant STORE as dream-source-requests.json<br/>agentbox/services/dream-engine/src/wanted.rs:62
-    participant INB as dream inbox and forum panel
-    participant NEXT as Engine tree-read, next night<br/>agentbox/services/dream-engine/src/engine.rs:1254
-    participant CORE as dream_core::source::gather<br/>dream-core/src/source.rs:1040
-
-    Note over ENG: the night's report lists files under Sources wanted next night and may carry Human action lines
-    ENG->>WNT: extract_wanted(report), one key per list item, path or path:a-b (engine.rs:1648, wanted.rs:105)
-    loop each Human action line (engine.rs:1649)
-        alt a supply, inline or bundle verb naming a path, and not in the four-field shape
-            ENG->>WNT: is_source_supply then path_tokens, the paths join the wanted keys (engine.rs:1650-1657, wanted.rs:191)
-            Note over ENG,INB: the line is NOT queued as a question, the operator is never asked to supply source
-        else a real decision
-            ENG->>INB: plain_decision rewrites an If approved that promises a merge, then inbox::add (engine.rs:1659-1662)
-        end
-    end
-    ENG->>WNT: record(repo, deep, keys, night_id, report) (engine.rs:1668)
-    WNT->>STORE: a new key is stored active with nights_seen 0 (wanted.rs:231)
-    alt a key asked again after it was read, or after MAX_NIGHTS 3 nights unmet
-        WNT-->>ENG: returned as looped and NOT re-armed (wanted.rs:26)
-        ENG->>INB: ONE alert from loop_alert, the window was wrong or something else blocks the night (engine.rs:1669-1683, wanted.rs:343)
-    end
-    NEXT->>WNT: take_for(repo, deep), active requests oldest first, each counted as offered (engine.rs:1254, wanted.rs:276)
-    NEXT->>NEXT: a slot's path-shaped scan entries are appended after the explicit requests (engine.rs:1266-1273)
-    NEXT->>CORE: GatherInput::new(...).with_requested(requested) (engine.rs:1275)
-    Note over CORE: requested paths are read FIRST, capped at half the file slots and half the byte budget,<br/>and pass the same checks as a planner pick (dream-core/src/source.rs:474, dream-core/src/source.rs:795)
-    CORE-->>NEXT: SourceRecord with requested_honoured (dream-core/src/source.rs:716)
-    NEXT->>WNT: settle marks every matching key met (engine.rs:1299, wanted.rs:295)
+flowchart TB
+    REPORT["Extract report requests and classify human actions<br/>engine.rs:1648<br/>wanted.rs:191"] --> STORE["Record pending keys or report a repeated inactive key<br/>wanted.rs:231"]
+    STORE --> ALERT["Loop alert per record call<br/>engine.rs:1669"]
+    STORE --> TAKE["Take active requests and increment each offer count<br/>wanted.rs:276"]
+    TAKE --> SCAN["Append path-shaped scan entries<br/>engine.rs:1266"]
+    SCAN --> CORE["Validate and select requested entries first<br/>source.rs:1091"]
+    CORE --> RENDER["Clip then add markers and redact<br/>source.rs:850"]
+    RENDER --> RECEIPT["Return receipt only if a file is marked inlined<br/>source.rs:1183"]
+    RECEIPT --> SETTLE["Settle by path or directory prefix<br/>ranges are not compared<br/>wanted.rs:328"]
 ```
 
-**What it shows.** How a file a night could not read goes back to the next night's tree-read instead of to a person. The store is keyed on repository, deep slot and path, and a request is active until it has been inlined once or offered for three nights. **Why it is this way.** On 2026-10-17 nine of fifty-seven open governance cases asked the operator to supply named files, several for the third time, because the planner never saw the previous night's ask; ADR-2143 makes source supply plumbing so the panel shows decisions only (`../project/agentbox/docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md:22-24`). The core half is ADR-DE-008 (`../dream-engine/docs/adr/ADR-DE-008-requested-sources-are-honoured-first.md:6-8`).
 
-**Invariant:** every operator question is one line in four labelled fields, Decision, Why, If approved, If not, parsed by `decision_fields`, and an If approved that promises a merge, promotion or release is rewritten because approval never merges anything (`../project/agentbox/services/dream-engine/src/inbox.rs:237`, `../project/agentbox/services/dream-engine/src/inbox.rs:288`).
+**What it shows.** Requests are offered before planner picks, with scan paths appended afterwards. Reservation counts candidate entries before validation, clipping markers can exceed the nominal byte allocation, and an empty line window can count as honoured. `take_for` counts invocations, not distinct night identifiers; `settle` treats any range from the same path as satisfying all its ranges (`../project/agentbox/services/dream-engine/src/wanted.rs:284`, `../project/agentbox/services/dream-engine/src/wanted.rs:328`). **Why it is this way.** ADR-2143 moves repetitive file requests out of the operator panel, but the [source-supply audit](../../estate-review/2026-11-01-dream-recovery-and-source-supply.md) finds that its completion markers do not prove the requested content was supplied. A requested directory is satisfied by any file under it. An all-refused read returns no source record (`../dream-engine/crates/dream-core/src/source.rs:1183`).
 
-**Tension (ADR-2143 vs the scan offer):** a slot whose `scan` entries are paths offers them after the explicit requests, so on a quiet night they take the reserved half of the read, and ADR-2143 calls that intended (`../project/agentbox/docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md:23`) while the engine appends them for every slot without checking that a request is pending (`../project/agentbox/services/dream-engine/src/engine.rs:1266-1273`).
+**Drift (question shape):** four fields are the prompt's desired format, not an enforced invariant. Parsing requires only Decision and If approved; unstructured questions pass through unchanged (`../project/agentbox/services/dream-engine/src/inbox.rs:278`, `../project/agentbox/services/dream-engine/src/inbox.rs:289`).
+
+**Tension (expiry and evidence):** source receipt writes and settlement writes are best effort, and the shared request store has no transaction around read-modify-write (`../project/agentbox/services/dream-engine/src/engine.rs:1295`, `../project/agentbox/services/dream-engine/src/wanted.rs:91`). Current source does not establish three distinct nights, exact range delivery or one lifetime loop alert per request.
 
 ## AB-23.22 AB-23-S1-01 — the opt-in Jev triage before the candidate build
 
@@ -1128,6 +1086,8 @@ sequenceDiagram
 **Debt:** the module re-implements the System One request body that `crates/system-one/system-one-client` speaks, because the service builds from `services/dream-engine` alone and the client is a workspace path dependency (`../project/agentbox/services/dream-engine/src/jev_triage.rs:44-48`).
 
 ## Audit qualification — 2026-10-29
+
+1 November continuation: AB-23.7 and AB-23.21 were reassessed against matching current source and updated for recovery and source-supply limits. The other twenty panels remain separately queued; rendering this topic does not close their semantic review.
 
 This topic describes the extraction as source at the stamped revisions. ADR-2141 records `implementation_status: complete` and `activation_status: live`: the operator rebuilt and activated the registry-pinned image on 2026-10-16 and the supervised daemon was RUNNING with no degradation (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:47`). The later pins (0.2.0, 0.3.0, 0.4.0) are source in `Cargo.toml`; the record carries activation evidence for 0.2.0 only (`../project/agentbox/docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md:35`).
 

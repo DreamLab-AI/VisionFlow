@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_177 topic files, 1588 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_178 topic files, 1591 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -385,6 +385,7 @@ _177 topic files, 1588 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 |----|-------|----------|-------|-----------|------|
 | DE-01 | [The extracted dream-engine repository — crate DAG, licence boundary and estate status](dream-engine/01-crates-licence-boundary-and-estate-status.md) | 2 | flowchart | [repository-map.md](../../docs/architecture/repository-map.md) | ADR-DE-001, ADR-DE-002, ADR-DE-005, ADR-DE-006, ADR-DE-007, ADR-DE-008, ADR-DE-009, ADR-2141 |
 | DE-02 | [Candidate formatting, gate inputs and retained evidence](dream-engine/02-candidate-and-evidence-boundaries.md) | 4 | flowchart | [ADR-DE-003-protected-path-guard.md](../../../dream-engine/docs/adr/ADR-DE-003-protected-path-guard.md), [ADR-DE-004-pairwise-selection-and-fingerprints.md](../../../dream-engine/docs/adr/ADR-DE-004-pairwise-selection-and-fingerprints.md), [ADR-DE-009-candidates-are-formatted-before-the-gate.md](../../../dream-engine/docs/adr/ADR-DE-009-candidates-are-formatted-before-the-gate.md) | dream-engine:ADR-DE-003, dream-engine:ADR-DE-004, dream-engine:ADR-DE-009 |
+| DE-03 | [Night recovery and requested-source accounting](dream-engine/03-recovery-and-source-supply.md) | 3 | flowchart | [ADR-DE-007-a-night-is-identified-by-its-directory.md](../../../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md), [ADR-DE-008-requested-sources-are-honoured-first.md](../../../dream-engine/docs/adr/ADR-DE-008-requested-sources-are-honoured-first.md) | dream-engine:ADR-DE-007, dream-engine:ADR-DE-008 |
 
 ### visiontouch-rs
 

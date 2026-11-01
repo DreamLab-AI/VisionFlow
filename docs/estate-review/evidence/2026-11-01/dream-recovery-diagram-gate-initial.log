@@ -1,0 +1,13 @@
+parsed 1 topic files, 3 mermaid diagrams
+cite-check: 3 warning(s)
+citations: 24 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+  ! dream-engine/03-recovery-and-source-supply.md:DE-03.2 — ../dream-engine/crates/dream-core/src/source.rs:1098 is punctuation only ('}')
+  ! dream-engine/03-recovery-and-source-supply.md:DE-03.3 — ../dream-engine/crates/dream-core/src/source.rs:872 is punctuation only ('});')
+  ! dream-engine/03-recovery-and-source-supply.md:DE-03.3 — ../dream-engine/crates/dream-core/src/source.rs:887 is blank
+rendered 3/3 diagrams via pele
+
+4 error(s):
+  - dream-engine/03-recovery-and-source-supply.md: 10 prose lines for 3 diagrams — this tree is diagrams-only (max 3 lines per diagram)
+  - citation: dream-engine/03-recovery-and-source-supply.md:DE-03.2 — ../dream-engine/crates/dream-core/src/source.rs:1098 is punctuation only ('}')
+  - citation: dream-engine/03-recovery-and-source-supply.md:DE-03.3 — ../dream-engine/crates/dream-core/src/source.rs:872 is punctuation only ('});')
+  - citation: dream-engine/03-recovery-and-source-supply.md:DE-03.3 — ../dream-engine/crates/dream-core/src/source.rs:887 is blank

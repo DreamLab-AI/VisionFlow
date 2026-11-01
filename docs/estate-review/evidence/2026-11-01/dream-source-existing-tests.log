@@ -1,0 +1,54 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_core-5f380e84d0446981)
+
+running 29 tests
+test source::tests::apply_repair_prompt_carries_the_error_and_file_but_no_receipts ... ok
+test source::tests::denylist_covers_key_material ... ok
+test source::tests::failing_hunk_is_read_from_git_apply_errors ... ok
+test source::tests::a_directory_request_expands_to_its_files_shallowest_first ... ok
+test source::tests::host_denylist_extends_the_built_in_one ... ok
+test source::tests::index_is_shallow_first_filtered_and_capped ... ok
+test source::tests::key_material_files_are_withheld_whole ... ok
+test source::tests::parses_ls_tree_blobs_and_skips_submodules ... ok
+test source::tests::line_ranges_parse_and_reject_nonsense ... ok
+test source::tests::key_material_is_detected ... ok
+test source::tests::mentioned_paths_strip_locations_and_ignore_untracked ... ok
+test source::tests::plan_parsing_accepts_both_shapes_and_fences ... ok
+test source::tests::planner_prompt_lists_already_supplied_requests ... ok
+test source::tests::repair_reply_classification ... ok
+test source::tests::repair_runs_only_for_accept_without_patch ... ok
+test source::tests::section_formatting_budget_and_unreadable ... ok
+test source::tests::repair_record_round_trips_for_restart_reuse ... ok
+test source::tests::render_caps_requested_files_at_half_the_byte_budget ... ok
+test source::tests::select_honours_requested_first_but_reserves_only_half_the_slots ... ok
+test source::tests::repair_uses_the_fallback_and_records_the_model_that_answered ... ok
+test source::tests::select_prefers_planner_dedups_and_caps ... ok
+test source::tests::source_request_parse_splits_a_trailing_line_range ... ok
+test source::tests::validation_refuses_traversal_absolute_denied_and_untracked ... ok
+test source::tests::slicing_and_clipping_mark_what_is_missing ... ok
+test source::tests::failing_excerpt_is_verbatim_and_clamped ... ok
+test source::tests::gather_honours_requested_paths_and_records_refusals ... ok
+test source::tests::gather_inlines_planned_files_and_clamps_the_planner_budget ... ok
+test source::tests::gather_falls_back_and_then_degrades_to_evidence_mentions ... ok
+test source::tests::reads_blobs_at_a_commit_not_the_worktree ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.05s
+
+     Running tests/estate_recovery_source.rs (.audit-target/debug/deps/estate_recovery_source-63f7ee0e092e406e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+
+     Running tests/screen.rs (.audit-target/debug/deps/screen-32c2fdac1a1968d2)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.00s
+
+     Running tests/ts_parity.rs (.audit-target/debug/deps/ts_parity-d4403e85985f5006)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+

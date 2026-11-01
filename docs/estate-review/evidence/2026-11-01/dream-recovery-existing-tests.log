@@ -1,0 +1,54 @@
+   Compiling dream-core v0.4.0 (/home/devuser/workspace/wt/VisionFlow-dream-recovery-source/.audit-source/crates/dream-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.08s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_core-5f380e84d0446981)
+
+running 24 tests
+test runstate::tests::a_corrupt_journal_blocks_the_night_instead_of_reopening_it ... ok
+test runstate::tests::a_first_attempt_is_fresh_and_durable ... ok
+test runstate::tests::f3_nights_lock_independently ... ok
+test runstate::tests::f8_a_reset_that_cannot_archive_both_files_archives_neither ... ok
+test runstate::tests::f5_a_journal_for_another_repo_date_or_night_is_never_resumed ... ok
+
+running 1 test
+
+running 1 test
+test runstate::tests::f3_a_child_process_is_refused_while_the_parent_holds_the_night ... ok
+test runstate::tests::f5_an_unknown_schema_is_an_error ... ok
+test runstate::tests::a_completed_run_is_never_silently_repeated ... ok
+test runstate::tests::a_complete_night_is_complete_whatever_the_run_id ... ok
+test runstate::tests::finished_night_reports_without_touching_an_unfinished_one ... ok
+test runstate::tests::f5_a_damaged_journal_is_an_error_not_a_fresh_night ... ok
+test runstate::tests::a_persisted_night_is_finished_with_its_recorded_verdict ... ok
+test runstate::tests::advance_never_moves_backwards ... ok
+test runstate::tests::a_journal_that_records_another_night_is_refused_not_overwritten ... ok
+test runstate::tests::reset_night_archives_and_the_next_begin_is_fresh ... ok
+test runstate::tests::a_gated_night_with_a_moved_baseline_is_still_fresh ... ok
+test runstate::tests::an_abandoned_night_stays_abandoned_when_the_baseline_moves ... ok
+test runstate::tests::a_different_run_id_starts_a_fresh_experiment_but_keeps_the_attempt_count ... ok
+test runstate::tests::f5_changing_the_run_id_does_not_reset_the_attempt_budget ... ok
+test runstate::tests::f5_every_journal_shape_the_old_binary_wrote_still_loads_and_behaves ... ok
+test runstate::tests::attempts_are_bounded_and_exhaustion_is_terminal ... ok
+test runstate::tests::an_interrupted_run_resumes_from_its_last_phase ... ok
+test runstate::tests::f8_rapid_resets_never_overwrite_an_earlier_archive ... ok
+test runstate::tests::f3_a_second_acquirer_gets_held_and_the_lock_releases_on_drop ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 221 filtered out; finished in 0.51s
+
+     Running tests/estate_recovery_source.rs (.audit-target/debug/deps/estate_recovery_source-63f7ee0e092e406e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+
+     Running tests/screen.rs (.audit-target/debug/deps/screen-32c2fdac1a1968d2)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.00s
+
+     Running tests/ts_parity.rs (.audit-target/debug/deps/ts_parity-d4403e85985f5006)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
