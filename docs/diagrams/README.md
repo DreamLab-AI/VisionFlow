@@ -341,9 +341,9 @@ _180 topic files, 1598 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 |----|-------|----------|-------|-----------|------|
 | KG-01 | [Repo composition and the three-way data/pipeline/explorer licensing boundary](knowledgegraph/01-repo-composition-and-licensing.md) | 2 | flowchart | [BASELINE-narrativegoldmine.md](../../../knowledgeGraph/docs/BASELINE-narrativegoldmine.md) | ADR-2001, ADR-2002 |
 | KG-04 | [Retained explorer — scope limits, worker transfers and publication boundary](knowledgegraph/04-explorer-and-site-build.md) | 5 | flowchart, sequenceDiagram | [ADR-2001-corpus-consolidation.md](../../../knowledgeGraph/docs/adr/ADR-2001-corpus-consolidation.md) | ADR-2001 |
-| KG-05 | [CI/CD and publish — build.yml archived, visionGraph's ontomark build is the sole producer](knowledgegraph/05-ci-cd-and-publish.md) | 2 | sequenceDiagram, flowchart | [build-and-gates.md](../../../knowledgeGraph/docs/ci-cd/build-and-gates.md) | ADR-2003, ADR-2013 |
+| KG-05 | [Publication — released compiler, assembled site and final-gate limits](knowledgegraph/05-ci-cd-and-publish.md) | 2 | sequenceDiagram, flowchart | [build-and-gates.md](../../../knowledgeGraph/docs/ci-cd/build-and-gates.md) | ADR-2003, ADR-2013 |
 | KG-06 | [Consumers — VisionClaw ingest, agentbox Loom grounding, vowl-wasm, OntoCast (archived)](knowledgegraph/06-consumers-and-integration.md) | 3 | flowchart, sequenceDiagram | [ecosystem.md](../../../knowledgeGraph/docs/ecosystem.md) |  |
-| KG-07 | [Invariants register — the 11 baseline invariants and the open items they qualify](knowledgegraph/07-invariants-register.md) | 3 | flowchart, stateDiagram-v2 | [BASELINE-narrativegoldmine.md](../../../knowledgeGraph/docs/BASELINE-narrativegoldmine.md) | ADR-2001, ADR-2002, ADR-2003, ADR-2004 |
+| KG-07 | [Historical invariants — obligations, dated evidence and publication limits](knowledgegraph/07-invariants-register.md) | 3 | flowchart | [BASELINE-narrativegoldmine.md](../../../knowledgeGraph/docs/BASELINE-narrativegoldmine.md) | ADR-2001, ADR-2002, ADR-2003, ADR-2004 |
 
 ### visiongraph
 

@@ -1,67 +1,85 @@
 ---
 id: KG-07
-title: Invariants register — the 11 baseline invariants and the open items they qualify
+title: Historical invariants — obligations, dated evidence and publication limits
 area: knowledgegraph
 governing:
   - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
 adrs: [ADR-2001, ADR-2002, ADR-2003, ADR-2004]
 sources:
   - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
-  - ../knowledgeGraph/README.md
-  - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/census.py
-  - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/visibility.py
+  - ../knowledgeGraph/docs/adr/ADR-2001-corpus-consolidation.md
+  - ../knowledgeGraph/docs/adr/ADR-2002-corpus-is-the-ontology.md
+  - ../knowledgeGraph/docs/adr/ADR-2003-expected-classes-tripwire.md
+  - ../knowledgeGraph/docs/adr/ADR-2004-corpus-page-identity-immutable.md
+  - ../knowledgeGraph/archive/logseq-era-2026-09-22/README.md
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/manifest.py
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/release_gate.py
-verified_commit: 1edcfc93de90ccff564073ef82cb198c422f75e3
+  - ../visionGraph/.github/workflows/publish.yml
+  - ../visionGraph/quartz/scripts/check-urls.sh
+verified_commit: {knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6}
 ---
 
-## KG-07.1 The 11 baseline invariants
+## For developers
+
+These eleven rules belong to the historical baseline and its archived implementation. [The dated review](../../estate-review/2026-11-01-knowledgegraph-publication-gates.md) assesses all three panels and knowledgeGraph ADR-2002, ADR-2003 and ADR-2004 without treating their live status fields as fresh runtime evidence.
+
+## For the business
+
+Archiving a publisher does not remove the need to preserve identity, visibility and provenance. Those promises need acceptance evidence for the replacement publication path; historical test counts cannot supply it.
+
+## KG-07.1 Eleven historical obligations, grouped by concern
 
 ```mermaid
 flowchart TB
-    I1["1 · vc:public is the ONLY publication gate — strictly boolean,<br/>re-checked in every output stage"]
-    I2["2 · NGG1 node record is 24 bytes, one u16 category —<br/>writer + both readers pinned to a 183-byte golden fixture"]
-    I3["3 · Bridged membership recoverable ONLY from bridges.json —<br/>binary category is nearest, not membership"]
-    I4["4 · Bundle is NOT byte-deterministic — manifest UUID/time<br/>and Turtle blank-node ids vary; verify each generation<br/>against its own manifest, compare RDF by triple set"]
-    I5["5 · Corpus is synthetic-AI-generated-under-human-direction,<br/>surfaced from data #40;ATTRIBUTED_TO, CORPUS_NATURE#41;, never rebranded"]
-    I6["6 · EXPECTED_CLASSES in build.yml must equal the true class<br/>count, moved in lockstep with any corpus change"]
-    I7["7 · SharedArrayBuffer transport stays disabled until a<br/>double-buffered SAB with Atomics-gated flip lands"]
-    I8["8 · Every input file accounted for — input_files == parsed<br/>+ rejected + excluded; a release has zero rejected"]
-    I9["9 · No public artefact contains a private identifier —<br/>visibility.py at every output, release gate re-scans"]
-    I10["10 · Count and identity move together — EXPECTED_CLASSES<br/>and class-identity.txt agree, same commit"]
-    I11["11 · Every export carries a generation manifest — source rev,<br/>generation id, counts, SHA-256 per artefact"]
-    note1["BASELINE-narrativegoldmine.md:186-219 — numbered 1-11 verbatim"]
+    PUB["1: boolean publication flag and protected projection<br/>5: disclose synthetic corpus provenance<br/>8: account for every parsed, rejected or excluded input<br/>9: exclude private identifiers from public outputs<br/>Historical baseline"]
+    %% PUB source: BASELINE-narrativegoldmine.md:184-186,195-197,202-208
+    SHAPE["2: NGG1 24-byte record and golden fixture<br/>3: bridges.json carries multi-category membership<br/>7: SharedArrayBuffer disabled pending synchronisation<br/>Historical baseline"]
+    %% SHAPE source: BASELINE-narrativegoldmine.md:187-192,200-201
+    IDENT["6: independent expected class count<br/>10: count and committed identity set change together<br/>Historical baseline"]
+    %% IDENT source: BASELINE-narrativegoldmine.md:198-199,209-212
+    PROV["4: verify each generation against its own manifest<br/>11: source revision, generation and artefact SHA-256<br/>Historical baseline"]
+    %% PROV source: BASELINE-narrativegoldmine.md:193-194,213-215
+    SCOPE["INVARIANT: these are scoped historical obligations<br/>The Logseq source and pipeline are archived<br/>logseq-era-2026-09-22/README.md:1-4"]
+    PUB --> SHAPE --> IDENT --> PROV --> SCOPE
 ```
 
-**Drift:** the baseline now opens with a "Publication boundary update (21 October 2026)" calling itself a historical baseline of the pre-archive tree whose invariants "do not assert that the archived workflow remains active" (`../knowledgeGraph/docs/BASELINE-narrativegoldmine.md:29`), while its own Invariants section still states them as present-tense rules (`../knowledgeGraph/docs/BASELINE-narrativegoldmine.md:186-219`); the README names this checkout the publication target and historical archive, with the pipeline under `archive/logseq-era-2026-09-22/` (`../knowledgeGraph/README.md:13`, `../knowledgeGraph/README.md:64`).
+**What it shows:** All eleven baseline obligations remain visible, with explicit historical scope. The diagram does not claim current enforcement of every obligation by the replacement publisher.
 
-## KG-07.2 Estate closeout, now archived — four 2026-09-04 qualifications, closed 2026-09-05, pipeline retired 2026-09-22
+**Why it is this way:** The archive marker retires the implementation; the ADRs preserve its decisions and dated acceptance history. Scope must be stated separately from those status fields.
+
+## KG-07.2 Historical closeout is not successor acceptance
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Qualified: 2026-09-04 estate closeout review<br/>knowledge-production.md + authored-vault-transition.md
-    Qualified --> ParserCensus: census.py:61 — input_files ==<br/>parsed+rejected+excluded
-    Qualified --> StrictFlags: PUBLIC_FLAG_NOT_BOOLEAN / MISSING_PUBLIC_FLAG
-    Qualified --> InferenceVis: visibility.py:133 is_private_iri —<br/>consulted by every exporter
-    Qualified --> ImmutableExport: manifest.py:137 build_manifest —<br/>generation id + SHA-256 per artefact
-    ParserCensus --> Closed: 8,138/8,138 balanced, 0 rejected
-    StrictFlags --> Closed: non-boolean/absent flag is now an ERROR
-    InferenceVis --> Closed: per-format fixture tests
-    ImmutableExport --> Closed: CI re-verified every export
-    Closed --> Archived: 2026-09-22 — pipeline/ moved to<br/>archive/logseq-era-2026-09-22/, README.md:64
-    Archived --> [*]
-    note right of Closed: DIVERGENCE #40;was open, now moot#41; equal counts cannot prove<br/>equal identities or intended visibility — release_gate.py<br/>check_identity #40;line 127#41; was the mitigation, never a closure
-    note right of Archived: see KG-01.1 for the visionGraph/Quartz successor —<br/>this diagram is now historical record, not live build
+flowchart TB
+    OLD["September acceptance reports census, strict flags,<br/>visibility fixtures and export generation checks<br/>ADR-2002, September acceptance"]
+    %% Source: ADR-2002-corpus-is-the-ontology.md:90-138
+    SET["Archived gate compares exact class identities<br/>release_gate.py:127-148"]
+    HASH["Archived manifest inventories and re-hashes output<br/>manifest.py:87-135,173-197"]
+    ARCH["Pipeline retired to historical archive<br/>logseq-era-2026-09-22/README.md:1-4"]
+    NEW["Current workflow checks minimum volume, domain contracts,<br/>copy hashes, compressed output, smoke and final gates<br/>publish.yml:264-324,341-373,492-520"]
+    LIMIT["DEBT: final notes gate compares counts, not identities<br/>check-urls.sh:115-126<br/>Equal-count replacement passes the scoped probe"]
+    OLD --> SET --> HASH --> ARCH --> NEW --> LIMIT
 ```
 
-## KG-07.3 Open items the baseline flags — what remains unresolved, by design or not
+**What it shows:** The archived identity set and generation verifier are distinct from the current workflow's checks. A notes-page count can agree even when the intended page is absent.
+
+**Why it is this way:** The successor has a different assembly path. Retirement neither proves that all previous obligations transferred nor makes their unresolved acceptance conditions moot.
+
+## KG-07.3 Historical gaps and continuing decision tensions
 
 ```mermaid
-flowchart LR
-    ADRNG["ADR-NG-001 classified historical-absent<br/>#40;resolved via ADR-2001#41; — 33 files cite it, document never existed<br/>in this tree; each cited section mapped to a real in-tree surface"]
-    STALE["docs/architecture/pipeline.md + explorer.md still write<br/>against a 7,874-page corpus — corpus is now 8,138 —<br/>every derived count needs re-verification"]
-    TTLNODET["ontology.ttl is the one non-byte-reproducible artefact —<br/>rdflib mints fresh blank-node ids per run; compare by triple set"]
-    UNCAT["3 classes resolve to NO category — electric-vehicle,<br/>ethan-mollick, urban-planning — a corpus ancestry gap"]
-    STUBS["4,383+ object-property targets referenced but never<br/>declared — ship as skos:Concept stubs, deliberately NOT redacted"]
-    note1["INVARIANT vs DIVERGENCE: I5/I8/I9 above are enforced invariants;<br/>STALE and UNCAT are acknowledged, unfixed drift — the baseline<br/>distinguishes 'must not silently change' from 'known and open'"]
+flowchart TB
+    LINEAGE["ADR-NG-001 remains historical-absent<br/>Locator map is evidence, not reconstructed authority<br/>ADR-2001, historical-absent mapping"]
+    %% Source: ADR-2001-corpus-consolidation.md:108-128
+    COUNTS["Historical baseline: 7,874 prose figures were stale,<br/>three uncategorised classes and 4,383+ undeclared targets<br/>Historical baseline<br/>OPEN: these are not a current active-vault census"]
+    %% COUNTS source: BASELINE-narrativegoldmine.md:143-168
+    REPRO["UUID/time and blank-node labels prevent blanket byte equality<br/>Historical baseline<br/>manifest.py:149-150<br/>Byte receipts and semantic RDF equivalence are distinct"]
+    %% REPRO source: BASELINE-narrativegoldmine.md:193-194
+    MOVE["TENSION: ADR-2004 forbids relocating corpus pages<br/>ADR-2004, decision<br/>The whole source tree was later archived<br/>logseq-era-2026-09-22/README.md:1-4"]
+    %% Source: ADR-2004-corpus-page-identity-immutable.md:34-39
+    LINEAGE --> COUNTS --> REPRO --> MOVE
 ```
+
+**What it shows:** Historical counts and missing lineage stay dated; a later whole-tree archive conflicts with an unqualified forever-in-place reading of ADR-2004. The section does not declare old corpus defects present in the current vault.
+
+**Why it is this way:** A migration needs explicit succession and identity evidence. Comparing raw RDF triple strings is insufficient when blank-node identifiers change; the byte manifest answers a different question.

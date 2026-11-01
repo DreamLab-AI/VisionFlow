@@ -1,0 +1,7 @@
+# Publication gate probes
+
+Run `VG_ROOT=/path/to/visionGraph PYTHONDONTWRITEBYTECODE=1 python probes.py` at visionGraph revision `556a0156b5c326fb61141ed2ab1760dd8d9c4dd6`. Requires Python 3, Bash, Node, GNU find/coreutils, grep and gzip. The harness imports the existing workflow parser and runs the real selected shell blocks/scripts against temporary synthetic files. Test 11 creates a sparse 1,002 MiB file; it is removed with the temporary directory. No real deployment, download or credentials are used.
+
+The 11 cases include positive controls and expected limitations. Probe 3 proves later layout rejection of the wrong index shape that passes the early gate. Existing publisher tests are a separate 41-test run: `python3 -m unittest discover -s scripts/tests -v`. Scanner self-test: `bash quartz/scripts/check-secrets.sh --self-test`.
+
+`sources.json` hashes committed source, not the operator's uncommitted baseline qualification. The report distinguishes the old archive, current configured publisher and unverified public deployment. Both topic gates used `--check --strict-citations --render`; the corpus gate regenerated indexes and revision verification. Long citations remain in adjacent Mermaid source comments where necessary for readable labels. Final SVGs and PNGs are retained outside the task worktree. Rasterisation uses librsvg with an explicit local font configuration; the initial system fallback chose a maths font and was not accepted as the final visual.

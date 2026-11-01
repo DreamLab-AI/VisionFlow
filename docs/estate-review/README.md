@@ -13,6 +13,8 @@ This review examines the VisionFlow estate as an organisational proposition, a s
 
 The source audit does not declare all optional features, upstream research or six end-to-end system journeys complete. Those implementation and acceptance obligations remain on the [master TODO](../../../project/docs/TODO-unified.md).
 
+Publication gates: [compression, final checks and historical invariant succession](2026-11-01-knowledgegraph-publication-gates.md). KG-05 and KG-07 are assessed; all four operative knowledgeGraph ADRs now have section dispositions. Final-gate findings and current publication acceptance remain open.
+
 Retained graph explorer: [five-panel review, transfer and content probes, and knowledgeGraph ADR-2001 supplement](2026-11-01-knowledgegraph-explorer-contracts.md). The configured publisher has a different, working transfer pool; retained-viewer findings and browser acceptance remain open.
 
 Nested engine corpus: [24-panel source assessment and fingerprint/streak probes](2026-11-01-dream-diagram-corpus.md). All eight owner topics are updated; all nine local ADRs have linked section assessments. Findings and runtime acceptance remain open.

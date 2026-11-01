@@ -1,0 +1,51 @@
+test_copies_every_notice_byte_before_deployment (test_explorer_notices.ExplorerNotices.test_copies_every_notice_byte_before_deployment) ... ok
+test_missing_or_empty_engine_notice_prevents_publication (test_explorer_notices.ExplorerNotices.test_missing_or_empty_engine_notice_prevents_publication) ... ok
+test_missing_or_empty_graph_notice_prevents_publication (test_explorer_notices.ExplorerNotices.test_missing_or_empty_graph_notice_prevents_publication) ... ok
+test_missing_or_empty_javascript_notice_prevents_publication (test_explorer_notices.ExplorerNotices.test_missing_or_empty_javascript_notice_prevents_publication) ... ok
+test_missing_or_empty_shell_prevents_publication (test_explorer_routes.ExplorerRoutes.test_missing_or_empty_shell_prevents_publication) ... ok
+test_static_router_paths_have_identical_shells_and_preserve_existing_files (test_explorer_routes.ExplorerRoutes.test_static_router_paths_have_identical_shells_and_preserve_existing_files) ... ok
+test_a_locked_enabled_committed_plugin_is_clean (test_obsidian_plugins.Check.test_a_locked_enabled_committed_plugin_is_clean) ... ok
+test_a_locked_plugin_switched_off_on_one_client_fails (test_obsidian_plugins.Check.test_a_locked_plugin_switched_off_on_one_client_fails) ... ok
+test_a_manifest_version_other_than_the_lock_fails (test_obsidian_plugins.Check.test_a_manifest_version_other_than_the_lock_fails) ... ok
+test_a_pin_no_vault_uses_fails (test_obsidian_plugins.Check.test_a_pin_no_vault_uses_fails) ... ok
+test_a_stray_plugin_folder_fails (test_obsidian_plugins.Check.test_a_stray_plugin_folder_fails) ... ok
+test_altered_missing_and_extra_code_fail (test_obsidian_plugins.Check.test_altered_missing_and_extra_code_fail) ... ok
+test_an_enabled_plugin_without_a_lock_entry_fails (test_obsidian_plugins.Check.test_an_enabled_plugin_without_a_lock_entry_fails) ... ok
+test_gitignored_code_fails_because_a_pull_would_not_deliver_it (test_obsidian_plugins.Check.test_gitignored_code_fails_because_a_pull_would_not_deliver_it) ... ok
+test_a_plugin_changed_on_the_phone_is_undone_and_never_pushed (test_obsidian_plugins.MobileSync.test_a_plugin_changed_on_the_phone_is_undone_and_never_pushed) ... ok
+test_an_assets_folder_made_on_the_phone_is_refused (test_obsidian_plugins.MobileSync.test_an_assets_folder_made_on_the_phone_is_refused) ... ok
+test_origin_and_dirty_trees_and_plugin_drift_are_refused (test_obsidian_plugins.MobileSync.test_origin_and_dirty_trees_and_plugin_drift_are_refused) ... ok
+test_phone_and_desktop_edits_meet_in_both_places (test_obsidian_plugins.MobileSync.test_phone_and_desktop_edits_meet_in_both_places) ... ok
+test_the_phone_gets_working_only_with_its_plugin_code (test_obsidian_plugins.MobileSync.test_the_phone_gets_working_only_with_its_plugin_code) ... ok
+test_the_same_day_started_on_both_sides_keeps_both_sides_bullets (test_obsidian_plugins.MobileSync.test_the_same_day_started_on_both_sides_keeps_both_sides_bullets) ... ok
+test_the_same_line_of_a_page_edited_on_both_sides_stops_mid_merge_for_you (test_obsidian_plugins.MobileSync.test_the_same_line_of_a_page_edited_on_both_sides_stops_mid_merge_for_you) ... ok
+test_an_upgrade_rewrites_code_keeps_settings_and_updates_the_lock (test_obsidian_plugins.Pin.test_an_upgrade_rewrites_code_keeps_settings_and_updates_the_lock) ... ok
+test_pinning_into_a_second_vault_installs_and_enables_it_there (test_obsidian_plugins.Pin.test_pinning_into_a_second_vault_installs_and_enables_it_there) ... ok
+test_unpin_removes_code_enablement_and_the_unused_pin (test_obsidian_plugins.Pin.test_unpin_removes_code_enablement_and_the_unused_pin) ... ok
+test_claude_md_gate_names_ontomark (test_publish_cli.GateInstructions.test_claude_md_gate_names_ontomark) ... ok
+test_readme_names_ontomark (test_publish_cli.GateInstructions.test_readme_names_ontomark) ... ok
+test_ontomark_journals_are_never_committed (test_publish_cli.MigrationJournals.test_ontomark_journals_are_never_committed)
+`ontomark migrate apply` journals hold original page bytes, private pages included. ... ok
+test_body_residue_check_runs_ontomark (test_publish_cli.PublishWorkflow.test_body_residue_check_runs_ontomark) ... ok
+test_build_runs_ontomark_with_the_full_argument_set (test_publish_cli.PublishWorkflow.test_build_runs_ontomark_with_the_full_argument_set) ... ok
+test_contract_tests_run_first_and_can_fail_the_run (test_publish_cli.PublishWorkflow.test_contract_tests_run_first_and_can_fail_the_run) ... ok
+test_digest_check_is_strict (test_publish_cli.PublishWorkflow.test_digest_check_is_strict) ... ok
+test_failed_download_fails_the_step (test_publish_cli.PublishWorkflow.test_failed_download_fails_the_step) ... ok
+test_gates_follow_the_fetch_in_order (test_publish_cli.PublishWorkflow.test_gates_follow_the_fetch_in_order) ... ok
+test_mismatched_digest_never_runs_the_download (test_publish_cli.PublishWorkflow.test_mismatched_digest_never_runs_the_download) ... ok
+test_no_step_invokes_vault (test_publish_cli.PublishWorkflow.test_no_step_invokes_vault)
+Every run block, tokenised as the shell would (quotes removed, comments dropped). ... ok
+test_no_visionclaw_producer (test_publish_cli.PublishWorkflow.test_no_visionclaw_producer) ... ok
+test_pins_live_only_in_the_workflow_env (test_publish_cli.PublishWorkflow.test_pins_live_only_in_the_workflow_env) ... ok
+test_release_tag_and_digest_pinned (test_publish_cli.PublishWorkflow.test_release_tag_and_digest_pinned) ... ok
+test_unpinned_release_fails_before_download (test_publish_cli.PublishWorkflow.test_unpinned_release_fails_before_download) ... ok
+test_validate_gate_runs_ontomark_and_fails_on_errors (test_publish_cli.PublishWorkflow.test_validate_gate_runs_ontomark_and_fails_on_errors) ... ok
+test_verified_download_is_the_binary_on_path (test_publish_cli.PublishWorkflow.test_verified_download_is_the_binary_on_path) ... ok
+
+----------------------------------------------------------------------
+Ran 41 tests in 5.400s
+
+OK
+pinned demo 2.0.0 (someone/demo@2.0.0) in working
+pinned demo 1.0.0 (someone/demo@1.0.0) in knowledge, working
+unpinned demo from working

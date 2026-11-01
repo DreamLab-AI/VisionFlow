@@ -1,0 +1,219 @@
+{
+  "date": "2026-11-01",
+  "local_artifact_root": "/tmp/vf-kg-publication-artifacts",
+  "artifacts": [
+    {
+      "path": "VisionFlow-worktrees-before-cleanup.txt",
+      "bytes": 803,
+      "sha256": "536e095de728cfbfdea99c7d9514ede3d7d85c0fb71bdde36dc38eb72706e7e3"
+    },
+    {
+      "path": "corpus-gate.log",
+      "bytes": 2411,
+      "sha256": "52dbdbb92ba994514aad8d8eb5f7dfdf0c866b63032161437d16df1aad21bc80"
+    },
+    {
+      "path": "existing-tests.log",
+      "bytes": 6048,
+      "sha256": "4e195dbd894d8bc70a644a1937631106ee691a29cfc98bae78e1ec19cca88377"
+    },
+    {
+      "path": "fontconfig.xml",
+      "bytes": 417,
+      "sha256": "3ba010bec6ba86af79c7f642b5b79c664e69288873e18146bfde8772bac6bb1f"
+    },
+    {
+      "path": "freshness-gate.log",
+      "bytes": 155,
+      "sha256": "6a491cedd66fd3788d1ba97cd8b4877a72cc0b2d7a48f7f9f260e7d305b95616"
+    },
+    {
+      "path": "kg05-gate.log",
+      "bytes": 229,
+      "sha256": "e9a0ec3cdb64bfc15dd42a408b4634ec74a254fcf746eab9c20d6ed1ed10d991"
+    },
+    {
+      "path": "kg07-gate.log",
+      "bytes": 229,
+      "sha256": "678d4fa9f7ad86055cc24d2c1f9fcb426a91451bb029f1321750eb6e3bee122f"
+    },
+    {
+      "path": "knowledgeGraph-worktrees-before-cleanup.txt",
+      "bytes": 58,
+      "sha256": "f01428efebb0bd3eaf6f83b0189aa20f8302c3a0ffc7886d5492f89705ac3b07"
+    },
+    {
+      "path": "ontomark-worktrees-before-cleanup.txt",
+      "bytes": 48,
+      "sha256": "d5e9a0e0be2b76f41e4a9d8d2bd9913457b726d73973e5a98967fed1d3859242"
+    },
+    {
+      "path": "probes.log",
+      "bytes": 1512,
+      "sha256": "4861ef3535d91d99761dcc973d4b3a4e0b19cb1bea5e8ea6868107b1867f8932"
+    },
+    {
+      "path": "probes.py",
+      "bytes": 5888,
+      "sha256": "17bcac03fd2019f4758e78f34d6bdcbc3d30c8017e7297ff059ac90414de9184"
+    },
+    {
+      "path": "rasterizer-install.log",
+      "bytes": 745,
+      "sha256": "1ab6f7dc5aa4567aa52a979c8df51db716d4c4111dc403e425a6d4b06443fd83"
+    },
+    {
+      "path": "rendered/KG-05.3.mmd",
+      "bytes": 1333,
+      "sha256": "dff04538a1a1a044d6f08c09543f666ff8f5bf8420db5848e36b9cb4421dde67"
+    },
+    {
+      "path": "rendered/KG-05.3.png",
+      "bytes": 249953,
+      "sha256": "17d24e1bf3fa4a7468b85ed6bf11c2f64da20028e491bfb519b67d79947b846e"
+    },
+    {
+      "path": "rendered/KG-05.3.svg",
+      "bytes": 9302,
+      "sha256": "6b71430dbfaaadc7098f8decc3e1e68327500b401640832fa140c7c026de4260"
+    },
+    {
+      "path": "rendered/KG-05.5.mmd",
+      "bytes": 1188,
+      "sha256": "b71c76de4fbba13a34998b702e3f75e39a95968f5e255f0ecaf449d22547e21d"
+    },
+    {
+      "path": "rendered/KG-05.5.png",
+      "bytes": 212907,
+      "sha256": "bad52f7747cd5f784335c36644cab16e486f008e3e7bb23eb23f11b826ac21b2"
+    },
+    {
+      "path": "rendered/KG-05.5.svg",
+      "bytes": 5695,
+      "sha256": "9ec24c83748a43dfab1aed47145019f7d3fbfe9a8e4e1c6f8652af4333292127"
+    },
+    {
+      "path": "rendered/KG-07.1.mmd",
+      "bytes": 1197,
+      "sha256": "912118da8a319dd29ac3e9fac3ec917aaa842ee1252bb02e6a3d411aa3ca3caa"
+    },
+    {
+      "path": "rendered/KG-07.1.png",
+      "bytes": 178546,
+      "sha256": "99ce844a242036442219be857fc203c7fb41e4bb40be8e4b167521cdc7ede6f3"
+    },
+    {
+      "path": "rendered/KG-07.1.svg",
+      "bytes": 4377,
+      "sha256": "6855770c671b2ef0953c8fdb4a18a4f973e7a20db043f141fb9bcf8b0cb7b831"
+    },
+    {
+      "path": "rendered/KG-07.2.mmd",
+      "bytes": 855,
+      "sha256": "f115ea8dd02f020ca31192f7bb68d14d0fb50d6ffd62ac564c36e5e9e4e5ce9f"
+    },
+    {
+      "path": "rendered/KG-07.2.png",
+      "bytes": 157403,
+      "sha256": "edf60214bf2e3d0e5a1af4bb8ee47088ff963e5c073367bb5b420236f43717ef"
+    },
+    {
+      "path": "rendered/KG-07.2.svg",
+      "bytes": 4537,
+      "sha256": "fa0271aad4341c878fd9057dee21aed6bbedb3506bc80c5f42d4d4381421546f"
+    },
+    {
+      "path": "rendered/KG-07.3.mmd",
+      "bytes": 1003,
+      "sha256": "9b3963ae6f7d8d0d9e57c71f99ce057aec002a5ed740e83108d138e20ca955de"
+    },
+    {
+      "path": "rendered/KG-07.3.png",
+      "bytes": 149355,
+      "sha256": "5f2b9b1b8ed3d50eefc05daefad0b29bb602c852a84e5507ff88d06a1cf0dbc2"
+    },
+    {
+      "path": "rendered/KG-07.3.svg",
+      "bytes": 3650,
+      "sha256": "6da32827a742a66f47cd3b2ecc952ea5e959f2debc24014a8807d01fbe9fef3b"
+    },
+    {
+      "path": "scanner-selftest.log",
+      "bytes": 69,
+      "sha256": "0138703f5e9a9ad1dc8a0c395310e009dbbf31d12769eef15808329c9a2b23f8"
+    },
+    {
+      "path": "visionGraph-worktrees-before-cleanup.txt",
+      "bytes": 1770,
+      "sha256": "5470f298d96cc50546d83321c226e9a5c5f1492a2bb895266cc523db999d390e"
+    }
+  ],
+  "preserved_preexisting_edits": [
+    {
+      "repo": "VisionFlow",
+      "path": ".dream-standby",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "repo": "VisionFlow",
+      "path": "docs/review/2026-10-31-glm.json",
+      "sha256": "8fc342d4d518d4b1c17eb0b464fadcb3e7f549b80352a16d51a8d7e466e0bcda"
+    },
+    {
+      "repo": "VisionFlow",
+      "path": "docs/review/2026-10-31-glm.md",
+      "sha256": "4ea83e5a198d85ba477b30b7185cfd188d24a21b39bf794b680e886c3dc1d71a"
+    },
+    {
+      "repo": "VisionFlow",
+      "path": "docs/review/2026-10-31-triage.md",
+      "sha256": "5c5f18203de6b5bcbffa35998866da1dd0403c966931d790fc2401c7fdd3e372"
+    },
+    {
+      "repo": "VisionFlow",
+      "path": "docs/diagrams/review-ledger.jsonl",
+      "sha256": "6db4e8f1e823a3f6a8601d4ff6f3c581b4adbb503de0c6476df1a38d883e2113"
+    },
+    {
+      "repo": "knowledgeGraph",
+      "path": "LICENSING.md",
+      "sha256": "d0a4aee445ef61d7171f3ca6f34a1ba8fbebced278d0460b37f5e7f1eb4436fe"
+    },
+    {
+      "repo": "knowledgeGraph",
+      "path": "README.md",
+      "sha256": "040f7fae76e560571fc7b48f443109f001151d969c6eb5ab148ad065c9c08091"
+    },
+    {
+      "repo": "knowledgeGraph",
+      "path": "docs/BASELINE-narrativegoldmine.md",
+      "sha256": "e29173b2411a13cdea32487fbe71e08b9cd6269e1484078c3716ed24e4d1bce2"
+    },
+    {
+      "repo": "visionGraph",
+      "path": "working/journals/2026-10-31.md",
+      "sha256": "fa92de4729ebcade49c2f94b91558f40f29bb9981619e24d6b306ac4053f21e0"
+    }
+  ],
+  "focused_probes": 11,
+  "existing_publisher_tests": 41,
+  "scanner_selftest": "13 rules pass",
+  "source_records": 17,
+  "topics_assessed": [
+    "KG-05",
+    "KG-07"
+  ],
+  "panels_assessed": 5,
+  "topic_citations": 39,
+  "corpus_topics": 180,
+  "corpus_panels": 1598,
+  "verified_citations": 24593,
+  "declared_revisions": 44,
+  "existing_allowlisted_citations": 9,
+  "limitations": [
+    "No real corpus build, browser smoke or deploy executed.",
+    "Gate probes use temporary synthetic artefacts, including a fake credential-shaped canary.",
+    "Final source SVGs and librsvg PNGs visually inspected; long exact citations retained in adjacent Mermaid comments.",
+    "Larger local artifacts are ephemeral; compact evidence is committed."
+  ]
+}

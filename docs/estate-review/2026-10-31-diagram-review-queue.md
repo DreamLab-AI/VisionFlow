@@ -1,5 +1,7 @@
 # Diagram semantic-review queue — 31 October 2026
 
+1 November publication continuation: [KG-05/KG-07 five-panel assessment and ADR-2002/3/4 section dispositions](2026-11-01-knowledgegraph-publication-gates.md), with 11 gate probes and 41 existing publisher tests. KG-01 and KG-06, the archived decision inventory and current deployment acceptance remain queued.
+
 1 November explorer continuation: [KG-04 five-panel assessment and knowledgeGraph ADR-2001 supplement](2026-11-01-knowledgegraph-explorer-contracts.md) completes this topic’s source review with 12 focused probes, 18 existing tests and a cached-dependency build. Other knowledgeGraph topics, implementation findings and current browser/deployment acceptance remain open.
 
 1 November nested-corpus continuation: [all 24 dream-engine owner panels assessed and updated](2026-11-01-dream-diagram-corpus.md), with seven new fingerprint/streak probes. This supersedes the nested-corpus queue statements below. Implementation findings, runtime acceptance and the wider estate queue remain open.

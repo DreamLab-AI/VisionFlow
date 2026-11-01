@@ -1,0 +1,138 @@
+[
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "docs/ci-cd/build-and-gates.md",
+    "sha256": "985a1f9689b369ae27f08ed5c9d2d92be820339f900f5b3a5df6332331fa95be",
+    "working_bytes_match": true,
+    "basis": "committed bytes"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "archive/logseq-era-2026-09-22/README.md",
+    "sha256": "283c65684e3c9542265fad9502a5368ba78c79b477113c348c8eadab70fcbe83",
+    "working_bytes_match": true,
+    "basis": "committed bytes"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "archive/github-workflows/build.yml",
+    "sha256": "41fe0f4ebce52fb8da7e99b82758616209db3b5294da912eda0084297a28a3da",
+    "working_bytes_match": true,
+    "basis": "committed bytes"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": ".github/workflows/publish.yml",
+    "sha256": "7508b63c8b591b8f915a1f9651ce0b270160198f72d80bdb2292bedba6e9bd7c",
+    "working_bytes_match": true,
+    "basis": "committed bytes"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "quartz/scripts/check-secrets.sh",
+    "sha256": "6fb7960fec7562f52bd07e112f7e746d1789fd57670b85326d087b1a805b182b",
+    "working_bytes_match": true,
+    "basis": "committed bytes"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "quartz/scripts/check-urls.sh",
+    "sha256": "99bc959489684aa8197d3e84d68e3ab2d03cd501569466bb504cbe6953b4ff17",
+    "working_bytes_match": true,
+    "basis": "committed bytes"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/api/fetchArtefact.ts",
+    "sha256": "bcdc5a799ce932413a086248ac1ec65dc6b16616fc18b52c7282d0c5fe0f6de0",
+    "working_bytes_match": true,
+    "basis": "committed bytes"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "path": "crates/ontomark-compile/src/build/mod.rs",
+    "sha256": "cfc0a84ba4802325de5821e827a949ab206665497e9b23f8ee842ff9019809ea",
+    "working_bytes_match": true,
+    "basis": "committed bytes"
+  },
+  {
+    "repo": "VisionFlow",
+    "revision": "e7a91824c0d1d16ab839ce47d96b348b9864e48d",
+    "path": "docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md",
+    "sha256": "ce46367cae068838d9e720677444d4b97e98dd2bbf9d62a1962143e65dbb98ca",
+    "working_bytes_match": true,
+    "basis": "committed bytes"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "docs/BASELINE-narrativegoldmine.md",
+    "sha256": "e055b80aea6260b6a6af6b02de3ed48b8ea3ba594030b20e804aca2ce93d741b",
+    "working_bytes_match": false,
+    "basis": "committed bytes"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "docs/adr/ADR-2001-corpus-consolidation.md",
+    "sha256": "83e9fe0d288f30eec53a5a6ad041789cf7deac217a6a1dd9a28ea8dc8427b4a3",
+    "working_bytes_match": true,
+    "basis": "committed bytes"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "docs/adr/ADR-2002-corpus-is-the-ontology.md",
+    "sha256": "f9f3b2b52fd83a83b5784c2ef1d9ed8db45274bd9f4ba5533248562e0f997f2c",
+    "working_bytes_match": true,
+    "basis": "committed bytes"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "docs/adr/ADR-2003-expected-classes-tripwire.md",
+    "sha256": "ba3fb92aa9525efe61b209e50e1927269493fa6e8985de31682d9e0bcd775a7c",
+    "working_bytes_match": true,
+    "basis": "committed bytes"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "docs/adr/ADR-2004-corpus-page-identity-immutable.md",
+    "sha256": "2d1463d928ce66d10dac7c86210108494b56142577fefd519d0d840826802ef8",
+    "working_bytes_match": true,
+    "basis": "committed bytes"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "archive/logseq-era-2026-09-22/pipeline/manifest.py",
+    "sha256": "6f6bd026d50e770d491e1ac34dc54c7385131d8cff05374be038fae56a8467dc",
+    "working_bytes_match": true,
+    "basis": "committed bytes"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "archive/logseq-era-2026-09-22/pipeline/release_gate.py",
+    "sha256": "74f4e861ae1a3fc0042aca77d1b5a25ccd068371c776a75a200dd8f3493e4b86",
+    "working_bytes_match": true,
+    "basis": "committed bytes"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/tests/test_publish_cli.py",
+    "sha256": "ad3f2a63a0bbfce072a3b381b6a4dfbbaa02be13b54d90123d2a199a71bec894",
+    "working_bytes_match": true,
+    "basis": "probe workflow parser"
+  }
+]
