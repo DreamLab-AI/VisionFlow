@@ -1,0 +1,7 @@
+{
+  "path": "crates/nostr-bbs-auth-worker/src/webauthn.rs",
+  "source_sha256": "2e6f460030369e3ea001daa907f9e5f1d2a60697d405c4cfe4bbe8dee436c07c",
+  "slice_sha256": "1c36367256d4c0732f4c62ae762c891d468f760c5c99195c1282a3071d9e2197",
+  "slice": "        let mut h = Sha256::new();\n        h.update(b\"nostr-bbs-prf-salt-v1\\0\");\n        h.update(server_secret.as_bytes());\n        h.update(credential_id_b64.as_bytes());\n        h.update(pubkey.as_bytes());\n        array_to_base64url(&h.finalize())",
+  "adaptation": "Server-secret lookup replaced with explicit synthetic parameter. Hash statements unchanged. Other probes call actual worker functions in native unit-test build."
+}

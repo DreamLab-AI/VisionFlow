@@ -1,0 +1,17 @@
+[
+  {
+    "url": "https://www.w3.org/TR/webauthn-3/#prf-extension",
+    "scope": "Creation may enable PRF without returning evaluation; assertion versus attestation interfaces.",
+    "checked": "2026-11-01"
+  },
+  {
+    "url": "https://developers.yubico.com/WebAuthn/Concepts/PRF_Extension/Developers_Guide_to_PRF.html",
+    "scope": "Enable during creation, evaluate during assertion, retain salt and use purpose-bound KDF.",
+    "checked": "2026-11-01"
+  },
+  {
+    "url": "https://github.com/wwWallet/wallet-frontend",
+    "scope": "Web-first credential wallet; documented PRF compatibility matrix, not a forum benchmark.",
+    "checked": "2026-11-01"
+  }
+]

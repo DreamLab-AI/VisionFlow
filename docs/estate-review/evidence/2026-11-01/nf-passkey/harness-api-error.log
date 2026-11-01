@@ -1,0 +1,15 @@
+   Compiling nostr-bbs-auth-worker v1.0.0-beta.10 (/home/devuser/workspace/wt/VisionFlow-nf-passkey/.audit-passkey/forum/crates/nostr-bbs-auth-worker)
+error[E0599]: no method named `to_encoded_point` found for reference `&ecdsa::verifying::VerifyingKey<NistP256>` in the current scope
+    --> crates/nostr-bbs-auth-worker/src/webauthn.rs:2223:38
+     |
+2223 |         let point=sk.verifying_key().to_encoded_point(false);
+     |                                      ^^^^^^^^^^^^^^^^
+     |
+help: there is a method `to_sec1_point` with a similar name
+     |
+2223 -         let point=sk.verifying_key().to_encoded_point(false);
+2223 +         let point=sk.verifying_key().to_sec1_point(false);
+     |
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `nostr-bbs-auth-worker` (lib test) due to 1 previous error

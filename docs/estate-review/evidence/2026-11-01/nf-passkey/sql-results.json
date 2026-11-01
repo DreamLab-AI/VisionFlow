@@ -1,0 +1,72 @@
+{
+  "cases": [
+    {
+      "case": "bootstrap_schema_allows_duplicate_owner",
+      "rows": 2
+    },
+    {
+      "case": "lookup_distinguishes_known_credential",
+      "known": "owner",
+      "missing": null
+    },
+    {
+      "case": "two_prechecked_requests_both_finish_unconditional_batches",
+      "results": [
+        {
+          "counter_rows": 1,
+          "deleted_challenge_rows": 1
+        },
+        {
+          "counter_rows": 1,
+          "deleted_challenge_rows": 0
+        }
+      ]
+    },
+    {
+      "case": "serial_reuse_has_no_challenge",
+      "rejected_by_next_read": true
+    }
+  ],
+  "queries": {
+    "challenge_schema": {
+      "sql": "CREATE TABLE IF NOT EXISTS challenges ( pubkey TEXT NOT NULL,  challenge TEXT NOT NULL,  created_at INTEGER NOT NULL )",
+      "source": "CREATE TABLE IF NOT EXISTS challenges (\\\n            pubkey TEXT NOT NULL, \\\n            challenge TEXT NOT NULL, \\\n            created_at INTEGER NOT NULL\\\n        )",
+      "sha256": "5ccecdb974aadb065ffd4c7e9d94dc34b7aa895246c4b9b255ed0d468fa4dddb"
+    },
+    "credential_schema": {
+      "sql": "CREATE TABLE IF NOT EXISTS webauthn_credentials ( pubkey TEXT NOT NULL,  credential_id TEXT NOT NULL,  public_key TEXT NOT NULL,  counter INTEGER NOT NULL DEFAULT 0,  prf_salt TEXT,  created_at INTEGER NOT NULL )",
+      "source": "CREATE TABLE IF NOT EXISTS webauthn_credentials (\\\n            pubkey TEXT NOT NULL, \\\n            credential_id TEXT NOT NULL, \\\n            public_key TEXT NOT NULL, \\\n            counter INTEGER NOT NULL DEFAULT 0, \\\n            prf_salt TEXT, \\\n            created_at INTEGER NOT NULL\\\n        )",
+      "sha256": "112d3c3ce94046fe1493c618793ee3ba54b0376b4a91a9471895925f7f1a0ae5"
+    },
+    "insert_credential": {
+      "sql": "INSERT INTO webauthn_credentials (pubkey, credential_id, public_key, prf_salt, counter, created_at)  VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+      "source": "INSERT INTO webauthn_credentials (pubkey, credential_id, public_key, prf_salt, counter, created_at) \\\n             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+      "sha256": "760a808aaf8589306d2471ce38b5a601e89e107a5ead9a2d436af66655db6021"
+    },
+    "lookup": {
+      "sql": "SELECT pubkey FROM webauthn_credentials WHERE credential_id = ?1 LIMIT 1",
+      "source": "SELECT pubkey FROM webauthn_credentials WHERE credential_id = ?1 LIMIT 1",
+      "sha256": "3312a56afe6d416d3b22b1367f2c30d5af75299f31649b66d85c2f55cea2c9a0"
+    },
+    "login_challenge": {
+      "sql": "SELECT 1 as ok FROM challenges  WHERE challenge = ?1 AND created_at > ?2 AND pubkey IN (?3, ?4)",
+      "source": "SELECT 1 as ok FROM challenges \\\n             WHERE challenge = ?1 AND created_at > ?2 AND pubkey IN (?3, ?4)",
+      "sha256": "8455156e06bac6f7ca20edc23892582455b680cac55fc7d32df0d8ebb9182617"
+    },
+    "counter_update": {
+      "sql": "UPDATE webauthn_credentials SET counter = ?1 WHERE pubkey = ?2",
+      "source": "UPDATE webauthn_credentials SET counter = ?1 WHERE pubkey = ?2",
+      "sha256": "ca6d80c79c429343809f7f49ec9f035ff959e309eb5feff522354d3325335fec"
+    },
+    "challenge_delete": {
+      "sql": "DELETE FROM challenges WHERE challenge = ?1",
+      "source": "DELETE FROM challenges WHERE challenge = ?1",
+      "sha256": "5a772fdbfa1e87cdc8a407b9355556356a052b73576478eea6bc31ff8532f3d1"
+    }
+  },
+  "limits": [
+    "Actual extracted SQL on SQLite bootstrap tables; not Cloudflare D1 or HTTP.",
+    "Concurrent case is a chosen two-read schedule, not an observed production race. Both callers assumed independently valid NIP-98 tokens and assertions.",
+    "Additional deployed constraints and transaction scheduling not established."
+  ]
+}

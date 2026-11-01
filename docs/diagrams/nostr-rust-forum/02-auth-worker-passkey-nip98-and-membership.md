@@ -125,25 +125,26 @@ sequenceDiagram
     RO->>RO: 32-byte challenge from getrandom webauthn.rs:733
     RO->>RO: server-controlled PRF salt, 32 bytes webauthn.rs:739
     RO->>D1: batch DELETE expired + INSERT challenge (pubkey column = the challenge) webauthn.rs:756
-    RO->>RO: rp_id_required fails CLOSED on a placeholder RP_ID webauthn.rs:772
+    RO->>RO: rp_id_required rejects missing or blank RP_ID webauthn.rs:772
     RO-->>C: options with residentKey required, userVerification required webauthn.rs:791
     C->>RV: POST /auth/register/verify
+    RV->>RV: mandatory NIP-98 header and matching author webauthn.rs:836 webauthn.rs:849
     RV->>RV: reject cross-origin ceremony webauthn.rs:878
     RV->>RV: clientData.origin must equal EXPECTED_ORIGIN webauthn.rs:886
     RV->>D1: challenge must exist, be unexpired AND have pubkey = challenge webauthn.rs:906
     RV->>RV: attestation fmt must be none or packed webauthn.rs:933
     RV->>RV: constant-time RP-ID-hash compare webauthn.rs:951
     RV->>RV: flags UP bit0 webauthn.rs:957 and UV bit2 webauthn.rs:960 must be set
-    RV->>RV: COSE key must parse as ES256 P-256 webauthn.rs:976
+    RV->>RV: COSE coordinates must form a valid P-256 point webauthn.rs:976
     RV->>D1: reject duplicate pubkey with 409 webauthn.rs:989
     RV->>WOT: registration gate, invite code is the documented bypass webauthn.rs:1001
     RV->>RV: PRF salt DERIVED server-side, client prfSalt ignored webauthn.rs:1028
     RV->>D1: batch INSERT credential + DELETE challenge webauthn.rs:1037
     RV-->>C: verified, pubkey, didNostr webauthn.rs:1054
 
-    Note over RV: INVARIANT P1-1 challenge-bucket binding: register stores the challenge under pubkey = challenge, so a login-bucket challenge cannot be consumed by a registration verify webauthn.rs:898-905
-    Note over RV: INVARIANT P0-01: accepting a client-supplied PRF salt would let an attacker derive a different key and bypass the passkey model webauthn.rs:1016-1021
-    Note over WOT: is_allowed_by_wot returns Ok(true) when WoT is disabled, so the gate is a no-op on open instances webauthn.rs:996-999
+    Note over D1,RV: Registration challenge uses pubkey = challenge<br/>Login-bucket challenges do not satisfy this lookup webauthn.rs:898-905
+    Note over RV: Stored salt differs from the random options salt<br/>Same-identity login is not established webauthn.rs:739 webauthn.rs:1021
+    Note over RV,WOT: WoT disabled returns Ok(true)<br/>No trust gate on open instances webauthn.rs:996-999
 ```
 
 ## NF-02.4 Passkey login — assertion verification and clone detection
@@ -157,22 +158,24 @@ sequenceDiagram
     participant D1 as D1
 
     C->>LO: POST /auth/login/options
-    LO-->>C: indistinguishable shape for known and unknown pubkeys webauthn.rs:1070-1078
+    LO-->>C: empty allowCredentials plus selected salt webauthn.rs:1103 webauthn.rs:1128
     C->>LV: POST /auth/login/verify
-    LV->>LV: optional NIP-98 header verified with replay protection webauthn.rs:1200
+    LV->>LV: mandatory NIP-98 header verified with replay protection webauthn.rs:1200
     LV->>D1: SELECT credential_id, public_key, counter webauthn.rs:1215
     LV->>LV: reject cross-origin webauthn.rs:1261, origin equality webauthn.rs:1266
     LV->>D1: challenge must match pubkey IN (pubkey, __discoverable__) webauthn.rs:1293
     LV->>LV: RP-ID hash webauthn.rs:1330, UP webauthn.rs:1336, UV webauthn.rs:1339
     LV->>LV: sign_count must strictly increase unless 0 webauthn.rs:1349
-    LV->>LV: signed_data = authenticatorData || SHA-256(clientDataJSON) webauthn.rs:1387
+    LV->>LV: signed_data = authenticatorData ||<br/>SHA-256(clientDataJSON) webauthn.rs:1387
     LV->>LV: DER ECDSA parse webauthn.rs:1391 then P-256 verify webauthn.rs:1400
     LV->>D1: batch UPDATE counter + DELETE challenge webauthn.rs:1405
     LV-->>C: verified, pubkey, didNostr webauthn.rs:1413
 
-    Note over LV: signCount 0 means the authenticator keeps no counter, so the clone check is skipped - otherwise a non-increasing counter is Credential replay detected webauthn.rs:1348-1350
-    Note over LO: Audit C2: a 404 on unknown pubkey was an enumeration oracle - an unregistered pubkey now gets a fresh challenge, empty allowCredentials and a deterministic meaningless prfSalt webauthn.rs:1070-1078
+    Note over LV,D1: New signCount zero bypasses the increase check<br/>Otherwise a non-increasing count is rejected webauthn.rs:1348-1350
+    Note over LO: Equal response shape does not close the separate public lookup route<br/>or the empty-secret fallback condition webauthn.rs:78 webauthn.rs:1427
 ```
+
+[The passkey contract review](../../estate-review/2026-11-01-forum-passkey-contracts.md) qualifies NF-02.3/4: both clients omit the required registration header, issued and stored salts differ, lookup remains public, and challenge reads are separate from unconditional consumption. NF-23 records the probes and parser limits. These worker sequences show handler order, not a successfully completed client ceremony.
 
 ## NF-02.5 NIP-98 gate and the single-use replay store
 

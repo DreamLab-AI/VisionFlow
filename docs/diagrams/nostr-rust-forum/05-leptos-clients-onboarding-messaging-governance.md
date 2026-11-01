@@ -148,19 +148,22 @@ sequenceDiagram
     WA-->>PK: credential + PRF output
     PK->>PK: extract PRF from creation auth/webauthn.rs:123
     PK->>PK: derive_from_prf(prf, prfSalt) auth/passkey.rs:153
-    PK->>AW: POST /auth/register/verify auth/passkey.rs:173-174
+    PK->>AW: unsigned POST /auth/register/verify auth/passkey.rs:173-174
+    Note over PK,AW: Worker requires NIP-98, so this normal request is rejected<br/>See NF-23.1 before treating later steps as reachable
     U->>AS: log in
     AS->>PK: authenticate_passkey auth/mod.rs:328
     PK->>AW: POST /auth/login/options auth/passkey.rs:237
     PK->>PK: extract PRF from assertion auth/webauthn.rs:169
-    PK->>PK: re-derive the SAME keypair auth/passkey.rs:264
+    PK->>PK: derive using returned salt auth/passkey.rs:264
     PK->>AW: verify call, itself NIP-98 authenticated auth/passkey.rs:290
-    AS->>AS: PrfSigner built from the derived key auth/mod.rs:714
+    AS->>AS: PrfSigner built from the derived key auth/mod.rs:770
 
-    Note over AS: The private key never leaves the device - it is held out of the reactive signal graph in a StoredValue auth/mod.rs:107 and handed out only as a Zeroizing buffer auth/mod.rs:232
-    Note over AS: A pagehide listener zeroizes on navigation away auth/mod.rs:831
-    Note over PK: EXTERNAL: the server half of this ceremony is NF-02.3 and NF-02.4
+    Note over AS,PK: Private-key copy is held in StoredValue auth/mod.rs:107<br/>get_privkey_bytes returns a Zeroizing copy auth/mod.rs:232
+    Note over AS,PK: pagehide skips bfcache and clears only privkey<br/>Other signer copies are not cleared<br/>auth/session.rs:428 auth/session.rs:442
+    Note over PK,AW: Server checks are in NF-02.3 and NF-02.4
 ```
+
+[NF-23 and its report](../../estate-review/2026-11-01-forum-passkey-contracts.md) qualify this sequence. The worker stores a different PRF salt from creation, so the same-identity claim is not established. Creation requires PRF evaluation immediately, and the hybrid guard tries an attestation-only method on an assertion. Real authenticator and cross-browser acceptance remain open.
 
 ## NF-05.4 Three identity backends behind one signing seam
 

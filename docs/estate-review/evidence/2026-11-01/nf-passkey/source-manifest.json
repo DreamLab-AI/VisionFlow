@@ -1,0 +1,86 @@
+[
+  {
+    "path": "crates/nostr-bbs-auth-worker/src/webauthn.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "2e6f460030369e3ea001daa907f9e5f1d2a60697d405c4cfe4bbe8dee436c07c",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": false
+  },
+  {
+    "path": "crates/nostr-bbs-auth-worker/src/lib.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "ada4f43572d49eb75963381a866f33e780f27fcd0845ddd18c0cc8ccaef6c404",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/auth/passkey.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "f4b3fead5b0b402676a1900e5626680514cdea218cb024eb15916b6cc608db38",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/auth/webauthn.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "151261dc063f92dfc18551411cd9ce7a9a75a6330132905dec1262b510449061",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/auth/http.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "a683c9ec8df24e05bb58b4d8c76c236af3e69a873cefe643318336e7f20c8369",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/auth/mod.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "f55352bf50b59b9736ecd60910b48d63c62fb1d3ba2bd4f08fc3e1452de049e5",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": false
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/auth/session.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "cc5d37eb47e94e59e58a635cc067c732a3ab2fbb111766a90a2ce5b8c4d9bb7e",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/pages/login.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "0af378d38666688cdb3abdc4db7ad38ef1ab81b27a88a34da4e4cf825ae25068",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-bbs-client/src/passkey.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "0b6ece8777457b2c0c6dc694539255f2c6e18f8f0b70835d1bd0f7a92c4b3a36",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-core/src/keys.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "7f5d61656a037ce29eb06e1c4f6cf7f4c7d294feba9318865f78d47c3b179a0a",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": false
+  },
+  {
+    "path": "docs/IDENTITY-keys-and-trust.md",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "3dad8d8761f847bd7bd9930ff221fc4ea298db61999d8438cd77e13e14d6e7d9",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": false
+  },
+  {
+    "path": "crates/nostr-bbs-auth-worker/src/schema.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "328b3e587b20bd2e8a0fab2093d2d028820cee1d2deb58c1223dc84c23e5d93f",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  }
+]

@@ -7,6 +7,8 @@ type: explanation
 
 # VisionFlow estate review
 
+Passkey continuation: [client/worker registration contracts, salt drift, public lookup and parser boundaries](2026-11-01-forum-passkey-contracts.md). The actual worker passes 75 native cases and four SQLite scenarios expose schema/consumption limits. Six NF-23 panels and three corrected sequence panels distinguish primitive checks from a working identity-recovery journey.
+
 Recovery and phone onboarding continuation: [archived ADR-095/098/099, five NF-22 panels and the NF-05.8 correction](2026-11-01-forum-recovery-and-connect.md). Nineteen native cases and five isolated Chrome cases qualify HTML injection, ignored history failures, backup acknowledgement and master/device export differences; full signup and deployed enrolment remain open.
 
 Forum subkey continuation: [ADR-2003 and archived ADR-094/100 section review](2026-11-01-forum-subkey-derivation.md), four NF-21 panels and four scoped legacy corrections. Native parity passes; extracted consumers disagree on identity modes and the source guard accepts changed defaults. Thirty native tests, twelve JavaScript probes and eight runner scenarios retain the evidence. Live rotation remains open.

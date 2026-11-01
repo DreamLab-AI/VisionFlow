@@ -1,0 +1,77 @@
+[
+  {
+    "file": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "link": "2026-11-01-forum-subkey-derivation.md",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "link": "evidence/2026-11-01/nf-passkey/source-manifest.json",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "link": "evidence/2026-11-01/nf-passkey/source-differences.json",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "link": "evidence/2026-11-01/nf-passkey/README.md",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/passkey.rs:173",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/http.rs:156",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/passkey.rs:356",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs:836",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs:739",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs:1021",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs:1427",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs:275",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs:66",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/webauthn.rs:123",
+    "exists": true
+  },
+  {
+    "file": "docs/diagrams/nostr-rust-forum/23-passkey-client-worker-contracts.md",
+    "link": "../../estate-review/2026-11-01-forum-passkey-contracts.md",
+    "exists": true
+  }
+]

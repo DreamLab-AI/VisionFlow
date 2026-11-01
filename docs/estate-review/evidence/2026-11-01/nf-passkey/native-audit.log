@@ -1,0 +1,83 @@
+   Compiling nostr-bbs-auth-worker v1.0.0-beta.10 (/home/devuser/workspace/wt/VisionFlow-nf-passkey/.audit-passkey/forum/crates/nostr-bbs-auth-worker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.83s
+     Running unittests src/lib.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_auth_worker-519f5c8649496730)
+
+running 75 tests
+test webauthn::passkey_audit::known_truncated_attestation_authdata_is_rejected ... ok
+test webauthn::passkey_audit::packed_attestation_with_empty_statement_is_parsed ... ok
+test webauthn::passkey_audit::empty_secret_unknown_salt_is_publicly_reproducible ... ok
+test webauthn::passkey_audit::invalid_curve_point_is_rejected ... ok
+test webauthn::passkey_audit::unknown_truncated_attestation_field_is_accepted ... ok
+test webauthn::tests::base64url_decode_empty ... ok
+test webauthn::passkey_audit::real_secret_changes_both_salt_constructions ... ok
+test webauthn::tests::base64url_encode_32_bytes ... ok
+test webauthn::tests::base64url_decode_invalid ... ok
+test webauthn::tests::base64url_encode_decode_roundtrip ... ok
+test webauthn::tests::base64url_encode_empty ... ok
+test webauthn::tests::base64url_no_padding ... ok
+test webauthn::tests::base64url_encode_single_byte ... ok
+test webauthn::tests::base64url_no_plus_or_slash ... ok
+test webauthn::tests::canonicalise_url_drops_query_and_fragment ... ok
+test webauthn::tests::canonicalise_url_distinct_paths_stay_distinct ... ok
+test webauthn::tests::canonicalise_url_normalises_trailing_slash_and_case ... ok
+test webauthn::tests::canonicalise_url_root_path_preserved ... ok
+test webauthn::tests::cbor_read_int_negative ... ok
+test webauthn::tests::cbor_read_int_positive ... ok
+test webauthn::tests::canonicalise_url_proxy_host_rewrite_equivalence ... ok
+test webauthn::tests::cbor_read_tstr_empty ... ok
+test webauthn::tests::cbor_read_tstr_not_text ... ok
+test webauthn::tests::cbor_skip_bstr ... ok
+test webauthn::tests::cbor_skip_negative_int ... ok
+test webauthn::tests::cbor_read_tstr_short ... ok
+test webauthn::tests::cbor_skip_text ... ok
+test webauthn::tests::cbor_skip_unsigned_int ... ok
+test webauthn::tests::client_data_cross_origin_absent_is_none ... ok
+test webauthn::tests::client_data_cross_origin_false_accepted ... ok
+test webauthn::tests::constant_time_equal_all_zeros ... ok
+test webauthn::tests::constant_time_equal_different ... ok
+test webauthn::tests::client_data_parses_cross_origin_flag ... ok
+test webauthn::tests::constant_time_equal_different_lengths ... ok
+test webauthn::tests::constant_time_equal_empty ... ok
+test webauthn::tests::constant_time_equal_same ... ok
+test webauthn::tests::constant_time_equal_one_bit_different ... ok
+test webauthn::tests::cose_extract_coords_empty_data ... ok
+test webauthn::tests::cose_extract_coords_missing_y ... ok
+test webauthn::tests::cose_extract_coords_missing_x ... ok
+test webauthn::tests::cose_extract_coords_roundtrip ... ok
+test webauthn::tests::cose_extract_coords_not_a_map ... ok
+test webauthn::tests::cose_parse_bad_base64_rejected ... ok
+test webauthn::tests::cose_parse_invalid_coords_rejected ... ok
+test webauthn::tests::deterministic_salt_depends_on_server_secret ... ok
+test webauthn::tests::deterministic_salt_differs_for_different_pubkeys ... ok
+test webauthn::tests::deterministic_salt_is_consistent ... ok
+test webauthn::tests::deterministic_salt_is_base64url_encoded ... ok
+test webauthn::tests::invalid_pubkey_empty ... ok
+test webauthn::tests::invalid_pubkey_non_hex ... ok
+test webauthn::tests::invalid_pubkey_spaces ... ok
+test webauthn::tests::invalid_pubkey_too_short ... ok
+test webauthn::tests::login_challenge_binding_rejects_foreign_pubkey ... ok
+test webauthn::tests::invalid_pubkey_too_long ... ok
+test webauthn::tests::parse_attestation_object_empty_data ... ok
+test webauthn::tests::login_options_allow_credentials_always_empty ... ok
+test webauthn::tests::parse_attestation_object_none_fmt ... ok
+test webauthn::tests::parse_attestation_object_packed_fmt ... ok
+test webauthn::tests::parse_attested_credential_no_at_flag ... ok
+test webauthn::tests::parse_attested_credential_truncated ... ok
+test webauthn::tests::parse_attested_credential_extracts_id_and_key ... ok
+test webauthn::tests::register_challenge_query_is_pubkey_bound ... ok
+test webauthn::tests::real_and_fallback_salts_are_indistinguishable_shape ... ok
+test webauthn::tests::valid_pubkey_64_hex ... ok
+test webauthn::tests::valid_pubkey_mixed_hex ... ok
+test webauthn::tests::valid_pubkey_uppercase_hex ... ok
+test webauthn::passkey_audit::changed_registration_salt_changes_identity_even_with_fixed_prf ... ok
+test webauthn::passkey_audit::duplicate_x_coordinate_uses_last_value ... ok
+test webauthn::passkey_audit::contradictory_cose_metadata_is_ignored ... ok
+test webauthn::tests::cose_parse_valid_p256_key ... ok
+test webauthn::passkey_audit::cose_coordinates_without_algorithm_curve_or_type_are_accepted ... ok
+test webauthn::tests::ecdsa_p256_wrong_key_rejected ... ok
+test webauthn::tests::ecdsa_p256_signature_verify_roundtrip ... ok
+test webauthn::tests::ecdsa_p256_bad_signature_rejected ... ok
+test webauthn::tests::ecdsa_p256_high_s_signature_still_verifies ... ok
+
+test result: ok. 75 passed; 0 failed; 0 ignored; 0 measured; 184 filtered out; finished in 0.03s
+

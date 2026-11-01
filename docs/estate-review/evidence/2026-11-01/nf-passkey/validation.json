@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-01",
+  "source_revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+  "source_exports_byte_verified": 12,
+  "native_tests": {
+    "existing": 65,
+    "audit_additions": 10,
+    "unique_passing_total": 75,
+    "failed": 0,
+    "limits": "Native helper and derivation tests; no browser, Worker request, D1 or authenticator execution."
+  },
+  "sqlite_scenarios": {
+    "passing": 4,
+    "limits": "Extracted SQL on bootstrap schema; chosen two-read schedule, independently valid request assumptions; no deployed concurrency or NIP-98 replay-store claim."
+  },
+  "diagrams": {
+    "topics": 193,
+    "panels": 1673,
+    "citations_verified_at_declared_revision": 25037,
+    "citation_warnings": 0,
+    "unverified": 0,
+    "unresolvable": 0,
+    "allowlisted": 9,
+    "rendered_in_touched_topics": 32,
+    "changed_panels_visually_reviewed": [
+      "NF-02.3",
+      "NF-02.4",
+      "NF-05.3",
+      "NF-23.1",
+      "NF-23.2",
+      "NF-23.3",
+      "NF-23.4",
+      "NF-23.5",
+      "NF-23.6"
+    ],
+    "freshness_exit_code": 0,
+    "limits": "Corpus citation resolution and index freshness are not corpus-wide semantic review. Existing NF-02/NF-05 panels outside the three named ones retain prior review histories."
+  },
+  "prose": {
+    "unicode_suspicious": 0,
+    "automated_flags": 3,
+    "manual_disposition": "Two ordinary definite-article openings and the concrete term test-harness retained after manual review. This is not an automated clean prose verdict."
+  },
+  "local_link_targets": 15,
+  "production_changes": false,
+  "goal_complete": false
+}

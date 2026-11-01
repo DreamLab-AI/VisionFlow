@@ -1,0 +1,18 @@
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-forum-passkey-contracts.md
+  files scanned: 1   findings: 3   slop score: 9
+  verdict: Some AI tells present
+  high: 3   medium: 0   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (2 hits)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/estate-review/2026-11-01-forum-passkey-contracts.md:11  The actual auth-worker native WebAuthn suite passes 65 existing tests. After adding ten audit cases to a disposable source archive, 75 tests pass. These are 75 ...
+        docs/estate-review/2026-11-01-forum-passkey-contracts.md:57  The forum's potential utility is a passkey-backed signing identity usable across its governance, messaging and pod features. The first acceptance milestone is m...
+
+  [HIGH] Tier-1 banned vocabulary  (1 hit)
+        fix: Replace with a plain word (delve->look at, leverage->use, robust->solid, seamless->smooth, utilise->use). See SKILL.md B4.
+        docs/estate-review/2026-11-01-forum-passkey-contracts.md:11  ... or secret was used. The [evidence README](evidence/2026-11-01/nf-passkey/README.md) explains the boundaries and a corrected test-harness API compilation error.
+
+  Top things to change: "The X" sentence/paragraph opener; Tier-1 banned vocabulary
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+
