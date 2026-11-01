@@ -1,0 +1,40 @@
+{
+  "existing_checks": 60,
+  "audit_checks": 16,
+  "selected_checks": 76,
+  "auth_tests": 39,
+  "core_gate_tests": 8,
+  "relay_gate_tests": 10,
+  "cache_fixture_tests": 15,
+  "sqlite_tests": 4,
+  "topics": 190,
+  "panels": 1658,
+  "verified_citations": 24943,
+  "citation_warnings": 0,
+  "unverified": 0,
+  "unresolvable": 0,
+  "allowlisted": 9,
+  "fresh_declared_revisions": 46,
+  "rendered_panels": 24,
+  "visually_inspected": [
+    "NF-02.7",
+    "NF-08.8",
+    "NF-20.1",
+    "NF-20.2",
+    "NF-20.3",
+    "NF-20.4",
+    "NF-20.5",
+    "NF-20.6"
+  ],
+  "local_link_checks": 16,
+  "browser_acceptance": false,
+  "live_worker_acceptance": false,
+  "whole_estate_complete": false,
+  "reproduction_generated_sources_byte_equal": true,
+  "notes": [
+    "Tests assert current counterexamples, not implementation repairs.",
+    "Cache fixtures use unchanged extracted functions against explicit native mocks. SQLite cases do not execute D1 or HTTP authentication.",
+    "Prose inspection found no invisible characters. One mechanical opener flag in evidence README (The selected checks total 76) was reviewed and retained as clear factual wording.",
+    "Full scratch archive was reopened and every file compared before retention."
+  ]
+}

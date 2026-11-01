@@ -1,0 +1,16 @@
+warning: field `access_pubkey` is never read
+ --> docs/estate-review/evidence/2026-11-01/nf-device/native/harness.rs:9:53
+  |
+9 | struct ViewerContext {session_pubkey:Option<String>,access_pubkey:Option<String>,is_admin:bool,viewer_cohorts:Vec<String>,viewer_is_a...
+  |        ------------- field in this struct           ^^^^^^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `LOOKUP_TTL_SECS` is never used
+  --> docs/estate-review/evidence/2026-11-01/nf-device/native/read_cache.rs:42:18
+   |
+42 | pub(crate) const LOOKUP_TTL_SECS: u64 = 60;
+   |                  ^^^^^^^^^^^^^^^
+
+warning: 2 warnings emitted
+

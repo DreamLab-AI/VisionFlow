@@ -7,6 +7,7 @@ governing:
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
 adrs: [ADR-2003, ADR-2004, ADR-2010, ADR-2011]
 sources:
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/auth.rs
@@ -217,31 +218,30 @@ flowchart LR
     N3["EXTERNAL: the same admin identity is enforced independently at relay ingress - see NF-03 and NF-08.7"]
 ```
 
-## NF-02.7 Device-key registry — default-off, dual-worker gate, relay-owned table
+## NF-02.7 Device-key registry — independent gates and delayed revocation
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Disabled: DEVICE_KEYS_ENABLED unset/empty/other<br/>nostr-bbs-auth-worker/src/devices.rs:112
-    Disabled --> Enabled: exact string "true"<br/>nostr-bbs-auth-worker/src/devices.rs:100
-    Enabled --> Registered: POST /api/devices/register<br/>nostr-bbs-auth-worker/src/devices.rs:350
-    Registered --> Listed: GET /api/devices<br/>nostr-bbs-auth-worker/src/devices.rs:446
-    Registered --> Revoked: POST /api/devices/revoke sets revoked = 1<br/>nostr-bbs-auth-worker/src/devices.rs:477
-    Revoked --> [*]
-    Disabled --> [*]: handlers return early devices.rs:356
-
-    note right of Registered
-        device_keys lives in the RELAY worker's D1 (RELAY_DB binding)
-        so the relay DO can read it at NIP-42 AUTH with no cross-worker call
-        nostr-bbs-auth-worker/src/devices.rs:88
-        table created idempotently on first use devices.rs:123
-        owner index devices.rs:132
-    end note
-    note right of Disabled
-        DIVERGENCE: with the gate off a known device to owner mapping is IGNORED
-        and revocation has no effect at AUTH - the whole ADR-099/100 device story
-        is dormant in a default deployment (both templates ship "false")
-    end note
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:100
+    A["Auth worker exact true gate<br/>off returns 404 before database work"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:361
+    B["Registration authenticates owner via NIP-98"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:383
+    C["Require device-signed proof<br/>then exclude known principals"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:414
+    D["Upsert relay D1 registry row<br/>replaces owner and resets revoked"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:511
+    E["Owner-scoped revoke sets revoked to 1"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2069
+    F["AUTH stores raw public key<br/>does not consult device registry"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2614
+    G["Read/write scope resolves owner later<br/>through a 60-second cache"]
+    A --> B --> C --> D --> E
+    F --> G
+    D -. registry lookup .-> G
 ```
+
+[ADR-2004 review and NF-20](../../estate-review/2026-11-01-forum-device-keys.md) distinguish exact worker gating from client interoperability and revocation acceptance. This panel is updated; the rest of NF-02 is not newly certified.
 
 ## NF-02.8 Membership creation paths — invite redemption and username claim
 

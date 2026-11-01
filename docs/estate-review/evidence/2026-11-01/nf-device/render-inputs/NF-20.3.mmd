@@ -1,0 +1,14 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:383
+    A["Verify device proof bound to<br/>authenticated owner and short expiry"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:398
+    B["Probe principal exclusion<br/>separately from the later upsert"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:416
+    C["Existing device row: replace owner<br/>reset revoked to zero"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:511
+    D["Revoke matches current owner only"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:293
+    E["Concurrent new owner mapping can appear<br/>after principal-exclusion probe"]
+    A --> B --> C --> D
+    B -. interleaving .-> E
+    E -. no atomic recheck .-> C

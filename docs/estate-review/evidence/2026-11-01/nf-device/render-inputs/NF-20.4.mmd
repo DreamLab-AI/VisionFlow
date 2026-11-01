@@ -1,0 +1,15 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2057
+    A["Verify NIP-42 challenge and signed event"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2069
+    B["Set session authed_pubkey to raw author"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/session.rs:334
+    C["Persist raw public key for hibernation"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2614
+    D["Later effective_pubkey applies feature gate"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2596
+    E["Registry query selects only revoked = 0"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:974
+    F["No mapping: retain raw public key<br/>no explicit revoked-key rejection here"]
+    A --> B --> C
+    B --> D --> E --> F

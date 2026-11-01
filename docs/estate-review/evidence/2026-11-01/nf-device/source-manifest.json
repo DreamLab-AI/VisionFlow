@@ -1,0 +1,97 @@
+{
+  "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+  "consumed_revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+  "old_diagram_stamp": "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed",
+  "files": [
+    {
+      "path": "docs/adr/ADR-2004-device-keys-default-off-dual-worker-gate.md",
+      "sha256": "14c577e5a02286e6fe4b455f656f406c965c708ff0d2df1a445b6d061e9ac51f",
+      "consumed_equal": true,
+      "old_diagram_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-core/src/feature_gate.rs",
+      "sha256": "8a7231ff5a62651cbe5ac663862ed498c86decd9636a2a3c49a26d7dfd22a185",
+      "consumed_equal": true,
+      "old_diagram_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-auth-worker/src/devices.rs",
+      "sha256": "b6f7cee693ea0ace83b4ec7cf3f8255efb6b0bead34c80730ce20718e27c6901",
+      "consumed_equal": false,
+      "old_diagram_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-auth-worker/src/admin.rs",
+      "sha256": "e8d8a4d9229a30564c983adff12a9d6c890c65fc0c0d812ac5d3fa6f71f5e529",
+      "consumed_equal": true,
+      "old_diagram_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-auth-worker/wrangler.toml",
+      "sha256": "7a8ca327ca4933db68564106f7cbc33838685a19de6ad0fc0b2ee10602bc286a",
+      "consumed_equal": true,
+      "old_diagram_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-relay-worker/wrangler.toml",
+      "sha256": "7e4865ddf475ba88ebc7828bac197d11461c93111263f59826c97316c58446ea",
+      "consumed_equal": true,
+      "old_diagram_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+      "sha256": "52c7bd80243276f6f4109f1dc4180b485352141aac70d68fab626d5e1f6c0afd",
+      "consumed_equal": true,
+      "old_diagram_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs",
+      "sha256": "eb10d69937ad3e31f67426d3ccbcd5de7d7b8ba4baa8bd6a59bd7ad9ca4814ed",
+      "consumed_equal": true,
+      "old_diagram_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-relay-worker/src/relay_do/session.rs",
+      "sha256": "09aab6ae5638c2c571f067942e53b042dce21e0da7d44706ce1a2e177d71dd55",
+      "consumed_equal": true,
+      "old_diagram_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip42.rs",
+      "sha256": "6b6c5ef3d65bd86b4d0de8e54568287dbb58a4822928e662c954e28e5d97494f",
+      "consumed_equal": true,
+      "old_diagram_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-relay-worker/tests/device_gate_tests.rs",
+      "sha256": "77a37481ba9d6266a345ac32dd791f7f45f29f3da31e937ea0bc90200226e3f0",
+      "consumed_equal": true,
+      "old_diagram_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/utils/devices.rs",
+      "sha256": "f08886fdd0e8d88b7f38b1929508682ff57d98afed4fd669f119522e0eb8de01",
+      "consumed_equal": true,
+      "old_diagram_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/pages/settings.rs",
+      "sha256": "d1ad0e8ca45f331dfdad545839c6724045517001fc3224f475e73317aafb5f41",
+      "consumed_equal": true,
+      "old_diagram_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs",
+      "sha256": "f08a5e85c88105a807282ea59af16691dac236e4b10a623630f6babeef487b16",
+      "consumed_equal": true,
+      "old_diagram_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-auth-worker/src/http.rs",
+      "sha256": "554861bc728351dd02f9c711c19829f2555a6b2e38d5594f23f13184cdeee84e",
+      "consumed_equal": true,
+      "old_diagram_stamp_equal": true
+    }
+  ]
+}

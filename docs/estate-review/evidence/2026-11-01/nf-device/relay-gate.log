@@ -1,0 +1,21 @@
+   Compiling nostr-bbs-core v1.0.0-beta.19 (/home/devuser/workspace/wt/VisionFlow-nf-device/.audit-device/kit/crates/nostr-bbs-core)
+   Compiling nostr-bbs-rate-limit v1.0.0-beta.16 (/home/devuser/workspace/wt/VisionFlow-nf-device/.audit-device/kit/crates/nostr-bbs-rate-limit)
+   Compiling nostr-bbs-mesh v1.0.0-beta.16 (/home/devuser/workspace/wt/VisionFlow-nf-device/.audit-device/kit/crates/nostr-bbs-mesh)
+   Compiling nostr-bbs-relay-worker v1.0.0-beta.10 (/home/devuser/workspace/wt/VisionFlow-nf-device/.audit-device/kit/crates/nostr-bbs-relay-worker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.27s
+     Running tests/device_gate_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/device_gate_tests-f590723ad8f7259d)
+
+running 10 tests
+test every_non_enabling_variant_ignores_a_live_mapping ... ok
+test exact_true_rebinds_device_to_owner ... ok
+test gate_delegates_to_the_shared_parser ... ok
+test gate_reads_the_documented_binding_name ... ok
+test gate_defaults_off_when_unset_or_unparseable ... ok
+test gate_variant_matrix_relay_worker ... ok
+test lockstep_postures_off_and_on ... ok
+test mismatch_auth_enabled_relay_disabled_fails_closed ... ok
+test mismatch_relay_enabled_auth_disabled_is_unrevocable ... ok
+test spelling_mismatch_between_workers_collapses_to_fail_closed ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

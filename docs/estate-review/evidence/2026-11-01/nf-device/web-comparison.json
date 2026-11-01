@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-01",
+  "sources": [
+    {
+      "url": "https://spec.matrix.org/latest/client-server-api/#delete_matrixclientv3devicesdeviceid",
+      "supports": "device deletion invalidates associated tokens; authentication/OAuth account-management rules"
+    },
+    {
+      "url": "https://docs.syncthing.net/users/security.html",
+      "supports": "peer certificate fingerprint checked against configured devices at connection establishment"
+    },
+    {
+      "url": "https://github.com/nostr-protocol/nips/blob/master/42.md",
+      "supports": "signed identity authentication scoped to relay connection"
+    }
+  ],
+  "inference": "Make phone enrolment/listing work and provide an observable delegated-access cutoff; no market adoption, deployment guarantee or comparative benchmark claimed"
+}

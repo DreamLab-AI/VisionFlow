@@ -1,0 +1,18 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:100
+    A["Auth worker exact true gate<br/>off returns 404 before database work"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:361
+    B["Registration authenticates owner via NIP-98"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:383
+    C["Require device-signed proof<br/>then exclude known principals"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:414
+    D["Upsert relay D1 registry row<br/>replaces owner and resets revoked"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:511
+    E["Owner-scoped revoke sets revoked to 1"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2069
+    F["AUTH stores raw public key<br/>does not consult device registry"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2614
+    G["Read/write scope resolves owner later<br/>through a 60-second cache"]
+    A --> B --> C --> D --> E
+    F --> G
+    D -. registry lookup .-> G

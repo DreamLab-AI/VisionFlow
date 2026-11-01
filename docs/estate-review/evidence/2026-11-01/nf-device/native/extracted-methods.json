@@ -1,0 +1,27 @@
+[
+  {
+    "name": "cached_device_owner",
+    "sha256": "0a14b81720ab8e6cb23aef0c12c59dbb3dd755b0cb34ce6347ff02246e3ccb09",
+    "start_line": 2216
+  },
+  {
+    "name": "effective_pubkey",
+    "sha256": "5443c7a1c68436d81aeb889df973858ac6556f19213bf9f6ee1b4223226e5ee5",
+    "start_line": 2614
+  },
+  {
+    "name": "resolve_viewer_context",
+    "sha256": "56538e8765a7325be3d4ce4a32888b0e4f840f6632dc9ce97efeeea175c9557e",
+    "start_line": 2156
+  },
+  {
+    "name": "effective_principal",
+    "sha256": "1b43eadb6a2afe27d68336a49ff0a0b89b5b07dc8b30e4c9bfee41a31e281669",
+    "start_line": 974
+  },
+  {
+    "name": "zone_read_permitted",
+    "sha256": "f4776f6475969fe9768644ff682848dca6e143ad9e222766fdcc7d6280b08e3d",
+    "start_line": 2114
+  }
+]

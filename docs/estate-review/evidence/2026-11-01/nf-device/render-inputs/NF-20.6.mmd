@@ -1,0 +1,17 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1121
+    A["Non-gift-wrap event resolves owner<br/>for membership and trust checks"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1226
+    B["Write admin status uses raw event author"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2165
+    C["Read context checks admin status<br/>on the resolved owner"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2114
+    D["Owner admin flag permits private-zone reads"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2138
+    E["Sealed-DM filter stays bound to<br/>raw authenticated public key"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1914
+    F["Read activity is charged to raw session key"]
+    A --> B
+    C --> D
+    C -. distinct identity rule .-> E
+    C -. separate accounting .-> F

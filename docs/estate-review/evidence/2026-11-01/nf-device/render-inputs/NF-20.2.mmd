@@ -1,0 +1,16 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs:144
+    A["Settings registration sends<br/>device_pubkey and label only"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs:186
+    B["Recovery-sheet registration sends<br/>the same two fields"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:385
+    C["Handler requires device_proof<br/>missing proof returns 400"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:326
+    D["Server row uses f64 for<br/>created_at and revoked"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:470
+    E["List serialises those rows as JSON"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs:264
+    F["Client parser expects u64 and u8<br/>non-empty server list fails"]
+    A --> C
+    B --> C
+    D --> E --> F

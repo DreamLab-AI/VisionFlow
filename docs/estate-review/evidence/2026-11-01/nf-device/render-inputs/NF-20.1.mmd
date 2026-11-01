@@ -1,0 +1,19 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:100
+    A["Auth worker reads its own setting"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2570
+    B["Relay worker reads its own setting"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/feature_gate.rs:64
+    C["Shared rule: exact string true only"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs:111
+    D["Browser separately accepts boolean true<br/>or normalised true and 1"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/feature_gate.rs:127
+    E["Auth on, relay off: no owner remap"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/feature_gate.rs:128
+    F["Relay on, auth off: mappings honoured<br/>device API including revoke is unavailable"]
+    A --> C
+    B --> C
+    A -. can differ .-> B
+    D -. does not prove worker state .-> A
+    C --> E
+    C --> F

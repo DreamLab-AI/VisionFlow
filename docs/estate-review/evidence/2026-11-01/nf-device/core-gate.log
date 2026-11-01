@@ -1,0 +1,15 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.23s
+     Running unittests src/lib.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_core-e9b10af8afafc0ec)
+
+running 8 tests
+test feature_gate::tests::spelling_mismatch_collapses_to_fail_closed ... ok
+test feature_gate::tests::mismatched_workers_have_documented_postures ... ok
+test feature_gate::tests::lockstep_postures ... ok
+test feature_gate::tests::stock_wrangler_value_false_is_off ... ok
+test feature_gate::tests::unset_is_off ... ok
+test feature_gate::tests::uppercase_true_is_off_not_on ... ok
+test feature_gate::tests::var_name_constant_is_the_deployed_binding ... ok
+test feature_gate::tests::variant_matrix_is_exact_match_default_off ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 436 filtered out; finished in 0.00s
+

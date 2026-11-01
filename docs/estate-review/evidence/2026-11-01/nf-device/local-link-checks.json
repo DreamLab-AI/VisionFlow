@@ -1,0 +1,66 @@
+[
+  {
+    "source": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "target": "evidence/2026-11-01/nf-device/source-manifest.json"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "target": "evidence/2026-11-01/nf-device/source-differences.json"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "target": "evidence/2026-11-01/nf-device/README.md"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "target": "../../../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs:144"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "target": "../../../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs:186"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "target": "../../../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:383"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "target": "../../../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:320"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "target": "../../../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:470"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "target": "../../../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2057"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "target": "../../../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2614"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "target": "../../../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:414"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "target": "../../../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:273"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "target": "../../../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1121"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "target": "../../../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2165"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "target": "evidence/2026-11-01/nf-device/README.md"
+  },
+  {
+    "source": "docs/diagrams/nostr-rust-forum/20-device-keys-contracts-and-revocation.md",
+    "target": "../../estate-review/2026-11-01-forum-device-keys.md"
+  }
+]

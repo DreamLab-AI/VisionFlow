@@ -1,0 +1,18 @@
+[
+  {
+    "sql": "CREATE TABLE IF NOT EXISTS device_keys (device_pubkey TEXT PRIMARY KEY, owner_pubkey TEXT NOT NULL, label TEXT, created_at INTEGER NOT NULL, revoked INTEGER NOT NULL DEFAULT 0)",
+    "line": 123
+  },
+  {
+    "sql": "SELECT owner_pubkey AS pubkey FROM device_keys WHERE owner_pubkey = ?1 LIMIT 1",
+    "line": 293
+  },
+  {
+    "sql": "INSERT INTO device_keys (device_pubkey, owner_pubkey, label, created_at, revoked) VALUES (?1, ?2, ?3, ?4, 0) ON CONFLICT (device_pubkey) DO UPDATE SET owner_pubkey = excluded.owner_pubkey, label = excluded.label, created_at = excluded.created_at, revoked = 0",
+    "line": 414
+  },
+  {
+    "sql": "UPDATE device_keys SET revoked = 1 WHERE device_pubkey = ?1 AND owner_pubkey = ?2",
+    "line": 511
+  }
+]

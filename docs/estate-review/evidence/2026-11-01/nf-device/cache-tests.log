@@ -1,0 +1,20 @@
+
+running 15 tests
+test audit::context_snapshot_outlives_revocation_and_ttl ... ok
+test audit::device_owner_chain_is_only_one_hop ... ok
+test audit::newly_registered_device_waits_for_negative_entry_expiry ... ok
+test audit::gate_off_skips_stale_positive_cache_control ... ok
+test audit::owner_admin_is_inherited_for_zone_reads ... ok
+test audit::revocation_remains_mapped_until_cached_entry_expires ... ok
+test audit::transient_lookup_failure_is_negative_cached ... ok
+test read_cache::tests::a_large_pending_count_forces_an_early_flush ... ok
+test read_cache::tests::a_zero_delivery_read_never_adds_pending_but_still_respects_the_window ... ok
+test read_cache::tests::first_read_in_a_window_flushes_immediately ... ok
+test read_cache::tests::pubkeys_are_throttled_independently ... ok
+test read_cache::tests::reads_inside_the_window_accumulate_and_flush_when_it_elapses ... ok
+test read_cache::tests::ttl_cache_serves_fresh_entries_and_expires_stale_ones ... ok
+test read_cache::tests::ttl_cache_tolerates_clock_going_backwards ... ok
+test read_cache::tests::writes_share_the_window_with_reads_and_carry_pending_reads ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

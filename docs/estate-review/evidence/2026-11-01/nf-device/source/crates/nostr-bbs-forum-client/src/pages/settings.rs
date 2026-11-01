@@ -1,0 +1,2258 @@
+//! User settings and preferences page.
+//!
+//! Route: `/settings`
+//! Sections: Profile, Muted Users, Privacy, Appearance (future), Account.
+
+use std::rc::Rc;
+
+use leptos::prelude::*;
+use leptos_router::components::A;
+use nostr_bbs_core::UnsignedEvent;
+use wasm_bindgen::JsCast;
+use wasm_bindgen_futures::JsFuture;
+
+use crate::app::base_href;
+use crate::auth::use_auth;
+use crate::components::confirm_dialog::{ConfirmDialog, ConfirmVariant};
+use crate::components::copy_key::{CopyKey, KeyName};
+use crate::components::onboarding_modal::{
+    cache_claimed_username, claimed_username_cached, release_username, use_claimed_username,
+    username_from_nip05,
+};
+use crate::components::toast::{use_toasts, ToastVariant};
+use crate::relay::{ConnectionState, Filter, RelayConnection};
+use crate::stores::preferences::{
+    save_preferences, use_preferences, Density, FontSize, NotificationLevel, Theme,
+};
+use crate::utils::pod_client::upload_to_pod_signer;
+use crate::utils::relay_url::auth_api_base;
+use crate::utils::shorten_pubkey;
+
+/// NIP-05 host that backs claimed usernames. The SAME constant the onboarding
+/// modal bakes from `NOSTR_BBS_NIP05_DOMAIN`, imported so the two cannot drift
+/// (a local placeholder here once published `alice@example.test` for every
+/// claimed save).
+use crate::components::onboarding_modal::NIP05_HOST as NIP05_USERNAME_HOST;
+
+/// Pod API base URL — same source-of-truth as `pages::pod_browser` and
+/// `utils::pod_client`. Surfaces the `[pod].base_url` operator-config
+/// value via the `VITE_POD_API_URL` build-time env. Used here to render
+/// the per-user git clone URL (ADR-089).
+const POD_API: &str = match option_env!("VITE_POD_API_URL") {
+    Some(u) => u,
+    None => "https://pod.example.com",
+};
+
+/// Client-side size cap for profile picture uploads (~2 MB).
+const MAX_AVATAR_BYTES: f64 = 2.0 * 1024.0 * 1024.0;
+
+/// Maximum length of the display-name (nickname) field. Kept as a named const
+/// so the input `maxlength`, the helper copy, and the live counter can never
+/// drift apart — the cap is stated honestly rather than clipping silently (#13).
+const MAX_NICKNAME_LEN: usize = 50;
+
+/// Read a key from the `window.__ENV__` runtime-config object injected by the
+/// deploy (mirrors the private reader in `utils::relay_url`). Returns `None`
+/// for a missing/undefined/empty value.
+fn window_env(key: &str) -> Option<String> {
+    let window = web_sys::window()?;
+    let env = js_sys::Reflect::get(&window, &"__ENV__".into()).ok()?;
+    if env.is_undefined() || env.is_null() {
+        return None;
+    }
+    let val = js_sys::Reflect::get(&env, &key.into()).ok()?;
+    let s = val.as_string()?;
+    if s.trim().is_empty() {
+        None
+    } else {
+        Some(s)
+    }
+}
+
+/// Deploy version string, from `window.__ENV__.BUILD_VERSION`. The website
+/// deploy injects this; falls back to `"dev"` for local/un-injected builds
+/// (issue #27).
+fn build_version() -> String {
+    window_env("BUILD_VERSION").unwrap_or_else(|| "dev".to_string())
+}
+
+/// Short git hash of the deployed build, from `window.__ENV__.BUILD_HASH`.
+/// Falls back to `"local"` when absent (issue #27).
+fn build_hash() -> String {
+    window_env("BUILD_HASH").unwrap_or_else(|| "local".to_string())
+}
+
+/// Key used to persist muted pubkeys in localStorage.
+const MUTED_STORAGE_KEY: &str = "nostr_bbs_muted";
+
+fn get_local_storage() -> Option<web_sys::Storage> {
+    web_sys::window()
+        .and_then(|w| w.local_storage().ok())
+        .flatten()
+}
+
+fn load_muted_list() -> Vec<String> {
+    get_local_storage()
+        .and_then(|s| s.get_item(MUTED_STORAGE_KEY).ok())
+        .flatten()
+        .and_then(|json| serde_json::from_str::<Vec<String>>(&json).ok())
+        .unwrap_or_default()
+}
+
+fn save_muted_list(list: &[String]) {
+    if let Some(storage) = get_local_storage() {
+        let json = serde_json::to_string(list).unwrap_or_default();
+        let _ = storage.set_item(MUTED_STORAGE_KEY, &json);
+    }
+}
+
+#[component]
+pub fn SettingsPage() -> impl IntoView {
+    let auth = use_auth();
+    let toasts = use_toasts();
+    let relay = expect_context::<RelayConnection>();
+
+    // Preferences store. Bound ONCE here, inside the component's reactive
+    // owner — `RwSignal` is `Copy`, so this handle is moved into the
+    // appearance/content/notification event handlers below. Calling
+    // `use_preferences()` (an `expect_context`) from inside a DOM event
+    // handler panics: event handlers run with no reactive owner on the
+    // stack, so the context lookup fails ("expected context … to be
+    // present"). That panic was the root cause of the Appearance controls
+    // doing nothing on the live build (#32).
+    let prefs = use_preferences();
+
+    // Profile fields
+    let nickname = RwSignal::new(auth.nickname().get_untracked().unwrap_or_default());
+    let about = RwSignal::new(String::new());
+    let avatar_url = RwSignal::new(String::new());
+    let birthday = RwSignal::new(String::new()); // "MM-DD" format
+    let profile_saving = RwSignal::new(false);
+    // The member's full hydrated kind-0, so a save keeps fields Settings does not manage.
+    let profile_base = RwSignal::new(ProfileHydration::Pending);
+    // Set when the kind-0 wait has run out; the state stays `Pending` regardless.
+    let profile_load_slow = RwSignal::new(false);
+    // Bumped on every kind-0 subscription; callbacks of an earlier one go inert.
+    let profile_gen = RwSignal::new(0u64);
+
+    // Real name (admin-only): loaded from + saved to the auth-worker D1 via
+    // NIP-98 authed routes. NEVER published to kind-0 / the relay.
+    let real_name = RwSignal::new(String::new());
+    let real_name_saving = RwSignal::new(false);
+
+    // Muted users
+    let muted = RwSignal::new(load_muted_list());
+
+    // Devices (ADR-099, gated on window.__ENV__.DEVICE_KEYS_ENABLED).
+    // When the flag is off the whole section is hidden and never fetches.
+    let device_keys_on = crate::utils::devices::device_keys_enabled();
+    let devices_list: RwSignal<Vec<crate::utils::devices::DeviceKey>> = RwSignal::new(Vec::new());
+    let devices_loading = RwSignal::new(false);
+    let devices_error: RwSignal<Option<String>> = RwSignal::new(None);
+    // "Add a device" QR + link, rendered after a successful registration.
+    let new_device_qr = RwSignal::new(String::new());
+    let new_device_connect = RwSignal::new(String::new());
+    let new_device_busy = RwSignal::new(false);
+
+    // Load the device list once, only when the feature is enabled and authed.
+    if device_keys_on {
+        Effect::new(move |_| {
+            if auth.pubkey().get().is_none() {
+                return;
+            }
+            if devices_loading.get_untracked() || !devices_list.get_untracked().is_empty() {
+                return;
+            }
+            devices_loading.set(true);
+            wasm_bindgen_futures::spawn_local(async move {
+                match crate::utils::devices::list_devices(auth).await {
+                    Ok(list) => devices_list.set(list),
+                    Err(e) => devices_error.set(Some(e.to_string())),
+                }
+                devices_loading.set(false);
+            });
+        });
+    }
+
+    // Derive + register a new device key, then surface its /connect QR.
+    let on_add_device = move |_| {
+        if new_device_busy.get_untracked() {
+            return;
+        }
+        new_device_busy.set(true);
+        devices_error.set(None);
+        wasm_bindgen_futures::spawn_local(async move {
+            let label = format!("Device added {}", crate::utils::devices::today_utc());
+            match crate::utils::devices::register_device(auth, &label).await {
+                Ok(reg) => {
+                    let url = crate::utils::devices::device_connect_url(&reg.device_nsec)
+                        .unwrap_or_default();
+                    new_device_qr.set(crate::utils::devices::qr_svg(&url));
+                    new_device_connect.set(url);
+                    // Refresh the list to include the newly-registered device.
+                    match crate::utils::devices::list_devices(auth).await {
+                        Ok(list) => devices_list.set(list),
+                        Err(e) => devices_error.set(Some(e.to_string())),
+                    }
+                }
+                Err(e) => devices_error.set(Some(e.to_string())),
+            }
+            new_device_busy.set(false);
+        });
+    };
+
+    // Revoke a device key and drop it from the list optimistically.
+    let on_revoke_device = move |pubkey: String| {
+        let pk = pubkey.clone();
+        devices_error.set(None);
+        wasm_bindgen_futures::spawn_local(async move {
+            match crate::utils::devices::revoke_device(auth, &pk).await {
+                Ok(()) => {
+                    devices_list.update(|l| {
+                        for d in l.iter_mut() {
+                            if d.device_pubkey == pk {
+                                d.revoked = 1;
+                            }
+                        }
+                    });
+                }
+                Err(e) => devices_error.set(Some(e.to_string())),
+            }
+        });
+    };
+
+    // -- Section 4f: Install mobile app (ADR-109) --------------------------
+    // Gated on the ADR-107 single-locked-zone predicate (reused verbatim) AND
+    // the BBS_PWA_ENABLED runtime flag (default OFF). Admins and multi/zero-zone
+    // members never see it. The forum side bakes the key + BootProfile, then
+    // fires the install prompt for the MAIN interface (its manifest lives on
+    // this very page; the retro BBS stays separately installable).
+    let za = crate::stores::zone_access::use_zone_access();
+    let pwa_feature_on = crate::utils::pwa_install::feature_enabled();
+    let pwa_is_ios = crate::utils::pwa_install::platform_is_ios();
+    let pwa_consented = RwSignal::new(false);
+    let pwa_busy = RwSignal::new(false);
+    // Manual install guidance (shown when this browser never offers a prompt).
+    let pwa_show_manual = RwSignal::new(false);
+    let pwa_baked = RwSignal::new(false);
+    // Whether a readable forum key exists to bake here (local-key / imported
+    // nsec). Passkey / NIP-07 sessions have none — they rebind in the app.
+    let pwa_can_bake = Memo::new(move |_| auth.get().is_local_key);
+
+    // Reflect the current bake state on mount (only worth checking when gated in).
+    if pwa_feature_on {
+        wasm_bindgen_futures::spawn_local(async move {
+            pwa_baked.set(crate::utils::bake::is_baked().await);
+        });
+    }
+
+    // Install: bake the key (when a readable one exists) then prompt/hand off
+    // one-shot boot, where the real install prompt / Add-to-Home-Screen lives.
+    let on_pwa_install = move |_: leptos::ev::MouseEvent| {
+        if pwa_busy.get_untracked() || !pwa_consented.get_untracked() {
+            return;
+        }
+        let zones = crate::stores::zones::load_zones();
+        let Some(zone) = crate::stores::zone_access::first_accessible_zone_for(
+            &zones,
+            &za.cohorts.get_untracked(),
+            za.is_admin.get_untracked(),
+        ) else {
+            return;
+        };
+        let zone_id = zone.id;
+        if auth.get().is_local_key {
+            if let Some(secret) = auth.get_privkey_bytes() {
+                pwa_busy.set(true);
+                let zone_id = zone_id.clone();
+                wasm_bindgen_futures::spawn_local(async move {
+                    match crate::utils::bake::bake(&secret, &zone_id).await {
+                        Ok(()) => {
+                            pwa_baked.set(true);
+                            proceed_to_install(zone_id.clone(), pwa_show_manual);
+                        }
+                        Err(e) => {
+                            web_sys::console::error_1(
+                                &format!("[settings] bake failed: {e}").into(),
+                            );
+                            toasts.show(
+                                "Couldn't save the app key on this device. Please try again.",
+                                ToastVariant::Error,
+                            );
+                            pwa_busy.set(false);
+                        }
+                    }
+                });
+                return;
+            }
+        }
+        // Passkey / NIP-07: no readable key to bake here — the app re-establishes
+        // it on first launch (passkey tap or paste recovery key). Just link across.
+        proceed_to_install(zone_id, pwa_show_manual);
+    };
+
+    // Forget this device (forum-side unbake): delete the baked record + profile.
+    let on_pwa_forget = move |_: leptos::ev::MouseEvent| {
+        let ok = web_sys::window()
+            .and_then(|w| {
+                w.confirm_with_message(
+                    "Forget this device? This removes the saved key from this phone only \
+                     — it does not protect a phone already in someone else's hands. If the \
+                     phone may be lost or stolen, tell an admin to rotate your key.",
+                )
+                .ok()
+            })
+            .unwrap_or(false);
+        if !ok {
+            return;
+        }
+        wasm_bindgen_futures::spawn_local(async move {
+            match crate::utils::bake::unbake().await {
+                Ok(()) => pwa_baked.set(false),
+                Err(e) => {
+                    web_sys::console::error_1(&format!("[settings] unbake failed: {e}").into());
+                    toasts.show(
+                        "Couldn't remove the saved key. Please try again.",
+                        ToastVariant::Error,
+                    );
+                }
+            }
+        });
+    };
+
+    // Confirm dialog for nsec export
+    let confirm_nsec_open = RwSignal::new(false);
+
+    // Confirm dialog for username release
+    let confirm_release_open = RwSignal::new(false);
+    let release_pending = RwSignal::new(false);
+
+    // Display the currently-claimed username (if any).
+    //
+    // Deliberately NOT derived from `auth.nickname()` — the nickname is the
+    // kind-0 display name and conflating the two made a profile nickname
+    // save (e.g. "Carol QA") render as a claimed username with an invalid
+    // NIP-05 (QA HIGH bug #5a). The shared ClaimedUsername signal is fed by
+    // the claim flow, the localStorage claim cache, and the kind-0 `nip05`
+    // field fetched below (QA HIGH bug #5b: claimed usernames now load).
+    let claimed_sig = use_claimed_username();
+    let claimed_username = Memo::new(move |_| claimed_sig.and_then(|c| c.0.get()));
+    let claimed_nip05 = Memo::new(move |_| {
+        claimed_username
+            .get()
+            .map(|n| format!("{}@{}", n, NIP05_USERNAME_HOST))
+    });
+
+    // Hydrate from the local claim cache on mount (covers direct /settings
+    // navigation before the onboarding modal effect has run).
+    if let (Some(claimed), Some(pk)) = (claimed_sig, auth.pubkey().get_untracked()) {
+        if claimed.0.get_untracked().is_none() {
+            if let Some(cached) = claimed_username_cached(&pk) {
+                claimed.0.set(Some(cached));
+            }
+        }
+    }
+
+    let pubkey_full = Memo::new(move |_| auth.pubkey().get().unwrap_or_default());
+
+    // Per-user pod git clone URL (ADR-089). Renders when the user has a
+    // pubkey; the URL only resolves on deployments where the operator has
+    // enabled git-init at pod provisioning (non-CF tier). The CF Workers
+    // tier does not git-init pods — see ADR-089 for the divergence.
+    let pod_clone_url = Memo::new(move |_| {
+        auth.pubkey()
+            .get()
+            .map(|pk| format!("{}/pods/{}/", POD_API.trim_end_matches('/'), pk))
+    });
+    let pod_clone_command = Memo::new(move |_| {
+        pod_clone_url
+            .get()
+            .map(|url| format!("git clone {}", url))
+            .unwrap_or_default()
+    });
+
+    // -- Fetch kind-0 metadata on mount to populate fields --
+    {
+        let relay = relay.clone();
+        let conn_state = relay.connection_state();
+        let nickname_sig = nickname;
+        let about_sig = about;
+        let avatar_sig = avatar_url;
+        let birthday_sig = birthday;
+        let auth_for_fetch = auth;
+        let base_sig = profile_base;
+        let slow_sig = profile_load_slow;
+        let gen_sig = profile_gen;
+
+        Effect::new(move |_| {
+            if conn_state.get() != ConnectionState::Connected {
+                return;
+            }
+            let pk = match auth_for_fetch.pubkey().get() {
+                Some(pk) => pk,
+                None => return,
+            };
+
+            // A new subscription (first connect, reconnect, account switch)
+            // starts unhydrated: never merge into another account's object.
+            // Callbacks capture this generation and ignore everything once a
+            // newer subscription exists, so the previous account's event, EOSE
+            // or timer can never touch this account's state.
+            let my_gen = gen_sig.get_untracked() + 1;
+            gen_sig.set(my_gen);
+            base_sig.set(ProfileHydration::Pending);
+            slow_sig.set(false);
+            let pk_for_event = pk.clone();
+            let on_event: Rc<dyn Fn(nostr_bbs_core::NostrEvent)> =
+                Rc::new(move |event: nostr_bbs_core::NostrEvent| {
+                    if !generation_current(my_gen, gen_sig.try_get_untracked())
+                        || event.kind != 0
+                        || !kind0_is_for(&event.pubkey, &pk_for_event)
+                    {
+                        return;
+                    }
+                    if let Ok(obj) = serde_json::from_str::<serde_json::Value>(&event.content) {
+                        // Keep the whole object so a save preserves fields
+                        // Settings does not manage (see `merge_profile_fields`).
+                        if obj.is_object() {
+                            base_sig.set(ProfileHydration::Loaded(obj.clone()));
+                        }
+                        // The nickname is the DISPLAY name — prefer
+                        // `display_name`, falling back to `name` for events
+                        // published before the username/nickname split.
+                        let display = obj
+                            .get("display_name")
+                            .and_then(|v| v.as_str())
+                            .filter(|s| !s.trim().is_empty())
+                            .or_else(|| obj.get("name").and_then(|v| v.as_str()));
+                        if let Some(name) = display {
+                            nickname_sig.set(name.to_string());
+                        }
+                        if let Some(bio) = obj.get("about").and_then(|v| v.as_str()) {
+                            about_sig.set(bio.to_string());
+                        }
+                        if let Some(pic) = obj.get("picture").and_then(|v| v.as_str()) {
+                            avatar_sig.set(pic.to_string());
+                        }
+                        if let Some(bday) = obj.get("birthday").and_then(|v| v.as_str()) {
+                            birthday_sig.set(bday.to_string());
+                        }
+                        // Recover an already-claimed username from the
+                        // kind-0 `nip05` field (QA HIGH bug #5b).
+                        if let Some(nip05) = obj.get("nip05").and_then(|v| v.as_str()) {
+                            if let Some(username) = username_from_nip05(nip05) {
+                                cache_claimed_username(&pk_for_event, &username);
+                                if let Some(claimed) = claimed_sig {
+                                    if claimed.0.get_untracked().as_deref()
+                                        != Some(username.as_str())
+                                    {
+                                        claimed.0.set(Some(username));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+            let sub_id = relay.subscribe(
+                vec![Filter {
+                    kinds: Some(vec![0]),
+                    authors: Some(vec![pk]),
+                    limit: Some(1),
+                    ..Default::default()
+                }],
+                on_event,
+                // EOSE with no kind-0 means the member has none yet.
+                Some(Rc::new(move || {
+                    if generation_current(my_gen, gen_sig.try_get_untracked())
+                        && base_sig.try_get_untracked() == Some(ProfileHydration::Pending)
+                    {
+                        base_sig.set(ProfileHydration::NotFound);
+                    }
+                })),
+            );
+
+            // Closes the subscription when this effect re-runs (reconnect, account
+            // switch) AND when the page unmounts, so it never lingers to be
+            // replayed on reconnect against the relay's per-session cap.
+            let relay_cleanup = relay.clone();
+            on_cleanup(move || relay_cleanup.unsubscribe(&sub_id));
+
+            // After 5 seconds, flag a slow relay. Silence is NOT evidence that no
+            // profile exists, so the state stays `Pending` (Save stays disabled,
+            // a notice appears) and the subscription stays open: a late event or
+            // EOSE still resolves it. The timer can outlive the page, whose
+            // signals are then disposed (reading one panics), so it only acts
+            // while its handles are alive and its generation current — the same
+            // guard `pages/admin.rs` applies to its auto-dismiss timer.
+            crate::utils::set_timeout_once(
+                move || {
+                    if generation_current(my_gen, gen_sig.try_get_untracked())
+                        && base_sig.try_get_untracked() == Some(ProfileHydration::Pending)
+                    {
+                        let _ = slow_sig.try_set(true);
+                    }
+                },
+                5_000,
+            );
+        });
+    }
+
+    // -- Load the admin-only real name (authed GET) on mount --
+    {
+        let real_name_sig = real_name;
+        Effect::new(move |_| {
+            // Re-run when authentication establishes a signer.
+            if auth.pubkey().get().is_none() {
+                return;
+            }
+            let Some(signer) = auth.get_signer() else {
+                return;
+            };
+            wasm_bindgen_futures::spawn_local(async move {
+                let url = format!("{}/api/profile/real-name", auth_api_base());
+                if let Ok(body) =
+                    crate::auth::nip98::fetch_with_nip98_get_signer(&url, signer.as_ref()).await
+                {
+                    if let Ok(resp) = serde_json::from_str::<serde_json::Value>(&body) {
+                        if let Some(rn) = resp.get("real_name").and_then(|v| v.as_str()) {
+                            real_name_sig.set(rn.to_string());
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+    // -- Real name save handler (authed POST; empty value clears) --
+    let toasts_for_real_name = toasts;
+    let on_save_real_name = move |_| {
+        let Some(signer) = auth.get_signer() else {
+            toasts_for_real_name.show("Not authenticated", ToastVariant::Error);
+            return;
+        };
+        real_name_saving.set(true);
+        let value = real_name.get_untracked().trim().to_string();
+        let body = serde_json::json!({ "real_name": value }).to_string();
+        let toasts_ok = toasts_for_real_name;
+        let toasts_err = toasts_for_real_name;
+        wasm_bindgen_futures::spawn_local(async move {
+            let url = format!("{}/api/profile/real-name", auth_api_base());
+            match crate::auth::nip98::fetch_with_nip98_post_signer(&url, &body, signer.as_ref())
+                .await
+            {
+                Ok(_) => {
+                    real_name_saving.set(false);
+                    if value.is_empty() {
+                        toasts_ok.show("Real name cleared", ToastVariant::Success);
+                    } else {
+                        toasts_ok.show("Real name saved", ToastVariant::Success);
+                    }
+                }
+                Err(e) => {
+                    real_name_saving.set(false);
+                    toasts_err.show(format!("Save failed: {}", e), ToastVariant::Error);
+                }
+            }
+        });
+    };
+
+    // -- Profile save handler --
+    let toasts_for_profile = toasts;
+    let relay_for_save = relay.clone();
+    let on_save_profile = move |_| {
+        if !profile_base.get_untracked().may_save() {
+            return;
+        }
+        let name = nickname.get_untracked().trim().to_string();
+        if name.is_empty() {
+            toasts_for_profile.show("Nickname cannot be empty", ToastVariant::Warning);
+            return;
+        }
+        publish_profile_metadata(
+            auth,
+            relay_for_save.clone(),
+            toasts_for_profile,
+            profile_saving,
+            name,
+            claimed_username.get_untracked(),
+            about.get_untracked().trim().to_string(),
+            avatar_url.get_untracked().trim().to_string(),
+            birthday.get_untracked().trim().to_string(),
+            profile_base.get_untracked().into_base(),
+            "Profile updated",
+        );
+    };
+
+    // -- Profile picture upload handler --
+    //
+    // Stores the image in the user's pod public media folder (NIP-98 authed
+    // POST via `pod_client::upload_to_pod_signer`), then republishes kind-0
+    // with `picture` set to the public pod URL, preserving all other fields.
+    let pic_uploading = RwSignal::new(false);
+    let toasts_for_pic = toasts;
+    let relay_for_pic = relay.clone();
+    let on_pic_file = move |ev: leptos::ev::Event| {
+        let input: web_sys::HtmlInputElement = event_target(&ev);
+        let Some(file) = input.files().and_then(|fl| fl.get(0)) else {
+            return;
+        };
+        if !profile_base.get_untracked().may_save() {
+            input.set_value("");
+            return;
+        }
+        // NB: do NOT reset the input value yet. Clearing it before the blob
+        // bytes are read can invalidate the selected File in some browsers
+        // (observed `NotFoundError` on read). We reset only in early returns
+        // that never touch the blob, or in the upload's terminal branches once
+        // the bytes are safely read — still letting a re-select of the same
+        // file re-fire `change` (#16).
+        if file.size() > MAX_AVATAR_BYTES {
+            input.set_value("");
+            toasts_for_pic.show(
+                "Image too large — maximum size is 2 MB",
+                ToastVariant::Warning,
+            );
+            return;
+        }
+        let mime = file.type_();
+        if mime == "image/svg+xml" {
+            input.set_value("");
+            toasts_for_pic.show("SVG avatars are not supported", ToastVariant::Warning);
+            return;
+        }
+        if !avatar_type_allowed(&mime) {
+            input.set_value("");
+            toasts_for_pic.show(
+                "Unsupported image type — use PNG, JPEG, WebP or GIF",
+                ToastVariant::Warning,
+            );
+            return;
+        }
+        let Some(pk) = auth.pubkey().get_untracked() else {
+            input.set_value("");
+            toasts_for_pic.show("Not authenticated", ToastVariant::Error);
+            return;
+        };
+        let Some(signer) = auth.get_signer() else {
+            input.set_value("");
+            toasts_for_pic.show("Not authenticated", ToastVariant::Error);
+            return;
+        };
+        pic_uploading.set(true);
+        let relay = relay_for_pic.clone();
+        let name = nickname.get_untracked().trim().to_string();
+        let claimed = claimed_username.get_untracked();
+        let bio = about.get_untracked().trim().to_string();
+        let bday = birthday.get_untracked().trim().to_string();
+        let base = profile_base.get_untracked().into_base();
+        let input_reset = input.clone();
+        wasm_bindgen_futures::spawn_local(async move {
+            let filename = avatar_filename(&file.type_());
+            let mut result =
+                upload_to_pod_signer(&file, &filename, &pk, signer.as_ref(), None).await;
+            // Pods are provisioned eagerly at signup, but accounts predating
+            // that (or whose eager provision failed) may not have one yet — an
+            // unprovisioned pod's WAC gate returns 403 (deny-by-default), and a
+            // missing container returns 404. Either way, provision once + retry.
+            if matches!(&result, Err(e) if e.starts_with("HTTP 404") || e.starts_with("HTTP 403")) {
+                result = match provision_pod(auth).await {
+                    Ok(()) => {
+                        upload_to_pod_signer(&file, &filename, &pk, signer.as_ref(), None).await
+                    }
+                    Err(e) => Err(format!("pod provisioning failed: {e}")),
+                };
+            }
+            // Every upload attempt (including the 404 retry) has now finished
+            // reading the blob, so it is finally safe to clear the input. This
+            // preserves the re-select-same-file-refires-change behaviour without
+            // invalidating the File mid-read.
+            input_reset.set_value("");
+            match result {
+                Ok(url) => {
+                    pic_uploading.set(false);
+                    avatar_url.set(url.clone());
+                    publish_profile_metadata(
+                        auth,
+                        relay,
+                        toasts_for_pic,
+                        profile_saving,
+                        name,
+                        claimed,
+                        bio,
+                        url,
+                        bday,
+                        base,
+                        "Profile picture updated",
+                    );
+                }
+                Err(e) => {
+                    pic_uploading.set(false);
+                    toasts_for_pic.show(format!("Upload failed: {}", e), ToastVariant::Error);
+                }
+            }
+        });
+    };
+
+    // -- Profile picture remove handler --
+    //
+    // Clears `picture` from kind-0 (replaceable, so the next publish without
+    // the field removes it). The pod file is deliberately left in place.
+    let toasts_for_pic_remove = toasts;
+    let relay_for_pic_remove = relay.clone();
+    let on_remove_picture = move |_: leptos::ev::MouseEvent| {
+        if !profile_base.get_untracked().may_save() {
+            return;
+        }
+        avatar_url.set(String::new());
+        publish_profile_metadata(
+            auth,
+            relay_for_pic_remove.clone(),
+            toasts_for_pic_remove,
+            profile_saving,
+            nickname.get_untracked().trim().to_string(),
+            claimed_username.get_untracked(),
+            about.get_untracked().trim().to_string(),
+            String::new(),
+            birthday.get_untracked().trim().to_string(),
+            profile_base.get_untracked().into_base(),
+            "Profile picture removed",
+        );
+    };
+
+    // -- Unmute handler --
+    let toasts_for_unmute = toasts;
+    let on_unmute = move |pk: String| {
+        muted.update(|list| list.retain(|p| p != &pk));
+        save_muted_list(&muted.get_untracked());
+        toasts_for_unmute.show("User unmuted", ToastVariant::Success);
+    };
+
+    // -- Nsec export handler --
+    // NOTE: get_privkey_bytes() is the intentional and legitimate path here --
+    // the user explicitly wants to see/export their raw private key. NIP-07
+    // users cannot export because the extension never exposes keys.
+    let toasts_for_nsec = toasts;
+    let on_confirm_nsec = Callback::new(move |_: ()| {
+        if auth.get().is_nip07 {
+            toasts_for_nsec.show(
+                "Private key export is not available with NIP-07 browser extensions. Your key is managed by the extension.",
+                ToastVariant::Warning,
+            );
+            return;
+        }
+        if let Some(privkey) = auth.get_privkey_bytes() {
+            let hex_str = hex::encode(*privkey);
+            // Copy to clipboard
+            crate::utils::clipboard::copy_with_toast(
+                &hex_str,
+                "Private key copied to clipboard",
+                ToastVariant::Warning,
+                toasts_for_nsec,
+            );
+        } else {
+            toasts_for_nsec.show("No private key available", ToastVariant::Error);
+        }
+    });
+
+    // -- Logout handler --
+    let on_logout = move |_| {
+        auth.logout();
+    };
+
+    // -- Pod git clone URL: copy-to-clipboard handler (ADR-089) --
+    let toasts_for_clone = toasts;
+    let on_copy_clone_cmd = move |_| {
+        let cmd = pod_clone_command.get_untracked();
+        if cmd.is_empty() {
+            toasts_for_clone.show("No clone URL available", ToastVariant::Warning);
+            return;
+        }
+        crate::utils::clipboard::copy_with_toast(
+            &cmd,
+            "Clone command copied",
+            ToastVariant::Success,
+            toasts_for_clone,
+        );
+    };
+
+    // -- Username release handler (called from confirm dialog) --
+    let toasts_for_release = toasts;
+    let on_confirm_release = Callback::new(move |_: ()| {
+        release_pending.set(true);
+        let toasts_ok = toasts_for_release;
+        let toasts_err = toasts_for_release;
+        spawn_local_release(release_pending, toasts_ok, toasts_err);
+    });
+
+    view! {
+        <div class="max-w-2xl mx-auto p-4 sm:p-6">
+            // Breadcrumb
+            <div class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+                <A href=base_href("/") attr:class="hover:text-amber-400 transition-colors">"Home"</A>
+                <span class="breadcrumb-separator">{"\u{203A}"}</span>
+                <span class="text-gray-300">"Settings"</span>
+            </div>
+
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent mb-8">
+                "Settings"
+            </h1>
+
+            <div class="space-y-6">
+                // -- Section 0: Username (legacy handle release only) --
+                // The whole card is reactive on `claimed_username` and renders
+                // ONLY when a legacy handle still resolves. We no longer mint
+                // new usernames (onboarding captures a display name only), so a
+                // user without a legacy handle sees no Username section at all —
+                // their display name lives under Profile below (#6).
+                {move || {
+                    claimed_username.get().filter(|name| !name.is_empty()).map(|name| {
+                        let nip05 = claimed_nip05.get().unwrap_or_default();
+                        view! {
+                            <div class="glass-card p-6 space-y-4">
+                                <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                                    {handle_icon()}
+                                    "Username"
+                                </h2>
+                                <div class="border-t border-gray-700/50"></div>
+
+                                <div class="space-y-3">
+                                    <div>
+                                        <span class="text-xs text-gray-500 uppercase tracking-wide">"Current"</span>
+                                        <div class="bg-gray-800 rounded-lg px-3 py-2 mt-1 flex items-center gap-2">
+                                            <span class="text-amber-300 font-mono">"@" {name}</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs text-gray-500 uppercase tracking-wide">"NIP-05"</span>
+                                        <div class="bg-gray-800 rounded-lg px-3 py-2 mt-1">
+                                            <code class="text-xs text-gray-300 font-mono break-all">{nip05}</code>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-3 pt-1">
+                                        <button
+                                            on:click=move |_| confirm_release_open.set(true)
+                                            disabled=move || release_pending.get()
+                                            class="text-sm text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-400 rounded-lg px-4 py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {move || if release_pending.get() {
+                                                "Releasing..."
+                                            } else {
+                                                "Release username"
+                                            }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    })
+                }}
+
+                // -- Section 1: Profile --
+                <div class="glass-card p-6 space-y-4">
+                    <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                        {user_icon()}
+                        "Profile"
+                    </h2>
+                    <div class="border-t border-gray-700/50"></div>
+
+                    <div class="space-y-3">
+                        <div class="space-y-1">
+                            <label class="flex items-center justify-between text-sm font-medium text-gray-300">
+                                <span>"Nickname"</span>
+                                <span
+                                    class=move || {
+                                        let at_limit =
+                                            nickname.get().chars().count() >= MAX_NICKNAME_LEN;
+                                        if at_limit {
+                                            "text-xs font-normal text-amber-400"
+                                        } else {
+                                            "text-xs font-normal text-gray-500"
+                                        }
+                                    }
+                                    aria-live="polite"
+                                >
+                                    {move || {
+                                        format!(
+                                            "{}/{}",
+                                            nickname.get().chars().count(),
+                                            MAX_NICKNAME_LEN,
+                                        )
+                                    }}
+                                </span>
+                            </label>
+                            <input
+                                type="text"
+                                prop:value=move || nickname.get()
+                                on:input=move |ev| nickname.set(event_target_value(&ev))
+                                maxlength=MAX_NICKNAME_LEN.to_string()
+                                class="w-full bg-gray-800 border border-gray-600 focus:border-amber-500 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+                            />
+                            <p class="text-xs text-gray-500">
+                                {move || {
+                                    if nickname.get().chars().count() >= MAX_NICKNAME_LEN {
+                                        "Maximum length reached — nicknames are capped at 50 characters.".to_string()
+                                    } else {
+                                        format!(
+                                            "Your display name, shown next to your posts. Up to {} characters.",
+                                            MAX_NICKNAME_LEN,
+                                        )
+                                    }
+                                }}
+                            </p>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-gray-300">"About"</label>
+                            <textarea
+                                prop:value=move || about.get()
+                                on:input=move |ev| about.set(event_target_value(&ev))
+                                rows="3"
+                                maxlength="256"
+                                placeholder="Tell people about yourself"
+                                class="w-full bg-gray-800 border border-gray-600 focus:border-amber-500 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors resize-none"
+                            />
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-300">"Profile picture"</label>
+                            {move || {
+                                let pic = avatar_url.get().trim().to_string();
+                                let on_remove = on_remove_picture.clone();
+                                (!pic.is_empty()).then(|| view! {
+                                    <div class="flex items-center gap-3">
+                                        <img
+                                            src=pic
+                                            alt="Current profile picture"
+                                            loading="lazy"
+                                            class="w-16 h-16 rounded-full object-cover border border-gray-600"
+                                        />
+                                        <button
+                                            on:click=on_remove
+                                            disabled=move || !profile_base.get().may_save()
+                                            class="text-xs text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-400 rounded px-2 py-1 transition-colors"
+                                        >
+                                            "Remove"
+                                        </button>
+                                    </div>
+                                })
+                            }}
+                            <input
+                                type="file"
+                                accept="image/*"
+                                on:change=on_pic_file
+                                disabled=move || pic_uploading.get() || !profile_base.get().may_save()
+                                class="block w-full text-sm text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-amber-500 file:text-gray-900 hover:file:bg-amber-400 file:cursor-pointer disabled:opacity-50"
+                            />
+                            <p class="text-xs text-gray-500">
+                                {move || if pic_uploading.get() {
+                                    "Uploading to your pod\u{2026}"
+                                } else {
+                                    "Stored in your pod\u{2019}s public media folder and published in your profile. Max 2 MB."
+                                }}
+                            </p>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-gray-300">"Avatar URL"</label>
+                            <input
+                                type="url"
+                                prop:value=move || avatar_url.get()
+                                on:input=move |ev| avatar_url.set(event_target_value(&ev))
+                                placeholder="https://example.com/avatar.jpg"
+                                class="w-full bg-gray-800 border border-gray-600 focus:border-amber-500 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+                            />
+                            <p class="text-xs text-gray-500">"Or paste an external image URL, then Save Profile."</p>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-gray-300">"Birthday"</label>
+                            <input
+                                type="text"
+                                prop:value=move || birthday.get()
+                                on:input=move |ev| birthday.set(event_target_value(&ev))
+                                placeholder="MM-DD (e.g. 03-15)"
+                                maxlength="5"
+                                class="w-full bg-gray-800 border border-gray-600 focus:border-amber-500 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+                            />
+                            <p class="text-xs text-gray-500">"Shown on the Events birthday calendar"</p>
+                        </div>
+                    </div>
+
+                    <button
+                        on:click=on_save_profile
+                        disabled=move || profile_saving.get() || !profile_base.get().may_save()
+                        class="bg-amber-500 hover:bg-amber-400 disabled:bg-gray-600 disabled:cursor-not-allowed text-gray-900 font-semibold px-4 py-2 rounded-lg transition-colors text-sm flex items-center gap-1.5"
+                    >
+                        {move || {
+                            if !profile_base.get().may_save() {
+                                "Loading profile…"
+                            } else if profile_saving.get() {
+                                "Saving..."
+                            } else {
+                                "Save Profile"
+                            }
+                        }}
+                    </button>
+                    {move || {
+                        profile_base
+                            .get()
+                            .show_load_notice(profile_load_slow.get())
+                            .then(|| view! {
+                                <p class="text-xs text-amber-400">
+                                    "Profile not loaded yet. Check your connection."
+                                </p>
+                            })
+                    }}
+
+                    // Real name (admin-only) — separate backend, separate save.
+                    <div class="border-t border-gray-700/50 pt-4 mt-2 space-y-3">
+                        <div class="space-y-1">
+                            <label class="block text-sm font-medium text-gray-300">
+                                "Real name "
+                                <span class="text-xs text-gray-500">"(optional)"</span>
+                            </label>
+                            <input
+                                type="text"
+                                prop:value=move || real_name.get()
+                                on:input=move |ev| real_name.set(event_target_value(&ev))
+                                maxlength="200"
+                                placeholder="e.g. Ada Lovelace"
+                                class="w-full bg-gray-800 border border-gray-600 focus:border-amber-500 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+                            />
+                            <p class="text-xs text-gray-500">
+                                "Visible only to administrators and used to provision your access. It is never published, never shown publicly, and never written to the relay. Your handle is what everyone sees. Clear the field and save to remove it."
+                            </p>
+                        </div>
+                        <button
+                            on:click=on_save_real_name
+                            disabled=move || real_name_saving.get()
+                            class="bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-gray-100 font-semibold px-4 py-2 rounded-lg transition-colors text-sm flex items-center gap-1.5"
+                        >
+                            {move || if real_name_saving.get() { "Saving..." } else { "Save Real Name" }}
+                        </button>
+                    </div>
+                </div>
+
+                // -- Section 2: Muted Users --
+                <div class="glass-card p-6 space-y-4">
+                    <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                        {mute_icon()}
+                        "Muted Users"
+                    </h2>
+                    <div class="border-t border-gray-700/50"></div>
+
+                    {move || {
+                        let list = muted.get();
+                        if list.is_empty() {
+                            view! {
+                                <p class="text-gray-500 text-sm">"No muted users."</p>
+                            }.into_any()
+                        } else {
+                            view! {
+                                <div class="space-y-2">
+                                    {list.into_iter().map(|pk| {
+                                        // Tracked resolver — the enclosing `move ||` closure
+                                        // re-runs when kind-0 metadata fills the cache, so
+                                        // muted users show nicknames as soon as available.
+                                        let pk_for_unmute = pk.clone();
+                                        view! {
+                                            <div class="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2">
+                                                <code class="text-xs text-gray-300 font-mono"><KeyName pubkey=pk.clone() /></code>
+                                                <button
+                                                    on:click=move |_| on_unmute(pk_for_unmute.clone())
+                                                    class="text-xs text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-400 rounded px-2 py-1 transition-colors"
+                                                >
+                                                    "Unmute"
+                                                </button>
+                                            </div>
+                                        }
+                                    }).collect_view()}
+                                </div>
+                            }.into_any()
+                        }
+                    }}
+                </div>
+
+                // -- Section 4: Appearance --
+                <div class="glass-card p-6 space-y-4">
+                    <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                        {palette_icon()}
+                        "Appearance"
+                    </h2>
+                    <div class="border-t border-gray-700/50"></div>
+
+                    // Theme selector
+                    <div class="space-y-2">
+                        <span class="text-sm font-medium text-gray-300">"Theme"</span>
+                        <div class="flex gap-2" role="radiogroup" aria-label="Theme selection">
+                            {[Theme::Dark, Theme::Light, Theme::System].into_iter().map(|t| {
+                                let label = t.label();
+                                let theme_for_class = t.clone();
+                                let theme_for_aria = t.clone();
+                                let theme_for_click = t.clone();
+                                view! {
+                                    <button
+                                        class=move || {
+                                            if prefs.get().theme == theme_for_class {
+                                                "px-4 py-2 rounded-full text-sm font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30 transition-colors"
+                                            } else {
+                                                "px-4 py-2 rounded-full text-sm font-medium text-gray-400 hover:text-white bg-gray-800/50 border border-gray-700 hover:border-gray-600 transition-colors"
+                                            }
+                                        }
+                                        on:click={
+                                            let t = theme_for_click.clone();
+                                            move |_| {
+                                                prefs.update(|p| p.theme = t.clone());
+                                                save_preferences(&prefs.get_untracked());
+                                            }
+                                        }
+                                        role="radio"
+                                        aria-checked=move || {
+                                            (prefs.get().theme == theme_for_aria).to_string()
+                                        }
+                                    >
+                                        {label}
+                                    </button>
+                                }
+                            }).collect_view()}
+                        </div>
+                    </div>
+
+                    // Font size selector
+                    <div class="space-y-2">
+                        <span class="text-sm font-medium text-gray-300">"Text size"</span>
+                        <div class="flex gap-2" role="radiogroup" aria-label="Text size selection">
+                            {FontSize::all_variants().iter().map(|fs| {
+                                let label = fs.label();
+                                let fs_for_class = fs.clone();
+                                let fs_for_aria = fs.clone();
+                                let fs_for_click = fs.clone();
+                                view! {
+                                    <button
+                                        class=move || {
+                                            if prefs.get().font_size == fs_for_class {
+                                                "px-4 py-2 rounded-full text-sm font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30 transition-colors"
+                                            } else {
+                                                "px-4 py-2 rounded-full text-sm font-medium text-gray-400 hover:text-white bg-gray-800/50 border border-gray-700 hover:border-gray-600 transition-colors"
+                                            }
+                                        }
+                                        on:click={
+                                            let fs = fs_for_click.clone();
+                                            move |_| {
+                                                prefs.update(|p| p.font_size = fs.clone());
+                                                save_preferences(&prefs.get_untracked());
+                                            }
+                                        }
+                                        role="radio"
+                                        aria-checked=move || {
+                                            (prefs.get().font_size == fs_for_aria).to_string()
+                                        }
+                                    >
+                                        {label}
+                                    </button>
+                                }
+                            }).collect_view()}
+                        </div>
+                        <p class="text-xs text-gray-500">"Scales text across the whole forum."</p>
+                    </div>
+
+                    // Density selector
+                    <div class="space-y-2">
+                        <span class="text-sm font-medium text-gray-300">"Density"</span>
+                        <div class="flex gap-2" role="radiogroup" aria-label="Density selection">
+                            {Density::all_variants().iter().map(|d| {
+                                let label = d.label();
+                                let d_for_class = d.clone();
+                                let d_for_aria = d.clone();
+                                let d_for_click = d.clone();
+                                view! {
+                                    <button
+                                        class=move || {
+                                            if prefs.get().density == d_for_class {
+                                                "px-4 py-2 rounded-full text-sm font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30 transition-colors"
+                                            } else {
+                                                "px-4 py-2 rounded-full text-sm font-medium text-gray-400 hover:text-white bg-gray-800/50 border border-gray-700 hover:border-gray-600 transition-colors"
+                                            }
+                                        }
+                                        on:click={
+                                            let d = d_for_click.clone();
+                                            move |_| {
+                                                prefs.update(|p| p.density = d.clone());
+                                                save_preferences(&prefs.get_untracked());
+                                            }
+                                        }
+                                        role="radio"
+                                        aria-checked=move || {
+                                            (prefs.get().density == d_for_aria).to_string()
+                                        }
+                                    >
+                                        {label}
+                                    </button>
+                                }
+                            }).collect_view()}
+                        </div>
+                        <p class="text-xs text-gray-500">"Tightens spacing in lists and cards."</p>
+                    </div>
+
+                    // Show technical details toggle
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <div>
+                            <span class="text-sm text-gray-300">"Show technical details"</span>
+                            <p class="text-xs text-gray-500 mt-0.5">"Display protocol names, public keys, and relay URLs"</p>
+                        </div>
+                        <input
+                            type="checkbox"
+                            prop:checked=move || prefs.get().show_technical_details
+                            on:change=move |_| {
+                                prefs.update(|p| p.show_technical_details = !p.show_technical_details);
+                                save_preferences(&prefs.get_untracked());
+                            }
+                            class="rounded border-gray-600 bg-gray-900 text-amber-500 focus:ring-amber-500"
+                        />
+                    </label>
+
+                    // Reduced motion toggle
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <div>
+                            <span class="text-sm text-gray-300">"Reduced motion"</span>
+                            <p class="text-xs text-gray-500 mt-0.5">"Minimise animations and transitions, regardless of your system setting"</p>
+                        </div>
+                        <input
+                            type="checkbox"
+                            prop:checked=move || prefs.get().reduced_motion
+                            on:change=move |_| {
+                                prefs.update(|p| p.reduced_motion = !p.reduced_motion);
+                                save_preferences(&prefs.get_untracked());
+                            }
+                            class="rounded border-gray-600 bg-gray-900 text-amber-500 focus:ring-amber-500"
+                        />
+                    </label>
+                </div>
+
+                // -- Section 4b: Notifications --
+                <div class="glass-card p-6 space-y-4">
+                    <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                        {bell_icon()}
+                        "Notifications"
+                    </h2>
+                    <div class="border-t border-gray-700/50"></div>
+
+                    <div class="space-y-2">
+                        <span class="text-sm font-medium text-gray-300">"Notification level"</span>
+                        <select
+                            class="w-full bg-gray-800 border border-gray-600 focus:border-amber-500 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors text-sm"
+                            on:change=move |ev| {
+                                let val = event_target_value(&ev);
+                                let level = match val.as_str() {
+                                    "MentionsOnly" => NotificationLevel::MentionsOnly,
+                                    "None" => NotificationLevel::None,
+                                    _ => NotificationLevel::All,
+                                };
+                                prefs.update(|p| p.notification_level = level);
+                                save_preferences(&prefs.get_untracked());
+                            }
+                            aria-label="Notification level"
+                        >
+                            {NotificationLevel::all_variants().iter().map(|level| {
+                                let val = format!("{:?}", level);
+                                let label = level.label();
+                                let level_cmp = level.clone();
+                                view! {
+                                    <option
+                                        value=val.clone()
+                                        selected=move || prefs.get().notification_level == level_cmp
+                                    >
+                                        {label}
+                                    </option>
+                                }
+                            }).collect_view()}
+                        </select>
+                    </div>
+                </div>
+
+                // -- Section 4b-ii: Push notifications (ADR-2023) --
+                // Renders nothing unless the browser supports push and the
+                // relay has Web Push switched on.
+                <crate::components::push_settings::PushSettings />
+
+                // -- Section 4c: Content --
+                <div class="glass-card p-6 space-y-4">
+                    <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                        {content_icon()}
+                        "Content"
+                    </h2>
+                    <div class="border-t border-gray-700/50"></div>
+
+                    <div class="space-y-3">
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-sm text-gray-300">"Show link previews"</span>
+                            <input
+                                type="checkbox"
+                                prop:checked=move || prefs.get().show_link_previews
+                                on:change=move |_| {
+                                    prefs.update(|p| p.show_link_previews = !p.show_link_previews);
+                                    save_preferences(&prefs.get_untracked());
+                                }
+                                class="rounded border-gray-600 bg-gray-900 text-amber-500 focus:ring-amber-500"
+                            />
+                        </label>
+                    </div>
+                </div>
+
+                // -- Section 4c-ii: Games (practice poker table) --
+                // Offered only where the operator switched POKER on and the
+                // member wallet is on; the preference is the third gate.
+                {crate::poker::site_enabled().then(|| view! {
+                    <div class="glass-card p-6 space-y-4">
+                        <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                            {games_icon()}
+                            "Games"
+                        </h2>
+                        <div class="border-t border-gray-700/50"></div>
+
+                        <div class="space-y-1">
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <span class="text-sm text-gray-300">"Poker table"</span>
+                                <input
+                                    type="checkbox"
+                                    prop:checked=move || prefs.get().poker_table
+                                    on:change=move |_| {
+                                        prefs.update(|p| p.poker_table = !p.poker_table);
+                                        save_preferences(&prefs.get_untracked());
+                                    }
+                                    class="rounded border-gray-600 bg-gray-900 text-amber-500 focus:ring-amber-500"
+                                />
+                            </label>
+                            <p class="text-xs text-gray-500">
+                                "Heads-up limit hold'em: practice chips against the house bot, and where the forum runs a house seat, DREAM hands against the house or another member."
+                            </p>
+                        </div>
+
+                        {crate::poker::PokerConfig::load().coach().is_some().then(|| view! {
+                            <div class="space-y-1">
+                                <label class="flex items-center justify-between cursor-pointer">
+                                    <span class="text-sm text-gray-300">"Poker coach (asks JunkieJarvis for advice on the practice table)"</span>
+                                    <input
+                                        type="checkbox"
+                                        prop:checked=move || prefs.get().poker_coach
+                                        on:change=move |_| {
+                                            prefs.update(|p| p.poker_coach = !p.poker_coach);
+                                            save_preferences(&prefs.get_untracked());
+                                        }
+                                        class="rounded border-gray-600 bg-gray-900 text-amber-500 focus:ring-amber-500"
+                                    />
+                                </label>
+                                <p class="text-xs text-gray-500">
+                                    "On your turn at the practice table, the table sends the hand to the coach by private message and shows its advice under the table. These messages stay out of your inbox."
+                                </p>
+                            </div>
+                        })}
+                    </div>
+                })}
+
+                // -- Section 4d: Pod git repository (ADR-089) --
+                <div class="glass-card p-6 space-y-4">
+                    <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                        {git_icon()}
+                        "Pod git repository"
+                    </h2>
+                    <div class="border-t border-gray-700/50"></div>
+
+                    <div class="space-y-3">
+                        <p class="text-sm text-gray-400">
+                            "Your pod can be cloned as a git repository on deployments where the operator has enabled git-init at provisioning."
+                        </p>
+                        <div>
+                            <span class="text-xs text-gray-500 uppercase tracking-wide">"Clone command"</span>
+                            <div class="bg-gray-800 rounded-lg px-3 py-2 mt-1">
+                                <code class="text-xs text-amber-300 font-mono break-all">
+                                    {move || pod_clone_command.get()}
+                                </code>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 pt-1">
+                            <button
+                                on:click=on_copy_clone_cmd
+                                class="text-sm bg-amber-500 hover:bg-amber-400 text-gray-900 font-semibold px-4 py-2 rounded-lg transition-colors"
+                            >
+                                "Copy"
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500">
+                            "Available on pods with git-init enabled (see your operator's deployment). Cloudflare Workers deployments cannot auto-init git — see ADR-089."
+                        </p>
+                    </div>
+                </div>
+
+                // -- Section 4e: Devices (ADR-099, gated) --
+                // Hidden entirely unless DEVICE_KEYS_ENABLED is set, so the
+                // feature is inert by default with zero behaviour change.
+                <Show when=move || device_keys_on>
+                    <div class="glass-card p-6 space-y-4">
+                        <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                            {device_icon()}
+                            "Devices"
+                        </h2>
+                        <div class="border-t border-gray-700/50"></div>
+
+                        <p class="text-sm text-gray-400">
+                            "Phones and other devices that can sign in as you with a "
+                            <span class="text-gray-300">"revocable device key"</span>
+                            ". Revoking a device kills its access immediately without touching your main account."
+                        </p>
+
+                        <Show when=move || devices_error.get().is_some()>
+                            <p class="text-sm text-red-400" data-testid="devices-error">
+                                {move || devices_error.get().unwrap_or_default()}
+                            </p>
+                        </Show>
+
+                        // Device list.
+                        <div class="space-y-2">
+                            <Show
+                                when=move || !devices_list.get().is_empty()
+                                fallback=move || view! {
+                                    <p class="text-sm text-gray-500" data-testid="devices-empty">
+                                        {move || if devices_loading.get() {
+                                            "Loading devices…"
+                                        } else {
+                                            "No devices yet. Add one below to sign in on your phone."
+                                        }}
+                                    </p>
+                                }
+                            >
+                                <For
+                                    each=move || devices_list.get()
+                                    key=|d| d.device_pubkey.clone()
+                                    children=move |d| {
+                                        let pk = d.device_pubkey.clone();
+                                        let active = d.is_active();
+                                        let label = d.label.clone().unwrap_or_else(|| "Unnamed device".to_string());
+                                        let short = shorten_pubkey(&d.device_pubkey);
+                                        let added = if d.created_at > 0 {
+                                            crate::utils::format_relative_time(d.created_at)
+                                        } else {
+                                            String::new()
+                                        };
+                                        let revoke_pk = pk.clone();
+                                        view! {
+                                            <div class="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2">
+                                                <div class="min-w-0">
+                                                    <p class="text-sm text-white truncate">
+                                                        {label}
+                                                        {(!active).then(|| view! {
+                                                            <span class="ml-2 text-xs text-red-400">"(revoked)"</span>
+                                                        })}
+                                                    </p>
+                                                    <p class="text-xs text-gray-500 font-mono truncate">
+                                                        <CopyKey full=pk.clone() display=short />
+                                                        {(!added.is_empty()).then(|| format!(" · {added}"))}
+                                                    </p>
+                                                </div>
+                                                <Show when=move || active>
+                                                    <button
+                                                        on:click={
+                                                            let on_revoke_device = on_revoke_device;
+                                                            let revoke_pk = revoke_pk.clone();
+                                                            move |_| on_revoke_device(revoke_pk.clone())
+                                                        }
+                                                        class="text-sm text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-400 rounded-lg px-3 py-1 transition-colors flex-shrink-0"
+                                                        data-testid="device-revoke"
+                                                    >
+                                                        "Revoke"
+                                                    </button>
+                                                </Show>
+                                            </div>
+                                        }
+                                    }
+                                />
+                            </Show>
+                        </div>
+
+                        // Add-a-device action.
+                        <div class="border-t border-gray-700/50 pt-3 space-y-3">
+                            <button
+                                on:click=on_add_device
+                                prop:disabled=move || new_device_busy.get()
+                                class="text-sm bg-amber-500 hover:bg-amber-400 disabled:bg-gray-600 disabled:cursor-not-allowed text-gray-900 font-semibold px-4 py-2 rounded-lg transition-colors"
+                                data-testid="device-add"
+                            >
+                                {move || if new_device_busy.get() { "Adding…" } else { "Add a device" }}
+                            </button>
+
+                            // /connect QR for the freshly-added device (scan/print).
+                            <Show when=move || !new_device_connect.get().is_empty()>
+                                <div class="bg-gray-800 rounded-lg p-3 space-y-2">
+                                    <p class="text-xs text-amber-300">
+                                        "Scan this with your phone to sign in. It grants forum access as you — revoke it above if the phone is lost."
+                                    </p>
+                                    <div class="flex flex-col sm:flex-row items-center gap-3">
+                                        <div
+                                            class="bg-white p-2 rounded flex-shrink-0 [&_svg]:w-40 [&_svg]:h-40"
+                                            inner_html=move || new_device_qr.get()
+                                            data-testid="device-qr"
+                                        ></div>
+                                        <code class="text-[10px] text-gray-300 font-mono break-all min-w-0">
+                                            {move || new_device_connect.get()}
+                                        </code>
+                                    </div>
+                                </div>
+                            </Show>
+                        </div>
+                    </div>
+                </Show>
+
+                // -- Section 4f: Install mobile app (ADR-109, gated) --
+                // Visible only to a non-admin member with exactly one locked
+                // zone (ADR-107 predicate) AND when BBS_PWA_ENABLED is set.
+                <Show when=move || {
+                    pwa_feature_on
+                        && crate::utils::pwa_install::install_option_visible(
+                            &crate::stores::zones::load_zones(),
+                            &za.cohorts.get(),
+                            za.is_admin.get(),
+                        )
+                }>
+                    <div class="glass-card p-6 space-y-4">
+                        <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                            {install_icon()}
+                            "Install the app"
+                        </h2>
+                        <div class="border-t border-gray-700/50"></div>
+
+                        <p class="text-sm text-gray-400">
+                            "Add the forum to your phone or computer and open it like an app — signed in, with access to all your zones, no password needed."
+                        </p>
+
+                        // Consent warning (verbatim, ADR-109 §11.2 — do not alter).
+                        <div class="bg-gray-800/70 border border-amber-500/30 rounded-lg p-3">
+                            <p class="text-sm text-amber-100/90 leading-relaxed">
+                                "This saves your key on this phone so the app can sign you in without a password. Anyone who unlocks this phone can read your zone and post as you. If your phone is lost or stolen, tell an admin at once to rotate your key. 'Forget this device' removes the saved key from this phone only — it does not protect a phone already in someone else's hands."
+                            </p>
+                        </div>
+
+                        // Passkey / NIP-07: nothing to bake here; the app rebinds.
+                        <Show when=move || !pwa_can_bake.get()>
+                            <p class="text-sm text-gray-400" data-testid="pwa-passkey-note">
+                                "This account signs in with a passkey or browser extension, so there's no saved key to copy across. Install the app, then confirm once on first launch — a passkey tap, or paste your recovery key."
+                            </p>
+                        </Show>
+
+                        // Explicit consent — Install stays disabled until ticked.
+                        <label class="flex items-start gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || pwa_consented.get()
+                                on:change=move |_| pwa_consented.update(|c| *c = !*c)
+                                class="mt-1 rounded border-gray-600 bg-gray-900 text-amber-500 focus:ring-amber-500"
+                                data-testid="pwa-consent"
+                            />
+                            <span class="text-sm text-gray-300">
+                                "I understand and want to install this zone as an app on this device."
+                            </span>
+                        </label>
+
+                        // iOS: manual Add-to-Home-Screen steps + rebind note.
+                        <Show when=move || pwa_is_ios>
+                            <div class="bg-gray-800 rounded-lg p-3 space-y-2" data-testid="pwa-ios-steps">
+                                <p class="text-xs text-amber-300 font-semibold">"On iPhone / iPad"</p>
+                                <ol class="list-decimal list-inside text-sm text-gray-300 space-y-1">
+                                    {crate::utils::pwa_install::ios_instructions()
+                                        .into_iter()
+                                        .map(|s| view! { <li>{s}</li> })
+                                        .collect_view()}
+                                </ol>
+                                <p class="text-xs text-gray-400">
+                                    {crate::utils::pwa_install::ios_rebind_note()}
+                                </p>
+                            </div>
+                        </Show>
+
+                        <div class="flex flex-wrap items-center gap-3 pt-1">
+                            <button
+                                on:click=on_pwa_install
+                                prop:disabled=move || !pwa_consented.get() || pwa_busy.get()
+                                class="text-sm bg-amber-500 hover:bg-amber-400 disabled:bg-gray-600 disabled:cursor-not-allowed text-gray-900 font-semibold px-4 py-2 rounded-lg transition-colors"
+                                data-testid="pwa-install"
+                            >
+                                {move || {
+                                    if pwa_busy.get() {
+                                        "Saving…"
+                                    } else if pwa_is_ios {
+                                        "Continue to the app"
+                                    } else if pwa_can_bake.get() {
+                                        "Install app"
+                                    } else {
+                                        "Open the app to install"
+                                    }
+                                }}
+                            </button>
+
+                            <Show when=move || pwa_baked.get()>
+                                <button
+                                    on:click=on_pwa_forget
+                                    class="text-sm text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-400 rounded-lg px-3 py-1 transition-colors"
+                                    data-testid="pwa-forget"
+                                >
+                                    "Forget this device"
+                                </button>
+                            </Show>
+                        </div>
+
+                        // Manual install guidance — shown when this browser
+                        // never offered an install prompt (Firefox desktop,
+                        // Safari on Mac, withheld Chromium event). The key is
+                        // already baked at this point, so whatever route the
+                        // user takes (install, dock, bookmark), sign-in holds.
+                        <Show when=move || pwa_show_manual.get()>
+                            <div class="bg-gray-800 rounded-lg p-3 space-y-2" data-testid="pwa-manual-steps">
+                                {
+                                    let (heading, steps) =
+                                        crate::utils::pwa_install::manual_install_steps(
+                                            crate::utils::pwa_install::browser_family(),
+                                        );
+                                    view! {
+                                        <p class="text-xs text-amber-300 font-semibold">{heading}</p>
+                                        <ol class="list-decimal list-inside text-sm text-gray-300 space-y-1">
+                                            {steps.into_iter().map(|s| view! { <li>{s}</li> }).collect_view()}
+                                        </ol>
+                                    }
+                                }
+                            </div>
+                        </Show>
+
+                        // Status line.
+                        <p class="text-xs text-gray-500" data-testid="pwa-status">
+                            {move || {
+                                if pwa_baked.get() {
+                                    "Saved on this device."
+                                } else {
+                                    "Not installed on this device."
+                                }
+                            }}
+                        </p>
+                    </div>
+                </Show>
+
+                // -- Section 5: Account --
+                <div class="glass-card p-6 space-y-4">
+                    <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                        {key_icon()}
+                        "Account"
+                    </h2>
+                    <div class="border-t border-gray-700/50"></div>
+
+                    <div class="space-y-3">
+                        <div>
+                            <span class="text-sm text-gray-400">"Public Key"</span>
+                            <div class="bg-gray-800 rounded-lg px-3 py-2 mt-1">
+                                <code class="text-xs text-amber-300 font-mono break-all">
+                                    {move || pubkey_full.get()}
+                                </code>
+                            </div>
+                        </div>
+                        <div class="text-sm text-gray-400">
+                            "Display: "
+                            <span class="text-gray-300">
+                                {move || match auth.pubkey().get() {
+                                    Some(pk) => view! { <CopyKey full=pk /> }.into_any(),
+                                    None => "not logged in".into_any(),
+                                }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 pt-2">
+                        <button
+                            on:click=move |_| {
+                                if auth.get().is_nip07 {
+                                    // Show toast immediately for NIP-07 — no confirmation dialog needed
+                                    // Reuse the handle bound at component setup:
+                                    // expect_context panics in a DOM handler (#32).
+                                    toasts.show(
+                                        "Private key export is not available with NIP-07 browser extensions. Your key is managed by the extension.",
+                                        ToastVariant::Warning,
+                                    );
+                                } else {
+                                    confirm_nsec_open.set(true);
+                                }
+                            }
+                            class=move || {
+                                if auth.get().is_nip07 {
+                                    "text-sm text-gray-500 border border-gray-600 rounded-lg px-4 py-2 transition-colors cursor-not-allowed opacity-60"
+                                } else {
+                                    "text-sm text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-400 rounded-lg px-4 py-2 transition-colors"
+                                }
+                            }
+                        >
+                            {move || if auth.get().is_nip07 {
+                                "Export Private Key (unavailable)"
+                            } else {
+                                "Export Private Key"
+                            }}
+                        </button>
+                        <button
+                            on:click=on_logout
+                            class="text-sm text-gray-400 hover:text-white border border-gray-600 hover:border-gray-500 rounded-lg px-4 py-2 transition-colors hover:bg-gray-800"
+                        >
+                            "Logout"
+                        </button>
+                    </div>
+                </div>
+
+                // -- Section 6: About / Version (issue #27) --
+                // BUILD_VERSION / BUILD_HASH come from window.__ENV__ injected
+                // by the website deploy; fall back to dev/local so the row is
+                // always meaningful, even in local Trunk serve builds.
+                <div class="glass-card p-6 space-y-4" data-testid="settings-about">
+                    <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                        {info_icon()}
+                        "About"
+                    </h2>
+                    <div class="border-t border-gray-700/50"></div>
+
+                    <div>
+                        <span class="text-xs text-gray-500 uppercase tracking-wide">"Build"</span>
+                        <div class="bg-gray-800 rounded-lg px-3 py-2 mt-1">
+                            <code class="text-xs text-amber-300 font-mono break-all" data-testid="build-version">
+                                {move || format!("Build {} ({})", build_version(), build_hash())}
+                            </code>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">
+                            "Use this to confirm whether a deployed build includes a given fix."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            // Confirm dialog for nsec export
+            <ConfirmDialog
+                is_open=confirm_nsec_open
+                title="Export Private Key".to_string()
+                message="This will copy your raw private key to the clipboard. Anyone with this key has full control of your Nostr identity. Only proceed if you understand the risks.".to_string()
+                confirm_label="Copy to Clipboard".to_string()
+                on_confirm=on_confirm_nsec
+                variant=ConfirmVariant::Danger
+            />
+
+            // Confirm dialog for username release
+            <ConfirmDialog
+                is_open=confirm_release_open
+                title="Release Username".to_string()
+                message="This will release your username and free it for anyone else to claim. Your NIP-05 handle will stop resolving. You can claim a new username at any time.".to_string()
+                confirm_label="Release".to_string()
+                on_confirm=on_confirm_release
+                variant=ConfirmVariant::Danger
+            />
+        </div>
+    }
+}
+
+/// Spawn the async release-username flow and surface success/error toasts.
+///
+/// Extracted to a free function so that the `release_username` future is not
+/// reified inside the event-handler closure (which would force `Send` bounds
+/// the rest of the page does not satisfy).
+fn spawn_local_release(
+    pending: RwSignal<bool>,
+    toasts_ok: crate::components::toast::ToastStore,
+    toasts_err: crate::components::toast::ToastStore,
+) {
+    wasm_bindgen_futures::spawn_local(async move {
+        match release_username().await {
+            Ok(()) => {
+                pending.set(false);
+                toasts_ok.show("Username released", ToastVariant::Success);
+            }
+            Err(e) => {
+                pending.set(false);
+                toasts_err.show(format!("Release failed: {}", e), ToastVariant::Error);
+            }
+        }
+    });
+}
+
+/// Build and publish the kind-0 profile metadata event, preserving every
+/// field the Settings page manages (display name, claimed username + NIP-05,
+/// about, picture, birthday).
+///
+/// The nickname is published as `display_name` ONLY — it is never a
+/// username claim (QA HIGH bug #5a: saving "Carol QA" used to be
+/// presented as a claimed handle, violating the [a-z0-9_-]{3,30}
+/// rule and minting an invalid NIP-05). When a username IS claimed,
+/// it keeps owning the `name` + `nip05` fields; username changes go
+/// through the explicit, validated claim flow.
+///
+/// Whether the member's existing kind-0 has been fetched yet.
+///
+/// Saving before it has would publish a kind-0 without the fields Settings does
+/// not manage and so delete them from the relay (kind-0 is replaceable).
+#[derive(Clone, Debug, PartialEq)]
+enum ProfileHydration {
+    /// The relay has not answered yet.
+    Pending,
+    /// The existing kind-0 object.
+    Loaded(serde_json::Value),
+    /// The relay signalled end-of-stored-events without a kind-0. A timeout
+    /// never produces this: silence is not proof of absence.
+    NotFound,
+}
+
+impl ProfileHydration {
+    /// Whether a save may proceed now.
+    fn may_save(&self) -> bool {
+        !matches!(self, ProfileHydration::Pending)
+    }
+
+    /// Whether to show "Profile not loaded yet": still waiting after the wait
+    /// has run out.
+    fn show_load_notice(&self, wait_elapsed: bool) -> bool {
+        wait_elapsed && !self.may_save()
+    }
+
+    /// The object to merge managed fields into: the loaded kind-0, or an empty
+    /// object when none exists.
+    fn into_base(self) -> serde_json::Value {
+        match self {
+            ProfileHydration::Loaded(v) => v,
+            _ => serde_json::Value::Object(serde_json::Map::new()),
+        }
+    }
+}
+
+/// Whether a callback created for subscription `captured` may still act:
+/// `current` is the live generation, or `None` once the page has unmounted and
+/// its signals are disposed. A newer subscription (reconnect, account switch)
+/// supersedes it.
+fn generation_current(captured: u64, current: Option<u64>) -> bool {
+    current == Some(captured)
+}
+
+/// The kind-0 fields the Settings page owns.
+struct ManagedFields<'a> {
+    display_name: &'a str,
+    claimed: Option<&'a str>,
+    about: &'a str,
+    picture: &'a str,
+    birthday: &'a str,
+}
+
+/// Merge the Settings-managed fields into the member's existing kind-0 object.
+///
+/// Kind-0 is replaceable, so anything absent from the published event is lost
+/// for good. Starting from the full hydrated object keeps every field Settings
+/// does not manage (`lud16`, `banner`, `website`, fields set from other
+/// clients). `display_name` and `name` are always written; `nip05` is set when
+/// a username is claimed, and otherwise removed only if it is an unclaimed
+/// handle on our own host (a foreign-host value is kept). `about`,
+/// `picture` and `birthday` are removed when empty, which is how clearing them
+/// works. A non-object `existing` is treated as no prior kind-0.
+fn merge_profile_fields(
+    existing: serde_json::Value,
+    managed: ManagedFields<'_>,
+) -> serde_json::Value {
+    use serde_json::Value;
+    let mut obj = match existing {
+        Value::Object(m) => m,
+        _ => serde_json::Map::new(),
+    };
+    obj.insert(
+        "display_name".into(),
+        Value::String(managed.display_name.to_string()),
+    );
+    match managed.claimed {
+        Some(username) => {
+            obj.insert("name".into(), Value::String(username.to_string()));
+            obj.insert(
+                "nip05".into(),
+                Value::String(format!("{}@{}", username, NIP05_USERNAME_HOST)),
+            );
+        }
+        None => {
+            obj.insert(
+                "name".into(),
+                Value::String(managed.display_name.to_string()),
+            );
+            // A handle on our own host that is no longer claimed is not backed
+            // by the host's nostr.json (or belongs to a new holder): drop it.
+            // A handle on any other host is not ours to touch.
+            let own_suffix = format!("@{}", NIP05_USERNAME_HOST).to_ascii_lowercase();
+            let stale_own = obj
+                .get("nip05")
+                .and_then(Value::as_str)
+                .is_some_and(|v| v.to_ascii_lowercase().ends_with(&own_suffix));
+            if stale_own {
+                obj.remove("nip05");
+            }
+        }
+    }
+    for (key, value) in [
+        ("about", managed.about),
+        ("picture", managed.picture),
+        ("birthday", managed.birthday),
+    ] {
+        if value.is_empty() {
+            obj.remove(key);
+        } else {
+            obj.insert(key.into(), Value::String(value.to_string()));
+        }
+    }
+    Value::Object(obj)
+}
+
+/// Shared by the Save Profile button, the picture upload flow, and the
+/// picture Remove flow so kind-0 (a replaceable event) is always rebuilt
+/// from the full field set and never clobbers sibling fields.
+#[allow(clippy::too_many_arguments)]
+fn publish_profile_metadata(
+    auth: crate::auth::AuthStore,
+    relay: RelayConnection,
+    toasts: crate::components::toast::ToastStore,
+    saving: RwSignal<bool>,
+    name: String,
+    claimed: Option<String>,
+    bio: String,
+    pic: String,
+    bday: String,
+    base: serde_json::Value,
+    success_msg: &'static str,
+) {
+    let pubkey_hex = match auth.pubkey().get_untracked() {
+        Some(pk) => pk,
+        None => {
+            toasts.show("Not authenticated", ToastVariant::Error);
+            return;
+        }
+    };
+
+    saving.set(true);
+
+    let merged = merge_profile_fields(
+        base,
+        ManagedFields {
+            display_name: &name,
+            claimed: claimed.as_deref(),
+            about: &bio,
+            picture: &pic,
+            birthday: &bday,
+        },
+    );
+
+    let content = serde_json::to_string(&merged).unwrap_or_default();
+
+    let unsigned = UnsignedEvent {
+        pubkey: pubkey_hex,
+        created_at: (js_sys::Date::now() / 1000.0) as u64,
+        kind: 0,
+        tags: vec![],
+        content,
+    };
+
+    wasm_bindgen_futures::spawn_local(async move {
+        match auth.sign_event_async(unsigned).await {
+            Ok(signed) => {
+                let name_for_ack = name.clone();
+                let avatar_for_ack = if pic.is_empty() {
+                    None
+                } else {
+                    Some(pic.clone())
+                };
+                let ack = Rc::new(move |accepted: bool, message: String| {
+                    saving.set(false);
+                    if accepted {
+                        auth.set_profile(Some(name_for_ack.clone()), avatar_for_ack.clone());
+                        toasts.show(success_msg, ToastVariant::Success);
+                    } else {
+                        toasts.show(
+                            format!("Profile rejected: {}", message),
+                            ToastVariant::Error,
+                        );
+                    }
+                });
+                if let Err(e) = relay.publish_with_ack(&signed, Some(ack)) {
+                    saving.set(false);
+                    toasts.show(format!("Publish failed: {}", e), ToastVariant::Error);
+                }
+            }
+            Err(e) => {
+                saving.set(false);
+                toasts.show(format!("Failed to sign: {}", e), ToastVariant::Error);
+            }
+        }
+    });
+}
+
+/// Whether `mime` is an accepted avatar type. SVG is refused: the pod serves
+/// stored bytes with the declared type, so an SVG carrying a script would be a
+/// stored XSS when opened directly.
+fn avatar_type_allowed(mime: &str) -> bool {
+    matches!(
+        mime,
+        "image/png" | "image/jpeg" | "image/webp" | "image/gif"
+    )
+}
+
+/// Whether a kind-0 event may hydrate the profile form for `requested`. The
+/// relay is untrusted: a validly signed kind-0 from another author must not
+/// seed fields the member then re-signs as their own.
+fn kind0_is_for(event_pubkey: &str, requested: &str) -> bool {
+    event_pubkey.eq_ignore_ascii_case(requested)
+}
+
+/// Derive a timestamped pod filename for an uploaded avatar from its MIME
+/// type, e.g. `avatar-1765432100.png`. The timestamp busts client caches
+/// when a user replaces their picture.
+fn avatar_filename(mime: &str) -> String {
+    let ext = match mime {
+        "image/png" => "png",
+        "image/jpeg" => "jpg",
+        "image/gif" => "gif",
+        "image/webp" => "webp",
+        "image/avif" => "avif",
+        _ => "img",
+    };
+    format!("avatar-{}.{}", (js_sys::Date::now() / 1000.0) as u64, ext)
+}
+
+/// Provision the caller's Solid pod (`POST {POD_API}/.provision`, NIP-98
+/// authed — the pod owner is the authed pubkey).
+///
+/// Pods are provisioned eagerly at signup; this mirrors
+/// `pages::signup::provision_pod` for accounts that predate eager
+/// provisioning. Called once when an avatar upload 404s, after which the
+/// upload is retried. 201 = created, 409 = already exists; both are success.
+async fn provision_pod(auth: crate::auth::AuthStore) -> Result<(), String> {
+    // Per-pod endpoint: POST /pods/{pubkey}/.provision (a bare /.provision is
+    // 404, leaving the pod unprovisioned so media uploads 403 on the WAC gate).
+    let pubkey = auth.pubkey().get_untracked().ok_or("no pubkey")?;
+    let url = format!("{}/pods/{}/.provision", POD_API, pubkey);
+    let signer = auth.get_signer().ok_or("no signer")?;
+    let token = crate::auth::nip98::create_nip98_token_with_signer(&*signer, &url, "POST", None)
+        .await
+        .map_err(|e| format!("nip98: {e}"))?;
+    let win = web_sys::window().ok_or("no window")?;
+    let init = web_sys::RequestInit::new();
+    init.set_method("POST");
+    let headers = web_sys::Headers::new().map_err(|e| format!("{e:?}"))?;
+    headers
+        .set("Authorization", &format!("Nostr {token}"))
+        .map_err(|e| format!("{e:?}"))?;
+    init.set_headers(&headers);
+    let req = web_sys::Request::new_with_str_and_init(&url, &init).map_err(|e| format!("{e:?}"))?;
+    let resp_val = JsFuture::from(win.fetch_with_request(&req))
+        .await
+        .map_err(|e| format!("{e:?}"))?;
+    let resp: web_sys::Response = resp_val
+        .dyn_into()
+        .map_err(|_| "bad response".to_string())?;
+    match resp.status() {
+        201 | 409 => Ok(()),
+        s => Err(format!("HTTP {s}")),
+    }
+}
+
+// -- SVG icon helpers ---------------------------------------------------------
+
+/// After a bake (or for a passkey/NIP-07 session that has nothing to bake),
+/// fire the stashed install prompt (the forum carries its own manifest, so
+/// `beforeinstallprompt` fires on this very page). When no prompt is
+/// available: iOS keeps the one-shot hand-off (its Add-to-Home-Screen steps
+/// are already on screen), every other browser gets inline manual guidance
+/// (`show_manual`) — Firefox desktop cannot install at all and Safari on Mac
+/// uses File → Add to Dock, so a redirect would just reload this page.
+fn proceed_to_install(zone_id: String, show_manual: RwSignal<bool>) {
+    use crate::utils::pwa_install;
+    if pwa_install::deferred_prompt_available() {
+        wasm_bindgen_futures::spawn_local(async move {
+            if !pwa_install::trigger_prompt().await {
+                if pwa_install::platform_is_ios() {
+                    pwa_install::open_installed_app(&zone_id);
+                } else {
+                    show_manual.set(true);
+                }
+            }
+        });
+    } else if pwa_install::platform_is_ios() {
+        pwa_install::open_installed_app(&zone_id);
+    } else {
+        show_manual.set(true);
+    }
+}
+
+fn section_icon(d: &'static str) -> impl IntoView {
+    view! {
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d=d/>
+        </svg>
+    }
+}
+fn user_icon() -> impl IntoView {
+    section_icon("M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M16 7a4 4 0 11-8 0 4 4 0 018 0")
+}
+fn handle_icon() -> impl IntoView {
+    section_icon("M16 9a4 4 0 11-4-4M16 9v3a2 2 0 002 2M21 12a9 9 0 11-18 0 9 9 0 0118 0")
+}
+fn mute_icon() -> impl IntoView {
+    section_icon("M1 1l22 22M9 9v3a3 3 0 005.12 2.12M15 9.34V4a3 3 0 00-5.94-.6M17 16.95A7 7 0 015 12v-2m14 0v2c0 .38-.03.75-.08 1.12M12 19v4M8 23h8")
+}
+fn games_icon() -> impl IntoView {
+    // A poker chip: rim, inner ring, and four edge marks.
+    section_icon("M12 2a10 10 0 100 20 10 10 0 000-20zM12 7a5 5 0 100 10 5 5 0 000-10zM12 2v5M12 17v5M2 12h5M17 12h5")
+}
+fn device_icon() -> impl IntoView {
+    // Smartphone outline.
+    section_icon("M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zM11 18h2")
+}
+fn install_icon() -> impl IntoView {
+    // Smartphone with a download arrow (install to home screen).
+    section_icon("M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2zM12 7v6m0 0l-2.5-2.5M12 13l2.5-2.5M10 18h4")
+}
+fn palette_icon() -> impl IntoView {
+    section_icon("M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 011.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z")
+}
+fn key_icon() -> impl IntoView {
+    section_icon("M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4")
+}
+fn bell_icon() -> impl IntoView {
+    section_icon("M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0")
+}
+fn content_icon() -> impl IntoView {
+    section_icon("M4 6h16M4 12h16M4 18h7")
+}
+fn git_icon() -> impl IntoView {
+    section_icon("M6 3v12a3 3 0 003 3h6a3 3 0 003-3M6 3a3 3 0 016 0M6 3a3 3 0 00-3 3v12a3 3 0 003 3M18 9a3 3 0 100-6 3 3 0 000 6z")
+}
+fn info_icon() -> impl IntoView {
+    // Circle-i info glyph.
+    section_icon("M12 22a10 10 0 100-20 10 10 0 000 20zM12 16v-4M12 8h.01")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn avatar_types_exclude_svg_and_unknowns() {
+        for ok in ["image/png", "image/jpeg", "image/webp", "image/gif"] {
+            assert!(avatar_type_allowed(ok), "{ok}");
+        }
+        for bad in ["image/svg+xml", "image/avif", "text/html", ""] {
+            assert!(!avatar_type_allowed(bad), "{bad}");
+        }
+    }
+
+    fn managed<'a>(name: &'a str, about: &'a str) -> ManagedFields<'a> {
+        ManagedFields {
+            display_name: name,
+            claimed: None,
+            about,
+            picture: "",
+            birthday: "",
+        }
+    }
+
+    #[test]
+    fn saving_waits_for_the_kind0_reply() {
+        assert!(!ProfileHydration::Pending.may_save());
+        assert!(ProfileHydration::NotFound.may_save());
+        // a timeout leaves the state Pending: still no save, and the notice shows
+        assert!(!ProfileHydration::Pending.may_save());
+        assert!(ProfileHydration::Pending.show_load_notice(true));
+        assert!(!ProfileHydration::Pending.show_load_notice(false));
+        assert!(!ProfileHydration::NotFound.show_load_notice(true));
+        assert!(ProfileHydration::Loaded(serde_json::json!({"lud16": "a@b"})).may_save());
+        // NotFound merges into an empty object; Loaded keeps the fields
+        assert_eq!(
+            ProfileHydration::NotFound.into_base(),
+            serde_json::json!({})
+        );
+        assert_eq!(
+            ProfileHydration::Loaded(serde_json::json!({"lud16": "a@b"})).into_base(),
+            serde_json::json!({"lud16": "a@b"})
+        );
+    }
+
+    #[test]
+    fn unmanaged_kind0_fields_survive_a_save() {
+        let existing = serde_json::json!({
+            "name": "old", "display_name": "Old", "lud16": "me@wallet.example",
+            "banner": "https://x/b.png", "website": "https://me.example", "bot": false
+        });
+        let out = merge_profile_fields(existing, managed("New", ""));
+        assert_eq!(out["display_name"], "New");
+        assert_eq!(out["name"], "New");
+        assert_eq!(out["lud16"], "me@wallet.example");
+        assert_eq!(out["banner"], "https://x/b.png");
+        assert_eq!(out["website"], "https://me.example");
+        assert_eq!(out["bot"], false);
+    }
+
+    #[test]
+    fn empty_managed_optionals_are_dropped_not_written() {
+        let existing = serde_json::json!({
+            "about": "bio", "picture": "https://x/p.png", "birthday": "1990-01-01",
+            "nip05": format!("released@{}", NIP05_USERNAME_HOST.to_uppercase())
+        });
+        let out = merge_profile_fields(existing, managed("N", ""));
+        assert!(out.get("about").is_none());
+        assert!(out.get("picture").is_none());
+        assert!(out.get("birthday").is_none());
+        // no claim: a stale handle on our own host is dropped (any case)
+        assert!(out.get("nip05").is_none());
+    }
+
+    #[test]
+    fn foreign_host_nip05_survives_an_unclaimed_save() {
+        let existing = serde_json::json!({ "nip05": "me@elsewhere.example" });
+        let out = merge_profile_fields(existing, managed("N", ""));
+        assert_eq!(out["nip05"], "me@elsewhere.example");
+    }
+
+    #[test]
+    fn settings_and_onboarding_share_one_nip05_host() {
+        assert_eq!(
+            NIP05_USERNAME_HOST,
+            option_env!("NOSTR_BBS_NIP05_DOMAIN").unwrap_or("example.test")
+        );
+        assert_eq!(
+            NIP05_USERNAME_HOST,
+            crate::components::onboarding_modal::NIP05_HOST
+        );
+    }
+
+    #[test]
+    fn superseded_subscription_callbacks_are_inert() {
+        // event, EOSE and timer all gate on the same decision
+        assert!(generation_current(3, Some(3)));
+        assert!(
+            !generation_current(2, Some(3)),
+            "stale event/EOSE/timer ignored"
+        );
+        assert!(!generation_current(3, None), "disposed page: nothing runs");
+    }
+
+    #[test]
+    fn no_prior_kind0_yields_exactly_the_managed_fields() {
+        let out = merge_profile_fields(
+            serde_json::Value::Null,
+            ManagedFields {
+                display_name: "N",
+                claimed: Some("alice"),
+                about: "hi",
+                picture: "https://x/p.png",
+                birthday: "2000-02-02",
+            },
+        );
+        let expected = serde_json::json!({
+            "display_name": "N", "name": "alice",
+            "nip05": format!("alice@{}", NIP05_USERNAME_HOST),
+            "about": "hi", "picture": "https://x/p.png", "birthday": "2000-02-02"
+        });
+        assert_eq!(out, expected);
+    }
+
+    #[test]
+    fn kind0_hydration_requires_the_requested_author() {
+        let me = "ab".repeat(32);
+        assert!(kind0_is_for(&me, &me));
+        assert!(kind0_is_for(&me.to_uppercase(), &me));
+        assert!(!kind0_is_for(&"cd".repeat(32), &me));
+    }
+}

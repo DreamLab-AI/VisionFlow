@@ -7,6 +7,8 @@ type: explanation
 
 # VisionFlow estate review
 
+Forum device-key continuation: [ADR-2004 section review, six NF-20 panels and 76 selected checks](2026-11-01-forum-device-keys.md). Missing registration proofs and incompatible list numbers block the client contract; cached delegation outlives revocation writes. NF-02.7 and NF-08.8 receive scoped corrections. Live acceptance remains open.
+
 Forum BBS signer continuation: [ADR-2008 section review, six NF-19 panels and 22 selected native tests](2026-11-01-forum-bbs-signer.md). Retained signers survive logout; storage adoption, backup identity and extension results need stronger account binding. NF-05.11 receives custody and boot-routing corrections; browser acceptance remains open.
 
 Forum Web Push continuation: [ADR-2023 section review, six NF-18 panels and 85 selected checks](2026-11-01-forum-web-push.md). Send/drain interleavings, missing logout credentials and visible-window suppression defeat stronger delivery promises. Activation remains staged; NF-05.17 and NF-08.9 receive narrow corrections.

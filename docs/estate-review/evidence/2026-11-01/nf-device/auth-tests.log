@@ -1,0 +1,74 @@
+   Compiling nostr-bbs-core v1.0.0-beta.19 (/home/devuser/workspace/wt/VisionFlow-nf-device/.audit-device/kit/crates/nostr-bbs-core)
+   Compiling nostr-bbs-rate-limit v1.0.0-beta.16 (/home/devuser/workspace/wt/VisionFlow-nf-device/.audit-device/kit/crates/nostr-bbs-rate-limit)
+   Compiling nostr-bbs-auth-worker v1.0.0-beta.10 (/home/devuser/workspace/wt/VisionFlow-nf-device/.audit-device/kit/crates/nostr-bbs-auth-worker)
+warning: variants `NoSigner`, `NoMasterKey`, `Derive`, `Encode`, and `Request` are never constructed
+    --> crates/nostr-bbs-auth-worker/src/devices.rs:1051:5
+     |
+1049 | pub enum DeviceError {
+     |          ----------- variants in this enum
+1050 |     #[error("no signer available")]
+1051 |     NoSigner,
+     |     ^^^^^^^^
+1052 |     #[error("master key unavailable")]
+1053 |     NoMasterKey,
+     |     ^^^^^^^^^^^
+1054 |     #[error("subkey derivation failed: {0}")]
+1055 |     Derive(String),
+     |     ^^^^^^
+1056 |     #[error("nsec encode failed: {0}")]
+1057 |     Encode(String),
+     |     ^^^^^^
+1058 |     #[error("request failed: {0}")]
+1059 |     Request(String),
+     |     ^^^^^^^
+     |
+     = note: `DeviceError` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `nostr-bbs-auth-worker` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.91s
+     Running unittests src/lib.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_auth_worker-519f5c8649496730)
+
+running 39 tests
+test devices::audit_client_contract::client_registration_0_omits_required_proof ... ok
+test devices::audit_client_contract::empty_server_list_is_accepted_control ... ok
+test devices::audit_client_contract::client_registration_1_omits_required_proof ... ok
+test devices::tests::create_table_sql_matches_adr099_contract ... ok
+test devices::tests::blank_label_normalises_to_none ... ok
+test devices::audit_client_contract::nonempty_server_list_is_rejected_by_client ... ok
+test devices::audit_client_contract::integer_created_at_still_rejects_float_revoked ... ok
+test devices::tests::gate_defaults_off_when_unset_or_unparseable ... ok
+test devices::tests::gate_mismatch_auth_on_relay_off_fails_closed ... ok
+test devices::tests::gate_delegates_to_the_shared_parser ... ok
+test devices::tests::gate_mismatch_relay_on_auth_off_leaves_devices_unrevocable ... ok
+test devices::tests::gate_default_off_semantics ... ok
+test devices::tests::gate_reads_the_documented_binding_name ... ok
+test devices::tests::gate_variant_matrix_auth_worker ... ok
+test devices::tests::list_sql_is_owner_scoped ... ok
+test devices::tests::label_is_optional ... ok
+test devices::tests::idempotent_register_normalisation_is_stable ... ok
+test devices::tests::parses_valid_register_body_with_label ... ok
+test devices::tests::parses_valid_revoke_body ... ok
+test devices::tests::pubkey_validator_accepts_64_hex ... ok
+test devices::tests::pubkey_validator_rejects_wrong_length_and_non_hex ... ok
+test devices::tests::register_body_has_no_owner_field ... ok
+test devices::tests::register_lowercases_pubkey_for_idempotent_keying ... ok
+test devices::tests::rejects_register_bad_pubkey_non_hex ... ok
+test devices::tests::rejects_register_bad_pubkey_wrong_length ... ok
+test devices::tests::rejects_revoke_bad_pubkey ... ok
+test devices::tests::revoke_lowercases_target ... ok
+test devices::tests::revoke_sql_is_owner_scoped ... ok
+test devices::tests::device_proof_rejects_exp_too_far ... ok
+test devices::tests::device_proof_rejects_wrong_owner_binding ... ok
+test devices::tests::device_proof_rejects_wrong_device_pubkey ... ok
+test devices::tests::device_proof_rejects_missing_owner_tag ... ok
+test devices::tests::device_proof_rejects_wrong_kind ... ok
+test devices::tests::device_proof_rejects_missing_exp_tag ... ok
+test devices::tests::device_proof_rejects_expired ... ok
+test devices::tests::device_proof_accepts_exp_at_window_edge ... ok
+test devices::tests::device_proof_rejects_tampered_signature ... ok
+test devices::tests::device_proof_rejects_forged_body_under_valid_sig ... ok
+test devices::tests::device_proof_valid_passes ... ok
+
+test result: ok. 39 passed; 0 failed; 0 ignored; 0 measured; 215 filtered out; finished in 0.02s
+

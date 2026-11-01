@@ -1,0 +1,16 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2216
+    A["Owner lookup caches positive and negative results"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs:73
+    B["Reuse entry while age is less than 60 seconds"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:511
+    C["Auth worker revokes database row<br/>no relay cache invalidation here"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2160
+    D["Resolved viewer context keeps<br/>owner, cohorts and admin flags"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1883
+    E["Request loop reuses the same context<br/>while awaiting per-event checks"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2221
+    F["Expired next lookup refreshes mapping<br/>lookup failure becomes negative cache"]
+    A --> B --> D --> E
+    C -. does not clear existing context .-> D
+    B --> F

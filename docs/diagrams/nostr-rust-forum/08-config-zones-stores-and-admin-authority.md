@@ -7,6 +7,7 @@ governing:
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
 adrs: [ADR-2004, ADR-2006, ADR-2007, ADR-2011, ADR-2012, ADR-2014, ADR-2016, ADR-2022, ADR-2023, ADR-2029]
 sources:
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs
   - ../nostr-rust-forum/forum.example.toml
   - ../nostr-rust-forum/SETUP.md
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml
@@ -281,7 +282,9 @@ flowchart LR
 
     DKA --> GATEFN --> SHARED
     DKR --> SHARED
-    DKC --> SHARED
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs:111
+    CLIENTPARSE["Client uses its own loose parser<br/>boolean true or normalised true / 1"]
+    DKC --> CLIENTPARSE
 
     N1["INVARIANT ADR-2004: each worker reads its own binding and decides ALONE - no cross-worker call.<br/>Only the parse rule is shared, so the two cannot drift on what true means<br/>nostr-bbs-auth-worker/src/devices.rs:100-107"]
     N2["INVARIANT: enables on the EXACT string true; unset, empty or anything else is off<br/>nostr-bbs-auth-worker/src/devices.rs:112, asserted nostr-bbs-auth-worker/src/devices.rs:974"]
