@@ -1,0 +1,16 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/push_fanout.rs:47
+    A["After save and sender OK<br/>check push enabled and eligible event kind"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/push_fanout.rs:57
+    B["Named recipients plus opted-in candidates"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/push_fanout.rs:77
+    C["Load prefs and suppress categories<br/>missing or failed lookup uses defaults"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/push_fanout.rs:85
+    D["Truncate candidates before read checks"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/push_fanout.rs:94
+    E["Kinds 40 and 42 use shared read authoriser"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/push_fanout.rs:116
+    F["Load devices and cap jobs<br/>omitted work has no pending counter"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/push_fanout.rs:139
+    G["wait_until delivery bumps counters<br/>then claims and sends wake-ups"]
+    A --> B --> C --> D --> E --> F --> G

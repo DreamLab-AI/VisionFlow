@@ -1,0 +1,116 @@
+[
+  {
+    "path": "docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "334f7381062e96ed1d8cdde7ee4747cfa8c07694a862830f6dd2f25c67f46cbe",
+    "consumed_pin_identical": false
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/push.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "d6c6ca40bd9fd097da6a560b720e46cfde08fc2e0a52d2e27ff016cc3f8b039f",
+    "consumed_pin_identical": false
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/push_fanout.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "6bef7758226c142223705c0ad52bd7cc56349a72209686b0a9ed0a3a97e6257f",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "52c7bd80243276f6f4109f1dc4180b485352141aac70d68fab626d5e1f6c0afd",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/lib.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "eeb662b0353919441077af3081e063252eab7da4c6ca952f5e80f9dfca8ab57d",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/wrangler.toml",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "7e4865ddf475ba88ebc7828bac197d11461c93111263f59826c97316c58446ea",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/migrations/0010_push.sql",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "489b7c3a89f36dbf1bcc9e69e707c5fd74e29741ffd6217e22c3e84f17767f70",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-core/src/push.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "acf55a75b87d6293bc2fadac0819ca6154c70ea723be1acce7fde7cbb91d7687",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/sw.js",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "d40b6740bf122e7a30c04d68efeaba694538aaa075ee21cb6451f63b31856778",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/js/push.js",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "809adc10a7c034aa90809eec98951f24bf96114f15c30b45fc50e7215d5a4a2b",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/tests/sw-push.test.mjs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "0bce8a807e213e46c58cb13b14e5502b7f61df061cd6a565f1161733461bc91a",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/utils/push.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "7a323519fcd51fef5b4cd2b7e5a30bd2dcaa1bb388ec055b6730c991ffc0018d",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/components/push_settings.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "8ea7f5bc2618a236aff223d9004784bca0548c9705d13c2178216142c5dffdf0",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/components/notification_bell.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "635c107f7c39c4414a307897f1992af552498b095831c443fd1ef9a0683cbfda",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/dm/mod.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "022e1a42fbf77d94bcdf01994be30ab2b63f5c505156c29cca3087ae46f6df57",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/stores/notifications.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "7b0c9fb179b76984ccd7c3948fe5c6c21618992a1a99949bf174f35e6bcc7356",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/auth/mod.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "f55352bf50b59b9736ecd60910b48d63c62fb1d3ba2bd4f08fc3e1452de049e5",
+    "consumed_pin_identical": false
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/auth/session.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "cc5d37eb47e94e59e58a635cc067c732a3ab2fbb111766a90a2ce5b8c4d9bb7e",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/zone_config.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "583c0c383d9f605695e4a3c4c1b1827c379c933e1b0b2e0a9b805e0828082401",
+    "consumed_pin_identical": true
+  }
+]

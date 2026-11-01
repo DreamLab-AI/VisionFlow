@@ -1,0 +1,17 @@
+{
+  "checked": "2026-11-01",
+  "sources": [
+    {
+      "url": "https://webkit.org/blog/12945/meet-web-push/",
+      "claim": "Each push must show a user-visible notification; violations can revoke subscription."
+    },
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc8030.html",
+      "claim": "201 confirms acceptance, not user-agent delivery; Topic is unencrypted."
+    },
+    {
+      "url": "https://docs.ntfy.sh/subscribe/api/#fetch-cached-messages",
+      "claim": "Configured message caches support bounded replay by ID/time/duration."
+    }
+  ]
+}

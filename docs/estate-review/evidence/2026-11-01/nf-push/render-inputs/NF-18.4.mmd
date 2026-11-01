@@ -1,0 +1,16 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1300
+    A["Read subscription counts and token hash"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1307
+    B["Validate bearer token against selected hash"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:161
+    C["Separately subtract snapshot counts<br/>mutation matches id only"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1325
+    D["Return the earlier counts and deep links"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:158
+    E["Concurrent drains can subtract twice<br/>and consume a newer event"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:138
+    F["Token/owner may rotate before subtraction<br/>old request can mutate replacement row"]
+    A --> B --> C --> D
+    E -. interleaves .-> C
+    F -. interleaves .-> C

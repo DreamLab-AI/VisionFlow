@@ -1,0 +1,14 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:234
+    A["Counter bump advances bump_seq"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:686
+    B["Claim push slot, then send empty request"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1311
+    C["Worker drains the first count"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:234
+    D["Later event bumps count while first send<br/>still awaits result bookkeeping"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:197
+    E["Success sets pushed_seq to CURRENT bump_seq"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:172
+    F["Pending count remains but due query<br/>requires bump_seq greater than pushed_seq"]
+    A --> B --> C --> D --> E --> F

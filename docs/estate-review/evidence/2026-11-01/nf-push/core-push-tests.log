@@ -1,0 +1,14 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.22s
+     Running unittests src/lib.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_core-e9b10af8afafc0ec)
+
+running 7 tests
+test push::tests::category_wire_names_are_stable ... ok
+test push::tests::defaults_alert_for_replies_and_dms_only ... ok
+test push::tests::quiet_window_edges_and_negative_offsets ... ok
+test push::tests::quiet_hours_suppress_every_category_including_across_midnight ... ok
+test push::tests::opt_in_categories_respect_channel_mutes_but_replies_do_not ... ok
+test push::tests::prefs_json_round_trips_and_new_posts_defaults_off ... ok
+test push::tests::sanitize_normalises_and_rejects ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 437 filtered out; finished in 0.00s
+

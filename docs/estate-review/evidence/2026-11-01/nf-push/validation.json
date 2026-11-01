@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-01",
+  "existing_worker_push_tests": 45,
+  "audit_sql_tests": 6,
+  "existing_core_push_tests": 7,
+  "existing_client_push_tests": 7,
+  "existing_dm_gate_tests": 1,
+  "existing_service_worker_tests": 14,
+  "audit_browser_fixture_tests": 5,
+  "total_unique_checks": 85,
+  "retained_browser_fixture_recheck": 19,
+  "topics": 188,
+  "panels": 1646,
+  "verified_citations": 24883,
+  "citation_warnings": 0,
+  "allowlisted_citations": 9,
+  "fresh_declared_revisions": 46,
+  "rendered_panels": 32,
+  "visually_reviewed_panels": [
+    "NF-05.17",
+    "NF-08.9",
+    "NF-18.1",
+    "NF-18.2",
+    "NF-18.3",
+    "NF-18.4",
+    "NF-18.5",
+    "NF-18.6"
+  ],
+  "source_exports": 19,
+  "exports_byte_identical_to_consumed_pin": 16,
+  "different_exports": "ADR activation wording; P256 encoding method rename; Schnorr argument type conversion. Full patch retained.",
+  "product_code_changed": false,
+  "provider_calls_or_notifications_sent": false,
+  "real_browser_or_device_execution": false,
+  "wasm_build_rerun": false,
+  "full_worker_or_workspace_suite_rerun": false,
+  "corrections": [
+    "Client binary target has no library: removed --lib for selected client test run.",
+    "Two old panels had long paths clipping labels; moved paths into source comments.",
+    "Sealed exemption clarified as past timestamp bound only; an initial blank-line citation corrected to timestamp_drift_ok."
+  ],
+  "prose_review": "No suspicious Unicode or high-severity style flags after manual edits."
+}

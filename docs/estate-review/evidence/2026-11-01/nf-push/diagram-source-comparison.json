@@ -1,0 +1,22 @@
+[
+  {
+    "path": "crates/nostr-bbs-forum-client/src/utils/push.rs",
+    "old_diagram_stamp_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/components/push_settings.rs",
+    "old_diagram_stamp_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/sw.js",
+    "old_diagram_stamp_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/zone_config.rs",
+    "old_diagram_stamp_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+    "old_diagram_stamp_identical": true
+  }
+]

@@ -1,0 +1,124 @@
+TAP version 13
+# Subtest: actual pushStoreCfg writes IndexedDB but not logout localStorage copy
+ok 1 - actual pushStoreCfg writes IndexedDB but not logout localStorage copy
+  ---
+  duration_ms: 3.086856
+  type: 'test'
+  ...
+# Subtest: push drains with the stored credentials and shows one notification per category
+ok 2 - push drains with the stored credentials and shows one notification per category
+  ---
+  duration_ms: 4.355761
+  type: 'test'
+  ...
+# Subtest: notifications never carry message content, only counts
+ok 3 - notifications never carry message content, only counts
+  ---
+  duration_ms: 1.471489
+  type: 'test'
+  ...
+# Subtest: an empty drain still shows a generic notification (userVisibleOnly)
+ok 4 - an empty drain still shows a generic notification (userVisibleOnly)
+  ---
+  duration_ms: 0.971903
+  type: 'test'
+  ...
+# Subtest: a failed or unreachable drain falls back to the generic notification
+ok 5 - a failed or unreachable drain falls back to the generic notification
+  ---
+  duration_ms: 1.845041
+  type: 'test'
+  ...
+# Subtest: missing credentials never call the relay and still show something
+ok 6 - missing credentials never call the relay and still show something
+  ---
+  duration_ms: 2.102592
+  type: 'test'
+  ...
+# Subtest: a visible window suppresses the notification but still drains the counters
+ok 7 - a visible window suppresses the notification but still drains the counters
+  ---
+  duration_ms: 0.971613
+  type: 'test'
+  ...
+# Subtest: clicking opens the deep link inside the scope when no window exists
+ok 8 - clicking opens the deep link inside the scope when no window exists
+  ---
+  duration_ms: 0.993776
+  type: 'test'
+  ...
+# Subtest: clicking focuses and navigates an existing app window
+ok 9 - clicking focuses and navigates an existing app window
+  ---
+  duration_ms: 1.150329
+  type: 'test'
+  ...
+# Subtest: a click target cannot escape the app scope
+ok 10 - a click target cannot escape the app scope
+  ---
+  duration_ms: 2.603208
+  type: 'test'
+  ...
+# Subtest: a visible window outside the app scope does not swallow the alert
+ok 11 - a visible window outside the app scope does not swallow the alert
+  ---
+  duration_ms: 1.222453
+  type: 'test'
+  ...
+# Subtest: clicking never focuses the BBS window or one outside the scope
+ok 12 - clicking never focuses the BBS window or one outside the scope
+  ---
+  duration_ms: 1.020797
+  type: 'test'
+  ...
+# Subtest: fingerprinted and snippet assets are served cache-first
+ok 13 - fingerprinted and snippet assets are served cache-first
+  ---
+  duration_ms: 14.863459
+  type: 'test'
+  ...
+# Subtest: stable-URL static files are network-first with a cache fallback
+ok 14 - stable-URL static files are network-first with a cache fallback
+  ---
+  duration_ms: 5.365726
+  type: 'test'
+  ...
+# Subtest: the shell documents are never cache-first
+ok 15 - the shell documents are never cache-first
+  ---
+  duration_ms: 5.260961
+  type: 'test'
+  ...
+# Subtest: audit: rejected notification has already drained and has no retry acknowledgement
+ok 16 - audit: rejected notification has already drained and has no retry acknowledgement
+  ---
+  duration_ms: 1.599106
+  type: 'test'
+  ...
+# Subtest: audit: unresolved drain prevents fallback notification
+ok 17 - audit: unresolved drain prevents fallback notification
+  ---
+  duration_ms: 25.841913
+  type: 'test'
+  ...
+# Subtest: audit: visible login window suppresses alerts without account or websocket evidence
+ok 18 - audit: visible login window suppresses alerts without account or websocket evidence
+  ---
+  duration_ms: 0.90421
+  type: 'test'
+  ...
+# Subtest: audit: malformed click URL throws before root fallback
+ok 19 - audit: malformed click URL throws before root fallback
+  ---
+  duration_ms: 0.831683
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 166.627867

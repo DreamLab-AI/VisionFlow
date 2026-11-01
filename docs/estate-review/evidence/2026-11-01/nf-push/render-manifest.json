@@ -1,0 +1,66 @@
+[
+  {
+    "path": "render-inputs/NF-18.1.mmd",
+    "sha256": "addc9e25be817db1824249ce31053245156e8391cbf535b993b8eb26061be912"
+  },
+  {
+    "path": "render-inputs/NF-18.1.svg",
+    "sha256": "12b7ca679747bd9c505226a5f3efb2ab996988df3b64893ef9b1c192678fe97c"
+  },
+  {
+    "path": "render-inputs/NF-18.2.mmd",
+    "sha256": "b855f5550ecf0ccf2fc21387ca1875c108df444daa8e6277f383736cf1655596"
+  },
+  {
+    "path": "render-inputs/NF-18.2.svg",
+    "sha256": "de8c2cb2ad7412d395e829836fbbf675a38385f81013047b4cbb5ec91c237785"
+  },
+  {
+    "path": "render-inputs/NF-18.3.mmd",
+    "sha256": "9567ce5b26b389b026a2ec370d08479e8c7ee9b1076f70e22855e8bde2c586bb"
+  },
+  {
+    "path": "render-inputs/NF-18.3.svg",
+    "sha256": "21093becbb536ec7bccff4f6377e404042e9d3af7c25ae299c29c77e114b0fd2"
+  },
+  {
+    "path": "render-inputs/NF-18.4.mmd",
+    "sha256": "6febf35919b58e0cfca911154cdae2b29b60ebc51a0a5e633312c0be3ac34388"
+  },
+  {
+    "path": "render-inputs/NF-18.4.svg",
+    "sha256": "53737c2848342872fd8612892c938ae248175578b42900a8aa20fc31dc18cd33"
+  },
+  {
+    "path": "render-inputs/NF-18.5.mmd",
+    "sha256": "db3fd577befddfdc849c57287e8a294b03344cac87207b2d3a44b3ad82faaec4"
+  },
+  {
+    "path": "render-inputs/NF-18.5.svg",
+    "sha256": "8e63816857a18da9c31a0ee18267882120e750abf2b0252f5742838d9c070cde"
+  },
+  {
+    "path": "render-inputs/NF-18.6.mmd",
+    "sha256": "2b6e97451b0b1c21616a0e095190ba364c3ee48e527529e1be8c79fae45046fd"
+  },
+  {
+    "path": "render-inputs/NF-18.6.svg",
+    "sha256": "4c1f8662776e2f47fbf40dc90b140b5b6187b805f656950b7047db1bf15c66c4"
+  },
+  {
+    "path": "render-inputs/NF-05.17.mmd",
+    "sha256": "ab43285429a9233f22eb137f0b06379acdae0bd3018fe9b9f6db478c6dc69931"
+  },
+  {
+    "path": "render-inputs/NF-05.17.svg",
+    "sha256": "1053ecf1cf17dcfa2f329b4edac2728c9f96c650d0ac7adb4f65d9ebafd8ffc7"
+  },
+  {
+    "path": "render-inputs/NF-08.9.mmd",
+    "sha256": "263aedfa5db62f64994f70f18de77d781c2712a84613c5e1fb2eb78b877d5855"
+  },
+  {
+    "path": "render-inputs/NF-08.9.svg",
+    "sha256": "90011bfceb720837ac7281ea7ef8c18d1e1855e4a9b4dd4ad4620561bfaaa518"
+  }
+]

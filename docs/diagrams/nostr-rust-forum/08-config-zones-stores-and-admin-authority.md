@@ -5,7 +5,7 @@ area: nostr-rust-forum
 governing:
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
-adrs: [ADR-2004, ADR-2006, ADR-2007, ADR-2011, ADR-2012, ADR-2014, ADR-2022, ADR-2023, ADR-2029]
+adrs: [ADR-2004, ADR-2006, ADR-2007, ADR-2011, ADR-2012, ADR-2014, ADR-2016, ADR-2022, ADR-2023, ADR-2029]
 sources:
   - ../nostr-rust-forum/forum.example.toml
   - ../nostr-rust-forum/SETUP.md
@@ -299,12 +299,17 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    WRITE["kind-42 write into a zone<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1450"]
-    LOOKUP["ZoneConfig.load(env).is_encrypted(zone)<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1457-1458"]
-    TAGCHK["is_zone_ciphertext - zk tag: zone id, epoch >= 1, 64-hex zone pubkey<br/>nostr-bbs-relay-worker/src/zone_config.rs:211-217"]
-    SHAPECHK["content shaped as NIP-44 v2 - base64, version 0x02, length 132..87472<br/>nostr-bbs-relay-worker/src/zone_config.rs:218-223"]
-    REJECT["send_ok false - blocked: encrypted zone requires zone-key ciphertext<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1459-1464"]
-    ACCEPT["event stored"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1450
+    WRITE["kind-42 write into a zone"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1457-1458
+    LOOKUP["ZoneConfig.load(env).is_encrypted(zone)"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_config.rs:211-217
+    TAGCHK["is_zone_ciphertext - zk tag: zone id, epoch >= 1, 64-hex zone pubkey"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_config.rs:218-223
+    SHAPECHK["content shaped as NIP-44 v2 - base64, version 0x02, length 132..87472"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1459-1464
+    REJECT["send_ok false - blocked: encrypted zone requires zone-key ciphertext"]
+    ACCEPT["Continue admission<br/>other event gates still apply"]
 
     WRITE --> LOOKUP
     LOOKUP -->|"encrypted"| TAGCHK
@@ -314,6 +319,6 @@ flowchart TB
     SHAPECHK -->|"passes"| ACCEPT
     SHAPECHK -->|"fails"| REJECT
 
-    N1["INVARIANT: shape only, no decryption - the relay holds no zone key and cannot tell a real<br/>ciphertext from random bytes of the right length; what it guarantees is that no plaintext,<br/>from any client or any author including admins, lands in an encrypted zone zone_config.rs:204-207"]
-    N2["A sealed ADR-2017 envelope into an encrypted zone is exempt from this drift check but still<br/>subject to the admin-only sealed-write gate - nip_handlers.rs:1436-1447"]
+    N1["Shape only: the relay holds no zone key and cannot authenticate ciphertext<br/>Accepted byte shape does not guarantee encryption or content secrecy zone_config.rs:204-207"]
+    N2["ADR-2017 exempts a valid sealed marker from the past timestamp bound only<br/>future timestamp limit remains<br/>admin and encrypted-zone gates still apply<br/>ciphertext shape checking is not bypassed<br/>nip_handlers.rs:1436-1464 nip_handlers.rs:1727"]
 ```

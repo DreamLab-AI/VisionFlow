@@ -544,25 +544,41 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    CFG["GET /api/push/config - the client learns whether the relay has push on, so no rebuild is needed<br/>nostr-bbs-forum-client/src/utils/push.rs:245"]
-    CARD["Settings card is hidden unless the browser supports push AND the relay reports it enabled<br/>nostr-bbs-forum-client/src/components/push_settings.rs:27"]
-    SUB["enable subscribes this device and registers it with a NIP-98 signed POST /api/push/subscribe<br/>nostr-bbs-forum-client/src/utils/push.rs:262 nostr-bbs-forum-client/src/utils/push.rs:302"]
-    PREFS["server-side prefs: replies and DMs on, topics and posts off, mutes, quiet hours<br/>nostr-bbs-forum-client/src/utils/push.rs:413 nostr-bbs-forum-client/src/utils/push.rs:424"]
-    SWPUSH["service worker push handler: the push is EMPTY, so it drains counters from the relay<br/>nostr-bbs-forum-client/sw.js:335 nostr-bbs-forum-client/sw.js:241"]
-    LOCAL["Tier 0 local alert only while the page is hidden, permission granted and server push inactive<br/>nostr-bbs-forum-client/src/utils/push.rs:163"]
-    OUT["logout tears the device subscription down and clears the persisted notification list<br/>nostr-bbs-forum-client/src/auth/mod.rs:678 nostr-bbs-forum-client/src/auth/mod.rs:681"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:245
+    CFG["GET /api/push/config - the client learns whether the relay has push on, so no rebuild is needed"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/push_settings.rs:27
+    CARD["Settings selects Push, LocalOnly Browser alerts, or Hidden<br/>server push being off does not hide local alerts"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:262
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:302
+    SUB["enable subscribes this device and registers it with a NIP-98 signed POST /api/push/subscribe<br/> "]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:413
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:424
+    PREFS["server-side prefs: replies and DMs on, topics and posts off, mutes, quiet hours<br/> "]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js:335
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js:241
+    SWPUSH["service worker push handler: the push is EMPTY, so it drains counters from the relay<br/> "]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:163
+    LOCAL["Tier 0 local alert only while the page is hidden, permission granted and server push inactive"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:364
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:368
+    OUT["logout attempts token deletion and browser cleanup<br/>registration never writes the localStorage credential copy it reads<br/> "]
 
-    CFG --> CARD --> SUB --> SWPUSH
-    CARD --> PREFS
-    LOCAL -.-> SWPUSH
+    CFG --> CARD
+    CARD -->|Push mode| SUB --> SWPUSH
+    CARD -->|registered Push mode| PREFS
+    LOCAL -. "showNotification directly" .-> SHOWN
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:442
+    SHOWN["Generic system notification through worker registration"]
     OUT -.-> SUB
 
-    N1["INVARIANT: the push carries no message text, author or channel; the service worker fetches generic counters<br/>nostr-bbs-forum-client/sw.js:241, ADR-2023 decision 1 and 2"]
-    N2["OPEN: ADR-2023 is accepted and complete but activation is staged - the relay ships PUSH_ENABLED false<br/>nostr-bbs-relay-worker/wrangler.toml:86 - see NF-08.8"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js:241
+    N1["The empty push body carries no message text, author key or channel ID<br/>the service worker fetches generic counters; see NF-18 for metadata and receipt limits<br/> ADR-2023 decision 1 and 2"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml:86
+    N2["OPEN: ADR-2023 is accepted and complete but activation is staged - the relay ships PUSH_ENABLED false<br/> - see NF-08.8"]
 ```
 
-**What it shows.** How the browser side of ADR-2023 works: the client asks the relay whether push is on, subscribes the device with a signed request, and from then on an empty push wakes the service worker, which drains content-free counters. Where server push is off, Tier 0 raises generic system notifications from the page.
+**What it shows.** How the browser side of ADR-2023 works: the client asks the relay whether push is on, subscribes the device with a signed request, and from then on an empty push wakes the service worker, which drains content-free counters. Where server push is off, Tier 0 raises generic system notifications from the page. Logout cleanup is best effort, and its missing credential copy is documented in [the push audit](../../estate-review/2026-11-01-forum-web-push.md).
 
-**Why it is this way.** Push payloads transit Google, Apple and Mozilla, and the nsec lives in `localStorage` where a service worker cannot read it, so ADR-2023 chose payload-less push with a bearer-token drain instead of RFC 8291 encryption (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:21`, `../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:25`).
+**Why it is this way.** Push payloads transit Google, Apple and Mozilla, and the service worker has no access to the page’s localStorage or sessionStorage, so ADR-2023 chose payload-less push with a bearer-token drain instead of RFC 8291 encryption (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:21`, `../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:25`).
 
 **Open:** ADR-2023 records `activation_status: staged` (no live Cloudflare deploy, push-service round trip or iOS device run was verified), and the shipped relay template leaves `PUSH_ENABLED = "false"` (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:6`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml:86`).

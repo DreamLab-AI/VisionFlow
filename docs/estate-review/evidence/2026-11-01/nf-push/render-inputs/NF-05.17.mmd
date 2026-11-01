@@ -1,0 +1,32 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:245
+    CFG["GET /api/push/config - the client learns whether the relay has push on, so no rebuild is needed"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/push_settings.rs:27
+    CARD["Settings selects Push, LocalOnly Browser alerts, or Hidden<br/>server push being off does not hide local alerts"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:262
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:302
+    SUB["enable subscribes this device and registers it with a NIP-98 signed POST /api/push/subscribe<br/> "]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:413
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:424
+    PREFS["server-side prefs: replies and DMs on, topics and posts off, mutes, quiet hours<br/> "]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js:335
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js:241
+    SWPUSH["service worker push handler: the push is EMPTY, so it drains counters from the relay<br/> "]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:163
+    LOCAL["Tier 0 local alert only while the page is hidden, permission granted and server push inactive"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:364
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:368
+    OUT["logout attempts token deletion and browser cleanup<br/>registration never writes the localStorage credential copy it reads<br/> "]
+
+    CFG --> CARD
+    CARD -->|Push mode| SUB --> SWPUSH
+    CARD -->|registered Push mode| PREFS
+    LOCAL -. "showNotification directly" .-> SHOWN
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:442
+    SHOWN["Generic system notification through worker registration"]
+    OUT -.-> SUB
+
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js:241
+    N1["The empty push body carries no message text, author key or channel ID<br/>the service worker fetches generic counters; see NF-18 for metadata and receipt limits<br/> ADR-2023 decision 1 and 2"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml:86
+    N2["OPEN: ADR-2023 is accepted and complete but activation is staged - the relay ships PUSH_ENABLED false<br/> - see NF-08.8"]

@@ -1,0 +1,17 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js:306
+    A["Push wakes worker<br/>read credentials then await drain"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js:307
+    B["Any visible forum window?"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js:311
+    C["Yes: return without showing notification<br/>login page also qualifies"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js:316
+    D["No: compose generic category notices<br/>empty or failed drain gets generic fallback"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js:323
+    E["Await showNotification<br/>rejection has no application retry or ack"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js:244
+    F["Unresolved drain has no deadline<br/>fallback is never reached while pending"]
+    A --> B
+    A -. unresolved fetch .-> F
+    B -->|yes| C
+    B -->|no| D --> E

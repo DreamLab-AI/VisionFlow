@@ -1,0 +1,16 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1043
+    A["Public config reports enablement and public key"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:295
+    B["Permission and browser subscription<br/>NIP-98 registration rotates drain token"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/js/push.js:145
+    C["Store drain credentials in IndexedDB"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:314
+    D["Set localStorage active and refreshed flags<br/>no push_cfg write in register"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:364
+    E["Logout reads localStorage push_cfg<br/>fresh registration has no such copy"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:377
+    F["Browser unsubscribe and IndexedDB cleanup<br/>still attempted in background"]
+    A --> B
+    B --> C --> D
+    D --> E --> F

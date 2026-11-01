@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: push drains with the stored credentials and shows one notification per category
+ok 1 - push drains with the stored credentials and shows one notification per category
+  ---
+  duration_ms: 4.465329
+  type: 'test'
+  ...
+# Subtest: notifications never carry message content, only counts
+ok 2 - notifications never carry message content, only counts
+  ---
+  duration_ms: 1.512757
+  type: 'test'
+  ...
+# Subtest: an empty drain still shows a generic notification (userVisibleOnly)
+ok 3 - an empty drain still shows a generic notification (userVisibleOnly)
+  ---
+  duration_ms: 1.012473
+  type: 'test'
+  ...
+# Subtest: a failed or unreachable drain falls back to the generic notification
+ok 4 - a failed or unreachable drain falls back to the generic notification
+  ---
+  duration_ms: 1.899638
+  type: 'test'
+  ...
+# Subtest: missing credentials never call the relay and still show something
+ok 5 - missing credentials never call the relay and still show something
+  ---
+  duration_ms: 1.136985
+  type: 'test'
+  ...
+# Subtest: a visible window suppresses the notification but still drains the counters
+ok 6 - a visible window suppresses the notification but still drains the counters
+  ---
+  duration_ms: 2.208373
+  type: 'test'
+  ...
+# Subtest: clicking opens the deep link inside the scope when no window exists
+ok 7 - clicking opens the deep link inside the scope when no window exists
+  ---
+  duration_ms: 1.032003
+  type: 'test'
+  ...
+# Subtest: clicking focuses and navigates an existing app window
+ok 8 - clicking focuses and navigates an existing app window
+  ---
+  duration_ms: 1.143268
+  type: 'test'
+  ...
+# Subtest: a click target cannot escape the app scope
+ok 9 - a click target cannot escape the app scope
+  ---
+  duration_ms: 2.708161
+  type: 'test'
+  ...
+# Subtest: a visible window outside the app scope does not swallow the alert
+ok 10 - a visible window outside the app scope does not swallow the alert
+  ---
+  duration_ms: 1.288672
+  type: 'test'
+  ...
+# Subtest: clicking never focuses the BBS window or one outside the scope
+ok 11 - clicking never focuses the BBS window or one outside the scope
+  ---
+  duration_ms: 1.059449
+  type: 'test'
+  ...
+# Subtest: fingerprinted and snippet assets are served cache-first
+ok 12 - fingerprinted and snippet assets are served cache-first
+  ---
+  duration_ms: 14.769246
+  type: 'test'
+  ...
+# Subtest: stable-URL static files are network-first with a cache fallback
+ok 13 - stable-URL static files are network-first with a cache fallback
+  ---
+  duration_ms: 6.233895
+  type: 'test'
+  ...
+# Subtest: the shell documents are never cache-first
+ok 14 - the shell documents are never cache-first
+  ---
+  duration_ms: 6.075869
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 141.86107

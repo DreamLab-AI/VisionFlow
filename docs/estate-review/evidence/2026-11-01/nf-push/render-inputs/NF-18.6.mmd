@@ -1,0 +1,15 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs:1181
+    A["Five-minute cron invokes trailing flush"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:762
+    B["Select at most 100 due devices<br/>old undrained counts and sequence gap"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:778
+    C["No current preference or read-authority check<br/>queued alerts can survive later quiet hours"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:781
+    D["Send without bumping counts again"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:442
+    E["Successful provider status means accepted<br/>not proof of device display"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:744
+    F["Empty body still carries category Topic<br/>plus category-dependent TTL and urgency"]
+    A --> B --> C --> D --> E
+    D --> F

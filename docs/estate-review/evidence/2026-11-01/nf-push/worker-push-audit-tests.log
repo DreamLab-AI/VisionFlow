@@ -1,0 +1,59 @@
+   Compiling nostr-bbs-relay-worker v1.0.0-beta.10 (/home/devuser/workspace/wt/VisionFlow-nf-push/.audit-push/kit/crates/nostr-bbs-relay-worker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.24s
+     Running unittests src/lib.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_relay_worker-4e24e725587f94f0)
+
+running 51 tests
+test push::tests::a_corrupt_muted_blob_degrades_to_nothing_muted ... ok
+test push::tests::a_dm_wrap_alerts_its_recipient ... ok
+test push::tests::bad_vapid_config_is_refused ... ok
+test push::tests::broadcast_categories ... ok
+test push::tests::bump_sql_only_names_the_category_column ... ok
+test push::tests::channel_prefers_the_root_marker ... ok
+test push::tests::dm_budget_env_parsing_defaults_to_thirty ... ok
+test push::tests::due_rows_emit_one_job_per_pending_category ... ok
+test push::tests::every_category_is_throttled_background_chatter_most ... ok
+test push::tests::flush_jobs_carry_no_link_and_skip_empty_categories ... ok
+test push::tests::known_push_services_are_accepted ... ok
+test push::tests::in_lists_are_chunked_under_the_d1_parameter_cap ... ok
+test push::tests::other_kinds_alert_nobody_by_name ... ok
+test push::tests::hostile_endpoints_are_refused ... ok
+test push::tests::push_service_statuses_map_to_outcomes ... ok
+test push::tests::replies_alert_p_tagged_members_but_never_the_author ... ok
+test push::tests::schema_matches_the_migration_file ... ok
+test push::tests::subscription_id_is_stable_per_endpoint ... ok
+test push::tests::the_sender_copy_of_a_dm_alerts_nobody ... ok
+test push::tests::tagged_recipients_are_capped ... ok
+test push::tests::tokens_are_256_bit_and_distinct ... ok
+test push::tests::token_hashing_is_sha256_and_comparison_is_exact ... ok
+test push::tests::rfc8292_example_jwt_verifies_under_its_published_key ... ok
+test push::tests::public_key_is_an_uncompressed_p256_point ... ok
+test push::tests::authorization_header_has_the_vapid_shape ... ok
+test push::tests::signed_jwt_verifies_and_carries_the_claims ... ok
+test push::tests::alter_statements_bring_an_old_table_up_to_date ... ok
+test push::audit_push_boundaries::refresh_clears_pending_and_new_owner_inherits_dm_budget ... ok
+test push::audit_push_boundaries::old_authorised_drain_can_subtract_new_owners_counter ... ok
+test push::tests::drain_never_goes_negative ... ok
+test push::audit_push_boundaries::overlapping_drains_double_subtract_a_later_bump ... ok
+test push::audit_push_boundaries::late_success_overwrites_a_newer_claim_timestamp ... ok
+test push::tests::a_device_can_unsubscribe_with_its_own_token_and_nobody_elses ... ok
+test push::tests::counters_accumulate_and_the_drain_subtracts_exactly_what_it_read ... ok
+test push::audit_push_boundaries::queued_count_remains_due_after_preferences_disable_dm ... ok
+test push::tests::a_chunked_in_query_runs_on_sqlite ... ok
+test push::tests::prefs_upsert_round_trips_through_the_row_type ... ok
+test push::tests::a_failed_send_hands_the_slot_back_without_clobbering_a_newer_claim ... ok
+test push::tests::resubscribing_rotates_the_token_and_clears_counters ... ok
+test push::tests::dm_wakeups_are_capped_per_hour_and_the_window_rolls ... ok
+test push::tests::a_drained_device_is_never_flushed ... ok
+test push::audit_push_boundaries::fast_drain_then_second_bump_then_mark_leaves_no_due_wakeup ... ok
+test push::tests::only_one_of_two_racing_events_claims_the_push_slot ... ok
+test push::tests::re_registering_forgets_the_old_owners_bursts ... ok
+test push::tests::failures_and_staleness_sweep ... ok
+test push::tests::a_device_held_only_by_a_spent_dm_budget_is_not_flushed_until_the_window_resets ... ok
+test push::tests::the_trailing_flush_finds_only_devices_with_stale_undelivered_counters ... ok
+test push::tests::only_events_counted_after_a_push_make_a_device_due_again ... ok
+test push::tests::re_registering_at_the_cap_does_not_evict_itself ... ok
+test push::tests::one_burst_earns_exactly_one_flush ... ok
+test push::tests::a_member_keeps_at_most_ten_devices_and_the_newest_survive ... ok
+
+test result: ok. 51 passed; 0 failed; 0 ignored; 0 measured; 443 filtered out; finished in 0.03s
+
