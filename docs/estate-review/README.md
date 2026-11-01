@@ -7,7 +7,11 @@ type: explanation
 
 # VisionFlow estate review
 
-[The completion ledger](completion/README.md) now separates scoped inventory, recorded assessments and unreconciled work. Its current reconciliation binds 85 ADR assessments and 292 panels to exact document/report hashes; these counts are not an overall completion percentage.
+[The completion ledger](completion/README.md) separates scoped inventory, recorded assessments and unreconciled work. It binds assessments to exact document/report hashes and holds the current counts; these are not an overall completion percentage.
+
+SideStr reserves: [ADR-0003 section assessment, fourteen boundary probes and three corrected SR-05 panels](2026-11-01-reserve-attestation-boundaries.md). Confirmation depth, trusted amount construction and future consumer authority/replay checks remain distinct acceptance gates.
+
+Codescape deployment: [ADR-2143 refresh and live Docker metadata](2026-11-01-codescape-runtime-boundary.md) support the recorded mounts, capability restrictions and loopback publication while preserving the unresolved filesystem/egress isolation gates.
 
 Ontomark machine bundles: [ADR-OM-005 section assessment, disclosure probes and producer migration gates](2026-11-01-ontomark-machine-bundle-contract.md). Five probes distinguish private-name masking, source identity, effective configuration and guarded slug collisions. Seven panels are assessed; complete consumer migration remains open.
 

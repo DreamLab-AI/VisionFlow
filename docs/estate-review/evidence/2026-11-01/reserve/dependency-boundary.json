@@ -1,0 +1,76 @@
+{
+  "default_resolved_workspace": [
+    {
+      "name": "sidestr-core",
+      "version": "0.4.2",
+      "publish": null,
+      "private_reserve_reachable": []
+    },
+    {
+      "name": "sidestr-header",
+      "version": "0.3.1",
+      "publish": null,
+      "private_reserve_reachable": []
+    },
+    {
+      "name": "sidestr-wallet",
+      "version": "0.5.3",
+      "publish": null,
+      "private_reserve_reachable": []
+    },
+    {
+      "name": "sidestr-nostr",
+      "version": "0.6.0",
+      "publish": null,
+      "private_reserve_reachable": []
+    },
+    {
+      "name": "sidestr-round",
+      "version": "0.5.0",
+      "publish": null,
+      "private_reserve_reachable": []
+    },
+    {
+      "name": "sidestr-hitch",
+      "version": "0.2.1",
+      "publish": null,
+      "private_reserve_reachable": []
+    },
+    {
+      "name": "sidestr-agent",
+      "version": "0.6.0",
+      "publish": null,
+      "private_reserve_reachable": []
+    },
+    {
+      "name": "sidestr-evm",
+      "version": "0.1.0",
+      "publish": [],
+      "private_reserve_reachable": []
+    },
+    {
+      "name": "sidestr-reserve",
+      "version": "0.1.0",
+      "publish": [],
+      "private_reserve_reachable": [
+        "sidestr-reserve"
+      ]
+    },
+    {
+      "name": "sidestr-bridge-liquid",
+      "version": "0.2.0",
+      "publish": [],
+      "private_reserve_reachable": [
+        "sidestr-bridge-liquid",
+        "sidestr-reserve"
+      ]
+    },
+    {
+      "name": "webledgers-teller",
+      "version": "0.2.0",
+      "publish": null,
+      "private_reserve_reachable": []
+    }
+  ],
+  "limits": "Default cargo metadata dependency graph only; not a registry publication query or all-feature dependency proof."
+}

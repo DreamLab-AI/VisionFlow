@@ -1,0 +1,75 @@
+{
+  "cases": [
+    {
+      "case": "output at tip is counted with one confirmation",
+      "assertion_passed": true,
+      "kind": "policy-gap"
+    },
+    {
+      "case": "one and six confirmation snapshots produce identical statement",
+      "assertion_passed": true,
+      "kind": "policy-gap"
+    },
+    {
+      "case": "unconfirmed output excluded",
+      "assertion_passed": true,
+      "kind": "control"
+    },
+    {
+      "case": "future-height output excluded",
+      "assertion_passed": true,
+      "kind": "control"
+    },
+    {
+      "case": "duplicate outpoint refused",
+      "assertion_passed": true,
+      "kind": "control"
+    },
+    {
+      "case": "normal signature verifies",
+      "assertion_passed": true,
+      "kind": "control"
+    },
+    {
+      "case": "post-signature amount change refused",
+      "assertion_passed": true,
+      "kind": "control"
+    },
+    {
+      "case": "pre-signature amount mutation is signable and verifies",
+      "assertion_passed": true,
+      "kind": "trusted-signer-boundary"
+    },
+    {
+      "case": "different signer verifies against its own carried key",
+      "assertion_passed": true,
+      "kind": "consumer-policy-boundary"
+    },
+    {
+      "case": "time zero is signable",
+      "assertion_passed": true,
+      "kind": "consumer-policy-boundary"
+    },
+    {
+      "case": "maximum safe future time is signable",
+      "assertion_passed": true,
+      "kind": "consumer-policy-boundary"
+    },
+    {
+      "case": "same signed statement verifies twice without replay state",
+      "assertion_passed": true,
+      "kind": "consumer-policy-boundary"
+    },
+    {
+      "case": "zero empty reserve can be signed",
+      "assertion_passed": true,
+      "kind": "consumer-policy-boundary"
+    },
+    {
+      "case": "same ids and total hide different per-credit allocation",
+      "assertion_passed": true,
+      "kind": "consumer-policy-boundary"
+    }
+  ],
+  "limits": "Production libraries, synthetic snapshots and fixed test-only keys; no network, reserve, bridge consumer, funds or deployment exercised."
+}

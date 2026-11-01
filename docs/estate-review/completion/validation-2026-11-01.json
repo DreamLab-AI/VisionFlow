@@ -210,7 +210,7 @@
     ]
   },
   "heading_units": 15365,
-  "heading_units_with_recorded_assessment": 625,
+  "heading_units_with_recorded_assessment": 630,
   "native_tests": 9,
   "clippy": "passed -D warnings",
   "limits": "Counters track evidence reconciliation, not audit completion; document/report hashes do not revalidate implementation code or deployed state.",
@@ -310,23 +310,26 @@
     "disposition": "Historical stale state; all five reassessed in docs/estate-review/2026-11-01-obsidian-refresh.md. See current snapshot for dispositions."
   },
   "current_batch": {
-    "report": "docs/estate-review/2026-11-01-codescape-runtime-boundary.md",
-    "baseline": "98bd1db0b9c57023750fd0fbc9de2e1659b244b8",
-    "new_whole_adrs": 0,
-    "refreshed_whole_adrs": [
-      "ADR-2143"
-    ],
+    "report": "docs/estate-review/2026-11-01-reserve-attestation-boundaries.md",
+    "baseline": "96d4d57ec84f516d1104417964cdca6548d3d071",
+    "new_whole_adrs": 1,
+    "refreshed_whole_adrs": [],
     "new_panels": [],
+    "newly_assessed_existing_panels": [
+      "SR-05.1",
+      "SR-05.2",
+      "SR-05.3"
+    ],
     "current_stale_records": 0,
     "previous_batch_candidates": 1178,
     "added_candidates": [],
     "removed_candidates": [],
-    "limits": "Live Docker metadata only, not process/network/secret-content tests. 36 source files match pinned commits; 77 explicit bind destinations plus ingest token match. Previous product tests remain dated, no rerun. User springs work untouched."
+    "limits": "Focused native suites: 58 reported passes, one of them a Teller oracle early-return skip; 57 exercised cases, one ignored live test. Fourteen additional production-library assertions, synthetic data only. Strict clippy passes; upstream future-incompatibility warning retained. No product, funding or deployment changes."
   },
   "corpus_gate": {
     "topics": 205,
     "panels": 1730,
-    "verified_citations": 25543,
+    "verified_citations": 25560,
     "warnings": 0,
     "fallback": 0,
     "allowlisted": 9,
@@ -335,11 +338,10 @@
       "reviewed_citations": 120,
       "manual_review_queue": [
         "agentbox/01-nix-flake-composition.md:AB-01.3",
-        "agentbox/01-nix-flake-composition.md:AB-01.3",
         "agentbox/01-nix-flake-composition.md:AB-01.5"
       ],
       "limits": "Advisory sample, not whole-corpus semantic acceptance."
     },
-    "evidence": "docs/estate-review/evidence/2026-11-01/codescape-runtime/citations.txt"
+    "evidence": "docs/estate-review/evidence/2026-11-01/reserve/citations.txt"
   }
 }

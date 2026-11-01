@@ -1,0 +1,28 @@
+{
+  "local_report_links": 8,
+  "source_files_still_match": 23,
+  "visually_reviewed_svg_hashes_match": 3,
+  "claim_report_bindings": 175,
+  "collector_counts": {
+    "available_checkouts": 24,
+    "candidate_files": 1178,
+    "numbered_candidates_with_recorded_assessment": 89,
+    "numbered_decision_candidates": 1061,
+    "panels": 1730,
+    "panels_with_recorded_assessment": 315,
+    "scope_targets": 25,
+    "stale_claim_records": 0,
+    "topics": 205
+  },
+  "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+  "probe_assertions": 14,
+  "existing_tests": {
+    "reported_passed": 58,
+    "exercised_test_doc_cases": 57,
+    "reported_pass_early_return_skip": 1,
+    "ignored_live": 1
+  },
+  "clippy": "passed; upstream future-compatibility warning retained",
+  "source_product_changes": false
+}

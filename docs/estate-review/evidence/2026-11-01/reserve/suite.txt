@@ -1,0 +1,385 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.26
+   Compiling libc v0.2.189
+   Compiling cfg-if v1.0.5
+   Compiling typenum v1.20.1
+   Compiling syn v3.0.6
+   Compiling syn v2.0.119
+   Compiling getrandom v0.2.17
+   Compiling rand_core v0.6.4
+   Compiling version_check v0.9.5
+   Compiling generic-array v0.14.7
+   Compiling find-msvc-tools v0.1.13
+   Compiling shlex v2.0.1
+   Compiling cc v1.4.7
+   Compiling crypto-common v0.1.7
+   Compiling memchr v2.8.3
+   Compiling synstructure v0.14.0
+   Compiling subtle v2.6.1
+   Compiling serde_core v1.0.229
+   Compiling stable_deref_trait v1.2.1
+   Compiling zeroize_derive v1.5.0
+   Compiling serde_derive v1.0.229
+   Compiling displaydoc v0.2.7
+   Compiling zerofrom-derive v0.1.8
+   Compiling yoke-derive v0.8.3
+   Compiling zerofrom v0.1.8
+   Compiling serde v1.0.229
+   Compiling zeroize v1.9.0
+   Compiling zerovec-derive v0.11.6
+   Compiling yoke v0.8.3
+   Compiling zerocopy v0.8.57
+   Compiling itoa v1.0.18
+   Compiling zerovec v0.11.8
+   Compiling bitcoin-io v0.1.101
+   Compiling pin-project-lite v0.2.17
+   Compiling cpufeatures v0.2.17
+   Compiling secp256k1-sys v0.10.1
+   Compiling tinystr v0.8.4
+   Compiling equivalent v1.0.2
+   Compiling hashbrown v0.17.1
+   Compiling arrayvec v0.7.8
+   Compiling hex-conservative v0.2.3
+   Compiling indexmap v2.14.2
+   Compiling ppv-lite86 v0.2.21
+   Compiling rand_chacha v0.3.1
+   Compiling rand v0.8.8
+   Compiling futures-core v0.3.34
+   Compiling bitcoin_hashes v0.14.101
+   Compiling smallvec v1.16.2
+   Compiling futures-sink v0.3.34
+   Compiling zmij v1.0.23
+   Compiling bytes v1.12.1
+   Compiling serde_json v1.0.151
+   Compiling secp256k1 v0.29.1
+   Compiling block-buffer v0.10.4
+   Compiling hex_lit v0.1.1
+   Compiling thiserror v1.0.69
+   Compiling slab v0.4.12
+   Compiling base64 v0.21.7
+   Compiling digest v0.10.7
+   Compiling unic-langid-impl v0.9.6
+   Compiling futures-channel v0.3.34
+   Compiling thiserror-impl v1.0.69
+   Compiling inout v0.1.4
+   Compiling once_cell v1.21.4
+   Compiling bitcoin v0.32.102
+   Compiling cipher v0.4.4
+   Compiling unic-langid v0.9.6
+   Compiling base58ck v0.1.101
+   Compiling bitcoin-units v0.1.101
+   Compiling tokio-macros v2.7.2
+   Compiling futures-macro v0.3.34
+   Compiling socket2 v0.6.5
+   Compiling mio v1.2.3
+   Compiling hybrid-array v0.4.15
+   Compiling rustc-hash v2.1.3
+   Compiling futures-task v0.3.34
+   Compiling rustversion v1.0.23
+   Compiling futures-io v0.3.34
+   Compiling bech32 v0.11.1
+   Compiling futures-util v0.3.34
+   Compiling type-map v0.5.1
+   Compiling tokio v1.53.1
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.2.2
+   Compiling self_cell v1.3.0
+   Compiling scopeguard v1.2.0
+   Compiling writeable v0.6.4
+   Compiling parking_lot_core v0.9.12
+   Compiling thiserror v2.0.20
+   Compiling const-oid v0.10.2
+   Compiling unicase v2.9.0
+   Compiling litemap v0.8.3
+   Compiling mime_guess v2.0.5
+   Compiling icu_locale_core v2.3.0
+   Compiling digest v0.11.3
+   Compiling self_cell v0.10.3
+   Compiling fluent-syntax v0.11.1
+   Compiling sha2 v0.10.9
+   Compiling http v1.5.0
+   Compiling potential_utf v0.1.6
+   Compiling zerotrie v0.2.5
+   Compiling thiserror-impl v2.0.20
+   Compiling universal-hash v0.5.1
+   Compiling ring v0.17.14
+   Compiling secp256k1-zkp-sys v0.10.1
+   Compiling icu_normalizer_data v2.3.0
+   Compiling utf8_iter v1.0.4
+   Compiling icu_properties_data v2.3.0
+   Compiling cpufeatures v0.3.1
+   Compiling mime v0.3.17
+   Compiling rustc-hash v1.1.0
+   Compiling bitcoin-private v0.1.0
+   Compiling same-file v1.0.6
+   Compiling opaque-debug v0.3.1
+   Compiling walkdir v2.5.0
+   Compiling sha2 v0.11.0
+   Compiling icu_collections v2.3.0
+   Compiling icu_provider v2.3.1
+   Compiling percent-encoding v2.3.2
+   Compiling log v0.4.34
+   Compiling crc32fast v1.5.2
+   Compiling rust-embed-utils v8.12.0
+   Compiling http-body v1.1.0
+   Compiling lock_api v0.4.14
+   Compiling tokio-util v0.7.19
+   Compiling tracing-core v0.1.36
+   Compiling basic-toml v0.1.10
+   Compiling toml v0.5.11
+   Compiling rustls-pki-types v1.15.1
+   Compiling aead v0.5.2
+   Compiling untrusted v0.9.0
+   Compiling adler2 v2.0.1
+   Compiling semver v1.0.28
+   Compiling bitflags v2.13.2
+   Compiling simd-adler32 v0.3.10
+   Compiling httparse v1.10.1
+   Compiling find-crate v0.6.3
+   Compiling miniz_oxide v0.9.1
+   Compiling rustc_version v0.4.1
+   Compiling secp256k1-zkp v0.11.0
+   Compiling i18n-config v0.4.8
+   Compiling tracing v0.1.44
+   Compiling icu_properties v2.3.0
+   Compiling icu_normalizer v2.3.0
+   Compiling rust-embed-impl v8.12.0
+   Compiling intl-memoizer v0.5.3
+   Compiling fluent-langneg v0.13.1
+   Compiling intl_pluralrules v7.0.2
+   Compiling hmac v0.12.1
+   Compiling getrandom v0.4.3
+   Compiling try-lock v0.2.5
+   Compiling atomic-waker v1.1.2
+   Compiling tower-service v0.3.3
+   Compiling rustix v1.1.5
+   Compiling rustls v0.23.45
+   Compiling fnv v1.0.7
+   Compiling h2 v0.4.19
+   Compiling fluent-bundle v0.15.3
+   Compiling want v0.3.1
+   Compiling rust-embed v8.12.0
+   Compiling flate2 v1.1.10
+   Compiling idna_adapter v1.2.2
+   Compiling rustls-webpki v0.103.15
+   Compiling i18n-embed-impl v0.8.4
+   Compiling curve25519-dalek v4.1.3
+   Compiling form_urlencoded v1.2.2
+   Compiling arc-swap v1.9.2
+   Compiling futures-executor v0.3.34
+   Compiling strsim v0.11.1
+   Compiling compression-core v0.4.33
+   Compiling linux-raw-sys v0.12.1
+   Compiling hex v0.4.3
+   Compiling compression-codecs v0.4.43
+   Compiling futures v0.3.34
+   Compiling hyper v1.11.1
+   Compiling parking_lot v0.12.5
+   Compiling idna v1.1.0
+   Compiling fluent v0.16.1
+   Compiling elements v0.25.3
+   Compiling polyval v0.6.2
+   Compiling poly1305 v0.8.0
+   Compiling miniscript v12.3.7
+   Compiling encoding_rs v0.8.42
+   Compiling ctr v0.9.2
+   Compiling chacha20 v0.9.1
+   Compiling aes v0.8.4
+   Compiling sync_wrapper v1.0.2
+   Compiling curve25519-dalek-derive v0.1.1
+   Compiling proc-macro-error-attr2 v2.0.0
+   Compiling tinyvec v1.13.3
+   Compiling bmp-monochrome v1.1.0
+   Compiling tower-layer v0.3.3
+   Compiling ipnet v2.12.2
+   Compiling minimal-lexical v0.2.1
+   Compiling utf8parse v0.2.2
+   Compiling base64 v0.23.1
+   Compiling fastrand v2.5.0
+   Compiling tempfile v3.27.0
+   Compiling hyper-util v0.1.21
+   Compiling anstyle-parse v1.0.0
+   Compiling nom v7.1.3
+   Compiling tower v0.5.3
+   Compiling unicode-normalization v0.1.25
+   Compiling qr_code v2.0.0
+   Compiling proc-macro-error2 v2.0.1
+   Compiling aes-gcm-siv v0.11.1
+   Compiling chacha20poly1305 v0.10.1
+   Compiling elements-miniscript v0.4.0
+   Compiling tokio-rustls v0.26.5
+   Compiling url v2.5.8
+   Compiling i18n-embed v0.15.4
+   Compiling cookie-factory v0.3.3
+   Compiling async-compression v0.4.48
+   Compiling sidestr-reserve v0.1.0 (/home/devuser/workspace/sidestr-rs/sidestr-reserve)
+   Compiling hkdf v0.12.4
+   Compiling pbkdf2 v0.12.2
+   Compiling webpki-roots v1.0.9
+   Compiling http-body-util v0.1.5
+   Compiling salsa20 v0.10.2
+   Compiling secrecy v0.10.3
+   Compiling pin-project-internal v1.1.13
+   Compiling simdutf8 v0.1.5
+   Compiling anstyle-query v1.1.5
+   Compiling ryu v1.0.23
+   Compiling io_tee v0.1.1
+   Compiling multiversion_no_op v1.0.0
+   Compiling colorchoice v1.0.5
+   Compiling anstyle v1.0.14
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling core_detect v1.0.0
+   Compiling pin-project v1.1.13
+   Compiling anstream v1.0.0
+   Compiling age-core v0.11.0
+   Compiling lwk_common v0.19.0
+   Compiling serde_urlencoded v0.7.1
+   Compiling scrypt v0.11.0
+   Compiling tower-http v0.6.11
+   Compiling hyper-rustls v0.27.10
+   Compiling i18n-embed-fl v0.9.4
+   Compiling x25519-dalek v2.0.1
+   Compiling bip39 v2.2.2
+   Compiling bech32 v0.9.1
+   Compiling base64 v0.22.1
+   Compiling clap_lex v1.1.1
+   Compiling heck v0.5.0
+   Compiling lazy_static v1.5.0
+   Compiling byteorder v1.5.0
+   Compiling age v0.11.5
+   Compiling clap_derive v4.6.7
+   Compiling fxhash v0.2.1
+   Compiling clap_builder v4.6.7
+   Compiling reqwest v0.12.28
+   Compiling elements v0.26.2
+   Compiling regex-lite v0.1.9
+   Compiling clap v4.6.7
+   Compiling lwk_signer v0.19.0
+   Compiling lwk_wollet v0.19.0
+   Compiling ryu-js v0.2.2
+   Compiling serde_jcs v0.2.0
+   Compiling sidestr-bridge-liquid v0.2.0 (/home/devuser/workspace/sidestr-rs/sidestr-bridge-liquid)
+    Finished `test` profile [unoptimized] target(s) in 55.23s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/sidestr_bridge_liquid-2a6f6634de92fc1f)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/usd_reserve-728c55d6442f8745)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/live.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/live-ee2bc2b9185cfaeb)
+
+running 1 test
+test an_empty_wallet_syncs_to_the_live_tip_and_the_registry_matches_the_pin ... ignored, network: set SIDESTR_LIQUID_LIVE=1 and pass --ignored
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/offline.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/offline-67e6d511a3ec6bd1)
+
+running 22 tests
+test a_bad_mnemonic_is_refused_without_echoing_it ... ok
+test a_duplicated_outpoint_is_refused ... ok
+test a_total_beyond_u64_is_carried_exactly ... ok
+test an_empty_reserve_attests_zero ... ok
+test attestation_counts_only_confirmed_reserve_outputs ... ok
+test attesting_any_other_asset_is_refused ... ok
+test attestation_digest_is_stable ... ok
+test attestation_canonical_bytes_are_golden ... ok
+test credits_are_keyed_by_outpoint ... ok
+test a_contract_that_does_not_commit_to_the_pinned_id_is_refused ... ok
+test the_key_never_debug_prints ... ok
+test init_refuses_a_dangling_symlink ... ok
+test load_refuses_a_group_or_world_readable_key_file ... ok
+test init_refuses_to_overwrite_a_key_file ... ok
+test the_liquid_origin_is_the_pinned_asset_at_eight_decimals ... ok
+test attestation_is_independent_of_utxo_order ... ok
+test the_pinned_registry_entry_verifies ... ok
+test every_liquid_reading_changes_the_digest ... ok
+test a_signed_liquid_attestation_verifies_and_tampering_breaks_it ... ok
+test descriptor_from_the_test_mnemonic_matches_lwks_vector ... ok
+test descriptor_derives_the_known_addresses ... ok
+test init_writes_a_24_word_mnemonic_mode_0400 ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/proxy.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/proxy-d4635215435c2d71)
+
+running 1 test
+test sync_goes_through_the_socks_proxy_and_fails_closed ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/sidestr_reserve-ce7f6be3c6a3c979)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/attestation.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/attestation-ea0d58a4a6ec900b)
+
+running 20 tests
+test a_credit_listed_twice_is_refused ... ok
+test an_overflowing_total_is_refused ... ok
+test amounts_beyond_u64_are_stated_exactly ... ok
+test an_empty_reserve_attests_zero ... ok
+test canonical_bytes_are_golden ... ok
+test identifiers_outside_the_canonical_alphabet_are_refused ... ok
+test canonical_keys_are_sorted_and_complete ... ok
+test credit_order_does_not_matter ... ok
+test sources_and_times_are_checked ... ok
+test tips_must_be_lower_case_hex_and_safe_heights ... ok
+test digest_is_the_tagged_hash_of_the_golden_bytes_under_the_fixed_tag ... ok
+test the_same_holdings_on_two_origins_are_two_statements ... ok
+test tagged_hash_is_bip340s_as_rust_bitcoin_computes_it ... ok
+test a_faulty_signer_is_caught ... ok
+test verification_accepts_bip340_test_vector_1 ... ok
+test every_field_changes_the_digest ... ok
+test signing_reproduces_bip340_test_vector_0 ... ok
+test fields_changed_after_attest_are_refused_not_canonicalised ... ok
+test a_signed_attestation_verifies_and_tampering_breaks_it ... ok
+test bip340_signature_over_the_tagged_digest_round_trips ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/jcs.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/jcs-927ad319fcc65fd4)
+
+running 8 tests
+test a_float_is_refused ... ok
+test a_non_ascii_key_is_refused ... ok
+test integers_beyond_two_to_the_53_are_refused ... ok
+test the_tellers_own_jcs_vector ... ok
+test keys_and_strings_needing_an_escape_are_refused ... ok
+test the_subset_agrees_with_serde_jcs ... ok
+skipped the teller half: set TELLER to a checkout of solidpayorg/teller
+test five_fixtures_canonicalise_as_the_teller_does ... ok
+test five_fixtures_canonicalise_as_serde_jcs_does ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests sidestr_bridge_liquid
+
+running 4 tests
+test sidestr-bridge-liquid/src/asset.rs - asset::reserve_asset (line 56) ... ok
+test sidestr-bridge-liquid/src/wallet.rs - wallet::validate_proxy_url (line 128) ... ok
+test sidestr-bridge-liquid/src/lib.rs - (line 38) ... ok
+test sidestr-bridge-liquid/src/key.rs - key::ReserveKey (line 32) ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.56s
+
+   Doc-tests sidestr_reserve
+
+running 3 tests
+test sidestr-reserve/src/lib.rs - tagged_hash (line 320) ... ok
+test sidestr-reserve/src/lib.rs - canonicalize (line 230) ... ok
+test sidestr-reserve/src/lib.rs - (line 69) ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+

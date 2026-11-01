@@ -1,0 +1,135 @@
+{
+  "sidestr-rs": {
+    "root": "/home/devuser/workspace/sidestr-rs",
+    "head": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "files": [
+      {
+        "path": "Cargo.toml",
+        "sha256": "be01a2b17bc8b240a0a57ff8b4b39c5a7cdae76e273172955e6549b26ef3a016",
+        "matches_head": true
+      },
+      {
+        "path": "Cargo.lock",
+        "sha256": "569c20953ae564868b92e55994576114180e115ea16dc0d351ebeb3f9a5d9646",
+        "matches_head": true
+      },
+      {
+        "path": ".github/workflows/ci.yml",
+        "sha256": "9e42511e2ae577d0c27a1bd389bb1a9cfbfac719be4979f73cb1656eb36d4fe6",
+        "matches_head": true
+      },
+      {
+        "path": "docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md",
+        "sha256": "0d29c7a06e0dfa5ea71f1650c0be56555f6184ba959adc6ffdaf1ff79a9096c5",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-reserve/Cargo.toml",
+        "sha256": "e80b20a14ed38d312e581d10bc5cdf1d081ed216beb0754642f002ed071cea39",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-reserve/README.md",
+        "sha256": "aac2a6df945bf2266b058ed45e0ce0df617f54f0abbba52815912d098cc0528d",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-reserve/src/lib.rs",
+        "sha256": "e8e8d1796ddde34c86dc82159cc1d97a936cb19afa5ad505b137c4d6884ba11b",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-reserve/tests/attestation.rs",
+        "sha256": "42009a50cd7983400dc0856fcac36dad9eb58dfb5cebbebef04bc5f88b43eecd",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-reserve/tests/jcs.rs",
+        "sha256": "dceb251c97875f74956ddc89f3e1ea03667bccda0a706b9cb6b57118ee46102a",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-reserve/tests/xcheck-jcs.mjs",
+        "sha256": "a00933abc1b53e3f61e9b183cc609c4c9478eb9ef5a907c36d030a49e9cca637",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-bridge-liquid/Cargo.toml",
+        "sha256": "e94bfc620d6ee0313fd376caf87f886b0b654ee51ad00cd1b7479bf463ea5829",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-bridge-liquid/README.md",
+        "sha256": "4dbd7857d9abab1ea0b8967f9dd00fbc1973881f2601fb02096d3e91e9109b32",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-bridge-liquid/src/lib.rs",
+        "sha256": "eecfeb8edd68910edd9967220b5035e90b6943e7aecc25e8a42142748dd7ace8",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-bridge-liquid/src/attest.rs",
+        "sha256": "74062e9766d72f666b1d89ee19e12a3aebb187f71f9ec9ba618fb57328eba84f",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-bridge-liquid/src/asset.rs",
+        "sha256": "2a6cfad4ffb10ae2d7acafbfaf3e8ea5062c78b6a480754171e3c75d95998050",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-bridge-liquid/src/wallet.rs",
+        "sha256": "3fd730d7b34f0a6333b4ad63daf2debb2b8841b1f8f33ad1767873e4910adb3f",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-bridge-liquid/src/key.rs",
+        "sha256": "955c97dae8fb6b95259ccf3d3e1df27aff6ec33d483b7ef6d887358e4c3b4e83",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-bridge-liquid/src/main.rs",
+        "sha256": "f1275a62e8060c8c7c324f5aad9eeeaf3d2612949ed2cea6ad84f68666876ac8",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-bridge-liquid/tests/offline.rs",
+        "sha256": "e375e5bd5c70ee7b5393718b5849e819a2e2d1a56ec5d856c3bbbc1a681a2362",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-bridge-liquid/tests/live.rs",
+        "sha256": "e4f9e6415051d9d6d42e9b2041b4ac15fcf0cf8eb463b5b5bb685fbb1d2b8d2c",
+        "matches_head": true
+      },
+      {
+        "path": "sidestr-bridge-liquid/tests/proxy.rs",
+        "sha256": "f64706c04555df08393265ae17e881bb815027bcaa925e5249cf380538a59cbf",
+        "matches_head": true
+      }
+    ]
+  },
+  "agentbox": {
+    "root": "/home/devuser/workspace/project/agentbox",
+    "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "files": [
+      {
+        "path": "docs/adr/ADR-2117-private-owner-usd-unit-bridged-through-rgb-into-sidestr.md",
+        "sha256": "15551f69a79e4e7af52441184c778a4dad60d8dc408a3a04f013f064bfa01076",
+        "matches_head": true
+      }
+    ]
+  },
+  "visionclaw": {
+    "root": "/home/devuser/workspace/project",
+    "head": "531df5ef74453a2ed320bff968c203a9b91faed7",
+    "files": [
+      {
+        "path": "docs/TODO-unified.md",
+        "sha256": "f661479ff273cb6b0287de3109a10b1a946009fe2b37cb1bd51e6b9312aacf3c",
+        "matches_head": true
+      }
+    ]
+  }
+}

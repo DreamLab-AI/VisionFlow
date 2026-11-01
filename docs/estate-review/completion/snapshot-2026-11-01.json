@@ -71911,44 +71911,62 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Explicit metadata, context, decisions 1-5, consequences and verification dispositions; fourteen native-library probes and focused existing suites. Confirmation-depth and consumer-policy gaps remain open; no live reserve or activation acceptance.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-reserve-attestation-boundaries.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md",
       "repo": "sidestr-rs",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 15,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-reserve-attestation-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-0003: Keep reserve attestations origin-neutral and project-private"
         },
         {
           "line": 17,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-reserve-attestation-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 26,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-reserve-attestation-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 38,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-reserve-attestation-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 45,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-reserve-attestation-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         }
       ],
@@ -121282,10 +121300,10 @@
   "counts": {
     "available_checkouts": 24,
     "candidate_files": 1178,
-    "numbered_candidates_with_recorded_assessment": 88,
+    "numbered_candidates_with_recorded_assessment": 89,
     "numbered_decision_candidates": 1061,
     "panels": 1730,
-    "panels_with_recorded_assessment": 312,
+    "panels_with_recorded_assessment": 315,
     "scope_targets": 25,
     "stale_claim_records": 0,
     "topics": 205
@@ -121296,7 +121314,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "98bd1db0b9c57023750fd0fbc9de2e1659b244b8",
+      "head": "96d4d57ec84f516d1104417964cdca6548d3d071",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -132060,40 +132078,58 @@
       "sha256": "18baee6a4f0ec60dc4804b416f458ff309654f08954515fa3b32b29efdde904b"
     },
     {
-      "claims": [],
+      "claims": [
+        {
+          "basis": "All three existing panels re-read against pinned source, corrected, rendered and visually inspected. Signature integrity is separated from depth, authority, freshness, replay and supply checks; source status is not live funding evidence.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SR-05.1",
+            "SR-05.2",
+            "SR-05.3"
+          ],
+          "report": "docs/estate-review/2026-11-01-reserve-attestation-boundaries.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "panels": [
         {
-          "body_sha256": "0d47d055897d9b7ec524feec7f16f8ad76f2fe4a64671aaa4fa0b6509533fd79",
-          "heading": "SR-05.1 Adapter boundary",
+          "body_sha256": "6f9026059b8314c80e325b4c7202c2bbe94046ff04fba011af01b60b1c6124ea",
+          "heading": "SR-05.1 Adapter boundary and confirmation depth",
           "id": "SR-05.1",
-          "line": 28,
+          "line": 33,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-reserve-attestation-boundaries.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "c22e0ae29ebe29ba95ba9a7d6d6736ca799b8fbf24404b735e30aa493bd1a2ce",
-          "heading": "SR-05.2 Deterministic statement and signature",
+          "body_sha256": "f0fedbf77a2e5188872a296e91e4402c8e2248874b43d7705026d3b7790b2de6",
+          "heading": "SR-05.2 Deterministic statement and signature scope",
           "id": "SR-05.2",
-          "line": 46,
+          "line": 49,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-reserve-attestation-boundaries.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "cac5b948310662e7df25b1ab902904f31b566c92e9d59634bb9713abaf3229c5",
-          "heading": "SR-05.3 Private, unpublished and inactive",
+          "body_sha256": "92e09bc0aed8afd2f703fdb75c853c3c33ddfc5797ba5608e12797f10d1dbff7",
+          "heading": "SR-05.3 Publication, CLI and activation are separate",
           "id": "SR-05.3",
-          "line": 61,
+          "line": 66,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-reserve-attestation-boundaries.md"
+          ],
+          "review": "assessment-recorded"
         }
       ],
       "path": "docs/diagrams/sidestr-rs/05-reserve-attestation-and-liquid-adapter.md",
       "repo": "VisionFlow",
-      "review": "unreconciled",
-      "sha256": "0648838612fd177fc332c2cfb4b0f5381e0694fbcbf6fd61e0d2fdc9220ca960"
+      "review": "assessment-recorded",
+      "sha256": "9296fcf91096854bc7c1fa5dc368916d199f4a0ee2e6b4028cb631a6358ceba9"
     },
     {
       "claims": [],

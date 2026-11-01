@@ -5,76 +5,78 @@ area: sidestr-rs
 governing:
   - ../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md
   - ../project/agentbox/docs/adr/ADR-2117-private-owner-usd-unit-bridged-through-rgb-into-sidestr.md
-adrs: [ADR-2117]
+adrs: [ADR-0003, ADR-2117]
 sources:
   - ../sidestr-rs/sidestr-reserve/src/lib.rs
+  - ../sidestr-rs/sidestr-reserve/Cargo.toml
   - ../sidestr-rs/sidestr-bridge-liquid/src/lib.rs
+  - ../sidestr-rs/sidestr-bridge-liquid/src/attest.rs
+  - ../sidestr-rs/sidestr-bridge-liquid/src/wallet.rs
+  - ../sidestr-rs/sidestr-bridge-liquid/src/main.rs
+  - ../sidestr-rs/sidestr-bridge-liquid/Cargo.toml
   - ../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md
   - ../project/agentbox/docs/adr/ADR-2117-private-owner-usd-unit-bridged-through-rgb-into-sidestr.md
   - ../project/docs/TODO-unified.md
-verified_commit: {sidestr-rs: d8ace3aad2f23eb1d11bd72af4ab0b74d599f618, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
+verified_commit: {sidestr-rs: 9c6de86c657a25ec2f2a189baf63db7dedad40eb, visionclaw: 531df5ef74453a2ed320bff968c203a9b91faed7, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
 ---
 
 ## For developers
 
-`sidestr-reserve` defines a deterministic statement about a reserve origin, its replay-keyed credits and the final origin tip. Its canonical bytes are RFC 8785 (JCS) JSON, held to `serde_jcs` and to the teller's `jcs` by a cross-check suite, and the digest a key signs is a BIP-340-style tagged SHA-256. `sidestr-bridge-liquid` is one adapter that reads a Liquid wallet through LWK and produces that statement. Neither crate implements or activates the consuming `bridge` rule.
+SideStr’s neutral reserve crate builds a deterministic statement with an aggregate amount, sorted credit ids, origin, tip, source and time. Its canonicaliser accepts a restricted RFC 8785 subset; signing commits those bytes through a tagged SHA-256 digest and BIP-340. The Liquid adapter reads a watch-only wallet and counts outputs confirmed at or below the reported tip. It does not enforce a configurable confirmation depth. The [audit and fourteen production-library probes](../../estate-review/2026-11-01-reserve-attestation-boundaries.md) separate construction, signature validity and future bridge policy.
 
 ## For the business
 
-Source can describe and sign what a private reserve wallet held at a specific origin-chain tip. It does not fund a reserve, issue a redeemable asset or put a bridge into service. Both crates remain unpublished and the format is a private project contract.
+This is a private reserve-reading and signed-statement component. A valid signature identifies the key that signed a statement; it does not establish that the key is authorised, the reading is recent, or issuing another unit is allowed. The source and decisions record no activated bridge. This review does not inspect a funded wallet or certify a current reserve balance.
 
-## SR-05.1 Adapter boundary
-
-```mermaid
-flowchart LR
-    O["reserve origin"] --> AD["origin-specific adapter<br/>sidestr-bridge-liquid/src/lib.rs:25"]
-    AD --> OR["Origin<br/>network, asset, decimals"]
-    AD --> CR["final credits<br/>replay-keyed ids"]
-    AD --> TIP["final origin tip"]
-    OR --> AT["ReserveAttestation"]
-    CR --> AT
-    TIP --> AT
-    AT -. "future consumer" .-> BR["bridge rule"]
-```
-
-**What it shows.** The neutral crate identifies an origin by network, asset and decimals and identifies each credit by an origin-appropriate replay key (`../sidestr-rs/sidestr-reserve/src/lib.rs:351`, `../sidestr-rs/sidestr-reserve/src/lib.rs:436`). A Liquid-specific adapter supplies the wallet, sync and registry interpretation (`../sidestr-rs/sidestr-bridge-liquid/src/lib.rs:17`).
-
-**Why it is this way.** Another origin can provide a sibling adapter while a future bridge rule consumes one stable statement shape. The local ADR keeps origin dependencies isolated (`../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md:26`).
-
-## SR-05.2 Deterministic statement and signature
+## SR-05.1 Adapter boundary and confirmation depth
 
 ```mermaid
-flowchart LR
-    IN["origin, tip, credits,<br/>source and time<br/>sidestr-reserve/src/lib.rs:499"] --> SORT["sort credit ids and<br/>refuse duplicates"]
-    SORT --> JSON["RFC 8785 JCS canonical JSON<br/>sidestr-reserve/src/lib.rs:577"]
-    JSON --> SHA["tagged SHA-256 digest<br/>sidestr-reserve/src/lib.rs:584"]
-    SHA --> SIG["BIP-340 signer hook<br/>sidestr-reserve/src/lib.rs:611"]
-    SIG --> CHECK["verify before return"]
+flowchart TB
+    SYNC["Watch-only LWK wallet sync<br/>sidestr-bridge-liquid/src/wallet.rs:19,58"] --> SNAP["Snapshot: reported tip and unblinded UTXOs<br/>sidestr-bridge-liquid/src/wallet.rs:93"]
+    SNAP --> DUP["Pinned asset and duplicate-outpoint check<br/>sidestr-bridge-liquid/src/attest.rs:92-102"]
+    DUP --> FILTER["Keep pinned asset with confirmation height at or below tip<br/>sidestr-bridge-liquid/src/attest.rs:103-107"]
+    FILTER --> CREDIT["Outpoint ids and amounts<br/>sidestr-bridge-liquid/src/attest.rs:109-111"]
+    CREDIT --> STATEMENT["Origin-neutral statement at reported tip<br/>sidestr-bridge-liquid/src/attest.rs:127-136"]
+    DEPTH["OPEN: chain document confirmation depth before signing<br/>ADR-2117-private-owner-usd-unit-bridged-through-rgb-into-sidestr.md:57"] -.-> FILTER
 ```
 
-**What it shows.** Attestation construction sorts credit ids through a set, refuses duplicates and totals amounts with checked arithmetic (`../sidestr-rs/sidestr-reserve/src/lib.rs:499`). Canonical form is RFC 8785 (JCS) JSON — keys ascending by byte order, no whitespace — fixed before a BIP-340-style tagged SHA-256 digest and BIP-340 signing (`../sidestr-rs/sidestr-reserve/src/lib.rs:577`, `../sidestr-rs/sidestr-reserve/src/lib.rs:584`, `../sidestr-rs/sidestr-reserve/src/lib.rs:611`). The bytes are held to `serde_jcs` and to the JCS of the solidpayorg teller `7c00cea` by `tests/jcs.rs` (`../sidestr-rs/sidestr-reserve/src/lib.rs:60`).
+**What it shows.** The adapter excludes unconfirmed and future-height outputs, but includes an output in the current tip block. No depth parameter enters `credits` or `attest`. The reported tip and source come from wallet sync; the adapter documents reliance on the public server for completeness and freshness (`../sidestr-rs/sidestr-bridge-liquid/src/attest.rs:14-25`). **Why it is this way.** ADR-0003 assigns origin-specific interpretation to the adapter (`../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md:30`). Its “Liquid finality” verification wording is broader than the implemented height filter (`../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md:50`).
 
-**Why it is this way.** Independent adapters and validators must reproduce exactly the bytes that were signed, and a credit must not support two mints.
+**Tension:** configured `bridgeConfirmations` before signing is an estate obligation, while the adapter implements only confirmed-at-tip selection; the CLI emits an unsigned statement, so this is an unclosed integration gate, not evidence of premature production signing (`../sidestr-rs/sidestr-bridge-liquid/src/main.rs:179-181`).
 
-## SR-05.3 Private, unpublished and inactive
+## SR-05.2 Deterministic statement and signature scope
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Implemented
-    Implemented: neutral attestation and Liquid adapter source
-    Implemented --> Unpublished
-    Unpublished: publish equals false
-    Unpublished --> Unfunded
-    Unfunded: no reserve value and no live bridge rule
-    Unfunded --> Gated: explicit estate decision and evidence required
-    note right of Unpublished
-        sidestr-bridge-liquid/src/lib.rs:73
-    end note
-    Gated --> [*]
+flowchart TB
+    IN["Origin, tip, credits, source and time<br/>sidestr-reserve/src/lib.rs:499"] --> BUILD["Refuse duplicate ids and checked-sum amounts<br/>sidestr-reserve/src/lib.rs:510-520"]
+    BUILD --> VALUE["Public amount and credit-id fields<br/>per-credit amounts are not retained<br/>sidestr-reserve/src/lib.rs:473-485"]
+    VALUE --> CHECK["Recheck field syntax and duplicate ids<br/>sidestr-reserve/src/lib.rs:533-543"]
+    CHECK --> JSON["Sorted canonical JSON on restricted JCS subset<br/>sidestr-reserve/src/lib.rs:549-578"]
+    JSON --> HASH["Tagged SHA-256 digest<br/>sidestr-reserve/src/lib.rs:584-590"]
+    HASH --> SIGN["Signer supplies signature and public key<br/>sidestr-reserve/src/lib.rs:670-680"]
+    SIGN --> VERIFY["Verify digest and signature against carried key<br/>sidestr-reserve/src/lib.rs:688-693"]
 ```
 
-**What it shows.** The adapter's crate documentation says it is private, unfunded, unpublished and not live (`../sidestr-rs/sidestr-bridge-liquid/src/lib.rs:5`, `../sidestr-rs/sidestr-bridge-liquid/src/lib.rs:73`). The local ADR states that neither crate activates a bridge rule, funds a reserve or deploys a chain (`../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md:32`).
+**What it shows.** Construction checks the total, but subsequent field validation cannot reconstruct it from credit ids alone. A caller can change the amount before signing and obtain a valid signature over that new statement. Changing it after signing invalidates the signature. These are distinct boundaries, reproduced by the audit. **Why it is this way.** The crate signs an attester's claim; it does not verify holdings. Origin-specific evidence and the future consumer's pinned key, freshness, replay and supply checks remain separate responsibilities (`../sidestr-rs/sidestr-reserve/src/lib.rs:26-38`, `../project/agentbox/docs/adr/ADR-2117-private-owner-usd-unit-bridged-through-rgb-into-sidestr.md:53-65`).
 
-**Why it is this way.** A signed data format is only one input to a custody system. Funding, issuance, supply validation and activation require separate estate evidence under ADR-2117.
+**Drift:** the struct says “Built only by attest”, but its fields are public; `check` preserves field syntax and duplicate rejection, not the original total (`../sidestr-rs/sidestr-reserve/src/lib.rs:468-485`, `../sidestr-rs/sidestr-reserve/src/lib.rs:529-544`).
 
-**Open:** the master board keeps reserve custody and service-account isolation open; publishing source does not close those runtime gates (`../project/docs/TODO-unified.md:99`).
+## SR-05.3 Publication, CLI and activation are separate
+
+```mermaid
+flowchart TB
+    PRIVATE["Both manifests disable publication<br/>sidestr-reserve/Cargo.toml:16<br/>sidestr-bridge-liquid/Cargo.toml:15"]
+    LIB["Library can sign a caller-supplied statement<br/>sidestr-reserve/src/lib.rs:670"]
+    CLI["CLI Attest prints unsigned JSON and digest<br/>sidestr-bridge-liquid/src/main.rs:179-181"]
+    GATE["OPEN: pinned authority, replay, reserve and supply rules<br/>ADR-2117-private-owner-usd-unit-bridged-through-rgb-into-sidestr.md:53-71"]
+    STATUS["Recorded inactive: no bridge activation by these crates<br/>ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md:7,33-34"]
+    PRIVATE --- LIB
+    PRIVATE --- CLI
+    LIB -. "future integration" .-> GATE
+    CLI -. "future integration" .-> GATE
+    GATE --- STATUS
+```
+
+**What it shows.** Publication restrictions, signing capability and runtime activation are independent facts. `SignedAttestation.verify` has no expected-authority, clock or replay-set argument (`../sidestr-rs/sidestr-reserve/src/lib.rs:688`). The CLI's unsigned output does not establish a live mint path. **Why it is this way.** ADR-0003 keeps the format project-private and leaves funding, deployment and consumer activation to separate estate evidence (`../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md:32-34`). An inactive source record does not prove a present-day wallet is unfunded.
+
+**Open:** the master board keeps reserve custody and service-account isolation open; library publication does not close those runtime gates (`../project/docs/TODO-unified.md:99`).

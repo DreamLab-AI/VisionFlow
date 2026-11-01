@@ -1,0 +1,19 @@
+{
+  "citations.txt": "e7dddd0e27c7a41cc6cd154ea45b200aaf0527104f0a3bcd5ad1f013f2a72ce1",
+  "clippy.txt": "2fe6f5ed3b48863fd00cebb99a42eef8d5416f336bfc9389c892833332928a1d",
+  "dependency-boundary.json": "3b2c729ea75b52513fa5801bfd4d4b829089f916e4c3e756423ef69cb624f8bf",
+  "diagram-prose.txt": "587d927ee0bc8c67e012e69e6659c6e72a28cfb4490dd6a408426157f3aa2e1a",
+  "diagrams.txt": "4afbbe6cd9d37f635cee97b03e1463f1a2fd44e7041e4c7c97e1bea7cc87ce0e",
+  "documentation-checks.json": "c142757c7e3ce726228a6e498a261527c82878ba4ae6ee7626e1d84149f76e5b",
+  "probe-initial-attempt.txt": "2d581b6b63af0effc7640c2ef5e3827e7b5166015b41e26fa8f0af6c9b0fc52e",
+  "probe-run.txt": "e983b0dd384b1b442ed1cbf21b7ecbc9521ff3c3ce557f1e463d08346d5ac42d",
+  "probe.json": "6513dfaf5414c8d44ca5e236917d012189e98506b6168b19733ad2148ddfa406",
+  "prose.txt": "d867e34ebd003ed8a9a0f3cd17be63df30bc9878bdc1ec4da0313e5dae0fa292",
+  "reserve-probe.rs": "dcb576e9bd1ee08ad8e261c41a9ab5700ae31542f9da394dc29c2ab089b842a1",
+  "run-probe.cjs": "08190e01011c9fd27fcf4132b78a3e183362eb45fdcabdbcceca66b7270d854d",
+  "sources.json": "266fdd95f6bd5915dd71291695c7e828b3d925eca9142e2bbe6eca5d6699153d",
+  "suite.txt": "7d9789cf125ea54368862323acbf10617bf38d2073056303adb70be6b08ea198",
+  "unicode.txt": "4da821b8ad45e9e48e36be0284dddb15eddb7f3b2a52e38f735f4dcac2766c3d",
+  "verification.txt": "3e2c59b9f0a46704533475d56dc0f457dd45c8556f68e7b06b84e1be8b65b26b",
+  "visual-check.json": "e83c9466f87f1959cf67c16cba73d252764f4fcff3b6e59cd4ae19bff01c712b"
+}

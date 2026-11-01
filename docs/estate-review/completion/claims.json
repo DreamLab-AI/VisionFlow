@@ -2211,5 +2211,30 @@
       "VC-53.5"
     ],
     "basis": "Source rechecked at 531df5ef7, strict citations and rendered visual inspection. VC-47 historical test limits retained; VC-53 method and native-policy evidence boundaries explicit."
+  },
+  {
+    "kind": "adr",
+    "repo": "sidestr-rs",
+    "path": "docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md",
+    "source_sha256": "0d29c7a06e0dfa5ea71f1650c0be56555f6184ba959adc6ffdaf1ff79a9096c5",
+    "report": "docs/estate-review/2026-11-01-reserve-attestation-boundaries.md",
+    "report_sha256": "0c16b28094514e1643ed02fe7ad45eaa8e939152379f8248b6896eb3c0309dd9",
+    "coverage": "whole-document",
+    "basis": "Explicit metadata, context, decisions 1-5, consequences and verification dispositions; fourteen native-library probes and focused existing suites. Confirmation-depth and consumer-policy gaps remain open; no live reserve or activation acceptance."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/sidestr-rs/05-reserve-attestation-and-liquid-adapter.md",
+    "source_sha256": "9296fcf91096854bc7c1fa5dc368916d199f4a0ee2e6b4028cb631a6358ceba9",
+    "report": "docs/estate-review/2026-11-01-reserve-attestation-boundaries.md",
+    "report_sha256": "0c16b28094514e1643ed02fe7ad45eaa8e939152379f8248b6896eb3c0309dd9",
+    "coverage": "selected-panels",
+    "panels": [
+      "SR-05.1",
+      "SR-05.2",
+      "SR-05.3"
+    ],
+    "basis": "All three existing panels re-read against pinned source, corrected, rendered and visually inspected. Signature integrity is separated from depth, authority, freshness, replay and supply checks; source status is not live funding evidence."
   }
 ]

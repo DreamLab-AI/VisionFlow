@@ -1,0 +1,26 @@
+[
+  {
+    "panel": "SR-05.1",
+    "preview": "/tmp/vf-reserve-audit/SR-05.1.png",
+    "svg_viewbox": "0 0 928 799",
+    "preview_method": "ImageMagick from temporary SVG with explicit Liberation Sans 16px for text; original Pele SVG untouched. No browser or headset acceptance.",
+    "visually_inspected": true,
+    "original_svg_sha256": "c6c711b4d03cbea660af662c2c2550340b1cf5f0415ed502b4d90ea6f545e15c"
+  },
+  {
+    "panel": "SR-05.2",
+    "preview": "/tmp/vf-reserve-audit/SR-05.2.png",
+    "svg_viewbox": "0 0 285 1069",
+    "preview_method": "ImageMagick from temporary SVG with explicit Liberation Sans 16px for text; original Pele SVG untouched. No browser or headset acceptance.",
+    "visually_inspected": true,
+    "original_svg_sha256": "45f1e20071a03485eeffe675781bbf09cf13d747788f8be92e42042c78c5e03d"
+  },
+  {
+    "panel": "SR-05.3",
+    "preview": "/tmp/vf-reserve-audit/SR-05.3.png",
+    "svg_viewbox": "0 0 626 596",
+    "preview_method": "ImageMagick from temporary SVG with explicit Liberation Sans 16px for text; original Pele SVG untouched. No browser or headset acceptance.",
+    "visually_inspected": true,
+    "original_svg_sha256": "a7a746b9a62a914a8d54ccbc2f753bde8051603b784c4bdf944ded11e150b249"
+  }
+]
