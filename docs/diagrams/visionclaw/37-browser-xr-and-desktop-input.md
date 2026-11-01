@@ -25,8 +25,14 @@ sources:
   - ../project/client/src/services/remoteLogger.ts
   - ../project/client/src/features/graph/contexts/NodePositionContext.tsx
   - ../project/client/src/features/bots/components/BotsVisualization.tsx
-verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
+  - ../project/client/src/features/graph/hooks/useGraphEventHandlers.ts
+  - ../project/client/src/features/graph/hooks/dragHeartbeat.ts
+  - ../project/client/src/features/graph/hooks/__tests__/dragHeartbeat.test.ts
+  - ../project/src/handlers/socket_flow_handler/types.rs
+verified_commit: {visionclaw: d6c091f0ffb6d1af04ce011836c45ace6f4dafd9}
 ---
+
+Re-stamped at `d6c091f0f` (2026-11-01). VC-37.11 adds the desktop drag-hold heartbeat (ADR-2169). The whole hold lifecycle across the server is [VC-52.6](52-drag-holds-and-observation-gates.md).
 
 ## VC-37.1 Browser XR capability probe — what platformManager actually does
 
@@ -324,7 +330,7 @@ flowchart LR
     inputs --> NOTE2
     NOTE2["INVARIANT both spatial inputs mutate the SAME R3F camera and<br/>write nothing into the SharedArrayBuffer. Position data flows<br/>one way - websocket to SAB to renderer (VC-32, VC-31) - so an<br/>input device can never desynchronise graph state."]
     NPC --> NOTE3
-    NOTE3["DEBT: NodePositionContext is named a context but is a module-level<br/>mutable singleton, not a React context. GraphManager publishes the live<br/>buffer on every frame (GraphManager.tsx:452) and the id map on every<br/>node-set change (GraphManager.tsx:78), and the agent overlay reads it<br/>directly. Nothing invalidates a stale reader after a remount.<br/>NodePositionContext.tsx:13"]
+    NOTE3["DEBT: NodePositionContext is named a context but is a module-level<br/>mutable singleton, not a React context. GraphManager publishes the live<br/>buffer on every frame (GraphManager.tsx:455) and the id map on every<br/>node-set change (GraphManager.tsx:78), and the agent overlay reads it<br/>directly. Nothing invalidates a stale reader after a remount.<br/>NodePositionContext.tsx:13"]
 ```
 
 ## VC-37.8 Browser path versus the shipped Godot path
@@ -351,7 +357,7 @@ flowchart TB
     G5 --- SHARED
     B2 --> DIV
     G2 --> DIV
-    DIV["RESOLVED ADR-2081: docs/BASELINE-architecture.md:264-265 describes the<br/>React client as 'consuming the binary WebSocket position stream and the<br/>/api REST surface' - which is now exactly what the code is. The XR-mode<br/>shell and the unimported @react-three/xr dependency are deleted, so no<br/>reader can mistake the browser client for an immersive one. The immersive<br/>client is the Godot app alone. Babylon.js was already removed<br/>(client/vite.config.ts:47)."]
+    DIV["RESOLVED ADR-2081: docs/BASELINE-architecture.md:271-272 describes the<br/>React client as 'consuming the binary WebSocket position stream and the<br/>/api REST surface' - which is now exactly what the code is. The XR-mode<br/>shell and the unimported @react-three/xr dependency are deleted, so no<br/>reader can mistake the browser client for an immersive one. The immersive<br/>client is the Godot app alone. Babylon.js was already removed<br/>(client/vite.config.ts:47)."]
 ```
 
 ## VC-37.9 SpaceDriver hot-plug — disconnect and reconnect lifecycle
@@ -425,3 +431,17 @@ flowchart TB
     WB --> note1
     HREAD --> note1
 ```
+
+## VC-37.11 A still desktop drag keeps its server hold alive with a heartbeat
+
+```mermaid
+flowchart TD
+    START["Drag start sends nodeDragStart with the start position<br/>useGraphEventHandlers.ts:159"] --> BEAT["Any old heartbeat stopped, a new one started<br/>useGraphEventHandlers.ts:171,172"]
+    BEAT --> TICK["Every 500 ms resend the current position as nodeDragUpdate<br/>dragHeartbeat.ts:9,15<br/>useGraphEventHandlers.ts:175,176"]
+    TICK --> SERVER["Server releases a hold after 2000 ms with no update<br/>types.rs:23"]
+    END["Drag end sends nodeDragEnd<br/>useGraphEventHandlers.ts:278"] --> STOP["Heartbeat cleared, also on unmount<br/>useGraphEventHandlers.ts:296,85<br/>dragHeartbeat.ts:16"]
+    TEST["Test pins heartbeat below half the timeout<br/>dragHeartbeat.test.ts:5,17"] -.-> DEBT["DEBT: the 2000 ms server timeout is restated<br/>as a client test constant, not shared<br/>dragHeartbeat.test.ts:5"]
+    SERVER -.-> DEBT
+```
+
+**What it shows.** The desktop only sends an update when the pointer moves, so a held-still node would be dropped without the timer. **Why it is this way.** ADR-2169 made a drag a hold with a 2 s socket timeout (2026-11-01). The heartbeat (`db1ab342d`) is the client half of that contract.

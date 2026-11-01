@@ -85,3 +85,18 @@ flowchart TD
 **What it shows.** Reverse acquisition and send refusal are separate admission boundaries; fit containment is also qualified by intentional exclusions. **Why it is this way.** These guards were added at different entry points, while excluding held outliers avoids shrinking the content repeatedly beneath the hand.
 
 **Tension:** E7's universal wording needs to account for the intentionally excluded held nodes (`XR-client.md:940`; `connection_volume_source.gd:47,186`).
+
+## VC-53.6 Two headset pin sets survive with readers but no writer
+
+```mermaid
+flowchart TD
+    END["Grab end sends drag end and records no pin<br/>graph_scene.gd:3452,3455,3462"] --> CONN["Connection drag end records nothing<br/>backend_connection.gd:272,273"]
+    SCENE["Scene _pinned_ids: count, HUD list, CSV, Unpin All<br/>graph_scene.gd:954,2088,2101,2149,2379"] --> ACK["Removed only on unpin ack or capability loss<br/>graph_scene.gd:4126,2372"]
+    CONNSET["Connection _pinned: read, unpinned, cleared on close<br/>backend_connection.gd:52,292,299,301"] --> ACK2["Erased by send_unpin<br/>backend_connection.gd:287"]
+    END -.-> D1["DEBT: no path adds to either set<br/>backend_connection.gd:49,50,51"]
+    SCENE -.-> D2["DRIFT: comment still says drag-end adds<br/>graph_scene.gd:951,952"]
+```
+
+**What it shows.** Unpin All, the HUD count and connection teardown still iterate sets that nothing fills, so after ADR-2172 F3 they are always empty. **Why it is this way.** F3 removed the writer, and the client-side Pin sender that would fill the sets is a recorded follow-up (ADR-2172 F5).
+
+**Drift:** the `_pinned_ids` comment says drag-end adds (`graph_scene.gd:951`), but `_end_grab` records nothing (`graph_scene.gd:3452`).

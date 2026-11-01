@@ -4,7 +4,7 @@ title: Drag holds and observation gates
 area: visionclaw
 governing:
   - ../project/docs/PROTOCOL-registry.md
-adrs: [ADR-2169, ADR-2140, ADR-2167, ADR-2172]
+adrs: [ADR-2169, ADR-2140, ADR-2167, ADR-2172, ADR-2141]
 sources:
   - ../project/src/actors/gpu/hold_registry.rs
   - ../project/src/actors/gpu/force_compute_actor.rs
@@ -14,6 +14,13 @@ sources:
   - ../project/scripts/drag-physics-acceptance.mjs
   - ../project/xr-client/scripts/spatial_environment.gd
   - ../project/xr-client/scripts/graph_scene.gd
+  - ../project/src/actors/graph_service_supervisor.rs
+  - ../project/client/src/features/graph/hooks/useGraphEventHandlers.ts
+  - ../project/client/src/features/graph/hooks/dragHeartbeat.ts
+  - ../project/client/src/features/graph/workers/graph.worker.ts
+  - ../project/client/src/features/graph/workers/lib/binary-processor.ts
+  - ../project/client/src/features/graph/managers/graphWorkerProxy.ts
+  - ../project/crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu
 verified_commit: {visionclaw: 531df5ef74453a2ed320bff968c203a9b91faed7}
 ---
 
@@ -102,3 +109,58 @@ flowchart TD
 **What it shows.** The new focus-frame helper is source-confirmed. A marker test with distinct positions per connection is still needed; existing transform assertions do not cover that supplier boundary.
 
 **Why it is this way.** Node ids and transforms belong to streams/volumes. Carrying the correct frame without the matching point can place an overlay incorrectly when those streams differ.
+
+## VC-52.6 One desktop hold from press to rejoin, across socket, orchestrator, registry and GPU
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant UI as useGraphEventHandlers<br/>useGraphEventHandlers.ts:159
+    participant WS as handle_node_drag_start<br/>position_updates.rs:287
+    participant GS as GraphServiceSupervisor<br/>graph_service_supervisor.rs:2056
+    participant OR as PhysicsOrchestratorActor<br/>physics_orchestrator_actor.rs:1186
+    participant FC as ForceComputeActor<br/>force_compute_actor.rs:3004
+    participant HR as HoldRegistry<br/>hold_registry.rs:59
+    UI->>WS: nodeDragStart with position, useGraphEventHandlers.ts:159
+    WS->>WS: may_hold, then dragged_nodes and drag_last_update, position_updates.rs:309,322,323
+    WS->>GS: NodeInteractionMessage Dragged, position_updates.rs:231,233
+    GS->>OR: forward unchanged, graph_service_supervisor.rs:2069
+    OR->>OR: held_nodes.insert, physics_orchestrator_actor.rs:1191
+    WS->>FC: HoldNodes holder and position, position_updates.rs:239
+    FC->>HR: hold writes owner, position, touched, hold_registry.rs:59,61,62,63
+    FC->>FC: clear reheat, impulse and settle window, force_compute_actor.rs:3018,3019,3020
+    loop every 500 ms while the button is down
+        UI->>WS: nodeDragUpdate heartbeat at the current position, useGraphEventHandlers.ts:172,176
+    end
+    Note over UI: heartbeat interval dragHeartbeat.ts:9,15 is below the 2 s socket timeout
+    FC->>FC: next step, mask uploaded then pins applied, force_compute_actor.rs:2124,2125
+    UI->>WS: nodeDragEnd, useGraphEventHandlers.ts:278
+    WS->>WS: remove from dragged_nodes and drag_last_update, position_updates.rs:485,486
+    WS->>GS: NodeInteractionMessage Released, position_updates.rs:263
+    GS->>OR: forward, graph_service_supervisor.rs:2069
+    OR->>OR: held_nodes.remove with no owner, physics_orchestrator_actor.rs:1194
+    WS->>FC: ReleaseNodes holder and nodes, position_updates.rs:271
+    FC->>HR: release by current owner only, hold_registry.rs:68,69
+    FC->>FC: after_release, rejoin impulse and 2 s settle window, force_compute_actor.rs:383,386,375
+    Note over WS,FC: backstops, socket 2 s timeout position_updates.rs:615,639 and registry 5 s expiry force_compute_actor.rs:1903,4443
+```
+
+**What it shows.** One gesture fans out into two independent messages, one to the GPU actor and one through the graph service to the orchestrator, and each keeps its own held set. **Why it is this way.** ADR-2169 (2026-11-01) put ownership in the GPU actor's registry. The orchestrator's intent channel predates it and was kept for the auto-pause and wake behaviour.
+
+## VC-52.7 Where the fact "this node is held or pinned" is stored
+
+```mermaid
+flowchart TD
+    REG["AUTHORITATIVE: HoldRegistry held, explicit, positions, touched<br/>hold_registry.rs:39,41,43,48"] --> MASK["Derived GPU pinned_mask from registry positions<br/>force_compute_actor.rs:396,541"]
+    SOCK["Socket dragged_nodes for the two-hand admission<br/>types.rs:73<br/>position_updates.rs:183,184"] -.-> D1["DEBT: same per-holder set the registry keeps<br/>hold_registry.rs:83"]
+    TIME["Socket drag_last_update, 2 s timeout<br/>types.rs:75<br/>position_updates.rs:615,628"] --> LAYER["Layered with registry touched and 5 s expiry<br/>hold_registry.rs:99<br/>force_compute_actor.rs:4441,4443"]
+    ORCH["Orchestrator held_nodes, node id only<br/>physics_orchestrator_actor.rs:117,1191,1194"] -.-> T1["See VC-52.2 tension"]
+    DESK["Desktop worker pinnedNodeIds still read<br/>graph.worker.ts:31<br/>binary-processor.ts:74"] -.-> D2["DEBT: no writer, proxy pin calls are deprecated no-ops<br/>graphWorkerProxy.ts:410,416"]
+    STALE["Doc comment for removed per-frame pin re-upload<br/>force_compute_actor.rs:365,366"] -.-> D3["DEBT: orphaned above begin_release_settle<br/>force_compute_actor.rs:375"]
+```
+
+**What it shows.** Of the server-side copies, the registry is the only one that carries ownership and the hold-versus-pin distinction. The GPU mask is derived from it, and the timeouts are deliberately layered. **Why it is this way.** ADR-2169 added the registry beside the existing socket and orchestrator state rather than replacing either.
+
+**Drift:** the desktop drag handlers cite "ADR-03 D7: pin state is server-authoritative", but no ADR-03 or ADR-003 exists in `docs/adr` or `docs/archive` (`useGraphEventHandlers.ts:151,269`).
+
+**Debt:** the socket's `dragged_nodes` duplicates the registry's per-holder set (`types.rs:73`; `hold_registry.rs:83`), and the desktop `pinnedNodeIds` is read but never written (`graph.worker.ts:31`; `graphWorkerProxy.ts:410`).
