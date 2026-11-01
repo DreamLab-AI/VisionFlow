@@ -1,0 +1,79 @@
+[
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/trust.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "ee3b2f92ff5e7c2387f36fe2e8931c4a5b29b50fd69236a6f989d47032951082",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/trust_sweep.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "8f8f8ad9eac2f0bedae070fbf2c575ffedee09108f50e13d0e8bfc44861cf67b",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/cron.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "a923463729dee9df1827f6279a27a9092e4c93ee608c6b330d28795f9f773cd0",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/lib.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "eeb662b0353919441077af3081e063252eab7da4c6ca952f5e80f9dfca8ab57d",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "52c7bd80243276f6f4109f1dc4180b485352141aac70d68fab626d5e1f6c0afd",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/wrangler.toml",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "7e4865ddf475ba88ebc7828bac197d11461c93111263f59826c97316c58446ea",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "docs/adr/ADR-2006-trust-demotion-cron-tl3-never.md",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "5576b5374b5b351e123addf1a7bebf98a0745f14e17092a5a50466384b86d35a",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "docs/archive/adr/ADR-102-trust-demotion-inactivity-sweep.md",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "9396b22723401b3b9f743418a062a1d35a4575e5fff608a9121bd17f40e3556b",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "scripts/tests/test_trust_transaction.py",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "29ffc3a5daa12c4214a32de087df22fe024d79378744e45f9a0215ee14e97e3a",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "docs/estate-closeout/2026-09-05/adr-2006-trust-sweep.json",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "8d33fbc7184a5199383d73449d867dbba79ceeea7c97c5a3a686892d0a298d8b",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "docs/estate-closeout/2026-09-05/adr-2006-local-d1-reproduction.json",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "da3d446eaa49270e56b5113ee9cd01b5a25b991c052a34b022f178d5a6b1d8ca",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  }
+]

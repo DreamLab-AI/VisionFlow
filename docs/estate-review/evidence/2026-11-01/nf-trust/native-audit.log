@@ -1,0 +1,40 @@
+   Compiling nostr-bbs-relay-worker v1.0.0-beta.10 (/home/devuser/workspace/wt/VisionFlow-nf-trust/.audit-trust/forum/crates/nostr-bbs-relay-worker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.47s
+     Running unittests src/lib.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_relay_worker-4e24e725587f94f0)
+
+running 32 tests
+test trust::tests::compute_never_returns_tl3 ... ok
+test trust::tests::as_i32_roundtrip ... ok
+test trust::tests::compute_tl0_when_no_activity ... ok
+test trust::tests::compute_tl1_below_threshold ... ok
+test trust::tests::compute_tl1_at_threshold ... ok
+test trust::tests::compute_tl2_below_threshold_falls_to_tl1 ... ok
+test trust::tests::compute_tl2_at_threshold ... ok
+test trust::tests::compute_tl2_blocked_by_mod_actions ... ok
+test trust::tests::default_thresholds_match_prd ... ok
+test trust::tests::trust_level_from_i32_clamps ... ok
+test trust::tests::posts_read_alone_insufficient_for_tl1 ... ok
+test trust::tests::posts_read_gates_tl1_promotion ... ok
+test trust::tests::trust_level_from_i32_roundtrip ... ok
+test trust::tests::trust_level_ordering ... ok
+test trust_sweep::tests::audit_earned_counters_do_not_decay_with_time_alone ... ok
+test trust_sweep::tests::active_row_inside_the_window_is_held_not_demoted ... ok
+test trust_sweep::tests::audit_failure_leaves_state_and_audit_consistent ... ok
+test trust_sweep::tests::audit_failed_prefix_also_starves_tail_across_ticks ... ok
+test trust_sweep::tests::audit_held_prefix_starves_tail_across_repeated_ticks ... ok
+test trust_sweep::tests::audit_larger_budget_reaches_tail_after_same_held_prefix ... ok
+test trust_sweep::tests::empty_whitelist_is_a_clean_no_op ... ok
+test trust_sweep::tests::failed_write_is_not_counted_as_a_demotion ... ok
+test trust_sweep::tests::one_committed_transition_per_row_per_sweep ... ok
+test trust_sweep::tests::rerunning_the_sweep_reconciles_and_converges ... ok
+test trust_sweep::tests::exact_batch_multiple_terminates ... ok
+test trust_sweep::tests::tl2_lands_on_tl1_when_tl1_criteria_still_met ... ok
+test trust_sweep::tests::row_clearing_hysteresis_is_held_and_counted ... ok
+test trust_sweep::tests::tl3_and_admin_rows_are_never_swept ... ok
+test trust_sweep::tests::page_query_failure_aborts_rather_than_reporting_completion ... ok
+test trust_sweep::tests::truncation_reports_a_resume_point ... ok
+test trust_sweep::tests::sweeps_every_row_across_many_batches ... ok
+test trust_sweep::tests::tied_timestamps_page_deterministically ... ok
+
+test result: ok. 32 passed; 0 failed; 0 ignored; 0 measured; 460 filtered out; finished in 0.01s
+

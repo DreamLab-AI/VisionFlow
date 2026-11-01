@@ -1,0 +1,11 @@
+parsed 1 topic files, 4 mermaid diagrams
+cite-check: 2 warning(s)
+citations: 24 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+  ! nostr-rust-forum/24-trust-transition-and-sweep-contracts.md:NF-24.3 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:239 is punctuation only (')')
+  ! nostr-rust-forum/24-trust-transition-and-sweep-contracts.md:NF-24.4 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:375 is punctuation only (');')
+rendered 3/4 diagrams via pele
+
+3 error(s):
+  - citation: nostr-rust-forum/24-trust-transition-and-sweep-contracts.md:NF-24.3 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:239 is punctuation only (')')
+  - citation: nostr-rust-forum/24-trust-transition-and-sweep-contracts.md:NF-24.4 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:375 is punctuation only (');')
+  - nostr-rust-forum/24-trust-transition-and-sweep-contracts.md:NF-24.3 (md line 54) — pele syntax at mermaid line 7: Parse error on line 7: |     P->>P: Snapshot is not TL3; compute TL2 trust.rs:221 trust.rs:225 | ----------------------------------------------------^

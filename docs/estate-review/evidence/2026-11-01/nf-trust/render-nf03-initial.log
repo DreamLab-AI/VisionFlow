@@ -1,0 +1,8 @@
+parsed 1 topic files, 14 mermaid diagrams
+cite-check: 1 warning(s)
+citations: 267 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+  ! nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.8 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:239 is punctuation only (')')
+rendered 14/14 diagrams via pele
+
+1 error(s):
+  - citation: nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md:NF-03.8 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:239 is punctuation only (')')

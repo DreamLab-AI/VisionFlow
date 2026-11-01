@@ -1,0 +1,90 @@
+{
+  "cases": [
+    {
+      "case": "serial_success_control",
+      "stored_level": 2,
+      "audit_rows": [
+        [
+          "0",
+          "2"
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "case": "concurrent_tl3_grant_overwritten",
+      "stored_level": 2,
+      "audit_rows": [
+        [
+          "0",
+          "2"
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "case": "concurrent_moderation_count_ignored",
+      "stored_level": 2,
+      "audit_rows": [
+        [
+          "0",
+          "2"
+        ]
+      ],
+      "errors": []
+    },
+    {
+      "case": "update_failure_still_creates_audit",
+      "stored_level": 0,
+      "audit_rows": [
+        [
+          "0",
+          "2"
+        ]
+      ],
+      "errors": [
+        {
+          "operation": "update",
+          "error": "injected update failure"
+        }
+      ]
+    },
+    {
+      "case": "audit_failure_leaves_unaudited_promotion",
+      "stored_level": 2,
+      "audit_rows": [],
+      "errors": [
+        {
+          "operation": "audit",
+          "error": "injected audit failure"
+        }
+      ]
+    },
+    {
+      "case": "deleted_row_still_gets_audit",
+      "stored_level": null,
+      "audit_rows": [
+        [
+          "0",
+          "2"
+        ]
+      ],
+      "errors": []
+    }
+  ],
+  "queries": {
+    "promotion_update": {
+      "sql": "UPDATE whitelist SET trust_level = ?1, trust_level_updated_at = ?2 WHERE pubkey = ?3",
+      "raw_sha256": "4d6ea0a587565c0985d39106d08ce68b4da53333e719ac610385512ef427372d"
+    },
+    "promotion_audit": {
+      "sql": "INSERT INTO admin_log (actor_pubkey, action, target_pubkey, previous_value, new_value, reason, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+      "raw_sha256": "1797ef142864a75670be55eab090184071e41c82ff82ecaf86f3b119dbae69fa"
+    }
+  },
+  "limits": [
+    "Synthetic SQLite tables and exact extracted statements.",
+    "Chosen interleavings after a valid snapshot; no live D1, Worker, admin endpoint or HTTP.",
+    "The fixture mirrors ignored statement errors and separate operations; the full async Rust handler is source-traced, not executed."
+  ]
+}

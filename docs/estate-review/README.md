@@ -7,6 +7,8 @@ type: explanation
 
 # VisionFlow estate review
 
+Trust-transition continuation: [ADR-2006 and archived ADR-102 section review, capped-sweep starvation and promotion audit gaps](2026-11-01-forum-trust-transitions.md). Thirty-two native cases and eleven SQLite tests/scenarios distinguish repaired demotion transactions from unchecked promotion writes. Four NF-24 panels and four corrected legacy panels record the current boundary.
+
 Passkey continuation: [client/worker registration contracts, salt drift, public lookup and parser boundaries](2026-11-01-forum-passkey-contracts.md). The actual worker passes 75 native cases and four SQLite scenarios expose schema/consumption limits. Six NF-23 panels and three corrected sequence panels distinguish primitive checks from a working identity-recovery journey.
 
 Recovery and phone onboarding continuation: [archived ADR-095/098/099, five NF-22 panels and the NF-05.8 correction](2026-11-01-forum-recovery-and-connect.md). Nineteen native cases and five isolated Chrome cases qualify HTML injection, ignored history failures, backup acknowledgement and master/device export differences; full signup and deployed enrolment remain open.

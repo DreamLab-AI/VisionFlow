@@ -1,0 +1,47 @@
+[
+  {
+    "file": "docs/estate-review/2026-11-01-forum-trust-transitions.md",
+    "link": "evidence/2026-11-01/nf-trust/source-manifest.json",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-trust-transitions.md",
+    "link": "evidence/2026-11-01/nf-trust/README.md",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-trust-transitions.md",
+    "link": "2026-11-01-forum-read-cache-and-activity.md",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-trust-transitions.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:253",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-trust-transitions.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:202",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-trust-transitions.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:326",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-trust-transitions.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:281",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-trust-transitions.md",
+    "link": "2026-11-01-forum-read-cache-and-activity.md",
+    "exists": true
+  },
+  {
+    "file": "docs/diagrams/nostr-rust-forum/24-trust-transition-and-sweep-contracts.md",
+    "link": "../../estate-review/2026-11-01-forum-trust-transitions.md",
+    "exists": true
+  }
+]

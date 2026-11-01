@@ -7,6 +7,7 @@ governing:
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
 adrs: [ADR-2004, ADR-2005, ADR-2006, ADR-2010, ADR-2011, ADR-2016, ADR-2017, ADR-2018, ADR-2022, ADR-2023]
 sources:
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip42.rs
@@ -232,60 +233,57 @@ flowchart TB
 ## NF-03.8 The trust ladder — promotion, hysteresis, and what is never demoted
 
 ```mermaid
-stateDiagram-v2
-    [*] --> TL0: Newcomer, default on whitelist entry<br/>nostr-bbs-relay-worker/src/trust.rs:28
-    TL0 --> TL1: 3 days, 10 reads, 1 post<br/>nostr-bbs-relay-worker/src/trust.rs:183
-    TL1 --> TL2: 14 days, 50 reads, 10 posts, ZERO mod actions<br/>nostr-bbs-relay-worker/src/trust.rs:174
-    TL2 --> TL3: admin grant only, never computed<br/>nostr-bbs-relay-worker/src/trust.rs:33
-    TL2 --> TL1: band broken AND still earns TL1<br/>nostr-bbs-relay-worker/src/trust.rs:377
-    TL2 --> TL0: band broken and TL1 not earned<br/>nostr-bbs-relay-worker/src/trust.rs:379
-    TL1 --> TL0: band broken<br/>nostr-bbs-relay-worker/src/trust.rs:391
-
-    note right of TL3
-        INVARIANT ADR-2006: TL3 is an administrative grant and is never auto-demoted
-        nostr-bbs-relay-worker/src/trust.rs:334
-        check_promotion also refuses to touch a TL3 row nostr-bbs-relay-worker/src/trust.rs:221
-    end note
-    note right of TL0
-        Guard order is deliberate: TL3, the TL0 floor and admin/exempt rows are excluded
-        BEFORE any activity arithmetic, so an exempt row is never even measured against
-        the band nostr-bbs-relay-worker/src/trust.rs:323-336
-        Floor hold nostr-bbs-relay-worker/src/trust.rs:339, admin hold nostr-bbs-relay-worker/src/trust.rs:344
-    end note
-    note right of TL2
-        Hysteresis 90 percent of the promotion threshold, plus a ~6-month inactivity gate
-        thresholds nostr-bbs-relay-worker/src/trust.rs:84 nostr-bbs-relay-worker/src/trust.rs:85
-        inactivity gate nostr-bbs-relay-worker/src/trust.rs:349, band nostr-bbs-relay-worker/src/trust.rs:359
-        ADR-2006 permits TL2 to land DIRECTLY on TL0 - one committed transition per sweep,
-        not one rung of the ladder nostr-bbs-relay-worker/src/trust.rs:303-305
-    end note
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:28
+    TL0["TL0 Newcomer"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:183
+    TL1["TL1 Member<br/>3 days, 10 reads, 1 post"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:174
+    TL2["TL2 Regular<br/>14 days, 50 reads, 10 posts<br/>no moderation actions"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:33
+    TL3["TL3 Trusted<br/>administrative grant only"]
+    TL0 -->|earns TL1| TL1
+    TL0 -->|earns TL2 directly| TL2
+    TL1 -->|earns TL2| TL2
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:349
+    G["Demotion requires inactivity<br/>and broken hysteresis band<br/>TL0, TL3 and admins excluded"]
+    G -->|TL2 still earns TL1| TL1
+    G -->|TL1 or TL2 no longer earns TL1| TL0
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:84
+    H["Default band is 90 percent<br/>after about six months idle<br/>One transition need not mean one rung"]
+    H -.-> G
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:238
+    R["Promotion checks a snapshot<br/>but its unguarded write can overwrite<br/>a concurrent TL3 grant - NF-24.3"]
+    TL3 -.-> R
 ```
 
 ## NF-03.9 Why a demotion did NOT happen — the named hold reasons
 
 ```mermaid
 classDiagram
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:285
     class HoldReason {
-        AdminGrantedLevel : trust.rs:287
-        ExemptAdminRow : trust.rs:290
-        AtFloor : trust.rs:292
-        WithinActivityWindow : trust.rs:295
-        ClearsHysteresis : trust.rs:297
+        AdminGrantedLevel
+        ExemptAdminRow
+        AtFloor
+        WithinActivityWindow
+        ClearsHysteresis
     }
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:308
     class DemotionDecision {
-        Hold(HoldReason) : trust.rs:309
-        Demote from to : trust.rs:311
+        Hold with reason
+        Demote from to
     }
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:326
     class decide_demotion {
-        pure, no IO, no clock read : trust.rs:326
-        debug_assert new_level lower : trust.rs:398
+        pure policy
+        returns decision
     }
     decide_demotion --> DemotionDecision
     DemotionDecision --> HoldReason
-
-    note for HoldReason "ADR-2006 acceptance: every hold is an EXPLICIT NAMED policy outcome rather than a silent nothing-happened, so a sweep can report WHY a candidate survived nostr-bbs-relay-worker/src/trust.rs:278-282"
-    note for decide_demotion "CURRENT SOURCE: decide_demotion is pure policy. There is no per-pubkey demotion entry point by decision (ADR-2006): only the scheduled trust_sweep path commits demotions. trust.rs:406-419 records why the seam was removed rather than just left uncalled."
-    note for DemotionDecision "2026-09-07: OFFSET and ignored-write findings are historical. trust_sweep now uses a stable keyset, D1 batch and explicit outcomes. Remaining: its unconditional audit INSERT can commit when the optimistic UPDATE changes zero rows; the conflict is detected after the batch. See NF-11.12 for the mechanism and NF-10.10 for the residual case."
+    note for HoldReason "Named reasons exist in policy.<br/>Sweep retains only their total<br/>trust_sweep.rs:281."
+    note for decide_demotion "Scheduled demotion only.<br/>Per-member entry point removed<br/>trust.rs:406-419."
+    note for DemotionDecision "Conditional audit is repaired<br/>trust_sweep.rs:425.<br/>Capped fairness remains open<br/>See NF-24.2."
 ```
 
 ## NF-03.10 Post-save effects — activity coalescing, moderation mirror, governance projection

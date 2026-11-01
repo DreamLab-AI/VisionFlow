@@ -1,0 +1,7 @@
+parsed 1 topic files, 16 mermaid diagrams
+cite-check: 0 warning(s)
+citations: 276 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+rendered 15/16 diagrams via pele
+
+1 error(s):
+  - nostr-rust-forum/11-relay-durable-object-internals.md:NF-11.11 (md line 297) — pele syntax at mermaid line 23: Parse error on line 23: |     Note over RUN,D1: Page failure aborts; row failure increments failed<br/>trust_sweep.rs:117-121 trust_sweep.rs:154 | ------------------------------------------------------------------------^

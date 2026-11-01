@@ -1,0 +1,12 @@
+[
+  {
+    "url": "https://meta.discourse.org/t/discourse-trust-levels-a-detailed-explanation/396792",
+    "accessed": "2026-11-01",
+    "supports": "All-time early levels, rolling 100-day Regular, low-water mark/grace period, highest staff-granted level. No numerical equivalence to forum ladder."
+  },
+  {
+    "url": "https://developers.cloudflare.com/d1/worker-api/d1-database/#batch",
+    "accessed": "2026-11-01",
+    "supports": "Ordered batch statements and transactional rollback on statement failure; no-op update requires application-level conflict handling."
+  }
+]

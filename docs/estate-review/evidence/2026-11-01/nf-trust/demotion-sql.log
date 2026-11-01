@@ -1,0 +1,10 @@
+test_audit_sql_failure_rolls_back_state (__main__.TrustTransactionTests.test_audit_sql_failure_rolls_back_state) ... ok
+test_every_concurrent_policy_input_change_prevents_audit (__main__.TrustTransactionTests.test_every_concurrent_policy_input_change_prevents_audit) ... ok
+test_missing_row_does_not_create_audit (__main__.TrustTransactionTests.test_missing_row_does_not_create_audit) ... ok
+test_nullable_snapshot_uses_null_safe_comparison (__main__.TrustTransactionTests.test_nullable_snapshot_uses_null_safe_comparison) ... ok
+test_transition_and_audit_commit_once (__main__.TrustTransactionTests.test_transition_and_audit_commit_once) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.006s
+
+OK

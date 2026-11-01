@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-01",
+  "source_revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+  "source_exports_verified": 11,
+  "parity": {
+    "old_diagram_revision": "1b27f79",
+    "website_consumed_revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "all_exports_equal_both": true
+  },
+  "decisions_section_assessed": [
+    "ADR-2006",
+    "archived ADR-102"
+  ],
+  "tests": {
+    "native_existing": 28,
+    "native_additions": 4,
+    "native_unique_total": 32,
+    "native_failed": 0,
+    "demotion_sql_tests": 5,
+    "promotion_sql_scenarios": 6,
+    "limits": "Native actual engine/policy with existing fake store; SQLite extracted statements on synthetic schema. No live Worker or D1. Capped fixture uses four rows and cap three; production cap is 50000. Historical workerd receipts not rerun."
+  },
+  "diagrams": {
+    "topics": 194,
+    "panels": 1677,
+    "citations_verified": 25048,
+    "warnings": 0,
+    "unverified": 0,
+    "unresolvable": 0,
+    "allowlisted": 9,
+    "revision_labels": 47,
+    "rendered_in_touched_topics": 34,
+    "changed_panels_visually_reviewed": [
+      "NF-03.8",
+      "NF-03.9",
+      "NF-11.11",
+      "NF-11.12",
+      "NF-24.1",
+      "NF-24.2",
+      "NF-24.3",
+      "NF-24.4"
+    ],
+    "freshness_exit_code": 0,
+    "limits": "Whole-corpus structural/citation checks do not establish whole-corpus semantic coverage."
+  },
+  "text": {
+    "suspicious_unicode": 0,
+    "mechanical_prose_flags": 0,
+    "local_link_targets_existing": 9
+  },
+  "production_changed": false,
+  "goal_complete": false
+}

@@ -343,21 +343,21 @@ sequenceDiagram
     SW->>RUN: page candidates by keyset cursor
     RUN->>D1: page query ordered by (last_active_at, pubkey) trust_sweep.rs:363
     loop each row
+        RUN->>RUN: advance cursor before policy or commit trust_sweep.rs:275
         RUN->>POL: decide Hold or Demote - the SHARED pure policy
         alt Demote
-            RUN->>D1: trust UPDATE and audit INSERT in ONE batch trust_sweep.rs:208
+            RUN->>D1: trust UPDATE and audit INSERT in ONE batch trust_sweep.rs:488
             RUN->>RUN: counters move only on a CONFIRMED commit trust_sweep.rs:288
         end
-        RUN->>RUN: advance the cursor for EVERY consumed row trust_sweep.rs:236
     end
     RUN-->>SW: DemotionSweepResult trust_sweep.rs:142
 
-    Note over RUN: INVARIANT auditable: scanned == demoted + held + failed always holds, checked by is_balanced trust_sweep.rs:167-168 - no row is silently unaccounted for
-    Note over RUN: A failed page query stops the sweep early and is reported DISTINCTLY from a failed row commit trust_sweep.rs:117-121 trust_sweep.rs:154
-    Note over POL: The cursor advances for held AND failed rows too, so a permanently failing row cannot wedge the sweep trust_sweep.rs:236
+    Note over RUN,POL: scanned equals demoted plus held plus failed trust_sweep.rs:167-168<br/>This accounts for visited rows, not unseen candidates
+    Note over RUN,D1: Page failure aborts, row failure increments failed<br/>trust_sweep.rs:117-121 trust_sweep.rs:154
+    Note over RUN,POL: Held and failed rows advance this invocation trust_sweep.rs:236<br/>Next invocation restarts with no cursor trust_sweep.rs:253<br/>A cap-sized persistent prefix can starve the tail, see NF-24.2
 ```
 
-## NF-11.12 Why the sweep is keyset — and why the closeout qualification is now stale
+## NF-11.12 Keyset repairs and the remaining bounded-fairness gap
 
 ```mermaid
 flowchart TB
@@ -371,9 +371,12 @@ flowchart TB
     PROB --> OFF --> CONC --> FIX --> TIE
     PROB --> OUT
 
-    N1["DOC-DRIFT: the IDENTITY-keys-and-trust closeout says the sweep can skip rows because OFFSET pages over<br/>a shrinking set, and that UPDATE and audit-INSERT errors are ignored before returning the planned level -<br/>concluding ADR-2006 is PARTIAL. BOTH defects are fixed in code: keyset paging trust_sweep.rs:22 and<br/>confirmed-commit-only counters trust_sweep.rs:36. The qualification is stale; ADR-2006's remaining ask -<br/>committed outcome reporting, stable pagination, recoverable audit/state consistency - is MET."]
-    N2["The one closeout clause that still holds: TL2 CAN land directly on TL0 - but that is DELIBERATE,<br/>ADR-2006 permits one committed transition per sweep rather than one rung per sweep trust_sweep.rs:231-233"]
-    N3["This supersedes the note in NF-03.9 and the ADR-2006 row in NF-10.8"]
+    N1["OFFSET and unchecked demotion writes are historical.<br/>Current conditional audit follows the snapshot-guarded UPDATE<br/>trust_sweep.rs:418 trust_sweep.rs:425"]
+    N2["TL2 to TL0 is deliberate: one committed transition per row<br/>does not mean one rung trust_sweep.rs:231-233"]
+    N3["Capped resumption remains incomplete.<br/>Fresh cursor each invocation trust_sweep.rs:253;<br/>held/failed prefix can starve later rows - see NF-24.2"]
+    FIX --> N1
+    TIE --> N2
+    OUT --> N3
 ```
 
 ## NF-11.13 The other scheduled work
@@ -492,3 +495,5 @@ flowchart TB
     N4["Stamps are activity SIGNALS for the six-month inactivity sweep (NF-11.11) and TL0-to-TL1 promotion, so a<br/>five-minute coalescing delay is invisible; a DO eviction can drop at most one window of pending reads<br/>read_cache.rs:31-33"]
     N5["Everything here is PURE over an explicit now, so the TTL and flush-threshold decisions are unit-tested<br/>natively without the Workers runtime read_cache.rs:35-36"]
 ```
+
+[The trust-transition review](../../estate-review/2026-11-01-forum-trust-transitions.md) qualifies NF-11.11/12 with repeated capped-tick tests and confirms the repaired demotion transaction. Promotion has separate unchecked writes; see NF-24.3.
