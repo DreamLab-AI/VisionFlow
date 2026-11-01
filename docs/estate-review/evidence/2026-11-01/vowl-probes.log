@@ -1,0 +1,118 @@
+TAP version 13
+# 🔄 Initializing 2 nodes in circular layout with radius 300
+# 📌 Pinned node 'a' at (1000.0, 2000.0)
+# 🔄 Initializing 2 nodes in circular layout with radius 300
+# [Force] Applied 0 attraction forces between 2 nodes (0 edges in graph)
+# ⏱️ Iteration 10: alpha=0.7940, nodes=2
+# ⏱️ Iteration 20: alpha=0.6305, nodes=2
+# ⏱️ Iteration 30: alpha=0.5006, nodes=2
+# ⏱️ Iteration 40: alpha=0.3975, nodes=2
+# ⏱️ Iteration 50: alpha=0.3156, nodes=2
+# ⏱️ Iteration 60: alpha=0.2506, nodes=2
+# ⏱️ Iteration 70: alpha=0.1990, nodes=2
+# ⏱️ Iteration 80: alpha=0.1580, nodes=2
+# ⏱️ Iteration 90: alpha=0.1255, nodes=2
+# ⏱️ Iteration 100: alpha=0.0996, nodes=2
+# ⏱️ Iteration 110: alpha=0.0791, nodes=2
+# ⏱️ Iteration 120: alpha=0.0628, nodes=2
+# ⏱️ Iteration 130: alpha=0.0499, nodes=2
+# ⏱️ Iteration 140: alpha=0.0396, nodes=2
+# ⏱️ Iteration 150: alpha=0.0314, nodes=2
+# ⏱️ Iteration 160: alpha=0.0250, nodes=2
+# ⏱️ Iteration 170: alpha=0.0198, nodes=2
+# ⏱️ Iteration 180: alpha=0.0157, nodes=2
+# ⏱️ Iteration 190: alpha=0.0125, nodes=2
+# ⏱️ Iteration 200: alpha=0.0099, nodes=2
+# ⏱️ Iteration 210: alpha=0.0079, nodes=2
+# ⏱️ Iteration 220: alpha=0.0063, nodes=2
+# ⏱️ Iteration 230: alpha=0.0050, nodes=2
+# ⏱️ Iteration 240: alpha=0.0039, nodes=2
+# ⏱️ Iteration 250: alpha=0.0031, nodes=2
+# ⏱️ Iteration 260: alpha=0.0025, nodes=2
+# ⏱️ Iteration 270: alpha=0.0020, nodes=2
+# ⏱️ Iteration 280: alpha=0.0016, nodes=2
+# ⏱️ Iteration 290: alpha=0.0012, nodes=2
+# ⏱️ Iteration 300: alpha=0.0010, nodes=2
+# 🔄 Initializing 2 nodes in circular layout with radius 300
+# 📌 Pinned node 'a' at (1000.0, 2000.0)
+# 🔄 Initializing 2 nodes in circular layout with radius 300
+# [Force] Applied 0 attraction forces between 2 nodes (0 edges in graph)
+# 🔄 Initializing 1 nodes in circular layout with radius 300
+# 📌 Pinned node 'a' at (0.0, 0.0)
+# 🔄 Initializing 2 nodes in circular layout with radius 300
+# 📌 Pinned node 'a' at (NaN, 1.0)
+# 🔄 Initializing 2 nodes in circular layout with radius 300
+# 🔄 Initializing 1 nodes in circular layout with radius 300
+# wasm://wasm/00107f8a:1
+# RuntimeError: memory access out of bounds
+#     at wasm://wasm/00107f8a:wasm-function[611]:0x30e88
+#     at wasm://wasm/00107f8a:wasm-function[63]:0x1386e
+# Subtest: replacement retains obsolete pin IDs and settled alpha
+ok 1 - replacement retains obsolete pin IDs and settled alpha
+  ---
+  duration_ms: 8.646503
+  type: 'test'
+  ...
+# Subtest: runSimulation reseeds a pinned node on every call
+ok 2 - runSimulation reseeds a pinned node on every call
+  ---
+  duration_ms: 0.324956
+  type: 'test'
+  ...
+# Subtest: hidden nodes still participate in click hit testing
+ok 3 - hidden nodes still participate in click hit testing
+  ---
+  duration_ms: 0.587161
+  type: 'test'
+  ...
+# Subtest: legacy pin accepts NaN whereas CSR pin refuses it
+ok 4 - legacy pin accepts NaN whereas CSR pin refuses it
+  ---
+  duration_ms: 0.762515
+  type: 'test'
+  ...
+# Subtest: odd buffer contracts differ: legacy writes pairs, CSR writes individual floats
+ok 5 - odd buffer contracts differ: legacy writes pairs, CSR writes individual floats
+  ---
+  duration_ms: 0.465607
+  type: 'test'
+  ...
+# Subtest: CSR infinite reheat produces non-finite positions and does not finish
+ok 6 - CSR infinite reheat produces non-finite positions and does not finish
+  ---
+  duration_ms: 0.569305
+  type: 'test'
+  ...
+# Subtest: negative alphaMin prevents CSR settling through 10000 ticks
+ok 7 - negative alphaMin prevents CSR settling through 10000 ticks
+  ---
+  duration_ms: 21.709854
+  type: 'test'
+  ...
+# Subtest: ordinary memory growth detaches a previously acquired pointer view
+ok 8 - ordinary memory growth detaches a previously acquired pointer view
+  ---
+  duration_ms: 0.297573
+  type: 'test'
+  ...
+# Subtest: generated copying glue calls malloc once per reusable-buffer call
+ok 9 - generated copying glue calls malloc once per reusable-buffer call
+  ---
+  duration_ms: 3.751732
+  type: 'test'
+  ...
+# Subtest: coincident legacy Barnes-Hut nodes trap in an isolated child
+ok 10 - coincident legacy Barnes-Hut nodes trap in an isolated child
+  ---
+  duration_ms: 73.060065
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 192.792475

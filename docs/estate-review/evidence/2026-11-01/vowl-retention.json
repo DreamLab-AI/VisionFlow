@@ -1,0 +1,392 @@
+{
+  "artifact_root": "/tmp/vf-vowl-audit-artifacts",
+  "retained_files": 63,
+  "all_copies_byte_verified": true,
+  "discarded_after_checks": "Only the task-created .audit-target Cargo cache (898 MiB); source, glue, WASM, tests, logs and tool binary retained.",
+  "tool_versions": {
+    "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo": "1.99.1 (5f94df478 2026-08-27)",
+    "wasm_bindgen": "0.2.128",
+    "node": "v22.23.3"
+  },
+  "items": [
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.8.svg",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.8.svg",
+      "bytes": 8017,
+      "sha256": "fdabe858e8560db656c954447f14857f9c0af37713dfc0ffec8f3e89bff215eb"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.2.svg",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.2.svg",
+      "bytes": 4746,
+      "sha256": "1e8a4433da5a6e743ea45b61a5f3bd06e200ec70fdd4b077afe7ecd312fd2f55"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.6.svg",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.6.svg",
+      "bytes": 7297,
+      "sha256": "274cc195943bd72599e772daface4c355bb7a68fc22e46267058aa99c4c47f3e"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.7.mmd",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.7.mmd",
+      "bytes": 364,
+      "sha256": "f655d64b234c4bb605db4fd0573d914b886c22f78a4490e2843bd4c59aea4187"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.2.mmd",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.2.mmd",
+      "bytes": 691,
+      "sha256": "bee526fffc6d51231e63f11f2e5e7376cb3bbcddce580b36761f087b2b5c8448"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.8.mmd",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.8.mmd",
+      "bytes": 1363,
+      "sha256": "bec8d57ace022f972672bcc5780fc0454cb55fd96b96b3d8aaed68d8a52516b8"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.1.svg",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.1.svg",
+      "bytes": 7727,
+      "sha256": "89fcbc436e8792a78fd34d2d601d99d35dce10369935d46484f1b0589679bd5a"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.6.mmd",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.6.mmd",
+      "bytes": 770,
+      "sha256": "c865b28a1a4c40aa0bc0c2444e7897dd9ac3a3df6ba6d39cc45abfd2c7fd20df"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.1.mmd",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.1.mmd",
+      "bytes": 1176,
+      "sha256": "cdd1a520185282d6d5a2b1fff6cdb7a03a3e384f3f7e45d68368d70c6e4d13b6"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.3.svg",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.3.svg",
+      "bytes": 8646,
+      "sha256": "99534715b5d57d86db5a46143d2ddffcfc1120b4e3abc4f2873670baab7adb7a"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.7.svg",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.7.svg",
+      "bytes": 3057,
+      "sha256": "4b72b7d23afc922efd57c01d2e25844f1e83bd47c5e3eea3bb904991fc20e351"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.5.mmd",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.5.mmd",
+      "bytes": 877,
+      "sha256": "ad1495586daff7edf12a060247c96a1308e25683424e12067f6037576c6b152f"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.5.svg",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.5.svg",
+      "bytes": 5199,
+      "sha256": "555ff5cf1fb85b0ebc1627a8bf16617a84d40732ce43d24d298ecc7184815add"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.3.mmd",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.3.mmd",
+      "bytes": 815,
+      "sha256": "955afa5734d16014a6a1708a95f78c2705dcfbd0410bc1929c73866487e46ca0"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.1.mmd",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.1.mmd",
+      "bytes": 866,
+      "sha256": "32cb561d8c6391ea58177b32554ca73b1ae834d219e86676bbf459795107a96d"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.6.svg",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.6.svg",
+      "bytes": 7848,
+      "sha256": "7869ef081c07cb349b6b6a09f0f569274b72601e411ebaa23ee7f0ea55e1292b"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.6.mmd",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.6.mmd",
+      "bytes": 743,
+      "sha256": "b8e9e813af356922d66342fc6693911d08cdc8148452db72a737fff930f8e5b3"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.3.svg",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.3.svg",
+      "bytes": 11778,
+      "sha256": "5761ddacd7add012d13c254070585a8f66d0d9feb65366354873b5250f4f75f4"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.5.svg",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.5.svg",
+      "bytes": 13326,
+      "sha256": "8a635f5e71174bbe27b52d7e662e2b8e4f8067b0bb3556c39212e0b939203366"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.10.svg",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.10.svg",
+      "bytes": 6760,
+      "sha256": "70c8622861177437a564f7e703f36ed9f3bbe0b95c8d3d9e9171d76746c8fe3e"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.5.mmd",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.5.mmd",
+      "bytes": 2155,
+      "sha256": "1ade7aec209446dda43e9bda607e24e90d33e752895ae343fbb070d1efe4e182"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.7.svg",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.7.svg",
+      "bytes": 4268,
+      "sha256": "ff4c0039544e4f4c4da3374f6eef0bc9ff3b9ba1608a2ad82c04622755fbbb73"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.9.svg",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.9.svg",
+      "bytes": 8279,
+      "sha256": "c0286b41c3f7b63017455ac564c7290426c1cfecae047c337579ee388d359166"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.2.mmd",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.2.mmd",
+      "bytes": 792,
+      "sha256": "bba21254e00b3e233ef42c82da8ff86ffa9791c19e95b89458992a4e2d0d6ca1"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.7.mmd",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.7.mmd",
+      "bytes": 636,
+      "sha256": "656573c47b77ca0042aa71c42a147cc5aa389380f96adc9a7d87f4949810da1d"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.1.svg",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.1.svg",
+      "bytes": 8811,
+      "sha256": "b8c67bf2c98052b2776338b16cafcdca197a4410d98bc6b4adfabb0ac36e6d68"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.3.mmd",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.3.mmd",
+      "bytes": 1389,
+      "sha256": "64e841c13937d572db1676d03e0b674eec50f8c3bca6392604a4cf928fe22268"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.2.svg",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.2.svg",
+      "bytes": 5530,
+      "sha256": "4101bd5e2c73ebde42eb83d5f544938b7d48dea1047f63128405314617ac1de6"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.4.mmd",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.4.mmd",
+      "bytes": 760,
+      "sha256": "33db54d1ec1200c85afd2d4146acd5540bba56b776df137e3c1ccdd67a8cab7a"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.10.mmd",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.10.mmd",
+      "bytes": 983,
+      "sha256": "fc25ce5073cc4671e969966bca57895292bb8d928a72f29336d84fd75c6d7200"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.4.svg",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.4.svg",
+      "bytes": 5905,
+      "sha256": "162c85433fbe82732feee174258c717517441920bd3dc2d7a5204706c992a891"
+    },
+    {
+      "source": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.9.mmd",
+      "retained": "/tmp/vf-vowl-audit-artifacts/docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.9.mmd",
+      "bytes": 1161,
+      "sha256": "b6b08fa252d9a5beb10751d4cbb03041d236ffe8fa5328a1b22a89307ddfaaaa"
+    },
+    {
+      "source": "texput.log",
+      "retained": "/tmp/vf-vowl-audit-artifacts/texput.log",
+      "bytes": 714,
+      "sha256": "0de8dad445a514ae3bc13874d2a354c230d5395982c23ea702c3e573c3d9d304"
+    },
+    {
+      "source": "website/build-receipt.json",
+      "retained": "/tmp/vf-vowl-audit-artifacts/website/build-receipt.json",
+      "bytes": 4363,
+      "sha256": "fae85100258804d3344673265a4fcc88781ea92f6e2c4a137bd27b48f3460711"
+    },
+    {
+      "source": "/tmp/vf-vowl-fresh-pkg/vowl_wasm_bg.wasm.d.ts",
+      "retained": "/tmp/vf-vowl-audit-artifacts/fresh-pkg/vowl_wasm_bg.wasm.d.ts",
+      "bytes": 5119,
+      "sha256": "b939cfbd6dcfa5a09eb14fa093e6a8c859987642140bd2234cc0682cd8977996"
+    },
+    {
+      "source": "/tmp/vf-vowl-fresh-pkg/vowl_wasm.d.ts",
+      "retained": "/tmp/vf-vowl-audit-artifacts/fresh-pkg/vowl_wasm.d.ts",
+      "bytes": 26103,
+      "sha256": "659c0e57e7c73724b5ada2b3314872d9a1783a25aad650b7c43b6b7324351758"
+    },
+    {
+      "source": "/tmp/vf-vowl-fresh-pkg/vowl_wasm.js",
+      "retained": "/tmp/vf-vowl-audit-artifacts/fresh-pkg/vowl_wasm.js",
+      "bytes": 60738,
+      "sha256": "c0e1fa8eff008d813e788fd3a8a916f3c353a060347908fcbacbc2f85302aad3"
+    },
+    {
+      "source": "/tmp/vf-vowl-fresh-pkg/vowl_wasm_bg.wasm",
+      "retained": "/tmp/vf-vowl-audit-artifacts/fresh-pkg/vowl_wasm_bg.wasm",
+      "bytes": 270306,
+      "sha256": "f1eb0fdaf883fe99dd47087220b3eae56a3ad4bf11505f4b1594f7184af88b24"
+    },
+    {
+      "source": "/tmp/vf-vowl-fresh-pkg/.gitignore",
+      "retained": "/tmp/vf-vowl-audit-artifacts/fresh-pkg/.gitignore",
+      "bytes": 1,
+      "sha256": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/buffers.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/buffers.png",
+      "bytes": 322231,
+      "sha256": "e9c9847add901ee0a7a3c7e75ca0b66ccc6ad1686359a498d85c9c24c8c20fb9"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/api.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/api.png",
+      "bytes": 266341,
+      "sha256": "8050987e54d156a82f95d8011c9661edf371ab4773f033522166e8f13aa556fe"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/contact-1.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/contact-1.png",
+      "bytes": 628944,
+      "sha256": "41d6ad64248fd350164cec73b627a9d4c64f05af04300303fe14c48b2f20c19c"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/contact-0.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/contact-0.png",
+      "bytes": 509068,
+      "sha256": "59eed819d266b2716ff9fbdb430d6d291633f575fabf3a9ee9ac1c7a46022229"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/VW-04.8.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/VW-04.8.png",
+      "bytes": 70530,
+      "sha256": "9a2543c1fa0bee0225487e3d906460493c0786305652491979e81880458072c0"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/VW-04.7.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/VW-04.7.png",
+      "bytes": 102528,
+      "sha256": "c5ecd2b8cb8605178bfabb37f60c5c9513456b1ec0fe53fc5e4112ec39bcf37a"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/VW-04.6.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/VW-04.6.png",
+      "bytes": 101918,
+      "sha256": "2999154763c9b83720ba9bb403f3ea5adad46f36053870b95e387d4a9010bf04"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/VW-04.5.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/VW-04.5.png",
+      "bytes": 124550,
+      "sha256": "37344fbbf621387a756d3636684026555aa2c2f716a8e369fed36aec13cffcad"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/VW-04.3.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/VW-04.3.png",
+      "bytes": 61504,
+      "sha256": "63dfe1aa6ed001388cf2e7df59d9f97e2a02b8a2508d134915a38169e7f13262"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/VW-04.2.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/VW-04.2.png",
+      "bytes": 125420,
+      "sha256": "f7d676c21e54eca8e0092002bb65da90157842537345f314629d628b50931ab3"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/VW-04.1.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/VW-04.1.png",
+      "bytes": 57154,
+      "sha256": "34db2be1fcce84b18b85616b15751520a7e6d568cc97f68100950a507ecfc260"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/VW-03.9.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/VW-03.9.png",
+      "bytes": 142190,
+      "sha256": "1a2e092ae663ce7fb2b46d0d32d36b97a0cdbf09aa9d49f960b73c6aaa11d05d"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/VW-03.7.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/VW-03.7.png",
+      "bytes": 93202,
+      "sha256": "491120d8953547ebeb5187360a7b51032dc38e06f86006285664625cf0c4bef1"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/VW-03.6.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/VW-03.6.png",
+      "bytes": 68029,
+      "sha256": "3f744db7fabfeb85cd70caff380176f38a2aad81959eff60782022d5c856b1ef"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/VW-03.5.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/VW-03.5.png",
+      "bytes": 75855,
+      "sha256": "45fc40c0e370ed48ff982d3571d3ea56fd533b020ace3405bd5ad0d2f4ef8756"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/VW-03.4.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/VW-03.4.png",
+      "bytes": 45739,
+      "sha256": "4819ef01cb39ec7360fa3391614156c7a3d5a6975fc09322381390897fe8c498"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/VW-03.3.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/VW-03.3.png",
+      "bytes": 100563,
+      "sha256": "c6dd4b95dc0db2693fe3b01ad2427d1c486d120db025cb7f383eaa01fc923b6c"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/VW-03.2.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/VW-03.2.png",
+      "bytes": 96453,
+      "sha256": "201c1fbcf0bcf1d6345b305f537098fb31a107f57a64758955c3c0d141e415ba"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/VW-03.10.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/VW-03.10.png",
+      "bytes": 110539,
+      "sha256": "c02db6f53f20fa3aa693bc4c7a31812eb45d76504fd1f3be4170543a41e1e094"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/VW-03.1.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/VW-03.1.png",
+      "bytes": 49114,
+      "sha256": "300e58317c9c173e8317b1df95d2a0c0ff725bc21a58e3fde2cb30b2b0c01974"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/annealing.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/annealing.png",
+      "bytes": 328804,
+      "sha256": "7b7fff3d10d668d950753a63dabb3e646dfbcdfaaae77f2f73e6a76d61d1d516"
+    },
+    {
+      "source": "/tmp/vf-vowl-previews/worker.png",
+      "retained": "/tmp/vf-vowl-audit-artifacts/previews/worker.png",
+      "bytes": 481398,
+      "sha256": "09f4e15e772f343dd0fe826bc2b37a823b5bf91855106ee798c30ce9c1700dd1"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-vowl-boundaries/.audit-tools/wasm-bindgen",
+      "retained": "/tmp/vf-vowl-audit-artifacts/tools/wasm-bindgen",
+      "bytes": 8006824,
+      "sha256": "dc9e4f1e03996c26fb8bfedfded73d81120a37251c3f19eb87bb460f1f89a5be"
+    },
+    {
+      "source": "/tmp/vf-vowl-source (archive; all file members byte-verified)",
+      "retained": "/tmp/vf-vowl-audit-artifacts/executed-source-and-probes.tar.gz",
+      "bytes": 302107,
+      "sha256": "43cd2ad8d2bc4709e79e3eb2538022a23236e493e9ea07659fc5ca431538f090"
+    }
+  ]
+}

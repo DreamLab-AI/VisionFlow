@@ -1,0 +1,353 @@
+{
+  "associations": 30,
+  "distinct_paths": 21,
+  "all_topic_inputs_match": true,
+  "topic_inputs": [
+    {
+      "topic": "VW-03",
+      "kind": "sources",
+      "path": "../vowl-wasm/src/layout/mod.rs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "65d2baaf4264bdd382d5b119ad0955e7afb6bf86e619d702da33a29cf7516f73",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-03",
+      "kind": "sources",
+      "path": "../vowl-wasm/Cargo.toml",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "a9f762868e6be175b3088c245a9f2cb3c9067710c54673da7cdd8bd84742fa23",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-03",
+      "kind": "sources",
+      "path": "../vowl-wasm/src/layout/simulation.rs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "c0aeb7ced5d1e602e71ae27e574421fb3dd190c5285c35b78e716ac47df6052b",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-03",
+      "kind": "sources",
+      "path": "../vowl-wasm/src/layout/quadtree.rs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "e673330acb60f6a5950c4b698844c6f137a84702e422ace2b2797449166d93f5",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-03",
+      "kind": "sources",
+      "path": "../vowl-wasm/src/layout/simd.rs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "6522a70ce586aadfc03446a302679aefe4d0dc025391572538fd32b30f1011a8",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-03",
+      "kind": "sources",
+      "path": "../vowl-wasm/src/layout/csr_sim.rs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "501e3826fb4fe0f734f2a750e0ea474dd6d91adeaf6bef0445e6735193966b01",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-03",
+      "kind": "sources",
+      "path": "../vowl-wasm/tests/ngg1_wasm.test.mjs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "e7184210c8053874818a72777d52070682e9d1702dc318f53d5cb5f59f0bb1c1",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-03",
+      "kind": "sources",
+      "path": "../vowl-wasm/tests/ontomark_ngg1_migration.rs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "00daa0fdb1d70929bea831cc9388face3509b390e37b9cc159ae1c81eccbd231",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-03",
+      "kind": "sources",
+      "path": "../vowl-wasm/src/ngg1.rs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "915670103277f8851b47db8b80c3b27dc06315018bfb5d2869a08055485f49f1",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-03",
+      "kind": "sources",
+      "path": "../vowl-wasm/src/bindings/mod.rs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "f854da192cbff94a84967e7aa382180ccd2243d469de87c7767faec06dbfeead",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-03",
+      "kind": "sources",
+      "path": "../vowl-wasm/src/bindings/explorer.rs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "b535dd5cd879db6825bdbbbb639b277f6f1d9b25928316cf0eb6b670df1de981",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-03",
+      "kind": "sources",
+      "path": "../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "e1e605a3dcfbff723cb77357a9fa63078315dda664d518ac72e872985fc04911",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-03",
+      "kind": "governing",
+      "path": "../vowl-wasm/README.md",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "80ea4a718b36a72d039c88a85dd643297aecae4603896bf1da3b35c2bf304283",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-03",
+      "kind": "governing",
+      "path": "../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "e1e605a3dcfbff723cb77357a9fa63078315dda664d518ac72e872985fc04911",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-04",
+      "kind": "sources",
+      "path": "../vowl-wasm/src/graph/mod.rs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "6321c027db6ca8e8cf30c6703ee3c7925b288879c0810867a5ef73465810222a",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-04",
+      "kind": "sources",
+      "path": "../vowl-wasm/src/graph/pinning.rs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "d3ca4e5cc6c8737053c02fbdb10a9e4769847c46ae12dcb1d16a2ed45223b294",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-04",
+      "kind": "sources",
+      "path": "../vowl-wasm/src/bindings/mod.rs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "f854da192cbff94a84967e7aa382180ccd2243d469de87c7767faec06dbfeead",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-04",
+      "kind": "sources",
+      "path": "../vowl-wasm/src/layout/csr_sim.rs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "501e3826fb4fe0f734f2a750e0ea474dd6d91adeaf6bef0445e6735193966b01",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-04",
+      "kind": "sources",
+      "path": "../vowl-wasm/src/bindings/explorer.rs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "b535dd5cd879db6825bdbbbb639b277f6f1d9b25928316cf0eb6b670df1de981",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-04",
+      "kind": "sources",
+      "path": "../vowl-wasm/src/bindings/ngg.rs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "9f942851b41b889927c0a97ad94ea21ae62bc5a6a4c09ae8c4d109635841de66",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-04",
+      "kind": "sources",
+      "path": "../vowl-wasm/README.md",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "80ea4a718b36a72d039c88a85dd643297aecae4603896bf1da3b35c2bf304283",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-04",
+      "kind": "sources",
+      "path": "../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "e1e605a3dcfbff723cb77357a9fa63078315dda664d518ac72e872985fc04911",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-04",
+      "kind": "sources",
+      "path": "../vowl-wasm/tests/ngg1_wasm.test.mjs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "e7184210c8053874818a72777d52070682e9d1702dc318f53d5cb5f59f0bb1c1",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-04",
+      "kind": "sources",
+      "path": "../vowl-wasm/src/interaction/mod.rs",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "0f8c0542ba3b559bafaffcc4bfe4d3d281f2724a4baea497f742c47eb95dd4e4",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-04",
+      "kind": "sources",
+      "path": "../vowl-wasm/.github/workflows/ci.yml",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "1194a73b496439f64f5f8dc3c4f64feaa7a1212aa20b31784abad3524a5bb04a",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-04",
+      "kind": "sources",
+      "path": "../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts",
+      "pin": "7b0875f2c26b9e69dc5c97e9c88166acc14c47dc",
+      "head": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+      "sha256": "46389282ad729507fd908a3ec515bb4198f2749e838f47217509c0da3ee2c125",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-04",
+      "kind": "sources",
+      "path": "../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/protocol.ts",
+      "pin": "7b0875f2c26b9e69dc5c97e9c88166acc14c47dc",
+      "head": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+      "sha256": "d03e6789eff999b233b199a946bc98aca8ee41844c92011b1f8e190b0d0b808e",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-04",
+      "kind": "sources",
+      "path": "../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/positionTransport.ts",
+      "pin": "7b0875f2c26b9e69dc5c97e9c88166acc14c47dc",
+      "head": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+      "sha256": "5cbf5122bf416bf83b92e2446bc9bce443adc669e826d6fc959ec89c6e2b093b",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-04",
+      "kind": "governing",
+      "path": "../vowl-wasm/README.md",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "80ea4a718b36a72d039c88a85dd643297aecae4603896bf1da3b35c2bf304283",
+      "matches_pin": true
+    },
+    {
+      "topic": "VW-04",
+      "kind": "governing",
+      "path": "../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md",
+      "pin": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "sha256": "e1e605a3dcfbff723cb77357a9fa63078315dda664d518ac72e872985fc04911",
+      "matches_pin": true
+    }
+  ],
+  "adr_pin": "49096e794333b3f569820defb9d92cdf17e31592",
+  "adr_inputs": [
+    {
+      "path": "src/ngg1.rs",
+      "matches_adr_pin": true,
+      "sha256": "915670103277f8851b47db8b80c3b27dc06315018bfb5d2869a08055485f49f1"
+    },
+    {
+      "path": "Cargo.toml",
+      "matches_adr_pin": false,
+      "sha256": "a9f762868e6be175b3088c245a9f2cb3c9067710c54673da7cdd8bd84742fa23"
+    },
+    {
+      "path": "tests/ontomark_ngg1_migration.rs",
+      "matches_adr_pin": false,
+      "sha256": "00daa0fdb1d70929bea831cc9388face3509b390e37b9cc159ae1c81eccbd231"
+    },
+    {
+      "path": "src/bindings/ngg.rs",
+      "matches_adr_pin": true,
+      "sha256": "9f942851b41b889927c0a97ad94ea21ae62bc5a6a4c09ae8c4d109635841de66"
+    },
+    {
+      "path": "src/ontology/mod.rs",
+      "matches_adr_pin": true,
+      "sha256": "3e175b08efc0682072c9ca3b21ca682536206d6b96837e3e99c5e6599ade4dc1"
+    },
+    {
+      "path": "tests/ontomark_taxonomy_migration.rs",
+      "matches_adr_pin": true,
+      "sha256": "62e1097dec5a489d76031f5b3713e3fad152c1c126e00a1c38abfcf6a41124c7"
+    },
+    {
+      "path": "tests/ngg1_wasm.test.mjs",
+      "matches_adr_pin": false,
+      "sha256": "e7184210c8053874818a72777d52070682e9d1702dc318f53d5cb5f59f0bb1c1"
+    }
+  ],
+  "bundles": [
+    {
+      "kind": "existing",
+      "path": "vowl_wasm.js",
+      "bytes": 42117,
+      "sha256": "aee6cb592ed6d949ec1cb97b2e4f4168c17a2a796a4248a9172c565fa2b01478"
+    },
+    {
+      "kind": "existing",
+      "path": "vowl_wasm.d.ts",
+      "bytes": 20055,
+      "sha256": "f25ea0d41189fa8aac249db19d6d4fba4755f1a7ec4b639225993a8628360bfe"
+    },
+    {
+      "kind": "existing",
+      "path": "vowl_wasm_bg.wasm",
+      "bytes": 232052,
+      "sha256": "71efe41ea2356210feaed33e11720c2b0a9fb89022c97750316d77b03f22864a"
+    },
+    {
+      "kind": "fresh",
+      "path": "vowl_wasm.js",
+      "bytes": 60738,
+      "sha256": "c0e1fa8eff008d813e788fd3a8a916f3c353a060347908fcbacbc2f85302aad3"
+    },
+    {
+      "kind": "fresh",
+      "path": "vowl_wasm.d.ts",
+      "bytes": 26103,
+      "sha256": "659c0e57e7c73724b5ada2b3314872d9a1783a25aad650b7c43b6b7324351758"
+    },
+    {
+      "kind": "fresh",
+      "path": "vowl_wasm_bg.wasm",
+      "bytes": 270306,
+      "sha256": "f1eb0fdaf883fe99dd47087220b3eae56a3ad4bf11505f4b1594f7184af88b24"
+    }
+  ]
+}

@@ -1299,12 +1299,12 @@ Revision labels are author declarations. This index checks structure and referen
 | [VW-03.7 Alpha annealing — shared shape, two independent implementations](vowl-wasm/03-force-layout-lifecycle.md#vw-037-alpha-annealing-shared-shape-two-independent-implementations) | stateDiagram-v2 | VW-03 |
 | [VW-03.9 Seeding — `ForceSimulation::initialize` vs `CsrSimulation::load`](vowl-wasm/03-force-layout-lifecycle.md#vw-039-seeding-forcesimulationinitialize-vs-csrsimulationload) | flowchart | VW-03 |
 | [VW-03.10 Engine and tuning-preset choice](vowl-wasm/03-force-layout-lifecycle.md#vw-0310-engine-and-tuning-preset-choice) | flowchart | VW-03 |
-| [VW-04.1 `WebVowl` — the frozen 0.1.0 JS surface](vowl-wasm/04-js-api-examples-and-consumers.md#vw-041-webvowl-the-frozen-010-js-surface) | classDiagram | VW-04 |
+| [VW-04.1 `WebVowl` — the frozen 0.1.0 JS surface](vowl-wasm/04-js-api-examples-and-consumers.md#vw-041-webvowl-the-frozen-010-js-surface) | flowchart | VW-04 |
 | [VW-04.2 `writePositionsInto` vs `getNodePositions` — allocation trade-off](vowl-wasm/04-js-api-examples-and-consumers.md#vw-042-writepositionsinto-vs-getnodepositions-allocation-trade-off) | flowchart | VW-04 |
 | [VW-04.3 `checkNodeClick` — ray/sphere hit testing (feature `interaction`)](vowl-wasm/04-js-api-examples-and-consumers.md#vw-043-checknodeclick-raysphere-hit-testing-feature-interaction) | sequenceDiagram | VW-04 |
 | [VW-04.5 Bundle contents contract, verified in CI](vowl-wasm/04-js-api-examples-and-consumers.md#vw-045-bundle-contents-contract-verified-in-ci) | flowchart | VW-04 |
 | [VW-04.6 EXTERNAL: visionGraph's `physics.worker.ts` drives `NggExplorer`](vowl-wasm/04-js-api-examples-and-consumers.md#vw-046-external-visiongraphs-physicsworkerts-drives-nggexplorer) | sequenceDiagram | VW-04 |
-| [VW-04.7 `interaction` module — always-native benches vs the WASM binding](vowl-wasm/04-js-api-examples-and-consumers.md#vw-047-interaction-module-always-native-benches-vs-the-wasm-binding) | flowchart | VW-04 |
+| [VW-04.7 `interaction` module — native benches and the WASM binding](vowl-wasm/04-js-api-examples-and-consumers.md#vw-047-interaction-module-native-benches-and-the-wasm-binding) | flowchart | VW-04 |
 | [VW-04.8 `ngg1` browser bindings — owned decode and encode beside the zero-copy explorer](vowl-wasm/04-js-api-examples-and-consumers.md#vw-048-ngg1-browser-bindings-owned-decode-and-encode-beside-the-zero-copy-explorer) | flowchart | VW-04 |
 | [VW-05.1 CI — job graph on push/PR/weekly cron](vowl-wasm/05-build-test-bench-and-publish.md#vw-051-ci-job-graph-on-pushprweekly-cron) | flowchart | VW-05 |
 | [VW-05.2 Feature matrix — every optional feature compiles standalone](vowl-wasm/05-build-test-bench-and-publish.md#vw-052-feature-matrix-every-optional-feature-compiles-standalone) | flowchart | VW-05 |
@@ -4185,6 +4185,8 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../visionGraph/publishing-tools/WasmVOWL/modern/src/site/mesh.ts` | [VG-06](visiongraph/06-shipping-explorer-duplication.md) |
 | `../visionGraph/publishing-tools/WasmVOWL/modern/src/types/scope.ts` | [KG-04](knowledgegraph/04-explorer-and-site-build.md), [VG-06](visiongraph/06-shipping-explorer-duplication.md) |
 | `../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts` | [VW-04](vowl-wasm/04-js-api-examples-and-consumers.md) |
+| `../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/positionTransport.ts` | [VW-04](vowl-wasm/04-js-api-examples-and-consumers.md) |
+| `../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/protocol.ts` | [VW-04](vowl-wasm/04-js-api-examples-and-consumers.md) |
 | `../visionGraph/quartz/README.md` | [VG-01](visiongraph/01-vault-structure-and-contract.md) |
 | `../visionGraph/README.md` | [VG-01](visiongraph/01-vault-structure-and-contract.md), [VG-04](visiongraph/04-downstream-contracts.md), [VG-05](visiongraph/05-invariants-register.md) |
 | `../visionGraph/scripts/check-bases.sh` | [VG-01](visiongraph/01-vault-structure-and-contract.md) |
@@ -4268,12 +4270,12 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../vowl-wasm/src/error.rs` | [VW-01](vowl-wasm/01-crate-composition-and-wasm-boundary.md) |
 | `../vowl-wasm/src/graph/builder.rs` | [VW-02](vowl-wasm/02-owl-parse-to-graph-model.md) |
 | `../vowl-wasm/src/graph/edge.rs` | [VW-02](vowl-wasm/02-owl-parse-to-graph-model.md) |
-| `../vowl-wasm/src/graph/mod.rs` | [VW-01](vowl-wasm/01-crate-composition-and-wasm-boundary.md), [VW-02](vowl-wasm/02-owl-parse-to-graph-model.md) |
+| `../vowl-wasm/src/graph/mod.rs` | [VW-01](vowl-wasm/01-crate-composition-and-wasm-boundary.md), [VW-02](vowl-wasm/02-owl-parse-to-graph-model.md), [VW-04](vowl-wasm/04-js-api-examples-and-consumers.md) |
 | `../vowl-wasm/src/graph/node.rs` | [VW-02](vowl-wasm/02-owl-parse-to-graph-model.md) |
-| `../vowl-wasm/src/graph/pinning.rs` | [VW-02](vowl-wasm/02-owl-parse-to-graph-model.md) |
+| `../vowl-wasm/src/graph/pinning.rs` | [VW-02](vowl-wasm/02-owl-parse-to-graph-model.md), [VW-04](vowl-wasm/04-js-api-examples-and-consumers.md) |
 | `../vowl-wasm/src/graph/statistics.rs` | [VW-02](vowl-wasm/02-owl-parse-to-graph-model.md) |
 | `../vowl-wasm/src/interaction/mod.rs` | [VW-01](vowl-wasm/01-crate-composition-and-wasm-boundary.md), [VW-04](vowl-wasm/04-js-api-examples-and-consumers.md) |
-| `../vowl-wasm/src/layout/csr_sim.rs` | [VW-03](vowl-wasm/03-force-layout-lifecycle.md) |
+| `../vowl-wasm/src/layout/csr_sim.rs` | [VW-03](vowl-wasm/03-force-layout-lifecycle.md), [VW-04](vowl-wasm/04-js-api-examples-and-consumers.md) |
 | `../vowl-wasm/src/layout/mod.rs` | [VW-01](vowl-wasm/01-crate-composition-and-wasm-boundary.md), [VW-03](vowl-wasm/03-force-layout-lifecycle.md) |
 | `../vowl-wasm/src/layout/quadtree.rs` | [VW-03](vowl-wasm/03-force-layout-lifecycle.md) |
 | `../vowl-wasm/src/layout/simd.rs` | [VW-03](vowl-wasm/03-force-layout-lifecycle.md) |
@@ -4284,7 +4286,8 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../vowl-wasm/src/ontology/model.rs` | [VW-02](vowl-wasm/02-owl-parse-to-graph-model.md) |
 | `../vowl-wasm/src/ontology/parser.rs` | [VW-02](vowl-wasm/02-owl-parse-to-graph-model.md) |
 | `../vowl-wasm/src/render/mod.rs` | [VW-01](vowl-wasm/01-crate-composition-and-wasm-boundary.md) |
-| `../vowl-wasm/tests/ngg1_wasm.test.mjs` | [VW-04](vowl-wasm/04-js-api-examples-and-consumers.md) |
+| `../vowl-wasm/tests/ngg1_wasm.test.mjs` | [VW-03](vowl-wasm/03-force-layout-lifecycle.md), [VW-04](vowl-wasm/04-js-api-examples-and-consumers.md) |
+| `../vowl-wasm/tests/ontomark_ngg1_migration.rs` | [VW-03](vowl-wasm/03-force-layout-lifecycle.md) |
 | `../vowl-wasm/tools/release-inventory/README.md` | [VW-05](vowl-wasm/05-build-test-bench-and-publish.md) |
 | `../vowl-wasm/tools/release-inventory/src/main.rs` | [VW-05](vowl-wasm/05-build-test-bench-and-publish.md) |
 | `../WasmVOWL/modern/package-lock.json` | [ES-90](estate/90-evidence-and-supporting-repositories.md) |

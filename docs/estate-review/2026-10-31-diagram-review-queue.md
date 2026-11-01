@@ -1,5 +1,7 @@
 # Diagram semantic-review queue — 31 October 2026
 
+1 November continuation: [vowl layout and API assessment](2026-11-01-vowl-layout-and-api-boundaries.md) reviews all 16 panels in VW-03 and VW-04. Their semantic disposition is assessed with open implementation/host findings; VW-01, VW-02 and VW-05 remain separately queued.
+
 1 November continuation: [visiontouch source assessment](2026-11-01-visiontouch-software-boundaries.md) reviews VT-01 through VT-08, all 39 panels, with nine audit probes and open implementation/physical-acceptance findings. This dated assessment supersedes their pending semantic-review disposition below; it does not reclassify other topics.
 
 

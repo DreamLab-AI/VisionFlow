@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: failed scope load relabels old physics and transport with the new generation
+ok 1 - failed scope load relabels old physics and transport with the new generation
+  ---
+  duration_ms: 11.381294
+  type: 'test'
+  ...
+# Subtest: loadScope trusts a caller count inconsistent with the validated tier
+ok 2 - loadScope trusts a caller count inconsistent with the validated tier
+  ---
+  duration_ms: 2.941957
+  type: 'test'
+  ...
+# Subtest: setParam allows infinite reheat through the worker message boundary
+ok 3 - setParam allows infinite reheat through the worker message boundary
+  ---
+  duration_ms: 3.511943
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 163.414286

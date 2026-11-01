@@ -7,7 +7,10 @@ governing:
   - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
 adrs: [vowl-wasm:ADR-001]
 sources:
+  - ../vowl-wasm/src/graph/mod.rs
+  - ../vowl-wasm/src/graph/pinning.rs
   - ../vowl-wasm/src/bindings/mod.rs
+  - ../vowl-wasm/src/layout/csr_sim.rs
   - ../vowl-wasm/src/bindings/explorer.rs
   - ../vowl-wasm/src/bindings/ngg.rs
   - ../vowl-wasm/README.md
@@ -16,53 +19,43 @@ sources:
   - ../vowl-wasm/src/interaction/mod.rs
   - ../vowl-wasm/.github/workflows/ci.yml
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/protocol.ts
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/positionTransport.ts
 verified_commit: {vowl-wasm: 28af4365a68d9aacfd7c04f63299cc96ad717ce3, visiongraph: 7b0875f2c26b9e69dc5c97e9c88166acc14c47dc}
 ---
 
 ## VW-04.1 `WebVowl` — the frozen 0.1.0 JS surface
 ```mermaid
-classDiagram
-    class WebVowl {
-        <<wasm_bindgen>>
-        +new() src/bindings/mod.rs:45
-        +loadOntology(json) src/bindings/mod.rs:56
-        +initSimulation() src/bindings/mod.rs:76
-        +runSimulation(n) src/bindings/mod.rs:91
-        +tick() src/bindings/mod.rs:106
-        +isFinished() bool src/bindings/mod.rs:121
-        +getAlpha() f64 src/bindings/mod.rs:127
-        +setCenter(x,y) src/bindings/mod.rs:140
-        +setLinkDistance(d) src/bindings/mod.rs:146
-        +setChargeStrength(s) src/bindings/mod.rs:152
-        +reheat(alpha) src/bindings/mod.rs:134
-        +getNodeCount() usize src/bindings/mod.rs:188
-        +getEdgeCount() usize src/bindings/mod.rs:194
-        +getNodeIds() Vec~String~ src/bindings/mod.rs:211
-        +getNodePositions() Vec~f32~ src/bindings/mod.rs:258
-        +writePositionsInto(buf) usize src/bindings/mod.rs:298
-        +getStatistics() src/bindings/mod.rs:362
-        +getMetadata() src/bindings/mod.rs:332
-        +pinNode/unpinNode/isPinned/resetPins/getPinnedCount
-        +filterByDegree/toggleDatatypes/toggleSetOperators/resetVisibility/filterHierarchy
-    }
+flowchart TB
+    WV["WebVowl constructor<br/>src/bindings/mod.rs:45"] --> LOAD["loadOntology(json)<br/>src/bindings/mod.rs:56"]
+    WV --> STEP["initSimulation: src/bindings/mod.rs:76<br/>runSimulation: src/bindings/mod.rs:91<br/>tick: src/bindings/mod.rs:106"]
+    WV --> STATE["isFinished: src/bindings/mod.rs:121<br/>getAlpha: src/bindings/mod.rs:127<br/>reheat: src/bindings/mod.rs:134"]
+    WV --> TUNE["setCenter: src/bindings/mod.rs:140<br/>setLinkDistance: src/bindings/mod.rs:146<br/>setChargeStrength: src/bindings/mod.rs:152"]
+    WV --> POSITION["getNodeIds: src/bindings/mod.rs:211<br/>getNodePositions: src/bindings/mod.rs:258<br/>writePositionsInto: src/bindings/mod.rs:298"]
+    WV --> META["getNodeCount: src/bindings/mod.rs:188<br/>getEdgeCount: src/bindings/mod.rs:194<br/>getStatistics: src/bindings/mod.rs:362<br/>getMetadata: src/bindings/mod.rs:332"]
+    WV --> PIN["pinNode, unpinNode, isPinned,<br/>resetPins, getPinnedCount<br/>src/graph/pinning.rs:82"]
+    WV --> FILTER["filterByDegree, toggleDatatypes,<br/>toggleSetOperators, resetVisibility<br/>src/bindings/mod.rs:580"]
+    FILTER --> HIER["filterHierarchy(depth)<br/>src/bindings/mod.rs:158"]
 ```
 - INVARIANT (README.md:148-149): this is the frozen 0.1.0 surface — names/signatures do not change without a major bump; later releases only add (`getNodeIds`/`getNodePositions`/`writePositionsInto` arrived in 0.1.1, per src/lib.rs crate doc, and `reheat` is now on the binding, src/bindings/mod.rs:131-136).
 - `getNodeIds()`/`getNodePositions()` pair is index-stable: ticking, pinning, filtering and folding never reorder or remove nodes (src/bindings/mod.rs:210-256 doc comments), so JS zips `ids[i] <-> xy[2i], xy[2i+1]` once per load.
 
+- **Replacement boundary:** `loadOntology` swaps graph/metadata without resetting the pin manager or simulation alpha (src/bindings/mod.rs:56-70). Obsolete pin IDs remain reported and a previously settled engine leaves the new graph unticked until explicitly restarted. `pinNode` accepts non-finite positions through the legacy manager (src/graph/pinning.rs:82-102); CSR pinning rejects them.
+
 ## VW-04.2 `writePositionsInto` vs `getNodePositions` — allocation trade-off
 ```mermaid
 flowchart LR
-    subgraph Alloc["getNodePositions() — src/bindings/mod.rs:258"]
+    subgraph Alloc["Owned result<br/>src/bindings/mod.rs:258"]
         A1["new Vec::with_capacity(n*2)<br/>per call"] --> A2["returned Vec<f32> →<br/>wasm-bindgen copies out"]
     end
-    subgraph NoAlloc["writePositionsInto(buf) — src/bindings/mod.rs:298"]
-        B1["reuse caller-owned buffer<br/>writes min(out.len(), n*2)"] --> B2["returns count written<br/>src/bindings/mod.rs:303-312"]
+    subgraph Reuse["Caller buffer<br/>src/bindings/mod.rs:298"]
+        B1["reuse caller-owned buffer<br/>writes 2 * min(floor(out.len()/2), n)"] --> B2["returns even count; odd tail untouched<br/>src/bindings/mod.rs:303-312"]
     end
-    subgraph ZeroCopy["NggExplorer.positionsPtr()/positionsLen() — src/bindings/explorer.rs:84,90"]
-        C1["raw pointer into<br/>wasm.memory.buffer"] --> C2["JS Float32Array view,<br/>no copy at all — needs ngg1 tier"]
+    subgraph ZeroCopy["Direct view<br/>src/bindings/explorer.rs:84,90"]
+        C1["raw pointer into<br/>wasm.memory.buffer"] --> C2["JS Float32Array view,<br/>no copy at this boundary; needs ngg1 tier<br/>rebuild view after load or memory growth"]
     end
 ```
-- The doc comment is explicit: `writePositionsInto` saves the per-frame *allocation* over `getNodePositions`, not the copy — `NggExplorer::positions_ptr` is the only genuinely copy-free path, and it requires the `ngg1` binary-tier format (src/bindings/mod.rs:291-296).
+- The Rust method avoids creating a result vector, but the allocation claim in its doc comment is too broad (src/bindings/mod.rs:291-296): freshly generated wasm-bindgen 0.2.128 glue allocates a temporary WASM array for each `writePositionsInto` call and copies it back. Caller buffer reuse is not allocation-free across the ABI. `NggExplorer::positions_ptr` is the direct-view alternative (src/bindings/explorer.rs:75-90); the downstream worker still copies that view into its transport buffer. CSR `writePositionsInto` copies individual floats, including an odd last element, unlike the legacy pair-only method (src/layout/csr_sim.rs:610-614).
 
 ## VW-04.3 `checkNodeClick` — ray/sphere hit testing (feature `interaction`)
 ```mermaid
@@ -75,7 +68,7 @@ sequenceDiagram
     JS->>WV: ray_origin[3], ray_direction[3]
     WV->>WV: validate len == 3 each, else console.warn + None<br/>src/bindings/mod.rs:407-413
     WV->>R: Ray::new(origin, direction)
-    WV->>WV: build NodeHitTest per node,<br/>radius=20.0 fixed<br/>src/bindings/mod.rs:423-435
+    WV->>WV: build NodeHitTest per node,<br/>radius=20.0 fixed, including hidden nodes<br/>src/bindings/mod.rs:423-435
     WV->>F: find_closest_node_hit(&ray, &nodes)
     F->>F: ray_sphere_intersection per candidate<br/>src/interaction/mod.rs:99
     F-->>WV: Option<(id, distance)>
@@ -92,28 +85,30 @@ flowchart LR
     FILES --> CHECK3["bundle gate: ontomark_ngg1_migration test with VOWL_BUNDLE_GATE=1<br/>real wasm module, size budget, exact frozen JS API<br/>ci.yml:233-239"]
     FILES --> CHECK4["node --test tests/ngg1_wasm.test.mjs<br/>golden tier decodes and re-encodes byte for byte through WASM<br/>ci.yml:241-242"]
 ```
-- INVARIANT: CI fails the build if any of those eight zero-copy-path symbols vanish from `pkg/vowl_wasm.d.ts` — "the explorer breaks at runtime rather than at build" (.github/workflows/ci.yml:222-223).
+- CI checks that those eight API symbols exist, while the native bundle gate checks the exact declaration surface. They are not all zero-copy APIs. The build fails if a required symbol vanishes from `pkg/vowl_wasm.d.ts` (.github/workflows/ci.yml:222-239). A stale local `pkg/` failed the gate in this audit; current source was tested through a separately generated bundle.
 
 ## VW-04.6 EXTERNAL: visionGraph's `physics.worker.ts` drives `NggExplorer`
 ```mermaid
 sequenceDiagram
     autonumber
-    participant W as physics.worker.ts<br/>visionGraph publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts:39 interface WasmPhysics
+    participant W as visionGraph worker<br/>physics.worker.ts:39
     participant PKG as "@dreamlab-ai/vowl-wasm" npm package<br/>(published pkg/, see VW-04.5, VW-05.3)
-    participant WA as NggExplorer<br/>src/bindings/explorer.rs:18
-    Note over W: EXTERNAL — visionGraph repo, area VG-* (authored concurrently)
+    participant WA as NggExplorer<br/>explorer.rs:18
+    Note over W: External consumer: visionGraph
     W->>PKG: import init, default glue<br/>await init() → InitOutput.memory
     W->>WA: loadCsr(bytes) / tick() / isFinished() / getAlpha()
     W->>WA: positionsPtr() / positionsLen()
-    W->>W: new Float32Array(wasm.memory.buffer, ptr, len)<br/>SharedArrayBuffer or transferable double-buffer
+    W->>W: rebuild Float32Array(wasm.memory.buffer, ptr, len)<br/>copy into shared or transferable transport buffer<br/>physics.worker.ts:164-192
     W->>WA: setParam(key, val) [optional live tuning]
-    W->>WA: pinNode(index, x, y) / unpinNode(index) / reheat(alpha) [optional, drag pinning]<br/>publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts:51-53
+    W->>WA: optional drag: pinNode / unpinNode / reheat<br/>physics.worker.ts:51-53
 ```
 - The worker resolves exported names "permissively (snake_case per Rust, with camelCase fallbacks)" (physics.worker.ts:33-37 comment) — it does not assume `wasm-bindgen`'s `js_name` renaming is exhaustive, a defensive stance against this crate's binding surface.
 - Drag pinning is optional on the worker side: `pinNode`, `unpinNode` and `reheat` are bound with `optionalMethod` (physics.worker.ts:126-128) and the message handlers return silently when the loaded package lacks them. The package supplies them from 0.2.2 (the worker's own comment says `vowl-wasm ≥ 0.2.2`, physics.worker.ts:50); a pin that succeeds wakes the layout to `DRAG_ALPHA` 0.3 and an unpin to `RELEASE_ALPHA` 0.1 (physics.worker.ts:212-225, physics.worker.ts:309-321).
 - Cross-repo dependency direction: visionGraph depends on the *published* `@dreamlab-ai/vowl-wasm` npm bundle (pinned in its `package.json`/`package-lock.json`, per VisionFlow estate map), never on this crate's source — see VW-05.3 for the publish path that produces that bundle.
 
-## VW-04.7 `interaction` module — always-native benches vs the WASM binding
+- **Failure boundary:** `loadScope` changes generation/count before validating bytes (physics.worker.ts:271-295). After a rejected tier, a later Start can publish old positions under the new generation. Caller `nodeCount` is not checked against the loaded tier. `isMainToWorker` only checks an object with a string `type` (protocol.ts:195-200), so unchecked non-finite parameter messages reach CSR configuration. These are host-adapter gaps, not guarantees supplied by the codec.
+
+## VW-04.7 `interaction` module — native benches and the WASM binding
 ```mermaid
 flowchart TB
     RS["ray_sphere_intersection(ray, center, radius)<br/>src/interaction/mod.rs:99"] --> USE1["checkNodeClick binding<br/>(feature interaction, WASM)"]
@@ -121,7 +116,7 @@ flowchart TB
     FC["find_closest_node_hit(ray, &[NodeHitTest])<br/>src/interaction/mod.rs:167"] --> USE1
     FC --> USE2
 ```
-- Both entry points share the same pure functions; the WASM binding adds only input validation and `NodeHitTest` construction from `VowlGraph` (VW-04.3), so a change to hit-test geometry is exercised by the native bench before it ever reaches JS.
+- Both entry points share pure geometry functions; the WASM binding additionally chooses candidates and validates array lengths (VW-04.3). A native benchmark measures the cases it runs; it does not establish that hidden-node selection or JavaScript argument handling is correct.
 
 ## VW-04.8 `ngg1` browser bindings — owned decode and encode beside the zero-copy explorer
 ```mermaid

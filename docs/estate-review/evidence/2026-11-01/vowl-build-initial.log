@@ -1,0 +1,11 @@
+[INFO]: 🎯  Checking for the Wasm target...
+[INFO]: 🌀  Compiling to Wasm...
+error: unexpected argument '--out-dir' found
+
+  tip: a similar argument exists: '--artifact-dir'
+
+Usage: cargo build [OPTIONS]
+
+For more information, try '--help'.
+Error: `cargo build` failed, see the output above for details
+Caused by: `cargo build` failed, see the output above for details

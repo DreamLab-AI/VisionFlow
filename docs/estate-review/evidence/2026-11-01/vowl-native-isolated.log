@@ -1,0 +1,356 @@
+   Compiling unicode-ident v1.0.24
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling autocfg v1.5.1
+   Compiling libm v0.2.16
+   Compiling cfg-if v1.0.4
+   Compiling wasm-bindgen-shared v0.2.128
+   Compiling rustversion v1.0.23
+   Compiling serde_core v1.0.229
+   Compiling futures-core v0.3.34
+   Compiling bumpalo v3.20.3
+   Compiling serde v1.0.229
+   Compiling once_cell v1.21.4
+   Compiling slab v0.4.12
+   Compiling crossbeam-utils v0.8.23
+   Compiling pin-project-lite v0.2.17
+   Compiling futures-task v0.3.34
+   Compiling zmij v1.0.23
+   Compiling zerocopy v0.8.56
+   Compiling serde_json v1.0.151
+   Compiling crossbeam-epoch v0.9.21
+   Compiling itoa v1.0.18
+   Compiling bytemuck v1.25.2
+   Compiling memchr v2.8.3
+   Compiling anstyle v1.0.14
+   Compiling paste v1.0.15
+   Compiling crossbeam-deque v0.8.8
+   Compiling libc v0.2.189
+   Compiling either v1.18.0
+   Compiling rayon-core v1.13.0
+   Compiling regex-syntax v0.8.11
+   Compiling rawpointer v0.2.1
+   Compiling predicates-core v1.0.10
+   Compiling clap_lex v1.1.0
+   Compiling thiserror v1.0.69
+   Compiling plotters-backend v0.3.7
+   Compiling cast v0.3.0
+   Compiling ciborium-io v0.2.2
+   Compiling hashbrown v0.17.1
+   Compiling equivalent v1.0.2
+   Compiling oorandom v11.1.5
+   Compiling typenum v1.20.1
+   Compiling fixedbitset v0.4.2
+   Compiling termtree v0.5.1
+   Compiling same-file v1.0.6
+   Compiling nu-ansi-term v0.50.3
+   Compiling ontomark-ngg1 v0.1.0
+   Compiling lazy_static v1.5.0
+   Compiling downcast v0.11.0
+   Compiling wasm-bindgen-test-shared v0.2.128
+   Compiling anes v0.1.6
+   Compiling yansi v1.0.1
+   Compiling diff v0.1.13
+   Compiling fragile v2.1.0
+   Compiling walkdir v2.5.0
+   Compiling futures-util v0.3.34
+   Compiling clap_builder v4.6.6
+   Compiling predicates v3.1.4
+   Compiling predicates-tree v1.0.13
+   Compiling safe_arch v0.7.4
+   Compiling num-traits v0.2.19
+   Compiling matrixmultiply v0.3.11
+   Compiling plotters-svg v0.3.7
+   Compiling itertools v0.10.5
+   Compiling pretty_assertions v1.4.1
+   Compiling wide v0.7.33
+   Compiling indexmap v2.14.2
+   Compiling wasm-bindgen v0.2.128
+   Compiling syn v3.0.5
+   Compiling syn v2.0.119
+   Compiling petgraph v0.6.5
+   Compiling regex-automata v0.4.18
+   Compiling is-terminal v0.4.17
+   Compiling criterion-plot v0.5.0
+   Compiling rayon v1.12.0
+   Compiling clap v4.6.6
+   Compiling approx v0.5.1
+   Compiling num-complex v0.4.6
+   Compiling num-integer v0.1.47
+   Compiling plotters v0.3.7
+   Compiling num-rational v0.4.2
+   Compiling simba v0.8.1
+   Compiling regex v1.13.1
+   Compiling wasm-bindgen-macro-support v0.2.128
+   Compiling zerocopy-derive v0.8.56
+   Compiling nalgebra-macros v0.2.2
+   Compiling thiserror-impl v1.0.69
+   Compiling mockall_derive v0.12.1
+   Compiling serde_derive v1.0.229
+   Compiling async-trait v0.1.92
+   Compiling wasm-bindgen-test-macro v0.3.78
+   Compiling nalgebra v0.32.6
+   Compiling mockall v0.12.1
+   Compiling tinytemplate v1.2.1
+   Compiling wasm-bindgen-macro v0.2.128
+   Compiling js-sys v0.3.105
+   Compiling half v2.7.1
+   Compiling ciborium-ll v0.2.2
+   Compiling ciborium v0.2.2
+   Compiling criterion v0.5.1
+   Compiling wasm-bindgen-futures v0.4.78
+   Compiling web-sys v0.3.105
+   Compiling serde-wasm-bindgen v0.6.5
+   Compiling wasm-bindgen-test v0.3.78
+   Compiling vowl-wasm v0.2.2 (/tmp/vf-vowl-source)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 17.10s
+     Running unittests src/lib.rs (/home/devuser/workspace/wt/VisionFlow-vowl-boundaries/.audit-target/debug/deps/vowl_wasm-fff2737ef8c3b249)
+
+running 155 tests
+test bindings::ngg::tests::decoded_arrays_preserve_all_fields_and_are_independent ... ok
+test bindings::ngg::tests::constants_are_owner_values_and_decode_rejects_malformed_bytes ... ok
+test bindings::ngg::tests::binding_encoder_writes_the_owner_golden_byte_for_byte ... ok
+test bindings::ngg::tests::encode_rejects_short_arrays_and_invalid_csr_without_panics ... ok
+test bindings::tests::positions_are_empty_before_an_ontology_is_loaded ... ok
+test bindings::ngg::tests::non_estate_unicode_graph_roundtrips_with_unknown_codes ... ok
+test bindings::tests::positions_are_two_floats_per_node ... ok
+test bindings::tests::positions_are_indexed_by_the_id_order ... ok
+test bindings::tests::test_webvowl_creation ... ok
+test bindings::tests::test_load_ontology ... ok
+test bindings::tests::write_positions_into_writes_only_the_overlap ... ok
+test graph::builder::tests::test_build_from_ontology ... ok
+test graph::builder::tests::test_edge_characteristics ... ok
+test bindings::tests::write_positions_into_matches_the_allocating_accessor ... ok
+test graph::builder::tests::test_metadata_update ... ok
+test graph::builder::tests::test_node_mapping ... ok
+test graph::edge::tests::test_edge_builder_basic ... ok
+test graph::builder::tests::test_set_operator_mapping ... ok
+test graph::edge::tests::test_edge_builder_cardinality ... ok
+test graph::edge::tests::test_edge_builder_functional ... ok
+test graph::edge::tests::test_edge_builder_multiple_characteristics ... ok
+test graph::node::tests::test_node_builder_basic ... ok
+test graph::node::tests::test_node_builder_external ... ok
+test graph::node::tests::test_node_builder_with_position ... ok
+test graph::pinning::tests::test_enable_disable ... ok
+test bindings::tests::the_index_order_survives_ticking_and_filtering ... ok
+test graph::pinning::tests::test_pin_manager_creation ... ok
+test graph::pinning::tests::test_get_pinned_nodes ... ok
+test graph::pinning::tests::test_pin_multiple_nodes ... ok
+test graph::pinning::tests::test_pin_node ... ok
+test graph::pinning::tests::test_pin_nonexistent_node ... ok
+test graph::pinning::tests::test_pin_node_at_position ... ok
+test graph::pinning::tests::test_pin_same_node_twice ... ok
+test graph::pinning::tests::test_reset_pins ... ok
+test graph::pinning::tests::test_unpin_node ... ok
+test graph::statistics::tests::test_density_calculation ... ok
+test graph::statistics::tests::test_degree_statistics ... ok
+test graph::statistics::tests::test_calculate_basic_metrics ... ok
+test graph::statistics::tests::test_median_calculation ... ok
+test graph::statistics::tests::test_std_dev_calculation ... ok
+test graph::statistics::tests::test_property_distribution ... ok
+test graph::statistics::tests::test_owl2_metrics ... ok
+test graph::tests::test_add_duplicate_node ... ok
+test graph::tests::test_add_edge ... ok
+test graph::tests::test_add_edge_invalid_nodes ... ok
+test graph::tests::test_add_node ... ok
+test graph::tests::test_create_empty_graph ... ok
+test graph::tests::test_degree ... ok
+test graph::tests::test_filter_by_degree ... ok
+test graph::tests::test_get_node ... ok
+test graph::tests::test_non_datatype_degree ... ok
+test graph::tests::test_multiple_filters_compose ... ok
+test graph::tests::test_reset_visibility ... ok
+test graph::tests::test_toggle_datatypes ... ok
+test graph::tests::test_toggle_set_operators ... ok
+test graph::tests::test_update_metadata ... ok
+test interaction::tests::test_find_closest_node_multiple_hits ... ok
+test interaction::tests::test_find_closest_node_no_hits ... ok
+test interaction::tests::test_find_closest_node_single_hit ... ok
+test interaction::tests::test_ray_3d_intersection ... ok
+test interaction::tests::test_ray_behind_sphere ... ok
+test interaction::tests::test_ray_creation ... ok
+test interaction::tests::test_ray_hits_sphere ... ok
+test interaction::tests::test_ray_diagonal_intersection ... ok
+test interaction::tests::test_ray_misses_sphere ... ok
+test interaction::tests::test_ray_normalization ... ok
+test interaction::tests::test_ray_origin_inside_sphere ... ok
+test interaction::tests::test_ray_point_at ... ok
+test interaction::tests::test_ray_tangent_to_sphere ... ok
+test layout::csr_sim::tests::coincident_pair_forces_match_exact ... ok
+test layout::csr_sim::tests::empty_scope_is_finished_and_safe ... ok
+test layout::csr_sim::tests::invalid_pins_are_refused_without_panicking ... ok
+test layout::csr_sim::tests::load_arrays_seeds_scope ... ok
+test layout::csr_sim::tests::load_csr_rejects_malformed ... ok
+test layout::csr_sim::tests::load_seeds_from_ngg1 ... ok
+test layout::csr_sim::tests::loading_a_new_scope_clears_every_pin ... ok
+test layout::csr_sim::tests::positions_ptr_stable_across_ticks ... ok
+test layout::csr_sim::tests::set_param_dispatch ... ok
+test layout::csr_sim::tests::tick_timing_n2000_exact_vs_barnes_hut ... ignored
+test layout::csr_sim::tests::unpinning_returns_the_node_to_the_layout ... ok
+test layout::csr_sim::tests::a_pinned_node_holds_its_position_and_its_neighbours_follow ... ok
+test layout::force::tests::test_attraction_force ... ok
+test layout::csr_sim::tests::write_positions_into_matches_ptr_buffer ... ok
+test layout::force::tests::test_batch_center_force ... ok
+test layout::csr_sim::tests::tick_moves_nodes_and_stays_finite ... ok
+test layout::force::tests::test_batch_repulsion ... ok
+test interaction::tests::test_performance_many_nodes ... ok
+test layout::force::tests::test_batch_repulsion_newton_third_law ... ok
+test layout::force::tests::test_center_force ... ok
+test layout::force::tests::test_damping ... ok
+test layout::force::tests::test_repulsion_at_same_position ... ok
+test layout::csr_sim::tests::auto_finishes_at_alpha_floor ... ok
+test layout::force::tests::test_repulsion_force ... ok
+test layout::quadtree::tests::test_avoid_self_force ... ok
+test layout::quadtree::tests::test_empty_tree_force ... ok
+test layout::quadtree::tests::test_barnes_hut_force_approximation ... ok
+test layout::quadtree::tests::test_quadtree_center_of_mass ... ok
+test layout::quadtree::tests::test_quadtree_build ... ok
+test layout::quadtree::tests::test_quadtree_creation ... ok
+test layout::quadtree::tests::test_quadtree_insert_single ... ok
+test layout::csr_sim::tests::finished_tick_is_noop ... ok
+test layout::quadtree::tests::test_quadtree_subdivision ... ok
+test layout::quadtree::tests::test_rect_center ... ok
+test layout::quadtree::tests::test_rect_contains ... ok
+test layout::simd::tests::test_forces_add ... ok
+test layout::simd::tests::test_forces_to_vectors ... ok
+test layout::simd::tests::test_position_update_scalar ... ok
+test layout::simd::tests::test_scalar_center_force ... ok
+test layout::simd::tests::test_scalar_leaf_force ... ok
+test layout::csr_sim::tests::deterministic_given_seeds ... ok
+test layout::csr_sim::tests::reheat_resumes_motion ... ok
+test layout::simd::tests::test_scalar_repulsion ... ok
+test layout::simd::tests::test_simd_forces_zeros ... ok
+test layout::simd::tests::test_simd_positions_creation ... ok
+test layout::simd::tests::test_velocity_update_scalar ... ok
+test layout::quadtree::tests::test_large_graph_performance ... ok
+test layout::simulation::tests::initialize_keeps_placed_nodes_when_preserving ... ok
+test layout::csr_sim::tests::coincident_and_single_nodes_are_safe ... ok
+test layout::simulation::tests::initialize_reseeds_every_node_by_default ... ok
+test layout::simulation::tests::reheat_resumes_a_settled_simulation ... ok
+test layout::simulation::tests::test_initialize_positions ... ok
+test layout::simulation::tests::test_set_center ... ok
+test layout::simulation::tests::test_set_parameters ... ok
+test layout::simulation::tests::test_simulation_creation ... ok
+test layout::simulation::tests::test_simulation_with_config ... ok
+test layout::simulation::tests::test_single_tick ... ok
+test layout::tests::test_config_values ... ok
+test layout::tests::test_default_config ... ok
+test ontology::model::tests::test_class_types ... ok
+test ontology::model::tests::test_property_types ... ok
+test ontology::parser::tests::test_parser_config ... ok
+test ontology::parser::tests::test_parse_set_operators ... ok
+test ontology::parser::tests::test_parse_class_with_attributes ... ok
+test ontology::parser::tests::test_parse_simple_ontology ... ok
+test ontology::parser::tests::test_validate_invalid_domain ... ok
+test ontology::tests::test_class_node_with_attributes ... ok
+test ontology::tests::test_class_ontology_metadata ... ok
+test ontology::tests::test_ontology_data_creation ... ok
+test ontology::tests::test_property_with_characteristics ... ok
+test render::tests::normalize_coords_centres_an_empty_graph ... ok
+test render::tests::normalize_coords_stays_finite_for_a_collapsed_extent ... ok
+test render::tests::normalize_coords_preserves_aspect_ratio ... ok
+test render::tests::test_render_empty_graph ... ok
+test render::tests::test_render_node ... ok
+test render::tests::test_svg_header ... ok
+test render::tests::test_svg_renderer_creation ... ok
+test layout::simulation::tests::test_run_simulation ... ok
+test layout::csr_sim::tests::barnes_hut_theta_half_within_two_percent_of_exact ... ok
+test layout::simulation::tests::test_simulation_finishes ... ok
+test layout::force::tests::test_batch_repulsion_large ... ok
+test layout::csr_sim::tests::theta_zero_is_bit_identical_to_exact ... ok
+test layout::csr_sim::tests::load_arrays_rejects_odd_positions - should panic ... ok
+test layout::csr_sim::tests::load_arrays_rejects_ragged_edges - should panic ... ok
+test layout::csr_sim::tests::near_coincident_seeds_stay_in_bounds ... ok
+test layout::csr_sim::tests::barnes_hut_layout_converges_and_stays_finite ... ok
+
+test result: ok. 154 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+     Running tests/integration_test.rs (/home/devuser/workspace/wt/VisionFlow-vowl-boundaries/.audit-target/debug/deps/integration_test-56cb93bdcc37f788)
+
+running 5 tests
+test test_error_handling ... ok
+test test_graph_statistics ... ok
+test test_full_pipeline ... ok
+test test_simulation_convergence ... ok
+test test_large_ontology ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests/ngg1_explorer_test.rs (/home/devuser/workspace/wt/VisionFlow-vowl-boundaries/.audit-target/debug/deps/ngg1_explorer_test-c6a72c1c89c39139)
+
+running 4 tests
+test ngg1_reader_round_trips_spec_assertions ... ok
+test explorer_loads_ticks_and_settles ... ok
+test explorer_setparam_reheat ... ok
+test explorer_is_deterministic ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/ontology_metadata_test.rs (/home/devuser/workspace/wt/VisionFlow-vowl-boundaries/.audit-target/debug/deps/ontology_metadata_test-4fdcafc7e321c6a5)
+
+running 12 tests
+test test_edge_with_relation_type ... ok
+test test_class_without_metadata ... ok
+test test_complex_ontology_with_metadata ... ok
+test caller_taxonomy_metadata_is_optional_and_preserved_without_an_estate_registry ... ok
+test test_metadata_default ... ok
+test test_graph_metadata_statistics ... ok
+test test_semantic_relation_type_enum ... ok
+test test_partial_metadata ... ok
+test test_metadata_serialization ... ok
+test test_metadata_propagation_to_graph ... ok
+test test_parse_ontology_metadata_from_webvowl_json ... ok
+test test_snake_case_and_camel_case_attributes ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/ontomark_ngg1_migration.rs (/home/devuser/workspace/wt/VisionFlow-vowl-boundaries/.audit-target/debug/deps/ontomark_ngg1_migration-646b63a6f957d885)
+
+running 7 tests
+test reexport_guard_rejects_partial_nested_and_renamed_exports ... ok
+test built_bundle_is_a_real_wasm_module_within_budget_with_the_frozen_api ... ok
+test vw01_manifest_depends_on_the_ontomark_ngg1_crate_through_the_ngg1_feature ... ok
+test bundle_graph_has_ontomark_ngg1_and_no_reasoner_rdf_yaml_or_regex_crates ... ok
+test js_surface_is_frozen_exactly ... ok
+test vw01_ngg1_rs_is_a_bare_reexport_and_no_second_codec_exists ... ok
+test vw02_vw04_d8_markdown_ontology_files_features_and_behaviour_are_gone ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.54s
+
+     Running tests/ontomark_taxonomy_migration.rs (/home/devuser/workspace/wt/VisionFlow-vowl-boundaries/.audit-target/debug/deps/ontomark_taxonomy_migration-3905193a9a3fe12b)
+
+running 2 tests
+test taxonomy_guard_rejects_renamed_moved_and_hidden_legacy_definitions ... ok
+test vw03_no_local_taxonomy_registry_or_retired_markdown_types_remain ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+     Running tests/phase3_integration.rs (/home/devuser/workspace/wt/VisionFlow-vowl-boundaries/.audit-target/debug/deps/phase3_integration-a9edc6d6be090229)
+
+running 9 tests
+test test_error_handling ... ignored, JsValue error path is wasm32-only
+test test_wasm_api_integration ... ignored, get_statistics is wasm32-only
+test test_property_characteristics ... ok
+test test_deprecated_class_handling ... ok
+test test_metadata_preservation_through_serialization ... ok
+test test_click_detection_with_metadata ... ok
+test test_performance_targets_integration ... ok
+test test_full_workflow_with_metadata ... ok
+test test_large_ontology_workflow ... ok
+
+test result: ok. 7 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.33s
+
+   Doc-tests vowl_wasm
+
+running 8 tests
+test src/lib.rs - _::__wasm_bindgen_generated_version (line 173) ... ok
+test src/layout/mod.rs - layout::LayoutConfig::large_graph (line 128) ... ok
+test src/lib.rs - version (line 173) ... ok
+test src/interaction/mod.rs - interaction::Ray::new (line 26) ... ok
+test src/layout/csr_sim.rs - layout::csr_sim::CsrSimulation::load_arrays (line 301) ... ok
+test src/bindings/ngg.rs - bindings::ngg::NggGraph::from_bytes (line 28) ... ok
+test src/render/mod.rs - render::SvgRenderer::normalize_coords (line 67) ... ok
+test src/lib.rs - (line 28) ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+

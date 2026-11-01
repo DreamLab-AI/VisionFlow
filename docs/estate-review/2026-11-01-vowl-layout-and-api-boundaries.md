@@ -1,0 +1,99 @@
+---
+title: Vowl layout, JavaScript and consumer boundaries
+date: 2026-11-01
+status: assessed-with-open-implementation-and-host-acceptance
+type: explanation
+---
+
+# Vowl layout, JavaScript and consumer boundaries
+
+Shared NGG1 codec and current WASM export tests pass, but layout and consumer lifecycle guarantees have gaps. A coincident legacy graph traps during tree construction. A rejected worker scope load can relabel the previous graph with the new generation. Other probes reproduce stale pin state, selection of hidden nodes, unchecked numeric parameters and a misleading allocation claim. This pass corrects the diagrams and records acceptance work; it does not change production implementations.
+
+Scope: all sections of vowl-wasm's sole local ADR-001, its governing README, and all 16 panels in VW-03 and VW-04. VW-01, VW-02 and VW-05 still require their own complete semantic passes. The parent shared-workspace decision and wider Obsidian implementation are not requalified by these library tests. The estate audit remains in progress.
+
+## Revisions and executable evidence
+
+| Item | Result and limit |
+|---|---|
+| vowl-wasm | Clean source at `28af4365a68d9aacfd7c04f63299cc96ad717ce3`. Existing ignored `pkg/` retained unchanged. |
+| visionGraph consumer | `556a0156b5c326fb61141ed2ab1760dd8d9c4dd6`; the worker, protocol and transport files match the retained topic pin `7b0875f2…`. Existing unrelated journal changes were preserved. |
+| VisionFlow | Audit branched from `afade68`; changes made in an isolated worktree. |
+| Source identity | [Manifest](evidence/2026-11-01/vowl-source-manifest.json): 30 topic/input associations across 21 distinct paths, all matching their declared topic revisions. ADR-001's older `49096e7…` pin differs in Cargo.toml and two tests; its codec, bindings and taxonomy-removal files still match. |
+| Existing local bundle | The [initial native run](evidence/2026-11-01/vowl-native-existing.log) fails the frozen-export gate: the old generated declarations lack 21 current exports. This is a stale generated artefact, not evidence that the current Rust source omits them. |
+| Fresh WASM | Cargo release build with `ngg1,interaction`, locked/offline dependencies, followed by matching wasm-bindgen 0.2.128. The module is 270,306 bytes, within the existing 280,000-byte gate. Hashes identify both bundles. This direct build is not a new published npm package. |
+| Native acceptance | [Isolated log](evidence/2026-11-01/vowl-native-isolated.log): 199 tests pass, three are ignored, including doctests in the total; `VOWL_BUNDLE_GATE=1` checks the fresh module and declarations. This is the `ngg1,interaction` feature set, not the entire CI matrix. |
+| Existing JS acceptance | [Log](evidence/2026-11-01/vowl-js-baseline.log): all five existing Node/WASM tests pass, including golden roundtrip, custom taxonomy, malformed tiers and owned snapshots. Node execution does not qualify browser loading or Obsidian. |
+| Audit probes | [Library probes](evidence/2026-11-01/vowl-boundary-probes.mjs) and [log](evidence/2026-11-01/vowl-probes.log): ten pass. [Consumer probes](evidence/2026-11-01/vowl-worker-probes.mjs) and [log](evidence/2026-11-01/vowl-worker.log): three pass. These assert reproduced defects or explicit boundary behaviour; passing does not mean the defects are fixed. |
+| Diagrams | [VW-03 gate](evidence/2026-11-01/vowl-03-diagram-gate.log) and [VW-04 gate](evidence/2026-11-01/vowl-04-diagram-gate.log): all 16 render; revision citations resolve without fallback. Visual review corrected clipping in the API map, worker sequence, buffer labels and annealing note. |
+
+Whole-corpus regeneration and the [final verification check](evidence/2026-11-01/vowl-final-corpus-check.log) pass: 176 topics, 1,584 diagrams, 24,497 revision-verified citations, zero fallback/unresolved citations and nine allowlisted artefact citations. This structural result does not establish whole-estate semantic completion. The [retention receipt](evidence/2026-11-01/vowl-retention.json) records 63 byte-verified artefacts in `/tmp/vf-vowl-audit-artifacts`, including the fresh bundle, executed source archive, rendered diagrams, previews and matching CLI.
+
+Worker probes bundle the real TypeScript worker with its existing esbuild installation, initialise the fresh WASM module, and supply a deterministic `self` shim. `postMessage` uses actual structured-clone transfer; timers are advanced explicitly. They do not exercise a browser Worker, real timer cadence, isolation headers, shared-memory transport or the renderer's handling of errors. The library trap runs in a separate Node child with a ten-second timeout. Allocation instrumentation adds a counter to the generated float-array marshalling helper; it establishes calls to the supplied WASM allocator, not a performance measurement or net heap growth.
+
+The [reproduction script](evidence/2026-11-01/vowl-reproduce.sh) assembles these commands from the pinned source in fresh scratch. Its shell syntax was checked; the recorded executions used the equivalent individual commands above. It requires an executable scratch filesystem, wasm-bindgen 0.2.128 and the existing Cargo/esbuild dependencies.
+
+Build setup failures remain visible: an initial wasm-pack option-order mistake, inability to find a matching CLI in no-install mode, and execution denied by the cache's noexec mount. The downloaded matching CLI ran from the executable audit workspace; filesystem mount policy was not changed. A first archive test reused the production Cargo target and retained its compiled manifest path, so it still read the stale production bundle ([log](evidence/2026-11-01/vowl-native-shared-cache.log)). A separate target directory resolved that contamination. The [initial probe log](evidence/2026-11-01/vowl-probes-initial.log) records probe setup mistakes: treating the legacy void pin return as Boolean, passing an extra test filename, and expecting a different trap message. Corrected assertions use pin state and the observed WASM exception.
+
+## Findings and acceptance work
+
+| ID / priority | Source and reproduced behaviour | User consequence and acceptance criterion |
+|---|---|---|
+| VW-A1 / high | `src/layout/quadtree.rs:166-238` subdivides without a depth or minimum-cell bound. Pinning 51 legacy nodes at `(0,0)` then ticking takes the Barnes–Hut branch and traps with `RuntimeError: memory access out of bounds`. Repeated recursion appears in the trace. | Duplicate/coincident positions can break the layout instance. Terminate subdivision with a bounded bucket or equivalent rule, and test exact duplicates, near duplicates and tiny extents through WASM. The CSR tree already limits depth to 40; its guard does not protect the legacy tree. No native memory-corruption claim is made. |
+| VW-A2 / high | Consumer `physics.worker.ts:271-295` changes generation/count before `loadCsr` validates bytes. Valid generation 1 followed by invalid generation 2 and Start emits a 24-byte old-graph frame tagged generation 2. Rust correctly retains the prior graph after the rejected load. | Scope identity can become false even though the codec rejects corruption. Commit physics, transport and generation together after validation, or enter an explicit failed state that cannot publish. Test invalid replacement, recovery and pending timer behaviour. The probe shows the bad worker output, not a rendered production incident. |
+| VW-A3 / medium | `bindings/mod.rs:56-70` replaces graph/metadata without resetting `PinManager` or alpha. After a settled pinned graph is replaced, obsolete IDs remain pinned in bookkeeping and tick does nothing until restart. | Reused instances can expose stale drag state and an unexpectedly stationary graph. Define replacement/reset semantics, clear obsolete pin state, and test disjoint and reused IDs after both successful and rejected loads. |
+| VW-A4 / medium | `ForceSimulation::run` always initialises (`simulation.rs:326-327`); initialisation reseeds fixed nodes (`89-119`). A pinned `(1000,2000)` node moves to its circular seed when `runSimulation(1)` is called. | The README's “advance n steps” wording suggests continuation. Separate reset from stepping or document the reset explicitly; test that any promised pin preservation holds across repeated calls. |
+| VW-A5 / medium | `bindings/mod.rs:423-435` builds hit candidates from all nodes. A node hidden by `filterByDegree(99)` remains selectable by its ray. | A user can select invisible content. Apply visibility policy during candidate construction and test filtering/folding with overlapping visible nodes. The fixed radius of 20 also differs from per-node visual size. |
+| VW-A6 / high for host reliability | Legacy `pin_node_at` accepts NaN. CSR pin refuses it, but `reheat(Infinity)` and unchecked numeric setters remain available (`csr_sim.rs:620-703`). Infinite reheat produces non-finite positions; negative `alphaMin` remains unfinished after 10,000 ticks. The worker forwards infinite reheat too. | Malformed configuration can corrupt positions or prevent automatic sleep. Define finite ranges and rejection semantics at both APIs; validate message fields and test invalid values without changing the last good layout. This probe does not establish remote exploitability. |
+| VW-A7 / medium | `loadScope` allocates transport from supplied `nodeCount`; it does not compare the validated tier length. Declaring one node for the three-node golden emits only eight bytes. `protocol.ts:195-200` checks only an object with a string type. | A producer/count mismatch silently truncates the frame. Derive count from validated physics or reject disagreement before committing the scope. Test too-small, too-large and invalid counts with both transports. |
+| VW-A8 / documentation and measurement | `writePositionsInto` avoids a Rust result vector, but generated glue calls the temporary WASM allocator each time: three reusable-buffer calls produce three allocator-helper invocations. Legacy writes whole pairs; CSR writes individual floats. | Buffer reuse does not remove all allocation/copy costs. Document both odd-length contracts and benchmark complete marshalling and worker transport costs. Avoid claiming speed from source shape alone. |
+| VW-A9 / integration obligation | A direct Float32Array view detaches after ordinary WASM memory growth. The worker correctly rebuilds its view per publication, then copies into its own transport buffer. | Preserve that refresh when refactoring. Treat “zero copy” as a statement about a particular boundary. Reacquire pointer, length and memory buffer after load/growth, and include disposal/reload tests in host acceptance. |
+
+## ADR-001, section by section
+
+| Section | Assessment |
+|---|---|
+| Front matter and implementation preamble | The implemented/active status is explicitly narrowed to NGG1 ownership. Current migration, feature and export tests support that slice. The older verified revision is not a current release attestation; three named files have changed. No owner status is amended here. |
+| Context | Offline ordinary-vault use and separation of rendering from reasoning remain product requirements. The sentence assigning the encoder to VisionClaw describes the pre-migration arrangement; the current-effect section and direct codec dependency supersede that ownership description. Library tests do not show an installed plugin. |
+| Proposed decision: ownership and identity | The separate-package option has been taken: one codec owner in ontomark and browser bindings here. Existing package identity and additive exports are checked. Consumer version coordination remains a release obligation. |
+| Proposed decision: licence boundary | Direct `ontomark-ngg1` dependency and the normal-dependency gate keep the named reasoner/RDF/YAML/regex dependencies out of this bundle. The README also requires the historical notice companion. This is dependency evidence, not a fresh licence opinion or proof every redistributed package includes notices. |
+| Graph contracts: identity and relation meaning | Codec fixtures preserve supplied IDs, codes and metadata, including unknown codes. They do not establish stable note identity across rename or the semantic distinction between asserted and inferred edges for every producer. Those require producer/consumer fixtures. |
+| Graph contracts: NGG1 v1 | Native and WASM golden/invalid-input tests pass with the shared codec. Efficient TypeScript views are compatible with one format owner, but consolidation and all cross-language reader parity remain outside this pass. |
+| Graph contracts: arbitrary taxonomy | Removal tests and JS fixtures support custom numeric domains/categories, absent taxonomy sentinels and Unicode metadata. No fixed estate registry is introduced by the binding. Estate-profile order across historical producers is not newly requalified. |
+| Host adapters: data, navigation, theme and factories | The library keeps host routing out; the inspected worker is an external adapter. Correct note opening, theme integration and resource factories require host tests. |
+| Host adapters: asynchronous lifecycle and transport | Generation and explicit-error mechanisms exist, but VW-A2/A7 violate the intended scope boundary on failures/mismatches. Transferable transport was exercised with a shim; actual browser worker cancellation, unload and shared-memory fallback remain open. |
+| Host adapters: portable Rust and optional estate functions | The published feature set builds to WASM and passes its dependency gate. That does not qualify every optional feature, native consumer or reasoning worker. |
+| Host adapters: offline operation and Markdown scope | No network/model/database was required by these core tests. Offline plugin asset loading and ordinary vault behaviour were not run; Markdown-only scope remains a requirement. |
+| Alternatives: copy renderer / import website | Avoiding duplicate ownership and host coupling remains sensible. The passing codec migration is evidence for the chosen component boundary, not proof that all historical copies have gone. |
+| Alternatives: replace NGG1 / monorepo / shared memory | Golden compatibility supports retaining v1. Independent release ownership is viable if consumer tests use the actual candidate bundle. A transferable baseline is exercised here; no performance comparison justifies requiring shared memory. |
+| Acceptance 1 | Native and WASM share the golden, unknown-value and malformed-input coverage. Full TypeScript-reader parity and actual browser execution remain outstanding in this pass. |
+| Acceptance 2 | Fresh current bundle passes frozen exports and golden compatibility; the stale local package fails as intended. Website/CLI release-version consumer tests remain a separate gate. |
+| Acceptance 3 | Plain offline Obsidian vault, rename navigation and frontmatter/assertion separation are untested here. |
+| Acceptance 4 | Real installed-plugin create/edit/rename/delete, generation rejection, cancellation, disposal and no-SAB operation remain unqualified. Worker failure probes identify concrete work for that gate. |
+| Acceptance 5 | These are codec/layout tests. They provide no new asserted-triple, diagnostic or inferred-subsumption reasoning parity evidence. |
+| Acceptance 6 | Ownership/deletion tests pass; current notices, release provenance, consumer upgrades and obsolete TypeScript copies still require release-level reconciliation. |
+| Rollout and current effect | The stated order remains contracts, complete offline slice, then consumers. Current effect correctly excludes plugin and reader consolidation. Representative vault budgets and mobile claims need measurements; “tuned for 1,500 nodes” is not an enforced cap or a benchmark result. |
+
+## Diagram dispositions
+
+| Panels | Changes and retained meaning |
+|---|---|
+| VW-03.1–3 | Retain force/tick and Barnes–Hut branching. Clarify per-call reseeding and add the tree-construction failure boundary before leaf-force safeguards. |
+| VW-03.4–5 | Correct the compile-time SIMD flag being described as runtime detection. Retain exact/Barnes–Hut, damping, softening and pinning paths; qualify motion bounds by valid finite configuration. No browser SIMD or performance benchmark was run. |
+| VW-03.6–7 | Replace the obsolete unverified-layout note with codec ownership and current fixture evidence. Correct reheat assignment and load clearing the CSR latch; record invalid-parameter behaviour. |
+| VW-03.9–10 | Alpha is restored, not zeroed. Reinitialisation and load are distinct from resume. Multiple force parameters can change at runtime; the 1,500-node figure is tuning context. |
+| VW-04.1–3 | Preserve additive API/index-order mapping; add graph replacement and legacy pin boundaries. Correct reusable-buffer allocation and odd-length claims; show hidden nodes in hit candidates. |
+| VW-04.5–6 | Keep the CI export/bundle gates and distinguish stale generated artefacts. Show the worker's actual transport copy and failed-load generation/count boundary. |
+| VW-04.7–8 | Native benchmarks share geometry but do not prove binding behaviour. Owned codec snapshots and the intentionally incomplete plugin scope remain supported. |
+
+## Comparison and utility
+
+These comparisons use primary documentation checked on 1 November 2026. They identify useful acceptance targets; no competing implementation was benchmarked.
+
+| Reference | Relevant capability | Implication for this component |
+|---|---|---|
+| [D3 force simulation](https://d3js.org/d3-force/simulation) and [quadtree](https://d3js.org/d3-quadtree) | D3 documents fixed coordinates restored each tick, explicit node replacement and coincident points stored in a leaf linked list. | Use pin lifecycle and duplicate-point behaviour as acceptance cases. The inference is that predictable editing matters more to this integration than a claimed algorithm label. This does not assert that D3 rejects all invalid numeric parameters. |
+| [Cytoscape.js layout lifecycle](https://js.cytoscape.org/#layout-manipulation) | Layouts expose run/stop operations and completion events, alongside a broad graph visualisation API. | Define cancellation, replacement and disposal semantics for the host adapter before offering it as a reusable editor component. General graph rendering alone is not distinctive positioning. |
+| [WebVOWL](https://github.com/VisualDataWeb/WebVOWL) | The upstream ontology visualisation project provides a runnable application and SVG export guidance. Its repository now points to the TIB-hosted service. | Preserve the existing attribution and assess complete ontology tasks, not just physics outputs. vowl-wasm's reusable Rust/WASM codec boundary is a component contribution; this pass establishes no UI parity with WebVOWL. |
+| [wasm-bindgen numeric slices](https://wasm-bindgen.github.io/wasm-bindgen/reference/types/boxed-number-slices.html) and [WASM memory growth](https://developer.mozilla.org/en-US/docs/WebAssembly/Reference/JavaScript_interface/Memory/grow) | The guide describes copying boxed numeric arrays; ordinary memory growth detaches old ArrayBuffers. | Generated glue determines this mutable-slice allocation finding. Document the exact ownership/view lifetime rather than generalising “zero copy” across the whole pipeline. |
+
+A small, offline ontology component offers plausible user value with consistent identities and codec behaviour across native and browser hosts. The next useful demonstration is an ordinary vault that survives rename, scope replacement, malformed input, drag and unload without stale selections or frames. Measure cold loading, bytes copied, layout time, cancellation latency and retained memory on representative vaults before making a performance or mobile claim. Broad product positioning still depends on the wider estate review.

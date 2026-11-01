@@ -1,0 +1,229 @@
+TAP version 13
+# node:internal/modules/cjs/loader:1433
+#   throw err;
+#   ^
+# Error: Cannot find module '/tmp/vf-vowl-source'
+#     at Function._resolveFilename (node:internal/modules/cjs/loader:1430:15)
+#     at defaultResolveImpl (node:internal/modules/cjs/loader:1040:19)
+#     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1045:22)
+#     at Function._load (node:internal/modules/cjs/loader:1216:25)
+#     at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+#     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+#     at node:internal/main/run_main_module:36:49 {
+#   code: 'MODULE_NOT_FOUND',
+#   requireStack: []
+# }
+# Node.js v22.23.3
+# Subtest: /tmp/vf-vowl-source
+not ok 1 - /tmp/vf-vowl-source
+  ---
+  duration_ms: 53.559957
+  type: 'test'
+  location: '/tmp/vf-vowl-source:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# 🔄 Initializing 2 nodes in circular layout with radius 300
+# 📌 Pinned node 'a' at (1000.0, 2000.0)
+# 🔄 Initializing 2 nodes in circular layout with radius 300
+# [Force] Applied 0 attraction forces between 2 nodes (0 edges in graph)
+# ⏱️ Iteration 10: alpha=0.7940, nodes=2
+# ⏱️ Iteration 20: alpha=0.6305, nodes=2
+# ⏱️ Iteration 30: alpha=0.5006, nodes=2
+# ⏱️ Iteration 40: alpha=0.3975, nodes=2
+# ⏱️ Iteration 50: alpha=0.3156, nodes=2
+# ⏱️ Iteration 60: alpha=0.2506, nodes=2
+# ⏱️ Iteration 70: alpha=0.1990, nodes=2
+# ⏱️ Iteration 80: alpha=0.1580, nodes=2
+# ⏱️ Iteration 90: alpha=0.1255, nodes=2
+# ⏱️ Iteration 100: alpha=0.0996, nodes=2
+# ⏱️ Iteration 110: alpha=0.0791, nodes=2
+# ⏱️ Iteration 120: alpha=0.0628, nodes=2
+# ⏱️ Iteration 130: alpha=0.0499, nodes=2
+# ⏱️ Iteration 140: alpha=0.0396, nodes=2
+# ⏱️ Iteration 150: alpha=0.0314, nodes=2
+# ⏱️ Iteration 160: alpha=0.0250, nodes=2
+# ⏱️ Iteration 170: alpha=0.0198, nodes=2
+# ⏱️ Iteration 180: alpha=0.0157, nodes=2
+# ⏱️ Iteration 190: alpha=0.0125, nodes=2
+# ⏱️ Iteration 200: alpha=0.0099, nodes=2
+# ⏱️ Iteration 210: alpha=0.0079, nodes=2
+# ⏱️ Iteration 220: alpha=0.0063, nodes=2
+# ⏱️ Iteration 230: alpha=0.0050, nodes=2
+# ⏱️ Iteration 240: alpha=0.0039, nodes=2
+# ⏱️ Iteration 250: alpha=0.0031, nodes=2
+# ⏱️ Iteration 260: alpha=0.0025, nodes=2
+# ⏱️ Iteration 270: alpha=0.0020, nodes=2
+# ⏱️ Iteration 280: alpha=0.0016, nodes=2
+# ⏱️ Iteration 290: alpha=0.0012, nodes=2
+# ⏱️ Iteration 300: alpha=0.0010, nodes=2
+# 🔄 Initializing 2 nodes in circular layout with radius 300
+# 📌 Pinned node 'a' at (1000.0, 2000.0)
+# 🔄 Initializing 1 nodes in circular layout with radius 300
+# 📌 Pinned node 'a' at (0.0, 0.0)
+# 🔄 Initializing 2 nodes in circular layout with radius 300
+# 📌 Pinned node 'a' at (NaN, 1.0)
+# 🔄 Initializing 2 nodes in circular layout with radius 300
+# 🔄 Initializing 1 nodes in circular layout with radius 300
+# Subtest: replacement retains obsolete pin IDs and settled alpha
+ok 2 - replacement retains obsolete pin IDs and settled alpha
+  ---
+  duration_ms: 10.749231
+  type: 'test'
+  ...
+# Subtest: runSimulation reseeds a pinned node on every call
+not ok 3 - runSimulation reseeds a pinned node on every call
+  ---
+  duration_ms: 6.802394
+  type: 'test'
+  location: '/home/devuser/workspace/wt/VisionFlow-vowl-boundaries/docs/estate-review/evidence/2026-11-01/vowl-boundary-probes.mjs:22:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert(x.pinNode('a',1000,2000))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///home/devuser/workspace/wt/VisionFlow-vowl-boundaries/docs/estate-review/evidence/2026-11-01/vowl-boundary-probes.mjs:23:18)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: hidden nodes still participate in click hit testing
+ok 4 - hidden nodes still participate in click hit testing
+  ---
+  duration_ms: 0.722968
+  type: 'test'
+  ...
+# Subtest: legacy pin accepts NaN whereas CSR pin refuses it
+not ok 5 - legacy pin accepts NaN whereas CSR pin refuses it
+  ---
+  duration_ms: 0.734008
+  type: 'test'
+  location: '/home/devuser/workspace/wt/VisionFlow-vowl-boundaries/docs/estate-review/evidence/2026-11-01/vowl-boundary-probes.mjs:30:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert(x.pinNode('a',NaN,1))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///home/devuser/workspace/wt/VisionFlow-vowl-boundaries/docs/estate-review/evidence/2026-11-01/vowl-boundary-probes.mjs:31:18)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: odd buffer contracts differ: legacy writes pairs, CSR writes individual floats
+ok 6 - odd buffer contracts differ: legacy writes pairs, CSR writes individual floats
+  ---
+  duration_ms: 1.134297
+  type: 'test'
+  ...
+# Subtest: CSR infinite reheat produces non-finite positions and does not finish
+ok 7 - CSR infinite reheat produces non-finite positions and does not finish
+  ---
+  duration_ms: 0.701354
+  type: 'test'
+  ...
+# Subtest: negative alphaMin prevents CSR settling through 10000 ticks
+ok 8 - negative alphaMin prevents CSR settling through 10000 ticks
+  ---
+  duration_ms: 25.472054
+  type: 'test'
+  ...
+# Subtest: ordinary memory growth detaches a previously acquired pointer view
+ok 9 - ordinary memory growth detaches a previously acquired pointer view
+  ---
+  duration_ms: 0.291567
+  type: 'test'
+  ...
+# Subtest: generated copying glue calls malloc once per reusable-buffer call
+ok 10 - generated copying glue calls malloc once per reusable-buffer call
+  ---
+  duration_ms: 4.550661
+  type: 'test'
+  ...
+# Subtest: coincident legacy Barnes-Hut nodes overflow the WASM stack in an isolated child
+not ok 11 - coincident legacy Barnes-Hut nodes overflow the WASM stack in an isolated child
+  ---
+  duration_ms: 78.973314
+  type: 'test'
+  location: '/home/devuser/workspace/wt/VisionFlow-vowl-boundaries/docs/estate-review/evidence/2026-11-01/vowl-boundary-probes.mjs:56:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /stack|unreachable/i. Input:
+    
+    'wasm://wasm/00107f8a:1\n' +
+      '\n' +
+      '\n' +
+      'RuntimeError: memory access out of bounds\n' +
+      '    at wasm://wasm/00107f8a:wasm-function[611]:0x30e88\n' +
+      '    at wasm://wasm/00107f8a:wasm-function[63]:0x1386e\n' +
+      '    at wasm://wasm/00107f8a:wasm-function[63]:0x13afc\n' +
+      '    at wasm://wasm/00107f8a:wasm-function[63]:0x13afc\n' +
+      '    at wasm://wasm/00107f8a:wasm-function[63]:0x13afc\n' +
+      '    at wasm://wasm/00107f8a:wasm-function[63]:0x13afc\n' +
+      '    at wasm://wasm/00107f8a:wasm-function[63]:0x13afc\n' +
+      '    at wasm://wasm/00107f8a:wasm-function[63]:0x13afc\n' +
+      '    at wasm://wasm/00107f8a:wasm-function[63]:0x13afc\n' +
+      '    at wasm://wasm/00107f8a:wasm-function[63]:0x13afc\n' +
+      '\n' +
+      'Node.js v22.23.3\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    wasm://wasm/00107f8a:1
+    
+    
+    RuntimeError: memory access out of bounds
+        at wasm://wasm/00107f8a:wasm-function[611]:0x30e88
+        at wasm://wasm/00107f8a:wasm-function[63]:0x1386e
+        at wasm://wasm/00107f8a:wasm-function[63]:0x13afc
+        at wasm://wasm/00107f8a:wasm-function[63]:0x13afc
+        at wasm://wasm/00107f8a:wasm-function[63]:0x13afc
+        at wasm://wasm/00107f8a:wasm-function[63]:0x13afc
+        at wasm://wasm/00107f8a:wasm-function[63]:0x13afc
+        at wasm://wasm/00107f8a:wasm-function[63]:0x13afc
+        at wasm://wasm/00107f8a:wasm-function[63]:0x13afc
+        at wasm://wasm/00107f8a:wasm-function[63]:0x13afc
+    
+    Node.js v22.23.3
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///home/devuser/workspace/wt/VisionFlow-vowl-boundaries/docs/estate-review/evidence/2026-11-01/vowl-boundary-probes.mjs:59:77)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 7
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 236.531935

@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: the golden decodes all fields and re-encodes byte for byte through WASM
+ok 1 - the golden decodes all fields and re-encodes byte for byte through WASM
+  ---
+  duration_ms: 7.094002
+  type: 'test'
+  ...
+# Subtest: custom taxonomy, sentinels, Unicode and unknown codes survive synthetic graph encoding
+ok 2 - custom taxonomy, sentinels, Unicode and unknown codes survive synthetic graph encoding
+  ---
+  duration_ms: 1.641032
+  type: 'test'
+  ...
+# Subtest: empty tiers roundtrip and encoded graphs run through the existing zero-copy explorer
+ok 3 - empty tiers roundtrip and encoded graphs run through the existing zero-copy explorer
+  ---
+  duration_ms: 3.335298
+  type: 'test'
+  ...
+# Subtest: decoder rejects every truncation, malformed CSR, version and UTF-8
+ok 4 - decoder rejects every truncation, malformed CSR, version and UTF-8
+  ---
+  duration_ms: 3.11137
+  type: 'test'
+  ...
+# Subtest: encoder rejects every mismatched field length and invalid CSR
+ok 5 - encoder rejects every mismatched field length and invalid CSR
+  ---
+  duration_ms: 0.83931
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 127.889077

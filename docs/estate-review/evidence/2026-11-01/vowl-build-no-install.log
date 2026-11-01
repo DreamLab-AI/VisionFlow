@@ -1,0 +1,59 @@
+[INFO]: 🎯  Checking for the Wasm target...
+[INFO]: 🌀  Compiling to Wasm...
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.24
+   Compiling quote v1.0.47
+   Compiling autocfg v1.5.1
+   Compiling wasm-bindgen-shared v0.2.128
+   Compiling rustversion v1.0.23
+   Compiling bumpalo v3.20.3
+   Compiling serde_core v1.0.229
+   Compiling paste v1.0.15
+   Compiling bytemuck v1.25.2
+   Compiling once_cell v1.21.4
+   Compiling slab v0.4.12
+   Compiling pin-project-lite v0.2.17
+   Compiling futures-task v0.3.34
+   Compiling cfg-if v1.0.4
+   Compiling futures-core v0.3.34
+   Compiling zmij v1.0.23
+   Compiling serde v1.0.229
+   Compiling hashbrown v0.17.1
+   Compiling equivalent v1.0.2
+   Compiling serde_json v1.0.151
+   Compiling rawpointer v0.2.1
+   Compiling thiserror v1.0.69
+   Compiling fixedbitset v0.4.2
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling typenum v1.20.1
+   Compiling ontomark-ngg1 v0.1.0
+   Compiling futures-util v0.3.34
+   Compiling safe_arch v0.7.4
+   Compiling num-traits v0.2.19
+   Compiling matrixmultiply v0.3.11
+   Compiling wide v0.7.33
+   Compiling indexmap v2.14.2
+   Compiling wasm-bindgen v0.2.128
+   Compiling syn v3.0.5
+   Compiling syn v2.0.119
+   Compiling num-complex v0.4.6
+   Compiling approx v0.5.1
+   Compiling num-integer v0.1.47
+   Compiling petgraph v0.6.5
+   Compiling num-rational v0.4.2
+   Compiling simba v0.8.1
+   Compiling nalgebra-macros v0.2.2
+   Compiling thiserror-impl v1.0.69
+   Compiling wasm-bindgen-macro-support v0.2.128
+   Compiling serde_derive v1.0.229
+   Compiling nalgebra v0.32.6
+   Compiling wasm-bindgen-macro v0.2.128
+   Compiling js-sys v0.3.105
+   Compiling serde-wasm-bindgen v0.6.5
+   Compiling web-sys v0.3.105
+   Compiling vowl-wasm v0.2.2 (/home/devuser/workspace/vowl-wasm)
+    Finished `release` profile [optimized] target(s) in 22.29s
+[INFO]: ⬇️  Installing wasm-bindgen...
+Error: Not able to find or install a local wasm-bindgen.
+Caused by: Not able to find or install a local wasm-bindgen.

@@ -151,3 +151,5 @@ The [1 November mesh signer and custody audit](2026-11-01-mesh-signer-and-custod
 The [1 November media audit](2026-11-01-media-measurements-and-cancellation.md) reviews ADR-2163 section by section, records 305 passing existing tests and reproduces cancellation, input-boundary, registration and receipt-shape gaps. Image, real-face and GPU qualification remain unrun.
 
 The [1 November XR budget and engine audit](2026-11-01-xr-budget-and-engine-qualification.md) reviews ADR-2167 and ADR-2165, tests sparse GPU readings and frame-cost limits, and separates live demand accounting from benchmark and stereo evidence.
+
+The [1 November vowl layout and API audit](2026-11-01-vowl-layout-and-api-boundaries.md) reviews local ADR-001 and all 16 VW-03/VW-04 panels. Fresh builds pass 199 native and five JS tests; thirteen audit probes reproduce layout, scope-generation and input-boundary issues. Browser/plugin acceptance and remaining vowl topics stay open.
