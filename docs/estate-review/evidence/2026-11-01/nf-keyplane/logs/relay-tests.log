@@ -1,0 +1,103 @@
+   Compiling pem-rfc7468 v0.7.0
+   Compiling generic-array v0.14.7
+   Compiling ff v0.13.1
+   Compiling wasm-bindgen v0.2.128
+   Compiling group v0.13.0
+   Compiling der v0.7.10
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling block-padding v0.3.3
+   Compiling crypto-bigint v0.5.5
+   Compiling universal-hash v0.5.1
+   Compiling aead v0.5.2
+   Compiling digest v0.10.7
+   Compiling inout v0.1.4
+   Compiling poly1305 v0.8.0
+   Compiling cipher v0.4.4
+   Compiling hmac v0.12.1
+   Compiling signature v2.2.0
+   Compiling sha2 v0.10.9
+   Compiling hkdf v0.12.4
+   Compiling rfc6979 v0.4.0
+   Compiling chacha20 v0.9.1
+   Compiling aes v0.8.4
+   Compiling cbc v0.1.2
+   Compiling spki v0.7.3
+   Compiling chacha20poly1305 v0.10.1
+   Compiling js-sys v0.3.105
+   Compiling pkcs8 v0.10.2
+   Compiling sec1 v0.7.3
+   Compiling nostr v0.44.8
+   Compiling elliptic-curve v0.13.8
+   Compiling ecdsa v0.16.9
+   Compiling primeorder v0.13.6
+   Compiling k256 v0.13.4
+   Compiling p256 v0.13.2
+   Compiling nostr-bbs-core v1.0.0-beta.20 (/tmp/vf-nf-keyplane-artifacts/forum/crates/nostr-bbs-core)
+   Compiling web-sys v0.3.105
+   Compiling wasm-bindgen-futures v0.4.78
+   Compiling serde-wasm-bindgen v0.6.5
+   Compiling nostr-bbs-mesh v1.0.0-beta.16 (/tmp/vf-nf-keyplane-artifacts/forum/crates/nostr-bbs-mesh)
+   Compiling worker-sys v0.8.5
+   Compiling wasm-streams v0.6.0
+   Compiling worker v0.8.5
+   Compiling nostr-bbs-rate-limit v1.0.0-beta.16 (/tmp/vf-nf-keyplane-artifacts/forum/crates/nostr-bbs-rate-limit)
+   Compiling nostr-bbs-relay-worker v1.0.0-beta.10 (/tmp/vf-nf-keyplane-artifacts/forum/crates/nostr-bbs-relay-worker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 16.89s
+     Running unittests src/lib.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_relay_worker-f3d8b3741dd97897)
+
+running 10 tests
+test zone_groups::tests::claims_ignore_other_zones_epoch_zero_and_bad_keys ... ok
+test zone_groups::tests::epoch_keys_go_to_cohort_members_only ... ok
+test zone_groups::tests::epoch_zero_is_never_a_claim ... ok
+test zone_groups::tests::flag_is_exact_true_only ... ok
+test zone_groups::tests::flag_off_ignores_the_hint ... ok
+test zone_groups::tests::hint_matching_passes_mismatch_refused_absent_passes ... ok
+test zone_groups::tests::migration_matches_the_create_constant ... ok
+test zone_groups::tests::zk_claims_are_capped_per_event ... ok
+test zone_groups::tests::audit_duplicate_claim_rejection_keeps_first_future_epoch_reservation ... ok
+test zone_groups::tests::first_key_is_stored_second_different_refused_same_accepted ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 526 filtered out; finished in 0.00s
+
+     Running tests/audit_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/audit_tests-781b2d3891d87d7b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/device_gate_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/device_gate_tests-5d9b3fdbb6e935d1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/events_schema.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/events_schema-e6a45a43b6a8d82b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+     Running tests/moderation_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/moderation_tests-32db99de054fc44a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/nip_handlers_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nip_handlers_tests-34e78e7a95a2b9ef)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/whitelist_cohort_writers.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/whitelist_cohort_writers-ad3c2203bfc33295)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/whitelist_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/whitelist_tests-dc4165cf2ec791c3)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

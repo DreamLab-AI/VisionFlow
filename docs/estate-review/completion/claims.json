@@ -1051,7 +1051,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
-    "source_sha256": "aac6d3d13920566ba3a4168dc3d4159e7a2b43e6cc747b58dd5fbd79cb429123",
+    "source_sha256": "9fc5d4e5394a424cd9d6446b5d8f1b08de055bb4f662ed7f51ebfdfd0cc4875c",
     "report": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
     "report_sha256": "28a7e9d8001e0d85ac7483a226502fcf398be635cf86f7acfb8c613121b8beeb",
     "coverage": "selected-panels",
@@ -1064,7 +1064,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
-    "source_sha256": "aac6d3d13920566ba3a4168dc3d4159e7a2b43e6cc747b58dd5fbd79cb429123",
+    "source_sha256": "9fc5d4e5394a424cd9d6446b5d8f1b08de055bb4f662ed7f51ebfdfd0cc4875c",
     "report": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
     "report_sha256": "2c00f04f2ec1558913eab9c4683e7b91ea63a9907449ae8e48538fa80b93901b",
     "coverage": "selected-panels",
@@ -1103,7 +1103,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
-    "source_sha256": "aac6d3d13920566ba3a4168dc3d4159e7a2b43e6cc747b58dd5fbd79cb429123",
+    "source_sha256": "9fc5d4e5394a424cd9d6446b5d8f1b08de055bb4f662ed7f51ebfdfd0cc4875c",
     "report": "docs/estate-review/2026-11-01-forum-bbs-signer.md",
     "report_sha256": "9780f594dd16d293e97babdbaef6d9cf923506998d75713d9038fcd4796eb8fa",
     "coverage": "selected-panels",
@@ -1116,7 +1116,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
-    "source_sha256": "aac6d3d13920566ba3a4168dc3d4159e7a2b43e6cc747b58dd5fbd79cb429123",
+    "source_sha256": "9fc5d4e5394a424cd9d6446b5d8f1b08de055bb4f662ed7f51ebfdfd0cc4875c",
     "report": "docs/estate-review/2026-11-01-forum-web-push.md",
     "report_sha256": "dda72ea1c5c3e5534174c7c5e82e7db078deb36f79e701bb540d9b60463c1f94",
     "coverage": "selected-panels",
@@ -1878,7 +1878,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
-    "source_sha256": "aac6d3d13920566ba3a4168dc3d4159e7a2b43e6cc747b58dd5fbd79cb429123",
+    "source_sha256": "9fc5d4e5394a424cd9d6446b5d8f1b08de055bb4f662ed7f51ebfdfd0cc4875c",
     "report": "docs/estate-review/2026-11-01-forum-zone-key-distribution.md",
     "report_sha256": "108ac965f14629da8b974b1b6cda4fd8a9185c174183ade1d04f965cdd22cd18",
     "coverage": "selected-panels",
@@ -1903,5 +1903,33 @@
       "NF-27.4",
       "NF-27.5"
     ]
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md",
+    "source_sha256": "e7b66d823345645a76641003aae74e040d802b1c0cd3522fc317bd880fad9833",
+    "report": "docs/estate-review/2026-11-01-forum-nip171-keyplane.md",
+    "report_sha256": "12fbe4243dae6ee0dd0a628880594b303f411d7abd25a9e626cfa852b3e5abb2",
+    "coverage": "whole-document",
+    "basis": "Every ADR-2028 section assessed in the report. ADR bytes match main and the explicitly pinned local upgrade branch; implementation and deployment limits remain as recorded."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md",
+    "source_sha256": "ef8438e51398472cb3a2f8d26d4f356fee976b110ea3c3447cf1e2e2835171a9",
+    "report": "docs/estate-review/2026-11-01-forum-nip171-keyplane.md",
+    "report_sha256": "12fbe4243dae6ee0dd0a628880594b303f411d7abd25a9e626cfa852b3e5abb2",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-28.1",
+      "NF-28.2",
+      "NF-28.3",
+      "NF-28.4",
+      "NF-28.5",
+      "NF-28.6"
+    ],
+    "basis": "Six new panels checked against the local upgrade revision and agentbox, rendered and visually inspected. NF05 prose correction receives no additional panel credit."
   }
 ]

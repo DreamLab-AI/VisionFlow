@@ -1,0 +1,10 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running tests/migration.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/migration-eceafa973c933953)
+
+running 4 tests
+test ticket_naming_the_inbox_key_is_refused_like_the_client ... ok
+test ticket_epoch_key_must_match_what_the_zone_posts_use ... ok
+test ticket_from_the_bound_group_is_accepted_beside_a_21453_grant ... ok
+test ticket_without_a_binding_or_from_another_signer_is_refused ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 15 filtered out; finished in 0.61s

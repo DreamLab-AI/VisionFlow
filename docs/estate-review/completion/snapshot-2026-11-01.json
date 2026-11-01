@@ -2774,6 +2774,72 @@
     {
       "category": "audit-evidence-or-support",
       "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/nf-keyplane/source/nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 16,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-2028 \u2014 Zones adopt the NIP-171 key plane and ticket format; board transport stays signed kind 42; one owner per zone"
+        },
+        {
+          "line": 18,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 34,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 76,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Consequences"
+        },
+        {
+          "line": 89,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Verification"
+        },
+        {
+          "line": 98,
+          "ordinal": 6,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Amendment (ADR-2029, proposed)"
+        },
+        {
+          "line": 106,
+          "ordinal": 7,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Operator decisions recorded during Phase 4 (2026-10-20)"
+        },
+        {
+          "line": 124,
+          "ordinal": 8,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Hard blocker before ZONE_GROUPS_ENABLED is turned on (recorded 2026-10-20)"
+        }
+      ],
+      "sha256": "e7b66d823345645a76641003aae74e040d802b1c0cd3522fc317bd880fad9833"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
       "path": "docs/estate-review/evidence/2026-11-01/nf-membership/source/docs/adr/ADR-2014-member-lifecycle-one-source-of-truth.md",
       "repo": "VisionFlow",
       "review": "unreconciled",
@@ -60664,65 +60730,89 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Every ADR-2028 section assessed in the report. ADR bytes match main and the explicitly pinned local upgrade branch; implementation and deployment limits remain as recorded.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-forum-nip171-keyplane.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md",
       "repo": "nostr-rust-forum",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 16,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-nip171-keyplane.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-2028 \u2014 Zones adopt the NIP-171 key plane and ticket format; board transport stays signed kind 42; one owner per zone"
         },
         {
           "line": 18,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-nip171-keyplane.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 34,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-nip171-keyplane.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 76,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-nip171-keyplane.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 89,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-nip171-keyplane.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         },
         {
           "line": 98,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-nip171-keyplane.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Amendment (ADR-2029, proposed)"
         },
         {
           "line": 106,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-nip171-keyplane.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Operator decisions recorded during Phase 4 (2026-10-20)"
         },
         {
           "line": 124,
           "ordinal": 8,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-nip171-keyplane.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Hard blocker before ZONE_GROUPS_ENABLED is turned on (recorded 2026-10-20)"
         }
       ],
@@ -119282,22 +119372,22 @@
   ],
   "counts": {
     "available_checkouts": 24,
-    "candidate_files": 1148,
-    "numbered_candidates_with_recorded_assessment": 80,
+    "candidate_files": 1149,
+    "numbered_candidates_with_recorded_assessment": 81,
     "numbered_decision_candidates": 1055,
-    "panels": 1694,
-    "panels_with_recorded_assessment": 264,
+    "panels": 1700,
+    "panels_with_recorded_assessment": 270,
     "scope_targets": 25,
     "stale_claim_records": 0,
-    "topics": 197
+    "topics": 198
   },
   "method": "Explicit scope; Git-owned Markdown; parsed headings exclude fenced examples; explicit human review claims require exact source/report hashes. Unreconciled is not unreviewed. Candidate counts are not a complete obligation denominator or overall task percentage.",
   "repositories": [
     {
       "available": true,
-      "candidate_files": 54,
-      "dirty": false,
-      "head": "e09b00ab8e55883ea27ffefe83037c8304eb3317",
+      "candidate_files": 55,
+      "dirty": true,
+      "head": "c9237a018346b7cc640d64d5360dc04391e7241e",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -119305,7 +119395,7 @@
       "available": true,
       "candidate_files": 287,
       "dirty": true,
-      "head": "0dafdb29829c8f3f73811aa959467598e54004db",
+      "head": "a1e36ba9e44de00c6b87c6d7a02e3f36ceaa54f2",
       "local": "project",
       "name": "VisionClaw"
     },
@@ -126796,7 +126886,7 @@
       "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
       "repo": "VisionFlow",
       "review": "partial-assessment-recorded",
-      "sha256": "aac6d3d13920566ba3a4168dc3d4159e7a2b43e6cc747b58dd5fbd79cb429123"
+      "sha256": "9fc5d4e5394a424cd9d6446b5d8f1b08de055bb4f662ed7f51ebfdfd0cc4875c"
     },
     {
       "claims": [],
@@ -128847,6 +128937,96 @@
       "repo": "VisionFlow",
       "review": "assessment-recorded",
       "sha256": "194149165a4033f2a4bf7afc191bfa95d0e58ace4cd5d688c819629cd7aea2f3"
+    },
+    {
+      "claims": [
+        {
+          "basis": "Six new panels checked against the local upgrade revision and agentbox, rendered and visually inspected. NF05 prose correction receives no additional panel credit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "NF-28.1",
+            "NF-28.2",
+            "NF-28.3",
+            "NF-28.4",
+            "NF-28.5",
+            "NF-28.6"
+          ],
+          "report": "docs/estate-review/2026-11-01-forum-nip171-keyplane.md",
+          "state": "assessment-recorded"
+        }
+      ],
+      "panels": [
+        {
+          "body_sha256": "b2bebf9c58b2e8eff48de3ab08cf54ef1d5a68ba0d81b3dfcb2c030fb4a3063c",
+          "heading": "NF-28.1 Implemented primitives stop short of owner activation",
+          "id": "NF-28.1",
+          "line": 35,
+          "ordinal": 1,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-nip171-keyplane.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "dd2a6457ded917cc5aa006fe1562a6daa7768b5a4219a24db173950e03e671c2",
+          "heading": "NF-28.2 A refused multi-claim event can leave a reservation",
+          "id": "NF-28.2",
+          "line": 54,
+          "ordinal": 2,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-nip171-keyplane.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "f31caaafabf01e40fa720af8bf237918d410bd639764a4c2fe0e94a7a871e0b3",
+          "heading": "NF-28.3 Browser conflict storage and historical lookup diverge",
+          "id": "NF-28.3",
+          "line": 74,
+          "ordinal": 3,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-nip171-keyplane.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "c55e626367b503cd260248c7211ef9ff526139053054e33a936c46f8ccde0cc5",
+          "heading": "NF-28.4 Owner restore and member history require different delivery paths",
+          "id": "NF-28.4",
+          "line": 90,
+          "ordinal": 4,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-nip171-keyplane.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "2b9013cdc4a309fff83510ff7c2841ee833acbd679479986141ed36735dd8230",
+          "heading": "NF-28.5 Dormant deployment does not prove reader readiness",
+          "id": "NF-28.5",
+          "line": 112,
+          "ordinal": 5,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-nip171-keyplane.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "777bf77603224db63a9b4f8d648554760cfcdeb120dcf929e2d994082860ee44",
+          "heading": "NF-28.6 Dual readers do not yet share one conflict contract",
+          "id": "NF-28.6",
+          "line": 131,
+          "ordinal": 6,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-nip171-keyplane.md"
+          ],
+          "review": "assessment-recorded"
+        }
+      ],
+      "path": "docs/diagrams/nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md",
+      "repo": "VisionFlow",
+      "review": "assessment-recorded",
+      "sha256": "ef8438e51398472cb3a2f8d26d4f356fee976b110ea3c3447cf1e2e2835171a9"
     },
     {
       "claims": [],

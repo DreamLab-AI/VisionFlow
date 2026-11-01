@@ -1,0 +1,334 @@
+TAP version 13
+# Subtest: settings
+    # Subtest: gate is on only for the exact string "true"
+    ok 1 - gate is on only for the exact string "true"
+      ---
+      duration_ms: 0.799772
+      type: 'test'
+      ...
+    # Subtest: falls back to the agentbox .env file, quotes stripped
+    ok 2 - falls back to the agentbox .env file, quotes stripped
+      ---
+      duration_ms: 0.867918
+      type: 'test'
+      ...
+    # Subtest: section → zone mirrors the kit resolver; public zones are never encrypted
+    ok 3 - section → zone mirrors the kit resolver; public zones are never encrypted
+      ---
+      duration_ms: 0.312611
+      type: 'test'
+      ...
+    1..3
+ok 1 - settings
+  ---
+  duration_ms: 2.872397
+  type: 'suite'
+  ...
+# Subtest: zone messages
+    # Subtest: author encrypts, zone key holder decrypts; zk tag is the relay shape
+    ok 1 - author encrypts, zone key holder decrypts; zk tag is the relay shape
+      ---
+      duration_ms: 19.052325
+      type: 'test'
+      ...
+    # Subtest: cross-implementation: JS decrypts the Rust vector, and the JS vector is ours
+    ok 2 - cross-implementation: JS decrypts the Rust vector, and the JS vector is ours
+      ---
+      duration_ms: 11.925422
+      type: 'test'
+      ...
+    # Subtest: write plan: gate off is plaintext, encrypted zone without a key refuses
+    ok 3 - write plan: gate off is plaintext, encrypted zone without a key refuses
+      ---
+      duration_ms: 2.932575
+      type: 'test'
+      ...
+    1..3
+ok 2 - zone messages
+  ---
+  duration_ms: 34.166676
+  type: 'suite'
+  ...
+# Subtest: sealed originals
+    # Subtest: round trip: the verified inner event is returned, attributed to its author
+    ok 1 - round trip: the verified inner event is returned, attributed to its author
+      ---
+      duration_ms: 26.020105
+      type: 'test'
+      ...
+    # Subtest: non-sealed outcomes carry no sealed property
+    ok 2 - non-sealed outcomes carry no sealed property
+      ---
+      duration_ms: 9.782905
+      type: 'test'
+      ...
+    # Subtest: the sealed tag is the discriminator: a normal message whose text is event JSON stays text
+    ok 3 - the sealed tag is the discriminator: a normal message whose text is event JSON stays text
+      ---
+      duration_ms: 14.942891
+      type: 'test'
+      ...
+    # Subtest: parseSealed accepts only well-formed tags
+    ok 4 - parseSealed accepts only well-formed tags
+      ---
+      duration_ms: 0.324304
+      type: 'test'
+      ...
+    # Subtest: a malformed or unsupported sealed tag fails, never falls back to plain decryption
+    ok 5 - a malformed or unsupported sealed tag fails, never falls back to plain decryption
+      ---
+      duration_ms: 30.016161
+      type: 'test'
+      ...
+    # Subtest: check 1: the inner event must be kind 42
+    ok 6 - check 1: the inner event must be kind 42
+      ---
+      duration_ms: 17.786678
+      type: 'test'
+      ...
+    # Subtest: check 2: the inner id and signature must verify
+    ok 7 - check 2: the inner id and signature must verify
+      ---
+      duration_ms: 36.460123
+      type: 'test'
+      ...
+    # Subtest: check 3: the inner id must match the sealed tag
+    ok 8 - check 3: the inner id must match the sealed tag
+      ---
+      duration_ms: 22.934545
+      type: 'test'
+      ...
+    # Subtest: check 4: the inner event must not itself be zone-encrypted (no nesting)
+    ok 9 - check 4: the inner event must not itself be zone-encrypted (no nesting)
+      ---
+      duration_ms: 19.081072
+      type: 'test'
+      ...
+    # Subtest: check 5: the inner channel must be the outer channel
+    ok 10 - check 5: the inner channel must be the outer channel
+      ---
+      duration_ms: 37.528918
+      type: 'test'
+      ...
+    # Subtest: check 6: the outer created_at must equal the inner created_at
+    ok 11 - check 6: the outer created_at must equal the inner created_at
+      ---
+      duration_ms: 19.229755
+      type: 'test'
+      ...
+    # Subtest: inner JSON must carry exactly the seven NIP-01 fields
+    ok 12 - inner JSON must carry exactly the seven NIP-01 fields
+      ---
+      duration_ms: 55.301005
+      type: 'test'
+      ...
+    1..12
+ok 3 - sealed originals
+  ---
+  duration_ms: 290.037531
+  type: 'suite'
+  ...
+# Subtest: zone-key grants
+    # Subtest: opens the Rust (nostr-bbs-core wrap_seal) grant fixture and accepts it
+    ok 1 - opens the Rust (nostr-bbs-core wrap_seal) grant fixture and accepts it
+      ---
+      duration_ms: 15.340835
+      type: 'test'
+      ...
+    # Subtest: non-admin sealer is refused
+    ok 2 - non-admin sealer is refused
+      ---
+      duration_ms: 29.783315
+      type: 'test'
+      ...
+    # Subtest: admin check: only definite answers are cached; failures throw, never "not admin"
+    ok 3 - admin check: only definite answers are cached; failures throw, never "not admin"
+      ---
+      duration_ms: 1.098858
+      type: 'test'
+      ...
+    # Subtest: admin check has no default relay
+    ok 4 - admin check has no default relay
+      ---
+      duration_ms: 0.363683
+      type: 'test'
+      ...
+    # Subtest: an unverifiable sender yields retry, not rejection, and stores nothing
+    ok 5 - an unverifiable sender yields retry, not rejection, and stores nothing
+      ---
+      duration_ms: 28.781207
+      type: 'test'
+      ...
+    # Subtest: secret that does not derive to the stated pubkey is refused
+    ok 6 - secret that does not derive to the stated pubkey is refused
+      ---
+      duration_ms: 29.102929
+      type: 'test'
+      ...
+    # Subtest: inbox key (AGENTBOX_ZONE_INBOX_SK_FILE) opens wraps addressed to it; identity still works
+    ok 7 - inbox key (AGENTBOX_ZONE_INBOX_SK_FILE) opens wraps addressed to it; identity still works
+      ---
+      duration_ms: 78.544595
+      type: 'test'
+      ...
+    # Subtest: inbox key file: unset, loose-mode, malformed and missing files are ignored with a reason
+    ok 8 - inbox key file: unset, loose-mode, malformed and missing files are ignored with a reason
+      ---
+      duration_ms: 0.849141
+      type: 'test'
+      ...
+    # Subtest: a rumor claiming another author than the seal is refused
+    ok 9 - a rumor claiming another author than the seal is refused
+      ---
+      duration_ms: 27.628833
+      type: 'test'
+      ...
+    # Subtest: a third party cannot open a grant
+    ok 10 - a third party cannot open a grant
+      ---
+      duration_ms: 20.851697
+      type: 'test'
+      ...
+    # Subtest: a key file owned by another identity is ignored
+    ok 11 - a key file owned by another identity is ignored
+      ---
+      duration_ms: 1.209062
+      type: 'test'
+      ...
+    # Subtest: unwrapDmRumor never returns a grant as a DM
+    ok 12 - unwrapDmRumor never returns a grant as a DM
+      ---
+      duration_ms: 27.712286
+      type: 'test'
+      ...
+    1..12
+ok 4 - zone-key grants
+  ---
+  duration_ms: 261.712026
+  type: 'suite'
+  ...
+# Subtest: NIP-171 epoch tickets (kind 1014)
+    # Subtest: a ticket from the bound group is accepted and keeps its signature
+    ok 1 - a ticket from the bound group is accepted and keeps its signature
+      ---
+      duration_ms: 45.730749
+      type: 'test'
+      ...
+    # Subtest: validateGrant accepts a 1014 beside 21453 and AGENTBOX_ZONE_GROUP_PUBKEY supplies the binding
+    ok 2 - validateGrant accepts a 1014 beside 21453 and AGENTBOX_ZONE_GROUP_PUBKEY supplies the binding
+      ---
+      duration_ms: 61.649908
+      type: 'test'
+      ...
+    # Subtest: every MUST violation and a wrong or missing binding is refused
+    ok 3 - every MUST violation and a wrong or missing binding is refused
+      ---
+      duration_ms: 585.012454
+      type: 'test'
+      ...
+    # Subtest: re-delivery is idempotent and a different key for a held epoch is refused
+    ok 4 - re-delivery is idempotent and a different key for a held epoch is refused
+      ---
+      duration_ms: 107.119591
+      type: 'test'
+      ...
+    1..4
+ok 5 - NIP-171 epoch tickets (kind 1014)
+  ---
+  duration_ms: 799.918146
+  type: 'suite'
+  ...
+# Subtest: JunkieJarvis in encrypted zones
+    # Subtest: decrypts an encrypted mention and replies encrypted to the zone key
+    ok 1 - decrypts an encrypted mention and replies encrypted to the zone key
+      ---
+      duration_ms: 26.632113
+      type: 'test'
+      ...
+    # Subtest: an encrypted mention it cannot decrypt never reaches the LLM
+    ok 2 - an encrypted mention it cannot decrypt never reaches the LLM
+      ---
+      duration_ms: 9.315104
+      type: 'test'
+      ...
+    # Subtest: without a key it stays silent rather than reply in plaintext
+    ok 3 - without a key it stays silent rather than reply in plaintext
+      ---
+      duration_ms: 4.383508
+      type: 'test'
+      ...
+    # Subtest: gate off: plaintext reply, unchanged behaviour
+    ok 4 - gate off: plaintext reply, unchanged behaviour
+      ---
+      duration_ms: 7.599661
+      type: 'test'
+      ...
+    # Subtest: a channel in an unencrypted zone gets a plaintext reply with encryption on
+    ok 5 - a channel in an unencrypted zone gets a plaintext reply with encryption on
+      ---
+      duration_ms: 9.006492
+      type: 'test'
+      ...
+    # Subtest: a sealed original is attributed and threaded to its real author, not the migrator
+    ok 6 - a sealed original is attributed and threaded to its real author, not the migrator
+      ---
+      duration_ms: 33.227998
+      type: 'test'
+      ...
+    # Subtest: a sealed original authored by the agent itself is ignored
+    ok 7 - a sealed original authored by the agent itself is ignored
+      ---
+      duration_ms: 19.642694
+      type: 'test'
+      ...
+    # Subtest: a tampered sealed original never reaches the LLM
+    ok 8 - a tampered sealed original never reaches the LLM
+      ---
+      duration_ms: 16.508
+      type: 'test'
+      ...
+    # Subtest: a grant arriving as a gift wrap is stored and never answered
+    ok 9 - a grant arriving as a gift wrap is stored and never answered
+      ---
+      duration_ms: 40.254893
+      type: 'test'
+      ...
+    # Subtest: an epoch ticket arriving as a gift wrap is stored and never reaches the model
+    ok 10 - an epoch ticket arriving as a gift wrap is stored and never reaches the model
+      ---
+      duration_ms: 45.390778
+      type: 'test'
+      ...
+    # Subtest: the inbox subscription delivers grants through the DM router without model exposure
+    ok 11 - the inbox subscription delivers grants through the DM router without model exposure
+      ---
+      duration_ms: 42.883231
+      type: 'test'
+      ...
+    # Subtest: a grant whose sender cannot be verified is retried and then stored
+    ok 12 - a grant whose sender cannot be verified is retried and then stored
+      ---
+      duration_ms: 119.82276
+      type: 'test'
+      ...
+    # Subtest: a grant from a non-admin is not stored
+    ok 13 - a grant from a non-admin is not stored
+      ---
+      duration_ms: 40.822556
+      type: 'test'
+      ...
+    1..13
+ok 6 - JunkieJarvis in encrypted zones
+  ---
+  duration_ms: 416.000767
+  type: 'suite'
+  ...
+1..6
+# tests 47
+# suites 6
+# pass 47
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3797.887726

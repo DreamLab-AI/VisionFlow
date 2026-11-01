@@ -1,0 +1,69 @@
+   Compiling generic-array v0.14.7
+   Compiling der v0.7.10
+   Compiling rustls-webpki v0.103.15
+   Compiling webpki-roots v1.0.9
+   Compiling webpki-roots v0.26.11
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling block-padding v0.3.3
+   Compiling crypto-bigint v0.5.5
+   Compiling rustls v0.23.46
+   Compiling universal-hash v0.5.1
+   Compiling aead v0.5.2
+   Compiling inout v0.1.4
+   Compiling digest v0.10.7
+   Compiling poly1305 v0.8.0
+   Compiling cipher v0.4.4
+   Compiling hmac v0.12.1
+   Compiling signature v2.2.0
+   Compiling sha2 v0.10.9
+   Compiling sha1 v0.10.7
+   Compiling hkdf v0.12.4
+   Compiling rfc6979 v0.4.0
+   Compiling chacha20 v0.9.1
+   Compiling aes v0.8.4
+   Compiling cbc v0.1.2
+   Compiling spki v0.7.3
+   Compiling sec1 v0.7.3
+   Compiling chacha20poly1305 v0.10.1
+   Compiling pkcs8 v0.10.2
+   Compiling nostr v0.44.8
+   Compiling elliptic-curve v0.13.8
+   Compiling ecdsa v0.16.9
+   Compiling k256 v0.13.4
+   Compiling tokio-rustls v0.26.6
+   Compiling tungstenite v0.24.0
+   Compiling hyper-rustls v0.27.10
+   Compiling reqwest v0.12.28
+   Compiling tokio-tungstenite v0.24.0
+   Compiling nostr-bbs-core v1.0.0-beta.20 (/tmp/vf-nf-keyplane-artifacts/forum/crates/nostr-bbs-core)
+   Compiling nostr-bbs-zone-migrate v1.0.0-beta.11 (/tmp/vf-nf-keyplane-artifacts/forum/crates/nostr-bbs-zone-migrate)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.63s
+     Running unittests src/lib.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_zone_migrate-c8ef1b4d1a4eeac7)
+
+running 5 tests
+test grants::tests::non_wrap_is_refused_before_any_decryption ... ok
+test grants::tests::valid_grant_from_admin_is_accepted ... ok
+test grants::tests::grant_rules_reject_each_violation ... ok
+test grants::tests::tampered_wrap_is_refused_before_any_decryption ... ok
+test grants::tests::inbox_key_is_tried_before_identity_and_either_opens ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.11s
+
+     Running unittests src/main.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_zone_migrate-8c389d2ebf6ac285)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/migration.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/migration-eceafa973c933953)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
+
+     Running tests/planner.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/planner-42658f8bac73ead4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s

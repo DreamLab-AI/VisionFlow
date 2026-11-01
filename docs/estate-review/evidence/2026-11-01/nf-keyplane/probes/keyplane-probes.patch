@@ -1,0 +1,62 @@
+--- a/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs
++++ b/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs
+@@ -1141 +1141,15 @@
+-}
++    #[test]
++    fn audit_retained_conflicting_key_is_not_selected_by_message_pubkey() {
++        let author = signer();
++        let a = generate_zone_key("zone3", 1, "admin", 0).unwrap();
++        let b = generate_zone_key("zone3", 1, "admin", 0).unwrap();
++        let held = [a, b];
++        let selected = keyset::read_key(&held, "zone3", 1).unwrap();
++        let other = held.iter().find(|k| k.pubkey != selected.pubkey).unwrap();
++        let out = block_on(apply_write_plan(&WritePlan::Encrypt(other.clone()), &author, unsigned42(&author, "history under other key"))).unwrap();
++        let event = msg(&author, &out.content, out.tags);
++        assert_eq!(decrypt_with(&event, other).unwrap(), "history under other key");
++        assert_eq!(read_outcome(&event, |z, e| keyset::read_key(&held, z, e)), ReadOutcome::Failed);
++    }
++
++}
+--- a/crates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs
++++ b/crates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs
+@@ -1216 +1216,13 @@
+-}
++    #[test]
++    fn audit_valid_prefix_does_not_prove_latest_recovery_state() {
++        let g = genesis();
++        let first = record(payload(&hexid('1'), &[&g.id], 1, &hexid('e')));
++        let latest = record(payload(&hexid('2'), &[&first.id], 2, &hexid('f')));
++        let full = validate_chain(&[g.clone(), first.clone(), latest]).unwrap();
++        assert_eq!(full.head.payload.epoch, 2);
++        let omitted = validate_chain(&[g, first]).unwrap();
++        assert_eq!(omitted.head.payload.epoch, 1);
++        assert!(!omitted.epochs.iter().any(|(e, _)| *e == 2));
++    }
++
++}
+--- a/crates/nostr-bbs-relay-worker/src/zone_groups.rs
++++ b/crates/nostr-bbs-relay-worker/src/zone_groups.rs
+@@ -338 +338,22 @@
+-}
++    #[test]
++    fn audit_duplicate_claim_rejection_keeps_first_future_epoch_reservation() {
++        let c = db();
++        let claims = zk_claims("family", &[
++            tag(&["zk", "family", "9000", K1]),
++            tag(&["zk", "family", "9000", K2]),
++        ]);
++        // The handler first checks every claim against existing rows, then
++        // inserts each claim. This fixture executes its SQL and verdicts.
++        for item in &claims {
++            use rusqlite::OptionalExtension;
++            let stored: Option<String> = c.query_row(SELECT_EPOCH_KEY_SQL, params!["family", item.epoch], |row| row.get(0)).optional().unwrap();
++            assert_eq!(epoch_verdict(stored.as_deref(), &item.pubkey), Ok(()));
++        }
++        let outcome: Result<(), _> = claims.iter().try_for_each(|item| claim(&c, "family", item.epoch, &item.pubkey));
++        assert_eq!(outcome, Err(REASON_EPOCH_CONFLICT));
++        let stored: String = c.query_row(SELECT_EPOCH_KEY_SQL, params!["family", 9000], |row| row.get(0)).unwrap();
++        assert_eq!(stored, K1, "rejected event leaves a permanent claim");
++        assert_eq!(claim(&c, "family", 9000, K2), Err(REASON_EPOCH_CONFLICT));
++    }
++
++}

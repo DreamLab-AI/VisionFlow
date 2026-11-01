@@ -1,0 +1,35 @@
+[
+  {
+    "command": [
+      "rg",
+      "-n",
+      "register_group_identity",
+      "crates/nostr-bbs-forum-client/src"
+    ],
+    "exit_code": 0,
+    "stdout": "crates/nostr-bbs-forum-client/src/zone_crypto/tickets.rs:573:pub fn register_group_identity(zone: &str, signer: Rc<dyn Signer>) {\ncrates/nostr-bbs-forum-client/src/zone_crypto/tickets.rs:1024:        register_group_identity(\"held-z\", g);\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rg",
+      "-n",
+      "zone_epoch_keys",
+      "crates"
+    ],
+    "exit_code": 0,
+    "stdout": "crates/nostr-bbs-relay-worker/migrations/0013_zone_epoch_keys.sql:7:CREATE TABLE IF NOT EXISTS zone_epoch_keys (\ncrates/nostr-bbs-relay-worker/src/lib.rs:899:            console_error!(\"ensure_schema: zone_epoch_keys create failed: {e}\");\ncrates/nostr-bbs-relay-worker/src/zone_groups.rs:26:/// The `zone_epoch_keys` table. Held identical to\ncrates/nostr-bbs-relay-worker/src/zone_groups.rs:27:/// `migrations/0013_zone_epoch_keys.sql` by a test.\ncrates/nostr-bbs-relay-worker/src/zone_groups.rs:28:pub(crate) const ZONE_EPOCH_KEYS_CREATE_SQL: &str = \"CREATE TABLE IF NOT EXISTS zone_epoch_keys (\\\ncrates/nostr-bbs-relay-worker/src/zone_groups.rs:38:pub(crate) const INSERT_EPOCH_KEY_SQL: &str = \"INSERT INTO zone_epoch_keys \\\ncrates/nostr-bbs-relay-worker/src/zone_groups.rs:44:    \"SELECT pubkey FROM zone_epoch_keys WHERE zone = ?1 AND epoch = ?2 LIMIT 1\";\ncrates/nostr-bbs-relay-worker/src/zone_groups.rs:67:/// one; the cap bounds how many permanent `zone_epoch_keys` rows a single event\ncrates/nostr-bbs-relay-worker/src/zone_groups.rs:240:        let sql = include_str!(\"../migrations/0013_zone_epoch_keys.sql\");\ncrates/nostr-bbs-relay-worker/src/zone_groups.rs:262:        // so it cannot create an unbounded number of zone_epoch_keys rows.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rg",
+      "-n",
+      "build_imported_epochs|parse_imported_epochs|build_owner_backup|validate_chain",
+      "crates/nostr-bbs-forum-client/src"
+    ],
+    "exit_code": 0,
+    "stdout": "crates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:544:pub fn validate_chain(records: &[RecoveryRecord]) -> Result<ChainHead, ChainError> {\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:654:pub fn build_owner_backup(\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:764:pub fn build_imported_epochs(\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:788:pub fn parse_imported_epochs(\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1039:        let head = validate_chain(&[c3.clone(), g, c2, c1]).unwrap();\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1053:            validate_chain(&[g, c1.clone()]).unwrap_err(),\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1067:            validate_chain(&[g, up, down.clone()]).unwrap_err(),\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1077:            validate_chain(&[g.clone(), same_epoch_new_rev.clone()]).unwrap_err(),\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1084:            validate_chain(&[g, higher_old_rev.clone()]).unwrap_err(),\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1099:            validate_chain(&[g, a, b]).unwrap_err(),\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1106:        assert_eq!(validate_chain(&[]).unwrap_err(), ChainError::Empty);\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1108:        assert_eq!(validate_chain(&[c]).unwrap_err(), ChainError::NoGenesis);\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1122:        let ev = build_owner_backup(&owner(), &m, vec![\"wss://r/\".into()], 9).unwrap();\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1179:        let ev = build_imported_epochs(&sk(), epochs.clone(), 3).unwrap();\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1186:        assert_eq!(parse_imported_epochs(&ev, &sk()).unwrap(), epochs);\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1193:        assert!(build_imported_epochs(&sk(), vec![bad], 3).is_err());\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1194:        assert!(build_imported_epochs(&sk(), vec![legacy(1, 0x11), legacy(1, 0x22)], 3).is_err());\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1195:        assert!(build_imported_epochs(&sk(), vec![legacy(0, 0x11)], 3).is_err());\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1202:        let imported = build_imported_epochs(&sk(), vec![legacy(1, 0x11)], 3).unwrap();\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1211:            parse_imported_epochs(&rec, &sk()).unwrap_err(),\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1221:        let full = validate_chain(&[g.clone(), first.clone(), latest]).unwrap();\ncrates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:1223:        let omitted = validate_chain(&[g, first]).unwrap();\n",
+    "stderr": ""
+  }
+]

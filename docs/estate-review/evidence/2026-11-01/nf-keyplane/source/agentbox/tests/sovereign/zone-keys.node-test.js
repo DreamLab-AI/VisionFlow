@@ -1,0 +1,817 @@
+'use strict';
+
+/**
+ * zone-keys + JunkieJarvis encrypted-zone handling (forum kit ADR-2016).
+ *
+ * Runner: node:test (`node --test tests/sovereign/zone-keys.node-test.js`,
+ * wired into management-api `npm run test:node`) — nostr-tools pulls ESM-only
+ * @noble packages that the jest runtime cannot require, and these tests use the
+ * real primitives. Real nostr-tools crypto throughout (no mocks). Keys are
+ * fixed test scalars, never real key material. Cross-implementation checks
+ * read the fixtures in services/dream-engine/tests/fixtures/, produced by the
+ * Rust side (nostr-bbs-core) — a Rust ciphertext and a kit-format grant wrap
+ * built with core's `wrap_seal` — and the JS ciphertext the Rust test decrypts.
+ */
+
+const { describe, test, after } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const { getPublicKey, finalizeEvent, nip44, generateSecretKey } = require('../../management-api/node_modules/nostr-tools');
+
+const zk = require('../../management-api/lib/zone-keys');
+const {
+  JunkieJarvisAgent,
+  unwrapDmRumor,
+  signerFromHex,
+} = require('../../management-api/lib/junkiejarvis-agent');
+
+const FIXTURES = path.join(__dirname, '../../services/dream-engine/tests/fixtures');
+const hexKey = (n) => n.toString(16).padStart(64, '0');
+const bytes = (h) => Uint8Array.from(Buffer.from(h, 'hex'));
+
+const AUTHOR_SK = hexKey(1);
+const ZONE_SK = hexKey(2);
+const ADMIN_SK = hexKey(3);
+const MEMBER_SK = hexKey(4); // the grant fixture's recipient
+const GRANT_ZONE_SK = hexKey(5);
+
+const pk = (skHex) => getPublicKey(bytes(skHex));
+
+const ZONES = [
+  { id: 'zone1', visibility: 'public', required_cohorts: [], encrypted: true },
+  { id: 'zone3', visibility: 'locked', required_cohorts: ['family'], encrypted: true },
+  { id: 'zone4', visibility: 'locked', required_cohorts: ['dreamlab'], encrypted: true, agent_keys: true },
+  { id: 'zone2', visibility: 'locked', required_cohorts: ['m'] },
+];
+
+function zoneKey(epoch = 1, skHex = ZONE_SK, zone = 'zone4') {
+  return { zone, epoch, secret: skHex, pubkey: pk(skHex), granted_by: pk(ADMIN_SK), received_at: 0 };
+}
+
+const tmpDirs = [];
+after(() => { for (const d of tmpDirs) fs.rmSync(d, { recursive: true, force: true }); });
+
+function tmpStore(owner) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'zone-keys-'));
+  tmpDirs.push(dir);
+  return new zk.ZoneKeyStore({ owner, file: path.join(dir, 'zone-keys.json') });
+}
+
+/** A kit-format grant wrap (rumor 21453 → seal 13 by `sealerSk` → wrap 1059). */
+function grantWrap({ sealerSk, recipientPk, payload, rumorAuthor }) {
+  const rumor = {
+    pubkey: rumorAuthor || pk(sealerSk),
+    created_at: 1_790_000_000,
+    kind: zk.KIND_ZONE_KEY_GRANT,
+    tags: [['p', recipientPk]],
+    content: JSON.stringify(payload),
+  };
+  const seal = finalizeEvent({
+    kind: 13,
+    created_at: 1_790_000_000,
+    tags: [],
+    content: nip44.encrypt(JSON.stringify(rumor), nip44.getConversationKey(bytes(sealerSk), recipientPk)),
+  }, bytes(sealerSk));
+  const eph = generateSecretKey();
+  return finalizeEvent({
+    kind: 1059,
+    created_at: 1_790_000_000,
+    tags: [['p', recipientPk]],
+    content: nip44.encrypt(JSON.stringify(seal), nip44.getConversationKey(eph, recipientPk)),
+  }, eph);
+}
+
+function grantPayload(skHex = GRANT_ZONE_SK, over = {}) {
+  return { zone: 'zone4', epoch: 1, secret: skHex, pubkey: pk(skHex), created_at: 1_790_000_000, ...over };
+}
+
+// ── settings ────────────────────────────────────────────────────────────────
+
+describe('settings', () => {
+  const fakeFs = (text) => ({ readFileSync: () => text });
+
+  test('gate is on only for the exact string "true"', () => {
+    assert.equal(zk.gateEnabled({ ENCRYPTION_ENABLED: 'true' }, fakeFs('')), true);
+    for (const v of ['TRUE', '1', 'yes', 'false', ' true']) {
+      assert.equal(zk.gateEnabled({ ENCRYPTION_ENABLED: v }, fakeFs('')), false);
+    }
+  });
+
+  test('falls back to the agentbox .env file, quotes stripped', () => {
+    const text = 'X=1\nENCRYPTION_ENABLED="true"\nZONE_CONFIG=\'[{"id":"zone4","encrypted":true}]\'\n';
+    assert.equal(zk.gateEnabled({}, fakeFs(text)), true);
+    assert.deepEqual(zk.loadZones({}, fakeFs(text)), [{ id: 'zone4', encrypted: true }]);
+    assert.deepEqual(zk.loadZones({}, fakeFs('ZONE_CONFIG=not json')), []);
+    assert.equal(zk.gateEnabled({}, { readFileSync: () => { throw new Error('ENOENT'); } }), false);
+  });
+
+  test('section → zone mirrors the kit resolver; public zones are never encrypted', () => {
+    assert.equal(zk.sectionToZone('zone4-chat-with-agents', ZONES), 'zone4');
+    assert.equal(zk.sectionToZone('ZONE3', ZONES), 'zone3');
+    assert.equal(zk.sectionToZone('music', ZONES), 'zone1');
+    assert.equal(zk.zoneIsEncrypted('zone4', { gate: true, zones: ZONES }), true);
+    assert.equal(zk.zoneIsEncrypted('zone4', { gate: false, zones: ZONES }), false);
+    assert.equal(zk.zoneIsEncrypted('zone1', { gate: true, zones: ZONES }), false);
+    assert.equal(zk.zoneIsEncrypted('zone2', { gate: true, zones: ZONES }), false);
+  });
+});
+
+// ── messages ────────────────────────────────────────────────────────────────
+
+describe('zone messages', () => {
+  test('author encrypts, zone key holder decrypts; zk tag is the relay shape', () => {
+    const key = zoneKey(1);
+    const out = zk.applyWritePlan(
+      { kind: 42, content: 'hello', tags: [['e', 'c'.repeat(64), '', 'root']] },
+      { type: 'encrypt', key },
+      bytes(AUTHOR_SK),
+    );
+    assert.notEqual(out.content, 'hello');
+    assert.equal(out.tags[0][0], 'e');
+    assert.deepEqual(out.tags[1], ['zk', 'zone4', '1', key.pubkey]);
+    assert.deepEqual(zk.parseZk(out.tags), { zone: 'zone4', epoch: 1, pubkey: key.pubkey });
+    const raw = Buffer.from(out.content, 'base64');
+    assert.equal(raw[0], 2);
+    assert.ok(out.content.length >= 132);
+    const ev = { ...out, pubkey: pk(AUTHOR_SK) };
+    assert.deepEqual(zk.readOutcome(ev, () => key), { type: 'decrypted', text: 'hello' });
+    assert.equal(zk.readOutcome(ev, () => null).type, 'missing-key');
+    assert.equal(zk.readOutcome(ev, () => zoneKey(1, hexKey(9))).type, 'failed');
+    assert.deepEqual(zk.readOutcome({ kind: 42, content: 'plain', tags: [] }, () => null),
+      { type: 'plain', text: 'plain' });
+  });
+
+  test('cross-implementation: JS decrypts the Rust vector, and the JS vector is ours', () => {
+    const key = zoneKey(1);
+    const author = pk(AUTHOR_SK);
+    const rustCt = fs.readFileSync(path.join(FIXTURES, 'zone-rust-ciphertext.txt'), 'utf8').trim();
+    assert.equal(zk.decryptWith({ pubkey: author, content: rustCt }, key), 'cross-check from rust');
+    const jsCt = fs.readFileSync(path.join(FIXTURES, 'zone-js-ciphertext.txt'), 'utf8').trim();
+    assert.equal(zk.decryptWith({ pubkey: author, content: jsCt }, key), 'cross-check from js');
+  });
+
+  test('write plan: gate off is plaintext, encrypted zone without a key refuses', () => {
+    const store = tmpStore('me');
+    const plain = zk.writePlan('zone4', { gate: false, zones: ZONES, store });
+    assert.deepEqual(plain, { type: 'plain' });
+    const msg = { kind: 42, content: 'hi', tags: [] };
+    assert.equal(zk.applyWritePlan(msg, plain, bytes(AUTHOR_SK)), msg);
+    const refused = zk.writePlan('zone4', { gate: true, zones: ZONES, store });
+    assert.equal(refused.type, 'refuse');
+    assert.throws(() => zk.applyWritePlan(msg, refused, bytes(AUTHOR_SK)));
+    store.upsert(zoneKey(1));
+    store.upsert(zoneKey(2, hexKey(7)));
+    assert.equal(zk.writePlan('zone4', { gate: true, zones: ZONES, store }).key.epoch, 2);
+  });
+});
+
+// ── sealed originals (kit ADR-2017, nostr_bbs_core::sealed v1) ──────────────
+
+const SEAL_CHANNEL = 'c'.repeat(64);
+const MIGRATOR_SK = ADMIN_SK;
+
+/** An original, signed plaintext kind-42 in SEAL_CHANNEL (overrides applied before signing). */
+function originalPost(over = {}, skHex = AUTHOR_SK) {
+  return finalizeEvent({
+    kind: 42,
+    created_at: 1_780_000_000,
+    tags: [['e', SEAL_CHANNEL, '', 'root'], ['e', 'd'.repeat(64), '', 'reply'], ['p', pk(hexKey(11))]],
+    content: 'the original words',
+    ...over,
+  }, bytes(skHex));
+}
+
+/**
+ * The spec's envelope: kind 42, created_at == inner's, tags [channel root e,
+ * zk, sealed], content nip44(migrator_sk, zone_pk, inner_json), signed by the
+ * migrator. `innerJson` / `over` let a test break exactly one property.
+ */
+function sealEnvelope(original, key, { innerJson, sealedTag, channel = SEAL_CHANNEL, over = {} } = {}) {
+  const text = innerJson !== undefined ? innerJson : JSON.stringify(original);
+  return finalizeEvent({
+    kind: 42,
+    created_at: original.created_at,
+    tags: [['e', channel, '', 'root'], zk.zkTag(key), sealedTag || ['sealed', original.id, '1']],
+    content: nip44.encrypt(text, nip44.getConversationKey(bytes(MIGRATOR_SK), key.pubkey)),
+    ...over,
+  }, bytes(MIGRATOR_SK));
+}
+
+const seven = (ev) => ({
+  id: ev.id, pubkey: ev.pubkey, created_at: ev.created_at, kind: ev.kind, tags: ev.tags, content: ev.content, sig: ev.sig,
+});
+
+describe('sealed originals', () => {
+  const key = zoneKey(1);
+  const lookup = () => key;
+
+  test('round trip: the verified inner event is returned, attributed to its author', () => {
+    const original = originalPost();
+    const outer = sealEnvelope(original, key);
+    assert.equal(outer.pubkey, pk(MIGRATOR_SK));
+    const out = zk.readOutcome(outer, lookup);
+    assert.equal(out.type, 'decrypted');
+    assert.equal(out.text, 'the original words');
+    assert.deepEqual(out.sealed, seven(original));
+    assert.equal(out.sealed.pubkey, pk(AUTHOR_SK));
+    assert.equal(zk.readOutcome(outer, () => null).type, 'missing-key');
+    assert.equal(zk.readOutcome(outer, () => zoneKey(1, hexKey(9))).type, 'failed');
+  });
+
+  test('non-sealed outcomes carry no sealed property', () => {
+    const msg = zk.applyWritePlan({ kind: 42, content: 'hi', tags: [['e', SEAL_CHANNEL, '', 'root']] },
+      { type: 'encrypt', key }, bytes(AUTHOR_SK));
+    const out = zk.readOutcome({ ...msg, pubkey: pk(AUTHOR_SK) }, lookup);
+    assert.equal(out.type, 'decrypted');
+    assert.equal('sealed' in out, false);
+    assert.equal('sealed' in zk.readOutcome({ kind: 42, content: 'x', tags: [] }, lookup), false);
+  });
+
+  test('the sealed tag is the discriminator: a normal message whose text is event JSON stays text', () => {
+    const json = JSON.stringify(originalPost());
+    const msg = zk.applyWritePlan({ kind: 42, content: json, tags: [['e', SEAL_CHANNEL, '', 'root']] },
+      { type: 'encrypt', key }, bytes(AUTHOR_SK));
+    const out = zk.readOutcome({ ...msg, pubkey: pk(AUTHOR_SK) }, lookup);
+    assert.deepEqual(out, { type: 'decrypted', text: json });
+  });
+
+  test('parseSealed accepts only well-formed tags', () => {
+    const id = 'a'.repeat(64);
+    assert.deepEqual(zk.parseSealed([['e', 'x'], ['sealed', id.toUpperCase(), '1']]), { innerId: id, version: 1 });
+    assert.equal(zk.parseSealed([['sealed', 'abc', '1']]), null);
+    assert.equal(zk.parseSealed([['sealed', id]]), null);
+    assert.equal(zk.parseSealed([['sealed', id, 'v1']]), null);
+    assert.equal(zk.parseSealed([]), null);
+    assert.equal(zk.SEALED_TAG, 'sealed');
+    assert.equal(zk.SEALED_VERSION, 1);
+  });
+
+  test('a malformed or unsupported sealed tag fails, never falls back to plain decryption', () => {
+    const original = originalPost();
+    for (const tag of [['sealed', original.id, '2'], ['sealed', 'nothex', '1'], ['sealed', original.id]]) {
+      assert.deepEqual(zk.readOutcome(sealEnvelope(original, key, { sealedTag: tag }), lookup),
+        { type: 'failed', text: null });
+    }
+  });
+
+  test('check 1: the inner event must be kind 42', () => {
+    const original = originalPost({ kind: 1 });
+    assert.equal(zk.readOutcome(sealEnvelope(original, key), lookup).type, 'failed');
+  });
+
+  test('check 2: the inner id and signature must verify', () => {
+    const original = originalPost();
+    const tampered = JSON.stringify({ ...seven(original), content: 'words the author never wrote' });
+    assert.equal(zk.readOutcome(sealEnvelope(original, key, { innerJson: tampered }), lookup).type, 'failed');
+    const other = originalPost({ content: 'different' });
+    const badSig = JSON.stringify({ ...seven(original), sig: other.sig });
+    assert.equal(zk.readOutcome(sealEnvelope(original, key, { innerJson: badSig }), lookup).type, 'failed');
+  });
+
+  test('check 3: the inner id must match the sealed tag', () => {
+    const original = originalPost();
+    const other = originalPost({ content: 'another post' });
+    const outer = sealEnvelope(original, key, { sealedTag: ['sealed', other.id, '1'] });
+    assert.equal(zk.readOutcome(outer, lookup).type, 'failed');
+  });
+
+  test('check 4: the inner event must not itself be zone-encrypted (no nesting)', () => {
+    const original = originalPost({ tags: [['e', SEAL_CHANNEL, '', 'root'], zk.zkTag(key)] });
+    assert.equal(zk.readOutcome(sealEnvelope(original, key), lookup).type, 'failed');
+  });
+
+  test('check 5: the inner channel must be the outer channel', () => {
+    const original = originalPost({ tags: [['e', 'b'.repeat(64), '', 'root']] });
+    assert.equal(zk.readOutcome(sealEnvelope(original, key), lookup).type, 'failed');
+    const noChannel = originalPost({ tags: [] });
+    assert.equal(zk.readOutcome(sealEnvelope(noChannel, key), lookup).type, 'failed');
+  });
+
+  test('check 6: the outer created_at must equal the inner created_at', () => {
+    const original = originalPost();
+    const outer = sealEnvelope(original, key, { over: { created_at: original.created_at + 1 } });
+    assert.equal(zk.readOutcome(outer, lookup).type, 'failed');
+  });
+
+  test('inner JSON must carry exactly the seven NIP-01 fields', () => {
+    const original = originalPost();
+    const extra = JSON.stringify({ ...seven(original), relay: 'wss://x' });
+    assert.equal(zk.readOutcome(sealEnvelope(original, key, { innerJson: extra }), lookup).type, 'failed');
+    const { sig, ...missing } = seven(original);
+    assert.ok(sig);
+    assert.equal(zk.readOutcome(sealEnvelope(original, key, { innerJson: JSON.stringify(missing) }), lookup).type, 'failed');
+    assert.equal(zk.readOutcome(sealEnvelope(original, key, { innerJson: 'not json' }), lookup).type, 'failed');
+    assert.equal(zk.readOutcome(sealEnvelope(original, key, { innerJson: '[1,2]' }), lookup).type, 'failed');
+  });
+});
+
+// ── grants ──────────────────────────────────────────────────────────────────
+
+describe('zone-key grants', () => {
+  const member = pk(MEMBER_SK);
+
+  test('opens the Rust (nostr-bbs-core wrap_seal) grant fixture and accepts it', async () => {
+    const wrap = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'zone-grant-wrap.json'), 'utf8'));
+    const opened = zk.unwrapAny(wrap, bytes(MEMBER_SK));
+    assert.equal(opened.sealer, pk(ADMIN_SK));
+    const store = tmpStore(member);
+    const res = await zk.acceptGrant(opened, { store, isAdmin: async (p) => p === pk(ADMIN_SK) });
+    assert.equal(res.status, 'granted');
+    assert.equal(store.get('zone4', 1).pubkey, pk(GRANT_ZONE_SK));
+    const mode = fs.statSync(store.file).mode & 0o777;
+    assert.equal(mode, 0o600);
+    // Re-delivery is idempotent and does not re-query the admin check.
+    const again = await zk.acceptGrant(opened, { store, isAdmin: async () => { throw new Error('not called'); } });
+    assert.equal(again.status, 'known');
+  });
+
+  test('non-admin sealer is refused', async () => {
+    const wrap = grantWrap({ sealerSk: hexKey(8), recipientPk: member, payload: grantPayload() });
+    const opened = zk.unwrapAny(wrap, bytes(MEMBER_SK));
+    const store = tmpStore(member);
+    const res = await zk.acceptGrant(opened, { store, isAdmin: async () => false });
+    assert.equal(res.status, 'rejected');
+    assert.match(res.error, /not sealed by an admin/);
+    assert.equal(store.keys().length, 0);
+  });
+
+  test('admin check: only definite answers are cached; failures throw, never "not admin"', async () => {
+    const admin = pk(ADMIN_SK);
+    let calls = 0;
+    let mode = 'down';
+    const fetchImpl = async () => {
+      calls += 1;
+      if (mode === 'down') throw new Error('ECONNRESET');
+      if (mode === 'http500') return { ok: false, status: 500, json: async () => ({}) };
+      return { ok: true, status: 200, json: async () => ({ isAdmin: true }) };
+    };
+    const isAdmin = zk.makeAdminCheck({ fetchImpl, baseUrl: 'http://relay.test' });
+    await assert.rejects(isAdmin(admin), zk.AdminCheckUnavailable);
+    mode = 'http500';
+    await assert.rejects(isAdmin(admin), zk.AdminCheckUnavailable);
+    mode = 'up';
+    assert.equal(await isAdmin(admin), true);
+    assert.equal(await isAdmin(admin), true);
+    assert.equal(calls, 3, 'failures are not cached; the definite answer is');
+  });
+
+  test('admin check has no default relay', () => {
+    const noFile = { readFileSync() { throw new Error('ENOENT'); } };
+    assert.equal(zk.relayHttpBase({}, noFile), null);
+    assert.equal(zk.relayHttpBase({ FORUM_RELAY_URL: 'wss://r.test/' }, noFile), 'https://r.test');
+    // Falls back to the agentbox .env file, like the gate and ZONE_CONFIG.
+    const envFile = { readFileSync() { return "ENCRYPTION_ENABLED=true\nFORUM_RELAY_URL='wss://f.test'\n"; } };
+    assert.equal(zk.relayHttpBase({}, envFile), 'https://f.test');
+    assert.equal(zk.relayHttpBase({ FORUM_RELAY_URL: 'wss://e.test' }, envFile), 'https://e.test');
+    assert.throws(() => zk.makeAdminCheck({ baseUrl: null }), /FORUM_RELAY_URL/);
+  });
+
+  test('an unverifiable sender yields retry, not rejection, and stores nothing', async () => {
+    const wrap = grantWrap({ sealerSk: ADMIN_SK, recipientPk: member, payload: grantPayload() });
+    const opened = zk.unwrapAny(wrap, bytes(MEMBER_SK));
+    const store = tmpStore(member);
+    const res = await zk.acceptGrant(opened, {
+      store,
+      isAdmin: async () => { throw new zk.AdminCheckUnavailable('relay down'); },
+    });
+    assert.equal(res.status, 'retry');
+    assert.equal(store.keys().length, 0);
+    const ok = await zk.acceptGrant(opened, { store, isAdmin: async () => true });
+    assert.equal(ok.status, 'granted');
+  });
+
+  test('secret that does not derive to the stated pubkey is refused', async () => {
+    const payload = grantPayload(GRANT_ZONE_SK, { pubkey: pk(hexKey(6)) });
+    const opened = zk.unwrapAny(grantWrap({ sealerSk: ADMIN_SK, recipientPk: member, payload }), bytes(MEMBER_SK));
+    const res = await zk.acceptGrant(opened, { store: tmpStore(member), isAdmin: async () => true });
+    assert.deepEqual(res, { status: 'rejected', error: 'grant secret does not derive to its stated pubkey' });
+  });
+
+  test('inbox key (AGENTBOX_ZONE_INBOX_SK_FILE) opens wraps addressed to it; identity still works', () => {
+    const INBOX_SK = hexKey(9);
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'zk-inbox-'));
+    tmpDirs.push(dir);
+    const file = path.join(dir, 'inbox.sk');
+    fs.writeFileSync(file, `${INBOX_SK}\n`, { mode: 0o600 });
+    const env = { AGENTBOX_ZONE_INBOX_SK_FILE: file };
+    const inboxSk = zk.loadInboxSk(env);
+    assert.deepEqual(Buffer.from(inboxSk).toString('hex'), INBOX_SK);
+    const toInbox = grantWrap({ sealerSk: ADMIN_SK, recipientPk: pk(INBOX_SK), payload: grantPayload() });
+    const toIdentity = grantWrap({ sealerSk: ADMIN_SK, recipientPk: member, payload: grantPayload() });
+    assert.equal(zk.unwrapAny(toInbox, bytes(MEMBER_SK), { inboxSk }).sealer, pk(ADMIN_SK));
+    assert.equal(zk.unwrapAny(toIdentity, bytes(MEMBER_SK), { inboxSk }).sealer, pk(ADMIN_SK));
+    // Absent inbox key: unchanged behaviour, an inbox-addressed wrap is unreadable.
+    assert.throws(() => zk.unwrapAny(toInbox, bytes(MEMBER_SK), { inboxSk: null }));
+    assert.equal(zk.unwrapAny(toIdentity, bytes(MEMBER_SK), { inboxSk: null }).sealer, pk(ADMIN_SK));
+  });
+
+  test('inbox key file: unset, loose-mode, malformed and missing files are ignored with a reason', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'zk-inbox-'));
+    tmpDirs.push(dir);
+    const warnings = [];
+    const warn = (m) => warnings.push(m);
+    assert.equal(zk.loadInboxSk({}, fs, warn), null);
+    const loose = path.join(dir, 'loose');
+    fs.writeFileSync(loose, hexKey(9), { mode: 0o644 });
+    fs.chmodSync(loose, 0o644);
+    assert.equal(zk.loadInboxSk({ AGENTBOX_ZONE_INBOX_SK_FILE: loose }, fs, warn), null);
+    const bad = path.join(dir, 'bad');
+    fs.writeFileSync(bad, 'not-hex', { mode: 0o600 });
+    assert.equal(zk.loadInboxSk({ AGENTBOX_ZONE_INBOX_SK_FILE: bad }, fs, warn), null);
+    assert.equal(zk.loadInboxSk({ AGENTBOX_ZONE_INBOX_SK_FILE: path.join(dir, 'missing') }, fs, warn), null);
+    assert.equal(warnings.length, 3);
+    assert.ok(warnings.every((w) => !w.includes(hexKey(9))));
+    fs.writeFileSync(bad, '00'.repeat(32), { mode: 0o600 });
+    assert.equal(zk.loadInboxSk({ AGENTBOX_ZONE_INBOX_SK_FILE: bad }, fs, warn), null);
+    assert.equal(zk.loadInboxSk({ AGENTBOX_ZONE_INBOX_SK_FILE: dir }, fs, warn), null);
+  });
+
+  test('a rumor claiming another author than the seal is refused', () => {
+    const wrap = grantWrap({
+      sealerSk: hexKey(8), recipientPk: member, payload: grantPayload(), rumorAuthor: pk(ADMIN_SK),
+    });
+    assert.throws(() => zk.unwrapAny(wrap, bytes(MEMBER_SK)), /does not match/);
+  });
+
+  test('a third party cannot open a grant', () => {
+    const wrap = grantWrap({ sealerSk: ADMIN_SK, recipientPk: member, payload: grantPayload() });
+    assert.throws(() => zk.unwrapAny(wrap, bytes(hexKey(11))));
+  });
+
+  test('a key file owned by another identity is ignored', () => {
+    const store = tmpStore('owner-a');
+    store.upsert(zoneKey(1));
+    const other = new zk.ZoneKeyStore({ owner: 'owner-b', file: store.file });
+    assert.equal(other.keys().length, 0);
+    const same = new zk.ZoneKeyStore({ owner: 'owner-a', file: store.file });
+    assert.equal(same.keys().length, 1);
+  });
+
+  test('unwrapDmRumor never returns a grant as a DM', () => {
+    const wrap = grantWrap({ sealerSk: ADMIN_SK, recipientPk: member, payload: grantPayload() });
+    assert.equal(unwrapDmRumor(wrap, bytes(MEMBER_SK)), null);
+  });
+});
+
+// ── JunkieJarvis agent ──────────────────────────────────────────────────────
+
+describe('NIP-171 epoch tickets (kind 1014)', () => {
+  const member = pk(MEMBER_SK);
+  const GROUP_SK = hexKey(6);
+  const group = pk(GROUP_SK);
+  const EPOCH_SK = hexKey(7);
+  const bindings = [{ zone: 'zone4', group }];
+
+  /** A kit-format ticket wrap: signed 1014 rumor, seal by `sealerSk`, wrap 1059. */
+  function ticketWrap({ signerSk = GROUP_SK, sealerSk = GROUP_SK, tags, content = EPOCH_SK, recipientPk = member } = {}) {
+    const ticket = finalizeEvent({
+      kind: zk.KIND_EPOCH_TICKET,
+      created_at: 1_790_000_000,
+      tags: tags || [['p', member], ['epoch', '2']],
+      content,
+    }, bytes(signerSk));
+    const seal = finalizeEvent({
+      kind: 13,
+      created_at: 1_790_000_000,
+      tags: [],
+      content: nip44.encrypt(JSON.stringify(ticket), nip44.getConversationKey(bytes(sealerSk), recipientPk)),
+    }, bytes(sealerSk));
+    const eph = generateSecretKey();
+    return finalizeEvent({
+      kind: 1059,
+      created_at: 1_790_000_000,
+      tags: [['p', recipientPk]],
+      content: nip44.encrypt(JSON.stringify(seal), nip44.getConversationKey(eph, recipientPk)),
+    }, eph);
+  }
+
+  async function accept(wrap, over = {}) {
+    const store = tmpStore(member);
+    let opened;
+    try { opened = zk.unwrapAny(wrap, bytes(MEMBER_SK), { inboxSk: null }); } catch (e) {
+      // Refused while opening (the rumor author is not the seal's author).
+      return { res: { status: 'rejected', error: e.message }, store };
+    }
+    const res = await zk.acceptGrant(opened, {
+      store, isAdmin: async () => { throw new Error('admin check must not run for a ticket'); }, bindings, ...over,
+    });
+    return { res, store };
+  }
+
+  test('a ticket from the bound group is accepted and keeps its signature', async () => {
+    const wrap = ticketWrap();
+    const opened = zk.unwrapAny(wrap, bytes(MEMBER_SK), { inboxSk: null });
+    assert.equal(opened.sealer, group);
+    assert.match(opened.rumor.sig, /^[0-9a-f]{128}$/);
+    const { res, store } = await accept(wrap);
+    assert.equal(res.status, 'granted');
+    assert.deepEqual(
+      { zone: res.key.zone, epoch: res.key.epoch, pubkey: res.key.pubkey, granted_by: res.key.granted_by },
+      { zone: 'zone4', epoch: 2, pubkey: pk(EPOCH_SK), granted_by: group },
+    );
+    assert.equal(store.get('zone4', 2).secret, EPOCH_SK);
+  });
+
+  test('validateGrant accepts a 1014 beside 21453 and AGENTBOX_ZONE_GROUP_PUBKEY supplies the binding', () => {
+    const opened = zk.unwrapAny(ticketWrap(), bytes(MEMBER_SK), { inboxSk: null });
+    const v = zk.validateGrant(opened.rumor, opened.sealer, false, 9, { member, bindings: zk.loadGroupBindings({ AGENTBOX_ZONE_GROUP_PUBKEY: `zone4=${group.toUpperCase()},nonsense,=x,z=bad` }) });
+    assert.equal(v.ok, true);
+    assert.equal(v.key.received_at, 9);
+    assert.deepEqual(zk.loadGroupBindings({}), []);
+    // The 21453 path is untouched.
+    const grant = zk.unwrapAny(grantWrap({ sealerSk: ADMIN_SK, recipientPk: member, payload: grantPayload() }), bytes(MEMBER_SK), { inboxSk: null });
+    assert.equal(zk.validateGrant(grant.rumor, grant.sealer, true, 1).ok, true);
+  });
+
+  test('every MUST violation and a wrong or missing binding is refused', async () => {
+    const p = ['p', member];
+    const cases = {
+      'two p tags': { tags: [p, p, ['epoch', '2']], match: /exactly one valid p/ },
+      'no epoch tag': { tags: [p], match: /exactly one valid epoch/ },
+      'two epoch tags': { tags: [p, ['epoch', '2'], ['epoch', '3']], match: /exactly one valid epoch/ },
+      'leading zero epoch': { tags: [p, ['epoch', '02']], match: /valid epoch/ },
+      'signed epoch': { tags: [p, ['epoch', '+2']], match: /valid epoch/ },
+      'epoch 0 is record-only': { tags: [p, ['epoch', '0']], match: /usable range/ },
+      'epoch above u32': { tags: [p, ['epoch', '4294967296']], match: /usable range/ },
+      'non-hex content': { content: 'zz', match: /lowercase hex/ },
+      'uppercase content': { content: 'AB'.repeat(32), match: /lowercase hex/ },
+      'zero scalar': { content: '00'.repeat(32), match: /valid secret key/ },
+      'scalar at the group order': { content: 'ff'.repeat(32), match: /valid secret key/ },
+      'ticket for someone else': { tags: [['p', pk(hexKey(9))], ['epoch', '2']], match: /another member/ },
+      'ticket signed by another key, seal by the group': { signerSk: hexKey(9), match: /does not match seal author/ },
+      'seal by an impostor': { sealerSk: hexKey(9), match: /does not match seal author/ },
+    };
+    for (const [name, { match, ...opts }] of Object.entries(cases)) {
+      const { res, store } = await accept(ticketWrap(opts));
+      assert.equal(res.status, 'rejected', name);
+      assert.match(res.error, match, name);
+      assert.equal(store.keys().length, 0, name);
+    }
+    // Wrong binding, ambiguous binding, and no binding at all.
+    for (const b of [[{ zone: 'zone4', group: pk(hexKey(9)) }], [], [{ zone: 'a', group }, { zone: 'b', group }]]) {
+      const { res } = await accept(ticketWrap(), { bindings: b });
+      assert.equal(res.status, 'rejected');
+      assert.match(res.error, /not bound to exactly one zone/);
+    }
+  });
+
+  test('re-delivery is idempotent and a different key for a held epoch is refused', async () => {
+    const store = tmpStore(member);
+    const open = (w) => zk.unwrapAny(w, bytes(MEMBER_SK), { inboxSk: null });
+    const isAdmin = async () => false;
+    assert.equal((await zk.acceptGrant(open(ticketWrap()), { store, isAdmin, bindings })).status, 'granted');
+    assert.equal((await zk.acceptGrant(open(ticketWrap()), { store, isAdmin, bindings })).status, 'known');
+    const other = await zk.acceptGrant(open(ticketWrap({ content: hexKey(8) })), { store, isAdmin, bindings });
+    assert.equal(other.status, 'rejected');
+    assert.match(other.error, /inconsistent/);
+    assert.equal(store.get('zone4', 2).secret, EPOCH_SK);
+  });
+});
+
+describe('JunkieJarvis in encrypted zones', () => {
+  const jjSigner = signerFromHex(MEMBER_SK);
+  const silent = { info() {}, warn() {}, error() {}, debug() {} };
+  const channelId = 'c'.repeat(64);
+  const askerSk = hexKey(12);
+
+  function makeBridge(kind40Section) {
+    const published = [];
+    return {
+      published,
+      subscribe() { return 'sub'; },
+      unsubscribe() {},
+      async publish(unsigned, signer) {
+        const signed = signer && typeof signer.sign === 'function' ? signer.sign(unsigned) : unsigned;
+        published.push(signed);
+        return signed;
+      },
+      kind40Section,
+    };
+  }
+
+  function agentWith({ gate = true, keys = [], section = 'zone4-chat-with-agents', llmSeen = [] } = {}) {
+    const bridge = makeBridge(section);
+    const store = tmpStore(jjSigner.pubkey);
+    for (const k of keys) store.upsert(k);
+    const zoneCrypto = {
+      gate,
+      zones: ZONES,
+      store,
+      isAdmin: async (p) => p === pk(ADMIN_SK),
+      query: async () => [{ id: channelId, kind: 40, tags: [['section', section]], content: '{}' }],
+    };
+    const agent = new JunkieJarvisAgent({
+      bridge,
+      signer: jjSigner,
+      logger: silent,
+      zoneCrypto,
+      llm: async (text) => { llmSeen.push(text); return 'sure thing'; },
+    });
+    return { agent, bridge, store, llmSeen };
+  }
+
+  function mention(content, tags = []) {
+    return finalizeEvent({
+      kind: 42,
+      created_at: Math.floor(Date.now() / 1000),
+      tags: [['e', channelId, '', 'root'], ['p', jjSigner.pubkey], ...tags],
+      content,
+    }, bytes(askerSk));
+  }
+
+  function encryptedMention(text, key) {
+    const out = zk.applyWritePlan(
+      { kind: 42, content: text, tags: [['e', channelId, '', 'root'], ['p', jjSigner.pubkey]] },
+      { type: 'encrypt', key },
+      bytes(askerSk),
+    );
+    return finalizeEvent({ ...out, created_at: Math.floor(Date.now() / 1000) }, bytes(askerSk));
+  }
+
+  test('decrypts an encrypted mention and replies encrypted to the zone key', async () => {
+    const key = zoneKey(1);
+    const { agent, bridge, llmSeen } = agentWith({ keys: [key] });
+    await agent._handleChannel(encryptedMention('@junkiejarvis what is on tonight', key));
+    assert.deepEqual(llmSeen, ['what is on tonight']);
+    assert.equal(bridge.published.length, 1);
+    const reply = bridge.published[0];
+    assert.deepEqual(zk.parseZk(reply.tags), { zone: 'zone4', epoch: 1, pubkey: key.pubkey });
+    assert.doesNotMatch(reply.content, /sure thing/);
+    assert.equal(zk.decryptWith(reply, key), 'sure thing');
+  });
+
+  test('an encrypted mention it cannot decrypt never reaches the LLM', async () => {
+    const { agent, bridge, llmSeen } = agentWith({ keys: [] });
+    await agent._handleChannel(encryptedMention('@junkiejarvis secret plans', zoneKey(1)));
+    assert.equal(llmSeen.length, 0);
+    assert.equal(bridge.published.length, 0);
+  });
+
+  test('without a key it stays silent rather than reply in plaintext', async () => {
+    const { agent, bridge, llmSeen } = agentWith({ keys: [] });
+    await agent._handleChannel(mention('@junkiejarvis hello'));
+    assert.equal(llmSeen.length, 1); // plaintext legacy message is read as before
+    assert.equal(bridge.published.length, 0);
+  });
+
+  test('gate off: plaintext reply, unchanged behaviour', async () => {
+    const { agent, bridge } = agentWith({ gate: false, keys: [] });
+    await agent._handleChannel(mention('@junkiejarvis hello'));
+    assert.equal(bridge.published.length, 1);
+    assert.equal(bridge.published[0].content, 'sure thing');
+    assert.equal(zk.hasZkTag(bridge.published[0].tags), false);
+  });
+
+  test('a channel in an unencrypted zone gets a plaintext reply with encryption on', async () => {
+    const { agent, bridge } = agentWith({ keys: [zoneKey(1)], section: 'zone2-rants' });
+    await agent._handleChannel(mention('@junkiejarvis hello'));
+    assert.equal(bridge.published[0].content, 'sure thing');
+  });
+
+  test('a sealed original is attributed and threaded to its real author, not the migrator', async () => {
+    const key = zoneKey(1);
+    const { agent, bridge, llmSeen } = agentWith({ keys: [key] });
+    const original = finalizeEvent({
+      kind: 42,
+      created_at: Math.floor(Date.now() / 1000),
+      tags: [['e', channelId, '', 'root'], ['p', jjSigner.pubkey]],
+      content: '@junkiejarvis restored question',
+    }, bytes(askerSk));
+    await agent._handleChannel(sealEnvelope(original, key));
+    assert.deepEqual(llmSeen, ['restored question']);
+    assert.equal(bridge.published.length, 1);
+    const reply = bridge.published[0];
+    assert.ok(reply.tags.some((t) => t[0] === 'e' && t[1] === original.id && t[3] === 'reply'));
+    assert.ok(reply.tags.some((t) => t[0] === 'p' && t[1] === pk(askerSk)));
+    assert.ok(!reply.tags.some((t) => t[1] === pk(MIGRATOR_SK)));
+    assert.equal(zk.decryptWith(reply, key), 'sure thing');
+  });
+
+  test('a sealed original authored by the agent itself is ignored', async () => {
+    const key = zoneKey(1);
+    const { agent, bridge, llmSeen } = agentWith({ keys: [key] });
+    const own = finalizeEvent({
+      kind: 42,
+      created_at: Math.floor(Date.now() / 1000),
+      tags: [['e', channelId, '', 'root'], ['p', jjSigner.pubkey]],
+      content: '@junkiejarvis talking to myself',
+    }, bytes(MEMBER_SK));
+    await agent._handleChannel(sealEnvelope(own, key));
+    assert.equal(llmSeen.length, 0);
+    assert.equal(bridge.published.length, 0);
+  });
+
+  test('a tampered sealed original never reaches the LLM', async () => {
+    const key = zoneKey(1);
+    const { agent, bridge, llmSeen } = agentWith({ keys: [key] });
+    const original = finalizeEvent({
+      kind: 42,
+      created_at: Math.floor(Date.now() / 1000),
+      tags: [['e', channelId, '', 'root'], ['p', jjSigner.pubkey]],
+      content: '@junkiejarvis real words',
+    }, bytes(askerSk));
+    const forged = JSON.stringify({ ...seven(original), content: '@junkiejarvis forged words' });
+    await agent._handleChannel(sealEnvelope(original, key, { innerJson: forged }));
+    assert.equal(llmSeen.length, 0);
+    assert.equal(bridge.published.length, 0);
+  });
+
+  test('a grant arriving as a gift wrap is stored and never answered', async () => {
+    const { agent, bridge, store, llmSeen } = agentWith({ keys: [] });
+    const wrap = grantWrap({ sealerSk: ADMIN_SK, recipientPk: jjSigner.pubkey, payload: grantPayload() });
+    await agent._handleDm(wrap);
+    assert.equal(store.get('zone4', 1).pubkey, pk(GRANT_ZONE_SK));
+    assert.equal(llmSeen.length, 0);
+    assert.equal(bridge.published.length, 0);
+  });
+
+  test('an epoch ticket arriving as a gift wrap is stored and never reaches the model', async () => {
+    const groupSk = hexKey(6);
+    const epochSk = hexKey(7);
+    const { agent, bridge, store, llmSeen } = agentWith({ keys: [] });
+    const ticket = finalizeEvent({
+      kind: zk.KIND_EPOCH_TICKET,
+      created_at: 1_790_000_000,
+      tags: [['p', jjSigner.pubkey], ['epoch', '3']],
+      content: epochSk,
+    }, bytes(groupSk));
+    const seal = finalizeEvent({
+      kind: 13,
+      created_at: 1_790_000_000,
+      tags: [],
+      content: nip44.encrypt(JSON.stringify(ticket), nip44.getConversationKey(bytes(groupSk), jjSigner.pubkey)),
+    }, bytes(groupSk));
+    const eph = generateSecretKey();
+    const wrap = finalizeEvent({
+      kind: 1059,
+      created_at: 1_790_000_000,
+      tags: [['p', jjSigner.pubkey]],
+      content: nip44.encrypt(JSON.stringify(seal), nip44.getConversationKey(eph, jjSigner.pubkey)),
+    }, eph);
+    const saved = process.env.AGENTBOX_ZONE_GROUP_PUBKEY;
+    process.env.AGENTBOX_ZONE_GROUP_PUBKEY = `zone4=${pk(groupSk)}`;
+    try {
+      await agent._handleDm(wrap);
+    } finally {
+      if (saved === undefined) delete process.env.AGENTBOX_ZONE_GROUP_PUBKEY; else process.env.AGENTBOX_ZONE_GROUP_PUBKEY = saved;
+    }
+    assert.equal(store.get('zone4', 3).pubkey, pk(epochSk));
+    assert.equal(llmSeen.length, 0);
+    assert.equal(bridge.published.length, 0);
+  });
+
+  test('the inbox subscription delivers grants through the DM router without model exposure', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'zk-inbox-route-'));
+    tmpDirs.push(dir);
+    const file = path.join(dir, 'key');
+    const inboxSk = hexKey(9);
+    fs.writeFileSync(file, inboxSk, { mode: 0o600 });
+    const saved = process.env.AGENTBOX_ZONE_INBOX_SK_FILE;
+    process.env.AGENTBOX_ZONE_INBOX_SK_FILE = file;
+    const { agent, bridge, store, llmSeen } = agentWith();
+    const filters = [];
+    bridge.subscribe = (filter) => { filters.push(filter); return 'sub'; };
+    try {
+      agent.start();
+      assert.deepEqual(filters[0]['#p'], [jjSigner.pubkey, pk(inboxSk)]);
+      await agent._handleDm(grantWrap({ sealerSk: ADMIN_SK, recipientPk: pk(inboxSk), payload: grantPayload() }));
+      assert.equal(store.get('zone4', 1).pubkey, pk(GRANT_ZONE_SK));
+      assert.equal(llmSeen.length, 0);
+      assert.equal(bridge.published.length, 0);
+    } finally {
+      agent.stop();
+      if (saved === undefined) delete process.env.AGENTBOX_ZONE_INBOX_SK_FILE;
+      else process.env.AGENTBOX_ZONE_INBOX_SK_FILE = saved;
+    }
+  });
+
+  test('a grant whose sender cannot be verified is retried and then stored', async () => {
+    const { agent, store } = agentWith({ keys: [] });
+    let up = false;
+    agent.zoneCrypto.isAdmin = async (p) => {
+      if (!up) throw new zk.AdminCheckUnavailable('relay down');
+      return p === pk(ADMIN_SK);
+    };
+    const saved = JunkieJarvisAgent.GRANT_RETRY_DELAYS_MS;
+    JunkieJarvisAgent.GRANT_RETRY_DELAYS_MS = [20];
+    try {
+      const wrap = grantWrap({ sealerSk: ADMIN_SK, recipientPk: jjSigner.pubkey, payload: grantPayload() });
+      await agent._handleDm(wrap);
+      assert.equal(store.keys().length, 0);
+      up = true;
+      await new Promise((r) => setTimeout(r, 80));
+      assert.equal(store.get('zone4', 1).pubkey, pk(GRANT_ZONE_SK));
+    } finally {
+      JunkieJarvisAgent.GRANT_RETRY_DELAYS_MS = saved;
+    }
+  });
+
+  test('a grant from a non-admin is not stored', async () => {
+    const { agent, store } = agentWith({ keys: [] });
+    const wrap = grantWrap({ sealerSk: hexKey(8), recipientPk: jjSigner.pubkey, payload: grantPayload() });
+    await agent._handleDm(wrap);
+    assert.equal(store.keys().length, 0);
+  });
+});

@@ -1,0 +1,32 @@
+{
+  "nostr-rust-forum": {
+    "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "status": "",
+    "dirty_hashes": {}
+  },
+  "agentbox": {
+    "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "status": "?? docs/planning/audit-2026-09-21/evidence/BRIEF-judges.md\n?? docs/planning/audit-2026-09-21/evidence/J1-external-value.md\n?? docs/planning/audit-2026-09-21/evidence/J2-foundations-risk.md\n?? docs/planning/audit-2026-09-21/evidence/J3-vision-coherence.md\n?? docs/planning/audit-2026-09-21/evidence/RA-ledgers.md\n?? docs/planning/audit-2026-09-21/evidence/RB-health-debt.md\n?? docs/planning/audit-2026-09-21/evidence/RC-value-demand.md\n?? docs/planning/audit-2026-09-21/evidence/RD-runtime.md\n?? docs/planning/audit-2026-09-21/evidence/RE-trajectory.md\n?? docs/planning/audit-2026-09-21/planning-cycle.md\n",
+    "dirty_hashes": {
+      "docs/planning/audit-2026-09-21/evidence/BRIEF-judges.md": "e9378733af9005db8ce9ffa9fd2cf28a4dc0319d750991c6ab6f1b7456fab167",
+      "docs/planning/audit-2026-09-21/evidence/J1-external-value.md": "1c2da2bb5cce760893da6736be7e5336858d08947651ab211a9ecf0c9709a40d",
+      "docs/planning/audit-2026-09-21/evidence/J2-foundations-risk.md": "e7ef534f1c1da2f12a94703c37b8cdd3598f2eb08347792112ac81ec2461a0ef",
+      "docs/planning/audit-2026-09-21/evidence/J3-vision-coherence.md": "22572f7d980c18a2691ce7b32d540ebeeeec215a625f2acc815961b3d1d72cff",
+      "docs/planning/audit-2026-09-21/evidence/RA-ledgers.md": "213cbe8771155c8eec52e120875cbbe245efc6464395d9ed157ae028b81fdb16",
+      "docs/planning/audit-2026-09-21/evidence/RB-health-debt.md": "c3e7162a2e005107102c46f03d21bead6a2233ed075b6e1fb7bbcdbdec092a47",
+      "docs/planning/audit-2026-09-21/evidence/RC-value-demand.md": "08f8d094edc6662f675c3924af3a34197654bbfcdeffb1d82673bd2b7e98d134",
+      "docs/planning/audit-2026-09-21/evidence/RD-runtime.md": "5bd0ec09f291f236b5c81b444a337bce777c8aa01a79d8a7be0bbda4ad23ab7f",
+      "docs/planning/audit-2026-09-21/evidence/RE-trajectory.md": "f0f13b52d6541bedd3754d91c8e9ea435b2d7f59f62119cffd5318524186661a",
+      "docs/planning/audit-2026-09-21/planning-cycle.md": "14b5eb10171cd71bf55e844b689f4ac688906d9bff9aa7863e4263548247483c"
+    }
+  },
+  "dreamlab-ai-website": {
+    "head": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "status": "",
+    "dirty_hashes": {}
+  },
+  "branch_ref": {
+    "local": "0b7979c404f41414cfdbefffa28fb6d5ae1b1242",
+    "remote_tracking": "053f734c1138f7434bd2934af16ac2677581c188"
+  }
+}

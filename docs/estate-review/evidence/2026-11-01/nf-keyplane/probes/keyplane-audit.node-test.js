@@ -1,0 +1,21 @@
+"use strict";
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const {getPublicKey,finalizeEvent}=require('../../management-api/node_modules/nostr-tools');
+const zk=require('../../management-api/lib/zone-keys');
+const secret=n=>n.toString(16).padStart(64,'0');
+const bytes=s=>Uint8Array.from(Buffer.from(s,'hex'));
+const pk=n=>getPublicKey(bytes(secret(n)));
+test('conflicting authenticated tickets leave the first key sendable',async()=>{
+ const member=pk(4),group=pk(6),store=new zk.ZoneKeyStore({owner:member,persist:false});
+ const bindings=[{zone:'zone4',group}];
+ const accept=async n=>zk.acceptGrant({sealer:group,rumor:finalizeEvent({kind:1014,created_at:1790000000,tags:[['p',member],['epoch','2']],content:secret(n)},bytes(secret(6)))},{store,bindings,isAdmin:async()=>{throw Error('ticket must not use admin path')}});
+ assert.equal((await accept(7)).status,'granted');
+ assert.equal((await accept(8)).status,'rejected');
+ assert.equal(store.keys().length,1);
+ const plan=zk.writePlan('zone4',{gate:true,zones:[{id:'zone4',visibility:'locked',required_cohorts:['dreamlab'],encrypted:true}],store});
+ assert.equal(plan.type,'encrypt');
+ assert.equal(plan.key.pubkey,pk(7));
+ const out=zk.applyWritePlan({kind:42,content:'synthetic conflict probe',tags:[]},plan,bytes(secret(4)));
+ assert.equal(out.tags.find(t=>t[0]==='zk')[3],pk(7));
+});

@@ -1,0 +1,723 @@
+'use strict';
+
+/**
+ * zone-keys — end-to-end encrypted forum zones for agentbox's Nostr identities
+ * (forum kit ADR-2016). The single JS home of the zone-key wire format: the
+ * JunkieJarvis forum agent (junkiejarvis-agent.js) and the nightly
+ * forum-suggestions tenant (scripts/dream-forum-suggestions.mjs) both use this
+ * module; the dream-engine's Rust twin is services/dream-engine/src/zone_crypto.rs.
+ *
+ * No cryptography is implemented here. Every primitive is nostr-tools:
+ * `nip44` (v2) for message and seal encryption, `verifyEvent` for the seal's
+ * id + BIP-340 signature. This file only composes them into the kit's format.
+ *
+ * Wire format (must match nostr-rust-forum crates/nostr-bbs-forum-client/src/zone_crypto):
+ *   - Gate: `ENCRYPTION_ENABLED` — only the exact string "true" is on. A zone
+ *     is encrypted only when the gate is on, its ZONE_CONFIG entry has
+ *     `"encrypted": true`, and it is not public (anonymous readers can never
+ *     hold a key — the relay applies the same rule).
+ *   - Message: a kind-42 whose content is NIP-44 v2 `encrypt(author_sk,
+ *     zone_epoch_pk, text)`, carrying `["zk", <zone>, "<epoch>", <zone pk hex>]`.
+ *     Any holder of the zone secret decrypts with ECDH(zone_sk, author_pk).
+ *   - Grant: a NIP-59 gift wrap (1059) → seal (13, signed by an ADMIN) →
+ *     rumor kind 21453 with content {"zone","epoch","secret","pubkey","created_at"}.
+ *     Accepted only when the verified seal author is an admin and the secret
+ *     derives to the stated pubkey.
+ *   - Sealed original (kit ADR-2017, `nostr_bbs_core::sealed`, version 1): a
+ *     pre-encryption plaintext kind-42 re-published by an admin migrator as a
+ *     zone message whose decrypted text is the ORIGINAL signed event's JSON
+ *     (exactly id/pubkey/created_at/kind/tags/content/sig), marked
+ *     `["sealed", <inner id>, "1"]`, with outer `created_at` == inner's and
+ *     only the channel root e-tag exposed. `readOutcome` opens it and returns
+ *     the verified inner event as `sealed`, so readers attribute the text to
+ *     its real author, id, timestamp and reply tags — never to the migrator.
+ *
+ * Key file (shared with the Rust digest; format owned here and in
+ * docs/developer/dream-engine.md): `$WORKSPACE/.agentbox/zone-keys.json`
+ * (override `ZONE_KEYS_FILE`), mode 0600, never in git:
+ *   { "version": 1, "owner": "<holder pubkey hex>",
+ *     "keys": [ { "zone", "epoch", "secret", "pubkey", "granted_by", "received_at" } ] }
+ * A file whose `owner` is not the running identity is ignored, never merged.
+ *
+ * Secrets are never logged: callers log zone/epoch only.
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+let nostrTools = null;
+function getNostrTools() {
+  if (!nostrTools) nostrTools = require('nostr-tools');
+  return nostrTools;
+}
+
+const KIND_ZONE_KEY_GRANT = 21453;
+/** NIP-171 epoch ticket (signed kind 1014), forum kit ADR-2028 decision 2. */
+const KIND_EPOCH_TICKET = 1014;
+const KIND_SEAL = 13;
+const KIND_GIFT_WRAP = 1059;
+const KIND_CHANNEL_CREATE = 40;
+const ZK_TAG = 'zk';
+const SEALED_TAG = 'sealed';
+const SEALED_VERSION = 1;
+const KIND_CHANNEL_MESSAGE = 42;
+/** The seven NIP-01 fields a sealed original's inner JSON carries — no more, no fewer. */
+const SEALED_INNER_FIELDS = ['content', 'created_at', 'id', 'kind', 'pubkey', 'sig', 'tags'];
+const KEY_FILE_VERSION = 1;
+
+const DEFAULT_WORKSPACE = '/home/devuser/workspace';
+const ADMIN_CACHE_MS = 10 * 60 * 1000;
+
+// ─── Settings (env first, then the agentbox .env file) ──────────────────────
+
+function envFilePath(env = process.env) {
+  if (env.AGENTBOX_ENV_FILE) return env.AGENTBOX_ENV_FILE;
+  const dir = env.AGENTBOX_DIR || path.join(env.WORKSPACE || DEFAULT_WORKSPACE, 'project/agentbox');
+  return path.join(dir, '.env');
+}
+
+/**
+ * Read a non-secret setting: the process env when set and non-empty, else the
+ * `NAME=value` line of the agentbox .env file (surrounding quotes stripped).
+ * management-api's compose environment only forwards listed variables, so the
+ * .env fallback lets the operator add the two encryption lines without a
+ * compose change; the Rust digest reads the same file the same way.
+ */
+function readSetting(name, env = process.env, fsImpl = fs) {
+  const direct = env[name];
+  if (typeof direct === 'string' && direct.trim() !== '') return direct;
+  let text;
+  try { text = fsImpl.readFileSync(envFilePath(env), 'utf8'); } catch { return null; }
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    if (!line.startsWith(`${name}=`)) continue;
+    let v = line.slice(name.length + 1).trim();
+    if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1);
+    return v;
+  }
+  return null;
+}
+
+/** Deployment master gate: only the exact string "true" is on. */
+function gateEnabled(env = process.env, fsImpl = fs) {
+  return readSetting('ENCRYPTION_ENABLED', env, fsImpl) === 'true';
+}
+
+/** ZONE_CONFIG as an array of zone objects (empty on absence or bad JSON). */
+function loadZones(env = process.env, fsImpl = fs) {
+  const raw = readSetting('ZONE_CONFIG', env, fsImpl);
+  if (!raw) return [];
+  try {
+    const v = JSON.parse(raw);
+    return Array.isArray(v) ? v.filter((z) => z && typeof z.id === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Channel section → zone id. The kit's canonical resolver
+ * (stores/zones.rs `section_to_zone`): exact id, then `<id>-` prefix, then the
+ * first zone as a catch-all.
+ */
+function sectionToZone(section, zones) {
+  const sec = String(section || '').toLowerCase();
+  const exact = zones.find((z) => z.id.toLowerCase() === sec);
+  if (exact) return exact.id;
+  const prefixed = zones.find((z) => sec.startsWith(`${z.id.toLowerCase()}-`));
+  if (prefixed) return prefixed.id;
+  return zones.length > 0 ? zones[0].id : null;
+}
+
+/** Whether writes into `zoneId` must be encrypted. */
+function zoneIsEncrypted(zoneId, { gate, zones }) {
+  if (!gate || !zoneId) return false;
+  const z = zones.find((x) => x.id === zoneId);
+  if (!z || z.encrypted !== true) return false;
+  const isPublic = z.visibility === 'public'
+    && (!Array.isArray(z.required_cohorts) || z.required_cohorts.length === 0);
+  return !isPublic;
+}
+
+/** Whether any zone is encrypted under this config. */
+function anyZoneEncrypted({ gate, zones }) {
+  return zones.some((z) => zoneIsEncrypted(z.id, { gate, zones }));
+}
+
+// ─── zk tag ─────────────────────────────────────────────────────────────────
+
+const isHex64 = (s) => typeof s === 'string' && /^[0-9a-fA-F]{64}$/.test(s);
+const hexToBytes = (h) => Uint8Array.from(Buffer.from(h, 'hex'));
+
+function zkTag(key) {
+  return [ZK_TAG, key.zone, String(key.epoch), key.pubkey];
+}
+
+/** First well-formed zk tag (the shape the relay enforces), or null. */
+function parseZk(tags) {
+  for (const t of Array.isArray(tags) ? tags : []) {
+    if (!Array.isArray(t) || t.length < 4 || t[0] !== ZK_TAG || !t[1]) continue;
+    if (!/^[0-9]+$/.test(String(t[2]))) continue;
+    const epoch = Number(t[2]);
+    if (!Number.isSafeInteger(epoch) || epoch < 1 || epoch > 0xffffffff) continue;
+    if (!isHex64(t[3])) continue;
+    return { zone: t[1], epoch, pubkey: t[3].toLowerCase() };
+  }
+  return null;
+}
+
+function hasZkTag(tags) {
+  return (Array.isArray(tags) ? tags : []).some((t) => Array.isArray(t) && t[0] === ZK_TAG);
+}
+
+/** Whether any tag is a `sealed` marker (well-formed or not). */
+function hasSealedTag(tags) {
+  return (Array.isArray(tags) ? tags : []).some((t) => Array.isArray(t) && t[0] === SEALED_TAG);
+}
+
+/**
+ * First well-formed `["sealed", <inner id hex>, "<version>"]` tag as
+ * `{ innerId (lowercase), version }`, or null. The mirror of
+ * `nostr_bbs_core::sealed::parse_sealed`. A reader must additionally require
+ * `version === SEALED_VERSION`; any other version is not understood.
+ */
+function parseSealed(tags) {
+  for (const t of Array.isArray(tags) ? tags : []) {
+    if (!Array.isArray(t) || t.length < 3 || t[0] !== SEALED_TAG) continue;
+    if (!isHex64(t[1]) || !/^[0-9]+$/.test(String(t[2]))) continue;
+    const version = Number(t[2]);
+    if (!Number.isSafeInteger(version) || version > 0xffffffff) continue;
+    return { innerId: t[1].toLowerCase(), version };
+  }
+  return null;
+}
+
+// ─── Key file / store ───────────────────────────────────────────────────────
+
+function keyFilePath(env = process.env) {
+  return env.ZONE_KEYS_FILE
+    || path.join(env.WORKSPACE || DEFAULT_WORKSPACE, '.agentbox/zone-keys.json');
+}
+
+function emptyKeyFile(owner) {
+  return { version: KEY_FILE_VERSION, owner, keys: [] };
+}
+
+function validStoredKey(k) {
+  return k && typeof k.zone === 'string' && k.zone
+    && Number.isSafeInteger(k.epoch) && k.epoch >= 1
+    && isHex64(k.secret) && isHex64(k.pubkey);
+}
+
+function loadKeyFile(file, owner, fsImpl = fs) {
+  let data;
+  try { data = JSON.parse(fsImpl.readFileSync(file, 'utf8')); } catch { return emptyKeyFile(owner); }
+  if (!data || data.version !== KEY_FILE_VERSION || data.owner !== owner || !Array.isArray(data.keys)) {
+    return emptyKeyFile(owner);
+  }
+  return { version: KEY_FILE_VERSION, owner, keys: data.keys.filter(validStoredKey) };
+}
+
+/** Atomic 0600 write: temp file created 0600, then renamed over the target. */
+function saveKeyFile(file, data, fsImpl = fs) {
+  fsImpl.mkdirSync(path.dirname(file), { recursive: true });
+  const tmp = `${file}.${process.pid}.tmp`;
+  fsImpl.writeFileSync(tmp, JSON.stringify(data, null, 2) + '\n', { mode: 0o600 });
+  fsImpl.chmodSync(tmp, 0o600);
+  fsImpl.renameSync(tmp, file);
+}
+
+class ZoneKeyStore {
+  /**
+   * @param {{ owner: string, file?: string, fsImpl?: object, persist?: boolean }} opts
+   */
+  constructor({ owner, file = keyFilePath(), fsImpl = fs, persist = true } = {}) {
+    this.owner = owner;
+    this.file = file;
+    this.fs = fsImpl;
+    this.persist = persist;
+    this.data = persist ? loadKeyFile(file, owner, fsImpl) : emptyKeyFile(owner);
+  }
+
+  keys() { return this.data.keys.slice(); }
+
+  get(zone, epoch) {
+    return this.data.keys.find((k) => k.zone === zone && k.epoch === epoch) || null;
+  }
+
+  /** Highest-epoch key held for `zone`. */
+  latest(zone) {
+    return this.data.keys
+      .filter((k) => k.zone === zone)
+      .reduce((best, k) => (!best || k.epoch > best.epoch ? k : best), null);
+  }
+
+  /** Insert or replace a key. Returns true when the store changed. */
+  upsert(key) {
+    if (!validStoredKey(key)) return false;
+    const existing = this.get(key.zone, key.epoch);
+    if (existing && existing.pubkey === key.pubkey && existing.secret === key.secret) return false;
+    this.data.keys = this.data.keys.filter((k) => !(k.zone === key.zone && k.epoch === key.epoch));
+    this.data.keys.push(key);
+    if (this.persist) saveKeyFile(this.file, this.data, this.fs);
+    return true;
+  }
+}
+
+// ─── Grants ─────────────────────────────────────────────────────────────────
+
+/**
+ * Parse the zone-to-group bindings from `AGENTBOX_ZONE_GROUP_PUBKEY`:
+ * comma-separated `<zone>=<64 lowercase hex group pubkey>`. A bare hex has no
+ * zone to name and is ignored. Returns `[{ zone, group }]`.
+ */
+function loadGroupBindings(env = process.env) {
+  const raw = env.AGENTBOX_ZONE_GROUP_PUBKEY;
+  if (typeof raw !== 'string') return [];
+  const out = [];
+  for (const part of raw.split(',')) {
+    const i = part.indexOf('=');
+    if (i < 1) continue;
+    const zone = part.slice(0, i).trim();
+    const group = part.slice(i + 1).trim().toLowerCase();
+    if (zone && isHex64(group)) out.push({ zone, group });
+  }
+  return out;
+}
+
+const LOWER_HEX64 = /^[0-9a-f]{64}$/;
+
+/**
+ * Validate a NIP-171 kind-1014 epoch ticket opened from a gift wrap (the kit's
+ * `parse_ticket` + `accept_ticket`). It is a signed event, so `unwrapAny`
+ * returns it with `id` and `sig`. Rules: id and signature verify; the author
+ * is the seal's author; exactly one `p` (the member, `opts.member`) and one
+ * `epoch` tag (plain decimal, at least 1); content is 64 lowercase hex and a
+ * valid scalar; the signer is bound to exactly one zone in `opts.bindings`
+ * (default: AGENTBOX_ZONE_GROUP_PUBKEY). No admin check: the group identity
+ * is not an admin. Returns { ok: true, key } or { ok: false, error }.
+ */
+function validateTicket(ev, sealer, now, { member, bindings = loadGroupBindings() } = {}) {
+  const bad = (error) => ({ ok: false, error });
+  if (!ev || ev.kind !== KIND_EPOCH_TICKET) return bad(`not an epoch ticket (kind ${ev && ev.kind})`);
+  let sigOk = false;
+  try { sigOk = getNostrTools().verifyEvent(ev); } catch { sigOk = false; }
+  if (!sigOk) return bad('ticket id or signature does not verify');
+  if (ev.pubkey !== sealer) return bad('ticket author does not match seal author');
+  const tags = Array.isArray(ev.tags) ? ev.tags : [];
+  const only = (name) => {
+    const m = tags.filter((t) => Array.isArray(t) && t[0] === name);
+    return m.length === 1 && m[0].length === 2 && typeof m[0][1] === 'string' ? m[0][1] : null;
+  };
+  const p = only('p');
+  const epochText = only('epoch');
+  if (p === null || !LOWER_HEX64.test(p)) return bad('ticket needs exactly one valid p tag');
+  if (epochText === null || !/^(0|[1-9][0-9]*)$/.test(epochText)) return bad('ticket needs exactly one valid epoch tag');
+  const epoch = Number(epochText);
+  if (!Number.isSafeInteger(epoch) || epoch > 0xffffffff || epoch < 1) return bad('ticket epoch is outside the usable range');
+  if (typeof ev.content !== 'string' || !LOWER_HEX64.test(ev.content)) return bad('ticket content is not 64 lowercase hex');
+  let derived;
+  try { derived = getNostrTools().getPublicKey(hexToBytes(ev.content)); } catch { return bad('ticket content is not a valid secret key'); }
+  if (member !== undefined && p !== member) return bad('ticket is addressed to another member');
+  const bound = bindings.filter((b) => b.group === ev.pubkey);
+  if (bound.length !== 1) return bad('ticket signer is not bound to exactly one zone');
+  return {
+    ok: true,
+    key: {
+      zone: bound[0].zone,
+      epoch,
+      secret: ev.content,
+      pubkey: derived.toLowerCase(),
+      granted_by: ev.pubkey,
+      received_at: now,
+    },
+  };
+}
+
+/**
+ * Validate a decrypted grant rumor sealed by `sealer` (the kit's
+ * `validate_grant`). `isAdmin` is the relay's check-whitelist answer, injected
+ * so the rule is testable. Returns { ok: true, key } or { ok: false, error }.
+ */
+function validateGrant(rumor, sealer, isAdmin, now, opts = {}) {
+  if (rumor && rumor.kind === KIND_EPOCH_TICKET) return validateTicket(rumor, sealer, now, opts);
+  if (!rumor || rumor.kind !== KIND_ZONE_KEY_GRANT) {
+    return { ok: false, error: `not a zone-key grant (rumor kind ${rumor && rumor.kind})` };
+  }
+  let p;
+  try { p = JSON.parse(rumor.content); } catch { return { ok: false, error: 'grant content is malformed' }; }
+  if (!p || typeof p.zone !== 'string' || !p.zone || !Number.isSafeInteger(p.epoch) || p.epoch < 1
+      || !isHex64(p.pubkey) || !isHex64(p.secret)) {
+    return { ok: false, error: 'grant content is malformed' };
+  }
+  let derived;
+  try { derived = getNostrTools().getPublicKey(hexToBytes(p.secret)); } catch {
+    return { ok: false, error: 'grant content is malformed' };
+  }
+  if (derived.toLowerCase() !== p.pubkey.toLowerCase()) {
+    return { ok: false, error: 'grant secret does not derive to its stated pubkey' };
+  }
+  if (!isAdmin) return { ok: false, error: `grant was not sealed by an admin (${sealer})` };
+  return {
+    ok: true,
+    key: {
+      zone: p.zone,
+      epoch: p.epoch,
+      secret: p.secret.toLowerCase(),
+      pubkey: derived.toLowerCase(),
+      granted_by: sealer,
+      received_at: now,
+    },
+  };
+}
+
+/**
+ * Read the optional zone-inbox secret (forum kit Phase 2): the 64-hex key in
+ * the 0600 file named by `AGENTBOX_ZONE_INBOX_SK_FILE`. Returns `null` when
+ * the variable is unset or the file is unusable (missing, group/other
+ * readable, not 64 hex) so a bad file can never break the identity path.
+ * Reports a reason through `warn` but never the key.
+ */
+function loadInboxSk(env = process.env, fsImpl = fs, warn = () => {}) {
+  const file = env.AGENTBOX_ZONE_INBOX_SK_FILE;
+  if (typeof file !== 'string' || file.trim() === '') return null;
+  try {
+    const st = fsImpl.statSync(file);
+    if (!st.isFile()) {
+      warn('zone inbox key path is not a regular file — ignored');
+      return null;
+    }
+    if ((st.mode & 0o077) !== 0) {
+      warn('zone inbox key file is group/other accessible (needs 0600) — ignored');
+      return null;
+    }
+    const hex = fsImpl.readFileSync(file, 'utf8').trim();
+    if (!/^[0-9a-fA-F]{64}$/.test(hex)) {
+      warn('zone inbox key file is not 64 hex characters — ignored');
+      return null;
+    }
+    const sk = Uint8Array.from(Buffer.from(hex, 'hex'));
+    try { getNostrTools().getPublicKey(sk); } catch {
+      warn('zone inbox key file is not a valid secret key — ignored');
+      return null;
+    }
+    return sk;
+  } catch (err) {
+    warn(`zone inbox key file unreadable (${err && err.code ? err.code : 'error'}) — ignored`);
+    return null;
+  }
+}
+
+/**
+ * Open a kind-1059 addressed to `skBytes`, accepting any rumor kind (the
+ * kit's `unwrap_any`). Unlike nostr-tools' `nip59.unwrapEvent`, this verifies
+ * the seal's id + signature and that the rumor's author is the seal's author,
+ * so the returned `sealer` is authenticated. Throws on any failure.
+ *
+ * When `inboxSk` is supplied (default: `loadInboxSk()`, i.e. the
+ * `AGENTBOX_ZONE_INBOX_SK_FILE` secret when configured) it is tried first and
+ * the identity key second; the identity error is thrown if neither opens it.
+ */
+function unwrapAny(wrap, skBytes, { inboxSk = loadInboxSk() } = {}) {
+  if (inboxSk) {
+    try {
+      return unwrapWith(wrap, inboxSk);
+    } catch {
+      // Not addressed to the inbox key: fall through to the identity key.
+    }
+  }
+  return unwrapWith(wrap, skBytes);
+}
+
+function unwrapWith(wrap, skBytes) {
+  const { nip44, verifyEvent } = getNostrTools();
+  if (!wrap || wrap.kind !== KIND_GIFT_WRAP) throw new Error('not a gift wrap');
+  const seal = JSON.parse(nip44.decrypt(wrap.content, nip44.getConversationKey(skBytes, wrap.pubkey)));
+  if (!seal || seal.kind !== KIND_SEAL) throw new Error('not a seal');
+  if (!verifyEvent(seal)) throw new Error('seal signature invalid');
+  const rumor = JSON.parse(nip44.decrypt(seal.content, nip44.getConversationKey(skBytes, seal.pubkey)));
+  if (!rumor || rumor.pubkey !== seal.pubkey) throw new Error('rumor author does not match seal author');
+  return { sealer: seal.pubkey, rumor };
+}
+
+function relayHttpBase(env = process.env, fsImpl = fs) {
+  // Same lookup as the gate and ZONE_CONFIG (env, else agentbox/.env): the
+  // compose environment does not forward FORUM_RELAY_URL.
+  const url = String(readSetting('FORUM_RELAY_URL', env, fsImpl) || '').trim();
+  if (!url) return null;
+  return url.replace(/^ws(s?):\/\//, 'http$1://').replace(/\/+$/, '');
+}
+
+/** The admin check could not reach a verdict (network, HTTP or parse failure). */
+class AdminCheckUnavailable extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'AdminCheckUnavailable';
+  }
+}
+
+/**
+ * `(pubkey) => Promise<boolean>` backed by the relay's public
+ * `GET /api/check-whitelist`, cached per pubkey.
+ *
+ * Only a definite answer (HTTP 2xx with a boolean `isAdmin`) is returned or
+ * cached. A transient failure throws `AdminCheckUnavailable` and caches
+ * nothing, so a grant is retried later instead of being refused for the TTL.
+ * There is no default relay: `baseUrl` must name the forum relay the grant
+ * came from (FORUM_RELAY_URL), never a guessed production host.
+ */
+function makeAdminCheck({ fetchImpl = globalThis.fetch, baseUrl = relayHttpBase(), ttlMs = ADMIN_CACHE_MS } = {}) {
+  if (!baseUrl) throw new Error('FORUM_RELAY_URL is not set — cannot verify zone-key grant senders');
+  const cache = new Map();
+  return async function isAdmin(pubkey) {
+    if (!isHex64(pubkey)) return false;
+    const hit = cache.get(pubkey);
+    if (hit && Date.now() - hit.at < ttlMs) return hit.admin;
+    let res;
+    try {
+      res = await fetchImpl(`${baseUrl}/api/check-whitelist?pubkey=${pubkey}`);
+    } catch (err) {
+      throw new AdminCheckUnavailable(`check-whitelist unreachable: ${err && err.message}`);
+    }
+    if (!res || !res.ok) throw new AdminCheckUnavailable(`check-whitelist HTTP ${res ? res.status : 'no response'}`);
+    let body;
+    try { body = await res.json(); } catch { throw new AdminCheckUnavailable('check-whitelist returned non-JSON'); }
+    if (!body || typeof body.isAdmin !== 'boolean') throw new AdminCheckUnavailable('check-whitelist response has no isAdmin');
+    cache.set(pubkey, { admin: body.isAdmin, at: Date.now() });
+    return body.isAdmin;
+  };
+}
+
+/**
+ * Handle an already-opened gift wrap: store it when it is a valid grant.
+ * Returns { status: 'not-grant' | 'known' | 'granted' | 'rejected' | 'retry', key?, error? }.
+ * 'retry' means the sender's admin status could not be established right now;
+ * the caller should try the same wrap again later.
+ */
+async function acceptGrant({ sealer, rumor }, { store, isAdmin, now = Math.floor(Date.now() / 1000), bindings }) {
+  if (rumor && rumor.kind === KIND_EPOCH_TICKET) {
+    // A ticket is checked against the bound group identity, not the admin list.
+    const v = validateTicket(rumor, sealer, now, { member: store.owner, ...(bindings ? { bindings } : {}) });
+    if (!v.ok) return { status: 'rejected', error: v.error };
+    const held = store.get(v.key.zone, v.key.epoch);
+    if (held && held.pubkey === v.key.pubkey) return { status: 'known', key: held };
+    // Two keys for one epoch: NIP-171 calls it inconsistent. Keep the held one.
+    if (held) return { status: 'rejected', error: 'epoch already held with a different key (inconsistent)' };
+    store.upsert(v.key);
+    return { status: 'granted', key: v.key };
+  }
+  if (!rumor || rumor.kind !== KIND_ZONE_KEY_GRANT) return { status: 'not-grant' };
+  let payload;
+  try { payload = JSON.parse(rumor.content); } catch { payload = null; }
+  const held = payload && store.get(payload.zone, payload.epoch);
+  if (held && payload && typeof payload.pubkey === 'string' && held.pubkey === payload.pubkey.toLowerCase()) {
+    return { status: 'known', key: held };
+  }
+  let admin;
+  try {
+    admin = await isAdmin(sealer);
+  } catch (err) {
+    if (err instanceof AdminCheckUnavailable) return { status: 'retry', error: err.message };
+    throw err;
+  }
+  const v = validateGrant(rumor, sealer, admin, now);
+  if (!v.ok) return { status: 'rejected', error: v.error };
+  store.upsert(v.key);
+  return { status: 'granted', key: v.key };
+}
+
+// ─── Read / write ───────────────────────────────────────────────────────────
+
+function decryptWith(ev, key) {
+  const { nip44 } = getNostrTools();
+  return nip44.decrypt(ev.content, nip44.getConversationKey(hexToBytes(key.secret), ev.pubkey));
+}
+
+/**
+ * Open the decrypted text of a sealed-original envelope `outer` and return the
+ * verified inner event, or null when any check fails. Mirrors
+ * `nostr_bbs_core::sealed::open_sealed`; the six checks are:
+ *   1. inner.kind === 42;
+ *   2. `verifyEvent(inner)` — id recomputed and BIP-340 signature valid;
+ *   3. inner.id === the `sealed` tag's inner id;
+ *   4. inner has no `zk` tag (a sealed original wraps plaintext only);
+ *   5. inner's channel (root-marked e-tag, else first e-tag) === outer's;
+ *   6. inner.created_at === outer.created_at.
+ * Before them the JSON must be an object with exactly the seven NIP-01 fields
+ * of well-formed types. Never partially trusted: one failure rejects it all.
+ */
+function openSealedInner(outer, text, ref) {
+  let inner;
+  try { inner = JSON.parse(text); } catch { return null; }
+  if (!inner || typeof inner !== 'object' || Array.isArray(inner)) return null;
+  const fields = Object.keys(inner).sort();
+  if (fields.length !== SEALED_INNER_FIELDS.length || fields.some((f, i) => f !== SEALED_INNER_FIELDS[i])) return null;
+  if (typeof inner.id !== 'string' || typeof inner.pubkey !== 'string' || typeof inner.sig !== 'string'
+      || typeof inner.content !== 'string' || !Number.isSafeInteger(inner.created_at)
+      || !Number.isSafeInteger(inner.kind) || !Array.isArray(inner.tags)
+      || !inner.tags.every((t) => Array.isArray(t) && t.every((x) => typeof x === 'string'))) {
+    return null;
+  }
+  if (inner.kind !== KIND_CHANNEL_MESSAGE) return null; // 1
+  let valid = false;
+  try { valid = getNostrTools().verifyEvent(inner) === true; } catch { valid = false; }
+  if (!valid) return null; // 2
+  if (inner.id.toLowerCase() !== ref.innerId) return null; // 3
+  if (hasZkTag(inner.tags)) return null; // 4
+  const innerChannel = channelOf(inner);
+  const outerChannel = channelOf(outer);
+  if (!innerChannel || !outerChannel || innerChannel.toLowerCase() !== outerChannel.toLowerCase()) return null; // 5
+  if (inner.created_at !== outer.created_at) return null; // 6
+  // A fresh object without nostr-tools' verification cache symbol.
+  return {
+    id: inner.id,
+    pubkey: inner.pubkey,
+    created_at: inner.created_at,
+    kind: inner.kind,
+    tags: inner.tags,
+    content: inner.content,
+    sig: inner.sig,
+  };
+}
+
+/**
+ * Classify a kind-42 for reading. `lookup(zone, epoch)` returns a held key.
+ *
+ * A sealed original (outer carries a `sealed` tag) decrypts to its inner
+ * event: on success the result has `sealed: <inner event>` and `text` is the
+ * inner content; callers MUST then use `out.sealed || ev` for author, id,
+ * created_at and reply/thread tags. A malformed or unsupported `sealed` tag,
+ * or any failed check, is `failed`. For every other outcome the `sealed`
+ * property is absent (never null), so `out.sealed` is falsy.
+ *
+ * @returns {{ type: 'plain'|'decrypted'|'missing-key'|'failed', text: string|null, sealed?: object }}
+ */
+function readOutcome(ev, lookup) {
+  if (!ev || !hasZkTag(ev.tags)) return { type: 'plain', text: ev && typeof ev.content === 'string' ? ev.content : '' };
+  const zk = parseZk(ev.tags);
+  if (!zk) return { type: 'failed', text: null };
+  const sealedRef = hasSealedTag(ev.tags) ? parseSealed(ev.tags) : null;
+  if (hasSealedTag(ev.tags) && (!sealedRef || sealedRef.version !== SEALED_VERSION)) return { type: 'failed', text: null };
+  const key = lookup(zk.zone, zk.epoch);
+  if (!key) return { type: 'missing-key', text: null };
+  if (key.pubkey.toLowerCase() !== zk.pubkey) return { type: 'failed', text: null };
+  let text;
+  try {
+    text = decryptWith(ev, key);
+  } catch {
+    return { type: 'failed', text: null };
+  }
+  if (!sealedRef) return { type: 'decrypted', text };
+  const inner = openSealedInner(ev, text, sealedRef);
+  if (!inner) return { type: 'failed', text: null };
+  return { type: 'decrypted', text: inner.content, sealed: inner };
+}
+
+/**
+ * How to publish into `zoneId`: { type: 'plain' } | { type: 'encrypt', key } |
+ * { type: 'refuse', reason }. An encrypted zone without a held key is refused —
+ * never a plaintext fallback.
+ */
+function writePlan(zoneId, { gate, zones, store }) {
+  if (!zoneIsEncrypted(zoneId, { gate, zones })) return { type: 'plain' };
+  const key = store ? store.latest(zoneId) : null;
+  if (!key) return { type: 'refuse', reason: `no zone key held for encrypted zone ${zoneId}` };
+  return { type: 'encrypt', key };
+}
+
+/** Encrypt an unsigned kind-42 under `plan` (author secret × zone pubkey). */
+function applyWritePlan(unsigned, plan, skBytes) {
+  if (!plan || plan.type === 'plain') return unsigned;
+  if (plan.type !== 'encrypt') throw new Error(plan.reason || 'refused');
+  if (!unsigned.content) throw new Error('an encrypted message cannot be empty');
+  const { nip44 } = getNostrTools();
+  const content = nip44.encrypt(unsigned.content, nip44.getConversationKey(skBytes, plan.key.pubkey));
+  const tags = (unsigned.tags || []).filter((t) => !(Array.isArray(t) && t[0] === ZK_TAG));
+  tags.push(zkTag(plan.key));
+  return { ...unsigned, content, tags };
+}
+
+/** First e tag with a `root` marker, else the first e tag — the channel. */
+function channelOf(ev) {
+  const eTags = (Array.isArray(ev && ev.tags) ? ev.tags : []).filter((t) => Array.isArray(t) && t[0] === 'e' && t[1]);
+  const root = eTags.find((t) => t[3] === 'root') || eTags[0];
+  return root ? root[1] : null;
+}
+
+/**
+ * One-shot query over a NostrBridge-shaped `{ subscribe, unsubscribe }`:
+ * resolves with every event seen until `quietMs` passes without a new one.
+ */
+function queryOnce(bridge, filter, { quietMs = 1500, maxMs = 8000 } = {}) {
+  return new Promise((resolve) => {
+    const events = new Map();
+    let timer = null;
+    let subId = null;
+    const finish = () => {
+      clearTimeout(timer);
+      clearTimeout(hard);
+      if (subId) { try { bridge.unsubscribe(subId); } catch { /* closing */ } }
+      resolve([...events.values()]);
+    };
+    const bump = () => { clearTimeout(timer); timer = setTimeout(finish, quietMs); };
+    const hard = setTimeout(finish, maxMs);
+    subId = bridge.subscribe(filter, (ev) => { if (ev && ev.id) events.set(ev.id, ev); bump(); });
+    bump();
+  });
+}
+
+/**
+ * Resolve a channel id to its zone: the channel's kind-40 `section` tag
+ * through `sectionToZone`. `query(filter)` returns events. Cached per store
+ * instance by the caller. Returns null when the channel cannot be found.
+ */
+async function resolveChannelZone(channelId, { query, zones }) {
+  if (!isHex64(channelId) || zones.length === 0) return null;
+  const found = await query({ kinds: [KIND_CHANNEL_CREATE], ids: [channelId] });
+  const create = (found || []).find((e) => e && e.id === channelId && e.kind === KIND_CHANNEL_CREATE);
+  if (!create) return null;
+  const section = ((create.tags || []).find((t) => Array.isArray(t) && t[0] === 'section' && t[1]) || [])[1];
+  return sectionToZone(section || '', zones);
+}
+
+module.exports = {
+  KIND_ZONE_KEY_GRANT,
+  KIND_EPOCH_TICKET,
+  KIND_SEAL,
+  KIND_GIFT_WRAP,
+  ZK_TAG,
+  SEALED_TAG,
+  SEALED_VERSION,
+  KEY_FILE_VERSION,
+  readSetting,
+  gateEnabled,
+  loadZones,
+  sectionToZone,
+  zoneIsEncrypted,
+  anyZoneEncrypted,
+  zkTag,
+  parseZk,
+  hasZkTag,
+  hasSealedTag,
+  parseSealed,
+  keyFilePath,
+  loadKeyFile,
+  saveKeyFile,
+  ZoneKeyStore,
+  validateGrant,
+  validateTicket,
+  loadGroupBindings,
+  unwrapAny,
+  loadInboxSk,
+  relayHttpBase,
+  makeAdminCheck,
+  AdminCheckUnavailable,
+  acceptGrant,
+  decryptWith,
+  readOutcome,
+  writePlan,
+  applyWritePlan,
+  channelOf,
+  queryOnce,
+  resolveChannelZone,
+};

@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: conflicting authenticated tickets leave the first key sendable
+ok 1 - conflicting authenticated tickets leave the first key sendable
+  ---
+  duration_ms: 71.765214
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 234.935695

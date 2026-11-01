@@ -1,0 +1,128 @@
+[
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "0b7979c404f41414cfdbefffa28fb6d5ae1b1242",
+    "path": "docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md",
+    "export": "source/nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md",
+    "sha256": "e7b66d823345645a76641003aae74e040d802b1c0cd3522fc317bd880fad9833"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "0b7979c404f41414cfdbefffa28fb6d5ae1b1242",
+    "path": "docs/runbooks/deploy-phase-0-4.md",
+    "export": "source/nostr-rust-forum/docs/runbooks/deploy-phase-0-4.md",
+    "sha256": "649ddda9bd0c05d235f0dcd3107039f4c4ab3a2c3c0d0c5374aeaff6cf24e949"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "0b7979c404f41414cfdbefffa28fb6d5ae1b1242",
+    "path": "crates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs",
+    "export": "source/nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs",
+    "sha256": "e668eb374cc3d82fee61966efcd1652336670e385cc6d3ec37f827cb51b9d015"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "0b7979c404f41414cfdbefffa28fb6d5ae1b1242",
+    "path": "crates/nostr-bbs-forum-client/src/zone_crypto/tickets.rs",
+    "export": "source/nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/tickets.rs",
+    "sha256": "fe08cd640de3d0d404d230722463015b33c657027ce087eba2afc7c520634851"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "0b7979c404f41414cfdbefffa28fb6d5ae1b1242",
+    "path": "crates/nostr-bbs-forum-client/src/zone_crypto/keyset.rs",
+    "export": "source/nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/keyset.rs",
+    "sha256": "0d35ec8861797ddb4be4f68384d6ce30c247922b8f4626cd8c1faafac2f9e73c"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "0b7979c404f41414cfdbefffa28fb6d5ae1b1242",
+    "path": "crates/nostr-bbs-forum-client/src/zone_crypto/store.rs",
+    "export": "source/nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs",
+    "sha256": "8078315bc1859f3de30e609a0aa138aa33ea4a387b310759e3cb2491c84be291"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "0b7979c404f41414cfdbefffa28fb6d5ae1b1242",
+    "path": "crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs",
+    "export": "source/nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs",
+    "sha256": "5bf7c13c66ccb3bbb0425273ef82af740db570b1c30ed9414278d70a8882e55d"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "0b7979c404f41414cfdbefffa28fb6d5ae1b1242",
+    "path": "crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs",
+    "export": "source/nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs",
+    "sha256": "248c1774612458572de3c75c1d5ee82da1280279cd66c4f413846e497231d52e"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "0b7979c404f41414cfdbefffa28fb6d5ae1b1242",
+    "path": "crates/nostr-bbs-forum-client/src/admin/zone_encryption.rs",
+    "export": "source/nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/zone_encryption.rs",
+    "sha256": "21539ce14aaef52d1c61873d2fb348c9a23cebe6a6fde6568f8aac68600a7bc1"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "0b7979c404f41414cfdbefffa28fb6d5ae1b1242",
+    "path": "crates/nostr-bbs-relay-worker/src/zone_groups.rs",
+    "export": "source/nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_groups.rs",
+    "sha256": "f02c908635fe9a073e5d7b1bc37013287bbb038340597af088e41a7ab48eda04"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "0b7979c404f41414cfdbefffa28fb6d5ae1b1242",
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+    "export": "source/nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+    "sha256": "8eca9f14f5a4ce2d3ba62855cb55a12ab49c44fc251f1ff19eef9c3c636968ae"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "0b7979c404f41414cfdbefffa28fb6d5ae1b1242",
+    "path": "crates/nostr-bbs-auth-worker/src/recipient_keys.rs",
+    "export": "source/nostr-rust-forum/crates/nostr-bbs-auth-worker/src/recipient_keys.rs",
+    "sha256": "f9d241eb0f68b0f9a6f5df2031ce21791b1ccbcd0848873712b852a6dbfece8d"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "0b7979c404f41414cfdbefffa28fb6d5ae1b1242",
+    "path": "crates/nostr-bbs-relay-worker/migrations/0013_zone_epoch_keys.sql",
+    "export": "source/nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0013_zone_epoch_keys.sql",
+    "sha256": "3bc1dfabfebd83b9959a98e37db6e0d6c836f827ceae348c5e9a85d8b4844bc5"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "0b7979c404f41414cfdbefffa28fb6d5ae1b1242",
+    "path": "crates/nostr-bbs-zone-migrate/src/grants.rs",
+    "export": "source/nostr-rust-forum/crates/nostr-bbs-zone-migrate/src/grants.rs",
+    "sha256": "31a664f396e2a97d372835b79f9a8db33f3b01686272aaa098e528994a7720e6"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "0b7979c404f41414cfdbefffa28fb6d5ae1b1242",
+    "path": "crates/nostr-bbs-zone-migrate/tests/migration.rs",
+    "export": "source/nostr-rust-forum/crates/nostr-bbs-zone-migrate/tests/migration.rs",
+    "sha256": "d417e806f1af916e7af03ebac613ccd7cf11ea5b47e611ac09667f7ceaa1b294"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "management-api/lib/zone-keys.js",
+    "export": "source/agentbox/management-api/lib/zone-keys.js",
+    "sha256": "7aa7f0b9f5f6a13fe20d920feefd0ee21511b7192f62d491806e3af3a45397a8"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "management-api/lib/junkiejarvis-agent.js",
+    "export": "source/agentbox/management-api/lib/junkiejarvis-agent.js",
+    "sha256": "b25fda487aae90db7728a2b21d3e213062acb42c8bc635b230541bfc7a57de91"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "tests/sovereign/zone-keys.node-test.js",
+    "export": "source/agentbox/tests/sovereign/zone-keys.node-test.js",
+    "sha256": "e32c71b6e4a33460e0af4a0bbb9bbcf6ff1ca024505544605699aa264f16ba91"
+  }
+]

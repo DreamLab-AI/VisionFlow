@@ -1,0 +1,10 @@
+{
+  "reason": "Tracked absolute fixture link would escape the disposable archive. Repointed to identical branch-local fixtures. No production source changed.",
+  "original": [
+    [
+      "crates/nostr-bbs-core/tests/fixtures",
+      "/home/devuser/workspace/nostr-rust-forum/tests/fixtures"
+    ]
+  ],
+  "local_target": "../../../tests/fixtures"
+}
