@@ -1,0 +1,17 @@
+{
+  "cases": [
+    {
+      "case": "default_build",
+      "commit_contains_written_bytes": false,
+      "commit_present": false,
+      "epoch_state": null,
+      "resource_stored": true,
+      "sidecar_file": false,
+      "status": 201,
+      "summary": "skipped; skipped=not-configured"
+    }
+  ],
+  "git_version": "git version 2.56.0",
+  "limits": "Local build_app with disposable FsBackend/Git fixtures; no live service, external anchoring, deployment, crash or restart test.",
+  "mode": "default"
+}

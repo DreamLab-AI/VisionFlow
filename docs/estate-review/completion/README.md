@@ -7,7 +7,7 @@ type: reference
 
 # Estate audit completion ledger
 
-This ledger makes the review backlog explicit. It currently reconciles **93 current ADR assessments and 344 diagram panels** with named reports. All 93 whole-document claims currently match their reviewed document and report bytes; ADR-2143 now has a scoped refresh. ADR-2166 and ADR-2167 now have scoped refreshes with open findings preserved. These are counted evidence records, not a percentage of the whole audit. Earlier reports still need reconciliation, candidate decisions still need classification, and substantial source review remains.
+This ledger makes the review backlog explicit. It currently reconciles **94 current ADR assessments and 349 diagram panels** with named reports. All 94 whole-document claims currently match their reviewed document and report bytes; ADR-2143 now has a scoped refresh. ADR-2166 and ADR-2167 now have scoped refreshes with open findings preserved. These are counted evidence records, not a percentage of the whole audit. Earlier reports still need reconciliation, candidate decisions still need classification, and substantial source review remains.
 
 [Scope](scope.json), [review claims](claims.json), the [dated snapshot](snapshot-2026-11-01.json) and [validation](validation-2026-11-01.json) are separate files. The [Rust collector](../../../scripts/estate-review-ledger/README.md) can rebuild the snapshot without scanning unrelated workspace repositories. This replaces the old census's undifferentiated pending list as a working queue; earlier audit findings remain valid to their stated evidence boundaries.
 
@@ -20,17 +20,17 @@ This ledger makes the review backlog explicit. It currently reconciles **93 curr
 | ADR-like candidate files | 842 | Includes support, imported copies, history and retained audit evidence |
 | Numbered decision candidates | 731 | A naming-based queue, not a count of operative or unique adopted decisions |
 | Parsed heading units | 9,503 | Excludes headings in fenced examples; a heading is not an exhaustive requirement decomposition |
-| ADR assessments reconciled | 93 | Explicit whole-document assessments linked to unchanged source-document and report bytes |
-| Heading units with those assessments | 656 | Inherit the bounded whole-document report; implementation claims still need its evidence |
+| ADR assessments reconciled | 94 | Explicit whole-document assessments linked to unchanged source-document and report bytes |
+| Heading units with those assessments | 663 | Inherit the bounded whole-document report; implementation claims still need its evidence |
 | Diagram topics / panels | 206 / 1,739 | Exact panel-ID set matches the existing generated coverage index |
-| Panel assessments reconciled | 344 | Selected panels only; 60 topics have all panels recorded and seventeen have partial coverage |
+| Panel assessments reconciled | 349 | Selected panels only; 60 topics have all panels recorded and eighteen have partial coverage |
 | Stale claim records | 0 | Document/report hashes match; implementation and deployment limits still belong to each report |
 
 RuView remains excluded at the owner’s direction. The 842 candidate paths are unchanged from the scope correction. Historical RuView reports and references do not re-admit its repository, ADRs or remediation backlog.
 
-This batch assesses ADR-2002 and seven existing panels: SP-03.1/.2/.3/.12 and SP-04.2/.5/.6. The [HTTP delivery report](../2026-11-01-solid-http-delivery.md) records twelve passing native tests and local HTTP probes. An authorised update with an incomplete condition permits anonymous Read; a misdirected Control entry passes the lockout guard; successful GETs advertise empty permissions. Positive controls verify private body/sidecar headers, rejection of malformed Turtle and unauthorised ACL writes, and grant removal at the next local evaluation. Real caches, persistent restart and consumer delegation remain open.
+This batch assesses ADR-2004 and five existing panels, SP-07.1 through SP-07.5. The [provenance delivery report](../2026-11-01-solid-provenance-delivery.md) records eighteen passing native tests and eleven local HTTP scenarios with real filesystem storage and Git. Missing anchor configuration and epoch failures can disappear from receipts; DELETE leaves the prior commit and sidecar unchanged. Default-build skips, successful Git marking and explicit Git/sidecar failures have positive controls. Agentbox enables Git in its packaged profile, which was source-reviewed but not built or deployed here.
 
-The preceding [parser assessment](../2026-11-01-solid-policy-parsing.md) retains its evidence and five panel bindings. Their unchanged bodies are recorded in the [comparison receipt](../evidence/2026-11-01/solid-delivery/ledger-refresh.json). SideStr's twenty existing panels remain assessed; whole SideStr source and integration coverage are incomplete.
+The preceding [HTTP policy report](../2026-11-01-solid-http-delivery.md) and [parser assessment](../2026-11-01-solid-policy-parsing.md) retain their evidence and panel bindings. Fourteen unchanged provenance sibling panels receive no new credit; see the [comparison receipt](../evidence/2026-11-01/solid-provenance/ledger-refresh.json). SideStr's twenty existing panels remain assessed; whole SideStr source and integration coverage are incomplete.
 
 ## What completion must prove
 
@@ -38,8 +38,8 @@ The preceding [parser assessment](../2026-11-01-solid-policy-parsing.md) retains
 | --- | --- | --- |
 | Limit work to the linked VisionFlow estate | Explicit repository identity, link/ownership basis, nested-owner handling and unavailable-source record | Scope is enumerated; further dependencies found through in-scope references require a recorded inclusion decision |
 | Check the systems against implementation | Per-repository component and cross-repository contract assessments, exact source revisions, relevant adversarial checks and clearly bounded runtime observations | Many reports exist; whole-system path coverage remains open and cannot be inferred from ADR counts |
-| Inspect and update every diagram | A source-backed disposition for every existing panel, corrections where needed, revision citations and rendering/visual evidence | 344 panel assessments reconciled; 1,395 remain unreconciled, some already reviewed in earlier reports |
-| Examine every ADR section | Classify each candidate; reconcile operative, historical, imported and support obligations; link every material section/requirement to a disposition | 93 current complete-document assessments reconciled; partial/earlier assessments still need explicit mapping |
+| Inspect and update every diagram | A source-backed disposition for every existing panel, corrections where needed, revision citations and rendering/visual evidence | 349 panel assessments reconciled; 1,390 remain unreconciled, some already reviewed in earlier reports |
+| Examine every ADR section | Classify each candidate; reconcile operative, historical, imported and support obligations; link every material section/requirement to a disposition | 94 current complete-document assessments reconciled; partial/earlier assessments still need explicit mapping |
 | Gap analysis, adversarial review and sense checks | Findings with triggers, consequences, evidence strength, counterexamples or bounded non-reproduction, and acceptance criteria | Available throughout dated reports; repo-by-repo completeness and cross-system synthesis remain open |
 | Compare alternatives and develop user utility | Primary-source comparisons tied to product paths, distinct recommendations and measurable user outcomes | Bounded comparisons exist; remaining product areas and final estate positioning still need review |
 
@@ -66,7 +66,7 @@ Counts below come from the dated snapshot. Diagram-area counts derive from indiv
 | VisionFlow | 77 | 30 | 1 |
 | VisionClaw | 292 | 278 | 12 |
 | agentbox | 239 | 227 | 8 |
-| solid-pod-rs | 19 | 15 | 2 |
+| solid-pod-rs | 19 | 15 | 3 |
 | nostr-rust-forum | 64 | 58 | 24 |
 | dreamlab-ai-website | 47 | 43 | 3 |
 | loom | 10 | 8 | 0 |
@@ -98,7 +98,7 @@ Counts below come from the dated snapshot. Diagram-area counts derive from indiv
 | nostr-rust-forum | 220 | 100 |
 | ontomark | 64 | 23 |
 | sidestr-rs | 20 | 20 |
-| solid-pod-rs | 133 | 12 |
+| solid-pod-rs | 133 | 17 |
 | visionclaw | 486 | 13 |
 | visionflow | 87 | 0 |
 | visiongraph | 27 | 27 |

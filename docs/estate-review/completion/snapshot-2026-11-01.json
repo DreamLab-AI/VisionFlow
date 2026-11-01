@@ -59562,58 +59562,80 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Every section including September acceptance progress assessed against native source, eighteen existing tests, eleven HTTP probe scenarios and Agentbox build-profile source. Chain, crash, recovery, consumer runtime and deployment remain unverified.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "crates/solid-pod-rs/docs/adr/ADR-2004-provenance-off-by-default.md",
       "repo": "solid-pod-rs",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 18,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-provenance-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-2004 — Keep git-mark provenance opt-in behind the git feature"
         },
         {
           "line": 20,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-provenance-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 28,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-provenance-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 40,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-provenance-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 50,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-provenance-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         },
         {
           "line": 59,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-provenance-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Closeout extension — 2026-09-04"
         },
         {
           "line": 69,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-provenance-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Acceptance progress — 2026-09-05"
         }
       ],
@@ -76990,10 +77012,10 @@
   "counts": {
     "available_checkouts": 23,
     "candidate_files": 842,
-    "numbered_candidates_with_recorded_assessment": 93,
+    "numbered_candidates_with_recorded_assessment": 94,
     "numbered_decision_candidates": 731,
     "panels": 1739,
-    "panels_with_recorded_assessment": 344,
+    "panels_with_recorded_assessment": 349,
     "scope_targets": 24,
     "stale_claim_records": 0,
     "topics": 206
@@ -77004,7 +77026,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "05c33b1b82eadbc8b602caf51c50c1001bb2d09e",
+      "head": "6e86d149a2806cf2164afcd79630b7583f1ab255",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -88734,58 +88756,82 @@
       "sha256": "72be52841d3ef382579db609db344cd954479854a1093adba8e10c92aff67e4a"
     },
     {
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Selected composition, skip, policy, stage classification and response panels checked against native code and HTTP controls; no rendered-sibling or deployment credit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SP-07.1",
+            "SP-07.2",
+            "SP-07.3",
+            "SP-07.4",
+            "SP-07.5"
+          ],
+          "report": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "panels": [
         {
-          "body_sha256": "592764278b47869e1151739318856df1c9e7be7c83bb3f93a4be32f8edc01ce7",
+          "body_sha256": "33fe235ed9a2f05d733e4bdab5557ff30ef4c8762b9405c1c762a7822c31cafb",
           "heading": "SP-07.1 The two provenance tiers",
           "id": "SP-07.1",
           "line": 29,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-provenance-delivery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "33d620a2d231e1f90cd578a88706015507256f83ab358106d93e88fd30a3634f",
+          "body_sha256": "ddf37ed3bbb09e6204c9596c19a6dafe80c455f309e1f9b4f8b985dc964b945b",
           "heading": "SP-07.2 git_mark_write — the skip ladder",
           "id": "SP-07.2",
           "line": 49,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-provenance-delivery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "b0935e2430b5727a60dad7db6907c57a3d9fbc8657321b64b102b92de1882d93",
+          "body_sha256": "cab847904d11373c5b344c27bbdcbe0d292f24967983ea27bff282131cd57ccc",
           "heading": "SP-07.3 Anchor policy resolution",
           "id": "SP-07.3",
-          "line": 86,
+          "line": 89,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-provenance-delivery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "a0ed3ff40aff6f701332476d6d89499331d00905284bf8e11e0fb4147cca8a61",
+          "body_sha256": "1c88a504b79b9fb970dd11fe0375206a7dbb3b4c5d82e6a62af4b225d868b307",
           "heading": "SP-07.4 record_receipt — typed, per-tier outcomes (ADR-2004)",
           "id": "SP-07.4",
-          "line": 130,
+          "line": 119,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-provenance-delivery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "862c844338060d91a84bdbfbcc7c446fc3d83afce6158929919f24139d9862d6",
+          "body_sha256": "88378f28a21c0ec3359babad425c965cd7143e8c45fcf7352b1b3438eae2f8ce",
           "heading": "SP-07.5 The receipt on the wire",
           "id": "SP-07.5",
-          "line": 167,
+          "line": 147,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-provenance-delivery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "4245427c20a9edb946da177986ac25ecc5daf521fb32bd853153440cb6e3a4a5",
           "heading": "SP-07.6 The _prov query surface",
           "id": "SP-07.6",
-          "line": 194,
+          "line": 180,
           "ordinal": 6,
           "reports": [],
           "review": "unreconciled"
@@ -88794,7 +88840,7 @@
           "body_sha256": "24851f658b5e8f869895d2f759c8a55cdbe067ec12af158109a8c0e7daed4527",
           "heading": "SP-07.7 Epoch batching — one transaction, many commits",
           "id": "SP-07.7",
-          "line": 222,
+          "line": 208,
           "ordinal": 7,
           "reports": [],
           "review": "unreconciled"
@@ -88803,7 +88849,7 @@
           "body_sha256": "12bde46a23dfd1053b7e06a131f27242ba1316942016c60f7da0f7ec95be73d4",
           "heading": "SP-07.9 MRC20 state chain and Bitcoin anchoring",
           "id": "SP-07.9",
-          "line": 249,
+          "line": 235,
           "ordinal": 8,
           "reports": [],
           "review": "unreconciled"
@@ -88812,7 +88858,7 @@
           "body_sha256": "ca7bb61b272acc0ccfe9ed36ba3bfc14ad182e7be8aaad82b8103af6369c59b1",
           "heading": "SP-07.10 The rust-bitcoin transaction builder (ADR-2008 D1, landed)",
           "id": "SP-07.10",
-          "line": 281,
+          "line": 267,
           "ordinal": 9,
           "reports": [],
           "review": "unreconciled"
@@ -88821,7 +88867,7 @@
           "body_sha256": "1ba58cc6cca4b3fb35eb4184edf963edaf5f64e575b290b2544ebe08e18dd03f",
           "heading": "SP-07.11 Mempool endpoint selection (ADR-2007)",
           "id": "SP-07.11",
-          "line": 321,
+          "line": 307,
           "ordinal": 10,
           "reports": [],
           "review": "unreconciled"
@@ -88830,7 +88876,7 @@
           "body_sha256": "8fd01ef6e0a2bdb2e993b727d07fb7a0d2ca9512f957ab274b2bb4eaf5a57ec8",
           "heading": "SP-07.12 The block anchorer",
           "id": "SP-07.12",
-          "line": 345,
+          "line": 331,
           "ordinal": 11,
           "reports": [],
           "review": "unreconciled"
@@ -88839,7 +88885,7 @@
           "body_sha256": "a61fc685214ae8f5df5e129ca6f6444e63de806f8c1476a8d318e6d18ecfc759",
           "heading": "SP-07.13 The web ledger",
           "id": "SP-07.13",
-          "line": 375,
+          "line": 361,
           "ordinal": 12,
           "reports": [],
           "review": "unreconciled"
@@ -88848,7 +88894,7 @@
           "body_sha256": "aea426c19f8136c7beb1a57ef5fc8eb1caf2e5a08c0ca3e2241dfa7b1f438b55",
           "heading": "SP-07.14 The /pay/* route family",
           "id": "SP-07.14",
-          "line": 417,
+          "line": 403,
           "ordinal": 13,
           "reports": [],
           "review": "unreconciled"
@@ -88857,7 +88903,7 @@
           "body_sha256": "c92bd1ed7f001d3da306b5d277a92a4e38034445d4c5213be7d528b833a6ba94",
           "heading": "SP-07.15 Payment-state atomicity",
           "id": "SP-07.15",
-          "line": 452,
+          "line": 438,
           "ordinal": 14,
           "reports": [],
           "review": "unreconciled"
@@ -88866,7 +88912,7 @@
           "body_sha256": "74c5f38feaaa70cca427a902a464ff999ee172965840cd27e755d30344c37ba4",
           "heading": "SP-07.16 Order book and AMM",
           "id": "SP-07.16",
-          "line": 478,
+          "line": 464,
           "ordinal": 15,
           "reports": [],
           "review": "unreconciled"
@@ -88875,7 +88921,7 @@
           "body_sha256": "f90d6b55434dfd35e4fdebca0511bf63142f3442af6f4a9a632dea862d4756d1",
           "heading": "SP-07.17 Deposits are MRC20-only — the stand-in is deleted (ADR-2008 D6)",
           "id": "SP-07.17",
-          "line": 515,
+          "line": 501,
           "ordinal": 16,
           "reports": [],
           "review": "unreconciled"
@@ -88884,7 +88930,7 @@
           "body_sha256": "9c4985d4a35657d44d381da441d97922e33722c979998384bdeda9af7cb40cfe",
           "heading": "SP-07.18 The ledger today, and the remaining chain-view work (ADR-2008, partial)",
           "id": "SP-07.18",
-          "line": 536,
+          "line": 522,
           "ordinal": 17,
           "reports": [],
           "review": "unreconciled"
@@ -88893,7 +88939,7 @@
           "body_sha256": "5149b7ab9923b88849c191519d7fe2819a5e51b1aa15bc2f8100f71dbbafdd77",
           "heading": "SP-07.19 Whole-trail verification — every mark walked back from the head (alpha.12)",
           "id": "SP-07.19",
-          "line": 573,
+          "line": 559,
           "ordinal": 18,
           "reports": [],
           "review": "unreconciled"
@@ -88902,7 +88948,7 @@
           "body_sha256": "4995655a7a5c9024483c75b161754377ac334aa4f0b48d99bba7612a6833b6a6",
           "heading": "SP-07.20 GitmarkAnchorer — the git-mark profile for new trails (alpha.12)",
           "id": "SP-07.20",
-          "line": 604,
+          "line": 590,
           "ordinal": 19,
           "reports": [],
           "review": "unreconciled"
@@ -88910,8 +88956,8 @@
       ],
       "path": "docs/diagrams/solid-pod-rs/07-provenance-and-payments.md",
       "repo": "VisionFlow",
-      "review": "unreconciled",
-      "sha256": "3212de2365e073e05302e77f8469e6337df4f1a22a03bcb11adf2ea07c90d4d1"
+      "review": "partial-assessment-recorded",
+      "sha256": "ea9128595672c28af7b86ce1a4d3414e59c6d69e7bf4d502f1943612f838dbe2"
     },
     {
       "claims": [],

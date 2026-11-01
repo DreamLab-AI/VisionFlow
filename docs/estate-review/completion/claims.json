@@ -2437,5 +2437,32 @@
       "SP-04.6"
     ],
     "basis": "Selected GET/PUT, cache, read gate, sidecar mapping and lockout semantics assessed against source and local HTTP controls; no deployment or rendered-sibling credit."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/adr/ADR-2004-provenance-off-by-default.md",
+    "source_sha256": "7e34d28968b79b31b22c0fbff9580fb6d2332b84219f8b991737e91c12aee97b",
+    "report": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
+    "report_sha256": "ed29ee02705cd1792ba6e748850e5a782e8dcabf3aa8a0989a204df693b0d26b",
+    "coverage": "whole-document",
+    "basis": "Every section including September acceptance progress assessed against native source, eighteen existing tests, eleven HTTP probe scenarios and Agentbox build-profile source. Chain, crash, recovery, consumer runtime and deployment remain unverified."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/07-provenance-and-payments.md",
+    "source_sha256": "ea9128595672c28af7b86ce1a4d3414e59c6d69e7bf4d502f1943612f838dbe2",
+    "report": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
+    "report_sha256": "ed29ee02705cd1792ba6e748850e5a782e8dcabf3aa8a0989a204df693b0d26b",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-07.1",
+      "SP-07.2",
+      "SP-07.3",
+      "SP-07.4",
+      "SP-07.5"
+    ],
+    "basis": "Selected composition, skip, policy, stage classification and response panels checked against native code and HTTP controls; no rendered-sibling or deployment credit."
   }
 ]

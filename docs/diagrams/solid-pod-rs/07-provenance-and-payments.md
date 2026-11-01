@@ -28,21 +28,21 @@ verified_commit: 09ec90f26aa573731460292d0e80343914cb43d9
 
 ```mermaid
 flowchart LR
-    W["an LDP write that already succeeded"]
-    GM["git-mark — cheap, ALWAYS attempted<br/>solid-pod-rs/src/provenance.rs:473"]
-    AN["block-trail anchor — expensive, opt-in<br/>solid-pod-rs/src/provenance.rs:482"]
-    SC["PROV-O sidecar at <resource>.prov.ttl<br/>solid-pod-rs/src/provenance.rs:1112"]
-    MK["ProvenanceMark<br/>solid-pod-rs/src/provenance.rs:47"]
-
-    W --> GM --> MK
+    W["eligible stored resource write<br/>git feature and repository required<br/>solid-pod-rs-server/src/lib.rs:3904"]
+    GM["record_receipt attempts local mark<br/>solid-pod-rs/src/provenance.rs:516"]
+    MK["receipt retains mark and per-tier errors<br/>solid-pod-rs/src/provenance.rs:558"]
+    AN["inline policy may anchor the commit SHA<br/>solid-pod-rs/src/provenance.rs:544"]
+    SC["write PROV-O sidecar after mark<br/>solid-pod-rs-server/src/lib.rs:4078"]
+    W --> GM --> MK --> SC
     GM --> AN --> MK
-    MK --> SC
-
-    N["INVARIANT: the anchored state_hash IS the git commit SHA, so the Bitcoin UTXO<br/>commits to the git history — the two primitives form one chain rather than two<br/>parallel records.<br/>solid-pod-rs/src/provenance.rs:484"]
+    N["INVARIANT: inline anchoring receives the git commit SHA.<br/>Epoch batching instead anchors a Merkle root over commits.<br/>solid-pod-rs-server/src/handlers/prov.rs:313"]
     AN -.-> N
-    N2["GitMark (solid-pod-rs/src/provenance.rs:64) and BlockTrailAnchor<br/>(solid-pod-rs/src/provenance.rs:166) are the two tier records;<br/>GitMarkEnvelope (:94) and BlocktrailEnvelope (:209, since alpha.12 an alias of blocktrail::Blocktrail<br/>re-exported at :199) are their wire forms."]
-    MK -.-> N2
+    D["DRIFT: DELETE bypasses marking and leaves the old sidecar.<br/>Not every LDP mutation has a receipt.<br/>solid-pod-rs-server/src/lib.rs:2276"]
+    W -.-> D
 ```
+
+- **What it shows:** resource storage precedes provenance. An eligible local mark can be accompanied by an optional inline anchor — epoch anchoring is a separate batch path.
+- **Why it is this way:** ADR-2004 keeps Git opt-in and makes achieved tiers observable without changing a successful storage response. It does not make storage, marking and sidecar persistence atomic.
 
 ## SP-07.2 git_mark_write — the skip ladder
 
@@ -77,117 +77,103 @@ flowchart TD
     S1 -.-> N
     N2["A skip is not a fault. ProvenanceSkip exists precisely so a correctly<br/>unmarked write is never reported as a provenance failure.<br/>solid-pod-rs/src/provenance.rs:624"]
     S5 -.-> N2
-    N3["DIVERGENCE (ADR-2004): with the server's empty default feature set this whole<br/>function is the no-op shim (solid-pod-rs-server/src/lib.rs:4110), so a default<br/>build records ZERO marks. Every provenance claim carries a --features git caveat."]
+    N3["Cargo default: this function is the no-op shim, returning NotConfigured.<br/>This is a build-profile fact — consumers can enable git explicitly.<br/>solid-pod-rs-server/src/lib.rs:4110"]
     IN -.-> N3
 ```
+
+- **What it shows:** the skip ladder applies when a handler calls the hook — it does not establish mutation coverage. The default build skips even a configured filesystem repository.
+- **Why it is this way:** ADR-2004 distinguishes ineligible writes from failed attempts. Agentbox enables Git in its package — its path patch and runtime configuration need separate verification.
 
 ## SP-07.3 Anchor policy resolution
 
 ```mermaid
 flowchart TD
-    ACL["the resource's effective ACL"]
-    COND["acl:ProvenanceAnchor condition<br/>solid-pod-rs/src/wac/conditions.rs:61"]
-    MODE["anchor_mode_of -> AnchorMode<br/>solid-pod-rs/src/wac/anchor.rs:119"]
-    RES["resolve_anchor_policy<br/>solid-pod-rs-server/src/handlers/prov.rs:90"]
-    NEVER["AnchorPolicy::Never — the default for an ordinary write<br/>solid-pod-rs/src/provenance.rs:323"]
-    ALWAYS["AnchorPolicy::Always<br/>solid-pod-rs/src/provenance.rs:325"]
-    HV["AnchorPolicy::HighValue<br/>solid-pod-rs/src/provenance.rs:328"]
-    EP["AnchorPolicy::Epoch<br/>solid-pod-rs/src/provenance.rs:331"]
-    INLINE["anchors_inline(high_value)<br/>solid-pod-rs/src/provenance.rs:343"]
-    BLD["build_anchorer — only when the policy is not Never<br/>solid-pod-rs-server/src/handlers/prov.rs:149<br/>called from solid-pod-rs-server/src/lib.rs:3967"]
-    BMR["an MRC20 trail already issued under the name (needs the pay-token):<br/>MempoolBlockAnchorer<br/>solid-pod-rs-server/src/handlers/prov.rs:200"]
-    UNA["trail present but unreadable: UnavailableAnchorer fails every anchor with the storage error<br/>solid-pod-rs-server/src/handlers/prov.rs:123"]
-    BGM["otherwise a started git-mark trail: GitmarkAnchorer, else None<br/>solid-pod-rs-server/src/handlers/prov.rs:212"]
-
-    ACL --> COND --> MODE --> RES
+    RES["resolve_anchor_policy: first anchor condition across authorisations<br/>solid-pod-rs-server/src/handlers/prov.rs:90"]
+    NEVER["absent condition or ACL read error: Never<br/>solid-pod-rs-server/src/handlers/prov.rs:96"]
+    HV["inline mode: HighValue<br/>solid-pod-rs-server/src/handlers/prov.rs:110"]
+    EP["epoch mode: Epoch<br/>solid-pod-rs-server/src/handlers/prov.rs:111"]
+    BLD["build_anchorer when policy is not Never<br/>solid-pod-rs-server/src/lib.rs:3967"]
+    MRC["issued MRC20 trail: MempoolBlockAnchorer<br/>solid-pod-rs-server/src/handlers/prov.rs:200"]
+    GM["started git-mark trail: GitmarkAnchorer<br/>solid-pod-rs-server/src/handlers/prov.rs:212"]
+    ERR["unreadable trail: UnavailableAnchorer<br/>solid-pod-rs-server/src/handlers/prov.rs:161"]
+    NONE["no trail: no bundle<br/>solid-pod-rs-server/src/handlers/prov.rs:210"]
+    FLAG["DRIFT: no bundle clears high_value —<br/>missing inline anchor is not reported<br/>solid-pod-rs-server/src/lib.rs:3990"]
+    BATCH["Epoch becomes Never for record_receipt —<br/>batch call only when bundle exists<br/>solid-pod-rs-server/src/lib.rs:3987<br/>solid-pod-rs-server/src/lib.rs:4048"]
     RES --> NEVER
-    RES --> ALWAYS
-    RES --> HV
-    RES --> EP
-    NEVER --> INLINE
-    ALWAYS --> INLINE
-    HV --> INLINE
-    EP --> INLINE
-    RES --> BLD
-    BLD --> BMR
-    BLD --> BGM
-    BLD --> UNA
-
-    N["Never and Epoch never anchor INLINE — Epoch defers to the accumulator.<br/>Always is unconditional; HighValue is inline only when the resource is flagged.<br/>solid-pod-rs/src/provenance.rs:345"]
-    INLINE -.-> N
-    N2["The handler rewrites Epoch to Never before calling record, then batches the SHA<br/>itself, so record's inline path only ever sees Never, Always or HighValue.<br/>solid-pod-rs-server/src/lib.rs:3987"]
-    EP -.-> N2
-    N3["The trail is named by the request ticker, else the pay-token ticker, else the default<br/>name prov (solid-pod-rs-server/src/trail_store.rs:203). Since alpha.12 a pod with<br/>no pay-token can anchor, provided a git-mark trail of that name has been started."]
-    BLD -.-> N3
-    N4["DRIFT: the _prov/anchor handler still answers 'no pay-token / trail not minted'<br/>and comments that the pod 'must have a minted trail'<br/>(solid-pod-rs-server/src/handlers/prov.rs:501), but build_anchorer no longer<br/>requires a pay-token (solid-pod-rs-server/src/handlers/prov.rs:195). The message misdirects an operator whose pod has<br/>neither trail kind started."]
-    BGM -.-> N4
-    N5["OPEN: nothing outside the tests calls GitmarkAnchorer::genesis<br/>(solid-pod-rs-server/src/mempool.rs:1400), and no route, CLI verb or boot step<br/>writes a git-mark trail file (solid-pod-rs-server/src/trail_store.rs:354). A new pod<br/>therefore has no way to reach the git-mark branch above from this repository."]
-    BGM -.-> N5
+    RES --> HV --> BLD
+    RES --> EP --> BLD
+    BLD --> MRC
+    BLD --> GM
+    BLD --> ERR
+    BLD --> NONE --> FLAG
+    EP --> BATCH
 ```
+
+- **What it shows:** the HTTP resolver returns Never, HighValue or Epoch — the library's Always variant is not selected here. The first matching authorisation condition determines the policy, independently of which rule granted the write.
+- **Why it is this way:** inline and batch work share provider construction, but the server currently drops the requested-policy distinction when no provider exists. An unreadable inline trail does produce an anchor error.
+- **Drift:** the explicit anchor endpoint still says no pay-token or minted trail at solid-pod-rs-server/src/handlers/prov.rs:501, although build_anchorer also accepts a started git-mark trail at solid-pod-rs-server/src/handlers/prov.rs:212.
+- **Open:** the native-server source search found only test calls to GitmarkAnchorer::genesis at solid-pod-rs-server/src/mempool.rs:1400. No native route or boot call initiating that trail was found — external provisioning remains unassessed.
 
 ## SP-07.4 record_receipt — typed, per-tier outcomes (ADR-2004)
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Attempt: record_receipt(WriteRecord)<br/>solid-pod-rs/src/provenance.rs:516
-    Attempt --> MarkFailed: marker.mark_write returned an error<br/>solid-pod-rs/src/provenance.rs:526
-    Attempt --> Marked: a commit SHA exists
-
-    MarkFailed --> ResourceStored: stage resource-stored plus mark_error<br/>solid-pod-rs/src/provenance.rs:589
-    Marked --> NoAnchor: policy did not want one
-    Marked --> AnchorTried: policy wanted one
-
-    NoAnchor --> LocalMarkCommitted: stage local-mark-committed<br/>solid-pod-rs/src/provenance.rs:592
-    AnchorTried --> AnchorFailed: anchor_error recorded, the MARK STANDS
-    AnchorTried --> Submitted: stage anchor-submitted<br/>solid-pod-rs/src/provenance.rs:595
-    Submitted --> Confirmed: stage anchor-confirmed<br/>solid-pod-rs/src/provenance.rs:598
-    AnchorFailed --> LocalMarkCommitted
-
-    ResourceStored --> [*]
-    LocalMarkCommitted --> [*]
-    Confirmed --> [*]
-
-    note right of MarkFailed
-      INVARIANT (ADR-2004): the LDP write has already succeeded, so provenance
-      NEVER changes the response status — but a failed mark is no longer
-      swallowed into a warn! line. Silently discarding it would make a stored write
-      and a stored-and-provably-marked write indistinguishable to the caller.
-      record_receipt never returns an error at all
-      (solid-pod-rs/src/provenance.rs:514).
-    end note
-    note right of AnchorFailed
-      A failed anchor never suppresses a successful git-mark
-      (solid-pod-rs/src/provenance.rs:512), and the server logs it separately
-      (solid-pod-rs-server/src/lib.rs:4028).
-    end note
+flowchart TD
+    R["record_receipt attempts mark<br/>solid-pod-rs/src/provenance.rs:516"]
+    FAIL["ResourceStored plus mark_error<br/>solid-pod-rs/src/provenance.rs:526"]
+    WANT{"mark exists — inline anchor requested?<br/>solid-pod-rs/src/provenance.rs:542"}
+    LOCAL["LocalMarkCommitted<br/>solid-pod-rs/src/provenance.rs:721"]
+    TRY["try provider — absence is an error<br/>solid-pod-rs/src/provenance.rs:549"]
+    ERR["LocalMarkCommitted plus anchor_error<br/>solid-pod-rs/src/provenance.rs:545"]
+    CLASS{"returned anchor has blockheight?<br/>solid-pod-rs/src/provenance.rs:723"}
+    SUB["AnchorSubmitted<br/>solid-pod-rs/src/provenance.rs:726"]
+    CONF["AnchorConfirmed<br/>solid-pod-rs/src/provenance.rs:724"]
+    R -- mark failed --> FAIL
+    R -- mark succeeded --> WANT
+    WANT -- no --> LOCAL
+    WANT -- yes --> TRY
+    TRY -- provider absent or failed --> ERR
+    TRY -- anchor returned --> CLASS
+    CLASS -- no --> SUB
+    CLASS -- yes --> CONF
+    N["stage() classifies existing receipt fields.<br/>No chain polling or confirmation transition.<br/>solid-pod-rs/src/provenance.rs:715"]
+    CLASS -.-> N
 ```
+
+- **What it shows:** the library returns the achieved tier plus separate errors after resource storage. Submitted and confirmed are alternative classifications of the returned anchor.
+- **Why it is this way:** ADR-2004 separates local history from anchoring evidence without changing the already successful resource write. Stub tests cover classification — they do not establish live chain confirmation.
 
 ## SP-07.5 The receipt on the wire
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant H as LDP write handler
-    participant G as git_mark_write<br/>solid-pod-rs-server/src/lib.rs:3904
-    participant R as ProvenanceReceipt<br/>solid-pod-rs/src/provenance.rs:673
+    participant H as Eligible write handler
+    participant G as git_mark_write
+    participant R as ProvenanceReceipt
     participant S as Storage
     participant C as Client
-
-    H->>G: mark the write
-    G->>R: record_receipt then restore the full pod-relative path<br/>solid-pod-rs-server/src/lib.rs:4013
-    opt policy is Epoch
-        G->>G: epoch_push_and_maybe_anchor — one tx notarises many commits<br/>solid-pod-rs-server/src/handlers/prov.rs:255
+    Note over H,S: Resource bytes are stored before the hook runs.
+    H->>G: mark the write<br/>solid-pod-rs-server/src/lib.rs:3904
+    G->>R: compose receipt for eligible write<br/>solid-pod-rs-server/src/lib.rs:4010
+    alt receipt has no mark
+        G-->>H: return failed-mark receipt
+    else local mark exists
+        opt policy is Epoch and anchorer bundle exists
+            G->>G: accumulate or anchor epoch<br/>solid-pod-rs-server/src/lib.rs:4050
+            Note over G,R: DRIFT: success or failure only logged —<br/>receipt is not updated<br/>solid-pod-rs-server/src/lib.rs:4066
+        end
+        G->>S: write resource.prov.ttl<br/>solid-pod-rs-server/src/lib.rs:4078
+        opt sidecar write fails
+            G->>R: add mark_error — keep achieved mark and anchor<br/>solid-pod-rs-server/src/lib.rs:4092
+        end
+        G-->>H: receipt
     end
-    G->>S: write <resource>.prov.ttl<br/>solid-pod-rs-server/src/lib.rs:4078
-    alt sidecar write failed
-        G->>R: mark_error set, stage stays local-mark-committed<br/>solid-pod-rs-server/src/lib.rs:4092
-    end
-    G-->>H: receipt
-    H->>C: X-Provenance = receipt.summary()<br/>solid-pod-rs/src/provenance.rs:753
-    H->>C: X-Provenance-Commit = receipt.commit_sha()<br/>solid-pod-rs/src/provenance.rs:743
-    Note over G: The sidecar write also fires the FS-watch StorageEvent the Updates-via<br/>notification stream relays, so subscribers see the new mark. It ends in<br/>.prov.ttl, so the skip guard in SP-07.2 stops the recursion.
-    Note over H: header_safe (solid-pod-rs/src/provenance.rs:774) sanitises the summary before<br/>it becomes a header value.
+    H->>C: X-Provenance summary — commit header when available<br/>solid-pod-rs/src/provenance.rs:753<br/>solid-pod-rs/src/provenance.rs:743
+    Note over R,C: header_safe bounds printable error text<br/>solid-pod-rs/src/provenance.rs:774
 ```
+
+- **What it shows:** eligible PUT/POST/PATCH paths return the receipt while keeping the successful storage status. Earlier skip guards return before composition. The hook's epoch result is not attached to the response or its per-resource sidecar.
+- **Why it is this way:** the receipt exposes local marking and sidecar failures without rolling back storage. A crash before the receipt reaches the client still needs durable reconciliation — a response header cannot close that window.
 
 ## SP-07.6 The `_prov` query surface
 

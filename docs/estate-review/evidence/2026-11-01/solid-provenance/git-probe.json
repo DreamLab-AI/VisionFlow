@@ -1,0 +1,106 @@
+{
+  "cases": [
+    {
+      "case": "ordinary",
+      "commit_contains_written_bytes": true,
+      "commit_present": true,
+      "epoch_state": null,
+      "resource_stored": true,
+      "sidecar_file": true,
+      "status": 201,
+      "summary": "local-mark-committed"
+    },
+    {
+      "case": "non_git",
+      "commit_contains_written_bytes": false,
+      "commit_present": false,
+      "epoch_state": null,
+      "resource_stored": true,
+      "sidecar_file": false,
+      "status": 201,
+      "summary": "skipped; skipped=not-git-backed"
+    },
+    {
+      "case": "excluded_acl",
+      "commit_contains_written_bytes": false,
+      "commit_present": false,
+      "epoch_state": null,
+      "resource_stored": true,
+      "sidecar_file": false,
+      "status": 201,
+      "summary": "skipped; skipped=excluded-path"
+    },
+    {
+      "case": "mark_failure",
+      "commit_contains_written_bytes": false,
+      "commit_present": false,
+      "epoch_state": null,
+      "resource_stored": true,
+      "sidecar_file": false,
+      "status": 201,
+      "summary": "resource-stored; mark-error=git-mark: git [\"add\" \"--\" \"doc.bin\"] exited Some(128): fatal: Unable to create '/home/devuser/workspace/.tmp/.tmpVIZIOi/alice/.git/index.lock': File exists. Another git process see"
+    },
+    {
+      "case": "sidecar_failure",
+      "commit_contains_written_bytes": true,
+      "commit_present": true,
+      "epoch_state": null,
+      "resource_stored": true,
+      "sidecar_file": false,
+      "status": 201,
+      "summary": "local-mark-committed; mark-error=PROV-O sidecar write failed: I/O error: Is a directory (os error 21)"
+    },
+    {
+      "case": "inline_missing",
+      "commit_contains_written_bytes": true,
+      "commit_present": true,
+      "epoch_state": null,
+      "resource_stored": true,
+      "sidecar_file": true,
+      "status": 201,
+      "summary": "local-mark-committed"
+    },
+    {
+      "case": "inline_unreadable",
+      "commit_contains_written_bytes": true,
+      "commit_present": true,
+      "epoch_state": null,
+      "resource_stored": true,
+      "sidecar_file": true,
+      "status": 201,
+      "summary": "local-mark-committed; anchor-error=block-anchor: payment store: malformed git-mark trail prov: expected value at line 1 column 1"
+    },
+    {
+      "case": "epoch_missing",
+      "commit_contains_written_bytes": true,
+      "commit_present": true,
+      "epoch_state": null,
+      "resource_stored": true,
+      "sidecar_file": true,
+      "status": 201,
+      "summary": "local-mark-committed"
+    },
+    {
+      "case": "epoch_corrupt_batch",
+      "commit_contains_written_bytes": true,
+      "commit_present": true,
+      "epoch_state": "invalid batch json",
+      "resource_stored": true,
+      "sidecar_file": true,
+      "status": 201,
+      "summary": "local-mark-committed"
+    },
+    {
+      "case": "delete",
+      "delete_receipt": null,
+      "delete_status": 204,
+      "git_head_unchanged": true,
+      "initial_put_summary": "local-mark-committed",
+      "old_sidecar_remains": true,
+      "resource_removed": true
+    }
+  ],
+  "git_version": "git version 2.56.0",
+  "limits": "Local build_app with disposable FsBackend/Git fixtures; no live service, external anchoring, deployment, crash or restart test.",
+  "mode": "git"
+}

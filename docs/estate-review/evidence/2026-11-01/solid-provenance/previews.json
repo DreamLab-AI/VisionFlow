@@ -1,0 +1,42 @@
+[
+  {
+    "panel": "SP-07.1",
+    "original": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.1.svg",
+    "sha256": "a9ffe6492a6375f2d2f30440674001aa27e022e3a39c598fffcc3aa17c1dc350",
+    "preview": "/tmp/vf-solid-provenance-audit/SP-07.1.png",
+    "method": "Temporary Liberation Sans 16 fallback only where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected final preview: readable labels and distinct branches; no overlapping state-transition labels."
+  },
+  {
+    "panel": "SP-07.2",
+    "original": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.2.svg",
+    "sha256": "1eae9b54b6e55f6344af2d8a66f69f3ca232a2840503e7654e411d8c7bfc4163",
+    "preview": "/tmp/vf-solid-provenance-audit/SP-07.2.png",
+    "method": "Temporary Liberation Sans 16 fallback only where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected final preview: readable labels and distinct branches; no overlapping state-transition labels."
+  },
+  {
+    "panel": "SP-07.3",
+    "original": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.3.svg",
+    "sha256": "1b88a6b77b2f49f9f3e25fce94b16692776b71726b4dec8a26083aeb98f07e88",
+    "preview": "/tmp/vf-solid-provenance-audit/SP-07.3.png",
+    "method": "Temporary Liberation Sans 16 fallback only where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected final preview: readable labels and distinct branches; no overlapping state-transition labels."
+  },
+  {
+    "panel": "SP-07.4",
+    "original": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.4.svg",
+    "sha256": "a1579eaf8e84d7c8425ed3abdae393f93982fc6838541f3757c59b9dbc53a83f",
+    "preview": "/tmp/vf-solid-provenance-audit/SP-07.4.png",
+    "method": "Temporary Liberation Sans 16 fallback only where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected final preview: readable labels and distinct branches; no overlapping state-transition labels."
+  },
+  {
+    "panel": "SP-07.5",
+    "original": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.5.svg",
+    "sha256": "9d964fffd3244adf09500edb2da7882447ce127d33b0b904aaada01544be8db2",
+    "preview": "/tmp/vf-solid-provenance-audit/SP-07.5.png",
+    "method": "Temporary Liberation Sans 16 fallback only where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected final preview: readable labels and distinct branches; no overlapping state-transition labels."
+  }
+]

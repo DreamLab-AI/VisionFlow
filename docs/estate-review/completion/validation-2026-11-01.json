@@ -1891,7 +1891,7 @@
     ]
   },
   "heading_units": 9503,
-  "heading_units_with_recorded_assessment": 656,
+  "heading_units_with_recorded_assessment": 663,
   "native_tests": 9,
   "clippy": "passed -D warnings",
   "limits": "Counters track evidence reconciliation, not audit completion; document/report hashes do not revalidate implementation code or deployed state.",
@@ -1921,7 +1921,7 @@
       "target": "../../docs/estate-review/completion/claims.json"
     }
   ],
-  "exact_claim_bindings_rechecked": 190,
+  "exact_claim_bindings_rechecked": 192,
   "tool_hashes": {
     "scripts/estate-review-ledger/src/main.rs": "6a13475db77573e460ab9ba8a99b7aa1e7c306ca33c14ea3cf5188b690ce12b3",
     "scripts/estate-review-ledger/Cargo.toml": "8109eeff493be24031c394cce1d81a059ca1612f967e5b032f37bf9e8f1e50d6",
@@ -1933,13 +1933,13 @@
     "unicode_findings": 0,
     "prose_flags": 0,
     "scope": [
-      "docs/estate-review/2026-11-01-solid-http-delivery.md"
+      "docs/estate-review/2026-11-01-solid-provenance-delivery.md"
     ],
     "format_check": "rustfmt and node syntax checks; authored-file staged whitespace check. Raw tool logs retain original whitespace.",
-    "scoped_jev_advisory": "Final scoped runs reported no new advisories. Prior unassessed sibling queues remain open; no implied clearance.",
-    "local_links": 16
+    "scoped_jev_advisory": "Final sample has no advisories; selected issues corrected. Intermediate SP-07.6 advisory remains queued as an unassessed sibling.",
+    "local_links": 18
   },
-  "tool_validation_basis": "Nine collector tests and Clippy receipts retained from original ledger batch at 610b57b; unchanged collector/dependency hashes verified. Fresh collection rechecked 190 claims; zero stale records. Product verification is scoped in the current report.",
+  "tool_validation_basis": "Nine collector tests and Clippy receipts retained from original ledger batch at 610b57b; unchanged collector/dependency hashes verified. Fresh collection rechecked 192 claims; zero stale records. Product verification is scoped in the current report.",
   "prior_concurrent_source_refresh": {
     "changed_adrs": 5,
     "stale_claims": 5,
@@ -1985,26 +1985,27 @@
     "disposition": "Historical stale state; all five reassessed in docs/estate-review/2026-11-01-obsidian-refresh.md. See current snapshot for dispositions."
   },
   "previous_source_review_batch": {
-    "report": "docs/estate-review/2026-11-01-solid-policy-parsing.md",
-    "baseline": "b205687dfa005f79844fb2fa45486a4a40fd71a3",
+    "report": "docs/estate-review/2026-11-01-solid-http-delivery.md",
+    "baseline": "05c33b1b82eadbc8b602caf51c50c1001bb2d09e",
     "new_whole_adrs": 1,
     "newly_assessed_existing_panels": [
-      "SP-04.3",
-      "SP-04.4",
-      "SP-04.9",
-      "SP-04.10",
-      "SP-06.7"
+      "SP-03.1",
+      "SP-03.2",
+      "SP-03.3",
+      "SP-03.12",
+      "SP-04.2",
+      "SP-04.5",
+      "SP-04.6"
     ],
     "current_stale_records": 0,
     "previous_batch_candidates": 842,
     "added_candidates": [],
     "removed_candidates": [],
     "candidate_paths_and_hashes_unchanged": true,
-    "native_tests_passed": 41,
-    "probe_groups": 3,
-    "condition_cases": 5,
-    "core_feature_check": "passed natively",
-    "limits": "Library/storage reproduction and consumer source review. No HTTP admission, deployed edge faults, actual disclosure, WASM build or product remediation. RuView excluded."
+    "native_tests_passed": 12,
+    "probe_groups": 4,
+    "condition_admission_cases": 5,
+    "limits": "In-process native HTTP app, synthetic MemoryBackend and NIP-98 test key. New app per request is not an OS restart. No live pods, real intermediary cache, durable restart, edge runtime, product fix or deployment. RuView excluded."
   },
   "previous_scope_correction": {
     "kind": "owner-directed scope correction",
@@ -2044,27 +2045,26 @@
     "limits": "Scope correction only. Previous product tests and diagram gates are historical receipts; neither was rerun for this edit. No RuView source was scanned by the refreshed collector."
   },
   "current_batch": {
-    "report": "docs/estate-review/2026-11-01-solid-http-delivery.md",
-    "baseline": "05c33b1b82eadbc8b602caf51c50c1001bb2d09e",
+    "report": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
+    "baseline": "6e86d149a2806cf2164afcd79630b7583f1ab255",
     "new_whole_adrs": 1,
     "newly_assessed_existing_panels": [
-      "SP-03.1",
-      "SP-03.2",
-      "SP-03.3",
-      "SP-03.12",
-      "SP-04.2",
-      "SP-04.5",
-      "SP-04.6"
+      "SP-07.1",
+      "SP-07.2",
+      "SP-07.3",
+      "SP-07.4",
+      "SP-07.5"
     ],
     "current_stale_records": 0,
     "previous_batch_candidates": 842,
     "added_candidates": [],
     "removed_candidates": [],
     "candidate_paths_and_hashes_unchanged": true,
-    "native_tests_passed": 12,
-    "probe_groups": 4,
-    "condition_admission_cases": 5,
-    "limits": "In-process native HTTP app, synthetic MemoryBackend and NIP-98 test key. New app per request is not an OS restart. No live pods, real intermediary cache, durable restart, edge runtime, product fix or deployment. RuView excluded."
+    "native_tests_passed": 18,
+    "http_probe_scenarios": 11,
+    "default_build_scenarios": 1,
+    "git_build_scenarios": 10,
+    "limits": "Local native HTTP app with synthetic FsBackend/Git fixtures. No chain calls, live service, persistent restart, Nix build, product fix or deployment. RuView excluded."
   },
   "prior_full_corpus_gate": {
     "topics": 206,
@@ -2091,29 +2091,25 @@
     "declared_revisions": 57,
     "check_verification": "passed; no source path access",
     "scope": "Structure and declared-revision set only. Prior full-corpus citation receipt retained separately.",
-    "evidence": "docs/estate-review/evidence/2026-11-01/solid-delivery/structure.txt"
+    "evidence": "docs/estate-review/evidence/2026-11-01/solid-provenance/structure.txt"
   },
   "scoped_topic_gate": {
     "topics": [
-      "SP-03",
-      "SP-04"
+      "SP-07"
     ],
-    "rendered_panels": 24,
+    "rendered_panels": 19,
     "visually_assessed_panels": [
-      "SP-03.1",
-      "SP-03.2",
-      "SP-03.3",
-      "SP-03.12",
-      "SP-04.2",
-      "SP-04.5",
-      "SP-04.6"
+      "SP-07.1",
+      "SP-07.2",
+      "SP-07.3",
+      "SP-07.4",
+      "SP-07.5"
     ],
-    "verified_citations": 247,
+    "verified_citations": 249,
     "warnings": 0,
     "fallback": 0,
     "evidence": [
-      "docs/estate-review/evidence/2026-11-01/solid-delivery/render-ldp.txt",
-      "docs/estate-review/evidence/2026-11-01/solid-delivery/render-wac.txt"
+      "docs/estate-review/evidence/2026-11-01/solid-provenance/render.txt"
     ],
     "limits": "Citation model sample is advisory; no whole-topic source-review credit."
   }

@@ -1062,7 +1062,7 @@ Revision labels are author declarations. This index checks structure and referen
 | [SP-07.1 The two provenance tiers](solid-pod-rs/07-provenance-and-payments.md#sp-071-the-two-provenance-tiers) | flowchart | SP-07 |
 | [SP-07.2 git_mark_write — the skip ladder](solid-pod-rs/07-provenance-and-payments.md#sp-072-gitmarkwrite-the-skip-ladder) | flowchart | SP-07 |
 | [SP-07.3 Anchor policy resolution](solid-pod-rs/07-provenance-and-payments.md#sp-073-anchor-policy-resolution) | flowchart | SP-07 |
-| [SP-07.4 record_receipt — typed, per-tier outcomes (ADR-2004)](solid-pod-rs/07-provenance-and-payments.md#sp-074-recordreceipt-typed-per-tier-outcomes-adr-2004) | stateDiagram-v2 | SP-07 |
+| [SP-07.4 record_receipt — typed, per-tier outcomes (ADR-2004)](solid-pod-rs/07-provenance-and-payments.md#sp-074-recordreceipt-typed-per-tier-outcomes-adr-2004) | flowchart | SP-07 |
 | [SP-07.5 The receipt on the wire](solid-pod-rs/07-provenance-and-payments.md#sp-075-the-receipt-on-the-wire) | sequenceDiagram | SP-07 |
 | [SP-07.6 The `_prov` query surface](solid-pod-rs/07-provenance-and-payments.md#sp-076-the-prov-query-surface) | flowchart | SP-07 |
 | [SP-07.7 Epoch batching — one transaction, many commits](solid-pod-rs/07-provenance-and-payments.md#sp-077-epoch-batching-one-transaction-many-commits) | sequenceDiagram | SP-07 |

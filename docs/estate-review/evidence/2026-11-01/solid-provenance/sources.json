@@ -1,0 +1,34 @@
+{
+  "repositories": [
+    {
+      "name": "solid-pod-rs",
+      "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+      "files": {
+        "Cargo.toml": "d961f54655df352e4d96f33317de60825e69055c4bd461f47c24484614efadd0",
+        "Cargo.lock": "3d2aa7e07ee46b4ec469c1b91bcfb3eca02267e53e5279f86c6065a7e70fd6e1",
+        "crates/solid-pod-rs-server/Cargo.toml": "a39225158c86d61b6783a18d291f34ef50fb1a961d181f7327802c136df8f212",
+        "crates/solid-pod-rs-server/src/lib.rs": "6573dc10b392d62743af4cd20da96da7594f7ed755e75b3eedfa8fcd225f26eb",
+        "crates/solid-pod-rs-server/src/handlers/prov.rs": "ce9f9c6a2cb98d6c6eed4411eb67e167282494ae8026f484f76d92f058369973",
+        "crates/solid-pod-rs-server/src/mempool.rs": "7506b03de99083c042b3e41f69c923c58eae1e6505b708801070d25ec6c45222",
+        "crates/solid-pod-rs-server/src/trail_store.rs": "8c609c64f753b26a5b5a9285bb85a1cb0015014b4e85a8ccdb19659504d8b2a4",
+        "crates/solid-pod-rs-server/src/main.rs": "05597e6741c0647ef177836bf8b976f8e2dfd764f49a8fa350d7fc742edf08c6",
+        "crates/solid-pod-rs/src/provenance.rs": "20ac85602b8f6db2bbe39f35bf719f8caea941f9a866984ed27951b4ac005a39",
+        "crates/solid-pod-rs/src/wac/anchor.rs": "0c947ffa1fda14bd0560a79dfe69b3426e71b99ce2bf6b9683276dbb726eed9a",
+        "crates/solid-pod-rs/src/wac/conditions.rs": "013aa0505c5d7a3bb940d15f573b5a1b211cfdcf22c4074682c72b320ed107a7",
+        "crates/solid-pod-rs-git/src/mark.rs": "3d458fef7aa05bd5e9803df6741700b1f2410a350f3b577a8b134bbf24724d5b",
+        "crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md": "16be4b3a498aa8d87bf8e77024f7078f86c67b688c679e7c0d56f59746da0007",
+        "crates/solid-pod-rs/docs/adr/ADR-2004-provenance-off-by-default.md": "7e34d28968b79b31b22c0fbff9580fb6d2332b84219f8b991737e91c12aee97b",
+        "crates/solid-pod-rs/tests/provenance_receipts.rs": "bd3e2f5c5957b4bc537f50742dd1c881b0154be16e44275c8c0a6d46cd469aba",
+        "crates/solid-pod-rs-server/tests/git_marks.rs": "932ee23b88a474b9b846017b8683aaf2c6bf819172229e3ff5a4886ff6c0ac39"
+      }
+    },
+    {
+      "name": "agentbox",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "files": {
+        "lib/solid-pod-rs.nix": "c2fe198b7171ef844de72d1a4715dacce8d209e99eaf7ebb68d3b2cb026e6334",
+        "flake.nix": "71f7e45f6089843882273e1b29fd5ef361ae8ecc03e24ab38507c78921139c29"
+      }
+    }
+  ]
+}

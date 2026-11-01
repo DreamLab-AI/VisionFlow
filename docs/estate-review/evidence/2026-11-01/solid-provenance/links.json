@@ -1,0 +1,77 @@
+{
+  "checked": 18,
+  "links": [
+    {
+      "file": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
+      "target": "../../../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2004-provenance-off-by-default.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
+      "target": "evidence/2026-11-01/solid-provenance/sources.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
+      "target": "evidence/2026-11-01/solid-provenance/http-probe.rs"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
+      "target": "evidence/2026-11-01/solid-provenance/run-probe.cjs"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
+      "target": "evidence/2026-11-01/solid-provenance/default-probe.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
+      "target": "evidence/2026-11-01/solid-provenance/git-probe.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
+      "target": "evidence/2026-11-01/solid-provenance/genesis-search.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
+      "target": "evidence/2026-11-01/solid-provenance/receipts-tests.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
+      "target": "evidence/2026-11-01/solid-provenance/git-tests.txt"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "scope.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "claims.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "snapshot-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "validation-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../../../scripts/estate-review-ledger/README.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-provenance-delivery.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-http-delivery.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-policy-parsing.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../evidence/2026-11-01/solid-provenance/ledger-refresh.json"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "accessed": "2026-11-01",
+  "sources": [
+    {
+      "url": "https://opentimestamps.org/",
+      "supports": "Timestamp creation and independent verification; proof that data existed before a time, not truth of the observation."
+    },
+    {
+      "url": "https://docs.sigstore.dev/logging/overview/",
+      "supports": "Signed supply-chain metadata, inclusion proof and transparency-log verification."
+    }
+  ],
+  "limits": "Primary documentation comparison, no deployment, benchmark or interchangeability claim."
+}

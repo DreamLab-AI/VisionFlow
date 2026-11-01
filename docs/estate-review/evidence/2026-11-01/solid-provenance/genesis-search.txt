@@ -1,0 +1,18 @@
+Scope: solid-pod-rs native server src, not external provisioning.
+crates/solid-pod-rs-server/src/mempool.rs:1299:            save_gitmark_trail(storage, &intent.stored)
+crates/solid-pod-rs-server/src/mempool.rs:1366:        match save_gitmark_trail(storage, &stored).await {
+crates/solid-pod-rs-server/src/mempool.rs:1400:    pub async fn genesis(
+crates/solid-pod-rs-server/src/mempool.rs:1421:        let update = gitmark_genesis(voucher, commit, network, DEFAULT_FEE_SATS, &self.lookup)
+crates/solid-pod-rs-server/src/mempool.rs:1947:            .genesis(
+crates/solid-pod-rs-server/src/mempool.rs:1961:            .genesis("prov", &voucher, COMMITS[0], "testnet4", "")
+crates/solid-pod-rs-server/src/mempool.rs:2010:            .genesis("prov", &voucher, COMMITS[0], "testnet4", "")
+crates/solid-pod-rs-server/src/mempool.rs:2152:        a.genesis("prov", &voucher, COMMITS[0], "testnet4", "")
+crates/solid-pod-rs-server/src/handlers/pay.rs:174:            .check_genesis()
+crates/solid-pod-rs-server/src/handlers/pay.rs:647:    if payment_state.ledger.genesis().is_none() && ledger_is_empty(&payment_state.ledger) {
+crates/solid-pod-rs-server/src/handlers/pay.rs:714:    WebLedger::with_genesis(genesis).ok()
+crates/solid-pod-rs-server/src/handlers/pay.rs:1882:        state.ledger = WebLedger::with_genesis(genesis).unwrap();
+crates/solid-pod-rs-server/src/trail_store.rs:354:pub async fn save_gitmark_trail(
+crates/solid-pod-rs-server/src/trail_store.rs:502:    fn genesis() -> Mrc20State {
+crates/solid-pod-rs-server/src/trail_store.rs:524:            states: vec![genesis()],
+crates/solid-pod-rs-server/src/trail_store.rs:594:        public.states.push(genesis()); // simulate an appended state
+crates/solid-pod-rs-server/src/trail_store.rs:619:        save_gitmark_trail(&storage, &stored).await.unwrap();

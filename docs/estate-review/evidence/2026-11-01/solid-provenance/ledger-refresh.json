@@ -1,0 +1,29 @@
+{
+  "previous_claims": 190,
+  "current_claims": 192,
+  "new_adr": "crates/solid-pod-rs/docs/adr/ADR-2004-provenance-off-by-default.md",
+  "new_panels": [
+    "SP-07.1",
+    "SP-07.2",
+    "SP-07.3",
+    "SP-07.4",
+    "SP-07.5"
+  ],
+  "unchanged_sibling_panels": [
+    "SP-07.6",
+    "SP-07.7",
+    "SP-07.9",
+    "SP-07.10",
+    "SP-07.11",
+    "SP-07.12",
+    "SP-07.13",
+    "SP-07.14",
+    "SP-07.15",
+    "SP-07.16",
+    "SP-07.17",
+    "SP-07.18",
+    "SP-07.19",
+    "SP-07.20"
+  ],
+  "limits": "Unchanged sibling bytes gain no new review credit."
+}

@@ -1,0 +1,16 @@
+{
+  "initial_selected_panel_issues": [
+    "SP-07.1 epoch root anchor citation pointed at push, corrected to handlers/prov.rs:313",
+    "SP-07.3 missing-provider flag and policy citations corrected to executable lines",
+    "SP-07.5 epoch invocation corrected to lib.rs:4050"
+  ],
+  "initial_render_issues": "Semicolon syntax in state/sequence labels corrected. State diagram label collisions resolved by using a flowchart with node-contained citations.",
+  "final_gate": "Zero citation warnings, fallback or model advisories.",
+  "limits": "Model sample is advisory; fourteen rendered sibling panels gain no review credit.",
+  "unselected_advisory": {
+    "panel": "SP-07.6",
+    "citation": "solid-pod-rs-server/src/handlers/prov.rs:741",
+    "p_defect": 0.91,
+    "disposition": "Intermediate model sample flagged this unassessed sibling. Final sample did not repeat it; semantic review remains queued. No clearance inferred."
+  }
+}

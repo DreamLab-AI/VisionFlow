@@ -1,0 +1,6 @@
+{
+  "primary_baseline_head": "6e86d149a2806cf2164afcd79630b7583f1ab255",
+  "primary_user_status_and_file_hashes_unchanged": true,
+  "source_manifests_rechecked": true,
+  "limits": "Read-only source review and disposable build/probe artefacts; no deployment or product changes."
+}

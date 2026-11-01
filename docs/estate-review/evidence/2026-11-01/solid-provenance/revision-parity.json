@@ -1,0 +1,16 @@
+{
+  "declared": "09ec90f26aa573731460292d0e80343914cb43d9",
+  "current": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+  "whole_files_byte_identical": [
+    "crates/solid-pod-rs-server/src/lib.rs",
+    "crates/solid-pod-rs-server/src/handlers/prov.rs",
+    "crates/solid-pod-rs-server/src/mempool.rs",
+    "crates/solid-pod-rs-server/src/trail_store.rs",
+    "crates/solid-pod-rs-server/src/main.rs",
+    "crates/solid-pod-rs/src/provenance.rs",
+    "crates/solid-pod-rs/src/wac/anchor.rs",
+    "crates/solid-pod-rs/src/wac/conditions.rs",
+    "crates/solid-pod-rs-git/src/mark.rs"
+  ],
+  "limits": "Selected-panel meaning assessed; equality alone grants no sibling-panel credit."
+}
