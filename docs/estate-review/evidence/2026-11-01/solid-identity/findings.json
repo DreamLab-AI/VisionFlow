@@ -1,0 +1,26 @@
+[
+  {
+    "id": "SP-ID-01",
+    "status": "reproduced-open",
+    "scope": "actual private PUT; synthetic signer and memory storage",
+    "finding": "Signed nonempty body can be replaced with empty content before first successful use"
+  },
+  {
+    "id": "SP-ID-02",
+    "status": "reproduced-open",
+    "scope": "public cache constructor plus signed verifier, controlled clock",
+    "finding": "Short or zero retention permits credential reuse while freshness still passes"
+  },
+  {
+    "id": "SP-ID-03",
+    "status": "reproduced-open",
+    "scope": "GitLenient verifier; not actual Git service or WAC bypass",
+    "finding": "Raw URL string prefix accepts sibling path and hostname prefixes"
+  },
+  {
+    "id": "SP-ID-04",
+    "status": "source-confirmed-open",
+    "scope": "baseline/ADR helper-adoption claim",
+    "finding": "IdP uses separate Schnorr challenge with k256, not NIP-98 helper"
+  }
+]

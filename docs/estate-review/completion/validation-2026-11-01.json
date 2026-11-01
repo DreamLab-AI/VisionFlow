@@ -2127,34 +2127,36 @@
     "limits": "Scope correction only. Previous product tests and diagram gates are historical receipts; neither was rerun for this edit. No RuView source was scanned by the refreshed collector."
   },
   "current_batch": {
-    "report": "docs/estate-review/2026-11-01-visionclaw-payment-auth.md",
-    "baseline": "3fd2833c8f51cb3701fc21ba8cac63814d1ebc44",
+    "report": "docs/estate-review/2026-11-01-solid-identity-boundaries.md",
+    "baseline": "75481f7a8f0e5a640ea70f0967d59732714e7114",
+    "source_revision": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
     "new_whole_adrs": 1,
     "newly_assessed_existing_panels": [
-      "VC-04.27"
+      "SP-05.1",
+      "SP-05.2",
+      "SP-05.3",
+      "SP-05.4",
+      "SP-05.5"
     ],
-    "new_topic_panels": [
-      "VC-55.1"
-    ],
-    "route_tests_passed": 6,
-    "shared_verifier_tests_passed": 46,
-    "whole_workspace_clippy": "failed; unchanged diagnostic paths",
-    "product_commit": "5fa0e1325a2f903c175cfe67bbc6d644fcf38267",
-    "skills_commit": "686db14b1be0825ed9ff683790fb0ac550e30188",
-    "current_stale_records": 0,
+    "new_topic_panels": [],
+    "native_auth_tests_passed": 31,
+    "observation_probes_passed": 5,
+    "replay_only_rerun": 13,
+    "replay_only_included_in_native_count": true,
+    "production_source_changed": false,
     "counts": {
       "available_checkouts": 20,
       "candidate_files": 828,
-      "numbered_candidates_with_recorded_assessment": 96,
+      "numbered_candidates_with_recorded_assessment": 97,
       "numbered_decision_candidates": 720,
       "panels": 1741,
-      "panels_with_recorded_assessment": 361,
+      "panels_with_recorded_assessment": 366,
       "scope_targets": 20,
       "stale_claim_records": 0,
       "topics": 208
     },
-    "candidate_paths_unchanged": true,
-    "vcs10_disposition": "Partial: payment binding/replay fixed; proxy/fixture and deployment open."
+    "current_stale_records": 0,
+    "candidate_paths_unchanged": true
   },
   "prior_full_corpus_gate": {
     "topics": 206,
@@ -2178,29 +2180,29 @@
   "corpus_gate": {
     "topics": 208,
     "panels": 1741,
-    "check_verification": "passed; no source path access",
-    "scope": "Structure and revision-set parity only; scoped VC-55 receipt added to historical citation report",
-    "evidence": "docs/estate-review/evidence/2026-11-01/pay-nip98/structure.txt",
-    "supplement": "docs/estate-review/evidence/2026-11-01/pay-nip98/verification-supplement.json"
+    "check_verification": "passed; no source access",
+    "scope": "Structure and unchanged revision-set parity only. Scoped SP-05 citations in separate receipt.",
+    "evidence": "docs/estate-review/evidence/2026-11-01/solid-identity/structure.txt"
   },
   "scoped_topic_gate": {
     "topics": [
-      "VC-04",
-      "VC-55"
+      "SP-05"
     ],
-    "rendered_panels": 24,
+    "rendered_panels": 18,
     "visually_checked_panels": [
-      "VC-04.27",
-      "VC-55.1"
+      "SP-05.1",
+      "SP-05.2",
+      "SP-05.3",
+      "SP-05.4",
+      "SP-05.5"
     ],
-    "verified_citations": 226,
+    "verified_citations": 220,
     "warnings": 0,
     "fallback": 0,
     "evidence": [
-      "docs/estate-review/evidence/2026-11-01/pay-nip98/diagram-new.txt",
-      "docs/estate-review/evidence/2026-11-01/pay-nip98/diagram-historical.txt"
+      "docs/estate-review/evidence/2026-11-01/solid-identity/diagram.txt"
     ],
-    "limits": "VC-04 has120-citation JEV sample, not complete semantic acceptance. Only two selected panels assessed."
+    "limits": "120-citation JEV sample; no semantic credit for thirteen sibling panels."
   },
   "current_scope_correction": {
     "excluded": [
@@ -2251,5 +2253,35 @@
       "topics": 207
     },
     "candidate_paths_unchanged": false
+  },
+  "previous_payment_auth_batch": {
+    "report": "docs/estate-review/2026-11-01-visionclaw-payment-auth.md",
+    "baseline": "3fd2833c8f51cb3701fc21ba8cac63814d1ebc44",
+    "new_whole_adrs": 1,
+    "newly_assessed_existing_panels": [
+      "VC-04.27"
+    ],
+    "new_topic_panels": [
+      "VC-55.1"
+    ],
+    "route_tests_passed": 6,
+    "shared_verifier_tests_passed": 46,
+    "whole_workspace_clippy": "failed; unchanged diagnostic paths",
+    "product_commit": "5fa0e1325a2f903c175cfe67bbc6d644fcf38267",
+    "skills_commit": "686db14b1be0825ed9ff683790fb0ac550e30188",
+    "current_stale_records": 0,
+    "counts": {
+      "available_checkouts": 20,
+      "candidate_files": 828,
+      "numbered_candidates_with_recorded_assessment": 96,
+      "numbered_decision_candidates": 720,
+      "panels": 1741,
+      "panels_with_recorded_assessment": 361,
+      "scope_targets": 20,
+      "stale_claim_records": 0,
+      "topics": 208
+    },
+    "candidate_paths_unchanged": true,
+    "vcs10_disposition": "Partial: payment binding/replay fixed; proxy/fixture and deployment open."
   }
 }

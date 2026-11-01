@@ -1,0 +1,9 @@
+{
+  "local_links": [
+    "evidence/2026-11-01/solid-identity/sources.json",
+    "../diagrams/solid-pod-rs/05-identity-nip98-did-oidc.md",
+    "evidence/2026-11-01/solid-identity/manifest.json"
+  ],
+  "hidden_unicode_carriers": 0,
+  "visual_review": "Five selected panels; long source labels shortened, replay/class diagrams changed to readable flowcharts. Full source list preserved."
+}

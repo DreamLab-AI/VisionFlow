@@ -1,0 +1,25 @@
+{
+  "baseline": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+  "commands": [
+    {
+      "cwd": "isolated Solid Pod worktree at baseline",
+      "setup": "copy estate_nip98_boundaries.rs to crates/solid-pod-rs-server/tests/; no production changes",
+      "command": "cargo test --locked --offline -p solid-pod-rs-server --test estate_nip98_boundaries -- --nocapture",
+      "result": "5 passing observation probes",
+      "log": "probes.txt"
+    },
+    {
+      "cwd": "Solid Pod baseline",
+      "command": "cargo test --locked --offline -p solid-pod-rs --lib auth::",
+      "result": "31 passing native tests",
+      "log": "native-auth.txt"
+    },
+    {
+      "cwd": "Solid Pod baseline",
+      "command": "cargo test --locked --offline -p solid-pod-rs --lib --features nip98-replay auth::replay",
+      "result": "13 passing tests already included in31; not added to unique total",
+      "log": "native-replay.txt"
+    }
+  ],
+  "limits": "Disposable in-memory HTTP fixture. No production/source mutation, deployed server, Git feature service or external network probe. Initial fixture 4pass1failure was inconclusive for HTTP body substitution."
+}

@@ -45,20 +45,20 @@ sources:
 verified_commit: 09ec90f26aa573731460292d0e80343914cb43d9
 ---
 
-## SP-05.1 Two auth paths, one AuthContext
+## SP-05.1 REST identity extraction and anonymous fallback
 
 ```mermaid
 flowchart TD
     REQ["inbound request"]
-    EX["extract_pubkey_with_body<br/>solid-pod-rs-server/src/lib.rs:603"]
-    BEAR{"Authorization starts with 'Bearer '?<br/>solid-pod-rs-server/src/lib.rs:611"}
-    DEV["verify_dev_bearer — HMAC dev token, compiled only with the dev-bearer feature<br/>solid-pod-rs-server/src/lib.rs:684"]
-    PROD["production build: every Bearer header is anonymous<br/>solid-pod-rs-server/src/lib.rs:617"]
-    N98["nip98::verify_at over the reconstructed URL<br/>solid-pod-rs-server/src/lib.rs:636"]
-    REPLAY["NIP98_REPLAY.check_and_record<br/>solid-pod-rs-server/src/lib.rs:641"]
+    EX["extract_pubkey_with_body<br/>lib.rs:603"]
+    BEAR{"Authorization starts with 'Bearer '?<br/>lib.rs:611"}
+    DEV["verify_dev_bearer — HMAC dev token, compiled only with the dev-bearer feature<br/>lib.rs:684"]
+    PROD["production build: every Bearer header is anonymous<br/>lib.rs:617"]
+    N98["nip98::verify_at over the reconstructed URL<br/>lib.rs:636"]
+    REPLAY["NIP98_REPLAY.check_and_record<br/>lib.rs:641"]
     PK["Some(pubkey)"]
-    ANON["None — treated as anonymous, WAC then denies"]
-    AGENT["agent_uri: did:nostr prefix, or a WebID URL passed through<br/>solid-pod-rs-server/src/lib.rs:657"]
+    ANON["None — anonymous; WAC decides whether public access is allowed"]
+    AGENT["agent_uri: did:nostr prefix, or a WebID URL passed through<br/>lib.rs:657"]
 
     REQ --> EX --> BEAR
     BEAR -- "yes, dev-bearer build" --> DEV
@@ -71,11 +71,11 @@ flowchart TD
     N98 -- verification failed --> ANON
     PK --> AGENT
 
-    N1["The signed URL comes from scheme::request_url: the configured public origin or the plain<br/>Host header, with X-Forwarded-Proto honoured only from a trusted proxy.<br/>solid-pod-rs-server/src/lib.rs:631 and solid-pod-rs-server/src/scheme.rs:240"]
+    N1["The signed URL comes from scheme::request_url: the configured public origin or the plain<br/>Host header, with X-Forwarded-Proto honoured only from a trusted proxy.<br/>lib.rs:631 and scheme.rs:240"]
     N98 -.-> N1
-    N4["INVARIANT: the dev bearer needs aud solid-pod-rs-dev-bearer and a lifetime of at most 24 h,<br/>and is off unless the cargo feature is set.<br/>solid-pod-rs-server/src/lib.rs:722 and solid-pod-rs-server/Cargo.toml:133"]
+    N4["INVARIANT: the dev bearer needs aud solid-pod-rs-dev-bearer and a lifetime of at most 24 h,<br/>and is off unless the cargo feature is set.<br/>lib.rs:722 and solid-pod-rs-server/Cargo.toml:133"]
     DEV -.-> N4
-    N2["INVARIANT: a rejected replay returns None, i.e. anonymous — it never becomes<br/>an error path the caller can distinguish from 'no credential'.<br/>solid-pod-rs-server/src/lib.rs:651"]
+    N2["INVARIANT: a rejected replay returns None, i.e. anonymous — it never becomes<br/>an error path the caller can distinguish from 'no credential'.<br/>lib.rs:651"]
     REPLAY -.-> N2
     N3["EXTERNAL: agentbox mints a did:nostr per agent at spawn and signs pod writes<br/>with it; the same principal string reaches WAC here. See AB-11 and ES-04."]
     AGENT -.-> N3
@@ -87,110 +87,122 @@ flowchart TD
 sequenceDiagram
     autonumber
     participant C as Caller
-    participant V as verify_at_with_policy<br/>solid-pod-rs/src/auth/nip98.rs:116
-    participant S as verify_schnorr_signature<br/>solid-pod-rs/src/auth/nip98.rs:342
-    participant ID as compute_event_id<br/>solid-pod-rs/src/auth/nip98.rs:241
+    participant V as verify_at_with_policy<br/>auth/nip98.rs:116
+    participant S as verify_schnorr_signature<br/>auth/nip98.rs:342
+    participant ID as compute_event_id<br/>auth/nip98.rs:241
 
     C->>V: Authorization: Nostr <base64 kind-27235 event>
-    V->>V: strip the "Nostr " prefix<br/>solid-pod-rs/src/auth/nip98.rs:30
-    V->>V: reject above MAX_EVENT_SIZE, 64 KiB, before AND after base64<br/>solid-pod-rs/src/auth/nip98.rs:129
-    V->>V: kind must equal HTTP_AUTH_KIND 27235<br/>solid-pod-rs/src/auth/nip98.rs:138
-    V->>V: pubkey must be 64 hex chars<br/>solid-pod-rs/src/auth/nip98.rs:144
-    V->>V: created_at within TIMESTAMP_TOLERANCE of now<br/>solid-pod-rs/src/auth/nip98.rs:147
-    V->>V: 'u' tag must match the expected URL per MatchPolicy<br/>solid-pod-rs/src/auth/nip98.rs:154
-    V->>V: 'method' tag must match, or be * under GitLenient<br/>solid-pod-rs/src/auth/nip98.rs:173
-    V->>V: 'payload' tag must equal sha256(raw body) when a body was supplied<br/>solid-pod-rs/src/auth/nip98.rs:192
-    V->>S: BIP-340 Schnorr verification — UNCONDITIONAL<br/>solid-pod-rs/src/auth/nip98.rs:208
+    V->>V: strip the "Nostr " prefix<br/>auth/nip98.rs:30
+    V->>V: reject above MAX_EVENT_SIZE, 64 KiB, before AND after base64<br/>auth/nip98.rs:129
+    V->>V: kind must equal HTTP_AUTH_KIND 27235<br/>auth/nip98.rs:138
+    V->>V: pubkey must be 64 hex chars<br/>auth/nip98.rs:144
+    V->>V: created_at within TIMESTAMP_TOLERANCE of now<br/>auth/nip98.rs:147
+    V->>V: 'u' tag must match the expected URL per MatchPolicy<br/>auth/nip98.rs:154
+    V->>V: 'method' tag must match, or be * under GitLenient<br/>auth/nip98.rs:173
+    V->>V: 'payload' tag must equal sha256(raw body) only when supplied body is nonempty<br/>auth/nip98.rs:192
+    V->>S: BIP-340 Schnorr verification — UNCONDITIONAL<br/>auth/nip98.rs:208
     S-->>V: ok, and the canonical event id is bound to the signature
-    V->>ID: recompute the NIP-01 id from content, never trust event.id<br/>solid-pod-rs/src/auth/nip98.rs:213
-    V-->>C: Nip98Verified { pubkey, url, method, payload_hash, created_at, event_id }<br/>solid-pod-rs/src/auth/nip98.rs:44
-    Note over V: TIMESTAMP_TOLERANCE is 60 s (solid-pod-rs/src/auth/nip98.rs:28) — a two-sided<br/>window, so the freshness check alone still leaves a replay gap. That gap is<br/>what the single-use store in SP-05.4 closes.
+    V->>ID: recompute the NIP-01 id from content, never trust event.id<br/>auth/nip98.rs:213
+    V-->>C: Nip98Verified { pubkey, url, method, payload_hash, created_at, event_id }<br/>auth/nip98.rs:44
+    Note over V: TIMESTAMP_TOLERANCE is 60 s (auth/nip98.rs:28) — a two-sided<br/>window, so the freshness check alone still leaves a replay gap. That gap is<br/>what SP-05.4 is meant to close, but its TTL is not bounded by freshness.
+    Note over V: Supplied empty bytes skip payload verification, even with a hash for nonempty bytes.
+    Note over V: Server PUT forwards empty bodies here (lib.rs:1735).
 ```
 
 ## SP-05.3 The two match policies
 
 ```mermaid
 flowchart LR
-    MP["MatchPolicy<br/>solid-pod-rs/src/auth/nip98.rs:89"]
-    ST["Strict — exact URL and method<br/>solid-pod-rs/src/auth/nip98.rs:91"]
-    GL["GitLenient — * method plus URL-prefix<br/>solid-pod-rs/src/auth/nip98.rs:93"]
-    REST["every REST and MCP endpoint via verify_at<br/>solid-pod-rs/src/auth/nip98.rs:97"]
-    GIT["BasicNostrExtractor for git push<br/>solid-pod-rs-git/src/auth.rs:144"]
+    MP["MatchPolicy<br/>auth/nip98.rs:89"]
+    ST["Strict — trailing-slash-trimmed URL and case-insensitive method<br/>auth/nip98.rs:91"]
+    GL["GitLenient — * method plus raw string URL-prefix<br/>auth/nip98.rs:93"]
+    REST["Strict verifier entry via verify_at; replay is caller-owned<br/>auth/nip98.rs:97"]
+    GIT["BasicNostrExtractor for Git authentication<br/>solid-pod-rs-git/src/auth.rs:144"]
 
     MP --> ST --> REST
     MP --> GL --> GIT
 
-    N["GitLenient exists because a stock git client has no Nostr keypair mid-push:<br/>one token signed over the repo base URL with method * covers every smart-protocol<br/>sub-request. Schnorr is still fully verified; only the request binding relaxes.<br/>solid-pod-rs-git/src/auth.rs:154"]
+    N["GitLenient exists because a stock git client has no Nostr keypair mid-push:<br/>one token signed over the repo base URL with method * covers every smart-protocol<br/>sub-request. Schnorr is verified, but prefix matching admits sibling names;
+no ReplayStore claim occurs in this extractor.<br/>solid-pod-rs-git/src/auth.rs:154"]
     GL -.-> N
     N2["The git bridge also passes body = None, so a push body is NOT hash-bound.<br/>solid-pod-rs-git/src/auth.rs:148"]
     GIT -.-> N2
-    N3["INVARIANT (baseline): NIP-98 is single-sourced. Siblings delegate to this one<br/>verifier — re-implementing it in a sibling crate is a regression."]
+    N3["ADR-2006 calls for one NIP-98 verifier; Git delegates to it.
+The IdP Schnorr login is a separate challenge protocol and calls k256 directly.
+schnorr.rs:397"]
     MP -.-> N3
+    N4["Native server rejects push before authentication; Git reads still use this extractor.
+lib.rs:4750
+lib.rs:4775"]
+    GIT -.-> N4
 ```
 
 ## SP-05.4 The single-use replay store (ADR-2006)
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Lock: check_and_record(event_id)<br/>solid-pod-rs/src/auth/replay.rs:243
-    Lock --> Peek: ONE async mutex spans check and record<br/>solid-pod-rs/src/auth/replay.rs:247
-    Peek --> Replayed: seen and still inside TTL<br/>solid-pod-rs/src/auth/replay.rs:255
-    Peek --> Refresh: seen but expired — overwrite in place<br/>solid-pod-rs/src/auth/replay.rs:260
-    Peek --> NeedSlot: unseen id
-
-    NeedSlot --> Insert: below capacity
-    NeedSlot --> Reclaim: at capacity<br/>solid-pod-rs/src/auth/replay.rs:266
-    Reclaim --> Insert: expired entries reclaimed
-    Reclaim --> Exhausted: every live entry is unexpired<br/>solid-pod-rs/src/auth/replay.rs:275
-
-    Replayed --> [*]: ReplayError.Replayed, entry NOT refreshed
-    Exhausted --> [*]: ReplayError.CapacityExhausted — REFUSE
-    Insert --> [*]: Ok
-    Refresh --> [*]: Ok
-
-    note right of Exhausted
-      INVARIANT (ADR-2006): a bounded store NEVER evicts an unexpired entry to
-      make room. Evicting one reopens the replay window for that credential, so
-      the store refuses the NEW credential instead — fail closed on
-      authentication, not on replay. Size with
-      auth.replay.sizing_floor(peak_rps, ttl)
-      solid-pod-rs/src/auth/replay.rs:99
-    end note
-    note right of Replayed
-      Deliberately no refresh on rejection: a flood of replays must not pin an id
-      past its natural expiry.
-    end note
+flowchart TD
+    START["check_and_record
+auth/replay.rs:243"] --> LOCK["one async mutex
+auth/replay.rs:247"]
+    LOCK --> SEEN{"id already stored?"}
+    SEEN -->|yes| LIVE{"age less than configured TTL?
+auth/replay.rs:255"}
+    LIVE -->|yes| REPLAY["Replayed, no expiry refresh"]
+    LIVE -->|no| REFRESH["overwrite same slot, accept
+auth/replay.rs:260"]
+    SEEN -->|no| FULL{"at capacity?
+auth/replay.rs:266"}
+    FULL -->|no| INSERT["insert and accept"]
+    FULL -->|yes| RECLAIM["remove entries at or beyond TTL
+auth/replay.rs:200"]
+    RECLAIM --> SPACE{"slot available?"}
+    SPACE -->|yes| INSERT
+    SPACE -->|no| REFUSE["CapacityExhausted, refuse new id
+auth/replay.rs:275"]
+    REFUSE -.-> KEEP["Never evict an unexpired entry.
+Size for rate times retention.
+auth/replay.rs:99"]
+    LIVE -.-> LIMIT["TTL is not validated against token freshness.
+Environment accepts any positive seconds.
+Constructor also permits zero.
+auth/replay.rs:133
+auth/replay.rs:149"]
 ```
 
 ## SP-05.5 The ReplayStore seam and its tier limits
 
 ```mermaid
-classDiagram
-    class ReplayStore {
-        <<trait>>
-        +check_and_record(event_id)  solid-pod-rs/src/auth/replay_store.rs:90
-    }
-    class ReplayError {
-        <<enum, non_exhaustive>>
-        Replayed  ttl   solid-pod-rs/src/auth/replay_store.rs:56
-        CapacityExhausted  capacity, ttl   solid-pod-rs/src/auth/replay_store.rs:75
-    }
-    class Nip98ReplayCache {
-        +from_env  solid-pod-rs/src/auth/replay.rs:133
-        +with_config  solid-pod-rs/src/auth/replay.rs:149
-        +evict_expired  solid-pod-rs/src/auth/replay.rs:183
-        +spawn_evictor  solid-pod-rs/src/auth/replay.rs:217
-    }
-    class Tuning {
-        DEFAULT_TTL_SECS 120  solid-pod-rs/src/auth/replay.rs:78
-        DEFAULT_MAX_SIZE 10000  solid-pod-rs/src/auth/replay.rs:82
-        SOLID_POD_NIP98_REPLAY_TTL_SECS  solid-pod-rs/src/auth/replay.rs:85
-        SOLID_POD_NIP98_REPLAY_MAX_SIZE  solid-pod-rs/src/auth/replay.rs:86
-    }
-    ReplayStore <|.. Nip98ReplayCache
-    ReplayStore ..> ReplayError
-    Nip98ReplayCache ..> Tuning
-    note for ReplayStore "Contract: atomic check-and-record, no replay inside the window ever, and no\nrefresh on rejection. A process-local store loses every entry on restart, so\neach restart reopens the window for one TTL.\nDIVERGENCE: the seam has exactly ONE implementor in this repo. The second tier\n(the forum / CF edge datastore) lives in nostr-rust-forum, so ADR-2006 stays\n'standalone' until that repo pins a version carrying it."
+flowchart TD
+    TRAIT["ReplayStore: atomic check_and_record
+auth/replay_store.rs:90"]
+    CACHE["Nip98ReplayCache
+process-local reference implementation
+auth/replay.rs:243"]
+    ERROR["Replayed or CapacityExhausted
+non-exhaustive error enum
+auth/replay_store.rs:56
+auth/replay_store.rs:75"]
+    RETAIN["No live eviction and no refresh on rejection
+auth/replay_store.rs:108"]
+    DEFAULTS["Default: 120 seconds, 10,000 entries
+auth/replay.rs:78
+auth/replay.rs:82"]
+    ENV["TTL and capacity environment overrides
+auth/replay.rs:85
+auth/replay.rs:86"]
+    LIMIT["Restart forgets ids, replicas do not share state.
+Reuse is possible while the token remains fresh.
+auth/replay_store.rs:115"]
+    SEAM["Another tier must implement and consume the trait.
+Pinning its crate alone does not integrate a shared store.
+auth/replay_store.rs:34"]
+    CACHE --> TRAIT
+    TRAIT --> ERROR
+    TRAIT --> RETAIN
+    CACHE --> DEFAULTS
+    CACHE --> ENV
+    CACHE --> LIMIT
+    TRAIT --> SEAM
 ```
 
 ## SP-05.7 Solid-OIDC — DPoP proof verification

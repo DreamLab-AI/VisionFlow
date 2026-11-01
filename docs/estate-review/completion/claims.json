@@ -2556,5 +2556,32 @@
     "panels": [
       "VC-55.1"
     ]
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/adr/ADR-2006-nip98-replaystore-seam.md",
+    "source_sha256": "ca25676edb372749f1e0c60867889a8d929045e9d12829bbf2644a2506d7133e",
+    "report": "docs/estate-review/2026-11-01-solid-identity-boundaries.md",
+    "report_sha256": "364bccd426a00cbc5e9355f01130455531fc8d2ca2830cc64816bc1b108b3c47",
+    "coverage": "whole-document",
+    "basis": "All six sections assessed. Existing31auth tests include13replay tests; five bounded probes expose empty-body, retention and Git scope limits. No deployed or cross-tier guarantee."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/05-identity-nip98-did-oidc.md",
+    "source_sha256": "a5bd7f7d1af3679f88e883b5bfd2c6bea789e6c3fec42163c14c0fc2b1ea95d6",
+    "report": "docs/estate-review/2026-11-01-solid-identity-boundaries.md",
+    "report_sha256": "364bccd426a00cbc5e9355f01130455531fc8d2ca2830cc64816bc1b108b3c47",
+    "coverage": "selected-panels",
+    "basis": "Five selected identity/replay panels checked against source, bounded probes and visual renders. Other identity panels receive no semantic credit.",
+    "panels": [
+      "SP-05.1",
+      "SP-05.2",
+      "SP-05.3",
+      "SP-05.4",
+      "SP-05.5"
+    ]
   }
 ]

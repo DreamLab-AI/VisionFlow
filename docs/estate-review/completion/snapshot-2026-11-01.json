@@ -59769,58 +59769,80 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "All six sections assessed. Existing31auth tests include13replay tests; five bounded probes expose empty-body, retention and Git scope limits. No deployed or cross-tier guarantee.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-solid-identity-boundaries.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "crates/solid-pod-rs/docs/adr/ADR-2006-nip98-replaystore-seam.md",
       "repo": "solid-pod-rs",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 18,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-identity-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-2006 — Single-source NIP-98 and expose a ReplayStore seam, not a cross-tier store"
         },
         {
           "line": 20,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-identity-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 28,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-identity-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 42,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-identity-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 54,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-identity-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         },
         {
           "line": 62,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-identity-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Closeout extension — 2026-09-04"
         },
         {
           "line": 72,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-identity-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Acceptance progress — 2026-09-05"
         }
       ],
@@ -75953,10 +75975,10 @@
   "counts": {
     "available_checkouts": 20,
     "candidate_files": 828,
-    "numbered_candidates_with_recorded_assessment": 96,
+    "numbered_candidates_with_recorded_assessment": 97,
     "numbered_decision_candidates": 720,
     "panels": 1741,
-    "panels_with_recorded_assessment": 361,
+    "panels_with_recorded_assessment": 366,
     "scope_targets": 20,
     "stale_claim_records": 0,
     "topics": 208
@@ -75967,7 +75989,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "3fd2833c8f51cb3701fc21ba8cac63814d1ebc44",
+      "head": "75481f7a8f0e5a640ea70f0967d59732714e7114",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -87406,58 +87428,82 @@
       "sha256": "572e5c105445b537adb32684590976c7c4990dfb7d9bff59d70d9e84866d69c9"
     },
     {
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Five selected identity/replay panels checked against source, bounded probes and visual renders. Other identity panels receive no semantic credit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SP-05.1",
+            "SP-05.2",
+            "SP-05.3",
+            "SP-05.4",
+            "SP-05.5"
+          ],
+          "report": "docs/estate-review/2026-11-01-solid-identity-boundaries.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "panels": [
         {
-          "body_sha256": "50abc781d59f4e114ebe8f9e71a15d638fe6185d2a3bef985728833b92f617c0",
-          "heading": "SP-05.1 Two auth paths, one AuthContext",
+          "body_sha256": "6faf98458ac2c5d2debb2b50af84fe786a7d49e0e231a6357548d06b7ec83c7f",
+          "heading": "SP-05.1 REST identity extraction and anonymous fallback",
           "id": "SP-05.1",
           "line": 50,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-identity-boundaries.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "8c79fb4d0b1c587523eb690aa4a7c8e7d183bd70b32e623fc888cbffa89a4607",
+          "body_sha256": "a63f0083d40578aa40c5afc81a6bd2fbbcdd64ccd469e4c5ba8d524f74e71a31",
           "heading": "SP-05.2 NIP-98 verification, step by step",
           "id": "SP-05.2",
           "line": 86,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-identity-boundaries.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "63d10f8724dc422eefff0a720462409c4e48377fd08ee211fbc9ffbdff7a529f",
+          "body_sha256": "72de33e7e440ab20934368e50c2d2fb27253655800d9aca1c36ca032e98cc435",
           "heading": "SP-05.3 The two match policies",
           "id": "SP-05.3",
-          "line": 112,
+          "line": 114,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-identity-boundaries.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "86a364ea24eb4d98b36cb8aebbc2b35ad5f21a28eab900c24e4210aa50a60972",
+          "body_sha256": "df704bb1be244f94ffca0058bddc0bed6a3045567ba36cef247dadccda5a9d41",
           "heading": "SP-05.4 The single-use replay store (ADR-2006)",
           "id": "SP-05.4",
-          "line": 133,
+          "line": 142,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-identity-boundaries.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "05a10f715998d8973edb557fdb5543f2dd62f934f8c54d49bb9fbc9acddd9263",
+          "body_sha256": "dd914f8054dcad1331a7407a0a12393369bc5eb19ed6e1b80299dbb395eeaae6",
           "heading": "SP-05.5 The ReplayStore seam and its tier limits",
           "id": "SP-05.5",
-          "line": 167,
+          "line": 174,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-identity-boundaries.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "82ea876c604d5af18b541e5256989d9fbcb0d9699264da5ac3831129844d4cb2",
           "heading": "SP-05.7 Solid-OIDC — DPoP proof verification",
           "id": "SP-05.7",
-          "line": 198,
+          "line": 210,
           "ordinal": 6,
           "reports": [],
           "review": "unreconciled"
@@ -87466,7 +87512,7 @@
           "body_sha256": "36e7f69b923125a9a63b51b72c463343063f1fc0459fac1270313225c038c873",
           "heading": "SP-05.8 Access-token verification, its divergences, and discovery versus the crypto path",
           "id": "SP-05.8",
-          "line": 222,
+          "line": 234,
           "ordinal": 7,
           "reports": [],
           "review": "unreconciled"
@@ -87475,7 +87521,7 @@
           "body_sha256": "790990549bbfe9480b828deb5ab2ec45ab2c053d6d1bf206ac3ea25a055d813a",
           "heading": "SP-05.10 JWKS and discovery fetching — SSRF-pinned and cached",
           "id": "SP-05.10",
-          "line": 260,
+          "line": 272,
           "ordinal": 8,
           "reports": [],
           "review": "unreconciled"
@@ -87484,7 +87530,7 @@
           "body_sha256": "b25d03472b1e0387ba9807767496dba1a69f6ec4f2726314d394589f4074bd04",
           "heading": "SP-05.12 did:nostr — document rendering, the parity model and the bidirectional binding",
           "id": "SP-05.12",
-          "line": 289,
+          "line": 301,
           "ordinal": 9,
           "reports": [],
           "review": "unreconciled"
@@ -87493,7 +87539,7 @@
           "body_sha256": "1e0dea3f66654706f5cbac33c30879c94b8a4da1740a70f08fabd275184a0f43",
           "heading": "SP-05.13 did:nostr resolution — WebID and DID-Doc must agree",
           "id": "SP-05.13",
-          "line": 337,
+          "line": 349,
           "ordinal": 10,
           "reports": [],
           "review": "unreconciled"
@@ -87502,7 +87548,7 @@
           "body_sha256": "68a31b68cf2a0cc6ddfe3185ee91179a94199d844a355a5b09e0b801d05450aa",
           "heading": "SP-05.14 did:key — multicodec and self-signed JWT",
           "id": "SP-05.14",
-          "line": 363,
+          "line": 375,
           "ordinal": 11,
           "reports": [],
           "review": "unreconciled"
@@ -87511,7 +87557,7 @@
           "body_sha256": "a82212c8410368179a8c9ed63d31deb839b71e3fa23f59999f0b1abb30a4cf19",
           "heading": "SP-05.15 The self-signed / CID verifier registry",
           "id": "SP-05.15",
-          "line": 387,
+          "line": 399,
           "ordinal": 12,
           "reports": [],
           "review": "unreconciled"
@@ -87520,7 +87566,7 @@
           "body_sha256": "0001d3183fa75c1aeaf29cd73a73bd5e6789af78b4ec9342e4d5a495c506159e",
           "heading": "SP-05.16 The bundled IdP — authorisation-code flow with PKCE and DPoP",
           "id": "SP-05.16",
-          "line": 419,
+          "line": 431,
           "ordinal": 13,
           "reports": [],
           "review": "unreconciled"
@@ -87529,7 +87575,7 @@
           "body_sha256": "99f9d1d27af4d5755e512eb8ce7e57664ba6ddf2be57aa09c3fce9f5fa71911e",
           "heading": "SP-05.17 IdP key management and discovery",
           "id": "SP-05.17",
-          "line": 446,
+          "line": 458,
           "ordinal": 14,
           "reports": [],
           "review": "unreconciled"
@@ -87538,7 +87584,7 @@
           "body_sha256": "79de34b22ddb9d4b506a9956095e1addff046583da5003e212ffc6aa05eed468",
           "heading": "SP-05.18 IdP credential surfaces",
           "id": "SP-05.18",
-          "line": 468,
+          "line": 480,
           "ordinal": 15,
           "reports": [],
           "review": "unreconciled"
@@ -87547,7 +87593,7 @@
           "body_sha256": "9f4d3e9c46c7c2e2b0f5f739136007f40d4b27023dd96c0734624e631eaf5a21",
           "heading": "SP-05.19 Pod key provisioning — deliberately not an HTTP route",
           "id": "SP-05.19",
-          "line": 499,
+          "line": 511,
           "ordinal": 16,
           "reports": [],
           "review": "unreconciled"
@@ -87556,7 +87602,7 @@
           "body_sha256": "97b6564636f9fd6759f28831fa8eb8529bf576f5d8f30a4d630696faf0136ba8",
           "heading": "SP-05.21 Password change — the one credential-MUTATION path",
           "id": "SP-05.21",
-          "line": 522,
+          "line": 534,
           "ordinal": 17,
           "reports": [],
           "review": "unreconciled"
@@ -87565,7 +87611,7 @@
           "body_sha256": "27c836a23e10554ae23046a7254de7a29dd78cc5629fcd85617914a6909c018d",
           "heading": "SP-05.22 Cross-identity — a did:nostr caller presenting as its WebID too",
           "id": "SP-05.22",
-          "line": 553,
+          "line": 565,
           "ordinal": 18,
           "reports": [],
           "review": "unreconciled"
@@ -87573,8 +87619,8 @@
       ],
       "path": "docs/diagrams/solid-pod-rs/05-identity-nip98-did-oidc.md",
       "repo": "VisionFlow",
-      "review": "unreconciled",
-      "sha256": "be557a74b87131a651b6e75e8a1495883892e7cb96451dc4d5d83a71564d605b"
+      "review": "partial-assessment-recorded",
+      "sha256": "a5bd7f7d1af3679f88e883b5bfd2c6bea789e6c3fec42163c14c0fc2b1ea95d6"
     },
     {
       "claims": [

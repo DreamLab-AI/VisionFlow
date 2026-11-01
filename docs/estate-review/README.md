@@ -7,7 +7,9 @@ type: explanation
 
 # VisionFlow estate review
 
-Latest checkpoint: [VisionClaw payment authentication](2026-11-01-visionclaw-payment-auth.md) is repaired and merged locally, with six route regressions and 46 shared-verifier tests passing. VCS-10 / XR-01 remains partial pending proxy/fixture work and deployment. [Review-method lessons](2026-11-01-review-method-lessons.md) are incorporated into three existing Agentbox skills, with JEV discovery checked. Springs work is untouched.
+Latest checkpoint: [Solid Pod signed-request boundaries](2026-11-01-solid-identity-boundaries.md) assesses ADR-2006 and five identity panels. A private PUT probe reproduces empty-body substitution; short replay retention and Git string-prefix scope also need repair. Thirty-one native auth tests and five observation probes pass. These findings remain open; no deployment was changed.
+
+Previous checkpoint: [VisionClaw payment authentication](2026-11-01-visionclaw-payment-auth.md) is repaired and merged locally, with six route regressions and 46 shared-verifier tests passing. VCS-10 / XR-01 remains partial pending proxy/fixture work and deployment. [Review-method lessons](2026-11-01-review-method-lessons.md) are incorporated into three existing Agentbox skills, with JEV discovery checked. Springs work is untouched.
 
 Previous checkpoint: [Solid payment and provenance delivery](2026-11-01-solid-payment-delivery.md) — 99 native tests and four local probe groups assess ADR-2008 and five panels. Canonical-state fallback, private provenance disclosure, historical sidecar mismatch and duplicate anchor charges remain open. The [parallel audit intake](2026-11-01-parallel-remediation.md) retains all 134 distinct issues; Agentbox's relay signature-rejection fix is merged with 19 passing tests. Consumer consolidation and deployment remain open.
 

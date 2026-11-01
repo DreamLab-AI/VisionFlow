@@ -1,0 +1,20 @@
+    Blocking waiting for file lock on package cache
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-identity-probes/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.42s
+     Running tests/estate_nip98_boundaries.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/estate_nip98_boundaries-313a59ffd6270fe0)
+
+running 5 tests
+public constructor permits zero TTL and immediate second admission
+test zero_ttl_disables_replay_rejection ... ok
+Strict aliases trailing slash and method case; supplied empty body skips signed payload hash
+test strict_policy_aliases_and_empty_body_are_not_exact_binding ... ok
+GitLenient accepted token base https://pod.example/repo for https://pod.example/repo-other/git-receive-pack
+GitLenient accepted token base https://pod.example for https://pod.example.attacker.test/repo
+test git_prefix_accepts_sibling_name_and_host_prefix ... ok
+same valid signed token accepted after 5ms cache expiry; verifier clock advanced 1s
+test short_positive_ttl_reopens_a_still_valid_signed_token ... ok
+private PUT: altered nonempty refused; stripped body accepted and persisted empty; same token then refused; fresh correct token succeeds
+test nonempty_signed_body_can_be_removed_at_actual_put_route ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+

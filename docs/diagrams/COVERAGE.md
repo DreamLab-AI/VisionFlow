@@ -1032,11 +1032,11 @@ Revision labels are author declarations. This index checks structure and referen
 | [SP-04.13 Payment, client, issuer and provenance-anchor conditions](solid-pod-rs/04-wac-authorisation.md#sp-0413-payment-client-issuer-and-provenance-anchor-conditions) | flowchart | SP-04 |
 | [SP-04.14 Denial shape](solid-pod-rs/04-wac-authorisation.md#sp-0414-denial-shape) | flowchart | SP-04 |
 | [SP-04.15 Agent and group matching, and accessTo-vs-default containment](solid-pod-rs/04-wac-authorisation.md#sp-0415-agent-and-group-matching-and-accessto-vs-default-containment) | flowchart | SP-04 |
-| [SP-05.1 Two auth paths, one AuthContext](solid-pod-rs/05-identity-nip98-did-oidc.md#sp-051-two-auth-paths-one-authcontext) | flowchart | SP-05 |
+| [SP-05.1 REST identity extraction and anonymous fallback](solid-pod-rs/05-identity-nip98-did-oidc.md#sp-051-rest-identity-extraction-and-anonymous-fallback) | flowchart | SP-05 |
 | [SP-05.2 NIP-98 verification, step by step](solid-pod-rs/05-identity-nip98-did-oidc.md#sp-052-nip-98-verification-step-by-step) | sequenceDiagram | SP-05 |
 | [SP-05.3 The two match policies](solid-pod-rs/05-identity-nip98-did-oidc.md#sp-053-the-two-match-policies) | flowchart | SP-05 |
-| [SP-05.4 The single-use replay store (ADR-2006)](solid-pod-rs/05-identity-nip98-did-oidc.md#sp-054-the-single-use-replay-store-adr-2006) | stateDiagram-v2 | SP-05 |
-| [SP-05.5 The ReplayStore seam and its tier limits](solid-pod-rs/05-identity-nip98-did-oidc.md#sp-055-the-replaystore-seam-and-its-tier-limits) | classDiagram | SP-05 |
+| [SP-05.4 The single-use replay store (ADR-2006)](solid-pod-rs/05-identity-nip98-did-oidc.md#sp-054-the-single-use-replay-store-adr-2006) | flowchart | SP-05 |
+| [SP-05.5 The ReplayStore seam and its tier limits](solid-pod-rs/05-identity-nip98-did-oidc.md#sp-055-the-replaystore-seam-and-its-tier-limits) | flowchart | SP-05 |
 | [SP-05.7 Solid-OIDC — DPoP proof verification](solid-pod-rs/05-identity-nip98-did-oidc.md#sp-057-solid-oidc-dpop-proof-verification) | sequenceDiagram | SP-05 |
 | [SP-05.8 Access-token verification, its divergences, and discovery versus the crypto path](solid-pod-rs/05-identity-nip98-did-oidc.md#sp-058-access-token-verification-its-divergences-and-discovery-versus-the-crypto-path) | flowchart | SP-05 |
 | [SP-05.10 JWKS and discovery fetching — SSRF-pinned and cached](solid-pod-rs/05-identity-nip98-did-oidc.md#sp-0510-jwks-and-discovery-fetching-ssrf-pinned-and-cached) | sequenceDiagram | SP-05 |

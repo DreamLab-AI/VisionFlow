@@ -1,0 +1,22 @@
+{
+  "scope": "ADR-2006 and SP-05.1..5; observed defects remain open",
+  "native_unique_tests": 31,
+  "observation_tests": 5,
+  "current_source": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+  "files": {
+    "commands.json": "af64c9bae0a0d4f1740ac7ca72cf0dff617c527e9725f8477e9730314a11be5f",
+    "diagram.txt": "912c5a7ba68d81c550d35c87f17d689aa964059c0c03f36dfe6177ef37bdb0dd",
+    "editorial.json": "d5940a5c80617a59b79a53685380cd9ec4142b0c8f445b0555377e83ad22b5f2",
+    "estate_nip98_boundaries.rs": "480849862193736d123b40412e1d83209617d505da768fafa7982c9fa13edd0d",
+    "findings.json": "e77ee44ed6b174dcd4b57e944cda8ba77b52c526c00da60877a4ed49578d0b46",
+    "native-auth.txt": "f5ecdcaec4cff7ab5ece2b5bfae91fe8a70f15c6f0e22032613f0c2efbb20da7",
+    "native-replay.txt": "2538151a51ea82a1f42f8b71b64e57682ebadec7e380a22617d438f8a2de4a05",
+    "preservation.json": "01a4d334ead359f4b2177bbf586bd3389671e769667b07330230dfd8fad24249",
+    "probes-initial-fixture.txt": "a827b71ee5eb8587b472d3913e91dcf444a0cd3a916564e843cd669002c04836",
+    "probes.txt": "85cef1ebd09e477923316fc6f64777ee7c2d26028da527840af872a4a4c7263f",
+    "prose.txt": "5a80a5f724fdbbfa00db72d35c956d18030b5c542695b1c69a756c4c8fa2ad61",
+    "render-archive.json": "5a8a96c37cf7dbb4d55210d14ed5c6d52a21753b3bc87a4cbaac4c982d47c30f",
+    "sources.json": "95f9db70fe66a9dd53ae14e09e6acb50b0cc2e508a83eb0455ae6e74d47d6a97",
+    "structure.txt": "09d35ecaa394a05eddcb22e5becf0b5c40a1eeae1f2820b22d7b23e51017694a"
+  }
+}

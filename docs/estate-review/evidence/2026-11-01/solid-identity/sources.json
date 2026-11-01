@@ -1,0 +1,27 @@
+{
+  "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+  "diagram_revision": "09ec90f26aa573731460292d0e80343914cb43d9",
+  "source_hashes": {
+    "Cargo.lock": "3d2aa7e07ee46b4ec469c1b91bcfb3eca02267e53e5279f86c6065a7e70fd6e1",
+    "crates/solid-pod-rs/src/auth/nip98.rs": "0c61726325abb25f8b68a958b2d19c4a806977b8589718303d97c3b242aeaee2",
+    "crates/solid-pod-rs/src/auth/replay.rs": "1feaa79018f18a401404cc42649b4fc1849c8c2c796758e035a574e6062b264f",
+    "crates/solid-pod-rs/src/auth/replay_store.rs": "8b3235130df69fa6a4515e3191ac693d51eb163adb0a791368968c451f7fc434",
+    "crates/solid-pod-rs-server/src/lib.rs": "6573dc10b392d62743af4cd20da96da7594f7ed755e75b3eedfa8fcd225f26eb",
+    "crates/solid-pod-rs-git/src/auth.rs": "33f32d1588ff022d236859df4a83abbdeeb09194bcc572d83d9e0c07568090d6",
+    "crates/solid-pod-rs-git/src/service.rs": "c37d5ca10d2c89f54960acd96e667f3e5846a0ae249fe6515eb432b891437778",
+    "crates/solid-pod-rs-idp/src/schnorr.rs": "e7d87e0f53699ed56ad36618289f21377ad458f282ae945317b4ce64029b742c",
+    "crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md": "16be4b3a498aa8d87bf8e77024f7078f86c67b688c679e7c0d56f59746da0007",
+    "crates/solid-pod-rs/docs/adr/ADR-2006-nip98-replaystore-seam.md": "ca25676edb372749f1e0c60867889a8d929045e9d12829bbf2644a2506d7133e",
+    "crates/solid-pod-rs-server/src/scheme.rs": "4070ee6f422f77e9e3d14c081151e47ece4e980e0e32048b9e9c9f7810c64cf8",
+    "crates/solid-pod-rs-server/Cargo.toml": "a39225158c86d61b6783a18d291f34ef50fb1a961d181f7327802c136df8f212"
+  },
+  "comparison": {
+    "crates/solid-pod-rs/src/auth/nip98.rs": true,
+    "crates/solid-pod-rs/src/auth/replay.rs": true,
+    "crates/solid-pod-rs/src/auth/replay_store.rs": true,
+    "crates/solid-pod-rs-server/src/lib.rs": true,
+    "crates/solid-pod-rs-git/src/auth.rs": true,
+    "crates/solid-pod-rs-git/src/service.rs": true,
+    "crates/solid-pod-rs-idp/src/schnorr.rs": true
+  }
+}

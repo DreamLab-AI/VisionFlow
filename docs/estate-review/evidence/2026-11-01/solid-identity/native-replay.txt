@@ -1,0 +1,20 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.30s
+     Running unittests src/lib.rs (target/debug/deps/solid_pod_rs-6ed0414cef827e11)
+
+running 13 tests
+test auth::replay::tests::capacity_pressure_refuses_new_ids_and_never_evicts_unexpired ... ok
+test auth::replay::tests::clones_share_storage ... ok
+test auth::replay::tests::first_sighting_accepts_replay_rejects ... ok
+test auth::replay::tests::evict_expired_frees_the_store_for_reuse ... ok
+test auth::replay::tests::expired_entry_treated_as_fresh ... ok
+test auth::replay::tests::expired_entries_are_reclaimed_to_admit_a_new_id ... ok
+test auth::replay::tests::sizing_floor_covers_the_offered_rate ... ok
+test auth::replay::tests::capacity_one_cannot_be_made_to_accept_a_replay ... ok
+test auth::replay::tests::concurrent_first_sightings_admit_exactly_one ... ok
+test auth::replay::tests::re_presenting_an_expired_id_reuses_its_slot_at_capacity ... ok
+test auth::replay::tests::restart_semantics_reopen_the_window ... ok
+test auth::replay::tests::trait_object_dispatch_rejects_replay ... ok
+test auth::replay::tests::concurrent_distinct_ids_never_exceed_capacity ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 487 filtered out; finished in 0.00s
+

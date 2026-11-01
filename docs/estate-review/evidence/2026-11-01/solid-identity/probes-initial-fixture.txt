@@ -1,0 +1,141 @@
+   Compiling slab v0.4.12
+   Compiling futures-io v0.3.34
+   Compiling futures-channel v0.3.34
+   Compiling aho-corasick v1.1.5
+   Compiling regex-syntax v0.8.11
+   Compiling tokio v1.54.1
+   Compiling getrandom v0.3.4
+   Compiling num_cpus v1.17.0
+   Compiling deadpool-runtime v0.1.4
+   Compiling assert-json-diff v2.0.2
+   Compiling fastrand v2.5.0
+   Compiling futures-util v0.3.34
+   Compiling tempfile v3.27.0
+   Compiling regex-automata v0.4.18
+   Compiling futures-executor v0.3.34
+   Compiling futures v0.3.34
+   Compiling matchers v0.2.0
+   Compiling regex v1.13.1
+   Compiling tokio-util v0.7.19
+   Compiling tower v0.5.3
+   Compiling tokio-rustls v0.26.4
+   Compiling tokio-tungstenite v0.24.0
+   Compiling actix-rt v2.11.0
+   Compiling deadpool v0.12.3
+   Compiling tracing-subscriber v0.3.23
+   Compiling actix-server v2.7.0
+   Compiling tower-http v0.6.11
+   Compiling h2 v0.4.17
+   Compiling actix-codec v0.5.2
+   Compiling actix-http v3.19.0
+   Compiling actix-web v4.14.1
+   Compiling hyper v1.11.0
+   Compiling hyper-util v0.1.20
+   Compiling hyper-rustls v0.27.9
+   Compiling wiremock v0.6.5
+   Compiling reqwest v0.12.28
+   Compiling oauth2 v5.0.0
+   Compiling openidconnect v4.0.1
+   Compiling solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-identity-probes/crates/solid-pod-rs)
+   Compiling solid-pod-rs-idp v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-identity-probes/crates/solid-pod-rs-idp)
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-identity-probes/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 32.56s
+     Running tests/estate_nip98_boundaries.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/estate_nip98_boundaries-313a59ffd6270fe0)
+
+running 5 tests
+public constructor permits zero TTL and immediate second admission
+test zero_ttl_disables_replay_rejection ... ok
+GitLenient accepted token base https://pod.example/repo for https://pod.example/repo-other/git-receive-pack
+Strict aliases trailing slash and method case; supplied empty body skips signed payload hash
+test strict_policy_aliases_and_empty_body_are_not_exact_binding ... ok
+
+thread 'nonempty_signed_body_can_be_removed_at_actual_put_route' (112175) panicked at crates/solid-pod-rs-server/tests/estate_nip98_boundaries.rs:44:5:
+observed empty-body acceptance: 403 Forbidden
+stack backtrace:
+GitLenient accepted token base https://pod.example for https://pod.example.attacker.test/repo
+test git_prefix_accepts_sibling_name_and_host_prefix ... ok
+same valid signed token accepted after 5ms cache expiry; verifier clock advanced 1s
+test short_positive_ttl_reopens_a_still_valid_signed_token ... ok
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}
+             at ./tests/estate_nip98_boundaries.rs:44:5
+   3: <tokio::task::local::RunUntil<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}> as core::future::future::Future>::poll::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1072:44
+   4: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:823:13
+   5: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::try_with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+   6: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+   7: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}> as core::future::future::Future>::poll::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:821:17
+   8: <tokio::task::local::RunUntil<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}> as core::future::future::Future>::poll
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1062:22
+   9: <tokio::task::local::LocalSet>::run_until::<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:719:19
+  10: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:70
+  11: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:167:5
+  12: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:133:5
+  13: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:25
+  14: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:486:19
+  15: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:829:44
+  16: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:68
+  17: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40:9
+  18: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:38
+  19: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  20: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  21: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:17
+  22: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:27
+  23: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:819:24
+  24: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:216:33
+  25: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/runtime.rs:65:16
+  26: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:204:9
+  27: <tokio::runtime::runtime::Runtime>::block_on_inner::<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:379:52
+  28: <tokio::runtime::runtime::Runtime>::block_on::<<tokio::task::local::LocalSet>::run_until<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:348:18
+  29: <tokio::task::local::LocalSet>::block_on::<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:676:12
+  30: <actix_rt::runtime::Runtime>::block_on::<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/runtime.rs:138:20
+  31: <actix_rt::system::SystemRunner>::block_on::<estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/system.rs:240:17
+  32: estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route
+             at ./tests/estate_nip98_boundaries.rs:21:1
+  33: estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0}
+             at ./tests/estate_nip98_boundaries.rs:22:67
+  34: <estate_nip98_boundaries::nonempty_signed_body_can_be_removed_at_actual_put_route::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  35: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+test nonempty_signed_body_can_be_removed_at_actual_put_route ... FAILED
+
+failures:
+
+failures:
+    nonempty_signed_body_can_be_removed_at_actual_put_route
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.53s
+
+error: test failed, to rerun pass `-p solid-pod-rs-server --test estate_nip98_boundaries`

@@ -1,9 +1,9 @@
 {
-  "README.md": "2ddb69fe4fbe865c14896559d2f22aec6f482b4a432d15511fdeb4d067821422",
-  "claims.json": "d1411a04e78ca9c6b683a7ad46a93df98f394b729af890f4a9576b3fa4457d9f",
+  "README.md": "cd7ef2911ba50d4bf78a4c9a1d3cdffd18a3bb2f28e7514eb3c6becdda87c919",
+  "claims.json": "e7d4e9222b120a6f9a29c175f3f9ab7989802bf04accb157cf62e3d9f3838c39",
   "exclusions-2026-11-01.json": "357fcd26e503d597ac8769cabe02dfc49f6cd84c3d7c32368a15a8e27c09dcc9",
   "scope.json": "d7de01486b18ff47c876f643807023163ba9de505cf55d5f623edfb40bbaf17c",
-  "snapshot-2026-11-01.json": "524ac817b4b6a535910dda5de62ad0c992ec81662a6413d1f654996c4ed5138e",
+  "snapshot-2026-11-01.json": "77f1e238aa02d363a2993654fe87827f6f9d33031b6e0b28c965169e7e1104b0",
   "validation/clippy-final.log": "8f460ae6b73bf669b853447d77880e7a559c7afff6a382703cfda25faa38aaf7",
   "validation/fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "validation/prose.log": "1874d89e5c00c85502914bcb8943633aa6890ab18c4595bc294c78b59ed21e54",
@@ -25,6 +25,7 @@
   "validation/scan-reserve.log": "2d8a77a302c42f66b73ead37acb7dd76f6229e68ebe37106432d31d5427771e0",
   "validation/scan-sealed-history.log": "3b38c990b1e73248715f3c8894176b378a727737c2c1c2f992e3ee9c71216d19",
   "validation/scan-solid-delivery.txt": "cff94a0283c3aaf87aa387a4d052656039569a304eea934f7a32fe4c3fd36e38",
+  "validation/scan-solid-identity.txt": "a31a234f8ba7f5b786c65d1dd605e5d26e83bf3485620b538251664dd2275453",
   "validation/scan-solid-payments.txt": "942019b6166db7abf1738526840edfd320ef5c106ee9edf2b33360e4e04c0ff4",
   "validation/scan-solid-policy.txt": "251750003ce563dfa46bef0941bc57216bbaf5dd86099da19b28ac726005c938",
   "validation/scan-solid-provenance.txt": "281bb188be1723ebd11a008a99e5fd8810b8d6b155e3c1b89399fcc877104ffa",
@@ -34,5 +35,5 @@
   "validation/tests-final.log": "edb1b9c5c09778f62b6b368e32c0ec85be07c9b461c41feaeb22086b0cff72df",
   "validation/tests-initial.log": "54ee95bd86048f9a973265517426511e900de395ccb837100ff3ec38dcf165df",
   "validation/unicode.log": "709789487c4198b5e320ce5b56f5f6a8bade9797687af98f4a98f80e040e7b59",
-  "validation-2026-11-01.json": "679b3d4e75ef2312e7c4a980d9543faf18d1191ecc8b2af5a08fa3bb9dd27ea7"
+  "validation-2026-11-01.json": "a5181c2a75c299aec676254836dea9b904bf2bdfc3e323732b13ae617ba031dd"
 }
