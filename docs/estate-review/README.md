@@ -9,6 +9,8 @@ type: explanation
 
 [The completion ledger](completion/README.md) separates scoped inventory, recorded assessments and unreconciled work. It binds assessments to exact document/report hashes and holds the current counts; these are not an overall completion percentage.
 
+SideStr overlays: [four corrected SR-02 panels, ten existing tests and four adversarial scenarios](2026-11-01-sidestr-overlays-and-eviction.md). Producer clock failures wrongly evict valid transactions; rejected candidate snapshots remain cached until application. Client asset reading and one-sided market refunds are now explicit.
+
 SideStr host/runtime: [ADR-0002 and both amendments, seven chain-identity scenarios and current process evidence](2026-11-01-sidestr-crate-and-runtime-boundaries.md). The host exists, but its watcher ignores the genesis pin; core feature-off builds are not genuine `no_std`.
 
 SideStr compatibility: [ADR-0001 assessment, CI receipts and two corrected SR-01 panels](2026-11-01-sidestr-oracle-contract.md). Four oracle tests report success with missing configured reference files; strict participation and reproducible release evidence remain open.

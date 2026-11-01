@@ -1,0 +1,77 @@
+{
+  "scope": "SR-02 implementation review, no whole-ADR credit",
+  "source_commit": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+  "files": [
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-core/src/assets.rs",
+      "sha256": "5d7aacf1071e387c7e94fed655587e752eb7e7a801926e8afcc9ab35d21c7002"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-core/src/overlays.rs",
+      "sha256": "c19e4737f3a8e58dc56232192b6248e7bc169601bcb5d65b69797fb6aae1d81c"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-core/src/pool.rs",
+      "sha256": "6fba46f1d4935d6c21bb66fb590603731a7cb5e6cafc6c501f6e601bdac6f784"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-core/src/markets.rs",
+      "sha256": "d62390afe9c4a426712517c3c96d6db42fb23295a6dd440108746e79937a9e3a"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-core/src/rules.rs",
+      "sha256": "c7de9bf256dac688e63abd26e99241d019ab024d1ae4922c5c0ccb282b31434c"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-core/src/state.rs",
+      "sha256": "7c44eec0d9675f0a42e2b90dc0116c9c6d8ee04e8501dc8ca9b3e67fba654b25"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-core/src/records.rs",
+      "sha256": "df5f91bcf9a42cbca5434a69d4bc5573296fe0bb09f573f281080347b2d8a1bf"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-core/tests/eviction.rs",
+      "sha256": "245ddc5c7d498f38095c33ca2e16e7a41e0318a6513aefbf82db4605d9d0f0d6"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/src/rule.rs",
+      "sha256": "4cd4353bf5fb4e31ed1fda8657ce77e9f78278cb907e7ead9781fea5347ef0bb"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/tests/pools_markets.rs",
+      "sha256": "92f90e27fd2aa406bb5f7fa07ce0ddf968d159baa7a394b99d29f61167c62528"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-core/Cargo.toml",
+      "sha256": "588e02986f3148eabdf2d5da7c864fdc7b7591b53700f0f3acf8a0a6ee9997bb"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/Cargo.toml",
+      "sha256": "46a89d110af343cccbef701cadfb2446fed5a7e8978e2e818b3f96d60f459d1c"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "Cargo.lock",
+      "sha256": "569c20953ae564868b92e55994576114180e115ea16dc0d351ebeb3f9a5d9646"
+    },
+    {
+      "repo": "agentbox",
+      "path": "config/sidechain/dreamlab/chain.json",
+      "sha256": "bddbb25d384785e8b0cb3b52acea83142097becb29acacb580a5ed96c16ed9b8"
+    }
+  ],
+  "agentbox_commit": "9dfc27b16e82e9786535a55e790710493dd51fdf"
+}

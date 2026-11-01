@@ -1,0 +1,10 @@
+   Compiling sidestr-core v0.4.2 (/home/devuser/workspace/sidestr-rs/sidestr-core)
+    Finished `test` profile [unoptimized] target(s) in 0.88s
+     Running tests/eviction.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/eviction-ecf1896c13f91f38)
+
+running 2 tests
+test exact_replay_is_refused_but_a_resigned_transaction_is_judged_again ... ok
+test production_evicts_a_transaction_that_only_the_block_rule_refuses ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+

@@ -121343,7 +121343,7 @@
     "numbered_candidates_with_recorded_assessment": 91,
     "numbered_decision_candidates": 1061,
     "panels": 1730,
-    "panels_with_recorded_assessment": 320,
+    "panels_with_recorded_assessment": 324,
     "scope_targets": 25,
     "stale_claim_records": 0,
     "topics": 205
@@ -121354,7 +121354,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "9cc2266a3f797321e2314741557dbc06061cb4b6",
+      "head": "c146f8b90f698bde23c75c58a40fc1eba57e346d",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -132003,49 +132003,70 @@
       "sha256": "a72e7f817941667d076da9f1a97aa135b3907bd366f9dbd6dcf8bf18801a0c94"
     },
     {
-      "claims": [],
+      "claims": [
+        {
+          "basis": "All four existing SR-02 panels: source order, asset reading versus enforcement, pool predicates, one-sided market refunds, discarded versus evicted transactions, clock-failure eviction and retained rejected candidates. Ten selected native tests and four production-library probes; rendered and visually inspected. No whole-ADR credit or runtime activation claim.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SR-02.1",
+            "SR-02.2",
+            "SR-02.3",
+            "SR-02.4"
+          ],
+          "report": "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "panels": [
         {
-          "body_sha256": "c4d10ce24f1ec1acdb894fa36759efcc4c092474f8064bd94e3789d0cc9d8d83",
+          "body_sha256": "ed892257e3e1df2bff2ebddaf8eeb6825661e310db06e6824f49804c3e2802b6",
           "heading": "SR-02.1 The ordered rule pipeline",
           "id": "SR-02.1",
-          "line": 32,
+          "line": 33,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "00aec034dc3ce7c1c2a95df6fcab0eab25edbd8867a8ed3fd73cff1870344021",
+          "body_sha256": "6fabf4089a8cd61e32357dcc00524d7bb973f553e37b1809ba9683a82a8921c9",
           "heading": "SR-02.2 Assets and constant-product pools",
           "id": "SR-02.2",
-          "line": 49,
+          "line": 54,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "2ac9415a207720330e3b41d107780be08e6dd75ed03e80a785503c7274b43ec9",
+          "body_sha256": "0a1d6d59a8eb17d01cc98d51add60952847c27129a7f2e8d59037d5aeee0d1da",
           "heading": "SR-02.3 Binary market lifecycle",
           "id": "SR-02.3",
-          "line": 67,
+          "line": 73,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "5cf15e43a29ee34831ce61f48e1b688f22fd89a9445e0e558fab3f78b66c7b2c",
+          "body_sha256": "49394b7ae7ed5f8922b8e14f830a3d3867a7e3e37ad717edf63c1832dd603960",
           "heading": "SR-02.4 Admission is not block eligibility",
           "id": "SR-02.4",
-          "line": 87,
+          "line": 94,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md"
+          ],
+          "review": "assessment-recorded"
         }
       ],
       "path": "docs/diagrams/sidestr-rs/02-assets-pools-markets-and-eviction.md",
       "repo": "VisionFlow",
-      "review": "unreconciled",
-      "sha256": "1412c05f0a393afa2c15a8910b75778fb073c20d5bb0f1a45bc8e8bbf2c0722e"
+      "review": "assessment-recorded",
+      "sha256": "d600e560f7c5a5446e29e63afd88f5dadf492aee2c6b91c5a7e698894ac1fea6"
     },
     {
       "claims": [],

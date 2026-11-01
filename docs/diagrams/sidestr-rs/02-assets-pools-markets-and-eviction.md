@@ -1,6 +1,6 @@
 ---
 id: SR-02
-title: Ordered asset, pool and market rules with exact producer eviction
+title: Ordered asset, pool and market rules with producer rejection boundaries
 area: sidestr-rs
 governing:
   - ../sidestr-rs/docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md
@@ -14,96 +14,107 @@ sources:
   - ../sidestr-rs/sidestr-core/src/markets.rs
   - ../sidestr-rs/sidestr-core/src/state.rs
   - ../sidestr-rs/sidestr-core/tests/eviction.rs
-  - ../sidestr-rs/README.md
+  - ../sidestr-rs/sidestr-evm/src/rule.rs
+  - ../sidestr-rs/sidestr-evm/tests/pools_markets.rs
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
-verified_commit: {sidestr-rs: d8ace3aad2f23eb1d11bd72af4ab0b74d599f618, agentbox: 6500582dfae23bf8a38a6942916d208154e43625, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012}
+verified_commit: {sidestr-rs: 9c6de86c657a25ec2f2a189baf63db7dedad40eb, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf, visionflow: c146f8b90f698bde23c75c58a40fc1eba57e346d}
 ---
 
 ## For developers
 
-`BlockRule` is the extension seam for rule-local validation, coinbase allowances and applied-block commits. The lightweight overlays always execute as assets, pool, then markets, and producer selection evaluates candidates against temporary state before final block validation.
+The canonical compositor orders assets, pool, then markets. Applied views change after successful block validation; candidate checks also retain caches. The composed producer first discards overlay sequencing failures, then uses exact-byte eviction if final block validation fails. These are different retry policies.
 
 ## For the business
 
-Source now represents issued assets, automated pools and binary markets without changing the base UTXO ledger. These are source capabilities only: the live estate chain has no rules field and therefore offers none of them.
+Rust supplies asset reading and optional consensus rules for assets, automated pools and binary markets. The estate chain document does not enable these consensus overlays; that does not prevent clients reading asset records. The [audit](../../estate-review/2026-11-01-sidestr-overlays-and-eviction.md) records two Rust rejection-path gaps without claiming the running JavaScript producer has the same defects.
 
 ## SR-02.1 The ordered rule pipeline
 
 ```mermaid
-flowchart LR
-    TX["candidate transactions"] --> AS["assets<br/>conservation and carry trace<br/>sidestr-core/src/overlays.rs:1"]
-    AS --> PO["pool<br/>constant product"]
-    PO --> MA["markets<br/>collateral lifecycle"]
-    MA --> CB["coinbase allowances"]
-    CB --> CM["commit only after<br/>block application"]
+flowchart TB
+    CT["block context and coinbase allowances<br/>sidestr-core/src/rules.rs:737"] --> AS["assets: carry trace"]
+    AS --> PO["pool: collateral and shares"]
+    PO --> MA["markets: collateral lifecycle"]
+    MA --> V{"whole block passes?"}
+    V -->|yes| CM["apply UTXO state, then rule views<br/>sidestr-core/src/state.rs:524"]
+    V -->|no| RE["reject block; keep applied views"]
+    AS -.-> CA["candidate caches retained<br/>until application"]
+    PO -.-> CA
+    MA -.-> CA
 ```
 
-**What it shows.** The compositor installs assets before pool before markets so later rules can inspect the same candidate block's asset carry trace (`../sidestr-rs/sidestr-core/src/overlays.rs:1`, `../sidestr-rs/sidestr-core/src/overlays.rs:65`). `BlockRule` separates checking from committing applied state (`../sidestr-rs/sidestr-core/src/rules.rs:534`).
+**What it shows.** Coinbase allowances are queried before the ordered extra-rule checks; the canonical overlay list is assets, pool, markets (`../sidestr-rs/sidestr-core/src/rules.rs:737`, `../sidestr-rs/sidestr-core/src/rules.rs:860`, `../sidestr-rs/sidestr-core/src/overlays.rs:107`). Successful application commits rule views after the UTXO update (`../sidestr-rs/sidestr-core/src/state.rs:524`).
 
-**Why it is this way.** Pool shares and market outcome tokens are authorised asset mints. Fixed ordering lets those rules grant a mint while the asset rule still enforces conservation.
+**Why it is this way.** Later rules require the asset trace for the candidate; pool/market mint exceptions must also pass their collateral rule. The three lightweight overlays use the default zero coinbase allowance (`../sidestr-rs/sidestr-core/src/rules.rs:562`).
 
-**Invariant:** overlay order is consensus behaviour and cannot be rearranged as an implementation detail.
+**Open:** checking is not free of retained state: distinct candidate snapshots accumulate until `applied` clears them, even when another check rejects the block (`../sidestr-rs/sidestr-core/src/assets.rs:535`, `../sidestr-rs/sidestr-core/src/pool.rs:316`, `../sidestr-rs/sidestr-core/src/markets.rs:434`).
 
 ## SR-02.2 Assets and constant-product pools
 
 ```mermaid
 flowchart TB
-    I["issue or transfer records"] --> T["asset input and output tallies<br/>sidestr-core/src/assets.rs:160"]
-    T --> C{"conserved?"}
-    C -->|yes| TRACE["carry trace for later rules"]
-    C -->|no| MP{"mint policy allows<br/>pool or market mint?"}
-    MP -->|no| REF["refuse transaction"]
+    I["classify issue and tally records"] --> T["sum input carries and assignments<br/>sidestr-core/src/assets.rs:183"]
+    T --> C{"outputs no greater<br/>than input carries?"}
+    C -->|yes: burns allowed| TRACE["asset carry trace"]
+    C -->|no| MP{"new issue or authorised<br/>pool / market mint?"}
+    MP -->|no| REF["refuse under consensus rule"]
     MP -->|yes| TRACE
-    TRACE --> P["pool transition"]
-    P --> K["integer constant-product<br/>boundary"]
+    TRACE --> P["pool transition<br/>sidestr-core/src/pool.rs:213"]
+    P --> SW["swap: fee-adjusted product"]
+    P --> LP["add / remove: proportional shares"]
 ```
 
-**What it shows.** The asset rule classifies transactions, totals inputs and outputs, and delegates exceptional minting to a policy supplied by the pool and market views (`../sidestr-rs/sidestr-core/src/assets.rs:160`, `../sidestr-rs/sidestr-core/src/overlays.rs:34`). Pools then enforce their transition and constant-product boundary (`../sidestr-rs/sidestr-core/src/pool.rs:80`, `../sidestr-rs/sidestr-core/src/pool.rs:213`).
+**What it shows.** Issuance and collateral mint policy are explicit exceptions to the asset rule's output ceiling; ordinary transfers may burn units (`../sidestr-rs/sidestr-core/src/assets.rs:239`, `../sidestr-rs/sidestr-core/src/overlays.rs:34`). Pools enforce opening shares, swap product and proportional liquidity transitions (`../sidestr-rs/sidestr-core/src/pool.rs:112`, `../sidestr-rs/sidestr-core/src/pool.rs:213`).
 
-**Why it is this way.** One conservation rule stays authoritative while purpose-built rules can create only the assets their own state transition justifies.
+**Why it is this way.** Consensus enforcement and client reading differ: `AssetView` can read a chain without optional rules; a broken tally then consumes its input carries and produces no asset outputs (`../sidestr-rs/sidestr-core/src/assets.rs:11`, `../sidestr-rs/sidestr-core/src/assets.rs:281`). A missing `rules` field does not mean assets cannot be read.
 
 ## SR-02.3 Binary market lifecycle
 
 ```mermaid
 stateDiagram-v2
     [*] --> Open
-    Open --> Open: split locks collateral and mints YES plus NO
-    Open --> Open: merge burns a complete pair and releases collateral
-    Open --> Resolved: resolver proof within expiry plus grace
-    Open --> Refunding: redeem pairs after expiry plus grace
-    Resolved --> Resolved: split, merge, or redeem the winning outcome
-    Refunding --> Refunding: redeem paired outcomes at half a sat each
-    note right of Open
-        sidestr-core/src/markets.rs:138
+    Open --> Open: split or merge collateral and paired outcomes
+    Open --> Resolved: resolver proof by expiry plus grace
+    Open --> Refunding: after deadline, burn YES and/or NO for refund
+    Resolved --> Resolved: split, merge, or redeem winner
+    Refunding --> Refunding: split, merge, or refund either outcome
+    note right of Refunding
+        Refund needs at least two burned units per sat
+        YES and NO need not be equal
+        sidestr-core/src/markets.rs:306
     end note
 ```
 
-**What it shows.** A market is opened with its collateral and resolver terms, then supports split, merge, resolve, redeem and refund transitions (`../sidestr-rs/sidestr-core/src/markets.rs:138`, `../sidestr-rs/sidestr-core/src/markets.rs:260`). Resolver proof is checked before the status can advance (`../sidestr-rs/sidestr-core/src/markets.rs:202`).
+**What it shows.** Resolution proves a resolver input within the deadline; resolved redemption burns the winning outcome. After the unresolved deadline, refund uses combined YES/NO burns at half a sat per unit, including one-sided holdings (`../sidestr-rs/sidestr-core/src/markets.rs:202`, `../sidestr-rs/sidestr-core/src/markets.rs:306`).
 
-**Why it is this way.** Every creation or release of outcome assets stays traceable to locked collateral and the market's current status.
+**Why it is this way.** Split and merge are allowed in all three states; neither requires the market to remain open. Split creates equal YES/NO amounts; merge requires sufficient burns of each; redemption and refund impose different burn thresholds (`../sidestr-rs/sidestr-core/src/markets.rs:260`).
 
 ## SR-02.4 Admission is not block eligibility
 
 ```mermaid
 sequenceDiagram
-    participant A as submit<br/>sidestr-core/src/state.rs:636
+    participant A as admission
     participant M as mempool
-    participant S as temporary overlay state
-    participant B as block builder
-    A->>A: refuse immature BIP 68 or nLockTime<br/>state.rs:717-728
-    A->>M: store eligible transaction<br/>state.rs:729-732
-    M->>S: replay candidate in order
-    alt valid in the candidate block
-        S-->>B: keep transaction
-    else invalid under block rule
-        S-->>M: evict exact serialised transaction
+    participant P as composed producer
+    participant B as block validation
+    A->>A: check next-height input locks
+    A->>M: reserve inputs and store transaction
+    M->>P: ordered candidates
+    P->>P: sequence temporary overlay views
+    P->>M: discard sequencing failures, retry allowed
+    P->>B: build and sign selected block
+    alt whole block passes
+        B-->>P: apply block and rule views
+    else block fails
+        P->>B: judge kept prefix plus each transaction
+        B-->>P: whole-block verdict
+        P->>M: evict exact bytes when verdict fails
+        Note over P,B: clock failure can wrongly evict a valid transaction
     end
-    B->>B: validate final block and apply once
-    Note over M,B: sidestr-core/src/state.rs:874
 ```
 
-**What it shows.** Admission refuses a transaction whose BIP 68 relative lock or `nLockTime` has not matured at the next height, so an immature channel sweep or HTLC refund never enters the mempool and production is never asked to evict it (`../sidestr-rs/sidestr-core/src/state.rs:628`, `../sidestr-rs/sidestr-core/src/state.rs:721`). When admission and block validation still disagree, the builder walks the mempool in order and removes transactions that admission accepted but current block state rejects (`../sidestr-rs/sidestr-core/src/state.rs:874`). Eviction matches the exact transaction bytes, so a witness-repaired transaction with the same txid is not removed accidentally (`../sidestr-rs/sidestr-core/src/state.rs:759`, `../sidestr-rs/sidestr-core/tests/eviction.rs:16`).
+**What it shows.** Admission checks next-height maturity; composed production sequences overlays and discards their failures with resubmission allowed (`../sidestr-rs/sidestr-core/src/state.rs:721`, `../sidestr-rs/sidestr-evm/src/rule.rs:218`, `../sidestr-rs/sidestr-evm/src/rule.rs:318`). Its fallback and the core producer instead remember exact bytes on a failed candidate verdict (`../sidestr-rs/sidestr-evm/src/rule.rs:364`, `../sidestr-rs/sidestr-core/src/state.rs:874`, `../sidestr-rs/sidestr-core/src/state.rs:759`).
 
-**Why it is this way.** Rule state changes as earlier candidates enter a block. Turning immature locks away at admission means they can be submitted again once their height arrives instead of being evicted from a produced block (`../sidestr-rs/sidestr-core/src/state.rs:631`). Exact-byte eviction prevents one invalid witness form from suppressing a repaired form that shares its txid.
+**Why it is this way.** Discard lets a different ordering retry; exact-byte eviction suppresses repeated invalid forms while admitting a witness repair (`../sidestr-rs/sidestr-core/src/state.rs:742`, `../sidestr-rs/sidestr-core/tests/eviction.rs:16`). The current fallback also treats a producer-wide future-header failure as transaction invalidity: both Rust paths reproduce that gap.
 
-**Open:** assets, pools and markets remain inactive on `sidestr:dreamlab`; its sealed document reaches `containmentDigest` without a `rules` field (`../project/agentbox/config/sidechain/dreamlab/chain.json:28`).
+**Scope:** the sealed `sidestr:dreamlab` document lacks explicit consensus overlay rules (`../project/agentbox/config/sidechain/dreamlab/chain.json:28`). Runtime activation and remediation remain separate from these source findings.

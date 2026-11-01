@@ -1,0 +1,14 @@
+   Compiling estate-review-ledger v0.1.0 (/home/devuser/workspace/wt/visionflow-overlays-audit/scripts/estate-review-ledger)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.62s
+     Running `/home/devuser/workspace/.tmp/vf-om-layout-caches/ledger/debug/estate-review-ledger /home/devuser/workspace /home/devuser/workspace/wt/visionflow-overlays-audit docs/estate-review/completion/scope.json docs/estate-review/completion/claims.json docs/estate-review/completion/snapshot-2026-11-01.json`
+{
+  "available_checkouts": 24,
+  "candidate_files": 1178,
+  "numbered_candidates_with_recorded_assessment": 91,
+  "numbered_decision_candidates": 1061,
+  "panels": 1730,
+  "panels_with_recorded_assessment": 324,
+  "scope_targets": 25,
+  "stale_claim_records": 0,
+  "topics": 205
+}

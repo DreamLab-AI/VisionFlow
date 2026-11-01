@@ -1,0 +1,12 @@
+{
+  "panels": [
+    "SR-02.1",
+    "SR-02.2",
+    "SR-02.3",
+    "SR-02.4"
+  ],
+  "renderer": "pele",
+  "review": "All four raster previews inspected; readable labels, directed branches and lifecycle states; original SVGs remain unchanged. Wide lifecycle layout is readable at native size.",
+  "preview_method": "Temporary copies use Liberation Sans 16 for inherited text defaults; existing explicit text styles are preserved.",
+  "generated_assets": "Ignored render outputs archived before worktree removal; regenerate from tracked Mermaid."
+}

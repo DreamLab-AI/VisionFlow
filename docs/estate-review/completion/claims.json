@@ -2297,5 +2297,21 @@
     "panels": [
       "SR-04.5"
     ]
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/sidestr-rs/02-assets-pools-markets-and-eviction.md",
+    "source_sha256": "d600e560f7c5a5446e29e63afd88f5dadf492aee2c6b91c5a7e698894ac1fea6",
+    "report": "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md",
+    "report_sha256": "e0d33df4875016cbdddb0aa2209c2da466b4f152ad200520651c014efae38adf",
+    "coverage": "selected-panels",
+    "basis": "All four existing SR-02 panels: source order, asset reading versus enforcement, pool predicates, one-sided market refunds, discarded versus evicted transactions, clock-failure eviction and retained rejected candidates. Ten selected native tests and four production-library probes; rendered and visually inspected. No whole-ADR credit or runtime activation claim.",
+    "panels": [
+      "SR-02.1",
+      "SR-02.2",
+      "SR-02.3",
+      "SR-02.4"
+    ]
   }
 ]

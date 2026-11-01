@@ -1,0 +1,40 @@
+{
+  "cases": [
+    {
+      "case": "core_producer_clock_failure_evicts_valid_transaction",
+      "candidate_valid_before_and_after": true,
+      "tip_unchanged": true,
+      "mempool_after": 0,
+      "production_error": "block 102 failed: btc:rule-header-time-future",
+      "exact_replay_error": "rejected this session: btc:rule-header-time-future"
+    },
+    {
+      "case": "composed_producer_clock_failure_evicts_valid_transaction",
+      "candidate_valid_before_and_after": true,
+      "tip_unchanged": true,
+      "mempool_after": 0,
+      "production_error": "block 102 failed: btc:rule-header-time-future",
+      "exact_replay_error": "rejected this session: btc:rule-header-time-future"
+    },
+    {
+      "case": "one_sided_refund_and_split_while_refunding",
+      "yes_burned": 1000,
+      "no_burned": 0,
+      "refund_sats": 500,
+      "excessive_refund_rejected": "block 109 failed: sidestr:rule-markets",
+      "rejected_candidate_preserved_applied_asset_and_market_views": true,
+      "remaining_no": 1000,
+      "resplit_sats": 100,
+      "final_collateral": 601,
+      "final_status": "Refunding"
+    },
+    {
+      "case": "rejected_candidates_retained_until_application",
+      "distinct_rejected_candidates": 64,
+      "all_three_rules_retained_every_hash": true,
+      "tip_unchanged_during_rejection": true,
+      "application_cleared_candidate_hashes": true,
+      "heap_bytes_or_network_reachability_measured": false
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+[
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md",
+    "target": "evidence/2026-11-01/overlays/sources.json"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md",
+    "target": "evidence/2026-11-01/overlays/probe.json"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md",
+    "target": "2026-11-01-sidestr-crate-and-runtime-boundaries.md"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md",
+    "target": "evidence/2026-11-01/overlays/overlay-units.txt"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md",
+    "target": "evidence/2026-11-01/overlays/eviction.txt"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md",
+    "target": "evidence/2026-11-01/overlays/pools-markets.txt"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md",
+    "target": "evidence/2026-11-01/overlays/overlay-probe.rs"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md",
+    "target": "evidence/2026-11-01/overlays/run-probe.cjs"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md",
+    "target": "evidence/2026-11-01/overlays/probe-build.txt"
+  },
+  {
+    "file": "docs/diagrams/sidestr-rs/02-assets-pools-markets-and-eviction.md",
+    "target": "../../estate-review/2026-11-01-sidestr-overlays-and-eviction.md"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "scope.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "claims.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "snapshot-2026-11-01.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "validation-2026-11-01.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../../../scripts/estate-review-ledger/README.md"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../2026-11-01-sidestr-overlays-and-eviction.md"
+  }
+]

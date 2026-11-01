@@ -1,0 +1,15 @@
+   Compiling sidestr-core v0.4.2 (/home/devuser/workspace/sidestr-rs/sidestr-core)
+    Finished `test` profile [unoptimized] target(s) in 5.10s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/sidestr_core-a4ccdc359b8ebae3)
+
+running 7 tests
+test assets::tests::issuance_creates_the_supply ... ok
+test pool::tests::integer_square_root_matches_the_reference_boundary ... ok
+test markets::tests::no_asset_id_is_single_sha256_of_the_text ... ok
+test assets::tests::spending_without_a_tally_burns ... ok
+test assets::tests::a_later_transaction_in_the_block_spends_an_earlier_ones_output ... ok
+test assets::tests::over_assigning_is_broken_and_destroys_what_the_inputs_carried ... ok
+test assets::tests::the_rules_edges_follow_the_reference ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 51 filtered out; finished in 0.00s
+
