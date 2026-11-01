@@ -1,0 +1,43 @@
+[
+  {
+    "command": [
+      "inspect-text",
+      "docs/estate-review/2026-11-01-dream-candidate-and-evidence.md"
+    ],
+    "exit": 0,
+    "stdout": "Length: 14507 chars\nSuspicious: 0\nNote: Layer A only: invisible/format Unicode, smuggled payloads and homoglyphs (edit-based carriers).\nNote: Statistical (token-sampling) watermarks are not detectable here; use Layer B rewrite.\nNote: Inspect kinds: strip, bidi, tag_chars, variation_selector, zwj_family, private_use, reserved_ignorable, noncharacter, space, confusable, other_cf.\nNote: Load-bearing invisibles are preserved by default: emoji glue (ZWJ/VS after an emoji base), script joiners (ZWNJ/ZWJ inside complex scripts), RGI flag tag sequences, same-script fillers/selectors (Mongolian FVS, Khmer inherent vowels, Hangul jamo and blank fillers), visible-layout format controls next to their own script (Egyptian quadrat, Duployan shorthand, musical beam/tie/slur), orthographic Arabic/Syriac Cf marks, and balanced bidi controls in text that contains RTL script. Use --strip-emoji-glue for paranoid mode (strips them all).\nNote: Homoglyphs are judged by UTS #39 skeleton plus mixed-script and Identifier_Status context, not by a hand-written table; see the `confusables` module for the one documented gap.\nNote: No deterministic Layer A (invisible Unicode/format) carriers detected; statistical and pixel-domain marks are out of scope here.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "slop-scan",
+      "docs/estate-review/2026-11-01-dream-candidate-and-evidence.md",
+      "--severity",
+      "high"
+    ],
+    "exit": 1,
+    "stdout": "\n  prose-sanitiser slop scan: docs/estate-review/2026-11-01-dream-candidate-and-evidence.md\n  files scanned: 1   findings: 1   slop score: 3\n  verdict: Some AI tells present\n  high: 1   medium: 0   low: 0\n\n  [HIGH] Tier-1 banned vocabulary  (1 hit)\n        fix: Replace with a plain word (delve->look at, leverage->use, robust->solid, seamless->smooth, utilise->use). See SKILL.md B4.\n        docs/estate-review/2026-11-01-dream-candidate-and-evidence.md:67  ...ementation](https://github.com/SWE-bench/SWE-bench/blob/main/docs/reference/harness.md) separates patch application, repository tests and reproducible Docker en...\n\n  Top things to change: Tier-1 banned vocabulary\n  Narrative and voice tells need eyes too. See Section C of SKILL.md.\n\n",
+    "stderr": "",
+    "manual_disposition": "Single false positive inside the primary source URL ending docs/reference/harness.md; URL retained exactly. No prose replacement is warranted."
+  },
+  {
+    "command": [
+      "inspect-text",
+      "docs/estate-review/evidence/2026-11-01/dream-reproduction.md"
+    ],
+    "exit": 0,
+    "stdout": "Length: 4067 chars\nSuspicious: 0\nNote: Layer A only: invisible/format Unicode, smuggled payloads and homoglyphs (edit-based carriers).\nNote: Statistical (token-sampling) watermarks are not detectable here; use Layer B rewrite.\nNote: Inspect kinds: strip, bidi, tag_chars, variation_selector, zwj_family, private_use, reserved_ignorable, noncharacter, space, confusable, other_cf.\nNote: Load-bearing invisibles are preserved by default: emoji glue (ZWJ/VS after an emoji base), script joiners (ZWNJ/ZWJ inside complex scripts), RGI flag tag sequences, same-script fillers/selectors (Mongolian FVS, Khmer inherent vowels, Hangul jamo and blank fillers), visible-layout format controls next to their own script (Egyptian quadrat, Duployan shorthand, musical beam/tie/slur), orthographic Arabic/Syriac Cf marks, and balanced bidi controls in text that contains RTL script. Use --strip-emoji-glue for paranoid mode (strips them all).\nNote: Homoglyphs are judged by UTS #39 skeleton plus mixed-script and Identifier_Status context, not by a hand-written table; see the `confusables` module for the one documented gap.\nNote: No deterministic Layer A (invisible Unicode/format) carriers detected; statistical and pixel-domain marks are out of scope here.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "slop-scan",
+      "docs/estate-review/evidence/2026-11-01/dream-reproduction.md",
+      "--severity",
+      "high"
+    ],
+    "exit": 0,
+    "stdout": "\n  prose-sanitiser slop scan: docs/estate-review/evidence/2026-11-01/dream-reproduction.md\n  files scanned: 1   findings: 0   slop score: 0\n  verdict: Clean, no mechanical tells detected\n  high: 0   medium: 0   low: 0\n\n  Nothing flagged. Either it is clean or the tells are narrative/voice ones a\n  regex cannot see. Read it against Section C of SKILL.md.\n\n",
+    "stderr": ""
+  }
+]

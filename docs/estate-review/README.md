@@ -43,6 +43,8 @@ Visiontouch continuation: [software force boundaries, evidence and six-decision 
 
 Vowl ingest and release continuation: [JSON semantics, graph statistics and split delivery](2026-11-01-vowl-ingest-and-release.md). Together with the layout/API pass, all five vowl-wasm topics are assessed with open implementation and host findings. The estate audit remains in progress.
 
+Dream-engine continuation: [candidate confinement and evidence boundaries](2026-11-01-dream-candidate-and-evidence.md), with three section-by-section decision assessments, current DE-01 qualification and new DE-02 diagrams. Other dream-engine decisions and full host acceptance remain open.
+
 ## Reading order
 
 | Document | Question it answers |

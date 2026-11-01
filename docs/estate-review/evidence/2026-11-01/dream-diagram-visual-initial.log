@@ -1,0 +1,62 @@
+parsed 2 topic files, 6 mermaid diagrams
+cite-check: 23 warning(s)
+citations: 18 verified at the declared revision, 0 unverified (working-tree fallback), 23 unresolvable, 0 allowlisted (unverifiable)
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.1 — readiness.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.1 — readiness.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.1 — readiness.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.1 — readiness.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.1 — candidate.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.1 — candidate.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.2 — candidate.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.2 — candidate.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.2 — candidate.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.2 — candidate.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.2 — candidate.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.2 — candidate.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.2 — candidate.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.3 — gate.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.3 — gate.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.3 — gate.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.3 — pertest.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.3 — gate.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.4 — receipts.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.4 — receipts.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.4 — manifest.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.4 — manifest.rs could not be read
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.4 — replay.rs could not be read
+rendered 6/6 diagrams via pele
+
+33 error(s):
+  - dream-engine/02-candidate-and-evidence-boundaries.md: source path does not exist: readiness.rs
+  - dream-engine/02-candidate-and-evidence-boundaries.md: source path does not exist: candidate.rs
+  - dream-engine/02-candidate-and-evidence-boundaries.md: source path does not exist: runner.rs
+  - dream-engine/02-candidate-and-evidence-boundaries.md: source path does not exist: replay.rs
+  - dream-engine/02-candidate-and-evidence-boundaries.md: source path does not exist: testfmt.rs
+  - dream-engine/02-candidate-and-evidence-boundaries.md: source path does not exist: guard.rs
+  - dream-engine/02-candidate-and-evidence-boundaries.md: source path does not exist: gate.rs
+  - dream-engine/02-candidate-and-evidence-boundaries.md: source path does not exist: pertest.rs
+  - dream-engine/02-candidate-and-evidence-boundaries.md: source path does not exist: receipts.rs
+  - dream-engine/02-candidate-and-evidence-boundaries.md: source path does not exist: manifest.rs
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.1 — readiness.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.1 — readiness.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.1 — readiness.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.1 — readiness.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.1 — candidate.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.1 — candidate.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.2 — candidate.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.2 — candidate.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.2 — candidate.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.2 — candidate.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.2 — candidate.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.2 — candidate.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.2 — candidate.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.3 — gate.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.3 — gate.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.3 — gate.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.3 — pertest.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.3 — gate.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.4 — receipts.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.4 — receipts.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.4 — manifest.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.4 — manifest.rs could not be read
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.4 — replay.rs could not be read

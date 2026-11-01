@@ -1,0 +1,570 @@
+{
+  "associations": 38,
+  "all_topic_inputs_match": true,
+  "topic_inputs": [
+    {
+      "topic": "DE-01",
+      "kind": "governing",
+      "path": "docs/architecture/repository-map.md",
+      "pin": "4d361b58ce2b3ee17e1570361eaf78270b630012",
+      "head": "dbfbae2d2c2890aa8028733d0e8a8450bfaa1c38",
+      "sha256": "5849daed1fb71db03ce2ab9fd0d7f4c08ebe2612105d4b7c5bd1d35118ca25ec",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/Cargo.toml",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "4ea2065e1cb104e1c87295eb16e5ce2fd67eb18794eedc70651bb1ca4ae4571f",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/deny.toml",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "40e3c0f1f2e92316b42a457c6a32e8a09f9f9a46bb1230dc3b9fad8dc8b5c6d7",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/README.md",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "cfbceffd800ced8d3a98994a1bdee352182f3b02c1c5a593b2292e65178c97c5",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/crates/dream-core/Cargo.toml",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "39e5a6c671a080d0fa53d841358a314fc5f77a73d72614d6d6b7c851bb2c0535",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/crates/dream-gate/Cargo.toml",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "13430af5ede5977f47ba08a7523d49837182e0417d603f398940c273ecee6715",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/crates/dream-cli/Cargo.toml",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "507210370fcbe5a5c0723a7c732394ab22a1883af936dfec639c4563b6b6e003",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/crates/dream-core/src/readiness.rs",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "9533172550e3025bdd8d645a4a4e3432621eb4906d546901f423ca5aee288132",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/crates/pairwise-gate/Cargo.toml",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "c7971700e6da85be85414c60b2bb16a2b7a8d731c1d7d5aa4420710ea0e1bd09",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/crates/failure-fingerprint/Cargo.toml",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "da479d03cf4754e9e100d1bff4cb4c2089cbe3bdca8c9954a4fcc524ecf4616d",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/docs/adr/ADR-DE-001-standalone-rust-engine.md",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "e726c7f46674d60c835059ce8a01f04c493cf5b20a3da7c490468bda1fb6d94f",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/docs/adr/ADR-DE-002-licence-and-provenance.md",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "f85d78b8ce20f2e00f6a0580ca2a54345c74aaa788564c644726b06aa1fe9745",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "987a6d249e785aa59ff05db92eea3621a316b48751cb05d2d4bcfb11874a0347",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "91315eb0d8b4a07089f237a5d9171c2c565cd83286ed8acaefcf5f91c2f6d726",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/docs/adr/ADR-DE-008-requested-sources-are-honoured-first.md",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "078a8e0c8e16146c673ed56791056dab5e0d9a6c1c662ed2f1678c259f57eef9",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/docs/adr/ADR-DE-009-candidates-are-formatted-before-the-gate.md",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "681da868dd5138a9bc201103d21033b5ba965ff2e3d98466e814ebfe8533d239",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/crates/dream-core/src/screen.rs",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "7cccc6846da2b60f70fec02b7090f0bedae814d7ba1419ee8f88f79e9b86c190",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../dream-engine/crates/dream-core/src/lib.rs",
+      "pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "2eaab150690f318cf48327aa2b4791b90c50f7b7e4514324d8a60c7ca2ef8791",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../project/agentbox/services/dream-engine/Cargo.toml",
+      "pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "051ace1c8d144fe0b2b11b82ee7cc5c940fae0c3cce2afdf4d4fd14615107288",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../project/agentbox/services/dream-engine/src/engine.rs",
+      "pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "c15b31074c173b6409744daa87f1a1f0367d6e917b514e20dab25b006cf2af06",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md",
+      "pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "a75c49a0a28f90edf53e2010ee851f557f7f9294f081503fe3e201bce85573c1",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "scripts/estate-health/roster.json",
+      "pin": "4d361b58ce2b3ee17e1570361eaf78270b630012",
+      "head": "dbfbae2d2c2890aa8028733d0e8a8450bfaa1c38",
+      "sha256": "950b9a4123a93d206e1d2310cb9c6edaf6ba9384a78ea68a14dae32efe2e9b11",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "scripts/generate-release-manifest.sh",
+      "pin": "4d361b58ce2b3ee17e1570361eaf78270b630012",
+      "head": "dbfbae2d2c2890aa8028733d0e8a8450bfaa1c38",
+      "sha256": "79bef869085e4dfb5dd1ee02b6e89dc03166909003346bf1f75fd9804bca8e89",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "tests/gates/release-manifest.test.sh",
+      "pin": "4d361b58ce2b3ee17e1570361eaf78270b630012",
+      "head": "dbfbae2d2c2890aa8028733d0e8a8450bfaa1c38",
+      "sha256": "9fc18c7d62c665824d80907b1fa5eaa6f6f5876bc77f786b763dd6b775f3592b",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-01",
+      "kind": "sources",
+      "path": "scripts/estate-browser-journeys.mjs",
+      "pin": "4d361b58ce2b3ee17e1570361eaf78270b630012",
+      "head": "dbfbae2d2c2890aa8028733d0e8a8450bfaa1c38",
+      "sha256": "c13635717a8a0edeee5a94ceafb74a72e21a6717a0c38e45589f538c47a823c3",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-02",
+      "kind": "governing",
+      "path": "../dream-engine/docs/adr/ADR-DE-003-protected-path-guard.md",
+      "pin": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "35c86511a7f07eb65cfe89ffc7152897070796a76b0304da3cac30ad8673a2e7",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-02",
+      "kind": "governing",
+      "path": "../dream-engine/docs/adr/ADR-DE-004-pairwise-selection-and-fingerprints.md",
+      "pin": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "5a2dc1b4c0bb0b024428ad99bf5d3489f9c546125849a75ce2d13765ae783b19",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-02",
+      "kind": "governing",
+      "path": "../dream-engine/docs/adr/ADR-DE-009-candidates-are-formatted-before-the-gate.md",
+      "pin": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "681da868dd5138a9bc201103d21033b5ba965ff2e3d98466e814ebfe8533d239",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-02",
+      "kind": "sources",
+      "path": "../dream-engine/crates/dream-core/src/readiness.rs",
+      "pin": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "9533172550e3025bdd8d645a4a4e3432621eb4906d546901f423ca5aee288132",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-02",
+      "kind": "sources",
+      "path": "../dream-engine/crates/dream-core/src/candidate.rs",
+      "pin": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "ce7fc3c350fd8cdbe5a72a5c8a06d089ac689ab3ef345fabf5ab7e279990f39a",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-02",
+      "kind": "sources",
+      "path": "../dream-engine/crates/dream-core/src/runner.rs",
+      "pin": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "7721c089050fb908f4d4bdf15864f558640f7f61373c8169b33e5973a9e0e531",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-02",
+      "kind": "sources",
+      "path": "../dream-engine/crates/dream-core/src/replay.rs",
+      "pin": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "94f6f287f2014d830641ca5d81a0ec3089cd93fb2d49ca1e142799a396011ab6",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-02",
+      "kind": "sources",
+      "path": "../dream-engine/crates/dream-gate/src/guard.rs",
+      "pin": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "f63cd7134eae9e62ab285f614ea7bfd3f9f8b93bcc1f597d29f9203a9facbbea",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-02",
+      "kind": "sources",
+      "path": "../dream-engine/crates/dream-gate/src/gate.rs",
+      "pin": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "3e246709730bdb8370363feb6333bc84dada20fb046e14d9a224615fb4cc1b5d",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-02",
+      "kind": "sources",
+      "path": "../dream-engine/crates/dream-gate/src/pertest.rs",
+      "pin": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "c99648ec184d3f9dafe4e830fc6d0a753faf1769d2e3516aadf74497a028e22e",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-02",
+      "kind": "sources",
+      "path": "../dream-engine/crates/dream-gate/src/receipts.rs",
+      "pin": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "873ed5d8f2cd3bab4dbcf3aca3d61cbfe1a558371a60ce8c0579134b982e0fcb",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-02",
+      "kind": "sources",
+      "path": "../dream-engine/crates/dream-gate/src/manifest.rs",
+      "pin": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "2b17526c057398a286b71b3c169ee54e79001a4222ec466aeaaff3b0f4862a77",
+      "matches_pin": true
+    },
+    {
+      "topic": "DE-02",
+      "kind": "sources",
+      "path": "../dream-engine/crates/dream-core/src/testfmt.rs",
+      "pin": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "26cc720b6bb8ef112c6e3aa581e35de31e16e23740a57f2efb5df095c4284ce8",
+      "matches_pin": true
+    }
+  ],
+  "adr_files": [
+    {
+      "path": "/home/devuser/workspace/dream-engine/docs/adr/ADR-DE-001-standalone-rust-engine.md",
+      "sha256": "e726c7f46674d60c835059ce8a01f04c493cf5b20a3da7c490468bda1fb6d94f",
+      "headings": [
+        {
+          "line": 13,
+          "text": "# ADR-DE-001 \u2014 A standalone Rust engine replaces the TypeScript fork"
+        },
+        {
+          "line": 15,
+          "text": "## Context"
+        },
+        {
+          "line": 23,
+          "text": "## Decision"
+        },
+        {
+          "line": 34,
+          "text": "## Consequences"
+        }
+      ]
+    },
+    {
+      "path": "/home/devuser/workspace/dream-engine/docs/adr/ADR-DE-002-licence-and-provenance.md",
+      "sha256": "f85d78b8ce20f2e00f6a0580ca2a54345c74aaa788564c644726b06aa1fe9745",
+      "headings": [
+        {
+          "line": 13,
+          "text": "# ADR-DE-002 \u2014 Licence and provenance"
+        },
+        {
+          "line": 15,
+          "text": "## Context"
+        },
+        {
+          "line": 21,
+          "text": "## Decision"
+        },
+        {
+          "line": 38,
+          "text": "## Consequences"
+        }
+      ]
+    },
+    {
+      "path": "/home/devuser/workspace/dream-engine/docs/adr/ADR-DE-003-protected-path-guard.md",
+      "sha256": "35c86511a7f07eb65cfe89ffc7152897070796a76b0304da3cac30ad8673a2e7",
+      "headings": [
+        {
+          "line": 13,
+          "text": "# ADR-DE-003 \u2014 Protected-path guard and config-digest binding"
+        },
+        {
+          "line": 15,
+          "text": "## Context"
+        },
+        {
+          "line": 23,
+          "text": "## Decision"
+        },
+        {
+          "line": 41,
+          "text": "## Consequences"
+        }
+      ]
+    },
+    {
+      "path": "/home/devuser/workspace/dream-engine/docs/adr/ADR-DE-004-pairwise-selection-and-fingerprints.md",
+      "sha256": "5a2dc1b4c0bb0b024428ad99bf5d3489f9c546125849a75ce2d13765ae783b19",
+      "headings": [
+        {
+          "line": 13,
+          "text": "# ADR-DE-004 \u2014 Pairwise selection and failure fingerprints"
+        },
+        {
+          "line": 15,
+          "text": "## Context"
+        },
+        {
+          "line": 21,
+          "text": "## Decision"
+        },
+        {
+          "line": 50,
+          "text": "## Implementation status"
+        },
+        {
+          "line": 57,
+          "text": "## Consequences"
+        }
+      ]
+    },
+    {
+      "path": "/home/devuser/workspace/dream-engine/docs/adr/ADR-DE-005-seams.md",
+      "sha256": "9a3a98919067bd925f17167c25974d68b4e751d2ed3a0732cbe5356c8636b06b",
+      "headings": [
+        {
+          "line": 13,
+          "text": "# ADR-DE-005 \u2014 Seams"
+        },
+        {
+          "line": 15,
+          "text": "## Context"
+        },
+        {
+          "line": 21,
+          "text": "## Decision"
+        },
+        {
+          "line": 41,
+          "text": "## Consequences"
+        }
+      ]
+    },
+    {
+      "path": "/home/devuser/workspace/dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md",
+      "sha256": "987a6d249e785aa59ff05db92eea3621a316b48751cb05d2d4bcfb11874a0347",
+      "headings": [
+        {
+          "line": 13,
+          "text": "# ADR-DE-006 \u2014 Automerge is an option, default off"
+        },
+        {
+          "line": 15,
+          "text": "## Context"
+        },
+        {
+          "line": 21,
+          "text": "## Decision"
+        },
+        {
+          "line": 35,
+          "text": "## Consequences"
+        }
+      ]
+    },
+    {
+      "path": "/home/devuser/workspace/dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md",
+      "sha256": "91315eb0d8b4a07089f237a5d9171c2c565cd83286ed8acaefcf5f91c2f6d726",
+      "headings": [
+        {
+          "line": 13,
+          "text": "# ADR-DE-007 \u2014 A night is identified by its directory, not by the run id"
+        },
+        {
+          "line": 15,
+          "text": "## Context"
+        },
+        {
+          "line": 18,
+          "text": "## Decision"
+        },
+        {
+          "line": 25,
+          "text": "## Consequences"
+        },
+        {
+          "line": 29,
+          "text": "## Hardening (independent audit, 2026-10)"
+        },
+        {
+          "line": 34,
+          "text": "## Known limit: publish outcomes are not reconciled (at-most-once)"
+        }
+      ]
+    },
+    {
+      "path": "/home/devuser/workspace/dream-engine/docs/adr/ADR-DE-008-requested-sources-are-honoured-first.md",
+      "sha256": "078a8e0c8e16146c673ed56791056dab5e0d9a6c1c662ed2f1678c259f57eef9",
+      "headings": [
+        {
+          "line": 13,
+          "text": "# ADR-DE-008 \u2014 Sources the previous night asked for are read first, capped, and never asked of the operator"
+        },
+        {
+          "line": 15,
+          "text": "## Context"
+        },
+        {
+          "line": 18,
+          "text": "## Decision"
+        },
+        {
+          "line": 27,
+          "text": "## Consequences"
+        }
+      ]
+    },
+    {
+      "path": "/home/devuser/workspace/dream-engine/docs/adr/ADR-DE-009-candidates-are-formatted-before-the-gate.md",
+      "sha256": "681da868dd5138a9bc201103d21033b5ba965ff2e3d98466e814ebfe8533d239",
+      "headings": [
+        {
+          "line": 13,
+          "text": "# ADR-DE-009 \u2014 A candidate is formatted before the gate judges it; layout is never why a night fails"
+        },
+        {
+          "line": 15,
+          "text": "## Context"
+        },
+        {
+          "line": 40,
+          "text": "## Decision"
+        },
+        {
+          "line": 71,
+          "text": "## Consequences"
+        }
+      ]
+    },
+    {
+      "path": "/home/devuser/workspace/dream-engine/docs/adr/README.md",
+      "sha256": "cbcc87e20ec998be10adfd6bb3edd2777f69475b7f22b731b9f926d855186469",
+      "headings": [
+        {
+          "line": 1,
+          "text": "# Decision records"
+        }
+      ]
+    }
+  ]
+}

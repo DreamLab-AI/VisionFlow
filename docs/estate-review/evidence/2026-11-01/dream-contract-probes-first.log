@@ -1,0 +1,22 @@
+   Compiling libc v0.2.190
+   Compiling getrandom v0.4.3
+   Compiling num-traits v0.2.19
+   Compiling chrono v0.4.45
+   Compiling tempfile v3.27.0
+   Compiling dream-gate v0.3.0 (/home/devuser/workspace/wt/VisionFlow-dream-core-contracts/.audit-source/crates/dream-gate)
+   Compiling dream-core v0.4.0 (/home/devuser/workspace/wt/VisionFlow-dream-core-contracts/.audit-source/crates/dream-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.67s
+     Running tests/estate_contract_probe.rs (.audit-target/debug/deps/estate_contract_probe-68432937b89ad205)
+
+running 8 tests
+test direct_gate_has_no_required_check_or_tree_identity_floor ... ok
+test direct_gate_trusts_typed_outcome_over_raw_failure ... ok
+test duplicate_test_names_hide_failure_when_pass_is_last ... ok
+test malformed_manifest_archive_overwrites_prior_damage ... ok
+test manifest_archive_overwrites_same_run_id_history ... ok
+test receipt_slug_collision_discards_first_receipt ... ok
+test evaluator_can_change_working_tree_after_recorded_hash ... ok
+test formatter_attribute_spacing_reaches_outside_worktree ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.43s
+

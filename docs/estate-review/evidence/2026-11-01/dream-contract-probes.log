@@ -1,0 +1,20 @@
+   Compiling dream-core v0.4.0 (/home/devuser/workspace/wt/VisionFlow-dream-core-contracts/.audit-source/crates/dream-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.45s
+     Running tests/estate_contract_probe.rs (.audit-target/debug/deps/estate_contract_probe-68432937b89ad205)
+
+running 11 tests
+test direct_gate_has_no_required_check_or_tree_identity_floor ... ok
+test direct_gate_trusts_typed_outcome_over_raw_failure ... ok
+test duplicate_test_names_hide_failure_when_pass_is_last ... ok
+test junit_generated_suffix_collides_with_existing_test_name ... ok
+test malformed_manifest_archive_overwrites_prior_damage ... ok
+test receipt_slug_collision_discards_first_receipt ... ok
+test manifest_archive_overwrites_same_run_id_history ... ok
+test readiness_accepts_wrapped_constant_output ... ok
+test readiness_accepts_untracked_evaluator_script ... ok
+test evaluator_can_change_working_tree_after_recorded_hash ... ok
+formatter outcome=Applied { tree_hash_before: "6f725737c340fab2d8f7fe6e0e9de1d15333db3b" }; outside before="pub fn outside( )->u8{1}\n"; after="pub fn outside() -> u8 {\n    1\n}\n"
+test formatter_attribute_spacing_reaches_outside_worktree ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+

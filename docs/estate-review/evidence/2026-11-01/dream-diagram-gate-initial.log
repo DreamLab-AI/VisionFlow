@@ -1,0 +1,11 @@
+parsed 3 topic files, 28 mermaid diagrams
+cite-check: 2 warning(s)
+citations: 437 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.2 — ../dream-engine/crates/dream-core/src/candidate.rs:156 is punctuation only ('};')
+  ! dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.4 — ../dream-engine/crates/dream-gate/src/manifest.rs:315 is punctuation only ('}')
+rendered 28/28 diagrams via pele
+
+3 error(s):
+  - dream-engine/01-crates-licence-boundary-and-estate-status.md: 8 prose lines for 2 diagrams — this tree is diagrams-only (max 3 lines per diagram)
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.2 — ../dream-engine/crates/dream-core/src/candidate.rs:156 is punctuation only ('};')
+  - citation: dream-engine/02-candidate-and-evidence-boundaries.md:DE-02.4 — ../dream-engine/crates/dream-gate/src/manifest.rs:315 is punctuation only ('}')

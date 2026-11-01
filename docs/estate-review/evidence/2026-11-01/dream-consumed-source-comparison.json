@@ -1,0 +1,74 @@
+[
+  {
+    "crate": "dream-core",
+    "version": "0.4.0",
+    "file": "candidate.rs",
+    "source_sha256": "ce7fc3c350fd8cdbe5a72a5c8a06d089ac689ab3ef345fabf5ab7e279990f39a",
+    "registry_cache_sha256": "ce7fc3c350fd8cdbe5a72a5c8a06d089ac689ab3ef345fabf5ab7e279990f39a",
+    "equal": true,
+    "cache_checksum_manifest_present": false
+  },
+  {
+    "crate": "dream-core",
+    "version": "0.4.0",
+    "file": "readiness.rs",
+    "source_sha256": "9533172550e3025bdd8d645a4a4e3432621eb4906d546901f423ca5aee288132",
+    "registry_cache_sha256": "9533172550e3025bdd8d645a4a4e3432621eb4906d546901f423ca5aee288132",
+    "equal": true,
+    "cache_checksum_manifest_present": false
+  },
+  {
+    "crate": "dream-core",
+    "version": "0.4.0",
+    "file": "replay.rs",
+    "source_sha256": "94f6f287f2014d830641ca5d81a0ec3089cd93fb2d49ca1e142799a396011ab6",
+    "registry_cache_sha256": "94f6f287f2014d830641ca5d81a0ec3089cd93fb2d49ca1e142799a396011ab6",
+    "equal": true,
+    "cache_checksum_manifest_present": false
+  },
+  {
+    "crate": "dream-gate",
+    "version": "0.3.0",
+    "file": "gate.rs",
+    "source_sha256": "3e246709730bdb8370363feb6333bc84dada20fb046e14d9a224615fb4cc1b5d",
+    "registry_cache_sha256": "3e246709730bdb8370363feb6333bc84dada20fb046e14d9a224615fb4cc1b5d",
+    "equal": true,
+    "cache_checksum_manifest_present": false
+  },
+  {
+    "crate": "dream-gate",
+    "version": "0.3.0",
+    "file": "pertest.rs",
+    "source_sha256": "c99648ec184d3f9dafe4e830fc6d0a753faf1769d2e3516aadf74497a028e22e",
+    "registry_cache_sha256": "c99648ec184d3f9dafe4e830fc6d0a753faf1769d2e3516aadf74497a028e22e",
+    "equal": true,
+    "cache_checksum_manifest_present": false
+  },
+  {
+    "crate": "dream-gate",
+    "version": "0.3.0",
+    "file": "receipts.rs",
+    "source_sha256": "873ed5d8f2cd3bab4dbcf3aca3d61cbfe1a558371a60ce8c0579134b982e0fcb",
+    "registry_cache_sha256": "873ed5d8f2cd3bab4dbcf3aca3d61cbfe1a558371a60ce8c0579134b982e0fcb",
+    "equal": true,
+    "cache_checksum_manifest_present": false
+  },
+  {
+    "crate": "dream-gate",
+    "version": "0.3.0",
+    "file": "manifest.rs",
+    "source_sha256": "2b17526c057398a286b71b3c169ee54e79001a4222ec466aeaaff3b0f4862a77",
+    "registry_cache_sha256": "2b17526c057398a286b71b3c169ee54e79001a4222ec466aeaaff3b0f4862a77",
+    "equal": true,
+    "cache_checksum_manifest_present": false
+  },
+  {
+    "crate": "dream-core",
+    "version": "0.4.0",
+    "file": "testfmt.rs",
+    "source_sha256": "26cc720b6bb8ef112c6e3aa581e35de31e16e23740a57f2efb5df095c4284ce8",
+    "registry_cache_sha256": "26cc720b6bb8ef112c6e3aa581e35de31e16e23740a57f2efb5df095c4284ce8",
+    "equal": true,
+    "cache_checksum_manifest_present": false
+  }
+]

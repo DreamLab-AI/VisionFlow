@@ -1,0 +1,757 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling cfg-if v1.0.5
+   Compiling memchr v2.8.3
+   Compiling serde_core v1.0.229
+   Compiling autocfg v1.5.1
+   Compiling serde v1.0.229
+   Compiling once_cell v1.21.4
+   Compiling libc v0.2.190
+   Compiling zmij v1.0.23
+   Compiling cpufeatures v0.3.1
+   Compiling serde_json v1.0.154
+   Compiling rand_core v0.10.1
+   Compiling getrandom v0.4.3
+   Compiling itoa v1.0.18
+   Compiling typenum v1.20.1
+   Compiling rustix v1.1.5
+   Compiling bitflags v2.13.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling const-oid v0.10.2
+   Compiling fastrand v2.5.0
+   Compiling thiserror v2.0.21
+   Compiling iana-time-zone v0.1.65
+   Compiling hex v0.4.3
+   Compiling pin-project-lite v0.2.17
+   Compiling utf8parse v0.2.2
+   Compiling anstyle-query v1.1.5
+   Compiling colorchoice v1.0.5
+   Compiling anstyle v1.0.14
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling strsim v0.11.1
+   Compiling clap_lex v1.1.1
+   Compiling futures-sink v0.3.34
+   Compiling bit-vec v0.10.1
+   Compiling heck v0.5.0
+   Compiling quick-error v1.2.3
+   Compiling fnv v1.0.7
+   Compiling futures-core v0.3.34
+   Compiling unarray v0.1.4
+   Compiling regex-syntax v0.8.11
+   Compiling core_detect v1.0.0
+   Compiling futures-io v0.3.34
+   Compiling slab v0.4.12
+   Compiling futures-task v0.3.34
+   Compiling chacha20 v0.10.2
+   Compiling rand_xorshift v0.5.0
+   Compiling anstyle-parse v1.0.0
+   Compiling tracing-core v0.1.36
+   Compiling futures-channel v0.3.34
+   Compiling anstream v1.0.0
+   Compiling num-traits v0.2.19
+   Compiling bit-set v0.11.1
+   Compiling clap_builder v4.6.7
+   Compiling quick-xml v0.41.0
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling hybrid-array v0.4.15
+   Compiling chrono v0.4.45
+   Compiling wait-timeout v0.2.1
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling rand v0.10.3
+   Compiling tempfile v3.27.0
+   Compiling rusty-fork v0.3.1
+   Compiling digest v0.11.3
+   Compiling proptest v1.12.0
+   Compiling sha2 v0.11.1
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.21
+   Compiling futures-macro v0.3.34
+   Compiling clap_derive v4.6.7
+   Compiling futures-util v0.3.34
+   Compiling tracing-attributes v0.1.31
+   Compiling clap v4.6.7
+   Compiling tracing v0.1.44
+   Compiling pairwise-gate v0.1.0 (/home/devuser/workspace/wt/VisionFlow-dream-core-contracts/.audit-source/crates/pairwise-gate)
+   Compiling failure-fingerprint v0.1.0 (/home/devuser/workspace/wt/VisionFlow-dream-core-contracts/.audit-source/crates/failure-fingerprint)
+   Compiling futures-executor v0.3.34
+   Compiling dream-gate v0.3.0 (/home/devuser/workspace/wt/VisionFlow-dream-core-contracts/.audit-source/crates/dream-gate)
+   Compiling futures v0.3.34
+   Compiling dream-core v0.4.0 (/home/devuser/workspace/wt/VisionFlow-dream-core-contracts/.audit-source/crates/dream-core)
+   Compiling dream-cli v0.4.0 (/home/devuser/workspace/wt/VisionFlow-dream-core-contracts/.audit-source/crates/dream-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.76s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_cli-4a9333ff7a6ae649)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (.audit-target/debug/deps/dream-6cbe4b39958ab12d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/cli.rs (.audit-target/debug/deps/cli-1d400b17c2a39633)
+
+running 13 tests
+test help_lists_every_subcommand ... ok
+test guard_check_prints_touched_paths_for_a_clean_patch ... ok
+test replay_verify_on_a_missing_dir_is_an_error ... ok
+test validate_reports_a_missing_file ... ok
+test validate_rejects_an_invalid_config_with_exit_1 ... ok
+test witness_with_a_malformed_commit_is_an_error_not_a_mismatch ... ok
+test validate_accepts_a_good_config ... ok
+test guard_check_refuses_a_protected_patch_with_exit_1 ... ok
+test guard_check_refuses_a_malformed_patch ... ok
+test ledger_verify_passes_a_good_ledger_and_fails_a_bad_row ... ok
+test guard_check_applies_the_config_protected_globs ... ok
+test replay_verify_accepts_a_captured_night_and_flags_an_edited_decision ... ok
+test witness_stamp_then_verify_round_trips_and_detects_tampering ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.59s
+
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_core-fb22bf9c34f54b36)
+
+running 245 tests
+test automerge::tests::a_pr_that_is_not_draft_clean_is_refused ... ok
+test automerge::tests::flag_off_is_disabled_whatever_else_is_true ... ok
+test automerge::tests::flag_on_and_no_required_checks_is_refused ... ok
+test automerge::tests::flag_on_and_gate_crates_protected_or_present_is_refused ... ok
+test automerge::tests::default_config_has_automerge_off ... ok
+test automerge::tests::flag_on_and_this_engines_own_repo_is_refused ... ok
+test automerge::tests::flag_on_with_everything_in_order_is_allowed ... ok
+test automerge::tests::flag_on_and_protection_not_found_or_erroring_is_refused ... ok
+test automerge::tests::protection_json_without_status_checks_is_empty_not_an_error ... ok
+test automerge::tests::protection_json_yields_contexts_and_checks ... ok
+test automerge::tests::only_accept_may_merge ... ok
+test automerge::tests::self_reference_wins_over_a_perfect_protection_record ... ok
+test automerge::tests::garbage_protection_json_is_an_error ... ok
+test compile::tests::bonus_dives_are_numbered ... ok
+test compile::tests::human_review_policy_when_no_auto_merge ... ok
+test compile::tests::prompt_contains_evaluator ... ok
+test compile::tests::builtin_template_uses_only_known_placeholders ... ok
+test compile::tests::prompt_assigns_side_effects_to_the_engine ... ok
+test compile::tests::prompt_contains_repo_and_deep ... ok
+test compile::tests::proposed_ledger_row_parses_as_a_ledger_row ... ok
+test context::tests::materialise_folds_carry_recovery_pointer ... ok
+test compile::tests::unknown_and_unterminated_placeholders_are_errors ... ok
+test compile::tests::substitution_is_single_pass ... ok
+test compile::tests::prompt_contains_verdict_instructions ... ok
+test compile::tests::prompt_forbids_accept_without_patch ... ok
+test context::tests::parse_plan_drops_unknown_actions ... ok
+test context::tests::clip_middle_marks_elision_and_respects_boundaries ... ok
+test compile::tests::prompt_forbids_opaque_findings ... ok
+test context::tests::materialise_budget_degrades_prior_to_fold_but_not_tonight ... ok
+test context::tests::validate_defaults_cover_unmentioned_objects ... ok
+test context::tests::parse_plan_tolerates_fences_and_prose ... ok
+test compile::tests::prompt_is_deterministic ... ok
+test context::tests::govern_falls_open_on_failure_and_takes_the_budget_as_a_parameter ... ok
+test context::tests::validate_drops_unknown_targets ... ok
+test context::tests::validate_protects_tonight_receipts ... ok
+test ledger::read::tests::append_then_parse_recovers_the_row ... ok
+test ledger::read::tests::duplicate_directions_need_three_repeats_and_use_the_js_six_token_key ... ok
+test ledger::read::tests::legacy_ten_column_rows_parse_with_empty_review_columns ... ok
+test ledger::read::tests::closed_open_stale_and_prose_do_not_clear_the_streak ... ok
+test ledger::read::tests::low_score_and_blocked_eval_streaks ... ok
+test ledger::read::tests::merged_fate_token_in_the_ledger_clears_the_streak ... ok
+test ledger::read::tests::odd_column_counts_warn_but_still_yield_a_row ... ok
+test ledger::read::tests::prior_fates_are_lenient_and_the_latest_wins ... ok
+test ledger::read::tests::newlines_in_a_cell_collapse_to_one_space ... ok
+test ledger::read::tests::escaped_pipe_round_trips_without_shifting_later_cells ... ok
+test ledger::read::tests::verdict_stats_counts_and_buckets_other ... ok
+test ledger::read::tests::verify_flags_a_missing_header ... ok
+test ledger::read::tests::verify_accepts_a_valid_ledger_and_counts_rows ... ok
+test ledger::read::tests::validate_ledger_mirrors_the_typescript_row_contract ... ok
+test context::tests::persist_and_reload_round_trip ... ok
+test ledger::read::tests::verify_accepts_non_night_verdicts_and_na_evaluated ... ok
+test ledger::read::tests::verify_flags_out_of_range_verdict_date_and_evaluated ... ok
+test ledger::read::tests::zero_merge_streak_when_no_pr_is_known_merged ... ok
+test ledger::tests::enforce_contract_repairs_every_cell_rule ... ok
+test ledger::tests::enforce_contract_replaces_a_failing_finding_with_the_fallback ... ok
+test ledger::tests::enforce_contract_uses_a_last_resort_line_when_the_fallback_also_fails ... ok
+test ledger::tests::escape_cell_neutralises_pipes_and_newlines ... ok
+test ledger::tests::enforce_contract_leaves_a_compliant_row_alone ... ok
+test ledger::tests::review_from_merge_never_fabricates_a_duration ... ok
+test ledger::tests::review_from_merge_reads_the_merge_event ... ok
+test ledger::tests::bootstraps_missing_file ... ok
+test ledger::tests::review_from_merge_rounds_to_the_nearest_minute ... ok
+test ledger::tests::escaping_keeps_row_parseable ... ok
+test ledger::tests::row_violations_mirror_the_typescript_contract ... ok
+test ledger::tests::unreviewed_leaves_the_human_columns_empty ... ok
+test persist::tests::a_forge_that_cannot_report_the_base_is_refused_by_default ... ok
+test persist::tests::a_forge_without_protection_support_is_refused_by_default ... ok
+test persist::tests::a_forge_that_refuses_to_enable_leaves_an_ordinary_draft ... ok
+test persist::tests::a_pr_that_did_not_open_is_never_merged ... ok
+test ledger::tests::round_trip_parses_into_twelve_cells ... ok
+test persist::tests::a_pr_whose_real_base_differs_from_the_checked_branch_never_merges ... ok
+test persist::tests::allowed_enables_automerge_after_the_pr_opened ... ok
+test persist::tests::apply_attempts_order_and_three_way_gate ... ok
+test persist::tests::branch_name_slugifies_and_dates ... ok
+test persist::tests::an_unreadable_pr_base_never_merges ... ok
+test persist::tests::default_path_is_a_draft_with_no_protection_query_and_no_merge ... ok
+test persist::tests::flag_off_on_a_self_referential_repo_is_disabled_not_refused ... ok
+test persist::tests::flag_on_but_no_checks_never_merges ... ok
+test persist::tests::flag_on_but_protection_api_error_never_merges ... ok
+test persist::tests::flag_on_but_self_referential_never_merges ... ok
+test readiness::tests::a_real_command_is_admitted_and_reports_its_roster ... ok
+test readiness::tests::an_empty_evaluator_map_is_refused ... ok
+test readiness::tests::an_inline_echo_command_is_refused_as_non_probative ... ok
+test readiness::tests::a_wrong_deep_evaluator_leaves_the_night_with_nothing_to_run ... ok
+test readiness::tests::cat_of_a_file_is_surface_dependent_but_a_bare_cat_is_not ... ok
+test readiness::tests::darwin_without_a_sandbox_flag_is_refused_at_admission_too ... ok
+test roster::tests::a_broken_harness_still_costs_a_turn ... ok
+test roster::tests::pruning_forgets_retired_repos ... ok
+test roster::tests::an_empty_roster_is_alphabetical_and_capped ... ok
+test roster::tests::selection_is_deterministic_for_identical_state ... ok
+test replay::tests::night_policy_is_the_one_builder_the_live_guard_and_replay_share ... ok
+test roster::tests::the_least_recently_run_repo_leads ... ok
+test roster::tests::every_repo_gets_a_turn_before_any_repeats ... ok
+test replay::tests::f1_resolving_protects_absolute_and_baseline_named_files_and_replays_identically ... ok
+test runner::tests::runner_is_dyn_safe ... ok
+test runner::tests::scripted_runner_blocks_on_unscripted_commands ... ok
+test replay::tests::f1_resolving_refuses_an_unanalysable_command ... ok
+test runstate::tests::a_corrupt_journal_blocks_the_night_instead_of_reopening_it ... ok
+test readiness::tests::an_all_advisory_roster_cannot_veto_and_is_refused ... ok
+test readiness::tests::a_nonexistent_script_command_is_refused ... ok
+test readiness::tests::a_script_behind_a_cd_resolves_relative_to_that_directory ... ok
+test replay::tests::the_on_disk_schema_is_stable ... ok
+test runner::tests::local_runner_captures_streams_and_exit_code ... ok
+test runstate::tests::a_first_attempt_is_fresh_and_durable ... ok
+test replay::tests::per_test_evidence_and_options_survive_the_round_trip ... ok
+test replay::tests::an_applied_patch_to_the_judge_is_vetoed_by_the_gate_under_the_stored_policy ... ok
+test replay::tests::the_self_referential_policy_survives_capture_and_verify ... ok
+
+running 1 test
+test replay::tests::every_verdict_class_replays_to_the_recorded_verdict ... ok
+
+running 1 test
+test runstate::tests::f3_a_child_process_is_refused_while_the_parent_holds_the_night ... ok
+test runstate::tests::f3_nights_lock_independently ... ok
+test ledger::tests::append_row_never_writes_a_non_compliant_row ... ok
+test ledger::tests::append_adds_exactly_one_line ... ok
+test runstate::tests::a_completed_run_is_never_silently_repeated ... ok
+test runstate::tests::a_complete_night_is_complete_whatever_the_run_id ... ok
+test ledger::tests::handles_file_without_trailing_newline ... ok
+test roster::tests::state_survives_a_round_trip_and_a_missing_file ... ok
+test runstate::tests::a_journal_that_records_another_night_is_refused_not_overwritten ... ok
+test replay::tests::missing_files_and_unknown_schema_are_errors_not_silent_passes ... ok
+test replay::tests::a_schema_1_record_is_refused_with_a_message_that_says_why ... ok
+test runstate::tests::advance_never_moves_backwards ... ok
+test seams::tests::a_record_written_before_the_typed_fields_still_reads_and_writes_the_same_shape ... ok
+test seams::tests::lost_pr_text_names_the_branch_and_the_recovery_commands ... ok
+test runstate::tests::a_gated_night_with_a_moved_baseline_is_still_fresh ... ok
+test seams::tests::null_sink_and_stderr_notifier_never_fail ... ok
+test seams::tests::the_typed_fields_round_trip_and_use_camel_case_keys ... ok
+test seams::tests::traits_are_dyn_safe ... ok
+test seams::tests::transient_classification ... ok
+test source::tests::apply_repair_prompt_carries_the_error_and_file_but_no_receipts ... ok
+test source::tests::a_directory_request_expands_to_its_files_shallowest_first ... ok
+test source::tests::denylist_covers_key_material ... ok
+test replay::tests::dropping_the_stored_policy_is_a_disagreement_not_a_silent_pass ... ok
+test replay::tests::the_protected_night_is_cross_checked_against_the_guard ... ok
+test replay::tests::a_tampered_receipt_changes_the_recomputed_verdict ... ok
+test source::tests::failing_hunk_is_read_from_git_apply_errors ... ok
+test replay::tests::the_self_referential_flag_alone_changes_the_outcome ... ok
+test replay::tests::a_tampered_decision_is_reported_field_by_field ... ok
+test replay::tests::a_restarted_night_with_fewer_receipts_leaves_no_stale_ones_behind ... ok
+test runstate::tests::a_persisted_night_is_finished_with_its_recorded_verdict ... ok
+test source::tests::index_is_shallow_first_filtered_and_capped ... ok
+test source::tests::key_material_files_are_withheld_whole ... ok
+test source::tests::key_material_is_detected ... ok
+test source::tests::host_denylist_extends_the_built_in_one ... ok
+test source::tests::plan_parsing_accepts_both_shapes_and_fences ... ok
+test source::tests::line_ranges_parse_and_reject_nonsense ... ok
+test source::tests::parses_ls_tree_blobs_and_skips_submodules ... ok
+test source::tests::planner_prompt_lists_already_supplied_requests ... ok
+test source::tests::mentioned_paths_strip_locations_and_ignore_untracked ... ok
+test source::tests::repair_reply_classification ... ok
+test source::tests::repair_record_round_trips_for_restart_reuse ... ok
+test source::tests::repair_runs_only_for_accept_without_patch ... ok
+test source::tests::render_caps_requested_files_at_half_the_byte_budget ... ok
+test source::tests::section_formatting_budget_and_unreadable ... ok
+test source::tests::repair_uses_the_fallback_and_records_the_model_that_answered ... ok
+test source::tests::select_honours_requested_first_but_reserves_only_half_the_slots ... ok
+test source::tests::slicing_and_clipping_mark_what_is_missing ... ok
+test source::tests::select_prefers_planner_dedups_and_caps ... ok
+test source::tests::source_request_parse_splits_a_trailing_line_range ... ok
+test source::tests::validation_refuses_traversal_absolute_denied_and_untracked ... ok
+test streak::tests::a_fixed_failure_that_returns_counts_as_new ... ok
+test streak::tests::a_new_or_fixed_fingerprint_is_not_stuck ... ok
+test streak::tests::next_dry_streak_rules ... ok
+test streak::tests::dry_streak_reads_legacy_ten_column_rows_too ... ok
+test streak::tests::identical_blocked_env_nights_raise_harness_stuck ... ok
+test streak::tests::only_harness_class_vetoes_are_fingerprinted ... ok
+test streak::tests::dry_streak_counts_trailing_reject_and_inconclusive ... ok
+test streak::tests::stuck_notice_names_the_repo_and_the_fingerprints ... ok
+test streak::tests::stuck_only_applies_to_blocked_env_nights ... ok
+test sweep::tests::landed_branches_go_whatever_their_age ... ok
+test streak::tests::operational_rows_neither_advance_nor_reset_the_streak ... ok
+test sweep::tests::open_prs_get_a_week ... ok
+test sweep::tests::pr_state_parses_gh_json ... ok
+test sweep::tests::prless_branches_get_a_week ... ok
+test sweep::tests::refs_merge_local_and_remote ... ok
+test sweep::tests::the_checked_out_branch_is_never_touched ... ok
+test testfmt::tests::junit_entities_in_attributes_and_text_bodies_are_resolved ... ok
+test testfmt::tests::junit_malformed_and_empty_are_errors_and_entities_are_not_expanded ... ok
+test testfmt::tests::junit_real_vitest_run ... ok
+test testfmt::tests::junit_surefire_shapes_cdata_error_nesting_and_no_wrapper ... ok
+test testfmt::tests::libtest_backtrace_noise_does_not_leak_into_the_cause ... ok
+test testfmt::tests::libtest_duplicate_names_get_a_stable_suffix ... ok
+test testfmt::tests::libtest_no_tests_is_an_error_not_an_empty_success ... ok
+test testfmt::tests::libtest_passing_run_and_stable_names_between_runs ... ok
+test testfmt::tests::libtest_real_failing_run_across_unit_integration_and_doc_targets ... ok
+test testfmt::tests::libtest_without_running_lines_has_bare_names_and_old_panic_format ... ok
+test testfmt::tests::outcomes_pair_baseline_and_candidate_or_decline ... ok
+test runstate::tests::a_different_run_id_starts_a_fresh_experiment_but_keeps_the_attempt_count ... ok
+test testfmt::tests::receipts_carry_everything_outcomes_needs ... ok
+test testfmt::tests::stderr_is_appended_when_stdout_lacks_the_target_banners ... ok
+test testfmt::tests::vitest_json_garbage_and_empty_are_errors ... ok
+test testfmt::tests::vitest_json_suite_that_failed_to_load_is_a_failed_case ... ok
+test testfmt::tests::vitest_json_real_run ... ok
+test runstate::tests::an_abandoned_night_stays_abandoned_when_the_baseline_moves ... ok
+test runstate::tests::f5_a_journal_for_another_repo_date_or_night_is_never_resumed ... ok
+test runner::tests::local_runner_runs_in_the_given_directory ... ok
+test runner::tests::local_runner_does_not_let_a_tail_pipe_mask_a_failure ... ok
+test replay::tests::capture_is_idempotent_for_a_restarted_night ... ok
+test runstate::tests::f5_an_unknown_schema_is_an_error ... ok
+test runstate::tests::f8_a_reset_that_cannot_archive_both_files_archives_neither ... ok
+test runstate::tests::f5_a_damaged_journal_is_an_error_not_a_fresh_night ... ok
+test seams::tests::jsonl_sink_appends_one_line_per_record ... ok
+test runstate::tests::reset_night_archives_and_the_next_begin_is_fresh ... ok
+test runstate::tests::f8_rapid_resets_never_overwrite_an_earlier_archive ... ok
+test runstate::tests::attempts_are_bounded_and_exhaustion_is_terminal ... ok
+test runstate::tests::an_interrupted_run_resumes_from_its_last_phase ... ok
+test runstate::tests::finished_night_reports_without_touching_an_unfinished_one ... ok
+test runstate::tests::f5_changing_the_run_id_does_not_reset_the_attempt_budget ... ok
+test replay::tests::a_tampered_report_or_config_is_refused ... ok
+test runstate::tests::f5_every_journal_shape_the_old_binary_wrote_still_loads_and_behaves ... ok
+test streak::tests::repos_sharing_one_state_directory_do_not_disturb_each_other ... ok
+test streak::tests::the_manifest_persists_per_repo_across_nights_and_fails_open_when_corrupt ... ok
+test ledger::tests::commit_ledger_leaves_a_feature_branch_alone ... ok
+test candidate::tests::a_protected_patch_never_reaches_git_the_build_or_an_evaluator ... ok
+test candidate::tests::an_unparseable_patch_is_refused_before_any_git_command ... ok
+test candidate::tests::a_candidate_that_breaks_the_evaluator_is_vetoed ... ok
+test persist::tests::protected_patch_is_refused_before_any_worktree_exists ... ok
+test source::tests::gather_inlines_planned_files_and_clamps_the_planner_budget ... ok
+test source::tests::gather_honours_requested_paths_and_records_refusals ... ok
+test source::tests::reads_blobs_at_a_commit_not_the_worktree ... ok
+test source::tests::gather_falls_back_and_then_degrades_to_evidence_mentions ... ok
+test candidate::tests::binary_deletion_is_refused_before_applying ... ok
+test candidate::tests::a_patch_touching_the_evaluator_script_is_protected_too ... ok
+test source::tests::failing_excerpt_is_verbatim_and_clamped ... ok
+test persist::tests::build_branch_worktree_applies_patch_in_isolation ... ok
+test candidate::tests::a_non_applying_patch_carries_a_typed_error_with_git_stderr ... ok
+test candidate::tests::relocation_failure_is_a_harness_veto_and_keeps_the_tree_for_cleanup ... ok
+test candidate::tests::provisioning_failure_is_typed_and_distinct_from_a_git_refusal ... ok
+test persist::tests::f4_the_patch_never_touches_a_predictable_temp_file ... ok
+test persist::tests::miscounted_hunk_lands_via_recount ... ok
+test candidate::tests::a_patch_that_does_not_apply_is_a_harness_class_error ... ok
+test sweep::tests::plan_and_apply_against_a_scratch_repo ... ok
+test candidate::tests::a_good_candidate_is_applied_isolated_and_passes_the_rerun ... ok
+test persist::tests::worktree_can_be_pinned_to_an_older_base ... ok
+test candidate::tests::a_clean_patch_runs_build_then_evaluators_in_the_candidate_tree ... ok
+test persist::tests::unappliable_patch_reports_last_strategy_detail_and_cleans_up ... ok
+test persist::tests::mid_file_hunk_without_trailing_context_lands_after_normalising ... ok
+test candidate::tests::guard_refusals_and_applied_candidates_carry_no_error ... ok
+test persist::tests::headerless_two_file_patch_lands_after_normalising ... ok
+test ledger::tests::commit_ledger_commits_only_the_ledger_on_the_default_branch ... ok
+test candidate::tests::without_a_fixer_the_candidate_is_untouched ... ok
+test candidate::tests::a_touched_file_declaring_path_modules_is_not_formatted ... ok
+test candidate::tests::a_fixer_that_fails_leaves_the_tree_as_the_model_wrote_it ... ok
+test candidate::tests::a_fixer_that_reaches_a_file_the_candidate_did_not_touch_is_reverted ... ok
+test candidate::tests::a_fixer_formats_the_candidate_and_the_recorded_patch_reproduces_the_tree ... ok
+test runstate::tests::f3_a_second_acquirer_gets_held_and_the_lock_releases_on_drop ... ok
+test runner::tests::local_runner_enforces_the_timeout ... ok
+
+test result: ok. 245 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.03s
+
+     Running tests/screen.rs (.audit-target/debug/deps/screen-032d58a16799dbd3)
+
+running 11 tests
+test a_misbehaving_service_cannot_break_the_partition ... ok
+test declared_disciplines_come_from_a_dream_config_fixture ... ok
+test confident_scores_order_the_budget_and_defer_off_target_ones ... ok
+test off_builds_no_request ... ok
+test request_matches_the_system_one_contract ... ok
+test deferral_needs_both_weak_fit_and_off_target ... ok
+test the_default_policy_accepts_nothing_automatically ... ok
+test a_discipline_violation_orders_behind_and_defers_only_when_configured ... ok
+test ties_keep_input_order_and_unscreened_tail_stays_in_place ... ok
+test requests_are_bounded ... ok
+test every_failure_mode_equals_the_unscreened_plan ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/ts_parity.rs (.audit-target/debug/deps/ts_parity-b19c4b9358eb67e9)
+
+running 9 tests
+test the_fork_config_is_accepted_as_validate_config_accepts_it ... ok
+test the_ts_witness_test_vector ... ok
+test the_fork_config_compiles_with_the_darwin_pin_intact ... ok
+test documented_divergences ... ok
+test verify_ledger_agrees_on_the_fork_ledger ... ok
+test the_fork_ledger_violations_before_the_cutoff_match_the_reference ... ok
+test learning_signals_and_stats_agree_on_the_fork_ledger ... ok
+test the_fork_ledger_complies_from_the_cutoff_as_validate_ledger_reports ... ok
+test the_ts_validate_config_test_cases_agree ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_gate-20e0ca3344a8e96c)
+
+running 167 tests
+test config::tests::evaluator_spec_helpers ... ok
+test config::tests::defaults_are_neutral_and_empty ... ok
+test config::tests::bare_string_evaluator_is_required_and_fail_closed ... ok
+test config::tests::accepts_darwin_evaluator_with_mock_or_agent_sandbox ... ok
+test config::tests::non_darwin_evaluators_unaffected ... ok
+test config::tests::rejects_empty_slots ... ok
+test config::tests::rejects_darwin_evaluator_without_sandbox_flag ... ok
+test config::tests::sibling_repos_parses ... ok
+test config::tests::protected_globs_are_additive_and_repo_relative ... ok
+test config::tests::undeclared_deep_and_zero_timeout_and_empty_command_are_rejected ... ok
+test gate::tests::a_blocked_required_evaluator_vetoes ... ok
+test gate::tests::a_broken_candidate_cannot_receive_accept ... ok
+test gate::tests::a_forged_baseline_receipt_blocks_the_environment_check ... ok
+test gate::tests::a_clean_per_test_run_is_accepted ... ok
+test gate::tests::a_baseline_test_dropped_from_the_candidate_run_is_a_fault ... ok
+test gate::tests::a_failure_already_present_on_the_baseline_is_not_new ... ok
+test gate::tests::a_missing_required_evaluator_vetoes_as_a_harness_fault ... ok
+test gate::tests::a_new_failure_fingerprint_vetoes_as_evidence ... ok
+test gate::tests::a_patch_that_will_not_apply_is_a_harness_fault ... ok
+test gate::tests::a_new_failure_hidden_behind_a_red_baseline_is_still_caught ... ok
+test gate::tests::a_protected_patch_stays_reject_even_with_a_missing_receipt ... ok
+test gate::tests::a_protected_patch_with_no_acceptance_claimed_passes_the_model_verdict_through ... ok
+test gate::tests::a_receipt_with_the_wrong_command_digest_is_forged ... ok
+test gate::tests::a_receipt_whose_digest_field_lies_about_its_command_is_forged ... ok
+test gate::tests::a_protected_candidate_state_is_an_evidence_veto_with_subject_protected_path ... ok
+test gate::tests::a_reject_verdict_passes_through_untouched ... ok
+test gate::tests::a_silent_required_evaluator_vetoes ... ok
+test gate::tests::a_timed_out_required_evaluator_vetoes ... ok
+test gate::tests::a_receipt_that_downgrades_a_required_evaluator_is_forged ... ok
+test gate::tests::accept_without_a_candidate_patch_is_unproven_not_a_harness_fault ... ok
+test gate::tests::an_advisory_evaluator_never_vetoes ... ok
+test gate::tests::an_advisory_evaluator_never_vetoes_even_if_its_receipt_claims_required ... ok
+test gate::tests::advisory_evaluator_evidence_is_ignored ... ok
+test gate::tests::an_unparseable_applied_patch_fails_closed ... ok
+test gate::tests::an_unreadable_verdict_never_reaches_accept ... ok
+test gate::tests::clean_accept_survives_the_gate ... ok
+test gate::tests::decide_rederives_touched_paths_even_if_the_caller_said_applied ... ok
+test gate::tests::config_digest_drift_without_a_config_edit_is_a_harness_veto ... ok
+test gate::tests::environment_vetoes_ignore_a_legitimately_failing_baseline ... ok
+test gate::tests::evaluators_scoped_to_another_deep_are_not_required_tonight ... ok
+test gate::tests::failure_text_with_a_zero_exit_still_vetoes ... ok
+test gate::tests::duplicate_receipts_for_one_evaluator_are_forged ... ok
+test gate::tests::invalid_pairwise_options_cannot_accept ... ok
+test gate::tests::floor_applies_to_the_aggregate_case_when_small ... ok
+test gate::tests::per_test_evidence_never_relaxes_a_failing_receipt ... ok
+test guard::tests::a_file_header_pair_hidden_inside_a_hunk_is_still_collected ... ok
+test guard::tests::a_mode_only_change_on_a_protected_file_is_refused ... ok
+test guard::tests::a_header_that_disagrees_with_the_git_line_cannot_hide_a_path ... ok
+test guard::tests::a_mode_only_change_on_an_ordinary_file_is_allowed_but_not_to_a_symlink ... ok
+test guard::tests::absolute_paths_are_refused ... ok
+test guard::tests::binary_patches_are_refused ... ok
+test guard::tests::check_is_deterministic ... ok
+test gate::tests::per_test_faults_are_a_harness_veto_never_a_loss ... ok
+test guard::tests::control_characters_and_unknown_escapes_in_quoted_paths_are_refused ... ok
+test guard::tests::config_derived_protection_is_additive ... ok
+test gate::tests::statistical_policies_only_apply_with_enough_cases ... ok
+test guard::tests::copy_onto_or_from_a_protected_path_is_refused ... ok
+test guard::tests::crlf_line_endings_do_not_hide_a_protected_path ... ok
+test guard::tests::default_policy_matches_the_documented_set ... ok
+test guard::tests::deleted_and_added_lines_that_merely_look_like_headers_are_not_a_bypass ... ok
+test guard::tests::empty_and_prose_only_patches_are_refused ... ok
+test guard::tests::dot_slash_segments_are_normalised_before_matching ... ok
+test guard::tests::f1_a_bare_word_naming_a_baseline_file_is_protected ... ok
+test guard::tests::f1_a_glob_protects_the_directory_it_starts_in_and_dot_protects_nothing ... ok
+test guard::tests::evaluator_command_paths_are_protected_files_and_directories ... ok
+test guard::tests::f1_a_long_extension_does_not_hide_a_script ... ok
+test guard::tests::f1_a_quoted_script_path_with_a_space_is_protected_whole ... ok
+test guard::tests::f1_absolute_paths_inside_the_repo_are_made_relative ... ok
+test guard::tests::f1_existing_config_shapes_still_work ... ok
+test guard::tests::f1_single_quoted_and_escaped_spaces_are_protected_whole ... ok
+test guard::tests::f1_unterminated_quotes_and_substitution_are_errors_not_approximations ... ok
+test guard::tests::f7_a_pathological_but_valid_equal_pair_still_resolves ... ok
+test guard::tests::f1_for_manifest_refuses_an_unanalysable_frozen_command ... ok
+test guard::tests::gitlinks_and_odd_modes_are_refused ... ok
+test guard::tests::from_config_protects_ledger_globs_and_evaluator_paths ... ok
+test guard::tests::for_manifest_builds_from_the_verified_bytes_and_frozen_commands ... ok
+test guard::tests::f7_the_split_stays_linear_when_the_header_bound_is_raised ... ok
+test guard::tests::for_manifest_refuses_a_config_that_is_not_the_frozen_one ... ok
+test guard::tests::for_manifest_applies_the_explicit_ledger_fallback ... ok
+test guard::tests::f7_twenty_thousand_separator_fragments_are_parsed_in_linear_time ... ok
+test guard::tests::new_and_deleted_files_report_their_real_path ... ok
+test guard::tests::one_protected_file_refuses_the_whole_patch ... ok
+test guard::tests::plain_modify_of_an_ordinary_file_is_allowed_and_reported ... ok
+test guard::tests::parent_segments_are_resolved_not_banned ... ok
+test guard::tests::quoted_paths_with_spaces_and_escapes_are_decoded ... ok
+test guard::tests::quoting_cannot_smuggle_a_protected_path ... ok
+test guard::tests::rename_with_a_protected_new_side_is_refused ... ok
+test guard::tests::rename_with_only_one_side_is_malformed ... ok
+test guard::tests::rename_with_a_protected_old_side_is_refused ... ok
+test guard::tests::self_referential_flag_protects_the_gate_crates ... ok
+test guard::tests::symlink_creation_is_refused_even_on_an_allowed_path ... ok
+test guard::tests::truncated_and_garbled_patches_are_refused ... ok
+test manifest::tests::evaluator_identity_digests_the_command ... ok
+test manifest::tests::run_id_is_deterministic_and_input_sensitive ... ok
+test manifest::tests::evaluator_order_is_stable_regardless_of_map_order ... ok
+test manifest::tests::required_filters_by_deep_and_requirement ... ok
+test outcome::tests::blocked_carries_the_detail_and_no_exit_status ... ok
+test guard::tests::plain_modify_of_protected_files_is_refused ... ok
+test outcome::tests::quoting_survives_embedded_single_quotes ... ok
+test patch::tests::binary_deletion_is_detected_per_file ... ok
+test patch::tests::a_fence_inside_the_diff_does_not_end_the_block ... ok
+test patch::tests::blob_text_refuses_binary_and_invalid_utf8 ... ok
+test patch::tests::extract_patch_none_when_absent_or_empty ... ok
+test manifest::tests::write_atomic_replaces_content_wholesale ... ok
+test patch::tests::normalising_leaves_eof_hunks_and_repeated_paths_alone ... ok
+test patch::tests::extract_patch_pulls_the_fenced_diff ... ok
+test pertest::tests::no_evidence_means_no_validation_and_no_vetoes ... ok
+test pertest::tests::invalid_options_block_instead_of_silently_dropping_a_policy ... ok
+test receipts::tests::green_cargo_output_is_not_an_explicit_fail ... ok
+test patch::tests::normalising_never_changes_an_added_or_removed_line ... ok
+test receipts::tests::nonzero_exit_fails_with_the_code ... ok
+test receipts::tests::explicit_fail_text_beats_a_zero_exit ... ok
+test receipts::tests::only_passed_counts_as_a_pass ... ok
+test receipts::tests::timeout_is_typed_from_flag_or_exit_code ... ok
+test receipts::tests::transport_error_is_blocked_not_failed ... ok
+test manifest::tests::the_digest_ignores_the_timestamp_but_not_the_content ... ok
+test receipts::tests::zero_exit_with_output_passes ... ok
+test manifest::tests::freeze_writes_once_and_resumes_identically ... ok
+test receipts::tests::zero_exit_with_no_output_is_silent ... ok
+test verdict::tests::clip_words_cuts_on_a_word_boundary_with_an_ellipsis ... ok
+test verdict::tests::defaults_to_inconclusive ... ok
+test verdict::tests::embedded_keyword_is_not_a_match ... ok
+test verdict::tests::falls_back_to_last_standalone_keyword ... ok
+test manifest::tests::freeze_archives_a_diverged_manifest_instead_of_overwriting ... ok
+test verdict::tests::from_label_round_trips_every_verdict ... ok
+test verdict::tests::finding_violations_mirror_the_typescript_contract ... ok
+test verdict::tests::handoff_is_a_non_significant_operational_verdict ... ok
+test verdict::tests::last_verdict_line_wins ... ok
+test verdict::tests::mid_document_keyword_does_not_override_trailing_verdict_line ... ok
+test verdict::tests::parses_trailing_verdict_line ... ok
+test verdict::tests::parses_verdict_field ... ok
+test verdict::tests::parses_verdict_section ... ok
+test verdict::tests::sanitise_first_non_heading_line ... ok
+test receipts::tests::receipts_round_trip_through_disk_with_raw_streams ... ok
+test verdict::tests::sanitise_ignores_rows_dated_for_another_night ... ok
+test verdict::tests::sanitise_ignores_a_ledger_row_cell_that_breaks_the_contract ... ok
+test verdict::tests::sanitise_inconclusive_fallback ... ok
+test verdict::tests::sanitise_matches_bold_hypothesis ... ok
+test verdict::tests::sanitise_is_table_safe_and_truncated ... ok
+test verdict::tests::sanitise_prefers_a_self_contained_finding_line_over_the_hypothesis ... ok
+test verdict::tests::sanitise_prefers_given_hypothesis ... ok
+test verdict::tests::sanitise_prefers_the_reports_own_ledger_row_cell ... ok
+test verdict::tests::sanitise_strips_blockquote_from_given ... ok
+test verdict::tests::sanitise_takes_tonights_backticked_row_not_an_earlier_nights_quoted_row ... ok
+test verdict::tests::sanitise_uses_finding_line ... ok
+test verdict::tests::sanitise_uses_main_lesson ... ok
+test verdict::tests::strict_accepts_a_single_clean_declaration ... ok
+test verdict::tests::strict_accepts_repeated_agreeing_declarations ... ok
+test verdict::tests::strict_refuses_a_report_with_no_declaration ... ok
+test verdict::tests::strict_refuses_conflicting_declarations ... ok
+test verdict::tests::strict_refuses_trailing_prose_on_the_verdict_line ... ok
+test verdict::tests::strict_refuses_unknown_and_lowercase_tokens ... ok
+test verdict::tests::verdict_line_tolerates_punctuation_and_indent ... ok
+test verdict::tests::verdict_str_and_significance ... ok
+test verdict::tests::sanitise_full_keeps_whole_hypothesis_past_80_chars ... ok
+test witness::tests::accepts_boundary_lengths ... ok
+test witness::tests::commit_is_trimmed_and_lowercased ... ok
+test witness::tests::different_commit_changes_witness ... ok
+test witness::tests::short_handles_undersized_input ... ok
+test witness::tests::rejects_bad_commits ... ok
+test witness::tests::matches_reference_vector ... ok
+test witness::tests::is_deterministic ... ok
+test witness::tests::report_hash_is_64_char_lowercase_hex ... ok
+test witness::tests::single_byte_report_change_changes_witness ... ok
+test witness::tests::verify_accepts_only_the_exact_binding ... ok
+test guard::tests::f7_limits_default_to_documented_values_and_fail_closed ... ok
+test gate::tests::old_verdicts_are_unchanged_across_the_whole_scenario_space ... ok
+
+test result: ok. 167 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+     Running tests/adr_template.rs (.audit-target/debug/deps/adr_template-9cbb31f8b4e8f621)
+
+running 7 tests
+test example_for_named_forms_is_plain_adr ... ok
+test legacy_template_loads_and_sets_pad_from_the_n_run ... ok
+test example_keeps_the_template_prefix ... ok
+test longest_run_wins ... ok
+test named_forms_are_unchanged ... ok
+test text_with_no_numbering_run_is_still_rejected ... ok
+test template_round_trips_as_the_same_string ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/config_ts_parity.rs (.audit-target/debug/deps/config_ts_parity-aeef87c7db4b7ce2)
+
+running 8 tests
+test divergences ... ok
+test adr_convention_round_trips_through_serde ... ok
+test bonus_moduli_keys_must_be_integers ... ok
+test adr_convention_accepts_the_two_strings_and_a_pad_dir_object ... ok
+test slots_need_a_deep_but_empty_scan_is_only_a_warning ... ok
+test test_format_is_an_optional_evaluator_field ... ok
+test cron_needs_five_fields_and_a_single_fixed_minute ... ok
+test repo_must_be_owner_slash_name_with_word_dot_dash_chars ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/repo_config.rs (.audit-target/debug/deps/repo_config-0b69b542747e5c68)
+
+running 4 tests
+test automerge_is_off ... ok
+test the_evaluators_are_the_workspace_gates_and_there_is_no_darwin ... ok
+test held_out_tests_gate_crates_and_policy_files_are_protected ... ok
+test the_repo_config_validates ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (.audit-target/debug/deps/failure_fingerprint-7bd13afe4d72bb63)
+
+running 22 tests
+test tests::digits_and_whitespace ... ok
+test tests::fingerprint_is_prefix_of_known_digest ... ok
+test tests::differs_on_task_stage_or_words ... ok
+test tests::fixed_then_returns_is_new_again ... ok
+test tests::duplicates_collapse_and_output_sorted ... ok
+test tests::long_ids_are_redacted ... ok
+test tests::fingerprint_parse_display_serde ... ok
+test tests::paths_become_placeholder ... ok
+test tests::manifest_round_trips ... ok
+test tests::new_persisting_fixed_lifecycle ... ok
+test tests::single_segment_and_relative_are_kept ... ok
+test tests::separator_prevents_field_smearing ... ok
+test tests::sha256_published_vector_proves_wiring ... ok
+test tests::stored_cause_is_normalised ... ok
+test tests::survives_volatile_parts ... ok
+test tests::truncation_is_char_safe ... ok
+test tests::unknown_kind_rejected_with_typed_error ... ok
+test tests::idempotent_with_small_limits ... ok
+test tests::idempotent_on_path_and_id_heavy_input ... ok
+test tests::volatile_parts_do_not_change_fingerprint ... ok
+test tests::truncation_bounded_and_boundary_safe ... ok
+test tests::normalisation_is_idempotent ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+     Running unittests src/lib.rs (.audit-target/debug/deps/pairwise_gate-07a532d877b958b9)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/props.rs (.audit-target/debug/deps/props-9755d34f55c15ad6)
+
+running 5 tests
+test p_value_monotone_in_wins ... ok
+test improving_candidate_is_monotone ... ok
+test faults_never_change_wins_or_losses ... ok
+test never_panics_on_arbitrary_input ... ok
+test symmetry_swaps_wins_and_losses ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/reference.rs (.audit-target/debug/deps/reference-6fc4f51f895963ff)
+
+running 15 tests
+test empty_is_inconclusive_not_panic ... ok
+test margin_semantics ... ok
+test guard_validation ... ok
+test floor_policy ... ok
+test fault_heavy_is_inconclusive ... ok
+test min_comparable_configurable ... ok
+test nan_and_inf_rejected ... ok
+test no_regression_policy ... ok
+test serde_round_trip_and_validation ... ok
+test sign_test_policy ... ok
+test tally_excludes_faults ... ok
+test wilson_reference_values ... ok
+test train_dev_acceptance_equation ... ok
+test wilson_policy ... ok
+test sign_test_reference_values ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests dream_cli
+
+running 1 test
+test crates/dream-cli/src/lib.rs - (line 20) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.56s
+
+   Doc-tests dream_core
+
+running 14 tests
+test crates/dream-core/src/runner.rs - runner (line 12) ... ok
+test crates/dream-core/src/ledger/read.rs - ledger::read (line 11) ... ok
+test crates/dream-core/src/persist.rs - persist::branch_name (line 57) ... ok
+test crates/dream-core/src/testfmt.rs - testfmt (line 29) ... ok
+test crates/dream-core/src/source.rs - source (line 35) ... ok
+test crates/dream-core/src/lib.rs - (line 32) ... ok
+test crates/dream-core/src/streak.rs - streak (line 25) ... ok
+test crates/dream-core/src/compile.rs - compile (line 19) ... ok
+test crates/dream-core/src/screen.rs - screen (line 47) ... ok
+test crates/dream-core/src/seams.rs - seams::JsonlSink (line 165) ... ok
+test crates/dream-core/src/source.rs - source::Denylist (line 209) ... ok
+test crates/dream-core/src/automerge.rs - automerge (line 17) ... ok
+test crates/dream-core/src/seams.rs - seams (line 10) ... ok
+test crates/dream-core/src/replay.rs - replay (line 38) ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.68s
+
+   Doc-tests dream_gate
+
+running 12 tests
+test crates/dream-gate/src/guard.rs - guard::evaluator_command_paths (line 696) ... ok
+test crates/dream-gate/src/outcome.rs - outcome::shell_quote (line 52) ... ok
+test crates/dream-gate/src/outcome.rs - outcome::ExecOutcome (line 11) ... ok
+test crates/dream-gate/src/patch.rs - patch::blob_text (line 242) ... ok
+test crates/dream-gate/src/guard.rs - guard (line 43) ... ok
+test crates/dream-gate/src/config.rs - config::AdrConvention (line 85) ... ok
+test crates/dream-gate/src/config.rs - config (line 10) ... ok
+test crates/dream-gate/src/guard.rs - guard::try_evaluator_command_paths (line 655) ... ok
+test crates/dream-gate/src/witness.rs - witness::verify (line 64) ... ok
+test crates/dream-gate/src/lib.rs - (line 26) ... ok
+test crates/dream-gate/src/pertest.rs - pertest (line 26) ... ok
+test crates/dream-gate/src/config.rs - config::AdrConvention::example (line 171) ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.47s
+
+   Doc-tests failure_fingerprint
+
+running 8 tests
+test crates/failure-fingerprint/src/lib.rs - Fingerprint (line 257) ... ok
+test crates/failure-fingerprint/src/lib.rs - Manifest::from_json (line 504) ... ok
+test crates/failure-fingerprint/src/lib.rs - advance (line 543) ... ok
+test crates/failure-fingerprint/src/lib.rs - (line 20) ... ok
+test crates/failure-fingerprint/src/lib.rs - fingerprint (line 346) ... ok
+test crates/failure-fingerprint/src/lib.rs - Stage (line 208) ... ok
+test crates/failure-fingerprint/src/lib.rs - normalize_cause_with_limit (line 186) ... ok
+test crates/failure-fingerprint/src/lib.rs - normalize_cause (line 170) ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.66s
+
+   Doc-tests pairwise_gate
+
+running 14 tests
+test crates/pairwise-gate/src/model.rs - model::Guard (line 232) ... ok
+test crates/pairwise-gate/src/stats.rs - stats::wilson_lower (line 77) ... ok
+test crates/pairwise-gate/src/stats.rs - stats::sign_test_p_value (line 20) ... ok
+test crates/pairwise-gate/src/model.rs - model::Evidence (line 321) ... ok
+test crates/pairwise-gate/src/model.rs - model::Pairing (line 110) ... ok
+test crates/pairwise-gate/src/model.rs - model::Tally (line 167) ... ok
+test crates/pairwise-gate/src/policy.rs - policy::Margin (line 76) ... ok
+test crates/pairwise-gate/src/model.rs - model::Outcome (line 45) ... ok
+test crates/pairwise-gate/src/policy.rs - policy::Floor (line 127) ... ok
+test crates/pairwise-gate/src/policy.rs - policy::SignTest (line 205) ... ok
+test crates/pairwise-gate/src/lib.rs - (line 36) ... ok
+test crates/pairwise-gate/src/policy.rs - policy::NoRegression (line 335) ... ok
+test crates/pairwise-gate/src/policy.rs - policy::TrainDev (line 405) ... ok
+test crates/pairwise-gate/src/policy.rs - policy::WilsonLower (line 273) ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
