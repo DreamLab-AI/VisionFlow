@@ -1,0 +1,80 @@
+   Compiling nostr-bbs-core v1.0.0-beta.19 (/tmp/vf-nf-sealed-artifacts/forum/crates/nostr-bbs-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.83s
+     Running unittests src/lib.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_core-e9b10af8afafc0ec)
+
+running 25 tests
+test sealed::tests::error_display_is_log_friendly ... ok
+test sealed::tests::parse_sealed_requires_hex_id_and_numeric_version ... ok
+test sealed::tests::inner_json_has_exactly_the_seven_nip01_fields ... ok
+test sealed::tests::channel_of_prefers_root_marker_then_first_e_tag ... ok
+test sealed::tests::check1_inner_kind_must_be_42 ... ok
+test sealed::tests::check2_tampered_inner_content_fails_signature ... ok
+test sealed::tests::duplicate_json_field_is_rejected ... ok
+test sealed::tests::check3_inner_id_must_match_sealed_tag ... ok
+test sealed::tests::seal_rejects_invalid_zone_parameters ... ok
+test sealed::tests::check3_sealed_tag_id_compare_is_case_insensitive_on_the_tag ... ok
+test sealed::tests::check5_inner_channel_must_match_outer ... ok
+test sealed::tests::extra_json_field_is_rejected ... ok
+test sealed::tests::outer_preconditions_are_enforced ... ok
+test sealed::tests::seal_lowercases_zone_pubkey ... ok
+test sealed::tests::check4_inner_must_not_carry_a_zk_tag ... ok
+test sealed::tests::missing_json_field_and_non_json_are_rejected ... ok
+test sealed::tests::tampered_outer_ciphertext_or_author_fails_decrypt ... ok
+test sealed::tests::seal_rejects_invalid_originals ... ok
+test sealed::tests::check2_inner_signature_must_verify ... ok
+test sealed::tests::check6_inner_created_at_must_match_outer ... ok
+test sealed::tests::round_trip_restores_the_original_byte_for_byte ... ok
+test sealed::tests::seal_uses_root_marked_channel_for_reply_first_originals ... ok
+test sealed::tests::envelope_matches_the_wire_format ... ok
+test sealed::tests::wrong_zone_key_fails_decrypt ... ok
+test sealed::proptests::seal_then_open_is_identity ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 422 filtered out; finished in 0.91s
+
+     Running tests/bip340_vectors.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/bip340_vectors-638d97634d192b51)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/e2e_auth_flow.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/e2e_auth_flow-566a3fc3bd2ca8e9)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 58 filtered out; finished in 0.00s
+
+     Running tests/identity_subkey_vectors.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/identity_subkey_vectors-eb5da8dc6477a482)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/nip01_vectors.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nip01_vectors-42b7a8ce84845ad9)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/nip04_proptests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nip04_proptests-e7817739b41efa0f)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+     Running tests/nip19_proptests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nip19_proptests-049a0f35dc4e4c8a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+
+     Running tests/nip19_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nip19_tests-530477d5608d1ad9)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 30 filtered out; finished in 0.00s
+
+     Running tests/upstream_vectors/main.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/upstream_vectors-d889a9a66b78b34e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s

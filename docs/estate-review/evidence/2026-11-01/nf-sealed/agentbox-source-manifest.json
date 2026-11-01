@@ -1,0 +1,17 @@
+{
+  "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+  "files": [
+    {
+      "path": "management-api/lib/zone-keys.js",
+      "sha256": "7aa7f0b9f5f6a13fe20d920feefd0ee21511b7192f62d491806e3af3a45397a8"
+    },
+    {
+      "path": "tests/sovereign/zone-keys.node-test.js",
+      "sha256": "e32c71b6e4a33460e0af4a0bbb9bbcf6ff1ca024505544605699aa264f16ba91"
+    },
+    {
+      "path": "scripts/dream-forum-suggestions.mjs",
+      "sha256": "239f812d754f5c4902eae1875253d2dfebcc907797e4c07f980a0dd0dfa7a4d0"
+    }
+  ]
+}

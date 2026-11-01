@@ -39,6 +39,8 @@ sources:
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/sealed.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-zone-migrate/src/engine.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/push.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml
@@ -328,28 +330,32 @@ sequenceDiagram
 ## NF-12.11 Sealed originals — zone-history migration envelope (ADR-2017)
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant M as Migrator<br/>nostr-bbs-core/src/sealed.rs:312
-    participant O as seal_original<br/>nostr-bbs-core/src/sealed.rs:312
-    participant R as Relay
-    participant Z as Zone-key holder
-    participant U as open_sealed<br/>nostr-bbs-core/src/sealed.rs:375
-
-    M->>O: plaintext kind-42 original, zone, epoch, zone_pk_hex
-    O->>O: kind==42, verify_event(original), no zk tag, channel_of sealed.rs:319 sealed.rs:322 sealed.rs:325 sealed.rs:328
-    O->>O: NIP-44 v2 encrypt inner JSON, migrator_sk to zone_pk sealed.rs:462
-    O-->>R: outer kind-42 event, tags e/zk/sealed sealed.rs:344
-    R->>Z: relay admits (admin-only authorship, exempt from drift check)
-    Z->>U: outer event, zone_sk
-    U->>U: parse sealed tag, version must be 1 sealed.rs:379 sealed.rs:380
-    U->>U: NIP-44 decrypt with zone_sk x outer.pubkey sealed.rs:387
-    U->>U: check 1 kind==42 sealed.rs:393<br/>check 2 verify_event(inner) sealed.rs:397<br/>check 3 id matches sealed tag sealed.rs:401<br/>check 4 no nested zk tag sealed.rs:405<br/>check 5 channel_of matches sealed.rs:409<br/>check 6 created_at matches sealed.rs:413
-    U-->>Z: original signed NostrEvent, id/author/timestamp intact
-
-    Note over O: INVARIANT: the outer author is the migrator, not the original author - a zone-key holder already ECDHs zone_sk with the outer author's pubkey for live posts, so the same path opens envelopes sealed.rs:55-57
-    Note over U: Any single failing check makes the envelope undecryptable — callers must never partly trust it sealed.rs:50-51
-    Note over U: The outer signature is NOT verified here - the relay verifies on ingress and a forged outer pubkey fails NIP-44 MAC anyway sealed.rs:71-73
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/sealed.rs:312
+    O["Signed plaintext original<br/>kind 42, valid signature, no zk and a channel"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/sealed.rs:462
+    E["Encrypt full original JSON with NIP-44<br/>outer author is the migrator"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/sealed.rs:483
+    M["Public outer tags: channel, zone key and original ID<br/>time retained; old IDs permit correlation"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1440
+    R["Relay: admin and encrypted-zone gates<br/>ciphertext shape check"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1727
+    T["Past-only timestamp exemption<br/>future bound still applies"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/sealed.rs:375
+    D["Reader: version 1 and strict inner JSON<br/>decrypt with zone secret and outer author key"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/sealed.rs:393
+    C["Six checks: kind, signature, marker ID,<br/>no inner zk, matching channel and timestamp"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/sealed.rs:416
+    I["Return original signed event<br/>any failed check refuses restoration"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/sealed.rs:71
+    B["Caller must verify outer signature<br/>and bind the chosen key to zk"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-zone-migrate/src/engine.rs:550
+    G["Migrator verifies outer signature<br/>key-tag binding gap remains: NF-26.2"]
+    O --> E --> M --> R --> T --> D --> C --> I
+    B --> G
+    B -. caller duty .-> D
 ```
 
 The [1 November audit](../../estate-review/2026-11-01-forum-spaces-and-replication.md) verifies both metadata signatures and their incompatible address tags. Builders are not evidence of the proposed group engine or membership authority.
+
+The [sealed-history audit](../../estate-review/2026-11-01-forum-sealed-history.md) reassesses NF-12.11 only in this topic. NF-26 records migration, reader-parity and purge-completion gaps.

@@ -3066,6 +3066,65 @@
     {
       "category": "audit-evidence-or-support",
       "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/nf-sealed/source/docs/adr/ADR-2017-sealed-original-history-migration.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 17,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-2017 \u2014 Migrate plaintext history into encrypted zones as sealed originals, then purge the plaintext silently"
+        },
+        {
+          "line": 19,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 32,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 119,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Alternatives rejected"
+        },
+        {
+          "line": 130,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Consequences"
+        },
+        {
+          "line": 172,
+          "ordinal": 6,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Verification"
+        },
+        {
+          "line": 210,
+          "ordinal": 7,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "First production run (dreamlab, 2026-09-27/28)"
+        }
+      ],
+      "sha256": "b168e4da26d530bca917ce649820492e219613e42f6cb13fbc9085a2d688f2cc"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
       "path": "docs/estate-review/evidence/2026-11-01/nf-signer/source/docs/adr/ADR-2008-bbs-signer-holds-key-directly.md",
       "repo": "VisionFlow",
       "review": "unreconciled",
@@ -59646,58 +59705,80 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Full ADR-2017 section assessment and explicitly named diagram dispositions, bounded by source revisions and synthetic execution; live deployment and remaining key-management ADRs excluded.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-forum-sealed-history.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "docs/adr/ADR-2017-sealed-original-history-migration.md",
       "repo": "nostr-rust-forum",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 17,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-sealed-history.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-2017 \u2014 Migrate plaintext history into encrypted zones as sealed originals, then purge the plaintext silently"
         },
         {
           "line": 19,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-sealed-history.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 32,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-sealed-history.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 119,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-sealed-history.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Alternatives rejected"
         },
         {
           "line": 130,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-sealed-history.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 172,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-sealed-history.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         },
         {
           "line": 210,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-sealed-history.md"
+          ],
+          "review": "assessment-recorded",
           "title": "First production run (dreamlab, 2026-09-27/28)"
         }
       ],
@@ -118875,22 +118956,22 @@
   ],
   "counts": {
     "available_checkouts": 24,
-    "candidate_files": 1144,
-    "numbered_candidates_with_recorded_assessment": 77,
+    "candidate_files": 1145,
+    "numbered_candidates_with_recorded_assessment": 78,
     "numbered_decision_candidates": 1055,
-    "panels": 1683,
-    "panels_with_recorded_assessment": 251,
+    "panels": 1689,
+    "panels_with_recorded_assessment": 258,
     "scope_targets": 25,
     "stale_claim_records": 0,
-    "topics": 195
+    "topics": 196
   },
   "method": "Explicit scope; Git-owned Markdown; parsed headings exclude fenced examples; explicit human review claims require exact source/report hashes. Unreconciled is not unreviewed. Candidate counts are not a complete obligation denominator or overall task percentage.",
   "repositories": [
     {
       "available": true,
-      "candidate_files": 50,
+      "candidate_files": 51,
       "dirty": true,
-      "head": "16a06a19a4a5ec00149200b8805e1a62e9bb309e",
+      "head": "610b57bdfa87f56f2dc880a0d588bb98bc17011c",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -127114,13 +127195,23 @@
       "sha256": "8633ad1b633b3e5535f9ea3e4995e48e95188303496c5ae49b61baa053b70a20"
     },
     {
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Full ADR-2017 section assessment and explicitly named diagram dispositions, bounded by source revisions and synthetic execution; live deployment and remaining key-management ADRs excluded.",
+          "coverage": "selected-panels",
+          "panels": [
+            "NF-12.11"
+          ],
+          "report": "docs/estate-review/2026-11-01-forum-sealed-history.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "panels": [
         {
           "body_sha256": "1d5857a36af11f4c8fa43506a04fd41c79795f2c6d0ee84fadeaa66a493aac1e",
           "heading": "NF-12.1 Module map \u2014 what the workers and clients all link",
           "id": "NF-12.1",
-          "line": 50,
+          "line": 52,
           "ordinal": 1,
           "reports": [],
           "review": "unreconciled"
@@ -127129,7 +127220,7 @@
           "body_sha256": "e57b18e469ddf537321c6f72d7fd32ae9a3316c2bc60c1e5dd66d6fc94994c44",
           "heading": "NF-12.2 Event identity and the signing path",
           "id": "NF-12.2",
-          "line": 99,
+          "line": 101,
           "ordinal": 2,
           "reports": [],
           "review": "unreconciled"
@@ -127138,7 +127229,7 @@
           "body_sha256": "df92b9f7b0440cda4ac59d9aa6b632e0a192d1792917ec204d79ca9bc126d3a8",
           "heading": "NF-12.3 The two key derivations, side by side",
           "id": "NF-12.3",
-          "line": 127,
+          "line": 129,
           "ordinal": 3,
           "reports": [],
           "review": "unreconciled"
@@ -127147,7 +127238,7 @@
           "body_sha256": "031b8b534aaa9c723d522ebd041fe13590168870dd6b30cfd43aa6739ff2902f",
           "heading": "NF-12.4 NIP-59 gift wrap \u2014 three layers, and what each hides",
           "id": "NF-12.4",
-          "line": 154,
+          "line": 156,
           "ordinal": 4,
           "reports": [],
           "review": "unreconciled"
@@ -127156,7 +127247,7 @@
           "body_sha256": "52ab74dc5c8fef7162b227b9aa2c1b4a782ba43d7ce31bda111b972ad603519f",
           "heading": "NF-12.5 NIP-98 \u2014 the ten checks every REST call passes",
           "id": "NF-12.5",
-          "line": 186,
+          "line": 188,
           "ordinal": 5,
           "reports": [],
           "review": "unreconciled"
@@ -127165,7 +127256,7 @@
           "body_sha256": "d586fb438dd027d8ba52d2537d8bb74e5896eafca0530b7ae28921b7d0767130",
           "heading": "NF-12.6 Domain kinds this crate owns",
           "id": "NF-12.6",
-          "line": 208,
+          "line": 210,
           "ordinal": 6,
           "reports": [],
           "review": "unreconciled"
@@ -127174,7 +127265,7 @@
           "body_sha256": "51c63db4b88f2fc5f700a65eca69e2a741796c23858c9e770a80dc81cc9dda26",
           "heading": "NF-12.7 The IS-Envelope \u2014 a published cross-repo wire contract",
           "id": "NF-12.7",
-          "line": 251,
+          "line": 253,
           "ordinal": 7,
           "reports": [],
           "review": "unreconciled"
@@ -127183,7 +127274,7 @@
           "body_sha256": "af4e36f7f138ea483d14783685a7cdd86895f3f11e37ba759a11a50c69f49add",
           "heading": "NF-12.8 Why JCS \u2014 and why federation is still not wired",
           "id": "NF-12.8",
-          "line": 283,
+          "line": 285,
           "ordinal": 8,
           "reports": [],
           "review": "unreconciled"
@@ -127192,25 +127283,27 @@
           "body_sha256": "090708b9b5798539b7789e9c04bee0fa274e7ac7ec4a78e86ad749b3fb956be9",
           "heading": "NF-12.10 The second gift wrap \u2014 why the sender keeps a copy",
           "id": "NF-12.10",
-          "line": 307,
+          "line": 309,
           "ordinal": 9,
           "reports": [],
           "review": "unreconciled"
         },
         {
-          "body_sha256": "b9ec6dfb369d69a5a9fb80c7d8e0eefc8a6c6a438d972aa6a1c78f942c64c554",
+          "body_sha256": "14445d06c78b01355b8e02c1e9d861663fd8237759252b42b6e304ff463711bc",
           "heading": "NF-12.11 Sealed originals \u2014 zone-history migration envelope (ADR-2017)",
           "id": "NF-12.11",
-          "line": 330,
+          "line": 332,
           "ordinal": 10,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-sealed-history.md"
+          ],
+          "review": "assessment-recorded"
         }
       ],
       "path": "docs/diagrams/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope.md",
       "repo": "VisionFlow",
-      "review": "unreconciled",
-      "sha256": "1ac06dbb1858ebeff06bbf388abce1829812bb754a94c791c4ef0356efb6d3dd"
+      "review": "partial-assessment-recorded",
+      "sha256": "1916e0706907fa703f21255c47e12d12c8644607daa9644cc8d12ce733f720e8"
     },
     {
       "claims": [
@@ -128249,6 +128342,96 @@
       "repo": "VisionFlow",
       "review": "assessment-recorded",
       "sha256": "37f873dacc45c42441cf44f02f226101f95f44de61127e573b1e9393d9254f7c"
+    },
+    {
+      "claims": [
+        {
+          "basis": "Full ADR-2017 section assessment and explicitly named diagram dispositions, bounded by source revisions and synthetic execution; live deployment and remaining key-management ADRs excluded.",
+          "coverage": "selected-panels",
+          "panels": [
+            "NF-26.1",
+            "NF-26.2",
+            "NF-26.3",
+            "NF-26.4",
+            "NF-26.5",
+            "NF-26.6"
+          ],
+          "report": "docs/estate-review/2026-11-01-forum-sealed-history.md",
+          "state": "assessment-recorded"
+        }
+      ],
+      "panels": [
+        {
+          "body_sha256": "5dda663444fbea5eb12cd9ea735e54ce58fb6d46b557bc01ac159e93d5681b2d",
+          "heading": "NF-26.1 Discovery warnings survive only in the report",
+          "id": "NF-26.1",
+          "line": 34,
+          "ordinal": 1,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-sealed-history.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "cf201fc8ef03d0b0cb49c3cd981478e8f04a614716d854e7f86f47b4c9dc1f6f",
+          "heading": "NF-26.2 Migrator and member reader require different key checks",
+          "id": "NF-26.2",
+          "line": 54,
+          "ordinal": 2,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-sealed-history.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "ef6e26a260a88a91808a535cefd2ef5fc63f2533480657e70b0882cb6a03fddd",
+          "heading": "NF-26.3 Purge state trusts an incomplete success response",
+          "id": "NF-26.3",
+          "line": 75,
+          "ordinal": 3,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-sealed-history.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "0f3105b2d9dde63a3eca1496ea68dc4dcb68c1eb8f11037df930c086a2837482",
+          "heading": "NF-26.4 Silent deletion and audit receipt are separate operations",
+          "id": "NF-26.4",
+          "line": 94,
+          "ordinal": 4,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-sealed-history.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "539fc366c07dfcb1f5208bdfb40c67ab0aff75439e0543af313cff8f028eb839",
+          "heading": "NF-26.5 Malformed-input outcomes differ across readers",
+          "id": "NF-26.5",
+          "line": 115,
+          "ordinal": 5,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-sealed-history.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "de6a38572b15aa32ca1c8b825f348885c0998cd5d5b981cc68744a44774a781c",
+          "heading": "NF-26.6 Preserved identity does not restore every lookup",
+          "id": "NF-26.6",
+          "line": 133,
+          "ordinal": 6,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-sealed-history.md"
+          ],
+          "review": "assessment-recorded"
+        }
+      ],
+      "path": "docs/diagrams/nostr-rust-forum/26-sealed-history-migration-and-reader-contracts.md",
+      "repo": "VisionFlow",
+      "review": "assessment-recorded",
+      "sha256": "4d44050143a87e55e113ff76775408b134ed4d1b3d5fadd5177bbd4171af0387"
     },
     {
       "claims": [],

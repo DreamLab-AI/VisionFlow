@@ -1,0 +1,229 @@
+{
+  "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+  "files": [
+    {
+      "path": "docs/adr/ADR-2017-sealed-original-history-migration.md",
+      "sha256": "b168e4da26d530bca917ce649820492e219613e42f6cb13fbc9085a2d688f2cc",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "docs/security/encrypted-zone-history-migration.md",
+      "sha256": "d4b751808579e64d724d6024ce71381f5726465cb9c0c8c8d65f84d7f133a5c8",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-core/src/sealed.rs",
+      "sha256": "404e42747de55a2727c9bec60492bb017b64a8216c06c2436bd0d5062bb1843e",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": false
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-relay-worker/src/admin_events.rs",
+      "sha256": "09ec4f44f0ef74cae5fb026414d445967024422707187f8a12cb697afd4fe6ca",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-relay-worker/src/audit.rs",
+      "sha256": "1b92557ccdc3b6948e8adf708e032bb3b793828a8af7d9f92879a98d54930ef6",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-relay-worker/src/zone_config.rs",
+      "sha256": "583c0c383d9f605695e4a3c4c1b1827c379c933e1b0b2e0a9b805e0828082401",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+      "sha256": "52c7bd80243276f6f4109f1dc4180b485352141aac70d68fab626d5e1f6c0afd",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/zone_crypto/read_cache.rs",
+      "sha256": "a3a00fb68036bfb487cc14e50ca29462bc67e5850c1f83171479c0010df2f6e6",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": false
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs",
+      "sha256": "69c0dbdec1c3ceeabf21db304c43aeb55ee063def4a571628d18671697ed8c1e",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/zone_crypto/store.rs",
+      "sha256": "da982d943e96c2636b6ed9707214418ce4b4ec470f60206ea0e297bdec0cdf03",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/pages/note_view.rs",
+      "sha256": "b499c9f2f092953321316133c862bd8691b39022d032e743a086ad23903e9050",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/README.md",
+      "sha256": "821d022f6535a600432d869551254a9442eb614cdfb376834697bcba84834480",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/Cargo.toml",
+      "sha256": "70b644769e6b3fd57b9479633969c4b39c284e002e340afd67fdca208698148b",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/tests/planner.rs",
+      "sha256": "6bd54a2d81f2f3e407c8f182eb5a93f32be350e74ecc0552b9eb69b422f427f4",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/tests/migration.rs",
+      "sha256": "9ae49176e78d6367b69d1fcb65b2ac99058de499886eb9173b73509727425e37",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/src/state.rs",
+      "sha256": "7e05bc555111769f77a329c3d548ad3e94c41ccbd7c8d24d7600c1135bb7671f",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/src/relay.rs",
+      "sha256": "82f5e7e529a1a2e4acdcc9f9e303ee5cbc095012e167a020bb22f66dd6217c03",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/src/plan.rs",
+      "sha256": "e346bcf5c30dc7dbddbd5b8ad0a1adc8c1058bd103c71735d7d64c73c83e61fb",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/src/net.rs",
+      "sha256": "761b11d73e7d7ea6c8736d952ab612d9e8951846c0381afcada84b72dbee1940",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/src/main.rs",
+      "sha256": "aaca03bc3007e42d1c388ad26f2bb23ac471190fd1b479b9d3ee15d1ec0c1cfb",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/src/lib.rs",
+      "sha256": "86afbe8266e091d10c2dbd6929f881274900e8a530d4a6812d0e29b8606dab56",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/src/keys.rs",
+      "sha256": "d38d7c261ce187b2575224ddbc8a84cf71c76043caecf71169f3273767623ab5",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/src/identity.rs",
+      "sha256": "ed843f9b8b5744f955f0f45d34cc2ac163e76a8f97756e6ca3bf7171e6c3a426",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/src/grants.rs",
+      "sha256": "bfe91c4607e5abbce5750c05ee82553684635382f8d5d34520dae1b668f2ae8e",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/src/engine.rs",
+      "sha256": "9dff4be41e422a2725a1d1fa6ae8f177cfafc7267cf6dce2c6053d72509ff047",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/src/cli.rs",
+      "sha256": "0fdfebd7e73f91b0f81f8232bb0adcb7bf2f0990f8d72dbdd3c2f7d6a9205f8a",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/src/channels.rs",
+      "sha256": "ccd610e1d9bd15b1d6140db12f50310b1957cc67a0b9bffa58936a0804e2f454",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-zone-migrate/tests/common/mod.rs",
+      "sha256": "d332629150148ccf03a2b6fa8fb69b1fb2a9f70363135e8414dbfd4711a3d5bb",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    }
+  ]
+}

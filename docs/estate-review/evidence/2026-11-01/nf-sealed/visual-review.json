@@ -1,0 +1,44 @@
+[
+  {
+    "panel": "NF-12.11",
+    "svg_sha256": "655dd225658719e75bafb39026a5b3011b4c4404ad90507ea8b98536768b2343",
+    "png_sha256": "714b85c812712368097714e30277fc7013c47a39222a7c36d25b3e7b706c6eff",
+    "inspection": "Viewed at 1700 px raster width; labels and edges legible, no clipping found. NF-12.11 rewritten as a flowchart and NF-26.4 notes wrapped after initial visual review."
+  },
+  {
+    "panel": "NF-26.1",
+    "svg_sha256": "562b4d16510f9845460b6d64c2ea4fe4d6cb3a8c8e2d141ff64d9ed112f9dee9",
+    "png_sha256": "681701a5d25ce653564f1802f87339f7763bb9f09403eccc424f669eeb4ac3e7",
+    "inspection": "Viewed at 1700 px raster width; labels and edges legible, no clipping found. NF-12.11 rewritten as a flowchart and NF-26.4 notes wrapped after initial visual review."
+  },
+  {
+    "panel": "NF-26.2",
+    "svg_sha256": "eabdbcb9d9b70de0105f461be982648f10dad8c4b4d8f358ac5eac86ae87c653",
+    "png_sha256": "80425ea1fbbfb7858fd78a3877ec3985e02a1d2f011233df2d157d7c504198b6",
+    "inspection": "Viewed at 1700 px raster width; labels and edges legible, no clipping found. NF-12.11 rewritten as a flowchart and NF-26.4 notes wrapped after initial visual review."
+  },
+  {
+    "panel": "NF-26.3",
+    "svg_sha256": "b1dd0e47ba3699e28cd7853cfd5efe8a7dc2c7484f420e086ad344f62ad1d2e5",
+    "png_sha256": "d1348d9a057d47fc83a34a63c02e184f8c62bd228602f69fd3b9971d13ea8628",
+    "inspection": "Viewed at 1700 px raster width; labels and edges legible, no clipping found. NF-12.11 rewritten as a flowchart and NF-26.4 notes wrapped after initial visual review."
+  },
+  {
+    "panel": "NF-26.4",
+    "svg_sha256": "7e27476bc4542b119033b5a0a8ac160154ec8becedcb8964ff8dc92d7928f264",
+    "png_sha256": "dc4d1935257d51d7da6177a1561eb5d738802b22e9ce152dac1f848bf6bb5cf1",
+    "inspection": "Viewed at 1700 px raster width; labels and edges legible, no clipping found. NF-12.11 rewritten as a flowchart and NF-26.4 notes wrapped after initial visual review."
+  },
+  {
+    "panel": "NF-26.5",
+    "svg_sha256": "4be5d7ce42a35cda80b86cdbfcd4caad2361bc082e904ec5c9677b0833c11dec",
+    "png_sha256": "20aef83effd4d6bd7c80fd4efba7537eda74de217d1b8222b20632cd99dab633",
+    "inspection": "Viewed at 1700 px raster width; labels and edges legible, no clipping found. NF-12.11 rewritten as a flowchart and NF-26.4 notes wrapped after initial visual review."
+  },
+  {
+    "panel": "NF-26.6",
+    "svg_sha256": "9e839ff573508a5fc3c303323ffc451052220de212f89cc481866198b24e0cf7",
+    "png_sha256": "ea240ea9813cfde0c19a99d46ca89c0f82219ba130de14e5a13a82b32a008f2a",
+    "inspection": "Viewed at 1700 px raster width; labels and edges legible, no clipping found. NF-12.11 rewritten as a flowchart and NF-26.4 notes wrapped after initial visual review."
+  }
+]

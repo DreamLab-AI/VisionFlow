@@ -1,0 +1,62 @@
+   Compiling nostr-bbs-core v1.0.0-beta.19 (/tmp/vf-nf-sealed-artifacts/forum/crates/nostr-bbs-core)
+   Compiling nostr-bbs-rate-limit v1.0.0-beta.16 (/tmp/vf-nf-sealed-artifacts/forum/crates/nostr-bbs-rate-limit)
+   Compiling nostr-bbs-mesh v1.0.0-beta.16 (/tmp/vf-nf-sealed-artifacts/forum/crates/nostr-bbs-mesh)
+   Compiling nostr-bbs-relay-worker v1.0.0-beta.10 (/tmp/vf-nf-sealed-artifacts/forum/crates/nostr-bbs-relay-worker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.18s
+     Running unittests src/lib.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_relay_worker-4e24e725587f94f0)
+
+running 10 tests
+test relay_do::nip_handlers::sealed_original_tests::plain_kind_42_keeps_the_drift_check ... ok
+test relay_do::nip_handlers::sealed_original_tests::malformed_marker_buys_no_exemption ... ok
+test relay_do::nip_handlers::sealed_original_tests::exemption_is_kind_42_only ... ok
+test relay_do::nip_handlers::sealed_original_tests::reject_strings_match_adr_2017_verbatim ... ok
+test relay_do::nip_handlers::sealed_original_tests::sealed_from_non_admin_is_refused_everywhere ... ok
+test relay_do::nip_handlers::sealed_original_tests::sealed_envelope_is_not_exempt_into_the_future ... ok
+test relay_do::nip_handlers::sealed_original_tests::sealed_from_admin_needs_an_encrypted_zone ... ok
+test relay_do::nip_handlers::sealed_original_tests::well_formed_sealed_kind_42_is_drift_exempt ... ok
+test relay_do::nip_handlers::sealed_original_tests::unsealed_events_fall_through_to_the_zone_gate ... ok
+test relay_do::nip_handlers::sealed_original_tests::real_envelope_passes_the_ciphertext_rule ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 478 filtered out; finished in 0.01s
+
+     Running tests/audit_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/audit_tests-5bc16701366a9df6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/device_gate_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/device_gate_tests-92a10a039b133984)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/events_schema.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/events_schema-fdc4c66892512cd6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+     Running tests/moderation_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/moderation_tests-e72c77d1a168537c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/nip_handlers_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nip_handlers_tests-04341855c8df10f9)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/whitelist_cohort_writers.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/whitelist_cohort_writers-f52dc4dcd7b82c1b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/whitelist_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/whitelist_tests-858e3fa42adecd4e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

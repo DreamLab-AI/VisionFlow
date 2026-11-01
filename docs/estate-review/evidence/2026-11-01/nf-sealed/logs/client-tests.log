@@ -1,0 +1,21 @@
+   Compiling nostr-bbs-core v1.0.0-beta.19 (/tmp/vf-nf-sealed-artifacts/forum/crates/nostr-bbs-core)
+   Compiling nostr-bbs-forum-client v1.0.0-beta.10 (/tmp/vf-nf-sealed-artifacts/forum/crates/nostr-bbs-forum-client)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 52.04s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/main.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_forum_client-5ec1ffda0703b362)
+
+running 11 tests
+test zone_crypto::read_cache::tests::json_text_in_a_live_post_is_not_mistaken_for_an_envelope ... ok
+test zone_crypto::read_cache::tests::live_encrypted_posts_are_unchanged ... ok
+test zone_crypto::read_cache::tests::envelope_with_key_held_dedupes_on_insertion ... ok
+test zone_crypto::read_cache::tests::sealed_original_round_trips_through_prepare ... ok
+test zone_crypto::read_cache::tests::sealed_envelope_is_never_a_plain_decryption ... ok
+test zone_crypto::read_cache::tests::reactions_and_replies_to_the_original_attach_to_the_restored_message ... ok
+test zone_crypto::read_cache::tests::placeholder_becomes_the_original_in_place_when_the_key_arrives ... ok
+test zone_crypto::read_cache::tests::audit_mismatched_zk_pubkey_is_unreadable_despite_openable_inner ... ok
+test zone_crypto::read_cache::tests::tombstoned_original_is_not_restored ... ok
+test zone_crypto::read_cache::tests::tampered_envelope_shows_the_undecryptable_placeholder ... ok
+test zone_crypto::read_cache::tests::restored_placeholder_dedupes_against_the_plaintext_copy ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 715 filtered out; finished in 0.04s

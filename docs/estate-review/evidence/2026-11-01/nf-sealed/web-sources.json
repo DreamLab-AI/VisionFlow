@@ -1,0 +1,21 @@
+{
+  "checked": "2026-11-01",
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/nostr-protocol/nips/master/09.md",
+      "basis": "Deletion request semantics and limits on erasure across other holders."
+    },
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc9420.html",
+      "basis": "Group key establishment, forward secrecy and post-compromise security."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/marmot-protocol/marmot/master/README.md",
+      "basis": "Current adopted protocol description with Nostr identity/event payloads and MLS."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/marmot-protocol/marmot/master/security-considerations.md",
+      "basis": "Draft threat model distinguishes authentication, receipt, completeness, retained history and key exposure; not an implementation audit."
+    }
+  ]
+}

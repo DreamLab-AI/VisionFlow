@@ -1,0 +1,161 @@
+   Compiling smallvec v1.16.3
+   Compiling untrusted v0.9.0
+   Compiling httparse v1.10.1
+   Compiling rustls v0.23.46
+   Compiling tower-service v0.3.3
+   Compiling try-lock v0.2.5
+   Compiling atomic-waker v1.1.2
+   Compiling utf8parse v0.2.2
+   Compiling futures-channel v0.3.34
+   Compiling sync_wrapper v1.0.2
+   Compiling tower-layer v0.3.3
+   Compiling base64 v0.23.1
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling colorchoice v1.0.5
+   Compiling log v0.4.34
+   Compiling ipnet v2.12.2
+   Compiling anstyle-query v1.1.5
+   Compiling data-encoding v2.11.1
+   Compiling ring v0.17.14
+   Compiling tokio-macros v2.7.2
+   Compiling socket2 v0.6.5
+   Compiling mio v1.2.4
+   Compiling tracing v0.1.44
+   Compiling thiserror-impl v1.0.69
+   Compiling byteorder v1.5.0
+   Compiling futures-util v0.3.34
+   Compiling want v0.3.2
+   Compiling utf-8 v0.7.6
+   Compiling strsim v0.11.1
+   Compiling http-body-util v0.1.5
+   Compiling rustls-pki-types v1.15.1
+   Compiling anstyle-parse v1.0.0
+   Compiling serde_json v1.0.154
+   Compiling clap_derive v4.6.7
+   Compiling serde_urlencoded v0.7.1
+   Compiling crypto-common v0.2.2
+   Compiling crypto-bigint v0.7.10
+   Compiling secp256k1 v0.29.1
+   Compiling sha1 v0.10.7
+   Compiling icu_normalizer v2.3.0
+   Compiling anstream v1.0.0
+   Compiling clap_builder v4.6.7
+   Compiling webpki-roots v1.0.10
+   Compiling webpki-roots v0.26.11
+   Compiling tokio v1.53.3
+   Compiling idna_adapter v1.2.2
+   Compiling idna v1.1.0
+   Compiling digest v0.11.3
+   Compiling thiserror v1.0.69
+   Compiling url v2.5.8
+   Compiling hmac v0.13.0
+   Compiling signature v3.0.0
+   Compiling sha2 v0.11.1
+   Compiling hkdf v0.13.0
+   Compiling nostr v0.44.8
+   Compiling primefield v0.14.0
+   Compiling elliptic-curve v0.14.3
+   Compiling rfc6979 v0.6.0
+   Compiling clap v4.6.7
+   Compiling wnaf v0.14.1
+   Compiling ecdsa v0.17.0
+   Compiling primeorder v0.14.0
+   Compiling k256 v0.14.0
+   Compiling hyper v1.12.0
+   Compiling tower v0.5.3
+   Compiling tower-http v0.6.11
+   Compiling hyper-util v0.1.21
+   Compiling rustls-webpki v0.103.16
+   Compiling nostr-bbs-core v1.0.0-beta.19 (/tmp/vf-nf-sealed-artifacts/forum/crates/nostr-bbs-core)
+   Compiling tokio-rustls v0.26.6
+   Compiling tungstenite v0.24.0
+   Compiling hyper-rustls v0.27.10
+   Compiling reqwest v0.12.28
+   Compiling tokio-tungstenite v0.24.0
+   Compiling nostr-bbs-zone-migrate v1.0.0-beta.11 (/tmp/vf-nf-sealed-artifacts/forum/crates/nostr-bbs-zone-migrate)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.24s
+     Running unittests src/lib.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_zone_migrate-7e3987fcd09e454e)
+
+running 18 tests
+test channels::tests::lists_kind40_with_name_and_section ... ok
+test channels::tests::rejects_every_malformed_shape ... ok
+test identity::tests::malformed_inputs_are_rejected_without_echo ... ok
+test keys::tests::json_errors_do_not_echo_secret_material ... ok
+test relay::tests::delete_outcome_reads_the_relay_shape ... ok
+test relay::tests::filter_serialises_to_nip01_shape ... ok
+test state::tests::json_round_trip_and_wire_shape ... ok
+test state::tests::refuses_other_versions_and_mismatched_runs ... ok
+test grants::tests::non_wrap_is_refused_before_any_decryption ... ok
+test identity::tests::hex_and_nsec_parse_to_the_same_key ... ok
+test grants::tests::valid_grant_from_admin_is_accepted ... ok
+test grants::tests::grant_rules_reject_each_violation ... ok
+test keys::tests::debug_and_summaries_never_show_the_secret ... ok
+test keys::tests::key_file_parses_multiple_zones_and_ignores_extra_fields ... ok
+test keys::tests::key_file_rejects_bad_version_owner_and_entries ... ok
+test grants::tests::tampered_wrap_is_refused_before_any_decryption ... ok
+test keys::tests::ring_dedupes_identical_keys_and_refuses_conflicts ... ok
+test state::tests::atomic_save_then_load_round_trips_and_leaves_no_temp_file ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running unittests src/main.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_zone_migrate-d387f7c46a55d13b)
+
+running 3 tests
+test cli::tests::clap_definition_is_consistent ... ok
+test cli::tests::there_is_no_flag_for_the_secret_key ... ok
+test cli::tests::runbook_command_lines_parse ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/audit_boundaries.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/audit_boundaries-1744493ed0828cca)
+
+running 5 tests
+test forged_marker_inflates_plan_already_sealed_but_seal_repairs_it ... ok
+test verify_does_not_recheck_a_purged_envelope_that_has_disappeared ... ok
+test wrong_declared_zone_pubkey_is_adopted_verified_and_original_purged ... ok
+test zero_delete_ack_marks_retained_original_purged_and_retry_does_nothing ... ok
+test dense_second_can_finish_recorded_migration_with_plaintext_left_over ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.51s
+
+     Running tests/migration.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/migration-20fa7c80338f6386)
+
+running 12 tests
+test seal_without_a_zone_key_refuses_before_publishing ... ok
+test purge_refuses_an_empty_state_and_missing_keys ... ok
+test purge_rechecks_each_chunk_before_deleting ... ok
+test interrupted_purge_resumes_from_purged_entries ... ok
+test relay_rejection_marks_failed_and_blocks_purge ... ok
+test read_back_mismatch_or_missing_envelope_fails_the_entry ... ok
+test lost_state_adopts_envelopes_already_on_the_relay ... ok
+test verify_catches_a_vanished_envelope_and_purge_refuses ... ok
+test grants_from_admins_are_accepted_and_others_refused_or_ignored ... ok
+test seal_is_resumable_across_runs_and_state_reloads ... ok
+test full_run_seals_verifies_and_purges_preserving_every_original ... ok
+test purge_deletes_in_chunks_of_at_most_200_and_handles_gone_and_skipped_ids ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.94s
+
+     Running tests/planner.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/planner-74024c6478924055)
+
+running 5 tests
+test id_lookups_are_batched_below_the_d1_parameter_cap ... ok
+test plan_without_keys_reports_the_zone_and_writes_nothing ... ok
+test paging_reports_a_second_holding_more_than_a_page ... ok
+test classifies_plaintext_envelopes_live_posts_and_forgeries ... ok
+test paging_collects_every_event_across_pages_with_shared_seconds ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+   Doc-tests nostr_bbs_zone_migrate
+
+running 7 tests
+test crates/nostr-bbs-zone-migrate/src/relay.rs - relay::http_origin (line 203) ... ok
+test crates/nostr-bbs-zone-migrate/src/keys.rs - keys::ZoneKey::new (line 111) ... ok
+test crates/nostr-bbs-zone-migrate/src/keys.rs - keys::parse_key_file (line 330) ... ok
+test crates/nostr-bbs-zone-migrate/src/identity.rs - identity::parse_identity (line 35) ... ok
+test crates/nostr-bbs-zone-migrate/src/keys.rs - keys::KeyRing::current (line 254) ... ok
+test crates/nostr-bbs-zone-migrate/src/lib.rs - (line 66) ... ok
+test crates/nostr-bbs-zone-migrate/src/channels.rs - channels::parse_channels (line 52) ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s

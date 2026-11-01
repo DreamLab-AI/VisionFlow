@@ -1812,5 +1812,46 @@
       "AB-23.22"
     ],
     "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2017-sealed-original-history-migration.md",
+    "source_sha256": "b168e4da26d530bca917ce649820492e219613e42f6cb13fbc9085a2d688f2cc",
+    "report": "docs/estate-review/2026-11-01-forum-sealed-history.md",
+    "report_sha256": "3aa25fb5f2a89efbd4ae9adc7ecee1f8089c7a0601ae3e8acba75e901712b048",
+    "coverage": "whole-document",
+    "basis": "Full ADR-2017 section assessment and explicitly named diagram dispositions, bounded by source revisions and synthetic execution; live deployment and remaining key-management ADRs excluded."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope.md",
+    "source_sha256": "1916e0706907fa703f21255c47e12d12c8644607daa9644cc8d12ce733f720e8",
+    "report": "docs/estate-review/2026-11-01-forum-sealed-history.md",
+    "report_sha256": "3aa25fb5f2a89efbd4ae9adc7ecee1f8089c7a0601ae3e8acba75e901712b048",
+    "coverage": "selected-panels",
+    "basis": "Full ADR-2017 section assessment and explicitly named diagram dispositions, bounded by source revisions and synthetic execution; live deployment and remaining key-management ADRs excluded.",
+    "panels": [
+      "NF-12.11"
+    ]
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/26-sealed-history-migration-and-reader-contracts.md",
+    "source_sha256": "4d44050143a87e55e113ff76775408b134ed4d1b3d5fadd5177bbd4171af0387",
+    "report": "docs/estate-review/2026-11-01-forum-sealed-history.md",
+    "report_sha256": "3aa25fb5f2a89efbd4ae9adc7ecee1f8089c7a0601ae3e8acba75e901712b048",
+    "coverage": "selected-panels",
+    "basis": "Full ADR-2017 section assessment and explicitly named diagram dispositions, bounded by source revisions and synthetic execution; live deployment and remaining key-management ADRs excluded.",
+    "panels": [
+      "NF-26.1",
+      "NF-26.2",
+      "NF-26.3",
+      "NF-26.4",
+      "NF-26.5",
+      "NF-26.6"
+    ]
   }
 ]

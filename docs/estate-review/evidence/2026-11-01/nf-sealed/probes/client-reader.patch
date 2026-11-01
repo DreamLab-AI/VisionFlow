@@ -1,0 +1,17 @@
+--- a/crates/nostr-bbs-forum-client/src/zone_crypto/read_cache.rs
++++ b/crates/nostr-bbs-forum-client/src/zone_crypto/read_cache.rs
+@@ -238,0 +239,14 @@
++    fn audit_mismatched_zk_pubkey_is_unreadable_despite_openable_inner() {
++        let orig = original(1_600_000_000, "synthetic history");
++        let env = seal(&orig);
++        let mut tags = env.tags.clone();
++        tags[1][3] = pk_hex(BOB);
++        let mismatched = signed(MIGRATOR, env.created_at, tags, &env.content);
++        assert!(nostr_bbs_core::verify_event(&mismatched));
++        assert!(nostr_bbs_core::sealed::open_sealed(&mismatched, &ZONE).is_ok());
++        assert_eq!(read_outcome(&mismatched, with_key), ReadOutcome::Failed);
++        let mut cache = ReadCache::default();
++        assert_eq!(cache.prepare(&mismatched, with_key).content, PLACEHOLDER_UNDECRYPTABLE);
++    }
++
++    #[test]

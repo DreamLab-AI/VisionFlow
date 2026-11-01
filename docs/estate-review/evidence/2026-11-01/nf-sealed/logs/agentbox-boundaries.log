@@ -1,0 +1,4 @@
+PASS: valid sealed original restores original identity
+REPRODUCED: duplicate content property accepted after JSON.parse
+REPRODUCED: sealed marker without zk falls through to plain
+PASS: unsupported sealed version with zk fails
