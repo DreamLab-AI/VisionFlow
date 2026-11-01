@@ -7,7 +7,7 @@ type: reference
 
 # Estate audit completion ledger
 
-This ledger makes the review backlog explicit. It currently reconciles **91 current ADR assessments and 329 diagram panels** with named reports. All 91 whole-document claims currently match their reviewed document and report bytes; ADR-2143 now has a scoped refresh. ADR-2166 and ADR-2167 now have scoped refreshes with open findings preserved. These are counted evidence records, not a percentage of the whole audit. Earlier reports still need reconciliation, candidate decisions still need classification, and substantial source review remains.
+This ledger makes the review backlog explicit. It currently reconciles **91 current ADR assessments and 332 diagram panels** with named reports. All 91 whole-document claims currently match their reviewed document and report bytes; ADR-2143 now has a scoped refresh. ADR-2166 and ADR-2167 now have scoped refreshes with open findings preserved. These are counted evidence records, not a percentage of the whole audit. Earlier reports still need reconciliation, candidate decisions still need classification, and substantial source review remains.
 
 [Scope](scope.json), [review claims](claims.json), the [dated snapshot](snapshot-2026-11-01.json) and [validation](validation-2026-11-01.json) are separate files. The [Rust collector](../../../scripts/estate-review-ledger/README.md) can rebuild the snapshot without scanning unrelated workspace repositories. This replaces the old census's undifferentiated pending list as a working queue; earlier audit findings remain valid to their stated evidence boundaries.
 
@@ -23,12 +23,12 @@ This ledger makes the review backlog explicit. It currently reconciles **91 curr
 | ADR assessments reconciled | 91 | Explicit whole-document assessments linked to unchanged source-document and report bytes |
 | Heading units with those assessments | 642 | Inherit the bounded whole-document report; implementation claims still need its evidence |
 | Diagram topics / panels | 206 / 1,739 | Exact panel-ID set matches the existing generated coverage index |
-| Panel assessments reconciled | 329 | Selected panels only; 59 topics have all panels recorded and fifteen have partial coverage |
+| Panel assessments reconciled | 332 | Selected panels only; 60 topics have all panels recorded and fourteen have partial coverage |
 | Stale claim records | 0 | Document/report hashes match; implementation and deployment limits still belong to each report |
 
-The owner excluded **RuView** on 1 November 2026 because it is not part of the owned estate. This refresh removes exactly 336 candidate files, including 330 numbered candidates and 5,862 parsed heading units. All retained candidate hashes and diagram records match the previous snapshot. No new assessment credit is claimed. Earlier RuView reports remain historical evidence; their pending source, ADR and remediation obligations are outside the active audit. References in owned estate diagrams remain documentation context and do not re-admit the external repository.
+RuView remains excluded at the owner’s direction. The 842 candidate paths are unchanged from the scope correction. Historical RuView reports and references do not re-admit its repository, ADRs or remediation backlog.
 
-The previous source-review batch assessed SR-04.3 against Hitch snapshot validation, recovery ordering and routing/host boundaries. Its [report](../2026-11-01-sidestr-hitch-recovery.md) and test receipts remain unchanged. The earlier concurrent diagram additions and retained VC-52/VC-53 panel bindings remain documented in the [comparison receipt](../evidence/2026-11-01/hitch-recovery/ledger-refresh.json).
+This batch adds source assessments for SR-04.1, SR-04.2 and SR-04.4, completing the twenty existing SideStr panels. The [finality/identity report](../2026-11-01-sidestr-hitch-finality-and-identity.md) records four offline production-library scenarios and a selected native suite with Core script interpretation. Two JavaScript-only test entries return early; optional siding replay also skips. All are labelled explicitly. SR-04.3 and SR-04.5 retain byte-identical panel bodies and their prior report bindings, supported by the [comparison receipt](../evidence/2026-11-01/hitch-finality/ledger-refresh.json). Whole SideStr source and integration coverage remain incomplete.
 
 ## What completion must prove
 
@@ -36,7 +36,7 @@ The previous source-review batch assessed SR-04.3 against Hitch snapshot validat
 | --- | --- | --- |
 | Limit work to the linked VisionFlow estate | Explicit repository identity, link/ownership basis, nested-owner handling and unavailable-source record | Scope is enumerated; further dependencies found through in-scope references require a recorded inclusion decision |
 | Check the systems against implementation | Per-repository component and cross-repository contract assessments, exact source revisions, relevant adversarial checks and clearly bounded runtime observations | Many reports exist; whole-system path coverage remains open and cannot be inferred from ADR counts |
-| Inspect and update every diagram | A source-backed disposition for every existing panel, corrections where needed, revision citations and rendering/visual evidence | 329 panel assessments reconciled; 1,410 remain unreconciled, some already reviewed in earlier reports |
+| Inspect and update every diagram | A source-backed disposition for every existing panel, corrections where needed, revision citations and rendering/visual evidence | 332 panel assessments reconciled; 1,407 remain unreconciled, some already reviewed in earlier reports |
 | Examine every ADR section | Classify each candidate; reconcile operative, historical, imported and support obligations; link every material section/requirement to a disposition | 91 current complete-document assessments reconciled; partial/earlier assessments still need explicit mapping |
 | Gap analysis, adversarial review and sense checks | Findings with triggers, consequences, evidence strength, counterexamples or bounded non-reproduction, and acceptance criteria | Available throughout dated reports; repo-by-repo completeness and cross-system synthesis remain open |
 | Compare alternatives and develop user utility | Primary-source comparisons tied to product paths, distinct recommendations and measurable user outcomes | Bounded comparisons exist; remaining product areas and final estate positioning still need review |
@@ -95,7 +95,7 @@ Counts below come from the dated snapshot. Diagram-area counts derive from indiv
 | knowledgegraph | 16 | 16 |
 | nostr-rust-forum | 220 | 100 |
 | ontomark | 64 | 23 |
-| sidestr-rs | 20 | 17 |
+| sidestr-rs | 20 | 20 |
 | solid-pod-rs | 133 | 0 |
 | visionclaw | 486 | 13 |
 | visionflow | 87 | 0 |

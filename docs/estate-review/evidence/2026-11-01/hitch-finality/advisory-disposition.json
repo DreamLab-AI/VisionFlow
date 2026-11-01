@@ -1,0 +1,10 @@
+{
+  "panel": "SR-04.5",
+  "citation": "sidestr-agent/src/hitch/follow.rs:121-140",
+  "disposition": "Unchanged panel and source. The cited constructor drops the genesis pin; the existing crate/runtime report and seven native identity scenarios establish acceptance behaviour. This batch adds no host claim.",
+  "previous_evidence": "docs/estate-review/evidence/2026-11-01/hitch-recovery/advisory-disposition.json",
+  "additional_citation": {
+    "citation": "sidestr-agent/src/hitch/mod.rs:36",
+    "disposition": "Read lines31-37: host is gated cli+Unix, store is gated Unix only. No CLI gate on store. Existing unchanged panel is correct."
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "repo": "sidestr-rs",
+  "commit": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+  "files": {
+    "sidestr-hitch/src/lib.rs": "b26bd8dc079f6fd59394abf760b0189a08c0aa2ad7dc51db06783a980142c189",
+    "sidestr-hitch/src/protocol/mod.rs": "b1c2b2816f57991e6a150317262287394a2edf74dae19c3210cf885d06042dce",
+    "sidestr-hitch/src/protocol/wire.rs": "029b911e2e5a285d2e7df33c6af1a5dd1996da6cf962bea461455ed6dd9b1444",
+    "sidestr-hitch/src/protocol/opening.rs": "47e242891ce038b5d99bf237fce85ebcb6d2dbaacb77d68b82e3d8b483ebd222",
+    "sidestr-hitch/src/protocol/machine.rs": "8f561370d7d9773e2fb353da60cdc87a5269634c5880a06245c02fc46fad5824",
+    "sidestr-hitch/src/protocol/chain.rs": "c9530fb2b1e5229303e5ea81b1b035a1f0358c725ada40d737780140a7f89fd1",
+    "sidestr-hitch/src/protocol/snapshot.rs": "e8e0e7f440e51065211a71521a0352cd8a8e14e9bbf7f678a54500cba235a186",
+    "sidestr-hitch/src/protocol/tests.rs": "7ce5dac59bc4f1a25d910a5d771672e3a6d4d30ca3b9d1f6a22222701a2ca441",
+    "sidestr-hitch/tests/oracle.rs": "1f2a78c9ec734cb217b9f7cc80fd7150eea37d594b3296259417aa23da6e1e83",
+    "sidestr-hitch/tests/wire_oracle.rs": "35dd5994ef6a780d5314f1f7f203eb80e0a3010f65b38b8ca768e46ea2e076d2",
+    "sidestr-hitch/tests/chain_consensus.rs": "fb851c6b41dcf8ed1eedc61b50ef0c226a8b2e8efe418fe183ceefc82191c4a9",
+    "sidestr-hitch/tests/peer_scenarios.rs": "e92f42cf9bb4239f16c81afdae23817b959d67a56743dd19dd7e7d0457a7380b",
+    "sidestr-hitch/tests/adversarial_scenarios.rs": "544e1195e9ada4b7382f5f170864aee987407685bfdd8ce35cbc82658c1b2bb8",
+    "sidestr-hitch/Cargo.toml": "4e4c28b6657d1e9a99b760f3a05254b0a10400582eb6652e93fef236a60c8341",
+    "sidestr-hitch/CHANGELOG.md": "7fe324583cdc905d500f0788bf6f0221873a4586fdcbbe3721ed5b4a08856ab4",
+    "sidestr-agent/src/hitch/host.rs": "9038183803b23374a2b911097e4b3dae20e19a67957b831936dab6d3189e9b89",
+    ".github/workflows/ci.yml": "9e42511e2ae577d0c27a1bd389bb1a9cfbfac719be4979f73cb1656eb36d4fe6",
+    "Cargo.lock": "569c20953ae564868b92e55994576114180e115ea16dc0d351ebeb3f9a5d9646",
+    "sidestr-agent/src/hitch/mod.rs": "942b1a78598ad0e5ab04c4db2ffb6ad1e3479d58a969b519724496864df6598a",
+    "sidestr-agent/src/hitch/follow.rs": "f25715ddeb3a3ca4c42978aed29bb88c503f5cb33b1e287d68cdea11251ef8f5"
+  }
+}

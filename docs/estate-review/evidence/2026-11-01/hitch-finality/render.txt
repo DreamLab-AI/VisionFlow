@@ -1,0 +1,8 @@
+parsed 1 topic files, 5 mermaid diagrams
+cite-check: 0 warning(s)
+citations: 26 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0
+JEV-ADVISORY sidestr-rs/04-hitch-channel-kernel-and-host-gap.md:SR-04.5 ../sidestr-rs/sidestr-agent/src/hitch/mod.rs:36 p_defect=0.94 (cited lines may not hold this label; check by hand)
+JEV-ADVISORY sidestr-rs/04-hitch-channel-kernel-and-host-gap.md:SR-04.5 ../sidestr-rs/sidestr-agent/src/hitch/follow.rs:121-140 p_defect=0.95 (cited lines may not hold this label; check by hand)
+rendered 5/5 diagrams via pele

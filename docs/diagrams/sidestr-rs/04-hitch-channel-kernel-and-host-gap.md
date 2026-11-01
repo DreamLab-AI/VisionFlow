@@ -15,10 +15,12 @@ sources:
   - ../sidestr-rs/sidestr-hitch/src/lib.rs
   - ../sidestr-rs/sidestr-hitch/src/protocol/mod.rs
   - ../sidestr-rs/sidestr-hitch/src/protocol/machine.rs
+  - ../sidestr-rs/sidestr-hitch/src/protocol/wire.rs
   - ../sidestr-rs/sidestr-hitch/src/protocol/opening.rs
   - ../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs
   - ../sidestr-rs/sidestr-hitch/src/protocol/chain.rs
   - ../sidestr-rs/sidestr-hitch/src/route.rs
+  - ../sidestr-rs/sidestr-hitch/tests/chain_consensus.rs
   - ../sidestr-rs/sidestr-hitch/tests/oracle.rs
   - ../sidestr-rs/sidestr-hitch/tests/wire_oracle.rs
   - ../sidestr-rs/sidestr-hitch/tests/peer_scenarios.rs
@@ -33,7 +35,7 @@ verified_commit: {sidestr-rs: 9c6de86c657a25ec2f2a189baf63db7dedad40eb, visionfl
 
 ## For developers
 
-`sidestr-hitch` is a pure channel kernel. Since 0.2.0 (sidestr-rs `5a1e89ae`, 1 Oct) it tracks Hitch at `62f8e39`, through the five rounds of Hitch's adversarial review: `lib/channel.mjs` for the transactions, `lib/peer.mjs` for the sans-IO peer machine and `lib/route.mjs` for the router. The single 2,972-line `protocol.rs` of 0.1 is now a `protocol/` module split by concern: wire messages, opening, the update machine, chain following and snapshots. It constructs Hitch funding, commitment, HTLC and close transactions, runs the update protocol, answers a close seen on the chain with penalties, sweeps and claims, serialises recovery snapshots, and returns routing actions for a host to execute. The release is breaking. Commitments now use a two-party revocation key, so the transactions differ and a 0.1 channel cannot be restored by 0.2: the 0.1 key let a commitment's owner spend its own revocation leaf, which is the flaw this release fixes. Read SR-04.1 for the revocation construction, SR-04.2 for finality, SR-04.3 for recovery and routing, SR-04.4 for the chain side and SR-04.5 for what a host still owes. Since 0.2.1 a chain-consensus suite opens five channels from one funding transaction, drives them through close, sweep, penalty and claim on all seven leaf templates, and has `sidestr-core`'s `Chain` validate every spend, with siding replaying to the same tip hash when the oracle environment is set. The agent host exists in source. SR-04.5 is refreshed in the [crate/runtime audit](../../estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md); SR-04.3 is refreshed in the [recovery/routing audit](../../estate-review/2026-11-01-sidestr-hitch-recovery.md); SR-04.1, SR-04.2 and SR-04.4 retain their earlier assessment boundary.
+`sidestr-hitch` is a pure channel kernel. Since 0.2.0 (sidestr-rs `5a1e89ae`, 1 Oct) it tracks Hitch at `62f8e39`, through the five rounds of Hitch's adversarial review: `lib/channel.mjs` for the transactions, `lib/peer.mjs` for the sans-IO peer machine and `lib/route.mjs` for the router. The single 2,972-line `protocol.rs` of 0.1 is now a `protocol/` module split by concern: wire messages, opening, the update machine, chain following and snapshots. It constructs Hitch funding, commitment, HTLC and close transactions, runs the update protocol, answers a close seen on the chain with penalties, sweeps and claims, serialises recovery snapshots, and returns routing actions for a host to execute. The release is breaking. Commitments now use a two-party revocation key, so the transactions differ and a 0.1 channel cannot be restored by 0.2: the 0.1 key let a commitment's owner spend its own revocation leaf, which is the flaw this release fixes. Read SR-04.1 for the revocation construction, SR-04.2 for finality, SR-04.3 for recovery and routing, SR-04.4 for the chain side and SR-04.5 for what a host still owes. Since 0.2.1 a chain-consensus suite constructs five transaction-kernel channels from one funding transaction, drives them through close, sweep, penalty and claim on all seven leaf templates, and has `sidestr-core`'s `Chain` validate every spend, with siding replaying to the same tip hash when the oracle environment is set. The agent host exists in source. SR-04.5 is refreshed in the [crate/runtime audit](../../estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md); SR-04.3 is refreshed in the [recovery/routing audit](../../estate-review/2026-11-01-sidestr-hitch-recovery.md); SR-04.1, SR-04.2 and SR-04.4 are refreshed in the [finality/identity audit](../../estate-review/2026-11-01-sidestr-hitch-finality-and-identity.md). The chain fixture does not establish host support for batched funding: protocol IDs omit the output index.
 
 ## For the business
 
@@ -49,8 +51,9 @@ flowchart LR
     CB --> D
     CA --> H["HTLC success, timeout<br/>and penalty paths"]
     CB --> H
-    D --> CLOSE["cooperative or unilateral close"]
-    H --> CLOSE
+    D --> CLAIM["Delayed sweep or revocation claim"]
+    H --> CLAIM
+    FUND --> COOP["Cooperative close spends funding directly"]
     REV["revocation key = counterparty basepoint<br/>plus owner per-state point<br/>sidestr-hitch/src/lib.rs:740"] --> D
     REV --> H
     POP["proof of possession on<br/>every announced point<br/>sidestr-hitch/src/lib.rs:773"] --> REV
@@ -60,7 +63,7 @@ flowchart LR
 
 **Why it is this way.** The kernel contains the money-bearing script and signature rules while leaving networking and custody to the embedding service. The two-party key arrived with Hitch `62f8e39` and is the reason commitments changed in 0.2.0 (`../sidestr-rs/sidestr-hitch/CHANGELOG.md:45`, `../sidestr-rs/sidestr-hitch/CHANGELOG.md:52`).
 
-**Invariant:** Hitch is not a Lightning node and does not speak the Lightning peer protocol (`../sidestr-rs/sidestr-hitch/src/lib.rs:24`). **Invariant:** the owner of a commitment can never spend its own revocation leaf; the transaction oracle runs an owner's attempt through the schema interpreter and expects refusal (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:14`, `../sidestr-rs/sidestr-hitch/tests/oracle.rs:465`).
+**Boundary:** Hitch does not speak the Lightning peer protocol (`../sidestr-rs/sidestr-hitch/src/lib.rs:24`). Native checks refuse owner-only revocation keys and accept the combined key; the independent Hitch/schema test runs only when its reference environment is set (`../sidestr-rs/sidestr-hitch/tests/oracle.rs:58-66`, `../sidestr-rs/sidestr-hitch/tests/oracle.rs:465`). **Debt:** the short channel ID uses only the transaction ID, so different funding outputs share it (`../sidestr-rs/sidestr-hitch/src/protocol/wire.rs:37-40`).
 
 ## SR-04.2 Update finality
 
@@ -70,16 +73,20 @@ sequenceDiagram
     participant R as receiver
     P->>R: update with receiver commitment signature
     R->>P: ack with proposer signature and prior secret
-    Note over P,R: proposer advances, receiver still awaits final reveal
+    Note over P,R: proposer finalises<br/>receiver has advanced but awaits reveal
+    P->>R: optional next update, held in one buffer
+    Note over R: Shape checked now<br/>signature checked on replay
+    %% Source: sidestr-hitch/src/protocol/machine.rs:833-836
     P->>R: revoke with proposer's prior secret
-    Note over P,R: update is final for routing and notification
-    Note over P,R: sidestr-hitch/src/protocol/mod.rs:4
-    Note over P,R: receive_update, receive_ack, receive_revoke at<br/>sidestr-hitch/src/protocol/machine.rs:795, 910, 996
+    Note over R: receiver finalises<br/>then host replays buffered update
+    %% Source: sidestr-hitch/src/protocol/machine.rs:1051-1056
+    %% Source: sidestr-hitch/src/protocol/mod.rs:4
+    %% Source: sidestr-hitch/src/protocol/machine.rs:795
 ```
 
-**What it shows.** Hitch uses an update, acknowledgement and revocation handshake. The receiver treats the new state as final only after the last secret reveal, and until then nothing is forwarded, settled or announced and no further update is accepted or proposed (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:4`, `../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:27`). A pending update is never simply dropped: on a collision the lower key's update stands, and the other signed state, like a rejected one, is kept as an alternative whose HTLCs stay bound until that state number is revoked or the funding is spent by something else (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:20`, `../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:561`).
+**What it shows.** Hitch uses an update, acknowledgement and revocation handshake. The receiver treats the new state as final only after the last secret reveal, and until then nothing is forwarded, settled or announced and its own further proposal is blocked. A shape-valid next update can be buffered before signature verification; after finality the host must replay it through receive_update (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:4`, `../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:27`). A pending update is never simply dropped: on a collision the lower key's update stands, and the other signed state, like a rejected one, is kept as an alternative whose HTLCs stay bound until that state number is revoked or the funding is spent by something else (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:20`, `../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:561`).
 
-**Why it is this way.** Each peer must hold the remedy for an old commitment before external code treats the balance change as settled. 0.2.0 added the `reject` message and the binding of set-aside states from Hitch's peer (`../sidestr-rs/sidestr-hitch/CHANGELOG.md:45`, `../sidestr-rs/sidestr-hitch/CHANGELOG.md:66`). **Invariant:** every field of every message is shape-checked before use, and nothing is written to the channel until the message is verified in full (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:43`).
+**Why it is this way.** Each peer must hold the remedy for an old commitment before external code treats the balance change as settled. 0.2.0 added the `reject` message and the binding of set-aside states from Hitch's peer (`../sidestr-rs/sidestr-hitch/CHANGELOG.md:45`, `../sidestr-rs/sidestr-hitch/CHANGELOG.md:66`). **Boundary:** shape checks precede buffering, while proof, state and signature checks precede adoption. The blanket no-write-before-full-verification invariant does not cover the buffer (`../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:833-836`, `../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:845-884`). The [native check](../../estate-review/2026-11-01-sidestr-hitch-finality-and-identity.md) confirms a misbound signature survives buffering/restore but is rejected on replay.
 
 ## SR-04.3 Recovery checks and one-hop routing contract
 
@@ -107,16 +114,18 @@ flowchart TB
 ```mermaid
 flowchart TB
     SPEND["host sees funding spent<br/>sidestr-hitch/src/protocol/chain.rs:176"] --> CLS{"classify against coop close,<br/>own commitment, every signed<br/>commitment of theirs"}
-    CLS -->|"revoked state of theirs"| PEN["penalty on every output<br/>sidestr-hitch/src/protocol/chain.rs:182"]
+    CLS -->|"revoked state of theirs"| PEN["penalty on revocable to_local and HTLC outputs<br/>sidestr-hitch/src/protocol/chain.rs:276-306"]
     CLS -->|"unrevoked close"| AFTER["after_close: claim to_local after delay,<br/>HTLC with preimage, offered HTLC after expiry<br/>sidestr-hitch/src/protocol/chain.rs:364"]
     PEN --> WATCH
-    AFTER --> WATCH["watch_outputs: preimage read from witness,<br/>claims republished after six blocks<br/>sidestr-hitch/src/protocol/chain.rs:578"]
-    REORG["reorganisation<br/>sidestr-hitch/src/protocol/chain.rs:333"] --> CLS
+    AFTER --> WATCH["watch_outputs: preimage read from witness,<br/>unspent claims retried when elapsed blocks exceed six<br/>sidestr-hitch/src/protocol/chain.rs:578"]
+    REORG["un_spend after reorganisation<br/>sidestr-hitch/src/protocol/chain.rs:333"] --> BACK{"Local close already published?"}
+    BACK -->|yes| AGAIN["Keep closed-out state; return close again"]
+    BACK -->|no| PREV["Restore prior status, which may be open"]
 ```
 
-**What it shows.** Chain handling moved into the kernel in 0.2.0. `on_spend` classifies a funding spend and answers a revoked close with a penalty on each output; `after_close` claims what this peer is owed; `watch_outputs` follows every output, reads a preimage from the other side's HTLC claim and republishes an unconfirmed claim; `un_spend` undoes a reorganised spend without reopening the channel (`../sidestr-rs/sidestr-hitch/src/protocol/chain.rs:176`, `../sidestr-rs/sidestr-hitch/src/protocol/chain.rs:364`, `../sidestr-rs/sidestr-hitch/src/protocol/chain.rs:578`, `../sidestr-rs/sidestr-hitch/src/protocol/chain.rs:333`). The machine's own tick takes a claimable HTLC to the chain `delay + CLAIM_MARGIN` blocks before expiry (`../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:1306`).
+**What it shows.** Chain handling moved into the kernel in 0.2.0. `on_spend` classifies a funding spend and answers a revoked close with penalties on revocable to_local and HTLC outputs; `after_close` claims what this peer is owed; `watch_outputs` follows every output, reads a preimage from the other side's HTLC claim and republishes an unconfirmed claim; `un_spend` clears followed claims and restores the preceding status, which can be open if no local close was published (`../sidestr-rs/sidestr-hitch/src/protocol/chain.rs:176`, `../sidestr-rs/sidestr-hitch/src/protocol/chain.rs:364`, `../sidestr-rs/sidestr-hitch/src/protocol/chain.rs:578`, `../sidestr-rs/sidestr-hitch/src/protocol/chain.rs:333`). The machine's own tick takes a claimable HTLC to the chain `delay + CLAIM_MARGIN` blocks before expiry (`../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:1306`).
 
-**Why it is this way.** Hitch's peer does these steps itself; keeping them in the sans-IO machine means a host only supplies the chain lookups and broadcasts the returned transactions. Every transaction a Rust protocol run broadcasts is checked by Hitch's module and the schema interpreter (`../sidestr-rs/sidestr-hitch/tests/oracle.rs:358`).
+**Why it is this way.** Hitch's peer does these steps itself; keeping them in the sans-IO machine means a host only supplies the chain lookups and broadcasts the returned transactions. The independent Hitch/schema oracle checks selected protocol-run broadcasts only with its configured checkouts (`../sidestr-rs/sidestr-hitch/tests/oracle.rs:58-66`, `../sidestr-rs/sidestr-hitch/tests/oracle.rs:358`). A separate chain suite always runs native checks; optional siding replay and the consensus-oracle feature add separate judges (`../sidestr-rs/sidestr-hitch/tests/chain_consensus.rs:404-418`, `../sidestr-rs/sidestr-hitch/tests/chain_consensus.rs:876-900`).
 
 ## SR-04.5 Implemented host and remaining trust boundaries
 

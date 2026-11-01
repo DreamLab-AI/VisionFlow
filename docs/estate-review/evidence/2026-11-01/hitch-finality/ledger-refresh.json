@@ -1,0 +1,16 @@
+{
+  "retained_panels": [
+    "SR-04.5",
+    "SR-04.3"
+  ],
+  "panel_bodies_byte_identical": true,
+  "new_assessed_panels": [
+    "SR-04.1",
+    "SR-04.2",
+    "SR-04.4"
+  ],
+  "old_topic_sha256": "7c52d2e1b06507580bea6f323b66904dfb5d55686dc1c52643a60bdf9e0b1a16",
+  "new_topic_sha256": "d633f3bfaa7a2ce92abb0785503028c0229035fcede74835831befc740abaae0",
+  "declared_revisions_unchanged": true,
+  "retained_report_hashes_unchanged": true
+}

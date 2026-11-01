@@ -76949,7 +76949,7 @@
     "numbered_candidates_with_recorded_assessment": 91,
     "numbered_decision_candidates": 731,
     "panels": 1739,
-    "panels_with_recorded_assessment": 329,
+    "panels_with_recorded_assessment": 332,
     "scope_targets": 24,
     "stale_claim_records": 0,
     "topics": 206
@@ -76960,7 +76960,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "dc7ae5509fdf2c95ee8ae34e1aebc6085a6cce98",
+      "head": "914f553eb26302d2efc1dee4da678e3bac2a7928",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -87751,32 +87751,47 @@
           ],
           "report": "docs/estate-review/2026-11-01-sidestr-hitch-recovery.md",
           "state": "assessment-recorded"
+        },
+        {
+          "basis": "Source review of revocation construction, buffered versus final updates, channel/outpoint identity and close/reorganisation handling; four production-library checks, native chain suite with Core script interpreter, explicit JavaScript skip receipts, scoped rendering and visual review. No host batch-funding execution or live activation claim.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SR-04.1",
+            "SR-04.2",
+            "SR-04.4"
+          ],
+          "report": "docs/estate-review/2026-11-01-sidestr-hitch-finality-and-identity.md",
+          "state": "assessment-recorded"
         }
       ],
       "panels": [
         {
-          "body_sha256": "f5ff61e8eac367ad95a46124bd31501d239fb126f0e1b3c59c278c46e2cae288",
+          "body_sha256": "8a5a38d31dfd1ffe1dfce11104b19669f901ef6e0ec6253e8d3b6b09a25ea230",
           "heading": "SR-04.1 Channel transaction boundary and the two-party revocation key",
           "id": "SR-04.1",
-          "line": 44,
+          "line": 46,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-hitch-finality-and-identity.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "3c75fb9a6360441ee7af607ebd09f9bf24bf43d0b79a1f68befe89f956a8be3f",
+          "body_sha256": "9331d08ca2fff415c9354cf2c2842f089f6c348f5ce49621291676b283cc7ce0",
           "heading": "SR-04.2 Update finality",
           "id": "SR-04.2",
-          "line": 67,
+          "line": 70,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-hitch-finality-and-identity.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "c347e06e81cfb5c9d094a57ff8fe6e73c2e42f7c884f664747b30ef0cbf4c38e",
           "heading": "SR-04.3 Recovery checks and one-hop routing contract",
           "id": "SR-04.3",
-          "line": 86,
+          "line": 93,
           "ordinal": 3,
           "reports": [
             "docs/estate-review/2026-11-01-sidestr-hitch-recovery.md"
@@ -87784,19 +87799,21 @@
           "review": "assessment-recorded"
         },
         {
-          "body_sha256": "098e2daa2d1c5c192156b64907e69b92c7b4defbc3a1f58013124df1a2699525",
+          "body_sha256": "fc6e6764b5b63491d977eee2866ba2ea7be52824c3e918f385b469d41a1285ed",
           "heading": "SR-04.4 Following a close on the chain",
           "id": "SR-04.4",
-          "line": 107,
+          "line": 114,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-hitch-finality-and-identity.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "a64185bbbbbbcb022d29632de0b37fbf08d53530b839ebed4a2c7463f29655cc",
           "heading": "SR-04.5 Implemented host and remaining trust boundaries",
           "id": "SR-04.5",
-          "line": 123,
+          "line": 132,
           "ordinal": 5,
           "reports": [
             "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md"
@@ -87806,8 +87823,8 @@
       ],
       "path": "docs/diagrams/sidestr-rs/04-hitch-channel-kernel-and-host-gap.md",
       "repo": "VisionFlow",
-      "review": "partial-assessment-recorded",
-      "sha256": "7c52d2e1b06507580bea6f323b66904dfb5d55686dc1c52643a60bdf9e0b1a16"
+      "review": "assessment-recorded",
+      "sha256": "d633f3bfaa7a2ce92abb0785503028c0229035fcede74835831befc740abaae0"
     },
     {
       "claims": [

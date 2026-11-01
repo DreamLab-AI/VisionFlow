@@ -1,0 +1,38 @@
+{
+  "cases": [
+    {
+      "id": "F1",
+      "funding_outputs": [
+        1,
+        2
+      ],
+      "same_protocol_id": "abababababababab",
+      "distinct_commitments": true,
+      "both_production_verified": true,
+      "host_execution_tested": false
+    },
+    {
+      "id": "F2",
+      "receiver_advance_before_final_revoke": 1,
+      "receiver_proposal_blocked": true,
+      "shape_valid_bad_signature_buffered_and_restored": true,
+      "bad_buffer_rejected_after_finality": true,
+      "valid_control_final_state": 2
+    },
+    {
+      "id": "F3",
+      "remote_close_reorg_returns_open": true,
+      "new_proposal_after_reorg": true,
+      "local_close_reorg_rebroadcasts": true,
+      "local_close_stays_closed_out": true
+    },
+    {
+      "id": "F4",
+      "owner_state_key_refused": true,
+      "owner_channel_key_refused": true,
+      "counterparty_combined_key_accepted": true,
+      "pop_role_and_state_bound": true,
+      "independent_reference": false
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "panel": "SR-04.1",
+    "original": "docs/diagrams/rendered/sidestr-rs/04-hitch-channel-kernel-and-host-gap/SR-04.1.svg",
+    "sha256": "8cbae1c74eaaaf30feec137a64796580a45c25e984c165488203f30a9e35bda8",
+    "preview": "/tmp/vf-hitch-finality-audit/SR-04.1.png",
+    "method": "Temporary SVG copy supplies Liberation Sans 16 only where absent; original SVG unchanged.",
+    "visual_review": "Readable labels, distinct edges and no clipped content after wrapping the sequence notes."
+  },
+  {
+    "panel": "SR-04.2",
+    "original": "docs/diagrams/rendered/sidestr-rs/04-hitch-channel-kernel-and-host-gap/SR-04.2.svg",
+    "sha256": "6b19898facda68c07da1619f3a0b8a5aa63149a6364bcad87f255052ecbd5243",
+    "preview": "/tmp/vf-hitch-finality-audit/SR-04.2.png",
+    "method": "Temporary SVG copy supplies Liberation Sans 16 only where absent; original SVG unchanged.",
+    "visual_review": "Readable labels, distinct edges and no clipped content after wrapping the sequence notes."
+  },
+  {
+    "panel": "SR-04.4",
+    "original": "docs/diagrams/rendered/sidestr-rs/04-hitch-channel-kernel-and-host-gap/SR-04.4.svg",
+    "sha256": "7a15beb6dc10ed9c62c1fc1bd18735a38c4d8278d1f5da68c97c379d5cb8653d",
+    "preview": "/tmp/vf-hitch-finality-audit/SR-04.4.png",
+    "method": "Temporary SVG copy supplies Liberation Sans 16 only where absent; original SVG unchanged.",
+    "visual_review": "Readable labels, distinct edges and no clipped content after wrapping the sequence notes."
+  }
+]

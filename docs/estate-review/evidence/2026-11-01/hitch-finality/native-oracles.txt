@@ -1,0 +1,43 @@
+   Compiling sidestr-hitch v0.2.1 (/home/devuser/workspace/sidestr-rs/sidestr-hitch)
+    Finished `test` profile [unoptimized] target(s) in 3.98s
+     Running tests/chain_consensus.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/chain_consensus-7e5d2ab1bb79ef39)
+
+running 3 tests
+the reference half is skipped: set SIDESTR_SIDING, SCHEMA and BLAKETESTNODE
+test unified_sighash_channel_spends_are_judged_by_the_family_rules ... ok
+test hitch_builders_write_exactly_the_core_templates ... ok
+refused at 102: funding leaf with one signature — sidestr-core: ["btc:rule-blockctx-scripts"]
+refused at 103: Y to_local sweep before CSV — sidestr-core: ["btc:rule-blockctx-sequence-locks"]
+refused at 103: W HTLC 2 refund before expiry — sidestr-core: ["btc:rule-blockctx-finality", "btc:rule-blockctx-sequence-locks"]
+refused at 103: V HTLC 3 claim before CSV — sidestr-core: ["btc:rule-blockctx-sequence-locks"]
+refused at 103: V HTLC 4 refund before expiry — sidestr-core: ["btc:rule-blockctx-finality"]
+refused at 103: W HTLC 1 claim, wrong preimage — sidestr-core: ["btc:rule-blockctx-scripts"]
+refused at 107: Y to_local sweep one block early — sidestr-core: ["btc:rule-blockctx-sequence-locks"]
+refused at 108: Y sweep, control block parity flipped — sidestr-core: ["btc:rule-blockctx-scripts"]
+refused at 108: Y sweep, wrong internal key — sidestr-core: ["btc:rule-blockctx-scripts"]
+refused at 108: Y sweep, wrong merkle path — sidestr-core: ["btc:rule-blockctx-scripts"]
+refused at 108: Y sweep, tampered leaf (delay 1) — sidestr-core: ["btc:rule-blockctx-scripts"]
+refused at 108: Y sweep, uncommitted OP_TRUE leaf — sidestr-core: ["btc:rule-blockctx-scripts"]
+sidestr-core: tip 6999a553cdc71fe527fd388dfb495aff2267b920ba1a157302edc6ab413f0ecb at 108, 18 coins; 12 channel spends carried, 12 blocks refused
+Core 26.0: 12 carried spends accepted; 7 script negatives refused; 5 lock negatives pass the script (the block refuses them)
+test hitch_open_pay_close_force_close_sweep_and_penalty_replay_on_both_engines ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+     Running tests/oracle.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/oracle-38550bd9ffbdae1a)
+
+running 1 test
+skipped the Hitch reference cross-check: set HITCH, SIDESTR_SIDING, SCHEMA and BLAKETESTNODE
+test reference_accepts_every_rust_built_spend ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/wire_oracle.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/wire_oracle-423d7ceff7964139)
+
+running 2 tests
+skipped the Hitch wire cross-check: set HITCH
+test hitch_accepts_every_rust_wire_message ... ok
+test every_rust_message_is_serialisable_and_well_formed_by_its_own_check ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+

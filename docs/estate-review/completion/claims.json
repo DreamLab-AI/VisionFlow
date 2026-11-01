@@ -2289,7 +2289,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/sidestr-rs/04-hitch-channel-kernel-and-host-gap.md",
-    "source_sha256": "7c52d2e1b06507580bea6f323b66904dfb5d55686dc1c52643a60bdf9e0b1a16",
+    "source_sha256": "d633f3bfaa7a2ce92abb0785503028c0229035fcede74835831befc740abaae0",
     "report": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
     "report_sha256": "78445adbf7a5d52718b5574db3d8bb6dc18daa3b4a9b53656ef145ea979c3526",
     "coverage": "selected-panels",
@@ -2334,7 +2334,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/sidestr-rs/04-hitch-channel-kernel-and-host-gap.md",
-    "source_sha256": "7c52d2e1b06507580bea6f323b66904dfb5d55686dc1c52643a60bdf9e0b1a16",
+    "source_sha256": "d633f3bfaa7a2ce92abb0785503028c0229035fcede74835831befc740abaae0",
     "report": "docs/estate-review/2026-11-01-sidestr-hitch-recovery.md",
     "report_sha256": "8d5dcf94e02f78c61c1c78413eb221cda77398f3c7032ac88c23e4214244e9c6",
     "coverage": "selected-panels",
@@ -2342,5 +2342,20 @@
     "panels": [
       "SR-04.3"
     ]
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/sidestr-rs/04-hitch-channel-kernel-and-host-gap.md",
+    "source_sha256": "d633f3bfaa7a2ce92abb0785503028c0229035fcede74835831befc740abaae0",
+    "report": "docs/estate-review/2026-11-01-sidestr-hitch-finality-and-identity.md",
+    "report_sha256": "ce5c77c39c6eb59d9a6e3d13d96286cf20753f5c71109ce4fb05f13b306edadd",
+    "coverage": "selected-panels",
+    "panels": [
+      "SR-04.1",
+      "SR-04.2",
+      "SR-04.4"
+    ],
+    "basis": "Source review of revocation construction, buffered versus final updates, channel/outpoint identity and close/reorganisation handling; four production-library checks, native chain suite with Core script interpreter, explicit JavaScript skip receipts, scoped rendering and visual review. No host batch-funding execution or live activation claim."
   }
 ]

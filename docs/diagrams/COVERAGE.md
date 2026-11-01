@@ -4355,8 +4355,10 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../sidestr-rs/sidestr-hitch/src/protocol/mod.rs` | [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
 | `../sidestr-rs/sidestr-hitch/src/protocol/opening.rs` | [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
 | `../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs` | [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
+| `../sidestr-rs/sidestr-hitch/src/protocol/wire.rs` | [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
 | `../sidestr-rs/sidestr-hitch/src/route.rs` | [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
 | `../sidestr-rs/sidestr-hitch/tests/adversarial_scenarios.rs` | [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
+| `../sidestr-rs/sidestr-hitch/tests/chain_consensus.rs` | [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
 | `../sidestr-rs/sidestr-hitch/tests/oracle.rs` | [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
 | `../sidestr-rs/sidestr-hitch/tests/peer_scenarios.rs` | [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
 | `../sidestr-rs/sidestr-hitch/tests/wire_oracle.rs` | [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
