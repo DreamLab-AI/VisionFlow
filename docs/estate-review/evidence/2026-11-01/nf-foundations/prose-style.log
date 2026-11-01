@@ -1,0 +1,15 @@
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-forum-wallet-foundations.md
+  files scanned: 1   findings: 3   slop score: 9
+  verdict: Some AI tells present
+  high: 3   medium: 0   low: 0
+
+  [HIGH] Tier-1 banned vocabulary  (3 hits)
+        fix: Replace with a plain word (delve->look at, leverage->use, robust->solid, seamless->smooth, utilise->use). See SKILL.md B4.
+        docs/estate-review/2026-11-01-forum-wallet-foundations.md:24  | D4: local signing, matching unlock, throwaway transport key | `wallet/mod.rs:557–650` checks unlock identity, holds that unlock in zeroising memory and valida...
+        docs/estate-review/2026-11-01-forum-wallet-foundations.md:25  ...ser storage areas (`auth/mod.rs:676–702`); wallet owner rebinding clears its unlock (`wallet/mod.rs:454–480`). In-flight wallet delivery is not cancelled by tha...
+        docs/estate-review/2026-11-01-forum-wallet-foundations.md:30  ...capable extension before pasted fallback | The wallet uses an existing auth/unlocked tab key first, then an available sidestr extension; the paste UI is the fal...
+
+  Top things to change: Tier-1 banned vocabulary
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+

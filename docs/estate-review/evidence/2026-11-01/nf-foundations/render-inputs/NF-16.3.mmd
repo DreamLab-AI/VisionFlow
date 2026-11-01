@@ -1,0 +1,15 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/tip_button.rs:130
+    A["UI knows the post author<br/>and selects that recipient script"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:696
+    B["Send asset with tip memo<br/>through the selected wallet"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/chain.rs:459
+    C["Replay reads the memo event ID<br/>and first non-record output asset amount"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/chain.rs:468
+    D["DEBT: replay tally has no post-author input<br/>recipient binding is not checked here"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:539
+    E["Display adds this browser pending tips<br/>so optimistic totals can differ by viewer"]
+    A --> B
+    B --> C
+    C --> D
+    C --> E

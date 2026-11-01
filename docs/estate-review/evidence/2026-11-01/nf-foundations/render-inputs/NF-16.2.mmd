@@ -1,0 +1,14 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:800
+    A["Plain sends select coins carrying no asset<br/>asset sends preserve carrier tallies"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/chain.rs:646
+    B["Starter pack builds asset carriers<br/>plus plain sats in one transaction"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/chain.rs:726
+    C["Asset-view check runs before return<br/>local signing may already have occurred"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/wallet.rs:598
+    D["Review shows a fixed about-250-sat hint<br/>not the built transaction fee"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/chain.rs:710
+    E["Native synthetic fragmented-input pack:<br/>21 inputs, 1500-sat fee"]
+    A --> B
+    B --> C
+    D -.-> E

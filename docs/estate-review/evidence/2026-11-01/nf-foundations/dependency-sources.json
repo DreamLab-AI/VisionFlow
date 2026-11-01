@@ -1,0 +1,26 @@
+[
+  {
+    "crate": "sidestr-wallet",
+    "version": "0.5.3",
+    "path": "/home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sidestr-wallet-0.5.3/src/asset.rs",
+    "sha256": "1f28087ee96e9531164d8e513d5b3532345b8efdd9da87248e3828cecf187f8a"
+  },
+  {
+    "crate": "sidestr-wallet",
+    "version": "0.5.3",
+    "path": "/home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sidestr-wallet-0.5.3/src/compose.rs",
+    "sha256": "5e367e34ffa408d4325af3ccaec98c333d2d43a63b297e04bc37bc4782be70ba"
+  },
+  {
+    "crate": "sidestr-wallet",
+    "version": "0.5.3",
+    "path": "/home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sidestr-wallet-0.5.3/src/spend.rs",
+    "sha256": "f254d79e6ad3c9769ca6636d10e85be5bc15627e3d3ab554b1cefb5cb578ab1f"
+  },
+  {
+    "crate": "sidestr-wallet",
+    "version": "0.5.3",
+    "path": "/home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sidestr-wallet-0.5.3/src/key.rs",
+    "sha256": "ad80f37e0d44c40192cb93c3161ff896dbe0ab16a4428c2842d1a371ad2358ab"
+  }
+]

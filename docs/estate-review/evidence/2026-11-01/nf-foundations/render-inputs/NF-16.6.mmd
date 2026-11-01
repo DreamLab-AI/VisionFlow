@@ -1,0 +1,15 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs:189
+    A["Address must match exactly<br/>confirmed funded-minus-spent is checked"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs:197
+    B["DEBT: unconfirmed u64 values cast to i64<br/>before unchecked subtraction"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs:240
+    C["Pair parser reads branch subtotals<br/>and sums value from both entries"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs:249
+    D["DEBT: no outpoint deduplication<br/>and no checked pair total"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/wallet.rs:735
+    E["UI says coins on both are spendable on either<br/>pair membership does not check maturity"]
+    A --> B
+    A --> C
+    C --> D
+    D --> E

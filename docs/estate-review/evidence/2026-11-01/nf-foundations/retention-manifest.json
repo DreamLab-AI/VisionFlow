@@ -1,0 +1,526 @@
+{
+  "root": "/tmp/vf-nf-foundations-artifacts",
+  "source_exports_manifest": "sources.json",
+  "retained_files": [
+    {
+      "path": "adr-revision-diffs.json",
+      "bytes": 1390,
+      "sha256": "159a0ff31009bac0eb4d79a1a1dc019621a3d75f13adc39de636c73c8e9edb60"
+    },
+    {
+      "path": "archive-skipped-links.json",
+      "bytes": 41,
+      "sha256": "25c9c1dee05174e01abd908ee113cde8945d3ced6503d131e60862bc83fc75ad"
+    },
+    {
+      "path": "chain-audit-tests.rs",
+      "bytes": 889,
+      "sha256": "974e73359201020d494a82fef38fdeb0914f968a26b30788a9ab5888ae95e6dc"
+    },
+    {
+      "path": "dependency-sources/asset.rs",
+      "bytes": 11509,
+      "sha256": "1f28087ee96e9531164d8e513d5b3532345b8efdd9da87248e3828cecf187f8a"
+    },
+    {
+      "path": "dependency-sources/compose.rs",
+      "bytes": 9346,
+      "sha256": "5e367e34ffa408d4325af3ccaec98c333d2d43a63b297e04bc37bc4782be70ba"
+    },
+    {
+      "path": "dependency-sources/key.rs",
+      "bytes": 14928,
+      "sha256": "ad80f37e0d44c40192cb93c3161ff896dbe0ab16a4428c2842d1a371ad2358ab"
+    },
+    {
+      "path": "dependency-sources/spend.rs",
+      "bytes": 15364,
+      "sha256": "f254d79e6ad3c9769ca6636d10e85be5bc15627e3d3ab554b1cefb5cb578ab1f"
+    },
+    {
+      "path": "dependency-sources.json",
+      "bytes": 1087,
+      "sha256": "67b5b65d0c4766249cf0260787afc70de3e22ce068fd8cbb8a0aeb8750006115"
+    },
+    {
+      "path": "diagram-source-comparison.json",
+      "bytes": 634,
+      "sha256": "e36618672e8424b2a46fafae667159d7913aad65d97e5a2086184377b7b1e770"
+    },
+    {
+      "path": "freshness.log",
+      "bytes": 155,
+      "sha256": "8c08bf2cc2f7126011f8bed7d5582e47a01f70c6b07121ea0a86261d46e4bb4e"
+    },
+    {
+      "path": "full-gate-final.log",
+      "bytes": 2411,
+      "sha256": "fe927678edd0e5f8b2e82114016a968a7279c98047dee17bfe34a1c1e2088f5d"
+    },
+    {
+      "path": "full-gate.log",
+      "bytes": 2411,
+      "sha256": "e9a549b97f1cd6d522bf715034c75fd01ee88da544ab010fa6de2a5f15d0c33f"
+    },
+    {
+      "path": "initial-state.json",
+      "bytes": 3441,
+      "sha256": "a55aed0e62a26ea2a5c864a7e35352b11d1d1848eea71c37941c8c9b72d72c66"
+    },
+    {
+      "path": "nf05-gate-final.log",
+      "bytes": 233,
+      "sha256": "b667bd4ad7d3f37e73652800b7a7c6103331e8621ba58ad85f4d8ea5c8056972"
+    },
+    {
+      "path": "nf05-gate.log",
+      "bytes": 233,
+      "sha256": "b667bd4ad7d3f37e73652800b7a7c6103331e8621ba58ad85f4d8ea5c8056972"
+    },
+    {
+      "path": "nf10-gate-final.log",
+      "bytes": 233,
+      "sha256": "048ea8c1e64a5cd3ae73e6e3a638c420f70437624db74b112973194dc3e91a66"
+    },
+    {
+      "path": "nf10-gate.log",
+      "bytes": 233,
+      "sha256": "54d7a50c76c43ece7a3efe3410bff007f70e74dba356cc0580794d7f0604dba4"
+    },
+    {
+      "path": "nf16-gate-final.log",
+      "bytes": 229,
+      "sha256": "ffcadc674148cacf62ecf33dc51442a6fe4933e9b71864506bff649750d8bce3"
+    },
+    {
+      "path": "nf16-gate.log",
+      "bytes": 1352,
+      "sha256": "142cb5ebfb1c237ed7bd2e0b5617a85d03f753008bfaed8f63146b47e4651385"
+    },
+    {
+      "path": "owned-links.json",
+      "bytes": 1493,
+      "sha256": "bb096e175c76e9912e32454b70818ef266f6e65d46746ebafe3848a8752ce454"
+    },
+    {
+      "path": "parent-audit-tests.rs",
+      "bytes": 1933,
+      "sha256": "d723321c40f268fc3b9692b3129abc016b6de3b11eeda71a3476b8582546fb5c"
+    },
+    {
+      "path": "parent-tests.log",
+      "bytes": 10436,
+      "sha256": "8992706435699c85721cc837ccec92ca28bee2158d00914dd86e441332bbb2ca"
+    },
+    {
+      "path": "prose-inspection.log",
+      "bytes": 1248,
+      "sha256": "d72451dfd8406bb49794bb5db895ab4e52d75997dfd4ae1d775ebeac0161db06"
+    },
+    {
+      "path": "prose-style.log",
+      "bytes": 1217,
+      "sha256": "924f2a4a3d43ada428ce85a05811d66b15fe3d0dfcc1227afcd1ebc2279d120d"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.1.mmd",
+      "bytes": 2286,
+      "sha256": "91321d25070022b32aff54e6043ccaabe6a7624761b699eedf0555c86ebc4a1c"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.1.svg",
+      "bytes": 12992,
+      "sha256": "63d9fc013e14dfc1505b9c85520eec3e4e9c3c42356a0f9f523e9dcee9f9d93b"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.10.mmd",
+      "bytes": 2359,
+      "sha256": "01e7719a3e48bf35451a8d754ae63611e39f8ce78dc108f94d424d55833c0c4d"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.10.svg",
+      "bytes": 8475,
+      "sha256": "1b8b4ec7591eb9f41227d64411961823aa40108858805794ea8295ce7698d870"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.11.mmd",
+      "bytes": 2312,
+      "sha256": "fd2d516df058d418d4756d14d7ff46ca3ff8cf6c07f3acfcf7c32242698310ac"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.11.svg",
+      "bytes": 10464,
+      "sha256": "4ba1369e208abc2ccfa25d49df27417d68aaf2579684e21a2da15ce5e11bca32"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.12.mmd",
+      "bytes": 2055,
+      "sha256": "124e74fb3f723b46ae73c55e3faf86b00263d69edb35dd3b4776cb06a557b21a"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.12.svg",
+      "bytes": 9491,
+      "sha256": "686ae5d24bb01d95df87910e0b93558121c7b6a6f8d320e582f4cfd717159e24"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.13.mmd",
+      "bytes": 1977,
+      "sha256": "a912edd381e0897b7d1d8925591b6375ec2675bdf3d27bc16d387918cdb71fa1"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.13.svg",
+      "bytes": 10696,
+      "sha256": "8b35bcc704e8dab3a523a97376a8d66a6afb45106b0405f504df52bc65a83c82"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.14.mmd",
+      "bytes": 1853,
+      "sha256": "801ac228e547318c087b28f0d41c0daff799268897ba0e694f751a014e8af90f"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.14.svg",
+      "bytes": 11877,
+      "sha256": "557e3aa9cbfb39461871b9b458c6d60a5a004d56d342b1ea0cc6bf96f323b772"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.15.mmd",
+      "bytes": 1877,
+      "sha256": "3fc761bb5ad2ed6a564ffe34a1e5a6c6e99a5da6b511e8c60df6c8ef7b2ce32e"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.15.svg",
+      "bytes": 11783,
+      "sha256": "5c56c0d87d33883207a1f3135bf5e6bc6511e3dfefcbfcdef552e155eefd94c3"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.16.mmd",
+      "bytes": 2593,
+      "sha256": "87b52d748f63e4d7b58cf6ac51cd598a4e7ba7d934eb2850c9af6960dcef7928"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.16.svg",
+      "bytes": 10072,
+      "sha256": "8644da135766237a970bffc796de74ee6aac57a74f9b356d2a4e7729522aa7b6"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.17.mmd",
+      "bytes": 1677,
+      "sha256": "b01bfb0daff3bf639aec8db0c26203cfc0905e8d9cd56f9944a08c53d691d054"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.17.svg",
+      "bytes": 7201,
+      "sha256": "f2b5245111d2ca9014f8479f1db702df5760e3a1d662bbd74c5df39a9c4edc99"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.2.mmd",
+      "bytes": 2736,
+      "sha256": "cb25b1d83676105ceb8d252a6377c71d90ffe1c79643633b47b48630069bdc1c"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.2.svg",
+      "bytes": 12741,
+      "sha256": "9f8c6e9e25cbe78beeae30b8fc79f125498233e8dd56ec4dde7a235c43e5c205"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.3.mmd",
+      "bytes": 1437,
+      "sha256": "5808410590013a18aceaf4b7f48fb5d6bc62e244a2a1b6dd273cc20e8bb0bf6a"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.3.svg",
+      "bytes": 13565,
+      "sha256": "7a7c75e819647adc365a79878fe486ac8e758bfb76307c27fbf5f26c85200284"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.4.mmd",
+      "bytes": 1384,
+      "sha256": "e911c46e52b96236bba821abdcdd6aa5420ff9510c762eed3fd7092934a2f44a"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.4.svg",
+      "bytes": 7709,
+      "sha256": "031b3054b1d1e98f229d09f6f9a0377dd2f4e180bb393aed3f6e0782efedf7b8"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.5.mmd",
+      "bytes": 1614,
+      "sha256": "f9ab7aeedadc921ace77a8eff6d0aa28e1c02074d0540e6dd48ab63872c2c245"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.5.svg",
+      "bytes": 10559,
+      "sha256": "94efc9fe79bfedba539a834d253f10140c0e17f4b6c23f943444d2a1585c6029"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.6.mmd",
+      "bytes": 1581,
+      "sha256": "05ff0a3667183f5849165707996d9347917f5a593caf93683043c0007d1fdca5"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.6.svg",
+      "bytes": 8102,
+      "sha256": "c26eec2e276b304db88e7a3ba6c56f222da546a30c919ea35d9da3610fb2b85e"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.7.mmd",
+      "bytes": 1493,
+      "sha256": "d24cfb947576c8032e56c3f42c1feb439e2aaa124bc8abd30a0bf927a526d3fc"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.7.svg",
+      "bytes": 7202,
+      "sha256": "ad02523409b6d6c1a759d916f4ac0837f8aef26650501efd920335a4bfe25a96"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.8.mmd",
+      "bytes": 1163,
+      "sha256": "7210d09946dd14e8607dbc4a326ca773e28bae633d054d91972e687d320d703b"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.8.svg",
+      "bytes": 8185,
+      "sha256": "2e3d2770e2215a0cf99c073f4f384bbff99609a59c2586c3b2bc714b9cc8bb11"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.9.mmd",
+      "bytes": 2928,
+      "sha256": "062ad07333a9e4a15ee667665b730c43e647b8692905e9ad4bbce0ae86f62f0c"
+    },
+    {
+      "path": "render-inputs/05-leptos-clients-onboarding-messaging-governance/NF-05.9.svg",
+      "bytes": 13563,
+      "sha256": "3053165e123f5d469c71d7838d580558c31d8cc5698dcdae99a2a928134cbebb"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.1.mmd",
+      "bytes": 1475,
+      "sha256": "7841ae08c215e954a0ddd49f6c539545417f5472c8c870e10e83d4cda0696ab9"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.1.svg",
+      "bytes": 6389,
+      "sha256": "bf432a81e9303d95c820f3290350819de18dcfd3c641d72ab6fca60255c831d5"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.10.mmd",
+      "bytes": 786,
+      "sha256": "9a6b9d4e60a78ecf2e4a4d950f1f06313ad06c71fb913b42bd4587fe4aa71ce9"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.10.svg",
+      "bytes": 6656,
+      "sha256": "7f6241df5575af182d837dce8bffbdfa2e4bc49f804ebd26e13b66f26229501b"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.11.mmd",
+      "bytes": 3809,
+      "sha256": "b59a1419b3279868a092e6d15a241b1604c0b842af219e815d530676b2a6e61c"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.11.svg",
+      "bytes": 12463,
+      "sha256": "d2dd15370148216f12d8417fde64f5c5d0f472608bec650b2a85392eeeb294be"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.12.mmd",
+      "bytes": 1067,
+      "sha256": "2931024e1964649468f804dabe542d57e4ccaa014b00f546f082806621f6a9c0"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.12.svg",
+      "bytes": 4776,
+      "sha256": "f253a4422dc9c74cc81882e520d4f073a7ce8e5ed004c5d844ae2e4995bb262e"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.2.mmd",
+      "bytes": 1463,
+      "sha256": "0dccc819578f5527a10dae3debfd658b484a3dbf0f57a11125e97f3943b8f1c0"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.2.svg",
+      "bytes": 6458,
+      "sha256": "36bd4b2fdcdd1ae2189393320368f687920493d4a195be37043253666e79b1bc"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.3.mmd",
+      "bytes": 2165,
+      "sha256": "e09797f4f13f8a0ef144dc7af2844a6e7835467636a9ea20f4e8b2b17e4e6544"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.3.svg",
+      "bytes": 7676,
+      "sha256": "ec81b0d1fd42197a2b12cce202c539a9b5d525f7267d5bb271a7e99fd9076a41"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.4.mmd",
+      "bytes": 1964,
+      "sha256": "5d16a27db216d543edbefd92795fbac674e38fc612a06482dbf33fdf76356e8c"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.4.svg",
+      "bytes": 6310,
+      "sha256": "3cf397ed7f430074d5c5199655d9c45bd8d00003548387993c8b47b7f1ca69ec"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.6.mmd",
+      "bytes": 2580,
+      "sha256": "5515a2a783346b9d05f7b920bc3c53e144e007da9c646720723255a449ff7b8b"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.6.svg",
+      "bytes": 8032,
+      "sha256": "fda999399e7d7822629eff27c42fd6da4029fe87ebd5e91d00af4639ad065836"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.7.mmd",
+      "bytes": 2566,
+      "sha256": "b2a5b02850019863188ab42de2d945b1dbbf1b1410206ed2f4e0b69e13b56239"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.7.svg",
+      "bytes": 7233,
+      "sha256": "0dcef94a06aed4dd2bff5fb95d45d7c558356a7645ea0314c0bf717e46a37efd"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.8.mmd",
+      "bytes": 1894,
+      "sha256": "99c20fe0e1480dc5123f51107fce99929ab9ce36074df45f59771a5a2a9d5679"
+    },
+    {
+      "path": "render-inputs/10-invariants-and-anomaly-register/NF-10.8.svg",
+      "bytes": 6689,
+      "sha256": "59d930985a03e35e634fd1b2fa38bf3b6fe1da926d829f33ca83bc883020a85b"
+    },
+    {
+      "path": "render-inputs/16-wallet-foundations-and-parent-balances/NF-16.1.mmd",
+      "bytes": 968,
+      "sha256": "e8ca91a1389f8fc84aafd612337c33ff3f6631011be3b6ac487ff7eff039cad5"
+    },
+    {
+      "path": "render-inputs/16-wallet-foundations-and-parent-balances/NF-16.1.svg",
+      "bytes": 4030,
+      "sha256": "8aef73badf79502e8d31ec8ba72ef3aab9cd15283ddcb775475dc49c33d85176"
+    },
+    {
+      "path": "render-inputs/16-wallet-foundations-and-parent-balances/NF-16.2.mmd",
+      "bytes": 918,
+      "sha256": "3a42747570db8c9c8ab69f4efa7247c0b07c4a44f276e82e38bcc1e37f85d8aa"
+    },
+    {
+      "path": "render-inputs/16-wallet-foundations-and-parent-balances/NF-16.2.svg",
+      "bytes": 3325,
+      "sha256": "cc1187d37cb1cfa6192ffac255cd7041430b567e82461e8a93994d65e523c151"
+    },
+    {
+      "path": "render-inputs/16-wallet-foundations-and-parent-balances/NF-16.3.mmd",
+      "bytes": 923,
+      "sha256": "bbb5d9d7572e777288ef1bdd2fc573d3f53827297cf12f32e3b66fd1455fb378"
+    },
+    {
+      "path": "render-inputs/16-wallet-foundations-and-parent-balances/NF-16.3.svg",
+      "bytes": 3496,
+      "sha256": "66307dde347590c606b2d0aa2b19eb9b8bdc024f8acae0a31f03497adccb812d"
+    },
+    {
+      "path": "render-inputs/16-wallet-foundations-and-parent-balances/NF-16.4.mmd",
+      "bytes": 963,
+      "sha256": "a75fd5dca39b9d2872194c179fa6489ce1fe6165e62529bf855bff951ceb9056"
+    },
+    {
+      "path": "render-inputs/16-wallet-foundations-and-parent-balances/NF-16.4.svg",
+      "bytes": 3626,
+      "sha256": "4cab5e9862f2a73b533560a2503d83294d210dc1cf4b79333db01bfae686672c"
+    },
+    {
+      "path": "render-inputs/16-wallet-foundations-and-parent-balances/NF-16.5.mmd",
+      "bytes": 907,
+      "sha256": "f2805960ad596c1e9722be6a2d7ccf6b17cb02b8c918a17fc748e7abd1a2b2ec"
+    },
+    {
+      "path": "render-inputs/16-wallet-foundations-and-parent-balances/NF-16.5.svg",
+      "bytes": 3529,
+      "sha256": "190c6c35690b1cb6f7345d294055b6ae6fd976a36b1606789f42168b2a7997dc"
+    },
+    {
+      "path": "render-inputs/16-wallet-foundations-and-parent-balances/NF-16.6.mmd",
+      "bytes": 924,
+      "sha256": "87db6a06c33d7948c267b4cb284907dfd6d97f9e4e9273292999993306a56469"
+    },
+    {
+      "path": "render-inputs/16-wallet-foundations-and-parent-balances/NF-16.6.svg",
+      "bytes": 3591,
+      "sha256": "6658fb0f6c231465e51bdb387be42a8c9316e19d3babb7e65d5bd5fb063569ff"
+    },
+    {
+      "path": "render-source-check.json",
+      "bytes": 4370,
+      "sha256": "7d4ecbb77eadbc22f7c0c5ec05f4697d0249a9a96488d7ce563305c7539056e3"
+    },
+    {
+      "path": "rendered/NF-05.1.png",
+      "bytes": 191349,
+      "sha256": "26b9f0626d56e77a5af518089342c2c808b396fd03e4c84ea3a42941c602bbf2"
+    },
+    {
+      "path": "rendered/NF-10.7.png",
+      "bytes": 189877,
+      "sha256": "03d45f5090eccb90a2fefab9d9f12a70795e1813b023453651b8908772b31df7"
+    },
+    {
+      "path": "rendered/NF-16.1.png",
+      "bytes": 116704,
+      "sha256": "cba09076f5c8cb03dcc9319ecf4969e0f8a30884497ba0daa8f0bdf0253a9704"
+    },
+    {
+      "path": "rendered/NF-16.2.png",
+      "bytes": 148315,
+      "sha256": "617c4b1720dd9863cd8ad680f540d0a0f9cfc2c8dcf8501f52dddfaa95288d79"
+    },
+    {
+      "path": "rendered/NF-16.3.png",
+      "bytes": 148081,
+      "sha256": "57f50d254d3a3efcd3485feb50f4f876fdf2d777e91152b5fed8e50bd98b71ee"
+    },
+    {
+      "path": "rendered/NF-16.4.png",
+      "bytes": 209563,
+      "sha256": "d515c9b3a442b87f0b1e986bc26d2839b23a9b5b0f9153a17c830465eee2d7a8"
+    },
+    {
+      "path": "rendered/NF-16.5.png",
+      "bytes": 173406,
+      "sha256": "f57e5f53d350d490a34177dbc6312246369a8e6618c8324e74ad9a1656f23654"
+    },
+    {
+      "path": "rendered/NF-16.6.png",
+      "bytes": 158557,
+      "sha256": "875cbda4fb84545dd4c76392a3243f6ce8ad00615be47ffe953edc5bfecdf20d"
+    },
+    {
+      "path": "sources.json",
+      "bytes": 7394,
+      "sha256": "588e3aa0f32a014b2adaa53bd5d5a698cb9e208c300921c3ecca0792f43b8600"
+    },
+    {
+      "path": "test-summary.json",
+      "bytes": 148,
+      "sha256": "4a5cedf1a84881a5e92bf781ee5022907eb86ad15c0c3779d65a5a33c5c5fa4c"
+    },
+    {
+      "path": "validation.json",
+      "bytes": 959,
+      "sha256": "72b1ac9371f5d963c52f8478f7c813a5c982a45d3d7ed3bde06ba556247bc049"
+    },
+    {
+      "path": "wallet-tests.log",
+      "bytes": 15549,
+      "sha256": "8ac4eb7694b9ac408b38dfe99c999b92967abf82b548b31a69bf2b262c4f88e5"
+    },
+    {
+      "path": "web-comparison.json",
+      "bytes": 587,
+      "sha256": "46263c8efa7e8b570a63939ed929c709bb5a450f48026464181fd88a316e8124"
+    }
+  ]
+}

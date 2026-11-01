@@ -1,0 +1,15 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs:149
+    A["Require UTXO JSON and a tip height<br/>otherwise maturity is unknown"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs:156
+    B["Inspect confirmed coins for flag and height<br/>sum only immature coinbase values"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs:168
+    C["Spendable equals confirmed balance<br/>minus that immature subtotal"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs:168
+    D["DEBT: empty list plus balance 100<br/>reports 100 spendable"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/wallet.rs:719
+    E["UI labels the result spendable now<br/>despite unvalidated backend state"]
+    A --> B
+    B --> C
+    C --> D
+    C --> E

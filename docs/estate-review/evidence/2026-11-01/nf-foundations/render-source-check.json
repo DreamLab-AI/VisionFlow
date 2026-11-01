@@ -1,0 +1,167 @@
+[
+  {
+    "id": "NF-16.1",
+    "matches": true,
+    "sha256": "e8ca91a1389f8fc84aafd612337c33ff3f6631011be3b6ac487ff7eff039cad5"
+  },
+  {
+    "id": "NF-16.2",
+    "matches": true,
+    "sha256": "3a42747570db8c9c8ab69f4efa7247c0b07c4a44f276e82e38bcc1e37f85d8aa"
+  },
+  {
+    "id": "NF-16.3",
+    "matches": true,
+    "sha256": "bbb5d9d7572e777288ef1bdd2fc573d3f53827297cf12f32e3b66fd1455fb378"
+  },
+  {
+    "id": "NF-16.4",
+    "matches": true,
+    "sha256": "a75fd5dca39b9d2872194c179fa6489ce1fe6165e62529bf855bff951ceb9056"
+  },
+  {
+    "id": "NF-16.5",
+    "matches": true,
+    "sha256": "f2805960ad596c1e9722be6a2d7ccf6b17cb02b8c918a17fc748e7abd1a2b2ec"
+  },
+  {
+    "id": "NF-16.6",
+    "matches": true,
+    "sha256": "87db6a06c33d7948c267b4cb284907dfd6d97f9e4e9273292999993306a56469"
+  },
+  {
+    "id": "NF-05.1",
+    "matches": true,
+    "sha256": "91321d25070022b32aff54e6043ccaabe6a7624761b699eedf0555c86ebc4a1c"
+  },
+  {
+    "id": "NF-05.2",
+    "matches": true,
+    "sha256": "cb25b1d83676105ceb8d252a6377c71d90ffe1c79643633b47b48630069bdc1c"
+  },
+  {
+    "id": "NF-05.3",
+    "matches": true,
+    "sha256": "5808410590013a18aceaf4b7f48fb5d6bc62e244a2a1b6dd273cc20e8bb0bf6a"
+  },
+  {
+    "id": "NF-05.4",
+    "matches": true,
+    "sha256": "e911c46e52b96236bba821abdcdd6aa5420ff9510c762eed3fd7092934a2f44a"
+  },
+  {
+    "id": "NF-05.5",
+    "matches": true,
+    "sha256": "f9ab7aeedadc921ace77a8eff6d0aa28e1c02074d0540e6dd48ab63872c2c245"
+  },
+  {
+    "id": "NF-05.6",
+    "matches": true,
+    "sha256": "05ff0a3667183f5849165707996d9347917f5a593caf93683043c0007d1fdca5"
+  },
+  {
+    "id": "NF-05.7",
+    "matches": true,
+    "sha256": "d24cfb947576c8032e56c3f42c1feb439e2aaa124bc8abd30a0bf927a526d3fc"
+  },
+  {
+    "id": "NF-05.8",
+    "matches": true,
+    "sha256": "7210d09946dd14e8607dbc4a326ca773e28bae633d054d91972e687d320d703b"
+  },
+  {
+    "id": "NF-05.9",
+    "matches": true,
+    "sha256": "062ad07333a9e4a15ee667665b730c43e647b8692905e9ad4bbce0ae86f62f0c"
+  },
+  {
+    "id": "NF-05.10",
+    "matches": true,
+    "sha256": "01e7719a3e48bf35451a8d754ae63611e39f8ce78dc108f94d424d55833c0c4d"
+  },
+  {
+    "id": "NF-05.11",
+    "matches": true,
+    "sha256": "fd2d516df058d418d4756d14d7ff46ca3ff8cf6c07f3acfcf7c32242698310ac"
+  },
+  {
+    "id": "NF-05.12",
+    "matches": true,
+    "sha256": "124e74fb3f723b46ae73c55e3faf86b00263d69edb35dd3b4776cb06a557b21a"
+  },
+  {
+    "id": "NF-05.13",
+    "matches": true,
+    "sha256": "a912edd381e0897b7d1d8925591b6375ec2675bdf3d27bc16d387918cdb71fa1"
+  },
+  {
+    "id": "NF-05.14",
+    "matches": true,
+    "sha256": "801ac228e547318c087b28f0d41c0daff799268897ba0e694f751a014e8af90f"
+  },
+  {
+    "id": "NF-05.15",
+    "matches": true,
+    "sha256": "3fc761bb5ad2ed6a564ffe34a1e5a6c6e99a5da6b511e8c60df6c8ef7b2ce32e"
+  },
+  {
+    "id": "NF-05.16",
+    "matches": true,
+    "sha256": "87b52d748f63e4d7b58cf6ac51cd598a4e7ba7d934eb2850c9af6960dcef7928"
+  },
+  {
+    "id": "NF-05.17",
+    "matches": true,
+    "sha256": "b01bfb0daff3bf639aec8db0c26203cfc0905e8d9cd56f9944a08c53d691d054"
+  },
+  {
+    "id": "NF-10.1",
+    "matches": true,
+    "sha256": "7841ae08c215e954a0ddd49f6c539545417f5472c8c870e10e83d4cda0696ab9"
+  },
+  {
+    "id": "NF-10.2",
+    "matches": true,
+    "sha256": "0dccc819578f5527a10dae3debfd658b484a3dbf0f57a11125e97f3943b8f1c0"
+  },
+  {
+    "id": "NF-10.3",
+    "matches": true,
+    "sha256": "e09797f4f13f8a0ef144dc7af2844a6e7835467636a9ea20f4e8b2b17e4e6544"
+  },
+  {
+    "id": "NF-10.4",
+    "matches": true,
+    "sha256": "5d16a27db216d543edbefd92795fbac674e38fc612a06482dbf33fdf76356e8c"
+  },
+  {
+    "id": "NF-10.6",
+    "matches": true,
+    "sha256": "5515a2a783346b9d05f7b920bc3c53e144e007da9c646720723255a449ff7b8b"
+  },
+  {
+    "id": "NF-10.7",
+    "matches": true,
+    "sha256": "b2a5b02850019863188ab42de2d945b1dbbf1b1410206ed2f4e0b69e13b56239"
+  },
+  {
+    "id": "NF-10.8",
+    "matches": true,
+    "sha256": "99c20fe0e1480dc5123f51107fce99929ab9ce36074df45f59771a5a2a9d5679"
+  },
+  {
+    "id": "NF-10.10",
+    "matches": true,
+    "sha256": "9a6b9d4e60a78ecf2e4a4d950f1f06313ad06c71fb913b42bd4587fe4aa71ce9"
+  },
+  {
+    "id": "NF-10.11",
+    "matches": true,
+    "sha256": "b59a1419b3279868a092e6d15a241b1604c0b842af219e815d530676b2a6e61c"
+  },
+  {
+    "id": "NF-10.12",
+    "matches": true,
+    "sha256": "2931024e1964649468f804dabe542d57e4ccaa014b00f546f082806621f6a9c0"
+  }
+]

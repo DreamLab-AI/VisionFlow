@@ -1,0 +1,34 @@
+{
+  "existing_wallet_tests": 64,
+  "audit_tests": 9,
+  "existing_parent_tests": 12,
+  "parent_audit_tests": 8,
+  "synthetic_fee_tests": 1,
+  "topics": 186,
+  "panels": 1634,
+  "verified_citations": 24808,
+  "citation_warnings": 0,
+  "allowlisted_citations": 9,
+  "fresh_declared_revisions": 46,
+  "rendered_panels": 33,
+  "visually_reviewed_panels": [
+    "NF-05.1",
+    "NF-10.7",
+    "NF-16.1",
+    "NF-16.2",
+    "NF-16.3",
+    "NF-16.4",
+    "NF-16.5",
+    "NF-16.6"
+  ],
+  "repo_source_exports": 28,
+  "registry_source_exports": 4,
+  "product_code_changed": false,
+  "browser_races_executed": false,
+  "wasm_execution": false,
+  "corrections": [
+    "Test-only format string fixed before successful native run.",
+    "Initial new-panel citations adjusted from punctuation/comments to relevant executable statements."
+  ],
+  "prose_review": "Invisible scan clean. Remaining style flags concern literal unlock terminology, retained after manual review."
+}

@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_185 topic files, 1628 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_186 topic files, 1634 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -313,6 +313,7 @@ _185 topic files, 1628 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | NF-13 | [Current group admission and replacement gaps](nostr-rust-forum/13-group-admission-and-replacement.md) | 3 | flowchart | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md) | ADR-2030, ADR-2031, ADR-2032 |
 | NF-14 | [Proposed group authority, replication and spatial descriptors](nostr-rust-forum/14-proposed-group-replication-and-spaces.md) | 3 | flowchart | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md) | ADR-2030, ADR-2031, ADR-2032 |
 | NF-15 | [Two-chain wallets — identity, freshness and delivery](nostr-rust-forum/15-multichain-wallet-receipts.md) | 6 | flowchart | [ADR-2021-two-pinned-sidestr-chains-dreamlab-and-dreamlab-txbt4.md](../../../nostr-rust-forum/docs/adr/ADR-2021-two-pinned-sidestr-chains-dreamlab-and-dreamlab-txbt4.md) | ADR-2021 |
+| NF-16 | [Wallet foundations — custody, attribution and parent balances](nostr-rust-forum/16-wallet-foundations-and-parent-balances.md) | 6 | flowchart | [ADR-2015-member-wallets-on-sidestr-dreamlab-and-dream-tips.md](../../../nostr-rust-forum/docs/adr/ADR-2015-member-wallets-on-sidestr-dreamlab-and-dream-tips.md), [ADR-2019-member-wallet-shows-blake2b-testnet4-coins-read-only.md](../../../nostr-rust-forum/docs/adr/ADR-2019-member-wallet-shows-blake2b-testnet4-coins-read-only.md) | ADR-2015, ADR-2019 |
 
 ### dreamlab-ai-website
 

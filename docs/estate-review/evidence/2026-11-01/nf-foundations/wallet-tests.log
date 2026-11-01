@@ -1,0 +1,156 @@
+   Compiling nostr-bbs-forum-client v1.0.0-beta.10 (/home/devuser/workspace/wt/VisionFlow-nf-foundations/.audit-foundations/kit/crates/nostr-bbs-forum-client)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 49.72s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/main.rs (target/debug/deps/nostr_bbs_forum_client-2d1ddc202d1caf82)
+
+running 73 tests
+
+thread 'wallet::parent::estate_audit::pair_sum_panics_with_out_of_range_backend_values' (975232) panicked at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/iter/traits/accum.rs:206:1:
+attempt to add with overflow
+stack backtrace:
+test wallet::chain::tests::a_secret_is_never_a_destination ... ok
+test wallet::chain::tests::an_empty_or_foreign_block_file_is_refused ... ok
+test wallet::chain::tests::a_txbt4_document_that_is_not_the_pinned_one_is_refused ... ok
+test wallet::extension::tests::every_spec_code_reads_as_something_to_do ... ok
+test wallet::chain::tests::movement_nets_change_and_counts_the_fee ... ok
+test wallet::extension::tests::an_unknown_refusal_says_what_the_extension_said ... ok
+test wallet::extension::tests::the_hint_says_when_spends_must_be_turned_on_first ... ok
+test wallet::parent::estate_audit::empty_utxo_marks_nonzero_balance_spendable ... ok
+test wallet::parent::estate_audit::duplicate_pair_outpoints_are_counted_twice ... ok
+test wallet::chain::tests::scripts_and_keys_round_trip ... ok
+test wallet::parent::estate_audit::inconsistent_ordinary_utxo_total_is_not_detected ... ok
+test wallet::chain::tests::each_lock_holds_its_pinned_document ... ok
+test wallet::parent::estate_audit::future_height_ordinary_coin_is_still_spendable ... ok
+test wallet::parent::estate_audit::unsigned_max_inflow_becomes_negative_one ... ok
+test wallet::parent::estate_audit::wrong_address_is_rejected ... ok
+test wallet::parent::tests::a_bad_key_has_no_address ... ok
+test wallet::parent::tests::a_fifty_deep_mined_coin_is_immature_and_an_ordinary_one_spendable ... ok
+test wallet::parent::tests::an_esplora_answer_reads_as_a_balance ... ok
+test wallet::chain::tests::one_key_has_an_address_on_each_chain_and_one_script ... ok
+test wallet::parent::tests::blaketest_is_pointed_at_the_same_backend ... ok
+test wallet::parent::tests::a_pair_answer_splits_across_the_fork ... ok
+test wallet::parent::tests::coinbase_maturity_is_reefs ... ok
+test wallet::parent::tests::maturity_is_counted_as_reef_counts_it ... ok
+test wallet::parent::tests::unset_or_insecure_means_off ... ok
+test wallet::parent::tests::the_address_pays_the_same_script_as_the_sidestr_wallet ... ok
+test wallet::parent::tests::the_address_matches_blaketest ... ok
+test wallet::poker::tests::a_hand_still_being_played_has_no_settlement ... ok
+test wallet::parent::tests::without_a_flag_or_a_tip_the_split_is_unknown ... ok
+test wallet::parent::tests::the_output_key_is_the_bare_x_key ... ok
+test wallet::poker::tests::a_split_pot_moves_nothing ... ok
+test wallet::poker::tests::a_zero_buy_in_is_bad_stakes ... ok
+test wallet::poker::tests::a_non_json_record_is_refused ... ok
+test wallet::poker::tests::at_100_200_the_folded_small_blind_owes_100 ... ok
+test wallet::poker::tests::beyond_the_buy_in_is_refused ... ok
+test wallet::poker::tests::bogus_sizes_are_refused ... ok
+test wallet::poker::tests::citizen_folds_to_a_three_bet_and_pays_the_hero ... ok
+test wallet::poker::tests::errors_read_as_sentences ... ok
+test wallet::poker::tests::a_memo_round_trips ... ok
+test wallet::poker::tests::every_listed_size_is_half_and_a_hundred_big_blinds ... ok
+test wallet::poker::tests::exactly_the_buy_in_either_way_is_allowed ... ok
+test wallet::poker::tests::hero_calls_then_folds_to_a_raise_and_owes_the_big_blind ... ok
+test wallet::poker::tests::hero_folds_the_small_blind_and_owes_it ... ok
+test wallet::poker::tests::malformed_memos_are_refused ... ok
+test wallet::poker::tests::rfc8785_escapes_controls_in_lowercase_and_leaves_the_rest ... ok
+test wallet::poker::tests::rfc8785_section_3_2_3_sorting ... ok
+test wallet::poker::tests::the_table_keeps_order_and_drops_bad_and_repeated_sizes ... ok
+test wallet::profile::tests::absent_config_is_todays_wallet ... ok
+test wallet::profile::tests::fields_that_do_not_read_fall_back_to_the_pin ... ok
+test wallet::profile::tests::asset_ids_come_from_the_env_or_the_pin ... ok
+test wallet::profile::tests::entries_naming_unknown_chains_are_ignored ... ok
+test wallet::tests::a_pending_list_from_before_two_chains_still_reads ... ok
+test wallet::poker::tests::annotations_do_not_move_the_root_but_every_field_does ... ok
+test wallet::tests::pending_lists_are_kept_per_chain ... ok
+test wallet::profile::tests::the_legacy_keys_still_steer_dreamlab ... ok
+test wallet::profile::tests::two_chains_in_the_order_given ... ok
+test wallet::tests::change_from_an_unmined_transfer_is_incoming ... ok
+test wallet::poker::tests::rfc8785_section_3_2_2_sample ... ok
+test wallet::tests::errors_name_the_chains_asset ... ok
+test wallet::poker::tests::the_typed_record_roots_the_same_as_the_document ... ok
+test wallet::poker::tests::rfc8785_appendix_b_numbers ... ok
+test wallet::poker::tests::the_root_is_deterministic_and_ignores_key_order_and_whitespace ... ok
+test wallet::chain::tests::the_txbt4_chain_replays_under_the_blake2b_family ... ok
+test wallet::chain::tests::a_pack_of_an_asset_the_chain_lacks_is_refused ... ok
+test wallet::chain::tests::browser_signer::a_different_transaction_is_refused_even_if_signed ... ok
+audit fee: 1500 sats, 21 inputs, compared with UI hint 250
+test wallet::chain::estate_audit::fragmented_inputs_exceed_displayed_fee_hint ... ok
+test wallet::chain::tests::browser_signer::swapped_signatures_are_refused ... ok
+test wallet::chain::tests::browser_signer::another_keys_signature_is_refused ... ok
+test wallet::chain::tests::browser_signer::a_coin_that_is_not_mine_has_no_prevout ... ok
+test wallet::chain::tests::browser_signer::a_validly_signed_answer_is_accepted ... ok
+test wallet::chain::tests::browser_signer::a_dream_pack_builds_unsigned_from_a_public_key ... ok
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::panic_const::panic_const_add_overflow
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:175:17
+   3: <u64 as core::iter::traits::accum::Sum>::sum::<core::iter::adapters::map::Map<core::slice::iter::Iter<nostr_bbs_forum_client::wallet::parent::Coin>, nostr_bbs_forum_client::wallet::parent::parse_pair::{closure#4}>>::{closure#0}
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/iter/traits/accum.rs:55:28
+   4: core::iter::adapters::map::map_fold::<&nostr_bbs_forum_client::wallet::parent::Coin, u64, u64, nostr_bbs_forum_client::wallet::parent::parse_pair::{closure#4}, <u64 as core::iter::traits::accum::Sum>::sum<core::iter::adapters::map::Map<core::slice::iter::Iter<nostr_bbs_forum_client::wallet::parent::Coin>, nostr_bbs_forum_client::wallet::parent::parse_pair::{closure#4}>>::{closure#0}>::{closure#0}
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/iter/adapters/map.rs:88:21
+   5: <core::slice::iter::Iter<nostr_bbs_forum_client::wallet::parent::Coin> as core::iter::traits::iterator::Iterator>::fold::<u64, core::iter::adapters::map::map_fold<&nostr_bbs_forum_client::wallet::parent::Coin, u64, u64, nostr_bbs_forum_client::wallet::parent::parse_pair::{closure#4}, <u64 as core::iter::traits::accum::Sum>::sum<core::iter::adapters::map::Map<core::slice::iter::Iter<nostr_bbs_forum_client::wallet::parent::Coin>, nostr_bbs_forum_client::wallet::parent::parse_pair::{closure#4}>>::{closure#0}>::{closure#0}>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:274:27
+   6: <core::iter::adapters::map::Map<core::slice::iter::Iter<nostr_bbs_forum_client::wallet::parent::Coin>, nostr_bbs_forum_client::wallet::parent::parse_pair::{closure#4}> as core::iter::traits::iterator::Iterator>::fold::<u64, <u64 as core::iter::traits::accum::Sum>::sum<core::iter::adapters::map::Map<core::slice::iter::Iter<nostr_bbs_forum_client::wallet::parent::Coin>, nostr_bbs_forum_client::wallet::parent::parse_pair::{closure#4}>>::{closure#0}>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/iter/adapters/map.rs:128:19
+   7: <u64 as core::iter::traits::accum::Sum>::sum::<core::iter::adapters::map::Map<core::slice::iter::Iter<nostr_bbs_forum_client::wallet::parent::Coin>, nostr_bbs_forum_client::wallet::parent::parse_pair::{closure#4}>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/iter/traits/accum.rs:52:22
+   8: <core::iter::adapters::map::Map<core::slice::iter::Iter<nostr_bbs_forum_client::wallet::parent::Coin>, nostr_bbs_forum_client::wallet::parent::parse_pair::{closure#4}> as core::iter::traits::iterator::Iterator>::sum::<u64>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/iter/traits/iterator.rs:3670:9
+   9: nostr_bbs_forum_client::wallet::parent::parse_pair
+             at ./src/wallet/parent.rs:249:44
+  10: nostr_bbs_forum_client::wallet::parent::estate_audit::pair_sum_panics_with_out_of_range_backend_values::{closure#0}
+             at ./src/wallet/parent.rs:544:275
+  11: std::panicking::catch_unwind::do_call::<nostr_bbs_forum_client::wallet::parent::estate_audit::pair_sum_panics_with_out_of_range_backend_values::{closure#0}, core::result::Result<nostr_bbs_forum_client::wallet::parent::PairSplit, alloc::string::String>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/panicking.rs:576:43
+  12: __rust_try
+  13: std::panicking::catch_unwind::<core::result::Result<nostr_bbs_forum_client::wallet::parent::PairSplit, alloc::string::String>, nostr_bbs_forum_client::wallet::parent::estate_audit::pair_sum_panics_with_out_of_range_backend_values::{closure#0}>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/panicking.rs:544:19
+  14: std::panic::catch_unwind::<nostr_bbs_forum_client::wallet::parent::estate_audit::pair_sum_panics_with_out_of_range_backend_values::{closure#0}, core::result::Result<nostr_bbs_forum_client::wallet::parent::PairSplit, alloc::string::String>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/panic.rs:359:14
+  15: nostr_bbs_forum_client::wallet::parent::estate_audit::pair_sum_panics_with_out_of_range_backend_values
+             at ./src/wallet/parent.rs:544:248
+  16: nostr_bbs_forum_client::wallet::parent::estate_audit::pair_sum_panics_with_out_of_range_backend_values::{closure#0}
+             at ./src/wallet/parent.rs:544:88
+  17: <nostr_bbs_forum_client::wallet::parent::estate_audit::pair_sum_panics_with_out_of_range_backend_values::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  18: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+thread 'wallet::parent::estate_audit::mempool_subtraction_panics_with_out_of_range_backend_values' (975231) panicked at crates/nostr-bbs-forum-client/src/wallet/parent.rs:197:23:
+attempt to subtract with overflow
+stack backtrace:
+test wallet::parent::estate_audit::pair_sum_panics_with_out_of_range_backend_values ... ok
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::panic_const::panic_const_sub_overflow
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:175:17
+   3: nostr_bbs_forum_client::wallet::parent::parse_balance
+             at ./src/wallet/parent.rs:197:23
+   4: nostr_bbs_forum_client::wallet::parent::estate_audit::mempool_subtraction_panics_with_out_of_range_backend_values::{closure#0}
+             at ./src/wallet/parent.rs:542:135
+   5: std::panicking::catch_unwind::do_call::<nostr_bbs_forum_client::wallet::parent::estate_audit::mempool_subtraction_panics_with_out_of_range_backend_values::{closure#0}, core::result::Result<nostr_bbs_forum_client::wallet::parent::ParentBalance, alloc::string::String>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/panicking.rs:576:43
+   6: __rust_try
+   7: std::panicking::catch_unwind::<core::result::Result<nostr_bbs_forum_client::wallet::parent::ParentBalance, alloc::string::String>, nostr_bbs_forum_client::wallet::parent::estate_audit::mempool_subtraction_panics_with_out_of_range_backend_values::{closure#0}>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/panicking.rs:544:19
+   8: std::panic::catch_unwind::<nostr_bbs_forum_client::wallet::parent::estate_audit::mempool_subtraction_panics_with_out_of_range_backend_values::{closure#0}, core::result::Result<nostr_bbs_forum_client::wallet::parent::ParentBalance, alloc::string::String>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/panic.rs:359:14
+   9: nostr_bbs_forum_client::wallet::parent::estate_audit::mempool_subtraction_panics_with_out_of_range_backend_values
+             at ./src/wallet/parent.rs:542:108
+  10: nostr_bbs_forum_client::wallet::parent::estate_audit::mempool_subtraction_panics_with_out_of_range_backend_values::{closure#0}
+             at ./src/wallet/parent.rs:542:99
+  11: <nostr_bbs_forum_client::wallet::parent::estate_audit::mempool_subtraction_panics_with_out_of_range_backend_values::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  12: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+test wallet::parent::estate_audit::mempool_subtraction_panics_with_out_of_range_backend_values ... ok
+test wallet::chain::tests::the_live_chain_replays_with_dream_at_the_treasury ... ok
+
+test result: ok. 73 passed; 0 failed; 0 ignored; 0 measured; 661 filtered out; finished in 0.55s
+

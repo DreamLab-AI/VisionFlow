@@ -1,0 +1,16 @@
+[
+  {
+    "path": "crates/nostr-bbs-forum-client/src/wallet/mod.rs",
+    "old_revision": "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed",
+    "consumed_revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "byte_equal": true,
+    "old_sha256": "c50f1e689c275b3256911c1309d88bf1fbcc86db36e87950d81b9a38d577150c"
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/wallet/parent.rs",
+    "old_revision": "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed",
+    "consumed_revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "byte_equal": true,
+    "old_sha256": "d7088f16a952c2e43951a9a4d9e422f0d4fcbd1d4dd17185f1142042caf188e6"
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "accessed": "2026-11-01",
+  "sources": [
+    {
+      "url": "https://github.com/Blockstream/esplora/blob/master/API.md",
+      "use": "Address statistics and UTXO response fields; coinbase extension not guaranteed."
+    },
+    {
+      "url": "https://github.com/bitcoin-blake/blaketestnode",
+      "use": "Current daemon address/pair API and browser node documentation; upstream measurements only."
+    },
+    {
+      "url": "https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md",
+      "use": "Distinguish rawtr output-key from tr internal-key convention."
+    }
+  ]
+}

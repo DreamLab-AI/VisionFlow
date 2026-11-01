@@ -1,0 +1,15 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs:50
+    A["Configured HTTPS-shaped base<br/>and valid public-key address enable reads"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs:295
+    B["GET address, then optional UTXOs<br/>then tip height and pair response"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs:263
+    C["No explicit fetch deadline or abort<br/>errors on optional routes become absent data"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/wallet.rs:261
+    D["Effect launches request for current account<br/>completion writes one shared signal"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/wallet.rs:269
+    E["DEBT: no current-account generation check<br/>a late earlier response can overwrite the result"]
+    A --> D
+    D --> B
+    B --> C
+    D --> E

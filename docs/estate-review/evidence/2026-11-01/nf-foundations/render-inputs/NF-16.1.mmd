@@ -1,0 +1,17 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:588
+    A["Wallet reuses the forum identity key<br/>when the auth session holds it"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/session.rs:126
+    B["Local-key login uses sessionStorage by default<br/>explicit remember=true selects localStorage"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:557
+    C["Wallet-only unlock checks the member pubkey<br/>stores zeroising bytes in tab memory"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:599
+    D["Without a tab key, use capable extension<br/>extension response is validated"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/mod.rs:676
+    E["Logout clears auth key and storage<br/>owner binding clears wallet unlock"]
+    A --> B
+    A --> C
+    A --> D
+    B --> E
+    C --> E
+    D --> E

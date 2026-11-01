@@ -1,0 +1,24 @@
+sequenceDiagram
+    autonumber
+    participant B as Browser
+    participant M as main.rs<br/>nostr-bbs-forum-client/src/main.rs:18
+    participant SW as Service worker
+    participant A as App<br/>nostr-bbs-forum-client/src/app.rs:312
+    participant DB as IndexedDB
+
+    B->>M: load the WASM bundle
+    M->>M: mount_to_body(App) main.rs:24
+    M->>SW: register_service_worker main.rs:47
+    M->>SW: sw url and scope built from FORUM_BASE main.rs:55 main.rs:56
+    M->>SW: update_via_cache = None, so sw.js is always revalidated main.rs:64
+    M->>DB: evict cached messages older than 30 days main.rs:195
+    A->>A: provide_auth nostr-bbs-forum-client/src/app.rs:319, provide_zone_access nostr-bbs-forum-client/src/app.rs:320,<br/>provide_render_tier nostr-bbs-forum-client/src/app.rs:321
+    A->>A: provide_toasts nostr-bbs-forum-client/src/app.rs:324, wallet::provide_wallet<br/>nostr-bbs-forum-client/src/app.rs:338, provide_profile_cache nostr-bbs-forum-client/src/app.rs:329
+    A->>A: start_admin_alerts nostr-bbs-forum-client/src/app.rs:347, provide_agent_disclosure<br/>nostr-bbs-forum-client/src/app.rs:438
+    A->>A: RelayConnection::new nostr-bbs-forum-client/src/app.rs:446, provide_channel_store<br/>nostr-bbs-forum-client/src/app.rs:448, zone_crypto::store::provide_zone_key_store<br/>nostr-bbs-forum-client/src/app.rs:451
+
+    Note over A: wallet::provide_wallet creates one store per configured compiled-in chain (ADR-2015 amended by ADR-2021),<br/>inert unless SIDESTR_WALLET is on - nostr-bbs-forum-client/src/app.rs:335-338, wallet/mod.rs:58<br/>wallet/mod.rs:239
+    Note over A: INVARIANT ADR-090 - FORUM_BASE is applied in exactly TWO places: the const consumed by Router base= at<br/>nostr-bbs-forum-client/src/app.rs:44 and :902
+    Note over A: and base_href() for every link at nostr-bbs-forum-client/src/app.rs:53, used e.g. at :909. A third application<br/>re-introduces the double-prefix / deep-route-404 bug class.
+    Note over M: main.rs:55-57 re-read the same option_env! for the service-worker SCOPE - a deliberate, documented mirror of<br/>app::FORUM_BASE, not a third application of the prefix
+    Note over A: current_app_path strips the prefix back off a browser path so the router sees an unprefixed route<br/>nostr-bbs-forum-client/src/app.rs:82

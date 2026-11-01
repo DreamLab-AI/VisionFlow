@@ -39,6 +39,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-preview-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/channels.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/dm/mod.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/settings.rs
@@ -149,7 +150,11 @@ flowchart TB
     S4["DEVICE_KEYS_ENABLED ships false in BOTH templates nostr-bbs-auth-worker/wrangler.toml:69<br/>nostr-bbs-relay-worker/wrangler.toml:29, so the whole ADR-099/100 device story is dormant by default and<br/>revocation has no effect at AUTH. See NF-02.7."]
     S5["MESH_ALLOWED_REMOTE_DIDS ships empty nostr-bbs-relay-worker/wrangler.toml:96, so the federated-kind gate at<br/>nip_handlers.rs:3590 is inert. Standalone is the only supported mode. See NF-03.13."]
     S6["The drift-gates CI job now runs both anti-drift-lint.sh and identity-vector-parity.mjs .github/workflows/ci.yml:293 .github/workflows/ci.yml:296,<br/>but it is not in the required ci-pass needs .github/workflows/ci.yml:306-314, so the ADR-2003 cross-stack parity proof runs on change<br/>without gating merges. See NF-09.1 and NF-09.3."]
-    S7["The ADR-2019 member wallet view of BLAKE2b testnet4 coins ships dark: with BLAKE_TESTNET_API unset or not https,<br/>api_base is None and the page makes no request to any BLAKE backend<br/>nostr-bbs-forum-client/src/wallet/parent.rs:13-14 nostr-bbs-forum-client/src/wallet/parent.rs:36-43.<br/>It is read-only by construction - nothing is signed and no coin moves nostr-bbs-forum-client/src/wallet/parent.rs:8-10"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:268
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs:50
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs:56
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs:63
+    S7["ADR-2019 parent-coin view needs<br/>SIDESTR_WALLET and an HTTPS backend.<br/>No backend means no request.<br/>Public-key address only; no parent spend.<br/>Backend-reported, not browser-validated.<br/>See NF-16 for parser and loading limits."]
 ```
 
 ## NF-10.8 ADR-2006 and ADR-2010 — what the closeout holds open

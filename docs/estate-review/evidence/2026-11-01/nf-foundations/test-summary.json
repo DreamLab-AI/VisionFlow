@@ -1,0 +1,6 @@
+{
+  "total": 73,
+  "existing_parent_tests": 12,
+  "audit_tests": 9,
+  "fee_receipt": "audit fee: 1500 sats, 21 inputs, compared with UI hint 250"
+}
