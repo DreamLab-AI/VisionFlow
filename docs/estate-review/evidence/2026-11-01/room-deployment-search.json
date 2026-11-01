@@ -1,0 +1,5 @@
+{
+  "scope": "tracked paths containing compose or Dockerfile; image declarations only",
+  "matches": [],
+  "not_a_runtime_inventory": true
+}

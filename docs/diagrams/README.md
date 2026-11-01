@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_169 topic files, 1560 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_171 topic files, 1566 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -234,6 +234,8 @@ _169 topic files, 1560 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VC-46 | [Spatial volume fit cadence, link highlights and native fallback](visionclaw/46-spatial-volume-fit-and-link-budget.md) | 3 | flowchart | [ADR-2158-xr-content-is-presented-in-spatial-volumes-emulated-until-the-runtime-provides-them.md](../../../project/docs/adr/ADR-2158-xr-content-is-presented-in-spatial-volumes-emulated-until-the-runtime-provides-them.md), [ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md](../../../project/docs/adr/ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md) | ADR-2158, ADR-2164 |
 | VC-47 | [Portal entry, comfort transitions and scaled walk-through](visionclaw/47-portal-entry-and-scaled-walkthrough.md) | 3 | flowchart | [ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md](../../../project/docs/adr/ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md) | ADR-2158, ADR-2166 |
 | VC-48 | [Proposed data-space federation and current release connection gates](visionclaw/48-dataspace-federation-prerequisites.md) | 3 | flowchart | [ADR-2161-a-node-publishes-data-spaces-that-peer-nodes-render-as-linked-volumes.md](../../../project/docs/adr/ADR-2161-a-node-publishes-data-spaces-that-peer-nodes-render-as-linked-volumes.md) | ADR-2021, ADR-2159, ADR-2161, ADR-2162 |
+| VC-49 | [Current presence joins and proposed room admission](visionclaw/49-room-admission.md) | 3 | flowchart | [IDENTITY-authority-chain.md](../../../project/docs/IDENTITY-authority-chain.md), [IDENTIFIER-taxonomy.md](../../../project/docs/IDENTIFIER-taxonomy.md) | ADR-2019, ADR-2157 |
+| VC-50 | [Deferred space voice and the scope of its authority proof](visionclaw/50-deferred-space-voice.md) | 3 | flowchart | [IDENTITY-authority-chain.md](../../../project/docs/IDENTITY-authority-chain.md), [XR-client.md](../../../project/docs/XR-client.md) | ADR-2157, ADR-2160 |
 
 ### agentbox
 

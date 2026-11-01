@@ -175,4 +175,6 @@ classDiagram
     note for PresenceActor "Same crate is the single source of truth for the 0x43 wire format and is consumed by both this server (lib.rs:5-6) and the Godot client at xr-client/rust/ (lib.rs:6-7)"
 ```
 
-**Open:** the XR client gained a Codescape backend mode (ADR-2143 A6) in which the same presence socket targets a Codescape server that "serves the graph stream, presence, voice" itself (`docs/XR-client.md:1069`), so the `PresenceSession` and `PresenceActor` above are the VisionClaw backend only. No topic maps Codescape's presence endpoint against this crate's 0x43 wire.
+**Open:** the XR client gained a Codescape backend mode (ADR-2143 A6) in which the same presence socket targets a Codescape server that "serves the graph stream, presence, voice" itself (`docs/XR-client.md:1069`), so the `PresenceSession` and `PresenceActor` above are the VisionClaw backend only. See [VC-43](43-codescape-presence-lifecycle.md) for the separate Codescape lifecycle audit.
+
+The [1 November admission review](../../estate-review/2026-11-01-room-admission-and-voice.md) traces the current join handler and proposed membership controls in [VC-49](49-room-admission.md). The historical nonce-authentication diagrams above do not imply membership admission or a room cap.

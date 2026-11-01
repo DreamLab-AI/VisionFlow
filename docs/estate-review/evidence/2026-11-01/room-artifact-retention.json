@@ -1,0 +1,236 @@
+{
+  "byte_verified": true,
+  "files": [
+    {
+      "source": "docs/diagrams/rendered/visionclaw/49-room-admission/VC-49.1.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/49-room-admission/VC-49.1.svg",
+      "sha256": "094e9f6d1555a93aaadda9188a40ebbc62e2e8087d15e954decb77c21a02087a"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/49-room-admission/VC-49.2.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/49-room-admission/VC-49.2.svg",
+      "sha256": "ff1668b754d6dd8d0b8b7ff350c4552e71e6cf168e830b9c1cd382c8e11cfb1c"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/49-room-admission/VC-49.3.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/49-room-admission/VC-49.3.mmd",
+      "sha256": "73c4d044f5c90da5d9e34a11be59e03522ab0e019cb313963d26b5e4daa6d97f"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/49-room-admission/VC-49.3.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/49-room-admission/VC-49.3.svg",
+      "sha256": "00af3c84719e4a20fbac284e5bb2d91d44431f69b8bbc90dd552ecb2c990b916"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/49-room-admission/VC-49.1.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/49-room-admission/VC-49.1.mmd",
+      "sha256": "af509cc0eb7b69c76b0bd850c92980094934335d6feb6e09057dc39cfef8b976"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/49-room-admission/VC-49.2.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/49-room-admission/VC-49.2.mmd",
+      "sha256": "d10605f8709c879775db21112a35456b16e576c22157f1c176e44102ffa69955"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/17-xr-presence-crate/VC-17.3.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/17-xr-presence-crate/VC-17.3.mmd",
+      "sha256": "aec5dc66150d98eb7cee69df5e6c8f1a328a0f736aceb979be16186cff36c953"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/17-xr-presence-crate/VC-17.1.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/17-xr-presence-crate/VC-17.1.svg",
+      "sha256": "1aa5065d13273fbae84271c9574ba2dd85930fc8b63876947a898ac3cbd9c3c0"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/17-xr-presence-crate/VC-17.6.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/17-xr-presence-crate/VC-17.6.svg",
+      "sha256": "7fe825b3fdaa827d7864a55f4cfb3c38821b35a57345df62bdb45ac5b4c265ed"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/17-xr-presence-crate/VC-17.1.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/17-xr-presence-crate/VC-17.1.mmd",
+      "sha256": "7eadeae9a3e39241f37107ed7a84f5e95248ef0090f258edee11443be8771a8b"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/17-xr-presence-crate/VC-17.2.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/17-xr-presence-crate/VC-17.2.svg",
+      "sha256": "894140f7b3cfdaf1c25cca0799472e5b9b9fc9947691e90454675301704fad10"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/17-xr-presence-crate/VC-17.6.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/17-xr-presence-crate/VC-17.6.mmd",
+      "sha256": "c58e8e4e71a0e1cb3dc9b8208f89672fba6b50e2aa4b5f2797ca329ab5e0b153"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/17-xr-presence-crate/VC-17.2.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/17-xr-presence-crate/VC-17.2.mmd",
+      "sha256": "7bc9d14b5977b12c61a4ad57e07c228168ee9e1684209ffa6fedb5c8ee405ae9"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/17-xr-presence-crate/VC-17.3.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/17-xr-presence-crate/VC-17.3.svg",
+      "sha256": "d95487f6acad81234b126e0d35ac98fdb3f766565cf8fcdebdc103b541af2e50"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.13.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.13.svg",
+      "sha256": "069c67b67974a7940e69ffdef06b7c190b35827389c16ccc1dff7bcd40a4561c"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.9.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.9.mmd",
+      "sha256": "f260054b14dafc7b76783522cf11b888ada1773c29fa0e8288dd00c38aa7201f"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.3.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.3.mmd",
+      "sha256": "037578276f97404d9252f2d911fca982804f16c054eb9baf8e5e3f1bb1fda165"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.12.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.12.mmd",
+      "sha256": "d4300898d63364f783ad31ac982203a006a258d8ef5096e3d375c78cb35d2f25"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.2.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.2.svg",
+      "sha256": "568eac175dcc6b854d957da9c5cf0078fb70f9de016215ae608d94439a07a197"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.2.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.2.mmd",
+      "sha256": "93cb6ccb41b0a9a13c0470eac210b9f571e27d5e30f979b8dce20f8b793be23d"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.7.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.7.svg",
+      "sha256": "a55111511e7e2ef3ad52be736e122784f629d3fb471a9357690d395cc4ba311a"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.11.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.11.mmd",
+      "sha256": "19c1ff37ceca7b2d486ca48971b1b3092a724bbd347d0262349101b0da71c44a"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.14.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.14.svg",
+      "sha256": "2cdd410c0a4fecc1bd979c09fd91895291ec0b0bb21a02a9b0f1ba6a85f0af52"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.11.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.11.svg",
+      "sha256": "e919d391359c5943f7ad1532c4c7dcf4f087cabb5ee4e2f87dddbad09a4c8560"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.1.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.1.mmd",
+      "sha256": "d511839eeb9b9e5d6fddf5b8ff99f792b1d438e4a676b8e31c8cf54477fcfe94"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.4.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.4.svg",
+      "sha256": "05ab7eb34c0149c3d57f06ae2cba64197f2dfe478d6ba8799880d3f3dd6f21b5"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.10.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.10.svg",
+      "sha256": "818ca8df48ae65e026fdfaef35e8b609dfb2788ac4736fe2248a406a3c46c595"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.3.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.3.svg",
+      "sha256": "fa0e07cec0c5264bb26842f8c99dcd1244258f1ea0e6e6488895e258790ec496"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.7.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.7.mmd",
+      "sha256": "b35606dacfb9513fc2cef3c8b2c7fc2c00fe520ede763a4453a3d3fb102f6465"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.14.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.14.mmd",
+      "sha256": "d175b5f3ff5a122d4cdd028c0aaa8e04cb88500d51b26fd25c8fc4d3977756ac"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.12.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.12.svg",
+      "sha256": "3eab7a858a50d765471917083e6e6243014a77bbf3b5c9b1303884ddc366a58d"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.13.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.13.mmd",
+      "sha256": "25fbde7f85cc358054c57f5e0e404dfb0716f12335a7262607385475d3c1bcfb"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.6.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.6.svg",
+      "sha256": "4da8fd37f98654856074034af41b351320a4eaa7bfd6aa2e15b3a6526544cea4"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.4.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.4.mmd",
+      "sha256": "69e951322750bd2a0870b62ef5fee1fbd2564a57419aab6792013e11d6a109f4"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.9.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.9.svg",
+      "sha256": "181149c043e9b0297a79a92ee8703e28d107b74b1c42838eb10fd05170f905bc"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.1.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.1.svg",
+      "sha256": "219da01e22ec61a43d8ede0a5c8c8548a6a6054b44b2575ec67e78fd929e843b"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.6.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.6.mmd",
+      "sha256": "3652c99f7cbb6b21b1996385b3d9a611c7d4672f89de4a4e2c468677b7f08dc4"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/35-voice-end-to-end/VC-35.10.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/35-voice-end-to-end/VC-35.10.mmd",
+      "sha256": "e5128186ec0474ddc8f7b7a1fe748555cfb08406971ceb03fc1e0259f7c314b7"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/50-deferred-space-voice/VC-50.1.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/50-deferred-space-voice/VC-50.1.svg",
+      "sha256": "f29398e049124ae620b69fc935d1c33c63a572ea18c924a77ab55b388ffaaaa0"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/50-deferred-space-voice/VC-50.1.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/50-deferred-space-voice/VC-50.1.mmd",
+      "sha256": "68be839ecf287ee6e627cb9a22c582f88f679b9433e059e014596daa90a4f4b8"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/50-deferred-space-voice/VC-50.2.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/50-deferred-space-voice/VC-50.2.svg",
+      "sha256": "38159eee555eb46d1b330169d90d1c188729f37111ec9ec795485e00f5722f84"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/50-deferred-space-voice/VC-50.3.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/50-deferred-space-voice/VC-50.3.mmd",
+      "sha256": "789f14ee12a8ed2e25f6428eead3070c57a06092733b1449a4a6abc790d6b6f3"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/50-deferred-space-voice/VC-50.2.mmd",
+      "retained": "/tmp/vf-room-rendered/visionclaw/50-deferred-space-voice/VC-50.2.mmd",
+      "sha256": "3d3b90fd4ea831be34c85f1cb0e4ac86e59f077401784f822e4abffb2b68471d"
+    },
+    {
+      "source": "docs/diagrams/rendered/visionclaw/50-deferred-space-voice/VC-50.3.svg",
+      "retained": "/tmp/vf-room-rendered/visionclaw/50-deferred-space-voice/VC-50.3.svg",
+      "sha256": "c56504c81e760eba67b012f64502c7e4aa5de96df6d1bf3c80d0a06ce3e5fd4a"
+    },
+    {
+      "source": "website/build-receipt.json",
+      "retained": "/tmp/vf-room-generated-inputs/website/build-receipt.json",
+      "sha256": "fae85100258804d3344673265a4fcc88781ea92f6e2c4a137bd27b48f3460711"
+    },
+    {
+      "source": "texput.log",
+      "retained": "/tmp/vf-room-generated-inputs/texput.log",
+      "sha256": "0de8dad445a514ae3bc13874d2a354c230d5395982c23ea702c3e573c3d9d304"
+    }
+  ],
+  "preview_note": "Six new diagrams inspected using ImageMagick raster previews; separate temporary font attributes used for one preview pass. No browser or headset claim."
+}

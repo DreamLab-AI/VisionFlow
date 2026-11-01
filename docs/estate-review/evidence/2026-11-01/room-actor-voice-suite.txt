@@ -1,0 +1,49 @@
+   Compiling visionclaw-xr-presence v0.2.1 (/home/devuser/workspace/.tmp/vf-room-reproduce-tREbc3/presence)
+   Compiling visionflow-room-audit v0.1.0 (/home/devuser/workspace/.tmp/vf-room-reproduce-tREbc3/actor)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.18s
+     Running unittests src/lib.rs (target/debug/deps/visionflow_room_audit-92107ea1653fa8f2)
+
+running 29 tests
+AUDIT_CASE {"case":"proposal_golden_vector","domain_bytes":24,"matches_specified_hex_input":true,"urn":"urn:visionclaw:room:nip29-e5488c85b92647026b5d54e422122a6f"}
+AUDIT_CASE {"case":"proposed_nip29_room_rejected_by_current_parser","rejected":true}
+AUDIT_CASE {"case":"legacy_room_case_is_not_canonicalised","classification":"legacy_parser_boundary","distinct_rooms_and_wire_hashes":true}
+test audit::proposed_room_vector_and_current_parser_boundary ... ok
+test presence_actor::tests::a_non_member_cannot_publish_presence ... ok
+test presence_actor::tests::configured_hand_reach_defaults_when_unset ... ok
+test presence_actor::tests::an_attention_node_outside_the_wire_id_space_is_refused ... ok
+test presence_actor::tests::a_member_that_left_can_no_longer_publish ... ok
+test webrtc_audio::tests::attach_increments_count ... ok
+test presence_actor::tests::ingest_drops_single_out_of_reach_hand_without_kick ... ok
+test webrtc_audio::tests::attach_same_did_twice_overwrites ... ok
+test presence_actor::tests::attention_correlates_to_a_graph_node_id ... ok
+test presence_actor::tests::join_then_leave_emits_events_and_shuts_down ... ok
+test presence_actor::tests::ingest_rejects_out_of_bounds ... ok
+test webrtc_audio::tests::default_trait_matches_new ... ok
+test webrtc_audio::tests::mute_toggle_persists ... ok
+test webrtc_audio::tests::detach_removes_track ... ok
+test webrtc_audio::tests::set_muted_unknown_track_errors ... ok
+test webrtc_audio::tests::detach_unknown_errors ... ok
+test webrtc_audio::tests::concurrent_attach_from_two_threads ... ok
+test webrtc_audio::tests::snapshot_returns_all_tracks ... ok
+test webrtc_audio::tests::snapshot_after_detach ... ok
+test webrtc_audio::tests::update_listener_changes_state ... ok
+test webrtc_audio::tests::update_position_changes_snapshot ... ok
+test webrtc_audio::tests::update_position_unknown_track_errors ... ok
+AUDIT_CASE {"case":"actor_accepts_33_members","classification":"missing_proposed_cap_not_auth_bypass","members":33}
+AUDIT_CASE {"case":"duplicate_did_refused","passed":true}
+AUDIT_CASE {"case":"leave_rejoin_control","members":33}
+test audit::actor_accepts_33_members_and_preserves_duplicate_and_rejoin_controls ... ok
+test presence_actor::tests::a_changed_field_broadcasts_only_that_field ... ok
+test presence_actor::tests::an_unchanged_republication_puts_nothing_on_the_wire ... ok
+test presence_actor::tests::agent_presence_is_encoded_as_0x44_and_reaches_peers_not_the_publisher ... ok
+test presence_actor::tests::ingest_validates_and_broadcasts_to_peers_only ... ok
+test presence_actor::tests::stale_presence_is_retired_and_announced ... ok
+test presence_actor::tests::presence_and_pose_operate_independently ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+   Doc-tests visionflow_room_audit
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

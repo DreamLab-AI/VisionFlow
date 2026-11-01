@@ -1,0 +1,14 @@
+{
+  "command": [
+    "rg",
+    "-n",
+    "RoomAdmission|room_from_group|bound_only|max_members_per_room|livekit_api|AccessToken|RemoveParticipant|room_kicked|room_meta",
+    "src",
+    "crates",
+    "xr-client/rust/src"
+  ],
+  "exit": 1,
+  "stdout": "",
+  "stderr": "",
+  "interpretation": "exit 1 means no matches in named source roots; not a deployment inventory"
+}

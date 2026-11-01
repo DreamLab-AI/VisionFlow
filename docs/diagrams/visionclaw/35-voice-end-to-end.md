@@ -454,7 +454,7 @@ sequenceDiagram
     participant XR as SpatialVoiceRouter (Godot)<br/>xr-client/rust/src/webrtc_audio.rs:140
 
     UI->>LK: connect(config {token JWT, room name, url})
-    Note over LK: LiveKitConfig token is a JWT minted server-side with the<br/>LiveKit API key and secret. LiveKitVoiceService.ts:23-25
+    Note over LK: Caller must supply a JWT - this interface does not mint it. LiveKitVoiceService.ts:23-25
     LK->>DI: Function('m','return import(m)')(livekitModule)
     Note over DI: The SDK is loaded through a runtime-constructed dynamic<br/>import so the bundler cannot statically hoist it -<br/>LiveKit is lazy and optional. LiveKitVoiceService.ts:106
     alt SDK import fails
@@ -471,8 +471,10 @@ sequenceDiagram
             Note over LK: remoteParticipants Map LiveKitVoiceService.ts:71,<br/>listenerPosition {x,y,z} :70
         end
     end
-    Note over XR: DIVERGENCE the Godot XR client has the routing MATHS only.<br/>SpatialVoiceRouterCore (webrtc_audio.rs:39) owns the per-avatar<br/>position map and ListenerTransform (:26) / VoiceTrackState (:33),<br/>but the livekit-android AAR media transport that would consume it<br/>is not wired on any built target. Voice is design-complete,<br/>transport-absent there. docs/XR-client.md 'Known divergences'<br/>bullet 3 - see VC-36
+    Note over XR: DIVERGENCE the Godot XR client stores voice routing state.<br/>SpatialVoiceRouterCore (webrtc_audio.rs:43) owns the per-avatar<br/>position map and ListenerTransform (:26) / VoiceTrackState (:33),<br/>but the livekit-android AAR media transport that would consume it<br/>is not wired on any built target. Media transport remains absent. docs/XR-client.md 'Known divergences'<br/>bullet 3 - see VC-36
 ```
+
+The [1 November audit](../../estate-review/2026-11-01-room-admission-and-voice.md) qualifies this historical map: state tests do not prove spatial audio, ADR-2160 explicitly defers voice, and its proposed revocation argument has an unresolved dependency-refresh path. See [VC-50](50-deferred-space-voice.md).
 
 ## VC-35.12 The external voice estate (Track A) after the 2026-09-13 re-ownership
 

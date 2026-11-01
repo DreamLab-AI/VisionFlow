@@ -1,0 +1,2 @@
+presence_suite_exit=0
+actor_voice_suite_exit=0

@@ -1,0 +1,118 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running unittests src/lib.rs (target/debug/deps/visionclaw_xr_presence-2c3652c01f73a901)
+
+running 40 tests
+test agent_presence::tests::channel_routing_matches_field_semantics ... ok
+test agent_presence::tests::between_elides_unchanged_fields ... ok
+test agent_presence::tests::apply_reconstructs_full_state ... ok
+test agent_presence::tests::between_elides_subquantum_gaze_jitter ... ok
+test agent_presence::tests::quantise_degenerate_falls_back_to_forward ... ok
+test agent_presence::tests::heartbeat_delta_has_empty_mask_and_high_rate_channel ... ok
+test agent_presence::tests::empty_batch_round_trips ... ok
+test agent_presence::tests::rejects_bad_activity_byte ... ok
+test agent_presence::tests::quantise_dequantise_preserves_direction ... ok
+test agent_presence::tests::rejects_bad_attention_tag ... ok
+test agent_presence::tests::rejects_reserved_mask_bits ... ok
+test agent_presence::tests::round_trip_multi_agent_mixed_masks ... ok
+test agent_presence::tests::rejects_truncated_body ... ok
+test agent_presence::tests::rejects_wrong_opcode ... ok
+test agent_presence::tests::round_trip_single_full_keyframe ... ok
+test delta::tests::apply_round_trip ... ok
+test delta::tests::no_change_produces_empty_mask ... ok
+test delta::tests::head_change_sets_mask ... ok
+test room::tests::join_then_leave ... ok
+test room::tests::duplicate_did_rejected ... ok
+test room::tests::leave_unknown_avatar_rejected ... ok
+test validate::tests::hand_reach_beyond_limit_rejected ... ok
+test validate::tests::hand_reach_within_limit_passes ... ok
+test validate::tests::monotonic_backwards_rejected ... ok
+test validate::tests::monotonic_duplicate_rejected ... ok
+test validate::tests::monotonic_interval_too_short_rejected ... ok
+test validate::tests::non_unit_quaternion_rejected ... ok
+test validate::tests::out_of_bounds_rejected ... ok
+test validate::tests::velocity_above_gate_rejected ... ok
+test validate::tests::velocity_gate_allows_slow_hand ... ok
+test validate::tests::velocity_gate_rejects_infinity_position ... ok
+test validate::tests::velocity_gate_rejects_nan_hand_position ... ok
+test validate::tests::velocity_gate_rejects_nan_position ... ok
+test validate::tests::velocity_gate_rejects_teleporting_hand ... ok
+test validate::tests::velocity_within_gate_passes ... ok
+test wire::tests::rejects_truncated_frame_len_without_panic ... ok
+test wire::tests::round_trip_head_only ... ok
+test wire::tests::rejects_wrong_opcode ... ok
+test wire::tests::round_trip_two_hands ... ok
+test wire::tests::proptest_round_trip ... ok
+
+test result: ok. 40 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/adversarial_tests.rs (target/debug/deps/adversarial_tests-71b4f56467e0544b)
+
+running 24 tests
+test avatar_id_at_max_wire_len_accepted_in_encode ... ok
+test avatar_id_with_short_pubkey_rejected ... ok
+test did_with_wrong_prefix_rejected ... ok
+test did_with_non_hex_pubkey_rejected ... ok
+test empty_buffer_rejected ... ok
+test duplicate_did_in_same_room_rejected ... ok
+test empty_did_rejected ... ok
+test empty_room_urn_rejected ... ok
+test infinity_position_rejected_by_world_bounds ... ok
+test frame_len_zero_rejected ... ok
+test invalid_transform_mask_rejected ... ok
+test mask_with_no_head_rejected ... ok
+test non_urn_avatar_id_rejected ... ok
+test nan_position_rejected_by_velocity_gate ... ok
+test leave_unknown_avatar_rejected ... ok
+test oversized_declared_length_rejected ... ok
+test pose_update_for_unknown_avatar_rejected ... ok
+test quaternion_not_normalised_rejected_by_world_bounds ... ok
+test rapid_frames_below_min_interval_rejected ... ok
+test teleport_velocity_rejected ... ok
+test replay_same_timestamp_rejected ... ok
+test time_travel_backwards_rejected ... ok
+test truncated_frame_rejected ... ok
+test wrong_opcode_rejected ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/integration.rs (target/debug/deps/integration-66134ae8606444a7)
+
+running 9 tests
+test avatar_id_derived_from_did_pubkey ... ok
+test duplicate_did_join_rejected ... ok
+test invalid_did_rejected ... ok
+test invalid_room_urn_rejected ... ok
+test monotonic_timestamp_backwards_blocked ... ok
+test monotonic_timestamp_replay_attack_blocked ... ok
+test pose_update_after_leave_rejected ... ok
+test velocity_gate_edge_cases ... ok
+test wire_round_trip_through_real_room ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/property_tests.rs (target/debug/deps/property_tests-9deb81302568112a)
+
+running 15 tests
+test world_bounds_rejects_outside ... ok
+test monotonic_rejects_decreasing ... ok
+test velocity_gate_rejects_above_limit ... ok
+test gaze_quantisation_is_stable_on_second_pass ... ok
+test world_bounds_accepts_inside ... ok
+test joint_anatomy_rejects_non_unit_wrist ... ok
+test velocity_gate_accepts_below_limit ... ok
+test gaze_quantisation_preserves_direction ... ok
+test room_rejects_duplicate_did ... ok
+test wire_round_trip_preserves_frame ... ok
+test agent_presence_decode_is_total ... ok
+test delta_identical_frames_empty_mask ... ok
+test agent_delta_apply_round_trip ... ok
+test delta_round_trip ... ok
+test agent_presence_round_trip ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+   Doc-tests visionclaw_xr_presence
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
