@@ -1,0 +1,14 @@
+[
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+    "nf03_stamp_equals_head": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/zone_config.rs",
+    "nf03_stamp_equals_head": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/trust.rs",
+    "nf03_stamp_equals_head": true
+  }
+]

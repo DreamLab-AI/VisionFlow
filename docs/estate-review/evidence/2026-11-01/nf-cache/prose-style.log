@@ -1,0 +1,13 @@
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-forum-read-cache-and-activity.md
+  files scanned: 1   findings: 1   slop score: 3
+  verdict: Some AI tells present
+  high: 1   medium: 0   low: 0
+
+  [HIGH] Tier-1 banned vocabulary  (1 hit)
+        fix: Replace with a plain word (delve->look at, leverage->use, robust->solid, seamless->smooth, utilise->use). See SKILL.md B4.
+        docs/estate-review/2026-11-01-forum-read-cache-and-activity.md:9  ...evidence](evidence/2026-11-01/nf-cache/) contains source hashes, the native harness, extracted-method hashes and test/gate logs. Complete exports remain under `...
+
+  Top things to change: Tier-1 banned vocabulary
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+

@@ -7,6 +7,8 @@ type: explanation
 
 # VisionFlow estate review
 
+Forum relay-cache continuation: [full ADR-2018 section review, six new NF-17 panels and twenty native tests](2026-11-01-forum-read-cache-and-activity.md). Live kind-41 metadata skips the zone gate; lookup failure shares the public fallback; cost, activity persistence and duplicate-count claims need correction. NF-03 receives four narrow panel updates. Wider forum and estate review remains open.
+
 Website poker continuation: [ADR-2009 and kit ADR-2020 section assessments, six new DW-10 panels and ten targeted scenarios](2026-11-01-website-poker.md). Renewable payment claims, unreserved concurrent exposure, incomplete restart recovery and misleading receipts remain product gaps. Both configured house services are running, which does not establish a successful game.
 
 Website information/inbox continuation: [ADR-2011 section assessment, five new DW-09 panels, three corrected panels, 47 existing tests and nine counterexamples](2026-11-01-website-information-and-inbox.md). Public disclosure masks registry loss, nightly admission checks miss monitor privilege, and capped digests retire undisplayed messages. Other website topics still need current review; ADR-2009 is assessed in the poker continuation above.

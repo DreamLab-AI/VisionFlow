@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_186 topic files, 1634 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_187 topic files, 1640 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -300,7 +300,7 @@ _186 topic files, 1634 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 |----|-------|----------|-------|-----------|------|
 | NF-01 | [Cargo workspace, the five Workers, entry points and the upstream-absorption canary](nostr-rust-forum/01-workspace-and-worker-topology.md) | 6 | flowchart, classDiagram, stateDiagram-v2 | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md) | ADR-2002, ADR-2007 |
 | NF-02 | [auth-worker — passkey ceremonies, NIP-98 gating, membership and the REST surface](nostr-rust-forum/02-auth-worker-passkey-nip98-and-membership.md) | 9 | sequenceDiagram, flowchart, stateDiagram-v2 | [IDENTITY-keys-and-trust.md](../../../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md), [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md) | ADR-2003, ADR-2004, ADR-2010, ADR-2011 |
-| NF-03 | [relay-worker — NIP-42 AUTH, the EVENT admission pipeline, trust ladder and federation](nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md) | 14 | flowchart, sequenceDiagram, stateDiagram-v2, classDiagram | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md), [IDENTITY-keys-and-trust.md](../../../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md) | ADR-2004, ADR-2005, ADR-2006, ADR-2010, ADR-2011, ADR-2017, ADR-2018, ADR-2022, ADR-2023 |
+| NF-03 | [relay-worker — NIP-42 AUTH, the EVENT admission pipeline, trust ladder and federation](nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md) | 14 | flowchart, sequenceDiagram, stateDiagram-v2, classDiagram | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md), [IDENTITY-keys-and-trust.md](../../../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md) | ADR-2004, ADR-2005, ADR-2006, ADR-2010, ADR-2011, ADR-2016, ADR-2017, ADR-2018, ADR-2022, ADR-2023 |
 | NF-04 | [pod-worker — Solid LDP surface, WAC evaluation, delegation, quota and payments](nostr-rust-forum/04-pod-worker-ldp-wac-and-delegation.md) | 10 | flowchart, sequenceDiagram, classDiagram | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md), [IDENTITY-keys-and-trust.md](../../../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md) | ADR-2009, ADR-2007, ADR-2012 |
 | NF-05 | [The two Leptos clients — boot, identity, transport, onboarding, messaging and the retro BBS](nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md) | 17 | sequenceDiagram, flowchart, classDiagram, stateDiagram-v2 | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md), [IDENTITY-keys-and-trust.md](../../../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md) | ADR-2008, ADR-2023, ADR-2025 |
 | NF-06 | [Agent Control Surface Protocol — kinds 31400-31405, the broker aggregate and its consumers](nostr-rust-forum/06-agent-control-surface-31400-31405.md) | 17 | classDiagram, flowchart, sequenceDiagram, stateDiagram-v2, erDiagram | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md) | ADR-2010, ADR-2011, ADR-2013, ADR-2014 |
@@ -314,6 +314,7 @@ _186 topic files, 1634 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | NF-14 | [Proposed group authority, replication and spatial descriptors](nostr-rust-forum/14-proposed-group-replication-and-spaces.md) | 3 | flowchart | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md) | ADR-2030, ADR-2031, ADR-2032 |
 | NF-15 | [Two-chain wallets — identity, freshness and delivery](nostr-rust-forum/15-multichain-wallet-receipts.md) | 6 | flowchart | [ADR-2021-two-pinned-sidestr-chains-dreamlab-and-dreamlab-txbt4.md](../../../nostr-rust-forum/docs/adr/ADR-2021-two-pinned-sidestr-chains-dreamlab-and-dreamlab-txbt4.md) | ADR-2021 |
 | NF-16 | [Wallet foundations — custody, attribution and parent balances](nostr-rust-forum/16-wallet-foundations-and-parent-balances.md) | 6 | flowchart | [ADR-2015-member-wallets-on-sidestr-dreamlab-and-dream-tips.md](../../../nostr-rust-forum/docs/adr/ADR-2015-member-wallets-on-sidestr-dreamlab-and-dream-tips.md), [ADR-2019-member-wallet-shows-blake2b-testnet4-coins-read-only.md](../../../nostr-rust-forum/docs/adr/ADR-2019-member-wallet-shows-blake2b-testnet4-coins-read-only.md) | ADR-2015, ADR-2019 |
+| NF-17 | [Relay read caches — authority, cost and activity persistence](nostr-rust-forum/17-relay-read-cache-and-activity-boundaries.md) | 6 | flowchart | [ADR-2018-relay-read-caches-and-activity-throttle.md](../../../nostr-rust-forum/docs/adr/ADR-2018-relay-read-caches-and-activity-throttle.md) | ADR-2018 |
 
 ### dreamlab-ai-website
 

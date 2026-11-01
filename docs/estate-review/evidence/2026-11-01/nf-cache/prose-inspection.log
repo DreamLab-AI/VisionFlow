@@ -1,0 +1,8 @@
+Length: 14979 chars
+Suspicious: 0
+Note: Layer A only: invisible/format Unicode, smuggled payloads and homoglyphs (edit-based carriers).
+Note: Statistical (token-sampling) watermarks are not detectable here; use Layer B rewrite.
+Note: Inspect kinds: strip, bidi, tag_chars, variation_selector, zwj_family, private_use, reserved_ignorable, noncharacter, space, confusable, other_cf.
+Note: Load-bearing invisibles are preserved by default: emoji glue (ZWJ/VS after an emoji base), script joiners (ZWNJ/ZWJ inside complex scripts), RGI flag tag sequences, same-script fillers/selectors (Mongolian FVS, Khmer inherent vowels, Hangul jamo and blank fillers), visible-layout format controls next to their own script (Egyptian quadrat, Duployan shorthand, musical beam/tie/slur), orthographic Arabic/Syriac Cf marks, and balanced bidi controls in text that contains RTL script. Use --strip-emoji-glue for paranoid mode (strips them all).
+Note: Homoglyphs are judged by UTS #39 skeleton plus mixed-script and Identifier_Status context, not by a hand-written table; see the `confusables` module for the one documented gap.
+Note: No deterministic Layer A (invisible Unicode/format) carriers detected; statistical and pixel-domain marks are out of scope here.

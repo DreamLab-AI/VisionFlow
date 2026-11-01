@@ -1,0 +1,17 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/mod.rs:113
+    A["New Durable Object constructor"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/mod.rs:123
+    B["New empty caches and activity ledger"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/session.rs:115
+    C["Recover socket session and persisted subscriptions"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs:115
+    D["Old pending activity is not restored"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/mod.rs:371
+    E["Idle alarm clears rate and connection maps<br/>does not flush activity"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs:71
+    F["Expired cache entries miss but remain allocated"]
+    A --> B --> D
+    A --> C
+    B --> F
+    E -. no activity drain .-> D

@@ -1,0 +1,29 @@
+sequenceDiagram
+    autonumber
+    participant C as Client socket
+    participant RQ as handle_req<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1770
+    participant PG as protected_read_blocked<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:261
+    participant VC as resolve_viewer_context<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2156
+    participant AE as authorize_event<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2262
+    participant PP as protected_read_permitted<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:85
+    participant A as ActivityLedger<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2228
+
+    C->>RQ: REQ sub id, filters
+    RQ->>PG: do these filters NAME a protected kind nip_handlers.rs:1826
+    PG-->>C: CLOSED auth-required when they do nip_handlers.rs:1827
+    RQ->>RQ: gate_kind_1059_filters rewrites the mandatory p tag nip_handlers.rs:1838
+    RQ->>RQ: store the GATED filter, never the client's raw one nip_handlers.rs:1857
+    RQ->>RQ: query_events against the gated filter nip_handlers.rs:1865
+    RQ->>VC: ADR-2018: memoised cached_viewer_cohorts + admin check, once per REQ<br/>nip_handlers.rs:1873 nip_handlers.rs:2168
+    RQ->>RQ: a kind-1059 wrap is delivered only to the recipient named in its p tag, checked per event before authorize_event gift_wrap_readable_by nip_handlers.rs:156 nip_handlers.rs:1880
+    RQ->>AE: every returned event, one at a time, against the resolved<br/>ViewerContext nip_handlers.rs:1883
+    AE->>PP: kind, author, p recipients, viewer, mode nip_handlers.rs:2280
+    PP-->>AE: correspondence needs a party to it, moderation needs only auth nip42.rs:85
+    AE-->>RQ: Withhold when not permitted nip_handlers.rs:2287
+    RQ->>A: note_read_activity - only for delivered events, batched into the SAME<br/>coalesced flush as writes nip_handlers.rs:1914 nip_handlers.rs:2228
+
+    Note over RQ: INVARIANT ordering is load-bearing - both gates run BEFORE the<br/>subscription is stored. The previous order stored the raw filter, so a refused<br/>historical read still delivered every later matching event live<br/>nip_handlers.rs:1826-1862
+    Note over AE: INVARIANT the protected check is per EVENT, not per filter - a<br/>filter that omits kinds matches every kind while naming none and passed both<br/>filter gates nip_handlers.rs:2268-2272
+    Note over VC: DRIFT resolved: has_zone_access (a per-event D1 read) was removed<br/>from trust.rs — zone_read_permitted decides purely from the cached<br/>ViewerContext instead trust.rs:640-642 nip_handlers.rs:2114
+    Note over AE: Zone memo caches only positive bindings - an unbound channel still reads D1<br/>nip_handlers.rs:2189-2198 — see NF-17 for cost and failure boundaries
+    Note over PP: The two halves of the protected set have different rules - a<br/>moderation event is readable by the membership, a DM only by a party to it<br/>nip42.rs:53-60

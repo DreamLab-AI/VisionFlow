@@ -1,0 +1,15 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1552
+    A["Admitted event enters save_event"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs:82
+    B["INSERT ON CONFLICT id DO NOTHING"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs:142
+    C["Regular insert returns success when run succeeds"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1558
+    D["Qualifying kinds increment posts_created<br/>after ACK and broadcast"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:432
+    E["Counter update ignores database result"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1649
+    F["Existing-ID check suppresses push fan-out<br/>not the creation counter above"]
+    A --> B --> C --> D --> E
+    D --> F

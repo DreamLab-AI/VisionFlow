@@ -1,0 +1,17 @@
+{
+  "checked": "2026-11-01",
+  "sources": [
+    {
+      "url": "https://developers.cloudflare.com/d1/platform/pricing/",
+      "claim": "Rows scanned differ from returned rows; five million daily free row reads remains documented."
+    },
+    {
+      "url": "https://developers.cloudflare.com/durable-objects/best-practices/websockets/",
+      "claim": "Hibernation preserves connections but resets memory and reruns constructor."
+    },
+    {
+      "url": "https://element-hq.github.io/synapse/latest/replication.html",
+      "claim": "Update log design supports reader cache invalidation and client notifications."
+    }
+  ]
+}

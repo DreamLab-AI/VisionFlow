@@ -1,0 +1,24 @@
+flowchart TB
+    K42["kind 42 channel message<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1414"]
+    ETAG["e tag required, else invalid<br/>nip_handlers.rs:1416"]
+    CZ["cached_channel_zone - memoised channel_zones lookup<br/>nip_handlers.rs:1435 nip_handlers.rs:2189"]
+    SEALED{"has_sealed_tag<br/>nip_handlers.rs:1440"}
+    SREJ["sealed_write_rejection: non-admin -> admin-only; zone not encrypted -> encrypted-zones-only (ADR-2017)<br/>nip_handlers.rs:1445 nip_handlers.rs:1748-1760"]
+    UNSCOPED["no row: UNSCOPED, any whitelisted member may post"]
+    WGATE["has_zone_write_access<br/>nip_handlers.rs:1451"]
+    CIPHER["is_encrypted zone requires is_zone_ciphertext - zk tag + NIP-44 v2 shape (ADR-2016)<br/>nip_handlers.rs:1458 zone_config.rs:133 zone_config.rs:208"]
+    CAL["31922 / 31923 / kanban: zone tag then write cohorts<br/>nip_handlers.rs:1515 nip_handlers.rs:1526"]
+    RSVP["31925 RSVP: author's projection tier for the TARGET must be Full<br/>nip_handlers.rs:1490 nip_handlers.rs:1491 nip_handlers.rs:1505"]
+
+    K42 --> ETAG --> CZ
+    CZ --> SEALED
+    SEALED -->|"sealed"| SREJ
+    CZ -->|"present, not sealed or sealed+admin+encrypted"| WGATE
+    WGATE --> CIPHER
+    CAL --> WGATE
+
+    N1["Finding-5 fix: an undeclared channel previously defaulted to a home zone that the shipped four-zone<br/>model does not define, so the write gate denied ALL non-admins - a permanent lockout of every<br/>non-admin-created channel, including the creator's own nip_handlers.rs:1425-1434"]
+    N2["INVARIANT: channel_zones rows are written SOLELY by the admin-only /api/admin/channel-zone endpoint<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1419-1423"]
+    N3["The RSVP target is resolved from D1, NEVER from an author-mirrored tag which would be spoofable;<br/>an unresolvable target denies for non-admins nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1480-1485, deny at nip_handlers.rs:1512"]
+    N4["Writes route through write_cohorts ?? required_cohorts, so a public zone can be read-by-all yet<br/>write-restricted - see NF-08.2"]
+    N5["ADR-2016: the relay holds no zone key; this checks payload SHAPE only<br/>It cannot authenticate ciphertext or guarantee content secrecy<br/>zone_config.rs:199-207"]

@@ -1,0 +1,25 @@
+
+running 20 tests
+test bound_channel_warms_once ... ok
+test channel_cardinality_costs_more_than_three_misses ... ok
+test kind40_consults_denied_viewer_gate ... ok
+test kind41_bypasses_denied_viewer_gate ... ok
+test kind42_consults_denied_viewer_gate ... ok
+test negative_viewer_lookups_are_cached ... ok
+test read_cache::audit_boundaries::discarded_flush_is_not_retried ... ok
+test read_cache::audit_boundaries::expired_entries_are_retained ... ok
+test read_cache::audit_boundaries::fifty_reads_can_flush_every_request ... ok
+test read_cache::audit_boundaries::idle_pending_reads_have_no_deadline ... ok
+test read_cache::audit_boundaries::reconstruction_loses_pending_reads ... ok
+test read_cache::tests::a_large_pending_count_forces_an_early_flush ... ok
+test read_cache::tests::a_zero_delivery_read_never_adds_pending_but_still_respects_the_window ... ok
+test read_cache::tests::first_read_in_a_window_flushes_immediately ... ok
+test read_cache::tests::pubkeys_are_throttled_independently ... ok
+test read_cache::tests::reads_inside_the_window_accumulate_and_flush_when_it_elapses ... ok
+test read_cache::tests::ttl_cache_serves_fresh_entries_and_expires_stale_ones ... ok
+test read_cache::tests::ttl_cache_tolerates_clock_going_backwards ... ok
+test read_cache::tests::writes_share_the_window_with_reads_and_carry_pending_reads ... ok
+test unbound_channel_cost_scales_with_calls ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

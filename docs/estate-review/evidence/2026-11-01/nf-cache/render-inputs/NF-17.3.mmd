@@ -1,0 +1,14 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1883
+    A["History: every returned event goes to authoriser"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2354
+    B["Kind 41 in hidden zone: withhold from non-member"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/broadcast.rs:76
+    C["Live needs_gate includes 40 and 42<br/>plus calendar and kanban; omits 41"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/broadcast.rs:149
+    D["Gated kinds consult authoriser per recipient"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/broadcast.rs:162
+    E["Kind 41 skips zone context<br/>matching subscription gets original event"]
+    A --> B
+    C -->|40 or 42| D
+    C -->|41| E

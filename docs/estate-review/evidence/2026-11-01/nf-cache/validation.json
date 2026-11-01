@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-01",
+  "existing_native_tests": 8,
+  "audit_native_tests": 12,
+  "total_native_tests": 20,
+  "topics": 187,
+  "panels": 1640,
+  "verified_citations": 24844,
+  "citation_warnings": 0,
+  "allowlisted_citations": 9,
+  "fresh_declared_revisions": 46,
+  "rendered_panels": 20,
+  "visually_reviewed_panels": [
+    "NF-03.4",
+    "NF-03.10",
+    "NF-03.12",
+    "NF-03.14",
+    "NF-17.1",
+    "NF-17.2",
+    "NF-17.3",
+    "NF-17.4",
+    "NF-17.5",
+    "NF-17.6"
+  ],
+  "source_exports": 12,
+  "all_exports_identical_at_consumed_pin": true,
+  "full_worker_suite_rerun": false,
+  "wasm_execution": false,
+  "D1_faults_executed": false,
+  "real_sockets_or_events_sent": false,
+  "product_code_changed": false,
+  "prose_review": "No suspicious Unicode. Remaining style flag is the literal technical term harness, retained after manual review.",
+  "corrections": [
+    "Source-line offsets corrected and each new citation read against exported source.",
+    "Mermaid note semicolons replaced after parse failures.",
+    "NF-03.10 clipped notes wrapped; flush description now includes threshold exception."
+  ]
+}

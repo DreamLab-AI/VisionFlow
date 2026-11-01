@@ -5,7 +5,7 @@ area: nostr-rust-forum
 governing:
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
-adrs: [ADR-2004, ADR-2005, ADR-2006, ADR-2010, ADR-2011, ADR-2017, ADR-2018, ADR-2022, ADR-2023]
+adrs: [ADR-2004, ADR-2005, ADR-2006, ADR-2010, ADR-2011, ADR-2016, ADR-2017, ADR-2018, ADR-2022, ADR-2023]
 sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
@@ -138,7 +138,7 @@ sequenceDiagram
     H->>H: 16 an appeal-marked 31402 must name its case in a case tag distinct from d nip_handlers.rs:1407
     H->>Z: 17a ADR-2017 kind-42 sealed tag: admin-only AND an encrypted zone, else rejected nip_handlers.rs:1440 nip_handlers.rs:1445
     H->>D1: 17b kind-42 zone write gate nip_handlers.rs:1451 nip_handlers.rs:1452
-    H->>Z: 17c ADR-2018 encrypted zone requires NIP-44 v2 shaped ciphertext nip_handlers.rs:1458 nip_handlers.rs:1464
+    H->>Z: 17c ADR-2016 encrypted zone requires NIP-44 v2 shaped ciphertext nip_handlers.rs:1458 nip_handlers.rs:1464
     H->>D1: 18 NIP-52 RSVP and calendar/kanban write gates nip_handlers.rs:1490 nip_handlers.rs:1515
     H->>H: 19 NIP-16 treatment - Ephemeral is OK-then-broadcast, never saved nip_handlers.rs:1540
     H->>D1: 20 push_event_known, then save_event nip_handlers.rs:1549 nip_handlers.rs:1552
@@ -302,7 +302,8 @@ sequenceDiagram
 
     H->>H: OK then broadcast nip_handlers.rs:1553 nip_handlers.rs:1554
     H->>T: increment_posts_created for kinds 1, 7, 40, 42, 1984 nip_handlers.rs:1558
-    H->>A: note_write_activity - ADR-2018 coalesced flush, replaces a per-event update_last_active + check_promotion nip_handlers.rs:1564 nip_handlers.rs:2238
+    H->>A: note_write_activity - ADR-2018 coalesced flush<br/>nip_handlers.rs:1564 nip_handlers.rs:2238
+    Note over H,T: Save success also includes duplicate IDs - this counter is not exact-once<br/>nip_handlers.rs:1546-1564 — see NF-17.6
     alt kind 5
         H->>H: process_deletion, can_delete_any = admin or TL3+ nip_handlers.rs:1572
     end
@@ -321,11 +322,11 @@ sequenceDiagram
 
     H->>P: ADR-2023 content-free Web Push wake-up, last, only for kinds 40 / 42 / 1059 and not for a repeat submission nip_handlers.rs:1549 nip_handlers.rs:1655
 
-    Note over P: ADR-2023 is staged: PUSH_ENABLED ships "false" nostr-bbs-relay-worker/wrangler.toml:86, and push_fanout returns at once unless push is enabled push_fanout.rs:48. Candidates are read-gated through the same authorize_event as live delivery push_fanout.rs:94
-    Note over H: ADR-2010: the relay OK certified STORAGE ONLY.<br/>If the decision did not reach projection-committed the response is accepted<br/>but NOT applied, and the relay says so rather than letting its OK stand as<br/>the last word nip_handlers.rs:1630-1642
-    Note over A: DRIFT resolved: the read path (NF-03.14) also flushes through this<br/>same ledger via note_read_activity, so a promotion check now runs at most once<br/>per pubkey per coalescing window across BOTH writes and reads<br/>nip_handlers.rs:2228 nip_handlers.rs:2246-2248
-    Note over M: A moderation mirror is only respected when the signer is an admin ON THIS RELAY - a lifted ban must also stop being enforced nip_handlers.rs:1588
-    Note over G: EXTERNAL: the human-approval loop these projections serve spans the estate - see ES-05 and AB-14
+    Note over P: ADR-2023 is staged: PUSH_ENABLED ships "false"<br/>nostr-bbs-relay-worker/wrangler.toml:86<br/>Disabled fan-out returns at once push_fanout.rs:48<br/>Candidates use the shared read gate push_fanout.rs:94
+    Note over H,A: ADR-2010: the relay OK certifies storage only.<br/>Without projection-committed, the response is accepted<br/>but not applied - reported separately nip_handlers.rs:1630-1642
+    Note over A,T: Reads and writes share this ledger.<br/>A later activity call triggers an elapsed-window flush.<br/>Pending-read threshold can flush sooner - see NF-17.4<br/>nip_handlers.rs:2228 nip_handlers.rs:2246-2248
+    Note over M: Mirror requires an admin on this relay.<br/>A lifted ban must stop enforcement nip_handlers.rs:1588
+    Note over G: External human-approval workflow<br/>spans the estate - see ES-05 and AB-14
 ```
 
 **Tension (ADR-2010 vs code):** ADR-2010 records `decision_status: proposed`, `implementation_status: partial`, `activation_status: staged` (`../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md:5-7`), yet `handle_event` runs all three receipt-bearing projections (appeal, supersession, first-order response) unconditionally after every stored governance event (`nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1601`, `nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1621`, `nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1634`).
@@ -357,7 +358,7 @@ flowchart TB
     SREJ["sealed_write_rejection: non-admin -> admin-only; zone not encrypted -> encrypted-zones-only (ADR-2017)<br/>nip_handlers.rs:1445 nip_handlers.rs:1748-1760"]
     UNSCOPED["no row: UNSCOPED, any whitelisted member may post"]
     WGATE["has_zone_write_access<br/>nip_handlers.rs:1451"]
-    CIPHER["is_encrypted zone requires is_zone_ciphertext - zk tag + NIP-44 v2 shape (ADR-2018)<br/>nip_handlers.rs:1458 zone_config.rs:133 zone_config.rs:208"]
+    CIPHER["is_encrypted zone requires is_zone_ciphertext - zk tag + NIP-44 v2 shape (ADR-2016)<br/>nip_handlers.rs:1458 zone_config.rs:133 zone_config.rs:208"]
     CAL["31922 / 31923 / kanban: zone tag then write cohorts<br/>nip_handlers.rs:1515 nip_handlers.rs:1526"]
     RSVP["31925 RSVP: author's projection tier for the TARGET must be Full<br/>nip_handlers.rs:1490 nip_handlers.rs:1491 nip_handlers.rs:1505"]
 
@@ -372,7 +373,7 @@ flowchart TB
     N2["INVARIANT: channel_zones rows are written SOLELY by the admin-only /api/admin/channel-zone endpoint<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1419-1423"]
     N3["The RSVP target is resolved from D1, NEVER from an author-mirrored tag which would be spoofable;<br/>an unresolvable target denies for non-admins nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1480-1485, deny at nip_handlers.rs:1512"]
     N4["Writes route through write_cohorts ?? required_cohorts, so a public zone can be read-by-all yet<br/>write-restricted - see NF-08.2"]
-    N5["INVARIANT ADR-2018: the relay holds no zone key, so is_zone_ciphertext is a SHAPE check only - it<br/>guarantees nothing readable is stored in an encrypted zone by ANY author, admins included<br/>zone_config.rs:199-207"]
+    N5["ADR-2016: the relay holds no zone key; this checks payload SHAPE only<br/>It cannot authenticate ciphertext or guarantee content secrecy<br/>zone_config.rs:199-207"]
 ```
 
 ## NF-03.13 Mesh federation — configured, gated, and not actually wired
@@ -422,5 +423,6 @@ sequenceDiagram
     Note over RQ: INVARIANT ordering is load-bearing - both gates run BEFORE the<br/>subscription is stored. The previous order stored the raw filter, so a refused<br/>historical read still delivered every later matching event live<br/>nip_handlers.rs:1826-1862
     Note over AE: INVARIANT the protected check is per EVENT, not per filter - a<br/>filter that omits kinds matches every kind while naming none and passed both<br/>filter gates nip_handlers.rs:2268-2272
     Note over VC: DRIFT resolved: has_zone_access (a per-event D1 read) was removed<br/>from trust.rs — zone_read_permitted decides purely from the cached<br/>ViewerContext instead trust.rs:640-642 nip_handlers.rs:2114
+    Note over AE: Zone memo caches only positive bindings - an unbound channel still reads D1<br/>nip_handlers.rs:2189-2198 — see NF-17 for cost and failure boundaries
     Note over PP: The two halves of the protected set have different rules - a<br/>moderation event is readable by the membership, a DM only by a party to it<br/>nip42.rs:53-60
 ```

@@ -1,0 +1,15 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2156
+    A["Resolve viewer from session key"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2216
+    B["Device-owner memo: 60 seconds<br/>including None"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs:46
+    C["Admin cache: 30 seconds"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2203
+    D["Cohorts plus admin flag: 60 seconds<br/>including empty and false"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2189
+    E["Zone memo: 60 seconds<br/>only positive channel bindings"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2194
+    F["Unbound channel: query again next event<br/>zone cardinality is per channel, not viewer"]
+    A --> B --> C --> D
+    D --> E --> F

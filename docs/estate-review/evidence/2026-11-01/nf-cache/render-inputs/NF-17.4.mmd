@@ -1,0 +1,17 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1912
+    A["Authenticated REQ with delivered events"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs:128
+    B["Add delivered count to pending reads"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs:136
+    C["First call, elapsed 300 seconds<br/>or at least 50 pending reads?"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs:139
+    D["No: retain count in memory<br/>no deadline timer in this ledger"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs:162
+    E["Yes: remove count and advance last_flush"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2246
+    F["Attempt read increment, last-active update<br/>then promotion check"]
+    A --> B --> C
+    C -->|no| D
+    C -->|yes| E --> F
+    D -. next activity .-> C

@@ -1,0 +1,42 @@
+sequenceDiagram
+    autonumber
+    participant C as Authenticated socket
+    participant H as handle_event<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1049
+    participant Z as zone_config<br/>nostr-bbs-relay-worker/src/zone_config.rs:208
+    participant D1 as relay D1
+    participant B as broadcast_event
+
+    C->>H: ["EVENT", event]
+    H->>H: 1 per-IP rate limit nip_handlers.rs:1057
+    H->>H: 2 structural validation nip_handlers.rs:1063
+    H->>H: 3 NIP-40 expiration tag in the past, or malformed nip_handlers.rs:1070
+    H->>H: 4 verify_event_strict BEFORE any side effect nip_handlers.rs:1077
+    H->>H: 5 NIP-42 write gate write_auth_ok nip_handlers.rs:1102
+    H->>D1: 6 resolve the effective principal ONCE, never for a gift wrap (ADR-099 device key to owner) nip_handlers.rs:1121
+    alt kind 1059 gift wrap
+        H->>D1: 7a recipient from first p tag: a configured ingress recipient (ADR-2022) needs no row, any other must be whitelisted nip_handlers.rs:1139 nip_handlers.rs:1142
+    else every other kind
+        H->>D1: 7b is_whitelisted on the principal nip_handlers.rs:1161
+    end
+    H->>H: 8 mesh peer? federated_kinds allowlist nip_handlers.rs:1176
+    H->>D1: 9 suspension and silence, checked for the device key AND its owner nip_handlers.rs:1189
+    H->>D1: 10 ban/mute ingress gate, admins bypass nip_handlers.rs:1213 nip_handlers.rs:1217
+    H->>D1: 11 trust-level gates for 40, 41, 1984 and 5 nip_handlers.rs:1228
+    H->>H: 12 NIP-29 admin kinds need an h tag and an admin nip_handlers.rs:1299
+    H->>D1: 13 governance kinds need agent_registry, except a kanban approval request nip_handlers.rs:1324 nip_handlers.rs:1326
+    H->>D1: 14 kind-31403 is admin, or a reviewer delegated to THIS case, then the FR2.2 rationale check nip_handlers.rs:1344 nip_handlers.rs:1354 nip_handlers.rs:1372
+    H->>D1: 15 a superseding 31403 is authority-gated nip_handlers.rs:1390 nip_handlers.rs:1396
+    H->>H: 16 an appeal-marked 31402 must name its case in a case tag distinct from d nip_handlers.rs:1407
+    H->>Z: 17a ADR-2017 kind-42 sealed tag: admin-only AND an encrypted zone, else rejected nip_handlers.rs:1440 nip_handlers.rs:1445
+    H->>D1: 17b kind-42 zone write gate nip_handlers.rs:1451 nip_handlers.rs:1452
+    H->>Z: 17c ADR-2016 encrypted zone requires NIP-44 v2 shaped ciphertext nip_handlers.rs:1458 nip_handlers.rs:1464
+    H->>D1: 18 NIP-52 RSVP and calendar/kanban write gates nip_handlers.rs:1490 nip_handlers.rs:1515
+    H->>H: 19 NIP-16 treatment - Ephemeral is OK-then-broadcast, never saved nip_handlers.rs:1540
+    H->>D1: 20 push_event_known, then save_event nip_handlers.rs:1549 nip_handlers.rs:1552
+    H->>B: 21 broadcast + post-save effects, incl. ADR-2018 activity coalescing nip_handlers.rs:1554 nip_handlers.rs:1564
+
+    Note over H: INVARIANT: the signature is verified BEFORE any side effect - admission state changes and activity tracking alike nip_handlers.rs:1075-1077
+    Note over H: In nip42 mode gift wraps are NOT exempt from the write gate - the wrap is signed by an ephemeral key but is published over the sender's authenticated socket nip_handlers.rs:1087-1094
+    Note over H: INVARIANT FR2.2 is enforced at the RELAY, not only in the UI - a 31403 is a signed event any client or script can publish straight here, so a rule that lives only in the forum UI is a suggestion nip_handlers.rs:1360-1366 governance.rs:758
+    Note over H: A refusal never fills the rationale in - absence is refused, not papered over governance.rs:761-763
+    Note over Z: INVARIANT ADR-2017: a sealed original is exempt from validate_event's timestamp-drift check on the tag alone, so this write gate is what actually enforces admin-only AND encrypted-zone-only for it nip_handlers.rs:1703-1711 nip_handlers.rs:1748-1760

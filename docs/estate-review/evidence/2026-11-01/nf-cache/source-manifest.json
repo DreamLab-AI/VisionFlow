@@ -1,0 +1,74 @@
+[
+  {
+    "path": "docs/adr/ADR-2018-relay-read-caches-and-activity-throttle.md",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "0e9a4c32617d6ad3ee4b7c940b75fdf2409dfc178ba7bd321f5a4cdefbfcc276",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "eb10d69937ad3e31f67426d3ccbcd5de7d7b8ba4baa8bd6a59bd7ad9ca4814ed",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "52c7bd80243276f6f4109f1dc4180b485352141aac70d68fab626d5e1f6c0afd",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/broadcast.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "cacd5c0432703fcb4dca6e94315886099ae8d5b71b64086139a29179d9288878",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/mod.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "08eafc05e682996764923ea8d10417c21e93dabbbe406817c9eff54ff28725db",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/session.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "09aab6ae5638c2c571f067942e53b042dce21e0da7d44706ce1a2e177d71dd55",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/storage.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "4048b61f9bd43bc24eb36af6edb3e84a5207e1b01bbecf0639b0a224a9440351",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/filter.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "12881ba8994ecdc324207747c6f37ff4d1d6773029b169a419dac0156b520d31",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip42.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "6b6c5ef3d65bd86b4d0de8e54568287dbb58a4822928e662c954e28e5d97494f",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/trust.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "ee3b2f92ff5e7c2387f36fe2e8931c4a5b29b50fd69236a6f989d47032951082",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/auth.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "b97401f0831bea21d5ff0fddd902e07e235c6a5b947501f9ef864c42b1eef2fb",
+    "consumed_pin_identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/zone_config.rs",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "583c0c383d9f605695e4a3c4c1b1827c379c933e1b0b2e0a9b805e0828082401",
+    "consumed_pin_identical": true
+  }
+]

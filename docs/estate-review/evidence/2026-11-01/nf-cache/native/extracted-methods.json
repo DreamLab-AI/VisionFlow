@@ -1,0 +1,26 @@
+[
+  {
+    "path": "relay_do/nip_handlers.rs",
+    "method": "cached_channel_zone",
+    "start_line": 2189,
+    "sha256": "5559e087b3d6567b8fa0ee15c000e9fddb9a1429b8d4442ebca948abcb2b4841"
+  },
+  {
+    "path": "relay_do/nip_handlers.rs",
+    "method": "cached_viewer_cohorts",
+    "start_line": 2203,
+    "sha256": "3ce75c2d799d9e95f42646da0fa1d1d1596325d0f585c4f0df262a57eec3768d"
+  },
+  {
+    "path": "relay_do/nip_handlers.rs",
+    "method": "cached_device_owner",
+    "start_line": 2216,
+    "sha256": "0a14b81720ab8e6cb23aef0c12c59dbb3dd755b0cb34ce6347ff02246e3ccb09"
+  },
+  {
+    "path": "relay_do/broadcast.rs",
+    "method": "broadcast_event",
+    "start_line": 62,
+    "sha256": "92ed082acd4e5e0f004ef190fc2ea01122ea0588f88d5a78a4567dcadb28f926"
+  }
+]

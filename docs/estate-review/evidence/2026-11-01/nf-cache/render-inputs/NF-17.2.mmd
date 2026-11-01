@@ -1,0 +1,14 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2332
+    A["Channel ID from kind 40, 41 or 42"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2350
+    B["Read cached binding or query channel_zones"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2352
+    C["Some zone: apply member and visibility rules"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:584
+    D["Absent row OR database/bind/query failure: None"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2372
+    E["None skips this zone gate<br/>event reaches Deliver if other gates pass"]
+    A --> B
+    B --> C
+    B --> D --> E

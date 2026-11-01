@@ -1,0 +1,36 @@
+sequenceDiagram
+    autonumber
+    participant H as handle_event after save<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1552
+    participant A as ActivityLedger<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2238
+    participant T as trust
+    participant M as moderation_actions
+    participant G as broker_cases / broker_decisions
+    participant P as push_fanout<br/>nostr-bbs-relay-worker/src/relay_do/push_fanout.rs:47
+
+    H->>H: OK then broadcast nip_handlers.rs:1553 nip_handlers.rs:1554
+    H->>T: increment_posts_created for kinds 1, 7, 40, 42, 1984 nip_handlers.rs:1558
+    H->>A: note_write_activity - ADR-2018 coalesced flush<br/>nip_handlers.rs:1564 nip_handlers.rs:2238
+    Note over H,T: Save success also includes duplicate IDs - this counter is not exact-once<br/>nip_handlers.rs:1546-1564 — see NF-17.6
+    alt kind 5
+        H->>H: process_deletion, can_delete_any = admin or TL3+ nip_handlers.rs:1572
+    end
+    alt kind 1984
+        H->>H: process_report, auto-hide check nip_handlers.rs:1579
+    end
+    alt kinds 30910 / 30911 / 30915 / 30916 from an ADMIN
+        H->>M: mirror_moderation_action + mod_cache.invalidate nip_handlers.rs:1588
+    end
+    alt kind 31402
+        H->>G: project_appeal if an appeal e-tag, else project_action_request nip_handlers.rs:1601 nip_handlers.rs:1610
+    end
+    alt kind 31403
+        H->>G: project_supersession if a supersedes e-tag, else project_action_response nip_handlers.rs:1621 nip_handlers.rs:1634
+    end
+
+    H->>P: ADR-2023 content-free Web Push wake-up, last, only for kinds 40 / 42 / 1059 and not for a repeat submission nip_handlers.rs:1549 nip_handlers.rs:1655
+
+    Note over P: ADR-2023 is staged: PUSH_ENABLED ships "false"<br/>nostr-bbs-relay-worker/wrangler.toml:86<br/>Disabled fan-out returns at once push_fanout.rs:48<br/>Candidates use the shared read gate push_fanout.rs:94
+    Note over H,A: ADR-2010: the relay OK certifies storage only.<br/>Without projection-committed, the response is accepted<br/>but not applied - reported separately nip_handlers.rs:1630-1642
+    Note over A,T: Reads and writes share this ledger.<br/>A later activity call triggers an elapsed-window flush.<br/>Pending-read threshold can flush sooner - see NF-17.4<br/>nip_handlers.rs:2228 nip_handlers.rs:2246-2248
+    Note over M: Mirror requires an admin on this relay.<br/>A lifted ban must stop enforcement nip_handlers.rs:1588
+    Note over G: External human-approval workflow<br/>spans the estate - see ES-05 and AB-14
