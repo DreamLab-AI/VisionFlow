@@ -1,0 +1,42 @@
+
+> webvowl-modern@0.2.0 prebuild:check
+> npm run build:notices
+
+
+> webvowl-modern@0.2.0 build:notices
+> cargo build --locked --release --manifest-path tools/runtime-notices/Cargo.toml
+
+    Finished `release` profile [optimized] target(s) in 0.04s
+
+> webvowl-modern@0.2.0 build:check
+> tsc -b && vite build
+
+vite v6.4.3 building for production...
+transforming...
+✓ 453 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                     2.01 kB │ gzip:   1.01 kB
+dist/assets/physics.worker-BwN4VFnY.js              3.96 kB
+dist/assets/vowl_wasm-BrXuLVZI.js                  18.29 kB
+dist/third-party-notices/javascript-runtime.json   30.18 kB │ gzip:   3.03 kB
+dist/assets/vowl_wasm_bg-Bf2Bdfy6.wasm            268.84 kB │ gzip: 103.71 kB
+dist/third-party-notices/javascript-runtime.md    278.75 kB
+dist/assets/PageView-BkWxxcoK.css                   0.02 kB │ gzip:   0.04 kB
+dist/assets/SearchView-CLTe30pf.css                 0.20 kB │ gzip:   0.15 kB
+dist/assets/HomePage-CXBHhcCe.css                   8.61 kB │ gzip:   1.79 kB
+dist/assets/GraphPage-Y39II18n.css                 13.97 kB │ gzip:   3.15 kB
+dist/assets/index-D1dYfpYT.css                     68.27 kB │ gzip:  13.03 kB
+dist/assets/scope-BrWUFph9.js                       2.12 kB │ gzip:   0.88 kB
+dist/assets/useStats-Boc_ov91.js                    2.23 kB │ gzip:   0.99 kB
+dist/assets/pageMeta-9bKHrXId.js                    3.47 kB │ gzip:   1.78 kB
+dist/assets/SearchView-CLclA-so.js                  3.49 kB │ gzip:   1.37 kB
+dist/assets/DataPage-aagQOXwB.js                    5.34 kB │ gzip:   2.35 kB
+dist/assets/AboutPage-DPHVteiC.js                   9.74 kB │ gzip:   3.93 kB
+dist/assets/fuse-DRqTZInw.js                       17.95 kB │ gzip:   6.27 kB
+dist/assets/HomePage-C4aXUHrZ.js                   27.23 kB │ gzip:   8.55 kB
+dist/assets/GraphPage-WRKzFvuN.js                  70.12 kB │ gzip:  24.30 kB
+dist/assets/vendor-Bbf1NzGJ.js                     75.91 kB │ gzip:  24.79 kB
+dist/assets/index-CwccdYwa.js                     249.12 kB │ gzip:  77.86 kB
+dist/assets/PageView-4sPJpR9J.js                  365.24 kB │ gzip: 109.35 kB
+✓ built in 8.93s

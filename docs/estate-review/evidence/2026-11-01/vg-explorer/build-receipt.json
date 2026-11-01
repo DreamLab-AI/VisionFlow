@@ -1,0 +1,266 @@
+{
+  "source_revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+  "node": "v22.23.3",
+  "npm": "10.9.9",
+  "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "source_lock_sha256": "9ebfb3adc49a4470610e021a1dcd4a9f7d12386e120c0f7cb8772b9680c64ee9",
+  "installed": {
+    "@dreamlab-ai/ontomark-graph": "0.2.0",
+    "@dreamlab-ai/vowl-wasm": "0.2.2",
+    "react-router": "6.30.6",
+    "vite": "6.4.3",
+    "vitest": "4.1.10"
+  },
+  "built_files": [
+    {
+      "path": ".well-known/llms.txt",
+      "bytes": 4711,
+      "sha256": "5f650dac6c45b407476e1d2d0e568c5f22536c4100983cb2ddfe01f2716da420"
+    },
+    {
+      "path": "404.html",
+      "bytes": 724,
+      "sha256": "5ce8f1e8d293112e9b0609c1fee63ea2f22d9ba07c42d4c1dfd7251f0897fd50"
+    },
+    {
+      "path": "_headers",
+      "bytes": 1024,
+      "sha256": "376048b1a81a0b496752c5b91912f02efd7594c55daf3784a9096706cbb8339f"
+    },
+    {
+      "path": "api/search-index.json",
+      "bytes": 6693241,
+      "sha256": "2419bd83374168128caca836af42b559ba93777c5022071f6421db7e53117e54"
+    },
+    {
+      "path": "assets/AboutPage-DPHVteiC.js",
+      "bytes": 9739,
+      "sha256": "5957d794802c0cb145e9b428213ac3f4887391b60d70781d4f348b6fce7360be"
+    },
+    {
+      "path": "assets/DataPage-aagQOXwB.js",
+      "bytes": 5337,
+      "sha256": "3d72bf55b849613a80cd97ca0bd83f5efda6f7c5cd70dd8fee6b3c2bc5cc6a01"
+    },
+    {
+      "path": "assets/GraphPage-WRKzFvuN.js",
+      "bytes": 70117,
+      "sha256": "f33b2ad429971508ab809d178b6f2b9887c29183c0e13bc2948bc9c2c8c584b6"
+    },
+    {
+      "path": "assets/GraphPage-Y39II18n.css",
+      "bytes": 13969,
+      "sha256": "7af3746e6cd1cc35eb7347c781daf23dafab834a2068e7a7b0c88f5f473142a7"
+    },
+    {
+      "path": "assets/HomePage-C4aXUHrZ.js",
+      "bytes": 27225,
+      "sha256": "b37a0c8ded36b8acdbb14cb7888cbdcbd94d284eeb07a486324a7805d732bed9"
+    },
+    {
+      "path": "assets/HomePage-CXBHhcCe.css",
+      "bytes": 8605,
+      "sha256": "1c403e9eb621fb8ee0cfa76e2e9d845580d850cd21ecbc76f60c0432f698bc71"
+    },
+    {
+      "path": "assets/PageView-4sPJpR9J.js",
+      "bytes": 365235,
+      "sha256": "02ec0ba120726548d930f5632630fa8cad9cb5f405f4212e0c4fb374f66d24ab"
+    },
+    {
+      "path": "assets/PageView-BkWxxcoK.css",
+      "bytes": 22,
+      "sha256": "c8b306ff00f763ff08cda08c6268f961bd92f4a98922741a327756d573806ee1"
+    },
+    {
+      "path": "assets/SearchView-CLTe30pf.css",
+      "bytes": 203,
+      "sha256": "b6c5003c416c99ec9421ac23e6130e7910f8681b9cc6441441e3bed13186a11c"
+    },
+    {
+      "path": "assets/SearchView-CLclA-so.js",
+      "bytes": 3487,
+      "sha256": "3550f1279e4c4100ad427284be8f4491e04188184ba443fe5a0656ff7f9cbd2a"
+    },
+    {
+      "path": "assets/fuse-DRqTZInw.js",
+      "bytes": 17947,
+      "sha256": "368703fbd623e59df1503d12836be71bfa55c190460fa8935c0ccbf5be4effb0"
+    },
+    {
+      "path": "assets/index-CwccdYwa.js",
+      "bytes": 249117,
+      "sha256": "3cf91f06f36aff12bc046570ae0a9e3df77564b2cdca935700461dc3a2d7208b"
+    },
+    {
+      "path": "assets/index-D1dYfpYT.css",
+      "bytes": 68265,
+      "sha256": "a4888cb39b2af3a5882aa9a6f8ee1d196e5deb9d16004b29802de4753135e4c1"
+    },
+    {
+      "path": "assets/pageMeta-9bKHrXId.js",
+      "bytes": 3468,
+      "sha256": "2557d837dfdc1d6f76877fb454ba15831d1a487adb6f900a3359fe0016740801"
+    },
+    {
+      "path": "assets/physics.worker-BwN4VFnY.js",
+      "bytes": 3963,
+      "sha256": "77e33a46180b078ca71051b193948de65a15a064ec047d472a84f0516dba5ef8"
+    },
+    {
+      "path": "assets/scope-BrWUFph9.js",
+      "bytes": 2123,
+      "sha256": "3fccfeea0258160a857f2bb6450edd37c84f937b6a483c3bee551d26adac6d90"
+    },
+    {
+      "path": "assets/useStats-Boc_ov91.js",
+      "bytes": 2228,
+      "sha256": "448eb1701e1628d88be220d9215100af3c45aaefbdecebc42492e6e0e32065dd"
+    },
+    {
+      "path": "assets/vendor-Bbf1NzGJ.js",
+      "bytes": 75913,
+      "sha256": "034fd065c770f7ebdba2c64ec3013a7434d0d07e9b78a2d7702e0ef4bfcd19c1"
+    },
+    {
+      "path": "assets/vowl_wasm-BrXuLVZI.js",
+      "bytes": 18287,
+      "sha256": "ed4bf1f5351dc9baf4efcc58b08e409b8086b6f0a2192c2fb3ea4796368472d8"
+    },
+    {
+      "path": "assets/vowl_wasm_bg-Bf2Bdfy6.wasm",
+      "bytes": 268839,
+      "sha256": "011574692950f80309196771c8ecdefa879b1b2530ff9e9a1d432bbf3ac60353"
+    },
+    {
+      "path": "coi-serviceworker.js",
+      "bytes": 4962,
+      "sha256": "d054e1114e5fc2c246edece2b481f33da32cd646042405ba546a800b03740dc5"
+    },
+    {
+      "path": "data/.gitkeep",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "data/graph/domain-artificial-intelligence.bin",
+      "bytes": 221440,
+      "sha256": "d29793a4ca850ac80700047ed360593bb42236cf11adbee60105fee8f4cafbe6"
+    },
+    {
+      "path": "data/graph/domain-blockchain.bin",
+      "bytes": 190589,
+      "sha256": "d38a9f2484dc2f40e7f88457da8dd447a1492409c272c6a629a04d05d17d840c"
+    },
+    {
+      "path": "data/graph/domain-distributed-collaboration.bin",
+      "bytes": 17918,
+      "sha256": "1f006bde334b47769614902bd73fbbbad5ba744247c6cd72217e2b65738712c8"
+    },
+    {
+      "path": "data/graph/domain-infrastructure.bin",
+      "bytes": 216960,
+      "sha256": "079f9c61f215ad2dc09fee515f68e5b96451b33baf2ebbe47471b62e4136d14b"
+    },
+    {
+      "path": "data/graph/domain-robotics.bin",
+      "bytes": 79331,
+      "sha256": "a08642dda8a261dedcbf34d1cb5ae32176abaa911d5954e5af45423e153c5eef"
+    },
+    {
+      "path": "data/graph/domain-spatial-computing.bin",
+      "bytes": 157614,
+      "sha256": "7a3b78046b0e539c3efdfa3c61bc72998a888e5d98a52d4ad5f1440d2222678a"
+    },
+    {
+      "path": "data/graph/full.bin",
+      "bytes": 1281235,
+      "sha256": "4c433657072e5a2aeb8eca64c419d3d078ce4c6f046c6a7616e6664fa9181e45"
+    },
+    {
+      "path": "data/graph/overview.json",
+      "bytes": 15872,
+      "sha256": "28a30b96b178f7e8c098aa5f939c075a523e62c65951a7c3e3f65d8e2b9dc613"
+    },
+    {
+      "path": "data/graph/stats.json",
+      "bytes": 2467,
+      "sha256": "e9f9c14c85374478ec68905b331cdc5492f3862826dabdc5eb8eaf6690a5e17b"
+    },
+    {
+      "path": "data/ontology.json",
+      "bytes": 39319487,
+      "sha256": "4b57a4aa2ee8e73a413a7a8121ccfaecf4baa78ad514a89621f23eac44279b40"
+    },
+    {
+      "path": "images/heroes/ai-hero.webp",
+      "bytes": 202432,
+      "sha256": "3b05cbd9899f2d020217c45f2d7637f8a2b777a03f7e3b3de90f4be1fcb5c653"
+    },
+    {
+      "path": "images/heroes/blockchain-hero.webp",
+      "bytes": 263930,
+      "sha256": "6821706848e0fa7e4bc20d0d74fccec30e3e4e36f49137fe07a1d56366489968"
+    },
+    {
+      "path": "images/heroes/metaverse-hero.webp",
+      "bytes": 308276,
+      "sha256": "15d5bd3269d45d255e437b786b7b7ef55ac5420360e2a4c78b683e344d874312"
+    },
+    {
+      "path": "images/heroes/ngm-hero.webp",
+      "bytes": 413282,
+      "sha256": "2b431216d41445b4384415cd326acf058556a6fd56be321bf2a8ce7f23b4dcf1"
+    },
+    {
+      "path": "images/heroes/robotics-hero.webp",
+      "bytes": 190618,
+      "sha256": "11c89b84719af1413cbb47a970ac43ffb94d843114cb0d8588c13204ccea1b89"
+    },
+    {
+      "path": "images/heroes/telecollaboration-hero.webp",
+      "bytes": 256136,
+      "sha256": "b70fe651a55ada661951d0d5ebdb2bb49806365f72cf21f9645cc1861d7dcb5c"
+    },
+    {
+      "path": "img/dreamlab-hero.webp",
+      "bytes": 200080,
+      "sha256": "7dd883bcf81ba73c456578571aff013b34f8807ea02a1c18380e419ae7e839c5"
+    },
+    {
+      "path": "index.html",
+      "bytes": 2012,
+      "sha256": "3af652b494bad3788e3b1c04251f63575dd8818be8a2947e730b563c3b9ba3d8"
+    },
+    {
+      "path": "llms.txt",
+      "bytes": 4711,
+      "sha256": "5f650dac6c45b407476e1d2d0e568c5f22536c4100983cb2ddfe01f2716da420"
+    },
+    {
+      "path": "third-party-notices/javascript-runtime.json",
+      "bytes": 30181,
+      "sha256": "ec0c0edc202cb5bcc85272c941c7b76cccd368aee901f3889398f75782f74cc6"
+    },
+    {
+      "path": "third-party-notices/javascript-runtime.md",
+      "bytes": 278750,
+      "sha256": "d9b2f9eb1509c1ead296f3afbb5610dbb4647d86ee663a385a196b592c3dd394"
+    },
+    {
+      "path": "third-party-notices/ontomark-graph-0.2.0.md",
+      "bytes": 13528,
+      "sha256": "c6bdc4019544d46cdb0b7a5f1965e14d16f08a04fc1ef48157a4ac812ed71b23"
+    },
+    {
+      "path": "third-party-notices/vowl-wasm-0.2.2.md",
+      "bytes": 293758,
+      "sha256": "2c1e67a10040fa6f5ee63c46a6ce96fd85af7bd929aa49e0fa0683bfd86b8a37"
+    },
+    {
+      "path": "vite.svg",
+      "bytes": 1497,
+      "sha256": "4a748afd443918bb16591c834c401dae33e87861ab5dbad0811c3a3b4a9214fb"
+    }
+  ]
+}

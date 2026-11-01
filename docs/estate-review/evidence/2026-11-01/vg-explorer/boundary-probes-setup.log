@@ -1,0 +1,25 @@
+
+ RUN  v4.1.10 /home/devuser/workspace/wt/VisionFlow-vg-explorer/.audit-explorer
+
+ ❯ tests/audit-boundaries.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/audit-boundaries.test.ts [ tests/audit-boundaries.test.ts ]
+Error: ENOENT: no such file or directory, open '/home/devuser/workspace/wt/VisionFlow-vg-explorer/node_modules/@dreamlab-ai/vowl-wasm/vowl_wasm_bg.wasm'
+ ❯ tests/setup.ts:13:35
+     11|
+     12| // Exercise the published Rust codec in every graph test, without a fe…
+     13| initSync({ module: new Uint8Array(readFileSync(resolve(
+       |                                   ^
+     14|   'node_modules/@dreamlab-ai/vowl-wasm/vowl_wasm_bg.wasm',
+     15| ))) });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  05:13:30
+   Duration  823ms (transform 51ms, setup 0ms, import 0ms, tests 0ms, environment 480ms)
+

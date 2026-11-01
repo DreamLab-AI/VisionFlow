@@ -1,103 +1,185 @@
 ---
 id: VG-06
-title: publishing-tools/WasmVOWL — the tree that actually ships, and how it has drifted from its sibling
+title: Publishing explorer — shared renderer, corpus adapters and retained-copy drift
 area: visiongraph
 governing:
   - ../visionGraph/docs/PUBLICATION-contract.md
-adrs: []
+adrs: [ADR-VG-007]
 sources:
   - ../visionGraph/publishing-tools/WasmVOWL/CLAUDE.md
   - ../visionGraph/publishing-tools/WasmVOWL/CAPABILITIES.md
   - ../visionGraph/publishing-tools/WasmVOWL/Dockerfile
   - ../visionGraph/publishing-tools/WasmVOWL/modern/package.json
-  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/site/mesh.ts
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/lib/nggGraph.ts
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/router.tsx
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/site/mesh.ts
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/types/scope.ts
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/site/domains.ts
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/api/pageService.ts
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/api/fetchArtefact.ts
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/positionTransport.ts
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/stores/scopeStore.ts
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/build/runtimeNotices.ts
   - ../visionGraph/.github/workflows/publish.yml
-  - ../knowledgeGraph/explorer/CLAUDE.md
+  - ../visionGraph/docs/adr/ADR-VG-007-shared-ontology-workspace-and-profile.md
   - ../knowledgeGraph/explorer/modern/package.json
   - ../knowledgeGraph/explorer/modern/src/site/mesh.ts
   - ../knowledgeGraph/explorer/modern/src/types/scope.ts
-  - ../knowledgeGraph/explorer/modern/src/site/domains.ts
-verified_commit: {visiongraph: 7b0875f2c26b9e69dc5c97e9c88166acc14c47dc, knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3}
+verified_commit: {visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e}
 ---
 
-## VG-06.1 Two copies of one codebase — 39 of 108 shared files now differ
+## For developers
+
+The configured publisher builds this host, whose renderer and codec come from pinned releases. Read the adapters and content path separately from the retained knowledgeGraph copy; their dependency, domain and transport contracts differ.
+
+## For the business
+
+Readers can explore relationships and open corpus prose, but a successful graph build does not establish that every page is current or available. The dated audit separates passing interaction tests from unresolved content and deployment acceptance.
+
+## VG-06.1 Configured publisher and retained sibling
 
 ```mermaid
 flowchart TB
-    subgraph HERE["visionGraph/publishing-tools/WasmVOWL<br/>THE tree publish.yml builds, smokes and deploys"]
-        MODERN["modern/src/router.tsx — 135 lines<br/>adds readBaseUrl#40;#41; + basename for sub-path deploys<br/>WasmVOWL/modern/src/router.tsx:64-75 and WasmVOWL/modern/src/router.tsx:135"]
-    end
-    subgraph SIBLING["knowledgeGraph/explorer — the OTHER copy<br/>built by nothing in that repo — see KG-04.6"]
-        MODERN2["explorer/modern/src/router.tsx — 111 lines<br/>no readBaseUrl#40;#41;, createBrowserRouter takes no basename"]
-    end
-    HERE -.->|"router.tsx diverges: the shipping tree gained sub-path routing"| SIBLING
-    DIFF["108 files exist in both trees and 39 of them differ — package.json, package-lock.json,<br/>README.md, llms.txt #40;x2#41;, About/Data/Home/GraphPage/PageView, site/mesh.ts, site.css,<br/>router.tsx, the nine-domain set: scope.ts, domains.ts, icons.tsx, palette.ts, EdgeLegend, theme.css,<br/>and the smoke and deployment scripts — see VG-06.5"]
-    HERE --> DIFF
-    SIBLING --> DIFF
-    note1["Neither copy is strictly ahead: the shipping tree gained sub-path routing and nine domains,<br/>while VG-06.4 shows the sibling's site/mesh.ts has an export the shipping tree never received,<br/>and the sibling still carries Three.js canvas files that no longer exist in the shipping tree<br/>#40;EdgesSegments, LabelsTopN, NodesInstanced, lib/ngg1.ts#41;"]
-    DOCKERFILE["Dockerfile — 15 lines, FROM tomcat:9-jre8-alpine,<br/>wget webvowl_1.1.7.war into ROOT.war — Dockerfile:6 and Dockerfile:13"]
-    HERE --> DOCKERFILE
-    note2["DOC-DRIFT: Dockerfile is vestigial — no 'docker' token<br/>anywhere in publish.yml; the actual deploy path is npm<br/>build #40;VG-03.1#41;. Inherited unchanged from the pre-React,<br/>Java-Tomcat WebVOWL 1.1.7 lineage #40;see also KG-04.6#41;"]
+    %% Source: ../visionGraph/.github/workflows/publish.yml:421
+    A["visionGraph publisher builds<br/>publishing-tools/WasmVOWL/modern"]
+    %% Source: ../visionGraph/.github/workflows/publish.yml:441
+    A --> B["Copy built shell/assets into www<br/>preserve authoritative machine trees"]
+    %% Source: ../visionGraph/.github/workflows/publish.yml:526
+    B --> C["Deploy assembled site to<br/>knowledgeGraph gh-pages"]
+    %% Source: ../knowledgeGraph/explorer/modern/package.json:20
+    D["Retained knowledgeGraph/explorer<br/>vowl-wasm 0.1.1 and React Three Fiber"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/package.json:24
+    A --> E["Configured host uses shared graph 0.2.0<br/>and vowl-wasm 0.2.2"]
+    D -.->|"different source and package contracts"| E
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/Dockerfile:6
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/Dockerfile:13
+    F["Legacy Dockerfile downloads WebVOWL WAR<br/>Tomcat path is separate from this publisher"]
 ```
 
-## VG-06.2 RESOLVED — this tree's CLAUDE.md no longer documents a Rust crate that is not here, but the two copies pin different vowl-wasm releases
+**What it shows:** The workflow selects a concrete source tree and distribution repository. It does not identify the revision currently served by the public site.
+**Why it is this way:** ADR-VG-007 keeps the site host and deployment here while extracting reusable graph software. The retained sibling is assessed separately in KG-04.
+
+## VG-06.2 Shared renderer and codec, with host-owned interaction
 
 ```mermaid
 flowchart TB
-    SHIPCM["publishing-tools/WasmVOWL/CLAUDE.md:27-28 —<br/>'The physics engine is NOT in this repo... consumed here as a pinned,<br/>integrity-locked dependency'"]
-    SIBCM["knowledgeGraph/explorer/CLAUDE.md:27-28 — the same sentence"]
-    SHIPPKG["shipping WasmVOWL/modern/package.json:25 — @dreamlab-ai/vowl-wasm from the<br/>v0.2.2 release tarball, plus @dreamlab-ai/ontomark-graph at WasmVOWL/modern/package.json:24"]
-    SIBPKG["sibling explorer/modern/package.json:20 — the v0.1.1 release tarball,<br/>no ontomark-graph dependency"]
-    SHIPCM --> SHIPPKG
-    SIBCM --> SIBPKG
-    note1["RESOLVED: the earlier stamp recorded 12 references to a rust-wasm/ directory<br/>in the shipping tree's CLAUDE.md and a fix that had landed only in the sibling.<br/>Both files now carry the corrected paragraph at the same lines, and the shipping<br/>copy has no rust-wasm reference left"]
-    note2["DRIFT: the two copies consume different releases of the engine, 0.2.2 shipping<br/>against 0.1.1 sibling, so the sibling cannot be dropped in without the<br/>owned decode and encode bindings that 0.2.0 adds #40;see VW-04.8#41;"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/lib/nggGraph.ts:7
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/lib/nggGraph.ts:49
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/lib/nggGraph.ts:94
+    A["Released Rust/WASM validates NGG1<br/>adapter copies metadata and frees graph"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:52
+    A --> B["Host maps scope nodes, colours and edges<br/>into shared GraphData"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:121
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:126
+    B --> C["mountGraph and setGraph<br/>same-generation filters preserve viewport<br/>destroy view on unmount"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:103
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:116
+    C --> D["Selection and activation update host store<br/>drag mutates scope positions<br/>simulated tiers pin and unpin nodes"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:44
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:148
+    E["Domain and focus may simulate<br/>finite bounded snapshots update view"] --> C
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/positionTransport.ts:82
+    E --> F["Transfer pool counts in-flight ownership<br/>does not require returned object identity"]
 ```
 
-## VG-06.3 CAPABILITIES.md — still measures a Python pipeline publish.yml no longer runs at all
+**What it shows:** The publishing host has adopted shared drawing and Rust binary ownership. Local state, physics and content integration remain host responsibilities.
+**Why it is this way:** ADR-VG-007 separates shared graph ownership from application policy. Current tests exercise real shared modules with DOM/canvas stubs, not a deployed browser.
 
-```mermaid
-flowchart LR
-    TOOLCHAIN["CAPABILITIES.md:6 — 'measured with rustc 1.97.0,<br/>wasm-pack 0.15.0, node 22.23.1, vite 6.4.3, python 3.12'"]
-    NOTOOL["no Rust toolchain builds the engine in publish.yml for this tree —<br/>npm ci pulls the PUBLISHED @dreamlab-ai/vowl-wasm release<br/>EXTERNAL: see VG-03.3"]
-    PIPEPATH["CAPABILITIES.md:24 — 'python -m pipeline.build<br/>mainKnowledgeGraph/pages www': 7,444 pages"]
-    REALPATH["publish.yml now downloads the released ontomark CLI by tag and digest<br/>and runs ontomark validate + ontomark build --vault all --publish-out<br/>publish.yml:98-117 and publish.yml:127-171;<br/>python -m pipeline.build does not appear in the workflow"]
-    TOOLCHAIN -.->|"stale — pre-externalisation local Rust build"| NOTOOL
-    PIPEPATH -.->|"doubly stale — the Python pipeline this line<br/>describes has been REPLACED, not just relocated"| REALPATH
-    note1["DOC-DRIFT: CAPABILITIES.md's 'Working' table is dated 2026-07-23 #40;CAPABILITIES.md:5-6#41;<br/>and was already stale before the vowl-wasm externalisation and the Logseq to Obsidian<br/>split; the workflow it partly described has since moved from a Python pipeline to a<br/>VisionClaw vault binary and now to the released ontomark CLI — see VG-03 for that migration"]
-```
-
-## VG-06.4 site/mesh.ts and router.tsx — two files, drifting in OPPOSITE directions from the same sibling
-
-```mermaid
-flowchart TB
-    MESH["site/mesh.ts — PRD-NG-001 §8, DDD §5<br/>'Ecosystem context — shared kernel of identity'<br/>MESH_REPOS: VisionFlow, VisionClaw, agentbox,<br/>solid-pod-rs, nostr-rust-forum, + 2 more<br/>WasmVOWL/modern/src/site/mesh.ts:15"]
-    ROUTER["THIS #40;shipping#41; router.tsx — adds readBaseUrl#40;#41;<br/>+ basename for sub-path deploys, 135 lines<br/>WasmVOWL/modern/src/router.tsx:64-75 and WasmVOWL/modern/src/router.tsx:135 — see VG-06.1"]
-    ROUTERSIB["knowledgeGraph/explorer's router.tsx — 111 lines,<br/>no readBaseUrl#40;#41;, fixed root-only routing"]
-    NOLOOM["THIS #40;shipping#41; mesh.ts — 31 lines,<br/>no LOOM export"]
-    LOOM["knowledgeGraph/explorer copy — explorer/modern/src/site/mesh.ts:38<br/>adds 'export const LOOM = #123; repo: .../loom #125;'<br/>the grounding-node link, kept separate from<br/>MESH_REPOS 'so the canonical seven-repository<br/>mesh copy stays intact'"]
-    MESH -.->|"missing an edit present in the sibling"| NOLOOM
-    ROUTER -.->|"gained a capability the sibling lacks"| ROUTERSIB
-    note1["DIVERGENCE: mesh.ts and router.tsx drift in OPPOSITE directions from the<br/>same sibling repo. mesh.ts — the sibling #40;knowledgeGraph#47;explorer#41; has an<br/>edit #40;Loom link#41; never ported here. router.tsx — THIS #40;shipping#41; tree has<br/>gained sub-path basename support the sibling never received. Same-repo<br/>pair, no shared sync discipline either way"]
-```
-
-## VG-06.5 Nine domains in the shipping tree, six in the sibling
+## VG-06.3 Historical capability measurements and current build boundary
 
 ```mermaid
 flowchart TB
-    VGSCOPE["shipping tree — DOMAIN_SLUGS, index = NGG1 domain id,<br/>nine entries ending space-science-and-systems,<br/>earth-observation-and-geospatial-sensing and supply-chains-and-logistics<br/>WasmVOWL/modern/src/types/scope.ts:75-86"]
-    VGMETA["shipping domains.ts — 'the nine-Domain descriptor table'<br/>WasmVOWL/modern/src/site/domains.ts:2"]
-    KGSCOPE["knowledgeGraph/explorer — DOMAIN_SLUGS stops at<br/>infrastructure, six entries<br/>explorer/modern/src/types/scope.ts:72-80"]
-    KGMETA["sibling domains.ts — 'the six-Domain descriptor table'<br/>explorer/modern/src/site/domains.ts:2"]
-    VGSCOPE --> VGMETA
-    KGSCOPE --> KGMETA
-    VGSCOPE -.->|"ids 0-5 identical, 6, 7 and 8 only here"| KGSCOPE
-    note1["INVARIANT: the slug order IS the NGG1 u16 domain id and is frozen,<br/>so new domains append — WasmVOWL/modern/src/types/scope.ts:75"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/CAPABILITIES.md:24
+    A["Historical capability table<br/>Python pipeline, 7444 pages<br/>six domains and July measurements"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/CAPABILITIES.md:50
+    A --> B["Historical claim: focus does not simulate"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:44
+    B -.-> C["DRIFT: current host simulates<br/>domain and focus scopes"]
+    %% Source: ../visionGraph/.github/workflows/publish.yml:48
+    %% Source: ../visionGraph/.github/workflows/publish.yml:175
+    D["Current publisher uses ontomark v0.7.0<br/>all-vault public build"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/package.json:8
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/package.json:24
+    D --> E["npm installs released graph and WASM<br/>local Rust builds runtime-notices tool"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/build/runtimeNotices.ts:12
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/build/runtimeNotices.ts:22
+    E --> F["Rollup collects rendered browser/worker modules<br/>Rust emits runtime inventory and licence text"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/CLAUDE.md:8
+    G["DRIFT: guide still claims React Three Fiber<br/>feature completion and historical FPS"]
 ```
 
-**What it shows:** the space, Earth-observation and supply-chain domain changes landed only in the tree that ships. Its scope contract lists nine domain slugs, with the three new ones appended at ids 6, 7 and 8. The knowledgeGraph copy still lists six, and its descriptor table still calls itself "six-Domain".
-**Why it is this way:** the domain work was done in visionGraph, where `publish.yml` builds the explorer, and no sync discipline carries edits to the sibling (VG-06.4). Because the sibling is built by nothing (KG-04.6), the gap does not reach the live site today. It does mean the sibling can no longer be dropped in as a replacement for the shipping tree.
-**Debt:** the two explorer copies now differ in 39 of 108 shared files (counted at the two stamps by byte comparison, node_modules excluded; the earlier text counted 33 by a method this refresh did not repeat); the domain contract (`scope.ts`, `domains.ts`, icons, palette, legend) is the largest block.
+**What it shows:** The old measured capability table and broad guide claims do not describe the current producer or renderer. Local Rust still builds the notice tool, not the published engine.
+**Why it is this way:** The extraction decision changes component ownership. Historical timings and vulnerability counts need dated, scope-specific evidence rather than promotion into current guarantees.
+
+## VG-06.4 Current links and route behaviour
+
+```mermaid
+flowchart TB
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/site/mesh.ts:15
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/site/mesh.ts:22
+    A["Publishing host: nine MESH_REPOS<br/>Loom and sidestr-rs included"]
+    %% Source: ../knowledgeGraph/explorer/modern/src/site/mesh.ts:15
+    %% Source: ../knowledgeGraph/explorer/modern/src/site/mesh.ts:38
+    B["Retained sibling: seven MESH_REPOS<br/>separate LOOM export"]
+    A -.->|"different link tables"| B
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/router.tsx:64
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/router.tsx:135
+    C["Publishing router uses Vite BASE_URL<br/>trimmed to browser-router basename"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/api/pageService.ts:169
+    C --> D["Data requests remain root-absolute<br/>router basename is not data relocation"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/router.tsx:48
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/router.tsx:108
+    C --> E["Legacy ontology node route redirects<br/>query retained, path node identity omitted"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/router.tsx:19
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/router.tsx:32
+    C --> F["DEBT: chunk reload flag cleared immediately<br/>and at module load, not a durable retry budget"]
+```
+
+**What it shows:** The earlier missing-Loom statement is obsolete. Sub-path routing, root data paths and legacy identity handling are separate contracts.
+**Why it is this way:** Site chrome and routes remain local under ADR-VG-007; a mesh hyperlink is not evidence of live Loom integration or consumer convergence.
+
+## VG-06.5 Nine domain IDs and bounded scope validation
+
+```mermaid
+flowchart TB
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/types/scope.ts:75
+    A["Publishing host: nine ordered domain slugs<br/>index is NGG1 domain ID"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/site/domains.ts:60
+    A --> B["Descriptor table derives IDs, labels<br/>icons and tints from that order"]
+    %% Source: ../knowledgeGraph/explorer/modern/src/types/scope.ts:73
+    C["Retained sibling: six ordered slugs<br/>same first six IDs"]
+    C -.->|"three extra domains"| A
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/stores/scopeStore.ts:512
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/types/scope.ts:153
+    D["Overview builder copies supplied arrays<br/>assertScope enforces count ceilings"]
+    D --> E["DEBT: count ceilings do not establish<br/>finite integer counts, array lengths<br/>or valid overview edge endpoints"]
+```
+
+**What it shows:** Domain order remains a public identity contract. Binary codec validation and the JSON overview builder have different validation boundaries.
+**Why it is this way:** The profile and consumer taxonomy must agree without renumbering existing IDs. Passing domain presence gates does not establish a structurally valid graph.
+
+## VG-06.6 Prose lookup, compression and freshness limits
+
+```mermaid
+flowchart TB
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/api/pageService.ts:163
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/api/pageService.ts:189
+    A["Resolve requested page through search index<br/>successful index is cached in module"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/api/pageService.ts:229
+    A --> B["Fetch page JSON then title-based Markdown<br/>successful responses have module caches"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/api/fetchArtefact.ts:22
+    B --> C["Try gzip then raw representation<br/>gzip magic selects decompression stream"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/api/fetchArtefact.ts:29
+    C --> D["DEBT: corrupt stream can fail on body read<br/>after fetch helper has returned<br/>raw fallback is then not attempted"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/api/pageService.ts:238
+    B --> E["Use mirror prose, else definition<br/>and a link to Quartz full page"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/api/pageService.ts:276
+    A --> F["DEBT: unavailable or unmatched index<br/>returns concept-exists stub<br/>without a page lookup"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/api/pageService.ts:61
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/api/pageService.ts:113
+    B --> G["DEBT: caches have no generation identity<br/>long-lived session can retain old prose"]
+```
+
+**What it shows:** The current host removes the external raw-GitHub fallback and adds gzip support, but still conflates some outages with missing content and retains successful responses indefinitely.
+**Why it is this way:** These are current consumer boundaries reproduced with injected responses. They do not establish a live-site outage or override the separate publication identity findings.

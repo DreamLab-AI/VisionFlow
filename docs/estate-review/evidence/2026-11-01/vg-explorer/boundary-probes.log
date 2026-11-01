@@ -1,0 +1,9 @@
+
+ RUN  v4.1.10 /home/devuser/workspace/wt/VisionFlow-vg-explorer/.audit-explorer
+
+
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Start at  05:13:47
+   Duration  1.14s (transform 275ms, setup 204ms, import 199ms, tests 114ms, environment 443ms)
+

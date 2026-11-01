@@ -7,6 +7,8 @@ type: explanation
 
 # VisionFlow estate review
 
+VisionGraph explorer/profile continuation: [six VG-06 panels, ADR-VG-007 section review, 111 existing tests and sixteen boundary scenarios](2026-11-01-visiongraph-explorer-and-profile.md). All six current visionGraph topics and eight operative ADRs now have source/section assessments; implementation findings, intake programmes and runtime acceptance remain open.
+
 VisionGraph publication continuation: [ten corrected panels, ADR-VG-001/002 section assessments and eight pull/storage tests](2026-11-01-visiongraph-publication-and-identity.md). A corpus-only refresh can be skipped when the consumer build SHA is unchanged. ADR-VG-007, VG-06 and full runtime acceptance remain open.
 
 VisionGraph source-admission continuation: [five new VG-07 panels, two ADR section assessments, 23 importer probes and 39 current competency assertions](2026-11-01-visiongraph-source-admission.md). Source-policy binding, semantic checks, partial staging and reproducible builds remain open.

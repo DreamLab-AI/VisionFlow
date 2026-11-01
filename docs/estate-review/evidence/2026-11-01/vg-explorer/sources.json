@@ -1,0 +1,2444 @@
+[
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": ".github/workflows/publish.yml",
+    "sha256": "7508b63c8b591b8f915a1f9651ce0b270160198f72d80bdb2292bedba6e9bd7c"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/adr/.ledger.json",
+    "sha256": "64fa7d775f9f2ffb11b487b153aa7a6be7836cd1011c63f3015cd1aed0cd6efb"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/adr/ADR-VG-001-publication-policy-boundaries.md",
+    "sha256": "61821c4310b5b0a95401fce026980875dab3b286b10233be5e846baad770dce8"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/adr/ADR-VG-002-generation-and-consumer-identity.md",
+    "sha256": "3a6b91ee83bae8758e48b6ee884dd8b819c5cf372f9632121029b638ed01baf0"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/adr/ADR-VG-003-obsidian-only-authoring.md",
+    "sha256": "423786ad7bd1ddc7f68360d6abca537725398e4ff5caf0b65ba81b1974a4937f"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/adr/ADR-VG-004-space-and-earth-domains.md",
+    "sha256": "16a680bf136539190119c7cf05de007da03d61d5fbf052cbdd8d244b8a2c5ee4"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/adr/ADR-VG-005-licensed-source-admission.md",
+    "sha256": "a4b702d3ca2d1b256693862494147f20bce50f142b1b0170e5d5a174a846c5ae"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/adr/ADR-VG-006-ontology-to-obsidian.md",
+    "sha256": "8ce14006beddafde321dc98edc5a1cc6fdf9cbf2c9e148a0cd3fc40d33dccef3"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/adr/ADR-VG-007-shared-ontology-workspace-and-profile.md",
+    "sha256": "33c93dbc04ae34210f4dac0a93fa95c4f433740be16977041994a454034ebb8a"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/adr/ADR-VG-008-supply-chains-and-logistics-domain.md",
+    "sha256": "67c5561b942d73838aa93d1a5bf8cb027882ebde24bc08694a82da5ce8c23ab5"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/adr/PREAMBLE.md",
+    "sha256": "575db48f3ff4d2611b7b568b1585331c5e3ab98cf5fa6457f8ff8caea8d5bb61"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/adr/README.md",
+    "sha256": "e760fdf725427c77086a2f19e54da7f47c31439633e30ad88feaee6ae4d7f7c6"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/migration-2026-10-31/m0001-plan.json",
+    "sha256": "80755d173788ec7d2ce72698a2090bdba8bb2720bdef4d3427c8d7c2b68f822c"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "docs/migration-2026-10-31/m0001-plan.txt",
+    "sha256": "a0773b069a26cf7ff0c338cacd977bf8ccb96cac6b7f1c9308b2934af92871e4"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "ontology/collision-allowlist.yaml",
+    "sha256": "6fb78ee80ef6bf68e83a952a5970994fe50c737a0b4b5b7b051b026dd9706829"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "ontology/collision-decisions.yaml",
+    "sha256": "f301d3134ae1f00645be578b69a08ba065f8d458761272fabac63e9611dc8a94"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/.claude-flow/metrics/agent-metrics.json",
+    "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/.claude-flow/metrics/performance.json",
+    "sha256": "c4a35ad28848d01f58971fe1204caa256810620d9108db745f0ae76ac0e4bc26"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/.claude-flow/metrics/task-metrics.json",
+    "sha256": "5b62b9e44b6637046bca89082ec0e4802e384005602cea3a06180c4af57219c3"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/.gitignore",
+    "sha256": "60a1e8fa4206bb16e716cb360b66ddca3bcd777619704769227a011725db25f2"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/CAPABILITIES.md",
+    "sha256": "f8476eecdf0ab38060f308d2fd78b7fe06644b879b421254225067e2d6c44b1a"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/CHANGELOG.md",
+    "sha256": "86586d1084b0acd94b834a6019dfb0c8f8ed9f7889baabc960a62d9b4c2d58c6"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/CHANGES.md",
+    "sha256": "78c8cfd06cd7576d3269f3127d2c313a5df33d44b489077a4063dc7f2ac52d4c"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/CLAUDE.md",
+    "sha256": "6dcc7671488dfd451d0e9d952af4bb23488f1836f6324a053051e88f54961bd2"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/DEPLOYMENT-READY.md",
+    "sha256": "90cfccd3605a470383c3a799fe3ec23954a3a203e932b67b94cf411144b359d9"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/Dockerfile",
+    "sha256": "659e15c0cbb2e92602d976df6742b0b3788308b25a1057f75f083293c7112e76"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/FORMAT-NGG1.md",
+    "sha256": "20af8a90366086ef9f88eb64add05ad3c3b65e6822ba79688a28b09b7d46f68f"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/HIERARCHY_FOLDING_STATUS.md",
+    "sha256": "16b1a112ac6c6a4ec7192b868449d6bc7a20e357fbbcc08f8248bed368e43ed7"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/MERGE_IMPACT_ANALYSIS.md",
+    "sha256": "420803a2f37bb7aec708bf24e5d3da023390443d137206b10aa3abd4f56e1a5c"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/PHASE_11_INTEGRATION.md",
+    "sha256": "6a0cf8ef5fcfefbfef4fa22f0754c7742234a6e176be897e154264d5547e2535"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/README.md",
+    "sha256": "c6837d94112ac2d2e37f82a536ae7ce3a66751c999b6a01db202ad779350360e"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/V2-DATA-ANALYSIS.md",
+    "sha256": "73318485023d5cdfa00cc572220591d7dd046061c2897979790347bd2c86c715"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/V2-INTEGRATION-GAPS.md",
+    "sha256": "c0fa1e8abe8e6c3580bf939e36d7c132dbaa17ab8dcfaec6ff1a7e2cdf197bd0"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/VOWL-SPEC.md",
+    "sha256": "7602fd8602f5c7c2cf82e911ef5507c6c7f25f225e5e88cfcd56ae9389e2849b"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/docker-compose.yml",
+    "sha256": "3ac9a26a4249c75a8716f1d4c4832365167239bde0b64754603469a533c8f42a"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/docs/DEPLOYMENT-FLOW.md",
+    "sha256": "56f4d1115448e4e7b665dd92044f10686e11f7acbfba3e337d517fa97d2f26c7"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/docs/IMPLEMENTATION-SUMMARY.md",
+    "sha256": "be8ffb73ffa4ac737bbcb093100cd85c68084f9336d270beb18542f2b95389b9"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/docs/INTEGRATION-GUIDE.md",
+    "sha256": "88bdbda3d5dbb74b0f4039f32c8caa9d347e697f9e48ac06e021bb42072d84d2"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/docs/WASM-INTEGRATION-STATUS.md",
+    "sha256": "c98966bbb9ceb23e46a138b6ae89c48aa370b79efb0a67c5550b1be06f6601ec"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/docs/best-practices-research.md",
+    "sha256": "9fdf3ece785fafaca93e3c19ca52ae7cc04adf331663f0d484ceefc52bc47224"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/docs/feature-gap-analysis.md",
+    "sha256": "e009d921c0ab62e9e89e104acc958b51db6ceac12442aa5a27c542e0eb01c9be"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/docs/implementation-checklist.md",
+    "sha256": "92faca600cf03b8c3ae60097e63d3e617f640ed2d807a7f25bcb8bea8c62a5af"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/docs/optimization/legacy-feature-comparison.md",
+    "sha256": "8a4016ada00eec4663e933e3acd9b9962af4146c6cb4df9a3fea4943ec0c3c53"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/docs/phase1-architecture.md",
+    "sha256": "58aa59a7b7ddfa6a2abe44e84d2be0c0e435b83e1519dc2d6d08cb1cc5bfbb77"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/docs/phase3-task3.2-completion-report.md",
+    "sha256": "d7e95754ace4d1fb7684a95ca243b7d7251ba393ea5b47a58fcfc2b7772059b1"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/license.txt",
+    "sha256": "d07986d8f3441f0a563f237aa3778489c763def2e151911e1774a18deff89cde"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/.claude-flow/metrics/agent-metrics.json",
+    "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/.claude-flow/metrics/performance.json",
+    "sha256": "252fad6123c71a55c33acebb45be720468a836307d6574be036cc5fb6a7a55d4"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/.claude-flow/metrics/task-metrics.json",
+    "sha256": "d38612965990f8842d3dcb75f8cddb3b14dbd67f1ef871eb04b7017528758767"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/.gitignore",
+    "sha256": "9a6179ca7afa98444d2543c6cb7cbad9ae7a956765df8b6fa7b01bb036b3d22f"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/@/components/ui/accordion.tsx",
+    "sha256": "6b84cb28b5c8e2129d854cffb8c5ba0161758d577db6db30a380cf593a8c0705"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/@/components/ui/collapsible.tsx",
+    "sha256": "f4cdd104de29928bfcd40b865c7d08eed9157a537fbb8b5e6d0921f02b63cc04"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/@/components/ui/dialog.tsx",
+    "sha256": "60d5246653c714fc12a67743ee5951331ecd2548cdaef9a599922bcb14da26db"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/@/components/ui/slider.tsx",
+    "sha256": "61e959d046f72e295d73a822b9afc7cc87ec6d1007905f2572e6117d7b2067b6"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/README.md",
+    "sha256": "f2797ec8654a9c7748f601672af81c8197cb25ad345568b77a0330e18a3c43d1"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/build/runtimeNotices.ts",
+    "sha256": "a0858528b6588b59127e8d6724d3139f6d07b6f7a4bf566068b75314323e2feb"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/docs/LAYOUT_MIGRATION_REPORT.md",
+    "sha256": "6348470c81e641acdf7de488a76d371e01130be3af74f1cc0ef0df478ede8b57"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/docs/UI-MIGRATION-COMPLETE.md",
+    "sha256": "5071cd6f3102f26f72774802199191eca27989490cee61bac44b1a85e0f005dc"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/eslint.config.js",
+    "sha256": "088e9031a1668aacb8163463e8c1238c82f9188075c4216b04a615e7ad4c92d4"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/index.html",
+    "sha256": "5b350603337ef1f41b888c7fb541956666f9d89c14b17bc3d4516e651558588c"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/inspect-graph.js",
+    "sha256": "c13ef46fd1670c6900fc69bb829524ffe92c1b81e711d14b9a0cf50f872cabbb"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/monitor-deployment.mjs",
+    "sha256": "7242f58411ed6ec93e1f56caebb431dcac3c212d68603402b1edf680e0be5214"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/package-lock.json",
+    "sha256": "9ebfb3adc49a4470610e021a1dcd4a9f7d12386e120c0f7cb8772b9680c64ee9"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/package.json",
+    "sha256": "45fdb68c3d8a4a331aab14971c8cee63670679be052fbd218ec4a57ce89f42e3"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/postcss.config.js",
+    "sha256": "3bae3b38a671927bd3e5c1dba32c1cac708d1d9d4b12fdbccc4b6b4184611273"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/.well-known/llms.txt",
+    "sha256": "5f650dac6c45b407476e1d2d0e568c5f22536c4100983cb2ddfe01f2716da420"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/404.html",
+    "sha256": "5ce8f1e8d293112e9b0609c1fee63ea2f22d9ba07c42d4c1dfd7251f0897fd50"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/_headers",
+    "sha256": "376048b1a81a0b496752c5b91912f02efd7594c55daf3784a9096706cbb8339f"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/api/search-index.json",
+    "sha256": "2419bd83374168128caca836af42b559ba93777c5022071f6421db7e53117e54"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/coi-serviceworker.js",
+    "sha256": "d054e1114e5fc2c246edece2b481f33da32cd646042405ba546a800b03740dc5"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/data/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/data/graph/domain-artificial-intelligence.bin",
+    "sha256": "d29793a4ca850ac80700047ed360593bb42236cf11adbee60105fee8f4cafbe6"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/data/graph/domain-blockchain.bin",
+    "sha256": "d38a9f2484dc2f40e7f88457da8dd447a1492409c272c6a629a04d05d17d840c"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/data/graph/domain-distributed-collaboration.bin",
+    "sha256": "1f006bde334b47769614902bd73fbbbad5ba744247c6cd72217e2b65738712c8"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/data/graph/domain-infrastructure.bin",
+    "sha256": "079f9c61f215ad2dc09fee515f68e5b96451b33baf2ebbe47471b62e4136d14b"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/data/graph/domain-robotics.bin",
+    "sha256": "a08642dda8a261dedcbf34d1cb5ae32176abaa911d5954e5af45423e153c5eef"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/data/graph/domain-spatial-computing.bin",
+    "sha256": "7a3b78046b0e539c3efdfa3c61bc72998a888e5d98a52d4ad5f1440d2222678a"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/data/graph/full.bin",
+    "sha256": "4c433657072e5a2aeb8eca64c419d3d078ce4c6f046c6a7616e6664fa9181e45"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/data/graph/overview.json",
+    "sha256": "28a30b96b178f7e8c098aa5f939c075a523e62c65951a7c3e3f65d8e2b9dc613"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/data/graph/stats.json",
+    "sha256": "e9f9c14c85374478ec68905b331cdc5492f3862826dabdc5eb8eaf6690a5e17b"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/data/ontology.json",
+    "sha256": "4b57a4aa2ee8e73a413a7a8121ccfaecf4baa78ad514a89621f23eac44279b40"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/images/heroes/ai-hero.webp",
+    "sha256": "3b05cbd9899f2d020217c45f2d7637f8a2b777a03f7e3b3de90f4be1fcb5c653"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/images/heroes/blockchain-hero.webp",
+    "sha256": "6821706848e0fa7e4bc20d0d74fccec30e3e4e36f49137fe07a1d56366489968"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/images/heroes/metaverse-hero.webp",
+    "sha256": "15d5bd3269d45d255e437b786b7b7ef55ac5420360e2a4c78b683e344d874312"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/images/heroes/ngm-hero.webp",
+    "sha256": "2b431216d41445b4384415cd326acf058556a6fd56be321bf2a8ce7f23b4dcf1"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/images/heroes/robotics-hero.webp",
+    "sha256": "11c89b84719af1413cbb47a970ac43ffb94d843114cb0d8588c13204ccea1b89"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/images/heroes/telecollaboration-hero.webp",
+    "sha256": "b70fe651a55ada661951d0d5ebdb2bb49806365f72cf21f9645cc1861d7dcb5c"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/img/dreamlab-hero.webp",
+    "sha256": "7dd883bcf81ba73c456578571aff013b34f8807ea02a1c18380e419ae7e839c5"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/llms.txt",
+    "sha256": "5f650dac6c45b407476e1d2d0e568c5f22536c4100983cb2ddfe01f2716da420"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/third-party-notices/ontomark-graph-0.2.0.md",
+    "sha256": "c6bdc4019544d46cdb0b7a5f1965e14d16f08a04fc1ef48157a4ac812ed71b23"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/third-party-notices/vowl-wasm-0.2.2.md",
+    "sha256": "2c1e67a10040fa6f5ee63c46a6ce96fd85af7bd929aa49e0fa0683bfd86b8a37"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/public/vite.svg",
+    "sha256": "4a748afd443918bb16591c834c401dae33e87861ab5dbad0811c3a3b4a9214fb"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/publishing-tools/WasmVOWL/modern/.claude-flow/metrics/agent-metrics.json",
+    "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/publishing-tools/WasmVOWL/modern/.claude-flow/metrics/performance.json",
+    "sha256": "b57c17effa11ca09f6f3c16b1590528aaac398441b2bec8762a82706c5ab14fc"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/publishing-tools/WasmVOWL/modern/.claude-flow/metrics/task-metrics.json",
+    "sha256": "15dea31f281e21a1e5a17f665e1c5349304d13d53aad0437480a59b62914c046"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/scripts/check-space-domains.mjs",
+    "sha256": "fdbe24cd10434bd647d150b3b8aa701a69eddb140863937871fe75471b73eb89"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/scripts/check-supply-chain-domain.mjs",
+    "sha256": "6681419b5fd0da0257fb0a4580b413d7e5ba18717582727a4e42da8d9b5b3180"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/App.css",
+    "sha256": "5a3954823ccbe0bab03b61f752834d920d2eee74363e53324a8a9463c2143189"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/App.tsx",
+    "sha256": "d28ae23d1e8946d3f966e4d5faf86d0124b56a3eac5a38dfe9f8a58d00340a60"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/api/fetchArtefact.test.ts",
+    "sha256": "01203cab6a2515884f00af9bf2060baa598d4efe3b959488dc2f0a3bbb9fd5ae"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/api/fetchArtefact.ts",
+    "sha256": "bcdc5a799ce932413a086248ac1ec65dc6b16616fc18b52c7282d0c5fe0f6de0"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/api/pageService.ts",
+    "sha256": "6d038bce13039be97436332633815cade97df1ddf41784ab26761505827424e3"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/assets/react.svg",
+    "sha256": "35ef61ed53b323ae94a16a8ec659b3d0af3880698791133f23b084085ab1c2e5"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx",
+    "sha256": "f04e7ca800d598297669a0d4fbac8ea92cf563d69308b4950ea0b625adcb8ccb"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/Canvas/__tests__/GraphCanvas.drag.test.tsx",
+    "sha256": "5efd498af3085df97099f0538e154f50c74c2653c3ac986defe3d261c4535e45"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/Canvas/__tests__/GraphCanvas.test.tsx",
+    "sha256": "98b9d8de2114a8e6b66f2ac92d94dedc5ebe881159836f5b7087380221a7510b"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/Canvas/palette.ts",
+    "sha256": "ad36bcd47a03903fe5b6f47f87c4eca2d8cd64370d38212433f5ce249478f832"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/PageRenderer/CodeBlock.tsx",
+    "sha256": "3dda46211f9e17da8e3d02eeecff78e56d4340a1c3f4b97f1a1f15de0fc7a119"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/PageRenderer/MarkdownRenderer.tsx",
+    "sha256": "7355542b3a4a32c9bb87624e1883e58894aecb2fa68f8ccf32130cf5c980d119"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/PageRenderer/WikiLink.tsx",
+    "sha256": "1e6b82673dac055f3e696d70b1b1b0f2931133357e601cdc57e0993b02aaf324"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/UI/EdgeLegend.tsx",
+    "sha256": "f2b683e6e8462a25a938db327b3b91d6268a453846b3b2ce76e0d195056d0cc6"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/UI/GraphBreadcrumb.tsx",
+    "sha256": "6c9607aeb8c5004b3be9fc20dca40424bd709298365a92594df4c1d530be216a"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/UI/GraphControls.tsx",
+    "sha256": "ac671303cc0340e23b1d7a3890fdf8a3e93291c4fa2e7d8687b13a297c42d931"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/UI/GraphSearchBox.tsx",
+    "sha256": "98294c6ee70ec8d1059bfb73c2eee533b2886560d6d5323430ed091c33f8e0e4"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/UI/LoadingSpinner.tsx",
+    "sha256": "18fda1bac17da15be410462c8a6ec8c6fbb1c919400b4beb37710131d5eb3f06"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/UI/NodeListFallback.tsx",
+    "sha256": "ef6596a60410ee8f0471d0d8879a2b514fbd09a7bdfeb4c0402596a8e1b6d0f5"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/UI/NodeSidePanel.tsx",
+    "sha256": "757cf00ad712c822b0469406ada447bcf1197562d5812ca0bee189500a851a34"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/UI/ScopeStatus.tsx",
+    "sha256": "23b4924580992f8e00e18783b36cfc577029db56154b352c8b350c252eb378b9"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/UI/types.ts",
+    "sha256": "a458906a1eb39ae6b79df0ea3110f967b5d47384422e51cfafa09b52ce7ec175"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/ui/accordion.tsx",
+    "sha256": "6b84cb28b5c8e2129d854cffb8c5ba0161758d577db6db30a380cf593a8c0705"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/components/ui/spinner.tsx",
+    "sha256": "bddd452c6ab110717577639d62ebbd21c49aa8957a1c3f57ad5f4a3b47c4a194"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/hooks/usePage.ts",
+    "sha256": "9427ea50fd12c60dce6c6a3c5ece087d882a18991985d710178387778b41a1d3"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/hooks/useSimulation.ts",
+    "sha256": "e16618d0916cc63f022932821a5dfdf473d9486e8db58aa6477366cf431db5dd"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/index.css",
+    "sha256": "dcc35dbf5fe3ac8953b4d06d143500118637a9bb3bfdde9409a1aa0547fe2f89"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/lib/__fixtures__/ngg1-3n2e.bin",
+    "sha256": "b4580c96e5d83fe44b791cc59b4e44cab573dcbb467d9bbe363eb1bcba6f0c3f"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/lib/__tests__/ngg1-codec.test.ts",
+    "sha256": "6d39585256e2ef7e6388ba243fa0006ac3aeb5ee0fd87aee337787ef2214a38e"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/lib/__tests__/ngg1-serialize.test.ts",
+    "sha256": "062f3afa9558d18672abbd333cd453895700a96d8c21ee2d9819d545c9394acc"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/lib/__tests__/spaceDomains.test.ts",
+    "sha256": "49b3d267226d1d1393ac0989341915adefb3b237364a1366a63fb86f49e107fc"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/lib/__tests__/supplyChainDomain.test.ts",
+    "sha256": "24d4b3c359e7614a6300378b9eb2dbd90a5b7a41322e331f510151db4ded0cd3"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/lib/__tests__/vaultMarkdown.test.ts",
+    "sha256": "434390b9081ebe216afcc6118d5329d0e801b7fb0bfb56a59a6c0b8e780ebcbb"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/lib/diag.ts",
+    "sha256": "3b9c68535632b576901b0a363509ddb7e6910c6d0573cc61d1051fe036205f48"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/lib/graphTopology.ts",
+    "sha256": "a53a43cb6b45b6b885e112060305fa705614e0cad1246232d7ce15e5e75c5cde"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/lib/nggGraph.ts",
+    "sha256": "d8f1d39959fb390f793109d2bde06296ade3a8041bad0a5eba4727556fe47937"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/lib/utils.ts",
+    "sha256": "7ff92063f6489f30a95e1963948aa830decc9757e733195eab72ce7928f436d3"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/lib/vaultMarkdown.ts",
+    "sha256": "ed91d458f193b824e88f08bd0d87d230c5f7476c2a22e458954b2af3cba75962"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/main.tsx",
+    "sha256": "e01d76e82f952f5dbae82c147efb662d83c1c611bc32a5fecc275583d5ed1aa4"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/pages/AboutPage.tsx",
+    "sha256": "74f3c0a584a57f154f30297a6d4a556f6ffd52ba1738d09b3fe0960bc0a931ff"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/pages/DataPage.tsx",
+    "sha256": "ba6f7ea169374b50c7c83e62ca8b94cef3d0a58b5511e25016717fcdf574274c"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/pages/GraphPage.css",
+    "sha256": "c4014cebdf988d7ee8778b2ea2b145afe84a4b8579f4c88d3baef239c6755fa6"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/pages/GraphPage.tsx",
+    "sha256": "5e9ce83b69fa875c7dc39ef05dc3a66958914f6aaa1fbf2bfdea42ba8f743411"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/pages/HomePage.css",
+    "sha256": "1ae5acea928061e2ee76f5f5256251c6e320bc55ff36cd8884ef0d15cb987e8b"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/pages/HomePage.tsx",
+    "sha256": "1c8fe3c2ffba2132402d433d975a48ef9a55dc8d40866272baf74a5d0ac2bb18"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/pages/PageView.css",
+    "sha256": "8e6c8d6687f515540ac6091c72154eebc6eeb09b1e798cfd343299bc9955ea08"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/pages/PageView.tsx",
+    "sha256": "29cf4d50d854da57cd5e5e736d5fa043933abe5a64e408b7aeeed1031452b4f9"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/pages/SearchView.css",
+    "sha256": "9327e6db600afdea70b23e8e460c81db0b8697708ae946d13cef6e424733ac35"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/pages/SearchView.tsx",
+    "sha256": "9a00794b0de7788574f0ef8598a425cd5f738df75d4db5475aa259a260ef2b1f"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/router.tsx",
+    "sha256": "3e03e9a4a9cb69a3ce84c15d3f9000c132fb427a52c7481bd22fedbb3e4f5eb7"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/services/searchService.ts",
+    "sha256": "c91acb06331d13b9c6c8b8800a839fb48ca08064ab6eace5faa23db5e3d254f2"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/SiteChrome.tsx",
+    "sha256": "40663354cc8edc75c7b7430b99bc1c9b4338a3d1d2d4027dae1320d949357d5f"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/css.d.ts",
+    "sha256": "4d54b46b9a7690dc47b23fed14222d03fd7abc682b3220274a6c8df67017aa49"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/domains.ts",
+    "sha256": "c461c0e0a67c9c28e5af2465bd55cc83230f6fa1a62a6cd5664472f3a60fde2e"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/icons.tsx",
+    "sha256": "1a1fc72826ac2658de459f595d0be26e8d8350196229de38d18cd227887c8652"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/mesh.ts",
+    "sha256": "338512f8ed8fd3e491ecf4b5a5d81d1d4853b90096ab2ded2b7d8d3559ec4e72"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/motion/HeroScene.tsx",
+    "sha256": "e41668c760e9d29cc8a0d0462bfa4c99329a8ae1bdd6866cb3a537f19e050e41"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/motion/MeshScene.tsx",
+    "sha256": "f3fc957ffb919fe621a06e848b5f5b9e5ae2aa934c0a69c17bb319567f7eabee"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/motion/STORYBOARD.md",
+    "sha256": "2cf495a328cdb48680db369ffa2fd5de5a5b06186c27dad02425354c774e310f"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/motion/__tests__/heroRoots.test.ts",
+    "sha256": "e7fd069300a18aa7dc000c8a5c58f195d953559db08a3e1d79a5cf9eba68f13a"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/motion/hero-scene.css",
+    "sha256": "c8eb2dde7198f477d2afa92647ee5c9427663b8bac3bed1a6d9d850cadecaef5"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/motion/mesh-scene.css",
+    "sha256": "22909c2f1bfff2b390cb9a44d425ed2ae0468d73422486d3684ec7a8bcd0deb8"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/motion/useMotionGuards.ts",
+    "sha256": "87b0ebbca37c6cf0188894ddb8755fe6b66e8251e4be4ee27db897edc492beae"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/pageMeta.ts",
+    "sha256": "84fc24c241e0c285e0bb669e2ea0b7236e269f330296d7bfbb7d52ef41a3c002"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/site.css",
+    "sha256": "b5afc22c3f159b0d3dc4aa815955d320ae7c93578eb8afff8b3f1f699389783b"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/theme.css",
+    "sha256": "1f952f228da994f29fb98811fc844a95cb029484d5587ba6bce57cb8e5ff83e2"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/site/useStats.ts",
+    "sha256": "e33014d5cf9465b3c0502f0684e365e65642420ab1451822b937f94dcef356c0"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/stores/__tests__/focus-from-collapsed.test.ts",
+    "sha256": "f6a9d1d1439ab422ff683e864646ac157960eaa4d539a8c1d8cf8dd0ad9753e5"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/stores/scopeStore.ts",
+    "sha256": "d555dc669adce29dd35f0c9585faa8ca99f05a37127d0af288b959fa44e91f7f"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/stores/uiStore.ts",
+    "sha256": "847d57b6fc3b77b466c99cc94385ae760035b398d9842c6496b06a609c1f0b36"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/test-local.html",
+    "sha256": "41c7cf4e05c29e4947d313a6bfe1c83b6965afd8a4a802e225eb3eae4a1e504e"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/types/scope.ts",
+    "sha256": "510f7911e4d6a22c097349c54e79f3910fc497c52e6966997481635c94227acb"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/types/wasm-url.d.ts",
+    "sha256": "8985bb783f6ab8524ed75ba95f06d3eb1b257f56dd24da687a1170b3ecfbcfb7"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/workers/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/workers/__tests__/coiRegister.test.ts",
+    "sha256": "cdaefcd7486238ae7176de232d6839d9d6d14f3c508539cdcbc65640f9a961d5"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/workers/__tests__/positionTransport.test.ts",
+    "sha256": "ad748a7a1d273fbfd3e2f9ccf51a38affc93780ce709247439dc46d07ef766b4"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/workers/__tests__/protocol.test.ts",
+    "sha256": "0a7fc2c32027d0ad9a66000f83108d5c6f550e23451c4b16177a4f2f3fe5f44e"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/workers/coi-register.ts",
+    "sha256": "4ba58f169aaa437d9016ef4dba76c4903b58feb3b2b0e719b1a4ee617ae62740"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts",
+    "sha256": "46389282ad729507fd908a3ec515bb4198f2749e838f47217509c0da3ee2c125"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/workers/positionTransport.ts",
+    "sha256": "5cbf5122bf416bf83b92e2446bc9bce443adc669e826d6fc959ec89c6e2b093b"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/workers/protocol.ts",
+    "sha256": "d03e6789eff999b233b199a946bc98aca8ee41844c92011b1f8e190b0d0b808e"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tailwind.config.js",
+    "sha256": "b08458648f56da38d2f5837d2892e5ebc0c75bfbce60cb68e910b345cd882c40"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/test-local-build.mjs",
+    "sha256": "2ff760d36df0b20ed81cc5ebd6e0592494a96bb68a0853ef868756eb3b1d4db7"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tests/3D-INTEGRATION-SUMMARY.md",
+    "sha256": "ca84641768d676832ebef4f18dab4b7074022666c922f1674b73709459cbfa4f"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tests/MANUAL-3D-INTEGRATION-TEST-REPORT.md",
+    "sha256": "66cc7d0609e8d9fc3c04bdafe4af9cd171d5d62bc588c26b170cad46ceb94962"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tests/TEST-DOCUMENTATION.md",
+    "sha256": "94c693a88246e9ade0c36b767b39f7a07bc8cc2fa2e189654429378fc1c0a6e6"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tests/TEST-RESULTS-3D-INTEGRATION.md",
+    "sha256": "ab4b3e232f624a47c0b4c3f7db05eb28b5de3d081f264a382066be10111c9756"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tests/TESTING-NOTES.md",
+    "sha256": "dd7388ac6ecb6a8e013aca95d8921c433bbd5db0285762d3c0e1d1aba5c780da"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tests/__mocks__/wasmMock.ts",
+    "sha256": "dbafebe5a7418a6eeca5bb805abb78e912b7e851bafb74a3924f861cff92ee7e"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tests/migration/helpers.ts",
+    "sha256": "6577025f51be63ad881b640b2a9da42925d250f50a9cab44199bd51c80666e8b"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tests/migration/ontomark-step5-ngg1.test.ts",
+    "sha256": "9f3cb35908bbf076e553a86b59597a9d8e4ff14eb4bda9c3b8bcd9c8858afacb"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tests/performance.test.ts",
+    "sha256": "6e72566cff96523d8f5d4dcc30c9efe8dbca5f76e59cc5b08caa131e6feeef82"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tests/runtimeNotices.test.ts",
+    "sha256": "9a9750fdfd7c6d9143fbd2caace19c63c97f69e5427f74d1dce2191fe0fc54de"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tests/setup.ts",
+    "sha256": "d9bffe7538e55a6a491e966ee8e15ee70529085bbd4fb3e5658581c50e086ea4"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tests/smoke/graph-smoke.mjs",
+    "sha256": "ee8323c6ac79ac8e7bef7c80f103c4926d2989be776925f7881ab2804ef1470b"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tests/unit/HeroScene.test.tsx",
+    "sha256": "20e2935b7ca79f09e485eae6a0aaf2c6f3d0779f6f764a3062f15980a5c1db17"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tests/unit/MeshScene.test.tsx",
+    "sha256": "ea6bdf42e5e18bf7393d30691ba2e6c9427f9d32f3da80652d28e5a876abb3c9"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tests/unit/__snapshots__/HeroScene.test.tsx.snap",
+    "sha256": "97bb2e89c32023c973f21fe3847308beebf57b7ce453bfb85b908954835a3f7c"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tests/unit/__snapshots__/MeshScene.test.tsx.snap",
+    "sha256": "ef1a523f3f5e58740419b4dd48dbd44bc27003daaf187fb2ec7179536deb14e0"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tools/runtime-notices/.gitignore",
+    "sha256": "306fd52e74fca6746e12acc750f232de15e71da917756a1270d74c91f5eb7368"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tools/runtime-notices/Cargo.lock",
+    "sha256": "4efc9133f9181a29410aea8afb08799076890bd31354301a468076d50302c918"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tools/runtime-notices/Cargo.toml",
+    "sha256": "9bd04da47384da1cbb67583280833b7efbaa80bf64c50de09f79eab33626392f"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tools/runtime-notices/LICENSE-APACHE",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tools/runtime-notices/LICENSE-MIT",
+    "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tools/runtime-notices/README.md",
+    "sha256": "b75bd9fb0bab714695fdc6bd590e03e532059ccc0b4ca37b65fb5895c63b6eb2"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tools/runtime-notices/src/main.rs",
+    "sha256": "a58e52d970e498c7edf08f8c0c0b416db77b98c0368a5b086303838b02a2998c"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tsconfig.app.json",
+    "sha256": "4eab5d028b7f862e9ed775462c39013cc1636029955b9a2393cde99520e3c157"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tsconfig.json",
+    "sha256": "770b4140bbb581e2dfd9ea9946ffc9c75a1d86ba7d2db5f77c83e37cbdf9d808"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/tsconfig.node.json",
+    "sha256": "dbece770acebd1448ab84fbdae194dc23670ee2e91ebcb1b534cace99cd0bea6"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/verify-wasm-deployment.mjs",
+    "sha256": "c4ba782cd5928f510d8e74fac39e47c87dcdc1aee66ce1653801bf20a8ba1bb8"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/vite.config.ts",
+    "sha256": "0cb078c17cbac5b0046e6e512f578190455f58c74bf3272a63d78954845ee96a"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/vitest.config.ts",
+    "sha256": "f54a723c79ee8fad1a4c0715872caba2075855cef67750a669bf311c7b4c629a"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/package.json",
+    "sha256": "3189a22ecb434436773ab97745849b7c8a78bda1a6d050d1976f933d150878fa"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/scripts/check-bundle-size.sh",
+    "sha256": "f00419db9b3694162bc2de18bae5faac6c2c419fc52dedf9011f9c2880213c08"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/scripts/check-versions.sh",
+    "sha256": "8b3070e0a744cfa50579395bf6e683e36b3da7cf6c0fb01ead1e932e9b123674"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/scripts/generate-perf-report.sh",
+    "sha256": "156091e6b066b4a383bfa2d703a09bea34be8408032909fb31789a874c2ce800"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/scripts/generate_heroes.py",
+    "sha256": "9d977baa2695c476ac50cefbb1d1ccdb0607b06d074a99314e6becb35486d02b"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/scripts/release.sh",
+    "sha256": "cf74938024a1e46ae5277ccb58cdf0bea31d03554bfb3a5a122fd654a85ce275"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/test-phase11.json",
+    "sha256": "8fb2de04e77af66ec9f00dd69c7d3472580c97b167899ad4ab75513289eb037c"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/tests/README.md",
+    "sha256": "e4ff210cb68a8f4e2d4bdde880702f4584c5d2fb0ef811c5c5a7d0671ee93518"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/tests/benchmarks/performance.benchmark.js",
+    "sha256": "705b7722c7e3b77b290f3cf5eecf1a7755d94c752d82fb28b32897f96157b74c"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/tests/e2e/visualization.e2e.test.js",
+    "sha256": "740ef671531fe12c0eabff07b0c2aa44a6f8e6ee9373d4c485d30d8e9ae9b59c"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/tests/integration/owl-parsing.integration.test.js",
+    "sha256": "963e7dd2b3e3e720e407b7a500deddb725d63143978d690d5635d78fa8ae1ca0"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/tests/karma.conf.js",
+    "sha256": "c2f1b643385cad73885ce6aebceb670b0436b0343140e3ec6c088dba723db996"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/tests/performance-reports/phase3-performance-validation-report.md",
+    "sha256": "23b934e3c6e9ffb929bae2d43d2bc0e00f9ff928453c41460b0a75abb693a79b"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/tests/unit/elements.test.js",
+    "sha256": "74b339377298645ef327e5837911b0f796ab0d555877878f8cd4bf9d654836ee"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/tests/unit/graph.test.js",
+    "sha256": "b12a31718774d50b446235aa81b9ac3fe719bc2e0e109b82d59951005951acfb"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/tests/unit/parser.test.js",
+    "sha256": "eaef123821cd48fd9166bf9a402a6f446d271a5beb3b2f2b44cc0f99822898ca"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/ontology-hygiene/apply_bridges.py",
+    "sha256": "db2cb27badb373ed9ca35aeea9622b552c6d0e5d7eda5a7e95d0b92c0517a09a"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/ontology-hygiene/apply_decisions.py",
+    "sha256": "1e7e5461d84b50c3e76ffd2ab9f2548b79fa86c47e44a00015f2aab21eabe3e6"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/ontology-hygiene/asset_audit.py",
+    "sha256": "0370b7a7a034b17c3a1e68b8103699fcd475460ba3e5cd4f41d2007706bc07da"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/ontology-hygiene/assign_homes.py",
+    "sha256": "7613dd0026800bdbb7ee57f060b51c11d0de9bca05ab81ee41b61702c1fd034d"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/ontology-hygiene/attribute.py",
+    "sha256": "cc41e06b437aac03c7546cdd37d81255f2868bfdb96b385476eeef88407bfba1"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/ontology-hygiene/bridge_candidates.py",
+    "sha256": "9ff193591b013274ccd45b2611bbbf6ec27ebbef09f66edd96a0e7601758b504"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/ontology-hygiene/closure_supers.py",
+    "sha256": "fbdf9687d3c313adb76e0e7a081006332a4434289b7a8717946053ca779a8e8d"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/ontology-hygiene/collision_lint.py",
+    "sha256": "350cd259fa90649e0fd81c9a3e5eb220dfe6e7f6344bccd772c2f4a1acc5dd37"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/ontology-hygiene/fmlib.py",
+    "sha256": "4abb72b1ed177cd51f5e329be9adde6cac0ef6747beb7bdc2f5e9845ebff2548"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/ontology-hygiene/last_mile.py",
+    "sha256": "be4a7f9f8d662c7eea5150f56980b4d06c87bf1b145e691b507ee84e0ccb44ae"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/ontology-hygiene/merge_plan.py",
+    "sha256": "34c6ee864b466aa00a32088f7ff708c74114dd9a925628274a276dba7607b071"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/ontology-hygiene/resolve_conflicts.py",
+    "sha256": "b1f24dc5ac897cab6c1f06454b33de88fa378d4d5bd851b455b2e4c653a49769"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "scripts/ontology-hygiene/sync_knowledge_assets.py",
+    "sha256": "f475a302be0f604af45b98e4a6f0484da5eaae31c4c94283292ad109e919d5e4"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "vault.toml",
+    "sha256": "32b7bd5d247dbfb9d8543d1e5da57b7570f8f86c4ff91705b50884bb11629050"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/.gitignore",
+    "sha256": "60a1e8fa4206bb16e716cb360b66ddca3bcd777619704769227a011725db25f2"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/CAPABILITIES.md",
+    "sha256": "f8476eecdf0ab38060f308d2fd78b7fe06644b879b421254225067e2d6c44b1a"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/CHANGELOG.md",
+    "sha256": "86586d1084b0acd94b834a6019dfb0c8f8ed9f7889baabc960a62d9b4c2d58c6"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/CHANGES.md",
+    "sha256": "78c8cfd06cd7576d3269f3127d2c313a5df33d44b489077a4063dc7f2ac52d4c"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/CLAUDE.md",
+    "sha256": "211412dbbf276a38d94ea51e9727c5c07b007fffc368c2a81dc840e42c80f7d9"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/DEPLOYMENT-READY.md",
+    "sha256": "456f642e737bdd2819dddaa232d9b2a67d1a6ab4fbfa2c6ba8be013d33cc4cee"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/Dockerfile",
+    "sha256": "659e15c0cbb2e92602d976df6742b0b3788308b25a1057f75f083293c7112e76"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/FORMAT-NGG1.md",
+    "sha256": "1f4e04ac91f42c8ec9a903f2935935029b35ef11f05739d99f35e8dfb88bc1ea"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/HIERARCHY_FOLDING_STATUS.md",
+    "sha256": "16b1a112ac6c6a4ec7192b868449d6bc7a20e357fbbcc08f8248bed368e43ed7"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/MERGE_IMPACT_ANALYSIS.md",
+    "sha256": "420803a2f37bb7aec708bf24e5d3da023390443d137206b10aa3abd4f56e1a5c"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/PHASE_11_INTEGRATION.md",
+    "sha256": "6a0cf8ef5fcfefbfef4fa22f0754c7742234a6e176be897e154264d5547e2535"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/README.md",
+    "sha256": "c5cd258cf2e89077eed976651e2dbd460cb6e09034a4ef52703175becfe2f963"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/V2-DATA-ANALYSIS.md",
+    "sha256": "73318485023d5cdfa00cc572220591d7dd046061c2897979790347bd2c86c715"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/V2-INTEGRATION-GAPS.md",
+    "sha256": "c0fa1e8abe8e6c3580bf939e36d7c132dbaa17ab8dcfaec6ff1a7e2cdf197bd0"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/VOWL-SPEC.md",
+    "sha256": "7602fd8602f5c7c2cf82e911ef5507c6c7f25f225e5e88cfcd56ae9389e2849b"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/docker-compose.yml",
+    "sha256": "3ac9a26a4249c75a8716f1d4c4832365167239bde0b64754603469a533c8f42a"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/docs/DEPLOYMENT-FLOW.md",
+    "sha256": "56f4d1115448e4e7b665dd92044f10686e11f7acbfba3e337d517fa97d2f26c7"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/docs/IMPLEMENTATION-SUMMARY.md",
+    "sha256": "be8ffb73ffa4ac737bbcb093100cd85c68084f9336d270beb18542f2b95389b9"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/docs/INTEGRATION-GUIDE.md",
+    "sha256": "88bdbda3d5dbb74b0f4039f32c8caa9d347e697f9e48ac06e021bb42072d84d2"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/docs/WASM-INTEGRATION-STATUS.md",
+    "sha256": "c98966bbb9ceb23e46a138b6ae89c48aa370b79efb0a67c5550b1be06f6601ec"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/docs/best-practices-research.md",
+    "sha256": "9fdf3ece785fafaca93e3c19ca52ae7cc04adf331663f0d484ceefc52bc47224"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/docs/feature-gap-analysis.md",
+    "sha256": "e009d921c0ab62e9e89e104acc958b51db6ceac12442aa5a27c542e0eb01c9be"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/docs/implementation-checklist.md",
+    "sha256": "92faca600cf03b8c3ae60097e63d3e617f640ed2d807a7f25bcb8bea8c62a5af"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/docs/optimization/legacy-feature-comparison.md",
+    "sha256": "8a4016ada00eec4663e933e3acd9b9962af4146c6cb4df9a3fea4943ec0c3c53"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/docs/phase1-architecture.md",
+    "sha256": "58aa59a7b7ddfa6a2abe44e84d2be0c0e435b83e1519dc2d6d08cb1cc5bfbb77"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/docs/phase3-task3.2-completion-report.md",
+    "sha256": "d7e95754ace4d1fb7684a95ca243b7d7251ba393ea5b47a58fcfc2b7772059b1"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/license.txt",
+    "sha256": "d07986d8f3441f0a563f237aa3778489c763def2e151911e1774a18deff89cde"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/.gitignore",
+    "sha256": "fe718e7babb14f3cbad2d97f08889b9ce5215ed3fe0e43b2b8cfbfb3b9b844e8"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/@/components/ui/accordion.tsx",
+    "sha256": "6b84cb28b5c8e2129d854cffb8c5ba0161758d577db6db30a380cf593a8c0705"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/@/components/ui/collapsible.tsx",
+    "sha256": "f4cdd104de29928bfcd40b865c7d08eed9157a537fbb8b5e6d0921f02b63cc04"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/@/components/ui/dialog.tsx",
+    "sha256": "60d5246653c714fc12a67743ee5951331ecd2548cdaef9a599922bcb14da26db"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/@/components/ui/slider.tsx",
+    "sha256": "61e959d046f72e295d73a822b9afc7cc87ec6d1007905f2572e6117d7b2067b6"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/README.md",
+    "sha256": "f58b5b17f83db63c09a9f2c059ec435ac8a3feb66f9337391ed5f3f62cff4e63"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/docs/LAYOUT_MIGRATION_REPORT.md",
+    "sha256": "6348470c81e641acdf7de488a76d371e01130be3af74f1cc0ef0df478ede8b57"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/docs/UI-MIGRATION-COMPLETE.md",
+    "sha256": "5071cd6f3102f26f72774802199191eca27989490cee61bac44b1a85e0f005dc"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/eslint.config.js",
+    "sha256": "088e9031a1668aacb8163463e8c1238c82f9188075c4216b04a615e7ad4c92d4"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/index.html",
+    "sha256": "5b350603337ef1f41b888c7fb541956666f9d89c14b17bc3d4516e651558588c"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/inspect-graph.js",
+    "sha256": "3708892af9a24290c51b0da90c43b1140600da30ee51184b5b14c8de1fade56b"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/monitor-deployment.mjs",
+    "sha256": "8f88afa1dc9e57aa63c795a78f0038a8b63746e8d8f393221eb34d34550f0f60"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/package-lock.json",
+    "sha256": "b21e56d7daebc7b24b137519787dcaab86e7859de6fd2b9d92b9a59e2e9e8d61"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/package.json",
+    "sha256": "8733c65dabde8b8f8096cd3ef346bb96496fe51771a73f51b4ed93f53c875a81"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/postcss.config.js",
+    "sha256": "3bae3b38a671927bd3e5c1dba32c1cac708d1d9d4b12fdbccc4b6b4184611273"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/public/.well-known/llms.txt",
+    "sha256": "1202a845a20a68ea4cf51a070cd3334256ed99f7631dcd2faf22174362b1baf1"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/public/404.html",
+    "sha256": "15a320c8fefd8f03d26bddc135a6c5ed7b543fe658dd2c57f4360bc6470cb623"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/public/_headers",
+    "sha256": "376048b1a81a0b496752c5b91912f02efd7594c55daf3784a9096706cbb8339f"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/public/coi-serviceworker.js",
+    "sha256": "d054e1114e5fc2c246edece2b481f33da32cd646042405ba546a800b03740dc5"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/public/images/heroes/ai-hero.webp",
+    "sha256": "3b05cbd9899f2d020217c45f2d7637f8a2b777a03f7e3b3de90f4be1fcb5c653"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/public/images/heroes/blockchain-hero.webp",
+    "sha256": "6821706848e0fa7e4bc20d0d74fccec30e3e4e36f49137fe07a1d56366489968"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/public/images/heroes/metaverse-hero.webp",
+    "sha256": "15d5bd3269d45d255e437b786b7b7ef55ac5420360e2a4c78b683e344d874312"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/public/images/heroes/ngm-hero.webp",
+    "sha256": "2b431216d41445b4384415cd326acf058556a6fd56be321bf2a8ce7f23b4dcf1"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/public/images/heroes/robotics-hero.webp",
+    "sha256": "11c89b84719af1413cbb47a970ac43ffb94d843114cb0d8588c13204ccea1b89"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/public/images/heroes/telecollaboration-hero.webp",
+    "sha256": "b70fe651a55ada661951d0d5ebdb2bb49806365f72cf21f9645cc1861d7dcb5c"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/public/img/decentralised-agents.webp",
+    "sha256": "1425fbd850eb75d950dc8e8d928c3d547da5e8181eba4921f6345e521cd7c9ba"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/public/img/dreamlab-hero.webp",
+    "sha256": "7dd883bcf81ba73c456578571aff013b34f8807ea02a1c18380e419ae7e839c5"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/public/img/ng-hero.webp",
+    "sha256": "c5685a19769456e0751291cc7e366065a3c26216fbb39599d111416927fe70ff"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/public/llms.txt",
+    "sha256": "1202a845a20a68ea4cf51a070cd3334256ed99f7631dcd2faf22174362b1baf1"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/public/vite.svg",
+    "sha256": "4a748afd443918bb16591c834c401dae33e87861ab5dbad0811c3a3b4a9214fb"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/App.css",
+    "sha256": "5a3954823ccbe0bab03b61f752834d920d2eee74363e53324a8a9463c2143189"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/App.tsx",
+    "sha256": "d28ae23d1e8946d3f966e4d5faf86d0124b56a3eac5a38dfe9f8a58d00340a60"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/api/pageService.ts",
+    "sha256": "27d2e035b45492a0b7b228a8272c6602ef6861fe9d03d625af7966a79e161bd2"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/assets/react.svg",
+    "sha256": "35ef61ed53b323ae94a16a8ec659b3d0af3880698791133f23b084085ab1c2e5"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/Canvas/EdgesSegments.tsx",
+    "sha256": "e275dbc33cf99bff75a9be49fb402c96c19a07c64d6ea0e5101d67ef2efb6e5b"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/Canvas/GraphCanvas.tsx",
+    "sha256": "35dc1943992d1b3d8f25cb65d48486585187ad888a4c3d5befb2a477be36138e"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/Canvas/LabelsTopN.tsx",
+    "sha256": "b349e4949f4ad495f40974063f2ea4b101c241b84e32f1d7afaff801106d2902"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/Canvas/NodesInstanced.tsx",
+    "sha256": "a3d3cbab0be6583b672dbebfae8fb5ba0fb6e8a5d56d44f916a748c496191b65"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/Canvas/palette.ts",
+    "sha256": "53108026eeb35c5cc5556e0c74661e3e2ef5d8f8402b11864d9b32b167933269"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/PageRenderer/CodeBlock.tsx",
+    "sha256": "3dda46211f9e17da8e3d02eeecff78e56d4340a1c3f4b97f1a1f15de0fc7a119"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/PageRenderer/MarkdownRenderer.tsx",
+    "sha256": "1644b5b9abf97dc07534418ea56eb4da2d53b426ccc14463868305560bce5b90"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/PageRenderer/OntologyBlock.tsx",
+    "sha256": "71745d5eba28fa554e9c40884506a680d75d70490b2fe503e04f06bbc3fb64da"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/PageRenderer/WikiLink.tsx",
+    "sha256": "1e6b82673dac055f3e696d70b1b1b0f2931133357e601cdc57e0993b02aaf324"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/UI/DebugPanel.tsx.bak",
+    "sha256": "ce0bcd022dc411e8d91b937ffcd544c75f217170cf5415ab931a40e9ea1308d8"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/UI/EdgeLegend.tsx",
+    "sha256": "3b3583e87834e5454bfd15bb0cdf857fb02886471fcf62e935657caa9aeafdda"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/UI/GraphBreadcrumb.tsx",
+    "sha256": "6c9607aeb8c5004b3be9fc20dca40424bd709298365a92594df4c1d530be216a"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/UI/GraphControls.tsx",
+    "sha256": "ac671303cc0340e23b1d7a3890fdf8a3e93291c4fa2e7d8687b13a297c42d931"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/UI/GraphSearchBox.tsx",
+    "sha256": "98294c6ee70ec8d1059bfb73c2eee533b2886560d6d5323430ed091c33f8e0e4"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/UI/LoadingSpinner.tsx",
+    "sha256": "18fda1bac17da15be410462c8a6ec8c6fbb1c919400b4beb37710131d5eb3f06"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/UI/NodeListFallback.tsx",
+    "sha256": "ef6596a60410ee8f0471d0d8879a2b514fbd09a7bdfeb4c0402596a8e1b6d0f5"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/UI/NodeSidePanel.tsx",
+    "sha256": "757cf00ad712c822b0469406ada447bcf1197562d5812ca0bee189500a851a34"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/UI/ScopeStatus.tsx",
+    "sha256": "23b4924580992f8e00e18783b36cfc577029db56154b352c8b350c252eb378b9"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/UI/types.ts",
+    "sha256": "585435436535a6bd735ee02f4fb32931c234d056fa1556789c374452361e9c92"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/ui/accordion.tsx",
+    "sha256": "6b84cb28b5c8e2129d854cffb8c5ba0161758d577db6db30a380cf593a8c0705"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/ui/spinner.tsx",
+    "sha256": "bddd452c6ab110717577639d62ebbd21c49aa8957a1c3f57ad5f4a3b47c4a194"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/hooks/usePage.ts",
+    "sha256": "9427ea50fd12c60dce6c6a3c5ece087d882a18991985d710178387778b41a1d3"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/hooks/useSimulation.ts",
+    "sha256": "131066021214de9ecd6c8a6206dac09f56c4a7b70ae9fb0b517e14bc9ca0ac5d"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/index.css",
+    "sha256": "dcc35dbf5fe3ac8953b4d06d143500118637a9bb3bfdde9409a1aa0547fe2f89"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/lib/__fixtures__/ngg1-3n2e.bin",
+    "sha256": "b4580c96e5d83fe44b791cc59b4e44cab573dcbb467d9bbe363eb1bcba6f0c3f"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/lib/__tests__/ngg1-serialize.test.ts",
+    "sha256": "f86f3fc1e5992d96a0b55dd6626eb2938c2228275abe459d0eca1f3f2d67e241"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/lib/diag.ts",
+    "sha256": "3b9c68535632b576901b0a363509ddb7e6910c6d0573cc61d1051fe036205f48"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/lib/ngg1.ts",
+    "sha256": "1791a26d0cf819dbdafe06a3ac34075338142dded2fa1736a6a95291e60c1c82"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/lib/utils.ts",
+    "sha256": "7ff92063f6489f30a95e1963948aa830decc9757e733195eab72ce7928f436d3"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/main.tsx",
+    "sha256": "e01d76e82f952f5dbae82c147efb662d83c1c611bc32a5fecc275583d5ed1aa4"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/pages/AboutPage.tsx",
+    "sha256": "0cbc461a52a48f69cca88ec3b9284c6697a6d1f4e353789c579e61051c683824"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/pages/DataPage.tsx",
+    "sha256": "891e2713bebb2d62d90d0ce4783c4224518d1575b4e03843c248ac49b32c1bb3"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/pages/GraphPage.css",
+    "sha256": "c4014cebdf988d7ee8778b2ea2b145afe84a4b8579f4c88d3baef239c6755fa6"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/pages/GraphPage.tsx",
+    "sha256": "4ce8d41fa34ede568c02b24b0ba12f336f8550c52fc07652e0c0eb8c449cebd9"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/pages/HomePage.css",
+    "sha256": "1ae5acea928061e2ee76f5f5256251c6e320bc55ff36cd8884ef0d15cb987e8b"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/pages/HomePage.tsx",
+    "sha256": "7927c7d298108cfacfdfe512610ebfc81cafb780b443a603b03d838772810aa4"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/pages/PageView.css",
+    "sha256": "8e6c8d6687f515540ac6091c72154eebc6eeb09b1e798cfd343299bc9955ea08"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/pages/PageView.tsx",
+    "sha256": "a9b8ed341f26cb516e0df01764defa90ac78edb1bfe71a7890d7f403a3de08c5"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/pages/SearchView.css",
+    "sha256": "9327e6db600afdea70b23e8e460c81db0b8697708ae946d13cef6e424733ac35"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/pages/SearchView.tsx",
+    "sha256": "9a00794b0de7788574f0ef8598a425cd5f738df75d4db5475aa259a260ef2b1f"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/router.tsx",
+    "sha256": "d163cc0d8fe88d7c3b0f876aa756b5a25e4614d1d03e1965be9e43f669ec8a35"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/services/searchService.ts",
+    "sha256": "c91acb06331d13b9c6c8b8800a839fb48ca08064ab6eace5faa23db5e3d254f2"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/site/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/site/SiteChrome.tsx",
+    "sha256": "abef143170c1bd69b6db9b46e6b8ea35d6ead65d1b26c4aa1b03f94465f4eefd"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/site/css.d.ts",
+    "sha256": "4d54b46b9a7690dc47b23fed14222d03fd7abc682b3220274a6c8df67017aa49"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/site/domains.ts",
+    "sha256": "479ddb4185651ea5d59d73019fa8cfd13e87462723eafd2aad88c120978ae467"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/site/icons.tsx",
+    "sha256": "c7db6e0c56d3c5d29aa529e21b47945f31bc1d19ca32f42551408650dd89ad9f"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/site/mesh.ts",
+    "sha256": "c4a6a3075aa8cb04fc374278d69c0d006338a2179efd1016571f82489be56fcd"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/site/pageMeta.ts",
+    "sha256": "841c0a22c0ca99c9c41b406e54d8515678c7069ce969c08adda2cd9d2972955b"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/site/site.css",
+    "sha256": "face7277b80549b820dbea2b964622518645840d52c1428c0caf6a032cd4e153"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/site/theme.css",
+    "sha256": "e07bee262ada102e742627cf91af8efdf81a9fd7c840da88431638244ff63c91"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/site/useStats.ts",
+    "sha256": "84faa610caa0c54e638de0eb35a7ab72f5026c64b4eea98c30a4da0c209cd52a"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/stores/__tests__/focus-from-collapsed.test.ts",
+    "sha256": "8eca0e2042913979dd41725483b2512058a66a1b4b9c2fc60539868782adb67d"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/stores/scopeStore.ts",
+    "sha256": "3f04bb98fcd0b2b56f39a1785942c3c286b145867fbd0e48f69106ea0926bd36"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/stores/uiStore.ts",
+    "sha256": "847d57b6fc3b77b466c99cc94385ae760035b398d9842c6496b06a609c1f0b36"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/test-local.html",
+    "sha256": "41c7cf4e05c29e4947d313a6bfe1c83b6965afd8a4a802e225eb3eae4a1e504e"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/types/scope.ts",
+    "sha256": "32a0645389f4ed5fb09363567c71d0ee8580635250be957286d73e43c898fc62"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/types/troika-three-text.d.ts",
+    "sha256": "3d8604fe8d421f151b308af02fcec07b6023b6a8e6110e87093f25d90743b356"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/workers/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/workers/__tests__/coiRegister.test.ts",
+    "sha256": "cdaefcd7486238ae7176de232d6839d9d6d14f3c508539cdcbc65640f9a961d5"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/workers/__tests__/positionTransport.test.ts",
+    "sha256": "3454546ad5ab890184f16f553457f121df8f3d0f7485f955843eccabdc1662f8"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/workers/__tests__/protocol.test.ts",
+    "sha256": "e3f12ce9119304f79517daa7363f94472518acd0a00ef2b55ca4cf7554937bc4"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/workers/coi-register.ts",
+    "sha256": "4ba58f169aaa437d9016ef4dba76c4903b58feb3b2b0e719b1a4ee617ae62740"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/workers/physics.worker.ts",
+    "sha256": "26ad4566cf16a4a34abca121ab89cf1a30929d02d85c2baae9f6f8917084991f"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/workers/positionTransport.ts",
+    "sha256": "6002d04a9108156c7d5a536ba7d947fee96b4bb7bca67356c94c7f0c4403e433"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/workers/protocol.ts",
+    "sha256": "e1994fc9b2e89be8d8ded4b2307e37d4ebd1bd6846e1e2dd52d82ca76ed2888e"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/tailwind.config.js",
+    "sha256": "b08458648f56da38d2f5837d2892e5ebc0c75bfbce60cb68e910b345cd882c40"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/test-local-build.mjs",
+    "sha256": "fb81323a6bfa7271e0a95f262e7ad5ea5aadae6b4d2eb9eb03dd2bb14bfec3d8"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/tests/3D-INTEGRATION-SUMMARY.md",
+    "sha256": "ca84641768d676832ebef4f18dab4b7074022666c922f1674b73709459cbfa4f"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/tests/MANUAL-3D-INTEGRATION-TEST-REPORT.md",
+    "sha256": "66cc7d0609e8d9fc3c04bdafe4af9cd171d5d62bc588c26b170cad46ceb94962"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/tests/TEST-DOCUMENTATION.md",
+    "sha256": "94c693a88246e9ade0c36b767b39f7a07bc8cc2fa2e189654429378fc1c0a6e6"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/tests/TEST-RESULTS-3D-INTEGRATION.md",
+    "sha256": "ab4b3e232f624a47c0b4c3f7db05eb28b5de3d081f264a382066be10111c9756"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/tests/TESTING-NOTES.md",
+    "sha256": "dd7388ac6ecb6a8e013aca95d8921c433bbd5db0285762d3c0e1d1aba5c780da"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/tests/__mocks__/wasmMock.ts",
+    "sha256": "dbafebe5a7418a6eeca5bb805abb78e912b7e851bafb74a3924f861cff92ee7e"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/tests/performance.test.ts",
+    "sha256": "6e72566cff96523d8f5d4dcc30c9efe8dbca5f76e59cc5b08caa131e6feeef82"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/tests/setup.ts",
+    "sha256": "4a4ebaa018138bc340079a596ff60f48b8144b1ccdf6abe2d5e5f5b5f0cef5bc"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/tests/smoke/graph-smoke.mjs",
+    "sha256": "1ac53850cd14b70d39f9f366b891d2315e0fa6350e3fb003720bb22d3ff24407"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/tsconfig.app.json",
+    "sha256": "4eab5d028b7f862e9ed775462c39013cc1636029955b9a2393cde99520e3c157"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/tsconfig.json",
+    "sha256": "770b4140bbb581e2dfd9ea9946ffc9c75a1d86ba7d2db5f77c83e37cbdf9d808"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/tsconfig.node.json",
+    "sha256": "dbece770acebd1448ab84fbdae194dc23670ee2e91ebcb1b534cace99cd0bea6"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/verify-wasm-deployment.mjs",
+    "sha256": "5f57f2f4dceb339c538aa7f34bc22e913d3b057aa8eaeaf1863b4051e6524ea5"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/vite.config.ts",
+    "sha256": "fa41f4be0f390663264982feaceada6da3df4fa677c7c9c0d1061379c078b136"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/vitest.config.ts",
+    "sha256": "e480096335ef005cbf8749908c24dd11be8bdb806ed850b19fd4978df3a6fd2c"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/package.json",
+    "sha256": "3189a22ecb434436773ab97745849b7c8a78bda1a6d050d1976f933d150878fa"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/scripts/check-bundle-size.sh",
+    "sha256": "f00419db9b3694162bc2de18bae5faac6c2c419fc52dedf9011f9c2880213c08"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/scripts/check-versions.sh",
+    "sha256": "8b3070e0a744cfa50579395bf6e683e36b3da7cf6c0fb01ead1e932e9b123674"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/scripts/generate-perf-report.sh",
+    "sha256": "156091e6b066b4a383bfa2d703a09bea34be8408032909fb31789a874c2ce800"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/scripts/generate_heroes.py",
+    "sha256": "9d977baa2695c476ac50cefbb1d1ccdb0607b06d074a99314e6becb35486d02b"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/scripts/release.sh",
+    "sha256": "cf74938024a1e46ae5277ccb58cdf0bea31d03554bfb3a5a122fd654a85ce275"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/test-phase11.json",
+    "sha256": "8fb2de04e77af66ec9f00dd69c7d3472580c97b167899ad4ab75513289eb037c"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/tests/README.md",
+    "sha256": "e4ff210cb68a8f4e2d4bdde880702f4584c5d2fb0ef811c5c5a7d0671ee93518"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/tests/benchmarks/performance.benchmark.js",
+    "sha256": "705b7722c7e3b77b290f3cf5eecf1a7755d94c752d82fb28b32897f96157b74c"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/tests/e2e/visualization.e2e.test.js",
+    "sha256": "740ef671531fe12c0eabff07b0c2aa44a6f8e6ee9373d4c485d30d8e9ae9b59c"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/tests/integration/owl-parsing.integration.test.js",
+    "sha256": "963e7dd2b3e3e720e407b7a500deddb725d63143978d690d5635d78fa8ae1ca0"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/tests/karma.conf.js",
+    "sha256": "c2f1b643385cad73885ce6aebceb670b0436b0343140e3ec6c088dba723db996"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/tests/performance-reports/phase3-performance-validation-report.md",
+    "sha256": "23b934e3c6e9ffb929bae2d43d2bc0e00f9ff928453c41460b0a75abb693a79b"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/tests/unit/elements.test.js",
+    "sha256": "74b339377298645ef327e5837911b0f796ab0d555877878f8cd4bf9d654836ee"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/tests/unit/graph.test.js",
+    "sha256": "b12a31718774d50b446235aa81b9ac3fe719bc2e0e109b82d59951005951acfb"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/tests/unit/parser.test.js",
+    "sha256": "eaef123821cd48fd9166bf9a402a6f446d271a5beb3b2f2b44cc0f99822898ca"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "path": "profiles/estate/Cargo.toml",
+    "sha256": "09183d53bbe474c808171e131f0feb0b4d255c0c467517ce59653b4e7b84914c"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "path": "profiles/estate/LICENSE-APACHE",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "path": "profiles/estate/LICENSE-MIT",
+    "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "path": "profiles/estate/NOTICE",
+    "sha256": "366478de61a7a8220e21d6ac9cf2f10adf9b9d5d6e50729dbbdb38c8665a4069"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "path": "profiles/estate/README.md",
+    "sha256": "61828f0ac154097190b8c5fbaf3b77a1a582f0b518d9d634b2f2f3528a9ce11f"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "path": "profiles/estate/profile.yaml",
+    "sha256": "ce91574ce91265ff07bd04ae6823a49f3fe2dd3d567710ea11f19c54678d4681"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "path": "profiles/estate/src/lib.rs",
+    "sha256": "6126296132111e4747256fe5a789354e8015db06ea1c7399922d52e33f905cc3"
+  }
+]

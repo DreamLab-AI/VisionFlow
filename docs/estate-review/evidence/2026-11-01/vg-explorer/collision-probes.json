@@ -1,0 +1,83 @@
+[
+  {
+    "scenario": "knowledge title-variant control",
+    "exit": 1,
+    "title_variants": 1,
+    "alias_collisions": 0,
+    "dangling_links": 0,
+    "findings": [
+      {
+        "kind": "TITLE_VARIANT",
+        "titles": [
+          "Tokeniser",
+          "Tokenizer"
+        ]
+      }
+    ]
+  },
+  {
+    "scenario": "working-only variants are unseen",
+    "exit": 0,
+    "title_variants": 0,
+    "alias_collisions": 0,
+    "dangling_links": 0,
+    "findings": []
+  },
+  {
+    "scenario": "cross-vault variants are unseen",
+    "exit": 0,
+    "title_variants": 0,
+    "alias_collisions": 0,
+    "dangling_links": 0,
+    "findings": []
+  },
+  {
+    "scenario": "two unallowed alias owners refuse",
+    "exit": 1,
+    "title_variants": 0,
+    "alias_collisions": 1,
+    "dangling_links": 0,
+    "findings": [
+      {
+        "kind": "ALIAS_COLLISION",
+        "name": "shared",
+        "pages": [
+          "Alpha",
+          "Beta"
+        ]
+      }
+    ]
+  },
+  {
+    "scenario": "one allowed pair suppresses a third alias owner",
+    "exit": 0,
+    "title_variants": 0,
+    "alias_collisions": 0,
+    "dangling_links": 0,
+    "findings": []
+  },
+  {
+    "scenario": "category concept missing required relation refuses",
+    "exit": 1,
+    "title_variants": 0,
+    "alias_collisions": 0,
+    "dangling_links": 0,
+    "findings": [
+      {
+        "kind": "CATEGORY_ROOT_UNPARENTED",
+        "key": "Telepresence",
+        "titles": [
+          "Telepresence must be is-a [[dc-telepresence|Telepresence (category)]]"
+        ]
+      }
+    ]
+  },
+  {
+    "scenario": "unrelated frontmatter link satisfies category parent guard",
+    "exit": 0,
+    "title_variants": 0,
+    "alias_collisions": 0,
+    "dangling_links": 0,
+    "findings": []
+  }
+]

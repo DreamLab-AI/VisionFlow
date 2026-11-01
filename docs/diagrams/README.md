@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_181 topic files, 1604 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_181 topic files, 1605 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -353,7 +353,7 @@ _181 topic files, 1604 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VG-03 | [Publisher assembly order and the limits of its gates](visiongraph/03-publish-pipeline-and-explorer-build.md) | 4 | flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) | ADR-VG-001, ADR-VG-002, ADR-VG-004, ADR-VG-008 |
 | VG-04 | [Downstream publication, pod loading and distinct generation identities](visiongraph/04-downstream-contracts.md) | 2 | flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) | ADR-VG-002, visionclaw:ADR-2106 |
 | VG-05 | [Publication policies and the still-proposed generation acceptance contract](visiongraph/05-invariants-register.md) | 4 | flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) | ADR-VG-001, ADR-VG-002 |
-| VG-06 | [publishing-tools/WasmVOWL — the tree that actually ships, and how it has drifted from its sibling](visiongraph/06-shipping-explorer-duplication.md) | 5 | flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) |  |
+| VG-06 | [Publishing explorer — shared renderer, corpus adapters and retained-copy drift](visiongraph/06-shipping-explorer-duplication.md) | 6 | flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) | ADR-VG-007 |
 | VG-07 | [Reviewed source admission, header staging and importer limits](visiongraph/07-reviewed-source-admission-and-header-import.md) | 5 | flowchart | [ADR-VG-005-licensed-source-admission.md](../../../visionGraph/docs/adr/ADR-VG-005-licensed-source-admission.md), [ADR-VG-006-ontology-to-obsidian.md](../../../visionGraph/docs/adr/ADR-VG-006-ontology-to-obsidian.md) | ADR-VG-005, ADR-VG-006 |
 
 ### sidestr-rs

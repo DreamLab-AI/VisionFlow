@@ -1,0 +1,25 @@
+
+> webvowl-modern@0.2.0 pretest
+> npm run build:notices
+
+
+> webvowl-modern@0.2.0 build:notices
+> cargo build --locked --release --manifest-path tools/runtime-notices/Cargo.toml
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+
+> webvowl-modern@0.2.0 test
+> vitest run
+
+
+ RUN  v4.1.10 /home/devuser/workspace/wt/VisionFlow-vg-explorer/.audit-explorer
+
+Error: "Rendered runtime package inventory is empty"
+Error: "No licence text for bundled unused@1.0.0"
+Error: "Unreviewed rendered virtual module provenance: \"\\0unknown-third-party-helper.js\""
+
+ Test Files  18 passed (18)
+      Tests  105 passed (105)
+   Start at  05:13:06
+   Duration  2.04s (transform 3.79s, setup 2.98s, import 5.37s, tests 2.15s, environment 9.51s)
+

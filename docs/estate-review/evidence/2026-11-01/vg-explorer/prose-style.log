@@ -1,0 +1,20 @@
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-visiongraph-explorer-and-profile.md
+  files scanned: 1   findings: 5   slop score: 15
+  verdict: STRONG AI writing fingerprint
+  high: 5   medium: 0   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (3 hits)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/estate-review/2026-11-01-visiongraph-explorer-and-profile.md:9  The publishing explorer has adopted the shared renderer and Rust/WASM codec, and its current test suite and production build pass. Its content path still masks ...
+        docs/estate-review/2026-11-01-visiongraph-explorer-and-profile.md:49  The current committed trees contain 210 publishing-explorer files and 160 retained-explorer files, with **151 shared relative paths and 49 differing shared file...
+        docs/estate-review/2026-11-01-visiongraph-explorer-and-profile.md:62  The record is read as an accepted design with partial implementation and staged activation, preserving its distinct historical receipts. Its statuses were not c...
+
+  [HIGH] Tier-1 banned vocabulary  (2 hits)
+        fix: Replace with a plain word (delve->look at, leverage->use, robust->solid, seamless->smooth, utilise->use). See SKILL.md B4.
+        docs/estate-review/2026-11-01-visiongraph-explorer-and-profile.md:21  ...rt and notice adapter tests; **six Rust notice-tool tests**. The JavaScript harness uses a real published WASM bundle and shared renderer, with jsdom, canvas st...
+        docs/estate-review/2026-11-01-visiongraph-explorer-and-profile.md:102  ...s` **from the explorer root**, using an executable `TMPDIR`. The [collision harness](evidence/2026-11-01/vg-explorer/collision-probes.py) takes the exported `sc...
+
+  Top things to change: "The X" sentence/paragraph opener; Tier-1 banned vocabulary
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+
