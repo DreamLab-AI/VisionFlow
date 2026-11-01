@@ -7,6 +7,8 @@ type: explanation
 
 # VisionFlow estate review
 
+Forum BBS signer continuation: [ADR-2008 section review, six NF-19 panels and 22 selected native tests](2026-11-01-forum-bbs-signer.md). Retained signers survive logout; storage adoption, backup identity and extension results need stronger account binding. NF-05.11 receives custody and boot-routing corrections; browser acceptance remains open.
+
 Forum Web Push continuation: [ADR-2023 section review, six NF-18 panels and 85 selected checks](2026-11-01-forum-web-push.md). Send/drain interleavings, missing logout credentials and visible-window suppression defeat stronger delivery promises. Activation remains staged; NF-05.17 and NF-08.9 receive narrow corrections.
 
 Forum relay-cache continuation: [full ADR-2018 section review, six new NF-17 panels and twenty native tests](2026-11-01-forum-read-cache-and-activity.md). Live kind-41 metadata skips the zone gate; lookup failure shares the public fallback; cost, activity persistence and duplicate-count claims need correction. NF-03 receives four narrow panel updates. Wider forum and estate review remains open.

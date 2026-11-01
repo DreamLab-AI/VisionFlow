@@ -1,0 +1,14 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/nip07.rs:97
+    A["Signer stores supplied public key"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/nip07.rs:109
+    B["sign_event delegates to JS bridge<br/>stored public key is not compared"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/nip07.rs:167
+    C["Resolve current window.nostr provider"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/nip07.rs:191
+    D["Await signEvent Promise<br/>rejection becomes error"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/nip07.rs:202
+    E["Deserialize returned event<br/>no signature or input-equivalence check"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/screens.rs:1400
+    F["Composer forwards result to relay"]
+    A --> B --> C --> D --> E --> F

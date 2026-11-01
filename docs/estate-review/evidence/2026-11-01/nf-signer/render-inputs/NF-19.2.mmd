@@ -1,0 +1,14 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/screens.rs:1976
+    A["User selects sign out"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:229
+    B["Clear BBS signer, public key and error"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/relay.rs:464
+    C["Clear relay signer reference only<br/>no socket close or subscription reset"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:393
+    D["Forum secret storage remains available<br/>for a later boot to adopt"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/pwa.rs:247
+    E["Separate Forget this device operation<br/>attempts baked-record and profile deletion"]
+    A --> B --> C
+    B --> D
+    A -. separate control .-> E

@@ -7,6 +7,7 @@ governing:
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
 adrs: [ADR-2008, ADR-2023, ADR-2025]
 sources:
+  - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/main.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs
@@ -349,47 +350,34 @@ flowchart LR
 
 ## NF-05.11 Retro BBS client — session adoption and key custody
 
-```mermaid
-stateDiagram-v2
-    [*] --> Boot: bbs-client app.rs
-    Boot --> Adopt: adopt_forum_session on boot<br/>nostr-bbs-bbs-client/src/app.rs:26
-    Adopt --> MainMenu: has_key, session adopted<br/>nostr-bbs-bbs-client/src/app.rs:48
-    Adopt --> Landing: no key
-    Boot --> PwaUnwrap: pwa AND not has_key<br/>nostr-bbs-bbs-client/src/app.rs:132
-    PwaUnwrap --> MainMenu: adopt_baked_or_rebind<br/>nostr-bbs-bbs-client/src/pwa.rs:228
-    Landing --> Settings: sign-in CTA<br/>nostr-bbs-bbs-client/src/screens.rs:219
+Custody and boot-routing correction: [current ADR-2008 review](../../estate-review/2026-11-01-forum-bbs-signer.md). The reviewed files match this topic’s source stamp; this is a narrow correction, not a new whole-topic certification.
 
-    note right of Adopt
-        choose_adoption is a PURE decision: LocalKey, Nip07 or None
-        nostr-bbs-bbs-client/src/signer.rs:327
-        A valid local key WINS over a NIP-07 extension
-        nostr-bbs-bbs-client/src/signer.rs:332
-    end note
-    note right of PwaUnwrap
-        Zone-bound one-shot PWA: bake_local binds the baked key to a zone
-        nostr-bbs-bbs-client/src/pwa.rs:185 and persists a BootProfile
-        nostr-bbs-bbs-client/src/pwa.rs:219 nostr-bbs-bbs-client/src/pwa.rs:466
-        The nostr-bbs-bbs-client/src/app.rs:132 guard is what makes it ONE-SHOT
-    end note
-    note right of MainMenu
-        ADR-2008 divergence, re-verified and REFINED: BbsSigner does not hold a bare
-        SecretKey field - it holds an Rc dyn Signer handle
-        nostr-bbs-bbs-client/src/signer.rs:67. A SecretKey is constructed transiently
-        nostr-bbs-bbs-client/src/signer.rs:209, the stack buffer is zeroized
-        nostr-bbs-bbs-client/src/signer.rs:210, and the key is moved into a PrfSigner
-        nostr-bbs-bbs-client/src/signer.rs:126. Zeroize-on-drop is delegated to
-        nostr_bbs_core::SecretKey nostr-bbs-bbs-client/src/signer.rs:34 - there is no
-        Drop impl on BbsSigner itself. The ADR-105 sign()-seam divergence stands; the
-        custody is one layer better than the anomaly register describes.
-    end note
-    note right of MainMenu
-        ADR-2016: every ingested kind-42 is masked before it reaches a
-        bucket - ingest calls mask_encrypted, which replaces a
-        zone-encrypted post's content with ENCRYPTED_PLACEHOLDER
-        nostr-bbs-bbs-client/src/relay.rs:44-45 nostr-bbs-bbs-client/src/relay.rs:79. This client holds no
-        zone keys, so the reader is pointed at the forum instead of
-        shown ciphertext.
-    end note
+```mermaid
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/app.rs:26
+    A["Boot adopts forum session"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:332
+    B["Valid local key wins<br/>else stored NIP-07 session with provider"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/app.rs:45
+    C["Initial screen: Boards if PWA and pinned<br/>else MainMenu if signed in, else Landing"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/app.rs:134
+    D["PWA with no adopted signer<br/>starts background unwrap"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/pwa.rs:233
+    E["Valid baked key installs signer<br/>otherwise route to Rebind"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:126
+    F["Local and baked keys live in PrfSigner<br/>behind shared Rc handles"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:40
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:106
+    G["SecretKey zeroizes at final drop<br/>retained handles can still sign after logout"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:229
+    H["Logout clears stored handles<br/>forum storage and socket remain; see NF-19"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/relay.rs:79
+    I["ADR-2016: mask kind-42 posts with zk tag<br/>BBS reader directs users to forum"]
+    A --> B --> C
+    B --> D --> E
+    B --> F --> G --> H
+    E --> F
+    C -. reader .-> I
 ```
 
 ## NF-05.12 BBS screen machine and its own surfaces

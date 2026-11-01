@@ -1,0 +1,25 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/app.rs:26
+    A["Boot adopts forum session"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:332
+    B["Valid local key wins<br/>else stored NIP-07 session with provider"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/app.rs:45
+    C["Initial screen: Boards if PWA and pinned<br/>else MainMenu if signed in, else Landing"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/app.rs:134
+    D["PWA with no adopted signer<br/>starts background unwrap"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/pwa.rs:233
+    E["Valid baked key installs signer<br/>otherwise route to Rebind"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:126
+    F["Local and baked keys live in PrfSigner<br/>behind shared Rc handles"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:40
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:106
+    G["SecretKey zeroizes at final drop<br/>retained handles can still sign after logout"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:229
+    H["Logout clears stored handles<br/>forum storage and socket remain; see NF-19"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/relay.rs:79
+    I["ADR-2016: mask kind-42 posts with zk tag<br/>BBS reader directs users to forum"]
+    A --> B --> C
+    B --> D --> E
+    B --> F --> G --> H
+    E --> F
+    C -. reader .-> I

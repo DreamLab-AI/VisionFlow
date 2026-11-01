@@ -1,0 +1,31 @@
+{
+  "native_existing": 14,
+  "native_audit": 8,
+  "native_total": 22,
+  "topics": 189,
+  "panels": 1652,
+  "verified_citations": 24909,
+  "citation_warnings": 0,
+  "unverified": 0,
+  "unresolvable": 0,
+  "allowlisted": 9,
+  "rendered_panels": 23,
+  "visually_inspected": [
+    "NF-05.11",
+    "NF-19.1",
+    "NF-19.2",
+    "NF-19.3",
+    "NF-19.4",
+    "NF-19.5",
+    "NF-19.6"
+  ],
+  "local_link_checks": 14,
+  "browser_acceptance": false,
+  "whole_estate_complete": false,
+  "notes": [
+    "Initial NF-05 citation check found omitted core keys source; added to frontmatter and reran.",
+    "Visual inspection found clipped old state notes; replaced with cited flowchart and corrected initial-screen versus unwrap transition.",
+    "Final prose checks pass; no invisible characters.",
+    "Native extension and relay implementations are stubs; only native signer lifetime is executed."
+  ]
+}

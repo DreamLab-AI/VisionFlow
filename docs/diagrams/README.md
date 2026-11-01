@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_188 topic files, 1646 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_189 topic files, 1652 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -316,6 +316,7 @@ _188 topic files, 1646 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | NF-16 | [Wallet foundations — custody, attribution and parent balances](nostr-rust-forum/16-wallet-foundations-and-parent-balances.md) | 6 | flowchart | [ADR-2015-member-wallets-on-sidestr-dreamlab-and-dream-tips.md](../../../nostr-rust-forum/docs/adr/ADR-2015-member-wallets-on-sidestr-dreamlab-and-dream-tips.md), [ADR-2019-member-wallet-shows-blake2b-testnet4-coins-read-only.md](../../../nostr-rust-forum/docs/adr/ADR-2019-member-wallet-shows-blake2b-testnet4-coins-read-only.md) | ADR-2015, ADR-2019 |
 | NF-17 | [Relay read caches — authority, cost and activity persistence](nostr-rust-forum/17-relay-read-cache-and-activity-boundaries.md) | 6 | flowchart | [ADR-2018-relay-read-caches-and-activity-throttle.md](../../../nostr-rust-forum/docs/adr/ADR-2018-relay-read-caches-and-activity-throttle.md) | ADR-2018 |
 | NF-18 | [Web Push — registration, wake-up ordering and display receipts](nostr-rust-forum/18-web-push-delivery-and-account-boundaries.md) | 6 | flowchart | [ADR-2023-content-free-web-push-for-pwa-alerts.md](../../../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md) | ADR-2023 |
+| NF-19 | [BBS signer — adoption, account lifetime and key custody](nostr-rust-forum/19-bbs-signer-adoption-and-custody.md) | 6 | flowchart | [ADR-2008-bbs-signer-holds-key-directly.md](../../../nostr-rust-forum/docs/adr/ADR-2008-bbs-signer-holds-key-directly.md) | ADR-2008 |
 
 ### dreamlab-ai-website
 

@@ -1,0 +1,72 @@
+[
+  {
+    "file": "NF-19.6.svg",
+    "sha256": "470fe700f114a5b7e6cf68110c93ca8bef33b9fc9f1f107ea8ebffb284d0882c",
+    "visually_inspected": true
+  },
+  {
+    "file": "NF-19.4.mmd",
+    "sha256": "7aa406133650b3b1084789d8b8ac926af81c478c8a7facf9cdf2a476d23f94a7",
+    "visually_inspected": false
+  },
+  {
+    "file": "NF-19.2.mmd",
+    "sha256": "41e03ac7823117d5c4e33363c7da40cb544672250a98e7002bc3c79a69dbaa61",
+    "visually_inspected": false
+  },
+  {
+    "file": "NF-19.4.svg",
+    "sha256": "9ea3873cab9544a49b9f82a3b6f435142d2503217456e4a04361afe67686e326",
+    "visually_inspected": true
+  },
+  {
+    "file": "NF-19.5.mmd",
+    "sha256": "a167c1db9cb8f3d790e1f1ede23469a48429d9c943f0e1bc991215a11899a3b9",
+    "visually_inspected": false
+  },
+  {
+    "file": "NF-19.1.mmd",
+    "sha256": "ea1e23edf76d0579ad56496892fa3a8cbc65b8c1f1e7dae7ad8e20f9b13ffe52",
+    "visually_inspected": false
+  },
+  {
+    "file": "NF-19.6.mmd",
+    "sha256": "799fa0ff43d3ebf616e3722e9a7cff9318516e15f4b597b07c1de8cd1d9efa2e",
+    "visually_inspected": false
+  },
+  {
+    "file": "NF-19.3.mmd",
+    "sha256": "1f1f4a4ee38266e26a4bdc59150c64b5b3881f236c2d197237518429ecb18933",
+    "visually_inspected": false
+  },
+  {
+    "file": "NF-19.5.svg",
+    "sha256": "1ce12a8e0d9f831ec7c7fffaedd5b586276f141aa36f644486e8c7bf6f020b51",
+    "visually_inspected": true
+  },
+  {
+    "file": "NF-19.3.svg",
+    "sha256": "45ee883d88b4e630204917f14f1bf0598099547e8fde01e3eddeb72a7af8590c",
+    "visually_inspected": true
+  },
+  {
+    "file": "NF-19.2.svg",
+    "sha256": "35f83c51a51996ed994f09bb5ab19b4bd09e0e9f7de4707baf9bfeeba2d91bbf",
+    "visually_inspected": true
+  },
+  {
+    "file": "NF-19.1.svg",
+    "sha256": "26707f9db7dd0ec4c1ac3f092b6ee24f497a51584312975a818dab751bdeb3e7",
+    "visually_inspected": true
+  },
+  {
+    "file": "NF-05.11.mmd",
+    "sha256": "56752f615031363bbce0527c4018f5f35d1dfeaa6f60b28c059c6901595d1896",
+    "visually_inspected": false
+  },
+  {
+    "file": "NF-05.11.svg",
+    "sha256": "1cd72b6641f4e72ead2fc3450b03f610a8df21cee6ad174cf7dbebe4d4a961e5",
+    "visually_inspected": true
+  }
+]

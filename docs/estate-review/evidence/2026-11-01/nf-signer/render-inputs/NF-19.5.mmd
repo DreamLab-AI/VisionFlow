@@ -1,0 +1,13 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/screens.rs:1972
+    A["Signed-in panel offers backup<br/>when local_secret_hex returns a value"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:291
+    B["Only require some active public key"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:295
+    C["Read forum secret from storage<br/>no active-public-key comparison"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/screens.rs:1915
+    D["Render supplied secret as nsec and hex<br/>copy controls retain String clones"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:147
+    E["Generated key returned once to UI<br/>does not update forum storage"]
+    A --> B --> C --> D
+    E -. does not replace backup source .-> C

@@ -1,0 +1,80 @@
+{
+  "repo": "/home/devuser/workspace/nostr-rust-forum",
+  "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+  "consumed_revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+  "nf05_stamp": "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed",
+  "files": [
+    {
+      "path": "docs/adr/ADR-2008-bbs-signer-holds-key-directly.md",
+      "sha256": "db0e48d9e02ac3299e227cd38f614d16a6fdb4fdc402b551812626662fa8116d",
+      "consumed_equal": true,
+      "nf05_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-bbs-client/src/signer.rs",
+      "sha256": "b081d7745f3b44a10f64165d27828601c687cc9e9e94e28f91a9d2bb43746435",
+      "consumed_equal": true,
+      "nf05_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-bbs-client/src/nip07.rs",
+      "sha256": "8d6bd920b6fa1319b7050f3f86793408b63738a122a3872df785108b4104880f",
+      "consumed_equal": true,
+      "nf05_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-bbs-client/src/config.rs",
+      "sha256": "3a6c1fee5f55813405f1a955b6aa168b14eb2a31644cd1ef277b3a4ac092908d",
+      "consumed_equal": true,
+      "nf05_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-bbs-client/src/app.rs",
+      "sha256": "93d88e2bef85ada2cb56f20c0bb2ff26f59080fd82913260bf717c014f803c1a",
+      "consumed_equal": true,
+      "nf05_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-bbs-client/src/screens.rs",
+      "sha256": "b7625ca720ddd72077b558005c439c7307af2ace8be4621c6195e6b981c38d9a",
+      "consumed_equal": true,
+      "nf05_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-bbs-client/src/relay.rs",
+      "sha256": "1ffe43614109d41b7e7857e57ab8afe1d70a4cd52fd0af6718a34089986dc8d9",
+      "consumed_equal": true,
+      "nf05_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-bbs-client/src/pwa.rs",
+      "sha256": "90896e0778bb71eb5b3dce1ecbdcc21b90d6c137aebb7f75802b33baa9b10a27",
+      "consumed_equal": true,
+      "nf05_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-core/src/keys.rs",
+      "sha256": "7f5d61656a037ce29eb06e1c4f6cf7f4c7d294feba9318865f78d47c3b179a0a",
+      "consumed_equal": false,
+      "nf05_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-core/src/signer.rs",
+      "sha256": "7f9cbf325d6611b93ec052c72603c05f2d89832c095dc48e33ed0bd6d52ef43d",
+      "consumed_equal": false,
+      "nf05_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-core/src/event.rs",
+      "sha256": "b55d967f23258dca03eb6cb810b26571e5aeb6db2f8b4ad3864d99dc80aaeea8",
+      "consumed_equal": false,
+      "nf05_stamp_equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/auth/session.rs",
+      "sha256": "cc5d37eb47e94e59e58a635cc067c732a3ab2fbb111766a90a2ce5b8c4d9bb7e",
+      "consumed_equal": true,
+      "nf05_stamp_equal": true
+    }
+  ]
+}

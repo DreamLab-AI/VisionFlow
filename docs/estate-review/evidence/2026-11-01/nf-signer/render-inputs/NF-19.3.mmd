@@ -1,0 +1,16 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:106
+    A["get_signer clones an Rc handle"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/screens.rs:942
+    B["Composer captures handle and author<br/>when send starts"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:229
+    C["Logout clears stored handles<br/>external clones remain alive"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/screens.rs:1385
+    D["Await signature with captured handle"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/screens.rs:1400
+    E["Publish returned event<br/>no current-account generation check"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/relay.rs:543
+    F["AUTH also awaits a captured signer<br/>then uses current socket sender"]
+    A --> B --> D --> E
+    B -. while pending .-> C
+    A --> F

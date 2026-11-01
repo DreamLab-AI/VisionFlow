@@ -1,0 +1,78 @@
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.154
+   Compiling serde_derive_internals v0.29.1
+   Compiling uuid v1.28.0
+   Compiling web-sys v0.3.105
+   Compiling schemars_derive v0.8.22
+   Compiling url v2.5.8
+   Compiling hydration_context v0.2.1
+   Compiling oco_ref v0.2.1
+   Compiling toml_datetime v0.6.11
+   Compiling serde_qs v0.13.0
+   Compiling serde_spanned v0.6.9
+   Compiling bincode v1.3.3
+   Compiling serde_urlencoded v0.7.1
+   Compiling bitcoin_hashes v0.14.101
+   Compiling chrono v0.4.45
+   Compiling serde-wasm-bindgen v0.6.5
+   Compiling secp256k1 v0.29.1
+   Compiling codee v0.3.5
+   Compiling leptos_config v0.7.8
+   Compiling leptos_hot_reload v0.7.8
+   Compiling toml_edit v0.22.27
+   Compiling reactive_graph v0.1.8
+   Compiling schemars v0.8.22
+   Compiling nostr v0.44.8
+   Compiling solid-pod-rs v0.5.0-alpha.18
+   Compiling reactive_stores v0.1.8
+   Compiling toml v0.8.23
+   Compiling nostr-bbs-config v1.0.0-beta.16 (/home/devuser/workspace/wt/VisionFlow-nf-signer/.audit-signer/kit/crates/nostr-bbs-config)
+   Compiling nostr-bbs-core v1.0.0-beta.19 (/home/devuser/workspace/wt/VisionFlow-nf-signer/.audit-signer/kit/crates/nostr-bbs-core)
+   Compiling gloo-utils v0.2.0
+   Compiling gloo-events v0.2.0
+   Compiling tachys v0.1.9
+   Compiling gloo-render v0.2.0
+   Compiling gloo-dialogs v0.2.0
+   Compiling gloo-file v0.3.0
+   Compiling gloo-net v0.6.0
+   Compiling gloo-worker v0.5.0
+   Compiling gloo-net v0.5.0
+   Compiling gloo-console v0.3.0
+   Compiling gloo-storage v0.3.0
+   Compiling gloo-history v0.2.2
+   Compiling gloo v0.11.0
+   Compiling wasm-streams v0.4.2
+   Compiling server_fn v0.7.8
+   Compiling leptos_server v0.7.8
+   Compiling leptos_dom v0.7.8
+   Compiling leptos v0.7.8
+   Compiling nostr-bbs-bbs-client v1.0.0-beta.10 (/home/devuser/workspace/wt/VisionFlow-nf-signer/.audit-signer/kit/crates/nostr-bbs-bbs-client)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 22.14s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/lib.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_bbs_client-5d52d607ee2cd5c0)
+
+running 20 tests
+test signer::audit_lifecycle::extension_adoption_ignores_schema_version ... ok
+test signer::audit_lifecycle::extension_adoption_accepts_nonhex_public_key ... ok
+test signer::tests::local_key_wins_even_with_nip07_session_and_extension ... ok
+test signer::audit_lifecycle::valid_local_key_is_adoptable_without_session_metadata ... ok
+test signer::tests::nip07_chosen_when_no_local_key_and_extension_present ... ok
+test signer::tests::nip07_session_missing_pubkey_is_not_adopted ... ok
+test signer::tests::no_session_and_no_key_stays_signed_out ... ok
+test signer::tests::nip07_session_without_extension_is_not_adopted ... ok
+test signer::tests::non_nip07_session_with_extension_is_not_adopted ... ok
+test signer::tests::parse_rejects_empty_and_garbage ... ok
+test signer::tests::parse_rejects_zero_scalar ... ok
+test signer::tests::parse_rejects_wrong_length_hex ... ok
+test signer::tests::parse_uppercase_hex_is_accepted ... ok
+test signer::audit_lifecycle::rejected_paste_leaves_previous_account_installed ... ok
+test signer::audit_lifecycle::invalid_baked_key_leaves_previous_account_installed ... ok
+test signer::tests::parse_hex_key_roundtrips_to_pubkey ... ok
+test signer::tests::parse_nsec_matches_hex_path ... ok
+test signer::audit_lifecycle::local_signer_rejects_mismatched_unsigned_author_control ... ok
+test signer::audit_lifecycle::retained_signer_produces_valid_event_after_logout ... ok
+test signer::audit_lifecycle::retained_signer_survives_account_replacement ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 153 filtered out; finished in 0.01s
+

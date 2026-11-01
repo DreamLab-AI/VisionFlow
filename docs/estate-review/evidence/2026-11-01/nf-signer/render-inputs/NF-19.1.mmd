@@ -1,0 +1,17 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/app.rs:26
+    A["Boot calls adopt_forum_session"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:393
+    B["Read localStorage key first<br/>then sessionStorage key"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:332
+    C["Any valid local key wins<br/>no session metadata required"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:338
+    D["Otherwise stored isNip07 and public key<br/>plus provider presence select extension"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:269
+    E["Install stored public key<br/>no getPublicKey round-trip"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/app.rs:134
+    F["PWA unwrap runs only if<br/>no signer was adopted"]
+    A --> B --> C
+    B --> D --> E
+    C --> F
+    E --> F

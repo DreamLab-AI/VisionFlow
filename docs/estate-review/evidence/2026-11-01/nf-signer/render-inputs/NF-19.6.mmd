@@ -1,0 +1,16 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:253
+    A["Storage string passed by reference<br/>original String has ordinary drop"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:358
+    B["Parser creates another hex String<br/>manually overwrites this copy"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:371
+    C["Decoded Vec remains an ordinary buffer"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:382
+    D["Invalid scalar exits through error<br/>before explicit arr.zeroize"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/signer.rs:384
+    E["Successful parse zeroizes local array"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:40
+    F["Owned SecretKey zeroizes on final drop"]
+    A --> B --> C
+    C --> D
+    C --> E --> F

@@ -1,0 +1,25 @@
+{
+  "read_date": "2026-11-01",
+  "method": "web open primary sources",
+  "sources": [
+    {
+      "url": "https://github.com/nostr-protocol/nips/blob/master/07.md",
+      "supports": "getPublicKey/signEvent and distinct optional NIP-04/NIP-44 methods; no per-call prompt guarantee"
+    },
+    {
+      "url": "https://github.com/nostr-protocol/nips/blob/master/42.md",
+      "supports": "AUTH receives OK; authentication has connection lifetime"
+    },
+    {
+      "url": "https://github.com/nostr-protocol/nips/blob/master/46.md",
+      "supports": "remote custody; separate transport and user keys; get_public_key after connect"
+    },
+    {
+      "url": "https://github.com/getAlby/lightning-browser-extension",
+      "supports": "existing Nostr signing integration; Chromium/Firefox support in project README"
+    }
+  ],
+  "failed_url": "https://getalby.com/products/browser-extension",
+  "failed_status": 404,
+  "inference": "Prioritise account lifetime and intent validation before more signer backends; no adoption or security comparison measured"
+}
