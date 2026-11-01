@@ -1,6 +1,6 @@
 ---
 id: KG-06
-title: Consumers — VisionClaw ingest, agentbox Loom grounding, vowl-wasm, OntoCast (archived)
+title: Current corpus consumers and the archived RDF import boundary
 area: knowledgegraph
 governing:
   - ../knowledgeGraph/docs/ecosystem.md
@@ -8,78 +8,95 @@ adrs: []
 sources:
   - ../knowledgeGraph/docs/ecosystem.md
   - ../knowledgeGraph/docs/integrations/ontocast.md
+  - ../knowledgeGraph/archive/logseq-era-2026-09-22/README.md
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/ontocast_import.py
-  - ../knowledgeGraph/README.md
-  - docs/architecture/licensing.md
-verified_commit: {knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012}
+  - ../visionGraph/.github/workflows/publish.yml
+  - ../project/src/services/corpus_source/mod.rs
+  - ../project/src/services/corpus_source/github.rs
+  - ../project/src/services/github_sync_service.rs
+  - ../project/agentbox/agentbox.toml
+  - ../project/agentbox/scripts/hp-loom-reconcile.sh
+  - ../loom/crates/loom-facade/src/lib.rs
+  - ../loom/crates/loom-facade/src/bundle.rs
+verified_commit: {knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf, loom: ba21a689a57dc67dc68ad22e52b058da34a7fb05}
 ---
 
-## KG-06.1 Sibling repository map — what actually depends on what
+## For developers
+
+Trace the public export, Markdown consumer and Loom generation independently; [the source review and four archive probes](../../estate-review/2026-11-01-knowledgegraph-consumers-and-archive.md) replace the historical ecosystem transcription with bounded implementation evidence.
+
+## For the business
+
+A successful website publication does not prove that a graph consumer has refreshed or that an agent serves the same generation; those outcomes need separate receipts, and the old extraction adapter remains historical code.
+
+## KG-06.1 Publication and generation distribution
 
 ```mermaid
 flowchart TB
-    VG["DreamLab-AI/visionGraph — upstream authoring vault and<br/>publish workflow #40;knowledgeGraph/README.md:13#41;<br/>EXTERNAL: see VG-01..06"]
-    OM["DreamLab-AI/ontomark — MIT OR Apache-2.0<br/>current shared compilation and reasoning toolchain<br/>knowledgeGraph/README.md:109, docs/architecture/licensing.md:16"]
-    KG["this repo — knowledgeGraph<br/>ODbL-1.0 published export + archived AGPL pipeline + MIT explorer<br/>docs/architecture/licensing.md:14"]
-    VC["DreamLab-AI/VisionClaw — AGPL-3.0-only<br/>docs/architecture/licensing.md:8<br/>EXTERNAL: see VC-20, VC-21"]
-    WV["DreamLab-AI/WasmVOWL — MIT<br/>direct upstream of explorer/"]
-    VW["vowl-wasm — the NGG1 reader crate<br/>EXTERNAL: see VW-*"]
-    VF["DreamLab-AI/VisionFlow — no root licence<br/>documentation/website canon"]
-    AB["DreamLab-AI/agentbox — AGPL-3.0<br/>EXTERNAL: see AB-24, AB-25 — tooling provenance, no code dep"]
-    MO["DreamLab-AI/Metaverse-Ontology — closest independent precedent<br/>Logseq properties + Rust extractor, different method"]
-    SPR["DreamLab-AI/solid-pod-rs — AGPL-3.0<br/>indirect: cause of VisionClaw's AGPL relicence"]
-    SSR["DreamLab-AI/sidestr-rs — AGPL family, per crate<br/>an estate sibling, NOT a corpus consumer<br/>docs/architecture/licensing.md:15"]
-    OM -->|"the pinned release is the sole producer of the published artefacts — see KG-05.3"| VG
-    VG -->|"publish.yml deploys gh-pages to external_repository — see VG-03.1, VG-04.1"| KG
-    VG -.->|"primary corpus source now #40;ADR-2114#41;, plus a corpus-sync dispatch<br/>after each deploy since 2026-10-01 — see VC-21, VG-04.1"| VC
-    KG -->|"fetches markdown + Turtle over GitHub — see KG-06.2"| VC
-    WV -->|"explorer/ is a fork, MIT lineage"| KG
-    WV -.->|"same MIT-derivative lineage"| VW
-    VW -->|"@dreamlab-ai/vowl-wasm release tarball"| KG
-    VC -.->|"AGPL relicence caused by linking"| SPR
-    note1["Excluded deliberately: VisionFlow-Ontology-Engine is a fork of<br/>OpenPlanter #40;op-cli/op-core/...#41;, nothing to do with this corpus<br/>#40;ecosystem.md:213-219#41;"]
-    note2["ARCHIVED at HEAD: this repo's own ontology/pages/ source tree and<br/>seven-stage rdflib pipeline/ are archived — kept for history, not built<br/>from, not accepted into #40;knowledgeGraph/README.md:15,58#41;"]
+    %% visionGraph/.github/workflows/publish.yml:175
+    VG["visionGraph vault<br/>ontomark build in the publisher"]
+    %% visionGraph/.github/workflows/publish.yml:526
+    PUB["Public website publication<br/>knowledgeGraph gh-pages"]
+    %% visionGraph/.github/workflows/publish.yml:536
+    DISPATCH["After deployment: corpus-sync event<br/>sent to VisionClaw with source SHA<br/>Request delivery, not ingestion completion"]
+    %% agentbox/scripts/hp-loom-reconcile.sh:133
+    SNAP["Agentbox reconciliation route<br/>Clean worktree of committed vault HEAD"]
+    %% agentbox/scripts/hp-loom-reconcile.sh:149
+    BUILD["ontomark build --with-rvdb<br/>Promote and verify generation"]
+    %% agentbox/scripts/hp-loom-reconcile.sh:198
+    LOOM["Transfer and verifying HP reload<br/>Compare served generation with source SHA"]
+    VG --> PUB --> DISPATCH
+    VG -.->|"Separate distribution route"| SNAP --> BUILD --> LOOM
+    NOTE["DRIFT: the old ontology-bridge route is retired<br/>Manifest describes CLI and Loom HTTP access<br/>agentbox/agentbox.toml:1168"]
+    LOOM --- NOTE
 ```
-- **No dependency edge for sidestr-rs:** the VisionFlow licence table lists it as an AGPL-family estate component (`docs/architecture/licensing.md:15`); the knowledgeGraph README rewrite of 21 October 2026 dropped the sibling table that carried the "Estate sibling, not a corpus consumer" qualifier and now lists only VisionFlow, Ontomark, Ontomark for Obsidian, Loom, VisionClaw and Agentbox (`../knowledgeGraph/README.md:106-113`), so sidestr-rs appears on the map with no arrow; nothing in this repo reads or is read by it.
-- **Authoring moved:** the corpus of record is now visionGraph's Obsidian vault, built by the pinned `ontomark` release, not this repo's `ontology/pages/` (`../knowledgeGraph/README.md:13,56`) — see VG-01 for the vault contract and VG-04.3 for the two independent distribution paths that both start from it.
 
-## KG-06.2 VisionClaw ingest — static artefact becomes a live, reasoned graph
+**What it shows:** Public publication and agent grounding have distinct build, delivery and completion boundaries.
+**Why it is this way:** The publisher emits a refresh request, while the agentbox reconciler separately builds a committed snapshot and checks Loom's served generation; neither route establishes the other's success.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant KG as this repo — dist/data/ontology.ttl<br/>258,200 triples
-    participant SYNC as GitHubSyncService<br/>EXTERNAL: VisionClaw — see VC-20/VC-21
-    participant OXI as Oxigraph<br/>embedded RocksDB RDF quad store
-    participant WHELK as Whelk-rs<br/>OWL 2 EL reasoner
-
-    KG->>SYNC: fetch markdown + ontology #40;ecosystem.md:87-88#41;
-    SYNC->>OXI: write asserted triples #40;SHACL-lite gated#41;
-    OXI->>WHELK: classify
-    WHELK-->>OXI: inferred axioms + PROV-O
-    Note over KG,WHELK: transcribed from VisionClaw's own system-overview.md —<br/>message sequence lines 193-196, store description line 122,<br/>stack table line 244 #40;ecosystem.md:102-108#41;
-    Note over KG: DOC-DRIFT, now INVERTED: docs/architecture/licensing.md:8 has been<br/>corrected and records VisionClaw as AGPL-3.0-only, but ecosystem.md:121-127<br/>still asserts that line "still says" MPL 2.0 — the stale side is now this repo
-    Note over WHELK: agentbox's Ontology Loom facade and ontology-bridge MCP tools<br/>#40;ontology_ask/ontology_search/kg_pathfind#41; ground against THIS reasoned<br/>graph inside VisionClaw, not this repo's static ontology.ttl — no agentbox<br/>program consumes knowledgeGraph's Turtle directly #40;see AB-24, AB-25#41;
-```
-- **Drift (ecosystem.md vs licensing.md):** `../knowledgeGraph/docs/ecosystem.md:125-127` says VisionClaw is "**not** MPL 2.0 today, despite what VisionFlow's `docs/architecture/licensing.md` line 11 still says"; the table was rewritten, the VisionClaw row is now line 8 and reads "AGPL-3.0-only" with the in-tree MPL proposal "not operative" (`docs/architecture/licensing.md:8`), so the two agree and only the commentary and its line number are stale.
-- **Secondary path, not default (see VC-21, VG-04.1):** VisionClaw's `CorpusSource` port now defaults to the visionGraph vault directly (ADR-2114); this GitHub-fetch sequence, still an accurate transcription of VisionClaw's own docs, is the remaining path from this repo's published `dist/data/ontology.ttl` rather than the primary ingest route.
-- **Consumption point (folded from removed KG-06.2):** no agentbox program serves knowledgeGraph directly — the Loom facade (EXTERNAL, see AB-24: model-swappable, static scaffold ~3.5x recall) and the ontology-bridge MCP tools (EXTERNAL, see AB-25) ground against VisionClaw's WHELK-reasoned graph above (VC-20), never this repo's published Turtle file.
-
-## KG-06.4 OntoCast integration — archived with the Logseq pipeline, doc still describes it as live
+## KG-06.2 Two consumers with different input contracts
 
 ```mermaid
 flowchart TB
-    OC["OntoCast e44005d1 #40;0.6.1#41;<br/>EXTERNAL — not vendored, not forked"]
-    DOC["docs/integrations/ontocast.md<br/>describes pipeline.ontocast_import as the live seam — ontocast.md:1-4"]
-    ARCH["archive/logseq-era-2026-09-22/pipeline/ontocast_import.py:140 import_graph<br/>moved out of pipeline/ with the whole Logseq-era tree"]
-    REVIEW["review/ directory<br/>ISOLATED staging, not ontology/pages/ — ontocast.md:72"]
-    CORPUS["ontology/pages/<br/>ARCHIVED, not accepted into — knowledgeGraph/README.md:15,58"]
-
-    OC -.->|"standards-compliant Turtle, facts mode against dist/data/ontology.ttl seed"| DOC
-    DOC -->|"one candidate .md per owl:Class/owl:NamedIndividual<br/>public:: false, pending-review — ontocast.md:39-41"| ARCH
-    ARCH -->|"--write #40;preview is the default#41; — ontocast.md:39"| REVIEW
-    REVIEW -.->|"promotion target retired"| CORPUS
-    note1["DOC-DRIFT: ontocast.md is unchanged since it was written and still<br/>presents this as the live producer seam; import_graph itself moved to<br/>archive/ when the whole Logseq pipeline was archived, and its promotion<br/>target #40;ontology/pages/#41; is no longer built from or accepted into"]
-    note2["INVARIANT #40;preserved if reactivated#41;: slug collisions reported and<br/>skipped — existing files NEVER overwritten #40;ontocast.md:49-50#41;"]
+    %% src/services/corpus_source/mod.rs:190
+    SELECT["VisionClaw CorpusSource selection<br/>Explicit local or github wins<br/>Otherwise nonempty VAULT_ROOT selects local"]
+    %% src/services/corpus_source/github.rs:60
+    REMOTE["GitHubSource lists Markdown<br/>Trees API, Contents API fallback"]
+    %% src/services/github_sync_service.rs:290
+    INGEST["GitHubSyncService filters page identities<br/>under configured base paths<br/>Full listing builds the vault index"]
+    %% loom/crates/loom-facade/src/lib.rs:72
+    BUNDLE["Loom activates local generation data<br/>LoadedBundle before lexical and graph loading"]
+    %% loom/crates/loom-facade/src/bundle.rs:117
+    VERIFY["Commit marker present: verify artefacts<br/>Absent marker: unattested degraded identity<br/>In-flight promotion: reject"]
+    %% loom/crates/loom-facade/src/lib.rs:84
+    LOAD["Load lexical index and local Oxigraph data<br/>Unavailable adapters degrade separately"]
+    SELECT -->|"github selected"| REMOTE --> INGEST
+    SELECT -->|"local selected"| INGEST
+    BUNDLE --> VERIFY --> LOAD
+    NOTE["DRIFT: historical ecosystem narrative is not<br/>evidence of a current static-Turtle fetch route<br/>ecosystem.md:102"]
+    INGEST --- NOTE
 ```
-- **Status:** historical, not operational, at HEAD — `pipeline/ontocast_import.py` no longer exists on that path; only the archived copy above does.
+
+**What it shows:** VisionClaw ingests pages through its source port; Loom loads its own generation and adapters, with explicit degradation cases.
+**Why it is this way:** Current entry points supersede the old documentation-only claim that agent grounding always reads VisionClaw's reasoned graph; this panel does not claim to enumerate every optional RDF importer.
+
+## KG-06.4 Archived OntoCast adapter and its evidence limits
+
+```mermaid
+flowchart TB
+    %% knowledgeGraph/archive/logseq-era-2026-09-22/README.md:1
+    ARCH["Historical Logseq pipeline<br/>No current publication input"]
+    INPUT["Turtle input, preview by default<br/>ontocast_import.py:271"]
+    SELECT["URI class and individual subjects<br/>ontocast_import.py:126"]
+    CAND["Private schema-v3 candidates<br/>Pending review metadata<br/>ontocast_import.py:220,229"]
+    EVID["Evidence copies selected subject statements<br/>ontocast_import.py:210<br/>DEBT: blank-node descendants are omitted"]
+    IDS["DEBT: fallback label-derived references can<br/>alias a rejected duplicate to a retained entity<br/>ontocast_import.py:119,151"]
+    WRITE["--write creates files sequentially<br/>Existing target check then write_text<br/>ontocast_import.py:247"]
+    GAP["DEBT: dangling symlink can escape staging<br/>Dual type can cause partial output and failure<br/>ontocast_import.py:142,156,256"]
+    ARCH --> INPUT --> SELECT --> CAND --> EVID --> WRITE
+    SELECT --- IDS
+    WRITE --- GAP
+```
+
+**What it shows:** Private defaults and review metadata survive, but evidence completeness, collision identity and filesystem confinement have reproduced limits.
+**Why it is this way:** The archived adapter selects subjects and serialises their immediate statements; its checks are narrower than the integration document's losslessness and never-overwrite wording, as the retained synthetic probes demonstrate.

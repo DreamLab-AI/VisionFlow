@@ -1,0 +1,22 @@
+{
+  "scope": "archived adapter, synthetic fixtures only",
+  "passed": 4,
+  "results": [
+    {
+      "probe": "blank-node-evidence",
+      "result": "reference retained; nested statement omitted; private pending control passes"
+    },
+    {
+      "probe": "collision-reference",
+      "result": "child of skipped B maps to retained A local identifier"
+    },
+    {
+      "probe": "dual-type",
+      "result": "two candidates share individual identifier; write fails after first file"
+    },
+    {
+      "probe": "dangling-symlink",
+      "result": "pre-existing dangling symlink followed outside staging; subsequent existing-file refusal passes"
+    }
+  ]
+}

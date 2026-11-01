@@ -1,0 +1,9 @@
+{
+  "files": [
+    "docs/estate-review/2026-11-01-knowledgegraph-consumers-and-archive.md",
+    "docs/diagrams/knowledgegraph/01-repo-composition-and-licensing.md",
+    "docs/diagrams/knowledgegraph/06-consumers-and-integration.md"
+  ],
+  "missing_local_targets": [],
+  "visual_review": "Five final SVGs rasterised with DejaVu Sans and inspected: readable labels, no clipping observed."
+}

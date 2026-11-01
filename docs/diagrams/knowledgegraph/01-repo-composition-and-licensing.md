@@ -1,62 +1,74 @@
 ---
 id: KG-01
-title: Repo composition and the three-way data/pipeline/explorer licensing boundary
+title: Repository composition and recorded licence scopes
 area: knowledgegraph
 governing:
   - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
 adrs: [ADR-2001, ADR-2002]
 sources:
-  - ../knowledgeGraph/README.md
   - ../knowledgeGraph/LICENSING.md
   - ../knowledgeGraph/COMMERCIAL.md
   - ../knowledgeGraph/NOTICE
-  - ../knowledgeGraph/CNAME
-  - ../knowledgeGraph/docs/architecture/explorer.md
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/README.md
   - ../knowledgeGraph/archive/github-workflows/build.yml
-verified_commit: 1edcfc93de90ccff564073ef82cb198c422f75e3
+  - ../visionGraph/.github/workflows/publish.yml
+verified_commit: {knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6}
 ---
 
-## KG-01.1 Repository composition — a published corpus, a retired local pipeline, a live viewer
+## For developers
+
+Separate the retained main-branch source from the configured publisher and deployment branch; the [dated review](../../estate-review/2026-11-01-knowledgegraph-consumers-and-archive.md) records the tree census and committed licence-path drift.
+
+## For the business
+
+A reader can identify which component a licence statement covers without treating the repository's root licence as a grant over every asset; this map records repository declarations, not an independent determination of ownership or enforceability.
+
+## KG-01.1 Retained source and configured publication
 
 ```mermaid
 flowchart TB
-    subgraph REPO["DreamLab-AI/knowledgeGraph — published export + read-only archive"]
-        EXP["explorer/<br/>160 tracked files — WasmVOWL derivative<br/>117 under modern/, no rust-wasm/ tracked,<br/>retained not deployed — knowledgeGraph/README.md:68<br/>and knowledgeGraph/README.md:96"]
-        STATIC["static/ns/v2.jsonld<br/>JSON-LD context, still served"]
-        DIST["dist/data/<br/>12 tracked files — last local pipeline<br/>build, ODbL-1.0"]
-        DOCSN["docs/ · scripts/<br/>BASELINE + architecture + ci-cd<br/>+ methodology + playbook + adr"]
-        LIC["LICENSE · LICENSE-DATA<br/>LICENSE-EXPLORER · NOTICE<br/>LICENSING.md · COMMERCIAL.md"]
-        CNAME["CNAME<br/>narrativegoldmine.com"]
-        ARCHIVE["archive/logseq-era-2026-09-22/<br/>pages/ (8,138) + pipeline/ (32 files)<br/>archive/logseq-era-2026-09-22/README.md:1"]
-        ARCHGH["archive/github-workflows/build.yml<br/>retired with it — its own first step<br/>read ontology/, which had just moved<br/>build.yml:1<br/>permissions: contents: read was the whole<br/>set, at workflow + job level both — could<br/>not write even if a step tried — build.yml:6-8"]
-    end
-    ARCHIVE -.->|"superseded by jjohare/visionGraph<br/>Obsidian vault, vault build + Quartz<br/>archive/logseq-era-2026-09-22/README.md:3-4"| VG["visionGraph<br/>external repo — upstream authoring vault and<br/>ontomark-built publish workflow (see KG-05)<br/>knowledgeGraph/README.md:13,46-49"]
-    VG -.->|"publishes gh-pages directly<br/>knowledgeGraph/README.md:13,49-50"| CNAME
-    STATIC --> EXP
-    LIC --> ARCHIVE
-    LIC --> EXP
-    LIC --> DIST
-    note1["INVARIANT: this repo no longer authors or builds the corpus — it is<br/>now the deploy TARGET plus a kept-for-history archive; ARCHGH cannot<br/>run again even if triggered (its inputs are gone) — knowledgeGraph/README.md:13-15,58"]
+    %% knowledgeGraph/archive/logseq-era-2026-09-22/README.md:1
+    ARC["Logseq-era pages and Python pipeline<br/>Archived for history on 22 September<br/>Never a current build input"]
+    %% knowledgeGraph/archive/github-workflows/build.yml:1
+    OLD["Archived build workflow<br/>Build-and-verify definition, no deploy steps<br/>Stored outside the active workflow directory"]
+    %% visionGraph/.github/workflows/publish.yml:127
+    VALID["visionGraph source validation<br/>ontomark validate --vault all"]
+    %% visionGraph/.github/workflows/publish.yml:175
+    BUILD["Pinned ontomark build<br/>Machine artefacts and publication staging"]
+    %% visionGraph/.github/workflows/publish.yml:262
+    STATIC["Publisher copies its own static/ tree<br/>into site-data, including contexts"]
+    %% visionGraph/.github/workflows/publish.yml:526
+    DEST["Configured deployment target<br/>knowledgeGraph gh-pages, www/<br/>narrativegoldmine.com"]
+    ARC --- OLD
+    VALID --> BUILD --> STATIC --> DEST
+    ARC -.->|"Historical source boundary"| VALID
+    NOTE["OPEN: source configuration establishes the route<br/>A deployed generation needs its own receipt"]
+    DEST --- NOTE
 ```
 
-## KG-01.2 Licensing scope — three licences, one repository, one governing file
+**What it shows:** The archived source and workflow are separate from the current publisher's validation, build and deploy configuration.
+**Why it is this way:** The archive notice records the authoring migration; the active workflow identifies the producer and destination without proving a particular deployment succeeded.
+
+## KG-01.2 Recorded grants and the unresolved archive-path mapping
 
 ```mermaid
-flowchart LR
-    subgraph SCOPE["LICENSING.md scope table — authoritative on conflict"]
-        direction TB
-        AGPL["AGPL-3.0-or-later<br/>pipeline/, static/, docs/ (original prose),<br/>examples/, README/LICENSING/COMMERCIAL/<br/>CONTRIBUTING/NOTICE, root .github/<br/>LICENSING.md:22-27"]
-        MIT["MIT<br/>explorer/ — WebVOWL derivative<br/>LICENSE-EXPLORER<br/>LICENSING.md:28"]
-        ODBL["ODbL-1.0<br/>ontology/, dist/ — UK CDPA 1988 s.9(3)<br/>computer-generated works<br/>LICENSING.md:29-30"]
-    end
-    GHDETECT["GitHub licence detector reads root LICENSE<br/>and labels the WHOLE repo 'AGPL-3.0' —<br/>wrong for explorer/ and ontology/<br/>LICENSING.md:32-34"]
-    GHDETECT -.->|"DOC-DRIFT: detector output, not this table"| SCOPE
-    COMM["COMMERCIAL.md — dual-licensing offer<br/>DreamLab AI Consulting Ltd holds rights in<br/>pipeline/static/docs/examples/ontology/dist<br/>COMMERCIAL.md:7-8"]
-    AGPL -.->|"proprietary licence negotiable<br/>removes §13 network-copyleft"| COMM
-    ODBL -.->|"negotiable data licence<br/>COMMERCIAL.md track 2"| COMM
-    note1["INVARIANT: MIT for explorer/ is deliberate, not oversight — the<br/>identical code is MIT one repo away at DreamLab-AI/WasmVOWL<br/>(architecture/explorer.md:302-308); AGPL-ing a WebVOWL fork here<br/>would be hollow"]
-    note2["The scope table still names pipeline/ and ontology/ (LICENSING.md:22,29)<br/>but both now live only under archive/; the new Current paths paragraph<br/>maps them and says the grants are unchanged — LICENSING.md:14-16"]
+flowchart TB
+    SCOPE["LICENSING.md governs scope conflicts<br/>LICENSING.md:3"]
+    AGPL["AGPL-3.0-or-later declaration<br/>pipeline/, root .github/, static/, docs/,<br/>examples/ and named root prose<br/>LICENSING.md:18"]
+    MIT["MIT declaration for explorer/<br/>LICENSING.md:24<br/>WebVOWL attribution retained<br/>NOTICE:25"]
+    DATA["ODbL-1.0 declaration<br/>ontology/ and dist/<br/>LICENSING.md:25"]
+    GAP["DRIFT: committed table names old paths<br/>Archived pages and pipeline are now under archive/<br/>The archive notice does not restate grants"]
+    %% knowledgeGraph/archive/logseq-era-2026-09-22/README.md:1
+    OFFER["COMMERCIAL.md records alternative terms<br/>and an interim issue-tracker enquiry route<br/>COMMERCIAL.md:3,14"]
+    SCOPE --> AGPL
+    SCOPE --> MIT
+    SCOPE --> DATA
+    AGPL --> GAP
+    DATA --> GAP
+    GAP --> OFFER
+    LIMIT["Scope declarations are documentary evidence<br/>No ownership or jurisdiction conclusion<br/>is established by this diagram"]
+    OFFER --- LIMIT
 ```
 
-**Drift:** `LICENSING.md` describes `explorer/` as having a `rust-wasm/` subtree (`../knowledgeGraph/LICENSING.md:60`) and its scope table still lists `pipeline/` and `ontology/` at their pre-archive paths (`../knowledgeGraph/LICENSING.md:22`), while the tree tracks no `explorer/rust-wasm/` and keeps the corpus and pipeline only under `archive/logseq-era-2026-09-22/` (`../knowledgeGraph/README.md:64`); the paragraph added on 21 October 2026 maps the moved paths but leaves the table and the explorer description as written (`../knowledgeGraph/LICENSING.md:14-16`).
+**What it shows:** Three documented licence scopes coexist, but the committed table has not mapped the moved archive paths.
+**Why it is this way:** The repository retained its historical licence documents through the migration; the audit preserves their declarations and records the path gap without silently importing an uncommitted correction.

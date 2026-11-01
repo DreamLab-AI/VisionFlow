@@ -1,0 +1,98 @@
+[
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "LICENSING.md",
+    "sha256": "58b29223d39a236fd58a6d8d6c78903394685390d9a0cb930aa885d367d20f49"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "NOTICE",
+    "sha256": "8b73e2692499a77977201f52d8ca9557521b3038a893e3aa47b71d06248059da"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "COMMERCIAL.md",
+    "sha256": "bd8932e1799ea4ae849d57ae1091424c9f7976724ff5d6b77618dab7b51e0eb7"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "archive/logseq-era-2026-09-22/README.md",
+    "sha256": "283c65684e3c9542265fad9502a5368ba78c79b477113c348c8eadab70fcbe83"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "archive/github-workflows/build.yml",
+    "sha256": "41fe0f4ebce52fb8da7e99b82758616209db3b5294da912eda0084297a28a3da"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "docs/ecosystem.md",
+    "sha256": "040b6516dd2ead2b71e417aa654d91ac1aa4f877a80f668e1cefdcac61db8730"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "docs/integrations/ontocast.md",
+    "sha256": "e2e279f0b51af7c6c1537655194829d89f05f6528a1006a97e12480e3b8a35ff"
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "archive/logseq-era-2026-09-22/pipeline/ontocast_import.py",
+    "sha256": "ada148732c5961ccdddd8ae481d5f58eb127a68e84a7e47f92d28f5f0e28397f"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": ".github/workflows/publish.yml",
+    "sha256": "7508b63c8b591b8f915a1f9651ce0b270160198f72d80bdb2292bedba6e9bd7c"
+  },
+  {
+    "repo": "project",
+    "revision": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+    "path": "src/services/corpus_source/mod.rs",
+    "sha256": "e72c6aa5b3271740db14dbc71797b86ab202f4f17c54839637761f0d22e0354b"
+  },
+  {
+    "repo": "project",
+    "revision": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+    "path": "src/services/corpus_source/github.rs",
+    "sha256": "e9631ef82adf638738199207866ca1ef5d5c7bd32beb3866c142f71ff98193ce"
+  },
+  {
+    "repo": "project",
+    "revision": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+    "path": "src/services/github_sync_service.rs",
+    "sha256": "70e512fe0df35815d70350706a820b728eaf7d6ec9e56e6656f985403df3993e"
+  },
+  {
+    "repo": "project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "agentbox.toml",
+    "sha256": "c9c7016e6649c118f69ccbbab8d25e35e26c1dc3f449dab61b5ea2493b61203d"
+  },
+  {
+    "repo": "project/agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "scripts/hp-loom-reconcile.sh",
+    "sha256": "9e4d819bb3d3fbfaac6344ee08794f5db4856ee1a50d59b72a9c876338f2411d"
+  },
+  {
+    "repo": "loom",
+    "revision": "ba21a689a57dc67dc68ad22e52b058da34a7fb05",
+    "path": "crates/loom-facade/src/lib.rs",
+    "sha256": "6a2dfcc6c42157b9f223af5353b50258be1967735dacfca4e5245092582283ac"
+  },
+  {
+    "repo": "loom",
+    "revision": "ba21a689a57dc67dc68ad22e52b058da34a7fb05",
+    "path": "crates/loom-facade/src/bundle.rs",
+    "sha256": "a63394d282354bde971f8e0e8763df149bdf1b5580ad295bf4b0cc4e9b41b5cd"
+  }
+]

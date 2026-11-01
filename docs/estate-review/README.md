@@ -1,4 +1,6 @@
 ---
+
+Consumer and archive continuation: [current distribution routes, licence-path drift and four archived importer probes](2026-11-01-knowledgegraph-consumers-and-archive.md), covering all five KG-01/KG-06 panels.
 title: VisionFlow estate review
 status: in-progress
 date: 2026-09-04
