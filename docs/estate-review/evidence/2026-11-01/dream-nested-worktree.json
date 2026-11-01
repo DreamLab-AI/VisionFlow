@@ -1,0 +1,455 @@
+{
+  "generatedAt": "2026-11-01T03:57:03.832Z",
+  "root": "/home/devuser/workspace/wt/dream-engine-diagram-audit/docs/diagrams",
+  "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+  "topics": [
+    {
+      "id": "CRT-01",
+      "file": "crates/01-crate-dependency-dag-and-the-licence-boundary.md",
+      "area": "crates",
+      "title": "The crate dependency DAG and the licence boundary",
+      "verified_commit": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "worktree": null,
+      "sources": [
+        "Cargo.toml",
+        "deny.toml",
+        "crates/dream-core/Cargo.toml",
+        "crates/dream-gate/Cargo.toml",
+        "crates/dream-cli/Cargo.toml",
+        "crates/pairwise-gate/Cargo.toml",
+        "crates/failure-fingerprint/Cargo.toml",
+        ".github/workflows/ci.yml",
+        "README.md",
+        "crates/dream-gate/src/gate.rs",
+        "docs/adr/ADR-DE-002-licence-and-provenance.md",
+        "docs/adr/ADR-DE-001-standalone-rust-engine.md"
+      ],
+      "governing": [
+        "docs/adr/ADR-DE-002-licence-and-provenance.md",
+        "docs/adr/ADR-DE-001-standalone-rust-engine.md"
+      ],
+      "adrs": [
+        "ADR-DE-001",
+        "ADR-DE-002"
+      ],
+      "diagrams": [
+        {
+          "id": "CRT-01.1",
+          "title": "Crate dependencies inside the workspace",
+          "kind": "flowchart",
+          "svg": "rendered/crates/01-crate-dependency-dag-and-the-licence-boundary/CRT-01.1.svg"
+        },
+        {
+          "id": "CRT-01.2",
+          "title": "The licence boundary",
+          "kind": "flowchart",
+          "svg": "rendered/crates/01-crate-dependency-dag-and-the-licence-boundary/CRT-01.2.svg"
+        }
+      ],
+      "citations": {
+        "checked": 26,
+        "warnings": []
+      },
+      "register": {
+        "tension": 0,
+        "debt": 1,
+        "drift": 0,
+        "open": 1,
+        "invariant": 0
+      }
+    },
+    {
+      "id": "CRT-02",
+      "file": "crates/02-seams-and-what-implements-them.md",
+      "area": "crates",
+      "title": "Seams and what implements them",
+      "verified_commit": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "worktree": null,
+      "sources": [
+        "crates/dream-core/src/seams.rs",
+        "crates/dream-core/src/runner.rs",
+        "crates/dream-core/src/candidate.rs",
+        "crates/dream-core/src/persist.rs",
+        "crates/dream-core/src/lib.rs",
+        "crates/dream-core/src/source.rs",
+        "docs/adr/ADR-DE-005-seams.md"
+      ],
+      "governing": [
+        "docs/adr/ADR-DE-005-seams.md"
+      ],
+      "adrs": [
+        "ADR-DE-005"
+      ],
+      "diagrams": [
+        {
+          "id": "CRT-02.1",
+          "title": "The five seams and the implementations that ship",
+          "kind": "classDiagram",
+          "svg": "rendered/crates/02-seams-and-what-implements-them/CRT-02.1.svg"
+        },
+        {
+          "id": "CRT-02.2",
+          "title": "Where each seam is crossed in a night",
+          "kind": "sequenceDiagram",
+          "svg": "rendered/crates/02-seams-and-what-implements-them/CRT-02.2.svg"
+        }
+      ],
+      "citations": {
+        "checked": 17,
+        "warnings": []
+      },
+      "register": {
+        "tension": 0,
+        "debt": 2,
+        "drift": 0,
+        "open": 1,
+        "invariant": 1
+      }
+    },
+    {
+      "id": "GAT-01",
+      "file": "gate/01-verdict-classes-and-the-decide-flow.md",
+      "area": "gate",
+      "title": "Verdict classes and the decide flow",
+      "verified_commit": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "worktree": null,
+      "sources": [
+        "crates/dream-gate/src/gate.rs",
+        "crates/dream-gate/src/pertest.rs",
+        "crates/dream-core/src/candidate.rs",
+        "crates/dream-core/src/persist.rs",
+        "crates/dream-core/src/git.rs",
+        "crates/dream-core/src/replay.rs",
+        "crates/dream-gate/src/guard.rs",
+        "docs/concepts.md",
+        "README.md",
+        "docs/adr/ADR-DE-003-protected-path-guard.md",
+        "docs/adr/ADR-DE-009-candidates-are-formatted-before-the-gate.md"
+      ],
+      "governing": [
+        "docs/concepts.md",
+        "docs/adr/ADR-DE-003-protected-path-guard.md"
+      ],
+      "adrs": [
+        "ADR-DE-003",
+        "ADR-DE-009"
+      ],
+      "diagrams": [
+        {
+          "id": "GAT-01.1",
+          "title": "From evaluator outcome to veto class",
+          "kind": "flowchart",
+          "svg": "rendered/gate/01-verdict-classes-and-the-decide-flow/GAT-01.1.svg"
+        },
+        {
+          "id": "GAT-01.2",
+          "title": "The decide flow",
+          "kind": "flowchart",
+          "svg": "rendered/gate/01-verdict-classes-and-the-decide-flow/GAT-01.2.svg"
+        },
+        {
+          "id": "GAT-01.3",
+          "title": "Guard before apply, recheck inside the gate",
+          "kind": "sequenceDiagram",
+          "svg": "rendered/gate/01-verdict-classes-and-the-decide-flow/GAT-01.3.svg"
+        },
+        {
+          "id": "GAT-01.4",
+          "title": "Receipts are checked against the frozen manifest",
+          "kind": "flowchart",
+          "svg": "rendered/gate/01-verdict-classes-and-the-decide-flow/GAT-01.4.svg"
+        },
+        {
+          "id": "GAT-01.5",
+          "title": "Guard resource bounds and evaluator-command paths",
+          "kind": "flowchart",
+          "svg": "rendered/gate/01-verdict-classes-and-the-decide-flow/GAT-01.5.svg"
+        }
+      ],
+      "citations": {
+        "checked": 87,
+        "warnings": []
+      },
+      "register": {
+        "tension": 1,
+        "debt": 7,
+        "drift": 0,
+        "open": 1,
+        "invariant": 4
+      }
+    },
+    {
+      "id": "NIT-01",
+      "file": "nightly/01-the-nightly-loop-and-run-state.md",
+      "area": "nightly",
+      "title": "The nightly loop and the run-state machine",
+      "verified_commit": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "worktree": null,
+      "sources": [
+        "crates/dream-core/src/runstate.rs",
+        "crates/dream-core/src/lib.rs",
+        "crates/dream-core/src/persist.rs",
+        "crates/dream-gate/src/manifest.rs",
+        "docs/concepts.md"
+      ],
+      "governing": [
+        "docs/concepts.md"
+      ],
+      "adrs": [
+        "ADR-DE-007"
+      ],
+      "diagrams": [
+        {
+          "id": "NIT-01.1",
+          "title": "Phases of a night",
+          "kind": "stateDiagram-v2",
+          "svg": "rendered/nightly/01-the-nightly-loop-and-run-state/NIT-01.1.svg"
+        },
+        {
+          "id": "NIT-01.2",
+          "title": "What begin decides on every start",
+          "kind": "flowchart",
+          "svg": "rendered/nightly/01-the-nightly-loop-and-run-state/NIT-01.2.svg"
+        },
+        {
+          "id": "NIT-01.3",
+          "title": "The night-level terminal rule",
+          "kind": "sequenceDiagram",
+          "svg": "rendered/nightly/01-the-nightly-loop-and-run-state/NIT-01.3.svg"
+        },
+        {
+          "id": "NIT-01.4",
+          "title": "The night lock and what a crash costs",
+          "kind": "sequenceDiagram",
+          "svg": "rendered/nightly/01-the-nightly-loop-and-run-state/NIT-01.4.svg"
+        }
+      ],
+      "citations": {
+        "checked": 54,
+        "warnings": []
+      },
+      "register": {
+        "tension": 1,
+        "debt": 2,
+        "drift": 0,
+        "open": 2,
+        "invariant": 3
+      }
+    },
+    {
+      "id": "NIT-02",
+      "file": "nightly/02-replay-capture-and-verify.md",
+      "area": "nightly",
+      "title": "Replay capture and verify",
+      "verified_commit": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "worktree": null,
+      "sources": [
+        "crates/dream-core/src/replay.rs",
+        "crates/dream-gate/src/gate.rs",
+        "crates/dream-gate/src/receipts.rs",
+        "crates/dream-cli/src/lib.rs",
+        "docs/adr/ADR-DE-003-protected-path-guard.md"
+      ],
+      "governing": [
+        "docs/adr/ADR-DE-003-protected-path-guard.md"
+      ],
+      "adrs": [
+        "ADR-DE-003"
+      ],
+      "diagrams": [
+        {
+          "id": "NIT-02.1",
+          "title": "What is captured",
+          "kind": "flowchart",
+          "svg": "rendered/nightly/02-replay-capture-and-verify/NIT-02.1.svg"
+        },
+        {
+          "id": "NIT-02.2",
+          "title": "What verify re-checks",
+          "kind": "sequenceDiagram",
+          "svg": "rendered/nightly/02-replay-capture-and-verify/NIT-02.2.svg"
+        }
+      ],
+      "citations": {
+        "checked": 24,
+        "warnings": []
+      },
+      "register": {
+        "tension": 1,
+        "debt": 2,
+        "drift": 0,
+        "open": 1,
+        "invariant": 1
+      }
+    },
+    {
+      "id": "NIT-03",
+      "file": "nightly/03-automerge-policy-decision-tree.md",
+      "area": "nightly",
+      "title": "The automerge policy decision tree",
+      "verified_commit": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "worktree": null,
+      "sources": [
+        "crates/dream-core/src/automerge.rs",
+        "crates/dream-core/src/persist.rs",
+        "crates/dream-core/src/runstate.rs",
+        "crates/dream-core/src/seams.rs",
+        "docs/adr/ADR-DE-006-automerge-is-an-option.md"
+      ],
+      "governing": [
+        "docs/adr/ADR-DE-006-automerge-is-an-option.md"
+      ],
+      "adrs": [
+        "ADR-DE-006"
+      ],
+      "diagrams": [
+        {
+          "id": "NIT-03.1",
+          "title": "The decision tree",
+          "kind": "flowchart",
+          "svg": "rendered/nightly/03-automerge-policy-decision-tree/NIT-03.1.svg"
+        },
+        {
+          "id": "NIT-03.2",
+          "title": "Gathering the facts in publish",
+          "kind": "sequenceDiagram",
+          "svg": "rendered/nightly/03-automerge-policy-decision-tree/NIT-03.2.svg"
+        }
+      ],
+      "citations": {
+        "checked": 23,
+        "warnings": []
+      },
+      "register": {
+        "tension": 1,
+        "debt": 3,
+        "drift": 0,
+        "open": 0,
+        "invariant": 1
+      }
+    },
+    {
+      "id": "SEL-01",
+      "file": "selection/01-pairwise-policies-and-the-fault-mapping.md",
+      "area": "selection",
+      "title": "Pairwise selection policies and the fault mapping",
+      "verified_commit": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "worktree": null,
+      "sources": [
+        "crates/pairwise-gate/src/lib.rs",
+        "crates/pairwise-gate/src/model.rs",
+        "crates/pairwise-gate/src/policy.rs",
+        "crates/dream-gate/src/pertest.rs",
+        "crates/dream-core/src/testfmt.rs",
+        "docs/adr/ADR-DE-004-pairwise-selection-and-fingerprints.md"
+      ],
+      "governing": [
+        "docs/adr/ADR-DE-004-pairwise-selection-and-fingerprints.md"
+      ],
+      "adrs": [
+        "ADR-DE-004"
+      ],
+      "diagrams": [
+        {
+          "id": "SEL-01.1",
+          "title": "Tally and the inconclusive guard",
+          "kind": "flowchart",
+          "svg": "rendered/selection/01-pairwise-policies-and-the-fault-mapping/SEL-01.1.svg"
+        },
+        {
+          "id": "SEL-01.2",
+          "title": "The policies and what each selects on",
+          "kind": "flowchart",
+          "svg": "rendered/selection/01-pairwise-policies-and-the-fault-mapping/SEL-01.2.svg"
+        },
+        {
+          "id": "SEL-01.3",
+          "title": "From per-test results to vetoes",
+          "kind": "flowchart",
+          "svg": "rendered/selection/01-pairwise-policies-and-the-fault-mapping/SEL-01.3.svg"
+        }
+      ],
+      "citations": {
+        "checked": 46,
+        "warnings": []
+      },
+      "register": {
+        "tension": 1,
+        "debt": 3,
+        "drift": 0,
+        "open": 1,
+        "invariant": 1
+      }
+    },
+    {
+      "id": "SEL-02",
+      "file": "selection/02-failure-fingerprint-lifecycle.md",
+      "area": "selection",
+      "title": "The failure-fingerprint lifecycle",
+      "verified_commit": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "worktree": null,
+      "sources": [
+        "crates/failure-fingerprint/src/lib.rs",
+        "crates/dream-gate/src/pertest.rs",
+        "crates/dream-core/src/streak.rs",
+        "docs/adr/ADR-DE-004-pairwise-selection-and-fingerprints.md"
+      ],
+      "governing": [
+        "docs/adr/ADR-DE-004-pairwise-selection-and-fingerprints.md"
+      ],
+      "adrs": [
+        "ADR-DE-004"
+      ],
+      "diagrams": [
+        {
+          "id": "SEL-02.1",
+          "title": "From text to identity",
+          "kind": "flowchart",
+          "svg": "rendered/selection/02-failure-fingerprint-lifecycle/SEL-02.1.svg"
+        },
+        {
+          "id": "SEL-02.2",
+          "title": "New, persisting, fixed",
+          "kind": "flowchart",
+          "svg": "rendered/selection/02-failure-fingerprint-lifecycle/SEL-02.2.svg"
+        },
+        {
+          "id": "SEL-02.3",
+          "title": "How the gate uses two steps",
+          "kind": "sequenceDiagram",
+          "svg": "rendered/selection/02-failure-fingerprint-lifecycle/SEL-02.3.svg"
+        },
+        {
+          "id": "SEL-02.4",
+          "title": "The cross-night use: harness stall detection",
+          "kind": "flowchart",
+          "svg": "rendered/selection/02-failure-fingerprint-lifecycle/SEL-02.4.svg"
+        }
+      ],
+      "citations": {
+        "checked": 41,
+        "warnings": []
+      },
+      "register": {
+        "tension": 1,
+        "debt": 5,
+        "drift": 0,
+        "open": 1,
+        "invariant": 1
+      }
+    }
+  ],
+  "totals": {
+    "topics": 8,
+    "diagrams": 24,
+    "citationsChecked": 318,
+    "citationWarnings": 0,
+    "register": {
+      "tension": 6,
+      "debt": 25,
+      "drift": 0,
+      "open": 8,
+      "invariant": 12
+    }
+  }
+}

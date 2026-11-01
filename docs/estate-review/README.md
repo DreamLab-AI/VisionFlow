@@ -13,6 +13,8 @@ This review examines the VisionFlow estate as an organisational proposition, a s
 
 The source audit does not declare all optional features, upstream research or six end-to-end system journeys complete. Those implementation and acceptance obligations remain on the [master TODO](../../../project/docs/TODO-unified.md).
 
+Nested engine corpus: [24-panel source assessment and fingerprint/streak probes](2026-11-01-dream-diagram-corpus.md). All eight owner topics are updated; all nine local ADRs have linked section assessments. Findings and runtime acceptance remain open.
+
 Execution boundaries: [candidate repair egress, triage evidence and annexe retention](2026-11-01-dream-execution-and-triage.md). This completes source assessment of AB-23’s original panels; its findings and the wider audit remain open.
 
 Forum decisions: [dream governance, signing, withdrawal and digest audit](2026-11-01-dream-governance-and-delivery.md).
@@ -143,7 +145,7 @@ XR volumes and concept links: [annotation provenance, fit cadence and highlight 
 | Logseq (`project4` alias) | Historical authoring pipeline, closure/scaffold exports, publishing workflow, corpus census and existing tests | Six design records routed in a history companion; detailed historical claim verification and legacy publisher disposition remain |
 | visionGraph | Current manifest-bound vault, namespace-aware publisher, corpus census, publication probes; 57 passing tests and one corpus-size assertion failure | Content/enrichment promotion, inclusion-policy alignment, public deployment and explorer behaviour |
 | WasmVOWL | Standalone native tests (47 pass), frontend tests (19 pass/60 fail), schema/state findings and proposed consumer ADR | Renderer, WASM boundary, accessibility, performance evidence and whole-tree divergence |
-| dream-engine | Toolkit and Rust service source trace; 78 Rust and 125 TypeScript tests; parser probes | Full cycle simulation, deployed receipts, restart recovery and candidate evaluation |
+| dream-engine | All nine local ADRs section-assessed; 24 nested panels updated; candidate, process recovery, forge and fingerprint fixtures | Open confinement/egress/identity findings; full deployed cycle, storage-fault recovery and delivery reconciliation |
 | RuVector | Agentbox MCP/store/model/filter and Loom local VectorDB/redb/index paths investigated; wrong-configuration probes; 176 vendored ADRs compared | Standalone consumed extension internals, build/release identity, persistence and recall under failures; unconsumed features need disposition |
 | RuView | MAT/server/hardware distinction and parser mismatch; signal, learning, retrieval, security, tracking, mobile, training UI and macOS evidence; [current decision coverage](closeout/sensing-decisions.md) | Locate estate consumer; canonical codec, per-frame inference labels, physical measurement, retention and remaining upstream ADR scope |
 

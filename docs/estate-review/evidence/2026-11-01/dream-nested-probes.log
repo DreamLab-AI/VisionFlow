@@ -1,0 +1,15 @@
+   Compiling dream-core v0.4.0 (/home/devuser/workspace/wt/dream-engine-diagram-audit/crates/dream-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s
+     Running tests/audit_corpus.rs (/home/devuser/workspace/wt/VisionFlow-dream-corpus/.audit-target/debug/deps/audit_corpus-7c2b667a90ad3fbc)
+
+running 7 tests
+test repeated_step_still_increments_count ... ok
+test manifest_reader_does_not_validate_record_identity_or_normalisation ... ok
+test harmless_credential_shaped_canary_survives_normalisation ... ok
+test numeric_and_truncated_causes_alias_by_design ... ok
+test separator_in_names_aliases_distinct_tuples ... ok
+test duplicate_record_calls_are_counted_as_separate_nights ... ok
+test max_manifest_step_overflows_in_debug_build ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+

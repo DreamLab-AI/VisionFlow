@@ -1,0 +1,442 @@
+[
+  {
+    "topic": "docs/diagrams/crates/01-crate-dependency-dag-and-the-licence-boundary.md",
+    "path": ".github/workflows/ci.yml",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "8ccda94be79faee1dbfd56300f5818394dde003d4cefec4a372ee17d72ab4353",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/crates/01-crate-dependency-dag-and-the-licence-boundary.md",
+    "path": "Cargo.toml",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "4ea2065e1cb104e1c87295eb16e5ce2fd67eb18794eedc70651bb1ca4ae4571f",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/crates/01-crate-dependency-dag-and-the-licence-boundary.md",
+    "path": "README.md",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "cfbceffd800ced8d3a98994a1bdee352182f3b02c1c5a593b2292e65178c97c5",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/crates/01-crate-dependency-dag-and-the-licence-boundary.md",
+    "path": "crates/dream-cli/Cargo.toml",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "507210370fcbe5a5c0723a7c732394ab22a1883af936dfec639c4563b6b6e003",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/crates/01-crate-dependency-dag-and-the-licence-boundary.md",
+    "path": "crates/dream-core/Cargo.toml",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "39e5a6c671a080d0fa53d841358a314fc5f77a73d72614d6d6b7c851bb2c0535",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/crates/01-crate-dependency-dag-and-the-licence-boundary.md",
+    "path": "crates/dream-gate/Cargo.toml",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "13430af5ede5977f47ba08a7523d49837182e0417d603f398940c273ecee6715",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/crates/01-crate-dependency-dag-and-the-licence-boundary.md",
+    "path": "crates/dream-gate/src/gate.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "3e246709730bdb8370363feb6333bc84dada20fb046e14d9a224615fb4cc1b5d",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/crates/01-crate-dependency-dag-and-the-licence-boundary.md",
+    "path": "crates/failure-fingerprint/Cargo.toml",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "da479d03cf4754e9e100d1bff4cb4c2089cbe3bdca8c9954a4fcc524ecf4616d",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/crates/01-crate-dependency-dag-and-the-licence-boundary.md",
+    "path": "crates/pairwise-gate/Cargo.toml",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "c7971700e6da85be85414c60b2bb16a2b7a8d731c1d7d5aa4420710ea0e1bd09",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/crates/01-crate-dependency-dag-and-the-licence-boundary.md",
+    "path": "deny.toml",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "40e3c0f1f2e92316b42a457c6a32e8a09f9f9a46bb1230dc3b9fad8dc8b5c6d7",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/crates/01-crate-dependency-dag-and-the-licence-boundary.md",
+    "path": "docs/adr/ADR-DE-001-standalone-rust-engine.md",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "e726c7f46674d60c835059ce8a01f04c493cf5b20a3da7c490468bda1fb6d94f",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/crates/01-crate-dependency-dag-and-the-licence-boundary.md",
+    "path": "docs/adr/ADR-DE-002-licence-and-provenance.md",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "f85d78b8ce20f2e00f6a0580ca2a54345c74aaa788564c644726b06aa1fe9745",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/crates/02-seams-and-what-implements-them.md",
+    "path": "crates/dream-core/src/candidate.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "ce7fc3c350fd8cdbe5a72a5c8a06d089ac689ab3ef345fabf5ab7e279990f39a",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/crates/02-seams-and-what-implements-them.md",
+    "path": "crates/dream-core/src/lib.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "2eaab150690f318cf48327aa2b4791b90c50f7b7e4514324d8a60c7ca2ef8791",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/crates/02-seams-and-what-implements-them.md",
+    "path": "crates/dream-core/src/persist.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "7040715fc23654bf385cd8da94be834ce13ad708461176435d232c0b37bbbbef",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/crates/02-seams-and-what-implements-them.md",
+    "path": "crates/dream-core/src/runner.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "7721c089050fb908f4d4bdf15864f558640f7f61373c8169b33e5973a9e0e531",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/crates/02-seams-and-what-implements-them.md",
+    "path": "crates/dream-core/src/seams.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "d7fed64e52eb4e809f5d34aa420866ae3c4c9a926cce55a7bc9632d69c57fa02",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/crates/02-seams-and-what-implements-them.md",
+    "path": "crates/dream-core/src/source.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "8e76bda907615103552574f067cf4a8fbeea8c29cf4d7733ad2c6d13b0061476",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/crates/02-seams-and-what-implements-them.md",
+    "path": "docs/adr/ADR-DE-005-seams.md",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "9a3a98919067bd925f17167c25974d68b4e751d2ed3a0732cbe5356c8636b06b",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/gate/01-verdict-classes-and-the-decide-flow.md",
+    "path": "README.md",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "cfbceffd800ced8d3a98994a1bdee352182f3b02c1c5a593b2292e65178c97c5",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/gate/01-verdict-classes-and-the-decide-flow.md",
+    "path": "crates/dream-core/src/candidate.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "ce7fc3c350fd8cdbe5a72a5c8a06d089ac689ab3ef345fabf5ab7e279990f39a",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/gate/01-verdict-classes-and-the-decide-flow.md",
+    "path": "crates/dream-core/src/git.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "b395c809d206e4e54e9f7f2de6ad324ee977e6a2678f39da58bfb23eb1ae88b9",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/gate/01-verdict-classes-and-the-decide-flow.md",
+    "path": "crates/dream-core/src/persist.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "7040715fc23654bf385cd8da94be834ce13ad708461176435d232c0b37bbbbef",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/gate/01-verdict-classes-and-the-decide-flow.md",
+    "path": "crates/dream-core/src/replay.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "94f6f287f2014d830641ca5d81a0ec3089cd93fb2d49ca1e142799a396011ab6",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/gate/01-verdict-classes-and-the-decide-flow.md",
+    "path": "crates/dream-gate/src/gate.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "3e246709730bdb8370363feb6333bc84dada20fb046e14d9a224615fb4cc1b5d",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/gate/01-verdict-classes-and-the-decide-flow.md",
+    "path": "crates/dream-gate/src/guard.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "f63cd7134eae9e62ab285f614ea7bfd3f9f8b93bcc1f597d29f9203a9facbbea",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/gate/01-verdict-classes-and-the-decide-flow.md",
+    "path": "crates/dream-gate/src/pertest.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "c99648ec184d3f9dafe4e830fc6d0a753faf1769d2e3516aadf74497a028e22e",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/gate/01-verdict-classes-and-the-decide-flow.md",
+    "path": "docs/adr/ADR-DE-003-protected-path-guard.md",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "35c86511a7f07eb65cfe89ffc7152897070796a76b0304da3cac30ad8673a2e7",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/gate/01-verdict-classes-and-the-decide-flow.md",
+    "path": "docs/adr/ADR-DE-009-candidates-are-formatted-before-the-gate.md",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "681da868dd5138a9bc201103d21033b5ba965ff2e3d98466e814ebfe8533d239",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/gate/01-verdict-classes-and-the-decide-flow.md",
+    "path": "docs/concepts.md",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "88c6910d767be03c4dbc0ccd33e8c833f701fdd9634f8176736ab33c99f9e8b3",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/nightly/01-the-nightly-loop-and-run-state.md",
+    "path": "crates/dream-core/src/lib.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "2eaab150690f318cf48327aa2b4791b90c50f7b7e4514324d8a60c7ca2ef8791",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/nightly/01-the-nightly-loop-and-run-state.md",
+    "path": "crates/dream-core/src/persist.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "7040715fc23654bf385cd8da94be834ce13ad708461176435d232c0b37bbbbef",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/nightly/01-the-nightly-loop-and-run-state.md",
+    "path": "crates/dream-core/src/runstate.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "049a78cb7d81ef3a2d441617a18bb5bd8352d934f5c46cc958f62402f07b054a",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/nightly/01-the-nightly-loop-and-run-state.md",
+    "path": "crates/dream-gate/src/manifest.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "2b17526c057398a286b71b3c169ee54e79001a4222ec466aeaaff3b0f4862a77",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/nightly/01-the-nightly-loop-and-run-state.md",
+    "path": "docs/concepts.md",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "88c6910d767be03c4dbc0ccd33e8c833f701fdd9634f8176736ab33c99f9e8b3",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/nightly/02-replay-capture-and-verify.md",
+    "path": "crates/dream-cli/src/lib.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "351116c718c501295bb38787c115614d046e2fd6482e93021a5adb633aadd33e",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/nightly/02-replay-capture-and-verify.md",
+    "path": "crates/dream-core/src/replay.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "94f6f287f2014d830641ca5d81a0ec3089cd93fb2d49ca1e142799a396011ab6",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/nightly/02-replay-capture-and-verify.md",
+    "path": "crates/dream-gate/src/gate.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "3e246709730bdb8370363feb6333bc84dada20fb046e14d9a224615fb4cc1b5d",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/nightly/02-replay-capture-and-verify.md",
+    "path": "crates/dream-gate/src/receipts.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "873ed5d8f2cd3bab4dbcf3aca3d61cbfe1a558371a60ce8c0579134b982e0fcb",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/nightly/02-replay-capture-and-verify.md",
+    "path": "docs/adr/ADR-DE-003-protected-path-guard.md",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "35c86511a7f07eb65cfe89ffc7152897070796a76b0304da3cac30ad8673a2e7",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/nightly/03-automerge-policy-decision-tree.md",
+    "path": "crates/dream-core/src/automerge.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "2908c1b1d628d599198529fdea5e083d4084cb5230505c02301c8981dc0c0c6c",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/nightly/03-automerge-policy-decision-tree.md",
+    "path": "crates/dream-core/src/persist.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "7040715fc23654bf385cd8da94be834ce13ad708461176435d232c0b37bbbbef",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/nightly/03-automerge-policy-decision-tree.md",
+    "path": "crates/dream-core/src/runstate.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "049a78cb7d81ef3a2d441617a18bb5bd8352d934f5c46cc958f62402f07b054a",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/nightly/03-automerge-policy-decision-tree.md",
+    "path": "crates/dream-core/src/seams.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "d7fed64e52eb4e809f5d34aa420866ae3c4c9a926cce55a7bc9632d69c57fa02",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/nightly/03-automerge-policy-decision-tree.md",
+    "path": "docs/adr/ADR-DE-006-automerge-is-an-option.md",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "987a6d249e785aa59ff05db92eea3621a316b48751cb05d2d4bcfb11874a0347",
+    "changed": true
+  },
+  {
+    "topic": "docs/diagrams/selection/01-pairwise-policies-and-the-fault-mapping.md",
+    "path": "crates/dream-core/src/testfmt.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "26cc720b6bb8ef112c6e3aa581e35de31e16e23740a57f2efb5df095c4284ce8",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/selection/01-pairwise-policies-and-the-fault-mapping.md",
+    "path": "crates/dream-gate/src/pertest.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "c99648ec184d3f9dafe4e830fc6d0a753faf1769d2e3516aadf74497a028e22e",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/selection/01-pairwise-policies-and-the-fault-mapping.md",
+    "path": "crates/pairwise-gate/src/lib.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "8fdf9cb9edbb45e4c98a6951b76c29b2ff4e8eecf8a7f4170e3e60950de580d8",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/selection/01-pairwise-policies-and-the-fault-mapping.md",
+    "path": "crates/pairwise-gate/src/model.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "e9d764371e394cc2d98f2ef08a5181d4c1ff238c2e20bd34439d427654616c2f",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/selection/01-pairwise-policies-and-the-fault-mapping.md",
+    "path": "crates/pairwise-gate/src/policy.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "8ee7240a190ffac55a204f3f6a742428097b0941f43ae66d3ebe9ce18320c8d8",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/selection/01-pairwise-policies-and-the-fault-mapping.md",
+    "path": "docs/adr/ADR-DE-004-pairwise-selection-and-fingerprints.md",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "5a2dc1b4c0bb0b024428ad99bf5d3489f9c546125849a75ce2d13765ae783b19",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/selection/02-failure-fingerprint-lifecycle.md",
+    "path": "crates/dream-core/src/streak.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "0da8f47b2e0d94d89a472d6918fdc92cb0e328b010dc8bc5bbf99b07cfb35cdb",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/selection/02-failure-fingerprint-lifecycle.md",
+    "path": "crates/dream-gate/src/pertest.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "c99648ec184d3f9dafe4e830fc6d0a753faf1769d2e3516aadf74497a028e22e",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/selection/02-failure-fingerprint-lifecycle.md",
+    "path": "crates/failure-fingerprint/src/lib.rs",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "445b98aa2b758f3f912b525e6f714ccba372f5b43bea71b884ac7c60176e57e0",
+    "changed": false
+  },
+  {
+    "topic": "docs/diagrams/selection/02-failure-fingerprint-lifecycle.md",
+    "path": "docs/adr/ADR-DE-004-pairwise-selection-and-fingerprints.md",
+    "old_pin": "0f6a66913c072603b6e29a80bdc67350737b9b21",
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "sha256": "5a2dc1b4c0bb0b024428ad99bf5d3489f9c546125849a75ce2d13765ae783b19",
+    "changed": false
+  }
+]
