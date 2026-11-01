@@ -1,0 +1,41 @@
+{
+  "gate": "PASS at HIGH, not zero findings",
+  "reviewed_files": [
+    "crates/solid-pod-rs/src/oidc/jwks.rs"
+  ],
+  "tests": "New test file manually reviewed and executed; not included in scanner coverage.",
+  "source_revision": "fcc624a3e952e05923d93d7ea038294bcddb25ae",
+  "raw_net_new_correction": "All five mechanisms predate this four-line production diff. Raw output retained unchanged.",
+  "findings": [
+    {
+      "slug": "ssrf",
+      "severity": "MEDIUM",
+      "status": "open-pre-existing",
+      "evidence_limit": "Inherited proxy and direct pin mechanism confirmed in pinned reqwest source; no proxy rebinding runtime experiment."
+    },
+    {
+      "slug": "expensive-api-abuse",
+      "severity": "MEDIUM",
+      "status": "open-pre-existing",
+      "evidence_limit": "Uncapped json body buffering confirmed in source; no memory exhaustion experiment."
+    },
+    {
+      "slug": "other-cache-exhaustion",
+      "severity": "MEDIUM",
+      "status": "open-pre-existing",
+      "evidence_limit": "HashMaps retain expired entries and have no size bound; no load experiment."
+    },
+    {
+      "slug": "other-info-disclosure",
+      "severity": "MEDIUM",
+      "status": "open-pre-existing",
+      "evidence_limit": "Detailed library errors confirmed; client-visible disclosure is inconclusive and main resource OIDC route is unwired."
+    },
+    {
+      "slug": "other-logic-bug",
+      "severity": "BUG",
+      "status": "open-pre-existing",
+      "evidence_limit": "JWKS miss calls uncached discovery; confirmed by call path, no latency benchmark."
+    }
+  ]
+}

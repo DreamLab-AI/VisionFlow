@@ -1,0 +1,12 @@
+[
+  {
+    "file": "docs/estate-review/2026-11-01-solid-oidc-boundaries.md",
+    "target": "evidence/2026-11-01/solid-oidc/manifest.json",
+    "exists": true
+  },
+  {
+    "file": "docs/diagrams/solid-pod-rs/12-oidc-admission-and-fetching.md",
+    "target": "../../estate-review/2026-11-01-solid-oidc-boundaries.md",
+    "exists": true
+  }
+]

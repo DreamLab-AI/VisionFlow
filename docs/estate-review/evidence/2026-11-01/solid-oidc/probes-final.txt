@@ -1,0 +1,18 @@
+   Compiling solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-oidc-review/crates/solid-pod-rs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.24s
+     Running tests/estate_oidc_boundaries.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/estate_oidc_boundaries-a50dd93cc8cecf4b)
+
+running 5 tests
+literal compact predicate accepted without subject/context binding; equivalent Turtle not read
+test observe_profile_binding_ignores_subject_and_context ... ok
+case-distinct and slash-distinct paths accepted; request query not excluded from comparison
+test observe_dpop_url_matching ... ok
+unchanged valid proof accepted again after one-entry cache evicts its unexpired jti
+test observe_capacity_eviction_reaccepts_live_proof ... ok
+aud restriction works; exp==now and future nbf accepted; scheme-only webid accepted; malformed webid falls back to sub
+test observe_access_token_boundaries_with_real_es256 ... ok
+Nostr control reads private bytes; helper-verified ES256 token/proof denied while challenge advertises DPoP: 401 Unauthorized
+test observe_private_route_advertises_but_does_not_consume_dpop ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+

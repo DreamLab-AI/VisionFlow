@@ -1,0 +1,123 @@
+   Compiling solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-oidc-review/crates/solid-pod-rs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 16.58s
+     Running tests/dpop_replay_test.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/dpop_replay_test-a98b5da3ee17fe58)
+
+running 9 tests
+test defaults_match_ddd_contract ... ok
+test f5a_first_seen_jti_is_accepted ... ok
+test f5b_replay_within_ttl_is_rejected ... ok
+test f5d_max_size_eviction_drops_oldest ... ok
+test f5e_concurrent_same_jti_exactly_one_wins ... ok
+test f5f_verify_dpop_with_none_cache_is_pre_f5_behaviour ... ok
+test f5g_verify_dpop_with_cache_rejects_replay ... ok
+test f5c_replay_after_ttl_is_accepted ... ok
+test evict_expired_removes_stale_entries ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/oidc_access_token_alg.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/oidc_access_token_alg-9f8a595b0a1c4ec2)
+
+running 3 tests
+test oidc_access_token_rs256_rejected_when_hs256_only_configured ... ok
+test oidc_access_token_alg_none_rejected ... ok
+test oidc_access_token_dispatches_es256_against_jwks ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/oidc_compat_matrix.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/oidc_compat_matrix-ab386d0a91b1c3a3)
+
+running 28 tests
+test a3_discovery_endpoints_are_absolute_and_issuer_prefixed ... ok
+test a2_discovery_normalises_trailing_slashes_on_the_issuer ... ok
+test a1_discovery_emits_exactly_the_documented_field_set ... ok
+test a4_discovery_advertises_the_adr2003_algorithm_lists ... ok
+test d11_asymmetric_token_against_a_symmetric_keyset_is_refused ... ok
+test c2_audience_member_is_structurally_required ... ok
+test b3_discovery_normalised_issuer_round_trips_into_the_verifier ... ok
+test d12_a_tampered_signature_is_refused ... ok
+test b1_issuer_match_verifies ... ok
+test d7_unsupported_jwk_key_types_have_no_thumbprint ... ok
+test d10_unsupported_asymmetric_algs_are_refused_by_dispatch ... ok
+test d4_non_http_identity_schemes_are_not_webids ... ok
+test b2_issuer_comparison_is_exact_string_equality ... ok
+test d5_cnf_absent_is_refused ... ok
+test d6_cnf_jkt_must_equal_the_presented_dpop_key_thumbprint ... ok
+test d8_alg_none_is_refused_under_every_keyset ... ok
+test d1_missing_webid_claim_with_non_url_sub_is_refused ... ok
+test d3_blank_webid_and_non_url_sub_is_refused ... ok
+test d9_symmetric_alg_is_refused_against_an_asymmetric_keyset ... ok
+test c1_audience_must_name_solid ... ok
+test d2_blank_webid_claim_falls_back_to_a_url_shaped_sub ... ok
+test e1_expired_token_is_refused ... ok
+test e3_expiry_is_checked_before_the_cnf_binding ... ok
+test f1_deprecated_hs256_shim_delegates_to_the_dispatching_form ... ok
+test dpop_stitch::g3_dpop_typ_must_be_dpop_jwt ... ok
+test e2_expiry_boundary_is_exp_less_than_now ... ok
+test dpop_stitch::g2_dpop_claims_htm_htu_iat_and_ath_are_enforced ... ok
+test dpop_stitch::g1_dpop_jkt_is_the_binding_the_access_token_must_carry ... ok
+
+test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/oidc_dpop_signature.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/oidc_dpop_signature-4cd806a8c8394602)
+
+running 5 tests
+test oidc_dpop_alg_none_is_rejected ... ok
+test oidc_dpop_rejects_hs256_with_ec_jwk ... ok
+test oidc_dpop_rejects_unsigned_proof ... ok
+test oidc_dpop_es256_valid_proof_authenticates ... ok
+test oidc_dpop_ath_binding_enforced ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/oidc_integration.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/oidc_integration-3c40dc264d615b1c)
+
+running 5 tests
+test acl_serialise_round_trip_evaluates_identically ... ok
+test oidc_e2e_dynamic_registration_round_trip ... ok
+test oidc_e2e_discovery_to_evaluate ... ok
+test oidc_dpop_proof_replay_cache_blocks_second_use ... ok
+test nip98_to_wac_bridge ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/oidc_jwks_ssrf.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/oidc_jwks_ssrf-23c608909d794155)
+
+running 7 tests
+test oidc_jwks_fetch_blocks_metadata_ip ... ok
+test oidc_config_cache_returns_cached_within_ttl ... ok
+test oidc_discovery_refuses_redirect_to_denied_host ... ok
+test oidc_jwks_issuer_fixation_check ... ok
+test oidc_jwks_fetch_runs_ssrf_twice ... ok
+test oidc_jwks_refuses_redirect_to_denied_host ... ok
+test oidc_jwks_accepts_direct_approved_endpoints ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/oidc_mod_direct.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/oidc_mod_direct-64c686ccf2e45a9b)
+
+running 13 tests
+test access_token_verified_carries_all_fields ... ok
+test discovery_for_emits_minimum_required_metadata ... ok
+test cnf_claim_jkt_round_trips ... ok
+test extract_webid_errors_when_neither_present ... ok
+test discovery_for_serialises_to_well_known_shape ... ok
+test extract_webid_falls_back_to_sub ... ok
+test extract_webid_prefers_explicit_webid_claim ... ok
+test introspection_response_round_trips ... ok
+test register_client_round_trips_via_serde ... ok
+test verify_dpop_proof_rejects_wrong_htm ... ok
+test verify_dpop_proof_rejects_wrong_htu ... ok
+test verify_dpop_proof_rejects_iat_outside_skew ... ok
+test verify_dpop_proof_happy_path_returns_jkt ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/oidc_thumbprint_rfc7638.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/oidc_thumbprint_rfc7638-066f123967ebcf4a)
+
+running 3 tests
+test oidc_jwk_thumbprint_ec_is_canonical ... ok
+test oidc_jwk_thumbprint_matches_rfc7638_test_vector ... ok
+test oidc_jwk_thumbprint_field_order_invariant ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

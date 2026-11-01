@@ -1,0 +1,32 @@
+{
+  "previous_revision": "79843f4",
+  "topic": "docs/diagrams/solid-pod-rs/05-identity-nip98-did-oidc.md",
+  "panels": [
+    {
+      "panel": "SP-05.1",
+      "section_sha256": "15cbbc9218afda46ec86f902d19df5bbb513f6a88377b27bbfda29f6a3a0dcab",
+      "unchanged": true
+    },
+    {
+      "panel": "SP-05.2",
+      "section_sha256": "583402c51c6fb80ce01fcd33e0882e6df2605af6e00dc1ae5eba73d6736ba9c5",
+      "unchanged": true
+    },
+    {
+      "panel": "SP-05.3",
+      "section_sha256": "11e62ecc07cacf377ffe090547c3ec6e2787e2c3ce8d4480e34a1252a7319c9f",
+      "unchanged": true
+    },
+    {
+      "panel": "SP-05.4",
+      "section_sha256": "41104e0812a2d165a5ba21f29590f8a0e289d779a8fc6a65d2f92ef785a232f4",
+      "unchanged": true
+    },
+    {
+      "panel": "SP-05.5",
+      "section_sha256": "fe9a2b285605f921b248a5a6fa599fdc004cd1b0271b1aca25ec7f491cead79e",
+      "unchanged": true
+    }
+  ],
+  "new_credit": 0
+}

@@ -1,0 +1,45 @@
+{
+  "files": [
+    {
+      "path": "docs/diagrams/review-ledger.jsonl",
+      "sha256": "00b87eefdf5a6c2bbb72c328855e9035d6dd6e8346c78b32e9f70064b77a81d6",
+      "unchanged": true
+    },
+    {
+      "path": ".dream-standby",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "path": "docs/review/2026-10-31-glm.json",
+      "sha256": "8fc342d4d518d4b1c17eb0b464fadcb3e7f549b80352a16d51a8d7e466e0bcda",
+      "unchanged": true
+    },
+    {
+      "path": "docs/review/2026-10-31-glm.md",
+      "sha256": "4ea83e5a198d85ba477b30b7185cfd188d24a21b39bf794b680e886c3dc1d71a",
+      "unchanged": true
+    },
+    {
+      "path": "docs/review/2026-10-31-triage.md",
+      "sha256": "5c5f18203de6b5bcbffa35998866da1dd0403c966931d790fc2401c7fdd3e372",
+      "unchanged": true
+    },
+    {
+      "path": "docs/review/2026-11-01-glm.json",
+      "sha256": "f9430401c40ac1e81dc9ee0d79644bf18b5d6219e5eefd218f48de3f9c1a94d5",
+      "unchanged": true
+    },
+    {
+      "path": "docs/review/2026-11-01-glm.md",
+      "sha256": "e9a561226d5ff7596b649a4fa8d11c9fed1bd8edcb19c1b3004292288eee7ea4",
+      "unchanged": true
+    },
+    {
+      "path": "docs/review/2026-11-01-triage.md",
+      "sha256": "a69053b35177480bfd50e9e594ce43b04ba85db06a3bc0e953ced6f829e80ae5",
+      "unchanged": true
+    }
+  ],
+  "visionclaw_springs": "No VisionClaw source files edited by this checkpoint."
+}

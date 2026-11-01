@@ -1,0 +1,15 @@
+{
+  "previous_verification_sha256": "74529b454b82226d94a04988e78515b43a884f2ead2b4886f47c4a1b2a78f84e",
+  "current_verification_sha256": "4a007cf9622678eedce681f00c6f968ee5f4ca62624bae483093c81591950d7d",
+  "new_revision": "fcc624a3e952e05923d93d7ea038294bcddb25ae",
+  "scoped_files": {
+    "docs/diagrams/solid-pod-rs/05-identity-nip98-did-oidc.md": "a0e322db8de5866a3047d7f0eda59a4a4a070ede912987a5e5ae9ad01b1022af",
+    "docs/diagrams/solid-pod-rs/12-oidc-admission-and-fetching.md": "4346ac21bba88a66644ec404f2309bf6cc8c3052b1efd43a746f8218ec5b460d"
+  },
+  "gate_logs": {
+    "historical-diagram.txt": "43e2132398893c7c59b659edee9ef339359f8cb66a8d2dc06ec633688fb17db6",
+    "new-diagram.txt": "5a35ba24e7084ee9217d9933f9c8624523ff13b30448b2e7611e0385377c5a86"
+  },
+  "historical_totals_unchanged": true,
+  "excluded_sources_accessed": false
+}

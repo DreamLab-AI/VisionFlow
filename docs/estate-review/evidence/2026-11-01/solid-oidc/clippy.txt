@@ -1,0 +1,10 @@
+    Blocking waiting for file lock on build directory
+    Checking solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-oidc-review/crates/solid-pod-rs)
+    Checking solid-pod-rs-idp v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-oidc-review/crates/solid-pod-rs-idp)
+    Checking solid-pod-rs-git v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-oidc-review/crates/solid-pod-rs-git)
+    Checking solid-pod-rs-activitypub v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-oidc-review/crates/solid-pod-rs-activitypub)
+    Checking solid-pod-rs-didkey v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-oidc-review/crates/solid-pod-rs-didkey)
+    Checking solid-pod-rs-nostr v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-oidc-review/crates/solid-pod-rs-nostr)
+    Checking solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-oidc-review/crates/solid-pod-rs-server)
+    Checking solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-oidc-review/crates/solid-pod-rs-forge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 36.02s

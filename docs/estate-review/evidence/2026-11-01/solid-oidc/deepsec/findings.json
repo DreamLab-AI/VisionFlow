@@ -1,0 +1,254 @@
+[
+  {
+    "title": "[MEDIUM] SSRF/DNS-rebinding pin bypassed when an HTTP proxy is configured in the environment",
+    "description": "**File:** [`crates/solid-pod-rs/src/oidc/jwks.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/oidc-boundaries/blob/audit/crates/solid-pod-rs/src/oidc/jwks.rs#L201-L216) (lines 201, 212, 213, 214, 215, 216)\n**Project:** solid-pod-oidc-review\n**Severity:** MEDIUM  •  **Confidence:** medium  •  **Slug:** `ssrf`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\npinned_client() builds a fresh reqwest::Client with .resolve(host, approved_ip:port) and .redirect(none) to force the TCP connect at the SSRF-approved IP, defeating DNS rebinding between the policy check and the connect. However reqwest::Client::builder() honours the standard HTTP_PROXY / HTTPS_PROXY / ALL_PROXY environment variables by default, and `default-features = false` in Cargo.toml (reqwest 0.12, features json+rustls-tls) does NOT disable that — proxy-from-env is runtime behaviour, not a cargo feature. When any such proxy var is present in the pod's environment, reqwest routes the discovery and JWKS fetches through the proxy via CONNECT and the .resolve() override is never consulted; the proxy performs its own DNS resolution of the target host. This voids defence #2 (TCP pinning) in the module header and re-opens the DNS-rebinding window: a host the SSRF policy approved on a public IP at check time can resolve to a loopback/metadata/internal address at the proxy's connect time, or the proxy itself can be pointed at internal infrastructure. The issuer string reaching this path (verify_access_token_cached -> jwks -> fetch_jwks) is attacker-influenced and the fetch occurs before token-signature verification.\n\n## Recommendation\n\nAdd .no_proxy() to the pinned_client builder so the SSRF-approved IP pin is always authoritative, or, if proxying is a deliberate deployment requirement, re-run the SSRF policy against the proxy's resolution and document that outbound OIDC fetches must not traverse an untrusted proxy.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-10-18)\n- DreamLab-AI contributors <anthropic@xrsystems.uk> (2026-05-11)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:solid-pod-oidc-review",
+      "severity:MEDIUM",
+      "slug:ssrf",
+      "confidence:medium"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-oidc-review",
+      "filePath": "crates/solid-pod-rs/src/oidc/jwks.rs",
+      "lineNumbers": [
+        201,
+        212,
+        213,
+        214,
+        215,
+        216
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "ssrf",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-01T20:06:43.042Z",
+      "runId": "20261101200112-ef31c994be2369dc",
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/oidc-boundaries/blob/audit/crates/solid-pod-rs/src/oidc/jwks.rs#L201-L216",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-10-18T11:37:21Z"
+          },
+          {
+            "name": "DreamLab-AI contributors",
+            "email": "anthropic@xrsystems.uk",
+            "date": "2026-05-11T19:08:30Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] Unbounded response body on discovery and JWKS fetch enables memory-exhaustion DoS",
+    "description": "**File:** [`crates/solid-pod-rs/src/oidc/jwks.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/oidc-boundaries/blob/audit/crates/solid-pod-rs/src/oidc/jwks.rs#L273-L343) (lines 273, 274, 275, 276, 340, 341, 342, 343)\n**Project:** solid-pod-oidc-review\n**Severity:** MEDIUM  •  **Confidence:** medium  •  **Slug:** `expensive-api-abuse`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nBoth fetch_oidc_config (resp.json(), lines 273-276) and fetch_jwks (resp.json(), lines 340-343) deserialize the entire HTTP response body into memory with no byte cap. The documented 'bounded timeout' (FETCH_TIMEOUT 10s) limits wall-clock, not response size. Any host that passes the SSRF classification — i.e. any public IP, including one the attacker controls and points at via a token's issuer — can return (or stream, within 10s) an arbitrarily large body, driving the pod to allocate until OOM. Because the issuer that selects the target host is attacker-influenced and this fetch runs before the token signature is verified, an unauthenticated caller who can reach the token-verification path can trigger it, and can defeat the per-issuer cache by rotating distinct issuer URLs.\n\n## Recommendation\n\nCap the readable body (e.g. stream with a hard max length / Content-Length precheck, or reqwest response .bytes() with a size guard) before JSON parsing; reject oversized discovery docs and JWKS. A few hundred KB is a generous ceiling for both.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-10-18)\n- DreamLab-AI contributors <anthropic@xrsystems.uk> (2026-05-11)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:solid-pod-oidc-review",
+      "severity:MEDIUM",
+      "slug:expensive-api-abuse",
+      "confidence:medium"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-oidc-review",
+      "filePath": "crates/solid-pod-rs/src/oidc/jwks.rs",
+      "lineNumbers": [
+        273,
+        274,
+        275,
+        276,
+        340,
+        341,
+        342,
+        343
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "expensive-api-abuse",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-01T20:06:43.042Z",
+      "runId": "20261101200112-ef31c994be2369dc",
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/oidc-boundaries/blob/audit/crates/solid-pod-rs/src/oidc/jwks.rs#L273-L343",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-10-18T11:37:21Z"
+          },
+          {
+            "name": "DreamLab-AI contributors",
+            "email": "anthropic@xrsystems.uk",
+            "date": "2026-05-11T19:08:30Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] OidcConfigCache / JwksCache grow without bound; stale entries never evicted",
+    "description": "**File:** [`crates/solid-pod-rs/src/oidc/jwks.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/oidc-boundaries/blob/audit/crates/solid-pod-rs/src/oidc/jwks.rs#L100-L411) (lines 100, 124, 144, 168, 398, 411)\n**Project:** solid-pod-oidc-review\n**Severity:** MEDIUM  •  **Confidence:** medium  •  **Slug:** `other-cache-exhaustion`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nOidcConfigCache and JwksCache store entries in a HashMap with no maximum capacity and no eviction. get() checks the TTL and returns None when stale but never removes the expired entry (lines 114-122, 158-166); put() only ever inserts (lines 124-134, 168-178). The cache key is canonical_issuer(issuer), i.e. an attacker-influenced issuer URL string. An attacker who can drive CachedFetcher::config / jwks / verify_access_token_cached with a stream of distinct issuer URLs (each a reachable public host returning a discovery doc whose issuer field matches — e.g. attacker-hosted) causes both maps to grow without limit, a memory-exhaustion DoS. Stale entries also accumulate for legitimate issuers that rotate URLs.\n\n## Recommendation\n\nBound the caches with a maximum entry count and an eviction policy (LRU or periodic sweep of expired entries), and/or constrain the fetcher to an operator-configured allowlist of trusted issuers before performing any network fetch or cache insert.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-10-18)\n- DreamLab-AI contributors <anthropic@xrsystems.uk> (2026-05-11)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:solid-pod-oidc-review",
+      "severity:MEDIUM",
+      "slug:other-cache-exhaustion",
+      "confidence:medium"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-oidc-review",
+      "filePath": "crates/solid-pod-rs/src/oidc/jwks.rs",
+      "lineNumbers": [
+        100,
+        124,
+        144,
+        168,
+        398,
+        411
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "other-cache-exhaustion",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-01T20:06:43.042Z",
+      "runId": "20261101200112-ef31c994be2369dc",
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/oidc-boundaries/blob/audit/crates/solid-pod-rs/src/oidc/jwks.rs#L100-L411",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-10-18T11:37:21Z"
+          },
+          {
+            "name": "DreamLab-AI contributors",
+            "email": "anthropic@xrsystems.uk",
+            "date": "2026-05-11T19:08:30Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] SSRF error messages embed resolved internal IPs and are wrapped verbatim into PodError",
+    "description": "**File:** [`crates/solid-pod-rs/src/oidc/jwks.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/oidc-boundaries/blob/audit/crates/solid-pod-rs/src/oidc/jwks.rs#L229-L313) (lines 229, 230, 312, 313)\n**Project:** solid-pod-oidc-review\n**Severity:** MEDIUM  •  **Confidence:** low  •  **Slug:** `other-info-disclosure`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nOn a blocked or failed SSRF check, SsrfError's Display embeds the resolved IP and classification (e.g. \"host 'x' (resolved to 10.1.2.3) blocked: Private\"; DnsFailure vs BlockedClass are distinguishable). jwks.rs wraps these verbatim into PodError::Nip98 at lines 227-230 (issuer) and 310-313 (jwks_uri). The access-token verification path documents PodError::Nip98 as surfaced to clients as a 401/invalid_token challenge. Because the caller chooses the issuer URL, a reachable error string (or merely a distinguishable error outcome) turns the pod into a blind internal-DNS reconnaissance oracle: the attacker learns whether an internal hostname resolves and into which address class. Confidence is medium-low because this is a library crate and whether the full message reaches the HTTP body depends on the consumer's error rendering.\n\n## Recommendation\n\nMap SSRF failures to a generic, non-specific error for any client-facing surface (log the detailed resolved-IP string server-side only). Do not propagate resolved IPs or the DNS-failure/blocked-class distinction to callers who control the target URL.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-10-18)\n- DreamLab-AI contributors <anthropic@xrsystems.uk> (2026-05-11)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:solid-pod-oidc-review",
+      "severity:MEDIUM",
+      "slug:other-info-disclosure",
+      "confidence:low"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-oidc-review",
+      "filePath": "crates/solid-pod-rs/src/oidc/jwks.rs",
+      "lineNumbers": [
+        229,
+        230,
+        312,
+        313
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "other-info-disclosure",
+      "confidence": "low",
+      "discoveredAt": "2026-11-01T20:06:43.042Z",
+      "runId": "20261101200112-ef31c994be2369dc",
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/oidc-boundaries/blob/audit/crates/solid-pod-rs/src/oidc/jwks.rs#L229-L313",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-10-18T11:37:21Z"
+          },
+          {
+            "name": "DreamLab-AI contributors",
+            "email": "anthropic@xrsystems.uk",
+            "date": "2026-05-11T19:08:30Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] JWKS path never consults the discovery (config) cache, double-fetching on every JWKS miss",
+    "description": "**File:** [`crates/solid-pod-rs/src/oidc/jwks.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/oidc-boundaries/blob/audit/crates/solid-pod-rs/src/oidc/jwks.rs#L303-L410) (lines 303, 405, 410)\n**Project:** solid-pod-oidc-review\n**Severity:** BUG  •  **Confidence:** high  •  **Slug:** `other-logic-bug`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nCachedFetcher::jwks() checks jwks_cache, and on a miss calls fetch_jwks (line 410), which unconditionally calls the *uncached* fetch_oidc_config (line 303). The OidcConfigCache populated by CachedFetcher::config() is therefore never consulted on the token-verification path. Every JWKS cache miss re-runs the full discovery fetch — a second SSRF resolve+connect and HTTP round-trip — even when a fresh discovery document is already cached. This defeats the stated purpose of caching the discovery doc (amortising the SSRF handshake, module header point 5) and doubles outbound request volume and latency on the hot path.\n\n## Recommendation\n\nHave the cached JWKS path reuse CachedFetcher::config() (or an internal cached discovery lookup) to obtain the jwks_uri, rather than calling the uncached fetch_oidc_config, so the discovery cache is honoured.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-10-18)\n- DreamLab-AI contributors <anthropic@xrsystems.uk> (2026-05-11)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:solid-pod-oidc-review",
+      "severity:BUG",
+      "slug:other-logic-bug",
+      "confidence:high"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-oidc-review",
+      "filePath": "crates/solid-pod-rs/src/oidc/jwks.rs",
+      "lineNumbers": [
+        303,
+        405,
+        410
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-logic-bug",
+      "confidence": "high",
+      "discoveredAt": "2026-11-01T20:06:43.042Z",
+      "runId": "20261101200112-ef31c994be2369dc",
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/oidc-boundaries/blob/audit/crates/solid-pod-rs/src/oidc/jwks.rs#L303-L410",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-10-18T11:37:21Z"
+          },
+          {
+            "name": "DreamLab-AI contributors",
+            "email": "anthropic@xrsystems.uk",
+            "date": "2026-05-11T19:08:30Z"
+          }
+        ]
+      }
+    }
+  }
+]

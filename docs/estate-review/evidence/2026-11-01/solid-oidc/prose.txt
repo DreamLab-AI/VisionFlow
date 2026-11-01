@@ -1,0 +1,18 @@
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-solid-oidc-boundaries.md
+  files scanned: 1   findings: 6   slop score: 18
+  verdict: STRONG AI writing fingerprint
+  high: 6   medium: 0   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (6 hits)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/estate-review/2026-11-01-solid-oidc-boundaries.md:10  The library verifies signatures and enforces an audience policy, but the main
+        docs/estate-review/2026-11-01-solid-oidc-boundaries.md:16  The same review reproduced discovery and JWKS redirects reaching a hostname
+        docs/estate-review/2026-11-01-solid-oidc-boundaries.md:54  The fetcher still uses independent config/JWKS caches: a JWKS miss fetches
+        docs/estate-review/2026-11-01-solid-oidc-boundaries.md:69  The findings remain open with those limits. The scanner reviewed only
+        docs/estate-review/2026-11-01-solid-oidc-boundaries.md:89  The compatibility matrix's 28 cases pass again after the prose correction;
+        docs/estate-review/2026-11-01-solid-oidc-boundaries.md:136  The historical topic resolves 208 citations and renders all 18 panels; the new
+
+  Top things to change: "The X" sentence/paragraph opener
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+

@@ -1,0 +1,38 @@
+    Blocking waiting for file lock on build directory
+   Compiling solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-oidc-review/crates/solid-pod-rs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 14.48s
+     Running unittests src/lib.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/solid_pod_rs-6ed0414cef827e11)
+
+running 29 tests
+test oidc::jwks::tests::canonical_issuer_strips_trailing_slash ... ok
+test oidc::jwks::tests::config_cache_hits_within_ttl ... ok
+test oidc::jwks::tests::config_cache_misses_when_empty ... ok
+test oidc::jwks::tests::default_cache_ttl_is_900_seconds ... ok
+test oidc::jwks::tests::jwks_cache_hits_within_ttl ... ok
+test oidc::jwks::tests::jwks_cache_misses_when_empty ... ok
+test oidc::jwks::tests::short_cache_ttl_is_300_seconds ... ok
+test oidc::replay::tests::counter_increments ... ok
+test oidc::replay::tests::replay_within_ttl_is_rejected ... ok
+test oidc::replay::tests::max_size_clamped_to_at_least_one ... ok
+test oidc::replay::tests::default_config_matches_constants ... ok
+test oidc::replay::tests::first_seen_jti_is_accepted ... ok
+test oidc::tests::discovery_contains_standard_endpoints ... ok
+test oidc::tests::access_token_binds_to_dpop_jkt ... ok
+test oidc::tests::extract_webid_fails_when_no_webid ... ok
+test oidc::tests::dynamic_registration_returns_client_id ... ok
+test oidc::tests::extract_webid_falls_back_to_sub_when_url ... ok
+test oidc::tests::extract_webid_from_explicit_claim ... ok
+test oidc::tests::introspection_active_contains_webid ... ok
+test oidc::tests::access_token_rejects_wrong_jkt ... ok
+test oidc::tests::access_token_rejects_expired ... ok
+test oidc::tests::introspection_inactive_is_minimal ... ok
+test oidc::tests::issuer_binding_requires_declared_issuer ... ok
+test oidc::tests::jwk_ec_thumbprint_is_stable ... ok
+test oidc::tests::issuer_binding_uses_the_supplied_source ... ok
+test oidc::tests::kid_resolving_to_wrong_key_family_is_rejected ... ok
+test oidc::tests::audience_must_match_policy ... ok
+test oidc::jwks::tests::config_cache_expires_after_ttl ... ok
+test oidc::jwks::tests::jwks_cache_expires_after_ttl ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 474 filtered out; finished in 0.01s
+

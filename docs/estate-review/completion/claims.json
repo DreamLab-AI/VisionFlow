@@ -2489,7 +2489,7 @@
     "report": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
     "report_sha256": "333ed29b4207a047bf66d7e02539d68344661032e8a1b0dd11527ceddc8a7563",
     "coverage": "whole-document",
-    "basis": "Every section and D1–D8 assessed against native and bounded consumer source,99 passing tests and four local probe groups. Chain-derived authority, deployment, crash and multiprocess guarantees remain unproved."
+    "basis": "Every section and D1\u2013D8 assessed against native and bounded consumer source,99 passing tests and four local probe groups. Chain-derived authority, deployment, crash and multiprocess guarantees remain unproved."
   },
   {
     "kind": "topic",
@@ -2571,7 +2571,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/solid-pod-rs/05-identity-nip98-did-oidc.md",
-    "source_sha256": "a5bd7f7d1af3679f88e883b5bfd2c6bea789e6c3fec42163c14c0fc2b1ea95d6",
+    "source_sha256": "a0e322db8de5866a3047d7f0eda59a4a4a070ede912987a5e5ae9ad01b1022af",
     "report": "docs/estate-review/2026-11-01-solid-identity-boundaries.md",
     "report_sha256": "364bccd426a00cbc5e9355f01130455531fc8d2ca2830cc64816bc1b108b3c47",
     "coverage": "selected-panels",
@@ -2596,5 +2596,44 @@
       "SP-11.1"
     ],
     "basis": "Merged producer body-binding repair; actual private PUT regression and three core regressions pass. Eleven source citations, render and visual review. No additional ADR, release or deployment credit."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/adr/ADR-2003-solid-oidc-01-defer-lws10.md",
+    "source_sha256": "cbb2f3e2bb785eceec146d682c6b7fffd4a4d7dcb4cf04a8a0fec6be9c033795",
+    "report": "docs/estate-review/2026-11-01-solid-oidc-boundaries.md",
+    "report_sha256": "d1ece8711bb93bf0b2f41f86dd6d25478930ba3ddc949a0668a07dd25d7922c1",
+    "coverage": "whole-document",
+    "basis": "All seven substantive sections assessed; historical deferral preserved, source acceptance refreshed. 102 native tests and five bounded observations; no profile adoption or deployment claim."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/05-identity-nip98-did-oidc.md",
+    "source_sha256": "a0e322db8de5866a3047d7f0eda59a4a4a070ede912987a5e5ae9ad01b1022af",
+    "report": "docs/estate-review/2026-11-01-solid-oidc-boundaries.md",
+    "report_sha256": "d1ece8711bb93bf0b2f41f86dd6d25478930ba3ddc949a0668a07dd25d7922c1",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-05.7",
+      "SP-05.8",
+      "SP-05.10"
+    ],
+    "basis": "Source, bounded observation probes, revision citations and visual render inspection. Other rendered panels receive no new assessment credit."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/12-oidc-admission-and-fetching.md",
+    "source_sha256": "4346ac21bba88a66644ec404f2309bf6cc8c3052b1efd43a746f8218ec5b460d",
+    "report": "docs/estate-review/2026-11-01-solid-oidc-boundaries.md",
+    "report_sha256": "d1ece8711bb93bf0b2f41f86dd6d25478930ba3ddc949a0668a07dd25d7922c1",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-12.1",
+      "SP-12.2"
+    ],
+    "basis": "Source, bounded observation probes, revision citations and visual render inspection. Other rendered panels receive no new assessment credit."
   }
 ]

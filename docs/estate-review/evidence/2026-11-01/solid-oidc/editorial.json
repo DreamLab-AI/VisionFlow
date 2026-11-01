@@ -1,0 +1,11 @@
+{
+  "unicode": "No suspicious characters reported.",
+  "prose_scanner": {
+    "exit": 1,
+    "high_findings": 6,
+    "rule": "The X sentence/paragraph opener",
+    "disposition": "Reviewed and retained ordinary grammatical subjects. Heuristic wording verdict is not authorship or correctness evidence."
+  },
+  "manual_review": "Findings distinguish source mechanisms, reproduced observations, positive controls and untested deployment. UK English retained.",
+  "raw_logs": "Preserved without editorial rewriting; ANSI and EOF blank lines are original tool output."
+}

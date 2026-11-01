@@ -2,8 +2,8 @@
   "date": "2026-11-01",
   "baseline": "2b2c19c0f19b2616e3890946aba384ec448aec9b",
   "panel_id_parity": {
-    "ledger": 1742,
-    "existing_coverage_index": 1742,
+    "ledger": 1744,
+    "existing_coverage_index": 1744,
     "equal": true
   },
   "census_delta": {
@@ -1960,8 +1960,8 @@
       }
     ]
   },
-  "heading_units": 9363,
-  "heading_units_with_recorded_assessment": 692,
+  "heading_units": 9364,
+  "heading_units_with_recorded_assessment": 700,
   "native_tests": 9,
   "clippy": "passed -D warnings",
   "limits": "Counters track evidence reconciliation, not audit completion; document/report hashes do not revalidate implementation code or deployed state.",
@@ -1991,7 +1991,7 @@
       "target": "../../docs/estate-review/completion/claims.json"
     }
   ],
-  "exact_claim_bindings_rechecked": 202,
+  "exact_claim_bindings_rechecked": 205,
   "tool_hashes": {
     "scripts/estate-review-ledger/src/main.rs": "6a13475db77573e460ab9ba8a99b7aa1e7c306ca33c14ea3cf5188b690ce12b3",
     "scripts/estate-review-ledger/Cargo.toml": "8109eeff493be24031c394cce1d81a059ca1612f967e5b032f37bf9e8f1e50d6",
@@ -2127,62 +2127,56 @@
     "limits": "Scope correction only. Previous product tests and diagram gates are historical receipts; neither was rerun for this edit. No RuView source was scanned by the refreshed collector."
   },
   "current_batch": {
-    "report": "docs/estate-review/2026-11-01-solid-empty-body-repair.md",
-    "baseline": "cc2790532e182e204aaf1dc301faf6e0d620805a",
-    "product_commit": "8f2df863e230ae9b59ecbbe4cce36e76263f4380",
-    "skills_commit": "9dfbf7cece25e49f41140b63ce0a0507faa9bba2",
-    "new_whole_adrs": 0,
-    "newly_assessed_existing_panels": [],
-    "new_topic_panels": [
-      "SP-11.1"
+    "report": "docs/estate-review/2026-11-01-solid-oidc-boundaries.md",
+    "baseline": "79843f42bd7ccad8a5fbcbe576f4b61c136c0f30",
+    "source_revision": "fcc624a3e952e05923d93d7ea038294bcddb25ae",
+    "new_whole_adrs": 1,
+    "newly_assessed_existing_panels": [
+      "SP-05.7",
+      "SP-05.8",
+      "SP-05.10"
     ],
-    "workspace_test_executions_passed": 2170,
-    "workspace_tests_ignored": 2,
-    "core_doctests_passed": 30,
-    "core_doctests_ignored": 3,
+    "new_topic_panels": [
+      "SP-12.1",
+      "SP-12.2"
+    ],
+    "native_tests_passed": 102,
+    "observation_tests_passed": 5,
     "counts": {
       "available_checkouts": 20,
       "candidate_files": 828,
-      "numbered_candidates_with_recorded_assessment": 97,
+      "numbered_candidates_with_recorded_assessment": 98,
       "numbered_decision_candidates": 720,
-      "panels": 1742,
-      "panels_with_recorded_assessment": 367,
+      "panels": 1744,
+      "panels_with_recorded_assessment": 372,
       "scope_targets": 20,
       "stale_claim_records": 0,
-      "topics": 209
+      "topics": 210
     },
-    "current_stale_records": 0,
-    "candidate_paths_and_hashes_unchanged": true,
-    "limits": "Producer source merged only; publication, consumer upgrades and deployment open. Workspace default feature tests, not feature-matrix coverage.",
+    "evidence_manifest": "docs/estate-review/evidence/2026-11-01/solid-oidc/manifest.json",
+    "limits": "Producer source merged; external resource admission, remaining findings, package/consumer/deployment adoption open. 28 matrix reruns are not extra coverage.",
+    "candidate_paths_unchanged": true,
+    "candidate_hash_changes": [
+      {
+        "repo": "solid-pod-rs",
+        "path": "crates/solid-pod-rs/docs/adr/ADR-2003-solid-oidc-01-defer-lws10.md",
+        "before": "88d18379d059283b1a67c5e5d46566785e2818eb567c0067a5dcca5edcc25500",
+        "after": "cbb2f3e2bb785eceec146d682c6b7fffd4a4d7dcb4cf04a8a0fec6be9c033795"
+      }
+    ],
     "local_links_checked": [
       {
-        "file": "docs/estate-review/2026-11-01-solid-empty-body-repair.md",
-        "target": "2026-11-01-solid-identity-boundaries.md",
+        "file": "docs/estate-review/2026-11-01-solid-oidc-boundaries.md",
+        "target": "evidence/2026-11-01/solid-oidc/manifest.json",
         "exists": true
       },
       {
-        "file": "docs/estate-review/2026-11-01-solid-empty-body-repair.md",
-        "target": "evidence/2026-11-01/solid-empty-body/manifest.json",
-        "exists": true
-      },
-      {
-        "file": "docs/estate-review/2026-11-01-solid-empty-body-repair.md",
-        "target": "../diagrams/solid-pod-rs/11-empty-body-binding.md",
-        "exists": true
-      },
-      {
-        "file": "docs/estate-review/2026-11-01-solid-empty-body-repair.md",
-        "target": "remediation/solid-identity-2026-11-01.json",
-        "exists": true
-      },
-      {
-        "file": "docs/diagrams/solid-pod-rs/11-empty-body-binding.md",
-        "target": "../../estate-review/2026-11-01-solid-empty-body-repair.md",
+        "file": "docs/diagrams/solid-pod-rs/12-oidc-admission-and-fetching.md",
+        "target": "../../estate-review/2026-11-01-solid-oidc-boundaries.md",
         "exists": true
       }
     ],
-    "evidence_manifest": "docs/estate-review/evidence/2026-11-01/solid-empty-body/manifest.json",
-    "format_check": "Default git diff --check flags only three raw-log EOF blank lines; all other whitespace checks pass with blank-at-eof disabled."
+    "editorial_receipt": "docs/estate-review/evidence/2026-11-01/solid-oidc/editorial.json"
   },
   "prior_full_corpus_gate": {
     "topics": 206,
@@ -2204,25 +2198,33 @@
     "declared_revisions": 57
   },
   "corpus_gate": {
-    "topics": 209,
-    "panels": 1742,
-    "check_verification": "passed: 60 revision tokens",
+    "topics": 210,
+    "panels": 1744,
+    "check_verification": "passed: 61 revision tokens",
     "scope": "Structure only, no source path access",
-    "evidence": "docs/estate-review/evidence/2026-11-01/solid-empty-body/structure.txt"
+    "evidence": "docs/estate-review/evidence/2026-11-01/solid-oidc/structure.txt"
   },
   "scoped_topic_gate": {
     "topics": [
-      "SP-11"
+      "SP-05",
+      "SP-12"
     ],
-    "rendered_panels": 1,
+    "rendered_panels": 20,
     "visually_checked_panels": [
-      "SP-11.1"
+      "SP-05.7",
+      "SP-05.8",
+      "SP-05.10",
+      "SP-12.1",
+      "SP-12.2"
     ],
-    "verified_citations": 11,
+    "verified_citations": 225,
     "warnings": 0,
     "fallback": 0,
-    "evidence": "docs/estate-review/evidence/2026-11-01/solid-empty-body/diagram.txt",
-    "limits": "Eleven JEV citation advisories flagged none; actual source and visual inspection establish the bounded assessment."
+    "evidence": [
+      "docs/estate-review/evidence/2026-11-01/solid-oidc/historical-diagram.txt",
+      "docs/estate-review/evidence/2026-11-01/solid-oidc/new-diagram.txt"
+    ],
+    "limits": "Five selected panels newly assessed; other rendered panels receive no new credit. JEV samples advisory."
   },
   "current_scope_correction": {
     "excluded": [
@@ -2335,5 +2337,63 @@
     },
     "current_stale_records": 0,
     "candidate_paths_unchanged": true
+  },
+  "previous_empty_body_batch": {
+    "report": "docs/estate-review/2026-11-01-solid-empty-body-repair.md",
+    "baseline": "cc2790532e182e204aaf1dc301faf6e0d620805a",
+    "product_commit": "8f2df863e230ae9b59ecbbe4cce36e76263f4380",
+    "skills_commit": "9dfbf7cece25e49f41140b63ce0a0507faa9bba2",
+    "new_whole_adrs": 0,
+    "newly_assessed_existing_panels": [],
+    "new_topic_panels": [
+      "SP-11.1"
+    ],
+    "workspace_test_executions_passed": 2170,
+    "workspace_tests_ignored": 2,
+    "core_doctests_passed": 30,
+    "core_doctests_ignored": 3,
+    "counts": {
+      "available_checkouts": 20,
+      "candidate_files": 828,
+      "numbered_candidates_with_recorded_assessment": 97,
+      "numbered_decision_candidates": 720,
+      "panels": 1742,
+      "panels_with_recorded_assessment": 367,
+      "scope_targets": 20,
+      "stale_claim_records": 0,
+      "topics": 209
+    },
+    "current_stale_records": 0,
+    "candidate_paths_and_hashes_unchanged": true,
+    "limits": "Producer source merged only; publication, consumer upgrades and deployment open. Workspace default feature tests, not feature-matrix coverage.",
+    "local_links_checked": [
+      {
+        "file": "docs/estate-review/2026-11-01-solid-empty-body-repair.md",
+        "target": "2026-11-01-solid-identity-boundaries.md",
+        "exists": true
+      },
+      {
+        "file": "docs/estate-review/2026-11-01-solid-empty-body-repair.md",
+        "target": "evidence/2026-11-01/solid-empty-body/manifest.json",
+        "exists": true
+      },
+      {
+        "file": "docs/estate-review/2026-11-01-solid-empty-body-repair.md",
+        "target": "../diagrams/solid-pod-rs/11-empty-body-binding.md",
+        "exists": true
+      },
+      {
+        "file": "docs/estate-review/2026-11-01-solid-empty-body-repair.md",
+        "target": "remediation/solid-identity-2026-11-01.json",
+        "exists": true
+      },
+      {
+        "file": "docs/diagrams/solid-pod-rs/11-empty-body-binding.md",
+        "target": "../../estate-review/2026-11-01-solid-empty-body-repair.md",
+        "exists": true
+      }
+    ],
+    "evidence_manifest": "docs/estate-review/evidence/2026-11-01/solid-empty-body/manifest.json",
+    "format_check": "Default git diff --check flags only three raw-log EOF blank lines; all other whitespace checks pass with blank-at-eof disabled."
   }
 }

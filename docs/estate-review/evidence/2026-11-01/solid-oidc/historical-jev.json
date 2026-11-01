@@ -1,0 +1,2086 @@
+{
+  "advisory": true,
+  "flag_at": 0.9,
+  "results": [
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:603",
+      "p_defect": 0.08,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:611",
+      "p_defect": 0.06,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:684",
+      "p_defect": 0.33,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:617",
+      "p_defect": 0.54,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:636",
+      "p_defect": 0.09,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:641",
+      "p_defect": 0.32,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:657",
+      "p_defect": 0.63,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:631",
+      "p_defect": 0.48,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/scheme.rs:240",
+      "p_defect": 0.6,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:722",
+      "p_defect": 0.44,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/Cargo.toml:133",
+      "p_defect": 0.2,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:651",
+      "p_defect": 0.44,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:116",
+      "p_defect": 0.07,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:342",
+      "p_defect": 0.05,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:241",
+      "p_defect": 0.13,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:30",
+      "p_defect": 0.63,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:129",
+      "p_defect": 0.56,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:138",
+      "p_defect": 0.29,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:144",
+      "p_defect": 0.04,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:147",
+      "p_defect": 0.1,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:154",
+      "p_defect": 0.73,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:173",
+      "p_defect": 0.78,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:192",
+      "p_defect": 0.57,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:208",
+      "p_defect": 0.08,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:213",
+      "p_defect": 0.19,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:44",
+      "p_defect": 0.4,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:28",
+      "p_defect": 0.08,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:1735",
+      "p_defect": 0.66,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:89",
+      "p_defect": 0.15,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:91",
+      "p_defect": 0.42,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:93",
+      "p_defect": 0.31,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:97",
+      "p_defect": 0.42,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/auth.rs:144",
+      "p_defect": 0.18,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/auth.rs:154",
+      "p_defect": 0.8,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/auth.rs:148",
+      "p_defect": 0.71,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/schnorr.rs:397",
+      "p_defect": 0.3,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4750",
+      "p_defect": 0.58,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4775",
+      "p_defect": 0.1,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs:243",
+      "p_defect": 0.66,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs:247",
+      "p_defect": 0.13,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs:255",
+      "p_defect": 0.25,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs:260",
+      "p_defect": 0.22,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs:266",
+      "p_defect": 0.23,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs:200",
+      "p_defect": 0.19,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs:275",
+      "p_defect": 0.21,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs:99",
+      "p_defect": 0.12,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs:133",
+      "p_defect": 0.36,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs:149",
+      "p_defect": 0.17,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.5",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay_store.rs:90",
+      "p_defect": 0.27,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.5",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs:243",
+      "p_defect": 0.16,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.5",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay_store.rs:56",
+      "p_defect": 0.21,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.5",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay_store.rs:75",
+      "p_defect": 0.24,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.5",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay_store.rs:108",
+      "p_defect": 0.35,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.5",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs:78",
+      "p_defect": 0.09,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.5",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs:82",
+      "p_defect": 0.09,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.5",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs:85",
+      "p_defect": 0.08,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.5",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs:86",
+      "p_defect": 0.07,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.5",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay_store.rs:115",
+      "p_defect": 0.16,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.5",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/replay_store.rs:34",
+      "p_defect": 0.35,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.7",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:406",
+      "p_defect": 0.67,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.7",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:499",
+      "p_defect": 0.43,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.7",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:657",
+      "p_defect": 0.74,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.7",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:621",
+      "p_defect": 0.18,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.7",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:632",
+      "p_defect": 0.36,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.7",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:420",
+      "p_defect": 0.38,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.7",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/replay.rs:177",
+      "p_defect": 0.47,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:741",
+      "p_defect": 0.52,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:785",
+      "p_defect": 0.23,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:859",
+      "p_defect": 0.46,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:908",
+      "p_defect": 0.13,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:913",
+      "p_defect": 0.22,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:917",
+      "p_defect": 0.78,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:921",
+      "p_defect": 0.76,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:928",
+      "p_defect": 0.61,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:1013",
+      "p_defect": 0.41,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:984",
+      "p_defect": 0.25,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/webid.rs:202",
+      "p_defect": 0.38,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:184",
+      "p_defect": 0.17,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:541",
+      "p_defect": 0.37,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/mod.rs:859",
+      "p_defect": 0.23,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/jwks.rs:401",
+      "p_defect": 0.2,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/jwks.rs:294",
+      "p_defect": 0.37,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/jwks.rs:225",
+      "p_defect": 0.53,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/jwks.rs:239",
+      "p_defect": 0.43,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/jwks.rs:277",
+      "p_defect": 0.38,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/jwks.rs:306",
+      "p_defect": 0.48,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/jwks.rs:322",
+      "p_defect": 0.2,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/oidc/jwks.rs:210",
+      "p_defect": 0.75,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:68",
+      "p_defect": 0.26,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:152",
+      "p_defect": 0.14,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:158",
+      "p_defect": 0.1,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:2394",
+      "p_defect": 0.17,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:612",
+      "p_defect": 0.14,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:674",
+      "p_defect": 0.13,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:230",
+      "p_defect": 0.13,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:296",
+      "p_defect": 0.3,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:311",
+      "p_defect": 0.09,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:335",
+      "p_defect": 0.12,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:437",
+      "p_defect": 0.16,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:103",
+      "p_defect": 0.21,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:130",
+      "p_defect": 0.1,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:261",
+      "p_defect": 0.1,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:462",
+      "p_defect": 0.24,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:491",
+      "p_defect": 0.14,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:555",
+      "p_defect": 0.11,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:577",
+      "p_defect": 0.11,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:396",
+      "p_defect": 0.25,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:408",
+      "p_defect": 0.11,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/did_nostr_types.rs:404",
+      "p_defect": 0.04,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.13",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-nostr/src/resolver.rs:71",
+      "p_defect": 0.03,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.13",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-nostr/src/resolver.rs:36",
+      "p_defect": 0.03,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.13",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-nostr/src/resolver.rs:132",
+      "p_defect": 0.28,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.13",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-nostr/src/resolver.rs:54",
+      "p_defect": 0.24,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.13",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-nostr/src/resolver.rs:400",
+      "p_defect": 0.1,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.13",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-nostr/src/resolver.rs:302",
+      "p_defect": 0.28,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.13",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-nostr/src/resolver.rs:382",
+      "p_defect": 0.09,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.13",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-nostr/src/resolver.rs:181",
+      "p_defect": 0.15,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.13",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-nostr/src/resolver.rs:359",
+      "p_defect": 0.27,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.14",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-didkey/src/did.rs:18",
+      "p_defect": 0.19,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.14",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-didkey/src/did.rs:15",
+      "p_defect": 0.02,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.14",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-didkey/src/pubkey.rs:18",
+      "p_defect": 0.5,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.14",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-didkey/src/pubkey.rs:34",
+      "p_defect": 0.05,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.14",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-didkey/src/pubkey.rs:67",
+      "p_defect": 0.25,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.14",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-didkey/src/pubkey.rs:98",
+      "p_defect": 0.07,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.14",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-didkey/src/jwt.rs:68",
+      "p_defect": 0.21,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.14",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-didkey/src/jwt.rs:176",
+      "p_defect": 0.48,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.14",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-didkey/src/jwt.rs:263",
+      "p_defect": 0.07,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.14",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-didkey/src/verifier.rs:15",
+      "p_defect": 0.67,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.14",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-didkey/src/jwt.rs:170",
+      "p_defect": 0.46,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.15",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/self_signed.rs:104",
+      "p_defect": 0.21,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.15",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/self_signed.rs:137",
+      "p_defect": 0.09,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.15",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/self_signed.rs:153",
+      "p_defect": 0.13,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.15",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:425",
+      "p_defect": 0.1,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.15",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/lws_cid.rs:138",
+      "p_defect": 0.07,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.15",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/self_signed.rs:31",
+      "p_defect": 0.13,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.15",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/self_signed.rs:62",
+      "p_defect": 0.13,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.15",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/lws_cid.rs:463",
+      "p_defect": 0.58,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.15",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/lws_cid.rs:503",
+      "p_defect": 0.41,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.15",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/lws_cid.rs:523",
+      "p_defect": 0.35,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.15",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/lws_cid.rs:543",
+      "p_defect": 0.38,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.16",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/provider.rs:84",
+      "p_defect": 0.18,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.16",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/registration.rs:211",
+      "p_defect": 0.15,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.16",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/session.rs:95",
+      "p_defect": 0.05,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.16",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/tokens.rs:88",
+      "p_defect": 0.26,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.16",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/jwks.rs:192",
+      "p_defect": 0.15,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.16",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/provider.rs:152",
+      "p_defect": 0.47,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.16",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/session.rs:158",
+      "p_defect": 0.33,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.16",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/provider.rs:396",
+      "p_defect": 0.23,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.16",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/provider.rs:226",
+      "p_defect": 0.34,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.16",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/session.rs:185",
+      "p_defect": 0.27,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.16",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/provider.rs:362",
+      "p_defect": 0.37,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.16",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/jwks.rs:230",
+      "p_defect": 0.56,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.16",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/tokens.rs:56",
+      "p_defect": 0.78,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.16",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/provider.rs:448",
+      "p_defect": 0.23,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.16",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/provider.rs:318",
+      "p_defect": 0.24,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.16",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/tokens.rs:126",
+      "p_defect": 0.31,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.17",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/jwks.rs:89",
+      "p_defect": 0.06,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.17",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/jwks.rs:137",
+      "p_defect": 0.05,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.17",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/jwks.rs:236",
+      "p_defect": 0.04,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.17",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/jwks.rs:253",
+      "p_defect": 0.32,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.17",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/jwks.rs:264",
+      "p_defect": 0.3,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.17",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/discovery.rs:72",
+      "p_defect": 0.08,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.17",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/axum_binder.rs:92",
+      "p_defect": 0.43,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.17",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/jwks.rs:224",
+      "p_defect": 0.34,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.18",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/credentials.rs:104",
+      "p_defect": 0.26,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.18",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/credentials.rs:31",
+      "p_defect": 0.02,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.18",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/credentials.rs:36",
+      "p_defect": 0.06,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.18",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/passkey.rs:123",
+      "p_defect": 0.23,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.18",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/passkey.rs:157",
+      "p_defect": 0.09,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.18",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/schnorr.rs:123",
+      "p_defect": 0.25,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.18",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/schnorr.rs:146",
+      "p_defect": 0.02,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.18",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/schnorr.rs:205",
+      "p_defect": 0.18,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.18",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/user_store.rs:70",
+      "p_defect": 0.24,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.18",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/invites.rs:98",
+      "p_defect": 0.17,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.18",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/account_delete.rs:55",
+      "p_defect": 0.18,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.18",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/account_delete.rs:14",
+      "p_defect": 0.04,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.19",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/key_provisioning.rs:322",
+      "p_defect": 0.06,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.19",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/key_provisioning.rs:161",
+      "p_defect": 0.03,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.19",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/key_provisioning.rs:186",
+      "p_defect": 0.1,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.19",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/key_provisioning.rs:328-330",
+      "p_defect": 0.09,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.19",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/key_provisioning.rs:44",
+      "p_defect": 0.33,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.19",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/key_provisioning.rs:47",
+      "p_defect": 0.25,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.19",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/key_provisioning.rs:253",
+      "p_defect": 0.13,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.19",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/key_provisioning.rs:51",
+      "p_defect": 0.16,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.19",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/key_provisioning.rs:67",
+      "p_defect": 0.13,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.21",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs:75",
+      "p_defect": 0.08,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.21",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/security/rate_limit.rs:143",
+      "p_defect": 0.03,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.21",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/user_store.rs:70",
+      "p_defect": 0.02,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.21",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs:56",
+      "p_defect": 0.27,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.21",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs:83",
+      "p_defect": 0.37,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.21",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs:91",
+      "p_defect": 0.05,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.21",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs:95",
+      "p_defect": 0.19,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.21",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs:101",
+      "p_defect": 0.18,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.21",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs:108",
+      "p_defect": 0.61,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.21",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs:112",
+      "p_defect": 0.29,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.21",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs:116",
+      "p_defect": 0.22,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.21",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs:126",
+      "p_defect": 0.33,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.21",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs:132",
+      "p_defect": 0.08,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.21",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs:63",
+      "p_defect": 0.15,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.21",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs:24",
+      "p_defect": 0.63,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.21",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-idp/src/credentials.rs:36",
+      "p_defect": 0.6,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.22",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:1021",
+      "p_defect": 0.76,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.22",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/cross_identity.rs:114",
+      "p_defect": 0.09,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.22",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/cross_identity.rs:92",
+      "p_defect": 0.07,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.22",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/cross_identity.rs:77",
+      "p_defect": 0.31,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.22",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/cross_identity.rs:100",
+      "p_defect": 0.53,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.22",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:1102",
+      "p_defect": 0.14,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/05-identity-nip98-did-oidc.md",
+      "diagram": "SP-05.22",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:1102",
+      "p_defect": 0.69,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    }
+  ]
+}

@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_209 topic files, 1742 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_210 topic files, 1744 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -300,6 +300,7 @@ _209 topic files, 1742 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | SP-09 | [CI gates, the release pipeline, versioning and the consumer pin matrix](solid-pod-rs/09-ci-release-and-consumer-pins.md) | 9 | flowchart, sequenceDiagram | [README.md](../../../solid-pod-rs/README.md), [ecosystem-integration.md](../../../solid-pod-rs/crates/solid-pod-rs/docs/explanation/ecosystem-integration.md), [BASELINE-solid-pod-rs.md](../../../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md) | ADR-2001, ADR-2008, ADR-2010 |
 | SP-10 | [Failure modes, fail-closed boundaries and the invariant register](solid-pod-rs/10-failure-modes-and-invariants.md) | 12 | flowchart, sequenceDiagram | [README.md](../../../solid-pod-rs/README.md), [BASELINE-solid-pod-rs.md](../../../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md) | ADR-2002, ADR-2003, ADR-2004, ADR-2005, ADR-2006, ADR-2007 |
 | SP-11 | [Empty-body request commitments](solid-pod-rs/11-empty-body-binding.md) | 1 | flowchart | [BASELINE-solid-pod-rs.md](../../../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md) | ADR-2006 |
+| SP-12 | [OIDC consumer admission and guarded document fetching](solid-pod-rs/12-oidc-admission-and-fetching.md) | 2 | flowchart | [BASELINE-solid-pod-rs.md](../../../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md) | ADR-2003 |
 
 ### nostr-rust-forum
 

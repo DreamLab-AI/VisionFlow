@@ -1,0 +1,8 @@
+{
+  "product_tool_artifacts": {
+    "path": "/tmp/vf-solid-oidc/product-worktree-artifacts.tar.gz",
+    "sha256": "609410f2cedb299e48559a7859079368474366c96b82c4a87bc011e637bc7ed7"
+  },
+  "product_worktree": "Removed after clean merged-state check; ignored tooling archived.",
+  "foreign_worktrees": "Untouched"
+}

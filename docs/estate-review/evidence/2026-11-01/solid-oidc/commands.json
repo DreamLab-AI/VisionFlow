@@ -1,0 +1,81 @@
+{
+  "cwd": "/home/devuser/workspace/wt/solid-pod-oidc-review",
+  "commands": [
+    {
+      "log": "redirect-before.txt",
+      "command": "CARGO_BUILD_JOBS=4 CARGO_TARGET_DIR=/home/devuser/workspace/solid-pod-rs/target cargo test --locked --offline -p solid-pod-rs --features oidc --test oidc_jwks_ssrf",
+      "exit": 101,
+      "scope": "4 pass, 2 fail before repair; direct positive control added subsequently"
+    },
+    {
+      "log": "native-tests.txt",
+      "command": "CARGO_BUILD_JOBS=4 CARGO_TARGET_DIR=/home/devuser/workspace/solid-pod-rs/target cargo test --locked --offline -p solid-pod-rs --features oidc,dpop-replay-cache --test oidc_access_token_alg --test oidc_compat_matrix --test oidc_dpop_signature --test oidc_integration --test oidc_jwks_ssrf --test oidc_mod_direct --test oidc_thumbprint_rfc7638 --test dpop_replay_test",
+      "exit": 0,
+      "scope": "73 pass"
+    },
+    {
+      "log": "native-unit.txt",
+      "command": "CARGO_BUILD_JOBS=4 CARGO_TARGET_DIR=/home/devuser/workspace/solid-pod-rs/target cargo test --locked --offline -p solid-pod-rs --features oidc,dpop-replay-cache --lib oidc::",
+      "exit": 0,
+      "scope": "29 pass"
+    },
+    {
+      "log": "probes-final.txt",
+      "command": "CARGO_BUILD_JOBS=4 CARGO_TARGET_DIR=/home/devuser/workspace/solid-pod-rs/target cargo test --locked --offline -p solid-pod-rs --features oidc,dpop-replay-cache --test estate_oidc_boundaries",
+      "exit": 0,
+      "scope": "5 observation tests pass; copy archived probe into crate tests to reproduce"
+    },
+    {
+      "log": "clippy.txt",
+      "command": "CARGO_BUILD_JOBS=4 CARGO_TARGET_DIR=/home/devuser/workspace/solid-pod-rs/target cargo clippy --locked --offline --workspace --all-targets -- -D warnings",
+      "exit": 0,
+      "scope": "workspace default features"
+    },
+    {
+      "log": "fmt-check.txt",
+      "command": "CARGO_BUILD_JOBS=4 CARGO_TARGET_DIR=/home/devuser/workspace/solid-pod-rs/target cargo fmt --all -- --check",
+      "exit": 0,
+      "scope": "stable toolchain emits nightly option warnings"
+    },
+    {
+      "log": "rustdoc.txt",
+      "command": "CARGO_BUILD_JOBS=4 CARGO_TARGET_DIR=/home/devuser/workspace/solid-pod-rs/target RUSTDOCFLAGS='-D warnings' cargo doc --locked --offline -p solid-pod-rs --features oidc,dpop-replay-cache --no-deps",
+      "exit": 0,
+      "scope": "core docs"
+    },
+    {
+      "log": "matrix-after-docs.txt",
+      "command": "CARGO_BUILD_JOBS=4 CARGO_TARGET_DIR=/home/devuser/workspace/solid-pod-rs/target cargo test --locked --offline -p solid-pod-rs --features oidc,dpop-replay-cache --test oidc_compat_matrix",
+      "exit": 0,
+      "scope": "28 rerun cases already included in 73"
+    }
+  ],
+  "initial_probe_failures": "Two retained fixture failures each had four pass/one fail; Nostr control failed, hence no route conclusion. Final fixture fixes ACL line layout.",
+  "historical_diagram": {
+    "citations": 208,
+    "renders": 18
+  },
+  "new_diagram": {
+    "citations": 17,
+    "renders": 2
+  },
+  "visual_panels": [
+    "SP-05.7",
+    "SP-05.8",
+    "SP-05.10",
+    "SP-12.1",
+    "SP-12.2"
+  ],
+  "jev": [
+    {
+      "log": "historical-jev.json",
+      "sample": 208,
+      "flagged": 0
+    },
+    {
+      "log": "new-jev.json",
+      "sample": 17,
+      "flagged": 0
+    }
+  ]
+}

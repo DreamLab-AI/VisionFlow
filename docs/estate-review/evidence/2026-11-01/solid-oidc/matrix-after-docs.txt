@@ -1,0 +1,38 @@
+   Compiling solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-oidc-review/crates/solid-pod-rs)
+   Compiling solid-pod-rs-idp v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-oidc-review/crates/solid-pod-rs-idp)
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-oidc-review/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.88s
+     Running tests/oidc_compat_matrix.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/oidc_compat_matrix-ab386d0a91b1c3a3)
+
+running 28 tests
+test a1_discovery_emits_exactly_the_documented_field_set ... ok
+test a3_discovery_endpoints_are_absolute_and_issuer_prefixed ... ok
+test a2_discovery_normalises_trailing_slashes_on_the_issuer ... ok
+test a4_discovery_advertises_the_adr2003_algorithm_lists ... ok
+test b1_issuer_match_verifies ... ok
+test d11_asymmetric_token_against_a_symmetric_keyset_is_refused ... ok
+test b3_discovery_normalised_issuer_round_trips_into_the_verifier ... ok
+test c2_audience_member_is_structurally_required ... ok
+test d12_a_tampered_signature_is_refused ... ok
+test d4_non_http_identity_schemes_are_not_webids ... ok
+test b2_issuer_comparison_is_exact_string_equality ... ok
+test d2_blank_webid_claim_falls_back_to_a_url_shaped_sub ... ok
+test d1_missing_webid_claim_with_non_url_sub_is_refused ... ok
+test d6_cnf_jkt_must_equal_the_presented_dpop_key_thumbprint ... ok
+test d7_unsupported_jwk_key_types_have_no_thumbprint ... ok
+test d3_blank_webid_and_non_url_sub_is_refused ... ok
+test d8_alg_none_is_refused_under_every_keyset ... ok
+test d10_unsupported_asymmetric_algs_are_refused_by_dispatch ... ok
+test d5_cnf_absent_is_refused ... ok
+test d9_symmetric_alg_is_refused_against_an_asymmetric_keyset ... ok
+test e3_expiry_is_checked_before_the_cnf_binding ... ok
+test dpop_stitch::g3_dpop_typ_must_be_dpop_jwt ... ok
+test e1_expired_token_is_refused ... ok
+test f1_deprecated_hs256_shim_delegates_to_the_dispatching_form ... ok
+test dpop_stitch::g1_dpop_jkt_is_the_binding_the_access_token_must_carry ... ok
+test e2_expiry_boundary_is_exp_less_than_now ... ok
+test c1_audience_must_name_solid ... ok
+test dpop_stitch::g2_dpop_claims_htm_htu_iat_and_ath_are_enforced ... ok
+
+test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -5,6 +5,7 @@ area: solid-pod-rs
 governing: [../solid-pod-rs/README.md, ../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md, ../solid-pod-rs/crates/solid-pod-rs/docs/explanation/ecosystem-integration.md]
 adrs: [ADR-2003, ADR-2006]
 sources:
+  - ../solid-pod-rs/crates/solid-pod-rs/src/webid.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/auth/replay.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/auth/replay_store.rs
@@ -205,95 +206,50 @@ auth/replay_store.rs:34"]
     TRAIT --> SEAM
 ```
 
-## SP-05.7 Solid-OIDC — DPoP proof verification
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Client
-    participant D as verify_dpop_proof_with_ath<br/>solid-pod-rs/src/oidc/mod.rs:406
-    participant C2 as verify_dpop_proof_core<br/>solid-pod-rs/src/oidc/mod.rs:499
-    participant J as Jwk::thumbprint<br/>solid-pod-rs/src/oidc/mod.rs:255
-    participant R as DpopReplayCache::check_and_record<br/>solid-pod-rs/src/oidc/replay.rs:161
-
-    C->>D: DPoP proof JWT plus expected htu, htm, optional ath
-    D->>C2: parse header and claims
-    C2->>C2: reject alg=none and every HS* symmetric alg (RFC 9449 §5)<br/>solid-pod-rs/src/oidc/mod.rs:571
-    C2->>C2: htu compared after normalise_htu<br/>solid-pod-rs/src/oidc/mod.rs:657
-    C2->>C2: ath compared with constant_time_eq<br/>solid-pod-rs/src/oidc/mod.rs:646
-    C2->>J: RFC 7638 thumbprint of the embedded JWK
-    C2->>R: jti single-use check within the TTL window
-    R-->>C2: fresh, or a replay rejection
-    C2-->>D: DpopVerified { htm, htu, jti, ath, ... }<br/>solid-pod-rs/src/oidc/mod.rs:350
-    Note over C2: DpopClaims carries htu, htm, jti and the optional ath<br/>solid-pod-rs/src/oidc/mod.rs:337
-    Note over R: DpopReplayCache defaults: 60 s TTL (solid-pod-rs/src/oidc/replay.rs:55) and<br/>10 000 entries (solid-pod-rs/src/oidc/replay.rs:59). JtiReplayCache is the<br/>sync sibling (solid-pod-rs/src/oidc/replay.rs:312).
-```
-
-## SP-05.8 Access-token verification, its divergences, and discovery versus the crypto path
+## SP-05.7 Solid-OIDC DPoP proof checks and optional replay admission
 
 ```mermaid
 flowchart TD
-    VT["verify_access_token, a wrapper over verify_access_token_with_policy<br/>solid-pod-rs/src/oidc/mod.rs:741"]
-    VTP["verify_access_token_with_policy, takes an AccessTokenPolicy<br/>solid-pod-rs/src/oidc/mod.rs:836"]
-    KID["kid-selected JWK must match the header alg family (jwk_matches_alg)<br/>solid-pod-rs/src/oidc/mod.rs:870"]
-    BIND["verify_webid_issuer_binding — caller-invoked, profile must declare iss<br/>solid-pod-rs/src/oidc/mod.rs:984"]
-    ASYM["ES256 / RS256 / EdDSA against a JWK set<br/>solid-pod-rs/src/oidc/mod.rs:859"]
-    SYMR["symmetric key with an asymmetric alg is REJECTED<br/>solid-pod-rs/src/oidc/mod.rs:890"]
-    OTHER["any other alg rejected with an explicit message<br/>solid-pod-rs/src/oidc/mod.rs:901"]
-    AUD["aud checked against policy.expected_audience, default aud solid<br/>solid-pod-rs/src/oidc/mod.rs:921"]
-    WID["extract_webid — webid claim, else url-shaped sub<br/>solid-pod-rs/src/oidc/mod.rs:1013"]
-    HS["verify_access_token_hs256 — separate entry point<br/>solid-pod-rs/src/oidc/mod.rs:1000"]
-    INTRO["IntrospectionResponse::from_verified, RFC 7662<br/>solid-pod-rs/src/oidc/mod.rs:1051"]
-    DISC["discovery_for(issuer)<br/>solid-pod-rs/src/oidc/mod.rs:156"]
-    ADV["dpop_signing_alg_values_supported = ES256, RS256<br/>solid-pod-rs/src/oidc/mod.rs:184"]
-    IDT["id_token_signing_alg_values_supported = RS256, ES256<br/>solid-pod-rs/src/oidc/mod.rs:186"]
-
-    VT --> VTP --> ASYM --> KID --> AUD --> WID --> INTRO
-    VTP --> SYMR
-    VTP --> OTHER
-    WID -.-> BIND
-    VT -.-> HS
-    DISC --> ADV
-    DISC --> IDT
-    ADV -. "mismatch" .-> ASYM
-
-    D1["DRIFT: ADR-2003 says aud is not validated at all (solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2003-solid-oidc-01-defer-lws10.md:111)<br/>and so does the baseline (solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md:212); the code now requires aud to be, or contain,<br/>'solid' unless an AccessTokenPolicy names another audience (solid-pod-rs/src/oidc/mod.rs:921)."]
-    D1b["DIVERGENCE: the issuer binding is a separate call. verify_access_token does not check that the<br/>webid profile lists iss as solid:oidcIssuer (solid-pod-rs/src/oidc/mod.rs:833),<br/>so without verify_webid_issuer_binding an unrelated IdP can assert any WebID."]
-    AUD -.-> D1
-    WID -.-> D1b
-    D2["DIVERGENCE (ADR-2003): extract_webid reads only the top-level webid claim and<br/>a URL-shaped sub. There is NO cnf.webid branch, so the LWS10 C.1 delta is<br/>unshipped. CnfClaim exists (solid-pod-rs/src/oidc/mod.rs:685) but is not<br/>consulted here."]
-    WID -.-> D2
-    D3["DIVERGENCE (baseline invariant 6, ADR-2003): discovery advertises only ES256<br/>and RS256, yet the verifier also dispatches EdDSA — discovery must match the<br/>crypto path. This is Solid-OIDC 0.1, not LWS10: no lws_supported,<br/>authorization_response_iss_parameter_supported or client_registration_types_supported."]
-    ASYM -.-> D3
+    CALL["caller supplies expected URL, method, time<br/>optional access-token hash and replay cache<br/>oidc/mod.rs:406"]
+    CORE["core verifies proof signature and claims<br/>oidc/mod.rs:499"]
+    URL["whole URL lower-cased, trailing slash trimmed<br/>query and fragment retained<br/>oidc/mod.rs:657"]
+    ATH["ath checked only when caller supplies expected hash<br/>oidc/mod.rs:621"]
+    RESULT["DpopVerified includes key thumbprint and jti<br/>oidc/mod.rs:632"]
+    CACHE["wrapper claims jti<br/>when cache supplied<br/>oidc/mod.rs:420"]
+    EVICT["capacity insertion evicts LRU, even unexpired<br/>oidc/replay.rs:177"]
+    CALL --> CORE --> URL --> ATH --> RESULT --> CACHE
+    CACHE --> EVICT
 ```
 
-## SP-05.10 JWKS and discovery fetching — SSRF-pinned and cached
+## SP-05.8 Access-token checks and the separate WebID authority step
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant V as CachedFetcher<br/>solid-pod-rs/src/oidc/jwks.rs:352
-    participant CC as OidcConfigCache<br/>solid-pod-rs/src/oidc/jwks.rs:97
-    participant JC as JwksCache<br/>solid-pod-rs/src/oidc/jwks.rs:141
-    participant P as pinned_client<br/>solid-pod-rs/src/oidc/jwks.rs:198
-    participant I as issuer
+flowchart TD
+    API["verify_access_token defaults to aud solid<br/>oidc/mod.rs:741<br/>oidc/mod.rs:785"]
+    KEY["select compatible JWK and verify signature and issuer<br/>oidc/mod.rs:859<br/>oidc/mod.rs:908<br/>oidc/mod.rs:913"]
+    CLAIMS["expiry, audience and cnf.jkt checks<br/>exp equality accepted, nbf not modelled<br/>oidc/mod.rs:917<br/>oidc/mod.rs:921<br/>oidc/mod.rs:928"]
+    WEBID["webid then sub, literal http(s) prefix<br/>oidc/mod.rs:1013"]
+    PROFILE["separate caller-invoked issuer-profile check<br/>oidc/mod.rs:984"]
+    LIMIT["literal issuer property only<br/>no subject or context binding<br/>src/webid.rs:202"]
+    DISC["discovery advertises ES256 and RS256<br/>verifiers accept a broader set<br/>oidc/mod.rs:184<br/>oidc/mod.rs:541<br/>oidc/mod.rs:859"]
+    API --> KEY --> CLAIMS --> WEBID
+    WEBID -. "caller must compose" .-> PROFILE --> LIMIT
+    DISC -.-> KEY
+```
 
-    V->>CC: config(issuer) — canonical_issuer key<br/>solid-pod-rs/src/oidc/jwks.rs:190
-    alt cache hit within TTL
-        CC-->>V: OidcDiscoveryDoc
-    else miss
-        V->>P: build a client pinned to the SSRF-checked IP
-        P->>I: fetch_oidc_config<br/>solid-pod-rs/src/oidc/jwks.rs:218
-        I-->>V: discovery document
-    end
-    V->>JC: jwks(issuer)
-    alt miss
-        V->>P: pinned client again
-        P->>I: fetch_jwks<br/>solid-pod-rs/src/oidc/jwks.rs:294
-    end
-    V->>V: verify_access_token_cached<br/>solid-pod-rs/src/oidc/jwks.rs:420
-    Note over V: DEFAULT_CACHE_TTL 900 s (solid-pod-rs/src/oidc/jwks.rs:52) —<br/>SHORT_CACHE_TTL 300 s (solid-pod-rs/src/oidc/jwks.rs:458).
-    Note over P: The client is pinned to the resolved IP so a DNS rebind between the<br/>SSRF check and the request cannot redirect the fetch. See SP-06.9.
+## SP-05.10 Historical JWKS fetch boundaries and redirect gap
+
+```mermaid
+flowchart TD
+    CACHE["JWKS cache lookup by canonical issuer<br/>oidc/jwks.rs:401"]
+    DISC["miss: fetch discovery, independent of config cache<br/>oidc/jwks.rs:294"]
+    POLICY["check issuer destination, build pinned client<br/>oidc/jwks.rs:225<br/>oidc/jwks.rs:239"]
+    ISS["check returned<br/>issuer string<br/>oidc/jwks.rs:277"]
+    JWK["check jwks_uri separately, build pinned client<br/>oidc/jwks.rs:306<br/>oidc/jwks.rs:322"]
+    GAP["GAP at this revision: builder leaves redirects enabled<br/>redirect destination is not checked<br/>oidc/jwks.rs:210"]
+    CACHE -->|miss| DISC --> POLICY --> ISS --> JWK
+    POLICY -.-> GAP
+    JWK -.-> GAP
 ```
 
 ## SP-05.12 did:nostr — document rendering, the parity model and the bidirectional binding

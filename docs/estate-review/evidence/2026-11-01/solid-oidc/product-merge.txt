@@ -1,0 +1,10 @@
+Updating 8f2df86..fcc624a
+Fast-forward
+ CHANGELOG.md                                       |  4 +
+ crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md  | 16 ++--
+ .../docs/adr/ADR-2003-solid-oidc-01-defer-lws10.md | 33 ++++++++
+ .../reference/solid-oidc-compatibility-matrix.md   | 53 ++++++++----
+ crates/solid-pod-rs/src/oidc/jwks.rs               |  4 +
+ crates/solid-pod-rs/tests/oidc_compat_matrix.rs    |  7 +-
+ crates/solid-pod-rs/tests/oidc_jwks_ssrf.rs        | 97 ++++++++++++++++++++++
+ 7 files changed, 186 insertions(+), 28 deletions(-)

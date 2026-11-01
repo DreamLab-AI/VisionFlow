@@ -1,0 +1,30 @@
+{
+  "consulted": "2026-11-01",
+  "sources": [
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc9449.html",
+      "basis": "DPoP htu excludes query/fragment; server nonce optional."
+    },
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc7519.html",
+      "basis": "exp and nbf time claims."
+    },
+    {
+      "url": "https://solidproject.org/TR/oidc",
+      "basis": "Solid-OIDC 0.1 profile issuer authority; distinguish ID-token contract."
+    },
+    {
+      "url": "https://www.w3.org/TR/2026/WD-lws10-authn-openid-20261015/",
+      "basis": "15 October 2026 Working Draft; subject controlled identifier and issuer service binding."
+    },
+    {
+      "url": "https://github.com/CommunitySolidServer/tutorials/blob/main/getting-started.md",
+      "basis": "Client sign-in and resource journey comparator."
+    },
+    {
+      "url": "https://github.com/CommunitySolidServer/CommunitySolidServer/blob/main/config/default.json",
+      "basis": "OIDC identity and DPoP resource authentication imports."
+    }
+  ],
+  "limits": "Primary-source comparison, not external deployment interoperability or benchmark; repository main links may move."
+}

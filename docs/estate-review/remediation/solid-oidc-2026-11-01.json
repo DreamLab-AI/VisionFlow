@@ -1,0 +1,80 @@
+{
+  "report": "docs/estate-review/2026-11-01-solid-oidc-boundaries.md",
+  "source_revision": "fcc624a3e952e05923d93d7ea038294bcddb25ae",
+  "findings": [
+    {
+      "id": "SP-OIDC-01",
+      "evidence": "Both fetch functions followed a 302 from an approved loopback fixture to a denied hostname. Each target received one request and its response was accepted. This proves a policy bypass in the reusable fetch API; external deployment exposure was not tested.",
+      "acceptance": "Producer repair refuses redirects; preserve direct-fetch success, then publish, upgrade consumers and verify their network policy.",
+      "status": "producer-fixed-adoption-open"
+    },
+    {
+      "id": "SP-OIDC-02",
+      "evidence": "Main resource extraction calls NIP-98; production Bearer is refused and DPoP has no dispatch. Its challenge nevertheless advertises both. The valid Nostr control reads private bytes; the ES256 OIDC/DPoP pair passes library checks but receives 401.",
+      "acceptance": "Compose the selected OIDC profile into real resource admission, including proof, issuer authority, audience, replay and WAC, and pass an external-client journey.",
+      "status": "open"
+    },
+    {
+      "id": "SP-OIDC-03",
+      "evidence": "`normalise_htu` lower-cases the path and trims trailing slashes. A valid proof for `/Foo` verifies against `/foo` and `/Foo/`, while adding a query causes refusal.",
+      "acceptance": "Compare parsed URI components according to the selected DPoP contract, with case-distinct resources and query-bearing requests tested. No resource-route bypass is claimed.",
+      "status": "open"
+    },
+    {
+      "id": "SP-OIDC-04",
+      "evidence": "With capacity one, a valid second proof evicts the first unexpired `jti`; the unchanged first proof then verifies again. The IdP supplies this cache during token exchange, before code consumption.",
+      "acceptance": "Retain admission records for the remaining acceptance window and define saturation behaviour. Single-use authorisation codes are a separate defence; this probe does not prove duplicate token issuance. Default-TTL timing remains unexecuted.",
+      "status": "open"
+    },
+    {
+      "id": "SP-OIDC-05",
+      "evidence": "The profile helper accepts a literal compact issuer property despite an unrelated subject and a context assigning that prefix elsewhere. Equivalent Turtle is refused. The cached token verifier does not call this helper, and no external-resource consumer was found in the reviewed crate family.",
+      "acceptance": "Bind the exact WebID subject and expanded issuer predicate through the estate's RDF tooling, support the chosen profile representations, and verify the actual consumer composition.",
+      "status": "open"
+    },
+    {
+      "id": "SP-OIDC-06",
+      "evidence": "Real ES256 tokens with `exp == now` or future `nbf` pass. A `https://`-only WebID passes the prefix test; a non-URL WebID silently falls back to `sub`. Wrong audience and expired-by-one-second controls fail.",
+      "acceptance": "Correct time and identity-shape policy with deterministic fixtures and explicit compatibility decisions. These are verifier observations, not a demonstrated route takeover.",
+      "status": "open"
+    },
+    {
+      "id": "SP-OIDC-07",
+      "evidence": "Alpha.8 prose claimed arbitrary audiences while current code and test C1 enforce `solid` or an explicit policy. A passing matrix suite had not prevented prose drift.",
+      "acceptance": "Corrected in the baseline, matrix, ADR extension and test commentary. Preserve source-version and evidence boundaries on future updates.",
+      "status": "documentation-corrected"
+    }
+  ],
+  "review_findings": [
+    {
+      "slug": "ssrf",
+      "severity": "MEDIUM",
+      "status": "open-pre-existing",
+      "evidence_limit": "Inherited proxy and direct pin mechanism confirmed in pinned reqwest source; no proxy rebinding runtime experiment."
+    },
+    {
+      "slug": "expensive-api-abuse",
+      "severity": "MEDIUM",
+      "status": "open-pre-existing",
+      "evidence_limit": "Uncapped json body buffering confirmed in source; no memory exhaustion experiment."
+    },
+    {
+      "slug": "other-cache-exhaustion",
+      "severity": "MEDIUM",
+      "status": "open-pre-existing",
+      "evidence_limit": "HashMaps retain expired entries and have no size bound; no load experiment."
+    },
+    {
+      "slug": "other-info-disclosure",
+      "severity": "MEDIUM",
+      "status": "open-pre-existing",
+      "evidence_limit": "Detailed library errors confirmed; client-visible disclosure is inconclusive and main resource OIDC route is unwired."
+    },
+    {
+      "slug": "other-logic-bug",
+      "severity": "BUG",
+      "status": "open-pre-existing",
+      "evidence_limit": "JWKS miss calls uncached discovery; confirmed by call path, no latency benchmark."
+    }
+  ]
+}

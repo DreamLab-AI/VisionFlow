@@ -1,0 +1,28 @@
+{
+  "revision": "fcc624a3e952e05923d93d7ea038294bcddb25ae",
+  "files": {
+    "Cargo.lock": "3d2aa7e07ee46b4ec469c1b91bcfb3eca02267e53e5279f86c6065a7e70fd6e1",
+    "crates/solid-pod-rs/src/oidc/mod.rs": "7c518d8fe828be2e3aa180a70c96ce6a410cb42112b0d231fda144be9c636539",
+    "crates/solid-pod-rs/src/oidc/jwks.rs": "c01df72f45f3454b13f7fd3b9794f27587028ed39feb8a2284b3b327177b69f2",
+    "crates/solid-pod-rs/src/oidc/replay.rs": "e2d1f17f21fd3da5528df002f154a9b819924c948eefa9732d2568cee889a092",
+    "crates/solid-pod-rs/src/webid.rs": "1404d7a5ee2184673e0c94ce37eac5ca91d8f8dacaa1ffb6d3d17efe31c7deae",
+    "crates/solid-pod-rs-server/src/lib.rs": "6573dc10b392d62743af4cd20da96da7594f7ed755e75b3eedfa8fcd225f26eb",
+    "crates/solid-pod-rs/tests/oidc_jwks_ssrf.rs": "7862779f0e8171859735ed45bf231c311a8b048f492149bb228caa2bf28a08d4",
+    "crates/solid-pod-rs/tests/oidc_compat_matrix.rs": "99246ae2fd5ade5c91939e4cabe62275750cca6b725d68cc8192259b30bcc42b",
+    "crates/solid-pod-rs/docs/adr/ADR-2003-solid-oidc-01-defer-lws10.md": "cbb2f3e2bb785eceec146d682c6b7fffd4a4d7dcb4cf04a8a0fec6be9c033795",
+    "crates/solid-pod-rs/docs/reference/solid-oidc-compatibility-matrix.md": "c350531539c3aaa4febcee0d3803a42feeab2ae15ee17971caf3679f4793e267",
+    "crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md": "f202284c33521aca5d129dcbea3610d3c0c5cd5e51d0e92071222104623c3fe6",
+    "crates/solid-pod-rs-idp/src/provider.rs": "35772634ad239cf408b0b517d98ba98c0bcc6c70afd613beaa09c2a94350ad98",
+    "crates/solid-pod-rs/src/security/ssrf.rs": "f5b79659c47068ded270ed94874e888b38007dd4658956d8e9d7cc595649186a"
+  },
+  "audit_probe": {
+    "file": "estate_oidc_boundaries.rs",
+    "sha256": "a69dd1c99633de0db65430c8a11423f4088da2a0c2f18a88a09abd9dfe432afa"
+  },
+  "production_diff": "diff --git a/crates/solid-pod-rs/src/oidc/jwks.rs b/crates/solid-pod-rs/src/oidc/jwks.rs\nindex ff1b563..f5cbc7f 100644\n--- a/crates/solid-pod-rs/src/oidc/jwks.rs\n+++ b/crates/solid-pod-rs/src/oidc/jwks.rs\n@@ -24,6 +24,9 @@\n //! 5. **Cache with TTL** \u2014 successful discovery documents and JWKS\n //!    are memoised for 900s (JSS parity), amortising the cost of the\n //!    SSRF resolve+connect handshake across many verifications.\n+//! 6. **No redirects** \u2014 discovery and JWKS endpoints must respond\n+//!    directly. A redirect destination has not passed the policy check\n+//!    or address pinning, so automatic redirect following is disabled.\n //!\n //! This module is feature-gated behind `oidc`. The aggregate entry\n //! point for callers is [`CachedFetcher`]; the bare [`fetch_oidc_config`]\n@@ -208,6 +211,7 @@ fn pinned_client(\n     let _ = base; // reserved for future shared config\n     reqwest::Client::builder()\n         .resolve(host, SocketAddr::new(ip, port))\n+        .redirect(reqwest::redirect::Policy::none())\n         .timeout(FETCH_TIMEOUT)\n         .build()\n }\n",
+  "reqwest_0_12_28": {
+    "/home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/reqwest-0.12.28/src/async_impl/response.rs": "e7ad89c6473ad3adcb96a0adec857cc2c74bbabeffc56346efa270ce7082ea9f",
+    "/home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/reqwest-0.12.28/src/async_impl/client.rs": "8c30b009838be2126b90344ef97fb6141ac8bdf695f4e7bb00a3052a707d9b5c",
+    "/home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/reqwest-0.12.28/src/connect.rs": "cbe71704db6ea7ca1c83e7753c90aa9ff60a80f8d8c8ec2e795db054534caa42"
+  }
+}
