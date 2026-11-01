@@ -1,0 +1,25 @@
+   Compiling sidestr-core v0.4.2 (/home/devuser/workspace/sidestr-rs/sidestr-core)
+   Compiling errno v0.3.14
+   Compiling ureq v3.4.2
+   Compiling signal-hook-registry v1.4.8
+   Compiling tokio v1.53.1
+   Compiling miniscript v12.3.7
+   Compiling tokio-rustls v0.26.5
+   Compiling tokio-tungstenite v0.26.2
+   Compiling sidestr-nostr v0.6.0 (/home/devuser/workspace/sidestr-rs/sidestr-nostr)
+   Compiling sidestr-header v0.3.1 (/home/devuser/workspace/sidestr-rs/sidestr-header)
+   Compiling sidestr-hitch v0.2.1 (/home/devuser/workspace/sidestr-rs/sidestr-hitch)
+   Compiling sidestr-round v0.5.0 (/home/devuser/workspace/sidestr-rs/sidestr-round)
+   Compiling sidestr-wallet v0.5.3 (/home/devuser/workspace/sidestr-rs/sidestr-wallet)
+   Compiling sidestr-agent v0.6.0 (/home/devuser/workspace/sidestr-rs/sidestr-agent)
+    Finished `test` profile [unoptimized] target(s) in 15.35s
+     Running tests/hitch_binding_kat.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/hitch_binding_kat-2fea8f538538cd41)
+
+running 4 tests
+test the_identity_is_never_bound_as_its_own_spend_key ... ok
+test an_agentbox_minted_binding_verifies ... ok
+test the_binding_matches_the_independent_vector_byte_for_byte ... ok
+test the_host_refuses_to_spend_with_k_id ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+

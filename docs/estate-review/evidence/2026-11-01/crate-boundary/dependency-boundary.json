@@ -1,0 +1,133 @@
+{
+  "scope": "Declared local normal dependencies including optional edges; Cargo metadata --all-features; dev dependencies excluded",
+  "edges": {
+    "sidestr-reserve": [],
+    "sidestr-evm": [
+      {
+        "crate": "sidestr-core",
+        "optional": false
+      }
+    ],
+    "sidestr-nostr": [
+      {
+        "crate": "sidestr-core",
+        "optional": false
+      }
+    ],
+    "webledgers-teller": [
+      {
+        "crate": "sidestr-core",
+        "optional": false
+      },
+      {
+        "crate": "sidestr-nostr",
+        "optional": false
+      }
+    ],
+    "sidestr-wallet": [
+      {
+        "crate": "sidestr-core",
+        "optional": false
+      }
+    ],
+    "sidestr-header": [
+      {
+        "crate": "sidestr-core",
+        "optional": true
+      }
+    ],
+    "sidestr-bridge-liquid": [
+      {
+        "crate": "sidestr-reserve",
+        "optional": false
+      }
+    ],
+    "sidestr-core": [],
+    "sidestr-hitch": [
+      {
+        "crate": "sidestr-core",
+        "optional": false
+      }
+    ],
+    "sidestr-round": [
+      {
+        "crate": "sidestr-core",
+        "optional": false
+      },
+      {
+        "crate": "sidestr-header",
+        "optional": false
+      },
+      {
+        "crate": "sidestr-nostr",
+        "optional": false
+      }
+    ],
+    "sidestr-agent": [
+      {
+        "crate": "sidestr-core",
+        "optional": false
+      },
+      {
+        "crate": "sidestr-header",
+        "optional": false
+      },
+      {
+        "crate": "sidestr-hitch",
+        "optional": false
+      },
+      {
+        "crate": "sidestr-nostr",
+        "optional": false
+      },
+      {
+        "crate": "sidestr-round",
+        "optional": true
+      },
+      {
+        "crate": "sidestr-wallet",
+        "optional": false
+      }
+    ]
+  },
+  "transitive": {
+    "sidestr-reserve": [],
+    "sidestr-evm": [
+      "sidestr-core"
+    ],
+    "sidestr-nostr": [
+      "sidestr-core"
+    ],
+    "webledgers-teller": [
+      "sidestr-core",
+      "sidestr-nostr"
+    ],
+    "sidestr-wallet": [
+      "sidestr-core"
+    ],
+    "sidestr-header": [
+      "sidestr-core"
+    ],
+    "sidestr-bridge-liquid": [
+      "sidestr-reserve"
+    ],
+    "sidestr-core": [],
+    "sidestr-hitch": [
+      "sidestr-core"
+    ],
+    "sidestr-round": [
+      "sidestr-core",
+      "sidestr-header",
+      "sidestr-nostr"
+    ],
+    "sidestr-agent": [
+      "sidestr-core",
+      "sidestr-header",
+      "sidestr-hitch",
+      "sidestr-nostr",
+      "sidestr-round",
+      "sidestr-wallet"
+    ]
+  },
+  "acyclic": true
+}

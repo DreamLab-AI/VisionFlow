@@ -1,0 +1,27 @@
+{
+  "panels": [
+    {
+      "panel": "SR-01.2",
+      "viewbox": "0 0 704 823",
+      "svg_sha256": "c223e53cf46acb111376e86ea97e56838e96d2099ada67b633f9036b0c3f61bd"
+    },
+    {
+      "panel": "SR-01.3",
+      "viewbox": "0 0 1296 363",
+      "svg_sha256": "ff67f6e92799e08030167a96f40b049b20153fb31ab5271b6d51a119e990c0d7"
+    },
+    {
+      "panel": "SR-01.4",
+      "viewbox": "0 0 748 487",
+      "svg_sha256": "c1af12b214784070776570486f0e3beadd93bd92944f0ec12b8a208d95e70cb7"
+    },
+    {
+      "panel": "SR-04.5",
+      "viewbox": "0 0 1123 571",
+      "svg_sha256": "93b1acf38307b7ec60cf5b176c1b16fbd3b19e771a91fd36cf224c1c7fa47b05"
+    }
+  ],
+  "renderer": "pele; temporary PNG previews use Liberation Sans 16 px on white",
+  "result": "Four panels visually checked: text fits, arrows legible, no clipping. Reworked runtime layout to avoid arrows crossing group titles.",
+  "scope": "SR-01.2 refresh, SR-01.3/01.4 and SR-04.5; rendering siblings adds no assessment credit."
+}

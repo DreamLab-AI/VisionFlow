@@ -50,6 +50,8 @@ Ethereum's execution-spec testing documentation separates fixture generation fro
 
 For an integrator, the practical deliverable is a compatibility matrix per crate: reference revision, supported domain, documented departures, exercised scenarios and exact CI evidence. That makes an upgrade decision reviewable without treating a green workspace badge as universal consensus compatibility. Strict participation checks belong with SideStr's existing oracle tooling; reusable estate receipt checks should follow the standing shared-tooling method rather than duplicating validators in consumers.
 
+The subsequent [crate-boundary review](2026-11-01-sidestr-crate-and-runtime-boundaries.md) qualifies the CI step named “core alone, no std”: it disables the `std` Cargo feature but core still imports the standard library. The successful workflow is evidence for that feature configuration, not genuine `no_std` support.
+
 ## Diagram disposition and remaining scope
 
 [SR-01.1](../diagrams/sidestr-rs/01-workspace-oracles-and-live-boundary.md) now distinguishes normal, optional and dev-only dependencies, includes agent/round's missing edges and points Liquid towards neutral reserve. Eight crates are described as publishable from their manifests; this is not a registry census. The [dependency receipt](evidence/2026-11-01/oracle/workspace-edges.json) records every direct local edge.

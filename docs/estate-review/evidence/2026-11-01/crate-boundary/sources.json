@@ -1,0 +1,224 @@
+[
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md",
+    "sha256": "62fccc7e79e8a39e69cf16bac08b262284a2a52c81fd42218f6f361fb5929763"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "Cargo.toml",
+    "sha256": "be01a2b17bc8b240a0a57ff8b4b39c5a7cdae76e273172955e6549b26ef3a016"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "Cargo.lock",
+    "sha256": "569c20953ae564868b92e55994576114180e115ea16dc0d351ebeb3f9a5d9646"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-core/Cargo.toml",
+    "sha256": "588e02986f3148eabdf2d5da7c864fdc7b7591b53700f0f3acf8a0a6ee9997bb"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-core/src/lib.rs",
+    "sha256": "81645d2f5a5eb1c0b45639cc0a02d5c092274ec1c7bb36af1455649d8bfad2c0"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-core/src/overlays.rs",
+    "sha256": "c19e4737f3a8e58dc56232192b6248e7bc169601bcb5d65b69797fb6aae1d81c"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-core/src/state.rs",
+    "sha256": "7c44eec0d9675f0a42e2b90dc0116c9c6d8ee04e8501dc8ca9b3e67fba654b25"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-core/src/channel.rs",
+    "sha256": "6b1dca3d5b615a875d979f483aec7b03a59af765db278e0d8c0cfa5e5fea07c6"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-core/src/parent.rs",
+    "sha256": "e8ac90cd3469694987f6749cdf881853f3453466f2d8b55f0d8d0b2df45c8955"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-core/tests/channel_oracle.rs",
+    "sha256": "c5e22ecfd34d3dc7dbe4d2b9649a5624f5c629bbbb6ae92d3c02b6bce39fd97e"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-header/src/lib.rs",
+    "sha256": "a5bcb60e9e71ee88b5261bc8e73365bfbbfc14665d844c1ec95b3aea1ebb63aa"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-wallet/Cargo.toml",
+    "sha256": "34ac0a3785927a2eaa7ebb54abe65065c991dd4b3ceb25d9f279d0cfcf35e054"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-agent/Cargo.toml",
+    "sha256": "ce838dcf4d4f55764283ff9ab5c6199c0cc2ab23cdbfb03f08bbeae6717cd5e9"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-agent/src/hitch/mod.rs",
+    "sha256": "942b1a78598ad0e5ab04c4db2ffb6ad1e3479d58a969b519724496864df6598a"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-agent/src/hitch/follow.rs",
+    "sha256": "f25715ddeb3a3ca4c42978aed29bb88c503f5cb33b1e287d68cdea11251ef8f5"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-agent/src/hitch/store.rs",
+    "sha256": "ccaad96158edf97537e42fa03550a66dc159ea8bc5c40ffdb32ec04fd3317ad8"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-agent/src/hitch/host.rs",
+    "sha256": "9038183803b23374a2b911097e4b3dae20e19a67957b831936dab6d3189e9b89"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-agent/src/hitch/binding.rs",
+    "sha256": "a4076ae77bfb6e7b8e2b5704cae69704d55e0d6bad8030baa0bc48552ba26ac2"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-agent/src/hitch/envelope.rs",
+    "sha256": "339f45b07e830bfdad9a0984d18632b013bfef57a9050e616144e94a261e4952"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-agent/tests/hitch_binding_kat.rs",
+    "sha256": "714ce9ad93cdcc6e9a17364b04ca65731a737bca3bdff773c2d737885a344e26"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-agent/tests/hitch_loopback.rs",
+    "sha256": "d0a9bdab5d8074f0835d8367a4c9eb43f551110cf60cb9e1bae02c24d466b06f"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-hitch/Cargo.toml",
+    "sha256": "4e4c28b6657d1e9a99b760f3a05254b0a10400582eb6652e93fef236a60c8341"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-hitch/src/protocol/mod.rs",
+    "sha256": "b1c2b2816f57991e6a150317262287394a2edf74dae19c3210cf885d06042dce"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-hitch/tests/chain_consensus.rs",
+    "sha256": "fb851c6b41dcf8ed1eedc61b50ef0c226a8b2e8efe418fe183ceefc82191c4a9"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-evm/Cargo.toml",
+    "sha256": "46a89d110af343cccbef701cadfb2446fed5a7e8978e2e818b3f96d60f459d1c"
+  },
+  {
+    "repo": "sidestr-rs",
+    "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+    "path": "sidestr-nostr/src/hitch.rs",
+    "sha256": "6976b004c7e7c098c590a4ce1d19c289701487fe257c338186f9d21d0fe4cf80"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "agentbox.toml",
+    "sha256": "c9c7016e6649c118f69ccbbab8d25e35e26c1dc3f449dab61b5ea2493b61203d"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "flake.nix",
+    "sha256": "71f7e45f6089843882273e1b29fd5ef361ae8ecc03e24ab38507c78921139c29"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "config/sidechain/README.md",
+    "sha256": "190e1c630f8e8f962f979144a60e061e50f8665ab54174078f6a9fd2b7d80774"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "config/sidechain/upstream-pins",
+    "sha256": "0bf29b251adf3a18b164a0beeeda00fb1cebd9ddd3e602849eec3cc3e837af4f"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "config/sidechain/run-producer.sh",
+    "sha256": "76231fc2309dd62ae52ad393baf38998436f6150900b730a1f67195717cc9138"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "config/sidechain/run-faucet.sh",
+    "sha256": "68bcecbca3e3c9851cdf424303716d0a7d4ea32a826f0bf4e07a087c3399c51d"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "config/sidechain/dreamlab/chain.json",
+    "sha256": "bddbb25d384785e8b0cb3b52acea83142097becb29acacb580a5ed96c16ed9b8"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "config/sidechain/dreamlab-txbt4/chain.json",
+    "sha256": "9aaa9cd6ccb242e2f989525c6895aa8c829a2a746e92d0f82a60f408a8b46516"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "lib/sidestr-agent.nix",
+    "sha256": "c3fae76a016bd4228fe6b8028c7ae2c84e463ddb9f81e7a73eed66b9cd2334d9"
+  },
+  {
+    "repo": "VisionFlow",
+    "revision": "9cc2266a3f797321e2314741557dbc06061cb4b6",
+    "path": "docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md",
+    "sha256": "fbf318733da6b11b5d023e7ae701808ebe926128e65483d26388a76d40b05d32"
+  },
+  {
+    "repo": "VisionClaw",
+    "revision": "531df5ef74453a2ed320bff968c203a9b91faed7",
+    "path": "docs/TODO-unified.md",
+    "sha256": "f661479ff273cb6b0287de3109a10b1a946009fe2b37cb1bd51e6b9312aacf3c"
+  }
+]

@@ -1,0 +1,158 @@
+{
+  "supervisor_status_exit": 3,
+  "observed_utc": "2026-11-01T14:15:29.507206+00:00",
+  "programs": [
+    {
+      "name": "sidestr-faucet",
+      "state": "RUNNING",
+      "pid": 949,
+      "executable": "/nix/store/xchqz5xp19g16hlvz7gknhjdsdv7iby7-sidestr-agent-0.6.0/bin/sidestr-agent",
+      "entrypoint": [
+        "sidestr-agent",
+        "--url"
+      ],
+      "public_flags": {}
+    },
+    {
+      "name": "sidestr-faucet-dreamlab-txbt4",
+      "state": "RUNNING",
+      "pid": 1010,
+      "executable": "/nix/store/na2jhlz1bkw7r3d5lmf0yccq1vf4hz1w-nostr-bbs-poker-citizen-1.0.0-beta.16/bin/nostr-bbs-sidestr-admin",
+      "entrypoint": [
+        "nostr-bbs-sidestr-admin",
+        "--url"
+      ],
+      "public_flags": {}
+    },
+    {
+      "name": "sidestr-mirror",
+      "state": "RUNNING",
+      "pid": 936,
+      "executable": "/nix/store/kwyi4bq5s2qgwbhz6cs4gjy57c2zdxws-bash-interactive-5.3p20/bin/bash",
+      "entrypoint": [
+        "bash",
+        "/opt/agentbox/config/sidechain/mirror-sync.sh"
+      ],
+      "public_flags": {}
+    },
+    {
+      "name": "sidestr-mirror-dreamlab-txbt4",
+      "state": "RUNNING",
+      "pid": 969,
+      "executable": "/nix/store/kwyi4bq5s2qgwbhz6cs4gjy57c2zdxws-bash-interactive-5.3p20/bin/bash",
+      "entrypoint": [
+        "bash",
+        "/opt/agentbox/config/sidechain/mirror-sync.sh"
+      ],
+      "public_flags": {}
+    },
+    {
+      "name": "sidestr-producer",
+      "state": "RUNNING",
+      "pid": 931,
+      "executable": "/nix/store/y11g9g1pmig70hhb4ryfl0j0w0q1q35q-nodejs-slim-22.23.3/bin/node",
+      "entrypoint": [
+        "node",
+        "/opt/agentbox/sidestr/upstream/spec/siding/bin/siding.mjs",
+        "produce"
+      ],
+      "public_flags": {
+        "--chain": "/opt/agentbox/config/sidechain/dreamlab/chain.json",
+        "--dir": "/home/devuser/workspace/sidestr/dreamlab",
+        "--port": "3450"
+      }
+    },
+    {
+      "name": "sidestr-producer-dreamlab-txbt4",
+      "state": "RUNNING",
+      "pid": 962,
+      "executable": "/nix/store/y11g9g1pmig70hhb4ryfl0j0w0q1q35q-nodejs-slim-22.23.3/bin/node",
+      "entrypoint": [
+        "node",
+        "/opt/agentbox/sidestr/upstream/spec/siding/bin/siding.mjs",
+        "produce"
+      ],
+      "public_flags": {
+        "--chain": "/opt/agentbox/config/sidechain/dreamlab-txbt4/chain.json",
+        "--dir": "/home/devuser/workspace/sidestr/dreamlab-txbt4",
+        "--port": "3451"
+      }
+    }
+  ],
+  "upstream_pins": {
+    "spec": "2fd6114aa08ea0ba385da69d1fb151c5b542256c",
+    "schema": "b8cbf6337c7450fe14ddc5bce00c7280059aab5d",
+    "blaketestnode": "de33b347ccde458f5b82c33b3bab16abd328a7ec"
+  },
+  "local_endpoints": [
+    {
+      "chain": "dreamlab",
+      "port": 3450,
+      "sealed_document": {
+        "id": "sidestr:dreamlab",
+        "parent": "tbtc4",
+        "level": null,
+        "rules": null,
+        "genesisHash": "4db37517728bd509c0cb96ee5a2e3e2a77f9e965a092e9f67948b413d453dbc0"
+      },
+      "tip": {
+        "height": 5023,
+        "hash": "640bd2114fd9370440e117f04e3b3aaacae7fcfd01f089f78f57ceaa6f7a5402"
+      },
+      "chain.json": {
+        "matches_sealed_document": true,
+        "fields": {
+          "id": "sidestr:dreamlab",
+          "parent": "tbtc4",
+          "level": null,
+          "rules": null,
+          "genesisHash": "4db37517728bd509c0cb96ee5a2e3e2a77f9e965a092e9f67948b413d453dbc0"
+        }
+      }
+    },
+    {
+      "chain": "dreamlab-txbt4",
+      "port": 3451,
+      "sealed_document": {
+        "id": "sidestr:dreamlab-txbt4",
+        "parent": "txbt4",
+        "level": null,
+        "rules": null,
+        "genesisHash": "1009aa2984d5c699fe61ef1e5905afe472a49d67551542045726828c8b82d108"
+      },
+      "tip": {
+        "height": 14667,
+        "hash": "52d5ef32730a5853e144709045116ab4aada31a644eecdd8e240c1badd6a2f0d"
+      },
+      "chain.json": {
+        "matches_sealed_document": true,
+        "fields": {
+          "id": "sidestr:dreamlab-txbt4",
+          "parent": "txbt4",
+          "level": null,
+          "rules": null,
+          "genesisHash": "1009aa2984d5c699fe61ef1e5905afe472a49d67551542045726828c8b82d108"
+        }
+      }
+    }
+  ],
+  "configuration": {
+    "dreamlab": {
+      "enabled": true,
+      "mirror": true,
+      "faucet": true,
+      "checkpoint_every": null
+    },
+    "dreamlab-txbt4": {
+      "enabled": true,
+      "mirror": true,
+      "faucet": true,
+      "checkpoint_every": 0
+    }
+  },
+  "baked_runner_matches_checkout": {
+    "config/sidechain/run-producer.sh": true,
+    "config/sidechain/run-faucet.sh": true
+  },
+  "limits": "Point-in-time process and public loopback endpoint observation. No relay, mirror freshness, grants, payment/channel lifecycle or parent-node acceptance. No secrets or environment captured; no restart or mutation."
+}

@@ -1,0 +1,11 @@
+   Compiling sidestr-agent v0.6.0 (/home/devuser/workspace/sidestr-rs/sidestr-agent)
+    Finished `test` profile [unoptimized] target(s) in 1.78s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/sidestr_agent-1d900c4259b72ca0)
+
+running 3 tests
+test hitch::follow::tests::the_live_dreamlab_txbt4_genesis_is_followed ... ok
+test hitch::follow::tests::a_forged_or_unlinked_block_is_refused_and_nothing_changes ... ok
+test hitch::follow::tests::a_reorganisation_is_found_measured_and_undone ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.31s
+

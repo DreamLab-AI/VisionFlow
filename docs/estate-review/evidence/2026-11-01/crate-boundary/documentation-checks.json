@@ -1,0 +1,146 @@
+{
+  "source_fingerprints_verified": 37,
+  "report_hashes_verified": 180,
+  "local_links": [
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+      "target": "evidence/2026-11-01/crate-boundary/sources.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+      "target": "evidence/2026-11-01/crate-boundary/dependency-boundary.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+      "target": "evidence/2026-11-01/crate-boundary/channel-oracle.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+      "target": "evidence/2026-11-01/crate-boundary/no-cli-store.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+      "target": "evidence/2026-11-01/crate-boundary/follower-existing.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+      "target": "evidence/2026-11-01/crate-boundary/binding.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+      "target": "evidence/2026-11-01/crate-boundary/host-locks.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+      "target": "evidence/2026-11-01/crate-boundary/follower-probe.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+      "target": "evidence/2026-11-01/crate-boundary/follower-probe.rs"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+      "target": "evidence/2026-11-01/crate-boundary/run-probe.cjs"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+      "target": "evidence/2026-11-01/crate-boundary/runtime.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+      "target": "2026-11-01-sidestr-oracle-contract.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
+      "target": "evidence/2026-11-01/oracle/source-manifest.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
+      "target": "evidence/2026-11-01/oracle/ci-receipt.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
+      "target": "evidence/2026-11-01/oracle/head-delta.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
+      "target": "evidence/2026-11-01/oracle/ci-oracle-excerpt.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
+      "target": "evidence/2026-11-01/oracle/missing-round.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
+      "target": "evidence/2026-11-01/oracle/missing-pegtweak.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
+      "target": "evidence/2026-11-01/oracle/reproduce.sh"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
+      "target": "2026-11-01-sidestr-crate-and-runtime-boundaries.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
+      "target": "../diagrams/sidestr-rs/01-workspace-oracles-and-live-boundary.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
+      "target": "evidence/2026-11-01/oracle/workspace-edges.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "scope.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "claims.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "snapshot-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "validation-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../../../scripts/estate-review-ledger/README.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-sidestr-crate-and-runtime-boundaries.md"
+    },
+    {
+      "file": "docs/diagrams/sidestr-rs/01-workspace-oracles-and-live-boundary.md",
+      "target": "../../estate-review/2026-11-01-sidestr-oracle-contract.md"
+    },
+    {
+      "file": "docs/diagrams/sidestr-rs/01-workspace-oracles-and-live-boundary.md",
+      "target": "../../estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md"
+    },
+    {
+      "file": "docs/diagrams/sidestr-rs/01-workspace-oracles-and-live-boundary.md",
+      "target": "../../estate-review/evidence/2026-11-01/oracle/workspace-edges.json"
+    },
+    {
+      "file": "docs/diagrams/sidestr-rs/01-workspace-oracles-and-live-boundary.md",
+      "target": "../../estate-review/evidence/2026-11-01/oracle/ci-receipt.json"
+    },
+    {
+      "file": "docs/diagrams/sidestr-rs/01-workspace-oracles-and-live-boundary.md",
+      "target": "../../estate-review/evidence/2026-11-01/crate-boundary/runtime.json"
+    },
+    {
+      "file": "docs/diagrams/sidestr-rs/04-hitch-channel-kernel-and-host-gap.md",
+      "target": "../../estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md"
+    },
+    {
+      "file": "docs/diagrams/sidestr-rs/04-hitch-channel-kernel-and-host-gap.md",
+      "target": "../../estate-review/evidence/2026-11-01/crate-boundary/follower-probe.json"
+    }
+  ]
+}

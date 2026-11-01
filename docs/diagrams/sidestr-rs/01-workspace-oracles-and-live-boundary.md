@@ -8,6 +8,13 @@ governing:
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
 adrs: [ADR-2012, ADR-2096, ADR-2112]
 sources:
+  - ../sidestr-rs/sidestr-core/src/lib.rs
+  - ../sidestr-rs/sidestr-core/src/overlays.rs
+  - ../project/agentbox/config/sidechain/run-producer.sh
+  - ../project/agentbox/config/sidechain/run-faucet.sh
+  - ../project/agentbox/config/sidechain/dreamlab-txbt4/chain.json
+  - ../project/agentbox/agentbox.toml
+  - ../project/agentbox/flake.nix
   - ../sidestr-rs/sidestr-core/Cargo.toml
   - ../sidestr-rs/sidestr-header/Cargo.toml
   - ../sidestr-rs/sidestr-wallet/Cargo.toml
@@ -30,12 +37,12 @@ sources:
   - ../project/agentbox/config/sidechain/README.md
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
   - ../project/docs/TODO-unified.md
-verified_commit: {sidestr-rs: 9c6de86c657a25ec2f2a189baf63db7dedad40eb, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
+verified_commit: {sidestr-rs: 9c6de86c657a25ec2f2a189baf63db7dedad40eb, visionflow: 9cc2266a3f797321e2314741557dbc06061cb4b6, visionclaw: 531df5ef74453a2ed320bff968c203a9b91faed7, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
 ---
 
 ## For developers
 
-`sidestr-rs` now has eleven workspace members. Eight publishable crates carry the reusable chain, wallet, Nostr, federation, agent, Hitch and teller surfaces; EVM and the two reserve crates remain separate, unpublished components. Compatibility is judged against pinned upstream revisions and regenerated fixtures rather than inferred from similar APIs. **Review scope (1 November):** panels SR-01.1 and SR-01.2 are refreshed in the [oracle audit](../../estate-review/2026-11-01-sidestr-oracle-contract.md). Panels SR-01.3 and SR-01.4 retain their earlier adoption/runtime evidence boundary; this pass does not re-observe deployment.
+`sidestr-rs` now has eleven workspace members. Eight publishable crates carry the reusable chain, wallet, Nostr, federation, agent, Hitch and teller surfaces; EVM and the two reserve crates remain separate, unpublished components. Compatibility is judged against pinned upstream revisions and regenerated fixtures rather than inferred from similar APIs. **Review scope (1 November):** SR-01.1/01.2 follow the [oracle audit](../../estate-review/2026-11-01-sidestr-oracle-contract.md); SR-01.3/01.4 and the core feature label follow the [crate/runtime audit](../../estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md).
 
 ## For the business
 
@@ -81,7 +88,7 @@ flowchart LR
 flowchart TB
     START["Push or pull request"] --> Q
     START --> P
-    Q["Quality job<br/>fmt, clippy, Rust tests, docs,<br/>isolated no_std and WASM builds<br/>../sidestr-rs/.github/workflows/ci.yml:33"]
+    Q["Quality job<br/>fmt, clippy, Rust tests, docs,<br/>core std-feature-off and WASM builds<br/>../sidestr-rs/.github/workflows/ci.yml:49-97"]
     P["Oracle job: six pinned checkouts<br/>spec, schema, blaketestnode,<br/>Hitch, Reef and teller<br/>../sidestr-rs/.github/workflows/ci.yml:99"]
     P --> RT["Reference project tests<br/>../sidestr-rs/.github/workflows/ci.yml:165"]
     RT --> FX["Regenerate EVM fixtures<br/>tracked and untracked drift fail<br/>../sidestr-rs/.github/workflows/ci.yml:186"]
@@ -90,49 +97,49 @@ flowchart TB
     O --> RESULT
 ```
 
-**What it shows.** Quality and oracle are independent jobs with no `needs` edge (`../sidestr-rs/.github/workflows/ci.yml:33`, `../sidestr-rs/.github/workflows/ci.yml:99`). Within oracle, checkouts precede reference tests, regenerated EVM fixtures and Rust suites. Drift checks include modified tracked files and untracked fixture output (`../sidestr-rs/.github/workflows/ci.yml:199`). ADR-0001 still says four references; CI now pins six (`../sidestr-rs/docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md:27`, `../sidestr-rs/.github/workflows/ci.yml:17`).
+**What it shows.** Quality and oracle are independent jobs with no `needs` edge (`../sidestr-rs/.github/workflows/ci.yml:33`, `../sidestr-rs/.github/workflows/ci.yml:99`). Core checks disable a feature; core still imports the standard library (`../sidestr-rs/sidestr-core/src/lib.rs:298`, `../sidestr-rs/sidestr-core/src/overlays.rs:7`). Within oracle, checkouts precede reference tests, regenerated EVM fixtures and Rust suites. Drift checks include modified tracked files and untracked fixture output (`../sidestr-rs/.github/workflows/ci.yml:199`). ADR-0001 still says four references; CI now pins six (`../sidestr-rs/docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md:27`, `../sidestr-rs/.github/workflows/ci.yml:17`).
 
 **Why it is this way.** Ordinary Rust tests deliberately allow absent oracles (`../sidestr-rs/.github/workflows/ci.yml:58`). Missing configured files also return early in round interop and pegtweak (`../sidestr-rs/sidestr-round/tests/support/interop.rs:18`, `../sidestr-rs/sidestr-core/tests/pegtweak.rs:406`); a reported pass alone is insufficient parity evidence. [Run 41128639012](https://github.com/DreamLab-AI/sidestr-rs/actions/runs/41128639012) supplies current implementation CI evidence, bounded by the [audit receipt](../../estate-review/evidence/2026-11-01/oracle/ci-receipt.json); it does not prove release enforcement or chain activation.
 
-## SR-01.3 Source, publication and activation are separate states
+## SR-01.3 Independent evidence axes
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Source
-    Source: Source implemented and reference-tested
-    Source --> Published: eight reusable crates released
-    Source --> Unpublished: EVM and reserve components private
-    Published --> Adopted: host integrates a released crate
-    Unpublished --> Adopted: explicit private integration
-    Adopted --> Active: chain document and runtime evidence
-    note right of Source
-        docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:115
-    end note
-    Active --> [*]
+flowchart TB
+    STATUS["Ecosystem decision record<br/>docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:115"]
+    STATUS --> DEC["Decision: proposed"]
+    STATUS --> IMP["Implementation: partial"]
+    STATUS --> ACT["Activation: inactive"]
+    SOURCE["Crate code and scoped tests"] -. "supports implementation" .-> IMP
+    PUB["Publication receipt<br/>separate from source capability"]
+    DEPLOY["Named host and runtime receipt"]
+    LIFE["Per-capability acceptance receipt"] -. "needed to promote activation" .-> ACT
+    PUB -. "does not prove" .-> ACT
+    DEPLOY --> LIFE
 ```
 
-**What it shows.** VisionFlow records source implementation as partial while keeping the ecosystem decision proposed and activation inactive (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:115`, `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:130`).
+**What it shows.** ADR-2012's recorded decision, implementation and activation axes are independent (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:115`, `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:130`). Source, package publication, runtime processes and a successful capability lifecycle are different evidence. The matrix does not promote the ecosystem proposal merely because research producers run.
 
-**Why it is this way.** A library can be correct and published without any estate service importing it or any chain activating its rules. The master board closes source parity in N-9 and keeps estate adoption open in N-10 (`../project/docs/TODO-unified.md:102`, `../project/docs/TODO-unified.md:103`). Two releases after that closure, `sidestr-wallet` 0.5.1 (BIP 21 with the Reef oracle) and `sidestr-hitch` 0.2.0, are recorded as an annotation on the closed N-9 row, with adoption left under N-10 (`../project/docs/TODO-unified.md:116`).
+**Why it is this way.** N-9 closes historical source/release work while N-10 asks for activation receipts (`../project/docs/TODO-unified.md:102`, `../project/docs/TODO-unified.md:103`). Its claim that Hitch has no host is now stale: `sidestr-agent::hitch::host` exists; that still does not establish an accepted deployed channel lifecycle (`../sidestr-rs/docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md:144`).
 
-**Invariant:** source evidence may promote implementation status; it cannot promote activation status.
+**Invariant:** source evidence may promote implementation status; it cannot by itself promote activation status.
 
-## SR-01.4 The live boundary
+## SR-01.4 Two supervised research chains
 
 ```mermaid
-flowchart LR
-    AB["agentbox supervisor<br/>config/sidechain/README.md:111"] --> JP["upstream JavaScript producer<br/>config/sidechain/README.md:117"]
-    AB --> M["mirror"]
-    AB --> F["Rust faucet"]
-    JP --> D["sidestr:dreamlab<br/>testnet4, level 1<br/>config/sidechain/dreamlab/chain.json:5"]
-    JP --> D2["sidestr:dreamlab-txbt4<br/>BLAKE2b testnet4, sealed 2 Oct<br/>config/sidechain/README.md:11"]
-    M --> D
-    F --> D
-    RS["sidestr-rs libraries"] -. "validated components;<br/>native producer not deployed" .-> AB
+flowchart TB
+    AB["agentbox supervisor<br/>../project/agentbox/flake.nix:3126"]
+    AB --> P1["dreamlab / tbtc4<br/>JavaScript producer port 3450"]
+    AB --> P2["dreamlab-txbt4 / txbt4<br/>JavaScript producer port 3451"]
+    F1["sidestr-agent faucet"] --> P1
+    F2["Forum kit<br/>nostr-bbs-sidestr-admin faucet"] --> P2
+    P1 --> M1["dreamlab Git mirror loop"]
+    P2 --> M2["Separate txbt4 Git mirror loop"]
+    ROUTE["Faucet selected by parent family<br/>../project/agentbox/config/sidechain/run-faucet.sh:59"] -.-> F1
+    ROUTE -.-> F2
 ```
 
-**What it shows.** Agentbox supervises the producer, mirror and faucet, but the producer runs the upstream JavaScript engine baked at the upstream pins (`../project/agentbox/config/sidechain/README.md:111`, `../project/agentbox/config/sidechain/README.md:117`). A second chain, `sidestr:dreamlab-txbt4`, was sealed on 2 October beside a BLAKE2b testnet4 parent (`../project/agentbox/config/sidechain/README.md:11`). The baked spec pin now includes upstream PR #32, so an append or index-write failure latches `SIDING_PERSISTENCE_FAILED` and the producer exits before advertising or extending an unsaved tip, while `patches/peg-script.patch` keeps single-signer peg announcements (`../project/agentbox/config/sidechain/README.md:150-153`, `../project/agentbox/config/sidechain/README.md:162-165`). The sealed `sidestr:dreamlab` is level 1, and its document reaches `containmentDigest` without a `rules` field (`../project/agentbox/config/sidechain/dreamlab/chain.json:5`, `../project/agentbox/config/sidechain/dreamlab/chain.json:28`).
+**What it shows.** At 14:15:29 UTC on 1 November, all six named programmes were running; both producer endpoints served documents equal to their sealed checkout documents. The producers execute baked `siding.mjs`; the faucet binaries differ as the runner specifies (`../project/agentbox/config/sidechain/run-producer.sh:167`, `../project/agentbox/config/sidechain/run-faucet.sh:59`). [Runtime receipt](../../estate-review/evidence/2026-11-01/crate-boundary/runtime.json). The second table is enabled despite the README's older disabled-default statement (`../project/agentbox/agentbox.toml:1976`, `../project/agentbox/config/sidechain/README.md:188`).
 
-**Why it is this way.** The Rust workspace is currently a validated library component. No Rust producer is deployed on either chain; adoption stays under the estate board's open row (`../project/docs/TODO-unified.md:103`).
+**Why it is this way.** Each chain has its own producer, mirror and faucet; the BLAKE2b family chooses the forum-kit faucet. A responding tip is not evidence of current block progress, mirror freshness, successful grants or Hitch activation. The observed producers have no checkpoint arguments, consistent with default-zero configuration (`../project/agentbox/config/sidechain/run-producer.sh:148`); historical anchoring was not inspected.
 
-**Open:** deploy and prove a native producer before describing the Rust engine as the running estate chain.
+**Open:** retain separate runtime and per-capability acceptance receipts; no native Rust producer or channel lifecycle was demonstrated by this observation.

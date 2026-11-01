@@ -1,0 +1,16 @@
+   Compiling sidestr-core v0.4.2 (/home/devuser/workspace/sidestr-rs/sidestr-core)
+   Compiling hmac v0.12.1
+   Compiling miniscript v12.3.7
+   Compiling sidestr-hitch v0.2.1 (/home/devuser/workspace/sidestr-rs/sidestr-hitch)
+   Compiling sidestr-nostr v0.6.0 (/home/devuser/workspace/sidestr-rs/sidestr-nostr)
+   Compiling sidestr-header v0.3.1 (/home/devuser/workspace/sidestr-rs/sidestr-header)
+   Compiling sidestr-wallet v0.5.3 (/home/devuser/workspace/sidestr-rs/sidestr-wallet)
+   Compiling sidestr-agent v0.6.0 (/home/devuser/workspace/sidestr-rs/sidestr-agent)
+    Finished `test` profile [unoptimized] target(s) in 7.41s
+   Doc-tests sidestr_agent
+
+running 1 test
+test sidestr-agent/src/hitch/store.rs - hitch::store (line 32) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.29s
+

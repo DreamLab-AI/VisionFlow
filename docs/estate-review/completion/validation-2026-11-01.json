@@ -210,7 +210,7 @@
     ]
   },
   "heading_units": 15365,
-  "heading_units_with_recorded_assessment": 635,
+  "heading_units_with_recorded_assessment": 642,
   "native_tests": 9,
   "clippy": "passed -D warnings",
   "limits": "Counters track evidence reconciliation, not audit completion; document/report hashes do not revalidate implementation code or deployed state.",
@@ -240,7 +240,7 @@
       "target": "../../docs/estate-review/completion/claims.json"
     }
   ],
-  "exact_claim_bindings_rechecked": 177,
+  "exact_claim_bindings_rechecked": 180,
   "tool_hashes": {
     "scripts/estate-review-ledger/src/main.rs": "6a13475db77573e460ab9ba8a99b7aa1e7c306ca33c14ea3cf5188b690ce12b3",
     "scripts/estate-review-ledger/Cargo.toml": "8109eeff493be24031c394cce1d81a059ca1612f967e5b032f37bf9e8f1e50d6",
@@ -250,15 +250,16 @@
   "log_format": "Current batch retains raw native output and numbered ANSI-stripped CI excerpts, including trailing whitespace. Earlier log receipts retain their recorded formats.",
   "documentation_checks": {
     "unicode_findings": 0,
-    "prose_flags": 0,
+    "prose_flags": 1,
+    "prose_disposition": "One ordinary definite-article opening about the aggregate supervisor status command retained after review; not authorship evidence.",
     "scope": [
-      "docs/estate-review/2026-11-01-sidestr-oracle-contract.md"
+      "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md"
     ],
-    "prose_disposition": "High-severity scan clean; manual read distinguishes fresh counterexamples, historical CI, partial diagram scope and remaining implementation acceptance.",
-    "format_check": "Passed staged diff whitespace check for authored files; raw native/CI excerpts and tool output excluded to retain their whitespace.",
-    "local_links": 18
+    "format_check": "Passed staged whitespace check for authored Markdown, JSON, Rust, JavaScript and shell files. Native/tool text logs retain original output and are excluded.",
+    "local_links": 35,
+    "scoped_jev_advisory": "SR-04.5 follow.rs:121-140 manually reviewed: struct/constructor retain no genesis hash; apply path and seven native scenarios support the negative boundary claim. No new sibling-panel credit."
   },
-  "tool_validation_basis": "Nine collector tests and Clippy receipts retained from original ledger batch at 610b57b; unchanged collector/dependency hashes verified. Fresh collection rechecked 177 claims; zero stale records. No redundant product tests or collector suite rerun.",
+  "tool_validation_basis": "Nine collector tests and Clippy receipts retained from original ledger batch at 610b57b; unchanged collector/dependency hashes verified. Fresh collection rechecked 180 claims; zero stale records. Product tests are scoped in the current report, not a collector rerun.",
   "prior_concurrent_source_refresh": {
     "changed_adrs": 5,
     "stale_claims": 5,
@@ -304,25 +305,31 @@
     "disposition": "Historical stale state; all five reassessed in docs/estate-review/2026-11-01-obsidian-refresh.md. See current snapshot for dispositions."
   },
   "current_batch": {
-    "report": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
-    "baseline": "f6d07847a905ad179386d2a25991f25e922fc850",
+    "report": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+    "baseline": "9cc2266a3f797321e2314741557dbc06061cb4b6",
     "new_whole_adrs": 1,
-    "refreshed_whole_adrs": [],
+    "refreshed_whole_adrs": [
+      "sidestr-rs:docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md (core feature-off versus no_std qualification)"
+    ],
     "new_panels": [],
     "newly_assessed_existing_panels": [
-      "SR-01.1",
+      "SR-01.3",
+      "SR-01.4",
+      "SR-04.5"
+    ],
+    "refreshed_panels": [
       "SR-01.2"
     ],
     "current_stale_records": 0,
     "previous_batch_candidates": 1178,
     "added_candidates": [],
     "removed_candidates": [],
-    "limits": "Four fresh native reported-pass skips with missing configured references receive zero parity acceptance credit. Historical CI source-equivalent to current implementation; no fresh full-suite or live-chain claim. Product sources unchanged."
+    "limits": "Ten selected native test/doc entries pass, including 436 agreeing Bitcoin Core comparisons plus six narrowings inside one test. Seven native follower identity scenarios. Dated process/public loopback observation; no restart, grants, live channel lifecycle or deployment changes."
   },
   "corpus_gate": {
     "topics": 205,
     "panels": 1730,
-    "verified_citations": 25559,
+    "verified_citations": 25558,
     "warnings": 0,
     "fallback": 0,
     "allowlisted": 9,
@@ -335,6 +342,6 @@
       ],
       "limits": "Advisory sample, not whole-corpus semantic acceptance."
     },
-    "evidence": "docs/estate-review/evidence/2026-11-01/oracle/citations.txt"
+    "evidence": "docs/estate-review/evidence/2026-11-01/crate-boundary/citations.txt"
   }
 }

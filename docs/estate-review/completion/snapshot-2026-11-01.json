@@ -71870,58 +71870,80 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Every original section and both amendments assessed; dependency DAG, 436+6 script comparisons, focused host/follower/storage/binding tests, seven native identity probes and scoped runtime receipts. Genesis anchor, feature/purity and record-drift findings remain open.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md",
       "repo": "sidestr-rs",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 15,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-0002: Keep optional execution and services behind explicit crate boundaries"
         },
         {
           "line": 17,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 25,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 42,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 49,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         },
         {
           "line": 58,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Amendment 2026-10-02: channel leaves are a consensus template, not a channel dependency"
         },
         {
           "line": 137,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Amendment, 2026-10-02: the Hitch host"
         }
       ],
@@ -121318,10 +121340,10 @@
   "counts": {
     "available_checkouts": 24,
     "candidate_files": 1178,
-    "numbered_candidates_with_recorded_assessment": 90,
+    "numbered_candidates_with_recorded_assessment": 91,
     "numbered_decision_candidates": 1061,
     "panels": 1730,
-    "panels_with_recorded_assessment": 317,
+    "panels_with_recorded_assessment": 320,
     "scope_targets": 25,
     "stale_claim_records": 0,
     "topics": 205
@@ -121332,7 +121354,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "f6d07847a905ad179386d2a25991f25e922fc850",
+      "head": "9cc2266a3f797321e2314741557dbc06061cb4b6",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -131909,13 +131931,23 @@
     {
       "claims": [
         {
-          "basis": "SR-01.1 and SR-01.2 only: direct local dependency kinds, corrected edge direction and independent CI jobs; both rendered and visually inspected. Sibling activation/runtime panels retain earlier evidence and receive no new credit.",
+          "basis": "SR-01.1 and SR-01.2 only: direct local dependency kinds, corrected edge direction and independent CI jobs; both rendered and visually inspected. Sibling activation/runtime panels retain earlier evidence and receive no new credit. Subsequent crate-boundary review qualifies core std-feature-off versus genuine no_std; original report links the correction.",
           "coverage": "selected-panels",
           "panels": [
             "SR-01.1",
             "SR-01.2"
           ],
           "report": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
+          "state": "assessment-recorded"
+        },
+        {
+          "basis": "Independent source/publication/activation evidence and two observed JavaScript producer groups with distinct faucet binaries; dated runtime limits explicit. Rendered and visually inspected.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SR-01.3",
+            "SR-01.4"
+          ],
+          "report": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
           "state": "assessment-recorded"
         }
       ],
@@ -131924,7 +131956,7 @@
           "body_sha256": "9aa1e4d80c670018cb54614449a67e069c95bccfb3f4c299e07c0e0394951226",
           "heading": "SR-01.1 Workspace ownership",
           "id": "SR-01.1",
-          "line": 46,
+          "line": 53,
           "ordinal": 1,
           "reports": [
             "docs/estate-review/2026-11-01-sidestr-oracle-contract.md"
@@ -131932,10 +131964,10 @@
           "review": "assessment-recorded"
         },
         {
-          "body_sha256": "024e9758456c15d677a9a37b6878a2fe1e635ed8e298a5516930044704a531da",
+          "body_sha256": "dee497ef6a78f4dccd35289240a431164c79c2a967abc3f7d7387278822d6281",
           "heading": "SR-01.2 Two independent CI jobs",
           "id": "SR-01.2",
-          "line": 80,
+          "line": 87,
           "ordinal": 2,
           "reports": [
             "docs/estate-review/2026-11-01-sidestr-oracle-contract.md"
@@ -131943,28 +131975,32 @@
           "review": "assessment-recorded"
         },
         {
-          "body_sha256": "308d6559cf84111313de3159c3a49102c284bd6c9454704fb8ad6d3f3b115589",
-          "heading": "SR-01.3 Source, publication and activation are separate states",
+          "body_sha256": "86bae56359b8f4f2ce7232922496634856cbe943345755a61364f0bc677ecb33",
+          "heading": "SR-01.3 Independent evidence axes",
           "id": "SR-01.3",
-          "line": 99,
+          "line": 106,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "3efa39228776147531e8e4cf84e90ec41e474142a6ef98a6e3208ae867e8f76d",
-          "heading": "SR-01.4 The live boundary",
+          "body_sha256": "d8c03b96585b9d89a10eda0edd27e34e1d4f54f8dbe1c963f1b9ce7617615782",
+          "heading": "SR-01.4 Two supervised research chains",
           "id": "SR-01.4",
-          "line": 122,
+          "line": 128,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md"
+          ],
+          "review": "assessment-recorded"
         }
       ],
       "path": "docs/diagrams/sidestr-rs/01-workspace-oracles-and-live-boundary.md",
       "repo": "VisionFlow",
-      "review": "partial-assessment-recorded",
-      "sha256": "01f275b8705d91b98f683de41c512bfaae217eb0df52a6ecb5802ad4cc4a0f84"
+      "review": "assessment-recorded",
+      "sha256": "a72e7f817941667d076da9f1a97aa135b3907bd366f9dbd6dcf8bf18801a0c94"
     },
     {
       "claims": [],
@@ -132057,13 +132093,23 @@
       "sha256": "966939be7f1e1db138fa7b09d57cb208d3be0edf3481171191f3d6f157bce9d1"
     },
     {
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Implemented agent host, Unix storage feature boundary, trusted transaction validity and missing genesis enforcement; seven native scenarios. Other four panels receive no credit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SR-04.5"
+          ],
+          "report": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "panels": [
         {
           "body_sha256": "f5ff61e8eac367ad95a46124bd31501d239fb126f0e1b3c59c278c46e2cae288",
           "heading": "SR-04.1 Channel transaction boundary and the two-party revocation key",
           "id": "SR-04.1",
-          "line": 40,
+          "line": 44,
           "ordinal": 1,
           "reports": [],
           "review": "unreconciled"
@@ -132072,7 +132118,7 @@
           "body_sha256": "3c75fb9a6360441ee7af607ebd09f9bf24bf43d0b79a1f68befe89f956a8be3f",
           "heading": "SR-04.2 Update finality",
           "id": "SR-04.2",
-          "line": 63,
+          "line": 67,
           "ordinal": 2,
           "reports": [],
           "review": "unreconciled"
@@ -132081,7 +132127,7 @@
           "body_sha256": "4415169217548b0e2912b3f84d170a1de1dba046286b97847788195f46371681",
           "heading": "SR-04.3 Durable recovery and one-hop routing",
           "id": "SR-04.3",
-          "line": 82,
+          "line": 86,
           "ordinal": 3,
           "reports": [],
           "review": "unreconciled"
@@ -132090,25 +132136,27 @@
           "body_sha256": "098e2daa2d1c5c192156b64907e69b92c7b4defbc3a1f58013124df1a2699525",
           "heading": "SR-04.4 Following a close on the chain",
           "id": "SR-04.4",
-          "line": 103,
+          "line": 107,
           "ordinal": 4,
           "reports": [],
           "review": "unreconciled"
         },
         {
-          "body_sha256": "e6b9d5b69ec396ccd98dc97f6f0c03e725692605a0ede91d77a99168b559328e",
-          "heading": "SR-04.5 What the host must still supply",
+          "body_sha256": "a64185bbbbbbcb022d29632de0b37fbf08d53530b839ebed4a2c7463f29655cc",
+          "heading": "SR-04.5 Implemented host and remaining trust boundaries",
           "id": "SR-04.5",
-          "line": 119,
+          "line": 123,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md"
+          ],
+          "review": "assessment-recorded"
         }
       ],
       "path": "docs/diagrams/sidestr-rs/04-hitch-channel-kernel-and-host-gap.md",
       "repo": "VisionFlow",
-      "review": "unreconciled",
-      "sha256": "18baee6a4f0ec60dc4804b416f458ff309654f08954515fa3b32b29efdde904b"
+      "review": "partial-assessment-recorded",
+      "sha256": "0750883123e127086fdc1e78f2d0bb2e61a17570153fbb4bb97bb0fe68b176c2"
     },
     {
       "claims": [

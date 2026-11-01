@@ -2243,7 +2243,7 @@
     "path": "docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md",
     "source_sha256": "001fd42867608d4a2cba8801136d57341adad80dfcb973d641739a1166834a9e",
     "report": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
-    "report_sha256": "20d7d962df5df96822ef102b1f4a0eeab0069cf1c01a05b5459833f5f7c63c6f",
+    "report_sha256": "3313a89e457fe5cec47a3c4a0f08cb213085689a7144d17ade3bac206956b385",
     "coverage": "whole-document",
     "basis": "All metadata and sections assessed against workflow, selected oracle helpers, six reference checkouts and historical CI receipts. Four fresh reported-pass skips expose participation limits; no full consensus, release-enforcement or live-chain acceptance."
   },
@@ -2251,14 +2251,51 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/sidestr-rs/01-workspace-oracles-and-live-boundary.md",
-    "source_sha256": "01f275b8705d91b98f683de41c512bfaae217eb0df52a6ecb5802ad4cc4a0f84",
+    "source_sha256": "a72e7f817941667d076da9f1a97aa135b3907bd366f9dbd6dcf8bf18801a0c94",
     "report": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
-    "report_sha256": "20d7d962df5df96822ef102b1f4a0eeab0069cf1c01a05b5459833f5f7c63c6f",
+    "report_sha256": "3313a89e457fe5cec47a3c4a0f08cb213085689a7144d17ade3bac206956b385",
     "coverage": "selected-panels",
-    "basis": "SR-01.1 and SR-01.2 only: direct local dependency kinds, corrected edge direction and independent CI jobs; both rendered and visually inspected. Sibling activation/runtime panels retain earlier evidence and receive no new credit.",
+    "basis": "SR-01.1 and SR-01.2 only: direct local dependency kinds, corrected edge direction and independent CI jobs; both rendered and visually inspected. Sibling activation/runtime panels retain earlier evidence and receive no new credit. Subsequent crate-boundary review qualifies core std-feature-off versus genuine no_std; original report links the correction.",
     "panels": [
       "SR-01.1",
       "SR-01.2"
+    ]
+  },
+  {
+    "kind": "adr",
+    "repo": "sidestr-rs",
+    "path": "docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md",
+    "source_sha256": "62fccc7e79e8a39e69cf16bac08b262284a2a52c81fd42218f6f361fb5929763",
+    "report": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+    "report_sha256": "78445adbf7a5d52718b5574db3d8bb6dc18daa3b4a9b53656ef145ea979c3526",
+    "coverage": "whole-document",
+    "basis": "Every original section and both amendments assessed; dependency DAG, 436+6 script comparisons, focused host/follower/storage/binding tests, seven native identity probes and scoped runtime receipts. Genesis anchor, feature/purity and record-drift findings remain open."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/sidestr-rs/01-workspace-oracles-and-live-boundary.md",
+    "source_sha256": "a72e7f817941667d076da9f1a97aa135b3907bd366f9dbd6dcf8bf18801a0c94",
+    "report": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+    "report_sha256": "78445adbf7a5d52718b5574db3d8bb6dc18daa3b4a9b53656ef145ea979c3526",
+    "coverage": "selected-panels",
+    "basis": "Independent source/publication/activation evidence and two observed JavaScript producer groups with distinct faucet binaries; dated runtime limits explicit. Rendered and visually inspected.",
+    "panels": [
+      "SR-01.3",
+      "SR-01.4"
+    ]
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/sidestr-rs/04-hitch-channel-kernel-and-host-gap.md",
+    "source_sha256": "0750883123e127086fdc1e78f2d0bb2e61a17570153fbb4bb97bb0fe68b176c2",
+    "report": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
+    "report_sha256": "78445adbf7a5d52718b5574db3d8bb6dc18daa3b4a9b53656ef145ea979c3526",
+    "coverage": "selected-panels",
+    "basis": "Implemented agent host, Unix storage feature boundary, trusted transaction validity and missing genesis enforcement; seven native scenarios. Other four panels receive no credit.",
+    "panels": [
+      "SR-04.5"
     ]
   }
 ]

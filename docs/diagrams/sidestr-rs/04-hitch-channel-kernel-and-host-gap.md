@@ -1,6 +1,6 @@
 ---
 id: SR-04
-title: Hitch channel finality, recovery snapshots, routing, and the missing host
+title: Hitch channel finality, recovery snapshots, routing, and host boundaries
 area: sidestr-rs
 governing:
   - ../sidestr-rs/docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md
@@ -8,6 +8,10 @@ governing:
   - ../project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md
 adrs: [ADR-2012, ADR-2111]
 sources:
+  - ../sidestr-rs/sidestr-agent/src/hitch/mod.rs
+  - ../sidestr-rs/sidestr-agent/src/hitch/host.rs
+  - ../sidestr-rs/sidestr-agent/src/hitch/store.rs
+  - ../sidestr-rs/sidestr-agent/src/hitch/follow.rs
   - ../sidestr-rs/sidestr-hitch/src/lib.rs
   - ../sidestr-rs/sidestr-hitch/src/protocol/mod.rs
   - ../sidestr-rs/sidestr-hitch/src/protocol/machine.rs
@@ -24,16 +28,16 @@ sources:
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
   - ../project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md
   - ../project/docs/TODO-unified.md
-verified_commit: {sidestr-rs: d8ace3aad2f23eb1d11bd72af4ab0b74d599f618, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
+verified_commit: {sidestr-rs: 9c6de86c657a25ec2f2a189baf63db7dedad40eb, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
 ---
 
 ## For developers
 
-`sidestr-hitch` is a pure channel kernel. Since 0.2.0 (sidestr-rs `5a1e89ae`, 1 Oct) it tracks Hitch at `62f8e39`, through the five rounds of Hitch's adversarial review: `lib/channel.mjs` for the transactions, `lib/peer.mjs` for the sans-IO peer machine and `lib/route.mjs` for the router. The single 2,972-line `protocol.rs` of 0.1 is now a `protocol/` module split by concern: wire messages, opening, the update machine, chain following and snapshots. It constructs Hitch funding, commitment, HTLC and close transactions, runs the update protocol, answers a close seen on the chain with penalties, sweeps and claims, serialises recovery snapshots, and returns routing actions for a host to execute. The release is breaking. Commitments now use a two-party revocation key, so the transactions differ and a 0.1 channel cannot be restored by 0.2: the 0.1 key let a commitment's owner spend its own revocation leaf, which is the flaw this release fixes. Read SR-04.1 for the revocation construction, SR-04.2 for finality, SR-04.3 for recovery and routing, SR-04.4 for the chain side and SR-04.5 for what a host still owes. Since 0.2.1 a chain-consensus suite opens five channels from one funding transaction, drives them through close, sweep, penalty and claim on all seven leaf templates, and has `sidestr-core`'s `Chain` validate every spend, with siding replaying to the same tip hash when the oracle environment is set. The estate has no host for any of it (VisionClaw ADR-2111 is proposed and unimplemented).
+`sidestr-hitch` is a pure channel kernel. Since 0.2.0 (sidestr-rs `5a1e89ae`, 1 Oct) it tracks Hitch at `62f8e39`, through the five rounds of Hitch's adversarial review: `lib/channel.mjs` for the transactions, `lib/peer.mjs` for the sans-IO peer machine and `lib/route.mjs` for the router. The single 2,972-line `protocol.rs` of 0.1 is now a `protocol/` module split by concern: wire messages, opening, the update machine, chain following and snapshots. It constructs Hitch funding, commitment, HTLC and close transactions, runs the update protocol, answers a close seen on the chain with penalties, sweeps and claims, serialises recovery snapshots, and returns routing actions for a host to execute. The release is breaking. Commitments now use a two-party revocation key, so the transactions differ and a 0.1 channel cannot be restored by 0.2: the 0.1 key let a commitment's owner spend its own revocation leaf, which is the flaw this release fixes. Read SR-04.1 for the revocation construction, SR-04.2 for finality, SR-04.3 for recovery and routing, SR-04.4 for the chain side and SR-04.5 for what a host still owes. Since 0.2.1 a chain-consensus suite opens five channels from one funding transaction, drives them through close, sweep, penalty and claim on all seven leaf templates, and has `sidestr-core`'s `Chain` validate every spend, with siding replaying to the same tip hash when the oracle environment is set. The agent host exists in source. SR-04.5 is refreshed in the [crate/runtime audit](../../estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md); SR-04.1–04.4 retain their earlier assessment boundary.
 
 ## For the business
 
-Hitch gives two sidestr users fast off-chain updates and a one-hop hub path. It is Lightning-shaped but cannot connect to Lightning peers. Version 0.2.0 closes a hole in which a party could cheat with its own penalty path. It also takes over the money-bearing reactions to a channel being closed on the chain: punishing an old state and claiming what is owed. Any channel opened with the earlier version has to be closed with that version. Nobody in the estate runs one. A usable service still needs wallet funding, relay transport, secure storage, chain watching, transaction broadcasting and the retry and timeout scheduler.
+Hitch gives two sidestr users fast off-chain updates and a one-hop hub path. It is Lightning-shaped but cannot connect to Lightning peers. Version 0.2.0 closes a hole in which a party could cheat with its own penalty path. It also takes over the money-bearing reactions to a channel being closed on the chain: punishing an old state and claiming what is owed. Any channel opened with the earlier version has to be closed with that version. The agent supplies host code for funding, relay transport, storage, watching and broadcasts. A current deployed open/pay/close receipt is not established here, and the watcher needs a genesis-identity check before activation acceptance.
 
 ## SR-04.1 Channel transaction boundary and the two-party revocation key
 
@@ -114,22 +118,20 @@ flowchart TB
 
 **Why it is this way.** Hitch's peer does these steps itself; keeping them in the sans-IO machine means a host only supplies the chain lookups and broadcasts the returned transactions. Every transaction a Rust protocol run broadcasts is checked by Hitch's module and the schema interpreter (`../sidestr-rs/sidestr-hitch/tests/oracle.rs:358`).
 
-## SR-04.5 What the host must still supply
+## SR-04.5 Implemented host and remaining trust boundaries
 
 ```mermaid
-flowchart LR
-    K["sidestr-hitch kernel<br/>sidestr-hitch/src/lib.rs:19"] --> ACT["peer messages, broadcasts,<br/>tick and route actions"]
-    ACT --> HOST["host service<br/>sidestr-hitch/src/protocol/mod.rs:49"]
-    HOST --> WAL["wallet funding"]
-    HOST --> REL["Nostr relay I/O, kind 23600"]
-    HOST --> STO["atomic snapshot storage"]
-    HOST --> WATCH["chain lookups for on_spend"]
-    HOST --> BC["broadcasting"]
-    HOST --> SCH["scheduler: retries, proposal,<br/>funding and unfunded timeouts<br/>sidestr-hitch/src/protocol/mod.rs:70"]
+flowchart TB
+    K["Pure sidestr-hitch kernel<br/>messages and actions<br/>../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:49"] --> HOST["sidestr-agent Hitch host<br/>cli feature and Unix<br/>../sidestr-rs/sidestr-agent/src/hitch/mod.rs:34"]
+    HOST --> IO["Funding, relay transport,<br/>broadcast and scheduler"]
+    HOST --> STO["Atomic snapshot store<br/>also public without cli on Unix<br/>../sidestr-rs/sidestr-agent/src/hitch/mod.rs:36"]
+    HOST --> WATCH["ChainFollower<br/>hashes, signatures and links<br/>trusts transaction validity"]
+    WATCH --> GAP["Missing genesis pin enforcement<br/>same-signer foreign genesis accepted<br/>../sidestr-rs/sidestr-agent/src/hitch/follow.rs:121-140"]
+    HOST --> GATE["Open/pay/close and recovery receipt<br/>still needed for activation acceptance"]
 ```
 
-**What it shows.** The machine performs no IO: a host carries each peer message as a kind-23600 Nostr event and supplies wallet funding, atomic snapshot storage, chain watches and broadcasting (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:49`, `../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:105`). Opening starts from a wallet-selected outpoint with proofs of possession, and the wallet remains responsible for broadcasting and watching the funding (`../sidestr-rs/sidestr-hitch/src/protocol/opening.rs:178`). Hitch keeps failed broadcasts, retry timers and the proposal, funding and unfunded timeouts on its channel document; here they are the host's scheduler, with the constants exported (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:70`, `../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:121`). The router expects the host to retry a retryable action (Hitch tries twenty times) (`../sidestr-rs/sidestr-hitch/src/route.rs:13`).
+**What it shows.** The host is implemented, not missing (`../sidestr-rs/sidestr-agent/src/hitch/host.rs:647`). It loads a spend-key binding and state, drives funding and kind-23600 transport, and watches/broadcasts channel actions. Unix storage remains available without the CLI feature (`../sidestr-rs/sidestr-agent/src/hitch/mod.rs:36`). The watcher intentionally does not validate transactions, but it also drops the document's genesis pin (`../sidestr-rs/sidestr-agent/src/hitch/follow.rs:133`); [native scenarios](../../estate-review/evidence/2026-11-01/crate-boundary/follower-probe.json) reproduce same-signer foreign-genesis acceptance and replacement at fork zero.
 
-**Why it is this way.** Keeping side effects outside the protocol state machine makes the kernel testable against Hitch's JavaScript transaction and wire oracles, which CI pins separately at `62f8e39` (`../sidestr-rs/.github/workflows/ci.yml:20`, `../sidestr-rs/.github/workflows/ci.yml:22`, `../sidestr-rs/.github/workflows/ci.yml:126`). Every message kind, `reject` included, passes Hitch's own validator, and Hitch's peer and adversarial suites run in Rust (`../sidestr-rs/sidestr-hitch/tests/wire_oracle.rs:185`, `../sidestr-rs/sidestr-hitch/tests/peer_scenarios.rs:1`, `../sidestr-rs/sidestr-hitch/tests/adversarial_scenarios.rs:1`). **Tension (Hitch vs port):** a point off the curve is refused at deserialisation and dropped without a `reject`, where Hitch replies with a reject at the proof-of-possession check; the port records this as a deliberate, tested departure (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:63`).
+**Why it is this way.** Kernel actions stay separate from host side effects. Binding checks protect the spend identity (`../sidestr-rs/sidestr-agent/src/hitch/host.rs:652`), while chain identity needs its own enforced anchor at the watch boundary. The broadcast maturity guard is implemented (`../sidestr-rs/sidestr-agent/src/hitch/host.rs:484`, `../sidestr-rs/sidestr-agent/src/hitch/host.rs:1028`). Script compatibility and a running faucet do not prove channel service acceptance.
 
-**Open:** no estate host supplies the complete service boundary, which 0.2.0 widened by the scheduler and chain-lookup duties. VisionClaw ADR-2111 remains proposed, unimplemented and inactive (`../project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:95`), and the board leaves Hitch adoption under N-10 (`../project/docs/TODO-unified.md:103`, `../project/docs/TODO-unified.md:116`).
+**Open:** pin the watched genesis; exercise open, pay, close, restart and reorganisation with retained receipts. No deployed channel exploit or completed activation is claimed.

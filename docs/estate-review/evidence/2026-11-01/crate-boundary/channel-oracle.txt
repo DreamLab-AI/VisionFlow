@@ -1,0 +1,11 @@
+   Compiling bitcoinconsensus v0.106.0+26.0
+   Compiling sidestr-core v0.4.2 (/home/devuser/workspace/sidestr-rs/sidestr-core)
+    Finished `test` profile [unoptimized] target(s) in 16.35s
+     Running tests/channel_oracle.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/channel_oracle-7501ca9d136e8f1d)
+
+running 1 test
+436 differential cases agreed, plus 6 documented narrowings
+test core_and_this_crate_agree_on_every_channel_leaf ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.67s
+

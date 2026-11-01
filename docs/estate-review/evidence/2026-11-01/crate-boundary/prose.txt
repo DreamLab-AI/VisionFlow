@@ -1,0 +1,13 @@
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md
+  files scanned: 1   findings: 1   slop score: 3
+  verdict: Some AI tells present
+  high: 1   medium: 0   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (1 hit)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md:66  The aggregate `supervisorctl status` command returned exit 3; the receipt records the selected six `RUNNING` entries rather than treating the command's aggregat...
+
+  Top things to change: "The X" sentence/paragraph opener
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+
