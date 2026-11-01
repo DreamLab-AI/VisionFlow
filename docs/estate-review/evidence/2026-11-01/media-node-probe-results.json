@@ -1,0 +1,58 @@
+[
+  {
+    "case": "calibration_claims",
+    "refused": 3
+  },
+  {
+    "case": "drift_receipt",
+    "receipt": {
+      "schema": "agentbox-identity/1",
+      "kind": "drift_report",
+      "every": 1,
+      "links": [
+        {
+          "link": 1,
+          "a": {
+            "n": 2,
+            "sim": 1.0
+          }
+        }
+      ],
+      "summary": {
+        "a": {
+          "sim_first": 1.0,
+          "sim_last": 1.0,
+          "change": 0.0
+        }
+      },
+      "gate": false,
+      "acceptance": "editorial",
+      "thresholds": {
+        "min_similarity": 0.25,
+        "min_face_frac": 0.12,
+        "last_n": 5,
+        "weak_below": 0.25,
+        "drift_min_sim": 0.15,
+        "swap_margin": 0.05,
+        "min_judged_frames": 2,
+        "provenance": "kinoloom-ltx-uncalibrated",
+        "calibrated": false,
+        "calibration": null
+      }
+    }
+  },
+  {
+    "case": "postbuild_registration",
+    "absent": "AgentboxLoadImageVerified",
+    "exit": 0,
+    "log": "PASS  SpEdE nodes registered (30 SpEdE_* classes)\nPASS  agentbox_video nodes loaded (missing [])\nPASS  ComfyUI core classes SpEdE needs (missing [])\n",
+    "scope": "exact registration snippet, synthetic object_info"
+  },
+  {
+    "case": "postbuild_registration",
+    "absent": "AgentboxTrackMask",
+    "exit": 1,
+    "log": "PASS  SpEdE nodes registered (30 SpEdE_* classes)\nFAIL  agentbox_video nodes loaded (missing ['AgentboxTrackMask'])\nPASS  ComfyUI core classes SpEdE needs (missing [])\n",
+    "scope": "exact registration snippet, synthetic object_info"
+  }
+]

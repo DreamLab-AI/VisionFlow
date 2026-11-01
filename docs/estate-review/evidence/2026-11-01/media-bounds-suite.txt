@@ -1,0 +1,38 @@
+   Compiling video-production-runtime v0.1.0 (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/skills/video-production/runtime)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s
+     Running tests/media_bounds_audit.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/media_bounds_audit-0dd733d313ce4d12)
+
+running 1 test
+
+thread 'seam_bounds_and_colour_contract' (2865485) panicked at src/seam_qa.rs:753:30:
+attempt to add with overflow
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::panic_const::panic_const_add_overflow
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:175:17
+   3: video_production_runtime::seam_qa::run
+             at ./src/seam_qa.rs:753:30
+   4: media_bounds_audit::seam_bounds_and_colour_contract::{closure#0}
+             at ./tests/media_bounds_audit.rs:43:51
+   5: std::panicking::catch_unwind::do_call::<media_bounds_audit::seam_bounds_and_colour_contract::{closure#0}, core::result::Result<serde_json::value::Value, alloc::boxed::Box<dyn core::error::Error>>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/panicking.rs:576:43
+   6: __rust_try
+   7: std::panicking::catch_unwind::<core::result::Result<serde_json::value::Value, alloc::boxed::Box<dyn core::error::Error>>, media_bounds_audit::seam_bounds_and_colour_contract::{closure#0}>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/panicking.rs:544:19
+   8: std::panic::catch_unwind::<media_bounds_audit::seam_bounds_and_colour_contract::{closure#0}, core::result::Result<serde_json::value::Value, alloc::boxed::Box<dyn core::error::Error>>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/panic.rs:359:14
+   9: media_bounds_audit::seam_bounds_and_colour_contract
+             at ./tests/media_bounds_audit.rs:43:23
+  10: media_bounds_audit::seam_bounds_and_colour_contract::{closure#0}
+             at ./tests/media_bounds_audit.rs:6:37
+  11: <media_bounds_audit::seam_bounds_and_colour_contract::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  12: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+test seam_bounds_and_colour_contract ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.26s

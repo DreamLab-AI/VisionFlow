@@ -1,0 +1,20 @@
+Using CPython 3.12.15 interpreter at: /nix/store/1wbgna3xlprfllr1ysgpy9xiz0rxzglz-python3-3.12.15/bin/python
+Creating virtual environment at: /home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/venv
+Activate with: source /home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/venv/bin/activate.fish
+Using Python 3.12.15 environment at: /home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/venv
+Resolved 4 packages in 781ms
+Downloading pillow (6.7MiB)
+Downloading opencv-python-headless (58.4MiB)
+Downloading numpy (15.8MiB)
+ Downloaded pillow
+ Downloaded numpy
+ Downloaded opencv-python-headless
+Prepared 4 packages in 20.43s
+warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+         If the cache and target directories are on different filesystems, hardlinking may not be supported.
+         If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+Installed 4 packages in 880ms
+ + numpy==2.3.5
+ + opencv-python-headless==5.0.0.93
+ + pillow==12.0.0
+ + safetensors==0.6.2

@@ -1,0 +1,8 @@
+test_calibration_claims_remain_refused (__main__.Audit.test_calibration_claims_remain_refused) ... ok
+test_drift_receipt_omits_two_required_fields (__main__.Audit.test_drift_receipt_omits_two_required_fields) ... ok
+test_postbuild_gate_does_not_require_load_image (__main__.Audit.test_postbuild_gate_does_not_require_load_image) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.034s
+
+OK

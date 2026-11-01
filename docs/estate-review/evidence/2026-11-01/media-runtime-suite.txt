@@ -1,0 +1,294 @@
+   Compiling video-production-runtime v0.1.0 (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/skills/video-production/runtime)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.23s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/video_production_runtime-4232d1a0029c1d2e)
+
+running 99 tests
+test clock::tests::eighteen_seconds_at_thirty_is_integral ... ok
+test clock::tests::eighteen_seconds_at_ntsc_is_539_or_540_and_never_exact ... ok
+test clock::tests::frame_count_priority_checks_duration_and_conflicts_are_reported ... ok
+test clock::tests::intervals_are_half_open_and_tile_exactly ... ok
+test clock::tests::interval_times_are_exact_at_ntsc ... ok
+test clock::tests::rates_reduce_parse_and_reject_zero ... ok
+test clock::tests::rates_deserialise_from_integer_string_and_object ... ok
+test comfy::tests::boundary_never_occurs_in_payload ... ok
+test comfy::tests::combo_choices_reads_both_forms_and_never_the_tag ... ok
+test comfy::tests::snapshot_passes_installed_model_in_new_combo_form ... ok
+test media::tests::a_declaration_must_agree_with_a_partial_tag ... ok
+test comfy::tests::declared_hash_mismatch_aborts_before_any_connection ... ok
+test media::tests::declared_frame_dimensions_are_capped_before_allocation ... ok
+test paths::tests::root_precedence_is_cli_then_env_then_cwd ... ok
+test paths::tests::absolute_inside_root_becomes_relative_and_outside_is_rejected ... ok
+test prompt_lint::tests::calibrated_true_or_a_calibration_field_is_refused ... ok
+test paths::tests::absolute_path_detector_finds_nested_leaks ... ok
+test paths::tests::relativise_rewrites_inside_paths_and_rejects_outside_ones ... ok
+test paths::tests::root_option_is_removed_from_arguments ... ok
+test prompt_lint::tests::continuity_across_scene_or_location_change ... ok
+test prompt_lint::tests::duplicate_and_unknown_references ... ok
+test prompt_lint::tests::config_rejects_unknown_rules_schema_and_fields ... ok
+test prompt_lint::tests::annotation_rules_are_reported_skipped_without_annotations ... ok
+test prompt_lint::tests::from_value_requires_a_schema ... ok
+test prompt_lint::tests::every_receipt_is_editorial_and_fails_on_errors ... ok
+test prompt_lint::tests::emotion_jump_needs_three_steps ... ok
+test render_cache::tests::a_window_diff_must_describe_the_parent_frame_count ... ok
+test render_cache::tests::a_window_diff_report_serves_as_the_allowed_scope ... ok
+test prompt_lint::tests::performance_source_and_take_cap ... ok
+test render_cache::tests::accepts_an_in_scope_revision_at_a_fractional_rate ... ok
+test prompt_lint::tests::identical_bytes_under_two_ids_warn ... ok
+test seam_qa::tests::a_near_static_baseline_still_fails_on_the_ratio ... ok
+test render_cache::tests::manual_allow_ranges_cannot_widen_a_bound_diff ... ok
+test clock::tests::rounding_invariants_hold_for_all_durations ... ok
+test prompt_lint::tests::look_contradiction_and_missing ... ok
+test render_cache::tests::rejects_out_of_scope_missing_scope_stale_and_mismatched_inputs ... ok
+test prompt_lint::tests::take_over_cap_uses_exact_rate ... ok
+test seam_qa::tests::percentile_and_median_follow_numpy_conventions ... ok
+test prompt_lint::tests::unused_asset_fires_and_used_does_not ... ok
+test prompt_lint::tests::missing_outside_and_changed_files ... ok
+test prompt_lint::tests::reference_budget_follows_config ... ok
+test stitch::tests::head_only_and_tail_only_retakes_drop_the_missing_join ... ok
+test stitch::tests::retake_geometry_clamps_at_clip_edges_and_reports_it ... ok
+test windows::tests::example_h3_plan_for_121_frames ... ok
+test stitch::tests::blend_weights_follow_j_plus_one_over_o_plus_one ... ok
+test windows::tests::invalid_inputs_are_refused ... ok
+test windows::tests::a_plan_from_the_superseded_schema_is_refused_with_a_replan_message ... ok
+test render_cache::tests::a_hand_edited_diff_is_refused_when_the_plans_are_supplied ... ok
+test seam_qa::tests::click_in_digital_silence_fails_on_the_absolute_jump_floor ... ok
+test render_cache::tests::a_diff_binds_to_the_parent_by_plan_hash_and_final_key_not_by_length ... ok
+test windows::tests::plan_hash_is_stable_across_key_order_and_serialisation ... ok
+test clock::tests::interval_set_algebra_is_symmetric_and_consistent ... ok
+test windows::tests::diff_reports_geometry_changes_and_removed_windows ... ok
+test windows::tests::tampered_plans_are_refused_by_verify_and_diff ... ok
+test windows::tests::seeds_increment_and_wrap_at_u64_max ... ok
+test clock::tests::exact_roundtrip_for_every_frame_count_and_rate ... ok
+test seam_qa::tests::audio_step_is_exempt_at_an_onset_but_not_between_two_sounds ... ok
+test comfy::tests::filename_with_form_syntax_characters_round_trips_with_exact_bytes ... ok
+test windows::tests::changing_any_bound_hash_changes_every_key ... ok
+test stitch::tests::discard_reports_an_output_it_could_not_remove ... ok
+test stitch::tests::retake_geometry_matches_the_node_pack_cases ... ok
+test render_cache::tests::assembled_cache_records_only_root_relative_paths ... ok
+test windows::tests::rerolling_n_changes_keys_from_n_and_none_before ... ok
+test windows::tests::frames_resolve_from_a_fractional_rate_and_cli_round_trips ... ok
+test comfy::tests::hashed_bytes_are_the_uploaded_bytes ... ok
+test prompt_lint::tests::start_image_must_be_wired ... ok
+test stitch::tests::a_source_changed_after_hashing_is_refused ... ok
+test stitch::tests::invalid_plans_are_refused ... ok
+test media::tests::a_playlist_disguised_as_media_cannot_reach_the_network ... ok
+test windows::tests::model_hashes_are_checked_against_the_files_and_a_changed_file_changes_the_keys ... ok
+test render_cache::tests::an_in_place_model_update_loads_but_a_stale_new_plan_does_not ... ok
+test render_cache::tests::allow_from_diff_end_to_end_binds_the_parent_and_chains_the_new_cache ... ok
+test media::tests::probe_counts_decoded_frames_and_audio ... ok
+test media::tests::visitor_error_stops_decoding_and_is_returned ... ok
+test media::tests::silent_file_has_no_audio_hashes_or_pcm ... ok
+test stitch::tests::output_gate_checks_the_declared_range_and_pixel_format ... ok
+test media::tests::colour_tags_are_probed_and_untagged_yuv_is_reported_as_such ... ok
+test media::tests::frames_stream_in_order_with_requested_layout ... ok
+test stitch::tests::retake_that_corrupts_unchanged_frames_is_deleted ... ok
+test stitch::tests::delivery_is_tagged_bt709 ... ok
+test guide::tests::real_next_shot_frames_are_rejected_then_trimmed_padding_passes ... ok
+test seam_qa::tests::hard_colour_step_fails ... ok
+test stitch::tests::a_count_or_rate_mismatch_deletes_the_output ... ok
+test seam_qa::tests::texture_appearing_from_flat_fails_the_absolute_detail_floor ... ok
+test seam_qa::tests::slow_global_lighting_ramp_passes_provisionally ... ok
+test media::tests::audio_packet_hashes_survive_copy_remux_but_not_reencode ... ok
+test stitch::tests::blended_overlap_frames_have_the_expected_values_after_encode ... ok
+test media::tests::rotated_and_non_square_sources_are_refused_everywhere_frames_are_decoded ... ok
+test seam_qa::tests::unmeasurable_seam_is_blocked_stale_cut_is_refused_and_silent_cut_is_not_applicable ... ok
+test stitch::tests::exact_frame_count_across_three_segments_with_overlaps ... ok
+test seam_qa::tests::the_declared_matrix_and_range_reach_the_decoder ... ok
+test stitch::tests::retake_keeps_frame_count_and_unchanged_frames ... ok
+test seam_qa::tests::hard_cut_in_a_static_shot_fails_on_the_absolute_floor ... ok
+test seam_qa::tests::an_untagged_yuv_cut_or_reference_is_refused_unless_colour_is_declared ... ok
+test seam_qa::tests::injected_audio_click_fails_and_clean_tone_passes ... ok
+test stitch::tests::audio_packets_survive_the_mux_and_a_reencode_is_rejected ... ok
+test stitch::tests::untagged_colour_is_refused_unless_declared_and_the_declaration_drives_the_decode ... ok
+test seam_qa::tests::identical_overlap_meets_psnr_gate_and_a_different_one_fails ... ok
+test windows::tests::windows_tile_and_obey_the_profile_grids_over_many_sizes ... ok
+
+test result: ok. 99 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.83s
+
+     Running unittests src/bin/art-extract.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/art_extract-9903513ece4875a6)
+
+running 1 test
+test tests::supplied_pixels_survive_and_occluded_pixels_stay_unknown ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+     Running unittests src/bin/contract-check.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/contract_check-039815c68147b30e)
+
+running 17 tests
+test tests::dependency_cycle_and_dangling_dependency_are_rejected ... ok
+test tests::ids_are_unique_across_collections ... ok
+test tests::all_backed_passes_pass_and_not_applicable_needs_a_reason ... ok
+test tests::artifacts_must_exist_and_be_files ... ok
+test tests::critical_tests_and_bidirectional_links_are_required ... ok
+test tests::invocation_and_parse_errors_return_invalid_json_reports ... ok
+test tests::not_run_ledger_is_valid_but_never_passed ... ok
+test tests::unknown_verdicts_are_parse_errors ... ok
+test tests::adr_acceptance_needs_proof_and_runtime_claims_need_passing_gates ... ok
+test tests::one_pass_beside_a_not_run_gate_is_not_passed ... ok
+test tests::evidence_cannot_be_a_directory_or_escape_the_root ... ok
+test tests::dangling_requirement_links_are_rejected_by_type ... ok
+test tests::blocked_and_failed_gates_do_not_pass_and_need_reasons ... ok
+test tests::unsafe_paths_are_rejected_even_for_future_tasks ... ok
+test tests::task_statuses_beyond_planned_are_accepted_with_proof ... ok
+test tests::symlink_escape_is_rejected_for_artifacts_evidence_and_future_paths ... ok
+test tests::pass_requires_existing_evidence_and_a_matching_hash ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/dialogue-bake.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/dialogue_bake-2ced6a61d83202e7)
+
+running 8 tests
+test tests::cue_inside_a_clip_invalidates_whole_clip_and_reviews_adjacent_cuts ... ok
+test tests::invalidates_both_old_and_new_windows ... ok
+test tests::ntsc_rate_maps_frames_to_samples_and_cue_times_exactly ... ok
+test tests::moving_a_take_preserves_cue_boundary_times ... ok
+test tests::refuses_audio_overrun_instead_of_stretching ... ok
+test tests::rejects_nonfinite_clock ... ok
+test tests::session_accepts_integer_fps_alias_and_rational_rate ... ok
+test tests::replacement_changes_only_its_samples_and_sums_overlap ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/film-bake.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/film_bake-0ea8794417d1259f)
+
+running 16 tests
+test tests::editorial_map_cannot_claim_another_world_or_reset_action ... ok
+test tests::filter_uses_declared_rate_and_canvas ... ok
+test tests::explicit_reference_role_does_not_overwrite_layout_attention ... ok
+test tests::clock_comes_from_the_plan_not_a_constant ... ok
+test tests::native_render_rate_must_match_the_plan ... ok
+test tests::anchor_graph_follows_bindings_and_cannot_add_junk_nodes ... ok
+test tests::indexed_padding_requires_the_last_actual_world_state ... ok
+test tests::unsafe_graph_names_rejected ... ok
+test tests::gaps_and_unrecorded_time_jumps_are_rejected ... ok
+test tests::padding_keeps_all_delivery_frames ... ok
+test tests::frame_multiple_in_bindings_bounds_keyframes ... ok
+test tests::resolution_and_aspect_are_validated ... ok
+test tests::indexed_images_chain_through_both_samplers_and_crop_metadata ... ok
+test tests::receipts_contain_only_root_relative_paths ... ok
+test tests::video_graph_uses_bindings_and_rejects_missing_nodes_and_inputs ... ok
+test tests::completed_media_rejects_swapped_graph_and_changed_bytes ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/bin/guide-check.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/guide_check-aea0a3119b89cd17)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/masked-composite.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/masked_composite-5bf3e6d341c44f9d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/performance-prompts.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/performance_prompts-5f6b8600631675c3)
+
+running 4 tests
+test tests::fractional_phases_cover_odd_length_without_gaps ... ok
+test tests::bad_or_subframe_intervals_fail ... ok
+test tests::unknown_cast_and_mismatched_source_are_rejected ... ok
+test tests::prompt_uses_plan_instruction_and_exact_rate ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/planar-art.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/planar_art-9401493ba722b28f)
+
+running 1 test
+test tests::real_clip_respects_foreground_occlusion_and_rejects_changed_ids ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.84s
+
+     Running unittests src/bin/prompt-lint.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/prompt_lint-348a5b002200f30c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/render-cache.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/render_cache-4af5db1bd4dc0891)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/review-cut.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/review_cut-8b4e37afb1b1a0ed)
+
+running 3 tests
+test tests::evidence_paths_are_root_relative ... ok
+test tests::filter_follows_declared_clock_and_canvas ... ok
+test tests::clips_must_partition_the_declared_frame_count ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/scene_exchange-7145da3cd1433a7d)
+
+running 4 tests
+test tests::refuses_stale_or_partial_observation ... ok
+test tests::rejects_dangling_references ... ok
+test tests::rejects_ambiguous_identity_and_cycles ... ok
+test tests::accepts_current_complete_observation ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/seam-qa.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/seam_qa-98122ccd3764621e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/stitch.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/stitch-0260ddedac44e8bb)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/surface-graphs.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/surface_graphs-a817f96103cb105b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/surface-masks.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/surface_masks-884820e418907cd6)
+
+running 1 test
+test tests::neighbouring_actor_is_protected_and_stale_provenance_rejects ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.96s
+
+     Running unittests src/bin/window-plan.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/window_plan-5dd35ed500566b57)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/prompt_lint_cli.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/prompt_lint_cli-0962929e453e21e6)
+
+running 3 tests
+test help_and_usage_errors ... ok
+test calibration_claims_are_refused_and_the_receipt_is_editorial ... ok
+test exit_status_follows_error_findings_and_receipt_is_json ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests video_production_runtime
+
+running 14 tests
+test src/acceptance.rs - acceptance::present (line 44) ... ok
+test src/acceptance.rs - acceptance::stamp (line 64) ... ok
+test src/paths.rs - paths::Root::rel (line 82) ... ok
+test src/paths.rs - paths::absolute_paths (line 171) ... ok
+test src/clock.rs - clock::FrameInterval (line 472) ... ok
+test src/windows.rs - windows::canonical_json (line 54) ... ok
+test src/render_cache.rs - render_cache::parse_allow (line 57) ... ok
+test src/clock.rs - clock::RationalRate (line 117) ... ok
+test src/clock.rs - clock (line 15) ... ok
+test src/acceptance.rs - acceptance::refuse_calibration (line 20) ... ok
+test src/paths.rs - paths::resolve_root (line 22) ... ok
+test src/windows.rs - windows::build (line 339) ... ok
+test src/render_cache.rs - render_cache::allowed_from_diff (line 73) ... ok
+test src/paths.rs - paths::Root::relativise (line 129) ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+all doctests ran in 0.41s; merged doctests compilation took 0.41s

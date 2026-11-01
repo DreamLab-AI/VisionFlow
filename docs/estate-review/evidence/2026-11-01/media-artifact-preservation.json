@@ -1,0 +1,75 @@
+{
+  "scope": "Ignored render/input files and downloaded upstream/synthetic probe artefacts retained before worktree cleanup; temporary paths are not durable publication URLs",
+  "files": [
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-media-measurements/docs/diagrams/rendered/agentbox/38-video-measurements-and-provider-boundaries/AB-38.2.svg",
+      "retained": "/tmp/vf-media-audit-artifacts/rendered/agentbox/38-video-measurements-and-provider-boundaries/AB-38.2.svg",
+      "sha256": "e61d05eb7cc021c271062427f862c6dea54b5ac4e529bf1df47e86157e48c740"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-media-measurements/docs/diagrams/rendered/agentbox/38-video-measurements-and-provider-boundaries/AB-38.1.mmd",
+      "retained": "/tmp/vf-media-audit-artifacts/rendered/agentbox/38-video-measurements-and-provider-boundaries/AB-38.1.mmd",
+      "sha256": "291a62346e1a210c840d4ceeda39477ac90a60a1d360515bf917344b202fc1c1"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-media-measurements/docs/diagrams/rendered/agentbox/38-video-measurements-and-provider-boundaries/AB-38.3.mmd",
+      "retained": "/tmp/vf-media-audit-artifacts/rendered/agentbox/38-video-measurements-and-provider-boundaries/AB-38.3.mmd",
+      "sha256": "bf579cd37fbe2fbf834bb96fe4b7d01435166a85191c425df54201b9471dba22"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-media-measurements/docs/diagrams/rendered/agentbox/38-video-measurements-and-provider-boundaries/AB-38.4.svg",
+      "retained": "/tmp/vf-media-audit-artifacts/rendered/agentbox/38-video-measurements-and-provider-boundaries/AB-38.4.svg",
+      "sha256": "8a6f9a61bf203f319edf979f88fa4fad99d1b1e0732f1fcd50be38f07f60e255"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-media-measurements/docs/diagrams/rendered/agentbox/38-video-measurements-and-provider-boundaries/AB-38.2.mmd",
+      "retained": "/tmp/vf-media-audit-artifacts/rendered/agentbox/38-video-measurements-and-provider-boundaries/AB-38.2.mmd",
+      "sha256": "4c5ae6af430351256613a1e4327c73804dacccb77c8a435bf248f186819e577e"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-media-measurements/docs/diagrams/rendered/agentbox/38-video-measurements-and-provider-boundaries/AB-38.4.mmd",
+      "retained": "/tmp/vf-media-audit-artifacts/rendered/agentbox/38-video-measurements-and-provider-boundaries/AB-38.4.mmd",
+      "sha256": "8083aacaf781bba210d88c0179dce30a1d2330dea0d309bd2ff18b08988ae1ab"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-media-measurements/docs/diagrams/rendered/agentbox/38-video-measurements-and-provider-boundaries/AB-38.1.svg",
+      "retained": "/tmp/vf-media-audit-artifacts/rendered/agentbox/38-video-measurements-and-provider-boundaries/AB-38.1.svg",
+      "sha256": "715304af16efb554c4b477b974016cc5b4bdf2bc181aa3951e648e2d11341f9a"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-media-measurements/docs/diagrams/rendered/agentbox/38-video-measurements-and-provider-boundaries/AB-38.3.svg",
+      "retained": "/tmp/vf-media-audit-artifacts/rendered/agentbox/38-video-measurements-and-provider-boundaries/AB-38.3.svg",
+      "sha256": "3f6b585d270bc19430b90182c1d929a78718cda791eef7bb8ea6222195b53241"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-media-measurements/texput.log",
+      "retained": "/tmp/vf-media-audit-artifacts/generated-inputs/texput.log",
+      "sha256": "0de8dad445a514ae3bc13874d2a354c230d5395982c23ea702c3e573c3d9d304"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-media-measurements/website/build-receipt.json",
+      "retained": "/tmp/vf-media-audit-artifacts/generated-inputs/website/build-receipt.json",
+      "sha256": "fae85100258804d3344673265a4fcc88781ea92f6e2c4a137bd27b48f3460711"
+    },
+    {
+      "source": "/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/upstream/execution.py",
+      "retained": "/tmp/vf-media-audit-artifacts/upstream/execution.py",
+      "sha256": "bf61eed32e9db0fe87ab8c108ea21adeb948e0596242c9cc55334de4a6e451a1"
+    },
+    {
+      "source": "/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/upstream/server.py",
+      "retained": "/tmp/vf-media-audit-artifacts/upstream/server.py",
+      "sha256": "b2ff22d5464bdc7fde71f2e7ed349363458c2ce1aad92ecced446e25a99d5440"
+    },
+    {
+      "source": "/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/bounds/fixture.mkv",
+      "retained": "/tmp/vf-media-audit-artifacts/bounds/fixture.mkv",
+      "sha256": "b301346e2fdc6a8b5ecac823deaf5cb065c5e8c24e31722db4198359b956f8f4"
+    },
+    {
+      "source": "/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/bounds/bounds-results.json",
+      "retained": "/tmp/vf-media-audit-artifacts/bounds/bounds-results.json",
+      "sha256": "c2e3ce5b0f111ba95d6cae240641611cb7bba09bd9e517207dd8822acab1a6e0"
+    }
+  ]
+}

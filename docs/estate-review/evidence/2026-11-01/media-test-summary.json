@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-01",
+  "baseline": {
+    "rust_passed": 171,
+    "nodes_passed": 91,
+    "nodes_skipped": 2,
+    "python_client_passed": 32,
+    "javascript_mcp_passed": 11,
+    "total_passed": 305
+  },
+  "audit": {
+    "rust_tests_passed": 1,
+    "python_tests_passed": 3,
+    "controlled_cancel_cases": 3
+  },
+  "versions": {
+    "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+    "python": "Python 3.12.15",
+    "node": "v22.23.3",
+    "ffmpeg": "ffmpeg version 9.0.2 Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "python_test_packages": {
+    "numpy": "2.3.5",
+    "opencv-python-headless": "5.0.0.93",
+    "safetensors": "0.6.2",
+    "Pillow": "12.0.0"
+  },
+  "not_run": [
+    "live ComfyUI",
+    "GPU or model workflow",
+    "image build",
+    "real face model tests",
+    "whole-crate clippy/fmt",
+    "runner as one end-to-end invocation"
+  ],
+  "runner_note": "Individual commands executed during this pass; consolidated runner syntax-checked. Offline Cargo needs cached dependencies. Wheel/npm install and pinned upstream fetch need network.",
+  "initial_setup_failures": [
+    "flat crate layout missed shared retake fixture; corrected layout and cleared local crate cache",
+    "JavaScript ws dependency missing; npm ci installed copied lockfile dependencies",
+    "Python OpenCV needed environment C++ runtime library"
+  ]
+}

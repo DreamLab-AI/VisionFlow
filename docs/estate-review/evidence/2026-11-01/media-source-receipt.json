@@ -1,0 +1,416 @@
+{
+  "date": "2026-11-01",
+  "repo": "agentbox",
+  "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+  "scope": "Source identity for inspected and tested surfaces; not a claim of line-by-line review of every listed file",
+  "files": [
+    {
+      "path": "NOTICE",
+      "sha256": "2da3769d8b7508bcce02c2ce2559166857af42ccdf8bc1c22b6b2da570f55a04",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/Dockerfile",
+      "sha256": "4bd1c44dc87c6c1c0df7cfaa93bd005bce56c77c2a25193f4caaad57fb447e03",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/nodes/agentbox_video/__init__.py",
+      "sha256": "ce0031e00b86fd544d0b75dd35e167c48a2a8274fda00e17ca30c283664653df",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/nodes/agentbox_video/face_models.json",
+      "sha256": "5308f3f5854ca3200ac41264f6d88fcdf0fc93bfff36c4841abf680a7aea36db",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/nodes/agentbox_video/identity.py",
+      "sha256": "8a7defbf528cf89bc76e62d272291ecb8f79fc179d44db49dd376e4324e764b8",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/nodes/agentbox_video/masks.py",
+      "sha256": "90b1b71ad667cac0db3c564d0879831d38a4f6f1c9ac814d3c234f36ef52fce6",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/nodes/agentbox_video/relay.py",
+      "sha256": "95811b04c38c1a720f20ee0124db914e6bfedddadf5dcc0a049365cf102a4eb0",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/nodes/agentbox_video/retake.py",
+      "sha256": "cdb3ff5cca6bab9bb74faf2ebb16fee7ffab39597353102c83af84952b68be47",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/nodes/agentbox_video/staging.py",
+      "sha256": "b36c795a9f298df20d1735e3527ffca4606e80d96fb137034ad005ba6bfc5963",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/nodes/agentbox_video/tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/nodes/agentbox_video/tests/retake_geometry_cases.json",
+      "sha256": "608b4defbdd1d89b82922a2c7fb36b9107aa433cf3b382b116400672a46649b8",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/nodes/agentbox_video/tests/test_identity.py",
+      "sha256": "6c63f7df8131841031e19d24b8b48f63c396e27a21599f67f10c4c58b8bf0b17",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/nodes/agentbox_video/tests/test_masks.py",
+      "sha256": "d06592d77f9691d1c481f5c18c41a54e7ba29ef01b3b396df316c2aefe1517e5",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/nodes/agentbox_video/tests/test_package.py",
+      "sha256": "97fedaa9266fe8aa5141fa66699a07a9f1a8889d12b6867569e5b260d42d2a45",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/nodes/agentbox_video/tests/test_relay.py",
+      "sha256": "b6e125c9106ba2b43d8e0f9779c388ba5e7beb5f2ce7d49d539b3319c4f06546",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/nodes/agentbox_video/tests/test_retake.py",
+      "sha256": "3803e9cf29d961502801c6758fea68936cecf22f008ea065ad475f1367c7c9bb",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/nodes/agentbox_video/tests/test_staging.py",
+      "sha256": "a3258206ffcce38f49e4d4dbb8da219a345b9c57fc4efdfe18c910cb859e960c",
+      "matches_revision": true
+    },
+    {
+      "path": "comfyui-sidecar/verify-spede.sh",
+      "sha256": "cf7d17057b247eec7081e123387137f7446b55109c4d0c139f0b7f3daaed7477",
+      "matches_revision": true
+    },
+    {
+      "path": "docs/GOVERNANCE-capabilities.md",
+      "sha256": "a7594700bc0cf610482320e42af5f867d6a928e91b8a70b1a03c75588ac4bbd1",
+      "matches_revision": true
+    },
+    {
+      "path": "docs/adr/ADR-2150-video-production-skill.md",
+      "sha256": "d13eaf8874d2eacbe2bb1e5a011afad1c331b4f1d83d3db1c83b96ba113d54eb",
+      "matches_revision": true
+    },
+    {
+      "path": "docs/adr/ADR-2163-video-production-seam-window-identity-tooling.md",
+      "sha256": "a1dedffbe7065116a9194ca21b83092d03bb263e1eee409708ead37825e96f83",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/comfyui/manifests/spede.json",
+      "sha256": "d9b431a42c7dcf30003c38d4c5000c41eaf66d138253025e0778d3921118a4a3",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/comfyui/mcp-server/package-lock.json",
+      "sha256": "b6a4daac9a76b911021a9ae13153d32edecbe36fc8c0bc063265c98b3fe418da",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/comfyui/mcp-server/package.json",
+      "sha256": "a0a842a3c4501ea0d1cd9ed526f4d76cd711b7b646b02d656930a68d04ea323f",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/comfyui/mcp-server/server.js",
+      "sha256": "b45843d464213aaac25ed465ed506ebaaa1687ffc8328028eae9d10f0c282dd9",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/comfyui/mcp-server/server.test.js",
+      "sha256": "7d3899024fe55744aad679bfe0aa6408b669a7699826b753e1309a7d5f3489ea",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/comfyui/references/spede.md",
+      "sha256": "f3262054038dfb6e6b3492ae16b2ed213cce1da07db3dfd9ccc7ab4c77c4398b",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/comfyui/scripts/comfy_client.py",
+      "sha256": "2b55b83b2381bb2b78e5cff60b7c1ec842a3f711f9800e599f7caf11fa31ad0a",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/comfyui/scripts/download_video_models.py",
+      "sha256": "4bfbfa2e1c8407c81ab808b5472b662fba23cc945b7cb8a2eaaebc5e8ee7f7aa",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/comfyui/scripts/tests/test_comfy_client.py",
+      "sha256": "7ff4f259afbf7269e2f78ef206244fc3c0a3746ea73e0dd32001b5088342f4ba",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/comfyui/scripts/tests/test_download_video_models.py",
+      "sha256": "89f6aacb7f0f4107c21870874979775f435734e41412f322c6b95930bd9f5405",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/.gitignore",
+      "sha256": "44c92e3a70ad3307b7056871c2bdb096d8bfa9373f5bf06a79bb6324a20ff2fb",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/Cargo.lock",
+      "sha256": "0073825d8c236d0134b20d80febb0aee70500612a759bdf2b6b9093620a7977a",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/Cargo.toml",
+      "sha256": "e983c02ea42b3c01e4b571aed0a8e64559f148901c5c06b598fafb90618d32eb",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/README.md",
+      "sha256": "7769811b0b1e71709626fd07b68f199e0856e88cb1782f7447fc72936614b268",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/acceptance.rs",
+      "sha256": "513e5078432dd66a8ff7ba71c099d12eac2be040cb27cb353ee7e2f4b226f0ce",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/bin/art-extract.rs",
+      "sha256": "b84681d7d08b180d887a4e6709e51b3ae0092411602c81db575b9150e67242fc",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/bin/contract-check.rs",
+      "sha256": "e83dd822bc46f2e263709e447aa9f6f47a518430021e2e2ab76d9db4650032c3",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/bin/dialogue-bake.rs",
+      "sha256": "cc747e80ffcd98f1c74d17f818597047c6a3cb84bcbdd83342a94a993a41e3fb",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/bin/film-bake.rs",
+      "sha256": "56c067d522ab4b3ab674424f443074e9b4d60fca7e42b9e98dbe0e4a5554b6fd",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/bin/guide-check.rs",
+      "sha256": "b65e8da8295096f17a0df970c261f9e97ee5176b5da17d92e87d90002ccf2635",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/bin/masked-composite.rs",
+      "sha256": "c59b1670588e15a783bbe1125ee01345fb6aaca44d4cbbc71b0fcc87f36088fb",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/bin/performance-prompts.rs",
+      "sha256": "e8e16c90a36f9bba9f0c41f9349e3eac6bb96c0b276cac4267c321e2ecc68f11",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/bin/planar-art.rs",
+      "sha256": "03f443798bd5f820c031d99db6be3d8e12802987377d09d6b2cdfdccd5fcfcba",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/bin/prompt-lint.rs",
+      "sha256": "7950535df457b62b2f20c6627898b278678f8ac80f315f828f451bc9593733f8",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/bin/render-cache.rs",
+      "sha256": "2ca65862454d52de85585056b1255462ae386e6ae4bb4a90bbd570a14f7218bf",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/bin/review-cut.rs",
+      "sha256": "f6e47cc3f52c36e6996f81b82e526797bb56d5695bfaff32a548d97822e7bc04",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/bin/seam-qa.rs",
+      "sha256": "8ff1c620a84e85b232c264d215f5d374b217ca4529aa37f7c6c4086830e4c6fe",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/bin/stitch.rs",
+      "sha256": "316e0dacd1395d4ef8335aae62dd9d09d5c5fd472b8d07ed5685844dac7fd890",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/bin/surface-graphs.rs",
+      "sha256": "323b7ae415b1bd6caa4e9284f37361093089ed9413e91188b92b528a68ce5d92",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/bin/surface-masks.rs",
+      "sha256": "bbd652f9913b57054b9fb861437e2a95ad61f484fa9f01a25c57e98e60b19009",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/bin/window-plan.rs",
+      "sha256": "27179a9dcdb422a067e496b1f7714a4591477cec0fa8410ebac839d703894668",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/clock.rs",
+      "sha256": "a4c386862cc5882d6bcd83008dfbb433694017a114aad3facaf30f106d68347d",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/comfy.rs",
+      "sha256": "a33b38c72ab269ca4b9133f4f3812e6b36396442f1d9105fdc5011ce6e049c3b",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/guide.rs",
+      "sha256": "9d0a6924299f66bc259ef827e017fe43e0892815e1b900f8c0eefae78da0ced3",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/lib.rs",
+      "sha256": "694a46cbf8d9eb670e4d00a5df0ca944189b8da01169abf69e0c833a038296d3",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/main.rs",
+      "sha256": "65ada1ed3f88fbdc81f55ae2444ac26cf1c36a8fee8f5696faecdc7178cbffac",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/media.rs",
+      "sha256": "9078487df056329b4ff8db302572513be0c98cf45fce5b86e51f25ea50fcc474",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/paths.rs",
+      "sha256": "b5ea441f56b7259bcbb820e521db80609f8b56a0c419bebe6bfa901b1332bbe7",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/prompt_lint.rs",
+      "sha256": "f7d47e46b1037dc0e8f1df2350b5eedfa8ab4c66747be21bf17be4529d546b49",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/render_cache.rs",
+      "sha256": "8f975c9f96fd41b92e84c6506e440470d3db4690bcd181468b55b8211b4e442f",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/seam_qa.rs",
+      "sha256": "fe4dbf60083bc2070a52188c0786375f3286214d7e55252f5e4f8d46143a23d3",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/stitch.rs",
+      "sha256": "90b1ee82821a31829085a673ef49853805e59187c7d16410654dd50bea839371",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/src/windows.rs",
+      "sha256": "48675ec698b023d5e860a34517c728cb50a5f5014683524abdae133ebbef908c",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/tests/fixtures/README.md",
+      "sha256": "af0059f95fcd708c35a490b780f6fa08843cdc75c6b23f096da8593cd6a10a8e",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/tests/fixtures/dual-stage-guide-links.json",
+      "sha256": "633e492dbe8eb54754ca3938c7035e656a00fc45bd6d1cb823b6c6eb68e10ede",
+      "matches_revision": true
+    },
+    {
+      "path": "skills/video-production/runtime/tests/prompt_lint_cli.rs",
+      "sha256": "f1f39574d7ae7339b6eb413bab2c3ddf70c5a4aa14f5ab60c3c1e8ac27836796",
+      "matches_revision": true
+    }
+  ],
+  "upstream": [
+    {
+      "url": "https://raw.githubusercontent.com/Comfy-Org/ComfyUI/faa7e494f3a0c9e45e1c3db8d20ee48fd5fe1b52/server.py",
+      "sha256": "b2ff22d5464bdc7fde71f2e7ed349363458c2ce1aad92ecced446e25a99d5440"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Comfy-Org/ComfyUI/faa7e494f3a0c9e45e1c3db8d20ee48fd5fe1b52/execution.py",
+      "sha256": "bf61eed32e9db0fe87ab8c108ea21adeb948e0596242c9cc55334de4a6e451a1"
+    }
+  ],
+  "copied_source_files_verified": [
+    "comfyui-sidecar/nodes/agentbox_video/__init__.py",
+    "comfyui-sidecar/nodes/agentbox_video/face_models.json",
+    "comfyui-sidecar/nodes/agentbox_video/identity.py",
+    "comfyui-sidecar/nodes/agentbox_video/masks.py",
+    "comfyui-sidecar/nodes/agentbox_video/relay.py",
+    "comfyui-sidecar/nodes/agentbox_video/retake.py",
+    "comfyui-sidecar/nodes/agentbox_video/staging.py",
+    "comfyui-sidecar/nodes/agentbox_video/tests/__init__.py",
+    "comfyui-sidecar/nodes/agentbox_video/tests/retake_geometry_cases.json",
+    "comfyui-sidecar/nodes/agentbox_video/tests/test_identity.py",
+    "comfyui-sidecar/nodes/agentbox_video/tests/test_masks.py",
+    "comfyui-sidecar/nodes/agentbox_video/tests/test_package.py",
+    "comfyui-sidecar/nodes/agentbox_video/tests/test_relay.py",
+    "comfyui-sidecar/nodes/agentbox_video/tests/test_retake.py",
+    "comfyui-sidecar/nodes/agentbox_video/tests/test_staging.py",
+    "skills/comfyui/manifests/spede.json",
+    "skills/comfyui/mcp-server/package-lock.json",
+    "skills/comfyui/mcp-server/package.json",
+    "skills/comfyui/mcp-server/server.js",
+    "skills/comfyui/mcp-server/server.test.js",
+    "skills/comfyui/references/spede.md",
+    "skills/comfyui/scripts/comfy_client.py",
+    "skills/comfyui/scripts/download_video_models.py",
+    "skills/comfyui/scripts/tests/test_comfy_client.py",
+    "skills/comfyui/scripts/tests/test_download_video_models.py",
+    "skills/video-production/runtime/.gitignore",
+    "skills/video-production/runtime/Cargo.lock",
+    "skills/video-production/runtime/Cargo.toml",
+    "skills/video-production/runtime/README.md",
+    "skills/video-production/runtime/src/acceptance.rs",
+    "skills/video-production/runtime/src/bin/art-extract.rs",
+    "skills/video-production/runtime/src/bin/contract-check.rs",
+    "skills/video-production/runtime/src/bin/dialogue-bake.rs",
+    "skills/video-production/runtime/src/bin/film-bake.rs",
+    "skills/video-production/runtime/src/bin/guide-check.rs",
+    "skills/video-production/runtime/src/bin/masked-composite.rs",
+    "skills/video-production/runtime/src/bin/performance-prompts.rs",
+    "skills/video-production/runtime/src/bin/planar-art.rs",
+    "skills/video-production/runtime/src/bin/prompt-lint.rs",
+    "skills/video-production/runtime/src/bin/render-cache.rs",
+    "skills/video-production/runtime/src/bin/review-cut.rs",
+    "skills/video-production/runtime/src/bin/seam-qa.rs",
+    "skills/video-production/runtime/src/bin/stitch.rs",
+    "skills/video-production/runtime/src/bin/surface-graphs.rs",
+    "skills/video-production/runtime/src/bin/surface-masks.rs",
+    "skills/video-production/runtime/src/bin/window-plan.rs",
+    "skills/video-production/runtime/src/clock.rs",
+    "skills/video-production/runtime/src/comfy.rs",
+    "skills/video-production/runtime/src/guide.rs",
+    "skills/video-production/runtime/src/lib.rs",
+    "skills/video-production/runtime/src/main.rs",
+    "skills/video-production/runtime/src/media.rs",
+    "skills/video-production/runtime/src/paths.rs",
+    "skills/video-production/runtime/src/prompt_lint.rs",
+    "skills/video-production/runtime/src/render_cache.rs",
+    "skills/video-production/runtime/src/seam_qa.rs",
+    "skills/video-production/runtime/src/stitch.rs",
+    "skills/video-production/runtime/src/windows.rs",
+    "skills/video-production/runtime/tests/fixtures/README.md",
+    "skills/video-production/runtime/tests/fixtures/dual-stage-guide-links.json",
+    "skills/video-production/runtime/tests/prompt_lint_cli.rs"
+  ]
+}

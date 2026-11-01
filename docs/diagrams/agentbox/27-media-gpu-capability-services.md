@@ -54,6 +54,8 @@ sources:
 verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ---
 
+The [video measurement and provider audit](38-video-measurements-and-provider-boundaries.md) adds ADR-2150/2163 boundaries at a newer source pin; it does not requalify the older service traces below.
+
 ## AB-27.1 ComfyUI — builtin loopback gate vs external sidecar integration
 
 ```mermaid

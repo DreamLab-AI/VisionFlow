@@ -1,0 +1,158 @@
+   Compiling version_check v0.9.5
+   Compiling proc-macro2 v1.0.107
+   Compiling typenum v1.20.1
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling memchr v2.8.3
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.154
+   Compiling cpufeatures v0.2.17
+   Compiling cfg-if v1.0.5
+   Compiling itoa v1.0.18
+   Compiling generic-array v0.14.7
+   Compiling roxmltree v0.21.1
+   Compiling syn v3.0.9
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling serde_derive v1.0.229
+   Compiling video-production-runtime v0.1.0 (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/runtime)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.74s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/vf-media-measurements-3s8xadyb/target/debug/deps/video_production_runtime-4232d1a0029c1d2e)
+
+running 99 tests
+test clock::tests::eighteen_seconds_at_ntsc_is_539_or_540_and_never_exact ... ok
+test clock::tests::frame_count_priority_checks_duration_and_conflicts_are_reported ... ok
+test clock::tests::eighteen_seconds_at_thirty_is_integral ... ok
+test clock::tests::interval_times_are_exact_at_ntsc ... ok
+test clock::tests::intervals_are_half_open_and_tile_exactly ... ok
+test clock::tests::rates_deserialise_from_integer_string_and_object ... ok
+test clock::tests::rates_reduce_parse_and_reject_zero ... ok
+test comfy::tests::combo_choices_reads_both_forms_and_never_the_tag ... ok
+test comfy::tests::boundary_never_occurs_in_payload ... ok
+test comfy::tests::snapshot_passes_installed_model_in_new_combo_form ... ok
+test comfy::tests::declared_hash_mismatch_aborts_before_any_connection ... ok
+test media::tests::a_declaration_must_agree_with_a_partial_tag ... ok
+test media::tests::declared_frame_dimensions_are_capped_before_allocation ... ok
+test paths::tests::absolute_path_detector_finds_nested_leaks ... ok
+test paths::tests::root_option_is_removed_from_arguments ... ok
+test paths::tests::root_precedence_is_cli_then_env_then_cwd ... ok
+test paths::tests::absolute_inside_root_becomes_relative_and_outside_is_rejected ... ok
+test prompt_lint::tests::calibrated_true_or_a_calibration_field_is_refused ... ok
+test prompt_lint::tests::config_rejects_unknown_rules_schema_and_fields ... ok
+test paths::tests::relativise_rewrites_inside_paths_and_rejects_outside_ones ... ok
+test prompt_lint::tests::from_value_requires_a_schema ... ok
+test prompt_lint::tests::annotation_rules_are_reported_skipped_without_annotations ... ok
+test clock::tests::rounding_invariants_hold_for_all_durations ... ok
+test prompt_lint::tests::every_receipt_is_editorial_and_fails_on_errors ... ok
+test prompt_lint::tests::duplicate_and_unknown_references ... ok
+test render_cache::tests::a_window_diff_must_describe_the_parent_frame_count ... ok
+test prompt_lint::tests::identical_bytes_under_two_ids_warn ... ok
+test prompt_lint::tests::take_over_cap_uses_exact_rate ... ok
+test render_cache::tests::accepts_an_in_scope_revision_at_a_fractional_rate ... ok
+test render_cache::tests::a_window_diff_report_serves_as_the_allowed_scope ... ok
+test prompt_lint::tests::continuity_across_scene_or_location_change ... ok
+test prompt_lint::tests::look_contradiction_and_missing ... ok
+test render_cache::tests::manual_allow_ranges_cannot_widen_a_bound_diff ... ok
+test prompt_lint::tests::missing_outside_and_changed_files ... ok
+test prompt_lint::tests::emotion_jump_needs_three_steps ... ok
+test seam_qa::tests::a_near_static_baseline_still_fails_on_the_ratio ... ok
+test render_cache::tests::rejects_out_of_scope_missing_scope_stale_and_mismatched_inputs ... ok
+test seam_qa::tests::percentile_and_median_follow_numpy_conventions ... ok
+test prompt_lint::tests::reference_budget_follows_config ... ok
+test prompt_lint::tests::performance_source_and_take_cap ... ok
+test prompt_lint::tests::unused_asset_fires_and_used_does_not ... ok
+test stitch::tests::blend_weights_follow_j_plus_one_over_o_plus_one ... ok
+test stitch::tests::head_only_and_tail_only_retakes_drop_the_missing_join ... ok
+test stitch::tests::retake_geometry_clamps_at_clip_edges_and_reports_it ... ok
+test seam_qa::tests::click_in_digital_silence_fails_on_the_absolute_jump_floor ... ok
+test windows::tests::invalid_inputs_are_refused ... ok
+test windows::tests::example_h3_plan_for_121_frames ... ok
+test windows::tests::a_plan_from_the_superseded_schema_is_refused_with_a_replan_message ... ok
+test windows::tests::seeds_increment_and_wrap_at_u64_max ... ok
+test clock::tests::interval_set_algebra_is_symmetric_and_consistent ... ok
+test windows::tests::tampered_plans_are_refused_by_verify_and_diff ... ok
+test windows::tests::plan_hash_is_stable_across_key_order_and_serialisation ... ok
+test render_cache::tests::a_hand_edited_diff_is_refused_when_the_plans_are_supplied ... ok
+test windows::tests::frames_resolve_from_a_fractional_rate_and_cli_round_trips ... ok
+test windows::tests::diff_reports_geometry_changes_and_removed_windows ... ok
+test render_cache::tests::a_diff_binds_to_the_parent_by_plan_hash_and_final_key_not_by_length ... ok
+test seam_qa::tests::audio_step_is_exempt_at_an_onset_but_not_between_two_sounds ... ok
+test comfy::tests::filename_with_form_syntax_characters_round_trips_with_exact_bytes ... ok
+test clock::tests::exact_roundtrip_for_every_frame_count_and_rate ... ok
+test windows::tests::rerolling_n_changes_keys_from_n_and_none_before ... ok
+test stitch::tests::discard_reports_an_output_it_could_not_remove ... ok
+test windows::tests::changing_any_bound_hash_changes_every_key ... ok
+test render_cache::tests::assembled_cache_records_only_root_relative_paths ... ok
+test stitch::tests::retake_geometry_matches_the_node_pack_cases ... FAILED
+test comfy::tests::hashed_bytes_are_the_uploaded_bytes ... ok
+test prompt_lint::tests::start_image_must_be_wired ... ok
+test stitch::tests::a_source_changed_after_hashing_is_refused ... ok
+test windows::tests::model_hashes_are_checked_against_the_files_and_a_changed_file_changes_the_keys ... ok
+test render_cache::tests::allow_from_diff_end_to_end_binds_the_parent_and_chains_the_new_cache ... ok
+test render_cache::tests::an_in_place_model_update_loads_but_a_stale_new_plan_does_not ... ok
+test stitch::tests::invalid_plans_are_refused ... ok
+test media::tests::a_playlist_disguised_as_media_cannot_reach_the_network ... ok
+test media::tests::probe_counts_decoded_frames_and_audio ... ok
+test media::tests::visitor_error_stops_decoding_and_is_returned ... ok
+test media::tests::silent_file_has_no_audio_hashes_or_pcm ... ok
+test stitch::tests::output_gate_checks_the_declared_range_and_pixel_format ... ok
+test media::tests::colour_tags_are_probed_and_untagged_yuv_is_reported_as_such ... ok
+test media::tests::frames_stream_in_order_with_requested_layout ... ok
+test stitch::tests::retake_that_corrupts_unchanged_frames_is_deleted ... ok
+test stitch::tests::delivery_is_tagged_bt709 ... ok
+test guide::tests::real_next_shot_frames_are_rejected_then_trimmed_padding_passes ... ok
+test stitch::tests::a_count_or_rate_mismatch_deletes_the_output ... ok
+test seam_qa::tests::hard_colour_step_fails ... ok
+test seam_qa::tests::texture_appearing_from_flat_fails_the_absolute_detail_floor ... ok
+test seam_qa::tests::slow_global_lighting_ramp_passes_provisionally ... ok
+test media::tests::audio_packet_hashes_survive_copy_remux_but_not_reencode ... ok
+test stitch::tests::blended_overlap_frames_have_the_expected_values_after_encode ... ok
+test seam_qa::tests::unmeasurable_seam_is_blocked_stale_cut_is_refused_and_silent_cut_is_not_applicable ... ok
+test media::tests::rotated_and_non_square_sources_are_refused_everywhere_frames_are_decoded ... ok
+test stitch::tests::exact_frame_count_across_three_segments_with_overlaps ... ok
+test seam_qa::tests::the_declared_matrix_and_range_reach_the_decoder ... ok
+test stitch::tests::retake_keeps_frame_count_and_unchanged_frames ... ok
+test seam_qa::tests::hard_cut_in_a_static_shot_fails_on_the_absolute_floor ... ok
+test seam_qa::tests::an_untagged_yuv_cut_or_reference_is_refused_unless_colour_is_declared ... ok
+test seam_qa::tests::injected_audio_click_fails_and_clean_tone_passes ... ok
+test stitch::tests::audio_packets_survive_the_mux_and_a_reencode_is_rejected ... ok
+test stitch::tests::untagged_colour_is_refused_unless_declared_and_the_declaration_drives_the_decode ... ok
+test seam_qa::tests::identical_overlap_meets_psnr_gate_and_a_different_one_fails ... ok
+test windows::tests::windows_tile_and_obey_the_profile_grids_over_many_sizes ... ok
+
+failures:
+
+---- stitch::tests::retake_geometry_matches_the_node_pack_cases stdout ----
+
+thread 'stitch::tests::retake_geometry_matches_the_node_pack_cases' (2817971) panicked at src/stitch.rs:1330:67:
+called `Result::unwrap()` on an `Err` value: Os { code: 2, kind: NotFound, message: "No such file or directory" }
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::result::unwrap_failed
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/result.rs:1871:5
+   3: <core::result::Result<alloc::vec::Vec<u8>, core::io::error::Error>>::unwrap
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/result.rs:1232:23
+   4: video_production_runtime::stitch::tests::retake_geometry_matches_the_node_pack_cases
+             at ./src/stitch.rs:1330:67
+   5: video_production_runtime::stitch::tests::retake_geometry_matches_the_node_pack_cases::{closure#0}
+             at ./src/stitch.rs:1327:53
+   6: <video_production_runtime::stitch::tests::retake_geometry_matches_the_node_pack_cases::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   7: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    stitch::tests::retake_geometry_matches_the_node_pack_cases
+
+test result: FAILED. 98 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.68s
+
+error: test failed, to rerun pass `--lib`

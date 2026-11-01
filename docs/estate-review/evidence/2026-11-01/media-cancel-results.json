@@ -1,0 +1,67 @@
+{
+  "upstream_revision": "faa7e494f3a0c9e45e1c3db8d20ee48fd5fe1b52",
+  "server_sha256": "b2ff22d5464bdc7fde71f2e7ed349363458c2ce1aad92ecced446e25a99d5440",
+  "handler_lines": [
+    1258,
+    1287
+  ],
+  "handler_ast_sha256": "2337778205cc189ee2b8dd387d28ebc26430ea1355a3439689892c49753ac072",
+  "scope": "Exact handler AST with injected queue hand-off; actual client method; no live sidecar",
+  "cases": [
+    {
+      "scenario": "own_still_running",
+      "interrupted": [
+        "owned-A"
+      ],
+      "client_result": {
+        "cancelled": true,
+        "prompt_id": "owned-A",
+        "action": "interrupt"
+      },
+      "posts": [
+        {
+          "path": "/interrupt",
+          "body": {
+            "prompt_id": "owned-A"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "already_finished",
+      "interrupted": [],
+      "client_result": {
+        "cancelled": true,
+        "prompt_id": "owned-A",
+        "action": "interrupt"
+      },
+      "posts": [
+        {
+          "path": "/interrupt",
+          "body": {
+            "prompt_id": "owned-A"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "handoff_after_server_snapshot",
+      "interrupted": [
+        "other-B"
+      ],
+      "client_result": {
+        "cancelled": true,
+        "prompt_id": "owned-A",
+        "action": "interrupt"
+      },
+      "posts": [
+        {
+          "path": "/interrupt",
+          "body": {
+            "prompt_id": "owned-A"
+          }
+        }
+      ]
+    }
+  ]
+}
