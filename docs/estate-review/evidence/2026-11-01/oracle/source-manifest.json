@@ -1,0 +1,110 @@
+{
+  "repo": "sidestr-rs",
+  "revision": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+  "files": [
+    {
+      "path": "Cargo.toml",
+      "sha256": "be01a2b17bc8b240a0a57ff8b4b39c5a7cdae76e273172955e6549b26ef3a016"
+    },
+    {
+      "path": "Cargo.lock",
+      "sha256": "569c20953ae564868b92e55994576114180e115ea16dc0d351ebeb3f9a5d9646"
+    },
+    {
+      "path": "README.md",
+      "sha256": "fbb83dc079662a7cdea5f6be84108ca4e487dbbfa7326b88ba3280af56eeb61b"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "9e42511e2ae577d0c27a1bd389bb1a9cfbfac719be4979f73cb1656eb36d4fe6"
+    },
+    {
+      "path": "docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md",
+      "sha256": "001fd42867608d4a2cba8801136d57341adad80dfcb973d641739a1166834a9e"
+    },
+    {
+      "path": "sidestr-core/src/lib.rs",
+      "sha256": "81645d2f5a5eb1c0b45639cc0a02d5c092274ec1c7bb36af1455649d8bfad2c0"
+    },
+    {
+      "path": "sidestr-core/tests/pegtweak.rs",
+      "sha256": "31a607474c5b85e06c9522884bbfcaf5f46ace27c57635841d517af0c179dab6"
+    },
+    {
+      "path": "sidestr-core/tests/interop.rs",
+      "sha256": "823d6e734275ffebd5644714bacc170ba74dd2f810a3182d6f930e2229edc9fe"
+    },
+    {
+      "path": "sidestr-core/tests/audit_regressions_0_0_3.rs",
+      "sha256": "cf085f5c17897ee002925b8e543ecf2c8906021f8ea83278732fc902d93c32ec"
+    },
+    {
+      "path": "sidestr-round/tests/support/interop.rs",
+      "sha256": "78b0ce684f69b42e21fb7bc04ab670394e657b06cc6171362b79188cca70dfca"
+    },
+    {
+      "path": "sidestr-round/tests/interop_round.rs",
+      "sha256": "fe3d25b246ddebb669631897b7b9837a0fba165edbf8e021b84b1eadb9065a93"
+    },
+    {
+      "path": "sidestr-round/tests/interop_pegout.rs",
+      "sha256": "0a23f4e04696c6af2130250ae5b26363c409d2c6d54857e578dc062b41da37a8"
+    },
+    {
+      "path": "sidestr-evm/tests/oracle/oracle.mjs",
+      "sha256": "5facf0ab743d37ab72c599ccb19402eba5d90442848a64c939909baf6981b291"
+    },
+    {
+      "path": "sidestr-evm/tests/oracle/rpc-oracle.mjs",
+      "sha256": "f4ba965134e509eee967b510409a9c7b59c9f945260ea9e65d4732dae401f50c"
+    },
+    {
+      "path": "sidestr-evm/tests/oracle/package-lock.json",
+      "sha256": "03adede27c31031ccd2b8e624ff4754d9c156db7794750868108b9df8c449268"
+    },
+    {
+      "path": "sidestr-agent/Cargo.toml",
+      "sha256": "ce838dcf4d4f55764283ff9ab5c6199c0cc2ab23cdbfb03f08bbeae6717cd5e9"
+    },
+    {
+      "path": "sidestr-bridge-liquid/Cargo.toml",
+      "sha256": "e94bfc620d6ee0313fd376caf87f886b0b654ee51ad00cd1b7479bf463ea5829"
+    },
+    {
+      "path": "sidestr-core/Cargo.toml",
+      "sha256": "588e02986f3148eabdf2d5da7c864fdc7b7591b53700f0f3acf8a0a6ee9997bb"
+    },
+    {
+      "path": "sidestr-evm/Cargo.toml",
+      "sha256": "46a89d110af343cccbef701cadfb2446fed5a7e8978e2e818b3f96d60f459d1c"
+    },
+    {
+      "path": "sidestr-header/Cargo.toml",
+      "sha256": "5bd7569aa81704e4734375bc660f7f35d19f7392aa09fe74f99cd8ee83b67993"
+    },
+    {
+      "path": "sidestr-hitch/Cargo.toml",
+      "sha256": "4e4c28b6657d1e9a99b760f3a05254b0a10400582eb6652e93fef236a60c8341"
+    },
+    {
+      "path": "sidestr-nostr/Cargo.toml",
+      "sha256": "e9723922a3a6f7e44433d3b9b7778f575673f864c617658837327a5d91380533"
+    },
+    {
+      "path": "sidestr-reserve/Cargo.toml",
+      "sha256": "e80b20a14ed38d312e581d10bc5cdf1d081ed216beb0754642f002ed071cea39"
+    },
+    {
+      "path": "sidestr-round/Cargo.toml",
+      "sha256": "c718c667c8951c6e29609cca0a0786458f70a49e543eef91b6ae477219d44c30"
+    },
+    {
+      "path": "sidestr-wallet/Cargo.toml",
+      "sha256": "34ac0a3785927a2eaa7ebb54abe65065c991dd4b3ceb25d9f279d0cfcf35e054"
+    },
+    {
+      "path": "webledgers-teller/Cargo.toml",
+      "sha256": "e3f37411aba89560f2c2983ecc9c961c54b75a0b9f4ef9059b70b7836d0e9b44"
+    }
+  ]
+}

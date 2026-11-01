@@ -210,7 +210,7 @@
     ]
   },
   "heading_units": 15365,
-  "heading_units_with_recorded_assessment": 630,
+  "heading_units_with_recorded_assessment": 635,
   "native_tests": 9,
   "clippy": "passed -D warnings",
   "limits": "Counters track evidence reconciliation, not audit completion; document/report hashes do not revalidate implementation code or deployed state.",
@@ -240,31 +240,25 @@
       "target": "../../docs/estate-review/completion/claims.json"
     }
   ],
-  "exact_claim_bindings_rechecked": 173,
+  "exact_claim_bindings_rechecked": 177,
   "tool_hashes": {
     "scripts/estate-review-ledger/src/main.rs": "6a13475db77573e460ab9ba8a99b7aa1e7c306ca33c14ea3cf5188b690ce12b3",
     "scripts/estate-review-ledger/Cargo.toml": "8109eeff493be24031c394cce1d81a059ca1612f967e5b032f37bf9e8f1e50d6",
     "scripts/estate-review-ledger/Cargo.lock": "03428add1379736455ce73eb1d677ccb28c7d9ba347ed49f8fe07ac20e4bda11"
   },
   "initial_build_limitation": "An initial CARGO_TARGET_DIR under /tmp failed because build-script execution there was denied; the normal ignored package target directory succeeded.",
-  "log_format": "Trailing empty lines removed in prose/test receipt files; command content retained.",
+  "log_format": "Current batch retains raw native output and numbered ANSI-stripped CI excerpts, including trailing whitespace. Earlier log receipts retain their recorded formats.",
   "documentation_checks": {
     "unicode_findings": 0,
-    "prose_flags": 8,
-    "prose_disposition": "Eight ordinary definite-article openings reviewed and retained, including three historical report openings; the final evidence README has four. Flags are heuristics, not authorship evidence.",
+    "prose_flags": 0,
     "scope": [
-      "docs/diagrams/visionclaw/47-portal-entry-and-scaled-walkthrough.md",
-      "docs/diagrams/visionclaw/53-xr-grab-lifetimes-and-input.md",
-      "docs/estate-review/2026-10-31-portals-and-federation.md",
-      "docs/estate-review/2026-11-01-xr-grab-boundaries.md",
-      "docs/estate-review/completion/README.md",
-      "docs/estate-review/evidence/2026-11-01/xr-grab/README.md"
+      "docs/estate-review/2026-11-01-sidestr-oracle-contract.md"
     ],
-    "format_check": "Passed git diff --cached --check for authored files; pinned source exports, exact extracted methods and source delta excluded to preserve their original whitespace.",
-    "local_links": 31,
-    "unicode_files": 6
+    "prose_disposition": "High-severity scan clean; manual read distinguishes fresh counterexamples, historical CI, partial diagram scope and remaining implementation acceptance.",
+    "format_check": "Passed staged diff whitespace check for authored files; raw native/CI excerpts and tool output excluded to retain their whitespace.",
+    "local_links": 18
   },
-  "tool_validation_basis": "Nine collector tests and Clippy receipts retained from original ledger batch at 610b57b; unchanged collector/dependency hashes verified. Fresh collection rechecked 173 claims; ADR-2143 alone remains stale.",
+  "tool_validation_basis": "Nine collector tests and Clippy receipts retained from original ledger batch at 610b57b; unchanged collector/dependency hashes verified. Fresh collection rechecked 177 claims; zero stale records. No redundant product tests or collector suite rerun.",
   "prior_concurrent_source_refresh": {
     "changed_adrs": 5,
     "stale_claims": 5,
@@ -310,26 +304,25 @@
     "disposition": "Historical stale state; all five reassessed in docs/estate-review/2026-11-01-obsidian-refresh.md. See current snapshot for dispositions."
   },
   "current_batch": {
-    "report": "docs/estate-review/2026-11-01-reserve-attestation-boundaries.md",
-    "baseline": "96d4d57ec84f516d1104417964cdca6548d3d071",
+    "report": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
+    "baseline": "f6d07847a905ad179386d2a25991f25e922fc850",
     "new_whole_adrs": 1,
     "refreshed_whole_adrs": [],
     "new_panels": [],
     "newly_assessed_existing_panels": [
-      "SR-05.1",
-      "SR-05.2",
-      "SR-05.3"
+      "SR-01.1",
+      "SR-01.2"
     ],
     "current_stale_records": 0,
     "previous_batch_candidates": 1178,
     "added_candidates": [],
     "removed_candidates": [],
-    "limits": "Focused native suites: 58 reported passes, one of them a Teller oracle early-return skip; 57 exercised cases, one ignored live test. Fourteen additional production-library assertions, synthetic data only. Strict clippy passes; upstream future-incompatibility warning retained. No product, funding or deployment changes."
+    "limits": "Four fresh native reported-pass skips with missing configured references receive zero parity acceptance credit. Historical CI source-equivalent to current implementation; no fresh full-suite or live-chain claim. Product sources unchanged."
   },
   "corpus_gate": {
     "topics": 205,
     "panels": 1730,
-    "verified_citations": 25560,
+    "verified_citations": 25559,
     "warnings": 0,
     "fallback": 0,
     "allowlisted": 9,
@@ -342,6 +335,6 @@
       ],
       "limits": "Advisory sample, not whole-corpus semantic acceptance."
     },
-    "evidence": "docs/estate-review/evidence/2026-11-01/reserve/citations.txt"
+    "evidence": "docs/estate-review/evidence/2026-11-01/oracle/citations.txt"
   }
 }

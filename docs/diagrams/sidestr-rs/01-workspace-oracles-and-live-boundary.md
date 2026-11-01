@@ -8,6 +8,19 @@ governing:
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
 adrs: [ADR-2012, ADR-2096, ADR-2112]
 sources:
+  - ../sidestr-rs/sidestr-core/Cargo.toml
+  - ../sidestr-rs/sidestr-header/Cargo.toml
+  - ../sidestr-rs/sidestr-wallet/Cargo.toml
+  - ../sidestr-rs/sidestr-nostr/Cargo.toml
+  - ../sidestr-rs/sidestr-round/Cargo.toml
+  - ../sidestr-rs/sidestr-agent/Cargo.toml
+  - ../sidestr-rs/sidestr-hitch/Cargo.toml
+  - ../sidestr-rs/webledgers-teller/Cargo.toml
+  - ../sidestr-rs/sidestr-evm/Cargo.toml
+  - ../sidestr-rs/sidestr-reserve/Cargo.toml
+  - ../sidestr-rs/sidestr-bridge-liquid/Cargo.toml
+  - ../sidestr-rs/sidestr-round/tests/support/interop.rs
+  - ../sidestr-rs/sidestr-core/tests/pegtweak.rs
   - ../sidestr-rs/Cargo.toml
   - ../sidestr-rs/README.md
   - ../sidestr-rs/.github/workflows/ci.yml
@@ -17,12 +30,12 @@ sources:
   - ../project/agentbox/config/sidechain/README.md
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
   - ../project/docs/TODO-unified.md
-verified_commit: {sidestr-rs: d8ace3aad2f23eb1d11bd72af4ab0b74d599f618, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
+verified_commit: {sidestr-rs: 9c6de86c657a25ec2f2a189baf63db7dedad40eb, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
 ---
 
 ## For developers
 
-`sidestr-rs` now has eleven workspace members. Eight published crates carry the reusable chain, wallet, Nostr, federation, agent, Hitch and teller surfaces; EVM and the two reserve crates remain separate, unpublished components. Compatibility is judged against pinned upstream revisions and regenerated fixtures rather than inferred from similar APIs.
+`sidestr-rs` now has eleven workspace members. Eight publishable crates carry the reusable chain, wallet, Nostr, federation, agent, Hitch and teller surfaces; EVM and the two reserve crates remain separate, unpublished components. Compatibility is judged against pinned upstream revisions and regenerated fixtures rather than inferred from similar APIs. **Review scope (1 November):** panels SR-01.1 and SR-01.2 are refreshed in the [oracle audit](../../estate-review/2026-11-01-sidestr-oracle-contract.md). Panels SR-01.3 and SR-01.4 retain their earlier adoption/runtime evidence boundary; this pass does not re-observe deployment.
 
 ## For the business
 
@@ -32,49 +45,54 @@ New source expands what the estate can validate and eventually operate, but it d
 
 ```mermaid
 flowchart LR
-    subgraph published["Eight published reusable crates"]
-        C["core"]
-        H["header"] -. "optional core feature" .-> C
-        W["wallet"] --> C
-        W --> H
-        N["nostr"] --> C
-        R["round"] --> C
+    subgraph reusable["Eight publishable crates"]
+        A["agent"] --> C["core"]
+        A --> W["wallet"]
+        A --> N["nostr"]
+        A --> H["header"]
+        A --> CH["hitch"]
+        A -. "CLI feature" .-> R["round"]
+        R --> C
+        R --> H
         R --> N
-        A["agent"] --> W
-        A --> N
-        CH["hitch"] --> C
+        W --> C
+        W -. "dev only" .-> H
+        N --> C
+        H -. "core feature" .-> C
+        CH --> C
         T["teller"] --> C
         T --> N
     end
-    subgraph private["Three unpublished components"]
-        E["evm overlay"]
-        RA["origin-neutral reserve"] --> L["Liquid adapter"]
+    subgraph private["Three private crates"]
+        E["evm"]
+        L["Liquid adapter"] --> RA["neutral reserve"]
     end
     E --> C
-    E --> W
-    WS["eleven members<br/>../sidestr-rs/Cargo.toml:3"] --> published
-    WS --> private
+    E -. "dev only" .-> W
 ```
 
-**What it shows.** The root manifest names eleven members and explicitly keeps EVM and the reserve components unpublished (`../sidestr-rs/Cargo.toml:30`, `../sidestr-rs/Cargo.toml:38`); the teller is a pure, publishable member (`../sidestr-rs/Cargo.toml:42`). The README's crate table listed seven published crates and no teller row until 2026-10-18 (`f77856dd`); it now carries the `webledgers-teller` row (`../sidestr-rs/README.md:77`), so the README, the manifest (eleven members, eight `publish = true`, `../sidestr-rs/Cargo.toml:43`) and this topic agree (estate register ER-3).
+**What it shows.** Arrows mean direct local dependencies; dotted edges distinguish optional features and test-only dependencies. Eleven members comprise eight `publish=true` and three private crates (`../sidestr-rs/Cargo.toml:3`). Agent's five required local dependencies and optional round are explicit (`../sidestr-rs/sidestr-agent/Cargo.toml:35`); round also imports header (`../sidestr-rs/sidestr-round/Cargo.toml:45`). Wallet-to-header and EVM-to-wallet are dev dependencies (`../sidestr-rs/sidestr-wallet/Cargo.toml:41`, `../sidestr-rs/sidestr-evm/Cargo.toml:42`). Liquid imports neutral reserve, not the reverse (`../sidestr-rs/sidestr-bridge-liquid/Cargo.toml:32`).
 
-**Why it is this way.** Optional execution and origin adapters can evolve without pulling their dependency trees into every validator. The local crate-boundary decision records this separation (`../sidestr-rs/docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md:27`).
+**Why it is this way.** The header's optional `core` feature points towards core (`../sidestr-rs/sidestr-header/Cargo.toml:30`); isolated header builds need not import it. EVM and origin adapters stay outside ordinary library dependencies. Publishable is a manifest property, not a fresh crates.io release check. The [dependency receipt](../../estate-review/evidence/2026-11-01/oracle/workspace-edges.json) records every direct local edge and its kind.
 
-## SR-01.2 The compatibility ladder
+## SR-01.2 Two independent CI jobs
 
 ```mermaid
 flowchart TB
-    P["Pinned revisions<br/>spec, schema, blaketestnode, Hitch, Reef, teller<br/>../sidestr-rs/.github/workflows/ci.yml:14"]
-    RT["Reference project tests<br/>../sidestr-rs/.github/workflows/ci.yml:165"]
-    FX["EVM fixtures regenerated<br/>and checked for drift<br/>../sidestr-rs/.github/workflows/ci.yml:186"]
-    O["Rust oracle and interop suites<br/>../sidestr-rs/.github/workflows/ci.yml:207"]
-    Q["fmt, clippy, tests, rustdoc,<br/>no_std and wasm gates<br/>../sidestr-rs/.github/workflows/ci.yml:49"]
-    P --> RT --> FX --> O --> Q
+    START["Push or pull request"] --> Q
+    START --> P
+    Q["Quality job<br/>fmt, clippy, Rust tests, docs,<br/>isolated no_std and WASM builds<br/>../sidestr-rs/.github/workflows/ci.yml:33"]
+    P["Oracle job: six pinned checkouts<br/>spec, schema, blaketestnode,<br/>Hitch, Reef and teller<br/>../sidestr-rs/.github/workflows/ci.yml:99"]
+    P --> RT["Reference project tests<br/>../sidestr-rs/.github/workflows/ci.yml:165"]
+    RT --> FX["Regenerate EVM fixtures<br/>tracked and untracked drift fail<br/>../sidestr-rs/.github/workflows/ci.yml:186"]
+    FX --> O["Rust oracle and interop suites<br/>six reference paths supplied<br/>../sidestr-rs/.github/workflows/ci.yml:207"]
+    Q --> RESULT["Workflow results<br/>participation still needs evidence"]
+    O --> RESULT
 ```
 
-**What it shows.** CI checks the reference repositories out at fixed revisions, runs their relevant tests, regenerates the EVM corpus, then runs the Rust workspace against those sources (`../sidestr-rs/.github/workflows/ci.yml:99`, `../sidestr-rs/.github/workflows/ci.yml:207`). Since `cd177ecc` the reference set grew again: Reef's BIP 21 parser, the oracle for `sidestr-wallet`'s payment requests, is repinned from `648487a` to `2bd3cb8` (`../sidestr-rs/.github/workflows/ci.yml:25`), and the teller joins as a sixth reference at `7c00cea`, the oracle for `webledgers-teller` and the RFC 8785 JCS of `sidestr-reserve`'s canonical attestation bytes (`../sidestr-rs/.github/workflows/ci.yml:30`), handed to the oracle suites alongside Hitch and Reef (`../sidestr-rs/.github/workflows/ci.yml:214`, `../sidestr-rs/.github/workflows/ci.yml:215`). The Hitch pin is still `62f8e39` and blaketestnode `f1da4a6` (`../sidestr-rs/.github/workflows/ci.yml:22`, `../sidestr-rs/.github/workflows/ci.yml:19`).
+**What it shows.** Quality and oracle are independent jobs with no `needs` edge (`../sidestr-rs/.github/workflows/ci.yml:33`, `../sidestr-rs/.github/workflows/ci.yml:99`). Within oracle, checkouts precede reference tests, regenerated EVM fixtures and Rust suites. Drift checks include modified tracked files and untracked fixture output (`../sidestr-rs/.github/workflows/ci.yml:199`). ADR-0001 still says four references; CI now pins six (`../sidestr-rs/docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md:27`, `../sidestr-rs/.github/workflows/ci.yml:17`).
 
-**Why it is this way.** The reference engine is the compatibility contract. A green Rust-only test suite cannot prove wire or consensus parity on its own (`../sidestr-rs/docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md:27`). **Drift (ADR-0001 vs CI):** the record says CI pins "all four reference repositories", but the workflow now pins six: spec, schema, blaketestnode, Hitch, Reef and teller (`../sidestr-rs/docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md:27`, `../sidestr-rs/.github/workflows/ci.yml:14`).
+**Why it is this way.** Ordinary Rust tests deliberately allow absent oracles (`../sidestr-rs/.github/workflows/ci.yml:58`). Missing configured files also return early in round interop and pegtweak (`../sidestr-rs/sidestr-round/tests/support/interop.rs:18`, `../sidestr-rs/sidestr-core/tests/pegtweak.rs:406`); a reported pass alone is insufficient parity evidence. [Run 41128639012](https://github.com/DreamLab-AI/sidestr-rs/actions/runs/41128639012) supplies current implementation CI evidence, bounded by the [audit receipt](../../estate-review/evidence/2026-11-01/oracle/ci-receipt.json); it does not prove release enforcement or chain activation.
 
 ## SR-01.3 Source, publication and activation are separate states
 

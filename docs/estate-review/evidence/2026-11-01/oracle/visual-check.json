@@ -1,0 +1,14 @@
+{
+  "panels": [
+    "SR-01.1",
+    "SR-01.2"
+  ],
+  "renderer": "pele via diagram-index-gen.cjs",
+  "previews": "ImageMagick white background; Liberation Sans 16 px on temporary copies, original SVG untouched",
+  "result": "Both viewed: text fits, arrows visible, no clipping. Dense dependency fan-in is readable.",
+  "siblings": "SR-01.3/01.4 rendered but not re-assessed",
+  "svg_sha256": {
+    "SR-01.1": "91e06e191b9bdca8fd2050312e5be51d1732e53ce5892aa5d13f25b933442a8e",
+    "SR-01.2": "752650ecdcc01cbc570872deaa88feba9d93b5f34fb96a5ed040cd4dd6afb781"
+  }
+}

@@ -1,0 +1,201 @@
+[
+  {
+    "crate": "sidestr-agent",
+    "publish": null,
+    "dependencies": [
+      {
+        "name": "sidestr-core",
+        "kind": "normal",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      },
+      {
+        "name": "sidestr-header",
+        "kind": "normal",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      },
+      {
+        "name": "sidestr-hitch",
+        "kind": "normal",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      },
+      {
+        "name": "sidestr-nostr",
+        "kind": "normal",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      },
+      {
+        "name": "sidestr-round",
+        "kind": "normal",
+        "optional": true,
+        "uses_default_features": true,
+        "features": [
+          "relay"
+        ]
+      },
+      {
+        "name": "sidestr-wallet",
+        "kind": "normal",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      }
+    ]
+  },
+  {
+    "crate": "sidestr-bridge-liquid",
+    "publish": [],
+    "dependencies": [
+      {
+        "name": "sidestr-reserve",
+        "kind": "normal",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      }
+    ]
+  },
+  {
+    "crate": "sidestr-core",
+    "publish": null,
+    "dependencies": []
+  },
+  {
+    "crate": "sidestr-evm",
+    "publish": [],
+    "dependencies": [
+      {
+        "name": "sidestr-core",
+        "kind": "normal",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      },
+      {
+        "name": "sidestr-wallet",
+        "kind": "dev",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      }
+    ]
+  },
+  {
+    "crate": "sidestr-header",
+    "publish": null,
+    "dependencies": [
+      {
+        "name": "sidestr-core",
+        "kind": "normal",
+        "optional": true,
+        "uses_default_features": true,
+        "features": []
+      }
+    ]
+  },
+  {
+    "crate": "sidestr-hitch",
+    "publish": null,
+    "dependencies": [
+      {
+        "name": "sidestr-core",
+        "kind": "normal",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      }
+    ]
+  },
+  {
+    "crate": "sidestr-nostr",
+    "publish": null,
+    "dependencies": [
+      {
+        "name": "sidestr-core",
+        "kind": "normal",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      }
+    ]
+  },
+  {
+    "crate": "sidestr-reserve",
+    "publish": [],
+    "dependencies": []
+  },
+  {
+    "crate": "sidestr-round",
+    "publish": null,
+    "dependencies": [
+      {
+        "name": "sidestr-core",
+        "kind": "normal",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      },
+      {
+        "name": "sidestr-header",
+        "kind": "normal",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      },
+      {
+        "name": "sidestr-nostr",
+        "kind": "normal",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      }
+    ]
+  },
+  {
+    "crate": "sidestr-wallet",
+    "publish": null,
+    "dependencies": [
+      {
+        "name": "sidestr-core",
+        "kind": "normal",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      },
+      {
+        "name": "sidestr-header",
+        "kind": "dev",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      }
+    ]
+  },
+  {
+    "crate": "webledgers-teller",
+    "publish": null,
+    "dependencies": [
+      {
+        "name": "sidestr-core",
+        "kind": "normal",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      },
+      {
+        "name": "sidestr-nostr",
+        "kind": "normal",
+        "optional": false,
+        "uses_default_features": true,
+        "features": []
+      }
+    ]
+  }
+]

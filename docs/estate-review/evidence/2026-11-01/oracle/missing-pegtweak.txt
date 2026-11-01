@@ -1,0 +1,58 @@
+   Compiling zeroize v1.9.0
+   Compiling generic-array v0.14.7
+   Compiling subtle v2.6.1
+   Compiling const-oid v0.9.6
+   Compiling syn v3.0.6
+   Compiling der v0.7.10
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling digest v0.10.7
+   Compiling ff v0.13.1
+   Compiling spki v0.7.3
+   Compiling base16ct v0.2.0
+   Compiling autocfg v1.5.1
+   Compiling sec1 v0.7.3
+   Compiling pkcs8 v0.10.2
+   Compiling num-traits v0.2.19
+   Compiling group v0.13.0
+   Compiling hmac v0.12.1
+   Compiling crypto-bigint v0.5.5
+   Compiling bitcoin v0.32.102
+   Compiling sha2 v0.10.9
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.20
+   Compiling elliptic-curve v0.13.8
+   Compiling tempfile v3.27.0
+   Compiling rfc6979 v0.4.0
+   Compiling ppv-lite86 v0.2.21
+   Compiling signature v2.2.0
+   Compiling wait-timeout v0.2.1
+   Compiling bit-vec v0.8.0
+   Compiling quick-error v1.2.3
+   Compiling serde_json v1.0.151
+   Compiling bit-set v0.8.0
+   Compiling rusty-fork v0.3.1
+   Compiling rand_chacha v0.9.0
+   Compiling ecdsa v0.16.9
+   Compiling thiserror v2.0.20
+   Compiling serde v1.0.229
+   Compiling rand_xorshift v0.4.0
+   Compiling rand v0.9.5
+   Compiling unarray v0.1.4
+   Compiling bitcoin_hashes v0.14.101
+   Compiling bitcoin-units v0.1.101
+   Compiling regex-syntax v0.8.11
+   Compiling k256 v0.13.4
+   Compiling secp256k1 v0.29.1
+   Compiling base58ck v0.1.101
+   Compiling proptest v1.11.0
+   Compiling sidestr-core v0.4.2 (/home/devuser/workspace/sidestr-rs/sidestr-core)
+    Finished `test` profile [unoptimized] target(s) in 12.52s
+     Running tests/pegtweak.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/pegtweak-b90c2c5bc688694a)
+
+running 1 test
+skipped the pegtweak.mjs oracle: /home/devuser/workspace/.tmp/vf-oracle-empty-reference predates it (sidestr/spec 4c4915f)
+test pegtweak_mjs_agrees ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 16 filtered out; finished in 0.01s
+

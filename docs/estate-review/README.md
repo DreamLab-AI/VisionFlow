@@ -9,6 +9,8 @@ type: explanation
 
 [The completion ledger](completion/README.md) separates scoped inventory, recorded assessments and unreconciled work. It binds assessments to exact document/report hashes and holds the current counts; these are not an overall completion percentage.
 
+SideStr compatibility: [ADR-0001 assessment, CI receipts and two corrected SR-01 panels](2026-11-01-sidestr-oracle-contract.md). Four oracle tests report success with missing configured reference files; strict participation and reproducible release evidence remain open.
+
 SideStr reserves: [ADR-0003 section assessment, fourteen boundary probes and three corrected SR-05 panels](2026-11-01-reserve-attestation-boundaries.md). Confirmation depth, trusted amount construction and future consumer authority/replay checks remain distinct acceptance gates.
 
 Codescape deployment: [ADR-2143 refresh and live Docker metadata](2026-11-01-codescape-runtime-boundary.md) support the recorded mounts, capability restrictions and loopback publication while preserving the unresolved filesystem/egress isolation gates.

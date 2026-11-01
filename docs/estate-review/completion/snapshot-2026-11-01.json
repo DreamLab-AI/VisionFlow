@@ -71807,44 +71807,62 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "All metadata and sections assessed against workflow, selected oracle helpers, six reference checkouts and historical CI receipts. Four fresh reported-pass skips expose participation limits; no full consensus, release-enforcement or live-chain acceptance.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md",
       "repo": "sidestr-rs",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 15,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-oracle-contract.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-0001: The pinned reference implementation is the compatibility oracle"
         },
         {
           "line": 17,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-oracle-contract.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 25,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-oracle-contract.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 38,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-oracle-contract.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 44,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-oracle-contract.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         }
       ],
@@ -121300,10 +121318,10 @@
   "counts": {
     "available_checkouts": 24,
     "candidate_files": 1178,
-    "numbered_candidates_with_recorded_assessment": 89,
+    "numbered_candidates_with_recorded_assessment": 90,
     "numbered_decision_candidates": 1061,
     "panels": 1730,
-    "panels_with_recorded_assessment": 315,
+    "panels_with_recorded_assessment": 317,
     "scope_targets": 25,
     "stale_claim_records": 0,
     "topics": 205
@@ -121314,7 +121332,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "96d4d57ec84f516d1104417964cdca6548d3d071",
+      "head": "f6d07847a905ad179386d2a25991f25e922fc850",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -131889,31 +131907,46 @@
       "sha256": "754e024e2917809b8bdf5091aa659abe4cde345abe919bc75603a628100ba654"
     },
     {
-      "claims": [],
+      "claims": [
+        {
+          "basis": "SR-01.1 and SR-01.2 only: direct local dependency kinds, corrected edge direction and independent CI jobs; both rendered and visually inspected. Sibling activation/runtime panels retain earlier evidence and receive no new credit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SR-01.1",
+            "SR-01.2"
+          ],
+          "report": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "panels": [
         {
-          "body_sha256": "dd548e3b887e8cc36d658ec4bb4e00e268035bd99a1a01b1ea1c80c95146792c",
+          "body_sha256": "9aa1e4d80c670018cb54614449a67e069c95bccfb3f4c299e07c0e0394951226",
           "heading": "SR-01.1 Workspace ownership",
           "id": "SR-01.1",
-          "line": 33,
+          "line": 46,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-oracle-contract.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "cd5d4440c69ce51c71037bd2642eb56c9b34858b335538ffd66b79c2da1659ac",
-          "heading": "SR-01.2 The compatibility ladder",
+          "body_sha256": "024e9758456c15d677a9a37b6878a2fe1e635ed8e298a5516930044704a531da",
+          "heading": "SR-01.2 Two independent CI jobs",
           "id": "SR-01.2",
-          "line": 65,
+          "line": 80,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-oracle-contract.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "308d6559cf84111313de3159c3a49102c284bd6c9454704fb8ad6d3f3b115589",
           "heading": "SR-01.3 Source, publication and activation are separate states",
           "id": "SR-01.3",
-          "line": 81,
+          "line": 99,
           "ordinal": 3,
           "reports": [],
           "review": "unreconciled"
@@ -131922,7 +131955,7 @@
           "body_sha256": "3efa39228776147531e8e4cf84e90ec41e474142a6ef98a6e3208ae867e8f76d",
           "heading": "SR-01.4 The live boundary",
           "id": "SR-01.4",
-          "line": 104,
+          "line": 122,
           "ordinal": 4,
           "reports": [],
           "review": "unreconciled"
@@ -131930,8 +131963,8 @@
       ],
       "path": "docs/diagrams/sidestr-rs/01-workspace-oracles-and-live-boundary.md",
       "repo": "VisionFlow",
-      "review": "unreconciled",
-      "sha256": "d801551a2d7f450398e8222b7818fcacc354b032603dd11ca7880c5aacbd34b4"
+      "review": "partial-assessment-recorded",
+      "sha256": "01f275b8705d91b98f683de41c512bfaae217eb0df52a6ecb5802ad4cc4a0f84"
     },
     {
       "claims": [],

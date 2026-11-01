@@ -1468,7 +1468,7 @@ Revision labels are author declarations. This index checks structure and referen
 | [VG-07.4 Apply and promote delegate to a PATH-resolved vault executable](visiongraph/07-reviewed-source-admission-and-header-import.md#vg-074-apply-and-promote-delegate-to-a-path-resolved-vault-executable) | flowchart | VG-07 |
 | [VG-07.5 Audit and competency checks answer bounded questions](visiongraph/07-reviewed-source-admission-and-header-import.md#vg-075-audit-and-competency-checks-answer-bounded-questions) | flowchart | VG-07 |
 | [SR-01.1 Workspace ownership](sidestr-rs/01-workspace-oracles-and-live-boundary.md#sr-011-workspace-ownership) | flowchart | SR-01 |
-| [SR-01.2 The compatibility ladder](sidestr-rs/01-workspace-oracles-and-live-boundary.md#sr-012-the-compatibility-ladder) | flowchart | SR-01 |
+| [SR-01.2 Two independent CI jobs](sidestr-rs/01-workspace-oracles-and-live-boundary.md#sr-012-two-independent-ci-jobs) | flowchart | SR-01 |
 | [SR-01.3 Source, publication and activation are separate states](sidestr-rs/01-workspace-oracles-and-live-boundary.md#sr-013-source-publication-and-activation-are-separate-states) | stateDiagram-v2 | SR-01 |
 | [SR-01.4 The live boundary](sidestr-rs/01-workspace-oracles-and-live-boundary.md#sr-014-the-live-boundary) | flowchart | SR-01 |
 | [SR-02.1 The ordered rule pipeline](sidestr-rs/02-assets-pools-markets-and-eviction.md#sr-021-the-ordered-rule-pipeline) | flowchart | SR-02 |
@@ -4299,11 +4299,13 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../sidestr-rs/docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md` | [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md) |
 | `../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md` | [SR-05](sidestr-rs/05-reserve-attestation-and-liquid-adapter.md) |
 | `../sidestr-rs/README.md` | [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md), [SR-02](sidestr-rs/02-assets-pools-markets-and-eviction.md), [SR-03](sidestr-rs/03-evm-overlay-and-retained-state.md) |
-| `../sidestr-rs/sidestr-bridge-liquid/Cargo.toml` | [SR-05](sidestr-rs/05-reserve-attestation-and-liquid-adapter.md) |
+| `../sidestr-rs/sidestr-agent/Cargo.toml` | [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md) |
+| `../sidestr-rs/sidestr-bridge-liquid/Cargo.toml` | [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md), [SR-05](sidestr-rs/05-reserve-attestation-and-liquid-adapter.md) |
 | `../sidestr-rs/sidestr-bridge-liquid/src/attest.rs` | [SR-05](sidestr-rs/05-reserve-attestation-and-liquid-adapter.md) |
 | `../sidestr-rs/sidestr-bridge-liquid/src/lib.rs` | [SR-05](sidestr-rs/05-reserve-attestation-and-liquid-adapter.md) |
 | `../sidestr-rs/sidestr-bridge-liquid/src/main.rs` | [SR-05](sidestr-rs/05-reserve-attestation-and-liquid-adapter.md) |
 | `../sidestr-rs/sidestr-bridge-liquid/src/wallet.rs` | [SR-05](sidestr-rs/05-reserve-attestation-and-liquid-adapter.md) |
+| `../sidestr-rs/sidestr-core/Cargo.toml` | [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md) |
 | `../sidestr-rs/sidestr-core/src/assets.rs` | [SR-02](sidestr-rs/02-assets-pools-markets-and-eviction.md) |
 | `../sidestr-rs/sidestr-core/src/markets.rs` | [SR-02](sidestr-rs/02-assets-pools-markets-and-eviction.md) |
 | `../sidestr-rs/sidestr-core/src/overlays.rs` | [SR-02](sidestr-rs/02-assets-pools-markets-and-eviction.md) |
@@ -4311,11 +4313,15 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../sidestr-rs/sidestr-core/src/rules.rs` | [SR-02](sidestr-rs/02-assets-pools-markets-and-eviction.md) |
 | `../sidestr-rs/sidestr-core/src/state.rs` | [SR-02](sidestr-rs/02-assets-pools-markets-and-eviction.md) |
 | `../sidestr-rs/sidestr-core/tests/eviction.rs` | [SR-02](sidestr-rs/02-assets-pools-markets-and-eviction.md) |
+| `../sidestr-rs/sidestr-core/tests/pegtweak.rs` | [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md) |
+| `../sidestr-rs/sidestr-evm/Cargo.toml` | [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md) |
 | `../sidestr-rs/sidestr-evm/src/lib.rs` | [SR-03](sidestr-rs/03-evm-overlay-and-retained-state.md) |
 | `../sidestr-rs/sidestr-evm/src/rule.rs` | [SR-03](sidestr-rs/03-evm-overlay-and-retained-state.md) |
 | `../sidestr-rs/sidestr-evm/src/state.rs` | [SR-03](sidestr-rs/03-evm-overlay-and-retained-state.md) |
 | `../sidestr-rs/sidestr-evm/tests/chain.rs` | [SR-03](sidestr-rs/03-evm-overlay-and-retained-state.md) |
 | `../sidestr-rs/sidestr-evm/tests/oracle.rs` | [SR-03](sidestr-rs/03-evm-overlay-and-retained-state.md) |
+| `../sidestr-rs/sidestr-header/Cargo.toml` | [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md) |
+| `../sidestr-rs/sidestr-hitch/Cargo.toml` | [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md) |
 | `../sidestr-rs/sidestr-hitch/CHANGELOG.md` | [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
 | `../sidestr-rs/sidestr-hitch/src/lib.rs` | [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
 | `../sidestr-rs/sidestr-hitch/src/protocol/chain.rs` | [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
@@ -4328,9 +4334,13 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../sidestr-rs/sidestr-hitch/tests/oracle.rs` | [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
 | `../sidestr-rs/sidestr-hitch/tests/peer_scenarios.rs` | [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
 | `../sidestr-rs/sidestr-hitch/tests/wire_oracle.rs` | [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
-| `../sidestr-rs/sidestr-reserve/Cargo.toml` | [SR-05](sidestr-rs/05-reserve-attestation-and-liquid-adapter.md) |
+| `../sidestr-rs/sidestr-nostr/Cargo.toml` | [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md) |
+| `../sidestr-rs/sidestr-reserve/Cargo.toml` | [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md), [SR-05](sidestr-rs/05-reserve-attestation-and-liquid-adapter.md) |
 | `../sidestr-rs/sidestr-reserve/src/lib.rs` | [SR-05](sidestr-rs/05-reserve-attestation-and-liquid-adapter.md) |
-| `../sidestr-rs/sidestr-round/Cargo.toml` | [AB-35](agentbox/35-sidestr-level-2-consensus.md) |
+| `../sidestr-rs/sidestr-round/Cargo.toml` | [AB-35](agentbox/35-sidestr-level-2-consensus.md), [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md) |
+| `../sidestr-rs/sidestr-round/tests/support/interop.rs` | [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md) |
+| `../sidestr-rs/sidestr-wallet/Cargo.toml` | [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md) |
+| `../sidestr-rs/webledgers-teller/Cargo.toml` | [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md) |
 | `../solid-pod-rs/.github/CODEOWNERS` | [SP-09](solid-pod-rs/09-ci-release-and-consumer-pins.md) |
 | `../solid-pod-rs/.github/dependabot.yml` | [SP-09](solid-pod-rs/09-ci-release-and-consumer-pins.md) |
 | `../solid-pod-rs/.github/workflows/ci.yml` | [SP-09](solid-pod-rs/09-ci-release-and-consumer-pins.md), [SP-10](solid-pod-rs/10-failure-modes-and-invariants.md) |

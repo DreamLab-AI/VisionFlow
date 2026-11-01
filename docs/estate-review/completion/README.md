@@ -7,7 +7,7 @@ type: reference
 
 # Estate audit completion ledger
 
-This ledger makes the review backlog explicit. It currently reconciles **89 current ADR assessments and 315 diagram panels** with named reports. All 89 whole-document claims currently match their reviewed document and report bytes; ADR-2143 now has a scoped refresh. ADR-2166 and ADR-2167 now have scoped refreshes with open findings preserved. These are counted evidence records, not a percentage of the whole audit. Earlier reports still need reconciliation, candidate decisions still need classification, and substantial source review remains.
+This ledger makes the review backlog explicit. It currently reconciles **90 current ADR assessments and 317 diagram panels** with named reports. All 90 whole-document claims currently match their reviewed document and report bytes; ADR-2143 now has a scoped refresh. ADR-2166 and ADR-2167 now have scoped refreshes with open findings preserved. These are counted evidence records, not a percentage of the whole audit. Earlier reports still need reconciliation, candidate decisions still need classification, and substantial source review remains.
 
 [Scope](scope.json), [review claims](claims.json), the [dated snapshot](snapshot-2026-11-01.json) and [validation](validation-2026-11-01.json) are separate files. The [Rust collector](../../../scripts/estate-review-ledger/README.md) can rebuild the snapshot without scanning unrelated workspace repositories. This replaces the old census's undifferentiated pending list as a working queue; earlier audit findings remain valid to their stated evidence boundaries.
 
@@ -20,15 +20,15 @@ This ledger makes the review backlog explicit. It currently reconciles **89 curr
 | ADR-like candidate files | 1,178 | Includes support, imported copies, history and retained audit evidence |
 | Numbered decision candidates | 1,061 | A naming-based queue, not a count of operative or unique adopted decisions |
 | Parsed heading units | 15,365 | Excludes headings in fenced examples; a heading is not an exhaustive requirement decomposition |
-| ADR assessments reconciled | 89 | Explicit whole-document assessments linked to unchanged source-document and report bytes |
-| Heading units with those assessments | 630 | Inherit the bounded whole-document report; implementation claims still need its evidence |
+| ADR assessments reconciled | 90 | Explicit whole-document assessments linked to unchanged source-document and report bytes |
+| Heading units with those assessments | 635 | Inherit the bounded whole-document report; implementation claims still need its evidence |
 | Diagram topics / panels | 205 / 1,730 | Exact panel-ID set matches the existing generated coverage index |
-| Panel assessments reconciled | 315 | Selected panels only; 58 topics have all panels recorded and twelve have partial coverage |
+| Panel assessments reconciled | 317 | Selected panels only; 58 topics have all panels recorded and thirteen have partial coverage |
 | Stale claim records | 0 | Document/report hashes match; implementation and deployment limits still belong to each report |
 
-This snapshot retains all 1,178 candidate paths from the previous batch. It adds one whole-document assessment and records three existing panels after source review; it adds no new decision candidate or diagram panel.
+This snapshot retains all 1,178 candidate paths from the previous batch. It adds one whole-document assessment and records two existing panels after source review; it adds no new decision candidate or diagram panel.
 
-This update assesses SideStr ADR-0003 and corrects all three SR-05 reserve panels. Native-library probes distinguish confirmation-depth policy, mutable aggregate statements and cryptographic verification from consumer authority, freshness, replay and supply checks. The [report](../2026-11-01-reserve-attestation-boundaries.md) records 57 exercised existing test/doc cases, one reported-pass oracle skip, one ignored live test and fourteen additional assertions. No product implementation or activation state changes.
+This update assesses SideStr ADR-0001 and corrects SR-01.1/01.2. The [report](../2026-11-01-sidestr-oracle-contract.md) reconciles historical successful CI with current source and reproduces four reported-pass skips when configured reference files are missing. It distinguishes manifest dependency kinds, independent CI jobs and actual reference participation. No product implementation or activation state changes.
 
 ## What completion must prove
 
@@ -36,8 +36,8 @@ This update assesses SideStr ADR-0003 and corrects all three SR-05 reserve panel
 | --- | --- | --- |
 | Limit work to the linked VisionFlow estate | Explicit repository identity, link/ownership basis, nested-owner handling and unavailable-source record | Scope is enumerated; further dependencies found through in-scope references require a recorded inclusion decision |
 | Check the systems against implementation | Per-repository component and cross-repository contract assessments, exact source revisions, relevant adversarial checks and clearly bounded runtime observations | Many reports exist; whole-system path coverage remains open and cannot be inferred from ADR counts |
-| Inspect and update every diagram | A source-backed disposition for every existing panel, corrections where needed, revision citations and rendering/visual evidence | 315 panel assessments reconciled; 1,415 remain unreconciled, some already reviewed in earlier reports |
-| Examine every ADR section | Classify each candidate; reconcile operative, historical, imported and support obligations; link every material section/requirement to a disposition | 89 current complete-document assessments reconciled; partial/earlier assessments still need explicit mapping |
+| Inspect and update every diagram | A source-backed disposition for every existing panel, corrections where needed, revision citations and rendering/visual evidence | 317 panel assessments reconciled; 1,413 remain unreconciled, some already reviewed in earlier reports |
+| Examine every ADR section | Classify each candidate; reconcile operative, historical, imported and support obligations; link every material section/requirement to a disposition | 90 current complete-document assessments reconciled; partial/earlier assessments still need explicit mapping |
 | Gap analysis, adversarial review and sense checks | Findings with triggers, consequences, evidence strength, counterexamples or bounded non-reproduction, and acceptance criteria | Available throughout dated reports; repo-by-repo completeness and cross-system synthesis remain open |
 | Compare alternatives and develop user utility | Primary-source comparisons tied to product paths, distinct recommendations and measurable user outcomes | Bounded comparisons exist; remaining product areas and final estate positioning still need review |
 
@@ -69,7 +69,7 @@ Counts below come from the dated snapshot. Diagram-area counts derive from indiv
 | dreamlab-ai-website | 47 | 43 | 3 |
 | loom | 10 | 8 | 0 |
 | knowledgeGraph | 9 | 6 | 4 |
-| sidestr-rs | 5 | 3 | 1 |
+| sidestr-rs | 5 | 3 | 2 |
 | ontomark | 13 | 11 | 5 |
 | ontomark-obsidian | 6 | 5 | 5 |
 | WasmVOWL | 1 | 1 | 0 |
@@ -96,7 +96,7 @@ Counts below come from the dated snapshot. Diagram-area counts derive from indiv
 | knowledgegraph | 16 | 16 |
 | nostr-rust-forum | 220 | 100 |
 | ontomark | 64 | 23 |
-| sidestr-rs | 20 | 3 |
+| sidestr-rs | 20 | 5 |
 | solid-pod-rs | 133 | 0 |
 | visionclaw | 477 | 13 |
 | visionflow | 87 | 0 |

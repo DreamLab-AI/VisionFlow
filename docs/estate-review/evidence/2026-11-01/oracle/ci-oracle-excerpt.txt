@@ -1,0 +1,90 @@
+1274: 2026-10-30T21:08:26.5425833Z   && node rpc-oracle.mjs "$GITHUB_WORKSPACE/sidestr-evm/tests/fixtures")
+1275: 2026-10-30T21:08:26.5426312Z git diff --exit-code -- sidestr-evm/tests/fixtures
+1276: 2026-10-30T21:08:26.5426770Z test -z "$(git status --porcelain -- sidestr-evm/tests/fixtures)"
+1277: 2026-10-30T21:08:26.5456426Z shell: /usr/bin/bash -e {0}
+1278: 2026-10-30T21:08:26.5456701Z env:
+1279: 2026-10-30T21:08:26.5456919Z   CARGO_TERM_COLOR: always
+1280: 2026-10-30T21:08:26.5457246Z   SIDESTR_SPEC_REF: e8deb63161c7459ed39c01d2ca9fda3d860b65b6
+1281: 2026-10-30T21:08:26.5457644Z   SCHEMA_REF: b8cbf6337c7450fe14ddc5bce00c7280059aab5d
+1282: 2026-10-30T21:08:26.5458058Z   BLAKETESTNODE_REF: f1da4a6b64a6a9a6f791d2e5dea8a1c1be81ea09
+1283: 2026-10-30T21:08:26.5458460Z   HITCH_REF: 62f8e390b8acbbf1e534ee48cf2d519e0b859586
+1405: 2026-10-30T21:09:32.1011248Z 
+1406: 2026-10-30T21:09:32.1014282Z      Running tests/audit_regressions_0_0_3.rs (target/debug/deps/audit_regressions_0_0_3-24d99ace8f02402c)
+1407: 2026-10-30T21:09:32.1027470Z 
+1408: 2026-10-30T21:09:32.1027870Z running 2 tests
+1409: 2026-10-30T21:09:32.1041847Z test nip19_is_bech32_not_bech32m ... ok
+1410: 2026-10-30T21:09:32.1118384Z test a_secret_is_never_a_destination_and_never_echoed ... ok
+1411: 2026-10-30T21:09:32.1118928Z 
+1412: 2026-10-30T21:09:32.1119577Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+1413: 2026-10-30T21:09:32.1120491Z 
+1623: 2026-10-30T21:11:49.0917026Z 
+1624: 2026-10-30T21:11:49.0919589Z      Running tests/audit_regressions_0_0_3.rs (target/debug/deps/audit_regressions_0_0_3-8e1afbb3c69659cc)
+1625: 2026-10-30T21:11:49.0936259Z 
+1626: 2026-10-30T21:11:49.0936671Z running 1 test
+1627: 2026-10-30T21:11:53.3248731Z test an_output_the_node_gives_no_address_is_not_owned_on_either_engine ... ok
+1628: 2026-10-30T21:11:53.3249344Z 
+1629: 2026-10-30T21:11:53.3249998Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.23s
+1630: 2026-10-30T21:11:53.3250824Z 
+1631: 2026-10-30T21:11:53.3253251Z      Running tests/audit_regressions_records.rs (target/debug/deps/audit_regressions_records-e2fa8e5e3e2c2cd3)
+1750: 2026-10-30T21:12:11.7706038Z running 1 test
+1751: 2026-10-30T21:12:11.9210456Z test pegouts ... ok
+1752: 2026-10-30T21:12:11.9210851Z 
+1753: 2026-10-30T21:12:11.9211297Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+1754: 2026-10-30T21:12:11.9211718Z 
+1755: 2026-10-30T21:12:11.9215161Z      Running tests/pegtweak.rs (target/debug/deps/pegtweak-c8e48210f84aec03)
+1756: 2026-10-30T21:12:11.9227919Z 
+1757: 2026-10-30T21:12:11.9228074Z running 17 tests
+1758: 2026-10-30T21:12:11.9233271Z test bad_chain_hash_and_script_are_refused_in_words ... ok
+1759: 2026-10-30T21:12:11.9265862Z test descriptor_names_internal_refund_and_commit ... ok
+1760: 2026-10-30T21:12:11.9267064Z test control_block_parity_is_the_output_keys ... ok
+1761: 2026-10-30T21:12:11.9267998Z test commitment_leaf_is_pk_of_nums_plus_t ... ok
+1762: 2026-10-30T21:12:11.9268840Z test control_blocks_walk_to_the_root ... ok
+1773: 2026-10-30T21:12:11.9453285Z test two_scripts_two_addresses ... ok
+1774: 2026-10-30T21:12:12.0641323Z test pegtweak_mjs_agrees ... ok
+1775: 2026-10-30T21:12:12.0641707Z 
+1776: 2026-10-30T21:12:12.0642236Z test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+1777: 2026-10-30T21:12:12.0642743Z 
+1778: 2026-10-30T21:12:12.0644827Z      Running tests/rules.rs (target/debug/deps/rules-bf1afbb5f5544d7d)
+1779: 2026-10-30T21:12:12.0658707Z 
+1780: 2026-10-30T21:12:12.0658931Z running 1 test
+1781: 2026-10-30T21:12:12.2322674Z test every_rule_accepts_and_refuses ... ok
+1961: 2026-10-30T21:12:21.9189973Z 
+1962: 2026-10-30T21:12:21.9194664Z      Running tests/chain_consensus.rs (target/debug/deps/chain_consensus-a90b40e9c1d010f6)
+1963: 2026-10-30T21:12:21.9215683Z 
+1964: 2026-10-30T21:12:21.9215949Z running 3 tests
+1965: 2026-10-30T21:12:21.9458577Z test unified_sighash_channel_spends_are_judged_by_the_family_rules ... ok
+1966: 2026-10-30T21:12:22.0308645Z test hitch_builders_write_exactly_the_core_templates ... ok
+1967: 2026-10-30T21:12:30.7159894Z test hitch_open_pay_close_force_close_sweep_and_penalty_replay_on_both_engines ... ok
+1968: 2026-10-30T21:12:30.7160558Z 
+1969: 2026-10-30T21:12:30.7160954Z test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.79s
+2216: 2026-10-30T21:12:38.9302471Z 
+2217: 2026-10-30T21:12:38.9306986Z      Running tests/interop_pegout.rs (target/debug/deps/interop_pegout-48e34788e2c52590)
+2218: 2026-10-30T21:12:38.9324766Z 
+2219: 2026-10-30T21:12:38.9324984Z running 1 test
+2220: 2026-10-30T21:13:07.9471397Z test a_burn_is_paid_by_a_psbt_round_proposed_by_js_and_by_rust ... ok
+2221: 2026-10-30T21:13:07.9471939Z 
+2222: 2026-10-30T21:13:07.9472364Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 29.01s
+2223: 2026-10-30T21:13:07.9472798Z 
+2224: 2026-10-30T21:13:07.9481076Z      Running tests/interop_round.rs (target/debug/deps/interop_round-401f183e8859a37c)
+2225: 2026-10-30T21:13:07.9497349Z 
+2226: 2026-10-30T21:13:07.9497513Z running 2 tests
+2227: 2026-10-30T21:14:07.9500702Z test rust_js_js has been running for over 60 seconds
+2228: 2026-10-30T21:14:07.9501365Z test rust_rust_js has been running for over 60 seconds
+2229: 2026-10-30T21:14:52.1153456Z test rust_rust_js ... ok
+2230: 2026-10-30T21:15:01.6835213Z test rust_js_js ... ok
+2231: 2026-10-30T21:15:01.6835540Z 
+2232: 2026-10-30T21:15:01.6836197Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 113.73s
+2233: 2026-10-30T21:15:01.6836819Z 
+2234: 2026-10-30T21:15:01.6843606Z      Running tests/pegout.rs (target/debug/deps/pegout-03b12a8e9abb350f)
+2235: 2026-10-30T21:15:01.6857047Z 
+2236: 2026-10-30T21:15:01.6857226Z running 5 tests
+2237: 2026-10-30T21:15:01.6951310Z test lateness_moves_the_payer_ring_and_a_stale_proposal_is_dropped ... ok
+2310: 2026-10-30T21:15:02.4674350Z 
+2311: 2026-10-30T21:15:02.4677295Z      Running tests/audit_regressions_0_0_3.rs (target/debug/deps/audit_regressions_0_0_3-e25cdc07d29c5ed3)
+2312: 2026-10-30T21:15:02.4689070Z 
+2313: 2026-10-30T21:15:02.4689249Z running 3 tests
+2314: 2026-10-30T21:15:02.6353806Z test multi_input_wallet_bytes_and_fee_match_both_families ... ok
+2315: 2026-10-30T21:15:05.5534977Z test mempool_block_and_records_match_stock ... ok
+2316: 2026-10-30T21:15:05.9417449Z test mempool_block_and_records_match_blake2b ... ok
+2317: 2026-10-30T21:15:05.9417943Z 
+2318: 2026-10-30T21:15:05.9418619Z test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.47s

@@ -1,0 +1,18 @@
+{
+  "ci-fixture-excerpt.txt": "d90875169b3adefbb5f4ece96d57a41f64878e4aafca2b787e4b3b26d52aa617",
+  "ci-oracle-excerpt.txt": "01084d3f0a2288134331a5e75bdbbcc5ab6d9c82429d1e6d23b682e7366378d5",
+  "ci-receipt.json": "c7dfa09047e0baa15af8aaffeddfdf823e70bac12aa1e3d1294dc0832f409285",
+  "citations.txt": "53431dbedfaea8efce5ab602088bab5f8f7eaa0b43dd26d3ff520de5ba2a128c",
+  "diagrams.txt": "8096a881609fda72ea011985d86c8251185c4f1aa78ddbbcd8f73912d7573e4d",
+  "documentation-checks.json": "49e592fb5ae0a6208076273885d4ad6243eef1ed047af5d70db4885f1a2912df",
+  "head-delta.txt": "30671dcb53b1cef0513bd873dea8fd3187f3d0ce07b8aa2ab27831f4c8d8c8b8",
+  "missing-pegtweak.txt": "aff779ac96c4972ee6c740e497aed46bfda741eda41bbe2d9817e93e2eaf1e44",
+  "missing-round.txt": "186b510ee0ffca9bff4499d621fc4cf03d429c9a3bfc5c275ee160f42d29f483",
+  "prose.txt": "e135b770f7e4856e88506770c8cf684890109504c239b4f87aa22f818e99e81d",
+  "reproduce.sh": "769825849bd6776e7ec7fbfe473eb4e372ca7037332ae5b83e13f5bf0993961a",
+  "source-manifest.json": "6c40e9e96e75cbdb0b2460e9a922e5561fccf28611d20f7b87649cf8168611b7",
+  "unicode.txt": "168260effb9a025f3b83a1d7af72c60232fc26e481166c144f543e11fd6afc96",
+  "verification.txt": "3e2c59b9f0a46704533475d56dc0f457dd45c8556f68e7b06b84e1be8b65b26b",
+  "visual-check.json": "6cd78b8ab486e614adcc356cbf90f0e00c1470eb68ff79f5a69620d82a71a12d",
+  "workspace-edges.json": "f0112270d5b2c40592f8aa72ff9d63aa48da40608ff3c239683dbdfc3a03fae4"
+}

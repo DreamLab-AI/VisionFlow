@@ -2236,5 +2236,29 @@
       "SR-05.3"
     ],
     "basis": "All three existing panels re-read against pinned source, corrected, rendered and visually inspected. Signature integrity is separated from depth, authority, freshness, replay and supply checks; source status is not live funding evidence."
+  },
+  {
+    "kind": "adr",
+    "repo": "sidestr-rs",
+    "path": "docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md",
+    "source_sha256": "001fd42867608d4a2cba8801136d57341adad80dfcb973d641739a1166834a9e",
+    "report": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
+    "report_sha256": "20d7d962df5df96822ef102b1f4a0eeab0069cf1c01a05b5459833f5f7c63c6f",
+    "coverage": "whole-document",
+    "basis": "All metadata and sections assessed against workflow, selected oracle helpers, six reference checkouts and historical CI receipts. Four fresh reported-pass skips expose participation limits; no full consensus, release-enforcement or live-chain acceptance."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/sidestr-rs/01-workspace-oracles-and-live-boundary.md",
+    "source_sha256": "01f275b8705d91b98f683de41c512bfaae217eb0df52a6ecb5802ad4cc4a0f84",
+    "report": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md",
+    "report_sha256": "20d7d962df5df96822ef102b1f4a0eeab0069cf1c01a05b5459833f5f7c63c6f",
+    "coverage": "selected-panels",
+    "basis": "SR-01.1 and SR-01.2 only: direct local dependency kinds, corrected edge direction and independent CI jobs; both rendered and visually inspected. Sibling activation/runtime panels retain earlier evidence and receive no new credit.",
+    "panels": [
+      "SR-01.1",
+      "SR-01.2"
+    ]
   }
 ]
